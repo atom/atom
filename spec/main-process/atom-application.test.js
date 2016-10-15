@@ -188,6 +188,8 @@ describe('AtomApplication', function () {
       reusedWindow = atomApplication.launch(parseCommandLine([dirBPath, '-a']))
       assert.equal(reusedWindow, window1)
       assert.deepEqual(atomApplication.windows, [window1])
+
+      await conditionPromise(async () => (await getTreeViewRootDirectories(reusedWindow)).length === 3)
       assert.deepEqual(await getTreeViewRootDirectories(window1), [dirAPath, dirCPath, dirBPath])
     })
 
@@ -246,7 +248,7 @@ describe('AtomApplication', function () {
 
       const reusedWindow = atomApplication.launch(parseCommandLine([tempDirPath]))
       assert.equal(reusedWindow, window1)
-      assert.deepEqual(await getTreeViewRootDirectories(window1), [tempDirPath])
+      await conditionPromise(async () => (await getTreeViewRootDirectories(reusedWindow)).length > 0)
     })
 
     it('opens a new window with a single untitled buffer when launched with no path, even if windows already exist', async function () {
@@ -303,33 +305,33 @@ describe('AtomApplication', function () {
       assert.deepEqual(await getTreeViewRootDirectories(window), [path.dirname(newFilePath)])
     })
 
-    it('opens an empty text editor and loads its parent directory in the tree-view when launched with a new file path in a remote directory', async function () {
-      // Disable the tree-view because it will try to enumerate the contents of
-      // the remote directory and, since it doesn't exist, throw an error.
-      const configPath = path.join(process.env.ATOM_HOME, 'config.cson')
-      const config = season.readFileSync(configPath)
-      if (!config['*'].core) config['*'].core = {}
-      config['*'].core.disabledPackages = ['tree-view']
-      season.writeFileSync(configPath, config)
+    it('adds a remote directory to the project when launched with a remote directory', async function () {
+      const packagePath = path.join(__dirname, '..', 'fixtures', 'packages', 'package-with-directory-provider')
+      const packagesDirPath = path.join(process.env.ATOM_HOME, 'packages')
+      fs.mkdirSync(packagesDirPath)
+      fs.symlinkSync(packagePath, path.join(packagesDirPath, 'package-with-directory-provider'))
 
       const atomApplication = buildAtomApplication()
-      const newRemoteFilePath = 'remote://server:3437/some/directory/path'
-      const window = atomApplication.launch(parseCommandLine([newRemoteFilePath]))
+      atomApplication.config.set('core.disabledPackages', ['fuzzy-finder'])
+
+      const remotePath = 'remote://server:3437/some/directory/path'
+      let window = atomApplication.launch(parseCommandLine([remotePath]))
+
       await focusWindow(window)
-      const {projectPaths, editorTitle, editorText} = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.observeActivePaneItem(function (editor) {
-          if (editor) {
-            sendBackToMainProcess({
-              projectPaths: atom.project.getPaths(),
-              editorTitle: editor.getTitle(),
-              editorText: editor.getText()
-            })
-          }
+      await conditionPromise(async () => (await getProjectDirectories()).length > 0)
+      let directories = await getProjectDirectories()
+      assert.deepEqual(directories, [{type: 'FakeRemoteDirectory', path: remotePath}])
+
+      await window.reload()
+      await focusWindow(window)
+      directories = await getProjectDirectories()
+      assert.deepEqual(directories, [{type: 'FakeRemoteDirectory', path: remotePath}])
+
+      function getProjectDirectories () {
+        return evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+          sendBackToMainProcess(atom.project.getDirectories().map(d => ({ type: d.constructor.name, path: d.getPath() })))
         })
-      })
-      assert.deepEqual(projectPaths, [newRemoteFilePath])
-      assert.equal(editorTitle, path.basename(newRemoteFilePath))
-      assert.equal(editorText, '')
+      }
     })
 
     it('reopens any previously opened windows when launched with no path', async function () {
@@ -341,6 +343,9 @@ describe('AtomApplication', function () {
       await app1Window1.loadedPromise
       const app1Window2 = atomApplication1.launch(parseCommandLine([tempDirPath2]))
       await app1Window2.loadedPromise
+
+      await app1Window1.saveState()
+      await app1Window2.saveState()
 
       const atomApplication2 = buildAtomApplication()
       const [app2Window1, app2Window2] = atomApplication2.launch(parseCommandLine([]))

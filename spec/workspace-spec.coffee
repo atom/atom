@@ -1,8 +1,8 @@
 path = require 'path'
 temp = require 'temp'
+TextEditor = require '../src/text-editor'
 Workspace = require '../src/workspace'
 Project = require '../src/project'
-Pane = require '../src/pane'
 platform = require './spec-helper-platform'
 _ = require 'underscore-plus'
 fstream = require 'fstream'
@@ -30,7 +30,7 @@ describe "Workspace", ->
       atom.workspace = new Workspace({
         config: atom.config, project: atom.project, packageManager: atom.packages,
         grammarRegistry: atom.grammars, deserializerManager: atom.deserializers,
-        notificationManager: atom.notifications, clipboard: atom.clipboard,
+        notificationManager: atom.notifications,
         applicationDelegate: atom.applicationDelegate,
         viewRegistry: atom.views, assert: atom.assert.bind(atom),
         textEditorRegistry: atom.textEditors
@@ -81,7 +81,7 @@ describe "Workspace", ->
           expect(untitledEditor.getText()).toBe("An untitled editor.")
 
           expect(atom.workspace.getActiveTextEditor().getPath()).toBe editor3.getPath()
-          pathEscaped = escapeStringRegex(atom.project.getPaths()[0])
+          pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
           expect(document.title).toMatch ///^#{path.basename(editor3.getLongTitle())}\ \u2014\ #{pathEscaped}///
 
     describe "where there are no open panes or editors", ->
@@ -796,7 +796,7 @@ describe "Workspace", ->
 
   describe "::isTextEditor(obj)", ->
     it "returns true when the passed object is an instance of `TextEditor`", ->
-      expect(workspace.isTextEditor(atom.workspace.buildTextEditor())).toBe(true)
+      expect(workspace.isTextEditor(new TextEditor)).toBe(true)
       expect(workspace.isTextEditor({getText: -> null})).toBe(false)
       expect(workspace.isTextEditor(null)).toBe(false)
       expect(workspace.isTextEditor(undefined)).toBe(false)
@@ -872,7 +872,7 @@ describe "Workspace", ->
       workspace2 = new Workspace({
         config: atom.config, project: atom.project, packageManager: atom.packages,
         notificationManager: atom.notifications, deserializerManager: atom.deserializers,
-        clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
+        viewRegistry: atom.views, grammarRegistry: atom.grammars,
         applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom),
         textEditorRegistry: atom.textEditors
       })
@@ -894,28 +894,28 @@ describe "Workspace", ->
       describe "when there is an active pane item", ->
         it "sets the title to the pane item's title plus the project path", ->
           item = atom.workspace.getActivePaneItem()
-          pathEscaped = escapeStringRegex(atom.project.getPaths()[0])
+          pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
           expect(document.title).toMatch ///^#{item.getTitle()}\ \u2014\ #{pathEscaped}///
 
       describe "when the title of the active pane item changes", ->
         it "updates the window title based on the item's new title", ->
           editor = atom.workspace.getActivePaneItem()
           editor.buffer.setPath(path.join(temp.dir, 'hi'))
-          pathEscaped = escapeStringRegex(atom.project.getPaths()[0])
+          pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
           expect(document.title).toMatch ///^#{editor.getTitle()}\ \u2014\ #{pathEscaped}///
 
       describe "when the active pane's item changes", ->
         it "updates the title to the new item's title plus the project path", ->
           atom.workspace.getActivePane().activateNextItem()
           item = atom.workspace.getActivePaneItem()
-          pathEscaped = escapeStringRegex(atom.project.getPaths()[0])
+          pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
           expect(document.title).toMatch ///^#{item.getTitle()}\ \u2014\ #{pathEscaped}///
 
       describe "when the last pane item is removed", ->
         it "updates the title to contain the project's path", ->
           atom.workspace.getActivePane().destroy()
           expect(atom.workspace.getActivePaneItem()).toBeUndefined()
-          pathEscaped = escapeStringRegex(atom.project.getPaths()[0])
+          pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
           expect(document.title).toMatch ///^#{pathEscaped}///
 
       describe "when an inactive pane's item changes", ->
@@ -935,13 +935,13 @@ describe "Workspace", ->
         workspace2 = new Workspace({
           config: atom.config, project: atom.project, packageManager: atom.packages,
           notificationManager: atom.notifications, deserializerManager: atom.deserializers,
-          clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
+          viewRegistry: atom.views, grammarRegistry: atom.grammars,
           applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom),
           textEditorRegistry: atom.textEditors
         })
         workspace2.deserialize(atom.workspace.serialize(), atom.deserializers)
         item = workspace2.getActivePaneItem()
-        pathEscaped = escapeStringRegex(atom.project.getPaths()[0])
+        pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
         expect(document.title).toMatch ///^#{item.getLongTitle()}\ \u2014\ #{pathEscaped}///
         workspace2.destroy()
 
@@ -1241,7 +1241,6 @@ describe "Workspace", ->
           expect(matches.length).toBe 1
 
       it "excludes values in core.ignoredNames", ->
-        projectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
         ignoredNames = atom.config.get("core.ignoredNames")
         ignoredNames.push("a")
         atom.config.set("core.ignoredNames", ignoredNames)
@@ -1729,7 +1728,7 @@ describe "Workspace", ->
 
     describe "when there's no repository for the editor's file", ->
       it "doesn't do anything", ->
-        editor = atom.workspace.buildTextEditor()
+        editor = new TextEditor
         editor.setText("stuff")
         atom.workspace.checkoutHeadRevision(editor)
 

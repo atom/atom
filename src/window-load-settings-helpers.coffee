@@ -1,6 +1,3 @@
-{remote} = require 'electron'
-_ = require 'underscore-plus'
-
 windowLoadSettings = null
 
 exports.getWindowLoadSettings = ->

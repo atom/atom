@@ -2,6 +2,7 @@
 _ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
 ScopeDescriptor = require './scope-descriptor'
+NullGrammar = require './null-grammar'
 
 module.exports =
 class LanguageMode
@@ -147,19 +148,19 @@ class LanguageMode
     rowRange
 
   rowRangeForCommentAtBufferRow: (bufferRow) ->
-    return unless @editor.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
+    return unless @editor.tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
 
     startRow = bufferRow
     endRow = bufferRow
 
     if bufferRow > 0
       for currentRow in [bufferRow-1..0] by -1
-        break unless @editor.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
+        break unless @editor.tokenizedBuffer.tokenizedLines[currentRow]?.isComment()
         startRow = currentRow
 
     if bufferRow < @buffer.getLastRow()
       for currentRow in [bufferRow+1..@buffer.getLastRow()] by 1
-        break unless @editor.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
+        break unless @editor.tokenizedBuffer.tokenizedLines[currentRow]?.isComment()
         endRow = currentRow
 
     return [startRow, endRow] if startRow isnt endRow
@@ -188,7 +189,7 @@ class LanguageMode
   # row is a comment.
   isLineCommentedAtBufferRow: (bufferRow) ->
     return false unless 0 <= bufferRow <= @editor.getLastBufferRow()
-    @editor.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
+    @editor.tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
 
   # Find a row range for a 'paragraph' around specified bufferRow. A paragraph
   # is a block of text bounded by and empty line or a block of text that is not
@@ -253,7 +254,6 @@ class LanguageMode
     iterator.next()
     scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
 
-    patterns =
     increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
     decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
     decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)

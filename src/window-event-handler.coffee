@@ -1,6 +1,4 @@
-path = require 'path'
 {Disposable, CompositeDisposable} = require 'event-kit'
-fs = require 'fs-plus'
 listen = require './delegated-listener'
 
 # Handles low-level events related to the @window.
@@ -10,9 +8,7 @@ class WindowEventHandler
     @reloadRequested = false
     @subscriptions = new CompositeDisposable
 
-    @previousOnbeforeunloadHandler = @window.onbeforeunload
-    @window.onbeforeunload = @handleWindowBeforeunload
-    @addEventListener(@window, 'unload', @handleWindowUnload)
+    @addEventListener(@window, 'beforeunload', @handleWindowBeforeunload)
     @addEventListener(@window, 'focus', @handleWindowFocus)
     @addEventListener(@window, 'blur', @handleWindowBlur)
 
@@ -64,7 +60,6 @@ class WindowEventHandler
     bindCommandToAction('core:cut', 'cut')
 
   unsubscribe: ->
-    @window.onbeforeunload = @previousOnbeforeunloadHandler
     @subscriptions.dispose()
 
   on: (target, eventName, handler) ->
@@ -152,7 +147,7 @@ class WindowEventHandler
   handleLeaveFullScreen: =>
     @document.body.classList.remove("fullscreen")
 
-  handleWindowBeforeunload: =>
+  handleWindowBeforeunload: (event) =>
     confirmed = @atomEnvironment.workspace?.confirmClose(windowCloseRequested: true)
     if confirmed and not @reloadRequested and not @atomEnvironment.inSpecMode() and @atomEnvironment.getCurrentWindow().isWebViewFocused()
       @atomEnvironment.hide()
@@ -161,14 +156,10 @@ class WindowEventHandler
     @atomEnvironment.storeWindowDimensions()
     if confirmed
       @atomEnvironment.unloadEditorWindow()
+      @atomEnvironment.destroy()
     else
       @applicationDelegate.didCancelWindowUnload()
-
-    # Returning any non-void value stops the window from unloading
-    return true unless confirmed
-
-  handleWindowUnload: =>
-    @atomEnvironment.destroy()
+      event.returnValue = false
 
   handleWindowToggleFullScreen: =>
     @atomEnvironment.toggleFullScreen()

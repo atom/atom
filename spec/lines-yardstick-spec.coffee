@@ -1,6 +1,5 @@
 LinesYardstick = require '../src/lines-yardstick'
 LineTopIndex = require 'line-top-index'
-{toArray} = require 'underscore-plus'
 {Point} = require 'text-buffer'
 
 describe "LinesYardstick", ->
@@ -15,8 +14,6 @@ describe "LinesYardstick", ->
 
     runs ->
       createdLineNodes = []
-      availableScreenRows = {}
-      screenRowsToMeasure = []
 
       buildLineNode = (screenRow) ->
         startIndex = 0
@@ -43,11 +40,13 @@ describe "LinesYardstick", ->
 
       mockLineNodesProvider =
         lineNodesById: {}
+
         lineIdForScreenRow: (screenRow) ->
-          editor.screenLineForScreenRow(screenRow).id
+          editor.screenLineForScreenRow(screenRow)?.id
 
         lineNodeForScreenRow: (screenRow) ->
-          @lineNodesById[@lineIdForScreenRow(screenRow)] ?= buildLineNode(screenRow)
+          if id = @lineIdForScreenRow(screenRow)
+            @lineNodesById[id] ?= buildLineNode(screenRow)
 
         textNodesForScreenRow: (screenRow) ->
           lineNode = @lineNodeForScreenRow(screenRow)

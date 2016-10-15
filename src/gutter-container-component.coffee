@@ -18,7 +18,7 @@ class GutterContainerComponent
     @domNode.style.display = 'flex'
 
   destroy: ->
-    for {name, component} in @gutterComponents
+    for {component} in @gutterComponents
       component.destroy?()
     return
 

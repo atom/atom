@@ -21,7 +21,7 @@ class Pane extends Model
   focused: false
 
   @deserialize: (state, {deserializers, applicationDelegate, config, notifications}) ->
-    {items, itemStackIndices, activeItemIndex, activeItemURI, activeItemUri} = state
+    {items, activeItemIndex, activeItemURI, activeItemUri} = state
     activeItemURI ?= activeItemUri
     items = items.map (itemState) -> deserializers.deserialize(itemState)
     state.activeItem = items[activeItemIndex]

@@ -1,6 +1,5 @@
 path = require 'path'
 fs = require 'fs-plus'
-temp = require 'temp'
 AtomPortable = require '../src/main-process/atom-portable'
 
 portableModeCommonPlatformBehavior = (platform) ->

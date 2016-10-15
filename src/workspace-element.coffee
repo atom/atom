@@ -1,8 +1,7 @@
 {ipcRenderer} = require 'electron'
 path = require 'path'
 fs = require 'fs-plus'
-{Disposable, CompositeDisposable} = require 'event-kit'
-Grim = require 'grim'
+{CompositeDisposable} = require 'event-kit'
 scrollbarStyle = require 'scrollbar-style'
 
 module.exports =
@@ -142,5 +141,14 @@ class WorkspaceElement extends HTMLElement
         specPath = testPath
 
       ipcRenderer.send('run-package-specs', specPath)
+
+  runBenchmarks: ->
+    if activePath = @workspace.getActivePaneItem()?.getPath?()
+      [projectPath] = @project.relativizePath(activePath)
+    else
+      [projectPath] = @project.getPaths()
+
+    if projectPath
+      ipcRenderer.send('run-benchmarks', path.join(projectPath, 'benchmarks'))
 
 module.exports = WorkspaceElement = document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype

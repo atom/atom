@@ -19,7 +19,7 @@ describe "TextEditorPresenter", ->
       spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
 
       buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
-      editor = atom.workspace.buildTextEditor({buffer})
+      editor = new TextEditor({buffer})
       waitsForPromise -> buffer.load()
 
     afterEach ->
@@ -475,6 +475,7 @@ describe "TextEditorPresenter", ->
           waitsForPromise -> atom.packages.activatePackage('language-javascript')
 
           runs ->
+            editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
             maxLineLength = editor.getMaxScreenLineLength()
             presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
@@ -759,6 +760,7 @@ describe "TextEditorPresenter", ->
           waitsForPromise -> atom.packages.activatePackage('language-javascript')
 
           runs ->
+            editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
             editor.setCursorBufferPosition([3, 6])
             presenter = buildPresenter()
             expect(getState(presenter).hiddenInput.width).toBe 10
@@ -918,6 +920,7 @@ describe "TextEditorPresenter", ->
           waitsForPromise -> atom.packages.activatePackage('language-javascript')
 
           runs ->
+            editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
             maxLineLength = editor.getMaxScreenLineLength()
             presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
@@ -1265,6 +1268,8 @@ describe "TextEditorPresenter", ->
             expectValues lineStateForScreenRow(presenter, 3), {screenRow: 3, tagCodes: editor.screenLineForScreenRow(3).tagCodes}
 
           it "includes the .endOfLineInvisibles if the editor.showInvisibles config option is true", ->
+            editor.update({showInvisibles: false, invisibles: {eol: 'X'}})
+
             editor.setText("hello\nworld\r\n")
             presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10)
             expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 0).tagCodes).openTags).not.toContain('invisible-character eol')
@@ -1731,6 +1736,7 @@ describe "TextEditorPresenter", ->
             atom.packages.activatePackage('language-javascript')
 
           runs ->
+            editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
             editor.setCursorBufferPosition([1, 4])
             presenter = buildPresenter(explicitHeight: 20)
 
@@ -1848,7 +1854,7 @@ describe "TextEditorPresenter", ->
 
       describe ".highlights", ->
         expectUndefinedStateForHighlight = (presenter, decoration) ->
-          for tileId, tileState of getState(presenter).content.tiles
+          for tileId of getState(presenter).content.tiles
             state = stateForHighlightInTile(presenter, decoration, tileId)
             expect(state).toBeUndefined()
 
@@ -1860,7 +1866,7 @@ describe "TextEditorPresenter", ->
           stateForHighlightInTile(presenter, selection.decoration, tile)
 
         expectUndefinedStateForSelection = (presenter, selectionIndex) ->
-          for tileId, tileState of getState(presenter).content.tiles
+          for tileId of getState(presenter).content.tiles
             state = stateForSelectionInTile(presenter, selectionIndex, tileId)
             expect(state).toBeUndefined()
 
@@ -2076,6 +2082,7 @@ describe "TextEditorPresenter", ->
             atom.packages.activatePackage('language-javascript')
 
           runs ->
+            editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
             editor.setSelectedBufferRanges([
               [[2, 4], [2, 6]],
             ])
@@ -3667,7 +3674,7 @@ describe "TextEditorPresenter", ->
 
     performSetup = ->
       buffer = new TextBuffer
-      editor = atom.workspace.buildTextEditor({buffer})
+      editor = new TextEditor({buffer})
       editor.setEditorWidthInChars(80)
       presenterParams =
         model: editor

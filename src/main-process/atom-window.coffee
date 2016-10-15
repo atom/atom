@@ -16,7 +16,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (@atomApplication, @fileRecoveryService, settings={}) ->
-    {@resourcePath, initialPaths, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
+    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
 
@@ -77,8 +77,7 @@ class AtomWindow
 
     @browserWindow.loadSettings = loadSettings
 
-    @browserWindow.once 'window:loaded', =>
-      @loaded = true
+    @browserWindow.on 'window:loaded', =>
       @emit 'window:loaded'
       @resolveLoadedPromise()
 
@@ -197,10 +196,7 @@ class AtomWindow
     @openLocations([{pathToOpen, initialLine, initialColumn}])
 
   openLocations: (locationsToOpen) ->
-    if @loaded
-      @sendMessage 'open-locations', locationsToOpen
-    else
-      @browserWindow.once 'window:loaded', => @openLocations(locationsToOpen)
+    @loadedPromise.then => @sendMessage 'open-locations', locationsToOpen
 
   replaceEnvironment: (env) ->
     @browserWindow.webContents.send 'environment', env
@@ -248,7 +244,13 @@ class AtomWindow
 
   maximize: -> @browserWindow.maximize()
 
+  unmaximize: -> @browserWindow.unmaximize()
+
   restore: -> @browserWindow.restore()
+
+  setFullScreen: (fullScreen) -> @browserWindow.setFullScreen(fullScreen)
+
+  setAutoHideMenuBar: (autoHideMenuBar) -> @browserWindow.setAutoHideMenuBar(autoHideMenuBar)
 
   handlesAtomCommands: ->
     not @isSpecWindow() and @isWebViewFocused()
@@ -263,6 +265,19 @@ class AtomWindow
 
   isSpecWindow: -> @isSpec
 
-  reload: -> @browserWindow.reload()
+  reload: ->
+    @loadedPromise = new Promise((@resolveLoadedPromise) =>)
+    @saveState().then => @browserWindow.reload()
+    @loadedPromise
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
+
+  openDevTools: -> @browserWindow.openDevTools()
+
+  closeDevTools: -> @browserWindow.closeDevTools()
+
+  setDocumentEdited: (documentEdited) -> @browserWindow.setDocumentEdited(documentEdited)
+
+  setRepresentedFilename: (representedFilename) -> @browserWindow.setRepresentedFilename(representedFilename)
+
+  copy: -> @browserWindow.copy()

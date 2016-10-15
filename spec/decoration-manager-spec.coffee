@@ -1,5 +1,4 @@
 DecorationManager = require '../src/decoration-manager'
-_ = require 'underscore-plus'
 
 describe "DecorationManager", ->
   [decorationManager, buffer, defaultMarkerLayer] = []

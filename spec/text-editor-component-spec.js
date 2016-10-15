@@ -2,6 +2,7 @@
 
 import {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise} from './async-spec-helpers'
 import Grim from 'grim'
+import TextEditor from '../src/text-editor'
 import TextEditorElement from '../src/text-editor-element'
 import _, {extend, flatten, last, toArray} from 'underscore-plus'
 
@@ -4419,7 +4420,7 @@ describe('TextEditorComponent', function () {
 
     describe('when autoHeight is not assigned on the editor', function () {
       it('implicitly assigns autoHeight to true and emits a deprecation warning if the editor has its height assigned via an inline style', function () {
-        editor = atom.workspace.buildTextEditor()
+        editor = new TextEditor()
         element = editor.getElement()
         element.setUpdatedSynchronously(false)
         element.style.height = '200px'
@@ -4434,7 +4435,7 @@ describe('TextEditorComponent', function () {
       })
 
       it('implicitly assigns autoHeight to true and emits a deprecation warning if the editor has its height assigned via position absolute with an assigned top and bottom', function () {
-        editor = atom.workspace.buildTextEditor()
+        editor = new TextEditor()
         element = editor.getElement()
         element.setUpdatedSynchronously(false)
         parentElement = document.createElement('div')

@@ -197,7 +197,7 @@ describe "Package", ->
         expect(spy).toHaveBeenCalled()
 
   describe ".loadMetadata()", ->
-    [packagePath, pack, metadata] = []
+    [packagePath, metadata] = []
 
     beforeEach ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-different-directory-name')

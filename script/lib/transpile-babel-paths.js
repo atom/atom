@@ -25,6 +25,7 @@ module.exports = function () {
 
 function getPathsToTranspile () {
   let paths = []
+  paths = paths.concat(glob.sync(path.join(CONFIG.intermediateAppPath, 'benchmarks', '**', '*.js')))
   paths = paths.concat(glob.sync(path.join(CONFIG.intermediateAppPath, 'exports', '**', '*.js')))
   paths = paths.concat(glob.sync(path.join(CONFIG.intermediateAppPath, 'src', '**', '*.js')))
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {

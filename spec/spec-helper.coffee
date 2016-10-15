@@ -49,7 +49,7 @@ if process.env.CI
 else
   jasmine.getEnv().defaultTimeoutInterval = 5000
 
-{resourcePath, testPaths} = atom.getLoadSettings()
+{testPaths} = atom.getLoadSettings()
 
 if specPackagePath = FindParentDir.sync(testPaths[0], 'package.json')
   packageMetadata = require(path.join(specPackagePath, 'package.json'))
@@ -61,8 +61,6 @@ else
   specProjectPath = path.join(__dirname, 'fixtures')
 
 beforeEach ->
-  documentTitle = null
-
   atom.project.setPaths([specProjectPath])
 
   window.resetTimeouts()
