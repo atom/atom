@@ -272,7 +272,8 @@ if process.platform in ['win32', 'linux']
     description: 'Automatically hide the menu bar and toggle it by pressing Alt. This is only supported on Windows & Linux.'
 
 if process.platform is 'darwin'
-  module.exports.core.properties.useCustomTitleBar =
-    type: 'boolean'
-    default: false
-    description: 'Use custom, theme-aware title bar.<br>Note: This currently does not include a proxy icon.<br>This setting will require a relaunch of Atom to take effect.'
+  module.exports.core.properties.titleBar =
+    type: 'string'
+    default: 'native'
+    enum: ['native', 'custom', 'hidden']
+    description: 'Use a custom, theme-aware title bar or hide the title bar altogether.<br>Note: Switching to a custom or hidden title bar will compromise some functionality.<br>This setting will require a relaunch of Atom to take effect.'

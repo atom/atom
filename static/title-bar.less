@@ -1,7 +1,9 @@
 @import "ui-variables";
 
+// Custom Title Bar -------------------------------
+
 @title-bar-text-size: 13px;
-@title-bar-height: 36px;
+@title-bar-height: 23px;
 @title-bar-background-color: @base-background-color;
 @title-bar-border-color: @base-border-color;
 
@@ -23,7 +25,7 @@ body.fullscreen .title-bar {
   -webkit-user-select: none;
   -webkit-app-region: drag;
 
-  padding: 0 77px;
+  padding: 0 70px;
   overflow: hidden;
 
   .title {
@@ -39,4 +41,51 @@ body.fullscreen .title-bar {
   .is-blurred & {
     color: @text-color-subtle;
   }
+}
+
+
+// Hidden Title Bar -------------------------------
+
+.hidden-title-bar {
+
+  // Add space for the traffic lights
+  atom-panel-container.left {
+    padding-top: 36px;
+
+    // TODO: The .fullscreen class doesn't seem to get added
+    // So this has currently no effect
+    .fullscreen & {
+      padding-top: 0;
+    }
+  }
+
+  // Avoid tabs from overlap window controls when sidebar is closed
+  atom-panel-container.left:empty + atom-workspace-axis.vertical .tab-bar,
+  atom-panel-container.left:empty + atom-workspace-axis.vertical atom-panel-container.top {
+    padding-left: 77px;
+  }
+
+  // Enable dragging
+  atom-panel-container.left,
+  .tree-view,
+  .tab-bar,
+  .status-bar {
+    -webkit-app-region: drag;
+  }
+
+  // Disable dragging (on child elements)
+  .tree-view > li,
+  .tree-view-resize-handle,
+  .tab {
+    -webkit-app-region: no-drag;
+  }
+
+  // Modal
+  atom-panel.modal {
+    // padding: 0 77px;
+    top: 36px;
+    border-top-left-radius: @component-border-radius;
+    border-top-right-radius: @component-border-radius;
+  }
+
 }

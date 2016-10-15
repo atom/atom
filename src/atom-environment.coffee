@@ -692,9 +692,11 @@ class AtomEnvironment extends Model
         @deserialize(state) if state?
         @deserializeTimings.atom = Date.now() - startTime
 
-        if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
+        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom'
           @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
           @document.body.classList.add('custom-title-bar')
+        if process.platform is 'darwin' and @config.get('core.titleBar') is 'hidden'
+          @document.body.classList.add('hidden-title-bar')
 
         @document.body.appendChild(@views.getView(@workspace))
         @backgroundStylesheet?.remove()
