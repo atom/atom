@@ -364,6 +364,95 @@ describe "atom.themes", ->
       expect(addErrorHandler.callCount).toBe 2
       expect(addErrorHandler.argsForCall[1][0].message).toContain("Failed to activate the theme-with-invalid-styles theme")
 
+  describe "user syntax stylesheet", ->
+    userSyntaxStylesheetPath = null
+    shadowElement = -> document.querySelector('atom-text-editor').shadowRoot.querySelector('.editor--private')
+    beforeEach ->
+      userSyntaxStylesheetPath = path.join(temp.mkdirSync("atom"), 'syntax-styles.less')
+      fs.writeFileSync(userSyntaxStylesheetPath, '.editor--private {border-style: dotted !important;}')
+      spyOn(atom.styles, 'getUserSyntaxStyleSheetPath').andReturn userSyntaxStylesheetPath
+      workspaceElement = atom.views.getView(atom.workspace)
+      jasmine.attachToDOM(workspaceElement)
+      workspaceElement.appendChild document.createElement('atom-text-editor')
+
+    describe "when the user syntax stylesheet changes", ->
+      beforeEach ->
+        jasmine.snapshotDeprecations()
+
+      afterEach ->
+        jasmine.restoreDeprecationsSnapshot()
+
+      it "reloads it", ->
+        [styleElementAddedHandler, styleElementRemovedHandler] = []
+
+        waitsForPromise ->
+          atom.themes.activateThemes()
+
+        runs ->
+          atom.styles.onDidRemoveStyleElement styleElementRemovedHandler = jasmine.createSpy("styleElementRemovedHandler")
+          atom.styles.onDidAddStyleElement styleElementAddedHandler = jasmine.createSpy("styleElementAddedHandler")
+
+          spyOn(atom.themes, 'loadUserSyntaxStylesheet').andCallThrough()
+
+          expect(getComputedStyle(shadowElement()).borderStyle).toBe 'dotted'
+          fs.writeFileSync(userSyntaxStylesheetPath, '.editor--private {border-style: dashed}')
+
+        waitsFor ->
+          atom.themes.loadUserSyntaxStylesheet.callCount is 1
+
+        runs ->
+          expect(getComputedStyle(shadowElement()).borderStyle).toBe 'dashed'
+
+          expect(styleElementRemovedHandler).toHaveBeenCalled()
+          expect(styleElementRemovedHandler.argsForCall[0][0].textContent).toContain 'dotted'
+
+          expect(styleElementAddedHandler).toHaveBeenCalled()
+          expect(styleElementAddedHandler.argsForCall[0][0].textContent).toContain 'dashed'
+
+          styleElementRemovedHandler.reset()
+          fs.removeSync(userSyntaxStylesheetPath)
+
+        waitsFor ->
+          atom.themes.loadUserSyntaxStylesheet.callCount is 2
+
+        runs ->
+          expect(styleElementRemovedHandler).toHaveBeenCalled()
+          expect(styleElementRemovedHandler.argsForCall[0][0].textContent).toContain 'dashed'
+          expect(getComputedStyle(shadowElement()).borderStyle).toBe 'none'
+
+    describe "when there is an error reading the syntax stylesheet", ->
+      addErrorHandler = null
+      beforeEach ->
+        atom.themes.loadUserSyntaxStylesheet()
+        spyOn(atom.themes.lessCache, 'cssForFile').andCallFake ->
+          throw new Error('EACCES permission denied "syntax-styles.less"')
+        atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy()
+
+      it "creates an error notification and does not add the stylesheet", ->
+        atom.themes.loadUserSyntaxStylesheet()
+        expect(addErrorHandler).toHaveBeenCalled()
+        note = addErrorHandler.mostRecentCall.args[0]
+        expect(note.getType()).toBe 'error'
+        expect(note.getMessage()).toContain 'Error loading'
+        expect(atom.styles.styleElementsBySourcePath[atom.styles.getUserSyntaxStyleSheetPath()]).toBeUndefined()
+
+    describe "when there is an error watching the user syntax stylesheet", ->
+      addErrorHandler = null
+      beforeEach ->
+        {File} = require 'pathwatcher'
+        spyOn(File::, 'on').andCallFake (event) ->
+          if event.indexOf('contents-changed') > -1
+            throw new Error('Unable to watch path')
+        spyOn(atom.themes, 'loadStylesheet').andReturn ''
+        atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy()
+
+      it "creates an error notification", ->
+        atom.themes.loadUserSyntaxStylesheet()
+        expect(addErrorHandler).toHaveBeenCalled()
+        note = addErrorHandler.mostRecentCall.args[0]
+        expect(note.getType()).toBe 'error'
+        expect(note.getMessage()).toContain 'Unable to watch path'
+
   describe "when a non-existent theme is present in the config", ->
     beforeEach ->
       console.warn.reset()

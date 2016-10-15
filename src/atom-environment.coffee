@@ -281,6 +281,8 @@ class AtomEnvironment extends Model
       switch uri
         when 'atom://.atom/stylesheet'
           @workspace.open(@styles.getUserStyleSheetPath())
+        when 'atom://.atom/syntax-stylesheet'
+          @workspace.open(@styles.getUserSyntaxStyleSheetPath())
         when 'atom://.atom/keymap'
           @workspace.open(@keymaps.getUserKeymapPath())
         when 'atom://.atom/config'

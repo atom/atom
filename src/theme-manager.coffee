@@ -138,6 +138,13 @@ class ThemeManager
     @userStyleSheetDisposable?.dispose()
     @userStyleSheetDisposable = null
 
+  unwatchUserSyntaxStylesheet: ->
+    @userSyntaxStylesheetSubscriptions?.dispose()
+    @userSyntaxStylesheetSubscriptions = null
+    @userSyntaxStylesheetFile = null
+    @userSyntaxStyleSheetDisposable?.dispose()
+    @userSyntaxStyleSheetDisposable = null
+
   loadUserStylesheet: ->
     @unwatchUserStylesheet()
 
@@ -152,14 +159,7 @@ class ThemeManager
       @userStylsheetSubscriptions.add(@userStylesheetFile.onDidRename(reloadStylesheet))
       @userStylsheetSubscriptions.add(@userStylesheetFile.onDidDelete(reloadStylesheet))
     catch error
-      message = """
-        Unable to watch path: `#{path.basename(userStylesheetPath)}`. Make sure
-        you have permissions to `#{userStylesheetPath}`.
-
-        On linux there are currently problems with watch sizes. See
-        [this document][watches] for more info.
-        [watches]:https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path
-      """
+      message = @watchError userStylesheetPath
       @notificationManager.addError(message, dismissable: true)
 
     try
@@ -168,6 +168,41 @@ class ThemeManager
       return
 
     @userStyleSheetDisposable = @styleManager.addStyleSheet(userStylesheetContents, sourcePath: userStylesheetPath, priority: 2)
+
+  loadUserSyntaxStylesheet: ->
+    @unwatchUserSyntaxStylesheet()
+
+    userSyntaxStylesheetPath = @styleManager.getUserSyntaxStyleSheetPath()
+    return unless fs.isFileSync(userSyntaxStylesheetPath)
+
+    try
+      @userSyntaxStylesheetFile = new File(userSyntaxStylesheetPath)
+      @userSyntaxStylesheetSubscriptions = new CompositeDisposable()
+      reloadStylesheet = => @loadUserSyntaxStylesheet()
+      @userSyntaxStylesheetSubscriptions.add(@userSyntaxStylesheetFile.onDidChange(reloadStylesheet))
+      @userSyntaxStylesheetSubscriptions.add(@userSyntaxStylesheetFile.onDidRename(reloadStylesheet))
+      @userSyntaxStylesheetSubscriptions.add(@userSyntaxStylesheetFile.onDidDelete(reloadStylesheet))
+    catch error
+      message = @watchError userSyntaxStylesheetPath
+      @notificationManager.addError(message, dismissable: true)
+
+    try
+      userSyntaxStylesheetContents = @loadStylesheet(userSyntaxStylesheetPath, true)
+    catch
+      return
+
+    @userSyntaxStyleSheetDisposable = @styleManager.addStyleSheet(userSyntaxStylesheetContents,
+      sourcePath: userSyntaxStylesheetPath, context: 'atom-text-editor', priority: 2)
+
+  watchError: (filePath) ->
+    """
+      Unable to watch path: `#{path.basename(filePath)}`. Make sure
+      you have permissions to `#{filePath}`.
+
+      On linux there are currently problems with watch sizes. See
+      [this document][watches] for more info.
+      [watches]:https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path
+    """
 
   loadBaseStylesheets: ->
     @reloadBaseStylesheets()
@@ -255,6 +290,7 @@ class ThemeManager
           @addActiveThemeClasses()
           @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
           @loadUserStylesheet()
+          @loadUserSyntaxStylesheet()
           @reloadBaseStylesheets()
           @initialLoadComplete = true
           @emitter.emit 'did-change-active-themes'
@@ -263,6 +299,7 @@ class ThemeManager
   deactivateThemes: ->
     @removeActiveThemeClasses()
     @unwatchUserStylesheet()
+    @unwatchUserSyntaxStylesheet()
     @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
     null
 

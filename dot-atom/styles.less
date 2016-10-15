@@ -7,6 +7,9 @@
  * Add your own CSS or Less to fully customize Atom.
  * If you are unfamiliar with Less, you can read more about it here:
  * http://lesscss.org
+ *
+ * This sytlesheet is for the Atom UI outside the text editor itself, to
+ * style content in the text editor's shadow DOM, use the syntax stylesheet.
  */
 
 
@@ -20,13 +23,7 @@
   // background-color: whitesmoke;
 }
 
-// style the background and foreground colors on the atom-text-editor-element itself
-atom-text-editor {
-  // color: white;
-  // background-color: hsl(180, 24%, 12%);
-}
-
-// To style other content in the text editor's shadow DOM, use the ::shadow expression
-atom-text-editor::shadow .cursor {
-  // border-color: red;
+// make your tabs' titles a bit askew
+.tab-bar .tab .title {
+  // transform: rotate(-3deg);
 }

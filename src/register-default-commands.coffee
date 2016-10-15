@@ -52,6 +52,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'application:open-your-keymap': -> ipcRenderer.send('command', 'application:open-your-keymap')
     'application:open-your-snippets': -> ipcRenderer.send('command', 'application:open-your-snippets')
     'application:open-your-stylesheet': -> ipcRenderer.send('command', 'application:open-your-stylesheet')
+    'application:open-your-syntax-stylesheet': -> ipcRenderer.send('command', 'application:open-your-syntax-stylesheet')
     'application:open-license': -> @getModel().openLicense()
     'window:run-package-specs': -> @runPackageSpecs()
     'window:run-benchmarks': -> @runBenchmarks()
