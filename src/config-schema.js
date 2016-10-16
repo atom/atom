@@ -42,7 +42,7 @@ const configSchema = {
       customFileTypes: {
         type: 'object',
         default: {},
-        description: "Associates scope names (e.g. `\"source.js\"`) with arrays of file extensions and file names (e.g. `[\"Somefile\", \".js2\"]`)",
+        description: 'Associates scope names (e.g. `"source.js"`) with arrays of file extensions and file names (e.g. `["Somefile", ".js2"]`)',
         additionalProperties: {
           type: 'array',
           items: {
@@ -157,8 +157,8 @@ const configSchema = {
         ]
       },
       warnOnLargeFileLimit: {
-        description: "Warn before opening files larger than this number of megabytes.",
-        type: "number",
+        description: 'Warn before opening files larger than this number of megabytes.',
+        type: 'number',
         default: 20
       }
     }
@@ -335,14 +335,14 @@ const configSchema = {
       }
     }
   }
-};
+}
 
 if (['win32', 'linux'].includes(process.platform)) {
   configSchema.core.properties.autoHideMenuBar = {
     type: 'boolean',
     default: false,
     description: 'Automatically hide the menu bar and toggle it by pressing Alt. This is only supported on Windows & Linux.'
-  };
+  }
 }
 
 if (process.platform === 'darwin') {
@@ -350,7 +350,7 @@ if (process.platform === 'darwin') {
     type: 'boolean',
     default: false,
     description: 'Use custom, theme-aware title bar.<br>Note: This currently does not include a proxy icon.<br>This setting will require a relaunch of Atom to take effect.'
-  };
+  }
 }
 
 export default configSchema
