@@ -58,8 +58,6 @@ describe "ViewRegistry", ->
 
       describe "when a view provider is registered generically, and works with the object", ->
         it "constructs a view element and assigns the model on it", ->
-          model = {a: 'b'}
-
           registry.addViewProvider (model) ->
             if model.a is 'b'
               element = document.createElement('div')
@@ -185,7 +183,7 @@ describe "ViewRegistry", ->
       expect(events).toEqual ['write', 'read', 'poll']
 
   describe "::pollDocument(fn)", ->
-    [testElement, testStyleSheet, disposable1, disposable2, events] = []
+    [testElement, testStyleSheet, disposable1, events] = []
 
     beforeEach ->
       testElement = document.createElement('div')
@@ -197,7 +195,7 @@ describe "ViewRegistry", ->
 
       events = []
       disposable1 = registry.pollDocument -> events.push('poll 1')
-      disposable2 = registry.pollDocument -> events.push('poll 2')
+      registry.pollDocument -> events.push('poll 2')
 
     it "calls all registered polling functions after document or stylesheet changes until they are disabled via a returned disposable", ->
       jasmine.useRealClock()

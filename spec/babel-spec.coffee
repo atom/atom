@@ -48,7 +48,7 @@ describe "Babel transpiler support", ->
       spyOn(process.stderr, 'write')
       spyOn(process.stdout, 'write')
 
-      transpiled = require('./fixtures/babel/babel-double-quotes.js')
+      require('./fixtures/babel/babel-double-quotes.js')
 
       expect(process.stdout.write).not.toHaveBeenCalled()
       expect(process.stderr.write).not.toHaveBeenCalled()

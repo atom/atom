@@ -1,8 +1,3 @@
-cloneObject = (object) ->
-  clone = {}
-  clone[key] = value for key, value of object
-  clone
-
 module.exports =
 class BlockDecorationsComponent
   constructor: (@container, @views, @presenter, @domElementPool) ->

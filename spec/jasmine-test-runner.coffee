@@ -80,7 +80,7 @@ buildReporter = ({logFile, headless, resolveWithExitCode}) ->
     buildTerminalReporter(logFile, resolveWithExitCode)
   else
     AtomReporter = require './atom-reporter'
-    reporter = new AtomReporter()
+    new AtomReporter
 
 buildTerminalReporter = (logFile, resolveWithExitCode) ->
   logStream = fs.openSync(logFile, 'w') if logFile?

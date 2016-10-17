@@ -109,7 +109,7 @@ class MenuManager
   includeSelector: (selector) ->
     try
       return true if document.body.webkitMatchesSelector(selector)
-    catch error
+    catch
       # Selector isn't valid
       return false
 

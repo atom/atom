@@ -553,7 +553,7 @@ describe "Pane", ->
   describe "::destroyInactiveItems()", ->
     it "destroys all items but the active item", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
-      [item1, item2, item3] = pane.getItems()
+      [item1, item2] = pane.getItems()
       pane.activateItem(item2)
       pane.destroyInactiveItems()
       expect(pane.getItems()).toEqual [item2]
@@ -656,7 +656,7 @@ describe "Pane", ->
   describe "::itemForURI(uri)", ->
     it "returns the item for which a call to .getURI() returns the given uri", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")]))
-      [item1, item2, item3] = pane.getItems()
+      [item1, item2] = pane.getItems()
       item1.uri = "a"
       item2.uri = "b"
       expect(pane.itemForURI("a")).toBe item1
@@ -888,7 +888,7 @@ describe "Pane", ->
   describe "::close()", ->
     it "prompts to save unsaved items before destroying the pane", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
-      [item1, item2] = pane.getItems()
+      [item1] = pane.getItems()
 
       item1.shouldPromptToSave = -> true
       item1.getURI = -> "/test/path"
@@ -903,7 +903,7 @@ describe "Pane", ->
 
     it "does not destroy the pane if cancel is called", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
-      [item1, item2] = pane.getItems()
+      [item1] = pane.getItems()
 
       item1.shouldPromptToSave = -> true
       item1.getURI = -> "/test/path"
@@ -917,11 +917,11 @@ describe "Pane", ->
       expect(pane.isDestroyed()).toBe false
 
     describe "when item fails to save", ->
-      [pane, item1, item2] = []
+      [pane, item1] = []
 
       beforeEach ->
         pane = new Pane({items: [new Item("A"), new Item("B")], applicationDelegate: atom.applicationDelegate, config: atom.config})
-        [item1, item2] = pane.getItems()
+        [item1] = pane.getItems()
 
         item1.shouldPromptToSave = -> true
         item1.getURI = -> "/test/path"
@@ -1154,7 +1154,6 @@ describe "Pane", ->
       expect(newPane.itemStack[2]).toEqual item2
 
     it "builds the itemStack if the itemStack is not serialized", ->
-      [item1, item2, item3] = pane.getItems()
       newPane = Pane.deserialize(pane.serialize(), atom)
       expect(newPane.getItems()).toEqual newPane.itemStack
 

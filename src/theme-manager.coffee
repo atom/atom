@@ -151,7 +151,7 @@ class ThemeManager
       @userStylsheetSubscriptions.add(@userStylesheetFile.onDidChange(reloadStylesheet))
       @userStylsheetSubscriptions.add(@userStylesheetFile.onDidRename(reloadStylesheet))
       @userStylsheetSubscriptions.add(@userStylesheetFile.onDidDelete(reloadStylesheet))
-    catch error
+    catch
       message = """
         Unable to watch path: `#{path.basename(userStylesheetPath)}`. Make sure
         you have permissions to `#{userStylesheetPath}`.

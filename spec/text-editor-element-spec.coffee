@@ -249,7 +249,7 @@ describe "TextEditorElement", ->
         positions = []
         subscription1 = element.onDidChangeScrollTop (p) -> positions.push(p)
         jasmine.attachToDOM(element)
-        subscription2 = element.onDidChangeScrollTop (p) -> positions.push(p)
+        element.onDidChangeScrollTop (p) -> positions.push(p)
 
         positions.length = 0
         element.setScrollTop(10)
@@ -273,7 +273,7 @@ describe "TextEditorElement", ->
         positions = []
         subscription1 = element.onDidChangeScrollLeft (p) -> positions.push(p)
         jasmine.attachToDOM(element)
-        subscription2 = element.onDidChangeScrollLeft (p) -> positions.push(p)
+        element.onDidChangeScrollLeft (p) -> positions.push(p)
 
         positions.length = 0
         element.setScrollLeft(10)

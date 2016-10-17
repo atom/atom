@@ -143,7 +143,7 @@ class BufferedProcess
 
     try
       wmicProcess = ChildProcess.spawn(cmd, args)
-    catch spawnError
+    catch
       @killProcess()
       return
 

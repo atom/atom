@@ -118,27 +118,6 @@ warnIfLeakingPathSubscriptions = ->
     console.error("WARNING: Leaking subscriptions for paths: " + watchedPaths.join(", "))
   pathwatcher.closeAllWatchers()
 
-ensureNoDeprecatedFunctionsCalled = ->
-  deprecations = Grim.getDeprecations()
-  if deprecations.length > 0
-    originalPrepareStackTrace = Error.prepareStackTrace
-    Error.prepareStackTrace = (error, stack) ->
-      output = []
-      for deprecation in deprecations
-        output.push "#{deprecation.originName} is deprecated. #{deprecation.message}"
-        output.push _.multiplyString("-", output[output.length - 1].length)
-        for stack in deprecation.getStacks()
-          for {functionName, location} in stack
-            output.push "#{functionName} -- #{location}"
-        output.push ""
-      output.join("\n")
-
-    error = new Error("Deprecated function(s) #{deprecations.map(({originName}) -> originName).join ', '}) were called.")
-    error.stack
-    Error.prepareStackTrace = originalPrepareStackTrace
-
-    throw error
-
 emitObject = jasmine.StringPrettyPrinter.prototype.emitObject
 jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
   if obj.inspect

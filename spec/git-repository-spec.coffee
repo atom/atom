@@ -339,7 +339,6 @@ describe "GitRepository", ->
         buffer.loaded
 
       runs ->
-        originalContent = buffer.getText()
         buffer.append('changes')
 
         statusHandler = jasmine.createSpy('statusHandler')

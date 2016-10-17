@@ -81,7 +81,6 @@ class AtomWindow
     @setLoadSettings(loadSettings)
     @env = loadSettings.env if loadSettings.env?
     @browserWindow.focusOnWebView() if @isSpec
-    @browserWindow.temporaryState = {windowDimensions} if windowDimensions?
 
     hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
     @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()

@@ -551,7 +551,7 @@ class Package
   isNativeModule: (modulePath) ->
     try
       fs.listSync(path.join(modulePath, 'build', 'Release'), ['.node']).length > 0
-    catch error
+    catch
       false
 
   # Get an array of all the native modules that this package depends on.

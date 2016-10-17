@@ -284,7 +284,7 @@ describe "TextEditor", ->
       it "merges multiple cursors", ->
         editor.setCursorScreenPosition([0, 0])
         editor.addCursorAtScreenPosition([0, 1])
-        [cursor1, cursor2] = editor.getCursors()
+        [cursor1] = editor.getCursors()
         editor.setCursorScreenPosition([4, 7])
         expect(editor.getCursors().length).toBe 1
         expect(editor.getCursors()).toEqual [cursor1]
@@ -340,7 +340,7 @@ describe "TextEditor", ->
 
       it "merges cursors when they overlap", ->
         editor.addCursorAtScreenPosition([1, 0])
-        [cursor1, cursor2] = editor.getCursors()
+        [cursor1] = editor.getCursors()
 
         editor.moveUp()
         expect(editor.getCursors()).toEqual [cursor1]
@@ -422,7 +422,7 @@ describe "TextEditor", ->
       it "merges cursors when they overlap", ->
         editor.setCursorScreenPosition([12, 2])
         editor.addCursorAtScreenPosition([11, 2])
-        [cursor1, cursor2] = editor.getCursors()
+        [cursor1] = editor.getCursors()
 
         editor.moveDown()
         expect(editor.getCursors()).toEqual [cursor1]
@@ -512,7 +512,7 @@ describe "TextEditor", ->
         editor.setCursorScreenPosition([0, 0])
         editor.addCursorAtScreenPosition([0, 1])
 
-        [cursor1, cursor2] = editor.getCursors()
+        [cursor1] = editor.getCursors()
         editor.moveLeft()
         expect(editor.getCursors()).toEqual [cursor1]
         expect(cursor1.getBufferPosition()).toEqual [0, 0]
@@ -583,7 +583,7 @@ describe "TextEditor", ->
       it "merges cursors when they overlap", ->
         editor.setCursorScreenPosition([12, 2])
         editor.addCursorAtScreenPosition([12, 1])
-        [cursor1, cursor2] = editor.getCursors()
+        [cursor1] = editor.getCursors()
 
         editor.moveRight()
         expect(editor.getCursors()).toEqual [cursor1]
@@ -1145,8 +1145,8 @@ describe "TextEditor", ->
     describe "::getCursorScreenPositions()", ->
       it "returns the cursor positions in the order they were added", ->
         editor.foldBufferRow(4)
-        cursor1 = editor.addCursorAtBufferPosition([8, 5])
-        cursor2 = editor.addCursorAtBufferPosition([3, 5])
+        editor.addCursorAtBufferPosition([8, 5])
+        editor.addCursorAtBufferPosition([3, 5])
         expect(editor.getCursorScreenPositions()).toEqual [[0, 0], [5, 5], [3, 5]]
 
     describe "::getCursorsOrderedByBufferPosition()", ->
@@ -1231,7 +1231,7 @@ describe "TextEditor", ->
 
       it "merges selections when they intersect when moving down", ->
         editor.setSelectedBufferRanges([[[0, 9], [0, 13]], [[1, 10], [1, 20]], [[2, 15], [3, 25]]])
-        [selection1, selection2, selection3] = editor.getSelections()
+        [selection1] = editor.getSelections()
 
         editor.selectDown()
         expect(editor.getSelections()).toEqual [selection1]
@@ -1240,7 +1240,7 @@ describe "TextEditor", ->
 
       it "merges selections when they intersect when moving up", ->
         editor.setSelectedBufferRanges([[[0, 9], [0, 13]], [[1, 10], [1, 20]]], reversed: true)
-        [selection1, selection2] = editor.getSelections()
+        [selection1] = editor.getSelections()
 
         editor.selectUp()
         expect(editor.getSelections().length).toBe 1
@@ -1250,7 +1250,7 @@ describe "TextEditor", ->
 
       it "merges selections when they intersect when moving left", ->
         editor.setSelectedBufferRanges([[[0, 9], [0, 13]], [[0, 13], [1, 20]]], reversed: true)
-        [selection1, selection2] = editor.getSelections()
+        [selection1] = editor.getSelections()
 
         editor.selectLeft()
         expect(editor.getSelections()).toEqual [selection1]
@@ -1259,7 +1259,7 @@ describe "TextEditor", ->
 
       it "merges selections when they intersect when moving right", ->
         editor.setSelectedBufferRanges([[[0, 9], [0, 14]], [[0, 14], [1, 20]]])
-        [selection1, selection2] = editor.getSelections()
+        [selection1] = editor.getSelections()
 
         editor.selectRight()
         expect(editor.getSelections()).toEqual [selection1]
@@ -1773,7 +1773,7 @@ describe "TextEditor", ->
         selection = editor.getLastSelection()
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
 
-        [selection1, selection2] = editor.getSelections()
+        [selection1] = editor.getSelections()
         expect(selection1).toBe selection
         expect(selection1.getBufferRange()).toEqual [[2, 2], [3, 3]]
 
@@ -1822,7 +1822,7 @@ describe "TextEditor", ->
         selection = editor.getLastSelection()
         editor.setSelectedScreenRanges([[[2, 2], [3, 4]], [[4, 4], [5, 5]]])
 
-        [selection1, selection2] = editor.getSelections()
+        [selection1] = editor.getSelections()
         expect(selection1).toBe selection
         expect(selection1.getScreenRange()).toEqual [[2, 2], [3, 4]]
 
@@ -2990,8 +2990,8 @@ describe "TextEditor", ->
           editor.setSelectedBufferRange([[1, 2], [1, 2]])
 
         it "does not undo the skipped operation", ->
-          range = editor.insertText('x')
-          range = editor.insertText('y', undo: 'skip')
+          editor.insertText('x')
+          editor.insertText('y', undo: 'skip')
           editor.undo()
           expect(buffer.lineForRow(1)).toBe '  yvar sort = function(items) {'
 
@@ -3517,8 +3517,6 @@ describe "TextEditor", ->
           it "deletes as normal", ->
             editor.foldBufferRow(4)
             editor.setCursorScreenPosition([3, 4])
-            cursorPositionBefore = editor.getCursorScreenPosition()
-
             editor.delete()
 
             expect(buffer.lineForRow(3)).toBe "    ar pivot = items.shift(), current, left = [], right = [];"
@@ -3914,16 +3912,6 @@ describe "TextEditor", ->
             expect(atom.clipboard.read()).toEqual "initial clipboard content"
 
       describe ".pasteText()", ->
-        copyText = (text, {startColumn, textEditor}={}) ->
-          startColumn ?= 0
-          textEditor ?= editor
-          textEditor.setCursorBufferPosition([0, 0])
-          textEditor.insertText(text)
-          numberOfNewlines = text.match(/\n/g)?.length
-          endColumn = text.match(/[^\n]*$/)[0]?.length
-          textEditor.getLastSelection().setBufferRange([[0, startColumn], [numberOfNewlines, endColumn]])
-          textEditor.cutSelectedText()
-
         it "pastes text into the buffer", ->
           editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
           atom.clipboard.write('first')
@@ -4450,7 +4438,6 @@ describe "TextEditor", ->
         editor.delete()
         editor.delete()
 
-        selections = editor.getSelections()
         expect(buffer.lineForRow(1)).toBe '  var = function( {'
 
         expect(editor.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 17], [1, 17]]]
@@ -5692,7 +5679,7 @@ describe "TextEditor", ->
       it "does not throw errors after the marker's containing layer is destroyed", ->
         layer = editor.addMarkerLayer()
         marker = layer.markBufferRange([[2, 4], [6, 8]])
-        decoration = editor.decorateMarker(marker, type: 'highlight', class: 'foo')
+        editor.decorateMarker(marker, type: 'highlight', class: 'foo')
         layer.destroy()
         editor.decorationsStateForScreenRowRange(0, 5)
 

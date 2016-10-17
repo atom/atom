@@ -1487,7 +1487,7 @@ describe "TextEditorPresenter", ->
             it "honors the 'onlyEmpty' option on line decorations", ->
               presenter = buildPresenter()
               marker = editor.markBufferRange([[4, 0], [6, 1]])
-              decoration = editor.decorateMarker(marker, type: 'line', class: 'a', onlyEmpty: true)
+              editor.decorateMarker(marker, type: 'line', class: 'a', onlyEmpty: true)
 
               expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
               expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
@@ -1503,7 +1503,7 @@ describe "TextEditorPresenter", ->
             it "honors the 'onlyNonEmpty' option on line decorations", ->
               presenter = buildPresenter()
               marker = editor.markBufferRange([[4, 0], [6, 2]])
-              decoration = editor.decorateMarker(marker, type: 'line', class: 'a', onlyNonEmpty: true)
+              editor.decorateMarker(marker, type: 'line', class: 'a', onlyNonEmpty: true)
 
               expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
               expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a']
@@ -1542,7 +1542,7 @@ describe "TextEditorPresenter", ->
 
               waitsForStateToUpdate presenter, ->
                 marker = editor.markBufferRange([[0, 0], [0, 0]])
-                decoration = editor.decorateMarker(marker, type: 'line', class: 'a')
+                editor.decorateMarker(marker, type: 'line', class: 'a')
 
               runs ->
                 expect(lineStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
@@ -2540,7 +2540,7 @@ describe "TextEditorPresenter", ->
 
         it "is empty until all of the required measurements are assigned", ->
           marker = editor.markBufferRange([[2, 13], [4, 14]], invalidate: 'touch')
-          decoration = editor.decorateMarker(marker, {type: 'overlay', position: 'tail', item})
+          editor.decorateMarker(marker, {type: 'overlay', position: 'tail', item})
 
           presenter = buildPresenterWithoutMeasurements()
           expect(getState(presenter).content.overlays).toEqual({})
@@ -3004,7 +3004,7 @@ describe "TextEditorPresenter", ->
                 marker1 = editor.addMarkerLayer(maintainHistory: true).markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
                 decoration1 = editor.decorateMarker(marker1, type: 'line-number', class: 'a')
                 marker2 = editor.addMarkerLayer(maintainHistory: true).markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
-                decoration2 = editor.decorateMarker(marker2, type: 'line-number', class: 'b')
+                editor.decorateMarker(marker2, type: 'line-number', class: 'b')
                 presenter = buildPresenter()
 
                 expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
@@ -3058,7 +3058,7 @@ describe "TextEditorPresenter", ->
 
               it "honors the 'onlyEmpty' option on line-number decorations", ->
                 marker = editor.markBufferRange([[4, 0], [6, 1]])
-                decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyEmpty: true)
+                editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyEmpty: true)
                 presenter = buildPresenter()
 
                 expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
@@ -3074,7 +3074,7 @@ describe "TextEditorPresenter", ->
 
               it "honors the 'onlyNonEmpty' option on line-number decorations", ->
                 marker = editor.markBufferRange([[4, 0], [6, 2]])
-                decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyNonEmpty: true)
+                editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyNonEmpty: true)
                 presenter = buildPresenter()
 
                 expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
@@ -3088,7 +3088,7 @@ describe "TextEditorPresenter", ->
 
               it "honors the 'onlyHead' option on line-number decorations", ->
                 marker = editor.markBufferRange([[4, 0], [6, 2]])
-                decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyHead: true)
+                editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyHead: true)
                 presenter = buildPresenter()
 
                 expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
@@ -3097,7 +3097,7 @@ describe "TextEditorPresenter", ->
 
               it "does not decorate the last line of a non-empty line-number decoration range if it ends at column 0", ->
                 marker = editor.markBufferRange([[4, 0], [6, 0]])
-                decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a')
+                editor.decorateMarker(marker, type: 'line-number', class: 'a')
                 presenter = buildPresenter()
 
                 expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
@@ -3108,7 +3108,7 @@ describe "TextEditorPresenter", ->
                 editor.setMini(true)
                 presenter = buildPresenter()
                 marker = editor.markBufferRange([[0, 0], [0, 0]])
-                decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a')
+                editor.decorateMarker(marker, type: 'line-number', class: 'a')
                 # A mini editor will have no gutters.
                 expect(getLineNumberGutterState(presenter)).toBeUndefined()
 
