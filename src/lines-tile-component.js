@@ -249,7 +249,6 @@ module.exports = class LinesTileComponent {
     for (const lineId of Object.keys(this.newTileState.lines)) {
       const oldLineState = this.oldTileState.lines[lineId]
       const newLineState = this.newTileState.lines[lineId]
-      const lineNode = this.lineNodesByLineId[lineId]
       for (const decorationId of Object.keys(oldLineState.precedingBlockDecorations)) {
         if (!newLineState.precedingBlockDecorations.hasOwnProperty(decorationId)) {
           const {topRulerNode, blockDecorationNode, bottomRulerNode} =
