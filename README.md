@@ -20,7 +20,7 @@ If you want to read about using Atom or developing packages in Atom, the [Atom F
 
 The [API reference](https://atom.io/docs/api) for developing packages is also documented on Atom.io.
 
-## Installing
+## How To Installing
 
 ### Prerequisites
 - [Git](https://git-scm.com/)
@@ -49,7 +49,7 @@ Atom is only available for 64-bit Linux systems.
 
 1. Download `atom-amd64.deb` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 2. Run `sudo dpkg --install atom-amd64.deb` on the downloaded package.
-3. Launch Atom using the installed `atom` command.
+3. Launch Atom using the installed `atom` command from linux terminal.
 
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
@@ -60,7 +60,7 @@ Atom is only available for 64-bit Linux systems.
 
 1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 2. Run `sudo yum localinstall atom.x86_64.rpm` on the downloaded package.
-3. Launch Atom using the installed `atom` command.
+3. Launch Atom using the installed `atom` command from linux terminal.
 
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
@@ -71,7 +71,7 @@ Atom is only available for 64-bit Linux systems.
 
 1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 2. Run `sudo dnf install ./atom.x86_64.rpm` on the downloaded package.
-3. Launch Atom using the installed `atom` command.
+3. Launch Atom using the installed `atom` command from linux terminal.
 
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
@@ -86,7 +86,7 @@ but should be compatible with other Linux distributions.
 1. Install dependencies (on Ubuntu): `sudo apt install git gconf2 gconf-service libgtk2.0-0 libudev1 libgcrypt20 libnotify4 libxtst6 libnss3 python gvfs-bin xdg-utils libcap2`
 2. Download `atom-amd64.tar.gz` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 3. Run `tar xf atom-amd64.tar.gz` in the directory where you want to extract the Atom folder.
-4. Launch Atom using the installed `atom` command from the newly extracted directory.
+4. Launch Atom using the installed `atom` command from the newly extracted directory in linux terminal.
 
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
