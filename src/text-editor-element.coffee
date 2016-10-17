@@ -12,6 +12,7 @@ class TextEditorElement extends HTMLElement
   focusOnAttach: false
   hasTiledRendering: true
   logicalDisplayBuffer: true
+  lightDOM: true
 
   createdCallback: ->
     # Use globals when the following instance variables aren't set.
