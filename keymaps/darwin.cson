@@ -10,7 +10,7 @@
   'ctrl-n': 'core:move-down'
   'ctrl-b': 'core:move-left'
   'ctrl-f': 'core:move-right'
-  'ctrl-P': 'core:select-up'
+  'ctrl-shift-p': 'core:select-up'
   'ctrl-shift-n': 'core:select-down'
   'ctrl-shift-f': 'core:select-right'
   'ctrl-shift-b': 'core:select-left'
