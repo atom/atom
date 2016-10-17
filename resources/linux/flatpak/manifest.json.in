@@ -1,0 +1,26 @@
+{
+  "id": "<%= appId %>",
+  "base": "<%= baseAppId %>",
+  "base-version": "<%= baseAppVersion %>",
+  "runtime": "org.freedesktop.Platform",
+  "sdk": "org.freedesktop.Sdk",
+  "runtime-version": "1.4",
+  "command": "<%= atomExecutableName %>",
+  "finish-args": [
+    /* Allow access to developer tools */
+    "--allow=devel",
+    "--talk-name=org.freedesktop.Flatpak",
+    /* X11 + XShm access */
+    "--share=ipc", "--socket=x11",
+    /* Sound access */
+    "--socket=pulseaudio",
+    /* We want full fs access */
+    "--filesystem=host",
+    /* Needs to talk to the network: */
+    "--share=network",
+    /* Notifications with libnotify */
+    "--talk-name=org.freedesktop.Notifications"
+  ],
+  "branch": "<%= channel %>",
+  "modules": []
+}
