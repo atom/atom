@@ -94,6 +94,23 @@ describe "TextEditorElement", ->
       document.body.focus()
       expect(blurCalled).toBe true
 
+    it "doesn't trigger a blur event on the editor element when focusing an already focused editor element", ->
+      blurCalled = false
+      element = new TextEditorElement
+      element.addEventListener 'blur', -> blurCalled = true
+
+      jasmineContent.appendChild(element)
+      expect(document.activeElement).toBe(document.body)
+      expect(blurCalled).toBe(false)
+
+      element.focus()
+      expect(document.activeElement).toBe(element.querySelector('input'))
+      expect(blurCalled).toBe(false)
+
+      element.focus()
+      expect(document.activeElement).toBe(element.querySelector('input'))
+      expect(blurCalled).toBe(false)
+
     describe "when focused while a parent node is being attached to the DOM", ->
       class ElementThatFocusesChild extends HTMLDivElement
         attachedCallback: ->
