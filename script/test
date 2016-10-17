@@ -83,9 +83,19 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
   })
 }
 
+function runBenchmarkTests (callback) {
+  const benchmarksPath = path.join(CONFIG.repositoryRootPath, 'benchmarks')
+  const testArguments = ['--benchmark-test', benchmarksPath]
+
+  console.log('Executing benchmark tests'.bold.green)
+  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit'})
+  cp.on('error', error => { callback(error) })
+  cp.on('close', exitCode => { callback(null, exitCode) })
+}
+
 let testSuitesToRun
 if (process.platform === 'darwin') {
-  testSuitesToRun = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
+  testSuitesToRun = [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
 } else {
   testSuitesToRun = [runCoreMainProcessTests]
 }

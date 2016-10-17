@@ -54,7 +54,6 @@ describe "TextEditor", ->
       # reusing the same buffer instance
       editor2 = TextEditor.deserialize(editor.serialize(), {
         assert: atom.assert,
-        clipboard: atom.clipboard,
         textEditors: atom.textEditors,
         project: {
           bufferForIdSync: (id) -> TextBuffer.deserialize(editor.buffer.serialize())
@@ -5525,7 +5524,7 @@ describe "TextEditor", ->
 
   describe "auto height", ->
     it "returns true by default but can be customized", ->
-      editor = atom.workspace.buildTextEditor()
+      editor = new TextEditor
       expect(editor.getAutoHeight()).toBe(true)
       editor.update({autoHeight: false})
       expect(editor.getAutoHeight()).toBe(false)
@@ -5543,10 +5542,10 @@ describe "TextEditor", ->
 
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->
-      newEditor = atom.workspace.buildTextEditor(
+      newEditor = new TextEditor({
         mini: true
         placeholderText: 'yep'
-      )
+      })
       expect(newEditor.getPlaceholderText()).toBe 'yep'
 
     it 'models placeholderText and emits an event when changed', ->
@@ -5831,11 +5830,7 @@ describe "TextEditor", ->
         atom.packages.activatePackage('language-coffee-script')
 
     it "sets the grammar", ->
-      editor = new TextEditor({
-        grammar: atom.grammars.grammarForScopeName('source.coffee')
-        clipboard: atom.clipboard
-      })
-
+      editor = new TextEditor({grammar: atom.grammars.grammarForScopeName('source.coffee')})
       expect(editor.getGrammar().name).toBe 'CoffeeScript'
 
   describe "softWrapAtPreferredLineLength", ->

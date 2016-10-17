@@ -142,4 +142,13 @@ class WorkspaceElement extends HTMLElement
 
       ipcRenderer.send('run-package-specs', specPath)
 
+  runBenchmarks: ->
+    if activePath = @workspace.getActivePaneItem()?.getPath?()
+      [projectPath] = @project.relativizePath(activePath)
+    else
+      [projectPath] = @project.getPaths()
+
+    if projectPath
+      ipcRenderer.send('run-benchmarks', path.join(projectPath, 'benchmarks'))
+
 module.exports = WorkspaceElement = document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype

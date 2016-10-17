@@ -28,7 +28,7 @@ while getopts ":wtfvh-:" opt; do
           REDIRECT_STDERR=1
           EXPECT_OUTPUT=1
           ;;
-        foreground|test)
+        foreground|benchmark|benchmark-test|test)
           EXPECT_OUTPUT=1
           ;;
       esac

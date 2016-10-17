@@ -15,15 +15,11 @@ describe('TextEditorRegistry', function () {
     registry = new TextEditorRegistry({
       assert: atom.assert,
       config: atom.config,
-      clipboard: atom.clipboard,
       grammarRegistry: atom.grammars,
       packageManager: {deferredActivationHooks: null}
     })
 
-    editor = new TextEditor({
-      config: atom.config,
-      clipboard: atom.clipboard,
-    })
+    editor = new TextEditor()
   })
 
   afterEach(function () {
@@ -194,10 +190,7 @@ describe('TextEditorRegistry', function () {
     it('does not update the editor when config settings change for unrelated scope selectors', async function () {
       await atom.packages.activatePackage('language-javascript')
 
-      const editor2 = new TextEditor({
-        config: atom.config,
-        clipboard: atom.clipboard,
-      })
+      const editor2 = new TextEditor()
 
       editor2.setGrammar(atom.grammars.selectGrammar('test.js'))
 
@@ -205,13 +198,13 @@ describe('TextEditorRegistry', function () {
       registry.maintainConfig(editor2)
       await initialPackageActivation
 
-      expect(editor.getRootScopeDescriptor().getScopesArray()).toEqual(['text.plain'])
+      expect(editor.getRootScopeDescriptor().getScopesArray()).toEqual(['text.plain.null-grammar'])
       expect(editor2.getRootScopeDescriptor().getScopesArray()).toEqual(['source.js'])
 
       expect(editor.getEncoding()).toBe('utf8')
       expect(editor2.getEncoding()).toBe('utf8')
 
-      atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.text.plain'})
+      atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.text.plain.null-grammar'})
       atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.source.js'})
 
       expect(editor.getEncoding()).toBe('utf16le')
@@ -224,7 +217,6 @@ describe('TextEditorRegistry', function () {
       registry = new TextEditorRegistry({
         assert: atom.assert,
         config: atom.config,
-        clipboard: atom.clipboard,
         grammarRegistry: atom.grammars,
         packageManager: {
           deferredActivationHooks: [],
@@ -669,10 +661,7 @@ describe('TextEditorRegistry', function () {
 
   describe('serialization', function () {
     it('persists editors\' grammar overrides', async function () {
-      const editor2 = new TextEditor({
-        config: atom.config,
-        clipboard: atom.clipboard,
-      })
+      const editor2 = new TextEditor()
 
       await atom.packages.activatePackage('language-c')
       await atom.packages.activatePackage('language-html')
@@ -691,7 +680,6 @@ describe('TextEditorRegistry', function () {
       const registryCopy = new TextEditorRegistry({
         assert: atom.assert,
         config: atom.config,
-        clipboard: atom.clipboard,
         grammarRegistry: atom.grammars,
         packageManager: {deferredActivationHooks: null}
       })
