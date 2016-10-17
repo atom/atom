@@ -25,13 +25,13 @@
 
   # Sublime Parity
   'ctrl-,': 'application:show-settings'
-  'ctrl-N': 'application:new-window'
-  'ctrl-W': 'window:close'
+  'ctrl-shift-n': 'application:new-window'
+  'ctrl-shift-w': 'window:close'
   'ctrl-o': 'application:open-file'
-  'ctrl-T': 'pane:reopen-closed-item'
+  'ctrl-shift-t': 'pane:reopen-closed-item'
   'ctrl-n': 'application:new-file'
   'ctrl-s': 'core:save'
-  'ctrl-S': 'core:save-as'
+  'ctrl-shift-s': 'core:save-as'
   'ctrl-f4': 'core:close'
   'ctrl-w': 'core:close'
   'ctrl-z': 'core:undo'
@@ -133,7 +133,7 @@
   'ctrl-down': 'editor:move-line-down'
   'ctrl-/': 'editor:toggle-line-comments'
   'ctrl-j': 'editor:join-lines'
-  'ctrl-D': 'editor:duplicate-lines'
+  'ctrl-shift-d': 'editor:duplicate-lines'
 
   'ctrl-alt-[': 'editor:fold-current-row'
   'ctrl-alt-]': 'editor:unfold-current-row'
@@ -154,10 +154,10 @@
   'ctrl-alt-=': 'pane:increase-size'
   'ctrl-alt--': 'pane:decrease-size'
 
-# allow standard input fields to work correctly
+# Allow standard input fields to work correctly
 'body .native-key-bindings':
   'ctrl-z': 'native!'
-  'ctrl-Z': 'native!'
+  'ctrl-shift-z': 'native!'
   'ctrl-x': 'native!'
   'ctrl-c': 'native!'
   'ctrl-v': 'native!'
