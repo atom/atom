@@ -1,0 +1,41 @@
+{
+  "id": "<%= appId %>",
+  "base": "<%= baseAppId %>",
+  "base-version": "<%= baseAppVersion %>",
+  "runtime": "<%= runtimeId %>",
+  "sdk": "<%= sdkId %>",
+  "runtime-version": "<%= runtimeVersion %>",
+  "command": "<%= atomExecutableName %>",
+  "finish-args": [
+    /* Allow access to developer tools */
+    "--allow=devel",
+    "--talk-name=org.freedesktop.Flatpak",
+    /* X11 + XShm access */
+    "--share=ipc", "--socket=x11",
+    /* Open GL */
+    "--device=dri",
+    /* Sound access */
+    "--socket=pulseaudio",
+    /* We want full fs access */
+    "--filesystem=host",
+    /* Chromium uses a socket in tmp for its singleton check */
+    "--filesystem=/tmp",
+    /* Needs to talk to the network: */
+    "--share=network",
+    /* Notifications with libnotify */
+    "--talk-name=org.freedesktop.Notifications"
+  ],
+  "branch": "<%= channel %>",
+  "modules": [
+    {
+      "name": "xkbfile",
+      "sources": [
+          {
+              "type": "archive",
+              "url": "http://xorg.freedesktop.org/releases/individual/lib/libxkbfile-1.0.8.tar.bz2",
+              "sha256": "8aa94e19c537c43558f30906650cea6e15fa012591445d9f927658c3b32a8f3a"
+          }
+      ]
+    }
+  ]
+}
