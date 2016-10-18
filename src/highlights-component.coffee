@@ -97,24 +97,23 @@ class HighlightsComponent
 
   flashHighlightNodeIfRequested: (id, newHighlightState) ->
     oldHighlightState = @oldState[id]
-    return unless newHighlightState.flashCount > oldHighlightState.flashCount
+    if newHighlightState.needsFlash and oldHighlightState.flashCount isnt newHighlightState.flashCount
+      highlightNode = @highlightNodesById[id]
 
-    highlightNode = @highlightNodesById[id]
+      addFlashClass = =>
+        highlightNode.classList.add(newHighlightState.flashClass)
+        oldHighlightState.flashClass = newHighlightState.flashClass
+        @flashTimeoutId = setTimeout(removeFlashClass, newHighlightState.flashDuration)
 
-    addFlashClass = =>
-      highlightNode.classList.add(newHighlightState.flashClass)
-      oldHighlightState.flashClass = newHighlightState.flashClass
-      @flashTimeoutId = setTimeout(removeFlashClass, newHighlightState.flashDuration)
+      removeFlashClass = =>
+        highlightNode.classList.remove(oldHighlightState.flashClass)
+        oldHighlightState.flashClass = null
+        clearTimeout(@flashTimeoutId)
 
-    removeFlashClass = =>
-      highlightNode.classList.remove(oldHighlightState.flashClass)
-      oldHighlightState.flashClass = null
-      clearTimeout(@flashTimeoutId)
+      if oldHighlightState.flashClass?
+        removeFlashClass()
+        requestAnimationFrame(addFlashClass)
+      else
+        addFlashClass()
 
-    if oldHighlightState.flashClass?
-      removeFlashClass()
-      requestAnimationFrame(addFlashClass)
-    else
-      addFlashClass()
-
-    oldHighlightState.flashCount = newHighlightState.flashCount
+      oldHighlightState.flashCount = newHighlightState.flashCount

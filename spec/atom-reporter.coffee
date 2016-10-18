@@ -97,7 +97,7 @@ class AtomReporter
     if @failedCount is 1
       @message.textContent = "#{@failedCount} failure"
     else
-      @message.textConent = "#{@failedCount} failures"
+      @message.textContent = "#{@failedCount} failures"
 
   reportSuiteResults: (suite) ->
 
@@ -109,42 +109,6 @@ class AtomReporter
 
   reportSpecStarting: (spec) ->
     @specStarted(spec)
-
-  addDeprecations: (spec) ->
-    deprecations = grim.getDeprecations()
-    @deprecationCount += deprecations.length
-    @deprecations.style.display = '' if @deprecationCount > 0
-    if @deprecationCount is 1
-      @deprecationStatus.textContent = "1 deprecation"
-    else
-      @deprecationStatus.textContent = "#{@deprecationCount} deprecations"
-
-    for deprecation in deprecations
-      @deprecationList.appendChild(@buildDeprecationElement(spec, deprecation))
-
-    grim.clearDeprecations()
-
-  buildDeprecationElement: (spec, deprecation) ->
-    div = document.createElement('div')
-    div.className = 'padded'
-    div.innerHTML = """
-      <div class="result-message fail deprecation-message">
-        #{marked(deprecation.message)}
-      </div>
-    """
-
-    for stack in deprecation.getStacks()
-      fullStack = stack.map ({functionName, location}) ->
-        if functionName is '<unknown>'
-          "  at #{location}"
-        else
-          "  at #{functionName} (#{location})"
-      pre = document.createElement('pre')
-      pre.className = 'stack-trace padded'
-      pre.textContent = formatStackTrace(spec, deprecation.message, fullStack.join('\n'))
-      div.appendChild(pre)
-
-    div
 
   handleEvents: ->
     listen document, 'click', '.spec-toggle', (event) ->
@@ -273,7 +237,6 @@ class AtomReporter
       specView = new SpecResultView(spec)
       specView.attach()
       @failedCount++
-    @addDeprecations(spec)
 
 class SuiteResultView
   constructor: (@suite) ->

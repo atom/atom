@@ -5,28 +5,14 @@
 atom-text-editor {
   display: block;
   font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
-}
 
-atom-text-editor[mini] {
-  font-size: @input-font-size;
-  line-height: @component-line-height;
-  max-height: @component-line-height + 2; // +2 for borders
-  overflow: auto;
-}
-
-atom-overlay {
-  position: fixed;
-  display: block;
-  z-index: 4;
-}
-
-// TODO: Remove the following styles when the editor shadow DOM can no longer be disabled
-atom-text-editor {
-  display: flex;
-
-  .editor-contents {
+  .editor--private, .editor-contents--private {
+    height: 100%;
     width: 100%;
-    overflow: hidden;
+  }
+
+  .editor-contents--private {
+    width: 100%;
     cursor: text;
     display: flex;
     -webkit-user-select: none;
@@ -35,6 +21,7 @@ atom-text-editor {
 
   .gutter {
     overflow: hidden;
+    z-index: 0;
     text-align: right;
     cursor: default;
     min-width: 1em;
@@ -216,4 +203,17 @@ atom-text-editor {
     bottom: 0;
     right: 0;
   }
+}
+
+atom-text-editor[mini] {
+  font-size: @input-font-size;
+  line-height: @component-line-height;
+  max-height: @component-line-height + 2; // +2 for borders
+  overflow: auto;
+}
+
+atom-overlay {
+  position: fixed;
+  display: block;
+  z-index: 4;
 }
