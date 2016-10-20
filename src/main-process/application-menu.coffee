@@ -142,7 +142,7 @@ class ApplicationMenu
       item.metadata ?= {}
       if item.command
         item.accelerator = @acceleratorForCommand(item.command, keystrokesByCommand)
-        item.click = -> global.atomApplication.sendCommand(item.command)
+        item.click = -> global.atomApplication.sendCommand(item.command, item)
         item.metadata.windowSpecific = true unless /^application:/.test(item.command)
       @translateTemplate(item.submenu, keystrokesByCommand) if item.submenu
     template
