@@ -70,7 +70,7 @@ describe "LinesYardstick", ->
         font-size: 12px;
         font-family: monospace;
       }
-      .function {
+      .syntax--function {
         font-size: 16px
       }
       """
@@ -144,7 +144,7 @@ describe "LinesYardstick", ->
           font-size: 12px;
           font-family: monospace;
         }
-        .function {
+        .syntax--function {
           font-size: 16px
         }
         """
