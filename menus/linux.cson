@@ -7,6 +7,13 @@
       { label: '&Open File…', command: 'application:open-file' }
       { label: 'Open Folder…', command: 'application:open-folder' }
       { label: 'Add Project Folder…', command: 'application:add-project-folder' }
+      {
+        label: 'Reopen Project',
+        submenu: [
+          { label: 'Clear List', command: 'application:clear-project-history' }
+          { type: 'separator' }
+        ]
+      }
       { label: 'Reopen Last &Item', command: 'pane:reopen-closed-item' }
       { type: 'separator' }
       { label: '&Save', command: 'core:save' }

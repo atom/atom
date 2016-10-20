@@ -22,6 +22,8 @@ KeymapManager = require './keymap-extensions'
 TooltipManager = require './tooltip-manager'
 CommandRegistry = require './command-registry'
 GrammarRegistry = require './grammar-registry'
+{HistoryManager, HistoryProject} = require './history-manager'
+ReopenProjectMenuManager = require './reopen-project-menu-manager'
 StyleManager = require './style-manager'
 PackageManager = require './package-manager'
 ThemeManager = require './theme-manager'
@@ -93,6 +95,9 @@ class AtomEnvironment extends Model
 
   # Public: A {GrammarRegistry} instance
   grammars: null
+
+  # Public: A {HistoryManager} instance
+  history: null
 
   # Public: A {PackageManager} instance
   packages: null
@@ -225,6 +230,10 @@ class AtomEnvironment extends Model
     @installWindowEventHandler()
 
     @observeAutoHideMenuBar()
+
+    @history = new HistoryManager({@project, @commands, localStorage})
+    new ReopenProjectMenuManager({@menu, @commands, @history, @config, open: (paths) => @open(pathsToOpen: paths)})
+    @history.loadState()
 
     checkPortableHomeWritable = =>
       responseChannel = "check-portable-home-writable-response"

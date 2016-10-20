@@ -100,6 +100,10 @@ module.exports =
           'windows1258',
           'windows866'
         ]
+      reopenProjectMenuCount:
+        description: 'How many recent projects to show in the Reopen Project menu.'
+        type: 'integer'
+        default: 15
       openEmptyEditorOnStart:
         description: 'Automatically open an empty editor on startup.'
         type: 'boolean'
