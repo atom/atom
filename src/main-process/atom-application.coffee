@@ -279,6 +279,12 @@ class AtomApplication
     @disposable.add ipcHelpers.on ipcMain, 'restart-application', =>
       @restart()
 
+    @disposable.add ipcHelpers.on ipcMain, 'did-change-history-manager', (event) =>
+      for atomWindow in @windows
+        webContents = atomWindow.browserWindow.webContents
+        if webContents isnt event.sender
+          webContents.send('did-change-history-manager')
+
     # A request from the associated render process to open a new render process.
     @disposable.add ipcHelpers.on ipcMain, 'open', (event, options) =>
       window = @atomWindowForEvent(event)

@@ -244,6 +244,17 @@ class ApplicationDelegate
   didCancelWindowUnload: ->
     ipcRenderer.send('did-cancel-window-unload')
 
+  onDidChangeHistoryManager: (callback) ->
+    outerCallback = (event, message) ->
+      callback(event)
+
+    ipcRenderer.on('did-change-history-manager', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('did-change-history-manager', outerCallback)
+
+  didChangeHistoryManager: ->
+    ipcRenderer.send('did-change-history-manager')
+
   openExternal: (url) ->
     shell.openExternal(url)
 

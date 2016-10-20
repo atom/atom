@@ -126,6 +126,11 @@ const configSchema = {
         type: 'boolean',
         default: true
       },
+      reopenProjectMenuCount: {
+        description: 'How many recent projects to show in the Reopen Project menu.',
+        type: 'integer',
+        default: 15
+      },
       automaticallyUpdate: {
         description: 'Automatically update Atom when a new release is available.',
         type: 'boolean',
