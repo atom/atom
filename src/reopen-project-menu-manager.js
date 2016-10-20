@@ -22,7 +22,7 @@ export default class ReopenProjectMenuManager {
   }
 
   reopenProjectCommand(e) {
-    if (e.detail && e.detail.index)
+    if (e.detail != null && e.detail.index != null)
       this.open(this.projects[e.detail.index].paths)
     else
       this.createReopenProjectListView()

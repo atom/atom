@@ -232,8 +232,12 @@ class AtomEnvironment extends Model
     @observeAutoHideMenuBar()
 
     @history = new HistoryManager({@project, @commands, localStorage})
+    # Keep instances of HistoryManager in sync
+    @history.onDidChangeProjects (e) =>
+      @applicationDelegate.didChangeHistoryManager() unless e.reloaded
+    @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
+
     new ReopenProjectMenuManager({@menu, @commands, @history, @config, open: (paths) => @open(pathsToOpen: paths)})
-    @history.loadState()
 
     checkPortableHomeWritable = =>
       responseChannel = "check-portable-home-writable-response"

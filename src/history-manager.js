@@ -42,8 +42,8 @@ export class HistoryManager {
     return this.emitter.on('did-change-projects', callback)
   }
 
-  didChangeProjects () {
-    this.emitter.emit('did-change-projects')
+  didChangeProjects (args) {
+    this.emitter.emit('did-change-projects', args || {reloaded:false})
   }
 
   addProject (paths, lastOpened) {
@@ -72,7 +72,7 @@ export class HistoryManager {
     const state = JSON.parse(this.localStorage.getItem('history'))
     if (state && state.projects) {
       this.projects = state.projects.filter(p => Array.isArray(p.paths) && p.paths.length > 0).map(p => new HistoryProject(p.paths, new Date(p.lastOpened)))
-      this.didChangeProjects()
+      this.didChangeProjects({reloaded:true})
     } else {
       this.projects = []
     }
