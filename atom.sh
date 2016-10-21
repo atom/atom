@@ -55,11 +55,17 @@ if [ $EXPECT_OUTPUT ]; then
 fi
 
 if [ $OS == 'Mac' ]; then
+  ATOM_APP="$(dirname "$(dirname "$(dirname "$(dirname "$(readlink "$0")")")")")"
+  if [ "$ATOM_APP" == . ]; then
+    unset ATOM_APP
+  else
+    ATOM_PATH="$(dirname "$ATOM_APP")"
+    ATOM_APP_NAME="$(basename "$ATOM_APP")"
+  fi
+
   if [ -n "$BETA_VERSION" ]; then
-    ATOM_APP_NAME="Atom Beta.app"
     ATOM_EXECUTABLE_NAME="Atom Beta"
   else
-    ATOM_APP_NAME="Atom.app"
     ATOM_EXECUTABLE_NAME="Atom"
   fi
 
