@@ -8,6 +8,7 @@ clone_depth: 10
 
 platform:
   - x86
+  - x64
 
 environment:
   global:
