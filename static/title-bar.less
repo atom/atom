@@ -51,12 +51,10 @@ body.fullscreen .title-bar {
   // Add space for the traffic lights
   atom-panel-container.left {
     padding-top: 36px;
-
-    // TODO: The .fullscreen class doesn't seem to get added
-    // So this has currently no effect
-    .fullscreen & {
-      padding-top: 0;
-    }
+    transition: padding-top 160ms;
+  }
+  &.fullscreen atom-panel-container.left {
+    padding-top: 0;
   }
 
   // Avoid tabs from overlap window controls when sidebar is closed
