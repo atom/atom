@@ -509,7 +509,7 @@ describe('TextEditorComponent', function () {
       it('displays newlines as their own token outside of the other tokens\' scopeDescriptor', function () {
         editor.setText('let\n')
         runAnimationFrames()
-        expect(component.lineNodeForScreenRow(0).innerHTML).toBe('<span class="source js"><span class="storage type var js">let</span><span class="invisible-character eol">' + invisibles.eol + '</span></span>')
+        expect(component.lineNodeForScreenRow(0).innerHTML).toBe('<span class="syntax--source syntax--js"><span class="syntax--storage syntax--type syntax--var syntax--js">let</span><span class="invisible-character eol">' + invisibles.eol + '</span></span>')
       })
 
       it('displays trailing carriage returns using a visible, non-empty value', function () {
@@ -544,20 +544,20 @@ describe('TextEditorComponent', function () {
           normalizeLineEndings: false
         })
         runAnimationFrames()
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="syntax--source syntax--js"><span class="invisible-character eol indent-guide">CE</span></span>')
 
         editor.setTabLength(3)
         runAnimationFrames()
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="syntax--source syntax--js"><span class="invisible-character eol indent-guide">CE</span></span>')
 
         editor.setTabLength(1)
         runAnimationFrames()
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="syntax--source syntax--js"><span class="invisible-character eol indent-guide">CE</span></span>')
 
         editor.setTextInBufferRange([[9, 0], [9, Infinity]], ' ')
         editor.setTextInBufferRange([[11, 0], [11, Infinity]], ' ')
         runAnimationFrames()
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="syntax--source syntax--js"><span class="invisible-character eol indent-guide">CE</span></span>')
       })
 
       describe('when soft wrapping is enabled', function () {
@@ -1252,7 +1252,7 @@ describe('TextEditorComponent', function () {
 
       let cursor = componentNode.querySelector('.cursor')
       let cursorRect = cursor.getBoundingClientRect()
-      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js').firstChild
+      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.syntax--storage.syntax--type.syntax--function.syntax--js').firstChild
       let range = document.createRange()
       range.setStart(cursorLocationTextNode, 0)
       range.setEnd(cursorLocationTextNode, 1)
@@ -1269,7 +1269,7 @@ describe('TextEditorComponent', function () {
 
       let cursor = componentNode.querySelector('.cursor')
       let cursorRect = cursor.getBoundingClientRect()
-      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').childNodes[2]
+      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.syntax--source.syntax--js').childNodes[2]
       let range = document.createRange(cursorLocationTextNode)
       range.setStart(cursorLocationTextNode, 0)
       range.setEnd(cursorLocationTextNode, 1)
@@ -1294,14 +1294,14 @@ describe('TextEditorComponent', function () {
       editor.setCursorScreenPosition([0, 16])
       runAnimationFrames(true)
 
-      atom.styles.addStyleSheet('.function.js {\n  font-weight: bold;\n}', {
+      atom.styles.addStyleSheet('.syntax--function.syntax--js {\n  font-weight: bold;\n}', {
         context: 'atom-text-editor'
       })
       runAnimationFrames(true)
 
       let cursor = componentNode.querySelector('.cursor')
       let cursorRect = cursor.getBoundingClientRect()
-      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js').firstChild
+      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.syntax--storage.syntax--type.syntax--function.syntax--js').firstChild
       let range = document.createRange()
       range.setStart(cursorLocationTextNode, 0)
       range.setEnd(cursorLocationTextNode, 1)
@@ -1772,32 +1772,32 @@ describe('TextEditorComponent', function () {
       let [item3, blockDecoration3] = createBlockDecorationBeforeScreenRow(4, {className: "decoration-3"})
       let [item4, blockDecoration4] = createBlockDecorationBeforeScreenRow(7, {className: "decoration-4"})
       let [item5, blockDecoration5] = createBlockDecorationAfterScreenRow(7, {className: "decoration-5"})
+      let [item6, blockDecoration6] = createBlockDecorationAfterScreenRow(12, {className: "decoration-6"})
 
       atom.styles.addStyleSheet(
         `atom-text-editor .decoration-1 { width: 30px; height: 80px; }
          atom-text-editor .decoration-2 { width: 30px; height: 40px; }
          atom-text-editor .decoration-3 { width: 30px; height: 100px; }
          atom-text-editor .decoration-4 { width: 30px; height: 120px; }
-         atom-text-editor .decoration-5 { width: 30px; height: 42px; }`,
+         atom-text-editor .decoration-5 { width: 30px; height: 42px; }
+         atom-text-editor .decoration-6 { width: 30px; height: 22px; }`,
          {context: 'atom-text-editor'}
       )
       runAnimationFrames()
-
       expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
-
+      expect(verticalScrollbarNode.scrollHeight).toBe(editor.getScreenLineCount() * editor.getLineHeightInPixels() + 80 + 40 + 100 + 120 + 42 + 22)
       expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 80 + 40 + "px")
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
       expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + "px")
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
       expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
-
       expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBe(item1)
       expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
       expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
       expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
       expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBeNull()
-
+      expect(component.getTopmostDOMNode().querySelector(".decoration-6")).toBeNull()
       expect(item1.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 0)
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 2 + 80)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 4 + 80 + 40)
@@ -1805,24 +1805,21 @@ describe('TextEditorComponent', function () {
       editor.setCursorScreenPosition([0, 0])
       editor.insertNewline()
       blockDecoration1.destroy()
-
       runAnimationFrames()
-
       expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
-
+      expect(verticalScrollbarNode.scrollHeight).toBe(editor.getScreenLineCount() * editor.getLineHeightInPixels() + 40 + 100 + 120 + 42 + 22)
       expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
       expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 40 + "px")
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
       expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
-
       expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
       expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
       expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
       expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
       expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBeNull()
-
+      expect(component.getTopmostDOMNode().querySelector(".decoration-6")).toBeNull()
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 40)
 
@@ -1833,52 +1830,71 @@ describe('TextEditorComponent', function () {
 
       runAnimationFrames() // causes the DOM to update and to retrieve new styles
       runAnimationFrames() // applies the changes
-
       expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
-
+      expect(verticalScrollbarNode.scrollHeight).toBe(editor.getScreenLineCount() * editor.getLineHeightInPixels() + 60 + 100 + 120 + 42 + 22)
       expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
       expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 60 + "px")
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
       expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
-
       expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
       expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
       expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
       expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
       expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBeNull()
-
+      expect(component.getTopmostDOMNode().querySelector(".decoration-6")).toBeNull()
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 60)
 
       item2.style.height = "20px"
       wrapperNode.invalidateBlockDecorationDimensions(blockDecoration2)
-      runAnimationFrames()
-      runAnimationFrames()
-
+      runAnimationFrames() // causes the DOM to update and to retrieve new styles
+      runAnimationFrames() // applies the changes
       expect(component.getDomNode().querySelectorAll(".line").length).toBe(9)
-
+      expect(verticalScrollbarNode.scrollHeight).toBe(editor.getScreenLineCount() * editor.getLineHeightInPixels() + 20 + 100 + 120 + 42 + 22)
       expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
       expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 20 + "px")
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
       expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
-
       expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
       expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
       expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
       expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
       expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBe(item5)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-6")).toBeNull()
+      expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
+      expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 20)
+      expect(item4.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 20 + 100)
+      expect(item5.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 20 + 100 + 120 + lineHeightInPixels)
 
+      item6.style.height = "33px"
+      wrapperNode.invalidateBlockDecorationDimensions(blockDecoration6)
+      runAnimationFrames() // causes the DOM to update and to retrieve new styles
+      runAnimationFrames() // applies the changes
+      expect(component.getDomNode().querySelectorAll(".line").length).toBe(9)
+      expect(verticalScrollbarNode.scrollHeight).toBe(editor.getScreenLineCount() * editor.getLineHeightInPixels() + 20 + 100 + 120 + 42 + 33)
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 20 + "px")
+      expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
+      expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBe(item5)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-6")).toBeNull()
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 20)
       expect(item4.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 20 + 100)
       expect(item5.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 20 + 100 + 120 + lineHeightInPixels)
     })
 
-    it("correctly sets screen rows on <content> elements, both initially and when decorations move", function () {
+    it("correctly sets screen rows on block decoration and ruler nodes, both initially and when decorations move", function () {
       let [item, blockDecoration] = createBlockDecorationBeforeScreenRow(0, {className: "decoration-1"})
       atom.styles.addStyleSheet(
         'atom-text-editor .decoration-1 { width: 30px; height: 80px; }',
@@ -1886,42 +1902,37 @@ describe('TextEditorComponent', function () {
       )
 
       runAnimationFrames()
-
-      let tileNode, contentElements
-
-      tileNode = component.tileNodesForLines()[0]
-      contentElements = tileNode.querySelectorAll("content")
-
-      expect(contentElements.length).toBe(1)
-      expect(contentElements[0].dataset.screenRow).toBe("0")
-      expect(component.lineNodeForScreenRow(0).dataset.screenRow).toBe("0")
-      expect(component.lineNodeForScreenRow(1).dataset.screenRow).toBe("1")
-      expect(component.lineNodeForScreenRow(2).dataset.screenRow).toBe("2")
+      const line0 = component.lineNodeForScreenRow(0)
+      expect(item.previousSibling.dataset.screenRow).toBe("0")
+      expect(item.dataset.screenRow).toBe("0")
+      expect(item.nextSibling.dataset.screenRow).toBe("0")
+      expect(line0.previousSibling).toBe(item.nextSibling)
 
       editor.setCursorBufferPosition([0, 0])
       editor.insertNewline()
       runAnimationFrames()
+      const line1 = component.lineNodeForScreenRow(1)
+      expect(item.previousSibling.dataset.screenRow).toBe("1")
+      expect(item.dataset.screenRow).toBe("1")
+      expect(item.nextSibling.dataset.screenRow).toBe("1")
+      expect(line1.previousSibling).toBe(item.nextSibling)
 
-      tileNode = component.tileNodesForLines()[0]
-      contentElements = tileNode.querySelectorAll("content")
-
-      expect(contentElements.length).toBe(1)
-      expect(contentElements[0].dataset.screenRow).toBe("1")
-      expect(component.lineNodeForScreenRow(0).dataset.screenRow).toBe("0")
-      expect(component.lineNodeForScreenRow(1).dataset.screenRow).toBe("1")
-      expect(component.lineNodeForScreenRow(2).dataset.screenRow).toBe("2")
-
-      blockDecoration.getMarker().setHeadBufferPosition([2, 0])
+      editor.setCursorBufferPosition([0, 0])
+      editor.insertNewline()
       runAnimationFrames()
+      const line2 = component.lineNodeForScreenRow(2)
+      expect(item.previousSibling.dataset.screenRow).toBe("2")
+      expect(item.dataset.screenRow).toBe("2")
+      expect(item.nextSibling.dataset.screenRow).toBe("2")
+      expect(line2.previousSibling).toBe(item.nextSibling)
 
-      tileNode = component.tileNodesForLines()[0]
-      contentElements = tileNode.querySelectorAll("content")
-
-      expect(contentElements.length).toBe(1)
-      expect(contentElements[0].dataset.screenRow).toBe("2")
-      expect(component.lineNodeForScreenRow(0).dataset.screenRow).toBe("0")
-      expect(component.lineNodeForScreenRow(1).dataset.screenRow).toBe("1")
-      expect(component.lineNodeForScreenRow(2).dataset.screenRow).toBe("2")
+      blockDecoration.getMarker().setHeadBufferPosition([4, 0])
+      runAnimationFrames()
+      const line4 = component.lineNodeForScreenRow(4)
+      expect(item.previousSibling.dataset.screenRow).toBe("4")
+      expect(item.dataset.screenRow).toBe("4")
+      expect(item.nextSibling.dataset.screenRow).toBe("4")
+      expect(line4.previousSibling).toBe(item.nextSibling)
     })
 
     it('measures block decorations taking into account both top and bottom margins of the element and its children', function () {
@@ -1945,6 +1956,18 @@ describe('TextEditorComponent', function () {
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
       expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
+    })
+
+    it('allows the same block decoration item to be moved from one tile to another in the same animation frame', function () {
+      let [item, blockDecoration] = createBlockDecorationBeforeScreenRow(5, {className: "decoration-1"})
+      runAnimationFrames()
+      expect(component.tileNodesForLines()[0].querySelector('.decoration-1')).toBeNull()
+      expect(component.tileNodesForLines()[1].querySelector('.decoration-1')).toBe(item)
+
+      blockDecoration.getMarker().setHeadBufferPosition([0, 0])
+      runAnimationFrames()
+      expect(component.tileNodesForLines()[0].querySelector('.decoration-1')).toBe(item)
+      expect(component.tileNodesForLines()[1].querySelector('.decoration-1')).toBeNull()
     })
   })
 
@@ -2873,6 +2896,7 @@ describe('TextEditorComponent', function () {
         editor.foldBufferRange([[4, 6], [4, 10]])
         editor.foldBufferRange([[4, 15], [4, 20]])
         runAnimationFrames()
+
         let foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
         expect(foldMarkers.length).toBe(2)
         expect(editor.isFoldedAtBufferRow(4)).toBe(true)
@@ -3409,8 +3433,7 @@ describe('TextEditorComponent', function () {
     it('transfers focus to the hidden input', function () {
       expect(document.activeElement).toBe(document.body)
       wrapperNode.focus()
-      expect(document.activeElement).toBe(wrapperNode)
-      expect(wrapperNode.shadowRoot.activeElement).toBe(inputNode)
+      expect(document.activeElement).toBe(inputNode)
     })
 
     it('adds the "is-focused" class to the editor when the hidden input is focused', function () {
@@ -4294,7 +4317,7 @@ describe('TextEditorComponent', function () {
         atom.config.set('editor.fontFamily', 'sans-serif')
         wrapperNode.style.display = 'none'
         component.checkForVisibilityChange()
-        atom.themes.applyStylesheet('test', '.function.js {\n  font-weight: bold;\n}')
+        atom.themes.applyStylesheet('test', '.syntax--function.syntax--js {\n  font-weight: bold;\n}')
         wrapperNode.style.display = ''
         component.checkForVisibilityChange()
         editor.setCursorBufferPosition([0, Infinity])
@@ -4429,7 +4452,7 @@ describe('TextEditorComponent', function () {
         jasmine.attachToDOM(element)
 
         expect(element.offsetHeight).toBe(200)
-        expect(element.shadowRoot.querySelector('.editor-contents--private').offsetHeight).toBe(200)
+        expect(element.querySelector('.editor-contents--private').offsetHeight).toBe(200)
         expect(Grim.deprecate.callCount).toBe(1)
         expect(Grim.deprecate.argsForCall[0][0]).toMatch(/inline style/)
       })
@@ -4452,7 +4475,7 @@ describe('TextEditorComponent', function () {
         element.component.measureDimensions()
 
         expect(element.offsetHeight).toBe(200)
-        expect(element.shadowRoot.querySelector('.editor-contents--private').offsetHeight).toBe(200)
+        expect(element.querySelector('.editor-contents--private').offsetHeight).toBe(200)
         expect(Grim.deprecate.callCount).toBe(1)
         expect(Grim.deprecate.argsForCall[0][0]).toMatch(/absolute/)
       })
