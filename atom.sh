@@ -55,7 +55,12 @@ if [ $EXPECT_OUTPUT ]; then
 fi
 
 if [ $OS == 'Mac' ]; then
-  ATOM_APP="$(dirname "$(dirname "$(dirname "$(dirname "$(readlink "$0")")")")")"
+  if [ -L "$0" ]; then
+    SCRIPT="$(readlink "$0")"
+  else
+    SCRIPT="$0"
+  fi
+  ATOM_APP="$(dirname "$(dirname "$(dirname "$(dirname "$SCRIPT")")")")"
   if [ "$ATOM_APP" == . ]; then
     unset ATOM_APP
   else
