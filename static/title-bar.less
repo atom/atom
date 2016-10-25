@@ -49,28 +49,27 @@ body.fullscreen .title-bar {
 @traffic-lights-width: 78px;
 @traffic-lights-height: 38px;
 
-.hidden-title-bar:not(.has-header) {
-
-  // Add space for the traffic lights
-  atom-panel-container.left {
-    padding-top: @traffic-lights-height;
-    transition: padding-top 160ms;
-  }
-  &.fullscreen atom-panel-container.left {
-    padding-top: 0;
+.hidden-title-bar:not(.fullscreen) {
+  atom-panel-container.header:empty + atom-workspace-axis.horizontal atom-panel-container.left {
+    min-width: 78px; // keep some width for traffic lights when tree-view is hidden
+    padding-top: @traffic-lights-height; // add space for traffic lights
   }
 
-  // Avoid tabs from overlap window controls when sidebar is closed
-  atom-panel-container.left:empty + atom-workspace-axis.vertical .tab-bar,
-  atom-panel-container.left:empty + atom-workspace-axis.vertical atom-panel-container.top {
+  // Add space for traffic lights in header panels
+  atom-panel.header:first-child {
+    box-sizing: content-box;
+    height: @traffic-lights-height;
     padding-left: @traffic-lights-width;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   // Enable dragging
   atom-panel-container.left,
   .tree-view,
   .tab-bar,
-  .status-bar {
+  .status-bar,
+  atom-panel.header:first-child {
     -webkit-app-region: drag;
   }
 
@@ -83,28 +82,8 @@ body.fullscreen .title-bar {
 }
 
 
-// Alternative Title Bar -------------------------------
-
-.hidden-title-bar {
-
-  // Enable dragging + make space for traffic lights
-  atom-panel.header:first-child {
-    box-sizing: content-box;
-    height: @traffic-lights-height;
-    padding-left: @traffic-lights-width;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-app-region: drag;
-  }
-
-  // HOW TO: Disable dragging on panels
-  // .my-panel {
-  //   -webkit-app-region: no-drag;
-  // }
-}
-
-
 // Modal -------------------------------
+// Prevent traffic lights from overlapping modals
 
 .custom-title-bar atom-panel.modal {
   top: @title-bar-height;
