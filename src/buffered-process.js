@@ -1,3 +1,5 @@
+/** @babel */
+
 import _ from 'underscore-plus'
 import ChildProcess from 'child_process'
 import {Emitter} from 'event-kit'

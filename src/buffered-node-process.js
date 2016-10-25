@@ -1,3 +1,5 @@
+/** @babel */
+
 import BufferedProcess from './buffered-process'
 
 // Extended: Like {BufferedProcess}, but accepts a Node script as the command
