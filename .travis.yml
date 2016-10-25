@@ -49,3 +49,5 @@ addons:
     - git
     - libgnome-keyring-dev
     - rpm
+    - libx11-dev
+    - libxkbfile-dev
