@@ -46,11 +46,14 @@ body.fullscreen .title-bar {
 
 // Hidden Title Bar -------------------------------
 
-.hidden-title-bar {
+@traffic-lights-width: 78px;
+@traffic-lights-height: 38px;
+
+.hidden-title-bar:not(.has-header) {
 
   // Add space for the traffic lights
   atom-panel-container.left {
-    padding-top: 36px;
+    padding-top: @traffic-lights-height;
     transition: padding-top 160ms;
   }
   &.fullscreen atom-panel-container.left {
@@ -60,7 +63,7 @@ body.fullscreen .title-bar {
   // Avoid tabs from overlap window controls when sidebar is closed
   atom-panel-container.left:empty + atom-workspace-axis.vertical .tab-bar,
   atom-panel-container.left:empty + atom-workspace-axis.vertical atom-panel-container.top {
-    padding-left: 77px;
+    padding-left: @traffic-lights-width;
   }
 
   // Enable dragging
@@ -77,13 +80,36 @@ body.fullscreen .title-bar {
   .tab {
     -webkit-app-region: no-drag;
   }
+}
 
-  // Modal
-  atom-panel.modal {
-    // padding: 0 77px;
-    top: 36px;
-    border-top-left-radius: @component-border-radius;
-    border-top-right-radius: @component-border-radius;
+
+// Alternative Title Bar -------------------------------
+
+.hidden-title-bar {
+
+  // Enable dragging + make space for traffic lights
+  atom-panel.header:first-child {
+    box-sizing: content-box;
+    height: @traffic-lights-height;
+    padding-left: @traffic-lights-width;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-app-region: drag;
   }
 
+  // HOW TO: Disable dragging on panels
+  // .my-panel {
+  //   -webkit-app-region: no-drag;
+  // }
+}
+
+
+// Modal -------------------------------
+
+.custom-title-bar atom-panel.modal {
+  top: @title-bar-height;
+}
+
+.hidden-title-bar atom-panel.modal {
+  top: @traffic-lights-height;
 }
