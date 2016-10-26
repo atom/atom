@@ -32,7 +32,6 @@ module.exports = function (packagedAppPath, codeSign) {
     signParams.push('/fd sha256') // File digest algorithm
     signParams.push('/tr http://timestamp.digicert.com') // Time stamp server
     signParams.push('/td sha256') // Times stamp algorithm
-    signParams.push('/as') // Append signature
     options.signWithParams = signParams.join(' ')
   } else {
     console.log('Skipping code-signing. Specify the --code-sign option and provide a WIN_P12KEY_URL environment variable to perform code-signing'.gray)
