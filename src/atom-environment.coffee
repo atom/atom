@@ -170,7 +170,8 @@ class AtomEnvironment extends Model
     @packages = new PackageManager({
       devMode, @configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
       commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
-      grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views
+      grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views,
+      specMode: @inSpecMode()
     })
 
     @themes = new ThemeManager({

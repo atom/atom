@@ -32,7 +32,7 @@ class Package
   constructor: (params) ->
     {
       @path, @metadata, @packageManager, @config, @styleManager, @commandRegistry,
-      @keymapManager, @devMode, @notificationManager, @grammarRegistry, @themeManager,
+      @keymapManager, @devMode, @specMode, @notificationManager, @grammarRegistry, @themeManager,
       @menuManager, @contextMenuManager, @deserializerManager, @viewRegistry
     } = params
 
@@ -91,7 +91,10 @@ class Package
         if @shouldRequireMainModuleOnLoad() and not @mainModule?
           @requireMainModule()
       catch error
-        @handleError("Failed to load the #{@name} package", error)
+        if @specMode
+          throw error
+        else
+          @handleError("Failed to load the #{@name} package", error)
     this
 
   shouldRequireMainModuleOnLoad: ->
