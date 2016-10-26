@@ -50,7 +50,7 @@ export default class BufferedProcess {
     this.emitter = new Emitter()
     this.command = command
     // Related to joyent/node#2318
-    if (process.platform === 'win32' && options.shell) {
+    if (process.platform === 'win32' && !options.shell) {
       let cmdArgs = []
 
       // Quote all arguments and escapes inner quotes
@@ -132,7 +132,7 @@ export default class BufferedProcess {
       }
     })
 
-    return stream.on('close', () => {
+    stream.on('close', () => {
       if (this.killed) return
       if (buffered.length > 0) onLines(buffered)
       onDone()
