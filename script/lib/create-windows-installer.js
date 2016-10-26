@@ -23,10 +23,17 @@ module.exports = function (packagedAppPath, codeSign) {
 
   const certPath = path.join(os.tmpdir(), 'win.p12')
   const signing = codeSign && process.env.WIN_P12KEY_URL
+
   if (signing) {
     downloadFileFromGithub(process.env.WIN_P12KEY_URL, certPath)
-    options.certificateFile = certPath
-    options.certificatePassword = process.env.WIN_P12KEY_PASSWORD
+    var signParams = []
+    signParams.push(`/f ${certPath}`) // Signing cert file
+    signParams.push(`/p ${process.env.WIN_P12KEY_PASSWORD}`) // Signing cert password
+    signParams.push('/fd sha256') // File digest algorithm
+    signParams.push('/tr http://timestamp.digicert.com') // Time stamp server
+    signParams.push('/td sha256') // Times stamp algorithm
+    signParams.push('/as') // Append signature
+    options.signWithParams = signParams.join(' ')
   } else {
     console.log('Skipping code-signing. Specify the --code-sign option and provide a WIN_P12KEY_URL environment variable to perform code-signing'.gray)
   }
