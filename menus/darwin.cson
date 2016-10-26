@@ -36,6 +36,13 @@
       { label: 'New File', command: 'application:new-file' }
       { label: 'Open…', command: 'application:open' }
       { label: 'Add Project Folder…', command: 'application:add-project-folder' }
+      {
+        label: 'Reopen Project',
+        submenu: [
+          { label: 'Clear Project History', command: 'application:clear-project-history' }
+          { type: 'separator' }
+        ]
+      }
       { label: 'Reopen Last Item', command: 'pane:reopen-closed-item' }
       { type: 'separator' }
       { label: 'Save', command: 'core:save' }
