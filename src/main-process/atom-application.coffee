@@ -93,7 +93,6 @@ class AtomApplication
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
     @listenForArgumentsFromNewProcess()
-    @setupJavaScriptArguments()
     @setupDockMenu()
 
     @launch(options)
@@ -200,10 +199,6 @@ class AtomApplication
         # check and the call to unlink sync. This occurred occasionally on CI
         # which is why this check is here.
         throw error unless error.code is 'ENOENT'
-
-  # Configures required javascript environment flags.
-  setupJavaScriptArguments: ->
-    app.commandLine.appendSwitch 'js-flags', '--harmony'
 
   # Registers basic application commands, non-idempotent.
   handleEvents: ->
