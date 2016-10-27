@@ -4,6 +4,8 @@ skip_tags: true
 clone_folder: c:\projects\atom
 clone_depth: 10
 
+os: Visual Studio 2015
+
 platform:
   - x86
 
