@@ -235,14 +235,14 @@ describe("ReopenProjectMenuManager", () => {
       })
 
       it("returns the standard base name for a relative Windows path", () => {
-        if (process.platform is 'win32') {
+        if (process.platform === 'win32') {
           const name = ReopenProjectMenuManager.betterBaseName('.\\one\\two')
           expect(name).toBe('two')
         }
       })
 
       it("returns the standard base name for an absolute Windows path", () => {
-        if (process.platform is 'win32') {
+        if (process.platform === 'win32') {
           const name = ReopenProjectMenuManager.betterBaseName('c:\\missions\\apollo\\11')
           expect(name).toBe('11')
         }
