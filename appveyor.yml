@@ -15,7 +15,15 @@ environment:
   - NODE_VERSION: 4.4.5
 
 install:
-  - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
+  # Install rust
+  - curl -sSf -o rustup-init.exe https://win.rustup.rs
+  - rustup-init.exe -y
+  - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
+  - cargo --version
+  - rustc --version
+
+  # Install node
+  - set PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
   - npm install -g npm
 

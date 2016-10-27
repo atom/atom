@@ -12,11 +12,20 @@ before_install:
   - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
 
 install:
+  # Install rust
+  - curl https://sh.rustup.rs -sSf -o ~/rustup.sh
+  - sh ~/rustup.sh -y
+  - export PATH="$PATH:$HOME/.cargo/bin"
+  - cargo --version
+  - rustc --version
+
+  # Install node
   - git clone https://github.com/creationix/nvm.git /tmp/.nvm
   - source /tmp/.nvm/nvm.sh
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
   - npm install -g npm
+
   - script/build --create-debian-package --create-rpm-package --compress-artifacts
 
 script: script/test
