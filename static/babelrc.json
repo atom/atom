@@ -1,7 +1,16 @@
 {
-  "breakConfig": true,
   "sourceMap": "inline",
-  "blacklist": ["es6.forOf", "useStrict"],
-  "optional": ["asyncToGenerator"],
-  "stage": 0
+  "presets": [["es2015", {"modules": false}]],
+  "plugins": [
+    "transform-class-properties",
+    "transform-async-to-generator",
+    ["transform-runtime", {
+      "polyfill": false,
+      "regenerator": true
+    }],
+    "add-module-exports",
+    ["transform-es2015-modules-commonjs", {
+      "strictMode": false
+    }]
+  ]
 }
