@@ -1,6 +1,9 @@
 {
   "sourceMap": "inline",
-  "presets": [["es2015", {"modules": false}]],
+  "presets": [
+    ["es2015", {"modules": false}],
+    "react"
+  ],
   "plugins": [
     "transform-class-properties",
     "transform-async-to-generator",
