@@ -11,6 +11,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 * npm 3.10.x or later (run `npm install -g npm`)
 * Ensure node-gyp uses python2 (run `npm config set python /usr/bin/python2 -g`, use `sudo` if you didn't install node via nvm)
 * Development headers for [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring).
+* [Rust](https://rustup.rs)
 
 For more details, scroll down to find how to setup a specific Linux distro.
 
