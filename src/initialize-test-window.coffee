@@ -23,7 +23,7 @@ module.exports = ({blobStore}) ->
     ApplicationDelegate = require '../src/application-delegate'
     Clipboard = require '../src/clipboard'
     TextEditor = require '../src/text-editor'
-    require '../src/electron-shims'
+    require './electron-shims'
 
     {testRunnerPath, legacyTestRunnerPath, headless, logFile, testPaths} = getWindowLoadSettings()
 
