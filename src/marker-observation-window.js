@@ -1,3 +1,5 @@
+/** @babel */
+
 export default class MarkerObservationWindow {
   constructor (decorationManager, bufferWindow) {
     this.decorationManager = decorationManager

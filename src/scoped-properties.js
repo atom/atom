@@ -1,3 +1,5 @@
+/** @babel */
+
 import CSON from 'season'
 
 export default class ScopedProperties {

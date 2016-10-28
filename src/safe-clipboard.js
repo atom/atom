@@ -1,3 +1,5 @@
+/** @babel */
+
 let clipboard
 
 // Using clipboard in renderer process is not safe on Linux.

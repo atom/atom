@@ -1,3 +1,5 @@
+/** @babel */
+
 export default class ItemRegistry {
   constructor () {
     this.items = new WeakSet()

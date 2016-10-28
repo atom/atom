@@ -1,3 +1,5 @@
+/** @babel */
+
 let nextInstanceId = 1
 
 export default class Model {

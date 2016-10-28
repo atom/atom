@@ -1,3 +1,5 @@
+/** @babel */
+
 import path from 'path'
 import fs from 'fs-plus'
 

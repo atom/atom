@@ -1,3 +1,5 @@
+/** @babel */
+
 import {PathReplacer} from 'scandal'
 
 export default function (filePaths, regexSource, regexFlags, replacementText) {

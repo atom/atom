@@ -1,3 +1,5 @@
+/** @babel */
+
 let windowLoadSettings;
 
 export function getWindowLoadSettings () {
