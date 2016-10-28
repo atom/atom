@@ -57,8 +57,9 @@ module.exports = function (packagedAppPath, codeSign) {
       for (let nupkgPath of glob.sync(`${CONFIG.buildOutputPath}/*-full.nupkg`)) {
         if (nupkgPath.includes(CONFIG.appMetadata.version)) {
           console.log(`Extracting signed executables from ${nupkgPath} for use in portable zip`)
-          spawnSync('7z.exe', ['e', nupkgPath, 'lib\\net45\\*.exe', '-aoa', `-o"${packagedAppPath}"`])
-          spawnSync(process.env.COMSPEC, ['/c', `move /y "${path.join(packagedAppPath, 'squirrel.exe')}" "${path.join(packagedAppPath, 'update.exe')}"`])
+          const appPath = path.normalize(packagedAppPath)
+          spawnSync('7z.exe', ['e', nupkgPath, 'lib\\net45\\*.exe', '-aoa', `-o"${appPath}"`])
+          spawnSync(process.env.COMSPEC, ['/c', `move /y "${path.join(appPath, 'squirrel.exe')}" "${path.join(appPath, 'update.exe')}"`])
           return
         }
       }
