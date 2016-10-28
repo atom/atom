@@ -7,6 +7,8 @@ const listen = require('./delegated-listener')
 // This tooltip class is derived from Bootstrap 3, but modified to not require
 // jQuery, which is an expensive dependency we want to eliminate.
 
+var followThroughTimer = null
+
 var Tooltip = function (element, options, viewRegistry) {
   this.options = null
   this.enabled = null
@@ -21,7 +23,7 @@ var Tooltip = function (element, options, viewRegistry) {
 
 Tooltip.VERSION = '3.3.5'
 
-Tooltip.TRANSITION_DURATION = 150
+Tooltip.FOLLOW_THROUGH_DURATION = 300
 
 Tooltip.DEFAULTS = {
   animation: true,
@@ -151,7 +153,11 @@ Tooltip.prototype.enter = function (event) {
 
   this.hoverState = 'in'
 
-  if (!this.options.delay || !this.options.delay.show) return this.show()
+  if (!this.options.delay ||
+      !this.options.delay.show ||
+      followThroughTimer) {
+    return this.show()
+  }
 
   this.timeout = setTimeout(function () {
     if (this.hoverState === 'in') this.show()
@@ -342,6 +348,14 @@ Tooltip.prototype.hide = function (callback) {
   callback && callback()
 
   this.hoverState = null
+
+  clearTimeout(followThroughTimer)
+  followThroughTimer = setTimeout(
+    function () {
+      followThroughTimer = null
+    },
+    Tooltip.FOLLOW_THROUGH_DURATION
+  )
 
   return this
 }
