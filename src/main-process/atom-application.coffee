@@ -93,7 +93,6 @@ class AtomApplication
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
     @listenForArgumentsFromNewProcess()
-    @setupJavaScriptArguments()
     @setupDockMenu()
 
     @launch(options)
@@ -201,10 +200,6 @@ class AtomApplication
         # which is why this check is here.
         throw error unless error.code is 'ENOENT'
 
-  # Configures required javascript environment flags.
-  setupJavaScriptArguments: ->
-    app.commandLine.appendSwitch 'js-flags', '--harmony'
-
   # Registers basic application commands, non-idempotent.
   handleEvents: ->
     getLoadSettings = =>
@@ -278,6 +273,12 @@ class AtomApplication
 
     @disposable.add ipcHelpers.on ipcMain, 'restart-application', =>
       @restart()
+
+    @disposable.add ipcHelpers.on ipcMain, 'did-change-history-manager', (event) =>
+      for atomWindow in @windows
+        webContents = atomWindow.browserWindow.webContents
+        if webContents isnt event.sender
+          webContents.send('did-change-history-manager')
 
     # A request from the associated render process to open a new render process.
     @disposable.add ipcHelpers.on ipcMain, 'open', (event, options) =>

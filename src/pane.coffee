@@ -583,7 +583,7 @@ class Pane extends Model
       chosen = @applicationDelegate.confirm
         message: message
         detailedMessage: "Your changes will be lost if you close this item without saving."
-        buttons: [saveButtonText, "Cancel", "Don't save"]
+        buttons: [saveButtonText, "Cancel", "Don't Save"]
       switch chosen
         when 0 then saveFn(item, saveError)
         when 1 then false

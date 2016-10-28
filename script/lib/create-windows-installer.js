@@ -23,10 +23,16 @@ module.exports = function (packagedAppPath, codeSign) {
 
   const certPath = path.join(os.tmpdir(), 'win.p12')
   const signing = codeSign && process.env.WIN_P12KEY_URL
+
   if (signing) {
     downloadFileFromGithub(process.env.WIN_P12KEY_URL, certPath)
-    options.certificateFile = certPath
-    options.certificatePassword = process.env.WIN_P12KEY_PASSWORD
+    var signParams = []
+    signParams.push(`/f ${certPath}`) // Signing cert file
+    signParams.push(`/p ${process.env.WIN_P12KEY_PASSWORD}`) // Signing cert password
+    signParams.push('/fd sha256') // File digest algorithm
+    signParams.push('/tr http://timestamp.digicert.com') // Time stamp server
+    signParams.push('/td sha256') // Times stamp algorithm
+    options.signWithParams = signParams.join(' ')
   } else {
     console.log('Skipping code-signing. Specify the --code-sign option and provide a WIN_P12KEY_URL environment variable to perform code-signing'.gray)
   }
@@ -51,9 +57,9 @@ module.exports = function (packagedAppPath, codeSign) {
       for (let nupkgPath of glob.sync(`${CONFIG.buildOutputPath}/*-full.nupkg`)) {
         if (nupkgPath.includes(CONFIG.appMetadata.version)) {
           console.log(`Extracting signed executables from ${nupkgPath} for use in portable zip`)
-          var atomOutPath = path.join(path.dirname(packagedAppPath), 'Atom')
-          spawnSync('7z.exe', ['e', nupkgPath, 'lib\\net45\\*.exe', '-aoa'], {cwd: atomOutPath})
-          spawnSync(process.env.COMSPEC, ['/c', `move /y ${path.join(atomOutPath, 'squirrel.exe')} ${path.join(atomOutPath, 'update.exe')}`])
+          const appPath = path.normalize(packagedAppPath)
+          spawnSync('7z.exe', ['e', nupkgPath, 'lib\\net45\\*.exe', '-aoa', `-o"${appPath}"`])
+          spawnSync(process.env.COMSPEC, ['/c', `move /y "${path.join(appPath, 'squirrel.exe')}" "${path.join(appPath, 'update.exe')}"`])
           return
         }
       }

@@ -13,6 +13,7 @@ export default async function () {
     const ApplicationDelegate = require('../src/application-delegate')
     const AtomEnvironment = require('../src/atom-environment')
     const TextEditor = require('../src/text-editor')
+    require('./electron-shims')
 
     const exportsPath = path.join(resourcePath, 'exports')
     require('module').globalPaths.push(exportsPath) // Add 'exports' to module search path.
