@@ -76,7 +76,7 @@ Object.assign(PackageTranspilationRegistry.prototype, {
     // This means searching for a config for `/path/to/file/here.js` only
     // only iterates four times, even if there are hundreds of configs registered.
     while (thisPath !== lastPath) { // until we reach the root
-      if (config = this.configByPackagePath[thisPath]) {
+      if (config = this.configByPackagePath[thisPath]) { // // eslint-disable-line no-cond-assign
         for (var i = 0; i < config.specs.length; i++) {
           spec = config.specs[i]
           if (minimatch(filePath, path.join(config.path, spec.glob))) {
@@ -100,7 +100,7 @@ Object.assign(PackageTranspilationRegistry.prototype, {
     var transpilerSource = spec._transpilerSource || fs.readFileSync(transpilerPath, 'utf8')
     spec._transpilerSource = transpilerSource
     return path.join(
-      "package-transpile",
+      'package-transpile',
       crypto
         .createHash('sha1')
         .update(JSON.stringify(spec.options || {}))
@@ -127,7 +127,7 @@ Object.assign(PackageTranspilationRegistry.prototype, {
         return result
       }
     } else {
-      var err = new Error("Could not resolve transpiler '" + spec.transpiler + "' from '" + config.path + "'")
+      var err = new Error("Could not resolve transpiler '" + spec.transpiler + "' from '" + spec._config.path + "'")
       console.error(err)
     }
   }
