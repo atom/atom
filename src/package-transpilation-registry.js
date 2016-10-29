@@ -10,7 +10,6 @@ function PackageTranspilationRegistry () {
   this.configByPackagePath = {}
   this.specByFilePath = {}
   this.transpilerPaths = {}
-  this.transpilerHashes = {}
 }
 
 Object.assign(PackageTranspilationRegistry.prototype, {
