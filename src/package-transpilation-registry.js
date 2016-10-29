@@ -107,7 +107,7 @@ PackageTranspilationRegistry.prototype.transpileWithPackageTranspiler = function
   if (transpilerPath) {
     this.transpilerPaths[transpilerPath] = true
     var transpiler = require(transpilerPath)
-    var result = transpiler.compile(sourceCode, filePath)
+    var result = transpiler.compile(sourceCode, filePath, config.options || {})
     if (result === undefined) {
       return sourceCode
     } else {
