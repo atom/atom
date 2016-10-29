@@ -4335,6 +4335,13 @@ describe "TextEditor", ->
           editor.toggleLineCommentsInSelection()
           expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
 
+      it "does nothing for empty lines and null grammar", ->
+        runs ->
+          editor.setGrammar(atom.grammars.grammarForScopeName('text.plain.null-grammar'))
+          editor.setCursorBufferPosition([10, 0])
+          editor.toggleLineCommentsInSelection()
+          expect(editor.buffer.lineForRow(10)).toBe ""
+
       it "uncomments when the line lacks the trailing whitespace in the comment regex", ->
         editor.setCursorBufferPosition([10, 0])
         editor.toggleLineCommentsInSelection()

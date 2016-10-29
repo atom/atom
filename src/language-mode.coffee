@@ -27,7 +27,7 @@ class LanguageMode
   toggleLineCommentsForBufferRows: (start, end) ->
     scope = @editor.scopeDescriptorForBufferPosition([start, 0])
     commentStrings = @editor.getCommentStrings(scope)
-    return unless commentStrings?
+    return unless commentStrings?.commentStartString
     {commentStartString, commentEndString} = commentStrings
 
     buffer = @editor.buffer
