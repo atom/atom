@@ -19,7 +19,6 @@ Object.assign(PackageTranspilationRegistry.prototype, {
       specs: config,
       path: packagePath
     }
-    console.debug(">> adding", this.configByPackagePath[packagePath])
   },
 
   removeTranspilerConfigForPath: function (packagePath) {
@@ -78,10 +77,8 @@ Object.assign(PackageTranspilationRegistry.prototype, {
     // only iterates four times, even if there are hundreds of configs registered.
     while (thisPath !== lastPath) { // until we reach the root
       if (config = this.configByPackagePath[thisPath]) {
-        console.log('got one')
         for (var i = 0; i < config.specs.length; i++) {
           spec = config.specs[i]
-          console.log("checking", filePath, "against", path.join(config.path, spec.glob))
           if (minimatch(filePath, path.join(config.path, spec.glob))) {
             spec._config = config
             this.specByFilePath[filePath] = spec
