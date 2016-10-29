@@ -254,13 +254,11 @@ class Package
 
   registerTranspilerConfig: ->
     if @metadata.atomTranspilers
-      for transpiler in @metadata.atomTranspilers
-        CompileCache.addTranspilerConfigForPath(@path, transpiler)
+      CompileCache.addTranspilerConfigForPath(@path, @metadata.atomTranspilers)
 
   unregisterTranspilerConfig: ->
     if @metadata.atomTranspilers
-      for transpiler in @metadata.atomTranspilers
-        CompileCache.removeTranspilerConfigForPath(@path)
+      CompileCache.removeTranspilerConfigForPath(@path)
 
   loadKeymaps: ->
     if @bundledPackage and @packageManager.packagesCache[@name]?
