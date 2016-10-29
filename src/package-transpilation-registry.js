@@ -111,8 +111,6 @@ Object.assign(PackageTranspilationRegistry.prototype, {
   },
 
   transpileWithPackageTranspiler: function (sourceCode, filePath, spec) {
-    var spec = this.specByFilePath[filePath]
-
     Resolve = Resolve || require('resolve')
     var transpilerPath = Resolve.sync(spec.transpiler, {
       basedir: spec._config.path,
