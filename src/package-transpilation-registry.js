@@ -120,7 +120,7 @@ Object.assign(PackageTranspilationRegistry.prototype, {
     var transpiler = this.getTranspiler(spec)
 
     if (transpiler) {
-      var result = transpiler.compile(sourceCode, filePath, spec.options || {})
+      var result = transpiler.transpile(sourceCode, filePath, spec.options || {})
       if (result === undefined) {
         return sourceCode
       } else {
