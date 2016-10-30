@@ -124,7 +124,7 @@ Object.assign(PackageTranspilationRegistry.prototype, {
       if (result === undefined) {
         return sourceCode
       } else {
-        return result
+        return result.toString()
       }
     } else {
       var err = new Error("Could not resolve transpiler '" + spec.transpiler + "' from '" + spec._config.path + "'")
