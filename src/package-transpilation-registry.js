@@ -76,7 +76,7 @@ Object.assign(PackageTranspilationRegistry.prototype, {
     // This means searching for a config for `/path/to/file/here.js` only
     // only iterates four times, even if there are hundreds of configs registered.
     while (thisPath !== lastPath) { // until we reach the root
-      if (config = this.configByPackagePath[thisPath]) { // // eslint-disable-line no-cond-assign
+      if (config = this.configByPackagePath[thisPath]) { // eslint-disable-line no-cond-assign
         for (var i = 0; i < config.specs.length; i++) {
           spec = config.specs[i]
           if (minimatch(filePath, path.join(config.path, spec.glob))) {
