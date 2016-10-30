@@ -96,30 +96,30 @@ Object.assign(PackageTranspilationRegistry.prototype, {
   },
 
   getCachePath: function (sourceCode, filePath, spec) {
-    var transpilerPath = path.join(spec._config.path, spec.transpiler)
+    var transpilerPath = this.getTranspilerPath(spec)
     var transpilerSource = spec._transpilerSource || fs.readFileSync(transpilerPath, 'utf8')
     spec._transpilerSource = transpilerSource
-    return path.join(
-      'package-transpile',
-      crypto
-        .createHash('sha1')
-        .update(JSON.stringify(spec.options || {}))
-        .update(transpilerSource, 'utf8')
-        .update(sourceCode, 'utf8')
-        .digest('hex')
-    )
+    var transpiler = this.getTranspiler(spec)
+
+    var hash = crypto
+      .createHash('sha1')
+      .update(JSON.stringify(spec.options || {}))
+      .update(transpilerSource, 'utf8')
+      .update(sourceCode, 'utf8')
+
+    var additionalCacheData
+    if (transpiler && transpiler.getCacheKeyData) {
+      additionalCacheData = transpiler.getCacheKeyData(sourceCode, filePath, spec.options)
+      hash.update(additionalCacheData, 'utf8')
+    }
+
+    return path.join('package-transpile', hash.digest('hex'))
   },
 
   transpileWithPackageTranspiler: function (sourceCode, filePath, spec) {
-    Resolve = Resolve || require('resolve')
-    var transpilerPath = Resolve.sync(spec.transpiler, {
-      basedir: spec._config.path,
-      extensions: Object.keys(require.extensions)
-    })
+    var transpiler = this.getTranspiler(spec)
 
-    if (transpilerPath) {
-      this.transpilerPaths[transpilerPath] = true
-      var transpiler = require(transpilerPath)
+    if (transpiler) {
       var result = transpiler.compile(sourceCode, filePath, spec.options || {})
       if (result === undefined) {
         return sourceCode
@@ -129,6 +129,23 @@ Object.assign(PackageTranspilationRegistry.prototype, {
     } else {
       var err = new Error("Could not resolve transpiler '" + spec.transpiler + "' from '" + spec._config.path + "'")
       console.error(err)
+    }
+  },
+
+  getTranspilerPath: function (spec) {
+    Resolve = Resolve || require('resolve')
+    return Resolve.sync(spec.transpiler, {
+      basedir: spec._config.path,
+      extensions: Object.keys(require.extensions)
+    })
+  },
+
+  getTranspiler: function (spec) {
+    var transpilerPath = this.getTranspilerPath(spec)
+    if (transpilerPath) {
+      var transpiler = require(transpilerPath)
+      this.transpilerPaths[transpilerPath] = true
+      return transpiler
     }
   }
 })
