@@ -128,7 +128,7 @@ Object.assign(PackageTranspilationRegistry.prototype, {
       }
     } else {
       var err = new Error("Could not resolve transpiler '" + spec.transpiler + "' from '" + spec._config.path + "'")
-      console.error(err)
+      throw err
     }
   },
 
