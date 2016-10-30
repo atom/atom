@@ -14,7 +14,6 @@ function PackageTranspilationRegistry () {
 
 Object.assign(PackageTranspilationRegistry.prototype, {
   addTranspilerConfigForPath: function (packagePath, config) {
-    packagePath = fs.realpathSync(packagePath)
     this.configByPackagePath[packagePath] = {
       specs: config,
       path: packagePath
@@ -22,7 +21,6 @@ Object.assign(PackageTranspilationRegistry.prototype, {
   },
 
   removeTranspilerConfigForPath: function (packagePath) {
-    packagePath = fs.realpathSync(packagePath)
     delete this.configByPackagePath[packagePath]
   },
 

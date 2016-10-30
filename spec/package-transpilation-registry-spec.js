@@ -77,13 +77,6 @@ describe("PackageTranspilationRegistry", () => {
       jsSpec._transpilerSource = "js-transpiler-source"
       coffeeSpec._transpilerSource = "coffee-transpiler-source"
 
-      const oldFsRealpathSync = fs.realpathSync.bind(fs)
-      spyOn(fs, 'realpathSync').andCallFake(thePath => {
-        if (thePath === '/path/to') return thePath
-        if (thePath === '/path/other') return thePath
-        return oldFsRealpathSync(thePath)
-      })
-
       spyOn(registry, "getTranspiler").andCallFake(spec => {
         if (spec.transpiler === './transpiler-js') return jsTranspiler
         if (spec.transpiler === './transpiler-coffee') return coffeeTranspiler

@@ -20,10 +20,12 @@ var COMPILERS = {
 }
 
 exports.addTranspilerConfigForPath = function (packagePath, config) {
+  packagePath = fs.realpathSync(packagePath)
   packageTranspilationRegistry.addTranspilerConfigForPath(packagePath, config)
 }
 
 exports.removeTranspilerConfigForPath = function (packagePath) {
+  packagePath = fs.realpathSync(packagePath)
   packageTranspilationRegistry.removeTranspilerConfigForPath(packagePath)
 }
 
