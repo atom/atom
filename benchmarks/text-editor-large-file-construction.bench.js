@@ -2,7 +2,7 @@
 
 import {TextEditor, TextBuffer} from 'atom'
 
-const MIN_SIZE_IN_KB = 0 * 1024
+const MIN_SIZE_IN_KB = 0
 const MAX_SIZE_IN_KB = 10 * 1024
 const SIZE_STEP_IN_KB = 1024
 const LINE_TEXT = 'Lorem ipsum dolor sit amet\n'
