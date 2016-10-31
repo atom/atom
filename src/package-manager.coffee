@@ -30,7 +30,7 @@ module.exports =
 class PackageManager
   constructor: (params) ->
     {
-      configDirPath, @devMode, safeMode, @resourcePath, @config, @styleManager,
+      configDirPath, @devMode, safeMode, @testMode, @resourcePath, @config, @styleManager,
       @notificationManager, @keymapManager, @commandRegistry, @grammarRegistry,
       @deserializerManager, @viewRegistry
     } = params
@@ -397,7 +397,7 @@ class PackageManager
 
       options = {
         path: packagePath, metadata, packageManager: this, @config, @styleManager,
-        @commandRegistry, @keymapManager, @devMode, @notificationManager,
+        @commandRegistry, @keymapManager, @devMode, @testMode, @notificationManager,
         @grammarRegistry, @themeManager, @menuManager, @contextMenuManager,
         @deserializerManager, @viewRegistry
       }
