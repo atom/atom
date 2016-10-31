@@ -50,9 +50,11 @@ describe("PackageTranspilationRegistry", () => {
     let hitPathMissSubdir = '/path/to/file4.js'
     let hitPathMissExt = '/path/to/file5.ts'
     let nodeModulesFolder = '/path/to/lib/node_modules/file6.js'
+    let hitNonStandardExt = '/path/to/file7.omgwhatisthis'
 
     let jsSpec = { glob: "lib/**/*.js", transpiler: './transpiler-js', options: { type: 'js' } }
     let coffeeSpec = { glob: "*.coffee", transpiler: './transpiler-coffee', options: { type: 'coffee' } }
+    let omgSpec = { glob: "*.omgwhatisthis", transpiler: './transpiler-omg', options: { type: 'omg' } }
 
     let jsTranspiler = {
       transpile: (sourceCode, filePath, options) => {
@@ -74,18 +76,30 @@ describe("PackageTranspilationRegistry", () => {
       }
     }
 
+    let omgTranspiler = {
+      transpile: (sourceCode, filePath, options) => {
+        return {code: sourceCode + "-transpiler-omg"}
+      },
+
+      getCacheKeyData: (sourceCode, filePath, options) => {
+        return 'omg-transpiler-cache-data'
+      }
+    }
+
     beforeEach(() => {
       jsSpec._transpilerSource = "js-transpiler-source"
       coffeeSpec._transpilerSource = "coffee-transpiler-source"
+      omgTranspiler._transpilerSource = "omg-transpiler-source"
 
       spyOn(registry, "getTranspiler").andCallFake(spec => {
         if (spec.transpiler === './transpiler-js') return jsTranspiler
         if (spec.transpiler === './transpiler-coffee') return coffeeTranspiler
+        if (spec.transpiler === './transpiler-omg') return omgTranspiler
         throw new Error('bad transpiler path ' + spec.transpiler)
       })
 
       registry.addTranspilerConfigForPath('/path/to', [
-        jsSpec, coffeeSpec
+        jsSpec, coffeeSpec, omgSpec
       ])
     })
 
@@ -93,6 +107,7 @@ describe("PackageTranspilationRegistry", () => {
       spyOn(originalCompiler, 'shouldCompile').andReturn(false)
       expect(wrappedCompiler.shouldCompile('source', hitPath)).toBe(true)
       expect(wrappedCompiler.shouldCompile('source', hitPathCoffee)).toBe(true)
+      expect(wrappedCompiler.shouldCompile('source', hitNonStandardExt)).toBe(true)
       expect(wrappedCompiler.shouldCompile('source', hitPathMissExt)).toBe(false)
       expect(wrappedCompiler.shouldCompile('source', hitPathMissSubdir)).toBe(false)
       expect(wrappedCompiler.shouldCompile('source', missPath)).toBe(false)
@@ -115,6 +130,7 @@ describe("PackageTranspilationRegistry", () => {
 
       expect(wrappedCompiler.compile('source', hitPath)).toEqual('source-transpiler-js')
       expect(wrappedCompiler.compile('source', hitPathCoffee)).toEqual('source-transpiler-coffee')
+      expect(wrappedCompiler.compile('source', hitNonStandardExt)).toEqual('source-transpiler-omg')
       expect(wrappedCompiler.compile('source', missPath)).toEqual('source-original-compiler')
       expect(wrappedCompiler.compile('source', hitPathMissExt)).toEqual('source-original-compiler')
       expect(wrappedCompiler.compile('source', hitPathMissSubdir)).toEqual('source-original-compiler')
