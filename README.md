@@ -14,13 +14,13 @@ announcements.
 This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code. Please report unacceptable behavior to atom@github.com.
 
-## Documentation
+## Documentation:
 
 If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](http://flight-manual.atom.io) is free and available online. You can find the source to the manual in [atom/flight-manual.atom.io](https://github.com/atom/flight-manual.atom.io).
 
 The [API reference](https://atom.io/docs/api) for developing packages is also documented on Atom.io.
 
-## Installing
+## Installing:
 
 ### Prerequisites
 - [Git](https://git-scm.com/)
@@ -76,7 +76,7 @@ Atom is only available for 64-bit Linux systems.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
-### Archive extraction
+### Archive extraction:
 
 An archive is available for people who don't want to install `atom` as root.
 
@@ -91,7 +91,7 @@ but should be compatible with other Linux distributions.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
-## Building
+## Building:
 
 * [Linux](./docs/build-instructions/linux.md)
 * [macOS](./docs/build-instructions/macos.md)
