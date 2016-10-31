@@ -55,7 +55,7 @@ describe("PackageTranspilationRegistry", () => {
 
     let jsTranspiler = {
       transpile: (sourceCode, filePath, options) => {
-        return sourceCode + "-transpiler-js"
+        return {code: sourceCode + "-transpiler-js"}
       },
 
       getCacheKeyData: (sourceCode, filePath, options) => {
@@ -65,7 +65,7 @@ describe("PackageTranspilationRegistry", () => {
 
     let coffeeTranspiler = {
       transpile: (sourceCode, filePath, options) => {
-        return sourceCode + "-transpiler-coffee"
+        return {code: sourceCode + "-transpiler-coffee"}
       },
 
       getCacheKeyData: (sourceCode, filePath, options) => {

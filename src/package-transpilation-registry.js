@@ -119,10 +119,12 @@ Object.assign(PackageTranspilationRegistry.prototype, {
 
     if (transpiler) {
       var result = transpiler.transpile(sourceCode, filePath, spec.options || {})
-      if (result === undefined) {
+      if (result === undefined || (result && result.code === undefined)) {
         return sourceCode
+      } else if (result.code) {
+        return result.code.toString()
       } else {
-        return result.toString()
+        throw new Error("Could not find a property `.code` on the transpilation results of " + filePath)
       }
     } else {
       var err = new Error("Could not resolve transpiler '" + spec.transpiler + "' from '" + spec._config.path + "'")
