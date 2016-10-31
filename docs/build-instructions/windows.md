@@ -45,7 +45,7 @@ cd C:\atom
 apm test
 ```
 
-When building Atom from source, the `apm` command is not added to the system path by default. In this case, you can either add it yourself or explicitly list the complete path in previous commands. The default install location is `"%localappdata%\Atom\app-x.y.z\resources\cli\"`.
+When building Atom from source, the `apm` command is not added to the system path by default. In this case, you can either add it yourself or explicitly list the complete path in previous commands. The default install location is `%LOCALAPPDATA%\Atom\app-dev\resources\cli\`.
 
 **NOTE**: Please keep in mind that there are still some tests that don't pass on Windows.
 
