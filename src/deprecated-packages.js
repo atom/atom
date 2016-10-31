@@ -1,9 +1,9 @@
 /** @babel */
 
 import semver from 'semver'
-import {deprecatedPackages} from '../package.json'
+import {deprecatedPackagesMetdata} from '../package.json'
 
-const deprecatedPackages = deprecatedPackages || {}
+const deprecatedPackages = deprecatedPackagesMetdata || {}
 const ranges = {}
 
 // Extend semver.Range to memoize matched versions for speed
