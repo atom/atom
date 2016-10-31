@@ -21,7 +21,7 @@ export default class ContextMenu {
         item.commandDetail = item.commandDetail || {}
         item.commandDetail.contextCommand = true
         item.commandDetail.atomWindow = this.atomWindow
-        item.click = () => global.atomApplication.sendCommandToWindow(item.command, @atomWindow, item.commandDetail)
+        item.click = () => global.atomApplication.sendCommandToWindow(item.command, this.atomWindow, item.commandDetail)
       } else if (item.submenu) {
         this.createClickHandlers(item.submenu)
       }
