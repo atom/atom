@@ -65,6 +65,11 @@ Object.assign(PackageTranspilationRegistry.prototype, {
   getPackageTranspilerSpecForFilePath: function (filePath) {
     if (this.specByFilePath[filePath] !== undefined) return this.specByFilePath[filePath]
 
+    // ignore node_modules
+    if (filePath.indexOf(path.sep + 'node_modules' + path.sep) > -1) {
+      return false
+    }
+
     var config = null
     var spec = null
     var thisPath = filePath

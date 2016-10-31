@@ -49,6 +49,7 @@ describe("PackageTranspilationRegistry", () => {
     let missPath = '/path/other/file3.js'
     let hitPathMissSubdir = '/path/to/file4.js'
     let hitPathMissExt = '/path/to/file5.ts'
+    let nodeModulesFolder = '/path/to/lib/node_modules/file6.js'
 
     let jsSpec = { glob: "lib/**/*.js", transpiler: './transpiler-js', options: { type: 'js' } }
     let coffeeSpec = { glob: "*.coffee", transpiler: './transpiler-coffee', options: { type: 'coffee' } }
@@ -95,6 +96,7 @@ describe("PackageTranspilationRegistry", () => {
       expect(wrappedCompiler.shouldCompile('source', hitPathMissExt)).toBe(false)
       expect(wrappedCompiler.shouldCompile('source', hitPathMissSubdir)).toBe(false)
       expect(wrappedCompiler.shouldCompile('source', missPath)).toBe(false)
+      expect(wrappedCompiler.shouldCompile('source', nodeModulesFolder)).toBe(false)
     })
 
     it('calls getCacheKeyData on the transpiler to get additional cache key data', () => {
@@ -116,6 +118,7 @@ describe("PackageTranspilationRegistry", () => {
       expect(wrappedCompiler.compile('source', missPath)).toEqual('source-original-compiler')
       expect(wrappedCompiler.compile('source', hitPathMissExt)).toEqual('source-original-compiler')
       expect(wrappedCompiler.compile('source', hitPathMissSubdir)).toEqual('source-original-compiler')
+      expect(wrappedCompiler.compile('source', nodeModulesFolder)).toEqual('source-original-compiler')
     })
   })
 })
