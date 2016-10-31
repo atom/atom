@@ -32,7 +32,7 @@ class Package
   constructor: (params) ->
     {
       @path, @metadata, @packageManager, @config, @styleManager, @commandRegistry,
-      @keymapManager, @devMode, @notificationManager, @grammarRegistry, @themeManager,
+      @keymapManager, @devMode, @testMode, @notificationManager, @grammarRegistry, @themeManager,
       @menuManager, @contextMenuManager, @deserializerManager, @viewRegistry
     } = params
 
@@ -124,7 +124,10 @@ class Package
             else
               @activateNow()
           catch error
-            @handleError("Failed to activate the #{@name} package", error)
+            if @testMode
+              raise error
+            else
+              @handleError("Failed to activate the #{@name} package", error)
 
     Promise.all([@grammarsPromise, @settingsPromise, @activationPromise])
 
