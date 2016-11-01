@@ -32,7 +32,7 @@ class Package
   constructor: (params) ->
     {
       @path, @metadata, @packageManager, @config, @styleManager, @commandRegistry,
-      @keymapManager, @devMode, @testMode, @notificationManager, @grammarRegistry, @themeManager,
+      @keymapManager, @devMode, @notificationManager, @grammarRegistry, @themeManager,
       @menuManager, @contextMenuManager, @deserializerManager, @viewRegistry
     } = params
 
@@ -124,7 +124,7 @@ class Package
             else
               @activateNow()
           catch error
-            if @testMode
+            if atom.inSpecMode()
               raise error
             else
               @handleError("Failed to activate the #{@name} package", error)

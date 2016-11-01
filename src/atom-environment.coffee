@@ -9,7 +9,7 @@ fs = require 'fs-plus'
 {mapSourcePosition} = require 'source-map-support'
 Model = require './model'
 WindowEventHandler = require './window-event-handler'
-StateStore = require './state-store'
+Staore = require './state-store'
 StorageFolder = require './storage-folder'
 {getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
@@ -171,7 +171,6 @@ class AtomEnvironment extends Model
       devMode, @configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
       commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
       grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views
-      testMode: @testMode
     })
 
     @themes = new ThemeManager({
@@ -420,10 +419,6 @@ class AtomEnvironment extends Model
   # Public: Returns a {Boolean} that is `true` if the current window is in development mode.
   inDevMode: ->
     @devMode ?= @getLoadSettings().devMode
-
-  # Public: Returns a {Boolean} that is `true` if the current window is in test mode.
-  inTestMode: ->
-    @testMode ?= @getLoadSettings().testMode
 
   # Public: Returns a {Boolean} that is `true` if the current window is in safe mode.
   inSafeMode: ->
