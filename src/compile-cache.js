@@ -132,6 +132,7 @@ require('source-map-support').install({
     }
 
     var compiler = COMPILERS[path.extname(filePath)]
+    if (!compiler) compiler = COMPILERS['.js']
 
     try {
       var fileData = readCachedJavascript(compiler.getCachePath(sourceCode, filePath))
