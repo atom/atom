@@ -127,10 +127,15 @@ describe("PackageTranspilationRegistry", () => {
     it('compiles files matching a glob with the associated transpiler, and the old one otherwise', () => {
       spyOn(jsTranspiler, "transpile").andCallThrough()
       spyOn(coffeeTranspiler, "transpile").andCallThrough()
+      spyOn(omgTranspiler, "transpile").andCallThrough()
 
       expect(wrappedCompiler.compile('source', hitPath)).toEqual('source-transpiler-js')
+      expect(jsTranspiler.transpile).toHaveBeenCalledWith('source', hitPath, jsSpec.options)
       expect(wrappedCompiler.compile('source', hitPathCoffee)).toEqual('source-transpiler-coffee')
+      expect(coffeeTranspiler.transpile).toHaveBeenCalledWith('source', hitPathCoffee, coffeeSpec.options)
       expect(wrappedCompiler.compile('source', hitNonStandardExt)).toEqual('source-transpiler-omg')
+      expect(omgTranspiler.transpile).toHaveBeenCalledWith('source', hitNonStandardExt, omgSpec.options)
+
       expect(wrappedCompiler.compile('source', missPath)).toEqual('source-original-compiler')
       expect(wrappedCompiler.compile('source', hitPathMissExt)).toEqual('source-original-compiler')
       expect(wrappedCompiler.compile('source', hitPathMissSubdir)).toEqual('source-original-compiler')
