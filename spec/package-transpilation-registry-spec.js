@@ -6,7 +6,7 @@ import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
 
 import PackageTranspilationRegistry from '../src/package-transpilation-registry'
 
-let originalCompiler = {
+const originalCompiler = {
   getCachePath: (sourceCode, filePath) => {
     return "orig-cache-path"
   },
@@ -44,19 +44,19 @@ describe("PackageTranspilationRegistry", () => {
   })
 
   describe('when a file is contained in a path that has custom transpilation', () => {
-    let hitPath = '/path/to/lib/file.js'
-    let hitPathCoffee = '/path/to/file2.coffee'
-    let missPath = '/path/other/file3.js'
-    let hitPathMissSubdir = '/path/to/file4.js'
-    let hitPathMissExt = '/path/to/file5.ts'
-    let nodeModulesFolder = '/path/to/lib/node_modules/file6.js'
-    let hitNonStandardExt = '/path/to/file7.omgwhatisthis'
+    const hitPath = '/path/to/lib/file.js'
+    const hitPathCoffee = '/path/to/file2.coffee'
+    const missPath = '/path/other/file3.js'
+    const hitPathMissSubdir = '/path/to/file4.js'
+    const hitPathMissExt = '/path/to/file5.ts'
+    const nodeModulesFolder = '/path/to/lib/node_modules/file6.js'
+    const hitNonStandardExt = '/path/to/file7.omgwhatisthis'
 
-    let jsSpec = { glob: "lib/**/*.js", transpiler: './transpiler-js', options: { type: 'js' } }
-    let coffeeSpec = { glob: "*.coffee", transpiler: './transpiler-coffee', options: { type: 'coffee' } }
-    let omgSpec = { glob: "*.omgwhatisthis", transpiler: './transpiler-omg', options: { type: 'omg' } }
+    const jsSpec = { glob: "lib/**/*.js", transpiler: './transpiler-js', options: { type: 'js' } }
+    const coffeeSpec = { glob: "*.coffee", transpiler: './transpiler-coffee', options: { type: 'coffee' } }
+    const omgSpec = { glob: "*.omgwhatisthis", transpiler: './transpiler-omg', options: { type: 'omg' } }
 
-    let jsTranspiler = {
+    const jsTranspiler = {
       transpile: (sourceCode, filePath, options) => {
         return {code: sourceCode + "-transpiler-js"}
       },
@@ -66,7 +66,7 @@ describe("PackageTranspilationRegistry", () => {
       }
     }
 
-    let coffeeTranspiler = {
+    const coffeeTranspiler = {
       transpile: (sourceCode, filePath, options) => {
         return {code: sourceCode + "-transpiler-coffee"}
       },
@@ -76,7 +76,7 @@ describe("PackageTranspilationRegistry", () => {
       }
     }
 
-    let omgTranspiler = {
+    const omgTranspiler = {
       transpile: (sourceCode, filePath, options) => {
         return {code: sourceCode + "-transpiler-omg"}
       },
