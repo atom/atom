@@ -129,7 +129,7 @@ Object.assign(PackageTranspilationRegistry.prototype, {
       } else if (result.code) {
         return result.code.toString()
       } else {
-        throw new Error("Could not find a property `.code` on the transpilation results of " + filePath)
+        throw new Error('Could not find a property `.code` on the transpilation results of ' + filePath)
       }
     } else {
       var err = new Error("Could not resolve transpiler '" + spec.transpiler + "' from '" + spec._config.path + "'")
