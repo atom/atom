@@ -1,3 +1,4 @@
+{CompositeDisposable} = require 'atom'
 TooltipManager = require '../src/tooltip-manager'
 Tooltip = require '../src/tooltip'
 _ = require 'underscore-plus'
@@ -39,6 +40,32 @@ describe "TooltipManager", ->
         manager.add element, title: "Title"
         hover element, ->
           expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+
+      it "displays tooltips immediately when hovering over new elements once a tooltip has been displayed once", ->
+        disposables = new CompositeDisposable
+        element1 = createElement('foo')
+        disposables.add(manager.add element1, title: 'Title')
+        element2 = createElement('bar')
+        disposables.add(manager.add element2, title: 'Title')
+        element3 = createElement('baz')
+        disposables.add(manager.add element3, title: 'Title')
+
+        hover element1, ->
+        expect(document.body.querySelector(".tooltip")).toBeNull()
+
+        mouseEnter(element2)
+        expect(document.body.querySelector(".tooltip")).not.toBeNull()
+        mouseLeave(element2)
+        advanceClock(manager.hoverDefaults.delay.hide)
+        expect(document.body.querySelector(".tooltip")).toBeNull()
+
+        advanceClock(Tooltip.FOLLOW_THROUGH_DURATION)
+        mouseEnter(element3)
+        expect(document.body.querySelector(".tooltip")).toBeNull()
+        advanceClock(manager.hoverDefaults.delay.show)
+        expect(document.body.querySelector(".tooltip")).not.toBeNull()
+
+        disposables.dispose()
 
     describe "when the trigger is 'manual'", ->
       it "creates a tooltip immediately and only hides it on dispose", ->
@@ -163,26 +190,3 @@ describe "TooltipManager", ->
           expect(document.body.querySelector(".tooltip")).not.toBeNull()
           window.dispatchEvent(new CustomEvent('resize'))
           expect(document.body.querySelector(".tooltip")).toBeNull()
-
-    it "works with follow-through", ->
-      element1 = createElement('foo')
-      manager.add element1, title: 'Title'
-      element2 = createElement('bar')
-      manager.add element2, title: 'Title'
-      element3 = createElement('baz')
-      manager.add element3, title: 'Title'
-
-      hover element1, ->
-      expect(document.body.querySelector(".tooltip")).toBeNull()
-
-      mouseEnter(element2)
-      expect(document.body.querySelector(".tooltip")).not.toBeNull()
-      mouseLeave(element2)
-      advanceClock(manager.hoverDefaults.delay.hide)
-      expect(document.body.querySelector(".tooltip")).toBeNull()
-
-      advanceClock(Tooltip.FOLLOW_THROUGH_DURATION)
-      mouseEnter(element3)
-      expect(document.body.querySelector(".tooltip")).toBeNull()
-      advanceClock(manager.hoverDefaults.delay.show)
-      expect(document.body.querySelector(".tooltip")).not.toBeNull()
