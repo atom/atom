@@ -1,10 +1,11 @@
+const temp = require('temp')
 const StyleManager = require('../src/style-manager')
 
 describe('StyleManager', () => {
   let [styleManager, addEvents, removeEvents, updateEvents] = []
 
   beforeEach(() => {
-    styleManager = new StyleManager({configDirPath: atom.getConfigDirPath()})
+    styleManager = new StyleManager({configDirPath: temp.mkdirSync('atom-config')})
     addEvents = []
     removeEvents = []
     updateEvents = []
@@ -43,12 +44,12 @@ describe('StyleManager', () => {
           atom-text-editor[mini].is-focused::shadow .class-7 { color: green; }
         `)
         expect(Array.from(styleManager.getStyleElements()[0].sheet.cssRules).map((r) => r.selectorText)).toEqual([
-          'atom-text-editor .class-1, atom-text-editor .class-2',
-          'atom-text-editor > .class-3',
+          'atom-text-editor.editor .class-1, atom-text-editor.editor .class-2',
+          'atom-text-editor.editor > .class-3',
           'atom-text-editor .class-4',
           'another-element::shadow .class-5',
-          'atom-text-editor[data-grammar*=\"js\"] .class-6',
-          'atom-text-editor[mini].is-focused .class-7'
+          'atom-text-editor[data-grammar*=\"js\"].editor .class-6',
+          'atom-text-editor[mini].is-focused.editor .class-7'
         ])
       })
 
@@ -75,8 +76,8 @@ describe('StyleManager', () => {
           `)
           expect(Array.from(styleManager.getStyleElements()[1].sheet.cssRules).map((r) => r.selectorText)).toEqual([
             '.source > .js, .source.coffee',
-            'atom-text-editor .syntax--source > .syntax--js',
-            'atom-text-editor[mini].is-focused .syntax--source > .syntax--js',
+            'atom-text-editor.editor .syntax--source > .syntax--js',
+            'atom-text-editor[mini].is-focused.editor .syntax--source > .syntax--js',
             'atom-text-editor .source > .js'
           ])
         })
