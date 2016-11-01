@@ -13,10 +13,11 @@ function PackageTranspilationRegistry () {
 }
 
 Object.assign(PackageTranspilationRegistry.prototype, {
-  addTranspilerConfigForPath: function (packagePath, config) {
+  addTranspilerConfigForPath: function (packagePath, packageName, config) {
     this.configByPackagePath[packagePath] = {
-      specs: config,
-      path: packagePath
+      name: packageName,
+      path: packagePath,
+      specs: config
     }
   },
 
@@ -116,7 +117,7 @@ Object.assign(PackageTranspilationRegistry.prototype, {
       hash.update(additionalCacheData, 'utf8')
     }
 
-    return path.join('package-transpile', hash.digest('hex'))
+    return path.join('package-transpile', spec._config.name, hash.digest('hex'))
   },
 
   transpileWithPackageTranspiler: function (sourceCode, filePath, spec) {

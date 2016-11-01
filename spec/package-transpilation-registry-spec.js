@@ -98,7 +98,7 @@ describe("PackageTranspilationRegistry", () => {
         throw new Error('bad transpiler path ' + spec.transpiler)
       })
 
-      registry.addTranspilerConfigForPath('/path/to', [
+      registry.addTranspilerConfigForPath('/path/to', 'my-package', [
         jsSpec, coffeeSpec, omgSpec
       ])
     })
