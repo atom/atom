@@ -60,7 +60,7 @@ module.exports = function (packagedAppPath, codeSign) {
           const outPath = path.dirname(nupkgPath)
           const appPath = path.relative(outPath, packagedAppPath)
           spawnSync('7z.exe', ['e', path.relative(outPath, nupkgPath), 'lib\\net45\\*.exe', '-aoa', `-o${appPath}`], { cwd:outPath })
-          spawnSync(process.env.COMSPEC, ['/c', `move /y ${path.join(appPath, 'squirrel.exe')} ${path.join(appPath, 'update.exe')}`], { cwd:outPath })
+          spawnSync(process.env.COMSPEC, ['/c', `move /y "${path.join(appPath, 'squirrel.exe')}" "${path.join(appPath, 'update.exe')}"`], { cwd:outPath })
           return
         }
       }
