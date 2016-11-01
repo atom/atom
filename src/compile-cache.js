@@ -19,9 +19,9 @@ var COMPILERS = {
   '.coffee': packageTranspilationRegistry.wrapTranspiler(require('./coffee-script'))
 }
 
-exports.addTranspilerConfigForPath = function (packagePath, packageName, config) {
+exports.addTranspilerConfigForPath = function (packagePath, packageName, packageMeta, config) {
   packagePath = fs.realpathSync(packagePath)
-  packageTranspilationRegistry.addTranspilerConfigForPath(packagePath, packageName, config)
+  packageTranspilationRegistry.addTranspilerConfigForPath(packagePath, packageName, packageMeta, config)
 }
 
 exports.removeTranspilerConfigForPath = function (packagePath) {
