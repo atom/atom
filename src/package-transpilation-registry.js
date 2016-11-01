@@ -23,7 +23,7 @@ class PackageTranspilationRegistry {
       name: packageName,
       meta: packageMeta,
       path: packagePath,
-      specs: config
+      specs: config.map(spec => Object.assign({}, spec))
     }
   }
 
