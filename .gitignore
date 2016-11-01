@@ -6,8 +6,7 @@ Thumbs.db
 .svn
 .nvm-version
 node_modules
-npm-debug.log
-debug.log
+*.log
 /tags
 /atom-shell/
 /out/
