@@ -1,4 +1,4 @@
-"use strict"
+'use strict'
 // This file is required by compile-cache, which is required directly from
 // apm, so it can only use the subset of newer JavaScript features that apm's
 // version of Node supports. Strict mode is required for block scoped declarations.
