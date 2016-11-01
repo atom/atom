@@ -6,6 +6,7 @@ CSON = require 'season'
 fs = require 'fs-plus'
 {Emitter, CompositeDisposable} = require 'event-kit'
 
+CompileCache = require './compile-cache'
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 BufferedProcess = require './buffered-process'
@@ -86,6 +87,7 @@ class Package
         @loadStylesheets()
         @registerDeserializerMethods()
         @activateCoreStartupServices()
+        @registerTranspilerConfig()
         @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
         @settingsPromise = @loadSettings()
         if @shouldRequireMainModuleOnLoad() and not @mainModule?
@@ -93,6 +95,9 @@ class Package
       catch error
         @handleError("Failed to load the #{@name} package", error)
     this
+
+  unload: ->
+    @unregisterTranspilerConfig()
 
   shouldRequireMainModuleOnLoad: ->
     not (
@@ -246,6 +251,14 @@ class Package
         if typeof @mainModule[methodName] is 'function'
           @activationDisposables.add @packageManager.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
     return
+
+  registerTranspilerConfig: ->
+    if @metadata.atomTranspilers
+      CompileCache.addTranspilerConfigForPath(@path, @name, @metadata.atomTranspilers)
+
+  unregisterTranspilerConfig: ->
+    if @metadata.atomTranspilers
+      CompileCache.removeTranspilerConfigForPath(@path)
 
   loadKeymaps: ->
     if @bundledPackage and @packageManager.packagesCache[@name]?

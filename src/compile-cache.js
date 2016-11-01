@@ -7,12 +7,26 @@
 
 var path = require('path')
 var fs = require('fs-plus')
+
+var PackageTranspilationRegistry = require('./package-transpilation-registry')
 var CSON = null
 
+var packageTranspilationRegistry = new PackageTranspilationRegistry()
+
 var COMPILERS = {
-  '.js': require('./babel'),
-  '.ts': require('./typescript'),
-  '.coffee': require('./coffee-script')
+  '.js': packageTranspilationRegistry.wrapTranspiler(require('./babel')),
+  '.ts': packageTranspilationRegistry.wrapTranspiler(require('./typescript')),
+  '.coffee': packageTranspilationRegistry.wrapTranspiler(require('./coffee-script'))
+}
+
+exports.addTranspilerConfigForPath = function (packagePath, packageName, config) {
+  packagePath = fs.realpathSync(packagePath)
+  packageTranspilationRegistry.addTranspilerConfigForPath(packagePath, packageName, config)
+}
+
+exports.removeTranspilerConfigForPath = function (packagePath) {
+  packagePath = fs.realpathSync(packagePath)
+  packageTranspilationRegistry.removeTranspilerConfigForPath(packagePath)
 }
 
 var cacheStats = {}

@@ -42,6 +42,7 @@
     "less-cache": "0.23",
     "line-top-index": "0.2.0",
     "marked": "^0.3.6",
+    "minimatch": "^3.0.3",
     "mocha": "2.5.1",
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
