@@ -117,7 +117,7 @@ class PackageTranspilationRegistry {
 
     if (transpiler && transpiler.getCacheKeyData) {
       const meta = this.getMetadata(spec)
-      const additionalCacheData = transpiler.getCacheKeyData(sourceCode, filePath, spec.options, meta)
+      const additionalCacheData = transpiler.getCacheKeyData(sourceCode, filePath, spec.options || {}, meta)
       hash.update(additionalCacheData, 'utf8')
     }
 
