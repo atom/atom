@@ -18,9 +18,10 @@ class PackageTranspilationRegistry {
     this.transpilerPaths = {}
   }
 
-  addTranspilerConfigForPath (packagePath, packageName, config) {
+  addTranspilerConfigForPath (packagePath, packageName, packageMeta, config) {
     this.configByPackagePath[packagePath] = {
       name: packageName,
+      meta: packageMeta,
       path: packagePath,
       specs: config
     }
@@ -115,7 +116,8 @@ class PackageTranspilationRegistry {
       .update(sourceCode, 'utf8')
 
     if (transpiler && transpiler.getCacheKeyData) {
-      const additionalCacheData = transpiler.getCacheKeyData(sourceCode, filePath, spec.options)
+      const meta = this.getMetadata(spec)
+      const additionalCacheData = transpiler.getCacheKeyData(sourceCode, filePath, spec.options, meta)
       hash.update(additionalCacheData, 'utf8')
     }
 
@@ -126,7 +128,8 @@ class PackageTranspilationRegistry {
     const transpiler = this.getTranspiler(spec)
 
     if (transpiler) {
-      const result = transpiler.transpile(sourceCode, filePath, spec.options || {})
+      const meta = this.getMetadata(spec)
+      const result = transpiler.transpile(sourceCode, filePath, spec.options || {}, meta)
       if (result === undefined || (result && result.code === undefined)) {
         return sourceCode
       } else if (result.code) {
@@ -137,6 +140,14 @@ class PackageTranspilationRegistry {
     } else {
       const err = new Error("Could not resolve transpiler '" + spec.transpiler + "' from '" + spec._config.path + "'")
       throw err
+    }
+  }
+
+  getMetadata (spec) {
+    return {
+      name: spec._config.name,
+      path: spec._config.path,
+      meta: spec._config.meta
     }
   }
 

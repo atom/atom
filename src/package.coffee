@@ -254,7 +254,7 @@ class Package
 
   registerTranspilerConfig: ->
     if @metadata.atomTranspilers
-      CompileCache.addTranspilerConfigForPath(@path, @name, @metadata.atomTranspilers)
+      CompileCache.addTranspilerConfigForPath(@path, @name, @metadata, @metadata.atomTranspilers)
 
   unregisterTranspilerConfig: ->
     if @metadata.atomTranspilers

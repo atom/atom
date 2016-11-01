@@ -56,6 +56,8 @@ describe("PackageTranspilationRegistry", () => {
     const coffeeSpec = { glob: "*.coffee", transpiler: './transpiler-coffee', options: { type: 'coffee' } }
     const omgSpec = { glob: "*.omgwhatisthis", transpiler: './transpiler-omg', options: { type: 'omg' } }
 
+    const expectedMeta = { name: 'my-package', path: '/path/to', meta: { some: 'metadata' } }
+
     const jsTranspiler = {
       transpile: (sourceCode, filePath, options) => {
         return {code: sourceCode + "-transpiler-js"}
@@ -98,7 +100,7 @@ describe("PackageTranspilationRegistry", () => {
         throw new Error('bad transpiler path ' + spec.transpiler)
       })
 
-      registry.addTranspilerConfigForPath('/path/to', 'my-package', [
+      registry.addTranspilerConfigForPath('/path/to', 'my-package', { some: 'metadata' }, [
         jsSpec, coffeeSpec, omgSpec
       ])
     })
@@ -119,9 +121,9 @@ describe("PackageTranspilationRegistry", () => {
       spyOn(jsTranspiler, 'getCacheKeyData').andCallThrough()
 
       wrappedCompiler.getCachePath('source', missPath, jsSpec)
-      expect(jsTranspiler.getCacheKeyData).not.toHaveBeenCalled()
+      expect(jsTranspiler.getCacheKeyData).not.toHaveBeenCalledWith('source', missPath, jsSpec.options, expectedMeta)
       wrappedCompiler.getCachePath('source', hitPath, jsSpec)
-      expect(jsTranspiler.getCacheKeyData).toHaveBeenCalled()
+      expect(jsTranspiler.getCacheKeyData).toHaveBeenCalledWith('source', hitPath, jsSpec.options, expectedMeta)
     })
 
     it('compiles files matching a glob with the associated transpiler, and the old one otherwise', () => {
@@ -130,11 +132,11 @@ describe("PackageTranspilationRegistry", () => {
       spyOn(omgTranspiler, "transpile").andCallThrough()
 
       expect(wrappedCompiler.compile('source', hitPath)).toEqual('source-transpiler-js')
-      expect(jsTranspiler.transpile).toHaveBeenCalledWith('source', hitPath, jsSpec.options)
+      expect(jsTranspiler.transpile).toHaveBeenCalledWith('source', hitPath, jsSpec.options, expectedMeta)
       expect(wrappedCompiler.compile('source', hitPathCoffee)).toEqual('source-transpiler-coffee')
-      expect(coffeeTranspiler.transpile).toHaveBeenCalledWith('source', hitPathCoffee, coffeeSpec.options)
+      expect(coffeeTranspiler.transpile).toHaveBeenCalledWith('source', hitPathCoffee, coffeeSpec.options, expectedMeta)
       expect(wrappedCompiler.compile('source', hitNonStandardExt)).toEqual('source-transpiler-omg')
-      expect(omgTranspiler.transpile).toHaveBeenCalledWith('source', hitNonStandardExt, omgSpec.options)
+      expect(omgTranspiler.transpile).toHaveBeenCalledWith('source', hitNonStandardExt, omgSpec.options, expectedMeta)
 
       expect(wrappedCompiler.compile('source', missPath)).toEqual('source-original-compiler')
       expect(wrappedCompiler.compile('source', hitPathMissExt)).toEqual('source-original-compiler')
