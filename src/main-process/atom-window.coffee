@@ -32,7 +32,7 @@ class AtomWindow
       # thus we should remove this as soon as a fix gets released.
       backgroundColor: "#fff"
       webPreferences:
-        # Enable OSX scroll-bounce effect
+        # Enable macOS scroll-bounce effect
         scrollBounce: true
         # Prevent specs from throttling when the window is in the background:
         # this should result in faster CI builds, and an improvement in the
