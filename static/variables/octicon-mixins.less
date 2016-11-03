@@ -32,9 +32,17 @@
   }
 }
 
-.octicon-font(@file) {
+// keep for backwards compatibility
+.octicon-font-legacy() {
   font-family: 'Octicons Regular';
-  src: url(@file) format("woff");
+  src: url("octicons-2.1.2.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.octicon-font() {
+  font-family: 'Octicons Regular';
+  src: url("octicons.woff") format("woff");
   font-weight: normal;
   font-style: normal;
 }
