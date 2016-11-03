@@ -656,7 +656,7 @@ class AtomEnvironment extends Model
   restoreWindowDimensions: ->
     unless @windowDimensions? and @isValidDimensions(@windowDimensions)
       @windowDimensions = @getDefaultWindowDimensions()
-    @setWindowDimensions(@windowDimensions).then -> @windowDimensions
+    @setWindowDimensions(@windowDimensions).then => @windowDimensions
 
   restoreWindowBackground: ->
     if backgroundColor = window.localStorage.getItem('atom:window-background-color')
