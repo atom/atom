@@ -3,6 +3,7 @@ machine:
     XCODE_SCHEME: test
     XCODE_WORKSPACE: test
     XCODE_PROJECT: test
+    PATH: $PATH:$HOME/.cargo/bin
 
   xcode:
     version: 7.3
@@ -15,6 +16,13 @@ general:
 
 dependencies:
   pre:
+    # Install rust
+    - curl https://sh.rustup.rs -sSf -o ~/rustup.sh
+    - sh ~/rustup.sh -y
+    - cargo --version
+    - rustc --version
+
+    # Install node
     - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.3/install.sh | bash
     - nvm install 4.4.7
     - nvm use 4.4.7

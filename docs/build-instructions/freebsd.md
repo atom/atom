@@ -9,6 +9,7 @@ FreeBSD -RELEASE 64-bit is the recommended platform.
 * `pkg install npm`
 * `pkg install libgnome-keyring`
 * `npm config set python /usr/local/bin/python2 -g` to ensure that gyp uses Python 2
+* [Rust](https://rustup.rs)
 
 ## Instructions
 

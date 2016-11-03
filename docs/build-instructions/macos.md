@@ -6,6 +6,7 @@
   * Node.js 4.4.x or later (we recommend installing it via [nvm](https://github.com/creationix/nvm))
   * npm 3.10.x or later (run `npm install -g npm`)
   * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (run `xcode-select --install` to install)
+  * [Rust](https://rustup.rs)
 
 ## Instructions
 

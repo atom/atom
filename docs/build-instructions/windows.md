@@ -5,6 +5,7 @@
 * Node.js 4.4.x or later
 * Python v2.7.x
   * The python.exe must be available at `%SystemDrive%\Python27\python.exe`. If it is installed elsewhere, you can create a symbolic link to the directory containing the python.exe using: `mklink /d %SystemDrive%\Python27 D:\elsewhere\Python27`
+* [Rust](https://rustup.rs)
 * Visual Studio, either:
   * [Visual C++ Build Tools 2015](http://landinghub.visualstudio.com/visual-cpp-build-tools)
   * [Visual Studio 2013 Update 5](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs) (Express Edition or better)
