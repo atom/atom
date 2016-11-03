@@ -1,3 +1,5 @@
+image: Visual Studio 2015
+
 version: "{build}"
 
 skip_tags: true
