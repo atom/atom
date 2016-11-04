@@ -16,6 +16,7 @@
   "dependencies": {
     "async": "0.2.6",
     "atom-keymap": "7.1.1",
+    "atom-space-pen-views": "^2.0.0",
     "atom-ui": "0.4.1",
     "babel-core": "5.8.38",
     "cached-run-in-this-context": "0.4.1",
