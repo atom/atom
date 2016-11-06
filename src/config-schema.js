@@ -122,7 +122,12 @@ const configSchema = {
         ]
       },
       openEmptyEditorOnStart: {
-        description: 'When checked opens an untitled editor on _File > New Window_; otherwise no buffer is opened.',
+        description: 'When checked opens an untitled editor when loading a blank environment (such as with _File > New Window_ or when "Restore Previous Windows On Start" is unchecked); otherwise no buffer is opened when loading a blank environment. This setting has no effect when restoring a previous state.',
+        type: 'boolean',
+        default: true
+      },
+      restorePreviousWindowsOnStart: {
+        description: 'When checked restores the last state of all Atom windows when started from the icon or `atom` by itself from the command line; otherwise a blank environment is loaded.',
         type: 'boolean',
         default: true
       },
