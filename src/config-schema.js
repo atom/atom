@@ -122,7 +122,7 @@ const configSchema = {
         ]
       },
       openEmptyEditorOnStart: {
-        description: 'Automatically open an empty editor on startup.',
+        description: 'When checked opens an untitled editor on _File > New Window_; otherwise no buffer is opened.',
         type: 'boolean',
         default: true
       },
