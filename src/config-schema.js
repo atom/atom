@@ -122,7 +122,7 @@ const configSchema = {
         ]
       },
       openEmptyEditorOnStart: {
-        description: 'When checked opens an untitled editor when loading a blank environment (such as with _File > New Window_ or when "Restore Previous Windows On Start" is unchecked); otherwise no buffer is opened when loading a blank environment. This setting has no effect when restoring a previous state.',
+        description: 'When checked opens an untitled editor when loading a blank environment (such as with _File > New Window_ or when "Restore Previous Windows On Start" is unchecked); otherwise no editor is opened when loading a blank environment. This setting has no effect when restoring a previous state.',
         type: 'boolean',
         default: true
       },
