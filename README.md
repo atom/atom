@@ -97,3 +97,11 @@ repeat these steps to upgrade to future releases.
 * [macOS](./docs/build-instructions/macos.md)
 * [FreeBSD](./docs/build-instructions/freebsd.md)
 * [Windows](./docs/build-instructions/windows.md)
+
+## License
+
+© 2016 Github, Inc.
+
+When using the Atom or GitHub logos, be sure to follow the [GitHub logo guidelines](https://github.com/logos).
+
+*Code license:* [MIT](https://github.com/atom/atom/blob/master/LICENSE.md)
