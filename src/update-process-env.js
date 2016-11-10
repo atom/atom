@@ -63,7 +63,18 @@ function getEnvFromShell (env) {
     return
   }
 
-  let {stdout} = spawnSync(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8'})
+  let {stdout, error, status, signal} = spawnSync(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', timeout: 5000})
+  if (error) {
+    if (error.handle) {
+      error.handle()
+    }
+    console.log(error)
+  }
+
+  if (status !== 0) {
+    console.log('warning: ' + env.SHELL + '-ilc "command env" failed with status (' + status + ') and signal (' + signal + ')')
+  }
+
   if (stdout) {
     let result = {}
     for (let line of stdout.split('\n')) {
