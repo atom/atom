@@ -108,7 +108,7 @@
     "image-view": "0.60.0",
     "incompatible-packages": "0.26.1",
     "keybinding-resolver": "0.35.0",
-    "line-ending-selector": "0.5.0",
+    "line-ending-selector": "0.5.1",
     "link": "0.31.2",
     "markdown-preview": "0.159.1",
     "metrics": "1.0.0",
