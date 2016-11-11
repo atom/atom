@@ -11,14 +11,20 @@ const spawnSync = require('./spawn-sync')
 const CONFIG = require('../config')
 
 module.exports = function (packagedAppPath, codeSign) {
+  const archSuffix = process.arch === 'ia32' ? '' : '-' + process.arch
   const options = {
     appDirectory: packagedAppPath,
     authors: 'GitHub Inc.',
     iconUrl: `https://raw.githubusercontent.com/atom/atom/master/resources/app-icons/${CONFIG.channel}/atom.ico`,
     loadingGif: path.join(CONFIG.repositoryRootPath, 'resources', 'win', 'loading.gif'),
     outputDirectory: CONFIG.buildOutputPath,
-    remoteReleases: `https://atom.io/api/updates?version=${CONFIG.appMetadata.version}`,
+    remoteReleases: `https://atom.io/api/updates${archSuffix}`,
     setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
+  }
+
+  // Remove this once an x64 version is published or atom.io is returning blank instead of 404 for RELEASES-X64
+  if (process.arch === 'x64') {
+    options.remoteReleases = null
   }
 
   const certPath = path.join(os.tmpdir(), 'win.p12')
