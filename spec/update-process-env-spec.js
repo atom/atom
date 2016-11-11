@@ -1,6 +1,7 @@
 /** @babel */
 /* eslint-env jasmine */
 
+import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
 import path from 'path'
 import temp from 'temp'
 import child_process from 'child_process'
@@ -22,7 +23,7 @@ describe('updateProcessEnv(launchEnv)', function () {
   })
 
   describe('when the launch environment appears to come from a shell', function () {
-    it('updates process.env to match the launch environment', function () {
+    it('updates process.env to match the launch environment', async function () {
       process.env = {
         WILL_BE_DELETED: 'hi',
         NODE_ENV: 'the-node-env',
@@ -32,7 +33,7 @@ describe('updateProcessEnv(launchEnv)', function () {
 
       const initialProcessEnv = process.env
 
-      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', TERM: 'xterm-something', KEY1: 'value1', KEY2: 'value2'})
+      await updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', TERM: 'xterm-something', KEY1: 'value1', KEY2: 'value2'})
       expect(process.env).toEqual({
         ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
@@ -50,7 +51,7 @@ describe('updateProcessEnv(launchEnv)', function () {
       expect(process.env).toBe(initialProcessEnv)
     })
 
-    it('allows ATOM_HOME to be overwritten only if the new value is a valid path', function () {
+    it('allows ATOM_HOME to be overwritten only if the new value is a valid path', async function () {
       let newAtomHomePath = temp.mkdirSync('atom-home')
 
       process.env = {
@@ -60,7 +61,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         ATOM_HOME: '/the/atom/home'
       }
 
-      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir'})
+      await updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir'})
       expect(process.env).toEqual({
         PWD: '/the/dir',
         ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
@@ -69,7 +70,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         ATOM_HOME: '/the/atom/home'
       })
 
-      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', ATOM_HOME: path.join(newAtomHomePath, 'non-existent')})
+      await updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', ATOM_HOME: path.join(newAtomHomePath, 'non-existent')})
       expect(process.env).toEqual({
         ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
@@ -78,7 +79,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         ATOM_HOME: '/the/atom/home'
       })
 
-      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', ATOM_HOME: newAtomHomePath})
+      await updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', ATOM_HOME: newAtomHomePath})
       expect(process.env).toEqual({
         ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
@@ -88,7 +89,7 @@ describe('updateProcessEnv(launchEnv)', function () {
       })
     })
 
-    it('allows ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT to be preserved if set', function () {
+    it('allows ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT to be preserved if set', async function () {
       process.env = {
         WILL_BE_DELETED: 'hi',
         NODE_ENV: 'the-node-env',
@@ -96,7 +97,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         ATOM_HOME: '/the/atom/home'
       }
 
-      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', NODE_ENV: 'the-node-env', NODE_PATH: '/the/node/path', ATOM_HOME: '/the/atom/home'})
+      await updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', NODE_ENV: 'the-node-env', NODE_PATH: '/the/node/path', ATOM_HOME: '/the/atom/home'})
       expect(process.env).toEqual({
         ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
@@ -105,7 +106,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         ATOM_HOME: '/the/atom/home'
       })
 
-      updateProcessEnv({PWD: '/the/dir', NODE_ENV: 'the-node-env', NODE_PATH: '/the/node/path', ATOM_HOME: '/the/atom/home'})
+      await updateProcessEnv({PWD: '/the/dir', NODE_ENV: 'the-node-env', NODE_PATH: '/the/node/path', ATOM_HOME: '/the/atom/home'})
       expect(process.env).toEqual({
         ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
@@ -115,7 +116,7 @@ describe('updateProcessEnv(launchEnv)', function () {
       })
     })
 
-    it('allows an existing env variable to be updated', function () {
+    it('allows an existing env variable to be updated', async function () {
       process.env = {
         WILL_BE_UPDATED: 'old-value',
         NODE_ENV: 'the-node-env',
@@ -123,7 +124,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         ATOM_HOME: '/the/atom/home'
       }
 
-      updateProcessEnv(process.env)
+      await updateProcessEnv(process.env)
       expect(process.env).toEqual(process.env)
 
       let updatedEnv = {
@@ -135,27 +136,31 @@ describe('updateProcessEnv(launchEnv)', function () {
         PWD: '/the/dir'
       }
 
-      updateProcessEnv(updatedEnv)
+      await updateProcessEnv(updatedEnv)
       expect(process.env).toEqual(updatedEnv)
     })
   })
 
   describe('when the launch environment does not come from a shell', function () {
     describe('on osx', function () {
-      it('updates process.env to match the environment in the user\'s login shell', function () {
+      it('updates process.env to match the environment in the user\'s login shell', async function () {
         process.platform = 'darwin'
         process.env.SHELL = '/my/custom/bash'
 
-        spyOn(child_process, 'spawnSync').andReturn({
-          stdout: dedent`
-            FOO=BAR=BAZ=QUUX
-            TERM=xterm-something
-            PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path
-          `
+        spyOn(child_process, 'execFile').andCallFake((cmd, args, opts, callback) => {
+          expect(cmd).toBe('/my/custom/bash')
+          callback(
+            null,
+            dedent`
+              FOO=BAR=BAZ=QUUX
+              TERM=xterm-something
+              PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path
+            `
+          )
         })
 
-        updateProcessEnv(process.env)
-        expect(child_process.spawnSync.mostRecentCall.args[0]).toBe('/my/custom/bash')
+        await updateProcessEnv(process.env)
+
         expect(process.env).toEqual({
           FOO: 'BAR=BAZ=QUUX',
           TERM: 'xterm-something',
@@ -163,25 +168,29 @@ describe('updateProcessEnv(launchEnv)', function () {
         })
 
         // Doesn't error
-        updateProcessEnv(null)
+        await updateProcessEnv(null)
       })
     })
 
     describe('on linux', function () {
-      it('updates process.env to match the environment in the user\'s login shell', function () {
+      it('updates process.env to match the environment in the user\'s login shell', async function () {
         process.platform = 'linux'
         process.env.SHELL = '/my/custom/bash'
 
-        spyOn(child_process, 'spawnSync').andReturn({
-          stdout: dedent`
-            FOO=BAR=BAZ=QUUX
-            TERM=xterm-something
-            PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path
-          `
+        spyOn(child_process, 'execFile').andCallFake((cmd, args, opts, callback) => {
+          expect(cmd).toBe('/my/custom/bash')
+          callback(
+            null,
+            dedent`
+              FOO=BAR=BAZ=QUUX
+              TERM=xterm-something
+              PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path
+            `
+          )
         })
 
-        updateProcessEnv(process.env)
-        expect(child_process.spawnSync.mostRecentCall.args[0]).toBe('/my/custom/bash')
+        await updateProcessEnv(process.env)
+
         expect(process.env).toEqual({
           FOO: 'BAR=BAZ=QUUX',
           TERM: 'xterm-something',
@@ -189,18 +198,18 @@ describe('updateProcessEnv(launchEnv)', function () {
         })
 
         // Doesn't error
-        updateProcessEnv(null)
+        await updateProcessEnv(null)
       })
     })
 
     describe('on windows', function () {
-      it('does not update process.env', function () {
+      it('does not update process.env', async function () {
         process.platform = 'win32'
-        spyOn(child_process, 'spawnSync')
+        spyOn(child_process, 'execFile')
         process.env = {FOO: 'bar'}
 
-        updateProcessEnv(process.env)
-        expect(child_process.spawnSync).not.toHaveBeenCalled()
+        await updateProcessEnv(process.env)
+        expect(child_process.execFile).not.toHaveBeenCalled()
         expect(process.env).toEqual({FOO: 'bar'})
       })
     })
