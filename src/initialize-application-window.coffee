@@ -8,8 +8,6 @@ module.exports = ({blobStore}) ->
   {resourcePath, devMode, env} = getWindowLoadSettings()
   require './electron-shims'
 
-  updateProcessEnv(env)
-
   # Add application-specific exports to module search path.
   exportsPath = path.join(resourcePath, 'exports')
   require('module').globalPaths.push(exportsPath)
