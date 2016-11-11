@@ -222,6 +222,7 @@ class TextEditor extends Model
       @backgroundWorkHandle = null
 
   update: (params) ->
+    currentSoftWrapColumn = @getSoftWrapColumn()
     displayLayerParams = {}
 
     for param in Object.keys(params)
@@ -272,12 +273,16 @@ class TextEditor extends Model
         when 'softWrapAtPreferredLineLength'
           if value isnt @softWrapAtPreferredLineLength
             @softWrapAtPreferredLineLength = value
-            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
+            softWrapColumn = @getSoftWrapColumn()
+            if softWrapColumn isnt currentSoftWrapColumn
+              displayLayerParams.softWrapColumn = softWrapColumn
 
         when 'preferredLineLength'
           if value isnt @preferredLineLength
             @preferredLineLength = value
-            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
+            softWrapColumn = @getSoftWrapColumn()
+            if softWrapColumn isnt currentSoftWrapColumn
+              displayLayerParams.softWrapColumn = softWrapColumn
 
         when 'mini'
           if value isnt @mini
@@ -322,12 +327,16 @@ class TextEditor extends Model
         when 'editorWidthInChars'
           if value > 0 and value isnt @editorWidthInChars
             @editorWidthInChars = value
-            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
+            softWrapColumn = @getSoftWrapColumn()
+            if softWrapColumn isnt currentSoftWrapColumn
+              displayLayerParams.softWrapColumn = softWrapColumn
 
         when 'width'
           if value isnt @width
             @width = value
-            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
+            softWrapColumn = @getSoftWrapColumn()
+            if softWrapColumn isnt currentSoftWrapColumn
+              displayLayerParams.softWrapColumn = softWrapColumn
 
         when 'scrollPastEnd'
           if value isnt @scrollPastEnd
