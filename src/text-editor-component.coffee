@@ -72,6 +72,10 @@ class TextEditorComponent
 
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
+    # Add a getModel method to the hidden input component to make it easy to
+    # access the editor in response to DOM events or when using
+    # document.activeElement.
+    @hiddenInputComponent.getDomNode().getModel = => @editor
 
     @linesComponent = new LinesComponent({@presenter, @domElementPool, @assert, @grammars, @views})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
