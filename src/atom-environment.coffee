@@ -13,6 +13,7 @@ StateStore = require './state-store'
 StorageFolder = require './storage-folder'
 {getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
+{updateProcessEnv} = require './update-process-env'
 
 DeserializerManager = require './deserializer-manager'
 ViewRegistry = require './view-registry'
@@ -676,6 +677,9 @@ class AtomEnvironment extends Model
   startEditorWindow: ->
     @unloaded = false
     updateProcessEnvPromise = updateProcessEnv(@getLoadSettings().env)
+    updateProcessEnvPromise.then =>
+      @packages.triggerActivationHook('core:loaded-shell-environment')
+
     loadStatePromise = @loadState().then (state) =>
       @windowDimensions = state?.windowDimensions
       @displayWindow().then =>
