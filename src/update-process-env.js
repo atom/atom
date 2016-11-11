@@ -1,7 +1,7 @@
 /** @babel */
 
 import fs from 'fs'
-import {spawnSync} from 'child_process'
+import childProcess from 'child_process'
 
 const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
   'NODE_ENV',
@@ -15,10 +15,10 @@ const PLATFORMS_KNOWN_TO_WORK = new Set([
   'linux'
 ])
 
-function updateProcessEnv (launchEnv) {
+async function updateProcessEnv (launchEnv) {
   let envToAssign
   if (launchEnv && shouldGetEnvFromShell(launchEnv)) {
-    envToAssign = getEnvFromShell(launchEnv)
+    envToAssign = await getEnvFromShell(launchEnv)
   } else if (launchEnv && launchEnv.PWD) {
     envToAssign = launchEnv
   }
@@ -58,21 +58,23 @@ function shouldGetEnvFromShell (env) {
   return true
 }
 
-function getEnvFromShell (env) {
+async function getEnvFromShell (env) {
   if (!shouldGetEnvFromShell(env)) {
-    return
+    return null
   }
 
-  let {stdout, error, status, signal} = spawnSync(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', timeout: 5000})
+  let {stdout, error} = await new Promise((resolve) => {
+    childProcess.execFile(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', timeout: 5000}, (error, stdout) => {
+      resolve({stdout, error})
+    })
+  })
+
   if (error) {
     if (error.handle) {
       error.handle()
     }
+    console.log('warning: ' + env.SHELL + '-ilc "command env" failed with signal (' + error.signal + ')')
     console.log(error)
-  }
-
-  if (status !== 0) {
-    console.log('warning: ' + env.SHELL + '-ilc "command env" failed with status (' + status + ') and signal (' + signal + ')')
   }
 
   if (stdout) {

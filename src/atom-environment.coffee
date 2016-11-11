@@ -675,7 +675,8 @@ class AtomEnvironment extends Model
   # Call this method when establishing a real application window.
   startEditorWindow: ->
     @unloaded = false
-    @loadState().then (state) =>
+    updateProcessEnvPromise = updateProcessEnv(@getLoadSettings().env)
+    loadStatePromise = @loadState().then (state) =>
       @windowDimensions = state?.windowDimensions
       @displayWindow().then =>
         @commandInstaller.installAtomCommand false, (error) ->
@@ -715,6 +716,8 @@ class AtomEnvironment extends Model
         @menu.update()
 
         @openInitialEmptyEditorIfNecessary()
+
+    Promise.all([loadStatePromise, updateProcessEnvPromise])
 
   serialize: (options) ->
     version: @constructor.version
