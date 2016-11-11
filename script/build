@@ -50,6 +50,7 @@ process.on('unhandledRejection', function (e) {
 })
 
 cleanOutputDirectory()
+downloadChromedriver()
 copyAssets()
 transpileBabelPaths()
 transpileCoffeeScriptPaths()
@@ -60,7 +61,6 @@ prebuildLessCache()
 generateMetadata()
 generateStartupSnapshot()
 generateAPIDocs()
-downloadChromedriver()
 dumpSymbols()
   .then(packageApplication)
   .then(packagedAppPath => {

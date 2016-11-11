@@ -1,3 +1,7 @@
+if (typeof snapshotResult !== 'undefined') {
+  snapshotResult.setGlobals(global, process, {}, require)
+}
+
 const startTime = Date.now()
 
 const electron = require('electron')
