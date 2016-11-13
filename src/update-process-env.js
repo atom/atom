@@ -64,7 +64,31 @@ async function getEnvFromShell (env) {
   }
 
   let {stdout, error} = await new Promise((resolve) => {
-    childProcess.execFile(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', timeout: 5000}, (error, stdout) => {
+    let cp
+    let error
+    let stdout = ''
+    const killer = () => {
+      if (cp) {
+        cp.kill()
+      }
+    }
+    process.once('exit', killer)
+
+    cp = childProcess.spawn(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', timeout: 5000, detached: true, stdio: ['ignore', 'pipe', process.stderr]})
+
+    const buffers = []
+    cp.on('error', (e) => {
+      error = e
+    })
+    cp.stdout.on('data', (data) => {
+      buffers.push(data)
+    })
+    cp.on('close', (code, signal) => {
+      process.removeListener('exit', killer)
+      if (buffers.length) {
+        stdout = Buffer.concat(buffers).toString('utf8')
+      }
+            
       resolve({stdout, error})
     })
   })
@@ -73,11 +97,11 @@ async function getEnvFromShell (env) {
     if (error.handle) {
       error.handle()
     }
-    console.log('warning: ' + env.SHELL + '-ilc "command env" failed with signal (' + error.signal + ')')
+    console.log('warning: ' + env.SHELL + ' -ilc "command env" failed with signal (' + error.signal + ')')
     console.log(error)
   }
 
-  if (stdout) {
+  if (stdout && stdout.trim() !== '') {
     let result = {}
     for (let line of stdout.split('\n')) {
       if (line.includes('=')) {
