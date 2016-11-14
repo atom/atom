@@ -101,18 +101,20 @@ async function getEnvFromShell (env) {
     console.log(error)
   }
 
-  if (stdout && stdout.trim() !== '') {
-    let result = {}
-    for (let line of stdout.split('\n')) {
-      if (line.includes('=')) {
-        let components = line.split('=')
-        let key = components.shift()
-        let value = components.join('=')
-        result[key] = value
-      }
-    }
-    return result
+  if (!stdout || stdout.trim() === '') {
+    return null
   }
+
+  let result = {}
+  for (let line of stdout.split('\n')) {
+    if (line.includes('=')) {
+      let components = line.split('=')
+      let key = components.shift()
+      let value = components.join('=')
+      result[key] = value
+    }
+  }
+  return result
 }
 
 export default { updateProcessEnv, shouldGetEnvFromShell }

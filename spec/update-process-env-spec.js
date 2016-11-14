@@ -205,7 +205,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         process.env = {FOO: 'bar'}
 
         await updateProcessEnv(process.env)
-        expect(child_process.execFile).not.toHaveBeenCalled()
+        expect(child_process.spawn).not.toHaveBeenCalled()
         expect(process.env).toEqual({FOO: 'bar'})
       })
     })
