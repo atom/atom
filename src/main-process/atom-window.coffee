@@ -26,11 +26,6 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
-      # Add an opaque backgroundColor (instead of keeping the default
-      # transparent one) to prevent subpixel anti-aliasing from being disabled.
-      # We believe this is a regression introduced with Electron 0.37.3, and
-      # thus we should remove this as soon as a fix gets released.
-      backgroundColor: "#fff"
       webPreferences:
         # Prevent specs from throttling when the window is in the background:
         # this should result in faster CI builds, and an improvement in the
