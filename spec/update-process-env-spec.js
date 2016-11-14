@@ -7,17 +7,25 @@ import temp from 'temp'
 import child_process from 'child_process'
 import {updateProcessEnv, shouldGetEnvFromShell} from '../src/update-process-env'
 import dedent from 'dedent'
+import {EventEmitter} from 'events'
+import mockSpawn from 'mock-spawn'
 
 describe('updateProcessEnv(launchEnv)', function () {
-  let originalProcessEnv, originalProcessPlatform
+  let originalProcessEnv, originalProcessPlatform, originalSpawn, spawn
 
   beforeEach(function () {
+    originalSpawn = child_process.spawn
+    spawn = mockSpawn()
+    child_process.spawn = spawn
     originalProcessEnv = process.env
     originalProcessPlatform = process.platform
     process.env = {}
   })
 
   afterEach(function () {
+    if (originalSpawn) {
+      child_process.spawn = originalSpawn
+    }
     process.env = originalProcessEnv
     process.platform = originalProcessPlatform
   })
@@ -146,21 +154,15 @@ describe('updateProcessEnv(launchEnv)', function () {
       it('updates process.env to match the environment in the user\'s login shell', async function () {
         process.platform = 'darwin'
         process.env.SHELL = '/my/custom/bash'
-
-        spyOn(child_process, 'execFile').andCallFake((cmd, args, opts, callback) => {
-          expect(cmd).toBe('/my/custom/bash')
-          callback(
-            null,
-            dedent`
-              FOO=BAR=BAZ=QUUX
-              TERM=xterm-something
-              PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path
-            `
-          )
-        })
-
+        spawn.setDefault(spawn.simple(0, dedent`
+          FOO=BAR=BAZ=QUUX
+          TERM=xterm-something
+          PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path
+        `))
         await updateProcessEnv(process.env)
-
+        expect(spawn.calls.length).toBe(1)
+        expect(spawn.calls[0].command).toBe('/my/custom/bash')
+        expect(spawn.calls[0].args).toEqual(['-ilc', 'command env'])
         expect(process.env).toEqual({
           FOO: 'BAR=BAZ=QUUX',
           TERM: 'xterm-something',
@@ -176,21 +178,15 @@ describe('updateProcessEnv(launchEnv)', function () {
       it('updates process.env to match the environment in the user\'s login shell', async function () {
         process.platform = 'linux'
         process.env.SHELL = '/my/custom/bash'
-
-        spyOn(child_process, 'execFile').andCallFake((cmd, args, opts, callback) => {
-          expect(cmd).toBe('/my/custom/bash')
-          callback(
-            null,
-            dedent`
-              FOO=BAR=BAZ=QUUX
-              TERM=xterm-something
-              PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path
-            `
-          )
-        })
-
+        spawn.setDefault(spawn.simple(0, dedent`
+          FOO=BAR=BAZ=QUUX
+          TERM=xterm-something
+          PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path
+        `))
         await updateProcessEnv(process.env)
-
+        expect(spawn.calls.length).toBe(1)
+        expect(spawn.calls[0].command).toBe('/my/custom/bash')
+        expect(spawn.calls[0].args).toEqual(['-ilc', 'command env'])
         expect(process.env).toEqual({
           FOO: 'BAR=BAZ=QUUX',
           TERM: 'xterm-something',
@@ -205,7 +201,7 @@ describe('updateProcessEnv(launchEnv)', function () {
     describe('on windows', function () {
       it('does not update process.env', async function () {
         process.platform = 'win32'
-        spyOn(child_process, 'execFile')
+        spyOn(child_process, 'spawn')
         process.env = {FOO: 'bar'}
 
         await updateProcessEnv(process.env)

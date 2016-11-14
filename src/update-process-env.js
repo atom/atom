@@ -1,7 +1,7 @@
 /** @babel */
 
 import fs from 'fs'
-import childProcess from 'child_process'
+import child_process from 'child_process'
 
 const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
   'NODE_ENV',
@@ -64,31 +64,31 @@ async function getEnvFromShell (env) {
   }
 
   let {stdout, error} = await new Promise((resolve) => {
-    let cp
+    let childProcess
     let error
     let stdout = ''
     const killer = () => {
-      if (cp) {
-        cp.kill()
+      if (childProcess) {
+        childProcess.kill()
       }
     }
     process.once('exit', killer)
 
-    cp = childProcess.spawn(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', timeout: 5000, detached: true, stdio: ['ignore', 'pipe', process.stderr]})
+    childProcess = child_process.spawn(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', timeout: 5000, detached: true, stdio: ['ignore', 'pipe', process.stderr]})
 
     const buffers = []
-    cp.on('error', (e) => {
+    childProcess.on('error', (e) => {
       error = e
     })
-    cp.stdout.on('data', (data) => {
+    childProcess.stdout.on('data', (data) => {
       buffers.push(data)
     })
-    cp.on('close', (code, signal) => {
+    childProcess.on('close', (code, signal) => {
       process.removeListener('exit', killer)
       if (buffers.length) {
         stdout = Buffer.concat(buffers).toString('utf8')
       }
-            
+
       resolve({stdout, error})
     })
   })
