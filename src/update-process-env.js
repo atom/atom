@@ -17,11 +17,13 @@ const PLATFORMS_KNOWN_TO_WORK = new Set([
 
 async function updateProcessEnv (launchEnv) {
   let envToAssign
-  if (launchEnv && shouldGetEnvFromShell(launchEnv)) {
-    envToAssign = await getEnvFromShell(launchEnv)
-  } else if (launchEnv && launchEnv.PWD) {
-    envToAssign = launchEnv
-  }
+  if (launchEnv) {
+    if (shouldGetEnvFromShell(launchEnv)) {
+      envToAssign = await getEnvFromShell(launchEnv)
+    } else if (launchEnv.PWD) {
+      envToAssign = launchEnv
+    }
+  }  
 
   if (envToAssign) {
     for (let key in process.env) {
@@ -59,23 +61,10 @@ function shouldGetEnvFromShell (env) {
 }
 
 async function getEnvFromShell (env) {
-  if (!shouldGetEnvFromShell(env)) {
-    return null
-  }
-
   let {stdout, error} = await new Promise((resolve) => {
-    let childProcess
     let error
     let stdout = ''
-    const killer = () => {
-      if (childProcess) {
-        childProcess.kill()
-      }
-    }
-    process.once('exit', killer)
-
-    childProcess = child_process.spawn(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', timeout: 5000, detached: true, stdio: ['ignore', 'pipe', process.stderr]})
-
+    const childProcess = child_process.spawn(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', stdio: ['ignore', 'pipe', process.stderr]})
     const buffers = []
     childProcess.on('error', (e) => {
       error = e
@@ -84,7 +73,6 @@ async function getEnvFromShell (env) {
       buffers.push(data)
     })
     childProcess.on('close', (code, signal) => {
-      process.removeListener('exit', killer)
       if (buffers.length) {
         stdout = Buffer.concat(buffers).toString('utf8')
       }
