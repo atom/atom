@@ -509,7 +509,7 @@ class AtomApplication
   openPaths: ({initialPaths, pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window, clearWindowState, addToLastWindow, env}={}) ->
     if not pathsToOpen? or pathsToOpen.length is 0
       return
-
+    env = process.env unless env?
     devMode = Boolean(devMode)
     safeMode = Boolean(safeMode)
     clearWindowState = Boolean(clearWindowState)
