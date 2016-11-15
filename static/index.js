@@ -23,7 +23,7 @@
         return cachedModule ? cachedModule : Module._load(path, this, false)
       }
 
-      snapshotResult.setGlobals(global, process, window, require)
+      snapshotResult.setGlobals(global, process, window, document, require)
 
       const CSON = snapshotResult.customRequire("../node_modules/season/lib/cson.js")
       CSON.setCacheDir(Path.join(process.env.ATOM_HOME, 'compile-cache', 'cson'))
