@@ -4,7 +4,7 @@
 import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
 import path from 'path'
 import temp from 'temp'
-import child_process from 'child_process'
+import childProcess from 'child_process'
 import {updateProcessEnv, shouldGetEnvFromShell} from '../src/update-process-env'
 import dedent from 'dedent'
 import {EventEmitter} from 'events'
@@ -14,9 +14,9 @@ describe('updateProcessEnv(launchEnv)', function () {
   let originalProcessEnv, originalProcessPlatform, originalSpawn, spawn
 
   beforeEach(function () {
-    originalSpawn = child_process.spawn
+    originalSpawn = childProcess.spawn
     spawn = mockSpawn()
-    child_process.spawn = spawn
+    childProcess.spawn = spawn
     originalProcessEnv = process.env
     originalProcessPlatform = process.platform
     process.env = {}
@@ -24,7 +24,7 @@ describe('updateProcessEnv(launchEnv)', function () {
 
   afterEach(function () {
     if (originalSpawn) {
-      child_process.spawn = originalSpawn
+      childProcess.spawn = originalSpawn
     }
     process.env = originalProcessEnv
     process.platform = originalProcessPlatform
@@ -201,11 +201,11 @@ describe('updateProcessEnv(launchEnv)', function () {
     describe('on windows', function () {
       it('does not update process.env', async function () {
         process.platform = 'win32'
-        spyOn(child_process, 'spawn')
+        spyOn(childProcess, 'spawn')
         process.env = {FOO: 'bar'}
 
         await updateProcessEnv(process.env)
-        expect(child_process.spawn).not.toHaveBeenCalled()
+        expect(childProcess.spawn).not.toHaveBeenCalled()
         expect(process.env).toEqual({FOO: 'bar'})
       })
     })

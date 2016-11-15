@@ -1,7 +1,7 @@
 /** @babel */
 
 import fs from 'fs'
-import child_process from 'child_process'
+import childProcess from 'child_process'
 
 const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
   'NODE_ENV',
@@ -23,7 +23,7 @@ async function updateProcessEnv (launchEnv) {
     } else if (launchEnv.PWD) {
       envToAssign = launchEnv
     }
-  }  
+  }
 
   if (envToAssign) {
     for (let key in process.env) {
@@ -64,15 +64,15 @@ async function getEnvFromShell (env) {
   let {stdout, error} = await new Promise((resolve) => {
     let error
     let stdout = ''
-    const childProcess = child_process.spawn(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', stdio: ['ignore', 'pipe', process.stderr]})
+    const child = childProcess.spawn(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', stdio: ['ignore', 'pipe', process.stderr]})
     const buffers = []
-    childProcess.on('error', (e) => {
+    child.on('error', (e) => {
       error = e
     })
-    childProcess.stdout.on('data', (data) => {
+    child.stdout.on('data', (data) => {
       buffers.push(data)
     })
-    childProcess.on('close', (code, signal) => {
+    child.on('close', (code, signal) => {
       if (buffers.length) {
         stdout = Buffer.concat(buffers).toString('utf8')
       }
