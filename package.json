@@ -41,6 +41,7 @@
     "line-top-index": "0.2.0",
     "marked": "^0.3.6",
     "mocha": "2.5.1",
+    "mock-spawn": "^0.2.6",
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
     "oniguruma": "6.1.0",
