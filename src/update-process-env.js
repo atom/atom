@@ -17,10 +17,12 @@ const PLATFORMS_KNOWN_TO_WORK = new Set([
 
 async function updateProcessEnv (launchEnv) {
   let envToAssign
-  if (launchEnv && shouldGetEnvFromShell(launchEnv)) {
-    envToAssign = await getEnvFromShell(launchEnv)
-  } else if (launchEnv && launchEnv.PWD) {
-    envToAssign = launchEnv
+  if (launchEnv) {
+    if (shouldGetEnvFromShell(launchEnv)) {
+      envToAssign = await getEnvFromShell(launchEnv)
+    } else if (launchEnv.PWD) {
+      envToAssign = launchEnv
+    }
   }
 
   if (envToAssign) {
@@ -59,12 +61,22 @@ function shouldGetEnvFromShell (env) {
 }
 
 async function getEnvFromShell (env) {
-  if (!shouldGetEnvFromShell(env)) {
-    return null
-  }
-
   let {stdout, error} = await new Promise((resolve) => {
-    childProcess.execFile(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', timeout: 5000}, (error, stdout) => {
+    let error
+    let stdout = ''
+    const child = childProcess.spawn(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', stdio: ['ignore', 'pipe', process.stderr]})
+    const buffers = []
+    child.on('error', (e) => {
+      error = e
+    })
+    child.stdout.on('data', (data) => {
+      buffers.push(data)
+    })
+    child.on('close', (code, signal) => {
+      if (buffers.length) {
+        stdout = Buffer.concat(buffers).toString('utf8')
+      }
+
       resolve({stdout, error})
     })
   })
@@ -73,22 +85,24 @@ async function getEnvFromShell (env) {
     if (error.handle) {
       error.handle()
     }
-    console.log('warning: ' + env.SHELL + '-ilc "command env" failed with signal (' + error.signal + ')')
+    console.log('warning: ' + env.SHELL + ' -ilc "command env" failed with signal (' + error.signal + ')')
     console.log(error)
   }
 
-  if (stdout) {
-    let result = {}
-    for (let line of stdout.split('\n')) {
-      if (line.includes('=')) {
-        let components = line.split('=')
-        let key = components.shift()
-        let value = components.join('=')
-        result[key] = value
-      }
-    }
-    return result
+  if (!stdout || stdout.trim() === '') {
+    return null
   }
+
+  let result = {}
+  for (let line of stdout.split('\n')) {
+    if (line.includes('=')) {
+      let components = line.split('=')
+      let key = components.shift()
+      let value = components.join('=')
+      result[key] = value
+    }
+  }
+  return result
 }
 
 export default { updateProcessEnv, shouldGetEnvFromShell }
