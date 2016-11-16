@@ -14,8 +14,6 @@ class WindowEventHandler
 
     @addEventListener(@document, 'keyup', @handleDocumentKeyEvent)
     @addEventListener(@document, 'keydown', @handleDocumentKeyEvent)
-    @addEventListener(@document, 'compositionstart', @handleDocumentCompositionStartEvent)
-    @addEventListener(@document, 'compositionend', @handleDocumentCompositionEndEvent)
     @addEventListener(@document, 'drop', @handleDocumentDrop)
     @addEventListener(@document, 'dragover', @handleDocumentDragover)
     @addEventListener(@document, 'contextmenu', @handleDocumentContextmenu)
@@ -77,12 +75,6 @@ class WindowEventHandler
   handleDocumentKeyEvent: (event) =>
     @atomEnvironment.keymaps.handleKeyboardEvent(event)
     event.stopImmediatePropagation()
-
-  handleDocumentCompositionStartEvent: =>
-    @atomEnvironment.keymaps.handleCompositionStart()
-
-  handleDocumentCompositionEndEvent: =>
-    @atomEnvironment.keymaps.handleCompositionEnd()
 
   handleDrop: (event) ->
     event.preventDefault()
