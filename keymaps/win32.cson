@@ -75,7 +75,7 @@
   'ctrl-k left': 'pane:split-left-and-copy-active-item' # Atom Specific
   'ctrl-k right': 'pane:split-right-and-copy-active-item' # Atom Specific
   'ctrl-k ctrl-w': 'pane:close' # Atom Specific
-  'ctrl-k alt-ctrl-w': 'pane:close-other-items' # Atom Specific
+  'ctrl-k ctrl-alt-w': 'pane:close-other-items' # Atom Specific
   'ctrl-k ctrl-p': 'window:focus-previous-pane'
   'ctrl-k ctrl-n': 'window:focus-next-pane'
   'ctrl-k ctrl-up': 'window:focus-pane-above'
@@ -119,9 +119,9 @@
 
 'atom-workspace atom-text-editor:not([mini])':
   # Atom specific
-  'alt-ctrl-z': 'editor:checkout-head-revision'
+  'ctrl-alt-shift-z': 'editor:checkout-head-revision'
   'ctrl-<': 'editor:scroll-to-cursor'
-  'alt-ctrl-f': 'editor:fold-selection'
+  'ctrl-alt-shift-[': 'editor:fold-selection'
 
   # Sublime Parity
   'ctrl-enter': 'editor:newline-below'
