@@ -114,7 +114,6 @@
 
 'atom-workspace atom-text-editor:not([mini])':
   # Atom specific
-  'ctrl-alt-shift-z': 'editor:checkout-head-revision'
   'ctrl-<': 'editor:scroll-to-cursor'
   'ctrl-alt-shift-[': 'editor:fold-selection'
 
