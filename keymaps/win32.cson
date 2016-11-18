@@ -12,7 +12,7 @@
   'ctrl-down': 'core:move-down'
   'left': 'core:move-left'
   'right': 'core:move-right'
-  'ctrl-shift-r': 'window:reload'
+  'ctrl-shift-f5': 'window:reload'
   'ctrl-shift-i': 'window:toggle-dev-tools'
   'ctrl-shift-y': 'window:run-package-specs'
   'ctrl-shift-o': 'application:open-folder'
