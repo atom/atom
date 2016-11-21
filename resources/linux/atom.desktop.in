@@ -2,7 +2,7 @@
 Name=<%= appName %>
 Comment=<%= description %>
 GenericName=Text Editor
-Exec=<%= installDir %>/share/<%= appFileName %>/atom %F
+Exec=sh -c "ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT=true <%= installDir %>/share/<%= appFileName %>/atom %F"
 Icon=<%= iconPath %>
 Type=Application
 StartupNotify=true
