@@ -238,6 +238,7 @@ class GitRepository
 
   # Public: Returns the git configuration value specified by the key.
   #
+  # * `key`  The {String} key for the configuration to lookup.
   # * `path` An optional {String} path in the repository to get this information
   #   for, only needed if the repository has submodules.
   getConfigValue: (key, path) -> @getRepo(path).getConfigValue(key)
