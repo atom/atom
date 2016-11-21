@@ -116,14 +116,12 @@
       })
     }
 
-    var currentWindow = require('electron').remote.getCurrentWindow()
-    if (currentWindow.devToolsWebContents) {
+    const webContents = require('electron').remote.getCurrentWindow().webContents
+    if (webContents.devToolsWebContents) {
       profile()
     } else {
-      currentWindow.openDevTools()
-      currentWindow.once('devtools-opened', function () {
-        setTimeout(profile, 1000)
-      })
+      webContents.once('devtools-opened', () => { setTimeout(profile, 1000) })
+      webContents.openDevTools()
     }
   }
 
