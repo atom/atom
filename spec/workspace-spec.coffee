@@ -1139,6 +1139,7 @@ describe "Workspace", ->
             range: [[2, 6], [2, 11]]
 
       it "works on evil filenames", ->
+        atom.config.set('core.excludeVcsIgnoredPaths', false)
         platform.generateEvilFiles()
         atom.project.setPaths([path.join(__dirname, 'fixtures', 'evil-files')])
         paths = []
