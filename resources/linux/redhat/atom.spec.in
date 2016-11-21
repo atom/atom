@@ -7,7 +7,7 @@ URL:            https://atom.io/
 AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 Prefix:         <%= installDir %>
 
-Requires: lsb-core-noarch
+Requires: lsb-core-noarch, libXScrnSaver
 
 %description
 <%= description %>
