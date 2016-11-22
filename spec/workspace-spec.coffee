@@ -489,6 +489,7 @@ describe "Workspace", ->
             expect(item).toEqual {bar: "bar://baz"}
 
     it "adds the file to the application's recent documents list", ->
+      return unless process.platform is 'darwin' # Feature only supported on macOS
       spyOn(atom.applicationDelegate, 'addRecentDocument')
 
       waitsForPromise ->
