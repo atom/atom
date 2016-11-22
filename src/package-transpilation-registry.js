@@ -96,7 +96,7 @@ class PackageTranspilationRegistry {
       }
 
       lastPath = thisPath
-      thisPath = path.resolve(thisPath, '..')
+      thisPath = path.join(thisPath, '..')
     }
 
     this.specByFilePath[filePath] = null
