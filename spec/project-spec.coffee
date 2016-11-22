@@ -152,7 +152,7 @@ describe "Project", ->
       expect(notification.getType()).toBe 'warning'
       expect(notification.getDetail()).toBe 'SomeError'
       expect(notification.getMessage()).toContain '`resurrect`'
-      expect(notification.getMessage()).toContain path.join('fixtures' ,'dir', 'a')
+      expect(notification.getMessage()).toContain path.join('fixtures', 'dir', 'a')
 
   describe "when a custom repository-provider service is provided", ->
     [fakeRepositoryProvider, fakeRepository] = []
