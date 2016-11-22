@@ -401,6 +401,8 @@ describe "AtomEnvironment", ->
       subscription?.dispose()
 
     it "invokes onUpdateAvailable listeners", ->
+      return unless process.platform is 'darwin' # Test tied to electron autoUpdater, we use something else on Linux and Win32
+
       atom.listenForUpdates()
 
       updateAvailableHandler = jasmine.createSpy("update-available-handler")
