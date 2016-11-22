@@ -740,10 +740,6 @@ describe "PackageManager", ->
           two = require.resolve("./fixtures/packages/package-with-style-sheets-manifest/styles/2.less")
           three = require.resolve("./fixtures/packages/package-with-style-sheets-manifest/styles/3.css")
 
-          one = atom.themes.stringToId(one)
-          two = atom.themes.stringToId(two)
-          three = atom.themes.stringToId(three)
-
           expect(atom.themes.stylesheetElementForId(one)).toBeNull()
           expect(atom.themes.stylesheetElementForId(two)).toBeNull()
           expect(atom.themes.stylesheetElementForId(three)).toBeNull()
@@ -764,11 +760,6 @@ describe "PackageManager", ->
           two = require.resolve("./fixtures/packages/package-with-styles/styles/2.less")
           three = require.resolve("./fixtures/packages/package-with-styles/styles/3.test-context.css")
           four = require.resolve("./fixtures/packages/package-with-styles/styles/4.css")
-
-          one = atom.themes.stringToId(one)
-          two = atom.themes.stringToId(two)
-          three = atom.themes.stringToId(three)
-          four = atom.themes.stringToId(four)
 
           expect(atom.themes.stylesheetElementForId(one)).toBeNull()
           expect(atom.themes.stylesheetElementForId(two)).toBeNull()

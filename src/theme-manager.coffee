@@ -178,7 +178,8 @@ class ThemeManager
       @requireStylesheet(nativeStylesheetPath)
 
   stylesheetElementForId: (id) ->
-    document.head.querySelector("atom-styles style[source-path=\"#{id}\"]")
+    escapedId = id.replace(/\\/g, '\\\\')
+    document.head.querySelector("atom-styles style[source-path=\"#{escapedId}\"]")
 
   resolveStylesheet: (stylesheetPath) ->
     if path.extname(stylesheetPath).length > 0
@@ -230,9 +231,6 @@ class ThemeManager
 
   applyStylesheet: (path, text) ->
     @styleSheetDisposablesBySourcePath[path] = @styleManager.addStyleSheet(text, sourcePath: path)
-
-  stringToId: (string) ->
-    string.replace(/\\/g, '/')
 
   activateThemes: ->
     new Promise (resolve) =>
