@@ -141,7 +141,7 @@ class TextEditorElement extends HTMLElement
 
   inputNodeBlurred: (event) ->
     if event.relatedTarget isnt this
-      @dispatchEvent(new FocusEvent('blur', bubbles: false))
+      @dispatchEvent(new FocusEvent('blur', relatedTarget: event.relatedTarget, bubbles: false))
 
   addGrammarScopeAttribute: ->
     @dataset.grammar = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
