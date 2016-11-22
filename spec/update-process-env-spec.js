@@ -152,6 +152,8 @@ describe('updateProcessEnv(launchEnv)', function () {
   describe('when the launch environment does not come from a shell', function () {
     describe('on osx', function () {
       it('updates process.env to match the environment in the user\'s login shell', async function () {
+        if (process.platform === 'win32') return // TestsThatFailOnWin32
+
         process.platform = 'darwin'
         process.env.SHELL = '/my/custom/bash'
         spawn.setDefault(spawn.simple(0, dedent`
@@ -176,6 +178,8 @@ describe('updateProcessEnv(launchEnv)', function () {
 
     describe('on linux', function () {
       it('updates process.env to match the environment in the user\'s login shell', async function () {
+        if (process.platform === 'win32') return // TestsThatFailOnWin32
+
         process.platform = 'linux'
         process.env.SHELL = '/my/custom/bash'
         spawn.setDefault(spawn.simple(0, dedent`
@@ -212,6 +216,8 @@ describe('updateProcessEnv(launchEnv)', function () {
 
     describe('shouldGetEnvFromShell()', function () {
       it('indicates when the environment should be fetched from the shell', function () {
+        if (process.platform === 'win32') return // TestsThatFailOnWin32
+
         process.platform = 'darwin'
         expect(shouldGetEnvFromShell({SHELL: '/bin/sh'})).toBe(true)
         expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/sh'})).toBe(true)
