@@ -11,26 +11,23 @@ const syncRequest = require('sync-request')
 const CONFIG = require('../config')
 
 module.exports = function () {
-  if (process.platform === 'darwin') {
-    // Chromedriver is only distributed with the first patch release for any given
-    // major and minor version of electron.
-    const electronVersion = semver.parse(CONFIG.appMetadata.electronVersion)
-    const electronVersionWithChromedriver = `${electronVersion.major}.${electronVersion.minor}.0`
-    const electronAssets = getElectronAssetsForVersion(electronVersionWithChromedriver)
-    const chromedriverAssets = electronAssets.filter(e => /chromedriver.*darwin-x64/.test(e.name))
-    assert(chromedriverAssets.length === 1, 'Found more than one chrome driver asset to download!')
-    const chromedriverAsset = chromedriverAssets[0]
+  // Chromedriver is only distributed with the first patch release for any given
+  // major and minor version of electron.
+  const electronVersion = semver.parse(CONFIG.appMetadata.electronVersion)
+  const electronVersionWithChromedriver = `${electronVersion.major}.${electronVersion.minor}.0`
+  const electronAssets = getElectronAssetsForVersion(electronVersionWithChromedriver)
+  const chromeDriverMatch = new RegExp(`^chromedriver-v.*-${process.platform}-${process.arch}`)
+  const chromedriverAssets = electronAssets.filter(e => chromeDriverMatch.test(e.name))
+  assert(chromedriverAssets.length === 1, 'Found more than one chrome driver asset to download!')
+  const chromedriverAsset = chromedriverAssets[0]
 
-    const chromedriverZipPath = path.join(CONFIG.electronDownloadPath, `electron-${electronVersionWithChromedriver}-${chromedriverAsset.name}`)
-    if (!fs.existsSync(chromedriverZipPath)) {
-      downloadFileFromGithub(chromedriverAsset.url, chromedriverZipPath)
-    }
-
-    const chromedriverDirPath = path.join(CONFIG.electronDownloadPath, 'chromedriver')
-    unzipPath(chromedriverZipPath, chromedriverDirPath)
-  } else {
-    console.log('Skipping Chromedriver download because it is used only on macOS'.gray)
+  const chromedriverZipPath = path.join(CONFIG.electronDownloadPath, `electron-${electronVersionWithChromedriver}-${chromedriverAsset.name}`)
+  if (!fs.existsSync(chromedriverZipPath)) {
+    downloadFileFromGithub(chromedriverAsset.url, chromedriverZipPath)
   }
+
+  const chromedriverDirPath = path.join(CONFIG.electronDownloadPath, 'chromedriver')
+  unzipPath(chromedriverZipPath, chromedriverDirPath)
 }
 
 function getElectronAssetsForVersion (version) {
