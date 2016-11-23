@@ -46,6 +46,31 @@ export default class ReopenProjectMenuManager {
     this.projects = this.historyManager.getProjects().slice(0, this.config.get('core.reopenProjectMenuCount'))
     const newMenu = ReopenProjectMenuManager.createProjectsMenu(this.projects)
     this.lastProjectMenu = this.menuManager.add([newMenu])
+    this.updateWindowsJumpList()
+  }
+
+  updateWindowsJumpList () {
+    if (process.platform !== 'win32') return
+
+    if (this.app === undefined) {
+      this.app = require('remote').app
+    }
+
+    this.app.setJumpList([
+      {
+        type:'custom',
+        name:'Recent Projects',
+        items: this.projects.map(p => ({
+          type: 'task',
+          title: ReopenProjectMenuManager.createLabel(p),
+          program: process.execPath,
+          args: p.paths.map(path => `"${path}"`).join(' ') }))
+      },
+      { type: 'recent' },
+      { items: [
+          {type: 'task', title: 'New Window', program: process.execPath, args: '--new-window', description: 'Opens a new Atom window'}
+      ]}
+    ])
   }
 
   dispose () {
