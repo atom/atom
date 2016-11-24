@@ -908,7 +908,7 @@ class TextEditorComponent
 
   screenRowForNode: (node) ->
     while node?
-      if screenRow = node.dataset.screenRow
+      if screenRow = node.dataset?.screenRow
         return parseInt(screenRow)
       node = node.parentElement
     null

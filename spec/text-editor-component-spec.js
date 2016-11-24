@@ -3823,6 +3823,40 @@ describe('TextEditorComponent', function () {
       })
     })
 
+    describe('when the mousewheel event\'s target is an SVG element inside a block decoration', function () {
+      it('keeps the block decoration on the DOM if it is scrolled off-screen', function () {
+        wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
+        wrapperNode.style.width = 20 * charWidth + 'px'
+        editor.update({autoHeight: false})
+        component.measureDimensions()
+        runAnimationFrames()
+
+        const item = document.createElement('div')
+        const svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        item.appendChild(svgElement)
+        editor.decorateMarker(
+          editor.markScreenPosition([0, 0], {invalidate: "never"}),
+          {type: "block", item: item}
+        )
+
+        runAnimationFrames()
+
+        let wheelEvent = new WheelEvent('mousewheel', {
+          wheelDeltaX: 0,
+          wheelDeltaY: -500
+        })
+        Object.defineProperty(wheelEvent, 'target', {
+          get: function () {
+            return svgElement
+          }
+        })
+        componentNode.dispatchEvent(wheelEvent)
+        runAnimationFrames()
+
+        expect(component.getTopmostDOMNode().contains(item)).toBe(true)
+      })
+    })
+
     it('only prevents the default action of the mousewheel event if it actually lead to scrolling', function () {
       spyOn(WheelEvent.prototype, 'preventDefault').andCallThrough()
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
