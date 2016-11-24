@@ -58,8 +58,8 @@ export default class ReopenProjectMenuManager {
 
     this.app.setJumpList([
       {
-        type:'custom',
-        name:'Recent Projects',
+        type: 'custom',
+        name: 'Recent Projects',
         items: this.projects.map(p => ({
           type: 'task',
           title: ReopenProjectMenuManager.createLabel(p),
