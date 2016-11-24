@@ -62,17 +62,32 @@ function shouldGetEnvFromShell (env) {
 
 async function getEnvFromShell (env) {
   let {stdout, error} = await new Promise((resolve) => {
+    let child
     let error
     let stdout = ''
-    const child = childProcess.spawn(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', stdio: ['ignore', 'pipe', process.stderr]})
+    let done = false
+    const cleanup = () => {
+      if (!done && child) {
+        child.kill()
+        done = true
+      }
+    }
+    process.once('exit', cleanup)
+    setTimeout(() => {
+      cleanup()
+    }, 5000)
+    child = childProcess.spawn(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', detached: true, stdio: ['ignore', 'pipe', process.stderr]})
     const buffers = []
     child.on('error', (e) => {
+      done = true
       error = e
     })
     child.stdout.on('data', (data) => {
       buffers.push(data)
     })
     child.on('close', (code, signal) => {
+      done = true
+      process.removeListener('exit', cleanup)
       if (buffers.length) {
         stdout = Buffer.concat(buffers).toString('utf8')
       }
