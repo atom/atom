@@ -85,6 +85,7 @@ const configSchema = {
         default: 'utf8',
         enum: [
           'cp437',
+          'cp850',
           'cp866',
           'eucjp',
           'euckr',
