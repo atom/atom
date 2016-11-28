@@ -2536,6 +2536,49 @@ describe "TextEditorPresenter", ->
               pixelPosition: {top: 6 * 10 - scrollTop - itemHeight, left: gutterWidth}
             }
 
+          it "does not slide horizontally when set to stable", ->
+            scrollLeft = 20
+            marker = editor.markBufferPosition([0, 26], invalidate: 'never')
+            decoration = editor.decorateMarker(marker, {type: 'overlay', item, stable: true})
+
+            presenter = buildPresenter({scrollLeft, windowWidth, windowHeight, contentFrameWidth, boundingClientRect, gutterWidth})
+            expectStateUpdate presenter, ->
+              presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
+
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 1 * 10, left: 26 * 10 + gutterWidth - scrollLeft}
+            }
+
+            expectStateUpdate presenter, -> editor.insertText('a')
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 1 * 10, left: 26 * 10 + gutterWidth - scrollLeft}
+            }
+
+          it "does not flip vertically when set to stable", ->
+            scrollTop = 10
+            marker = editor.markBufferPosition([5, 0], invalidate: 'never')
+            decoration = editor.decorateMarker(marker, {type: 'overlay', item, stable: true})
+
+            presenter = buildPresenter({scrollTop, windowWidth, windowHeight, contentFrameWidth, boundingClientRect, gutterWidth})
+            expectStateUpdate presenter, ->
+              presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
+
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 6 * 10 - scrollTop, left: gutterWidth}
+            }
+
+            expectStateUpdate presenter, ->
+              editor.insertNewline()
+              presenter.setScrollTop(scrollTop) # I'm fighting the editor
+
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 6 * 10 - scrollTop, left: gutterWidth}
+            }
+
           describe "when the overlay item has a margin", ->
             beforeEach ->
               itemWidth = 12 * 10
