@@ -1749,10 +1749,14 @@ class TextEditor extends Model
   #   * `onlyNonEmpty` (optional) If `true`, the decoration will only be applied
   #     if the associated `DisplayMarker` is non-empty. Only applicable to the
   #     `gutter`, `line`, and `line-number` types.
-  #   * `position` (optional) Only applicable to decorations of type `overlay` and `block`,
-  #     controls where the view is positioned relative to the `TextEditorMarker`.
+  #   * `position` (optional) Only applicable to decorations of type `overlay` and `block`.
+  #     Controls where the view is positioned relative to the `TextEditorMarker`.
   #     Values can be `'head'` (the default) or `'tail'` for overlay decorations, and
   #     `'before'` (the default) or `'after'` for block decorations.
+  #   * `avoidOverflow` (optional) Only applicable to decorations of type
+  #      `overlay`. Determines whether the decoration adjusts its horizontal or
+  #      vertical position to remain fully visible when it would otherwise
+  #      overflow the editor. Defaults to `true`.
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
