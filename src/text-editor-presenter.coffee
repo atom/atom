@@ -451,7 +451,7 @@ class TextEditorPresenter
     for decoration in @model.getOverlayDecorations()
       continue unless decoration.getMarker().isValid()
 
-      {item, position, class: klass, stable} = decoration.getProperties()
+      {item, position, class: klass, avoidOverflow} = decoration.getProperties()
       if position is 'tail'
         screenPosition = decoration.getMarker().getTailScreenPosition()
       else
@@ -466,8 +466,7 @@ class TextEditorPresenter
       if overlayDimensions = @overlayDimensions[decoration.id]
         {itemWidth, itemHeight, contentMargin} = overlayDimensions
 
-        if not stable
-
+        if avoidOverflow isnt false
           rightDiff = left + itemWidth + contentMargin - @windowWidth
           left -= rightDiff if rightDiff > 0
 

@@ -2501,13 +2501,13 @@ describe "TextEditorPresenter", ->
               pixelPosition: {top: 1 * 10, left: 26 * 10 + gutterWidth - scrollLeft}
             }
 
-            expectStateUpdate presenter, -> editor.insertText('a')
+            expectStateUpdate presenter, -> editor.insertText('abc', autoscroll: false)
             expectValues stateForOverlay(presenter, decoration), {
               item: item
               pixelPosition: {top: 1 * 10, left: windowWidth - itemWidth}
             }
 
-            expectStateUpdate presenter, -> editor.insertText('b')
+            expectStateUpdate presenter, -> editor.insertText('d', autoscroll: false)
             expectValues stateForOverlay(presenter, decoration), {
               item: item
               pixelPosition: {top: 1 * 10, left: windowWidth - itemWidth}
@@ -2528,18 +2528,17 @@ describe "TextEditorPresenter", ->
             }
 
             expectStateUpdate presenter, ->
-              editor.insertNewline()
-              presenter.setScrollTop(scrollTop) # I'm fighting the editor
+              editor.insertNewline(autoscroll: false)
 
             expectValues stateForOverlay(presenter, decoration), {
               item: item
               pixelPosition: {top: 6 * 10 - scrollTop - itemHeight, left: gutterWidth}
             }
 
-          it "does not slide horizontally when set to stable", ->
+          it "when avoidOverflow is false, does not move horizontally when overflowing the editor's scrollView horizontally", ->
             scrollLeft = 20
             marker = editor.markBufferPosition([0, 26], invalidate: 'never')
-            decoration = editor.decorateMarker(marker, {type: 'overlay', item, stable: true})
+            decoration = editor.decorateMarker(marker, {type: 'overlay', item, avoidOverflow: false})
 
             presenter = buildPresenter({scrollLeft, windowWidth, windowHeight, contentFrameWidth, boundingClientRect, gutterWidth})
             expectStateUpdate presenter, ->
@@ -2550,16 +2549,16 @@ describe "TextEditorPresenter", ->
               pixelPosition: {top: 1 * 10, left: 26 * 10 + gutterWidth - scrollLeft}
             }
 
-            expectStateUpdate presenter, -> editor.insertText('a')
+            expectStateUpdate presenter, -> editor.insertText('a', autoscroll: false)
             expectValues stateForOverlay(presenter, decoration), {
               item: item
-              pixelPosition: {top: 1 * 10, left: 26 * 10 + gutterWidth - scrollLeft}
+              pixelPosition: {top: 1 * 10, left: 27 * 10 + gutterWidth - scrollLeft}
             }
 
-          it "does not flip vertically when set to stable", ->
+          it "when avoidOverflow is false, does not flip vertically when overflowing the editor's scrollView vertically", ->
             scrollTop = 10
             marker = editor.markBufferPosition([5, 0], invalidate: 'never')
-            decoration = editor.decorateMarker(marker, {type: 'overlay', item, stable: true})
+            decoration = editor.decorateMarker(marker, {type: 'overlay', item, avoidOverflow: false})
 
             presenter = buildPresenter({scrollTop, windowWidth, windowHeight, contentFrameWidth, boundingClientRect, gutterWidth})
             expectStateUpdate presenter, ->
@@ -2571,12 +2570,11 @@ describe "TextEditorPresenter", ->
             }
 
             expectStateUpdate presenter, ->
-              editor.insertNewline()
-              presenter.setScrollTop(scrollTop) # I'm fighting the editor
+              editor.insertNewline(autoscroll: false)
 
             expectValues stateForOverlay(presenter, decoration), {
               item: item
-              pixelPosition: {top: 6 * 10 - scrollTop, left: gutterWidth}
+              pixelPosition: {top: 7 * 10 - scrollTop, left: gutterWidth}
             }
 
           describe "when the overlay item has a margin", ->

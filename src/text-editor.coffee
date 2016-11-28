@@ -1085,8 +1085,8 @@ class TextEditor extends Model
     )
 
   # Essential: For each selection, replace the selected text with a newline.
-  insertNewline: ->
-    @insertText('\n')
+  insertNewline: (options) ->
+    @insertText('\n', options)
 
   # Essential: For each selection, if the selection is empty, delete the character
   # following the cursor. Otherwise delete the selected text.
