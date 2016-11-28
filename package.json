@@ -49,7 +49,7 @@
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
     "oniguruma": "6.1.0",
-    "pathwatcher": "~6.5",
+    "pathwatcher": "^6.7.1",
     "postcss": "5.2.4",
     "postcss-selector-parser": "2.2.1",
     "property-accessors": "^1.1.3",
