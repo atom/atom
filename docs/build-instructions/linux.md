@@ -6,8 +6,6 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 * OS with 64-bit or 32-bit architecture
 * C++11 toolchain
-* pkg-config
-* libgnome-keyring-dev
 * Git
 * Node.js 4.4.x or later (we recommend installing it via [nvm](https://github.com/creationix/nvm))
 * npm 3.10.x or later (run `npm install -g npm`)
