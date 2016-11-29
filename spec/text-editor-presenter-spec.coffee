@@ -2028,6 +2028,27 @@ describe "TextEditorPresenter", ->
 
           expect(stateForHighlightInTile(presenter, highlight, 0)).toBeUndefined()
 
+        it "handles highlights that extend to the left of the visible area (regression)", ->
+          editor.setSelectedBufferRanges([
+            [[0, 2], [1, 4]],
+          ])
+
+          presenter = buildPresenter(explicitHeight: 20, scrollLeft: 0, tileSize: 2)
+          expectValues stateForSelectionInTile(presenter, 0, 0), {
+            regions: [
+              {top: 0 * 10, height: 10, left: 2 * 10, right: 0 * 10},
+              {top: 1 * 10, height: 10, left: 0 * 10, width: 4 * 10}
+            ]
+          }
+
+          presenter = buildPresenter(explicitHeight: 20, scrollLeft: 20, tileSize: 2)
+          expectValues stateForSelectionInTile(presenter, 0, 0), {
+            regions: [
+              {top: 0 * 10, height: 10, left: 2 * 10, right: 0 * 10},
+              {top: 1 * 10, height: 10, left: 0 * 10, width: 4 * 10}
+            ]
+          }
+
         it "updates when ::scrollTop changes", ->
           editor.setSelectedBufferRanges([
             [[6, 2], [6, 4]],
