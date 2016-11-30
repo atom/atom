@@ -50,7 +50,7 @@ export default class BufferedProcess {
     this.emitter = new Emitter()
     this.command = command
     // Related to joyent/node#2318
-    if (process.platform === 'win32' && !options.shell) {
+    if (process.platform === 'win32' && options.shell === undefined) {
       let cmdArgs = []
 
       // Quote all arguments and escapes inner quotes

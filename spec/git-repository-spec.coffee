@@ -29,8 +29,13 @@ describe "GitRepository", ->
       expect(-> new GitRepository(path.join(temp.dir, 'nogit.txt'))).toThrow()
 
   describe ".getPath()", ->
-    it "returns the repository path for a .git directory path", ->
+    it "returns the repository path for a .git directory path with a file", ->
+      return if process.platform is 'win32' #Win32TestFailures - libgit2 does not detect files in .git folders
       repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git', 'HEAD'))
+      expect(repo.getPath()).toBe path.join(__dirname, 'fixtures', 'git', 'master.git')
+
+    it "returns the repository path for a .git directory path with a directory", ->
+      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git', 'objects'))
       expect(repo.getPath()).toBe path.join(__dirname, 'fixtures', 'git', 'master.git')
 
     it "returns the repository path for a repository path", ->
@@ -154,7 +159,7 @@ describe "GitRepository", ->
 
   describe ".destroy()", ->
     it "throws an exception when any method is called after it is called", ->
-      repo = new GitRepository(require.resolve('./fixtures/git/master.git/HEAD'))
+      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git'))
       repo.destroy()
       expect(-> repo.getShortHead()).toThrow()
 

@@ -64,6 +64,7 @@ describe "Project", ->
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "does not deserialize buffers when their path is inaccessible", ->
+      return if process.platform is 'win32' # chmod not supported on win32
       pathToOpen = path.join(temp.mkdirSync(), 'file.txt')
       fs.writeFileSync(pathToOpen, '')
 
@@ -151,7 +152,7 @@ describe "Project", ->
       expect(notification.getType()).toBe 'warning'
       expect(notification.getDetail()).toBe 'SomeError'
       expect(notification.getMessage()).toContain '`resurrect`'
-      expect(notification.getMessage()).toContain 'fixtures/dir/a'
+      expect(notification.getMessage()).toContain path.join('fixtures', 'dir', 'a')
 
   describe "when a custom repository-provider service is provided", ->
     [fakeRepositoryProvider, fakeRepository] = []
