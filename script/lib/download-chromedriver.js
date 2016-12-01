@@ -49,5 +49,16 @@ function unzipPath (inputPath, outputPath) {
   }
 
   console.log(`Unzipping "${inputPath}" to "${outputPath}"`)
-  spawnSync('unzip', [inputPath, '-d', outputPath])
+  try {
+    spawnSync('unzip', [inputPath, '-d', outputPath])
+  }
+  catch(err) {
+    if (err.code === 'ENOENT') {
+      // Unzip might not be available on Windows even though it comes with git so fall back to 7zip
+      spawnSync('7z', ['x', inputPath, `-o${outputPath}`])
+    }
+    else {
+      throw err;
+    }
+  }
 }
