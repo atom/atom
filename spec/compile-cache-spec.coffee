@@ -84,7 +84,6 @@ describe 'CompileCache', ->
 
       error = new Error("Oops")
       expect(error.stack).toBe 'a-stack-trace'
-      console.log('stack ' + error.getRawStack())
       expect(Array.isArray(error.getRawStack())).toBe true
 
       waits(1)
