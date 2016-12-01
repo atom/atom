@@ -50,6 +50,4 @@ cache:
   - '%APPVEYOR_BUILD_FOLDER%\node_modules'
   - '%APPVEYOR_BUILD_FOLDER%\electron'
   - '%USERPROFILE%\.atom\.apm'
-  - '%USERPROFILE%\.atom\.node-gyp\.atom'
-  - '%USERPROFILE%\.atom\.npm'
   - '%USERPROFILE%\.atom\compile-cache'
