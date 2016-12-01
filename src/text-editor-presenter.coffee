@@ -596,7 +596,8 @@ class TextEditorPresenter
       line = @linesByScreenRow.get(screenRow)
       continue unless line?
       lineId = line.id
-      {bufferRow, softWrappedAtStart: softWrapped} = @displayLayer.softWrapDescriptorForScreenRow(screenRow)
+      {row: bufferRow, column: bufferColumn} = @displayLayer.translateScreenPosition(Point(screenRow, 0))
+      softWrapped = bufferColumn isnt 0
       foldable = not softWrapped and @model.isFoldableAtBufferRow(bufferRow)
       decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
       blockDecorationsBeforeCurrentScreenRowHeight = @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow) - @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow)
