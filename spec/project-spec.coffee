@@ -1,4 +1,4 @@
-temp = require 'temp'
+temp = require('temp').track()
 Project = require '../src/project'
 fs = require 'fs-plus'
 path = require 'path'
@@ -11,6 +11,9 @@ describe "Project", ->
 
     # Wait for project's service consumers to be asynchronously added
     waits(1)
+
+  afterEach ->
+    temp.cleanupSync()
 
   describe "serialization", ->
     deserializedProject = null
@@ -51,7 +54,7 @@ describe "Project", ->
 
 
     it "does not deserialize buffers when their path is a directory that exists", ->
-      pathToOpen = path.join(temp.mkdirSync(), 'file.txt')
+      pathToOpen = path.join(temp.mkdirSync('atom-spec-project'), 'file.txt')
 
       waitsForPromise ->
         atom.workspace.open(pathToOpen)
@@ -65,7 +68,7 @@ describe "Project", ->
 
     it "does not deserialize buffers when their path is inaccessible", ->
       return if process.platform is 'win32' # chmod not supported on win32
-      pathToOpen = path.join(temp.mkdirSync(), 'file.txt')
+      pathToOpen = path.join(temp.mkdirSync('atom-spec-project'), 'file.txt')
       fs.writeFileSync(pathToOpen, '')
 
       waitsForPromise ->
