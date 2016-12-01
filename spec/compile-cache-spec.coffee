@@ -21,8 +21,8 @@ describe 'CompileCache', ->
     spyOn(TypeScriptSimple::, 'compile').andReturn 'the-typescript-code'
 
   afterEach ->
-    CSON.setCacheDir(CompileCache.getCacheDirectory())
     CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
+    CSON.setCacheDir(CompileCache.getCacheDirectory())
     temp.cleanupSync()
 
   describe 'addPathToCache(filePath, atomHome)', ->
