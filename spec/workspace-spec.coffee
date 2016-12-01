@@ -1,5 +1,5 @@
 path = require 'path'
-temp = require 'temp'
+temp = require('temp').track()
 TextEditor = require '../src/text-editor'
 Workspace = require '../src/workspace'
 Project = require '../src/project'
@@ -18,6 +18,9 @@ describe "Workspace", ->
     setDocumentEdited = spyOn(atom.applicationDelegate, 'setWindowDocumentEdited')
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
     waits(1)
+
+  afterEach ->
+    temp.cleanupSync()
 
   describe "serialization", ->
     simulateReload = ->
@@ -1226,7 +1229,7 @@ describe "Workspace", ->
           expect(matches.length).toBe 1
 
       it "includes files and folders that begin with a '.'", ->
-        projectPath = temp.mkdirSync()
+        projectPath = temp.mkdirSync('atom-spec-workspace')
         filePath = path.join(projectPath, '.text')
         fs.writeFileSync(filePath, 'match this')
         atom.project.setPaths([projectPath])

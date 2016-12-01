@@ -23,6 +23,7 @@ describe 'CompileCache', ->
   afterEach ->
     CSON.setCacheDir(CompileCache.getCacheDirectory())
     CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
+    temp.cleanupSync()
 
   describe 'addPathToCache(filePath, atomHome)', ->
     describe 'when the given file is plain javascript', ->
@@ -81,6 +82,7 @@ describe 'CompileCache', ->
 
       error = new Error("Oops")
       expect(error.stack).toBe 'a-stack-trace'
+      console.log('stack ' + error.getRawStack())
       expect(Array.isArray(error.getRawStack())).toBe true
 
       waits(1)

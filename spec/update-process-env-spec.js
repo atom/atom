@@ -3,12 +3,12 @@
 
 import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
 import path from 'path'
-import temp from 'temp'
 import childProcess from 'child_process'
 import {updateProcessEnv, shouldGetEnvFromShell} from '../src/update-process-env'
 import dedent from 'dedent'
 import {EventEmitter} from 'events'
 import mockSpawn from 'mock-spawn'
+const temp = require('temp').track()
 
 describe('updateProcessEnv(launchEnv)', function () {
   let originalProcessEnv, originalProcessPlatform, originalSpawn, spawn
@@ -28,6 +28,7 @@ describe('updateProcessEnv(launchEnv)', function () {
     }
     process.env = originalProcessEnv
     process.platform = originalProcessPlatform
+    temp.cleanupSync()
   })
 
   describe('when the launch environment appears to come from a shell', function () {

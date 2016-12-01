@@ -1,6 +1,6 @@
 path = require 'path'
 fs = require 'fs-plus'
-temp = require 'temp'
+temp = require('temp').track()
 
 describe "atom.themes", ->
   beforeEach ->
@@ -8,6 +8,7 @@ describe "atom.themes", ->
 
   afterEach ->
     atom.themes.deactivateThemes()
+    temp.cleanupSync()
 
   describe "theme getters and setters", ->
     beforeEach ->

@@ -1,10 +1,13 @@
 _ = require 'underscore-plus'
 path = require 'path'
-temp = require 'temp'
+temp = require('temp').track()
 AtomEnvironment = require '../src/atom-environment'
 StorageFolder = require '../src/storage-folder'
 
 describe "AtomEnvironment", ->
+  afterEach ->
+    temp.cleanupSync()
+
   describe 'window sizing methods', ->
     describe '::getPosition and ::setPosition', ->
       originalPosition = null
@@ -324,7 +327,7 @@ describe "AtomEnvironment", ->
 
   describe "::unloadEditorWindow()", ->
     it "saves the BlobStore so it can be loaded after reload", ->
-      configDirPath = temp.mkdirSync()
+      configDirPath = temp.mkdirSync('atom-spec-environment')
       fakeBlobStore = jasmine.createSpyObj("blob store", ["save"])
       atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, enablePersistence: true, configDirPath, blobStore: fakeBlobStore, window, document})
 
@@ -336,7 +339,7 @@ describe "AtomEnvironment", ->
 
   describe "::destroy()", ->
     it "does not throw exceptions when unsubscribing from ipc events (regression)", ->
-      configDirPath = temp.mkdirSync()
+      configDirPath = temp.mkdirSync('atom-spec-environment')
       fakeDocument = {
         addEventListener: ->
         removeEventListener: ->

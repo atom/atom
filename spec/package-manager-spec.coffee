@@ -1,6 +1,6 @@
 path = require 'path'
 Package = require '../src/package'
-temp = require 'temp'
+temp = require('temp').track()
 fs = require 'fs-plus'
 {Disposable} = require 'atom'
 {buildKeydownEvent} = require '../src/keymap-extensions'
@@ -16,6 +16,9 @@ describe "PackageManager", ->
 
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
+
+  afterEach ->
+    temp.cleanupSync()
 
   describe "::getApmPath()", ->
     it "returns the path to the apm command", ->
@@ -643,7 +646,7 @@ describe "PackageManager", ->
         [element, events, userKeymapPath] = []
 
         beforeEach ->
-          userKeymapPath = path.join(temp.path(), "user-keymaps.cson")
+          userKeymapPath = path.join(temp.mkdirSync(), "user-keymaps.cson")
           spyOn(atom.keymaps, "getUserKeymapPath").andReturn(userKeymapPath)
 
           element = createTestElement('test-1')
@@ -659,6 +662,8 @@ describe "PackageManager", ->
           # Avoid leaking user keymap subscription
           atom.keymaps.watchSubscriptions[userKeymapPath].dispose()
           delete atom.keymaps.watchSubscriptions[userKeymapPath]
+
+          temp.cleanupSync()
 
         it "doesn't override user-defined keymaps", ->
           fs.writeFileSync userKeymapPath, """

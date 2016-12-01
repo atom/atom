@@ -1,11 +1,11 @@
-temp = require 'temp'
+temp = require('temp').track()
 GitRepository = require '../src/git-repository'
 fs = require 'fs-plus'
 path = require 'path'
 Project = require '../src/project'
 
 copyRepository = ->
-  workingDirPath = temp.mkdirSync('atom-working-dir')
+  workingDirPath = temp.mkdirSync('atom-spec-git')
   fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
   workingDirPath
@@ -19,6 +19,8 @@ describe "GitRepository", ->
 
   afterEach ->
     repo.destroy() if repo?.repo?
+    try
+      temp.cleanupSync() # These tests sometimes lag at shutting down resources
 
   describe "@open(path)", ->
     it "returns null when no repository is found", ->

@@ -19,6 +19,7 @@ describe "Babel transpiler support", ->
 
   afterEach ->
     CompileCache.setCacheDirectory(originalCacheDir)
+    temp.cleanupSync()
 
   describe 'when a .js file starts with /** @babel */;', ->
     it "transpiles it using babel", ->

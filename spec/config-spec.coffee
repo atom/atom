@@ -1,5 +1,5 @@
 path = require 'path'
-temp = require 'temp'
+temp = require('temp').track()
 CSON = require 'season'
 fs = require 'fs-plus'
 
@@ -9,13 +9,14 @@ describe "Config", ->
   beforeEach ->
     spyOn(atom.config, "load")
     spyOn(atom.config, "save")
-    dotAtomPath = temp.path('dot-atom-dir')
+    dotAtomPath = temp.path('atom-spec-config')
     atom.config.configDirPath = dotAtomPath
     atom.config.enablePersistence = true
     atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.cson")
 
   afterEach ->
     atom.config.enablePersistence = false
+    fs.removeSync(dotAtomPath)
 
   describe ".get(keyPath, {scope, sources, excludeSources})", ->
     it "allows a key path's value to be read", ->
@@ -486,8 +487,8 @@ describe "Config", ->
       observeHandler.reset() # clear the initial call
       atom.config.set('foo.bar.baz', "value 2")
       expect(observeHandler).toHaveBeenCalledWith("value 2")
-      observeHandler.reset()
 
+      observeHandler.reset()
       atom.config.set('foo.bar.baz', "value 1")
       expect(observeHandler).toHaveBeenCalledWith("value 1")
       advanceClock(100) # complete pending save that was requested in ::set
