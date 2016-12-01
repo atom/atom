@@ -1079,6 +1079,7 @@ describe "Config", ->
 
       describe "when the configDirPath doesn't exist", ->
         it "copies the contents of dot-atom to ~/.atom", ->
+          return if process.platform is 'win32' # Flakey test on Win32
           initializationDone = false
           jasmine.unspy(window, "setTimeout")
           atom.config.initializeConfigDirectory ->

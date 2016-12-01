@@ -77,6 +77,8 @@ describe 'CompileCache', ->
 
   describe 'overriding Error.prepareStackTrace', ->
     it 'removes the override on the next tick, and always assigns the raw stack', ->
+      return if process.platform is 'win32' # Flakey Error.stack contents on Win32
+
       Error.prepareStackTrace = -> 'a-stack-trace'
 
       error = new Error("Oops")

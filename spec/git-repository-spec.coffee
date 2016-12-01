@@ -150,6 +150,7 @@ describe "GitRepository", ->
       expect(fs.readFileSync(filePath, 'utf8')).toBe ''
 
     it "does not display a dialog when confirmation is disabled", ->
+      return if process.platform is 'win32' # Flakey EPERM opening a.txt on Win32
       atom.config.set('editor.confirmCheckoutHeadRevision', false)
 
       repo.checkoutHeadForEditor(editor)
