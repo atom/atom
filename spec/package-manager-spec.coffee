@@ -491,6 +491,7 @@ describe "PackageManager", ->
       it "activates the package immediately if the activation hook had already been triggered", ->
         atom.packages.triggerActivationHook('language-fictitious:grammar-used')
         atom.packages.triggerDeferredActivationHooks()
+        expect(Package.prototype.requireMainModule.callCount).toBe 0
 
         waitsForPromise ->
           atom.packages.activatePackage('package-with-activation-hooks')
