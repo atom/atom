@@ -144,6 +144,8 @@ describe "GitRepository", ->
         editor = atom.workspace.getActiveTextEditor()
 
     it "displays a confirmation dialog by default", ->
+      return if process.platform is 'win32' # Permissions issues with this test on Windows
+
       atom.confirm.andCallFake ({buttons}) -> buttons.OK()
       atom.config.set('editor.confirmCheckoutHeadRevision', true)
 
