@@ -22,7 +22,7 @@
   'ctrl-N': 'application:new-window'
   'ctrl-W': 'window:close'
   'ctrl-o': 'application:open-file'
-  'ctrl-q': 'application:quit'
+  'ctrl-q': 'application:safeQuit'
   'ctrl-T': 'pane:reopen-closed-item'
   'ctrl-n': 'application:new-file'
   'ctrl-s': 'core:save'

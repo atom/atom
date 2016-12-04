@@ -26,6 +26,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'application:show-preferences': -> ipcRenderer.send('command', 'application:show-settings')
     'application:show-settings': -> ipcRenderer.send('command', 'application:show-settings')
     'application:quit': -> ipcRenderer.send('command', 'application:quit')
+    'application:safeQuit': -> safeQuit(ipcRenderer)
     'application:hide': -> ipcRenderer.send('command', 'application:hide')
     'application:hide-other-applications': -> ipcRenderer.send('command', 'application:hide-other-applications')
     'application:install-update': -> ipcRenderer.send('command', 'application:install-update')
@@ -252,3 +253,8 @@ copyPathToClipboard = (editor, project, clipboard, relative) ->
   if filePath = editor.getPath()
     filePath = project.relativize(filePath) if relative
     clipboard.write(filePath)
+
+safeQuit = (ipcRenderer) ->
+  model = @getModel()
+  model.saveAll()
+  ipcRenderer.send('command', 'application:quit')
