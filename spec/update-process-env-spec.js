@@ -151,7 +151,7 @@ describe('updateProcessEnv(launchEnv)', function () {
   })
 
   describe('when the launch environment does not come from a shell', function () {
-    describe('on osx', function () {
+    describe('on macOS', function () {
       it('updates process.env to match the environment in the user\'s login shell', async function () {
         if (process.platform === 'win32') return // TestsThatFailOnWin32
 
