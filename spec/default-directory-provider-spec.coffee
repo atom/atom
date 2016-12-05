@@ -1,20 +1,26 @@
 DefaultDirectoryProvider = require '../src/default-directory-provider'
 path = require 'path'
 fs = require 'fs-plus'
-temp = require 'temp'
+temp = require('temp').track()
 
 describe "DefaultDirectoryProvider", ->
+  tmp = null
+
+  beforeEach ->
+    tmp = temp.mkdirSync('atom-spec-default-dir-provider')
+
+  afterEach ->
+    temp.cleanupSync()
+
   describe ".directoryForURISync(uri)", ->
     it "returns a Directory with a path that matches the uri", ->
       provider = new DefaultDirectoryProvider()
-      tmp = temp.mkdirSync()
 
       directory = provider.directoryForURISync(tmp)
       expect(directory.getPath()).toEqual tmp
 
     it "normalizes its input before creating a Directory for it", ->
       provider = new DefaultDirectoryProvider()
-      tmp = temp.mkdirSync()
       nonNormalizedPath = tmp + path.sep +  ".." + path.sep + path.basename(tmp)
       expect(tmp.includes("..")).toBe false
       expect(nonNormalizedPath.includes("..")).toBe true
@@ -24,7 +30,6 @@ describe "DefaultDirectoryProvider", ->
 
     it "creates a Directory for its parent dir when passed a file", ->
       provider = new DefaultDirectoryProvider()
-      tmp = temp.mkdirSync()
       file = path.join(tmp, "example.txt")
       fs.writeFileSync(file, "data")
 
@@ -40,7 +45,6 @@ describe "DefaultDirectoryProvider", ->
   describe ".directoryForURI(uri)", ->
     it "returns a Promise that resolves to a Directory with a path that matches the uri", ->
       provider = new DefaultDirectoryProvider()
-      tmp = temp.mkdirSync()
 
       waitsForPromise ->
         provider.directoryForURI(tmp).then (directory) ->

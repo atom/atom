@@ -6,7 +6,7 @@ remote = require 'remote'
 async = require 'async'
 {map, extend, once, difference} = require 'underscore-plus'
 {spawn, spawnSync} = require 'child_process'
-webdriverio = require '../../../build/node_modules/webdriverio'
+webdriverio = require '../../../script/node_modules/webdriverio'
 
 AtomPath = remote.process.argv[0]
 AtomLauncherPath = path.join(__dirname, "..", "helpers", "atom-launcher.sh")
@@ -16,7 +16,7 @@ ChromedriverPort = 9515
 ChromedriverURLBase = "/wd/hub"
 ChromedriverStatusURL = "http://localhost:#{ChromedriverPort}#{ChromedriverURLBase}/status"
 
-userDataDir = temp.mkdirSync('atom-user-data-dir')
+userDataDir = null
 
 chromeDriverUp = (done) ->
   checkStatus = ->
@@ -38,6 +38,7 @@ chromeDriverDown = (done) ->
   setTimeout(checkStatus, 100)
 
 buildAtomClient = (args, env) ->
+  userDataDir = temp.mkdirSync('atom-user-data-dir')
   client = webdriverio.remote(
     host: 'localhost'
     port: ChromedriverPort
@@ -125,11 +126,6 @@ buildAtomClient = (args, env) ->
       @execute "atom.commands.dispatch(document.activeElement, '#{command}')"
       .call(done)
 
-    .addCommand "simulateQuit", (done) ->
-      @execute -> atom.unloadEditorWindow()
-      .execute -> require("electron").remote.app.emit("before-quit")
-      .call(done)
-
 module.exports = (args, env, fn) ->
   [chromedriver, chromedriverLogs, chromedriverExit] = []
 
@@ -154,9 +150,7 @@ module.exports = (args, env, fn) ->
 
   waitsFor("tests to run", (done) ->
     finish = once ->
-      client
-        .simulateQuit()
-        .end()
+      client.end()
         .then(-> chromedriver.kill())
         .then(chromedriverExit.then(
           (errorCode) ->

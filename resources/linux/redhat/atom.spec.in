@@ -7,7 +7,7 @@ URL:            https://atom.io/
 AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 Prefix:         <%= installDir %>
 
-Requires: lsb-core-noarch
+Requires: lsb-core-noarch, libXScrnSaver
 
 %description
 <%= description %>
@@ -22,10 +22,24 @@ chmod 755 "%{buildroot}/<%= installDir %>/bin/<%= appFileName %>"
 mkdir -p "%{buildroot}/<%= installDir %>/share/applications/"
 cp "<%= appFileName %>.desktop" "%{buildroot}/<%= installDir %>/share/applications/"
 
-for i in 1024 512 256 128 64 48 32 24 16; do
-  mkdir -p "%{buildroot}/<%= installDir %>/share/icons/hicolor/${i}x${i}/apps"
-  cp "icons/${i}.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/${i}x${i}/apps/<%= appFileName %>.png"
-done
+mkdir -p "%{buildroot}/<%= installDir %>/share/icons/hicolor/1024x1024/apps"
+cp "icons/1024.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/1024x1024/apps/<%= appFileName %>.png"
+mkdir -p "%{buildroot}/<%= installDir %>/share/icons/hicolor/512x512/apps"
+cp "icons/512.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/512x512/apps/<%= appFileName %>.png"
+mkdir -p "%{buildroot}/<%= installDir %>/share/icons/hicolor/256x256/apps"
+cp "icons/256.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/256x256/apps/<%= appFileName %>.png"
+mkdir -p "%{buildroot}/<%= installDir %>/share/icons/hicolor/128x128/apps"
+cp "icons/128.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/128x128/apps/<%= appFileName %>.png"
+mkdir -p "%{buildroot}/<%= installDir %>/share/icons/hicolor/64x64/apps"
+cp "icons/64.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/64x64/apps/<%= appFileName %>.png"
+mkdir -p "%{buildroot}/<%= installDir %>/share/icons/hicolor/48x48/apps"
+cp "icons/48.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/48x48/apps/<%= appFileName %>.png"
+mkdir -p "%{buildroot}/<%= installDir %>/share/icons/hicolor/32x32/apps"
+cp "icons/32.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/32x32/apps/<%= appFileName %>.png"
+mkdir -p "%{buildroot}/<%= installDir %>/share/icons/hicolor/24x24/apps"
+cp "icons/24.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/24x24/apps/<%= appFileName %>.png"
+mkdir -p "%{buildroot}/<%= installDir %>/share/icons/hicolor/16x16/apps"
+cp "icons/16.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/16x16/apps/<%= appFileName %>.png"
 
 %files
 <%= installDir %>/bin/<%= appFileName %>

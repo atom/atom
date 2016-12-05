@@ -1,4 +1,5 @@
 {ipcRenderer} = require 'electron'
+Grim = require 'grim'
 
 module.exports = ({commandRegistry, commandInstaller, config, notificationManager, project, clipboard}) ->
   commandRegistry.add 'atom-workspace',
@@ -53,6 +54,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'application:open-your-stylesheet': -> ipcRenderer.send('command', 'application:open-your-stylesheet')
     'application:open-license': -> @getModel().openLicense()
     'window:run-package-specs': -> @runPackageSpecs()
+    'window:run-benchmarks': -> @runBenchmarks()
     'window:focus-next-pane': -> @getModel().activateNextPane()
     'window:focus-previous-pane': -> @getModel().activatePreviousPane()
     'window:focus-pane-above': -> @focusPaneViewAbove()
@@ -235,7 +237,7 @@ stopEventPropagationAndGroupUndo = (config, commandListeners) ->
       newCommandListeners[commandName] = (event) ->
         event.stopPropagation()
         model = @getModel()
-        model.transact config.get('editor.undoGroupingInterval'), ->
+        model.transact model.getUndoGroupingInterval(), ->
           commandListener.call(model, event)
   newCommandListeners
 

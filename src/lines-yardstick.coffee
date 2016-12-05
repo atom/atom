@@ -3,7 +3,7 @@
 
 module.exports =
 class LinesYardstick
-  constructor: (@model, @lineNodesProvider, @lineTopIndex, grammarRegistry) ->
+  constructor: (@model, @lineNodesProvider, @lineTopIndex) ->
     @rangeForMeasurement = document.createRange()
     @invalidateCache()
 
@@ -13,20 +13,21 @@ class LinesYardstick
   measuredRowForPixelPosition: (pixelPosition) ->
     targetTop = pixelPosition.top
     row = Math.floor(targetTop / @model.getLineHeightInPixels())
-    row if 0 <= row <= @model.getLastScreenRow()
+    row if 0 <= row
 
   screenPositionForPixelPosition: (pixelPosition) ->
     targetTop = pixelPosition.top
-    targetLeft = pixelPosition.left
-    defaultCharWidth = @model.getDefaultCharWidth()
-    row = @lineTopIndex.rowForPixelPosition(targetTop)
-    targetLeft = 0 if targetTop < 0 or targetLeft < 0
-    targetLeft = Infinity if row > @model.getLastScreenRow()
-    row = Math.min(row, @model.getLastScreenRow())
-    row = Math.max(0, row)
-
+    row = Math.max(0, @lineTopIndex.rowForPixelPosition(targetTop))
     lineNode = @lineNodesProvider.lineNodeForScreenRow(row)
-    return Point(row, 0) unless lineNode
+    unless lineNode
+      lastScreenRow = @model.getLastScreenRow()
+      if row > lastScreenRow
+        return Point(lastScreenRow, @model.lineLengthForScreenRow(lastScreenRow))
+      else
+        return Point(row, 0)
+
+    targetLeft = pixelPosition.left
+    targetLeft = 0 if targetTop < 0 or targetLeft < 0
 
     textNodes = @lineNodesProvider.textNodesForScreenRow(row)
     lineOffset = lineNode.getBoundingClientRect().left
@@ -91,34 +92,34 @@ class LinesYardstick
     lineNode = @lineNodesProvider.lineNodeForScreenRow(row)
     lineId = @lineNodesProvider.lineIdForScreenRow(row)
 
-    return 0 unless lineNode?
-
-    if cachedPosition = @leftPixelPositionCache[lineId]?[column]
-      return cachedPosition
-
-    textNodes = @lineNodesProvider.textNodesForScreenRow(row)
-    textNodeStartColumn = 0
-
-    for textNode in textNodes
-      textNodeEndColumn = textNodeStartColumn + textNode.textContent.length
-      if textNodeEndColumn > column
-        indexInTextNode = column - textNodeStartColumn
-        break
+    if lineNode?
+      if @leftPixelPositionCache[lineId]?[column]?
+        @leftPixelPositionCache[lineId][column]
       else
-        textNodeStartColumn = textNodeEndColumn
+        textNodes = @lineNodesProvider.textNodesForScreenRow(row)
+        textNodeStartColumn = 0
+        for textNode in textNodes
+          textNodeEndColumn = textNodeStartColumn + textNode.textContent.length
+          if textNodeEndColumn > column
+            indexInTextNode = column - textNodeStartColumn
+            break
+          else
+            textNodeStartColumn = textNodeEndColumn
 
-    if textNode?
-      indexInTextNode ?= textNode.textContent.length
-      lineOffset = lineNode.getBoundingClientRect().left
-      if indexInTextNode is 0
-        leftPixelPosition = @clientRectForRange(textNode, 0, 1).left
-      else
-        leftPixelPosition = @clientRectForRange(textNode, 0, indexInTextNode).right
-      leftPixelPosition -= lineOffset
+        if textNode?
+          indexInTextNode ?= textNode.textContent.length
+          lineOffset = lineNode.getBoundingClientRect().left
+          if indexInTextNode is 0
+            leftPixelPosition = @clientRectForRange(textNode, 0, 1).left
+          else
+            leftPixelPosition = @clientRectForRange(textNode, 0, indexInTextNode).right
+          leftPixelPosition -= lineOffset
 
-      @leftPixelPositionCache[lineId] ?= {}
-      @leftPixelPositionCache[lineId][column] = leftPixelPosition
-      leftPixelPosition
+          @leftPixelPositionCache[lineId] ?= {}
+          @leftPixelPositionCache[lineId][column] = leftPixelPosition
+          leftPixelPosition
+        else
+          0
     else
       0
 

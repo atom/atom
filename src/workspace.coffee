@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 url = require 'url'
 path = require 'path'
-{join} = path
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
 {Directory} = require 'pathwatcher'
@@ -9,7 +8,6 @@ DefaultDirectorySearcher = require './default-directory-searcher'
 Model = require './model'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
-Pane = require './pane'
 Panel = require './panel'
 PanelContainer = require './panel-container'
 Task = require './task'
@@ -30,8 +28,8 @@ class Workspace extends Model
 
     {
       @packageManager, @config, @project, @grammarRegistry, @notificationManager,
-      @clipboard, @viewRegistry, @grammarRegistry, @applicationDelegate, @assert,
-      @deserializerManager
+      @viewRegistry, @grammarRegistry, @applicationDelegate, @assert,
+      @deserializerManager, @textEditorRegistry
     } = params
 
     @emitter = new Emitter
@@ -164,8 +162,13 @@ class Workspace extends Model
   subscribeToAddedItems: ->
     @onDidAddPaneItem ({item, pane, index}) =>
       if item instanceof TextEditor
-        grammarSubscription = item.observeGrammar(@handleGrammarUsed.bind(this))
-        item.onDidDestroy -> grammarSubscription.dispose()
+        subscriptions = new CompositeDisposable(
+          @textEditorRegistry.add(item)
+          @textEditorRegistry.maintainGrammar(item)
+          @textEditorRegistry.maintainConfig(item)
+          item.observeGrammar(@handleGrammarUsed.bind(this))
+        )
+        item.onDidDestroy -> subscriptions.dispose()
         @emitter.emit 'did-add-text-editor', {textEditor: item, pane, index}
 
   # Updates the application's title and proxy icon based on whichever file is
@@ -180,6 +183,8 @@ class Workspace extends Model
         itemPath is projectPath or itemPath?.startsWith(projectPath + path.sep)
     itemTitle ?= "untitled"
     projectPath ?= projectPaths[0]
+    if projectPath?
+      projectPath = fs.tildify(projectPath)
 
     titleParts = []
     if item? and projectPath?
@@ -436,7 +441,7 @@ class Workspace extends Model
 
     # Avoid adding URLs as recent documents to work-around this Spotlight crash:
     # https://github.com/atom/atom/issues/10071
-    if uri? and not url.parse(uri).protocol?
+    if uri? and (not url.parse(uri).protocol? or process.platform is 'win32')
       @applicationDelegate.addRecentDocument(uri)
 
     pane = @paneContainer.paneForURI(uri) if searchAllPanes
@@ -545,7 +550,7 @@ class Workspace extends Model
     fileSize = fs.getSizeSync(filePath)
 
     largeFileMode = fileSize >= 2 * 1048576 # 2MB
-    if fileSize >= 20 * 1048576 # 20MB
+    if fileSize >= @config.get('core.warnOnLargeFileLimit') * 1048576 # 20MB by default
       choice = @applicationDelegate.confirm
         message: 'Atom will be unresponsive during the loading of very large files.'
         detailedMessage: "Do you still want to load this file?"
@@ -556,10 +561,7 @@ class Workspace extends Model
         throw error
 
     @project.bufferForPath(filePath, options).then (buffer) =>
-      editor = @buildTextEditor(Object.assign({buffer, largeFileMode}, options))
-      disposable = atom.textEditors.add(editor)
-      editor.onDidDestroy -> disposable.dispose()
-      editor
+      @textEditorRegistry.build(Object.assign({buffer, largeFileMode, autoHeight: false}, options))
 
   handleGrammarUsed: (grammar) ->
     return unless grammar?
@@ -576,10 +578,13 @@ class Workspace extends Model
   #
   # Returns a {TextEditor}.
   buildTextEditor: (params) ->
-    params = Object.assign({
-      @config, @clipboard, @grammarRegistry, @assert
-    }, params)
-    new TextEditor(params)
+    editor = @textEditorRegistry.build(params)
+    subscriptions = new CompositeDisposable(
+      @textEditorRegistry.maintainGrammar(editor)
+      @textEditorRegistry.maintainConfig(editor),
+    )
+    editor.onDidDestroy -> subscriptions.dispose()
+    editor
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.

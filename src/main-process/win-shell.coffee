@@ -3,6 +3,7 @@ Path = require 'path'
 
 exeName = Path.basename(process.execPath)
 appPath = "\"#{process.execPath}\""
+fileIconPath = "\"#{Path.join(process.execPath, '..', 'resources', 'cli', 'file.ico')}\""
 isBeta = appPath.includes(' Beta')
 appName = exeName.replace('atom', (if isBeta then 'Atom Beta' else 'Atom' )).replace('.exe', '')
 
@@ -32,7 +33,7 @@ class ShellOption
   update: (callback) =>
     new Registry({hive: 'HKCU', key: "#{@key}\\#{@parts[0].key}"})
       .get @parts[0].name, (err, val) =>
-        if err? or not val? or val.value.includes '\\' + exeName
+        if err? or not val?
           callback(err)
         else
           @register callback
@@ -40,7 +41,11 @@ class ShellOption
 exports.appName = appName
 
 exports.fileHandler = new ShellOption("\\Software\\Classes\\Applications\\#{exeName}",
-  [{key: 'shell\\open\\command', name: '', value: "#{appPath} \"%1\""}]
+  [
+    {key: 'shell\\open\\command', name: '', value: "#{appPath} \"%1\""},
+    {key: 'shell\\open', name: 'FriendlyAppName', value: "#{appName}"},
+    {key: 'DefaultIcon', name: '', value: "#{fileIconPath}"}
+  ]
 )
 
 contextParts = [

@@ -12,11 +12,11 @@
   'ctrl-down': 'core:move-down'
   'left': 'core:move-left'
   'right': 'core:move-right'
-  'ctrl-alt-r': 'window:reload'
-  'ctrl-alt-i': 'window:toggle-dev-tools'
-  'ctrl-alt-p': 'window:run-package-specs'
+  'ctrl-shift-f5': 'window:reload'
+  'ctrl-shift-i': 'window:toggle-dev-tools'
+  'ctrl-shift-y': 'window:run-package-specs'
   'ctrl-shift-o': 'application:open-folder'
-  'ctrl-alt-o': 'application:add-project-folder'
+  'ctrl-shift-a': 'application:add-project-folder'
   'ctrl-shift-left': 'pane:move-item-left'
   'ctrl-shift-right': 'pane:move-item-right'
   'f11': 'window:toggle-full-screen'
@@ -75,12 +75,12 @@
   'ctrl-k left': 'pane:split-left-and-copy-active-item' # Atom Specific
   'ctrl-k right': 'pane:split-right-and-copy-active-item' # Atom Specific
   'ctrl-k ctrl-w': 'pane:close' # Atom Specific
-  'ctrl-k alt-ctrl-w': 'pane:close-other-items' # Atom Specific
+  'ctrl-k ctrl-alt-w': 'pane:close-other-items' # Atom Specific
   'ctrl-k ctrl-p': 'window:focus-previous-pane'
   'ctrl-k ctrl-n': 'window:focus-next-pane'
-  'ctrl-k ctrl-up':    'window:focus-pane-above'
-  'ctrl-k ctrl-down':  'window:focus-pane-below'
-  'ctrl-k ctrl-left':  'window:focus-pane-on-left'
+  'ctrl-k ctrl-up': 'window:focus-pane-above'
+  'ctrl-k ctrl-down': 'window:focus-pane-below'
+  'ctrl-k ctrl-left': 'window:focus-pane-on-left'
   'ctrl-k ctrl-right': 'window:focus-pane-on-right'
   'alt-1': 'pane:show-item-1'
   'alt-2': 'pane:show-item-2'
@@ -113,16 +113,14 @@
 
   # Sublime Parity
   'ctrl-a': 'core:select-all'
-  'ctrl-alt-shift-p': 'editor:log-cursor-scope'
   'ctrl-k ctrl-u': 'editor:upper-case'
   'ctrl-k ctrl-l': 'editor:lower-case'
   'ctrl-l': 'editor:select-line'
 
 'atom-workspace atom-text-editor:not([mini])':
   # Atom specific
-  'alt-ctrl-z': 'editor:checkout-head-revision'
   'ctrl-<': 'editor:scroll-to-cursor'
-  'alt-ctrl-f': 'editor:fold-selection'
+  'ctrl-alt-shift-[': 'editor:fold-selection'
 
   # Sublime Parity
   'ctrl-enter': 'editor:newline-below'

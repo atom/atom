@@ -53,6 +53,9 @@ describe "MenuManager", ->
       expect(menu.template[originalItemCount]).toEqual {label: "A", submenu: [{label: "B", command: "b"}]}
 
   describe "::update()", ->
+    originalPlatform = process.platform
+    afterEach -> Object.defineProperty process, 'platform', value: originalPlatform
+
     it "sends the current menu template and associated key bindings to the browser process", ->
       spyOn(menu, 'sendToBrowserProcess')
       menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
@@ -74,6 +77,48 @@ describe "MenuManager", ->
       waits 50
 
       runs -> expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toBeUndefined()
+
+    it "omits key bindings that could conflict with AltGraph characters on macOS", ->
+      Object.defineProperty process, 'platform', value: 'darwin'
+      spyOn(menu, 'sendToBrowserProcess')
+      menu.add [{label: "A", submenu: [
+        {label: "B", command: "b"},
+        {label: "C", command: "c"}
+        {label: "D", command: "d"}
+      ]}]
+
+      atom.keymaps.add 'test', 'atom-workspace':
+        'alt-b': 'b'
+        'alt-shift-C': 'c'
+        'alt-cmd-d': 'd'
+
+      waits 50
+
+      runs ->
+        expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toBeUndefined()
+        expect(menu.sendToBrowserProcess.argsForCall[0][1]['c']).toBeUndefined()
+        expect(menu.sendToBrowserProcess.argsForCall[0][1]['d']).toEqual(['alt-cmd-d'])
+
+    it "omits key bindings that could conflict with AltGraph characters on Windows", ->
+      Object.defineProperty process, 'platform', value: 'win32'
+      spyOn(menu, 'sendToBrowserProcess')
+      menu.add [{label: "A", submenu: [
+        {label: "B", command: "b"},
+        {label: "C", command: "c"}
+        {label: "D", command: "d"}
+      ]}]
+
+      atom.keymaps.add 'test', 'atom-workspace':
+        'ctrl-alt-b': 'b'
+        'ctrl-alt-shift-C': 'c'
+        'ctrl-alt-cmd-d': 'd'
+
+      waits 50
+
+      runs ->
+        expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toBeUndefined()
+        expect(menu.sendToBrowserProcess.argsForCall[0][1]['c']).toBeUndefined()
+        expect(menu.sendToBrowserProcess.argsForCall[0][1]['d']).toEqual(['ctrl-alt-cmd-d'])
 
   it "updates the application menu when a keymap is reloaded", ->
     spyOn(menu, 'update')

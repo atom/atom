@@ -2,7 +2,6 @@
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
 Pane = require '../src/pane'
-PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
 
 describe "Pane", ->
@@ -1081,6 +1080,7 @@ describe "Pane", ->
       expect(eventCount).toBe 1
 
     it "only calls terminate handler once when text is modified twice", ->
+      originalText = editor1.getText()
       editor1.insertText('Some text')
       advanceClock(editor1.getBuffer().stoppedChangingDelay)
 
@@ -1091,6 +1091,10 @@ describe "Pane", ->
 
       expect(pane.getPendingItem()).toBeNull()
       expect(eventCount).toBe 1
+
+      # Reset fixture back to original state
+      editor1.setText(originalText)
+      editor1.save()
 
     it "only calls clearPendingItem if there is a pending item to clear", ->
       spyOn(pane, "clearPendingItem").andCallThrough()
@@ -1116,6 +1120,20 @@ describe "Pane", ->
 
     it "restores the active item on deserialization", ->
       pane.activateItemAtIndex(1)
+      newPane = Pane.deserialize(pane.serialize(), atom)
+      expect(newPane.getActiveItem()).toEqual newPane.itemAtIndex(1)
+
+    it "restores the active item when it doesn't implement getURI()", ->
+      pane.items[1].getURI = null
+      pane.activateItemAtIndex(1)
+      newPane = Pane.deserialize(pane.serialize(), atom)
+      expect(newPane.getActiveItem()).toEqual newPane.itemAtIndex(1)
+
+    it "restores the correct item when it doesn't implement getURI() and some items weren't deserialized", ->
+      unserializable = {}
+      pane.addItem(unserializable, {index: 0})
+      pane.items[2].getURI = null
+      pane.activateItemAtIndex(2)
       newPane = Pane.deserialize(pane.serialize(), atom)
       expect(newPane.getActiveItem()).toEqual newPane.itemAtIndex(1)
 

@@ -1,24 +1,23 @@
-_ = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
 {CompositeDisposable} = require 'event-kit'
 {ipcRenderer} = require 'electron'
+Grim = require 'grim'
 
 TextEditorPresenter = require './text-editor-presenter'
 GutterContainerComponent = require './gutter-container-component'
 InputComponent = require './input-component'
 LinesComponent = require './lines-component'
+OffScreenBlockDecorationsComponent = require './off-screen-block-decorations-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
 DOMElementPool = require './dom-element-pool'
 LinesYardstick = require './lines-yardstick'
-BlockDecorationsComponent = require './block-decorations-component'
 LineTopIndex = require 'line-top-index'
 
 module.exports =
 class TextEditorComponent
-  scrollSensitivity: 0.4
   cursorBlinkPeriod: 800
   cursorBlinkResumeDelay: 100
   tileSize: 12
@@ -43,12 +42,9 @@ class TextEditorComponent
       @assert domNode?, "TextEditorComponent::domNode was set to null."
       @domNodeValue = domNode
 
-  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize, @views, @themes, @config, @workspace, @assert, @grammars, scrollPastEnd}) ->
+  constructor: ({@editor, @hostElement, tileSize, @views, @themes, @styles, @assert}) ->
     @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
-
-    @observeConfig()
-    @setScrollSensitivity(@config.get('editor.scrollSensitivity'))
 
     lineTopIndex = new LineTopIndex({
       defaultLineHeight: @editor.getLineHeightInPixels()
@@ -59,25 +55,16 @@ class TextEditorComponent
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
-      config: @config
       lineTopIndex: lineTopIndex
-      scrollPastEnd: scrollPastEnd
+      autoHeight: @editor.getAutoHeight()
 
     @presenter.onDidUpdateState(@requestUpdate)
 
     @domElementPool = new DOMElementPool
     @domNode = document.createElement('div')
-    if @useShadowDOM
-      @domNode.classList.add('editor-contents--private')
+    @domNode.classList.add('editor-contents--private')
 
-      insertionPoint = document.createElement('content')
-      insertionPoint.setAttribute('select', 'atom-overlay')
-      @domNode.appendChild(insertionPoint)
-      @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
-      @blockDecorationsComponent = new BlockDecorationsComponent(@hostElement, @views, @presenter, @domElementPool)
-    else
-      @domNode.classList.add('editor-contents')
-      @overlayManager = new OverlayManager(@presenter, @domNode, @views)
+    @overlayManager = new OverlayManager(@presenter, @domNode, @views)
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
@@ -85,14 +72,18 @@ class TextEditorComponent
 
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
+    # Add a getModel method to the hidden input component to make it easy to
+    # access the editor in response to DOM events or when using
+    # document.activeElement.
+    @hiddenInputComponent.getDomNode().getModel = => @editor
 
-    @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool, @assert, @grammars})
+    @linesComponent = new LinesComponent({@presenter, @domElementPool, @assert, @grammars, @views})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
-    if @blockDecorationsComponent?
-      @linesComponent.getDomNode().appendChild(@blockDecorationsComponent.getDomNode())
+    @offScreenBlockDecorationsComponent = new OffScreenBlockDecorationsComponent({@presenter, @views})
+    @scrollViewNode.appendChild(@offScreenBlockDecorationsComponent.getDomNode())
 
-    @linesYardstick = new LinesYardstick(@editor, @linesComponent, lineTopIndex, @grammars)
+    @linesYardstick = new LinesYardstick(@editor, @linesComponent, lineTopIndex)
     @presenter.setLinesYardstick(@linesYardstick)
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
@@ -107,9 +98,9 @@ class TextEditorComponent
     @observeEditor()
     @listenForDOMEvents()
 
-    @disposables.add @stylesElement.onDidAddStyleElement @onStylesheetsChanged
-    @disposables.add @stylesElement.onDidUpdateStyleElement @onStylesheetsChanged
-    @disposables.add @stylesElement.onDidRemoveStyleElement @onStylesheetsChanged
+    @disposables.add @styles.onDidAddStyleElement @onStylesheetsChanged
+    @disposables.add @styles.onDidUpdateStyleElement @onStylesheetsChanged
+    @disposables.add @styles.onDidRemoveStyleElement @onStylesheetsChanged
     unless @themes.isInitialLoadComplete()
       @disposables.add @themes.onDidChangeActiveThemes @onAllThemesLoaded
     @disposables.add scrollbarStyle.onDidChangePreferredScrollbarStyle @refreshScrollbars
@@ -139,7 +130,7 @@ class TextEditorComponent
   updateSync: ->
     @updateSyncPreMeasurement()
 
-    @oldState ?= {}
+    @oldState ?= {width: null}
     @newState = @presenter.getPostMeasurementState()
 
     if @editor.getLastSelection()? and not @editor.getLastSelection().isEmpty()
@@ -159,6 +150,13 @@ class TextEditorComponent
         else
           @domNode.style.height = ''
 
+      if @newState.width isnt @oldState.width
+        if @newState.width?
+          @hostElement.style.width = @newState.width + 'px'
+        else
+          @hostElement.style.width = ''
+        @oldState.width = @newState.width
+
     if @newState.gutters.length
       @mountGutterContainerComponent() unless @gutterContainerComponent?
       @gutterContainerComponent.updateSync(@newState)
@@ -167,8 +165,8 @@ class TextEditorComponent
       @gutterContainerComponent = null
 
     @hiddenInputComponent.updateSync(@newState)
+    @offScreenBlockDecorationsComponent.updateSync(@newState)
     @linesComponent.updateSync(@newState)
-    @blockDecorationsComponent?.updateSync(@newState)
     @horizontalScrollbarComponent.updateSync(@newState)
     @verticalScrollbarComponent.updateSync(@newState)
     @scrollbarCornerComponent.updateSync(@newState)
@@ -188,7 +186,8 @@ class TextEditorComponent
 
   readAfterUpdateSync: =>
     @overlayManager?.measureOverlays()
-    @blockDecorationsComponent?.measureBlockDecorations() if @isVisible()
+    @linesComponent.measureBlockDecorations()
+    @offScreenBlockDecorationsComponent.measureBlockDecorations()
 
   mountGutterContainerComponent: ->
     @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown, @domElementPool, @views})
@@ -196,6 +195,10 @@ class TextEditorComponent
 
   becameVisible: ->
     @updatesPaused = true
+    # Always invalidate LinesYardstick measurements when the editor becomes
+    # visible again, because content might have been reflowed and measurements
+    # could be outdated.
+    @invalidateMeasurements()
     @measureScrollbars() if @measureScrollbarsWhenShown
     @sampleFontStyling()
     @sampleBackgroundColors()
@@ -332,17 +335,6 @@ class TextEditorComponent
       clearTimeout(timeoutId)
       timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
 
-  observeConfig: ->
-    @disposables.add @config.onDidChange 'editor.fontSize', =>
-      @sampleFontStyling()
-      @invalidateMeasurements()
-    @disposables.add @config.onDidChange 'editor.fontFamily', =>
-      @sampleFontStyling()
-      @invalidateMeasurements()
-    @disposables.add @config.onDidChange 'editor.lineHeight', =>
-      @sampleFontStyling()
-      @invalidateMeasurements()
-
   onGrammarChanged: =>
     if @scopedConfigDisposables?
       @scopedConfigDisposables.dispose()
@@ -350,9 +342,6 @@ class TextEditorComponent
 
     @scopedConfigDisposables = new CompositeDisposable
     @disposables.add(@scopedConfigDisposables)
-
-    scope = @editor.getRootScopeDescriptor()
-    @scopedConfigDisposables.add @config.observe 'editor.scrollSensitivity', {scope}, @setScrollSensitivity
 
   focused: ->
     if @mounted
@@ -413,19 +402,10 @@ class TextEditorComponent
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
 
-    # Ctrl+MouseWheel adjusts font size.
-    if event.ctrlKey and @config.get('editor.zoomFontWhenCtrlScrolling')
-      if wheelDeltaY > 0
-        @workspace.increaseFontSize()
-      else if wheelDeltaY < 0
-        @workspace.decreaseFontSize()
-      event.preventDefault()
-      return
-
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
       # Scrolling horizontally
       previousScrollLeft = @presenter.getScrollLeft()
-      updatedScrollLeft = previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity)
+      updatedScrollLeft = previousScrollLeft - Math.round(wheelDeltaX * @editor.getScrollSensitivity() / 100)
 
       event.preventDefault() if @presenter.canScrollLeftTo(updatedScrollLeft)
       @presenter.setScrollLeft(updatedScrollLeft)
@@ -433,7 +413,7 @@ class TextEditorComponent
       # Scrolling vertically
       @presenter.setMouseWheelScreenRow(@screenRowForNode(event.target))
       previousScrollTop = @presenter.getScrollTop()
-      updatedScrollTop = previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity)
+      updatedScrollTop = previousScrollTop - Math.round(wheelDeltaY * @editor.getScrollSensitivity() / 100)
 
       event.preventDefault() if @presenter.canScrollTopTo(updatedScrollTop)
       @presenter.setScrollTop(updatedScrollTop)
@@ -777,19 +757,35 @@ class TextEditorComponent
   # and use the scrollHeight / scrollWidth as its height and width in
   # calculations.
   measureDimensions: ->
-    return unless @mounted
+    # If we don't assign autoHeight explicitly, we try to automatically disable
+    # auto-height in certain circumstances. This is legacy behavior that we
+    # would rather not implement, but we can't remove it without risking
+    # breakage currently.
+    unless @editor.autoHeight?
+      {position, top, bottom} = getComputedStyle(@hostElement)
+      hasExplicitTopAndBottom = (position is 'absolute' and top isnt 'auto' and bottom isnt 'auto')
+      hasInlineHeight = @hostElement.style.height.length > 0
 
-    {position} = getComputedStyle(@hostElement)
-    {height} = @hostElement.style
+      if hasInlineHeight or hasExplicitTopAndBottom
+        if @presenter.autoHeight
+          @presenter.setAutoHeight(false)
+          if hasExplicitTopAndBottom
+            Grim.deprecate("""
+              Assigning editor #{@editor.id}'s height explicitly via `position: 'absolute'` and an assigned `top` and `bottom` implicitly assigns the `autoHeight` property to false on the editor.
+              This behavior is deprecated and will not be supported in the future. Please explicitly assign `autoHeight` on this editor.
+            """)
+          else if hasInlineHeight
+            Grim.deprecate("""
+              Assigning editor #{@editor.id}'s height explicitly via an inline style implicitly assigns the `autoHeight` property to false on the editor.
+              This behavior is deprecated and will not be supported in the future. Please explicitly assign `autoHeight` on this editor.
+            """)
+      else
+        @presenter.setAutoHeight(true)
 
-    if position is 'absolute' or height
-      @presenter.setAutoHeight(false)
-      height =  @hostElement.offsetHeight
-      if height > 0
-        @presenter.setExplicitHeight(height)
-    else
-      @presenter.setAutoHeight(true)
+    if @presenter.autoHeight
       @presenter.setExplicitHeight(null)
+    else if @hostElement.offsetHeight > 0
+      @presenter.setExplicitHeight(@hostElement.offsetHeight)
 
     clientWidth = @scrollViewNode.clientWidth
     paddingLeft = parseInt(getComputedStyle(@scrollViewNode).paddingLeft)
@@ -913,7 +909,7 @@ class TextEditorComponent
 
   screenRowForNode: (node) ->
     while node?
-      if screenRow = node.dataset.screenRow
+      if screenRow = node.dataset?.screenRow
         return parseInt(screenRow)
       node = node.parentElement
     null
@@ -942,13 +938,6 @@ class TextEditorComponent
   invalidateMeasurements: ->
     @linesYardstick.invalidateCache()
     @presenter.measurementsChanged()
-
-  setShowIndentGuide: (showIndentGuide) ->
-    @config.set("editor.showIndentGuide", showIndentGuide)
-
-  setScrollSensitivity: (scrollSensitivity) =>
-    if scrollSensitivity = parseInt(scrollSensitivity)
-      @scrollSensitivity = Math.abs(scrollSensitivity) / 100
 
   screenPositionForMouseEvent: (event, linesClientRect) ->
     pixelPosition = @pixelPositionForMouseEvent(event, linesClientRect)
@@ -981,9 +970,7 @@ class TextEditorComponent
   updateParentViewFocusedClassIfNeeded: ->
     if @oldState.focused isnt @newState.focused
       @hostElement.classList.toggle('is-focused', @newState.focused)
-      @rootElement.classList.toggle('is-focused', @newState.focused)
       @oldState.focused = @newState.focused
 
   updateParentViewMiniClass: ->
     @hostElement.classList.toggle('mini', @editor.isMini())
-    @rootElement.classList.toggle('mini', @editor.isMini())

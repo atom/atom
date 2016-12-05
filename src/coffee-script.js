@@ -36,13 +36,10 @@ exports.compile = function (sourceCode, filePath) {
   var output = CoffeeScript.compile(sourceCode, {
     filename: filePath,
     sourceFiles: [filePath],
-    sourceMap: true
+    inlineMap: true
   })
 
-  var js = output.js
-  js += '\n'
-  js += '//# sourceMappingURL=data:application/json;base64,'
-  js += new Buffer(output.v3SourceMap).toString('base64')
-  js += '\n'
-  return js
+  // Strip sourceURL from output so there wouldn't be duplicate entries
+  // in devtools.
+  return output.replace(/\/\/# sourceURL=[^'"\n]+\s*$/, '')
 }

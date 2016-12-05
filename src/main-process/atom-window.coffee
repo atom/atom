@@ -1,4 +1,4 @@
-{BrowserWindow, app, dialog} = require 'electron'
+{BrowserWindow, app, dialog, ipcMain} = require 'electron'
 path = require 'path'
 fs = require 'fs'
 url = require 'url'
@@ -16,7 +16,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (@atomApplication, @fileRecoveryService, settings={}) ->
-    {@resourcePath, initialPaths, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
+    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
 
@@ -74,8 +74,7 @@ class AtomWindow
 
     @browserWindow.loadSettings = loadSettings
 
-    @browserWindow.once 'window:loaded', =>
-      @loaded = true
+    @browserWindow.on 'window:loaded', =>
       @emit 'window:loaded'
       @resolveLoadedPromise()
 
@@ -128,8 +127,12 @@ class AtomWindow
         false
 
   handleEvents: ->
-    @browserWindow.on 'close', =>
-      @atomApplication.saveState(false)
+    @browserWindow.on 'close', (event) =>
+      unless @atomApplication.quitting or @unloading
+        event.preventDefault()
+        @unloading = true
+        @atomApplication.saveState(false)
+        @saveState().then(=> @close())
 
     @browserWindow.on 'closed', =>
       @fileRecoveryService.didCloseWindow(this)
@@ -170,14 +173,27 @@ class AtomWindow
       @browserWindow.on 'blur', =>
         @browserWindow.focusOnWebView()
 
+  didCancelWindowUnload: ->
+    @unloading = false
+
+  saveState: ->
+    if @isSpecWindow()
+      return Promise.resolve()
+
+    @lastSaveStatePromise = new Promise (resolve) =>
+      callback = (event) =>
+        if BrowserWindow.fromWebContents(event.sender) is @browserWindow
+          ipcMain.removeListener('did-save-window-state', callback)
+          resolve()
+      ipcMain.on('did-save-window-state', callback)
+      @browserWindow.webContents.send('save-window-state')
+    @lastSaveStatePromise
+
   openPath: (pathToOpen, initialLine, initialColumn) ->
     @openLocations([{pathToOpen, initialLine, initialColumn}])
 
   openLocations: (locationsToOpen) ->
-    if @loaded
-      @sendMessage 'open-locations', locationsToOpen
-    else
-      @browserWindow.once 'window:loaded', => @openLocations(locationsToOpen)
+    @loadedPromise.then => @sendMessage 'open-locations', locationsToOpen
 
   replaceEnvironment: (env) ->
     @browserWindow.webContents.send 'environment', env
@@ -220,7 +236,13 @@ class AtomWindow
 
   maximize: -> @browserWindow.maximize()
 
+  unmaximize: -> @browserWindow.unmaximize()
+
   restore: -> @browserWindow.restore()
+
+  setFullScreen: (fullScreen) -> @browserWindow.setFullScreen(fullScreen)
+
+  setAutoHideMenuBar: (autoHideMenuBar) -> @browserWindow.setAutoHideMenuBar(autoHideMenuBar)
 
   handlesAtomCommands: ->
     not @isSpecWindow() and @isWebViewFocused()
@@ -235,6 +257,19 @@ class AtomWindow
 
   isSpecWindow: -> @isSpec
 
-  reload: -> @browserWindow.reload()
+  reload: ->
+    @loadedPromise = new Promise((@resolveLoadedPromise) =>)
+    @saveState().then => @browserWindow.reload()
+    @loadedPromise
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
+
+  openDevTools: -> @browserWindow.openDevTools()
+
+  closeDevTools: -> @browserWindow.closeDevTools()
+
+  setDocumentEdited: (documentEdited) -> @browserWindow.setDocumentEdited(documentEdited)
+
+  setRepresentedFilename: (representedFilename) -> @browserWindow.setRepresentedFilename(representedFilename)
+
+  copy: -> @browserWindow.copy()

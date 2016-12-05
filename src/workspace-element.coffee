@@ -1,8 +1,7 @@
 {ipcRenderer} = require 'electron'
 path = require 'path'
 fs = require 'fs-plus'
-{Disposable, CompositeDisposable} = require 'event-kit'
-Grim = require 'grim'
+{CompositeDisposable} = require 'event-kit'
 scrollbarStyle = require 'scrollbar-style'
 
 module.exports =
@@ -58,6 +57,7 @@ class WorkspaceElement extends HTMLElement
       }
     """
     @styles.addStyleSheet(styleSheetSource, sourcePath: 'global-text-editor-styles')
+    @views.performDocumentPoll()
 
   initialize: (@model, {@views, @workspace, @project, @config, @styles}) ->
     throw new Error("Must pass a views parameter when initializing WorskpaceElements") unless @views?
@@ -74,6 +74,8 @@ class WorkspaceElement extends HTMLElement
     @paneContainer = @views.getView(@model.paneContainer)
     @verticalAxis.appendChild(@paneContainer)
     @addEventListener 'focus', @handleFocus.bind(this)
+
+    @addEventListener 'mousewheel', @handleMousewheel.bind(this), true
 
     @panelContainers =
       top: @views.getView(@model.panelContainers.top)
@@ -98,6 +100,15 @@ class WorkspaceElement extends HTMLElement
     this
 
   getModel: -> @model
+
+  handleMousewheel: (event) ->
+    if event.ctrlKey and @config.get('editor.zoomFontWhenCtrlScrolling') and event.target.matches('atom-text-editor')
+      if event.wheelDeltaY > 0
+        @model.increaseFontSize()
+      else if event.wheelDeltaY < 0
+        @model.decreaseFontSize()
+      event.preventDefault()
+      event.stopPropagation()
 
   handleFocus: (event) ->
     @model.getActivePane().activate()
@@ -130,5 +141,14 @@ class WorkspaceElement extends HTMLElement
         specPath = testPath
 
       ipcRenderer.send('run-package-specs', specPath)
+
+  runBenchmarks: ->
+    if activePath = @workspace.getActivePaneItem()?.getPath?()
+      [projectPath] = @project.relativizePath(activePath)
+    else
+      [projectPath] = @project.getPaths()
+
+    if projectPath
+      ipcRenderer.send('run-benchmarks', path.join(projectPath, 'benchmarks'))
 
 module.exports = WorkspaceElement = document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype

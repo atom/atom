@@ -21,13 +21,16 @@ class Pane extends Model
   focused: false
 
   @deserialize: (state, {deserializers, applicationDelegate, config, notifications}) ->
-    {items, itemStackIndices, activeItemURI, activeItemUri} = state
+    {items, activeItemIndex, activeItemURI, activeItemUri} = state
     activeItemURI ?= activeItemUri
-    state.items = compact(items.map (itemState) -> deserializers.deserialize(itemState))
-    state.activeItem = find state.items, (item) ->
-      if typeof item.getURI is 'function'
-        itemURI = item.getURI()
-      itemURI is activeItemURI
+    items = items.map (itemState) -> deserializers.deserialize(itemState)
+    state.activeItem = items[activeItemIndex]
+    state.items = compact(items)
+    if activeItemURI?
+      state.activeItem ?= find state.items, (item) ->
+        if typeof item.getURI is 'function'
+          itemURI = item.getURI()
+        itemURI is activeItemURI
     new Pane(extend(state, {
       deserializerManager: deserializers,
       notificationManager: notifications,
@@ -53,16 +56,15 @@ class Pane extends Model
     @setFlexScale(params?.flexScale ? 1)
 
   serialize: ->
-    if typeof @activeItem?.getURI is 'function'
-      activeItemURI = @activeItem.getURI()
     itemsToBeSerialized = compact(@items.map((item) -> item if typeof item.serialize is 'function'))
     itemStackIndices = (itemsToBeSerialized.indexOf(item) for item in @itemStack when typeof item.serialize is 'function')
+    activeItemIndex = itemsToBeSerialized.indexOf(@activeItem)
 
     deserializer: 'Pane'
     id: @id
     items: itemsToBeSerialized.map((item) -> item.serialize())
     itemStackIndices: itemStackIndices
-    activeItemURI: activeItemURI
+    activeItemIndex: activeItemIndex
     focused: @focused
     flexScale: @flexScale
 
@@ -232,6 +234,39 @@ class Pane extends Model
   onDidChangeActiveItem: (callback) ->
     @emitter.on 'did-change-active-item', callback
 
+  # Public: Invoke the given callback when {::activateNextRecentlyUsedItem}
+  # has been called, either initiating or continuing a forward MRU traversal of
+  # pane items.
+  #
+  # * `callback` {Function} to be called with when the active item changes.
+  #   * `nextRecentlyUsedItem` The next MRU item, now being set active
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onChooseNextMRUItem: (callback) ->
+    @emitter.on 'choose-next-mru-item', callback
+
+  # Public: Invoke the given callback when {::activatePreviousRecentlyUsedItem}
+  # has been called, either initiating or continuing a reverse MRU traversal of
+  # pane items.
+  #
+  # * `callback` {Function} to be called with when the active item changes.
+  #   * `previousRecentlyUsedItem` The previous MRU item, now being set active
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onChooseLastMRUItem: (callback) ->
+    @emitter.on 'choose-last-mru-item', callback
+
+  # Public: Invoke the given callback when {::moveActiveItemToTopOfStack}
+  # has been called, terminating an MRU traversal of pane items and moving the
+  # current active item to the top of the stack. Typically bound to a modifier
+  # (e.g. CTRL) key up event.
+  #
+  # * `callback` {Function} to be called with when the MRU traversal is done.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDoneChoosingMRUItem: (callback) ->
+    @emitter.on 'done-choosing-mru-item', callback
+
   # Public: Invoke the given callback with the current and future values of
   # {::getActiveItem}.
   #
@@ -332,6 +367,7 @@ class Pane extends Model
       @itemStackIndex = @itemStack.length if @itemStackIndex is 0
       @itemStackIndex = @itemStackIndex - 1
       nextRecentlyUsedItem = @itemStack[@itemStackIndex]
+      @emitter.emit 'choose-next-mru-item', nextRecentlyUsedItem
       @setActiveItem(nextRecentlyUsedItem, modifyStack: false)
 
   # Makes the previous item in the itemStack active.
@@ -341,12 +377,15 @@ class Pane extends Model
         @itemStackIndex = -1
       @itemStackIndex = @itemStackIndex + 1
       previousRecentlyUsedItem = @itemStack[@itemStackIndex]
+      @emitter.emit 'choose-last-mru-item', previousRecentlyUsedItem
       @setActiveItem(previousRecentlyUsedItem, modifyStack: false)
 
   # Moves the active item to the end of the itemStack once the ctrl key is lifted
   moveActiveItemToTopOfStack: ->
     delete @itemStackIndex
     @addItemToStack(@activeItem)
+    @emitter.emit 'done-choosing-mru-item'
+
 
   # Public: Makes the next item active.
   activateNextItem: ->
@@ -581,7 +620,7 @@ class Pane extends Model
       chosen = @applicationDelegate.confirm
         message: message
         detailedMessage: "Your changes will be lost if you close this item without saving."
-        buttons: [saveButtonText, "Cancel", "Don't save"]
+        buttons: [saveButtonText, "Cancel", "Don't Save"]
       switch chosen
         when 0 then saveFn(item, saveError)
         when 1 then false

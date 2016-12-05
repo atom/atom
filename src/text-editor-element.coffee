@@ -1,12 +1,7 @@
+Grim = require 'grim'
 {Emitter, CompositeDisposable} = require 'event-kit'
-Path = require 'path'
-{defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
-TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
-StylesElement = require './styles-element'
-
-ShadowStyleSheet = null
 
 class TextEditorElement extends HTMLElement
   model: null
@@ -17,18 +12,15 @@ class TextEditorElement extends HTMLElement
   focusOnAttach: false
   hasTiledRendering: true
   logicalDisplayBuffer: true
-  scrollPastEnd: true
-  autoHeight: true
+  lightDOM: true
 
   createdCallback: ->
     # Use globals when the following instance variables aren't set.
-    @config = atom.config
     @themes = atom.themes
     @workspace = atom.workspace
     @assert = atom.assert
     @views = atom.views
     @styles = atom.styles
-    @grammars = atom.grammars
 
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
@@ -40,34 +32,18 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
   initializeContent: (attributes) ->
-    unless @autoHeight
-      @style.height = "100%"
-
-    if @config.get('editor.useShadowDOM')
-      @useShadowDOM = true
-
-      unless ShadowStyleSheet?
-        ShadowStyleSheet = document.createElement('style')
-        ShadowStyleSheet.textContent = @themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
-
-      @createShadowRoot()
-
-      @shadowRoot.appendChild(ShadowStyleSheet.cloneNode(true))
-      @stylesElement = new StylesElement
-      @stylesElement.initialize(@styles)
-      @stylesElement.setAttribute('context', 'atom-text-editor')
-
-      @rootElement = document.createElement('div')
-      @rootElement.classList.add('editor--private')
-
-      @shadowRoot.appendChild(@stylesElement)
-      @shadowRoot.appendChild(@rootElement)
-    else
-      @useShadowDOM = false
-
-      @classList.add('editor', 'editor-colors')
-      @stylesElement = document.head.querySelector('atom-styles')
-      @rootElement = this
+    Object.defineProperty(this, 'shadowRoot', {
+      get: =>
+        Grim.deprecate("""
+        The contents of `atom-text-editor` elements are no longer encapsulated
+        within a shadow DOM boundary. Please, stop using `shadowRoot` and access
+        the editor contents directly instead.
+        """)
+        this
+    })
+    @rootElement = document.createElement('div')
+    @rootElement.classList.add('editor--private')
+    @appendChild(@rootElement)
 
   attachedCallback: ->
     @buildModel() unless @getModel()?
@@ -75,7 +51,7 @@ class TextEditorElement extends HTMLElement
     @mountComponent() unless @component?
     @listenForComponentEvents()
     @component.checkForVisibilityChange()
-    if this is document.activeElement
+    if @hasFocus()
       @focused()
     @emitter.emit("did-attach")
 
@@ -91,14 +67,12 @@ class TextEditorElement extends HTMLElement
     @subscriptions.add @component.onDidChangeScrollLeft =>
       @emitter.emit("did-change-scroll-left", arguments...)
 
-  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}, @autoHeight = true, @scrollPastEnd = true) ->
+  initialize: (model, {@views, @themes, @workspace, @assert, @styles}) ->
     throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
-    throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @config?
     throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
     throw new Error("Must pass a workspace parameter when initializing TextEditorElements") unless @workspace?
     throw new Error("Must pass an assert parameter when initializing TextEditorElements") unless @assert?
     throw new Error("Must pass a styles parameter when initializing TextEditorElements") unless @styles?
-    throw new Error("Must pass a grammars parameter when initializing TextEditorElements") unless @grammars?
 
     @setModel(model)
     this
@@ -137,27 +111,18 @@ class TextEditorElement extends HTMLElement
   mountComponent: ->
     @component = new TextEditorComponent(
       hostElement: this
-      rootElement: @rootElement
-      stylesElement: @stylesElement
       editor: @model
       tileSize: @tileSize
-      useShadowDOM: @useShadowDOM
       views: @views
       themes: @themes
-      config: @config
+      styles: @styles
       workspace: @workspace
       assert: @assert
-      grammars: @grammars
-      scrollPastEnd: @scrollPastEnd
     )
     @rootElement.appendChild(@component.getDomNode())
-
-    if @useShadowDOM
-      @shadowRoot.addEventListener('blur', @shadowRootBlurred.bind(this), true)
-    else
-      inputNode = @component.hiddenInputComponent.getDomNode()
-      inputNode.addEventListener 'focus', @focused.bind(this)
-      inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
+    inputNode = @component.hiddenInputComponent.getDomNode()
+    inputNode.addEventListener 'focus', @focused.bind(this)
+    inputNode.addEventListener 'blur', @inputNodeBlurred.bind(this)
 
   unmountComponent: ->
     if @component?
@@ -165,26 +130,18 @@ class TextEditorElement extends HTMLElement
       @component.getDomNode().remove()
       @component = null
 
-  focused: ->
+  focused: (event) ->
     @component?.focused()
 
   blurred: (event) ->
-    unless @useShadowDOM
-      if event.relatedTarget is @component.hiddenInputComponent.getDomNode()
-        event.stopImmediatePropagation()
-        return
-
+    if event.relatedTarget is @component?.hiddenInputComponent.getDomNode()
+      event.stopImmediatePropagation()
+      return
     @component?.blurred()
 
-  # Work around what seems to be a bug in Chromium. Focus can be stolen from the
-  # hidden input when clicking on the gutter and transferred to the
-  # already-focused host element. The host element never gets a 'focus' event
-  # however, which leaves us in a limbo state where the text editor element is
-  # focused but the hidden input isn't focused. This always refocuses the hidden
-  # input if a blur event occurs in the shadow DOM that is transferring focus
-  # back to the host element.
-  shadowRootBlurred: (event) ->
-    @component.focused() if event.relatedTarget is this
+  inputNodeBlurred: (event) ->
+    if event.relatedTarget isnt this
+      @dispatchEvent(new FocusEvent('blur', relatedTarget: event.relatedTarget, bubbles: false))
 
   addGrammarScopeAttribute: ->
     @dataset.grammar = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
@@ -209,7 +166,7 @@ class TextEditorElement extends HTMLElement
 
   # Extended: Continuously reflows lines and line numbers. (Has performance overhead)
   #
-  # `continuousReflow` A {Boolean} indicating whether to keep reflowing or not.
+  # * `continuousReflow` A {Boolean} indicating whether to keep reflowing or not.
   setContinuousReflow: (continuousReflow) ->
     @component?.setContinuousReflow(continuousReflow)
 
@@ -341,14 +298,12 @@ class TextEditorElement extends HTMLElement
 
   setWidth: (width) ->
     @style.width = (@component.getGutterWidth() + width) + "px"
-    @component.measureDimensions()
 
   getWidth: ->
     @offsetWidth - @component.getGutterWidth()
 
   setHeight: (height) ->
     @style.height = height + "px"
-    @component.measureDimensions()
 
   getHeight: ->
     @offsetHeight

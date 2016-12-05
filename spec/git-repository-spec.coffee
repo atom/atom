@@ -1,12 +1,11 @@
-temp = require 'temp'
+temp = require('temp').track()
 GitRepository = require '../src/git-repository'
 fs = require 'fs-plus'
 path = require 'path'
-Task = require '../src/task'
 Project = require '../src/project'
 
 copyRepository = ->
-  workingDirPath = temp.mkdirSync('atom-working-dir')
+  workingDirPath = temp.mkdirSync('atom-spec-git')
   fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
   workingDirPath
@@ -20,6 +19,8 @@ describe "GitRepository", ->
 
   afterEach ->
     repo.destroy() if repo?.repo?
+    try
+      temp.cleanupSync() # These tests sometimes lag at shutting down resources
 
   describe "@open(path)", ->
     it "returns null when no repository is found", ->
@@ -30,8 +31,13 @@ describe "GitRepository", ->
       expect(-> new GitRepository(path.join(temp.dir, 'nogit.txt'))).toThrow()
 
   describe ".getPath()", ->
-    it "returns the repository path for a .git directory path", ->
+    it "returns the repository path for a .git directory path with a file", ->
+      return if process.platform is 'win32' #Win32TestFailures - libgit2 does not detect files in .git folders
       repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git', 'HEAD'))
+      expect(repo.getPath()).toBe path.join(__dirname, 'fixtures', 'git', 'master.git')
+
+    it "returns the repository path for a .git directory path with a directory", ->
+      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git', 'objects'))
       expect(repo.getPath()).toBe path.join(__dirname, 'fixtures', 'git', 'master.git')
 
     it "returns the repository path for a repository path", ->
@@ -138,6 +144,8 @@ describe "GitRepository", ->
         editor = atom.workspace.getActiveTextEditor()
 
     it "displays a confirmation dialog by default", ->
+      return if process.platform is 'win32' # Permissions issues with this test on Windows
+
       atom.confirm.andCallFake ({buttons}) -> buttons.OK()
       atom.config.set('editor.confirmCheckoutHeadRevision', true)
 
@@ -146,6 +154,7 @@ describe "GitRepository", ->
       expect(fs.readFileSync(filePath, 'utf8')).toBe ''
 
     it "does not display a dialog when confirmation is disabled", ->
+      return if process.platform is 'win32' # Flakey EPERM opening a.txt on Win32
       atom.config.set('editor.confirmCheckoutHeadRevision', false)
 
       repo.checkoutHeadForEditor(editor)
@@ -155,7 +164,7 @@ describe "GitRepository", ->
 
   describe ".destroy()", ->
     it "throws an exception when any method is called after it is called", ->
-      repo = new GitRepository(require.resolve('./fixtures/git/master.git/HEAD'))
+      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git'))
       repo.destroy()
       expect(-> repo.getShortHead()).toThrow()
 
@@ -195,7 +204,7 @@ describe "GitRepository", ->
       expect(repo.isStatusModified(repo.getDirectoryStatus(directoryPath))).toBe true
 
   describe ".refreshStatus()", ->
-    [newPath, modifiedPath, cleanPath, originalModifiedPathText, workingDirectory] = []
+    [newPath, modifiedPath, cleanPath, workingDirectory] = []
 
     beforeEach ->
       workingDirectory = copyRepository()

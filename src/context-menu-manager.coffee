@@ -1,4 +1,3 @@
-_ = require 'underscore-plus'
 path = require 'path'
 CSON = require 'season'
 fs = require 'fs-plus'
@@ -145,7 +144,22 @@ class ContextMenuManager
 
       currentTarget = currentTarget.parentElement
 
+    @pruneRedundantSeparators(template)
+
     template
+
+  pruneRedundantSeparators: (menu) ->
+    keepNextItemIfSeparator = false
+    index = 0
+    while index < menu.length
+      if menu[index].type is 'separator'
+        if not keepNextItemIfSeparator or index is menu.length - 1
+          menu.splice(index, 1)
+        else
+          index++
+      else
+        keepNextItemIfSeparator = true
+        index++
 
   # Returns an object compatible with `::add()` or `null`.
   cloneItemForEvent: (item, event) ->

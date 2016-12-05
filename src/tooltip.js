@@ -7,20 +7,23 @@ const listen = require('./delegated-listener')
 // This tooltip class is derived from Bootstrap 3, but modified to not require
 // jQuery, which is an expensive dependency we want to eliminate.
 
-var Tooltip = function (element, options) {
+var followThroughTimer = null
+
+var Tooltip = function (element, options, viewRegistry) {
   this.options = null
   this.enabled = null
   this.timeout = null
   this.hoverState = null
   this.element = null
   this.inState = null
+  this.viewRegistry = viewRegistry
 
   this.init(element, options)
 }
 
 Tooltip.VERSION = '3.3.5'
 
-Tooltip.TRANSITION_DURATION = 150
+Tooltip.FOLLOW_THROUGH_DURATION = 300
 
 Tooltip.DEFAULTS = {
   animation: true,
@@ -64,6 +67,14 @@ Tooltip.prototype.init = function (element, options) {
 
     if (trigger === 'click') {
       this.disposables.add(listen(this.element, 'click', this.options.selector, this.toggle.bind(this)))
+      this.hideOnClickOutsideOfTooltip = (event) => {
+        const tooltipElement = this.getTooltipElement()
+        if (tooltipElement === event.target) return
+        if (tooltipElement.contains(event.target)) return
+        if (this.element === event.target) return
+        if (this.element.contains(event.target)) return
+        this.hide()
+      }
     } else if (trigger === 'manual') {
       this.show()
     } else {
@@ -142,7 +153,11 @@ Tooltip.prototype.enter = function (event) {
 
   this.hoverState = 'in'
 
-  if (!this.options.delay || !this.options.delay.show) return this.show()
+  if (!this.options.delay ||
+      !this.options.delay.show ||
+      followThroughTimer) {
+    return this.show()
+  }
 
   this.timeout = setTimeout(function () {
     if (this.hoverState === 'in') this.show()
@@ -182,8 +197,11 @@ Tooltip.prototype.leave = function (event) {
 
 Tooltip.prototype.show = function () {
   if (this.hasContent() && this.enabled) {
-    var tip = this.getTooltipElement()
+    if (this.hideOnClickOutsideOfTooltip) {
+      window.addEventListener('click', this.hideOnClickOutsideOfTooltip, true)
+    }
 
+    var tip = this.getTooltipElement()
     var tipId = this.getUID('tooltip')
 
     this.setContent()
@@ -294,19 +312,33 @@ Tooltip.prototype.replaceArrow = function (delta, dimension, isVertical) {
 
 Tooltip.prototype.setContent = function () {
   var tip = this.getTooltipElement()
-  var title = this.getTitle()
+
+  if (this.options.class) {
+    tip.classList.add(this.options.class)
+  }
 
   var inner = tip.querySelector('.tooltip-inner')
-  if (this.options.html) {
-    inner.innerHTML = title
+  if (this.options.item) {
+    inner.appendChild(this.viewRegistry.getView(this.options.item))
   } else {
-    inner.textContent = title
+    var title = this.getTitle()
+    if (this.options.html) {
+      inner.innerHTML = title
+    } else {
+      inner.textContent = title
+    }
   }
 
   tip.classList.remove('fade', 'in', 'top', 'bottom', 'left', 'right')
 }
 
 Tooltip.prototype.hide = function (callback) {
+  this.inState = {}
+
+  if (this.hideOnClickOutsideOfTooltip) {
+    window.removeEventListener('click', this.hideOnClickOutsideOfTooltip, true)
+  }
+
   this.tip && this.tip.classList.remove('in')
 
   if (this.hoverState !== 'in') this.tip && this.tip.remove()
@@ -316,6 +348,14 @@ Tooltip.prototype.hide = function (callback) {
   callback && callback()
 
   this.hoverState = null
+
+  clearTimeout(followThroughTimer)
+  followThroughTimer = setTimeout(
+    function () {
+      followThroughTimer = null
+    },
+    Tooltip.FOLLOW_THROUGH_DURATION
+  )
 
   return this
 }
@@ -328,7 +368,7 @@ Tooltip.prototype.fixTitle = function () {
 }
 
 Tooltip.prototype.hasContent = function () {
-  return this.getTitle()
+  return this.getTitle() || this.options.item
 }
 
 Tooltip.prototype.getCalculatedOffset = function (placement, pos, actualWidth, actualHeight) {
@@ -436,7 +476,7 @@ Tooltip.prototype.destroy = function () {
 Tooltip.prototype.getDelegateComponent = function (element) {
   var component = tooltipComponentsByElement.get(element)
   if (!component) {
-    component = new Tooltip(element, this.getDelegateOptions())
+    component = new Tooltip(element, this.getDelegateOptions(), this.viewRegistry)
     tooltipComponentsByElement.set(element, component)
   }
   return component

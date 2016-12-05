@@ -75,12 +75,10 @@ class PaneAxis extends Model
     @onDidChangeFlexScale(fn)
 
   addChild: (child, index=@children.length) ->
+    @children.splice(index, 0, child)
     child.setParent(this)
     child.setContainer(@container)
-
     @subscribeToChild(child)
-
-    @children.splice(index, 0, child)
     @emitter.emit 'did-add-child', {child, index}
 
   adjustFlexScale: ->

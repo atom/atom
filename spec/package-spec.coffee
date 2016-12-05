@@ -197,7 +197,7 @@ describe "Package", ->
         expect(spy).toHaveBeenCalled()
 
   describe ".loadMetadata()", ->
-    [packagePath, pack, metadata] = []
+    [packagePath, metadata] = []
 
     beforeEach ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-different-directory-name')
@@ -205,3 +205,26 @@ describe "Package", ->
 
     it "uses the package name defined in package.json", ->
       expect(metadata.name).toBe 'package-with-a-totally-different-name'
+
+  describe "the initialize() hook", ->
+    it "gets called when the package is activated", ->
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-deserializers')
+      pack = buildPackage(packagePath)
+      pack.requireMainModule()
+      mainModule = pack.mainModule
+      spyOn(mainModule, 'initialize')
+      expect(mainModule.initialize).not.toHaveBeenCalled()
+      pack.activate()
+      expect(mainModule.initialize).toHaveBeenCalled()
+      expect(mainModule.initialize.callCount).toBe(1)
+
+    it "gets called when a deserializer is used", ->
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-deserializers')
+      pack = buildPackage(packagePath)
+      pack.requireMainModule()
+      mainModule = pack.mainModule
+      spyOn(mainModule, 'initialize')
+      pack.load()
+      expect(mainModule.initialize).not.toHaveBeenCalled()
+      atom.deserializers.deserialize({deserializer: 'Deserializer1', a: 'b'})
+      expect(mainModule.initialize).toHaveBeenCalled()

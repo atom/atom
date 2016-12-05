@@ -1,6 +1,6 @@
 ![Atom](https://cloud.githubusercontent.com/assets/72919/2874231/3af1db48-d3dd-11e3-98dc-6066f8bc766f.png)
 
-[![macOS Build Status](https://circleci.com/gh/atom/atom.svg?style=svg)](https://circleci.com/gh/atom/atom) [![Linux Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/1tkktwh654w07eim?svg=true)](https://ci.appveyor.com/project/Atom/atom)
+[![macOS Build Status](https://circleci.com/gh/atom/atom/tree/master.svg?style=shield)](https://circleci.com/gh/atom/atom) [![Linux Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/1tkktwh654w07eim?svg=true)](https://ci.appveyor.com/project/Atom/atom)
 [![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom)
 [![Join the Atom Community on Slack](http://atom-slack.herokuapp.com/badge.svg)](http://atom-slack.herokuapp.com/)
 
@@ -33,19 +33,18 @@ Atom will automatically update when a new release is available.
 
 ### Windows
 
-Download the latest [AtomSetup.exe installer](https://github.com/atom/atom/releases/latest).
+Download the latest [Atom installer](https://github.com/atom/atom/releases/latest).  AtomSetup.exe is 32-bit, AtomSetup-x64.exe for 64-bit systems.
 
 Atom will automatically update when a new release is available.
 
-You can also download an `atom-windows.zip` file from the [releases page](https://github.com/atom/atom/releases/latest).
+You can also download `atom-windows.zip` (32-bit) or `atom-x64-windows.zip` (64-bit) from the [releases page](https://github.com/atom/atom/releases/latest).
 The `.zip` version will not automatically update.
 
-Using [chocolatey](https://chocolatey.org/)? Run `cinst Atom` to install
-the latest version of Atom.
+Using [chocolatey](https://chocolatey.org/)? Run `cinst Atom` to install the latest version of Atom.
 
 ### Debian Linux (Ubuntu)
 
-Currently only a 64-bit version is available.
+Atom is only available for 64-bit Linux systems.
 
 1. Download `atom-amd64.deb` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 2. Run `sudo dpkg --install atom-amd64.deb` on the downloaded package.
@@ -56,7 +55,7 @@ repeat these steps to upgrade to future releases.
 
 ### Red Hat Linux (Fedora 21 and under, CentOS, Red Hat)
 
-Currently only a 64-bit version is available.
+Atom is only available for 64-bit Linux systems.
 
 1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 2. Run `sudo yum localinstall atom.x86_64.rpm` on the downloaded package.
@@ -67,7 +66,7 @@ repeat these steps to upgrade to future releases.
 
 ### Fedora 22+
 
-Currently only a 64-bit version is available.
+Atom is only available for 64-bit Linux systems.
 
 1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 2. Run `sudo dnf install ./atom.x86_64.rpm` on the downloaded package.
@@ -83,8 +82,7 @@ An archive is available for people who don't want to install `atom` as root.
 This version enables you to install multiple Atom versions in parallel. It has been built on Ubuntu 64-bit,
 but should be compatible with other Linux distributions.
 
-1. Install dependencies (on Ubuntu): `sudo apt install git gconf2 gconf-service libgtk2.0-0 libudev1 libgcrypt20
-libnotify4 libxtst6 libnss3 python gvfs-bin xdg-utils libcap2`
+1. Install dependencies (on Ubuntu): `sudo apt install git gconf2 gconf-service libgtk2.0-0 libudev1 libgcrypt20 libnotify4 libxtst6 libnss3 python gvfs-bin xdg-utils libcap2`
 2. Download `atom-amd64.tar.gz` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 3. Run `tar xf atom-amd64.tar.gz` in the directory where you want to extract the Atom folder.
 4. Launch Atom using the installed `atom` command from the newly extracted directory.
@@ -94,7 +92,13 @@ repeat these steps to upgrade to future releases.
 
 ## Building
 
-* [Linux](docs/build-instructions/linux.md)
-* [macOS](docs/build-instructions/macos.md)
-* [FreeBSD](docs/build-instructions/freebsd.md)
-* [Windows](docs/build-instructions/windows.md)
+* [Linux](./docs/build-instructions/linux.md)
+* [macOS](./docs/build-instructions/macos.md)
+* [FreeBSD](./docs/build-instructions/freebsd.md)
+* [Windows](./docs/build-instructions/windows.md)
+
+## License
+
+[MIT](https://github.com/atom/atom/blob/master/LICENSE.md)
+
+When using the Atom or other GitHub logos, be sure to follow the [GitHub logo guidelines](https://github.com/logos).

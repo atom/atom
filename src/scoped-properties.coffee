@@ -1,5 +1,4 @@
 CSON = require 'season'
-{CompositeDisposable} = require 'event-kit'
 
 module.exports =
 class ScopedProperties

@@ -1,8 +1,12 @@
 {ipcRenderer} = require 'electron'
 path = require 'path'
 temp = require('temp').track()
+{Disposable} = require 'event-kit'
 
 describe "WorkspaceElement", ->
+  afterEach ->
+    temp.cleanupSync()
+
   describe "when the workspace element is focused", ->
     it "transfers focus to the active pane", ->
       workspaceElement = atom.views.getView(atom.workspace)
@@ -17,9 +21,11 @@ describe "WorkspaceElement", ->
     it "has a class based on the style of the scrollbar", ->
       observeCallback = null
       scrollbarStyle = require 'scrollbar-style'
-      spyOn(scrollbarStyle, 'observePreferredScrollbarStyle').andCallFake (cb) -> observeCallback = cb
-      workspaceElement = atom.views.getView(atom.workspace)
+      spyOn(scrollbarStyle, 'observePreferredScrollbarStyle').andCallFake (cb) ->
+        observeCallback = cb
+        new Disposable(->)
 
+      workspaceElement = atom.views.getView(atom.workspace)
       observeCallback('legacy')
       expect(workspaceElement.className).toMatch 'scrollbars-visible-always'
 
@@ -27,7 +33,7 @@ describe "WorkspaceElement", ->
       expect(workspaceElement).toHaveClass 'scrollbars-visible-when-scrolling'
 
   describe "editor font styling", ->
-    [editor, editorElement] = []
+    [editor, editorElement, workspaceElement] = []
 
     beforeEach ->
       waitsForPromise -> atom.workspace.open('sample.js')
@@ -48,12 +54,12 @@ describe "WorkspaceElement", ->
     it "updates the font-family based on the 'editor.fontFamily' config value", ->
       initialCharWidth = editor.getDefaultCharWidth()
       fontFamily = atom.config.get('editor.fontFamily')
-      fontFamily += ", 'Apple Color Emoji'" if process.platform is 'darwin'
+      fontFamily += ', "Apple Color Emoji"' if process.platform is 'darwin'
       expect(getComputedStyle(editorElement).fontFamily).toBe fontFamily
 
       atom.config.set('editor.fontFamily', 'sans-serif')
       fontFamily = atom.config.get('editor.fontFamily')
-      fontFamily += ", 'Apple Color Emoji'" if process.platform is 'darwin'
+      fontFamily += ', "Apple Color Emoji"' if process.platform is 'darwin'
       expect(getComputedStyle(editorElement).fontFamily).toBe fontFamily
       expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
 
@@ -62,6 +68,44 @@ describe "WorkspaceElement", ->
       atom.config.set('editor.lineHeight', '30px')
       expect(getComputedStyle(editorElement).lineHeight).toBe atom.config.get('editor.lineHeight')
       expect(editor.getLineHeightInPixels()).not.toBe initialLineHeight
+
+    it "increases or decreases the font size when a ctrl-mousewheel event occurs", ->
+      atom.config.set('editor.zoomFontWhenCtrlScrolling', true)
+      atom.config.set('editor.fontSize', 12)
+
+      # Zoom out
+      editorElement.dispatchEvent(new WheelEvent('mousewheel', {
+        wheelDeltaY: -10,
+        ctrlKey: true
+      }))
+      expect(atom.config.get('editor.fontSize')).toBe(11)
+
+      # Zoom in
+      editorElement.dispatchEvent(new WheelEvent('mousewheel', {
+        wheelDeltaY: 10,
+        ctrlKey: true
+      }))
+      expect(atom.config.get('editor.fontSize')).toBe(12)
+
+      # Not on an atom-text-editor
+      workspaceElement.dispatchEvent(new WheelEvent('mousewheel', {
+        wheelDeltaY: 10,
+        ctrlKey: true
+      }))
+      expect(atom.config.get('editor.fontSize')).toBe(12)
+
+      # No ctrl key
+      workspaceElement.dispatchEvent(new WheelEvent('mousewheel', {
+        wheelDeltaY: 10,
+      }))
+      expect(atom.config.get('editor.fontSize')).toBe(12)
+
+      atom.config.set('editor.zoomFontWhenCtrlScrolling', false)
+      editorElement.dispatchEvent(new WheelEvent('mousewheel', {
+        wheelDeltaY: 10,
+        ctrlKey: true
+      }))
+      expect(atom.config.get('editor.fontSize')).toBe(12)
 
   describe 'panel containers', ->
     it 'inserts panel container elements in the correct places in the DOM', ->

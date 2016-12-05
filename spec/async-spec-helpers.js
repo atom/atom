@@ -29,23 +29,20 @@ export function afterEach (fn) {
   }
 })
 
-export function conditionPromise (condition)  {
-  const timeoutError = new Error("Timed out waiting on condition")
-  Error.captureStackTrace(timeoutError, conditionPromise)
+export async function conditionPromise (condition)  {
+  const startTime = Date.now()
 
-  return new Promise(function (resolve, reject) {
-    const interval = global.setInterval(function () {
-      if (condition()) {
-        global.clearInterval(interval)
-        global.clearTimeout(timeout)
-        resolve()
-      }
-    }, 100)
-    const timeout = global.setTimeout(function () {
-      global.clearInterval(interval)
-      reject(timeoutError)
-    }, 5000)
-  })
+  while (true) {
+    await timeoutPromise(100)
+
+    if (await condition()) {
+      return
+    }
+
+    if (Date.now() - startTime > 5000) {
+      throw new Error("Timed out waiting on condition")
+    }
+  }
 }
 
 export function timeoutPromise (timeout) {

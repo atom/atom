@@ -2,13 +2,14 @@
 _ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
 ScopeDescriptor = require './scope-descriptor'
+NullGrammar = require './null-grammar'
 
 module.exports =
 class LanguageMode
   # Sets up a `LanguageMode` for the given {TextEditor}.
   #
   # editor - The {TextEditor} to associate with
-  constructor: (@editor, @config) ->
+  constructor: (@editor) ->
     {@buffer} = @editor
     @regexesByPattern = {}
 
@@ -25,8 +26,9 @@ class LanguageMode
   # endRow - The row {Number} to end at
   toggleLineCommentsForBufferRows: (start, end) ->
     scope = @editor.scopeDescriptorForBufferPosition([start, 0])
-    {commentStartString, commentEndString} = @commentStartAndEndStringsForScope(scope)
-    return unless commentStartString?
+    commentStrings = @editor.getCommentStrings(scope)
+    return unless commentStrings?.commentStartString
+    {commentStartString, commentEndString} = commentStrings
 
     buffer = @editor.buffer
     commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
@@ -146,19 +148,19 @@ class LanguageMode
     rowRange
 
   rowRangeForCommentAtBufferRow: (bufferRow) ->
-    return unless @editor.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
+    return unless @editor.tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
 
     startRow = bufferRow
     endRow = bufferRow
 
     if bufferRow > 0
       for currentRow in [bufferRow-1..0] by -1
-        break unless @editor.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
+        break unless @editor.tokenizedBuffer.tokenizedLines[currentRow]?.isComment()
         startRow = currentRow
 
     if bufferRow < @buffer.getLastRow()
       for currentRow in [bufferRow+1..@buffer.getLastRow()] by 1
-        break unless @editor.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
+        break unless @editor.tokenizedBuffer.tokenizedLines[currentRow]?.isComment()
         endRow = currentRow
 
     return [startRow, endRow] if startRow isnt endRow
@@ -187,17 +189,17 @@ class LanguageMode
   # row is a comment.
   isLineCommentedAtBufferRow: (bufferRow) ->
     return false unless 0 <= bufferRow <= @editor.getLastBufferRow()
-    @editor.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
+    @editor.tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
 
   # Find a row range for a 'paragraph' around specified bufferRow. A paragraph
   # is a block of text bounded by and empty line or a block of text that is not
   # the same type (comments next to source code).
   rowRangeForParagraphAtBufferRow: (bufferRow) ->
     scope = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
-    {commentStartString, commentEndString} = @commentStartAndEndStringsForScope(scope)
+    commentStrings = @editor.getCommentStrings(scope)
     commentStartRegex = null
-    if commentStartString? and not commentEndString?
-      commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
+    if commentStrings?.commentStartString? and not commentStrings.commentEndString?
+      commentStartRegexString = _.escapeRegExp(commentStrings.commentStartString).replace(/(\s+)$/, '(?:$1)?')
       commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
 
     filterCommentStart = (line) ->
@@ -331,27 +333,18 @@ class LanguageMode
     if desiredIndentLevel >= 0 and desiredIndentLevel < currentIndentLevel
       @editor.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
-  getRegexForProperty: (scopeDescriptor, property) ->
-    if pattern = @config.get(property, scope: scopeDescriptor)
+  cacheRegex: (pattern) ->
+    if pattern
       @regexesByPattern[pattern] ?= new OnigRegExp(pattern)
-      @regexesByPattern[pattern]
 
   increaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
-    @getRegexForProperty(scopeDescriptor, 'editor.increaseIndentPattern')
+    @cacheRegex(@editor.getIncreaseIndentPattern(scopeDescriptor))
 
   decreaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
-    @getRegexForProperty(scopeDescriptor, 'editor.decreaseIndentPattern')
+    @cacheRegex(@editor.getDecreaseIndentPattern(scopeDescriptor))
 
   decreaseNextIndentRegexForScopeDescriptor: (scopeDescriptor) ->
-    @getRegexForProperty(scopeDescriptor, 'editor.decreaseNextIndentPattern')
+    @cacheRegex(@editor.getDecreaseNextIndentPattern(scopeDescriptor))
 
   foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
-    @getRegexForProperty(scopeDescriptor, 'editor.foldEndPattern')
-
-  commentStartAndEndStringsForScope: (scope) ->
-    commentStartEntry = @config.getAll('editor.commentStart', {scope})[0]
-    commentEndEntry = _.find @config.getAll('editor.commentEnd', {scope}), (entry) ->
-      entry.scopeSelector is commentStartEntry.scopeSelector
-    commentStartString = commentStartEntry?.value
-    commentEndString = commentEndEntry?.value
-    {commentStartString, commentEndString}
+    @cacheRegex(@editor.getFoldEndPattern(scopeDescriptor))

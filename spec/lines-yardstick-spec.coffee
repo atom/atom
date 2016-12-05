@@ -1,6 +1,5 @@
 LinesYardstick = require '../src/lines-yardstick'
 LineTopIndex = require 'line-top-index'
-{toArray} = require 'underscore-plus'
 {Point} = require 'text-buffer'
 
 describe "LinesYardstick", ->
@@ -15,8 +14,6 @@ describe "LinesYardstick", ->
 
     runs ->
       createdLineNodes = []
-      availableScreenRows = {}
-      screenRowsToMeasure = []
 
       buildLineNode = (screenRow) ->
         startIndex = 0
@@ -43,11 +40,13 @@ describe "LinesYardstick", ->
 
       mockLineNodesProvider =
         lineNodesById: {}
+
         lineIdForScreenRow: (screenRow) ->
-          editor.screenLineForScreenRow(screenRow).id
+          editor.screenLineForScreenRow(screenRow)?.id
 
         lineNodeForScreenRow: (screenRow) ->
-          @lineNodesById[@lineIdForScreenRow(screenRow)] ?= buildLineNode(screenRow)
+          if id = @lineIdForScreenRow(screenRow)
+            @lineNodesById[id] ?= buildLineNode(screenRow)
 
         textNodesForScreenRow: (screenRow) ->
           lineNode = @lineNodeForScreenRow(screenRow)
@@ -71,7 +70,7 @@ describe "LinesYardstick", ->
         font-size: 12px;
         font-family: monospace;
       }
-      .function {
+      .syntax--function {
         font-size: 16px
       }
       """
@@ -79,9 +78,10 @@ describe "LinesYardstick", ->
       expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 0))).toEqual({left: 0, top: 0})
       expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 1))).toEqual({left: 7, top: 0})
       expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 5))).toEqual({left: 38, top: 0})
-      expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 6))).toEqual({left: 43, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 9))).toEqual({left: 72, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition(Point(2, Infinity))).toEqual({left: 287.859375, top: 28})
+      if process.platform is 'darwin' # One pixel off on left on Win32
+        expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 6))).toEqual({left: 43, top: 14})
+        expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 9))).toEqual({left: 72, top: 14})
+        expect(linesYardstick.pixelPositionForScreenPosition(Point(2, Infinity))).toEqual({left: 287.859375, top: 28})
 
     it "reuses already computed pixel positions unless it is invalidated", ->
       atom.styles.addStyleSheet """
@@ -134,6 +134,7 @@ describe "LinesYardstick", ->
 
       editor.setText(text)
 
+      return unless process.platform is 'darwin' # These numbers are 15 higher on win32 and always integer
       expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 35)).left).toBe 230.90625
       expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 36)).left).toBe 237.5
       expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 37)).left).toBe 244.09375
@@ -145,7 +146,7 @@ describe "LinesYardstick", ->
           font-size: 12px;
           font-family: monospace;
         }
-        .function {
+        .syntax--function {
           font-size: 16px
         }
         """
@@ -156,8 +157,10 @@ describe "LinesYardstick", ->
         expect(linesYardstick.screenPositionForPixelPosition({top: 32, left: 24.3})).toEqual([2, 3])
         expect(linesYardstick.screenPositionForPixelPosition({top: 46, left: 66.5})).toEqual([3, 9])
         expect(linesYardstick.screenPositionForPixelPosition({top: 70, left: 99.9})).toEqual([5, 14])
-        expect(linesYardstick.screenPositionForPixelPosition({top: 70, left: 224.2365234375})).toEqual([5, 29])
         expect(linesYardstick.screenPositionForPixelPosition({top: 70, left: 225})).toEqual([5, 30])
+
+        return unless process.platform is 'darwin' # Following tests are 1 pixel off on Win32
+        expect(linesYardstick.screenPositionForPixelPosition({top: 70, left: 224.2365234375})).toEqual([5, 29])
         expect(linesYardstick.screenPositionForPixelPosition({top: 84, left: 247.1})).toEqual([6, 33])
 
       it "overshoots to the nearest character when text nodes are not spatially contiguous", ->
