@@ -240,16 +240,6 @@ class AtomEnvironment extends Model
 
     new ReopenProjectMenuManager({@menu, @commands, @history, @config, open: (paths) => @open(pathsToOpen: paths)})
 
-    checkPortableHomeWritable = =>
-      responseChannel = "check-portable-home-writable-response"
-      ipcRenderer.on responseChannel, (event, response) ->
-        ipcRenderer.removeAllListeners(responseChannel)
-        @notifications.addWarning("#{response.message.replace(/([\\\.+\\-_#!])/g, '\\$1')}") if not response.writable
-      @disposables.add new Disposable -> ipcRenderer.removeAllListeners(responseChannel)
-      ipcRenderer.send('check-portable-home-writable', responseChannel)
-
-    checkPortableHomeWritable()
-
   attachSaveStateListeners: ->
     saveState = _.debounce((=>
       window.requestIdleCallback => @saveState({isUnloading: false}) unless @unloaded
