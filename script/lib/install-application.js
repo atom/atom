@@ -7,7 +7,7 @@ const template = require('lodash.template')
 
 const CONFIG = require('../config')
 
-module.exports = function (packagedAppPath) {
+module.exports = function (packagedAppPath, prefix) {
   const packagedAppFileName = path.basename(packagedAppPath)
   if (process.platform === 'darwin') {
     const installationDirPath = path.join(path.sep, 'Applications', packagedAppFileName)
@@ -39,7 +39,7 @@ module.exports = function (packagedAppPath) {
     const apmExecutableName = CONFIG.channel === 'beta' ? 'apm-beta' : 'apm'
     const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
     const appDescription = CONFIG.appMetadata.description
-    const userLocalDirPath = path.join('/usr', 'local')
+    const userLocalDirPath = prefix
     const shareDirPath = path.join(userLocalDirPath, 'share')
     const installationDirPath = path.join(shareDirPath, atomExecutableName)
     const applicationsDirPath = path.join(shareDirPath, 'applications')
@@ -67,7 +67,7 @@ module.exports = function (packagedAppPath) {
     const desktopEntryTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.desktop.in'))
     const desktopEntryContents = template(desktopEntryTemplate)({
       appName, appFileName: atomExecutableName, description: appDescription,
-      installDir: '/usr', iconPath
+      installDir: userLocalDirPath, iconPath
     })
     fs.writeFileSync(desktopEntryPath, desktopEntryContents)
 
