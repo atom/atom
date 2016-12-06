@@ -17,5 +17,5 @@
 
 ## 其他文档在此
 
-* [apm REST API]（./ apm-rest-api.md）
-* [对程序组件贡献的提示]（./ contribut-to-packages.md）
+* [apm REST API]（./apm-rest-api.md）
+* [对程序组件贡献的提示]（./contributing-to-packages.md）
