@@ -62,9 +62,8 @@ export class HistoryManager {
   }
 
   getProject (paths) {
-    const pathsString = paths.toString()
     for (var i = 0; i < this.projects.length; i++) {
-      if (this.projects[i].paths.toString() === pathsString) {
+      if (arrayEquivalent(paths, this.projects[i].paths)) {
         return this.projects[i]
       }
     }
@@ -98,6 +97,14 @@ export class HistoryManager {
     this.saveState()
     this.didChangeProjects()
   }
+}
+
+function arrayEquivalent(a, b) {
+  if (a.length != b.length) return false
+  for (var i=0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
 }
 
 export class HistoryProject {
