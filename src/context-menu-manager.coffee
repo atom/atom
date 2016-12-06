@@ -200,7 +200,18 @@ class ContextMenuManager
     menuTemplate = @templateForEvent(event)
 
     return unless menuTemplate?.length > 0
-    remote.getCurrentWindow().emit('context-menu', menuTemplate)
+
+    display = ->
+      remote.getCurrentWindow().emit('context-menu', menuTemplate)
+
+    if process.platform is 'darwin'
+      requestAnimationFrame ->
+        requestAnimationFrame ->
+          requestAnimationFrame ->
+            display()
+    else
+      display()
+
     return
 
   clear: ->
