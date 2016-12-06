@@ -4,7 +4,6 @@ fs = require 'fs-plus'
 {calculateSpecificity, validateSelector} = require 'clear-cut'
 {Disposable} = require 'event-kit'
 {remote} = require 'electron'
-ipcHelpers = require './ipc-helpers'
 MenuHelpers = require './menu-helpers'
 
 platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
@@ -201,8 +200,7 @@ class ContextMenuManager
     menuTemplate = @templateForEvent(event)
 
     return unless menuTemplate?.length > 0
-
-    ipcHelpers.call('window-method', 'openContextMenu', menuTemplate)
+    remote.getCurrentWindow().emit('context-menu', menuTemplate)
     return
 
   clear: ->
