@@ -47,6 +47,8 @@ export class HistoryManager {
   }
 
   addProject (paths, lastOpened) {
+    if (paths.length == 0) return
+
     let project = this.getProject(paths)
     if (!project) {
       project = new HistoryProject(paths)
