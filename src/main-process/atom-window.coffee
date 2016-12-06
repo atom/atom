@@ -3,7 +3,6 @@ path = require 'path'
 fs = require 'fs'
 url = require 'url'
 {EventEmitter} = require 'events'
-ContextMenu = require './context-menu'
 
 module.exports =
 class AtomWindow
@@ -101,8 +100,11 @@ class AtomWindow
 
   hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
 
-  openContextMenu: (menuTemplate) ->
-    new ContextMenu(menuTemplate, this)
+  setupContextMenu: ->
+    ContextMenu = require './context-menu'
+
+    @browserWindow.on 'context-menu', (menuTemplate) =>
+      new ContextMenu(menuTemplate, this)
 
   containsPaths: (paths) ->
     for pathToCheck in paths
@@ -163,6 +165,8 @@ class AtomWindow
     @browserWindow.webContents.on 'will-navigate', (event, url) =>
       unless url is @browserWindow.webContents.getURL()
         event.preventDefault()
+
+    @setupContextMenu()
 
     if @isSpec
       # Spec window's web view should always have focus
