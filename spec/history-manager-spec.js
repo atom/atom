@@ -180,7 +180,6 @@ describe("HistoryManager", () => {
     })
 
     it("returns null when it can't find the project", () => {
-      debugger
       const project = historyManager.getProject(['/1'])
       expect(project).toBeNull()
     })
