@@ -47,7 +47,7 @@ export class HistoryManager {
   }
 
   addProject (paths, lastOpened) {
-    if (paths.length == 0) return
+    if (paths.length === 0) return
 
     let project = this.getProject(paths)
     if (!project) {
@@ -99,9 +99,9 @@ export class HistoryManager {
   }
 }
 
-function arrayEquivalent(a, b) {
-  if (a.length != b.length) return false
-  for (var i=0; i < a.length; i++) {
+function arrayEquivalent (a, b) {
+  if (a.length !== b.length) return false
+  for (var i = 0; i < a.length; i++) {
     if (a[i] !== b[i]) return false
   }
   return true
