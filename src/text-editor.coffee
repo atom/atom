@@ -991,10 +991,7 @@ class TextEditor extends Model
       @bufferRowForScreenRow(screenRow)
 
   screenRowForBufferRow: (row) ->
-    if @largeFileMode
-      row
-    else
-      @displayLayer.translateBufferPosition(Point(row, 0)).row
+    @displayLayer.translateBufferPosition(Point(row, 0)).row
 
   getRightmostScreenPosition: -> @displayLayer.getRightmostScreenPosition()
 
@@ -2925,11 +2922,7 @@ class TextEditor extends Model
   # Essential: Determine whether lines in this editor are soft-wrapped.
   #
   # Returns a {Boolean}.
-  isSoftWrapped: ->
-    if @largeFileMode
-      false
-    else
-      @softWrapped
+  isSoftWrapped: -> @softWrapped
 
   # Essential: Enable or disable soft wrapping for this editor.
   #
