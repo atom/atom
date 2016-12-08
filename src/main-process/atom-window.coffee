@@ -307,4 +307,4 @@ class AtomWindow
   copy: -> @browserWindow.copy()
 
   disableZoom: ->
-    @browserWindow.webContents.setZoomLevelLimits(1, 1)
+    @browserWindow.webContents.setVisualZoomLevelLimits(1, 1)
