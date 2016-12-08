@@ -676,7 +676,7 @@ class Package
     "installed-packages:#{@name}:#{@metadata.version}:build-error"
 
   getIncompatibleNativeModulesStorageKey: ->
-    electronVersion = process.versions['electron'] ? process.versions['atom-shell']
+    electronVersion = process.versions.electron
     "installed-packages:#{@name}:#{@metadata.version}:electron-#{electronVersion}:incompatible-native-modules"
 
   getCanDeferMainModuleRequireStorageKey: ->
