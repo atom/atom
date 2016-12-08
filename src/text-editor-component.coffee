@@ -420,7 +420,6 @@ class TextEditorComponent
 
   onScrollViewScroll: =>
     if @mounted
-      console.warn "TextEditorScrollView scrolled when it shouldn't have."
       @scrollViewNode.scrollTop = 0
       @scrollViewNode.scrollLeft = 0
 
