@@ -55,7 +55,7 @@ class LanguageMode
           indentLength = buffer.lineForRow(start).match(/^\s*/)?[0].length ? 0
           buffer.insert([start, indentLength], commentStartString)
           buffer.insert([end, buffer.lineLengthForRow(end)], commentEndString)
-    else
+    else if commentStartString
       allBlank = true
       allBlankOrCommented = true
 
