@@ -256,7 +256,7 @@ class ApplicationDelegate
 
   disableZoom: ->
     outerCallback = ->
-      webFrame.setZoomLevelLimits(1, 1)
+      webFrame.setVisualZoomLevelLimits(1, 1)
 
     outerCallback()
     # Set the limits every time a display is added or removed, otherwise the
