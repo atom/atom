@@ -12,7 +12,7 @@ const configSchema = {
     properties: {
       ignoredNames: {
         type: 'array',
-        default: ['.git', '.hg', '.svn', '.DS_Store', '._*', 'Thumbs.db'],
+        default: ['.git', '.hg', '.svn', '.DS_Store', '._*', 'Thumbs.db', 'desktop.ini'],
         items: {
           type: 'string'
         },
