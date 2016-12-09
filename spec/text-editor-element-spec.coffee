@@ -78,6 +78,19 @@ describe "TextEditorElement", ->
       jasmine.attachToDOM(element)
       expect(element.querySelectorAll('.decoration').length).toBe initialDecorationCount
 
+    it "can be re-focused using the previous `document.activeElement`", ->
+      editorElement = document.createElement('atom-text-editor')
+      jasmine.attachToDOM(editorElement)
+      editorElement.focus()
+
+      activeElement = document.activeElement
+
+      editorElement.remove()
+      jasmine.attachToDOM(editorElement)
+      activeElement.focus()
+
+      expect(editorElement.hasFocus()).toBe(true)
+
   describe "focus and blur handling", ->
     it "proxies focus/blur events to/from the hidden input", ->
       element = new TextEditorElement

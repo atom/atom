@@ -25,8 +25,17 @@ class TextEditorElement extends HTMLElement
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
 
+    @hiddenInputElement = document.createElement('input')
+    @hiddenInputElement.classList.add('hidden-input')
+    @hiddenInputElement.setAttribute('tabindex', -1)
+    @hiddenInputElement.setAttribute('data-react-skip-selection-restoration', true)
+    @hiddenInputElement.style['-webkit-transform'] = 'translateZ(0)'
+    @hiddenInputElement.addEventListener 'paste', (event) -> event.preventDefault()
+
     @addEventListener 'focus', @focused.bind(this)
     @addEventListener 'blur', @blurred.bind(this)
+    @hiddenInputElement.addEventListener 'focus', @focused.bind(this)
+    @hiddenInputElement.addEventListener 'blur', @inputNodeBlurred.bind(this)
 
     @classList.add('editor')
     @setAttribute('tabindex', -1)
@@ -117,12 +126,10 @@ class TextEditorElement extends HTMLElement
       themes: @themes
       styles: @styles
       workspace: @workspace
-      assert: @assert
+      assert: @assert,
+      hiddenInputElement: @hiddenInputElement
     )
     @rootElement.appendChild(@component.getDomNode())
-    inputNode = @component.hiddenInputComponent.getDomNode()
-    inputNode.addEventListener 'focus', @focused.bind(this)
-    inputNode.addEventListener 'blur', @inputNodeBlurred.bind(this)
 
   unmountComponent: ->
     if @component?
@@ -134,7 +141,7 @@ class TextEditorElement extends HTMLElement
     @component?.focused()
 
   blurred: (event) ->
-    if event.relatedTarget is @component?.hiddenInputComponent.getDomNode()
+    if event.relatedTarget is @hiddenInputElement
       event.stopImmediatePropagation()
       return
     @component?.blurred()
