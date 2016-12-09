@@ -2,9 +2,6 @@ module.exports =
 class InputComponent
   constructor: (@domNode) ->
 
-  getDomNode: ->
-    @domNode
-
   updateSync: (state) ->
     @oldState ?= {}
     newState = state.hiddenInput

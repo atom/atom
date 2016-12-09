@@ -346,7 +346,6 @@ class TextEditorComponent
   focused: ->
     if @mounted
       @presenter.setFocused(true)
-      @hiddenInputComponent.getDomNode().focus()
 
   blurred: ->
     if @mounted
