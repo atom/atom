@@ -1,12 +1,6 @@
 module.exports =
 class InputComponent
-  constructor: ->
-    @domNode = document.createElement('input')
-    @domNode.classList.add('hidden-input')
-    @domNode.setAttribute('tabindex', -1)
-    @domNode.setAttribute('data-react-skip-selection-restoration', true)
-    @domNode.style['-webkit-transform'] = 'translateZ(0)'
-    @domNode.addEventListener 'paste', (event) -> event.preventDefault()
+  constructor: (@domNode) ->
 
   getDomNode: ->
     @domNode
