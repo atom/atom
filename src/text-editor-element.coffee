@@ -139,6 +139,7 @@ class TextEditorElement extends HTMLElement
 
   focused: (event) ->
     @component?.focused()
+    @hiddenInputElement.focus()
 
   blurred: (event) ->
     if event.relatedTarget is @hiddenInputElement
