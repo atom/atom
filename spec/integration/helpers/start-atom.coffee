@@ -16,7 +16,7 @@ ChromedriverPort = 9515
 ChromedriverURLBase = "/wd/hub"
 ChromedriverStatusURL = "http://localhost:#{ChromedriverPort}#{ChromedriverURLBase}/status"
 
-userDataDir = temp.mkdirSync('atom-user-data-dir')
+userDataDir = null
 
 chromeDriverUp = (done) ->
   checkStatus = ->
@@ -38,6 +38,7 @@ chromeDriverDown = (done) ->
   setTimeout(checkStatus, 100)
 
 buildAtomClient = (args, env) ->
+  userDataDir = temp.mkdirSync('atom-user-data-dir')
   client = webdriverio.remote(
     host: 'localhost'
     port: ChromedriverPort

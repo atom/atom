@@ -1,4 +1,4 @@
-temp = require 'temp'
+temp = require('temp').track()
 path = require 'path'
 fs = require 'fs-plus'
 FileSystemBlobStore = require '../src/file-system-blob-store'
@@ -7,8 +7,11 @@ describe "FileSystemBlobStore", ->
   [storageDirectory, blobStore] = []
 
   beforeEach ->
-    storageDirectory = temp.path()
+    storageDirectory = temp.path('atom-spec-filesystemblobstore')
     blobStore = FileSystemBlobStore.load(storageDirectory)
+
+  afterEach ->
+    fs.removeSync(storageDirectory)
 
   it "is empty when the file doesn't exist", ->
     expect(blobStore.get("foo", "invalidation-key-1")).toBeUndefined()

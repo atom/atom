@@ -1,6 +1,6 @@
 path = require 'path'
 Package = require '../src/package'
-temp = require 'temp'
+temp = require('temp').track()
 fs = require 'fs-plus'
 {Disposable} = require 'atom'
 {buildKeydownEvent} = require '../src/keymap-extensions'
@@ -16,6 +16,9 @@ describe "PackageManager", ->
 
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
+
+  afterEach ->
+    temp.cleanupSync()
 
   describe "::getApmPath()", ->
     it "returns the path to the apm command", ->
@@ -440,11 +443,9 @@ describe "PackageManager", ->
         spyOn(mainModule, 'activate').andCallThrough()
         spyOn(Package.prototype, 'requireMainModule').andCallThrough()
 
-        promise = atom.packages.activatePackage('package-with-activation-hooks')
-
       it "defers requiring/activating the main module until an triggering of an activation hook occurs", ->
+        promise = atom.packages.activatePackage('package-with-activation-hooks')
         expect(Package.prototype.requireMainModule.callCount).toBe 0
-
         atom.packages.triggerActivationHook('language-fictitious:grammar-used')
         atom.packages.triggerDeferredActivationHooks()
 
@@ -455,6 +456,7 @@ describe "PackageManager", ->
           expect(Package.prototype.requireMainModule.callCount).toBe 1
 
       it "does not double register activation hooks when deactivating and reactivating", ->
+        promise = atom.packages.activatePackage('package-with-activation-hooks')
         expect(mainModule.activate.callCount).toBe 0
         atom.packages.triggerActivationHook('language-fictitious:grammar-used')
         atom.packages.triggerDeferredActivationHooks()
@@ -487,6 +489,17 @@ describe "PackageManager", ->
 
         runs ->
           expect(mainModule.activate.callCount).toBe 1
+          expect(Package.prototype.requireMainModule.callCount).toBe 1
+
+      it "activates the package immediately if the activation hook had already been triggered", ->
+        atom.packages.triggerActivationHook('language-fictitious:grammar-used')
+        atom.packages.triggerDeferredActivationHooks()
+        expect(Package.prototype.requireMainModule.callCount).toBe 0
+
+        waitsForPromise ->
+          atom.packages.activatePackage('package-with-activation-hooks')
+
+        runs ->
           expect(Package.prototype.requireMainModule.callCount).toBe 1
 
     describe "when the package has no main module", ->
@@ -643,7 +656,7 @@ describe "PackageManager", ->
         [element, events, userKeymapPath] = []
 
         beforeEach ->
-          userKeymapPath = path.join(temp.path(), "user-keymaps.cson")
+          userKeymapPath = path.join(temp.mkdirSync(), "user-keymaps.cson")
           spyOn(atom.keymaps, "getUserKeymapPath").andReturn(userKeymapPath)
 
           element = createTestElement('test-1')
@@ -659,6 +672,8 @@ describe "PackageManager", ->
           # Avoid leaking user keymap subscription
           atom.keymaps.watchSubscriptions[userKeymapPath].dispose()
           delete atom.keymaps.watchSubscriptions[userKeymapPath]
+
+          temp.cleanupSync()
 
         it "doesn't override user-defined keymaps", ->
           fs.writeFileSync userKeymapPath, """
@@ -740,10 +755,6 @@ describe "PackageManager", ->
           two = require.resolve("./fixtures/packages/package-with-style-sheets-manifest/styles/2.less")
           three = require.resolve("./fixtures/packages/package-with-style-sheets-manifest/styles/3.css")
 
-          one = atom.themes.stringToId(one)
-          two = atom.themes.stringToId(two)
-          three = atom.themes.stringToId(three)
-
           expect(atom.themes.stylesheetElementForId(one)).toBeNull()
           expect(atom.themes.stylesheetElementForId(two)).toBeNull()
           expect(atom.themes.stylesheetElementForId(three)).toBeNull()
@@ -764,11 +775,6 @@ describe "PackageManager", ->
           two = require.resolve("./fixtures/packages/package-with-styles/styles/2.less")
           three = require.resolve("./fixtures/packages/package-with-styles/styles/3.test-context.css")
           four = require.resolve("./fixtures/packages/package-with-styles/styles/4.css")
-
-          one = atom.themes.stringToId(one)
-          two = atom.themes.stringToId(two)
-          three = atom.themes.stringToId(three)
-          four = atom.themes.stringToId(four)
 
           expect(atom.themes.stylesheetElementForId(one)).toBeNull()
           expect(atom.themes.stylesheetElementForId(two)).toBeNull()

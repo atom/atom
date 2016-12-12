@@ -39,6 +39,7 @@ class PackageManager
     @activationHookEmitter = new Emitter
     @packageDirPaths = []
     @deferredActivationHooks = []
+    @triggeredActivationHooks = new Set()
     if configDirPath? and not safeMode
       if @devMode
         @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
@@ -67,6 +68,7 @@ class PackageManager
     @deactivatePackages()
     @loadedPackages = {}
     @packageStates = {}
+    @triggeredActivationHooks.clear()
 
   ###
   Section: Event Subscription
@@ -460,12 +462,17 @@ class PackageManager
       Promise.resolve(pack)
     else if pack = @loadPackage(name)
       @activatingPackages[pack.name] = pack
-      pack.activate().then =>
+      activationPromise = pack.activate().then =>
         if @activatingPackages[pack.name]?
           delete @activatingPackages[pack.name]
           @activePackages[pack.name] = pack
           @emitter.emit 'did-activate-package', pack
         pack
+
+      unless @deferredActivationHooks?
+        @triggeredActivationHooks.forEach((hook) => @activationHookEmitter.emit(hook))
+
+      activationPromise
     else
       Promise.reject(new Error("Failed to load package '#{name}'"))
 
@@ -476,6 +483,7 @@ class PackageManager
 
   triggerActivationHook: (hook) ->
     return new Error("Cannot trigger an empty activation hook") unless hook? and _.isString(hook) and hook.length > 0
+    @triggeredActivationHooks.add(hook)
     if @deferredActivationHooks?
       @deferredActivationHooks.push hook
     else

@@ -8,6 +8,8 @@ portableModeCommonPlatformBehavior = (platform) ->
       expect(AtomPortable.isPortableInstall(platform, "C:\\some\\path")).toBe false
 
   describe "without ATOM_HOME environment variable", ->
+    return # Disabled - interferes with user home directory
+
     environmentAtomHome = undefined
     portableAtomHomePath = path.join(path.dirname(process.execPath), "..", ".atom")
     portableAtomHomeNaturallyExists = fs.existsSync(portableAtomHomePath)
@@ -49,13 +51,9 @@ describe "Set Portable Mode on #win32", ->
       fs.removeSync(portableAtomHomePath) if fs.existsSync(portableAtomHomePath)
     fs.removeSync(portableAtomHomeBackupPath) if fs.existsSync(portableAtomHomeBackupPath)
 
-  it "creates a portable home directory", ->
-    expect(fs.existsSync(portableAtomHomePath)).toBe false
-
-    AtomPortable.setPortable(process.env.ATOM_HOME)
-    expect(fs.existsSync(portableAtomHomePath)).toBe true
-
 describe "Check for Portable Mode", ->
+  return # Disabled - interferes with user home directory
+  
   describe "Windows", ->
     portableModeCommonPlatformBehavior "win32"
 

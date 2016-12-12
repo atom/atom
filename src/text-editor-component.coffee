@@ -42,7 +42,7 @@ class TextEditorComponent
       @assert domNode?, "TextEditorComponent::domNode was set to null."
       @domNodeValue = domNode
 
-  constructor: ({@editor, @hostElement, tileSize, @views, @themes, @styles, @assert}) ->
+  constructor: ({@editor, @hostElement, tileSize, @views, @themes, @styles, @assert, hiddenInputElement}) ->
     @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
 
@@ -70,12 +70,12 @@ class TextEditorComponent
     @scrollViewNode.classList.add('scroll-view')
     @domNode.appendChild(@scrollViewNode)
 
-    @hiddenInputComponent = new InputComponent
-    @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
+    @hiddenInputComponent = new InputComponent(hiddenInputElement)
+    @scrollViewNode.appendChild(hiddenInputElement)
     # Add a getModel method to the hidden input component to make it easy to
     # access the editor in response to DOM events or when using
     # document.activeElement.
-    @hiddenInputComponent.getDomNode().getModel = => @editor
+    hiddenInputElement.getModel = => @editor
 
     @linesComponent = new LinesComponent({@presenter, @domElementPool, @assert, @grammars, @views})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
@@ -346,7 +346,6 @@ class TextEditorComponent
   focused: ->
     if @mounted
       @presenter.setFocused(true)
-      @hiddenInputComponent.getDomNode().focus()
 
   blurred: ->
     if @mounted
@@ -420,7 +419,6 @@ class TextEditorComponent
 
   onScrollViewScroll: =>
     if @mounted
-      console.warn "TextEditorScrollView scrolled when it shouldn't have."
       @scrollViewNode.scrollTop = 0
       @scrollViewNode.scrollLeft = 0
 

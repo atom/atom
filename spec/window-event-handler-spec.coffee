@@ -23,6 +23,7 @@ describe "WindowEventHandler", ->
 
   describe "when the window is loaded", ->
     it "doesn't have .is-blurred on the body tag", ->
+      return if process.platform is 'win32' #Win32TestFailures - can not steal focus
       expect(document.body.className).not.toMatch("is-blurred")
 
   describe "when the window is blurred", ->
