@@ -103,6 +103,7 @@ class GutterContainerComponent
           @domNode.appendChild(gutterComponent.getDomNode())
         else
           @domNode.insertBefore(gutterComponent.getDomNode(), @domNode.children[indexInOldGutters])
+          indexInOldGutters += 1
 
     # Remove any gutters that were not present in the new gutters state.
     for gutterComponentDescription in @gutterComponents
