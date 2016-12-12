@@ -53,7 +53,7 @@ Atom is only available for 64-bit Linux systems.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
-### Red Hat Linux (Fedora 21 and under, CentOS, Red Hat)
+### Red Hat Enterprise Linux (RHEL) / CentOS
 
 Atom is only available for 64-bit Linux systems.
 
@@ -64,12 +64,12 @@ Atom is only available for 64-bit Linux systems.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
-### Fedora 22+
+### Fedora
 
 Atom is only available for 64-bit Linux systems.
 
 1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
-2. Run `sudo dnf install ./atom.x86_64.rpm` on the downloaded package.
+2. Run `sudo dnf install atom.x86_64.rpm` on the downloaded package.
 3. Launch Atom using the installed `atom` command.
 
 The Linux version does not currently automatically update so you will need to
