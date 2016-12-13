@@ -1140,13 +1140,13 @@ class TextEditor extends Model
           # Don't move the last line of a multi-line selection if the selection ends at column 0
           endRow--
 
-        {bufferRow: startRow} = @displayLayer.lineStartBoundaryForBufferRow(startRow)
-        {bufferRow: endRow} = @displayLayer.lineEndBoundaryForBufferRow(endRow)
+        startRow = @displayLayer.findBoundaryPrecedingBufferRow(startRow)
+        endRow = @displayLayer.findBoundaryFollowingBufferRow(endRow + 1)
         linesRange = new Range(Point(startRow, 0), Point(endRow, 0))
 
         # If selected line range is preceded by a fold, one line above on screen
         # could be multiple lines in the buffer.
-        {bufferRow: precedingRow} = @displayLayer.lineStartBoundaryForBufferRow(startRow - 1)
+        precedingRow = @displayLayer.findBoundaryPrecedingBufferRow(startRow - 1)
         insertDelta = linesRange.start.row - precedingRow
 
         # Any folds in the text that is moved will need to be re-created.
@@ -1202,15 +1202,15 @@ class TextEditor extends Model
           # Don't move the last line of a multi-line selection if the selection ends at column 0
           endRow--
 
-        {bufferRow: startRow} = @displayLayer.lineStartBoundaryForBufferRow(startRow)
-        {bufferRow: endRow} = @displayLayer.lineEndBoundaryForBufferRow(endRow)
+        startRow = @displayLayer.findBoundaryPrecedingBufferRow(startRow)
+        endRow = @displayLayer.findBoundaryFollowingBufferRow(endRow + 1)
         linesRange = new Range(Point(startRow, 0), Point(endRow, 0))
 
         # If selected line range is followed by a fold, one line below on screen
         # could be multiple lines in the buffer. But at the same time, if the
         # next buffer row is wrapped, one line in the buffer can represent many
         # screen rows.
-        {bufferRow: followingRow} = @displayLayer.lineEndBoundaryForBufferRow(endRow)
+        followingRow = @displayLayer.findBoundaryFollowingBufferRow(endRow + 1)
         insertDelta = followingRow - linesRange.end.row
 
         # Any folds in the text that is moved will need to be re-created.
