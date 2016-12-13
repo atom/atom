@@ -4867,15 +4867,13 @@ describe "TextEditor", ->
         expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 2]]
 
   describe '.setTabLength(tabLength)', ->
-    it 'retokenizes the editor with the given tab length', ->
+    it 'clips atomic soft tabs to the given tab length', ->
       expect(editor.getTabLength()).toBe 2
-      leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> 'leading-whitespace' in token.scopes
-      expect(leadingWhitespaceTokens.length).toBe(3)
+      expect(editor.clipScreenPosition([5, 1], clipDirection: 'forward')).toEqual([5, 2])
 
       editor.setTabLength(6)
       expect(editor.getTabLength()).toBe 6
-      leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> 'leading-whitespace' in token.scopes
-      expect(leadingWhitespaceTokens.length).toBe(1)
+      expect(editor.clipScreenPosition([5, 1], clipDirection: 'forward')).toEqual([5, 6])
 
       changeHandler = jasmine.createSpy('changeHandler')
       editor.onDidChange(changeHandler)
