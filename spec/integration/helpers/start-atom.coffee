@@ -10,7 +10,7 @@ webdriverio = require '../../../script/node_modules/webdriverio'
 
 AtomPath = remote.process.argv[0]
 AtomLauncherPath = path.join(__dirname, "..", "helpers", "atom-launcher.sh")
-ChromedriverPath = path.resolve(__dirname, '..', '..', '..', 'script', 'node_modules', '.bin', 'chromedriver')
+ChromedriverPath = path.resolve(__dirname, '..', '..', '..', 'script', 'node_modules', 'electron-chromedriver', 'bin', 'chromedriver')
 SocketPath = path.join(os.tmpdir(), "atom-integration-test-#{Date.now()}.sock")
 ChromedriverPort = 9515
 ChromedriverURLBase = "/wd/hub"
