@@ -1210,7 +1210,7 @@ class TextEditor extends Model
         # could be multiple lines in the buffer. But at the same time, if the
         # next buffer row is wrapped, one line in the buffer can represent many
         # screen rows.
-        followingRow = @displayLayer.findBoundaryFollowingBufferRow(endRow + 1)
+        followingRow = Math.min(@buffer.getLineCount(), @displayLayer.findBoundaryFollowingBufferRow(endRow + 1))
         insertDelta = followingRow - linesRange.end.row
 
         # Any folds in the text that is moved will need to be re-created.
