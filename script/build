@@ -23,6 +23,7 @@ const argv = yargs
   .wrap(yargs.terminalWidth())
   .argv
 
+const checkChromedriverVersion = require('./lib/check-chromedriver-version')
 const cleanOutputDirectory = require('./lib/clean-output-directory')
 const codeSignOnMac = require('./lib/code-sign-on-mac')
 const compressArtifacts = require('./lib/compress-artifacts')
@@ -47,6 +48,7 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
+checkChromedriverVersion()
 cleanOutputDirectory()
 copyAssets()
 transpileBabelPaths()
