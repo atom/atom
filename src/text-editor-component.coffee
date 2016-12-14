@@ -616,7 +616,7 @@ class TextEditorComponent
         screenRange = new Range(startPosition, startPosition).union(initialRange)
         @editor.getLastSelection().setScreenRange(screenRange, reversed: true, autoscroll: false, preserveFolds: true)
       else
-        endPosition = [dragRow + 1, 0]
+        endPosition = @editor.clipScreenPosition([dragRow + 1, 0], clipDirection: 'backward')
         screenRange = new Range(endPosition, endPosition).union(initialRange)
         @editor.getLastSelection().setScreenRange(screenRange, reversed: false, autoscroll: false, preserveFolds: true)
 
