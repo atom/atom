@@ -1,15 +1,15 @@
-# Atom build status
+# Atom build statusgg
 
-| System | macOS | Windows | Dependencies |
-|--------|------|---------|--------------|
-| [Atom](https://github.com/atom/atom)   | [![macOS Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/1tkktwh654w07eim?svg=true)](https://ci.appveyor.com/project/Atom/atom) | [![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom) |
-| [APM](https://github.com/atom/apm) | [![macOS Build Status](https://travis-ci.org/atom/apm.svg?branch=master)](https://travis-ci.org/atom/apm) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/j6ixw374a397ugkb/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/apm/branch/master) | [![Dependency Status](https://david-dm.org/atom/apm.svg)](https://david-dm.org/atom/apm) |
-| [Electron](https://github.com/electron/electron) | [![macOS Build Status](https://travis-ci.org/electron/electron.svg?branch=master)](https://travis-ci.org/electron/electron) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/kvxe4byi7jcxbe26/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/electron) | [![Dependency Status](https://david-dm.org/electron/electron/dev-status.svg)](https://david-dm.org/electron/electron)
+| System | Travis | AppVeyor/Win | Circle/Mac | Dependencies |
+|--------|--------|--------------|------------|--------------|
+| [Atom](https://github.com/atom/atom)   | [![Travis Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom) | [![AppVeyor/Wi Build Status](https://ci.appveyor.com/api/projects/status/1tkktwh654w07eim?svg=true)](https://ci.appveyor.com/project/Atom/atom) | [![Circle/Mac Build Status](https://circleci.com/gh/atom/atom.svg?style=svg)](https://circleci.com/gh/atom/atom) | [![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom) |
+| [APM](https://github.com/atom/apm) | [![Travis Build Status](https://travis-ci.org/atom/apm.svg?branch=master)](https://travis-ci.org/atom/apm) | [![AppVeyor/Wi Build Status](https://ci.appveyor.com/api/projects/status/j6ixw374a397ugkb/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/apm/branch/master) | | [![Dependency Status](https://david-dm.org/atom/apm.svg)](https://david-dm.org/atom/apm) |
+| [Electron](https://github.com/electron/electron) | [![Travis Build Status](https://travis-ci.org/electron/electron.svg?branch=master)](https://travis-ci.org/electron/electron) | [![AppVeyor/Wi Build Status](https://ci.appveyor.com/api/projects/status/kvxe4byi7jcxbe26/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/electron) | | [![Dependency Status](https://david-dm.org/electron/electron/dev-status.svg)](https://david-dm.org/electron/electron)
 
 ## Packages
 
-| Package | macOS | Windows | Dependencies |
-|---------|------|---------|--------------|
+| Package | Travis | AppVeyor/Win | Dependencies |
+|---------|--------|--------------|--------------|
 | [About](https://github.com/atom/about)   | [![macOS Build Status](https://travis-ci.org/atom/about.svg?branch=master)](https://travis-ci.org/atom/about) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/msprea3vq47l8oce/branch/master?svg=true)](https://ci.appveyor.com/project/atom/about/branch/master) | [![Dependency Status](https://david-dm.org/atom/about.svg)](https://david-dm.org/atom/about) |
 | [Archive View](https://github.com/atom/archive-view) | [![macOS Build Status](https://travis-ci.org/atom/archive-view.svg?branch=master)](https://travis-ci.org/atom/archive-view) | [![Windows Build status](https://ci.appveyor.com/api/projects/status/u3qfgaod4lhriqlj/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/archive-view/branch/master) | [![Dependency Status](https://david-dm.org/atom/archive-view.svg)](https://david-dm.org/atom/archive-view) |
 | [AutoComplete Atom API](https://github.com/atom/autocomplete-atom-api) | [![macOS Build Status](https://travis-ci.org/atom/autocomplete-atom-api.svg?branch=master)](https://travis-ci.org/atom/autocomplete-atom-api) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/1x3uqd9ddchpe555/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/autocomplete-atom-api/branch/master) | [![Dependency Status](https://david-dm.org/atom/autocomplete-atom-api.svg)](https://david-dm.org/atom/autocomplete-atom-api) |
@@ -58,8 +58,8 @@
 
 ## Libraries
 
-| Library | macOS | Windows | Dependencies |
-|---------|------|---------|--------------|
+| Library | Travis | AppVeyor/Win | Dependencies |
+|---------|--------|--------------|--------------|
 | [Clear Cut](https://github.com/atom/clear-cut) | [![macOS Build Status](https://travis-ci.org/atom/clear-cut.svg?branch=master)](https://travis-ci.org/atom/clear-cut) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/civ54x89l06286m9/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/clear-cut/branch/master) | [![Dependency Status](https://david-dm.org/atom/clear-cut.svg)](https://david-dm.org/atom/clear-cut) |
 | [Event Kit](https://github.com/atom/event-kit) | [![macOS Build Status](https://travis-ci.org/atom/event-kit.svg?branch=master)](https://travis-ci.org/atom/event-kit) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/lb32q70204lpmlxo/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/event-kit/branch/master) |  [![Dependency Status](https://david-dm.org/atom/event-kit.svg)](https://david-dm.org/atom/event-kit) |
 | [First Mate](https://github.com/atom/first-mate) | [![macOS Build Status](https://travis-ci.org/atom/first-mate.svg?branch=master)](https://travis-ci.org/atom/first-mate) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/p5im21uq22cwgb6d/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/first-mate) | [![Dependency Status](https://david-dm.org/atom/first-mate/status.svg)](https://david-dm.org/atom/first-mate) |
@@ -74,14 +74,14 @@
 | [Underscore-Plus](https://github.com/atom/underscore-plus) | [![macOS Build Status](https://travis-ci.org/atom/underscore-plus.svg?branch=master)](https://travis-ci.org/atom/underscore-plus) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/c7l8009vgpaojxcd/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/underscore-plus/branch/master) | [![Dependency Status](https://david-dm.org/atom/underscore-plus.svg)](https://david-dm.org/atom/underscore-plus) |
 
 ## Tools
-| Language | macOS | Windows | Dependencies |
-|----------|------|---------|--------------|
+| Language | Travis | AppVeyor/Win | Dependencies |
+|----------|--------|--------------|--------------|
 | [AtomDoc](https://github.com/atom/atomdoc) | [![macOS Build Status](https://travis-ci.org/atom/atomdoc.svg?branch=master)](https://travis-ci.org/atom/atomdoc) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/chi2bmaafr3puyq2/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/atomdoc/branch/master) | [![Dependency Status](https://david-dm.org/atom/atomdoc.svg)](https://david-dm.org/atom/atomdoc)
 
 ## Languages
 
-| Language | macOS | Windows |
-|----------|------|---------|
+| Language | Travis | AppVeyor/Win |
+|----------|--------|--------------|
 | [C/C++](https://github.com/atom/language-c) | [![macOS Build Status](https://travis-ci.org/atom/language-c.svg?branch=master)](https://travis-ci.org/atom/language-c) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/8oy1hmp4yrij7c32/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-c/branch/master) |
 | [C#](https://github.com/atom/language-csharp) | [![macOS Build Status](https://travis-ci.org/atom/language-csharp.svg?branch=master)](https://travis-ci.org/atom/language-csharp) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/j1as3753y5t90obn/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-csharp/branch/master) |
 | [Clojure](https://github.com/atom/language-clojure) | [![macOS Build Status](https://travis-ci.org/atom/language-clojure.svg?branch=master)](https://travis-ci.org/atom/language-clojure) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/6kd5fs48y5hixde6/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-clojure/branch/master) |
