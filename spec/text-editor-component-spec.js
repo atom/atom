@@ -1265,10 +1265,10 @@ describe('TextEditorComponent', function () {
 
       let cursor = componentNode.querySelector('.cursor')
       let cursorRect = cursor.getBoundingClientRect()
-      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.syntax--source.syntax--js').childNodes[2]
+      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.syntax--source.syntax--js').childNodes[0]
       let range = document.createRange(cursorLocationTextNode)
-      range.setStart(cursorLocationTextNode, 0)
-      range.setEnd(cursorLocationTextNode, 1)
+      range.setStart(cursorLocationTextNode, 3)
+      range.setEnd(cursorLocationTextNode, 4)
       let rangeRect = range.getBoundingClientRect()
       expect(cursorRect.left).toBeCloseTo(rangeRect.left, 0)
       expect(cursorRect.width).toBeCloseTo(rangeRect.width, 0)
