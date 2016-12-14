@@ -79,6 +79,7 @@ describe "MenuManager", ->
       runs -> expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toBeUndefined()
 
     it "omits key bindings that could conflict with AltGraph characters on macOS", ->
+      Object.defineProperty process, 'platform', value: 'darwin'
       spyOn(menu, 'sendToBrowserProcess')
       menu.add [{label: "A", submenu: [
         {label: "B", command: "b"},

@@ -93,11 +93,15 @@ function runBenchmarkTests (callback) {
   cp.on('close', exitCode => { callback(null, exitCode) })
 }
 
-let testSuitesToRun
-if (process.platform === 'darwin') {
-  testSuitesToRun = [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
-} else {
-  testSuitesToRun = [runCoreMainProcessTests]
+let testSuitesToRun = testSuitesForPlatform(process.platform)
+
+function testSuitesForPlatform(platform) {
+  switch(platform) {
+    case 'darwin':  return [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
+    case 'win32':   return (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
+    case 'linux':   return [runCoreMainProcessTests]
+    default:        return []
+  }
 }
 
 async.series(testSuitesToRun, function (err, exitCodes) {

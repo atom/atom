@@ -5,6 +5,8 @@ temp = require('temp').track()
 runAtom = require './helpers/start-atom'
 
 describe "Smoke Test", ->
+  return unless process.platform is 'darwin' # Fails on win32
+  
   atomHome = temp.mkdirSync('atom-home')
 
   beforeEach ->

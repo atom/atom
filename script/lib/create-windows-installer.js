@@ -11,30 +11,36 @@ const spawnSync = require('./spawn-sync')
 const CONFIG = require('../config')
 
 module.exports = function (packagedAppPath, codeSign) {
+  const archSuffix = process.arch === 'ia32' ? '' : '-' + process.arch
   const options = {
     appDirectory: packagedAppPath,
     authors: 'GitHub Inc.',
     iconUrl: `https://raw.githubusercontent.com/atom/atom/master/resources/app-icons/${CONFIG.channel}/atom.ico`,
     loadingGif: path.join(CONFIG.repositoryRootPath, 'resources', 'win', 'loading.gif'),
     outputDirectory: CONFIG.buildOutputPath,
-    remoteReleases: `https://atom.io/api/updates?version=${CONFIG.appMetadata.version}`,
+    remoteReleases: `https://atom.io/api/updates${archSuffix}`,
     setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
   }
 
+  // Remove this once an x64 version is published or atom.io is returning blank instead of 404 for RELEASES-X64
+  if (process.arch === 'x64') {
+    options.remoteReleases = null
+  }
+
   const certPath = path.join(os.tmpdir(), 'win.p12')
-  const signing = codeSign && process.env.WIN_P12KEY_URL
+  const signing = codeSign && process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL
 
   if (signing) {
-    downloadFileFromGithub(process.env.WIN_P12KEY_URL, certPath)
+    downloadFileFromGithub(process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
     var signParams = []
     signParams.push(`/f ${certPath}`) // Signing cert file
-    signParams.push(`/p ${process.env.WIN_P12KEY_PASSWORD}`) // Signing cert password
+    signParams.push(`/p ${process.env.ATOM_WIN_CODE_SIGNING_CERT_PASSWORD}`) // Signing cert password
     signParams.push('/fd sha256') // File digest algorithm
     signParams.push('/tr http://timestamp.digicert.com') // Time stamp server
     signParams.push('/td sha256') // Times stamp algorithm
     options.signWithParams = signParams.join(' ')
   } else {
-    console.log('Skipping code-signing. Specify the --code-sign option and provide a WIN_P12KEY_URL environment variable to perform code-signing'.gray)
+    console.log('Skipping code-signing. Specify the --code-sign option and provide a ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL environment variable to perform code-signing'.gray)
   }
 
   const cleanUp = function () {

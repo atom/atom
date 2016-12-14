@@ -366,7 +366,7 @@ class Selection extends Model
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     wasReversed = @isReversed()
-    @clear()
+    @clear(options)
 
     autoIndentFirstLine = false
     precedingText = @editor.getTextInRange([[oldBufferRange.start.row, 0], oldBufferRange.start])
@@ -403,7 +403,7 @@ class Selection extends Model
     else if options.autoDecreaseIndent and NonWhitespaceRegExp.test(text)
       @editor.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
 
-    @autoscroll() if @isLastSelection()
+    @autoscroll() if options.autoscroll ? @isLastSelection()
 
     newBufferRange
 

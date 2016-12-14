@@ -222,6 +222,7 @@ class TextEditor extends Model
       @backgroundWorkHandle = null
 
   update: (params) ->
+    currentSoftWrapColumn = @getSoftWrapColumn()
     displayLayerParams = {}
 
     for param in Object.keys(params)
@@ -272,12 +273,16 @@ class TextEditor extends Model
         when 'softWrapAtPreferredLineLength'
           if value isnt @softWrapAtPreferredLineLength
             @softWrapAtPreferredLineLength = value
-            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
+            softWrapColumn = @getSoftWrapColumn()
+            if softWrapColumn isnt currentSoftWrapColumn
+              displayLayerParams.softWrapColumn = softWrapColumn
 
         when 'preferredLineLength'
           if value isnt @preferredLineLength
             @preferredLineLength = value
-            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
+            softWrapColumn = @getSoftWrapColumn()
+            if softWrapColumn isnt currentSoftWrapColumn
+              displayLayerParams.softWrapColumn = softWrapColumn
 
         when 'mini'
           if value isnt @mini
@@ -322,12 +327,16 @@ class TextEditor extends Model
         when 'editorWidthInChars'
           if value > 0 and value isnt @editorWidthInChars
             @editorWidthInChars = value
-            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
+            softWrapColumn = @getSoftWrapColumn()
+            if softWrapColumn isnt currentSoftWrapColumn
+              displayLayerParams.softWrapColumn = softWrapColumn
 
         when 'width'
           if value isnt @width
             @width = value
-            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
+            softWrapColumn = @getSoftWrapColumn()
+            if softWrapColumn isnt currentSoftWrapColumn
+              displayLayerParams.softWrapColumn = softWrapColumn
 
         when 'scrollPastEnd'
           if value isnt @scrollPastEnd
@@ -1076,8 +1085,8 @@ class TextEditor extends Model
     )
 
   # Essential: For each selection, replace the selected text with a newline.
-  insertNewline: ->
-    @insertText('\n')
+  insertNewline: (options) ->
+    @insertText('\n', options)
 
   # Essential: For each selection, if the selection is empty, delete the character
   # following the cursor. Otherwise delete the selected text.
@@ -1740,10 +1749,14 @@ class TextEditor extends Model
   #   * `onlyNonEmpty` (optional) If `true`, the decoration will only be applied
   #     if the associated `DisplayMarker` is non-empty. Only applicable to the
   #     `gutter`, `line`, and `line-number` types.
-  #   * `position` (optional) Only applicable to decorations of type `overlay` and `block`,
-  #     controls where the view is positioned relative to the `TextEditorMarker`.
+  #   * `position` (optional) Only applicable to decorations of type `overlay` and `block`.
+  #     Controls where the view is positioned relative to the `TextEditorMarker`.
   #     Values can be `'head'` (the default) or `'tail'` for overlay decorations, and
   #     `'before'` (the default) or `'after'` for block decorations.
+  #   * `avoidOverflow` (optional) Only applicable to decorations of type
+  #      `overlay`. Determines whether the decoration adjusts its horizontal or
+  #      vertical position to remain fully visible when it would otherwise
+  #      overflow the editor. Defaults to `true`.
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->

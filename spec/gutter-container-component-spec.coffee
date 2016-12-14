@@ -139,3 +139,22 @@ describe "GutterContainerComponent", ->
       expect(expectedCustomGutterNode1).toBe atom.views.getView(customGutter1)
       expectedCustomGutterNode3 = gutterContainerComponent.getDomNode().children.item(2)
       expect(expectedCustomGutterNode3).toBe atom.views.getView(customGutter3)
+
+    it "reorders correctly when prepending multiple gutters at once", ->
+      lineNumberGutter = new Gutter(mockGutterContainer, {name: 'line-number'})
+      testState = buildTestState([lineNumberGutter])
+      gutterContainerComponent.updateSync(testState)
+      expect(gutterContainerComponent.getDomNode().children.length).toBe 1
+      expectedCustomGutterNode = gutterContainerComponent.getDomNode().children.item(0)
+      expect(expectedCustomGutterNode).toBe atom.views.getView(lineNumberGutter)
+
+      # Prepend two gutters at once
+      customGutter1 = new Gutter(mockGutterContainer, {name: 'first', priority: -200})
+      customGutter2 = new Gutter(mockGutterContainer, {name: 'second', priority: -100})
+      testState = buildTestState([customGutter1, customGutter2, lineNumberGutter])
+      gutterContainerComponent.updateSync(testState)
+      expect(gutterContainerComponent.getDomNode().children.length).toBe 3
+      expectedCustomGutterNode1 = gutterContainerComponent.getDomNode().children.item(0)
+      expect(expectedCustomGutterNode1).toBe atom.views.getView(customGutter1)
+      expectedCustomGutterNode2 = gutterContainerComponent.getDomNode().children.item(1)
+      expect(expectedCustomGutterNode2).toBe atom.views.getView(customGutter2)

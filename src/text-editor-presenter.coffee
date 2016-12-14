@@ -306,9 +306,6 @@ class TextEditorPresenter
   getEndTileRow: ->
     @tileForRow(@endRow ? 0)
 
-  isValidScreenRow: (screenRow) ->
-    screenRow >= 0 and screenRow < @model.getApproximateScreenLineCount()
-
   getScreenRowsToRender: ->
     startRow = @getStartTileRow()
     endRow = @getEndTileRow() + @tileSize
@@ -320,7 +317,7 @@ class TextEditorPresenter
     if @screenRowsToMeasure?
       screenRows.push(@screenRowsToMeasure...)
 
-    screenRows = screenRows.filter @isValidScreenRow.bind(this)
+    screenRows = screenRows.filter (row) -> row >= 0
     screenRows.sort (a, b) -> a - b
     _.uniq(screenRows, true)
 
@@ -395,19 +392,17 @@ class TextEditorPresenter
       visibleTiles[tileStartRow] = true
       zIndex++
 
-    if @mouseWheelScreenRow? and 0 <= @mouseWheelScreenRow < @model.getApproximateScreenLineCount()
-      mouseWheelTile = @tileForRow(@mouseWheelScreenRow)
-
-      unless visibleTiles[mouseWheelTile]?
-        @lineNumberGutter.tiles[mouseWheelTile].display = "none"
-        @state.content.tiles[mouseWheelTile].display = "none"
-        visibleTiles[mouseWheelTile] = true
+    mouseWheelTileId = @tileForRow(@mouseWheelScreenRow) if @mouseWheelScreenRow?
 
     for id, tile of @state.content.tiles
       continue if visibleTiles.hasOwnProperty(id)
 
-      delete @state.content.tiles[id]
-      delete @lineNumberGutter.tiles[id]
+      if Number(id) is mouseWheelTileId
+        @state.content.tiles[id].display = "none"
+        @lineNumberGutter.tiles[id].display = "none"
+      else
+        delete @state.content.tiles[id]
+        delete @lineNumberGutter.tiles[id]
 
   updateLinesState: (tileState, screenRows) ->
     tileState.lines ?= {}
@@ -456,7 +451,7 @@ class TextEditorPresenter
     for decoration in @model.getOverlayDecorations()
       continue unless decoration.getMarker().isValid()
 
-      {item, position, class: klass} = decoration.getProperties()
+      {item, position, class: klass, avoidOverflow} = decoration.getProperties()
       if position is 'tail'
         screenPosition = decoration.getMarker().getTailScreenPosition()
       else
@@ -471,15 +466,16 @@ class TextEditorPresenter
       if overlayDimensions = @overlayDimensions[decoration.id]
         {itemWidth, itemHeight, contentMargin} = overlayDimensions
 
-        rightDiff = left + itemWidth + contentMargin - @windowWidth
-        left -= rightDiff if rightDiff > 0
+        if avoidOverflow isnt false
+          rightDiff = left + itemWidth + contentMargin - @windowWidth
+          left -= rightDiff if rightDiff > 0
 
-        leftDiff = left + contentMargin
-        left -= leftDiff if leftDiff < 0
+          leftDiff = left + contentMargin
+          left -= leftDiff if leftDiff < 0
 
-        if top + itemHeight > @windowHeight and
-           top - (itemHeight + @lineHeight) >= 0
-          top -= itemHeight + @lineHeight
+          if top + itemHeight > @windowHeight and
+             top - (itemHeight + @lineHeight) >= 0
+            top -= itemHeight + @lineHeight
 
       pixelPosition.top = top
       pixelPosition.left = left
@@ -1006,8 +1002,7 @@ class TextEditorPresenter
     @lineHeight? and @baseCharacterWidth?
 
   pixelPositionForScreenPosition: (screenPosition) ->
-    position =
-      @linesYardstick.pixelPositionForScreenPosition(screenPosition)
+    position = @linesYardstick.pixelPositionForScreenPosition(screenPosition)
     position.top -= @getScrollTop()
     position.left -= @getScrollLeft()
 
@@ -1230,13 +1225,14 @@ class TextEditorPresenter
       screenRange.end.column = 0
 
   repositionRegionWithinTile: (region, tileStartRow) ->
-    region.top  += @scrollTop - @lineTopIndex.pixelPositionBeforeBlocksForRow(tileStartRow)
-    region.left += @scrollLeft
+    region.top += @scrollTop - @lineTopIndex.pixelPositionBeforeBlocksForRow(tileStartRow)
 
   buildHighlightRegions: (screenRange) ->
     lineHeightInPixels = @lineHeight
     startPixelPosition = @pixelPositionForScreenPosition(screenRange.start)
     endPixelPosition = @pixelPositionForScreenPosition(screenRange.end)
+    startPixelPosition.left += @scrollLeft
+    endPixelPosition.left += @scrollLeft
     spannedRows = screenRange.end.row - screenRange.start.row + 1
 
     regions = []

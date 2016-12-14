@@ -165,23 +165,6 @@ describe "TextEditorPresenter", ->
         expect(stateFn(presenter).tiles[10]).toBeUndefined()
         expect(stateFn(presenter).tiles[12]).toBeUndefined()
 
-      it "excludes invalid tiles for screen rows to measure", ->
-        presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
-        presenter.setScreenRowsToMeasure([20, 30]) # unexisting rows
-
-        expect(stateFn(presenter).tiles[0]).toBeDefined()
-        expect(stateFn(presenter).tiles[2]).toBeDefined()
-        expect(stateFn(presenter).tiles[4]).toBeDefined()
-        expect(stateFn(presenter).tiles[6]).toBeDefined()
-        expect(stateFn(presenter).tiles[8]).toBeUndefined()
-        expect(stateFn(presenter).tiles[10]).toBeUndefined()
-        expect(stateFn(presenter).tiles[12]).toBeUndefined()
-
-        presenter.setScreenRowsToMeasure([12])
-        buffer.deleteRows(12, 13)
-
-        expect(stateFn(presenter).tiles[12]).toBeUndefined()
-
       describe "when there are block decorations", ->
         it "computes each tile's height and scrollTop based on block decorations' height", ->
           presenter = buildPresenter(explicitHeight: 120, scrollTop: 0, lineHeight: 10, tileSize: 2)
@@ -2045,6 +2028,27 @@ describe "TextEditorPresenter", ->
 
           expect(stateForHighlightInTile(presenter, highlight, 0)).toBeUndefined()
 
+        it "handles highlights that extend to the left of the visible area (regression)", ->
+          editor.setSelectedBufferRanges([
+            [[0, 2], [1, 4]],
+          ])
+
+          presenter = buildPresenter(explicitHeight: 20, scrollLeft: 0, tileSize: 2)
+          expectValues stateForSelectionInTile(presenter, 0, 0), {
+            regions: [
+              {top: 0 * 10, height: 10, left: 2 * 10, right: 0 * 10},
+              {top: 1 * 10, height: 10, left: 0 * 10, width: 4 * 10}
+            ]
+          }
+
+          presenter = buildPresenter(explicitHeight: 20, scrollLeft: 20, tileSize: 2)
+          expectValues stateForSelectionInTile(presenter, 0, 0), {
+            regions: [
+              {top: 0 * 10, height: 10, left: 2 * 10, right: 0 * 10},
+              {top: 1 * 10, height: 10, left: 0 * 10, width: 4 * 10}
+            ]
+          }
+
         it "updates when ::scrollTop changes", ->
           editor.setSelectedBufferRanges([
             [[6, 2], [6, 4]],
@@ -2518,13 +2522,13 @@ describe "TextEditorPresenter", ->
               pixelPosition: {top: 1 * 10, left: 26 * 10 + gutterWidth - scrollLeft}
             }
 
-            expectStateUpdate presenter, -> editor.insertText('a')
+            expectStateUpdate presenter, -> editor.insertText('abc', autoscroll: false)
             expectValues stateForOverlay(presenter, decoration), {
               item: item
               pixelPosition: {top: 1 * 10, left: windowWidth - itemWidth}
             }
 
-            expectStateUpdate presenter, -> editor.insertText('b')
+            expectStateUpdate presenter, -> editor.insertText('d', autoscroll: false)
             expectValues stateForOverlay(presenter, decoration), {
               item: item
               pixelPosition: {top: 1 * 10, left: windowWidth - itemWidth}
@@ -2545,12 +2549,53 @@ describe "TextEditorPresenter", ->
             }
 
             expectStateUpdate presenter, ->
-              editor.insertNewline()
-              presenter.setScrollTop(scrollTop) # I'm fighting the editor
+              editor.insertNewline(autoscroll: false)
 
             expectValues stateForOverlay(presenter, decoration), {
               item: item
               pixelPosition: {top: 6 * 10 - scrollTop - itemHeight, left: gutterWidth}
+            }
+
+          it "when avoidOverflow is false, does not move horizontally when overflowing the editor's scrollView horizontally", ->
+            scrollLeft = 20
+            marker = editor.markBufferPosition([0, 26], invalidate: 'never')
+            decoration = editor.decorateMarker(marker, {type: 'overlay', item, avoidOverflow: false})
+
+            presenter = buildPresenter({scrollLeft, windowWidth, windowHeight, contentFrameWidth, boundingClientRect, gutterWidth})
+            expectStateUpdate presenter, ->
+              presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
+
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 1 * 10, left: 26 * 10 + gutterWidth - scrollLeft}
+            }
+
+            expectStateUpdate presenter, -> editor.insertText('a', autoscroll: false)
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 1 * 10, left: 27 * 10 + gutterWidth - scrollLeft}
+            }
+
+          it "when avoidOverflow is false, does not flip vertically when overflowing the editor's scrollView vertically", ->
+            scrollTop = 10
+            marker = editor.markBufferPosition([5, 0], invalidate: 'never')
+            decoration = editor.decorateMarker(marker, {type: 'overlay', item, avoidOverflow: false})
+
+            presenter = buildPresenter({scrollTop, windowWidth, windowHeight, contentFrameWidth, boundingClientRect, gutterWidth})
+            expectStateUpdate presenter, ->
+              presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
+
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 6 * 10 - scrollTop, left: gutterWidth}
+            }
+
+            expectStateUpdate presenter, ->
+              editor.insertNewline(autoscroll: false)
+
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 7 * 10 - scrollTop, left: gutterWidth}
             }
 
           describe "when the overlay item has a margin", ->

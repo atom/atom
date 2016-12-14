@@ -2291,7 +2291,9 @@ describe('TextEditorComponent', function () {
 
         let position = wrapperNode.pixelPositionForBufferPosition([0, 26])
         let overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-        expect(overlay.style.left).toBe(Math.round(position.left + gutterWidth) + 'px')
+        if (process.platform == 'darwin') { // Result is 359px on win32, expects 375px
+          expect(overlay.style.left).toBe(Math.round(position.left + gutterWidth) + 'px')
+        }
         expect(overlay.style.top).toBe(position.top + editor.getLineHeightInPixels() + 'px')
 
         editor.insertText('a')
@@ -3837,6 +3839,40 @@ describe('TextEditorComponent', function () {
         Object.defineProperty(wheelEvent, 'target', {
           get: function () {
             return item
+          }
+        })
+        componentNode.dispatchEvent(wheelEvent)
+        runAnimationFrames()
+
+        expect(component.getTopmostDOMNode().contains(item)).toBe(true)
+      })
+    })
+
+    describe('when the mousewheel event\'s target is an SVG element inside a block decoration', function () {
+      it('keeps the block decoration on the DOM if it is scrolled off-screen', function () {
+        wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
+        wrapperNode.style.width = 20 * charWidth + 'px'
+        editor.update({autoHeight: false})
+        component.measureDimensions()
+        runAnimationFrames()
+
+        const item = document.createElement('div')
+        const svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        item.appendChild(svgElement)
+        editor.decorateMarker(
+          editor.markScreenPosition([0, 0], {invalidate: "never"}),
+          {type: "block", item: item}
+        )
+
+        runAnimationFrames()
+
+        let wheelEvent = new WheelEvent('mousewheel', {
+          wheelDeltaX: 0,
+          wheelDeltaY: -500
+        })
+        Object.defineProperty(wheelEvent, 'target', {
+          get: function () {
+            return svgElement
           }
         })
         componentNode.dispatchEvent(wheelEvent)

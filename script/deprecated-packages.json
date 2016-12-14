@@ -866,6 +866,10 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
+  "language-nlf": {
+    "hasAlternative": true,
+    "alternative": "language-nsis"
+  },
   "language-rspec": {
     "version": "<=0.2.1",
     "hasDeprecations": true,

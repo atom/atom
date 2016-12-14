@@ -1,6 +1,6 @@
 path = require 'path'
 fs = require 'fs-plus'
-temp = require 'temp'
+temp = require('temp').track()
 
 describe "atom.themes", ->
   beforeEach ->
@@ -8,6 +8,7 @@ describe "atom.themes", ->
 
   afterEach ->
     atom.themes.deactivateThemes()
+    temp.cleanupSync()
 
   describe "theme getters and setters", ->
     beforeEach ->
@@ -170,7 +171,7 @@ describe "atom.themes", ->
       expect(styleElementAddedHandler).toHaveBeenCalled()
 
       element = document.querySelector('head style[source-path*="css.css"]')
-      expect(element.getAttribute('source-path')).toEqualPath atom.themes.stringToId(cssPath)
+      expect(element.getAttribute('source-path')).toEqualPath cssPath
       expect(element.textContent).toBe fs.readFileSync(cssPath, 'utf8')
 
       # doesn't append twice
@@ -189,7 +190,7 @@ describe "atom.themes", ->
       expect(document.querySelectorAll('head style').length).toBe lengthBefore + 1
 
       element = document.querySelector('head style[source-path*="sample.less"]')
-      expect(element.getAttribute('source-path')).toEqualPath atom.themes.stringToId(lessPath)
+      expect(element.getAttribute('source-path')).toEqualPath lessPath
       expect(element.textContent).toBe """
       #header {
         color: #4d926f;
@@ -208,9 +209,9 @@ describe "atom.themes", ->
 
     it "supports requiring css and less stylesheets without an explicit extension", ->
       atom.themes.requireStylesheet path.join(__dirname, 'fixtures', 'css')
-      expect(document.querySelector('head style[source-path*="css.css"]').getAttribute('source-path')).toEqualPath atom.themes.stringToId(atom.project.getDirectories()[0]?.resolve('css.css'))
+      expect(document.querySelector('head style[source-path*="css.css"]').getAttribute('source-path')).toEqualPath atom.project.getDirectories()[0]?.resolve('css.css')
       atom.themes.requireStylesheet path.join(__dirname, 'fixtures', 'sample')
-      expect(document.querySelector('head style[source-path*="sample.less"]').getAttribute('source-path')).toEqualPath atom.themes.stringToId(atom.project.getDirectories()[0]?.resolve('sample.less'))
+      expect(document.querySelector('head style[source-path*="sample.less"]').getAttribute('source-path')).toEqualPath atom.project.getDirectories()[0]?.resolve('sample.less')
 
       document.querySelector('head style[source-path*="css.css"]').remove()
       document.querySelector('head style[source-path*="sample.less"]').remove()

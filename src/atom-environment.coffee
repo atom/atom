@@ -13,6 +13,7 @@ StateStore = require './state-store'
 StorageFolder = require './storage-folder'
 {getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
+{updateProcessEnv} = require './update-process-env'
 
 DeserializerManager = require './deserializer-manager'
 ViewRegistry = require './view-registry'
@@ -238,16 +239,6 @@ class AtomEnvironment extends Model
     @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
 
     new ReopenProjectMenuManager({@menu, @commands, @history, @config, open: (paths) => @open(pathsToOpen: paths)})
-
-    checkPortableHomeWritable = =>
-      responseChannel = "check-portable-home-writable-response"
-      ipcRenderer.on responseChannel, (event, response) ->
-        ipcRenderer.removeAllListeners(responseChannel)
-        @notifications.addWarning("#{response.message.replace(/([\\\.+\\-_#!])/g, '\\$1')}") if not response.writable
-      @disposables.add new Disposable -> ipcRenderer.removeAllListeners(responseChannel)
-      ipcRenderer.send('check-portable-home-writable', responseChannel)
-
-    checkPortableHomeWritable()
 
   attachSaveStateListeners: ->
     saveState = _.debounce((=>
@@ -675,7 +666,11 @@ class AtomEnvironment extends Model
   # Call this method when establishing a real application window.
   startEditorWindow: ->
     @unloaded = false
-    @loadState().then (state) =>
+    updateProcessEnvPromise = updateProcessEnv(@getLoadSettings().env)
+    updateProcessEnvPromise.then =>
+      @packages.triggerActivationHook('core:loaded-shell-environment')
+
+    loadStatePromise = @loadState().then (state) =>
       @windowDimensions = state?.windowDimensions
       @displayWindow().then =>
         @commandInstaller.installAtomCommand false, (error) ->
@@ -715,6 +710,8 @@ class AtomEnvironment extends Model
         @menu.update()
 
         @openInitialEmptyEditorIfNecessary()
+
+    Promise.all([loadStatePromise, updateProcessEnvPromise])
 
   serialize: (options) ->
     version: @constructor.version

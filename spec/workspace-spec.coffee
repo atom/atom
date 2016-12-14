@@ -1,5 +1,5 @@
 path = require 'path'
-temp = require 'temp'
+temp = require('temp').track()
 TextEditor = require '../src/text-editor'
 Workspace = require '../src/workspace'
 Project = require '../src/project'
@@ -18,6 +18,9 @@ describe "Workspace", ->
     setDocumentEdited = spyOn(atom.applicationDelegate, 'setWindowDocumentEdited')
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
     waits(1)
+
+  afterEach ->
+    temp.cleanupSync()
 
   describe "serialization", ->
     simulateReload = ->
@@ -489,6 +492,7 @@ describe "Workspace", ->
             expect(item).toEqual {bar: "bar://baz"}
 
     it "adds the file to the application's recent documents list", ->
+      return unless process.platform is 'darwin' # Feature only supported on macOS
       spyOn(atom.applicationDelegate, 'addRecentDocument')
 
       waitsForPromise ->
@@ -1139,6 +1143,7 @@ describe "Workspace", ->
             range: [[2, 6], [2, 11]]
 
       it "works on evil filenames", ->
+        atom.config.set('core.excludeVcsIgnoredPaths', false)
         platform.generateEvilFiles()
         atom.project.setPaths([path.join(__dirname, 'fixtures', 'evil-files')])
         paths = []
@@ -1224,7 +1229,7 @@ describe "Workspace", ->
           expect(matches.length).toBe 1
 
       it "includes files and folders that begin with a '.'", ->
-        projectPath = temp.mkdirSync()
+        projectPath = temp.mkdirSync('atom-spec-workspace')
         filePath = path.join(projectPath, '.text')
         fs.writeFileSync(filePath, 'match this')
         atom.project.setPaths([projectPath])
