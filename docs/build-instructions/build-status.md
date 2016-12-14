@@ -1,4 +1,4 @@
-# Atom build statusgg
+# Atom build status
 
 | System | Travis | AppVeyor/Win | Circle/Mac | Dependencies |
 |--------|--------|--------------|------------|--------------|
