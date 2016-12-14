@@ -700,13 +700,9 @@ describe('TextEditorComponent', function () {
         runAnimationFrames()
 
         let line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
-        expect(line2LeafNodes.length).toBe(3)
-        expect(line2LeafNodes[0].textContent).toBe('  ')
+        expect(line2LeafNodes.length).toBe(1)
+        expect(line2LeafNodes[0].textContent).toBe('      ')
         expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe(false)
-        expect(line2LeafNodes[1].textContent).toBe('  ')
-        expect(line2LeafNodes[1].classList.contains('indent-guide')).toBe(false)
-        expect(line2LeafNodes[2].textContent).toBe('  ')
-        expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe(false)
       })
     })
 
