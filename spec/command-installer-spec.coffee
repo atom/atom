@@ -1,6 +1,6 @@
 path = require 'path'
 fs = require 'fs-plus'
-temp = require 'temp'
+temp = require('temp').track()
 CommandInstaller = require '../src/command-installer'
 
 describe "CommandInstaller on #darwin", ->
@@ -19,6 +19,9 @@ describe "CommandInstaller on #darwin", ->
 
     spyOn(CommandInstaller::, 'getResourcesDirectory').andReturn(resourcesPath)
     spyOn(CommandInstaller::, 'getInstallDirectory').andReturn(installationPath)
+
+  afterEach ->
+    temp.cleanupSync()
 
   it "shows an error dialog when installing commands interactively fails", ->
     appDelegate = jasmine.createSpyObj("appDelegate", ["confirm"])

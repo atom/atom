@@ -63,7 +63,7 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @logFile, @setPortable, @userDataDir} = options
+    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @logFile, @userDataDir} = options
     @socketPath = null if options.test or options.benchmark or options.benchmarkTest
     @pidsToOpenWindows = {}
     @windows = []
@@ -796,7 +796,6 @@ class AtomApplication
   restart: ->
     args = []
     args.push("--safe") if @safeMode
-    args.push("--portable") if @setPortable
     args.push("--log-file=#{@logFile}") if @logFile?
     args.push("--socket-path=#{@socketPath}") if @socketPath?
     args.push("--user-data-dir=#{@userDataDir}") if @userDataDir?

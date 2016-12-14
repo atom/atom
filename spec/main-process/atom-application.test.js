@@ -22,7 +22,7 @@ describe('AtomApplication', function () {
     originalAtomHome = process.env.ATOM_HOME
     process.env.ATOM_HOME = makeTempDir('atom-home')
     // Symlinking the compile cache into the temporary home dir makes the windows load much faster
-    fs.symlinkSync(path.join(originalAtomHome, 'compile-cache'), path.join(process.env.ATOM_HOME, 'compile-cache'))
+    fs.symlinkSync(path.join(originalAtomHome, 'compile-cache'), path.join(process.env.ATOM_HOME, 'compile-cache'), 'junction')
     season.writeFileSync(path.join(process.env.ATOM_HOME, 'config.cson'), {
       '*': {
         welcome: {showOnStartup: false},
@@ -309,7 +309,7 @@ describe('AtomApplication', function () {
       const packagePath = path.join(__dirname, '..', 'fixtures', 'packages', 'package-with-directory-provider')
       const packagesDirPath = path.join(process.env.ATOM_HOME, 'packages')
       fs.mkdirSync(packagesDirPath)
-      fs.symlinkSync(packagePath, path.join(packagesDirPath, 'package-with-directory-provider'))
+      fs.symlinkSync(packagePath, path.join(packagesDirPath, 'package-with-directory-provider'), 'junction')
 
       const atomApplication = buildAtomApplication()
       atomApplication.config.set('core.disabledPackages', ['fuzzy-finder'])
