@@ -60,12 +60,17 @@ export default class ReopenProjectMenuManager {
       {
         type: 'custom',
         name: 'Recent Projects',
-        items: this.projects.map(project => ({
-          type: 'task',
-          title: project.paths.map(ReopenProjectMenuManager.betterBaseName).join(', '),
-          description: project.paths.map(path => `${ReopenProjectMenuManager.betterBaseName(path)} (${path})`).join(' '),
-          program: process.execPath,
-          args: project.paths.map(path => `"${path}"`).join(' ') }))
+        items: this.projects.map(project =>
+          ({
+            type: 'task',
+            title: project.paths.map(ReopenProjectMenuManager.betterBaseName).join(', '),
+            description: project.paths.map(path => `${ReopenProjectMenuManager.betterBaseName(path)} (${path})`).join(' '),
+            program: process.execPath,
+            args: project.paths.map(path => `"${path}"`).join(' '),
+            iconPath: path.join(path.dirname(process.execPath), 'resources', 'cli', 'folder.ico'),
+            iconIndex: 0
+          })
+        )
       },
       { type: 'recent' },
       { items: [
