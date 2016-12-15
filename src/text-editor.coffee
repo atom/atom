@@ -222,7 +222,6 @@ class TextEditor extends Model
       @backgroundWorkHandle = null
 
   update: (params) ->
-    currentSoftWrapColumn = @getSoftWrapColumn()
     displayLayerParams = {}
 
     for param in Object.keys(params)
@@ -273,16 +272,12 @@ class TextEditor extends Model
         when 'softWrapAtPreferredLineLength'
           if value isnt @softWrapAtPreferredLineLength
             @softWrapAtPreferredLineLength = value
-            softWrapColumn = @getSoftWrapColumn()
-            if softWrapColumn isnt currentSoftWrapColumn
-              displayLayerParams.softWrapColumn = softWrapColumn
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
 
         when 'preferredLineLength'
           if value isnt @preferredLineLength
             @preferredLineLength = value
-            softWrapColumn = @getSoftWrapColumn()
-            if softWrapColumn isnt currentSoftWrapColumn
-              displayLayerParams.softWrapColumn = softWrapColumn
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
 
         when 'mini'
           if value isnt @mini
@@ -327,16 +322,12 @@ class TextEditor extends Model
         when 'editorWidthInChars'
           if value > 0 and value isnt @editorWidthInChars
             @editorWidthInChars = value
-            softWrapColumn = @getSoftWrapColumn()
-            if softWrapColumn isnt currentSoftWrapColumn
-              displayLayerParams.softWrapColumn = softWrapColumn
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
 
         when 'width'
           if value isnt @width
             @width = value
-            softWrapColumn = @getSoftWrapColumn()
-            if softWrapColumn isnt currentSoftWrapColumn
-              displayLayerParams.softWrapColumn = softWrapColumn
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
 
         when 'scrollPastEnd'
           if value isnt @scrollPastEnd
@@ -355,8 +346,7 @@ class TextEditor extends Model
         else
           throw new TypeError("Invalid TextEditor parameter: '#{param}'")
 
-    if Object.keys(displayLayerParams).length > 0
-      @displayLayer.reset(displayLayerParams)
+    @displayLayer.reset(displayLayerParams)
 
     if @editorElement?
       @editorElement.views.getNextUpdatePromise()
