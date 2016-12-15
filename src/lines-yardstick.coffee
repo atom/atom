@@ -127,7 +127,7 @@ class LinesYardstick
     @rangeForMeasurement.setStart(textNode, startIndex)
     @rangeForMeasurement.setEnd(textNode, endIndex)
     clientRects = @rangeForMeasurement.getClientRects()
-    if clientRects.length == 1
+    if clientRects.length is 1
       clientRects[0]
-    else 
+    else
       @rangeForMeasurement.getBoundingClientRect()
