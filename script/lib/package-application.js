@@ -73,7 +73,7 @@ function copyNonASARResources (packagedAppPath, bundledResourcesPath) {
   } else if (process.platform === 'linux') {
     fs.copySync(path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'png', '1024.png'), path.join(packagedAppPath, 'atom.png'))
   } else if (process.platform === 'win32') {
-    [ 'atom.cmd', 'atom.sh', 'atom.js', 'apm.cmd', 'apm.sh', 'file.ico' ]
+    [ 'atom.cmd', 'atom.sh', 'atom.js', 'apm.cmd', 'apm.sh', 'file.ico', 'folder.ico' ]
       .forEach(file => fs.copySync(path.join('resources', 'win', file), path.join(bundledResourcesPath, 'cli', file)))
   }
 
