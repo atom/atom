@@ -299,7 +299,7 @@ describe "TextEditor", ->
 
         it "positions the cursor at the buffer position that corresponds to the given screen position", ->
           editor.setCursorScreenPosition([9, 0])
-          expect(editor.getCursorBufferPosition()).toEqual [8, 10]
+          expect(editor.getCursorBufferPosition()).toEqual [8, 11]
 
     describe ".moveUp()", ->
       it "moves the cursor up", ->
@@ -4867,15 +4867,13 @@ describe "TextEditor", ->
         expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 2]]
 
   describe '.setTabLength(tabLength)', ->
-    it 'retokenizes the editor with the given tab length', ->
+    it 'clips atomic soft tabs to the given tab length', ->
       expect(editor.getTabLength()).toBe 2
-      leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> 'leading-whitespace' in token.scopes
-      expect(leadingWhitespaceTokens.length).toBe(3)
+      expect(editor.clipScreenPosition([5, 1], clipDirection: 'forward')).toEqual([5, 2])
 
       editor.setTabLength(6)
       expect(editor.getTabLength()).toBe 6
-      leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> 'leading-whitespace' in token.scopes
-      expect(leadingWhitespaceTokens.length).toBe(1)
+      expect(editor.clipScreenPosition([5, 1], clipDirection: 'forward')).toEqual([5, 6])
 
       changeHandler = jasmine.createSpy('changeHandler')
       editor.onDidChange(changeHandler)

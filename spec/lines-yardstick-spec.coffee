@@ -81,7 +81,7 @@ describe "LinesYardstick", ->
       if process.platform is 'darwin' # One pixel off on left on Win32
         expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 6))).toEqual({left: 43, top: 14})
         expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 9))).toEqual({left: 72, top: 14})
-        expect(linesYardstick.pixelPositionForScreenPosition(Point(2, Infinity))).toEqual({left: 287.859375, top: 28})
+        expect(linesYardstick.pixelPositionForScreenPosition(Point(2, Infinity))).toEqual({left: 287.875, top: 28})
 
     it "reuses already computed pixel positions unless it is invalidated", ->
       atom.styles.addStyleSheet """

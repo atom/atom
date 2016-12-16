@@ -114,9 +114,6 @@ class TextEditor extends Model
         throw error
 
     state.buffer = state.tokenizedBuffer.buffer
-    if state.displayLayer = state.buffer.getDisplayLayer(state.displayLayerId)
-      state.selectionsMarkerLayer = state.displayLayer.getMarkerLayer(state.selectionsMarkerLayerId)
-
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
     editor = new this(state)
     if state.registered
@@ -167,22 +164,24 @@ class TextEditor extends Model
       grammar, tabLength, @buffer, @largeFileMode, @assert
     })
 
-    displayLayerParams = {
-      invisibles: @getInvisibles(),
-      softWrapColumn: @getSoftWrapColumn(),
-      showIndentGuides: not @isMini() and @doesShowIndentGuide(),
-      atomicSoftTabs: params.atomicSoftTabs ? true,
-      tabLength: tabLength,
-      ratioForCharacter: @ratioForCharacter.bind(this),
-      isWrapBoundary: isWrapBoundary,
-      foldCharacter: ZERO_WIDTH_NBSP,
-      softWrapHangingIndent: params.softWrapHangingIndentLength ? 0
-    }
+    unless @displayLayer?
+      displayLayerParams = {
+        invisibles: @getInvisibles(),
+        softWrapColumn: @getSoftWrapColumn(),
+        showIndentGuides: not @isMini() and @doesShowIndentGuide(),
+        atomicSoftTabs: params.atomicSoftTabs ? true,
+        tabLength: tabLength,
+        ratioForCharacter: @ratioForCharacter.bind(this),
+        isWrapBoundary: isWrapBoundary,
+        foldCharacter: ZERO_WIDTH_NBSP,
+        softWrapHangingIndent: params.softWrapHangingIndentLength ? 0
+      }
 
-    if @displayLayer?
-      @displayLayer.reset(displayLayerParams)
-    else
-      @displayLayer = @buffer.addDisplayLayer(displayLayerParams)
+      if @displayLayer = @buffer.getDisplayLayer(params.displayLayerId)
+        @displayLayer.reset(displayLayerParams)
+        @selectionsMarkerLayer = @displayLayer.getMarkerLayer(params.selectionsMarkerLayerId)
+      else
+        @displayLayer = @buffer.addDisplayLayer(displayLayerParams)
 
     @backgroundWorkHandle = requestIdleCallback(@doBackgroundWork)
     @disposables.add new Disposable =>
@@ -222,7 +221,6 @@ class TextEditor extends Model
       @backgroundWorkHandle = null
 
   update: (params) ->
-    currentSoftWrapColumn = @getSoftWrapColumn()
     displayLayerParams = {}
 
     for param in Object.keys(params)
@@ -273,16 +271,12 @@ class TextEditor extends Model
         when 'softWrapAtPreferredLineLength'
           if value isnt @softWrapAtPreferredLineLength
             @softWrapAtPreferredLineLength = value
-            softWrapColumn = @getSoftWrapColumn()
-            if softWrapColumn isnt currentSoftWrapColumn
-              displayLayerParams.softWrapColumn = softWrapColumn
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
 
         when 'preferredLineLength'
           if value isnt @preferredLineLength
             @preferredLineLength = value
-            softWrapColumn = @getSoftWrapColumn()
-            if softWrapColumn isnt currentSoftWrapColumn
-              displayLayerParams.softWrapColumn = softWrapColumn
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
 
         when 'mini'
           if value isnt @mini
@@ -327,16 +321,12 @@ class TextEditor extends Model
         when 'editorWidthInChars'
           if value > 0 and value isnt @editorWidthInChars
             @editorWidthInChars = value
-            softWrapColumn = @getSoftWrapColumn()
-            if softWrapColumn isnt currentSoftWrapColumn
-              displayLayerParams.softWrapColumn = softWrapColumn
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
 
         when 'width'
           if value isnt @width
             @width = value
-            softWrapColumn = @getSoftWrapColumn()
-            if softWrapColumn isnt currentSoftWrapColumn
-              displayLayerParams.softWrapColumn = softWrapColumn
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
 
         when 'scrollPastEnd'
           if value isnt @scrollPastEnd
@@ -355,8 +345,7 @@ class TextEditor extends Model
         else
           throw new TypeError("Invalid TextEditor parameter: '#{param}'")
 
-    if Object.keys(displayLayerParams).length > 0
-      @displayLayer.reset(displayLayerParams)
+    @displayLayer.reset(displayLayerParams)
 
     if @editorElement?
       @editorElement.views.getNextUpdatePromise()
@@ -991,10 +980,7 @@ class TextEditor extends Model
       @bufferRowForScreenRow(screenRow)
 
   screenRowForBufferRow: (row) ->
-    if @largeFileMode
-      row
-    else
-      @displayLayer.translateBufferPosition(Point(row, 0)).row
+    @displayLayer.translateBufferPosition(Point(row, 0)).row
 
   getRightmostScreenPosition: -> @displayLayer.getRightmostScreenPosition()
 
@@ -1143,13 +1129,13 @@ class TextEditor extends Model
           # Don't move the last line of a multi-line selection if the selection ends at column 0
           endRow--
 
-        {bufferRow: startRow} = @displayLayer.lineStartBoundaryForBufferRow(startRow)
-        {bufferRow: endRow} = @displayLayer.lineEndBoundaryForBufferRow(endRow)
+        startRow = @displayLayer.findBoundaryPrecedingBufferRow(startRow)
+        endRow = @displayLayer.findBoundaryFollowingBufferRow(endRow + 1)
         linesRange = new Range(Point(startRow, 0), Point(endRow, 0))
 
         # If selected line range is preceded by a fold, one line above on screen
         # could be multiple lines in the buffer.
-        {bufferRow: precedingRow} = @displayLayer.lineStartBoundaryForBufferRow(startRow - 1)
+        precedingRow = @displayLayer.findBoundaryPrecedingBufferRow(startRow - 1)
         insertDelta = linesRange.start.row - precedingRow
 
         # Any folds in the text that is moved will need to be re-created.
@@ -1205,15 +1191,15 @@ class TextEditor extends Model
           # Don't move the last line of a multi-line selection if the selection ends at column 0
           endRow--
 
-        {bufferRow: startRow} = @displayLayer.lineStartBoundaryForBufferRow(startRow)
-        {bufferRow: endRow} = @displayLayer.lineEndBoundaryForBufferRow(endRow)
+        startRow = @displayLayer.findBoundaryPrecedingBufferRow(startRow)
+        endRow = @displayLayer.findBoundaryFollowingBufferRow(endRow + 1)
         linesRange = new Range(Point(startRow, 0), Point(endRow, 0))
 
         # If selected line range is followed by a fold, one line below on screen
         # could be multiple lines in the buffer. But at the same time, if the
         # next buffer row is wrapped, one line in the buffer can represent many
         # screen rows.
-        {bufferRow: followingRow} = @displayLayer.lineEndBoundaryForBufferRow(endRow)
+        followingRow = Math.min(@buffer.getLineCount(), @displayLayer.findBoundaryFollowingBufferRow(endRow + 1))
         insertDelta = followingRow - linesRange.end.row
 
         # Any folds in the text that is moved will need to be re-created.
@@ -2929,11 +2915,7 @@ class TextEditor extends Model
   # Essential: Determine whether lines in this editor are soft-wrapped.
   #
   # Returns a {Boolean}.
-  isSoftWrapped: ->
-    if @largeFileMode
-      false
-    else
-      @softWrapped
+  isSoftWrapped: -> @softWrapped
 
   # Essential: Enable or disable soft wrapping for this editor.
   #
