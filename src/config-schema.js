@@ -170,7 +170,7 @@ const configSchema = {
       warnOnLargeFileLimit: {
         description: 'Warn before opening files larger than this number of megabytes.',
         type: 'number',
-        default: 20
+        default: 40
       }
     }
   },
