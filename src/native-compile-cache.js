@@ -74,7 +74,13 @@ class NativeCompileCache {
           self.cacheStore.delete(cacheKey)
         }
       } else {
-        let compilationResult = cachedVm.runInThisContext(wrapper, filename)
+        let compilationResult
+        try {
+          compilationResult = cachedVm.runInThisContext(wrapper, filename)
+        } catch (err) {
+          console.error(`Error running script ${filename}`)
+          throw err
+        }
         if (compilationResult.cacheBuffer) {
           self.cacheStore.set(cacheKey, invalidationKey, compilationResult.cacheBuffer)
         }
