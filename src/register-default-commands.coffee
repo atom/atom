@@ -140,6 +140,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'editor:select-to-previous-subword-boundary': -> @selectToPreviousSubwordBoundary()
     'editor:select-to-first-character-of-line': -> @selectToFirstCharacterOfLine()
     'editor:select-line': -> @selectLinesContainingCursors()
+    'editor:insert-date': ->  @getModel().insertText(new Date().toLocaleString())
   )
 
   commandRegistry.add 'atom-text-editor', stopEventPropagationAndGroupUndo(config,

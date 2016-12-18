@@ -31,6 +31,7 @@
   'cmd-alt-ctrl-p': 'window:run-package-specs'
   'ctrl-shift-left': 'pane:move-item-left'
   'ctrl-shift-right': 'pane:move-item-right'
+  'ctrl-alt-d': 'editor:insert-date'
 
   # Sublime Parity
   'cmd-,': 'application:show-settings'
