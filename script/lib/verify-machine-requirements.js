@@ -19,6 +19,8 @@ function verifyNode () {
   const majorVersion = fullVersion.split('.')[0]
   if (majorVersion >= 4) {
     console.log(`Node:\tv${fullVersion}`)
+  } else if (majorVersion >= 7) {
+    throw new Error(`Atom does not build properly on node v7+. node v${fullVersion} is installed.`)
   } else {
     throw new Error(`node v4+ is required to build Atom. node v${fullVersion} is installed.`)
   }
