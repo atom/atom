@@ -885,12 +885,44 @@ describe "Workspace", ->
       expect(coffeePackage.loadGrammarsSync.callCount).toBe 1
 
   describe "document.title", ->
-    describe "when the project has no path", ->
+    describe "when there is no item open", ->
       it "sets the title to 'untitled'", ->
-        atom.project.setPaths([])
-        expect(document.title).toMatch ///^untitled///
+        expect(document.title).toEqual "untitled"
 
-    describe "when the project has a path", ->
+    describe "when the active pane item's path is not inside a project path", ->
+      beforeEach ->
+        waitsForPromise ->
+          atom.workspace.open('b').then ->
+            atom.project.setPaths([])
+
+      it "sets the title to the pane item's title plus the item's path", ->
+        item = atom.workspace.getActivePaneItem()
+        pathEscaped = fs.tildify(escapeStringRegex(path.dirname(item.getPath())))
+        expect(document.title).toMatch ///^#{item.getTitle()}\ \u2014\ #{pathEscaped}///
+
+      describe "when the title of the active pane item changes", ->
+        it "updates the window title based on the item's new title", ->
+          editor = atom.workspace.getActivePaneItem()
+          editor.buffer.setPath(path.join(temp.dir, 'hi'))
+          pathEscaped = fs.tildify(escapeStringRegex(path.dirname(editor.getPath())))
+          expect(document.title).toMatch ///^#{editor.getTitle()}\ \u2014\ #{pathEscaped}///
+
+      describe "when the active pane's item changes", ->
+        it "updates the title to the new item's title plus the project path", ->
+          atom.workspace.getActivePane().activateNextItem()
+          item = atom.workspace.getActivePaneItem()
+          pathEscaped = fs.tildify(escapeStringRegex(path.dirname(item.getPath())))
+          expect(document.title).toMatch ///^#{item.getTitle()}\ \u2014\ #{pathEscaped}///
+
+      describe "when an inactive pane's item changes", ->
+        it "does not update the title", ->
+          pane = atom.workspace.getActivePane()
+          pane.splitRight()
+          initialTitle = document.title
+          pane.activateNextItem()
+          expect(document.title).toBe initialTitle
+
+    describe "when the active pane item is inside a project path", ->
       beforeEach ->
         waitsForPromise ->
           atom.workspace.open('b')
@@ -904,7 +936,7 @@ describe "Workspace", ->
       describe "when the title of the active pane item changes", ->
         it "updates the window title based on the item's new title", ->
           editor = atom.workspace.getActivePaneItem()
-          editor.buffer.setPath(path.join(temp.dir, 'hi'))
+          editor.buffer.setPath(path.join(atom.project.getPaths()[0], 'hi'))
           pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
           expect(document.title).toMatch ///^#{editor.getTitle()}\ \u2014\ #{pathEscaped}///
 
@@ -916,11 +948,10 @@ describe "Workspace", ->
           expect(document.title).toMatch ///^#{item.getTitle()}\ \u2014\ #{pathEscaped}///
 
       describe "when the last pane item is removed", ->
-        it "updates the title to contain the project's path", ->
+        it "updates the title to be untitled", ->
           atom.workspace.getActivePane().destroy()
           expect(atom.workspace.getActivePaneItem()).toBeUndefined()
-          pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
-          expect(document.title).toMatch ///^#{pathEscaped}///
+          expect(document.title).toEqual "untitled"
 
       describe "when an inactive pane's item changes", ->
         it "does not update the title", ->
