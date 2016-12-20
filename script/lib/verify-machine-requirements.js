@@ -17,7 +17,7 @@ module.exports = function () {
 function verifyNode () {
   const fullVersion = process.versions.node
   const majorVersion = fullVersion.split('.')[0]
-  if (majorVersion >= 4) {
+  if (majorVersion >= 4 && majorVersion < 7) {
     console.log(`Node:\tv${fullVersion}`)
   } else if (majorVersion >= 7) {
     throw new Error(`Atom does not build properly on node v7+. node v${fullVersion} is installed.`)
