@@ -887,7 +887,7 @@ describe "Workspace", ->
   describe "document.title", ->
     describe "when there is no item open", ->
       it "sets the title to 'untitled'", ->
-        expect(document.title).toEqual "untitled"
+        expect(document.title).toMatch ///^untitled///
 
     describe "when the active pane item's path is not inside a project path", ->
       beforeEach ->
@@ -951,7 +951,7 @@ describe "Workspace", ->
         it "updates the title to be untitled", ->
           atom.workspace.getActivePane().destroy()
           expect(atom.workspace.getActivePaneItem()).toBeUndefined()
-          expect(document.title).toEqual "untitled"
+          expect(document.title).toMatch ///^untitled///
 
       describe "when an inactive pane's item changes", ->
         it "does not update the title", ->
