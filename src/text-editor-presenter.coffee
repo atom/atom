@@ -1141,7 +1141,9 @@ class TextEditorPresenter
       @lineNumberDecorationsByScreenRow[screenRow] ?= {}
       @lineNumberDecorationsByScreenRow[screenRow][decorationId] = properties
     else
-      for row in [screenRange.start.row..screenRange.end.row] by 1
+      startRow = Math.max(screenRange.start.row, @getStartTileRow())
+      endRow = Math.min(screenRange.end.row, @getEndTileRow() + @tileSize)
+      for row in [startRow..endRow] by 1
         continue if properties.onlyHead and row isnt headScreenPosition.row
         continue if omitLastRow and row is screenRange.end.row
 
