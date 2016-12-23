@@ -155,6 +155,11 @@ class TooltipManager
 
     disposable
 
+  # Extended: Find the tooltips that have been applied to the given element.
+  #
+  # * `target` The `HTMLElement` to find tooltips on.
+  #
+  # Returns an {Array} of `Tooltip` objects that match the `target`.
   findTooltips: (target) ->
     if @tooltips.has(target)
       @tooltips.get(target).slice()
