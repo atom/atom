@@ -130,7 +130,7 @@ class TooltipManager
 
     tooltip = new Tooltip(target, options, @viewRegistry)
 
-    if !@tooltips.has(target)
+    if not @tooltips.has(target)
       @tooltips.set(target, [])
     @tooltips.get(target).push(tooltip)
 
@@ -148,9 +148,9 @@ class TooltipManager
       if @tooltips.has(target)
         tooltipsForTarget = @tooltips.get(target)
         index = tooltipsForTarget.indexOf(tooltip)
-        if index != -1
+        if index isnt -1
           tooltipsForTarget.splice(index, 1)
-        if tooltipsForTarget.length == 0
+        if tooltipsForTarget.length is 0
           @tooltips.delete(target)
 
     disposable

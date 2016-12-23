@@ -208,6 +208,6 @@ describe "TooltipManager", ->
         disposable = manager.add element, title: "Title"
         hover element, ->
           expect(document.body.querySelector(".tooltip")).not.toBeNull()
-          manager.findTooltips(element)[0].hide();
+          manager.findTooltips(element)[0].hide()
           expect(document.body.querySelector(".tooltip")).toBeNull()
           disposable.dispose()
