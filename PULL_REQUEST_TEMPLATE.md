@@ -11,7 +11,7 @@ We must be able to understand the design of your change from this description. I
 
 -->
 
-## Alternate Designs
+### Alternate Designs
 
 <!-- Explain what other alternates were considered and why the proposed version was selected -->
 
