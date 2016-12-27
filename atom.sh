@@ -75,18 +75,18 @@ if [ $OS == 'Mac' ]; then
   fi
 
   if [ -z "${ATOM_PATH}" ]; then
-    # If ATOM_PATH isnt set, check /Applications and then ~/Applications for Atom.app
+    # If ATOM_PATH isn't set, check /Applications and then ~/Applications for Atom.app
     if [ -x "/Applications/$ATOM_APP_NAME" ]; then
       ATOM_PATH="/Applications"
     elif [ -x "$HOME/Applications/$ATOM_APP_NAME" ]; then
       ATOM_PATH="$HOME/Applications"
     else
-      # We havent found an Atom.app, use spotlight to search for Atom
+      # We haven't found an Atom.app, use spotlight to search for Atom
       ATOM_PATH="$(mdfind "kMDItemCFBundleIdentifier == 'com.github.atom'" | grep -v ShipIt | head -1 | xargs -0 dirname)"
 
       # Exit if Atom can't be found
       if [ ! -x "$ATOM_PATH/$ATOM_APP_NAME" ]; then
-        echo "Cannot locate Atom.app, it is usually located in /Applications. Set the ATOM_PATH environment variable to the directory containing Atom.app."
+        echo "Cannot locate ${ATOM_APP_NAME}, it is usually located in /Applications. Set the ATOM_PATH environment variable to the directory containing ${ATOM_APP_NAME}."
         exit 1
       fi
     fi
