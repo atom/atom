@@ -13,7 +13,7 @@
     "electron-winstaller": "2.5.1",
     "fs-extra": "0.30.0",
     "glob": "7.0.3",
-    "joanna": "0.0.6",
+    "joanna": "0.0.8",
     "legal-eagle": "0.13.0",
     "lodash.template": "4.4.0",
     "minidump": "0.9.0",
