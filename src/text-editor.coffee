@@ -408,16 +408,27 @@ class TextEditor extends Model
       @emitter.emit 'did-change', {}
 
   destroyed: ->
+    @emitter.emit 'did-destroy'
+    @emitter = null
     @disposables.dispose()
     @displayLayer.destroy()
-    @disposables.dispose()
+    @displayLayer = null
+    @defaultMarkerLayer = null
     @tokenizedBuffer.destroy()
+    @tokenizedBuffer = null
     selection.destroy() for selection in @selections.slice()
-    @selectionsMarkerLayer.destroy()
+    @selections = null
+    @cursors = null
+    @selectionsMarkerLayer = null
     @buffer.release()
+    @buffer = null
+    @decorationManager = null
     @languageMode.destroy()
+    @languageMode = null
     @gutterContainer.destroy()
-    @emitter.emit 'did-destroy'
+    @gutterContainer = null
+    @editorElement = null
+    @presenter = null
 
   ###
   Section: Event Subscription
