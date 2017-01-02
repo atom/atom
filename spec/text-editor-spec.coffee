@@ -4325,15 +4325,10 @@ describe "TextEditor", ->
         expect(editor.getLastSelection().isEmpty()).toBeTruthy()
 
       it "does not explode if the current language mode has no comment regex", ->
-        editor.destroy()
-
-        waitsForPromise ->
-          atom.workspace.open(null, autoIndent: false).then (o) -> editor = o
-
-        runs ->
-          editor.setSelectedBufferRange([[4, 5], [4, 5]])
-          editor.toggleLineCommentsInSelection()
-          expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
+        editor = new TextEditor(buffer: new TextBuffer(text: 'hello'))
+        editor.setSelectedBufferRange([[0, 0], [0, 5]])
+        editor.toggleLineCommentsInSelection()
+        expect(editor.lineTextForBufferRow(0)).toBe "hello"
 
       it "does nothing for empty lines and null grammar", ->
         runs ->
@@ -5056,11 +5051,13 @@ describe "TextEditor", ->
 
   describe ".destroy()", ->
     it "destroys marker layers associated with the text editor", ->
+      buffer.retain()
       selectionsMarkerLayerId = editor.selectionsMarkerLayer.id
       foldsMarkerLayerId = editor.displayLayer.foldsMarkerLayer.id
       editor.destroy()
       expect(buffer.getMarkerLayer(selectionsMarkerLayerId)).toBeUndefined()
       expect(buffer.getMarkerLayer(foldsMarkerLayerId)).toBeUndefined()
+      buffer.release()
 
     it "notifies ::onDidDestroy observers when the editor is destroyed", ->
       destroyObserverCalled = false
