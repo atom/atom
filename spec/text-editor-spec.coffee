@@ -5066,6 +5066,12 @@ describe "TextEditor", ->
       editor.destroy()
       expect(destroyObserverCalled).toBe true
 
+    it "does not blow up when query methods are called afterward", ->
+      editor.destroy()
+      editor.getGrammar()
+      editor.getLastCursor()
+      editor.lineTextForBufferRow(0)
+
   describe ".joinLines()", ->
     describe "when no text is selected", ->
       describe "when the line below isn't empty", ->

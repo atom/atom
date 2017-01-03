@@ -26,7 +26,6 @@ class Cursor extends Model
 
   destroy: ->
     @marker.destroy()
-    @marker = null
 
   ###
   Section: Event Subscription

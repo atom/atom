@@ -26,8 +26,6 @@ class Selection extends Model
 
   destroy: ->
     @marker.destroy()
-    @marker = null
-    @decoration = null
 
   isLastSelection: ->
     this is @editor.getLastSelection()
