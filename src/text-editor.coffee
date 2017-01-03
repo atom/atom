@@ -408,8 +408,6 @@ class TextEditor extends Model
       @emitter.emit 'did-change', {}
 
   destroyed: ->
-    @emitter.emit 'did-destroy'
-    @emitter.clear()
     @disposables.dispose()
     @displayLayer.destroy()
     @tokenizedBuffer.destroy()
@@ -417,6 +415,8 @@ class TextEditor extends Model
     @buffer.release()
     @languageMode.destroy()
     @gutterContainer.destroy()
+    @emitter.emit 'did-destroy'
+    @emitter.clear()
     @editorElement = null
     @presenter = null
 

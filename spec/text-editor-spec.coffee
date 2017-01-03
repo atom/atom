@@ -5072,6 +5072,17 @@ describe "TextEditor", ->
       editor.getLastCursor()
       editor.lineTextForBufferRow(0)
 
+    it "emits the destroy event after destroying the editor's buffer", ->
+      events = []
+      editor.getBuffer().onDidDestroy ->
+        expect(editor.isDestroyed()).toBe(true)
+        events.push('buffer-destroyed')
+      editor.onDidDestroy ->
+        expect(buffer.isDestroyed()).toBe(true)
+        events.push('editor-destroyed')
+      editor.destroy()
+      expect(events).toEqual(['buffer-destroyed', 'editor-destroyed'])
+
   describe ".joinLines()", ->
     describe "when no text is selected", ->
       describe "when the line below isn't empty", ->
