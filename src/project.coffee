@@ -5,6 +5,16 @@ fs = require 'fs-plus'
 {Emitter, Disposable} = require 'event-kit'
 TextBuffer = require 'text-buffer'
 
+TextBuffer.getUnresolvedPath = TextBuffer.getPath
+TextBuffer.getPath = ->
+  fullPath = @getUnresolvedPath()
+  return unless fullPath
+  try
+    fullPath = fs.realpathSync(fullPath)
+  catch e
+    # nothing
+  path.normalize(fullPath)
+
 DefaultDirectoryProvider = require './default-directory-provider'
 Model = require './model'
 GitRepositoryProvider = require './git-repository-provider'
@@ -219,19 +229,40 @@ class Project extends Model
     @rootDirectories
 
   resolvePath: (uri) ->
+    @_resolvePath(uri, true)
+
+  absolutePath: (uri) ->
+    @_resolvePath(uri, false)
+
+  _resolvePath: (uri, resolve_realpath) ->
     return unless uri
 
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
     else
       if fs.isAbsolute(uri)
-        path.normalize(fs.absolute(uri))
+        if resolve_realpath
+          path.normalize(fs.absolute(uri))
+        else
+          fs.resolveHome(uri)
 
       # TODO: what should we do here when there are multiple directories?
       else if projectPath = @getPaths()[0]
-        path.normalize(fs.absolute(path.join(projectPath, uri)))
+        absolutePath = path.join(projectPath, uri)
+        if resolve_realpath
+          path.normalize(fs.absolute(absolutePath))
+        else
+          fs.resolveHome(absolutePath)
       else
         undefined
+
+  normalizeRealpath: (fullPath) ->
+    return unless fullPath
+    try
+      fullPath = fs.realpathSync(fullPath)
+    catch e
+      # nothing
+    path.normalize(fullPath)
 
   relativize: (fullPath) ->
     @relativizePath(fullPath)[1]
@@ -318,17 +349,19 @@ class Project extends Model
 
   # Is the buffer for the given path modified?
   isPathModified: (filePath) ->
-    @findBufferForPath(@resolvePath(filePath))?.isModified()
+    @findBufferForPath(@absolutePath(filePath))?.isModified()
 
   findBufferForPath: (filePath) ->
-    _.find @buffers, (buffer) -> buffer.getPath() is filePath
+    filePath = @normalizeRealpath(filePath)
+    normalizeRealpath = @normalizeRealpath
+    _.find @buffers, (buffer) -> normalizeRealpath(buffer.getPath()) is filePath
 
   findBufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.getId() is id
 
   # Only to be used in specs
   bufferForPathSync: (filePath) ->
-    absoluteFilePath = @resolvePath(filePath)
+    absoluteFilePath = @absolutePath(filePath)
     existingBuffer = @findBufferForPath(absoluteFilePath) if filePath
     existingBuffer ? @buildBufferSync(absoluteFilePath)
 
@@ -408,7 +441,7 @@ class Project extends Model
     buffer.onDidDestroy => @removeBuffer(buffer)
     buffer.onDidChangePath =>
       unless @getPaths().length > 0
-        @setPaths([path.dirname(buffer.getPath())])
+        @setPaths([path.dirname(@normalizeRealpath(buffer.getPath()))])
     buffer.onWillThrowWatchError ({error, handle}) =>
       handle()
       @notificationManager.addWarning """

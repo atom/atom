@@ -110,7 +110,7 @@ describe "Project", ->
 
       runs ->
         editor.saveAs(tempFile)
-        expect(atom.project.getPaths()[0]).toBe path.dirname(tempFile)
+        expect(atom.project.getPaths()[0]).toBe path.dirname(atom.project.normalizeRealpath(tempFile))
 
   describe "before and after saving a buffer", ->
     [buffer] = []
