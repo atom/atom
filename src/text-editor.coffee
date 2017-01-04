@@ -410,14 +410,15 @@ class TextEditor extends Model
   destroyed: ->
     @disposables.dispose()
     @displayLayer.destroy()
-    @disposables.dispose()
     @tokenizedBuffer.destroy()
     selection.destroy() for selection in @selections.slice()
-    @selectionsMarkerLayer.destroy()
     @buffer.release()
     @languageMode.destroy()
     @gutterContainer.destroy()
     @emitter.emit 'did-destroy'
+    @emitter.clear()
+    @editorElement = null
+    @presenter = null
 
   ###
   Section: Event Subscription

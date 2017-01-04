@@ -2181,7 +2181,7 @@ describe "TextEditorPresenter", ->
             editor.getSelections()[2].setBufferRange([[1, 4], [1, 8]], autoscroll: false)
           waitsForStateToUpdate presenter
 
-          destroyedSelection = null
+          [destroyedSelection, destroyedDecoration] = []
           runs ->
             expectValues stateForSelectionInTile(presenter, 2, 0), {
               regions: [{top: 10, left: 4 * 10, width: 4 * 10, height: 10}]
@@ -2189,10 +2189,11 @@ describe "TextEditorPresenter", ->
 
             # destroying
             destroyedSelection = editor.getSelections()[2]
+            destroyedDecoration = destroyedSelection.decoration
 
           waitsForStateToUpdate presenter, -> destroyedSelection.destroy()
           runs ->
-            expectUndefinedStateForHighlight(presenter, destroyedSelection.decoration)
+            expectUndefinedStateForHighlight(presenter, destroyedDecoration)
 
         it "updates when highlight decorations' properties are updated", ->
           marker = editor.markBufferPosition([2, 2])

@@ -41,6 +41,7 @@ class TokenizedBuffer extends Model
 
   destroyed: ->
     @disposables.dispose()
+    @tokenizedLines.length = 0
 
   buildIterator: ->
     new TokenizedBufferIterator(this)
@@ -94,6 +95,7 @@ class TokenizedBuffer extends Model
     false
 
   retokenizeLines: ->
+    return unless @alive
     @fullyTokenized = false
     @tokenizedLines = new Array(@buffer.getLineCount())
     @invalidRows = []

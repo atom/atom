@@ -81,8 +81,9 @@ describe "Selection", ->
   describe "when the selection is destroyed", ->
     it "destroys its marker", ->
       selection.setBufferRange([[2, 0], [2, 10]])
+      marker = selection.marker
       selection.destroy()
-      expect(selection.marker.isDestroyed()).toBeTruthy()
+      expect(marker.isDestroyed()).toBeTruthy()
 
   describe ".insertText(text, options)", ->
     it "allows pasting white space only lines when autoIndent is enabled", ->
