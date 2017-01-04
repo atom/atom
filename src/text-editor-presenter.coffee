@@ -1412,11 +1412,10 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   pauseCursorBlinking: ->
-    if @isCursorBlinking()
-      @stopBlinkingCursors(true)
-      @startBlinkingCursorsAfterDelay ?= _.debounce(@startBlinkingCursors, @getCursorBlinkResumeDelay())
-      @startBlinkingCursorsAfterDelay()
-      @emitDidUpdateState()
+    @stopBlinkingCursors(true)
+    @startBlinkingCursorsAfterDelay ?= _.debounce(@startBlinkingCursors, @getCursorBlinkResumeDelay())
+    @startBlinkingCursorsAfterDelay()
+    @emitDidUpdateState()
 
   requestAutoscroll: (position) ->
     @pendingScrollLogicalPosition = position
