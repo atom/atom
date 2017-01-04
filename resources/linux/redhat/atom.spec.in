@@ -8,7 +8,7 @@ AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 Prefix:         <%= installDir %>
 
 Requires: lsb-core-noarch
-%if 0%{?fedora} || 0%{?rhel}
+%if 0%{?rhel}%{?fedora}
 Requires: libXScrnSaver
 %else
 Requires: libXss1
