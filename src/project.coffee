@@ -225,11 +225,11 @@ class Project extends Model
       uri
     else
       if fs.isAbsolute(uri)
-        path.normalize(fs.absolute(uri))
+        path.normalize(fs.resolveHome(uri))
 
       # TODO: what should we do here when there are multiple directories?
       else if projectPath = @getPaths()[0]
-        path.normalize(fs.absolute(path.join(projectPath, uri)))
+        path.normalize(fs.resolveHome(path.join(projectPath, uri)))
       else
         undefined
 
