@@ -51,11 +51,11 @@ To also install the newly built application, use `--create-debian-package` or `-
 
 ### Fedora
 
-* `sudo dnf install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools libX11-devel libxkbfile-devel`
+* `sudo dnf install make gcc gcc-c++ glibc-devel git-all libgnome-keyring-devel rpmdevtools libX11-devel libxkbfile-devel`
 
 ### RHEL / CentOS
 
-* `sudo yum install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools libX11-devel libxkbfile-devel`
+* `sudo yum install make gcc gcc-c++ glibc-devel git-all libgnome-keyring-devel rpmdevtools libX11-devel libxkbfile-devel`
 
 ### Arch
 
