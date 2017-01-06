@@ -35,10 +35,8 @@ KeymapManager::loadUserKeymap = ->
   return unless fs.isFileSync(userKeymapPath)
 
   try
-    errorLoading = false
     @loadKeymap(userKeymapPath, watch: true, suppressErrors: true, priority: 100)
   catch error
-    errorLoading = true
     if error.message.indexOf('Unable to watch path') > -1
       message = """
         Unable to watch path: `#{path.basename(userKeymapPath)}`. Make sure you
@@ -54,7 +52,7 @@ KeymapManager::loadUserKeymap = ->
       stack = error.stack
       @notificationManager.addFatalError(error.message, {detail, stack, dismissable: true})
 
-  @emitter.emit 'did-load-user-keymap' unless errorLoading
+  @emitter.emit 'did-load-user-keymap'
 
 
 KeymapManager::subscribeToFileReadFailure = ->
