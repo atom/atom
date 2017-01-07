@@ -58,21 +58,18 @@ describe('AtomApplication', function () {
       await focusWindow(window)
 
       const addProjectPathFn = function (dir) {
-        return 'function (sendBackToMainProcess) { atom.project.addPath("' + dir + '"); sendBackToMainProcess(null); }'
+        return 'function (sendBackToMainProcess) { atom.project.addPath(' + JSON.stringify(dir) + '); sendBackToMainProcess(null); }'
       }
       const removeProjectPathFn = function (dir) {
-        return 'function (sendBackToMainProcess) { atom.project.removePath("' + dir + '"); sendBackToMainProcess(null); }'
+        return 'function (sendBackToMainProcess) { atom.project.removePath(' + JSON.stringify(dir) + '); sendBackToMainProcess(null); }'
       }
 
       atomApplication.saveState = mockSaveState
       await evalInWebContents(window.browserWindow.webContents, addProjectPathFn(dirA))
-      await conditionPromise(() => cnt === 1)
       assert.equal(cnt, 1)
       await evalInWebContents(window.browserWindow.webContents, addProjectPathFn(dirB))
-      await conditionPromise(() => cnt === 2)
       assert.equal(cnt, 2)
       await evalInWebContents(window.browserWindow.webContents, removeProjectPathFn(dirA))
-      await conditionPromise(() => cnt === 3)
       assert.equal(cnt, 3)
     })
   })
