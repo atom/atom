@@ -47,6 +47,13 @@ describe('AtomApplication', function () {
       const dirB = makeTempDir()
       const atomApplication = buildAtomApplication()
 
+      let cnt = 0
+      const origSaveState = atomApplication.saveState
+      const mockSaveState = function () {
+        cnt++
+        origSaveState.apply(atomApplication, arguments)
+      }
+
       const window = atomApplication.launch(parseCommandLine([]))
       await focusWindow(window)
 
@@ -57,20 +64,13 @@ describe('AtomApplication', function () {
         return 'function (sendBackToMainProcess) { atom.project.removePath("' + dir + '"); sendBackToMainProcess(null); }'
       }
 
+      atomApplication.saveState = mockSaveState
       await evalInWebContents(window.browserWindow.webContents, addProjectPathFn(dirA))
-
-      const appState1 = JSON.parse(fs.readFileSync(path.join(process.env.ATOM_HOME, 'storage', 'application.json'), 'utf8'))
-      assert.deepEqual(appState1[0].initialPaths, [dirA])
-      
+      assert.equal(cnt, 1)
       await evalInWebContents(window.browserWindow.webContents, addProjectPathFn(dirB))
-
-      const appState2 = JSON.parse(fs.readFileSync(path.join(process.env.ATOM_HOME, 'storage', 'application.json'), 'utf8'))
-      assert.deepEqual(appState2[0].initialPaths, [dirA, dirB])
-      
+      assert.equal(cnt, 2)
       await evalInWebContents(window.browserWindow.webContents, removeProjectPathFn(dirA))
-      
-      const appState3 = JSON.parse(fs.readFileSync(path.join(process.env.ATOM_HOME, 'storage', 'application.json'), 'utf8'))
-      assert.deepEqual(appState3[0].initialPaths, [dirB])
+      assert.equal(cnt, 3)
     })
   })
 
