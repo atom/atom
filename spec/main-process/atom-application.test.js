@@ -66,10 +66,13 @@ describe('AtomApplication', function () {
 
       atomApplication.saveState = mockSaveState
       await evalInWebContents(window.browserWindow.webContents, addProjectPathFn(dirA))
+      await conditionPromise(() => cnt === 1)
       assert.equal(cnt, 1)
       await evalInWebContents(window.browserWindow.webContents, addProjectPathFn(dirB))
+      await conditionPromise(() => cnt === 2)
       assert.equal(cnt, 2)
       await evalInWebContents(window.browserWindow.webContents, removeProjectPathFn(dirA))
+      await conditionPromise(() => cnt === 3)
       assert.equal(cnt, 3)
     })
   })
