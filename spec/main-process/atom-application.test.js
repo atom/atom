@@ -45,6 +45,7 @@ describe('AtomApplication', function () {
     it('sync application state on changes', async function () {
       const dirA = makeTempDir()
       const dirB = makeTempDir()
+      const storageFilePath = path.join(process.env.ATOM_HOME, 'storage', 'application.json')
       const atomApplication = buildAtomApplication()
 
       const window = atomApplication.launch(parseCommandLine([]))
@@ -59,19 +60,19 @@ describe('AtomApplication', function () {
 
       await evalInWebContents(window.browserWindow.webContents, addProjectPathFn(dirA))
 
-      assert( fs.existsSync(path.join(process.env.ATOM_HOME, 'storage', 'application.json')), 'ATOM_HOME/storage/application.json not exists' )
+      assert( fs.existsSync(storageFilePath), 'ATOM_HOME/storage/application.json not exists' )
 
-      const appState1 = JSON.parse(fs.readFileSync(path.join(process.env.ATOM_HOME, 'storage', 'application.json'), 'utf8'))
+      const appState1 = JSON.parse(fs.readFileSync(storageFilePath, 'utf8'))
       assert.deepEqual(appState1[0].initialPaths, [dirA])
       
       await evalInWebContents(window.browserWindow.webContents, addProjectPathFn(dirB))
 
-      const appState2 = JSON.parse(fs.readFileSync(path.join(process.env.ATOM_HOME, 'storage', 'application.json'), 'utf8'))
+      const appState2 = JSON.parse(fs.readFileSync(storageFilePath, 'utf8'))
       assert.deepEqual(appState2[0].initialPaths, [dirA, dirB])
       
       await evalInWebContents(window.browserWindow.webContents, removeProjectPathFn(dirA))
 
-      const appState3 = JSON.parse(fs.readFileSync(path.join(process.env.ATOM_HOME, 'storage', 'application.json'), 'utf8'))
+      const appState3 = JSON.parse(fs.readFileSync(storageFilePath, 'utf8'))
       assert.deepEqual(appState3[0].initialPaths, [dirB])      
     })
   })
