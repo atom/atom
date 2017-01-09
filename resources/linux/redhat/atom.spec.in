@@ -7,12 +7,7 @@ URL:            https://atom.io/
 AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 Prefix:         <%= installDir %>
 
-Requires: lsb-core-noarch
-%if 0%{?fedora} || 0%{?rhel}
-Requires: libXScrnSaver
-%else
-Requires: libXss1
-%endif
+Requires: lsb-core-noarch, libXss.so.1
 
 %description
 <%= description %>
