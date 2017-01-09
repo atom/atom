@@ -284,13 +284,13 @@ class AtomEnvironment extends Model
     @workspace.addOpener (uri) =>
       switch uri
         when 'atom://.atom/stylesheet'
-          @workspace.open(@styles.getUserStyleSheetPath())
+          @workspace.openTextFile(@styles.getUserStyleSheetPath())
         when 'atom://.atom/keymap'
-          @workspace.open(@keymaps.getUserKeymapPath())
+          @workspace.openTextFile(@keymaps.getUserKeymapPath())
         when 'atom://.atom/config'
-          @workspace.open(@config.getUserConfigPath())
+          @workspace.openTextFile(@config.getUserConfigPath())
         when 'atom://.atom/init-script'
-          @workspace.open(@getUserInitScriptPath())
+          @workspace.openTextFile(@getUserInitScriptPath())
 
   registerDefaultTargetForKeymaps: ->
     @keymaps.defaultTarget = @views.getView(@workspace)
