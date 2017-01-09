@@ -41,6 +41,42 @@ describe('AtomApplication', function () {
     electron.app.quit = originalAppQuit
   })
 
+  describe('project paths', function () {
+    it('sync application state on changes', async function () {
+      const dirA = makeTempDir()
+      const dirB = makeTempDir()
+      const storageFilePath = path.join(process.env.ATOM_HOME, 'storage', 'application.json')
+      const atomApplication = buildAtomApplication()
+
+      const window = atomApplication.launch(parseCommandLine([]))
+      await focusWindow(window)
+
+      const addProjectPathFn = function (dir) {
+        return 'function (sendBackToMainProcess) { atom.project.addPath(' + JSON.stringify(dir) + '); sendBackToMainProcess(null); }'
+      }
+      const removeProjectPathFn = function (dir) {
+        return 'function (sendBackToMainProcess) { atom.project.removePath(' + JSON.stringify(dir) + '); sendBackToMainProcess(null); }'
+      }
+
+      await evalInWebContents(window.browserWindow.webContents, addProjectPathFn(dirA))
+
+      assert( fs.existsSync(storageFilePath), 'ATOM_HOME/storage/application.json not exists' )
+
+      const appState1 = JSON.parse(fs.readFileSync(storageFilePath, 'utf8'))
+      assert.deepEqual(appState1[0].initialPaths, [dirA])
+      
+      await evalInWebContents(window.browserWindow.webContents, addProjectPathFn(dirB))
+
+      const appState2 = JSON.parse(fs.readFileSync(storageFilePath, 'utf8'))
+      assert.deepEqual(appState2[0].initialPaths, [dirA, dirB])
+      
+      await evalInWebContents(window.browserWindow.webContents, removeProjectPathFn(dirA))
+
+      const appState3 = JSON.parse(fs.readFileSync(storageFilePath, 'utf8'))
+      assert.deepEqual(appState3[0].initialPaths, [dirB])      
+    })
+  })
+
   describe('launch', function () {
     it('can open to a specific line number of a file', async function () {
       const filePath = path.join(makeTempDir(), 'new-file')

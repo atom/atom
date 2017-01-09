@@ -385,6 +385,9 @@ class AtomApplication
       @fileRecoveryService.didSavePath(@atomWindowForEvent(event), path)
       event.returnValue = true
 
+    @disposable.add ipcHelpers.on ipcMain, 'did-change-paths', =>
+      @saveState(false)
+
   setupDockMenu: ->
     if process.platform is 'darwin'
       dockMenu = Menu.buildFromTemplate [
