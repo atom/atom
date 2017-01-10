@@ -8,6 +8,7 @@
 'atom-text-editor:not([mini])':
   # Atom Specific
   'ctrl-C': 'editor:copy-path'
+  'ctrl-alt-d': 'editor:insert-date'
 
   # Sublime Parity
   'tab': 'editor:indent'
