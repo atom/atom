@@ -5191,6 +5191,22 @@ describe "TextEditor", ->
       """
       expect(editor.getSelectedBufferRange()).toEqual [[13, 0], [14, 2]]
 
+  describe ".duplicateSelections()", ->
+    it "duplicates the current selected text", ->
+      editor.setSelectedBufferRange([[1, 6], [1, 10]], preserveFolds: true)
+      editor.addSelectionForBufferRange([[4, 15], [4, 15]], preserveFolds: true)
+      editor.addSelectionForBufferRange([[8, 11], [8, 22]], preserveFolds: true)
+
+      editor.duplicateSelections()
+
+      [selection1, selection2, selection3] = editor.getSelections()
+      expect(buffer.lineForRow(1)).toEqual('  var sortsort = function(items) {')
+      expect(selection1.getBufferRange()).toEqual [[1, 10], [1, 14]]
+      expect(buffer.lineForRow(4)).toEqual('    while(items.length > 0) {')
+      expect(selection2.getBufferRange()).toEqual [[4, 15], [4, 15]]
+      expect(buffer.lineForRow(8)).toEqual('    return sort(left).sort(left).concat(pivot).concat(sort(right));')
+      expect(selection3.getBufferRange()).toEqual [[8, 22], [8, 33]]
+
   describe ".shouldPromptToSave()", ->
     it "returns true when buffer changed", ->
       jasmine.unspy(editor, 'shouldPromptToSave')

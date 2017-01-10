@@ -1297,6 +1297,19 @@ class TextEditor extends Model
           @displayLayer.foldBufferRange(foldRange.translate([delta, 0]))
       return
 
+  # Duplicate the selections.
+  duplicateSelections: ->
+    @transact =>
+      for selection in @getSelectionsOrderedByBufferPosition().reverse()
+        continue if selection.isEmpty()
+
+        textToDuplicate = selection.getText()
+        selectedTextLength = textToDuplicate.length
+        selectedBufferRange = selection.getBufferRange()
+        @setTextInBufferRange([selectedBufferRange.start, selectedBufferRange.start], textToDuplicate)
+        newBufferRangeStart = [selectedBufferRange.start.row, selectedBufferRange.start.column + selectedTextLength]
+        selection.setBufferRange(selectedBufferRange.translate([0, selectedTextLength]))
+
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
     @mutateSelectedText (selection) ->
