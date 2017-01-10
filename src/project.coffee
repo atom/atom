@@ -70,7 +70,15 @@ class Project extends Model
   serialize: (options={}) ->
     deserializer: 'Project'
     paths: @getPaths()
-    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize({markerLayers: options.isUnloading is true}) if buffer.isRetained())
+    buffers: _.compact(@buffers.map (buffer) ->
+      if buffer.isRetained()
+        state = buffer.serialize({markerLayers: options.isUnloading is true})
+        # Skip saving large buffer text unless unloading to avoid blocking main thread
+        if not options.isUnloading and state.text.length > 2 * 1024 * 1024
+          delete state.text
+          delete state.digestWhenLastPersisted
+        state
+    )
 
   ###
   Section: Event Subscription
