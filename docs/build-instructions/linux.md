@@ -49,9 +49,13 @@ To also install the newly built application, use `--create-debian-package` or `-
   sudo update-alternatives --config gcc # choose gcc-5 from the list
   ```
 
-### Fedora / CentOS / RHEL
+### Fedora 22+
 
 * `sudo dnf --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools libX11-devel libxkbfile-devel`
+
+### Fedora 21 / CentOS / RHEL
+
+* `sudo yum install -y make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
 
 ### Arch
 
