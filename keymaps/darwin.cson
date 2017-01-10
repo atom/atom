@@ -1,6 +1,6 @@
 'body':
   # Apple specific
-  'cmd-q': 'application:quit'
+  'cmd-q': 'application:safeQuit'
   'cmd-h': 'application:hide'
   'cmd-alt-h': 'application:hide-other-applications'
   'cmd-m': 'application:minimize'
