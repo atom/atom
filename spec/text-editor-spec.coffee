@@ -1728,6 +1728,7 @@ describe "TextEditor", ->
         expect(editor.getSelections()[0].getText()).toBe('one')
         expect(editor.getSelections()[1].getText()).toBe('two-two')
 
+    # TODO: rename to selectToFirstCharacterOfScreenLine
     describe ".selectToFirstCharacterOfLine()", ->
       it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->
         editor.setCursorScreenPosition [0, 5]

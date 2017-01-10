@@ -120,6 +120,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'editor:move-to-end-of-screen-line': -> @moveToEndOfScreenLine()
     'editor:move-to-end-of-line': -> @moveToEndOfLine()
     'editor:move-to-first-character-of-line': -> @moveToFirstCharacterOfLine()
+    'editor:move-to-first-character-of-screen-line': -> @moveToFirstCharacterOfScreenLine()
     'editor:move-to-beginning-of-word': -> @moveToBeginningOfWord()
     'editor:move-to-end-of-word': -> @moveToEndOfWord()
     'editor:move-to-beginning-of-next-word': -> @moveToBeginningOfNextWord()
@@ -129,8 +130,19 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'editor:move-to-next-subword-boundary': -> @moveToNextSubwordBoundary()
     'editor:select-to-beginning-of-next-paragraph': -> @selectToBeginningOfNextParagraph()
     'editor:select-to-beginning-of-previous-paragraph': -> @selectToBeginningOfPreviousParagraph()
-    'editor:select-to-end-of-line': -> @selectToEndOfLine()
+    # TODO: cleanup
+    # Original
+    # 'editor:select-to-end-of-line': -> @selectToEndOfLine()
+    # 'editor:select-to-beginning-of-line': -> @selectToBeginningOfLine()
+
     'editor:select-to-beginning-of-line': -> @selectToBeginningOfLine()
+    'editor:select-to-first-character-of-line': -> @selectToFirstCharacterOfLine()
+    'editor:select-to-beginning-of-screen-line': -> @selectToBeginningOfScreenLine()
+    'editor:select-to-first-character-of-screen-line': -> @selectToFirstCharacterOfScreenLine()
+
+    'editor:select-to-end-of-line': -> @selectToEndOfLine()
+    'editor:select-to-end-of-screen-line': -> @selectToEndOfScreenLine()
+
     'editor:select-to-end-of-word': -> @selectToEndOfWord()
     'editor:select-to-beginning-of-word': -> @selectToBeginningOfWord()
     'editor:select-to-beginning-of-next-word': -> @selectToBeginningOfNextWord()
@@ -138,7 +150,6 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'editor:select-to-previous-word-boundary': -> @selectToPreviousWordBoundary()
     'editor:select-to-next-subword-boundary': -> @selectToNextSubwordBoundary()
     'editor:select-to-previous-subword-boundary': -> @selectToPreviousSubwordBoundary()
-    'editor:select-to-first-character-of-line': -> @selectToFirstCharacterOfLine()
     'editor:select-line': -> @selectLinesContainingCursors()
   )
 

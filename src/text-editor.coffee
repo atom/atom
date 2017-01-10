@@ -2157,13 +2157,19 @@ class TextEditor extends Model
   moveToBeginningOfLine: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfLine()
 
+  # Essential: Move every cursor to the first non-whitespace character of its
+  # line.
+  moveToFirstCharacterOfLine: ->
+    @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
+
   # Essential: Move every cursor to the beginning of its line in screen coordinates.
   moveToBeginningOfScreenLine: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfScreenLine()
 
-  # Essential: Move every cursor to the first non-whitespace character of its line.
-  moveToFirstCharacterOfLine: ->
-    @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
+  # Essential: Move every cursor to the first non-whitespace character of its
+  # screen line.
+  moveToFirstCharacterOfScreenLine: ->
+    @moveCursors (cursor) -> cursor.moveToFirstCharacterOfScreenLine()
 
   # Essential: Move every cursor to the end of its line in buffer coordinates.
   moveToEndOfLine: ->
@@ -2506,12 +2512,25 @@ class TextEditor extends Model
   selectAll: ->
     @expandSelectionsForward (selection) -> selection.selectAll()
 
+  # TODO: cleanup
+
+
+
+
+
   # Essential: Move the cursor of each selection to the beginning of its line
   # while preserving the selection's tail position.
   #
   # This method may merge selections that end up intesecting.
   selectToBeginningOfLine: ->
     @expandSelectionsBackward (selection) -> selection.selectToBeginningOfLine()
+
+  # Essential: Move the cursor of each selection to the beginning of its screen line
+  # while preserving the selection's tail position.
+  #
+  # This method may merge selections that end up intesecting.
+  selectToBeginningOfScreenLine: ->
+    @expandSelectionsBackward (selection) -> selection.selectToBeginningOfScreenLine()
 
   # Essential: Move the cursor of each selection to the first non-whitespace
   # character of its line while preserving the selection's tail position. If the
@@ -2522,12 +2541,33 @@ class TextEditor extends Model
   selectToFirstCharacterOfLine: ->
     @expandSelectionsBackward (selection) -> selection.selectToFirstCharacterOfLine()
 
+  # Essential: Move the cursor of each selection to the first non-whitespace
+  # character of its screen line while preserving the selection's tail position. If the
+  # cursor is already on the first character of the screen line, move it to the
+  # beginning of the screen line.
+  #
+  # This method may merge selections that end up intersecting.
+  selectToFirstCharacterOfScreenLine: ->
+    @expandSelectionsBackward (selection) -> selection.selectToFirstCharacterOfScreenLine()
+
   # Essential: Move the cursor of each selection to the end of its line while
   # preserving the selection's tail position.
   #
   # This method may merge selections that end up intersecting.
   selectToEndOfLine: ->
     @expandSelectionsForward (selection) -> selection.selectToEndOfLine()
+
+  # Essential: Move the cursor of each selection to the end of its screen line while
+  # preserving the selection's tail position.
+  #
+  # This method may merge selections that end up intersecting.
+  selectToEndOfScreenLine: ->
+    @expandSelectionsForward (selection) -> selection.selectToEndOfScreenLine()
+
+
+
+
+
 
   # Essential: Expand selections to the beginning of their containing word.
   #

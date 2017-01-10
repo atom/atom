@@ -1,9 +1,10 @@
 'atom-text-editor':
   # Platform Bindings
-  'home': 'editor:move-to-first-character-of-line'
+  # TODO: make home and end select the buffer or screen line? Originally screen. Check atom#2894
+  'home': 'editor:move-to-first-character-of-screen-line'
   'end': 'editor:move-to-end-of-screen-line'
-  'shift-home': 'editor:select-to-first-character-of-line'
-  'shift-end': 'editor:select-to-end-of-line'
+  'shift-home': 'editor:select-to-first-character-of-screen-line'
+  'shift-end': 'editor:select-to-end-of-screen-line'
 
 'atom-text-editor:not([mini])':
   # Atom Specific
