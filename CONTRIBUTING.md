@@ -459,4 +459,4 @@ Please open an issue on `atom/atom` if you have suggestions for new labels, and 
 [search-atom-org-label-needs-testing]: https://github.com/pulls?q=is%3Aopen+is%3Apr+user%3Aatom+label%3Aneeds-testing
 
 [beginner]:https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+label%3Abeginner+label%3Ahelp-wanted+user%3Aatom+sort%3Acomments-desc
-[help-wanted]:https://github.com/issues?q=is%3Aopen+is%3Aissue+label%3Ahelp-wanted+user%3Aatom+sort%3Acomments-desc
+[help-wanted]:https://github.com/issues?q=is%3Aopen+is%3Aissue+label%3Ahelp-wanted+user%3Aatom+sort%3Acomments-desc+-label%3Abeginner
