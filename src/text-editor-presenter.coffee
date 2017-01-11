@@ -494,7 +494,10 @@ class TextEditorPresenter
     return
 
   updateLineNumberGutterState: ->
-    @lineNumberGutter.maxLineNumberDigits = @model.getLineCount().toString().length
+    @lineNumberGutter.maxLineNumberDigits = Math.max(
+      2,
+      @model.getLineCount().toString().length
+    )
 
   updateCommonGutterState: ->
     @sharedGutterStyles.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
