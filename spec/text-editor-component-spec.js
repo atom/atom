@@ -566,7 +566,7 @@ describe('TextEditorComponent', function () {
           editor.setSoftWrapped(true)
           runAnimationFrames()
 
-          componentNode.style.width = 16 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
+          componentNode.style.width = 17 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
           component.measureDimensions()
           runAnimationFrames()
         })
@@ -935,13 +935,17 @@ describe('TextEditorComponent', function () {
     })
 
     it('pads line numbers to be right-justified based on the maximum number of line number digits', function () {
-      editor.getBuffer().setText([1, 2, 3, 4, 5, 6, 7, 8, 9, 10].join('\n'))
+      const input = [];
+      for (let i = 1; i <= 100; ++i) {
+        input.push(i);
+      }
+      editor.getBuffer().setText(input.join('\n'))
       runAnimationFrames()
 
       for (let screenRow = 0; screenRow <= 8; ++screenRow) {
-        expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe('' + NBSP + (screenRow + 1))
+        expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe('' + NBSP + NBSP + (screenRow + 1))
       }
-      expect(component.lineNumberNodeForScreenRow(9).textContent).toBe('10')
+      expect(component.lineNumberNodeForScreenRow(99).textContent).toBe('100')
       let gutterNode = componentNode.querySelector('.gutter')
       let initialGutterWidth = gutterNode.offsetWidth
       editor.getBuffer().delete([[1, 0], [2, 0]])
@@ -949,7 +953,7 @@ describe('TextEditorComponent', function () {
       runAnimationFrames()
 
       for (let screenRow = 0; screenRow <= 8; ++screenRow) {
-        expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe('' + (screenRow + 1))
+        expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe('' + NBSP + (screenRow + 1))
       }
       expect(gutterNode.offsetWidth).toBeLessThan(initialGutterWidth)
       editor.getBuffer().insert([0, 0], '\n\n')
@@ -957,9 +961,9 @@ describe('TextEditorComponent', function () {
       runAnimationFrames()
 
       for (let screenRow = 0; screenRow <= 8; ++screenRow) {
-        expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe('' + NBSP + (screenRow + 1))
+        expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe('' + NBSP + NBSP + (screenRow + 1))
       }
-      expect(component.lineNumberNodeForScreenRow(9).textContent).toBe('10')
+      expect(component.lineNumberNodeForScreenRow(99).textContent).toBe('100')
       expect(gutterNode.offsetWidth).toBe(initialGutterWidth)
     })
 

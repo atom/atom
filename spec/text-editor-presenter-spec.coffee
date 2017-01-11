@@ -2819,7 +2819,7 @@ describe "TextEditorPresenter", ->
             expect(getLineNumberGutterState(presenter).content.maxLineNumberDigits).toBe 2
 
             editor.setText("1\n2\n3")
-            expect(getLineNumberGutterState(presenter).content.maxLineNumberDigits).toBe 1
+            expect(getLineNumberGutterState(presenter).content.maxLineNumberDigits).toBe 2
 
         describe ".content.tiles", ->
           lineNumberStateForScreenRow = (presenter, screenRow) ->
