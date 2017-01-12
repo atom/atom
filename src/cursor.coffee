@@ -653,9 +653,6 @@ class Cursor extends Model
     fn()
     @autoscroll() if options.autoscroll ? @isLastCursor()
 
-  getPixelRect: ->
-    @editor.pixelRectForScreenRange(@getScreenRange())
-
   getScreenRange: ->
     {row, column} = @getScreenPosition()
     new Range(new Point(row, column), new Point(row, column + 1))
