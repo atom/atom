@@ -150,7 +150,10 @@ class AtomWindow
       @browserWindow.destroy() if chosen is 0
 
     @browserWindow.webContents.on 'crashed', =>
-      @atomApplication.exit(100) if @headless
+      if @headless
+        console.log "Renderer process crashed, exiting"
+        @atomApplication.exit(100)
+        return
 
       @fileRecoveryService.didCrashWindow(this)
       chosen = dialog.showMessageBox @browserWindow,
