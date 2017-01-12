@@ -78,8 +78,8 @@ export default class BufferedProcess {
         })
     }
 
-    // The command itself is quoted if it contains spaces, &, ^ or | chars
-    cmdArgs.unshift(/\s|&|\^|\(|\)|\|/.test(command) ? `\"${command}\"` : command)
+    // The command itself is quoted if it contains spaces, &, ^, | or # chars
+    cmdArgs.unshift(/\s|&|\^|\(|\)|\||#/.test(command) ? `\"${command}\"` : command)
 
     const cmdOptions = _.clone(options)
     cmdOptions.windowsVerbatimArguments = true
