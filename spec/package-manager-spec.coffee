@@ -546,8 +546,9 @@ describe "PackageManager", ->
       waitsFor -> activatedPackage?
       runs -> expect(activatedPackage.name).toBe 'package-with-main'
 
-    describe "when the package throws an error while loading", ->
+    describe "when the package's main module throws an error on load", ->
       it "adds a notification instead of throwing an exception", ->
+        spyOn(atom, 'inSpecMode').andReturn(false)
         atom.config.set("core.disabledPackages", [])
         addErrorHandler = jasmine.createSpy()
         atom.notifications.onDidAddNotification(addErrorHandler)
@@ -555,6 +556,11 @@ describe "PackageManager", ->
         expect(addErrorHandler.callCount).toBe 1
         expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-that-throws-an-exception package")
         expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-that-throws-an-exception"
+
+      it "re-throws the exception in test mode", ->
+        atom.config.set("core.disabledPackages", [])
+        addErrorHandler = jasmine.createSpy()
+        expect(-> atom.packages.activatePackage("package-that-throws-an-exception")).toThrow("This package throws an exception")
 
     describe "when the package is not found", ->
       it "rejects the promise", ->
