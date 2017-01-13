@@ -22,7 +22,7 @@ class AutoUpdateManager
   setupAutoUpdater: ->
     if process.platform is 'win32'
       archSuffix = if process.arch is 'ia32' then '' else '-' + process.arch
-      @feedUrl = "https://atom.io/api/updates#{archSuffix}"
+      @feedUrl = "https://atom.io/api/updates#{archSuffix}?version=#{@version}"
       autoUpdater = require './auto-updater-win32'
     else
       @feedUrl = "https://atom.io/api/updates?version=#{@version}"
