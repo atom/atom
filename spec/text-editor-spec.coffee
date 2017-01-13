@@ -5160,7 +5160,7 @@ describe "TextEditor", ->
       expect(editor.lineTextForScreenRow(7)).toBe "    while(items.length > 0) {" + editor.displayLayer.foldCharacter
       expect(editor.lineTextForScreenRow(8)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
 
-    it "duplicates all folded lines for empty selections on folded lines", ->
+    it "duplicates all folded lines for empty selections on lines containing folds", ->
       editor.foldBufferRow(4)
       editor.setCursorBufferPosition([4, 0])
 
@@ -5190,6 +5190,38 @@ describe "TextEditor", ->
         };
       """
       expect(editor.getSelectedBufferRange()).toEqual [[13, 0], [14, 2]]
+
+    it "only duplicates lines containing multiple selections once", ->
+      editor.setText("""
+        aaaaaa
+        bbbbbb
+        cccccc
+        dddddd
+      """)
+      editor.setSelectedBufferRanges([
+        [[0, 1], [0, 2]],
+        [[0, 3], [0, 4]],
+        [[2, 1], [2, 2]],
+        [[2, 3], [3, 1]],
+        [[3, 3], [3, 4]],
+      ])
+      editor.duplicateLines()
+      expect(editor.getText()).toBe("""
+        aaaaaa
+        aaaaaa
+        bbbbbb
+        cccccc
+        dddddd
+        cccccc
+        dddddd
+      """)
+      expect(editor.getSelectedBufferRanges()).toEqual([
+        [[1, 1], [1, 2]],
+        [[1, 3], [1, 4]],
+        [[5, 1], [5, 2]],
+        [[5, 3], [6, 1]],
+        [[6, 3], [6, 4]],
+      ])
 
   describe ".shouldPromptToSave()", ->
     it "returns true when buffer changed", ->

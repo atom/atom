@@ -1272,30 +1272,44 @@ class TextEditor extends Model
 
         @setSelectedBufferRanges(translatedRanges)
 
-  # Duplicate the most recent cursor's current line.
   duplicateLines: ->
     @transact =>
-      for selection in @getSelectionsOrderedByBufferPosition().reverse()
-        selectedBufferRange = selection.getBufferRange()
-        if selection.isEmpty()
-          {start} = selection.getScreenRange()
-          selection.setScreenRange([[start.row, 0], [start.row + 1, 0]], preserveFolds: true)
+      selections = @getSelectionsOrderedByBufferPosition()
+      previousSelectionRanges = []
 
-        [startRow, endRow] = selection.getBufferRowRange()
+      i = selections.length - 1
+      while i >= 0
+        j = i
+        previousSelectionRanges[i] = selections[i].getBufferRange()
+        if selections[i].isEmpty()
+          {start} = selections[i].getScreenRange()
+          selections[i].setScreenRange([[start.row, 0], [start.row + 1, 0]], preserveFolds: true)
+        [startRow, endRow] = selections[i].getBufferRowRange()
         endRow++
+        while i > 0
+          [previousSelectionStartRow, previousSelectionEndRow] = selections[i - 1].getBufferRowRange()
+          if previousSelectionEndRow is startRow
+            startRow = previousSelectionStartRow
+            previousSelectionRanges[i - 1] = selections[i - 1].getBufferRange()
+            i--
+          else
+            break
 
         intersectingFolds = @displayLayer.foldsIntersectingBufferRange([[startRow, 0], [endRow, 0]])
-        rangeToDuplicate = [[startRow, 0], [endRow, 0]]
-        textToDuplicate = @getTextInBufferRange(rangeToDuplicate)
+        textToDuplicate = @getTextInBufferRange([[startRow, 0], [endRow, 0]])
         textToDuplicate = '\n' + textToDuplicate if endRow > @getLastBufferRow()
         @buffer.insert([endRow, 0], textToDuplicate)
 
-        delta = endRow - startRow
-        selection.setBufferRange(selectedBufferRange.translate([delta, 0]))
+        insertedRowCount = endRow - startRow
+
+        for k in [i..j] by 1
+          selections[k].setBufferRange(previousSelectionRanges[k].translate([insertedRowCount, 0]))
+
         for fold in intersectingFolds
           foldRange = @displayLayer.bufferRangeForFold(fold)
-          @displayLayer.foldBufferRange(foldRange.translate([delta, 0]))
-      return
+          @displayLayer.foldBufferRange(foldRange.translate([insertedRowCount, 0]))
+
+        i--
 
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
