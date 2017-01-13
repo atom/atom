@@ -27,12 +27,12 @@ describe "PackageManager", ->
         apmPath += ".cmd"
       expect(atom.packages.getApmPath()).toBe apmPath
 
-      describe "when the core.apmPath setting is set", ->
-        beforeEach ->
-          atom.config.set("core.apmPath", "/path/to/apm")
+    describe "when the core.apmPath setting is set", ->
+      beforeEach ->
+        atom.config.set("core.apmPath", "/path/to/apm")
 
-        it "returns the value of the core.apmPath config setting", ->
-          expect(atom.packages.getApmPath()).toBe "/path/to/apm"
+      it "returns the value of the core.apmPath config setting", ->
+        expect(atom.packages.getApmPath()).toBe "/path/to/apm"
 
   describe "::loadPackages()", ->
     beforeEach ->
