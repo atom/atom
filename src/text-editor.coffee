@@ -1275,6 +1275,7 @@ class TextEditor extends Model
   # Duplicate the most recent cursor's current line.
   duplicateLines: ->
     @transact =>
+      @processedRanges = {}
       for selection in @getSelectionsOrderedByBufferPosition().reverse()
         selectedBufferRange = selection.getBufferRange()
         if selection.isEmpty()
@@ -1283,13 +1284,18 @@ class TextEditor extends Model
 
         [startRow, endRow] = selection.getBufferRowRange()
         endRow++
+  
+        # If we already processed a selection in the current line, don't reinsert the line again.
+        @rangeKey = "#{startRow}, #{endRow}"
+        if @processedRanges[@rangeKey] is undefined
+          intersectingFolds = @displayLayer.foldsIntersectingBufferRange([[startRow, 0], [endRow, 0]])
+          rangeToDuplicate = [[startRow, 0], [endRow, 0]]
+          textToDuplicate = @getTextInBufferRange(rangeToDuplicate)
+          textToDuplicate = '\n' + textToDuplicate if endRow > @getLastBufferRow()
+          @buffer.insert([endRow, 0], textToDuplicate)
+          @processedRanges[@rangeKey] = 1
 
-        intersectingFolds = @displayLayer.foldsIntersectingBufferRange([[startRow, 0], [endRow, 0]])
-        rangeToDuplicate = [[startRow, 0], [endRow, 0]]
-        textToDuplicate = @getTextInBufferRange(rangeToDuplicate)
-        textToDuplicate = '\n' + textToDuplicate if endRow > @getLastBufferRow()
-        @buffer.insert([endRow, 0], textToDuplicate)
-
+        # Whether or not we skipped duplicating the line, make sure the new line has the right selection.
         delta = endRow - startRow
         selection.setBufferRange(selectedBufferRange.translate([delta, 0]))
         for fold in intersectingFolds
