@@ -12,7 +12,7 @@ const configSchema = {
     properties: {
       ignoredNames: {
         type: 'array',
-        default: ['.git', '.hg', '.svn', '.DS_Store', '._*', 'Thumbs.db'],
+        default: ['.git', '.hg', '.svn', '.DS_Store', '._*', 'Thumbs.db', 'desktop.ini'],
         items: {
           type: 'string'
         },
@@ -85,6 +85,8 @@ const configSchema = {
         default: 'utf8',
         enum: [
           'cp437',
+          'cp850',
+          'cp866',
           'eucjp',
           'euckr',
           'gbk',
@@ -117,14 +119,23 @@ const configSchema = {
           'windows1255',
           'windows1256',
           'windows1257',
-          'windows1258',
-          'windows866'
+          'windows1258'
         ]
       },
       openEmptyEditorOnStart: {
-        description: 'Automatically open an empty editor on startup.',
+        description: 'When checked opens an untitled editor when loading a blank environment (such as with _File > New Window_ or when "Restore Previous Windows On Start" is unchecked); otherwise no editor is opened when loading a blank environment. This setting has no effect when restoring a previous state.',
         type: 'boolean',
         default: true
+      },
+      restorePreviousWindowsOnStart: {
+        description: 'When checked restores the last state of all Atom windows when started from the icon or `atom` by itself from the command line; otherwise a blank environment is loaded.',
+        type: 'boolean',
+        default: true
+      },
+      reopenProjectMenuCount: {
+        description: 'How many recent projects to show in the Reopen Project menu.',
+        type: 'integer',
+        default: 15
       },
       automaticallyUpdate: {
         description: 'Automatically update Atom when a new release is available.',
@@ -159,7 +170,7 @@ const configSchema = {
       warnOnLargeFileLimit: {
         description: 'Warn before opening files larger than this number of megabytes.',
         type: 'number',
-        default: 20
+        default: 40
       }
     }
   },

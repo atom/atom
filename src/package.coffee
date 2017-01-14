@@ -6,6 +6,7 @@ CSON = require 'season'
 fs = require 'fs-plus'
 {Emitter, CompositeDisposable} = require 'event-kit'
 
+CompileCache = require './compile-cache'
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 BufferedProcess = require './buffered-process'
@@ -23,6 +24,7 @@ class Package
   mainModulePath: null
   resolvedMainModulePath: false
   mainModule: null
+  mainInitialized: false
   mainActivated: false
 
   ###
@@ -86,6 +88,7 @@ class Package
         @loadStylesheets()
         @registerDeserializerMethods()
         @activateCoreStartupServices()
+        @registerTranspilerConfig()
         @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
         @settingsPromise = @loadSettings()
         if @shouldRequireMainModuleOnLoad() and not @mainModule?
@@ -93,6 +96,9 @@ class Package
       catch error
         @handleError("Failed to load the #{@name} package", error)
     this
+
+  unload: ->
+    @unregisterTranspilerConfig()
 
   shouldRequireMainModuleOnLoad: ->
     not (
@@ -109,7 +115,23 @@ class Package
     @menus = []
     @grammars = []
     @settings = []
+    @mainInitialized = false
     @mainActivated = false
+
+  initializeIfNeeded: ->
+    return if @mainInitialized
+    @measure 'initializeTime', =>
+      try
+        # The main module's `initialize()` method is guaranteed to be called
+        # before its `activate()`. This gives you a chance to handle the
+        # serialized package state before the package's derserializers and view
+        # providers are used.
+        @requireMainModule() unless @mainModule?
+        @mainModule.initialize?(@packageManager.getPackageState(@name) ? {})
+        @mainInitialized = true
+      catch error
+        @handleError("Failed to initialize the #{@name} package", error)
+    return
 
   activate: ->
     @grammarsPromise ?= @loadGrammars()
@@ -135,10 +157,13 @@ class Package
       @registerViewProviders()
       @activateStylesheets()
       if @mainModule? and not @mainActivated
+        @initializeIfNeeded()
         @mainModule.activateConfig?()
         @mainModule.activate?(@packageManager.getPackageState(@name) ? {})
         @mainActivated = true
         @activateServices()
+      @activationCommandSubscriptions?.dispose()
+      @activationHookSubscriptions?.dispose()
     catch error
       @handleError("Failed to activate the #{@name} package", error)
 
@@ -247,6 +272,14 @@ class Package
           @activationDisposables.add @packageManager.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
     return
 
+  registerTranspilerConfig: ->
+    if @metadata.atomTranspilers
+      CompileCache.addTranspilerConfigForPath(@path, @name, @metadata, @metadata.atomTranspilers)
+
+  unregisterTranspilerConfig: ->
+    if @metadata.atomTranspilers
+      CompileCache.removeTranspilerConfigForPath(@path)
+
   loadKeymaps: ->
     if @bundledPackage and @packageManager.packagesCache[@name]?
       @keymaps = (["#{@packageManager.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of @packageManager.packagesCache[@name].keymaps)
@@ -288,6 +321,7 @@ class Package
           deserialize: (state, atomEnvironment) =>
             @registerViewProviders()
             @requireMainModule()
+            @initializeIfNeeded()
             @mainModule[methodName](state, atomEnvironment)
       return
 
@@ -305,6 +339,7 @@ class Package
       @requireMainModule()
       @metadata.viewProviders.forEach (methodName) =>
         @viewRegistry.addViewProvider (model) =>
+          @initializeIfNeeded()
           @mainModule[methodName](model)
       @registeredViewProviders = true
 
@@ -407,6 +442,7 @@ class Package
         @mainModule?.deactivate?()
         @mainModule?.deactivateConfig?()
         @mainActivated = false
+        @mainInitialized = false
       catch e
         console.error "Error deactivating package '#{@name}'", e.stack
     @emitter.emit 'did-deactivate'

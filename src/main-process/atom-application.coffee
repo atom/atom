@@ -34,7 +34,7 @@ class AtomApplication
     unless options.socketPath?
       if process.platform is 'win32'
         userNameSafe = new Buffer(process.env.USERNAME).toString('base64')
-        options.socketPath = "\\\\.\\pipe\\atom-#{options.version}-#{userNameSafe}-sock"
+        options.socketPath = "\\\\.\\pipe\\atom-#{options.version}-#{userNameSafe}-#{process.arch}-sock"
       else
         options.socketPath = path.join(os.tmpdir(), "atom-#{options.version}-#{process.env.USER}.sock")
 
@@ -63,7 +63,7 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @logFile, @setPortable, @userDataDir} = options
+    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @logFile, @userDataDir} = options
     @socketPath = null if options.test or options.benchmark or options.benchmarkTest
     @pidsToOpenWindows = {}
     @windows = []
@@ -99,7 +99,6 @@ class AtomApplication
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
     @listenForArgumentsFromNewProcess()
-    @setupJavaScriptArguments()
     @setupDockMenu()
 
     @launch(options)
@@ -207,10 +206,6 @@ class AtomApplication
         # which is why this check is here.
         throw error unless error.code is 'ENOENT'
 
-  # Configures required javascript environment flags.
-  setupJavaScriptArguments: ->
-    app.commandLine.appendSwitch 'js-flags', '--harmony'
-
   # Registers basic application commands, non-idempotent.
   handleEvents: ->
     getLoadSettings = =>
@@ -284,6 +279,12 @@ class AtomApplication
 
     @disposable.add ipcHelpers.on ipcMain, 'restart-application', =>
       @restart()
+
+    @disposable.add ipcHelpers.on ipcMain, 'did-change-history-manager', (event) =>
+      for atomWindow in @windows
+        webContents = atomWindow.browserWindow.webContents
+        if webContents isnt event.sender
+          webContents.send('did-change-history-manager')
 
     # A request from the associated render process to open a new render process.
     @disposable.add ipcHelpers.on ipcMain, 'open', (event, options) =>
@@ -389,6 +390,9 @@ class AtomApplication
     @disposable.add ipcHelpers.on ipcMain, 'did-save-path', (event, path) =>
       @fileRecoveryService.didSavePath(@atomWindowForEvent(event), path)
       event.returnValue = true
+
+    @disposable.add ipcHelpers.on ipcMain, 'did-change-paths', =>
+      @saveState(false)
 
   setupDockMenu: ->
     if process.platform is 'darwin'
@@ -514,7 +518,7 @@ class AtomApplication
   openPaths: ({initialPaths, pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window, clearWindowState, addToLastWindow, env}={}) ->
     if not pathsToOpen? or pathsToOpen.length is 0
       return
-
+    env = process.env unless env?
     devMode = Boolean(devMode)
     safeMode = Boolean(safeMode)
     clearWindowState = Boolean(clearWindowState)
@@ -801,7 +805,6 @@ class AtomApplication
   restart: ->
     args = []
     args.push("--safe") if @safeMode
-    args.push("--portable") if @setPortable
     args.push("--log-file=#{@logFile}") if @logFile?
     args.push("--socket-path=#{@socketPath}") if @socketPath?
     args.push("--user-data-dir=#{@userDataDir}") if @userDataDir?

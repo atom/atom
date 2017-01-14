@@ -11,24 +11,31 @@ const spawnSync = require('./spawn-sync')
 const CONFIG = require('../config')
 
 module.exports = function (packagedAppPath, codeSign) {
+  const archSuffix = process.arch === 'ia32' ? '' : '-' + process.arch
   const options = {
     appDirectory: packagedAppPath,
     authors: 'GitHub Inc.',
     iconUrl: `https://raw.githubusercontent.com/atom/atom/master/resources/app-icons/${CONFIG.channel}/atom.ico`,
     loadingGif: path.join(CONFIG.repositoryRootPath, 'resources', 'win', 'loading.gif'),
     outputDirectory: CONFIG.buildOutputPath,
-    remoteReleases: `https://atom.io/api/updates?version=${CONFIG.appMetadata.version}`,
+    remoteReleases: `https://atom.io/api/updates${archSuffix}`,
     setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
   }
 
   const certPath = path.join(os.tmpdir(), 'win.p12')
-  const signing = codeSign && process.env.WIN_P12KEY_URL
+  const signing = codeSign && process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL
+
   if (signing) {
-    downloadFileFromGithub(process.env.WIN_P12KEY_URL, certPath)
-    options.certificateFile = certPath
-    options.certificatePassword = process.env.WIN_P12KEY_PASSWORD
+    downloadFileFromGithub(process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
+    var signParams = []
+    signParams.push(`/f ${certPath}`) // Signing cert file
+    signParams.push(`/p ${process.env.ATOM_WIN_CODE_SIGNING_CERT_PASSWORD}`) // Signing cert password
+    signParams.push('/fd sha256') // File digest algorithm
+    signParams.push('/tr http://timestamp.digicert.com') // Time stamp server
+    signParams.push('/td sha256') // Times stamp algorithm
+    options.signWithParams = signParams.join(' ')
   } else {
-    console.log('Skipping code-signing. Specify the --code-sign option and provide a WIN_P12KEY_URL environment variable to perform code-signing'.gray)
+    console.log('Skipping code-signing. Specify the --code-sign option and provide a ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL environment variable to perform code-signing'.gray)
   }
 
   const cleanUp = function () {
@@ -50,10 +57,10 @@ module.exports = function (packagedAppPath, codeSign) {
     if (signing) {
       for (let nupkgPath of glob.sync(`${CONFIG.buildOutputPath}/*-full.nupkg`)) {
         if (nupkgPath.includes(CONFIG.appMetadata.version)) {
+          nupkgPath = path.resolve(nupkgPath) // Switch from forward-slash notation
           console.log(`Extracting signed executables from ${nupkgPath} for use in portable zip`)
-          var atomOutPath = path.join(path.dirname(packagedAppPath), 'Atom')
-          spawnSync('7z.exe', ['e', nupkgPath, 'lib\\net45\\*.exe', '-aoa'], {cwd: atomOutPath})
-          spawnSync(process.env.COMSPEC, ['/c', `move /y ${path.join(atomOutPath, 'squirrel.exe')} ${path.join(atomOutPath, 'update.exe')}`])
+          spawnSync('7z.exe', ['e', nupkgPath, 'lib\\net45\\*.exe', '-aoa', `-o${packagedAppPath}`])
+          spawnSync(process.env.COMSPEC, ['/c', 'move', '/y', path.join(packagedAppPath, 'squirrel.exe'), path.join(packagedAppPath, 'update.exe')])
           return
         }
       }

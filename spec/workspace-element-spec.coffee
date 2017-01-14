@@ -4,6 +4,9 @@ temp = require('temp').track()
 {Disposable} = require 'event-kit'
 
 describe "WorkspaceElement", ->
+  afterEach ->
+    temp.cleanupSync()
+
   describe "when the workspace element is focused", ->
     it "transfers focus to the active pane", ->
       workspaceElement = atom.views.getView(atom.workspace)

@@ -299,7 +299,7 @@ describe "TextEditor", ->
 
         it "positions the cursor at the buffer position that corresponds to the given screen position", ->
           editor.setCursorScreenPosition([9, 0])
-          expect(editor.getCursorBufferPosition()).toEqual [8, 10]
+          expect(editor.getCursorBufferPosition()).toEqual [8, 11]
 
     describe ".moveUp()", ->
       it "moves the cursor up", ->
@@ -4325,15 +4325,17 @@ describe "TextEditor", ->
         expect(editor.getLastSelection().isEmpty()).toBeTruthy()
 
       it "does not explode if the current language mode has no comment regex", ->
-        editor.destroy()
+        editor = new TextEditor(buffer: new TextBuffer(text: 'hello'))
+        editor.setSelectedBufferRange([[0, 0], [0, 5]])
+        editor.toggleLineCommentsInSelection()
+        expect(editor.lineTextForBufferRow(0)).toBe "hello"
 
-        waitsForPromise ->
-          atom.workspace.open(null, autoIndent: false).then (o) -> editor = o
-
+      it "does nothing for empty lines and null grammar", ->
         runs ->
-          editor.setSelectedBufferRange([[4, 5], [4, 5]])
+          editor.setGrammar(atom.grammars.grammarForScopeName('text.plain.null-grammar'))
+          editor.setCursorBufferPosition([10, 0])
           editor.toggleLineCommentsInSelection()
-          expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
+          expect(editor.buffer.lineForRow(10)).toBe ""
 
       it "uncomments when the line lacks the trailing whitespace in the comment regex", ->
         editor.setCursorBufferPosition([10, 0])
@@ -4860,15 +4862,13 @@ describe "TextEditor", ->
         expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 2]]
 
   describe '.setTabLength(tabLength)', ->
-    it 'retokenizes the editor with the given tab length', ->
+    it 'clips atomic soft tabs to the given tab length', ->
       expect(editor.getTabLength()).toBe 2
-      leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> 'leading-whitespace' in token.scopes
-      expect(leadingWhitespaceTokens.length).toBe(3)
+      expect(editor.clipScreenPosition([5, 1], clipDirection: 'forward')).toEqual([5, 2])
 
       editor.setTabLength(6)
       expect(editor.getTabLength()).toBe 6
-      leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> 'leading-whitespace' in token.scopes
-      expect(leadingWhitespaceTokens.length).toBe(1)
+      expect(editor.clipScreenPosition([5, 1], clipDirection: 'forward')).toEqual([5, 6])
 
       changeHandler = jasmine.createSpy('changeHandler')
       editor.onDidChange(changeHandler)
@@ -5051,11 +5051,13 @@ describe "TextEditor", ->
 
   describe ".destroy()", ->
     it "destroys marker layers associated with the text editor", ->
+      buffer.retain()
       selectionsMarkerLayerId = editor.selectionsMarkerLayer.id
       foldsMarkerLayerId = editor.displayLayer.foldsMarkerLayer.id
       editor.destroy()
       expect(buffer.getMarkerLayer(selectionsMarkerLayerId)).toBeUndefined()
       expect(buffer.getMarkerLayer(foldsMarkerLayerId)).toBeUndefined()
+      buffer.release()
 
     it "notifies ::onDidDestroy observers when the editor is destroyed", ->
       destroyObserverCalled = false
@@ -5063,6 +5065,23 @@ describe "TextEditor", ->
 
       editor.destroy()
       expect(destroyObserverCalled).toBe true
+
+    it "does not blow up when query methods are called afterward", ->
+      editor.destroy()
+      editor.getGrammar()
+      editor.getLastCursor()
+      editor.lineTextForBufferRow(0)
+
+    it "emits the destroy event after destroying the editor's buffer", ->
+      events = []
+      editor.getBuffer().onDidDestroy ->
+        expect(editor.isDestroyed()).toBe(true)
+        events.push('buffer-destroyed')
+      editor.onDidDestroy ->
+        expect(buffer.isDestroyed()).toBe(true)
+        events.push('editor-destroyed')
+      editor.destroy()
+      expect(events).toEqual(['buffer-destroyed', 'editor-destroyed'])
 
   describe ".joinLines()", ->
     describe "when no text is selected", ->
@@ -5141,7 +5160,7 @@ describe "TextEditor", ->
       expect(editor.lineTextForScreenRow(7)).toBe "    while(items.length > 0) {" + editor.displayLayer.foldCharacter
       expect(editor.lineTextForScreenRow(8)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
 
-    it "duplicates all folded lines for empty selections on folded lines", ->
+    it "duplicates all folded lines for empty selections on lines containing folds", ->
       editor.foldBufferRow(4)
       editor.setCursorBufferPosition([4, 0])
 
@@ -5172,12 +5191,48 @@ describe "TextEditor", ->
       """
       expect(editor.getSelectedBufferRange()).toEqual [[13, 0], [14, 2]]
 
+    it "only duplicates lines containing multiple selections once", ->
+      editor.setText("""
+        aaaaaa
+        bbbbbb
+        cccccc
+        dddddd
+      """)
+      editor.setSelectedBufferRanges([
+        [[0, 1], [0, 2]],
+        [[0, 3], [0, 4]],
+        [[2, 1], [2, 2]],
+        [[2, 3], [3, 1]],
+        [[3, 3], [3, 4]],
+      ])
+      editor.duplicateLines()
+      expect(editor.getText()).toBe("""
+        aaaaaa
+        aaaaaa
+        bbbbbb
+        cccccc
+        dddddd
+        cccccc
+        dddddd
+      """)
+      expect(editor.getSelectedBufferRanges()).toEqual([
+        [[1, 1], [1, 2]],
+        [[1, 3], [1, 4]],
+        [[5, 1], [5, 2]],
+        [[5, 3], [6, 1]],
+        [[6, 3], [6, 4]],
+      ])
+
   describe ".shouldPromptToSave()", ->
-    it "returns false when an edit session's buffer is in use by more than one session", ->
+    it "returns true when buffer changed", ->
       jasmine.unspy(editor, 'shouldPromptToSave')
       expect(editor.shouldPromptToSave()).toBeFalsy()
       buffer.setText('changed')
       expect(editor.shouldPromptToSave()).toBeTruthy()
+
+    it "returns false when an edit session's buffer is in use by more than one session", ->
+      jasmine.unspy(editor, 'shouldPromptToSave')
+      buffer.setText('changed')
 
       editor2 = null
       waitsForPromise ->
@@ -5188,6 +5243,16 @@ describe "TextEditor", ->
         expect(editor.shouldPromptToSave()).toBeFalsy()
         editor2.destroy()
         expect(editor.shouldPromptToSave()).toBeTruthy()
+
+    it "returns false when close of a window requested and edit session opened inside project", ->
+      jasmine.unspy(editor, 'shouldPromptToSave')
+      buffer.setText('changed')
+      expect(editor.shouldPromptToSave(windowCloseRequested: true, projectHasPaths: true)).toBeFalsy()
+
+    it "returns true when close of a window requested and edit session opened without project", ->
+      jasmine.unspy(editor, 'shouldPromptToSave')
+      buffer.setText('changed')
+      expect(editor.shouldPromptToSave(windowCloseRequested: true, projectHasPaths: false)).toBeTruthy()
 
   describe "when the editor contains surrogate pair characters", ->
     it "correctly backspaces over them", ->

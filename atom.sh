@@ -55,27 +55,38 @@ if [ $EXPECT_OUTPUT ]; then
 fi
 
 if [ $OS == 'Mac' ]; then
+  if [ -L "$0" ]; then
+    SCRIPT="$(readlink "$0")"
+  else
+    SCRIPT="$0"
+  fi
+  ATOM_APP="$(dirname "$(dirname "$(dirname "$(dirname "$SCRIPT")")")")"
+  if [ "$ATOM_APP" == . ]; then
+    unset ATOM_APP
+  else
+    ATOM_PATH="$(dirname "$ATOM_APP")"
+    ATOM_APP_NAME="$(basename "$ATOM_APP")"
+  fi
+
   if [ -n "$BETA_VERSION" ]; then
-    ATOM_APP_NAME="Atom Beta.app"
     ATOM_EXECUTABLE_NAME="Atom Beta"
   else
-    ATOM_APP_NAME="Atom.app"
     ATOM_EXECUTABLE_NAME="Atom"
   fi
 
   if [ -z "${ATOM_PATH}" ]; then
-    # If ATOM_PATH isnt set, check /Applications and then ~/Applications for Atom.app
+    # If ATOM_PATH isn't set, check /Applications and then ~/Applications for Atom.app
     if [ -x "/Applications/$ATOM_APP_NAME" ]; then
       ATOM_PATH="/Applications"
     elif [ -x "$HOME/Applications/$ATOM_APP_NAME" ]; then
       ATOM_PATH="$HOME/Applications"
     else
-      # We havent found an Atom.app, use spotlight to search for Atom
+      # We haven't found an Atom.app, use spotlight to search for Atom
       ATOM_PATH="$(mdfind "kMDItemCFBundleIdentifier == 'com.github.atom'" | grep -v ShipIt | head -1 | xargs -0 dirname)"
 
       # Exit if Atom can't be found
       if [ ! -x "$ATOM_PATH/$ATOM_APP_NAME" ]; then
-        echo "Cannot locate Atom.app, it is usually located in /Applications. Set the ATOM_PATH environment variable to the directory containing Atom.app."
+        echo "Cannot locate ${ATOM_APP_NAME}, it is usually located in /Applications. Set the ATOM_PATH environment variable to the directory containing ${ATOM_APP_NAME}."
         exit 1
       fi
     fi

@@ -182,7 +182,7 @@ class Workspace extends Model
       projectPath = _.find projectPaths, (projectPath) ->
         itemPath is projectPath or itemPath?.startsWith(projectPath + path.sep)
     itemTitle ?= "untitled"
-    projectPath ?= projectPaths[0]
+    projectPath ?= if itemPath then path.dirname(itemPath) else null
     if projectPath?
       projectPath = fs.tildify(projectPath)
 
@@ -441,7 +441,7 @@ class Workspace extends Model
 
     # Avoid adding URLs as recent documents to work-around this Spotlight crash:
     # https://github.com/atom/atom/issues/10071
-    if uri? and not url.parse(uri).protocol?
+    if uri? and (not url.parse(uri).protocol? or process.platform is 'win32')
       @applicationDelegate.addRecentDocument(uri)
 
     pane = @paneContainer.paneForURI(uri) if searchAllPanes

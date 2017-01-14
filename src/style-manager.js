@@ -270,7 +270,8 @@ function transformDeprecatedShadowDOMSelectors (css, context) {
             }
           } else {
             if (previousNodeIsAtomTextEditor && node.type === 'pseudo' && node.value === '::shadow') {
-              selector.removeChild(node)
+              node.type = 'className'
+              node.value = '.editor'
               targetsAtomTextEditorShadow = true
             }
           }

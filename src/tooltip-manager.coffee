@@ -56,6 +56,7 @@ class TooltipManager
     {delay: {show: 1000, hide: 100}}
 
   constructor: ({@keymapManager, @viewRegistry}) ->
+    @tooltips = new Map()
 
   # Essential: Add a tooltip to the given element.
   #
@@ -129,18 +130,41 @@ class TooltipManager
 
     tooltip = new Tooltip(target, options, @viewRegistry)
 
+    if not @tooltips.has(target)
+      @tooltips.set(target, [])
+    @tooltips.get(target).push(tooltip)
+
     hideTooltip = ->
       tooltip.leave(currentTarget: target)
       tooltip.hide()
 
     window.addEventListener('resize', hideTooltip)
 
-    disposable = new Disposable ->
+    disposable = new Disposable =>
       window.removeEventListener('resize', hideTooltip)
       hideTooltip()
       tooltip.destroy()
 
+      if @tooltips.has(target)
+        tooltipsForTarget = @tooltips.get(target)
+        index = tooltipsForTarget.indexOf(tooltip)
+        if index isnt -1
+          tooltipsForTarget.splice(index, 1)
+        if tooltipsForTarget.length is 0
+          @tooltips.delete(target)
+
     disposable
+
+  # Extended: Find the tooltips that have been applied to the given element.
+  #
+  # * `target` The `HTMLElement` to find tooltips on.
+  #
+  # Returns an {Array} of `Tooltip` objects that match the `target`.
+  findTooltips: (target) ->
+    if @tooltips.has(target)
+      @tooltips.get(target).slice()
+    else
+      []
 
 humanizeKeystrokes = (keystroke) ->
   keystrokes = keystroke.split(' ')

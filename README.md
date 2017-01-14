@@ -1,6 +1,6 @@
 ![Atom](https://cloud.githubusercontent.com/assets/72919/2874231/3af1db48-d3dd-11e3-98dc-6066f8bc766f.png)
 
-[![macOS Build Status](https://circleci.com/gh/atom/atom.svg?style=svg)](https://circleci.com/gh/atom/atom) [![Linux Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/1tkktwh654w07eim?svg=true)](https://ci.appveyor.com/project/Atom/atom)
+[![macOS Build Status](https://circleci.com/gh/atom/atom/tree/master.svg?style=shield)](https://circleci.com/gh/atom/atom) [![Linux Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/1tkktwh654w07eim?svg=true)](https://ci.appveyor.com/project/Atom/atom)
 [![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom)
 [![Join the Atom Community on Slack](http://atom-slack.herokuapp.com/badge.svg)](http://atom-slack.herokuapp.com/)
 
@@ -33,15 +33,14 @@ Atom will automatically update when a new release is available.
 
 ### Windows
 
-Download the latest [AtomSetup.exe installer](https://github.com/atom/atom/releases/latest).
+Download the latest [Atom installer](https://github.com/atom/atom/releases/latest).  AtomSetup.exe is 32-bit, AtomSetup-x64.exe for 64-bit systems.
 
 Atom will automatically update when a new release is available.
 
-You can also download an `atom-windows.zip` file from the [releases page](https://github.com/atom/atom/releases/latest).
+You can also download `atom-windows.zip` (32-bit) or `atom-x64-windows.zip` (64-bit) from the [releases page](https://github.com/atom/atom/releases/latest).
 The `.zip` version will not automatically update.
 
-Using [chocolatey](https://chocolatey.org/)? Run `cinst Atom` to install
-the latest version of Atom.
+Using [chocolatey](https://chocolatey.org/)? Run `cinst Atom` to install the latest version of Atom.
 
 ### Debian Linux (Ubuntu)
 
@@ -97,3 +96,9 @@ repeat these steps to upgrade to future releases.
 * [macOS](./docs/build-instructions/macos.md)
 * [FreeBSD](./docs/build-instructions/freebsd.md)
 * [Windows](./docs/build-instructions/windows.md)
+
+## License
+
+[MIT](https://github.com/atom/atom/blob/master/LICENSE.md)
+
+When using the Atom or other GitHub logos, be sure to follow the [GitHub logo guidelines](https://github.com/logos).
