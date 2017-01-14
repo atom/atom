@@ -46,8 +46,11 @@ class AtomWindow
     if @shouldAddCustomTitleBar()
       options.titleBarStyle = 'hidden'
 
-    if @shouldHideTitleBar()
+    if @shouldAddCustomInsetTitleBar()
       options.titleBarStyle = 'hidden-inset'
+
+    if @shouldHideTitleBar()
+      options.frame = false
 
     @browserWindow = new BrowserWindow options
     @atomApplication.addWindow(this)
@@ -233,6 +236,11 @@ class AtomWindow
     not @isSpec and
     process.platform is 'darwin' and
     @atomApplication.config.get('core.titleBar') is 'custom'
+
+  shouldAddCustomInsetTitleBar: ->
+    not @isSpec and
+    process.platform is 'darwin' and
+    @atomApplication.config.get('core.titleBar') is 'custom-inset'
 
   shouldHideTitleBar: ->
     not @isSpec and

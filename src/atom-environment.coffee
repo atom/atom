@@ -698,6 +698,9 @@ class AtomEnvironment extends Model
         if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom'
           @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
           @document.body.classList.add('custom-title-bar')
+        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom-inset'
+          @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+          @document.body.classList.add('custom-inset-title-bar')
         if process.platform is 'darwin' and @config.get('core.titleBar') is 'hidden'
           @document.body.classList.add('hidden-title-bar')
 

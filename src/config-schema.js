@@ -360,8 +360,8 @@ if (process.platform === 'darwin') {
   configSchema.core.properties.titleBar = {
     type: 'string',
     default: 'native',
-    enum: ['native', 'custom', 'hidden'],
-    description: 'Use a custom, theme-aware title bar or hide the title bar altogether.<br>Note: Switching to a custom or hidden title bar will compromise some functionality.<br>This setting will require a relaunch of Atom to take effect.'
+    enum: ['native', 'custom', 'custom-inset', 'hidden'],
+    description: 'A `custom` title bar adapts to theme colors. Choosing `custom-inset` adds a bit more padding. The title bar can also be completely `hidden`.<br>Note: Switching to a custom or hidden title bar will compromise some functionality.<br>This setting will require a relaunch of Atom to take effect.'
   }
 }
 
