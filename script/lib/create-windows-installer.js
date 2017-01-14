@@ -22,6 +22,11 @@ module.exports = function (packagedAppPath, codeSign) {
     setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
   }
 
+  // Remove this once an x64 version is published or atom.io is returning blank instead of 404 for RELEASES-X64
+  if (process.arch === 'x64') {
+    options.remoteReleases = null
+  }
+
   const certPath = path.join(os.tmpdir(), 'win.p12')
   const signing = codeSign && process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL
 
