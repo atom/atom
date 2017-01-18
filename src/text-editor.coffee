@@ -892,7 +892,7 @@ class TextEditor extends Model
   # Determine whether the user should be prompted to save before closing
   # this editor.
   shouldPromptToSave: ({windowCloseRequested, projectHasPaths}={}) ->
-    if windowCloseRequested and projectHasPaths
+    if windowCloseRequested and projectHasPaths and atom.stateStore.isConnected
       false
     else
       @isModified() and not @buffer.hasMultipleEditors()

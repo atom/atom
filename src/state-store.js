@@ -10,10 +10,12 @@ class StateStore {
         db.createObjectStore('states')
       }
       dbOpenRequest.onsuccess = () => {
+        this.isConnected = true
         resolve(dbOpenRequest.result)
       }
       dbOpenRequest.onerror = (error) => {
         console.error('Could not connect to indexedDB', error)
+        this.isConnected = false
         resolve(null)
       }
     })
