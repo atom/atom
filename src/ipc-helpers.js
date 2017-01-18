@@ -15,6 +15,7 @@ exports.on = function (emitter, eventName, callback) {
 exports.call = function (channel, ...args) {
   if (!ipcRenderer) {
     ipcRenderer = require('electron').ipcRenderer
+    ipcRenderer.setMaxListeners(20)
   }
 
   var responseChannel = getResponseChannel(channel)
