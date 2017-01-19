@@ -27,12 +27,12 @@ describe "PackageManager", ->
         apmPath += ".cmd"
       expect(atom.packages.getApmPath()).toBe apmPath
 
-      describe "when the core.apmPath setting is set", ->
-        beforeEach ->
-          atom.config.set("core.apmPath", "/path/to/apm")
+    describe "when the core.apmPath setting is set", ->
+      beforeEach ->
+        atom.config.set("core.apmPath", "/path/to/apm")
 
-        it "returns the value of the core.apmPath config setting", ->
-          expect(atom.packages.getApmPath()).toBe "/path/to/apm"
+      it "returns the value of the core.apmPath config setting", ->
+        expect(atom.packages.getApmPath()).toBe "/path/to/apm"
 
   describe "::loadPackages()", ->
     beforeEach ->
@@ -57,11 +57,13 @@ describe "PackageManager", ->
       expect(pack.metadata.name).toBe "package-with-index"
 
     it "returns the package if it has an invalid keymap", ->
+      spyOn(atom, 'inSpecMode').andReturn(false)
       pack = atom.packages.loadPackage("package-with-broken-keymap")
       expect(pack instanceof Package).toBe true
       expect(pack.metadata.name).toBe "package-with-broken-keymap"
 
     it "returns the package if it has an invalid stylesheet", ->
+      spyOn(atom, 'inSpecMode').andReturn(false)
       pack = atom.packages.loadPackage("package-with-invalid-styles")
       expect(pack instanceof Package).toBe true
       expect(pack.metadata.name).toBe "package-with-invalid-styles"
@@ -75,6 +77,7 @@ describe "PackageManager", ->
       expect(addErrorHandler.argsForCall[1][0].options.packageName).toEqual "package-with-invalid-styles"
 
     it "returns null if the package has an invalid package.json", ->
+      spyOn(atom, 'inSpecMode').andReturn(false)
       addErrorHandler = jasmine.createSpy()
       atom.notifications.onDidAddNotification(addErrorHandler)
       expect(atom.packages.loadPackage("package-with-broken-package-json")).toBeNull()
@@ -107,6 +110,7 @@ describe "PackageManager", ->
 
     describe "when the package is deprecated", ->
       it "returns null", ->
+        spyOn(console, 'warn')
         expect(atom.packages.loadPackage(path.join(__dirname, 'fixtures', 'packages', 'wordcount'))).toBeNull()
         expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.9')).toBe true
         expect(atom.packages.isDeprecatedPackage('wordcount', '2.2.0')).toBe true
@@ -392,6 +396,7 @@ describe "PackageManager", ->
             expect(mainModule.activate.callCount).toBe 1
 
         it "adds a notification when the activation commands are invalid", ->
+          spyOn(atom, 'inSpecMode').andReturn(false)
           addErrorHandler = jasmine.createSpy()
           atom.notifications.onDidAddNotification(addErrorHandler)
           expect(-> atom.packages.activatePackage('package-with-invalid-activation-commands')).not.toThrow()
@@ -400,6 +405,7 @@ describe "PackageManager", ->
           expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-with-invalid-activation-commands"
 
         it "adds a notification when the context menu is invalid", ->
+          spyOn(atom, 'inSpecMode').andReturn(false)
           addErrorHandler = jasmine.createSpy()
           atom.notifications.onDidAddNotification(addErrorHandler)
           expect(-> atom.packages.activatePackage('package-with-invalid-context-menu')).not.toThrow()
@@ -546,8 +552,9 @@ describe "PackageManager", ->
       waitsFor -> activatedPackage?
       runs -> expect(activatedPackage.name).toBe 'package-with-main'
 
-    describe "when the package throws an error while loading", ->
+    describe "when the package's main module throws an error on load", ->
       it "adds a notification instead of throwing an exception", ->
+        spyOn(atom, 'inSpecMode').andReturn(false)
         atom.config.set("core.disabledPackages", [])
         addErrorHandler = jasmine.createSpy()
         atom.notifications.onDidAddNotification(addErrorHandler)
@@ -555,6 +562,11 @@ describe "PackageManager", ->
         expect(addErrorHandler.callCount).toBe 1
         expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-that-throws-an-exception package")
         expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-that-throws-an-exception"
+
+      it "re-throws the exception in test mode", ->
+        atom.config.set("core.disabledPackages", [])
+        addErrorHandler = jasmine.createSpy()
+        expect(-> atom.packages.activatePackage("package-that-throws-an-exception")).toThrow("This package throws an exception")
 
     describe "when the package is not found", ->
       it "rejects the promise", ->
@@ -893,6 +905,7 @@ describe "PackageManager", ->
 
   describe "::serialize", ->
     it "does not serialize packages that threw an error during activation", ->
+      spyOn(atom, 'inSpecMode').andReturn(false)
       spyOn(console, 'warn')
       badPack = null
       waitsForPromise ->
@@ -940,6 +953,7 @@ describe "PackageManager", ->
       atom.packages.unloadPackages()
 
     it "calls `deactivate` on the package's main module if activate was successful", ->
+      spyOn(atom, 'inSpecMode').andReturn(false)
       pack = null
       waitsForPromise ->
         atom.packages.activatePackage("package-with-deactivate").then (p) -> pack = p
@@ -1028,6 +1042,7 @@ describe "PackageManager", ->
 
   describe "::activate()", ->
     beforeEach ->
+      spyOn(atom, 'inSpecMode').andReturn(false)
       jasmine.snapshotDeprecations()
       spyOn(console, 'warn')
       atom.packages.loadPackages()
@@ -1042,6 +1057,7 @@ describe "PackageManager", ->
       jasmine.restoreDeprecationsSnapshot()
 
     it "sets hasActivatedInitialPackages", ->
+      spyOn(atom.styles, 'getUserStyleSheetPath').andReturn(null)
       spyOn(atom.packages, 'activatePackages')
       expect(atom.packages.hasActivatedInitialPackages()).toBe false
       waitsForPromise -> atom.packages.activate()

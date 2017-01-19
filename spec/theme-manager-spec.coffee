@@ -4,6 +4,7 @@ temp = require('temp').track()
 
 describe "atom.themes", ->
   beforeEach ->
+    spyOn(atom, 'inSpecMode').andReturn(false)
     spyOn(console, 'warn')
 
   afterEach ->
