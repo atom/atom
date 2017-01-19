@@ -107,8 +107,10 @@ class TextEditorElement extends HTMLElement
     @model ? @buildModel()
 
   buildModel: ->
+    newBuffer = new TextBuffer(@textContent)
+    newBuffer.setConfigCallbacks(-> atom.config.get('core.closeDeletedFileTabs')) if newBuffer.setConfigCallbacks?
     @setModel(@workspace.buildTextEditor(
-      buffer: new TextBuffer(@textContent)
+      buffer: newBuffer
       softWrapped: false
       tabLength: 2
       softTabs: true

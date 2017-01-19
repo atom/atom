@@ -160,6 +160,7 @@ class TextEditor extends Model
     @preferredLineLength ?= 80
 
     @buffer ?= new TextBuffer
+    @buffer.setConfigCallbacks(-> atom.config.get('core.closeDeletedFileTabs')) if @buffer.setConfigCallbacks?
     @tokenizedBuffer ?= new TokenizedBuffer({
       grammar, tabLength, @buffer, @largeFileMode, @assert
     })

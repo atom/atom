@@ -360,9 +360,13 @@ class Project extends Model
     else
       @buildBuffer(absoluteFilePath)
 
+  shouldDestroyBufferOnFileDelete: ->
+    atom.config.get('core.closeDeletedFileTabs')
+
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
     buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer.setConfigCallbacks(@shouldDestroyBufferOnFileDelete) if buffer.setConfigCallbacks?
     @addBuffer(buffer)
     buffer.loadSync()
     buffer
@@ -375,6 +379,7 @@ class Project extends Model
   # Returns a {Promise} that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
     buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer.setConfigCallbacks(@shouldDestroyBufferOnFileDelete) if buffer.setConfigCallbacks?
     @addBuffer(buffer)
     buffer.load()
       .then((buffer) -> buffer)
