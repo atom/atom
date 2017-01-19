@@ -63,7 +63,7 @@ export default class BufferedProcess {
     this.killed = false
   }
 
-  start() {
+  start () {
     if (this.started === true) return
 
     this.started = true
