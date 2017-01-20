@@ -71,14 +71,14 @@ describe "WorkspaceElement", ->
       atom.config.set('editor.fontSize', 12)
 
       # Zoom out
-      editorElement.dispatchEvent(new WheelEvent('mousewheel', {
+      editorElement.querySelector('span').dispatchEvent(new WheelEvent('mousewheel', {
         wheelDeltaY: -10,
         ctrlKey: true
       }))
       expect(atom.config.get('editor.fontSize')).toBe(11)
 
       # Zoom in
-      editorElement.dispatchEvent(new WheelEvent('mousewheel', {
+      editorElement.querySelector('span').dispatchEvent(new WheelEvent('mousewheel', {
         wheelDeltaY: 10,
         ctrlKey: true
       }))
@@ -92,13 +92,13 @@ describe "WorkspaceElement", ->
       expect(atom.config.get('editor.fontSize')).toBe(12)
 
       # No ctrl key
-      workspaceElement.dispatchEvent(new WheelEvent('mousewheel', {
+      editorElement.querySelector('span').dispatchEvent(new WheelEvent('mousewheel', {
         wheelDeltaY: 10,
       }))
       expect(atom.config.get('editor.fontSize')).toBe(12)
 
       atom.config.set('editor.zoomFontWhenCtrlScrolling', false)
-      editorElement.dispatchEvent(new WheelEvent('mousewheel', {
+      editorElement.querySelector('span').dispatchEvent(new WheelEvent('mousewheel', {
         wheelDeltaY: 10,
         ctrlKey: true
       }))
