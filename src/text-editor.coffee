@@ -67,6 +67,7 @@ class TextEditor extends Model
   buffer: null
   languageMode: null
   cursors: null
+  showCursorOnSelection: null
   selections: null
   suppressSelectionMerging: false
   selectionFlashDuration: 500
@@ -133,7 +134,8 @@ class TextEditor extends Model
       @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode,
       @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
       @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide,
-      @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength
+      @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength,
+      @showCursorOnSelection
     } = params
 
     @assert ?= (condition) -> condition
@@ -153,6 +155,7 @@ class TextEditor extends Model
     tabLength ?= 2
     @autoIndent ?= true
     @autoIndentOnPaste ?= true
+    @showCursorOnSelection ?= true
     @undoGroupingInterval ?= 300
     @nonWordCharacters ?= "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
     @softWrapped ?= false
@@ -342,6 +345,12 @@ class TextEditor extends Model
           if value isnt @autoWidth
             @autoWidth = value
             @presenter?.didChangeAutoWidth()
+
+        when 'showCursorOnSelection'
+          if value isnt @showCursorOnSelection
+            @showCursorOnSelection = value
+            cursor.setShowCursorOnSelection(value) for cursor in @getCursors()
+
         else
           throw new TypeError("Invalid TextEditor parameter: '#{param}'")
 
@@ -722,7 +731,7 @@ class TextEditor extends Model
       tabLength: @tokenizedBuffer.getTabLength(),
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
       @assert, displayLayer, grammar: @getGrammar(),
-      @autoWidth, @autoHeight
+      @autoWidth, @autoHeight, @showCursorOnSelection
     })
 
   # Controls visibility based on the given {Boolean}.
@@ -2269,7 +2278,7 @@ class TextEditor extends Model
 
   # Add a cursor based on the given {DisplayMarker}.
   addCursor: (marker) ->
-    cursor = new Cursor(editor: this, marker: marker)
+    cursor = new Cursor(editor: this, marker: marker, showCursorOnSelection: @showCursorOnSelection)
     @cursors.push(cursor)
     @cursorsByMarkerId.set(marker.id, cursor)
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line')
@@ -3465,6 +3474,11 @@ class TextEditor extends Model
   #
   # Returns a positive {Number}.
   getScrollSensitivity: -> @scrollSensitivity
+
+  # Experimental: Does this editor show cursors while there is a selection?
+  #
+  # Returns a positive {Boolean}.
+  getShowCursorOnSelection: -> @showCursorOnSelection
 
   # Experimental: Are line numbers enabled for this editor?
   #
