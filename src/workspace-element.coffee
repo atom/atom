@@ -102,7 +102,7 @@ class WorkspaceElement extends HTMLElement
   getModel: -> @model
 
   handleMousewheel: (event) ->
-    if event.ctrlKey and @config.get('editor.zoomFontWhenCtrlScrolling') and event.target.matches('atom-text-editor')
+    if event.ctrlKey and @config.get('editor.zoomFontWhenCtrlScrolling') and event.target.closest('atom-text-editor')?
       if event.wheelDeltaY > 0
         @model.increaseFontSize()
       else if event.wheelDeltaY < 0
