@@ -78,10 +78,16 @@ describe "LinesYardstick", ->
       expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 0))).toEqual({left: 0, top: 0})
       expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 1))).toEqual({left: 7, top: 0})
       expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 5))).toEqual({left: 38, top: 0})
-      if process.platform is 'darwin' # One pixel off on left on Win32
-        expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 6))).toEqual({left: 43, top: 14})
-        expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 9))).toEqual({left: 72, top: 14})
-        expect(linesYardstick.pixelPositionForScreenPosition(Point(2, Infinity))).toEqual({left: 287.875, top: 28})
+
+      switch process.platform
+        when 'darwin'
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 6))).toEqual({left: 43, top: 14})
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 9))).toEqual({left: 72, top: 14})
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(2, Infinity))).toEqual({left: 287.875, top: 28})
+        when 'win32'
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 6))).toEqual({left: 42, top: 14})
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 9))).toEqual({left: 71, top: 14})
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(2, Infinity))).toEqual({left: 280, top: 28})
 
     it "reuses already computed pixel positions unless it is invalidated", ->
       atom.styles.addStyleSheet """
@@ -134,28 +140,40 @@ describe "LinesYardstick", ->
 
       editor.setText(text)
 
-      return unless process.platform is 'darwin' # These numbers are 15 higher on win32 and always integer
-      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 35)).left).toBe 230.90625
-      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 36)).left).toBe 237.5
-      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 37)).left).toBe 244.09375
+      switch process.platform
+        when 'darwin'
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 35)).left).toBe 230.90625
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 36)).left).toBe 237.5
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 37)).left).toBe 244.09375
+        when 'win32'
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 35)).left).toBe 245
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 36)).left).toBe 252
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 37)).left).toBe 259
 
-    if process.platform is 'darwin' # Expectations fail on win32
-      it "handles lines containing a mix of left-to-right and right-to-left characters", ->
-        editor.setText('Persian, locally known as Parsi or Farsi (زبان فارسی), the predominant modern descendant of Old Persian.\n')
+    it "handles lines containing a mix of left-to-right and right-to-left characters", ->
+      editor.setText('Persian, locally known as Parsi or Farsi (زبان فارسی), the predominant modern descendant of Old Persian.\n')
 
-        atom.styles.addStyleSheet """
-        * {
-          font-size: 14px;
-          font-family: monospace;
-        }
-        """
+      atom.styles.addStyleSheet """
+      * {
+        font-size: 14px;
+        font-family: monospace;
+      }
+      """
 
-        lineTopIndex = new LineTopIndex({defaultLineHeight: editor.getLineHeightInPixels()})
-        linesYardstick = new LinesYardstick(editor, mockLineNodesProvider, lineTopIndex, atom.grammars)
-        expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 15))).toEqual({left: 126, top: 0})
-        expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 62))).toEqual({left: 521, top: 0})
-        expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 58))).toEqual({left: 487, top: 0})
-        expect(linesYardstick.pixelPositionForScreenPosition(Point(0, Infinity))).toEqual({left: 873.625, top: 0})
+      lineTopIndex = new LineTopIndex({defaultLineHeight: editor.getLineHeightInPixels()})
+      linesYardstick = new LinesYardstick(editor, mockLineNodesProvider, lineTopIndex, atom.grammars)
+
+      switch process.platform
+        when 'darwin'
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 15))).toEqual({left: 126, top: 0})
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 62))).toEqual({left: 521, top: 0})
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 58))).toEqual({left: 487, top: 0})
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, Infinity))).toEqual({left: 873.625, top: 0})
+        when 'win32'
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 15))).toEqual({left: 120, top: 0})
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 62))).toEqual({left: 496, top: 0})
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 58))).toEqual({left: 464, top: 0})
+          expect(linesYardstick.pixelPositionForScreenPosition(Point(0, Infinity))).toEqual({left: 832, top: 0})
 
   describe "::screenPositionForPixelPosition(pixelPosition)", ->
     it "converts pixel positions to screen positions", ->
@@ -176,9 +194,14 @@ describe "LinesYardstick", ->
       expect(linesYardstick.screenPositionForPixelPosition({top: 46, left: 66.5})).toEqual([3, 9])
       expect(linesYardstick.screenPositionForPixelPosition({top: 70, left: 99.9})).toEqual([5, 14])
       expect(linesYardstick.screenPositionForPixelPosition({top: 70, left: 225})).toEqual([5, 30])
-      return unless process.platform is 'darwin' # Following tests are 1 pixel off on Win32
-      expect(linesYardstick.screenPositionForPixelPosition({top: 70, left: 224.2365234375})).toEqual([5, 29])
-      expect(linesYardstick.screenPositionForPixelPosition({top: 84, left: 247.1})).toEqual([6, 33])
+
+      switch process.platform
+        when 'darwin'
+          expect(linesYardstick.screenPositionForPixelPosition({top: 70, left: 224.2365234375})).toEqual([5, 29])
+          expect(linesYardstick.screenPositionForPixelPosition({top: 84, left: 247.1})).toEqual([6, 33])
+        when 'win32'
+          expect(linesYardstick.screenPositionForPixelPosition({top: 70, left: 224.2365234375})).toEqual([5, 30])
+          expect(linesYardstick.screenPositionForPixelPosition({top: 84, left: 247.1})).toEqual([6, 34])
 
     it "overshoots to the nearest character when text nodes are not spatially contiguous", ->
       atom.styles.addStyleSheet """
