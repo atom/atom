@@ -159,8 +159,8 @@ class TextEditor extends Model
     @softWrapAtPreferredLineLength ?= false
     @preferredLineLength ?= 80
 
-    @buffer ?= new TextBuffer
-    @buffer.setConfigCallbacks(-> atom.config.get('core.closeDeletedFileTabs')) if @buffer.setConfigCallbacks?
+    @buffer ?= new TextBuffer({shouldDestroyOnFileDelete: ->
+      atom.config.get('core.closeDeletedFileTabs')})
     @tokenizedBuffer ?= new TokenizedBuffer({
       grammar, tabLength, @buffer, @largeFileMode, @assert
     })
