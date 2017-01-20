@@ -217,6 +217,11 @@ const configSchema = {
         default: 1.5,
         description: 'Height of editor lines, as a multiplier of font size.'
       },
+      showCursorOnSelection: {
+        type: 'boolean',
+        'default': true,
+        description: 'Show cursor while there is a selection.'
+      },
       showInvisibles: {
         type: 'boolean',
         default: false,

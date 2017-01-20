@@ -12,14 +12,17 @@ EmptyLineRegExp = /(\r\n[\t ]*\r\n)|(\n[\t ]*\n)/g
 # of a {DisplayMarker}.
 module.exports =
 class Cursor extends Model
+  showCursorOnSelection: null
   screenPosition: null
   bufferPosition: null
   goalColumn: null
   visible: true
 
   # Instantiated by a {TextEditor}
-  constructor: ({@editor, @marker, id}) ->
+  constructor: ({@editor, @marker, @showCursorOnSelection, id}) ->
     @emitter = new Emitter
+
+    @showCursorOnSelection ?= true
 
     @assignId(id)
     @updateVisibility()
@@ -575,7 +578,10 @@ class Cursor extends Model
   isVisible: -> @visible
 
   updateVisibility: ->
-    @setVisible(@marker.getBufferRange().isEmpty())
+    if @showCursorOnSelection
+      @setVisible(true)
+    else
+      @setVisible(@marker.getBufferRange().isEmpty())
 
   ###
   Section: Comparing to another cursor
@@ -644,6 +650,11 @@ class Cursor extends Model
   ###
   Section: Private
   ###
+
+  setShowCursorOnSelection: (value) ->
+    if value isnt @showCursorOnSelection
+      @showCursorOnSelection = value
+      @updateVisibility()
 
   getNonWordCharacters: ->
     @editor.getNonWordCharacters(@getScopeDescriptor().getScopesArray())

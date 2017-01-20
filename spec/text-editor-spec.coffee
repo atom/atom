@@ -89,7 +89,11 @@ describe "TextEditor", ->
 
   describe ".copy()", ->
     it "returns a different editor with the same initial state", ->
-      editor.update({autoHeight: false, autoWidth: true})
+      expect(editor.getAutoHeight()).toBeFalsy()
+      expect(editor.getAutoWidth()).toBeFalsy()
+      expect(editor.getShowCursorOnSelection()).toBeTruthy()
+
+      editor.update({autoHeight: true, autoWidth: true, showCursorOnSelection: false})
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
       editor.addSelectionForBufferRange([[5, 6], [7, 8]], reversed: true)
       editor.firstVisibleScreenRow = 5
@@ -105,7 +109,8 @@ describe "TextEditor", ->
       expect(editor2.getFirstVisibleScreenColumn()).toBe 5
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
       expect(editor2.getAutoWidth()).toBeTruthy()
-      expect(editor2.getAutoHeight()).toBeFalsy()
+      expect(editor2.getAutoHeight()).toBeTruthy()
+      expect(editor2.getShowCursorOnSelection()).toBeFalsy()
 
       # editor2 can now diverge from its origin edit session
       editor2.getLastSelection().setBufferRange([[2, 1], [4, 3]])
@@ -1858,7 +1863,7 @@ describe "TextEditor", ->
             [[4, 25], [4, 29]]
           ]
           for cursor in editor.getCursors()
-            expect(cursor.isVisible()).toBeFalsy()
+            expect(cursor.isVisible()).toBeTruthy()
 
         it "skips lines that are too short to create a non-empty selection", ->
           editor.setSelectedBufferRange([[3, 31], [3, 38]])
@@ -1991,7 +1996,7 @@ describe "TextEditor", ->
             [[2, 37], [2, 40]]
           ]
           for cursor in editor.getCursors()
-            expect(cursor.isVisible()).toBeFalsy()
+            expect(cursor.isVisible()).toBeTruthy()
 
         it "skips lines that are too short to create a non-empty selection", ->
           editor.setSelectedBufferRange([[6, 31], [6, 38]])
@@ -2160,6 +2165,54 @@ describe "TextEditor", ->
         makeSelection()
         editor.setCursorScreenPosition([3, 3])
         expect(selection.isEmpty()).toBeTruthy()
+
+    describe "cursor visibility while there is a selection", ->
+      describe "when showCursorOnSelection is true", ->
+        it "is visible while there is no selection", ->
+          expect(selection.isEmpty()).toBeTruthy()
+          expect(editor.getShowCursorOnSelection()).toBeTruthy()
+          expect(editor.getCursors().length).toBe 1
+          expect(editor.getCursors()[0].isVisible()).toBeTruthy()
+
+        it "is visible while there is a selection", ->
+          expect(selection.isEmpty()).toBeTruthy()
+          editor.setSelectedBufferRange([[1, 2], [1, 5]])
+          expect(selection.isEmpty()).toBeFalsy()
+          expect(editor.getCursors().length).toBe 1
+          expect(editor.getCursors()[0].isVisible()).toBeTruthy()
+
+        it "is visible while there are multiple selections", ->
+          expect(editor.getSelections().length).toBe 1
+          editor.setSelectedBufferRanges([[[1, 2], [1, 5]], [[2, 2], [2, 5]]])
+          expect(editor.getSelections().length).toBe 2
+          expect(editor.getCursors().length).toBe 2
+          expect(editor.getCursors()[0].isVisible()).toBeTruthy()
+          expect(editor.getCursors()[1].isVisible()).toBeTruthy()
+
+      describe "when showCursorOnSelection is false", ->
+        it "is visible while there is no selection", ->
+          editor.update({showCursorOnSelection: false})
+          expect(selection.isEmpty()).toBeTruthy()
+          expect(editor.getShowCursorOnSelection()).toBeFalsy()
+          expect(editor.getCursors().length).toBe 1
+          expect(editor.getCursors()[0].isVisible()).toBeTruthy()
+
+        it "is not visible while there is a selection", ->
+          editor.update({showCursorOnSelection: false})
+          expect(selection.isEmpty()).toBeTruthy()
+          editor.setSelectedBufferRange([[1, 2], [1, 5]])
+          expect(selection.isEmpty()).toBeFalsy()
+          expect(editor.getCursors().length).toBe 1
+          expect(editor.getCursors()[0].isVisible()).toBeFalsy()
+
+        it "is not visible while there are multiple selections", ->
+          editor.update({showCursorOnSelection: false})
+          expect(editor.getSelections().length).toBe 1
+          editor.setSelectedBufferRanges([[[1, 2], [1, 5]], [[2, 2], [2, 5]]])
+          expect(editor.getSelections().length).toBe 2
+          expect(editor.getCursors().length).toBe 2
+          expect(editor.getCursors()[0].isVisible()).toBeFalsy()
+          expect(editor.getCursors()[1].isVisible()).toBeFalsy()
 
     it "does not share selections between different edit sessions for the same buffer", ->
       editor2 = null

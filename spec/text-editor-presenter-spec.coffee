@@ -1583,6 +1583,7 @@ describe "TextEditorPresenter", ->
           getState(presenter).content.cursors[presenter.model.getCursors()[cursorIndex].id]
 
         it "contains pixelRects for empty selections that are visible on screen", ->
+          editor.update({showCursorOnSelection: false})
           editor.setSelectedBufferRanges([
             [[1, 2], [1, 2]],
             [[2, 4], [2, 4]],
@@ -1627,6 +1628,7 @@ describe "TextEditorPresenter", ->
           expect(getState(presenter).content.cursors).not.toEqual({})
 
         it "updates when block decorations change", ->
+          editor.update({showCursorOnSelection: false})
           editor.setSelectedBufferRanges([
             [[1, 2], [1, 2]],
             [[2, 4], [2, 4]],
@@ -1704,6 +1706,7 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 0)).toEqual {top: 20, left: 10 * 22, width: 10, height: 10}
 
         it "updates when ::explicitHeight changes", ->
+          editor.update({showCursorOnSelection: false})
           editor.setSelectedBufferRanges([
             [[1, 2], [1, 2]],
             [[2, 4], [2, 4]],
@@ -1757,6 +1760,7 @@ describe "TextEditorPresenter", ->
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 20, height: 10}
 
         it "updates when cursors are added, moved, hidden, shown, or destroyed", ->
+          editor.update({showCursorOnSelection: false})
           editor.setSelectedBufferRanges([
             [[1, 2], [1, 2]],
             [[3, 4], [3, 5]]
