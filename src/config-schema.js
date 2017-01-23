@@ -85,76 +85,48 @@ const configSchema = {
         default: 'utf8',
         enum: [
           {
-            value: 'utf8',
-            description: 'UTF-8'
-          },
-          {
-            value: 'utf16le',
-            description: 'UTF-16 LE'
-          },
-          {
-            value: 'utf16be',
-            description: 'UTF-16 BE'
-          },
-          {
-            value: 'windows1252',
-            description: 'Western (Windows 1252)'
-          },
-          {
-            value: 'iso88591',
-            description: 'Western (ISO 8859-1)'
-          },
-          {
-            value: 'iso88593',
-            description: 'Western (ISO 8859-3)'
-          },
-          {
-            value: 'iso885915',
-            description: 'Western (ISO 8859-15)'
-          },
-          {
-            value: 'macroman',
-            description: 'Western (Mac Roman)'
-          },
-          {
-            value: 'cp437',
-            description: 'DOS (CP 437)'
-          },
-          {
-            value: 'cp850',
-            description: 'DOS (CP 850)'
+            value: 'iso88596',
+            description: 'Arabic (ISO 8859-6)'
           },
           {
             value: 'windows1256',
             description: 'Arabic (Windows 1256)'
           },
           {
-            value: 'iso88596',
-            description: 'Arabic (ISO 8859-6)'
+            value: 'iso88594',
+            description: 'Baltic (ISO 8859-4)'
           },
           {
             value: 'windows1257',
             description: 'Baltic (Windows 1257)'
           },
           {
-            value: 'iso88594',
-            description: 'Baltic (ISO 8859-4)'
-          },
-          {
             value: 'iso885914',
             description: 'Celtic (ISO 8859-14)'
-          },
-          {
-            value: 'windows1250',
-            description: 'Central European (Windows 1250)'
           },
           {
             value: 'iso88592',
             description: 'Central European (ISO 8859-2)'
           },
           {
-            value: 'windows1251',
-            description: 'Cyrillic (Windows 1251)'
+            value: 'windows1250',
+            description: 'Central European (Windows 1250)'
+          },
+          {
+            value: 'gb18030',
+            description: 'Chinese (GB18030)'
+          },
+          {
+            value: 'gbk',
+            description: 'Chinese (GBK)'
+          },
+          {
+            value: 'cp950',
+            description: 'Traditional Chinese (Big5)'
+          },
+          {
+            value: 'big5hkscs',
+            description: 'Traditional Chinese (Big5-HKSCS)'
           },
           {
             value: 'cp866',
@@ -173,64 +145,36 @@ const configSchema = {
             description: 'Cyrillic (KOI8-U)'
           },
           {
-            value: 'iso885913',
-            description: 'Estonian (ISO 8859-13)'
+            value: 'windows1251',
+            description: 'Cyrillic (Windows 1251)'
           },
           {
-            value: 'windows1253',
-            description: 'Greek (Windows 1253)'
+            value: 'cp437',
+            description: 'DOS (CP 437)'
+          },
+          {
+            value: 'cp850',
+            description: 'DOS (CP 850)'
+          },
+          {
+            value: 'iso885913',
+            description: 'Estonian (ISO 8859-13)'
           },
           {
             value: 'iso88597',
             description: 'Greek (ISO 8859-7)'
           },
           {
-            value: 'windows1255',
-            description: 'Hebrew (Windows 1255)'
+            value: 'windows1253',
+            description: 'Greek (Windows 1253)'
           },
           {
             value: 'iso88598',
             description: 'Hebrew (ISO 8859-8)'
           },
           {
-            value: 'iso885910',
-            description: 'Nordic (ISO 8859-10)'
-          },
-          {
-            value: 'iso885916',
-            description: 'Romanian (ISO 8859-16)'
-          },
-          {
-            value: 'windows1254',
-            description: 'Turkish (Windows 1254)'
-          },
-          {
-            value: 'iso88599',
-            description: 'Turkish (ISO 8859-9)'
-          },
-          {
-            value: 'windows1258',
-            description: 'Vietnamese (Windows 1254)'
-          },
-          {
-            value: 'gbk',
-            description: 'Chinese (GBK)'
-          },
-          {
-            value: 'gb18030',
-            description: 'Chinese (GB18030)'
-          },
-          {
-            value: 'cp950',
-            description: 'Traditional Chinese (Big5)'
-          },
-          {
-            value: 'big5hkscs',
-            description: 'Traditional Chinese (Big5-HKSCS)'
-          },
-          {
-            value: 'shiftjis',
-            description: 'Japanese (Shift JIS)'
+            value: 'windows1255',
+            description: 'Hebrew (Windows 1255)'
           },
           {
             value: 'cp932',
@@ -241,8 +185,64 @@ const configSchema = {
             description: 'Japanese (EUC-JP)'
           },
           {
+            value: 'shiftjis',
+            description: 'Japanese (Shift JIS)'
+          },
+          {
             value: 'euckr',
             description: 'Korean (EUC-KR)'
+          },
+          {
+            value: 'iso885910',
+            description: 'Nordic (ISO 8859-10)'
+          },
+          {
+            value: 'iso885916',
+            description: 'Romanian (ISO 8859-16)'
+          },
+          {
+            value: 'iso88599',
+            description: 'Turkish (ISO 8859-9)'
+          },
+          {
+            value: 'windows1254',
+            description: 'Turkish (Windows 1254)'
+          },
+          {
+            value: 'utf8',
+            description: 'Unicode (UTF-8)'
+          },
+          {
+            value: 'utf16le',
+            description: 'Unicode (UTF-16 LE)'
+          },
+          {
+            value: 'utf16be',
+            description: 'Unicode (UTF-16 BE)'
+          },
+          {
+            value: 'windows1258',
+            description: 'Vietnamese (Windows 1254)'
+          },
+          {
+            value: 'iso88591',
+            description: 'Western (ISO 8859-1)'
+          },
+          {
+            value: 'iso88593',
+            description: 'Western (ISO 8859-3)'
+          },
+          {
+            value: 'iso885915',
+            description: 'Western (ISO 8859-15)'
+          },
+          {
+            value: 'macroman',
+            description: 'Western (Mac Roman)'
+          },
+          {
+            value: 'windows1252',
+            description: 'Western (Windows 1252)'
           }
         ]
       },
