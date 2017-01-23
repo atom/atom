@@ -98,6 +98,13 @@ describe('StyleManager', () => {
         ])
       })
 
+      it('does not transform CSS rules with invalid syntax', () => {
+        styleManager.addStyleSheet("atom-text-editor::shadow .class-1 { font-family: inval'id }")
+        expect(Array.from(styleManager.getStyleElements()[0].sheet.cssRules).map((r) => r.selectorText)).toEqual([
+          'atom-text-editor::shadow .class-1'
+        ])
+      })
+
       it('does not throw exceptions on rules with no selectors', () => {
         styleManager.addStyleSheet('@media screen {font-size: 10px}', {context: 'atom-text-editor'})
       })
