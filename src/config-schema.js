@@ -222,7 +222,7 @@ const configSchema = {
           },
           {
             value: 'windows1258',
-            description: 'Vietnamese (Windows 1254)'
+            description: 'Vietnamese (Windows 1258)'
           },
           {
             value: 'iso88591',
