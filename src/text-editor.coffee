@@ -2284,7 +2284,6 @@ class TextEditor extends Model
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line')
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
     @decorateMarker(marker, type: 'line', class: 'cursor-line', onlyEmpty: true)
-    @emitter.emit 'did-add-cursor', cursor
     cursor
 
   moveCursors: (fn) ->
@@ -2773,6 +2772,7 @@ class TextEditor extends Model
         if selection.intersectsBufferRange(selectionBufferRange)
           return selection
     else
+      @emitter.emit 'did-add-cursor', cursor
       @emitter.emit 'did-add-selection', selection
       selection
 
