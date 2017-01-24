@@ -61,6 +61,19 @@ export class HistoryManager {
     this.didChangeProjects()
   }
 
+  removeProject (paths) {
+    if (paths.length === 0) return
+
+    let project = this.getProject(paths)
+    if (!project) return
+
+    let index = this.projects.indexOf(project)
+    this.projects.splice(index, 1)
+
+    this.saveState()
+    this.didChangeProjects()
+  }
+
   getProject (paths) {
     for (var i = 0; i < this.projects.length; i++) {
       if (arrayEquivalent(paths, this.projects[i].paths)) {
