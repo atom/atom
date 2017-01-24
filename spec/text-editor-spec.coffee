@@ -1191,6 +1191,15 @@ describe "TextEditor", ->
         editor.getLastSelection().destroy()
         expect(editor.getLastSelection().getBufferRange()).toEqual([[0, 0], [0, 0]])
 
+      it "doesn't get stuck in a infinite loop when called from ::onDidAddCursor after the last selection has been destroyed (regression)", ->
+        callCount = 0
+        editor.getLastSelection().destroy()
+        editor.onDidAddCursor (cursor) ->
+          callCount++
+          editor.getLastSelection()
+        expect(editor.getLastSelection().getBufferRange()).toEqual([[0, 0], [0, 0]])
+        expect(callCount).toBe(1)
+
     describe ".getSelections()", ->
       it "creates a new selection at (0, 0) if the last selection has been destroyed", ->
         editor.getLastSelection().destroy()
