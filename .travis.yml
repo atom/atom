@@ -4,7 +4,7 @@ git:
 matrix:
   include:
     - os: linux
-      env: NODE_VERSION=4.4.7 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
+      env: NODE_VERSION=6.9.4 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
 
 sudo: false
 
