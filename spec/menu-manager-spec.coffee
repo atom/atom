@@ -62,7 +62,7 @@ describe "MenuManager", ->
       atom.keymaps.add 'test', 'atom-workspace': 'ctrl-b': 'b'
       menu.update()
 
-      waits 1
+      waits 50
 
       runs -> expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toEqual ['ctrl-b']
 
