@@ -24,12 +24,13 @@ module.exports = function (packagedAppPath, codeSign) {
 
   const signing = codeSign && (process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL || process.env.ATOM_WIN_CODE_SIGNING_CERT_PATH)
   let certPath = ATOM_WIN_CODE_SIGNING_CERT_PATH;
-  if (!certPath) {
-    certPath = path.join(os.tmpdir(), 'win.p12')
-    downloadFileFromGithub(process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
-  }
 
   if (signing) {
+    if (!certPath) {
+      certPath = path.join(os.tmpdir(), 'win.p12')
+      downloadFileFromGithub(process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
+    }
+
     var signParams = []
     signParams.push(`/f ${certPath}`) // Signing cert file
     signParams.push(`/p ${process.env.ATOM_WIN_CODE_SIGNING_CERT_PASSWORD}`) // Signing cert password
