@@ -2,7 +2,6 @@
 
 const assert = require('assert')
 const fs = require('fs-extra')
-const os = require('os')
 const path = require('path')
 const spawnSync = require('./spawn-sync')
 const template = require('lodash.template')

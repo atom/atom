@@ -27,8 +27,8 @@ function buildBundledPackagesMetadata () {
     const packagePath = path.join(CONFIG.intermediateAppPath, 'node_modules', packageName)
     const packageMetadataPath = path.join(packagePath, 'package.json')
     const packageMetadata = JSON.parse(fs.readFileSync(packageMetadataPath, 'utf8'))
-    normalizePackageData(packageMetadata, () => {
-      throw new Error(`Invalid package metadata. ${metadata.name}: ${msg}`)
+    normalizePackageData(packageMetadata, (msg) => {
+      throw new Error(`Invalid package metadata. ${packageName}: ${msg}`)
     }, true)
     if (packageMetadata.repository && packageMetadata.repository.url && packageMetadata.repository.type === 'git') {
       packageMetadata.repository.url = packageMetadata.repository.url.replace(/^git\+/, '')
@@ -118,7 +118,7 @@ function checkDeprecatedPackagesMetadata () {
   for (let packageName of Object.keys(deprecatedPackagesMetadata)) {
     const packageMetadata = deprecatedPackagesMetadata[packageName]
     if (packageMetadata.version && !semver.validRange(packageMetadata.version)) {
-      throw new Error(`Invalid range: ${version} (${name}).`)
+      throw new Error(`Invalid range: ${packageMetadata.version} (${packageName}).`)
     }
   }
 }

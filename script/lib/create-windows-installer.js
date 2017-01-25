@@ -53,7 +53,7 @@ module.exports = function (packagedAppPath, codeSign) {
   }
 
   // Squirrel signs its own copy of the executables but we need them for the portable ZIP
-  const extractSignedExes = function() {
+  const extractSignedExes = function () {
     if (signing) {
       for (let nupkgPath of glob.sync(`${CONFIG.buildOutputPath}/*-full.nupkg`)) {
         if (nupkgPath.includes(CONFIG.appMetadata.version)) {

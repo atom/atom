@@ -10,8 +10,9 @@ module.exports = function (packagedAppPath) {
     return
   }
 
+  // This declaration is outside of the try block because it is also used for the finally block
+  const certPath = path.join(os.tmpdir(), 'mac.p12')
   try {
-    const certPath = path.join(os.tmpdir(), 'mac.p12')
     downloadFileFromGithub(process.env.ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
 
     console.log(`Unlocking keychain ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN}`)

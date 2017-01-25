@@ -42,11 +42,11 @@ module.exports = function () {
           path.join(CONFIG.intermediateAppPath, 'node_modules', syntaxTheme, 'styles'),
           path.join(CONFIG.intermediateAppPath, 'node_modules', uiTheme, 'styles'),
           path.join(CONFIG.intermediateAppPath, 'static', 'variables'),
-          path.join(CONFIG.intermediateAppPath, 'static'),
+          path.join(CONFIG.intermediateAppPath, 'static')
         ]
       })
 
-      function cacheCompiledCSS(lessFilePath, importFallbackVariables) {
+      function cacheCompiledCSS (lessFilePath, importFallbackVariables) {
         let lessSource = fs.readFileSync(lessFilePath, 'utf8')
         if (importFallbackVariables) {
           lessSource = FALLBACK_VARIABLE_IMPORTS + lessSource
