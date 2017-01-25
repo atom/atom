@@ -49,7 +49,7 @@ function verifyPython () {
     }
   }
 
-  const stdout = childProcess.execFileSync(pythonExecutable, ['-c', 'import platform\nprint(platform.python_version())'], {env: process.env})
+  let stdout = childProcess.execFileSync(pythonExecutable, ['-c', 'import platform\nprint(platform.python_version())'], {env: process.env})
   if (stdout.indexOf('+') !== -1) stdout = stdout.replace(/\+/g, '')
   if (stdout.indexOf('rc') !== -1) stdout = stdout.replace(/rc(.*)$/ig, '')
   const fullVersion = stdout.toString().trim()
