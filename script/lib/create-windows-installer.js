@@ -22,11 +22,14 @@ module.exports = function (packagedAppPath, codeSign) {
     setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
   }
 
-  const certPath = path.join(os.tmpdir(), 'win.p12')
-  const signing = codeSign && process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL
+  const signing = codeSign && (process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL || process.env.ATOM_WIN_CODE_SIGNING_CERT_PATH)
+  let certPath = ATOM_WIN_CODE_SIGNING_CERT_PATH;
+  if (!certPath) {
+    certPath = path.join(os.tmpdir(), 'win.p12')
+    downloadFileFromGithub(process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
+  }
 
   if (signing) {
-    downloadFileFromGithub(process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
     var signParams = []
     signParams.push(`/f ${certPath}`) // Signing cert file
     signParams.push(`/p ${process.env.ATOM_WIN_CODE_SIGNING_CERT_PASSWORD}`) // Signing cert password
@@ -39,7 +42,7 @@ module.exports = function (packagedAppPath, codeSign) {
   }
 
   const cleanUp = function () {
-    if (fs.existsSync(certPath)) {
+    if (fs.existsSync(certPath) && !process.env.ATOM_WIN_CODE_SIGNING_CERT_PATH) {
       console.log(`Deleting certificate at ${certPath}`)
       fs.removeSync(certPath)
     }
