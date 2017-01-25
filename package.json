@@ -170,6 +170,7 @@
   "standard": {
     "globals": [
       "atom",
+      "advanceClock",
       "afterEach",
       "beforeEach",
       "describe",
@@ -182,9 +183,18 @@
       "jasmine",
       "runs",
       "spyOn",
+      "waits",
       "waitsFor",
       "waitsForPromise",
-      "indexedDB"
+      "assert",
+      "indexedDB",
+      "IDBObjectStore",
+      "Event",
+      "CustomEvent",
+      "KeyboardEvent",
+      "MouseEvent",
+      "WheelEvent",
+      "UIEvent"
     ]
   }
 }

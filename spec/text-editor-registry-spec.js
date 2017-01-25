@@ -3,7 +3,7 @@
 import TextEditorRegistry from '../src/text-editor-registry'
 import TextEditor from '../src/text-editor'
 import TextBuffer from 'text-buffer'
-import {it, fit, ffit, fffit} from './async-spec-helpers'
+import {it, fit, ffit, fffit} from './async-spec-helpers' // eslint-disable-line no-unused-vars
 import dedent from 'dedent'
 
 describe('TextEditorRegistry', function () {
@@ -71,7 +71,7 @@ describe('TextEditorRegistry', function () {
       atom.config.set('editor.tabLength', 8, {scope: '.source.js'})
 
       const editor = registry.build({buffer: new TextBuffer({filePath: 'test.js'})})
-      expect(editor.getGrammar().name).toBe("JavaScript")
+      expect(editor.getGrammar().name).toBe('JavaScript')
       expect(editor.getTabLength()).toBe(8)
     })
   })
@@ -347,7 +347,7 @@ describe('TextEditorRegistry', function () {
 
         editor.setText(dedent`
           {
-          	hello;
+          \thello;
           }
         `)
         editor.tokenizedBuffer.retokenizeLines()
@@ -370,7 +370,7 @@ describe('TextEditorRegistry', function () {
            */
 
           {
-          	hello;
+          \thello;
           }
         `)
 
@@ -529,7 +529,7 @@ describe('TextEditorRegistry', function () {
         softWrapped: true,
         preferredLineLength: 80,
         editorWidthInChars: 120,
-        softWrapAtPreferredLineLength: true,
+        softWrapAtPreferredLineLength: true
       })
 
       expect(editor.getSoftWrapColumn()).toBe(80)

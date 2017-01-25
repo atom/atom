@@ -1,6 +1,6 @@
 /** @babel */
 
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers' // eslint-disable-line no-unused-vars
 import ApplicationDelegate from '../src/application-delegate'
 
 describe('ApplicationDelegate', function () {

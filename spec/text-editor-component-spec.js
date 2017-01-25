@@ -1,23 +1,23 @@
 /** @babel */
 
-import {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise} from './async-spec-helpers'
+import {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise} from './async-spec-helpers' // eslint-disable-line no-unused-vars
 import Grim from 'grim'
 import TextEditor from '../src/text-editor'
 import TextEditorElement from '../src/text-editor-element'
-import _, {extend, flatten, last, toArray} from 'underscore-plus'
+import {extend, flatten, toArray} from 'underscore-plus'
 
 const NBSP = String.fromCharCode(160)
 const TILE_SIZE = 3
 
 describe('TextEditorComponent', function () {
   let charWidth, component, componentNode, contentNode, editor,
-      horizontalScrollbarNode, lineHeightInPixels, tileHeightInPixels,
-      verticalScrollbarNode, wrapperNode, animationFrameRequests
+    horizontalScrollbarNode, lineHeightInPixels, tileHeightInPixels,
+    verticalScrollbarNode, wrapperNode, animationFrameRequests
 
   function runAnimationFrames (runFollowupFrames) {
     if (runFollowupFrames) {
       let fn
-      while (fn = animationFrameRequests.shift()) fn()
+      while ((fn = animationFrameRequests.shift())) fn()
     } else {
       const requests = animationFrameRequests.slice()
       animationFrameRequests = []
@@ -387,7 +387,7 @@ describe('TextEditorComponent', function () {
 
     it('gives the lines and tiles divs the same background color as the editor to improve GPU performance', async function () {
       let linesNode = componentNode.querySelector('.lines')
-      let backgroundColor = getComputedStyle(wrapperNode).backgroundColor
+      let backgroundColor = window.getComputedStyle(wrapperNode).backgroundColor
 
       expect(linesNode.style.backgroundColor).toBe(backgroundColor)
       for (let tileNode of component.tileNodesForLines()) {
@@ -891,7 +891,6 @@ describe('TextEditorComponent', function () {
       editor.getBuffer().insert([0, 0], '\n\n')
       runAnimationFrames()
 
-      let lineNumberNodes = componentNode.querySelectorAll('.line-number')
       expect(component.lineNumberNodeForScreenRow(0).offsetTop).toBe(0 * lineHeightInPixels)
       expect(component.lineNumberNodeForScreenRow(1).offsetTop).toBe(1 * lineHeightInPixels)
       expect(component.lineNumberNodeForScreenRow(2).offsetTop).toBe(2 * lineHeightInPixels)
@@ -935,9 +934,9 @@ describe('TextEditorComponent', function () {
     })
 
     it('pads line numbers to be right-justified based on the maximum number of line number digits', function () {
-      const input = [];
+      const input = []
       for (let i = 1; i <= 100; ++i) {
-        input.push(i);
+        input.push(i)
       }
       editor.getBuffer().setText(input.join('\n'))
       runAnimationFrames()
@@ -978,7 +977,7 @@ describe('TextEditorComponent', function () {
     it('applies the background color of the gutter or the editor to the line numbers to improve GPU performance', function () {
       let gutterNode = componentNode.querySelector('.gutter')
       let lineNumbersNode = gutterNode.querySelector('.line-numbers')
-      let backgroundColor = getComputedStyle(wrapperNode).backgroundColor
+      let backgroundColor = window.getComputedStyle(wrapperNode).backgroundColor
       expect(lineNumbersNode.style.backgroundColor).toBe(backgroundColor)
       for (let tileNode of component.tileNodesForLineNumbers()) {
         expect(tileNode.style.backgroundColor).toBe(backgroundColor)
@@ -1102,17 +1101,11 @@ describe('TextEditorComponent', function () {
       })
 
       describe('mouse interactions with fold indicators', function () {
-        let gutterNode
-
         function buildClickEvent (target) {
           return buildMouseEvent('click', {
             target: target
           })
         }
-
-        beforeEach(function () {
-          gutterNode = componentNode.querySelector('.gutter')
-        })
 
         describe('when the component is destroyed', function () {
           it('stops listening for folding events', function () {
@@ -1204,7 +1197,7 @@ describe('TextEditorComponent', function () {
       expect(cursorNodes[0].offsetHeight).toBe(lineHeightInPixels)
       expect(cursorNodes[0].offsetWidth).toBeCloseTo(charWidth, 0)
       expect(cursorNodes[0].style['-webkit-transform']).toBe('translate(' + (Math.round(5 * charWidth)) + 'px, ' + (0 * lineHeightInPixels) + 'px)')
-      let cursor2 = editor.addCursorAtScreenPosition([8, 11], {
+      editor.addCursorAtScreenPosition([8, 11], {
         autoscroll: false
       })
       let cursor3 = editor.addCursorAtScreenPosition([4, 10], {
@@ -1229,7 +1222,9 @@ describe('TextEditorComponent', function () {
       expect(cursorNodes.length).toBe(2)
       expect(cursorNodes[0].style['-webkit-transform']).toBe('translate(' + (Math.round(10 * charWidth - horizontalScrollbarNode.scrollLeft)) + 'px, ' + (4 * lineHeightInPixels - verticalScrollbarNode.scrollTop) + 'px)')
       expect(cursorNodes[1].style['-webkit-transform']).toBe('translate(' + (Math.round(11 * charWidth - horizontalScrollbarNode.scrollLeft)) + 'px, ' + (8 * lineHeightInPixels - verticalScrollbarNode.scrollTop) + 'px)')
-      editor.onDidChangeCursorPosition(cursorMovedListener = jasmine.createSpy('cursorMovedListener'))
+
+      let cursorMovedListener = jasmine.createSpy('cursorMovedListener')
+      editor.onDidChangeCursorPosition(cursorMovedListener)
       cursor3.setScreenPosition([4, 11], {
         autoscroll: false
       })
@@ -1395,10 +1390,9 @@ describe('TextEditorComponent', function () {
   })
 
   describe('selection rendering', function () {
-    let scrollViewClientLeft, scrollViewNode
+    let scrollViewClientLeft
 
     beforeEach(function () {
-      scrollViewNode = componentNode.querySelector('.scroll-view')
       scrollViewClientLeft = componentNode.querySelector('.scroll-view').getBoundingClientRect().left
     })
 
@@ -1747,22 +1741,22 @@ describe('TextEditorComponent', function () {
   })
 
   describe('block decorations rendering', function () {
-    function createBlockDecorationBeforeScreenRow(screenRow, {className}) {
-      let item = document.createElement("div")
-      item.className = className || ""
+    function createBlockDecorationBeforeScreenRow (screenRow, {className}) {
+      let item = document.createElement('div')
+      item.className = className || ''
       let blockDecoration = editor.decorateMarker(
-        editor.markScreenPosition([screenRow, 0], {invalidate: "never"}),
-        {type: "block", item: item, position: "before"}
+        editor.markScreenPosition([screenRow, 0], {invalidate: 'never'}),
+        {type: 'block', item: item, position: 'before'}
       )
       return [item, blockDecoration]
     }
 
-    function createBlockDecorationAfterScreenRow(screenRow, {className}) {
-      let item = document.createElement("div")
-      item.className = className || ""
+    function createBlockDecorationAfterScreenRow (screenRow, {className}) {
+      let item = document.createElement('div')
+      item.className = className || ''
       let blockDecoration = editor.decorateMarker(
-        editor.markScreenPosition([screenRow, 0], {invalidate: "never"}),
-        {type: "block", item: item, position: "after"}
+        editor.markScreenPosition([screenRow, 0], {invalidate: 'never'}),
+        {type: 'block', item: item, position: 'after'}
       )
       return [item, blockDecoration]
     }
@@ -1778,13 +1772,13 @@ describe('TextEditorComponent', function () {
       atom.themes.removeStylesheet('test')
     })
 
-    it("renders visible and yet-to-be-measured block decorations, inserting them between the appropriate lines and refreshing them as needed", async function () {
-      let [item1, blockDecoration1] = createBlockDecorationBeforeScreenRow(0, {className: "decoration-1"})
-      let [item2, blockDecoration2] = createBlockDecorationBeforeScreenRow(2, {className: "decoration-2"})
-      let [item3, blockDecoration3] = createBlockDecorationBeforeScreenRow(4, {className: "decoration-3"})
-      let [item4, blockDecoration4] = createBlockDecorationBeforeScreenRow(7, {className: "decoration-4"})
-      let [item5, blockDecoration5] = createBlockDecorationAfterScreenRow(7, {className: "decoration-5"})
-      let [item6, blockDecoration6] = createBlockDecorationAfterScreenRow(12, {className: "decoration-6"})
+    it('renders visible and yet-to-be-measured block decorations, inserting them between the appropriate lines and refreshing them as needed', async function () {
+      let [item1, blockDecoration1] = createBlockDecorationBeforeScreenRow(0, {className: 'decoration-1'})
+      let [item2, blockDecoration2] = createBlockDecorationBeforeScreenRow(2, {className: 'decoration-2'})
+      let [item3] = createBlockDecorationBeforeScreenRow(4, {className: 'decoration-3'})
+      let [item4] = createBlockDecorationBeforeScreenRow(7, {className: 'decoration-4'})
+      let [item5] = createBlockDecorationAfterScreenRow(7, {className: 'decoration-5'})
+      let [item6, blockDecoration6] = createBlockDecorationAfterScreenRow(12, {className: 'decoration-6'})
 
       atom.styles.addStyleSheet(
         `atom-text-editor .decoration-1 { width: 30px; height: 80px; }
@@ -1796,20 +1790,20 @@ describe('TextEditorComponent', function () {
          {context: 'atom-text-editor'}
       )
       runAnimationFrames()
-      expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
+      expect(component.getDomNode().querySelectorAll('.line').length).toBe(7)
       expect(verticalScrollbarNode.scrollHeight).toBe(editor.getScreenLineCount() * editor.getLineHeightInPixels() + 80 + 40 + 100 + 120 + 42 + 22)
-      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 80 + 40 + "px")
-      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
-      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + "px")
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 80 + 40 + 'px')
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe('translate3d(0px, 0px, 0px)')
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 'px')
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
-      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + 'px')
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBe(item1)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
-      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBeNull()
-      expect(component.getTopmostDOMNode().querySelector(".decoration-6")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-1')).toBe(item1)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-2')).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-3')).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-4')).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-5')).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-6')).toBeNull()
       expect(item1.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 0)
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 2 + 80)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 4 + 80 + 40)
@@ -1818,20 +1812,20 @@ describe('TextEditorComponent', function () {
       editor.insertNewline()
       blockDecoration1.destroy()
       runAnimationFrames()
-      expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
+      expect(component.getDomNode().querySelectorAll('.line').length).toBe(7)
       expect(verticalScrollbarNode.scrollHeight).toBe(editor.getScreenLineCount() * editor.getLineHeightInPixels() + 40 + 100 + 120 + 42 + 22)
-      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
-      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
-      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 40 + "px")
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 'px')
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe('translate3d(0px, 0px, 0px)')
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 40 + 'px')
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
-      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + 'px')
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
-      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
-      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBeNull()
-      expect(component.getTopmostDOMNode().querySelector(".decoration-6")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-1')).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-2')).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-3')).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-4')).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-5')).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-6')).toBeNull()
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 40)
 
@@ -1842,72 +1836,72 @@ describe('TextEditorComponent', function () {
 
       runAnimationFrames() // causes the DOM to update and to retrieve new styles
       runAnimationFrames() // applies the changes
-      expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
+      expect(component.getDomNode().querySelectorAll('.line').length).toBe(7)
       expect(verticalScrollbarNode.scrollHeight).toBe(editor.getScreenLineCount() * editor.getLineHeightInPixels() + 60 + 100 + 120 + 42 + 22)
-      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
-      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
-      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 60 + "px")
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 'px')
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe('translate3d(0px, 0px, 0px)')
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 60 + 'px')
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
-      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + 'px')
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
-      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
-      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBeNull()
-      expect(component.getTopmostDOMNode().querySelector(".decoration-6")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-1')).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-2')).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-3')).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-4')).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-5')).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-6')).toBeNull()
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 60)
 
-      item2.style.height = "20px"
+      item2.style.height = '20px'
       wrapperNode.invalidateBlockDecorationDimensions(blockDecoration2)
       runAnimationFrames() // causes the DOM to update and to retrieve new styles
       runAnimationFrames() // applies the changes
-      expect(component.getDomNode().querySelectorAll(".line").length).toBe(9)
+      expect(component.getDomNode().querySelectorAll('.line').length).toBe(9)
       expect(verticalScrollbarNode.scrollHeight).toBe(editor.getScreenLineCount() * editor.getLineHeightInPixels() + 20 + 100 + 120 + 42 + 22)
-      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
-      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
-      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 20 + "px")
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 'px')
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe('translate3d(0px, 0px, 0px)')
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 20 + 'px')
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
-      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + 'px')
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
-      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBe(item5)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-6")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-1')).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-2')).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-3')).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-4')).toBe(item4)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-5')).toBe(item5)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-6')).toBeNull()
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 20)
       expect(item4.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 20 + 100)
       expect(item5.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 20 + 100 + 120 + lineHeightInPixels)
 
-      item6.style.height = "33px"
+      item6.style.height = '33px'
       wrapperNode.invalidateBlockDecorationDimensions(blockDecoration6)
       runAnimationFrames() // causes the DOM to update and to retrieve new styles
       runAnimationFrames() // applies the changes
-      expect(component.getDomNode().querySelectorAll(".line").length).toBe(9)
+      expect(component.getDomNode().querySelectorAll('.line').length).toBe(9)
       expect(verticalScrollbarNode.scrollHeight).toBe(editor.getScreenLineCount() * editor.getLineHeightInPixels() + 20 + 100 + 120 + 42 + 33)
-      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
-      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
-      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 20 + "px")
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 'px')
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe('translate3d(0px, 0px, 0px)')
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 20 + 'px')
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
-      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + 'px')
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
-      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBe(item5)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-6")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-1')).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector('.decoration-2')).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-3')).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-4')).toBe(item4)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-5')).toBe(item5)
+      expect(component.getTopmostDOMNode().querySelector('.decoration-6')).toBeNull()
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 20)
       expect(item4.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 20 + 100)
       expect(item5.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 20 + 100 + 120 + lineHeightInPixels)
     })
 
-    it("correctly sets screen rows on block decoration and ruler nodes, both initially and when decorations move", function () {
-      let [item, blockDecoration] = createBlockDecorationBeforeScreenRow(0, {className: "decoration-1"})
+    it('correctly sets screen rows on block decoration and ruler nodes, both initially and when decorations move', function () {
+      let [item, blockDecoration] = createBlockDecorationBeforeScreenRow(0, {className: 'decoration-1'})
       atom.styles.addStyleSheet(
         'atom-text-editor .decoration-1 { width: 30px; height: 80px; }',
          {context: 'atom-text-editor'}
@@ -1915,44 +1909,44 @@ describe('TextEditorComponent', function () {
 
       runAnimationFrames()
       const line0 = component.lineNodeForScreenRow(0)
-      expect(item.previousSibling.dataset.screenRow).toBe("0")
-      expect(item.dataset.screenRow).toBe("0")
-      expect(item.nextSibling.dataset.screenRow).toBe("0")
+      expect(item.previousSibling.dataset.screenRow).toBe('0')
+      expect(item.dataset.screenRow).toBe('0')
+      expect(item.nextSibling.dataset.screenRow).toBe('0')
       expect(line0.previousSibling).toBe(item.nextSibling)
 
       editor.setCursorBufferPosition([0, 0])
       editor.insertNewline()
       runAnimationFrames()
       const line1 = component.lineNodeForScreenRow(1)
-      expect(item.previousSibling.dataset.screenRow).toBe("1")
-      expect(item.dataset.screenRow).toBe("1")
-      expect(item.nextSibling.dataset.screenRow).toBe("1")
+      expect(item.previousSibling.dataset.screenRow).toBe('1')
+      expect(item.dataset.screenRow).toBe('1')
+      expect(item.nextSibling.dataset.screenRow).toBe('1')
       expect(line1.previousSibling).toBe(item.nextSibling)
 
       editor.setCursorBufferPosition([0, 0])
       editor.insertNewline()
       runAnimationFrames()
       const line2 = component.lineNodeForScreenRow(2)
-      expect(item.previousSibling.dataset.screenRow).toBe("2")
-      expect(item.dataset.screenRow).toBe("2")
-      expect(item.nextSibling.dataset.screenRow).toBe("2")
+      expect(item.previousSibling.dataset.screenRow).toBe('2')
+      expect(item.dataset.screenRow).toBe('2')
+      expect(item.nextSibling.dataset.screenRow).toBe('2')
       expect(line2.previousSibling).toBe(item.nextSibling)
 
       blockDecoration.getMarker().setHeadBufferPosition([4, 0])
       runAnimationFrames()
       const line4 = component.lineNodeForScreenRow(4)
-      expect(item.previousSibling.dataset.screenRow).toBe("4")
-      expect(item.dataset.screenRow).toBe("4")
-      expect(item.nextSibling.dataset.screenRow).toBe("4")
+      expect(item.previousSibling.dataset.screenRow).toBe('4')
+      expect(item.dataset.screenRow).toBe('4')
+      expect(item.nextSibling.dataset.screenRow).toBe('4')
       expect(line4.previousSibling).toBe(item.nextSibling)
     })
 
     it('measures block decorations taking into account both top and bottom margins of the element and its children', function () {
-      let [item, blockDecoration] = createBlockDecorationBeforeScreenRow(0, {className: "decoration-1"})
-      let child = document.createElement("div")
-      child.style.height = "7px"
-      child.style.width = "30px"
-      child.style.marginBottom = "20px"
+      let [item] = createBlockDecorationBeforeScreenRow(0, {className: 'decoration-1'})
+      let child = document.createElement('div')
+      child.style.height = '7px'
+      child.style.width = '30px'
+      child.style.marginBottom = '20px'
       item.appendChild(child)
       atom.styles.addStyleSheet(
         'atom-text-editor .decoration-1 { width: 30px; margin-top: 10px; }',
@@ -1962,16 +1956,16 @@ describe('TextEditorComponent', function () {
       runAnimationFrames() // causes the DOM to update and to retrieve new styles
       runAnimationFrames() // applies the changes
 
-      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 10 + 7 + 20 + "px")
-      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
-      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 10 + 7 + 20 + 'px')
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe('translate3d(0px, 0px, 0px)')
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 'px')
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
-      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 'px')
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
     })
 
     it('allows the same block decoration item to be moved from one tile to another in the same animation frame', function () {
-      let [item, blockDecoration] = createBlockDecorationBeforeScreenRow(5, {className: "decoration-1"})
+      let [item, blockDecoration] = createBlockDecorationBeforeScreenRow(5, {className: 'decoration-1'})
       runAnimationFrames()
       expect(component.tileNodesForLines()[0].querySelector('.decoration-1')).toBeNull()
       expect(component.tileNodesForLines()[1].querySelector('.decoration-1')).toBe(item)
@@ -1984,10 +1978,9 @@ describe('TextEditorComponent', function () {
   })
 
   describe('highlight decoration rendering', function () {
-    let decoration, marker, scrollViewClientLeft
+    let decoration, marker
 
     beforeEach(async function () {
-      scrollViewClientLeft = componentNode.querySelector('.scroll-view').getBoundingClientRect().left
       marker = editor.addMarkerLayer({
         maintainHistory: true
       }).markBufferRange([[2, 13], [3, 15]], {
@@ -2226,7 +2219,7 @@ describe('TextEditorComponent', function () {
         let marker = editor.markBufferRange([[2, 13], [2, 13]], {
           invalidate: 'never'
         })
-        let decoration = editor.decorateMarker(marker, {
+        editor.decorateMarker(marker, {
           type: 'overlay',
           'class': 'my-overlay',
           item: item
@@ -2247,7 +2240,7 @@ describe('TextEditorComponent', function () {
         let marker = editor.markBufferRange([[2, 5], [2, 10]], {
           invalidate: 'never'
         })
-        let decoration = editor.decorateMarker(marker, {
+        editor.decorateMarker(marker, {
           type: 'overlay',
           item: item
         })
@@ -2294,7 +2287,7 @@ describe('TextEditorComponent', function () {
         let marker = editor.markBufferRange([[0, 26], [0, 26]], {
           invalidate: 'never'
         })
-        let decoration = editor.decorateMarker(marker, {
+        editor.decorateMarker(marker, {
           type: 'overlay',
           item: item
         })
@@ -2303,7 +2296,7 @@ describe('TextEditorComponent', function () {
 
         let position = wrapperNode.pixelPositionForBufferPosition([0, 26])
         let overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-        if (process.platform == 'darwin') { // Result is 359px on win32, expects 375px
+        if (process.platform === 'darwin') { // Result is 359px on win32, expects 375px
           expect(overlay.style.left).toBe(Math.round(position.left + gutterWidth) + 'px')
         }
         expect(overlay.style.top).toBe(position.top + editor.getLineHeightInPixels() + 'px')
@@ -2326,7 +2319,7 @@ describe('TextEditorComponent', function () {
         const innerWidthBefore = window.innerWidth
         await atom.setWindowDimensions({
           width: Math.round(gutterWidth + 20 * editor.getDefaultCharWidth()),
-          height: windowHeight,
+          height: windowHeight
         })
         // wait for window to resize :(
         await conditionPromise(() => {
@@ -3466,8 +3459,6 @@ describe('TextEditorComponent', function () {
   })
 
   describe('selection handling', function () {
-    let cursor
-
     beforeEach(function () {
       editor.setCursorScreenPosition([0, 0])
       runAnimationFrames()
@@ -3541,7 +3532,7 @@ describe('TextEditorComponent', function () {
 
       let lastLineNode = component.lineNodeForScreenRow(editor.getLastScreenRow())
       let bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
-      topOfHorizontalScrollbar = horizontalScrollbarNode.getBoundingClientRect().top
+      let topOfHorizontalScrollbar = horizontalScrollbarNode.getBoundingClientRect().top
       expect(bottomOfLastLine).toBe(topOfHorizontalScrollbar)
       wrapperNode.style.width = 100 * charWidth + 'px'
       component.measureDimensions()
@@ -3644,7 +3635,6 @@ describe('TextEditorComponent', function () {
     })
 
     it('accounts for the width of the gutter in the scrollWidth of the horizontal scrollbar', function () {
-      let gutterNode = componentNode.querySelector('.gutter')
       componentNode.style.width = 10 * charWidth + 'px'
       component.measureDimensions()
       runAnimationFrames()
@@ -3833,13 +3823,13 @@ describe('TextEditorComponent', function () {
         component.measureDimensions()
         runAnimationFrames()
 
-        let item = document.createElement("div")
-        item.style.width = "30px"
-        item.style.height = "30px"
-        item.className = "decoration-1"
+        let item = document.createElement('div')
+        item.style.width = '30px'
+        item.style.height = '30px'
+        item.className = 'decoration-1'
         editor.decorateMarker(
-          editor.markScreenPosition([0, 0], {invalidate: "never"}),
-          {type: "block", item: item}
+          editor.markScreenPosition([0, 0], {invalidate: 'never'}),
+          {type: 'block', item: item}
         )
 
         runAnimationFrames()
@@ -3869,11 +3859,11 @@ describe('TextEditorComponent', function () {
         runAnimationFrames()
 
         const item = document.createElement('div')
-        const svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
         item.appendChild(svgElement)
         editor.decorateMarker(
-          editor.markScreenPosition([0, 0], {invalidate: "never"}),
-          {type: "block", item: item}
+          editor.markScreenPosition([0, 0], {invalidate: 'never'}),
+          {type: 'block', item: item}
         )
 
         runAnimationFrames()
@@ -4238,10 +4228,10 @@ describe('TextEditorComponent', function () {
 
   describe('when decreasing the fontSize', function () {
     it('decreases the widths of the korean char, the double width char and the half width char', function () {
-      originalDefaultCharWidth = editor.getDefaultCharWidth()
-      koreanDefaultCharWidth = editor.getKoreanCharWidth()
-      doubleWidthDefaultCharWidth = editor.getDoubleWidthCharWidth()
-      halfWidthDefaultCharWidth = editor.getHalfWidthCharWidth()
+      let originalDefaultCharWidth = editor.getDefaultCharWidth()
+      let koreanDefaultCharWidth = editor.getKoreanCharWidth()
+      let doubleWidthDefaultCharWidth = editor.getDoubleWidthCharWidth()
+      let halfWidthDefaultCharWidth = editor.getHalfWidthCharWidth()
       component.setFontSize(10)
       runAnimationFrames()
       expect(editor.getDefaultCharWidth()).toBeLessThan(originalDefaultCharWidth)
@@ -4251,12 +4241,12 @@ describe('TextEditorComponent', function () {
     })
   })
 
-  describe('when increasing the fontSize', function() {
+  describe('when increasing the fontSize', function () {
     it('increases the widths of the korean char, the double width char and the half width char', function () {
-      originalDefaultCharWidth = editor.getDefaultCharWidth()
-      koreanDefaultCharWidth = editor.getKoreanCharWidth()
-      doubleWidthDefaultCharWidth = editor.getDoubleWidthCharWidth()
-      halfWidthDefaultCharWidth = editor.getHalfWidthCharWidth()
+      let originalDefaultCharWidth = editor.getDefaultCharWidth()
+      let koreanDefaultCharWidth = editor.getKoreanCharWidth()
+      let doubleWidthDefaultCharWidth = editor.getDoubleWidthCharWidth()
+      let halfWidthDefaultCharWidth = editor.getHalfWidthCharWidth()
       component.setFontSize(25)
       runAnimationFrames()
       expect(editor.getDefaultCharWidth()).toBeGreaterThan(originalDefaultCharWidth)
@@ -4333,7 +4323,6 @@ describe('TextEditorComponent', function () {
       it('does not attempt to measure the defaultCharWidth until the editor becomes visible again', function () {
         wrapperNode.style.display = 'none'
         component.checkForVisibilityChange()
-        let initialLineHeightInPixels = editor.getLineHeightInPixels()
         let initialCharWidth = editor.getDefaultCharWidth()
         component.setFontFamily('serif')
         expect(editor.getDefaultCharWidth()).toBe(initialCharWidth)
@@ -4492,7 +4481,7 @@ describe('TextEditorComponent', function () {
     describe('when autoHeight is not assigned on the editor', function () {
       it('implicitly assigns autoHeight to true and emits a deprecation warning if the editor has its height assigned via an inline style', function () {
         editor = new TextEditor()
-        element = editor.getElement()
+        let element = editor.getElement()
         element.setUpdatedSynchronously(false)
         element.style.height = '200px'
 
@@ -4507,9 +4496,9 @@ describe('TextEditorComponent', function () {
 
       it('implicitly assigns autoHeight to true and emits a deprecation warning if the editor has its height assigned via position absolute with an assigned top and bottom', function () {
         editor = new TextEditor()
-        element = editor.getElement()
+        let element = editor.getElement()
         element.setUpdatedSynchronously(false)
-        parentElement = document.createElement('div')
+        let parentElement = document.createElement('div')
         parentElement.style.position = 'absolute'
         parentElement.style.height = '200px'
         element.style.position = 'absolute'
@@ -4551,7 +4540,7 @@ describe('TextEditorComponent', function () {
     it('sizes the editor element according to the content width when auto width is true, or according to the container width otherwise', function () {
       contentNode.style.width = '600px'
       component.measureDimensions()
-      editor.setText("abcdefghi")
+      editor.setText('abcdefghi')
       runAnimationFrames()
       expect(wrapperNode.offsetWidth).toBe(contentNode.offsetWidth)
 
@@ -4561,7 +4550,7 @@ describe('TextEditorComponent', function () {
       expect(editorWidth1).toBeGreaterThan(0)
       expect(editorWidth1).toBeLessThan(contentNode.offsetWidth)
 
-      editor.setText("abcdefghijkl")
+      editor.setText('abcdefghijkl')
       editor.update({autoWidth: true})
       runAnimationFrames()
       const editorWidth2 = wrapperNode.offsetWidth
@@ -4995,11 +4984,9 @@ describe('TextEditorComponent', function () {
     })
 
     it('pastes the previously selected text at the clicked location', async function () {
-      let clipboardWrittenTo = false
       spyOn(require('electron').ipcRenderer, 'send').andCallFake(function (eventName, selectedText) {
         if (eventName === 'write-text-to-selection-clipboard') {
           require('../src/safe-clipboard').writeText(selectedText, 'selection')
-          clipboardWrittenTo = true
         }
       })
       atom.clipboard.write('')
@@ -5083,12 +5070,6 @@ describe('TextEditorComponent', function () {
     return component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
   }
 
-  function lineNumberForBufferRowHasClass (bufferRow, klass) {
-    let screenRow
-    screenRow = editor.screenRowForBufferRow(bufferRow)
-    return component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
-  }
-
   function lineHasClass (screenRow, klass) {
     return component.lineNodeForScreenRow(screenRow).classList.contains(klass)
   }
@@ -5101,8 +5082,8 @@ describe('TextEditorComponent', function () {
     }
   }
 
-  function conditionPromise (condition)  {
-    let timeoutError = new Error("Timed out waiting on condition")
+  function conditionPromise (condition) {
+    let timeoutError = new Error('Timed out waiting on condition')
     Error.captureStackTrace(timeoutError, conditionPromise)
 
     return new Promise(function (resolve, reject) {
@@ -5120,7 +5101,7 @@ describe('TextEditorComponent', function () {
     })
   }
 
-  function decorationsUpdatedPromise(editor) {
+  function decorationsUpdatedPromise (editor) {
     return new Promise(function (resolve) {
       let disposable = editor.onDidUpdateDecorations(function () {
         disposable.dispose()

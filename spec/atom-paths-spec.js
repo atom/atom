@@ -1,13 +1,13 @@
 /** @babel */
 
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers' // eslint-disable-line no-unused-vars
 import {app} from 'remote'
 import atomPaths from '../src/atom-paths'
 import fs from 'fs-plus'
 import path from 'path'
 const temp = require('temp').track()
 
-describe("AtomPaths", () => {
+describe('AtomPaths', () => {
   const portableAtomHomePath = path.join(atomPaths.getAppDirectory(), '..', '.atom')
 
   afterEach(() => {
@@ -18,8 +18,9 @@ describe("AtomPaths", () => {
     describe('when a portable .atom folder exists', () => {
       beforeEach(() => {
         delete process.env.ATOM_HOME
-        if (!fs.existsSync(portableAtomHomePath))
+        if (!fs.existsSync(portableAtomHomePath)) {
           fs.mkdirSync(portableAtomHomePath)
+        }
       })
 
       afterEach(() => {
@@ -70,6 +71,7 @@ describe("AtomPaths", () => {
 
   describe('setUserData', () => {
     let tempAtomHomePath = null
+    let tempAtomConfigPath = null
     let electronUserDataPath = null
     let defaultElectronUserDataPath = null
 

@@ -22,9 +22,12 @@ describe('TokenizedBufferIterator', () => {
         grammar: {
           scopeForId (id) {
             return {
-              '-1': 'foo', '-2': 'foo',
-              '-3': 'bar', '-4': 'bar',
-              '-5': 'baz', '-6': 'baz'
+              '-1': 'foo',
+              '-2': 'foo',
+              '-3': 'bar',
+              '-4': 'bar',
+              '-5': 'baz',
+              '-6': 'baz'
             }[id]
           }
         }

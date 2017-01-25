@@ -113,10 +113,9 @@ describe('AtomApplication', function () {
     }
 
     it('reuses existing windows when opening paths, but not directories', async function () {
-      const dirAPath = makeTempDir("a")
-      const dirBPath = makeTempDir("b")
-      const dirCPath = makeTempDir("c")
-      const existingDirCFilePath = path.join(dirCPath, 'existing-file')
+      const dirAPath = makeTempDir('a')
+      const dirBPath = makeTempDir('c')
+      const existingDirCFilePath = path.join(dirBPath, 'existing-file')
       fs.writeFileSync(existingDirCFilePath, 'this is an existing file')
 
       const atomApplication = buildAtomApplication()
@@ -145,16 +144,16 @@ describe('AtomApplication', function () {
       assert.deepEqual(await getTreeViewRootDirectories(window1), [dirAPath])
 
       // Opens new windows when opening directories
-      const window2 = atomApplication.launch(parseCommandLine([dirCPath]))
+      const window2 = atomApplication.launch(parseCommandLine([dirBPath]))
       assert.notEqual(window2, window1)
       await focusWindow(window2)
-      assert.deepEqual(await getTreeViewRootDirectories(window2), [dirCPath])
+      assert.deepEqual(await getTreeViewRootDirectories(window2), [dirBPath])
     })
 
     it('adds folders to existing windows when the --add option is used', async function () {
-      const dirAPath = makeTempDir("a")
-      const dirBPath = makeTempDir("b")
-      const dirCPath = makeTempDir("c")
+      const dirAPath = makeTempDir('a')
+      const dirBPath = makeTempDir('b')
+      const dirCPath = makeTempDir('c')
       const existingDirCFilePath = path.join(dirCPath, 'existing-file')
       fs.writeFileSync(existingDirCFilePath, 'this is an existing file')
 
@@ -219,8 +218,8 @@ describe('AtomApplication', function () {
     })
 
     it('shows all directories in the tree view when multiple directory paths are passed to Atom', async function () {
-      const dirAPath = makeTempDir("a")
-      const dirBPath = makeTempDir("b")
+      const dirAPath = makeTempDir('a')
+      const dirBPath = makeTempDir('b')
       const dirBSubdirPath = path.join(dirBPath, 'c')
       fs.mkdirSync(dirBSubdirPath)
 
@@ -379,7 +378,7 @@ describe('AtomApplication', function () {
       if (process.platform === 'linux' || process.platform === 'win32') {
         it('quits the application', async function () {
           const atomApplication = buildAtomApplication()
-          const window = atomApplication.launch(parseCommandLine([path.join(makeTempDir("a"), 'file-a')]))
+          const window = atomApplication.launch(parseCommandLine([path.join(makeTempDir('a'), 'file-a')]))
           await focusWindow(window)
           window.close()
           await window.closedPromise
@@ -388,7 +387,7 @@ describe('AtomApplication', function () {
       } else if (process.platform === 'darwin') {
         it('leaves the application open', async function () {
           const atomApplication = buildAtomApplication()
-          const window = atomApplication.launch(parseCommandLine([path.join(makeTempDir("a"), 'file-a')]))
+          const window = atomApplication.launch(parseCommandLine([path.join(makeTempDir('a'), 'file-a')]))
           await focusWindow(window)
           window.close()
           await window.closedPromise
@@ -424,8 +423,8 @@ describe('AtomApplication', function () {
 
   describe('before quitting', function () {
     it('waits until all the windows have saved their state and then quits', async function () {
-      const dirAPath = makeTempDir("a")
-      const dirBPath = makeTempDir("b")
+      const dirAPath = makeTempDir('a')
+      const dirBPath = makeTempDir('b')
       const atomApplication = buildAtomApplication()
       const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'file-a')]))
       await focusWindow(window1)

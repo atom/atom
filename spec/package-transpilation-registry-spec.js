@@ -1,18 +1,17 @@
 /** @babel */
-import fs from 'fs'
 import path from 'path'
 
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers' // eslint-disable-line no-unused-vars
 
 import PackageTranspilationRegistry from '../src/package-transpilation-registry'
 
 const originalCompiler = {
   getCachePath: (sourceCode, filePath) => {
-    return "orig-cache-path"
+    return 'orig-cache-path'
   },
 
   compile: (sourceCode, filePath) => {
-    return sourceCode + "-original-compiler"
+    return sourceCode + '-original-compiler'
   },
 
   shouldCompile: (sourceCode, filePath) => {
@@ -20,7 +19,7 @@ const originalCompiler = {
   }
 }
 
-describe("PackageTranspilationRegistry", () => {
+describe('PackageTranspilationRegistry', () => {
   let registry
   let wrappedCompiler
 
@@ -47,20 +46,20 @@ describe("PackageTranspilationRegistry", () => {
     const hitPath = path.join('/path/to/lib/file.js')
     const hitPathCoffee = path.join('/path/to/file2.coffee')
     const missPath = path.join('/path/other/file3.js')
-    const hitPathMissSubdir =path.join('/path/to/file4.js')
+    const hitPathMissSubdir = path.join('/path/to/file4.js')
     const hitPathMissExt = path.join('/path/to/file5.ts')
     const nodeModulesFolder = path.join('/path/to/lib/node_modules/file6.js')
     const hitNonStandardExt = path.join('/path/to/file7.omgwhatisthis')
 
-    const jsSpec = { glob: "lib/**/*.js", transpiler: './transpiler-js', options: { type: 'js' } }
-    const coffeeSpec = { glob: "*.coffee", transpiler: './transpiler-coffee', options: { type: 'coffee' } }
-    const omgSpec = { glob: "*.omgwhatisthis", transpiler: './transpiler-omg', options: { type: 'omg' } }
+    const jsSpec = { glob: 'lib/**/*.js', transpiler: './transpiler-js', options: { type: 'js' } }
+    const coffeeSpec = { glob: '*.coffee', transpiler: './transpiler-coffee', options: { type: 'coffee' } }
+    const omgSpec = { glob: '*.omgwhatisthis', transpiler: './transpiler-omg', options: { type: 'omg' } }
 
     const expectedMeta = { name: 'my-package', path: path.join('/path/to'), meta: { some: 'metadata' } }
 
     const jsTranspiler = {
       transpile: (sourceCode, filePath, options) => {
-        return {code: sourceCode + "-transpiler-js"}
+        return {code: sourceCode + '-transpiler-js'}
       },
 
       getCacheKeyData: (sourceCode, filePath, options) => {
@@ -70,7 +69,7 @@ describe("PackageTranspilationRegistry", () => {
 
     const coffeeTranspiler = {
       transpile: (sourceCode, filePath, options) => {
-        return {code: sourceCode + "-transpiler-coffee"}
+        return {code: sourceCode + '-transpiler-coffee'}
       },
 
       getCacheKeyData: (sourceCode, filePath, options) => {
@@ -80,7 +79,7 @@ describe("PackageTranspilationRegistry", () => {
 
     const omgTranspiler = {
       transpile: (sourceCode, filePath, options) => {
-        return {code: sourceCode + "-transpiler-omg"}
+        return {code: sourceCode + '-transpiler-omg'}
       },
 
       getCacheKeyData: (sourceCode, filePath, options) => {
@@ -89,11 +88,11 @@ describe("PackageTranspilationRegistry", () => {
     }
 
     beforeEach(() => {
-      jsSpec._transpilerSource = "js-transpiler-source"
-      coffeeSpec._transpilerSource = "coffee-transpiler-source"
-      omgTranspiler._transpilerSource = "omg-transpiler-source"
+      jsSpec._transpilerSource = 'js-transpiler-source'
+      coffeeSpec._transpilerSource = 'coffee-transpiler-source'
+      omgTranspiler._transpilerSource = 'omg-transpiler-source'
 
-      spyOn(registry, "getTranspiler").andCallFake(spec => {
+      spyOn(registry, 'getTranspiler').andCallFake(spec => {
         if (spec.transpiler === './transpiler-js') return jsTranspiler
         if (spec.transpiler === './transpiler-coffee') return coffeeTranspiler
         if (spec.transpiler === './transpiler-omg') return omgTranspiler
@@ -117,7 +116,7 @@ describe("PackageTranspilationRegistry", () => {
     })
 
     it('calls getCacheKeyData on the transpiler to get additional cache key data', () => {
-      spyOn(registry, "getTranspilerPath").andReturn("./transpiler-js")
+      spyOn(registry, 'getTranspilerPath').andReturn('./transpiler-js')
       spyOn(jsTranspiler, 'getCacheKeyData').andCallThrough()
 
       wrappedCompiler.getCachePath('source', missPath, jsSpec)
@@ -127,9 +126,9 @@ describe("PackageTranspilationRegistry", () => {
     })
 
     it('compiles files matching a glob with the associated transpiler, and the old one otherwise', () => {
-      spyOn(jsTranspiler, "transpile").andCallThrough()
-      spyOn(coffeeTranspiler, "transpile").andCallThrough()
-      spyOn(omgTranspiler, "transpile").andCallThrough()
+      spyOn(jsTranspiler, 'transpile').andCallThrough()
+      spyOn(coffeeTranspiler, 'transpile').andCallThrough()
+      spyOn(omgTranspiler, 'transpile').andCallThrough()
 
       expect(wrappedCompiler.compile('source', hitPath)).toEqual('source-transpiler-js')
       expect(jsTranspiler.transpile).toHaveBeenCalledWith('source', hitPath, jsSpec.options, expectedMeta)

@@ -1,4 +1,4 @@
-"use babel"
+'use babel'
 
 import Mocha from 'mocha'
 import fs from 'fs-plus'
