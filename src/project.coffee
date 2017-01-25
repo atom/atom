@@ -62,6 +62,9 @@ class Project extends Model
           fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
         catch error
           return unless error.code is 'ENOENT'
+      unless bufferState.shouldDestroyOnFileDelete?
+        bufferState.shouldDestroyOnFileDelete =
+          -> atom.config.get('core.closeDeletedFileTabs')
       TextBuffer.deserialize(bufferState)
 
     @subscribeToBuffer(buffer) for buffer in @buffers
@@ -360,9 +363,14 @@ class Project extends Model
     else
       @buildBuffer(absoluteFilePath)
 
+  shouldDestroyBufferOnFileDelete: ->
+    atom.config.get('core.closeDeletedFileTabs')
+
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer = new TextBuffer({
+      filePath: absoluteFilePath
+      shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete})
     @addBuffer(buffer)
     buffer.loadSync()
     buffer
@@ -374,7 +382,9 @@ class Project extends Model
   #
   # Returns a {Promise} that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer = new TextBuffer({
+      filePath: absoluteFilePath
+      shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete})
     @addBuffer(buffer)
     buffer.load()
       .then((buffer) -> buffer)

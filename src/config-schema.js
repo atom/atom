@@ -68,6 +68,12 @@ const configSchema = {
         default: true,
         description: 'Trigger the system\'s beep sound when certain actions cannot be executed or there are no results.'
       },
+      closeDeletedFileTabs: {
+        type: 'boolean',
+        default: false,
+        title: 'Close Deleted File Tabs',
+        description: 'Close corresponding editors when a file is deleted outside Atom.'
+      },
       destroyEmptyPanes: {
         type: 'boolean',
         default: true,
