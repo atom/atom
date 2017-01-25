@@ -22,11 +22,21 @@ const apmMetadata = require(path.join(apmRootPath, 'package.json'))
 const channel = getChannel()
 
 module.exports = {
-  appMetadata, apmMetadata, channel,
-  repositoryRootPath, apmRootPath, scriptRootPath,
-  buildOutputPath, docsOutputPath, intermediateAppPath, symbolsPath,
-  electronDownloadPath, atomHomeDirPath, homeDirPath,
-  getApmBinPath, getNpmBinPath
+  appMetadata,
+  apmMetadata,
+  channel,
+  repositoryRootPath,
+  apmRootPath,
+  scriptRootPath,
+  buildOutputPath,
+  docsOutputPath,
+  intermediateAppPath,
+  symbolsPath,
+  electronDownloadPath,
+  atomHomeDirPath,
+  homeDirPath,
+  getApmBinPath,
+  getNpmBinPath
 }
 
 function getChannel () {

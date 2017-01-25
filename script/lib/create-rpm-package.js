@@ -50,16 +50,23 @@ module.exports = function (packagedAppPath) {
   const rpmPackageSpecFilePath = path.join(rpmPackageSpecsDirPath, 'atom.spec')
   const rpmPackageSpecsTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'redhat', 'atom.spec.in'))
   const rpmPackageSpecsContents = template(rpmPackageSpecsTemplate)({
-    appName: appName, appFileName: atomExecutableName, apmFileName: apmExecutableName,
-    description: appDescription, installDir: '/usr', version: appVersion
+    appName: appName,
+    appFileName: atomExecutableName,
+    apmFileName: apmExecutableName,
+    description: appDescription,
+    installDir: '/usr',
+    version: appVersion
   })
   fs.writeFileSync(rpmPackageSpecFilePath, rpmPackageSpecsContents)
 
   console.log(`Writing desktop entry file into "${rpmPackageBuildDirPath}"`)
   const desktopEntryTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.desktop.in'))
   const desktopEntryContents = template(desktopEntryTemplate)({
-    appName: appName, appFileName: atomExecutableName, description: appDescription,
-    installDir: '/usr', iconPath: atomExecutableName
+    appName: appName,
+    appFileName: atomExecutableName,
+    description: appDescription,
+    installDir: '/usr',
+    iconPath: atomExecutableName
   })
   fs.writeFileSync(path.join(rpmPackageBuildDirPath, `${atomExecutableName}.desktop`), desktopEntryContents)
 

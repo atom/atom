@@ -46,33 +46,33 @@ module.exports = function () {
         ]
       })
 
-      function cacheCompiledCSS (lessFilePath, importFallbackVariables) {
-        let lessSource = fs.readFileSync(lessFilePath, 'utf8')
-        if (importFallbackVariables) {
-          lessSource = FALLBACK_VARIABLE_IMPORTS + lessSource
-        }
-        lessCache.cssForFile(lessFilePath, lessSource)
-      }
-
       // Cache all styles in static; don't append variable imports
       for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'static', '**', '*.less'))) {
-        cacheCompiledCSS(lessFilePath, false)
+        cacheCompiledCSS(lessCache, lessFilePath, false)
       }
 
       // Cache styles for all bundled non-theme packages
       for (let nonThemePackage of nonThemePackages) {
         for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', nonThemePackage, '**', '*.less'))) {
-          cacheCompiledCSS(lessFilePath, true)
+          cacheCompiledCSS(lessCache, lessFilePath, true)
         }
       }
 
       // Cache styles for this UI theme
       const uiThemeMainPath = path.join(CONFIG.intermediateAppPath, 'node_modules', uiTheme, 'index.less')
-      cacheCompiledCSS(uiThemeMainPath, true)
+      cacheCompiledCSS(lessCache, uiThemeMainPath, true)
 
       // Cache styles for this syntax theme
       const syntaxThemeMainPath = path.join(CONFIG.intermediateAppPath, 'node_modules', syntaxTheme, 'index.less')
-      cacheCompiledCSS(syntaxThemeMainPath, true)
+      cacheCompiledCSS(lessCache, syntaxThemeMainPath, true)
     }
+  }
+
+  function cacheCompiledCSS (lessCache, lessFilePath, importFallbackVariables) {
+    let lessSource = fs.readFileSync(lessFilePath, 'utf8')
+    if (importFallbackVariables) {
+      lessSource = FALLBACK_VARIABLE_IMPORTS + lessSource
+    }
+    lessCache.cssForFile(lessFilePath, lessSource)
   }
 }
