@@ -347,7 +347,7 @@ describe('TextEditorRegistry', function () {
 
         editor.setText(dedent`
           {
-          \thello;
+          ${'\t'}hello;
           }
         `)
         editor.tokenizedBuffer.retokenizeLines()
@@ -370,7 +370,7 @@ describe('TextEditorRegistry', function () {
            */
 
           {
-          \thello;
+          ${'\t'}hello;
           }
         `)
 
