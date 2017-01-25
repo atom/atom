@@ -15,7 +15,7 @@ environment:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
 
   matrix:
-  - NODE_VERSION: 6.8.0
+  - NODE_VERSION: 7.4.0
 
 install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
