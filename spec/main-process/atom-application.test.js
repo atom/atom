@@ -114,7 +114,7 @@ describe('AtomApplication', function () {
 
     it('reuses existing windows when opening paths, but not directories', async function () {
       const dirAPath = makeTempDir('a')
-      const dirBPath = makeTempDir('c')
+      const dirBPath = makeTempDir('b')
       const existingDirCFilePath = path.join(dirBPath, 'existing-file')
       fs.writeFileSync(existingDirCFilePath, 'this is an existing file')
 
