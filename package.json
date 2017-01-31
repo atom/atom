@@ -100,7 +100,7 @@
     "deprecation-cop": "0.56.1",
     "dev-live-reload": "0.47.0",
     "encoding-selector": "0.22.0",
-    "exception-reporting": "0.40.1",
+    "exception-reporting": "0.40.2",
     "find-and-replace": "0.206.1",
     "fuzzy-finder": "1.4.1",
     "git-diff": "1.2.0",
