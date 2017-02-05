@@ -169,6 +169,7 @@ class ContextMenuManager
         if not keepNextItemIfSeparator or index is menu.length - 1
           menu.splice(index, 1)
         else
+          keepNextItemIfSeparator = false
           index++
       else
         keepNextItemIfSeparator = true
