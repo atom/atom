@@ -2165,7 +2165,7 @@ i = /test/; #FIXME\
           beforeEach(() => {
             fakeSearch = null
             onFakeSearchCreated = null
-            atom.packages.serviceHub.provide('atom.directory-searcher', '0.1.0', {
+            atom.packages.serviceHub.provide('atom.directory-searcher', '0.2.0', {
               canSearchDirectory (directory) { return directory.getPath() === dir1 },
               search (directory, regex, options) {
                 fakeSearch = new FakeSearch(options)
@@ -2235,7 +2235,7 @@ i = /test/; #FIXME\
             // This provider's search should be cancelled when the first provider fails
             let cancelableSearch
             let fakeSearch2 = null
-            atom.packages.serviceHub.provide('atom.directory-searcher', '0.1.0', {
+            atom.packages.serviceHub.provide('atom.directory-searcher', '0.2.0', {
               canSearchDirectory (directory) { return directory.getPath() === dir2 },
               search (directory, regex, options) {
                 fakeSearch2 = new FakeSearch(options)
@@ -2374,6 +2374,48 @@ i = /test/; #FIXME\
 
           expect(editor.isModified()).toBeTruthy()
         })
+      })
+    })
+
+    describe('when a custom directory searcher is registered', function() {
+      let tempDir = null
+
+      beforeEach(function() {
+        tempDir = temp.mkdirSync('fake-dir')
+        atom.project.addPath(tempDir)
+
+        // Just a mock
+        atom.packages.serviceHub.provide('atom.directory-searcher', '0.2.0', {
+          canSearchDirectory(directory) {
+            return directory.getPath() === tempDir
+          },
+          replace(files, regex, replacement, iterator) {
+            return iterator({
+              filePath: files[0],
+              replacements: 123
+            })
+          }
+        })
+
+        waitsFor(() => atom.workspace.directorySearchers.length > 0)
+      })
+
+      it('calls the custom replace function', function() {
+        let results = []
+        let tempFile = path.join(tempDir, 'test')
+
+        waitsForPromise(() =>
+          atom.workspace.replace(/items/gi, 'items', [filePath, tempFile], result =>
+            results.push(result)
+          )
+        )
+
+        runs(() =>
+          expect(results).toEqual([
+            { filePath: tempFile, replacements: 123 },
+            { filePath, replacements: 6 }
+          ])
+        )
       })
     })
   })

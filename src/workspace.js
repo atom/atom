@@ -14,7 +14,6 @@ const StateStore = require('./state-store')
 const TextEditor = require('./text-editor')
 const Panel = require('./panel')
 const PanelContainer = require('./panel-container')
-const Task = require('./task')
 const WorkspaceCenter = require('./workspace-center')
 const WorkspaceElement = require('./workspace-element')
 
@@ -325,7 +324,7 @@ module.exports = class Workspace extends Model {
     this.directorySearchers = []
     serviceHub.consume(
       'atom.directory-searcher',
-      '^0.1.0',
+      '>=0.1.0',
       provider => this.directorySearchers.unshift(provider)
     )
   }
@@ -1738,22 +1737,7 @@ module.exports = class Workspace extends Model {
 
     // Find a searcher for every Directory in the project. Each searcher that is matched
     // will be associated with an Array of Directory objects in the Map.
-    const directoriesForSearcher = new Map()
-    for (const directory of this.project.getDirectories()) {
-      let searcher = this.defaultDirectorySearcher
-      for (const directorySearcher of this.directorySearchers) {
-        if (directorySearcher.canSearchDirectory(directory)) {
-          searcher = directorySearcher
-          break
-        }
-      }
-      let directories = directoriesForSearcher.get(searcher)
-      if (!directories) {
-        directories = []
-        directoriesForSearcher.set(searcher, directories)
-      }
-      directories.push(directory)
-    }
+    const directoriesForSearcher = this.getDirectoriesBySearcher()
 
     // Define the onPathsSearched callback.
     let onPathsSearched
@@ -1871,32 +1855,41 @@ module.exports = class Workspace extends Model {
       const openPaths = this.project.getBuffers().map(buffer => buffer.getPath())
       const outOfProcessPaths = _.difference(filePaths, openPaths)
 
-      let inProcessFinished = !openPaths.length
-      let outOfProcessFinished = !outOfProcessPaths.length
-      const checkFinished = () => {
-        if (outOfProcessFinished && inProcessFinished) {
-          resolve()
-        }
-      }
-
-      if (!outOfProcessFinished.length) {
-        let flags = 'g'
-        if (regex.ignoreCase) { flags += 'i' }
-
-        const task = Task.once(
-          require.resolve('./replace-handler'),
-          outOfProcessPaths,
-          regex.source,
-          flags,
-          replacementText,
-          () => {
-            outOfProcessFinished = true
-            checkFinished()
+      let outOfProcessPromise
+      if (outOfProcessPaths.length) {
+        // Group paths by directory searcher.
+        // The common case is that all directories map to the same searcher
+        // (e.g. if no custom searcher is provided) so add a fast-path.
+        const directorySearcherPaths = new Map()
+        const directoriesForSearcher = this.getDirectoriesBySearcher()
+        if (Object.keys(directoriesForSearcher).length === 1) {
+          const searcher = Object.keys(directoriesForSearcher)[0]
+          directorySearcherPaths.set(searcher, outOfProcessPaths)
+        } else {
+          for (const filePath of outOfProcessPaths) {
+            let directorySearcher = this.defaultDirectorySearcher
+            for (const [searcher, directories] of directoriesForSearcher) {
+              if ((searcher.replace != null) && directories.some(directory => directory.contains(filePath))) {
+                directorySearcher = searcher
+                break
+              }
+            }
+            let paths = directorySearcherPaths.get(directorySearcher)
+            if (!paths) {
+              paths = []
+              directorySearcherPaths.set(directorySearcher, paths)
+            }
+            paths.push(filePath)
           }
-        )
+        }
 
-        task.on('replace:path-replaced', iterator)
-        task.on('replace:file-error', error => { iterator(null, error) })
+        outOfProcessPromise = Promise.all(
+          Array.from(directorySearcherPaths).map(([directorySearcher, paths]) => {
+            return directorySearcher.replace(paths, regex, replacementText, iterator)
+          }),
+        )
+      } else {
+        outOfProcessPromise = Promise.resolve()
       }
 
       for (buffer of this.project.getBuffers()) {
@@ -1907,9 +1900,28 @@ module.exports = class Workspace extends Model {
         }
       }
 
-      inProcessFinished = true
-      checkFinished()
+      outOfProcessPromise.then(resolve, reject)
     })
+  }
+
+  getDirectoriesBySearcher (directory) {
+    const directoriesForSearcher = new Map()
+    for (const directory of this.project.getDirectories()) {
+      let searcher = this.defaultDirectorySearcher
+      for (const directorySearcher of this.directorySearchers) {
+        if (directorySearcher.canSearchDirectory(directory)) {
+          searcher = directorySearcher
+          break
+        }
+      }
+      let directories = directoriesForSearcher.get(searcher)
+      if (!directories) {
+        directories = []
+        directoriesForSearcher.set(searcher, directories)
+      }
+      directories.push(directory)
+    }
+    return directoriesForSearcher
   }
 
   checkoutHeadRevision (editor) {

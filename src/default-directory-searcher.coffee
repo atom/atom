@@ -92,3 +92,25 @@ class DefaultDirectorySearcher
         isCancelled = true
         directorySearch.cancel()
     }
+
+  # Performs a replace across all the specified files.
+  #
+  # * `filePaths` An {Array} of file path strings to run the replace on.
+  # * `regex` A {RegExp} to search with.
+  # * `replacementText` {String} to replace all matches of regex with.
+  # * `iterator` A {Function} callback on each file with replacements:
+  #   * `options` {Object} with keys:
+  #     * `filePath` {String} a path with replacements
+  #     * `replacements` {Number} the count of replacements performed
+  #
+  # Returns a {Promise}.
+  replace: (filePaths, regex, replacementText, iterator) ->
+    new Promise (resolve, reject) ->
+      flags = 'g'
+      flags += 'i' if regex.ignoreCase
+
+      task = Task.once require.resolve('./replace-handler'),
+        filePaths, regex.source, flags, replacementText, resolve
+
+      task.on 'replace:path-replaced', iterator
+      task.on 'replace:file-error', (error) -> iterator(null, error)
