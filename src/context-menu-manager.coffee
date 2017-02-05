@@ -126,6 +126,7 @@ class ContextMenuManager
 
   templateForEvent: (event) ->
     template = []
+    removeItems = []
     currentTarget = event.target
 
     while currentTarget?
@@ -142,7 +143,6 @@ class ContextMenuManager
       for item in currentTargetItems
         MenuHelpers.merge(template, item, false)
 
-      currentTargetRemoveItems = []
       matchingRemoveItemSets =
         @removeItemSets.filter (itemSet) -> currentTarget.webkitMatchesSelector(itemSet.selector)
 
@@ -150,15 +150,15 @@ class ContextMenuManager
         for item in itemSet.items
           itemForEvent = @cloneItemForEvent(item, event)
           if itemForEvent
-            MenuHelpers.merge(currentTargetRemoveItems, itemForEvent, itemSet.specificity)
-
-      for item in currentTargetRemoveItems
-        MenuHelpers.unmerge(template, item, false)
+            MenuHelpers.merge(removeItems, itemForEvent, itemSet.specificity)
 
       currentTarget = currentTarget.parentElement
 
+    for item in removeItems
+      MenuHelpers.unmerge(template, item, false)
+      
     @pruneRedundantSeparators(template)
-
+    
     template
 
   pruneRedundantSeparators: (menu) ->
