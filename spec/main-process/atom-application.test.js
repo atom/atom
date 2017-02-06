@@ -267,14 +267,22 @@ describe('AtomApplication', function () {
       const window1EditorTitle = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
       })
+      const window1EditorPending = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(atom.workspace.getActivePane().getPendingItem())
+      })
       assert.equal(window1EditorTitle, 'untitled')
+      assert.notEqual(window1EditorPending, null)
 
       const window2 = atomApplication.openWithOptions(parseCommandLine([]))
       await focusWindow(window2)
       const window2EditorTitle = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
       })
+      const window2EditorPending = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(atom.workspace.getActivePane().getPendingItem())
+      })
       assert.equal(window2EditorTitle, 'untitled')
+      assert.notEqual(window2EditorPending, null)
 
       assert.deepEqual(atomApplication.windows, [window1, window2])
     })
@@ -290,7 +298,7 @@ describe('AtomApplication', function () {
       const window1 = atomApplication.launch(parseCommandLine([]))
       await focusWindow(window1)
 
-     // wait a bit just to make sure we don't pass due to querying the render process before it loads
+      // wait a bit just to make sure we don't pass due to querying the render process before it loads
       await timeoutPromise(1000)
 
       const itemCount = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
