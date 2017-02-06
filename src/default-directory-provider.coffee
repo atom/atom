@@ -15,7 +15,7 @@ class DefaultDirectoryProvider
   # * {Directory} if the given URI is compatible with this provider.
   # * `null` if the given URI is not compatibile with this provider.
   directoryForURISync: (uri) ->
-    normalizedPath = @normalizePath(uri)
+    normalizedPath = path.normalize(uri)
     {host} = url.parse(uri)
     directoryPath = if host
       uri
@@ -42,15 +42,3 @@ class DefaultDirectoryProvider
   # * `null` if the given URI is not compatibile with this provider.
   directoryForURI: (uri) ->
     Promise.resolve(@directoryForURISync(uri))
-
-  # Public: Normalizes path.
-  #
-  # * `uri` {String} The path that should be normalized.
-  #
-  # Returns a {String} with normalized path.
-  normalizePath: (uri) ->
-    # Normalize disk drive letter on Windows to avoid opening two buffers for the same file
-    pathWithNormalizedDiskDriveLetter = uri
-    if matchData = uri.match(/^([A-Za-z]):/)
-      pathWithNormalizedDiskDriveLetter = "#{matchData[1].toUpperCase()}#{uri.slice(1)}"
-    path.normalize(pathWithNormalizedDiskDriveLetter)

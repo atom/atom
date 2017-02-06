@@ -28,15 +28,6 @@ describe "DefaultDirectoryProvider", ->
       directory = provider.directoryForURISync(nonNormalizedPath)
       expect(directory.getPath()).toEqual tmp
 
-    it "normalizes disk drive letter in Windows path", ->
-      provider = new DefaultDirectoryProvider()
-      nonNormalizedPath = tmp[0].toLowerCase()+tmp.slice(1)
-      expect(!tmp.search(/^[a-z]:/)).toBe false
-      expect(!nonNormalizedPath.search(/^[a-z]:/)).toBe true
-
-      directory = provider.directoryForURISync(nonNormalizedPath)
-      expect(directory.getPath()).toEqual tmp
-
     it "creates a Directory for its parent dir when passed a file", ->
       provider = new DefaultDirectoryProvider()
       file = path.join(tmp, "example.txt")
