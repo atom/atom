@@ -614,7 +614,3 @@ describe "Project", ->
 
       randomPath = path.join("some", "random", "path")
       expect(atom.project.contains(randomPath)).toBe false
-
-  describe ".resolvePath(uri)", ->
-    it "normalizes disk drive letter in passed Windows path", ->
-      expect(atom.project.resolvePath("d:\file.txt")).toEqual "D:\file.txt"
