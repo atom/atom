@@ -6,7 +6,7 @@ import ipcHelpers from './ipc-helpers'
 import util from 'util'
 
 export default async function () {
-  const {getWindowLoadSettings} = require('./window-load-settings-helpers')
+  const getWindowLoadSettings = require('./get-window-load-settings')
   const {test, headless, resourcePath, benchmarkPaths} = getWindowLoadSettings()
   try {
     const Clipboard = require('../src/clipboard')

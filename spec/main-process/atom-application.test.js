@@ -260,7 +260,7 @@ describe('AtomApplication', function () {
       })
       assert.equal(window1EditorTitle, 'untitled')
 
-      const window2 = atomApplication.launch(parseCommandLine([]))
+      const window2 = atomApplication.openWithOptions(parseCommandLine([]))
       await focusWindow(window2)
       const window2EditorTitle = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
