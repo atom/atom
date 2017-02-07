@@ -285,6 +285,7 @@ class TextEditor extends Model
             @mini = value
             @emitter.emit 'did-change-mini', value
             displayLayerParams.invisibles = @getInvisibles()
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
             displayLayerParams.showIndentGuides = @doesShowIndentGuide()
 
         when 'placeholderText'
@@ -2958,7 +2959,7 @@ class TextEditor extends Model
 
   # Essential: Gets the column at which column will soft wrap
   getSoftWrapColumn: ->
-    if @isSoftWrapped()
+    if @isSoftWrapped() and not @mini
       if @softWrapAtPreferredLineLength
         Math.min(@getEditorWidthInChars(), @preferredLineLength)
       else
