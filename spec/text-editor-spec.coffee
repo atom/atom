@@ -5961,7 +5961,7 @@ describe "TextEditor", ->
       expect(editor.getGrammar().name).toBe 'CoffeeScript'
 
   describe "softWrapAtPreferredLineLength", ->
-    it "soft wraps the editor at the preferred line length unless the editor is narrower", ->
+    it "soft wraps the editor at the preferred line length unless the editor is narrower or the editor is mini", ->
       editor.update({
         editorWidthInChars: 30
         softWrapped: true
@@ -5973,6 +5973,9 @@ describe "TextEditor", ->
 
       editor.update({editorWidthInChars: 10})
       expect(editor.lineTextForScreenRow(0)).toBe 'var '
+
+      editor.update({mini: true})
+      expect(editor.lineTextForScreenRow(0)).toBe 'var quicksort = function () {'
 
   describe "softWrapHangingIndentLength", ->
     it "controls how much extra indentation is applied to soft-wrapped lines", ->
