@@ -169,7 +169,7 @@ class TextEditor extends Model
     unless @displayLayer?
       displayLayerParams = {
         invisibles: @getInvisibles(),
-        softWrapColumn: @getSoftWrapColumn(),
+        softWrapColumn: not @isMini() and @getSoftWrapColumn(),
         showIndentGuides: not @isMini() and @doesShowIndentGuide(),
         atomicSoftTabs: params.atomicSoftTabs ? true,
         tabLength: tabLength,
