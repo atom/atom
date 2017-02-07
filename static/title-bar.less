@@ -1,5 +1,7 @@
 @import "ui-variables";
 
+// Custom Title Bar -------------------------------
+
 @title-bar-text-size: 13px;
 @title-bar-height: 23px;
 @title-bar-background-color: @base-background-color;
@@ -10,6 +12,7 @@ body.fullscreen .title-bar {
 }
 
 .title-bar {
+  box-sizing: content-box;
   height: @title-bar-height;
   transition: margin-top 160ms;
 
@@ -38,4 +41,54 @@ body.fullscreen .title-bar {
   .is-blurred & {
     color: @text-color-subtle;
   }
+}
+
+
+// Hidden Title Bar -------------------------------
+
+@traffic-lights-width: 78px;
+@traffic-lights-height: 38px;
+
+.hidden-title-bar:not(.fullscreen) {
+  atom-panel-container.header:empty + atom-workspace-axis.horizontal atom-panel-container.left {
+    min-width: 78px; // keep some width for traffic lights when tree-view is hidden
+    padding-top: @traffic-lights-height; // add space for traffic lights
+  }
+
+  // Add space for traffic lights in header panels
+  atom-panel.header:first-child {
+    box-sizing: content-box;
+    height: @traffic-lights-height;
+    padding-left: @traffic-lights-width;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  // Enable dragging
+  atom-panel-container.left,
+  .tree-view,
+  .tab-bar,
+  .status-bar,
+  atom-panel.header:first-child {
+    -webkit-app-region: drag;
+  }
+
+  // Disable dragging (on child elements)
+  .tree-view > li,
+  .tree-view-resize-handle,
+  .tab {
+    -webkit-app-region: no-drag;
+  }
+}
+
+
+// Modal -------------------------------
+// Prevent traffic lights from overlapping modals
+
+.custom-title-bar atom-panel.modal {
+  top: @title-bar-height;
+}
+
+.hidden-title-bar atom-panel.modal {
+  top: @traffic-lights-height;
 }

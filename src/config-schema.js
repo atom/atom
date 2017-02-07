@@ -498,10 +498,11 @@ if (['win32', 'linux'].includes(process.platform)) {
 }
 
 if (process.platform === 'darwin') {
-  configSchema.core.properties.useCustomTitleBar = {
-    type: 'boolean',
-    default: false,
-    description: 'Use custom, theme-aware title bar.<br>Note: This currently does not include a proxy icon.<br>This setting will require a relaunch of Atom to take effect.'
+  configSchema.core.properties.titleBar = {
+    type: 'string',
+    default: 'native',
+    enum: ['native', 'custom', 'hidden'],
+    description: 'Use a custom, theme-aware title bar or hide the title bar altogether.<br>Note: Switching to a custom or hidden title bar will compromise some functionality.<br>This setting will require a relaunch of Atom to take effect.'
   }
 }
 
