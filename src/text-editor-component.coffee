@@ -124,7 +124,7 @@ class TextEditorComponent
     @onVerticalScroll = null
     @onHorizontalScroll = null
 
-    @intersectionObserver.disconnect()
+    @intersectionObserver?.disconnect()
 
   didAttach: ->
     @intersectionObserver = new IntersectionObserver((entries) =>
