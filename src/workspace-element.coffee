@@ -57,7 +57,6 @@ class WorkspaceElement extends HTMLElement
       }
     """
     @styles.addStyleSheet(styleSheetSource, sourcePath: 'global-text-editor-styles')
-    @views.performDocumentPoll()
 
   initialize: (@model, {@views, @workspace, @project, @config, @styles}) ->
     throw new Error("Must pass a views parameter when initializing WorskpaceElements") unless @views?
