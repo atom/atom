@@ -133,6 +133,7 @@ class TextEditorComponent
         @becameVisible()
     )
     @intersectionObserver.observe(@domNode)
+    @becameVisible() if @isVisible()
 
     measureDimensions = @measureDimensions.bind(this)
     elementResizeDetector.listenTo(@domNode, measureDimensions)
