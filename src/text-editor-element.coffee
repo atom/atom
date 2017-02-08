@@ -58,8 +58,8 @@ class TextEditorElement extends HTMLElement
     @buildModel() unless @getModel()?
     @assert(@model.isAlive(), "Attaching a view for a destroyed editor")
     @mountComponent() unless @component?
+    @component.didAttach()
     @listenForComponentEvents()
-    @component.checkForVisibilityChange()
     if @hasFocus()
       @focused()
     @emitter.emit("did-attach")
@@ -94,6 +94,7 @@ class TextEditorElement extends HTMLElement
     @model.setUpdatedSynchronously(@isUpdatedSynchronously())
     @initializeContent()
     @mountComponent()
+    @component.didAttach() if document.contains(this)
     @addGrammarScopeAttribute()
     @addMiniAttribute() if @model.isMini()
     @addEncodingAttribute()
