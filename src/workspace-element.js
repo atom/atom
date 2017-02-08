@@ -64,7 +64,6 @@ class WorkspaceElement extends HTMLElement {
   line-height: ${this.config.get('editor.lineHeight')};
 }`
     this.styleManager.addStyleSheet(styleSheetSource, {sourcePath: 'global-text-editor-styles', priority: -1})
-    this.viewRegistry.performDocumentPoll()
   }
 
   initialize (model, {config, project, styleManager, viewRegistry}) {

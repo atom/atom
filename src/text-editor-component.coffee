@@ -649,11 +649,12 @@ class TextEditorComponent
     return unless @performedInitialMeasurement
     return unless @themes.isInitialLoadComplete()
 
-    # This delay prevents the styling from going haywire when stylesheets are
-    # reloaded in dev mode. It seems like a workaround for a browser bug, but
-    # not totally sure.
-
-    unless @stylingChangeAnimationFrameRequested
+    # Handle styling change synchronously if a global editor property such as
+    # font size might have changed. Otherwise coalesce multiple style sheet changes
+    # into a measurement on the next animation frame to prevent excessive thrashing.
+    if styleElement.getAttribute('source-path') is 'global-text-editor-styles'
+      @handleStylingChange()
+    else if not @stylingChangeAnimationFrameRequested
       @stylingChangeAnimationFrameRequested = true
       requestAnimationFrame =>
         @stylingChangeAnimationFrameRequested = false
@@ -757,7 +758,6 @@ class TextEditorComponent
   pollDOM: =>
     if @isVisible()
       @sampleBackgroundColors()
-      @sampleFontStyling()
       @overlayManager?.measureOverlays()
 
   # Measure explicitly-styled height and width and relay them to the model. If
