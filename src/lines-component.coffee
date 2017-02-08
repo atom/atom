@@ -27,6 +27,7 @@ class LinesComponent extends TiledComponent
     # with other visual elements.
     @tilesNode.style.isolation = "isolate"
     @tilesNode.style.zIndex = 0
+    @tilesNode.style.backgroundColor = "inherit"
     @domNode.appendChild(@tilesNode)
 
     @cursorsComponent = new CursorsComponent

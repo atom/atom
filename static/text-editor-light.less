@@ -9,6 +9,7 @@ atom-text-editor {
   .editor--private, .editor-contents--private {
     height: 100%;
     width: 100%;
+    background-color: inherit;
   }
 
   .editor-contents--private {
@@ -19,6 +20,10 @@ atom-text-editor {
     position: relative;
   }
 
+  .gutter-container {
+    background-color: inherit;
+  }
+
   .gutter {
     overflow: hidden;
     z-index: 0;
@@ -26,10 +31,12 @@ atom-text-editor {
     cursor: default;
     min-width: 1em;
     box-sizing: border-box;
+    background-color: inherit;
   }
 
   .line-numbers {
     position: relative;
+    background-color: inherit;
   }
 
   .line-number {
@@ -86,6 +93,7 @@ atom-text-editor {
     flex: 1;
     min-width: 0;
     min-height: 0;
+    background-color: inherit;
   }
 
   .highlight {
@@ -103,6 +111,7 @@ atom-text-editor {
     min-width: 100%;
     position: relative;
     z-index: 1;
+    background-color: inherit;
   }
 
   .line {
