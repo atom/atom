@@ -108,7 +108,6 @@ class TextEditorComponent
     @disposables.add @views.pollDocument(@pollDOM)
 
     @updateSync()
-    @checkForVisibilityChange()
     @initialized = true
 
   destroy: ->
@@ -123,6 +122,15 @@ class TextEditorComponent
 
     @onVerticalScroll = null
     @onHorizontalScroll = null
+
+    @intersectionObserver.disconnect()
+
+  didAttach: ->
+    @intersectionObserver = new IntersectionObserver((entries) =>
+      if entries[entries.length - 1].intersectionRatio isnt 0
+        @becameVisible()
+    )
+    @intersectionObserver.observe(@domNode)
 
   getDomNode: ->
     @domNode
@@ -647,9 +655,10 @@ class TextEditorComponent
     @handleStylingChange()
 
   handleStylingChange: =>
-    @sampleFontStyling()
-    @sampleBackgroundColors()
-    @invalidateMeasurements()
+    if @isVisible()
+      @sampleFontStyling()
+      @sampleBackgroundColors()
+      @invalidateMeasurements()
 
   handleDragUntilMouseUp: (dragHandler) ->
     dragging = false
@@ -735,22 +744,12 @@ class TextEditorComponent
     @domNode? and (@domNode.offsetHeight > 0 or @domNode.offsetWidth > 0)
 
   pollDOM: =>
-    unless @checkForVisibilityChange()
+    if @isVisible()
       @sampleBackgroundColors()
       @measureWindowSize()
       @measureDimensions()
       @sampleFontStyling()
       @overlayManager?.measureOverlays()
-
-  checkForVisibilityChange: ->
-    if @isVisible()
-      if @wasVisible
-        false
-      else
-        @becameVisible()
-        @wasVisible = true
-    else
-      @wasVisible = false
 
   # Measure explicitly-styled height and width and relay them to the model. If
   # these values aren't explicitly styled, we assume the editor is unconstrained
