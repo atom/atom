@@ -139,6 +139,10 @@ class TextEditorComponent
     elementResizeDetector.listenTo(@domNode, measureDimensions)
     @disposables.add(new Disposable => elementResizeDetector.removeListener(@domNode, measureDimensions))
 
+    measureWindowSize = @measureWindowSize.bind(this)
+    window.addEventListener('resize', measureWindowSize)
+    @disposables.add(new Disposable => window.removeEventListener('resize', measureWindowSize))
+
   getDomNode: ->
     @domNode
 
@@ -751,7 +755,6 @@ class TextEditorComponent
   pollDOM: =>
     if @isVisible()
       @sampleBackgroundColors()
-      @measureWindowSize()
       @sampleFontStyling()
       @overlayManager?.measureOverlays()
 
