@@ -220,7 +220,6 @@ class TextEditorComponent
     @invalidateMeasurements()
     @measureScrollbars() if @measureScrollbarsWhenShown
     @sampleFontStyling()
-    @sampleBackgroundColors()
     @measureWindowSize()
     @measureDimensions()
     @measureLineHeightAndDefaultCharWidth() if @measureLineHeightAndDefaultCharWidthWhenShown
@@ -661,7 +660,6 @@ class TextEditorComponent
   handleStylingChange: =>
     if @isVisible()
       @sampleFontStyling()
-      @sampleBackgroundColors()
       @invalidateMeasurements()
 
   handleDragUntilMouseUp: (dragHandler) ->
@@ -755,7 +753,6 @@ class TextEditorComponent
 
   pollDOM: =>
     if @isVisible()
-      @sampleBackgroundColors()
       @overlayManager?.measureOverlays()
 
   # Measure explicitly-styled height and width and relay them to the model. If
@@ -821,15 +818,6 @@ class TextEditorComponent
       @clearPoolAfterUpdate = true
       @measureLineHeightAndDefaultCharWidth()
       @invalidateMeasurements()
-
-  sampleBackgroundColors: (suppressUpdate) ->
-    {backgroundColor} = getComputedStyle(@hostElement)
-    @presenter.setBackgroundColor(backgroundColor)
-
-    lineNumberGutter = @gutterContainerComponent?.getLineNumberGutterComponent()
-    if lineNumberGutter
-      gutterBackgroundColor = getComputedStyle(lineNumberGutter.getDomNode()).backgroundColor
-      @presenter.setGutterBackgroundColor(gutterBackgroundColor)
 
   measureLineHeightAndDefaultCharWidth: ->
     if @isVisible()

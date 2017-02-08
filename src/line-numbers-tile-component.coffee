@@ -11,6 +11,7 @@ class LineNumbersTileComponent
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
     @domNode.style.top = 0 # Cover the space occupied by a dummy lineNumber
+    @domNode.style.backgroundColor = "inherit"
 
   destroy: ->
     @domElementPool.freeElementAndDescendants(@domNode)
