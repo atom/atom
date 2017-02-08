@@ -16,6 +16,7 @@ module.exports = class LinesTileComponent {
     this.domNode = this.domElementPool.buildElement('div')
     this.domNode.style.position = 'absolute'
     this.domNode.style.display = 'block'
+    this.domNode.style.backgroundColor = 'inherit'
     this.highlightsComponent = new HighlightsComponent(this.domElementPool)
     this.domNode.appendChild(this.highlightsComponent.getDomNode())
   }
