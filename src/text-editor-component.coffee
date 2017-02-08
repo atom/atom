@@ -128,7 +128,8 @@ class TextEditorComponent
 
   didAttach: ->
     @intersectionObserver = new IntersectionObserver((entries) =>
-      if entries[entries.length - 1].intersectionRatio isnt 0
+      {intersectionRect} = entries[entries.length - 1]
+      if intersectionRect.width > 0 or intersectionRect.height > 0
         @becameVisible()
     )
     @intersectionObserver.observe(@domNode)
