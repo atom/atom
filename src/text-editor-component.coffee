@@ -106,8 +106,6 @@ class TextEditorComponent
       @disposables.add @themes.onDidChangeActiveThemes @onAllThemesLoaded
     @disposables.add scrollbarStyle.onDidChangePreferredScrollbarStyle @refreshScrollbars
 
-    @disposables.add @views.pollDocument(@pollDOM)
-
     @updateSync()
     @initialized = true
 
@@ -204,7 +202,6 @@ class TextEditorComponent
     @linesComponent.updateSync(@presenter.getPreMeasurementState())
 
   readAfterUpdateSync: =>
-    @overlayManager?.measureOverlays()
     @linesComponent.measureBlockDecorations()
     @offScreenBlockDecorationsComponent.measureBlockDecorations()
 
@@ -752,10 +749,6 @@ class TextEditorComponent
       error.metadata = {@initialized}
 
     @domNode? and (@domNode.offsetHeight > 0 or @domNode.offsetWidth > 0)
-
-  pollDOM: =>
-    if @isVisible()
-      @overlayManager?.measureOverlays()
 
   # Measure explicitly-styled height and width and relay them to the model. If
   # these values aren't explicitly styled, we assume the editor is unconstrained
