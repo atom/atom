@@ -77,39 +77,3 @@ describe "StylesElement", ->
     expect(element.children.length).toBe 2
     expect(element.children[0].textContent).toBe "a {color: red;}"
     expect(element.children[1].textContent).toBe "a {color: blue;}"
-
-  describe "atom-text-editor shadow DOM selector upgrades", ->
-    beforeEach ->
-      element.setAttribute('context', 'atom-text-editor')
-      spyOn(console, 'warn')
-
-    it "upgrades selectors containing .editor-colors", ->
-      atom.styles.addStyleSheet(".editor-colors {background: black;}", context: 'atom-text-editor')
-      expect(element.firstChild.sheet.cssRules[0].selectorText).toBe ':host'
-
-    it "upgrades selectors containing .editor", ->
-      atom.styles.addStyleSheet """
-        .editor {background: black;}
-        .editor.mini {background: black;}
-        .editor:focus {background: black;}
-      """, context: 'atom-text-editor'
-
-      expect(element.firstChild.sheet.cssRules[0].selectorText).toBe ':host'
-      expect(element.firstChild.sheet.cssRules[1].selectorText).toBe ':host(.mini)'
-      expect(element.firstChild.sheet.cssRules[2].selectorText).toBe ':host(:focus)'
-
-    it "defers selector upgrade until the element is attached", ->
-      element = new StylesElement
-      element.initialize(atom.styles)
-      element.setAttribute('context', 'atom-text-editor')
-
-      atom.styles.addStyleSheet ".editor {background: black;}", context: 'atom-text-editor'
-      expect(element.firstChild.sheet).toBeNull()
-
-      document.querySelector('#jasmine-content').appendChild(element)
-      expect(element.firstChild.sheet.cssRules[0].selectorText).toBe ':host'
-
-    it "does not throw exceptions on rules with no selectors", ->
-      atom.styles.addStyleSheet """
-        @media screen {font-size: 10px;}
-      """, context: 'atom-text-editor'

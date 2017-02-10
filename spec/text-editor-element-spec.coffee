@@ -2,8 +2,6 @@ TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
 {Disposable} = require 'event-kit'
 
-# The rest of text-editor-component-spec will be moved to this file when React
-# is eliminated. This covers only concerns related to the wrapper element for now
 describe "TextEditorElement", ->
   jasmineContent = null
 
@@ -59,11 +57,11 @@ describe "TextEditorElement", ->
 
       jasmine.attachToDOM(element)
 
-      initialCount = element.shadowRoot.querySelectorAll('.line-number').length
+      initialCount = element.querySelectorAll('.line-number').length
 
       element.remove()
       jasmine.attachToDOM(element)
-      expect(element.shadowRoot.querySelectorAll('.line-number').length).toBe initialCount
+      expect(element.querySelectorAll('.line-number').length).toBe initialCount
 
     it "does not render duplicate decorations in custom gutters", ->
       editor = new TextEditor
@@ -74,14 +72,27 @@ describe "TextEditorElement", ->
       element = atom.views.getView(editor)
 
       jasmine.attachToDOM(element)
-      initialDecorationCount = element.shadowRoot.querySelectorAll('.decoration').length
+      initialDecorationCount = element.querySelectorAll('.decoration').length
 
       element.remove()
       jasmine.attachToDOM(element)
-      expect(element.shadowRoot.querySelectorAll('.decoration').length).toBe initialDecorationCount
+      expect(element.querySelectorAll('.decoration').length).toBe initialDecorationCount
+
+    it "can be re-focused using the previous `document.activeElement`", ->
+      editorElement = document.createElement('atom-text-editor')
+      jasmine.attachToDOM(editorElement)
+      editorElement.focus()
+
+      activeElement = document.activeElement
+
+      editorElement.remove()
+      jasmine.attachToDOM(editorElement)
+      activeElement.focus()
+
+      expect(editorElement.hasFocus()).toBe(true)
 
   describe "focus and blur handling", ->
-    it "proxies focus/blur events to/from the hidden input inside the shadow root", ->
+    it "proxies focus/blur events to/from the hidden input", ->
       element = new TextEditorElement
       jasmineContent.appendChild(element)
 
@@ -91,11 +102,27 @@ describe "TextEditorElement", ->
       element.focus()
       expect(blurCalled).toBe false
       expect(element.hasFocus()).toBe true
-      expect(document.activeElement).toBe element
-      expect(element.shadowRoot.activeElement).toBe element.shadowRoot.querySelector('input')
+      expect(document.activeElement).toBe element.querySelector('input')
 
       document.body.focus()
       expect(blurCalled).toBe true
+
+    it "doesn't trigger a blur event on the editor element when focusing an already focused editor element", ->
+      blurCalled = false
+      element = new TextEditorElement
+      element.addEventListener 'blur', -> blurCalled = true
+
+      jasmineContent.appendChild(element)
+      expect(document.activeElement).toBe(document.body)
+      expect(blurCalled).toBe(false)
+
+      element.focus()
+      expect(document.activeElement).toBe(element.querySelector('input'))
+      expect(blurCalled).toBe(false)
+
+      element.focus()
+      expect(document.activeElement).toBe(element.querySelector('input'))
+      expect(blurCalled).toBe(false)
 
     describe "when focused while a parent node is being attached to the DOM", ->
       class ElementThatFocusesChild extends HTMLDivElement
@@ -111,7 +138,7 @@ describe "TextEditorElement", ->
         parentElement = document.createElement("element-that-focuses-child")
         parentElement.appendChild(element)
         jasmineContent.appendChild(parentElement)
-        expect(element.shadowRoot.activeElement).toBe element.shadowRoot.querySelector('input')
+        expect(document.activeElement).toBe element.querySelector('input')
 
   describe "when the themes finish loading", ->
     [themeReloadCallback, initialThemeLoadComplete, element] = []
@@ -143,7 +170,7 @@ describe "TextEditorElement", ->
       initialThemeLoadComplete = true
       themeReloadCallback()
 
-      verticalScrollbarNode = element.shadowRoot.querySelector(".vertical-scrollbar")
+      verticalScrollbarNode = element.querySelector(".vertical-scrollbar")
       scrollbarWidth = verticalScrollbarNode.offsetWidth - verticalScrollbarNode.clientWidth
       expect(scrollbarWidth).toEqual(8)
 
@@ -181,13 +208,13 @@ describe "TextEditorElement", ->
       element.getModel().setText("hello")
       expect(window.requestAnimationFrame).toHaveBeenCalled()
 
-      expect(element.shadowRoot.textContent).toContain "hello"
+      expect(element.textContent).toContain "hello"
 
       window.requestAnimationFrame.reset()
       element.setUpdatedSynchronously(true)
       element.getModel().setText("goodbye")
       expect(window.requestAnimationFrame).not.toHaveBeenCalled()
-      expect(element.shadowRoot.textContent).toContain "goodbye"
+      expect(element.textContent).toContain "goodbye"
 
   describe "::getDefaultCharacterWidth", ->
     it "returns null before the element is attached", ->

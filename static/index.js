@@ -2,9 +2,8 @@
   var path = require('path')
   var FileSystemBlobStore = require('../src/file-system-blob-store')
   var NativeCompileCache = require('../src/native-compile-cache')
+  var getWindowLoadSettings = require('../src/get-window-load-settings')
 
-  var loadSettings = null
-  var loadSettingsError = null
   var blobStore = null
 
   window.onload = function () {
@@ -25,20 +24,16 @@
       // Normalize to make sure drive letter case is consistent on Windows
       process.resourcesPath = path.normalize(process.resourcesPath)
 
-      if (loadSettingsError) {
-        throw loadSettingsError
-      }
-
-      var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + path.sep)
+      var devMode = getWindowLoadSettings().devMode || !getWindowLoadSettings().resourcePath.startsWith(process.resourcesPath + path.sep)
 
       if (devMode) {
         setupDeprecatedPackages()
       }
 
-      if (loadSettings.profileStartup) {
-        profileStartup(loadSettings, Date.now() - startTime)
+      if (getWindowLoadSettings().profileStartup) {
+        profileStartup(Date.now() - startTime)
       } else {
-        setupWindow(loadSettings)
+        setupWindow()
         setLoadTime(Date.now() - startTime)
       }
     } catch (error) {
@@ -61,23 +56,23 @@
     console.error(error.stack || error)
   }
 
-  function setupWindow (loadSettings) {
+  function setupWindow () {
     var CompileCache = require('../src/compile-cache')
     CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
 
     var ModuleCache = require('../src/module-cache')
-    ModuleCache.register(loadSettings)
-    ModuleCache.add(loadSettings.resourcePath)
+    ModuleCache.register(getWindowLoadSettings())
+    ModuleCache.add(getWindowLoadSettings().resourcePath)
 
     // By explicitly passing the app version here, we could save the call
     // of "require('remote').require('app').getVersion()".
     var startCrashReporter = require('../src/crash-reporter-start')
-    startCrashReporter({_version: loadSettings.appVersion})
+    startCrashReporter({_version: getWindowLoadSettings().appVersion})
 
     setupVmCompatibility()
     setupCsonCache(CompileCache.getCacheDirectory())
 
-    var initialize = require(loadSettings.windowInitializationScript)
+    var initialize = require(getWindowLoadSettings().windowInitializationScript)
     return initialize({blobStore: blobStore}).then(function () {
       require('electron').ipcRenderer.send('window-command', 'window:loaded')
     })
@@ -105,35 +100,23 @@
     }
   }
 
-  function profileStartup (loadSettings, initialTime) {
+  function profileStartup (initialTime) {
     function profile () {
       console.profile('startup')
       var startTime = Date.now()
-      setupWindow(loadSettings).then(function () {
+      setupWindow().then(function () {
         setLoadTime(Date.now() - startTime + initialTime)
         console.profileEnd('startup')
         console.log('Switch to the Profiles tab to view the created startup profile')
       })
     }
 
-    var currentWindow = require('electron').remote.getCurrentWindow()
-    if (currentWindow.devToolsWebContents) {
+    const webContents = require('electron').remote.getCurrentWindow().webContents
+    if (webContents.devToolsWebContents) {
       profile()
     } else {
-      currentWindow.openDevTools()
-      currentWindow.once('devtools-opened', function () {
-        setTimeout(profile, 1000)
-      })
-    }
-  }
-
-  function parseLoadSettings () {
-    var rawLoadSettings = decodeURIComponent(window.location.hash.substr(1))
-    try {
-      loadSettings = JSON.parse(rawLoadSettings)
-    } catch (error) {
-      console.error('Failed to parse load settings: ' + rawLoadSettings)
-      loadSettingsError = error
+      webContents.once('devtools-opened', () => { setTimeout(profile, 1000) })
+      webContents.openDevTools()
     }
   }
 
@@ -145,11 +128,10 @@
     // Ensure ATOM_HOME is always set before anything else is required
     // This is because of a difference in Linux not inherited between browser and render processes
     // https://github.com/atom/atom/issues/5412
-    if (loadSettings && loadSettings.atomHome) {
-      process.env.ATOM_HOME = loadSettings.atomHome
+    if (getWindowLoadSettings() && getWindowLoadSettings().atomHome) {
+      process.env.ATOM_HOME = getWindowLoadSettings().atomHome
     }
   }
 
-  parseLoadSettings()
   setupAtomHome()
 })()

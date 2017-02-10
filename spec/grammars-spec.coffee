@@ -1,6 +1,6 @@
 path = require 'path'
 fs = require 'fs-plus'
-temp = require 'temp'
+temp = require('temp').track()
 GrammarRegistry = require '../src/grammar-registry'
 Grim = require 'grim'
 
@@ -24,6 +24,7 @@ describe "the `grammars` global", ->
   afterEach ->
     atom.packages.deactivatePackages()
     atom.packages.unloadPackages()
+    temp.cleanupSync()
 
   describe ".selectGrammar(filePath)", ->
     it "always returns a grammar", ->
@@ -96,6 +97,7 @@ describe "the `grammars` global", ->
         )
         grammar1 = atom.grammars.loadGrammarSync(grammarPath1)
         expect(atom.grammars.selectGrammar('more.test', '')).toBe grammar1
+        fs.removeSync(grammarPath1)
 
         grammarPath2 = temp.path(suffix: '.json')
         fs.writeFileSync grammarPath2, JSON.stringify(
@@ -105,6 +107,7 @@ describe "the `grammars` global", ->
         )
         grammar2 = atom.grammars.loadGrammarSync(grammarPath2)
         expect(atom.grammars.selectGrammar('more.test', '')).toBe grammar2
+        fs.removeSync(grammarPath2)
 
     it "favors non-bundled packages when breaking scoring ties", ->
       waitsForPromise ->

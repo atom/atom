@@ -11,8 +11,8 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StateStore = require './state-store'
 StorageFolder = require './storage-folder'
-{getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
+{updateProcessEnv} = require './update-process-env'
 
 DeserializerManager = require './deserializer-manager'
 ViewRegistry = require './view-registry'
@@ -22,6 +22,8 @@ KeymapManager = require './keymap-extensions'
 TooltipManager = require './tooltip-manager'
 CommandRegistry = require './command-registry'
 GrammarRegistry = require './grammar-registry'
+{HistoryManager, HistoryProject} = require './history-manager'
+ReopenProjectMenuManager = require './reopen-project-menu-manager'
 StyleManager = require './style-manager'
 PackageManager = require './package-manager'
 ThemeManager = require './theme-manager'
@@ -94,6 +96,9 @@ class AtomEnvironment extends Model
   # Public: A {GrammarRegistry} instance
   grammars: null
 
+  # Public: A {HistoryManager} instance
+  history: null
+
   # Public: A {PackageManager} instance
   packages: null
 
@@ -153,7 +158,7 @@ class AtomEnvironment extends Model
 
     @keymaps = new KeymapManager({@configDirPath, resourcePath, notificationManager: @notifications})
 
-    @tooltips = new TooltipManager(keymapManager: @keymaps)
+    @tooltips = new TooltipManager(keymapManager: @keymaps, viewRegistry: @views)
 
     @commands = new CommandRegistry
     @commands.attach(@window)
@@ -226,15 +231,13 @@ class AtomEnvironment extends Model
 
     @observeAutoHideMenuBar()
 
-    checkPortableHomeWritable = =>
-      responseChannel = "check-portable-home-writable-response"
-      ipcRenderer.on responseChannel, (event, response) ->
-        ipcRenderer.removeAllListeners(responseChannel)
-        @notifications.addWarning("#{response.message.replace(/([\\\.+\\-_#!])/g, '\\$1')}") if not response.writable
-      @disposables.add new Disposable -> ipcRenderer.removeAllListeners(responseChannel)
-      ipcRenderer.send('check-portable-home-writable', responseChannel)
+    @history = new HistoryManager({@project, @commands, localStorage})
+    # Keep instances of HistoryManager in sync
+    @history.onDidChangeProjects (e) =>
+      @applicationDelegate.didChangeHistoryManager() unless e.reloaded
+    @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
 
-    checkPortableHomeWritable()
+    new ReopenProjectMenuManager({@menu, @commands, @history, @config, open: (paths) => @open(pathsToOpen: paths)})
 
   attachSaveStateListeners: ->
     saveState = _.debounce((=>
@@ -280,13 +283,13 @@ class AtomEnvironment extends Model
     @workspace.addOpener (uri) =>
       switch uri
         when 'atom://.atom/stylesheet'
-          @workspace.open(@styles.getUserStyleSheetPath())
+          @workspace.openTextFile(@styles.getUserStyleSheetPath())
         when 'atom://.atom/keymap'
-          @workspace.open(@keymaps.getUserKeymapPath())
+          @workspace.openTextFile(@keymaps.getUserKeymapPath())
         when 'atom://.atom/config'
-          @workspace.open(@config.getUserConfigPath())
+          @workspace.openTextFile(@config.getUserConfigPath())
         when 'atom://.atom/init-script'
-          @workspace.open(@getUserInitScriptPath())
+          @workspace.openTextFile(@getUserInitScriptPath())
 
   registerDefaultTargetForKeymaps: ->
     @keymaps.defaultTarget = @views.getView(@workspace)
@@ -454,7 +457,7 @@ class AtomEnvironment extends Model
   #
   # Returns an {Object} containing all the load setting key/value pairs.
   getLoadSettings: ->
-    getWindowLoadSettings()
+    @applicationDelegate.getWindowLoadSettings()
 
   ###
   Section: Managing The Atom Window
@@ -643,7 +646,7 @@ class AtomEnvironment extends Model
   restoreWindowDimensions: ->
     unless @windowDimensions? and @isValidDimensions(@windowDimensions)
       @windowDimensions = @getDefaultWindowDimensions()
-    @setWindowDimensions(@windowDimensions).then -> @windowDimensions
+    @setWindowDimensions(@windowDimensions).then => @windowDimensions
 
   restoreWindowBackground: ->
     if backgroundColor = window.localStorage.getItem('atom:window-background-color')
@@ -662,7 +665,11 @@ class AtomEnvironment extends Model
   # Call this method when establishing a real application window.
   startEditorWindow: ->
     @unloaded = false
-    @loadState().then (state) =>
+    updateProcessEnvPromise = updateProcessEnv(@getLoadSettings().env)
+    updateProcessEnvPromise.then =>
+      @packages.triggerActivationHook('core:loaded-shell-environment')
+
+    loadStatePromise = @loadState().then (state) =>
       @windowDimensions = state?.windowDimensions
       @displayWindow().then =>
         @commandInstaller.installAtomCommand false, (error) ->
@@ -702,6 +709,8 @@ class AtomEnvironment extends Model
         @menu.update()
 
         @openInitialEmptyEditorIfNecessary()
+
+    Promise.all([loadStatePromise, updateProcessEnvPromise])
 
   serialize: (options) ->
     version: @constructor.version

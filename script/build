@@ -23,6 +23,7 @@ const argv = yargs
   .wrap(yargs.terminalWidth())
   .argv
 
+const checkChromedriverVersion = require('./lib/check-chromedriver-version')
 const cleanOutputDirectory = require('./lib/clean-output-directory')
 const codeSignOnMac = require('./lib/code-sign-on-mac')
 const compressArtifacts = require('./lib/compress-artifacts')
@@ -30,7 +31,6 @@ const copyAssets = require('./lib/copy-assets')
 const createDebianPackage = require('./lib/create-debian-package')
 const createRpmPackage = require('./lib/create-rpm-package')
 const createWindowsInstaller = require('./lib/create-windows-installer')
-const downloadChromedriver = require('./lib/download-chromedriver')
 const dumpSymbols = require('./lib/dump-symbols')
 const generateAPIDocs = require('./lib/generate-api-docs')
 const generateMetadata = require('./lib/generate-metadata')
@@ -48,6 +48,7 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
+checkChromedriverVersion()
 cleanOutputDirectory()
 copyAssets()
 transpileBabelPaths()
@@ -58,7 +59,6 @@ generateModuleCache()
 prebuildLessCache()
 generateMetadata()
 generateAPIDocs()
-downloadChromedriver()
 dumpSymbols()
   .then(packageApplication)
   .then(packagedAppPath => {

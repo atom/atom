@@ -102,7 +102,7 @@ class WorkspaceElement extends HTMLElement
   getModel: -> @model
 
   handleMousewheel: (event) ->
-    if event.ctrlKey and @config.get('editor.zoomFontWhenCtrlScrolling') and event.target.matches('atom-text-editor')
+    if event.ctrlKey and @config.get('editor.zoomFontWhenCtrlScrolling') and event.target.closest('atom-text-editor')?
       if event.wheelDeltaY > 0
         @model.increaseFontSize()
       else if event.wheelDeltaY < 0
@@ -141,5 +141,14 @@ class WorkspaceElement extends HTMLElement
         specPath = testPath
 
       ipcRenderer.send('run-package-specs', specPath)
+
+  runBenchmarks: ->
+    if activePath = @workspace.getActivePaneItem()?.getPath?()
+      [projectPath] = @project.relativizePath(activePath)
+    else
+      [projectPath] = @project.getPaths()
+
+    if projectPath
+      ipcRenderer.send('run-benchmarks', path.join(projectPath, 'benchmarks'))
 
 module.exports = WorkspaceElement = document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype

@@ -12,10 +12,6 @@ module.exports = function () {
   // Set our target (Electron) version so that node-pre-gyp can download the
   // proper binaries.
   installEnv.npm_config_target = CONFIG.appMetadata.electronVersion;
-  // Force 32-bit modules on Windows. (Ref.: https://github.com/atom/atom/issues/10450)
-  if (process.platform === 'win32') {
-    installEnv.npm_config_target_arch = 'ia32'
-  }
   childProcess.execFileSync(
     CONFIG.getApmBinPath(),
     ['--loglevel=error', 'install'],

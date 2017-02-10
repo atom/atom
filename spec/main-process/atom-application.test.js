@@ -22,7 +22,7 @@ describe('AtomApplication', function () {
     originalAtomHome = process.env.ATOM_HOME
     process.env.ATOM_HOME = makeTempDir('atom-home')
     // Symlinking the compile cache into the temporary home dir makes the windows load much faster
-    fs.symlinkSync(path.join(originalAtomHome, 'compile-cache'), path.join(process.env.ATOM_HOME, 'compile-cache'))
+    fs.symlinkSync(path.join(originalAtomHome, 'compile-cache'), path.join(process.env.ATOM_HOME, 'compile-cache'), 'junction')
     season.writeFileSync(path.join(process.env.ATOM_HOME, 'config.cson'), {
       '*': {
         welcome: {showOnStartup: false},
@@ -260,7 +260,7 @@ describe('AtomApplication', function () {
       })
       assert.equal(window1EditorTitle, 'untitled')
 
-      const window2 = atomApplication.launch(parseCommandLine([]))
+      const window2 = atomApplication.openWithOptions(parseCommandLine([]))
       await focusWindow(window2)
       const window2EditorTitle = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
@@ -309,7 +309,7 @@ describe('AtomApplication', function () {
       const packagePath = path.join(__dirname, '..', 'fixtures', 'packages', 'package-with-directory-provider')
       const packagesDirPath = path.join(process.env.ATOM_HOME, 'packages')
       fs.mkdirSync(packagesDirPath)
-      fs.symlinkSync(packagePath, path.join(packagesDirPath, 'package-with-directory-provider'))
+      fs.symlinkSync(packagePath, path.join(packagesDirPath, 'package-with-directory-provider'), 'junction')
 
       const atomApplication = buildAtomApplication()
       atomApplication.config.set('core.disabledPackages', ['fuzzy-finder'])
@@ -395,6 +395,30 @@ describe('AtomApplication', function () {
           assert(!electron.app.hasQuitted())
         })
       }
+    })
+
+    describe('when adding or removing project folders', function () {
+      it('stores the window state immediately', async function () {
+        const dirA = makeTempDir()
+        const dirB = makeTempDir()
+
+        const atomApplication = buildAtomApplication()
+        const window = atomApplication.launch(parseCommandLine([dirA, dirB]))
+        await focusWindow(window)
+        assert.deepEqual(await getTreeViewRootDirectories(window), [dirA, dirB])
+
+        await evalInWebContents(window.browserWindow.webContents, (sendBackToMainProcess) => {
+          atom.project.removePath(atom.project.getPaths()[0])
+          sendBackToMainProcess(null)
+        })
+        assert.deepEqual(await getTreeViewRootDirectories(window), [dirB])
+
+        // Window state should be saved when the project folder is removed
+        const atomApplication2 = buildAtomApplication()
+        const [window2] = atomApplication2.launch(parseCommandLine([]))
+        await focusWindow(window2)
+        assert.deepEqual(await getTreeViewRootDirectories(window2), [dirB])
+      })
     })
   })
 

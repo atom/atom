@@ -7,12 +7,26 @@
 
 var path = require('path')
 var fs = require('fs-plus')
+
+var PackageTranspilationRegistry = require('./package-transpilation-registry')
 var CSON = null
 
+var packageTranspilationRegistry = new PackageTranspilationRegistry()
+
 var COMPILERS = {
-  '.js': require('./babel'),
-  '.ts': require('./typescript'),
-  '.coffee': require('./coffee-script')
+  '.js': packageTranspilationRegistry.wrapTranspiler(require('./babel')),
+  '.ts': packageTranspilationRegistry.wrapTranspiler(require('./typescript')),
+  '.coffee': packageTranspilationRegistry.wrapTranspiler(require('./coffee-script'))
+}
+
+exports.addTranspilerConfigForPath = function (packagePath, packageName, packageMeta, config) {
+  packagePath = fs.realpathSync(packagePath)
+  packageTranspilationRegistry.addTranspilerConfigForPath(packagePath, packageName, packageMeta, config)
+}
+
+exports.removeTranspilerConfigForPath = function (packagePath) {
+  packagePath = fs.realpathSync(packagePath)
+  packageTranspilationRegistry.removeTranspilerConfigForPath(packagePath)
 }
 
 var cacheStats = {}
@@ -118,6 +132,7 @@ require('source-map-support').install({
     }
 
     var compiler = COMPILERS[path.extname(filePath)]
+    if (!compiler) compiler = COMPILERS['.js']
 
     try {
       var fileData = readCachedJavascript(compiler.getCachePath(sourceCode, filePath))

@@ -3,7 +3,7 @@
 ## Requirements
 
   * macOS 10.8 or later
-  * Node.js 4.4.x or later (we recommend installing it via [nvm](https://github.com/creationix/nvm))
+  * Node.js 6.x (we recommend installing it via [nvm](https://github.com/creationix/nvm))
   * npm 3.10.x or later (run `npm install -g npm`)
   * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (run `xcode-select --install` to install)
 
@@ -26,4 +26,4 @@ To also install the newly built application, use `script/build --install`.
 ## Troubleshooting
 
 ### macOS build error reports in atom/atom
-* Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Aos-x&type=Issues) to get a list of reports about build errors on macOS.
+* Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Amac&type=Issues) to get a list of reports about build errors on macOS.

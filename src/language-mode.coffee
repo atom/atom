@@ -27,7 +27,7 @@ class LanguageMode
   toggleLineCommentsForBufferRows: (start, end) ->
     scope = @editor.scopeDescriptorForBufferPosition([start, 0])
     commentStrings = @editor.getCommentStrings(scope)
-    return unless commentStrings?
+    return unless commentStrings?.commentStartString
     {commentStartString, commentEndString} = commentStrings
 
     buffer = @editor.buffer
@@ -148,19 +148,19 @@ class LanguageMode
     rowRange
 
   rowRangeForCommentAtBufferRow: (bufferRow) ->
-    return unless @editor.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
+    return unless @editor.tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
 
     startRow = bufferRow
     endRow = bufferRow
 
     if bufferRow > 0
       for currentRow in [bufferRow-1..0] by -1
-        break unless @editor.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
+        break unless @editor.tokenizedBuffer.tokenizedLines[currentRow]?.isComment()
         startRow = currentRow
 
     if bufferRow < @buffer.getLastRow()
       for currentRow in [bufferRow+1..@buffer.getLastRow()] by 1
-        break unless @editor.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
+        break unless @editor.tokenizedBuffer.tokenizedLines[currentRow]?.isComment()
         endRow = currentRow
 
     return [startRow, endRow] if startRow isnt endRow
@@ -189,7 +189,7 @@ class LanguageMode
   # row is a comment.
   isLineCommentedAtBufferRow: (bufferRow) ->
     return false unless 0 <= bufferRow <= @editor.getLastBufferRow()
-    @editor.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
+    @editor.tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
 
   # Find a row range for a 'paragraph' around specified bufferRow. A paragraph
   # is a block of text bounded by and empty line or a block of text that is not
@@ -246,10 +246,7 @@ class LanguageMode
     @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
 
   suggestedIndentForLineAtBufferRow: (bufferRow, line, options) ->
-    if @editor.largeFileMode or @editor.tokenizedBuffer.grammar is NullGrammar
-      tokenizedLine = @editor.tokenizedBuffer.buildPlaceholderTokenizedLineForRowWithText(bufferRow, line)
-    else
-      tokenizedLine = @editor.tokenizedBuffer.buildTokenizedLineForRowWithText(bufferRow, line)
+    tokenizedLine = @editor.tokenizedBuffer.buildTokenizedLineForRowWithText(bufferRow, line)
     @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
 
   suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, line, tokenizedLine, options) ->

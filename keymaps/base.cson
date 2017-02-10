@@ -7,13 +7,13 @@
 
 'atom-text-editor:not([mini])':
   # Atom Specific
-  'ctrl-C': 'editor:copy-path'
+  'ctrl-shift-c': 'editor:copy-path'
 
   # Sublime Parity
   'tab': 'editor:indent'
   'enter': 'editor:newline'
   'shift-tab': 'editor:outdent-selected-rows'
-  'ctrl-K': 'editor:delete-line'
+  'ctrl-shift-k': 'editor:delete-line'
 
 '.select-list atom-text-editor[mini]':
   'enter': 'core:confirm'
@@ -24,7 +24,7 @@
 'atom-text-editor !important, atom-text-editor[mini] !important':
   'escape': 'editor:consolidate-selections'
 
-# allow standard input fields to work correctly
+# Allow standard input fields to work correctly
 'body .native-key-bindings':
   'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
@@ -66,7 +66,7 @@
   'ctrl-shift-right': 'native!'
   'ctrl-b': 'native!'
   'ctrl-f': 'native!'
-  'ctrl-F': 'native!'
-  'ctrl-B': 'native!'
+  'ctrl-shift-f': 'native!'
+  'ctrl-shift-b': 'native!'
   'ctrl-h': 'native!'
   'ctrl-d': 'native!'

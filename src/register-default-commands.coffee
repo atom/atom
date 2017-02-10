@@ -54,6 +54,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'application:open-your-stylesheet': -> ipcRenderer.send('command', 'application:open-your-stylesheet')
     'application:open-license': -> @getModel().openLicense()
     'window:run-package-specs': -> @runPackageSpecs()
+    'window:run-benchmarks': -> @runBenchmarks()
     'window:focus-next-pane': -> @getModel().activateNextPane()
     'window:focus-previous-pane': -> @getModel().activatePreviousPane()
     'window:focus-pane-above': -> @focusPaneViewAbove()

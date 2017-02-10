@@ -29,7 +29,7 @@ describe "TokenIterator", ->
     })
     tokenizedBuffer.setGrammar(grammar)
 
-    tokenIterator = tokenizedBuffer.tokenizedLineForRow(1).getTokenIterator()
+    tokenIterator = tokenizedBuffer.tokenizedLines[1].getTokenIterator()
     tokenIterator.next()
 
     expect(tokenIterator.getBufferStart()).toBe 0

@@ -198,13 +198,13 @@ describe('TextEditorRegistry', function () {
       registry.maintainConfig(editor2)
       await initialPackageActivation
 
-      expect(editor.getRootScopeDescriptor().getScopesArray()).toEqual(['text.plain'])
+      expect(editor.getRootScopeDescriptor().getScopesArray()).toEqual(['text.plain.null-grammar'])
       expect(editor2.getRootScopeDescriptor().getScopesArray()).toEqual(['source.js'])
 
       expect(editor.getEncoding()).toBe('utf8')
       expect(editor2.getEncoding()).toBe('utf8')
 
-      atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.text.plain'})
+      atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.text.plain.null-grammar'})
       atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.source.js'})
 
       expect(editor.getEncoding()).toBe('utf16le')
@@ -434,6 +434,19 @@ describe('TextEditorRegistry', function () {
 
       atom.config.set('editor.atomicSoftTabs', true)
       expect(editor.hasAtomicSoftTabs()).toBe(true)
+    })
+
+    it('enables or disables cursor on selection visibility based on the config', async function () {
+      editor.update({showCursorOnSelection: true})
+      expect(editor.getShowCursorOnSelection()).toBe(true)
+
+      atom.config.set('editor.showCursorOnSelection', false)
+      registry.maintainConfig(editor)
+      await initialPackageActivation
+      expect(editor.getShowCursorOnSelection()).toBe(false)
+
+      atom.config.set('editor.showCursorOnSelection', true)
+      expect(editor.getShowCursorOnSelection()).toBe(true)
     })
 
     it('enables or disables line numbers based on the config', async function () {

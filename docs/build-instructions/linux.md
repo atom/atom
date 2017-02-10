@@ -7,7 +7,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 * OS with 64-bit or 32-bit architecture
 * C++11 toolchain
 * Git
-* Node.js 4.4.x or later (we recommend installing it via [nvm](https://github.com/creationix/nvm))
+* Node.js 6.x (we recommend installing it via [nvm](https://github.com/creationix/nvm))
 * npm 3.10.x or later (run `npm install -g npm`)
 * Ensure node-gyp uses python2 (run `npm config set python /usr/bin/python2 -g`, use `sudo` if you didn't install node via nvm)
 * Development headers for [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring).
@@ -36,7 +36,7 @@ To also install the newly built application, use `--create-debian-package` or `-
 * Install GNOME headers and other basic prerequisites:
 
   ```sh
-  sudo apt-get install build-essential git libgnome-keyring-dev fakeroot rpm
+  sudo apt-get install build-essential git libgnome-keyring-dev fakeroot rpm libx11-dev libxkbfile-dev
   ```
 
 * If `script/build` exits with an error, you may need to install a newer C++ compiler with C++11:
@@ -49,13 +49,17 @@ To also install the newly built application, use `--create-debian-package` or `-
   sudo update-alternatives --config gcc # choose gcc-5 from the list
   ```
 
-### Fedora / CentOS / RHEL
+### Fedora 22+
 
-* `sudo dnf --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* `sudo dnf --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools libX11-devel libxkbfile-devel`
+
+### Fedora 21 / CentOS / RHEL
+
+* `sudo yum install -y make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
 
 ### Arch
 
-* `sudo pacman -S --needed gconf base-devel git nodejs npm libgnome-keyring python2`
+* `sudo pacman -S --needed gconf base-devel git nodejs npm libgnome-keyring python2 libX11-devel libxkbfile-devel`
 * `export PYTHON=/usr/bin/python2` before building Atom.
 
 ### Slackware
@@ -64,7 +68,7 @@ To also install the newly built application, use `--create-debian-package` or `-
 
 ### openSUSE
 
-* `sudo zypper install nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* `sudo zypper install nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools libX11-devel libxkbfile-devel`
 
 
 ## Troubleshooting

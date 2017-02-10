@@ -7,6 +7,13 @@
       { label: '&Open File…', command: 'application:open-file' }
       { label: 'Open Folder…', command: 'application:open-folder' }
       { label: 'Add Project Folder…', command: 'application:add-project-folder' }
+      {
+        label: 'Reopen Project',
+        submenu: [
+          { label: 'Clear Project History', command: 'application:clear-project-history' }
+          { type: 'separator' }
+        ]
+      }
       { label: 'Reopen Last &Item', command: 'pane:reopen-closed-item' }
       { type: 'separator' }
       { label: 'Se&ttings', command: 'application:show-settings' }
@@ -82,9 +89,9 @@
         submenu: [
           { label: '&Fold', command: 'editor:fold-current-row' }
           { label: '&Unfold', command: 'editor:unfold-current-row' }
+          { label: 'Fol&d All', command: 'editor:fold-all' }
           { label: 'Unfold &All', command: 'editor:unfold-all' }
           { type: 'separator' }
-          { label: 'Fol&d All', command: 'editor:fold-all' }
           { label: 'Fold Level 1', command: 'editor:fold-at-indent-level-1' }
           { label: 'Fold Level 2', command: 'editor:fold-at-indent-level-2' }
           { label: 'Fold Level 3', command: 'editor:fold-at-indent-level-3' }

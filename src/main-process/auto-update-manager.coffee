@@ -17,13 +17,15 @@ class AutoUpdateManager
   constructor: (@version, @testMode, resourcePath, @config) ->
     @state = IdleState
     @iconPath = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
-    @feedUrl = "https://atom.io/api/updates?version=#{@version}"
     process.nextTick => @setupAutoUpdater()
 
   setupAutoUpdater: ->
     if process.platform is 'win32'
+      archSuffix = if process.arch is 'ia32' then '' else '-' + process.arch
+      @feedUrl = "https://atom.io/api/updates#{archSuffix}?version=#{@version}"
       autoUpdater = require './auto-updater-win32'
     else
+      @feedUrl = "https://atom.io/api/updates?version=#{@version}"
       {autoUpdater} = require 'electron'
 
     autoUpdater.on 'error', (event, message) =>
