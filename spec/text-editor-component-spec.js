@@ -388,17 +388,15 @@ describe('TextEditorComponent', function () {
       let linesNode = componentNode.querySelector('.lines')
       let backgroundColor = getComputedStyle(wrapperNode).backgroundColor
 
-      expect(linesNode.style.backgroundColor).toBe(backgroundColor)
+      expect(getComputedStyle(linesNode).backgroundColor).toBe(backgroundColor)
       for (let tileNode of component.tileNodesForLines()) {
-        expect(tileNode.style.backgroundColor).toBe(backgroundColor)
+        expect(getComputedStyle(tileNode).backgroundColor).toBe(backgroundColor)
       }
 
       wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
-      runAnimationFrames(true)
-
-      expect(linesNode.style.backgroundColor).toBe('rgb(255, 0, 0)')
+      expect(getComputedStyle(linesNode).backgroundColor).toBe('rgb(255, 0, 0)')
       for (let tileNode of component.tileNodesForLines()) {
-        expect(tileNode.style.backgroundColor).toBe('rgb(255, 0, 0)')
+        expect(getComputedStyle(tileNode).backgroundColor).toBe('rgb(255, 0, 0)')
       }
     })
 
@@ -452,6 +450,7 @@ describe('TextEditorComponent', function () {
       let oldLineNode = componentNode.querySelectorAll('.line')[1]
 
       while (true) {
+        advanceClock(component.presenter.minimumReflowInterval)
         runAnimationFrames()
         if (componentNode.querySelectorAll('.line')[1] !== oldLineNode) break
       }
@@ -975,17 +974,17 @@ describe('TextEditorComponent', function () {
       let gutterNode = componentNode.querySelector('.gutter')
       let lineNumbersNode = gutterNode.querySelector('.line-numbers')
       let backgroundColor = getComputedStyle(wrapperNode).backgroundColor
-      expect(lineNumbersNode.style.backgroundColor).toBe(backgroundColor)
+      expect(getComputedStyle(lineNumbersNode).backgroundColor).toBe(backgroundColor)
       for (let tileNode of component.tileNodesForLineNumbers()) {
-        expect(tileNode.style.backgroundColor).toBe(backgroundColor)
+        expect(getComputedStyle(tileNode).backgroundColor).toBe(backgroundColor)
       }
 
       gutterNode.style.backgroundColor = 'rgb(255, 0, 0)'
       runAnimationFrames()
 
-      expect(lineNumbersNode.style.backgroundColor).toBe('rgb(255, 0, 0)')
+      expect(getComputedStyle(lineNumbersNode).backgroundColor).toBe('rgb(255, 0, 0)')
       for (let tileNode of component.tileNodesForLineNumbers()) {
-        expect(tileNode.style.backgroundColor).toBe('rgb(255, 0, 0)')
+        expect(getComputedStyle(tileNode).backgroundColor).toBe('rgb(255, 0, 0)')
       }
     })
 
@@ -4264,8 +4263,12 @@ describe('TextEditorComponent', function () {
   })
 
   describe('hiding and showing the editor', function () {
+    beforeEach(function () {
+      spyOn(component, 'becameVisible').andCallThrough()
+    })
+
     describe('when the editor is hidden when it is mounted', function () {
-      it('defers measurement and rendering until the editor becomes visible', function () {
+      it('defers measurement and rendering until the editor becomes visible', async function () {
         wrapperNode.remove()
         let hiddenParent = document.createElement('div')
         hiddenParent.style.display = 'none'
@@ -4275,48 +4278,47 @@ describe('TextEditorComponent', function () {
         wrapperNode.initialize(editor, atom)
         hiddenParent.appendChild(wrapperNode)
         component = wrapperNode.component
+        spyOn(component, 'becameVisible').andCallThrough()
         componentNode = component.getDomNode()
         expect(componentNode.querySelectorAll('.line').length).toBe(0)
         hiddenParent.style.display = 'block'
+        await conditionPromise(() => component.becameVisible.callCount > 0)
         expect(componentNode.querySelectorAll('.line').length).toBeGreaterThan(0)
       })
     })
 
     describe('when the lineHeight changes while the editor is hidden', function () {
-      it('does not attempt to measure the lineHeightInPixels until the editor becomes visible again', function () {
+      it('does not attempt to measure the lineHeightInPixels until the editor becomes visible again', async function () {
         wrapperNode.style.display = 'none'
-        component.checkForVisibilityChange()
         let initialLineHeightInPixels = editor.getLineHeightInPixels()
         component.setLineHeight(2)
         expect(editor.getLineHeightInPixels()).toBe(initialLineHeightInPixels)
         wrapperNode.style.display = ''
-        component.checkForVisibilityChange()
+        await conditionPromise(() => component.becameVisible.callCount > 0)
         expect(editor.getLineHeightInPixels()).not.toBe(initialLineHeightInPixels)
       })
     })
 
     describe('when the fontSize changes while the editor is hidden', function () {
-      it('does not attempt to measure the lineHeightInPixels or defaultCharWidth until the editor becomes visible again', function () {
+      it('does not attempt to measure the lineHeightInPixels or defaultCharWidth until the editor becomes visible again', async function () {
         wrapperNode.style.display = 'none'
-        component.checkForVisibilityChange()
         let initialLineHeightInPixels = editor.getLineHeightInPixels()
         let initialCharWidth = editor.getDefaultCharWidth()
         component.setFontSize(22)
         expect(editor.getLineHeightInPixels()).toBe(initialLineHeightInPixels)
         expect(editor.getDefaultCharWidth()).toBe(initialCharWidth)
         wrapperNode.style.display = ''
-        component.checkForVisibilityChange()
+        await conditionPromise(() => component.becameVisible.callCount > 0)
         expect(editor.getLineHeightInPixels()).not.toBe(initialLineHeightInPixels)
         expect(editor.getDefaultCharWidth()).not.toBe(initialCharWidth)
       })
 
-      it('does not re-measure character widths until the editor is shown again', function () {
+      it('does not re-measure character widths until the editor is shown again', async function () {
         wrapperNode.style.display = 'none'
-        component.checkForVisibilityChange()
         component.setFontSize(22)
         editor.getBuffer().insert([0, 0], 'a')
         wrapperNode.style.display = ''
-        component.checkForVisibilityChange()
+        await conditionPromise(() => component.becameVisible.callCount > 0)
         editor.setCursorBufferPosition([0, Infinity])
         runAnimationFrames()
         let cursorLeft = componentNode.querySelector('.cursor').getBoundingClientRect().left
@@ -4326,24 +4328,22 @@ describe('TextEditorComponent', function () {
     })
 
     describe('when the fontFamily changes while the editor is hidden', function () {
-      it('does not attempt to measure the defaultCharWidth until the editor becomes visible again', function () {
+      it('does not attempt to measure the defaultCharWidth until the editor becomes visible again', async function () {
         wrapperNode.style.display = 'none'
-        component.checkForVisibilityChange()
         let initialLineHeightInPixels = editor.getLineHeightInPixels()
         let initialCharWidth = editor.getDefaultCharWidth()
         component.setFontFamily('serif')
         expect(editor.getDefaultCharWidth()).toBe(initialCharWidth)
         wrapperNode.style.display = ''
-        component.checkForVisibilityChange()
+        await conditionPromise(() => component.becameVisible.callCount > 0)
         expect(editor.getDefaultCharWidth()).not.toBe(initialCharWidth)
       })
 
-      it('does not re-measure character widths until the editor is shown again', function () {
+      it('does not re-measure character widths until the editor is shown again', async function () {
         wrapperNode.style.display = 'none'
-        component.checkForVisibilityChange()
         component.setFontFamily('serif')
         wrapperNode.style.display = ''
-        component.checkForVisibilityChange()
+        await conditionPromise(() => component.becameVisible.callCount > 0)
         editor.setCursorBufferPosition([0, Infinity])
         runAnimationFrames()
         let cursorLeft = componentNode.querySelector('.cursor').getBoundingClientRect().left
@@ -4357,13 +4357,12 @@ describe('TextEditorComponent', function () {
         atom.themes.removeStylesheet('test')
       })
 
-      it('does not re-measure character widths until the editor is shown again', function () {
+      it('does not re-measure character widths until the editor is shown again', async function () {
         atom.config.set('editor.fontFamily', 'sans-serif')
         wrapperNode.style.display = 'none'
-        component.checkForVisibilityChange()
         atom.themes.applyStylesheet('test', '.syntax--function.syntax--js {\n  font-weight: bold;\n}')
         wrapperNode.style.display = ''
-        component.checkForVisibilityChange()
+        await conditionPromise(() => component.becameVisible.callCount > 0)
         editor.setCursorBufferPosition([0, Infinity])
         runAnimationFrames()
         let cursorLeft = componentNode.querySelector('.cursor').getBoundingClientRect().left
@@ -4377,6 +4376,7 @@ describe('TextEditorComponent', function () {
     beforeEach(function () {
       editor.setSoftWrapped(true)
       runAnimationFrames()
+      spyOn(component, 'measureDimensions').andCallThrough()
     })
 
     it('updates the wrap location when the editor is resized', function () {
@@ -4384,11 +4384,14 @@ describe('TextEditorComponent', function () {
       expect(parseInt(newHeight)).toBeLessThan(wrapperNode.offsetHeight)
       wrapperNode.style.height = newHeight
       editor.update({autoHeight: false})
+      component.measureDimensions() // Called by element resize detector
       runAnimationFrames()
 
       expect(componentNode.querySelectorAll('.line')).toHaveLength(7)
       let gutterWidth = componentNode.querySelector('.gutter').offsetWidth
       componentNode.style.width = gutterWidth + 14 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
+
+      component.measureDimensions() // Called by element resize detector
       runAnimationFrames()
       expect(componentNode.querySelector('.line').textContent).toBe('var quicksort ')
     })
@@ -4397,6 +4400,7 @@ describe('TextEditorComponent', function () {
       let scrollViewNode = componentNode.querySelector('.scroll-view')
       scrollViewNode.style.paddingLeft = 20 + 'px'
       componentNode.style.width = 30 * charWidth + 'px'
+      component.measureDimensions() // Called by element resize detector
       runAnimationFrames()
       expect(component.lineNodeForScreenRow(0).textContent).toBe('var quicksort = ')
     })
