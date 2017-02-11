@@ -7,7 +7,7 @@
     "coffeelint": "1.15.7",
     "colors": "1.1.2",
     "csslint": "1.0.2",
-    "donna": "1.0.13",
+    "donna": "1.0.16",
     "electron-chromedriver": "~1.4",
     "electron-link": "0.0.23",
     "electron-mksnapshot": "~1.3",
