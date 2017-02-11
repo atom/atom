@@ -57,7 +57,6 @@ describe('TextEditorComponent', function () {
     horizontalScrollbarNode = componentNode.querySelector('.horizontal-scrollbar')
 
     component.measureDimensions()
-    advanceClock(atom.views.minimumPollInterval)
     runAnimationFrames(true)
   })
 
@@ -395,9 +394,6 @@ describe('TextEditorComponent', function () {
       }
 
       wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
-      // Polling should happen automatically in a mutation observer but its async
-      // and everything is mocked to be sync
-      atom.views.performDocumentPoll()
       runAnimationFrames(true)
 
       expect(linesNode.style.backgroundColor).toBe('rgb(255, 0, 0)')
@@ -985,7 +981,6 @@ describe('TextEditorComponent', function () {
       }
 
       gutterNode.style.backgroundColor = 'rgb(255, 0, 0)'
-      atom.views.performDocumentPoll()
       runAnimationFrames()
 
       expect(lineNumbersNode.style.backgroundColor).toBe('rgb(255, 0, 0)')
@@ -2336,7 +2331,6 @@ describe('TextEditorComponent', function () {
           return window.innerWidth !== innerWidthBefore
         })
 
-        atom.views.performDocumentPoll()
         runAnimationFrames()
 
         expect(overlay.style.left).toBe(window.innerWidth - itemWidth + 'px')
@@ -4284,7 +4278,6 @@ describe('TextEditorComponent', function () {
         componentNode = component.getDomNode()
         expect(componentNode.querySelectorAll('.line').length).toBe(0)
         hiddenParent.style.display = 'block'
-        atom.views.performDocumentPoll()
         expect(componentNode.querySelectorAll('.line').length).toBeGreaterThan(0)
       })
     })
@@ -4391,13 +4384,11 @@ describe('TextEditorComponent', function () {
       expect(parseInt(newHeight)).toBeLessThan(wrapperNode.offsetHeight)
       wrapperNode.style.height = newHeight
       editor.update({autoHeight: false})
-      atom.views.performDocumentPoll()
       runAnimationFrames()
 
       expect(componentNode.querySelectorAll('.line')).toHaveLength(7)
       let gutterWidth = componentNode.querySelector('.gutter').offsetWidth
       componentNode.style.width = gutterWidth + 14 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
-      atom.views.performDocumentPoll()
       runAnimationFrames()
       expect(componentNode.querySelector('.line').textContent).toBe('var quicksort ')
     })
@@ -4406,7 +4397,6 @@ describe('TextEditorComponent', function () {
       let scrollViewNode = componentNode.querySelector('.scroll-view')
       scrollViewNode.style.paddingLeft = 20 + 'px'
       componentNode.style.width = 30 * charWidth + 'px'
-      atom.views.performDocumentPoll()
       runAnimationFrames()
       expect(component.lineNodeForScreenRow(0).textContent).toBe('var quicksort = ')
     })
