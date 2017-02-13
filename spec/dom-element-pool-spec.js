@@ -51,10 +51,29 @@ describe('DOMElementPool', function () {
     expect(domElementPool.buildElement('div')).not.toBe(div)
   })
 
-  it('throws an error when trying to free the same node twice', function () {
+  it('fails an assertion when freeing the same element twice', function () {
+    let failure
+    atom.onDidFailAssertion((error) => failure = error)
+
     const div = domElementPool.buildElement('div')
+    div.textContent = 'testing'
     domElementPool.freeElementAndDescendants(div)
-    expect(() => domElementPool.freeElementAndDescendants(div)).toThrow()
+    expect(failure).toBeUndefined()
+    domElementPool.freeElementAndDescendants(div)
+    expect(failure.message).toBe('Assertion failed: The element has already been freed!')
+    expect(failure.metadata.content).toBe('<div>testing</div>')
+  })
+
+  it('fails an assertion when freeing the same text node twice', function () {
+    let failure
+    atom.onDidFailAssertion((error) => failure = error)
+
+    const node = domElementPool.buildText('testing')
+    domElementPool.freeElementAndDescendants(node)
+    expect(failure).toBeUndefined()
+    domElementPool.freeElementAndDescendants(node)
+    expect(failure.message).toBe('Assertion failed: The element has already been freed!')
+    expect(failure.metadata.content).toBe('testing')
   })
 
   it('throws an error when trying to free an invalid element', function () {

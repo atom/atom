@@ -21,6 +21,9 @@ class DOMElementPool {
       } else {
         element.removeAttribute('class')
       }
+      while (element.firstChild) {
+        element.removeChild(element.firstChild)
+      }
       this.freedElements.delete(element)
     } else {
       element = document.createElement(tagName)
@@ -42,20 +45,17 @@ class DOMElementPool {
 
   freeElementAndDescendants (element) {
     this.free(element)
-    this.freeDescendants(element)
-  }
-
-  freeDescendants (element) {
-    for (let i = element.childNodes.length - 1; i >= 0; i--) {
-      const descendant = element.childNodes[i]
-      this.free(descendant)
-      this.freeDescendants(descendant)
-    }
+    element.remove()
   }
 
   free (element) {
     if (element == null) { throw new Error('The element cannot be null or undefined.') }
-    if (this.freedElements.has(element)) { throw new Error('The element has already been freed!') }
+    if (this.freedElements.has(element)) {
+      atom.assert(false, 'The element has already been freed!', {
+        content: element instanceof Text ? element.textContent : element.outerHTML.toString()
+      })
+      return
+    }
 
     const tagName = element.nodeName.toLowerCase()
     let elements = this.freeElementsByTagName.get(tagName)
@@ -66,6 +66,9 @@ class DOMElementPool {
     elements.push(element)
     this.freedElements.add(element)
 
-    element.remove()
+    for (let i = element.childNodes.length - 1; i >= 0; i--) {
+      const descendant = element.childNodes[i]
+      this.free(descendant)
+    }
   }
 }
