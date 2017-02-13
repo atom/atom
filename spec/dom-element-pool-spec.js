@@ -8,7 +8,7 @@ describe('DOMElementPool', function () {
   it('builds DOM nodes, recycling them when they are freed', function () {
     let elements
     const [div, span1, span2, span3, span4, span5, textNode] = Array.from(elements = [
-      domElementPool.buildElement('div'),
+      domElementPool.buildElement('div', 'foo'),
       domElementPool.buildElement('span'),
       domElementPool.buildElement('span'),
       domElementPool.buildElement('span'),
@@ -16,6 +16,13 @@ describe('DOMElementPool', function () {
       domElementPool.buildElement('span'),
       domElementPool.buildText('Hello world!')
     ])
+
+    expect(div.className).toBe('foo')
+    div.textContent = 'testing'
+    div.style.backgroundColor = 'red'
+    div.dataset.foo = 'bar'
+
+    expect(textNode.textContent).toBe('Hello world!')
 
     div.appendChild(span1)
     span1.appendChild(span2)
@@ -37,6 +44,13 @@ describe('DOMElementPool', function () {
     expect(elements.includes(domElementPool.buildElement('div'))).toBe(false)
     expect(elements.includes(domElementPool.buildElement('span'))).toBe(false)
     expect(elements.includes(domElementPool.buildText('unexisting'))).toBe(false)
+
+    expect(div.className).toBe('')
+    expect(div.textContent).toBe('')
+    expect(div.style.backgroundColor).toBe('')
+    expect(div.dataset.foo).toBeUndefined()
+
+    expect(textNode.textContent).toBe('another text')
   })
 
   it('forgets free nodes after being cleared', function () {

@@ -18,7 +18,7 @@ class DOMElementPool {
     if (element) {
       for (let dataId in element.dataset) { delete element.dataset[dataId] }
       element.removeAttribute('style')
-      if (className != null) {
+      if (className) {
         element.className = className
       } else {
         element.removeAttribute('class')
@@ -29,6 +29,9 @@ class DOMElementPool {
       this.freedElements.delete(element)
     } else {
       element = document.createElement(tagName)
+      if (className) {
+        element.className = className
+      }
       this.managedElements.add(element)
     }
     return element
