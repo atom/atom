@@ -13,17 +13,9 @@ class DOMElementPool {
     }
   }
 
-  build (tagName, factory, reset) {
-    let element = this.freeElementsByTagName[tagName] ? this.freeElementsByTagName[tagName].pop() : null
-    if (!element) { element = factory() }
-    reset(element)
-    this.freedElements.delete(element)
-    return element
-  }
-
   buildElement (tagName, className) {
-    const factory = () => document.createElement(tagName)
-    const reset = function (element) {
+    let element = this.freeElementsByTagName[tagName] ? this.freeElementsByTagName[tagName].pop() : null
+    if (element) {
       for (let dataId in element.dataset) { delete element.dataset[dataId] }
       element.removeAttribute('style')
       if (className != null) {
@@ -31,14 +23,22 @@ class DOMElementPool {
       } else {
         element.removeAttribute('class')
       }
+      this.freedElements.delete(element)
+    } else {
+      element = document.createElement(tagName)
     }
-    return this.build(tagName, factory, reset)
+    return element
   }
 
   buildText (textContent) {
-    const factory = () => document.createTextNode(textContent)
-    const reset = element => { element.textContent = textContent }
-    return this.build('#text', factory, reset)
+    let element = this.freeElementsByTagName['#text'] ? this.freeElementsByTagName['#text'].pop() : null
+    if (element) {
+      element.textContent = textContent
+      this.freedElements.delete(element)
+    } else {
+      element = document.createTextNode(textContent)
+    }
+    return element
   }
 
   freeElementAndDescendants (element) {
