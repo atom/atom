@@ -67,7 +67,7 @@ class DOMElementPool {
     if (!this.managedElements.has(element)) return
     if (this.freedElements.has(element)) {
       atom.assert(false, 'The element has already been freed!', {
-        content: element instanceof Text ? element.textContent : element.outerHTML.toString()
+        content: element instanceof window.Text ? element.textContent : element.outerHTML.toString()
       })
       return
     }
