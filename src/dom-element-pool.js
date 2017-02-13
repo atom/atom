@@ -52,6 +52,13 @@ class DOMElementPool {
     element.remove()
   }
 
+  freeDescendants (element) {
+    while (element.firstChild) {
+      this.free(element.firstChild)
+      element.removeChild(element.firstChild)
+    }
+  }
+
   free (element) {
     if (element == null) { throw new Error('The element cannot be null or undefined.') }
     if (!this.managedElements.has(element)) return
