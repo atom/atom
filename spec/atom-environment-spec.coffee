@@ -142,6 +142,11 @@ describe "AtomEnvironment", ->
           atom.assert(false, "a == b", (e) -> error = e)
           expect(error).toBe errors[0]
 
+      describe "if passed metadata", ->
+        it "assigns the metadata on the assertion failure's error object", ->
+          atom.assert(false, "a == b", {foo: 'bar'})
+          expect(errors[0].metadata).toEqual {foo: 'bar'}
+
     describe "if the condition is true", ->
       it "does nothing", ->
         result = atom.assert(true, "a == b")
