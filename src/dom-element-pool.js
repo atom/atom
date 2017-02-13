@@ -1,20 +1,18 @@
 module.exports =
 class DOMElementPool {
   constructor () {
-    this.freeElementsByTagName = {}
+    this.freeElementsByTagName = new Map()
     this.freedElements = new Set()
   }
 
   clear () {
     this.freedElements.clear()
-    for (let tagName in this.freeElementsByTagName) {
-      const freeElements = this.freeElementsByTagName[tagName]
-      freeElements.length = 0
-    }
+    this.freeElementsByTagName.clear()
   }
 
   buildElement (tagName, className) {
-    let element = this.freeElementsByTagName[tagName] ? this.freeElementsByTagName[tagName].pop() : null
+    const elements = this.freeElementsByTagName.get(tagName)
+    let element = elements ? elements.pop() : null
     if (element) {
       for (let dataId in element.dataset) { delete element.dataset[dataId] }
       element.removeAttribute('style')
@@ -31,7 +29,8 @@ class DOMElementPool {
   }
 
   buildText (textContent) {
-    let element = this.freeElementsByTagName['#text'] ? this.freeElementsByTagName['#text'].pop() : null
+    const elements = this.freeElementsByTagName.get('#text')
+    let element = elements ? elements.pop() : null
     if (element) {
       element.textContent = textContent
       this.freedElements.delete(element)
@@ -43,7 +42,7 @@ class DOMElementPool {
 
   freeElementAndDescendants (element) {
     this.free(element)
-    return this.freeDescendants(element)
+    this.freeDescendants(element)
   }
 
   freeDescendants (element) {
@@ -59,10 +58,14 @@ class DOMElementPool {
     if (this.freedElements.has(element)) { throw new Error('The element has already been freed!') }
 
     const tagName = element.nodeName.toLowerCase()
-    if (this.freeElementsByTagName[tagName] == null) { this.freeElementsByTagName[tagName] = [] }
-    this.freeElementsByTagName[tagName].push(element)
+    let elements = this.freeElementsByTagName.get(tagName)
+    if (!elements) {
+      elements = []
+      this.freeElementsByTagName.set(tagName, elements)
+    }
+    elements.push(element)
     this.freedElements.add(element)
 
-    return element.remove()
+    element.remove()
   }
 }
