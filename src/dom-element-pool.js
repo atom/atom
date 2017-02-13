@@ -1,11 +1,13 @@
 module.exports =
 class DOMElementPool {
   constructor () {
+    this.managedElements = new Set()
     this.freeElementsByTagName = new Map()
     this.freedElements = new Set()
   }
 
   clear () {
+    this.managedElements.clear()
     this.freedElements.clear()
     this.freeElementsByTagName.clear()
   }
@@ -27,6 +29,7 @@ class DOMElementPool {
       this.freedElements.delete(element)
     } else {
       element = document.createElement(tagName)
+      this.managedElements.add(element)
     }
     return element
   }
@@ -39,6 +42,7 @@ class DOMElementPool {
       this.freedElements.delete(element)
     } else {
       element = document.createTextNode(textContent)
+      this.managedElements.add(element)
     }
     return element
   }
@@ -50,6 +54,7 @@ class DOMElementPool {
 
   free (element) {
     if (element == null) { throw new Error('The element cannot be null or undefined.') }
+    if (!this.managedElements.has(element)) return
     if (this.freedElements.has(element)) {
       atom.assert(false, 'The element has already been freed!', {
         content: element instanceof Text ? element.textContent : element.outerHTML.toString()

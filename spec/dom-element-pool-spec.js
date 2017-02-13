@@ -51,29 +51,44 @@ describe('DOMElementPool', function () {
     expect(domElementPool.buildElement('div')).not.toBe(div)
   })
 
+  it('does not attempt to free nodes that were not created by the pool', () => {
+    let assertionFailure
+    atom.onDidFailAssertion((error) => assertionFailure = error)
+
+    const foreignDiv = document.createElement('div')
+    const div = domElementPool.buildElement('div')
+    div.appendChild(foreignDiv)
+    domElementPool.freeElementAndDescendants(div)
+    const span = domElementPool.buildElement('span')
+    span.appendChild(foreignDiv)
+    domElementPool.freeElementAndDescendants(span)
+
+    expect(assertionFailure).toBeUndefined()
+  })
+
   it('fails an assertion when freeing the same element twice', function () {
-    let failure
-    atom.onDidFailAssertion((error) => failure = error)
+    let assertionFailure
+    atom.onDidFailAssertion((error) => assertionFailure = error)
 
     const div = domElementPool.buildElement('div')
     div.textContent = 'testing'
     domElementPool.freeElementAndDescendants(div)
-    expect(failure).toBeUndefined()
+    expect(assertionFailure).toBeUndefined()
     domElementPool.freeElementAndDescendants(div)
-    expect(failure.message).toBe('Assertion failed: The element has already been freed!')
-    expect(failure.metadata.content).toBe('<div>testing</div>')
+    expect(assertionFailure.message).toBe('Assertion failed: The element has already been freed!')
+    expect(assertionFailure.metadata.content).toBe('<div>testing</div>')
   })
 
   it('fails an assertion when freeing the same text node twice', function () {
-    let failure
-    atom.onDidFailAssertion((error) => failure = error)
+    let assertionFailure
+    atom.onDidFailAssertion((error) => assertionFailure = error)
 
     const node = domElementPool.buildText('testing')
     domElementPool.freeElementAndDescendants(node)
-    expect(failure).toBeUndefined()
+    expect(assertionFailure).toBeUndefined()
     domElementPool.freeElementAndDescendants(node)
-    expect(failure.message).toBe('Assertion failed: The element has already been freed!')
-    expect(failure.metadata.content).toBe('testing')
+    expect(assertionFailure.message).toBe('Assertion failed: The element has already been freed!')
+    expect(assertionFailure.metadata.content).toBe('testing')
   })
 
   it('throws an error when trying to free an invalid element', function () {
