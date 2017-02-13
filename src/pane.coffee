@@ -587,9 +587,15 @@ class Pane extends Model
   destroyItem: (item) ->
     index = @items.indexOf(item)
     if index isnt -1
+      preventClosing = false
+      prevent = () -> preventClosing = true
+
       @emitter.emit 'will-destroy-item', {item, index}
-      @container?.willDestroyPaneItem({item, index, pane: this})
-      if @promptToSaveItem(item)
+      @container?.willDestroyPaneItem({item, index, prevent, pane: this})
+
+      if preventClosing
+        false
+      else if @promptToSaveItem(item)
         @removeItem(item, false)
         item.destroy?()
         true
