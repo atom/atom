@@ -1,12 +1,13 @@
 DecorationManager = require '../src/decoration-manager'
 
 describe "DecorationManager", ->
-  [decorationManager, buffer, defaultMarkerLayer, displayLayer] = []
+  [decorationManager, buffer, defaultMarkerLayer, displayLayer, otherMarkerLayer] = []
 
   beforeEach ->
     buffer = atom.project.bufferForPathSync('sample.js')
     displayLayer = buffer.addDisplayLayer()
     defaultMarkerLayer = displayLayer.addMarkerLayer()
+    otherMarkerLayer = displayLayer.addMarkerLayer()
     decorationManager = new DecorationManager(displayLayer, defaultMarkerLayer)
 
     waitsForPromise ->
@@ -17,21 +18,29 @@ describe "DecorationManager", ->
     buffer.release()
 
   describe "decorations", ->
-    [marker, decoration, decorationProperties] = []
+    [marker, layerMarker, decoration, layerMarkerDecoration, decorationProperties] = []
     beforeEach ->
       marker = defaultMarkerLayer.markBufferRange([[2, 13], [3, 15]])
       decorationProperties = {type: 'line-number', class: 'one'}
       decoration = decorationManager.decorateMarker(marker, decorationProperties)
+      layerMarker = otherMarkerLayer.markBufferRange([[2, 13], [3, 15]])
+      layerMarkerDecoration = decorationManager.decorateMarker(layerMarker, decorationProperties)
 
     it "can add decorations associated with markers and remove them", ->
       expect(decoration).toBeDefined()
       expect(decoration.getProperties()).toBe decorationProperties
       expect(decorationManager.decorationForId(decoration.id)).toBe decoration
-      expect(decorationManager.decorationsForScreenRowRange(2, 3)[marker.id][0]).toBe decoration
+      expect(decorationManager.decorationsForScreenRowRange(2, 3)).toEqual {
+        "#{marker.id}": [decoration],
+        "#{layerMarker.id}": [layerMarkerDecoration]
+      }
 
       decoration.destroy()
       expect(decorationManager.decorationsForScreenRowRange(2, 3)[marker.id]).not.toBeDefined()
       expect(decorationManager.decorationForId(decoration.id)).not.toBeDefined()
+      layerMarkerDecoration.destroy()
+      expect(decorationManager.decorationsForScreenRowRange(2, 3)[layerMarker.id]).not.toBeDefined()
+      expect(decorationManager.decorationForId(layerMarkerDecoration.id)).not.toBeDefined()
 
     it "will not fail if the decoration is removed twice", ->
       decoration.destroy()
@@ -63,9 +72,9 @@ describe "DecorationManager", ->
 
     describe "::getDecorations(properties)", ->
       it "returns decorations matching the given optional properties", ->
-        expect(decorationManager.getDecorations()).toEqual [decoration]
+        expect(decorationManager.getDecorations()).toEqual [decoration, layerMarkerDecoration]
         expect(decorationManager.getDecorations(class: 'two').length).toEqual 0
-        expect(decorationManager.getDecorations(class: 'one').length).toEqual 1
+        expect(decorationManager.getDecorations(class: 'one').length).toEqual 2
 
   describe "::decorateMarker", ->
     describe "when decorating gutters", ->
