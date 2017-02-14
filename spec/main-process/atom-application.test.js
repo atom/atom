@@ -196,9 +196,9 @@ describe('AtomApplication', function () {
     it('persists window state based on the project directories', async function () {
       const tempDirPath = makeTempDir()
       const atomApplication = buildAtomApplication()
-      const newFilePath = path.join(tempDirPath, 'new-file')
+      const nonExistentFilePath = path.join(tempDirPath, 'new-file')
 
-      const window1 = atomApplication.launch(parseCommandLine([newFilePath]))
+      const window1 = atomApplication.launch(parseCommandLine([nonExistentFilePath]))
       await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         atom.workspace.observeActivePaneItem(function (textEditor) {
           if (textEditor) {
@@ -225,18 +225,18 @@ describe('AtomApplication', function () {
       window2.close()
       await window2.closedPromise
 
-      // Restore unsaved state when opening a new file in the directory
-      const window3 = atomApplication.launch(parseCommandLine([path.join(tempDirPath, 'another-new-file')]))
-      const window3Text = await evalInWebContents(window3.browserWindow.webContents, function (sendBackToMainProcess, newFilePath) {
+      // Restore unsaved state when opening a path to a non-existent file in the directory
+      const window3 = atomApplication.launch(parseCommandLine([path.join(tempDirPath, 'another-non-existent-file')]))
+      const window3Text = await evalInWebContents(window3.browserWindow.webContents, function (sendBackToMainProcess, nonExistentFilePath) {
         atom.workspace.observeActivePaneItem(function (textEditor) {
           if (textEditor) {
-            const pane = atom.workspace.paneForURI(newFilePath)
+            const pane = atom.workspace.paneForURI(nonExistentFilePath)
             if (pane) {
               sendBackToMainProcess(pane.getActiveItem().getText())
             }
           }
         })
-      }, newFilePath)
+      }, nonExistentFilePath)
       assert.equal(window3Text, 'Hello World! How are you?')
     })
 
