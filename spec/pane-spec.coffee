@@ -411,7 +411,7 @@ describe "Pane", ->
         applicationDelegate: atom.applicationDelegate
       })
       pane.setContainer container
-      container.onWillDestroyPaneItem (e) => e.prevent()
+      container.onWillDestroyPaneItem (e) -> e.prevent()
       pane.itemStack = [item2, item3, item1]
 
       pane.activateItem(item1)
