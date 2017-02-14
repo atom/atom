@@ -8,7 +8,7 @@ class DecorationManager extends Model
   didUpdateDecorationsEventScheduled: false
   updatedSynchronously: false
 
-  constructor: (@displayLayer, @defaultMarkerLayer) ->
+  constructor: (@displayLayer) ->
     super
 
     @emitter = new Emitter
