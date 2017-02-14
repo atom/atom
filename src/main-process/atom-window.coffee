@@ -58,10 +58,15 @@ class AtomWindow
     loadSettings.clearWindowState ?= false
     loadSettings.initialPaths ?=
       for {pathToOpen} in locationsToOpen when pathToOpen
-        if fs.statSyncNoException(pathToOpen).isFile?()
-          path.dirname(pathToOpen)
-        else
+        stat = fs.statSyncNoException(pathToOpen) or null
+        if stat?.isDirectory()
           pathToOpen
+        else
+          parentDirectory = path.dirname(pathToOpen)
+          if stat?.isFile() or fs.existsSync(parentDirectory)
+            parentDirectory
+          else
+            pathToOpen
     loadSettings.initialPaths.sort()
 
     # Only send to the first non-spec window created
@@ -90,7 +95,7 @@ class AtomWindow
 
     hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
     @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()
-    
+
     @atomApplication.addWindow(this)
 
   hasProjectPath: -> @representedDirectoryPaths.length > 0

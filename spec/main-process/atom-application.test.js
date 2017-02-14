@@ -196,7 +196,9 @@ describe('AtomApplication', function () {
     it('persists window state based on the project directories', async function () {
       const tempDirPath = makeTempDir()
       const atomApplication = buildAtomApplication()
-      const window1 = atomApplication.launch(parseCommandLine([path.join(tempDirPath, 'new-file')]))
+      const newFilePath = path.join(tempDirPath, 'new-file')
+
+      const window1 = atomApplication.launch(parseCommandLine([newFilePath]))
       await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         atom.workspace.observeActivePaneItem(function (textEditor) {
           if (textEditor) {
@@ -208,14 +210,34 @@ describe('AtomApplication', function () {
       window1.close()
       await window1.closedPromise
 
-      const window2 = atomApplication.launch(parseCommandLine([path.join(tempDirPath)]))
+      // Restore unsaved state when opening the directory itself
+      const window2 = atomApplication.launch(parseCommandLine([tempDirPath]))
       const window2Text = await evalInWebContents(window2.browserWindow.webContents, function (sendBackToMainProcess) {
         atom.workspace.observeActivePaneItem(function (textEditor) {
-          if (textEditor) sendBackToMainProcess(textEditor.getText())
+          if (textEditor) {
+            textEditor.moveToBottom()
+            textEditor.insertText(' How are you?')
+            sendBackToMainProcess(textEditor.getText())
+          }
         })
       })
+      assert.equal(window2Text, 'Hello World! How are you?')
+      window2.close()
+      await window2.closedPromise
 
-      assert.equal(window2Text, 'Hello World!')
+      // Restore unsaved state when opening a new file in the directory
+      const window3 = atomApplication.launch(parseCommandLine([path.join(tempDirPath, 'another-new-file')]))
+      const window3Text = await evalInWebContents(window3.browserWindow.webContents, function (sendBackToMainProcess, newFilePath) {
+        atom.workspace.observeActivePaneItem(function (textEditor) {
+          if (textEditor) {
+            const pane = atom.workspace.paneForURI(newFilePath)
+            if (pane) {
+              sendBackToMainProcess(pane.getActiveItem().getText())
+            }
+          }
+        })
+      }, newFilePath)
+      assert.equal(window3Text, 'Hello World! How are you?')
     })
 
     it('shows all directories in the tree view when multiple directory paths are passed to Atom', async function () {
@@ -472,7 +494,7 @@ describe('AtomApplication', function () {
   }
 
   let channelIdCounter = 0
-  function evalInWebContents (webContents, source) {
+  function evalInWebContents (webContents, source, ...args) {
     const channelId = 'eval-result-' + channelIdCounter++
     return new Promise(function (resolve) {
       electron.ipcMain.on(channelId, receiveResult)
@@ -486,7 +508,7 @@ describe('AtomApplication', function () {
         function sendBackToMainProcess (result) {
           require('electron').ipcRenderer.send('${channelId}', result)
         }
-        (${source})(sendBackToMainProcess)
+        (${source})(sendBackToMainProcess ${args.length > 0 ? ', ': ''} ${args.map(a => JSON.stringify(a)).join(', ')})
       `)
     })
   }
