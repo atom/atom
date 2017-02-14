@@ -21,7 +21,6 @@ class Project extends Model
   constructor: ({@notificationManager, packageManager, config, @applicationDelegate}) ->
     @emitter = new Emitter
     @buffers = []
-    @paths = []
     @rootDirectories = []
     @repositories = []
     @directoryProviders = []
@@ -32,7 +31,9 @@ class Project extends Model
 
   destroyed: ->
     buffer.destroy() for buffer in @buffers
-    @setPaths([])
+    repository?.destroy() for repository in @repositories
+    @rootDirectories = []
+    @repositories = []
 
   reset: (packageManager) ->
     @emitter.dispose()
