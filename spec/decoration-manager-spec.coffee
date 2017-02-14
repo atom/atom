@@ -51,7 +51,7 @@ describe "DecorationManager", ->
       layer1Marker.destroy()
       expect(->
         decorationManager.decorateMarker(layer1Marker, {type: 'overlay', item: document.createElement('div')})
-      ).toThrow("Cannot decorate a destroyed layer1Marker")
+      ).toThrow("Cannot decorate a destroyed marker")
       expect(decorationManager.getOverlayDecorations()).toEqual []
 
     it "does not allow destroyed marker layers to be decorated", ->
