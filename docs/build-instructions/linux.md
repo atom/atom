@@ -59,7 +59,7 @@ To also install the newly built application, use `--create-debian-package` or `-
 
 ### Arch
 
-* `sudo pacman -S --needed gconf base-devel git nodejs npm libgnome-keyring python2 libX11-devel libxkbfile-devel`
+* `sudo pacman -S --needed gconf base-devel git nodejs npm libgnome-keyring python2 libx11 libxkbfile`
 * `export PYTHON=/usr/bin/python2` before building Atom.
 
 ### Slackware
