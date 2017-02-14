@@ -207,6 +207,7 @@ describe('AtomApplication', function () {
           }
         })
       })
+      await window1.saveState()
       window1.close()
       await window1.closedPromise
 
@@ -222,6 +223,7 @@ describe('AtomApplication', function () {
         })
       })
       assert.equal(window2Text, 'Hello World! How are you?')
+      await window2.saveState()
       window2.close()
       await window2.closedPromise
 
