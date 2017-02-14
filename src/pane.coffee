@@ -591,7 +591,7 @@ class Pane extends Model
     index = @items.indexOf(item)
     if index isnt -1
       preventClosing = false
-      prevent = () -> preventClosing = true
+      prevent = -> preventClosing = true
 
       @emitter.emit 'will-destroy-item', {item, index}
       @container?.willDestroyPaneItem({item, index, prevent, pane: this})
