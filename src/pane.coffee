@@ -583,6 +583,9 @@ class Pane extends Model
   # last item, the pane will be destroyed if the `core.destroyEmptyPanes` config
   # setting is `true`.
   #
+  # This action can be prevented by onWillDestroyPaneItem callbacks in which
+  # case nothing happens.
+  #
   # * `item` Item to destroy
   destroyItem: (item) ->
     index = @items.indexOf(item)
