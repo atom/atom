@@ -1,7 +1,7 @@
 DecorationManager = require '../src/decoration-manager'
 
 describe "DecorationManager", ->
-  [decorationManager, buffer, defaultMarkerLayer] = []
+  [decorationManager, buffer, defaultMarkerLayer, displayLayer] = []
 
   beforeEach ->
     buffer = atom.project.bufferForPathSync('sample.js')
@@ -44,6 +44,13 @@ describe "DecorationManager", ->
         decorationManager.decorateMarker(marker, {type: 'overlay', item: document.createElement('div')})
       ).toThrow("Cannot decorate a destroyed marker")
       expect(decorationManager.getOverlayDecorations()).toEqual []
+
+    it "does not allow destroyed marker layers to be decorated", ->
+      layer = displayLayer.addMarkerLayer()
+      layer.destroy()
+      expect(->
+        decorationManager.decorateMarkerLayer(layer, {type: 'highlight'})
+      ).toThrow("Cannot decorate a destroyed marker layer")
 
     describe "when a decoration is updated via Decoration::update()", ->
       it "emits an 'updated' event containing the new and old params", ->
