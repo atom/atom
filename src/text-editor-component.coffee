@@ -139,7 +139,7 @@ class TextEditorComponent
 
     measureWindowSize = @measureWindowSize.bind(this)
     window.addEventListener('resize', measureWindowSize)
-    @disposables.add(new Disposable => window.removeEventListener('resize', measureWindowSize))
+    @disposables.add(new Disposable -> window.removeEventListener('resize', measureWindowSize))
 
   getDomNode: ->
     @domNode
