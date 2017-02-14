@@ -117,6 +117,7 @@ class DecorationManager extends Model
     decoration
 
   decorateMarkerLayer: (markerLayer, decorationParams) ->
+    throw new Error("Cannot decorate a destroyed marker layer") if markerLayer.isDestroyed()
     decoration = new LayerDecoration(markerLayer, this, decorationParams)
     @layerDecorationsByMarkerLayerId[markerLayer.id] ?= []
     @layerDecorationsByMarkerLayerId[markerLayer.id].push(decoration)
