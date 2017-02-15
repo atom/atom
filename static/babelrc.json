@@ -3,6 +3,7 @@
   "plugins": [
     "add-module-exports",
     "transform-async-to-generator",
+    "transform-class-properties",
     "transform-es2015-modules-commonjs",
     "transform-flow-strip-types",
     "transform-object-rest-spread",
