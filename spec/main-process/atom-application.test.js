@@ -213,14 +213,12 @@ describe('AtomApplication', function () {
 
       // Restore unsaved state when opening the directory itself
       const window2 = atomApplication.launch(parseCommandLine([tempDirPath]))
+      await window2.loadedPromise
       const window2Text = await evalInWebContents(window2.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.observeActivePaneItem(function (textEditor) {
-          if (textEditor) {
-            textEditor.moveToBottom()
-            textEditor.insertText(' How are you?')
-            sendBackToMainProcess(textEditor.getText())
-          }
-        })
+        const textEditor = atom.workspace.getActiveTextEditor()
+        textEditor.moveToBottom()
+        textEditor.insertText(' How are you?')
+        sendBackToMainProcess(textEditor.getText())
       })
       assert.equal(window2Text, 'Hello World! How are you?')
       await window2.saveState()
@@ -229,15 +227,10 @@ describe('AtomApplication', function () {
 
       // Restore unsaved state when opening a path to a non-existent file in the directory
       const window3 = atomApplication.launch(parseCommandLine([path.join(tempDirPath, 'another-non-existent-file')]))
+      await window3.loadedPromise
       const window3Text = await evalInWebContents(window3.browserWindow.webContents, function (sendBackToMainProcess, nonExistentFilePath) {
-        atom.workspace.observeActivePaneItem(function (textEditor) {
-          if (textEditor) {
-            const pane = atom.workspace.paneForURI(nonExistentFilePath)
-            if (pane) {
-              sendBackToMainProcess(pane.getActiveItem().getText())
-            }
-          }
-        })
+        const pane = atom.workspace.paneForURI(nonExistentFilePath)
+        sendBackToMainProcess(pane.getActiveItem().getText())
       }, nonExistentFilePath)
       assert.equal(window3Text, 'Hello World! How are you?')
     })
