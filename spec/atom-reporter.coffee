@@ -1,4 +1,5 @@
 path = require 'path'
+process = require 'process'
 _ = require 'underscore-plus'
 grim = require 'grim'
 marked = require 'marked'
@@ -20,12 +21,15 @@ formatStackTrace = (spec, message='', stackTrace) ->
   lines.shift() if message.trim() is errorMatch?[1]?.trim()
 
   for line, index in lines
-    # Remove prefix of lines matching: at [object Object].<anonymous> (path:1:2)
-    prefixMatch = line.match(/at \[object Object\]\.<anonymous> \(([^)]+)\)/)
+    # Remove prefix of lines matching: at .<anonymous> (path:1:2)
+    prefixMatch = line.match(/at \.<anonymous> \(([^)]+)\)/)
     line = "at #{prefixMatch[1]}" if prefixMatch
 
     # Relativize locations to spec directory
-    lines[index] = line.replace("at #{spec.specDirectory}#{path.sep}", 'at ')
+    if process.platform is 'win32'
+      line = line.replace('file:///', '').replace(///#{path.posix.sep}///g, path.win32.sep)
+    line = line.replace("at #{spec.specDirectory}#{path.sep}", 'at ')
+    lines[index] = line.replace("(#{spec.specDirectory}#{path.sep}", '(') # at step (path:1:2)
 
   lines = lines.map (line) -> line.trim()
   lines.join('\n').trim()
