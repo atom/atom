@@ -228,11 +228,10 @@ describe('AtomApplication', function () {
       // Restore unsaved state when opening a path to a non-existent file in the directory
       const window3 = atomApplication.launch(parseCommandLine([path.join(tempDirPath, 'another-non-existent-file')]))
       await window3.loadedPromise
-      const window3Text = await evalInWebContents(window3.browserWindow.webContents, function (sendBackToMainProcess, nonExistentFilePath) {
-        const pane = atom.workspace.paneForURI(nonExistentFilePath)
-        sendBackToMainProcess(pane.getActiveItem().getText())
-      }, nonExistentFilePath)
-      assert.equal(window3Text, 'Hello World! How are you?')
+      const window3Texts = await evalInWebContents(window3.browserWindow.webContents, function (sendBackToMainProcess, nonExistentFilePath) {
+        sendBackToMainProcess(atom.workspace.getTextEditors().map(editor => editor.getText()))
+      })
+      assert.include(window3Texts, 'Hello World! How are you?')
     })
 
     it('shows all directories in the tree view when multiple directory paths are passed to Atom', async function () {
@@ -503,7 +502,7 @@ describe('AtomApplication', function () {
         function sendBackToMainProcess (result) {
           require('electron').ipcRenderer.send('${channelId}', result)
         }
-        (${source})(sendBackToMainProcess ${args.length > 0 ? ', ': ''} ${args.map(a => JSON.stringify(a)).join(', ')})
+        (${source})(sendBackToMainProcess)
       `)
     })
   }
