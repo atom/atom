@@ -6,6 +6,7 @@ var defaultOptions = require('../static/babelrc.json')
 
 var babel = null
 var babelVersionDirectory = null
+var options = null
 
 var PREFIXES = [
   '/** @babel */',
@@ -47,16 +48,27 @@ exports.compile = function (sourceCode, filePath) {
     var noop = function () {}
     Logger.prototype.debug = noop
     Logger.prototype.verbose = noop
+
+    options = {ast: false, babelrc: false}
+    for (var key in defaultOptions) {
+      if (key === 'plugins') {
+        const plugins = []
+        for (let plugin of defaultOptions[key]) {
+          plugins.push(require.resolve(`babel-plugin-${plugin}`))
+        }
+        options[key] = plugins
+      } else {
+        options[key] = defaultOptions[key]
+      }
+    }
   }
 
   if (process.platform === 'win32') {
     filePath = 'file:///' + path.resolve(filePath).replace(/\\/g, '/')
   }
 
-  var options = {filename: filePath}
-  for (var key in defaultOptions) {
-    options[key] = defaultOptions[key]
-  }
+  options.filename = filePath
+
   return babel.transform(sourceCode, options).code
 }
 

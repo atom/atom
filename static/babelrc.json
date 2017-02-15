@@ -1,7 +1,11 @@
 {
-  "breakConfig": true,
   "sourceMap": "inline",
-  "blacklist": ["es6.forOf", "useStrict"],
-  "optional": ["asyncToGenerator"],
-  "stage": 0
+  "plugins": [
+    "add-module-exports",
+    "transform-async-to-generator",
+    "transform-es2015-modules-commonjs",
+    "transform-flow-strip-types",
+    "transform-object-rest-spread",
+    "transform-react-jsx"
+  ]
 }
