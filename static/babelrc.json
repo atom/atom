@@ -1,12 +1,16 @@
 {
   "sourceMap": "inline",
   "plugins": [
-    "add-module-exports",
-    "transform-async-to-generator",
-    "transform-class-properties",
-    "transform-es2015-modules-commonjs",
-    "transform-flow-strip-types",
-    "transform-object-rest-spread",
-    "transform-react-jsx"
+    ["add-module-exports", {}],
+    ["transform-async-to-generator", {}],
+    ["transform-decorators-legacy", {}],
+    ["transform-class-properties", {}],
+    ["transform-es2015-modules-commonjs", {"strictMode": false}],
+    ["transform-export-extensions", {}],
+    ["transform-do-expressions", {}],
+    ["transform-function-bind", {}],
+    ["transform-object-rest-spread", {}],
+    ["transform-flow-strip-types", {}],
+    ["transform-react-jsx", {}]
   ]
 }

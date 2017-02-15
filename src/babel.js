@@ -53,8 +53,8 @@ exports.compile = function (sourceCode, filePath) {
     for (var key in defaultOptions) {
       if (key === 'plugins') {
         const plugins = []
-        for (let plugin of defaultOptions[key]) {
-          plugins.push(require.resolve(`babel-plugin-${plugin}`))
+        for (const [pluginName, pluginOptions] of defaultOptions[key]) {
+          plugins.push([require.resolve(`babel-plugin-${pluginName}`), pluginOptions])
         }
         options[key] = plugins
       } else {
