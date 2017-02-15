@@ -127,7 +127,7 @@ class NotificationManager
   #    * `icon` (optional) A {String} name of an icon from Octicons to display
   #      in the notification header. Defaults to `'flame'`.
   #    * `stack` (optional) A preformatted {String} with stack trace information
-  #      describing the location of the error.
+  #      describing the location of the error. Requires `detail` to be set.
   addError: (message, options) ->
     @addNotification(new Notification('error', message, options))
 
@@ -154,7 +154,7 @@ class NotificationManager
   #    * `icon` (optional) A {String} name of an icon from Octicons to display
   #      in the notification header. Defaults to `'bug'`.
   #    * `stack` (optional) A preformatted {String} with stack trace information
-  #      describing the location of the error.
+  #      describing the location of the error. Requires `detail` to be set.
   addFatalError: (message, options) ->
     @addNotification(new Notification('fatal', message, options))
 
