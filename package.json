@@ -65,7 +65,7 @@
     "sinon": "1.17.4",
     "source-map-support": "^0.3.2",
     "temp": "0.8.1",
-    "text-buffer": "10.2.14",
+    "text-buffer": "10.2.15",
     "typescript-simple": "1.0.0",
     "underscore-plus": "^1.6.6",
     "winreg": "^1.2.1",
