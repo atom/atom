@@ -696,6 +696,7 @@ class AtomEnvironment extends Model
 
         if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
           @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+          @document.body.classList.add('custom-title-bar')
 
         @document.body.appendChild(@views.getView(@workspace))
         @backgroundStylesheet?.remove()

@@ -44,7 +44,7 @@ class AtomWindow
       options.icon = @constructor.iconPath
 
     if @shouldHideTitleBar()
-      options.titleBarStyle = 'hidden'
+      options.titleBarStyle = 'hidden-inset'
 
     @browserWindow = new BrowserWindow(options)
     @handleEvents()
