@@ -16,6 +16,7 @@ TextEditorElement = require './text-editor-element'
 {isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require './text-utils'
 
 ZERO_WIDTH_NBSP = '\ufeff'
+MAX_SCREEN_LINE_LENGTH = 500
 
 # Essential: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -192,6 +193,7 @@ class TextEditor extends Model
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true, persistent: true)
+    @selectionsMarkerLayer.trackDestructionInOnDidCreateMarkerCallbacks = true
 
     @decorationManager = new DecorationManager(@displayLayer, @defaultMarkerLayer)
     @decorateMarkerLayer(@displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
@@ -2964,7 +2966,7 @@ class TextEditor extends Model
       else
         @getEditorWidthInChars()
     else
-      Infinity
+      MAX_SCREEN_LINE_LENGTH
 
   ###
   Section: Indentation
