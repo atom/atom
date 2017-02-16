@@ -2,18 +2,18 @@ _ = require 'underscore-plus'
 
 module.exports =
 class LineNumbersTileComponent
-  @createDummy: (domElementPool) ->
-    new LineNumbersTileComponent({id: -1, domElementPool})
+  @createDummy: ->
+    new LineNumbersTileComponent({id: -1})
 
-  constructor: ({@id, @domElementPool}) ->
+  constructor: ({@id}) ->
     @lineNumberNodesById = {}
-    @domNode = @domElementPool.buildElement("div")
+    @domNode = document.createElement('div')
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
     @domNode.style.top = 0 # Cover the space occupied by a dummy lineNumber
 
   destroy: ->
-    @domElementPool.freeElementAndDescendants(@domNode)
+    @domNode.remove()
 
   getDomNode: ->
     @domNode
@@ -49,7 +49,7 @@ class LineNumbersTileComponent
 
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       for id, node of @lineNumberNodesById
-        @domElementPool.freeElementAndDescendants(node)
+        node.remove()
 
       @oldState.tiles[@id] = {lineNumbers: {}}
       @oldTileState = @oldState.tiles[@id]
@@ -64,7 +64,7 @@ class LineNumbersTileComponent
 
     for id, lineNumberState of @oldTileState.lineNumbers
       unless @newTileState.lineNumbers.hasOwnProperty(id)
-        @domElementPool.freeElementAndDescendants(@lineNumberNodesById[id])
+        @lineNumberNodesById[id].remove()
         delete @lineNumberNodesById[id]
         delete @oldTileState.lineNumbers[id]
 
@@ -99,7 +99,8 @@ class LineNumbersTileComponent
     {screenRow, bufferRow, softWrapped, blockDecorationsHeight} = lineNumberState
 
     className = @buildLineNumberClassName(lineNumberState)
-    lineNumberNode = @domElementPool.buildElement("div", className)
+    lineNumberNode = document.createElement('div')
+    lineNumberNode.className = className
     lineNumberNode.dataset.screenRow = screenRow
     lineNumberNode.dataset.bufferRow = bufferRow
     lineNumberNode.style.marginTop = blockDecorationsHeight + "px"
@@ -108,7 +109,8 @@ class LineNumbersTileComponent
     lineNumberNode
 
   setLineNumberInnerNodes: (bufferRow, softWrapped, lineNumberNode) ->
-    @domElementPool.freeDescendants(lineNumberNode)
+    while lineNumberNode.firstChild
+      lineNumberNode.removeChild(lineNumberNode.firstChild)
 
     {maxLineNumberDigits} = @newState
 
@@ -118,8 +120,9 @@ class LineNumbersTileComponent
       lineNumber = (bufferRow + 1).toString()
     padding = _.multiplyString("\u00a0", maxLineNumberDigits - lineNumber.length)
 
-    textNode = @domElementPool.buildText(padding + lineNumber)
-    iconRight = @domElementPool.buildElement("div", "icon-right")
+    textNode = document.createTextNode(padding + lineNumber)
+    iconRight = document.createElement('div')
+    iconRight.className = 'icon-right'
 
     lineNumberNode.appendChild(textNode)
     lineNumberNode.appendChild(iconRight)

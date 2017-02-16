@@ -5,10 +5,10 @@ module.exports =
 class LineNumberGutterComponent extends TiledComponent
   dummyLineNumberNode: null
 
-  constructor: ({@onMouseDown, @editor, @gutter, @domElementPool, @views}) ->
+  constructor: ({@onMouseDown, @editor, @gutter, @views}) ->
     @visible = true
 
-    @dummyLineNumberComponent = LineNumbersTileComponent.createDummy(@domElementPool)
+    @dummyLineNumberComponent = LineNumbersTileComponent.createDummy()
 
     @domNode = @views.getView(@gutter)
     @lineNumbersNode = @domNode.firstChild
@@ -60,7 +60,7 @@ class LineNumberGutterComponent extends TiledComponent
       @oldState.styles = {}
       @oldState.maxLineNumberDigits = @newState.maxLineNumberDigits
 
-  buildComponentForTile: (id) -> new LineNumbersTileComponent({id, @domElementPool})
+  buildComponentForTile: (id) -> new LineNumbersTileComponent({id})
 
   shouldRecreateAllTilesOnUpdate: ->
     @newState.continuousReflow

@@ -5,11 +5,12 @@ module.exports =
 class HighlightsComponent
   oldState: null
 
-  constructor: (@domElementPool) ->
+  constructor: ->
     @highlightNodesById = {}
     @regionNodesByHighlightId = {}
 
-    @domNode = @domElementPool.buildElement("div", "highlights")
+    @domNode = document.createElement("div")
+    @domNode.className = "highlights"
 
   getDomNode: ->
     @domNode
@@ -21,7 +22,7 @@ class HighlightsComponent
     # remove highlights
     for id of @oldState
       unless newState[id]?
-        @domElementPool.freeElementAndDescendants(@highlightNodesById[id])
+        @highlightNodesById[id].remove()
         delete @highlightNodesById[id]
         delete @regionNodesByHighlightId[id]
         delete @oldState[id]
@@ -29,7 +30,8 @@ class HighlightsComponent
     # add or update highlights
     for id, highlightState of newState
       unless @oldState[id]?
-        highlightNode = @domElementPool.buildElement("div", "highlight")
+        highlightNode = document.createElement('div')
+        highlightNode.className = 'highlight'
         @highlightNodesById[id] = highlightNode
         @regionNodesByHighlightId[id] = {}
         @domNode.appendChild(highlightNode)
@@ -66,14 +68,15 @@ class HighlightsComponent
     # remove regions
     while oldHighlightState.regions.length > newHighlightState.regions.length
       oldHighlightState.regions.pop()
-      @domElementPool.freeElementAndDescendants(@regionNodesByHighlightId[id][oldHighlightState.regions.length])
+      @regionNodesByHighlightId[id][oldHighlightState.regions.length].remove()
       delete @regionNodesByHighlightId[id][oldHighlightState.regions.length]
 
     # add or update regions
     for newRegionState, i in newHighlightState.regions
       unless oldHighlightState.regions[i]?
         oldHighlightState.regions[i] = {}
-        regionNode = @domElementPool.buildElement("div", "region")
+        regionNode = document.createElement('div')
+        regionNode.className = 'region'
         # This prevents highlights at the tiles boundaries to be hidden by the
         # subsequent tile. When this happens, subpixel anti-aliasing gets
         # disabled.

@@ -12,7 +12,6 @@ OffScreenBlockDecorationsComponent = require './off-screen-block-decorations-com
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
-DOMElementPool = require './dom-element-pool'
 LinesYardstick = require './lines-yardstick'
 LineTopIndex = require 'line-top-index'
 
@@ -60,7 +59,6 @@ class TextEditorComponent
 
     @presenter.onDidUpdateState(@requestUpdate)
 
-    @domElementPool = new DOMElementPool
     @domNode = document.createElement('div')
     @domNode.classList.add('editor-contents--private')
 
@@ -77,7 +75,7 @@ class TextEditorComponent
     # document.activeElement.
     hiddenInputElement.getModel = => @editor
 
-    @linesComponent = new LinesComponent({@presenter, @domElementPool, @assert, @grammars, @views})
+    @linesComponent = new LinesComponent({@presenter, @assert, @grammars, @views})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
     @offScreenBlockDecorationsComponent = new OffScreenBlockDecorationsComponent({@presenter, @views})
@@ -116,7 +114,6 @@ class TextEditorComponent
     @disposables.dispose()
     @presenter.destroy()
     @gutterContainerComponent?.destroy()
-    @domElementPool.clear()
 
     @verticalScrollbarComponent.destroy()
     @horizontalScrollbarComponent.destroy()
@@ -173,10 +170,6 @@ class TextEditorComponent
 
     @overlayManager?.render(@newState)
 
-    if @clearPoolAfterUpdate
-      @domElementPool.clear()
-      @clearPoolAfterUpdate = false
-
     if @editor.isAlive()
       @updateParentViewFocusedClassIfNeeded()
       @updateParentViewMiniClass()
@@ -190,7 +183,7 @@ class TextEditorComponent
     @offScreenBlockDecorationsComponent.measureBlockDecorations()
 
   mountGutterContainerComponent: ->
-    @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown, @domElementPool, @views})
+    @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown, @views})
     @domNode.insertBefore(@gutterContainerComponent.getDomNode(), @domNode.firstChild)
 
   becameVisible: ->
@@ -810,7 +803,6 @@ class TextEditorComponent
     {@fontSize, @fontFamily, @lineHeight} = getComputedStyle(@getTopmostDOMNode())
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
-      @clearPoolAfterUpdate = true
       @measureLineHeightAndDefaultCharWidth()
       @invalidateMeasurements()
 
