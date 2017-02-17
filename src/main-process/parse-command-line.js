@@ -106,14 +106,14 @@ module.exports = function parseCommandLine (processArgs) {
 
   if (args['resource-path']) {
     devMode = true
-    resourcePath = args['resource-path']
+    devResourcePath = args['resource-path']
   }
 
   if (test) {
     devMode = true
   }
 
-  if (devMode && !resourcePath) {
+  if (devMode) {
     resourcePath = devResourcePath
   }
 
