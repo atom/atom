@@ -8,7 +8,7 @@ class DecorationManager extends Model
   didUpdateDecorationsEventScheduled: false
   updatedSynchronously: false
 
-  constructor: (@displayLayer, @defaultMarkerLayer) ->
+  constructor: (@displayLayer) ->
     super
 
     @emitter = new Emitter
@@ -71,9 +71,11 @@ class DecorationManager extends Model
 
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     decorationsByMarkerId = {}
-    for marker in @defaultMarkerLayer.findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow])
-      if decorations = @decorationsByMarkerId[marker.id]
-        decorationsByMarkerId[marker.id] = decorations
+    for layerId of @decorationCountsByLayerId
+      layer = @displayLayer.getMarkerLayer(layerId)
+      for marker in layer.findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow])
+        if decorations = @decorationsByMarkerId[marker.id]
+          decorationsByMarkerId[marker.id] = decorations
     decorationsByMarkerId
 
   decorationsStateForScreenRowRange: (startScreenRow, endScreenRow) ->
