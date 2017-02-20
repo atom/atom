@@ -209,7 +209,7 @@ class Project extends Model
   removePath: (projectPath) ->
     # The projectPath may be a URI, in which case it should not be normalized.
     unless projectPath in @getPaths()
-      projectPath = path.normalize(projectPath)
+      projectPath = @defaultDirectoryProvider.normalizePath(projectPath)
 
     indexToRemove = null
     for directory, i in @rootDirectories
@@ -237,11 +237,10 @@ class Project extends Model
       uri
     else
       if fs.isAbsolute(uri)
-        path.normalize(fs.resolveHome(uri))
-
+        @defaultDirectoryProvider.normalizePath(fs.resolveHome(uri))
       # TODO: what should we do here when there are multiple directories?
       else if projectPath = @getPaths()[0]
-        path.normalize(fs.resolveHome(path.join(projectPath, uri)))
+        @defaultDirectoryProvider.normalizePath(fs.resolveHome(path.join(projectPath, uri)))
       else
         undefined
 
