@@ -68,6 +68,12 @@ const configSchema = {
         default: true,
         description: 'Trigger the system\'s beep sound when certain actions cannot be executed or there are no results.'
       },
+      closeDeletedFileTabs: {
+        type: 'boolean',
+        default: false,
+        title: 'Close Deleted File Tabs',
+        description: 'Close corresponding editors when a file is deleted outside Atom.'
+      },
       destroyEmptyPanes: {
         type: 'boolean',
         default: true,
@@ -84,42 +90,166 @@ const configSchema = {
         type: 'string',
         default: 'utf8',
         enum: [
-          'cp437',
-          'cp850',
-          'cp866',
-          'eucjp',
-          'euckr',
-          'gbk',
-          'iso88591',
-          'iso885910',
-          'iso885913',
-          'iso885914',
-          'iso885915',
-          'iso885916',
-          'iso88592',
-          'iso88593',
-          'iso88594',
-          'iso88595',
-          'iso88596',
-          'iso88597',
-          'iso88597',
-          'iso88598',
-          'koi8r',
-          'koi8u',
-          'macroman',
-          'shiftjis',
-          'utf16be',
-          'utf16le',
-          'utf8',
-          'windows1250',
-          'windows1251',
-          'windows1252',
-          'windows1253',
-          'windows1254',
-          'windows1255',
-          'windows1256',
-          'windows1257',
-          'windows1258'
+          {
+            value: 'iso88596',
+            description: 'Arabic (ISO 8859-6)'
+          },
+          {
+            value: 'windows1256',
+            description: 'Arabic (Windows 1256)'
+          },
+          {
+            value: 'iso88594',
+            description: 'Baltic (ISO 8859-4)'
+          },
+          {
+            value: 'windows1257',
+            description: 'Baltic (Windows 1257)'
+          },
+          {
+            value: 'iso885914',
+            description: 'Celtic (ISO 8859-14)'
+          },
+          {
+            value: 'iso88592',
+            description: 'Central European (ISO 8859-2)'
+          },
+          {
+            value: 'windows1250',
+            description: 'Central European (Windows 1250)'
+          },
+          {
+            value: 'gb18030',
+            description: 'Chinese (GB18030)'
+          },
+          {
+            value: 'gbk',
+            description: 'Chinese (GBK)'
+          },
+          {
+            value: 'cp950',
+            description: 'Traditional Chinese (Big5)'
+          },
+          {
+            value: 'big5hkscs',
+            description: 'Traditional Chinese (Big5-HKSCS)'
+          },
+          {
+            value: 'cp866',
+            description: 'Cyrillic (CP 866)'
+          },
+          {
+            value: 'iso88595',
+            description: 'Cyrillic (ISO 8859-5)'
+          },
+          {
+            value: 'koi8r',
+            description: 'Cyrillic (KOI8-R)'
+          },
+          {
+            value: 'koi8u',
+            description: 'Cyrillic (KOI8-U)'
+          },
+          {
+            value: 'windows1251',
+            description: 'Cyrillic (Windows 1251)'
+          },
+          {
+            value: 'cp437',
+            description: 'DOS (CP 437)'
+          },
+          {
+            value: 'cp850',
+            description: 'DOS (CP 850)'
+          },
+          {
+            value: 'iso885913',
+            description: 'Estonian (ISO 8859-13)'
+          },
+          {
+            value: 'iso88597',
+            description: 'Greek (ISO 8859-7)'
+          },
+          {
+            value: 'windows1253',
+            description: 'Greek (Windows 1253)'
+          },
+          {
+            value: 'iso88598',
+            description: 'Hebrew (ISO 8859-8)'
+          },
+          {
+            value: 'windows1255',
+            description: 'Hebrew (Windows 1255)'
+          },
+          {
+            value: 'cp932',
+            description: 'Japanese (CP 932)'
+          },
+          {
+            value: 'eucjp',
+            description: 'Japanese (EUC-JP)'
+          },
+          {
+            value: 'shiftjis',
+            description: 'Japanese (Shift JIS)'
+          },
+          {
+            value: 'euckr',
+            description: 'Korean (EUC-KR)'
+          },
+          {
+            value: 'iso885910',
+            description: 'Nordic (ISO 8859-10)'
+          },
+          {
+            value: 'iso885916',
+            description: 'Romanian (ISO 8859-16)'
+          },
+          {
+            value: 'iso88599',
+            description: 'Turkish (ISO 8859-9)'
+          },
+          {
+            value: 'windows1254',
+            description: 'Turkish (Windows 1254)'
+          },
+          {
+            value: 'utf8',
+            description: 'Unicode (UTF-8)'
+          },
+          {
+            value: 'utf16le',
+            description: 'Unicode (UTF-16 LE)'
+          },
+          {
+            value: 'utf16be',
+            description: 'Unicode (UTF-16 BE)'
+          },
+          {
+            value: 'windows1258',
+            description: 'Vietnamese (Windows 1258)'
+          },
+          {
+            value: 'iso88591',
+            description: 'Western (ISO 8859-1)'
+          },
+          {
+            value: 'iso88593',
+            description: 'Western (ISO 8859-3)'
+          },
+          {
+            value: 'iso885915',
+            description: 'Western (ISO 8859-15)'
+          },
+          {
+            value: 'macroman',
+            description: 'Western (Mac Roman)'
+          },
+          {
+            value: 'windows1252',
+            description: 'Western (Windows 1252)'
+          }
         ]
       },
       openEmptyEditorOnStart: {
@@ -139,6 +269,12 @@ const configSchema = {
       },
       automaticallyUpdate: {
         description: 'Automatically update Atom when a new release is available.',
+        type: 'boolean',
+        default: true
+      },
+      useProxySettingsWhenCallingApm: {
+        title: 'Use Proxy Settings When Calling APM',
+        description: 'Use detected proxy settings when calling the `apm` command-line tool.',
         type: 'boolean',
         default: true
       },
@@ -210,6 +346,11 @@ const configSchema = {
         type: ['string', 'number'],
         default: 1.5,
         description: 'Height of editor lines, as a multiplier of font size.'
+      },
+      showCursorOnSelection: {
+        type: 'boolean',
+        'default': true,
+        description: 'Show cursor while there is a selection.'
       },
       showInvisibles: {
         type: 'boolean',

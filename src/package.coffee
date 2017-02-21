@@ -711,6 +711,9 @@ class Package
     incompatibleNativeModules
 
   handleError: (message, error) ->
+    if atom.inSpecMode()
+      throw error
+
     if error.filename and error.location and (error instanceof SyntaxError)
       location = "#{error.filename}:#{error.location.first_line + 1}:#{error.location.first_column + 1}"
       detail = "#{error.message} in #{location}"

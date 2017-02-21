@@ -11,7 +11,6 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StateStore = require './state-store'
 StorageFolder = require './storage-folder'
-{getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 {updateProcessEnv} = require './update-process-env'
 
@@ -458,7 +457,7 @@ class AtomEnvironment extends Model
   #
   # Returns an {Object} containing all the load setting key/value pairs.
   getLoadSettings: ->
-    getWindowLoadSettings()
+    @applicationDelegate.getWindowLoadSettings()
 
   ###
   Section: Managing The Atom Window
@@ -828,12 +827,17 @@ class AtomEnvironment extends Model
   Section: Private
   ###
 
-  assert: (condition, message, callback) ->
+  assert: (condition, message, callbackOrMetadata) ->
     return true if condition
 
     error = new Error("Assertion failed: #{message}")
     Error.captureStackTrace(error, @assert)
-    callback?(error)
+
+    if callbackOrMetadata?
+      if typeof callbackOrMetadata is 'function'
+        callbackOrMetadata?(error)
+      else
+        error.metadata = callbackOrMetadata
 
     @emitter.emit 'did-fail-assertion', error
 

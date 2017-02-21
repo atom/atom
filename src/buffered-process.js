@@ -46,18 +46,34 @@ export default class BufferedProcess {
   //   * `exit` {Function} (optional) The callback which receives a single
   //     argument containing the exit status.
   //     * `code` {Number}
-  constructor ({command, args, options = {}, stdout, stderr, exit} = {}) {
+  //   * `autoStart` {Boolean} (optional) Whether the command will automatically start
+  //     when this BufferedProcess is created. Defaults to true.  When set to false you
+  //     must call the `start` method to start the process.
+  constructor ({command, args, options = {}, stdout, stderr, exit, autoStart = true} = {}) {
     this.emitter = new Emitter()
     this.command = command
-    // Related to joyent/node#2318
-    if (process.platform === 'win32' && options.shell === undefined) {
-      this.spawnWithEscapedWindowsArgs(command, args, options)
-    } else {
-      this.spawn(command, args, options)
+    this.args = args
+    this.options = options
+    this.stdout = stdout
+    this.stderr = stderr
+    this.exit = exit
+    if (autoStart === true) {
+      this.start()
     }
-
     this.killed = false
-    this.handleEvents(stdout, stderr, exit)
+  }
+
+  start () {
+    if (this.started === true) return
+
+    this.started = true
+    // Related to joyent/node#2318
+    if (process.platform === 'win32' && this.options.shell === undefined) {
+      this.spawnWithEscapedWindowsArgs(this.command, this.args, this.options)
+    } else {
+      this.spawn(this.command, this.args, this.options)
+    }
+    this.handleEvents(this.stdout, this.stderr, this.exit)
   }
 
   // Windows has a bunch of special rules that node still doesn't take care of for you

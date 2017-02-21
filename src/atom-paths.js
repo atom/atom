@@ -17,7 +17,7 @@ const hasWriteAccess = (dir) => {
 const getAppDirectory = () => {
   switch (process.platform) {
     case 'darwin':
-      return path.join(process.execPath.substring(0, process.execPath.indexOf('.app')), '..')
+      return process.execPath.substring(0, process.execPath.indexOf('.app') + 4)
     case 'linux':
     case 'win32':
       return path.join(process.execPath, '..')
@@ -27,7 +27,7 @@ const getAppDirectory = () => {
 module.exports = {
   setAtomHome: (homePath) => {
     // When a read-writeable .atom folder exists above app use that
-    const portableHomePath = path.join(getAppDirectory(), '.atom')
+    const portableHomePath = path.join(getAppDirectory(), '..', '.atom')
     if (fs.existsSync(portableHomePath)) {
       if (hasWriteAccess(portableHomePath)) {
         process.env.ATOM_HOME = portableHomePath

@@ -16,12 +16,11 @@ TextEditorElement = require './text-editor-element'
 {isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require './text-utils'
 
 ZERO_WIDTH_NBSP = '\ufeff'
+MAX_SCREEN_LINE_LENGTH = 500
 
 # Essential: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
-# If you're manipulating the state of an editor, use this class. If you're
-# interested in the visual appearance of editors, use {TextEditorElement}
-# instead.
+# If you're manipulating the state of an editor, use this class.
 #
 # A single {TextBuffer} can belong to multiple editors. For example, if the
 # same file is open in two different panes, Atom creates a separate editor for
@@ -67,6 +66,7 @@ class TextEditor extends Model
   buffer: null
   languageMode: null
   cursors: null
+  showCursorOnSelection: null
   selections: null
   suppressSelectionMerging: false
   selectionFlashDuration: 500
@@ -133,7 +133,8 @@ class TextEditor extends Model
       @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode,
       @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
       @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide,
-      @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength
+      @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength,
+      @showCursorOnSelection
     } = params
 
     @assert ?= (condition) -> condition
@@ -153,13 +154,15 @@ class TextEditor extends Model
     tabLength ?= 2
     @autoIndent ?= true
     @autoIndentOnPaste ?= true
+    @showCursorOnSelection ?= true
     @undoGroupingInterval ?= 300
     @nonWordCharacters ?= "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
     @softWrapped ?= false
     @softWrapAtPreferredLineLength ?= false
     @preferredLineLength ?= 80
 
-    @buffer ?= new TextBuffer
+    @buffer ?= new TextBuffer({shouldDestroyOnFileDelete: ->
+      atom.config.get('core.closeDeletedFileTabs')})
     @tokenizedBuffer ?= new TokenizedBuffer({
       grammar, tabLength, @buffer, @largeFileMode, @assert
     })
@@ -190,8 +193,9 @@ class TextEditor extends Model
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true, persistent: true)
+    @selectionsMarkerLayer.trackDestructionInOnDidCreateMarkerCallbacks = true
 
-    @decorationManager = new DecorationManager(@displayLayer, @defaultMarkerLayer)
+    @decorationManager = new DecorationManager(@displayLayer)
     @decorateMarkerLayer(@displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
 
     for marker in @selectionsMarkerLayer.getMarkers()
@@ -342,6 +346,12 @@ class TextEditor extends Model
           if value isnt @autoWidth
             @autoWidth = value
             @presenter?.didChangeAutoWidth()
+
+        when 'showCursorOnSelection'
+          if value isnt @showCursorOnSelection
+            @showCursorOnSelection = value
+            cursor.setShowCursorOnSelection(value) for cursor in @getCursors()
+
         else
           throw new TypeError("Invalid TextEditor parameter: '#{param}'")
 
@@ -722,7 +732,7 @@ class TextEditor extends Model
       tabLength: @tokenizedBuffer.getTabLength(),
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
       @assert, displayLayer, grammar: @getGrammar(),
-      @autoWidth, @autoHeight
+      @autoWidth, @autoHeight, @showCursorOnSelection
     })
 
   # Controls visibility based on the given {Boolean}.
@@ -892,7 +902,7 @@ class TextEditor extends Model
   # Determine whether the user should be prompted to save before closing
   # this editor.
   shouldPromptToSave: ({windowCloseRequested, projectHasPaths}={}) ->
-    if windowCloseRequested and projectHasPaths
+    if windowCloseRequested and projectHasPaths and atom.stateStore.isConnected()
       false
     else
       @isModified() and not @buffer.hasMultipleEditors()
@@ -2269,13 +2279,12 @@ class TextEditor extends Model
 
   # Add a cursor based on the given {DisplayMarker}.
   addCursor: (marker) ->
-    cursor = new Cursor(editor: this, marker: marker)
+    cursor = new Cursor(editor: this, marker: marker, showCursorOnSelection: @showCursorOnSelection)
     @cursors.push(cursor)
     @cursorsByMarkerId.set(marker.id, cursor)
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line')
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
     @decorateMarker(marker, type: 'line', class: 'cursor-line', onlyEmpty: true)
-    @emitter.emit 'did-add-cursor', cursor
     cursor
 
   moveCursors: (fn) ->
@@ -2764,6 +2773,7 @@ class TextEditor extends Model
         if selection.intersectsBufferRange(selectionBufferRange)
           return selection
     else
+      @emitter.emit 'did-add-cursor', cursor
       @emitter.emit 'did-add-selection', selection
       selection
 
@@ -2956,7 +2966,7 @@ class TextEditor extends Model
       else
         @getEditorWidthInChars()
     else
-      Infinity
+      MAX_SCREEN_LINE_LENGTH
 
   ###
   Section: Indentation
@@ -3465,6 +3475,11 @@ class TextEditor extends Model
   #
   # Returns a positive {Number}.
   getScrollSensitivity: -> @scrollSensitivity
+
+  # Experimental: Does this editor show cursors while there is a selection?
+  #
+  # Returns a positive {Boolean}.
+  getShowCursorOnSelection: -> @showCursorOnSelection
 
   # Experimental: Are line numbers enabled for this editor?
   #

@@ -1347,7 +1347,19 @@ describe('TextEditorComponent', function () {
       expect(cursorsNode.classList.contains('blink-off')).toBe(true)
     })
 
-    it('does not render cursors that are associated with non-empty selections', function () {
+    it('renders cursors that are associated with empty selections', function () {
+      editor.update({showCursorOnSelection: true})
+      editor.setSelectedScreenRange([[0, 4], [4, 6]])
+      editor.addCursorAtScreenPosition([6, 8])
+      runAnimationFrames()
+      let cursorNodes = componentNode.querySelectorAll('.cursor')
+      expect(cursorNodes.length).toBe(2)
+      expect(cursorNodes[0].style['-webkit-transform']).toBe('translate(' + (Math.round(6 * charWidth)) + 'px, ' + (4 * lineHeightInPixels) + 'px)')
+      expect(cursorNodes[1].style['-webkit-transform']).toBe('translate(' + (Math.round(8 * charWidth)) + 'px, ' + (6 * lineHeightInPixels) + 'px)')
+    })
+
+    it('does not render cursors that are associated with non-empty selections when showCursorOnSelection is false', function () {
+      editor.update({showCursorOnSelection: false})
       editor.setSelectedScreenRange([[0, 4], [4, 6]])
       editor.addCursorAtScreenPosition([6, 8])
       runAnimationFrames()
@@ -1735,11 +1747,13 @@ describe('TextEditorComponent', function () {
   })
 
   describe('block decorations rendering', function () {
+    let markerLayer
+
     function createBlockDecorationBeforeScreenRow(screenRow, {className}) {
       let item = document.createElement("div")
       item.className = className || ""
       let blockDecoration = editor.decorateMarker(
-        editor.markScreenPosition([screenRow, 0], {invalidate: "never"}),
+        markerLayer.markScreenPosition([screenRow, 0], {invalidate: "never"}),
         {type: "block", item: item, position: "before"}
       )
       return [item, blockDecoration]
@@ -1749,13 +1763,14 @@ describe('TextEditorComponent', function () {
       let item = document.createElement("div")
       item.className = className || ""
       let blockDecoration = editor.decorateMarker(
-        editor.markScreenPosition([screenRow, 0], {invalidate: "never"}),
+        markerLayer.markScreenPosition([screenRow, 0], {invalidate: "never"}),
         {type: "block", item: item, position: "after"}
       )
       return [item, blockDecoration]
     }
 
     beforeEach(function () {
+      markerLayer = editor.addMarkerLayer()
       wrapperNode.style.height = 5 * lineHeightInPixels + 'px'
       editor.update({autoHeight: false})
       component.measureDimensions()

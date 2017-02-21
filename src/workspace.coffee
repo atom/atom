@@ -182,7 +182,7 @@ class Workspace extends Model
       projectPath = _.find projectPaths, (projectPath) ->
         itemPath is projectPath or itemPath?.startsWith(projectPath + path.sep)
     itemTitle ?= "untitled"
-    projectPath ?= if itemPath then path.dirname(itemPath) else null
+    projectPath ?= if itemPath then path.dirname(itemPath) else projectPaths[0]
     if projectPath?
       projectPath = fs.tildify(projectPath)
 

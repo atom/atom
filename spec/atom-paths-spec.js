@@ -8,8 +8,7 @@ import path from 'path'
 const temp = require('temp').track()
 
 describe("AtomPaths", () => {
-  const portableAtomHomePath = path.join(atomPaths.getAppDirectory(), '.atom')
-  console.log(portableAtomHomePath)
+  const portableAtomHomePath = path.join(atomPaths.getAppDirectory(), '..', '.atom')
 
   afterEach(() => {
     atomPaths.setAtomHome(app.getPath('home'))

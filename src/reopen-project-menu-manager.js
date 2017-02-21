@@ -19,6 +19,8 @@ export default class ReopenProjectMenuManager {
       }),
       commands.add('atom-workspace', { 'application:reopen-project': this.reopenProjectCommand.bind(this) })
     )
+
+    this.applyWindowsJumpListRemovals()
   }
 
   reopenProjectCommand (e) {
@@ -49,9 +51,30 @@ export default class ReopenProjectMenuManager {
     this.updateWindowsJumpList()
   }
 
+  static taskDescription (paths) {
+    return paths.map(path => `${ReopenProjectMenuManager.betterBaseName(path)} (${path})`).join(' ')
+  }
+
+  // Windows users can right-click Atom taskbar and remove project from the jump list.
+  // We have to honor that or the group stops working. As we only get a partial list
+  // each time we remove them from history entirely.
+  applyWindowsJumpListRemovals () {
+    if (process.platform !== 'win32') return
+    if (this.app === undefined) {
+      this.app = require('remote').app
+    }
+
+    const removed = this.app.getJumpListSettings().removedItems.map(i => i.description)
+    if (removed.length === 0) return
+    for (let project of this.historyManager.getProjects()) {
+      if (removed.includes(ReopenProjectMenuManager.taskDescription(project.paths))) {
+        this.historyManager.removeProject(project.paths)
+      }
+    }
+  }
+
   updateWindowsJumpList () {
     if (process.platform !== 'win32') return
-
     if (this.app === undefined) {
       this.app = require('remote').app
     }
@@ -64,7 +87,7 @@ export default class ReopenProjectMenuManager {
           ({
             type: 'task',
             title: project.paths.map(ReopenProjectMenuManager.betterBaseName).join(', '),
-            description: project.paths.map(path => `${ReopenProjectMenuManager.betterBaseName(path)} (${path})`).join(' '),
+            description: ReopenProjectMenuManager.taskDescription(project.paths),
             program: process.execPath,
             args: project.paths.map(path => `"${path}"`).join(' '),
             iconPath: path.join(path.dirname(process.execPath), 'resources', 'cli', 'folder.ico'),
