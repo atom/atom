@@ -42,9 +42,10 @@ atom-text-editor {
   }
 
   .lines {
+    contain: strict;
     background-color: inherit;
     float: left;
-    // width: min-content;
-    // height: min-content;
+    will-change: transform;
+    overflow: hidden;
   }
 }
