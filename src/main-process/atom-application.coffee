@@ -84,7 +84,13 @@ class AtomApplication
   initialize: (options) ->
     global.atomApplication = this
 
-    @config.onDidChange 'core.useCustomTitleBar', @promptForRestart.bind(this)
+    # DEPRECATED: This can be removed at some point (added in 1.13)
+    # It converts `useCustomTitleBar: true` to `titleBar: "custom"`
+    if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
+      @config.unset('core.useCustomTitleBar')
+      @config.set('core.titleBar', 'custom')
+    
+    @config.onDidChange 'core.titleBar', @promptForRestart.bind(this)
 
     @autoUpdateManager = new AutoUpdateManager(
       @version, options.test or options.benchmark or options.benchmarkTest, @resourcePath, @config
