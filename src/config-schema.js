@@ -502,7 +502,7 @@ if (process.platform === 'darwin') {
     type: 'string',
     default: 'native',
     enum: ['native', 'custom', 'custom-inset', 'hidden'],
-    description: 'A `custom` title bar adapts to theme colors. Choosing `custom-inset` adds a bit more padding. The title bar can also be completely `hidden`.<br>Note: Switching to a custom or hidden title bar will compromise some functionality.<br>This setting will require a relaunch of Atom to take effect.'
+    description: 'Experimental: A `custom` title bar adapts to theme colors. Choosing `custom-inset` adds a bit more padding. The title bar can also be completely `hidden`.<br>Note: Switching to a custom or hidden title bar will compromise some functionality.<br>This setting will require a relaunch of Atom to take effect.'
   }
 }
 
