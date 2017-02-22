@@ -36,10 +36,23 @@ class TextEditorComponent {
   }
 
   render () {
-    return $('atom-text-editor', null,
+    let style
+    if (!this.getModel().getAutoHeight() && !this.getModel().getAutoWidth()) {
+      style = {contain: 'strict'}
+    }
+
+    return $('atom-text-editor', {style},
       $.div({ref: 'scroller', onScroll: this.didScroll, className: 'scroll-view'},
-        this.renderGutterContainer(),
-        this.renderLines()
+        // $.div({
+        //   style: {
+        //     width: 'max-content',
+        //     height: 'max-content',
+        //     backgroundColor: 'inherit'
+        //   }
+        // },
+          // this.renderGutterContainer(),
+          this.renderLines()
+        // )
       )
     )
   }
@@ -55,8 +68,6 @@ class TextEditorComponent {
 
     const firstTileStartRow = this.getTileStartRow(this.getFirstVisibleRow())
     const lastTileStartRow = this.getTileStartRow(this.getLastVisibleRow())
-
-    console.log({firstTileStartRow, lastTileStartRow});
 
     let tileNodes = []
 
@@ -95,9 +106,11 @@ class TextEditorComponent {
       tileNodes.push($.div({
         style: {
           height: tileHeight + 'px',
-          width: 'min-content',
-          transform: `translateY(${yTranslation}px)`,
+          width: 'max-content',
+          willChange: 'transform',
+          transform: `translate3d(0, ${yTranslation}px, 0)`,
           backgroundColor: 'inherit',
+          overflow: 'hidden'
         }
       }, lineNumberNodes))
 
@@ -121,18 +134,13 @@ class TextEditorComponent {
     if (!this.measurements) return []
 
     const firstTileStartRow = this.getTileStartRow(this.getFirstVisibleRow())
-    const lastTileStartRow = this.getTileStartRow(this.getLastVisibleRow())
-    const visibleTileCount = lastTileStartRow - firstTileStartRow + 1
+    const visibleTileCount = Math.floor((this.getLastVisibleRow() - this.getFirstVisibleRow()) / ROWS_PER_TILE) + 2
+    const lastTileStartRow = firstTileStartRow + ((visibleTileCount - 1) * ROWS_PER_TILE)
+
     const displayLayer = this.getModel().displayLayer
     const screenLines = displayLayer.getScreenLines(firstTileStartRow, lastTileStartRow + ROWS_PER_TILE)
 
-    console.log({
-      firstVisible: this.getFirstVisibleRow(),
-      lastVisible: this.getLastVisibleRow(),
-      firstTileStartRow, lastTileStartRow
-    });
-
-    let tileNodes = []
+    let tileNodes = new Array(visibleTileCount)
     for (let tileStartRow = firstTileStartRow; tileStartRow <= lastTileStartRow; tileStartRow += ROWS_PER_TILE) {
       const tileEndRow = tileStartRow + ROWS_PER_TILE
       const lineNodes = []
@@ -143,17 +151,21 @@ class TextEditorComponent {
       }
 
       const tileHeight = ROWS_PER_TILE * this.measurements.lineHeight
+      const tileIndex = (tileStartRow / ROWS_PER_TILE) % visibleTileCount
 
-      tileNodes.push($.div({
-        key: (tileStartRow / ROWS_PER_TILE) % visibleTileCount,
+      tileNodes[tileIndex] = $.div({
+        key: tileIndex,
+        dataset: {key: tileIndex},
         style: {
+          contain: 'strict',
           position: 'absolute',
           height: tileHeight + 'px',
           width: this.measurements.scrollWidth + 'px',
+          willChange: 'transform',
           transform: `translateY(${this.topPixelPositionForRow(tileStartRow)}px)`,
           backgroundColor: 'inherit'
         }
-      }, lineNodes))
+      }, lineNodes)
     }
 
     return tileNodes
@@ -164,6 +176,8 @@ class TextEditorComponent {
       const {intersectionRect} = entries[entries.length - 1]
       if (intersectionRect.width > 0 || intersectionRect.height > 0) {
         this.didShow()
+      } else {
+        this.didHide()
       }
     })
     this.intersectionObserver.observe(this.element)
@@ -171,8 +185,13 @@ class TextEditorComponent {
   }
 
   didShow () {
+    this.getModel().setVisible(true)
     if (!this.measurements) this.performInitialMeasurements()
     etch.updateSync(this)
+  }
+
+  didHide () {
+    this.getModel().setVisible(false)
   }
 
   didScroll () {
@@ -209,7 +228,7 @@ class TextEditorComponent {
 
   measureLongestLineWidth () {
     const displayLayer = this.getModel().displayLayer
-    const rightmostPosition = displayLayer.getApproximateRightmostScreenPosition()
+    const rightmostPosition = displayLayer.getRightmostScreenPosition()
     this.measurements.scrollWidth = rightmostPosition.column * this.measurements.baseCharacterWidth
   }
 
