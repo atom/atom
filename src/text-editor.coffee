@@ -12,7 +12,7 @@ Model = require './model'
 Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 GutterContainer = require './gutter-container'
-TextEditorElement = require './text-editor-element'
+TextEditorComponent = require './text-editor-component'
 {isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require './text-utils'
 
 ZERO_WIDTH_NBSP = '\ufeff'
@@ -3543,7 +3543,8 @@ class TextEditor extends Model
 
   # Get the Element for the editor.
   getElement: ->
-    @editorElement ?= new TextEditorElement().initialize(this, atom)
+    @component ?= new TextEditorComponent({model: this})
+    @component.element
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
