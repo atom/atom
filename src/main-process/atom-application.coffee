@@ -63,7 +63,7 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @logFile, @setPortable, @userDataDir} = options
+    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @logFile, @userDataDir} = options
     @socketPath = null if options.test or options.benchmark or options.benchmarkTest
     @pidsToOpenWindows = {}
     @windows = []
@@ -385,6 +385,9 @@ class AtomApplication
       @fileRecoveryService.didSavePath(@atomWindowForEvent(event), path)
       event.returnValue = true
 
+    @disposable.add ipcHelpers.on ipcMain, 'did-change-paths', =>
+      @saveState(false)
+
   setupDockMenu: ->
     if process.platform is 'darwin'
       dockMenu = Menu.buildFromTemplate [
@@ -584,8 +587,7 @@ class AtomApplication
     states = []
     for window in @windows
       unless window.isSpec
-        if loadSettings = window.getLoadSettings()
-          states.push(initialPaths: loadSettings.initialPaths)
+        states.push({initialPaths: window.representedDirectoryPaths})
     if states.length > 0 or allowEmpty
       @storageFolder.storeSync('application.json', states)
 
@@ -796,7 +798,6 @@ class AtomApplication
   restart: ->
     args = []
     args.push("--safe") if @safeMode
-    args.push("--portable") if @setPortable
     args.push("--log-file=#{@logFile}") if @logFile?
     args.push("--socket-path=#{@socketPath}") if @socketPath?
     args.push("--user-data-dir=#{@userDataDir}") if @userDataDir?

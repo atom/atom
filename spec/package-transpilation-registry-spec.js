@@ -44,19 +44,19 @@ describe("PackageTranspilationRegistry", () => {
   })
 
   describe('when a file is contained in a path that has custom transpilation', () => {
-    const hitPath = '/path/to/lib/file.js'
-    const hitPathCoffee = '/path/to/file2.coffee'
-    const missPath = '/path/other/file3.js'
-    const hitPathMissSubdir = '/path/to/file4.js'
-    const hitPathMissExt = '/path/to/file5.ts'
-    const nodeModulesFolder = '/path/to/lib/node_modules/file6.js'
-    const hitNonStandardExt = '/path/to/file7.omgwhatisthis'
+    const hitPath = path.join('/path/to/lib/file.js')
+    const hitPathCoffee = path.join('/path/to/file2.coffee')
+    const missPath = path.join('/path/other/file3.js')
+    const hitPathMissSubdir =path.join('/path/to/file4.js')
+    const hitPathMissExt = path.join('/path/to/file5.ts')
+    const nodeModulesFolder = path.join('/path/to/lib/node_modules/file6.js')
+    const hitNonStandardExt = path.join('/path/to/file7.omgwhatisthis')
 
     const jsSpec = { glob: "lib/**/*.js", transpiler: './transpiler-js', options: { type: 'js' } }
     const coffeeSpec = { glob: "*.coffee", transpiler: './transpiler-coffee', options: { type: 'coffee' } }
     const omgSpec = { glob: "*.omgwhatisthis", transpiler: './transpiler-omg', options: { type: 'omg' } }
 
-    const expectedMeta = { name: 'my-package', path: '/path/to', meta: { some: 'metadata' } }
+    const expectedMeta = { name: 'my-package', path: path.join('/path/to'), meta: { some: 'metadata' } }
 
     const jsTranspiler = {
       transpile: (sourceCode, filePath, options) => {
@@ -100,7 +100,7 @@ describe("PackageTranspilationRegistry", () => {
         throw new Error('bad transpiler path ' + spec.transpiler)
       })
 
-      registry.addTranspilerConfigForPath('/path/to', 'my-package', { some: 'metadata' }, [
+      registry.addTranspilerConfigForPath(path.join('/path/to'), 'my-package', { some: 'metadata' }, [
         jsSpec, coffeeSpec, omgSpec
       ])
     })

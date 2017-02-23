@@ -7,7 +7,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 * OS with 64-bit or 32-bit architecture
 * C++11 toolchain
 * Git
-* Node.js 4.4.x or later (we recommend installing it via [nvm](https://github.com/creationix/nvm))
+* Node.js 6.x (we recommend installing it via [nvm](https://github.com/creationix/nvm))
 * npm 3.10.x or later (run `npm install -g npm`)
 * Ensure node-gyp uses python2 (run `npm config set python /usr/bin/python2 -g`, use `sudo` if you didn't install node via nvm)
 * Development headers for [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring).
@@ -49,9 +49,13 @@ To also install the newly built application, use `--create-debian-package` or `-
   sudo update-alternatives --config gcc # choose gcc-5 from the list
   ```
 
-### Fedora / CentOS / RHEL
+### Fedora 22+
 
 * `sudo dnf --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools libX11-devel libxkbfile-devel`
+
+### Fedora 21 / CentOS / RHEL
+
+* `sudo yum install -y make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
 
 ### Arch
 

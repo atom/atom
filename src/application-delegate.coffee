@@ -2,10 +2,12 @@ _ = require 'underscore-plus'
 {screen, ipcRenderer, remote, shell, webFrame} = require 'electron'
 ipcHelpers = require './ipc-helpers'
 {Disposable} = require 'event-kit'
-{getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
+getWindowLoadSettings = require './get-window-load-settings'
 
 module.exports =
 class ApplicationDelegate
+  getWindowLoadSettings: -> getWindowLoadSettings()
+
   open: (params) ->
     ipcRenderer.send('open', params)
 
@@ -109,9 +111,7 @@ class ApplicationDelegate
     ipcRenderer.send("add-recent-document", filename)
 
   setRepresentedDirectoryPaths: (paths) ->
-    loadSettings = getWindowLoadSettings()
-    loadSettings['initialPaths'] = paths
-    setWindowLoadSettings(loadSettings)
+    ipcHelpers.call('window-method', 'setRepresentedDirectoryPaths', paths)
 
   setAutoHideWindowMenuBar: (autoHide) ->
     ipcHelpers.call('window-method', 'setAutoHideMenuBar', autoHide)
@@ -148,13 +148,9 @@ class ApplicationDelegate
   showMessageDialog: (params) ->
 
   showSaveDialog: (params) ->
-    if _.isString(params)
-      params = defaultPath: params
-    else
-      params = _.clone(params)
-    params.title ?= 'Save File'
-    params.defaultPath ?= getWindowLoadSettings().initialPaths[0]
-    remote.dialog.showSaveDialog remote.getCurrentWindow(), params
+    if typeof params is 'string'
+      params = {defaultPath: params}
+    @getCurrentWindow().showSaveDialog(params)
 
   playBeepSound: ->
     shell.beep()

@@ -1,6 +1,6 @@
 ![Atom](https://cloud.githubusercontent.com/assets/72919/2874231/3af1db48-d3dd-11e3-98dc-6066f8bc766f.png)
 
-[![macOS Build Status](https://circleci.com/gh/atom/atom.svg?style=svg)](https://circleci.com/gh/atom/atom) [![Linux Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/1tkktwh654w07eim?svg=true)](https://ci.appveyor.com/project/Atom/atom)
+[![macOS Build Status](https://circleci.com/gh/atom/atom/tree/master.svg?style=shield)](https://circleci.com/gh/atom/atom) [![Linux Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/1tkktwh654w07eim?svg=true)](https://ci.appveyor.com/project/Atom/atom)
 [![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom)
 [![Join the Atom Community on Slack](http://atom-slack.herokuapp.com/badge.svg)](http://atom-slack.herokuapp.com/)
 
@@ -93,7 +93,7 @@ repeat these steps to upgrade to future releases.
 ## Building
 
 * [Linux](./docs/build-instructions/linux.md)
-* [macOS](./docs/build-instructions/macos.md)
+* [macOS](./docs/build-instructions/macOS.md)
 * [FreeBSD](./docs/build-instructions/freebsd.md)
 * [Windows](./docs/build-instructions/windows.md)
 

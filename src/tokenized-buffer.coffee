@@ -8,6 +8,8 @@ ScopeDescriptor = require './scope-descriptor'
 TokenizedBufferIterator = require './tokenized-buffer-iterator'
 NullGrammar = require './null-grammar'
 
+MAX_LINE_LENGTH_TO_TOKENIZE = 500
+
 module.exports =
 class TokenizedBuffer extends Model
   grammar: null
@@ -41,6 +43,7 @@ class TokenizedBuffer extends Model
 
   destroyed: ->
     @disposables.dispose()
+    @tokenizedLines.length = 0
 
   buildIterator: ->
     new TokenizedBufferIterator(this)
@@ -94,6 +97,7 @@ class TokenizedBuffer extends Model
     false
 
   retokenizeLines: ->
+    return unless @alive
     @fullyTokenized = false
     @tokenizedLines = new Array(@buffer.getLineCount())
     @invalidRows = []
@@ -198,10 +202,7 @@ class TokenizedBuffer extends Model
         @invalidateRow(end + delta + 1)
 
   isFoldableAtRow: (row) ->
-    if @largeFileMode
-      false
-    else
-      @isFoldableCodeAtRow(row) or @isFoldableCommentAtRow(row)
+    @isFoldableCodeAtRow(row) or @isFoldableCommentAtRow(row)
 
   # Returns a {Boolean} indicating whether the given buffer row starts
   # a a foldable row range due to the code's indentation patterns.
@@ -252,6 +253,8 @@ class TokenizedBuffer extends Model
 
   buildTokenizedLineForRowWithText: (row, text, ruleStack = @stackForRow(row - 1), openScopes = @openScopesForRow(row)) ->
     lineEnding = @buffer.lineEndingForRow(row)
+    if text.length > MAX_LINE_LENGTH_TO_TOKENIZE
+      text = text.slice(0, MAX_LINE_LENGTH_TO_TOKENIZE)
     {tags, ruleStack} = @grammar.tokenizeLine(text, ruleStack, row is 0, false)
     new TokenizedLine({openScopes, text, tags, ruleStack, lineEnding, @tokenIterator})
 

@@ -46,43 +46,61 @@ export default class BufferedProcess {
   //   * `exit` {Function} (optional) The callback which receives a single
   //     argument containing the exit status.
   //     * `code` {Number}
-  constructor ({command, args, options = {}, stdout, stderr, exit} = {}) {
+  //   * `autoStart` {Boolean} (optional) Whether the command will automatically start
+  //     when this BufferedProcess is created. Defaults to true.  When set to false you
+  //     must call the `start` method to start the process.
+  constructor ({command, args, options = {}, stdout, stderr, exit, autoStart = true} = {}) {
     this.emitter = new Emitter()
     this.command = command
+    this.args = args
+    this.options = options
+    this.stdout = stdout
+    this.stderr = stderr
+    this.exit = exit
+    if (autoStart === true) {
+      this.start()
+    }
+    this.killed = false
+  }
+
+  start () {
+    if (this.started === true) return
+
+    this.started = true
     // Related to joyent/node#2318
-    if (process.platform === 'win32' && !options.shell) {
-      let cmdArgs = []
-
-      // Quote all arguments and escapes inner quotes
-      if (args) {
-        cmdArgs = args.filter((arg) => arg != null)
-          .map((arg) => {
-            if (this.isExplorerCommand(command) && /^\/[a-zA-Z]+,.*$/.test(arg)) {
-              // Don't wrap /root,C:\folder style arguments to explorer calls in
-              // quotes since they will not be interpreted correctly if they are
-              return arg
-            } else {
-              return `\"${arg.toString().replace(/"/g, '\\"')}\"`
-            }
-          })
-      }
-
-      if (/\s/.test(command)) {
-        cmdArgs.unshift(`\"${command}\"`)
-      } else {
-        cmdArgs.unshift(command)
-      }
-
-      cmdArgs = ['/s', '/d', '/c', `\"${cmdArgs.join(' ')}\"`]
-      const cmdOptions = _.clone(options)
-      cmdOptions.windowsVerbatimArguments = true
-      this.spawn(this.getCmdPath(), cmdArgs, cmdOptions)
+    if (process.platform === 'win32' && this.options.shell === undefined) {
+      this.spawnWithEscapedWindowsArgs(this.command, this.args, this.options)
     } else {
-      this.spawn(command, args, options)
+      this.spawn(this.command, this.args, this.options)
+    }
+    this.handleEvents(this.stdout, this.stderr, this.exit)
+  }
+
+  // Windows has a bunch of special rules that node still doesn't take care of for you
+  spawnWithEscapedWindowsArgs (command, args, options) {
+    let cmdArgs = []
+    // Quote all arguments and escapes inner quotes
+    if (args) {
+      cmdArgs = args.filter((arg) => arg != null)
+        .map((arg) => {
+          if (this.isExplorerCommand(command) && /^\/[a-zA-Z]+,.*$/.test(arg)) {
+            // Don't wrap /root,C:\folder style arguments to explorer calls in
+            // quotes since they will not be interpreted correctly if they are
+            return arg
+          } else {
+            // Escape double quotes by putting a backslash in front of them
+            return `\"${arg.toString().replace(/"/g, '\\"')}\"`
+          }
+        })
     }
 
-    this.killed = false
-    this.handleEvents(stdout, stderr, exit)
+    // The command itself is quoted if it contains spaces, &, ^, | or # chars
+    cmdArgs.unshift(/\s|&|\^|\(|\)|\||#/.test(command) ? `\"${command}\"` : command)
+
+    const cmdOptions = _.clone(options)
+    cmdOptions.windowsVerbatimArguments = true
+
+    this.spawn(this.getCmdPath(), ['/s', '/d', '/c', `\"${cmdArgs.join(' ')}\"`], cmdOptions)
   }
 
   /*

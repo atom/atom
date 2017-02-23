@@ -336,6 +336,31 @@ ScopeDescriptor = require './scope-descriptor'
 #     order: 2
 # ```
 #
+# ## Manipulating values outside your configuration schema
+#
+# It is possible to manipulate(`get`, `set`, `observe` etc) values that do not
+# appear in your configuration schema. For example, if the config schema of the
+# package 'some-package' is
+#
+# ```coffee
+# config:
+# someSetting:
+#   type: 'boolean'
+#   default: false
+# ```
+#
+# You can still do the following
+#
+# ```coffee
+# let otherSetting  = atom.config.get('some-package.otherSetting')
+# atom.config.set('some-package.stillAnotherSetting', otherSetting * 5)
+# ```
+#
+# In other words, if a function asks for a `key-path`, that path doesn't have to
+# be described in the config schema for the package or any package. However, as
+# highlighted in the best practices section, you are advised against doing the
+# above.
+#
 # ## Best practices
 #
 # * Don't depend on (or write to) configuration keys outside of your keypath.

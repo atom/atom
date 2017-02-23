@@ -1,4 +1,4 @@
-const temp = require('temp')
+const temp = require('temp').track()
 const StyleManager = require('../src/style-manager')
 
 describe('StyleManager', () => {
@@ -12,6 +12,10 @@ describe('StyleManager', () => {
     styleManager.onDidAddStyleElement((event) => { addEvents.push(event) })
     styleManager.onDidRemoveStyleElement((event) => { removeEvents.push(event) })
     styleManager.onDidUpdateStyleElement((event) => { updateEvents.push(event) })
+  })
+
+  afterEach(() => {
+    temp.cleanupSync()
   })
 
   describe('::addStyleSheet(source, params)', () => {
@@ -91,6 +95,13 @@ describe('StyleManager', () => {
         styleManager.addStyleSheet(':host .class-1, :host .class-2 { color: red; }', {context: 'atom-text-editor'})
         expect(Array.from(styleManager.getStyleElements()[1].sheet.cssRules).map((r) => r.selectorText)).toEqual([
           'atom-text-editor .class-1, atom-text-editor .class-2'
+        ])
+      })
+
+      it('does not transform CSS rules with invalid syntax', () => {
+        styleManager.addStyleSheet("atom-text-editor::shadow .class-1 { font-family: inval'id }")
+        expect(Array.from(styleManager.getStyleElements()[0].sheet.cssRules).map((r) => r.selectorText)).toEqual([
+          'atom-text-editor::shadow .class-1'
         ])
       })
 

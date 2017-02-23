@@ -22,7 +22,7 @@ describe('AtomApplication', function () {
     originalAtomHome = process.env.ATOM_HOME
     process.env.ATOM_HOME = makeTempDir('atom-home')
     // Symlinking the compile cache into the temporary home dir makes the windows load much faster
-    fs.symlinkSync(path.join(originalAtomHome, 'compile-cache'), path.join(process.env.ATOM_HOME, 'compile-cache'))
+    fs.symlinkSync(path.join(originalAtomHome, 'compile-cache'), path.join(process.env.ATOM_HOME, 'compile-cache'), 'junction')
     season.writeFileSync(path.join(process.env.ATOM_HOME, 'config.cson'), {
       '*': {
         welcome: {showOnStartup: false},
@@ -196,7 +196,9 @@ describe('AtomApplication', function () {
     it('persists window state based on the project directories', async function () {
       const tempDirPath = makeTempDir()
       const atomApplication = buildAtomApplication()
-      const window1 = atomApplication.launch(parseCommandLine([path.join(tempDirPath, 'new-file')]))
+      const nonExistentFilePath = path.join(tempDirPath, 'new-file')
+
+      const window1 = atomApplication.launch(parseCommandLine([nonExistentFilePath]))
       await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         atom.workspace.observeActivePaneItem(function (textEditor) {
           if (textEditor) {
@@ -205,17 +207,31 @@ describe('AtomApplication', function () {
           }
         })
       })
+      await window1.saveState()
       window1.close()
       await window1.closedPromise
 
-      const window2 = atomApplication.launch(parseCommandLine([path.join(tempDirPath)]))
+      // Restore unsaved state when opening the directory itself
+      const window2 = atomApplication.launch(parseCommandLine([tempDirPath]))
+      await window2.loadedPromise
       const window2Text = await evalInWebContents(window2.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.observeActivePaneItem(function (textEditor) {
-          if (textEditor) sendBackToMainProcess(textEditor.getText())
-        })
+        const textEditor = atom.workspace.getActiveTextEditor()
+        textEditor.moveToBottom()
+        textEditor.insertText(' How are you?')
+        sendBackToMainProcess(textEditor.getText())
       })
+      assert.equal(window2Text, 'Hello World! How are you?')
+      await window2.saveState()
+      window2.close()
+      await window2.closedPromise
 
-      assert.equal(window2Text, 'Hello World!')
+      // Restore unsaved state when opening a path to a non-existent file in the directory
+      const window3 = atomApplication.launch(parseCommandLine([path.join(tempDirPath, 'another-non-existent-file')]))
+      await window3.loadedPromise
+      const window3Texts = await evalInWebContents(window3.browserWindow.webContents, function (sendBackToMainProcess, nonExistentFilePath) {
+        sendBackToMainProcess(atom.workspace.getTextEditors().map(editor => editor.getText()))
+      })
+      assert.include(window3Texts, 'Hello World! How are you?')
     })
 
     it('shows all directories in the tree view when multiple directory paths are passed to Atom', async function () {
@@ -260,7 +276,7 @@ describe('AtomApplication', function () {
       })
       assert.equal(window1EditorTitle, 'untitled')
 
-      const window2 = atomApplication.launch(parseCommandLine([]))
+      const window2 = atomApplication.openWithOptions(parseCommandLine([]))
       await focusWindow(window2)
       const window2EditorTitle = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
@@ -309,7 +325,7 @@ describe('AtomApplication', function () {
       const packagePath = path.join(__dirname, '..', 'fixtures', 'packages', 'package-with-directory-provider')
       const packagesDirPath = path.join(process.env.ATOM_HOME, 'packages')
       fs.mkdirSync(packagesDirPath)
-      fs.symlinkSync(packagePath, path.join(packagesDirPath, 'package-with-directory-provider'))
+      fs.symlinkSync(packagePath, path.join(packagesDirPath, 'package-with-directory-provider'), 'junction')
 
       const atomApplication = buildAtomApplication()
       atomApplication.config.set('core.disabledPackages', ['fuzzy-finder'])
@@ -396,6 +412,30 @@ describe('AtomApplication', function () {
         })
       }
     })
+
+    describe('when adding or removing project folders', function () {
+      it('stores the window state immediately', async function () {
+        const dirA = makeTempDir()
+        const dirB = makeTempDir()
+
+        const atomApplication = buildAtomApplication()
+        const window = atomApplication.launch(parseCommandLine([dirA, dirB]))
+        await focusWindow(window)
+        assert.deepEqual(await getTreeViewRootDirectories(window), [dirA, dirB])
+
+        await evalInWebContents(window.browserWindow.webContents, (sendBackToMainProcess) => {
+          atom.project.removePath(atom.project.getPaths()[0])
+          sendBackToMainProcess(null)
+        })
+        assert.deepEqual(await getTreeViewRootDirectories(window), [dirB])
+
+        // Window state should be saved when the project folder is removed
+        const atomApplication2 = buildAtomApplication()
+        const [window2] = atomApplication2.launch(parseCommandLine([]))
+        await focusWindow(window2)
+        assert.deepEqual(await getTreeViewRootDirectories(window2), [dirB])
+      })
+    })
   })
 
   describe('before quitting', function () {
@@ -448,7 +488,7 @@ describe('AtomApplication', function () {
   }
 
   let channelIdCounter = 0
-  function evalInWebContents (webContents, source) {
+  function evalInWebContents (webContents, source, ...args) {
     const channelId = 'eval-result-' + channelIdCounter++
     return new Promise(function (resolve) {
       electron.ipcMain.on(channelId, receiveResult)

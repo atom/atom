@@ -25,8 +25,17 @@ class TextEditorElement extends HTMLElement
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
 
+    @hiddenInputElement = document.createElement('input')
+    @hiddenInputElement.classList.add('hidden-input')
+    @hiddenInputElement.setAttribute('tabindex', -1)
+    @hiddenInputElement.setAttribute('data-react-skip-selection-restoration', true)
+    @hiddenInputElement.style['-webkit-transform'] = 'translateZ(0)'
+    @hiddenInputElement.addEventListener 'paste', (event) -> event.preventDefault()
+
     @addEventListener 'focus', @focused.bind(this)
     @addEventListener 'blur', @blurred.bind(this)
+    @hiddenInputElement.addEventListener 'focus', @focused.bind(this)
+    @hiddenInputElement.addEventListener 'blur', @inputNodeBlurred.bind(this)
 
     @classList.add('editor')
     @setAttribute('tabindex', -1)
@@ -99,7 +108,10 @@ class TextEditorElement extends HTMLElement
 
   buildModel: ->
     @setModel(@workspace.buildTextEditor(
-      buffer: new TextBuffer(@textContent)
+      buffer: new TextBuffer({
+        text: @textContent
+        shouldDestroyOnFileDelete:
+          -> atom.config.get('core.closeDeletedFileTabs')})
       softWrapped: false
       tabLength: 2
       softTabs: true
@@ -117,12 +129,10 @@ class TextEditorElement extends HTMLElement
       themes: @themes
       styles: @styles
       workspace: @workspace
-      assert: @assert
+      assert: @assert,
+      hiddenInputElement: @hiddenInputElement
     )
     @rootElement.appendChild(@component.getDomNode())
-    inputNode = @component.hiddenInputComponent.getDomNode()
-    inputNode.addEventListener 'focus', @focused.bind(this)
-    inputNode.addEventListener 'blur', @inputNodeBlurred.bind(this)
 
   unmountComponent: ->
     if @component?
@@ -132,16 +142,17 @@ class TextEditorElement extends HTMLElement
 
   focused: (event) ->
     @component?.focused()
+    @hiddenInputElement.focus()
 
   blurred: (event) ->
-    if event.relatedTarget is @component?.hiddenInputComponent.getDomNode()
+    if event.relatedTarget is @hiddenInputElement
       event.stopImmediatePropagation()
       return
     @component?.blurred()
 
   inputNodeBlurred: (event) ->
     if event.relatedTarget isnt this
-      @dispatchEvent(new FocusEvent('blur', bubbles: false))
+      @dispatchEvent(new FocusEvent('blur', relatedTarget: event.relatedTarget, bubbles: false))
 
   addGrammarScopeAttribute: ->
     @dataset.grammar = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')

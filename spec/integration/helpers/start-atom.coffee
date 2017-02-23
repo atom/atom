@@ -10,13 +10,13 @@ webdriverio = require '../../../script/node_modules/webdriverio'
 
 AtomPath = remote.process.argv[0]
 AtomLauncherPath = path.join(__dirname, "..", "helpers", "atom-launcher.sh")
-ChromedriverPath = path.resolve(__dirname, '..', '..', '..', 'electron', 'chromedriver', 'chromedriver')
+ChromedriverPath = path.resolve(__dirname, '..', '..', '..', 'script', 'node_modules', 'electron-chromedriver', 'bin', 'chromedriver')
 SocketPath = path.join(os.tmpdir(), "atom-integration-test-#{Date.now()}.sock")
 ChromedriverPort = 9515
 ChromedriverURLBase = "/wd/hub"
 ChromedriverStatusURL = "http://localhost:#{ChromedriverPort}#{ChromedriverURLBase}/status"
 
-userDataDir = temp.mkdirSync('atom-user-data-dir')
+userDataDir = null
 
 chromeDriverUp = (done) ->
   checkStatus = ->
@@ -38,6 +38,7 @@ chromeDriverDown = (done) ->
   setTimeout(checkStatus, 100)
 
 buildAtomClient = (args, env) ->
+  userDataDir = temp.mkdirSync('atom-user-data-dir')
   client = webdriverio.remote(
     host: 'localhost'
     port: ChromedriverPort

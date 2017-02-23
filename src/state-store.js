@@ -3,6 +3,7 @@
 module.exports =
 class StateStore {
   constructor (databaseName, version) {
+    this.connected = false
     this.dbPromise = new Promise((resolve) => {
       let dbOpenRequest = indexedDB.open(databaseName, version)
       dbOpenRequest.onupgradeneeded = (event) => {
@@ -10,13 +11,19 @@ class StateStore {
         db.createObjectStore('states')
       }
       dbOpenRequest.onsuccess = () => {
+        this.connected = true
         resolve(dbOpenRequest.result)
       }
       dbOpenRequest.onerror = (error) => {
         console.error('Could not connect to indexedDB', error)
+        this.connected = false
         resolve(null)
       }
     })
+  }
+
+  isConnected () {
+    return this.connected
   }
 
   connect () {

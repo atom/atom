@@ -1,10 +1,13 @@
 _ = require 'underscore-plus'
 path = require 'path'
-temp = require 'temp'
+temp = require('temp').track()
 AtomEnvironment = require '../src/atom-environment'
 StorageFolder = require '../src/storage-folder'
 
 describe "AtomEnvironment", ->
+  afterEach ->
+    temp.cleanupSync()
+
   describe 'window sizing methods', ->
     describe '::getPosition and ::setPosition', ->
       originalPosition = null
@@ -138,6 +141,11 @@ describe "AtomEnvironment", ->
           error = null
           atom.assert(false, "a == b", (e) -> error = e)
           expect(error).toBe errors[0]
+
+      describe "if passed metadata", ->
+        it "assigns the metadata on the assertion failure's error object", ->
+          atom.assert(false, "a == b", {foo: 'bar'})
+          expect(errors[0].metadata).toEqual {foo: 'bar'}
 
     describe "if the condition is true", ->
       it "does nothing", ->
@@ -324,7 +332,7 @@ describe "AtomEnvironment", ->
 
   describe "::unloadEditorWindow()", ->
     it "saves the BlobStore so it can be loaded after reload", ->
-      configDirPath = temp.mkdirSync()
+      configDirPath = temp.mkdirSync('atom-spec-environment')
       fakeBlobStore = jasmine.createSpyObj("blob store", ["save"])
       atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, enablePersistence: true, configDirPath, blobStore: fakeBlobStore, window, document})
 
@@ -336,7 +344,7 @@ describe "AtomEnvironment", ->
 
   describe "::destroy()", ->
     it "does not throw exceptions when unsubscribing from ipc events (regression)", ->
-      configDirPath = temp.mkdirSync()
+      configDirPath = temp.mkdirSync('atom-spec-environment')
       fakeDocument = {
         addEventListener: ->
         removeEventListener: ->
@@ -401,6 +409,8 @@ describe "AtomEnvironment", ->
       subscription?.dispose()
 
     it "invokes onUpdateAvailable listeners", ->
+      return unless process.platform is 'darwin' # Test tied to electron autoUpdater, we use something else on Linux and Win32
+
       atom.listenForUpdates()
 
       updateAvailableHandler = jasmine.createSpy("update-available-handler")

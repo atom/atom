@@ -3,12 +3,12 @@
 
 import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
 import path from 'path'
-import temp from 'temp'
 import childProcess from 'child_process'
 import {updateProcessEnv, shouldGetEnvFromShell} from '../src/update-process-env'
 import dedent from 'dedent'
 import {EventEmitter} from 'events'
 import mockSpawn from 'mock-spawn'
+const temp = require('temp').track()
 
 describe('updateProcessEnv(launchEnv)', function () {
   let originalProcessEnv, originalProcessPlatform, originalSpawn, spawn
@@ -28,6 +28,7 @@ describe('updateProcessEnv(launchEnv)', function () {
     }
     process.env = originalProcessEnv
     process.platform = originalProcessPlatform
+    temp.cleanupSync()
   })
 
   describe('when the launch environment appears to come from a shell', function () {
@@ -150,8 +151,10 @@ describe('updateProcessEnv(launchEnv)', function () {
   })
 
   describe('when the launch environment does not come from a shell', function () {
-    describe('on osx', function () {
+    describe('on macOS', function () {
       it('updates process.env to match the environment in the user\'s login shell', async function () {
+        if (process.platform === 'win32') return // TestsThatFailOnWin32
+
         process.platform = 'darwin'
         process.env.SHELL = '/my/custom/bash'
         spawn.setDefault(spawn.simple(0, dedent`
@@ -176,6 +179,8 @@ describe('updateProcessEnv(launchEnv)', function () {
 
     describe('on linux', function () {
       it('updates process.env to match the environment in the user\'s login shell', async function () {
+        if (process.platform === 'win32') return // TestsThatFailOnWin32
+
         process.platform = 'linux'
         process.env.SHELL = '/my/custom/bash'
         spawn.setDefault(spawn.simple(0, dedent`
@@ -212,6 +217,8 @@ describe('updateProcessEnv(launchEnv)', function () {
 
     describe('shouldGetEnvFromShell()', function () {
       it('indicates when the environment should be fetched from the shell', function () {
+        if (process.platform === 'win32') return // TestsThatFailOnWin32
+
         process.platform = 'darwin'
         expect(shouldGetEnvFromShell({SHELL: '/bin/sh'})).toBe(true)
         expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/sh'})).toBe(true)

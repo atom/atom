@@ -11,7 +11,6 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StateStore = require './state-store'
 StorageFolder = require './storage-folder'
-{getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 {updateProcessEnv} = require './update-process-env'
 
@@ -240,16 +239,6 @@ class AtomEnvironment extends Model
 
     new ReopenProjectMenuManager({@menu, @commands, @history, @config, open: (paths) => @open(pathsToOpen: paths)})
 
-    checkPortableHomeWritable = =>
-      responseChannel = "check-portable-home-writable-response"
-      ipcRenderer.on responseChannel, (event, response) ->
-        ipcRenderer.removeAllListeners(responseChannel)
-        @notifications.addWarning("#{response.message.replace(/([\\\.+\\-_#!])/g, '\\$1')}") if not response.writable
-      @disposables.add new Disposable -> ipcRenderer.removeAllListeners(responseChannel)
-      ipcRenderer.send('check-portable-home-writable', responseChannel)
-
-    checkPortableHomeWritable()
-
   attachSaveStateListeners: ->
     saveState = _.debounce((=>
       window.requestIdleCallback => @saveState({isUnloading: false}) unless @unloaded
@@ -294,13 +283,13 @@ class AtomEnvironment extends Model
     @workspace.addOpener (uri) =>
       switch uri
         when 'atom://.atom/stylesheet'
-          @workspace.open(@styles.getUserStyleSheetPath())
+          @workspace.openTextFile(@styles.getUserStyleSheetPath())
         when 'atom://.atom/keymap'
-          @workspace.open(@keymaps.getUserKeymapPath())
+          @workspace.openTextFile(@keymaps.getUserKeymapPath())
         when 'atom://.atom/config'
-          @workspace.open(@config.getUserConfigPath())
+          @workspace.openTextFile(@config.getUserConfigPath())
         when 'atom://.atom/init-script'
-          @workspace.open(@getUserInitScriptPath())
+          @workspace.openTextFile(@getUserInitScriptPath())
 
   registerDefaultTargetForKeymaps: ->
     @keymaps.defaultTarget = @views.getView(@workspace)
@@ -468,7 +457,7 @@ class AtomEnvironment extends Model
   #
   # Returns an {Object} containing all the load setting key/value pairs.
   getLoadSettings: ->
-    getWindowLoadSettings()
+    @applicationDelegate.getWindowLoadSettings()
 
   ###
   Section: Managing The Atom Window
@@ -831,12 +820,17 @@ class AtomEnvironment extends Model
   Section: Private
   ###
 
-  assert: (condition, message, callback) ->
+  assert: (condition, message, callbackOrMetadata) ->
     return true if condition
 
     error = new Error("Assertion failed: #{message}")
     Error.captureStackTrace(error, @assert)
-    callback?(error)
+
+    if callbackOrMetadata?
+      if typeof callbackOrMetadata is 'function'
+        callbackOrMetadata?(error)
+      else
+        error.metadata = callbackOrMetadata
 
     @emitter.emit 'did-fail-assertion', error
 

@@ -108,9 +108,9 @@
         submenu: [
           { label: 'Fold', command: 'editor:fold-current-row' }
           { label: 'Unfold', command: 'editor:unfold-current-row' }
+          { label: 'Fold All', command: 'editor:fold-all' }
           { label: 'Unfold All', command: 'editor:unfold-all' }
           { type: 'separator' }
-          { label: 'Fold All', command: 'editor:fold-all' }
           { label: 'Fold Level 1', command: 'editor:fold-at-indent-level-1' }
           { label: 'Fold Level 2', command: 'editor:fold-at-indent-level-2' }
           { label: 'Fold Level 3', command: 'editor:fold-at-indent-level-3' }

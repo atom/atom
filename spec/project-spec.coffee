@@ -1,4 +1,4 @@
-temp = require 'temp'
+temp = require('temp').track()
 Project = require '../src/project'
 fs = require 'fs-plus'
 path = require 'path'
@@ -11,6 +11,9 @@ describe "Project", ->
 
     # Wait for project's service consumers to be asynchronously added
     waits(1)
+
+  afterEach ->
+    temp.cleanupSync()
 
   describe "serialization", ->
     deserializedProject = null
@@ -51,7 +54,7 @@ describe "Project", ->
 
 
     it "does not deserialize buffers when their path is a directory that exists", ->
-      pathToOpen = path.join(temp.mkdirSync(), 'file.txt')
+      pathToOpen = path.join(temp.mkdirSync('atom-spec-project'), 'file.txt')
 
       waitsForPromise ->
         atom.workspace.open(pathToOpen)
@@ -64,7 +67,8 @@ describe "Project", ->
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "does not deserialize buffers when their path is inaccessible", ->
-      pathToOpen = path.join(temp.mkdirSync(), 'file.txt')
+      return if process.platform is 'win32' # chmod not supported on win32
+      pathToOpen = path.join(temp.mkdirSync('atom-spec-project'), 'file.txt')
       fs.writeFileSync(pathToOpen, '')
 
       waitsForPromise ->
@@ -151,7 +155,7 @@ describe "Project", ->
       expect(notification.getType()).toBe 'warning'
       expect(notification.getDetail()).toBe 'SomeError'
       expect(notification.getMessage()).toContain '`resurrect`'
-      expect(notification.getMessage()).toContain 'fixtures/dir/a'
+      expect(notification.getMessage()).toContain path.join('fixtures', 'dir', 'a')
 
   describe "when a custom repository-provider service is provided", ->
     [fakeRepositoryProvider, fakeRepository] = []
@@ -610,3 +614,7 @@ describe "Project", ->
 
       randomPath = path.join("some", "random", "path")
       expect(atom.project.contains(randomPath)).toBe false
+
+  describe ".resolvePath(uri)", ->
+    it "normalizes disk drive letter in passed path on #win32", ->
+      expect(atom.project.resolvePath("d:\\file.txt")).toEqual "D:\\file.txt"
