@@ -51,9 +51,18 @@ class TextEditorComponent {
   }
 
   renderGutterContainer () {
-    return $.div({className: 'gutter-container'},
-      this.renderLineNumberGutter()
-    )
+    const props = {className: 'gutter-container'}
+
+    if (this.measurements) {
+      props.style = {
+        position: 'relative',
+        willChange: 'transform',
+        transform: `translateX(${this.measurements.scrollLeft}px)`,
+        zIndex: 1
+      }
+    }
+
+    return $.div(props, this.renderLineNumberGutter())
   }
 
   renderLineNumberGutter () {
