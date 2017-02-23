@@ -11,21 +11,24 @@ const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'
 const NBSP_CHARACTER = '\u00a0'
 
 describe('TextEditorComponent', () => {
-  let editor
-
   beforeEach(() => {
     jasmine.useRealClock()
-    editor = new TextEditor()
-    editor.setText(SAMPLE_TEXT)
   })
 
-  it('renders lines and line numbers for the visible region', async () => {
-    const component = new TextEditorComponent({model: editor, rowsPerTile: 3})
+  function buildComponent (params = {}) {
+    const editor = new TextEditor()
+    editor.setText(SAMPLE_TEXT)
+    const component = new TextEditorComponent({model: editor, rowsPerTile: params.rowsPerTile})
     const {element} = component
-
-    element.style.width = '800px'
-    element.style.height = '600px'
+    element.style.width = params.width ? params.width + 'px' : '800px'
+    element.style.height = params.height ? params.height + 'px' : '600px'
     jasmine.attachToDOM(element)
+    return {component, element, editor}
+  }
+
+  it('renders lines and line numbers for the visible region', async () => {
+    const {component, element, editor} = buildComponent({rowsPerTile: 3})
+
     expect(element.querySelectorAll('.line-number').length).toBe(13)
     expect(element.querySelectorAll('.line').length).toBe(13)
 
@@ -71,5 +74,28 @@ describe('TextEditorComponent', () => {
       editor.lineTextForScreenRow(7),
       editor.lineTextForScreenRow(8)
     ])
+  })
+
+  it('gives the line number gutter an explicit width and height so its layout can be strictly contained', () => {
+    const {component, element, editor} = buildComponent({rowsPerTile: 3})
+
+    const gutterElement = element.querySelector('.gutter.line-numbers')
+    expect(gutterElement.style.width).toBe(element.querySelector('.line-number').offsetWidth + 'px')
+    expect(gutterElement.style.height).toBe(editor.getScreenLineCount() * component.measurements.lineHeight + 'px')
+    expect(gutterElement.style.contain).toBe('strict')
+
+    // Tile nodes also have explicit width and height assignment
+    expect(gutterElement.firstChild.style.width).toBe(element.querySelector('.line-number').offsetWidth + 'px')
+    expect(gutterElement.firstChild.style.height).toBe(3 * component.measurements.lineHeight + 'px')
+    expect(gutterElement.firstChild.style.contain).toBe('strict')
+  })
+
+  it('translates the gutter so it is always visible when scrolling to the right', async () => {
+    const {component, element, editor} = buildComponent({width: 100})
+
+    expect(component.refs.gutterContainer.style.transform).toBe('translateX(0px)')
+    component.refs.scroller.scrollLeft = 100
+    await component.getNextUpdatePromise()
+    expect(component.refs.gutterContainer.style.transform).toBe('translateX(100px)')
   })
 })

@@ -74,7 +74,7 @@ class TextEditorComponent {
   }
 
   renderGutterContainer () {
-    const props = {className: 'gutter-container'}
+    const props = {ref: 'gutterContainer', className: 'gutter-container'}
 
     if (this.measurements) {
       props.style = {
