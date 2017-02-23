@@ -43,81 +43,103 @@ class TextEditorComponent {
 
     return $('atom-text-editor', {style},
       $.div({ref: 'scroller', onScroll: this.didScroll, className: 'scroll-view'},
-        // $.div({
-        //   style: {
-        //     width: 'max-content',
-        //     height: 'max-content',
-        //     backgroundColor: 'inherit'
-        //   }
-        // },
-          // this.renderGutterContainer(),
+        $.div({
+          style: {
+            isolate: 'content',
+            width: 'max-content',
+            height: 'max-content',
+            backgroundColor: 'inherit'
+          }
+        },
+          this.renderGutterContainer(),
           this.renderLines()
-        // )
+        )
       )
     )
   }
 
   renderGutterContainer () {
     return $.div({className: 'gutter-container'},
-      this.measurements ? this.renderLineNumberGutter() : []
+      this.renderLineNumberGutter()
     )
   }
 
   renderLineNumberGutter () {
     const maxLineNumberDigits = Math.max(2, this.getModel().getLineCount().toString().length)
 
-    const firstTileStartRow = this.getTileStartRow(this.getFirstVisibleRow())
-    const lastTileStartRow = this.getTileStartRow(this.getLastVisibleRow())
+    let props = {
+      ref: 'lineNumberGutter',
+      className: 'gutter line-numbers',
+      'gutter-name': 'line-number'
+    }
+    let children
 
-    let tileNodes = []
-
-    let currentTileStaticTop = 0
-    let previousBufferRow = (firstTileStartRow > 0) ? this.getModel().bufferRowForScreenRow(firstTileStartRow - 1) : -1
-    for (let tileStartRow = firstTileStartRow; tileStartRow <= lastTileStartRow; tileStartRow += ROWS_PER_TILE) {
-      const currentTileEndRow = tileStartRow + ROWS_PER_TILE
-      const lineNumberNodes = []
-
-      for (let row = tileStartRow; row < currentTileEndRow; row++) {
-        const bufferRow = this.getModel().bufferRowForScreenRow(row)
-        const foldable = this.getModel().isFoldableAtBufferRow(bufferRow)
-        const softWrapped = (bufferRow === previousBufferRow)
-
-        let className = 'line-number'
-        let lineNumber
-        if (softWrapped) {
-          lineNumber = '•'
-        } else {
-          if (foldable) className += ' foldable'
-          lineNumber = (bufferRow + 1).toString()
-        }
-        lineNumber = '\u00a0'.repeat(maxLineNumberDigits - lineNumber.length) + lineNumber
-
-        lineNumberNodes.push($.div({className},
-          lineNumber,
-          $.div({className: 'icon-right'})
-        ))
-
-        previousBufferRow = bufferRow
+    if (this.measurements) {
+      props.style = {
+        height: this.getScrollHeight() + 'px',
+        width: this.measurements.lineNumberGutterWidth + 'px',
+        contain: 'strict'
       }
 
-      const tileHeight = ROWS_PER_TILE * this.measurements.lineHeight
-      const yTranslation = this.topPixelPositionForRow(tileStartRow) - currentTileStaticTop
+      const firstTileStartRow = this.getTileStartRow(this.getFirstVisibleRow())
+      const visibleTileCount = Math.floor((this.getLastVisibleRow() - this.getFirstVisibleRow()) / ROWS_PER_TILE) + 2
+      const lastTileStartRow = firstTileStartRow + ((visibleTileCount - 1) * ROWS_PER_TILE)
 
-      tileNodes.push($.div({
-        style: {
-          height: tileHeight + 'px',
-          width: 'max-content',
-          willChange: 'transform',
-          transform: `translate3d(0, ${yTranslation}px, 0)`,
-          backgroundColor: 'inherit',
-          overflow: 'hidden'
+      children = new Array(visibleTileCount)
+
+      let previousBufferRow = (firstTileStartRow > 0) ? this.getModel().bufferRowForScreenRow(firstTileStartRow - 1) : -1
+      for (let tileStartRow = firstTileStartRow; tileStartRow <= lastTileStartRow; tileStartRow += ROWS_PER_TILE) {
+        const currentTileEndRow = tileStartRow + ROWS_PER_TILE
+        const lineNumberNodes = []
+
+        for (let row = tileStartRow; row < currentTileEndRow; row++) {
+          const bufferRow = this.getModel().bufferRowForScreenRow(row)
+          const foldable = this.getModel().isFoldableAtBufferRow(bufferRow)
+          const softWrapped = (bufferRow === previousBufferRow)
+
+          let className = 'line-number'
+          let lineNumber
+          if (softWrapped) {
+            lineNumber = '•'
+          } else {
+            if (foldable) className += ' foldable'
+            lineNumber = (bufferRow + 1).toString()
+          }
+          lineNumber = '\u00a0'.repeat(maxLineNumberDigits - lineNumber.length) + lineNumber
+
+          lineNumberNodes.push($.div({className},
+            lineNumber,
+            $.div({className: 'icon-right'})
+          ))
+
+          previousBufferRow = bufferRow
         }
-      }, lineNumberNodes))
 
-      currentTileStaticTop += tileHeight
+        const tileIndex = (tileStartRow / ROWS_PER_TILE) % visibleTileCount
+        const tileHeight = ROWS_PER_TILE * this.measurements.lineHeight
+        const yTranslation = this.topPixelPositionForRow(tileStartRow) - (tileIndex * tileHeight)
+
+        children[tileIndex] = $.div({
+          style: {
+            // position: 'absolute',
+            height: tileHeight + 'px',
+            width: this.measurements.lineNumberGutterWidth + 'px',
+            willChange: 'transform',
+            transform: `translateY(${yTranslation}px)`,
+            backgroundColor: 'inherit',
+            contain: 'strict',
+            overflow: 'hidden'
+          }
+        }, lineNumberNodes)
+      }
+    } else {
+      children = $.div({className: 'line-number'},
+        '0'.repeat(maxLineNumberDigits),
+        $.div({className: 'icon-right'})
+      )
     }
 
-    return $.div({className: 'gutter line-numbers', 'gutter-name': 'line-number'}, tileNodes)
+    return $.div(props, children)
   }
 
   renderLines () {
@@ -205,6 +227,7 @@ class TextEditorComponent {
     this.measureScrollPosition()
     this.measureCharacterDimensions()
     this.measureLongestLineWidth()
+    this.measureGutterDimensions()
   }
 
   measureEditorDimensions () {
@@ -230,6 +253,10 @@ class TextEditorComponent {
     const displayLayer = this.getModel().displayLayer
     const rightmostPosition = displayLayer.getRightmostScreenPosition()
     this.measurements.scrollWidth = rightmostPosition.column * this.measurements.baseCharacterWidth
+  }
+
+  measureGutterDimensions () {
+    this.measurements.lineNumberGutterWidth = this.refs.lineNumberGutter.offsetWidth
   }
 
   getModel () {
