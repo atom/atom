@@ -8,14 +8,6 @@ const DOUBLE_WIDTH_CHARACTER = '我'
 const HALF_WIDTH_CHARACTER = 'ﾊ'
 const KOREAN_CHARACTER = '세'
 
-const characterMeasurementSpans = {}
-const characterMeasurementLineNode = etch.render($.div({className: 'line'},
-  $.span({ref: 'normalWidthCharacterSpan'}, NORMAL_WIDTH_CHARACTER),
-  $.span({ref: 'doubleWidthCharacterSpan'}, DOUBLE_WIDTH_CHARACTER),
-  $.span({ref: 'halfWidthCharacterSpan'}, HALF_WIDTH_CHARACTER),
-  $.span({ref: 'koreanCharacterSpan'}, KOREAN_CHARACTER)
-), {refs: characterMeasurementSpans})
-
 module.exports =
 class TextEditorComponent {
   constructor (props) {
@@ -143,13 +135,23 @@ class TextEditorComponent {
   }
 
   renderLines () {
-    const style = (this.measurements)
-      ? {
+    let style, children
+    if (this.measurements) {
+      style = {
         width: this.measurements.scrollWidth + 'px',
         height: this.getScrollHeight() + 'px'
-      } : null
+      }
+      children = this.renderLineTiles()
+    } else {
+      children = $.div({ref: 'characterMeasurementLine', className: 'line'},
+        $.span({ref: 'normalWidthCharacterSpan'}, NORMAL_WIDTH_CHARACTER),
+        $.span({ref: 'doubleWidthCharacterSpan'}, DOUBLE_WIDTH_CHARACTER),
+        $.span({ref: 'halfWidthCharacterSpan'}, HALF_WIDTH_CHARACTER),
+        $.span({ref: 'koreanCharacterSpan'}, KOREAN_CHARACTER)
+      )
+    }
 
-    return $.div({ref: 'lines', className: 'lines', style}, this.renderLineTiles())
+    return $.div({ref: 'lines', className: 'lines', style}, children)
   }
 
   renderLineTiles () {
@@ -240,13 +242,11 @@ class TextEditorComponent {
   }
 
   measureCharacterDimensions () {
-    this.refs.lines.appendChild(characterMeasurementLineNode)
-    this.measurements.lineHeight = characterMeasurementLineNode.getBoundingClientRect().height
-    this.measurements.baseCharacterWidth = characterMeasurementSpans.normalWidthCharacterSpan.getBoundingClientRect().width
-    this.measurements.doubleWidthCharacterWidth = characterMeasurementSpans.doubleWidthCharacterSpan.getBoundingClientRect().width
-    this.measurements.halfWidthCharacterWidth = characterMeasurementSpans.halfWidthCharacterSpan.getBoundingClientRect().width
-    this.measurements.koreanCharacterWidth = characterMeasurementSpans.koreanCharacterSpan.getBoundingClientRect().widt
-    this.refs.lines.removeChild(characterMeasurementLineNode)
+    this.measurements.lineHeight = this.refs.characterMeasurementLine.getBoundingClientRect().height
+    this.measurements.baseCharacterWidth = this.refs.normalWidthCharacterSpan.getBoundingClientRect().width
+    this.measurements.doubleWidthCharacterWidth = this.refs.doubleWidthCharacterSpan.getBoundingClientRect().width
+    this.measurements.halfWidthCharacterWidth = this.refs.halfWidthCharacterSpan.getBoundingClientRect().width
+    this.measurements.koreanCharacterWidth = this.refs.koreanCharacterSpan.getBoundingClientRect().widt
   }
 
   measureLongestLineWidth () {
