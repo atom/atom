@@ -46,8 +46,17 @@ class TextEditorElement extends HTMLElement {
   }
 
   getComponent () {
-    if (!this.component) this.component = new TextEditorComponent({element: this})
+    if (!this.component) this.component = new TextEditorComponent({
+      element: this,
+      updatedSynchronously: this.updatedSynchronously
+    })
     return this.component
+  }
+
+  setUpdatedSynchronously (updatedSynchronously) {
+    this.updatedSynchronously = updatedSynchronously
+    if (this.component) this.component.updatedSynchronously = updatedSynchronously
+    return updatedSynchronously
   }
 }
 
