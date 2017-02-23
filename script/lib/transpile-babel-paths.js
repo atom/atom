@@ -28,6 +28,7 @@ function getPathsToTranspile () {
   paths = paths.concat(glob.sync(path.join(CONFIG.intermediateAppPath, 'benchmarks', '**', '*.js')))
   paths = paths.concat(glob.sync(path.join(CONFIG.intermediateAppPath, 'exports', '**', '*.js')))
   paths = paths.concat(glob.sync(path.join(CONFIG.intermediateAppPath, 'src', '**', '*.js')))
+  paths = paths.concat(glob.sync(path.join(CONFIG.intermediateAppPath, '**', 'atom-select-list', 'src', 'select-list-view.js')))
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
     paths = paths.concat(glob.sync(
       path.join(CONFIG.intermediateAppPath, 'node_modules', packageName, '**', '*.js'),

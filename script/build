@@ -4,7 +4,7 @@
 
 // Run bootstrap first to ensure all the dependencies used later in this script
 // are installed.
-require('./bootstrap')
+// require('./bootstrap')
 
 // Needed so we can require src/module-cache.coffee during generateModuleCache
 require('coffee-script/register')
@@ -51,58 +51,57 @@ process.on('unhandledRejection', function (e) {
 
 checkChromedriverVersion()
 cleanOutputDirectory()
-downloadChromedriver()
 copyAssets()
 transpileBabelPaths()
 transpileCoffeeScriptPaths()
 transpileCsonPaths()
 transpilePegJsPaths()
-generateModuleCache()
-prebuildLessCache()
-generateMetadata()
+// generateModuleCache()
+// prebuildLessCache()
+// generateMetadata()
 generateStartupSnapshot()
-generateAPIDocs()
-dumpSymbols()
-  .then(packageApplication)
-  .then(packagedAppPath => {
-    if (process.platform === 'darwin') {
-      if (argv.codeSign) {
-        codeSignOnMac(packagedAppPath)
-      } else {
-        console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
-      }
-    } else if (process.platform === 'win32') {
-      if (argv.createWindowsInstaller) {
-        return createWindowsInstaller(packagedAppPath, argv.codeSign).then(() => packagedAppPath)
-      }
-      else {
-        console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer. Code-signing was skipped too.'.gray)
-      }
-    } else if (process.platform === 'linux') {
-      if (argv.createDebianPackage) {
-        createDebianPackage(packagedAppPath)
-      } else {
-        console.log('Skipping creating debian package. Specify the --create-debian-package option to create it.'.gray)
-      }
-
-      if (argv.createRpmPackage) {
-        createRpmPackage(packagedAppPath)
-      } else {
-        console.log('Skipping creating rpm package. Specify the --create-rpm-package option to create it.'.gray)
-      }
-    }
-
-    return Promise.resolve(packagedAppPath)
-  }).then(packagedAppPath => {
-    if (argv.compressArtifacts) {
-      compressArtifacts(packagedAppPath)
-    } else {
-      console.log('Skipping artifacts compression. Specify the --compress-artifacts option to compress Atom binaries (and symbols on macOS)'.gray)
-    }
-
-    if (argv.install) {
-      installApplication(packagedAppPath)
-    } else {
-      console.log('Skipping installation. Specify the --install option to install Atom'.gray)
-    }
-  })
+// generateAPIDocs()
+// dumpSymbols()
+//   .then(packageApplication)
+//   .then(packagedAppPath => {
+//     if (process.platform === 'darwin') {
+//       if (argv.codeSign) {
+//         codeSignOnMac(packagedAppPath)
+//       } else {
+//         console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
+//       }
+//     } else if (process.platform === 'win32') {
+//       if (argv.createWindowsInstaller) {
+//         return createWindowsInstaller(packagedAppPath, argv.codeSign).then(() => packagedAppPath)
+//       }
+//       else {
+//         console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer. Code-signing was skipped too.'.gray)
+//       }
+//     } else if (process.platform === 'linux') {
+//       if (argv.createDebianPackage) {
+//         createDebianPackage(packagedAppPath)
+//       } else {
+//         console.log('Skipping creating debian package. Specify the --create-debian-package option to create it.'.gray)
+//       }
+//
+//       if (argv.createRpmPackage) {
+//         createRpmPackage(packagedAppPath)
+//       } else {
+//         console.log('Skipping creating rpm package. Specify the --create-rpm-package option to create it.'.gray)
+//       }
+//     }
+//
+//     return Promise.resolve(packagedAppPath)
+//   }).then(packagedAppPath => {
+//     if (argv.compressArtifacts) {
+//       compressArtifacts(packagedAppPath)
+//     } else {
+//       console.log('Skipping artifacts compression. Specify the --compress-artifacts option to compress Atom binaries (and symbols on macOS)'.gray)
+//     }
+//
+//     if (argv.install) {
+//       installApplication(packagedAppPath)
+//     } else {
+//       console.log('Skipping installation. Specify the --install option to install Atom'.gray)
+//     }
+//   })

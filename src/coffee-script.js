@@ -35,8 +35,7 @@ exports.compile = function (sourceCode, filePath) {
 
   var output = CoffeeScript.compile(sourceCode, {
     filename: filePath,
-    sourceFiles: [filePath],
-    inlineMap: true
+    sourceFiles: [filePath]
   })
 
   // Strip sourceURL from output so there wouldn't be duplicate entries

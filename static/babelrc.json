@@ -1,5 +1,4 @@
 {
-  "sourceMap": "inline",
   "plugins": [
     ["add-module-exports", {}],
     ["transform-async-to-generator", {}],
