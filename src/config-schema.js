@@ -498,10 +498,11 @@ if (['win32', 'linux'].includes(process.platform)) {
 }
 
 if (process.platform === 'darwin') {
-  configSchema.core.properties.useCustomTitleBar = {
-    type: 'boolean',
-    default: false,
-    description: 'Use custom, theme-aware title bar.<br>Note: This currently does not include a proxy icon.<br>This setting will require a relaunch of Atom to take effect.'
+  configSchema.core.properties.titleBar = {
+    type: 'string',
+    default: 'native',
+    enum: ['native', 'custom', 'custom-inset', 'hidden'],
+    description: 'Experimental: A `custom` title bar adapts to theme colors. Choosing `custom-inset` adds a bit more padding. The title bar can also be completely `hidden`.<br>Note: Switching to a custom or hidden title bar will compromise some functionality.<br>This setting will require a relaunch of Atom to take effect.'
   }
 }
 
