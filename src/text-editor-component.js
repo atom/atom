@@ -76,9 +76,10 @@ class TextEditorComponent {
 
     if (this.measurements) {
       props.style = {
+        contain: 'strict',
+        overflow: 'hidden',
         height: this.getScrollHeight() + 'px',
-        width: this.measurements.lineNumberGutterWidth + 'px',
-        contain: 'strict'
+        width: this.measurements.lineNumberGutterWidth + 'px'
       }
 
       const firstTileStartRow = this.getTileStartRow(this.getFirstVisibleRow())
@@ -117,18 +118,17 @@ class TextEditorComponent {
 
         const tileIndex = (tileStartRow / ROWS_PER_TILE) % visibleTileCount
         const tileHeight = ROWS_PER_TILE * this.measurements.lineHeight
-        const yTranslation = this.topPixelPositionForRow(tileStartRow) - (tileIndex * tileHeight)
 
         children[tileIndex] = $.div({
           style: {
-            // position: 'absolute',
+            contain: 'strict',
+            overflow: 'hidden',
+            position: 'absolute',
             height: tileHeight + 'px',
             width: this.measurements.lineNumberGutterWidth + 'px',
             willChange: 'transform',
-            transform: `translateY(${yTranslation}px)`,
-            backgroundColor: 'inherit',
-            contain: 'strict',
-            overflow: 'hidden'
+            transform: `translateY(${this.topPixelPositionForRow(tileStartRow)}px)`,
+            backgroundColor: 'inherit'
           }
         }, lineNumberNodes)
       }
