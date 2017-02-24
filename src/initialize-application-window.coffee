@@ -48,6 +48,7 @@ require('tree-view')
 require('update-package-dependencies')
 require('welcome')
 require('whitespace')
+require('wrap-guide')
 
 # Like sands through the hourglass, so are the days of our lives.
 module.exports = ->
