@@ -19,7 +19,11 @@ describe('TextEditorComponent', () => {
   function buildComponent (params = {}) {
     const buffer = new TextBuffer({text: SAMPLE_TEXT})
     const editor = new TextEditor({buffer})
-    const component = new TextEditorComponent({model: editor, rowsPerTile: params.rowsPerTile})
+    const component = new TextEditorComponent({
+      model: editor,
+      rowsPerTile: params.rowsPerTile,
+      updatedSynchronously: false
+    })
     const {element} = component
     element.style.width = params.width ? params.width + 'px' : '800px'
     element.style.height = params.height ? params.height + 'px' : '600px'
