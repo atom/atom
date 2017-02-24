@@ -2,20 +2,26 @@ const fs = require('fs')
 const path = require('path')
 const electronLink = require('electron-link')
 const CONFIG = require('../config')
+const vm = require('vm')
 
 module.exports = function () {
   const snapshotScriptPath = path.join(CONFIG.buildOutputPath, 'startup.js')
-  console.log(`Generating snapshot script at "${snapshotScriptPath}"`)
   const coreModules = new Set([
     'path', 'electron', 'module', 'fs', 'child_process', 'crypto', 'url',
     'atom', 'vm', 'events', 'os', 'assert', 'buffer', 'tty', 'net', 'constants',
     'http', 'https', 'shell', 'querystring', 'zlib', 'stream', 'WNdb', 'lapack', 'remote'
   ])
   const baseDirPath = path.join(CONFIG.intermediateAppPath, 'static')
+  let processedFiles = 0
   const snapshotScriptContent = electronLink({
     baseDirPath,
     mainPath: path.resolve(baseDirPath, '..', 'src', 'initialize-application-window.js'),
     shouldExcludeModule: (modulePath) => {
+      if (processedFiles > 0) {
+        process.stdout.write('\r')
+      }
+      process.stdout.write(`Generating snapshot script at "${snapshotScriptPath}" (${++processedFiles})`)
+
       const relativePath = path.relative(baseDirPath, modulePath)
       return (
         modulePath.endsWith('.node') || modulePath === 'buffer-offset-index' ||
@@ -69,4 +75,8 @@ module.exports = function () {
     }
   })
   fs.writeFileSync(snapshotScriptPath, snapshotScriptContent)
+  process.stdout.write('\n')
+
+  console.log('Verifying if snapshot can be executed via `mksnapshot`')
+  vm.runInNewContext(snapshotScriptContent, undefined, {filename: snapshotScriptPath, displayErrors: true})
 }
