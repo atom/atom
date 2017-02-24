@@ -161,7 +161,6 @@
     "language-perl": "0.37.0",
     "language-php": "0.37.4",
     "language-property-list": "0.9.0",
-    "language-python": "0.45.2",
     "language-ruby": "0.70.5",
     "language-ruby-on-rails": "0.25.2",
     "language-sass": "0.57.1",
@@ -172,7 +171,8 @@
     "language-todo": "0.29.1",
     "language-toml": "0.18.1",
     "language-xml": "0.34.16",
-    "language-yaml": "0.28.0"
+    "language-yaml": "0.28.0",
+    "MagicPython": "1.0.7"
   },
   "private": true,
   "scripts": {
