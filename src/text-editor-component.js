@@ -54,15 +54,16 @@ class TextEditorComponent {
     if (this.staleMeasurements.editorDimensions) this.measureEditorDimensions()
 
     const longestLine = this.getLongestScreenLine()
+    let measureLongestLine = false
     if (longestLine !== this.previousLongestLine) {
       this.longestLineToMeasure = longestLine
-      etch.updateSync(this)
-      this.measureLongestLineWidth()
       this.previousLongestLine = longestLine
-      etch.updateSync(this)
-    } else {
-      etch.updateSync(this)
+      measureLongestLine = true
     }
+
+    etch.updateSync(this)
+    if (measureLongestLine) this.measureLongestLineWidth()
+    etch.updateSync(this)
   }
 
   render () {
