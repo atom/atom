@@ -27,6 +27,7 @@ build_script:
   - script\build.cmd --code-sign --create-windows-installer --compress-artifacts
 
 test_script:
+  - script\lint.cmd
   - script\test.cmd
 
 deploy: off

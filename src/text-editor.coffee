@@ -16,12 +16,11 @@ TextEditorElement = require './text-editor-element'
 {isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require './text-utils'
 
 ZERO_WIDTH_NBSP = '\ufeff'
+MAX_SCREEN_LINE_LENGTH = 500
 
 # Essential: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
-# If you're manipulating the state of an editor, use this class. If you're
-# interested in the visual appearance of editors, use {TextEditorElement}
-# instead.
+# If you're manipulating the state of an editor, use this class.
 #
 # A single {TextBuffer} can belong to multiple editors. For example, if the
 # same file is open in two different panes, Atom creates a separate editor for
@@ -162,7 +161,8 @@ class TextEditor extends Model
     @softWrapAtPreferredLineLength ?= false
     @preferredLineLength ?= 80
 
-    @buffer ?= new TextBuffer
+    @buffer ?= new TextBuffer({shouldDestroyOnFileDelete: ->
+      atom.config.get('core.closeDeletedFileTabs')})
     @tokenizedBuffer ?= new TokenizedBuffer({
       grammar, tabLength, @buffer, @largeFileMode, @assert
     })
@@ -193,8 +193,9 @@ class TextEditor extends Model
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true, persistent: true)
+    @selectionsMarkerLayer.trackDestructionInOnDidCreateMarkerCallbacks = true
 
-    @decorationManager = new DecorationManager(@displayLayer, @defaultMarkerLayer)
+    @decorationManager = new DecorationManager(@displayLayer)
     @decorateMarkerLayer(@displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
 
     for marker in @selectionsMarkerLayer.getMarkers()
@@ -2965,7 +2966,7 @@ class TextEditor extends Model
       else
         @getEditorWidthInChars()
     else
-      Infinity
+      MAX_SCREEN_LINE_LENGTH
 
   ###
   Section: Indentation

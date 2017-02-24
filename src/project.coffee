@@ -21,7 +21,6 @@ class Project extends Model
   constructor: ({@notificationManager, packageManager, config, @applicationDelegate}) ->
     @emitter = new Emitter
     @buffers = []
-    @paths = []
     @rootDirectories = []
     @repositories = []
     @directoryProviders = []
@@ -32,7 +31,9 @@ class Project extends Model
 
   destroyed: ->
     buffer.destroy() for buffer in @buffers
-    @setPaths([])
+    repository?.destroy() for repository in @repositories
+    @rootDirectories = []
+    @repositories = []
 
   reset: (packageManager) ->
     @emitter.dispose()
@@ -62,6 +63,9 @@ class Project extends Model
           fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
         catch error
           return unless error.code is 'ENOENT'
+      unless bufferState.shouldDestroyOnFileDelete?
+        bufferState.shouldDestroyOnFileDelete =
+          -> atom.config.get('core.closeDeletedFileTabs')
       TextBuffer.deserialize(bufferState)
 
     @subscribeToBuffer(buffer) for buffer in @buffers
@@ -205,7 +209,7 @@ class Project extends Model
   removePath: (projectPath) ->
     # The projectPath may be a URI, in which case it should not be normalized.
     unless projectPath in @getPaths()
-      projectPath = path.normalize(projectPath)
+      projectPath = @defaultDirectoryProvider.normalizePath(projectPath)
 
     indexToRemove = null
     for directory, i in @rootDirectories
@@ -233,11 +237,10 @@ class Project extends Model
       uri
     else
       if fs.isAbsolute(uri)
-        path.normalize(fs.resolveHome(uri))
-
+        @defaultDirectoryProvider.normalizePath(fs.resolveHome(uri))
       # TODO: what should we do here when there are multiple directories?
       else if projectPath = @getPaths()[0]
-        path.normalize(fs.resolveHome(path.join(projectPath, uri)))
+        @defaultDirectoryProvider.normalizePath(fs.resolveHome(path.join(projectPath, uri)))
       else
         undefined
 
@@ -360,9 +363,14 @@ class Project extends Model
     else
       @buildBuffer(absoluteFilePath)
 
+  shouldDestroyBufferOnFileDelete: ->
+    atom.config.get('core.closeDeletedFileTabs')
+
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer = new TextBuffer({
+      filePath: absoluteFilePath
+      shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete})
     @addBuffer(buffer)
     buffer.loadSync()
     buffer
@@ -374,7 +382,9 @@ class Project extends Model
   #
   # Returns a {Promise} that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer = new TextBuffer({
+      filePath: absoluteFilePath
+      shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete})
     @addBuffer(buffer)
     buffer.load()
       .then((buffer) -> buffer)

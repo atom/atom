@@ -1,12 +1,16 @@
 /** @babel */
 
+import path from 'path'
+import fs from 'fs'
 import {TextEditor, TextBuffer} from 'atom'
 
-const MIN_SIZE_IN_KB = 0 * 1024
-const MAX_SIZE_IN_KB = 10 * 1024
-const SIZE_STEP_IN_KB = 1024
-const LINE_TEXT = 'Lorem ipsum dolor sit amet\n'
-const TEXT = LINE_TEXT.repeat(Math.ceil(MAX_SIZE_IN_KB * 1024 / LINE_TEXT.length))
+const SIZES_IN_KB = [
+  512,
+  1024,
+  2048
+]
+const REPEATED_TEXT = fs.readFileSync(path.join(__dirname, '..', 'spec', 'fixtures', 'sample.js'), 'utf8').replace(/\n/g, '')
+const TEXT = REPEATED_TEXT.repeat(Math.ceil(SIZES_IN_KB[SIZES_IN_KB.length - 1] * 1024 / REPEATED_TEXT.length))
 
 export default async function ({test}) {
   const data = []
@@ -17,22 +21,25 @@ export default async function ({test}) {
   atom.packages.loadPackages()
   await atom.packages.activate()
 
+  console.log(atom.getLoadSettings().resourcePath);
+
   for (let pane of atom.workspace.getPanes()) {
     pane.destroy()
   }
 
-  for (let sizeInKB = MIN_SIZE_IN_KB; sizeInKB < MAX_SIZE_IN_KB; sizeInKB += SIZE_STEP_IN_KB) {
+  for (const sizeInKB of SIZES_IN_KB) {
     const text = TEXT.slice(0, sizeInKB * 1024)
     console.log(text.length / 1024)
 
     let t0 = window.performance.now()
     const buffer = new TextBuffer({text})
     const editor = new TextEditor({buffer, largeFileMode: true})
+    editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
     atom.workspace.getActivePane().activateItem(editor)
     let t1 = window.performance.now()
 
     data.push({
-      name: 'Opening a large file',
+      name: 'Opening a large single-line file',
       x: sizeInKB,
       duration: t1 - t0
     })
@@ -47,7 +54,7 @@ export default async function ({test}) {
     }
 
     data.push({
-      name: 'Max time event loop was blocked after opening a large file',
+      name: 'Max time event loop was blocked after opening a large single-line file',
       x: sizeInKB,
       duration: Math.max(...tickDurations)
     })
@@ -60,7 +67,7 @@ export default async function ({test}) {
     t1 = window.performance.now()
 
     data.push({
-      name: 'Clicking the editor after opening a large file',
+      name: 'Clicking the editor after opening a large single-line file',
       x: sizeInKB,
       duration: t1 - t0
     })
@@ -70,7 +77,7 @@ export default async function ({test}) {
     t1 = window.performance.now()
 
     data.push({
-      name: 'Scrolling down after opening a large file',
+      name: 'Scrolling down after opening a large single-line file',
       x: sizeInKB,
       duration: t1 - t0
     })

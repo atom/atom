@@ -43,12 +43,16 @@ class AtomWindow
     if process.platform is 'linux'
       options.icon = @constructor.iconPath
 
-    if @shouldHideTitleBar()
+    if @shouldAddCustomTitleBar()
       options.titleBarStyle = 'hidden'
 
-    @browserWindow = new BrowserWindow options
-    @atomApplication.addWindow(this)
+    if @shouldAddCustomInsetTitleBar()
+      options.titleBarStyle = 'hidden-inset'
 
+    if @shouldHideTitleBar()
+      options.frame = false
+
+    @browserWindow = new BrowserWindow(options)
     @handleEvents()
 
     loadSettings = Object.assign({}, settings)
@@ -60,11 +64,15 @@ class AtomWindow
     loadSettings.clearWindowState ?= false
     loadSettings.initialPaths ?=
       for {pathToOpen} in locationsToOpen when pathToOpen
-        if fs.statSyncNoException(pathToOpen).isFile?()
-          path.dirname(pathToOpen)
-        else
+        stat = fs.statSyncNoException(pathToOpen) or null
+        if stat?.isDirectory()
           pathToOpen
-
+        else
+          parentDirectory = path.dirname(pathToOpen)
+          if stat?.isFile() or fs.existsSync(parentDirectory)
+            parentDirectory
+          else
+            pathToOpen
     loadSettings.initialPaths.sort()
 
     # Only send to the first non-spec window created
@@ -72,33 +80,31 @@ class AtomWindow
       @constructor.includeShellLoadTime = false
       loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
 
+    @representedDirectoryPaths = loadSettings.initialPaths
+    @env = loadSettings.env if loadSettings.env?
+
     @browserWindow.loadSettings = loadSettings
 
     @browserWindow.on 'window:loaded', =>
       @emit 'window:loaded'
       @resolveLoadedPromise()
 
-    @setLoadSettings(loadSettings)
-    @env = loadSettings.env if loadSettings.env?
+    @browserWindow.loadURL url.format
+      protocol: 'file'
+      pathname: "#{@resourcePath}/static/index.html"
+      slashes: true
+
+    @browserWindow.showSaveDialog = @showSaveDialog.bind(this)
+
     @browserWindow.focusOnWebView() if @isSpec
     @browserWindow.temporaryState = {windowDimensions} if windowDimensions?
 
     hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
     @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()
 
-  setLoadSettings: (loadSettings) ->
-    @browserWindow.loadURL url.format
-      protocol: 'file'
-      pathname: "#{@resourcePath}/static/index.html"
-      slashes: true
-      hash: encodeURIComponent(JSON.stringify(loadSettings))
+    @atomApplication.addWindow(this)
 
-  getLoadSettings: ->
-    if @browserWindow.webContents? and not @browserWindow.webContents.isLoading()
-      hash = url.parse(@browserWindow.webContents.getURL()).hash.substr(1)
-      JSON.parse(decodeURIComponent(hash))
-
-  hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
+  hasProjectPath: -> @representedDirectoryPaths.length > 0
 
   setupContextMenu: ->
     ContextMenu = require './context-menu'
@@ -112,7 +118,7 @@ class AtomWindow
     true
 
   containsPath: (pathToCheck) ->
-    @getLoadSettings()?.initialPaths?.some (projectPath) ->
+    @representedDirectoryPaths.some (projectPath) ->
       if not projectPath
         false
       else if not pathToCheck
@@ -226,10 +232,20 @@ class AtomWindow
     [width, height] = @browserWindow.getSize()
     {x, y, width, height}
 
+  shouldAddCustomTitleBar: ->
+    not @isSpec and
+    process.platform is 'darwin' and
+    @atomApplication.config.get('core.titleBar') is 'custom'
+
+  shouldAddCustomInsetTitleBar: ->
+    not @isSpec and
+    process.platform is 'darwin' and
+    @atomApplication.config.get('core.titleBar') is 'custom-inset'
+
   shouldHideTitleBar: ->
     not @isSpec and
     process.platform is 'darwin' and
-    @atomApplication.config.get('core.useCustomTitleBar')
+    @atomApplication.config.get('core.titleBar') is 'hidden'
 
   close: -> @browserWindow.close()
 
@@ -265,6 +281,13 @@ class AtomWindow
     @saveState().then => @browserWindow.reload()
     @loadedPromise
 
+  showSaveDialog: (params) ->
+    params = Object.assign({
+      title: 'Save File',
+      defaultPath: @representedDirectoryPaths[0]
+    }, params)
+    dialog.showSaveDialog(this, params)
+
   toggleDevTools: -> @browserWindow.toggleDevTools()
 
   openDevTools: -> @browserWindow.openDevTools()
@@ -274,5 +297,9 @@ class AtomWindow
   setDocumentEdited: (documentEdited) -> @browserWindow.setDocumentEdited(documentEdited)
 
   setRepresentedFilename: (representedFilename) -> @browserWindow.setRepresentedFilename(representedFilename)
+
+  setRepresentedDirectoryPaths: (@representedDirectoryPaths) ->
+    @representedDirectoryPaths.sort()
+    @atomApplication.saveState()
 
   copy: -> @browserWindow.copy()

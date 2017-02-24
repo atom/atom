@@ -19,7 +19,9 @@ install:
   - npm install -g npm
   - script/build --create-debian-package --create-rpm-package --compress-artifacts
 
-script: script/test
+script:
+  - script/lint
+  - script/test
 
 cache:
   directories:
