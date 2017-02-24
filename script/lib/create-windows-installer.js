@@ -23,7 +23,7 @@ module.exports = function (packagedAppPath, codeSign) {
   }
 
   const signing = codeSign && (process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL || process.env.ATOM_WIN_CODE_SIGNING_CERT_PATH)
-  let certPath = process.env.ATOM_WIN_CODE_SIGNING_CERT_PATH;
+  let certPath = process.env.ATOM_WIN_CODE_SIGNING_CERT_PATH
 
   if (signing) {
     if (!certPath) {
