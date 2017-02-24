@@ -19,9 +19,12 @@ class TextEditorComponent {
     this.virtualNode = $('atom-text-editor')
     this.virtualNode.domNode = this.element
     this.refs = {}
-    etch.updateSync(this)
 
+    this.updateScheduled = false
+    this.visible = false
     resizeDetector.listenTo(this.element, this.didResize.bind(this))
+
+    etch.updateSync(this)
   }
 
   update (props) {
@@ -32,14 +35,16 @@ class TextEditorComponent {
   scheduleUpdate () {
     if (this.updatedSynchronously) {
       this.updateSync()
-    } else {
+    } else if (!this.updateScheduled) {
+      this.updateScheduled = true
       etch.getScheduler().updateDocument(() => {
-        this.updateSync()
+        if (this.updateScheduled) this.updateSync()
       })
     }
   }
 
   updateSync () {
+    this.updateScheduled = false
     if (this.nextUpdatePromise) {
       this.resolveNextUpdatePromise()
       this.nextUpdatePromise = null
@@ -271,13 +276,19 @@ class TextEditorComponent {
   }
 
   didShow () {
-    this.getModel().setVisible(true)
-    if (!this.measurements) this.performInitialMeasurements()
-    this.updateSync()
+    if (!this.visible) {
+      this.visible = true
+      this.getModel().setVisible(true)
+      if (!this.measurements) this.performInitialMeasurements()
+      this.updateSync()
+    }
   }
 
   didHide () {
-    this.getModel().setVisible(false)
+    if (this.visible) {
+      this.visible = false
+      this.getModel().setVisible(false)
+    }
   }
 
   didScroll () {
@@ -286,8 +297,9 @@ class TextEditorComponent {
   }
 
   didResize () {
-    this.measureEditorDimensions()
-    this.scheduleUpdate()
+    if (this.measureEditorDimensions()) {
+      this.scheduleUpdate()
+    }
   }
 
   performInitialMeasurements () {
@@ -300,7 +312,13 @@ class TextEditorComponent {
   }
 
   measureEditorDimensions () {
-    this.measurements.scrollerHeight = this.refs.scroller.offsetHeight
+    const scrollerHeight = this.refs.scroller.offsetHeight
+    if (scrollerHeight !== this.measurements.scrollerHeight) {
+      this.measurements.scrollerHeight = this.refs.scroller.offsetHeight
+      return true
+    } else {
+      return false
+    }
   }
 
   measureScrollPosition () {
