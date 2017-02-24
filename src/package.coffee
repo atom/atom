@@ -7,7 +7,6 @@ fs = require 'fs-plus'
 {Emitter, CompositeDisposable} = require 'event-kit'
 
 CompileCache = require './compile-cache'
-ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 BufferedProcess = require './buffered-process'
 
@@ -42,7 +41,7 @@ class Package
     @metadata ?= @packageManager.loadPackageMetadata(@path)
     @bundledPackage = @packageManager.isBundledPackagePath(@path)
     @name = @metadata?.name ? path.basename(@path)
-    ModuleCache.add(@path, @metadata)
+    # ModuleCache.add(@path, @metadata)
     @reset()
 
   ###
