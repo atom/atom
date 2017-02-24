@@ -41,13 +41,23 @@ class TextEditorComponent {
 
   updateSync () {
     if (this.nextUpdatePromise) {
-      const resolveNextUpdatePromise = this.resolveNextUpdatePromise
+      this.resolveNextUpdatePromise()
       this.nextUpdatePromise = null
       this.resolveNextUpdatePromise = null
-      resolveNextUpdatePromise()
     }
+
     if (this.staleMeasurements.editorDimensions) this.measureEditorDimensions()
-    etch.updateSync(this)
+
+    const longestLine = this.getLongestScreenLine()
+    if (longestLine !== this.previousLongestLine) {
+      this.longestLineToMeasure = longestLine
+      etch.updateSync(this)
+      this.measureLongestLineWidth()
+      this.previousLongestLine = longestLine
+      etch.updateSync(this)
+    } else {
+      etch.updateSync(this)
+    }
   }
 
   render () {
@@ -170,12 +180,14 @@ class TextEditorComponent {
   }
 
   renderLines () {
-    let style, children
+    let children
+    let style = {
+      contain: 'strict',
+      overflow: 'hidden'
+    }
     if (this.measurements) {
-      style = {
-        width: this.measurements.scrollWidth + 'px',
-        height: this.getScrollHeight() + 'px'
-      }
+      style.width = this.measurements.scrollWidth + 'px',
+      style.height = this.getScrollHeight() + 'px'
       children = this.renderLineTiles()
     } else {
       children = $.div({ref: 'characterMeasurementLine', className: 'line'},
@@ -206,7 +218,13 @@ class TextEditorComponent {
       for (let row = tileStartRow; row < tileEndRow; row++) {
         const screenLine = screenLines[row - firstTileStartRow]
         if (!screenLine) break
-        lineNodes.push($(LineComponent, {key: screenLine.id, displayLayer, screenLine}))
+
+        const lineProps = {key: screenLine.id, displayLayer, screenLine}
+        if (screenLine === this.longestLineToMeasure) {
+          lineProps.ref = 'longestLineToMeasure'
+          this.longestLineToMeasure = null
+        }
+        lineNodes.push($(LineComponent, lineProps))
       }
 
       const tileHeight = this.getRowsPerTile() * this.measurements.lineHeight
@@ -224,6 +242,16 @@ class TextEditorComponent {
           backgroundColor: 'inherit'
         }
       }, lineNodes)
+    }
+
+    if (this.longestLineToMeasure) {
+      tileNodes.push($(LineComponent, {
+        ref: 'longestLineToMeasure',
+        key: this.longestLineToMeasure.id,
+        displayLayer,
+        screenLine: this.longestLineToMeasure
+      }))
+      this.longestLineToMeasure = null
     }
 
     return tileNodes
@@ -245,7 +273,7 @@ class TextEditorComponent {
   didShow () {
     this.getModel().setVisible(true)
     if (!this.measurements) this.performInitialMeasurements()
-    etch.updateSync(this)
+    this.updateSync()
   }
 
   didHide () {
@@ -268,7 +296,6 @@ class TextEditorComponent {
     this.measureEditorDimensions()
     this.measureScrollPosition()
     this.measureCharacterDimensions()
-    this.measureLongestLineWidth()
     this.measureGutterDimensions()
   }
 
@@ -290,9 +317,7 @@ class TextEditorComponent {
   }
 
   measureLongestLineWidth () {
-    const displayLayer = this.getModel().displayLayer
-    const rightmostPosition = displayLayer.getRightmostScreenPosition()
-    this.measurements.scrollWidth = rightmostPosition.column * this.measurements.baseCharacterWidth
+    this.measurements.scrollWidth = this.refs.longestLineToMeasure.element.firstChild.offsetWidth
   }
 
   measureGutterDimensions () {
@@ -352,6 +377,15 @@ class TextEditorComponent {
     return this.getModel().getApproximateScreenLineCount() * this.measurements.lineHeight
   }
 
+  getLongestScreenLine () {
+    const model = this.getModel()
+    // Ensure the spatial index is populated with rows that are currently
+    // visible so we *at least* get the longest row in the visible range.
+    const renderedEndRow = this.getTileStartRow(this.getLastVisibleRow()) + this.getRowsPerTile()
+    model.displayLayer.populateSpatialIndexIfNeeded(Infinity, renderedEndRow)
+    return model.screenLineForScreenRow(model.getApproximateLongestScreenRow())
+  }
+
   getNextUpdatePromise () {
     if (!this.nextUpdatePromise) {
       this.nextUpdatePromise = new Promise((resolve) => {
@@ -370,7 +404,8 @@ class LineComponent {
 
     const textNodes = []
     let startIndex = 0
-    let openScopeNode = this.element
+    let openScopeNode = document.createElement('span')
+    this.element.appendChild(openScopeNode)
     for (let i = 0; i < tagCodes.length; i++) {
       const tagCode = tagCodes[i]
       if (tagCode !== 0) {

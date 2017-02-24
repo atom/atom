@@ -4,6 +4,7 @@ import {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise} from './a
 
 const TextEditorComponent = require('../src/text-editor-component')
 const TextEditor = require('../src/text-editor')
+const TextBuffer = require('text-buffer')
 const fs = require('fs')
 const path = require('path')
 
@@ -16,8 +17,8 @@ describe('TextEditorComponent', () => {
   })
 
   function buildComponent (params = {}) {
-    const editor = new TextEditor()
-    editor.setText(SAMPLE_TEXT)
+    const buffer = new TextBuffer({text: SAMPLE_TEXT})
+    const editor = new TextEditor({buffer})
     const component = new TextEditorComponent({model: editor, rowsPerTile: params.rowsPerTile})
     const {element} = component
     element.style.width = params.width ? params.width + 'px' : '800px'
@@ -74,6 +75,16 @@ describe('TextEditorComponent', () => {
       editor.lineTextForScreenRow(7),
       editor.lineTextForScreenRow(8)
     ])
+  })
+
+  it('bases the width of the lines div on the width of the longest initially-visible screen line', () => {
+    const {component, element, editor} = buildComponent({rowsPerTile: 2, height: 20})
+
+    expect(editor.getApproximateLongestScreenRow()).toBe(3)
+    const expectedWidth = element.querySelectorAll('.line')[3].offsetWidth
+    expect(element.querySelector('.lines').style.width).toBe(expectedWidth + 'px')
+
+    // TODO: Confirm that we'll update this value as indexing proceeds
   })
 
   it('gives the line number gutter an explicit width and height so its layout can be strictly contained', () => {
