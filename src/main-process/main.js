@@ -1,5 +1,5 @@
 if (typeof snapshotResult !== 'undefined') {
-  snapshotResult.setGlobals(global, process, {}, require)
+  snapshotResult.setGlobals(global, process, global, {}, require)
 }
 
 const startTime = Date.now()
