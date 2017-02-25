@@ -113,4 +113,77 @@ describe('TextEditorComponent', () => {
     await component.getNextUpdatePromise()
     expect(component.refs.gutterContainer.style.transform).toBe('translateX(100px)')
   })
+
+  it('renders cursors within the visible row range', async () => {
+    const {component, element, editor} = buildComponent({height: 40, rowsPerTile: 2})
+    component.refs.scroller.scrollTop = 100
+    await component.getNextUpdatePromise()
+
+    expect(component.getRenderedStartRow()).toBe(4)
+    expect(component.getRenderedEndRow()).toBe(10)
+
+    editor.setCursorScreenPosition([0, 0]) // out of view
+    editor.addCursorAtScreenPosition([2, 2]) // out of view
+    editor.addCursorAtScreenPosition([4, 0]) // line start
+    editor.addCursorAtScreenPosition([4, 4]) // at token boundary
+    editor.addCursorAtScreenPosition([4, 6]) // within token
+    editor.addCursorAtScreenPosition([5, Infinity]) // line end
+    editor.addCursorAtScreenPosition([10, 2]) // out of view
+    await component.getNextUpdatePromise()
+
+    let cursorNodes = Array.from(element.querySelectorAll('.cursor'))
+    expect(cursorNodes.length).toBe(4)
+    verifyCursorPosition(component, cursorNodes[0], 4, 0)
+    verifyCursorPosition(component, cursorNodes[1], 4, 4)
+    verifyCursorPosition(component, cursorNodes[2], 4, 6)
+    verifyCursorPosition(component, cursorNodes[3], 5, 30)
+
+    editor.setCursorScreenPosition([8, 11])
+    await component.getNextUpdatePromise()
+
+    cursorNodes = Array.from(element.querySelectorAll('.cursor'))
+    expect(cursorNodes.length).toBe(1)
+    verifyCursorPosition(component, cursorNodes[0], 8, 11)
+
+    editor.setCursorScreenPosition([0, 0])
+    await component.getNextUpdatePromise()
+
+    cursorNodes = Array.from(element.querySelectorAll('.cursor'))
+    expect(cursorNodes.length).toBe(0)
+  })
 })
+
+function verifyCursorPosition (component, cursorNode, row, column) {
+  const rect = cursorNode.getBoundingClientRect()
+  expect(Math.round(rect.top)).toBe(clientTopForLine(component, row))
+  expect(Math.round(rect.left)).toBe(clientLeftForCharacter(component, row, column))
+}
+
+function clientTopForLine (component, row) {
+  return lineNodeForScreenRow(component, row).getBoundingClientRect().top
+}
+
+function clientLeftForCharacter (component, row, column) {
+  const textNodes = textNodesForScreenRow(component, row)
+  let textNodeStartColumn = 0
+  for (const textNode of textNodes) {
+    const textNodeEndColumn = textNodeStartColumn + textNode.textContent.length
+    if (column <= textNodeEndColumn) {
+      const range = document.createRange()
+      range.setStart(textNode, column - textNodeStartColumn)
+      range.setEnd(textNode, column - textNodeStartColumn)
+      return range.getBoundingClientRect().left
+    }
+    textNodeStartColumn = textNodeEndColumn
+  }
+}
+
+function lineNodeForScreenRow (component, row) {
+  const screenLine = component.getModel().screenLineForScreenRow(row)
+  return component.lineNodesByScreenLine.get(screenLine)
+}
+
+function textNodesForScreenRow (component, row) {
+  const screenLine = component.getModel().screenLineForScreenRow(row)
+  return component.textNodesByScreenLine.get(screenLine)
+}
