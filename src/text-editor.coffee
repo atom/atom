@@ -986,7 +986,7 @@ class TextEditor extends Model
     tokens
 
   screenLineForScreenRow: (screenRow) ->
-    @displayLayer.getScreenLines(screenRow, screenRow + 1)[0]
+    @displayLayer.getScreenLine(screenRow)
 
   bufferRowForScreenRow: (screenRow) ->
     @displayLayer.translateScreenPosition(Point(screenRow, 0)).row

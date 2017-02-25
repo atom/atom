@@ -1,4 +1,5 @@
 const etch = require('etch')
+const {CompositeDisposable} = require('event-kit')
 const $ = etch.dom
 const TextEditorElement = require('./text-editor-element')
 const resizeDetector = require('element-resize-detector')({strategy: 'scroll'})
@@ -20,6 +21,7 @@ class TextEditorComponent {
     this.virtualNode.domNode = this.element
     this.refs = {}
 
+    this.disposables = new CompositeDisposable()
     this.updateScheduled = false
     this.measurements = null
     this.visible = false
@@ -29,6 +31,7 @@ class TextEditorComponent {
     this.textNodesByScreenLine = new WeakMap()
     this.cursorsToRender = []
 
+    if (this.props.model) this.observeModel()
     resizeDetector.listenTo(this.element, this.didResize.bind(this))
 
     etch.updateSync(this)
@@ -69,12 +72,11 @@ class TextEditorComponent {
     }
 
     this.horizontalPositionsToMeasure.clear()
-    this.populateCursorPositionsToMeasure()
-
     etch.updateSync(this)
     if (measureLongestLine) this.measureLongestLineWidth(longestLine)
+    this.queryCursorsToRender()
     this.measureHorizontalPositions()
-    this.updateCursorsToRender()
+    this.positionCursorsToRender()
 
     etch.updateSync(this)
   }
@@ -138,9 +140,9 @@ class TextEditorComponent {
       const approximateLastScreenRow = this.getModel().getApproximateScreenLineCount() - 1
       const firstVisibleRow = this.getFirstVisibleRow()
       const lastVisibleRow = this.getLastVisibleRow()
-      const firstTileStartRow = this.getTileStartRow(firstVisibleRow)
-      const visibleTileCount = Math.floor((lastVisibleRow - this.getFirstVisibleRow()) / this.getRowsPerTile()) + 2
-      const lastTileStartRow = firstTileStartRow + ((visibleTileCount - 1) * this.getRowsPerTile())
+      const firstTileStartRow = this.getFirstTileStartRow()
+      const visibleTileCount = this.getVisibleTileCount()
+      const lastTileStartRow = this.getLastTileStartRow()
 
       children = new Array(visibleTileCount)
 
@@ -230,9 +232,9 @@ class TextEditorComponent {
 
     const {lineNodesByScreenLine, textNodesByScreenLine} = this
 
-    const firstTileStartRow = this.getTileStartRow(this.getFirstVisibleRow())
-    const visibleTileCount = Math.floor((this.getLastVisibleRow() - this.getFirstVisibleRow()) / this.getRowsPerTile()) + 2
-    const lastTileStartRow = firstTileStartRow + ((visibleTileCount - 1) * this.getRowsPerTile())
+    const firstTileStartRow = this.getFirstTileStartRow()
+    const visibleTileCount = this.getVisibleTileCount()
+    const lastTileStartRow = this.getLastTileStartRow()
 
     const displayLayer = this.getModel().displayLayer
     const screenLines = displayLayer.getScreenLines(firstTileStartRow, lastTileStartRow + this.getRowsPerTile())
@@ -295,6 +297,8 @@ class TextEditorComponent {
   }
 
   renderCursors (width, height) {
+    const cursorHeight = this.measurements.lineHeight + 'px'
+
     return $.div({
       key: 'cursors',
       className: 'cursors',
@@ -304,42 +308,61 @@ class TextEditorComponent {
         width, height
       }
     },
-      this.cursorsToRender.map(style => $.div({className: 'cursor', style}))
+      this.cursorsToRender.map(({pixelLeft, pixelTop, pixelWidth}) =>
+        $.div({
+          className: 'cursor',
+          style: {
+            height: cursorHeight,
+            width: pixelWidth + 'px',
+            transform: `translate(${pixelLeft}px, ${pixelTop}px)`
+          }
+        })
+      )
     )
   }
 
-  populateCursorPositionsToMeasure () {
+  queryCursorsToRender () {
     const model = this.getModel()
-    for (let i = 0; i < model.cursors.length; i++) {
-      const cursor = model.cursors[i]
-      const position = cursor.getScreenPosition()
-      let columns = this.horizontalPositionsToMeasure.get(position.row)
-      if (columns == null) {
-        columns = []
-        this.horizontalPositionsToMeasure.set(position.row, columns)
-      }
-      columns.push(position.column)
-      columns.push(position.column + 1)
-    }
+    const cursorMarkers = model.selectionsMarkerLayer.findMarkers({
+      intersectsScreenRowRange: [
+        this.getRenderedStartRow(),
+        this.getRenderedEndRow() - 1,
+      ]
+    })
 
-    this.horizontalPositionsToMeasure.forEach((value) => value.sort((a, b) => a - b))
+    this.cursorsToRender.length = cursorMarkers.length
+    for (let i = 0; i < cursorMarkers.length; i++) {
+      const screenPosition = cursorMarkers[i].getHeadScreenPosition()
+      const {row, column} = screenPosition
+      this.requestHorizontalMeasurement(row, column)
+      let columnWidth = 0
+      if (model.lineLengthForScreenRow(row) > column) {
+        columnWidth = 1
+        this.requestHorizontalMeasurement(row, column + 1)
+      }
+      this.cursorsToRender[i] = {
+        screenPosition, columnWidth,
+        pixelTop: 0, pixelLeft: 0, pixelWidth: 0
+      }
+    }
   }
 
-  updateCursorsToRender () {
-    const model = this.getModel()
+  positionCursorsToRender () {
     const height = this.measurements.lineHeight + 'px'
-    this.cursorsToRender.length = 0
-    for (let i = 0; i < model.cursors.length; i++) {
-      const cursor = model.cursors[i]
-      const position = cursor.getScreenPosition()
-      const top = this.pixelTopForScreenRow(position.row)
-      const left = this.pixelLeftForScreenPosition(position)
-      const right = this.pixelLeftForScreenRowAndColumn(position.row, position.column + 1)
-      this.cursorsToRender.push({
-        height,
-        width: (right - left) + 'px',
-        transform: `translate(${top}px, ${left}px)`
-      })
+    for (let i = 0; i < this.cursorsToRender.length; i++) {
+      const cursorToRender = this.cursorsToRender[i]
+      const {row, column} = cursorToRender.screenPosition
+
+      const pixelTop = this.pixelTopForScreenRow(row)
+      const pixelLeft = this.pixelLeftForScreenRowAndColumn(row, column)
+      const pixelRight = (cursorToRender.columnWidth === 0)
+        ? pixelLeft
+        : this.pixelLeftForScreenRowAndColumn(row, column + 1)
+      const pixelWidth = pixelRight - pixelLeft
+
+      cursorToRender.pixelTop = pixelTop
+      cursorToRender.pixelLeft = pixelLeft
+      cursorToRender.pixelWidth = pixelWidth
     }
   }
 
@@ -423,10 +446,20 @@ class TextEditorComponent {
     this.measurements.lineNumberGutterWidth = this.refs.lineNumberGutter.offsetWidth
   }
 
+  requestHorizontalMeasurement (row, column) {
+    let columns = this.horizontalPositionsToMeasure.get(row)
+    if (columns == null) {
+      columns = []
+      this.horizontalPositionsToMeasure.set(row, columns)
+    }
+    columns.push(column)
+  }
+
   measureHorizontalPositions () {
     this.horizontalPositionsToMeasure.forEach((columnsToMeasure, row) => {
-      const screenLine = this.getModel().displayLayer.getScreenLine(row)
+      columnsToMeasure.sort((a, b) => a - b)
 
+      const screenLine = this.getModel().displayLayer.getScreenLine(row)
       const lineNode = this.lineNodesByScreenLine.get(screenLine)
       const textNodes = this.textNodesByScreenLine.get(screenLine)
       let positionsForLine = this.horizontalPixelPositionsByScreenLine.get(screenLine)
@@ -460,12 +493,9 @@ class TextEditorComponent {
           let clientPixelPosition
           if (nextColumnToMeasure === textNodeStartColumn) {
             const range = getRangeForMeasurement()
-            range.selectNode(textNode)
+            range.setStart(textNode, 0)
+            range.setEnd(textNode, 1)
             clientPixelPosition = range.getBoundingClientRect().left
-          } else if (nextColumnToMeasure === textNodeEndColumn) {
-            const range = getRangeForMeasurement()
-            range.selectNode(textNode)
-            clientPixelPosition = range.getBoundingClientRect().right
           } else {
             const range = getRangeForMeasurement()
             range.setStart(textNode, 0)
@@ -487,10 +517,6 @@ class TextEditorComponent {
     return row * this.measurements.lineHeight
   }
 
-  pixelLeftForScreenPosition ({row, column}) {
-    return this.pixelLeftForScreenRowAndColumn(row, column)
-  }
-
   pixelLeftForScreenRowAndColumn (row, column) {
     const screenLine = this.getModel().displayLayer.getScreenLine(row)
     return this.horizontalPixelPositionsByScreenLine.get(screenLine).get(column)
@@ -500,8 +526,14 @@ class TextEditorComponent {
     if (!this.props.model) {
       const TextEditor = require('./text-editor')
       this.props.model = new TextEditor()
+      this.observeModel()
     }
     return this.props.model
+  }
+
+  observeModel () {
+    const {model} = this.props
+    this.disposables.add(model.selectionsMarkerLayer.onDidUpdate(this.scheduleUpdate.bind(this)))
   }
 
   isVisible () {
@@ -526,6 +558,26 @@ class TextEditorComponent {
 
   getTileStartRow (row) {
     return row - (row % this.getRowsPerTile())
+  }
+
+  getVisibleTileCount () {
+    return Math.floor((this.getLastVisibleRow() - this.getFirstVisibleRow()) / this.getRowsPerTile()) + 2
+  }
+
+  getFirstTileStartRow () {
+    return this.getTileStartRow(this.getFirstVisibleRow())
+  }
+
+  getLastTileStartRow () {
+    return this.getFirstTileStartRow() + ((this.getVisibleTileCount() - 1) * this.getRowsPerTile())
+  }
+
+  getRenderedStartRow () {
+    return this.getFirstTileStartRow()
+  }
+
+  getRenderedEndRow () {
+    return this.getFirstTileStartRow() + this.getVisibleTileCount() * this.getRowsPerTile()
   }
 
   getFirstVisibleRow () {
