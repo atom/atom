@@ -21,7 +21,14 @@ class TextEditorComponent {
     this.refs = {}
 
     this.updateScheduled = false
+    this.measurements = null
     this.visible = false
+    this.horizontalPositionsToMeasure = new Map() // Keys are rows with positions we want to measure, values are arrays of columns to measure
+    this.horizontalPixelPositionsByScreenLine = new WeakMap() // Values are maps from column to horiontal pixel positions
+    this.lineNodesByScreenLine = new WeakMap()
+    this.textNodesByScreenLine = new WeakMap()
+    this.cursorsToRender = []
+
     resizeDetector.listenTo(this.element, this.didResize.bind(this))
 
     etch.updateSync(this)
@@ -61,8 +68,14 @@ class TextEditorComponent {
       measureLongestLine = true
     }
 
+    this.horizontalPositionsToMeasure.clear()
+    this.populateCursorPositionsToMeasure()
+
     etch.updateSync(this)
-    if (measureLongestLine) this.measureLongestLineWidth()
+    if (measureLongestLine) this.measureLongestLineWidth(longestLine)
+    this.measureHorizontalPositions()
+    this.updateCursorsToRender()
+
     etch.updateSync(this)
   }
 
@@ -83,7 +96,7 @@ class TextEditorComponent {
           }
         },
           this.renderGutterContainer(),
-          this.renderLines()
+          this.renderContent()
         )
       )
     )
@@ -185,16 +198,21 @@ class TextEditorComponent {
     return $.div(props, children)
   }
 
-  renderLines () {
+  renderContent () {
     let children
     let style = {
       contain: 'strict',
       overflow: 'hidden'
     }
     if (this.measurements) {
-      style.width = this.measurements.scrollWidth + 'px',
-      style.height = this.getScrollHeight() + 'px'
-      children = this.renderLineTiles()
+      const width = this.measurements.scrollWidth + 'px'
+      const height = this.getScrollHeight() + 'px'
+      style.width = width
+      style.height = height
+      children = [
+        this.renderCursors(width, height),
+        this.renderLineTiles(width, height)
+      ]
     } else {
       children = $.div({ref: 'characterMeasurementLine', className: 'line'},
         $.span({ref: 'normalWidthCharacterSpan'}, NORMAL_WIDTH_CHARACTER),
@@ -207,8 +225,10 @@ class TextEditorComponent {
     return $.div({ref: 'lines', className: 'lines', style}, children)
   }
 
-  renderLineTiles () {
+  renderLineTiles (width, height) {
     if (!this.measurements) return []
+
+    const {lineNodesByScreenLine, textNodesByScreenLine} = this
 
     const firstTileStartRow = this.getTileStartRow(this.getFirstVisibleRow())
     const visibleTileCount = Math.floor((this.getLastVisibleRow() - this.getFirstVisibleRow()) / this.getRowsPerTile()) + 2
@@ -224,13 +244,16 @@ class TextEditorComponent {
       for (let row = tileStartRow; row < tileEndRow; row++) {
         const screenLine = screenLines[row - firstTileStartRow]
         if (!screenLine) break
-
-        const lineProps = {key: screenLine.id, displayLayer, screenLine}
+        lineNodes.push($(LineComponent, {
+          key: screenLine.id,
+          screenLine,
+          displayLayer,
+          lineNodesByScreenLine,
+          textNodesByScreenLine
+        }))
         if (screenLine === this.longestLineToMeasure) {
-          lineProps.ref = 'longestLineToMeasure'
           this.longestLineToMeasure = null
         }
-        lineNodes.push($(LineComponent, lineProps))
       }
 
       const tileHeight = this.getRowsPerTile() * this.measurements.lineHeight
@@ -252,15 +275,72 @@ class TextEditorComponent {
 
     if (this.longestLineToMeasure) {
       tileNodes.push($(LineComponent, {
-        ref: 'longestLineToMeasure',
         key: this.longestLineToMeasure.id,
+        screenLine: this.longestLineToMeasure,
         displayLayer,
-        screenLine: this.longestLineToMeasure
+        lineNodesByScreenLine,
+        textNodesByScreenLine
       }))
       this.longestLineToMeasure = null
     }
 
-    return tileNodes
+    return $.div({
+      key: 'lineTiles',
+      style: {
+        position: 'absolute',
+        contain: 'strict',
+        width, height
+      }
+    }, tileNodes)
+  }
+
+  renderCursors (width, height) {
+    return $.div({
+      key: 'cursors',
+      className: 'cursors',
+      style: {
+        position: 'absolute',
+        contain: 'strict',
+        width, height
+      }
+    },
+      this.cursorsToRender.map(style => $.div({className: 'cursor', style}))
+    )
+  }
+
+  populateCursorPositionsToMeasure () {
+    const model = this.getModel()
+    for (let i = 0; i < model.cursors.length; i++) {
+      const cursor = model.cursors[i]
+      const position = cursor.getScreenPosition()
+      let columns = this.horizontalPositionsToMeasure.get(position.row)
+      if (columns == null) {
+        columns = []
+        this.horizontalPositionsToMeasure.set(position.row, columns)
+      }
+      columns.push(position.column)
+      columns.push(position.column + 1)
+    }
+
+    this.horizontalPositionsToMeasure.forEach((value) => value.sort((a, b) => a - b))
+  }
+
+  updateCursorsToRender () {
+    const model = this.getModel()
+    const height = this.measurements.lineHeight + 'px'
+    this.cursorsToRender.length = 0
+    for (let i = 0; i < model.cursors.length; i++) {
+      const cursor = model.cursors[i]
+      const position = cursor.getScreenPosition()
+      const top = this.pixelTopForScreenRow(position.row)
+      const left = this.pixelLeftForScreenPosition(position)
+      const right = this.pixelLeftForScreenRowAndColumn(position.row, position.column + 1)
+      this.cursorsToRender.push({
+        height,
+        width: (right - left) + 'px',
+        transform: `translate(${top}px, ${left}px)`
+      })
+    }
   }
 
   didAttach () {
@@ -335,12 +415,85 @@ class TextEditorComponent {
     this.measurements.koreanCharacterWidth = this.refs.koreanCharacterSpan.getBoundingClientRect().widt
   }
 
-  measureLongestLineWidth () {
-    this.measurements.scrollWidth = this.refs.longestLineToMeasure.element.firstChild.offsetWidth
+  measureLongestLineWidth (screenLine) {
+    this.measurements.scrollWidth = this.lineNodesByScreenLine.get(screenLine).firstChild.offsetWidth
   }
 
   measureGutterDimensions () {
     this.measurements.lineNumberGutterWidth = this.refs.lineNumberGutter.offsetWidth
+  }
+
+  measureHorizontalPositions () {
+    this.horizontalPositionsToMeasure.forEach((columnsToMeasure, row) => {
+      const screenLine = this.getModel().displayLayer.getScreenLine(row)
+
+      const lineNode = this.lineNodesByScreenLine.get(screenLine)
+      const textNodes = this.textNodesByScreenLine.get(screenLine)
+      let positionsForLine = this.horizontalPixelPositionsByScreenLine.get(screenLine)
+      if (positionsForLine == null) {
+        positionsForLine = new Map()
+        this.horizontalPixelPositionsByScreenLine.set(screenLine, positionsForLine)
+      }
+
+      this.measureHorizontalPositionsOnLine(lineNode, textNodes, columnsToMeasure, positionsForLine)
+    })
+  }
+
+  measureHorizontalPositionsOnLine (lineNode, textNodes, columnsToMeasure, positions) {
+    let lineNodeClientLeft = -1
+    let textNodeStartColumn = 0
+    let textNodesIndex = 0
+
+    columnLoop:
+    for (let columnsIndex = 0; columnsIndex < columnsToMeasure.length; columnsIndex++) {
+      while (textNodesIndex < textNodes.length) {
+        const nextColumnToMeasure = columnsToMeasure[columnsIndex]
+        if (nextColumnToMeasure === 0) {
+          positions.set(0, 0)
+          continue columnLoop
+        }
+        if (positions.has(nextColumnToMeasure)) continue columnLoop
+        const textNode = textNodes[textNodesIndex]
+        const textNodeEndColumn = textNodeStartColumn + textNode.textContent.length
+
+        if (nextColumnToMeasure <= textNodeEndColumn) {
+          let clientPixelPosition
+          if (nextColumnToMeasure === textNodeStartColumn) {
+            const range = getRangeForMeasurement()
+            range.selectNode(textNode)
+            clientPixelPosition = range.getBoundingClientRect().left
+          } else if (nextColumnToMeasure === textNodeEndColumn) {
+            const range = getRangeForMeasurement()
+            range.selectNode(textNode)
+            clientPixelPosition = range.getBoundingClientRect().right
+          } else {
+            const range = getRangeForMeasurement()
+            range.setStart(textNode, 0)
+            range.setEnd(textNode, nextColumnToMeasure - textNodeStartColumn)
+            clientPixelPosition = range.getBoundingClientRect().right
+          }
+          if (lineNodeClientLeft === -1) lineNodeClientLeft = lineNode.getBoundingClientRect().left
+          positions.set(nextColumnToMeasure, clientPixelPosition - lineNodeClientLeft)
+          continue columnLoop
+        } else {
+          textNodesIndex++
+          textNodeStartColumn = textNodeEndColumn
+        }
+      }
+    }
+  }
+
+  pixelTopForScreenRow (row) {
+    return row * this.measurements.lineHeight
+  }
+
+  pixelLeftForScreenPosition ({row, column}) {
+    return this.pixelLeftForScreenRowAndColumn(row, column)
+  }
+
+  pixelLeftForScreenRowAndColumn (row, column) {
+    const screenLine = this.getModel().displayLayer.getScreenLine(row)
+    return this.horizontalPixelPositionsByScreenLine.get(screenLine).get(column)
   }
 
   getModel () {
@@ -416,12 +569,15 @@ class TextEditorComponent {
 }
 
 class LineComponent {
-  constructor ({displayLayer, screenLine}) {
-    const {lineText, tagCodes} = screenLine
+  constructor ({displayLayer, screenLine, lineNodesByScreenLine, textNodesByScreenLine}) {
     this.element = document.createElement('div')
     this.element.classList.add('line')
+    lineNodesByScreenLine.set(screenLine, this.element)
 
     const textNodes = []
+    textNodesByScreenLine.set(screenLine, textNodes)
+
+    const {lineText, tagCodes} = screenLine
     let startIndex = 0
     let openScopeNode = document.createElement('span')
     this.element.appendChild(openScopeNode)
@@ -459,8 +615,6 @@ class LineComponent {
       this.element.appendChild(textNode)
       textNodes.push(textNode)
     }
-
-    // this.textNodesByLineId[id] = textNodes
   }
 
   update () {}
@@ -474,4 +628,10 @@ function classNameForScopeName (scopeName) {
     classNamesByScopeName.set(scopeName, classString)
   }
   return classString
+}
+
+let rangeForMeasurement
+function getRangeForMeasurement () {
+  if (!rangeForMeasurement) rangeForMeasurement = document.createRange()
+  return rangeForMeasurement
 }
