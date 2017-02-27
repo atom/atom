@@ -10,9 +10,11 @@ module.exports = function (packagedAppPath) {
   const coreModules = new Set(['electron', 'atom', 'shell', 'WNdb', 'lapack', 'remote'])
   const baseDirPath = path.join(CONFIG.intermediateAppPath, 'static')
   let processedFiles = 0
-  const snapshotScriptContent = electronLink({
+
+  return electronLink({
     baseDirPath,
     mainPath: path.resolve(baseDirPath, '..', 'src', 'initialize-application-window.js'),
+    cachePath: path.join(CONFIG.atomHomeDirPath, 'snapshot-cache'),
     shouldExcludeModule: (modulePath) => {
       if (processedFiles > 0) {
         process.stdout.write('\r')
@@ -80,25 +82,26 @@ module.exports = function (packagedAppPath) {
         relativePath == path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js')
       )
     }
+  }).then((snapshotScriptContent) => {
+    fs.writeFileSync(snapshotScriptPath, snapshotScriptContent)
+    process.stdout.write('\n')
+
+    console.log('Verifying if snapshot can be executed via `mksnapshot`')
+    vm.runInNewContext(snapshotScriptContent, undefined, {filename: snapshotScriptPath, displayErrors: true})
+
+    const generatedStartupBlobPath = path.join(CONFIG.buildOutputPath, 'snapshot_blob.bin')
+    console.log(`Generating startup blob at "${generatedStartupBlobPath}"`)
+    childProcess.execFileSync(
+      path.join(CONFIG.repositoryRootPath, 'electron', 'mksnapshot', `mksnapshot`),
+      [snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
+    )
+
+    const startupBlobDestinationPath = path.join(
+      packagedAppPath,
+      'Contents', 'Frameworks', 'Electron Framework.framework', 'Resources', 'snapshot_blob.bin'
+    )
+    console.log(`Moving generated startup blob into "${startupBlobDestinationPath}"`)
+    fs.unlinkSync(startupBlobDestinationPath)
+    fs.renameSync(generatedStartupBlobPath, startupBlobDestinationPath)
   })
-  fs.writeFileSync(snapshotScriptPath, snapshotScriptContent)
-  process.stdout.write('\n')
-
-  console.log('Verifying if snapshot can be executed via `mksnapshot`')
-  vm.runInNewContext(snapshotScriptContent, undefined, {filename: snapshotScriptPath, displayErrors: true})
-
-  const generatedStartupBlobPath = path.join(CONFIG.buildOutputPath, 'snapshot_blob.bin')
-  console.log(`Generating startup blob at "${generatedStartupBlobPath}"`)
-  childProcess.execFileSync(
-    path.join(CONFIG.repositoryRootPath, 'electron', 'mksnapshot', `mksnapshot`),
-    [snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
-  )
-
-  const startupBlobDestinationPath = path.join(
-    packagedAppPath,
-    'Contents', 'Frameworks', 'Electron Framework.framework', 'Resources', 'snapshot_blob.bin'
-  )
-  console.log(`Moving generated startup blob into "${startupBlobDestinationPath}"`)
-  fs.unlinkSync(startupBlobDestinationPath)
-  fs.renameSync(generatedStartupBlobPath, startupBlobDestinationPath)
 }

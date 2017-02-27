@@ -62,9 +62,8 @@ generateMetadata()
 generateAPIDocs()
 dumpSymbols()
   .then(packageApplication)
+  .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
   .then(packagedAppPath => {
-    generateStartupSnapshot(packagedAppPath)
-
     if (process.platform === 'darwin') {
       if (argv.codeSign) {
         codeSignOnMac(packagedAppPath)
