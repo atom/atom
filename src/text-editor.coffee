@@ -353,7 +353,8 @@ class TextEditor extends Model
             cursor.setShowCursorOnSelection(value) for cursor in @getCursors()
 
         else
-          throw new TypeError("Invalid TextEditor parameter: '#{param}'")
+          if param isnt 'ref' and param isnt 'key'
+            throw new TypeError("Invalid TextEditor parameter: '#{param}'")
 
     @displayLayer.reset(displayLayerParams)
 
