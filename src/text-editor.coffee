@@ -210,7 +210,7 @@ class TextEditor extends Model
     if @cursors.length is 0 and not suppressCursorCreation
       initialLine = Math.max(parseInt(initialLine) or 0, 0)
       initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
-      @addCursorAtBufferPosition([initialLine, initialColumn])
+      @addCursorAtBufferPosition([initialLine, initialColumn], {suppressLayerUpdateEvent: true})
 
     @languageMode = new LanguageMode(this)
 
@@ -2140,7 +2140,7 @@ class TextEditor extends Model
   #
   # Returns a {Cursor}.
   addCursorAtBufferPosition: (bufferPosition, options) ->
-    @selectionsMarkerLayer.markBufferPosition(bufferPosition, {invalidate: 'never'})
+    @selectionsMarkerLayer.markBufferPosition(bufferPosition, Object.assign({invalidate: 'never'}, options))
     @getLastSelection().cursor.autoscroll() unless options?.autoscroll is false
     @getLastSelection().cursor
 
