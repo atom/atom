@@ -41,7 +41,8 @@ class Package
     @metadata ?= @packageManager.loadPackageMetadata(@path)
     @bundledPackage = @packageManager.isBundledPackagePath(@path)
     @name = @metadata?.name ? path.basename(@path)
-    # ModuleCache.add(@path, @metadata)
+    unless @bundledPackage
+      ModuleCache.add(@path, @metadata)
     @reset()
 
   ###
