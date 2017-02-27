@@ -151,6 +151,51 @@ describe('TextEditorComponent', () => {
     cursorNodes = Array.from(element.querySelectorAll('.cursor'))
     expect(cursorNodes.length).toBe(0)
   })
+
+  it('places the hidden input element at the location of the last cursor if it is visible', async () => {
+    const {component, element, editor} = buildComponent({height: 60, width: 120, rowsPerTile: 2})
+    const {hiddenInput} = component.refs
+    component.refs.scroller.scrollTop = 100
+    component.refs.scroller.scrollLeft = 40
+    await component.getNextUpdatePromise()
+
+    expect(component.getRenderedStartRow()).toBe(4)
+    expect(component.getRenderedEndRow()).toBe(12)
+
+    // When out of view, the hidden input is positioned at 0, 0
+    expect(editor.getCursorScreenPosition()).toEqual([0, 0])
+    console.log(hiddenInput.offsetParent);
+    console.log(hiddenInput.offsetTop);
+    expect(hiddenInput.offsetTop).toBe(0)
+    expect(hiddenInput.offsetLeft).toBe(0)
+
+    // Otherwise it is positioned at the last cursor position
+    editor.addCursorAtScreenPosition([7, 4])
+    await component.getNextUpdatePromise()
+    expect(hiddenInput.getBoundingClientRect().top).toBe(clientTopForLine(component, 7))
+    expect(Math.round(hiddenInput.getBoundingClientRect().left)).toBe(clientLeftForCharacter(component, 7, 4))
+  })
+
+  it('focuses the hidden input elemnent and adds the is-focused class when focused', async () => {
+    const {component, element, editor} = buildComponent()
+    const {hiddenInput} = component.refs
+
+    expect(document.activeElement).not.toBe(hiddenInput)
+    element.focus()
+    expect(document.activeElement).toBe(hiddenInput)
+    await component.getNextUpdatePromise()
+    expect(element.classList.contains('is-focused')).toBe(true)
+
+    element.focus() // focusing back to the element does not blur
+    expect(document.activeElement).toBe(hiddenInput)
+    await component.getNextUpdatePromise()
+    expect(element.classList.contains('is-focused')).toBe(true)
+
+    document.body.focus()
+    expect(document.activeElement).not.toBe(hiddenInput)
+    await component.getNextUpdatePromise()
+    expect(element.classList.contains('is-focused')).toBe(false)
+  })
 })
 
 function verifyCursorPosition (component, cursorNode, row, column) {
@@ -180,10 +225,10 @@ function clientLeftForCharacter (component, row, column) {
 
 function lineNodeForScreenRow (component, row) {
   const screenLine = component.getModel().screenLineForScreenRow(row)
-  return component.lineNodesByScreenLine.get(screenLine)
+  return component.lineNodesByScreenLineId.get(screenLine.id)
 }
 
 function textNodesForScreenRow (component, row) {
   const screenLine = component.getModel().screenLineForScreenRow(row)
-  return component.textNodesByScreenLine.get(screenLine)
+  return component.textNodesByScreenLineId.get(screenLine.id)
 }
