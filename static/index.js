@@ -10,7 +10,7 @@
 
   window.onload = function () {
     try {
-      var startTime = Date.now()
+      const startTime = Date.now()
 
       process.on('unhandledRejection', function (error, promise) {
         console.error('Unhandled promise rejection %o with error: %o', promise, error)
@@ -25,7 +25,7 @@
       requireFunction = useSnapshot ? snapshotResult.customRequire : require
 
       if (devMode) {
-        var metadata = require('../package.json')
+        const metadata = require('../package.json')
         if (!metadata._deprecatedPackages) {
           try {
             metadata._deprecatedPackages = require('../script/deprecated-packages.json')
@@ -102,7 +102,7 @@
   function profileStartup (initialTime) {
     function profile () {
       console.profile('startup')
-      var startTime = Date.now()
+      const startTime = Date.now()
       setupWindow().then(function () {
         setLoadTime(Date.now() - startTime + initialTime)
         console.profileEnd('startup')
