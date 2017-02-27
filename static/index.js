@@ -1,4 +1,5 @@
 (function () {
+  const electron = require('electron')
   const path = require('path')
   const getWindowLoadSettings = require('../src/get-window-load-settings')
   const entryPointDirPath = __dirname
@@ -70,7 +71,7 @@
   }
 
   function handleSetupError (error) {
-    const currentWindow = require('electron').remote.getCurrentWindow()
+    const currentWindow = electron.remote.getCurrentWindow()
     currentWindow.setSize(800, 600)
     currentWindow.center()
     currentWindow.show()
@@ -94,7 +95,7 @@
     const initScriptPath = path.relative(entryPointDirPath, getWindowLoadSettings().windowInitializationScript)
     const initialize = requireFunction(initScriptPath)
     return initialize({blobStore: blobStore}).then(function () {
-      require('electron').ipcRenderer.send('window-command', 'window:loaded')
+      electron.ipcRenderer.send('window-command', 'window:loaded')
     })
   }
 
@@ -109,7 +110,7 @@
       })
     }
 
-    const webContents = require('electron').remote.getCurrentWindow().webContents
+    const webContents = electron.remote.getCurrentWindow().webContents
     if (webContents.devToolsWebContents) {
       profile()
     } else {
