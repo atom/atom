@@ -7,10 +7,11 @@ const template = require('lodash.template')
 
 const CONFIG = require('../config')
 
-module.exports = function (packagedAppPath) {
+module.exports = function (packagedAppPath, installDir) {
   const packagedAppFileName = path.basename(packagedAppPath)
   if (process.platform === 'darwin') {
-    const installationDirPath = path.join(path.sep, 'Applications', packagedAppFileName)
+    const installPrefix = installDir !== '' ? installDir : path.join(path.sep, 'Applications')
+    const installationDirPath = path.join(installPrefix, packagedAppFileName)
     if (fs.existsSync(installationDirPath)) {
       console.log(`Removing previously installed "${packagedAppFileName}" at "${installationDirPath}"`)
       fs.removeSync(installationDirPath)
@@ -18,7 +19,8 @@ module.exports = function (packagedAppPath) {
     console.log(`Installing "${packagedAppPath}" at "${installationDirPath}"`)
     fs.copySync(packagedAppPath, installationDirPath)
   } else if (process.platform === 'win32') {
-    const installationDirPath = path.join(process.env.LOCALAPPDATA, packagedAppFileName, 'app-dev')
+    const installPrefix = installDir !== '' ? installDir : process.env.LOCALAPPDATA
+    const installationDirPath = path.join(installPrefix, packagedAppFileName, 'app-dev')
     try {
       if (fs.existsSync(installationDirPath)) {
         console.log(`Removing previously installed "${packagedAppFileName}" at "${installationDirPath}"`)
@@ -39,12 +41,12 @@ module.exports = function (packagedAppPath) {
     const apmExecutableName = CONFIG.channel === 'beta' ? 'apm-beta' : 'apm'
     const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
     const appDescription = CONFIG.appMetadata.description
-    const userLocalDirPath = path.join('/usr', 'local')
-    const shareDirPath = path.join(userLocalDirPath, 'share')
+    const prefixDirPath = installDir !== '' ? installDir : path.join('/usr', 'local')
+    const shareDirPath = path.join(prefixDirPath, 'share')
     const installationDirPath = path.join(shareDirPath, atomExecutableName)
     const applicationsDirPath = path.join(shareDirPath, 'applications')
     const desktopEntryPath = path.join(applicationsDirPath, `${atomExecutableName}.desktop`)
-    const binDirPath = path.join(userLocalDirPath, 'bin')
+    const binDirPath = path.join(prefixDirPath, 'bin')
     const atomBinDestinationPath = path.join(binDirPath, atomExecutableName)
     const apmBinDestinationPath = path.join(binDirPath, apmExecutableName)
 
@@ -67,7 +69,7 @@ module.exports = function (packagedAppPath) {
     const desktopEntryTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.desktop.in'))
     const desktopEntryContents = template(desktopEntryTemplate)({
       appName, appFileName: atomExecutableName, description: appDescription,
-      installDir: '/usr', iconPath
+      installDir: prefixDirPath, iconPath
     })
     fs.writeFileSync(desktopEntryPath, desktopEntryContents)
 
