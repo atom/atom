@@ -694,8 +694,14 @@ class AtomEnvironment extends Model
         @deserialize(state) if state?
         @deserializeTimings.atom = Date.now() - startTime
 
-        if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
+        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom'
           @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+          @document.body.classList.add('custom-title-bar')
+        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom-inset'
+          @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+          @document.body.classList.add('custom-inset-title-bar')
+        if process.platform is 'darwin' and @config.get('core.titleBar') is 'hidden'
+          @document.body.classList.add('hidden-title-bar')
 
         @document.body.appendChild(@views.getView(@workspace))
         @backgroundStylesheet?.remove()
@@ -821,12 +827,17 @@ class AtomEnvironment extends Model
   Section: Private
   ###
 
-  assert: (condition, message, callback) ->
+  assert: (condition, message, callbackOrMetadata) ->
     return true if condition
 
     error = new Error("Assertion failed: #{message}")
     Error.captureStackTrace(error, @assert)
-    callback?(error)
+
+    if callbackOrMetadata?
+      if typeof callbackOrMetadata is 'function'
+        callbackOrMetadata?(error)
+      else
+        error.metadata = callbackOrMetadata
 
     @emitter.emit 'did-fail-assertion', error
 

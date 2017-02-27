@@ -33,6 +33,18 @@ module.exports = function (packagedAppPath) {
       '-T', '/usr/bin/codesign'
     ])
 
+
+    console.log('Running incantation to suppress dialog when signing on macOS Sierra')
+    try {
+      spawnSync('security', [
+        'set-key-partition-list', '-S', 'apple-tool:,apple:', '-s',
+        '-k', process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD,
+        process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN
+      ])
+    } catch (e) {
+      console.log('Incantation failed... maybe this isn\'t Sierra?');
+    }
+
     console.log(`Code-signing application at ${packagedAppPath}`)
     spawnSync('codesign', [
       '--deep', '--force', '--verbose',
