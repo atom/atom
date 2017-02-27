@@ -224,7 +224,7 @@ class TextEditorComponent {
       )
     }
 
-    return $.div({ref: 'lines', className: 'lines', style}, children)
+    return $.div({style}, children)
   }
 
   renderLineTiles (width, height) {
@@ -288,6 +288,7 @@ class TextEditorComponent {
 
     return $.div({
       key: 'lineTiles',
+      className: 'lines',
       style: {
         position: 'absolute',
         contain: 'strict',
