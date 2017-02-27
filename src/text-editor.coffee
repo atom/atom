@@ -344,7 +344,8 @@ class TextEditor extends Model
             @autoWidth = value
             @presenter?.didChangeAutoWidth()
         else
-          throw new TypeError("Invalid TextEditor parameter: '#{param}'")
+          if param isnt 'ref' and param isnt 'key'
+            throw new TypeError("Invalid TextEditor parameter: '#{param}'")
 
     @displayLayer.reset(displayLayerParams)
 
