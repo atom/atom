@@ -7,6 +7,7 @@ fs = require 'fs-plus'
 {Emitter, CompositeDisposable} = require 'event-kit'
 
 CompileCache = require './compile-cache'
+ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 BufferedProcess = require './buffered-process'
 

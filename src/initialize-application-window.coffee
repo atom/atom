@@ -51,7 +51,7 @@ require('whitespace')
 require('wrap-guide')
 
 # Like sands through the hourglass, so are the days of our lives.
-module.exports = ->
+module.exports = ({blobStore}) ->
   {updateProcessEnv} = require('./update-process-env')
   path = require 'path'
   require './window'
@@ -72,7 +72,7 @@ module.exports = ->
   TextEditor.setClipboard(clipboard)
 
   window.atom = new AtomEnvironment({
-    window, document, clipboard,
+    window, document, clipboard, blobStore,
     applicationDelegate: new ApplicationDelegate,
     configDirPath: process.env.ATOM_HOME,
     enablePersistence: true,

@@ -131,7 +131,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate, @window, @document, @clipboard, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@blobStore, @applicationDelegate, @window, @document, @clipboard, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
     @unloaded = false
     @loadTime = null
@@ -733,6 +733,7 @@ class AtomEnvironment extends Model
 
     @storeWindowBackground()
     @packages.deactivatePackages()
+    @saveBlobStoreSync()
     @unloaded = true
 
   openInitialEmptyEditorIfNecessary: ->
@@ -865,6 +866,11 @@ class AtomEnvironment extends Model
 
   showSaveDialogSync: (options={}) ->
     @applicationDelegate.showSaveDialog(options)
+
+  saveBlobStoreSync: ->
+    return unless @enablePersistence
+
+    @blobStore.save()
 
   saveState: (options) ->
     new Promise (resolve, reject) =>

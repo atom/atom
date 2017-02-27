@@ -34,13 +34,14 @@
           }
         }
       } else if (useSnapshot) {
-        Module.prototype.require = function (modulePath) {
-          const absoluteFilePath = Module._resolveFilename(modulePath, this, false)
-          const relativeFilePath = path.relative(entryPointDirPath, absoluteFilePath)
-          return snapshotResult.customRequire(relativeFilePath)
+        Module.prototype.require = function (path) {
+          const absoluteFilePath = Module._resolveFilename(path, this, false)
+          const relativeFilePath = Path.relative(entryPointDirPath, absoluteFilePath)
+          const cachedModule = snapshotResult.customRequire.cache[relativeFilePath]
+          return cachedModule ? cachedModule : Module._load(path, this, false)
         }
 
-        snapshotResult.setGlobals(global, process, window, document, Module._load)
+        snapshotResult.setGlobals(global, process, window, document, require)
       }
 
       const FileSystemBlobStore = requireFunction('../src/file-system-blob-store.js')
