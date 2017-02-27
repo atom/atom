@@ -34,12 +34,6 @@ describe('TextEditorComponent', () => {
   it('renders lines and line numbers for the visible region', async () => {
     const {component, element, editor} = buildComponent({rowsPerTile: 3})
 
-    // TODO: An extra update is caused by marker layer events being asynchronous,
-    // so the cursor getting added triggers an update even though we created
-    // the component after this occurred. We should make marker layer events
-    // synchronous and batched on the transaction.
-    await component.getNextUpdatePromise()
-
     expect(element.querySelectorAll('.line-number').length).toBe(13)
     expect(element.querySelectorAll('.line').length).toBe(13)
 
