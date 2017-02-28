@@ -11,6 +11,16 @@ const path = require('path')
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
 const NBSP_CHARACTER = '\u00a0'
 
+document.registerElement('text-editor-component-test-element', {
+  prototype: Object.create(HTMLElement.prototype, {
+    attachedCallback: {
+      value: function () {
+        this.didAttach()
+      }
+    }
+  })
+})
+
 describe('TextEditorComponent', () => {
   beforeEach(() => {
     jasmine.useRealClock()
@@ -27,7 +37,7 @@ describe('TextEditorComponent', () => {
     const {element} = component
     element.style.width = params.width ? params.width + 'px' : '800px'
     element.style.height = params.height ? params.height + 'px' : '600px'
-    jasmine.attachToDOM(element)
+    if (params.attach !== false) jasmine.attachToDOM(element)
     return {component, element, editor}
   }
 
@@ -174,25 +184,36 @@ describe('TextEditorComponent', () => {
     expect(Math.round(hiddenInput.getBoundingClientRect().left)).toBe(clientLeftForCharacter(component, 7, 4))
   })
 
-  it('focuses the hidden input element and adds the is-focused class when focused', async () => {
-    const {component, element, editor} = buildComponent()
-    const {hiddenInput} = component.refs
+  describe('focus', () => {
+    it('focuses the hidden input element and adds the is-focused class when focused', async () => {
+      const {component, element, editor} = buildComponent()
+      const {hiddenInput} = component.refs
 
-    expect(document.activeElement).not.toBe(hiddenInput)
-    element.focus()
-    expect(document.activeElement).toBe(hiddenInput)
-    await component.getNextUpdatePromise()
-    expect(element.classList.contains('is-focused')).toBe(true)
+      expect(document.activeElement).not.toBe(hiddenInput)
+      element.focus()
+      expect(document.activeElement).toBe(hiddenInput)
+      await component.getNextUpdatePromise()
+      expect(element.classList.contains('is-focused')).toBe(true)
 
-    element.focus() // focusing back to the element does not blur
-    expect(document.activeElement).toBe(hiddenInput)
-    await component.getNextUpdatePromise()
-    expect(element.classList.contains('is-focused')).toBe(true)
+      element.focus() // focusing back to the element does not blur
+      expect(document.activeElement).toBe(hiddenInput)
+      await component.getNextUpdatePromise()
+      expect(element.classList.contains('is-focused')).toBe(true)
 
-    document.body.focus()
-    expect(document.activeElement).not.toBe(hiddenInput)
-    await component.getNextUpdatePromise()
-    expect(element.classList.contains('is-focused')).toBe(false)
+      document.body.focus()
+      expect(document.activeElement).not.toBe(hiddenInput)
+      await component.getNextUpdatePromise()
+      expect(element.classList.contains('is-focused')).toBe(false)
+    })
+
+    it('gracefully handles a focus event that occurs prior to the attachedCallback of the element', () => {
+      const {component, element, editor} = buildComponent({attach: false})
+      const parent = document.createElement('text-editor-component-test-element')
+      parent.appendChild(element)
+      parent.didAttach = () => element.focus()
+      jasmine.attachToDOM(parent)
+      expect(document.activeElement).toBe(component.refs.hiddenInput)
+    })
   })
 
   describe('autoscroll', () => {

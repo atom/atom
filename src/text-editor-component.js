@@ -460,16 +460,19 @@ class TextEditorComponent {
   }
 
   didAttach () {
-    this.intersectionObserver = new IntersectionObserver((entries) => {
-      const {intersectionRect} = entries[entries.length - 1]
-      if (intersectionRect.width > 0 || intersectionRect.height > 0) {
-        this.didShow()
-      } else {
-        this.didHide()
-      }
-    })
-    this.intersectionObserver.observe(this.element)
-    if (this.isVisible()) this.didShow()
+    if (!this.attached) {
+      this.attached = true
+      this.intersectionObserver = new IntersectionObserver((entries) => {
+        const {intersectionRect} = entries[entries.length - 1]
+        if (intersectionRect.width > 0 || intersectionRect.height > 0) {
+          this.didShow()
+        } else {
+          this.didHide()
+        }
+      })
+      this.intersectionObserver.observe(this.element)
+      if (this.isVisible()) this.didShow()
+    }
   }
 
   didShow () {
@@ -489,6 +492,11 @@ class TextEditorComponent {
   }
 
   didFocus () {
+    // This element can be focused from a parent custom element's
+    // attachedCallback before *its* attachedCallback is fired. This protects
+    // against that case.
+    if (!this.attached) this.didAttach()
+
     const {hiddenInput} = this.refs
 
     // Ensure the input is in the visible part of the scrolled content to avoid
