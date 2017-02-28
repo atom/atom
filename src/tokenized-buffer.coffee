@@ -8,8 +8,6 @@ ScopeDescriptor = require './scope-descriptor'
 TokenizedBufferIterator = require './tokenized-buffer-iterator'
 NullGrammar = require './null-grammar'
 
-MAX_LINE_LENGTH_TO_TOKENIZE = 500
-
 module.exports =
 class TokenizedBuffer extends Model
   grammar: null
@@ -253,8 +251,6 @@ class TokenizedBuffer extends Model
 
   buildTokenizedLineForRowWithText: (row, text, ruleStack = @stackForRow(row - 1), openScopes = @openScopesForRow(row)) ->
     lineEnding = @buffer.lineEndingForRow(row)
-    if text.length > MAX_LINE_LENGTH_TO_TOKENIZE
-      text = text.slice(0, MAX_LINE_LENGTH_TO_TOKENIZE)
     {tags, ruleStack} = @grammar.tokenizeLine(text, ruleStack, row is 0, false)
     new TokenizedLine({openScopes, text, tags, ruleStack, lineEnding, @tokenIterator})
 
