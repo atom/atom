@@ -29,6 +29,11 @@ class TextEditorComponent {
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
+    this.pendingAutoscroll = null
+    this.autoscrollTop = -1
+    this.scrollWidthOrHeightChanged = false
+    this.previousScrollWidth = 0
+    this.previousScrollHeight = 0
     this.lastKeydown = null
     this.lastKeydownBeforeKeypress = null
     this.openedAccentedCharacterMenu = false
@@ -64,7 +69,10 @@ class TextEditorComponent {
       this.resolveNextUpdatePromise = null
     }
 
-    if (this.staleMeasurements.editorDimensions) this.measureEditorDimensions()
+    if (this.scrollWidthOrHeightChanged) {
+      this.measureClientDimensions()
+      this.scrollWidthOrHeightChanged = false
+    }
 
     const longestLine = this.getLongestScreenLine()
     let measureLongestLine = false
@@ -74,14 +82,27 @@ class TextEditorComponent {
       measureLongestLine = true
     }
 
+    if (this.pendingAutoscroll) {
+      this.autoscrollVertically()
+    }
+
     this.horizontalPositionsToMeasure.clear()
     etch.updateSync(this)
-    if (measureLongestLine) this.measureLongestLineWidth(longestLine)
+
+    if (this.autoscrollTop >= 0) {
+      this.refs.scroller.scrollTop = this.autoscrollTop
+      this.autoscrollTop = -1
+    }
+    if (measureLongestLine) {
+      this.measureLongestLineWidth(longestLine)
+    }
     this.queryCursorsToRender()
     this.measureHorizontalPositions()
     this.positionCursorsToRender()
 
     etch.updateSync(this)
+
+    this.pendingAutoscroll = null
   }
 
   render () {
@@ -220,8 +241,16 @@ class TextEditorComponent {
       overflow: 'hidden'
     }
     if (this.measurements) {
-      const width = this.measurements.scrollWidth + 'px'
-      const height = this.getScrollHeight() + 'px'
+      const scrollWidth = this.getScrollWidth()
+      const scrollHeight = this.getScrollHeight()
+      if (scrollWidth !== this.previousScrollWidth || scrollHeight !== this.previousScrollHeight) {
+        this.scrollWidthOrHeightChanged = true
+        this.previousScrollWidth = scrollWidth
+        this.previousScrollHeight = scrollHeight
+      }
+
+      const width = scrollWidth + 'px'
+      const height = scrollHeight + 'px'
       style.width = width
       style.height = height
       children = [
@@ -280,7 +309,7 @@ class TextEditorComponent {
           contain: 'strict',
           position: 'absolute',
           height: tileHeight + 'px',
-          width: this.measurements.scrollWidth + 'px',
+          width: width,
           willChange: 'transform',
           transform: `translateY(${this.topPixelPositionForRow(tileStartRow)}px)`,
           backgroundColor: 'inherit'
@@ -382,6 +411,7 @@ class TextEditorComponent {
         this.getRenderedEndRow() - 1,
       ]
     })
+    if (global.debug) debugger
     const lastCursorMarker = model.getLastCursor().getMarker()
 
     this.cursorsToRender.length = cursorMarkers.length
@@ -463,8 +493,8 @@ class TextEditorComponent {
 
     // Ensure the input is in the visible part of the scrolled content to avoid
     // the browser trying to auto-scroll to the form-field.
-    hiddenInput.style.top = this.measurements.scrollTop + 'px'
-    hiddenInput.style.left = this.measurements.scrollLeft + 'px'
+    hiddenInput.style.top = this.getScrollTop() + 'px'
+    hiddenInput.style.left = this.getScrollLeft() + 'px'
 
     hiddenInput.focus()
     this.focused = true
@@ -490,12 +520,14 @@ class TextEditorComponent {
   }
 
   didScroll () {
-    this.measureScrollPosition()
-    this.updateSync()
+    if (this.measureScrollPosition()) {
+      this.updateSync()
+    }
   }
 
   didResize () {
     if (this.measureEditorDimensions()) {
+      this.measureClientDimensions()
       this.scheduleUpdate()
     }
   }
@@ -566,10 +598,60 @@ class TextEditorComponent {
     this.lastKeydown = null
   }
 
+  didRequestAutoscroll (autoscroll) {
+    this.pendingAutoscroll = autoscroll
+    this.scheduleUpdate()
+  }
+
+  autoscrollVertically () {
+    const {screenRange, options} = this.pendingAutoscroll
+
+    const screenRangeTop = this.pixelTopForScreenRow(screenRange.start.row)
+    const screenRangeBottom = this.pixelTopForScreenRow(screenRange.end.row) + this.measurements.lineHeight
+    const verticalScrollMargin = this.getVerticalScrollMargin()
+
+    let desiredScrollTop, desiredScrollBottom
+    if (options && options.center) {
+      const desiredScrollCenter = (screenRangeTop + screenRangeBottom) / 2
+      if (desiredScrollCenter < this.getScrollTop() || desiredScrollCenter > this.getScrollBottom()) {
+        desiredScrollTop = desiredScrollCenter - this.measurements.clientHeight / 2
+        desiredScrollBottom = desiredScrollCenter + this.measurements.clientHeight / 2
+      }
+    } else {
+      desiredScrollTop = screenRangeTop - verticalScrollMargin
+      desiredScrollBottom = screenRangeBottom + verticalScrollMargin
+    }
+
+    if (!options || options.reversed !== false) {
+      if (desiredScrollBottom > this.getScrollBottom()) {
+        this.autoscrollTop = desiredScrollBottom - this.measurements.clientHeight
+      }
+      if (desiredScrollTop < this.getScrollTop()) {
+        this.autoscrollTop = desiredScrollTop
+      }
+    } else {
+      if (desiredScrollTop < this.getScrollTop()) {
+        this.autoscrollTop = desiredScrollTop
+      }
+      if (desiredScrollBottom > this.getScrollBottom()) {
+        this.autoscrollTop = desiredScrollBottom - this.measurements.clientHeight
+      }
+    }
+  }
+
+  getVerticalScrollMargin () {
+    const {clientHeight, lineHeight} = this.measurements
+    const marginInLines = Math.min(
+      this.getModel().verticalScrollMargin,
+      Math.floor(((clientHeight / lineHeight) - 1) / 2)
+    )
+    return marginInLines * this.measurements.lineHeight
+  }
+
   performInitialMeasurements () {
     this.measurements = {}
-    this.staleMeasurements = {}
     this.measureEditorDimensions()
+    this.measureClientDimensions()
     this.measureScrollPosition()
     this.measureCharacterDimensions()
     this.measureGutterDimensions()
@@ -591,8 +673,31 @@ class TextEditorComponent {
   }
 
   measureScrollPosition () {
-    this.measurements.scrollTop = this.refs.scroller.scrollTop
-    this.measurements.scrollLeft = this.refs.scroller.scrollLeft
+    let scrollPositionChanged = false
+    const {scrollTop, scrollLeft} = this.refs.scroller
+    if (scrollTop !== this.measurements.scrollTop) {
+      this.measurements.scrollTop = scrollTop
+      scrollPositionChanged = true
+    }
+    if (scrollLeft !== this.measurements.scrollLeft) {
+      this.measurements.scrollLeft = scrollLeft
+      scrollPositionChanged = true
+    }
+    return scrollPositionChanged
+  }
+
+  measureClientDimensions () {
+    let clientDimensionsChanged = false
+    const {clientHeight, clientWidth} = this.refs.scroller
+    if (clientHeight !== this.measurements.clientHeight) {
+      this.measurements.clientHeight = clientHeight
+      clientDimensionsChanged = true
+    }
+    if (clientWidth !== this.measurements.clientWidth) {
+      this.measurements.clientWidth = clientWidth
+      clientDimensionsChanged = true
+    }
+    return clientDimensionsChanged
   }
 
   measureCharacterDimensions () {
@@ -604,7 +709,7 @@ class TextEditorComponent {
   }
 
   measureLongestLineWidth (screenLine) {
-    this.measurements.scrollWidth = this.lineNodesByScreenLineId.get(screenLine.id).firstChild.offsetWidth
+    this.measurements.longestLineWidth = this.lineNodesByScreenLineId.get(screenLine.id).firstChild.offsetWidth
   }
 
   measureGutterDimensions () {
@@ -641,8 +746,6 @@ class TextEditorComponent {
     let lineNodeClientLeft = -1
     let textNodeStartColumn = 0
     let textNodesIndex = 0
-
-    if (!textNodes) debugger
 
     columnLoop:
     for (let columnsIndex = 0; columnsIndex < columnsToMeasure.length; columnsIndex++) {
@@ -706,6 +809,7 @@ class TextEditorComponent {
     const scheduleUpdate = this.scheduleUpdate.bind(this)
     this.disposables.add(model.selectionsMarkerLayer.onDidUpdate(scheduleUpdate))
     this.disposables.add(model.displayLayer.onDidChangeSync(scheduleUpdate))
+    this.disposables.add(model.onDidRequestAutoscroll(this.didRequestAutoscroll.bind(this)))
   }
 
   isVisible () {
@@ -717,7 +821,17 @@ class TextEditorComponent {
   }
 
   getScrollTop () {
-    return this.measurements ? this.measurements.scrollTop : null
+    if (this.autoscrollTop >= 0) {
+      return this.autoscrollTop
+    } else if (this.measurements != null) {
+      return this.measurements.scrollTop
+    }
+  }
+
+  getScrollBottom () {
+    return this.measurements
+      ? this.getScrollTop() + this.measurements.clientHeight
+      : null
   }
 
   getScrollLeft () {
@@ -753,12 +867,13 @@ class TextEditorComponent {
   }
 
   getFirstVisibleRow () {
-    const {scrollTop, lineHeight} = this.measurements
+    const scrollTop = this.getScrollTop()
+    const lineHeight = this.measurements.lineHeight
     return Math.floor(scrollTop / lineHeight)
   }
 
   getLastVisibleRow () {
-    const {scrollTop, scrollerHeight, lineHeight} = this.measurements
+    const {scrollerHeight, lineHeight} = this.measurements
     return Math.min(
       this.getModel().getApproximateScreenLineCount() - 1,
       this.getFirstVisibleRow() + Math.ceil(scrollerHeight / lineHeight)
@@ -767,6 +882,10 @@ class TextEditorComponent {
 
   topPixelPositionForRow (row) {
     return row * this.measurements.lineHeight
+  }
+
+  getScrollWidth () {
+    return Math.round(this.measurements.longestLineWidth + this.measurements.baseCharacterWidth)
   }
 
   getScrollHeight () {

@@ -122,13 +122,13 @@ describe('TextEditorComponent', () => {
     expect(component.getRenderedStartRow()).toBe(4)
     expect(component.getRenderedEndRow()).toBe(10)
 
-    editor.setCursorScreenPosition([0, 0]) // out of view
-    editor.addCursorAtScreenPosition([2, 2]) // out of view
-    editor.addCursorAtScreenPosition([4, 0]) // line start
-    editor.addCursorAtScreenPosition([4, 4]) // at token boundary
-    editor.addCursorAtScreenPosition([4, 6]) // within token
-    editor.addCursorAtScreenPosition([5, Infinity]) // line end
-    editor.addCursorAtScreenPosition([10, 2]) // out of view
+    editor.setCursorScreenPosition([0, 0], {autoscroll: false}) // out of view
+    editor.addCursorAtScreenPosition([2, 2], {autoscroll: false}) // out of view
+    editor.addCursorAtScreenPosition([4, 0], {autoscroll: false}) // line start
+    editor.addCursorAtScreenPosition([4, 4], {autoscroll: false}) // at token boundary
+    editor.addCursorAtScreenPosition([4, 6], {autoscroll: false}) // within token
+    editor.addCursorAtScreenPosition([5, Infinity], {autoscroll: false}) // line end
+    editor.addCursorAtScreenPosition([10, 2], {autoscroll: false}) // out of view
     await component.getNextUpdatePromise()
 
     let cursorNodes = Array.from(element.querySelectorAll('.cursor'))
@@ -138,14 +138,14 @@ describe('TextEditorComponent', () => {
     verifyCursorPosition(component, cursorNodes[2], 4, 6)
     verifyCursorPosition(component, cursorNodes[3], 5, 30)
 
-    editor.setCursorScreenPosition([8, 11])
+    editor.setCursorScreenPosition([8, 11], {autoscroll: false})
     await component.getNextUpdatePromise()
 
     cursorNodes = Array.from(element.querySelectorAll('.cursor'))
     expect(cursorNodes.length).toBe(1)
     verifyCursorPosition(component, cursorNodes[0], 8, 11)
 
-    editor.setCursorScreenPosition([0, 0])
+    editor.setCursorScreenPosition([0, 0], {autoscroll: false})
     await component.getNextUpdatePromise()
 
     cursorNodes = Array.from(element.querySelectorAll('.cursor'))
@@ -164,8 +164,6 @@ describe('TextEditorComponent', () => {
 
     // When out of view, the hidden input is positioned at 0, 0
     expect(editor.getCursorScreenPosition()).toEqual([0, 0])
-    console.log(hiddenInput.offsetParent);
-    console.log(hiddenInput.offsetTop);
     expect(hiddenInput.offsetTop).toBe(0)
     expect(hiddenInput.offsetLeft).toBe(0)
 
@@ -176,7 +174,7 @@ describe('TextEditorComponent', () => {
     expect(Math.round(hiddenInput.getBoundingClientRect().left)).toBe(clientLeftForCharacter(component, 7, 4))
   })
 
-  it('focuses the hidden input elemnent and adds the is-focused class when focused', async () => {
+  it('focuses the hidden input element and adds the is-focused class when focused', async () => {
     const {component, element, editor} = buildComponent()
     const {hiddenInput} = component.refs
 
@@ -195,6 +193,55 @@ describe('TextEditorComponent', () => {
     expect(document.activeElement).not.toBe(hiddenInput)
     await component.getNextUpdatePromise()
     expect(element.classList.contains('is-focused')).toBe(false)
+  })
+
+  describe('autoscroll', () => {
+    it('automatically scrolls vertically when the cursor is within vertical scroll margin of the top or bottom', async () => {
+      const {component, element, editor} = buildComponent({height: 120})
+      const {scroller} = component.refs
+      expect(component.getLastVisibleRow()).toBe(8)
+
+      editor.setCursorScreenPosition([6, 0])
+      await component.getNextUpdatePromise()
+      let scrollBottom = scroller.scrollTop + scroller.clientHeight
+      expect(scrollBottom).toBe((6 + 1 + editor.verticalScrollMargin) * component.measurements.lineHeight)
+
+      editor.setCursorScreenPosition([8, 0])
+      await component.getNextUpdatePromise()
+      scrollBottom = scroller.scrollTop + scroller.clientHeight
+      expect(scrollBottom).toBe((8 + 1 + editor.verticalScrollMargin) * component.measurements.lineHeight)
+
+      editor.setCursorScreenPosition([3, 0])
+      await component.getNextUpdatePromise()
+      expect(scroller.scrollTop).toBe((3 - editor.verticalScrollMargin) * component.measurements.lineHeight)
+
+      editor.setCursorScreenPosition([2, 0])
+      await component.getNextUpdatePromise()
+      expect(scroller.scrollTop).toBe(0)
+    })
+
+    it('does not vertically autoscroll by more than half of the visible lines if the editor is shorter than twice the scroll margin', async () => {
+      const {component, element, editor} = buildComponent()
+      const {scroller} = component.refs
+      element.style.height = 5.5 * component.measurements.lineHeight + 'px'
+      await component.getNextUpdatePromise()
+      expect(component.getLastVisibleRow()).toBe(6)
+      const scrollMarginInLines = 2
+
+      editor.setCursorScreenPosition([6, 0])
+      await component.getNextUpdatePromise()
+      let scrollBottom = scroller.scrollTop + scroller.clientHeight
+      expect(scrollBottom).toBe((6 + 1 + scrollMarginInLines) * component.measurements.lineHeight)
+
+      editor.setCursorScreenPosition([6, 4])
+      await component.getNextUpdatePromise()
+      scrollBottom = scroller.scrollTop + scroller.clientHeight
+      expect(scrollBottom).toBe((6 + 1 + scrollMarginInLines) * component.measurements.lineHeight)
+
+      editor.setCursorScreenPosition([4, 4])
+      await component.getNextUpdatePromise()
+      expect(scroller.scrollTop).toBe((4 - scrollMarginInLines) * component.measurements.lineHeight)
+    })
   })
 })
 
