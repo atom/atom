@@ -1,10 +1,10 @@
 (function () {
   const electron = require('electron')
   const path = require('path')
+  const fs = require('fs-plus')
   const Module = require('module')
   const getWindowLoadSettings = require('../src/get-window-load-settings')
   const entryPointDirPath = __dirname
-  let CompileCache = null
   let blobStore = null
   let devMode = false
   let useSnapshot = false
@@ -39,15 +39,16 @@
         Module.prototype.require = function (module) {
           const absoluteFilePath = Module._resolveFilename(module, this, false)
           const relativeFilePath = path.relative(entryPointDirPath, absoluteFilePath)
-          const cachedModule = snapshotResult.customRequire.cache[relativeFilePath]
-          return cachedModule ? cachedModule : Module._load(module, this, false)
+          let cachedModule = snapshotResult.customRequire.cache[relativeFilePath]
+          if (!cachedModule) {
+            cachedModule = Module._load(module, this, false)
+            snapshotResult.customRequire.cache[relativeFilePath] = cachedModule
+          }
+          return cachedModule
         }
 
         snapshotResult.setGlobals(global, process, window, document, require)
       }
-
-      CompileCache = require('../src/compile-cache')
-      CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
 
       // const FileSystemBlobStore = requireFunction('../src/file-system-blob-store.js')
       // blobStore = FileSystemBlobStore.load(
@@ -86,6 +87,10 @@
   }
 
   function setupWindow () {
+    const CompileCache = requireFunction('../src/compile-cache.js')
+    CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
+    CompileCache.install(require)
+
     const ModuleCache = requireFunction('../src/module-cache.js')
     ModuleCache.register(getWindowLoadSettings())
 

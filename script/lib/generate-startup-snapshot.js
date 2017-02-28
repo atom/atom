@@ -28,7 +28,6 @@ module.exports = function (packagedAppPath) {
         (relativePath.startsWith(path.join('..', 'src')) && relativePath.endsWith('-element.js')) ||
         relativePath == path.join('..', 'exports', 'atom.js') ||
         relativePath == path.join('..', 'src', 'config-schema.js') ||
-        relativePath == path.join('..', 'src', 'compile-cache.js') ||
         relativePath == path.join('..', 'src', 'electron-shims.js') ||
         relativePath == path.join('..', 'src', 'safe-clipboard.js') ||
         relativePath == path.join('..', 'node_modules', 'archive-view', 'node_modules', 'fs-plus', 'lib', 'fs-plus.js') ||

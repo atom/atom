@@ -73,6 +73,7 @@ class Task
       snapshotResult.setGlobals(global, process, global, {}, require)
       CompileCache = #{compileCacheRequire}
       CompileCache.setCacheDirectory('#{compileCachePath}');
+      CompileCache.install(require)
       #{taskBootstrapRequire}
     """
     bootstrap = bootstrap.replace(/\\/g, "\\\\")
