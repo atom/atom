@@ -1,8 +1,10 @@
 (function () {
   const electron = require('electron')
   const path = require('path')
+  const Module = require('module')
   const getWindowLoadSettings = require('../src/get-window-load-settings')
   const entryPointDirPath = __dirname
+  let CompileCache = null
   let blobStore = null
   let devMode = false
   let useSnapshot = false
@@ -34,25 +36,28 @@
           }
         }
       } else if (useSnapshot) {
-        Module.prototype.require = function (path) {
-          const absoluteFilePath = Module._resolveFilename(path, this, false)
-          const relativeFilePath = Path.relative(entryPointDirPath, absoluteFilePath)
+        Module.prototype.require = function (module) {
+          const absoluteFilePath = Module._resolveFilename(module, this, false)
+          const relativeFilePath = path.relative(entryPointDirPath, absoluteFilePath)
           const cachedModule = snapshotResult.customRequire.cache[relativeFilePath]
-          return cachedModule ? cachedModule : Module._load(path, this, false)
+          return cachedModule ? cachedModule : Module._load(module, this, false)
         }
 
         snapshotResult.setGlobals(global, process, window, document, require)
       }
 
-      const FileSystemBlobStore = requireFunction('../src/file-system-blob-store.js')
-      blobStore = FileSystemBlobStore.load(
-        path.join(process.env.ATOM_HOME, 'blob-store/')
-      )
+      CompileCache = require('../src/compile-cache')
+      CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
 
-      const NativeCompileCache = requireFunction('../src/native-compile-cache.js')
-      NativeCompileCache.setCacheStore(blobStore)
-      NativeCompileCache.setV8Version(process.versions.v8)
-      NativeCompileCache.install()
+      // const FileSystemBlobStore = requireFunction('../src/file-system-blob-store.js')
+      // blobStore = FileSystemBlobStore.load(
+      //   path.join(process.env.ATOM_HOME, 'blob-store/')
+      // )
+
+      // const NativeCompileCache = requireFunction('../src/native-compile-cache.js')
+      // NativeCompileCache.setCacheStore(blobStore)
+      // NativeCompileCache.setV8Version(process.versions.v8)
+      // NativeCompileCache.install()
 
       if (getWindowLoadSettings().profileStartup) {
         profileStartup(Date.now() - startTime)
@@ -81,9 +86,6 @@
   }
 
   function setupWindow () {
-    const CompileCache = requireFunction('../src/compile-cache.js')
-    CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
-
     const ModuleCache = requireFunction('../src/module-cache.js')
     ModuleCache.register(getWindowLoadSettings())
 

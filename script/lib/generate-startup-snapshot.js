@@ -28,8 +28,8 @@ module.exports = function (packagedAppPath) {
         (relativePath.startsWith(path.join('..', 'src')) && relativePath.endsWith('-element.js')) ||
         relativePath == path.join('..', 'exports', 'atom.js') ||
         relativePath == path.join('..', 'src', 'config-schema.js') ||
+        relativePath == path.join('..', 'src', 'compile-cache.js') ||
         relativePath == path.join('..', 'src', 'electron-shims.js') ||
-        relativePath == path.join('..', 'src', 'module-cache.js') ||
         relativePath == path.join('..', 'src', 'safe-clipboard.js') ||
         relativePath == path.join('..', 'node_modules', 'archive-view', 'node_modules', 'fs-plus', 'lib', 'fs-plus.js') ||
         relativePath == path.join('..', 'node_modules', 'archive-view', 'node_modules', 'decompress-zip', 'lib', 'decompress-zip.js') ||
@@ -62,13 +62,13 @@ module.exports = function (packagedAppPath) {
         relativePath == path.join('..', 'node_modules', 'mime', 'mime.js') ||
         relativePath == path.join('..', 'node_modules', 'oniguruma', 'lib', 'oniguruma.js') ||
         relativePath == path.join('..', 'node_modules', 'pathwatcher', 'lib', 'main.js') ||
-        relativePath == path.join('..', 'node_modules', 'request', 'request.js') ||
+        relativePath == path.join('..', 'node_modules', 'request', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'resolve', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'resolve', 'lib', 'core.js') ||
         relativePath == path.join('..', 'node_modules', 'settings-view', 'node_modules', 'glob', 'glob.js') ||
         relativePath == path.join('..', 'node_modules', 'settings-view', 'node_modules', 'fs-plus', 'lib', 'fs-plus.js') ||
         relativePath == path.join('..', 'node_modules', 'settings-view', 'node_modules', 'htmlparser2', 'lib', 'index.js') ||
-        relativePath == path.join('..', 'node_modules', 'settings-view', 'node_modules', 'request', 'request.js') ||
+        relativePath == path.join('..', 'node_modules', 'settings-view', 'node_modules', 'request', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'settings-view', 'node_modules', 'tough-cookie', 'lib', 'cookie.js') ||
         relativePath == path.join('..', 'node_modules', 'settings-view', 'node_modules', 'tough-cookie', 'lib', 'memstore.js') ||
         relativePath == path.join('..', 'node_modules', 'spellchecker', 'lib', 'spellchecker.js') ||

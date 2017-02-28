@@ -4,7 +4,7 @@
 
 // Run bootstrap first to ensure all the dependencies used later in this script
 // are installed.
-require('./bootstrap')
+// require('./bootstrap')
 
 // Needed so we can require src/module-cache.coffee during generateModuleCache
 require('coffee-script/register')

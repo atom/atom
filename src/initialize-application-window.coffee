@@ -3,6 +3,9 @@ ApplicationDelegate = require './application-delegate'
 Clipboard = require './clipboard'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
+FileSystemBlobStore = require './file-system-blob-store'
+CompileCache = require './compile-cache'
+ModuleCache = require './module-cache'
 
 require('about')
 require('archive-view')

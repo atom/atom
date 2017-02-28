@@ -71,7 +71,7 @@ class Task
     taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
     bootstrap = """
       snapshotResult.setGlobals(global, process, global, {}, require)
-      CompileCache = snapshotResult.customRequire('../src/compile-cache.js')
+      CompileCache = #{compileCacheRequire}
       CompileCache.setCacheDirectory('#{compileCachePath}');
       #{taskBootstrapRequire}
     """
