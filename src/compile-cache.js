@@ -221,5 +221,5 @@ exports.install = function (nodeRequire) {
   })
 }
 
-
+exports.supportedExtensions = Object.keys(COMPILERS)
 exports.resetCacheStats()

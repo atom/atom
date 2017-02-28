@@ -503,7 +503,7 @@ class Package
           path.join(@path, @metadata.main)
         else
           path.join(@path, 'index')
-      @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
+      @mainModulePath = fs.resolveExtension(mainModulePath, ["", CompileCache.supportedExtensions...])
 
   activationShouldBeDeferred: ->
     @hasActivationCommands() or @hasActivationHooks()
