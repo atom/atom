@@ -3,7 +3,6 @@ ApplicationDelegate = require './application-delegate'
 Clipboard = require './clipboard'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
-FileSystemBlobStore = require './file-system-blob-store'
 CompileCache = require './compile-cache'
 ModuleCache = require './module-cache'
 
@@ -55,7 +54,7 @@ require('whitespace')
 require('wrap-guide')
 
 # Like sands through the hourglass, so are the days of our lives.
-module.exports = ({blobStore}) ->
+module.exports = ->
   {updateProcessEnv} = require('./update-process-env')
   path = require 'path'
   require './window'
@@ -76,7 +75,7 @@ module.exports = ({blobStore}) ->
   TextEditor.setClipboard(clipboard)
 
   window.atom = new AtomEnvironment({
-    window, document, clipboard, blobStore,
+    window, document, clipboard,
     applicationDelegate: new ApplicationDelegate,
     configDirPath: process.env.ATOM_HOME,
     enablePersistence: true,

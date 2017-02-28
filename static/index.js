@@ -5,8 +5,6 @@
   const Module = require('module')
   const getWindowLoadSettings = require('../src/get-window-load-settings')
   const entryPointDirPath = __dirname
-  let blobStore = null
-  let devMode = false
   let useSnapshot = false
 
   window.onload = function () {
@@ -21,7 +19,7 @@
       process.resourcesPath = path.normalize(process.resourcesPath)
 
       setupAtomHome()
-      devMode = getWindowLoadSettings().devMode || !getWindowLoadSettings().resourcePath.startsWith(process.resourcesPath + path.sep)
+      const devMode = getWindowLoadSettings().devMode || !getWindowLoadSettings().resourcePath.startsWith(process.resourcesPath + path.sep)
       useSnapshot = !devMode && typeof snapshotResult !== 'undefined'
 
       if (devMode) {
@@ -91,7 +89,7 @@
 
     const initScriptPath = path.relative(entryPointDirPath, getWindowLoadSettings().windowInitializationScript)
     const initialize = useSnapshot ? snapshotResult.customRequire(initScriptPath) : require(initScriptPath)
-    return initialize({blobStore: blobStore}).then(function () {
+    return initialize().then(function () {
       electron.ipcRenderer.send('window-command', 'window:loaded')
     })
   }
