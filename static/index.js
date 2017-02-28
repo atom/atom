@@ -8,7 +8,6 @@
   let blobStore = null
   let devMode = false
   let useSnapshot = false
-  let requireFunction = null
 
   window.onload = function () {
     try {
@@ -24,7 +23,6 @@
       setupAtomHome()
       devMode = getWindowLoadSettings().devMode || !getWindowLoadSettings().resourcePath.startsWith(process.resourcesPath + path.sep)
       useSnapshot = !devMode && typeof snapshotResult !== 'undefined'
-      requireFunction = useSnapshot ? snapshotResult.customRequire : require
 
       if (devMode) {
         const metadata = require('../package.json')
@@ -50,16 +48,6 @@
         snapshotResult.setGlobals(global, process, window, document, require)
         snapshotResult.entryPointDirPath = __dirname
       }
-
-      // const FileSystemBlobStore = requireFunction('../src/file-system-blob-store.js')
-      // blobStore = FileSystemBlobStore.load(
-      //   path.join(process.env.ATOM_HOME, 'blob-store/')
-      // )
-
-      // const NativeCompileCache = requireFunction('../src/native-compile-cache.js')
-      // NativeCompileCache.setCacheStore(blobStore)
-      // NativeCompileCache.setV8Version(process.versions.v8)
-      // NativeCompileCache.install()
 
       if (getWindowLoadSettings().profileStartup) {
         profileStartup(Date.now() - startTime)
@@ -88,21 +76,21 @@
   }
 
   function setupWindow () {
-    const CompileCache = requireFunction('../src/compile-cache.js')
+    const CompileCache = useSnapshot ? snapshotResult.customRequire('../src/compile-cache.js') : require('../src/compile-cache')
     CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
     CompileCache.install(require)
 
-    const ModuleCache = requireFunction('../src/module-cache.js')
+    const ModuleCache = useSnapshot ? snapshotResult.customRequire('../src/module-cache.js') : require('../src/module-cache')
     ModuleCache.register(getWindowLoadSettings())
 
-    const startCrashReporter = requireFunction('../src/crash-reporter-start.js')
+    const startCrashReporter = useSnapshot ? snapshotResult.customRequire('../src/crash-reporter-start.js') : require('../src/crash-reporter-start')
     startCrashReporter({_version: getWindowLoadSettings().appVersion})
 
-    const CSON = requireFunction(useSnapshot ? '../node_modules/season/lib/cson.js' : 'season')
+    const CSON = useSnapshot ? snapshotResult.customRequire('../node_modules/season/lib/cson.js') : require('season')
     CSON.setCacheDir(path.join(CompileCache.getCacheDirectory(), 'cson'))
 
     const initScriptPath = path.relative(entryPointDirPath, getWindowLoadSettings().windowInitializationScript)
-    const initialize = requireFunction(initScriptPath)
+    const initialize = useSnapshot ? snapshotResult.customRequire(initScriptPath) : require(initScriptPath)
     return initialize({blobStore: blobStore}).then(function () {
       electron.ipcRenderer.send('window-command', 'window:loaded')
     })
