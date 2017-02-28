@@ -283,7 +283,7 @@ describe "PaneContainer", ->
 
       expect(events).toEqual [{pane: pane1}, {pane: pane2}, {pane: pane3}]
 
-  describe "::onWillDestroyPaneItem() and ::onDidDestroyPaneItem", ->
+  describe "::onWillDestroyPaneItem() and ::onDidDestroyPaneItem()", ->
     it "invokes the given callbacks when an item will be destroyed on any pane", ->
       container = new PaneContainer(params)
       pane1 = container.getRoot()
@@ -301,14 +301,28 @@ describe "PaneContainer", ->
       pane2.destroyItem(item3)
       pane2.destroyItem(item2)
 
-      expect(events).toEqual [
-        ['will', {item: item1, pane: pane1, index: 0}]
-        ['did', {item: item1, pane: pane1, index: 0}]
-        ['will', {item: item3, pane: pane2, index: 1}]
-        ['did', {item: item3, pane: pane2, index: 1}]
-        ['will', {item: item2, pane: pane2, index: 0}]
-        ['did', {item: item2, pane: pane2, index: 0}]
-      ]
+      expect(events.length).toBe 6
+      expect(events[1]).toEqual ['did', {item: item1, pane: pane1, index: 0}]
+      expect(events[3]).toEqual ['did', {item: item3, pane: pane2, index: 1}]
+      expect(events[5]).toEqual ['did', {item: item2, pane: pane2, index: 0}]
+
+      expect(events[0][0]).toEqual 'will'
+      expect(events[0][1].item).toEqual item1
+      expect(events[0][1].pane).toEqual pane1
+      expect(events[0][1].index).toEqual 0
+      expect(typeof events[0][1].prevent).toEqual 'function'
+
+      expect(events[2][0]).toEqual 'will'
+      expect(events[2][1].item).toEqual item3
+      expect(events[2][1].pane).toEqual pane2
+      expect(events[2][1].index).toEqual 1
+      expect(typeof events[2][1].prevent).toEqual 'function'
+
+      expect(events[4][0]).toEqual 'will'
+      expect(events[4][1].item).toEqual item2
+      expect(events[4][1].pane).toEqual pane2
+      expect(events[4][1].index).toEqual 0
+      expect(typeof events[4][1].prevent).toEqual 'function'
 
   describe "::saveAll()", ->
     it "saves all modified pane items", ->
