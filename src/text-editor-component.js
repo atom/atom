@@ -29,6 +29,9 @@ class TextEditorComponent {
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
+    this.lastKeydown = null
+    this.lastKeydownBeforeKeypress = null
+    this.openedAccentedCharacterMenu = false
     this.cursorsToRender = []
 
     if (this.props.model) this.observeModel()
@@ -350,7 +353,13 @@ class TextEditorComponent {
       ref: 'hiddenInput',
       key: 'hiddenInput',
       className: 'hidden-input',
-      on: {blur: this.didBlur},
+      on: {
+        blur: this.didBlur,
+        textInput: this.didTextInput,
+        keydown: this.didKeydown,
+        keyup: this.didKeyup,
+        keypress: this.didKeypress
+      },
       tabIndex: -1,
       style: {
         position: 'absolute',
@@ -491,6 +500,72 @@ class TextEditorComponent {
     }
   }
 
+  didTextInput (event) {
+    event.stopPropagation()
+
+    // WARNING: If we call preventDefault on the input of a space character,
+    // then the browser interprets the spacebar keypress as a page-down command,
+    // causing spaces to scroll elements containing editors. This is impossible
+    // to test.
+    if (event.data !== ' ') event.preventDefault()
+
+    // if (!this.isInputEnabled()) return
+
+    // Workaround of the accented character suggestion feature in macOS. This
+    // will only occur when the user is not composing in IME mode. When the user
+    // selects a modified character from the macOS menu, `textInput` will occur
+    // twice, once for the initial character, and once for the modified
+    // character. However, only a single keypress will have fired. If this is
+    // the case, select backward to replace the original character.
+    if (this.openedAccentedCharacterMenu) {
+      this.getModel().selectLeft()
+      this.openedAccentedCharacterMenu = false
+    }
+
+    this.getModel().insertText(event.data, {groupUndo: true})
+  }
+
+  // We need to get clever to detect when the accented character menu is
+  // opened on macOS. Usually, every keydown event that could cause input is
+  // followed by a corresponding keypress. However, pressing and holding
+  // long enough to open the accented character menu causes additional keydown
+  // events to fire that aren't followed by their own keypress and textInput
+  // events.
+  //
+  // Therefore, we assume the accented character menu has been deployed if,
+  // before observing any keyup event, we observe events in the following
+  // sequence:
+  //
+  // keydown(keyCode: X), keypress, keydown(keyCode: X)
+  //
+  // The keyCode X must be the same in the keydown events that bracket the
+  // keypress, meaning we're *holding* the _same_ key we intially pressed.
+  // Got that?
+  didKeydown (event) {
+    if (this.lastKeydownBeforeKeypress != null) {
+      if (this.lastKeydownBeforeKeypress.keyCode === event.keyCode) {
+        this.openedAccentedCharacterMenu = true
+      }
+      this.lastKeydownBeforeKeypress = null
+    } else {
+      this.lastKeydown = event
+    }
+  }
+
+  didKeypress () {
+    this.lastKeydownBeforeKeypress = this.lastKeydown
+    this.lastKeydown = null
+
+    // This cancels the accented character behavior if we type a key normally
+    // with the menu open.
+    this.openedAccentedCharacterMenu = false
+  }
+
+  didKeyup () {
+    this.lastKeydownBeforeKeypress = null
+    this.lastKeydown = null
+  }
+
   performInitialMeasurements () {
     this.measurements = {}
     this.staleMeasurements = {}
@@ -628,7 +703,9 @@ class TextEditorComponent {
 
   observeModel () {
     const {model} = this.props
-    this.disposables.add(model.selectionsMarkerLayer.onDidUpdate(this.scheduleUpdate.bind(this)))
+    const scheduleUpdate = this.scheduleUpdate.bind(this)
+    this.disposables.add(model.selectionsMarkerLayer.onDidUpdate(scheduleUpdate))
+    this.disposables.add(model.displayLayer.onDidChangeSync(scheduleUpdate))
   }
 
   isVisible () {
