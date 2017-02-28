@@ -48,6 +48,7 @@
         }
 
         snapshotResult.setGlobals(global, process, window, document, require)
+        snapshotResult.entryPointDirPath = __dirname
       }
 
       // const FileSystemBlobStore = requireFunction('../src/file-system-blob-store.js')
