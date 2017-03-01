@@ -197,13 +197,23 @@ describe('TextEditorComponent', () => {
 
       element.focus() // focusing back to the element does not blur
       expect(document.activeElement).toBe(hiddenInput)
-      await component.getNextUpdatePromise()
       expect(element.classList.contains('is-focused')).toBe(true)
 
       document.body.focus()
       expect(document.activeElement).not.toBe(hiddenInput)
       await component.getNextUpdatePromise()
       expect(element.classList.contains('is-focused')).toBe(false)
+    })
+
+    it('updates the component when the hidden input is focused directly', async () => {
+      const {component, element, editor} = buildComponent()
+      const {hiddenInput} = component.refs
+      expect(element.classList.contains('is-focused')).toBe(false)
+      expect(document.activeElement).not.toBe(hiddenInput)
+
+      hiddenInput.focus()
+      await component.getNextUpdatePromise()
+      expect(element.classList.contains('is-focused')).toBe(true)
     })
 
     it('gracefully handles a focus event that occurs prior to the attachedCallback of the element', () => {
