@@ -30,7 +30,7 @@ class TextEditorComponent {
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
     this.pendingAutoscroll = null
-    this.autoscrollTop = -1
+    this.autoscrollTop = null
     this.scrollWidthOrHeightChanged = false
     this.previousScrollWidth = 0
     this.previousScrollHeight = 0
@@ -89,9 +89,9 @@ class TextEditorComponent {
     this.horizontalPositionsToMeasure.clear()
     etch.updateSync(this)
 
-    if (this.autoscrollTop >= 0) {
+    if (this.autoscrollTop != null) {
       this.refs.scroller.scrollTop = this.autoscrollTop
-      this.autoscrollTop = -1
+      this.autoscrollTop = null
     }
     if (measureLongestLine) {
       this.measureLongestLineWidth(longestLine)
@@ -411,7 +411,6 @@ class TextEditorComponent {
         this.getRenderedEndRow() - 1,
       ]
     })
-    if (global.debug) debugger
     const lastCursorMarker = model.getLastCursor().getMarker()
 
     this.cursorsToRender.length = cursorMarkers.length
@@ -829,7 +828,7 @@ class TextEditorComponent {
   }
 
   getScrollTop () {
-    if (this.autoscrollTop >= 0) {
+    if (this.autoscrollTop != null) {
       return this.autoscrollTop
     } else if (this.measurements != null) {
       return this.measurements.scrollTop
