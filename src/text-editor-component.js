@@ -107,6 +107,7 @@ class TextEditorComponent {
     etch.updateSync(this)
 
     this.pendingAutoscroll = null
+    this.currentFramelineNumberGutterProps = null
   }
 
   render () {
@@ -158,6 +159,10 @@ class TextEditorComponent {
   }
 
   renderLineNumberGutter () {
+    if (this.currentFramelineNumberGutterProps) {
+      return $(LineNumberGutterComponent, this.currentFramelineNumberGutterProps)
+    }
+
     const model = this.getModel()
     const maxLineNumberDigits = Math.max(2, model.getLineCount().toString().length)
 
@@ -181,13 +186,15 @@ class TextEditorComponent {
 
       const rowsPerTile = this.getRowsPerTile()
 
-      return $(LineNumberGutterComponent, {
+      this.currentFramelineNumberGutterProps = {
         height: this.getScrollHeight(),
         width: this.measurements.lineNumberGutterWidth,
         lineHeight: this.measurements.lineHeight,
         startRow, endRow, rowsPerTile, maxLineNumberDigits,
         bufferRows, softWrappedFlags, foldableFlags
-      })
+      }
+
+      return $(LineNumberGutterComponent, this.currentFramelineNumberGutterProps)
     } else {
       return $.div(
         {
