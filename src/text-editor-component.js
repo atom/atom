@@ -665,6 +665,10 @@ class TextEditorComponent {
         this.autoscrollTop = desiredScrollBottom - this.measurements.clientHeight
       }
     }
+
+    if (this.autoscrollTop != null) {
+      this.measurements.scrollTop = this.autoscrollTop
+    }
   }
 
   getVerticalScrollMargin () {
@@ -849,9 +853,7 @@ class TextEditorComponent {
   }
 
   getScrollTop () {
-    if (this.autoscrollTop != null) {
-      return this.autoscrollTop
-    } else if (this.measurements != null) {
+    if (this.measurements != null) {
       return this.measurements.scrollTop
     }
   }
