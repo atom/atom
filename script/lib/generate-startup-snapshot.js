@@ -35,9 +35,7 @@ module.exports = function (packagedAppPath) {
         relativePath == path.join('..', 'node_modules', 'archive-view', 'node_modules', 'temp', 'lib', 'temp.js') ||
         relativePath == path.join('..', 'node_modules', 'archive-view', 'node_modules', 'tar', 'tar.js') ||
         relativePath == path.join('..', 'node_modules', 'atom-keymap', 'lib', 'command-event.js') ||
-        relativePath == path.join('..', 'node_modules', 'atom-keymap', 'lib', 'helpers.js') ||
         relativePath == path.join('..', 'node_modules', 'babel-core', 'index.js') ||
-        relativePath == path.join('..', 'node_modules', 'clear-cut', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'coffee-script', 'lib', 'coffee-script', 'register.js') ||
         relativePath == path.join('..', 'node_modules', 'cson-parser', 'node_modules', 'coffee-script', 'lib', 'coffee-script', 'register.js') ||
         relativePath == path.join('..', 'node_modules', 'find-and-replace', 'node_modules', 'fs-plus', 'lib', 'fs-plus.js') ||

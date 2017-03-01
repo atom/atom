@@ -33,7 +33,7 @@
     "cached-run-in-this-context": "0.4.1",
     "chai": "3.5.0",
     "chart.js": "^2.3.0",
-    "clear-cut": "^2.0.1",
+    "clear-cut": "^2.0.2",
     "coffee-script": "1.11.1",
     "color": "^0.7.3",
     "dedent": "^0.6.0",
