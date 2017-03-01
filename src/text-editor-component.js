@@ -984,8 +984,11 @@ class LineComponent {
   update () {}
 
   destroy () {
-    this.props.lineNodesByScreenLineId.delete(this.props.screenLine.id)
-    this.props.textNodesByScreenLineId.delete(this.props.screenLine.id)
+    const {lineNodesByScreenLineId, textNodesByScreenLineId, screenLine} = this.props
+    if (lineNodesByScreenLineId.get(screenLine.id) === this.element) {
+      lineNodesByScreenLineId.delete(screenLine.id)
+      textNodesByScreenLineId.delete(screenLine.id)
+    }
   }
 }
 
