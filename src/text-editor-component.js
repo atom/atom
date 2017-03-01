@@ -629,6 +629,14 @@ class TextEditorComponent {
       desiredScrollBottom = screenRangeBottom + verticalScrollMargin
     }
 
+    if (desiredScrollTop != null) {
+      desiredScrollTop = Math.max(0, Math.min(desiredScrollTop, this.getScrollHeight() - this.getClientHeight()))
+    }
+
+    if (desiredScrollBottom != null) {
+      desiredScrollBottom = Math.max(this.getClientHeight(), Math.min(desiredScrollBottom, this.getScrollHeight()))
+    }
+
     if (!options || options.reversed !== false) {
       if (desiredScrollBottom > this.getScrollBottom()) {
         this.autoscrollTop = desiredScrollBottom - this.measurements.clientHeight
@@ -845,6 +853,18 @@ class TextEditorComponent {
     return this.measurements ? this.measurements.scrollLeft : null
   }
 
+  getScrollHeight () {
+    return this.getModel().getApproximateScreenLineCount() * this.measurements.lineHeight
+  }
+
+  getScrollWidth () {
+    return Math.round(this.measurements.longestLineWidth + this.measurements.baseCharacterWidth)
+  }
+
+  getClientHeight () {
+    return this.measurements.clientHeight
+  }
+
   getRowsPerTile () {
     return this.props.rowsPerTile || DEFAULT_ROWS_PER_TILE
   }
@@ -889,14 +909,6 @@ class TextEditorComponent {
 
   topPixelPositionForRow (row) {
     return row * this.measurements.lineHeight
-  }
-
-  getScrollWidth () {
-    return Math.round(this.measurements.longestLineWidth + this.measurements.baseCharacterWidth)
-  }
-
-  getScrollHeight () {
-    return this.getModel().getApproximateScreenLineCount() * this.measurements.lineHeight
   }
 
   getLongestScreenLine () {
