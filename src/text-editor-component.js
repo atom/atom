@@ -181,6 +181,7 @@ class TextEditorComponent {
       children = new Array(visibleTileCount)
 
       let previousBufferRow = (firstTileStartRow > 0) ? this.getModel().bufferRowForScreenRow(firstTileStartRow - 1) : -1
+      let softWrapCount = 0
       for (let tileStartRow = firstTileStartRow; tileStartRow <= lastTileStartRow; tileStartRow += this.getRowsPerTile()) {
         const currentTileEndRow = tileStartRow + this.getRowsPerTile()
         const lineNumberNodes = []
@@ -188,7 +189,16 @@ class TextEditorComponent {
         for (let row = tileStartRow; row < currentTileEndRow && row <= approximateLastScreenRow; row++) {
           const bufferRow = this.getModel().bufferRowForScreenRow(row)
           const foldable = this.getModel().isFoldableAtBufferRow(bufferRow)
-          const softWrapped = (bufferRow === previousBufferRow)
+          let softWrapped = false
+          let key
+          if (bufferRow === previousBufferRow) {
+            softWrapped = true
+            softWrapCount++
+            key = `${bufferRow}-${softWrapCount}`
+          } else {
+            softWrapCount = 0
+            key = bufferRow
+          }
 
           let className = 'line-number'
           let lineNumber
@@ -200,7 +210,7 @@ class TextEditorComponent {
           }
           lineNumber = NBSP_CHARACTER.repeat(maxLineNumberDigits - lineNumber.length) + lineNumber
 
-          lineNumberNodes.push($.div({className},
+          lineNumberNodes.push($.div({key, className},
             lineNumber,
             $.div({className: 'icon-right'})
           ))
