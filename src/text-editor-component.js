@@ -74,10 +74,12 @@ class TextEditorComponent {
       this.scrollWidthOrHeightChanged = false
     }
 
-    const longestLine = this.getLongestScreenLine()
+    const longestLineRow = this.getLongestScreenLineRow()
+    const longestLine = this.getModel().screenLineForScreenRow(longestLineRow)
     let measureLongestLine = false
     if (longestLine !== this.previousLongestLine) {
       this.longestLineToMeasure = longestLine
+      this.longestLineToMeasureRow = longestLineRow
       this.previousLongestLine = longestLine
       measureLongestLine = true
     }
@@ -95,6 +97,8 @@ class TextEditorComponent {
     }
     if (measureLongestLine) {
       this.measureLongestLineWidth(longestLine)
+      this.longestLineToMeasureRow = null
+      this.longestLineToMeasure = null
     }
     this.queryCursorsToRender()
     this.measureHorizontalPositions()
@@ -239,50 +243,38 @@ class TextEditorComponent {
 
     const {lineNodesByScreenLineId, textNodesByScreenLineId} = this
 
-    const firstTileStartRow = this.getFirstTileStartRow()
+    const startRow = this.getRenderedStartRow()
+    const endRow = this.getRenderedEndRow()
+    // const firstTileStartRow = this.getFirstTileStartRow()
     const visibleTileCount = this.getVisibleTileCount()
-    const lastTileStartRow = this.getLastTileStartRow()
+    // const lastTileStartRow = this.getLastTileStartRow()
+    const rowsPerTile = this.getRowsPerTile()
+    const tileHeight = this.measurements.lineHeight * rowsPerTile
+    const tileWidth = this.getScrollWidth()
 
     const displayLayer = this.getModel().displayLayer
-    const screenLines = displayLayer.getScreenLines(firstTileStartRow, lastTileStartRow + this.getRowsPerTile())
+    const screenLines = displayLayer.getScreenLines(startRow, endRow)
 
-    let tileNodes = new Array(visibleTileCount)
-    for (let tileStartRow = firstTileStartRow; tileStartRow <= lastTileStartRow; tileStartRow += this.getRowsPerTile()) {
-      const tileEndRow = tileStartRow + this.getRowsPerTile()
-      const lineNodes = []
-      for (let row = tileStartRow; row < tileEndRow; row++) {
-        const screenLine = screenLines[row - firstTileStartRow]
-        if (!screenLine) break
-        lineNodes.push($(LineComponent, {
-          key: screenLine.id,
-          screenLine,
-          displayLayer,
-          lineNodesByScreenLineId,
-          textNodesByScreenLineId
-        }))
-        if (screenLine === this.longestLineToMeasure) {
-          this.longestLineToMeasure = null
-        }
-      }
+    const tileNodes = new Array(visibleTileCount)
 
-      const tileHeight = this.getRowsPerTile() * this.measurements.lineHeight
-      const tileIndex = (tileStartRow / this.getRowsPerTile()) % visibleTileCount
+    for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow += rowsPerTile) {
+      const tileEndRow = tileStartRow + rowsPerTile
+      const tileHeight = rowsPerTile * this.measurements.lineHeight
+      const tileIndex = (tileStartRow / rowsPerTile) % visibleTileCount
 
-      tileNodes[tileIndex] = $.div({
+      tileNodes[tileIndex] = $(LinesTileComponent, {
         key: tileIndex,
-        style: {
-          contain: 'strict',
-          position: 'absolute',
-          height: tileHeight + 'px',
-          width: width,
-          willChange: 'transform',
-          transform: `translateY(${this.topPixelPositionForRow(tileStartRow)}px)`,
-          backgroundColor: 'inherit'
-        }
-      }, lineNodes)
+        height: tileHeight,
+        width: tileWidth,
+        top: this.topPixelPositionForRow(tileStartRow),
+        screenLines: screenLines.slice(tileStartRow - startRow, tileEndRow - startRow),
+        displayLayer,
+        lineNodesByScreenLineId,
+        textNodesByScreenLineId
+      })
     }
 
-    if (this.longestLineToMeasure) {
+    if (this.longestLineToMeasure != null && (this.longestLineToMeasureRow < startRow || this.longestLineToMeasureRow >= endRow)) {
       tileNodes.push($(LineComponent, {
         key: this.longestLineToMeasure.id,
         screenLine: this.longestLineToMeasure,
@@ -290,7 +282,6 @@ class TextEditorComponent {
         lineNodesByScreenLineId,
         textNodesByScreenLineId
       }))
-      this.longestLineToMeasure = null
     }
 
     return $.div({
@@ -889,13 +880,13 @@ class TextEditorComponent {
     return row * this.measurements.lineHeight
   }
 
-  getLongestScreenLine () {
+  getLongestScreenLineRow () {
     const model = this.getModel()
     // Ensure the spatial index is populated with rows that are currently
     // visible so we *at least* get the longest row in the visible range.
     const renderedEndRow = this.getTileStartRow(this.getLastVisibleRow()) + this.getRowsPerTile()
     model.displayLayer.populateSpatialIndexIfNeeded(Infinity, renderedEndRow)
-    return model.screenLineForScreenRow(model.getApproximateLongestScreenRow())
+    return model.getApproximateLongestScreenRow()
   }
 
   getNextUpdatePromise () {
@@ -1007,6 +998,65 @@ class LineNumberGutterComponent {
     if (!arraysEqual(oldProps.bufferRows, newProps.bufferRows)) return true
     if (!arraysEqual(oldProps.softWrappedFlags, newProps.softWrappedFlags)) return true
     if (!arraysEqual(oldProps.foldableFlags, newProps.foldableFlags)) return true
+    return false
+  }
+}
+
+class LinesTileComponent {
+  constructor (props) {
+    this.props = props
+    etch.initialize(this)
+  }
+
+  update (newProps) {
+    if (this.shouldUpdate(newProps)) {
+      this.props = newProps
+      etch.updateSync(this)
+    }
+  }
+
+  render () {
+    const {
+      height, width, top,
+      screenLines, displayLayer,
+      lineNodesByScreenLineId, textNodesByScreenLineId
+    } = this.props
+
+    const children = new Array(screenLines.length)
+    for (let i = 0, length = screenLines.length; i < length; i++) {
+      const screenLine = screenLines[i]
+      if (!screenLine) {
+        children.length = i
+        break
+      }
+      children[i] = $(LineComponent, {
+        key: screenLine.id,
+        screenLine,
+        displayLayer,
+        lineNodesByScreenLineId,
+        textNodesByScreenLineId
+      })
+    }
+
+    return $.div({
+      style: {
+        contain: 'strict',
+        position: 'absolute',
+        height: height + 'px',
+        width: width + 'px',
+        willChange: 'transform',
+        transform: `translateY(${top}px)`,
+        backgroundColor: 'inherit'
+      }
+    }, children)
+  }
+
+  shouldUpdate (newProps) {
+    const oldProps = this.props
+    if (oldProps.top !== newProps.top) return true
+    if (oldProps.height !== newProps.height) return true
+    if (oldProps.width !== newProps.width) return true
+    if (!arraysEqual(oldProps.screenLines, newProps.screenLines)) return true
     return false
   }
 }
