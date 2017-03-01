@@ -383,7 +383,8 @@ class TextEditorComponent {
       key: 'hiddenInput',
       className: 'hidden-input',
       on: {
-        blur: this.didBlur,
+        blur: this.didBlurHiddenInput,
+        focus: this.didFocusHiddenInput,
         textInput: this.didTextInput,
         keydown: this.didKeydown,
         keyup: this.didKeyup,
@@ -496,17 +497,22 @@ class TextEditorComponent {
     // against that case.
     if (!this.attached) this.didAttach()
 
-    const {hiddenInput} = this.refs
+    if (!this.focused) {
+      this.focused = true
+      this.scheduleUpdate()
+    }
 
-    // Ensure the input is in the visible part of the scrolled content to avoid
-    // the browser trying to auto-scroll to the form-field.
+    // Transfer focus to the hidden input, but first ensure the input is in the
+    // visible part of the scrolled content to avoid the browser trying to
+    // auto-scroll to the form-field.
+    const {hiddenInput} = this.refs
     hiddenInput.style.top = this.getScrollTop() + 'px'
     hiddenInput.style.left = this.getScrollLeft() + 'px'
 
     hiddenInput.focus()
-    this.focused = true
 
-    // Restore the previous position of the field now that it is focused.
+    // Restore the previous position of the field now that it is already focused
+    // and won't cause unwanted scrolling.
     const currentHiddenInputState = this.getHiddenInputState()
     if (currentHiddenInputState) {
       hiddenInput.style.top = currentHiddenInputState.pixelTop + 'px'
@@ -515,19 +521,26 @@ class TextEditorComponent {
       hiddenInput.style.top = 0
       hiddenInput.style.left = 0
     }
-
-    this.scheduleUpdate()
   }
 
-  didBlur (event) {
+  didBlurHiddenInput (event) {
     if (this.element !== event.relatedTarget && !this.element.contains(event.relatedTarget)) {
+      console.log('blur hi');
       this.focused = false
       this.scheduleUpdate()
     }
   }
 
+  didFocusHiddenInput () {
+    if (!this.focused) {
+      console.log('focus hi');
+      this.focused = true
+      this.scheduleUpdate()
+    }
+  }
+
   didScroll () {
-    if (this.measureScrollPosition()) {
+    if (this.measureScrollPosition(true)) {
       this.updateSync()
     }
   }
