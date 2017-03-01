@@ -154,94 +154,49 @@ class TextEditorComponent {
   }
 
   renderLineNumberGutter () {
-    const maxLineNumberDigits = Math.max(2, this.getModel().getLineCount().toString().length)
-
-    let props = {
-      ref: 'lineNumberGutter',
-      className: 'gutter line-numbers',
-      'gutter-name': 'line-number'
-    }
-    let children
+    const model = this.getModel()
+    const maxLineNumberDigits = Math.max(2, model.getLineCount().toString().length)
 
     if (this.measurements) {
-      props.style = {
-        contain: 'strict',
-        overflow: 'hidden',
-        height: this.getScrollHeight() + 'px',
-        width: this.measurements.lineNumberGutterWidth + 'px'
+      const startRow = this.getRenderedStartRow()
+      const endRow = this.getRenderedEndRow()
+
+      const bufferRows = new Array(endRow - startRow)
+      const foldableFlags = new Array(endRow - startRow)
+      const softWrappedFlags = new Array(endRow - startRow)
+
+      let previousBufferRow = (startRow > 0) ? model.bufferRowForScreenRow(startRow - 1) : -1
+      for (let row = startRow; row < endRow; row++) {
+        const i = row - startRow
+        const bufferRow = model.bufferRowForScreenRow(row)
+        bufferRows[i] = bufferRow
+        softWrappedFlags[i] = bufferRow === previousBufferRow
+        foldableFlags[i] = model.isFoldableAtBufferRow(bufferRow)
+        previousBufferRow = bufferRow
       }
 
-      const approximateLastScreenRow = this.getModel().getApproximateScreenLineCount() - 1
-      const firstVisibleRow = this.getFirstVisibleRow()
-      const lastVisibleRow = this.getLastVisibleRow()
-      const firstTileStartRow = this.getFirstTileStartRow()
-      const visibleTileCount = this.getVisibleTileCount()
-      const lastTileStartRow = this.getLastTileStartRow()
+      const rowsPerTile = this.getRowsPerTile()
 
-      children = new Array(visibleTileCount)
-
-      let previousBufferRow = (firstTileStartRow > 0) ? this.getModel().bufferRowForScreenRow(firstTileStartRow - 1) : -1
-      let softWrapCount = 0
-      for (let tileStartRow = firstTileStartRow; tileStartRow <= lastTileStartRow; tileStartRow += this.getRowsPerTile()) {
-        const currentTileEndRow = tileStartRow + this.getRowsPerTile()
-        const lineNumberNodes = []
-
-        for (let row = tileStartRow; row < currentTileEndRow && row <= approximateLastScreenRow; row++) {
-          const bufferRow = this.getModel().bufferRowForScreenRow(row)
-          const foldable = this.getModel().isFoldableAtBufferRow(bufferRow)
-          let softWrapped = false
-          let key
-          if (bufferRow === previousBufferRow) {
-            softWrapped = true
-            softWrapCount++
-            key = `${bufferRow}-${softWrapCount}`
-          } else {
-            softWrapCount = 0
-            key = bufferRow
-          }
-
-          let className = 'line-number'
-          let lineNumber
-          if (softWrapped) {
-            lineNumber = '•'
-          } else {
-            if (foldable) className += ' foldable'
-            lineNumber = (bufferRow + 1).toString()
-          }
-          lineNumber = NBSP_CHARACTER.repeat(maxLineNumberDigits - lineNumber.length) + lineNumber
-
-          lineNumberNodes.push($.div({key, className},
-            lineNumber,
-            $.div({className: 'icon-right'})
-          ))
-
-          previousBufferRow = bufferRow
-        }
-
-        const tileIndex = (tileStartRow / this.getRowsPerTile()) % visibleTileCount
-        const tileHeight = this.getRowsPerTile() * this.measurements.lineHeight
-
-        children[tileIndex] = $.div({
-          style: {
-            contain: 'strict',
-            overflow: 'hidden',
-            position: 'absolute',
-            height: tileHeight + 'px',
-            width: this.measurements.lineNumberGutterWidth + 'px',
-            willChange: 'transform',
-            transform: `translateY(${this.topPixelPositionForRow(tileStartRow)}px)`,
-            backgroundColor: 'inherit'
-          }
-        }, lineNumberNodes)
-      }
+      return $(LineNumberGutterComponent, {
+        height: this.getScrollHeight(),
+        width: this.measurements.lineNumberGutterWidth,
+        lineHeight: this.measurements.lineHeight,
+        startRow, endRow, rowsPerTile, maxLineNumberDigits,
+        bufferRows, softWrappedFlags, foldableFlags
+      })
     } else {
-      children = $.div({className: 'line-number'},
-        '0'.repeat(maxLineNumberDigits),
-        $.div({className: 'icon-right'})
+      return $.div(
+        {
+          ref: 'lineNumberGutter',
+          className: 'gutter line-numbers',
+          'gutter-name': 'line-number'
+        },
+        $.div({className: 'line-number'},
+          '0'.repeat(maxLineNumberDigits),
+          $.div({className: 'icon-right'})
+        )
       )
     }
-
-    return $.div(props, children)
   }
 
   renderContent () {
@@ -953,6 +908,109 @@ class TextEditorComponent {
   }
 }
 
+class LineNumberGutterComponent {
+  constructor (props) {
+    this.props = props
+    etch.initialize(this)
+  }
+
+  update (newProps) {
+    if (this.shouldUpdate(newProps)) {
+      this.props = newProps
+      etch.updateSync(this)
+    }
+  }
+
+  render () {
+    const {
+      height, width, lineHeight, startRow, endRow, rowsPerTile,
+      maxLineNumberDigits, bufferRows, softWrappedFlags, foldableFlags
+    } = this.props
+
+    const visibleTileCount = (endRow - startRow) / rowsPerTile
+    const children = new Array(visibleTileCount)
+    const tileHeight = rowsPerTile * lineHeight + 'px'
+    const tileWidth = width + 'px'
+
+    let softWrapCount = 0
+    for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow += rowsPerTile) {
+      const tileChildren = new Array(rowsPerTile)
+      const tileEndRow = tileStartRow + rowsPerTile
+      for (let row = tileStartRow; row < tileEndRow; row++) {
+        const i = row - startRow
+        const bufferRow = bufferRows[i]
+        const softWrapped = softWrappedFlags[i]
+        const foldable = foldableFlags[i]
+        let key, lineNumber
+        let className = 'line-number'
+        if (softWrapped) {
+          softWrapCount++
+          key = `${bufferRow}-${softWrapCount}`
+          lineNumber = '•'
+        } else {
+          softWrapCount = 0
+          key = bufferRow
+          lineNumber = (bufferRow + 1).toString()
+          if (foldable) className += ' foldable'
+        }
+        lineNumber = NBSP_CHARACTER.repeat(maxLineNumberDigits - lineNumber.length) + lineNumber
+
+        tileChildren[row - tileStartRow] = $.div({key, className},
+          lineNumber,
+          $.div({className: 'icon-right'})
+        )
+      }
+
+      const tileIndex = (tileStartRow / rowsPerTile) % visibleTileCount
+      const top = tileStartRow * lineHeight
+
+      children[tileIndex] = $.div({
+        key: tileIndex,
+        style: {
+          contain: 'strict',
+          overflow: 'hidden',
+          position: 'absolute',
+          height: tileHeight,
+          width: tileWidth,
+          willChange: 'transform',
+          transform: `translateY(${top}px)`,
+          backgroundColor: 'inherit'
+        }
+      }, ...tileChildren)
+    }
+
+    return $.div(
+      {
+        className: 'gutter line-numbers',
+        'gutter-name': 'line-number',
+        style: {
+          contain: 'strict',
+          overflow: 'hidden',
+          height: height + 'px',
+          width: tileWidth
+        }
+      },
+      ...children
+    )
+  }
+
+  shouldUpdate (newProps) {
+    const oldProps = this.props
+
+    if (oldProps.height !== newProps.height) return true
+    if (oldProps.width !== newProps.width) return true
+    if (oldProps.lineHeight !== newProps.lineHeight) return true
+    if (oldProps.startRow !== newProps.startRow) return true
+    if (oldProps.endRow !== newProps.endRow) return true
+    if (oldProps.rowsPerTile !== newProps.rowsPerTile) return true
+    if (oldProps.maxLineNumberDigits !== newProps.maxLineNumberDigits) return true
+    if (!arraysEqual(oldProps.bufferRows, newProps.bufferRows)) return true
+    if (!arraysEqual(oldProps.softWrappedFlags, newProps.softWrappedFlags)) return true
+    if (!arraysEqual(oldProps.foldableFlags, newProps.foldableFlags)) return true
+    return false
+  }
+}
+
 class LineComponent {
   constructor (props) {
     const {displayLayer, screenLine, lineNodesByScreenLineId, textNodesByScreenLineId} = props
@@ -1029,4 +1087,12 @@ let rangeForMeasurement
 function getRangeForMeasurement () {
   if (!rangeForMeasurement) rangeForMeasurement = document.createRange()
   return rangeForMeasurement
+}
+
+function arraysEqual(a, b) {
+  if (a.length !== b.length) return false
+  for (let i = 0, length = a.length; i < length; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
 }
