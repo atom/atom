@@ -525,7 +525,6 @@ class TextEditorComponent {
 
   didBlurHiddenInput (event) {
     if (this.element !== event.relatedTarget && !this.element.contains(event.relatedTarget)) {
-      console.log('blur hi');
       this.focused = false
       this.scheduleUpdate()
     }
@@ -533,7 +532,6 @@ class TextEditorComponent {
 
   didFocusHiddenInput () {
     if (!this.focused) {
-      console.log('focus hi');
       this.focused = true
       this.scheduleUpdate()
     }
