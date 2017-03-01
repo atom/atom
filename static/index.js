@@ -1,7 +1,6 @@
 (function () {
   const electron = require('electron')
   const path = require('path')
-  const fs = require('fs-plus')
   const Module = require('module')
   const getWindowLoadSettings = require('../src/get-window-load-settings')
   const entryPointDirPath = __dirname
