@@ -192,6 +192,9 @@ class TextEditor extends Model
 
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
+    @disposables.add(@defaultMarkerLayer.onDidDestroy =>
+      @assert(false, "defaultMarkerLayer destroyed at an unexpected time")
+    )
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true, persistent: true)
     @selectionsMarkerLayer.trackDestructionInOnDidCreateMarkerCallbacks = true
 
