@@ -4,6 +4,7 @@
   const Module = require('module')
   const getWindowLoadSettings = require('../src/get-window-load-settings')
   const entryPointDirPath = __dirname
+  let blobStore = null
   let useSnapshot = false
 
   window.onload = function () {
@@ -45,6 +46,14 @@
         snapshotResult.setGlobals(global, process, window, document, require)
         snapshotResult.entryPointDirPath = __dirname
       }
+
+      const FileSystemBlobStore = useSnapshot ? snapshotResult.customRequire('../src/file-system-blob-store.js') : require('../src/file-system-blob-store')
+      blobStore = FileSystemBlobStore.load(path.join(process.env.ATOM_HOME, 'blob-store'))
+
+      const NativeCompileCache = useSnapshot ? snapshotResult.customRequire('../src/native-compile-cache.js') : require('../src/native-compile-cache')
+      NativeCompileCache.setCacheStore(blobStore)
+      NativeCompileCache.setV8Version(process.versions.v8)
+      NativeCompileCache.install()
 
       if (getWindowLoadSettings().profileStartup) {
         profileStartup(Date.now() - startTime)
@@ -88,7 +97,7 @@
 
     const initScriptPath = path.relative(entryPointDirPath, getWindowLoadSettings().windowInitializationScript)
     const initialize = useSnapshot ? snapshotResult.customRequire(initScriptPath) : require(initScriptPath)
-    return initialize().then(function () {
+    return initialize({blobStore: blobStore}).then(function () {
       electron.ipcRenderer.send('window-command', 'window:loaded')
     })
   }

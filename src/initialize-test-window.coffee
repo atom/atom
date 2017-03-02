@@ -5,7 +5,7 @@ cloneObject = (object) ->
   clone[key] = value for key, value of object
   clone
 
-module.exports = ->
+module.exports = ({blobStore}) ->
   startCrashReporter = require('./crash-reporter-start')
   {remote} = require 'electron'
 
@@ -77,6 +77,7 @@ module.exports = ->
     buildAtomEnvironment = (params) ->
       params = cloneObject(params)
       params.clipboard = clipboard unless params.hasOwnProperty("clipboard")
+      params.blobStore = blobStore unless params.hasOwnProperty("blobStore")
       params.onlyLoadBaseStyleSheets = true unless params.hasOwnProperty("onlyLoadBaseStyleSheets")
       new AtomEnvironment(params)
 

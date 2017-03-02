@@ -131,7 +131,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate, @window, @document, @clipboard, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@applicationDelegate, @window, @document, @blobStore, @clipboard, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
     @unloaded = false
     @loadTime = null
@@ -733,7 +733,12 @@ class AtomEnvironment extends Model
 
     @storeWindowBackground()
     @packages.deactivatePackages()
+    @saveBlobStoreSync()
     @unloaded = true
+
+  saveBlobStoreSync: ->
+    if @enablePersistence
+      @blobStore.save()
 
   openInitialEmptyEditorIfNecessary: ->
     return unless @config.get('core.openEmptyEditorOnStart')
