@@ -7,6 +7,7 @@ platform = require './spec-helper-platform'
 _ = require 'underscore-plus'
 fstream = require 'fstream'
 fs = require 'fs-plus'
+AtomEnvironment = require '../src/atom-environment'
 
 describe "Workspace", ->
   [workspace, setDocumentEdited] = []
@@ -865,24 +866,35 @@ describe "Workspace", ->
         i = /test/; #FIXME
       """
 
-      state = atom.workspace.serialize()
-      expect(state.packagesWithActiveGrammars).toEqual ['language-coffee-script', 'language-javascript', 'language-todo']
-
-      jsPackage = atom.packages.getLoadedPackage('language-javascript')
-      coffeePackage = atom.packages.getLoadedPackage('language-coffee-script')
-      spyOn(jsPackage, 'loadGrammarsSync')
-      spyOn(coffeePackage, 'loadGrammarsSync')
-
-      workspace2 = new Workspace({
-        config: atom.config, project: atom.project, packageManager: atom.packages,
-        notificationManager: atom.notifications, deserializerManager: atom.deserializers,
-        viewRegistry: atom.views, grammarRegistry: atom.grammars,
-        applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom),
-        textEditorRegistry: atom.textEditors
+      atom2 = new AtomEnvironment({
+        applicationDelegate: atom.applicationDelegate,
+        window: document.createElement('div'),
+        document: Object.assign(
+          document.createElement('div'),
+          {
+            body: document.createElement('div'),
+            head: document.createElement('div'),
+          }
+        )
       })
-      workspace2.deserialize(state, atom.deserializers)
-      expect(jsPackage.loadGrammarsSync.callCount).toBe 1
-      expect(coffeePackage.loadGrammarsSync.callCount).toBe 1
+
+      atom2.packages.loadPackage('language-javascript')
+      atom2.packages.loadPackage('language-coffee-script')
+      atom2.packages.loadPackage('language-todo')
+      atom2.project.deserialize(atom.project.serialize())
+      atom2.workspace.deserialize(atom.workspace.serialize(), atom2.deserializers)
+
+      expect(atom2.grammars.getGrammars().map((grammar) -> grammar.name).sort()).toEqual([
+        'CoffeeScript',
+        'CoffeeScript (Literate)',
+        'JavaScript',
+        'Null Grammar',
+        'Regular Expression Replacement (JavaScript)',
+        'Regular Expressions (JavaScript)',
+        'TODO'
+      ])
+
+      atom2.destroy()
 
   describe "document.title", ->
     describe "when there is no item open", ->
@@ -971,18 +983,26 @@ describe "Workspace", ->
 
       it "updates the title to contain the project's path", ->
         document.title = null
-        workspace2 = new Workspace({
-          config: atom.config, project: atom.project, packageManager: atom.packages,
-          notificationManager: atom.notifications, deserializerManager: atom.deserializers,
-          viewRegistry: atom.views, grammarRegistry: atom.grammars,
-          applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom),
-          textEditorRegistry: atom.textEditors
+
+        atom2 = new AtomEnvironment({
+          applicationDelegate: atom.applicationDelegate,
+          window: document.createElement('div'),
+          document: Object.assign(
+            document.createElement('div'),
+            {
+              body: document.createElement('div'),
+              head: document.createElement('div'),
+            }
+          )
         })
-        workspace2.deserialize(atom.workspace.serialize(), atom.deserializers)
-        item = workspace2.getActivePaneItem()
+
+        atom2.project.deserialize(atom.project.serialize())
+        atom2.workspace.deserialize(atom.workspace.serialize(), atom2.deserializers)
+        item = atom2.workspace.getActivePaneItem()
         pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
         expect(document.title).toMatch ///^#{item.getLongTitle()}\ \u2014\ #{pathEscaped}///
-        workspace2.destroy()
+
+        atom2.destroy()
 
   describe "document edited status", ->
     [item1, item2] = []

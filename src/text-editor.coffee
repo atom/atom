@@ -387,7 +387,7 @@ class TextEditor extends Model
       softWrapHangingIndentLength: @displayLayer.softWrapHangingIndent
 
       @id, @softTabs, @softWrapped, @softWrapAtPreferredLineLength,
-      @preferredLineLength, @mini, @editorWidthInChars,  @width, @largeFileMode,
+      @preferredLineLength, @mini, @editorWidthInChars, @width, @largeFileMode,
       @registered, @invisibles, @showInvisibles, @showIndentGuide, @autoHeight, @autoWidth
     }
 
