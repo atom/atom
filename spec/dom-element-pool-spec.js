@@ -3,7 +3,10 @@ const DOMElementPool = require ('../src/dom-element-pool')
 describe('DOMElementPool', function () {
   let domElementPool
 
-  beforeEach(() => { domElementPool = new DOMElementPool() })
+  beforeEach(() => {
+    domElementPool = new DOMElementPool()
+    spyOn(atom, 'isReleasedVersion').andReturn(true)
+  })
 
   it('builds DOM nodes, recycling them when they are freed', function () {
     let elements

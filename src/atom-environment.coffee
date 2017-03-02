@@ -840,6 +840,8 @@ class AtomEnvironment extends Model
         error.metadata = callbackOrMetadata
 
     @emitter.emit 'did-fail-assertion', error
+    unless @isReleasedVersion()
+      throw error
 
     false
 
