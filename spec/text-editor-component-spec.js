@@ -233,26 +233,26 @@ describe('TextEditorComponent', () => {
   })
 
   describe('autoscroll', () => {
-    it('automatically scrolls vertically when the cursor is within vertical scroll margin of the top or bottom', async () => {
+    it('automatically scrolls vertically when the requested range is within the vertical scroll margin of the top or bottom', async () => {
       const {component, element, editor} = buildComponent({height: 120})
       const {scroller} = component.refs
       expect(component.getLastVisibleRow()).toBe(8)
 
-      editor.setCursorScreenPosition([6, 0])
+      editor.scrollToScreenRange([[4, 0], [6, 0]])
       await component.getNextUpdatePromise()
       let scrollBottom = scroller.scrollTop + scroller.clientHeight
       expect(scrollBottom).toBe((6 + 1 + editor.verticalScrollMargin) * component.measurements.lineHeight)
 
-      editor.setCursorScreenPosition([8, 0])
+      editor.scrollToScreenPosition([8, 0])
       await component.getNextUpdatePromise()
       scrollBottom = scroller.scrollTop + scroller.clientHeight
       expect(scrollBottom).toBe((8 + 1 + editor.verticalScrollMargin) * component.measurements.lineHeight)
 
-      editor.setCursorScreenPosition([3, 0])
+      editor.scrollToScreenPosition([3, 0])
       await component.getNextUpdatePromise()
       expect(scroller.scrollTop).toBe((3 - editor.verticalScrollMargin) * component.measurements.lineHeight)
 
-      editor.setCursorScreenPosition([2, 0])
+      editor.scrollToScreenPosition([2, 0])
       await component.getNextUpdatePromise()
       expect(scroller.scrollTop).toBe(0)
     })
@@ -265,22 +265,26 @@ describe('TextEditorComponent', () => {
       expect(component.getLastVisibleRow()).toBe(6)
       const scrollMarginInLines = 2
 
-      editor.setCursorScreenPosition([6, 0])
+      editor.scrollToScreenPosition([6, 0])
       await component.getNextUpdatePromise()
       let scrollBottom = scroller.scrollTop + scroller.clientHeight
       expect(scrollBottom).toBe((6 + 1 + scrollMarginInLines) * component.measurements.lineHeight)
 
-      editor.setCursorScreenPosition([6, 4])
+      editor.scrollToScreenPosition([6, 4])
       await component.getNextUpdatePromise()
       scrollBottom = scroller.scrollTop + scroller.clientHeight
       expect(scrollBottom).toBe((6 + 1 + scrollMarginInLines) * component.measurements.lineHeight)
 
-      editor.setCursorScreenPosition([4, 4])
+      editor.scrollToScreenRange([[4, 4], [6, 4]])
       await component.getNextUpdatePromise()
       expect(scroller.scrollTop).toBe((4 - scrollMarginInLines) * component.measurements.lineHeight)
+
+      editor.scrollToScreenRange([[4, 4], [6, 4]], {reversed: false})
+      await component.getNextUpdatePromise()
+      expect(scrollBottom).toBe((6 + 1 + scrollMarginInLines) * component.measurements.lineHeight)
     })
 
-    it('automatically scrolls horizontally when the cursor is within horizontal scroll margin of the right edge of the gutter or right edge of the screen', async () => {
+    it('automatically scrolls horizontally when the requested range is within the horizontal scroll margin of the right edge of the gutter or right edge of the screen', async () => {
       const {component, element, editor} = buildComponent()
       const {scroller} = component.refs
       element.style.width =
