@@ -20,7 +20,7 @@ install:
   - script/build --create-debian-package --create-rpm-package --compress-artifacts
   - find /tmp/atom-*/
   - cd /tmp/atom-*/
-  - wget -c https://github.com/probonopd/AppImageKit/releases/download/continuous/AppRun-x86_64 -O AppRun
+  - wget -c https://github.com/probonopd/AppImageKit/releases/download/8/AppRun-x86_64 -O AppRun
   - chmod a+x ./AppRun
   - cp usr/share/applications/atom.desktop .
   - cp usr/share/pixmaps/atom.png .
