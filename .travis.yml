@@ -18,6 +18,21 @@ install:
   - nvm use --delete-prefix $NODE_VERSION
   - npm install -g npm
   - script/build --create-debian-package --create-rpm-package --compress-artifacts
+  - find /tmp/atom-*/
+  - cd /tmp/atom-*/
+  - wget -c https://github.com/probonopd/AppImageKit/releases/download/continuous/AppRun-x86_64 -O AppRun
+  - chmod a+x ./AppRun
+  - cp usr/share/applications/atom.desktop .
+  - cp usr/share/pixmaps/atom.png .
+  - cd -
+  - wget -c "https://github.com/probonopd/AppImageKit/releases/download/8/appimagetool-x86_64.AppImage" 
+  - chmod a+x appimagetool*.AppImage
+  - ./appimagetool*.AppImage --appimage-extract
+  - export VERSION=git.$(git rev-parse --short HEAD)
+  - ./squashfs-root/AppRun /tmp/atom-*/
+  - curl --upload-file ./Atom-*.AppImage https://transfer.sh/Atom-$VERSION-x86_64.AppImage # DELETE THIS LINE
+  - mv Atom-*.AppImage out/
+  - ls -lh
 
 script:
   - script/lint
@@ -42,6 +57,7 @@ addons:
       - out/atom-amd64.deb
       - out/atom.x86_64.rpm
       - out/atom-amd64.tar.gz
+      - out/Atom-*.AppImage
     target_paths: travis-artifacts/$TRAVIS_BUILD_ID
   apt:
     packages:
