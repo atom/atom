@@ -1,3 +1,5 @@
+'use strict'
+
 const _ = require('underscore-plus')
 const url = require('url')
 const path = require('path')
@@ -29,17 +31,27 @@ module.exports = class Workspace extends Model {
     this.updateDocumentEdited = this.updateDocumentEdited.bind(this)
     this.didDestroyPaneItem = this.didDestroyPaneItem.bind(this)
 
-    ;({
-      packageManager: this.packageManager, config: this.config, project: this.project, grammarRegistry: this.grammarRegistry, notificationManager: this.notificationManager,
-      viewRegistry: this.viewRegistry, grammarRegistry: this.grammarRegistry, applicationDelegate: this.applicationDelegate, assert: this.assert,
-      deserializerManager: this.deserializerManager, textEditorRegistry: this.textEditorRegistry
-    } = params)
+    this.packageManager = params.packageManager
+    this.config = params.config
+    this.project = params.project
+    this.notificationManager = params.notificationManager
+    this.viewRegistry = params.viewRegistry
+    this.grammarRegistry = params.grammarRegistry
+    this.applicationDelegate = params.applicationDelegate
+    this.assert = params.assert
+    this.deserializerManager = params.deserializerManager
+    this.textEditorRegistry = params.textEditorRegistry
 
     this.emitter = new Emitter()
     this.openers = []
     this.destroyedItemURIs = []
 
-    this.paneContainer = new PaneContainer({config: this.config, applicationDelegate: this.applicationDelegate, notificationManager: this.notificationManager, deserializerManager: this.deserializerManager})
+    this.paneContainer = new PaneContainer({
+      config: this.config,
+      applicationDelegate: this.applicationDelegate,
+      notificationManager: this.notificationManager,
+      deserializerManager: this.deserializerManager
+    })
     this.paneContainer.onDidDestroyPaneItem(this.didDestroyPaneItem)
 
     this.defaultDirectorySearcher = new DefaultDirectorySearcher()
@@ -49,7 +61,7 @@ module.exports = class Workspace extends Model {
     // Etch, in which case it'd be `new`d. And when it's `new`d, `this` is always
     // the newly created object.
     const realThis = this
-    this.buildTextEditor = function () { return Workspace.prototype.buildTextEditor.apply(realThis, arguments) }
+    this.buildTextEditor = () => Workspace.prototype.buildTextEditor.apply(realThis, arguments)
 
     this.panelContainers = {
       top: new PanelContainer({location: 'top'}),
@@ -70,9 +82,14 @@ module.exports = class Workspace extends Model {
     this.emitter = new Emitter()
 
     this.paneContainer.destroy()
-    for (let panelContainer of this.panelContainers) { panelContainer.destroy() }
+    _.values(this.panelContainers).forEach(panelContainer => { panelContainer.destroy() })
 
-    this.paneContainer = new PaneContainer({config: this.config, applicationDelegate: this.applicationDelegate, notificationManager: this.notificationManager, deserializerManager: this.deserializerManager})
+    this.paneContainer = new PaneContainer({
+      config: this.config,
+      applicationDelegate: this.applicationDelegate,
+      notificationManager: this.notificationManager,
+      deserializerManager: this.deserializerManager
+    })
     this.paneContainer.onDidDestroyPaneItem(this.didDestroyPaneItem)
 
     this.panelContainers = {
@@ -88,21 +105,22 @@ module.exports = class Workspace extends Model {
     this.originalFontSize = null
     this.openers = []
     this.destroyedItemURIs = []
-    return this.consumeServices(this.packageManager)
+    this.consumeServices(this.packageManager)
   }
 
   subscribeToEvents () {
     this.subscribeToActiveItem()
     this.subscribeToFontSize()
-    return this.subscribeToAddedItems()
+    this.subscribeToAddedItems()
   }
 
   consumeServices ({serviceHub}) {
     this.directorySearchers = []
-    return serviceHub.consume(
+    serviceHub.consume(
       'atom.directory-searcher',
       '^0.1.0',
-      provider => this.directorySearchers.unshift(provider))
+      provider => this.directorySearchers.unshift(provider)
+    )
   }
 
   // Called by the Serializable mixin during serialization.
@@ -116,8 +134,13 @@ module.exports = class Workspace extends Model {
   }
 
   deserialize (state, deserializerManager) {
-    for (let packageName of state.packagesWithActiveGrammars != null ? state.packagesWithActiveGrammars : []) {
-      __guard__(this.packageManager.getLoadedPackage(packageName), x => x.loadGrammarsSync())
+    const packagesWithActiveGrammars =
+      state.packagesWithActiveGrammars != null ? state.packagesWithActiveGrammars : []
+    for (let packageName of packagesWithActiveGrammars) {
+      const pkg = this.packageManager.getLoadedPackage(packageName)
+      if (pkg != null) {
+        pkg.loadGrammarsSync()
+      }
     }
     if (state.destroyedItemURIs != null) {
       this.destroyedItemURIs = state.destroyedItemURIs
@@ -127,7 +150,7 @@ module.exports = class Workspace extends Model {
 
   getPackageNamesWithActiveGrammars () {
     const packageNames = []
-    var addGrammar = ({includedGrammarScopes, packageName} = {}) => {
+    const addGrammar = ({includedGrammarScopes, packageName} = {}) => {
       if (!packageName) { return }
       // Prevent cycles
       if (packageNames.indexOf(packageName) !== -1) { return }
@@ -157,8 +180,7 @@ module.exports = class Workspace extends Model {
     this.updateDocumentEdited()
     this.project.onDidChangePaths(this.updateWindowTitle)
 
-    return this.observeActivePaneItem(item => {
-      let modifiedSubscription, titleSubscription
+    this.observeActivePaneItem(item => {
       this.updateWindowTitle()
       this.updateDocumentEdited()
 
@@ -167,32 +189,37 @@ module.exports = class Workspace extends Model {
       }
       this.activeItemSubscriptions = new CompositeDisposable()
 
-      if (typeof (item != null ? item.onDidChangeTitle : undefined) === 'function') {
+      let modifiedSubscription, titleSubscription
+
+      if (item != null && typeof item.onDidChangeTitle === 'function') {
         titleSubscription = item.onDidChangeTitle(this.updateWindowTitle)
-      } else if (typeof (item != null ? item.on : undefined) === 'function') {
+      } else if (item != null && typeof item.on === 'function') {
         titleSubscription = item.on('title-changed', this.updateWindowTitle)
-        if (typeof (titleSubscription != null ? titleSubscription.dispose : undefined) !== 'function') {
-          titleSubscription = new Disposable((function () { return item.off('title-changed', this.updateWindowTitle) }.bind(this)))
+        if (titleSubscription == null || typeof titleSubscription.dispose !== 'function') {
+          titleSubscription = new Disposable(() => {
+            item.off('title-changed', this.updateWindowTitle)
+          })
         }
       }
 
-      if (typeof (item != null ? item.onDidChangeModified : undefined) === 'function') {
+      if (item != null && typeof item.onDidChangeModified === 'function') {
         modifiedSubscription = item.onDidChangeModified(this.updateDocumentEdited)
-      } else if (typeof ((item != null ? item.on : undefined) != null) === 'function') {
+      } else if (item != null && typeof item.on === 'function') {
         modifiedSubscription = item.on('modified-status-changed', this.updateDocumentEdited)
-        if (typeof (modifiedSubscription != null ? modifiedSubscription.dispose : undefined) !== 'function') {
-          modifiedSubscription = new Disposable((function () { return item.off('modified-status-changed', this.updateDocumentEdited) }.bind(this)))
+        if (modifiedSubscription == null || typeof modifiedSubscription.dispose !== 'function') {
+          modifiedSubscription = new Disposable(() => {
+            item.off('modified-status-changed', this.updateDocumentEdited)
+          })
         }
       }
 
       if (titleSubscription != null) { this.activeItemSubscriptions.add(titleSubscription) }
-      if (modifiedSubscription != null) { return this.activeItemSubscriptions.add(modifiedSubscription) }
-    }
-    )
+      if (modifiedSubscription != null) { this.activeItemSubscriptions.add(modifiedSubscription) }
+    })
   }
 
   subscribeToAddedItems () {
-    return this.onDidAddPaneItem(({item, pane, index}) => {
+    this.onDidAddPaneItem(({item, pane, index}) => {
       if (item instanceof TextEditor) {
         const subscriptions = new CompositeDisposable(
           this.textEditorRegistry.add(item),
@@ -200,8 +227,8 @@ module.exports = class Workspace extends Model {
           this.textEditorRegistry.maintainConfig(item),
           item.observeGrammar(this.handleGrammarUsed.bind(this))
         )
-        item.onDidDestroy(() => subscriptions.dispose())
-        return this.emitter.emit('did-add-text-editor', {textEditor: item, pane, index})
+        item.onDidDestroy(() => { subscriptions.dispose() })
+        this.emitter.emit('did-add-text-editor', {textEditor: item, pane, index})
       }
     })
   }
@@ -209,14 +236,22 @@ module.exports = class Workspace extends Model {
   // Updates the application's title and proxy icon based on whichever file is
   // open.
   updateWindowTitle () {
-    let item, itemPath, itemTitle, left, projectPath, representedPath
+    let itemPath, itemTitle, projectPath, representedPath
     const appName = 'Atom'
-    const projectPaths = (left = this.project.getPaths()) != null ? left : []
-    if ((item = this.getActivePaneItem())) {
-      let left1
+    const left = this.project.getPaths()
+    const projectPaths = left != null ? left : []
+    const item = this.getActivePaneItem()
+    if (item) {
       itemPath = typeof item.getPath === 'function' ? item.getPath() : undefined
-      itemTitle = (left1 = (typeof item.getLongTitle === 'function' ? item.getLongTitle() : undefined)) != null ? left1 : (typeof item.getTitle === 'function' ? item.getTitle() : undefined)
-      projectPath = _.find(projectPaths, projectPath => (itemPath === projectPath) || (itemPath != null ? itemPath.startsWith(projectPath + path.sep) : undefined))
+      const longTitle = typeof item.getLongTitle === 'function' ? item.getLongTitle() : undefined
+      itemTitle = longTitle == null
+        ? (typeof item.getTitle === 'function' ? item.getTitle() : undefined)
+        : longTitle
+      projectPath = _.find(
+        projectPaths,
+        projectPath =>
+          (itemPath === projectPath) || (itemPath != null ? itemPath.startsWith(projectPath + path.sep) : undefined)
+      )
     }
     if (itemTitle == null) { itemTitle = 'untitled' }
     if (projectPath == null) { projectPath = itemPath ? path.dirname(itemPath) : projectPaths[0] }
@@ -241,15 +276,17 @@ module.exports = class Workspace extends Model {
     }
 
     document.title = titleParts.join(' \u2014 ')
-    return this.applicationDelegate.setRepresentedFilename(representedPath)
+    this.applicationDelegate.setRepresentedFilename(representedPath)
   }
 
   // On macOS, fades the application window's proxy icon when the current file
   // has been modified.
   updateDocumentEdited () {
-    let left
-    const modified = (left = __guardMethod__(this.getActivePaneItem(), 'isModified', o => o.isModified())) != null ? left : false
-    return this.applicationDelegate.setWindowDocumentEdited(modified)
+    const activePaneItem = this.getActivePaneItem()
+    const modified = activePaneItem != null && typeof activePaneItem.isModified === 'function'
+      ? activePaneItem.isModified() || false
+      : false
+    this.applicationDelegate.setWindowDocumentEdited(modified)
   }
 
   /*
@@ -479,11 +516,10 @@ module.exports = class Workspace extends Model {
   //     an existing item for the same URI. Defaults to `false`.
   //
   // Returns a {Promise} that resolves to the {TextEditor} for the file URI.
-  open (uri, options = {}) {
-    let pane
+  open (uri_, options = {}) {
     const { searchAllPanes } = options
     const { split } = options
-    uri = this.project.resolvePath(uri)
+    const uri = this.project.resolvePath(uri_)
 
     if (!atom.config.get('core.allowPendingPaneItems')) {
       options.pending = false
@@ -495,22 +531,26 @@ module.exports = class Workspace extends Model {
       this.applicationDelegate.addRecentDocument(uri)
     }
 
+    let pane
     if (searchAllPanes) { pane = this.paneContainer.paneForURI(uri) }
     if (pane == null) {
-      pane = (() => {
-        switch (split) {
-          case 'left':
-            return this.getActivePane().findLeftmostSibling()
-          case 'right':
-            return this.getActivePane().findOrCreateRightmostSibling()
-          case 'up':
-            return this.getActivePane().findTopmostSibling()
-          case 'down':
-            return this.getActivePane().findOrCreateBottommostSibling()
-          default:
-            return this.getActivePane()
-        }
-      })()
+      switch (split) {
+        case 'left':
+          pane = this.getActivePane().findLeftmostSibling()
+          break
+        case 'right':
+          pane = this.getActivePane().findOrCreateRightmostSibling()
+          break
+        case 'up':
+          pane = this.getActivePane().findTopmostSibling()
+          break
+        case 'down':
+          pane = this.getActivePane().findOrCreateBottommostSibling()
+          break
+        default:
+          pane = this.getActivePane()
+          break
+      }
     }
 
     return this.openURIInPane(uri, pane, options)
@@ -535,38 +575,54 @@ module.exports = class Workspace extends Model {
   //     the containing pane. Defaults to `true`.
   //   * `activateItem` A {Boolean} indicating whether to call {Pane::activateItem}
   //     on containing pane. Defaults to `true`.
-  openSync (uri = '', options = {}) {
+  openSync (uri_ = '', options = {}) {
     const {initialLine, initialColumn} = options
     const activatePane = options.activatePane != null ? options.activatePane : true
     const activateItem = options.activateItem != null ? options.activateItem : true
 
-    uri = this.project.resolvePath(uri)
+    const uri = this.project.resolvePath(uri)
     let item = this.getActivePane().itemForURI(uri)
-    if (uri) {
-      for (let opener of this.getOpeners()) { if (!item) { if (item == null) { item = opener(uri, options) } } }
+    if (uri && (item == null)) {
+      for (const opener of this.getOpeners()) {
+        item = opener(uri, options)
+        if (item) break
+      }
     }
-    if (item == null) { item = this.project.openSync(uri, {initialLine, initialColumn}) }
+    if (item == null) {
+      item = this.project.openSync(uri, {initialLine, initialColumn})
+    }
 
-    if (activateItem) { this.getActivePane().activateItem(item) }
+    if (activateItem) {
+      this.getActivePane().activateItem(item)
+    }
     this.itemOpened(item)
-    if (activatePane) { this.getActivePane().activate() }
+    if (activatePane) {
+      this.getActivePane().activate()
+    }
     return item
   }
 
   openURIInPane (uri, pane, options = {}) {
-    let item
     const activatePane = options.activatePane != null ? options.activatePane : true
     const activateItem = options.activateItem != null ? options.activateItem : true
 
+    let item
     if (uri != null) {
-      if ((item = pane.itemForURI(uri))) {
-        if (!options.pending && (pane.getPendingItem() === item)) { pane.clearPendingItem() }
+      item = pane.itemForURI(uri)
+      if (item == null) {
+        for (let opener of this.getOpeners()) {
+          item = opener(uri, options)
+          if (item != null) break
+        }
+      } else if (!options.pending && (pane.getPendingItem() === item)) {
+        pane.clearPendingItem()
       }
-      for (let opener of this.getOpeners()) { if (!item) { if (item == null) { item = opener(uri, options) } } }
     }
 
     try {
-      if (item == null) { item = this.openTextFile(uri, options) }
+      if (item == null) {
+        item = this.openTextFile(uri, options)
+      }
     } catch (error) {
       switch (error.code) {
         case 'CANCELLED':
@@ -574,8 +630,21 @@ module.exports = class Workspace extends Model {
         case 'EACCES':
           this.notificationManager.addWarning(`Permission denied '${error.path}'`)
           return Promise.resolve()
-        case 'EPERM': case 'EBUSY': case 'ENXIO': case 'EIO': case 'ENOTCONN': case 'UNKNOWN': case 'ECONNRESET': case 'EINVAL': case 'EMFILE': case 'ENOTDIR': case 'EAGAIN':
-          this.notificationManager.addWarning(`Unable to open '${error.path != null ? error.path : uri}'`, {detail: error.message})
+        case 'EPERM':
+        case 'EBUSY':
+        case 'ENXIO':
+        case 'EIO':
+        case 'ENOTCONN':
+        case 'UNKNOWN':
+        case 'ECONNRESET':
+        case 'EINVAL':
+        case 'EMFILE':
+        case 'ENOTDIR':
+        case 'EAGAIN':
+          this.notificationManager.addWarning(
+            `Unable to open '${error.path != null ? error.path : uri}'`,
+            {detail: error.message}
+          )
           return Promise.resolve()
         default:
           throw error
@@ -585,18 +654,24 @@ module.exports = class Workspace extends Model {
     return Promise.resolve(item)
       .then(item => {
         let initialColumn
-        if (pane.isDestroyed()) { return item }
+        if (pane.isDestroyed()) {
+          return item
+        }
 
         this.itemOpened(item)
-        if (activateItem) { pane.activateItem(item, {pending: options.pending}) }
-        if (activatePane) { pane.activate() }
+        if (activateItem) {
+          pane.activateItem(item, {pending: options.pending})
+        }
+        if (activatePane) {
+          pane.activate()
+        }
 
         let initialLine = initialColumn = 0
         if (!Number.isNaN(options.initialLine)) {
-          ({ initialLine } = options)
+          initialLine = options.initialLine
         }
         if (!Number.isNaN(options.initialColumn)) {
-          ({ initialColumn } = options)
+          initialColumn = options.initialColumn
         }
         if ((initialLine >= 0) || (initialColumn >= 0)) {
           if (typeof item.setCursorBufferPosition === 'function') {
@@ -619,7 +694,9 @@ module.exports = class Workspace extends Model {
         fs.closeSync(fs.openSync(filePath, 'r'))
       } catch (error) {
         // allow ENOENT errors to create an editor for paths that dont exist
-        if (error.code !== 'ENOENT') { throw error }
+        if (error.code !== 'ENOENT') {
+          throw error
+        }
       }
     }
 
@@ -630,7 +707,8 @@ module.exports = class Workspace extends Model {
       const choice = this.applicationDelegate.confirm({
         message: 'Atom will be unresponsive during the loading of very large files.',
         detailedMessage: 'Do you still want to load this file?',
-        buttons: ['Proceed', 'Cancel']})
+        buttons: ['Proceed', 'Cancel']
+      })
       if (choice === 1) {
         const error = new Error()
         error.code = 'CANCELLED'
@@ -638,15 +716,14 @@ module.exports = class Workspace extends Model {
       }
     }
 
-    return this.project.bufferForPath(filePath, options).then(buffer => {
-      return this.textEditorRegistry.build(Object.assign({buffer, largeFileMode, autoHeight: false}, options))
-    }
-    )
+    return this.project.bufferForPath(filePath, options)
+      .then(buffer => {
+        return this.textEditorRegistry.build(Object.assign({buffer, largeFileMode, autoHeight: false}, options))
+      })
   }
 
   handleGrammarUsed (grammar) {
     if (grammar == null) { return }
-
     return this.packageManager.triggerActivationHook(`${grammar.packageName}:grammar-used`)
   }
 
@@ -666,7 +743,7 @@ module.exports = class Workspace extends Model {
       this.textEditorRegistry.maintainGrammar(editor),
       this.textEditorRegistry.maintainConfig(editor)
     )
-    editor.onDidDestroy(() => subscriptions.dispose())
+    editor.onDidDestroy(() => { subscriptions.dispose() })
     return editor
   }
 
@@ -675,8 +752,8 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Promise} that is resolved when the item is opened
   reopenItem () {
-    let uri
-    if ((uri = this.destroyedItemURIs.pop())) {
+    const uri = this.destroyedItemURIs.pop()
+    if (uri) {
       return this.open(uri)
     } else {
       return Promise.resolve()
@@ -714,7 +791,7 @@ module.exports = class Workspace extends Model {
   // can check the protocol for quux-preview and only handle those URIs that match.
   addOpener (opener) {
     this.openers.push(opener)
-    return new Disposable((function () { return _.remove(this.openers, opener) }.bind(this)))
+    return new Disposable(() => { _.remove(this.openers, opener) })
   }
 
   getOpeners () {
@@ -839,44 +916,50 @@ module.exports = class Workspace extends Model {
 
   // Destroy (close) the active pane.
   destroyActivePane () {
-    return __guard__(this.getActivePane(), x => x.destroy())
+    const activePane = this.getActivePane()
+    if (activePane != null) {
+      activePane.destroy()
+    }
   }
 
   // Close the active pane item, or the active pane if it is empty,
   // or the current window if there is only the empty root pane.
   closeActivePaneItemOrEmptyPaneOrWindow () {
     if (this.getActivePaneItem() != null) {
-      return this.destroyActivePaneItem()
+      this.destroyActivePaneItem()
     } else if (this.getPanes().length > 1) {
-      return this.destroyActivePane()
+      this.destroyActivePane()
     } else if (this.config.get('core.closeEmptyWindows')) {
-      return atom.close()
+      atom.close()
     }
   }
 
   // Increase the editor font size by 1px.
   increaseFontSize () {
-    return this.config.set('editor.fontSize', this.config.get('editor.fontSize') + 1)
+    this.config.set('editor.fontSize', this.config.get('editor.fontSize') + 1)
   }
 
   // Decrease the editor font size by 1px.
   decreaseFontSize () {
     const fontSize = this.config.get('editor.fontSize')
-    if (fontSize > 1) { return this.config.set('editor.fontSize', fontSize - 1) }
+    if (fontSize > 1) {
+      this.config.set('editor.fontSize', fontSize - 1)
+    }
   }
 
   // Restore to the window's original editor font size.
   resetFontSize () {
     if (this.originalFontSize) {
-      return this.config.set('editor.fontSize', this.originalFontSize)
+      this.config.set('editor.fontSize', this.originalFontSize)
     }
   }
 
   subscribeToFontSize () {
     return this.config.onDidChange('editor.fontSize', ({oldValue}) => {
-      return this.originalFontSize != null ? this.originalFontSize : (this.originalFontSize = oldValue)
-    }
-    )
+      if (this.originalFontSize == null) {
+        this.originalFontSize = oldValue
+      }
+    })
   }
 
   // Removes the item's uri from the list of potential items to reopen.
@@ -889,7 +972,7 @@ module.exports = class Workspace extends Model {
     }
 
     if (uri != null) {
-      return _.remove(this.destroyedItemURIs, uri)
+      _.remove(this.destroyedItemURIs, uri)
     }
   }
 
@@ -903,14 +986,16 @@ module.exports = class Workspace extends Model {
     }
 
     if (uri != null) {
-      return this.destroyedItemURIs.push(uri)
+      this.destroyedItemURIs.push(uri)
     }
   }
 
   // Called by Model superclass when destroyed
   destroyed () {
     this.paneContainer.destroy()
-    return (this.activeItemSubscriptions != null ? this.activeItemSubscriptions.dispose() : undefined)
+    if (this.activeItemSubscriptions != null) {
+      this.activeItemSubscriptions.dispose()
+    }
   }
 
   /*
@@ -1112,7 +1197,6 @@ module.exports = class Workspace extends Model {
   // Returns a {Promise} with a `cancel()` method that will cancel all
   // of the underlying searches that were started as part of this scan.
   scan (regex, options = {}, iterator) {
-    let directorySearcher, onPathsSearched
     if (_.isFunction(options)) {
       iterator = options
       options = {}
@@ -1121,9 +1205,9 @@ module.exports = class Workspace extends Model {
     // Find a searcher for every Directory in the project. Each searcher that is matched
     // will be associated with an Array of Directory objects in the Map.
     const directoriesForSearcher = new Map()
-    for (let directory of this.project.getDirectories()) {
+    for (const directory of this.project.getDirectories()) {
       let searcher = this.defaultDirectorySearcher
-      for (directorySearcher of this.directorySearchers) {
+      for (const directorySearcher of this.directorySearchers) {
         if (directorySearcher.canSearchDirectory(directory)) {
           searcher = directorySearcher
           break
@@ -1138,6 +1222,7 @@ module.exports = class Workspace extends Model {
     }
 
     // Define the onPathsSearched callback.
+    let onPathsSearched
     if (_.isFunction(options.onPathsSearched)) {
       // Maintain a map of directories to the number of search results. When notified of a new count,
       // replace the entry in the map and update the total.
@@ -1167,26 +1252,33 @@ module.exports = class Workspace extends Model {
         exclusions: this.config.get('core.ignoredNames'),
         follow: this.config.get('core.followSymlinks'),
         didMatch: result => {
-          if (!this.project.isPathModified(result.filePath)) { return iterator(result) }
+          if (!this.project.isPathModified(result.filePath)) {
+            return iterator(result)
+          }
         },
         didError (error) {
           return iterator(null, error)
         },
-        didSearchPaths (count) { return onPathsSearched(searcher, count) }
+        didSearchPaths (count) {
+          return onPathsSearched(searcher, count)
+        }
       }
-      directorySearcher = searcher.search(directories, regex, searchOptions)
-      return allSearches.push(directorySearcher)
-    }
-    )
+      const directorySearcher = searcher.search(directories, regex, searchOptions)
+      allSearches.push(directorySearcher)
+    })
     const searchPromise = Promise.all(allSearches)
 
     for (let buffer of this.project.getBuffers()) {
       if (buffer.isModified()) {
         const filePath = buffer.getPath()
-        if (!this.project.contains(filePath)) { continue }
+        if (!this.project.contains(filePath)) {
+          continue
+        }
         var matches = []
         buffer.scan(regex, match => matches.push(match))
-        if (matches.length > 0) { iterator({filePath, matches}) }
+        if (matches.length > 0) {
+          iterator({filePath, matches})
+        }
       }
     }
 
@@ -1195,34 +1287,36 @@ module.exports = class Workspace extends Model {
     // resolve it with the special value 'cancelled'. At least the built-in find-and-replace
     // package relies on this behavior.
     let isCancelled = false
-    const cancellablePromise = new Promise(function (resolve, reject) {
+    const cancellablePromise = new Promise((resolve, reject) => {
       const onSuccess = function () {
         if (isCancelled) {
-          return resolve('cancelled')
+          resolve('cancelled')
         } else {
-          return resolve(null)
+          resolve(null)
         }
       }
 
       const onFailure = function () {
         for (let promise of allSearches) { promise.cancel() }
-        return reject()
+        reject()
       }
 
-      return searchPromise.then(onSuccess, onFailure)
+      searchPromise.then(onSuccess, onFailure)
     })
-    cancellablePromise.cancel = function () {
+    cancellablePromise.cancel = () => {
       isCancelled = true
       // Note that cancelling all of the members of allSearches will cause all of the searches
       // to resolve, which causes searchPromise to resolve, which is ultimately what causes
       // cancellablePromise to resolve.
-      return allSearches.map((promise) => promise.cancel())
+      allSearches.map((promise) => promise.cancel())
     }
 
     // Although this method claims to return a `Promise`, the `ResultsPaneView.onSearch()`
     // method in the find-and-replace package expects the object returned by this method to have a
     // `done()` method. Include a done() method until find-and-replace can be updated.
-    cancellablePromise.done = onSuccessOrFailure => cancellablePromise.then(onSuccessOrFailure, onSuccessOrFailure)
+    cancellablePromise.done = onSuccessOrFailure => {
+      cancellablePromise.then(onSuccessOrFailure, onSuccessOrFailure)
+    }
     return cancellablePromise
   }
 
@@ -1236,45 +1330,50 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Promise}.
   replace (regex, replacementText, filePaths, iterator) {
-    return new Promise((function (resolve, reject) {
+    return new Promise((resolve, reject) => {
       let buffer
-      const openPaths = ((() => {
-        const result = []
-        for (buffer of this.project.getBuffers()) {
-          result.push(buffer.getPath())
-        }
-        return result
-      })())
+      const openPaths = this.project.getBuffers().map(buffer => buffer.getPath())
       const outOfProcessPaths = _.difference(filePaths, openPaths)
 
       let inProcessFinished = !openPaths.length
       let outOfProcessFinished = !outOfProcessPaths.length
-      const checkFinished = function () {
-        if (outOfProcessFinished && inProcessFinished) { return resolve() }
+      const checkFinished = () => {
+        if (outOfProcessFinished && inProcessFinished) {
+          resolve()
+        }
       }
 
       if (!outOfProcessFinished.length) {
         let flags = 'g'
         if (regex.ignoreCase) { flags += 'i' }
 
-        const task = Task.once(require.resolve('./replace-handler'), outOfProcessPaths, regex.source, flags, replacementText, function () {
-          outOfProcessFinished = true
-          return checkFinished()
-        })
+        const task = Task.once(
+          require.resolve('./replace-handler'),
+          outOfProcessPaths,
+          regex.source,
+          flags,
+          replacementText,
+          () => {
+            outOfProcessFinished = true
+            checkFinished()
+          }
+        )
 
         task.on('replace:path-replaced', iterator)
-        task.on('replace:file-error', function (error) { return iterator(null, error) })
+        task.on('replace:file-error', error => { iterator(null, error) })
       }
 
       for (buffer of this.project.getBuffers()) {
-        if (!Array.from(filePaths).includes(buffer.getPath())) { continue }
+        if (!filePaths.includes(buffer.getPath())) { continue }
         const replacements = buffer.replace(regex, replacementText, iterator)
-        if (replacements) { iterator({filePath: buffer.getPath(), replacements}) }
+        if (replacements) {
+          iterator({filePath: buffer.getPath(), replacements})
+        }
       }
 
       inProcessFinished = true
-      return checkFinished()
-    }.bind(this)))
+      checkFinished()
+    })
   }
 
   checkoutHeadRevision (editor) {
@@ -1285,7 +1384,7 @@ module.exports = class Workspace extends Model {
       }
 
       if (this.config.get('editor.confirmCheckoutHeadRevision')) {
-        return this.applicationDelegate.confirm({
+        this.applicationDelegate.confirm({
           message: 'Confirm Checkout HEAD Revision',
           detailedMessage: `Are you sure you want to discard all changes to "${editor.getFileName()}" since the last Git commit?`,
           buttons: {
@@ -1299,16 +1398,5 @@ module.exports = class Workspace extends Model {
     } else {
       return Promise.resolve(false)
     }
-  }
-}
-
-function __guard__ (value, transform) {
-  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined
-}
-function __guardMethod__ (obj, methodName, transform) {
-  if (typeof obj !== 'undefined' && obj !== null && typeof obj[methodName] === 'function') {
-    return transform(obj, methodName)
-  } else {
-    return undefined
   }
 }

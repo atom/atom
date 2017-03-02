@@ -1,3 +1,5 @@
+'use strict'
+
 /* global advanceClock, HTMLElement, waits */
 
 const path = require('path')
@@ -11,28 +13,33 @@ const fstream = require('fstream')
 const fs = require('fs-plus')
 const AtomEnvironment = require('../src/atom-environment')
 
-describe('Workspace', function () {
-  let escapeStringRegex
-  let [workspace, setDocumentEdited] = Array.from([])
+describe('Workspace', () => {
+  let workspace
+  let setDocumentEdited
 
-  beforeEach(function () {
-    ({ workspace } = atom)
+  beforeEach(() => {
+    workspace = atom.workspace
     workspace.resetFontSize()
     spyOn(atom.applicationDelegate, 'confirm')
     setDocumentEdited = spyOn(atom.applicationDelegate, 'setWindowDocumentEdited')
-    atom.project.setPaths([__guard__(atom.project.getDirectories()[0], x => x.resolve('dir'))])
-    return waits(1)
+    atom.project.setPaths([atom.project.getDirectories()[0].resolve('dir')])
+    waits(1)
   })
 
   afterEach(() => temp.cleanupSync())
 
-  describe('serialization', function () {
-    const simulateReload = function () {
+  describe('serialization', () => {
+    const simulateReload = () => {
       const workspaceState = atom.workspace.serialize()
       const projectState = atom.project.serialize({isUnloading: true})
       atom.workspace.destroy()
       atom.project.destroy()
-      atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm.bind(atom), applicationDelegate: atom.applicationDelegate})
+      atom.project = new Project({
+        notificationManager: atom.notifications,
+        packageManager: atom.packages,
+        confirm: atom.confirm.bind(atom),
+        applicationDelegate: atom.applicationDelegate
+      })
       atom.project.deserialize(projectState)
       atom.workspace = new Workspace({
         config: atom.config,
@@ -49,8 +56,8 @@ describe('Workspace', function () {
       return atom.workspace.deserialize(workspaceState, atom.deserializers)
     }
 
-    describe('when the workspace contains text editors', () =>
-      it('constructs the view with the same panes', function () {
+    describe('when the workspace contains text editors', () => {
+      it('constructs the view with the same panes', () => {
         const pane1 = atom.workspace.getActivePane()
         const pane2 = pane1.splitRight({copyActiveItem: true})
         const pane3 = pane2.splitRight({copyActiveItem: true})
@@ -66,123 +73,127 @@ describe('Workspace', function () {
           atom.workspace.open('../sample.js').then(editor => pane3.activateItem(editor))
         )
 
-        runs(function () {
+        runs(() => {
           pane3.activeItem.setCursorScreenPosition([2, 4])
-          return (pane4 = pane2.splitDown())
+          pane4 = pane2.splitDown()
         })
 
         waitsForPromise(() =>
           atom.workspace.open('../sample.txt').then(editor => pane4.activateItem(editor))
         )
 
-        return runs(function () {
+        runs(() => {
           pane4.getActiveItem().setCursorScreenPosition([0, 2])
           pane2.activate()
 
           simulateReload()
 
           expect(atom.workspace.getTextEditors().length).toBe(5)
-          const [editor1, editor2, untitledEditor, editor3, editor4] = Array.from(atom.workspace.getTextEditors())
-          expect(editor1.getPath()).toBe(__guard__(atom.project.getDirectories()[0], x => x.resolve('b')))
-          expect(editor2.getPath()).toBe(__guard__(atom.project.getDirectories()[0], x1 => x1.resolve('../sample.txt')))
+          const [editor1, editor2, untitledEditor, editor3, editor4] = atom.workspace.getTextEditors()
+          const firstDirectory = atom.project.getDirectories()[0]
+          expect(firstDirectory).toBeDefined()
+          expect(editor1.getPath()).toBe(firstDirectory.resolve('b'))
+          expect(editor2.getPath()).toBe(firstDirectory.resolve('../sample.txt'))
           expect(editor2.getCursorScreenPosition()).toEqual([0, 2])
-          expect(editor3.getPath()).toBe(__guard__(atom.project.getDirectories()[0], x2 => x2.resolve('b')))
-          expect(editor4.getPath()).toBe(__guard__(atom.project.getDirectories()[0], x3 => x3.resolve('../sample.js')))
+          expect(editor3.getPath()).toBe(firstDirectory.resolve('b'))
+          expect(editor4.getPath()).toBe(firstDirectory.resolve('../sample.js'))
           expect(editor4.getCursorScreenPosition()).toEqual([2, 4])
           expect(untitledEditor.getPath()).toBeUndefined()
           expect(untitledEditor.getText()).toBe('An untitled editor.')
 
           expect(atom.workspace.getActiveTextEditor().getPath()).toBe(editor3.getPath())
           const pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
-          return expect(document.title).toMatch(new RegExp(`^${path.basename(editor3.getLongTitle())} \\u2014 ${pathEscaped}`))
+          expect(document.title).toMatch(new RegExp(`^${path.basename(editor3.getLongTitle())} \\u2014 ${pathEscaped}`))
         })
       })
-    )
+    })
 
-    return describe('where there are no open panes or editors', () =>
-      it('constructs the view with no open editors', function () {
+    describe('where there are no open panes or editors', () => {
+      it('constructs the view with no open editors', () => {
         atom.workspace.getActivePane().destroy()
         expect(atom.workspace.getTextEditors().length).toBe(0)
         simulateReload()
-        return expect(atom.workspace.getTextEditors().length).toBe(0)
+        expect(atom.workspace.getTextEditors().length).toBe(0)
       })
-    )
+    })
   })
 
-  describe('::open(uri, options)', function () {
+  describe('::open(uri, options)', () => {
     let openEvents = null
 
-    beforeEach(function () {
+    beforeEach(() => {
       openEvents = []
       workspace.onDidOpen(event => openEvents.push(event))
-      return spyOn(workspace.getActivePane(), 'activate').andCallThrough()
+      spyOn(workspace.getActivePane(), 'activate').andCallThrough()
     })
 
-    describe("when the 'searchAllPanes' option is false (default)", function () {
-      describe('when called without a uri', () =>
-        it('adds and activates an empty editor on the active pane', function () {
-          let [editor1, editor2] = Array.from([])
+    describe("when the 'searchAllPanes' option is false (default)", () => {
+      describe('when called without a uri', () => {
+        it('adds and activates an empty editor on the active pane', () => {
+          let editor1
+          let editor2
 
-          waitsForPromise(() => workspace.open().then(editor => (editor1 = editor)))
+          waitsForPromise(() => workspace.open().then(editor => { editor1 = editor }))
 
-          runs(function () {
+          runs(() => {
             expect(editor1.getPath()).toBeUndefined()
             expect(workspace.getActivePane().items).toEqual([editor1])
             expect(workspace.getActivePaneItem()).toBe(editor1)
             expect(workspace.getActivePane().activate).toHaveBeenCalled()
             expect(openEvents).toEqual([{uri: undefined, pane: workspace.getActivePane(), item: editor1, index: 0}])
-            return (openEvents = [])
+            openEvents = []
           })
 
-          waitsForPromise(() => workspace.open().then(editor => (editor2 = editor)))
+          waitsForPromise(() => workspace.open().then(editor => { editor2 = editor }))
 
-          return runs(function () {
+          runs(() => {
             expect(editor2.getPath()).toBeUndefined()
             expect(workspace.getActivePane().items).toEqual([editor1, editor2])
             expect(workspace.getActivePaneItem()).toBe(editor2)
             expect(workspace.getActivePane().activate).toHaveBeenCalled()
-            return expect(openEvents).toEqual([{uri: undefined, pane: workspace.getActivePane(), item: editor2, index: 1}])
+            expect(openEvents).toEqual([{uri: undefined, pane: workspace.getActivePane(), item: editor2, index: 1}])
           })
         })
-      )
+      })
 
-      return describe('when called with a uri', function () {
-        describe('when the active pane already has an editor for the given uri', () =>
-          it('activates the existing editor on the active pane', function () {
+      describe('when called with a uri', () => {
+        describe('when the active pane already has an editor for the given uri', () => {
+          it('activates the existing editor on the active pane', () => {
             let editor = null
             let editor1 = null
             let editor2 = null
 
             waitsForPromise(() =>
-              workspace.open('a').then(function (o) {
+              workspace.open('a').then(o => {
                 editor1 = o
-                return workspace.open('b').then(function (o) {
+                return workspace.open('b').then(o => {
                   editor2 = o
-                  return workspace.open('a').then(o => (editor = o))
+                  return workspace.open('a').then(o => { editor = o })
                 })
               })
             )
 
-            return runs(function () {
+            runs(() => {
               expect(editor).toBe(editor1)
               expect(workspace.getActivePaneItem()).toBe(editor)
               expect(workspace.getActivePane().activate).toHaveBeenCalled()
-
-              return expect(openEvents).toEqual([
+              const firstDirectory = atom.project.getDirectories()[0]
+              expect(firstDirectory).toBeDefined()
+              expect(openEvents).toEqual([
                 {
-                  uri: __guard__(atom.project.getDirectories()[0], x => x.resolve('a')),
+                  uri: firstDirectory.resolve('a'),
                   item: editor1,
                   pane: atom.workspace.getActivePane(),
                   index: 0
                 },
                 {
-                  uri: __guard__(atom.project.getDirectories()[0], x1 => x1.resolve('b')),
+                  uri: firstDirectory.resolve('b'),
                   item: editor2,
                   pane: atom.workspace.getActivePane(),
                   index: 1
                 },
                 {
-                  uri: __guard__(atom.project.getDirectories()[0], x2 => x2.resolve('a')),
+                  uri: firstDirectory.resolve('a'),
                   item: editor1,
                   pane: atom.workspace.getActivePane(),
                   index: 0
@@ -190,95 +201,97 @@ describe('Workspace', function () {
               ])
             })
           })
-        )
+        })
 
-        return describe('when the active pane does not have an editor for the given uri', () =>
-          it('adds and activates a new editor for the given path on the active pane', function () {
+        describe('when the active pane does not have an editor for the given uri', () => {
+          it('adds and activates a new editor for the given path on the active pane', () => {
             let editor = null
-            waitsForPromise(() => workspace.open('a').then(o => (editor = o)))
+            waitsForPromise(() => workspace.open('a').then(o => { editor = o }))
 
-            return runs(function () {
-              expect(editor.getURI()).toBe(__guard__(atom.project.getDirectories()[0], x => x.resolve('a')))
+            runs(() => {
+              const firstDirectory = atom.project.getDirectories()[0]
+              expect(firstDirectory).toBeDefined()
+              expect(editor.getURI()).toBe(firstDirectory.resolve('a'))
               expect(workspace.getActivePaneItem()).toBe(editor)
               expect(workspace.getActivePane().items).toEqual([editor])
-              return expect(workspace.getActivePane().activate).toHaveBeenCalled()
+              expect(workspace.getActivePane().activate).toHaveBeenCalled()
             })
           })
-        )
+        })
       })
     })
 
-    describe("when the 'searchAllPanes' option is true", function () {
-      describe('when an editor for the given uri is already open on an inactive pane', () =>
-        it('activates the existing editor on the inactive pane, then activates that pane', function () {
+    describe("when the 'searchAllPanes' option is true", () => {
+      describe('when an editor for the given uri is already open on an inactive pane', () => {
+        it('activates the existing editor on the inactive pane, then activates that pane', () => {
           let editor1 = null
           let editor2 = null
           const pane1 = workspace.getActivePane()
           const pane2 = workspace.getActivePane().splitRight()
 
-          waitsForPromise(function () {
+          waitsForPromise(() => {
             pane1.activate()
-            return workspace.open('a').then(o => (editor1 = o))
+            return workspace.open('a').then(o => { editor1 = o })
           })
 
-          waitsForPromise(function () {
+          waitsForPromise(() => {
             pane2.activate()
-            return workspace.open('b').then(o => (editor2 = o))
+            return workspace.open('b').then(o => { editor2 = o })
           })
 
           runs(() => expect(workspace.getActivePaneItem()).toBe(editor2))
 
           waitsForPromise(() => workspace.open('a', {searchAllPanes: true}))
 
-          return runs(function () {
+          runs(() => {
             expect(workspace.getActivePane()).toBe(pane1)
-            return expect(workspace.getActivePaneItem()).toBe(editor1)
+            expect(workspace.getActivePaneItem()).toBe(editor1)
           })
         })
-      )
+      })
 
-      return describe('when no editor for the given uri is open in any pane', () =>
-        it('opens an editor for the given uri in the active pane', function () {
+      describe('when no editor for the given uri is open in any pane', () => {
+        it('opens an editor for the given uri in the active pane', () => {
           let editor = null
-          waitsForPromise(() => workspace.open('a', {searchAllPanes: true}).then(o => (editor = o)))
+          waitsForPromise(() => workspace.open('a', {searchAllPanes: true}).then(o => { editor = o }))
 
-          return runs(() => expect(workspace.getActivePaneItem()).toBe(editor))
+          runs(() => expect(workspace.getActivePaneItem()).toBe(editor))
         })
-      )
+      })
     })
 
-    describe("when the 'split' option is set", function () {
-      describe("when the 'split' option is 'left'", () =>
-        it('opens the editor in the leftmost pane of the current pane axis', function () {
+    describe("when the 'split' option is set", () => {
+      describe("when the 'split' option is 'left'", () => {
+        it('opens the editor in the leftmost pane of the current pane axis', () => {
           const pane1 = workspace.getActivePane()
           const pane2 = pane1.splitRight()
           expect(workspace.getActivePane()).toBe(pane2)
 
           let editor = null
-          waitsForPromise(() => workspace.open('a', {split: 'left'}).then(o => (editor = o)))
+          waitsForPromise(() => workspace.open('a', {split: 'left'}).then(o => { editor = o }))
 
-          runs(function () {
+          runs(() => {
             expect(workspace.getActivePane()).toBe(pane1)
             expect(pane1.items).toEqual([editor])
-            return expect(pane2.items).toEqual([])
+            expect(pane2.items).toEqual([])
           })
 
           // Focus right pane and reopen the file on the left
-          waitsForPromise(function () {
+          waitsForPromise(() => {
             pane2.focus()
-            return workspace.open('a', {split: 'left'}).then(o => (editor = o))
+            return workspace.open('a', {split: 'left'}).then(o => { editor = o })
           })
 
-          return runs(function () {
+          runs(() => {
             expect(workspace.getActivePane()).toBe(pane1)
             expect(pane1.items).toEqual([editor])
-            return expect(pane2.items).toEqual([])
+            expect(pane2.items).toEqual([])
           })
         })
-      )
+      })
 
-      describe('when a pane axis is the leftmost sibling of the current pane', () =>
-        it('opens the new item in the current pane', function () {
+      describe('when a pane axis is the leftmost sibling of the current pane', () => {
+        it('opens the new item in the current pane', () => {
           let editor = null
           const pane1 = workspace.getActivePane()
           const pane2 = pane1.splitLeft()
@@ -286,44 +299,44 @@ describe('Workspace', function () {
           pane1.activate()
           expect(workspace.getActivePane()).toBe(pane1)
 
-          waitsForPromise(() => workspace.open('a', {split: 'left'}).then(o => (editor = o)))
+          waitsForPromise(() => workspace.open('a', {split: 'left'}).then(o => { editor = o }))
 
-          return runs(function () {
+          runs(() => {
             expect(workspace.getActivePane()).toBe(pane1)
-            return expect(pane1.items).toEqual([editor])
+            expect(pane1.items).toEqual([editor])
           })
         })
-      )
+      })
 
-      describe("when the 'split' option is 'right'", function () {
-        it('opens the editor in the rightmost pane of the current pane axis', function () {
+      describe("when the 'split' option is 'right'", () => {
+        it('opens the editor in the rightmost pane of the current pane axis', () => {
           let editor = null
           const pane1 = workspace.getActivePane()
           let pane2 = null
-          waitsForPromise(() => workspace.open('a', {split: 'right'}).then(o => (editor = o)))
+          waitsForPromise(() => workspace.open('a', {split: 'right'}).then(o => { editor = o }))
 
-          runs(function () {
+          runs(() => {
             pane2 = workspace.getPanes().filter(p => p !== pane1)[0]
             expect(workspace.getActivePane()).toBe(pane2)
             expect(pane1.items).toEqual([])
-            return expect(pane2.items).toEqual([editor])
+            expect(pane2.items).toEqual([editor])
           })
 
           // Focus right pane and reopen the file on the right
-          waitsForPromise(function () {
+          waitsForPromise(() => {
             pane1.focus()
-            return workspace.open('a', {split: 'right'}).then(o => (editor = o))
+            return workspace.open('a', {split: 'right'}).then(o => { editor = o })
           })
 
-          return runs(function () {
+          runs(() => {
             expect(workspace.getActivePane()).toBe(pane2)
             expect(pane1.items).toEqual([])
-            return expect(pane2.items).toEqual([editor])
+            expect(pane2.items).toEqual([editor])
           })
         })
 
-        return describe('when a pane axis is the rightmost sibling of the current pane', () =>
-          it('opens the new item in a new pane split to the right of the current pane', function () {
+        describe('when a pane axis is the rightmost sibling of the current pane', () => {
+          it('opens the new item in a new pane split to the right of the current pane', () => {
             let editor = null
             const pane1 = workspace.getActivePane()
             const pane2 = pane1.splitRight()
@@ -332,50 +345,50 @@ describe('Workspace', function () {
             expect(workspace.getActivePane()).toBe(pane1)
             let pane4 = null
 
-            waitsForPromise(() => workspace.open('a', {split: 'right'}).then(o => (editor = o)))
+            waitsForPromise(() => workspace.open('a', {split: 'right'}).then(o => { editor = o }))
 
-            return runs(function () {
+            runs(() => {
               pane4 = workspace.getPanes().filter(p => p !== pane1)[0]
               expect(workspace.getActivePane()).toBe(pane4)
               expect(pane4.items).toEqual([editor])
               expect(workspace.paneContainer.root.children[0]).toBe(pane1)
-              return expect(workspace.paneContainer.root.children[1]).toBe(pane4)
+              expect(workspace.paneContainer.root.children[1]).toBe(pane4)
             })
           })
-        )
+        })
       })
 
-      describe("when the 'split' option is 'up'", () =>
-        it('opens the editor in the topmost pane of the current pane axis', function () {
+      describe("when the 'split' option is 'up'", () => {
+        it('opens the editor in the topmost pane of the current pane axis', () => {
           const pane1 = workspace.getActivePane()
           const pane2 = pane1.splitDown()
           expect(workspace.getActivePane()).toBe(pane2)
 
           let editor = null
-          waitsForPromise(() => workspace.open('a', {split: 'up'}).then(o => (editor = o)))
+          waitsForPromise(() => workspace.open('a', {split: 'up'}).then(o => { editor = o }))
 
-          runs(function () {
+          runs(() => {
             expect(workspace.getActivePane()).toBe(pane1)
             expect(pane1.items).toEqual([editor])
-            return expect(pane2.items).toEqual([])
+            expect(pane2.items).toEqual([])
           })
 
           // Focus bottom pane and reopen the file on the top
-          waitsForPromise(function () {
+          waitsForPromise(() => {
             pane2.focus()
-            return workspace.open('a', {split: 'up'}).then(o => (editor = o))
+            return workspace.open('a', {split: 'up'}).then(o => { editor = o })
           })
 
-          return runs(function () {
+          runs(() => {
             expect(workspace.getActivePane()).toBe(pane1)
             expect(pane1.items).toEqual([editor])
-            return expect(pane2.items).toEqual([])
+            expect(pane2.items).toEqual([])
           })
         })
-      )
+      })
 
-      describe('when a pane axis is the topmost sibling of the current pane', () =>
-        it('opens the new item in the current pane', function () {
+      describe('when a pane axis is the topmost sibling of the current pane', () => {
+        it('opens the new item in the current pane', () => {
           let editor = null
           const pane1 = workspace.getActivePane()
           const pane2 = pane1.splitUp()
@@ -383,44 +396,44 @@ describe('Workspace', function () {
           pane1.activate()
           expect(workspace.getActivePane()).toBe(pane1)
 
-          waitsForPromise(() => workspace.open('a', {split: 'up'}).then(o => (editor = o)))
+          waitsForPromise(() => workspace.open('a', {split: 'up'}).then(o => { editor = o }))
 
-          return runs(function () {
+          runs(() => {
             expect(workspace.getActivePane()).toBe(pane1)
-            return expect(pane1.items).toEqual([editor])
+            expect(pane1.items).toEqual([editor])
           })
         })
-      )
+      })
 
-      return describe("when the 'split' option is 'down'", function () {
-        it('opens the editor in the bottommost pane of the current pane axis', function () {
+      describe("when the 'split' option is 'down'", () => {
+        it('opens the editor in the bottommost pane of the current pane axis', () => {
           let editor = null
           const pane1 = workspace.getActivePane()
           let pane2 = null
-          waitsForPromise(() => workspace.open('a', {split: 'down'}).then(o => (editor = o)))
+          waitsForPromise(() => workspace.open('a', {split: 'down'}).then(o => { editor = o }))
 
-          runs(function () {
+          runs(() => {
             pane2 = workspace.getPanes().filter(p => p !== pane1)[0]
             expect(workspace.getActivePane()).toBe(pane2)
             expect(pane1.items).toEqual([])
-            return expect(pane2.items).toEqual([editor])
+            expect(pane2.items).toEqual([editor])
           })
 
           // Focus bottom pane and reopen the file on the right
-          waitsForPromise(function () {
+          waitsForPromise(() => {
             pane1.focus()
-            return workspace.open('a', {split: 'down'}).then(o => (editor = o))
+            return workspace.open('a', {split: 'down'}).then(o => { editor = o })
           })
 
-          return runs(function () {
+          runs(() => {
             expect(workspace.getActivePane()).toBe(pane2)
             expect(pane1.items).toEqual([])
-            return expect(pane2.items).toEqual([editor])
+            expect(pane2.items).toEqual([editor])
           })
         })
 
-        return describe('when a pane axis is the bottommost sibling of the current pane', () =>
-          it('opens the new item in a new pane split to the bottom of the current pane', function () {
+        describe('when a pane axis is the bottommost sibling of the current pane', () => {
+          it('opens the new item in a new pane split to the bottom of the current pane', () => {
             let editor = null
             const pane1 = workspace.getActivePane()
             const pane2 = pane1.splitDown()
@@ -428,22 +441,22 @@ describe('Workspace', function () {
             expect(workspace.getActivePane()).toBe(pane1)
             let pane4 = null
 
-            waitsForPromise(() => workspace.open('a', {split: 'down'}).then(o => (editor = o)))
+            waitsForPromise(() => workspace.open('a', {split: 'down'}).then(o => { editor = o }))
 
-            return runs(function () {
+            runs(() => {
               pane4 = workspace.getPanes().filter(p => p !== pane1)[0]
               expect(workspace.getActivePane()).toBe(pane4)
               expect(pane4.items).toEqual([editor])
               expect(workspace.paneContainer.root.children[0]).toBe(pane1)
-              return expect(workspace.paneContainer.root.children[1]).toBe(pane2)
+              expect(workspace.paneContainer.root.children[1]).toBe(pane2)
             })
           })
-        )
+        })
       })
     })
 
-    describe('when an initialLine and initialColumn are specified', () =>
-      it('moves the cursor to the indicated location', function () {
+    describe('when an initialLine and initialColumn are specified', () => {
+      it('moves the cursor to the indicated location', () => {
         waitsForPromise(() => workspace.open('a', {initialLine: 1, initialColumn: 5}))
 
         runs(() => expect(workspace.getActiveTextEditor().getCursorBufferPosition()).toEqual([1, 5]))
@@ -466,84 +479,92 @@ describe('Workspace', function () {
 
         waitsForPromise(() => workspace.open('a', {initialLine: Infinity, initialColumn: Infinity}))
 
-        return runs(() => expect(workspace.getActiveTextEditor().getCursorBufferPosition()).toEqual([2, 11]))
+        runs(() => expect(workspace.getActiveTextEditor().getCursorBufferPosition()).toEqual([2, 11]))
       })
-    )
+    })
 
-    describe('when the file is over 2MB', () =>
-      it('opens the editor with largeFileMode: true', function () {
+    describe('when the file is over 2MB', () => {
+      it('opens the editor with largeFileMode: true', () => {
         spyOn(fs, 'getSizeSync').andReturn(2 * 1048577) // 2MB
 
         let editor = null
-        waitsForPromise(() => workspace.open('sample.js').then(e => (editor = e)))
+        waitsForPromise(() => workspace.open('sample.js').then(e => { editor = e }))
 
-        return runs(() => expect(editor.largeFileMode).toBe(true))
+        runs(() => expect(editor.largeFileMode).toBe(true))
       })
-    )
+    })
 
-    describe('when the file is over user-defined limit', function () {
-      const shouldPromptForFileOfSize = function (size, shouldPrompt) {
+    describe('when the file is over user-defined limit', () => {
+      const shouldPromptForFileOfSize = (size, shouldPrompt) => {
         spyOn(fs, 'getSizeSync').andReturn(size * 1048577)
         atom.applicationDelegate.confirm.andCallFake(() => selectedButtonIndex)
         atom.applicationDelegate.confirm()
         var selectedButtonIndex = 1 // cancel
 
         let editor = null
-        waitsForPromise(() => workspace.open('sample.js').then(e => (editor = e)))
+        waitsForPromise(() => workspace.open('sample.js').then(e => { editor = e }))
         if (shouldPrompt) {
-          runs(function () {
+          runs(() => {
             expect(editor).toBeUndefined()
             expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
 
             atom.applicationDelegate.confirm.reset()
-            return (selectedButtonIndex = 0)
+            selectedButtonIndex = 0
           }) // open the file
 
-          waitsForPromise(() => workspace.open('sample.js').then(e => (editor = e)))
+          waitsForPromise(() => workspace.open('sample.js').then(e => { editor = e }))
 
-          return runs(function () {
+          runs(() => {
             expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-            return expect(editor.largeFileMode).toBe(true)
+            expect(editor.largeFileMode).toBe(true)
           })
         } else {
-          return runs(() => expect(editor).not.toBeUndefined())
+          runs(() => expect(editor).not.toBeUndefined())
         }
       }
 
-      it('prompts the user to make sure they want to open a file this big', function () {
+      it('prompts the user to make sure they want to open a file this big', () => {
         atom.config.set('core.warnOnLargeFileLimit', 20)
-        return shouldPromptForFileOfSize(20, true)
+        shouldPromptForFileOfSize(20, true)
       })
 
-      it("doesn't prompt on files below the limit", function () {
+      it("doesn't prompt on files below the limit", () => {
         atom.config.set('core.warnOnLargeFileLimit', 30)
-        return shouldPromptForFileOfSize(20, false)
+        shouldPromptForFileOfSize(20, false)
       })
 
-      return it('prompts for smaller files with a lower limit', function () {
+      it('prompts for smaller files with a lower limit', () => {
         atom.config.set('core.warnOnLargeFileLimit', 5)
-        return shouldPromptForFileOfSize(10, true)
+        shouldPromptForFileOfSize(10, true)
       })
     })
 
-    describe('when passed a path that matches a custom opener', () =>
-      it('returns the resource returned by the custom opener', function () {
-        const fooOpener = function (pathToOpen, options) { if (pathToOpen != null ? pathToOpen.match(/\.foo/) : undefined) { return {foo: pathToOpen, options} } }
-        const barOpener = function (pathToOpen) { if (pathToOpen != null ? pathToOpen.match(/^bar:\/\//) : undefined) { return {bar: pathToOpen} } }
+    describe('when passed a path that matches a custom opener', () => {
+      it('returns the resource returned by the custom opener', () => {
+        const fooOpener = (pathToOpen, options) => {
+          if (pathToOpen != null ? pathToOpen.match(/\.foo/) : undefined) {
+            return {foo: pathToOpen, options}
+          }
+        }
+        const barOpener = (pathToOpen) => {
+          if (pathToOpen != null ? pathToOpen.match(/^bar:\/\//) : undefined) {
+            return {bar: pathToOpen}
+          }
+        }
         workspace.addOpener(fooOpener)
         workspace.addOpener(barOpener)
 
-        waitsForPromise(function () {
-          const pathToOpen = __guard__(atom.project.getDirectories()[0], x => x.resolve('a.foo'))
+        waitsForPromise(() => {
+          const pathToOpen = atom.project.getDirectories()[0].resolve('a.foo')
           return workspace.open(pathToOpen, {hey: 'there'}).then(item => expect(item).toEqual({foo: pathToOpen, options: {hey: 'there'}}))
         })
 
-        return waitsForPromise(() =>
+        waitsForPromise(() =>
           workspace.open('bar://baz').then(item => expect(item).toEqual({bar: 'bar://baz'})))
       })
-    )
+    })
 
-    it("adds the file to the application's recent documents list", function () {
+    it("adds the file to the application's recent documents list", () => {
       if (process.platform !== 'darwin') { return } // Feature only supported on macOS
       spyOn(atom.applicationDelegate, 'addRecentDocument')
 
@@ -557,39 +578,39 @@ describe('Workspace', function () {
 
       waitsForPromise(() => workspace.open(__filename))
 
-      return runs(() => expect(atom.applicationDelegate.addRecentDocument).toHaveBeenCalledWith(__filename))
+      runs(() => expect(atom.applicationDelegate.addRecentDocument).toHaveBeenCalledWith(__filename))
     })
 
-    it('notifies ::onDidAddTextEditor observers', function () {
+    it('notifies ::onDidAddTextEditor observers', () => {
       const absolutePath = require.resolve('./fixtures/dir/a')
       const newEditorHandler = jasmine.createSpy('newEditorHandler')
       workspace.onDidAddTextEditor(newEditorHandler)
 
       let editor = null
-      waitsForPromise(() => workspace.open(absolutePath).then(e => (editor = e)))
+      waitsForPromise(() => workspace.open(absolutePath).then(e => { editor = e }))
 
-      return runs(() => expect(newEditorHandler.argsForCall[0][0].textEditor).toBe(editor))
+      runs(() => expect(newEditorHandler.argsForCall[0][0].textEditor).toBe(editor))
     })
 
-    describe('when there is an error opening the file', function () {
+    describe('when there is an error opening the file', () => {
       let notificationSpy = null
       beforeEach(() => atom.notifications.onDidAddNotification(notificationSpy = jasmine.createSpy()))
 
-      describe('when a file does not exist', () =>
-        it('creates an empty buffer for the specified path', function () {
+      describe('when a file does not exist', () => {
+        it('creates an empty buffer for the specified path', () => {
           waitsForPromise(() => workspace.open('not-a-file.md'))
 
-          return runs(function () {
+          runs(() => {
             const editor = workspace.getActiveTextEditor()
             expect(notificationSpy).not.toHaveBeenCalled()
-            return expect(editor.getPath()).toContain('not-a-file.md')
+            expect(editor.getPath()).toContain('not-a-file.md')
           })
         })
-      )
+      })
 
-      describe('when the user does not have access to the file', function () {
+      describe('when the user does not have access to the file', () => {
         beforeEach(() =>
-          spyOn(fs, 'openSync').andCallFake(function (path) {
+          spyOn(fs, 'openSync').andCallFake(path => {
             const error = new Error(`EACCES, permission denied '${path}'`)
             error.path = path
             error.code = 'EACCES'
@@ -597,22 +618,22 @@ describe('Workspace', function () {
           })
         )
 
-        return it('creates a notification', function () {
+        it('creates a notification', () => {
           waitsForPromise(() => workspace.open('file1'))
 
-          return runs(function () {
+          runs(() => {
             expect(notificationSpy).toHaveBeenCalled()
             const notification = notificationSpy.mostRecentCall.args[0]
             expect(notification.getType()).toBe('warning')
             expect(notification.getMessage()).toContain('Permission denied')
-            return expect(notification.getMessage()).toContain('file1')
+            expect(notification.getMessage()).toContain('file1')
           })
         })
       })
 
-      describe('when the the operation is not permitted', function () {
+      describe('when the the operation is not permitted', () => {
         beforeEach(() =>
-          spyOn(fs, 'openSync').andCallFake(function (path) {
+          spyOn(fs, 'openSync').andCallFake(path => {
             const error = new Error(`EPERM, operation not permitted '${path}'`)
             error.path = path
             error.code = 'EPERM'
@@ -620,22 +641,22 @@ describe('Workspace', function () {
           })
         )
 
-        return it('creates a notification', function () {
+        it('creates a notification', () => {
           waitsForPromise(() => workspace.open('file1'))
 
-          return runs(function () {
+          runs(() => {
             expect(notificationSpy).toHaveBeenCalled()
             const notification = notificationSpy.mostRecentCall.args[0]
             expect(notification.getType()).toBe('warning')
             expect(notification.getMessage()).toContain('Unable to open')
-            return expect(notification.getMessage()).toContain('file1')
+            expect(notification.getMessage()).toContain('file1')
           })
         })
       })
 
-      describe('when the the file is already open in windows', function () {
+      describe('when the the file is already open in windows', () => {
         beforeEach(() =>
-          spyOn(fs, 'openSync').andCallFake(function (path) {
+          spyOn(fs, 'openSync').andCallFake(path => {
             const error = new Error(`EBUSY, resource busy or locked '${path}'`)
             error.path = path
             error.code = 'EBUSY'
@@ -643,42 +664,42 @@ describe('Workspace', function () {
           })
         )
 
-        return it('creates a notification', function () {
+        it('creates a notification', () => {
           waitsForPromise(() => workspace.open('file1'))
 
-          return runs(function () {
+          runs(() => {
             expect(notificationSpy).toHaveBeenCalled()
             const notification = notificationSpy.mostRecentCall.args[0]
             expect(notification.getType()).toBe('warning')
             expect(notification.getMessage()).toContain('Unable to open')
-            return expect(notification.getMessage()).toContain('file1')
+            expect(notification.getMessage()).toContain('file1')
           })
         })
       })
 
-      return describe('when there is an unhandled error', function () {
+      describe('when there is an unhandled error', () => {
         beforeEach(() =>
-          spyOn(fs, 'openSync').andCallFake(function (path) {
+          spyOn(fs, 'openSync').andCallFake(path => {
             throw new Error('I dont even know what is happening right now!!')
           })
         )
 
-        return it('creates a notification', function () {
+        it('creates a notification', () => {
           const open = () => workspace.open('file1', workspace.getActivePane())
-          return expect(open).toThrow()
+          expect(open).toThrow()
         })
       })
     })
 
-    describe('when the file is already open in pending state', () =>
-      it('should terminate the pending state', function () {
+    describe('when the file is already open in pending state', () => {
+      it('should terminate the pending state', () => {
         let editor = null
         let pane = null
 
         waitsForPromise(() =>
-          atom.workspace.open('sample.js', {pending: true}).then(function (o) {
+          atom.workspace.open('sample.js', {pending: true}).then(o => {
             editor = o
-            return (pane = atom.workspace.getActivePane())
+            pane = atom.workspace.getActivePane()
           })
         )
 
@@ -686,34 +707,34 @@ describe('Workspace', function () {
 
         waitsForPromise(() => atom.workspace.open('sample.js'))
 
-        return runs(() => expect(pane.getPendingItem()).toBeNull())
+        runs(() => expect(pane.getPendingItem()).toBeNull())
       })
-    )
+    })
 
-    describe('when opening will switch from a pending tab to a permanent tab', () =>
-      it('keeps the pending tab open', function () {
+    describe('when opening will switch from a pending tab to a permanent tab', () => {
+      it('keeps the pending tab open', () => {
         let editor1 = null
         let editor2 = null
 
         waitsForPromise(() =>
-          atom.workspace.open('sample.txt').then(o => (editor1 = o))
+          atom.workspace.open('sample.txt').then(o => { editor1 = o })
         )
 
         waitsForPromise(() =>
-          atom.workspace.open('sample2.txt', {pending: true}).then(o => (editor2 = o))
+          atom.workspace.open('sample2.txt', {pending: true}).then(o => { editor2 = o })
         )
 
-        return runs(function () {
+        runs(() => {
           const pane = atom.workspace.getActivePane()
           pane.activateItem(editor1)
           expect(pane.getItems().length).toBe(2)
-          return expect(pane.getItems()).toEqual([editor1, editor2])
+          expect(pane.getItems()).toEqual([editor1, editor2])
         })
       })
-    )
+    })
 
-    return describe('when replacing a pending item which is the last item in a second pane', () =>
-      it('does not destroy the pane even if core.destroyEmptyPanes is on', function () {
+    describe('when replacing a pending item which is the last item in a second pane', () => {
+      it('does not destroy the pane even if core.destroyEmptyPanes is on', () => {
         atom.config.set('core.destroyEmptyPanes', true)
         let editor1 = null
         let editor2 = null
@@ -721,46 +742,46 @@ describe('Workspace', function () {
         let rightPane = null
 
         waitsForPromise(() =>
-          atom.workspace.open('sample.js', {pending: true, split: 'right'}).then(function (o) {
+          atom.workspace.open('sample.js', {pending: true, split: 'right'}).then(o => {
             editor1 = o
             rightPane = atom.workspace.getActivePane()
-            return spyOn(rightPane, 'destroyed')
+            spyOn(rightPane, 'destroyed')
           })
         )
 
-        runs(function () {
+        runs(() => {
           expect(leftPane).not.toBe(rightPane)
           expect(atom.workspace.getActivePane()).toBe(rightPane)
           expect(atom.workspace.getActivePane().getItems().length).toBe(1)
-          return expect(rightPane.getPendingItem()).toBe(editor1)
+          expect(rightPane.getPendingItem()).toBe(editor1)
         })
 
         waitsForPromise(() =>
-          atom.workspace.open('sample.txt', {pending: true}).then(o => (editor2 = o))
+          atom.workspace.open('sample.txt', {pending: true}).then(o => { editor2 = o })
         )
 
-        return runs(function () {
+        runs(() => {
           expect(rightPane.getPendingItem()).toBe(editor2)
-          return expect(rightPane.destroyed.callCount).toBe(0)
+          expect(rightPane.destroyed.callCount).toBe(0)
         })
       })
-    )
+    })
   })
 
-  describe('the grammar-used hook', () =>
-    it('fires when opening a file or changing the grammar of an open file', function () {
+  describe('the grammar-used hook', () => {
+    it('fires when opening a file or changing the grammar of an open file', () => {
       let editor = null
       let javascriptGrammarUsed = false
       let coffeescriptGrammarUsed = false
 
       atom.packages.triggerDeferredActivationHooks()
 
-      runs(function () {
-        atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', () => (javascriptGrammarUsed = true))
-        return atom.packages.onDidTriggerActivationHook('language-coffee-script:grammar-used', () => (coffeescriptGrammarUsed = true))
+      runs(() => {
+        atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', () => { javascriptGrammarUsed = true })
+        atom.packages.onDidTriggerActivationHook('language-coffee-script:grammar-used', () => { coffeescriptGrammarUsed = true })
       })
 
-      waitsForPromise(() => atom.workspace.open('sample.js', {autoIndent: false}).then(o => (editor = o)))
+      waitsForPromise(() => atom.workspace.open('sample.js', {autoIndent: false}).then(o => { editor = o }))
 
       waitsForPromise(() => atom.packages.activatePackage('language-javascript'))
 
@@ -770,12 +791,12 @@ describe('Workspace', function () {
 
       runs(() => editor.setGrammar(atom.grammars.selectGrammar('.coffee')))
 
-      return waitsFor(() => coffeescriptGrammarUsed)
+      waitsFor(() => coffeescriptGrammarUsed)
     })
-  )
+  })
 
-  describe('::reopenItem()', () =>
-    it("opens the uri associated with the last closed pane that isn't currently open", function () {
+  describe('::reopenItem()', () => {
+    it("opens the uri associated with the last closed pane that isn't currently open", () => {
       const pane = workspace.getActivePane()
       waitsForPromise(() =>
         workspace.open('a').then(() =>
@@ -785,46 +806,49 @@ describe('Workspace', function () {
         )
       )
 
-      runs(function () {
+      runs(() => {
         // does not reopen items with no uri
         expect(workspace.getActivePaneItem().getURI()).toBeUndefined()
-        return pane.destroyActiveItem()
+        pane.destroyActiveItem()
       })
 
       waitsForPromise(() => workspace.reopenItem())
 
-      runs(function () {
+      const firstDirectory = atom.project.getDirectories()[0]
+      expect(firstDirectory).toBeDefined()
+
+      runs(() => {
         expect(workspace.getActivePaneItem().getURI()).not.toBeUndefined()
 
         // destroy all items
-        expect(workspace.getActivePaneItem().getURI()).toBe(__guard__(atom.project.getDirectories()[0], x => x.resolve('file1')))
+        expect(workspace.getActivePaneItem().getURI()).toBe(firstDirectory.resolve('file1'))
         pane.destroyActiveItem()
-        expect(workspace.getActivePaneItem().getURI()).toBe(__guard__(atom.project.getDirectories()[0], x1 => x1.resolve('b')))
+        expect(workspace.getActivePaneItem().getURI()).toBe(firstDirectory.resolve('b'))
         pane.destroyActiveItem()
-        expect(workspace.getActivePaneItem().getURI()).toBe(__guard__(atom.project.getDirectories()[0], x2 => x2.resolve('a')))
+        expect(workspace.getActivePaneItem().getURI()).toBe(firstDirectory.resolve('a'))
         pane.destroyActiveItem()
 
         // reopens items with uris
-        return expect(workspace.getActivePaneItem()).toBeUndefined()
+        expect(workspace.getActivePaneItem()).toBeUndefined()
       })
 
       waitsForPromise(() => workspace.reopenItem())
 
-      runs(() => expect(workspace.getActivePaneItem().getURI()).toBe(__guard__(atom.project.getDirectories()[0], x => x.resolve('a'))))
+      runs(() => expect(workspace.getActivePaneItem().getURI()).toBe(firstDirectory.resolve('a')))
 
       // does not reopen items that are already open
       waitsForPromise(() => workspace.open('b'))
 
-      runs(() => expect(workspace.getActivePaneItem().getURI()).toBe(__guard__(atom.project.getDirectories()[0], x => x.resolve('b'))))
+      runs(() => expect(workspace.getActivePaneItem().getURI()).toBe(firstDirectory.resolve('b')))
 
       waitsForPromise(() => workspace.reopenItem())
 
-      return runs(() => expect(workspace.getActivePaneItem().getURI()).toBe(__guard__(atom.project.getDirectories()[0], x => x.resolve('file1'))))
+      runs(() => expect(workspace.getActivePaneItem().getURI()).toBe(firstDirectory.resolve('file1')))
     })
-  )
+  })
 
-  describe('::increase/decreaseFontSize()', () =>
-    it('increases/decreases the font size without going below 1', function () {
+  describe('::increase/decreaseFontSize()', () => {
+    it('increases/decreases the font size without going below 1', () => {
       atom.config.set('editor.fontSize', 1)
       workspace.increaseFontSize()
       expect(atom.config.get('editor.fontSize')).toBe(2)
@@ -835,12 +859,12 @@ describe('Workspace', function () {
       workspace.decreaseFontSize()
       expect(atom.config.get('editor.fontSize')).toBe(1)
       workspace.decreaseFontSize()
-      return expect(atom.config.get('editor.fontSize')).toBe(1)
+      expect(atom.config.get('editor.fontSize')).toBe(1)
     })
-  )
+  })
 
-  describe('::resetFontSize()', function () {
-    it("resets the font size to the window's starting font size", function () {
+  describe('::resetFontSize()', () => {
+    it("resets the font size to the window's starting font size", () => {
       const originalFontSize = atom.config.get('editor.fontSize')
 
       workspace.increaseFontSize()
@@ -850,17 +874,17 @@ describe('Workspace', function () {
       workspace.decreaseFontSize()
       expect(atom.config.get('editor.fontSize')).toBe(originalFontSize - 1)
       workspace.resetFontSize()
-      return expect(atom.config.get('editor.fontSize')).toBe(originalFontSize)
+      expect(atom.config.get('editor.fontSize')).toBe(originalFontSize)
     })
 
-    it('does nothing if the font size has not been changed', function () {
+    it('does nothing if the font size has not been changed', () => {
       const originalFontSize = atom.config.get('editor.fontSize')
 
       workspace.resetFontSize()
-      return expect(atom.config.get('editor.fontSize')).toBe(originalFontSize)
+      expect(atom.config.get('editor.fontSize')).toBe(originalFontSize)
     })
 
-    return it("resets the font size when the editor's font size changes", function () {
+    it("resets the font size when the editor's font size changes", () => {
       const originalFontSize = atom.config.get('editor.fontSize')
 
       atom.config.set('editor.fontSize', originalFontSize + 1)
@@ -868,28 +892,28 @@ describe('Workspace', function () {
       expect(atom.config.get('editor.fontSize')).toBe(originalFontSize)
       atom.config.set('editor.fontSize', originalFontSize - 1)
       workspace.resetFontSize()
-      return expect(atom.config.get('editor.fontSize')).toBe(originalFontSize)
+      expect(atom.config.get('editor.fontSize')).toBe(originalFontSize)
     })
   })
 
-  describe('::openLicense()', () =>
-    it('opens the license as plain-text in a buffer', function () {
+  describe('::openLicense()', () => {
+    it('opens the license as plain-text in a buffer', () => {
       waitsForPromise(() => workspace.openLicense())
-      return runs(() => expect(workspace.getActivePaneItem().getText()).toMatch(/Copyright/))
+      runs(() => expect(workspace.getActivePaneItem().getText()).toMatch(/Copyright/))
     })
-  )
+  })
 
-  describe('::isTextEditor(obj)', () =>
-    it('returns true when the passed object is an instance of `TextEditor`', function () {
+  describe('::isTextEditor(obj)', () => {
+    it('returns true when the passed object is an instance of `TextEditor`', () => {
       expect(workspace.isTextEditor(new TextEditor())).toBe(true)
-      expect(workspace.isTextEditor({getText () { return null }})).toBe(false)
+      expect(workspace.isTextEditor({getText: () => null})).toBe(false)
       expect(workspace.isTextEditor(null)).toBe(false)
-      return expect(workspace.isTextEditor(undefined)).toBe(false)
+      expect(workspace.isTextEditor(undefined)).toBe(false)
     })
-  )
+  })
 
-  describe('::observeTextEditors()', () =>
-    it('invokes the observer with current and future text editors', function () {
+  describe('::observeTextEditors()', () => {
+    it('invokes the observer with current and future text editors', () => {
       const observed = []
 
       waitsForPromise(() => workspace.open())
@@ -900,43 +924,43 @@ describe('Workspace', function () {
 
       waitsForPromise(() => workspace.open())
 
-      return expect(observed).toEqual(workspace.getTextEditors())
+      expect(observed).toEqual(workspace.getTextEditors())
     })
-  )
+  })
 
-  describe('when an editor is destroyed', () =>
-    it('removes the editor', function () {
+  describe('when an editor is destroyed', () => {
+    it('removes the editor', () => {
       let editor = null
 
-      waitsForPromise(() => workspace.open('a').then(e => (editor = e)))
+      waitsForPromise(() => workspace.open('a').then(e => { editor = e }))
 
-      return runs(function () {
+      runs(() => {
         expect(workspace.getTextEditors()).toHaveLength(1)
         editor.destroy()
-        return expect(workspace.getTextEditors()).toHaveLength(0)
+        expect(workspace.getTextEditors()).toHaveLength(0)
       })
     })
-  )
+  })
 
-  describe('when an editor is copied because its pane is split', () =>
-    it('sets up the new editor to be configured by the text editor registry', function () {
+  describe('when an editor is copied because its pane is split', () => {
+    it('sets up the new editor to be configured by the text editor registry', () => {
       waitsForPromise(() => atom.packages.activatePackage('language-javascript'))
 
-      return waitsForPromise(() =>
-        workspace.open('a').then(function (editor) {
+      waitsForPromise(() =>
+        workspace.open('a').then(editor => {
           atom.textEditors.setGrammarOverride(editor, 'source.js')
           expect(editor.getGrammar().name).toBe('JavaScript')
 
           workspace.getActivePane().splitRight({copyActiveItem: true})
           const newEditor = workspace.getActiveTextEditor()
           expect(newEditor).not.toBe(editor)
-          return expect(newEditor.getGrammar().name).toBe('JavaScript')
+          expect(newEditor.getGrammar().name).toBe('JavaScript')
         })
       )
     })
-  )
+  })
 
-  it('stores the active grammars used by all the open editors', function () {
+  it('stores the active grammars used by all the open editors', () => {
     waitsForPromise(() => atom.packages.activatePackage('language-javascript'))
 
     waitsForPromise(() => atom.packages.activatePackage('language-coffee-script'))
@@ -945,7 +969,7 @@ describe('Workspace', function () {
 
     waitsForPromise(() => atom.workspace.open('sample.coffee'))
 
-    return runs(function () {
+    runs(function () {
       atom.workspace.getActiveTextEditor().setText(`\
 i = /test/; #FIXME\
 `
@@ -979,116 +1003,116 @@ i = /test/; #FIXME\
         'TODO'
       ])
 
-      return atom2.destroy()
+      atom2.destroy()
     })
   })
 
-  describe('document.title', function () {
-    describe('when there is no item open', function () {
+  describe('document.title', () => {
+    describe('when there is no item open', () => {
       it('sets the title to the project path', () => expect(document.title).toMatch(escapeStringRegex(fs.tildify(atom.project.getPaths()[0]))))
 
-      return it("sets the title to 'untitled' if there is no project path", function () {
+      it("sets the title to 'untitled' if there is no project path", () => {
         atom.project.setPaths([])
-        return expect(document.title).toMatch(/^untitled/)
+        expect(document.title).toMatch(/^untitled/)
       })
     })
 
-    describe("when the active pane item's path is not inside a project path", function () {
+    describe("when the active pane item's path is not inside a project path", () => {
       beforeEach(() =>
         waitsForPromise(() =>
           atom.workspace.open('b').then(() => atom.project.setPaths([]))
         )
       )
 
-      it("sets the title to the pane item's title plus the item's path", function () {
+      it("sets the title to the pane item's title plus the item's path", () => {
         const item = atom.workspace.getActivePaneItem()
         const pathEscaped = fs.tildify(escapeStringRegex(path.dirname(item.getPath())))
-        return expect(document.title).toMatch(new RegExp(`^${item.getTitle()} \\u2014 ${pathEscaped}`))
+        expect(document.title).toMatch(new RegExp(`^${item.getTitle()} \\u2014 ${pathEscaped}`))
       })
 
-      describe('when the title of the active pane item changes', () =>
-        it("updates the window title based on the item's new title", function () {
+      describe('when the title of the active pane item changes', () => {
+        it("updates the window title based on the item's new title", () => {
           const editor = atom.workspace.getActivePaneItem()
           editor.buffer.setPath(path.join(temp.dir, 'hi'))
           const pathEscaped = fs.tildify(escapeStringRegex(path.dirname(editor.getPath())))
-          return expect(document.title).toMatch(new RegExp(`^${editor.getTitle()} \\u2014 ${pathEscaped}`))
+          expect(document.title).toMatch(new RegExp(`^${editor.getTitle()} \\u2014 ${pathEscaped}`))
         })
-      )
+      })
 
-      describe("when the active pane's item changes", () =>
-        it("updates the title to the new item's title plus the project path", function () {
+      describe("when the active pane's item changes", () => {
+        it("updates the title to the new item's title plus the project path", () => {
           atom.workspace.getActivePane().activateNextItem()
           const item = atom.workspace.getActivePaneItem()
           const pathEscaped = fs.tildify(escapeStringRegex(path.dirname(item.getPath())))
-          return expect(document.title).toMatch(new RegExp(`^${item.getTitle()} \\u2014 ${pathEscaped}`))
+          expect(document.title).toMatch(new RegExp(`^${item.getTitle()} \\u2014 ${pathEscaped}`))
         })
-      )
+      })
 
-      return describe("when an inactive pane's item changes", () =>
-        it('does not update the title', function () {
+      describe("when an inactive pane's item changes", () => {
+        it('does not update the title', () => {
           const pane = atom.workspace.getActivePane()
           pane.splitRight()
           const initialTitle = document.title
           pane.activateNextItem()
-          return expect(document.title).toBe(initialTitle)
+          expect(document.title).toBe(initialTitle)
         })
-      )
+      })
     })
 
-    describe('when the active pane item is inside a project path', function () {
+    describe('when the active pane item is inside a project path', () => {
       beforeEach(() =>
         waitsForPromise(() => atom.workspace.open('b'))
       )
 
-      describe('when there is an active pane item', () =>
-        it("sets the title to the pane item's title plus the project path", function () {
+      describe('when there is an active pane item', () => {
+        it("sets the title to the pane item's title plus the project path", () => {
           const item = atom.workspace.getActivePaneItem()
           const pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
-          return expect(document.title).toMatch(new RegExp(`^${item.getTitle()} \\u2014 ${pathEscaped}`))
+          expect(document.title).toMatch(new RegExp(`^${item.getTitle()} \\u2014 ${pathEscaped}`))
         })
-      )
+      })
 
-      describe('when the title of the active pane item changes', () =>
-        it("updates the window title based on the item's new title", function () {
+      describe('when the title of the active pane item changes', () => {
+        it("updates the window title based on the item's new title", () => {
           const editor = atom.workspace.getActivePaneItem()
           editor.buffer.setPath(path.join(atom.project.getPaths()[0], 'hi'))
           const pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
-          return expect(document.title).toMatch(new RegExp(`^${editor.getTitle()} \\u2014 ${pathEscaped}`))
+          expect(document.title).toMatch(new RegExp(`^${editor.getTitle()} \\u2014 ${pathEscaped}`))
         })
-      )
+      })
 
-      describe("when the active pane's item changes", () =>
-        it("updates the title to the new item's title plus the project path", function () {
+      describe("when the active pane's item changes", () => {
+        it("updates the title to the new item's title plus the project path", () => {
           atom.workspace.getActivePane().activateNextItem()
           const item = atom.workspace.getActivePaneItem()
           const pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
-          return expect(document.title).toMatch(new RegExp(`^${item.getTitle()} \\u2014 ${pathEscaped}`))
+          expect(document.title).toMatch(new RegExp(`^${item.getTitle()} \\u2014 ${pathEscaped}`))
         })
-      )
+      })
 
-      describe('when the last pane item is removed', () =>
-        it("updates the title to the project's first path", function () {
+      describe('when the last pane item is removed', () => {
+        it("updates the title to the project's first path", () => {
           atom.workspace.getActivePane().destroy()
           expect(atom.workspace.getActivePaneItem()).toBeUndefined()
-          return expect(document.title).toMatch(escapeStringRegex(fs.tildify(atom.project.getPaths()[0])))
+          expect(document.title).toMatch(escapeStringRegex(fs.tildify(atom.project.getPaths()[0])))
         })
-      )
+      })
 
-      return describe("when an inactive pane's item changes", () =>
-        it('does not update the title', function () {
+      describe("when an inactive pane's item changes", () => {
+        it('does not update the title', () => {
           const pane = atom.workspace.getActivePane()
           pane.splitRight()
           const initialTitle = document.title
           pane.activateNextItem()
-          return expect(document.title).toBe(initialTitle)
+          expect(document.title).toBe(initialTitle)
         })
-      )
+      })
     })
 
-    return describe('when the workspace is deserialized', function () {
+    describe('when the workspace is deserialized', () => {
       beforeEach(() => waitsForPromise(() => atom.workspace.open('a')))
 
-      return it("updates the title to contain the project's path", function () {
+      it("updates the title to contain the project's path", () => {
         document.title = null
 
         const atom2 = new AtomEnvironment({
@@ -1109,30 +1133,33 @@ i = /test/; #FIXME\
         const pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
         expect(document.title).toMatch(new RegExp(`^${item.getLongTitle()} \\u2014 ${pathEscaped}`))
 
-        return atom2.destroy()
+        atom2.destroy()
       })
     })
   })
 
-  describe('document edited status', function () {
-    let [item1, item2] = Array.from([])
+  describe('document edited status', () => {
+    let item1
+    let item2
 
-    beforeEach(function () {
+    beforeEach(() => {
       waitsForPromise(() => atom.workspace.open('a'))
       waitsForPromise(() => atom.workspace.open('b'))
-      return runs(() => ([item1, item2] = Array.from(atom.workspace.getPaneItems())))
+      runs(() => {
+        [item1, item2] = atom.workspace.getPaneItems()
+      })
     })
 
-    it('calls setDocumentEdited when the active item changes', function () {
+    it('calls setDocumentEdited when the active item changes', () => {
       expect(atom.workspace.getActivePaneItem()).toBe(item2)
       item1.insertText('a')
       expect(item1.isModified()).toBe(true)
       atom.workspace.getActivePane().activateNextItem()
 
-      return expect(setDocumentEdited).toHaveBeenCalledWith(true)
+      expect(setDocumentEdited).toHaveBeenCalledWith(true)
     })
 
-    return it("calls atom.setDocumentEdited when the active item's modified status changes", function () {
+    it("calls atom.setDocumentEdited when the active item's modified status changes", () => {
       expect(atom.workspace.getActivePaneItem()).toBe(item2)
       item2.insertText('a')
       advanceClock(item2.getBuffer().getStoppedChangingDelay())
@@ -1144,11 +1171,11 @@ i = /test/; #FIXME\
       advanceClock(item2.getBuffer().getStoppedChangingDelay())
 
       expect(item2.isModified()).toBe(false)
-      return expect(setDocumentEdited).toHaveBeenCalledWith(false)
+      expect(setDocumentEdited).toHaveBeenCalledWith(false)
     })
   })
 
-  describe('adding panels', function () {
+  describe('adding panels', () => {
     class TestItem {}
 
     // Don't use ES6 classes because then we'll have to call `super()` which we can't do with
@@ -1165,8 +1192,8 @@ i = /test/; #FIXME\
       atom.views.addViewProvider(TestItem, model => new TestItemElement().initialize(model))
     )
 
-    describe('::addLeftPanel(model)', () =>
-      it('adds a panel to the correct panel container', function () {
+    describe('::addLeftPanel(model)', () => {
+      it('adds a panel to the correct panel container', () => {
         let addPanelSpy
         expect(atom.workspace.getLeftPanels().length).toBe(0)
         atom.workspace.panelContainers.left.onDidAddPanel(addPanelSpy = jasmine.createSpy())
@@ -1179,12 +1206,12 @@ i = /test/; #FIXME\
 
         const itemView = atom.views.getView(atom.workspace.getLeftPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
-        return expect(itemView.getModel()).toBe(model)
+        expect(itemView.getModel()).toBe(model)
       })
-    )
+    })
 
-    describe('::addRightPanel(model)', () =>
-      it('adds a panel to the correct panel container', function () {
+    describe('::addRightPanel(model)', () => {
+      it('adds a panel to the correct panel container', () => {
         let addPanelSpy
         expect(atom.workspace.getRightPanels().length).toBe(0)
         atom.workspace.panelContainers.right.onDidAddPanel(addPanelSpy = jasmine.createSpy())
@@ -1197,12 +1224,12 @@ i = /test/; #FIXME\
 
         const itemView = atom.views.getView(atom.workspace.getRightPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
-        return expect(itemView.getModel()).toBe(model)
+        expect(itemView.getModel()).toBe(model)
       })
-    )
+    })
 
-    describe('::addTopPanel(model)', () =>
-      it('adds a panel to the correct panel container', function () {
+    describe('::addTopPanel(model)', () => {
+      it('adds a panel to the correct panel container', () => {
         let addPanelSpy
         expect(atom.workspace.getTopPanels().length).toBe(0)
         atom.workspace.panelContainers.top.onDidAddPanel(addPanelSpy = jasmine.createSpy())
@@ -1215,12 +1242,12 @@ i = /test/; #FIXME\
 
         const itemView = atom.views.getView(atom.workspace.getTopPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
-        return expect(itemView.getModel()).toBe(model)
+        expect(itemView.getModel()).toBe(model)
       })
-    )
+    })
 
-    describe('::addBottomPanel(model)', () =>
-      it('adds a panel to the correct panel container', function () {
+    describe('::addBottomPanel(model)', () => {
+      it('adds a panel to the correct panel container', () => {
         let addPanelSpy
         expect(atom.workspace.getBottomPanels().length).toBe(0)
         atom.workspace.panelContainers.bottom.onDidAddPanel(addPanelSpy = jasmine.createSpy())
@@ -1233,12 +1260,12 @@ i = /test/; #FIXME\
 
         const itemView = atom.views.getView(atom.workspace.getBottomPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
-        return expect(itemView.getModel()).toBe(model)
+        expect(itemView.getModel()).toBe(model)
       })
-    )
+    })
 
-    describe('::addHeaderPanel(model)', () =>
-      it('adds a panel to the correct panel container', function () {
+    describe('::addHeaderPanel(model)', () => {
+      it('adds a panel to the correct panel container', () => {
         let addPanelSpy
         expect(atom.workspace.getHeaderPanels().length).toBe(0)
         atom.workspace.panelContainers.header.onDidAddPanel(addPanelSpy = jasmine.createSpy())
@@ -1251,12 +1278,12 @@ i = /test/; #FIXME\
 
         const itemView = atom.views.getView(atom.workspace.getHeaderPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
-        return expect(itemView.getModel()).toBe(model)
+        expect(itemView.getModel()).toBe(model)
       })
-    )
+    })
 
-    describe('::addFooterPanel(model)', () =>
-      it('adds a panel to the correct panel container', function () {
+    describe('::addFooterPanel(model)', () => {
+      it('adds a panel to the correct panel container', () => {
         let addPanelSpy
         expect(atom.workspace.getFooterPanels().length).toBe(0)
         atom.workspace.panelContainers.footer.onDidAddPanel(addPanelSpy = jasmine.createSpy())
@@ -1269,12 +1296,12 @@ i = /test/; #FIXME\
 
         const itemView = atom.views.getView(atom.workspace.getFooterPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
-        return expect(itemView.getModel()).toBe(model)
+        expect(itemView.getModel()).toBe(model)
       })
-    )
+    })
 
-    describe('::addModalPanel(model)', () =>
-      it('adds a panel to the correct panel container', function () {
+    describe('::addModalPanel(model)', () => {
+      it('adds a panel to the correct panel container', () => {
         let addPanelSpy
         expect(atom.workspace.getModalPanels().length).toBe(0)
         atom.workspace.panelContainers.modal.onDidAddPanel(addPanelSpy = jasmine.createSpy())
@@ -1287,36 +1314,36 @@ i = /test/; #FIXME\
 
         const itemView = atom.views.getView(atom.workspace.getModalPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
-        return expect(itemView.getModel()).toBe(model)
+        expect(itemView.getModel()).toBe(model)
       })
-    )
+    })
 
-    return describe('::panelForItem(item)', () =>
-      it('returns the panel associated with the item', function () {
+    describe('::panelForItem(item)', () => {
+      it('returns the panel associated with the item', () => {
         const item = new TestItem()
         const panel = atom.workspace.addLeftPanel({item})
 
         const itemWithNoPanel = new TestItem()
 
         expect(atom.workspace.panelForItem(item)).toBe(panel)
-        return expect(atom.workspace.panelForItem(itemWithNoPanel)).toBe(null)
+        expect(atom.workspace.panelForItem(itemWithNoPanel)).toBe(null)
       })
-    )
+    })
   })
 
-  describe('::scan(regex, options, callback)', () =>
-    describe('when called with a regex', function () {
-      it('calls the callback with all regex results in all files in the project', function () {
+  describe('::scan(regex, options, callback)', () => {
+    describe('when called with a regex', () => {
+      it('calls the callback with all regex results in all files in the project', () => {
         const results = []
         waitsForPromise(() =>
           atom.workspace.scan(/(a)+/, result => results.push(result))
         )
 
-        return runs(function () {
+        runs(() => {
           expect(results).toHaveLength(3)
-          expect(results[0].filePath).toBe(__guard__(atom.project.getDirectories()[0], x => x.resolve('a')))
+          expect(results[0].filePath).toBe(atom.project.getDirectories()[0].resolve('a'))
           expect(results[0].matches).toHaveLength(3)
-          return expect(results[0].matches[0]).toEqual({
+          expect(results[0].matches[0]).toEqual({
             matchText: 'aaa',
             lineText: 'aaa bbb',
             lineTextOffset: 0,
@@ -1325,17 +1352,16 @@ i = /test/; #FIXME\
         })
       })
 
-      it('works with with escaped literals (like $ and ^)', function () {
+      it('works with with escaped literals (like $ and ^)', () => {
         const results = []
         waitsForPromise(() => atom.workspace.scan(/\$\w+/, result => results.push(result)))
 
-        return runs(function () {
+        runs(() => {
           expect(results.length).toBe(1)
-
           const {filePath, matches} = results[0]
-          expect(filePath).toBe(__guard__(atom.project.getDirectories()[0], x => x.resolve('a')))
+          expect(filePath).toBe(atom.project.getDirectories()[0].resolve('a'))
           expect(matches).toHaveLength(1)
-          return expect(matches[0]).toEqual({
+          expect(matches[0]).toEqual({
             matchText: '$bill',
             lineText: 'dollar$bill',
             lineTextOffset: 0,
@@ -1344,72 +1370,75 @@ i = /test/; #FIXME\
         })
       })
 
-      it('works on evil filenames', function () {
+      it('works on evil filenames', () => {
         atom.config.set('core.excludeVcsIgnoredPaths', false)
         platform.generateEvilFiles()
         atom.project.setPaths([path.join(__dirname, 'fixtures', 'evil-files')])
         const paths = []
         let matches = []
         waitsForPromise(() =>
-          atom.workspace.scan(/evil/, function (result) {
+          atom.workspace.scan(/evil/, result => {
             paths.push(result.filePath)
-            return (matches = matches.concat(result.matches))
+            matches = matches.concat(result.matches)
           })
         )
 
-        return runs(function () {
+        runs(() => {
           _.each(matches, m => expect(m.matchText).toEqual('evil'))
 
           if (platform.isWindows()) {
             expect(paths.length).toBe(3)
             expect(paths[0]).toMatch(/a_file_with_utf8.txt$/)
             expect(paths[1]).toMatch(/file with spaces.txt$/)
-            return expect(path.basename(paths[2])).toBe('utfa\u0306.md')
+            expect(path.basename(paths[2])).toBe('utfa\u0306.md')
           } else {
             expect(paths.length).toBe(5)
             expect(paths[0]).toMatch(/a_file_with_utf8.txt$/)
             expect(paths[1]).toMatch(/file with spaces.txt$/)
             expect(paths[2]).toMatch(/goddam\nnewlines$/m)
             expect(paths[3]).toMatch(/quote".txt$/m)
-            return expect(path.basename(paths[4])).toBe('utfa\u0306.md')
+            expect(path.basename(paths[4])).toBe('utfa\u0306.md')
           }
         })
       })
 
-      it('ignores case if the regex includes the `i` flag', function () {
+      it('ignores case if the regex includes the `i` flag', () => {
         const results = []
         waitsForPromise(() => atom.workspace.scan(/DOLLAR/i, result => results.push(result)))
 
-        return runs(() => expect(results).toHaveLength(1))
+        runs(() => expect(results).toHaveLength(1))
       })
 
-      describe('when the core.excludeVcsIgnoredPaths config is truthy', function () {
-        let [projectPath, ignoredPath] = Array.from([])
+      describe('when the core.excludeVcsIgnoredPaths config is truthy', () => {
+        let projectPath
+        let ignoredPath
 
-        beforeEach(function () {
+        beforeEach(() => {
           const sourceProjectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
           projectPath = path.join(temp.mkdirSync('atom'))
 
           const writerStream = fstream.Writer(projectPath)
           fstream.Reader(sourceProjectPath).pipe(writerStream)
 
-          waitsFor(function (done) {
+          waitsFor(done => {
             writerStream.on('close', done)
-            return writerStream.on('error', done)
+            writerStream.on('error', done)
           })
 
-          return runs(function () {
+          runs(() => {
             fs.rename(path.join(projectPath, 'git.git'), path.join(projectPath, '.git'))
             ignoredPath = path.join(projectPath, 'ignored.txt')
-            return fs.writeFileSync(ignoredPath, 'this match should not be included')
+            fs.writeFileSync(ignoredPath, 'this match should not be included')
           })
         })
 
-        afterEach(function () {
-          if (fs.existsSync(projectPath)) { return fs.removeSync(projectPath) }
+        afterEach(() => {
+          if (fs.existsSync(projectPath)) {
+            fs.removeSync(projectPath)
+          }
         })
 
-        return it('excludes ignored files', function () {
+        it('excludes ignored files', () => {
           atom.project.setPaths([projectPath])
           atom.config.set('core.excludeVcsIgnoredPaths', true)
           const resultHandler = jasmine.createSpy('result found')
@@ -1417,11 +1446,11 @@ i = /test/; #FIXME\
             atom.workspace.scan(/match/, results => resultHandler())
           )
 
-          return runs(() => expect(resultHandler).not.toHaveBeenCalled())
+          runs(() => expect(resultHandler).not.toHaveBeenCalled())
         })
       })
 
-      it('includes only files when a directory filter is specified', function () {
+      it('includes only files when a directory filter is specified', () => {
         const projectPath = path.join(path.join(__dirname, 'fixtures', 'dir'))
         atom.project.setPaths([projectPath])
 
@@ -1430,20 +1459,20 @@ i = /test/; #FIXME\
         const paths = []
         let matches = []
         waitsForPromise(() =>
-          atom.workspace.scan(/aaa/, {paths: [`a-dir${path.sep}`]}, function (result) {
+          atom.workspace.scan(/aaa/, {paths: [`a-dir${path.sep}`]}, result => {
             paths.push(result.filePath)
-            return (matches = matches.concat(result.matches))
+            matches = matches.concat(result.matches)
           })
         )
 
-        return runs(function () {
+        runs(() => {
           expect(paths.length).toBe(1)
           expect(paths[0]).toBe(filePath)
-          return expect(matches.length).toBe(1)
+          expect(matches.length).toBe(1)
         })
       })
 
-      it("includes files and folders that begin with a '.'", function () {
+      it("includes files and folders that begin with a '.'", () => {
         const projectPath = temp.mkdirSync('atom-spec-workspace')
         const filePath = path.join(projectPath, '.text')
         fs.writeFileSync(filePath, 'match this')
@@ -1451,20 +1480,20 @@ i = /test/; #FIXME\
         const paths = []
         let matches = []
         waitsForPromise(() =>
-          atom.workspace.scan(/match this/, function (result) {
+          atom.workspace.scan(/match this/, result => {
             paths.push(result.filePath)
-            return (matches = matches.concat(result.matches))
+            matches = matches.concat(result.matches)
           })
         )
 
-        return runs(function () {
+        runs(() => {
           expect(paths.length).toBe(1)
           expect(paths[0]).toBe(filePath)
-          return expect(matches.length).toBe(1)
+          expect(matches.length).toBe(1)
         })
       })
 
-      it('excludes values in core.ignoredNames', function () {
+      it('excludes values in core.ignoredNames', () => {
         const ignoredNames = atom.config.get('core.ignoredNames')
         ignoredNames.push('a')
         atom.config.set('core.ignoredNames', ignoredNames)
@@ -1474,51 +1503,54 @@ i = /test/; #FIXME\
           atom.workspace.scan(/dollar/, results => resultHandler())
         )
 
-        return runs(() => expect(resultHandler).not.toHaveBeenCalled())
+        runs(() => expect(resultHandler).not.toHaveBeenCalled())
       })
 
-      it('scans buffer contents if the buffer is modified', function () {
+      it('scans buffer contents if the buffer is modified', () => {
         let editor = null
         const results = []
 
         waitsForPromise(() =>
-          atom.workspace.open('a').then(function (o) {
+          atom.workspace.open('a').then(o => {
             editor = o
-            return editor.setText('Elephant')
+            editor.setText('Elephant')
           })
         )
 
         waitsForPromise(() => atom.workspace.scan(/a|Elephant/, result => results.push(result)))
 
-        return runs(function () {
+        runs(() => {
           expect(results).toHaveLength(3)
           const resultForA = _.find(results, ({filePath}) => path.basename(filePath) === 'a')
           expect(resultForA.matches).toHaveLength(1)
-          return expect(resultForA.matches[0].matchText).toBe('Elephant')
+          expect(resultForA.matches[0].matchText).toBe('Elephant')
         })
       })
 
-      it('ignores buffers outside the project', function () {
+      it('ignores buffers outside the project', () => {
         let editor = null
         const results = []
 
         waitsForPromise(() =>
-          atom.workspace.open(temp.openSync().path).then(function (o) {
+          atom.workspace.open(temp.openSync().path).then(o => {
             editor = o
-            return editor.setText('Elephant')
+            editor.setText('Elephant')
           })
         )
 
         waitsForPromise(() => atom.workspace.scan(/Elephant/, result => results.push(result)))
 
-        return runs(() => expect(results).toHaveLength(0))
+        runs(() => expect(results).toHaveLength(0))
       })
 
-      return describe('when the project has multiple root directories', function () {
-        let [dir1, dir2, file1, file2] = Array.from([])
+      describe('when the project has multiple root directories', () => {
+        let dir1
+        let dir2
+        let file1
+        let file2
 
-        beforeEach(function () {
-          [dir1] = Array.from(atom.project.getPaths())
+        beforeEach(() => {
+          dir1 = atom.project.getPaths()[0]
           file1 = path.join(dir1, 'a-dir', 'oh-git')
 
           dir2 = temp.mkdirSync('a-second-dir')
@@ -1527,59 +1559,67 @@ i = /test/; #FIXME\
           fs.mkdirSync(aDir2)
           fs.writeFileSync(file2, 'ccc aaaa')
 
-          return atom.project.addPath(dir2)
+          atom.project.addPath(dir2)
         })
 
-        it("searches matching files in all of the project's root directories", function () {
+        it("searches matching files in all of the project's root directories", () => {
           const resultPaths = []
           waitsForPromise(() =>
             atom.workspace.scan(/aaaa/, ({filePath}) => resultPaths.push(filePath))
           )
 
-          return runs(() => expect(resultPaths.sort()).toEqual([file1, file2].sort()))
+          runs(() => expect(resultPaths.sort()).toEqual([file1, file2].sort()))
         })
 
-        describe('when an inclusion path starts with the basename of a root directory', () =>
-          it('interprets the inclusion path as starting from that directory', function () {
-            waitsForPromise(function () {
+        describe('when an inclusion path starts with the basename of a root directory', () => {
+          it('interprets the inclusion path as starting from that directory', () => {
+            waitsForPromise(() => {
               const resultPaths = []
               return atom.workspace
-                .scan(/aaaa/, {paths: ['dir']}, function ({filePath}) {
-                  if (!Array.from(resultPaths).includes(filePath)) { return resultPaths.push(filePath) }
+                .scan(/aaaa/, {paths: ['dir']}, ({filePath}) => {
+                  if (!resultPaths.includes(filePath)) {
+                    resultPaths.push(filePath)
+                  }
                 })
                 .then(() => expect(resultPaths).toEqual([file1]))
             })
 
-            waitsForPromise(function () {
+            waitsForPromise(() => {
               const resultPaths = []
               return atom.workspace
-                .scan(/aaaa/, {paths: [path.join('dir', 'a-dir')]}, function ({filePath}) {
-                  if (!Array.from(resultPaths).includes(filePath)) { return resultPaths.push(filePath) }
+                .scan(/aaaa/, {paths: [path.join('dir', 'a-dir')]}, ({filePath}) => {
+                  if (!resultPaths.includes(filePath)) {
+                    resultPaths.push(filePath)
+                  }
                 })
                 .then(() => expect(resultPaths).toEqual([file1]))
             })
 
-            waitsForPromise(function () {
+            waitsForPromise(() => {
               const resultPaths = []
               return atom.workspace
-                .scan(/aaaa/, {paths: [path.basename(dir2)]}, function ({filePath}) {
-                  if (!Array.from(resultPaths).includes(filePath)) { return resultPaths.push(filePath) }
+                .scan(/aaaa/, {paths: [path.basename(dir2)]}, ({filePath}) => {
+                  if (!resultPaths.includes(filePath)) {
+                    resultPaths.push(filePath)
+                  }
                 })
                 .then(() => expect(resultPaths).toEqual([file2]))
             })
 
-            return waitsForPromise(function () {
+            waitsForPromise(() => {
               const resultPaths = []
               return atom.workspace
-                .scan(/aaaa/, {paths: [path.join(path.basename(dir2), 'a-dir')]}, function ({filePath}) {
-                  if (!Array.from(resultPaths).includes(filePath)) { return resultPaths.push(filePath) }
+                .scan(/aaaa/, {paths: [path.join(path.basename(dir2), 'a-dir')]}, ({filePath}) => {
+                  if (!resultPaths.includes(filePath)) {
+                    resultPaths.push(filePath)
+                  }
                 })
                 .then(() => expect(resultPaths).toEqual([file2]))
             })
           })
-        )
+        })
 
-        return describe('when a custom directory searcher is registered', function () {
+        describe('when a custom directory searcher is registered', () => {
           let fakeSearch = null
           // Function that is invoked once all of the fields on fakeSearch are set.
           let onFakeSearchCreated = null
@@ -1588,11 +1628,13 @@ i = /test/; #FIXME\
             constructor (options) {
               // Note that hoisting resolve and reject in this way is generally frowned upon.
               this.options = options
-              this.promise = new Promise((function (resolve, reject) {
+              this.promise = new Promise((resolve, reject) => {
                 this.hoistedResolve = resolve
                 this.hoistedReject = reject
-                return (typeof onFakeSearchCreated === 'function' ? onFakeSearchCreated(this) : undefined)
-              }.bind(this)))
+                if (typeof onFakeSearchCreated === 'function') {
+                  onFakeSearchCreated(this)
+                }
+              })
             }
             then (...args) {
               return this.promise.then.apply(this.promise, args)
@@ -1601,22 +1643,25 @@ i = /test/; #FIXME\
               this.cancelled = true
               // According to the spec for a DirectorySearcher, invoking `cancel()` should
               // resolve the thenable rather than reject it.
-              return this.hoistedResolve()
+              this.hoistedResolve()
             }
           }
 
-          beforeEach(function () {
+          beforeEach(() => {
             fakeSearch = null
             onFakeSearchCreated = null
             atom.packages.serviceHub.provide('atom.directory-searcher', '0.1.0', {
               canSearchDirectory (directory) { return directory.getPath() === dir1 },
-              search (directory, regex, options) { return (fakeSearch = new FakeSearch(options)) }
+              search (directory, regex, options) {
+                fakeSearch = new FakeSearch(options)
+                return fakeSearch
+              }
             })
 
-            return waitsFor(() => atom.workspace.directorySearchers.length > 0)
+            waitsFor(() => atom.workspace.directorySearchers.length > 0)
           })
 
-          it('can override the DefaultDirectorySearcher on a per-directory basis', function () {
+          it('can override the DefaultDirectorySearcher on a per-directory basis', () => {
             const foreignFilePath = 'ssh://foreign-directory:8080/hello.txt'
             const numPathsSearchedInDir2 = 1
             const numPathsToPretendToSearchInCustomDirectorySearcher = 10
@@ -1631,10 +1676,10 @@ i = /test/; #FIXME\
                 }
               ]
             }
-            onFakeSearchCreated = function (fakeSearch) {
+            onFakeSearchCreated = fakeSearch => {
               fakeSearch.options.didMatch(searchResult)
               fakeSearch.options.didSearchPaths(numPathsToPretendToSearchInCustomDirectorySearcher)
-              return fakeSearch.hoistedResolve()
+              fakeSearch.hoistedResolve()
             }
 
             const resultPaths = []
@@ -1643,82 +1688,88 @@ i = /test/; #FIXME\
               atom.workspace.scan(/aaaa/, {onPathsSearched}, ({filePath}) => resultPaths.push(filePath))
             )
 
-            return runs(function () {
+            runs(() => {
               expect(resultPaths.sort()).toEqual([foreignFilePath, file2].sort())
               // onPathsSearched should be called once by each DirectorySearcher. The order is not
               // guaranteed, so we can only verify the total number of paths searched is correct
               // after the second call.
               expect(onPathsSearched.callCount).toBe(2)
-              return expect(onPathsSearched.mostRecentCall.args[0]).toBe(
+              expect(onPathsSearched.mostRecentCall.args[0]).toBe(
                 numPathsToPretendToSearchInCustomDirectorySearcher + numPathsSearchedInDir2)
             })
           })
 
-          it('can be cancelled when the object returned by scan() has its cancel() method invoked', function () {
-            const thenable = atom.workspace.scan(/aaaa/, function () {})
+          it('can be cancelled when the object returned by scan() has its cancel() method invoked', () => {
+            const thenable = atom.workspace.scan(/aaaa/, () => {})
             let resultOfPromiseSearch = null
 
             waitsFor('fakeSearch to be defined', () => fakeSearch != null)
 
-            runs(function () {
+            runs(() => {
               expect(fakeSearch.cancelled).toBe(undefined)
               thenable.cancel()
-              return expect(fakeSearch.cancelled).toBe(true)
+              expect(fakeSearch.cancelled).toBe(true)
             })
 
-            waitsForPromise(() => thenable.then(promiseResult => (resultOfPromiseSearch = promiseResult)))
+            waitsForPromise(() => thenable.then(promiseResult => { resultOfPromiseSearch = promiseResult }))
 
-            return runs(() => expect(resultOfPromiseSearch).toBe('cancelled'))
+            runs(() => expect(resultOfPromiseSearch).toBe('cancelled'))
           })
 
-          return it('will have the side-effect of failing the overall search if it fails', function () {
+          it('will have the side-effect of failing the overall search if it fails', () => {
             // This provider's search should be cancelled when the first provider fails
             let cancelableSearch
             let fakeSearch2 = null
             atom.packages.serviceHub.provide('atom.directory-searcher', '0.1.0', {
               canSearchDirectory (directory) { return directory.getPath() === dir2 },
-              search (directory, regex, options) { return (fakeSearch2 = new FakeSearch(options)) }
+              search (directory, regex, options) {
+                fakeSearch2 = new FakeSearch(options)
+                return fakeSearch2
+              }
             })
 
             let didReject = false
-            const promise = cancelableSearch = atom.workspace.scan(/aaaa/, function () {})
+            const promise = cancelableSearch = atom.workspace.scan(/aaaa/, () => {})
             waitsFor('fakeSearch to be defined', () => fakeSearch != null)
 
             runs(() => fakeSearch.hoistedReject())
 
-            waitsForPromise(() => cancelableSearch.catch(() => (didReject = true)))
+            waitsForPromise(() => cancelableSearch.catch(() => { didReject = true }))
 
             waitsFor(done => promise.then(null, done))
 
-            return runs(function () {
+            runs(() => {
               expect(didReject).toBe(true)
-              return expect(fakeSearch2.cancelled).toBe(true)
+              expect(fakeSearch2.cancelled).toBe(true)
             })
           })
         })
       })
     })
-  ) // Cancels other ongoing searches
+  }) // Cancels other ongoing searches
 
-  describe('::replace(regex, replacementText, paths, iterator)', function () {
-    let [filePath, commentFilePath, sampleContent, sampleCommentContent] = Array.from([])
+  describe('::replace(regex, replacementText, paths, iterator)', () => {
+    let filePath
+    let commentFilePath
+    let sampleContent
+    let sampleCommentContent
 
-    beforeEach(function () {
-      atom.project.setPaths([__guard__(atom.project.getDirectories()[0], x => x.resolve('../'))])
+    beforeEach(() => {
+      atom.project.setPaths([atom.project.getDirectories()[0].resolve('../')])
 
-      filePath = __guard__(atom.project.getDirectories()[0], x1 => x1.resolve('sample.js'))
-      commentFilePath = __guard__(atom.project.getDirectories()[0], x2 => x2.resolve('sample-with-comments.js'))
+      filePath = atom.project.getDirectories()[0].resolve('sample.js')
+      commentFilePath = atom.project.getDirectories()[0].resolve('sample-with-comments.js')
       sampleContent = fs.readFileSync(filePath).toString()
-      return (sampleCommentContent = fs.readFileSync(commentFilePath).toString())
+      sampleCommentContent = fs.readFileSync(commentFilePath).toString()
     })
 
-    afterEach(function () {
+    afterEach(() => {
       fs.writeFileSync(filePath, sampleContent)
-      return fs.writeFileSync(commentFilePath, sampleCommentContent)
+      fs.writeFileSync(commentFilePath, sampleCommentContent)
     })
 
-    describe("when a file doesn't exist", () =>
-      it('calls back with an error', function () {
+    describe("when a file doesn't exist", () => {
+      it('calls back with an error', () => {
         const errors = []
         const missingPath = path.resolve('/not-a-file.js')
         expect(fs.existsSync(missingPath)).toBeFalsy()
@@ -1727,34 +1778,34 @@ i = /test/; #FIXME\
           atom.workspace.replace(/items/gi, 'items', [missingPath], (result, error) => errors.push(error))
         )
 
-        return runs(function () {
+        runs(() => {
           expect(errors).toHaveLength(1)
-          return expect(errors[0].path).toBe(missingPath)
+          expect(errors[0].path).toBe(missingPath)
         })
       })
-    )
+    })
 
-    describe('when called with unopened files', () =>
-      it('replaces properly', function () {
+    describe('when called with unopened files', () => {
+      it('replaces properly', () => {
         const results = []
         waitsForPromise(() =>
           atom.workspace.replace(/items/gi, 'items', [filePath], result => results.push(result))
         )
 
-        return runs(function () {
+        runs(() => {
           expect(results).toHaveLength(1)
           expect(results[0].filePath).toBe(filePath)
-          return expect(results[0].replacements).toBe(6)
+          expect(results[0].replacements).toBe(6)
         })
       })
-    )
+    })
 
-    return describe('when a buffer is already open', function () {
-      it('replaces properly and saves when not modified', function () {
+    describe('when a buffer is already open', () => {
+      it('replaces properly and saves when not modified', () => {
         let editor = null
         const results = []
 
-        waitsForPromise(() => atom.workspace.open('sample.js').then(o => (editor = o)))
+        waitsForPromise(() => atom.workspace.open('sample.js').then(o => { editor = o }))
 
         runs(() => expect(editor.isModified()).toBeFalsy())
 
@@ -1762,16 +1813,16 @@ i = /test/; #FIXME\
           atom.workspace.replace(/items/gi, 'items', [filePath], result => results.push(result))
         )
 
-        return runs(function () {
+        runs(() => {
           expect(results).toHaveLength(1)
           expect(results[0].filePath).toBe(filePath)
           expect(results[0].replacements).toBe(6)
 
-          return expect(editor.isModified()).toBeFalsy()
+          expect(editor.isModified()).toBeFalsy()
         })
       })
 
-      it('does not replace when the path is not specified', function () {
+      it('does not replace when the path is not specified', () => {
         const results = []
 
         waitsForPromise(() => atom.workspace.open('sample-with-comments.js'))
@@ -1780,72 +1831,72 @@ i = /test/; #FIXME\
           atom.workspace.replace(/items/gi, 'items', [commentFilePath], result => results.push(result))
         )
 
-        return runs(function () {
+        runs(() => {
           expect(results).toHaveLength(1)
-          return expect(results[0].filePath).toBe(commentFilePath)
+          expect(results[0].filePath).toBe(commentFilePath)
         })
       })
 
-      return it('does NOT save when modified', function () {
+      it('does NOT save when modified', () => {
         let editor = null
         const results = []
 
-        waitsForPromise(() => atom.workspace.open('sample.js').then(o => (editor = o)))
+        waitsForPromise(() => atom.workspace.open('sample.js').then(o => { editor = o }))
 
-        runs(function () {
+        runs(() => {
           editor.buffer.setTextInRange([[0, 0], [0, 0]], 'omg')
-          return expect(editor.isModified()).toBeTruthy()
+          expect(editor.isModified()).toBeTruthy()
         })
 
         waitsForPromise(() =>
           atom.workspace.replace(/items/gi, 'okthen', [filePath], result => results.push(result))
         )
 
-        return runs(function () {
+        runs(() => {
           expect(results).toHaveLength(1)
           expect(results[0].filePath).toBe(filePath)
           expect(results[0].replacements).toBe(6)
 
-          return expect(editor.isModified()).toBeTruthy()
+          expect(editor.isModified()).toBeTruthy()
         })
       })
     })
   })
 
-  describe('::saveActivePaneItem()', function () {
+  describe('::saveActivePaneItem()', () => {
     let editor = null
     beforeEach(() =>
-      waitsForPromise(() => atom.workspace.open('sample.js').then(o => (editor = o)))
+      waitsForPromise(() => atom.workspace.open('sample.js').then(o => { editor = o }))
     )
 
-    return describe('when there is an error', function () {
-      it('emits a warning notification when the file cannot be saved', function () {
+    describe('when there is an error', () => {
+      it('emits a warning notification when the file cannot be saved', () => {
         let addedSpy
-        spyOn(editor, 'save').andCallFake(function () {
+        spyOn(editor, 'save').andCallFake(() => {
           throw new Error("'/some/file' is a directory")
         })
 
         atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
         atom.workspace.saveActivePaneItem()
         expect(addedSpy).toHaveBeenCalled()
-        return expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
       })
 
-      it('emits a warning notification when the directory cannot be written to', function () {
+      it('emits a warning notification when the directory cannot be written to', () => {
         let addedSpy
-        spyOn(editor, 'save').andCallFake(function () {
+        spyOn(editor, 'save').andCallFake(() => {
           throw new Error("ENOTDIR, not a directory '/Some/dir/and-a-file.js'")
         })
 
         atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
         atom.workspace.saveActivePaneItem()
         expect(addedSpy).toHaveBeenCalled()
-        return expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
       })
 
-      it('emits a warning notification when the user does not have permission', function () {
+      it('emits a warning notification when the user does not have permission', () => {
         let addedSpy
-        spyOn(editor, 'save').andCallFake(function () {
+        spyOn(editor, 'save').andCallFake(() => {
           const error = new Error("EACCES, permission denied '/Some/dir/and-a-file.js'")
           error.code = 'EACCES'
           error.path = '/Some/dir/and-a-file.js'
@@ -1855,21 +1906,21 @@ i = /test/; #FIXME\
         atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
         atom.workspace.saveActivePaneItem()
         expect(addedSpy).toHaveBeenCalled()
-        return expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
       })
 
-      it('emits a warning notification when the operation is not permitted', () =>
-        spyOn(editor, 'save').andCallFake(function () {
+      it('emits a warning notification when the operation is not permitted', () => {
+        spyOn(editor, 'save').andCallFake(() => {
           const error = new Error("EPERM, operation not permitted '/Some/dir/and-a-file.js'")
           error.code = 'EPERM'
           error.path = '/Some/dir/and-a-file.js'
           throw error
         })
-      )
+      })
 
-      it('emits a warning notification when the file is already open by another app', function () {
+      it('emits a warning notification when the file is already open by another app', () => {
         let addedSpy
-        spyOn(editor, 'save').andCallFake(function () {
+        spyOn(editor, 'save').andCallFake(() => {
           const error = new Error("EBUSY, resource busy or locked '/Some/dir/and-a-file.js'")
           error.code = 'EBUSY'
           error.path = '/Some/dir/and-a-file.js'
@@ -1882,12 +1933,12 @@ i = /test/; #FIXME\
 
         const notificaiton = addedSpy.mostRecentCall.args[0]
         expect(notificaiton.getType()).toBe('warning')
-        return expect(notificaiton.getMessage()).toContain('Unable to save')
+        expect(notificaiton.getMessage()).toContain('Unable to save')
       })
 
-      it('emits a warning notification when the file system is read-only', function () {
+      it('emits a warning notification when the file system is read-only', () => {
         let addedSpy
-        spyOn(editor, 'save').andCallFake(function () {
+        spyOn(editor, 'save').andCallFake(() => {
           const error = new Error("EROFS, read-only file system '/Some/dir/and-a-file.js'")
           error.code = 'EROFS'
           error.path = '/Some/dir/and-a-file.js'
@@ -1900,27 +1951,27 @@ i = /test/; #FIXME\
 
         const notification = addedSpy.mostRecentCall.args[0]
         expect(notification.getType()).toBe('warning')
-        return expect(notification.getMessage()).toContain('Unable to save')
+        expect(notification.getMessage()).toContain('Unable to save')
       })
 
-      return it('emits a warning notification when the file cannot be saved', function () {
-        spyOn(editor, 'save').andCallFake(function () {
+      it('emits a warning notification when the file cannot be saved', () => {
+        spyOn(editor, 'save').andCallFake(() => {
           throw new Error('no one knows')
         })
 
         const save = () => atom.workspace.saveActivePaneItem()
-        return expect(save).toThrow()
+        expect(save).toThrow()
       })
     })
   })
 
-  describe('::closeActivePaneItemOrEmptyPaneOrWindow', function () {
-    beforeEach(function () {
+  describe('::closeActivePaneItemOrEmptyPaneOrWindow', () => {
+    beforeEach(() => {
       spyOn(atom, 'close')
-      return waitsForPromise(() => atom.workspace.open())
+      waitsForPromise(() => atom.workspace.open())
     })
 
-    return it('closes the active pane item, or the active pane if it is empty, or the current window if there is only the empty root pane', function () {
+    it('closes the active pane item, or the active pane if it is empty, or the current window if there is only the empty root pane', () => {
       atom.config.set('core.destroyEmptyPanes', false)
 
       const pane1 = atom.workspace.getActivePane()
@@ -1946,25 +1997,27 @@ i = /test/; #FIXME\
       expect(atom.workspace.getPanes().length).toBe(1)
 
       atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      return expect(atom.close).toHaveBeenCalled()
+      expect(atom.close).toHaveBeenCalled()
     })
   })
 
-  describe('when the core.allowPendingPaneItems option is falsey', () =>
-    it('does not open item with `pending: true` option as pending', function () {
+  describe('when the core.allowPendingPaneItems option is falsey', () => {
+    it('does not open item with `pending: true` option as pending', () => {
       let pane = null
       atom.config.set('core.allowPendingPaneItems', false)
 
       waitsForPromise(() =>
-        atom.workspace.open('sample.js', {pending: true}).then(() => (pane = atom.workspace.getActivePane()))
+        atom.workspace.open('sample.js', {pending: true}).then(() => {
+          pane = atom.workspace.getActivePane()
+        })
       )
 
-      return runs(() => expect(pane.getPendingItem()).toBeFalsy())
+      runs(() => expect(pane.getPendingItem()).toBeFalsy())
     })
-  )
+  })
 
-  describe('grammar activation', () =>
-    it('notifies the workspace of which grammar is used', function () {
+  describe('grammar activation', () => {
+    it('notifies the workspace of which grammar is used', () => {
       atom.packages.triggerDeferredActivationHooks()
 
       const javascriptGrammarUsed = jasmine.createSpy('js grammar used')
@@ -1980,7 +2033,7 @@ i = /test/; #FIXME\
       waitsForPromise(() => atom.packages.activatePackage('language-c'))
       waitsForPromise(() => atom.workspace.open('sample-with-comments.js'))
 
-      return runs(function () {
+      runs(() => {
         // Hooks are triggered when opening new editors
         expect(javascriptGrammarUsed).toHaveBeenCalled()
 
@@ -1991,43 +2044,39 @@ i = /test/; #FIXME\
         // Hooks are triggered when editors are added in other ways.
         atom.workspace.getActivePane().splitRight({copyActiveItem: true})
         atom.workspace.getActiveTextEditor().setGrammar(atom.grammars.grammarForScopeName('source.ruby'))
-        return expect(rubyGrammarUsed).toHaveBeenCalled()
+        expect(rubyGrammarUsed).toHaveBeenCalled()
       })
     })
-  )
+  })
 
-  describe('.checkoutHeadRevision()', function () {
+  describe('.checkoutHeadRevision()', () => {
     let editor = null
-    beforeEach(function () {
+    beforeEach(() => {
       atom.config.set('editor.confirmCheckoutHeadRevision', false)
 
-      return waitsForPromise(() => atom.workspace.open('sample-with-comments.js').then(o => (editor = o)))
+      waitsForPromise(() => atom.workspace.open('sample-with-comments.js').then(o => { editor = o }))
     })
 
-    it('reverts to the version of its file checked into the project repository', function () {
+    it('reverts to the version of its file checked into the project repository', () => {
       editor.setCursorBufferPosition([0, 0])
       editor.insertText('---\n')
       expect(editor.lineTextForBufferRow(0)).toBe('---')
 
       waitsForPromise(() => atom.workspace.checkoutHeadRevision(editor))
 
-      return runs(() => expect(editor.lineTextForBufferRow(0)).toBe(''))
+      runs(() => expect(editor.lineTextForBufferRow(0)).toBe(''))
     })
 
-    return describe("when there's no repository for the editor's file", () =>
-      it("doesn't do anything", function () {
+    describe("when there's no repository for the editor's file", () => {
+      it("doesn't do anything", () => {
         editor = new TextEditor()
         editor.setText('stuff')
         atom.workspace.checkoutHeadRevision(editor)
 
-        return waitsForPromise(() => atom.workspace.checkoutHeadRevision(editor))
+        waitsForPromise(() => atom.workspace.checkoutHeadRevision(editor))
       })
-    )
+    })
   })
-
-  return (escapeStringRegex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&'))
 })
 
-function __guard__ (value, transform) {
-  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined
-}
+const escapeStringRegex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
