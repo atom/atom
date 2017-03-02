@@ -62,6 +62,8 @@ class TextEditorComponent {
   }
 
   updateSync () {
+    const model = this.getModel()
+
     this.updateScheduled = false
     if (this.nextUpdatePromise) {
       this.resolveNextUpdatePromise()
@@ -74,8 +76,10 @@ class TextEditorComponent {
       this.scrollWidthOrHeightChanged = false
     }
 
-    const longestLineRow = this.getLongestScreenLineRow()
-    const longestLine = this.getModel().screenLineForScreenRow(longestLineRow)
+    this.populateVisibleRowRange()
+
+    const longestLineRow = model.getApproximateLongestScreenRow()
+    const longestLine = model.screenLineForScreenRow(longestLineRow)
     let measureLongestLine = false
     if (longestLine !== this.previousLongestLine) {
       this.longestLineToMeasure = longestLine
@@ -107,7 +111,7 @@ class TextEditorComponent {
     etch.updateSync(this)
 
     this.pendingAutoscroll = null
-    this.currentFramelineNumberGutterProps = null
+    this.currentFrameLineNumberGutterProps = null
   }
 
   render () {
@@ -159,8 +163,8 @@ class TextEditorComponent {
   }
 
   renderLineNumberGutter () {
-    if (this.currentFramelineNumberGutterProps) {
-      return $(LineNumberGutterComponent, this.currentFramelineNumberGutterProps)
+    if (this.currentFrameLineNumberGutterProps) {
+      return $(LineNumberGutterComponent, this.currentFrameLineNumberGutterProps)
     }
 
     const model = this.getModel()
@@ -168,8 +172,7 @@ class TextEditorComponent {
 
     if (this.measurements) {
       const startRow = this.getRenderedStartRow()
-      const endRow = this.getRenderedEndRow()
-
+      const endRow = Math.min(model.getApproximateScreenLineCount(), this.getRenderedEndRow())
       const bufferRows = new Array(endRow - startRow)
       const foldableFlags = new Array(endRow - startRow)
       const softWrappedFlags = new Array(endRow - startRow)
@@ -186,7 +189,7 @@ class TextEditorComponent {
 
       const rowsPerTile = this.getRowsPerTile()
 
-      this.currentFramelineNumberGutterProps = {
+      this.currentFrameLineNumberGutterProps = {
         height: this.getScrollHeight(),
         width: this.measurements.lineNumberGutterWidth,
         lineHeight: this.measurements.lineHeight,
@@ -194,7 +197,7 @@ class TextEditorComponent {
         bufferRows, softWrappedFlags, foldableFlags
       }
 
-      return $(LineNumberGutterComponent, this.currentFramelineNumberGutterProps)
+      return $(LineNumberGutterComponent, this.currentFrameLineNumberGutterProps)
     } else {
       return $.div(
         {
@@ -783,8 +786,6 @@ class TextEditorComponent {
   pixelLeftForScreenRowAndColumn (row, column) {
     if (column === 0) return 0
     const screenLine = this.getModel().displayLayer.getScreenLine(row)
-
-    if (!this.horizontalPixelPositionsByScreenLineId.has(screenLine.id)) debugger
     return this.horizontalPixelPositionsByScreenLineId.get(screenLine.id).get(column)
   }
 
@@ -883,17 +884,14 @@ class TextEditorComponent {
     )
   }
 
-  topPixelPositionForRow (row) {
-    return row * this.measurements.lineHeight
+  // Ensure the spatial index is populated with rows that are currently
+  // visible so we *at least* get the longest row in the visible range.
+  populateVisibleRowRange () {
+    this.getModel().displayLayer.populateSpatialIndexIfNeeded(Infinity, this.getRenderedEndRow())
   }
 
-  getLongestScreenLineRow () {
-    const model = this.getModel()
-    // Ensure the spatial index is populated with rows that are currently
-    // visible so we *at least* get the longest row in the visible range.
-    const renderedEndRow = this.getTileStartRow(this.getLastVisibleRow()) + this.getRowsPerTile()
-    model.displayLayer.populateSpatialIndexIfNeeded(Infinity, renderedEndRow)
-    return model.getApproximateLongestScreenRow()
+  topPixelPositionForRow (row) {
+    return row * this.measurements.lineHeight
   }
 
   getNextUpdatePromise () {
@@ -925,15 +923,15 @@ class LineNumberGutterComponent {
       maxLineNumberDigits, bufferRows, softWrappedFlags, foldableFlags
     } = this.props
 
-    const visibleTileCount = (endRow - startRow) / rowsPerTile
+    const visibleTileCount = Math.ceil((endRow - startRow) / rowsPerTile)
     const children = new Array(visibleTileCount)
     const tileHeight = rowsPerTile * lineHeight + 'px'
     const tileWidth = width + 'px'
 
     let softWrapCount = 0
     for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow += rowsPerTile) {
-      const tileChildren = new Array(rowsPerTile)
-      const tileEndRow = tileStartRow + rowsPerTile
+      const tileEndRow = Math.min(endRow, tileStartRow + rowsPerTile)
+      const tileChildren = new Array(tileEndRow - tileStartRow)
       for (let row = tileStartRow; row < tileEndRow; row++) {
         const i = row - startRow
         const bufferRow = bufferRows[i]
