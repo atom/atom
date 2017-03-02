@@ -84,25 +84,7 @@ class NativeCompileCache {
         }
         compiledWrapper = compilationResult.result
       }
-      if (global.v8debug) {
-        if (!resolvedArgv) {
-          // we enter the repl if we're not given a filename argument.
-          if (process.argv[1]) {
-            resolvedArgv = Module._resolveFilename(process.argv[1], null)
-          } else {
-            resolvedArgv = 'repl'
-          }
-        }
 
-        // Set breakpoint on module start
-        if (filename === resolvedArgv) {
-          // Installing this dummy debug event listener tells V8 to start
-          // the debugger.  Without it, the setBreakPoint() fails with an
-          // 'illegal access' error.
-          global.v8debug.Debug.setListener(function () {})
-          global.v8debug.Debug.setBreakPoint(compiledWrapper, 0, 0)
-        }
-      }
       let args = [moduleSelf.exports, require, moduleSelf, filename, dirname, process, global]
       return compiledWrapper.apply(moduleSelf.exports, args)
     }

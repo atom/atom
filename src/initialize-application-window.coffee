@@ -4,6 +4,7 @@ Clipboard = require './clipboard'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
 FileSystemBlobStore = require './file-system-blob-store'
+NativeCompileCache = require './native-compile-cache'
 CompileCache = require './compile-cache'
 ModuleCache = require './module-cache'
 
