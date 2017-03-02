@@ -62,8 +62,6 @@ class TextEditorComponent {
   }
 
   updateSync () {
-    const model = this.getModel()
-
     this.updateScheduled = false
     if (this.nextUpdatePromise) {
       this.resolveNextUpdatePromise()
@@ -71,39 +69,19 @@ class TextEditorComponent {
       this.resolveNextUpdatePromise = null
     }
 
-    if (this.scrollWidthOrHeightChanged) {
-      this.measureClientDimensions()
-      this.scrollWidthOrHeightChanged = false
-    }
-
+    if (this.scrollWidthOrHeightChanged) this.measureClientDimensions()
     this.populateVisibleRowRange()
-
-    const longestLineRow = model.getApproximateLongestScreenRow()
-    const longestLine = model.screenLineForScreenRow(longestLineRow)
-    let measureLongestLine = false
-    if (longestLine !== this.previousLongestLine) {
-      this.longestLineToMeasure = longestLine
-      this.longestLineToMeasureRow = longestLineRow
-      this.previousLongestLine = longestLine
-      measureLongestLine = true
-    }
-
-    if (this.pendingAutoscroll) {
-      this.autoscrollVertically()
-    }
-
+    const longestLineToMeasure = this.checkForNewLongestLine()
+    if (this.pendingAutoscroll) this.autoscrollVertically()
     this.horizontalPositionsToMeasure.clear()
+
     etch.updateSync(this)
 
     if (this.autoscrollTop != null) {
       this.refs.scroller.scrollTop = this.autoscrollTop
       this.autoscrollTop = null
     }
-    if (measureLongestLine) {
-      this.measureLongestLineWidth(longestLine)
-      this.longestLineToMeasureRow = null
-      this.longestLineToMeasure = null
-    }
+    if (longestLineToMeasure) this.measureLongestLineWidth(longestLineToMeasure)
     this.queryCursorsToRender()
     this.measureHorizontalPositions()
     this.positionCursorsToRender()
@@ -693,6 +671,7 @@ class TextEditorComponent {
       this.measurements.clientWidth = clientWidth
       clientDimensionsChanged = true
     }
+    this.scrollWidthOrHeightChanged = false
     return clientDimensionsChanged
   }
 
@@ -704,8 +683,22 @@ class TextEditorComponent {
     this.measurements.koreanCharacterWidth = this.refs.koreanCharacterSpan.getBoundingClientRect().widt
   }
 
+  checkForNewLongestLine () {
+    const model = this.getModel()
+    const longestLineRow = model.getApproximateLongestScreenRow()
+    const longestLine = model.screenLineForScreenRow(longestLineRow)
+    if (longestLine !== this.previousLongestLine) {
+      this.longestLineToMeasure = longestLine
+      this.longestLineToMeasureRow = longestLineRow
+      this.previousLongestLine = longestLine
+      return longestLine
+    }
+  }
+
   measureLongestLineWidth (screenLine) {
     this.measurements.longestLineWidth = this.lineNodesByScreenLineId.get(screenLine.id).firstChild.offsetWidth
+    this.longestLineToMeasureRow = null
+    this.longestLineToMeasure = null
   }
 
   measureGutterDimensions () {
