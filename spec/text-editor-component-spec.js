@@ -273,6 +273,57 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       expect(scroller.scrollTop).toBe((4 - scrollMarginInLines) * component.measurements.lineHeight)
     })
+
+    it('automatically scrolls horizontally when the cursor is within horizontal scroll margin of the right edge of the gutter or right edge of the screen', async () => {
+      const {component, element, editor} = buildComponent()
+      const {scroller} = component.refs
+      element.style.width =
+        component.getGutterContainerWidth() +
+        3 * editor.horizontalScrollMargin * component.measurements.baseCharacterWidth + 'px'
+      await component.getNextUpdatePromise()
+
+      editor.scrollToScreenRange([[1, 12], [2, 28]])
+      await component.getNextUpdatePromise()
+      let expectedScrollLeft = Math.floor(
+        clientLeftForCharacter(component, 1, 12) -
+        lineNodeForScreenRow(component, 1).getBoundingClientRect().left -
+        (editor.horizontalScrollMargin * component.measurements.baseCharacterWidth)
+      )
+      expect(scroller.scrollLeft).toBe(expectedScrollLeft)
+
+      editor.scrollToScreenRange([[1, 12], [2, 28]], {reversed: false})
+      await component.getNextUpdatePromise()
+      expectedScrollLeft = Math.floor(
+        component.getGutterContainerWidth() +
+        clientLeftForCharacter(component, 2, 28) -
+        lineNodeForScreenRow(component, 2).getBoundingClientRect().left +
+        (editor.horizontalScrollMargin * component.measurements.baseCharacterWidth) -
+        scroller.clientWidth
+      )
+      expect(scroller.scrollLeft).toBe(expectedScrollLeft)
+    })
+
+    it('does not horizontally autoscroll by more than half of the visible "base-width" characters if the editor is narrower than twice the scroll margin', async () => {
+      const {component, element, editor} = buildComponent()
+      const {scroller, gutterContainer} = component.refs
+      element.style.width =
+        component.getGutterContainerWidth() +
+        1.5 * editor.horizontalScrollMargin * component.measurements.baseCharacterWidth + 'px'
+      await component.getNextUpdatePromise()
+
+      const contentWidth = scroller.clientWidth - gutterContainer.offsetWidth
+      const contentWidthInCharacters = Math.floor(contentWidth / component.measurements.baseCharacterWidth)
+      expect(contentWidthInCharacters).toBe(9)
+
+      editor.scrollToScreenRange([[6, 10], [6, 15]])
+      await component.getNextUpdatePromise()
+      let expectedScrollLeft = Math.floor(
+        clientLeftForCharacter(component, 6, 10) -
+        lineNodeForScreenRow(component, 1).getBoundingClientRect().left -
+        (4 * component.measurements.baseCharacterWidth)
+      )
+      expect(scroller.scrollLeft).toBe(expectedScrollLeft)
+    })
   })
 })
 

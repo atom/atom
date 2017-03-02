@@ -31,7 +31,7 @@ class TextEditorComponent {
     this.textNodesByScreenLineId = new Map()
     this.pendingAutoscroll = null
     this.autoscrollTop = null
-    this.scrollWidthOrHeightChanged = false
+    this.contentWidthOrHeightChanged = false
     this.previousScrollWidth = 0
     this.previousScrollHeight = 0
     this.lastKeydown = null
@@ -69,26 +69,22 @@ class TextEditorComponent {
       this.resolveNextUpdatePromise = null
     }
 
-    if (this.scrollWidthOrHeightChanged) this.measureClientDimensions()
+    this.horizontalPositionsToMeasure.clear()
+    if (this.contentWidthOrHeightChanged) this.measureClientDimensions()
+    if (this.pendingAutoscroll) this.initiateAutoscroll()
     this.populateVisibleRowRange()
     const longestLineToMeasure = this.checkForNewLongestLine()
-    if (this.pendingAutoscroll) this.autoscrollVertically()
-    this.horizontalPositionsToMeasure.clear()
+    this.queryCursorsToRender()
 
     etch.updateSync(this)
 
-    if (this.autoscrollTop != null) {
-      this.refs.scroller.scrollTop = this.autoscrollTop
-      this.autoscrollTop = null
-    }
-    if (longestLineToMeasure) this.measureLongestLineWidth(longestLineToMeasure)
-    this.queryCursorsToRender()
     this.measureHorizontalPositions()
+    if (longestLineToMeasure) this.measureLongestLineWidth(longestLineToMeasure)
+    if (this.pendingAutoscroll) this.finalizeAutoscroll()
     this.positionCursorsToRender()
 
     etch.updateSync(this)
 
-    this.pendingAutoscroll = null
     this.currentFrameLineNumberGutterProps = null
   }
 
@@ -198,15 +194,15 @@ class TextEditorComponent {
       overflow: 'hidden'
     }
     if (this.measurements) {
-      const scrollWidth = this.getScrollWidth()
+      const contentWidth = this.getContentWidth()
       const scrollHeight = this.getScrollHeight()
-      if (scrollWidth !== this.previousScrollWidth || scrollHeight !== this.previousScrollHeight) {
-        this.scrollWidthOrHeightChanged = true
-        this.previousScrollWidth = scrollWidth
+      if (contentWidth !== this.previousScrollWidth || scrollHeight !== this.previousScrollHeight) {
+        this.contentWidthOrHeightChanged = true
+        this.previousScrollWidth = contentWidth
         this.previousScrollHeight = scrollHeight
       }
 
-      const width = scrollWidth + 'px'
+      const width = contentWidth + 'px'
       const height = scrollHeight + 'px'
       style.width = width
       style.height = height
@@ -238,7 +234,7 @@ class TextEditorComponent {
     // const lastTileStartRow = this.getLastTileStartRow()
     const rowsPerTile = this.getRowsPerTile()
     const tileHeight = this.measurements.lineHeight * rowsPerTile
-    const tileWidth = this.getScrollWidth()
+    const tileWidth = this.getContentWidth()
 
     const displayLayer = this.getModel().displayLayer
     const screenLines = displayLayer.getScreenLines(startRow, endRow)
@@ -565,12 +561,15 @@ class TextEditorComponent {
     this.scheduleUpdate()
   }
 
-  autoscrollVertically () {
+  initiateAutoscroll () {
     const {screenRange, options} = this.pendingAutoscroll
 
     const screenRangeTop = this.pixelTopForScreenRow(screenRange.start.row)
     const screenRangeBottom = this.pixelTopForScreenRow(screenRange.end.row) + this.measurements.lineHeight
     const verticalScrollMargin = this.getVerticalScrollMargin()
+
+    this.requestHorizontalMeasurement(screenRange.start.row, screenRange.start.column)
+    this.requestHorizontalMeasurement(screenRange.end.row, screenRange.end.column)
 
     let desiredScrollTop, desiredScrollBottom
     if (options && options.center) {
@@ -595,22 +594,65 @@ class TextEditorComponent {
     if (!options || options.reversed !== false) {
       if (desiredScrollBottom > this.getScrollBottom()) {
         this.autoscrollTop = desiredScrollBottom - this.measurements.clientHeight
+        this.measurements.scrollTop = this.autoscrollTop
       }
       if (desiredScrollTop < this.getScrollTop()) {
         this.autoscrollTop = desiredScrollTop
+        this.measurements.scrollTop = this.autoscrollTop
       }
     } else {
       if (desiredScrollTop < this.getScrollTop()) {
         this.autoscrollTop = desiredScrollTop
+        this.measurements.scrollTop = this.autoscrollTop
       }
       if (desiredScrollBottom > this.getScrollBottom()) {
         this.autoscrollTop = desiredScrollBottom - this.measurements.clientHeight
+        this.measurements.scrollTop = this.autoscrollTop
+      }
+    }
+  }
+
+  finalizeAutoscroll () {
+    const horizontalScrollMargin = this.getHorizontalScrollMargin()
+
+    const {screenRange, options} = this.pendingAutoscroll
+    const gutterContainerWidth = this.getGutterContainerWidth()
+    let left = this.pixelLeftForScreenRowAndColumn(screenRange.start.row, screenRange.start.column) + gutterContainerWidth
+    let right = this.pixelLeftForScreenRowAndColumn(screenRange.end.row, screenRange.end.column) + gutterContainerWidth
+    const desiredScrollLeft = Math.max(0, left - horizontalScrollMargin - gutterContainerWidth)
+    const desiredScrollRight = Math.min(this.getScrollWidth(), right + horizontalScrollMargin)
+
+    let autoscrollLeft
+    if (!options || options.reversed !== false) {
+      if (desiredScrollRight > this.getScrollRight()) {
+        autoscrollLeft = desiredScrollRight - this.getClientWidth()
+        this.measurements.scrollLeft = autoscrollLeft
+      }
+      if (desiredScrollLeft < this.getScrollLeft()) {
+        autoscrollLeft = desiredScrollLeft
+        this.measurements.scrollLeft = autoscrollLeft
+      }
+    } else {
+      if (desiredScrollLeft < this.getScrollLeft()) {
+        autoscrollLeft = desiredScrollLeft
+        this.measurements.scrollLeft = autoscrollLeft
+      }
+      if (desiredScrollRight > this.getScrollRight()) {
+        autoscrollLeft = desiredScrollRight - this.getClientWidth()
+        this.measurements.scrollLeft = autoscrollLeft
       }
     }
 
     if (this.autoscrollTop != null) {
-      this.measurements.scrollTop = this.autoscrollTop
+      this.refs.scroller.scrollTop = this.autoscrollTop
+      this.autoscrollTop = null
     }
+
+    if (autoscrollLeft != null) {
+      this.refs.scroller.scrollLeft = autoscrollLeft
+    }
+
+    this.pendingAutoscroll = null
   }
 
   getVerticalScrollMargin () {
@@ -619,7 +661,17 @@ class TextEditorComponent {
       this.getModel().verticalScrollMargin,
       Math.floor(((clientHeight / lineHeight) - 1) / 2)
     )
-    return marginInLines * this.measurements.lineHeight
+    return marginInLines * lineHeight
+  }
+
+  getHorizontalScrollMargin () {
+    const {clientWidth, baseCharacterWidth} = this.measurements
+    const contentClientWidth = clientWidth - this.getGutterContainerWidth()
+    const marginInBaseCharacters = Math.min(
+      this.getModel().horizontalScrollMargin,
+      Math.floor(((contentClientWidth / baseCharacterWidth) - 1) / 2)
+    )
+    return marginInBaseCharacters * baseCharacterWidth
   }
 
   performInitialMeasurements () {
@@ -671,7 +723,7 @@ class TextEditorComponent {
       this.measurements.clientWidth = clientWidth
       clientDimensionsChanged = true
     }
-    this.scrollWidthOrHeightChanged = false
+    this.contentWidthOrHeightChanged = false
     return clientDimensionsChanged
   }
 
@@ -744,6 +796,9 @@ class TextEditorComponent {
           positions.set(0, 0)
           continue columnLoop
         }
+        if (nextColumnToMeasure >= lineNode.textContent.length) {
+
+        }
         if (positions.has(nextColumnToMeasure)) continue columnLoop
         const textNode = textNodes[textNodesIndex]
         const textNodeEndColumn = textNodeStartColumn + textNode.textContent.length
@@ -815,7 +870,7 @@ class TextEditorComponent {
 
   getScrollBottom () {
     return this.measurements
-      ? this.getScrollTop() + this.measurements.clientHeight
+      ? this.measurements.scrollTop + this.measurements.clientHeight
       : null
   }
 
@@ -823,16 +878,34 @@ class TextEditorComponent {
     return this.measurements ? this.measurements.scrollLeft : null
   }
 
+  getScrollRight () {
+    return this.measurements
+      ? this.measurements.scrollLeft + this.measurements.clientWidth
+      : null
+  }
+
   getScrollHeight () {
     return this.getModel().getApproximateScreenLineCount() * this.measurements.lineHeight
   }
 
   getScrollWidth () {
-    return Math.round(this.measurements.longestLineWidth + this.measurements.baseCharacterWidth)
+    return this.getContentWidth() + this.getGutterContainerWidth()
   }
 
   getClientHeight () {
     return this.measurements.clientHeight
+  }
+
+  getClientWidth () {
+    return this.measurements.clientWidth
+  }
+
+  getGutterContainerWidth () {
+    return this.measurements.lineNumberGutterWidth
+  }
+
+  getContentWidth () {
+    return Math.round(this.measurements.longestLineWidth + this.measurements.baseCharacterWidth)
   }
 
   getRowsPerTile () {
