@@ -210,7 +210,7 @@ class TextEditor extends Model
     if @cursors.length is 0 and not suppressCursorCreation
       initialLine = Math.max(parseInt(initialLine) or 0, 0)
       initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
-      @addCursorAtBufferPosition([initialLine, initialColumn], {suppressLayerUpdateEvent: true})
+      @addCursorAtBufferPosition([initialLine, initialColumn])
 
     @languageMode = new LanguageMode(this)
 
