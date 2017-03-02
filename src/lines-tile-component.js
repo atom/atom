@@ -2,27 +2,26 @@ const HighlightsComponent = require('./highlights-component')
 const ZERO_WIDTH_NBSP = '\ufeff'
 
 module.exports = class LinesTileComponent {
-  constructor ({presenter, id, domElementPool, assert, views}) {
+  constructor ({presenter, id, assert, views}) {
     this.id = id
     this.presenter = presenter
     this.views = views
-    this.domElementPool = domElementPool
     this.assert = assert
     this.lineNodesByLineId = {}
     this.screenRowsByLineId = {}
     this.lineIdsByScreenRow = {}
     this.textNodesByLineId = {}
     this.blockDecorationNodesByLineIdAndDecorationId = {}
-    this.domNode = this.domElementPool.buildElement('div')
+    this.domNode = document.createElement('div')
     this.domNode.style.position = 'absolute'
     this.domNode.style.display = 'block'
-    this.highlightsComponent = new HighlightsComponent(this.domElementPool)
+    this.highlightsComponent = new HighlightsComponent()
     this.domNode.appendChild(this.highlightsComponent.getDomNode())
   }
 
   destroy () {
     this.removeLineNodes()
-    this.domElementPool.freeElementAndDescendants(this.domNode)
+    this.domNode.remove()
   }
 
   getDomNode () {
@@ -81,7 +80,7 @@ module.exports = class LinesTileComponent {
   }
 
   removeLineNode (lineId) {
-    this.domElementPool.freeElementAndDescendants(this.lineNodesByLineId[lineId])
+    this.lineNodesByLineId[lineId].remove()
     for (const decorationId of Object.keys(this.oldTileState.lines[lineId].precedingBlockDecorations)) {
       const {topRulerNode, blockDecorationNode, bottomRulerNode} =
         this.blockDecorationNodesByLineIdAndDecorationId[lineId][decorationId]
@@ -163,7 +162,8 @@ module.exports = class LinesTileComponent {
   buildLineNode (id) {
     const {lineText, tagCodes, screenRow, decorationClasses} = this.newTileState.lines[id]
 
-    const lineNode = this.domElementPool.buildElement('div', 'line')
+    const lineNode = document.createElement('div')
+    lineNode.className = 'line'
     lineNode.dataset.screenRow = screenRow
     if (decorationClasses != null) {
       for (const decorationClass of decorationClasses) {
@@ -180,11 +180,12 @@ module.exports = class LinesTileComponent {
           openScopeNode = openScopeNode.parentElement
         } else if (this.presenter.isOpenTagCode(tagCode)) {
           const scope = this.presenter.tagForCode(tagCode)
-          const newScopeNode = this.domElementPool.buildElement('span', scope.replace(/\.+/g, ' '))
+          const newScopeNode = document.createElement('span')
+          newScopeNode.className = scope.replace(/\.+/g, ' ')
           openScopeNode.appendChild(newScopeNode)
           openScopeNode = newScopeNode
         } else {
-          const textNode = this.domElementPool.buildText(lineText.substr(startIndex, tagCode))
+          const textNode = document.createTextNode(lineText.substr(startIndex, tagCode))
           startIndex += tagCode
           openScopeNode.appendChild(textNode)
           textNodes.push(textNode)
@@ -193,7 +194,7 @@ module.exports = class LinesTileComponent {
     }
 
     if (startIndex === 0) {
-      const textNode = this.domElementPool.buildText(' ')
+      const textNode = document.createTextNode(' ')
       lineNode.appendChild(textNode)
       textNodes.push(textNode)
     }
@@ -202,7 +203,7 @@ module.exports = class LinesTileComponent {
       // Insert a zero-width non-breaking whitespace, so that LinesYardstick can
       // take the fold-marker::after pseudo-element into account during
       // measurements when such marker is the last character on the line.
-      const textNode = this.domElementPool.buildText(ZERO_WIDTH_NBSP)
+      const textNode = document.createTextNode(ZERO_WIDTH_NBSP)
       lineNode.appendChild(textNode)
       textNodes.push(textNode)
     }

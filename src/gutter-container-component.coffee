@@ -7,7 +7,7 @@ LineNumberGutterComponent = require './line-number-gutter-component'
 
 module.exports =
 class GutterContainerComponent
-  constructor: ({@onLineNumberGutterMouseDown, @editor, @domElementPool, @views}) ->
+  constructor: ({@onLineNumberGutterMouseDown, @editor, @views}) ->
     # An array of objects of the form: {name: {String}, component: {Object}}
     @gutterComponents = []
     @gutterComponentsByGutterName = {}
@@ -39,7 +39,7 @@ class GutterContainerComponent
       gutterComponent = @gutterComponentsByGutterName[gutter.name]
       if not gutterComponent
         if gutter.name is 'line-number'
-          gutterComponent = new LineNumberGutterComponent({onMouseDown: @onLineNumberGutterMouseDown, @editor, gutter, @domElementPool, @views})
+          gutterComponent = new LineNumberGutterComponent({onMouseDown: @onLineNumberGutterMouseDown, @editor, gutter, @views})
           @lineNumberGutterComponent = gutterComponent
         else
           gutterComponent = new CustomGutterComponent({gutter, @views})
