@@ -46,8 +46,8 @@ Set.prototype.isEqual = (other) ->
 
 jasmine.getEnv().addEqualityTester (a, b) ->
   # Match jamine.any's
-  return a.jasmineMatches(b) if a.jasmineMatches?
-  return b.jasmineMatches(a) if b.jasmineMatches?
+  return a.jasmineMatches(b) if a?.jasmineMatches?
+  return b.jasmineMatches(a) if b?.jasmineMatches?
   
   # Use underscore's definition of equality for toEqual assertions
   _.isEqual(a, b)
