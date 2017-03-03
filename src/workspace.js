@@ -61,7 +61,7 @@ module.exports = class Workspace extends Model {
     // Etch, in which case it'd be `new`d. And when it's `new`d, `this` is always
     // the newly created object.
     const realThis = this
-    this.buildTextEditor = () => Workspace.prototype.buildTextEditor.apply(realThis, arguments)
+    this.buildTextEditor = (params) => Workspace.prototype.buildTextEditor.call(realThis, params)
 
     this.panelContainers = {
       top: new PanelContainer({location: 'top'}),
