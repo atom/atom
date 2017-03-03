@@ -13,7 +13,7 @@ class DecorationManager {
     this.overlayDecorations = new Set()
     this.layerDecorationsByMarkerLayer = new Map()
     this.decorationCountsByLayer = new Map()
-    this.layerUpdateDisposablesByLayerId = {}
+    this.layerUpdateDisposablesByLayer = new WeakMap()
   }
 
   observeDecorations (callback) {
@@ -234,16 +234,15 @@ class DecorationManager {
     const newCount = (this.decorationCountsByLayer.get(layer) || 0) + 1
     this.decorationCountsByLayer.set(layer, newCount)
     if (newCount === 1) {
-      this.layerUpdateDisposablesByLayerId[layer.id] = layer.onDidUpdate(this.emitDidUpdateDecorations.bind(this))
+      this.layerUpdateDisposablesByLayer.set(layer, layer.onDidUpdate(this.emitDidUpdateDecorations.bind(this)))
     }
   }
 
   unobserveDecoratedLayer (layer) {
     const newCount = this.decorationCountsByLayer.get(layer) - 1
     if (newCount === 0) {
-      this.layerUpdateDisposablesByLayerId[layer.id].dispose()
+      this.layerUpdateDisposablesByLayer.get(layer).dispose()
       this.decorationCountsByLayer.delete(layer)
-      delete this.layerUpdateDisposablesByLayerId[layer.id]
     } else {
       this.decorationCountsByLayer.set(layer, newCount)
     }
