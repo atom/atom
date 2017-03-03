@@ -1250,6 +1250,8 @@ describe "Workspace", ->
             fs.rename(path.join(projectPath, 'git.git'), path.join(projectPath, '.git'))
             ignoredPath = path.join(projectPath, 'ignored.txt')
             fs.writeFileSync(ignoredPath, 'this match should not be included')
+            ignoredSubPath = path.join(projectPath, 'subdir', 'ignored.txt')
+            fs.writeFileSync(ignoredSubPath, 'this subdir match should not be included')
 
         afterEach ->
           fs.removeSync(projectPath) if fs.existsSync(projectPath)
@@ -1260,6 +1262,17 @@ describe "Workspace", ->
           resultHandler = jasmine.createSpy("result found")
           waitsForPromise ->
             atom.workspace.scan /match/, (results) ->
+              resultHandler()
+
+          runs ->
+            expect(resultHandler).not.toHaveBeenCalled()
+
+        xit "excludes ignored files when a directory filter is specified", ->
+          atom.project.setPaths([projectPath])
+          atom.config.set('core.excludeVcsIgnoredPaths', true)
+          resultHandler = jasmine.createSpy("result found")
+          waitsForPromise ->
+            atom.workspace.scan /match/, paths: ["subdir#{path.sep}"], (results) ->
               resultHandler()
 
           runs ->
@@ -1308,6 +1321,19 @@ describe "Workspace", ->
         resultHandler = jasmine.createSpy("result found")
         waitsForPromise ->
           atom.workspace.scan /dollar/, (results) ->
+            resultHandler()
+
+        runs ->
+          expect(resultHandler).not.toHaveBeenCalled()
+
+      xit "excludes values in core.ignoredNames when a directory filter is specified", ->
+        ignoredNames = atom.config.get("core.ignoredNames")
+        ignoredNames.push("oh-git")
+        atom.config.set("core.ignoredNames", ignoredNames)
+
+        resultHandler = jasmine.createSpy("result found")
+        waitsForPromise ->
+          atom.workspace.scan /bbb/, paths: ["a-dir#{path.sep}"], (results) ->
             resultHandler()
 
         runs ->
