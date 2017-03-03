@@ -14,8 +14,7 @@ describe "DecorationManager", ->
       atom.packages.activatePackage('language-javascript')
 
   afterEach ->
-    decorationManager.destroy()
-    buffer.release()
+    buffer.destroy()
 
   describe "decorations", ->
     [layer1Marker, layer2Marker, layer1MarkerDecoration, layer2MarkerDecoration, decorationProperties] = []
