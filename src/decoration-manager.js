@@ -10,7 +10,7 @@ class DecorationManager {
     this.emitter = new Emitter()
     this.decorationsById = {}
     this.decorationsByMarker = new Map()
-    this.overlayDecorationsById = {}
+    this.overlayDecorations = new Set()
     this.layerDecorationsByMarkerLayerId = {}
     this.decorationCountsByLayerId = {}
     this.layerUpdateDisposablesByLayerId = {}
@@ -69,10 +69,7 @@ class DecorationManager {
 
   getOverlayDecorations (propertyFilter) {
     const result = []
-    for (let id in this.overlayDecorationsById) {
-      const decoration = this.overlayDecorationsById[id]
-      result.push(decoration)
-    }
+    result.push(...Array.from(this.overlayDecorations))
     if (propertyFilter != null) {
       return result.filter(function (decoration) {
         for (let key in propertyFilter) {
@@ -165,9 +162,7 @@ class DecorationManager {
       this.decorationsByMarker.set(marker, decorationsForMarker)
     }
     decorationsForMarker.push(decoration)
-    if (decoration.isType('overlay')) {
-      this.overlayDecorationsById[decoration.id] = decoration
-    }
+    if (decoration.isType('overlay')) this.overlayDecorations.add(decoration)
     this.decorationsById[decoration.id] = decoration
     this.observeDecoratedLayer(marker.layer)
     this.emitDidUpdateDecorations()
@@ -195,9 +190,9 @@ class DecorationManager {
 
   decorationDidChangeType (decoration) {
     if (decoration.isType('overlay')) {
-      return (this.overlayDecorationsById[decoration.id] = decoration)
+      this.overlayDecorations.add(decoration)
     } else {
-      return delete this.overlayDecorationsById[decoration.id]
+      this.overlayDecorations.delete(decoration)
     }
   }
 
@@ -214,7 +209,7 @@ class DecorationManager {
       if (decorations.length === 0) {
         delete this.decorationsByMarker.delete(marker)
       }
-      delete this.overlayDecorationsById[decoration.id]
+      this.overlayDecorations.delete(decoration)
       this.unobserveDecoratedLayer(marker.layer)
     }
     return this.emitDidUpdateDecorations()
