@@ -531,7 +531,7 @@ class Workspace extends Model
         unless Number.isNaN(options.initialColumn)
           initialColumn = options.initialColumn
         if initialLine >= 0 or initialColumn >= 0
-          item.setCursorBufferPosition?([initialLine, initialColumn])
+          item.setCursorBufferPosition?([initialLine, initialColumn], autoscrollCenter: true)
 
         index = pane.getActiveItemIndex()
         @emitter.emit 'did-open', {uri, pane, item, index}
