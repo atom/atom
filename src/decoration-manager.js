@@ -4,10 +4,10 @@ const LayerDecoration = require('./layer-decoration')
 
 module.exports =
 class DecorationManager {
-  constructor(displayLayer) {
+  constructor (displayLayer) {
     this.displayLayer = displayLayer
 
-    this.emitter = new Emitter
+    this.emitter = new Emitter()
     this.decorationsById = {}
     this.decorationsByMarkerId = {}
     this.overlayDecorationsById = {}
@@ -16,28 +16,28 @@ class DecorationManager {
     this.layerUpdateDisposablesByLayerId = {}
   }
 
-  observeDecorations(callback) {
-    for (let decoration of this.getDecorations()) { callback(decoration); }
+  observeDecorations (callback) {
+    for (let decoration of this.getDecorations()) { callback(decoration) }
     return this.onDidAddDecoration(callback)
   }
 
-  onDidAddDecoration(callback) {
+  onDidAddDecoration (callback) {
     return this.emitter.on('did-add-decoration', callback)
   }
 
-  onDidRemoveDecoration(callback) {
+  onDidRemoveDecoration (callback) {
     return this.emitter.on('did-remove-decoration', callback)
   }
 
-  onDidUpdateDecorations(callback) {
+  onDidUpdateDecorations (callback) {
     return this.emitter.on('did-update-decorations', callback)
   }
 
-  decorationForId(id) {
+  decorationForId (id) {
     return this.decorationsById[id]
   }
 
-  getDecorations(propertyFilter) {
+  getDecorations (propertyFilter) {
     let allDecorations = []
     for (let markerId in this.decorationsByMarkerId) {
       const decorations = this.decorationsByMarkerId[markerId]
@@ -46,7 +46,7 @@ class DecorationManager {
       }
     }
     if (propertyFilter != null) {
-      allDecorations = allDecorations.filter(function(decoration) {
+      allDecorations = allDecorations.filter(function (decoration) {
         for (let key in propertyFilter) {
           const value = propertyFilter[key]
           if (decoration.properties[key] !== value) return false
@@ -57,26 +57,26 @@ class DecorationManager {
     return allDecorations
   }
 
-  getLineDecorations(propertyFilter) {
+  getLineDecorations (propertyFilter) {
     return this.getDecorations(propertyFilter).filter(decoration => decoration.isType('line'))
   }
 
-  getLineNumberDecorations(propertyFilter) {
+  getLineNumberDecorations (propertyFilter) {
     return this.getDecorations(propertyFilter).filter(decoration => decoration.isType('line-number'))
   }
 
-  getHighlightDecorations(propertyFilter) {
+  getHighlightDecorations (propertyFilter) {
     return this.getDecorations(propertyFilter).filter(decoration => decoration.isType('highlight'))
   }
 
-  getOverlayDecorations(propertyFilter) {
+  getOverlayDecorations (propertyFilter) {
     const result = []
     for (let id in this.overlayDecorationsById) {
       const decoration = this.overlayDecorationsById[id]
       result.push(decoration)
     }
     if (propertyFilter != null) {
-      return result.filter(function(decoration) {
+      return result.filter(function (decoration) {
         for (let key in propertyFilter) {
           const value = propertyFilter[key]
           if (decoration.properties[key] !== value) {
@@ -90,7 +90,7 @@ class DecorationManager {
     }
   }
 
-  decorationsForScreenRowRange(startScreenRow, endScreenRow) {
+  decorationsForScreenRowRange (startScreenRow, endScreenRow) {
     const decorationsByMarkerId = {}
     for (let layerId in this.decorationCountsByLayerId) {
       const layer = this.displayLayer.getMarkerLayer(layerId)
@@ -104,7 +104,7 @@ class DecorationManager {
     return decorationsByMarkerId
   }
 
-  decorationsStateForScreenRowRange(startScreenRow, endScreenRow) {
+  decorationsStateForScreenRowRange (startScreenRow, endScreenRow) {
     const decorationsState = {}
 
     for (let layerId in this.decorationCountsByLayerId) {
@@ -121,7 +121,9 @@ class DecorationManager {
             for (let decoration of decorations) {
               decorationsState[decoration.id] = {
                 properties: decoration.properties,
-                screenRange, bufferRange, rangeIsReversed
+                screenRange,
+                bufferRange,
+                rangeIsReversed
               }
             }
           }
@@ -129,9 +131,12 @@ class DecorationManager {
           const layerDecorations = this.layerDecorationsByMarkerLayerId[layerId]
           if (layerDecorations) {
             for (let layerDecoration of layerDecorations) {
+              const properties = layerDecoration.overridePropertiesByMarkerId[marker.id] != null ? layerDecoration.overridePropertiesByMarkerId[marker.id] : layerDecoration.properties
               decorationsState[`${layerDecoration.id}-${marker.id}`] = {
-                properties: layerDecoration.overridePropertiesByMarkerId[marker.id] != null ? layerDecoration.overridePropertiesByMarkerId[marker.id] : layerDecoration.properties,
-                screenRange, bufferRange, rangeIsReversed
+                properties,
+                screenRange,
+                bufferRange,
+                rangeIsReversed
               }
             }
           }
@@ -142,9 +147,9 @@ class DecorationManager {
     return decorationsState
   }
 
-  decorateMarker(marker, decorationParams) {
+  decorateMarker (marker, decorationParams) {
     if (marker.isDestroyed()) {
-      const error = new Error("Cannot decorate a destroyed marker")
+      const error = new Error('Cannot decorate a destroyed marker')
       error.metadata = {markerLayerIsDestroyed: marker.layer.isDestroyed()}
       if (marker.destroyStackTrace != null) {
         error.metadata.destroyStackTrace = marker.destroyStackTrace
@@ -170,9 +175,9 @@ class DecorationManager {
     return decoration
   }
 
-  decorateMarkerLayer(markerLayer, decorationParams) {
+  decorateMarkerLayer (markerLayer, decorationParams) {
     if (markerLayer.isDestroyed()) {
-      throw new Error("Cannot decorate a destroyed marker layer")
+      throw new Error('Cannot decorate a destroyed marker layer')
     }
     const decoration = new LayerDecoration(markerLayer, this, decorationParams)
     if (this.layerDecorationsByMarkerLayerId[markerLayer.id] == null) {
@@ -184,23 +189,23 @@ class DecorationManager {
     return decoration
   }
 
-  decorationsForMarkerId(markerId) {
+  decorationsForMarkerId (markerId) {
     return this.decorationsByMarkerId[markerId]
   }
 
-  emitDidUpdateDecorations() {
+  emitDidUpdateDecorations () {
     this.emitter.emit('did-update-decorations')
   }
 
-  decorationDidChangeType(decoration) {
+  decorationDidChangeType (decoration) {
     if (decoration.isType('overlay')) {
-      return this.overlayDecorationsById[decoration.id] = decoration
+      return (this.overlayDecorationsById[decoration.id] = decoration)
     } else {
       return delete this.overlayDecorationsById[decoration.id]
     }
   }
 
-  didDestroyMarkerDecoration(decoration) {
+  didDestroyMarkerDecoration (decoration) {
     let decorations
     const {marker} = decoration
     if (!(decorations = this.decorationsByMarkerId[marker.id])) return
@@ -219,7 +224,7 @@ class DecorationManager {
     return this.emitDidUpdateDecorations()
   }
 
-  didDestroyLayerDecoration(decoration) {
+  didDestroyLayerDecoration (decoration) {
     let decorations
     const {markerLayer} = decoration
     if (!(decorations = this.layerDecorationsByMarkerLayerId[markerLayer.id])) return
@@ -235,7 +240,7 @@ class DecorationManager {
     return this.emitDidUpdateDecorations()
   }
 
-  observeDecoratedLayer(layer) {
+  observeDecoratedLayer (layer) {
     if (this.decorationCountsByLayerId[layer.id] == null) {
       this.decorationCountsByLayerId[layer.id] = 0
     }
@@ -244,7 +249,7 @@ class DecorationManager {
     }
   }
 
-  unobserveDecoratedLayer(layer) {
+  unobserveDecoratedLayer (layer) {
     if (--this.decorationCountsByLayerId[layer.id] === 0) {
       this.layerUpdateDisposablesByLayerId[layer.id].dispose()
       delete this.decorationCountsByLayerId[layer.id]
