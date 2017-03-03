@@ -11,7 +11,7 @@ class DecorationManager {
     this.decorationsById = {}
     this.decorationsByMarker = new Map()
     this.overlayDecorations = new Set()
-    this.layerDecorationsByMarkerLayerId = {}
+    this.layerDecorationsByMarkerLayer = new Map()
     this.decorationCountsByLayerId = {}
     this.layerUpdateDisposablesByLayerId = {}
   }
@@ -123,7 +123,7 @@ class DecorationManager {
             }
           }
 
-          const layerDecorations = this.layerDecorationsByMarkerLayerId[layerId]
+          const layerDecorations = this.layerDecorationsByMarkerLayer.get(layer)
           if (layerDecorations) {
             for (let layerDecoration of layerDecorations) {
               const properties = layerDecoration.overridePropertiesByMarkerId[marker.id] != null ? layerDecoration.overridePropertiesByMarkerId[marker.id] : layerDecoration.properties
@@ -175,10 +175,12 @@ class DecorationManager {
       throw new Error('Cannot decorate a destroyed marker layer')
     }
     const decoration = new LayerDecoration(markerLayer, this, decorationParams)
-    if (this.layerDecorationsByMarkerLayerId[markerLayer.id] == null) {
-      this.layerDecorationsByMarkerLayerId[markerLayer.id] = []
+    let layerDecorations = this.layerDecorationsByMarkerLayer.get(markerLayer)
+    if (layerDecorations == null) {
+      layerDecorations = []
+      this.layerDecorationsByMarkerLayer.set(markerLayer, layerDecorations)
     }
-    this.layerDecorationsByMarkerLayerId[markerLayer.id].push(decoration)
+    layerDecorations.push(decoration)
     this.observeDecoratedLayer(markerLayer)
     this.emitDidUpdateDecorations()
     return decoration
@@ -216,15 +218,15 @@ class DecorationManager {
   }
 
   didDestroyLayerDecoration (decoration) {
-    let decorations
     const {markerLayer} = decoration
-    if (!(decorations = this.layerDecorationsByMarkerLayerId[markerLayer.id])) return
+    const decorations = this.layerDecorationsByMarkerLayer.get(markerLayer)
+    if (!decorations) return
     const index = decorations.indexOf(decoration)
 
     if (index > -1) {
       decorations.splice(index, 1)
       if (decorations.length === 0) {
-        delete this.layerDecorationsByMarkerLayerId[markerLayer.id]
+        this.layerDecorationsByMarkerLayer.delete(markerLayer)
       }
       this.unobserveDecoratedLayer(markerLayer)
     }
