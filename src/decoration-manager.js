@@ -8,8 +8,6 @@ class DecorationManager {
     this.displayLayer = displayLayer
 
     this.emitter = new Emitter
-    this.didUpdateDecorationsEventScheduled = false
-    this.updatedSynchronously = false
     this.decorationsById = {}
     this.decorationsByMarkerId = {}
     this.overlayDecorationsById = {}
@@ -33,10 +31,6 @@ class DecorationManager {
 
   onDidUpdateDecorations(callback) {
     return this.emitter.on('did-update-decorations', callback)
-  }
-
-  setUpdatedSynchronously(updatedSynchronously) {
-    this.updatedSynchronously = updatedSynchronously
   }
 
   decorationForId(id) {
@@ -171,7 +165,7 @@ class DecorationManager {
     }
     this.decorationsById[decoration.id] = decoration
     this.observeDecoratedLayer(marker.layer)
-    this.scheduleUpdateDecorationsEvent()
+    this.emitDidUpdateDecorations()
     this.emitter.emit('did-add-decoration', decoration)
     return decoration
   }
@@ -186,7 +180,7 @@ class DecorationManager {
     }
     this.layerDecorationsByMarkerLayerId[markerLayer.id].push(decoration)
     this.observeDecoratedLayer(markerLayer)
-    this.scheduleUpdateDecorationsEvent()
+    this.emitDidUpdateDecorations()
     return decoration
   }
 
@@ -194,20 +188,8 @@ class DecorationManager {
     return this.decorationsByMarkerId[markerId]
   }
 
-  scheduleUpdateDecorationsEvent() {
-    if (this.updatedSynchronously) {
-      this.emitter.emit('did-update-decorations')
-      return
-    }
-
-    if (!this.didUpdateDecorationsEventScheduled) {
-      this.didUpdateDecorationsEventScheduled = true
-      return process.nextTick(() => {
-        this.didUpdateDecorationsEventScheduled = false
-        return this.emitter.emit('did-update-decorations')
-      }
-      )
-    }
+  emitDidUpdateDecorations() {
+    this.emitter.emit('did-update-decorations')
   }
 
   decorationDidChangeType(decoration) {
@@ -234,7 +216,7 @@ class DecorationManager {
       delete this.overlayDecorationsById[decoration.id]
       this.unobserveDecoratedLayer(marker.layer)
     }
-    return this.scheduleUpdateDecorationsEvent()
+    return this.emitDidUpdateDecorations()
   }
 
   didDestroyLayerDecoration(decoration) {
@@ -250,7 +232,7 @@ class DecorationManager {
       }
       this.unobserveDecoratedLayer(markerLayer)
     }
-    return this.scheduleUpdateDecorationsEvent()
+    return this.emitDidUpdateDecorations()
   }
 
   observeDecoratedLayer(layer) {
@@ -258,7 +240,7 @@ class DecorationManager {
       this.decorationCountsByLayerId[layer.id] = 0
     }
     if (++this.decorationCountsByLayerId[layer.id] === 1) {
-      this.layerUpdateDisposablesByLayerId[layer.id] = layer.onDidUpdate(this.scheduleUpdateDecorationsEvent.bind(this))
+      this.layerUpdateDisposablesByLayerId[layer.id] = layer.onDidUpdate(this.emitDidUpdateDecorations.bind(this))
     }
   }
 
