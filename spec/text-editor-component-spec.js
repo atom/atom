@@ -26,21 +26,6 @@ describe('TextEditorComponent', () => {
     jasmine.useRealClock()
   })
 
-  function buildComponent (params = {}) {
-    const buffer = new TextBuffer({text: SAMPLE_TEXT})
-    const editor = new TextEditor({buffer})
-    const component = new TextEditorComponent({
-      model: editor,
-      rowsPerTile: params.rowsPerTile,
-      updatedSynchronously: false
-    })
-    const {element} = component
-    element.style.width = params.width ? params.width + 'px' : '800px'
-    element.style.height = params.height ? params.height + 'px' : '600px'
-    if (params.attach !== false) jasmine.attachToDOM(element)
-    return {component, element, editor}
-  }
-
   it('renders lines and line numbers for the visible region', async () => {
     const {component, element, editor} = buildComponent({rowsPerTile: 3})
 
@@ -184,6 +169,33 @@ describe('TextEditorComponent', () => {
     expect(Math.round(hiddenInput.getBoundingClientRect().left)).toBe(clientLeftForCharacter(component, 7, 4))
   })
 
+  it('soft wraps lines based on the content width when soft wrap is enabled', async () => {
+    const {component, element, editor} = buildComponent({width: 435, attach: false})
+    editor.setSoftWrapped(true)
+    jasmine.attachToDOM(element)
+
+    expect(getBaseCharacterWidth(component)).toBe(55)
+
+    console.log(element.offsetWidth);
+    expect(lineNodeForScreenRow(component, 3).textContent).toBe(
+      '    var pivot = items.shift(), current, left = [], '
+    )
+    expect(lineNodeForScreenRow(component, 4).textContent).toBe(
+      '    right = [];'
+    )
+
+    await setBaseCharacterWidth(component, 45)
+    expect(lineNodeForScreenRow(component, 3).textContent).toBe(
+      '    var pivot = items.shift(), current, left '
+    )
+    expect(lineNodeForScreenRow(component, 4).textContent).toBe(
+      '    = [], right = [];'
+    )
+
+    const {scroller} = component.refs
+    expect(scroller.clientWidth).toBe(scroller.scrollWidth)
+  })
+
   describe('focus', () => {
     it('focuses the hidden input element and adds the is-focused class when focused', async () => {
       assertDocumentFocused()
@@ -316,10 +328,7 @@ describe('TextEditorComponent', () => {
     it('does not horizontally autoscroll by more than half of the visible "base-width" characters if the editor is narrower than twice the scroll margin', async () => {
       const {component, element, editor} = buildComponent()
       const {scroller, gutterContainer} = component.refs
-      element.style.width =
-        component.getGutterContainerWidth() +
-        1.5 * editor.horizontalScrollMargin * component.measurements.baseCharacterWidth + 'px'
-      await component.getNextUpdatePromise()
+      await setBaseCharacterWidth(component, 1.5 * editor.horizontalScrollMargin)
 
       const contentWidth = scroller.clientWidth - gutterContainer.offsetWidth
       const contentWidthInCharacters = Math.floor(contentWidth / component.measurements.baseCharacterWidth)
@@ -336,6 +345,36 @@ describe('TextEditorComponent', () => {
     })
   })
 })
+
+function buildComponent (params = {}) {
+  const buffer = new TextBuffer({text: SAMPLE_TEXT})
+  const editor = new TextEditor({buffer})
+  const component = new TextEditorComponent({
+    model: editor,
+    rowsPerTile: params.rowsPerTile,
+    updatedSynchronously: false
+  })
+  const {element} = component
+  element.style.width = params.width ? params.width + 'px' : '800px'
+  element.style.height = params.height ? params.height + 'px' : '600px'
+  if (params.attach !== false) jasmine.attachToDOM(element)
+  return {component, element, editor}
+}
+
+function getBaseCharacterWidth (component) {
+  return Math.round(
+    (component.refs.scroller.clientWidth - component.getGutterContainerWidth()) /
+    component.measurements.baseCharacterWidth
+  )
+}
+
+async function setBaseCharacterWidth (component, widthInCharacters) {
+  component.element.style.width =
+    component.getGutterContainerWidth() +
+    widthInCharacters * component.measurements.baseCharacterWidth +
+    'px'
+  await component.getNextUpdatePromise()
+}
 
 function verifyCursorPosition (component, cursorNode, row, column) {
   const rect = cursorNode.getBoundingClientRect()

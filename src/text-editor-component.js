@@ -89,8 +89,10 @@ class TextEditorComponent {
   }
 
   render () {
+    const model = this.getModel()
+
     let style
-    if (!this.getModel().getAutoHeight() && !this.getModel().getAutoWidth()) {
+    if (!model.getAutoHeight() && !model.getAutoWidth()) {
       style = {contain: 'strict'}
     }
 
@@ -105,15 +107,32 @@ class TextEditorComponent {
         tabIndex: -1,
         on: {focus: this.didFocus}
       },
-      $.div({ref: 'scroller', on: {scroll: this.didScroll}, className: 'scroll-view'},
-        $.div({
+      $.div(
+        {
+          ref: 'scroller',
+          className: 'scroll-view',
+          on: {scroll: this.didScroll},
           style: {
-            isolate: 'content',
-            width: 'max-content',
-            height: 'max-content',
+            position: 'absolute',
+            contain: 'strict',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            overflowX: model.isSoftWrapped() ? 'hidden' : 'auto',
+            overflowY: 'auto',
             backgroundColor: 'inherit'
           }
         },
+        $.div(
+          {
+            style: {
+              isolate: 'content',
+              width: 'max-content',
+              height: 'max-content',
+              backgroundColor: 'inherit'
+            }
+          },
           this.renderGutterContainer(),
           this.renderContent()
         )
@@ -418,8 +437,8 @@ class TextEditorComponent {
   didShow () {
     if (!this.visible) {
       this.visible = true
-      this.getModel().setVisible(true)
       if (!this.measurements) this.performInitialMeasurements()
+      this.getModel().setVisible(true)
       this.updateSync()
     }
   }
@@ -676,11 +695,11 @@ class TextEditorComponent {
 
   performInitialMeasurements () {
     this.measurements = {}
+    this.measureGutterDimensions()
     this.measureEditorDimensions()
     this.measureClientDimensions()
     this.measureScrollPosition()
     this.measureCharacterDimensions()
-    this.measureGutterDimensions()
   }
 
   measureEditorDimensions () {
@@ -721,6 +740,7 @@ class TextEditorComponent {
     }
     if (clientWidth !== this.measurements.clientWidth) {
       this.measurements.clientWidth = clientWidth
+      this.getModel().setWidth(clientWidth - this.getGutterContainerWidth(), true)
       clientDimensionsChanged = true
     }
     this.contentWidthOrHeightChanged = false
@@ -733,6 +753,13 @@ class TextEditorComponent {
     this.measurements.doubleWidthCharacterWidth = this.refs.doubleWidthCharacterSpan.getBoundingClientRect().width
     this.measurements.halfWidthCharacterWidth = this.refs.halfWidthCharacterSpan.getBoundingClientRect().width
     this.measurements.koreanCharacterWidth = this.refs.koreanCharacterSpan.getBoundingClientRect().widt
+
+    this.getModel().setDefaultCharWidth(
+      this.measurements.baseCharacterWidth,
+      this.measurements.doubleWidthCharacterWidth,
+      this.measurements.halfWidthCharacterWidth,
+      this.measurements.koreanCharacterWidth
+    )
   }
 
   checkForNewLongestLine () {
@@ -905,7 +932,11 @@ class TextEditorComponent {
   }
 
   getContentWidth () {
-    return Math.round(this.measurements.longestLineWidth + this.measurements.baseCharacterWidth)
+    if (this.getModel().isSoftWrapped()) {
+      return this.getClientWidth() - this.getGutterContainerWidth()
+    } else {
+      return Math.round(this.measurements.longestLineWidth + this.measurements.baseCharacterWidth)
+    }
   }
 
   getRowsPerTile () {
