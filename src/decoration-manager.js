@@ -8,7 +8,6 @@ class DecorationManager {
     this.displayLayer = displayLayer
 
     this.emitter = new Emitter()
-    this.decorationsById = {}
     this.decorationsByMarker = new Map()
     this.overlayDecorations = new Set()
     this.layerDecorationsByMarkerLayer = new Map()
@@ -31,10 +30,6 @@ class DecorationManager {
 
   onDidUpdateDecorations (callback) {
     return this.emitter.on('did-update-decorations', callback)
-  }
-
-  decorationForId (id) {
-    return this.decorationsById[id]
   }
 
   getDecorations (propertyFilter) {
@@ -160,7 +155,6 @@ class DecorationManager {
     }
     decorationsForMarker.push(decoration)
     if (decoration.isType('overlay')) this.overlayDecorations.add(decoration)
-    this.decorationsById[decoration.id] = decoration
     this.observeDecoratedLayer(marker.layer)
     this.emitDidUpdateDecorations()
     this.emitter.emit('did-add-decoration', decoration)
@@ -203,7 +197,6 @@ class DecorationManager {
 
     if (index > -1) {
       decorations.splice(index, 1)
-      delete this.decorationsById[decoration.id]
       this.emitter.emit('did-remove-decoration', decoration)
       if (decorations.length === 0) {
         delete this.decorationsByMarker.delete(marker)
