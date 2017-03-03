@@ -1852,9 +1852,6 @@ class TextEditor extends Model
   decorationForId: (id) ->
     @decorationManager.decorationForId(id)
 
-  decorationsForMarkerId: (id) ->
-    @decorationManager.decorationsForMarkerId(id)
-
   ###
   Section: Markers
   ###
