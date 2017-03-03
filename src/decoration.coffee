@@ -150,7 +150,7 @@ class Decoration
     @properties = translateDecorationParamsOldToNew(newProperties)
     if newProperties.type?
       @decorationManager.decorationDidChangeType(this)
-    @decorationManager.scheduleUpdateDecorationsEvent()
+    @decorationManager.emitDidUpdateDecorations()
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
 
   ###
@@ -175,5 +175,5 @@ class Decoration
     @properties.flashCount++
     @properties.flashClass = klass
     @properties.flashDuration = duration
-    @decorationManager.scheduleUpdateDecorationsEvent()
+    @decorationManager.emitDidUpdateDecorations()
     @emitter.emit 'did-flash'
