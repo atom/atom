@@ -13,7 +13,7 @@ class TimeReporter extends jasmine.Reporter
     window.logLongestSuites = (number) => @logLongestSuites(number)
 
   logLongestSuites: (number=10, log) ->
-    return unless window.timedSuites.length > 0
+    return unless Object.keys(window.timedSuites).length > 0
 
     log ?= (line) -> console.log(line)
     log "Longest running suites:"
