@@ -12,7 +12,7 @@ class DecorationManager {
     this.decorationsByMarker = new Map()
     this.overlayDecorations = new Set()
     this.layerDecorationsByMarkerLayer = new Map()
-    this.decorationCountsByLayerId = {}
+    this.decorationCountsByLayer = new Map()
     this.layerUpdateDisposablesByLayerId = {}
   }
 
@@ -87,9 +87,8 @@ class DecorationManager {
 
   decorationsForScreenRowRange (startScreenRow, endScreenRow) {
     const decorationsByMarkerId = {}
-    for (let layerId in this.decorationCountsByLayerId) {
-      const layer = this.displayLayer.getMarkerLayer(layerId)
-      for (let marker of layer.findMarkers({intersectsScreenRowRange: [startScreenRow, endScreenRow]})) {
+    for (const layer of this.decorationCountsByLayer.keys()) {
+      for (const marker of layer.findMarkers({intersectsScreenRowRange: [startScreenRow, endScreenRow]})) {
         const decorations = this.decorationsByMarker.get(marker)
         if (decorations) {
           decorationsByMarkerId[marker.id] = decorations
@@ -102,10 +101,8 @@ class DecorationManager {
   decorationsStateForScreenRowRange (startScreenRow, endScreenRow) {
     const decorationsState = {}
 
-    for (let layerId in this.decorationCountsByLayerId) {
-      const layer = this.displayLayer.getMarkerLayer(layerId)
-
-      for (let marker of layer.findMarkers({intersectsScreenRowRange: [startScreenRow, endScreenRow]})) {
+    for (const layer of this.decorationCountsByLayer.keys()) {
+      for (const marker of layer.findMarkers({intersectsScreenRowRange: [startScreenRow, endScreenRow]})) {
         if (marker.isValid()) {
           const screenRange = marker.getScreenRange()
           const bufferRange = marker.getBufferRange()
@@ -234,19 +231,21 @@ class DecorationManager {
   }
 
   observeDecoratedLayer (layer) {
-    if (this.decorationCountsByLayerId[layer.id] == null) {
-      this.decorationCountsByLayerId[layer.id] = 0
-    }
-    if (++this.decorationCountsByLayerId[layer.id] === 1) {
+    const newCount = (this.decorationCountsByLayer.get(layer) || 0) + 1
+    this.decorationCountsByLayer.set(layer, newCount)
+    if (newCount === 1) {
       this.layerUpdateDisposablesByLayerId[layer.id] = layer.onDidUpdate(this.emitDidUpdateDecorations.bind(this))
     }
   }
 
   unobserveDecoratedLayer (layer) {
-    if (--this.decorationCountsByLayerId[layer.id] === 0) {
+    const newCount = this.decorationCountsByLayer.get(layer) - 1
+    if (newCount === 0) {
       this.layerUpdateDisposablesByLayerId[layer.id].dispose()
-      delete this.decorationCountsByLayerId[layer.id]
+      this.decorationCountsByLayer.delete(layer)
       delete this.layerUpdateDisposablesByLayerId[layer.id]
+    } else {
+      this.decorationCountsByLayer.set(layer, newCount)
     }
   }
 }
