@@ -252,6 +252,11 @@ const configSchema = {
           }
         ]
       },
+      fileEncodingAutoDetect: {
+        description: 'Auto detect character set encoding when reading files. If detection fails, the default encoding above will be used.',
+        type: 'boolean',
+        default: true
+      },
       openEmptyEditorOnStart: {
         description: 'When checked opens an untitled editor when loading a blank environment (such as with _File > New Window_ or when "Restore Previous Windows On Start" is unchecked); otherwise no editor is opened when loading a blank environment. This setting has no effect when restoring a previous state.',
         type: 'boolean',

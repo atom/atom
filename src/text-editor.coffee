@@ -288,7 +288,11 @@ class TextEditor extends Model
           @scrollSensitivity = value
 
         when 'encoding'
-          @buffer.setEncoding(value)
+          @buffer.setEncoding(value) unless atom.config.get('core.fileEncodingAutoDetect')
+
+        when 'detectEncoding'
+          if value
+            @buffer.setEncoding(@buffer.detectEncoding() ? atom.config.get('core.fileEncoding'))
 
         when 'softTabs'
           if value isnt @softTabs
@@ -928,6 +932,10 @@ class TextEditor extends Model
   #
   # * `encoding` The {String} character set encoding name such as 'utf8'
   setEncoding: (encoding) -> @buffer.setEncoding(encoding)
+
+  # Extended: Returns a {String} detected character set encoding of this
+  # editor's text buffer, or undefined if the encoding was unable to be detected.
+  detectEncoding: -> @buffer.detectEncoding()
 
   # Essential: Returns {Boolean} `true` if this editor has been modified.
   isModified: -> @buffer.isModified()
