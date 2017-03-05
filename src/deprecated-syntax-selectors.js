@@ -495,7 +495,7 @@ module.exports = new Set([
   'magik', 'mail', 'mailer', 'mailto', 'main', 'makefile', 'makefile2', 'mako',
   'mamba', 'man', 'mantissa', 'manualmelisma', 'map', 'map-library', 'map-name',
   'mapfile', 'mapkey', 'mapping', 'mapping-type', 'maprange', 'marasm',
-  'margin', 'marginpar', 'mark', 'mark-input', 'markdown', 'marker', 'marko',
+  'margin', 'marginpar', 'mark', 'mark-input', 'markdown', 'marko',
   'marko-attribute', 'marko-tag', 'markup', 'markupmode', 'mas2j', 'mask',
   'mason', 'mat', 'mata', 'match', 'match-bind', 'match-branch',
   'match-condition', 'match-definition', 'match-exception', 'match-option',
