@@ -409,6 +409,64 @@ describe('TextEditorComponent', () => {
       expect(lineNumberNodeForScreenRow(component, 8).classList.contains('a')).toBe(true)
       expect(lineNumberNodeForScreenRow(component, 8).classList.contains('b')).toBe(true)
     })
+
+    it('honors the onlyEmpty and onlyNonEmpty decoration options', async () => {
+      const {component, element, editor} = buildComponent()
+      const marker = editor.markScreenPosition([1, 0])
+      editor.decorateMarker(marker, {type: ['line', 'line-number'], class: 'a', onlyEmpty: true})
+      editor.decorateMarker(marker, {type: ['line', 'line-number'], class: 'b', onlyNonEmpty: true})
+      editor.decorateMarker(marker, {type: ['line', 'line-number'], class: 'c'})
+      await component.getNextUpdatePromise()
+
+      expect(lineNodeForScreenRow(component, 1).classList.contains('a')).toBe(true)
+      expect(lineNodeForScreenRow(component, 1).classList.contains('b')).toBe(false)
+      expect(lineNodeForScreenRow(component, 1).classList.contains('c')).toBe(true)
+      expect(lineNumberNodeForScreenRow(component, 1).classList.contains('a')).toBe(true)
+      expect(lineNumberNodeForScreenRow(component, 1).classList.contains('b')).toBe(false)
+      expect(lineNumberNodeForScreenRow(component, 1).classList.contains('c')).toBe(true)
+
+      marker.setScreenRange([[1, 0], [2, 4]])
+      await component.getNextUpdatePromise()
+
+      expect(lineNodeForScreenRow(component, 1).classList.contains('a')).toBe(false)
+      expect(lineNodeForScreenRow(component, 1).classList.contains('b')).toBe(true)
+      expect(lineNodeForScreenRow(component, 1).classList.contains('c')).toBe(true)
+      expect(lineNodeForScreenRow(component, 2).classList.contains('b')).toBe(true)
+      expect(lineNodeForScreenRow(component, 2).classList.contains('c')).toBe(true)
+      expect(lineNumberNodeForScreenRow(component, 1).classList.contains('a')).toBe(false)
+      expect(lineNumberNodeForScreenRow(component, 1).classList.contains('b')).toBe(true)
+      expect(lineNumberNodeForScreenRow(component, 1).classList.contains('c')).toBe(true)
+      expect(lineNumberNodeForScreenRow(component, 2).classList.contains('b')).toBe(true)
+      expect(lineNumberNodeForScreenRow(component, 2).classList.contains('c')).toBe(true)
+    })
+
+    it('honors the onlyHead option', async () => {
+      const {component, element, editor} = buildComponent()
+      const marker = editor.markScreenRange([[1, 4], [3, 4]])
+      editor.decorateMarker(marker, {type: ['line', 'line-number'], class: 'a', onlyHead: true})
+      await component.getNextUpdatePromise()
+
+      expect(lineNodeForScreenRow(component, 1).classList.contains('a')).toBe(false)
+      expect(lineNodeForScreenRow(component, 3).classList.contains('a')).toBe(true)
+      expect(lineNumberNodeForScreenRow(component, 1).classList.contains('a')).toBe(false)
+      expect(lineNumberNodeForScreenRow(component, 3).classList.contains('a')).toBe(true)
+    })
+
+    it('only decorates the last row of non-empty ranges that end at column 0 if omitEmptyLastRow is false', async () => {
+      const {component, element, editor} = buildComponent()
+      const marker = editor.markScreenRange([[1, 0], [3, 0]])
+      editor.decorateMarker(marker, {type: ['line', 'line-number'], class: 'a'})
+      editor.decorateMarker(marker, {type: ['line', 'line-number'], class: 'b', omitEmptyLastRow: false})
+      await component.getNextUpdatePromise()
+
+      expect(lineNodeForScreenRow(component, 1).classList.contains('a')).toBe(true)
+      expect(lineNodeForScreenRow(component, 2).classList.contains('a')).toBe(true)
+      expect(lineNodeForScreenRow(component, 3).classList.contains('a')).toBe(false)
+
+      expect(lineNodeForScreenRow(component, 1).classList.contains('b')).toBe(true)
+      expect(lineNodeForScreenRow(component, 2).classList.contains('b')).toBe(true)
+      expect(lineNodeForScreenRow(component, 3).classList.contains('b')).toBe(true)
+    })
   })
 })
 

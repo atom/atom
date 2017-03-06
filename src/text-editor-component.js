@@ -424,30 +424,48 @@ class TextEditorComponent {
       const reversed = marker.isReversed()
       for (let i = 0, length = decorations.length; i < decorations.length; i++) {
         const decoration = decorations[i]
-        this.addToDecorationsToRender(decoration.type, decoration, screenRange, reversed)
+        this.addDecorationToRender(decoration.type, decoration, screenRange, reversed)
       }
     })
   }
 
-  addToDecorationsToRender (type, decoration, screenRange, reversed) {
+  addDecorationToRender (type, decoration, screenRange, reversed) {
     if (Array.isArray(type)) {
       for (let i = 0, length = type.length; i < length; i++) {
-        this.addToDecorationsToRender(type[i], decoration, screenRange, reversed)
+        this.addDecorationToRender(type[i], decoration, screenRange, reversed)
       }
     } else {
       switch (type) {
-        case 'line-number':
-          for (let row = screenRange.start.row; row <= screenRange.end.row; row++) {
-            const currentClassName = this.decorationsToRender.lineNumbers.get(row)
-            const newClassName = currentClassName ? currentClassName + ' ' + decoration.class : decoration.class
-            this.decorationsToRender.lineNumbers.set(row, newClassName)
-          }
-          break
         case 'line':
-          for (let row = screenRange.start.row; row <= screenRange.end.row; row++) {
-            const currentClassName = this.decorationsToRender.lines.get(row)
+        case 'line-number':
+          const decorationsByRow = (type === 'line') ? this.decorationsToRender.lines : this.decorationsToRender.lineNumbers
+
+          let omitLastRow = false
+          if (screenRange.isEmpty()) {
+            if (decoration.onlyNonEmpty) return
+          } else {
+            if (decoration.onlyEmpty) return
+            if (decoration.omitEmptyLastRow !== false) {
+              omitLastRow = screenRange.end.column === 0
+            }
+          }
+
+          let startRow = screenRange.start.row
+          let endRow = screenRange.end.row
+
+          if (decoration.onlyHead) {
+            if (reversed) {
+              endRow = startRow
+            } else {
+              startRow = endRow
+            }
+          }
+
+          for (let row = startRow; row <= endRow; row++) {
+            if (omitLastRow && row === endRow) break
+            const currentClassName = decorationsByRow.get(row)
             const newClassName = currentClassName ? currentClassName + ' ' + decoration.class : decoration.class
-            this.decorationsToRender.lines.set(row, newClassName)
+            decorationsByRow.set(row, newClassName)
           }
           break
       }
