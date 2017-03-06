@@ -237,7 +237,7 @@ class AtomEnvironment extends Model
       @applicationDelegate.didChangeHistoryManager() unless e.reloaded
     @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
 
-    new ReopenProjectMenuManager({@menu, @commands, @history, @config, open: (paths) => @open(pathsToOpen: paths)})
+    (new ReopenProjectMenuManager({@menu, @commands, @history, @config, open: (paths) => @open(pathsToOpen: paths)})).update()
 
   attachSaveStateListeners: ->
     saveState = _.debounce((=>
