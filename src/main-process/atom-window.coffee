@@ -83,7 +83,7 @@ class AtomWindow
     @representedDirectoryPaths = loadSettings.initialPaths
     @env = loadSettings.env if loadSettings.env?
 
-    @browserWindow.loadSettings = loadSettings
+    @browserWindow.loadSettingsJSON = JSON.stringify(loadSettings)
 
     @browserWindow.on 'window:loaded', =>
       @emit 'window:loaded'
