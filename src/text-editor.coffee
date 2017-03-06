@@ -1849,9 +1849,6 @@ class TextEditor extends Model
   getOverlayDecorations: (propertyFilter) ->
     @decorationManager.getOverlayDecorations(propertyFilter)
 
-  decorationForId: (id) ->
-    @decorationManager.decorationForId(id)
-
   ###
   Section: Markers
   ###
