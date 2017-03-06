@@ -83,10 +83,13 @@ module.exports = function (packagedAppPath) {
       [snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
     )
 
-    const startupBlobDestinationPath = path.join(
-      packagedAppPath,
-      'Contents', 'Frameworks', 'Electron Framework.framework', 'Resources', 'snapshot_blob.bin'
-    )
+    let startupBlobDestinationPath
+    if (process.platform === 'darwin') {
+      startupBlobDestinationPath = `${packagedAppPath}/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`
+    } else {
+      startupBlobDestinationPath = path.join(packagedAppPath, 'snapshot_blob.bin')
+    }
+
     console.log(`Moving generated startup blob into "${startupBlobDestinationPath}"`)
     fs.unlinkSync(startupBlobDestinationPath)
     fs.renameSync(generatedStartupBlobPath, startupBlobDestinationPath)
