@@ -45,8 +45,9 @@ module.exports = function (packagedAppPath) {
         relativePath == path.join('..', 'node_modules', 'htmlparser2', 'lib', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'iconv-lite', 'encodings', 'internal.js') ||
         relativePath == path.join('..', 'node_modules', 'iconv-lite', 'encodings', 'index.js') ||
-        relativePath == path.join('..', 'node_modules', 'less', 'lib', 'less', 'index.js') ||
+        relativePath == path.join('..', 'node_modules', 'less', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'less', 'lib', 'less', 'fs.js') ||
+        relativePath == path.join('..', 'node_modules', 'less', 'lib', 'less-node', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'less', 'node_modules', 'graceful-fs', 'graceful-fs.js') ||
         relativePath == path.join('..', 'node_modules', 'marker-index', 'dist', 'native', 'marker-index.js') ||
         relativePath == path.join('..', 'node_modules', 'superstring', 'index.js') ||
