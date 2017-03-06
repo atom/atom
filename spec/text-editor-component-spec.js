@@ -527,10 +527,8 @@ function clientLeftForCharacter (component, row, column) {
 
 function lineNumberNodeForScreenRow (component, row) {
   const gutterElement = component.refs.lineNumberGutter.element
-  const endRow = Math.min(component.getRenderedEndRow(), component.getModel().getApproximateScreenLineCount())
-  const visibleTileCount = Math.ceil((endRow - component.getRenderedStartRow()) / component.getRowsPerTile())
-  const tileStartRow = component.getTileStartRow(row)
-  const tileIndex = (tileStartRow / component.getRowsPerTile()) % visibleTileCount
+  const tileStartRow = component.tileStartRowForRow(row)
+  const tileIndex = component.tileIndexForTileStartRow(tileStartRow)
   return gutterElement.children[tileIndex].children[row - tileStartRow]
 }
 
