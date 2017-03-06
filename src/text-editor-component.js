@@ -170,12 +170,12 @@ class TextEditorComponent {
 
     if (this.measurements) {
       const startRow = this.getRenderedStartRow()
-      const endRow = Math.min(model.getApproximateScreenLineCount(), this.getRenderedEndRow())
-      const visibleRowCount = endRow - startRow
-      const bufferRows = new Array(visibleRowCount)
-      const foldableFlags = new Array(visibleRowCount)
-      const softWrappedFlags = new Array(visibleRowCount)
-      const lineNumberDecorations = new Array(visibleRowCount)
+      const endRow = this.getRenderedEndRow()
+      const renderedRowCount = endRow - startRow
+      const bufferRows = new Array(renderedRowCount)
+      const foldableFlags = new Array(renderedRowCount)
+      const softWrappedFlags = new Array(renderedRowCount)
+      const lineNumberDecorations = new Array(renderedRowCount)
 
       let previousBufferRow = (startRow > 0) ? model.bufferRowForScreenRow(startRow - 1) : -1
       for (let row = startRow; row < endRow; row++) {
@@ -192,6 +192,7 @@ class TextEditorComponent {
 
       this.currentFrameLineNumberGutterProps = {
         ref: 'lineNumberGutter',
+        parentComponent: this,
         height: this.getScrollHeight(),
         width: this.measurements.lineNumberGutterWidth,
         lineHeight: this.measurements.lineHeight,
@@ -258,9 +259,6 @@ class TextEditorComponent {
 
     const startRow = this.getRenderedStartRow()
     const endRow = this.getRenderedEndRow()
-    // const firstTileStartRow = this.getFirstTileStartRow()
-    const visibleTileCount = this.getVisibleTileCount()
-    // const lastTileStartRow = this.getLastTileStartRow()
     const rowsPerTile = this.getRowsPerTile()
     const tileHeight = this.measurements.lineHeight * rowsPerTile
     const tileWidth = this.getContentWidth()
@@ -268,14 +266,13 @@ class TextEditorComponent {
     const displayLayer = this.getModel().displayLayer
     const screenLines = displayLayer.getScreenLines(startRow, endRow)
 
-    const tileNodes = new Array(visibleTileCount)
+    const tileNodes = new Array(this.getRenderedTileCount())
 
     for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow += rowsPerTile) {
-      const tileEndRow = tileStartRow + rowsPerTile
-      const tileHeight = rowsPerTile * this.measurements.lineHeight
-      const tileIndex = (tileStartRow / rowsPerTile) % visibleTileCount
+      const tileEndRow = Math.min(endRow, tileStartRow + rowsPerTile)
+      const tileIndex = this.tileIndexForTileStartRow(tileStartRow)
 
-      const lineDecorations = new Array(rowsPerTile)
+      const lineDecorations = new Array(tileEndRow - tileStartRow)
       for (let row = tileStartRow; row < tileEndRow; row++) {
         lineDecorations[row - tileStartRow] = this.decorationsToRender.lines.get(row)
       }
@@ -1024,20 +1021,16 @@ class TextEditorComponent {
     return this.props.rowsPerTile || DEFAULT_ROWS_PER_TILE
   }
 
-  getTileStartRow (row) {
+  tileStartRowForRow (row) {
     return row - (row % this.getRowsPerTile())
   }
 
-  getVisibleTileCount () {
-    return Math.floor((this.getLastVisibleRow() - this.getFirstVisibleRow()) / this.getRowsPerTile()) + 2
+  tileIndexForTileStartRow (startRow) {
+    return (startRow / this.getRowsPerTile()) % this.getRenderedTileCount()
   }
 
   getFirstTileStartRow () {
-    return this.getTileStartRow(this.getFirstVisibleRow())
-  }
-
-  getLastTileStartRow () {
-    return this.getFirstTileStartRow() + ((this.getVisibleTileCount() - 1) * this.getRowsPerTile())
+    return this.tileStartRowForRow(this.getFirstVisibleRow())
   }
 
   getRenderedStartRow () {
@@ -1045,7 +1038,14 @@ class TextEditorComponent {
   }
 
   getRenderedEndRow () {
-    return this.getFirstTileStartRow() + this.getVisibleTileCount() * this.getRowsPerTile()
+    return Math.min(
+      this.getModel().getApproximateScreenLineCount(),
+      this.getFirstTileStartRow() + this.getVisibleTileCount() * this.getRowsPerTile()
+    )
+  }
+
+  getRenderedTileCount () {
+    return Math.ceil((this.getRenderedEndRow() - this.getRenderedStartRow()) / this.getRowsPerTile())
   }
 
   getFirstVisibleRow () {
@@ -1062,10 +1062,15 @@ class TextEditorComponent {
     )
   }
 
+  getVisibleTileCount () {
+    return Math.floor((this.getLastVisibleRow() - this.getFirstVisibleRow()) / this.getRowsPerTile()) + 2
+  }
+
   // Ensure the spatial index is populated with rows that are currently
   // visible so we *at least* get the longest row in the visible range.
   populateVisibleRowRange () {
-    this.getModel().displayLayer.populateSpatialIndexIfNeeded(Infinity, this.getRenderedEndRow())
+    const endRow = this.getFirstTileStartRow() + this.getVisibleTileCount() * this.getRowsPerTile()
+    this.getModel().displayLayer.populateSpatialIndexIfNeeded(Infinity, endRow)
   }
 
   topPixelPositionForRow (row) {
@@ -1097,13 +1102,13 @@ class LineNumberGutterComponent {
 
   render () {
     const {
-      height, width, lineHeight, startRow, endRow, rowsPerTile,
+      parentComponent, height, width, lineHeight, startRow, endRow, rowsPerTile,
       maxLineNumberDigits, bufferRows, softWrappedFlags, foldableFlags,
       lineNumberDecorations
     } = this.props
 
-    const visibleTileCount = Math.ceil((endRow - startRow) / rowsPerTile)
-    const children = new Array(visibleTileCount)
+    const renderedTileCount = parentComponent.getRenderedTileCount()
+    const children = new Array(renderedTileCount)
     const tileHeight = rowsPerTile * lineHeight + 'px'
     const tileWidth = width + 'px'
 
@@ -1140,7 +1145,7 @@ class LineNumberGutterComponent {
         )
       }
 
-      const tileIndex = (tileStartRow / rowsPerTile) % visibleTileCount
+      const tileIndex = parentComponent.tileIndexForTileStartRow(tileStartRow)
       const top = tileStartRow * lineHeight
 
       children[tileIndex] = $.div({
