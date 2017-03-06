@@ -38,6 +38,10 @@ class TextEditorComponent {
     this.lastKeydownBeforeKeypress = null
     this.openedAccentedCharacterMenu = false
     this.cursorsToRender = []
+    this.decorationsToRender = {
+      lineNumbers: new Map(),
+      lines: new Map()
+    }
 
     if (this.props.model) this.observeModel()
     resizeDetector.listenTo(this.element, this.didResize.bind(this))
@@ -74,6 +78,7 @@ class TextEditorComponent {
     if (this.pendingAutoscroll) this.initiateAutoscroll()
     this.populateVisibleRowRange()
     const longestLineToMeasure = this.checkForNewLongestLine()
+    this.queryDecorationsToRender()
     this.queryCursorsToRender()
 
     etch.updateSync(this)
@@ -166,9 +171,11 @@ class TextEditorComponent {
     if (this.measurements) {
       const startRow = this.getRenderedStartRow()
       const endRow = Math.min(model.getApproximateScreenLineCount(), this.getRenderedEndRow())
-      const bufferRows = new Array(endRow - startRow)
-      const foldableFlags = new Array(endRow - startRow)
-      const softWrappedFlags = new Array(endRow - startRow)
+      const visibleRowCount = endRow - startRow
+      const bufferRows = new Array(visibleRowCount)
+      const foldableFlags = new Array(visibleRowCount)
+      const softWrappedFlags = new Array(visibleRowCount)
+      const lineNumberDecorations = new Array(visibleRowCount)
 
       let previousBufferRow = (startRow > 0) ? model.bufferRowForScreenRow(startRow - 1) : -1
       for (let row = startRow; row < endRow; row++) {
@@ -177,17 +184,20 @@ class TextEditorComponent {
         bufferRows[i] = bufferRow
         softWrappedFlags[i] = bufferRow === previousBufferRow
         foldableFlags[i] = model.isFoldableAtBufferRow(bufferRow)
+        lineNumberDecorations[i] = this.decorationsToRender.lineNumbers.get(row)
         previousBufferRow = bufferRow
       }
 
       const rowsPerTile = this.getRowsPerTile()
 
       this.currentFrameLineNumberGutterProps = {
+        ref: 'lineNumberGutter',
         height: this.getScrollHeight(),
         width: this.measurements.lineNumberGutterWidth,
         lineHeight: this.measurements.lineHeight,
         startRow, endRow, rowsPerTile, maxLineNumberDigits,
-        bufferRows, softWrappedFlags, foldableFlags
+        bufferRows, lineNumberDecorations, softWrappedFlags,
+        foldableFlags
       }
 
       return $(LineNumberGutterComponent, this.currentFrameLineNumberGutterProps)
@@ -265,12 +275,18 @@ class TextEditorComponent {
       const tileHeight = rowsPerTile * this.measurements.lineHeight
       const tileIndex = (tileStartRow / rowsPerTile) % visibleTileCount
 
+      const lineDecorations = new Array(rowsPerTile)
+      for (let row = tileStartRow; row < tileEndRow; row++) {
+        lineDecorations[row - tileStartRow] = this.decorationsToRender.lines.get(row)
+      }
+
       tileNodes[tileIndex] = $(LinesTileComponent, {
         key: tileIndex,
         height: tileHeight,
         width: tileWidth,
         top: this.topPixelPositionForRow(tileStartRow),
         screenLines: screenLines.slice(tileStartRow - startRow, tileEndRow - startRow),
+        lineDecorations,
         displayLayer,
         lineNodesByScreenLineId,
         textNodesByScreenLineId
@@ -392,6 +408,52 @@ class TextEditorComponent {
       }
     }
   }
+
+  queryDecorationsToRender () {
+    this.decorationsToRender.lineNumbers.clear()
+    this.decorationsToRender.lines.clear()
+
+    const decorationsByMarker =
+      this.getModel().decorationManager.decorationPropertiesByMarkerForScreenRowRange(
+        this.getRenderedStartRow(),
+        this.getRenderedEndRow()
+      )
+
+    decorationsByMarker.forEach((decorations, marker) => {
+      const screenRange = marker.getScreenRange()
+      const reversed = marker.isReversed()
+      for (let i = 0, length = decorations.length; i < decorations.length; i++) {
+        const decoration = decorations[i]
+        this.addToDecorationsToRender(decoration.type, decoration, screenRange, reversed)
+      }
+    })
+  }
+
+  addToDecorationsToRender (type, decoration, screenRange, reversed) {
+    if (Array.isArray(type)) {
+      for (let i = 0, length = type.length; i < length; i++) {
+        this.addToDecorationsToRender(type[i], decoration, screenRange, reversed)
+      }
+    } else {
+      switch (type) {
+        case 'line-number':
+          for (let row = screenRange.start.row; row <= screenRange.end.row; row++) {
+            const currentClassName = this.decorationsToRender.lineNumbers.get(row)
+            const newClassName = currentClassName ? currentClassName + ' ' + decoration.class : decoration.class
+            this.decorationsToRender.lineNumbers.set(row, newClassName)
+          }
+          break
+        case 'line':
+          for (let row = screenRange.start.row; row <= screenRange.end.row; row++) {
+            const currentClassName = this.decorationsToRender.lines.get(row)
+            const newClassName = currentClassName ? currentClassName + ' ' + decoration.class : decoration.class
+            this.decorationsToRender.lines.set(row, newClassName)
+          }
+          break
+      }
+    }
+  }
+
 
   positionCursorsToRender () {
     const height = this.measurements.lineHeight + 'px'
@@ -878,6 +940,7 @@ class TextEditorComponent {
     const scheduleUpdate = this.scheduleUpdate.bind(this)
     this.disposables.add(model.selectionsMarkerLayer.onDidUpdate(scheduleUpdate))
     this.disposables.add(model.displayLayer.onDidChangeSync(scheduleUpdate))
+    this.disposables.add(model.onDidUpdateDecorations(scheduleUpdate))
     this.disposables.add(model.onDidRequestAutoscroll(this.didRequestAutoscroll.bind(this)))
   }
 
@@ -1017,7 +1080,8 @@ class LineNumberGutterComponent {
   render () {
     const {
       height, width, lineHeight, startRow, endRow, rowsPerTile,
-      maxLineNumberDigits, bufferRows, softWrappedFlags, foldableFlags
+      maxLineNumberDigits, bufferRows, softWrappedFlags, foldableFlags,
+      lineNumberDecorations
     } = this.props
 
     const visibleTileCount = Math.ceil((endRow - startRow) / rowsPerTile)
@@ -1046,6 +1110,10 @@ class LineNumberGutterComponent {
           lineNumber = (bufferRow + 1).toString()
           if (foldable) className += ' foldable'
         }
+
+        const lineNumberDecoration = lineNumberDecorations[i]
+        if (lineNumberDecoration != null) className += ' ' + lineNumberDecoration
+
         lineNumber = NBSP_CHARACTER.repeat(maxLineNumberDigits - lineNumber.length) + lineNumber
 
         tileChildren[row - tileStartRow] = $.div({key, className},
@@ -1100,6 +1168,7 @@ class LineNumberGutterComponent {
     if (!arraysEqual(oldProps.bufferRows, newProps.bufferRows)) return true
     if (!arraysEqual(oldProps.softWrappedFlags, newProps.softWrappedFlags)) return true
     if (!arraysEqual(oldProps.foldableFlags, newProps.foldableFlags)) return true
+    if (!arraysEqual(oldProps.lineNumberDecorations, newProps.lineNumberDecorations)) return true
     return false
   }
 }
@@ -1120,8 +1189,8 @@ class LinesTileComponent {
   render () {
     const {
       height, width, top,
-      screenLines, displayLayer,
-      lineNodesByScreenLineId, textNodesByScreenLineId
+      screenLines, lineDecorations, displayLayer,
+      lineNodesByScreenLineId, textNodesByScreenLineId,
     } = this.props
 
     const children = new Array(screenLines.length)
@@ -1134,6 +1203,7 @@ class LinesTileComponent {
       children[i] = $(LineComponent, {
         key: screenLine.id,
         screenLine,
+        lineDecoration: lineDecorations[i],
         displayLayer,
         lineNodesByScreenLineId,
         textNodesByScreenLineId
@@ -1159,16 +1229,17 @@ class LinesTileComponent {
     if (oldProps.height !== newProps.height) return true
     if (oldProps.width !== newProps.width) return true
     if (!arraysEqual(oldProps.screenLines, newProps.screenLines)) return true
+    if (!arraysEqual(oldProps.lineDecorations, newProps.lineDecorations)) return true
     return false
   }
 }
 
 class LineComponent {
   constructor (props) {
-    const {displayLayer, screenLine, lineNodesByScreenLineId, textNodesByScreenLineId} = props
+    const {displayLayer, screenLine, lineDecoration, lineNodesByScreenLineId, textNodesByScreenLineId} = props
     this.props = props
     this.element = document.createElement('div')
-    this.element.classList.add('line')
+    this.element.className = this.buildClassName()
     lineNodesByScreenLineId.set(screenLine.id, this.element)
 
     const textNodes = []
@@ -1214,7 +1285,12 @@ class LineComponent {
     }
   }
 
-  update () {}
+  update (newProps) {
+    if (this.props.lineDecoration !== newProps.lineDecoration) {
+      this.props = newProps
+      this.element.className = this.buildClassName()
+    }
+  }
 
   destroy () {
     const {lineNodesByScreenLineId, textNodesByScreenLineId, screenLine} = this.props
@@ -1222,6 +1298,13 @@ class LineComponent {
       lineNodesByScreenLineId.delete(screenLine.id)
       textNodesByScreenLineId.delete(screenLine.id)
     }
+  }
+
+  buildClassName () {
+    const {lineDecoration} = this.props
+    let className = 'line'
+    if (lineDecoration != null) className += ' ' + lineDecoration
+    return className
   }
 }
 
