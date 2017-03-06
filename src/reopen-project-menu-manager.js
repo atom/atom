@@ -20,6 +20,7 @@ export default class ReopenProjectMenuManager {
       commands.add('atom-workspace', { 'application:reopen-project': this.reopenProjectCommand.bind(this) })
     )
 
+    this.update()
     this.applyWindowsJumpListRemovals()
   }
 
