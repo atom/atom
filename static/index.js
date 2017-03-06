@@ -41,10 +41,10 @@
           const relativeFilePath = path.relative(entryPointDirPath, absoluteFilePath)
           let cachedModule = snapshotResult.customRequire.cache[relativeFilePath]
           if (!cachedModule) {
-            cachedModule = Module._load(module, this, false)
+            cachedModule = {exports: Module._load(module, this, false)}
             snapshotResult.customRequire.cache[relativeFilePath] = cachedModule
           }
-          return cachedModule
+          return cachedModule.exports
         }
 
         snapshotResult.setGlobals(global, process, window, document, require)
