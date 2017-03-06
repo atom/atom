@@ -1752,16 +1752,20 @@ class TextEditor extends Model
   #     line, highlight, or overlay.
   #   * `item` (optional) An {HTMLElement} or a model {Object} with a
   #     corresponding view registered. Only applicable to the `gutter`,
-  #     `overlay` and `block` types.
+  #     `overlay` and `block` decoration types.
   #   * `onlyHead` (optional) If `true`, the decoration will only be applied to
   #     the head of the `DisplayMarker`. Only applicable to the `line` and
-  #     `line-number` types.
+  #     `line-number` decoration types.
   #   * `onlyEmpty` (optional) If `true`, the decoration will only be applied if
   #     the associated `DisplayMarker` is empty. Only applicable to the `gutter`,
-  #     `line`, and `line-number` types.
+  #     `line`, and `line-number` decoration types.
   #   * `onlyNonEmpty` (optional) If `true`, the decoration will only be applied
   #     if the associated `DisplayMarker` is non-empty. Only applicable to the
-  #     `gutter`, `line`, and `line-number` types.
+  #     `gutter`, `line`, and `line-number` decoration types.
+  #   * `omitEmptyLastRow` (optional) If `false`, the decoration will be applied
+  #     to the last row of a non-empty range, even if it ends at column 0.
+  #     Defaults to `true`. Only applicable to the `gutter`, `line`, and
+  #     `line-number` decoration types.
   #   * `position` (optional) Only applicable to decorations of type `overlay` and `block`.
   #     Controls where the view is positioned relative to the `TextEditorMarker`.
   #     Values can be `'head'` (the default) or `'tail'` for overlay decorations, and
