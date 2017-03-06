@@ -23,16 +23,13 @@ module.exports = function (packagedAppPath) {
 
       const relativePath = path.relative(baseDirPath, modulePath)
       return (
-        modulePath.endsWith('.node') || modulePath === 'buffer-offset-index' ||
+        modulePath.endsWith('.node') ||
         coreModules.has(modulePath) ||
         (relativePath.startsWith(path.join('..', 'src')) && relativePath.endsWith('-element.js')) ||
         relativePath == path.join('..', 'exports', 'atom.js') ||
         relativePath == path.join('..', 'src', 'config-schema.js') ||
         relativePath == path.join('..', 'src', 'electron-shims.js') ||
         relativePath == path.join('..', 'src', 'safe-clipboard.js') ||
-        relativePath == path.join('..', 'node_modules', 'archive-view', 'node_modules', 'decompress-zip', 'lib', 'decompress-zip.js') ||
-        relativePath == path.join('..', 'node_modules', 'archive-view', 'node_modules', 'temp', 'lib', 'temp.js') ||
-        relativePath == path.join('..', 'node_modules', 'archive-view', 'node_modules', 'tar', 'tar.js') ||
         relativePath == path.join('..', 'node_modules', 'atom-keymap', 'lib', 'command-event.js') ||
         relativePath == path.join('..', 'node_modules', 'babel-core', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'cached-run-in-this-context', 'lib', 'main.js') ||
@@ -43,27 +40,19 @@ module.exports = function (packagedAppPath) {
         relativePath == path.join('..', 'node_modules', 'git-utils', 'lib', 'git.js') ||
         relativePath == path.join('..', 'node_modules', 'glob', 'glob.js') ||
         relativePath == path.join('..', 'node_modules', 'htmlparser2', 'lib', 'index.js') ||
-        relativePath == path.join('..', 'node_modules', 'iconv-lite', 'encodings', 'internal.js') ||
         relativePath == path.join('..', 'node_modules', 'iconv-lite', 'encodings', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'less', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'less', 'lib', 'less', 'fs.js') ||
         relativePath == path.join('..', 'node_modules', 'less', 'lib', 'less-node', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'less', 'node_modules', 'graceful-fs', 'graceful-fs.js') ||
-        relativePath == path.join('..', 'node_modules', 'marker-index', 'dist', 'native', 'marker-index.js') ||
         relativePath == path.join('..', 'node_modules', 'superstring', 'index.js') ||
-        relativePath == path.join('..', 'node_modules', 'mime', 'mime.js') ||
         relativePath == path.join('..', 'node_modules', 'oniguruma', 'lib', 'oniguruma.js') ||
         relativePath == path.join('..', 'node_modules', 'request', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'resolve', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'resolve', 'lib', 'core.js') ||
         relativePath == path.join('..', 'node_modules', 'settings-view', 'node_modules', 'glob', 'glob.js') ||
-        relativePath == path.join('..', 'node_modules', 'settings-view', 'node_modules', 'htmlparser2', 'lib', 'index.js') ||
-        relativePath == path.join('..', 'node_modules', 'settings-view', 'node_modules', 'request', 'index.js') ||
-        relativePath == path.join('..', 'node_modules', 'settings-view', 'node_modules', 'tough-cookie', 'lib', 'cookie.js') ||
-        relativePath == path.join('..', 'node_modules', 'settings-view', 'node_modules', 'tough-cookie', 'lib', 'memstore.js') ||
         relativePath == path.join('..', 'node_modules', 'spellchecker', 'lib', 'spellchecker.js') ||
         relativePath == path.join('..', 'node_modules', 'spelling-manager', 'node_modules', 'natural', 'lib', 'natural', 'index.js') ||
-        relativePath == path.join('..', 'node_modules', 'styleguide', 'node_modules', 'coffee-script', 'lib', 'coffee-script', 'register.js') ||
         relativePath == path.join('..', 'node_modules', 'tar', 'tar.js') ||
         relativePath == path.join('..', 'node_modules', 'temp', 'lib', 'temp.js') ||
         relativePath == path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js')
