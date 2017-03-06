@@ -95,20 +95,6 @@ function chmodNodeFiles (packagedAppPath) {
   childProcess.execSync(`find "${packagedAppPath}" -type f -name *.node -exec chmod a-x {} \\;`)
 }
 
-function buildAsarUnpackGlobExpression () {
-  const unpack = [
-    '*.node',
-    'ctags-config',
-    'ctags-darwin',
-    'ctags-linux',
-    'ctags-win32.exe',
-    path.join('**', 'node_modules', 'spellchecker', '**'),
-    path.join('**', 'resources', 'atom.png')
-  ]
-
-  return `{${unpack.join(',')}}`
-}
-
 function getAppName () {
   if (process.platform === 'darwin') {
     return CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
