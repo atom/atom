@@ -1,8 +1,3 @@
-/** @babel */
-
-import path from 'path'
-import fs from 'fs-plus'
-
 // This is loaded by atom-environment.coffee. See
 // https://atom.io/docs/api/latest/Config for more information about config
 // schemas.
@@ -57,11 +52,6 @@ const configSchema = {
           type: 'string'
         },
         description: 'Names of UI and syntax themes which will be used when Atom starts.'
-      },
-      projectHome: {
-        type: 'string',
-        default: path.join(fs.getHomeDirectory(), 'github'),
-        description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
       },
       audioBeep: {
         type: 'boolean',
@@ -506,4 +496,4 @@ if (process.platform === 'darwin') {
   }
 }
 
-export default configSchema
+module.exports = configSchema

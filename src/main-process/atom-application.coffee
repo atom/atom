@@ -68,7 +68,8 @@ class AtomApplication
     @pidsToOpenWindows = {}
     @windows = []
 
-    @config = new Config({configDirPath: process.env.ATOM_HOME, @resourcePath, enablePersistence: true})
+    @config = new Config({enablePersistence: true})
+    @config.initialize({configDirPath: process.env.ATOM_HOME, @resourcePath})
     @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
     @config.load()
     @fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, "recovery"))

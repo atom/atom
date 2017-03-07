@@ -13,6 +13,7 @@ StateStore = require './state-store'
 StorageFolder = require './storage-folder'
 registerDefaultCommands = require './register-default-commands'
 {updateProcessEnv} = require './update-process-env'
+ConfigSchema = require './config-schema'
 
 DeserializerManager = require './deserializer-manager'
 ViewRegistry = require './view-registry'
@@ -142,10 +143,18 @@ class AtomEnvironment extends Model
     @deserializeTimings = {}
     @views = new ViewRegistry(this)
     @notifications = new NotificationManager
+
     @config = new Config({notificationManager: @notifications, @enablePersistence})
+    @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
+
+    @keymaps = new KeymapManager({notificationManager: @notifications})
+    @tooltips = new TooltipManager(keymapManager: @keymaps, viewRegistry: @views)
+    @commands = new CommandRegistry
+    @grammars = new GrammarRegistry({@config})
+    @styles = new StyleManager()
 
   initialize: (params={}) ->
-    {@applicationDelegate, @window, @document, @blobStore, @clipboard, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@window, @document, @blobStore, @configDirPath, onlyLoadBaseStyleSheets} = params
     {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
 
     @stateStore = new StateStore('AtomEnvironments', 1)
@@ -157,18 +166,24 @@ class AtomEnvironment extends Model
     @views.initialize()
 
     @config.initialize({@configDirPath, resourcePath})
-    @setConfigSchema()
+    @projectHomeSchema = {
+      type: 'object',
+      properties: {
+        projectHome: {
+          type: 'string',
+          default: path.join(fs.getHomeDirectory(), 'github'),
+          description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
+        }
+      }
+    }
+    @config.setSchema('core', @projectHomeSchema)
 
-    @keymaps = new KeymapManager({@configDirPath, resourcePath, notificationManager: @notifications})
+    @keymaps.configDirPath = @configDirPath
+    @keymaps.resourcePath = resourcePath
 
-    @tooltips = new TooltipManager(keymapManager: @keymaps, viewRegistry: @views)
-
-    @commands = new CommandRegistry
     @commands.attach(@window)
 
-    @grammars = new GrammarRegistry({@config})
-
-    @styles = new StyleManager({@configDirPath})
+    @styles.initialize({@configDirPath})
 
     @packages = new PackageManager({
       devMode, @configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
@@ -248,9 +263,6 @@ class AtomEnvironment extends Model
       @document.removeEventListener('mousedown', saveState, true)
       @document.removeEventListener('keydown', saveState, true)
 
-  setConfigSchema: ->
-    @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
-
   registerDefaultDeserializers: ->
     @deserializers.add(Workspace)
     @deserializers.add(PaneContainer)
@@ -303,7 +315,8 @@ class AtomEnvironment extends Model
     @registerDefaultDeserializers()
 
     @config.clear()
-    @setConfigSchema()
+    @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
+    @config.setSchema('core', @projectHomeSchema)
 
     @keymaps.clear()
     @keymaps.loadBundledKeymaps()
