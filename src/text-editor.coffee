@@ -199,6 +199,11 @@ class TextEditor extends Model
     @selectionsMarkerLayer.trackDestructionInOnDidCreateMarkerCallbacks = true
 
     @decorationManager = new DecorationManager(@displayLayer)
+    @decorateMarkerLayer(@selectionsMarkerLayer, type: 'cursor')
+    @decorateMarkerLayer(@selectionsMarkerLayer, type: 'line-number', class: 'cursor-line')
+    @decorateMarkerLayer(@selectionsMarkerLayer, type: 'line-number', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
+    @decorateMarkerLayer(@selectionsMarkerLayer, type: 'line', class: 'cursor-line', onlyEmpty: true)
+
     @decorateMarkerLayer(@displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
 
     for marker in @selectionsMarkerLayer.getMarkers()
@@ -2282,9 +2287,6 @@ class TextEditor extends Model
     cursor = new Cursor(editor: this, marker: marker, showCursorOnSelection: @showCursorOnSelection)
     @cursors.push(cursor)
     @cursorsByMarkerId.set(marker.id, cursor)
-    @decorateMarker(marker, type: 'line-number', class: 'cursor-line')
-    @decorateMarker(marker, type: 'line-number', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
-    @decorateMarker(marker, type: 'line', class: 'cursor-line', onlyEmpty: true)
     cursor
 
   moveCursors: (fn) ->

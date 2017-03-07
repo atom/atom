@@ -37,14 +37,15 @@ class TextEditorComponent {
     this.lastKeydown = null
     this.lastKeydownBeforeKeypress = null
     this.openedAccentedCharacterMenu = false
-    this.cursorsToRender = []
     this.decorationsToRender = {
       lineNumbers: new Map(),
       lines: new Map(),
-      highlights: new Map()
+      highlights: new Map(),
+      cursors: []
     }
     this.decorationsToMeasure = {
-      highlights: new Map()
+      highlights: new Map(),
+      cursors: []
     }
 
     if (this.props.model) this.observeModel()
@@ -83,15 +84,13 @@ class TextEditorComponent {
     this.populateVisibleRowRange()
     const longestLineToMeasure = this.checkForNewLongestLine()
     this.queryDecorationsToRender()
-    this.queryCursorsToRender()
 
     etch.updateSync(this)
 
     this.measureHorizontalPositions()
     if (longestLineToMeasure) this.measureLongestLineWidth(longestLineToMeasure)
     if (this.pendingAutoscroll) this.finalizeAutoscroll()
-    this.positionCursorsToRender()
-    this.updateHighlightsToRender()
+    this.updateAbsolutePositionedDecorations()
 
     etch.updateSync(this)
 
@@ -324,8 +323,8 @@ class TextEditorComponent {
 
     const children = [this.renderHiddenInput()]
 
-    for (let i = 0; i < this.cursorsToRender.length; i++) {
-      const {pixelLeft, pixelTop, pixelWidth} = this.cursorsToRender[i]
+    for (let i = 0; i < this.decorationsToRender.cursors.length; i++) {
+      const {pixelLeft, pixelTop, pixelWidth} = this.decorationsToRender.cursors[i]
       children.push($.div({
         className: 'cursor',
         style: {
@@ -349,10 +348,9 @@ class TextEditorComponent {
 
   renderHiddenInput () {
     let top, left
-    const hiddenInputState = this.getHiddenInputState()
-    if (hiddenInputState) {
-      top = hiddenInputState.pixelTop
-      left = hiddenInputState.pixelLeft
+    if (this.hiddenInputPosition) {
+      top = this.hiddenInputPosition.pixelTop
+      left = this.hiddenInputPosition.pixelLeft
     } else {
       top = 0
       left = 0
@@ -384,45 +382,11 @@ class TextEditorComponent {
     })
   }
 
-  queryCursorsToRender () {
-    const model = this.getModel()
-    const cursorMarkers = model.selectionsMarkerLayer.findMarkers({
-      intersectsScreenRowRange: [
-        this.getRenderedStartRow(),
-        this.getRenderedEndRow() - 1,
-      ]
-    })
-    const lastCursorMarker = model.getLastCursor().getMarker()
-
-    this.cursorsToRender.length = 0
-    this.lastCursorIndex = -1
-    for (let i = 0; i < cursorMarkers.length; i++) {
-      const cursorMarker = cursorMarkers[i]
-      if (cursorMarker === lastCursorMarker) this.lastCursorIndex = i
-      const screenPosition = cursorMarker.getHeadScreenPosition()
-      const {row, column} = screenPosition
-
-      if (row < this.getRenderedStartRow() || row >= this.getRenderedEndRow()) {
-        continue
-      }
-
-      this.requestHorizontalMeasurement(row, column)
-      let columnWidth = 0
-      if (model.lineLengthForScreenRow(row) > column) {
-        columnWidth = 1
-        this.requestHorizontalMeasurement(row, column + 1)
-      }
-      this.cursorsToRender.push({
-        screenPosition, columnWidth,
-        pixelTop: 0, pixelLeft: 0, pixelWidth: 0
-      })
-    }
-  }
-
   queryDecorationsToRender () {
     this.decorationsToRender.lineNumbers.clear()
     this.decorationsToRender.lines.clear()
     this.decorationsToMeasure.highlights.clear()
+    this.decorationsToMeasure.cursors.length = 0
 
     const decorationsByMarker =
       this.getModel().decorationManager.decorationPropertiesByMarkerForScreenRowRange(
@@ -435,15 +399,15 @@ class TextEditorComponent {
       const reversed = marker.isReversed()
       for (let i = 0, length = decorations.length; i < decorations.length; i++) {
         const decoration = decorations[i]
-        this.addDecorationToRender(decoration.type, decoration, screenRange, reversed)
+        this.addDecorationToRender(decoration.type, decoration, marker, screenRange, reversed)
       }
     })
   }
 
-  addDecorationToRender (type, decoration, screenRange, reversed) {
+  addDecorationToRender (type, decoration, marker, screenRange, reversed) {
     if (Array.isArray(type)) {
       for (let i = 0, length = type.length; i < length; i++) {
-        this.addDecorationToRender(type[i], decoration, screenRange, reversed)
+        this.addDecorationToRender(type[i], decoration, marker, screenRange, reversed)
       }
     } else {
       switch (type) {
@@ -453,6 +417,9 @@ class TextEditorComponent {
           break
         case 'highlight':
           this.addHighlightDecorationToMeasure(decoration, screenRange)
+          break
+        case 'cursor':
+          this.addCursorDecorationToMeasure(marker, screenRange)
           break
       }
     }
@@ -514,6 +481,28 @@ class TextEditorComponent {
     }
   }
 
+  addCursorDecorationToMeasure (marker, screenRange, reversed) {
+    const model = this.getModel()
+    const isLastCursor = model.getLastCursor().getMarker() === marker
+    const screenPosition = reversed ? screenRange.start : screenRange.end
+    const {row, column} = screenPosition
+
+    if (row < this.getRenderedStartRow() || row >= this.getRenderedEndRow()) return
+
+    this.requestHorizontalMeasurement(row, column)
+    let columnWidth = 0
+    if (model.lineLengthForScreenRow(row) > column) {
+      columnWidth = 1
+      this.requestHorizontalMeasurement(row, column + 1)
+    }
+    this.decorationsToMeasure.cursors.push({screenPosition, columnWidth, isLastCursor})
+  }
+
+  updateAbsolutePositionedDecorations () {
+    this.updateHighlightsToRender()
+    this.updateCursorsToRender()
+  }
+
   updateHighlightsToRender () {
     this.decorationsToRender.highlights.clear()
     this.decorationsToMeasure.highlights.forEach((highlights, tileRow) => {
@@ -529,28 +518,24 @@ class TextEditorComponent {
     })
   }
 
-  positionCursorsToRender () {
+  updateCursorsToRender () {
+    this.decorationsToRender.cursors.length = 0
+
     const height = this.measurements.lineHeight + 'px'
-    for (let i = 0; i < this.cursorsToRender.length; i++) {
-      const cursorToRender = this.cursorsToRender[i]
-      const {row, column} = cursorToRender.screenPosition
+    for (let i = 0; i < this.decorationsToMeasure.cursors.length; i++) {
+      const cursor = this.decorationsToMeasure.cursors[i]
+      const {row, column} = cursor.screenPosition
 
       const pixelTop = this.pixelTopForScreenRow(row)
       const pixelLeft = this.pixelLeftForScreenRowAndColumn(row, column)
-      const pixelRight = (cursorToRender.columnWidth === 0)
+      const pixelRight = (cursor.columnWidth === 0)
         ? pixelLeft
         : this.pixelLeftForScreenRowAndColumn(row, column + 1)
       const pixelWidth = pixelRight - pixelLeft
 
-      cursorToRender.pixelTop = pixelTop
-      cursorToRender.pixelLeft = pixelLeft
-      cursorToRender.pixelWidth = pixelWidth
-    }
-  }
-
-  getHiddenInputState () {
-    if (this.lastCursorIndex >= 0) {
-      return this.cursorsToRender[this.lastCursorIndex]
+      const cursorPosition = {pixelTop, pixelLeft, pixelWidth}
+      this.decorationsToRender.cursors[i] = cursorPosition
+      if (cursor.isLastCursor) this.hiddenInputPosition = cursorPosition
     }
   }
 
@@ -608,10 +593,9 @@ class TextEditorComponent {
 
     // Restore the previous position of the field now that it is already focused
     // and won't cause unwanted scrolling.
-    const currentHiddenInputState = this.getHiddenInputState()
-    if (currentHiddenInputState) {
-      hiddenInput.style.top = currentHiddenInputState.pixelTop + 'px'
-      hiddenInput.style.left = currentHiddenInputState.pixelLeft + 'px'
+    if (this.hiddenInputPosition) {
+      hiddenInput.style.top = this.hiddenInputPosition.pixelTop + 'px'
+      hiddenInput.style.left = this.hiddenInputPosition.pixelLeft + 'px'
     } else {
       hiddenInput.style.top = 0
       hiddenInput.style.left = 0
