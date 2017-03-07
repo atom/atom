@@ -80,6 +80,12 @@ class ApplicationDelegate
   setWindowFullScreen: (fullScreen=false) ->
     ipcHelpers.call('window-method', 'setFullScreen', fullScreen)
 
+  onDidEnterFullScreen: (callback) ->
+    ipcHelpers.on(ipcRenderer, 'did-enter-full-screen', callback)
+
+  onDidLeaveFullScreen: (callback) ->
+    ipcHelpers.on(ipcRenderer, 'did-leave-full-screen', callback)
+
   openWindowDevTools: ->
     # Defer DevTools interaction to the next tick, because using them during
     # event handling causes some wrong input events to be triggered on

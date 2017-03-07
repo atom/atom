@@ -89,6 +89,12 @@ class AtomWindow
       @emit 'window:loaded'
       @resolveLoadedPromise()
 
+    @browserWindow.on 'enter-full-screen', =>
+      @browserWindow.webContents.send('did-enter-full-screen')
+
+    @browserWindow.on 'leave-full-screen', =>
+      @browserWindow.webContents.send('did-leave-full-screen')
+
     @browserWindow.loadURL url.format
       protocol: 'file'
       pathname: "#{@resourcePath}/static/index.html"
