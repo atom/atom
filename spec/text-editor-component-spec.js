@@ -473,6 +473,100 @@ describe('TextEditorComponent', () => {
       expect(lineNodeForScreenRow(component, 3).classList.contains('b')).toBe(true)
     })
   })
+
+  describe('highlight decorations', () => {
+    it('renders single-line highlights', async () => {
+      const {component, element, editor} = buildComponent()
+      const marker = editor.markScreenRange([[1, 2], [1, 10]])
+      editor.decorateMarker(marker, {type: 'highlight', class: 'a'})
+      await component.getNextUpdatePromise()
+
+      {
+        const regions = element.querySelectorAll('.highlight.a .region')
+        expect(regions.length).toBe(1)
+        const regionRect = regions[0].getBoundingClientRect()
+        expect(regionRect.top).toBe(lineNodeForScreenRow(component, 1).getBoundingClientRect().top)
+        expect(Math.round(regionRect.left)).toBe(clientLeftForCharacter(component, 1, 2))
+        expect(Math.round(regionRect.right)).toBe(clientLeftForCharacter(component, 1, 10))
+      }
+
+      marker.setScreenRange([[1, 4], [1, 8]])
+      await component.getNextUpdatePromise()
+
+      {
+        const regions = element.querySelectorAll('.highlight.a .region')
+        expect(regions.length).toBe(1)
+        const regionRect = regions[0].getBoundingClientRect()
+        expect(regionRect.top).toBe(lineNodeForScreenRow(component, 1).getBoundingClientRect().top)
+        expect(regionRect.bottom).toBe(lineNodeForScreenRow(component, 1).getBoundingClientRect().bottom)
+        expect(Math.round(regionRect.left)).toBe(clientLeftForCharacter(component, 1, 4))
+        expect(Math.round(regionRect.right)).toBe(clientLeftForCharacter(component, 1, 8))
+      }
+    })
+
+    it('renders multi-line highlights that span across tiles', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3})
+      const marker = editor.markScreenRange([[2, 4], [3, 4]])
+      editor.decorateMarker(marker, {type: 'highlight', class: 'a'})
+
+      await component.getNextUpdatePromise()
+
+      {
+        // We have 2 top-level highlight divs due to the regions being split
+        // across 2 different tiles
+        expect(element.querySelectorAll('.highlight.a').length).toBe(2)
+
+        const regions = element.querySelectorAll('.highlight.a .region')
+        expect(regions.length).toBe(2)
+        const region0Rect = regions[0].getBoundingClientRect()
+        expect(region0Rect.top).toBe(lineNodeForScreenRow(component, 2).getBoundingClientRect().top)
+        expect(region0Rect.bottom).toBe(lineNodeForScreenRow(component, 2).getBoundingClientRect().bottom)
+        expect(Math.round(region0Rect.left)).toBe(clientLeftForCharacter(component, 2, 4))
+        expect(Math.round(region0Rect.right)).toBe(component.refs.content.getBoundingClientRect().right)
+
+        const region1Rect = regions[1].getBoundingClientRect()
+        expect(region1Rect.top).toBe(lineNodeForScreenRow(component, 3).getBoundingClientRect().top)
+        expect(region1Rect.bottom).toBe(lineNodeForScreenRow(component, 3).getBoundingClientRect().bottom)
+        expect(Math.round(region1Rect.left)).toBe(clientLeftForCharacter(component, 3, 0))
+        expect(Math.round(region1Rect.right)).toBe(clientLeftForCharacter(component, 3, 4))
+      }
+
+      marker.setScreenRange([[2, 4], [5, 4]])
+      await component.getNextUpdatePromise()
+
+      {
+        // Still split across 2 tiles
+        expect(element.querySelectorAll('.highlight.a').length).toBe(2)
+
+        const regions = element.querySelectorAll('.highlight.a .region')
+        expect(regions.length).toBe(4) // Each tile renders its
+
+        const region0Rect = regions[0].getBoundingClientRect()
+        expect(region0Rect.top).toBe(lineNodeForScreenRow(component, 2).getBoundingClientRect().top)
+        expect(region0Rect.bottom).toBe(lineNodeForScreenRow(component, 2).getBoundingClientRect().bottom)
+        expect(Math.round(region0Rect.left)).toBe(clientLeftForCharacter(component, 2, 4))
+        expect(Math.round(region0Rect.right)).toBe(component.refs.content.getBoundingClientRect().right)
+
+        const region1Rect = regions[1].getBoundingClientRect()
+        expect(region1Rect.top).toBe(lineNodeForScreenRow(component, 3).getBoundingClientRect().top)
+        expect(region1Rect.bottom).toBe(lineNodeForScreenRow(component, 4).getBoundingClientRect().top)
+        expect(Math.round(region1Rect.left)).toBe(component.refs.content.getBoundingClientRect().left)
+        expect(Math.round(region1Rect.right)).toBe(component.refs.content.getBoundingClientRect().right)
+
+        const region2Rect = regions[2].getBoundingClientRect()
+        expect(region2Rect.top).toBe(lineNodeForScreenRow(component, 4).getBoundingClientRect().top)
+        expect(region2Rect.bottom).toBe(lineNodeForScreenRow(component, 5).getBoundingClientRect().top)
+        expect(Math.round(region2Rect.left)).toBe(component.refs.content.getBoundingClientRect().left)
+        expect(Math.round(region2Rect.right)).toBe(component.refs.content.getBoundingClientRect().right)
+
+        const region3Rect = regions[3].getBoundingClientRect()
+        expect(region3Rect.top).toBe(lineNodeForScreenRow(component, 5).getBoundingClientRect().top)
+        expect(region3Rect.bottom).toBe(lineNodeForScreenRow(component, 5).getBoundingClientRect().bottom)
+        expect(Math.round(region3Rect.left)).toBe(component.refs.content.getBoundingClientRect().left)
+        expect(Math.round(region3Rect.right)).toBe(clientLeftForCharacter(component, 5, 4))
+      }
+    })
+  })
 })
 
 function buildComponent (params = {}) {
