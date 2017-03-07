@@ -34,7 +34,7 @@ class PanelContainer
 
   isModal: -> @location is 'modal'
 
-  getPanels: -> @panels
+  getPanels: -> @panels.slice()
 
   addPanel: (panel) ->
     @subscriptions.add panel.onDidDestroy(@panelDestroyed.bind(this))

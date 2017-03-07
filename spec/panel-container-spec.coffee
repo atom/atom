@@ -5,7 +5,7 @@ describe "PanelContainer", ->
   [container] = []
 
   class TestPanelItem
-    constructior: ->
+    constructor: ->
 
   beforeEach ->
     container = new PanelContainer
@@ -38,6 +38,23 @@ describe "PanelContainer", ->
 
       panel1.destroy()
       expect(removePanelSpy).toHaveBeenCalledWith({panel: panel1, index: 0})
+
+  describe "::destroy()", ->
+    it "destroys the container and all of its panels", ->
+      destroyedPanels = []
+
+      panel1 = new Panel(item: new TestPanelItem())
+      panel1.onDidDestroy -> destroyedPanels.push(panel1)
+      container.addPanel(panel1)
+
+      panel2 = new Panel(item: new TestPanelItem())
+      panel2.onDidDestroy -> destroyedPanels.push(panel2)
+      container.addPanel(panel2)
+
+      container.destroy()
+
+      expect(container.getPanels().length).toBe(0)
+      expect(destroyedPanels).toEqual([panel1, panel2])
 
   describe "panel priority", ->
     describe 'left / top panel container', ->
