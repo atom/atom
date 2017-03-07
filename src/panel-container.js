@@ -1,3 +1,5 @@
+'use strict'
+
 const {Emitter, CompositeDisposable} = require('event-kit')
 
 module.exports = class PanelContainer {
@@ -12,7 +14,7 @@ module.exports = class PanelContainer {
     for (let panel of this.getPanels()) { panel.destroy() }
     this.subscriptions.dispose()
     this.emitter.emit('did-destroy', this)
-    return this.emitter.dispose()
+    this.emitter.dispose()
   }
 
   /*
@@ -66,22 +68,21 @@ module.exports = class PanelContainer {
     const index = this.panels.indexOf(panel)
     if (index > -1) {
       this.panels.splice(index, 1)
-      return this.emitter.emit('did-remove-panel', {panel, index})
+      this.emitter.emit('did-remove-panel', {panel, index})
     }
   }
 
   getPanelIndex (panel) {
-    let i, p
     const priority = panel.getPriority()
     if (['bottom', 'right'].includes(this.location)) {
-      for (i = this.panels.length - 1; i >= 0; i--) {
-        p = this.panels[i]
+      for (let i = this.panels.length - 1; i >= 0; i--) {
+        const p = this.panels[i]
         if (priority < p.getPriority()) { return i + 1 }
       }
       return 0
     } else {
-      for (i = 0; i < this.panels.length; i++) {
-        p = this.panels[i]
+      for (let i = 0; i < this.panels.length; i++) {
+        const p = this.panels[i]
         if (priority < p.getPriority()) { return i }
       }
       return this.panels.length

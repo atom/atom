@@ -1,16 +1,20 @@
+'use strict'
+
 /* global HTMLElement */
 
 const {CompositeDisposable} = require('event-kit')
 
 class PanelContainerElement extends HTMLElement {
   createdCallback () {
-    return (this.subscriptions = new CompositeDisposable())
+    this.subscriptions = new CompositeDisposable()
   }
 
   initialize (model, {views}) {
     this.model = model
     this.views = views
-    if (this.views == null) { throw new Error('Must pass a views parameter when initializing PanelContainerElements') }
+    if (this.views == null) {
+      throw new Error('Must pass a views parameter when initializing PanelContainerElements')
+    }
 
     this.subscriptions.add(this.model.onDidAddPanel(this.panelAdded.bind(this)))
     this.subscriptions.add(this.model.onDidDestroy(this.destroyed.bind(this)))
@@ -38,17 +42,17 @@ class PanelContainerElement extends HTMLElement {
 
     if (this.model.isModal()) {
       this.hideAllPanelsExcept(panel)
-      return this.subscriptions.add(panel.onDidChangeVisible(visible => {
-        if (visible) { return this.hideAllPanelsExcept(panel) }
-      }
-      )
-      )
+      this.subscriptions.add(panel.onDidChangeVisible(visible => {
+        if (visible) { this.hideAllPanelsExcept(panel) }
+      }))
     }
   }
 
   destroyed () {
     this.subscriptions.dispose()
-    return (this.parentNode != null ? this.parentNode.removeChild(this) : undefined)
+    if (this.parentNode != null) {
+      this.parentNode.removeChild(this)
+    }
   }
 
   hideAllPanelsExcept (excludedPanel) {
