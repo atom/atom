@@ -449,8 +449,11 @@ class TextEditorComponent {
       }
     }
 
+    startRow = Math.max(startRow, this.getRenderedStartRow())
+    endRow = Math.min(endRow, this.getRenderedEndRow() - 1)
+
     for (let row = startRow; row <= endRow; row++) {
-      if (omitLastRow && row === endRow) break
+      if (omitLastRow && row === screenRange.end.row) break
       const currentClassName = decorationsByRow.get(row)
       const newClassName = currentClassName ? currentClassName + ' ' + decoration.class : decoration.class
       decorationsByRow.set(row, newClassName)
