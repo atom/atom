@@ -215,8 +215,6 @@ class AtomEnvironment extends Model
     @stylesElement = @styles.buildStylesElement()
     @document.head.appendChild(@stylesElement)
 
-    @disposables.add(@applicationDelegate.disableZoom())
-
     @keymaps.subscribeToFileReadFailure()
     @keymaps.loadBundledKeymaps()
 
