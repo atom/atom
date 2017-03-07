@@ -145,6 +145,11 @@ describe('TextEditorComponent', () => {
 
     cursorNodes = Array.from(element.querySelectorAll('.cursor'))
     expect(cursorNodes.length).toBe(0)
+
+    editor.setSelectedScreenRange([[8, 0], [12, 0]], {autoscroll: false})
+    await component.getNextUpdatePromise()
+    cursorNodes = Array.from(element.querySelectorAll('.cursor'))
+    expect(cursorNodes.length).toBe(0)
   })
 
   it('places the hidden input element at the location of the last cursor if it is visible', async () => {
