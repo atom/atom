@@ -40,7 +40,11 @@ class TextEditorComponent {
     this.cursorsToRender = []
     this.decorationsToRender = {
       lineNumbers: new Map(),
-      lines: new Map()
+      lines: new Map(),
+      highlights: new Map()
+    }
+    this.decorationsToMeasure = {
+      highlights: new Map()
     }
 
     if (this.props.model) this.observeModel()
@@ -87,6 +91,7 @@ class TextEditorComponent {
     if (longestLineToMeasure) this.measureLongestLineWidth(longestLineToMeasure)
     if (this.pendingAutoscroll) this.finalizeAutoscroll()
     this.positionCursorsToRender()
+    this.updateHighlightsToRender()
 
     etch.updateSync(this)
 
@@ -276,14 +281,17 @@ class TextEditorComponent {
       for (let row = tileStartRow; row < tileEndRow; row++) {
         lineDecorations[row - tileStartRow] = this.decorationsToRender.lines.get(row)
       }
+      const highlightDecorations = this.decorationsToRender.highlights.get(tileStartRow)
 
       tileNodes[tileIndex] = $(LinesTileComponent, {
         key: tileIndex,
         height: tileHeight,
         width: tileWidth,
         top: this.topPixelPositionForRow(tileStartRow),
+        lineHeight: this.measurements.lineHeight,
         screenLines: screenLines.slice(tileStartRow - startRow, tileEndRow - startRow),
         lineDecorations,
+        highlightDecorations,
         displayLayer,
         lineNodesByScreenLineId,
         textNodesByScreenLineId
@@ -386,29 +394,35 @@ class TextEditorComponent {
     })
     const lastCursorMarker = model.getLastCursor().getMarker()
 
-    this.cursorsToRender.length = cursorMarkers.length
+    this.cursorsToRender.length = 0
     this.lastCursorIndex = -1
     for (let i = 0; i < cursorMarkers.length; i++) {
       const cursorMarker = cursorMarkers[i]
       if (cursorMarker === lastCursorMarker) this.lastCursorIndex = i
       const screenPosition = cursorMarker.getHeadScreenPosition()
       const {row, column} = screenPosition
+
+      if (row < this.getRenderedStartRow() || row >= this.getRenderedEndRow()) {
+        continue
+      }
+
       this.requestHorizontalMeasurement(row, column)
       let columnWidth = 0
       if (model.lineLengthForScreenRow(row) > column) {
         columnWidth = 1
         this.requestHorizontalMeasurement(row, column + 1)
       }
-      this.cursorsToRender[i] = {
+      this.cursorsToRender.push({
         screenPosition, columnWidth,
         pixelTop: 0, pixelLeft: 0, pixelWidth: 0
-      }
+      })
     }
   }
 
   queryDecorationsToRender () {
     this.decorationsToRender.lineNumbers.clear()
     this.decorationsToRender.lines.clear()
+    this.decorationsToMeasure.highlights.clear()
 
     const decorationsByMarker =
       this.getModel().decorationManager.decorationPropertiesByMarkerForScreenRowRange(
@@ -435,40 +449,85 @@ class TextEditorComponent {
       switch (type) {
         case 'line':
         case 'line-number':
-          const decorationsByRow = (type === 'line') ? this.decorationsToRender.lines : this.decorationsToRender.lineNumbers
-
-          let omitLastRow = false
-          if (screenRange.isEmpty()) {
-            if (decoration.onlyNonEmpty) return
-          } else {
-            if (decoration.onlyEmpty) return
-            if (decoration.omitEmptyLastRow !== false) {
-              omitLastRow = screenRange.end.column === 0
-            }
-          }
-
-          let startRow = screenRange.start.row
-          let endRow = screenRange.end.row
-
-          if (decoration.onlyHead) {
-            if (reversed) {
-              endRow = startRow
-            } else {
-              startRow = endRow
-            }
-          }
-
-          for (let row = startRow; row <= endRow; row++) {
-            if (omitLastRow && row === endRow) break
-            const currentClassName = decorationsByRow.get(row)
-            const newClassName = currentClassName ? currentClassName + ' ' + decoration.class : decoration.class
-            decorationsByRow.set(row, newClassName)
-          }
+          this.addLineDecorationToRender(type, decoration, screenRange, reversed)
+          break
+        case 'highlight':
+          this.addHighlightDecorationToMeasure(decoration, screenRange)
           break
       }
     }
   }
 
+  addLineDecorationToRender (type, decoration, screenRange, reversed) {
+    const decorationsByRow = (type === 'line') ? this.decorationsToRender.lines : this.decorationsToRender.lineNumbers
+
+    let omitLastRow = false
+    if (screenRange.isEmpty()) {
+      if (decoration.onlyNonEmpty) return
+    } else {
+      if (decoration.onlyEmpty) return
+      if (decoration.omitEmptyLastRow !== false) {
+        omitLastRow = screenRange.end.column === 0
+      }
+    }
+
+    let startRow = screenRange.start.row
+    let endRow = screenRange.end.row
+
+    if (decoration.onlyHead) {
+      if (reversed) {
+        endRow = startRow
+      } else {
+        startRow = endRow
+      }
+    }
+
+    for (let row = startRow; row <= endRow; row++) {
+      if (omitLastRow && row === endRow) break
+      const currentClassName = decorationsByRow.get(row)
+      const newClassName = currentClassName ? currentClassName + ' ' + decoration.class : decoration.class
+      decorationsByRow.set(row, newClassName)
+    }
+  }
+
+  addHighlightDecorationToMeasure(decoration, screenRange) {
+    screenRange = constrainRangeToRows(screenRange, this.getRenderedStartRow(), this.getRenderedEndRow())
+    if (screenRange.isEmpty()) return
+    let tileStartRow = this.tileStartRowForRow(screenRange.start.row)
+    const rowsPerTile = this.getRowsPerTile()
+
+    while (tileStartRow <= screenRange.end.row) {
+      const tileEndRow = tileStartRow + rowsPerTile
+      const screenRangeInTile = constrainRangeToRows(screenRange, tileStartRow, tileEndRow)
+
+      let tileHighlights = this.decorationsToMeasure.highlights.get(tileStartRow)
+      if (!tileHighlights) {
+        tileHighlights = []
+        this.decorationsToMeasure.highlights.set(tileStartRow, tileHighlights)
+      }
+      tileHighlights.push({decoration, screenRange: screenRangeInTile})
+
+      this.requestHorizontalMeasurement(screenRangeInTile.start.row, screenRangeInTile.start.column)
+      this.requestHorizontalMeasurement(screenRangeInTile.end.row, screenRangeInTile.end.column)
+
+      tileStartRow += rowsPerTile
+    }
+  }
+
+  updateHighlightsToRender () {
+    this.decorationsToRender.highlights.clear()
+    this.decorationsToMeasure.highlights.forEach((highlights, tileRow) => {
+      for (let i = 0, length = highlights.length; i < length; i++) {
+        const highlight = highlights[i]
+        const {start, end} = highlight.screenRange
+        highlight.startPixelTop = this.pixelTopForScreenRow(start.row)
+        highlight.startPixelLeft = this.pixelLeftForScreenRowAndColumn(start.row, start.column)
+        highlight.endPixelTop = this.pixelTopForScreenRow(end.row + 1)
+        highlight.endPixelLeft = this.pixelLeftForScreenRowAndColumn(end.row, end.column)
+      }
+      this.decorationsToRender.highlights.set(tileRow, highlights)
+    })
+  }
 
   positionCursorsToRender () {
     const height = this.measurements.lineHeight + 'px'
@@ -862,6 +921,7 @@ class TextEditorComponent {
   }
 
   requestHorizontalMeasurement (row, column) {
+    if (column === 0) return
     let columns = this.horizontalPositionsToMeasure.get(row)
     if (columns == null) {
       columns = []
@@ -876,6 +936,13 @@ class TextEditorComponent {
 
       const screenLine = this.getModel().displayLayer.getScreenLine(row)
       const lineNode = this.lineNodesByScreenLineId.get(screenLine.id)
+
+      if (!lineNode) {
+        const error = new Error('Requested measurement of a line that is not currently rendered')
+        error.metadata = {row, columnsToMeasure}
+        throw error
+      }
+
       const textNodes = this.textNodesByScreenLineId.get(screenLine.id)
       let positionsForLine = this.horizontalPixelPositionsByScreenLineId.get(screenLine.id)
       if (positionsForLine == null) {
@@ -1210,6 +1277,55 @@ class LinesTileComponent {
   }
 
   render () {
+    const {height, width, top} = this.props
+
+    return $.div(
+      {
+        style: {
+          contain: 'strict',
+          position: 'absolute',
+          height: height + 'px',
+          width: width + 'px',
+          willChange: 'transform',
+          transform: `translateY(${top}px)`,
+          backgroundColor: 'inherit'
+        }
+      },
+      this.renderHighlights(),
+      this.renderLines()
+    )
+
+  }
+
+  renderHighlights () {
+    const {top, height, width, lineHeight, highlightDecorations} = this.props
+
+    let children = null
+    if (highlightDecorations) {
+      const decorationCount = highlightDecorations.length
+      children = new Array(decorationCount)
+      for (let i = 0; i < decorationCount; i++) {
+        const highlightProps = Object.assign(
+          {parentTileTop: top, lineHeight},
+          highlightDecorations[i]
+        )
+        children[i] = $(HighlightComponent, highlightProps)
+      }
+    }
+
+    return $.div(
+      {
+        style: {
+          position: 'absolute',
+          contain: 'strict',
+          height: height + 'px',
+          width: width + 'px'
+        },
+      },  children
+    )
+  }
+
+  renderLines () {
     const {
       height, width, top,
       screenLines, lineDecorations, displayLayer,
@@ -1235,13 +1351,10 @@ class LinesTileComponent {
 
     return $.div({
       style: {
-        contain: 'strict',
         position: 'absolute',
+        contain: 'strict',
         height: height + 'px',
         width: width + 'px',
-        willChange: 'transform',
-        transform: `translateY(${top}px)`,
-        backgroundColor: 'inherit'
       }
     }, children)
   }
@@ -1253,6 +1366,23 @@ class LinesTileComponent {
     if (oldProps.width !== newProps.width) return true
     if (!arraysEqual(oldProps.screenLines, newProps.screenLines)) return true
     if (!arraysEqual(oldProps.lineDecorations, newProps.lineDecorations)) return true
+
+    if (!oldProps.highlightDecorations && newProps.highlightDecorations) return true
+    if (oldProps.highlightDecorations && !newProps.highlightDecorations) return true
+
+    if (oldProps.highlightDecorations && newProps.highlightDecorations) {
+      if (oldProps.highlightDecorations.length !== newProps.highlightDecorations.length) return true
+
+      for (let i = 0, length = oldProps.highlightDecorations.length; i < length; i++) {
+        const oldHighlight = oldProps.highlightDecorations[i]
+        const newHighlight = newProps.highlightDecorations[i]
+        if (oldHighlight.decoration.class !== newHighlight.decoration.class) return true
+        if (oldHighlight.startPixelLeft !== newHighlight.startPixelLeft) return true
+        if (oldHighlight.endPixelLeft !== newHighlight.endPixelLeft) return true
+        if (!oldHighlight.screenRange.isEqual(newHighlight.screenRange)) return true
+      }
+    }
+
     return false
   }
 }
@@ -1331,6 +1461,85 @@ class LineComponent {
   }
 }
 
+class HighlightComponent {
+  constructor (props) {
+    this.props = props
+    etch.initialize(this)
+  }
+
+  update (props) {
+    this.props = props
+    etch.updateSync(this)
+  }
+
+  render () {
+    let {startPixelTop, endPixelTop} = this.props
+    const {
+      decoration, screenRange, parentTileTop, lineHeight,
+      startPixelLeft, endPixelLeft,
+    } = this.props
+    startPixelTop -= parentTileTop
+    endPixelTop -= parentTileTop
+
+    let children
+    if (screenRange.start.row === screenRange.end.row) {
+      children = $.div({
+        className: 'region',
+        style: {
+          position: 'absolute',
+          boxSizing: 'border-box',
+          top: startPixelTop + 'px',
+          left: startPixelLeft + 'px',
+          width: endPixelLeft - startPixelLeft + 'px',
+          height: lineHeight + 'px'
+        }
+      })
+    } else {
+      children = []
+      children.push($.div({
+        className: 'region',
+        style: {
+          position: 'absolute',
+          boxSizing: 'border-box',
+          top: startPixelTop + 'px',
+          left: startPixelLeft + 'px',
+          right: 0,
+          height: lineHeight + 'px'
+        }
+      }))
+
+      if (screenRange.end.row - screenRange.start.row > 1) {
+        children.push($.div({
+          className: 'region',
+          style: {
+            position: 'absolute',
+            boxSizing: 'border-box',
+            top: startPixelTop + lineHeight + 'px',
+            left: 0,
+            right: 0,
+            height: endPixelTop - startPixelTop - (lineHeight * 2) + 'px'
+          }
+        }))
+      }
+
+      children.push($.div({
+        className: 'region',
+        style: {
+          position: 'absolute',
+          boxSizing: 'border-box',
+          top: endPixelTop - lineHeight + 'px',
+          left: 0,
+          width: endPixelLeft + 'px',
+          height: lineHeight + 'px'
+        }
+      }))
+    }
+
+    const className = 'highlight ' + decoration.class
+    return $.div({className}, children)
+  }
+}
+
 const classNamesByScopeName = new Map()
 function classNameForScopeName (scopeName) {
   let classString = classNamesByScopeName.get(scopeName)
@@ -1353,4 +1562,19 @@ function arraysEqual(a, b) {
     if (a[i] !== b[i]) return false
   }
   return true
+}
+
+function constrainRangeToRows (range, startRow, endRow) {
+  if (range.start.row < startRow || range.end.row >= endRow) {
+    range = range.copy()
+    if (range.start.row < startRow) {
+      range.start.row = startRow
+      range.start.column = 0
+    }
+    if (range.end.row >= endRow) {
+      range.end.row = endRow
+      range.end.column = 0
+    }
+  }
+  return range
 }
