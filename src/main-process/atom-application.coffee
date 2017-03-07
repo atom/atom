@@ -111,6 +111,8 @@ class AtomApplication
 
   launch: (options) ->
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test or options.benchmark or options.benchmarkTest
+      if @config.get('core.restorePreviousWindowsOnStartAlways')
+        @loadState(clone(options))
       @openWithOptions(options)
     else
       @loadState(options) or @openPath(options)
@@ -558,6 +560,7 @@ class AtomApplication
       windowDimensions ?= @getDimensionsForNewWindow()
       openedWindow = new AtomWindow(this, @fileRecoveryService, {initialPaths, locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState, env})
       openedWindow.focus()
+      @lastFocusedWindow = openedWindow
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -598,8 +601,7 @@ class AtomApplication
       @storageFolder.storeSync('application.json', states)
 
   loadState: (options) ->
-    restorePreviousState = @config.get('core.restorePreviousWindowsOnStart') ? true
-    if restorePreviousState and (states = @storageFolder.load('application.json'))?.length > 0
+    if (@config.get('core.restorePreviousWindowsOnStartAlways') or @config.get('core.restorePreviousWindowsOnStart')) and (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
         @openWithOptions(Object.assign(options, {
           initialPaths: state.initialPaths
@@ -812,3 +814,10 @@ class AtomApplication
       args.push("--resource-path=#{@resourcePath}")
     app.relaunch({args})
     app.quit()
+
+  clone = (obj) ->
+    return obj if obj is null or typeof (obj) isnt "object"
+    temp = new obj.constructor()
+    for key of obj
+      temp[key] = clone(obj[key])
+    temp

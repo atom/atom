@@ -262,6 +262,11 @@ const configSchema = {
         type: 'boolean',
         default: true
       },
+      restorePreviousWindowsOnStartAlways: {
+        description: 'When checked *ALWAYS* restores the last state of all Atom windows.',
+        type: 'boolean',
+        default: false
+      },
       reopenProjectMenuCount: {
         description: 'How many recent projects to show in the Reopen Project menu.',
         type: 'integer',
