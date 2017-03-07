@@ -229,13 +229,11 @@ class AtomEnvironment extends Model
 
     @observeAutoHideMenuBar()
 
-    @history = new HistoryManager({@project, @commands, localStorage})
+    @history = new HistoryManager({@project, @commands, @stateStore})
     # Keep instances of HistoryManager in sync
-    @history.onDidChangeProjects (e) =>
+    @disposables.add @history.onDidChangeProjects (e) =>
       @applicationDelegate.didChangeHistoryManager() unless e.reloaded
     @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
-
-    (new ReopenProjectMenuManager({@menu, @commands, @history, @config, open: (paths) => @open(pathsToOpen: paths)})).update()
 
   attachSaveStateListeners: ->
     saveState = _.debounce((=>
@@ -714,7 +712,14 @@ class AtomEnvironment extends Model
 
         @openInitialEmptyEditorIfNecessary()
 
-    Promise.all([loadStatePromise, updateProcessEnvPromise])
+    loadHistoryPromise = @history.loadState().then =>
+      @reopenProjectMenuManager = new ReopenProjectMenuManager({
+        @menu, @commands, @history, @config,
+        open: (paths) => @open(pathsToOpen: paths)
+      })
+      @reopenProjectMenuManager.update()
+
+    Promise.all([loadStatePromise, loadHistoryPromise, updateProcessEnvPromise])
 
   serialize: (options) ->
     version: @constructor.version

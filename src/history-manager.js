@@ -1,6 +1,6 @@
 /** @babel */
 
-import {Emitter} from 'event-kit'
+import {Emitter, CompositeDisposable} from 'event-kit'
 
 // Extended: History manager for remembering which projects have been opened.
 //
@@ -8,12 +8,17 @@ import {Emitter} from 'event-kit'
 //
 // The project history is used to enable the 'Reopen Project' menu.
 export class HistoryManager {
-  constructor ({project, commands, localStorage}) {
-    this.localStorage = localStorage
-    commands.add('atom-workspace', {'application:clear-project-history': this.clearProjects.bind(this)})
+  constructor ({stateStore, project, commands}) {
+    this.stateStore = stateStore
     this.emitter = new Emitter()
-    this.loadState()
-    project.onDidChangePaths((projectPaths) => this.addProject(projectPaths))
+    this.projects = []
+    this.disposables = new CompositeDisposable()
+    this.disposables.add(commands.add('atom-workspace', {'application:clear-project-history': this.clearProjects.bind(this)}))
+    this.disposables.add(project.onDidChangePaths((projectPaths) => this.addProject(projectPaths)))
+  }
+
+  destroy () {
+    this.disposables.dispose()
   }
 
   // Public: Obtain a list of previously opened projects.
@@ -27,9 +32,12 @@ export class HistoryManager {
   //
   // Note: This is not a privacy function - other traces will still exist,
   // e.g. window state.
-  clearProjects () {
+  //
+  // Return a {Promise} that resolves when the history has been successfully
+  // cleared.
+  async clearProjects () {
     this.projects = []
-    this.saveState()
+    await this.saveState()
     this.didChangeProjects()
   }
 
@@ -46,7 +54,7 @@ export class HistoryManager {
     this.emitter.emit('did-change-projects', args || { reloaded: false })
   }
 
-  addProject (paths, lastOpened) {
+  async addProject (paths, lastOpened) {
     if (paths.length === 0) return
 
     let project = this.getProject(paths)
@@ -57,11 +65,11 @@ export class HistoryManager {
     project.lastOpened = lastOpened || new Date()
     this.projects.sort((a, b) => b.lastOpened - a.lastOpened)
 
-    this.saveState()
+    await this.saveState()
     this.didChangeProjects()
   }
 
-  removeProject (paths) {
+  async removeProject (paths) {
     if (paths.length === 0) return
 
     let project = this.getProject(paths)
@@ -70,7 +78,7 @@ export class HistoryManager {
     let index = this.projects.indexOf(project)
     this.projects.splice(index, 1)
 
-    this.saveState()
+    await this.saveState()
     this.didChangeProjects()
   }
 
@@ -84,31 +92,25 @@ export class HistoryManager {
     return null
   }
 
-  loadState () {
-    const state = JSON.parse(this.localStorage.getItem('history'))
-    if (state && state.projects) {
-      this.projects = state.projects.filter(p => Array.isArray(p.paths) && p.paths.length > 0).map(p => new HistoryProject(p.paths, new Date(p.lastOpened)))
-      this.didChangeProjects({ reloaded: true })
+  async loadState () {
+    const history = await this.stateStore.load('history-manager')
+    if (history && history.projects) {
+      this.projects = history.projects.filter(p => Array.isArray(p.paths) && p.paths.length > 0).map(p => new HistoryProject(p.paths, new Date(p.lastOpened)))
+      this.didChangeProjects({reloaded: true})
     } else {
       this.projects = []
     }
   }
 
-  saveState () {
-    const state = JSON.stringify({
-      projects: this.projects.map(p => ({
-        paths: p.paths, lastOpened: p.lastOpened
-      }))
-    })
-    this.localStorage.setItem('history', state)
+  async saveState () {
+    const projects = this.projects.map(p => ({paths: p.paths, lastOpened: p.lastOpened}))
+    await this.stateStore.save('history-manager', {projects})
   }
 
   async importProjectHistory () {
     for (let project of await HistoryImporter.getAllProjects()) {
-      this.addProject(project.paths, project.lastOpened)
+      await this.addProject(project.paths, project.lastOpened)
     }
-    this.saveState()
-    this.didChangeProjects()
   }
 }
 
