@@ -253,7 +253,7 @@ class TextEditorComponent {
       )
     }
 
-    return $.div({style}, children)
+    return $.div({ref: 'content', style}, children)
   }
 
   renderLineTiles (width, height) {
@@ -1509,17 +1509,19 @@ class HighlightComponent {
         }))
       }
 
-      children.push($.div({
-        className: 'region',
-        style: {
-          position: 'absolute',
-          boxSizing: 'border-box',
-          top: endPixelTop - lineHeight + 'px',
-          left: 0,
-          width: endPixelLeft + 'px',
-          height: lineHeight + 'px'
-        }
-      }))
+      if (endPixelLeft > 0) {
+        children.push($.div({
+          className: 'region',
+          style: {
+            position: 'absolute',
+            boxSizing: 'border-box',
+            top: endPixelTop - lineHeight + 'px',
+            left: 0,
+            width: endPixelLeft + 'px',
+            height: lineHeight + 'px'
+          }
+        }))
+      }
     }
 
     const className = 'highlight ' + decoration.class
