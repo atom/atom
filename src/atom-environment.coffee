@@ -131,14 +131,21 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate, @window, @document, @blobStore, @clipboard, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@applicationDelegate, @clipboard, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
     @unloaded = false
     @loadTime = null
-    {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
-
     @emitter = new Emitter
     @disposables = new CompositeDisposable
+    @deserializers = new DeserializerManager(this)
+    @deserializeTimings = {}
+    @views = new ViewRegistry(this)
+    @notifications = new NotificationManager
+    @config = new Config({notificationManager: @notifications, @enablePersistence})
+
+  initialize: (params={}) ->
+    {@applicationDelegate, @window, @document, @blobStore, @clipboard, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
 
     @stateStore = new StateStore('AtomEnvironments', 1)
 
@@ -146,14 +153,9 @@ class AtomEnvironment extends Model
       @getStorageFolder().clear()
       @stateStore.clear()
 
-    @deserializers = new DeserializerManager(this)
-    @deserializeTimings = {}
+    @views.initialize()
 
-    @views = new ViewRegistry(this)
-
-    @notifications = new NotificationManager
-
-    @config = new Config({@configDirPath, resourcePath, notificationManager: @notifications, @enablePersistence})
+    @config.initialize({@configDirPath, resourcePath})
     @setConfigSchema()
 
     @keymaps = new KeymapManager({@configDirPath, resourcePath, notificationManager: @notifications})

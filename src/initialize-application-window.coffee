@@ -55,6 +55,15 @@ require('welcome')
 require('whitespace')
 require('wrap-guide')
 
+clipboard = new Clipboard
+TextEditor.setClipboard(clipboard)
+
+window.atom = new AtomEnvironment({
+  clipboard,
+  applicationDelegate: new ApplicationDelegate,
+  enablePersistence: true
+})
+
 # Like sands through the hourglass, so are the days of our lives.
 module.exports = ({blobStore}) ->
   {updateProcessEnv} = require('./update-process-env')
@@ -73,14 +82,9 @@ module.exports = ({blobStore}) ->
   # Make React faster
   process.env.NODE_ENV ?= 'production' unless devMode
 
-  clipboard = new Clipboard
-  TextEditor.setClipboard(clipboard)
-
-  window.atom = new AtomEnvironment({
-    window, document, clipboard, blobStore,
-    applicationDelegate: new ApplicationDelegate,
+  window.atom.initialize({
+    window, document, blobStore,
     configDirPath: process.env.ATOM_HOME,
-    enablePersistence: true,
     env: process.env
   })
 
