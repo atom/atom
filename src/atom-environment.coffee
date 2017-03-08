@@ -143,6 +143,8 @@ class AtomEnvironment extends Model
     @views = new ViewRegistry(this)
     @notifications = new NotificationManager
 
+    @stateStore = new StateStore('AtomEnvironments', 1)
+
     @config = new Config({notificationManager: @notifications, @enablePersistence})
     @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
 
@@ -192,7 +194,7 @@ class AtomEnvironment extends Model
 
     @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate})
 
-    @history = new HistoryManager({@project, @commands})
+    @history = new HistoryManager({@project, @commands, @stateStore})
     # Keep instances of HistoryManager in sync
     @disposables.add @history.onDidChangeProjects (e) =>
       @applicationDelegate.didChangeHistoryManager() unless e.reloaded
@@ -200,8 +202,6 @@ class AtomEnvironment extends Model
   initialize: (params={}) ->
     {@window, @document, @blobStore, @configDirPath, onlyLoadBaseStyleSheets} = params
     {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
-
-    @stateStore = new StateStore('AtomEnvironments', 1)
 
     if clearWindowState
       @getStorageFolder().clear()
@@ -255,7 +255,6 @@ class AtomEnvironment extends Model
 
     @observeAutoHideMenuBar()
 
-    @history.initialize(@stateStore)
     @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
 
   attachSaveStateListeners: ->
