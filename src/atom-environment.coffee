@@ -861,7 +861,11 @@ class AtomEnvironment extends Model
 
   addProjectFolder: ->
     @pickFolder (selectedPaths = []) =>
-      @project.addPath(selectedPath) for selectedPath in selectedPaths
+      @loadState(@getStateKey(selectedPaths)).then (state) =>
+        if state && @project.getPaths().length is 0
+          @restoreStateIntoEnvironment(state)
+        else
+          @project.addPath(selectedPath) for selectedPath in selectedPaths
 
   restoreStateIntoEnvironment: (state) ->
     shouldSerializeItem = (item) ->
