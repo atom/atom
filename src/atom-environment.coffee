@@ -863,6 +863,22 @@ class AtomEnvironment extends Model
     @pickFolder (selectedPaths = []) =>
       @project.addPath(selectedPath) for selectedPath in selectedPaths
 
+  restoreStateIntoEnvironment: (state) ->
+    shouldSerializeItem = (item) ->
+      return true unless item instanceof TextEditor
+      item.getPath() or item.isModified()
+    serializedOpenItems = (item.serialize() for item in @workspace.getPaneItems() when shouldSerializeItem(item))
+    serializedBuffers = (buffer.serialize() for buffer in @project.buffers)
+
+    state.fullScreen = @isFullScreen()
+    pane.destroy() for pane in @workspace.getPanes()
+    @deserialize(state)
+    savedBuffers = (TextBuffer.deserialize(serializedBuffer) for serializedBuffer in serializedBuffers)
+    @project.buffers = @project.buffers.concat(savedBuffers)
+
+    items = (@deserializers.deserialize(itemState) for itemState in serializedOpenItems)
+    @workspace.getPanes()[0].addItems(items, 0)
+
   showSaveDialog: (callback) ->
     callback(@showSaveDialogSync())
 
