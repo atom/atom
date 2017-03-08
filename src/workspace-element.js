@@ -1,24 +1,20 @@
+'use strict'
+
 /* global HTMLElement */
 
-let WorkspaceElement
 const {ipcRenderer} = require('electron')
 const path = require('path')
 const fs = require('fs-plus')
 const {CompositeDisposable} = require('event-kit')
 const scrollbarStyle = require('scrollbar-style')
 
-module.exports =
-__initClass__(WorkspaceElement = class WorkspaceElement extends HTMLElement {
-  static initClass () {
-    this.prototype.globalTextEditorStyleSheet = null
-  }
-
+class WorkspaceElement extends HTMLElement {
   attachedCallback () {
-    return this.focus()
+    this.focus()
   }
 
   detachedCallback () {
-    return this.subscriptions.dispose()
+    this.subscriptions.dispose()
   }
 
   initializeContent () {
@@ -32,41 +28,39 @@ __initClass__(WorkspaceElement = class WorkspaceElement extends HTMLElement {
     this.horizontalAxis.classList.add('horizontal')
     this.horizontalAxis.appendChild(this.verticalAxis)
 
-    return this.appendChild(this.horizontalAxis)
+    this.appendChild(this.horizontalAxis)
   }
 
   observeScrollbarStyle () {
-    return this.subscriptions.add(scrollbarStyle.observePreferredScrollbarStyle(style => {
+    this.subscriptions.add(scrollbarStyle.observePreferredScrollbarStyle(style => {
       switch (style) {
         case 'legacy':
           this.classList.remove('scrollbars-visible-when-scrolling')
-          return this.classList.add('scrollbars-visible-always')
+          this.classList.add('scrollbars-visible-always')
+          break
         case 'overlay':
           this.classList.remove('scrollbars-visible-always')
-          return this.classList.add('scrollbars-visible-when-scrolling')
+          this.classList.add('scrollbars-visible-when-scrolling')
+          break
       }
-    }
-    )
-    )
+    }))
   }
 
   observeTextEditorFontConfig () {
     this.updateGlobalTextEditorStyleSheet()
     this.subscriptions.add(this.config.onDidChange('editor.fontSize', this.updateGlobalTextEditorStyleSheet.bind(this)))
     this.subscriptions.add(this.config.onDidChange('editor.fontFamily', this.updateGlobalTextEditorStyleSheet.bind(this)))
-    return this.subscriptions.add(this.config.onDidChange('editor.lineHeight', this.updateGlobalTextEditorStyleSheet.bind(this)))
+    this.subscriptions.add(this.config.onDidChange('editor.lineHeight', this.updateGlobalTextEditorStyleSheet.bind(this)))
   }
 
   updateGlobalTextEditorStyleSheet () {
-    const styleSheetSource = `\
-atom-text-editor {
-  font-size: ${this.config.get('editor.fontSize')}px
-  font-family: ${this.config.get('editor.fontFamily')}
-  line-height: ${this.config.get('editor.lineHeight')}
-}\
-`
+    const styleSheetSource = `atom-text-editor {
+  font-size: ${this.config.get('editor.fontSize')}px;
+  font-family: ${this.config.get('editor.fontFamily')};
+  line-height: ${this.config.get('editor.lineHeight')};
+}`
     this.styles.addStyleSheet(styleSheetSource, {sourcePath: 'global-text-editor-styles'})
-    return this.views.performDocumentPoll()
+    this.views.performDocumentPoll()
   }
 
   initialize (model, {views, workspace, project, config, styles}) {
@@ -127,36 +121,38 @@ atom-text-editor {
         this.model.decreaseFontSize()
       }
       event.preventDefault()
-      return event.stopPropagation()
+      event.stopPropagation()
     }
   }
 
   handleFocus (event) {
-    return this.model.getActivePane().activate()
+    this.model.getActivePane().activate()
   }
 
-  focusPaneViewAbove () { return this.paneContainer.focusPaneViewAbove() }
+  focusPaneViewAbove () { this.paneContainer.focusPaneViewAbove() }
 
-  focusPaneViewBelow () { return this.paneContainer.focusPaneViewBelow() }
+  focusPaneViewBelow () { this.paneContainer.focusPaneViewBelow() }
 
-  focusPaneViewOnLeft () { return this.paneContainer.focusPaneViewOnLeft() }
+  focusPaneViewOnLeft () { this.paneContainer.focusPaneViewOnLeft() }
 
-  focusPaneViewOnRight () { return this.paneContainer.focusPaneViewOnRight() }
+  focusPaneViewOnRight () { this.paneContainer.focusPaneViewOnRight() }
 
-  moveActiveItemToPaneAbove (params) { return this.paneContainer.moveActiveItemToPaneAbove(params) }
+  moveActiveItemToPaneAbove (params) { this.paneContainer.moveActiveItemToPaneAbove(params) }
 
-  moveActiveItemToPaneBelow (params) { return this.paneContainer.moveActiveItemToPaneBelow(params) }
+  moveActiveItemToPaneBelow (params) { this.paneContainer.moveActiveItemToPaneBelow(params) }
 
-  moveActiveItemToPaneOnLeft (params) { return this.paneContainer.moveActiveItemToPaneOnLeft(params) }
+  moveActiveItemToPaneOnLeft (params) { this.paneContainer.moveActiveItemToPaneOnLeft(params) }
 
-  moveActiveItemToPaneOnRight (params) { return this.paneContainer.moveActiveItemToPaneOnRight(params) }
+  moveActiveItemToPaneOnRight (params) { this.paneContainer.moveActiveItemToPaneOnRight(params) }
 
   runPackageSpecs () {
-    let activePath, projectPath
-    if ((activePath = __guardMethod__(this.workspace.getActivePaneItem(), 'getPath', o => o.getPath()))) {
-      [projectPath] = Array.from(this.project.relativizePath(activePath))
+    const activePaneItem = this.workspace.getActivePaneItem()
+    const activePath = activePaneItem && typeof activePaneItem.getPath === 'function' ? activePaneItem.getPath() : null
+    let projectPath
+    if (activePath != null) {
+      [projectPath] = this.project.relativizePath(activePath)
     } else {
-      [projectPath] = Array.from(this.project.getPaths())
+      [projectPath] = this.project.getPaths()
     }
     if (projectPath) {
       let specPath = path.join(projectPath, 'spec')
@@ -165,34 +161,24 @@ atom-text-editor {
         specPath = testPath
       }
 
-      return ipcRenderer.send('run-package-specs', specPath)
+      ipcRenderer.send('run-package-specs', specPath)
     }
   }
 
   runBenchmarks () {
-    let activePath, projectPath
-    if ((activePath = __guardMethod__(this.workspace.getActivePaneItem(), 'getPath', o => o.getPath()))) {
-      [projectPath] = Array.from(this.project.relativizePath(activePath))
+    const activePaneItem = this.workspace.getActivePaneItem()
+    const activePath = activePaneItem && typeof activePaneItem.getPath === 'function' ? activePaneItem.getPath() : null
+    let projectPath
+    if (activePath) {
+      [projectPath] = this.project.relativizePath(activePath)
     } else {
-      [projectPath] = Array.from(this.project.getPaths())
+      [projectPath] = this.project.getPaths()
     }
 
     if (projectPath) {
-      return ipcRenderer.send('run-benchmarks', path.join(projectPath, 'benchmarks'))
+      ipcRenderer.send('run-benchmarks', path.join(projectPath, 'benchmarks'))
     }
   }
-})
-
-module.exports = WorkspaceElement = document.registerElement('atom-workspace', {prototype: WorkspaceElement.prototype})
-
-function __initClass__ (c) {
-  c.initClass()
-  return c
 }
-function __guardMethod__ (obj, methodName, transform) {
-  if (typeof obj !== 'undefined' && obj !== null && typeof obj[methodName] === 'function') {
-    return transform(obj, methodName)
-  } else {
-    return undefined
-  }
-}
+
+module.exports = document.registerElement('atom-workspace', {prototype: WorkspaceElement.prototype})

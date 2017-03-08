@@ -1,3 +1,5 @@
+'use strict'
+
 /* global getComputedStyle, WheelEvent */
 
 const {ipcRenderer} = require('electron')
@@ -5,28 +7,28 @@ const path = require('path')
 const temp = require('temp').track()
 const {Disposable} = require('event-kit')
 
-describe('WorkspaceElement', function () {
-  afterEach(() => temp.cleanupSync())
+describe('WorkspaceElement', () => {
+  afterEach(() => { temp.cleanupSync() })
 
-  describe('when the workspace element is focused', () =>
-    it('transfers focus to the active pane', function () {
+  describe('when the workspace element is focused', () => {
+    it('transfers focus to the active pane', () => {
       const workspaceElement = atom.views.getView(atom.workspace)
       jasmine.attachToDOM(workspaceElement)
       const activePaneElement = atom.views.getView(atom.workspace.getActivePane())
       document.body.focus()
       expect(document.activeElement).not.toBe(activePaneElement)
       workspaceElement.focus()
-      return expect(document.activeElement).toBe(activePaneElement)
+      expect(document.activeElement).toBe(activePaneElement)
     })
-  )
+  })
 
-  describe('the scrollbar visibility class', () =>
-    it('has a class based on the style of the scrollbar', function () {
-      let observeCallback = null
+  describe('the scrollbar visibility class', () => {
+    it('has a class based on the style of the scrollbar', () => {
+      let observeCallback
       const scrollbarStyle = require('scrollbar-style')
-      spyOn(scrollbarStyle, 'observePreferredScrollbarStyle').andCallFake(function (cb) {
+      spyOn(scrollbarStyle, 'observePreferredScrollbarStyle').andCallFake(cb => {
         observeCallback = cb
-        return new Disposable(function () {})
+        return new Disposable(() => {})
       })
 
       const workspaceElement = atom.views.getView(atom.workspace)
@@ -34,33 +36,33 @@ describe('WorkspaceElement', function () {
       expect(workspaceElement.className).toMatch('scrollbars-visible-always')
 
       observeCallback('overlay')
-      return expect(workspaceElement).toHaveClass('scrollbars-visible-when-scrolling')
+      expect(workspaceElement).toHaveClass('scrollbars-visible-when-scrolling')
     })
-  )
+  })
 
-  describe('editor font styling', function () {
-    let [editor, editorElement, workspaceElement] = Array.from([])
+  describe('editor font styling', () => {
+    let editor, editorElement, workspaceElement
 
-    beforeEach(function () {
+    beforeEach(() => {
       waitsForPromise(() => atom.workspace.open('sample.js'))
 
-      return runs(function () {
+      runs(() => {
         workspaceElement = atom.views.getView(atom.workspace)
         jasmine.attachToDOM(workspaceElement)
         editor = atom.workspace.getActiveTextEditor()
-        return (editorElement = atom.views.getView(editor))
+        editorElement = atom.views.getView(editor)
       })
     })
 
-    it("updates the font-size based on the 'editor.fontSize' config value", function () {
+    it("updates the font-size based on the 'editor.fontSize' config value", () => {
       const initialCharWidth = editor.getDefaultCharWidth()
       expect(getComputedStyle(editorElement).fontSize).toBe(atom.config.get('editor.fontSize') + 'px')
       atom.config.set('editor.fontSize', atom.config.get('editor.fontSize') + 5)
       expect(getComputedStyle(editorElement).fontSize).toBe(atom.config.get('editor.fontSize') + 'px')
-      return expect(editor.getDefaultCharWidth()).toBeGreaterThan(initialCharWidth)
+      expect(editor.getDefaultCharWidth()).toBeGreaterThan(initialCharWidth)
     })
 
-    it("updates the font-family based on the 'editor.fontFamily' config value", function () {
+    it("updates the font-family based on the 'editor.fontFamily' config value", () => {
       const initialCharWidth = editor.getDefaultCharWidth()
       let fontFamily = atom.config.get('editor.fontFamily')
       expect(getComputedStyle(editorElement).fontFamily).toBe(fontFamily)
@@ -68,17 +70,17 @@ describe('WorkspaceElement', function () {
       atom.config.set('editor.fontFamily', 'sans-serif')
       fontFamily = atom.config.get('editor.fontFamily')
       expect(getComputedStyle(editorElement).fontFamily).toBe(fontFamily)
-      return expect(editor.getDefaultCharWidth()).not.toBe(initialCharWidth)
+      expect(editor.getDefaultCharWidth()).not.toBe(initialCharWidth)
     })
 
-    it("updates the line-height based on the 'editor.lineHeight' config value", function () {
+    it("updates the line-height based on the 'editor.lineHeight' config value", () => {
       const initialLineHeight = editor.getLineHeightInPixels()
       atom.config.set('editor.lineHeight', '30px')
       expect(getComputedStyle(editorElement).lineHeight).toBe(atom.config.get('editor.lineHeight'))
-      return expect(editor.getLineHeightInPixels()).not.toBe(initialLineHeight)
+      expect(editor.getLineHeightInPixels()).not.toBe(initialLineHeight)
     })
 
-    return it('increases or decreases the font size when a ctrl-mousewheel event occurs', function () {
+    it('increases or decreases the font size when a ctrl-mousewheel event occurs', () => {
       atom.config.set('editor.zoomFontWhenCtrlScrolling', true)
       atom.config.set('editor.fontSize', 12)
 
@@ -114,12 +116,12 @@ describe('WorkspaceElement', function () {
         wheelDeltaY: 10,
         ctrlKey: true
       }))
-      return expect(atom.config.get('editor.fontSize')).toBe(12)
+      expect(atom.config.get('editor.fontSize')).toBe(12)
     })
   })
 
-  describe('panel containers', function () {
-    it('inserts panel container elements in the correct places in the DOM', function () {
+  describe('panel containers', () => {
+    it('inserts panel container elements in the correct places in the DOM', () => {
       const workspaceElement = atom.views.getView(atom.workspace)
 
       const leftContainer = workspaceElement.querySelector('atom-panel-container.left')
@@ -138,10 +140,10 @@ describe('WorkspaceElement', function () {
       expect(footerContainer.previousSibling).toBe(workspaceElement.horizontalAxis)
 
       const modalContainer = workspaceElement.querySelector('atom-panel-container.modal')
-      return expect(modalContainer.parentNode).toBe(workspaceElement)
+      expect(modalContainer.parentNode).toBe(workspaceElement)
     })
 
-    it('stretches header/footer panels to the workspace width', function () {
+    it('stretches header/footer panels to the workspace width', () => {
       const workspaceElement = atom.views.getView(atom.workspace)
       jasmine.attachToDOM(workspaceElement)
       expect(workspaceElement.offsetWidth).toBeGreaterThan(0)
@@ -152,10 +154,10 @@ describe('WorkspaceElement', function () {
 
       const footerItem = document.createElement('div')
       atom.workspace.addFooterPanel({item: footerItem})
-      return expect(footerItem.offsetWidth).toEqual(workspaceElement.offsetWidth)
+      expect(footerItem.offsetWidth).toEqual(workspaceElement.offsetWidth)
     })
 
-    return it('shrinks horizontal axis according to header/footer panels height', function () {
+    it('shrinks horizontal axis according to header/footer panels height', () => {
       const workspaceElement = atom.views.getView(atom.workspace)
       workspaceElement.style.height = '100px'
       const horizontalAxisElement = workspaceElement.querySelector('atom-workspace-axis.horizontal')
@@ -175,23 +177,23 @@ describe('WorkspaceElement', function () {
       atom.workspace.addFooterPanel({item: footerItem})
       expect(footerItem.offsetHeight).toBeGreaterThan(0)
 
-      return expect(horizontalAxisElement.offsetHeight).toEqual(originalHorizontalAxisHeight - headerItem.offsetHeight - footerItem.offsetHeight)
+      expect(horizontalAxisElement.offsetHeight).toEqual(originalHorizontalAxisHeight - headerItem.offsetHeight - footerItem.offsetHeight)
     })
   })
 
-  describe("the 'window:toggle-invisibles' command", () =>
-    it('shows/hides invisibles in all open and future editors', function () {
+  describe("the 'window:toggle-invisibles' command", () => {
+    it('shows/hides invisibles in all open and future editors', () => {
       const workspaceElement = atom.views.getView(atom.workspace)
       expect(atom.config.get('editor.showInvisibles')).toBe(false)
       atom.commands.dispatch(workspaceElement, 'window:toggle-invisibles')
       expect(atom.config.get('editor.showInvisibles')).toBe(true)
       atom.commands.dispatch(workspaceElement, 'window:toggle-invisibles')
-      return expect(atom.config.get('editor.showInvisibles')).toBe(false)
+      expect(atom.config.get('editor.showInvisibles')).toBe(false)
     })
-  )
+  })
 
-  return describe("the 'window:run-package-specs' command", () =>
-    it("runs the package specs for the active item's project path, or the first project path", function () {
+  describe("the 'window:run-package-specs' command", () => {
+    it("runs the package specs for the active item's project path, or the first project path", () => {
       const workspaceElement = atom.views.getView(atom.workspace)
       spyOn(ipcRenderer, 'send')
 
@@ -224,7 +226,7 @@ describe('WorkspaceElement', function () {
       item.getPath = () => path.join(projectPaths[1], 'a-file.txt')
       atom.commands.dispatch(workspaceElement, 'window:run-package-specs')
       expect(ipcRenderer.send).toHaveBeenCalledWith('run-package-specs', path.join(projectPaths[1], 'spec'))
-      return ipcRenderer.send.reset()
+      ipcRenderer.send.reset()
     })
-  )
+  })
 })
