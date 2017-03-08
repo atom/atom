@@ -210,18 +210,12 @@ class AtomEnvironment extends Model
 
     @views.initialize()
 
-    @config.initialize({@configDirPath, resourcePath})
-    @projectHomeSchema = {
-      type: 'object',
-      properties: {
-        projectHome: {
-          type: 'string',
-          default: path.join(fs.getHomeDirectory(), 'github'),
-          description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
-        }
-      }
+    ConfigSchema.projectHome = {
+      type: 'string',
+      default: path.join(fs.getHomeDirectory(), 'github'),
+      description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
     }
-    @config.setSchema('core', @projectHomeSchema)
+    @config.initialize({@configDirPath, resourcePath, projectHomeSchema: ConfigSchema.projectHome})
 
     @keymaps.configDirPath = @configDirPath
     @keymaps.resourcePath = resourcePath
@@ -322,7 +316,6 @@ class AtomEnvironment extends Model
 
     @config.clear()
     @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
-    @config.setSchema('core', @projectHomeSchema)
 
     @keymaps.clear()
     @keymaps.loadBundledKeymaps()
