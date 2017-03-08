@@ -654,6 +654,12 @@ class TextEditorComponent {
       this.compositionCheckpoint = null
     }
 
+    // Undo insertion of the original non-accented character so it is discarded
+    // from the history and does not reappear on undo
+    if (this.accentedCharacterMenuIsOpen) {
+      this.getModel().undo()
+    }
+
     this.getModel().insertText(event.data, {groupUndo: true})
   }
 
