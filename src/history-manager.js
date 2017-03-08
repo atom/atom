@@ -8,7 +8,8 @@ import {Emitter, CompositeDisposable} from 'event-kit'
 //
 // The project history is used to enable the 'Reopen Project' menu.
 export class HistoryManager {
-  constructor ({project, commands}) {
+  constructor ({project, commands, stateStore}) {
+    this.stateStore = stateStore
     this.emitter = new Emitter()
     this.projects = []
     this.disposables = new CompositeDisposable()
@@ -16,8 +17,7 @@ export class HistoryManager {
     this.disposables.add(project.onDidChangePaths((projectPaths) => this.addProject(projectPaths)))
   }
 
-  initialize (stateStore, localStorage) {
-    this.stateStore = stateStore
+  initialize (localStorage) {
     this.localStorage = localStorage
   }
 
