@@ -8,13 +8,16 @@ import {Emitter, CompositeDisposable} from 'event-kit'
 //
 // The project history is used to enable the 'Reopen Project' menu.
 export class HistoryManager {
-  constructor ({stateStore, project, commands}) {
-    this.stateStore = stateStore
+  constructor ({project, commands}) {
     this.emitter = new Emitter()
     this.projects = []
     this.disposables = new CompositeDisposable()
-    this.disposables.add(commands.add('atom-workspace', {'application:clear-project-history': this.clearProjects.bind(this)}))
+    this.disposables.add(commands.addBundled('atom-workspace', {'application:clear-project-history': this.clearProjects.bind(this)}))
     this.disposables.add(project.onDidChangePaths((projectPaths) => this.addProject(projectPaths)))
+  }
+
+  initialize (stateStore) {
+    this.stateStore = stateStore
   }
 
   destroy () {

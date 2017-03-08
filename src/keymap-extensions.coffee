@@ -12,12 +12,12 @@ KeymapManager::onDidLoadUserKeymap = (callback) ->
   @emitter.on 'did-load-user-keymap', callback
 
 KeymapManager::loadBundledKeymaps = ->
-  keymapsPath = path.join(@resourcePath, 'keymaps')
   if bundledKeymaps?
     for keymapName, keymap of bundledKeymaps
-      keymapPath = path.join(keymapsPath, keymapName)
-      @add(keymapPath, keymap)
+      keymapPath = "<embedded>/#{keymapName}"
+      @add(keymapPath, keymap, 0, false)
   else
+    keymapsPath = path.join(@resourcePath, 'keymaps')
     @loadKeymap(keymapsPath)
 
   @emitter.emit 'did-load-bundled-keymaps'

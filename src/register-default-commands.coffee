@@ -2,7 +2,7 @@
 Grim = require 'grim'
 
 module.exports = ({commandRegistry, commandInstaller, config, notificationManager, project, clipboard}) ->
-  commandRegistry.add 'atom-workspace',
+  commandRegistry.addBundled 'atom-workspace',
     'pane:show-next-recently-used-item': -> @getModel().getActivePane().activateNextRecentlyUsedItem()
     'pane:show-previous-recently-used-item': -> @getModel().getActivePane().activatePreviousRecentlyUsedItem()
     'pane:move-active-item-to-top-of-stack': -> @getModel().getActivePane().moveActiveItemToTopOfStack()
@@ -79,10 +79,10 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'core:save-as': -> @getModel().saveActivePaneItemAs()
 
   if process.platform is 'darwin'
-    commandRegistry.add 'atom-workspace', 'window:install-shell-commands', ->
+    commandRegistry.addBundled 'atom-workspace', 'window:install-shell-commands', ->
       commandInstaller.installShellCommandsInteractively()
 
-  commandRegistry.add 'atom-pane',
+  commandRegistry.addBundled 'atom-pane',
     'pane:save-items': -> @getModel().saveItems()
     'pane:split-left': -> @getModel().splitLeft()
     'pane:split-right': -> @getModel().splitRight()
@@ -101,7 +101,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'pane:increase-size': -> @getModel().increaseSize()
     'pane:decrease-size': -> @getModel().decreaseSize()
 
-  commandRegistry.add 'atom-text-editor', stopEventPropagation(
+  commandRegistry.addBundled 'atom-text-editor', stopEventPropagation(
     'core:undo': -> @undo()
     'core:redo': -> @redo()
     'core:move-left': -> @moveLeft()
@@ -142,7 +142,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'editor:select-line': -> @selectLinesContainingCursors()
   )
 
-  commandRegistry.add 'atom-text-editor', stopEventPropagationAndGroupUndo(config,
+  commandRegistry.addBundled 'atom-text-editor', stopEventPropagationAndGroupUndo(config,
     'core:backspace': -> @backspace()
     'core:delete': -> @delete()
     'core:cut': -> @cutSelectedText()
@@ -165,7 +165,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'editor:copy-selection': -> @copyOnlySelectedText()
   )
 
-  commandRegistry.add 'atom-text-editor:not([mini])', stopEventPropagation(
+  commandRegistry.addBundled 'atom-text-editor:not([mini])', stopEventPropagation(
     'core:move-up': -> @moveUp()
     'core:move-down': -> @moveDown()
     'core:move-to-top': -> @moveToTop()
@@ -203,7 +203,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'editor:scroll-to-cursor': -> @scrollToCursorPosition()
   )
 
-  commandRegistry.add 'atom-text-editor:not([mini])', stopEventPropagationAndGroupUndo(config,
+  commandRegistry.addBundled 'atom-text-editor:not([mini])', stopEventPropagationAndGroupUndo(config,
     'editor:indent': -> @indent()
     'editor:auto-indent': -> @autoIndentSelectedRows()
     'editor:indent-selected-rows': -> @indentSelectedRows()

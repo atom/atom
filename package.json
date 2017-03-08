@@ -60,6 +60,7 @@
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
     "oniguruma": "6.1.0",
+    "parserlib": "^1.1.1",
     "pathwatcher": "7.0.0",
     "postcss": "5.2.4",
     "postcss-selector-parser": "2.2.1",
