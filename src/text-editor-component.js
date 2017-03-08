@@ -36,7 +36,7 @@ class TextEditorComponent {
     this.previousScrollHeight = 0
     this.lastKeydown = null
     this.lastKeydownBeforeKeypress = null
-    this.openedAccentedCharacterMenu = false
+    this.accentedCharacterMenuIsOpen = false
     this.decorationsToRender = {
       lineNumbers: new Map(),
       lines: new Map(),
@@ -368,7 +368,10 @@ class TextEditorComponent {
         textInput: this.didTextInput,
         keydown: this.didKeydown,
         keyup: this.didKeyup,
-        keypress: this.didKeypress
+        keypress: this.didKeypress,
+        compositionstart: this.didCompositionStart,
+        compositionupdate: this.didCompositionUpdate,
+        compositionend: this.didCompositionEnd
       },
       tabIndex: -1,
       style: {
@@ -643,17 +646,12 @@ class TextEditorComponent {
     // to test.
     if (event.data !== ' ') event.preventDefault()
 
+    // TODO: Deal with disabled input
     // if (!this.isInputEnabled()) return
 
-    // Workaround of the accented character suggestion feature in macOS. This
-    // will only occur when the user is not composing in IME mode. When the user
-    // selects a modified character from the macOS menu, `textInput` will occur
-    // twice, once for the initial character, and once for the modified
-    // character. However, only a single keypress will have fired. If this is
-    // the case, select backward to replace the original character.
-    if (this.openedAccentedCharacterMenu) {
-      this.getModel().selectLeft()
-      this.openedAccentedCharacterMenu = false
+    if (this.compositionCheckpoint) {
+      this.getModel().revertToCheckpoint(this.compositionCheckpoint)
+      this.compositionCheckpoint = null
     }
 
     this.getModel().insertText(event.data, {groupUndo: true})
@@ -678,7 +676,8 @@ class TextEditorComponent {
   didKeydown (event) {
     if (this.lastKeydownBeforeKeypress != null) {
       if (this.lastKeydownBeforeKeypress.keyCode === event.keyCode) {
-        this.openedAccentedCharacterMenu = true
+        this.accentedCharacterMenuIsOpen = true
+        this.getModel().selectLeft()
       }
       this.lastKeydownBeforeKeypress = null
     } else {
@@ -686,18 +685,42 @@ class TextEditorComponent {
     }
   }
 
-  didKeypress () {
+  didKeypress (event) {
     this.lastKeydownBeforeKeypress = this.lastKeydown
     this.lastKeydown = null
 
     // This cancels the accented character behavior if we type a key normally
     // with the menu open.
-    this.openedAccentedCharacterMenu = false
+    this.accentedCharacterMenuIsOpen = false
   }
 
-  didKeyup () {
+  didKeyup (event) {
     this.lastKeydownBeforeKeypress = null
     this.lastKeydown = null
+  }
+
+  // The IME composition events work like this:
+  //
+  // User types 's', chromium pops up the completion helper
+  //   1. compositionstart fired
+  //   2. compositionupdate fired; event.data == 's'
+  // User hits arrow keys to move around in completion helper
+  //   3. compositionupdate fired; event.data == 's' for each arry key press
+  // User escape to cancel
+  //   4. compositionend fired
+  // OR User chooses a completion
+  //   4. compositionend fired
+  //   5. textInput fired; event.data == the completion string
+  didCompositionStart (event) {
+    this.compositionCheckpoint = this.getModel().createCheckpoint()
+  }
+
+  didCompositionUpdate (event) {
+    this.getModel().insertText(event.data, {select: true})
+  }
+
+  didCompositionEnd (event) {
+    event.target.value = ''
   }
 
   didRequestAutoscroll (autoscroll) {
