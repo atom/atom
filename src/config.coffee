@@ -401,10 +401,12 @@ class Config
   constructor: ({@notificationManager, @enablePersistence}={}) ->
     @clear()
 
-  initialize: ({@configDirPath, @resourcePath}) ->
+  initialize: ({@configDirPath, @resourcePath, projectHomeSchema}) ->
     if @enablePersistence?
       @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
       @configFilePath ?= path.join(@configDirPath, 'config.cson')
+
+    @schema.properties.core.properties.projectHome = projectHomeSchema
 
   clear: ->
     @emitter = new Emitter
