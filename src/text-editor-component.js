@@ -31,7 +31,7 @@ class TextEditorComponent {
     this.textNodesByScreenLineId = new Map()
     this.pendingAutoscroll = null
     this.autoscrollTop = null
-    this.contentWidthOrHeightChanged = false
+    this.contentDimensionsChanged = false
     this.previousScrollWidth = 0
     this.previousScrollHeight = 0
     this.lastKeydown = null
@@ -60,6 +60,8 @@ class TextEditorComponent {
   }
 
   scheduleUpdate () {
+    if (!this.visible) return
+
     if (this.updatedSynchronously) {
       this.updateSync()
     } else if (!this.updateScheduled) {
@@ -79,7 +81,7 @@ class TextEditorComponent {
     }
 
     this.horizontalPositionsToMeasure.clear()
-    if (this.contentWidthOrHeightChanged) this.measureClientDimensions()
+    if (this.contentDimensionsChanged) this.measureClientDimensions()
     if (this.pendingAutoscroll) this.initiateAutoscroll()
     this.populateVisibleRowRange()
     const longestLineToMeasure = this.checkForNewLongestLine()
@@ -175,7 +177,7 @@ class TextEditorComponent {
     if (this.measurements) {
       const startRow = this.getRenderedStartRow()
       const endRow = this.getRenderedEndRow()
-      const renderedRowCount = endRow - startRow
+      const renderedRowCount = this.getRenderedRowCount()
       const bufferRows = new Array(renderedRowCount)
       const foldableFlags = new Array(renderedRowCount)
       const softWrappedFlags = new Array(renderedRowCount)
@@ -231,7 +233,7 @@ class TextEditorComponent {
       const contentWidth = this.getContentWidth()
       const scrollHeight = this.getScrollHeight()
       if (contentWidth !== this.previousScrollWidth || scrollHeight !== this.previousScrollHeight) {
-        this.contentWidthOrHeightChanged = true
+        this.contentDimensionsChanged = true
         this.previousScrollWidth = contentWidth
         this.previousScrollHeight = scrollHeight
       }
@@ -866,7 +868,7 @@ class TextEditorComponent {
       this.getModel().setWidth(clientWidth - this.getGutterContainerWidth(), true)
       clientDimensionsChanged = true
     }
-    this.contentWidthOrHeightChanged = false
+    this.contentDimensionsChanged = false
     return clientDimensionsChanged
   }
 
@@ -1006,6 +1008,7 @@ class TextEditorComponent {
 
   observeModel () {
     const {model} = this.props
+    model.component = this
     const scheduleUpdate = this.scheduleUpdate.bind(this)
     this.disposables.add(model.selectionsMarkerLayer.onDidUpdate(scheduleUpdate))
     this.disposables.add(model.displayLayer.onDidChangeSync(scheduleUpdate))
@@ -1044,7 +1047,17 @@ class TextEditorComponent {
   }
 
   getScrollHeight () {
-    return this.getModel().getApproximateScreenLineCount() * this.measurements.lineHeight
+    const model = this.getModel()
+    const contentHeight = model.getApproximateScreenLineCount() * this.measurements.lineHeight
+    if (model.getScrollPastEnd()) {
+      const extraScrollHeight = Math.max(
+        3 * this.measurements.lineHeight,
+        this.getClientHeight() - 3 * this.measurements.lineHeight
+      )
+      return contentHeight + extraScrollHeight
+    } else {
+      return contentHeight
+    }
   }
 
   getScrollWidth () {
@@ -1098,8 +1111,12 @@ class TextEditorComponent {
     )
   }
 
+  getRenderedRowCount () {
+    return Math.max(0, this.getRenderedEndRow() - this.getRenderedStartRow())
+  }
+
   getRenderedTileCount () {
-    return Math.ceil((this.getRenderedEndRow() - this.getRenderedStartRow()) / this.getRowsPerTile())
+    return Math.ceil(this.getRenderedRowCount() / this.getRowsPerTile())
   }
 
   getFirstVisibleRow () {

@@ -86,6 +86,31 @@ describe('TextEditorComponent', () => {
     // TODO: Confirm that we'll update this value as indexing proceeds
   })
 
+  it('honors the scrollPastEnd option by adding empty space equivalent to the clientHeight to the end of the content area', async () => {
+    const {component, element, editor} = buildComponent()
+    const {scroller} = component.refs
+
+    await editor.update({scrollPastEnd: true})
+    await setEditorHeightInLines(component, 6)
+
+    // scroll to end
+    scroller.scrollTop = scroller.scrollHeight - scroller.clientHeight
+    await component.getNextUpdatePromise()
+    expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() - 3)
+
+    editor.update({scrollPastEnd: false})
+    await component.getNextUpdatePromise() // wait for scrollable content resize
+    await component.getNextUpdatePromise() // wait for async scroll event due to scrollbar shrinking
+    expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() - 6)
+
+    // Always allows at least 3 lines worth of overscroll if the editor is short
+    await setEditorHeightInLines(component, 2)
+    await editor.update({scrollPastEnd: true})
+    scroller.scrollTop = scroller.scrollHeight - scroller.clientHeight
+    await component.getNextUpdatePromise()
+    expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() + 1)
+  })
+
   it('gives the line number gutter an explicit width and height so its layout can be strictly contained', () => {
     const {component, element, editor} = buildComponent({rowsPerTile: 3})
 
@@ -187,7 +212,7 @@ describe('TextEditorComponent', () => {
       '    right = [];'
     )
 
-    await setBaseCharacterWidth(component, 45)
+    await setEditorWidthInCharacters(component, 45)
     expect(lineNodeForScreenRow(component, 3).textContent).toBe(
       '    var pivot = items.shift(), current, left '
     )
@@ -331,7 +356,7 @@ describe('TextEditorComponent', () => {
     it('does not horizontally autoscroll by more than half of the visible "base-width" characters if the editor is narrower than twice the scroll margin', async () => {
       const {component, element, editor} = buildComponent()
       const {scroller, gutterContainer} = component.refs
-      await setBaseCharacterWidth(component, 1.5 * editor.horizontalScrollMargin)
+      await setEditorWidthInCharacters(component, 1.5 * editor.horizontalScrollMargin)
 
       const contentWidth = scroller.clientWidth - gutterContainer.offsetWidth
       const contentWidthInCharacters = Math.floor(contentWidth / component.measurements.baseCharacterWidth)
@@ -591,7 +616,12 @@ function getBaseCharacterWidth (component) {
   )
 }
 
-async function setBaseCharacterWidth (component, widthInCharacters) {
+async function setEditorHeightInLines(component, heightInLines) {
+  component.element.style.height = component.measurements.lineHeight * heightInLines + 'px'
+  await component.getNextUpdatePromise()
+}
+
+async function setEditorWidthInCharacters (component, widthInCharacters) {
   component.element.style.width =
     component.getGutterContainerWidth() +
     widthInCharacters * component.measurements.baseCharacterWidth +
