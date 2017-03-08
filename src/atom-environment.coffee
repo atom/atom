@@ -152,6 +152,51 @@ class AtomEnvironment extends Model
     @commands = new CommandRegistry
     @grammars = new GrammarRegistry({@config})
     @styles = new StyleManager()
+    @packages = new PackageManager({
+      @config, styleManager: @styles,
+      commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
+      grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views
+    })
+    @themes = new ThemeManager({
+      packageManager: @packages, @config, styleManager: @styles,
+      notificationManager: @notifications, viewRegistry: @views
+    })
+    @menu = new MenuManager({keymapManager: @keymaps, packageManager: @packages})
+    @contextMenu = new ContextMenuManager({keymapManager: @keymaps})
+    @packages.setMenuManager(@menu)
+    @packages.setContextMenuManager(@contextMenu)
+    @packages.setThemeManager(@themes)
+
+    @project = new Project({notificationManager: @notifications, packageManager: @packages, @config, @applicationDelegate})
+    @commandInstaller = new CommandInstaller(@applicationDelegate)
+
+    @textEditors = new TextEditorRegistry({
+      @config, grammarRegistry: @grammars, assert: @assert.bind(this),
+      packageManager: @packages
+    })
+
+    @workspace = new Workspace({
+      @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
+      notificationManager: @notifications, @applicationDelegate, viewRegistry: @views, assert: @assert.bind(this),
+      textEditorRegistry: @textEditors,
+    })
+
+    @themes.workspace = @workspace
+
+    @autoUpdater = new AutoUpdateManager({@applicationDelegate})
+
+    @keymaps.loadBundledKeymaps()
+    @registerDefaultCommands()
+    @registerDefaultOpeners()
+    @registerDefaultDeserializers()
+    @registerDefaultViewProviders()
+
+    @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate})
+
+    @history = new HistoryManager({@project, @commands})
+    # Keep instances of HistoryManager in sync
+    @disposables.add @history.onDidChangeProjects (e) =>
+      @applicationDelegate.didChangeHistoryManager() unless e.reloaded
 
   initialize: (params={}) ->
     {@window, @document, @blobStore, @configDirPath, onlyLoadBaseStyleSheets} = params
@@ -184,44 +229,14 @@ class AtomEnvironment extends Model
     @commands.attach(@window)
 
     @styles.initialize({@configDirPath})
+    @packages.initialize({devMode, @configDirPath, resourcePath, safeMode})
+    @themes.initialize({@configDirPath, resourcePath, safeMode})
 
-    @packages = new PackageManager({
-      devMode, @configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
-      commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
-      grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views
-    })
-
-    @themes = new ThemeManager({
-      packageManager: @packages, @configDirPath, resourcePath, safeMode, @config,
-      styleManager: @styles, notificationManager: @notifications, viewRegistry: @views
-    })
-
-    @menu = new MenuManager({resourcePath, keymapManager: @keymaps, packageManager: @packages})
-
-    @contextMenu = new ContextMenuManager({resourcePath, devMode, keymapManager: @keymaps})
-
-    @packages.setMenuManager(@menu)
-    @packages.setContextMenuManager(@contextMenu)
-    @packages.setThemeManager(@themes)
-
-    @project = new Project({notificationManager: @notifications, packageManager: @packages, @config, @applicationDelegate})
-
-    @commandInstaller = new CommandInstaller(@getVersion(), @applicationDelegate)
-
-    @textEditors = new TextEditorRegistry({
-      @config, grammarRegistry: @grammars, assert: @assert.bind(this),
-      packageManager: @packages
-    })
-
-    @workspace = new Workspace({
-      @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
-      notificationManager: @notifications, @applicationDelegate, viewRegistry: @views, assert: @assert.bind(this),
-      textEditorRegistry: @textEditors,
-    })
-
-    @themes.workspace = @workspace
-
-    @autoUpdater = new AutoUpdateManager({@applicationDelegate})
+    @menu.initialize({resourcePath})
+    @contextMenu.initialize({resourcePath, devMode})
+    @commandInstaller.initialize(@getVersion())
+    @workspace.initialize()
+    @autoUpdater.initialize()
 
     @config.load()
 
@@ -234,23 +249,14 @@ class AtomEnvironment extends Model
     @document.head.appendChild(@stylesElement)
 
     @keymaps.subscribeToFileReadFailure()
-    @keymaps.loadBundledKeymaps()
-
-    @registerDefaultCommands()
-    @registerDefaultOpeners()
-    @registerDefaultDeserializers()
-    @registerDefaultViewProviders()
 
     @installUncaughtErrorHandler()
     @attachSaveStateListeners()
-    @installWindowEventHandler()
+    @windowEventHandler.initialize(@window, @document)
 
     @observeAutoHideMenuBar()
 
-    @history = new HistoryManager({@project, @commands, @stateStore, localStorage: window.localStorage})
-    # Keep instances of HistoryManager in sync
-    @disposables.add @history.onDidChangeProjects (e) =>
-      @applicationDelegate.didChangeHistoryManager() unless e.reloaded
+    @history.initialize(@stateStore, @window.localStorage)
     @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
 
   attachSaveStateListeners: ->
@@ -786,9 +792,6 @@ class AtomEnvironment extends Model
 
   uninstallUncaughtErrorHandler: ->
     @window.onerror = @previousWindowErrorHandler
-
-  installWindowEventHandler: ->
-    @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate, @window, @document})
 
   uninstallWindowEventHandler: ->
     @windowEventHandler?.unsubscribe()

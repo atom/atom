@@ -30,6 +30,7 @@ module.exports = class Workspace extends Model {
     this.updateWindowTitle = this.updateWindowTitle.bind(this)
     this.updateDocumentEdited = this.updateDocumentEdited.bind(this)
     this.didDestroyPaneItem = this.didDestroyPaneItem.bind(this)
+    this.didChangeActivePaneItem = this.didChangeActivePaneItem.bind(this)
 
     this.packageManager = params.packageManager
     this.config = params.config
@@ -68,6 +69,11 @@ module.exports = class Workspace extends Model {
     }
 
     this.subscribeToEvents()
+  }
+
+  initialize () {
+    this.paneContainer.initialize()
+    this.didChangeActivePaneItem()
   }
 
   reset (packageManager) {
@@ -170,46 +176,44 @@ module.exports = class Workspace extends Model {
   }
 
   subscribeToActiveItem () {
+    this.project.onDidChangePaths(this.updateWindowTitle)
+    this.onDidChangeActivePaneItem(this.didChangeActivePaneItem)
+  }
+
+  didChangeActivePaneItem (item) {
     this.updateWindowTitle()
     this.updateDocumentEdited()
-    this.project.onDidChangePaths(this.updateWindowTitle)
+    if (this.activeItemSubscriptions != null) {
+      this.activeItemSubscriptions.dispose()
+    }
+    this.activeItemSubscriptions = new CompositeDisposable()
 
-    this.observeActivePaneItem(item => {
-      this.updateWindowTitle()
-      this.updateDocumentEdited()
+    let modifiedSubscription, titleSubscription
 
-      if (this.activeItemSubscriptions != null) {
-        this.activeItemSubscriptions.dispose()
+    if (item != null && typeof item.onDidChangeTitle === 'function') {
+      titleSubscription = item.onDidChangeTitle(this.updateWindowTitle)
+    } else if (item != null && typeof item.on === 'function') {
+      titleSubscription = item.on('title-changed', this.updateWindowTitle)
+      if (titleSubscription == null || typeof titleSubscription.dispose !== 'function') {
+        titleSubscription = new Disposable(() => {
+          item.off('title-changed', this.updateWindowTitle)
+        })
       }
-      this.activeItemSubscriptions = new CompositeDisposable()
+    }
 
-      let modifiedSubscription, titleSubscription
-
-      if (item != null && typeof item.onDidChangeTitle === 'function') {
-        titleSubscription = item.onDidChangeTitle(this.updateWindowTitle)
-      } else if (item != null && typeof item.on === 'function') {
-        titleSubscription = item.on('title-changed', this.updateWindowTitle)
-        if (titleSubscription == null || typeof titleSubscription.dispose !== 'function') {
-          titleSubscription = new Disposable(() => {
-            item.off('title-changed', this.updateWindowTitle)
-          })
-        }
+    if (item != null && typeof item.onDidChangeModified === 'function') {
+      modifiedSubscription = item.onDidChangeModified(this.updateDocumentEdited)
+    } else if (item != null && typeof item.on === 'function') {
+      modifiedSubscription = item.on('modified-status-changed', this.updateDocumentEdited)
+      if (modifiedSubscription == null || typeof modifiedSubscription.dispose !== 'function') {
+        modifiedSubscription = new Disposable(() => {
+          item.off('modified-status-changed', this.updateDocumentEdited)
+        })
       }
+    }
 
-      if (item != null && typeof item.onDidChangeModified === 'function') {
-        modifiedSubscription = item.onDidChangeModified(this.updateDocumentEdited)
-      } else if (item != null && typeof item.on === 'function') {
-        modifiedSubscription = item.on('modified-status-changed', this.updateDocumentEdited)
-        if (modifiedSubscription == null || typeof modifiedSubscription.dispose !== 'function') {
-          modifiedSubscription = new Disposable(() => {
-            item.off('modified-status-changed', this.updateDocumentEdited)
-          })
-        }
-      }
-
-      if (titleSubscription != null) { this.activeItemSubscriptions.add(titleSubscription) }
-      if (modifiedSubscription != null) { this.activeItemSubscriptions.add(modifiedSubscription) }
-    })
+    if (titleSubscription != null) { this.activeItemSubscriptions.add(titleSubscription) }
+    if (modifiedSubscription != null) { this.activeItemSubscriptions.add(modifiedSubscription) }
   }
 
   subscribeToAddedItems () {

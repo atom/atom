@@ -60,11 +60,16 @@ platformMenu = require('../package.json')?._atomMenu?.menu
 module.exports =
 class MenuManager
   constructor: ({@resourcePath, @keymapManager, @packageManager}) ->
+    @initialized = false
     @pendingUpdateOperation = null
     @template = []
     @keymapManager.onDidLoadBundledKeymaps => @loadPlatformItems()
-    @keymapManager.onDidReloadKeymap => @update()
     @packageManager.onDidActivateInitialPackages => @sortPackagesMenu()
+
+  initialize: ({@resourcePath}) ->
+    @keymapManager.onDidReloadKeymap => @update()
+    @update()
+    @initialized = true
 
   # Public: Adds the given items to the application menu.
   #
@@ -89,7 +94,7 @@ class MenuManager
   add: (items) ->
     items = _.deepClone(items)
     @merge(@template, item) for item in items
-    @update()
+    @update() if @initialized
     new Disposable => @remove(items)
 
   remove: (items) ->

@@ -30,9 +30,8 @@ module.exports =
 class PackageManager
   constructor: (params) ->
     {
-      configDirPath, @devMode, safeMode, @resourcePath, @config, @styleManager,
-      @notificationManager, @keymapManager, @commandRegistry, @grammarRegistry,
-      @deserializerManager, @viewRegistry
+      @config, @styleManager, @notificationManager, @keymapManager,
+      @commandRegistry, @grammarRegistry, @deserializerManager, @viewRegistry
     } = params
 
     @emitter = new Emitter
@@ -40,11 +39,6 @@ class PackageManager
     @packageDirPaths = []
     @deferredActivationHooks = []
     @triggeredActivationHooks = new Set()
-    if configDirPath? and not safeMode
-      if @devMode
-        @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
-      @packageDirPaths.push(path.join(configDirPath, "packages"))
-
     @packagesCache = require('../package.json')?._atomPackages ? {}
     @initialPackagesLoaded = false
     @initialPackagesActivated = false
@@ -56,6 +50,13 @@ class PackageManager
 
     @packageActivators = []
     @registerPackageActivator(this, ['atom', 'textmate'])
+
+  initialize: (params) ->
+    {configDirPath, @devMode, safeMode, @resourcePath} = params
+    if configDirPath? and not safeMode
+      if @devMode
+        @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
+      @packageDirPaths.push(path.join(configDirPath, "packages"))
 
   setContextMenuManager: (@contextMenuManager) ->
 

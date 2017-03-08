@@ -91,22 +91,25 @@ class CommandRegistry
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added command handler(s).
-  add: (target, commandName, callback) ->
+  add: (target, commandName, callback, throwOnInvalidSelector = true) ->
     if typeof commandName is 'object'
       commands = commandName
       disposable = new CompositeDisposable
       for commandName, callback of commands
-        disposable.add @add(target, commandName, callback)
+        disposable.add @add(target, commandName, callback, throwOnInvalidSelector)
       return disposable
 
     if typeof callback isnt 'function'
       throw new Error("Can't register a command with non-function callback.")
 
     if typeof target is 'string'
-      validateSelector(target)
+      validateSelector(target) if throwOnInvalidSelector
       @addSelectorBasedListener(target, commandName, callback)
     else
       @addInlineListener(target, commandName, callback)
+
+  addBundled: (target, commandName, callback) ->
+    @add(target, commandName, callback, false)
 
   addSelectorBasedListener: (selector, commandName, callback) ->
     @selectorBasedListenersByCommandName[commandName] ?= []
