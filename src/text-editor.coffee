@@ -344,7 +344,7 @@ class TextEditor extends Model
         when 'scrollPastEnd'
           if value isnt @scrollPastEnd
             @scrollPastEnd = value
-            @presenter?.didChangeScrollPastEnd()
+            @component?.scheduleUpdate()
 
         when 'autoHeight'
           if value isnt @autoHeight
@@ -367,8 +367,8 @@ class TextEditor extends Model
 
     @displayLayer.reset(displayLayerParams)
 
-    if @editorElement?
-      @editorElement.views.getNextUpdatePromise()
+    if @component?
+      @component.getNextUpdatePromise()
     else
       Promise.resolve()
 
@@ -3541,7 +3541,7 @@ class TextEditor extends Model
 
   # Get the Element for the editor.
   getElement: ->
-    @component ?= new TextEditorComponent({model: this})
+    new TextEditorComponent({model: this})
     @component.element
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
