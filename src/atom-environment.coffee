@@ -874,12 +874,12 @@ class AtomEnvironment extends Model
 
     @blobStore.save()
 
-  saveState: (options) ->
+  saveState: (options, storageKey) ->
     new Promise (resolve, reject) =>
       if @enablePersistence and @project
         state = @serialize(options)
         savePromise =
-          if storageKey = @getStateKey(@project?.getPaths())
+          if storageKey ?= @getStateKey(@project?.getPaths())
             @stateStore.save(storageKey, state)
           else
             @applicationDelegate.setTemporaryWindowState(state)
@@ -887,9 +887,9 @@ class AtomEnvironment extends Model
       else
         resolve()
 
-  loadState: ->
+  loadState: (stateKey) ->
     if @enablePersistence
-      if stateKey = @getStateKey(@getLoadSettings().initialPaths)
+      if stateKey ?= @getStateKey(@getLoadSettings().initialPaths)
         @stateStore.load(stateKey).then (state) =>
           if state
             state
