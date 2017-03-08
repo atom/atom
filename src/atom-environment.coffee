@@ -1008,6 +1008,10 @@ class AtomEnvironment extends Model
       unless fs.isDirectorySync(pathToOpen)
         @workspace?.open(pathToOpen, {initialLine, initialColumn})
 
+    if needsProjectPaths
+      @loadState(@getStateKey(@project.getPaths())).then (state) =>
+        @restoreStateIntoEnvironment(state) if state
+
     return
 
 # Preserve this deprecation until 2.0. Sorry. Should have removed Q sooner.
