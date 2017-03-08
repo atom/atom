@@ -112,7 +112,7 @@ class AtomApplication
   launch: (options) ->
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test or options.benchmark or options.benchmarkTest
       if @config.get('core.restorePreviousWindowsOnStart') is 'always'
-        @loadState(clone(options))
+        @loadState(_.cloneDeep(options))
       @openWithOptions(options)
     else
       @loadState(options) or @openPath(options)
@@ -814,10 +814,3 @@ class AtomApplication
       args.push("--resource-path=#{@resourcePath}")
     app.relaunch({args})
     app.quit()
-
-  clone = (obj) ->
-    return obj if obj is null or typeof (obj) isnt "object"
-    temp = new obj.constructor()
-    for key of obj
-      temp[key] = clone(obj[key])
-    temp
