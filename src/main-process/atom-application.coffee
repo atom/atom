@@ -111,7 +111,7 @@ class AtomApplication
 
   launch: (options) ->
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test or options.benchmark or options.benchmarkTest
-      if @config.get('core.restorePreviousWindowsOnStartAlways')
+      if @config.get('core.restorePreviousWindowsOnStart') is 'always'
         @loadState(clone(options))
       @openWithOptions(options)
     else
@@ -601,7 +601,7 @@ class AtomApplication
       @storageFolder.storeSync('application.json', states)
 
   loadState: (options) ->
-    if (@config.get('core.restorePreviousWindowsOnStartAlways') or @config.get('core.restorePreviousWindowsOnStart')) and (states = @storageFolder.load('application.json'))?.length > 0
+    if (@config.get('core.restorePreviousWindowsOnStart') in ['yes', 'always']) and (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
         @openWithOptions(Object.assign(options, {
           initialPaths: state.initialPaths
