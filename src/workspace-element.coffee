@@ -51,7 +51,7 @@ class WorkspaceElement extends HTMLElement
         line-height: #{@config.get('editor.lineHeight')};
       }
     """
-    @styles.addStyleSheet(styleSheetSource, sourcePath: 'global-text-editor-styles')
+    @styles.addStyleSheet(styleSheetSource, {sourcePath: 'global-text-editor-styles', priority: -1})
     @views.performDocumentPoll()
 
   initialize: (@model, {@views, @workspace, @project, @config, @styles}) ->

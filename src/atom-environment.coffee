@@ -233,7 +233,6 @@ class AtomEnvironment extends Model
 
     @config.load()
 
-    @themes.loadBaseStylesheets()
     @initialStyleElements = @styles.getSnapshot()
     @themes.initialLoadComplete = true if onlyLoadBaseStyleSheets
     @setBodyPlatformClass()
