@@ -73,6 +73,11 @@ class AtomApplication
     @config.load()
     @fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, "recovery"))
     @storageFolder = new StorageFolder(process.env.ATOM_HOME)
+    @autoUpdateManager = new AutoUpdateManager(
+      @version,
+      options.test or options.benchmark or options.benchmarkTest,
+      @config
+    )
 
     @disposable = new CompositeDisposable
     @handleEvents()
@@ -92,9 +97,7 @@ class AtomApplication
     
     @config.onDidChange 'core.titleBar', @promptForRestart.bind(this)
 
-    @autoUpdateManager = new AutoUpdateManager(
-      @version, options.test or options.benchmark or options.benchmarkTest, @resourcePath, @config
-    )
+    process.nextTick => @autoUpdateManager.initialize()
     @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
