@@ -7,6 +7,7 @@ const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 const fs = require('fs-plus')
 const {Directory} = require('pathwatcher')
 const DefaultDirectorySearcher = require('./default-directory-searcher')
+const Dock = require('./dock')
 const Model = require('./model')
 const TextEditor = require('./text-editor')
 const PaneContainer = require('./pane-container')
@@ -42,6 +43,8 @@ module.exports = class Workspace extends Model {
     this.assert = params.assert
     this.deserializerManager = params.deserializerManager
     this.textEditorRegistry = params.textEditorRegistry
+    this.hoveredDock = null
+    this.draggingItem = false
 
     this.emitter = new Emitter()
     this.openers = []
@@ -59,18 +62,36 @@ module.exports = class Workspace extends Model {
     this.consumeServices(this.packageManager)
 
     this.center = new WorkspaceCenter(this.paneContainer)
+    this.docks = {
+      left: this.createDock('left'),
+      right: this.createDock('right'),
+      bottom: this.createDock('bottom')
+    }
 
     this.panelContainers = {
       top: new PanelContainer({location: 'top'}),
-      left: new PanelContainer({location: 'left'}),
-      right: new PanelContainer({location: 'right'}),
-      bottom: new PanelContainer({location: 'bottom'}),
+      left: new PanelContainer({location: 'left', dock: this.docks.left}),
+      right: new PanelContainer({location: 'right', dock: this.docks.right}),
+      bottom: new PanelContainer({location: 'bottom', dock: this.docks.bottom}),
       header: new PanelContainer({location: 'header'}),
       footer: new PanelContainer({location: 'footer'}),
       modal: new PanelContainer({location: 'modal'})
     }
 
     this.subscribeToEvents()
+  }
+
+  createDock (location) {
+    const dock = new Dock({
+      location,
+      config: this.config,
+      applicationDelegate: this.applicationDelegate,
+      deserializerManager: this.deserializerManager,
+      notificationManager: this.notificationManager,
+      viewRegistry: this.viewRegistry
+    })
+    dock.onDidDestroyPaneItem(this.didDestroyPaneItem)
+    return dock
   }
 
   reset (packageManager) {
@@ -89,11 +110,18 @@ module.exports = class Workspace extends Model {
     })
     this.paneContainer.onDidDestroyPaneItem(this.didDestroyPaneItem)
 
+    this.center = new WorkspaceCenter(this.paneContainer)
+    this.docks = {
+      left: this.createDock('left'),
+      right: this.createDock('right'),
+      bottom: this.createDock('bottom')
+    }
+
     this.panelContainers = {
       top: new PanelContainer({location: 'top'}),
-      left: new PanelContainer({location: 'left'}),
-      right: new PanelContainer({location: 'right'}),
-      bottom: new PanelContainer({location: 'bottom'}),
+      left: new PanelContainer({location: 'left', dock: this.docks.left}),
+      right: new PanelContainer({location: 'right', dock: this.docks.right}),
+      bottom: new PanelContainer({location: 'bottom', dock: this.docks.bottom}),
       header: new PanelContainer({location: 'header'}),
       footer: new PanelContainer({location: 'footer'}),
       modal: new PanelContainer({location: 'modal'})
@@ -170,6 +198,19 @@ module.exports = class Workspace extends Model {
     }
 
     return _.uniq(packageNames)
+  }
+
+  setHoveredDock (hoveredDock) {
+    this.hoveredDock = hoveredDock
+    _.values(this.docks).forEach(dock => {
+      dock.setHovered(dock === hoveredDock)
+    })
+  }
+
+  setDraggingItem (draggingItem) {
+    _.values(this.docks).forEach(dock => {
+      dock.setDraggingItem(draggingItem)
+    })
   }
 
   subscribeToActiveItem () {

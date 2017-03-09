@@ -5,8 +5,9 @@
 const {ipcRenderer} = require('electron')
 const path = require('path')
 const fs = require('fs-plus')
-const {CompositeDisposable} = require('event-kit')
+const {CompositeDisposable, Disposable} = require('event-kit')
 const scrollbarStyle = require('scrollbar-style')
+const _ = require('underscore-plus')
 
 class WorkspaceElement extends HTMLElement {
   attachedCallback () {
@@ -64,6 +65,14 @@ class WorkspaceElement extends HTMLElement {
   }
 
   initialize (model, {views, workspace, project, config, styles}) {
+    this.handleCenterEnter = this.handleCenterEnter.bind(this)
+    this.handleCenterLeave = this.handleCenterLeave.bind(this)
+    this.handleEdgesMouseMove = _.throttle(this.handleEdgesMouseMove.bind(this), 100)
+    this.handleDockDragEnd = this.handleDockDragEnd.bind(this)
+    this.handleDragStart = this.handleDragStart.bind(this)
+    this.handleDragEnd = this.handleDragEnd.bind(this)
+    this.handleDrop = this.handleDrop.bind(this)
+
     this.model = model
     this.views = views
     this.workspace = workspace
@@ -76,7 +85,17 @@ class WorkspaceElement extends HTMLElement {
     if (this.config == null) { throw new Error('Must pass a config parameter when initializing WorskpaceElements') }
     if (this.styles == null) { throw new Error('Must pass a styles parameter when initializing WorskpaceElements') }
 
-    this.subscriptions = new CompositeDisposable()
+    this.subscriptions = new CompositeDisposable(
+      new Disposable(() => {
+        window.removeEventListener('mouseenter', this.handleCenterEnter)
+        window.removeEventListener('mouseleave', this.handleCenterLeave)
+        window.removeEventListener('mousemove', this.handleEdgesMouseMove)
+        window.removeEventListener('dragend', this.handleDockDragEnd)
+        window.removeEventListener('dragstart', this.handleDragStart)
+        window.removeEventListener('dragend', this.handleDragEnd, true)
+        window.removeEventListener('drop', this.handleDrop, true)
+      })
+    )
     this.initializeContent()
     this.observeScrollbarStyle()
     this.observeTextEditorFontConfig()
@@ -86,6 +105,7 @@ class WorkspaceElement extends HTMLElement {
     this.addEventListener('focus', this.handleFocus.bind(this))
 
     this.addEventListener('mousewheel', this.handleMousewheel.bind(this), true)
+    window.addEventListener('dragstart', this.handleDragStart)
 
     this.panelContainers = {
       top: this.views.getView(this.model.panelContainers.top),
@@ -108,10 +128,85 @@ class WorkspaceElement extends HTMLElement {
 
     this.appendChild(this.panelContainers.modal)
 
+    this.paneContainer.addEventListener('mouseenter', this.handleCenterEnter)
+    this.paneContainer.addEventListener('mouseleave', this.handleCenterLeave)
+
     return this
   }
 
   getModel () { return this.model }
+
+  handleDragStart (event) {
+    if (!isTab(event.target)) return
+    this.model.setDraggingItem(true)
+    window.addEventListener('dragend', this.handleDragEnd, true)
+    window.addEventListener('drop', this.handleDrop, true)
+  }
+
+  handleDragEnd (event) {
+    this.dragEnded()
+  }
+
+  handleDrop (event) {
+    this.dragEnded()
+  }
+
+  dragEnded () {
+    this.model.setDraggingItem(false)
+    window.removeEventListener('dragend', this.handleDragEnd, true)
+    window.removeEventListener('drop', this.handleDrop, true)
+  }
+
+  handleCenterEnter (event) {
+    // Just re-entering the center isn't enough to hide the dock toggle buttons, since they poke
+    // into the center and we want to give an affordance.
+    this.cursorInCenter = true
+    this.checkCleanupDockHoverEvents()
+  }
+
+  handleCenterLeave (event) {
+    // If the cursor leaves the center, we start listening to determine whether one of the docs is
+    // being hovered.
+    this.cursorInCenter = false
+    this.updateHoveredDock({x: event.pageX, y: event.pageY})
+    window.addEventListener('mousemove', this.handleEdgesMouseMove)
+    window.addEventListener('dragend', this.handleDockDragEnd)
+  }
+
+  handleEdgesMouseMove (event) {
+    this.updateHoveredDock({x: event.pageX, y: event.pageY})
+  }
+
+  handleDockDragEnd (event) {
+    this.updateHoveredDock({x: event.pageX, y: event.pageY})
+  }
+
+  updateHoveredDock (mousePosition) {
+    // See if we've left the currently hovered dock's area.
+    if (this.model.hoveredDock) {
+      const hideToggleButton = !this.model.hoveredDock.pointWithinHoverArea(mousePosition, true)
+      if (hideToggleButton) {
+        this.model.setHoveredDock(null)
+      }
+    }
+    // See if we've moved over a dock.
+    if (this.model.hoveredDock == null) {
+      const hoveredDock = _.values(this.model.docks).find(
+        dock => dock.pointWithinHoverArea(mousePosition, false)
+      )
+      if (hoveredDock != null) {
+        this.model.setHoveredDock(hoveredDock)
+      }
+    }
+    this.checkCleanupDockHoverEvents()
+  }
+
+  checkCleanupDockHoverEvents () {
+    if (this.cursorInCenter && !this.model.hoveredDock) {
+      window.removeEventListener('mousemove', this.handleEdgesMouseMove)
+      window.removeEventListener('dragend', this.handleDockDragEnd)
+    }
+  }
 
   handleMousewheel (event) {
     if (event.ctrlKey && this.config.get('editor.zoomFontWhenCtrlScrolling') && (event.target.closest('atom-text-editor') != null)) {
@@ -182,3 +277,12 @@ class WorkspaceElement extends HTMLElement {
 }
 
 module.exports = document.registerElement('atom-workspace', {prototype: WorkspaceElement.prototype})
+
+function isTab (element) {
+  let el = element
+  while (el != null) {
+    if (el.getAttribute('is') === 'tabs-tab') { return true }
+    el = el.parentElement
+  }
+  return false
+}

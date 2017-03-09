@@ -19,6 +19,12 @@ class PanelContainerElement extends HTMLElement {
     this.subscriptions.add(this.model.onDidAddPanel(this.panelAdded.bind(this)))
     this.subscriptions.add(this.model.onDidDestroy(this.destroyed.bind(this)))
     this.classList.add(this.model.getLocation())
+
+    // Add the dock.
+    if (this.model.dock != null) {
+      this.appendChild(this.views.getView(this.model.dock))
+    }
+
     return this
   }
 
