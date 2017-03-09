@@ -204,7 +204,17 @@ class Package
       else
         context = undefined
 
-      @stylesheetDisposables.add(@styleManager.addStyleSheet(source, {sourcePath, priority, context}))
+      @stylesheetDisposables.add(
+        @styleManager.addStyleSheet(
+          source,
+          {
+            sourcePath,
+            priority,
+            context,
+            skipDeprecatedSelectorsTransformation: @bundledPackage
+          }
+        )
+      )
     @stylesheetsActivated = true
 
   activateResources: ->
