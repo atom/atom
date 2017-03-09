@@ -38,6 +38,7 @@ Panel = require './panel'
 PaneContainer = require './pane-container'
 PaneAxis = require './pane-axis'
 Pane = require './pane'
+Dock = require './dock'
 Project = require './project'
 TextEditor = require './text-editor'
 TextBuffer = require 'text-buffer'
@@ -254,6 +255,7 @@ class AtomEnvironment extends Model
     @deserializers.add(PaneContainer)
     @deserializers.add(PaneAxis)
     @deserializers.add(Pane)
+    @deserializers.add(Dock)
     @deserializers.add(Project)
     @deserializers.add(TextEditor)
     @deserializers.add(TextBuffer)
