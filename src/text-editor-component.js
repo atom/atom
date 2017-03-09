@@ -691,7 +691,7 @@ class TextEditorComponent {
     }
   }
 
-  didKeypress (event) {
+  didKeypress () {
     this.lastKeydownBeforeKeypress = this.lastKeydown
     this.lastKeydown = null
 
@@ -700,7 +700,7 @@ class TextEditorComponent {
     this.accentedCharacterMenuIsOpen = false
   }
 
-  didKeyup (event) {
+  didKeyup () {
     this.lastKeydownBeforeKeypress = null
     this.lastKeydown = null
   }
@@ -717,7 +717,7 @@ class TextEditorComponent {
   // OR User chooses a completion
   //   4. compositionend fired
   //   5. textInput fired; event.data == the completion string
-  didCompositionStart (event) {
+  didCompositionStart () {
     this.compositionCheckpoint = this.getModel().createCheckpoint()
   }
 
