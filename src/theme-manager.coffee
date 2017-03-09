@@ -18,6 +18,12 @@ class ThemeManager
     @packageManager.onDidActivateInitialPackages =>
       @onDidChangeActiveThemes => @packageManager.reloadActivePackageStyleSheets()
 
+    @lessSourcesByRelativeFilePath = null
+    if typeof snapshotAuxiliaryData is 'undefined'
+      @lessSourcesByRelativeFilePath = {}
+    else
+      @lessSourcesByRelativeFilePath = snapshotAuxiliaryData.lessSourcesByRelativeFilePath
+
   initialize: ({@resourcePath, @configDirPath, @safeMode}) ->
 
   ###
@@ -196,7 +202,7 @@ class ThemeManager
   loadLessStylesheet: (lessStylesheetPath, importFallbackVariables=false) ->
     unless @lessCache?
       LessCompileCache = require './less-compile-cache'
-      @lessCache = new LessCompileCache({@resourcePath, importPaths: @getImportPaths()})
+      @lessCache = new LessCompileCache({@resourcePath, @lessSourcesByRelativeFilePath, importPaths: @getImportPaths()})
 
     try
       if importFallbackVariables
@@ -204,7 +210,8 @@ class ThemeManager
         @import "variables/ui-variables";
         @import "variables/syntax-variables";
         """
-        less = fs.readFileSync(lessStylesheetPath, 'utf8')
+        relativeFilePath = path.relative(@resourcePath, lessStylesheetPath)
+        less = @lessSourcesByRelativeFilePath[relativeFilePath] ? fs.readFileSync(lessStylesheetPath, 'utf8')
         @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
       else
         @lessCache.read(lessStylesheetPath)

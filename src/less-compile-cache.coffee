@@ -6,7 +6,7 @@ module.exports =
 class LessCompileCache
   @cacheDir: path.join(process.env.ATOM_HOME, 'compile-cache', 'less')
 
-  constructor: ({resourcePath, importPaths}) ->
+  constructor: ({resourcePath, importPaths, lessSourcesByRelativeFilePath}) ->
     @lessSearchPaths = [
       path.join(resourcePath, 'static', 'variables')
       path.join(resourcePath, 'static')
@@ -21,6 +21,7 @@ class LessCompileCache
       cacheDir: @constructor.cacheDir
       importPaths: importPaths
       resourcePath: resourcePath
+      lessSourcesByRelativeFilePath: lessSourcesByRelativeFilePath
       fallbackDir: path.join(resourcePath, 'less-compile-cache')
 
   setImportPaths: (importPaths=[]) ->

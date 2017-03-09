@@ -28,6 +28,14 @@ module.exports = function () {
     }
   }
 
+  CONFIG.snapshotAuxiliaryData.lessSourcesByRelativeFilePath = {}
+  function saveIntoSnapshotAuxiliaryData (absoluteFilePath, contents) {
+    const relativeFilePath = path.relative(CONFIG.intermediateAppPath, absoluteFilePath)
+    if (!CONFIG.snapshotAuxiliaryData.lessSourcesByRelativeFilePath.hasOwnProperty(relativeFilePath)) {
+      CONFIG.snapshotAuxiliaryData.lessSourcesByRelativeFilePath[relativeFilePath] = contents
+    }
+  }
+
   // Warm cache for every combination of the default UI and syntax themes,
   // because themes assign variables which may be used in any style sheet.
   for (let uiTheme of uiThemes) {
@@ -52,6 +60,7 @@ module.exports = function () {
           lessSource = FALLBACK_VARIABLE_IMPORTS + lessSource
         }
         lessCache.cssForFile(lessFilePath, lessSource)
+        saveIntoSnapshotAuxiliaryData(lessFilePath, lessSource)
       }
 
       // Cache all styles in static; don't append variable imports
@@ -69,10 +78,24 @@ module.exports = function () {
       // Cache styles for this UI theme
       const uiThemeMainPath = path.join(CONFIG.intermediateAppPath, 'node_modules', uiTheme, 'index.less')
       cacheCompiledCSS(uiThemeMainPath, true)
+      for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', uiTheme, '**', '*.less'))) {
+        if (lessFilePath !== uiThemeMainPath) {
+          saveIntoSnapshotAuxiliaryData(lessFilePath, fs.readFileSync(lessFilePath, 'utf8'))
+        }
+      }
 
       // Cache styles for this syntax theme
       const syntaxThemeMainPath = path.join(CONFIG.intermediateAppPath, 'node_modules', syntaxTheme, 'index.less')
       cacheCompiledCSS(syntaxThemeMainPath, true)
+      for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', syntaxTheme, '**', '*.less'))) {
+        if (lessFilePath !== syntaxThemeMainPath) {
+          saveIntoSnapshotAuxiliaryData(lessFilePath, fs.readFileSync(lessFilePath, 'utf8'))
+        }
+      }
     }
+  }
+
+  for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', 'atom-ui', '**', '*.less'))) {
+    saveIntoSnapshotAuxiliaryData(lessFilePath, fs.readFileSync(lessFilePath, 'utf8'))
   }
 }

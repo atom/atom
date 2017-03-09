@@ -26,7 +26,8 @@ module.exports = {
   repositoryRootPath, apmRootPath, scriptRootPath,
   buildOutputPath, docsOutputPath, intermediateAppPath, symbolsPath,
   electronDownloadPath, atomHomeDirPath, homeDirPath,
-  getApmBinPath, getNpmBinPath
+  getApmBinPath, getNpmBinPath,
+  snapshotAuxiliaryData: {}
 }
 
 function getChannel () {
