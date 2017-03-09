@@ -14,12 +14,11 @@ module.exports =
 class AutoUpdateManager
   Object.assign @prototype, EventEmitter.prototype
 
-  constructor: (@version, @testMode, resourcePath, @config) ->
+  constructor: (@version, @testMode, @config) ->
     @state = IdleState
     @iconPath = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
-    process.nextTick => @setupAutoUpdater()
 
-  setupAutoUpdater: ->
+  initialize: ->
     if process.platform is 'win32'
       archSuffix = if process.arch is 'ia32' then '' else '-' + process.arch
       @feedUrl = "https://atom.io/api/updates#{archSuffix}?version=#{@version}"
