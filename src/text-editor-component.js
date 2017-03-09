@@ -1,8 +1,10 @@
 const etch = require('etch')
 const {CompositeDisposable} = require('event-kit')
-const $ = etch.dom
-const TextEditorElement = require('./text-editor-element')
+const {Point} = require('text-buffer')
 const resizeDetector = require('element-resize-detector')({strategy: 'scroll'})
+const TextEditorElement = require('./text-editor-element')
+const {isPairedCharacter} = require('./text-utils')
+const $ = etch.dom
 
 const DEFAULT_ROWS_PER_TILE = 6
 const NORMAL_WIDTH_CHARACTER = 'x'
@@ -311,11 +313,15 @@ class TextEditorComponent {
 
     return $.div({
       key: 'lineTiles',
+      ref: 'lineTiles',
       className: 'lines',
       style: {
         position: 'absolute',
         contain: 'strict',
         width, height
+      },
+      on: {
+        mousedown: this.didMouseDownOnLines
       }
     }, tileNodes)
   }
@@ -517,10 +523,10 @@ class TextEditorComponent {
       for (let i = 0, length = highlights.length; i < length; i++) {
         const highlight = highlights[i]
         const {start, end} = highlight.screenRange
-        highlight.startPixelTop = this.pixelTopForScreenRow(start.row)
-        highlight.startPixelLeft = this.pixelLeftForScreenRowAndColumn(start.row, start.column)
-        highlight.endPixelTop = this.pixelTopForScreenRow(end.row + 1)
-        highlight.endPixelLeft = this.pixelLeftForScreenRowAndColumn(end.row, end.column)
+        highlight.startPixelTop = this.pixelTopForRow(start.row)
+        highlight.startPixelLeft = this.pixelLeftForRowAndColumn(start.row, start.column)
+        highlight.endPixelTop = this.pixelTopForRow(end.row + 1)
+        highlight.endPixelLeft = this.pixelLeftForRowAndColumn(end.row, end.column)
       }
       this.decorationsToRender.highlights.set(tileRow, highlights)
     })
@@ -534,11 +540,11 @@ class TextEditorComponent {
       const cursor = this.decorationsToMeasure.cursors[i]
       const {row, column} = cursor.screenPosition
 
-      const pixelTop = this.pixelTopForScreenRow(row)
-      const pixelLeft = this.pixelLeftForScreenRowAndColumn(row, column)
+      const pixelTop = this.pixelTopForRow(row)
+      const pixelLeft = this.pixelLeftForRowAndColumn(row, column)
       const pixelRight = (cursor.columnWidth === 0)
         ? pixelLeft
-        : this.pixelLeftForScreenRowAndColumn(row, column + 1)
+        : this.pixelLeftForRowAndColumn(row, column + 1)
       const pixelWidth = pixelRight - pixelLeft
 
       const cursorPosition = {pixelTop, pixelLeft, pixelWidth}
@@ -729,6 +735,18 @@ class TextEditorComponent {
     event.target.value = ''
   }
 
+  didMouseDownOnLines (event) {
+    console.log(this.screenPositionForMouseEvent(event))
+  }
+
+  screenPositionForMouseEvent ({clientX, clientY}) {
+    const linesRect = this.refs.lineTiles.getBoundingClientRect()
+    return this.screenPositionForPixelPosition({
+      top: clientY - linesRect.top,
+      left: clientX - linesRect.left
+    })
+  }
+
   didRequestAutoscroll (autoscroll) {
     this.pendingAutoscroll = autoscroll
     this.scheduleUpdate()
@@ -737,8 +755,8 @@ class TextEditorComponent {
   initiateAutoscroll () {
     const {screenRange, options} = this.pendingAutoscroll
 
-    const screenRangeTop = this.pixelTopForScreenRow(screenRange.start.row)
-    const screenRangeBottom = this.pixelTopForScreenRow(screenRange.end.row) + this.measurements.lineHeight
+    const screenRangeTop = this.pixelTopForRow(screenRange.start.row)
+    const screenRangeBottom = this.pixelTopForRow(screenRange.end.row) + this.measurements.lineHeight
     const verticalScrollMargin = this.getVerticalScrollMargin()
 
     this.requestHorizontalMeasurement(screenRange.start.row, screenRange.start.column)
@@ -790,8 +808,8 @@ class TextEditorComponent {
 
     const {screenRange, options} = this.pendingAutoscroll
     const gutterContainerWidth = this.getGutterContainerWidth()
-    let left = this.pixelLeftForScreenRowAndColumn(screenRange.start.row, screenRange.start.column) + gutterContainerWidth
-    let right = this.pixelLeftForScreenRowAndColumn(screenRange.end.row, screenRange.end.column) + gutterContainerWidth
+    let left = this.pixelLeftForRowAndColumn(screenRange.start.row, screenRange.start.column) + gutterContainerWidth
+    let right = this.pixelLeftForRowAndColumn(screenRange.end.row, screenRange.end.column) + gutterContainerWidth
     const desiredScrollLeft = Math.max(0, left - horizontalScrollMargin - gutterContainerWidth)
     const desiredScrollRight = Math.min(this.getScrollWidth(), right + horizontalScrollMargin)
 
@@ -995,15 +1013,9 @@ class TextEditorComponent {
         if (nextColumnToMeasure <= textNodeEndColumn) {
           let clientPixelPosition
           if (nextColumnToMeasure === textNodeStartColumn) {
-            const range = getRangeForMeasurement()
-            range.setStart(textNode, 0)
-            range.setEnd(textNode, 1)
-            clientPixelPosition = range.getBoundingClientRect().left
+            clientPixelPosition = clientRectForRange(textNode, 0, 1).left
           } else {
-            const range = getRangeForMeasurement()
-            range.setStart(textNode, 0)
-            range.setEnd(textNode, nextColumnToMeasure - textNodeStartColumn)
-            clientPixelPosition = range.getBoundingClientRect().right
+            clientPixelPosition = clientRectForRange(textNode, 0, nextColumnToMeasure - textNodeStartColumn).right
           }
           if (lineNodeClientLeft === -1) lineNodeClientLeft = lineNode.getBoundingClientRect().left
           positions.set(nextColumnToMeasure, clientPixelPosition - lineNodeClientLeft)
@@ -1016,14 +1028,86 @@ class TextEditorComponent {
     }
   }
 
-  pixelTopForScreenRow (row) {
+  pixelTopForRow (row) {
     return row * this.measurements.lineHeight
   }
 
-  pixelLeftForScreenRowAndColumn (row, column) {
+  pixelLeftForRowAndColumn (row, column) {
     if (column === 0) return 0
     const screenLine = this.getModel().displayLayer.getScreenLine(row)
     return this.horizontalPixelPositionsByScreenLineId.get(screenLine.id).get(column)
+  }
+
+  screenPositionForPixelPosition({top, left}) {
+    const model = this.getModel()
+
+    const row = Math.min(
+      Math.max(0, Math.floor(top / this.measurements.lineHeight)),
+      model.getApproximateScreenLineCount() - 1
+    )
+
+    const linesClientLeft = this.refs.lineTiles.getBoundingClientRect().left
+    const targetClientLeft = linesClientLeft + Math.max(0, left)
+    const screenLine = this.getModel().displayLayer.getScreenLine(row)
+    const textNodes = this.textNodesByScreenLineId.get(screenLine.id)
+
+    let containingTextNodeIndex
+    {
+      let low = 0
+      let high = textNodes.length - 1
+      while (low <= high) {
+        const mid = low + ((high - low) >> 1)
+        const textNode = textNodes[mid]
+        const textNodeRect = clientRectForRange(textNode, 0, textNode.length)
+
+        if (targetClientLeft < textNodeRect.left) {
+          high = mid - 1
+          containingTextNodeIndex = Math.max(0, mid - 1)
+        } else if (targetClientLeft > textNodeRect.right) {
+          low = mid + 1
+          containingTextNodeIndex = Math.min(textNodes.length - 1, mid + 1)
+        } else {
+          containingTextNodeIndex = mid
+          break
+        }
+      }
+    }
+    const containingTextNode = textNodes[containingTextNodeIndex]
+    let characterIndex = 0
+    {
+      let low = 0
+      let high = containingTextNode.length - 1
+      while (low <= high) {
+        const charIndex = low + ((high - low) >> 1)
+        const nextCharIndex = isPairedCharacter(containingTextNode.textContent, charIndex)
+          ? charIndex + 2
+          : charIndex + 1
+
+        const rangeRect = clientRectForRange(containingTextNode, charIndex, nextCharIndex)
+        if (targetClientLeft < rangeRect.left) {
+          high = charIndex - 1
+          characterIndex = Math.max(0, charIndex - 1)
+        } else if (targetClientLeft > rangeRect.right) {
+          low = nextCharIndex
+          characterIndex = Math.min(containingTextNode.textContent.length, nextCharIndex)
+        } else {
+          if (targetClientLeft <= ((rangeRect.left + rangeRect.right) / 2)) {
+            characterIndex = charIndex
+          } else {
+            characterIndex = nextCharIndex
+          }
+          break
+        }
+      }
+    }
+
+    let textNodeStartColumn = 0
+    for (let i = 0; i < containingTextNodeIndex; i++) {
+      textNodeStartColumn += textNodes[i].length
+    }
+    const column = textNodeStartColumn + characterIndex
+
+    return Point(row, column)
   }
 
   getModel () {
@@ -1586,9 +1670,11 @@ function classNameForScopeName (scopeName) {
 }
 
 let rangeForMeasurement
-function getRangeForMeasurement () {
+function clientRectForRange (textNode, startIndex, endIndex) {
   if (!rangeForMeasurement) rangeForMeasurement = document.createRange()
-  return rangeForMeasurement
+  rangeForMeasurement.setStart(textNode, startIndex)
+  rangeForMeasurement.setEnd(textNode, endIndex)
+  return rangeForMeasurement.getBoundingClientRect()
 }
 
 function arraysEqual(a, b) {
