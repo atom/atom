@@ -819,6 +819,88 @@ describe('TextEditorComponent', () => {
       }, clientPositionForCharacter(component, 3, 11)))
       expect(editor.getSelectedScreenRange()).toEqual([[2, 0], [4, 0]])
     })
+
+    it('expands the last selection on drag', () => {
+      const {component, editor} = buildComponent()
+      spyOn(component, 'handleMouseDragUntilMouseUp')
+
+      component.didMouseDownOnContent(Object.assign({
+        detail: 1,
+      }, clientPositionForCharacter(component, 1, 4)))
+
+      {
+        const [didDrag, didStopDragging] = component.handleMouseDragUntilMouseUp.argsForCall[0]
+        didDrag(clientPositionForCharacter(component, 8, 8))
+        expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [8, 8]])
+        didDrag(clientPositionForCharacter(component, 4, 8))
+        expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [4, 8]])
+        didStopDragging()
+        expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [4, 8]])
+      }
+
+      // Click-drag a second selection... selections are not merged until the
+      // drag stops.
+      component.didMouseDownOnContent(Object.assign({
+        detail: 1,
+        metaKey: 1,
+      }, clientPositionForCharacter(component, 8, 8)))
+      {
+        const [didDrag, didStopDragging] = component.handleMouseDragUntilMouseUp.argsForCall[1]
+        didDrag(clientPositionForCharacter(component, 2, 8))
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[1, 4], [4, 8]],
+          [[2, 8], [8, 8]]
+        ])
+        didDrag(clientPositionForCharacter(component, 6, 8))
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[1, 4], [4, 8]],
+          [[6, 8], [8, 8]]
+        ])
+        didDrag(clientPositionForCharacter(component, 2, 8))
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[1, 4], [4, 8]],
+          [[2, 8], [8, 8]]
+        ])
+        didStopDragging()
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[1, 4], [8, 8]]
+        ])
+      }
+    })
+
+    it('expands the selection word-wise on double-click-drag', () => {
+      const {component, editor} = buildComponent()
+      spyOn(component, 'handleMouseDragUntilMouseUp')
+
+      component.didMouseDownOnContent(Object.assign({
+        detail: 1,
+      }, clientPositionForCharacter(component, 1, 4)))
+      component.didMouseDownOnContent(Object.assign({
+        detail: 2,
+      }, clientPositionForCharacter(component, 1, 4)))
+
+      const [didDrag, didStopDragging] = component.handleMouseDragUntilMouseUp.argsForCall[1]
+      didDrag(clientPositionForCharacter(component, 0, 8))
+      expect(editor.getSelectedScreenRange()).toEqual([[0, 4], [1, 5]])
+      didDrag(clientPositionForCharacter(component, 2, 10))
+      expect(editor.getSelectedScreenRange()).toEqual([[1, 2], [2, 13]])
+    })
+
+    it('expands the selection line-wise on triple-click-drag', () => {
+      const {component, editor} = buildComponent()
+      spyOn(component, 'handleMouseDragUntilMouseUp')
+
+      const tripleClickPosition = clientPositionForCharacter(component, 2, 8)
+      component.didMouseDownOnContent(Object.assign({detail: 1}, tripleClickPosition))
+      component.didMouseDownOnContent(Object.assign({detail: 2}, tripleClickPosition))
+      component.didMouseDownOnContent(Object.assign({detail: 3}, tripleClickPosition))
+
+      const [didDrag, didStopDragging] = component.handleMouseDragUntilMouseUp.argsForCall[2]
+      didDrag(clientPositionForCharacter(component, 1, 8))
+      expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [3, 0]])
+      didDrag(clientPositionForCharacter(component, 4, 10))
+      expect(editor.getSelectedScreenRange()).toEqual([[2, 0], [5, 0]])
+    })
   })
 })
 

@@ -786,6 +786,53 @@ class TextEditorComponent {
         model.getLastSelection().selectLine(null, {autoscroll: false})
         break
     }
+
+    this.handleMouseDragUntilMouseUp(
+      (event) => {
+        const screenPosition = this.screenPositionForMouseEvent(event)
+        model.selectToScreenPosition(screenPosition, {suppressSelectionMerge: true, autoscroll: false})
+        this.updateSync()
+      },
+      () => {
+        model.finalizeSelections()
+        model.mergeIntersectingSelections()
+        this.updateSync()
+      }
+    )
+  }
+
+  handleMouseDragUntilMouseUp (didDragCallback, didStopDragging) {
+    let dragging = false
+    let lastMousemoveEvent
+
+    const animationFrameLoop = () => {
+      window.requestAnimationFrame(() => {
+        if (dragging && this.visible) {
+          didDragCallback(lastMousemoveEvent)
+          animationFrameLoop()
+        }
+      })
+    }
+
+    function didMouseMove (event) {
+      lastMousemoveEvent = event
+      if (!dragging) {
+        dragging = true
+        animationFrameLoop()
+      }
+    }
+
+    function didMouseUp () {
+      window.removeEventListener('mousemove', didMouseMove)
+      window.removeEventListener('mouseup', didMouseUp)
+      if (dragging) {
+        dragging = false
+        didStopDragging()
+      }
+    }
+
+    window.addEventListener('mousemove', didMouseMove)
+    window.addEventListener('mouseup', didMouseUp)
   }
 
   screenPositionForMouseEvent ({clientX, clientY}) {
