@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{screen, ipcRenderer, remote, shell, webFrame} = require 'electron'
+{ipcRenderer, remote, shell} = require 'electron'
 ipcHelpers = require './ipc-helpers'
 {Disposable} = require 'event-kit'
 getWindowLoadSettings = require './get-window-load-settings'
@@ -79,6 +79,12 @@ class ApplicationDelegate
 
   setWindowFullScreen: (fullScreen=false) ->
     ipcHelpers.call('window-method', 'setFullScreen', fullScreen)
+
+  onDidEnterFullScreen: (callback) ->
+    ipcHelpers.on(ipcRenderer, 'did-enter-full-screen', callback)
+
+  onDidLeaveFullScreen: (callback) ->
+    ipcHelpers.on(ipcRenderer, 'did-leave-full-screen', callback)
 
   openWindowDevTools: ->
     # Defer DevTools interaction to the next tick, because using them during
@@ -253,20 +259,6 @@ class ApplicationDelegate
 
   openExternal: (url) ->
     shell.openExternal(url)
-
-  disableZoom: ->
-    outerCallback = ->
-      webFrame.setZoomLevelLimits(1, 1)
-
-    outerCallback()
-    # Set the limits every time a display is added or removed, otherwise the
-    # configuration gets reset to the default, which allows zooming the
-    # webframe.
-    screen.on('display-added', outerCallback)
-    screen.on('display-removed', outerCallback)
-    new Disposable ->
-      screen.removeListener('display-added', outerCallback)
-      screen.removeListener('display-removed', outerCallback)
 
   checkForUpdate: ->
     ipcRenderer.send('command', 'application:check-for-update')
