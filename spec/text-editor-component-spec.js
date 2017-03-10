@@ -770,6 +770,23 @@ describe('TextEditorComponent', () => {
         [[1, 0], [2, 0]]
       ])
     })
+
+    it('expands the last selection on shift-click', () => {
+      const {component, element, editor} = buildComponent()
+
+      editor.setCursorScreenPosition([2, 18])
+      component.didMouseDownOnLines(Object.assign({
+        detail: 1,
+        shiftKey: true
+      }, clientPositionForCharacter(component, 1, 4)))
+      expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [2, 18]])
+
+      component.didMouseDownOnLines(Object.assign({
+        detail: 1,
+        shiftKey: true
+      }, clientPositionForCharacter(component, 4, 4)))
+      expect(editor.getSelectedScreenRange()).toEqual([[2, 18], [4, 4]])
+    })
   })
 })
 
