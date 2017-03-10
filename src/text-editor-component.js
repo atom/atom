@@ -441,7 +441,7 @@ class TextEditorComponent {
           this.addHighlightDecorationToMeasure(decoration, screenRange)
           break
         case 'cursor':
-          this.addCursorDecorationToMeasure(marker, screenRange)
+          this.addCursorDecorationToMeasure(marker, screenRange, reversed)
           break
       }
     }
