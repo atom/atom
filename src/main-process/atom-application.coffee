@@ -15,6 +15,7 @@ net = require 'net'
 url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
+cloneDeep = require 'lodash.clonedeep'
 FindParentDir = null
 Resolve = null
 
@@ -112,7 +113,7 @@ class AtomApplication
   launch: (options) ->
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test or options.benchmark or options.benchmarkTest
       if @config.get('core.restorePreviousWindowsOnStart') is 'always'
-        @loadState(_.cloneDeep(options))
+        @loadState(cloneDeep(options))
       @openWithOptions(options)
     else
       @loadState(options) or @openPath(options)
