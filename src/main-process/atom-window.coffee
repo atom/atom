@@ -83,11 +83,17 @@ class AtomWindow
     @representedDirectoryPaths = loadSettings.initialPaths
     @env = loadSettings.env if loadSettings.env?
 
-    @browserWindow.loadSettings = loadSettings
+    @browserWindow.loadSettingsJSON = JSON.stringify(loadSettings)
 
     @browserWindow.on 'window:loaded', =>
       @emit 'window:loaded'
       @resolveLoadedPromise()
+
+    @browserWindow.on 'enter-full-screen', =>
+      @browserWindow.webContents.send('did-enter-full-screen')
+
+    @browserWindow.on 'leave-full-screen', =>
+      @browserWindow.webContents.send('did-leave-full-screen')
 
     @browserWindow.loadURL url.format
       protocol: 'file'
@@ -101,6 +107,7 @@ class AtomWindow
 
     hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
     @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()
+    @disableZoom()
 
     @atomApplication.addWindow(this)
 
@@ -303,3 +310,6 @@ class AtomWindow
     @atomApplication.saveState()
 
   copy: -> @browserWindow.copy()
+
+  disableZoom: ->
+    @browserWindow.webContents.setZoomLevelLimits(1, 1)

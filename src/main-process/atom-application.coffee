@@ -6,8 +6,8 @@ StorageFolder = require '../storage-folder'
 Config = require '../config'
 FileRecoveryService = require './file-recovery-service'
 ipcHelpers = require '../ipc-helpers'
-{BrowserWindow, Menu, app, dialog, ipcMain, shell} = require 'electron'
-{CompositeDisposable} = require 'event-kit'
+{BrowserWindow, Menu, app, dialog, ipcMain, shell, screen} = require 'electron'
+{CompositeDisposable, Disposable} = require 'event-kit'
 fs = require 'fs-plus'
 path = require 'path'
 os = require 'os'
@@ -94,7 +94,7 @@ class AtomApplication
     if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
       @config.unset('core.useCustomTitleBar')
       @config.set('core.titleBar', 'custom')
-    
+
     @config.onDidChange 'core.titleBar', @promptForRestart.bind(this)
 
     process.nextTick => @autoUpdateManager.initialize()
@@ -396,6 +396,8 @@ class AtomApplication
 
     @disposable.add ipcHelpers.on ipcMain, 'did-change-paths', =>
       @saveState(false)
+
+    @disposable.add(@disableZoomOnDisplayChange())
 
   setupDockMenu: ->
     if process.platform is 'darwin'
@@ -815,3 +817,17 @@ class AtomApplication
       args.push("--resource-path=#{@resourcePath}")
     app.relaunch({args})
     app.quit()
+
+  disableZoomOnDisplayChange: ->
+    outerCallback = =>
+      for window in @windows
+        window.disableZoom()
+
+    # Set the limits every time a display is added or removed, otherwise the
+    # configuration gets reset to the default, which allows zooming the
+    # webframe.
+    screen.on('display-added', outerCallback)
+    screen.on('display-removed', outerCallback)
+    new Disposable ->
+      screen.removeListener('display-added', outerCallback)
+      screen.removeListener('display-removed', outerCallback)
