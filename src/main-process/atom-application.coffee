@@ -283,6 +283,9 @@ class AtomApplication
     @disposable.add ipcHelpers.on ipcMain, 'restart-application', =>
       @restart()
 
+    @disposable.add ipcHelpers.on ipcMain, 'resolve-proxy', (event, requestId, url) ->
+      event.sender.session.resolveProxy url, (proxy) -> event.sender.send('did-resolve-proxy', requestId, proxy)
+
     @disposable.add ipcHelpers.on ipcMain, 'did-change-history-manager', (event) =>
       for atomWindow in @windows
         webContents = atomWindow.browserWindow.webContents
