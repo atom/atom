@@ -1347,7 +1347,9 @@ i = /test/; #FIXME\
             matchText: 'aaa',
             lineText: 'aaa bbb',
             lineTextOffset: 0,
-            range: [[0, 0], [0, 3]]
+            range: [[0, 0], [0, 3]],
+            leadingContextLines: [],
+            trailingContextLines: []
           })
         })
       })
@@ -1365,7 +1367,9 @@ i = /test/; #FIXME\
             matchText: '$bill',
             lineText: 'dollar$bill',
             lineTextOffset: 0,
-            range: [[2, 6], [2, 11]]
+            range: [[2, 6], [2, 11]],
+            leadingContextLines: [],
+            trailingContextLines: []
           })
         })
       })
