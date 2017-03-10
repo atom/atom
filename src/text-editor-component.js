@@ -14,6 +14,11 @@ const DOUBLE_WIDTH_CHARACTER = '我'
 const HALF_WIDTH_CHARACTER = 'ﾊ'
 const KOREAN_CHARACTER = '세'
 const NBSP_CHARACTER = '\u00a0'
+const MOUSE_DRAG_AUTOSCROLL_MARGIN = 40
+
+function scaleMouseDragAutoscrollDelta (delta) {
+  return Math.pow(delta / 3, 3) / 280
+}
 
 module.exports =
 class TextEditorComponent {
@@ -789,6 +794,7 @@ class TextEditorComponent {
 
     this.handleMouseDragUntilMouseUp(
       (event) => {
+        this.autoscrollOnMouseDrag(event)
         const screenPosition = this.screenPositionForMouseEvent(event)
         model.selectToScreenPosition(screenPosition, {suppressSelectionMerge: true, autoscroll: false})
         this.updateSync()
@@ -835,7 +841,59 @@ class TextEditorComponent {
     window.addEventListener('mouseup', didMouseUp)
   }
 
+  autoscrollOnMouseDrag ({clientX, clientY}) {
+    let {top, bottom, left, right} = this.refs.scroller.getBoundingClientRect()
+    top += MOUSE_DRAG_AUTOSCROLL_MARGIN
+    bottom -= MOUSE_DRAG_AUTOSCROLL_MARGIN
+    left += this.getGutterContainerWidth() + MOUSE_DRAG_AUTOSCROLL_MARGIN
+    right -= MOUSE_DRAG_AUTOSCROLL_MARGIN
+
+    let yDelta, yDirection
+    if (clientY < top) {
+      yDelta = top - clientY
+      yDirection = -1
+    } else if (clientY > bottom) {
+      yDelta = clientY - bottom
+      yDirection = 1
+    }
+
+    let xDelta, xDirection
+    if (clientX < left) {
+      xDelta = left - clientX
+      xDirection = -1
+    } else if (clientX > right) {
+      xDelta = clientX - right
+      xDirection = 1
+    }
+
+    let scrolled = false
+    if (yDelta != null) {
+      const scaledDelta = scaleMouseDragAutoscrollDelta(yDelta) * yDirection
+      const newScrollTop = this.constrainScrollTop(this.measurements.scrollTop + scaledDelta)
+      if (newScrollTop !== this.measurements.scrollTop) {
+        this.measurements.scrollTop += scaledDelta
+        this.refs.scroller.scrollTop += scaledDelta
+        scrolled = true
+      }
+    }
+
+    if (xDelta != null) {
+      const scaledDelta = scaleMouseDragAutoscrollDelta(xDelta) * xDirection
+      const newScrollLeft = this.constrainScrollLeft(this.measurements.scrollLeft + scaledDelta)
+      if (newScrollLeft !== this.measurements.scrollLeft) {
+        this.measurements.scrollLeft += scaledDelta
+        this.refs.scroller.scrollLeft += scaledDelta
+        scrolled = true
+      }
+    }
+
+    if (scrolled) this.updateSync()
+  }
+
   screenPositionForMouseEvent ({clientX, clientY}) {
+    const scrollerRect = this.refs.scroller.getBoundingClientRect()
+    clientX = Math.min(scrollerRect.right, Math.max(scrollerRect.left, clientX))
+    clientY = Math.min(scrollerRect.bottom, Math.max(scrollerRect.top, clientY))
     const linesRect = this.refs.lineTiles.getBoundingClientRect()
     return this.screenPositionForPixelPosition({
       top: clientY - linesRect.top,
@@ -871,11 +929,11 @@ class TextEditorComponent {
     }
 
     if (desiredScrollTop != null) {
-      desiredScrollTop = Math.max(0, Math.min(desiredScrollTop, this.getScrollHeight() - this.getClientHeight()))
+      desiredScrollTop = this.constrainScrollTop(desiredScrollTop)
     }
 
     if (desiredScrollBottom != null) {
-      desiredScrollBottom = Math.max(this.getClientHeight(), Math.min(desiredScrollBottom, this.getScrollHeight()))
+      desiredScrollBottom = this.constrainScrollTop(desiredScrollBottom - this.getClientHeight()) + this.getClientHeight()
     }
 
     if (!options || options.reversed !== false) {
@@ -959,6 +1017,18 @@ class TextEditorComponent {
       Math.floor(((contentClientWidth / baseCharacterWidth) - 1) / 2)
     )
     return marginInBaseCharacters * baseCharacterWidth
+  }
+
+  constrainScrollTop (desiredScrollTop) {
+    return Math.max(
+      0, Math.min(desiredScrollTop, this.getScrollHeight() - this.getClientHeight())
+    )
+  }
+
+  constrainScrollLeft (desiredScrollLeft) {
+    return Math.max(
+      0, Math.min(desiredScrollLeft, this.getScrollWidth() - this.getClientWidth())
+    )
   }
 
   performInitialMeasurements () {
