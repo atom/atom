@@ -53,7 +53,6 @@
     "key-path-helpers": "^0.4.0",
     "less-cache": "0.23",
     "line-top-index": "0.2.0",
-    "lodash.clonedeep": "*",
     "marked": "^0.3.6",
     "minimatch": "^3.0.3",
     "mocha": "2.5.1",
