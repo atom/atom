@@ -598,28 +598,28 @@ describe('TextEditorComponent', () => {
       const {component, element, editor} = buildComponent()
       const {lineHeight} = component.measurements
 
-      component.didMouseDownOnLines({
+      component.didMouseDownOnContent({
         detail: 1,
         clientX: clientLeftForCharacter(component, 0, editor.lineLengthForScreenRow(0)) + 1,
         clientY: clientTopForLine(component, 0) + lineHeight / 2
       })
       expect(editor.getCursorScreenPosition()).toEqual([0, editor.lineLengthForScreenRow(0)])
 
-      component.didMouseDownOnLines({
+      component.didMouseDownOnContent({
         detail: 1,
         clientX: (clientLeftForCharacter(component, 3, 0) + clientLeftForCharacter(component, 3, 1)) / 2,
         clientY: clientTopForLine(component, 1) + lineHeight / 2
       })
       expect(editor.getCursorScreenPosition()).toEqual([1, 0])
 
-      component.didMouseDownOnLines({
+      component.didMouseDownOnContent({
         detail: 1,
         clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2,
         clientY: clientTopForLine(component, 3) + lineHeight / 2
       })
       expect(editor.getCursorScreenPosition()).toEqual([3, 14])
 
-      component.didMouseDownOnLines({
+      component.didMouseDownOnContent({
         detail: 1,
         clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2 + 1,
         clientY: clientTopForLine(component, 3) + lineHeight / 2
@@ -629,14 +629,14 @@ describe('TextEditorComponent', () => {
       editor.getBuffer().setTextInRange([[3, 14], [3, 15]], '🐣')
       await component.getNextUpdatePromise()
 
-      component.didMouseDownOnLines({
+      component.didMouseDownOnContent({
         detail: 1,
         clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2,
         clientY: clientTopForLine(component, 3) + lineHeight / 2
       })
       expect(editor.getCursorScreenPosition()).toEqual([3, 14])
 
-      component.didMouseDownOnLines({
+      component.didMouseDownOnContent({
         detail: 1,
         clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2 + 1,
         clientY: clientTopForLine(component, 3) + lineHeight / 2
@@ -647,17 +647,17 @@ describe('TextEditorComponent', () => {
     it('selects words on double-click', () => {
       const {component, editor} = buildComponent()
       const {clientX, clientY} = clientPositionForCharacter(component, 1, 16)
-      component.didMouseDownOnLines({detail: 1, clientX, clientY})
-      component.didMouseDownOnLines({detail: 2, clientX, clientY})
+      component.didMouseDownOnContent({detail: 1, clientX, clientY})
+      component.didMouseDownOnContent({detail: 2, clientX, clientY})
       expect(editor.getSelectedScreenRange()).toEqual([[1, 13], [1, 21]])
     })
 
     it('selects lines on triple-click', () => {
       const {component, editor} = buildComponent()
       const {clientX, clientY} = clientPositionForCharacter(component, 1, 16)
-      component.didMouseDownOnLines({detail: 1, clientX, clientY})
-      component.didMouseDownOnLines({detail: 2, clientX, clientY})
-      component.didMouseDownOnLines({detail: 3, clientX, clientY})
+      component.didMouseDownOnContent({detail: 1, clientX, clientY})
+      component.didMouseDownOnContent({detail: 2, clientX, clientY})
+      component.didMouseDownOnContent({detail: 3, clientX, clientY})
       expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [2, 0]])
     })
 
@@ -669,7 +669,7 @@ describe('TextEditorComponent', () => {
       expect(editor.getCursorScreenPositions()).toEqual([[0, 0]])
 
       // add cursor at 1, 16
-      component.didMouseDownOnLines(
+      component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 1, 16), {
           detail: 1,
           metaKey: true
@@ -678,7 +678,7 @@ describe('TextEditorComponent', () => {
       expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]])
 
       // remove cursor at 0, 0
-      component.didMouseDownOnLines(
+      component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 0, 0), {
           detail: 1,
           metaKey: true
@@ -687,7 +687,7 @@ describe('TextEditorComponent', () => {
       expect(editor.getCursorScreenPositions()).toEqual([[1, 16]])
 
       // cmd-click cursor at 1, 16 but don't remove it because it's the last one
-      component.didMouseDownOnLines(
+      component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 1, 16), {
           detail: 1,
           metaKey: true
@@ -701,7 +701,7 @@ describe('TextEditorComponent', () => {
         [[1, 16], [1, 16]],
         [[2, 10], [2, 15]]
       ])
-      component.didMouseDownOnLines(
+      component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 2, 13), {
           detail: 1,
           metaKey: true
@@ -712,7 +712,7 @@ describe('TextEditorComponent', () => {
       ])
 
       // ctrl-click does not add cursors on macOS
-      component.didMouseDownOnLines(
+      component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 1, 4), {
           detail: 1,
           ctrlKey: true
@@ -723,7 +723,7 @@ describe('TextEditorComponent', () => {
       mockedPlatform = 'win32'
 
       // ctrl-click adds cursors on platforms *other* than macOS
-      component.didMouseDownOnLines(
+      component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 1, 16), {
           detail: 1,
           ctrlKey: true
@@ -737,13 +737,13 @@ describe('TextEditorComponent', () => {
       editor.addCursorAtScreenPosition([1, 16])
       expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]])
 
-      component.didMouseDownOnLines(
+      component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 1, 16), {
           detail: 1,
           metaKey: true
         })
       )
-      component.didMouseDownOnLines(
+      component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 1, 16), {
           detail: 2,
           metaKey: true
@@ -761,9 +761,9 @@ describe('TextEditorComponent', () => {
       expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]])
 
       const {clientX, clientY} = clientPositionForCharacter(component, 1, 16)
-      component.didMouseDownOnLines({detail: 1, metaKey: true, clientX, clientY})
-      component.didMouseDownOnLines({detail: 2, metaKey: true, clientX, clientY})
-      component.didMouseDownOnLines({detail: 3, metaKey: true, clientX, clientY})
+      component.didMouseDownOnContent({detail: 1, metaKey: true, clientX, clientY})
+      component.didMouseDownOnContent({detail: 2, metaKey: true, clientX, clientY})
+      component.didMouseDownOnContent({detail: 3, metaKey: true, clientX, clientY})
 
       expect(editor.getSelectedScreenRanges()).toEqual([
         [[0, 0], [0, 0]],
@@ -775,13 +775,13 @@ describe('TextEditorComponent', () => {
       const {component, element, editor} = buildComponent()
 
       editor.setCursorScreenPosition([2, 18])
-      component.didMouseDownOnLines(Object.assign({
+      component.didMouseDownOnContent(Object.assign({
         detail: 1,
         shiftKey: true
       }, clientPositionForCharacter(component, 1, 4)))
       expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [2, 18]])
 
-      component.didMouseDownOnLines(Object.assign({
+      component.didMouseDownOnContent(Object.assign({
         detail: 1,
         shiftKey: true
       }, clientPositionForCharacter(component, 4, 4)))
