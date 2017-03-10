@@ -594,9 +594,9 @@ describe('TextEditorComponent', () => {
   })
 
   describe('mouse input', () => {
-    it('positions the cursor on single click', async () => {
+    it('positions the cursor on single-click', async () => {
       const {component, element, editor} = buildComponent()
-      const {lineHeight, baseCharacterWidth} = component.measurements
+      const {lineHeight} = component.measurements
 
       component.didMouseDownOnLines({
         detail: 1,
@@ -642,6 +642,26 @@ describe('TextEditorComponent', () => {
         clientY: clientTopForLine(component, 3) + lineHeight / 2
       })
       expect(editor.getCursorScreenPosition()).toEqual([3, 16])
+    })
+
+    it('selects words on double-click', () => {
+      const {component, editor} = buildComponent()
+      const clientX = clientLeftForCharacter(component, 1, 16)
+      const clientY = clientTopForLine(component, 1)
+
+      component.didMouseDownOnLines({detail: 1, clientX, clientY})
+      component.didMouseDownOnLines({detail: 2, clientX, clientY})
+      expect(editor.getSelectedScreenRange()).toEqual([[1, 13], [1, 21]])
+    })
+
+    it('selects lines on triple-click', () => {
+      const {component, editor} = buildComponent()
+      const clientX = clientLeftForCharacter(component, 1, 16)
+      const clientY = clientTopForLine(component, 1)
+
+      component.didMouseDownOnLines({detail: 1, clientX, clientY})
+      component.didMouseDownOnLines({detail: 2, clientX, clientY})
+      expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [2, 0]])
     })
   })
 })

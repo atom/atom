@@ -736,10 +736,19 @@ class TextEditorComponent {
   }
 
   didMouseDownOnLines (event) {
+    const {model} = this.props
     const screenPosition = this.screenPositionForMouseEvent(event)
 
-    if (event.detail === 1) {
-      this.props.model.setCursorScreenPosition(screenPosition)
+    switch (event.detail) {
+      case 1:
+        model.setCursorScreenPosition(screenPosition)
+        break
+      case 2:
+        model.getLastSelection().selectWord({autoscroll: false})
+        break
+      case 3:
+        model.getLastSelection().selectLine(null, {autoscroll: false})
+        break
     }
   }
 
