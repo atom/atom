@@ -841,17 +841,21 @@ class Pane extends Model
     else
       this
 
-  # If the parent is a horizontal axis, returns its last child if it is a pane;
-  # otherwise returns a new pane created by splitting this pane rightward.
-  findOrCreateRightmostSibling: ->
+  findRightmostSibling: ->
     if @parent.orientation is 'horizontal'
       rightmostSibling = last(@parent.children)
       if rightmostSibling instanceof PaneAxis
-        @splitRight()
+        this
       else
         rightmostSibling
     else
-      @splitRight()
+      this
+
+  # If the parent is a horizontal axis, returns its last child if it is a pane;
+  # otherwise returns a new pane created by splitting this pane rightward.
+  findOrCreateRightmostSibling: ->
+    rightmostSibling = @findRightmostSibling()
+    if rightmostSibling is this then @splitRight() else rightmostSibling
 
   # If the parent is a vertical axis, returns its first child if it is a pane;
   # otherwise returns this pane.
@@ -865,17 +869,21 @@ class Pane extends Model
     else
       this
 
-  # If the parent is a vertical axis, returns its last child if it is a pane;
-  # otherwise returns a new pane created by splitting this pane bottomward.
-  findOrCreateBottommostSibling: ->
+  findBottommostSibling: ->
     if @parent.orientation is 'vertical'
       bottommostSibling = last(@parent.children)
       if bottommostSibling instanceof PaneAxis
-        @splitDown()
+        this
       else
         bottommostSibling
     else
-      @splitDown()
+      this
+
+  # If the parent is a vertical axis, returns its last child if it is a pane;
+  # otherwise returns a new pane created by splitting this pane bottomward.
+  findOrCreateBottommostSibling: ->
+    bottommostSibling = @findBottommostSibling()
+    if bottommostSibling is this then @splitDown() else bottommostSibling
 
   close: ->
     @destroy() if @confirmClose()
