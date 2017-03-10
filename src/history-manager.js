@@ -133,32 +133,3 @@ export class HistoryProject {
   set lastOpened (lastOpened) { this._lastOpened = lastOpened }
   get lastOpened () { return this._lastOpened }
 }
-
-class HistoryImporter {
-  static async getStateStoreCursor () {
-    const db = await atom.stateStore.dbPromise
-    const store = db.transaction(['states']).objectStore('states')
-    return store.openCursor()
-  }
-
-  static async getAllProjects (stateStore) {
-    const request = await HistoryImporter.getStateStoreCursor()
-    return new Promise((resolve, reject) => {
-      const rows = []
-      request.onerror = reject
-      request.onsuccess = event => {
-        const cursor = event.target.result
-        if (cursor) {
-          let project = cursor.value.value.project
-          let storedAt = cursor.value.storedAt
-          if (project && project.paths && storedAt) {
-            rows.push(new HistoryProject(project.paths, new Date(Date.parse(storedAt))))
-          }
-          cursor.continue()
-        } else {
-          resolve(rows)
-        }
-      }
-    })
-  }
-}
