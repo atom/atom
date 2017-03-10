@@ -9,6 +9,7 @@ const {Directory} = require('pathwatcher')
 const DefaultDirectorySearcher = require('./default-directory-searcher')
 const Dock = require('./dock')
 const Model = require('./model')
+const StateStore = require('./state-store')
 const TextEditor = require('./text-editor')
 const PaneContainer = require('./pane-container')
 const Panel = require('./panel')
@@ -45,6 +46,7 @@ module.exports = class Workspace extends Model {
     this.textEditorRegistry = params.textEditorRegistry
     this.hoveredDock = null
     this.draggingItem = false
+    this.previousLocations = new StateStore('AtomPreviousItemLocations', 1)
 
     this.emitter = new Emitter()
     this.openers = []
@@ -137,6 +139,7 @@ module.exports = class Workspace extends Model {
     this.subscribeToActiveItem()
     this.subscribeToFontSize()
     this.subscribeToAddedItems()
+    this.subscribeToMovedItems()
   }
 
   consumeServices ({serviceHub}) {
@@ -280,6 +283,27 @@ module.exports = class Workspace extends Model {
         this.emitter.emit('did-add-text-editor', {textEditor: item, pane, index})
       }
     })
+  }
+
+  subscribeToMovedItems () {
+    if (this.movedItemSubscription != null) {
+      this.movedItemSubscription.dispose()
+    }
+    const paneLocations = Object.assign({center: this}, this.docks)
+    this.movedItemSubscription = new CompositeDisposable(
+      ..._.map(paneLocations, (host, location) => (
+        host.observePanes(pane => {
+          pane.onDidAddItem(({item}) => {
+            if (typeof item.getURI === 'function') {
+              const uri = item.getURI()
+              if (uri != null) {
+                this.previousLocations.save(item.getURI(), location)
+              }
+            }
+          })
+        })
+      ))
+    )
   }
 
   // Updates the application's title and proxy icon based on whichever file is
@@ -747,78 +771,68 @@ module.exports = class Workspace extends Model {
   openItem (item, options = {}) {
     let {pane, split} = options
 
-    if (item == null) return undefined
-    if (pane != null && pane.isDestroyed()) return item
+    if (item == null) return Promise.resolve()
+    if (pane != null && pane.isDestroyed()) return Promise.resolve(item)
 
-    if (pane == null) {
-      // If this is a new item, we want to determine where to put it in the following way:
-      //   - If you provided a split, you want to put it in that split of the center location
-      //     (legacy behavior)
-      //   - If the item specifies a default location, use that.
-      let locationInfo, location
-      if (split == null) {
-        if (locationInfo == null && typeof item.getDefaultLocation === 'function') {
-          locationInfo = item.getDefaultLocation()
+    const uri = options.uri == null && typeof item.getURI === 'function' ? item.getURI() : options.uri
+
+    let location
+    // If a split was provided, make sure it goes in the center location (legacy behavior)
+    if (pane == null && split == null) {
+      if (uri != null) {
+        location = this.previousLocations.load(uri)
+      }
+      if (location == null && typeof item.getDefaultLocation === 'function') {
+        location = item.getDefaultLocation()
+      }
+    }
+
+    return Promise.resolve(location)
+      .then(location => {
+        if (pane != null) return pane
+
+        pane = this.docks[location] == null ? this.getActivePane() : this.docks[location].getActivePane()
+        switch (split) {
+          case 'left': return pane.findLeftmostSibling()
+          case 'right': return pane.findOrCreateRightmostSibling()
+          case 'up': return pane.findTopmostSibling()
+          case 'down': return pane.findOrCreateBottommostSibling()
+          default: return pane
         }
-        if (locationInfo != null) {
-          if (typeof locationInfo === 'string') {
-            location = locationInfo
-          } else {
-            location = locationInfo.location
-            split = locationInfo.split
+      })
+      .then(pane => {
+        if (!options.pending && (pane.getPendingItem() === item)) {
+          pane.clearPendingItem()
+        }
+
+        const activatePane = options.activatePane != null ? options.activatePane : true
+        const activateItem = options.activateItem != null ? options.activateItem : true
+        this.itemOpened(item)
+        if (activateItem) {
+          pane.activateItem(item, {pending: options.pending})
+        }
+        if (activatePane) {
+          pane.activate()
+        }
+
+        let initialColumn = 0
+        let initialLine = 0
+        if (!Number.isNaN(options.initialLine)) {
+          initialLine = options.initialLine
+        }
+        if (!Number.isNaN(options.initialColumn)) {
+          initialColumn = options.initialColumn
+        }
+        if ((initialLine >= 0) || (initialColumn >= 0)) {
+          if (typeof item.setCursorBufferPosition === 'function') {
+            item.setCursorBufferPosition([initialLine, initialColumn])
           }
         }
-      }
 
-      pane = this.docks[location] == null ? this.getActivePane() : this.docks[location].getActivePane()
-      switch (split) {
-        case 'left':
-          pane = pane.findLeftmostSibling()
-          break
-        case 'right':
-          pane = pane.findOrCreateRightmostSibling()
-          break
-        case 'up':
-          pane = pane.findTopmostSibling()
-          break
-        case 'down':
-          pane = pane.findOrCreateBottommostSibling()
-          break
-      }
-    }
-
-    if (!options.pending && (pane.getPendingItem() === item)) {
-      pane.clearPendingItem()
-    }
-
-    const activatePane = options.activatePane != null ? options.activatePane : true
-    const activateItem = options.activateItem != null ? options.activateItem : true
-    this.itemOpened(item)
-    if (activateItem) {
-      pane.activateItem(item, {pending: options.pending})
-    }
-    if (activatePane) {
-      pane.activate()
-    }
-
-    let initialColumn = 0
-    let initialLine = 0
-    if (!Number.isNaN(options.initialLine)) {
-      initialLine = options.initialLine
-    }
-    if (!Number.isNaN(options.initialColumn)) {
-      initialColumn = options.initialColumn
-    }
-    if ((initialLine >= 0) || (initialColumn >= 0)) {
-      if (typeof item.setCursorBufferPosition === 'function') {
-        item.setCursorBufferPosition([initialLine, initialColumn])
-      }
-    }
-
-    const index = pane.getActiveItemIndex()
-    const uri = options.uri == null && typeof item.getURI === 'function' ? item.getURI() : options.uri
-    this.emitter.emit('did-open', {uri, pane, item, index})
-    return item
+        const index = pane.getActiveItemIndex()
+        this.emitter.emit('did-open', {uri, pane, item, index})
+        return item
+      })
   }
 
   openTextFile (uri, options) {
@@ -1144,6 +1158,9 @@ module.exports = class Workspace extends Model {
     this.paneContainer.destroy()
     if (this.activeItemSubscriptions != null) {
       this.activeItemSubscriptions.dispose()
+    }
+    if (this.movedItemSubscription != null) {
+      this.movedItemSubscription.dispose()
     }
   }
 
