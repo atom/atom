@@ -31,11 +31,6 @@ describe "GitRepository", ->
       expect(-> new GitRepository(path.join(temp.dir, 'nogit.txt'))).toThrow()
 
   describe ".getPath()", ->
-    it "returns the repository path for a .git directory path with a file", ->
-      return if process.platform is 'win32' #Win32TestFailures - libgit2 does not detect files in .git folders
-      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git', 'HEAD'))
-      expect(repo.getPath()).toBe path.join(__dirname, 'fixtures', 'git', 'master.git')
-
     it "returns the repository path for a .git directory path with a directory", ->
       repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git', 'objects'))
       expect(repo.getPath()).toBe path.join(__dirname, 'fixtures', 'git', 'master.git')
