@@ -786,6 +786,38 @@ describe('TextEditorComponent', () => {
         shiftKey: true
       }, clientPositionForCharacter(component, 4, 4)))
       expect(editor.getSelectedScreenRange()).toEqual([[2, 18], [4, 4]])
+
+      // reorients word-wise selections to keep the word selected regardless of
+      // where the subsequent shift-click occurs
+      editor.setCursorScreenPosition([2, 18])
+      editor.getLastSelection().selectWord()
+      component.didMouseDownOnContent(Object.assign({
+        detail: 1,
+        shiftKey: true
+      }, clientPositionForCharacter(component, 1, 4)))
+      expect(editor.getSelectedScreenRange()).toEqual([[1, 2], [2, 20]])
+
+      component.didMouseDownOnContent(Object.assign({
+        detail: 1,
+        shiftKey: true
+      }, clientPositionForCharacter(component, 3, 11)))
+      expect(editor.getSelectedScreenRange()).toEqual([[2, 14], [3, 13]])
+
+      // reorients line-wise selections to keep the word selected regardless of
+      // where the subsequent shift-click occurs
+      editor.setCursorScreenPosition([2, 18])
+      editor.getLastSelection().selectLine()
+      component.didMouseDownOnContent(Object.assign({
+        detail: 1,
+        shiftKey: true
+      }, clientPositionForCharacter(component, 1, 4)))
+      expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [3, 0]])
+
+      component.didMouseDownOnContent(Object.assign({
+        detail: 1,
+        shiftKey: true
+      }, clientPositionForCharacter(component, 3, 11)))
+      expect(editor.getSelectedScreenRange()).toEqual([[2, 0], [4, 0]])
     })
   })
 })
