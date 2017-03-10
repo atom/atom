@@ -133,6 +133,7 @@ class AtomEnvironment extends Model
   constructor: (params={}) ->
     {@blobStore, @applicationDelegate, @window, @document, @clipboard, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
+    @nextProxyRequestId = 0
     @unloaded = false
     @loadTime = null
     {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
@@ -992,6 +993,16 @@ class AtomEnvironment extends Model
         @workspace?.open(pathToOpen, {initialLine, initialColumn})
 
     return
+
+  resolveProxy: (url) ->
+    return new Promise (resolve, reject) =>
+      requestId = @nextProxyRequestId++
+      disposable = @applicationDelegate.onDidResolveProxy (id, proxy) ->
+        if id is requestId
+          disposable.dispose()
+          resolve(proxy)
+
+      @applicationDelegate.resolveProxy(requestId, url)
 
 # Preserve this deprecation until 2.0. Sorry. Should have removed Q sooner.
 Promise.prototype.done = (callback) ->
