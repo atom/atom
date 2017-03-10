@@ -2,9 +2,11 @@ const etch = require('etch')
 const {CompositeDisposable} = require('event-kit')
 const {Point} = require('text-buffer')
 const resizeDetector = require('element-resize-detector')({strategy: 'scroll'})
-const TextEditorElement = require('./text-editor-element')
+const TextEditor = require('./text-editor')
 const {isPairedCharacter} = require('./text-utils')
 const $ = etch.dom
+
+let TextEditorElement
 
 const DEFAULT_ROWS_PER_TILE = 6
 const NORMAL_WIDTH_CHARACTER = 'x'
@@ -17,7 +19,12 @@ module.exports =
 class TextEditorComponent {
   constructor (props) {
     this.props = props
-    this.element = props.element || new TextEditorElement()
+    if (props.element) {
+      this.element = props.element
+    } else {
+      if (!TextEditorElement) TextEditorElement = require('./text-editor-element')
+      this.element = new TextEditorElement()
+    }
     this.element.initialize(this)
     this.virtualNode = $('atom-text-editor')
     this.virtualNode.domNode = this.element
@@ -1154,7 +1161,6 @@ class TextEditorComponent {
 
   getModel () {
     if (!this.props.model) {
-      const TextEditor = require('./text-editor')
       this.props.model = new TextEditor()
       this.observeModel()
     }
