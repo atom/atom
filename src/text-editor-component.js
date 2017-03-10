@@ -742,11 +742,12 @@ class TextEditorComponent {
 
   didMouseDownOnLines (event) {
     const {model} = this.props
+    const {detail, ctrlKey, shiftKey, metaKey} = event
     const screenPosition = this.screenPositionForMouseEvent(event)
 
-    const addOrRemoveSelection = event.metaKey || (event.ctrlKey && this.getPlatform() !== 'darwin')
+    const addOrRemoveSelection = metaKey || (ctrlKey && this.getPlatform() !== 'darwin')
 
-    switch (event.detail) {
+    switch (detail) {
       case 1:
         if (addOrRemoveSelection) {
           const existingSelection = model.getSelectionAtScreenPosition(screenPosition)
@@ -756,7 +757,11 @@ class TextEditorComponent {
             model.addCursorAtScreenPosition(screenPosition)
           }
         } else {
-          model.setCursorScreenPosition(screenPosition)
+          if (shiftKey) {
+            model.selectToScreenPosition(screenPosition)
+          } else {
+            model.setCursorScreenPosition(screenPosition)
+          }
         }
         break
       case 2:
