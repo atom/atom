@@ -736,7 +736,11 @@ class TextEditorComponent {
   }
 
   didMouseDownOnLines (event) {
-    console.log(this.screenPositionForMouseEvent(event))
+    const screenPosition = this.screenPositionForMouseEvent(event)
+
+    if (event.detail === 1) {
+      this.props.model.setCursorScreenPosition(screenPosition)
+    }
   }
 
   screenPositionForMouseEvent ({clientX, clientY}) {

@@ -592,6 +592,58 @@ describe('TextEditorComponent', () => {
       }
     })
   })
+
+  describe('mouse input', () => {
+    it('positions the cursor on single click', async () => {
+      const {component, element, editor} = buildComponent()
+      const {lineHeight, baseCharacterWidth} = component.measurements
+
+      component.didMouseDownOnLines({
+        detail: 1,
+        clientX: clientLeftForCharacter(component, 0, editor.lineLengthForScreenRow(0)) + 1,
+        clientY: clientTopForLine(component, 0) + lineHeight / 2
+      })
+      expect(editor.getCursorScreenPosition()).toEqual([0, editor.lineLengthForScreenRow(0)])
+
+      component.didMouseDownOnLines({
+        detail: 1,
+        clientX: (clientLeftForCharacter(component, 3, 0) + clientLeftForCharacter(component, 3, 1)) / 2,
+        clientY: clientTopForLine(component, 1) + lineHeight / 2
+      })
+      expect(editor.getCursorScreenPosition()).toEqual([1, 0])
+
+      component.didMouseDownOnLines({
+        detail: 1,
+        clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2,
+        clientY: clientTopForLine(component, 3) + lineHeight / 2
+      })
+      expect(editor.getCursorScreenPosition()).toEqual([3, 14])
+
+      component.didMouseDownOnLines({
+        detail: 1,
+        clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2 + 1,
+        clientY: clientTopForLine(component, 3) + lineHeight / 2
+      })
+      expect(editor.getCursorScreenPosition()).toEqual([3, 15])
+
+      editor.getBuffer().setTextInRange([[3, 14], [3, 15]], '🐣')
+      await component.getNextUpdatePromise()
+
+      component.didMouseDownOnLines({
+        detail: 1,
+        clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2,
+        clientY: clientTopForLine(component, 3) + lineHeight / 2
+      })
+      expect(editor.getCursorScreenPosition()).toEqual([3, 14])
+
+      component.didMouseDownOnLines({
+        detail: 1,
+        clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2 + 1,
+        clientY: clientTopForLine(component, 3) + lineHeight / 2
+      })
+      expect(editor.getCursorScreenPosition()).toEqual([3, 16])
+    })
+  })
 })
 
 function buildComponent (params = {}) {
