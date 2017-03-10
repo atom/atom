@@ -258,7 +258,14 @@ class TextEditorComponent {
       )
     }
 
-    return $.div({ref: 'content', style}, children)
+    return $.div(
+      {
+        ref: 'content',
+        on: {mousedown: this.didMouseDownOnContent},
+        style
+      },
+      children
+    )
   }
 
   renderLineTiles (width, height) {
@@ -320,9 +327,6 @@ class TextEditorComponent {
         position: 'absolute',
         contain: 'strict',
         width, height
-      },
-      on: {
-        mousedown: this.didMouseDownOnLines
       }
     }, tileNodes)
   }
@@ -350,6 +354,7 @@ class TextEditorComponent {
       style: {
         position: 'absolute',
         contain: 'strict',
+        zIndex: 1,
         width, height
       }
     }, children)
@@ -741,7 +746,7 @@ class TextEditorComponent {
     event.target.value = ''
   }
 
-  didMouseDownOnLines (event) {
+  didMouseDownOnContent (event) {
     const {model} = this.props
     const {detail, ctrlKey, shiftKey, metaKey} = event
     const screenPosition = this.screenPositionForMouseEvent(event)
