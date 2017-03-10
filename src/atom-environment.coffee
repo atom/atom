@@ -229,7 +229,7 @@ class AtomEnvironment extends Model
 
     @observeAutoHideMenuBar()
 
-    @history = new HistoryManager({@project, @commands, @stateStore})
+    @history = new HistoryManager({@project, @commands, @stateStore, localStorage: window.localStorage})
     # Keep instances of HistoryManager in sync
     @disposables.add @history.onDidChangeProjects (e) =>
       @applicationDelegate.didChangeHistoryManager() unless e.reloaded

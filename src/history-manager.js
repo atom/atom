@@ -8,8 +8,9 @@ import {Emitter, CompositeDisposable} from 'event-kit'
 //
 // The project history is used to enable the 'Reopen Project' menu.
 export class HistoryManager {
-  constructor ({stateStore, project, commands}) {
+  constructor ({stateStore, localStorage, project, commands}) {
     this.stateStore = stateStore
+    this.localStorage = localStorage
     this.emitter = new Emitter()
     this.projects = []
     this.disposables = new CompositeDisposable()
@@ -93,7 +94,11 @@ export class HistoryManager {
   }
 
   async loadState () {
-    const history = await this.stateStore.load('history-manager')
+    let history = await this.stateStore.load('history-manager')
+    if (!history) {
+      history = JSON.parse(this.localStorage.getItem('history'))
+    }
+
     if (history && history.projects) {
       this.projects = history.projects.filter(p => Array.isArray(p.paths) && p.paths.length > 0).map(p => new HistoryProject(p.paths, new Date(p.lastOpened)))
       this.didChangeProjects({reloaded: true})

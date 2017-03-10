@@ -30,7 +30,7 @@ describe("HistoryManager", () => {
       return projectDisposable
     })
 
-    historyManager = new HistoryManager({stateStore, project, commands: commandRegistry})
+    historyManager = new HistoryManager({stateStore, localStorage: window.localStorage, project, commands: commandRegistry})
     await historyManager.loadState()
   })
 
@@ -75,7 +75,7 @@ describe("HistoryManager", () => {
 
       it("saves the state", async () => {
         await historyManager.clearProjects()
-        const historyManager2 = new HistoryManager({stateStore, project, commands: commandRegistry})
+        const historyManager2 = new HistoryManager({stateStore, localStorage: window.localStorage, project, commands: commandRegistry})
         await historyManager2.loadState()
         expect(historyManager.getProjects().length).toBe(0)
       })
@@ -186,7 +186,7 @@ describe("HistoryManager", () => {
     it("saves the state", async () => {
       await historyManager.addProject(["/save/state"])
       await historyManager.saveState()
-      const historyManager2 = new HistoryManager({stateStore, project, commands: commandRegistry})
+      const historyManager2 = new HistoryManager({stateStore, localStorage: window.localStorage, project, commands: commandRegistry})
       await historyManager2.loadState()
       expect(historyManager2.getProjects()[0].paths).toEqual(['/save/state'])
     })
