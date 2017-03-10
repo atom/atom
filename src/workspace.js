@@ -57,12 +57,6 @@ module.exports = class Workspace extends Model {
     this.defaultDirectorySearcher = new DefaultDirectorySearcher()
     this.consumeServices(this.packageManager)
 
-    // One cannot simply .bind here since it could be used as a component with
-    // Etch, in which case it'd be `new`d. And when it's `new`d, `this` is always
-    // the newly created object.
-    const realThis = this
-    this.buildTextEditor = (params) => Workspace.prototype.buildTextEditor.call(realThis, params)
-
     this.panelContainers = {
       top: new PanelContainer({location: 'top'}),
       left: new PanelContainer({location: 'left'}),
