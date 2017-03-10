@@ -229,7 +229,8 @@ class TextEditorComponent {
     let children
     let style = {
       contain: 'strict',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      backgroundColor: 'inherit'
     }
     if (this.measurements) {
       const contentWidth = this.getContentWidth()
