@@ -745,14 +745,32 @@ module.exports = class Workspace extends Model {
   }
 
   openItem (item, options = {}) {
-    let {pane} = options
-    const {split} = options
+    let {pane, split} = options
 
     if (item == null) return undefined
     if (pane != null && pane.isDestroyed()) return item
 
     if (pane == null) {
-      pane = this.getActivePane()
+      // If this is a new item, we want to determine where to put it in the following way:
+      //   - If you provided a split, you want to put it in that split of the center location
+      //     (legacy behavior)
+      //   - If the item specifies a default location, use that.
+      let locationInfo, location
+      if (split == null) {
+        if (locationInfo == null && typeof item.getDefaultLocation === 'function') {
+          locationInfo = item.getDefaultLocation()
+        }
+        if (locationInfo != null) {
+          if (typeof locationInfo === 'string') {
+            location = locationInfo
+          } else {
+            location = locationInfo.location
+            split = locationInfo.split
+          }
+        }
+      }
+
+      pane = this.docks[location] == null ? this.getActivePane() : this.docks[location].getActivePane()
       switch (split) {
         case 'left':
           pane = pane.findLeftmostSibling()
