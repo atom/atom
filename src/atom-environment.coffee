@@ -997,7 +997,7 @@ class AtomEnvironment extends Model
   resolveProxy: (url) ->
     return new Promise (resolve, reject) =>
       requestId = @nextProxyRequestId++
-      disposable = @applicationDelegate.onDidResolveProxy (id, proxy) =>
+      disposable = @applicationDelegate.onDidResolveProxy (id, proxy) ->
         if id is requestId
           disposable.dispose()
           resolve(proxy)
