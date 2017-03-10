@@ -1202,6 +1202,10 @@ module.exports = class Workspace extends Model {
   //   * `paths` An {Array} of glob patterns to search within.
   //   * `onPathsSearched` (optional) {Function} to be periodically called
   //     with number of paths searched.
+  //   * `leadingContextLineCount` {Number} default `0`; The number of lines
+  //      before the matched line to include in the results object.
+  //   * `trailingContextLineCount` {Number} default `0`; The number of lines
+  //      after the matched line to include in the results object.
   // * `iterator` {Function} callback on each file found.
   //
   // Returns a {Promise} with a `cancel()` method that will cancel all
@@ -1261,6 +1265,8 @@ module.exports = class Workspace extends Model {
         excludeVcsIgnores: this.config.get('core.excludeVcsIgnoredPaths'),
         exclusions: this.config.get('core.ignoredNames'),
         follow: this.config.get('core.followSymlinks'),
+        leadingContextLineCount: options.leadingContextLineCount || 0,
+        trailingContextLineCount: options.trailingContextLineCount || 0,
         didMatch: result => {
           if (!this.project.isPathModified(result.filePath)) {
             return iterator(result)

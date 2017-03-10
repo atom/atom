@@ -2826,6 +2826,11 @@ class TextEditor extends Model
   # {::backwardsScanInBufferRange} to avoid tripping over your own changes.
   #
   # * `regex` A {RegExp} to search for.
+  # * `options` (optional) {Object}
+  #   * `leadingContextLineCount` {Number} default `0`; The number of lines
+  #      before the matched line to include in the results object.
+  #   * `trailingContextLineCount` {Number} default `0`; The number of lines
+  #      after the matched line to include in the results object.
   # * `iterator` A {Function} that's called on each match
   #   * `object` {Object}
   #     * `match` The current regular expression match.
@@ -2833,7 +2838,12 @@ class TextEditor extends Model
   #     * `range` The {Range} of the match.
   #     * `stop` Call this {Function} to terminate the scan.
   #     * `replace` Call this {Function} with a {String} to replace the match.
-  scan: (regex, iterator) -> @buffer.scan(regex, iterator)
+  scan: (regex, options={}, iterator) ->
+    if _.isFunction(options)
+      iterator = options
+      options = {}
+
+    @buffer.scan(regex, options, iterator)
 
   # Essential: Scan regular expression matches in a given range, calling the given
   # iterator function on each match.
