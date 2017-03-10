@@ -587,13 +587,13 @@ module.exports = class Workspace extends Model {
           pane = this.getActivePane().findLeftmostSibling()
           break
         case 'right':
-          pane = this.getActivePane().findOrCreateRightmostSibling()
+          pane = this.getActivePane().findRightmostSibling()
           break
         case 'up':
           pane = this.getActivePane().findTopmostSibling()
           break
         case 'down':
-          pane = this.getActivePane().findOrCreateBottommostSibling()
+          pane = this.getActivePane().findBottommostSibling()
           break
         default:
           pane = this.getActivePane()
@@ -602,11 +602,12 @@ module.exports = class Workspace extends Model {
     }
 
     let item
-    if (uri != null) {
+    if (uri != null && pane != null) {
       item = pane.itemForURI(uri)
     }
     if (item == null) {
       item = this.createItemForURI(uri, options)
+      pane = null
     }
 
     return Promise.resolve(item)
@@ -712,10 +713,29 @@ module.exports = class Workspace extends Model {
   }
 
   openItem (item, options = {}) {
-    const {pane} = options
+    let {pane} = options
+    const {split} = options
 
     if (item == null) return undefined
-    if (pane.isDestroyed()) return item
+    if (pane != null && pane.isDestroyed()) return item
+
+    if (pane == null) {
+      pane = this.getActivePane()
+      switch (split) {
+        case 'left':
+          pane = pane.findLeftmostSibling()
+          break
+        case 'right':
+          pane = pane.findOrCreateRightmostSibling()
+          break
+        case 'up':
+          pane = pane.findTopmostSibling()
+          break
+        case 'down':
+          pane = pane.findOrCreateBottommostSibling()
+          break
+      }
+    }
 
     if (!options.pending && (pane.getPendingItem() === item)) {
       pane.clearPendingItem()
