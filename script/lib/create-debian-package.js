@@ -92,7 +92,7 @@ module.exports = function (packagedAppPath) {
 
   console.log(`Copying icon into "${debianPackageIconsDirPath}"`)
   fs.copySync(
-    path.join(packagedAppPath, 'resources', 'app.asar.unpacked', 'resources', 'atom.png'),
+    path.join(packagedAppPath, 'resources', 'app', 'resources', 'atom.png'),
     path.join(debianPackageIconsDirPath, `${atomExecutableName}.png`)
   )
 
