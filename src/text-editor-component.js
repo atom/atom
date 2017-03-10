@@ -393,6 +393,11 @@ class TextEditorComponent {
     })
   }
 
+  // This is easier to mock
+  getPlatform () {
+    return process.platform
+  }
+
   queryDecorationsToRender () {
     this.decorationsToRender.lineNumbers.clear()
     this.decorationsToRender.lines.clear()
@@ -739,14 +744,27 @@ class TextEditorComponent {
     const {model} = this.props
     const screenPosition = this.screenPositionForMouseEvent(event)
 
+    const addOrRemoveSelection = event.metaKey || (event.ctrlKey && this.getPlatform() !== 'darwin')
+
     switch (event.detail) {
       case 1:
-        model.setCursorScreenPosition(screenPosition)
+        if (addOrRemoveSelection) {
+          const existingSelection = model.getSelectionAtScreenPosition(screenPosition)
+          if (existingSelection) {
+            if (model.hasMultipleCursors()) existingSelection.destroy()
+          } else {
+            model.addCursorAtScreenPosition(screenPosition)
+          }
+        } else {
+          model.setCursorScreenPosition(screenPosition)
+        }
         break
       case 2:
+        if (addOrRemoveSelection) model.addCursorAtScreenPosition(screenPosition)
         model.getLastSelection().selectWord({autoscroll: false})
         break
       case 3:
+        if (addOrRemoveSelection) model.addCursorAtScreenPosition(screenPosition)
         model.getLastSelection().selectLine(null, {autoscroll: false})
         break
     }
