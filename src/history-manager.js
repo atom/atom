@@ -111,12 +111,6 @@ export class HistoryManager {
     const projects = this.projects.map(p => ({paths: p.paths, lastOpened: p.lastOpened}))
     await this.stateStore.save('history-manager', {projects})
   }
-
-  async importProjectHistory () {
-    for (let project of await HistoryImporter.getAllProjects()) {
-      await this.addProject(project.paths, project.lastOpened)
-    }
-  }
 }
 
 function arrayEquivalent (a, b) {
