@@ -187,7 +187,9 @@ class AtomEnvironment extends Model
 
     @autoUpdater = new AutoUpdateManager({@applicationDelegate})
 
-    @keymaps.loadBundledKeymaps()
+    if @keymaps.canLoadBundledKeymapsFromMemory()
+      @keymaps.loadBundledKeymaps()
+
     @registerDefaultCommands()
     @registerDefaultOpeners()
     @registerDefaultDeserializers()
@@ -217,8 +219,13 @@ class AtomEnvironment extends Model
     }
     @config.initialize({@configDirPath, resourcePath, projectHomeSchema: ConfigSchema.projectHome})
 
+    @menu.initialize({resourcePath})
+    @contextMenu.initialize({resourcePath, devMode})
+
     @keymaps.configDirPath = @configDirPath
     @keymaps.resourcePath = resourcePath
+    unless @keymaps.canLoadBundledKeymapsFromMemory()
+      @keymaps.loadBundledKeymaps()
 
     @commands.attach(@window)
 
@@ -226,8 +233,6 @@ class AtomEnvironment extends Model
     @packages.initialize({devMode, @configDirPath, resourcePath, safeMode})
     @themes.initialize({@configDirPath, resourcePath, safeMode})
 
-    @menu.initialize({resourcePath})
-    @contextMenu.initialize({resourcePath, devMode})
     @commandInstaller.initialize(@getVersion())
     @workspace.initialize()
     @autoUpdater.initialize()

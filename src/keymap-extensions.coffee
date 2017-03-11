@@ -11,6 +11,9 @@ KeymapManager::onDidLoadBundledKeymaps = (callback) ->
 KeymapManager::onDidLoadUserKeymap = (callback) ->
   @emitter.on 'did-load-user-keymap', callback
 
+KeymapManager::canLoadBundledKeymapsFromMemory = ->
+  bundledKeymaps?
+
 KeymapManager::loadBundledKeymaps = ->
   if bundledKeymaps?
     for keymapName, keymap of bundledKeymaps
