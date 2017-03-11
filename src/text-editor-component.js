@@ -1,6 +1,6 @@
 const etch = require('etch')
 const {CompositeDisposable} = require('event-kit')
-const {Point} = require('text-buffer')
+const {Point, Range} = require('text-buffer')
 const resizeDetector = require('element-resize-detector')({strategy: 'scroll'})
 const TextEditor = require('./text-editor')
 const {isPairedCharacter} = require('./text-utils')
@@ -14,6 +14,7 @@ const DOUBLE_WIDTH_CHARACTER = '我'
 const HALF_WIDTH_CHARACTER = 'ﾊ'
 const KOREAN_CHARACTER = '세'
 const NBSP_CHARACTER = '\u00a0'
+const ZERO_WIDTH_NBSP_CHARACTER = '\ufeff'
 const MOUSE_DRAG_AUTOSCROLL_MARGIN = 40
 
 function scaleMouseDragAutoscrollDelta (delta) {
@@ -796,29 +797,83 @@ class TextEditorComponent {
         break
     }
 
-    this.handleMouseDragUntilMouseUp(
-      (event) => {
+    this.handleMouseDragUntilMouseUp({
+      didDrag: (event) => {
         this.autoscrollOnMouseDrag(event)
         const screenPosition = this.screenPositionForMouseEvent(event)
         model.selectToScreenPosition(screenPosition, {suppressSelectionMerge: true, autoscroll: false})
         this.updateSync()
       },
-      () => {
+      didStopDragging: () => {
         model.finalizeSelections()
         model.mergeIntersectingSelections()
         this.updateSync()
       }
-    )
+    })
   }
 
-  handleMouseDragUntilMouseUp (didDragCallback, didStopDragging) {
+  didMouseDownOnLineNumberGutter (event) {
+    if (global.debug) debugger
+
+    const {model} = this.props
+    const {button, ctrlKey, shiftKey, metaKey} = event
+
+    // Only handle mousedown events for left mouse button
+    if (button !== 0) return
+
+    const addOrRemoveSelection = metaKey || (ctrlKey && this.getPlatform() !== 'darwin')
+    const clickedScreenRow = this.screenPositionForMouseEvent(event).row
+    const startBufferRow = model.bufferPositionForScreenPosition([clickedScreenRow, 0]).row
+    const endBufferRow = model.bufferPositionForScreenPosition([clickedScreenRow, Infinity]).row
+    const clickedLineBufferRange = Range(Point(startBufferRow, 0), Point(endBufferRow + 1, 0))
+
+    let initialBufferRange
+    if (shiftKey) {
+      const lastSelection = model.getLastSelection()
+      initialBufferRange = lastSelection.getBufferRange()
+      lastSelection.setBufferRange(initialBufferRange.union(clickedLineBufferRange), {
+        reversed: clickedScreenRow < lastSelection.getScreenRange().start.row,
+        autoscroll: false,
+        preserveFolds: true,
+        suppressSelectionMerge: true
+      })
+    } else {
+      initialBufferRange = clickedLineBufferRange
+      if (addOrRemoveSelection) {
+        model.addSelectionForBufferRange(clickedLineBufferRange, {autoscroll: false, preserveFolds: true})
+      } else {
+        model.setSelectedBufferRange(clickedLineBufferRange, {autoscroll: false, preserveFolds: true})
+      }
+    }
+
+    const initialScreenRange = model.screenRangeForBufferRange(initialBufferRange)
+    this.handleMouseDragUntilMouseUp({
+      didDrag: (event) => {
+        const dragRow = this.screenPositionForMouseEvent(event).row
+        const draggedLineScreenRange = Range(Point(dragRow, 0), Point(dragRow + 1, 0))
+        model.getLastSelection().setScreenRange(draggedLineScreenRange.union(initialScreenRange), {
+          reversed: dragRow < initialScreenRange.start.row,
+          autoscroll: false,
+          preserveFolds: true
+        })
+        this.updateSync()
+      },
+      didStopDragging: () => {
+        model.mergeIntersectingSelections()
+        this.updateSync()
+      }
+    })
+
+  }
+
+  handleMouseDragUntilMouseUp ({didDrag, didStopDragging}) {
     let dragging = false
     let lastMousemoveEvent
 
     const animationFrameLoop = () => {
       window.requestAnimationFrame(() => {
         if (dragging && this.visible) {
-          didDragCallback(lastMousemoveEvent)
+          didDrag(lastMousemoveEvent)
           animationFrameLoop()
         }
       })
@@ -1503,6 +1558,9 @@ class LineNumberGutterComponent {
 
       children[tileIndex] = $.div({
         key: tileIndex,
+        on: {
+          mousedown: this.didMouseDown
+        },
         style: {
           contain: 'strict',
           overflow: 'hidden',
@@ -1546,6 +1604,10 @@ class LineNumberGutterComponent {
     if (!arraysEqual(oldProps.foldableFlags, newProps.foldableFlags)) return true
     if (!arraysEqual(oldProps.lineNumberDecorations, newProps.lineNumberDecorations)) return true
     return false
+  }
+
+  didMouseDown (event) {
+    this.props.parentComponent.didMouseDownOnLineNumberGutter(event)
   }
 }
 
@@ -1718,7 +1780,7 @@ class LineComponent {
       // Insert a zero-width non-breaking whitespace, so that LinesYardstick can
       // take the fold-marker::after pseudo-element into account during
       // measurements when such marker is the last character on the line.
-      const textNode = document.createTextNode(ZERO_WIDTH_NBSP)
+      const textNode = document.createTextNode(ZERO_WIDTH_NBSP_CHARACTER)
       this.element.appendChild(textNode)
       textNodes.push(textNode)
     }

@@ -850,7 +850,7 @@ describe('TextEditorComponent', () => {
       }, clientPositionForCharacter(component, 1, 4)))
 
       {
-        const [didDrag, didStopDragging] = component.handleMouseDragUntilMouseUp.argsForCall[0]
+        const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[0][0]
         didDrag(clientPositionForCharacter(component, 8, 8))
         expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [8, 8]])
         didDrag(clientPositionForCharacter(component, 4, 8))
@@ -867,7 +867,7 @@ describe('TextEditorComponent', () => {
         metaKey: 1,
       }, clientPositionForCharacter(component, 8, 8)))
       {
-        const [didDrag, didStopDragging] = component.handleMouseDragUntilMouseUp.argsForCall[1]
+        const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[1][0]
         didDrag(clientPositionForCharacter(component, 2, 8))
         expect(editor.getSelectedScreenRanges()).toEqual([
           [[1, 4], [4, 8]],
@@ -903,7 +903,7 @@ describe('TextEditorComponent', () => {
         button: 0,
       }, clientPositionForCharacter(component, 1, 4)))
 
-      const [didDrag, didStopDragging] = component.handleMouseDragUntilMouseUp.argsForCall[1]
+      const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[1][0]
       didDrag(clientPositionForCharacter(component, 0, 8))
       expect(editor.getSelectedScreenRange()).toEqual([[0, 4], [1, 5]])
       didDrag(clientPositionForCharacter(component, 2, 10))
@@ -919,11 +919,170 @@ describe('TextEditorComponent', () => {
       component.didMouseDownOnContent(Object.assign({detail: 2, button: 0}, tripleClickPosition))
       component.didMouseDownOnContent(Object.assign({detail: 3, button: 0}, tripleClickPosition))
 
-      const [didDrag, didStopDragging] = component.handleMouseDragUntilMouseUp.argsForCall[2]
+      const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[2][0]
       didDrag(clientPositionForCharacter(component, 1, 8))
       expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [3, 0]])
       didDrag(clientPositionForCharacter(component, 4, 10))
       expect(editor.getSelectedScreenRange()).toEqual([[2, 0], [5, 0]])
+    })
+
+    describe('on the line number gutter', () => {
+      it('selects all buffer rows intersecting the clicked screen row when a line number is clicked', async () => {
+        const {component, editor} = buildComponent()
+        spyOn(component, 'handleMouseDragUntilMouseUp')
+        editor.setSoftWrapped(true)
+        await setEditorWidthInCharacters(component, 50)
+        editor.foldBufferRange([[4, Infinity], [7, Infinity]])
+        await component.getNextUpdatePromise()
+
+        // Selects entire buffer line when clicked screen line is soft-wrapped
+        component.didMouseDownOnLineNumberGutter({
+          button: 0,
+          clientY: clientTopForLine(component, 3)
+        })
+        expect(editor.getSelectedScreenRange()).toEqual([[3, 0], [5, 0]])
+        expect(editor.getSelectedBufferRange()).toEqual([[3, 0], [4, 0]])
+
+        // Selects entire screen line, even if folds cause that selection to
+        // span multiple buffer lines
+        component.didMouseDownOnLineNumberGutter({
+          button: 0,
+          clientY: clientTopForLine(component, 5)
+        })
+        expect(editor.getSelectedScreenRange()).toEqual([[5, 0], [6, 0]])
+        expect(editor.getSelectedBufferRange()).toEqual([[4, 0], [8, 0]])
+      })
+
+      it('adds new selections when a line number is meta-clicked', async () => {
+        const {component, editor} = buildComponent()
+        editor.setSoftWrapped(true)
+        await setEditorWidthInCharacters(component, 50)
+        editor.foldBufferRange([[4, Infinity], [7, Infinity]])
+        await component.getNextUpdatePromise()
+
+        // Selects entire buffer line when clicked screen line is soft-wrapped
+        component.didMouseDownOnLineNumberGutter({
+          button: 0,
+          metaKey: true,
+          clientY: clientTopForLine(component, 3)
+        })
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[0, 0], [0, 0]],
+          [[3, 0], [5, 0]]
+        ])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[0, 0], [0, 0]],
+          [[3, 0], [4, 0]]
+        ])
+
+        // Selects entire screen line, even if folds cause that selection to
+        // span multiple buffer lines
+        component.didMouseDownOnLineNumberGutter({
+          button: 0,
+          metaKey: true,
+          clientY: clientTopForLine(component, 5)
+        })
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[0, 0], [0, 0]],
+          [[3, 0], [5, 0]],
+          [[5, 0], [6, 0]]
+        ])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[0, 0], [0, 0]],
+          [[3, 0], [4, 0]],
+          [[4, 0], [8, 0]]
+        ])
+      })
+
+      it('expands the last selection when a line number is shift-clicked', async () => {
+        const {component, editor} = buildComponent()
+        spyOn(component, 'handleMouseDragUntilMouseUp')
+        editor.setSoftWrapped(true)
+        await setEditorWidthInCharacters(component, 50)
+        editor.foldBufferRange([[4, Infinity], [7, Infinity]])
+        await component.getNextUpdatePromise()
+
+        editor.setSelectedScreenRange([[3, 4], [3, 8]])
+        editor.addCursorAtScreenPosition([2, 10])
+        component.didMouseDownOnLineNumberGutter({
+          button: 0,
+          shiftKey: true,
+          clientY: clientTopForLine(component, 5)
+        })
+
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[3, 4], [3, 8]],
+          [[2, 10], [8, 0]]
+        ])
+
+        // Original selection is preserved when shift-click-dragging
+        const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[0][0]
+        didDrag({
+          clientY: clientTopForLine(component, 1)
+        })
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[3, 4], [3, 8]],
+          [[1, 0], [2, 10]]
+        ])
+
+        didDrag({
+          clientY: clientTopForLine(component, 5)
+        })
+
+        didStopDragging()
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[2, 10], [8, 0]]
+        ])
+      })
+
+      it('expands the selection when dragging', async () => {
+        const {component, editor} = buildComponent()
+        spyOn(component, 'handleMouseDragUntilMouseUp')
+        editor.setSoftWrapped(true)
+        await setEditorWidthInCharacters(component, 50)
+        editor.foldBufferRange([[4, Infinity], [7, Infinity]])
+        await component.getNextUpdatePromise()
+
+        editor.setSelectedScreenRange([[3, 4], [3, 6]])
+
+        component.didMouseDownOnLineNumberGutter({
+          button: 0,
+          metaKey: true,
+          clientY: clientTopForLine(component, 2)
+        })
+
+        const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[0][0]
+
+        didDrag({
+          clientY: clientTopForLine(component, 1)
+        })
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[3, 4], [3, 6]],
+          [[1, 0], [3, 0]]
+        ])
+
+        didDrag({
+          clientY: clientTopForLine(component, 5)
+        })
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[3, 4], [3, 6]],
+          [[2, 0], [6, 0]]
+        ])
+        expect(editor.isFoldedAtBufferRow(4)).toBe(true)
+
+        didDrag({
+          clientY: clientTopForLine(component, 3)
+        })
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[3, 4], [3, 6]],
+          [[2, 0], [4, 4]]
+        ])
+
+        didStopDragging()
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[2, 0], [4, 4]]
+        ])
+      })
     })
 
     it('autoscrolls the content when dragging near the edge of the screen', async () => {
@@ -948,7 +1107,7 @@ describe('TextEditorComponent', () => {
       }
 
       component.didMouseDownOnContent({detail: 1, button: 0, clientX: 100, clientY: 100})
-      const [didDrag, didStopDragging] = component.handleMouseDragUntilMouseUp.argsForCall[0]
+      const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[0][0]
       didDrag({clientX: 199, clientY: 199})
       assertScrolledDownAndRight()
       didDrag({clientX: 199, clientY: 199})
