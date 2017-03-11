@@ -13,6 +13,7 @@ const PaneContainer = require('./pane-container')
 const Panel = require('./panel')
 const PanelContainer = require('./panel-container')
 const Task = require('./task')
+const WorkspaceCenter = require('./workspace-center')
 
 // Essential: Represents the state of the user interface for the entire window.
 // An instance of this class is available via the `atom.workspace` global.
@@ -56,6 +57,8 @@ module.exports = class Workspace extends Model {
 
     this.defaultDirectorySearcher = new DefaultDirectorySearcher()
     this.consumeServices(this.packageManager)
+
+    this.center = new WorkspaceCenter(this.paneContainer)
 
     this.panelContainers = {
       top: new PanelContainer({location: 'top'}),
@@ -1006,6 +1009,14 @@ module.exports = class Workspace extends Model {
     if (this.activeItemSubscriptions != null) {
       this.activeItemSubscriptions.dispose()
     }
+  }
+
+  /*
+  Section: Pane Locations
+  */
+
+  getCenter () {
+    return this.center
   }
 
   /*
