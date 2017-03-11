@@ -600,6 +600,7 @@ describe('TextEditorComponent', () => {
 
       component.didMouseDownOnContent({
         detail: 1,
+        button: 0,
         clientX: clientLeftForCharacter(component, 0, editor.lineLengthForScreenRow(0)) + 1,
         clientY: clientTopForLine(component, 0) + lineHeight / 2
       })
@@ -607,6 +608,7 @@ describe('TextEditorComponent', () => {
 
       component.didMouseDownOnContent({
         detail: 1,
+        button: 0,
         clientX: (clientLeftForCharacter(component, 3, 0) + clientLeftForCharacter(component, 3, 1)) / 2,
         clientY: clientTopForLine(component, 1) + lineHeight / 2
       })
@@ -614,6 +616,7 @@ describe('TextEditorComponent', () => {
 
       component.didMouseDownOnContent({
         detail: 1,
+        button: 0,
         clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2,
         clientY: clientTopForLine(component, 3) + lineHeight / 2
       })
@@ -621,6 +624,7 @@ describe('TextEditorComponent', () => {
 
       component.didMouseDownOnContent({
         detail: 1,
+        button: 0,
         clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2 + 1,
         clientY: clientTopForLine(component, 3) + lineHeight / 2
       })
@@ -631,6 +635,7 @@ describe('TextEditorComponent', () => {
 
       component.didMouseDownOnContent({
         detail: 1,
+        button: 0,
         clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2,
         clientY: clientTopForLine(component, 3) + lineHeight / 2
       })
@@ -638,6 +643,7 @@ describe('TextEditorComponent', () => {
 
       component.didMouseDownOnContent({
         detail: 1,
+        button: 0,
         clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2 + 1,
         clientY: clientTopForLine(component, 3) + lineHeight / 2
       })
@@ -647,17 +653,17 @@ describe('TextEditorComponent', () => {
     it('selects words on double-click', () => {
       const {component, editor} = buildComponent()
       const {clientX, clientY} = clientPositionForCharacter(component, 1, 16)
-      component.didMouseDownOnContent({detail: 1, clientX, clientY})
-      component.didMouseDownOnContent({detail: 2, clientX, clientY})
+      component.didMouseDownOnContent({detail: 1, button: 0, clientX, clientY})
+      component.didMouseDownOnContent({detail: 2, button: 0, clientX, clientY})
       expect(editor.getSelectedScreenRange()).toEqual([[1, 13], [1, 21]])
     })
 
     it('selects lines on triple-click', () => {
       const {component, editor} = buildComponent()
       const {clientX, clientY} = clientPositionForCharacter(component, 1, 16)
-      component.didMouseDownOnContent({detail: 1, clientX, clientY})
-      component.didMouseDownOnContent({detail: 2, clientX, clientY})
-      component.didMouseDownOnContent({detail: 3, clientX, clientY})
+      component.didMouseDownOnContent({detail: 1, button: 0, clientX, clientY})
+      component.didMouseDownOnContent({detail: 2, button: 0, clientX, clientY})
+      component.didMouseDownOnContent({detail: 3, button: 0, clientX, clientY})
       expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [2, 0]])
     })
 
@@ -672,6 +678,7 @@ describe('TextEditorComponent', () => {
       component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 1, 16), {
           detail: 1,
+          button: 0,
           metaKey: true
         })
       )
@@ -681,6 +688,7 @@ describe('TextEditorComponent', () => {
       component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 0, 0), {
           detail: 1,
+          button: 0,
           metaKey: true
         })
       )
@@ -690,6 +698,7 @@ describe('TextEditorComponent', () => {
       component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 1, 16), {
           detail: 1,
+          button: 0,
           metaKey: true
         })
       )
@@ -704,6 +713,7 @@ describe('TextEditorComponent', () => {
       component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 2, 13), {
           detail: 1,
+          button: 0,
           metaKey: true
         })
       )
@@ -715,6 +725,7 @@ describe('TextEditorComponent', () => {
       component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 1, 4), {
           detail: 1,
+          button: 0,
           ctrlKey: true
         })
       )
@@ -726,6 +737,7 @@ describe('TextEditorComponent', () => {
       component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 1, 16), {
           detail: 1,
+          button: 0,
           ctrlKey: true
         })
       )
@@ -740,12 +752,14 @@ describe('TextEditorComponent', () => {
       component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 1, 16), {
           detail: 1,
+          button: 0,
           metaKey: true
         })
       )
       component.didMouseDownOnContent(
         Object.assign(clientPositionForCharacter(component, 1, 16), {
           detail: 2,
+          button: 0,
           metaKey: true
         })
       )
@@ -761,9 +775,9 @@ describe('TextEditorComponent', () => {
       expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]])
 
       const {clientX, clientY} = clientPositionForCharacter(component, 1, 16)
-      component.didMouseDownOnContent({detail: 1, metaKey: true, clientX, clientY})
-      component.didMouseDownOnContent({detail: 2, metaKey: true, clientX, clientY})
-      component.didMouseDownOnContent({detail: 3, metaKey: true, clientX, clientY})
+      component.didMouseDownOnContent({detail: 1, button: 0, metaKey: true, clientX, clientY})
+      component.didMouseDownOnContent({detail: 2, button: 0, metaKey: true, clientX, clientY})
+      component.didMouseDownOnContent({detail: 3, button: 0, metaKey: true, clientX, clientY})
 
       expect(editor.getSelectedScreenRanges()).toEqual([
         [[0, 0], [0, 0]],
@@ -777,12 +791,14 @@ describe('TextEditorComponent', () => {
       editor.setCursorScreenPosition([2, 18])
       component.didMouseDownOnContent(Object.assign({
         detail: 1,
+        button: 0,
         shiftKey: true
       }, clientPositionForCharacter(component, 1, 4)))
       expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [2, 18]])
 
       component.didMouseDownOnContent(Object.assign({
         detail: 1,
+        button: 0,
         shiftKey: true
       }, clientPositionForCharacter(component, 4, 4)))
       expect(editor.getSelectedScreenRange()).toEqual([[2, 18], [4, 4]])
@@ -793,12 +809,14 @@ describe('TextEditorComponent', () => {
       editor.getLastSelection().selectWord()
       component.didMouseDownOnContent(Object.assign({
         detail: 1,
+        button: 0,
         shiftKey: true
       }, clientPositionForCharacter(component, 1, 4)))
       expect(editor.getSelectedScreenRange()).toEqual([[1, 2], [2, 20]])
 
       component.didMouseDownOnContent(Object.assign({
         detail: 1,
+        button: 0,
         shiftKey: true
       }, clientPositionForCharacter(component, 3, 11)))
       expect(editor.getSelectedScreenRange()).toEqual([[2, 14], [3, 13]])
@@ -809,12 +827,14 @@ describe('TextEditorComponent', () => {
       editor.getLastSelection().selectLine()
       component.didMouseDownOnContent(Object.assign({
         detail: 1,
+        button: 0,
         shiftKey: true
       }, clientPositionForCharacter(component, 1, 4)))
       expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [3, 0]])
 
       component.didMouseDownOnContent(Object.assign({
         detail: 1,
+        button: 0,
         shiftKey: true
       }, clientPositionForCharacter(component, 3, 11)))
       expect(editor.getSelectedScreenRange()).toEqual([[2, 0], [4, 0]])
@@ -826,6 +846,7 @@ describe('TextEditorComponent', () => {
 
       component.didMouseDownOnContent(Object.assign({
         detail: 1,
+        button: 0,
       }, clientPositionForCharacter(component, 1, 4)))
 
       {
@@ -842,6 +863,7 @@ describe('TextEditorComponent', () => {
       // drag stops.
       component.didMouseDownOnContent(Object.assign({
         detail: 1,
+        button: 0,
         metaKey: 1,
       }, clientPositionForCharacter(component, 8, 8)))
       {
@@ -874,9 +896,11 @@ describe('TextEditorComponent', () => {
 
       component.didMouseDownOnContent(Object.assign({
         detail: 1,
+        button: 0,
       }, clientPositionForCharacter(component, 1, 4)))
       component.didMouseDownOnContent(Object.assign({
         detail: 2,
+        button: 0,
       }, clientPositionForCharacter(component, 1, 4)))
 
       const [didDrag, didStopDragging] = component.handleMouseDragUntilMouseUp.argsForCall[1]
@@ -891,9 +915,9 @@ describe('TextEditorComponent', () => {
       spyOn(component, 'handleMouseDragUntilMouseUp')
 
       const tripleClickPosition = clientPositionForCharacter(component, 2, 8)
-      component.didMouseDownOnContent(Object.assign({detail: 1}, tripleClickPosition))
-      component.didMouseDownOnContent(Object.assign({detail: 2}, tripleClickPosition))
-      component.didMouseDownOnContent(Object.assign({detail: 3}, tripleClickPosition))
+      component.didMouseDownOnContent(Object.assign({detail: 1, button: 0}, tripleClickPosition))
+      component.didMouseDownOnContent(Object.assign({detail: 2, button: 0}, tripleClickPosition))
+      component.didMouseDownOnContent(Object.assign({detail: 3, button: 0}, tripleClickPosition))
 
       const [didDrag, didStopDragging] = component.handleMouseDragUntilMouseUp.argsForCall[2]
       didDrag(clientPositionForCharacter(component, 1, 8))
@@ -923,7 +947,7 @@ describe('TextEditorComponent', () => {
         previousScrollLeft = scroller.scrollLeft
       }
 
-      component.didMouseDownOnContent({detail: 1, clientX: 100, clientY: 100})
+      component.didMouseDownOnContent({detail: 1, button: 0, clientX: 100, clientY: 100})
       const [didDrag, didStopDragging] = component.handleMouseDragUntilMouseUp.argsForCall[0]
       didDrag({clientX: 199, clientY: 199})
       assertScrolledDownAndRight()
