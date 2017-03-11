@@ -15,6 +15,16 @@
 #
 # Each scope (e.g. '.source.coffee' above) can only be declared once.
 #
+# An example of using each scope with multiple snippets:
+#
+# '.text.html.basic':
+#   'Stylesheet':
+#     'prefix': 'stylesheet'
+#     'body': '<link rel="stylesheet" type="text/css" href="style.css" />'
+#   'Viewport Meta':
+#     'prefix': 'viewport'
+#     'body': '<meta name="viewport" content="width=device-width, initial-scale=1.0" />'
+#
 # This file uses CoffeeScript Object Notation (CSON).
 # If you are unfamiliar with CSON, you can read more about it in the
 # Atom Flight Manual:
