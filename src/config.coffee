@@ -937,10 +937,10 @@ class Config
       defaultValue = getValueAtKeyPath(@defaultSettings, keyPath)
 
     if value?
-      value = @_.deepClone(value)
+      value = _.deepClone(value)
       @deepDefaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
     else
-      value = @_.deepClone(defaultValue)
+      value = _.deepClone(defaultValue)
 
     value
 
@@ -1006,7 +1006,7 @@ class Config
           result[key] = @deepDefaults(result[key], object[key])
       else
         if not result?
-          result = @_.deepClone(object)
+          result = _.deepClone(object)
     result
 
   # `schema` will look something like this
