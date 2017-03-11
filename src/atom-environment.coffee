@@ -224,6 +224,7 @@ class AtomEnvironment extends Model
 
     @keymaps.configDirPath = @configDirPath
     @keymaps.resourcePath = resourcePath
+    @keymaps.devMode = devMode
     unless @keymaps.canLoadBundledKeymapsFromMemory()
       @keymaps.loadBundledKeymaps()
 
