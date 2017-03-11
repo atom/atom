@@ -56,14 +56,16 @@ export default async function () {
     TextEditor.setClipboard(clipboard)
 
     const applicationDelegate = new ApplicationDelegate()
-    global.atom = new AtomEnvironment({
+    const environmentParams = {
       applicationDelegate,
       window,
       document,
       clipboard,
       configDirPath: process.env.ATOM_HOME,
       enablePersistence: false
-    })
+    }
+    global.atom = new AtomEnvironment(environmentParams)
+    global.atom.initialize(environmentParams)
 
     // Prevent benchmarks from modifying application menus
     global.atom.menu.sendToBrowserProcess = function () { }

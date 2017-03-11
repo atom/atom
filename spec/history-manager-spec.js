@@ -30,7 +30,8 @@ describe("HistoryManager", () => {
       return projectDisposable
     })
 
-    historyManager = new HistoryManager({stateStore, localStorage: window.localStorage, project, commands: commandRegistry})
+    historyManager = new HistoryManager({stateStore, project, commands: commandRegistry})
+    historyManager.initialize({localStorage: window.localStorage})
     await historyManager.loadState()
   })
 
