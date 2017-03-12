@@ -12,8 +12,8 @@ describe("HistoryManager", () => {
 
   beforeEach(async () => {
     commandDisposable = jasmine.createSpyObj('Disposable', ['dispose'])
-    commandRegistry = jasmine.createSpyObj('CommandRegistry', ['add'])
-    commandRegistry.add.andReturn(commandDisposable)
+    commandRegistry = jasmine.createSpyObj('CommandRegistry', ['addBundled'])
+    commandRegistry.addBundled.andReturn(commandDisposable)
 
     stateStore = new StateStore('history-manager-test', 1)
     await stateStore.save('history-manager', {
@@ -31,7 +31,7 @@ describe("HistoryManager", () => {
     })
 
     historyManager = new HistoryManager({stateStore, project, commands: commandRegistry})
-    historyManager.initialize({localStorage: window.localStorage})
+    historyManager.initialize(window.localStorage)
     await historyManager.loadState()
   })
 
@@ -41,8 +41,8 @@ describe("HistoryManager", () => {
 
   describe("constructor", () => {
     it("registers the 'clear-project-history' command function", () => {
-      expect(commandRegistry.add).toHaveBeenCalled()
-      const cmdCall = commandRegistry.add.calls[0]
+      expect(commandRegistry.addBundled).toHaveBeenCalled()
+      const cmdCall = commandRegistry.addBundled.calls[0]
       expect(cmdCall.args.length).toBe(2)
       expect(cmdCall.args[0]).toBe('atom-workspace')
       expect(typeof cmdCall.args[1]['application:clear-project-history']).toBe('function')

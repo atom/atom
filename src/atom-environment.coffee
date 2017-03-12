@@ -792,8 +792,13 @@ class AtomEnvironment extends Model
   uninstallUncaughtErrorHandler: ->
     @window.onerror = @previousWindowErrorHandler
 
+  installWindowEventHandler: ->
+    @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate})
+    @windowEventHandler.initialize(@window, @document)
+
   uninstallWindowEventHandler: ->
     @windowEventHandler?.unsubscribe()
+    @windowEventHandler = null
 
   ###
   Section: Messaging the User

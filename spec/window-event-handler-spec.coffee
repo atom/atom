@@ -15,7 +15,8 @@ describe "WindowEventHandler", ->
       loadSettings.initialPath = initialPath
       loadSettings
     atom.project.destroy()
-    windowEventHandler = new WindowEventHandler({atomEnvironment: atom, applicationDelegate: atom.applicationDelegate, window, document})
+    windowEventHandler = new WindowEventHandler({atomEnvironment: atom, applicationDelegate: atom.applicationDelegate})
+    windowEventHandler.initialize(window, document)
 
   afterEach ->
     windowEventHandler.unsubscribe()
