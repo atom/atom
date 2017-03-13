@@ -132,10 +132,10 @@ class ThemeManager
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # required stylesheet.
-  requireStylesheet: (stylesheetPath, priority) ->
+  requireStylesheet: (stylesheetPath, priority, skipDeprecatedSelectorsTransformation) ->
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
-      @applyStylesheet(fullPath, content, priority)
+      @applyStylesheet(fullPath, content, priority, skipDeprecatedSelectorsTransformation)
     else
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
 
@@ -181,7 +181,7 @@ class ThemeManager
     @reloadBaseStylesheets()
 
   reloadBaseStylesheets: ->
-    @requireStylesheet('../static/atom', -2)
+    @requireStylesheet('../static/atom', -2, true)
 
   stylesheetElementForId: (id) ->
     escapedId = id.replace(/\\/g, '\\\\')
@@ -236,8 +236,15 @@ class ThemeManager
   removeStylesheet: (stylesheetPath) ->
     @styleSheetDisposablesBySourcePath[stylesheetPath]?.dispose()
 
-  applyStylesheet: (path, text, priority) ->
-    @styleSheetDisposablesBySourcePath[path] = @styleManager.addStyleSheet(text, {priority, sourcePath: path})
+  applyStylesheet: (path, text, priority, skipDeprecatedSelectorsTransformation) ->
+    @styleSheetDisposablesBySourcePath[path] = @styleManager.addStyleSheet(
+      text,
+      {
+        priority,
+        skipDeprecatedSelectorsTransformation,
+        sourcePath: path
+      }
+    )
 
   activateThemes: ->
     new Promise (resolve) =>
