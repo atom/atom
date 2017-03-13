@@ -134,6 +134,7 @@ class AtomEnvironment extends Model
   constructor: (params={}) ->
     {@applicationDelegate, @clipboard, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
+    @nextProxyRequestId = 0
     @unloaded = false
     @loadTime = null
     @emitter = new Emitter
@@ -186,7 +187,9 @@ class AtomEnvironment extends Model
 
     @autoUpdater = new AutoUpdateManager({@applicationDelegate})
 
-    @keymaps.loadBundledKeymaps()
+    if @keymaps.canLoadBundledKeymapsFromMemory()
+      @keymaps.loadBundledKeymaps()
+
     @registerDefaultCommands()
     @registerDefaultOpeners()
     @registerDefaultDeserializers()
@@ -216,8 +219,14 @@ class AtomEnvironment extends Model
     }
     @config.initialize({@configDirPath, resourcePath, projectHomeSchema: ConfigSchema.projectHome})
 
+    @menu.initialize({resourcePath})
+    @contextMenu.initialize({resourcePath, devMode})
+
     @keymaps.configDirPath = @configDirPath
     @keymaps.resourcePath = resourcePath
+    @keymaps.devMode = devMode
+    unless @keymaps.canLoadBundledKeymapsFromMemory()
+      @keymaps.loadBundledKeymaps()
 
     @commands.attach(@window)
 
@@ -225,8 +234,6 @@ class AtomEnvironment extends Model
     @packages.initialize({devMode, @configDirPath, resourcePath, safeMode})
     @themes.initialize({@configDirPath, resourcePath, safeMode})
 
-    @menu.initialize({resourcePath})
-    @contextMenu.initialize({resourcePath, devMode})
     @commandInstaller.initialize(@getVersion())
     @workspace.initialize()
     @autoUpdater.initialize()
@@ -248,6 +255,7 @@ class AtomEnvironment extends Model
 
     @observeAutoHideMenuBar()
 
+    @history.initialize(@window.localStorage)
     @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
 
   attachSaveStateListeners: ->
@@ -783,8 +791,13 @@ class AtomEnvironment extends Model
   uninstallUncaughtErrorHandler: ->
     @window.onerror = @previousWindowErrorHandler
 
+  installWindowEventHandler: ->
+    @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate})
+    @windowEventHandler.initialize(@window, @document)
+
   uninstallWindowEventHandler: ->
     @windowEventHandler?.unsubscribe()
+    @windowEventHandler = null
 
   ###
   Section: Messaging the User
@@ -1000,6 +1013,16 @@ class AtomEnvironment extends Model
         @workspace?.open(pathToOpen, {initialLine, initialColumn})
 
     return
+
+  resolveProxy: (url) ->
+    return new Promise (resolve, reject) =>
+      requestId = @nextProxyRequestId++
+      disposable = @applicationDelegate.onDidResolveProxy (id, proxy) ->
+        if id is requestId
+          disposable.dispose()
+          resolve(proxy)
+
+      @applicationDelegate.resolveProxy(requestId, url)
 
 # Preserve this deprecation until 2.0. Sorry. Should have removed Q sooner.
 Promise.prototype.done = (callback) ->

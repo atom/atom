@@ -36,7 +36,6 @@ class NativeCompileCache {
 
   overrideModuleCompile () {
     let self = this
-    let resolvedArgv = null
     // Here we override Node's module.js
     // (https://github.com/atom/node/blob/atom/lib/module.js#L378), changing
     // only the bits that affect compilation in order to use the cached one.

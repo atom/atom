@@ -17,6 +17,10 @@ export class HistoryManager {
     this.disposables.add(project.onDidChangePaths((projectPaths) => this.addProject(projectPaths)))
   }
 
+  initialize (localStorage) {
+    this.localStorage = localStorage
+  }
+
   destroy () {
     this.disposables.dispose()
   }
@@ -93,7 +97,11 @@ export class HistoryManager {
   }
 
   async loadState () {
-    const history = await this.stateStore.load('history-manager')
+    let history = await this.stateStore.load('history-manager')
+    if (!history) {
+      history = JSON.parse(this.localStorage.getItem('history'))
+    }
+
     if (history && history.projects) {
       this.projects = history.projects.filter(p => Array.isArray(p.paths) && p.paths.length > 0).map(p => new HistoryProject(p.paths, new Date(p.lastOpened)))
       this.didChangeProjects({reloaded: true})
@@ -105,12 +113,6 @@ export class HistoryManager {
   async saveState () {
     const projects = this.projects.map(p => ({paths: p.paths, lastOpened: p.lastOpened}))
     await this.stateStore.save('history-manager', {projects})
-  }
-
-  async importProjectHistory () {
-    for (let project of await HistoryImporter.getAllProjects()) {
-      await this.addProject(project.paths, project.lastOpened)
-    }
   }
 }
 
@@ -133,33 +135,4 @@ export class HistoryProject {
 
   set lastOpened (lastOpened) { this._lastOpened = lastOpened }
   get lastOpened () { return this._lastOpened }
-}
-
-class HistoryImporter {
-  static async getStateStoreCursor () {
-    const db = await atom.stateStore.dbPromise
-    const store = db.transaction(['states']).objectStore('states')
-    return store.openCursor()
-  }
-
-  static async getAllProjects (stateStore) {
-    const request = await HistoryImporter.getStateStoreCursor()
-    return new Promise((resolve, reject) => {
-      const rows = []
-      request.onerror = reject
-      request.onsuccess = event => {
-        const cursor = event.target.result
-        if (cursor) {
-          let project = cursor.value.value.project
-          let storedAt = cursor.value.storedAt
-          if (project && project.paths && storedAt) {
-            rows.push(new HistoryProject(project.paths, new Date(Date.parse(storedAt))))
-          }
-          cursor.continue()
-        } else {
-          resolve(rows)
-        }
-      }
-    })
-  }
 }

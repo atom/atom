@@ -277,3 +277,14 @@ class ApplicationDelegate
 
   emitDidSavePath: (path) ->
     ipcRenderer.sendSync('did-save-path', path)
+
+  resolveProxy: (requestId, url) ->
+    ipcRenderer.send('resolve-proxy', requestId, url)
+
+  onDidResolveProxy: (callback) ->
+    outerCallback = (event, requestId, proxy) ->
+      callback(requestId, proxy)
+
+    ipcRenderer.on('did-resolve-proxy', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('did-resolve-proxy', outerCallback)

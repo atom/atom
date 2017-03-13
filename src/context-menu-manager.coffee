@@ -50,7 +50,7 @@ class ContextMenuManager
 
   loadPlatformItems: ->
     if platformContextMenu?
-      @add(platformContextMenu, false)
+      @add(platformContextMenu, @devMode ? false)
     else
       menusDirPath = path.join(@resourcePath, 'menus')
       platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])

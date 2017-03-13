@@ -39,21 +39,21 @@
         Module.prototype.require = function (module) {
           const absoluteFilePath = Module._resolveFilename(module, this, false)
           const relativeFilePath = path.relative(entryPointDirPath, absoluteFilePath)
-          let cachedModule = snapshotResult.customRequire.cache[relativeFilePath]
+          let cachedModule = snapshotResult.customRequire.cache[relativeFilePath] // eslint-disable-line no-undef
           if (!cachedModule) {
             cachedModule = {exports: Module._load(module, this, false)}
-            snapshotResult.customRequire.cache[relativeFilePath] = cachedModule
+            snapshotResult.customRequire.cache[relativeFilePath] = cachedModule // eslint-disable-line no-undef
           }
           return cachedModule.exports
         }
 
-        snapshotResult.setGlobals(global, process, window, document, require)
+        snapshotResult.setGlobals(global, process, window, document, require) // eslint-disable-line no-undef
       }
 
-      const FileSystemBlobStore = useSnapshot ? snapshotResult.customRequire('../src/file-system-blob-store.js') : require('../src/file-system-blob-store')
+      const FileSystemBlobStore = useSnapshot ? snapshotResult.customRequire('../src/file-system-blob-store.js') : require('../src/file-system-blob-store') // eslint-disable-line no-undef
       blobStore = FileSystemBlobStore.load(path.join(process.env.ATOM_HOME, 'blob-store'))
 
-      const NativeCompileCache = useSnapshot ? snapshotResult.customRequire('../src/native-compile-cache.js') : require('../src/native-compile-cache')
+      const NativeCompileCache = useSnapshot ? snapshotResult.customRequire('../src/native-compile-cache.js') : require('../src/native-compile-cache') // eslint-disable-line no-undef
       NativeCompileCache.setCacheStore(blobStore)
       NativeCompileCache.setV8Version(process.versions.v8)
       NativeCompileCache.install()
@@ -85,21 +85,21 @@
   }
 
   function setupWindow () {
-    const CompileCache = useSnapshot ? snapshotResult.customRequire('../src/compile-cache.js') : require('../src/compile-cache')
+    const CompileCache = useSnapshot ? snapshotResult.customRequire('../src/compile-cache.js') : require('../src/compile-cache') // eslint-disable-line no-undef
     CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
     CompileCache.install(require)
 
-    const ModuleCache = useSnapshot ? snapshotResult.customRequire('../src/module-cache.js') : require('../src/module-cache')
+    const ModuleCache = useSnapshot ? snapshotResult.customRequire('../src/module-cache.js') : require('../src/module-cache') // eslint-disable-line no-undef
     ModuleCache.register(getWindowLoadSettings())
 
-    const startCrashReporter = useSnapshot ? snapshotResult.customRequire('../src/crash-reporter-start.js') : require('../src/crash-reporter-start')
+    const startCrashReporter = useSnapshot ? snapshotResult.customRequire('../src/crash-reporter-start.js') : require('../src/crash-reporter-start') // eslint-disable-line no-undef
     startCrashReporter({_version: getWindowLoadSettings().appVersion})
 
-    const CSON = useSnapshot ? snapshotResult.customRequire('../node_modules/season/lib/cson.js') : require('season')
+    const CSON = useSnapshot ? snapshotResult.customRequire('../node_modules/season/lib/cson.js') : require('season') // eslint-disable-line no-undef
     CSON.setCacheDir(path.join(CompileCache.getCacheDirectory(), 'cson'))
 
     const initScriptPath = path.relative(entryPointDirPath, getWindowLoadSettings().windowInitializationScript)
-    const initialize = useSnapshot ? snapshotResult.customRequire(initScriptPath) : require(initScriptPath)
+    const initialize = useSnapshot ? snapshotResult.customRequire(initScriptPath) : require(initScriptPath) // eslint-disable-line no-undef
     return initialize({blobStore: blobStore}).then(function () {
       electron.ipcRenderer.send('window-command', 'window:loaded')
     })
