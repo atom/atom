@@ -8,6 +8,9 @@ bundledKeymaps = require('../package.json')?._atomKeymaps
 KeymapManager::onDidLoadBundledKeymaps = (callback) ->
   @emitter.on 'did-load-bundled-keymaps', callback
 
+KeymapManager::onDidLoadUserKeymap = (callback) ->
+  @emitter.on 'did-load-user-keymap', callback
+
 KeymapManager::loadBundledKeymaps = ->
   keymapsPath = path.join(@resourcePath, 'keymaps')
   if bundledKeymaps?
@@ -48,6 +51,9 @@ KeymapManager::loadUserKeymap = ->
       detail = error.path
       stack = error.stack
       @notificationManager.addFatalError(error.message, {detail, stack, dismissable: true})
+
+  @emitter.emit 'did-load-user-keymap'
+
 
 KeymapManager::subscribeToFileReadFailure = ->
   @onDidFailToReadFile (error) =>

@@ -17,12 +17,13 @@ describe 'CompileCache', ->
     CompileCache.resetCacheStats()
 
     spyOn(Babel, 'transform').andReturn {code: 'the-babel-code'}
-    spyOn(CoffeeScript, 'compile').andReturn {js: 'the-coffee-code', v3SourceMap: "{}"}
+    spyOn(CoffeeScript, 'compile').andReturn 'the-coffee-code'
     spyOn(TypeScriptSimple::, 'compile').andReturn 'the-typescript-code'
 
   afterEach ->
-    CSON.setCacheDir(CompileCache.getCacheDirectory())
     CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
+    CSON.setCacheDir(CompileCache.getCacheDirectory())
+    temp.cleanupSync()
 
   describe 'addPathToCache(filePath, atomHome)', ->
     describe 'when the given file is plain javascript', ->
@@ -77,6 +78,8 @@ describe 'CompileCache', ->
 
   describe 'overriding Error.prepareStackTrace', ->
     it 'removes the override on the next tick, and always assigns the raw stack', ->
+      return if process.platform is 'win32' # Flakey Error.stack contents on Win32
+
       Error.prepareStackTrace = -> 'a-stack-trace'
 
       error = new Error("Oops")

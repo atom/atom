@@ -1,13 +1,10 @@
 KeymapManager = require 'atom-keymap'
-path = require 'path'
-fs = require 'fs-plus'
-temp = require 'temp'
 TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
 {ipcRenderer} = require 'electron'
 
 describe "WindowEventHandler", ->
-  [projectPath, windowEventHandler] = []
+  [windowEventHandler] = []
 
   beforeEach ->
     atom.uninstallWindowEventHandler()
@@ -19,7 +16,6 @@ describe "WindowEventHandler", ->
       loadSettings
     atom.project.destroy()
     windowEventHandler = new WindowEventHandler({atomEnvironment: atom, applicationDelegate: atom.applicationDelegate, window, document})
-    projectPath = atom.project.getPaths()[0]
 
   afterEach ->
     windowEventHandler.unsubscribe()
@@ -27,6 +23,7 @@ describe "WindowEventHandler", ->
 
   describe "when the window is loaded", ->
     it "doesn't have .is-blurred on the body tag", ->
+      return if process.platform is 'win32' #Win32TestFailures - can not steal focus
       expect(document.body.className).not.toMatch("is-blurred")
 
   describe "when the window is blurred", ->
@@ -53,6 +50,7 @@ describe "WindowEventHandler", ->
   describe "beforeunload event", ->
     beforeEach ->
       jasmine.unspy(TextEditor.prototype, "shouldPromptToSave")
+      spyOn(atom, 'destroy')
       spyOn(ipcRenderer, 'send')
 
     describe "when pane items are modified", ->
@@ -66,12 +64,14 @@ describe "WindowEventHandler", ->
         window.dispatchEvent(new CustomEvent('beforeunload'))
         expect(atom.workspace.confirmClose).toHaveBeenCalled()
         expect(ipcRenderer.send).not.toHaveBeenCalledWith('did-cancel-window-unload')
+        expect(atom.destroy).toHaveBeenCalled()
 
       it "cancels the unload if the user selects cancel", ->
         spyOn(atom.workspace, 'confirmClose').andReturn(false)
         window.dispatchEvent(new CustomEvent('beforeunload'))
         expect(atom.workspace.confirmClose).toHaveBeenCalled()
         expect(ipcRenderer.send).toHaveBeenCalledWith('did-cancel-window-unload')
+        expect(atom.destroy).not.toHaveBeenCalled()
 
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->

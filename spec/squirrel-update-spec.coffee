@@ -1,10 +1,9 @@
 {EventEmitter} = require 'events'
 fs = require 'fs-plus'
 path = require 'path'
-temp = require 'temp'
+temp = require('temp').track()
 SquirrelUpdate = require '../src/main-process/squirrel-update'
 Spawner = require '../src/main-process/spawner'
-WinPowerShell = require '../src/main-process/win-powershell'
 WinShell = require '../src/main-process/win-shell'
 
 # Run passed callback as Spawner.spawn() would do
@@ -36,6 +35,9 @@ describe "Windows Squirrel Update", ->
     WinShell.fileContextMenu = new FakeShellOption()
     WinShell.folderContextMenu = new FakeShellOption()
     WinShell.folderBackgroundContextMenu = new FakeShellOption()
+
+  afterEach ->
+    temp.cleanupSync()
 
   it "quits the app on all squirrel events", ->
     app = quit: jasmine.createSpy('quit')

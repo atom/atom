@@ -1,4 +1,3 @@
-{find} = require 'underscore-plus'
 Grim = require 'grim'
 {Disposable} = require 'event-kit'
 _ = require 'underscore-plus'

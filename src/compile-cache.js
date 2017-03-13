@@ -7,12 +7,26 @@
 
 var path = require('path')
 var fs = require('fs-plus')
+
+var PackageTranspilationRegistry = require('./package-transpilation-registry')
 var CSON = null
 
+var packageTranspilationRegistry = new PackageTranspilationRegistry()
+
 var COMPILERS = {
-  '.js': require('./babel'),
-  '.ts': require('./typescript'),
-  '.coffee': require('./coffee-script')
+  '.js': packageTranspilationRegistry.wrapTranspiler(require('./babel')),
+  '.ts': packageTranspilationRegistry.wrapTranspiler(require('./typescript')),
+  '.coffee': packageTranspilationRegistry.wrapTranspiler(require('./coffee-script'))
+}
+
+exports.addTranspilerConfigForPath = function (packagePath, packageName, packageMeta, config) {
+  packagePath = fs.realpathSync(packagePath)
+  packageTranspilationRegistry.addTranspilerConfigForPath(packagePath, packageName, packageMeta, config)
+}
+
+exports.removeTranspilerConfigForPath = function (packagePath) {
+  packagePath = fs.realpathSync(packagePath)
+  packageTranspilationRegistry.removeTranspilerConfigForPath(packagePath)
 }
 
 var cacheStats = {}
@@ -43,11 +57,11 @@ exports.addPathToCache = function (filePath, atomHome) {
       CSON = require('season')
       CSON.setCacheDir(this.getCacheDirectory())
     }
-    CSON.readFileSync(filePath)
+    return CSON.readFileSync(filePath)
   } else {
     var compiler = COMPILERS[extension]
     if (compiler) {
-      compileFileAtPath(compiler, filePath, extension)
+      return compileFileAtPath(compiler, filePath, extension)
     }
   }
 }
@@ -74,7 +88,7 @@ function compileFileAtPath (compiler, filePath, extension) {
       cacheStats[extension].hits++
     } else {
       cacheStats[extension].misses++
-      compiledCode = addSourceURL(compiler.compile(sourceCode, filePath), filePath)
+      compiledCode = compiler.compile(sourceCode, filePath)
       writeCachedJavascript(cachePath, compiledCode)
     }
     return compiledCode
@@ -95,13 +109,6 @@ function readCachedJavascript (relativeCachePath) {
 function writeCachedJavascript (relativeCachePath, code) {
   var cachePath = path.join(cacheDirectory, relativeCachePath)
   fs.writeFileSync(cachePath, code, 'utf8')
-}
-
-function addSourceURL (jsCode, filePath) {
-  if (process.platform === 'win32') {
-    filePath = '/' + path.resolve(filePath).replace(/\\/g, '/')
-  }
-  return jsCode + '\n' + '//# sourceURL=' + encodeURI(filePath) + '\n'
 }
 
 var INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/mg
@@ -125,6 +132,7 @@ require('source-map-support').install({
     }
 
     var compiler = COMPILERS[path.extname(filePath)]
+    if (!compiler) compiler = COMPILERS['.js']
 
     try {
       var fileData = readCachedJavascript(compiler.getCachePath(sourceCode, filePath))

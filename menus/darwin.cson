@@ -36,6 +36,13 @@
       { label: 'New File', command: 'application:new-file' }
       { label: 'Open…', command: 'application:open' }
       { label: 'Add Project Folder…', command: 'application:add-project-folder' }
+      {
+        label: 'Reopen Project',
+        submenu: [
+          { label: 'Clear Project History', command: 'application:clear-project-history' }
+          { type: 'separator' }
+        ]
+      }
       { label: 'Reopen Last Item', command: 'pane:reopen-closed-item' }
       { type: 'separator' }
       { label: 'Save', command: 'core:save' }
@@ -101,9 +108,9 @@
         submenu: [
           { label: 'Fold', command: 'editor:fold-current-row' }
           { label: 'Unfold', command: 'editor:unfold-current-row' }
+          { label: 'Fold All', command: 'editor:fold-all' }
           { label: 'Unfold All', command: 'editor:unfold-all' }
           { type: 'separator' }
-          { label: 'Fold All', command: 'editor:fold-all' }
           { label: 'Fold Level 1', command: 'editor:fold-at-indent-level-1' }
           { label: 'Fold Level 2', command: 'editor:fold-at-indent-level-2' }
           { label: 'Fold Level 3', command: 'editor:fold-at-indent-level-3' }
@@ -147,6 +154,7 @@
           { label: 'Open In Dev Mode…', command: 'application:open-dev' }
           { label: 'Reload Window', command: 'window:reload' }
           { label: 'Run Package Specs', command: 'window:run-package-specs' }
+          { label: 'Run Benchmarks', command: 'window:run-benchmarks' }
           { label: 'Toggle Developer Tools', command: 'window:toggle-dev-tools' }
         ]
       }
@@ -237,10 +245,10 @@
   ]
   'atom-pane': [
     {type: 'separator'}
-    {label: 'Split Up', command: 'pane:split-up'}
-    {label: 'Split Down', command: 'pane:split-down'}
-    {label: 'Split Left', command: 'pane:split-left'}
-    {label: 'Split Right', command: 'pane:split-right'}
+    {label: 'Split Up', command: 'pane:split-up-and-copy-active-item'}
+    {label: 'Split Down', command: 'pane:split-down-and-copy-active-item'}
+    {label: 'Split Left', command: 'pane:split-left-and-copy-active-item'}
+    {label: 'Split Right', command: 'pane:split-right-and-copy-active-item'}
     {label: 'Close Pane', command: 'pane:close'}
     {type: 'separator'}
   ]

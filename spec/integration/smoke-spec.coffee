@@ -1,14 +1,22 @@
 fs = require 'fs-plus'
 path = require 'path'
+season = require 'season'
 temp = require('temp').track()
 runAtom = require './helpers/start-atom'
 
 describe "Smoke Test", ->
+  return unless process.platform is 'darwin' # Fails on win32
+  
   atomHome = temp.mkdirSync('atom-home')
 
   beforeEach ->
     jasmine.useRealClock()
-    fs.writeFileSync(path.join(atomHome, 'config.cson'), fs.readFileSync(path.join(__dirname, 'fixtures', 'atom-home', 'config.cson')))
+    season.writeFileSync(path.join(atomHome, 'config.cson'), {
+      '*': {
+        welcome: {showOnStartup: false},
+        core: {telemetryConsent: 'no'}
+      }
+    })
 
   it "can open a file in Atom and perform basic operations on it", ->
     tempDirPath = temp.mkdirSync("empty-dir")

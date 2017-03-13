@@ -1,6 +1,6 @@
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-{CompositeDisposable, Disposable, Emitter} = require 'event-kit'
+{Emitter} = require 'event-kit'
 CSON = require 'season'
 path = require 'path'
 async = require 'async'
@@ -336,6 +336,31 @@ ScopeDescriptor = require './scope-descriptor'
 #     order: 2
 # ```
 #
+# ## Manipulating values outside your configuration schema
+#
+# It is possible to manipulate(`get`, `set`, `observe` etc) values that do not
+# appear in your configuration schema. For example, if the config schema of the
+# package 'some-package' is
+#
+# ```coffee
+# config:
+# someSetting:
+#   type: 'boolean'
+#   default: false
+# ```
+#
+# You can still do the following
+#
+# ```coffee
+# let otherSetting  = atom.config.get('some-package.otherSetting')
+# atom.config.set('some-package.stillAnotherSetting', otherSetting * 5)
+# ```
+#
+# In other words, if a function asks for a `key-path`, that path doesn't have to
+# be described in the config schema for the package or any package. However, as
+# highlighted in the best practices section, you are advised against doing the
+# above.
+#
 # ## Best practices
 #
 # * Don't depend on (or write to) configuration keys outside of your keypath.
@@ -561,7 +586,7 @@ class Config
   #  * `scopeDescriptor` The {ScopeDescriptor} with which the value is associated
   #  * `value` The value for the key-path
   getAll: (keyPath, options) ->
-    {scope, sources} = options if options?
+    {scope} = options if options?
     result = []
 
     if scope?
@@ -814,7 +839,7 @@ class Config
       relativePath = sourcePath.substring(templateConfigDirPath.length + 1)
       destinationPath = path.join(@configDirPath, relativePath)
       queue.push({sourcePath, destinationPath})
-    fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
+    fs.traverseTree(templateConfigDirPath, onConfigDirFile, ((path) -> true), (->))
 
   loadUserConfig: ->
     return if @shouldNotAccessFileSystem()
@@ -1045,7 +1070,6 @@ class Config
   resetSettingsForSchemaChange: (source=@getUserConfigPath()) ->
     @transact =>
       @settings = @makeValueConformToSchema(null, @settings, suppressException: true)
-      priority = @priorityForSource(source)
       selectorsAndSettings = @scopedSettingsStore.propertiesForSource(source)
       @scopedSettingsStore.removePropertiesForSource(source)
       for scopeSelector, settings of selectorsAndSettings

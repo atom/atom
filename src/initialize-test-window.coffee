@@ -1,3 +1,5 @@
+ipcHelpers = require './ipc-helpers'
+
 cloneObject = (object) ->
   clone = {}
   clone[key] = value for key, value of object
@@ -16,9 +18,13 @@ module.exports = ({blobStore}) ->
   try
     path = require 'path'
     {ipcRenderer} = require 'electron'
-    {getWindowLoadSettings} = require './window-load-settings-helpers'
+    getWindowLoadSettings = require './get-window-load-settings'
+    CompileCache = require './compile-cache'
     AtomEnvironment = require '../src/atom-environment'
     ApplicationDelegate = require '../src/application-delegate'
+    Clipboard = require '../src/clipboard'
+    TextEditor = require '../src/text-editor'
+    require './electron-shims'
 
     {testRunnerPath, legacyTestRunnerPath, headless, logFile, testPaths} = getWindowLoadSettings()
 
@@ -30,19 +36,21 @@ module.exports = ({blobStore}) ->
     handleKeydown = (event) ->
       # Reload: cmd-r / ctrl-r
       if (event.metaKey or event.ctrlKey) and event.keyCode is 82
-        ipcRenderer.send('call-window-method', 'reload')
+        ipcHelpers.call('window-method', 'reload')
 
-      # Toggle Dev Tools: cmd-alt-i / ctrl-alt-i
-      if (event.metaKey or event.ctrlKey) and event.altKey and event.keyCode is 73
-        ipcRenderer.send('call-window-method', 'toggleDevTools')
+      # Toggle Dev Tools: cmd-alt-i (Mac) / ctrl-shift-i (Linux/Windows)
+      if event.keyCode is 73 and (
+        (process.platform is 'darwin' and event.metaKey and event.altKey) or
+        (process.platform isnt 'darwin' and event.ctrlKey and event.shiftKey))
+          ipcHelpers.call('window-method', 'toggleDevTools')
 
       # Close: cmd-w / ctrl-w
       if (event.metaKey or event.ctrlKey) and event.keyCode is 87
-        ipcRenderer.send('call-window-method', 'close')
+        ipcHelpers.call('window-method', 'close')
 
       # Copy: cmd-c / ctrl-c
       if (event.metaKey or event.ctrlKey) and event.keyCode is 67
-        ipcRenderer.send('call-window-method', 'copy')
+        ipcHelpers.call('window-method', 'copy')
 
     window.addEventListener('keydown', handleKeydown, true)
 
@@ -51,13 +59,24 @@ module.exports = ({blobStore}) ->
     require('module').globalPaths.push(exportsPath)
     process.env.NODE_PATH = exportsPath # Set NODE_PATH env variable since tasks may need it.
 
+    # Set up optional transpilation for packages under test if any
+    FindParentDir = require 'find-parent-dir'
+    if packageRoot = FindParentDir.sync(testPaths[0], 'package.json')
+      packageMetadata = require(path.join(packageRoot, 'package.json'))
+      if packageMetadata.atomTranspilers
+        CompileCache.addTranspilerConfigForPath(packageRoot, packageMetadata.name, packageMetadata, packageMetadata.atomTranspilers)
+
     document.title = "Spec Suite"
+
+    clipboard = new Clipboard
+    TextEditor.setClipboard(clipboard)
 
     testRunner = require(testRunnerPath)
     legacyTestRunner = require(legacyTestRunnerPath)
     buildDefaultApplicationDelegate = -> new ApplicationDelegate()
     buildAtomEnvironment = (params) ->
       params = cloneObject(params)
+      params.clipboard = clipboard unless params.hasOwnProperty("clipboard")
       params.blobStore = blobStore unless params.hasOwnProperty("blobStore")
       params.onlyLoadBaseStyleSheets = true unless params.hasOwnProperty("onlyLoadBaseStyleSheets")
       new AtomEnvironment(params)

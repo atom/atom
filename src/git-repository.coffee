@@ -1,4 +1,4 @@
-{basename, join} = require 'path'
+{join} = require 'path'
 
 _ = require 'underscore-plus'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
@@ -238,6 +238,7 @@ class GitRepository
 
   # Public: Returns the git configuration value specified by the key.
   #
+  # * `key`  The {String} key for the configuration to lookup.
   # * `path` An optional {String} path in the repository to get this information
   #   for, only needed if the repository has submodules.
   getConfigValue: (key, path) -> @getRepo(path).getConfigValue(key)
@@ -316,7 +317,7 @@ class GitRepository
 
   # Public: Get the status of a single path in the repository.
   #
-  # `path` A {String} repository-relative path.
+  # * `path` A {String} repository-relative path.
   #
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.

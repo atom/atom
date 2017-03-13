@@ -12,12 +12,13 @@ exports.on = function (emitter, eventName, callback) {
   })
 }
 
-exports.call = function (methodName, ...args) {
+exports.call = function (channel, ...args) {
   if (!ipcRenderer) {
     ipcRenderer = require('electron').ipcRenderer
+    ipcRenderer.setMaxListeners(20)
   }
 
-  var responseChannel = getResponseChannel(methodName)
+  var responseChannel = getResponseChannel(channel)
 
   return new Promise(function (resolve) {
     ipcRenderer.on(responseChannel, function (event, result) {
@@ -25,26 +26,26 @@ exports.call = function (methodName, ...args) {
       resolve(result)
     })
 
-    ipcRenderer.send(methodName, ...args)
+    ipcRenderer.send(channel, ...args)
   })
 }
 
-exports.respondTo = function (methodName, callback) {
+exports.respondTo = function (channel, callback) {
   if (!ipcMain) {
     var electron = require('electron')
     ipcMain = electron.ipcMain
     BrowserWindow = electron.BrowserWindow
   }
 
-  var responseChannel = getResponseChannel(methodName)
+  var responseChannel = getResponseChannel(channel)
 
-  return exports.on(ipcMain, methodName, function (event, ...args) {
+  return exports.on(ipcMain, channel, function (event, ...args) {
     var browserWindow = BrowserWindow.fromWebContents(event.sender)
     var result = callback(browserWindow, ...args)
     event.sender.send(responseChannel, result)
   })
 }
 
-function getResponseChannel (methodName) {
-  return 'ipc-helpers-' + methodName + '-response'
+function getResponseChannel (channel) {
+  return 'ipc-helpers-' + channel + '-response'
 }

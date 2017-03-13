@@ -8,15 +8,22 @@ atom-pane-container {
   display: flex;
   flex: 1;
   min-width: 0;
+  min-height: 0;
 
   atom-pane-axis {
+    position: relative;
     display: flex;
     flex: 1;
     min-width: 0;
+    min-height: 0;
 
     & > atom-pane-resize-handle {
-      position: absolute;
-      z-index: 3;
+      position: relative;
+      &:before {
+        content: "";
+        position: absolute;
+        z-index: 3;
+      }
     }
   }
 
@@ -24,11 +31,14 @@ atom-pane-container {
     flex-direction: column;
 
     & > atom-pane-resize-handle {
-      width: 100%;
-      height: 8px;
-      margin-top: -4px;
-      cursor: row-resize;
       border-bottom: none;
+      &:before {
+        height: 8px;
+        top: -4px;
+        left: 0;
+        right: 0;
+        cursor: row-resize;
+      }
     }
   }
 
@@ -36,11 +46,14 @@ atom-pane-container {
     flex-direction: row;
 
     & > atom-pane-resize-handle {
-      width: 8px;
-      height: 100%;
-      margin-left: -4px;
-      cursor: col-resize;
       border-right: none;
+      &:before {
+        width: 8px;
+        left: -4px;
+        top: 0;
+        bottom: 0;
+        cursor: col-resize;
+      }
     }
   }
 
@@ -51,12 +64,13 @@ atom-pane-container {
     flex-direction: column;
     overflow: visible;
     min-width: 0;
+    min-height: 0;
 
     .item-views {
       flex: 1;
       display: flex;
-      min-height: 0;
       min-width: 0;
+      min-height: 0;
       position: relative;
 
       .pane-item {

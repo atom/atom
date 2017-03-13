@@ -1,8 +1,8 @@
 _ = require 'underscore-plus'
-{Emitter} = require 'event-kit'
 FirstMate = require 'first-mate'
 Token = require './token'
 fs = require 'fs-plus'
+Grim = require 'grim'
 
 PathSplitRegex = new RegExp("[/.]")
 
@@ -15,7 +15,7 @@ PathSplitRegex = new RegExp("[/.]")
 module.exports =
 class GrammarRegistry extends FirstMate.GrammarRegistry
   constructor: ({@config}={}) ->
-    super(maxTokensPerLine: 100)
+    super(maxTokensPerLine: 100, maxLineLength: 1000)
 
   createToken: (value, scopes) -> new Token({value, scopes})
 
@@ -29,6 +29,9 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
   #
   # Returns a {Grammar}, never null.
   selectGrammar: (filePath, fileContents) ->
+    @selectGrammarWithScore(filePath, fileContents).grammar
+
+  selectGrammarWithScore: (filePath, fileContents) ->
     bestMatch = null
     highestScore = -Infinity
     for grammar in @grammars
@@ -36,13 +39,11 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
       if score > highestScore or not bestMatch?
         bestMatch = grammar
         highestScore = score
-    bestMatch
+    {grammar: bestMatch, score: highestScore}
 
   # Extended: Returns a {Number} representing how well the grammar matches the
   # `filePath` and `contents`.
   getGrammarScore: (grammar, filePath, contents) ->
-    return Infinity if @grammarOverrideForPath(filePath) is grammar.scopeName
-
     contents = fs.readFileSync(filePath, 'utf8') if not contents? and fs.isFileSync(filePath)
 
     score = @getGrammarPathScore(grammar, filePath)
@@ -90,36 +91,40 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
     lines = contents.split('\n')
     grammar.firstLineRegex.testSync(lines[0..numberOfNewlinesInRegex].join('\n'))
 
-  # Public: Get the grammar override for the given file path.
+  # Deprecated: Get the grammar override for the given file path.
   #
   # * `filePath` A {String} file path.
   #
-  # Returns a {Grammar} or undefined.
+  # Returns a {String} such as `"source.js"`.
   grammarOverrideForPath: (filePath) ->
-    @grammarOverridesByPath[filePath]
+    Grim.deprecate 'Use atom.textEditors.getGrammarOverride(editor) instead'
+    if editor = getEditorForPath(filePath)
+      atom.textEditors.getGrammarOverride(editor)
 
-  # Public: Set the grammar override for the given file path.
+  # Deprecated: Set the grammar override for the given file path.
   #
   # * `filePath` A non-empty {String} file path.
   # * `scopeName` A {String} such as `"source.js"`.
   #
-  # Returns a {Grammar} or undefined.
+  # Returns undefined
   setGrammarOverrideForPath: (filePath, scopeName) ->
-    if filePath
-      @grammarOverridesByPath[filePath] = scopeName
+    Grim.deprecate 'Use atom.textEditors.setGrammarOverride(editor, scopeName) instead'
+    if editor = getEditorForPath(filePath)
+      atom.textEditors.setGrammarOverride(editor, scopeName)
+    return
 
-  # Public: Remove the grammar override for the given file path.
+  # Deprecated: Remove the grammar override for the given file path.
   #
   # * `filePath` A {String} file path.
   #
   # Returns undefined.
   clearGrammarOverrideForPath: (filePath) ->
-    delete @grammarOverridesByPath[filePath]
-    undefined
+    Grim.deprecate 'Use atom.textEditors.clearGrammarOverride(editor) instead'
+    if editor = getEditorForPath(filePath)
+      atom.textEditors.clearGrammarOverride(editor)
+    return
 
-  # Public: Remove all grammar overrides.
-  #
-  # Returns undefined.
-  clearGrammarOverrides: ->
-    @grammarOverridesByPath = {}
-    undefined
+getEditorForPath = (filePath) ->
+  if filePath?
+    atom.workspace.getTextEditors().find (editor) ->
+      editor.getPath() is filePath

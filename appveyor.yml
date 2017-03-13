@@ -1,3 +1,5 @@
+image: Visual Studio 2015
+
 version: "{build}"
 
 skip_tags: true
@@ -6,37 +8,47 @@ clone_depth: 10
 
 platform:
   - x86
+  - x64
 
 environment:
   global:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
-    ATOM_ACCESS_TOKEN:
-      secure: Q7vxmSq0bVCLTTRPzXw5ZhPTe7XYhWxX0tQV6neEkddTH6pZkOYNmSCG6VnMX2f+
-    ATOM_NOISY_BUILD: 1
 
   matrix:
-  - NODE_VERSION: 4.4.5
+  - NODE_VERSION: 6.8.0
 
 install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
+  - npm install -g npm
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
-  - C:\projects\atom\script\cibuild.cmd
+  - script\build.cmd --code-sign --create-windows-installer --compress-artifacts
 
-test: off
+test_script:
+  - script\lint.cmd
+  - script\test.cmd
+
 deploy: off
 artifacts:
-  - path: out\**\AtomSetup.exe
+  - path: out\AtomSetup.exe
     name: AtomSetup.exe
-  - path: out\**\AtomSetup.msi
+  - path: out\AtomSetup.msi
     name: AtomSetup.msi
+  - path: out\atom-windows.zip
+    name: atom-windows.zip
+  - path: out\RELEASES
+    name: RELEASES
+  - path: out\atom-*-delta.nupkg
+    name: atom-delta.nupkg
+  - path: out\atom-*-full.nupkg
+    name: atom-full.nupkg
 
 cache:
-  - '%APPVEYOR_BUILD_FOLDER%\build\node_modules'
+  - '%APPVEYOR_BUILD_FOLDER%\script\node_modules'
   - '%APPVEYOR_BUILD_FOLDER%\apm\node_modules'
   - '%APPVEYOR_BUILD_FOLDER%\node_modules'
+  - '%APPVEYOR_BUILD_FOLDER%\electron'
   - '%USERPROFILE%\.atom\.apm'
-  - '%USERPROFILE%\.atom\.node-gyp\.atom'
-  - '%USERPROFILE%\.atom\.npm'
+  - '%USERPROFILE%\.atom\compile-cache'

@@ -1,10 +1,3 @@
-{values} = require 'underscore-plus'
-
-cloneObject = (object) ->
-  clone = {}
-  clone[key] = value for key, value of object
-  clone
-
 module.exports =
 class TiledComponent
   updateSync: (state) ->
@@ -41,7 +34,7 @@ class TiledComponent
         component = @componentsByTileId[tileRow] = @buildComponentForTile(tileRow)
 
         @getTilesNode().appendChild(component.getDomNode())
-        @oldState.tiles[tileRow] = cloneObject(tileState)
+        @oldState.tiles[tileRow] = Object.assign({}, tileState)
 
       component.updateSync(@newState)
 
@@ -50,5 +43,9 @@ class TiledComponent
   getComponentForTile: (tileRow) ->
     @componentsByTileId[tileRow]
 
+  getComponents: ->
+    for _, component of @componentsByTileId
+      component
+
   getTiles: ->
-    values(@componentsByTileId).map (component) -> component.getDomNode()
+    @getComponents().map((component) -> component.getDomNode())

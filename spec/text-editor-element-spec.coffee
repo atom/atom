@@ -1,9 +1,7 @@
-TextEditorElement = require '../src/text-editor-element'
 TextEditor = require '../src/text-editor'
+TextEditorElement = require '../src/text-editor-element'
 {Disposable} = require 'event-kit'
 
-# The rest of text-editor-component-spec will be moved to this file when React
-# is eliminated. This covers only concerns related to the wrapper element for now
 describe "TextEditorElement", ->
   jasmineContent = null
 
@@ -34,54 +32,39 @@ describe "TextEditorElement", ->
   describe "when the model is assigned", ->
     it "adds the 'mini' attribute if .isMini() returns true on the model", ->
       element = new TextEditorElement
-      model = atom.workspace.buildTextEditor(mini: true)
+      model = new TextEditor({mini: true})
       element.setModel(model)
       expect(element.hasAttribute('mini')).toBe true
 
   describe "when the editor is attached to the DOM", ->
-    describe "when the editor.useShadowDOM config option is true", ->
-      it "mounts the react component and unmounts when removed from the dom", ->
-        atom.config.set('editor.useShadowDOM', true)
+    it "mounts the component and unmounts when removed from the dom", ->
+      element = new TextEditorElement
+      jasmine.attachToDOM(element)
 
-        element = new TextEditorElement
-        jasmine.attachToDOM(element)
+      component = element.component
+      expect(component.mounted).toBe true
+      element.remove()
+      expect(component.mounted).toBe false
 
-        component = element.component
-        expect(component.mounted).toBe true
-        element.remove()
-        expect(component.mounted).toBe false
-
-        jasmine.attachToDOM(element)
-        expect(element.component.mounted).toBe true
-
-    describe "when the editor.useShadowDOM config option is false", ->
-      it "mounts the react component and unmounts when removed from the dom", ->
-        atom.config.set('editor.useShadowDOM', false)
-
-        element = new TextEditorElement
-        jasmine.attachToDOM(element)
-
-        component = element.component
-        expect(component.mounted).toBe true
-        element.getModel().destroy()
-        expect(component.mounted).toBe false
+      jasmine.attachToDOM(element)
+      expect(element.component.mounted).toBe true
 
   describe "when the editor is detached from the DOM and then reattached", ->
     it "does not render duplicate line numbers", ->
-      editor = atom.workspace.buildTextEditor()
+      editor = new TextEditor
       editor.setText('1\n2\n3')
       element = atom.views.getView(editor)
 
       jasmine.attachToDOM(element)
 
-      initialCount = element.shadowRoot.querySelectorAll('.line-number').length
+      initialCount = element.querySelectorAll('.line-number').length
 
       element.remove()
       jasmine.attachToDOM(element)
-      expect(element.shadowRoot.querySelectorAll('.line-number').length).toBe initialCount
+      expect(element.querySelectorAll('.line-number').length).toBe initialCount
 
     it "does not render duplicate decorations in custom gutters", ->
-      editor = atom.workspace.buildTextEditor()
+      editor = new TextEditor
       editor.setText('1\n2\n3')
       editor.addGutter({name: 'test-gutter'})
       marker = editor.markBufferRange([[0, 0], [2, 0]])
@@ -89,49 +72,57 @@ describe "TextEditorElement", ->
       element = atom.views.getView(editor)
 
       jasmine.attachToDOM(element)
-      initialDecorationCount = element.shadowRoot.querySelectorAll('.decoration').length
+      initialDecorationCount = element.querySelectorAll('.decoration').length
 
       element.remove()
       jasmine.attachToDOM(element)
-      expect(element.shadowRoot.querySelectorAll('.decoration').length).toBe initialDecorationCount
+      expect(element.querySelectorAll('.decoration').length).toBe initialDecorationCount
+
+    it "can be re-focused using the previous `document.activeElement`", ->
+      editorElement = document.createElement('atom-text-editor')
+      jasmine.attachToDOM(editorElement)
+      editorElement.focus()
+
+      activeElement = document.activeElement
+
+      editorElement.remove()
+      jasmine.attachToDOM(editorElement)
+      activeElement.focus()
+
+      expect(editorElement.hasFocus()).toBe(true)
 
   describe "focus and blur handling", ->
-    describe "when the editor.useShadowDOM config option is true", ->
-      it "proxies focus/blur events to/from the hidden input inside the shadow root", ->
-        atom.config.set('editor.useShadowDOM', true)
+    it "proxies focus/blur events to/from the hidden input", ->
+      element = new TextEditorElement
+      jasmineContent.appendChild(element)
 
-        element = new TextEditorElement
-        jasmineContent.appendChild(element)
+      blurCalled = false
+      element.addEventListener 'blur', -> blurCalled = true
 
-        blurCalled = false
-        element.addEventListener 'blur', -> blurCalled = true
+      element.focus()
+      expect(blurCalled).toBe false
+      expect(element.hasFocus()).toBe true
+      expect(document.activeElement).toBe element.querySelector('input')
 
-        element.focus()
-        expect(blurCalled).toBe false
-        expect(element.hasFocus()).toBe true
-        expect(document.activeElement).toBe element
-        expect(element.shadowRoot.activeElement).toBe element.shadowRoot.querySelector('input')
+      document.body.focus()
+      expect(blurCalled).toBe true
 
-        document.body.focus()
-        expect(blurCalled).toBe true
+    it "doesn't trigger a blur event on the editor element when focusing an already focused editor element", ->
+      blurCalled = false
+      element = new TextEditorElement
+      element.addEventListener 'blur', -> blurCalled = true
 
-    describe "when the editor.useShadowDOM config option is false", ->
-      it "proxies focus/blur events to/from the hidden input", ->
-        atom.config.set('editor.useShadowDOM', false)
+      jasmineContent.appendChild(element)
+      expect(document.activeElement).toBe(document.body)
+      expect(blurCalled).toBe(false)
 
-        element = new TextEditorElement
-        jasmineContent.appendChild(element)
+      element.focus()
+      expect(document.activeElement).toBe(element.querySelector('input'))
+      expect(blurCalled).toBe(false)
 
-        blurCalled = false
-        element.addEventListener 'blur', -> blurCalled = true
-
-        element.focus()
-        expect(blurCalled).toBe false
-        expect(element.hasFocus()).toBe true
-        expect(document.activeElement).toBe element.querySelector('input')
-
-        document.body.focus()
-        expect(blurCalled).toBe true
+      element.focus()
+      expect(document.activeElement).toBe(element.querySelector('input'))
+      expect(blurCalled).toBe(false)
 
     describe "when focused while a parent node is being attached to the DOM", ->
       class ElementThatFocusesChild extends HTMLDivElement
@@ -147,7 +138,7 @@ describe "TextEditorElement", ->
         parentElement = document.createElement("element-that-focuses-child")
         parentElement.appendChild(element)
         jasmineContent.appendChild(parentElement)
-        expect(element.shadowRoot.activeElement).toBe element.shadowRoot.querySelector('input')
+        expect(document.activeElement).toBe element.querySelector('input')
 
   describe "when the themes finish loading", ->
     [themeReloadCallback, initialThemeLoadComplete, element] = []
@@ -162,20 +153,19 @@ describe "TextEditorElement", ->
         themeReloadCallback = fn
         new Disposable
 
-      atom.config.set("editor.useShadowDOM", false)
-
       element = new TextEditorElement()
       element.style.height = '200px'
+      element.getModel().update({autoHeight: false})
       element.getModel().setText [0..20].join("\n")
 
     it "re-renders the scrollbar", ->
       jasmineContent.appendChild(element)
 
-      atom.styles.addStyleSheet """
+      atom.styles.addStyleSheet("""
         ::-webkit-scrollbar {
           width: 8px;
         }
-      """
+      """, context: 'atom-text-editor')
 
       initialThemeLoadComplete = true
       themeReloadCallback()
@@ -218,13 +208,13 @@ describe "TextEditorElement", ->
       element.getModel().setText("hello")
       expect(window.requestAnimationFrame).toHaveBeenCalled()
 
-      expect(element.shadowRoot.textContent).toContain "hello"
+      expect(element.textContent).toContain "hello"
 
       window.requestAnimationFrame.reset()
       element.setUpdatedSynchronously(true)
       element.getModel().setText("goodbye")
       expect(window.requestAnimationFrame).not.toHaveBeenCalled()
-      expect(element.shadowRoot.textContent).toContain "goodbye"
+      expect(element.textContent).toContain "goodbye"
 
   describe "::getDefaultCharacterWidth", ->
     it "returns null before the element is attached", ->
@@ -238,23 +228,26 @@ describe "TextEditorElement", ->
 
   describe "::getMaxScrollTop", ->
     it "returns the maximum scroll top that can be applied to the element", ->
-      editor = atom.workspace.buildTextEditor()
+      editor = new TextEditor
       editor.setText('1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16')
       element = atom.views.getView(editor)
       element.style.lineHeight = "10px"
       element.style.width = "200px"
+      jasmine.attachToDOM(element)
 
       expect(element.getMaxScrollTop()).toBe(0)
 
-      jasmine.attachToDOM(element)
-
-      element.setHeight(100)
+      element.style.height = '100px'
+      editor.update({autoHeight: false})
+      element.component.measureDimensions()
       expect(element.getMaxScrollTop()).toBe(60)
 
-      element.setHeight(120)
+      element.style.height = '120px'
+      element.component.measureDimensions()
       expect(element.getMaxScrollTop()).toBe(40)
 
-      element.setHeight(200)
+      element.style.height = '200px'
+      element.component.measureDimensions()
       expect(element.getMaxScrollTop()).toBe(0)
 
   describe "on TextEditor::setMini", ->
@@ -276,6 +269,7 @@ describe "TextEditorElement", ->
       element.setUpdatedSynchronously(true)
       element.setHeight(20)
       element.setWidth(20)
+      element.getModel().update({autoHeight: false})
 
     describe "::onDidChangeScrollTop(callback)", ->
       it "triggers even when subscribing before attaching the element", ->

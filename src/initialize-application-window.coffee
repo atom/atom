@@ -3,11 +3,10 @@ module.exports = ({blobStore}) ->
   {updateProcessEnv} = require('./update-process-env')
   path = require 'path'
   require './window'
-  {getWindowLoadSettings} = require './window-load-settings-helpers'
+  getWindowLoadSettings = require './get-window-load-settings'
   {ipcRenderer} = require 'electron'
-  {resourcePath, isSpec, devMode, env} = getWindowLoadSettings()
-
-  updateProcessEnv(env)
+  {resourcePath, devMode, env} = getWindowLoadSettings()
+  require './electron-shims'
 
   # Add application-specific exports to module search path.
   exportsPath = path.join(resourcePath, 'exports')
@@ -19,16 +18,21 @@ module.exports = ({blobStore}) ->
 
   AtomEnvironment = require './atom-environment'
   ApplicationDelegate = require './application-delegate'
+  Clipboard = require './clipboard'
+  TextEditor = require './text-editor'
+
+  clipboard = new Clipboard
+  TextEditor.setClipboard(clipboard)
+
   window.atom = new AtomEnvironment({
-    window, document, blobStore,
+    window, document, clipboard, blobStore,
     applicationDelegate: new ApplicationDelegate,
-    configDirPath: process.env.ATOM_HOME
-    enablePersistence: true
+    configDirPath: process.env.ATOM_HOME,
+    enablePersistence: true,
     env: process.env
   })
 
   atom.startEditorWindow().then ->
-
     # Workaround for focus getting cleared upon window creation
     windowFocused = ->
       window.removeEventListener('focus', windowFocused)

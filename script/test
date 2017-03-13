@@ -1,10 +1,115 @@
 #!/usr/bin/env node
-var safeExec = require('./utils/child-process-wrapper.js').safeExec;
-var runGrunt = require('./utils/run-grunt.js');
-var path = require('path');
 
-process.chdir(path.dirname(__dirname));
+'use strict'
 
-safeExec('node script/bootstrap', function() {
-  runGrunt(["ci", "--stack", "--no-color"], process.exit);
-});
+require('colors')
+const assert = require('assert')
+const async = require('async')
+const childProcess = require('child_process')
+const fs = require('fs')
+const glob = require('glob')
+const path = require('path')
+
+const CONFIG = require('./config')
+
+const resourcePath = CONFIG.repositoryRootPath
+let executablePath
+if (process.platform === 'darwin') {
+  const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '*.app'))
+  assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+  executablePath = path.join(executablePaths[0], 'Contents', 'MacOS', path.basename(executablePaths[0], '.app'))
+} else if (process.platform === 'linux') {
+  const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '**', 'atom'))
+  assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+  executablePath = executablePaths[0]
+} else if (process.platform === 'win32') {
+  const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '**', 'atom.exe'))
+  assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+  executablePath = executablePaths[0]
+} else {
+  throw new Error('Running tests on this platform is not supported.')
+}
+
+function runCoreMainProcessTests (callback) {
+  const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
+  const testArguments = [
+    '--resource-path', resourcePath,
+    '--test', '--main-process', testPath
+  ]
+
+  console.log('Executing core main process tests'.bold.green)
+  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit'})
+  cp.on('error', error => { callback(error) })
+  cp.on('close', exitCode => { callback(null, exitCode) })
+}
+
+function runCoreRenderProcessTests (callback) {
+  const testPath = path.join(CONFIG.repositoryRootPath, 'spec')
+  const testArguments = [
+    '--resource-path', resourcePath,
+    '--test', testPath
+  ]
+
+  console.log('Executing core render process tests'.bold.green)
+  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit'})
+  cp.on('error', error => { callback(error) })
+  cp.on('close', exitCode => { callback(null, exitCode) })
+}
+
+// Build an array of functions, each running tests for a different bundled package
+const packageTestSuites = []
+for (let packageName in CONFIG.appMetadata.packageDependencies) {
+  const packageSpecDirPath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName, 'spec')
+  if (!fs.existsSync(packageSpecDirPath)) continue
+
+  packageTestSuites.push(function (callback) {
+    const testArguments = [
+      '--resource-path', resourcePath,
+      '--test', packageSpecDirPath
+    ]
+
+    console.log(`Executing ${packageName} tests`.bold.green)
+    const cp = childProcess.spawn(executablePath, testArguments)
+    let stderrOutput = ''
+    cp.stderr.on('data', data => stderrOutput += data)
+    cp.on('error', error => { callback(error) })
+    cp.on('close', exitCode => {
+      if (exitCode !== 0) {
+        console.log(`Package tests failed for ${packageName}:`.red)
+        console.log(stderrOutput)
+      }
+      callback(null, exitCode)
+    })
+  })
+}
+
+function runBenchmarkTests (callback) {
+  const benchmarksPath = path.join(CONFIG.repositoryRootPath, 'benchmarks')
+  const testArguments = ['--benchmark-test', benchmarksPath]
+
+  console.log('Executing benchmark tests'.bold.green)
+  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit'})
+  cp.on('error', error => { callback(error) })
+  cp.on('close', exitCode => { callback(null, exitCode) })
+}
+
+let testSuitesToRun = testSuitesForPlatform(process.platform)
+
+function testSuitesForPlatform(platform) {
+  switch(platform) {
+    case 'darwin':  return [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
+    case 'win32':   return (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
+    case 'linux':   return [runCoreMainProcessTests]
+    default:        return []
+  }
+}
+
+async.series(testSuitesToRun, function (err, exitCodes) {
+  if (err) {
+    console.error(err)
+    process.exit(1)
+  } else {
+    const testsPassed = exitCodes.every(exitCode => exitCode === 0)
+    process.exit(testsPassed ? 0 : 1)
+  }
+})
