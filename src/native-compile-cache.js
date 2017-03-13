@@ -60,11 +60,10 @@ class NativeCompileCache {
       // create wrapper function
       let wrapper = Module.wrap(content)
 
-      let cacheKey = filename
-      let invalidationKey = computeHash(wrapper + self.v8Version)
+      let cacheKey = computeHash(wrapper + self.v8Version)
       let compiledWrapper = null
-      if (self.cacheStore.has(cacheKey, invalidationKey)) {
-        let buffer = self.cacheStore.get(cacheKey, invalidationKey)
+      if (self.cacheStore.has(cacheKey)) {
+        let buffer = self.cacheStore.get(cacheKey)
         let compilationResult = cachedVm.runInThisContextCached(wrapper, filename, buffer)
         compiledWrapper = compilationResult.result
         if (compilationResult.wasRejected) {
@@ -79,7 +78,7 @@ class NativeCompileCache {
           throw err
         }
         if (compilationResult.cacheBuffer) {
-          self.cacheStore.set(cacheKey, invalidationKey, compilationResult.cacheBuffer)
+          self.cacheStore.set(cacheKey, compilationResult.cacheBuffer)
         }
         compiledWrapper = compilationResult.result
       }
