@@ -934,6 +934,18 @@ describe('TextEditorComponent', () => {
         expect(editor.getSelectedScreenRange()).toEqual([[2, 0], [5, 0]])
       })
 
+      it('destroys folds when clicking on their fold markers', async () => {
+        const {component, element, editor} = buildComponent()
+        editor.foldBufferRow(1)
+        await component.getNextUpdatePromise()
+
+        const target = element.querySelector('.fold-marker')
+        const {clientX, clientY} = clientPositionForCharacter(component, 1, editor.lineLengthForScreenRow(1))
+        component.didMouseDownOnContent({detail: 1, button: 0, target, clientX, clientY})
+        expect(editor.isFoldedAtBufferRow(1)).toBe(false)
+        expect(editor.getCursorScreenPosition()).toEqual([0, 0])
+      })
+
       it('autoscrolls the content when dragging near the edge of the screen', async () => {
         const {component, editor} = buildComponent({width: 200, height: 200})
         const {scroller} = component.refs

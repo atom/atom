@@ -761,13 +761,20 @@ class TextEditorComponent {
 
   didMouseDownOnContent (event) {
     const {model} = this.props
-    const {button, detail, ctrlKey, shiftKey, metaKey} = event
+    const {target, button, detail, ctrlKey, shiftKey, metaKey} = event
 
     // Only handle mousedown events for left mouse button (or the middle mouse
     // button on Linux where it pastes the selection clipboard).
     if (!(button === 0 || (this.getPlatform() === 'linux' && button === 1))) return
 
     const screenPosition = this.screenPositionForMouseEvent(event)
+
+    if (target.matches('.fold-marker')) {
+      const bufferPosition = model.bufferPositionForScreenPosition(screenPosition)
+      model.destroyFoldsIntersectingBufferRange(Range(bufferPosition, bufferPosition))
+      return
+    }
+
     const addOrRemoveSelection = metaKey || (ctrlKey && this.getPlatform() !== 'darwin')
 
     switch (detail) {
