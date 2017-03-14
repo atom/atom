@@ -1144,6 +1144,65 @@ describe('TextEditorComponent', () => {
           [[2, 0], [4, 4]]
         ])
       })
+
+      it('autoscrolls the content when dragging near the edge of the screen', async () => {
+        const {component, editor} = buildComponent({width: 200, height: 200})
+        const {scroller} = component.refs
+        spyOn(component, 'handleMouseDragUntilMouseUp')
+
+        let previousScrollTop = 0
+        let previousScrollLeft = 0
+        function assertScrolledDown () {
+          expect(scroller.scrollTop).toBeGreaterThan(previousScrollTop)
+          previousScrollTop = scroller.scrollTop
+          expect(scroller.scrollLeft).toBe(previousScrollLeft)
+          previousScrollLeft = scroller.scrollLeft
+        }
+
+        function assertScrolledUp () {
+          expect(scroller.scrollTop).toBeLessThan(previousScrollTop)
+          previousScrollTop = scroller.scrollTop
+          expect(scroller.scrollLeft).toBe(previousScrollLeft)
+          previousScrollLeft = scroller.scrollLeft
+        }
+
+        component.didMouseDownOnLineNumberGutter({detail: 1, button: 0, clientX: 0, clientY: 100})
+        const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[0][0]
+        didDrag({clientX: 199, clientY: 199})
+        assertScrolledDown()
+        didDrag({clientX: 199, clientY: 199})
+        assertScrolledDown()
+        didDrag({clientX: 199, clientY: 199})
+        assertScrolledDown()
+        didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
+        assertScrolledUp()
+        didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
+        assertScrolledUp()
+        didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
+        assertScrolledUp()
+
+        // Don't artificially update scroll measurements beyond the minimum or
+        // maximum possible scroll positions
+        expect(scroller.scrollTop).toBe(0)
+        expect(scroller.scrollLeft).toBe(0)
+        didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
+        expect(component.measurements.scrollTop).toBe(0)
+        expect(scroller.scrollTop).toBe(0)
+        expect(component.measurements.scrollLeft).toBe(0)
+        expect(scroller.scrollLeft).toBe(0)
+
+        const maxScrollTop = scroller.scrollHeight - scroller.clientHeight
+        const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth
+        scroller.scrollTop = maxScrollTop
+        scroller.scrollLeft = maxScrollLeft
+        await component.getNextUpdatePromise()
+
+        didDrag({clientX: 199, clientY: 199})
+        didDrag({clientX: 199, clientY: 199})
+        didDrag({clientX: 199, clientY: 199})
+        expect(component.measurements.scrollTop).toBe(maxScrollTop)
+        expect(component.measurements.scrollLeft).toBe(maxScrollLeft)
+      })
     })
   })
 })
