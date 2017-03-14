@@ -100,6 +100,7 @@ class TextEditorComponent {
     if (this.pendingAutoscroll) this.initiateAutoscroll()
     this.populateVisibleRowRange()
     const longestLineToMeasure = this.checkForNewLongestLine()
+    this.queryScreenLinesToRender()
     this.queryDecorationsToRender()
 
     etch.updateSync(this)
@@ -293,8 +294,6 @@ class TextEditorComponent {
     const tileWidth = this.getContentWidth()
 
     const displayLayer = this.getModel().displayLayer
-    const screenLines = displayLayer.getScreenLines(startRow, endRow)
-
     const tileNodes = new Array(this.getRenderedTileCount())
 
     for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow += rowsPerTile) {
@@ -313,7 +312,7 @@ class TextEditorComponent {
         width: tileWidth,
         top: this.topPixelPositionForRow(tileStartRow),
         lineHeight: this.measurements.lineHeight,
-        screenLines: screenLines.slice(tileStartRow - startRow, tileEndRow - startRow),
+        screenLines: this.renderedScreenLines.slice(tileStartRow - startRow, tileEndRow - startRow),
         lineDecorations,
         highlightDecorations,
         displayLayer,
@@ -415,6 +414,17 @@ class TextEditorComponent {
   // This is easier to mock
   getPlatform () {
     return process.platform
+  }
+
+  queryScreenLinesToRender () {
+    this.renderedScreenLines = this.getModel().displayLayer.getScreenLines(
+      this.getRenderedStartRow(),
+      this.getRenderedEndRow()
+    )
+  }
+
+  renderedScreenLineForRow (row) {
+    return this.renderedScreenLines[row - this.getRenderedStartRow()]
   }
 
   queryDecorationsToRender () {
@@ -1206,7 +1216,7 @@ class TextEditorComponent {
     this.horizontalPositionsToMeasure.forEach((columnsToMeasure, row) => {
       columnsToMeasure.sort((a, b) => a - b)
 
-      const screenLine = this.getModel().displayLayer.getScreenLine(row)
+      const screenLine = this.renderedScreenLineForRow(row)
       const lineNode = this.lineNodesByScreenLineId.get(screenLine.id)
 
       if (!lineNode) {
@@ -1270,7 +1280,7 @@ class TextEditorComponent {
 
   pixelLeftForRowAndColumn (row, column) {
     if (column === 0) return 0
-    const screenLine = this.getModel().displayLayer.getScreenLine(row)
+    const screenLine = this.renderedScreenLineForRow(row)
     return this.horizontalPixelPositionsByScreenLineId.get(screenLine.id).get(column)
   }
 
@@ -1284,7 +1294,7 @@ class TextEditorComponent {
 
     const linesClientLeft = this.refs.lineTiles.getBoundingClientRect().left
     const targetClientLeft = linesClientLeft + Math.max(0, left)
-    const screenLine = this.getModel().displayLayer.getScreenLine(row)
+    const screenLine = this.renderedScreenLineForRow(row)
     const textNodes = this.textNodesByScreenLineId.get(screenLine.id)
 
     let containingTextNodeIndex
