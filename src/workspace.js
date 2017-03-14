@@ -363,7 +363,11 @@ module.exports = class Workspace extends Model {
   //      subscription or that is added at some later time.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observePaneItems (callback) { return this.paneContainer.observePaneItems(callback) }
+  observePaneItems (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneLocations().map(location => location.observePaneItems(callback))
+    )
+  }
 
   // Essential: Invoke the given callback when the active pane item changes.
   //
@@ -430,7 +434,11 @@ module.exports = class Workspace extends Model {
   //     * `pane` The added pane.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidAddPane (callback) { return this.paneContainer.onDidAddPane(callback) }
+  onDidAddPane (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneLocations().map(location => location.onDidAddPane(callback))
+    )
+  }
 
   // Extended: Invoke the given callback before a pane is destroyed in the
   // workspace.
@@ -440,7 +448,11 @@ module.exports = class Workspace extends Model {
   //     * `pane` The pane to be destroyed.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onWillDestroyPane (callback) { return this.paneContainer.onWillDestroyPane(callback) }
+  onWillDestroyPane (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneLocations().map(location => location.onWillDestroyPane(callback))
+    )
+  }
 
   // Extended: Invoke the given callback when a pane is destroyed in the
   // workspace.
@@ -450,7 +462,11 @@ module.exports = class Workspace extends Model {
   //     * `pane` The destroyed pane.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidDestroyPane (callback) { return this.paneContainer.onDidDestroyPane(callback) }
+  onDidDestroyPane (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneLocations().map(location => location.onDidDestroyPane(callback))
+    )
+  }
 
   // Extended: Invoke the given callback with all current and future panes in the
   // workspace.
@@ -460,7 +476,11 @@ module.exports = class Workspace extends Model {
   //      subscription or that is added at some later time.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observePanes (callback) { return this.paneContainer.observePanes(callback) }
+  observePanes (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneLocations().map(location => location.observePanes(callback))
+    )
+  }
 
   // Extended: Invoke the given callback when the active pane changes.
   //
@@ -490,7 +510,11 @@ module.exports = class Workspace extends Model {
   //     * `index` {Number} indicating the index of the added item in its pane.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidAddPaneItem (callback) { return this.paneContainer.onDidAddPaneItem(callback) }
+  onDidAddPaneItem (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneLocations().map(location => location.onDidAddPaneItem(callback))
+    )
+  }
 
   // Extended: Invoke the given callback when a pane item is about to be
   // destroyed, before the user is prompted to save it.
@@ -503,7 +527,11 @@ module.exports = class Workspace extends Model {
   //       its pane.
   //
   // Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
-  onWillDestroyPaneItem (callback) { return this.paneContainer.onWillDestroyPaneItem(callback) }
+  onWillDestroyPaneItem (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneLocations().map(location => location.onWillDestroyPaneItem(callback))
+    )
+  }
 
   // Extended: Invoke the given callback when a pane item is destroyed.
   //
@@ -515,7 +543,11 @@ module.exports = class Workspace extends Model {
   //       pane.
   //
   // Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
-  onDidDestroyPaneItem (callback) { return this.paneContainer.onDidDestroyPaneItem(callback) }
+  onDidDestroyPaneItem (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneLocations().map(location => location.onDidDestroyPaneItem(callback))
+    )
+  }
 
   // Extended: Invoke the given callback when a text editor is added to the
   // workspace.
@@ -891,7 +923,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns an {Array} of items.
   getPaneItems () {
-    return this.paneContainer.getPaneItems()
+    return _.flatten(this.getPaneLocations().map(location => location.getPaneItems()))
   }
 
   // Essential: Get the active {Pane}'s active item.
@@ -919,11 +951,15 @@ module.exports = class Workspace extends Model {
 
   // Save all pane items.
   saveAll () {
-    return this.paneContainer.saveAll()
+    this.getPaneLocations().forEach(location => {
+      location.saveAll()
+    })
   }
 
   confirmClose (options) {
-    return this.paneContainer.confirmClose(options)
+    return this.getPaneLocations()
+      .map(location => location.confirmClose(options))
+      .every(saved => saved)
   }
 
   // Save the active pane item.
@@ -961,7 +997,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns an {Array} of {Pane}s.
   getPanes () {
-    return this.paneContainer.getPanes()
+    return _.flatten(this.getPaneLocations().map(location => location.getPanes()))
   }
 
   // Extended: Get the active {Pane}.
@@ -987,7 +1023,12 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Pane} or `undefined` if no pane exists for the given URI.
   paneForURI (uri) {
-    return this.paneContainer.paneForURI(uri)
+    for (let location of this.getPaneLocations()) {
+      const pane = location.paneForURI(uri)
+      if (pane != null) {
+        return pane
+      }
+    }
   }
 
   // Extended: Get the {Pane} containing the given item.
@@ -996,7 +1037,12 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Pane} or `undefined` if no pane exists for the given item.
   paneForItem (item) {
-    return this.paneContainer.paneForItem(item)
+    for (let location of this.getPaneLocations()) {
+      const pane = location.paneForItem(item)
+      if (pane != null) {
+        return pane
+      }
+    }
   }
 
   // Destroy (close) the active pane.
@@ -1012,7 +1058,7 @@ module.exports = class Workspace extends Model {
   closeActivePaneItemOrEmptyPaneOrWindow () {
     if (this.getActivePaneItem() != null) {
       this.destroyActivePaneItem()
-    } else if (this.getPanes().length > 1) {
+    } else if (this.getCenter().getPanes().length > 1) {
       this.destroyActivePane()
     } else if (this.config.get('core.closeEmptyWindows')) {
       atom.close()
@@ -1089,6 +1135,22 @@ module.exports = class Workspace extends Model {
 
   getCenter () {
     return this.center
+  }
+
+  getLeftDock () {
+    return this.docks.left
+  }
+
+  getRightDock () {
+    return this.docks.right
+  }
+
+  getBottomDock () {
+    return this.docks.bottom
+  }
+
+  getPaneLocations () {
+    return [this.getCenter(), ..._.values(this.docks)]
   }
 
   /*
