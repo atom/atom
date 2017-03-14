@@ -52,6 +52,9 @@ class AtomWindow
     if @shouldHideTitleBar()
       options.frame = false
 
+    if @froceHideTitleBar()
+      options.frame = false
+
     @browserWindow = new BrowserWindow(options)
     @handleEvents()
 
@@ -253,6 +256,9 @@ class AtomWindow
     not @isSpec and
     process.platform is 'darwin' and
     @atomApplication.config.get('core.titleBar') is 'hidden'
+
+  froceHideTitleBar: ->
+    @atomApplication.config.get('core.froceHideTitleBar') is true
 
   close: -> @browserWindow.close()
 
