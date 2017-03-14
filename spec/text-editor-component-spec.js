@@ -224,6 +224,13 @@ describe('TextEditorComponent', () => {
     expect(scroller.clientWidth).toBe(scroller.scrollWidth)
   })
 
+  it('decorates the line numbers of folded lines', async () => {
+    const {component, element, editor} = buildComponent()
+    editor.foldBufferRow(1)
+    await component.getNextUpdatePromise()
+    expect(lineNumberNodeForScreenRow(component, 1).classList.contains('folded')).toBe(true)
+  })
+
   describe('focus', () => {
     it('focuses the hidden input element and adds the is-focused class when focused', async () => {
       assertDocumentFocused()

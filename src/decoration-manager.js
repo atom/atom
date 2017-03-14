@@ -200,6 +200,7 @@ class DecorationManager {
     if (markerLayer.isDestroyed()) {
       throw new Error('Cannot decorate a destroyed marker layer')
     }
+    markerLayer = this.displayLayer.getMarkerLayer(markerLayer.id)
     const decoration = new LayerDecoration(markerLayer, this, decorationParams)
     let layerDecorations = this.layerDecorationsByMarkerLayer.get(markerLayer)
     if (layerDecorations == null) {
