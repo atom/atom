@@ -813,17 +813,21 @@ class TextEditorComponent {
   }
 
   didMouseDownOnLineNumberGutter (event) {
-    if (global.debug) debugger
-
     const {model} = this.props
-    const {button, ctrlKey, shiftKey, metaKey} = event
+    const {target, button, ctrlKey, shiftKey, metaKey} = event
 
     // Only handle mousedown events for left mouse button
     if (button !== 0) return
 
-    const addOrRemoveSelection = metaKey || (ctrlKey && this.getPlatform() !== 'darwin')
     const clickedScreenRow = this.screenPositionForMouseEvent(event).row
     const startBufferRow = model.bufferPositionForScreenPosition([clickedScreenRow, 0]).row
+
+    if (target.matches('.foldable .icon-right')) {
+      model.toggleFoldAtBufferRow(startBufferRow)
+      return
+    }
+
+    const addOrRemoveSelection = metaKey || (ctrlKey && this.getPlatform() !== 'darwin')
     const endBufferRow = model.bufferPositionForScreenPosition([clickedScreenRow, Infinity]).row
     const clickedLineBufferRange = Range(Point(startBufferRow, 0), Point(endBufferRow + 1, 0))
 
