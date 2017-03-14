@@ -941,8 +941,8 @@ class TextEditorComponent {
       const scaledDelta = scaleMouseDragAutoscrollDelta(yDelta) * yDirection
       const newScrollTop = this.constrainScrollTop(this.measurements.scrollTop + scaledDelta)
       if (newScrollTop !== this.measurements.scrollTop) {
-        this.measurements.scrollTop += scaledDelta
-        this.refs.scroller.scrollTop += scaledDelta
+        this.measurements.scrollTop = newScrollTop
+        this.refs.scroller.scrollTop = newScrollTop
         scrolled = true
       }
     }
@@ -951,8 +951,8 @@ class TextEditorComponent {
       const scaledDelta = scaleMouseDragAutoscrollDelta(xDelta) * xDirection
       const newScrollLeft = this.constrainScrollLeft(this.measurements.scrollLeft + scaledDelta)
       if (newScrollLeft !== this.measurements.scrollLeft) {
-        this.measurements.scrollLeft += scaledDelta
-        this.refs.scroller.scrollLeft += scaledDelta
+        this.measurements.scrollLeft = newScrollLeft
+        this.refs.scroller.scrollLeft = newScrollLeft
         scrolled = true
       }
     }
