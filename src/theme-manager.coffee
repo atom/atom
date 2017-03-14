@@ -3,6 +3,7 @@ _ = require 'underscore-plus'
 {Emitter, CompositeDisposable} = require 'event-kit'
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
+LessCompileCache = require './less-compile-cache'
 
 # Extended: Handles loading and activating available themes.
 #
@@ -18,15 +19,14 @@ class ThemeManager
     @packageManager.onDidActivateInitialPackages =>
       @onDidChangeActiveThemes => @packageManager.reloadActivePackageStyleSheets()
 
+  initialize: ({@resourcePath, @configDirPath, @safeMode, devMode}) ->
     @lessSourcesByRelativeFilePath = null
-    if typeof snapshotAuxiliaryData is 'undefined'
+    if devMode or typeof snapshotAuxiliaryData is 'undefined'
       @lessSourcesByRelativeFilePath = {}
       @importedFilePathsByRelativeImportPath = {}
     else
       @lessSourcesByRelativeFilePath = snapshotAuxiliaryData.lessSourcesByRelativeFilePath
       @importedFilePathsByRelativeImportPath = snapshotAuxiliaryData.importedFilePathsByRelativeImportPath
-
-  initialize: ({@resourcePath, @configDirPath, @safeMode}) ->
 
   ###
   Section: Event Subscription
@@ -202,14 +202,12 @@ class ThemeManager
       fs.readFileSync(stylesheetPath, 'utf8')
 
   loadLessStylesheet: (lessStylesheetPath, importFallbackVariables=false) ->
-    unless @lessCache?
-      LessCompileCache = require './less-compile-cache'
-      @lessCache = new LessCompileCache({
-        @resourcePath,
-        @lessSourcesByRelativeFilePath,
-        @importedFilePathsByRelativeImportPath,
-        importPaths: @getImportPaths()
-      })
+    @lessCache ?= new LessCompileCache({
+      @resourcePath,
+      @lessSourcesByRelativeFilePath,
+      @importedFilePathsByRelativeImportPath,
+      importPaths: @getImportPaths()
+    })
 
     try
       if importFallbackVariables
