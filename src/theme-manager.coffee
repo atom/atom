@@ -21,8 +21,10 @@ class ThemeManager
     @lessSourcesByRelativeFilePath = null
     if typeof snapshotAuxiliaryData is 'undefined'
       @lessSourcesByRelativeFilePath = {}
+      @importedFilePathsByRelativeImportPath = {}
     else
       @lessSourcesByRelativeFilePath = snapshotAuxiliaryData.lessSourcesByRelativeFilePath
+      @importedFilePathsByRelativeImportPath = snapshotAuxiliaryData.importedFilePathsByRelativeImportPath
 
   initialize: ({@resourcePath, @configDirPath, @safeMode}) ->
 
@@ -202,7 +204,12 @@ class ThemeManager
   loadLessStylesheet: (lessStylesheetPath, importFallbackVariables=false) ->
     unless @lessCache?
       LessCompileCache = require './less-compile-cache'
-      @lessCache = new LessCompileCache({@resourcePath, @lessSourcesByRelativeFilePath, importPaths: @getImportPaths()})
+      @lessCache = new LessCompileCache({
+        @resourcePath,
+        @lessSourcesByRelativeFilePath,
+        @importedFilePathsByRelativeImportPath,
+        importPaths: @getImportPaths()
+      })
 
     try
       if importFallbackVariables
@@ -211,8 +218,15 @@ class ThemeManager
         @import "variables/syntax-variables";
         """
         relativeFilePath = path.relative(@resourcePath, lessStylesheetPath)
-        less = @lessSourcesByRelativeFilePath[relativeFilePath] ? fs.readFileSync(lessStylesheetPath, 'utf8')
-        @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
+        lessSource = @lessSourcesByRelativeFilePath[relativeFilePath]
+        if lessSource?
+          content = lessSource.content
+          digest = lessSource.digest
+        else
+          content = baseVarImports + '\n' + fs.readFileSync(lessStylesheetPath, 'utf8')
+          digest = null
+
+        @lessCache.cssForFile(lessStylesheetPath, content, digest)
       else
         @lessCache.read(lessStylesheetPath)
     catch error

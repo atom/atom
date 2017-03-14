@@ -1,6 +1,7 @@
 'use strict'
 
 const fs = require('fs')
+const klawSync = require('klaw-sync')
 const glob = require('glob')
 const path = require('path')
 const LessCache = require('less-cache')
@@ -29,13 +30,17 @@ module.exports = function () {
   }
 
   CONFIG.snapshotAuxiliaryData.lessSourcesByRelativeFilePath = {}
-  function saveIntoSnapshotAuxiliaryData (absoluteFilePath, contents) {
+  function saveIntoSnapshotAuxiliaryData (absoluteFilePath, content) {
     const relativeFilePath = path.relative(CONFIG.intermediateAppPath, absoluteFilePath)
     if (!CONFIG.snapshotAuxiliaryData.lessSourcesByRelativeFilePath.hasOwnProperty(relativeFilePath)) {
-      CONFIG.snapshotAuxiliaryData.lessSourcesByRelativeFilePath[relativeFilePath] = contents
+      CONFIG.snapshotAuxiliaryData.lessSourcesByRelativeFilePath[relativeFilePath] = {
+        content: content,
+        digest: LessCache.digestForContent(content)
+      }
     }
   }
 
+  CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath = {}
   // Warm cache for every combination of the default UI and syntax themes,
   // because themes assign variables which may be used in any style sheet.
   for (let uiTheme of uiThemes) {
@@ -53,6 +58,19 @@ module.exports = function () {
           path.join(CONFIG.intermediateAppPath, 'static'),
         ]
       })
+
+      // Store file paths located at the import paths so that we can avoid scanning them at runtime.
+      for (const absoluteImportPath of lessCache.getImportPaths()) {
+        const relativeImportPath = path.relative(CONFIG.intermediateAppPath, absoluteImportPath)
+        if (!CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath.hasOwnProperty(relativeImportPath)) {
+          CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath[relativeImportPath] = []
+          for (const importedFile of klawSync(absoluteImportPath, {nodir: true})) {
+            CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath[relativeImportPath].push(
+              path.relative(CONFIG.intermediateAppPath, importedFile.path)
+            )
+          }
+        }
+      }
 
       function cacheCompiledCSS(lessFilePath, importFallbackVariables) {
         let lessSource = fs.readFileSync(lessFilePath, 'utf8')

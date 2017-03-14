@@ -15,6 +15,7 @@
     "fs-extra": "0.30.0",
     "glob": "7.0.3",
     "joanna": "0.0.8",
+    "klaw-sync": "^1.1.2",
     "legal-eagle": "0.14.0",
     "lodash.template": "4.4.0",
     "minidump": "0.9.0",

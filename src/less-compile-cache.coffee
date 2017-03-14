@@ -6,7 +6,7 @@ module.exports =
 class LessCompileCache
   @cacheDir: path.join(process.env.ATOM_HOME, 'compile-cache', 'less')
 
-  constructor: ({resourcePath, importPaths, lessSourcesByRelativeFilePath}) ->
+  constructor: ({resourcePath, importPaths, lessSourcesByRelativeFilePath, importedFilePathsByRelativeImportPath}) ->
     @lessSearchPaths = [
       path.join(resourcePath, 'static', 'variables')
       path.join(resourcePath, 'static')
@@ -17,12 +17,14 @@ class LessCompileCache
     else
       importPaths = @lessSearchPaths
 
-    @cache = new LessCache
-      cacheDir: @constructor.cacheDir
-      importPaths: importPaths
-      resourcePath: resourcePath
-      lessSourcesByRelativeFilePath: lessSourcesByRelativeFilePath
+    @cache = new LessCache({
+      importPaths,
+      resourcePath,
+      lessSourcesByRelativeFilePath,
+      importedFilePathsByRelativeImportPath,
+      cacheDir: @constructor.cacheDir,
       fallbackDir: path.join(resourcePath, 'less-compile-cache')
+    })
 
   setImportPaths: (importPaths=[]) ->
     @cache.setImportPaths(importPaths.concat(@lessSearchPaths))
@@ -30,5 +32,5 @@ class LessCompileCache
   read: (stylesheetPath) ->
     @cache.readFileSync(stylesheetPath)
 
-  cssForFile: (stylesheetPath, lessContent) ->
-    @cache.cssForFile(stylesheetPath, lessContent)
+  cssForFile: (stylesheetPath, lessContent, digest) ->
+    @cache.cssForFile(stylesheetPath, lessContent, digest)
