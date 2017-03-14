@@ -358,15 +358,19 @@ class Package
     path.join(@path, 'styles')
 
   getStylesheetPaths: ->
-    stylesheetDirPath = @getStylesheetsPath()
-    if @metadata.mainStyleSheet
-      [fs.resolve(@path, @metadata.mainStyleSheet)]
-    else if @metadata.styleSheets
-      @metadata.styleSheets.map (name) -> fs.resolve(stylesheetDirPath, name, ['css', 'less', ''])
-    else if indexStylesheet = fs.resolve(@path, 'index', ['css', 'less'])
-      [indexStylesheet]
+    if @bundledPackage and @packageManager.packagesCache[@name].styleSheetsPaths?
+      styleSheetsPaths = @packageManager.packagesCache[@name].styleSheetsPaths
+      styleSheetsPaths.map (styleSheetPath) => path.join(@path, styleSheetPath)
     else
-      fs.listSync(stylesheetDirPath, ['css', 'less'])
+      stylesheetDirPath = @getStylesheetsPath()
+      if @metadata.mainStyleSheet
+        [fs.resolve(@path, @metadata.mainStyleSheet)]
+      else if @metadata.styleSheets
+        @metadata.styleSheets.map (name) -> fs.resolve(stylesheetDirPath, name, ['css', 'less', ''])
+      else if indexStylesheet = fs.resolve(@path, 'index', ['css', 'less'])
+        [indexStylesheet]
+      else
+        fs.listSync(stylesheetDirPath, ['css', 'less'])
 
   loadGrammarsSync: ->
     return if @grammarsLoaded
