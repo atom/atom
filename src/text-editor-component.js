@@ -769,7 +769,7 @@ class TextEditorComponent {
 
     const screenPosition = this.screenPositionForMouseEvent(event)
 
-    if (target.matches('.fold-marker')) {
+    if (target && target.matches('.fold-marker')) {
       const bufferPosition = model.bufferPositionForScreenPosition(screenPosition)
       model.destroyFoldsIntersectingBufferRange(Range(bufferPosition, bufferPosition))
       return
@@ -829,7 +829,7 @@ class TextEditorComponent {
     const clickedScreenRow = this.screenPositionForMouseEvent(event).row
     const startBufferRow = model.bufferPositionForScreenPosition([clickedScreenRow, 0]).row
 
-    if (target.matches('.foldable .icon-right')) {
+    if (target && target.matches('.foldable .icon-right')) {
       model.toggleFoldAtBufferRow(startBufferRow)
       return
     }
