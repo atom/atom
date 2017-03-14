@@ -272,7 +272,7 @@ describe('TextEditorComponent', () => {
     })
   })
 
-  describe('autoscroll', () => {
+  describe('autoscroll on cursor movement', () => {
     it('automatically scrolls vertically when the requested range is within the vertical scroll margin of the top or bottom', async () => {
       const {component, element, editor} = buildComponent({height: 120})
       const {scroller} = component.refs
@@ -594,336 +594,397 @@ describe('TextEditorComponent', () => {
   })
 
   describe('mouse input', () => {
-    it('positions the cursor on single-click', async () => {
-      const {component, element, editor} = buildComponent()
-      const {lineHeight} = component.measurements
+    describe('on the lines', () => {
+      it('positions the cursor on single-click', async () => {
+        const {component, element, editor} = buildComponent()
+        const {lineHeight} = component.measurements
 
-      component.didMouseDownOnContent({
-        detail: 1,
-        button: 0,
-        clientX: clientLeftForCharacter(component, 0, editor.lineLengthForScreenRow(0)) + 1,
-        clientY: clientTopForLine(component, 0) + lineHeight / 2
+        component.didMouseDownOnContent({
+          detail: 1,
+          button: 0,
+          clientX: clientLeftForCharacter(component, 0, editor.lineLengthForScreenRow(0)) + 1,
+          clientY: clientTopForLine(component, 0) + lineHeight / 2
+        })
+        expect(editor.getCursorScreenPosition()).toEqual([0, editor.lineLengthForScreenRow(0)])
+
+        component.didMouseDownOnContent({
+          detail: 1,
+          button: 0,
+          clientX: (clientLeftForCharacter(component, 3, 0) + clientLeftForCharacter(component, 3, 1)) / 2,
+          clientY: clientTopForLine(component, 1) + lineHeight / 2
+        })
+        expect(editor.getCursorScreenPosition()).toEqual([1, 0])
+
+        component.didMouseDownOnContent({
+          detail: 1,
+          button: 0,
+          clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2,
+          clientY: clientTopForLine(component, 3) + lineHeight / 2
+        })
+        expect(editor.getCursorScreenPosition()).toEqual([3, 14])
+
+        component.didMouseDownOnContent({
+          detail: 1,
+          button: 0,
+          clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2 + 1,
+          clientY: clientTopForLine(component, 3) + lineHeight / 2
+        })
+        expect(editor.getCursorScreenPosition()).toEqual([3, 15])
+
+        editor.getBuffer().setTextInRange([[3, 14], [3, 15]], '🐣')
+        await component.getNextUpdatePromise()
+
+        component.didMouseDownOnContent({
+          detail: 1,
+          button: 0,
+          clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2,
+          clientY: clientTopForLine(component, 3) + lineHeight / 2
+        })
+        expect(editor.getCursorScreenPosition()).toEqual([3, 14])
+
+        component.didMouseDownOnContent({
+          detail: 1,
+          button: 0,
+          clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2 + 1,
+          clientY: clientTopForLine(component, 3) + lineHeight / 2
+        })
+        expect(editor.getCursorScreenPosition()).toEqual([3, 16])
       })
-      expect(editor.getCursorScreenPosition()).toEqual([0, editor.lineLengthForScreenRow(0)])
 
-      component.didMouseDownOnContent({
-        detail: 1,
-        button: 0,
-        clientX: (clientLeftForCharacter(component, 3, 0) + clientLeftForCharacter(component, 3, 1)) / 2,
-        clientY: clientTopForLine(component, 1) + lineHeight / 2
+      it('selects words on double-click', () => {
+        const {component, editor} = buildComponent()
+        const {clientX, clientY} = clientPositionForCharacter(component, 1, 16)
+        component.didMouseDownOnContent({detail: 1, button: 0, clientX, clientY})
+        component.didMouseDownOnContent({detail: 2, button: 0, clientX, clientY})
+        expect(editor.getSelectedScreenRange()).toEqual([[1, 13], [1, 21]])
       })
-      expect(editor.getCursorScreenPosition()).toEqual([1, 0])
 
-      component.didMouseDownOnContent({
-        detail: 1,
-        button: 0,
-        clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2,
-        clientY: clientTopForLine(component, 3) + lineHeight / 2
+      it('selects lines on triple-click', () => {
+        const {component, editor} = buildComponent()
+        const {clientX, clientY} = clientPositionForCharacter(component, 1, 16)
+        component.didMouseDownOnContent({detail: 1, button: 0, clientX, clientY})
+        component.didMouseDownOnContent({detail: 2, button: 0, clientX, clientY})
+        component.didMouseDownOnContent({detail: 3, button: 0, clientX, clientY})
+        expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [2, 0]])
       })
-      expect(editor.getCursorScreenPosition()).toEqual([3, 14])
 
-      component.didMouseDownOnContent({
-        detail: 1,
-        button: 0,
-        clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2 + 1,
-        clientY: clientTopForLine(component, 3) + lineHeight / 2
+      it('adds or removes cursors when holding cmd or ctrl when single-clicking', () => {
+        const {component, editor} = buildComponent()
+        spyOn(component, 'getPlatform').andCallFake(() => mockedPlatform)
+
+        let mockedPlatform = 'darwin'
+        expect(editor.getCursorScreenPositions()).toEqual([[0, 0]])
+
+        // add cursor at 1, 16
+        component.didMouseDownOnContent(
+          Object.assign(clientPositionForCharacter(component, 1, 16), {
+            detail: 1,
+            button: 0,
+            metaKey: true
+          })
+        )
+        expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]])
+
+        // remove cursor at 0, 0
+        component.didMouseDownOnContent(
+          Object.assign(clientPositionForCharacter(component, 0, 0), {
+            detail: 1,
+            button: 0,
+            metaKey: true
+          })
+        )
+        expect(editor.getCursorScreenPositions()).toEqual([[1, 16]])
+
+        // cmd-click cursor at 1, 16 but don't remove it because it's the last one
+        component.didMouseDownOnContent(
+          Object.assign(clientPositionForCharacter(component, 1, 16), {
+            detail: 1,
+            button: 0,
+            metaKey: true
+          })
+        )
+        expect(editor.getCursorScreenPositions()).toEqual([[1, 16]])
+
+        // cmd-clicking within a selection destroys it
+        editor.addSelectionForScreenRange([[2, 10], [2, 15]])
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[1, 16], [1, 16]],
+          [[2, 10], [2, 15]]
+        ])
+        component.didMouseDownOnContent(
+          Object.assign(clientPositionForCharacter(component, 2, 13), {
+            detail: 1,
+            button: 0,
+            metaKey: true
+          })
+        )
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[1, 16], [1, 16]]
+        ])
+
+        // ctrl-click does not add cursors on macOS
+        component.didMouseDownOnContent(
+          Object.assign(clientPositionForCharacter(component, 1, 4), {
+            detail: 1,
+            button: 0,
+            ctrlKey: true
+          })
+        )
+        expect(editor.getCursorScreenPositions()).toEqual([[1, 4]])
+
+        mockedPlatform = 'win32'
+
+        // ctrl-click adds cursors on platforms *other* than macOS
+        component.didMouseDownOnContent(
+          Object.assign(clientPositionForCharacter(component, 1, 16), {
+            detail: 1,
+            button: 0,
+            ctrlKey: true
+          })
+        )
+        expect(editor.getCursorScreenPositions()).toEqual([[1, 4], [1, 16]])
       })
-      expect(editor.getCursorScreenPosition()).toEqual([3, 15])
 
-      editor.getBuffer().setTextInRange([[3, 14], [3, 15]], '🐣')
-      await component.getNextUpdatePromise()
+      it('adds word selections when holding cmd or ctrl when double-clicking', () => {
+        const {component, editor} = buildComponent()
+        editor.addCursorAtScreenPosition([1, 16])
+        expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]])
 
-      component.didMouseDownOnContent({
-        detail: 1,
-        button: 0,
-        clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2,
-        clientY: clientTopForLine(component, 3) + lineHeight / 2
+        component.didMouseDownOnContent(
+          Object.assign(clientPositionForCharacter(component, 1, 16), {
+            detail: 1,
+            button: 0,
+            metaKey: true
+          })
+        )
+        component.didMouseDownOnContent(
+          Object.assign(clientPositionForCharacter(component, 1, 16), {
+            detail: 2,
+            button: 0,
+            metaKey: true
+          })
+        )
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[0, 0], [0, 0]],
+          [[1, 13], [1, 21]]
+        ])
       })
-      expect(editor.getCursorScreenPosition()).toEqual([3, 14])
 
-      component.didMouseDownOnContent({
-        detail: 1,
-        button: 0,
-        clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2 + 1,
-        clientY: clientTopForLine(component, 3) + lineHeight / 2
+      it('adds line selections when holding cmd or ctrl when triple-clicking', () => {
+        const {component, editor} = buildComponent()
+        editor.addCursorAtScreenPosition([1, 16])
+        expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]])
+
+        const {clientX, clientY} = clientPositionForCharacter(component, 1, 16)
+        component.didMouseDownOnContent({detail: 1, button: 0, metaKey: true, clientX, clientY})
+        component.didMouseDownOnContent({detail: 2, button: 0, metaKey: true, clientX, clientY})
+        component.didMouseDownOnContent({detail: 3, button: 0, metaKey: true, clientX, clientY})
+
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[0, 0], [0, 0]],
+          [[1, 0], [2, 0]]
+        ])
       })
-      expect(editor.getCursorScreenPosition()).toEqual([3, 16])
-    })
 
-    it('selects words on double-click', () => {
-      const {component, editor} = buildComponent()
-      const {clientX, clientY} = clientPositionForCharacter(component, 1, 16)
-      component.didMouseDownOnContent({detail: 1, button: 0, clientX, clientY})
-      component.didMouseDownOnContent({detail: 2, button: 0, clientX, clientY})
-      expect(editor.getSelectedScreenRange()).toEqual([[1, 13], [1, 21]])
-    })
+      it('expands the last selection on shift-click', () => {
+        const {component, element, editor} = buildComponent()
 
-    it('selects lines on triple-click', () => {
-      const {component, editor} = buildComponent()
-      const {clientX, clientY} = clientPositionForCharacter(component, 1, 16)
-      component.didMouseDownOnContent({detail: 1, button: 0, clientX, clientY})
-      component.didMouseDownOnContent({detail: 2, button: 0, clientX, clientY})
-      component.didMouseDownOnContent({detail: 3, button: 0, clientX, clientY})
-      expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [2, 0]])
-    })
-
-    it('adds or removes cursors when holding cmd or ctrl when single-clicking', () => {
-      const {component, editor} = buildComponent()
-      spyOn(component, 'getPlatform').andCallFake(() => mockedPlatform)
-
-      let mockedPlatform = 'darwin'
-      expect(editor.getCursorScreenPositions()).toEqual([[0, 0]])
-
-      // add cursor at 1, 16
-      component.didMouseDownOnContent(
-        Object.assign(clientPositionForCharacter(component, 1, 16), {
+        editor.setCursorScreenPosition([2, 18])
+        component.didMouseDownOnContent(Object.assign({
           detail: 1,
           button: 0,
-          metaKey: true
-        })
-      )
-      expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]])
+          shiftKey: true
+        }, clientPositionForCharacter(component, 1, 4)))
+        expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [2, 18]])
 
-      // remove cursor at 0, 0
-      component.didMouseDownOnContent(
-        Object.assign(clientPositionForCharacter(component, 0, 0), {
+        component.didMouseDownOnContent(Object.assign({
           detail: 1,
           button: 0,
-          metaKey: true
-        })
-      )
-      expect(editor.getCursorScreenPositions()).toEqual([[1, 16]])
+          shiftKey: true
+        }, clientPositionForCharacter(component, 4, 4)))
+        expect(editor.getSelectedScreenRange()).toEqual([[2, 18], [4, 4]])
 
-      // cmd-click cursor at 1, 16 but don't remove it because it's the last one
-      component.didMouseDownOnContent(
-        Object.assign(clientPositionForCharacter(component, 1, 16), {
+        // reorients word-wise selections to keep the word selected regardless of
+        // where the subsequent shift-click occurs
+        editor.setCursorScreenPosition([2, 18])
+        editor.getLastSelection().selectWord()
+        component.didMouseDownOnContent(Object.assign({
           detail: 1,
           button: 0,
-          metaKey: true
-        })
-      )
-      expect(editor.getCursorScreenPositions()).toEqual([[1, 16]])
+          shiftKey: true
+        }, clientPositionForCharacter(component, 1, 4)))
+        expect(editor.getSelectedScreenRange()).toEqual([[1, 2], [2, 20]])
 
-      // cmd-clicking within a selection destroys it
-      editor.addSelectionForScreenRange([[2, 10], [2, 15]])
-      expect(editor.getSelectedScreenRanges()).toEqual([
-        [[1, 16], [1, 16]],
-        [[2, 10], [2, 15]]
-      ])
-      component.didMouseDownOnContent(
-        Object.assign(clientPositionForCharacter(component, 2, 13), {
+        component.didMouseDownOnContent(Object.assign({
           detail: 1,
           button: 0,
-          metaKey: true
-        })
-      )
-      expect(editor.getSelectedScreenRanges()).toEqual([
-        [[1, 16], [1, 16]]
-      ])
+          shiftKey: true
+        }, clientPositionForCharacter(component, 3, 11)))
+        expect(editor.getSelectedScreenRange()).toEqual([[2, 14], [3, 13]])
 
-      // ctrl-click does not add cursors on macOS
-      component.didMouseDownOnContent(
-        Object.assign(clientPositionForCharacter(component, 1, 4), {
+        // reorients line-wise selections to keep the word selected regardless of
+        // where the subsequent shift-click occurs
+        editor.setCursorScreenPosition([2, 18])
+        editor.getLastSelection().selectLine()
+        component.didMouseDownOnContent(Object.assign({
           detail: 1,
           button: 0,
-          ctrlKey: true
-        })
-      )
-      expect(editor.getCursorScreenPositions()).toEqual([[1, 4]])
+          shiftKey: true
+        }, clientPositionForCharacter(component, 1, 4)))
+        expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [3, 0]])
 
-      mockedPlatform = 'win32'
-
-      // ctrl-click adds cursors on platforms *other* than macOS
-      component.didMouseDownOnContent(
-        Object.assign(clientPositionForCharacter(component, 1, 16), {
+        component.didMouseDownOnContent(Object.assign({
           detail: 1,
           button: 0,
-          ctrlKey: true
-        })
-      )
-      expect(editor.getCursorScreenPositions()).toEqual([[1, 4], [1, 16]])
-    })
+          shiftKey: true
+        }, clientPositionForCharacter(component, 3, 11)))
+        expect(editor.getSelectedScreenRange()).toEqual([[2, 0], [4, 0]])
+      })
 
-    it('adds word selections when holding cmd or ctrl when double-clicking', () => {
-      const {component, editor} = buildComponent()
-      editor.addCursorAtScreenPosition([1, 16])
-      expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]])
+      it('expands the last selection on drag', () => {
+        const {component, editor} = buildComponent()
+        spyOn(component, 'handleMouseDragUntilMouseUp')
 
-      component.didMouseDownOnContent(
-        Object.assign(clientPositionForCharacter(component, 1, 16), {
+        component.didMouseDownOnContent(Object.assign({
           detail: 1,
           button: 0,
-          metaKey: true
-        })
-      )
-      component.didMouseDownOnContent(
-        Object.assign(clientPositionForCharacter(component, 1, 16), {
+        }, clientPositionForCharacter(component, 1, 4)))
+
+        {
+          const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[0][0]
+          didDrag(clientPositionForCharacter(component, 8, 8))
+          expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [8, 8]])
+          didDrag(clientPositionForCharacter(component, 4, 8))
+          expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [4, 8]])
+          didStopDragging()
+          expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [4, 8]])
+        }
+
+        // Click-drag a second selection... selections are not merged until the
+        // drag stops.
+        component.didMouseDownOnContent(Object.assign({
+          detail: 1,
+          button: 0,
+          metaKey: 1,
+        }, clientPositionForCharacter(component, 8, 8)))
+        {
+          const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[1][0]
+          didDrag(clientPositionForCharacter(component, 2, 8))
+          expect(editor.getSelectedScreenRanges()).toEqual([
+            [[1, 4], [4, 8]],
+            [[2, 8], [8, 8]]
+          ])
+          didDrag(clientPositionForCharacter(component, 6, 8))
+          expect(editor.getSelectedScreenRanges()).toEqual([
+            [[1, 4], [4, 8]],
+            [[6, 8], [8, 8]]
+          ])
+          didDrag(clientPositionForCharacter(component, 2, 8))
+          expect(editor.getSelectedScreenRanges()).toEqual([
+            [[1, 4], [4, 8]],
+            [[2, 8], [8, 8]]
+          ])
+          didStopDragging()
+          expect(editor.getSelectedScreenRanges()).toEqual([
+            [[1, 4], [8, 8]]
+          ])
+        }
+      })
+
+      it('expands the selection word-wise on double-click-drag', () => {
+        const {component, editor} = buildComponent()
+        spyOn(component, 'handleMouseDragUntilMouseUp')
+
+        component.didMouseDownOnContent(Object.assign({
+          detail: 1,
+          button: 0,
+        }, clientPositionForCharacter(component, 1, 4)))
+        component.didMouseDownOnContent(Object.assign({
           detail: 2,
           button: 0,
-          metaKey: true
-        })
-      )
-      expect(editor.getSelectedScreenRanges()).toEqual([
-        [[0, 0], [0, 0]],
-        [[1, 13], [1, 21]]
-      ])
-    })
+        }, clientPositionForCharacter(component, 1, 4)))
 
-    it('adds line selections when holding cmd or ctrl when triple-clicking', () => {
-      const {component, editor} = buildComponent()
-      editor.addCursorAtScreenPosition([1, 16])
-      expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]])
-
-      const {clientX, clientY} = clientPositionForCharacter(component, 1, 16)
-      component.didMouseDownOnContent({detail: 1, button: 0, metaKey: true, clientX, clientY})
-      component.didMouseDownOnContent({detail: 2, button: 0, metaKey: true, clientX, clientY})
-      component.didMouseDownOnContent({detail: 3, button: 0, metaKey: true, clientX, clientY})
-
-      expect(editor.getSelectedScreenRanges()).toEqual([
-        [[0, 0], [0, 0]],
-        [[1, 0], [2, 0]]
-      ])
-    })
-
-    it('expands the last selection on shift-click', () => {
-      const {component, element, editor} = buildComponent()
-
-      editor.setCursorScreenPosition([2, 18])
-      component.didMouseDownOnContent(Object.assign({
-        detail: 1,
-        button: 0,
-        shiftKey: true
-      }, clientPositionForCharacter(component, 1, 4)))
-      expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [2, 18]])
-
-      component.didMouseDownOnContent(Object.assign({
-        detail: 1,
-        button: 0,
-        shiftKey: true
-      }, clientPositionForCharacter(component, 4, 4)))
-      expect(editor.getSelectedScreenRange()).toEqual([[2, 18], [4, 4]])
-
-      // reorients word-wise selections to keep the word selected regardless of
-      // where the subsequent shift-click occurs
-      editor.setCursorScreenPosition([2, 18])
-      editor.getLastSelection().selectWord()
-      component.didMouseDownOnContent(Object.assign({
-        detail: 1,
-        button: 0,
-        shiftKey: true
-      }, clientPositionForCharacter(component, 1, 4)))
-      expect(editor.getSelectedScreenRange()).toEqual([[1, 2], [2, 20]])
-
-      component.didMouseDownOnContent(Object.assign({
-        detail: 1,
-        button: 0,
-        shiftKey: true
-      }, clientPositionForCharacter(component, 3, 11)))
-      expect(editor.getSelectedScreenRange()).toEqual([[2, 14], [3, 13]])
-
-      // reorients line-wise selections to keep the word selected regardless of
-      // where the subsequent shift-click occurs
-      editor.setCursorScreenPosition([2, 18])
-      editor.getLastSelection().selectLine()
-      component.didMouseDownOnContent(Object.assign({
-        detail: 1,
-        button: 0,
-        shiftKey: true
-      }, clientPositionForCharacter(component, 1, 4)))
-      expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [3, 0]])
-
-      component.didMouseDownOnContent(Object.assign({
-        detail: 1,
-        button: 0,
-        shiftKey: true
-      }, clientPositionForCharacter(component, 3, 11)))
-      expect(editor.getSelectedScreenRange()).toEqual([[2, 0], [4, 0]])
-    })
-
-    it('expands the last selection on drag', () => {
-      const {component, editor} = buildComponent()
-      spyOn(component, 'handleMouseDragUntilMouseUp')
-
-      component.didMouseDownOnContent(Object.assign({
-        detail: 1,
-        button: 0,
-      }, clientPositionForCharacter(component, 1, 4)))
-
-      {
-        const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[0][0]
-        didDrag(clientPositionForCharacter(component, 8, 8))
-        expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [8, 8]])
-        didDrag(clientPositionForCharacter(component, 4, 8))
-        expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [4, 8]])
-        didStopDragging()
-        expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [4, 8]])
-      }
-
-      // Click-drag a second selection... selections are not merged until the
-      // drag stops.
-      component.didMouseDownOnContent(Object.assign({
-        detail: 1,
-        button: 0,
-        metaKey: 1,
-      }, clientPositionForCharacter(component, 8, 8)))
-      {
         const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[1][0]
-        didDrag(clientPositionForCharacter(component, 2, 8))
-        expect(editor.getSelectedScreenRanges()).toEqual([
-          [[1, 4], [4, 8]],
-          [[2, 8], [8, 8]]
-        ])
-        didDrag(clientPositionForCharacter(component, 6, 8))
-        expect(editor.getSelectedScreenRanges()).toEqual([
-          [[1, 4], [4, 8]],
-          [[6, 8], [8, 8]]
-        ])
-        didDrag(clientPositionForCharacter(component, 2, 8))
-        expect(editor.getSelectedScreenRanges()).toEqual([
-          [[1, 4], [4, 8]],
-          [[2, 8], [8, 8]]
-        ])
-        didStopDragging()
-        expect(editor.getSelectedScreenRanges()).toEqual([
-          [[1, 4], [8, 8]]
-        ])
-      }
-    })
+        didDrag(clientPositionForCharacter(component, 0, 8))
+        expect(editor.getSelectedScreenRange()).toEqual([[0, 4], [1, 5]])
+        didDrag(clientPositionForCharacter(component, 2, 10))
+        expect(editor.getSelectedScreenRange()).toEqual([[1, 2], [2, 13]])
+      })
 
-    it('expands the selection word-wise on double-click-drag', () => {
-      const {component, editor} = buildComponent()
-      spyOn(component, 'handleMouseDragUntilMouseUp')
+      it('expands the selection line-wise on triple-click-drag', () => {
+        const {component, editor} = buildComponent()
+        spyOn(component, 'handleMouseDragUntilMouseUp')
 
-      component.didMouseDownOnContent(Object.assign({
-        detail: 1,
-        button: 0,
-      }, clientPositionForCharacter(component, 1, 4)))
-      component.didMouseDownOnContent(Object.assign({
-        detail: 2,
-        button: 0,
-      }, clientPositionForCharacter(component, 1, 4)))
+        const tripleClickPosition = clientPositionForCharacter(component, 2, 8)
+        component.didMouseDownOnContent(Object.assign({detail: 1, button: 0}, tripleClickPosition))
+        component.didMouseDownOnContent(Object.assign({detail: 2, button: 0}, tripleClickPosition))
+        component.didMouseDownOnContent(Object.assign({detail: 3, button: 0}, tripleClickPosition))
 
-      const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[1][0]
-      didDrag(clientPositionForCharacter(component, 0, 8))
-      expect(editor.getSelectedScreenRange()).toEqual([[0, 4], [1, 5]])
-      didDrag(clientPositionForCharacter(component, 2, 10))
-      expect(editor.getSelectedScreenRange()).toEqual([[1, 2], [2, 13]])
-    })
+        const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[2][0]
+        didDrag(clientPositionForCharacter(component, 1, 8))
+        expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [3, 0]])
+        didDrag(clientPositionForCharacter(component, 4, 10))
+        expect(editor.getSelectedScreenRange()).toEqual([[2, 0], [5, 0]])
+      })
 
-    it('expands the selection line-wise on triple-click-drag', () => {
-      const {component, editor} = buildComponent()
-      spyOn(component, 'handleMouseDragUntilMouseUp')
+      it('autoscrolls the content when dragging near the edge of the screen', async () => {
+        const {component, editor} = buildComponent({width: 200, height: 200})
+        const {scroller} = component.refs
+        spyOn(component, 'handleMouseDragUntilMouseUp')
 
-      const tripleClickPosition = clientPositionForCharacter(component, 2, 8)
-      component.didMouseDownOnContent(Object.assign({detail: 1, button: 0}, tripleClickPosition))
-      component.didMouseDownOnContent(Object.assign({detail: 2, button: 0}, tripleClickPosition))
-      component.didMouseDownOnContent(Object.assign({detail: 3, button: 0}, tripleClickPosition))
+        let previousScrollTop = 0
+        let previousScrollLeft = 0
+        function assertScrolledDownAndRight () {
+          expect(scroller.scrollTop).toBeGreaterThan(previousScrollTop)
+          previousScrollTop = scroller.scrollTop
+          expect(scroller.scrollLeft).toBeGreaterThan(previousScrollLeft)
+          previousScrollLeft = scroller.scrollLeft
+        }
 
-      const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[2][0]
-      didDrag(clientPositionForCharacter(component, 1, 8))
-      expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [3, 0]])
-      didDrag(clientPositionForCharacter(component, 4, 10))
-      expect(editor.getSelectedScreenRange()).toEqual([[2, 0], [5, 0]])
+        function assertScrolledUpAndLeft () {
+          expect(scroller.scrollTop).toBeLessThan(previousScrollTop)
+          previousScrollTop = scroller.scrollTop
+          expect(scroller.scrollLeft).toBeLessThan(previousScrollLeft)
+          previousScrollLeft = scroller.scrollLeft
+        }
+
+        component.didMouseDownOnContent({detail: 1, button: 0, clientX: 100, clientY: 100})
+        const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[0][0]
+        didDrag({clientX: 199, clientY: 199})
+        assertScrolledDownAndRight()
+        didDrag({clientX: 199, clientY: 199})
+        assertScrolledDownAndRight()
+        didDrag({clientX: 199, clientY: 199})
+        assertScrolledDownAndRight()
+        didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
+        assertScrolledUpAndLeft()
+        didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
+        assertScrolledUpAndLeft()
+        didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
+        assertScrolledUpAndLeft()
+
+        // Don't artificially update scroll measurements beyond the minimum or
+        // maximum possible scroll positions
+        expect(scroller.scrollTop).toBe(0)
+        expect(scroller.scrollLeft).toBe(0)
+        didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
+        expect(component.measurements.scrollTop).toBe(0)
+        expect(scroller.scrollTop).toBe(0)
+        expect(component.measurements.scrollLeft).toBe(0)
+        expect(scroller.scrollLeft).toBe(0)
+
+        const maxScrollTop = scroller.scrollHeight - scroller.clientHeight
+        const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth
+        scroller.scrollTop = maxScrollTop
+        scroller.scrollLeft = maxScrollLeft
+        await component.getNextUpdatePromise()
+
+        didDrag({clientX: 199, clientY: 199})
+        didDrag({clientX: 199, clientY: 199})
+        didDrag({clientX: 199, clientY: 199})
+        expect(component.measurements.scrollTop).toBe(maxScrollTop)
+        expect(component.measurements.scrollLeft).toBe(maxScrollLeft)
+      })
     })
 
     describe('on the line number gutter', () => {
@@ -1083,65 +1144,6 @@ describe('TextEditorComponent', () => {
           [[2, 0], [4, 4]]
         ])
       })
-    })
-
-    it('autoscrolls the content when dragging near the edge of the screen', async () => {
-      const {component, editor} = buildComponent({width: 200, height: 200})
-      const {scroller} = component.refs
-      spyOn(component, 'handleMouseDragUntilMouseUp')
-
-      let previousScrollTop = 0
-      let previousScrollLeft = 0
-      function assertScrolledDownAndRight () {
-        expect(scroller.scrollTop).toBeGreaterThan(previousScrollTop)
-        previousScrollTop = scroller.scrollTop
-        expect(scroller.scrollLeft).toBeGreaterThan(previousScrollLeft)
-        previousScrollLeft = scroller.scrollLeft
-      }
-
-      function assertScrolledUpAndLeft () {
-        expect(scroller.scrollTop).toBeLessThan(previousScrollTop)
-        previousScrollTop = scroller.scrollTop
-        expect(scroller.scrollLeft).toBeLessThan(previousScrollLeft)
-        previousScrollLeft = scroller.scrollLeft
-      }
-
-      component.didMouseDownOnContent({detail: 1, button: 0, clientX: 100, clientY: 100})
-      const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[0][0]
-      didDrag({clientX: 199, clientY: 199})
-      assertScrolledDownAndRight()
-      didDrag({clientX: 199, clientY: 199})
-      assertScrolledDownAndRight()
-      didDrag({clientX: 199, clientY: 199})
-      assertScrolledDownAndRight()
-      didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
-      assertScrolledUpAndLeft()
-      didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
-      assertScrolledUpAndLeft()
-      didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
-      assertScrolledUpAndLeft()
-
-      // Don't artificially update scroll measurements beyond the minimum or
-      // maximum possible scroll positions
-      expect(scroller.scrollTop).toBe(0)
-      expect(scroller.scrollLeft).toBe(0)
-      didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
-      expect(component.measurements.scrollTop).toBe(0)
-      expect(scroller.scrollTop).toBe(0)
-      expect(component.measurements.scrollLeft).toBe(0)
-      expect(scroller.scrollLeft).toBe(0)
-
-      const maxScrollTop = scroller.scrollHeight - scroller.clientHeight
-      const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth
-      scroller.scrollTop = maxScrollTop
-      scroller.scrollLeft = maxScrollLeft
-      await component.getNextUpdatePromise()
-
-      didDrag({clientX: 199, clientY: 199})
-      didDrag({clientX: 199, clientY: 199})
-      didDrag({clientX: 199, clientY: 199})
-      expect(component.measurements.scrollTop).toBe(maxScrollTop)
-      expect(component.measurements.scrollLeft).toBe(maxScrollLeft)
     })
   })
 })

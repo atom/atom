@@ -863,7 +863,6 @@ class TextEditorComponent {
         this.updateSync()
       }
     })
-
   }
 
   handleMouseDragUntilMouseUp ({didDrag, didStopDragging}) {
