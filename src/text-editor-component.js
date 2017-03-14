@@ -849,6 +849,7 @@ class TextEditorComponent {
     const initialScreenRange = model.screenRangeForBufferRange(initialBufferRange)
     this.handleMouseDragUntilMouseUp({
       didDrag: (event) => {
+        this.autoscrollOnMouseDrag(event, true)
         const dragRow = this.screenPositionForMouseEvent(event).row
         const draggedLineScreenRange = Range(Point(dragRow, 0), Point(dragRow + 1, 0))
         model.getLastSelection().setScreenRange(draggedLineScreenRange.union(initialScreenRange), {
@@ -899,7 +900,7 @@ class TextEditorComponent {
     window.addEventListener('mouseup', didMouseUp)
   }
 
-  autoscrollOnMouseDrag ({clientX, clientY}) {
+  autoscrollOnMouseDrag ({clientX, clientY}, verticalOnly = false) {
     let {top, bottom, left, right} = this.refs.scroller.getBoundingClientRect()
     top += MOUSE_DRAG_AUTOSCROLL_MARGIN
     bottom -= MOUSE_DRAG_AUTOSCROLL_MARGIN
@@ -935,7 +936,7 @@ class TextEditorComponent {
       }
     }
 
-    if (xDelta != null) {
+    if (!verticalOnly && xDelta != null) {
       const scaledDelta = scaleMouseDragAutoscrollDelta(xDelta) * xDirection
       const newScrollLeft = this.constrainScrollLeft(this.measurements.scrollLeft + scaledDelta)
       if (newScrollLeft !== this.measurements.scrollLeft) {
