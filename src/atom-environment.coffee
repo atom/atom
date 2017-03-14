@@ -551,6 +551,9 @@ class AtomEnvironment extends Model
   maximize: ->
     @applicationDelegate.maximizeWindow()
 
+  minimize: ->
+    @applicationDelegate.minimizeWindow()
+    
   # Extended: Returns a {Boolean} that is `true` if the current window is in full screen mode.
   isFullScreen: ->
     @applicationDelegate.isWindowFullScreen()
