@@ -88,8 +88,20 @@ module.exports = class Dock {
     this.setState({draggingItem})
   }
 
+  activate () {
+    this.setState({open: true})
+  }
+
+  hide () {
+    this.setState({open: false})
+  }
+
   toggle () {
     this.setState({open: !this.state.open})
+  }
+
+  isOpen () {
+    return this.state.open
   }
 
   setState (newState) {

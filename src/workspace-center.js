@@ -7,6 +7,8 @@ module.exports = class WorkspaceCenter {
     this.paneContainer = paneContainer
   }
 
+  activate () {}
+
   /*
   Section: Event Subscription
   */

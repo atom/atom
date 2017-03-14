@@ -776,22 +776,30 @@ module.exports = class Workspace extends Model {
 
     const uri = options.uri == null && typeof item.getURI === 'function' ? item.getURI() : options.uri
 
+    let paneLocation
+    if (pane != null) {
+      paneLocation = this.getPaneLocations().find(location => location.getPanes().includes(pane))
+    }
+
+    // Determine which location to use, unless a split was provided. In that case, make sure it goes
+    // in the center location (legacy behavior)
     let location
-    // If a split was provided, make sure it goes in the center location (legacy behavior)
-    if (pane == null && split == null) {
-      if (uri != null) {
-        location = this.previousLocations.load(uri)
-      }
-      if (location == null && typeof item.getDefaultLocation === 'function') {
-        location = item.getDefaultLocation()
-      }
+    if (paneLocation == null && pane == null && split == null && uri != null) {
+      location = this.previousLocations.load(uri)
     }
 
     return Promise.resolve(location)
       .then(location => {
+        if (paneLocation == null) {
+          if (location == null && typeof item.getDefaultLocation === 'function') {
+            location = item.getDefaultLocation()
+          }
+          paneLocation = this.docks[location] || this.getCenter()
+        }
+      })
+      .then(() => {
         if (pane != null) return pane
-
-        pane = this.docks[location] == null ? this.getActivePane() : this.docks[location].getActivePane()
+        pane = paneLocation.getActivePane()
         switch (split) {
           case 'left': return pane.findLeftmostSibling()
           case 'right': return pane.findOrCreateRightmostSibling()
@@ -814,6 +822,7 @@ module.exports = class Workspace extends Model {
         if (activatePane) {
           pane.activate()
         }
+        paneLocation.activate()
 
         let initialColumn = 0
         let initialLine = 0
@@ -1186,6 +1195,37 @@ module.exports = class Workspace extends Model {
 
   getPaneLocations () {
     return [this.getCenter(), ..._.values(this.docks)]
+  }
+
+  toggle (uri) {
+    let foundItems = false
+
+    // If any visible item has the given URI, hide it
+    for (const location of this.getPaneLocations()) {
+      const isCenter = location === this.getCenter()
+      if (isCenter || location.isOpen()) {
+        for (const pane of location.getPanes()) {
+          const activeItem = pane.getActiveItem()
+          if (activeItem != null && typeof activeItem.getURI === 'function') {
+            const itemURI = activeItem.getURI()
+            if (itemURI === uri) {
+              foundItems = true
+              // We can't really hide the center so we just destroy the item.
+              if (isCenter) {
+                pane.destroyItem(activeItem)
+              } else {
+                location.hide()
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // If no visible items had the URI, show it.
+    if (!foundItems) {
+      this.open(uri, {searchAllPanes: true})
+    }
   }
 
   /*
