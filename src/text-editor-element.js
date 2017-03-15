@@ -13,6 +13,10 @@ class TextEditorElement extends HTMLElement {
     this.emitter.emit('did-attach')
   }
 
+  detachedCallback () {
+    this.getComponent().didDetach()
+  }
+
   getModel () {
     return this.getComponent().getModel()
   }
