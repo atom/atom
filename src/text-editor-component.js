@@ -46,7 +46,6 @@ class TextEditorComponent {
     this.textNodesByScreenLineId = new Map()
     this.pendingAutoscroll = null
     this.autoscrollTop = null
-    this.contentDimensionsChanged = false
     this.previousScrollWidth = 0
     this.previousScrollHeight = 0
     this.lastKeydown = null
@@ -96,7 +95,6 @@ class TextEditorComponent {
     }
 
     this.horizontalPositionsToMeasure.clear()
-    if (this.contentDimensionsChanged) this.measureClientDimensions()
     if (this.pendingAutoscroll) this.initiateAutoscroll()
     this.populateVisibleRowRange()
     const longestLineToMeasure = this.checkForNewLongestLine()
@@ -111,8 +109,32 @@ class TextEditorComponent {
 
     etch.updateSync(this)
 
+    // If scrollHeight or scrollWidth changed, we may have shown or hidden
+    // scrollbars, affecting the clientWidth or clientHeight
+    if (this.checkIfScrollDimensionsChanged()) {
+      this.measureClientDimensions()
+      // If the clientHeight changed, our previous vertical autoscroll may have
+      // been off by the height of the horizontal scrollbar. If we *still* need
+      // to autoscroll, just re-render the frame.
+      if (this.pendingAutoscroll && this.initiateAutoscroll()) {
+        this.updateSync()
+        return
+      }
+    }
     if (this.pendingAutoscroll) this.finalizeAutoscroll()
     this.currentFrameLineNumberGutterProps = null
+  }
+
+  checkIfScrollDimensionsChanged () {
+    const scrollHeight = this.getScrollHeight()
+    const scrollWidth = this.getScrollWidth()
+    if (scrollHeight !== this.previousScrollHeight || scrollWidth !== this.previousScrollWidth) {
+      this.previousScrollHeight = scrollHeight
+      this.previousScrollWidth = scrollWidth
+      return true
+    } else {
+      return false
+    }
   }
 
   render () {
@@ -272,12 +294,6 @@ class TextEditorComponent {
     if (this.measurements) {
       const contentWidth = this.getContentWidth()
       const scrollHeight = this.getScrollHeight()
-      if (contentWidth !== this.previousScrollWidth || scrollHeight !== this.previousScrollHeight) {
-        this.contentDimensionsChanged = true
-        this.previousScrollWidth = contentWidth
-        this.previousScrollHeight = scrollHeight
-      }
-
       const width = contentWidth + 'px'
       const height = scrollHeight + 'px'
       style.width = width
@@ -1055,21 +1071,27 @@ class TextEditorComponent {
       if (desiredScrollBottom > this.getScrollBottom()) {
         this.autoscrollTop = desiredScrollBottom - this.measurements.clientHeight
         this.measurements.scrollTop = this.autoscrollTop
+        return true
       }
       if (desiredScrollTop < this.getScrollTop()) {
         this.autoscrollTop = desiredScrollTop
         this.measurements.scrollTop = this.autoscrollTop
+        return true
       }
     } else {
       if (desiredScrollTop < this.getScrollTop()) {
         this.autoscrollTop = desiredScrollTop
         this.measurements.scrollTop = this.autoscrollTop
+        return true
       }
       if (desiredScrollBottom > this.getScrollBottom()) {
         this.autoscrollTop = desiredScrollBottom - this.measurements.clientHeight
         this.measurements.scrollTop = this.autoscrollTop
+        return true
       }
     }
+
+    return false
   }
 
   finalizeAutoscroll () {
@@ -1187,19 +1209,14 @@ class TextEditorComponent {
   }
 
   measureClientDimensions () {
-    let clientDimensionsChanged = false
     const {clientHeight, clientWidth} = this.refs.scroller
     if (clientHeight !== this.measurements.clientHeight) {
       this.measurements.clientHeight = clientHeight
-      clientDimensionsChanged = true
     }
     if (clientWidth !== this.measurements.clientWidth) {
       this.measurements.clientWidth = clientWidth
       this.getModel().setWidth(clientWidth - this.getGutterContainerWidth(), true)
-      clientDimensionsChanged = true
     }
-    this.contentDimensionsChanged = false
-    return clientDimensionsChanged
   }
 
   measureCharacterDimensions () {

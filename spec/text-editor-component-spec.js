@@ -404,6 +404,21 @@ describe('TextEditorComponent', () => {
 
       expect(scroller.scrollLeft).toBe(component.getScrollWidth() - scroller.clientWidth)
     })
+
+    it('accounts for the presence of horizontal scrollbars that appear during the same frame as the autoscroll', async () => {
+      const {component, element, editor} = buildComponent()
+      const {scroller} = component.refs
+      element.style.height = component.getScrollHeight() + 'px'
+      element.style.width = component.getScrollWidth() + 'px'
+      await component.getNextUpdatePromise()
+
+      editor.setCursorScreenPosition([10, Infinity])
+      editor.insertText('\n\n' + 'x'.repeat(100))
+      await component.getNextUpdatePromise()
+
+      expect(scroller.scrollTop).toBe(component.getScrollHeight() - scroller.clientHeight)
+      expect(scroller.scrollLeft).toBe(component.getScrollWidth() - scroller.clientWidth)
+    })
   })
 
   describe('line and line number decorations', () => {
