@@ -49,6 +49,10 @@ class TextEditorElement extends HTMLElement {
     return this.getComponent().getScrollLeft()
   }
 
+  hasFocus () {
+    return this.getComponent().focused
+  }
+
   getComponent () {
     if (!this.component) this.component = new TextEditorComponent({
       element: this,

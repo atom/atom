@@ -231,6 +231,19 @@ describe('TextEditorComponent', () => {
     expect(lineNumberNodeForScreenRow(component, 1).classList.contains('folded')).toBe(true)
   })
 
+  describe('mini editors', () => {
+    it('adds the mini attribute', () => {
+      const {element, editor} = buildComponent({mini: true})
+      expect(element.hasAttribute('mini')).toBe(true)
+    })
+
+    it('does not render the gutter container', () => {
+      const {component, element, editor} = buildComponent({mini: true})
+      expect(component.refs.gutterContainer).toBeUndefined()
+      expect(element.querySelector('gutter-container')).toBeNull()
+    })
+  })
+
   describe('focus', () => {
     it('focuses the hidden input element and adds the is-focused class when focused', async () => {
       assertDocumentFocused()
@@ -1241,7 +1254,7 @@ describe('TextEditorComponent', () => {
 
 function buildComponent (params = {}) {
   const buffer = new TextBuffer({text: SAMPLE_TEXT})
-  const editor = new TextEditor({buffer})
+  const editor = new TextEditor({buffer, mini: params.mini})
   const component = new TextEditorComponent({
     model: editor,
     rowsPerTile: params.rowsPerTile,

@@ -118,56 +118,79 @@ class TextEditorComponent {
   render () {
     const model = this.getModel()
 
-    let style
+    const style = {
+      overflow: 'hidden',
+    }
     if (!model.getAutoHeight() && !model.getAutoWidth()) {
-      style = {contain: 'strict'}
+      style.contain = 'strict'
     }
 
+    let attributes = null
     let className = 'editor'
     if (this.focused) {
       className += ' is-focused'
     }
+    if (model.isMini()) {
+      attributes = {mini: ''}
+      className += ' mini'
+    }
 
-    return $('atom-text-editor', {
+    const scrollerOverflowX = (model.isMini() || model.isSoftWrapped()) ? 'hidden' : 'auto'
+    const scrollerOverflowY = model.isMini() ? 'hidden' : 'auto'
+
+    return $('atom-text-editor',
+      {
         className,
+        attributes,
         style,
         tabIndex: -1,
         on: {focus: this.didFocus}
       },
       $.div(
         {
-          ref: 'scroller',
-          className: 'scroll-view',
-          on: {scroll: this.didScroll},
           style: {
-            position: 'absolute',
-            contain: 'strict',
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-            overflowX: model.isSoftWrapped() ? 'hidden' : 'auto',
-            overflowY: 'auto',
+            position: 'relative',
+            width: '100%',
+            height: '100%',
             backgroundColor: 'inherit'
           }
         },
         $.div(
           {
+            ref: 'scroller',
+            className: 'scroll-view',
+            on: {scroll: this.didScroll},
             style: {
-              isolate: 'content',
-              width: 'max-content',
-              height: 'max-content',
+              position: 'absolute',
+              contain: 'strict',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+              overflowX: scrollerOverflowX,
+              overflowY: scrollerOverflowY,
               backgroundColor: 'inherit'
             }
           },
-          this.renderGutterContainer(),
-          this.renderContent()
+          $.div(
+            {
+              style: {
+                isolate: 'content',
+                width: 'max-content',
+                height: 'max-content',
+                backgroundColor: 'inherit'
+              }
+            },
+            this.renderGutterContainer(),
+            this.renderContent()
+          )
         )
       )
     )
   }
 
   renderGutterContainer () {
+    if (this.props.model.isMini()) return null
     const props = {ref: 'gutterContainer', className: 'gutter-container'}
 
     if (this.measurements) {
@@ -338,7 +361,8 @@ class TextEditorComponent {
       style: {
         position: 'absolute',
         contain: 'strict',
-        width, height
+        width, height,
+        backgroundColor: 'inherit'
       }
     }, tileNodes)
   }
@@ -1132,6 +1156,8 @@ class TextEditorComponent {
   }
 
   measureEditorDimensions () {
+    if (!this.measurements) return false
+
     let dimensionsChanged = false
     const scrollerHeight = this.refs.scroller.offsetHeight
     const scrollerWidth = this.refs.scroller.offsetWidth
@@ -1210,7 +1236,11 @@ class TextEditorComponent {
   }
 
   measureGutterDimensions () {
-    this.measurements.lineNumberGutterWidth = this.refs.lineNumberGutter.offsetWidth
+    if (this.refs.lineNumberGutter) {
+      this.measurements.lineNumberGutterWidth = this.refs.lineNumberGutter.offsetWidth
+    } else {
+      this.measurements.lineNumberGutterWidth = 0
+    }
   }
 
   requestHorizontalMeasurement (row, column) {
