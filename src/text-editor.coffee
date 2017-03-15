@@ -3547,9 +3547,12 @@ class TextEditor extends Model
 
   # Get the Element for the editor.
   getElement: ->
-    TextEditorComponent ?= require('./text-editor-component')
-    new TextEditorComponent({model: this})
-    @component.element
+    if @component?
+      @component.element
+    else
+      TextEditorComponent ?= require('./text-editor-component')
+      new TextEditorComponent({model: this})
+      @component.element
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
