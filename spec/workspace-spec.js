@@ -1985,24 +1985,24 @@ i = /test/; #FIXME\
       const pane1 = atom.workspace.getActivePane()
       const pane2 = pane1.splitRight({copyActiveItem: true})
 
-      expect(atom.workspace.getPanes().length).toBe(2)
+      expect(atom.workspace.getCenter().getPanes().length).toBe(2)
       expect(pane2.getItems().length).toBe(1)
       atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
 
-      expect(atom.workspace.getPanes().length).toBe(2)
+      expect(atom.workspace.getCenter().getPanes().length).toBe(2)
       expect(pane2.getItems().length).toBe(0)
 
       atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
 
-      expect(atom.workspace.getPanes().length).toBe(1)
+      expect(atom.workspace.getCenter().getPanes().length).toBe(1)
       expect(pane1.getItems().length).toBe(1)
 
       atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      expect(atom.workspace.getPanes().length).toBe(1)
+      expect(atom.workspace.getCenter().getPanes().length).toBe(1)
       expect(pane1.getItems().length).toBe(0)
 
       atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      expect(atom.workspace.getPanes().length).toBe(1)
+      expect(atom.workspace.getCenter().getPanes().length).toBe(1)
 
       atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       expect(atom.close).toHaveBeenCalled()
