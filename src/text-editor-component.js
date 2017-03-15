@@ -599,7 +599,18 @@ class TextEditorComponent {
         }
       })
       this.intersectionObserver.observe(this.element)
-      if (this.isVisible()) this.didShow()
+      if (this.isVisible()) {
+        this.didShow()
+      } else {
+        this.didHide()
+      }
+    }
+  }
+
+  didDetach () {
+    if (this.attached) {
+      this.didHide()
+      this.attached = false
     }
   }
 
