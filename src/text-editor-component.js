@@ -107,11 +107,11 @@ class TextEditorComponent {
 
     this.measureHorizontalPositions()
     if (longestLineToMeasure) this.measureLongestLineWidth(longestLineToMeasure)
-    if (this.pendingAutoscroll) this.finalizeAutoscroll()
     this.updateAbsolutePositionedDecorations()
 
     etch.updateSync(this)
 
+    if (this.pendingAutoscroll) this.finalizeAutoscroll()
     this.currentFrameLineNumberGutterProps = null
   }
 

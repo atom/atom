@@ -391,6 +391,19 @@ describe('TextEditorComponent', () => {
       )
       expect(scroller.scrollLeft).toBe(expectedScrollLeft)
     })
+
+    it('correctly autoscrolls after inserting a line that exceeds the current content width', async () => {
+      const {component, element, editor} = buildComponent()
+      const {scroller} = component.refs
+      element.style.width = component.getScrollWidth() + 'px'
+      await component.getNextUpdatePromise()
+
+      editor.setCursorScreenPosition([0, Infinity])
+      editor.insertText('x'.repeat(100))
+      await component.getNextUpdatePromise()
+
+      expect(scroller.scrollLeft).toBe(component.getScrollWidth() - scroller.clientWidth)
+    })
   })
 
   describe('line and line number decorations', () => {
