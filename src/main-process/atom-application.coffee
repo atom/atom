@@ -284,7 +284,9 @@ class AtomApplication
       @restart()
 
     @disposable.add ipcHelpers.on ipcMain, 'resolve-proxy', (event, requestId, url) ->
-      event.sender.session.resolveProxy url, (proxy) -> event.sender.send('did-resolve-proxy', requestId, proxy)
+      event.sender.session.resolveProxy url, (proxy) ->
+        unless event.sender.isDestroyed()
+          event.sender.send('did-resolve-proxy', requestId, proxy)
 
     @disposable.add ipcHelpers.on ipcMain, 'did-change-history-manager', (event) =>
       for atomWindow in @windows
