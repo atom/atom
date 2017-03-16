@@ -200,9 +200,7 @@ class TextEditor extends Model
 
     @decorationManager = new DecorationManager(@displayLayer)
     @decorateMarkerLayer(@selectionsMarkerLayer, type: 'cursor')
-    @decorateMarkerLayer(@selectionsMarkerLayer, type: 'line-number', class: 'cursor-line')
-    @decorateMarkerLayer(@selectionsMarkerLayer, type: 'line-number', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
-    @decorateMarkerLayer(@selectionsMarkerLayer, type: 'line', class: 'cursor-line', onlyEmpty: true)
+    @decorateCursorLine() unless @isMini()
 
     @decorateMarkerLayer(@displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
 
@@ -224,6 +222,13 @@ class TextEditor extends Model
       name: 'line-number'
       priority: 0
       visible: lineNumberGutterVisible
+
+  decorateCursorLine: ->
+    @cursorLineDecorations = [
+      @decorateMarkerLayer(@selectionsMarkerLayer, type: 'line', class: 'cursor-line', onlyEmpty: true),
+      @decorateMarkerLayer(@selectionsMarkerLayer, type: 'line-number', class: 'cursor-line'),
+      @decorateMarkerLayer(@selectionsMarkerLayer, type: 'line-number', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
+    ]
 
   doBackgroundWork: (deadline) =>
     if @displayLayer.doBackgroundWork(deadline)
@@ -297,6 +302,11 @@ class TextEditor extends Model
             displayLayerParams.invisibles = @getInvisibles()
             displayLayerParams.softWrapColumn = @getSoftWrapColumn()
             displayLayerParams.showIndentGuides = @doesShowIndentGuide()
+            if @mini
+              decoration.destroy() for decoration in @cursorLineDecorations
+              @cursorLineDecorations = null
+            else
+              @decorateCursorLine()
 
         when 'placeholderText'
           if value isnt @placeholderText
