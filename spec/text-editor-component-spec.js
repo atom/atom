@@ -312,6 +312,20 @@ describe('TextEditorComponent', () => {
       jasmine.attachToDOM(parent)
       expect(document.activeElement).toBe(component.refs.hiddenInput)
     })
+
+    it('gracefully handles a focus event that occurs prior to detecting the element has become visible', async () => {
+      assertDocumentFocused()
+
+      const {component, element, editor} = buildComponent({attach: false})
+      element.style.display = 'none'
+      jasmine.attachToDOM(element)
+      element.style.display = 'block'
+      console.log('focus in test');
+      element.focus()
+      await component.getNextUpdatePromise()
+
+      expect(document.activeElement).toBe(component.refs.hiddenInput)
+    })
   })
 
   describe('autoscroll on cursor movement', () => {
