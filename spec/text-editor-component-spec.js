@@ -231,6 +231,15 @@ describe('TextEditorComponent', () => {
     expect(lineNumberNodeForScreenRow(component, 1).classList.contains('folded')).toBe(true)
   })
 
+  it('makes lines at least as wide as the scroller', async () => {
+    const {component, element, editor} = buildComponent()
+    const {scroller, gutterContainer} = component.refs
+    editor.setText('a')
+    await component.getNextUpdatePromise()
+
+    expect(element.querySelector('.line').offsetWidth).toBe(scroller.offsetWidth - gutterContainer.offsetWidth)
+  })
+
   describe('mini editors', () => {
     it('adds the mini attribute', () => {
       const {element, editor} = buildComponent({mini: true})
@@ -395,7 +404,7 @@ describe('TextEditorComponent', () => {
     it('correctly autoscrolls after inserting a line that exceeds the current content width', async () => {
       const {component, element, editor} = buildComponent()
       const {scroller} = component.refs
-      element.style.width = component.getScrollWidth() + 'px'
+      element.style.width = component.getGutterContainerWidth() + component.measurements.longestLineWidth + 'px'
       await component.getNextUpdatePromise()
 
       editor.setCursorScreenPosition([0, Infinity])
