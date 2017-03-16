@@ -44,11 +44,7 @@ exports.getCachePath = function (sourceCode) {
 exports.compile = function (sourceCode, filePath) {
   if (!babel) {
     babel = require('babel-core')
-    var Logger = require('babel-core/lib/transformation/file/logger')
-    var noop = function () {}
-    Logger.prototype.debug = noop
-    Logger.prototype.verbose = noop
-
+    require('debug').log = () => { } // Stop Babel logging to stdout/stderr (would error when no console attached)
     options = {ast: false, babelrc: false}
     for (var key in defaultOptions) {
       if (key === 'plugins') {
