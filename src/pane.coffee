@@ -3,7 +3,10 @@ Grim = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
 Model = require './model'
 PaneAxis = require './pane-axis'
+path = require 'path'
 TextEditor = require './text-editor'
+{getWindowLoadSettings} = require './window-load-settings-helpers'
+
 
 # Extended: A container for presenting content in the center of the workspace.
 # Panes can contain multiple items, one of which is *active* at a given time.
@@ -683,7 +686,7 @@ class Pane extends Model
     return unless item?.saveAs?
 
     saveOptions = item.getSaveDialogOptions?() ? {}
-    saveOptions.defaultPath ?= item.getPath()
+    saveOptions.defaultPath ?= @getDefaultSaveAsPath(item)
     newItemPath = @applicationDelegate.showSaveDialog(saveOptions)
     if newItemPath
       try
@@ -694,6 +697,17 @@ class Pane extends Model
           nextAction(error)
         else
           @handleSaveError(error, item)
+
+  getDefaultSaveAsPath: (item) =>
+    itemPath = item.getPath()
+    if itemPath
+      return itemPath
+
+    return unless @getActiveEditor()?
+
+    firstRowTrimmed = @getActiveEditor().getTextInRange([[0, 0], [0, 50]])
+
+    return path.join getWindowLoadSettings().initialPaths[0], firstRowTrimmed
 
   # Public: Save all items.
   saveItems: ->
