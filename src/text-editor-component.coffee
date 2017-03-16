@@ -3,7 +3,8 @@ scrollbarStyle = require 'scrollbar-style'
 {CompositeDisposable, Disposable} = require 'event-kit'
 {ipcRenderer} = require 'electron'
 Grim = require 'grim'
-elementResizeDetector = require('element-resize-detector')({strategy: 'scroll'})
+ElementResizeDetector = require('element-resize-detector')
+elementResizeDetector = null
 
 TextEditorPresenter = require './text-editor-presenter'
 GutterContainerComponent = require './gutter-container-component'
@@ -134,6 +135,7 @@ class TextEditorComponent
     @becameVisible() if @isVisible()
 
     measureDimensions = @measureDimensions.bind(this)
+    elementResizeDetector ?= ElementResizeDetector({strategy: 'scroll'})
     elementResizeDetector.listenTo(@domNode, measureDimensions)
     @disposables.add(new Disposable => elementResizeDetector.removeListener(@domNode, measureDimensions))
 
