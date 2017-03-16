@@ -36,15 +36,6 @@ describe "Babel transpiler support", ->
       transpiled = require('./fixtures/babel/babel-double-quotes.js')
       expect(transpiled(3)).toBe 4
 
-  describe 'when a .js file starts with /* @flow */', ->
-    it "transpiles it using babel", ->
-      transpiled = require('./fixtures/babel/flow-comment.js')
-      expect(transpiled(3)).toBe 4
-
-  describe "when a .js file does not start with 'use babel';", ->
-    it "does not transpile it using babel", ->
-      expect(-> require('./fixtures/babel/invalid.js')).toThrow()
-
     it "does not try to log to stdout or stderr while parsing the file", ->
       spyOn(process.stderr, 'write')
       spyOn(process.stdout, 'write')
@@ -53,3 +44,12 @@ describe "Babel transpiler support", ->
 
       expect(process.stdout.write).not.toHaveBeenCalled()
       expect(process.stderr.write).not.toHaveBeenCalled()
+
+  describe 'when a .js file starts with /* @flow */', ->
+    it "transpiles it using babel", ->
+      transpiled = require('./fixtures/babel/flow-comment.js')
+      expect(transpiled(3)).toBe 4
+
+  describe "when a .js file does not start with 'use babel';", ->
+    it "does not transpile it using babel", ->
+      expect(-> require('./fixtures/babel/invalid.js')).toThrow()
