@@ -24,6 +24,8 @@ describe('Workspace', () => {
     setDocumentEdited = spyOn(atom.applicationDelegate, 'setWindowDocumentEdited')
     atom.project.setPaths([atom.project.getDirectories()[0].resolve('dir')])
     waits(1)
+
+    waitsForPromise(() => atom.workspace.previousLocations.clear())
   })
 
   afterEach(() => temp.cleanupSync())
@@ -116,6 +118,63 @@ describe('Workspace', () => {
         expect(atom.workspace.getTextEditors().length).toBe(0)
       })
     })
+
+    describe('where a dock contains an editor', () => {
+      afterEach(() => {
+        atom.workspace.getRightDock().paneContainer.destroy()
+      })
+
+      it('constructs the view with the same panes', () => {
+        const getActivePane = () => atom.workspace.getRightDock().getActivePane()
+        const pane1 = atom.workspace.getRightDock().getActivePane()
+        const pane2 = pane1.splitRight({copyActiveItem: true})
+        const pane3 = pane2.splitRight({copyActiveItem: true})
+        let pane4 = null
+
+        waitsForPromise(() =>
+          atom.workspace.open(null, {pane: getActivePane()}).then(editor => editor.setText('An untitled editor.'))
+        )
+
+        waitsForPromise(() =>
+          atom.workspace.open('b', {pane: getActivePane()}).then(editor => pane2.activateItem(editor.copy()))
+        )
+
+        waitsForPromise(() =>
+          atom.workspace.open('../sample.js', {pane: getActivePane()}).then(editor => pane3.activateItem(editor))
+        )
+
+        runs(() => {
+          pane3.activeItem.setCursorScreenPosition([2, 4])
+          pane4 = pane2.splitDown()
+        })
+
+        waitsForPromise(() =>
+          atom.workspace.open('../sample.txt', {pane: getActivePane()}).then(editor => pane4.activateItem(editor))
+        )
+
+        runs(() => {
+          pane4.getActiveItem().setCursorScreenPosition([0, 2])
+          pane2.activate()
+
+          simulateReload()
+
+          expect(atom.workspace.getTextEditors().length).toBe(5)
+          const [editor1, editor2, untitledEditor, editor3, editor4] = atom.workspace.getTextEditors()
+          const firstDirectory = atom.project.getDirectories()[0]
+          expect(firstDirectory).toBeDefined()
+          expect(editor1.getPath()).toBe(firstDirectory.resolve('b'))
+          expect(editor2.getPath()).toBe(firstDirectory.resolve('../sample.txt'))
+          expect(editor2.getCursorScreenPosition()).toEqual([0, 2])
+          expect(editor3.getPath()).toBe(firstDirectory.resolve('b'))
+          expect(editor4.getPath()).toBe(firstDirectory.resolve('../sample.js'))
+          expect(editor4.getCursorScreenPosition()).toEqual([2, 4])
+          expect(untitledEditor.getPath()).toBeUndefined()
+          expect(untitledEditor.getText()).toBe('An untitled editor.')
+
+          expect(atom.workspace.getRightDock().getActiveTextEditor().getPath()).toBe(editor3.getPath())
+        })
+      })
+    })
   })
 
   describe('::open(uri, options)', () => {
@@ -201,6 +260,25 @@ describe('Workspace', () => {
               ])
             })
           })
+
+          it('finds items in docks', () => {
+            const dock = atom.workspace.getRightDock()
+            const ITEM_URI = 'atom://test'
+            const item = {
+              getURI: () => ITEM_URI,
+              getDefaultLocation: jasmine.createSpy().andReturn('left'),
+              getElement: () => document.createElement('div')
+            }
+            dock.getActivePane().addItem(item)
+            expect(dock.getPaneItems()).toHaveLength(1)
+            waitsForPromise(() => atom.workspace.open(ITEM_URI, {searchAllPanes: true}))
+            runs(() => {
+              expect(item.getDefaultLocation).not.toHaveBeenCalled()
+              expect(atom.workspace.getPaneItems()).toHaveLength(1)
+              expect(dock.getPaneItems()).toHaveLength(1)
+              expect(dock.getPaneItems()[0]).toBe(item)
+            })
+          })
         })
 
         describe('when the active pane does not have an editor for the given uri', () => {
@@ -215,6 +293,46 @@ describe('Workspace', () => {
               expect(workspace.getActivePaneItem()).toBe(editor)
               expect(workspace.getActivePane().items).toEqual([editor])
               expect(workspace.getActivePane().activate).toHaveBeenCalled()
+            })
+          })
+
+          it("uses the location specified by the model's `getDefaultLocation()` method", () => {
+            const item = {
+              getDefaultLocation: jasmine.createSpy().andReturn('right'),
+              getElement: () => document.createElement('div')
+            }
+            const opener = jasmine.createSpy().andReturn(item)
+            const dock = atom.workspace.getRightDock()
+            spyOn(atom.workspace.previousLocations, 'load').andReturn(Promise.resolve())
+            spyOn(atom.workspace, 'getOpeners').andReturn([opener])
+            expect(dock.getPaneItems()).toHaveLength(0)
+            waitsForPromise(() => atom.workspace.open('a'))
+            runs(() => {
+              expect(dock.getPaneItems()).toHaveLength(1)
+              expect(opener).toHaveBeenCalled()
+              expect(item.getDefaultLocation).toHaveBeenCalled()
+            })
+          })
+
+          it('prefers the last location the user used for that item', () => {
+            const ITEM_URI = 'atom://test'
+            const item = {
+              getURI: () => ITEM_URI,
+              getDefaultLocation: jasmine.createSpy().andReturn('left'),
+              getElement: () => document.createElement('div')
+            }
+            const opener = uri => uri === ITEM_URI ? item : null
+            const dock = atom.workspace.getRightDock()
+            spyOn(atom.workspace.previousLocations, 'load').andCallFake(uri =>
+              uri === 'atom://test' ? Promise.resolve('right') : Promise.resolve()
+            )
+            spyOn(atom.workspace, 'getOpeners').andReturn([opener])
+            expect(dock.getPaneItems()).toHaveLength(0)
+            waitsForPromise(() => atom.workspace.open(ITEM_URI))
+            runs(() => {
+              expect(dock.getPaneItems()).toHaveLength(1)
+              expect(dock.getPaneItems()[0]).toBe(item)
+              expect(item.getDefaultLocation).not.toHaveBeenCalled()
             })
           })
         })
@@ -246,6 +364,22 @@ describe('Workspace', () => {
           runs(() => {
             expect(workspace.getActivePane()).toBe(pane1)
             expect(workspace.getActivePaneItem()).toBe(editor1)
+          })
+        })
+
+        it('activates the dock with the matching item', () => {
+          const dock = atom.workspace.getRightDock()
+          const ITEM_URI = 'atom://test'
+          const item = {
+            getURI: () => ITEM_URI,
+            getDefaultLocation: jasmine.createSpy().andReturn('left'),
+            getElement: () => document.createElement('div')
+          }
+          dock.getActivePane().addItem(item)
+          spyOn(dock, 'activate')
+          waitsForPromise(() => atom.workspace.open(ITEM_URI, {searchAllPanes: true}))
+          runs(() => {
+            expect(dock.activate).toHaveBeenCalled()
           })
         })
       })
