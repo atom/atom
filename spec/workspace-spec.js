@@ -1337,7 +1337,9 @@ i = /test/; #FIXME\
       it('calls the callback with all regex results in all files in the project', () => {
         const results = []
         waitsForPromise(() =>
-          atom.workspace.scan(/(a)+/, result => results.push(result))
+          atom.workspace.scan(
+            /(a)+/, {leadingContextLineCount: 1, trailingContextLineCount: 1},
+            result => results.push(result))
         )
 
         runs(() => {
@@ -1350,14 +1352,16 @@ i = /test/; #FIXME\
             lineTextOffset: 0,
             range: [[0, 0], [0, 3]],
             leadingContextLines: [],
-            trailingContextLines: []
+            trailingContextLines: ['cc aa cc']
           })
         })
       })
 
       it('works with with escaped literals (like $ and ^)', () => {
         const results = []
-        waitsForPromise(() => atom.workspace.scan(/\$\w+/, result => results.push(result)))
+        waitsForPromise(() => atom.workspace.scan(
+          /\$\w+/, {leadingContextLineCount: 1, trailingContextLineCount: 1},
+          result => results.push(result)))
 
         runs(() => {
           expect(results.length).toBe(1)
@@ -1369,7 +1373,7 @@ i = /test/; #FIXME\
             lineText: 'dollar$bill',
             lineTextOffset: 0,
             range: [[2, 6], [2, 11]],
-            leadingContextLines: [],
+            leadingContextLines: ['cc aa cc'],
             trailingContextLines: []
           })
         })

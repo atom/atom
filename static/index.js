@@ -38,7 +38,10 @@
       } else if (useSnapshot) {
         Module.prototype.require = function (module) {
           const absoluteFilePath = Module._resolveFilename(module, this, false)
-          const relativeFilePath = path.relative(entryPointDirPath, absoluteFilePath)
+          let relativeFilePath = path.relative(entryPointDirPath, absoluteFilePath)
+          if (process.platform === 'win32') {
+            relativeFilePath = relativeFilePath.replace(/\\/g, '/')
+          }
           let cachedModule = snapshotResult.customRequire.cache[relativeFilePath] // eslint-disable-line no-undef
           if (!cachedModule) {
             cachedModule = {exports: Module._load(module, this, false)}
