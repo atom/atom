@@ -251,6 +251,19 @@ describe('TextEditorComponent', () => {
       expect(component.refs.gutterContainer).toBeUndefined()
       expect(element.querySelector('gutter-container')).toBeNull()
     })
+
+    it('does not render line decorations for the cursor line', async () => {
+      const {component, element, editor} = buildComponent({mini: true})
+      expect(element.querySelector('.line').classList.contains('cursor-line')).toBe(false)
+
+      editor.update({mini: false})
+      await component.getNextUpdatePromise()
+      expect(element.querySelector('.line').classList.contains('cursor-line')).toBe(true)
+
+      editor.update({mini: true})
+      await component.getNextUpdatePromise()
+      expect(element.querySelector('.line').classList.contains('cursor-line')).toBe(false)
+    })
   })
 
   describe('focus', () => {
