@@ -1,4 +1,5 @@
-elementResizeDetector = require('element-resize-detector')({strategy: 'scroll'})
+ElementResizeDetector = require('element-resize-detector')
+elementResizeDetector = null
 
 module.exports =
 class OverlayManager
@@ -32,6 +33,7 @@ class OverlayManager
     unless overlayNode = cachedOverlay?.overlayNode
       overlayNode = document.createElement('atom-overlay')
       overlayNode.classList.add(klass) if klass?
+      elementResizeDetector ?= ElementResizeDetector({strategy: 'scroll'})
       elementResizeDetector.listenTo(overlayNode, =>
         if overlayNode.parentElement?
           @measureOverlay(decorationId, itemView)
