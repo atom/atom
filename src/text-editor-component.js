@@ -1496,7 +1496,10 @@ class TextEditorComponent {
     if (this.getModel().isSoftWrapped()) {
       return this.getClientWidth() - this.getGutterContainerWidth()
     } else {
-      return Math.round(this.measurements.longestLineWidth + this.measurements.baseCharacterWidth)
+      return Math.max(
+        Math.round(this.measurements.longestLineWidth + this.measurements.baseCharacterWidth),
+        this.measurements.scrollerWidth - this.getGutterContainerWidth()
+      )
     }
   }
 
