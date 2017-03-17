@@ -714,6 +714,76 @@ describe('TextEditorComponent', () => {
         expect(Math.round(region3Rect.right)).toBe(clientLeftForCharacter(component, 5, 4))
       }
     })
+
+    it('can flash highlight decorations', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3, height: 200})
+      const marker = editor.markScreenRange([[2, 4], [3, 4]])
+      const decoration = editor.decorateMarker(marker, {type: 'highlight', class: 'a'})
+      decoration.flash('b', 10)
+
+      // Flash on initial appearence of highlight
+      await component.getNextUpdatePromise()
+      const highlights = element.querySelectorAll('.highlight.a')
+      expect(highlights.length).toBe(2) // split across 2 tiles
+
+      expect(highlights[0].classList.contains('b')).toBe(true)
+      expect(highlights[1].classList.contains('b')).toBe(true)
+
+      await conditionPromise(() =>
+        !highlights[0].classList.contains('b') &&
+        !highlights[1].classList.contains('b')
+      )
+
+      // Don't flash on next update if another flash wasn't requested
+      component.refs.scroller.scrollTop = 100
+      await component.getNextUpdatePromise()
+      expect(highlights[0].classList.contains('b')).toBe(false)
+      expect(highlights[1].classList.contains('b')).toBe(false)
+
+      // Flash existing highlight
+      decoration.flash('c', 100)
+      await component.getNextUpdatePromise()
+      expect(highlights[0].classList.contains('c')).toBe(true)
+      expect(highlights[1].classList.contains('c')).toBe(true)
+
+      // Add second flash class
+      decoration.flash('d', 100)
+      await component.getNextUpdatePromise()
+      expect(highlights[0].classList.contains('c')).toBe(true)
+      expect(highlights[1].classList.contains('c')).toBe(true)
+      expect(highlights[0].classList.contains('d')).toBe(true)
+      expect(highlights[1].classList.contains('d')).toBe(true)
+
+      await conditionPromise(() =>
+        !highlights[0].classList.contains('c') &&
+        !highlights[1].classList.contains('c') &&
+        !highlights[0].classList.contains('d') &&
+        !highlights[1].classList.contains('d')
+      )
+
+      // Flashing the same class again before the first flash completes
+      // removes the flash class and adds it back on the next frame to ensure
+      // CSS transitions apply to the second flash.
+      decoration.flash('e', 100)
+      await component.getNextUpdatePromise()
+      expect(highlights[0].classList.contains('e')).toBe(true)
+      expect(highlights[1].classList.contains('e')).toBe(true)
+
+      decoration.flash('e', 100)
+      await component.getNextUpdatePromise()
+      expect(highlights[0].classList.contains('e')).toBe(false)
+      expect(highlights[1].classList.contains('e')).toBe(false)
+
+      await conditionPromise(() =>
+        highlights[0].classList.contains('e') &&
+        highlights[1].classList.contains('e')
+      )
+
+      await conditionPromise(() =>
+        !highlights[0].classList.contains('e') &&
+        !highlights[1].classList.contains('e')
+      )
+    })
   })
 
   describe('mouse input', () => {
