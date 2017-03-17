@@ -315,7 +315,8 @@ class TextEditorComponent {
       style.height = height
       children = [
         this.renderCursorsAndInput(width, height),
-        this.renderLineTiles(width, height)
+        this.renderLineTiles(width, height),
+        this.renderPlaceholderText()
       ]
     } else {
       children = $.div({ref: 'characterMeasurementLine', className: 'line'},
@@ -425,6 +426,17 @@ class TextEditorComponent {
         width, height
       }
     }, children)
+  }
+
+  renderPlaceholderText () {
+    const {model} = this.props
+    if (model.isEmpty()) {
+      const placeholderText = model.getPlaceholderText()
+      if (placeholderText != null) {
+        return $.div({className: 'placeholder-text'}, placeholderText)
+      }
+    }
+    return null
   }
 
   renderHiddenInput () {
