@@ -322,6 +322,20 @@ describe('TextEditorComponent', () => {
 
       expect(document.activeElement).toBe(component.refs.hiddenInput)
     })
+
+    it('emits blur events only when focus shifts to something other than the editor itself or its hidden input', () => {
+      const {element} = buildComponent()
+
+      let blurEventCount = 0
+      element.addEventListener('blur', () => blurEventCount++)
+
+      element.focus()
+      expect(blurEventCount).toBe(0)
+      element.focus()
+      expect(blurEventCount).toBe(0)
+      document.body.focus()
+      expect(blurEventCount).toBe(1)
+    })
   })
 
   describe('autoscroll on cursor movement', () => {
