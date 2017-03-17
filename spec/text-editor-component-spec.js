@@ -257,6 +257,11 @@ describe('TextEditorComponent', () => {
     expect(element.offsetHeight).toBeGreaterThan(initialHeight)
   })
 
+  it('supports the isLineNumberGutterVisible parameter', () => {
+    const {component, element, editor} = buildComponent({lineNumberGutterVisible: false})
+    expect(element.querySelector('.line-number')).toBe(null)
+  })
+
   describe('mini editors', () => {
     it('adds the mini attribute', () => {
       const {element, editor} = buildComponent({mini: true})
@@ -1351,6 +1356,7 @@ function buildComponent (params = {}) {
   if (params.mini != null) editorParams.mini = params.mini
   if (params.autoHeight != null) editorParams.autoHeight = params.autoHeight
   if (params.autoWidth != null) editorParams.autoWidth = params.autoWidth
+  if (params.lineNumberGutterVisible != null) editorParams.lineNumberGutterVisible = params.lineNumberGutterVisible
   const editor = new TextEditor(editorParams)
   const component = new TextEditorComponent({
     model: editor,
