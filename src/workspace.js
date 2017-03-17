@@ -106,6 +106,7 @@ module.exports = class Workspace extends Model {
     this.openers = []
     this.destroyedItemURIs = []
     this.consumeServices(this.packageManager)
+    this.initialize()
   }
 
   subscribeToEvents () {
