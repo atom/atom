@@ -66,26 +66,11 @@ class Task
   constructor: (taskPath) ->
     @emitter = new Emitter
 
-    compileCacheRequire = "require('#{require.resolve('./compile-cache')}')"
     compileCachePath = require('./compile-cache').getCacheDirectory()
-    taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
-    bootstrap = """
-      if (typeof snapshotResult !== 'undefined') {
-        snapshotResult.setGlobals(global, process, global, {}, require)
-      }
-
-      CompileCache = #{compileCacheRequire}
-      CompileCache.setCacheDirectory('#{compileCachePath}');
-      CompileCache.install(require)
-      #{taskBootstrapRequire}
-    """
-    bootstrap = bootstrap.replace(/\\/g, "\\\\")
-
     taskPath = require.resolve(taskPath)
-    taskPath = taskPath.replace(/\\/g, "\\\\")
 
-    env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
-    @childProcess = ChildProcess.fork '--eval', [bootstrap], {env, silent: true}
+    env = Object.assign({}, process.env, {userAgent: navigator.userAgent})
+    @childProcess = ChildProcess.fork require.resolve('./task-bootstrap'), [compileCachePath, taskPath], {env, silent: true}
 
     @on "task:log", -> console.log(arguments...)
     @on "task:warn", -> console.warn(arguments...)
