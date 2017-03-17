@@ -113,7 +113,6 @@ function writeCachedJavascript (relativeCachePath, code) {
 }
 
 var INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/mg
-let snapshotSourceMap = null
 
 exports.install = function (resourcesPath, nodeRequire) {
   sourceMapSupport.install({
@@ -125,7 +124,7 @@ exports.install = function (resourcesPath, nodeRequire) {
     retrieveSourceMap: function (filePath) {
       if (filePath === '<embedded>') {
         return {
-          map: snapshotResult.sourceMap,
+          map: snapshotResult.sourceMap, // eslint-disable-line no-undef
           url: path.join(resourcesPath, 'app', 'static', 'index.js')
         }
       }
