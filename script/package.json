@@ -3,6 +3,7 @@
   "description": "Atom build scripts",
   "dependencies": {
     "async": "2.0.1",
+    "babel-core": "5.8.38",
     "coffeelint": "1.15.7",
     "colors": "1.1.2",
     "csslint": "1.0.2",
