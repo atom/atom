@@ -59,12 +59,12 @@ module.exports = function (packagedAppPath) {
         relativePath == path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js')
       )
     }
-  }).then((snapshotScriptContent) => {
-    fs.writeFileSync(snapshotScriptPath, snapshotScriptContent)
+  }).then((snapshotScript) => {
+    fs.writeFileSync(snapshotScriptPath, snapshotScript)
     process.stdout.write('\n')
 
     console.log('Verifying if snapshot can be executed via `mksnapshot`')
-    vm.runInNewContext(snapshotScriptContent, undefined, {filename: snapshotScriptPath, displayErrors: true})
+    vm.runInNewContext(snapshotScript, undefined, {filename: snapshotScriptPath, displayErrors: true})
 
     const generatedStartupBlobPath = path.join(CONFIG.buildOutputPath, 'snapshot_blob.bin')
     console.log(`Generating startup blob at "${generatedStartupBlobPath}"`)

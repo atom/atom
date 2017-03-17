@@ -90,7 +90,7 @@
   function setupWindow () {
     const CompileCache = useSnapshot ? snapshotResult.customRequire('../src/compile-cache.js') : require('../src/compile-cache') // eslint-disable-line no-undef
     CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
-    CompileCache.install(require)
+    CompileCache.install(process.resourcesPath, require)
 
     const ModuleCache = useSnapshot ? snapshotResult.customRequire('../src/module-cache.js') : require('../src/module-cache') // eslint-disable-line no-undef
     ModuleCache.register(getWindowLoadSettings())

@@ -755,7 +755,10 @@ class AtomEnvironment extends Model
       @lastUncaughtError = Array::slice.call(arguments)
       [message, url, line, column, originalError] = @lastUncaughtError
 
-      {line, column} = mapSourcePosition({source: url, line, column})
+      {line, column, source} = mapSourcePosition({source: url, line, column})
+
+      if url is '<embedded>'
+        url = source
 
       eventObject = {message, url, line, column, originalError}
 
