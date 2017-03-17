@@ -1956,25 +1956,21 @@ class HighlightComponent {
 
   performFlash () {
     const {flashClass, flashDuration} = this.props
+    if (!this.timeoutsByClassName) this.timeoutsByClassName = new Map()
 
-    const addAndRemoveFlashClass = () => {
+    // If a flash of this class is already in progress, clear it early and
+    // flash again on the next frame to ensure CSS transitions apply to the
+    // second flash.
+    if (this.timeoutsByClassName.has(flashClass)) {
+      window.clearTimeout(this.timeoutsByClassName.get(flashClass))
+      this.timeoutsByClassName.delete(flashClass)
+      this.element.classList.remove(flashClass)
+      requestAnimationFrame(() => this.performFlash())
+    } else {
       this.element.classList.add(flashClass)
-
-      if (!this.timeoutsByClassName) {
-        this.timeoutsByClassName = new Map()
-      } else if (this.timeoutsByClassName.has(flashClass)) {
-        window.clearTimeout(this.timeoutsByClassName.get(flashClass))
-      }
       this.timeoutsByClassName.set(flashClass, window.setTimeout(() => {
         this.element.classList.remove(flashClass)
       }, flashDuration))
-    }
-
-    if (this.element.classList.contains(flashClass)) {
-      this.element.classList.remove(flashClass)
-      window.requestAnimationFrame(addAndRemoveFlashClass)
-    } else {
-      addAndRemoveFlashClass()
     }
   }
 
