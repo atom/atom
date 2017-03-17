@@ -240,11 +240,14 @@ class TextEditorComponent {
   }
 
   renderLineNumberGutter () {
+    const model = this.getModel()
+
+    if (!model.isLineNumberGutterVisible()) return null
+
     if (this.currentFrameLineNumberGutterProps) {
       return $(LineNumberGutterComponent, this.currentFrameLineNumberGutterProps)
     }
 
-    const model = this.getModel()
     const maxLineNumberDigits = Math.max(2, model.getLineCount().toString().length)
 
     if (this.measurements) {
