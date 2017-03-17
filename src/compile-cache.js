@@ -113,6 +113,7 @@ function writeCachedJavascript (relativeCachePath, code) {
 }
 
 var INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/mg
+let snapshotSourceMap = null
 
 exports.install = function (nodeRequire) {
   sourceMapSupport.install({
@@ -122,6 +123,18 @@ exports.install = function (nodeRequire) {
     // source-map-support module, but we've overridden it to read the javascript
     // code from our cache directory.
     retrieveSourceMap: function (filePath) {
+      if (filePath === '<embedded>') {
+        if (snapshotSourceMap == null) {
+          const snapshotSourceMapContent = fs.readFileSync(path.join(process.resourcesPath, 'snapshot_sourcemap.json'), 'utf8')
+          snapshotSourceMap = JSON.parse(snapshotSourceMapContent)
+        }
+
+        return {
+          map: snapshotSourceMap,
+          url: path.join(process.resourcesPath, 'app', 'static', 'index.js')
+        }
+      }
+
       if (!cacheDirectory || !fs.isFileSync(filePath)) {
         return null
       }

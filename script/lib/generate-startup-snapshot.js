@@ -58,12 +58,12 @@ module.exports = function (packagedAppPath) {
         relativePath == path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js')
       )
     }
-  }).then((snapshotScriptContent) => {
-    fs.writeFileSync(snapshotScriptPath, snapshotScriptContent)
+  }).then(({snapshotScript, sourceMap}) => {
+    fs.writeFileSync(snapshotScriptPath, snapshotScript)
     process.stdout.write('\n')
 
     console.log('Verifying if snapshot can be executed via `mksnapshot`')
-    vm.runInNewContext(snapshotScriptContent, undefined, {filename: snapshotScriptPath, displayErrors: true})
+    vm.runInNewContext(snapshotScript, undefined, {filename: snapshotScriptPath, displayErrors: true})
 
     const generatedStartupBlobPath = path.join(CONFIG.buildOutputPath, 'snapshot_blob.bin')
     console.log(`Generating startup blob at "${generatedStartupBlobPath}"`)
@@ -72,15 +72,23 @@ module.exports = function (packagedAppPath) {
       [snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
     )
 
-    let startupBlobDestinationPath
+    let startupBlobDestinationPath, startupBlobSourceMapDestinationPath
     if (process.platform === 'darwin') {
       startupBlobDestinationPath = `${packagedAppPath}/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`
+      startupBlobSourceMapDestinationPath = path.join(packagedAppPath, 'Contents', 'Resources', 'snapshot_sourcemap.json')
+    } else if (process.platform === 'linux') {
+      startupBlobDestinationPath = path.join(packagedAppPath, 'snapshot_blob.bin')
+      startupBlobSourceMapDestinationPath = path.join(packagedAppPath, 'resources', 'snapshot_sourcemap.json')
     } else {
       startupBlobDestinationPath = path.join(packagedAppPath, 'snapshot_blob.bin')
+      startupBlobSourceMapDestinationPath = path.join(packagedAppPath, 'resources', 'snapshot_sourcemap.json')
     }
 
     console.log(`Moving generated startup blob into "${startupBlobDestinationPath}"`)
     fs.unlinkSync(startupBlobDestinationPath)
     fs.renameSync(generatedStartupBlobPath, startupBlobDestinationPath)
+
+    console.log(`Moving generated startup blob sourcemap into "${startupBlobSourceMapDestinationPath}"`)
+    fs.writeFileSync(startupBlobSourceMapDestinationPath, sourceMap)
   })
 }

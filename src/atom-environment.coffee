@@ -755,9 +755,15 @@ class AtomEnvironment extends Model
       @lastUncaughtError = Array::slice.call(arguments)
       [message, url, line, column, originalError] = @lastUncaughtError
 
-      {line, column} = mapSourcePosition({source: url, line, column})
+      {line, column, source} = mapSourcePosition({source: url, line, column})
 
-      eventObject = {message, url, line, column, originalError}
+      mappedURL = ''
+      if url is '<embedded>'
+        mappedURL = source
+      else
+        mappedURL = url
+
+      eventObject = {message, originalUrl: url, url: mappedURL, line, column, originalError}
 
       openDevTools = true
       eventObject.preventDefault = -> openDevTools = false
@@ -767,7 +773,7 @@ class AtomEnvironment extends Model
       if openDevTools
         @openDevTools().then => @executeJavaScriptInDevTools('DevToolsAPI.showPanel("console")')
 
-      @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
+      @emitter.emit 'did-throw-error', {message, originalURL: url, url: mappedURL, line, column, originalError}
 
   uninstallUncaughtErrorHandler: ->
     @window.onerror = @previousWindowErrorHandler
