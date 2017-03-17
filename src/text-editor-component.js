@@ -166,7 +166,10 @@ class TextEditorComponent {
         attributes,
         style,
         tabIndex: -1,
-        on: {focus: this.didFocus}
+        on: {
+          focus: this.didFocus,
+          blur: this.didBlur
+        }
       },
       $.div(
         {
@@ -707,10 +710,17 @@ class TextEditorComponent {
     }
   }
 
+  didBlur (event) {
+    if (event.relatedTarget === this.refs.hiddenInput) {
+      event.stopImmediatePropagation()
+    }
+  }
+
   didBlurHiddenInput (event) {
     if (this.element !== event.relatedTarget && !this.element.contains(event.relatedTarget)) {
       this.focused = false
       this.scheduleUpdate()
+      this.element.dispatchEvent(new FocusEvent(event.type, event))
     }
   }
 
