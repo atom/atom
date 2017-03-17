@@ -171,8 +171,7 @@ class Decoration
     true
 
   flash: (klass, duration=500) ->
-    @properties.flashCount ?= 0
-    @properties.flashCount++
+    @properties.flashRequested = true
     @properties.flashClass = klass
     @properties.flashDuration = duration
     @decorationManager.emitDidUpdateDecorations()

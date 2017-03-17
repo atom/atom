@@ -575,6 +575,10 @@ class TextEditorComponent {
   addHighlightDecorationToMeasure(decoration, screenRange) {
     screenRange = constrainRangeToRows(screenRange, this.getRenderedStartRow(), this.getRenderedEndRow())
     if (screenRange.isEmpty()) return
+
+    const {class: className, flashRequested, flashClass, flashDuration} = decoration
+    decoration.flashRequested = false
+
     let tileStartRow = this.tileStartRowForRow(screenRange.start.row)
     const rowsPerTile = this.getRowsPerTile()
 
@@ -587,7 +591,11 @@ class TextEditorComponent {
         tileHighlights = []
         this.decorationsToMeasure.highlights.set(tileStartRow, tileHighlights)
       }
-      tileHighlights.push({decoration, screenRange: screenRangeInTile})
+
+      tileHighlights.push({
+        screenRange: screenRangeInTile,
+        className, flashRequested, flashClass, flashDuration
+      })
 
       this.requestHorizontalMeasurement(screenRangeInTile.start.row, screenRangeInTile.start.column)
       this.requestHorizontalMeasurement(screenRangeInTile.end.row, screenRangeInTile.end.column)
@@ -1780,6 +1788,7 @@ class LinesTileComponent {
           highlightDecorations[i]
         )
         children[i] = $(HighlightComponent, highlightProps)
+        highlightDecorations[i].flashRequested = false
       }
     }
 
@@ -1846,7 +1855,8 @@ class LinesTileComponent {
       for (let i = 0, length = oldProps.highlightDecorations.length; i < length; i++) {
         const oldHighlight = oldProps.highlightDecorations[i]
         const newHighlight = newProps.highlightDecorations[i]
-        if (oldHighlight.decoration.class !== newHighlight.decoration.class) return true
+        if (oldHighlight.className !== newHighlight.className) return true
+        if (newHighlight.flashRequested) return true
         if (oldHighlight.startPixelLeft !== newHighlight.startPixelLeft) return true
         if (oldHighlight.endPixelLeft !== newHighlight.endPixelLeft) return true
         if (!oldHighlight.screenRange.isEqual(newHighlight.screenRange)) return true
@@ -1935,17 +1945,43 @@ class HighlightComponent {
   constructor (props) {
     this.props = props
     etch.initialize(this)
+    if (this.props.flashRequested) this.performFlash()
   }
 
-  update (props) {
-    this.props = props
+  update (newProps) {
+    this.props = newProps
     etch.updateSync(this)
+    if (newProps.flashRequested) this.performFlash()
+  }
+
+  performFlash () {
+    const {flashClass, flashDuration} = this.props
+
+    const addAndRemoveFlashClass = () => {
+      this.element.classList.add(flashClass)
+
+      if (!this.timeoutsByClassName) {
+        this.timeoutsByClassName = new Map()
+      } else if (this.timeoutsByClassName.has(flashClass)) {
+        window.clearTimeout(this.timeoutsByClassName.get(flashClass))
+      }
+      this.timeoutsByClassName.set(flashClass, window.setTimeout(() => {
+        this.element.classList.remove(flashClass)
+      }, flashDuration))
+    }
+
+    if (this.element.classList.contains(flashClass)) {
+      this.element.classList.remove(flashClass)
+      window.requestAnimationFrame(addAndRemoveFlashClass)
+    } else {
+      addAndRemoveFlashClass()
+    }
   }
 
   render () {
     let {startPixelTop, endPixelTop} = this.props
     const {
-      decoration, screenRange, parentTileTop, lineHeight,
+      className, screenRange, parentTileTop, lineHeight,
       startPixelLeft, endPixelLeft,
     } = this.props
     startPixelTop -= parentTileTop
@@ -2007,8 +2043,7 @@ class HighlightComponent {
       }
     }
 
-    const className = 'highlight ' + decoration.class
-    return $.div({className}, children)
+    return $.div({className: 'highlight ' + className}, children)
   }
 }
 
