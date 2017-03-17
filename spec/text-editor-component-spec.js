@@ -262,6 +262,13 @@ describe('TextEditorComponent', () => {
     expect(element.querySelector('.line-number')).toBe(null)
   })
 
+  it('supports the placeholderText parameter', () => {
+    const placeholderText = 'Placeholder Test'
+    const {component} = buildComponent({placeholderText, text: ''})
+    const emptyLineSpace = ' '
+    expect(component.refs.content.textContent).toBe(emptyLineSpace + placeholderText)
+  })
+
   describe('mini editors', () => {
     it('adds the mini attribute', () => {
       const {element, editor} = buildComponent({mini: true})
@@ -1349,14 +1356,13 @@ describe('TextEditorComponent', () => {
 })
 
 function buildComponent (params = {}) {
-  const buffer = new TextBuffer({text: SAMPLE_TEXT})
+  const text = params.text != null ? params.text : SAMPLE_TEXT
+  const buffer = new TextBuffer({text})
   const editorParams = {buffer}
   if (params.height != null) params.autoHeight = false
-  if (params.width != null) params.autoHeight = false
-  if (params.mini != null) editorParams.mini = params.mini
-  if (params.autoHeight != null) editorParams.autoHeight = params.autoHeight
-  if (params.autoWidth != null) editorParams.autoWidth = params.autoWidth
-  if (params.lineNumberGutterVisible != null) editorParams.lineNumberGutterVisible = params.lineNumberGutterVisible
+  for (const paramName of ['mini', 'autoHeight', 'autoWidth', 'lineNumberGutterVisible', 'placeholderText']) {
+    if (params[paramName] != null) editorParams[paramName] = params[paramName]
+  }
   const editor = new TextEditor(editorParams)
   const component = new TextEditorComponent({
     model: editor,
