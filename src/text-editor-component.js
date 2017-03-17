@@ -147,6 +147,15 @@ class TextEditorComponent {
       style.contain = 'strict'
     }
 
+    if (this.measurements) {
+      if (model.getAutoHeight()) {
+        style.height = this.getScrollHeight() + 'px'
+      }
+      if (model.getAutoWidth()) {
+        style.width = this.getScrollWidth() + 'px'
+      }
+    }
+
     let attributes = null
     let className = 'editor'
     if (this.focused) {
