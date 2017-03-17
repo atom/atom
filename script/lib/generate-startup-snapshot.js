@@ -58,7 +58,7 @@ module.exports = function (packagedAppPath) {
         relativePath == path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js')
       )
     }
-  }).then(({snapshotScript, sourceMap}) => {
+  }).then((snapshotScript) => {
     fs.writeFileSync(snapshotScriptPath, snapshotScript)
     process.stdout.write('\n')
 
@@ -72,23 +72,15 @@ module.exports = function (packagedAppPath) {
       [snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
     )
 
-    let startupBlobDestinationPath, startupBlobSourceMapDestinationPath
+    let startupBlobDestinationPath
     if (process.platform === 'darwin') {
       startupBlobDestinationPath = `${packagedAppPath}/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`
-      startupBlobSourceMapDestinationPath = path.join(packagedAppPath, 'Contents', 'Resources', 'snapshot_sourcemap.json')
-    } else if (process.platform === 'linux') {
-      startupBlobDestinationPath = path.join(packagedAppPath, 'snapshot_blob.bin')
-      startupBlobSourceMapDestinationPath = path.join(packagedAppPath, 'resources', 'snapshot_sourcemap.json')
     } else {
       startupBlobDestinationPath = path.join(packagedAppPath, 'snapshot_blob.bin')
-      startupBlobSourceMapDestinationPath = path.join(packagedAppPath, 'resources', 'snapshot_sourcemap.json')
     }
 
     console.log(`Moving generated startup blob into "${startupBlobDestinationPath}"`)
     fs.unlinkSync(startupBlobDestinationPath)
     fs.renameSync(generatedStartupBlobPath, startupBlobDestinationPath)
-
-    console.log(`Moving generated startup blob sourcemap into "${startupBlobSourceMapDestinationPath}"`)
-    fs.writeFileSync(startupBlobSourceMapDestinationPath, sourceMap)
   })
 }
