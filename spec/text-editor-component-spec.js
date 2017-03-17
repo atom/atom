@@ -784,6 +784,30 @@ describe('TextEditorComponent', () => {
         !highlights[1].classList.contains('e')
       )
     })
+
+    it('supports layer decorations', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 12})
+      const markerLayer = editor.addMarkerLayer()
+      const marker1 = markerLayer.markScreenRange([[2, 4], [3, 4]])
+      const marker2 = markerLayer.markScreenRange([[5, 6], [7, 8]])
+      const decoration = editor.decorateMarkerLayer(markerLayer, {type: 'highlight', class: 'a'})
+      await component.getNextUpdatePromise()
+
+      const highlights = element.querySelectorAll('.highlight')
+      expect(highlights[0].classList.contains('a')).toBe(true)
+      expect(highlights[1].classList.contains('a')).toBe(true)
+
+      decoration.setPropertiesForMarker(marker1, {type: 'highlight', class: 'b'})
+      await component.getNextUpdatePromise()
+      expect(highlights[0].classList.contains('b')).toBe(true)
+      expect(highlights[1].classList.contains('a')).toBe(true)
+
+      decoration.setPropertiesForMarker(marker1, null)
+      decoration.setPropertiesForMarker(marker2, {type: 'highlight', class: 'c'})
+      await component.getNextUpdatePromise()
+      expect(highlights[0].classList.contains('a')).toBe(true)
+      expect(highlights[1].classList.contains('c')).toBe(true)
+    })
   })
 
   describe('mouse input', () => {
