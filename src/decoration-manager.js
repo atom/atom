@@ -100,7 +100,8 @@ class DecorationManager {
 
         if (layerDecorations) {
           layerDecorations.forEach((layerDecoration) => {
-            decorationPropertiesForMarker.push(layerDecoration.getPropertiesForMarker(marker) || layerDecoration.getProperties())
+            const properties = layerDecoration.getPropertiesForMarker(marker) || layerDecoration.getProperties()
+            decorationPropertiesForMarker.push(properties)
           })
         }
 

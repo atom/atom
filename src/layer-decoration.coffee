@@ -53,10 +53,11 @@ class LayerDecoration
   setPropertiesForMarker: (marker, properties) ->
     return if @destroyed
     @overridePropertiesByMarker ?= new Map()
+    marker = @markerLayer.getMarker(marker.id)
     if properties?
       @overridePropertiesByMarker.set(marker, properties)
     else
-      @overridePropertiesByMarker.delete(marker.id)
+      @overridePropertiesByMarker.delete(marker)
     @decorationManager.emitDidUpdateDecorations()
 
   getPropertiesForMarker: (marker) ->
