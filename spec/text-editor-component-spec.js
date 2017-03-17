@@ -27,7 +27,7 @@ describe('TextEditorComponent', () => {
   })
 
   it('renders lines and line numbers for the visible region', async () => {
-    const {component, element, editor} = buildComponent({rowsPerTile: 3})
+    const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
 
     expect(element.querySelectorAll('.line-number').length).toBe(13)
     expect(element.querySelectorAll('.line').length).toBe(13)
@@ -87,7 +87,7 @@ describe('TextEditorComponent', () => {
   })
 
   it('honors the scrollPastEnd option by adding empty space equivalent to the clientHeight to the end of the content area', async () => {
-    const {component, element, editor} = buildComponent()
+    const {component, element, editor} = buildComponent({autoHeight: false, autoWidth: false})
     const {scroller} = component.refs
 
     await editor.update({scrollPastEnd: true})
@@ -240,6 +240,23 @@ describe('TextEditorComponent', () => {
     expect(element.querySelector('.line').offsetWidth).toBe(scroller.offsetWidth - gutterContainer.offsetWidth)
   })
 
+  it('resizes based on the content when the autoHeight and/or autoWidth options are true', async () => {
+    const {component, element, editor} = buildComponent({autoHeight: true, autoWidth: true})
+    const initialWidth = element.offsetWidth
+    const initialHeight = element.offsetHeight
+    expect(initialWidth).toBe(component.refs.scroller.scrollWidth)
+    expect(initialHeight).toBe(component.refs.scroller.scrollHeight)
+    editor.setCursorScreenPosition([6, Infinity])
+    editor.insertText('x'.repeat(50))
+    await component.getNextUpdatePromise()
+    expect(element.offsetWidth).toBe(component.refs.scroller.scrollWidth)
+    expect(element.offsetWidth).toBeGreaterThan(initialWidth)
+    editor.insertText('\n'.repeat(5))
+    await component.getNextUpdatePromise()
+    expect(element.offsetHeight).toBe(component.refs.scroller.scrollHeight)
+    expect(element.offsetHeight).toBeGreaterThan(initialHeight)
+  })
+
   describe('mini editors', () => {
     it('adds the mini attribute', () => {
       const {element, editor} = buildComponent({mini: true})
@@ -364,7 +381,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('does not vertically autoscroll by more than half of the visible lines if the editor is shorter than twice the scroll margin', async () => {
-      const {component, element, editor} = buildComponent()
+      const {component, element, editor} = buildComponent({autoHeight: false})
       const {scroller} = component.refs
       element.style.height = 5.5 * component.measurements.lineHeight + 'px'
       await component.getNextUpdatePromise()
@@ -420,7 +437,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('does not horizontally autoscroll by more than half of the visible "base-width" characters if the editor is narrower than twice the scroll margin', async () => {
-      const {component, element, editor} = buildComponent()
+      const {component, element, editor} = buildComponent({autoHeight: false})
       const {scroller, gutterContainer} = component.refs
       await setEditorWidthInCharacters(component, 1.5 * editor.horizontalScrollMargin)
 
@@ -1328,15 +1345,25 @@ describe('TextEditorComponent', () => {
 
 function buildComponent (params = {}) {
   const buffer = new TextBuffer({text: SAMPLE_TEXT})
-  const editor = new TextEditor({buffer, mini: params.mini})
+  const editorParams = {buffer}
+  if (params.height != null) params.autoHeight = false
+  if (params.width != null) params.autoHeight = false
+  if (params.mini != null) editorParams.mini = params.mini
+  if (params.autoHeight != null) editorParams.autoHeight = params.autoHeight
+  if (params.autoWidth != null) editorParams.autoWidth = params.autoWidth
+  const editor = new TextEditor(editorParams)
   const component = new TextEditorComponent({
     model: editor,
     rowsPerTile: params.rowsPerTile,
     updatedSynchronously: false
   })
   const {element} = component
-  element.style.width = params.width ? params.width + 'px' : '800px'
-  element.style.height = params.height ? params.height + 'px' : '600px'
+  if (!editor.getAutoHeight()) {
+    element.style.height = params.height ? params.height + 'px' : '600px'
+  }
+  if (!editor.getAutoWidth()) {
+    element.style.width = params.width ? params.width + 'px' : '800px'
+  }
   if (params.attach !== false) jasmine.attachToDOM(element)
   return {component, element, editor}
 }
