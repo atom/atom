@@ -267,9 +267,11 @@ describe('TextEditorComponent', () => {
   })
 
   describe('focus', () => {
-    it('focuses the hidden input element and adds the is-focused class when focused', async () => {
+    beforeEach(() => {
       assertDocumentFocused()
+    })
 
+    it('focuses the hidden input element and adds the is-focused class when focused', async () => {
       const {component, element, editor} = buildComponent()
       const {hiddenInput} = component.refs
 
@@ -290,8 +292,6 @@ describe('TextEditorComponent', () => {
     })
 
     it('updates the component when the hidden input is focused directly', async () => {
-      assertDocumentFocused()
-
       const {component, element, editor} = buildComponent()
       const {hiddenInput} = component.refs
       expect(element.classList.contains('is-focused')).toBe(false)
@@ -303,8 +303,6 @@ describe('TextEditorComponent', () => {
     })
 
     it('gracefully handles a focus event that occurs prior to the attachedCallback of the element', () => {
-      assertDocumentFocused()
-
       const {component, element, editor} = buildComponent({attach: false})
       const parent = document.createElement('text-editor-component-test-element')
       parent.appendChild(element)
@@ -314,8 +312,6 @@ describe('TextEditorComponent', () => {
     })
 
     it('gracefully handles a focus event that occurs prior to detecting the element has become visible', async () => {
-      assertDocumentFocused()
-
       const {component, element, editor} = buildComponent({attach: false})
       element.style.display = 'none'
       jasmine.attachToDOM(element)
