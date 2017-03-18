@@ -10,6 +10,7 @@ const DefaultDirectorySearcher = require('./default-directory-searcher')
 const Model = require('./model')
 const TextEditor = require('./text-editor')
 const PaneContainer = require('./pane-container')
+const Pane = require('./pane')
 const Panel = require('./panel')
 const PanelContainer = require('./panel-container')
 const Task = require('./task')
@@ -863,7 +864,7 @@ module.exports = class Workspace extends Model {
   // {::saveActivePaneItemAs} # will be called instead. This method does nothing
   // if the active item does not implement a `.save` method.
   saveActivePaneItem () {
-    return this.getActivePane().saveActiveItem()
+    this.getActivePane().saveActiveItem()
   }
 
   // Prompt the user for a path and save the active pane item to it.
@@ -872,7 +873,43 @@ module.exports = class Workspace extends Model {
   // `.saveAs` on the item with the selected path. This method does nothing if
   // the active item does not implement a `.saveAs` method.
   saveActivePaneItemAs () {
-    return this.getActivePane().saveActiveItemAs()
+    this.getActivePane().saveActiveItemAs()
+  }
+
+  getFocusedPane () {
+    let el = document.activeElement
+    while (el != null) {
+      if (typeof el.getModel === 'function') {
+        const model = el.getModel()
+        if (model instanceof Pane) return model
+      }
+      el = el.parentElement
+    }
+  }
+
+  // Save the currently focused pane item.
+  //
+  // If the focused pane item currently has a URI according to the item's
+  // `.getURI` method, calls `.save` on the item. Otherwise
+  // {::saveFocusedPaneItemAs} will be called instead. This method does nothing
+  // if the focused item does not implement a `.save` method.
+  saveFocusedPaneItem () {
+    const pane = this.getFocusedPane()
+    if (pane) {
+      pane.saveActiveItem()
+    }
+  }
+
+  // Prompt the user for a path and save the focused pane item to it.
+  //
+  // Opens a native dialog where the user selects a path on disk, then calls
+  // `.saveAs` on the item with the selected path. This method does nothing if
+  // the focused item does not implement a `.saveAs` method.
+  saveFocusedPaneItemAs () {
+    const pane = this.getFocusedPane()
+    if (pane) {
+      pane.saveActiveItemAs()
+    }
   }
 
   // Destroy (close) the active pane item.
