@@ -528,7 +528,7 @@ class TextEditorComponent {
           this.addLineDecorationToRender(type, decoration, screenRange, reversed)
           break
         case 'highlight':
-          this.addHighlightDecorationToMeasure(decoration, screenRange)
+          this.addHighlightDecorationToMeasure(decoration, screenRange, marker.id)
           break
         case 'cursor':
           this.addCursorDecorationToMeasure(marker, screenRange, reversed)
@@ -572,7 +572,7 @@ class TextEditorComponent {
     }
   }
 
-  addHighlightDecorationToMeasure(decoration, screenRange) {
+  addHighlightDecorationToMeasure(decoration, screenRange, key) {
     screenRange = constrainRangeToRows(screenRange, this.getRenderedStartRow(), this.getRenderedEndRow())
     if (screenRange.isEmpty()) return
 
@@ -594,7 +594,7 @@ class TextEditorComponent {
 
       tileHighlights.push({
         screenRange: screenRangeInTile,
-        className, flashRequested, flashClass, flashDuration
+        key, className, flashRequested, flashClass, flashDuration
       })
 
       this.requestHorizontalMeasurement(screenRangeInTile.start.row, screenRangeInTile.start.column)
@@ -1800,7 +1800,7 @@ class LinesTileComponent {
           height: height + 'px',
           width: width + 'px'
         },
-      },  children
+      }, children
     )
   }
 
