@@ -18,7 +18,7 @@ class TextEditorElement extends HTMLElement {
   }
 
   getModel () {
-    return this.getComponent().getModel()
+    return this.getComponent().props.model
   }
 
   setModel (model) {
