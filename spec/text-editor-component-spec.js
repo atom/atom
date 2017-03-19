@@ -1539,7 +1539,7 @@ function lineNodeForScreenRow (component, row) {
 }
 
 function textNodesForScreenRow (component, row) {
-  const screenLine = component.getModel().screenLineForScreenRow(row)
+  const screenLine = component.renderedScreenLineForRow(row)
   return component.textNodesByScreenLineId.get(screenLine.id)
 }
 
