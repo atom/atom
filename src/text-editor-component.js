@@ -1537,6 +1537,8 @@ class TextEditorComponent {
   getContentWidth () {
     if (this.props.model.isSoftWrapped()) {
       return this.getClientWidth() - this.getGutterContainerWidth()
+    } else if (this.props.model.getAutoWidth()) {
+      return Math.round(this.measurements.longestLineWidth + this.measurements.baseCharacterWidth)
     } else {
       return Math.max(
         Math.round(this.measurements.longestLineWidth + this.measurements.baseCharacterWidth),
