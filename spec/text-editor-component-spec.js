@@ -37,7 +37,7 @@ describe('TextEditorComponent', () => {
     expect(element.querySelectorAll('.line-number').length).toBe(9)
     expect(element.querySelectorAll('.line').length).toBe(9)
 
-    component.refs.scroller.scrollTop = 5 * component.measurements.lineHeight
+    component.setScrollTop(5 * component.getLineHeight())
     await component.getNextUpdatePromise()
 
     // After scrolling down beyond > 3 rows, the order of line numbers and lines
@@ -58,7 +58,7 @@ describe('TextEditorComponent', () => {
       editor.lineTextForScreenRow(8)
     ])
 
-    component.refs.scroller.scrollTop = 2.5 * component.measurements.lineHeight
+    component.setScrollTop(2.5 * component.getLineHeight())
     await component.getNextUpdatePromise()
     expect(Array.from(element.querySelectorAll('.line-number')).map(element => element.textContent.trim())).toEqual([
       '1', '2', '3', '4', '5', '6', '7', '8', '9'
@@ -88,25 +88,24 @@ describe('TextEditorComponent', () => {
 
   it('honors the scrollPastEnd option by adding empty space equivalent to the clientHeight to the end of the content area', async () => {
     const {component, element, editor} = buildComponent({autoHeight: false, autoWidth: false})
-    const {scroller} = component.refs
+    const {scrollContainer} = component.refs
 
     await editor.update({scrollPastEnd: true})
     await setEditorHeightInLines(component, 6)
 
     // scroll to end
-    scroller.scrollTop = scroller.scrollHeight - scroller.clientHeight
+    component.setScrollTop(scrollContainer.scrollHeight - scrollContainer.clientHeight)
     await component.getNextUpdatePromise()
     expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() - 3)
 
     editor.update({scrollPastEnd: false})
     await component.getNextUpdatePromise() // wait for scrollable content resize
-    await component.getNextUpdatePromise() // wait for async scroll event due to scrollbar shrinking
     expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() - 6)
 
     // Always allows at least 3 lines worth of overscroll if the editor is short
     await setEditorHeightInLines(component, 2)
     await editor.update({scrollPastEnd: true})
-    scroller.scrollTop = scroller.scrollHeight - scroller.clientHeight
+    component.setScrollTop(scrollContainer.scrollHeight - scrollContainer.clientHeight)
     await component.getNextUpdatePromise()
     expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() + 1)
   })
@@ -125,18 +124,9 @@ describe('TextEditorComponent', () => {
     expect(gutterElement.firstChild.style.contain).toBe('strict')
   })
 
-  it('translates the gutter so it is always visible when scrolling to the right', async () => {
-    const {component, element, editor} = buildComponent({width: 100})
-
-    expect(component.refs.gutterContainer.style.transform).toBe('translateX(0px)')
-    component.refs.scroller.scrollLeft = 100
-    await component.getNextUpdatePromise()
-    expect(component.refs.gutterContainer.style.transform).toBe('translateX(100px)')
-  })
-
   it('renders cursors within the visible row range', async () => {
     const {component, element, editor} = buildComponent({height: 40, rowsPerTile: 2})
-    component.refs.scroller.scrollTop = 100
+    component.setScrollTop(100)
     await component.getNextUpdatePromise()
 
     expect(component.getRenderedStartRow()).toBe(4)
@@ -180,8 +170,8 @@ describe('TextEditorComponent', () => {
   it('places the hidden input element at the location of the last cursor if it is visible', async () => {
     const {component, element, editor} = buildComponent({height: 60, width: 120, rowsPerTile: 2})
     const {hiddenInput} = component.refs
-    component.refs.scroller.scrollTop = 100
-    component.refs.scroller.scrollLeft = 40
+    component.setScrollTop(100)
+    component.setScrollLeft(40)
     await component.getNextUpdatePromise()
 
     expect(component.getRenderedStartRow()).toBe(4)
@@ -205,6 +195,7 @@ describe('TextEditorComponent', () => {
     jasmine.attachToDOM(element)
 
     expect(getBaseCharacterWidth(component)).toBe(55)
+    console.log('running expectation');
     expect(lineNodeForScreenRow(component, 3).textContent).toBe(
       '    var pivot = items.shift(), current, left = [], '
     )
@@ -220,8 +211,8 @@ describe('TextEditorComponent', () => {
       '    = [], right = [];'
     )
 
-    const {scroller} = component.refs
-    expect(scroller.clientWidth).toBe(scroller.scrollWidth)
+    const {scrollContainer} = component.refs
+    expect(scrollContainer.clientWidth).toBe(scrollContainer.scrollWidth)
   })
 
   it('decorates the line numbers of folded lines', async () => {
@@ -231,29 +222,30 @@ describe('TextEditorComponent', () => {
     expect(lineNumberNodeForScreenRow(component, 1).classList.contains('folded')).toBe(true)
   })
 
-  it('makes lines at least as wide as the scroller', async () => {
+  it('makes lines at least as wide as the scrollContainer', async () => {
     const {component, element, editor} = buildComponent()
-    const {scroller, gutterContainer} = component.refs
+    const {scrollContainer, gutterContainer} = component.refs
     editor.setText('a')
     await component.getNextUpdatePromise()
 
-    expect(element.querySelector('.line').offsetWidth).toBe(scroller.offsetWidth - gutterContainer.offsetWidth)
+    expect(element.querySelector('.line').offsetWidth).toBe(scrollContainer.offsetWidth)
   })
 
   it('resizes based on the content when the autoHeight and/or autoWidth options are true', async () => {
     const {component, element, editor} = buildComponent({autoHeight: true, autoWidth: true})
+    const {gutterContainer, scrollContainer} = component.refs
     const initialWidth = element.offsetWidth
     const initialHeight = element.offsetHeight
-    expect(initialWidth).toBe(component.refs.scroller.scrollWidth)
-    expect(initialHeight).toBe(component.refs.scroller.scrollHeight)
+    expect(initialWidth).toBe(gutterContainer.offsetWidth + scrollContainer.scrollWidth)
+    expect(initialHeight).toBe(scrollContainer.scrollHeight)
     editor.setCursorScreenPosition([6, Infinity])
     editor.insertText('x'.repeat(50))
     await component.getNextUpdatePromise()
-    expect(element.offsetWidth).toBe(component.refs.scroller.scrollWidth)
+    expect(element.offsetWidth).toBe(gutterContainer.offsetWidth + scrollContainer.scrollWidth)
     expect(element.offsetWidth).toBeGreaterThan(initialWidth)
     editor.insertText('\n'.repeat(5))
     await component.getNextUpdatePromise()
-    expect(element.offsetHeight).toBe(component.refs.scroller.scrollHeight)
+    expect(element.offsetHeight).toBe(scrollContainer.scrollHeight)
     expect(element.offsetHeight).toBeGreaterThan(initialHeight)
   })
 
@@ -369,32 +361,29 @@ describe('TextEditorComponent', () => {
 
   describe('autoscroll on cursor movement', () => {
     it('automatically scrolls vertically when the requested range is within the vertical scroll margin of the top or bottom', async () => {
-      const {component, element, editor} = buildComponent({height: 120})
-      const {scroller} = component.refs
+      const {component, editor} = buildComponent({height: 120})
       expect(component.getLastVisibleRow()).toBe(8)
 
       editor.scrollToScreenRange([[4, 0], [6, 0]])
       await component.getNextUpdatePromise()
-      let scrollBottom = scroller.scrollTop + scroller.clientHeight
-      expect(scrollBottom).toBe((6 + 1 + editor.verticalScrollMargin) * component.measurements.lineHeight)
+      expect(component.getScrollBottom()).toBe((6 + 1 + editor.verticalScrollMargin) * component.getLineHeight())
 
       editor.scrollToScreenPosition([8, 0])
       await component.getNextUpdatePromise()
-      scrollBottom = scroller.scrollTop + scroller.clientHeight
-      expect(scrollBottom).toBe((8 + 1 + editor.verticalScrollMargin) * component.measurements.lineHeight)
+      expect(component.getScrollBottom()).toBe((8 + 1 + editor.verticalScrollMargin) * component.measurements.lineHeight)
 
       editor.scrollToScreenPosition([3, 0])
       await component.getNextUpdatePromise()
-      expect(scroller.scrollTop).toBe((3 - editor.verticalScrollMargin) * component.measurements.lineHeight)
+      expect(component.getScrollTop()).toBe((3 - editor.verticalScrollMargin) * component.measurements.lineHeight)
 
       editor.scrollToScreenPosition([2, 0])
       await component.getNextUpdatePromise()
-      expect(scroller.scrollTop).toBe(0)
+      expect(component.getScrollTop()).toBe(0)
     })
 
     it('does not vertically autoscroll by more than half of the visible lines if the editor is shorter than twice the scroll margin', async () => {
       const {component, element, editor} = buildComponent({autoHeight: false})
-      const {scroller} = component.refs
+      const {scrollContainer} = component.refs
       element.style.height = 5.5 * component.measurements.lineHeight + 'px'
       await component.getNextUpdatePromise()
       expect(component.getLastVisibleRow()).toBe(6)
@@ -402,26 +391,24 @@ describe('TextEditorComponent', () => {
 
       editor.scrollToScreenPosition([6, 0])
       await component.getNextUpdatePromise()
-      let scrollBottom = scroller.scrollTop + scroller.clientHeight
-      expect(scrollBottom).toBe((6 + 1 + scrollMarginInLines) * component.measurements.lineHeight)
+      expect(component.getScrollBottom()).toBe((6 + 1 + scrollMarginInLines) * component.measurements.lineHeight)
 
       editor.scrollToScreenPosition([6, 4])
       await component.getNextUpdatePromise()
-      scrollBottom = scroller.scrollTop + scroller.clientHeight
-      expect(scrollBottom).toBe((6 + 1 + scrollMarginInLines) * component.measurements.lineHeight)
+      expect(component.getScrollBottom()).toBe((6 + 1 + scrollMarginInLines) * component.measurements.lineHeight)
 
       editor.scrollToScreenRange([[4, 4], [6, 4]])
       await component.getNextUpdatePromise()
-      expect(scroller.scrollTop).toBe((4 - scrollMarginInLines) * component.measurements.lineHeight)
+      expect(component.getScrollTop()).toBe((4 - scrollMarginInLines) * component.measurements.lineHeight)
 
       editor.scrollToScreenRange([[4, 4], [6, 4]], {reversed: false})
       await component.getNextUpdatePromise()
-      expect(scrollBottom).toBe((6 + 1 + scrollMarginInLines) * component.measurements.lineHeight)
+      expect(component.getScrollBottom()).toBe((6 + 1 + scrollMarginInLines) * component.measurements.lineHeight)
     })
 
-    it('automatically scrolls horizontally when the requested range is within the horizontal scroll margin of the right edge of the gutter or right edge of the screen', async () => {
+    it('automatically scrolls horizontally when the requested range is within the horizontal scroll margin of the right edge of the gutter or right edge of the scroll container', async () => {
       const {component, element, editor} = buildComponent()
-      const {scroller} = component.refs
+      const {scrollContainer} = component.refs
       element.style.width =
         component.getGutterContainerWidth() +
         3 * editor.horizontalScrollMargin * component.measurements.baseCharacterWidth + 'px'
@@ -429,32 +416,30 @@ describe('TextEditorComponent', () => {
 
       editor.scrollToScreenRange([[1, 12], [2, 28]])
       await component.getNextUpdatePromise()
-      let expectedScrollLeft = Math.floor(
+      let expectedScrollLeft = Math.round(
         clientLeftForCharacter(component, 1, 12) -
         lineNodeForScreenRow(component, 1).getBoundingClientRect().left -
         (editor.horizontalScrollMargin * component.measurements.baseCharacterWidth)
       )
-      expect(scroller.scrollLeft).toBe(expectedScrollLeft)
+      expect(component.getScrollLeft()).toBe(expectedScrollLeft)
 
       editor.scrollToScreenRange([[1, 12], [2, 28]], {reversed: false})
       await component.getNextUpdatePromise()
-      expectedScrollLeft = Math.floor(
+      expectedScrollLeft = Math.round(
         component.getGutterContainerWidth() +
         clientLeftForCharacter(component, 2, 28) -
         lineNodeForScreenRow(component, 2).getBoundingClientRect().left +
         (editor.horizontalScrollMargin * component.measurements.baseCharacterWidth) -
-        scroller.clientWidth
+        scrollContainer.clientWidth
       )
-      expect(scroller.scrollLeft).toBe(expectedScrollLeft)
+      expect(component.getScrollLeft()).toBe(expectedScrollLeft)
     })
 
     it('does not horizontally autoscroll by more than half of the visible "base-width" characters if the editor is narrower than twice the scroll margin', async () => {
-      const {component, element, editor} = buildComponent({autoHeight: false})
-      const {scroller, gutterContainer} = component.refs
+      const {component, editor} = buildComponent({autoHeight: false})
       await setEditorWidthInCharacters(component, 1.5 * editor.horizontalScrollMargin)
 
-      const contentWidth = scroller.clientWidth - gutterContainer.offsetWidth
-      const contentWidthInCharacters = Math.floor(contentWidth / component.measurements.baseCharacterWidth)
+      const contentWidthInCharacters = Math.floor(component.getScrollContainerClientWidth() / component.getBaseCharacterWidth())
       expect(contentWidthInCharacters).toBe(9)
 
       editor.scrollToScreenRange([[6, 10], [6, 15]])
@@ -462,27 +447,26 @@ describe('TextEditorComponent', () => {
       let expectedScrollLeft = Math.floor(
         clientLeftForCharacter(component, 6, 10) -
         lineNodeForScreenRow(component, 1).getBoundingClientRect().left -
-        (4 * component.measurements.baseCharacterWidth)
+        (4 * component.getBaseCharacterWidth())
       )
-      expect(scroller.scrollLeft).toBe(expectedScrollLeft)
+      expect(component.getScrollLeft()).toBe(expectedScrollLeft)
     })
 
     it('correctly autoscrolls after inserting a line that exceeds the current content width', async () => {
       const {component, element, editor} = buildComponent()
-      const {scroller} = component.refs
-      element.style.width = component.getGutterContainerWidth() + component.measurements.longestLineWidth + 'px'
+      element.style.width = component.getGutterContainerWidth() + component.getContentWidth() + 'px'
       await component.getNextUpdatePromise()
 
       editor.setCursorScreenPosition([0, Infinity])
       editor.insertText('x'.repeat(100))
       await component.getNextUpdatePromise()
 
-      expect(scroller.scrollLeft).toBe(component.getScrollWidth() - scroller.clientWidth)
+      expect(component.getScrollLeft()).toBe(component.getScrollWidth() - component.getScrollContainerClientWidth())
     })
 
     it('accounts for the presence of horizontal scrollbars that appear during the same frame as the autoscroll', async () => {
       const {component, element, editor} = buildComponent()
-      const {scroller} = component.refs
+      const {scrollContainer} = component.refs
       element.style.height = component.getScrollHeight() + 'px'
       element.style.width = component.getScrollWidth() + 'px'
       await component.getNextUpdatePromise()
@@ -491,8 +475,8 @@ describe('TextEditorComponent', () => {
       editor.insertText('\n\n' + 'x'.repeat(100))
       await component.getNextUpdatePromise()
 
-      expect(scroller.scrollTop).toBe(component.getScrollHeight() - scroller.clientHeight)
-      expect(scroller.scrollLeft).toBe(component.getScrollWidth() - scroller.clientWidth)
+      expect(component.getScrollTop()).toBe(component.getScrollHeight() - component.getScrollContainerClientHeight())
+      expect(component.getScrollLeft()).toBe(component.getScrollWidth() - component.getScrollContainerClientWidth())
     })
   })
 
@@ -735,7 +719,7 @@ describe('TextEditorComponent', () => {
       )
 
       // Don't flash on next update if another flash wasn't requested
-      component.refs.scroller.scrollTop = 100
+      component.setScrollTop(100)
       await component.getNextUpdatePromise()
       expect(highlights[0].classList.contains('b')).toBe(false)
       expect(highlights[1].classList.contains('b')).toBe(false)
@@ -1156,29 +1140,29 @@ describe('TextEditorComponent', () => {
         expect(editor.getCursorScreenPosition()).toEqual([0, 0])
       })
 
-      it('autoscrolls the content when dragging near the edge of the screen', async () => {
-        const {component, editor} = buildComponent({width: 200, height: 200})
-        const {scroller} = component.refs
+      it('autoscrolls the content when dragging near the edge of the scroll container', async () => {
+        const {component, element, editor} = buildComponent({width: 200, height: 200})
         spyOn(component, 'handleMouseDragUntilMouseUp')
 
         let previousScrollTop = 0
         let previousScrollLeft = 0
         function assertScrolledDownAndRight () {
-          expect(scroller.scrollTop).toBeGreaterThan(previousScrollTop)
-          previousScrollTop = scroller.scrollTop
-          expect(scroller.scrollLeft).toBeGreaterThan(previousScrollLeft)
-          previousScrollLeft = scroller.scrollLeft
+          expect(component.getScrollTop()).toBeGreaterThan(previousScrollTop)
+          previousScrollTop = component.getScrollTop()
+          expect(component.getScrollLeft()).toBeGreaterThan(previousScrollLeft)
+          previousScrollLeft = component.getScrollLeft()
         }
 
         function assertScrolledUpAndLeft () {
-          expect(scroller.scrollTop).toBeLessThan(previousScrollTop)
-          previousScrollTop = scroller.scrollTop
-          expect(scroller.scrollLeft).toBeLessThan(previousScrollLeft)
-          previousScrollLeft = scroller.scrollLeft
+          expect(component.getScrollTop()).toBeLessThan(previousScrollTop)
+          previousScrollTop = component.getScrollTop()
+          expect(component.getScrollLeft()).toBeLessThan(previousScrollLeft)
+          previousScrollLeft = component.getScrollLeft()
         }
 
         component.didMouseDownOnContent({detail: 1, button: 0, clientX: 100, clientY: 100})
         const {didDrag, didStopDragging} = component.handleMouseDragUntilMouseUp.argsForCall[0][0]
+
         didDrag({clientX: 199, clientY: 199})
         assertScrolledDownAndRight()
         didDrag({clientX: 199, clientY: 199})
@@ -1192,27 +1176,24 @@ describe('TextEditorComponent', () => {
         didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
         assertScrolledUpAndLeft()
 
-        // Don't artificially update scroll measurements beyond the minimum or
-        // maximum possible scroll positions
-        expect(scroller.scrollTop).toBe(0)
-        expect(scroller.scrollLeft).toBe(0)
+        // Don't artificially update scroll position beyond possible values
+        expect(component.getScrollTop()).toBe(0)
+        expect(component.getScrollLeft()).toBe(0)
         didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
-        expect(component.measurements.scrollTop).toBe(0)
-        expect(scroller.scrollTop).toBe(0)
-        expect(component.measurements.scrollLeft).toBe(0)
-        expect(scroller.scrollLeft).toBe(0)
+        expect(component.getScrollTop()).toBe(0)
+        expect(component.getScrollLeft()).toBe(0)
 
-        const maxScrollTop = scroller.scrollHeight - scroller.clientHeight
-        const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth
-        scroller.scrollTop = maxScrollTop
-        scroller.scrollLeft = maxScrollLeft
+        const maxScrollTop = component.getMaxScrollTop()
+        const maxScrollLeft = component.getMaxScrollLeft()
+        component.setScrollTop(maxScrollTop)
+        component.setScrollLeft(maxScrollLeft)
         await component.getNextUpdatePromise()
 
         didDrag({clientX: 199, clientY: 199})
         didDrag({clientX: 199, clientY: 199})
         didDrag({clientX: 199, clientY: 199})
-        expect(component.measurements.scrollTop).toBe(maxScrollTop)
-        expect(component.measurements.scrollLeft).toBe(maxScrollLeft)
+        expect(component.getScrollTop()).toBe(maxScrollTop)
+        expect(component.getScrollLeft()).toBe(maxScrollLeft)
       })
     })
 
@@ -1387,25 +1368,25 @@ describe('TextEditorComponent', () => {
         expect(editor.isFoldedAtScreenRow(1)).toBe(false)
       })
 
-      it('autoscrolls the content when dragging near the edge of the screen', async () => {
+      it('autoscrolls when dragging near the top or bottom of the gutter', async () => {
         const {component, editor} = buildComponent({width: 200, height: 200})
-        const {scroller} = component.refs
+        const {scrollContainer} = component.refs
         spyOn(component, 'handleMouseDragUntilMouseUp')
 
         let previousScrollTop = 0
         let previousScrollLeft = 0
         function assertScrolledDown () {
-          expect(scroller.scrollTop).toBeGreaterThan(previousScrollTop)
-          previousScrollTop = scroller.scrollTop
-          expect(scroller.scrollLeft).toBe(previousScrollLeft)
-          previousScrollLeft = scroller.scrollLeft
+          expect(component.getScrollTop()).toBeGreaterThan(previousScrollTop)
+          previousScrollTop = component.getScrollTop()
+          expect(component.getScrollLeft()).toBe(previousScrollLeft)
+          previousScrollLeft = component.getScrollLeft()
         }
 
         function assertScrolledUp () {
-          expect(scroller.scrollTop).toBeLessThan(previousScrollTop)
-          previousScrollTop = scroller.scrollTop
-          expect(scroller.scrollLeft).toBe(previousScrollLeft)
-          previousScrollLeft = scroller.scrollLeft
+          expect(component.getScrollTop()).toBeLessThan(previousScrollTop)
+          previousScrollTop = component.getScrollTop()
+          expect(component.getScrollLeft()).toBe(previousScrollLeft)
+          previousScrollLeft = component.getScrollLeft()
         }
 
         component.didMouseDownOnLineNumberGutter({detail: 1, button: 0, clientX: 0, clientY: 100})
@@ -1425,25 +1406,23 @@ describe('TextEditorComponent', () => {
 
         // Don't artificially update scroll measurements beyond the minimum or
         // maximum possible scroll positions
-        expect(scroller.scrollTop).toBe(0)
-        expect(scroller.scrollLeft).toBe(0)
+        expect(component.getScrollTop()).toBe(0)
+        expect(component.getScrollLeft()).toBe(0)
         didDrag({clientX: component.getGutterContainerWidth() + 1, clientY: 1})
-        expect(component.measurements.scrollTop).toBe(0)
-        expect(scroller.scrollTop).toBe(0)
-        expect(component.measurements.scrollLeft).toBe(0)
-        expect(scroller.scrollLeft).toBe(0)
+        expect(component.getScrollTop()).toBe(0)
+        expect(component.getScrollLeft()).toBe(0)
 
-        const maxScrollTop = scroller.scrollHeight - scroller.clientHeight
-        const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth
-        scroller.scrollTop = maxScrollTop
-        scroller.scrollLeft = maxScrollLeft
+        const maxScrollTop = component.getMaxScrollTop()
+        const maxScrollLeft = component.getMaxScrollLeft()
+        component.setScrollTop(maxScrollTop)
+        component.setScrollLeft(maxScrollLeft)
         await component.getNextUpdatePromise()
 
         didDrag({clientX: 199, clientY: 199})
         didDrag({clientX: 199, clientY: 199})
         didDrag({clientX: 199, clientY: 199})
-        expect(component.measurements.scrollTop).toBe(maxScrollTop)
-        expect(component.measurements.scrollLeft).toBe(maxScrollLeft)
+        expect(component.getScrollTop()).toBe(maxScrollTop)
+        expect(component.getScrollLeft()).toBe(maxScrollLeft)
       })
     })
   })
@@ -1475,10 +1454,7 @@ function buildComponent (params = {}) {
 }
 
 function getBaseCharacterWidth (component) {
-  return Math.round(
-    (component.refs.scroller.clientWidth - component.getGutterContainerWidth()) /
-    component.measurements.baseCharacterWidth
-  )
+  return Math.round(component.getScrollContainerWidth() / component.getBaseCharacterWidth())
 }
 
 async function setEditorHeightInLines(component, heightInLines) {
