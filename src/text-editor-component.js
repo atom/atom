@@ -25,6 +25,8 @@ module.exports =
 class TextEditorComponent {
   constructor (props) {
     this.props = props
+
+    if (!props.model) props.model = new TextEditor()
     if (props.element) {
       this.element = props.element
     } else {
@@ -138,7 +140,7 @@ class TextEditorComponent {
   }
 
   render () {
-    const model = this.getModel()
+    const {model} = this.props
 
     const style = {
       overflow: 'hidden',
@@ -240,7 +242,7 @@ class TextEditorComponent {
   }
 
   renderLineNumberGutter () {
-    const model = this.getModel()
+    const {model} = this.props
 
     if (!model.isLineNumberGutterVisible()) return null
 
@@ -348,7 +350,7 @@ class TextEditorComponent {
     const tileHeight = this.measurements.lineHeight * rowsPerTile
     const tileWidth = this.getContentWidth()
 
-    const displayLayer = this.getModel().displayLayer
+    const displayLayer = this.props.model.displayLayer
     const tileNodes = new Array(this.getRenderedTileCount())
 
     for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow += rowsPerTile) {
@@ -484,7 +486,7 @@ class TextEditorComponent {
   }
 
   queryScreenLinesToRender () {
-    this.renderedScreenLines = this.getModel().displayLayer.getScreenLines(
+    this.renderedScreenLines = this.props.model.displayLayer.getScreenLines(
       this.getRenderedStartRow(),
       this.getRenderedEndRow()
     )
@@ -501,7 +503,7 @@ class TextEditorComponent {
     this.decorationsToMeasure.cursors.length = 0
 
     const decorationsByMarker =
-      this.getModel().decorationManager.decorationPropertiesByMarkerForScreenRowRange(
+      this.props.model.decorationManager.decorationPropertiesByMarkerForScreenRowRange(
         this.getRenderedStartRow(),
         this.getRenderedEndRow()
       )
@@ -605,7 +607,7 @@ class TextEditorComponent {
   }
 
   addCursorDecorationToMeasure (marker, screenRange, reversed) {
-    const model = this.getModel()
+    const {model} = this.props
     const isLastCursor = model.getLastCursor().getMarker() === marker
     const screenPosition = reversed ? screenRange.start : screenRange.end
     const {row, column} = screenPosition
@@ -693,7 +695,7 @@ class TextEditorComponent {
     if (!this.visible) {
       this.visible = true
       if (!this.measurements) this.performInitialMeasurements()
-      this.getModel().setVisible(true)
+      this.props.model.setVisible(true)
       this.updateSync()
     }
   }
@@ -701,7 +703,7 @@ class TextEditorComponent {
   didHide () {
     if (this.visible) {
       this.visible = false
-      this.getModel().setVisible(false)
+      this.props.model.setVisible(false)
     }
   }
 
@@ -789,17 +791,17 @@ class TextEditorComponent {
     // if (!this.isInputEnabled()) return
 
     if (this.compositionCheckpoint) {
-      this.getModel().revertToCheckpoint(this.compositionCheckpoint)
+      this.props.model.revertToCheckpoint(this.compositionCheckpoint)
       this.compositionCheckpoint = null
     }
 
     // Undo insertion of the original non-accented character so it is discarded
     // from the history and does not reappear on undo
     if (this.accentedCharacterMenuIsOpen) {
-      this.getModel().undo()
+      this.props.model.undo()
     }
 
-    this.getModel().insertText(event.data, {groupUndo: true})
+    this.props.model.insertText(event.data, {groupUndo: true})
   }
 
   // We need to get clever to detect when the accented character menu is
@@ -822,7 +824,7 @@ class TextEditorComponent {
     if (this.lastKeydownBeforeKeypress != null) {
       if (this.lastKeydownBeforeKeypress.keyCode === event.keyCode) {
         this.accentedCharacterMenuIsOpen = true
-        this.getModel().selectLeft()
+        this.props.model.selectLeft()
       }
       this.lastKeydownBeforeKeypress = null
     } else {
@@ -857,11 +859,11 @@ class TextEditorComponent {
   //   4. compositionend fired
   //   5. textInput fired; event.data == the completion string
   didCompositionStart () {
-    this.compositionCheckpoint = this.getModel().createCheckpoint()
+    this.compositionCheckpoint = this.props.model.createCheckpoint()
   }
 
   didCompositionUpdate (event) {
-    this.getModel().insertText(event.data, {select: true})
+    this.props.model.insertText(event.data, {select: true})
   }
 
   didCompositionEnd (event) {
@@ -1188,7 +1190,7 @@ class TextEditorComponent {
   getVerticalScrollMargin () {
     const {clientHeight, lineHeight} = this.measurements
     const marginInLines = Math.min(
-      this.getModel().verticalScrollMargin,
+      this.props.model.verticalScrollMargin,
       Math.floor(((clientHeight / lineHeight) - 1) / 2)
     )
     return marginInLines * lineHeight
@@ -1198,7 +1200,7 @@ class TextEditorComponent {
     const {clientWidth, baseCharacterWidth} = this.measurements
     const contentClientWidth = clientWidth - this.getGutterContainerWidth()
     const marginInBaseCharacters = Math.min(
-      this.getModel().horizontalScrollMargin,
+      this.props.model.horizontalScrollMargin,
       Math.floor(((contentClientWidth / baseCharacterWidth) - 1) / 2)
     )
     return marginInBaseCharacters * baseCharacterWidth
@@ -1263,7 +1265,7 @@ class TextEditorComponent {
     }
     if (clientWidth !== this.measurements.clientWidth) {
       this.measurements.clientWidth = clientWidth
-      this.getModel().setWidth(clientWidth - this.getGutterContainerWidth(), true)
+      this.props.model.setWidth(clientWidth - this.getGutterContainerWidth(), true)
     }
   }
 
@@ -1274,7 +1276,7 @@ class TextEditorComponent {
     this.measurements.halfWidthCharacterWidth = this.refs.halfWidthCharacterSpan.getBoundingClientRect().width
     this.measurements.koreanCharacterWidth = this.refs.koreanCharacterSpan.getBoundingClientRect().widt
 
-    this.getModel().setDefaultCharWidth(
+    this.props.model.setDefaultCharWidth(
       this.measurements.baseCharacterWidth,
       this.measurements.doubleWidthCharacterWidth,
       this.measurements.halfWidthCharacterWidth,
@@ -1283,7 +1285,7 @@ class TextEditorComponent {
   }
 
   checkForNewLongestLine () {
-    const model = this.getModel()
+    const {model} = this.props
     const longestLineRow = model.getApproximateLongestScreenRow()
     const longestLine = model.screenLineForScreenRow(longestLineRow)
     if (longestLine !== this.previousLongestLine) {
@@ -1391,7 +1393,7 @@ class TextEditorComponent {
   }
 
   screenPositionForPixelPosition({top, left}) {
-    const model = this.getModel()
+    const {model} = this.props
 
     const row = Math.min(
       Math.max(0, Math.floor(top / this.measurements.lineHeight)),
@@ -1462,14 +1464,6 @@ class TextEditorComponent {
     return Point(row, column)
   }
 
-  getModel () {
-    if (!this.props.model) {
-      this.props.model = new TextEditor()
-      this.observeModel()
-    }
-    return this.props.model
-  }
-
   observeModel () {
     const {model} = this.props
     model.component = this
@@ -1511,7 +1505,7 @@ class TextEditorComponent {
   }
 
   getScrollHeight () {
-    const model = this.getModel()
+    const {model} = this.props
     const contentHeight = model.getApproximateScreenLineCount() * this.measurements.lineHeight
     if (model.getScrollPastEnd()) {
       const extraScrollHeight = Math.max(
@@ -1541,7 +1535,7 @@ class TextEditorComponent {
   }
 
   getContentWidth () {
-    if (this.getModel().isSoftWrapped()) {
+    if (this.props.model.isSoftWrapped()) {
       return this.getClientWidth() - this.getGutterContainerWidth()
     } else {
       return Math.max(
@@ -1573,7 +1567,7 @@ class TextEditorComponent {
 
   getRenderedEndRow () {
     return Math.min(
-      this.getModel().getApproximateScreenLineCount(),
+      this.props.model.getApproximateScreenLineCount(),
       this.getFirstTileStartRow() + this.getVisibleTileCount() * this.getRowsPerTile()
     )
   }
@@ -1595,7 +1589,7 @@ class TextEditorComponent {
   getLastVisibleRow () {
     const {scrollerHeight, lineHeight} = this.measurements
     return Math.min(
-      this.getModel().getApproximateScreenLineCount() - 1,
+      this.props.model.getApproximateScreenLineCount() - 1,
       this.getFirstVisibleRow() + Math.ceil(scrollerHeight / lineHeight)
     )
   }
@@ -1608,7 +1602,7 @@ class TextEditorComponent {
   // visible so we *at least* get the longest row in the visible range.
   populateVisibleRowRange () {
     const endRow = this.getFirstTileStartRow() + this.getVisibleTileCount() * this.getRowsPerTile()
-    this.getModel().displayLayer.populateSpatialIndexIfNeeded(Infinity, endRow)
+    this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, endRow)
   }
 
   topPixelPositionForRow (row) {
