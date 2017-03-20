@@ -43,8 +43,14 @@ class AtomWindow
     if process.platform is 'linux'
       options.icon = @constructor.iconPath
 
-    if @shouldHideTitleBar()
+    if @shouldAddCustomTitleBar()
       options.titleBarStyle = 'hidden'
+
+    if @shouldAddCustomInsetTitleBar()
+      options.titleBarStyle = 'hidden-inset'
+
+    if @shouldHideTitleBar()
+      options.frame = false
 
     @browserWindow = new BrowserWindow(options)
     @handleEvents()
@@ -58,10 +64,15 @@ class AtomWindow
     loadSettings.clearWindowState ?= false
     loadSettings.initialPaths ?=
       for {pathToOpen} in locationsToOpen when pathToOpen
-        if fs.statSyncNoException(pathToOpen).isFile?()
-          path.dirname(pathToOpen)
-        else
+        stat = fs.statSyncNoException(pathToOpen) or null
+        if stat?.isDirectory()
           pathToOpen
+        else
+          parentDirectory = path.dirname(pathToOpen)
+          if stat?.isFile() or fs.existsSync(parentDirectory)
+            parentDirectory
+          else
+            pathToOpen
     loadSettings.initialPaths.sort()
 
     # Only send to the first non-spec window created
@@ -72,11 +83,17 @@ class AtomWindow
     @representedDirectoryPaths = loadSettings.initialPaths
     @env = loadSettings.env if loadSettings.env?
 
-    @browserWindow.loadSettings = loadSettings
+    @browserWindow.loadSettingsJSON = JSON.stringify(loadSettings)
 
     @browserWindow.on 'window:loaded', =>
       @emit 'window:loaded'
       @resolveLoadedPromise()
+
+    @browserWindow.on 'enter-full-screen', =>
+      @browserWindow.webContents.send('did-enter-full-screen')
+
+    @browserWindow.on 'leave-full-screen', =>
+      @browserWindow.webContents.send('did-leave-full-screen')
 
     @browserWindow.loadURL url.format
       protocol: 'file'
@@ -90,7 +107,8 @@ class AtomWindow
 
     hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
     @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()
-    
+    @disableZoom()
+
     @atomApplication.addWindow(this)
 
   hasProjectPath: -> @representedDirectoryPaths.length > 0
@@ -221,10 +239,20 @@ class AtomWindow
     [width, height] = @browserWindow.getSize()
     {x, y, width, height}
 
+  shouldAddCustomTitleBar: ->
+    not @isSpec and
+    process.platform is 'darwin' and
+    @atomApplication.config.get('core.titleBar') is 'custom'
+
+  shouldAddCustomInsetTitleBar: ->
+    not @isSpec and
+    process.platform is 'darwin' and
+    @atomApplication.config.get('core.titleBar') is 'custom-inset'
+
   shouldHideTitleBar: ->
     not @isSpec and
     process.platform is 'darwin' and
-    @atomApplication.config.get('core.useCustomTitleBar')
+    @atomApplication.config.get('core.titleBar') is 'hidden'
 
   close: -> @browserWindow.close()
 
@@ -282,3 +310,6 @@ class AtomWindow
     @atomApplication.saveState()
 
   copy: -> @browserWindow.copy()
+
+  disableZoom: ->
+    @browserWindow.webContents.setZoomLevelLimits(1, 1)

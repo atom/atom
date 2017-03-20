@@ -839,7 +839,7 @@ class Config
       relativePath = sourcePath.substring(templateConfigDirPath.length + 1)
       destinationPath = path.join(@configDirPath, relativePath)
       queue.push({sourcePath, destinationPath})
-    fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
+    fs.traverseTree(templateConfigDirPath, onConfigDirFile, ((path) -> true), (->))
 
   loadUserConfig: ->
     return if @shouldNotAccessFileSystem()

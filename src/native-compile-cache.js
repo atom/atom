@@ -1,5 +1,3 @@
-'use strict'
-
 const Module = require('module')
 const path = require('path')
 const cachedVm = require('cached-run-in-this-context')
@@ -38,7 +36,6 @@ class NativeCompileCache {
 
   overrideModuleCompile () {
     let self = this
-    let resolvedArgv = null
     // Here we override Node's module.js
     // (https://github.com/atom/node/blob/atom/lib/module.js#L378), changing
     // only the bits that affect compilation in order to use the cached one.
@@ -63,11 +60,10 @@ class NativeCompileCache {
       // create wrapper function
       let wrapper = Module.wrap(content)
 
-      let cacheKey = filename
-      let invalidationKey = computeHash(wrapper + self.v8Version)
+      let cacheKey = computeHash(wrapper + self.v8Version)
       let compiledWrapper = null
-      if (self.cacheStore.has(cacheKey, invalidationKey)) {
-        let buffer = self.cacheStore.get(cacheKey, invalidationKey)
+      if (self.cacheStore.has(cacheKey)) {
+        let buffer = self.cacheStore.get(cacheKey)
         let compilationResult = cachedVm.runInThisContextCached(wrapper, filename, buffer)
         compiledWrapper = compilationResult.result
         if (compilationResult.wasRejected) {
@@ -82,29 +78,11 @@ class NativeCompileCache {
           throw err
         }
         if (compilationResult.cacheBuffer) {
-          self.cacheStore.set(cacheKey, invalidationKey, compilationResult.cacheBuffer)
+          self.cacheStore.set(cacheKey, compilationResult.cacheBuffer)
         }
         compiledWrapper = compilationResult.result
       }
-      if (global.v8debug) {
-        if (!resolvedArgv) {
-          // we enter the repl if we're not given a filename argument.
-          if (process.argv[1]) {
-            resolvedArgv = Module._resolveFilename(process.argv[1], null)
-          } else {
-            resolvedArgv = 'repl'
-          }
-        }
 
-        // Set breakpoint on module start
-        if (filename === resolvedArgv) {
-          // Installing this dummy debug event listener tells V8 to start
-          // the debugger.  Without it, the setBreakPoint() fails with an
-          // 'illegal access' error.
-          global.v8debug.Debug.setListener(function () {})
-          global.v8debug.Debug.setBreakPoint(compiledWrapper, 0, 0)
-        }
-      }
       let args = [moduleSelf.exports, require, moduleSelf, filename, dirname, process, global]
       return compiledWrapper.apply(moduleSelf.exports, args)
     }

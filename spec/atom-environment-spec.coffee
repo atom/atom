@@ -126,6 +126,7 @@ describe "AtomEnvironment", ->
 
     beforeEach ->
       errors = []
+      spyOn(atom, 'isReleasedVersion').andReturn(true)
       atom.onDidFailAssertion (error) -> errors.push(error)
 
     describe "if the condition is false", ->
@@ -141,6 +142,16 @@ describe "AtomEnvironment", ->
           error = null
           atom.assert(false, "a == b", (e) -> error = e)
           expect(error).toBe errors[0]
+
+      describe "if passed metadata", ->
+        it "assigns the metadata on the assertion failure's error object", ->
+          atom.assert(false, "a == b", {foo: 'bar'})
+          expect(errors[0].metadata).toEqual {foo: 'bar'}
+
+      describe "when Atom has been built from source", ->
+        it "throws an error", ->
+          atom.isReleasedVersion.andReturn(false)
+          expect(-> atom.assert(false, 'testing')).toThrow('Assertion failed: testing')
 
     describe "if the condition is true", ->
       it "does nothing", ->

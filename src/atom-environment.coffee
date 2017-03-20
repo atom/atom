@@ -131,8 +131,9 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@blobStore, @applicationDelegate, @window, @document, @clipboard, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@applicationDelegate, @window, @document, @blobStore, @clipboard, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
+    @nextProxyRequestId = 0
     @unloaded = false
     @loadTime = null
     {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
@@ -215,8 +216,6 @@ class AtomEnvironment extends Model
     @stylesElement = @styles.buildStylesElement()
     @document.head.appendChild(@stylesElement)
 
-    @disposables.add(@applicationDelegate.disableZoom())
-
     @keymaps.subscribeToFileReadFailure()
     @keymaps.loadBundledKeymaps()
 
@@ -231,13 +230,11 @@ class AtomEnvironment extends Model
 
     @observeAutoHideMenuBar()
 
-    @history = new HistoryManager({@project, @commands, localStorage})
+    @history = new HistoryManager({@project, @commands, @stateStore, localStorage: window.localStorage})
     # Keep instances of HistoryManager in sync
-    @history.onDidChangeProjects (e) =>
+    @disposables.add @history.onDidChangeProjects (e) =>
       @applicationDelegate.didChangeHistoryManager() unless e.reloaded
     @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
-
-    new ReopenProjectMenuManager({@menu, @commands, @history, @config, open: (paths) => @open(pathsToOpen: paths)})
 
   attachSaveStateListeners: ->
     saveState = _.debounce((=>
@@ -694,8 +691,14 @@ class AtomEnvironment extends Model
         @deserialize(state) if state?
         @deserializeTimings.atom = Date.now() - startTime
 
-        if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
+        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom'
           @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+          @document.body.classList.add('custom-title-bar')
+        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom-inset'
+          @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+          @document.body.classList.add('custom-inset-title-bar')
+        if process.platform is 'darwin' and @config.get('core.titleBar') is 'hidden'
+          @document.body.classList.add('hidden-title-bar')
 
         @document.body.appendChild(@views.getView(@workspace))
         @backgroundStylesheet?.remove()
@@ -710,7 +713,14 @@ class AtomEnvironment extends Model
 
         @openInitialEmptyEditorIfNecessary()
 
-    Promise.all([loadStatePromise, updateProcessEnvPromise])
+    loadHistoryPromise = @history.loadState().then =>
+      @reopenProjectMenuManager = new ReopenProjectMenuManager({
+        @menu, @commands, @history, @config,
+        open: (paths) => @open(pathsToOpen: paths)
+      })
+      @reopenProjectMenuManager.update()
+
+    Promise.all([loadStatePromise, loadHistoryPromise, updateProcessEnvPromise])
 
   serialize: (options) ->
     version: @constructor.version
@@ -730,6 +740,10 @@ class AtomEnvironment extends Model
     @saveBlobStoreSync()
     @unloaded = true
 
+  saveBlobStoreSync: ->
+    if @enablePersistence
+      @blobStore.save()
+
   openInitialEmptyEditorIfNecessary: ->
     return unless @config.get('core.openEmptyEditorOnStart')
     if @getLoadSettings().initialPaths?.length is 0 and @workspace.getPaneItems().length is 0
@@ -741,7 +755,10 @@ class AtomEnvironment extends Model
       @lastUncaughtError = Array::slice.call(arguments)
       [message, url, line, column, originalError] = @lastUncaughtError
 
-      {line, column} = mapSourcePosition({source: url, line, column})
+      {line, column, source} = mapSourcePosition({source: url, line, column})
+
+      if url is '<embedded>'
+        url = source
 
       eventObject = {message, url, line, column, originalError}
 
@@ -821,14 +838,21 @@ class AtomEnvironment extends Model
   Section: Private
   ###
 
-  assert: (condition, message, callback) ->
+  assert: (condition, message, callbackOrMetadata) ->
     return true if condition
 
     error = new Error("Assertion failed: #{message}")
     Error.captureStackTrace(error, @assert)
-    callback?(error)
+
+    if callbackOrMetadata?
+      if typeof callbackOrMetadata is 'function'
+        callbackOrMetadata?(error)
+      else
+        error.metadata = callbackOrMetadata
 
     @emitter.emit 'did-fail-assertion', error
+    unless @isReleasedVersion()
+      throw error
 
     false
 
@@ -855,11 +879,6 @@ class AtomEnvironment extends Model
 
   showSaveDialogSync: (options={}) ->
     @applicationDelegate.showSaveDialog(options)
-
-  saveBlobStoreSync: ->
-    return unless @enablePersistence
-
-    @blobStore.save()
 
   saveState: (options) ->
     new Promise (resolve, reject) =>
@@ -976,6 +995,16 @@ class AtomEnvironment extends Model
         @workspace?.open(pathToOpen, {initialLine, initialColumn})
 
     return
+
+  resolveProxy: (url) ->
+    return new Promise (resolve, reject) =>
+      requestId = @nextProxyRequestId++
+      disposable = @applicationDelegate.onDidResolveProxy (id, proxy) ->
+        if id is requestId
+          disposable.dispose()
+          resolve(proxy)
+
+      @applicationDelegate.resolveProxy(requestId, url)
 
 # Preserve this deprecation until 2.0. Sorry. Should have removed Q sooner.
 Promise.prototype.done = (callback) ->

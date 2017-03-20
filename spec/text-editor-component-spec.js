@@ -1747,11 +1747,13 @@ describe('TextEditorComponent', function () {
   })
 
   describe('block decorations rendering', function () {
+    let markerLayer
+
     function createBlockDecorationBeforeScreenRow(screenRow, {className}) {
       let item = document.createElement("div")
       item.className = className || ""
       let blockDecoration = editor.decorateMarker(
-        editor.markScreenPosition([screenRow, 0], {invalidate: "never"}),
+        markerLayer.markScreenPosition([screenRow, 0], {invalidate: "never"}),
         {type: "block", item: item, position: "before"}
       )
       return [item, blockDecoration]
@@ -1761,13 +1763,14 @@ describe('TextEditorComponent', function () {
       let item = document.createElement("div")
       item.className = className || ""
       let blockDecoration = editor.decorateMarker(
-        editor.markScreenPosition([screenRow, 0], {invalidate: "never"}),
+        markerLayer.markScreenPosition([screenRow, 0], {invalidate: "never"}),
         {type: "block", item: item, position: "after"}
       )
       return [item, blockDecoration]
     }
 
     beforeEach(function () {
+      markerLayer = editor.addMarkerLayer()
       wrapperNode.style.height = 5 * lineHeightInPixels + 'px'
       editor.update({autoHeight: false})
       component.measureDimensions()

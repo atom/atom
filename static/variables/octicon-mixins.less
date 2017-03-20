@@ -1,3 +1,5 @@
+@import "octicon-utf-codes.less";
+
 .icon-size(@size) {
   font-size: @size;
   width: @size;
@@ -17,7 +19,6 @@
 }
 
 .octicon(@name, @size: 16px) {
-  @import "octicon-utf-codes.less";
   &::before {
     .icon(@size);
     content: @@name
@@ -25,7 +26,6 @@
 }
 
 .mega-octicon(@name, @size: 32px) {
-  @import "octicon-utf-codes.less";
   &::before {
     .icon(@size);
     content: @@name
