@@ -195,7 +195,6 @@ describe('TextEditorComponent', () => {
     jasmine.attachToDOM(element)
 
     expect(getBaseCharacterWidth(component)).toBe(55)
-    console.log('running expectation');
     expect(lineNodeForScreenRow(component, 3).textContent).toBe(
       '    var pivot = items.shift(), current, left = [], '
     )
@@ -337,7 +336,6 @@ describe('TextEditorComponent', () => {
       element.style.display = 'none'
       jasmine.attachToDOM(element)
       element.style.display = 'block'
-      console.log('focus in test');
       element.focus()
       await component.getNextUpdatePromise()
 
@@ -383,7 +381,6 @@ describe('TextEditorComponent', () => {
 
     it('does not vertically autoscroll by more than half of the visible lines if the editor is shorter than twice the scroll margin', async () => {
       const {component, element, editor} = buildComponent({autoHeight: false})
-      const {scrollContainer} = component.refs
       element.style.height = 5.5 * component.measurements.lineHeight + 'px'
       await component.getNextUpdatePromise()
       expect(component.getLastVisibleRow()).toBe(6)
@@ -430,7 +427,7 @@ describe('TextEditorComponent', () => {
         clientLeftForCharacter(component, 2, 28) -
         lineNodeForScreenRow(component, 2).getBoundingClientRect().left +
         (editor.horizontalScrollMargin * component.measurements.baseCharacterWidth) -
-        scrollContainer.clientWidth
+        component.getScrollContainerClientWidth()
       )
       expect(component.getScrollLeft()).toBe(expectedScrollLeft)
     })

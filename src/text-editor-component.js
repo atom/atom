@@ -24,6 +24,14 @@ function scaleMouseDragAutoscrollDelta (delta) {
 
 module.exports =
 class TextEditorComponent {
+  static didUpdateScrollbarStyles () {
+    if (this.attachedComponents) {
+      this.attachedComponents.forEach((component) => {
+        component.didUpdateScrollbarStyles()
+      })
+    }
+  }
+
   constructor (props) {
     this.props = props
 
@@ -47,6 +55,8 @@ class TextEditorComponent {
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
+    this.scrollbarsVisible = true
+    this.refreshScrollbarStyling = false
     this.pendingAutoscroll = null
     this.scrollTop = 0
     this.scrollLeft = 0
@@ -66,7 +76,7 @@ class TextEditorComponent {
       cursors: []
     }
 
-    if (this.props.model) this.observeModel()
+    this.observeModel()
     resizeDetector.listenTo(this.element, this.didResize.bind(this))
 
     etch.updateSync(this)
@@ -98,26 +108,38 @@ class TextEditorComponent {
       this.resolveNextUpdatePromise = null
     }
 
+    const wasHorizontalScrollbarVisible = this.isHorizontalScrollbarVisible()
     this.horizontalPositionsToMeasure.clear()
     if (this.pendingAutoscroll) this.autoscrollVertically()
     this.populateVisibleRowRange()
     const longestLineToMeasure = this.checkForNewLongestLine()
     this.queryScreenLinesToRender()
     this.queryDecorationsToRender()
+    this.scrollbarsVisible = !this.refreshScrollbarStyling
 
     etch.updateSync(this)
 
     this.measureHorizontalPositions()
     if (longestLineToMeasure) this.measureLongestLineWidth(longestLineToMeasure)
     this.updateAbsolutePositionedDecorations()
+    if (this.pendingAutoscroll) {
+      this.autoscrollHorizontally()
+      if (!wasHorizontalScrollbarVisible && this.isHorizontalScrollbarVisible()) {
+        this.autoscrollVertically()
+      }
+      this.pendingAutoscroll = null
+    }
+    this.scrollbarsVisible = true
 
     etch.updateSync(this)
 
-    if (this.pendingAutoscroll) {
-      this.autoscrollHorizontally()
-      this.pendingAutoscroll = null
-    }
     this.currentFrameLineNumberGutterProps = null
+
+    if (this.refreshScrollbarStyling) {
+      this.measureScrollbarDimensions()
+      this.refreshScrollbarStyling = false
+      etch.updateSync(this)
+    }
   }
 
   checkIfScrollDimensionsChanged () {
@@ -134,11 +156,12 @@ class TextEditorComponent {
 
   render () {
     const {model} = this.props
-
     const style = {}
+
     if (!model.getAutoHeight() && !model.getAutoWidth()) {
       style.contain = 'strict'
     }
+
     if (this.measurements) {
       if (model.getAutoHeight()) {
         style.height = this.getContentHeight() + 'px'
@@ -294,7 +317,8 @@ class TextEditorComponent {
         className: 'scroll-view',
         style
       },
-      this.renderContent()
+      this.renderContent(),
+      this.renderDummyScrollbars()
     )
   }
 
@@ -476,6 +500,65 @@ class TextEditorComponent {
         border: 0
       }
     })
+  }
+
+  renderDummyScrollbars () {
+    if (this.scrollbarsVisible) {
+      let scrollHeight, scrollTop, horizontalScrollbarHeight,
+          scrollWidth, scrollLeft, verticalScrollbarWidth, forceScrollbarVisible
+
+      if (this.measurements) {
+        scrollHeight = this.getScrollHeight()
+        scrollWidth = this.getScrollWidth()
+        scrollTop = this.getScrollTop()
+        scrollLeft = this.getScrollLeft()
+        horizontalScrollbarHeight =
+          this.isHorizontalScrollbarVisible()
+          ? this.getHorizontalScrollbarHeight()
+          : 0
+        verticalScrollbarWidth =
+          this.isVerticalScrollbarVisible()
+          ? this.getVerticalScrollbarWidth()
+          : 0
+        forceScrollbarVisible = this.refreshScrollbarStyling
+      } else {
+        forceScrollbarVisible = true
+      }
+
+      const elements = [
+        $(DummyScrollbarComponent, {
+          ref: 'verticalScrollbar',
+          orientation: 'vertical',
+          scrollHeight, scrollTop, horizontalScrollbarHeight, forceScrollbarVisible
+        }),
+        $(DummyScrollbarComponent, {
+          ref: 'horizontalScrollbar',
+          orientation: 'horizontal',
+          scrollWidth, scrollLeft, verticalScrollbarWidth, forceScrollbarVisible
+        })
+      ]
+
+      // If both scrollbars are visible, push a dummy element to force a "corner"
+      // to render where the two scrollbars meet at the lower right
+      if (verticalScrollbarWidth > 0 && horizontalScrollbarHeight > 0) {
+        elements.push($.div(
+          {
+            style: {
+              position: 'absolute',
+              height: '20px',
+              width: '20px',
+              bottom: 0,
+              right: 0,
+              overflow: 'scroll'
+            }
+          }
+        ))
+      }
+
+      return elements
+    } else {
+      return null
+    }
   }
 
   // This is easier to mock
@@ -679,6 +762,10 @@ class TextEditorComponent {
       } else {
         this.didHide()
       }
+      if (!this.constructor.attachedComponents) {
+        this.constructor.attachedComponents = new Set()
+      }
+      this.constructor.attachedComponents.add(this)
     }
   }
 
@@ -686,6 +773,7 @@ class TextEditorComponent {
     if (this.attached) {
       this.didHide()
       this.attached = false
+      this.constructor.attachedComponents.delete(this)
     }
   }
 
@@ -779,6 +867,11 @@ class TextEditorComponent {
     if (this.measureClientContainerDimensions()) {
       this.scheduleUpdate()
     }
+  }
+
+  didUpdateScrollbarStyles () {
+    this.refreshScrollbarStyling = true
+    this.scheduleUpdate()
   }
 
   didTextInput (event) {
@@ -1175,6 +1268,30 @@ class TextEditorComponent {
     this.measureCharacterDimensions()
     this.measureGutterDimensions()
     this.measureClientContainerDimensions()
+    this.measureScrollbarDimensions()
+  }
+
+  measureCharacterDimensions () {
+    this.measurements.lineHeight = this.refs.characterMeasurementLine.getBoundingClientRect().height
+    this.measurements.baseCharacterWidth = this.refs.normalWidthCharacterSpan.getBoundingClientRect().width
+    this.measurements.doubleWidthCharacterWidth = this.refs.doubleWidthCharacterSpan.getBoundingClientRect().width
+    this.measurements.halfWidthCharacterWidth = this.refs.halfWidthCharacterSpan.getBoundingClientRect().width
+    this.measurements.koreanCharacterWidth = this.refs.koreanCharacterSpan.getBoundingClientRect().widt
+
+    this.props.model.setDefaultCharWidth(
+      this.measurements.baseCharacterWidth,
+      this.measurements.doubleWidthCharacterWidth,
+      this.measurements.halfWidthCharacterWidth,
+      this.measurements.koreanCharacterWidth
+    )
+  }
+
+  measureGutterDimensions () {
+    if (this.refs.lineNumberGutter) {
+      this.measurements.lineNumberGutterWidth = this.refs.lineNumberGutter.offsetWidth
+    } else {
+      this.measurements.lineNumberGutterWidth = 0
+    }
   }
 
   measureClientContainerDimensions () {
@@ -1195,19 +1312,9 @@ class TextEditorComponent {
     return dimensionsChanged
   }
 
-  measureCharacterDimensions () {
-    this.measurements.lineHeight = this.refs.characterMeasurementLine.getBoundingClientRect().height
-    this.measurements.baseCharacterWidth = this.refs.normalWidthCharacterSpan.getBoundingClientRect().width
-    this.measurements.doubleWidthCharacterWidth = this.refs.doubleWidthCharacterSpan.getBoundingClientRect().width
-    this.measurements.halfWidthCharacterWidth = this.refs.halfWidthCharacterSpan.getBoundingClientRect().width
-    this.measurements.koreanCharacterWidth = this.refs.koreanCharacterSpan.getBoundingClientRect().widt
-
-    this.props.model.setDefaultCharWidth(
-      this.measurements.baseCharacterWidth,
-      this.measurements.doubleWidthCharacterWidth,
-      this.measurements.halfWidthCharacterWidth,
-      this.measurements.koreanCharacterWidth
-    )
+  measureScrollbarDimensions () {
+    this.measurements.verticalScrollbarWidth = this.refs.verticalScrollbar.getRealScrollbarWidth()
+    this.measurements.horizontalScrollbarHeight = this.refs.horizontalScrollbar.getRealScrollbarHeight()
   }
 
   checkForNewLongestLine () {
@@ -1226,14 +1333,6 @@ class TextEditorComponent {
     this.measurements.longestLineWidth = this.lineNodesByScreenLineId.get(screenLine.id).firstChild.offsetWidth
     this.longestLineToMeasureRow = null
     this.longestLineToMeasure = null
-  }
-
-  measureGutterDimensions () {
-    if (this.refs.lineNumberGutter) {
-      this.measurements.lineNumberGutterWidth = this.refs.lineNumberGutter.offsetWidth
-    } else {
-      this.measurements.lineNumberGutterWidth = 0
-    }
   }
 
   requestHorizontalMeasurement (row, column) {
@@ -1445,11 +1544,48 @@ class TextEditorComponent {
   }
 
   getScrollContainerClientWidth () {
-    return this.getScrollContainerWidth()
+    if (this.isVerticalScrollbarVisible()) {
+      return this.getScrollContainerWidth() - this.getVerticalScrollbarWidth()
+    } else {
+      return this.getScrollContainerWidth()
+    }
   }
 
   getScrollContainerClientHeight () {
-    return this.getScrollContainerHeight()
+    if (this.isHorizontalScrollbarVisible()) {
+      return this.getScrollContainerHeight() - this.getHorizontalScrollbarHeight()
+    } else {
+      return this.getScrollContainerHeight()
+    }
+  }
+
+  isVerticalScrollbarVisible () {
+    return (
+      this.getContentHeight() > this.getScrollContainerHeight() ||
+      this.isContentMinimallyOverlappingBothScrollbars()
+    )
+  }
+
+  isHorizontalScrollbarVisible () {
+    return (
+      !this.props.model.isSoftWrapped() &&
+      (
+        this.getContentWidth() > this.getScrollContainerWidth() ||
+        this.isContentMinimallyOverlappingBothScrollbars()
+      )
+    )
+  }
+
+  isContentMinimallyOverlappingBothScrollbars () {
+    const clientHeightWithHorizontalScrollbar =
+      this.getScrollContainerHeight() - this.getHorizontalScrollbarHeight()
+    const clientWidthWithVerticalScrollbar =
+      this.getScrollContainerWidth() - this.getVerticalScrollbarWidth()
+
+    return (
+      this.getContentHeight() > clientHeightWithHorizontalScrollbar &&
+      this.getContentWidth() > clientWidthWithVerticalScrollbar
+    )
   }
 
   getScrollHeight () {
@@ -1489,6 +1625,14 @@ class TextEditorComponent {
 
   getLineNumberGutterWidth () {
     return this.measurements.lineNumberGutterWidth
+  }
+
+  getVerticalScrollbarWidth () {
+    return this.measurements.verticalScrollbarWidth
+  }
+
+  getHorizontalScrollbarHeight () {
+    return this.measurements.horizontalScrollbarHeight
   }
 
   getRowsPerTile () {
@@ -1616,6 +1760,64 @@ class TextEditorComponent {
       })
     }
     return this.nextUpdatePromise
+  }
+}
+
+class DummyScrollbarComponent {
+  constructor (props) {
+    this.props = props
+    etch.initialize(this)
+  }
+
+  update (props) {
+    this.props = props
+    etch.updateSync(this)
+  }
+
+  render () {
+    let scrollTop = 0
+    let scrollLeft = 0
+    const outerStyle = {
+      position: 'absolute',
+      contain: 'strict',
+      zIndex: 1
+    }
+    const innerStyle = {}
+    if (this.props.orientation === 'horizontal') {
+      scrollLeft = this.props.scrollLeft || 0
+      let right = (this.props.verticalScrollbarWidth || 0)
+      outerStyle.bottom = 0
+      outerStyle.left = 0
+      outerStyle.right = right + 'px'
+      outerStyle.height = '20px'
+      outerStyle.overflowY = 'hidden'
+      outerStyle.overflowX = this.props.forceScrollbarVisible ? 'scroll' : 'auto'
+      innerStyle.height = '20px'
+      innerStyle.width = (this.props.scrollWidth || 0) + 'px'
+    } else {
+      scrollTop = this.props.scrollTop || 0
+      let bottom = (this.props.horizontalScrollbarHeight || 0)
+      outerStyle.right = 0
+      outerStyle.top = 0
+      outerStyle.bottom = bottom + 'px'
+      outerStyle.width = '20px'
+      outerStyle.overflowX = 'hidden'
+      outerStyle.overflowY = this.props.forceScrollbarVisible ? 'scroll' : 'auto'
+      innerStyle.width = '20px'
+      innerStyle.height = (this.props.scrollHeight || 0) + 'px'
+    }
+
+    return $.div({style: outerStyle, scrollTop, scrollLeft},
+      $.div({style: innerStyle})
+    )
+  }
+
+  getRealScrollbarWidth () {
+    return this.element.offsetWidth - this.element.clientWidth
+  }
+
+  getRealScrollbarHeight () {
+    return this.element.offsetHeight - this.element.clientHeight
   }
 }
 
