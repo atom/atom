@@ -61,6 +61,10 @@ class TextEditor extends Model
   @setClipboard: (clipboard) ->
     @clipboard = clipboard
 
+  @didUpdateScrollbarStyles: ->
+    TextEditorComponent ?= require './text-editor-component'
+    TextEditorComponent.didUpdateScrollbarStyles()
+
   serializationVersion: 1
 
   buffer: null
@@ -3561,7 +3565,7 @@ class TextEditor extends Model
       @component.element
     else
       TextEditorComponent ?= require('./text-editor-component')
-      new TextEditorComponent({model: this})
+      new TextEditorComponent({model: this, styleManager: atom.styles})
       @component.element
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.

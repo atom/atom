@@ -696,6 +696,11 @@ class AtomEnvironment extends Model
           callback = => @applicationDelegate.didSaveWindowState()
           @saveState({isUnloading: true}).catch(callback).then(callback)
 
+        didChangeStyles = @didChangeStyles.bind(this)
+        @disposables.add(@styles.onDidAddStyleElement(didChangeStyles))
+        @disposables.add(@styles.onDidUpdateStyleElement(didChangeStyles))
+        @disposables.add(@styles.onDidRemoveStyleElement(didChangeStyles))
+
         @listenForUpdates()
 
         @registerDefaultTargetForKeymaps()
@@ -797,6 +802,10 @@ class AtomEnvironment extends Model
   uninstallWindowEventHandler: ->
     @windowEventHandler?.unsubscribe()
     @windowEventHandler = null
+
+  didChangeStyles: (styleElement) ->
+    if styleElement.textContent.indexOf('scrollbar') >= 0
+      TextEditor.didUpdateScrollbarStyles()
 
   ###
   Section: Messaging the User
