@@ -17,7 +17,7 @@ KeymapManager::canLoadBundledKeymapsFromMemory = ->
 KeymapManager::loadBundledKeymaps = ->
   if bundledKeymaps?
     for keymapName, keymap of bundledKeymaps
-      keymapPath = "<embedded>/#{keymapName}"
+      keymapPath = "core/#{keymapName}"
       @add(keymapPath, keymap, 0, @devMode ? false)
   else
     keymapsPath = path.join(@resourcePath, 'keymaps')
