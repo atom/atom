@@ -93,7 +93,7 @@ function buildBundledPackagesMetadata () {
       }
     }
 
-    packageNewMetadata.styleSheetsPaths =
+    packageNewMetadata.styleSheetPaths =
       styleSheets.map(styleSheetPath => path.relative(packagePath, styleSheetPath))
 
     packages[packageMetadata.name] = packageNewMetadata

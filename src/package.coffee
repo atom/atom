@@ -358,9 +358,9 @@ class Package
     path.join(@path, 'styles')
 
   getStylesheetPaths: ->
-    if @bundledPackage and @packageManager.packagesCache[@name].styleSheetsPaths?
-      styleSheetsPaths = @packageManager.packagesCache[@name].styleSheetsPaths
-      styleSheetsPaths.map (styleSheetPath) => path.join(@path, styleSheetPath)
+    if @bundledPackage and @packageManager.packagesCache[@name].styleSheetPaths?
+      styleSheetPaths = @packageManager.packagesCache[@name].styleSheetPaths
+      styleSheetPaths.map (styleSheetPath) => path.join(@path, styleSheetPath)
     else
       stylesheetDirPath = @getStylesheetsPath()
       if @metadata.mainStyleSheet
