@@ -407,6 +407,7 @@ class Config
       @configFilePath ?= path.join(@configDirPath, 'config.cson')
 
     @schema.properties.core.properties.projectHome = projectHomeSchema
+    @defaultSettings.core.projectHome = projectHomeSchema.default
 
   clear: ->
     @emitter = new Emitter

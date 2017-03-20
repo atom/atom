@@ -44,8 +44,12 @@ class WindowEventHandler
   # `.native-key-bindings` class.
   handleNativeKeybindings: ->
     bindCommandToAction = (command, action) =>
-      @subscriptions.add @atomEnvironment.commands.addBundled '.native-key-bindings', command, (event) =>
-        @applicationDelegate.getCurrentWindow().webContents[action]()
+      @subscriptions.add @atomEnvironment.commands.add(
+        '.native-key-bindings',
+        command,
+        ((event) => @applicationDelegate.getCurrentWindow().webContents[action]()),
+        false
+      )
 
     bindCommandToAction('core:copy', 'copy')
     bindCommandToAction('core:paste', 'paste')

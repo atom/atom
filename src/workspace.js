@@ -106,6 +106,7 @@ module.exports = class Workspace extends Model {
     this.openers = []
     this.destroyedItemURIs = []
     this.consumeServices(this.packageManager)
+    this.initialize()
   }
 
   subscribeToEvents () {
@@ -515,9 +516,8 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Promise} that resolves to the {TextEditor} for the file URI.
   open (uri_, options = {}) {
-    const { searchAllPanes } = options
-    const { split } = options
     const uri = this.project.resolvePath(uri_)
+    const {searchAllPanes, split} = options
 
     if (!atom.config.get('core.allowPendingPaneItems')) {
       options.pending = false
@@ -530,7 +530,7 @@ module.exports = class Workspace extends Model {
     }
 
     let pane
-    if (searchAllPanes) { pane = this.paneContainer.paneForURI(uri) }
+    if (searchAllPanes) { pane = this.paneForURI(uri) }
     if (pane == null) {
       switch (split) {
         case 'left':
@@ -551,7 +551,16 @@ module.exports = class Workspace extends Model {
       }
     }
 
-    return this.openURIInPane(uri, pane, options)
+    let item
+    if (uri != null) {
+      item = pane.itemForURI(uri)
+    }
+    if (item == null) {
+      item = this.createItemForURI(uri, options)
+    }
+
+    return Promise.resolve(item)
+      .then(item => this.openItem(item, Object.assign({pane, uri}, options)))
   }
 
   // Open Atom's license in the active pane.
@@ -601,26 +610,28 @@ module.exports = class Workspace extends Model {
   }
 
   openURIInPane (uri, pane, options = {}) {
-    const activatePane = options.activatePane != null ? options.activatePane : true
-    const activateItem = options.activateItem != null ? options.activateItem : true
-
     let item
     if (uri != null) {
       item = pane.itemForURI(uri)
-      if (item == null) {
-        for (let opener of this.getOpeners()) {
-          item = opener(uri, options)
-          if (item != null) break
-        }
-      } else if (!options.pending && (pane.getPendingItem() === item)) {
-        pane.clearPendingItem()
+    }
+    if (item == null) {
+      item = this.createItemForURI(uri, options)
+    }
+    return Promise.resolve(item)
+      .then(item => this.openItem(item, Object.assign({pane, uri}, options)))
+  }
+
+  // Returns a {Promise} that resolves to the {TextEditor} (or other item) for the given URI.
+  createItemForURI (uri, options) {
+    if (uri != null) {
+      for (let opener of this.getOpeners()) {
+        const item = opener(uri, options)
+        if (item != null) return Promise.resolve(item)
       }
     }
 
     try {
-      if (item == null) {
-        item = this.openTextFile(uri, options)
-      }
+      return this.openTextFile(uri, options)
     } catch (error) {
       switch (error.code) {
         case 'CANCELLED':
@@ -648,40 +659,46 @@ module.exports = class Workspace extends Model {
           throw error
       }
     }
+  }
 
-    return Promise.resolve(item)
-      .then(item => {
-        let initialColumn
-        if (pane.isDestroyed()) {
-          return item
-        }
+  openItem (item, options = {}) {
+    const {pane} = options
 
-        this.itemOpened(item)
-        if (activateItem) {
-          pane.activateItem(item, {pending: options.pending})
-        }
-        if (activatePane) {
-          pane.activate()
-        }
+    if (item == null) return undefined
+    if (pane.isDestroyed()) return item
 
-        let initialLine = initialColumn = 0
-        if (!Number.isNaN(options.initialLine)) {
-          initialLine = options.initialLine
-        }
-        if (!Number.isNaN(options.initialColumn)) {
-          initialColumn = options.initialColumn
-        }
-        if ((initialLine >= 0) || (initialColumn >= 0)) {
-          if (typeof item.setCursorBufferPosition === 'function') {
-            item.setCursorBufferPosition([initialLine, initialColumn])
-          }
-        }
+    if (!options.pending && (pane.getPendingItem() === item)) {
+      pane.clearPendingItem()
+    }
 
-        const index = pane.getActiveItemIndex()
-        this.emitter.emit('did-open', {uri, pane, item, index})
-        return item
+    const activatePane = options.activatePane != null ? options.activatePane : true
+    const activateItem = options.activateItem != null ? options.activateItem : true
+    this.itemOpened(item)
+    if (activateItem) {
+      pane.activateItem(item, {pending: options.pending})
+    }
+    if (activatePane) {
+      pane.activate()
+    }
+
+    let initialColumn = 0
+    let initialLine = 0
+    if (!Number.isNaN(options.initialLine)) {
+      initialLine = options.initialLine
+    }
+    if (!Number.isNaN(options.initialColumn)) {
+      initialColumn = options.initialColumn
+    }
+    if ((initialLine >= 0) || (initialColumn >= 0)) {
+      if (typeof item.setCursorBufferPosition === 'function') {
+        item.setCursorBufferPosition([initialLine, initialColumn])
       }
-    )
+    }
+
+    const index = pane.getActiveItemIndex()
+    const uri = options.uri == null && typeof item.getURI === 'function' ? item.getURI() : options.uri
+    this.emitter.emit('did-open', {uri, pane, item, index})
+    return item
   }
 
   openTextFile (uri, options) {
@@ -1190,6 +1207,10 @@ module.exports = class Workspace extends Model {
   //   * `paths` An {Array} of glob patterns to search within.
   //   * `onPathsSearched` (optional) {Function} to be periodically called
   //     with number of paths searched.
+  //   * `leadingContextLineCount` {Number} default `0`; The number of lines
+  //      before the matched line to include in the results object.
+  //   * `trailingContextLineCount` {Number} default `0`; The number of lines
+  //      after the matched line to include in the results object.
   // * `iterator` {Function} callback on each file found.
   //
   // Returns a {Promise} with a `cancel()` method that will cancel all
@@ -1249,6 +1270,8 @@ module.exports = class Workspace extends Model {
         excludeVcsIgnores: this.config.get('core.excludeVcsIgnoredPaths'),
         exclusions: this.config.get('core.ignoredNames'),
         follow: this.config.get('core.followSymlinks'),
+        leadingContextLineCount: options.leadingContextLineCount || 0,
+        trailingContextLineCount: options.trailingContextLineCount || 0,
         didMatch: result => {
           if (!this.project.isPathModified(result.filePath)) {
             return iterator(result)

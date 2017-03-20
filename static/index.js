@@ -38,7 +38,10 @@
       } else if (useSnapshot) {
         Module.prototype.require = function (module) {
           const absoluteFilePath = Module._resolveFilename(module, this, false)
-          const relativeFilePath = path.relative(entryPointDirPath, absoluteFilePath)
+          let relativeFilePath = path.relative(entryPointDirPath, absoluteFilePath)
+          if (process.platform === 'win32') {
+            relativeFilePath = relativeFilePath.replace(/\\/g, '/')
+          }
           let cachedModule = snapshotResult.customRequire.cache[relativeFilePath] // eslint-disable-line no-undef
           if (!cachedModule) {
             cachedModule = {exports: Module._load(module, this, false)}
@@ -87,7 +90,7 @@
   function setupWindow () {
     const CompileCache = useSnapshot ? snapshotResult.customRequire('../src/compile-cache.js') : require('../src/compile-cache') // eslint-disable-line no-undef
     CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
-    CompileCache.install(require)
+    CompileCache.install(process.resourcesPath, require)
 
     const ModuleCache = useSnapshot ? snapshotResult.customRequire('../src/module-cache.js') : require('../src/module-cache') // eslint-disable-line no-undef
     ModuleCache.register(getWindowLoadSettings())

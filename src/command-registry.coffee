@@ -94,6 +94,7 @@ class CommandRegistry
   add: (target, commandName, callback, throwOnInvalidSelector = true) ->
     if typeof commandName is 'object'
       commands = commandName
+      throwOnInvalidSelector = callback
       disposable = new CompositeDisposable
       for commandName, callback of commands
         disposable.add @add(target, commandName, callback, throwOnInvalidSelector)
@@ -107,9 +108,6 @@ class CommandRegistry
       @addSelectorBasedListener(target, commandName, callback)
     else
       @addInlineListener(target, commandName, callback)
-
-  addBundled: (target, commandName, callback) ->
-    @add(target, commandName, callback, false)
 
   addSelectorBasedListener: (selector, commandName, callback) ->
     @selectorBasedListenersByCommandName[commandName] ?= []
