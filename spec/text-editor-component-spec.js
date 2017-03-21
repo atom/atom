@@ -38,8 +38,7 @@ describe('TextEditorComponent', () => {
       expect(element.querySelectorAll('.line-number').length).toBe(9)
       expect(element.querySelectorAll('.line').length).toBe(9)
 
-      component.setScrollTop(5 * component.getLineHeight())
-      await component.getNextUpdatePromise()
+      await setScrollTop(component, 5 * component.getLineHeight())
 
       // After scrolling down beyond > 3 rows, the order of line numbers and lines
       // in the DOM is a bit weird because the first tile is recycled to the bottom
@@ -59,8 +58,7 @@ describe('TextEditorComponent', () => {
         editor.lineTextForScreenRow(8)
       ])
 
-      component.setScrollTop(2.5 * component.getLineHeight())
-      await component.getNextUpdatePromise()
+      await setScrollTop(component, 2.5 * component.getLineHeight())
       expect(Array.from(element.querySelectorAll('.line-number')).map(element => element.textContent.trim())).toEqual([
         '1', '2', '3', '4', '5', '6', '7', '8', '9'
       ])
@@ -95,8 +93,7 @@ describe('TextEditorComponent', () => {
       await setEditorHeightInLines(component, 6)
 
       // scroll to end
-      component.setScrollTop(scrollContainer.scrollHeight - scrollContainer.clientHeight)
-      await component.getNextUpdatePromise()
+      await setScrollTop(component, scrollContainer.scrollHeight - scrollContainer.clientHeight)
       expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() - 3)
 
       editor.update({scrollPastEnd: false})
@@ -106,8 +103,7 @@ describe('TextEditorComponent', () => {
       // Always allows at least 3 lines worth of overscroll if the editor is short
       await setEditorHeightInLines(component, 2)
       await editor.update({scrollPastEnd: true})
-      component.setScrollTop(scrollContainer.scrollHeight - scrollContainer.clientHeight)
-      await component.getNextUpdatePromise()
+      await setScrollTop(component, scrollContainer.scrollHeight - scrollContainer.clientHeight)
       expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() + 1)
     })
 
@@ -125,10 +121,73 @@ describe('TextEditorComponent', () => {
       expect(gutterElement.firstChild.style.contain).toBe('strict')
     })
 
+    it('renders dummy vertical and horizontal scrollbars when content overflows', async () => {
+      const {component, element, editor} = buildComponent({height: 100, width: 100})
+      const verticalScrollbar = component.refs.verticalScrollbar.element
+      const horizontalScrollbar = component.refs.horizontalScrollbar.element
+      expect(verticalScrollbar.scrollHeight).toBe(component.getContentHeight())
+      expect(horizontalScrollbar.scrollWidth).toBe(component.getContentWidth())
+      expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(0)
+      expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(0)
+      expect(verticalScrollbar.style.bottom).toBe(getVerticalScrollbarWidth(component) + 'px')
+      expect(horizontalScrollbar.style.right).toBe(getHorizontalScrollbarHeight(component) + 'px')
+      expect(component.refs.scrollbarCorner).toBeDefined()
+
+      setScrollTop(component, 100)
+      await setScrollLeft(component, 100)
+      expect(verticalScrollbar.scrollTop).toBe(100)
+      expect(horizontalScrollbar.scrollLeft).toBe(100)
+
+      verticalScrollbar.scrollTop = 120
+      horizontalScrollbar.scrollLeft = 120
+      await component.getNextUpdatePromise()
+      expect(component.getScrollTop()).toBe(120)
+      expect(component.getScrollLeft()).toBe(120)
+
+      editor.setText('a\n'.repeat(15))
+      await component.getNextUpdatePromise()
+      expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(0)
+      expect(getHorizontalScrollbarHeight(component)).toBe(0)
+      expect(verticalScrollbar.style.bottom).toBe('0px')
+      expect(component.refs.scrollbarCorner).toBeUndefined()
+
+      editor.setText('a'.repeat(100))
+      await component.getNextUpdatePromise()
+      expect(getVerticalScrollbarWidth(component)).toBe(0)
+      expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(0)
+      expect(horizontalScrollbar.style.right).toBe('0px')
+      expect(component.refs.scrollbarCorner).toBeUndefined()
+
+      editor.setText('')
+      await component.getNextUpdatePromise()
+      expect(getVerticalScrollbarWidth(component)).toBe(0)
+      expect(getHorizontalScrollbarHeight(component)).toBe(0)
+      expect(component.refs.scrollbarCorner).toBeUndefined()
+    })
+
+    it('updates the bottom/right of dummy scrollbars and client height/width measurements when scrollbar styles change', async () => {
+      const {component, element, editor} = buildComponent({height: 100, width: 100})
+      expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(10)
+      expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(10)
+
+      const style = document.createElement('style')
+      style.textContent = '::-webkit-scrollbar { height: 10px; width: 10px; }'
+      jasmine.attachToDOM(style)
+
+      TextEditor.didUpdateScrollbarStyles()
+      await component.getNextUpdatePromise()
+
+      expect(getHorizontalScrollbarHeight(component)).toBe(10)
+      expect(getVerticalScrollbarWidth(component)).toBe(10)
+      expect(component.refs.horizontalScrollbar.element.style.right).toBe('10px')
+      expect(component.refs.verticalScrollbar.element.style.bottom).toBe('10px')
+      expect(component.getScrollContainerClientHeight()).toBe(100 - 10)
+      expect(component.getScrollContainerClientWidth()).toBe(100 - component.getGutterContainerWidth() - 10)
+    })
+
     it('renders cursors within the visible row range', async () => {
       const {component, element, editor} = buildComponent({height: 40, rowsPerTile: 2})
-      component.setScrollTop(100)
-      await component.getNextUpdatePromise()
+      await setScrollTop(component, 100)
 
       expect(component.getRenderedStartRow()).toBe(4)
       expect(component.getRenderedEndRow()).toBe(10)
@@ -171,9 +230,8 @@ describe('TextEditorComponent', () => {
     it('places the hidden input element at the location of the last cursor if it is visible', async () => {
       const {component, element, editor} = buildComponent({height: 60, width: 120, rowsPerTile: 2})
       const {hiddenInput} = component.refs
-      component.setScrollTop(100)
-      component.setScrollLeft(40)
-      await component.getNextUpdatePromise()
+      setScrollTop(component, 100)
+      await setScrollLeft(component, 40)
 
       expect(component.getRenderedStartRow()).toBe(4)
       expect(component.getRenderedEndRow()).toBe(12)
@@ -718,8 +776,7 @@ describe('TextEditorComponent', () => {
       )
 
       // Don't flash on next update if another flash wasn't requested
-      component.setScrollTop(100)
-      await component.getNextUpdatePromise()
+      await setScrollTop(component, 100)
       expect(highlights[0].classList.contains('b')).toBe(false)
       expect(highlights[1].classList.contains('b')).toBe(false)
 
@@ -1184,9 +1241,8 @@ describe('TextEditorComponent', () => {
 
         const maxScrollTop = component.getMaxScrollTop()
         const maxScrollLeft = component.getMaxScrollLeft()
-        component.setScrollTop(maxScrollTop)
-        component.setScrollLeft(maxScrollLeft)
-        await component.getNextUpdatePromise()
+        setScrollTop(component, maxScrollTop)
+        await setScrollLeft(component, maxScrollLeft)
 
         didDrag({clientX: 199, clientY: 199})
         didDrag({clientX: 199, clientY: 199})
@@ -1413,9 +1469,8 @@ describe('TextEditorComponent', () => {
 
         const maxScrollTop = component.getMaxScrollTop()
         const maxScrollLeft = component.getMaxScrollLeft()
-        component.setScrollTop(maxScrollTop)
-        component.setScrollLeft(maxScrollLeft)
-        await component.getNextUpdatePromise()
+        setScrollTop(component, maxScrollTop)
+        await setScrollLeft(component, maxScrollLeft)
 
         didDrag({clientX: 199, clientY: 199})
         didDrag({clientX: 199, clientY: 199})
@@ -1516,6 +1571,28 @@ function lineNodeForScreenRow (component, row) {
 function textNodesForScreenRow (component, row) {
   const screenLine = component.renderedScreenLineForRow(row)
   return component.textNodesByScreenLineId.get(screenLine.id)
+}
+
+function setScrollTop (component, scrollTop) {
+  component.setScrollTop(scrollTop)
+  component.scheduleUpdate()
+  return component.getNextUpdatePromise()
+}
+
+function setScrollLeft (component, scrollTop) {
+  component.setScrollLeft(scrollTop)
+  component.scheduleUpdate()
+  return component.getNextUpdatePromise()
+}
+
+function getHorizontalScrollbarHeight (component) {
+  const element = component.refs.horizontalScrollbar.element
+  return element.offsetHeight - element.clientHeight
+}
+
+function getVerticalScrollbarWidth (component) {
+  const element = component.refs.verticalScrollbar.element
+  return element.offsetWidth - element.clientWidth
 }
 
 function assertDocumentFocused () {
