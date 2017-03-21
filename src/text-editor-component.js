@@ -1581,7 +1581,10 @@ class TextEditorComponent {
   isVerticalScrollbarVisible () {
     return (
       this.getContentHeight() > this.getScrollContainerHeight() ||
-      this.isContentMinimallyOverlappingBothScrollbars()
+      (
+        this.getContentWidth() > this.getScrollContainerWidth() &&
+        this.getContentHeight() > (this.getScrollContainerHeight() - this.getHorizontalScrollbarHeight())
+      )
     )
   }
 
@@ -1590,20 +1593,11 @@ class TextEditorComponent {
       !this.props.model.isSoftWrapped() &&
       (
         this.getContentWidth() > this.getScrollContainerWidth() ||
-        this.isContentMinimallyOverlappingBothScrollbars()
+        (
+          this.getContentHeight() > this.getScrollContainerHeight() &&
+          this.getContentWidth() > (this.getScrollContainerWidth() - this.getVerticalScrollbarWidth())
+        )
       )
-    )
-  }
-
-  isContentMinimallyOverlappingBothScrollbars () {
-    const clientHeightWithHorizontalScrollbar =
-      this.getScrollContainerHeight() - this.getHorizontalScrollbarHeight()
-    const clientWidthWithVerticalScrollbar =
-      this.getScrollContainerWidth() - this.getVerticalScrollbarWidth()
-
-    return (
-      this.getContentHeight() > clientHeightWithHorizontalScrollbar &&
-      this.getContentWidth() > clientWidthWithVerticalScrollbar
     )
   }
 

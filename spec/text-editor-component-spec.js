@@ -163,6 +163,31 @@ describe('TextEditorComponent', () => {
       expect(getVerticalScrollbarWidth(component)).toBe(0)
       expect(getHorizontalScrollbarHeight(component)).toBe(0)
       expect(component.refs.scrollbarCorner).toBeUndefined()
+
+      editor.setText(SAMPLE_TEXT)
+      await component.getNextUpdatePromise()
+
+      // Does not show scrollbars if the content perfectly fits
+      element.style.width = component.getGutterContainerWidth() + component.getContentWidth() + 'px'
+      element.style.height = component.getContentHeight() + 'px'
+      await component.getNextUpdatePromise()
+      expect(getVerticalScrollbarWidth(component)).toBe(0)
+      expect(getHorizontalScrollbarHeight(component)).toBe(0)
+
+      // Shows scrollbars if the only reason we overflow is the presence of the
+      // scrollbar for the opposite axis.
+      element.style.width = component.getGutterContainerWidth() + component.getContentWidth() - 1 + 'px'
+      element.style.height = component.getContentHeight() + component.getHorizontalScrollbarHeight() - 1 + 'px'
+      await component.getNextUpdatePromise()
+      expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(0)
+      expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(0)
+
+      element.style.width = component.getGutterContainerWidth() + component.getContentWidth() + component.getVerticalScrollbarWidth() - 1 + 'px'
+      element.style.height = component.getContentHeight() - 1 + 'px'
+      await component.getNextUpdatePromise()
+      expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(0)
+      expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(0)
+
     })
 
     it('updates the bottom/right of dummy scrollbars and client height/width measurements when scrollbar styles change', async () => {
