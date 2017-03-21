@@ -3,6 +3,7 @@ FirstMate = require 'first-mate'
 Token = require './token'
 fs = require 'fs-plus'
 Grim = require 'grim'
+path = require 'path'
 
 # Extended: Syntax class holding the grammars used for tokenizing.
 #
@@ -53,10 +54,9 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
 
   getGrammarPathScore: (grammar, filePath) ->
     return -1 unless filePath
-    filePath = filePath.replace(/\\/g, '/') if process.platform is 'win32'
 
-    pathComponents = filePath.toLowerCase().split('/')
-    pathComponents = pathComponents.concat(pathComponents.pop().split('.'))
+    pathComponents = filePath.toLowerCase().split(path.sep)
+    pathComponents.push(pathComponents.pop().split('.')...)
     pathScore = -1
 
     fileTypes = grammar.fileTypes
