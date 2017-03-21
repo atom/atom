@@ -125,22 +125,22 @@ describe('Workspace', () => {
       })
 
       it('constructs the view with the same panes', () => {
-        const getActivePane = () => atom.workspace.getRightDock().getActivePane()
+        const getRightDockActivePane = () => atom.workspace.getRightDock().getActivePane()
         const pane1 = atom.workspace.getRightDock().getActivePane()
         const pane2 = pane1.splitRight({copyActiveItem: true})
         const pane3 = pane2.splitRight({copyActiveItem: true})
         let pane4 = null
 
         waitsForPromise(() =>
-          atom.workspace.open(null, {pane: getActivePane()}).then(editor => editor.setText('An untitled editor.'))
+          atom.workspace.open(null, {pane: getRightDockActivePane()}).then(editor => editor.setText('An untitled editor.'))
         )
 
         waitsForPromise(() =>
-          atom.workspace.open('b', {pane: getActivePane()}).then(editor => pane2.activateItem(editor.copy()))
+          atom.workspace.open('b', {pane: getRightDockActivePane()}).then(editor => pane2.activateItem(editor.copy()))
         )
 
         waitsForPromise(() =>
-          atom.workspace.open('../sample.js', {pane: getActivePane()}).then(editor => pane3.activateItem(editor))
+          atom.workspace.open('../sample.js', {pane: getRightDockActivePane()}).then(editor => pane3.activateItem(editor))
         )
 
         runs(() => {
@@ -149,7 +149,7 @@ describe('Workspace', () => {
         })
 
         waitsForPromise(() =>
-          atom.workspace.open('../sample.txt', {pane: getActivePane()}).then(editor => pane4.activateItem(editor))
+          atom.workspace.open('../sample.txt', {pane: getRightDockActivePane()}).then(editor => pane4.activateItem(editor))
         )
 
         runs(() => {
