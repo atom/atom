@@ -1504,6 +1504,49 @@ describe('TextEditorComponent', () => {
         expect(component.getScrollLeft()).toBe(maxScrollLeft)
       })
     })
+
+    describe('on the scrollbars', () => {
+      it('delegates the mousedown events to the parent component unless the mousedown was on the actual scrollbar', () => {
+        const {component, element, editor} = buildComponent({height: 100, width: 100})
+        const verticalScrollbar = component.refs.verticalScrollbar
+        const horizontalScrollbar = component.refs.horizontalScrollbar
+
+        const leftEdgeOfVerticalScrollbar = verticalScrollbar.element.getBoundingClientRect().right - getVerticalScrollbarWidth(component)
+        const topEdgeOfHorizontalScrollbar = horizontalScrollbar.element.getBoundingClientRect().bottom - getHorizontalScrollbarHeight(component)
+
+        verticalScrollbar.didMousedown({
+          button: 0,
+          detail: 1,
+          clientY: clientTopForLine(component, 4),
+          clientX: leftEdgeOfVerticalScrollbar
+        })
+        expect(editor.getCursorScreenPosition()).toEqual([0, 0])
+
+        verticalScrollbar.didMousedown({
+          button: 0,
+          detail: 1,
+          clientY: clientTopForLine(component, 4),
+          clientX: leftEdgeOfVerticalScrollbar - 1
+        })
+        expect(editor.getCursorScreenPosition()).toEqual([4, 6])
+
+        horizontalScrollbar.didMousedown({
+          button: 0,
+          detail: 1,
+          clientY: topEdgeOfHorizontalScrollbar,
+          clientX: component.refs.content.getBoundingClientRect().left
+        })
+        expect(editor.getCursorScreenPosition()).toEqual([4, 6])
+
+        horizontalScrollbar.didMousedown({
+          button: 0,
+          detail: 1,
+          clientY: topEdgeOfHorizontalScrollbar - 1,
+          clientX: component.refs.content.getBoundingClientRect().left
+        })
+        expect(editor.getCursorScreenPosition()).toEqual([4, 0])
+      })
+    })
   })
 })
 

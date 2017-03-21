@@ -56,6 +56,7 @@ class TextEditorComponent {
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
     this.didScrollDummyScrollbar = this.didScrollDummyScrollbar.bind(this)
+    this.didMouseDownOnContent = this.didMouseDownOnContent.bind(this)
     this.scrollbarsVisible = true
     this.refreshScrollbarStyling = false
     this.pendingAutoscroll = null
@@ -534,12 +535,14 @@ class TextEditorComponent {
           ref: 'verticalScrollbar',
           orientation: 'vertical',
           didScroll: this.didScrollDummyScrollbar,
+          didMousedown: this.didMouseDownOnContent,
           scrollHeight, scrollTop, horizontalScrollbarHeight, forceScrollbarVisible
         }),
         $(DummyScrollbarComponent, {
           ref: 'horizontalScrollbar',
           orientation: 'horizontal',
           didScroll: this.didScrollDummyScrollbar,
+          didMousedown: this.didMouseDownOnContent,
           scrollWidth, scrollLeft, verticalScrollbarWidth, forceScrollbarVisible
         })
       ]
@@ -1825,10 +1828,21 @@ class DummyScrollbarComponent {
         style: outerStyle,
         scrollTop,
         scrollLeft,
-        on: {scroll: this.props.didScroll}
+        on: {
+          scroll: this.props.didScroll,
+          mousedown: this.didMousedown
+        }
       },
       $.div({style: innerStyle})
     )
+  }
+
+  didMousedown (event) {
+    let {bottom, right} = this.element.getBoundingClientRect()
+    const clickedOnScrollbar = (this.props.orientation === 'horizontal')
+      ? event.clientY >= (bottom - this.getRealScrollbarHeight())
+      : event.clientX >= (right - this.getRealScrollbarWidth())
+    if (!clickedOnScrollbar) this.props.didMousedown(event)
   }
 
   getRealScrollbarWidth () {
