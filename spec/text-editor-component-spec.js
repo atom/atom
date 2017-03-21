@@ -359,7 +359,7 @@ describe('TextEditorComponent', () => {
     })
   })
 
-  describe('autoscroll on cursor movement', () => {
+  describe('autoscroll', () => {
     it('automatically scrolls vertically when the requested range is within the vertical scroll margin of the top or bottom', async () => {
       const {component, editor} = buildComponent({height: 120})
       expect(component.getLastVisibleRow()).toBe(8)
