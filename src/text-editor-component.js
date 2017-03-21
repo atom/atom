@@ -1783,16 +1783,26 @@ class DummyScrollbarComponent {
   constructor (props) {
     this.props = props
     etch.initialize(this)
+    this.updateScrollPosition()
   }
 
   update (props) {
     this.props = props
     etch.updateSync(this)
+    this.updateScrollPosition()
+  }
+
+  // Scroll position must be updated after the inner element is updated to
+  // ensure the element has an adequate scrollHeight/scrollWidth
+  updateScrollPosition () {
+    if (this.props.orientation === 'horizontal') {
+      this.element.scrollLeft = this.props.scrollLeft
+    } else {
+      this.element.scrollTop = this.props.scrollTop
+    }
   }
 
   render () {
-    let scrollTop = 0
-    let scrollLeft = 0
     const outerStyle = {
       position: 'absolute',
       contain: 'strict',
@@ -1800,7 +1810,6 @@ class DummyScrollbarComponent {
     }
     const innerStyle = {}
     if (this.props.orientation === 'horizontal') {
-      scrollLeft = this.props.scrollLeft || 0
       let right = (this.props.verticalScrollbarWidth || 0)
       outerStyle.bottom = 0
       outerStyle.left = 0
@@ -1811,7 +1820,6 @@ class DummyScrollbarComponent {
       innerStyle.height = '20px'
       innerStyle.width = (this.props.scrollWidth || 0) + 'px'
     } else {
-      scrollTop = this.props.scrollTop || 0
       let bottom = (this.props.horizontalScrollbarHeight || 0)
       outerStyle.right = 0
       outerStyle.top = 0
@@ -1826,8 +1834,6 @@ class DummyScrollbarComponent {
     return $.div(
       {
         style: outerStyle,
-        scrollTop,
-        scrollLeft,
         on: {
           scroll: this.props.didScroll,
           mousedown: this.didMousedown
