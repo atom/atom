@@ -2,6 +2,12 @@ PaneContainer = require '../src/pane-container'
 PaneAxisElement = require '../src/pane-axis-element'
 PaneAxis = require '../src/pane-axis'
 
+params =
+  config: atom.config
+  confirm: atom.confirm.bind(atom)
+  viewRegistry: atom.views
+  applicationDelegate: atom.applicationDelegate
+
 describe "PaneContainerElement", ->
   describe "when panes are added or removed", ->
     it "inserts or removes resize elements", ->
@@ -42,7 +48,7 @@ describe "PaneContainerElement", ->
       ]
 
     it "transfers focus to the next pane if a focused pane is removed", ->
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+      container = new PaneContainer(params)
       containerElement = atom.views.getView(container)
       leftPane = container.getActivePane()
       leftPaneElement = atom.views.getView(leftPane)
@@ -58,7 +64,7 @@ describe "PaneContainerElement", ->
 
   describe "when a pane is split", ->
     it "builds appropriately-oriented atom-pane-axis elements", ->
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+      container = new PaneContainer(params)
       containerElement = atom.views.getView(container)
 
       pane1 = container.getActivePane()
@@ -84,7 +90,7 @@ describe "PaneContainerElement", ->
     [container, containerElement] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+      container = new PaneContainer(params)
       containerElement = atom.views.getView(container)
       document.querySelector('#jasmine-content').appendChild(containerElement)
 
@@ -201,7 +207,7 @@ describe "PaneContainerElement", ->
     [leftPane, rightPane] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+      container = new PaneContainer(params)
       leftPane = container.getActivePane()
       rightPane = leftPane.splitRight()
 
@@ -258,7 +264,7 @@ describe "PaneContainerElement", ->
           element.cloneNode(true)
         element
 
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+      container = new PaneContainer(params)
 
       [item1, item2, item3, item4, item5, item6, item7, item8, item9] =
         [buildElement('1'), buildElement('2'), buildElement('3'),

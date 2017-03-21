@@ -56,7 +56,8 @@ module.exports = class Workspace extends Model {
       config: this.config,
       applicationDelegate: this.applicationDelegate,
       notificationManager: this.notificationManager,
-      deserializerManager: this.deserializerManager
+      deserializerManager: this.deserializerManager,
+      viewRegistry: this.viewRegistry
     })
     this.paneContainer.onDidDestroyPaneItem(this.didDestroyPaneItem)
 
@@ -108,7 +109,8 @@ module.exports = class Workspace extends Model {
       config: this.config,
       applicationDelegate: this.applicationDelegate,
       notificationManager: this.notificationManager,
-      deserializerManager: this.deserializerManager
+      deserializerManager: this.deserializerManager,
+      viewRegistry: this.viewRegistry
     })
     this.paneContainer.onDidDestroyPaneItem(this.didDestroyPaneItem)
 

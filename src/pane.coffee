@@ -4,6 +4,7 @@ Grim = require 'grim'
 Model = require './model'
 PaneAxis = require './pane-axis'
 TextEditor = require './text-editor'
+PaneElement = require './pane-element'
 
 # Extended: A container for presenting content in the center of the workspace.
 # Panes can contain multiple items, one of which is *active* at a given time.
@@ -20,7 +21,7 @@ class Pane extends Model
   activeItem: undefined
   focused: false
 
-  @deserialize: (state, {deserializers, applicationDelegate, config, notifications}) ->
+  @deserialize: (state, {deserializers, applicationDelegate, config, notifications, views}) ->
     {items, activeItemIndex, activeItemURI, activeItemUri} = state
     activeItemURI ?= activeItemUri
     items = items.map (itemState) -> deserializers.deserialize(itemState)
@@ -34,6 +35,7 @@ class Pane extends Model
     new Pane(extend(state, {
       deserializerManager: deserializers,
       notificationManager: notifications,
+      viewRegistry: views,
       config, applicationDelegate
     }))
 
@@ -42,7 +44,7 @@ class Pane extends Model
 
     {
       @activeItem, @focused, @applicationDelegate, @notificationManager, @config,
-      @deserializerManager
+      @deserializerManager, @viewRegistry
     } = params
 
     @emitter = new Emitter
@@ -54,6 +56,9 @@ class Pane extends Model
     @setActiveItem(@items[0]) unless @getActiveItem()?
     @addItemsToStack(params?.itemStackIndices ? [])
     @setFlexScale(params?.flexScale ? 1)
+
+  getElement: ->
+    @element ?= new PaneElement().initialize(this, {views: @viewRegistry, @applicationDelegate})
 
   serialize: ->
     itemsToBeSerialized = compact(@items.map((item) -> item if typeof item.serialize is 'function'))
@@ -819,7 +824,7 @@ class Pane extends Model
       @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}))
       @setFlexScale(1)
 
-    newPane = new Pane(extend({@applicationDelegate, @notificationManager, @deserializerManager, @config}, params))
+    newPane = new Pane(extend({@applicationDelegate, @notificationManager, @deserializerManager, @config, @viewRegistry}, params))
     switch side
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)

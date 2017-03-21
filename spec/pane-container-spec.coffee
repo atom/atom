@@ -9,7 +9,8 @@ describe "PaneContainer", ->
     params = {
       config: atom.config,
       deserializerManager: atom.deserializers
-      applicationDelegate: atom.applicationDelegate
+      applicationDelegate: atom.applicationDelegate,
+      viewRegistry: atom.views
     }
 
   describe "serialization", ->

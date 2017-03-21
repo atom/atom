@@ -22,7 +22,7 @@ class PanelContainerElement extends HTMLElement {
 
     // Add the dock.
     if (this.model.dock != null) {
-      this.appendChild(this.views.getView(this.model.dock))
+      this.appendChild(this.model.dock.getElement())
     }
 
     return this

@@ -3,6 +3,7 @@
 Model = require './model'
 Pane = require './pane'
 ItemRegistry = require './item-registry'
+PaneContainerElement = require './pane-container-element'
 
 module.exports =
 class PaneContainer extends Model
@@ -14,15 +15,18 @@ class PaneContainer extends Model
   constructor: (params) ->
     super
 
-    {@config, applicationDelegate, notificationManager, deserializerManager} = params
+    {@config, applicationDelegate, notificationManager, deserializerManager, @viewRegistry} = params
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
     @itemRegistry = new ItemRegistry
 
-    @setRoot(new Pane({container: this, @config, applicationDelegate, notificationManager, deserializerManager}))
+    @setRoot(new Pane({container: this, @config, applicationDelegate, notificationManager, deserializerManager, @viewRegistry}))
     @setActivePane(@getRoot())
     @monitorActivePaneItem()
     @monitorPaneItems()
+
+  getElement: ->
+    @element ?= new PaneContainerElement().initialize(this, {views: @viewRegistry})
 
   serialize: (params) ->
     deserializer: 'PaneContainer'

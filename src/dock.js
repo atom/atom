@@ -37,7 +37,7 @@ module.exports = class Dock {
       applicationDelegate: this.applicationDelegate,
       deserializerManager: this.deserializerManager,
       notificationManager: this.notificationManager,
-      views: this.viewRegistry
+      viewRegistry: this.viewRegistry
     })
 
     this.state = {
@@ -53,13 +53,11 @@ module.exports = class Dock {
         pane.onDidRemoveItem(this.handleDidRemovePaneItem.bind(this))
       })
     )
+
+    this.render(this.state)
   }
 
-  // FIXME(matthewwithanm: This is kinda gross. We need to get a view for the pane container so we
-  // have to make sure that this is called after its view provider is registered. But we really
-  // don't have any guarantees about that.
   getElement () {
-    this.render(this.state)
     return this.element
   }
 
@@ -151,12 +149,12 @@ module.exports = class Dock {
       this.element.appendChild(this.innerElement)
       this.innerElement.appendChild(this.maskElement)
       this.maskElement.appendChild(this.wrapperElement)
-      this.wrapperElement.appendChild(this.viewRegistry.getView(this.resizeHandle))
-      this.wrapperElement.appendChild(this.viewRegistry.getView(this.paneContainer))
+      this.wrapperElement.appendChild(this.resizeHandle.getElement())
+      this.wrapperElement.appendChild(this.paneContainer.getElement())
       this.wrapperElement.appendChild(this.cursorOverlayElement)
       // The toggle button must be rendered outside the mask because (1) it shouldn't be masked and
       // (2) if we made the mask larger to avoid masking it, the mask would block mouse events.
-      this.innerElement.appendChild(this.viewRegistry.getView(this.toggleButton))
+      this.innerElement.appendChild(this.toggleButton.getElement())
     }
 
     if (state.open) {
@@ -425,6 +423,10 @@ class DockResizeHandle {
     this.update(props)
   }
 
+  getElement () {
+    return this.element
+  }
+
   update (newProps) {
     this.props = Object.assign({}, this.props, newProps)
 
@@ -471,6 +473,10 @@ class DockToggleButton {
 
     this.props = props
     this.update(props)
+  }
+
+  getElement () {
+    return this.element
   }
 
   destroy () {
