@@ -64,8 +64,8 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
       fileTypes = fileTypes.concat(customFileTypes)
 
     for fileType, i in fileTypes
-      fileTypeComponents = fileType.toLowerCase().split('/')
-      fileTypeComponents = fileTypeComponents.concat(fileTypeComponents.pop().split('.'))
+      fileTypeComponents = fileType.toLowerCase().split('/') # All filetypes should be using POSIX path separators
+      fileTypeComponents.push(fileTypeComponents.pop().split('.')...)
       pathSuffix = pathComponents[-fileTypeComponents.length..-1]
       if _.isEqual(pathSuffix, fileTypeComponents)
         pathScore = Math.max(pathScore, fileType.length)
