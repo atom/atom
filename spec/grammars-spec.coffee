@@ -52,15 +52,16 @@ describe "the `grammars` global", ->
         expect(atom.grammars.selectGrammar(path.win32.join('something', '.git', 'config')).scopeName).toBe 'source.git-config'
 
     it "can use the filePath to load the correct grammar based on the grammar's filetype", ->
-      waitsForPromise ->
-        atom.packages.activatePackage('language-git')
+      expect(atom.grammars.selectGrammar("file.js").name).toBe "JavaScript" # based on extension (.js)
+      expect(atom.grammars.selectGrammar(path.join(temp.dir, '.git', 'config')).name).toBe "Git Config" # based on end of the path (.git/config)
+      expect(atom.grammars.selectGrammar("Rakefile").name).toBe "Ruby" # based on the file's basename (Rakefile)
+      expect(atom.grammars.selectGrammar("curb").name).toBe "Null Grammar"
+      expect(atom.grammars.selectGrammar(path.join('hu.git', 'config')).name).toBe "Null Grammar"
 
-      runs ->
-        expect(atom.grammars.selectGrammar("file.js").name).toBe "JavaScript" # based on extension (.js)
-        expect(atom.grammars.selectGrammar(path.join(temp.dir, '.git', 'config')).name).toBe "Git Config" # based on end of the path (.git/config)
-        expect(atom.grammars.selectGrammar("Rakefile").name).toBe "Ruby" # based on the file's basename (Rakefile)
-        expect(atom.grammars.selectGrammar("curb").name).toBe "Null Grammar"
-        expect(atom.grammars.selectGrammar(path.join('hu.git', 'config')).name).toBe "Null Grammar"
+    it "does not treat a period in a directory as a separate path component", ->
+      atom.config.set('core.customFileTypes', 'source.git-config': ['git/config'])
+      expect(atom.grammars.selectGrammar(path.join('hu.git', 'config')).name).toBe "Null Grammar"
+      expect(atom.grammars.selectGrammar(path.join('something', 'git', 'config')).name).toBe "Git Config"
 
     it "uses the filePath's shebang line if the grammar cannot be determined by the extension or basename", ->
       filePath = require.resolve("./fixtures/shebang")
