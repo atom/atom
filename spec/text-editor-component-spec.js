@@ -26,238 +26,240 @@ describe('TextEditorComponent', () => {
     jasmine.useRealClock()
   })
 
-  it('renders lines and line numbers for the visible region', async () => {
-    const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
+  describe('rendering', () => {
+    it('renders lines and line numbers for the visible region', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
 
-    expect(element.querySelectorAll('.line-number').length).toBe(13)
-    expect(element.querySelectorAll('.line').length).toBe(13)
+      expect(element.querySelectorAll('.line-number').length).toBe(13)
+      expect(element.querySelectorAll('.line').length).toBe(13)
 
-    element.style.height = 4 * component.measurements.lineHeight + 'px'
-    await component.getNextUpdatePromise()
-    expect(element.querySelectorAll('.line-number').length).toBe(9)
-    expect(element.querySelectorAll('.line').length).toBe(9)
+      element.style.height = 4 * component.measurements.lineHeight + 'px'
+      await component.getNextUpdatePromise()
+      expect(element.querySelectorAll('.line-number').length).toBe(9)
+      expect(element.querySelectorAll('.line').length).toBe(9)
 
-    component.setScrollTop(5 * component.getLineHeight())
-    await component.getNextUpdatePromise()
+      component.setScrollTop(5 * component.getLineHeight())
+      await component.getNextUpdatePromise()
 
-    // After scrolling down beyond > 3 rows, the order of line numbers and lines
-    // in the DOM is a bit weird because the first tile is recycled to the bottom
-    // when it is scrolled out of view
-    expect(Array.from(element.querySelectorAll('.line-number')).map(element => element.textContent.trim())).toEqual([
-      '10', '11', '12', '4', '5', '6', '7', '8', '9'
-    ])
-    expect(Array.from(element.querySelectorAll('.line')).map(element => element.textContent)).toEqual([
-      editor.lineTextForScreenRow(9),
-      ' ', // this line is blank in the model, but we render a space to prevent the line from collapsing vertically
-      editor.lineTextForScreenRow(11),
-      editor.lineTextForScreenRow(3),
-      editor.lineTextForScreenRow(4),
-      editor.lineTextForScreenRow(5),
-      editor.lineTextForScreenRow(6),
-      editor.lineTextForScreenRow(7),
-      editor.lineTextForScreenRow(8)
-    ])
+      // After scrolling down beyond > 3 rows, the order of line numbers and lines
+      // in the DOM is a bit weird because the first tile is recycled to the bottom
+      // when it is scrolled out of view
+      expect(Array.from(element.querySelectorAll('.line-number')).map(element => element.textContent.trim())).toEqual([
+        '10', '11', '12', '4', '5', '6', '7', '8', '9'
+      ])
+      expect(Array.from(element.querySelectorAll('.line')).map(element => element.textContent)).toEqual([
+        editor.lineTextForScreenRow(9),
+        ' ', // this line is blank in the model, but we render a space to prevent the line from collapsing vertically
+        editor.lineTextForScreenRow(11),
+        editor.lineTextForScreenRow(3),
+        editor.lineTextForScreenRow(4),
+        editor.lineTextForScreenRow(5),
+        editor.lineTextForScreenRow(6),
+        editor.lineTextForScreenRow(7),
+        editor.lineTextForScreenRow(8)
+      ])
 
-    component.setScrollTop(2.5 * component.getLineHeight())
-    await component.getNextUpdatePromise()
-    expect(Array.from(element.querySelectorAll('.line-number')).map(element => element.textContent.trim())).toEqual([
-      '1', '2', '3', '4', '5', '6', '7', '8', '9'
-    ])
-    expect(Array.from(element.querySelectorAll('.line')).map(element => element.textContent)).toEqual([
-      editor.lineTextForScreenRow(0),
-      editor.lineTextForScreenRow(1),
-      editor.lineTextForScreenRow(2),
-      editor.lineTextForScreenRow(3),
-      editor.lineTextForScreenRow(4),
-      editor.lineTextForScreenRow(5),
-      editor.lineTextForScreenRow(6),
-      editor.lineTextForScreenRow(7),
-      editor.lineTextForScreenRow(8)
-    ])
-  })
+      component.setScrollTop(2.5 * component.getLineHeight())
+      await component.getNextUpdatePromise()
+      expect(Array.from(element.querySelectorAll('.line-number')).map(element => element.textContent.trim())).toEqual([
+        '1', '2', '3', '4', '5', '6', '7', '8', '9'
+      ])
+      expect(Array.from(element.querySelectorAll('.line')).map(element => element.textContent)).toEqual([
+        editor.lineTextForScreenRow(0),
+        editor.lineTextForScreenRow(1),
+        editor.lineTextForScreenRow(2),
+        editor.lineTextForScreenRow(3),
+        editor.lineTextForScreenRow(4),
+        editor.lineTextForScreenRow(5),
+        editor.lineTextForScreenRow(6),
+        editor.lineTextForScreenRow(7),
+        editor.lineTextForScreenRow(8)
+      ])
+    })
 
-  it('bases the width of the lines div on the width of the longest initially-visible screen line', () => {
-    const {component, element, editor} = buildComponent({rowsPerTile: 2, height: 20})
+    it('bases the width of the lines div on the width of the longest initially-visible screen line', () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 2, height: 20})
 
-    expect(editor.getApproximateLongestScreenRow()).toBe(3)
-    const expectedWidth = element.querySelectorAll('.line')[3].offsetWidth
-    expect(element.querySelector('.lines').style.width).toBe(expectedWidth + 'px')
+      expect(editor.getApproximateLongestScreenRow()).toBe(3)
+      const expectedWidth = element.querySelectorAll('.line')[3].offsetWidth
+      expect(element.querySelector('.lines').style.width).toBe(expectedWidth + 'px')
 
-    // TODO: Confirm that we'll update this value as indexing proceeds
-  })
+      // TODO: Confirm that we'll update this value as indexing proceeds
+    })
 
-  it('honors the scrollPastEnd option by adding empty space equivalent to the clientHeight to the end of the content area', async () => {
-    const {component, element, editor} = buildComponent({autoHeight: false, autoWidth: false})
-    const {scrollContainer} = component.refs
+    it('honors the scrollPastEnd option by adding empty space equivalent to the clientHeight to the end of the content area', async () => {
+      const {component, element, editor} = buildComponent({autoHeight: false, autoWidth: false})
+      const {scrollContainer} = component.refs
 
-    await editor.update({scrollPastEnd: true})
-    await setEditorHeightInLines(component, 6)
+      await editor.update({scrollPastEnd: true})
+      await setEditorHeightInLines(component, 6)
 
-    // scroll to end
-    component.setScrollTop(scrollContainer.scrollHeight - scrollContainer.clientHeight)
-    await component.getNextUpdatePromise()
-    expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() - 3)
+      // scroll to end
+      component.setScrollTop(scrollContainer.scrollHeight - scrollContainer.clientHeight)
+      await component.getNextUpdatePromise()
+      expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() - 3)
 
-    editor.update({scrollPastEnd: false})
-    await component.getNextUpdatePromise() // wait for scrollable content resize
-    expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() - 6)
+      editor.update({scrollPastEnd: false})
+      await component.getNextUpdatePromise() // wait for scrollable content resize
+      expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() - 6)
 
-    // Always allows at least 3 lines worth of overscroll if the editor is short
-    await setEditorHeightInLines(component, 2)
-    await editor.update({scrollPastEnd: true})
-    component.setScrollTop(scrollContainer.scrollHeight - scrollContainer.clientHeight)
-    await component.getNextUpdatePromise()
-    expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() + 1)
-  })
+      // Always allows at least 3 lines worth of overscroll if the editor is short
+      await setEditorHeightInLines(component, 2)
+      await editor.update({scrollPastEnd: true})
+      component.setScrollTop(scrollContainer.scrollHeight - scrollContainer.clientHeight)
+      await component.getNextUpdatePromise()
+      expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() + 1)
+    })
 
-  it('gives the line number gutter an explicit width and height so its layout can be strictly contained', () => {
-    const {component, element, editor} = buildComponent({rowsPerTile: 3})
+    it('gives the line number gutter an explicit width and height so its layout can be strictly contained', () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3})
 
-    const gutterElement = element.querySelector('.gutter.line-numbers')
-    expect(gutterElement.style.width).toBe(element.querySelector('.line-number').offsetWidth + 'px')
-    expect(gutterElement.style.height).toBe(editor.getScreenLineCount() * component.measurements.lineHeight + 'px')
-    expect(gutterElement.style.contain).toBe('strict')
+      const gutterElement = element.querySelector('.gutter.line-numbers')
+      expect(gutterElement.style.width).toBe(element.querySelector('.line-number').offsetWidth + 'px')
+      expect(gutterElement.style.height).toBe(editor.getScreenLineCount() * component.measurements.lineHeight + 'px')
+      expect(gutterElement.style.contain).toBe('strict')
 
-    // Tile nodes also have explicit width and height assignment
-    expect(gutterElement.firstChild.style.width).toBe(element.querySelector('.line-number').offsetWidth + 'px')
-    expect(gutterElement.firstChild.style.height).toBe(3 * component.measurements.lineHeight + 'px')
-    expect(gutterElement.firstChild.style.contain).toBe('strict')
-  })
+      // Tile nodes also have explicit width and height assignment
+      expect(gutterElement.firstChild.style.width).toBe(element.querySelector('.line-number').offsetWidth + 'px')
+      expect(gutterElement.firstChild.style.height).toBe(3 * component.measurements.lineHeight + 'px')
+      expect(gutterElement.firstChild.style.contain).toBe('strict')
+    })
 
-  it('renders cursors within the visible row range', async () => {
-    const {component, element, editor} = buildComponent({height: 40, rowsPerTile: 2})
-    component.setScrollTop(100)
-    await component.getNextUpdatePromise()
+    it('renders cursors within the visible row range', async () => {
+      const {component, element, editor} = buildComponent({height: 40, rowsPerTile: 2})
+      component.setScrollTop(100)
+      await component.getNextUpdatePromise()
 
-    expect(component.getRenderedStartRow()).toBe(4)
-    expect(component.getRenderedEndRow()).toBe(10)
+      expect(component.getRenderedStartRow()).toBe(4)
+      expect(component.getRenderedEndRow()).toBe(10)
 
-    editor.setCursorScreenPosition([0, 0], {autoscroll: false}) // out of view
-    editor.addCursorAtScreenPosition([2, 2], {autoscroll: false}) // out of view
-    editor.addCursorAtScreenPosition([4, 0], {autoscroll: false}) // line start
-    editor.addCursorAtScreenPosition([4, 4], {autoscroll: false}) // at token boundary
-    editor.addCursorAtScreenPosition([4, 6], {autoscroll: false}) // within token
-    editor.addCursorAtScreenPosition([5, Infinity], {autoscroll: false}) // line end
-    editor.addCursorAtScreenPosition([10, 2], {autoscroll: false}) // out of view
-    await component.getNextUpdatePromise()
+      editor.setCursorScreenPosition([0, 0], {autoscroll: false}) // out of view
+      editor.addCursorAtScreenPosition([2, 2], {autoscroll: false}) // out of view
+      editor.addCursorAtScreenPosition([4, 0], {autoscroll: false}) // line start
+      editor.addCursorAtScreenPosition([4, 4], {autoscroll: false}) // at token boundary
+      editor.addCursorAtScreenPosition([4, 6], {autoscroll: false}) // within token
+      editor.addCursorAtScreenPosition([5, Infinity], {autoscroll: false}) // line end
+      editor.addCursorAtScreenPosition([10, 2], {autoscroll: false}) // out of view
+      await component.getNextUpdatePromise()
 
-    let cursorNodes = Array.from(element.querySelectorAll('.cursor'))
-    expect(cursorNodes.length).toBe(4)
-    verifyCursorPosition(component, cursorNodes[0], 4, 0)
-    verifyCursorPosition(component, cursorNodes[1], 4, 4)
-    verifyCursorPosition(component, cursorNodes[2], 4, 6)
-    verifyCursorPosition(component, cursorNodes[3], 5, 30)
+      let cursorNodes = Array.from(element.querySelectorAll('.cursor'))
+      expect(cursorNodes.length).toBe(4)
+      verifyCursorPosition(component, cursorNodes[0], 4, 0)
+      verifyCursorPosition(component, cursorNodes[1], 4, 4)
+      verifyCursorPosition(component, cursorNodes[2], 4, 6)
+      verifyCursorPosition(component, cursorNodes[3], 5, 30)
 
-    editor.setCursorScreenPosition([8, 11], {autoscroll: false})
-    await component.getNextUpdatePromise()
+      editor.setCursorScreenPosition([8, 11], {autoscroll: false})
+      await component.getNextUpdatePromise()
 
-    cursorNodes = Array.from(element.querySelectorAll('.cursor'))
-    expect(cursorNodes.length).toBe(1)
-    verifyCursorPosition(component, cursorNodes[0], 8, 11)
+      cursorNodes = Array.from(element.querySelectorAll('.cursor'))
+      expect(cursorNodes.length).toBe(1)
+      verifyCursorPosition(component, cursorNodes[0], 8, 11)
 
-    editor.setCursorScreenPosition([0, 0], {autoscroll: false})
-    await component.getNextUpdatePromise()
+      editor.setCursorScreenPosition([0, 0], {autoscroll: false})
+      await component.getNextUpdatePromise()
 
-    cursorNodes = Array.from(element.querySelectorAll('.cursor'))
-    expect(cursorNodes.length).toBe(0)
+      cursorNodes = Array.from(element.querySelectorAll('.cursor'))
+      expect(cursorNodes.length).toBe(0)
 
-    editor.setSelectedScreenRange([[8, 0], [12, 0]], {autoscroll: false})
-    await component.getNextUpdatePromise()
-    cursorNodes = Array.from(element.querySelectorAll('.cursor'))
-    expect(cursorNodes.length).toBe(0)
-  })
+      editor.setSelectedScreenRange([[8, 0], [12, 0]], {autoscroll: false})
+      await component.getNextUpdatePromise()
+      cursorNodes = Array.from(element.querySelectorAll('.cursor'))
+      expect(cursorNodes.length).toBe(0)
+    })
 
-  it('places the hidden input element at the location of the last cursor if it is visible', async () => {
-    const {component, element, editor} = buildComponent({height: 60, width: 120, rowsPerTile: 2})
-    const {hiddenInput} = component.refs
-    component.setScrollTop(100)
-    component.setScrollLeft(40)
-    await component.getNextUpdatePromise()
+    it('places the hidden input element at the location of the last cursor if it is visible', async () => {
+      const {component, element, editor} = buildComponent({height: 60, width: 120, rowsPerTile: 2})
+      const {hiddenInput} = component.refs
+      component.setScrollTop(100)
+      component.setScrollLeft(40)
+      await component.getNextUpdatePromise()
 
-    expect(component.getRenderedStartRow()).toBe(4)
-    expect(component.getRenderedEndRow()).toBe(12)
+      expect(component.getRenderedStartRow()).toBe(4)
+      expect(component.getRenderedEndRow()).toBe(12)
 
-    // When out of view, the hidden input is positioned at 0, 0
-    expect(editor.getCursorScreenPosition()).toEqual([0, 0])
-    expect(hiddenInput.offsetTop).toBe(0)
-    expect(hiddenInput.offsetLeft).toBe(0)
+      // When out of view, the hidden input is positioned at 0, 0
+      expect(editor.getCursorScreenPosition()).toEqual([0, 0])
+      expect(hiddenInput.offsetTop).toBe(0)
+      expect(hiddenInput.offsetLeft).toBe(0)
 
-    // Otherwise it is positioned at the last cursor position
-    editor.addCursorAtScreenPosition([7, 4])
-    await component.getNextUpdatePromise()
-    expect(hiddenInput.getBoundingClientRect().top).toBe(clientTopForLine(component, 7))
-    expect(Math.round(hiddenInput.getBoundingClientRect().left)).toBe(clientLeftForCharacter(component, 7, 4))
-  })
+      // Otherwise it is positioned at the last cursor position
+      editor.addCursorAtScreenPosition([7, 4])
+      await component.getNextUpdatePromise()
+      expect(hiddenInput.getBoundingClientRect().top).toBe(clientTopForLine(component, 7))
+      expect(Math.round(hiddenInput.getBoundingClientRect().left)).toBe(clientLeftForCharacter(component, 7, 4))
+    })
 
-  it('soft wraps lines based on the content width when soft wrap is enabled', async () => {
-    const {component, element, editor} = buildComponent({width: 435, attach: false})
-    editor.setSoftWrapped(true)
-    jasmine.attachToDOM(element)
+    it('soft wraps lines based on the content width when soft wrap is enabled', async () => {
+      const {component, element, editor} = buildComponent({width: 435, attach: false})
+      editor.setSoftWrapped(true)
+      jasmine.attachToDOM(element)
 
-    expect(getBaseCharacterWidth(component)).toBe(55)
-    expect(lineNodeForScreenRow(component, 3).textContent).toBe(
-      '    var pivot = items.shift(), current, left = [], '
-    )
-    expect(lineNodeForScreenRow(component, 4).textContent).toBe(
-      '    right = [];'
-    )
+      expect(getBaseCharacterWidth(component)).toBe(55)
+      expect(lineNodeForScreenRow(component, 3).textContent).toBe(
+        '    var pivot = items.shift(), current, left = [], '
+      )
+      expect(lineNodeForScreenRow(component, 4).textContent).toBe(
+        '    right = [];'
+      )
 
-    await setEditorWidthInCharacters(component, 45)
-    expect(lineNodeForScreenRow(component, 3).textContent).toBe(
-      '    var pivot = items.shift(), current, left '
-    )
-    expect(lineNodeForScreenRow(component, 4).textContent).toBe(
-      '    = [], right = [];'
-    )
+      await setEditorWidthInCharacters(component, 45)
+      expect(lineNodeForScreenRow(component, 3).textContent).toBe(
+        '    var pivot = items.shift(), current, left '
+      )
+      expect(lineNodeForScreenRow(component, 4).textContent).toBe(
+        '    = [], right = [];'
+      )
 
-    const {scrollContainer} = component.refs
-    expect(scrollContainer.clientWidth).toBe(scrollContainer.scrollWidth)
-  })
+      const {scrollContainer} = component.refs
+      expect(scrollContainer.clientWidth).toBe(scrollContainer.scrollWidth)
+    })
 
-  it('decorates the line numbers of folded lines', async () => {
-    const {component, element, editor} = buildComponent()
-    editor.foldBufferRow(1)
-    await component.getNextUpdatePromise()
-    expect(lineNumberNodeForScreenRow(component, 1).classList.contains('folded')).toBe(true)
-  })
+    it('decorates the line numbers of folded lines', async () => {
+      const {component, element, editor} = buildComponent()
+      editor.foldBufferRow(1)
+      await component.getNextUpdatePromise()
+      expect(lineNumberNodeForScreenRow(component, 1).classList.contains('folded')).toBe(true)
+    })
 
-  it('makes lines at least as wide as the scrollContainer', async () => {
-    const {component, element, editor} = buildComponent()
-    const {scrollContainer, gutterContainer} = component.refs
-    editor.setText('a')
-    await component.getNextUpdatePromise()
+    it('makes lines at least as wide as the scrollContainer', async () => {
+      const {component, element, editor} = buildComponent()
+      const {scrollContainer, gutterContainer} = component.refs
+      editor.setText('a')
+      await component.getNextUpdatePromise()
 
-    expect(element.querySelector('.line').offsetWidth).toBe(scrollContainer.offsetWidth)
-  })
+      expect(element.querySelector('.line').offsetWidth).toBe(scrollContainer.offsetWidth)
+    })
 
-  it('resizes based on the content when the autoHeight and/or autoWidth options are true', async () => {
-    const {component, element, editor} = buildComponent({autoHeight: true, autoWidth: true})
-    const {gutterContainer, scrollContainer} = component.refs
-    const initialWidth = element.offsetWidth
-    const initialHeight = element.offsetHeight
-    expect(initialWidth).toBe(gutterContainer.offsetWidth + scrollContainer.scrollWidth)
-    expect(initialHeight).toBe(scrollContainer.scrollHeight)
-    editor.setCursorScreenPosition([6, Infinity])
-    editor.insertText('x'.repeat(50))
-    await component.getNextUpdatePromise()
-    expect(element.offsetWidth).toBe(gutterContainer.offsetWidth + scrollContainer.scrollWidth)
-    expect(element.offsetWidth).toBeGreaterThan(initialWidth)
-    editor.insertText('\n'.repeat(5))
-    await component.getNextUpdatePromise()
-    expect(element.offsetHeight).toBe(scrollContainer.scrollHeight)
-    expect(element.offsetHeight).toBeGreaterThan(initialHeight)
-  })
+    it('resizes based on the content when the autoHeight and/or autoWidth options are true', async () => {
+      const {component, element, editor} = buildComponent({autoHeight: true, autoWidth: true})
+      const {gutterContainer, scrollContainer} = component.refs
+      const initialWidth = element.offsetWidth
+      const initialHeight = element.offsetHeight
+      expect(initialWidth).toBe(gutterContainer.offsetWidth + scrollContainer.scrollWidth)
+      expect(initialHeight).toBe(scrollContainer.scrollHeight)
+      editor.setCursorScreenPosition([6, Infinity])
+      editor.insertText('x'.repeat(50))
+      await component.getNextUpdatePromise()
+      expect(element.offsetWidth).toBe(gutterContainer.offsetWidth + scrollContainer.scrollWidth)
+      expect(element.offsetWidth).toBeGreaterThan(initialWidth)
+      editor.insertText('\n'.repeat(5))
+      await component.getNextUpdatePromise()
+      expect(element.offsetHeight).toBe(scrollContainer.scrollHeight)
+      expect(element.offsetHeight).toBeGreaterThan(initialHeight)
+    })
 
-  it('supports the isLineNumberGutterVisible parameter', () => {
-    const {component, element, editor} = buildComponent({lineNumberGutterVisible: false})
-    expect(element.querySelector('.line-number')).toBe(null)
-  })
+    it('supports the isLineNumberGutterVisible parameter', () => {
+      const {component, element, editor} = buildComponent({lineNumberGutterVisible: false})
+      expect(element.querySelector('.line-number')).toBe(null)
+    })
 
-  it('supports the placeholderText parameter', () => {
-    const placeholderText = 'Placeholder Test'
-    const {component} = buildComponent({placeholderText, text: ''})
-    const emptyLineSpace = ' '
-    expect(component.refs.content.textContent).toBe(emptyLineSpace + placeholderText)
+    it('supports the placeholderText parameter', () => {
+      const placeholderText = 'Placeholder Test'
+      const {component} = buildComponent({placeholderText, text: ''})
+      const emptyLineSpace = ' '
+      expect(component.refs.content.textContent).toBe(emptyLineSpace + placeholderText)
+    })
   })
 
   describe('mini editors', () => {
