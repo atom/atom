@@ -55,9 +55,12 @@ class TextEditorComponent {
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
+    this.didScrollDummyScrollbar = this.didScrollDummyScrollbar.bind(this)
     this.scrollbarsVisible = true
     this.refreshScrollbarStyling = false
     this.pendingAutoscroll = null
+    this.scrollTopPending = false
+    this.scrollLeftPending = false
     this.scrollTop = 0
     this.scrollLeft = 0
     this.previousScrollWidth = 0
@@ -134,7 +137,8 @@ class TextEditorComponent {
     etch.updateSync(this)
 
     this.currentFrameLineNumberGutterProps = null
-
+    this.scrollTopPending = false
+    this.scrollLeftPending = false
     if (this.refreshScrollbarStyling) {
       this.measureScrollbarDimensions()
       this.refreshScrollbarStyling = false
@@ -529,11 +533,13 @@ class TextEditorComponent {
         $(DummyScrollbarComponent, {
           ref: 'verticalScrollbar',
           orientation: 'vertical',
+          didScroll: this.didScrollDummyScrollbar,
           scrollHeight, scrollTop, horizontalScrollbarHeight, forceScrollbarVisible
         }),
         $(DummyScrollbarComponent, {
           ref: 'horizontalScrollbar',
           orientation: 'horizontal',
+          didScroll: this.didScrollDummyScrollbar,
           scrollWidth, scrollLeft, verticalScrollbarWidth, forceScrollbarVisible
         })
       ]
@@ -543,6 +549,7 @@ class TextEditorComponent {
       if (verticalScrollbarWidth > 0 && horizontalScrollbarHeight > 0) {
         elements.push($.div(
           {
+            ref: 'scrollbarCorner',
             style: {
               position: 'absolute',
               height: '20px',
@@ -867,6 +874,18 @@ class TextEditorComponent {
     if (this.measureClientContainerDimensions()) {
       this.scheduleUpdate()
     }
+  }
+
+  didScrollDummyScrollbar () {
+    let scrollTopChanged = false
+    let scrollLeftChanged = false
+    if (!this.scrollTopPending) {
+      scrollTopChanged = this.setScrollTop(this.refs.verticalScrollbar.element.scrollTop)
+    }
+    if (!this.scrollLeftPending) {
+      scrollLeftChanged = this.setScrollLeft(this.refs.horizontalScrollbar.element.scrollLeft)
+    }
+    if (scrollTopChanged || scrollLeftChanged) this.updateSync()
   }
 
   didUpdateScrollbarStyles () {
@@ -1197,17 +1216,17 @@ class TextEditorComponent {
 
     if (!options || options.reversed !== false) {
       if (desiredScrollBottom > this.getScrollBottom()) {
-        return this.setScrollBottom(desiredScrollBottom, true)
+        this.setScrollBottom(desiredScrollBottom)
       }
       if (desiredScrollTop < this.getScrollTop()) {
-        return this.setScrollTop(desiredScrollTop, true)
+        this.setScrollTop(desiredScrollTop)
       }
     } else {
       if (desiredScrollTop < this.getScrollTop()) {
-        return this.setScrollTop(desiredScrollTop, true)
+        this.setScrollTop(desiredScrollTop)
       }
       if (desiredScrollBottom > this.getScrollBottom()) {
-        return this.setScrollBottom(desiredScrollBottom, true)
+        this.setScrollBottom(desiredScrollBottom)
       }
     }
 
@@ -1226,17 +1245,17 @@ class TextEditorComponent {
 
     if (!options || options.reversed !== false) {
       if (desiredScrollRight > this.getScrollRight()) {
-        this.setScrollRight(desiredScrollRight, true)
+        this.setScrollRight(desiredScrollRight)
       }
       if (desiredScrollLeft < this.getScrollLeft()) {
-        this.setScrollLeft(desiredScrollLeft, true)
+        this.setScrollLeft(desiredScrollLeft)
       }
     } else {
       if (desiredScrollLeft < this.getScrollLeft()) {
-        this.setScrollLeft(desiredScrollLeft, true)
+        this.setScrollLeft(desiredScrollLeft)
       }
       if (desiredScrollRight > this.getScrollRight()) {
-        this.setScrollRight(desiredScrollRight, true)
+        this.setScrollRight(desiredScrollRight)
       }
     }
   }
@@ -1691,11 +1710,11 @@ class TextEditorComponent {
     return this.scrollTop
   }
 
-  setScrollTop (scrollTop, suppressUpdate = false) {
+  setScrollTop (scrollTop) {
     scrollTop = Math.round(Math.max(0, Math.min(this.getMaxScrollTop(), scrollTop)))
     if (scrollTop !== this.scrollTop) {
+      this.scrollTopPending = true
       this.scrollTop = scrollTop
-      if (!suppressUpdate) this.scheduleUpdate()
       return true
     } else {
       return false
@@ -1710,8 +1729,8 @@ class TextEditorComponent {
     return this.getScrollTop() + this.getScrollContainerClientHeight()
   }
 
-  setScrollBottom (scrollBottom, suppressUpdate = false) {
-    return this.setScrollTop(scrollBottom - this.getScrollContainerClientHeight(), suppressUpdate)
+  setScrollBottom (scrollBottom) {
+    return this.setScrollTop(scrollBottom - this.getScrollContainerClientHeight())
   }
 
   getScrollLeft () {
@@ -1719,11 +1738,11 @@ class TextEditorComponent {
     return this.scrollLeft
   }
 
-  setScrollLeft (scrollLeft, suppressUpdate = false) {
+  setScrollLeft (scrollLeft) {
     scrollLeft = Math.round(Math.max(0, Math.min(this.getMaxScrollLeft(), scrollLeft)))
     if (scrollLeft !== this.scrollLeft) {
+      this.scrollLeftPending = true
       this.scrollLeft = scrollLeft
-      if (!suppressUpdate) this.scheduleUpdate()
       return true
     } else {
       return false
@@ -1738,8 +1757,8 @@ class TextEditorComponent {
     return this.getScrollLeft() + this.getScrollContainerClientWidth()
   }
 
-  setScrollRight (scrollRight, suppressUpdate = false) {
-    return this.setScrollLeft(scrollRight - this.getScrollContainerClientWidth(), suppressUpdate)
+  setScrollRight (scrollRight) {
+    return this.setScrollLeft(scrollRight - this.getScrollContainerClientWidth())
   }
 
   // Ensure the spatial index is populated with rows that are currently
@@ -1807,7 +1826,13 @@ class DummyScrollbarComponent {
       innerStyle.height = (this.props.scrollHeight || 0) + 'px'
     }
 
-    return $.div({style: outerStyle, scrollTop, scrollLeft},
+    return $.div(
+      {
+        style: outerStyle,
+        scrollTop,
+        scrollLeft,
+        on: {scroll: this.props.didScroll}
+      },
       $.div({style: innerStyle})
     )
   }
