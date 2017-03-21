@@ -30,7 +30,8 @@ describe("HistoryManager", () => {
       return projectDisposable
     })
 
-    historyManager = new HistoryManager({stateStore, localStorage: window.localStorage, project, commands: commandRegistry})
+    historyManager = new HistoryManager({stateStore, project, commands: commandRegistry})
+    historyManager.initialize(window.localStorage)
     await historyManager.loadState()
   })
 
@@ -42,7 +43,7 @@ describe("HistoryManager", () => {
     it("registers the 'clear-project-history' command function", () => {
       expect(commandRegistry.add).toHaveBeenCalled()
       const cmdCall = commandRegistry.add.calls[0]
-      expect(cmdCall.args.length).toBe(2)
+      expect(cmdCall.args.length).toBe(3)
       expect(cmdCall.args[0]).toBe('atom-workspace')
       expect(typeof cmdCall.args[1]['application:clear-project-history']).toBe('function')
     })

@@ -54,8 +54,11 @@ class ViewRegistry
   minimumPollInterval: 200
 
   constructor: (@atomEnvironment) ->
-    @observer = new MutationObserver(@requestDocumentPoll)
+    @polling = false
     @clear()
+
+  initialize: ->
+    @observer = new MutationObserver(@requestDocumentPoll)
 
   clear: ->
     @views = new WeakMap
@@ -267,10 +270,13 @@ class ViewRegistry
   startPollingDocument: ->
     window.addEventListener('resize', @requestDocumentPoll)
     @observer.observe(document, {subtree: true, childList: true, attributes: true})
+    @polling = true
 
   stopPollingDocument: ->
-    window.removeEventListener('resize', @requestDocumentPoll)
-    @observer.disconnect()
+    if @polling
+      window.removeEventListener('resize', @requestDocumentPoll)
+      @observer.disconnect()
+      @polling = false
 
   requestDocumentPoll: =>
     if @animationFrameRequest?

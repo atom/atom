@@ -4,9 +4,26 @@ listen = require './delegated-listener'
 # Handles low-level events related to the @window.
 module.exports =
 class WindowEventHandler
-  constructor: ({@atomEnvironment, @applicationDelegate, @window, @document}) ->
+  constructor: ({@atomEnvironment, @applicationDelegate}) ->
     @reloadRequested = false
     @subscriptions = new CompositeDisposable
+
+    @handleNativeKeybindings()
+
+  initialize: (@window, @document) ->
+    @subscriptions.add @atomEnvironment.commands.add @window,
+      'window:toggle-full-screen': @handleWindowToggleFullScreen
+      'window:close': @handleWindowClose
+      'window:reload': @handleWindowReload
+      'window:toggle-dev-tools': @handleWindowToggleDevTools
+
+    if process.platform in ['win32', 'linux']
+      @subscriptions.add @atomEnvironment.commands.add @window,
+        'window:toggle-menu-bar': @handleWindowToggleMenuBar
+
+    @subscriptions.add @atomEnvironment.commands.add @document,
+      'core:focus-next': @handleFocusNext
+      'core:focus-previous': @handleFocusPrevious
 
     @addEventListener(@window, 'beforeunload', @handleWindowBeforeunload)
     @addEventListener(@window, 'focus', @handleWindowFocus)
@@ -23,28 +40,16 @@ class WindowEventHandler
     @subscriptions.add(@applicationDelegate.onDidEnterFullScreen(@handleEnterFullScreen))
     @subscriptions.add(@applicationDelegate.onDidLeaveFullScreen(@handleLeaveFullScreen))
 
-    @subscriptions.add @atomEnvironment.commands.add @window,
-      'window:toggle-full-screen': @handleWindowToggleFullScreen
-      'window:close': @handleWindowClose
-      'window:reload': @handleWindowReload
-      'window:toggle-dev-tools': @handleWindowToggleDevTools
-
-    if process.platform in ['win32', 'linux']
-      @subscriptions.add @atomEnvironment.commands.add @window,
-        'window:toggle-menu-bar': @handleWindowToggleMenuBar
-
-    @subscriptions.add @atomEnvironment.commands.add @document,
-      'core:focus-next': @handleFocusNext
-      'core:focus-previous': @handleFocusPrevious
-
-    @handleNativeKeybindings()
-
   # Wire commands that should be handled by Chromium for elements with the
   # `.native-key-bindings` class.
   handleNativeKeybindings: ->
     bindCommandToAction = (command, action) =>
-      @subscriptions.add @atomEnvironment.commands.add '.native-key-bindings', command, (event) =>
-        @applicationDelegate.getCurrentWindow().webContents[action]()
+      @subscriptions.add @atomEnvironment.commands.add(
+        '.native-key-bindings',
+        command,
+        ((event) => @applicationDelegate.getCurrentWindow().webContents[action]()),
+        false
+      )
 
     bindCommandToAction('core:copy', 'copy')
     bindCommandToAction('core:paste', 'paste')
