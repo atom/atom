@@ -126,6 +126,7 @@ class ContextMenuManager
 
   templateForEvent: (event) ->
     template = []
+    removeItems = []
     currentTarget = event.target
 
     while currentTarget?
@@ -142,10 +143,22 @@ class ContextMenuManager
       for item in currentTargetItems
         MenuHelpers.merge(template, item, false)
 
+      matchingRemoveItemSets =
+        @removeItemSets.filter (itemSet) -> currentTarget.webkitMatchesSelector(itemSet.selector)
+
+      for itemSet in matchingRemoveItemSets
+        for item in itemSet.items
+          itemForEvent = @cloneItemForEvent(item, event)
+          if itemForEvent
+            MenuHelpers.merge(removeItems, itemForEvent, itemSet.specificity)
+
       currentTarget = currentTarget.parentElement
 
+    for item in removeItems
+      MenuHelpers.unmerge(template, item, false)
+      
     @pruneRedundantSeparators(template)
-
+    
     template
 
   pruneRedundantSeparators: (menu) ->
@@ -156,6 +169,7 @@ class ContextMenuManager
         if not keepNextItemIfSeparator or index is menu.length - 1
           menu.splice(index, 1)
         else
+          keepNextItemIfSeparator = false
           index++
       else
         keepNextItemIfSeparator = true
@@ -206,6 +220,7 @@ class ContextMenuManager
   clear: ->
     @activeElement = null
     @itemSets = []
+    @removeItemSets = []
     @add 'atom-workspace': [{
       label: 'Inspect Element'
       command: 'application:inspect'
@@ -214,6 +229,52 @@ class ContextMenuManager
         {pageX, pageY} = event
         @commandDetail = {x: pageX, y: pageY}
     }]
+
+  # Public: Remove context menu items scoped by CSS selectors.
+  #
+  # ## Examples
+  #
+  # To remove a context menu, pass a selector matching the elements to which you
+  # want the menu to apply as the top level key, followed by a menu descriptor.
+  # The invocation below removes a global 'Help' context menu item and a 'History'
+  # submenu on the editor supporting undo/redo.
+  #
+  # ```coffee
+  # atom.contextMenu.remove {
+  #   'atom-workspace': [{label: 'Help'}]
+  #   'atom-text-editor': [{
+  #     label: 'History',
+  #     submenu: [
+  #       {label: 'Undo'}
+  #       {label: 'Redo'}
+  #     ]
+  #   }]
+  # }
+  # ```
+  #
+  # ## Arguments
+  #
+  # * `itemsBySelector` An {Object} whose keys are CSS selectors and whose
+  #   values are {Array}s of item {Object}s containing the following keys:
+  #   * `label` (optional) A {String} containing the menu item's label.
+  #   * `submenu` (optional) An {Array} of items to be removed from the submenu.
+  #     The top level menu item is removed only if all submenu items are removed.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to re-add the
+  # removed menu items.
+  remove: (itemsBySelector) ->
+    removedItemSets = []
+
+    for selector, items of itemsBySelector
+      validateSelector(selector)
+      itemSet = new ContextMenuItemSet(selector, items)
+      removedItemSets.push(itemSet)
+      @removeItemSets.push(itemSet)
+
+    new Disposable =>
+      for itemSet in removedItemSets
+        @removeItemSets.splice(@removeItemSets.indexOf(itemSet), 1)
+      return
 
 class ContextMenuItemSet
   constructor: (@selector, @items) ->

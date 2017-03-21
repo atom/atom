@@ -230,3 +230,138 @@ describe "ContextMenuManager", ->
             }
           ]
         ])
+
+  describe "::remove(itemsBySelector)", ->
+    it "can remove top-level menu items that can be re-added with the returned disposable", ->
+      contextMenu.add
+        '.parent': [{label: 'A', command: 'a'}]
+        '.child': [{label: 'B', command: 'b'}]
+        '.grandchild': [{label: 'C', command: 'c'}]
+
+      expect(contextMenu.templateForElement(grandchild)).toEqual [
+        {label: 'C', command: 'c'}
+        {label: 'B', command: 'b'}
+        {label: 'A', command: 'a'}
+      ]
+
+      disposable = contextMenu.remove
+        '.parent': [{label: 'A'}]
+        '.child': [{label: 'B'}]
+        '.grandchild': [{label: 'C'}]
+
+      expect(contextMenu.templateForElement(grandchild)).toEqual []
+
+      disposable.dispose()
+      expect(contextMenu.templateForElement(grandchild)).toEqual [
+        {label: 'C', command: 'c'}
+        {label: 'B', command: 'b'}
+        {label: 'A', command: 'a'}
+      ]
+
+    it "can remove submenu items that can be re-added with the returned disposable", ->
+      contextMenu.add
+        '.grandchild': [{label: 'A', submenu: [
+          {label: 'B', command: 'b'}
+          {label: 'C', command: 'c'}
+        ]}]
+
+      expect(contextMenu.templateForElement(grandchild)).toEqual [{
+        label: 'A',
+        submenu: [
+          {label: 'B', command: 'b'}
+          {label: 'C', command: 'c'}
+        ]
+      }]
+
+      disposable = contextMenu.remove
+        '.grandchild': [{label: 'A', submenu: [
+          {label: 'C'}
+        ]}]
+
+      expect(contextMenu.templateForElement(grandchild)).toEqual [{
+        label: 'A',
+        submenu: [
+          {label: 'B', command: 'b'}
+        ]
+      }]
+
+      disposable.dispose()
+
+      expect(contextMenu.templateForElement(grandchild)).toEqual [{
+        label: 'A',
+        submenu: [
+          {label: 'B', command: 'b'}
+          {label: 'C', command: 'c'}
+        ]
+      }]
+
+    it "removes items with submenu only if all submenu items are removed", ->
+      contextMenu.add
+        '.grandchild': [{label: 'A', submenu: [
+          {label: 'B', command: 'b'}
+          {label: 'C', command: 'c'}
+        ]}]
+
+      expect(contextMenu.templateForElement(grandchild)).toEqual [{
+        label: 'A',
+        submenu: [
+          {label: 'B', command: 'b'}
+          {label: 'C', command: 'c'}
+        ]
+      }]
+
+      contextMenu.remove
+        '.grandchild': [{label: 'A', submenu: [
+          {label: 'C'}
+        ]}]
+
+      expect(contextMenu.templateForElement(grandchild)).toEqual [{
+        label: 'A',
+        submenu: [
+          {label: 'B', command: 'b'}
+        ]
+      }]
+
+      contextMenu.remove
+        '.grandchild': [{label: 'A', submenu: [
+          {label: 'B'}
+        ]}]
+
+      expect(contextMenu.templateForElement(grandchild)).toEqual []
+
+    it "prune adjacent separators when all items between them are removed", ->
+      contextMenu.add
+        '.grandchild': [
+          {label: 'A', command: 'a'},
+          {type: 'separator'},
+          {label: 'B', command: 'b'},
+          {type: 'separator'},
+          {label: 'C', command: 'c'}
+        ]
+
+      expect(contextMenu.templateForElement(grandchild)).toEqual [
+        {label: 'A', command: 'a'},
+        {type: 'separator'},
+        {label: 'B', command: 'b'},
+        {type: 'separator'},
+        {label: 'C', command: 'c'}
+      ]
+
+      contextMenu.remove
+        '.grandchild': [
+          {label: 'B'},
+        ]
+
+      expect(contextMenu.templateForElement(grandchild)).toEqual [
+        {label: 'A', command: 'a'},
+        {type: 'separator'},
+        {label: 'C', command: 'c'}
+      ]
+
+    it "throws an error when the selector is invalid", ->
+      addError = null
+      try
+        contextMenu.remove '<>': [{label: 'A'}]
+      catch error
+        addError = error
+      expect(addError.message).toContain('<>')
