@@ -22,6 +22,7 @@
   'f11': 'window:toggle-full-screen'
   'alt-shift-left': 'editor:move-selection-left'
   'alt-shift-right': 'editor:move-selection-right'
+  'ctrl-alt-d': 'editor:insert-date'
 
   # Sublime Parity
   'ctrl-,': 'application:show-settings'
