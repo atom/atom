@@ -62,8 +62,8 @@ class TextEditorComponent {
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
-    this.scrollbarsVisible = true
-    this.refreshScrollbarStyling = false
+    this.shouldRenderDummyScrollbars = true
+    this.refreshedScrollbarStyle = false
     this.pendingAutoscroll = null
     this.scrollTopPending = false
     this.scrollLeftPending = false
@@ -112,25 +112,28 @@ class TextEditorComponent {
 
   updateSync () {
     this.updateScheduled = false
-    if (this.nextUpdatePromise) {
-      this.resolveNextUpdatePromise()
-      this.nextUpdatePromise = null
-      this.resolveNextUpdatePromise = null
-    }
+    if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
+    this.updateSyncBeforeMeasuringContent()
+    this.measureContentDuringUpdateSync()
+    this.updateSyncAfterMeasuringContent()
+  }
 
-    const wasHorizontalScrollbarVisible = this.isHorizontalScrollbarVisible()
+  updateSyncBeforeMeasuringContent () {
     this.horizontalPositionsToMeasure.clear()
     if (this.pendingAutoscroll) this.autoscrollVertically()
     this.populateVisibleRowRange()
     this.queryScreenLinesToRender()
     this.queryDecorationsToRender()
-    this.scrollbarsVisible = !this.refreshScrollbarStyling
-
+    this.shouldRenderDummyScrollbars = !this.refreshedScrollbarStyle
     etch.updateSync(this)
+    this.shouldRenderDummyScrollbars = true
+  }
 
+  measureContentDuringUpdateSync () {
     this.measureHorizontalPositions()
-    this.measureLongestLineWidth()
     this.updateAbsolutePositionedDecorations()
+    const wasHorizontalScrollbarVisible = this.isHorizontalScrollbarVisible()
+    this.measureLongestLineWidth()
     if (this.pendingAutoscroll) {
       this.autoscrollHorizontally()
       if (!wasHorizontalScrollbarVisible && this.isHorizontalScrollbarVisible()) {
@@ -138,29 +141,18 @@ class TextEditorComponent {
       }
       this.pendingAutoscroll = null
     }
-    this.scrollbarsVisible = true
+  }
 
+  updateSyncAfterMeasuringContent () {
     etch.updateSync(this)
 
     this.currentFrameLineNumberGutterProps = null
     this.scrollTopPending = false
     this.scrollLeftPending = false
-    if (this.refreshScrollbarStyling) {
+    if (this.refreshedScrollbarStyle) {
       this.measureScrollbarDimensions()
-      this.refreshScrollbarStyling = false
+      this.refreshedScrollbarStyle = false
       etch.updateSync(this)
-    }
-  }
-
-  checkIfScrollDimensionsChanged () {
-    const scrollHeight = this.getScrollHeight()
-    const scrollWidth = this.getScrollWidth()
-    if (scrollHeight !== this.previousScrollHeight || scrollWidth !== this.previousScrollWidth) {
-      this.previousScrollHeight = scrollHeight
-      this.previousScrollWidth = scrollWidth
-      return true
-    } else {
-      return false
     }
   }
 
@@ -514,7 +506,7 @@ class TextEditorComponent {
   }
 
   renderDummyScrollbars () {
-    if (this.scrollbarsVisible) {
+    if (this.shouldRenderDummyScrollbars) {
       let scrollHeight, scrollTop, horizontalScrollbarHeight,
           scrollWidth, scrollLeft, verticalScrollbarWidth, forceScrollbarVisible
 
@@ -531,7 +523,7 @@ class TextEditorComponent {
           this.isVerticalScrollbarVisible()
           ? this.getVerticalScrollbarWidth()
           : 0
-        forceScrollbarVisible = this.refreshScrollbarStyling
+        forceScrollbarVisible = this.refreshedScrollbarStyle
       } else {
         forceScrollbarVisible = true
       }
@@ -970,7 +962,7 @@ class TextEditorComponent {
   }
 
   didUpdateScrollbarStyles () {
-    this.refreshScrollbarStyling = true
+    this.refreshedScrollbarStyle = true
     this.scheduleUpdate()
   }
 
@@ -1848,7 +1840,11 @@ class TextEditorComponent {
   getNextUpdatePromise () {
     if (!this.nextUpdatePromise) {
       this.nextUpdatePromise = new Promise((resolve) => {
-        this.resolveNextUpdatePromise = resolve
+        this.resolveNextUpdatePromise = () => {
+          this.nextUpdatePromise = null
+          this.resolveNextUpdatePromise = null
+          resolve()
+        }
       })
     }
     return this.nextUpdatePromise
