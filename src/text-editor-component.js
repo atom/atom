@@ -1,7 +1,7 @@
 const etch = require('etch')
 const {CompositeDisposable} = require('event-kit')
 const {Point, Range} = require('text-buffer')
-const resizeDetector = require('element-resize-detector')({strategy: 'scroll'})
+const ResizeDetector = require('element-resize-detector')
 const TextEditor = require('./text-editor')
 const {isPairedCharacter} = require('./text-utils')
 const $ = etch.dom
@@ -47,6 +47,9 @@ class TextEditorComponent {
     this.virtualNode.domNode = this.element
     this.refs = {}
 
+    this.updateSync = this.updateSync.bind(this)
+    this.didScrollDummyScrollbar = this.didScrollDummyScrollbar.bind(this)
+    this.didMouseDownOnContent = this.didMouseDownOnContent.bind(this)
     this.disposables = new CompositeDisposable()
     this.updateScheduled = false
     this.measurements = null
@@ -55,8 +58,6 @@ class TextEditorComponent {
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
-    this.didScrollDummyScrollbar = this.didScrollDummyScrollbar.bind(this)
-    this.didMouseDownOnContent = this.didMouseDownOnContent.bind(this)
     this.scrollbarsVisible = true
     this.refreshScrollbarStyling = false
     this.pendingAutoscroll = null
@@ -73,7 +74,8 @@ class TextEditorComponent {
       lineNumbers: new Map(),
       lines: new Map(),
       highlights: new Map(),
-      cursors: []
+      cursors: [],
+      overlays: []
     }
     this.decorationsToMeasure = {
       highlights: new Map(),
@@ -81,7 +83,7 @@ class TextEditorComponent {
     }
 
     this.observeModel()
-    resizeDetector.listenTo(this.element, this.didResize.bind(this))
+    getElementResizeDetector().listenTo(this.element, this.didResize.bind(this))
 
     etch.updateSync(this)
   }
@@ -164,7 +166,7 @@ class TextEditorComponent {
     const style = {}
 
     if (!model.getAutoHeight() && !model.getAutoWidth()) {
-      style.contain = 'strict'
+      style.contain = 'size'
     }
 
     if (this.measurements) {
@@ -210,7 +212,8 @@ class TextEditorComponent {
         },
         this.renderGutterContainer(),
         this.renderScrollContainer()
-      )
+      ),
+      this.renderOverlayDecorations()
     )
   }
 
@@ -571,6 +574,12 @@ class TextEditorComponent {
     }
   }
 
+  renderOverlayDecorations () {
+    return this.decorationsToRender.overlays.map((overlayProps) =>
+      $(OverlayComponent, Object.assign({didResize: this.updateSync}, overlayProps))
+    )
+  }
+
   // This is easier to mock
   getPlatform () {
     return process.platform
@@ -590,6 +599,7 @@ class TextEditorComponent {
   queryDecorationsToRender () {
     this.decorationsToRender.lineNumbers.clear()
     this.decorationsToRender.lines.clear()
+    this.decorationsToRender.overlays.length = 0
     this.decorationsToMeasure.highlights.clear()
     this.decorationsToMeasure.cursors.length = 0
 
@@ -625,6 +635,9 @@ class TextEditorComponent {
           break
         case 'cursor':
           this.addCursorDecorationToMeasure(marker, screenRange, reversed)
+          break
+        case 'overlay':
+          this.addOverlayDecorationToRender(decoration, marker)
           break
       }
     }
@@ -714,9 +727,24 @@ class TextEditorComponent {
     this.decorationsToMeasure.cursors.push({screenPosition, columnWidth, isLastCursor})
   }
 
+  addOverlayDecorationToRender (decoration, marker) {
+    const {class: className, item, position} = decoration
+    const element = atom.views.getView(item)
+    const screenPosition = (position === 'tail')
+      ? marker.getTailScreenPosition()
+      : marker.getHeadScreenPosition()
+
+    this.requestHorizontalMeasurement(screenPosition.row, screenPosition.column)
+    this.decorationsToRender.overlays.push({
+      key: element,
+      className, element, screenPosition
+    })
+  }
+
   updateAbsolutePositionedDecorations () {
     this.updateHighlightsToRender()
     this.updateCursorsToRender()
+    this.updateOverlaysToRender()
   }
 
   updateHighlightsToRender () {
@@ -752,6 +780,43 @@ class TextEditorComponent {
       const cursorPosition = {pixelTop, pixelLeft, pixelWidth}
       this.decorationsToRender.cursors[i] = cursorPosition
       if (cursor.isLastCursor) this.hiddenInputPosition = cursorPosition
+    }
+  }
+
+  updateOverlaysToRender () {
+    const overlayCount = this.decorationsToRender.overlays.length
+    if (overlayCount === 0) return null
+
+    const windowInnerHeight = this.getWindowInnerHeight()
+    const windowInnerWidth = this.getWindowInnerWidth()
+    const contentClientRect = this.refs.content.getBoundingClientRect()
+    for (let i = 0; i < overlayCount; i++) {
+      const decoration = this.decorationsToRender.overlays[i]
+      const {element, screenPosition} = decoration
+      const {row, column} = screenPosition
+      const computedStyle = window.getComputedStyle(element)
+
+      let wrapperTop = contentClientRect.top + this.pixelTopForRow(row) + this.getLineHeight()
+      const elementHeight = element.offsetHeight
+      const elementTop = wrapperTop + parseInt(computedStyle.marginTop)
+      const elementBottom = elementTop + elementHeight
+      const flippedElementTop = wrapperTop - this.getLineHeight() - elementHeight - parseInt(computedStyle.marginBottom)
+
+      if (elementBottom > windowInnerHeight && flippedElementTop >= 0) {
+        wrapperTop -= (elementTop - flippedElementTop)
+      }
+
+      let wrapperLeft = contentClientRect.left + this.pixelLeftForRowAndColumn(row, column)
+      const elementLeft = wrapperLeft + parseInt(computedStyle.marginLeft)
+      const elementRight = elementLeft + element.offsetWidth
+      if (elementLeft < 0) {
+        wrapperLeft -= elementLeft
+      } else if (elementRight > windowInnerWidth) {
+        wrapperLeft -= (elementRight - windowInnerWidth)
+      }
+
+      decoration.pixelTop = wrapperTop
+      decoration.pixelLeft = wrapperLeft
     }
   }
 
@@ -1525,6 +1590,14 @@ class TextEditorComponent {
     return this.element.offsetWidth > 0 || this.element.offsetHeight > 0
   }
 
+  getWindowInnerHeight () {
+    return window.innerHeight
+  }
+
+  getWindowInnerWidth () {
+    return window.innerWidth
+  }
+
   getLineHeight () {
     return this.measurements.lineHeight
   }
@@ -2278,6 +2351,25 @@ class HighlightComponent {
   }
 }
 
+class OverlayComponent {
+  constructor (props) {
+    this.props = props
+    this.element = document.createElement('atom-overlay')
+    this.element.appendChild(this.props.element)
+    this.element.style.position = 'fixed'
+    this.element.style.zIndex = 4
+    this.element.style.top = (this.props.pixelTop || 0) + 'px'
+    this.element.style.left = (this.props.pixelLeft || 0) + 'px'
+    getElementResizeDetector().listenTo(this.element, this.props.didResize)
+  }
+
+  update (props) {
+    this.props = props
+    if (this.props.pixelTop != null) this.element.style.top = this.props.pixelTop + 'px'
+    if (this.props.pixelLeft != null) this.element.style.left = this.props.pixelLeft + 'px'
+  }
+}
+
 const classNamesByScopeName = new Map()
 function classNameForScopeName (scopeName) {
   let classString = classNamesByScopeName.get(scopeName)
@@ -2294,6 +2386,12 @@ function clientRectForRange (textNode, startIndex, endIndex) {
   rangeForMeasurement.setStart(textNode, startIndex)
   rangeForMeasurement.setEnd(textNode, endIndex)
   return rangeForMeasurement.getBoundingClientRect()
+}
+
+let resizeDetector
+function getElementResizeDetector () {
+  if (resizeDetector == null) resizeDetector = ResizeDetector({strategy: 'scroll'})
+  return resizeDetector
 }
 
 function arraysEqual(a, b) {
