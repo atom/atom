@@ -24,6 +24,10 @@ function scaleMouseDragAutoscrollDelta (delta) {
 
 module.exports =
 class TextEditorComponent {
+  static setScheduler (scheduler) {
+    etch.setScheduler(scheduler)
+  }
+
   static didUpdateScrollbarStyles () {
     if (this.attachedComponents) {
       this.attachedComponents.forEach((component) => {
