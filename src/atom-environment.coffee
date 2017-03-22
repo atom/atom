@@ -232,7 +232,7 @@ class AtomEnvironment extends Model
 
     @styles.initialize({@configDirPath})
     @packages.initialize({devMode, @configDirPath, resourcePath, safeMode})
-    @themes.initialize({@configDirPath, resourcePath, safeMode})
+    @themes.initialize({@configDirPath, resourcePath, safeMode, devMode})
 
     @commandInstaller.initialize(@getVersion())
     @workspace.initialize()
