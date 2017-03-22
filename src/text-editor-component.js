@@ -1866,13 +1866,26 @@ class DummyScrollbarComponent {
   constructor (props) {
     this.props = props
     etch.initialize(this)
-    this.updateScrollPosition()
+    if (this.props.orientation === 'horizontal') {
+      this.element.scrollLeft = this.props.scrollLeft
+    } else {
+      this.element.scrollTop = this.props.scrollTop
+    }
   }
 
-  update (props) {
-    this.props = props
+  update (newProps) {
+    const oldProps = this.props
+    this.props = newProps
     etch.updateSync(this)
-    this.updateScrollPosition()
+    if (this.props.orientation === 'horizontal') {
+      if (newProps.scrollLeft !== oldProps.scrollLeft) {
+        this.element.scrollLeft = this.props.scrollLeft
+      }
+    } else {
+      if (newProps.scrollTop !== oldProps.scrollTop) {
+        this.element.scrollTop = this.props.scrollTop
+      }
+    }
   }
 
   // Scroll position must be updated after the inner element is updated to
