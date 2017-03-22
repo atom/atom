@@ -65,6 +65,8 @@ class TextEditor extends Model
     TextEditorComponent ?= require './text-editor-component'
     TextEditorComponent.didUpdateScrollbarStyles()
 
+  @viewForOverlayItem: (item) -> item
+
   serializationVersion: 1
 
   buffer: null
