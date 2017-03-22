@@ -122,7 +122,6 @@ class TextEditorComponent {
     this.horizontalPositionsToMeasure.clear()
     if (this.pendingAutoscroll) this.autoscrollVertically()
     this.populateVisibleRowRange()
-    const longestLineToMeasure = this.checkForNewLongestLine()
     this.queryScreenLinesToRender()
     this.queryDecorationsToRender()
     this.scrollbarsVisible = !this.refreshScrollbarStyling
@@ -130,7 +129,7 @@ class TextEditorComponent {
     etch.updateSync(this)
 
     this.measureHorizontalPositions()
-    if (longestLineToMeasure) this.measureLongestLineWidth(longestLineToMeasure)
+    this.measureLongestLineWidth()
     this.updateAbsolutePositionedDecorations()
     if (this.pendingAutoscroll) {
       this.autoscrollHorizontally()
@@ -587,16 +586,25 @@ class TextEditorComponent {
     )
   }
 
-  // This is easier to mock
   getPlatform () {
     return process.platform
   }
 
   queryScreenLinesToRender () {
-    this.renderedScreenLines = this.props.model.displayLayer.getScreenLines(
+    const {model} = this.props
+
+    this.renderedScreenLines = model.displayLayer.getScreenLines(
       this.getRenderedStartRow(),
       this.getRenderedEndRow()
     )
+
+    const longestLineRow = model.getApproximateLongestScreenRow()
+    const longestLine = model.screenLineForScreenRow(longestLineRow)
+    if (longestLine !== this.previousLongestLine) {
+      this.longestLineToMeasure = longestLine
+      this.longestLineToMeasureRow = longestLineRow
+      this.previousLongestLine = longestLine
+    }
   }
 
   renderedScreenLineForRow (row) {
@@ -1409,22 +1417,12 @@ class TextEditorComponent {
     this.measurements.horizontalScrollbarHeight = this.refs.horizontalScrollbar.getRealScrollbarHeight()
   }
 
-  checkForNewLongestLine () {
-    const {model} = this.props
-    const longestLineRow = model.getApproximateLongestScreenRow()
-    const longestLine = model.screenLineForScreenRow(longestLineRow)
-    if (longestLine !== this.previousLongestLine) {
-      this.longestLineToMeasure = longestLine
-      this.longestLineToMeasureRow = longestLineRow
-      this.previousLongestLine = longestLine
-      return longestLine
+  measureLongestLineWidth () {
+    if (this.longestLineToMeasure) {
+      this.measurements.longestLineWidth = this.lineNodesByScreenLineId.get(this.longestLineToMeasure.id).firstChild.offsetWidth
+      this.longestLineToMeasureRow = null
+      this.longestLineToMeasure = null
     }
-  }
-
-  measureLongestLineWidth (screenLine) {
-    this.measurements.longestLineWidth = this.lineNodesByScreenLineId.get(screenLine.id).firstChild.offsetWidth
-    this.longestLineToMeasureRow = null
-    this.longestLineToMeasure = null
   }
 
   requestHorizontalMeasurement (row, column) {
