@@ -885,10 +885,8 @@ describe('TextEditorComponent', () => {
       fakeWindow.appendChild(element)
       jasmine.attachToDOM(fakeWindow)
 
-      component.getWindowInnerWidth = () => fakeWindow.getBoundingClientRect().width
-      component.getWindowInnerHeight = () => fakeWindow.getBoundingClientRect().height
-      // spyOn(component, 'getWindowInnerWidth').andCallFake(() => fakeWindow.getBoundingClientRect().width)
-      // spyOn(component, 'getWindowInnerHeight').andCallFake(() => fakeWindow.getBoundingClientRect().height)
+      spyOn(component, 'getWindowInnerWidth').andCallFake(() => fakeWindow.getBoundingClientRect().width)
+      spyOn(component, 'getWindowInnerHeight').andCallFake(() => fakeWindow.getBoundingClientRect().height)
       await setScrollTop(component, 50)
       await setScrollLeft(component, 100)
 
