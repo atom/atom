@@ -1746,8 +1746,8 @@ function setScrollTop (component, scrollTop) {
   return component.getNextUpdatePromise()
 }
 
-function setScrollLeft (component, scrollTop) {
-  component.setScrollLeft(scrollTop)
+function setScrollLeft (component, scrollLeft) {
+  component.setScrollLeft(scrollLeft)
   component.scheduleUpdate()
   return component.getNextUpdatePromise()
 }
