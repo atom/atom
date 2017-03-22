@@ -732,7 +732,7 @@ class TextEditorComponent {
 
   addOverlayDecorationToRender (decoration, marker) {
     const {class: className, item, position, avoidOverflow} = decoration
-    const element = atom.views.getView(item)
+    const element = TextEditor.viewForOverlayItem(item)
     const screenPosition = (position === 'tail')
       ? marker.getTailScreenPosition()
       : marker.getHeadScreenPosition()
