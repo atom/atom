@@ -876,17 +876,22 @@ describe('TextEditorComponent', () => {
   })
 
   describe('overlay decorations', () => {
-    it('renders overlay elements at the specified screen position unless it would overflow the window', async () => {
-      const {component, element, editor} = buildComponent({width: 200, height: 100, attach: false})
+    function attachFakeWindow (component) {
       const fakeWindow = document.createElement('div')
       fakeWindow.style.position = 'absolute'
       fakeWindow.style.padding = 20 + 'px'
       fakeWindow.style.backgroundColor = 'blue'
-      fakeWindow.appendChild(element)
+      fakeWindow.appendChild(component.element)
       jasmine.attachToDOM(fakeWindow)
-
       spyOn(component, 'getWindowInnerWidth').andCallFake(() => fakeWindow.getBoundingClientRect().width)
       spyOn(component, 'getWindowInnerHeight').andCallFake(() => fakeWindow.getBoundingClientRect().height)
+      return fakeWindow
+    }
+
+    it('renders overlay elements at the specified screen position unless it would overflow the window', async () => {
+      const {component, element, editor} = buildComponent({width: 200, height: 100, attach: false})
+      const fakeWindow = attachFakeWindow(component)
+
       await setScrollTop(component, 50)
       await setScrollLeft(component, 100)
 
@@ -948,6 +953,24 @@ describe('TextEditorComponent', () => {
       decoration.setProperties({type: 'overlay', item: overlayElement})
       await component.getNextUpdatePromise()
       expect(overlayWrapper.classList.contains('b')).toBe(false)
+    })
+
+    it('does not attempt to avoid overflowing the window if `avoidOverflow` is false on the decoration', async () => {
+      const {component, element, editor} = buildComponent({width: 200, height: 100, attach: false})
+      const fakeWindow = attachFakeWindow(component)
+      const overlayElement = document.createElement('div')
+      overlayElement.style.width = '50px'
+      overlayElement.style.height = '50px'
+      overlayElement.style.margin = '3px'
+      overlayElement.style.backgroundColor = 'red'
+      const marker = editor.markScreenPosition([4, 25])
+      const decoration = editor.decorateMarker(marker, {type: 'overlay', item: overlayElement, avoidOverflow: false})
+      await component.getNextUpdatePromise()
+
+      await setScrollLeft(component, 30)
+      expect(overlayElement.getBoundingClientRect().right).toBeGreaterThan(fakeWindow.getBoundingClientRect().right)
+      await setScrollLeft(component, 280)
+      expect(overlayElement.getBoundingClientRect().left).toBeLessThan(fakeWindow.getBoundingClientRect().left)
     })
   })
 
