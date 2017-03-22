@@ -29,6 +29,7 @@ dependencies:
     - script/node_modules
     - node_modules
     - ~/.atom/compile-cache
+    - ~/.atom/snapshot-cache
 
 test:
   override:

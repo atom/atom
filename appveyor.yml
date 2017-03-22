@@ -52,3 +52,4 @@ cache:
   - '%APPVEYOR_BUILD_FOLDER%\electron'
   - '%USERPROFILE%\.atom\.apm'
   - '%USERPROFILE%\.atom\compile-cache'
+  - '%USERPROFILE%\.atom\snapshot-cache'

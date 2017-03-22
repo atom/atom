@@ -1,34 +1,65 @@
 (function () {
-  var path = require('path')
-  var FileSystemBlobStore = require('../src/file-system-blob-store')
-  var NativeCompileCache = require('../src/native-compile-cache')
-  var getWindowLoadSettings = require('../src/get-window-load-settings')
+  // Eagerly require cached-run-in-this-context to prevent a circular require
+  // when using `NativeCompileCache` for the first time.
+  require('cached-run-in-this-context')
 
-  var blobStore = null
+  const electron = require('electron')
+  const path = require('path')
+  const Module = require('module')
+  const getWindowLoadSettings = require('../src/get-window-load-settings')
+  const entryPointDirPath = __dirname
+  let blobStore = null
+  let useSnapshot = false
 
   window.onload = function () {
     try {
-      var startTime = Date.now()
+      const startTime = Date.now()
 
       process.on('unhandledRejection', function (error, promise) {
         console.error('Unhandled promise rejection %o with error: %o', promise, error)
       })
 
-      blobStore = FileSystemBlobStore.load(
-        path.join(process.env.ATOM_HOME, 'blob-store/')
-      )
-      NativeCompileCache.setCacheStore(blobStore)
-      NativeCompileCache.setV8Version(process.versions.v8)
-      NativeCompileCache.install()
-
       // Normalize to make sure drive letter case is consistent on Windows
       process.resourcesPath = path.normalize(process.resourcesPath)
 
-      var devMode = getWindowLoadSettings().devMode || !getWindowLoadSettings().resourcePath.startsWith(process.resourcesPath + path.sep)
+      setupAtomHome()
+      const devMode = getWindowLoadSettings().devMode || !getWindowLoadSettings().resourcePath.startsWith(process.resourcesPath + path.sep)
+      useSnapshot = !devMode && typeof snapshotResult !== 'undefined'
 
       if (devMode) {
-        setupDeprecatedPackages()
+        const metadata = require('../package.json')
+        if (!metadata._deprecatedPackages) {
+          try {
+            metadata._deprecatedPackages = require('../script/deprecated-packages.json')
+          } catch (requireError) {
+            console.error('Failed to setup deprecated packages list', requireError.stack)
+          }
+        }
+      } else if (useSnapshot) {
+        Module.prototype.require = function (module) {
+          const absoluteFilePath = Module._resolveFilename(module, this, false)
+          let relativeFilePath = path.relative(entryPointDirPath, absoluteFilePath)
+          if (process.platform === 'win32') {
+            relativeFilePath = relativeFilePath.replace(/\\/g, '/')
+          }
+          let cachedModule = snapshotResult.customRequire.cache[relativeFilePath] // eslint-disable-line no-undef
+          if (!cachedModule) {
+            cachedModule = {exports: Module._load(module, this, false)}
+            snapshotResult.customRequire.cache[relativeFilePath] = cachedModule // eslint-disable-line no-undef
+          }
+          return cachedModule.exports
+        }
+
+        snapshotResult.setGlobals(global, process, window, document, require) // eslint-disable-line no-undef
       }
+
+      const FileSystemBlobStore = useSnapshot ? snapshotResult.customRequire('../src/file-system-blob-store.js') : require('../src/file-system-blob-store') // eslint-disable-line no-undef
+      blobStore = FileSystemBlobStore.load(path.join(process.env.ATOM_HOME, 'blob-store'))
+
+      const NativeCompileCache = useSnapshot ? snapshotResult.customRequire('../src/native-compile-cache.js') : require('../src/native-compile-cache') // eslint-disable-line no-undef
+      NativeCompileCache.setCacheStore(blobStore)
+      NativeCompileCache.setV8Version(process.versions.v8)
+      NativeCompileCache.install()
 
       if (getWindowLoadSettings().profileStartup) {
         profileStartup(Date.now() - startTime)
@@ -48,7 +79,7 @@
   }
 
   function handleSetupError (error) {
-    var currentWindow = require('electron').remote.getCurrentWindow()
+    const currentWindow = electron.remote.getCurrentWindow()
     currentWindow.setSize(800, 600)
     currentWindow.center()
     currentWindow.show()
@@ -57,53 +88,30 @@
   }
 
   function setupWindow () {
-    var CompileCache = require('../src/compile-cache')
+    const CompileCache = useSnapshot ? snapshotResult.customRequire('../src/compile-cache.js') : require('../src/compile-cache') // eslint-disable-line no-undef
     CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
+    CompileCache.install(process.resourcesPath, require)
 
-    var ModuleCache = require('../src/module-cache')
+    const ModuleCache = useSnapshot ? snapshotResult.customRequire('../src/module-cache.js') : require('../src/module-cache') // eslint-disable-line no-undef
     ModuleCache.register(getWindowLoadSettings())
-    ModuleCache.add(getWindowLoadSettings().resourcePath)
 
-    // By explicitly passing the app version here, we could save the call
-    // of "require('remote').require('app').getVersion()".
-    var startCrashReporter = require('../src/crash-reporter-start')
+    const startCrashReporter = useSnapshot ? snapshotResult.customRequire('../src/crash-reporter-start.js') : require('../src/crash-reporter-start') // eslint-disable-line no-undef
     startCrashReporter({_version: getWindowLoadSettings().appVersion})
 
-    setupVmCompatibility()
-    setupCsonCache(CompileCache.getCacheDirectory())
+    const CSON = useSnapshot ? snapshotResult.customRequire('../node_modules/season/lib/cson.js') : require('season') // eslint-disable-line no-undef
+    CSON.setCacheDir(path.join(CompileCache.getCacheDirectory(), 'cson'))
 
-    var initialize = require(getWindowLoadSettings().windowInitializationScript)
+    const initScriptPath = path.relative(entryPointDirPath, getWindowLoadSettings().windowInitializationScript)
+    const initialize = useSnapshot ? snapshotResult.customRequire(initScriptPath) : require(initScriptPath) // eslint-disable-line no-undef
     return initialize({blobStore: blobStore}).then(function () {
-      require('electron').ipcRenderer.send('window-command', 'window:loaded')
+      electron.ipcRenderer.send('window-command', 'window:loaded')
     })
-  }
-
-  function setupCsonCache (cacheDir) {
-    require('season').setCacheDir(path.join(cacheDir, 'cson'))
-  }
-
-  function setupVmCompatibility () {
-    var vm = require('vm')
-    if (!vm.Script.createContext) {
-      vm.Script.createContext = vm.createContext
-    }
-  }
-
-  function setupDeprecatedPackages () {
-    var metadata = require('../package.json')
-    if (!metadata._deprecatedPackages) {
-      try {
-        metadata._deprecatedPackages = require('../script/deprecated-packages.json')
-      } catch (requireError) {
-        console.error('Failed to setup deprecated packages list', requireError.stack)
-      }
-    }
   }
 
   function profileStartup (initialTime) {
     function profile () {
       console.profile('startup')
-      var startTime = Date.now()
+      const startTime = Date.now()
       setupWindow().then(function () {
         setLoadTime(Date.now() - startTime + initialTime)
         console.profileEnd('startup')
@@ -111,7 +119,7 @@
       })
     }
 
-    const webContents = require('electron').remote.getCurrentWindow().webContents
+    const webContents = electron.remote.getCurrentWindow().webContents
     if (webContents.devToolsWebContents) {
       profile()
     } else {
@@ -120,7 +128,7 @@
     }
   }
 
-  var setupAtomHome = function () {
+  function setupAtomHome () {
     if (process.env.ATOM_HOME) {
       return
     }
@@ -132,6 +140,4 @@
       process.env.ATOM_HOME = getWindowLoadSettings().atomHome
     }
   }
-
-  setupAtomHome()
 })()

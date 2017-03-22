@@ -192,6 +192,9 @@ class TextEditor extends Model
 
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
+    @disposables.add(@defaultMarkerLayer.onDidDestroy =>
+      @assert(false, "defaultMarkerLayer destroyed at an unexpected time")
+    )
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true, persistent: true)
     @selectionsMarkerLayer.trackDestructionInOnDidCreateMarkerCallbacks = true
 
@@ -353,7 +356,8 @@ class TextEditor extends Model
             cursor.setShowCursorOnSelection(value) for cursor in @getCursors()
 
         else
-          throw new TypeError("Invalid TextEditor parameter: '#{param}'")
+          if param isnt 'ref' and param isnt 'key'
+            throw new TypeError("Invalid TextEditor parameter: '#{param}'")
 
     @displayLayer.reset(displayLayerParams)
 
@@ -383,7 +387,7 @@ class TextEditor extends Model
       softWrapHangingIndentLength: @displayLayer.softWrapHangingIndent
 
       @id, @softTabs, @softWrapped, @softWrapAtPreferredLineLength,
-      @preferredLineLength, @mini, @editorWidthInChars,  @width, @largeFileMode,
+      @preferredLineLength, @mini, @editorWidthInChars, @width, @largeFileMode,
       @registered, @invisibles, @showInvisibles, @showIndentGuide, @autoHeight, @autoWidth
     }
 
@@ -1324,12 +1328,12 @@ class TextEditor extends Model
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
     @mutateSelectedText (selection) ->
-      range = selection.getBufferRange()
+      selection.getBufferRange()
       if selectWordIfEmpty and selection.isEmpty()
         selection.selectWord()
       text = selection.getText()
       selection.deleteSelectedText()
-      selection.insertText(fn(text))
+      range = selection.insertText(fn(text))
       selection.setBufferRange(range)
 
   # Split multi-line selections into one selection per line.
@@ -2822,6 +2826,11 @@ class TextEditor extends Model
   # {::backwardsScanInBufferRange} to avoid tripping over your own changes.
   #
   # * `regex` A {RegExp} to search for.
+  # * `options` (optional) {Object}
+  #   * `leadingContextLineCount` {Number} default `0`; The number of lines
+  #      before the matched line to include in the results object.
+  #   * `trailingContextLineCount` {Number} default `0`; The number of lines
+  #      after the matched line to include in the results object.
   # * `iterator` A {Function} that's called on each match
   #   * `object` {Object}
   #     * `match` The current regular expression match.
@@ -2829,7 +2838,12 @@ class TextEditor extends Model
   #     * `range` The {Range} of the match.
   #     * `stop` Call this {Function} to terminate the scan.
   #     * `replace` Call this {Function} with a {String} to replace the match.
-  scan: (regex, iterator) -> @buffer.scan(regex, iterator)
+  scan: (regex, options={}, iterator) ->
+    if _.isFunction(options)
+      iterator = options
+      options = {}
+
+    @buffer.scan(regex, options, iterator)
 
   # Essential: Scan regular expression matches in a given range, calling the given
   # iterator function on each match.

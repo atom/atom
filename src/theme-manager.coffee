@@ -9,7 +9,7 @@ fs = require 'fs-plus'
 # An instance of this class is always available as the `atom.themes` global.
 module.exports =
 class ThemeManager
-  constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode, @config, @styleManager, @notificationManager, @viewRegistry}) ->
+  constructor: ({@packageManager, @config, @styleManager, @notificationManager, @viewRegistry}) ->
     @emitter = new Emitter
     @styleSheetDisposablesBySourcePath = {}
     @lessCache = null
@@ -17,6 +17,8 @@ class ThemeManager
     @packageManager.registerPackageActivator(this, ['theme'])
     @packageManager.onDidActivateInitialPackages =>
       @onDidChangeActiveThemes => @packageManager.reloadActivePackageStyleSheets()
+
+  initialize: ({@resourcePath, @configDirPath, @safeMode}) ->
 
   ###
   Section: Event Subscription

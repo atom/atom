@@ -5,11 +5,8 @@ describe "MenuManager", ->
   menu = null
 
   beforeEach ->
-    menu = new MenuManager(
-      resourcePath: atom.getLoadSettings().resourcePath
-      keymapManager: atom.keymaps
-      packageManager: atom.packages
-    )
+    menu = new MenuManager({keymapManager: atom.keymaps, packageManager: atom.packages})
+    menu.initialize({resourcePath: atom.getLoadSettings().resourcePath})
 
   describe "::add(items)", ->
     it "can add new menus that can be removed with the returned disposable", ->

@@ -13,15 +13,18 @@ const DEPRECATED_SYNTAX_SELECTORS = require('./deprecated-syntax-selectors')
 // own, but is instead subscribed to by individual `<atom-styles>` elements,
 // which clone and attach style elements in different contexts.
 module.exports = class StyleManager {
-  constructor ({configDirPath}) {
-    this.configDirPath = configDirPath
-    if (this.configDirPath != null) {
-      this.cacheDirPath = path.join(this.configDirPath, 'compile-cache', 'style-manager')
-    }
+  constructor () {
     this.emitter = new Emitter()
     this.styleElements = []
     this.styleElementsBySourcePath = {}
     this.deprecationsBySourcePath = {}
+  }
+
+  initialize ({configDirPath}) {
+    this.configDirPath = configDirPath
+    if (this.configDirPath != null) {
+      this.cacheDirPath = path.join(this.configDirPath, 'compile-cache', 'style-manager')
+    }
   }
 
   /*
