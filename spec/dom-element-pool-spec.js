@@ -1,4 +1,4 @@
-const DOMElementPool = require ('../src/dom-element-pool')
+const DOMElementPool = require('../src/dom-element-pool')
 
 describe('DOMElementPool', function () {
   let domElementPool
@@ -70,7 +70,7 @@ describe('DOMElementPool', function () {
 
   it('does not attempt to free nodes that were not created by the pool', () => {
     let assertionFailure
-    atom.onDidFailAssertion((error) => assertionFailure = error)
+    atom.onDidFailAssertion((error) => { assertionFailure = error })
 
     const foreignDiv = document.createElement('div')
     const div = domElementPool.buildElement('div')
@@ -85,7 +85,7 @@ describe('DOMElementPool', function () {
 
   it('fails an assertion when freeing the same element twice', function () {
     let assertionFailure
-    atom.onDidFailAssertion((error) => assertionFailure = error)
+    atom.onDidFailAssertion((error) => { assertionFailure = error })
 
     const div = domElementPool.buildElement('div')
     div.textContent = 'testing'
@@ -98,7 +98,7 @@ describe('DOMElementPool', function () {
 
   it('fails an assertion when freeing the same text node twice', function () {
     let assertionFailure
-    atom.onDidFailAssertion((error) => assertionFailure = error)
+    atom.onDidFailAssertion((error) => { assertionFailure = error })
 
     const node = domElementPool.buildText('testing')
     domElementPool.freeElementAndDescendants(node)

@@ -109,7 +109,7 @@ describe('HistoryManager', () => {
   })
 
   describe('loadState', () => {
-    it("defaults to an empty array if no state", async () => {
+    it('defaults to an empty array if no state', async () => {
       await stateStore.clear()
       await historyManager.loadState()
       expect(historyManager.getProjects()).toEqual([])
@@ -182,7 +182,7 @@ describe('HistoryManager', () => {
     })
   })
 
-  describe('saveState' ,() => {
+  describe('saveState', () => {
     it('saves the state', async () => {
       await historyManager.addProject(['/save/state'])
       await historyManager.saveState()
