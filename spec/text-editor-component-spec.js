@@ -875,6 +875,73 @@ describe('TextEditorComponent', () => {
     })
   })
 
+  describe('overlay decorations', () => {
+    it('renders overlay elements at the specified screen position unless it would overflow the window', async () => {
+      const {component, element, editor} = buildComponent({width: 200, height: 100, attach: false})
+      const fakeWindow = document.createElement('div')
+      fakeWindow.style.position = 'absolute'
+      fakeWindow.style.padding = 20 + 'px'
+      fakeWindow.style.backgroundColor = 'blue'
+      fakeWindow.appendChild(element)
+      jasmine.attachToDOM(fakeWindow)
+
+      component.getWindowInnerWidth = () => fakeWindow.getBoundingClientRect().width
+      component.getWindowInnerHeight = () => fakeWindow.getBoundingClientRect().height
+      // spyOn(component, 'getWindowInnerWidth').andCallFake(() => fakeWindow.getBoundingClientRect().width)
+      // spyOn(component, 'getWindowInnerHeight').andCallFake(() => fakeWindow.getBoundingClientRect().height)
+      await setScrollTop(component, 50)
+      await setScrollLeft(component, 100)
+
+      const marker = editor.markScreenPosition([4, 25])
+
+      const overlayElement = document.createElement('div')
+      overlayElement.style.width = '50px'
+      overlayElement.style.height = '50px'
+      overlayElement.style.margin = '3px'
+      overlayElement.style.backgroundColor = 'red'
+
+      editor.decorateMarker(marker, {type: 'overlay', item: overlayElement})
+      await component.getNextUpdatePromise()
+
+      const overlayWrapper = overlayElement.parentElement
+      expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
+      expect(overlayWrapper.getBoundingClientRect().left).toBe(clientLeftForCharacter(component, 4, 25))
+
+      // Updates the horizontal position on scroll
+      await setScrollLeft(component, 150)
+      expect(overlayWrapper.getBoundingClientRect().left).toBe(clientLeftForCharacter(component, 4, 25))
+
+      // Shifts the overlay horizontally to ensure the overlay element does not
+      // overflow the window
+      await setScrollLeft(component, 30)
+      expect(overlayElement.getBoundingClientRect().right).toBe(fakeWindow.getBoundingClientRect().right)
+      await setScrollLeft(component, 280)
+      expect(overlayElement.getBoundingClientRect().left).toBe(fakeWindow.getBoundingClientRect().left)
+
+      // Updates the vertical position on scroll
+      await setScrollTop(component, 60)
+      expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
+
+      // Flips the overlay vertically to ensure the overlay element does not
+      // overflow the bottom of the window
+      setScrollLeft(component, 100)
+      await setScrollTop(component, 0)
+      expect(overlayWrapper.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 4))
+
+      // Flips the overlay vertically on overlay resize if necessary
+      await setScrollTop(component, 20)
+      expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
+      overlayElement.style.height = 60 + 'px'
+      await component.getNextUpdatePromise()
+      expect(overlayWrapper.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 4))
+
+      // Does not flip the overlay vertically if it would overflow the top of the window
+      overlayElement.style.height = 80 + 'px'
+      await component.getNextUpdatePromise()
+      expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
+    })
+  })
+
   describe('mouse input', () => {
     describe('on the lines', () => {
       it('positions the cursor on single-click', async () => {
