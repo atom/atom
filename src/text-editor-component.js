@@ -576,7 +576,10 @@ class TextEditorComponent {
 
   renderOverlayDecorations () {
     return this.decorationsToRender.overlays.map((overlayProps) =>
-      $(OverlayComponent, Object.assign({didResize: this.updateSync}, overlayProps))
+      $(OverlayComponent, Object.assign(
+        {key: overlayProps.element, didResize: this.updateSync},
+        overlayProps
+      ))
     )
   }
 
@@ -728,17 +731,14 @@ class TextEditorComponent {
   }
 
   addOverlayDecorationToRender (decoration, marker) {
-    const {class: className, item, position} = decoration
+    const {class: className, item, position, avoidOverflow} = decoration
     const element = atom.views.getView(item)
     const screenPosition = (position === 'tail')
       ? marker.getTailScreenPosition()
       : marker.getHeadScreenPosition()
 
     this.requestHorizontalMeasurement(screenPosition.row, screenPosition.column)
-    this.decorationsToRender.overlays.push({
-      key: element,
-      className, element, screenPosition
-    })
+    this.decorationsToRender.overlays.push({className, element, avoidOverflow, screenPosition})
   }
 
   updateAbsolutePositionedDecorations () {
@@ -792,27 +792,28 @@ class TextEditorComponent {
     const contentClientRect = this.refs.content.getBoundingClientRect()
     for (let i = 0; i < overlayCount; i++) {
       const decoration = this.decorationsToRender.overlays[i]
-      const {element, screenPosition} = decoration
+      const {element, screenPosition, avoidOverflow} = decoration
       const {row, column} = screenPosition
-      const computedStyle = window.getComputedStyle(element)
-
       let wrapperTop = contentClientRect.top + this.pixelTopForRow(row) + this.getLineHeight()
-      const elementHeight = element.offsetHeight
-      const elementTop = wrapperTop + parseInt(computedStyle.marginTop)
-      const elementBottom = elementTop + elementHeight
-      const flippedElementTop = wrapperTop - this.getLineHeight() - elementHeight - parseInt(computedStyle.marginBottom)
-
-      if (elementBottom > windowInnerHeight && flippedElementTop >= 0) {
-        wrapperTop -= (elementTop - flippedElementTop)
-      }
-
       let wrapperLeft = contentClientRect.left + this.pixelLeftForRowAndColumn(row, column)
-      const elementLeft = wrapperLeft + parseInt(computedStyle.marginLeft)
-      const elementRight = elementLeft + element.offsetWidth
-      if (elementLeft < 0) {
-        wrapperLeft -= elementLeft
-      } else if (elementRight > windowInnerWidth) {
-        wrapperLeft -= (elementRight - windowInnerWidth)
+
+      if (avoidOverflow !== false) {
+        const computedStyle = window.getComputedStyle(element)
+        const elementHeight = element.offsetHeight
+        const elementTop = wrapperTop + parseInt(computedStyle.marginTop)
+        const elementBottom = elementTop + elementHeight
+        const flippedElementTop = wrapperTop - this.getLineHeight() - elementHeight - parseInt(computedStyle.marginBottom)
+        const elementLeft = wrapperLeft + parseInt(computedStyle.marginLeft)
+        const elementRight = elementLeft + element.offsetWidth
+
+        if (elementBottom > windowInnerHeight && flippedElementTop >= 0) {
+          wrapperTop -= (elementTop - flippedElementTop)
+        }
+        if (elementLeft < 0) {
+          wrapperLeft -= elementLeft
+        } else if (elementRight > windowInnerWidth) {
+          wrapperLeft -= (elementRight - windowInnerWidth)
+        }
       }
 
       decoration.pixelTop = wrapperTop
