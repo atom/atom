@@ -135,6 +135,7 @@ class AtomEnvironment extends Model
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
     @views = new ViewRegistry(this)
+    TextEditor.setScheduler(@views)
     @notifications = new NotificationManager
     @updateProcessEnv ?= updateProcessEnv # For testing
 

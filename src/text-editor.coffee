@@ -61,6 +61,10 @@ class TextEditor extends Model
   @setClipboard: (clipboard) ->
     @clipboard = clipboard
 
+  @setScheduler: (scheduler) ->
+    TextEditorComponent ?= require './text-editor-component'
+    TextEditorComponent.setScheduler(scheduler)
+
   @didUpdateScrollbarStyles: ->
     TextEditorComponent ?= require './text-editor-component'
     TextEditorComponent.didUpdateScrollbarStyles()
