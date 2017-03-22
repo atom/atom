@@ -2355,6 +2355,7 @@ class OverlayComponent {
   constructor (props) {
     this.props = props
     this.element = document.createElement('atom-overlay')
+    if (this.props.className != null) this.element.classList.add(this.props.className)
     this.element.appendChild(this.props.element)
     this.element.style.position = 'fixed'
     this.element.style.zIndex = 4
@@ -2363,10 +2364,15 @@ class OverlayComponent {
     getElementResizeDetector().listenTo(this.element, this.props.didResize)
   }
 
-  update (props) {
-    this.props = props
+  update (newProps) {
+    const oldProps = this.props
+    this.props = newProps
     if (this.props.pixelTop != null) this.element.style.top = this.props.pixelTop + 'px'
     if (this.props.pixelLeft != null) this.element.style.left = this.props.pixelLeft + 'px'
+    if (newProps.className !== oldProps.className) {
+      if (oldProps.className != null) this.element.classList.remove(oldProps.className)
+      if (newProps.className != null) this.element.classList.add(newProps.className)
+    }
   }
 }
 

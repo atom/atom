@@ -900,10 +900,11 @@ describe('TextEditorComponent', () => {
       overlayElement.style.margin = '3px'
       overlayElement.style.backgroundColor = 'red'
 
-      editor.decorateMarker(marker, {type: 'overlay', item: overlayElement})
+      const decoration = editor.decorateMarker(marker, {type: 'overlay', item: overlayElement, class: 'a'})
       await component.getNextUpdatePromise()
 
       const overlayWrapper = overlayElement.parentElement
+      expect(overlayWrapper.classList.contains('a')).toBe(true)
       expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
       expect(overlayWrapper.getBoundingClientRect().left).toBe(clientLeftForCharacter(component, 4, 25))
 
@@ -939,6 +940,16 @@ describe('TextEditorComponent', () => {
       overlayElement.style.height = 80 + 'px'
       await component.getNextUpdatePromise()
       expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
+
+      // Can update overlay wrapper class
+      decoration.setProperties({type: 'overlay', item: overlayElement, class: 'b'})
+      await component.getNextUpdatePromise()
+      expect(overlayWrapper.classList.contains('a')).toBe(false)
+      expect(overlayWrapper.classList.contains('b')).toBe(true)
+
+      decoration.setProperties({type: 'overlay', item: overlayElement})
+      await component.getNextUpdatePromise()
+      expect(overlayWrapper.classList.contains('b')).toBe(false)
     })
   })
 
