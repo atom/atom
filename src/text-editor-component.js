@@ -105,17 +105,28 @@ class TextEditorComponent {
     } else if (!this.updateScheduled) {
       this.updateScheduled = true
       etch.getScheduler().updateDocument(() => {
-        if (this.updateScheduled) this.updateSync()
+        if (this.updateScheduled) this.updateSync(true)
       })
     }
   }
 
-  updateSync () {
+  updateSync (useScheduler = false) {
     this.updateScheduled = false
     if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
+
     this.updateSyncBeforeMeasuringContent()
-    this.measureContentDuringUpdateSync()
-    this.updateSyncAfterMeasuringContent()
+    if (useScheduler === true) {
+      const scheduler = etch.getScheduler()
+      scheduler.readDocument(() => {
+        this.measureContentDuringUpdateSync()
+        scheduler.updateDocument(() => {
+          this.updateSyncAfterMeasuringContent()
+        })
+      })
+    } else {
+      this.measureContentDuringUpdateSync()
+      this.updateSyncAfterMeasuringContent()
+    }
   }
 
   updateSyncBeforeMeasuringContent () {
