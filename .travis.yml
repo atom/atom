@@ -4,7 +4,7 @@ git:
 matrix:
   include:
     - os: linux
-      env: NODE_VERSION=4.4.7 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
+      env: NODE_VERSION=6.9.4 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
 
 sudo: false
 
@@ -19,7 +19,9 @@ install:
   - npm install -g npm
   - script/build --create-debian-package --create-rpm-package --compress-artifacts
 
-script: script/test
+script:
+  - script/lint
+  - script/test
 
 cache:
   directories:
@@ -28,6 +30,7 @@ cache:
     - apm/node_modules
     - script/node_modules
     - ~/.atom/compile-cache
+    - ~/.atom/snapshot-cache
 
 notifications:
   email:

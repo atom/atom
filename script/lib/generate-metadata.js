@@ -27,8 +27,8 @@ function buildBundledPackagesMetadata () {
     const packagePath = path.join(CONFIG.intermediateAppPath, 'node_modules', packageName)
     const packageMetadataPath = path.join(packagePath, 'package.json')
     const packageMetadata = JSON.parse(fs.readFileSync(packageMetadataPath, 'utf8'))
-    normalizePackageData(packageMetadata, () => {
-      throw new Error(`Invalid package metadata. ${metadata.name}: ${msg}`)
+    normalizePackageData(packageMetadata, (msg) => {
+      console.warn(`Invalid package metadata. ${packageMetadata.name}: ${msg}`)
     }, true)
     if (packageMetadata.repository && packageMetadata.repository.url && packageMetadata.repository.type === 'git') {
       packageMetadata.repository.url = packageMetadata.repository.url.replace(/^git\+/, '')

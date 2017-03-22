@@ -26,7 +26,7 @@ export default async function ({test}) {
     console.log(text.length / 1024)
 
     let t0 = window.performance.now()
-    const buffer = new TextBuffer(text)
+    const buffer = new TextBuffer({text})
     const editor = new TextEditor({buffer, largeFileMode: true})
     atom.workspace.getActivePane().activateItem(editor)
     let t1 = window.performance.now()

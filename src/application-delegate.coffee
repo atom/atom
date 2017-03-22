@@ -1,11 +1,13 @@
 _ = require 'underscore-plus'
-{screen, ipcRenderer, remote, shell, webFrame} = require 'electron'
+{ipcRenderer, remote, shell} = require 'electron'
 ipcHelpers = require './ipc-helpers'
 {Disposable} = require 'event-kit'
-{getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
+getWindowLoadSettings = require './get-window-load-settings'
 
 module.exports =
 class ApplicationDelegate
+  getWindowLoadSettings: -> getWindowLoadSettings()
+
   open: (params) ->
     ipcRenderer.send('open', params)
 
@@ -78,6 +80,12 @@ class ApplicationDelegate
   setWindowFullScreen: (fullScreen=false) ->
     ipcHelpers.call('window-method', 'setFullScreen', fullScreen)
 
+  onDidEnterFullScreen: (callback) ->
+    ipcHelpers.on(ipcRenderer, 'did-enter-full-screen', callback)
+
+  onDidLeaveFullScreen: (callback) ->
+    ipcHelpers.on(ipcRenderer, 'did-leave-full-screen', callback)
+
   openWindowDevTools: ->
     # Defer DevTools interaction to the next tick, because using them during
     # event handling causes some wrong input events to be triggered on
@@ -109,10 +117,7 @@ class ApplicationDelegate
     ipcRenderer.send("add-recent-document", filename)
 
   setRepresentedDirectoryPaths: (paths) ->
-    loadSettings = getWindowLoadSettings()
-    loadSettings['initialPaths'] = paths
-    setWindowLoadSettings(loadSettings)
-    ipcRenderer.send("did-change-paths")
+    ipcHelpers.call('window-method', 'setRepresentedDirectoryPaths', paths)
 
   setAutoHideWindowMenuBar: (autoHide) ->
     ipcHelpers.call('window-method', 'setAutoHideMenuBar', autoHide)
@@ -149,13 +154,9 @@ class ApplicationDelegate
   showMessageDialog: (params) ->
 
   showSaveDialog: (params) ->
-    if _.isString(params)
-      params = defaultPath: params
-    else
-      params = _.clone(params)
-    params.title ?= 'Save File'
-    params.defaultPath ?= getWindowLoadSettings().initialPaths[0]
-    remote.dialog.showSaveDialog remote.getCurrentWindow(), params
+    if typeof params is 'string'
+      params = {defaultPath: params}
+    @getCurrentWindow().showSaveDialog(params)
 
   playBeepSound: ->
     shell.beep()
@@ -259,20 +260,6 @@ class ApplicationDelegate
   openExternal: (url) ->
     shell.openExternal(url)
 
-  disableZoom: ->
-    outerCallback = ->
-      webFrame.setZoomLevelLimits(1, 1)
-
-    outerCallback()
-    # Set the limits every time a display is added or removed, otherwise the
-    # configuration gets reset to the default, which allows zooming the
-    # webframe.
-    screen.on('display-added', outerCallback)
-    screen.on('display-removed', outerCallback)
-    new Disposable ->
-      screen.removeListener('display-added', outerCallback)
-      screen.removeListener('display-removed', outerCallback)
-
   checkForUpdate: ->
     ipcRenderer.send('command', 'application:check-for-update')
 
@@ -290,3 +277,14 @@ class ApplicationDelegate
 
   emitDidSavePath: (path) ->
     ipcRenderer.sendSync('did-save-path', path)
+
+  resolveProxy: (requestId, url) ->
+    ipcRenderer.send('resolve-proxy', requestId, url)
+
+  onDidResolveProxy: (callback) ->
+    outerCallback = (event, requestId, proxy) ->
+      callback(requestId, proxy)
+
+    ipcRenderer.on('did-resolve-proxy', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('did-resolve-proxy', outerCallback)

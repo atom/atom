@@ -83,4 +83,5 @@ function handleStartupEventWithSquirrel () {
 function setupCompileCache () {
   const CompileCache = require('../compile-cache')
   CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
+  CompileCache.install(process.resourcesPath, require)
 }

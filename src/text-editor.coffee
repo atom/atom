@@ -16,12 +16,11 @@ TextEditorElement = require './text-editor-element'
 {isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require './text-utils'
 
 ZERO_WIDTH_NBSP = '\ufeff'
+MAX_SCREEN_LINE_LENGTH = 500
 
 # Essential: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
-# If you're manipulating the state of an editor, use this class. If you're
-# interested in the visual appearance of editors, use {TextEditorElement}
-# instead.
+# If you're manipulating the state of an editor, use this class.
 #
 # A single {TextBuffer} can belong to multiple editors. For example, if the
 # same file is open in two different panes, Atom creates a separate editor for
@@ -162,7 +161,8 @@ class TextEditor extends Model
     @softWrapAtPreferredLineLength ?= false
     @preferredLineLength ?= 80
 
-    @buffer ?= new TextBuffer
+    @buffer ?= new TextBuffer({shouldDestroyOnFileDelete: ->
+      atom.config.get('core.closeDeletedFileTabs')})
     @tokenizedBuffer ?= new TokenizedBuffer({
       grammar, tabLength, @buffer, @largeFileMode, @assert
     })
@@ -192,9 +192,13 @@ class TextEditor extends Model
 
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
+    @disposables.add(@defaultMarkerLayer.onDidDestroy =>
+      @assert(false, "defaultMarkerLayer destroyed at an unexpected time")
+    )
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true, persistent: true)
+    @selectionsMarkerLayer.trackDestructionInOnDidCreateMarkerCallbacks = true
 
-    @decorationManager = new DecorationManager(@displayLayer, @defaultMarkerLayer)
+    @decorationManager = new DecorationManager(@displayLayer)
     @decorateMarkerLayer(@displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
 
     for marker in @selectionsMarkerLayer.getMarkers()
@@ -352,7 +356,8 @@ class TextEditor extends Model
             cursor.setShowCursorOnSelection(value) for cursor in @getCursors()
 
         else
-          throw new TypeError("Invalid TextEditor parameter: '#{param}'")
+          if param isnt 'ref' and param isnt 'key'
+            throw new TypeError("Invalid TextEditor parameter: '#{param}'")
 
     @displayLayer.reset(displayLayerParams)
 
@@ -382,7 +387,7 @@ class TextEditor extends Model
       softWrapHangingIndentLength: @displayLayer.softWrapHangingIndent
 
       @id, @softTabs, @softWrapped, @softWrapAtPreferredLineLength,
-      @preferredLineLength, @mini, @editorWidthInChars,  @width, @largeFileMode,
+      @preferredLineLength, @mini, @editorWidthInChars, @width, @largeFileMode,
       @registered, @invisibles, @showInvisibles, @showIndentGuide, @autoHeight, @autoWidth
     }
 
@@ -1323,12 +1328,12 @@ class TextEditor extends Model
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
     @mutateSelectedText (selection) ->
-      range = selection.getBufferRange()
+      selection.getBufferRange()
       if selectWordIfEmpty and selection.isEmpty()
         selection.selectWord()
       text = selection.getText()
       selection.deleteSelectedText()
-      selection.insertText(fn(text))
+      range = selection.insertText(fn(text))
       selection.setBufferRange(range)
 
   # Split multi-line selections into one selection per line.
@@ -2821,6 +2826,11 @@ class TextEditor extends Model
   # {::backwardsScanInBufferRange} to avoid tripping over your own changes.
   #
   # * `regex` A {RegExp} to search for.
+  # * `options` (optional) {Object}
+  #   * `leadingContextLineCount` {Number} default `0`; The number of lines
+  #      before the matched line to include in the results object.
+  #   * `trailingContextLineCount` {Number} default `0`; The number of lines
+  #      after the matched line to include in the results object.
   # * `iterator` A {Function} that's called on each match
   #   * `object` {Object}
   #     * `match` The current regular expression match.
@@ -2828,7 +2838,12 @@ class TextEditor extends Model
   #     * `range` The {Range} of the match.
   #     * `stop` Call this {Function} to terminate the scan.
   #     * `replace` Call this {Function} with a {String} to replace the match.
-  scan: (regex, iterator) -> @buffer.scan(regex, iterator)
+  scan: (regex, options={}, iterator) ->
+    if _.isFunction(options)
+      iterator = options
+      options = {}
+
+    @buffer.scan(regex, options, iterator)
 
   # Essential: Scan regular expression matches in a given range, calling the given
   # iterator function on each match.
@@ -2965,7 +2980,7 @@ class TextEditor extends Model
       else
         @getEditorWidthInChars()
     else
-      Infinity
+      MAX_SCREEN_LINE_LENGTH
 
   ###
   Section: Indentation

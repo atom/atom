@@ -18,7 +18,7 @@ module.exports = ({blobStore}) ->
   try
     path = require 'path'
     {ipcRenderer} = require 'electron'
-    {getWindowLoadSettings} = require './window-load-settings-helpers'
+    getWindowLoadSettings = require './get-window-load-settings'
     CompileCache = require './compile-cache'
     AtomEnvironment = require '../src/atom-environment'
     ApplicationDelegate = require '../src/application-delegate'
@@ -79,7 +79,9 @@ module.exports = ({blobStore}) ->
       params.clipboard = clipboard unless params.hasOwnProperty("clipboard")
       params.blobStore = blobStore unless params.hasOwnProperty("blobStore")
       params.onlyLoadBaseStyleSheets = true unless params.hasOwnProperty("onlyLoadBaseStyleSheets")
-      new AtomEnvironment(params)
+      atomEnvironment = new AtomEnvironment(params)
+      atomEnvironment.initialize(params)
+      atomEnvironment
 
     promise = testRunner({
       logFile, headless, testPaths, buildAtomEnvironment, buildDefaultApplicationDelegate, legacyTestRunner

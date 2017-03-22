@@ -622,6 +622,18 @@ class TextEditorPresenter
     return unless @scrollTop? and @lineHeight?
 
     @startRow = Math.max(0, @lineTopIndex.rowForPixelPosition(@scrollTop))
+    atom.assert(
+      Number.isFinite(@startRow),
+      'Invalid start row',
+      (error) =>
+        error.metadata = {
+          startRow: @startRow?.toString(),
+          scrollTop: @scrollTop?.toString(),
+          scrollHeight: @scrollHeight?.toString(),
+          clientHeight: @clientHeight?.toString(),
+          lineHeight: @lineHeight?.toString()
+        }
+    )
 
   updateEndRow: ->
     return unless @scrollTop? and @lineHeight? and @height?

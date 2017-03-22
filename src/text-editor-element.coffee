@@ -108,7 +108,10 @@ class TextEditorElement extends HTMLElement
 
   buildModel: ->
     @setModel(@workspace.buildTextEditor(
-      buffer: new TextBuffer(@textContent)
+      buffer: new TextBuffer({
+        text: @textContent
+        shouldDestroyOnFileDelete:
+          -> atom.config.get('core.closeDeletedFileTabs')})
       softWrapped: false
       tabLength: 2
       softTabs: true

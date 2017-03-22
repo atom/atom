@@ -136,6 +136,7 @@
           { label: 'Open In &Dev Mode…', command: 'application:open-dev' }
           { label: '&Reload Window', command: 'window:reload' }
           { label: 'Run Package &Specs', command: 'window:run-package-specs' }
+          { label: 'Run &Benchmarks', command: 'window:run-benchmarks' }
           { label: 'Toggle Developer &Tools', command: 'window:toggle-dev-tools' }
         ]
       }

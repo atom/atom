@@ -28,7 +28,13 @@ describe "TextEditor", ->
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
-      editor2 = TextEditor.deserialize(editor.serialize(), atom)
+      editor2 = TextEditor.deserialize(editor.serialize(), {
+        assert: atom.assert,
+        textEditors: atom.textEditors,
+        project: {
+          bufferForIdSync: (id) -> TextBuffer.deserialize(editor.buffer.serialize())
+        }
+      })
 
       expect(editor2.id).toBe editor.id
       expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
@@ -4862,8 +4868,8 @@ describe "TextEditor", ->
         editor.replaceSelectedText {}, -> '123'
         expect(buffer.lineForRow(0)).toBe '123var quicksort = function () {'
 
-        editor.replaceSelectedText {selectWordIfEmpty: true}, -> 'var'
         editor.setCursorBufferPosition([0])
+        editor.replaceSelectedText {selectWordIfEmpty: true}, -> 'var'
         expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
 
         editor.setCursorBufferPosition([10])
@@ -4875,6 +4881,12 @@ describe "TextEditor", ->
         editor.setSelectedBufferRange([[0, 1], [0, 3]])
         editor.replaceSelectedText {}, -> 'ia'
         expect(buffer.lineForRow(0)).toBe 'via quicksort = function () {'
+
+      it "replaces the selected text and selects the replacement text", ->
+        editor.setSelectedBufferRange([[0, 4], [0, 9]])
+        editor.replaceSelectedText {}, -> 'whatnot'
+        expect(buffer.lineForRow(0)).toBe 'var whatnotsort = function () {'
+        expect(editor.getSelectedBufferRange()).toEqual [[0, 4], [0, 11]]
 
   describe ".transpose()", ->
     it "swaps two characters", ->
@@ -4896,7 +4908,7 @@ describe "TextEditor", ->
         editor.setCursorScreenPosition([0, 1])
         editor.upperCase()
         expect(editor.lineTextForBufferRow(0)).toBe 'ABC'
-        expect(editor.getSelectedBufferRange()).toEqual [[0, 1], [0, 1]]
+        expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 3]]
 
     describe "when there is a selection", ->
       it "upper cases the current selection", ->
@@ -4913,7 +4925,7 @@ describe "TextEditor", ->
         editor.setCursorScreenPosition([0, 1])
         editor.lowerCase()
         expect(editor.lineTextForBufferRow(0)).toBe 'abc'
-        expect(editor.getSelectedBufferRange()).toEqual [[0, 1], [0, 1]]
+        expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 3]]
 
     describe "when there is a selection", ->
       it "lower cases the current selection", ->
