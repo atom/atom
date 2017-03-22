@@ -974,6 +974,23 @@ describe('TextEditorComponent', () => {
     })
   })
 
+  describe('custom gutter decorations', () => {
+    it('arranges custom gutters based on their priority', async () => {
+      const {component, element, editor} = buildComponent()
+      editor.addGutter({name: 'e', priority: 2})
+      editor.addGutter({name: 'a', priority: -2})
+      editor.addGutter({name: 'd', priority: 1})
+      editor.addGutter({name: 'b', priority: -1})
+      editor.addGutter({name: 'c', priority: 0})
+
+      await component.getNextUpdatePromise()
+      const gutters = component.refs.gutterContainer.querySelectorAll('.gutter')
+      expect(Array.from(gutters).map((g) => g.getAttribute('gutter-name'))).toEqual([
+        'a', 'b', 'c', 'line-number', 'd', 'e'
+      ])
+    })
+  })
+
   describe('mouse input', () => {
     describe('on the lines', () => {
       it('positions the cursor on single-click', async () => {

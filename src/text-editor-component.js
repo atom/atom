@@ -74,12 +74,14 @@ class TextEditorComponent {
     this.lastKeydown = null
     this.lastKeydownBeforeKeypress = null
     this.accentedCharacterMenuIsOpen = false
+    this.guttersToRender = []
     this.decorationsToRender = {
       lineNumbers: new Map(),
       lines: new Map(),
       highlights: new Map(),
       cursors: [],
-      overlays: []
+      overlays: [],
+      customGutter: new Map()
     }
     this.decorationsToMeasure = {
       highlights: new Map(),
@@ -134,6 +136,7 @@ class TextEditorComponent {
     if (this.pendingAutoscroll) this.autoscrollVertically()
     this.populateVisibleRowRange()
     this.queryScreenLinesToRender()
+    this.queryGuttersToRender()
     this.queryDecorationsToRender()
     this.shouldRenderDummyScrollbars = !this.refreshedScrollbarStyle
     etch.updateSync(this)
@@ -228,10 +231,22 @@ class TextEditorComponent {
 
     const innerStyle = {
       willChange: 'transform',
-      backgroundColor: 'inherit'
+      backgroundColor: 'inherit',
+      display: 'flex'
     }
+
+    let gutterNodes
     if (this.measurements) {
       innerStyle.transform = `translateY(${-this.getScrollTop()}px)`
+      gutterNodes = this.guttersToRender.map((gutter) => {
+        if (gutter.name === 'line-number') {
+          return this.renderLineNumberGutter()
+        } else {
+          return this.renderCustomGutter(gutter.name)
+        }
+      })
+    } else {
+      gutterNodes = this.renderLineNumberGutter()
     }
 
     return $.div(
@@ -244,9 +259,7 @@ class TextEditorComponent {
           backgroundColor: 'inherit'
         }
       },
-      $.div({style: innerStyle},
-        this.renderLineNumberGutter()
-      )
+      $.div({style: innerStyle}, gutterNodes)
     )
   }
 
@@ -300,7 +313,7 @@ class TextEditorComponent {
         {
           ref: 'lineNumberGutter',
           className: 'gutter line-numbers',
-          'gutter-name': 'line-number'
+          attributes: {'gutter-name': 'line-number'}
         },
         $.div({className: 'line-number'},
           '0'.repeat(maxLineNumberDigits),
@@ -308,6 +321,19 @@ class TextEditorComponent {
         )
       )
     }
+  }
+
+  renderCustomGutter (gutterName) {
+    return $.div(
+      {
+        className: 'gutter',
+        attributes: {'gutter-name': gutterName}
+      },
+      $.div({
+        className: 'custom-decorations',
+        style: {height: this.getScrollHeight() + 'px'}
+      })
+    )
   }
 
   renderScrollContainer () {
@@ -614,12 +640,18 @@ class TextEditorComponent {
     return this.renderedScreenLines[row - this.getRenderedStartRow()]
   }
 
+  queryGuttersToRender () {
+    this.guttersToRender = this.props.model.getGutters()
+  }
+
   queryDecorationsToRender () {
     this.decorationsToRender.lineNumbers.clear()
     this.decorationsToRender.lines.clear()
     this.decorationsToRender.overlays.length = 0
+    this.decorationsToRender.customGutter.clear()
     this.decorationsToMeasure.highlights.clear()
     this.decorationsToMeasure.cursors.length = 0
+
 
     const decorationsByMarker =
       this.props.model.decorationManager.decorationPropertiesByMarkerForScreenRowRange(
@@ -1589,6 +1621,8 @@ class TextEditorComponent {
     this.disposables.add(model.selectionsMarkerLayer.onDidUpdate(scheduleUpdate))
     this.disposables.add(model.displayLayer.onDidChangeSync(scheduleUpdate))
     this.disposables.add(model.onDidUpdateDecorations(scheduleUpdate))
+    this.disposables.add(model.onDidAddGutter(scheduleUpdate))
+    this.disposables.add(model.onDidRemoveGutter(scheduleUpdate))
     this.disposables.add(model.onDidRequestAutoscroll(this.didRequestAutoscroll.bind(this)))
   }
 
@@ -2038,7 +2072,7 @@ class LineNumberGutterComponent {
     return $.div(
       {
         className: 'gutter line-numbers',
-        'gutter-name': 'line-number',
+        attributes: {'gutter-name': 'line-number'},
         style: {
           contain: 'strict',
           overflow: 'hidden',
