@@ -290,16 +290,16 @@ module.exports = class Dock {
     // The area used when detecting "leave" events is actually larger than when detecting entrances.
     if (includeButtonWidth) {
       const hoverMargin = 20
-      const toggleButtonSize = 50 / 2 // This needs to match the value in the CSS.
+      const {width, height} = this.toggleButton.getSize()
       switch (this.location) {
         case 'right':
-          bounds.left -= toggleButtonSize + hoverMargin
+          bounds.left -= width + hoverMargin
           break
         case 'bottom':
-          bounds.top -= toggleButtonSize + hoverMargin
+          bounds.top -= height + hoverMargin
           break
         case 'left':
-          bounds.right += toggleButtonSize + hoverMargin
+          bounds.right += width + hoverMargin
           break
       }
     }
@@ -479,6 +479,13 @@ class DockToggleButton {
 
   getElement () {
     return this.element
+  }
+
+  getSize () {
+    if (this.size == null) {
+      this.size = this.element.getBoundingClientRect()
+    }
+    return this.size
   }
 
   destroy () {
