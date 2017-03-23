@@ -289,17 +289,17 @@ module.exports = class Dock {
 
     // The area used when detecting "leave" events is actually larger than when detecting entrances.
     if (includeButtonWidth) {
-      const affordance = 20
+      const hoverMargin = 20
       const toggleButtonSize = 50 / 2 // This needs to match the value in the CSS.
       switch (this.location) {
         case 'right':
-          bounds.left -= toggleButtonSize + affordance
+          bounds.left -= toggleButtonSize + hoverMargin
           break
         case 'bottom':
-          bounds.top -= toggleButtonSize + affordance
+          bounds.top -= toggleButtonSize + hoverMargin
           break
         case 'left':
-          bounds.right += toggleButtonSize + affordance
+          bounds.right += toggleButtonSize + hoverMargin
           break
       }
     }
