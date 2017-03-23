@@ -260,7 +260,7 @@ describe('AtomApplication', function () {
       await conditionPromise(async () => (await getTreeViewRootDirectories(reusedWindow)).length > 0)
     })
 
-    it('opens a new window with a single untitled buffer when launched with no path, even if windows already exist', async function () {
+    it('opens a new window with a single untitled, pending buffer when launched with no path, even if windows already exist', async function () {
       const atomApplication = buildAtomApplication()
       const window1 = atomApplication.launch(parseCommandLine([]))
       await focusWindow(window1)
@@ -268,10 +268,10 @@ describe('AtomApplication', function () {
         sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
       })
       const window1EditorPending = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        sendBackToMainProcess(atom.workspace.getActivePane().getPendingItem())
+        sendBackToMainProcess(atom.workspace.getActivePane().getPendingItem().getTitle())
       })
       assert.equal(window1EditorTitle, 'untitled')
-      assert.notEqual(window1EditorPending, null)
+      assert.equal(window1EditorPending, 'untitled')
 
       const window2 = atomApplication.openWithOptions(parseCommandLine([]))
       await focusWindow(window2)
@@ -279,10 +279,10 @@ describe('AtomApplication', function () {
         sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
       })
       const window2EditorPending = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        sendBackToMainProcess(atom.workspace.getActivePane().getPendingItem())
+        sendBackToMainProcess(atom.workspace.getActivePane().getPendingItem().getTitle())
       })
       assert.equal(window2EditorTitle, 'untitled')
-      assert.notEqual(window2EditorPending, null)
+      assert.equal(window2EditorPending, 'untitled')
 
       assert.deepEqual(atomApplication.windows, [window1, window2])
     })
