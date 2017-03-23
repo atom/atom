@@ -333,7 +333,7 @@ describe "AtomEnvironment", ->
         spyOn(atom, 'loadState').andReturn(Promise.resolve(null))
         spyOn(atom, 'attemptRestoreProjectStateForPaths')
 
-      fit "adds the selected folder to the project", ->
+      it "adds the selected folder to the project", ->
         initialPaths = atom.project.setPaths([])
         tempDirectory = temp.mkdirSync("a-new-directory")
         spyOn(atom, "pickFolder").andCallFake (callback) ->
