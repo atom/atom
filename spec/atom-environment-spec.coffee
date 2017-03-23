@@ -350,7 +350,7 @@ describe "AtomEnvironment", ->
       beforeEach ->
         spyOn(atom, "getStateKey").andCallFake (dirs) -> dirs.join(':')
         spyOn(atom, "loadState").andCallFake (key) ->
-          if key == __dirname then Promise.resolve(state) else Promise.resolve(null)
+          if key is __dirname then Promise.resolve(state) else Promise.resolve(null)
         spyOn(atom, "attemptRestoreProjectStateForPaths")
         spyOn(atom, "pickFolder").andCallFake (callback) ->
           callback([__dirname])
@@ -512,7 +512,7 @@ describe "AtomEnvironment", ->
       beforeEach ->
         spyOn(atom, "getStateKey").andCallFake (dirs) -> dirs.join(':')
         spyOn(atom, "loadState").andCallFake (key) ->
-          if key == __dirname then Promise.resolve(state) else Promise.resolve(null)
+          if key is __dirname then Promise.resolve(state) else Promise.resolve(null)
         spyOn(atom, "attemptRestoreProjectStateForPaths")
 
       describe "when there are no project folders", ->
