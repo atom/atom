@@ -989,6 +989,41 @@ describe('TextEditorComponent', () => {
         'a', 'b', 'c', 'line-number', 'd', 'e'
       ])
     })
+
+    it('allows the element of custom gutters to be retrieved', async () => {
+      const {component, element, editor} = buildComponent()
+      const gutterA = editor.addGutter({name: 'a', priority: -1})
+      const gutterB = editor.addGutter({name: 'b', priority: 1})
+      await component.getNextUpdatePromise()
+
+      expect(element.contains(gutterA.element)).toBe(true)
+      expect(element.contains(gutterB.element)).toBe(true)
+    })
+
+    it('can show and hide custom gutters', async () => {
+      const {component, element, editor} = buildComponent()
+      const gutterA = editor.addGutter({name: 'a', priority: -1})
+      const gutterB = editor.addGutter({name: 'b', priority: 1})
+
+      await component.getNextUpdatePromise()
+      expect(gutterA.element.style.display).toBe('')
+      expect(gutterB.element.style.display).toBe('')
+
+      gutterA.hide()
+      await component.getNextUpdatePromise()
+      expect(gutterA.element.style.display).toBe('none')
+      expect(gutterB.element.style.display).toBe('')
+
+      gutterB.hide()
+      await component.getNextUpdatePromise()
+      expect(gutterA.element.style.display).toBe('none')
+      expect(gutterB.element.style.display).toBe('none')
+
+      gutterA.show()
+      await component.getNextUpdatePromise()
+      expect(gutterA.element.style.display).toBe('')
+      expect(gutterB.element.style.display).toBe('none')
+    })
   })
 
   describe('mouse input', () => {

@@ -70,12 +70,14 @@ class Gutter
   hide: ->
     if @visible
       @visible = false
+      @gutterContainer.scheduleComponentUpdate()
       @emitter.emit 'did-change-visible', this
 
   # Essential: Show the gutter.
   show: ->
     if not @visible
       @visible = true
+      @gutterContainer.scheduleComponentUpdate()
       @emitter.emit 'did-change-visible', this
 
   # Essential: Determine whether the gutter is visible.
