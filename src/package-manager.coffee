@@ -410,7 +410,11 @@ class PackageManager
     disabledPackageNames = new Set(@config.get('core.disabledPackages'))
     @config.transact =>
       for pack in @getAvailablePackages()
-        unless disabledPackageNames.has(pack.name)
+        if disabledPackageNames.has(pack.name)
+          if preloadedPackage = @preloadedPackages[pack.name]
+            preloadedPackage.deactivate()
+            delete preloadedPackage[pack.name]
+        else
           @loadAvailablePackage(pack)
       return
     @initialPackagesLoaded = true
