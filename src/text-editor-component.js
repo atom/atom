@@ -74,6 +74,7 @@ class TextEditorComponent {
     this.lastKeydown = null
     this.lastKeydownBeforeKeypress = null
     this.accentedCharacterMenuIsOpen = false
+    this.remeasureGutterContainer = false
     this.guttersToRender = []
     this.decorationsToRender = {
       lineNumbers: new Map(),
@@ -88,10 +89,13 @@ class TextEditorComponent {
       cursors: []
     }
 
+    etch.updateSync(this)
+
     this.observeModel()
     getElementResizeDetector().listenTo(this.element, this.didResize.bind(this))
-
-    etch.updateSync(this)
+    if (this.refs.gutterContainer) {
+      getElementResizeDetector().listenTo(this.refs.gutterContainer, this.didResizeGutterContainer.bind(this))
+    }
   }
 
   update (props) {
@@ -146,6 +150,10 @@ class TextEditorComponent {
   measureContentDuringUpdateSync () {
     this.measureHorizontalPositions()
     this.updateAbsolutePositionedDecorations()
+    if (this.remeasureGutterContainer) {
+      this.measureGutterDimensions()
+      this.remeasureGutterContainer = false
+    }
     const wasHorizontalScrollbarVisible = this.isHorizontalScrollbarVisible()
     this.measureLongestLineWidth()
     if (this.pendingAutoscroll) {
@@ -636,7 +644,19 @@ class TextEditorComponent {
   }
 
   queryGuttersToRender () {
+    const oldGuttersToRender = this.guttersToRender
     this.guttersToRender = this.props.model.getGutters()
+
+    if (!oldGuttersToRender || oldGuttersToRender.length !== this.guttersToRender.length) {
+      this.remeasureGutterContainer = true
+    } else {
+      for (let i = 0, length = this.guttersToRender.length; i < length; i++) {
+        if (this.guttersToRender[i] !== oldGuttersToRender[i]) {
+          this.remeasureGutterContainer = true
+          break
+        }
+      }
+    }
   }
 
   queryDecorationsToRender () {
@@ -1002,6 +1022,13 @@ class TextEditorComponent {
 
   didResize () {
     if (this.measureClientContainerDimensions()) {
+      this.scheduleUpdate()
+    }
+  }
+
+  didResizeGutterContainer () {
+    console.log('didResizeGutterContainer');
+    if (this.measureGutterDimensions()) {
       this.scheduleUpdate()
     }
   }
@@ -1436,11 +1463,29 @@ class TextEditorComponent {
   }
 
   measureGutterDimensions () {
+    let dimensionsChanged = false
+
+    if (this.refs.gutterContainer) {
+      const gutterContainerWidth = this.refs.gutterContainer.offsetWidth
+      if (gutterContainerWidth !== this.measurements.gutterContainerWidth) {
+        dimensionsChanged = true
+        this.measurements.gutterContainerWidth = gutterContainerWidth
+      }
+    } else {
+      this.measurements.gutterContainerWidth = 0
+    }
+
     if (this.refs.lineNumberGutter) {
-      this.measurements.lineNumberGutterWidth = this.refs.lineNumberGutter.offsetWidth
+      const lineNumberGutterWidth = this.refs.lineNumberGutter.offsetWidth
+      if (lineNumberGutterWidth !== this.measurements.lineNumberGutterWidth) {
+        dimensionsChanged = true
+        this.measurements.lineNumberGutterWidth = this.refs.lineNumberGutter.offsetWidth
+      }
     } else {
       this.measurements.lineNumberGutterWidth = 0
     }
+
+    return dimensionsChanged
   }
 
   measureClientContainerDimensions () {
@@ -1763,7 +1808,7 @@ class TextEditorComponent {
   }
 
   getGutterContainerWidth () {
-    return this.getLineNumberGutterWidth()
+    return this.measurements.gutterContainerWidth
   }
 
   getLineNumberGutterWidth () {
