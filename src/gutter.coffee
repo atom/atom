@@ -1,4 +1,5 @@
 {Emitter} = require 'event-kit'
+CustomGutterComponent = null
 
 DefaultPriority = -100
 
@@ -102,3 +103,6 @@ class Gutter
   # Returns a {Decoration} object
   decorateMarker: (marker, options) ->
     @gutterContainer.addGutterDecoration(this, marker, options)
+
+  getElement: ->
+    @element ?= document.createElement('div')

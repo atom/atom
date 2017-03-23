@@ -106,9 +106,12 @@ class DecorationManager {
         }
 
         if (hasMarkerDecorations) {
-          this.decorationsByMarker.get(marker).forEach((decoration) => {
-            decorationPropertiesForMarker.push(decoration.getProperties())
-          })
+          const decorationsForMarker = this.decorationsByMarker.get(marker)
+          if (decorationsForMarker) {
+            decorationsForMarker.forEach((decoration) => {
+              decorationPropertiesForMarker.push(decoration.getProperties())
+            })
+          }
         }
       }
     })

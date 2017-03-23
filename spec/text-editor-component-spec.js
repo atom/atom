@@ -990,39 +990,92 @@ describe('TextEditorComponent', () => {
       ])
     })
 
-    it('allows the element of custom gutters to be retrieved', async () => {
+    it('allows the element of custom gutters to be retrieved before being rendered in the editor component', async () => {
       const {component, element, editor} = buildComponent()
+      const [lineNumberGutter] = editor.getGutters()
       const gutterA = editor.addGutter({name: 'a', priority: -1})
       const gutterB = editor.addGutter({name: 'b', priority: 1})
+
+      const lineNumberGutterElement = lineNumberGutter.getElement()
+      const gutterAElement = gutterA.getElement()
+      const gutterBElement = gutterB.getElement()
+
       await component.getNextUpdatePromise()
 
-      expect(element.contains(gutterA.element)).toBe(true)
-      expect(element.contains(gutterB.element)).toBe(true)
+      expect(element.contains(lineNumberGutterElement)).toBe(true)
+      expect(element.contains(gutterAElement)).toBe(true)
+      expect(element.contains(gutterBElement)).toBe(true)
     })
 
     it('can show and hide custom gutters', async () => {
       const {component, element, editor} = buildComponent()
       const gutterA = editor.addGutter({name: 'a', priority: -1})
       const gutterB = editor.addGutter({name: 'b', priority: 1})
+      const gutterAElement = gutterA.getElement()
+      const gutterBElement = gutterB.getElement()
 
       await component.getNextUpdatePromise()
-      expect(gutterA.element.style.display).toBe('')
-      expect(gutterB.element.style.display).toBe('')
+      expect(gutterAElement.style.display).toBe('')
+      expect(gutterBElement.style.display).toBe('')
 
       gutterA.hide()
       await component.getNextUpdatePromise()
-      expect(gutterA.element.style.display).toBe('none')
-      expect(gutterB.element.style.display).toBe('')
+      expect(gutterAElement.style.display).toBe('none')
+      expect(gutterBElement.style.display).toBe('')
 
       gutterB.hide()
       await component.getNextUpdatePromise()
-      expect(gutterA.element.style.display).toBe('none')
-      expect(gutterB.element.style.display).toBe('none')
+      expect(gutterAElement.style.display).toBe('none')
+      expect(gutterBElement.style.display).toBe('none')
 
       gutterA.show()
       await component.getNextUpdatePromise()
-      expect(gutterA.element.style.display).toBe('')
-      expect(gutterB.element.style.display).toBe('none')
+      expect(gutterAElement.style.display).toBe('')
+      expect(gutterBElement.style.display).toBe('none')
+    })
+
+    it('renders decorations in custom gutters', async () => {
+      const {component, element, editor} = buildComponent()
+      const gutterA = editor.addGutter({name: 'a', priority: -1})
+      const gutterB = editor.addGutter({name: 'b', priority: 1})
+      const marker1 = editor.markScreenRange([[2, 0], [4, 0]])
+      const marker2 = editor.markScreenRange([[6, 0], [7, 0]])
+      const marker3 = editor.markScreenRange([[9, 0], [12, 0]])
+      const decorationElement1 = document.createElement('div')
+      const decorationElement2 = document.createElement('div')
+
+      const decoration1 = gutterA.decorateMarker(marker1, {class: 'a'})
+      const decoration2 = gutterA.decorateMarker(marker2, {class: 'b', item: decorationElement1})
+      const decoration3 = gutterB.decorateMarker(marker3, {item: decorationElement2})
+      await component.getNextUpdatePromise()
+
+      let [decorationNode1, decorationNode2] = gutterA.getElement().firstChild.children
+      const [decorationNode3] = gutterB.getElement().firstChild.children
+
+      expect(decorationNode1.className).toBe('a')
+      expect(decorationNode1.getBoundingClientRect().top).toBe(clientTopForLine(component, 2))
+      expect(decorationNode1.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 5))
+      expect(decorationNode1.firstChild).toBeNull()
+
+      expect(decorationNode2.className).toBe('b')
+      expect(decorationNode2.getBoundingClientRect().top).toBe(clientTopForLine(component, 6))
+      expect(decorationNode2.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 8))
+      expect(decorationNode2.firstChild).toBe(decorationElement1)
+
+      expect(decorationNode3.className).toBe('')
+      expect(decorationNode3.getBoundingClientRect().top).toBe(clientTopForLine(component, 9))
+      expect(decorationNode3.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 12) + component.getLineHeight())
+      expect(decorationNode3.firstChild).toBe(decorationElement2)
+
+      decoration1.setProperties({type: 'gutter', gutterName: 'a', class: 'c', item: decorationElement1})
+      decoration2.setProperties({type: 'gutter', gutterName: 'a', item: decorationElement2})
+      decoration3.destroy()
+      await component.getNextUpdatePromise()
+      expect(decorationNode1.className).toBe('c')
+      expect(decorationNode1.firstChild).toBe(decorationElement1)
+      expect(decorationNode2.className).toBe('')
+      expect(decorationNode2.firstChild).toBe(decorationElement2)
+      expect(gutterB.getElement().firstChild.children.length).toBe(0)
     })
   })
 
