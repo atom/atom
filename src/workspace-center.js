@@ -14,7 +14,7 @@ module.exports = class WorkspaceCenter {
   */
 
   // Essential: Invoke the given callback with all current and future text
-  // editors in the workspace.
+  // editors in the workspace center.
   //
   // * `callback` {Function} to be called with current and future text editors.
   //   * `editor` An {TextEditor} that is present in {::getTextEditors} at the time
@@ -27,7 +27,7 @@ module.exports = class WorkspaceCenter {
   }
 
   // Essential: Invoke the given callback with all current and future panes items
-  // in the workspace.
+  // in the workspace center.
   //
   // * `callback` {Function} to be called with current and future pane items.
   //   * `item` An item that is present in {::getPaneItems} at the time of
@@ -70,7 +70,7 @@ module.exports = class WorkspaceCenter {
   }
 
   // Essential: Invoke the given callback with the current active pane item and
-  // with all future active pane items in the workspace.
+  // with all future active pane items in the workspace center.
   //
   // * `callback` {Function} to be called when the active pane item changes.
   //   * `item` The current active pane item.
@@ -80,7 +80,8 @@ module.exports = class WorkspaceCenter {
     return this.paneContainer.observeActivePaneItem(callback)
   }
 
-  // Extended: Invoke the given callback when a pane is added to the workspace.
+  // Extended: Invoke the given callback when a pane is added to the workspace
+  // center.
   //
   // * `callback` {Function} to be called panes are added.
   //   * `event` {Object} with the following keys:
@@ -92,7 +93,7 @@ module.exports = class WorkspaceCenter {
   }
 
   // Extended: Invoke the given callback before a pane is destroyed in the
-  // workspace.
+  // workspace center.
   //
   // * `callback` {Function} to be called before panes are destroyed.
   //   * `event` {Object} with the following keys:
@@ -104,7 +105,7 @@ module.exports = class WorkspaceCenter {
   }
 
   // Extended: Invoke the given callback when a pane is destroyed in the
-  // workspace.
+  // workspace center.
   //
   // * `callback` {Function} to be called panes are destroyed.
   //   * `event` {Object} with the following keys:
@@ -116,7 +117,7 @@ module.exports = class WorkspaceCenter {
   }
 
   // Extended: Invoke the given callback with all current and future panes in the
-  // workspace.
+  // workspace center.
   //
   // * `callback` {Function} to be called with current and future panes.
   //   * `pane` A {Pane} that is present in {::getPanes} at the time of
@@ -150,7 +151,7 @@ module.exports = class WorkspaceCenter {
   }
 
   // Extended: Invoke the given callback when a pane item is added to the
-  // workspace.
+  // workspace center.
   //
   // * `callback` {Function} to be called when pane items are added.
   //   * `event` {Object} with the following keys:
@@ -196,7 +197,7 @@ module.exports = class WorkspaceCenter {
   Section: Pane Items
   */
 
-  // Essential: Get all pane items in the workspace.
+  // Essential: Get all pane items in the workspace center.
   //
   // Returns an {Array} of items.
   getPaneItems () {
@@ -210,7 +211,7 @@ module.exports = class WorkspaceCenter {
     return this.paneContainer.getActivePaneItem()
   }
 
-  // Essential: Get all text editors in the workspace.
+  // Essential: Get all text editors in the workspace center.
   //
   // Returns an {Array} of {TextEditor}s.
   getTextEditors () {
@@ -239,7 +240,7 @@ module.exports = class WorkspaceCenter {
   Section: Panes
   */
 
-  // Extended: Get all panes in the workspace.
+  // Extended: Get all panes in the workspace center.
   //
   // Returns an {Array} of {Pane}s.
   getPanes () {
