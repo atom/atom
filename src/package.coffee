@@ -34,7 +34,7 @@ class Package
   constructor: (params) ->
     {
       @path, @metadata, @bundledPackage, @preloadedPackage, @packageManager, @config, @styleManager, @commandRegistry,
-      @keymapManager, @devMode, @notificationManager, @grammarRegistry, @themeManager,
+      @keymapManager, @notificationManager, @grammarRegistry, @themeManager,
       @menuManager, @contextMenuManager, @deserializerManager, @viewRegistry
     } = params
 
@@ -719,7 +719,7 @@ class Package
   isCompatible: ->
     return @compatible if @compatible?
 
-    if @bundledPackage and not @devMode
+    if @bundledPackage and not @packageManager.devMode
       # Bundled packages are always considered compatible
       @compatible = true
     else if @getMainModulePath()
@@ -780,7 +780,7 @@ class Package
   # This information is cached in local storage on a per package/version basis
   # to minimize the impact on startup time.
   getIncompatibleNativeModules: ->
-    unless @devMode
+    unless @packageManager.devMode
       try
         if arrayAsString = global.localStorage.getItem(@getIncompatibleNativeModulesStorageKey())
           return JSON.parse(arrayAsString)

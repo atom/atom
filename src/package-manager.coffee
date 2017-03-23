@@ -390,7 +390,7 @@ class PackageManager
       options = {
         path: pack.rootDirPath, name: packageName, preloadedPackage: true,
         bundledPackage: true, metadata, packageManager: this, @config,
-        @styleManager, @commandRegistry, @keymapManager, @devMode,
+        @styleManager, @commandRegistry, @keymapManager,
         @notificationManager, @grammarRegistry, @themeManager, @menuManager,
         @contextMenuManager, @deserializerManager, @viewRegistry
       }
@@ -454,7 +454,7 @@ class PackageManager
       options = {
         path: availablePackage.path, name: availablePackage.name, metadata,
         bundledPackage: availablePackage.isBundled, packageManager: this,
-        @config, @styleManager, @commandRegistry, @keymapManager, @devMode,
+        @config, @styleManager, @commandRegistry, @keymapManager,
         @notificationManager, @grammarRegistry, @themeManager, @menuManager,
         @contextMenuManager, @deserializerManager, @viewRegistry
       }
