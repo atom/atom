@@ -294,7 +294,7 @@ class PackageManager
 
   # Public: Returns an {Array} of {String}s of all the available package names.
   getAvailablePackageNames: ->
-    @getAvailablePackages().sort((a) -> a.name)
+    @getAvailablePackages().map((a) -> a.name)
 
   # Public: Returns an {Array} of {String}s of all the available package metadata.
   getAvailablePackageMetadata: ->
