@@ -46,7 +46,7 @@ module.exports = class Workspace extends Model {
     this.textEditorRegistry = params.textEditorRegistry
     this.hoveredDock = null
     this.draggingItem = false
-    this.previousLocations = new StateStore('AtomPreviousItemLocations', 1)
+    this.itemLocationStore = new StateStore('AtomPreviousItemLocations', 1)
 
     this.emitter = new Emitter()
     this.openers = []
@@ -299,7 +299,7 @@ module.exports = class Workspace extends Model {
             if (typeof item.getURI === 'function') {
               const uri = item.getURI()
               if (uri != null) {
-                this.previousLocations.save(item.getURI(), location)
+                this.itemLocationStore.save(item.getURI(), location)
               }
             }
           })
@@ -787,7 +787,7 @@ module.exports = class Workspace extends Model {
     // in the center location (legacy behavior)
     let location
     if (paneLocation == null && pane == null && split == null && uri != null) {
-      location = this.previousLocations.load(uri)
+      location = this.itemLocationStore.load(uri)
     }
 
     return Promise.resolve(location)

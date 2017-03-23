@@ -25,7 +25,7 @@ describe('Workspace', () => {
     atom.project.setPaths([atom.project.getDirectories()[0].resolve('dir')])
     waits(1)
 
-    waitsForPromise(() => atom.workspace.previousLocations.clear())
+    waitsForPromise(() => atom.workspace.itemLocationStore.clear())
   })
 
   afterEach(() => temp.cleanupSync())
@@ -303,7 +303,7 @@ describe('Workspace', () => {
             }
             const opener = jasmine.createSpy().andReturn(item)
             const dock = atom.workspace.getRightDock()
-            spyOn(atom.workspace.previousLocations, 'load').andReturn(Promise.resolve())
+            spyOn(atom.workspace.itemLocationStore, 'load').andReturn(Promise.resolve())
             spyOn(atom.workspace, 'getOpeners').andReturn([opener])
             expect(dock.getPaneItems()).toHaveLength(0)
             waitsForPromise(() => atom.workspace.open('a'))
@@ -323,7 +323,7 @@ describe('Workspace', () => {
             }
             const opener = uri => uri === ITEM_URI ? item : null
             const dock = atom.workspace.getRightDock()
-            spyOn(atom.workspace.previousLocations, 'load').andCallFake(uri =>
+            spyOn(atom.workspace.itemLocationStore, 'load').andCallFake(uri =>
               uri === 'atom://test' ? Promise.resolve('right') : Promise.resolve()
             )
             spyOn(atom.workspace, 'getOpeners').andReturn([opener])
