@@ -8,6 +8,9 @@ class GutterContainer
     @textEditor = textEditor
     @emitter = new Emitter
 
+  scheduleComponentUpdate: ->
+    @textEditor.scheduleComponentUpdate()
+
   destroy: ->
     # Create a copy, because `Gutter::destroy` removes the gutter from
     # GutterContainer's @gutters.

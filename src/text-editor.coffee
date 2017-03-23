@@ -392,6 +392,9 @@ class TextEditor extends Model
     else
       Promise.resolve()
 
+  scheduleComponentUpdate: ->
+    @component?.scheduleUpdate()
+
   serialize: ->
     tokenizedBufferState = @tokenizedBuffer.serialize()
 

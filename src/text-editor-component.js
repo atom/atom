@@ -242,7 +242,11 @@ class TextEditorComponent {
         if (gutter.name === 'line-number') {
           return this.renderLineNumberGutter()
         } else {
-          return this.renderCustomGutter(gutter.name)
+          return $(CustomGutterComponent, {
+            key: gutter,
+            gutter: gutter,
+            height: this.getScrollHeight()
+          })
         }
       })
     } else {
@@ -321,19 +325,6 @@ class TextEditorComponent {
         )
       )
     }
-  }
-
-  renderCustomGutter (gutterName) {
-    return $.div(
-      {
-        className: 'gutter',
-        attributes: {'gutter-name': gutterName}
-      },
-      $.div({
-        className: 'custom-decorations',
-        style: {height: this.getScrollHeight() + 'px'}
-      })
-    )
   }
 
   renderScrollContainer () {
@@ -2103,6 +2094,35 @@ class LineNumberGutterComponent {
 
   didMouseDown (event) {
     this.props.parentComponent.didMouseDownOnLineNumberGutter(event)
+  }
+}
+
+class CustomGutterComponent {
+  constructor (props) {
+    this.props = props
+    etch.initialize(this)
+    this.props.gutter.element = this.element
+  }
+
+  update (props) {
+    this.props = props
+    etch.updateSync(this)
+  }
+
+  render () {
+    return $.div(
+      {
+        className: 'gutter',
+        attributes: {'gutter-name': this.props.gutter.name},
+        style: {
+          display: this.props.gutter.isVisible() ? '' : 'none'
+        }
+      },
+      $.div({
+        className: 'custom-decorations',
+        style: {height: this.props.height + 'px'}
+      })
+    )
   }
 }
 
