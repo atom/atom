@@ -44,6 +44,7 @@ class PackageManager
     @packageDependencies = packageJSON.packageDependencies ? {}
     @initialPackagesLoaded = false
     @initialPackagesActivated = false
+    @preloadedPackages = {}
     @loadedPackages = {}
     @activePackages = {}
     @activatingPackages = {}
@@ -311,11 +312,12 @@ class PackageManager
     for packageDirPath in @packageDirPaths
       if fs.isDirectorySync(packageDirPath)
         for packagePath in fs.readdirSync(packageDirPath)
+          packagePath = path.join(packageDirPath, packagePath)
           packageName = path.basename(packagePath)
           if not packageName.startsWith('.') and not packagesByName.has(packageName) and fs.isDirectorySync(packagePath)
             packages.push({
               name: packageName,
-              path: path.join(packageDirPath, packagePath),
+              path: packagePath,
               isBundled: false
             })
             packagesByName.add(packageName)
@@ -376,16 +378,40 @@ class PackageManager
         @getLoadedPackage(packageName)?.activateKeymaps()
       null
 
+  preloadPackages: ->
+    for packageName, pack of @packagesCache
+      metadata = pack.metadata ? {}
+      unless typeof metadata.name is 'string' and metadata.name.length > 0
+        metadata.name = packageName
+
+      if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
+        metadata.repository.url = metadata.repository.url.replace(/(^git\+)|(\.git$)/g, '')
+
+      options = {
+        path: pack.rootDirPath, name: packageName, bundledPackage: true, metadata,
+        packageManager: this, @config, @styleManager, @commandRegistry,
+        @keymapManager, @devMode, @notificationManager, @grammarRegistry,
+        @themeManager, @menuManager, @contextMenuManager, @deserializerManager,
+        @viewRegistry
+      }
+      if metadata.theme
+        pack = new ThemePackage(options)
+      else
+        pack = new Package(options)
+
+      pack.preload()
+      @preloadedPackages[packageName] = pack
+
   loadPackages: ->
     # Ensure atom exports is already in the require cache so the load time
     # of the first package isn't skewed by being the first to require atom
     require '../exports/atom'
 
     disabledPackageNames = new Set(@config.get('core.disabledPackages'))
-    packages = @getAvailablePackages().filter((p) => not disabledPackageNames.has(p.name))
     @config.transact =>
-      for pack in packages
-        @loadAvailablePackage(pack)
+      for pack in @getAvailablePackages()
+        unless disabledPackageNames.has(pack.name)
+          @loadAvailablePackage(pack)
       return
     @initialPackagesLoaded = true
     @emitter.emit 'did-load-initial-packages'
@@ -403,8 +429,12 @@ class PackageManager
       null
 
   loadAvailablePackage: (availablePackage) ->
-    if loadedPackage = @getLoadedPackage(availablePackage.name)
-      return loadedPackage
+    if preloadedPackage = @preloadedPackages[availablePackage.name]
+      preloadedPackage.finishLoading()
+      @loadedPackages[availablePackage.name] = preloadedPackage
+      preloadedPackage
+    else if loadedPackage = @getLoadedPackage(availablePackage.name)
+      loadedPackage
     else
       try
         metadata = @loadPackageMetadata(availablePackage) ? {}
@@ -431,7 +461,7 @@ class PackageManager
       pack.load()
       @loadedPackages[pack.name] = pack
       @emitter.emit 'did-load-package', pack
-      return pack
+      pack
 
   unloadPackages: ->
     @unloadPackage(name) for name in _.keys(@loadedPackages)

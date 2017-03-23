@@ -12,6 +12,13 @@ class ThemePackage extends Package
   disable: ->
     @config.removeAtKeyPath('core.themes', @name)
 
+  preload: ->
+    @loadTime = 0
+    @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
+
+  finishLoading: ->
+
+
   load: ->
     @loadTime = 0
     @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()

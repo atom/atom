@@ -49,9 +49,12 @@ function buildBundledPackagesMetadata () {
     }
 
     const packageNewMetadata = {metadata: packageMetadata, keymaps: {}, menus: {}}
+
+    packageNewMetadata.rootDirPath = path.relative(CONFIG.intermediateAppPath, packagePath)
+
     if (packageMetadata.main) {
       const mainPath = require.resolve(path.resolve(packagePath, packageMetadata.main))
-      packageNewMetadata.main = path.relative(CONFIG.intermediateAppPath, mainPath)
+      packageNewMetadata.main = path.relative(path.join(CONFIG.intermediateAppPath, 'static'), mainPath)
     }
 
     const packageKeymapsPath = path.join(packagePath, 'keymaps')
