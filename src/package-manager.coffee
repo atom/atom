@@ -10,6 +10,7 @@ ServiceHub = require 'service-hub'
 Package = require './package'
 ThemePackage = require './theme-package'
 {isDeprecatedPackage, getDeprecatedPackageMetadata} = require './deprecated-packages'
+packageJSON = require('../package.json')
 
 # Extended: Package manager for coordinating the lifecycle of Atom packages.
 #
@@ -39,7 +40,8 @@ class PackageManager
     @packageDirPaths = []
     @deferredActivationHooks = []
     @triggeredActivationHooks = new Set()
-    @packagesCache = require('../package.json')?._atomPackages ? {}
+    @packagesCache = packageJSON._atomPackages ? {}
+    @packageDependencies = packageJSON.packageDependencies ? {}
     @initialPackagesLoaded = false
     @initialPackagesActivated = false
     @loadedPackages = {}
@@ -288,31 +290,45 @@ class PackageManager
 
   # Public: Returns an {Array} of {String}s of all the available package paths.
   getAvailablePackagePaths: ->
-    packagePaths = []
-
-    for packageDirPath in @packageDirPaths
-      for packagePath in fs.listSync(packageDirPath)
-        packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
-
-    packagesPath = path.join(@resourcePath, 'node_modules')
-    for packageName of @getPackageDependencies()
-      packagePath = path.join(packagesPath, packageName)
-      packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
-
-    _.uniq(packagePaths)
+    @getAvailablePackages().map((a) -> a.path)
 
   # Public: Returns an {Array} of {String}s of all the available package names.
   getAvailablePackageNames: ->
-    _.uniq _.map @getAvailablePackagePaths(), (packagePath) -> path.basename(packagePath)
+    @getAvailablePackages().sort((a) -> a.name)
 
   # Public: Returns an {Array} of {String}s of all the available package metadata.
   getAvailablePackageMetadata: ->
     packages = []
-    for packagePath in @getAvailablePackagePaths()
-      name = path.basename(packagePath)
-      metadata = @getLoadedPackage(name)?.metadata ? @loadPackageMetadata(packagePath, true)
+    for pack in @getAvailablePackages()
+      metadata = @getLoadedPackage(pack.name)?.metadata ? @loadPackageMetadata(pack.path, true)
       packages.push(metadata)
     packages
+
+  getAvailablePackages: ->
+    packages = []
+    packagesByName = new Set()
+
+    for packageDirPath in @packageDirPaths
+      if fs.isDirectorySync(packageDirPath)
+        for packagePath in fs.readdirSync(packageDirPath)
+          packageName = path.basename(packagePath)
+          if not packageName.startsWith('.') and not packagesByName.has(packageName) and fs.isDirectorySync(packagePath)
+            packages.push({
+              name: packageName,
+              path: path.join(packageDirPath, packagePath),
+              isBundled: false
+            })
+            packagesByName.add(packageName)
+
+    for packageName of @packageDependencies
+      unless packagesByName.has(packageName)
+        packages.push({
+          name: packageName,
+          path: path.join(@resourcePath, 'node_modules', packageName),
+          isBundled: true
+        })
+
+    packages.sort((a, b) -> a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
 
   ###
   Section: Private
@@ -325,11 +341,6 @@ class PackageManager
     @packageStates[name] = state
 
   getPackageDependencies: ->
-    unless @packageDependencies?
-      try
-        @packageDependencies = require('../package.json')?.packageDependencies
-      @packageDependencies ?= {}
-
     @packageDependencies
 
   hasAtomEngine: (packagePath) ->
@@ -369,11 +380,10 @@ class PackageManager
     # of the first package isn't skewed by being the first to require atom
     require '../exports/atom'
 
-    packagePaths = @getAvailablePackagePaths()
-    packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
-    packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
+    packages = @getAvailablePackages().filter((p) => not @isPackageDisabled(p.name))
     @config.transact =>
-      @loadPackage(packagePath) for packagePath in packagePaths
+      for pack in packages
+        @loadPackage(pack.path)
       return
     @initialPackagesLoaded = true
     @emitter.emit 'did-load-initial-packages'
