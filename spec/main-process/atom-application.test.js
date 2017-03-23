@@ -367,7 +367,7 @@ describe('AtomApplication', function () {
       const [app2Window1, app2Window2] = atomApplication2.launch(parseCommandLine([]))
       await app2Window1.loadedPromise
       await app2Window2.loadedPromise
-      await new Promise(resolve => setTimeout(resolve, 500)) // session restoration is async
+      await new Promise(resolve => setTimeout(resolve, 5000)) // session restoration is async
 
       assert.deepEqual(await getTreeViewRootDirectories(app2Window1), [tempDirPath1])
       assert.deepEqual(await getTreeViewRootDirectories(app2Window2), [tempDirPath2])
