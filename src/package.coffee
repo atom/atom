@@ -33,15 +33,15 @@ class Package
 
   constructor: (params) ->
     {
-      @path, @metadata, @packageManager, @config, @styleManager, @commandRegistry,
+      @path, @metadata, @bundledPackage, @packageManager, @config, @styleManager, @commandRegistry,
       @keymapManager, @devMode, @notificationManager, @grammarRegistry, @themeManager,
       @menuManager, @contextMenuManager, @deserializerManager, @viewRegistry
     } = params
 
     @emitter = new Emitter
     @metadata ?= @packageManager.loadPackageMetadata(@path)
-    @bundledPackage = @packageManager.isBundledPackagePath(@path)
-    @name = @metadata?.name ? path.basename(@path)
+    @bundledPackage ?= @packageManager.isBundledPackagePath(@path)
+    @name = @metadata?.name ? params.name ? path.basename(@path)
     unless @bundledPackage
       ModuleCache.add(@path, @metadata)
     @reset()

@@ -300,7 +300,7 @@ class PackageManager
   getAvailablePackageMetadata: ->
     packages = []
     for pack in @getAvailablePackages()
-      metadata = @getLoadedPackage(pack.name)?.metadata ? @loadPackageMetadata(pack.path, true)
+      metadata = @getLoadedPackage(pack.name)?.metadata ? @loadPackageMetadata(pack, true)
       packages.push(metadata)
     packages
 
@@ -369,9 +369,10 @@ class PackageManager
       keymapsToEnable = _.difference(oldValue, newValue)
       keymapsToDisable = _.difference(newValue, oldValue)
 
-      for packageName in keymapsToDisable when not @isPackageDisabled(packageName)
+      disabledPackageNames = new Set(@config.get('core.disabledPackages'))
+      for packageName in keymapsToDisable when not disabledPackageNames.has(packageName)
         @getLoadedPackage(packageName)?.deactivateKeymaps()
-      for packageName in keymapsToEnable when not @isPackageDisabled(packageName)
+      for packageName in keymapsToEnable when not disabledPackageNames.has(packageName)
         @getLoadedPackage(packageName)?.activateKeymaps()
       null
 
@@ -380,39 +381,48 @@ class PackageManager
     # of the first package isn't skewed by being the first to require atom
     require '../exports/atom'
 
-    packages = @getAvailablePackages().filter((p) => not @isPackageDisabled(p.name))
+    disabledPackageNames = new Set(@config.get('core.disabledPackages'))
+    packages = @getAvailablePackages().filter((p) => not disabledPackageNames.has(p.name))
     @config.transact =>
       for pack in packages
-        @loadPackage(pack.path)
+        @loadAvailablePackage(pack)
       return
     @initialPackagesLoaded = true
     @emitter.emit 'did-load-initial-packages'
 
   loadPackage: (nameOrPath) ->
-    return null if path.basename(nameOrPath)[0].match /^\./ # primarily to skip .git folder
-
-    return pack if pack = @getLoadedPackage(nameOrPath)
-
-    if packagePath = @resolvePackagePath(nameOrPath)
+    if path.basename(nameOrPath)[0].match(/^\./) # primarily to skip .git folder
+      null
+    else if pack = @getLoadedPackage(nameOrPath)
+      pack
+    else if packagePath = @resolvePackagePath(nameOrPath)
       name = path.basename(nameOrPath)
-      return pack if pack = @getLoadedPackage(name)
+      @loadAvailablePackage({name, path: packagePath, isBundled: @isBundledPackage(name)})
+    else
+      console.warn "Could not resolve '#{nameOrPath}' to a package path"
+      null
 
+  loadAvailablePackage: (availablePackage) ->
+    if loadedPackage = @getLoadedPackage(availablePackage.name)
+      return loadedPackage
+    else
       try
-        metadata = @loadPackageMetadata(packagePath) ? {}
+        metadata = @loadPackageMetadata(availablePackage) ? {}
       catch error
-        @handleMetadataError(error, packagePath)
+        @handleMetadataError(error, availablePackage.path)
         return null
 
-      unless @isBundledPackage(metadata.name)
+      unless availablePackage.isBundled
         if @isDeprecatedPackage(metadata.name, metadata.version)
           console.warn "Could not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
           return null
 
       options = {
-        path: packagePath, metadata, packageManager: this, @config, @styleManager,
-        @commandRegistry, @keymapManager, @devMode, @notificationManager,
-        @grammarRegistry, @themeManager, @menuManager, @contextMenuManager,
-        @deserializerManager, @viewRegistry
+        path: availablePackage.path, name: availablePackage.name, metadata,
+        bundledPackage: availablePackage.isBundled, packageManager: this,
+        @config, @styleManager, @commandRegistry, @keymapManager, @devMode,
+        @notificationManager, @grammarRegistry, @themeManager, @menuManager,
+        @contextMenuManager, @deserializerManager, @viewRegistry
       }
       if metadata.theme
         pack = new ThemePackage(options)
@@ -422,9 +432,6 @@ class PackageManager
       @loadedPackages[pack.name] = pack
       @emitter.emit 'did-load-package', pack
       return pack
-    else
-      console.warn "Could not resolve '#{nameOrPath}' to a package path"
-    null
 
   unloadPackages: ->
     @unloadPackage(name) for name in _.keys(@loadedPackages)
@@ -560,10 +567,20 @@ class PackageManager
     @resourcePathWithTrailingSlash ?= "#{@resourcePath}#{path.sep}"
     packagePath?.startsWith(@resourcePathWithTrailingSlash)
 
-  loadPackageMetadata: (packagePath, ignoreErrors=false) ->
-    packageName = path.basename(packagePath)
-    if @isBundledPackagePath(packagePath)
+  loadPackageMetadata: (packagePathOrAvailablePackage, ignoreErrors=false) ->
+    if typeof packagePathOrAvailablePackage is 'object'
+      availablePackage = packagePathOrAvailablePackage
+      packageName = availablePackage.name
+      packagePath = availablePackage.path
+      isBundled = availablePackage.isBundled
+    else
+      packagePath = packagePathOrAvailablePackage
+      packageName = path.basename(packagePath)
+      isBundled = @isBundledPackagePath(packagePath)
+
+    if isBundled
       metadata = @packagesCache[packageName]?.metadata
+
     unless metadata?
       if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
         try
