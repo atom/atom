@@ -861,27 +861,50 @@ class AtomEnvironment extends Model
 
   addProjectFolder: ->
     @pickFolder (selectedPaths = []) =>
-      @loadState(@getStateKey(selectedPaths)).then (state) =>
-        if state && @project.getPaths().length is 0
-          @restoreStateIntoEnvironment(state)
-        else
-          @project.addPath(selectedPath) for selectedPath in selectedPaths
+      @addToProject(selectedPaths)
 
-  restoreStateIntoEnvironment: (state) ->
-    shouldSerializeItem = (item) ->
-      return true unless item instanceof TextEditor
-      item.getPath() or item.isModified()
-    serializedOpenItems = (item.serialize() for item in @workspace.getPaneItems() when shouldSerializeItem(item))
-    serializedBuffers = (buffer.serialize() for buffer in @project.buffers)
+  addToProject: (projectPaths) ->
+    @loadState(@getStateKey(projectPaths)).then (state) =>
+      if state and @project.getPaths().length is 0
+        @attemptRestoreProjectStateForPaths(state, projectPaths)
+      else
+        @project.addPath(folder) for folder in projectPaths
 
+  attemptRestoreProjectStateForPaths: (state, projectPaths, filesToOpen = []) ->
+    paneItemIsEmptyUnnamedTextEditor = (item) ->
+      return false unless item instanceof TextEditor
+      return false if item.getPath() or item.isModified()
+      true
+
+    windowIsUnused = @workspace.getPaneItems().every(paneItemIsEmptyUnnamedTextEditor)
+    if windowIsUnused
+      @restoreStateIntoThisEnvironment(state)
+      @workspace.open(file) for file in filesToOpen
+    else
+      nouns = if projectPaths.length is 1 then 'folder' else 'folders'
+      btn = @confirm
+        message: 'Previous automatically-saved project state detected'
+        detailedMessage: "There is previously saved state for the selected #{nouns}. " +
+          "Would you like to add the #{nouns} to this window, permanently discarding the saved state, " +
+          "or open the #{nouns} in a new window, restoring the saved state?"
+        buttons: [
+          'Open in new window and recover state'
+          'Add to this window and discard state'
+        ]
+      if btn is 0
+        @open
+          pathsToOpen: projectPaths.concat(filesToOpen)
+          newWindow: true
+          devMode: @inDevMode()
+          safeMode: @inSafeMode()
+      else if btn is 1
+        @project.addPath(selectedPath) for selectedPath in projectPaths
+        @workspace.open(file) for file in filesToOpen
+
+  restoreStateIntoThisEnvironment: (state) ->
     state.fullScreen = @isFullScreen()
     pane.destroy() for pane in @workspace.getPanes()
     @deserialize(state)
-    savedBuffers = (TextBuffer.deserialize(serializedBuffer) for serializedBuffer in serializedBuffers)
-    @project.buffers = @project.buffers.concat(savedBuffers)
-
-    items = (@deserializers.deserialize(itemState) for itemState in serializedOpenItems)
-    @workspace.getPanes()[0].addItems(items, 0)
 
   showSaveDialog: (callback) ->
     callback(@showSaveDialogSync())

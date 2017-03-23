@@ -328,116 +328,105 @@ describe "AtomEnvironment", ->
       atom.addProjectFolder()
       expect(atom.project.getPaths()).toEqual(initialPaths)
 
-    describe "when the project contains no folders", ->
-      describe "when there is saved state for the added folders", ->
-        projectPath = null
+    describe "when there is no saved state for the added folders", ->
+      beforeEach ->
+        spyOn(atom, 'loadState').andReturn(Promise.resolve(null))
+        spyOn(atom, 'attemptRestoreProjectStateForPaths')
 
-        beforeEach ->
-          atom.enablePersistence = true
-          [projectPath] = atom.project.getPaths()
-          waitsForPromise ->
-            Promise.all([
-              atom.workspace.open(path.join(projectPath, 'script.js'))
-              atom.workspace.open(path.join(projectPath, 'sample.js'))
-                .then (e) -> e.insertText('changes')
-            ])
-
-          runs -> atom.workspace.getActivePane().splitRight()
-          waitsForPromise -> atom.workspace.open().then((e) -> e.setText('new editor'))
-          waitsForPromise -> atom.saveState()
-          runs -> atom.reset()
-
-        afterEach ->
-          atom.enablePersistence = false
-
-        it "restores the saved state", ->
-          spyOn(atom, "pickFolder").andCallFake (callback) ->
-            callback([projectPath])
-
-          waitsForPromise ->
-            atom.addProjectFolder()
-
-          runs ->
-            expect(atom.project.getPaths()).toEqual([projectPath])
-            expect(atom.workspace.getPanes().length).toEqual(2)
-            items = atom.workspace.getPaneItems()
-            expect(items.length).toEqual(3)
-            [unmodifiedNamedItem, modifiedNamedItem, modifiedUnnamedItem] = items
-            expect(unmodifiedNamedItem.getPath()).toEqual(path.join(projectPath, 'script.js'))
-            expect(unmodifiedNamedItem.isModified()).toBe(false)
-            expect(modifiedNamedItem.getPath()).toEqual(path.join(projectPath, 'sample.js'))
-            waitsFor -> modifiedNamedItem.isModified()
-            runs ->
-              expect(modifiedNamedItem.getText()).toMatch(/^changes/)
-              expect(modifiedUnnamedItem.getPath()).toEqual(undefined)
-            waitsFor -> modifiedUnnamedItem.isModified()
-            runs ->
-              expect(modifiedUnnamedItem.getText()).toEqual('new editor')
-
-        it "maintains any existing dirty or named pane items", ->
-          # # TODO handle collisions
-          # waitsForPromise ->
-          #   atom.workspace.open(path.join(projectPath, 'script.js'))
-
-          waitsForPromise ->
-            Promise.all([
-              atom.workspace.open(path.join(projectPath, 'css.css'))
-              atom.workspace.open(path.join(projectPath, 'lorem.txt'))
-                .then (e) -> e.insertText('changes')
-              atom.workspace.open().then (e) -> e.setText('another new editor')
-              atom.workspace.open()
-            ])
-
-          spyOn(atom, "pickFolder").andCallFake (callback) ->
-            callback([projectPath])
-
-          waitsForPromise ->
-            atom.addProjectFolder()
-
-          runs ->
-            expect(atom.project.getPaths()).toEqual([projectPath])
-            expect(atom.workspace.getPanes().length).toEqual(2)
-            items = atom.workspace.getPaneItems()
-            expect(items.length).toEqual(6) # 3 existing pane items, 3 from saved state
-            # discarded the empty, unnamed item (likely opened due to the "open empty editor on start" config option)
-            [modifiedUnnamedItem, unmodifiedNamedItem, modifiedNamedItem] = items
-            expect(unmodifiedNamedItem.getPath()).toEqual(path.join(projectPath, 'css.css'))
-            expect(unmodifiedNamedItem.isModified()).toBe(false)
-            expect(modifiedNamedItem.getPath()).toEqual(path.join(projectPath, 'lorem.txt'))
-            waitsFor -> modifiedNamedItem.isModified()
-            runs ->
-              expect(modifiedNamedItem.getText()).toMatch(/^changes/)
-              expect(modifiedUnnamedItem.getPath()).toEqual(undefined)
-            waitsFor -> modifiedUnnamedItem.isModified()
-            runs ->
-              expect(modifiedUnnamedItem.getText()).toEqual('another new editor')
-
-      describe "when there is no saved state for the added folders", ->
-        beforeEach ->
-          spyOn(atom, 'loadState').andReturn(Promise.resolve(null))
-          spyOn(atom, 'restoreStateIntoEnvironment')
-
-        it "adds the selected folder to the project", ->
-          initialPaths = atom.project.setPaths([])
-          tempDirectory = temp.mkdirSync("a-new-directory")
-          spyOn(atom, "pickFolder").andCallFake (callback) ->
-            callback([tempDirectory])
-          waitsForPromise ->
-            atom.addProjectFolder()
-          runs ->
-            expect(atom.project.getPaths()).toEqual([tempDirectory])
-            expect(atom.restoreStateIntoEnvironment).not.toHaveBeenCalled()
-
-    describe "when the project already contains at least one folder", ->
-      it "adds a second path to the project", ->
-        initialPaths = atom.project.getPaths()
+      fit "adds the selected folder to the project", ->
+        initialPaths = atom.project.setPaths([])
         tempDirectory = temp.mkdirSync("a-new-directory")
         spyOn(atom, "pickFolder").andCallFake (callback) ->
           callback([tempDirectory])
         waitsForPromise ->
           atom.addProjectFolder()
-        runs ->
-          expect(atom.project.getPaths()).toEqual(initialPaths.concat([tempDirectory]))
+        # runs ->
+        #   expect(atom.project.getPaths()).toEqual([tempDirectory])
+        #   expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
+
+    describe "when there is saved state for the relevant directories", ->
+      state = Symbol('savedState')
+
+      beforeEach ->
+        spyOn(atom, "getStateKey").andCallFake (dirs) -> dirs.join(':')
+        spyOn(atom, "loadState").andCallFake (key) ->
+          if key == __dirname then Promise.resolve(state) else Promise.resolve(null)
+        spyOn(atom, "attemptRestoreProjectStateForPaths")
+        spyOn(atom, "pickFolder").andCallFake (callback) ->
+          callback([__dirname])
+        atom.project.setPaths([])
+
+      describe "when there are no project folders", ->
+        it "attempts to restore the project state", ->
+          waitsForPromise ->
+            atom.addProjectFolder()
+          runs ->
+            expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [__dirname])
+            expect(atom.project.getPaths()).toEqual([])
+
+      describe "when there are already project folders", ->
+        openedPath = path.join(__dirname, 'fixtures')
+        beforeEach ->
+          atom.project.setPaths([openedPath])
+
+        it "does not attempt to restore the project state, instead adding the project paths", ->
+          waitsForPromise ->
+            atom.addProjectFolder()
+          runs ->
+            expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
+            expect(atom.project.getPaths()).toEqual([openedPath, __dirname])
+
+  describe "attemptRestoreProjectStateForPaths(state, projectPaths, filesToOpen)", ->
+    describe "when the window is clean (empty or has only unnamed, unmodified buffers)", ->
+      beforeEach ->
+        # Unnamed, unmodified buffer doesn't count toward "clean"-ness
+        waitsForPromise -> atom.workspace.open()
+
+      it "automatically restores the saved state into the current environment", ->
+        state = Symbol()
+        spyOn(atom.workspace, 'open')
+        spyOn(atom, 'restoreStateIntoThisEnvironment')
+
+        atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
+        expect(atom.restoreStateIntoThisEnvironment).toHaveBeenCalledWith(state)
+        expect(atom.workspace.open.callCount).toBe(1)
+        expect(atom.workspace.open).toHaveBeenCalledWith(__filename)
+
+    describe "when the window is dirty", ->
+      editor = null
+
+      beforeEach ->
+        waitsForPromise -> atom.workspace.open().then (e) ->
+          editor = e
+          editor.setText('new editor')
+
+      it "prompts the user to restore the state in a new window, discarding it and adding folder to current window", ->
+        spyOn(atom, "confirm").andReturn(1)
+        spyOn(atom.project, 'addPath')
+        spyOn(atom.workspace, 'open')
+        state = Symbol()
+
+        atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
+        expect(atom.confirm).toHaveBeenCalled()
+        expect(atom.project.addPath.callCount).toBe(1)
+        expect(atom.project.addPath).toHaveBeenCalledWith(__dirname)
+        expect(atom.workspace.open.callCount).toBe(1)
+        expect(atom.workspace.open).toHaveBeenCalledWith(__filename)
+
+      it "prompts the user to restore the state in a new window, opening a new window", ->
+        spyOn(atom, "confirm").andReturn(0)
+        spyOn(atom, "open")
+        state = Symbol()
+
+        atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
+        expect(atom.confirm).toHaveBeenCalled()
+        expect(atom.open).toHaveBeenCalledWith
+          pathsToOpen: [__dirname, __filename]
+          newWindow: true
+          devMode: atom.inDevMode()
+          safeMode: atom.inSafeMode()
+
+
 
   describe "::unloadEditorWindow()", ->
     it "saves the BlobStore so it can be loaded after reload", ->
