@@ -432,7 +432,8 @@ describe "AtomEnvironment", ->
     it "saves the BlobStore so it can be loaded after reload", ->
       configDirPath = temp.mkdirSync('atom-spec-environment')
       fakeBlobStore = jasmine.createSpyObj("blob store", ["save"])
-      atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, enablePersistence: true, configDirPath, blobStore: fakeBlobStore, window, document})
+      atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, enablePersistence: true})
+      atomEnvironment.initialize({configDirPath, blobStore: fakeBlobStore, window, document})
 
       atomEnvironment.unloadEditorWindow()
 
@@ -449,7 +450,8 @@ describe "AtomEnvironment", ->
         head: document.createElement('head')
         body: document.createElement('body')
       }
-      atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document: fakeDocument})
+      atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
+      atomEnvironment.initialize({window, document: fakeDocument})
       spyOn(atomEnvironment.packages, 'getAvailablePackagePaths').andReturn []
       spyOn(atomEnvironment, 'displayWindow').andReturn Promise.resolve()
       atomEnvironment.startEditorWindow()

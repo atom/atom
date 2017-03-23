@@ -2,7 +2,7 @@
 
 const CSON = require('season')
 const deprecatedPackagesMetadata = require('../deprecated-packages')
-const fs = require('fs-extra')
+const fs = require('fs-plus')
 const normalizePackageData = require('normalize-package-data')
 const path = require('path')
 const semver = require('semver')
@@ -27,8 +27,8 @@ function buildBundledPackagesMetadata () {
     const packagePath = path.join(CONFIG.intermediateAppPath, 'node_modules', packageName)
     const packageMetadataPath = path.join(packagePath, 'package.json')
     const packageMetadata = JSON.parse(fs.readFileSync(packageMetadataPath, 'utf8'))
-    normalizePackageData(packageMetadata, () => {
-      throw new Error(`Invalid package metadata. ${metadata.name}: ${msg}`)
+    normalizePackageData(packageMetadata, (msg) => {
+      console.warn(`Invalid package metadata. ${packageMetadata.name}: ${msg}`)
     }, true)
     if (packageMetadata.repository && packageMetadata.repository.url && packageMetadata.repository.type === 'git') {
       packageMetadata.repository.url = packageMetadata.repository.url.replace(/^git\+/, '')
@@ -75,6 +75,26 @@ function buildBundledPackagesMetadata () {
         }
       }
     }
+
+    const packageStyleSheetsPath = path.join(packagePath, 'styles')
+    let styleSheets = null
+    if (packageMetadata.mainStyleSheet) {
+      styleSheets = [fs.resolve(packagePath, packageMetadata.mainStyleSheet)]
+    } else if (packageMetadata.styleSheets) {
+      styleSheets = packageMetadata.styleSheets.map((name) => (
+        fs.resolve(packageStyleSheetsPath, name, ['css', 'less', ''])
+      ))
+    } else {
+      const indexStylesheet = fs.resolve(packagePath, 'index', ['css', 'less'])
+      if (indexStylesheet) {
+        styleSheets = [indexStylesheet]
+      } else {
+        styleSheets = fs.listSync(packageStyleSheetsPath, ['css', 'less'])
+      }
+    }
+
+    packageNewMetadata.styleSheetPaths =
+      styleSheets.map(styleSheetPath => path.relative(packagePath, styleSheetPath))
 
     packages[packageMetadata.name] = packageNewMetadata
     if (packageModuleCache.extensions) {

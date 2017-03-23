@@ -21,8 +21,10 @@ class PaneContainer extends Model
 
     @setRoot(new Pane({container: this, @config, applicationDelegate, notificationManager, deserializerManager}))
     @setActivePane(@getRoot())
-    @monitorActivePaneItem()
     @monitorPaneItems()
+
+  initialize: ->
+    @monitorActivePaneItem()
 
   serialize: (params) ->
     deserializer: 'PaneContainer'

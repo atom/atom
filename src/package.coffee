@@ -42,7 +42,8 @@ class Package
     @metadata ?= @packageManager.loadPackageMetadata(@path)
     @bundledPackage = @packageManager.isBundledPackagePath(@path)
     @name = @metadata?.name ? path.basename(@path)
-    ModuleCache.add(@path, @metadata)
+    unless @bundledPackage
+      ModuleCache.add(@path, @metadata)
     @reset()
 
   ###
@@ -203,7 +204,17 @@ class Package
       else
         context = undefined
 
-      @stylesheetDisposables.add(@styleManager.addStyleSheet(source, {sourcePath, priority, context}))
+      @stylesheetDisposables.add(
+        @styleManager.addStyleSheet(
+          source,
+          {
+            sourcePath,
+            priority,
+            context,
+            skipDeprecatedSelectorsTransformation: @bundledPackage
+          }
+        )
+      )
     @stylesheetsActivated = true
 
   activateResources: ->
@@ -347,15 +358,19 @@ class Package
     path.join(@path, 'styles')
 
   getStylesheetPaths: ->
-    stylesheetDirPath = @getStylesheetsPath()
-    if @metadata.mainStyleSheet
-      [fs.resolve(@path, @metadata.mainStyleSheet)]
-    else if @metadata.styleSheets
-      @metadata.styleSheets.map (name) -> fs.resolve(stylesheetDirPath, name, ['css', 'less', ''])
-    else if indexStylesheet = fs.resolve(@path, 'index', ['css', 'less'])
-      [indexStylesheet]
+    if @bundledPackage and @packageManager.packagesCache[@name]?.styleSheetPaths?
+      styleSheetPaths = @packageManager.packagesCache[@name].styleSheetPaths
+      styleSheetPaths.map (styleSheetPath) => path.join(@path, styleSheetPath)
     else
-      fs.listSync(stylesheetDirPath, ['css', 'less'])
+      stylesheetDirPath = @getStylesheetsPath()
+      if @metadata.mainStyleSheet
+        [fs.resolve(@path, @metadata.mainStyleSheet)]
+      else if @metadata.styleSheets
+        @metadata.styleSheets.map (name) -> fs.resolve(stylesheetDirPath, name, ['css', 'less', ''])
+      else if indexStylesheet = fs.resolve(@path, 'index', ['css', 'less'])
+        [indexStylesheet]
+      else
+        fs.listSync(stylesheetDirPath, ['css', 'less'])
 
   loadGrammarsSync: ->
     return if @grammarsLoaded
@@ -502,7 +517,7 @@ class Package
           path.join(@path, @metadata.main)
         else
           path.join(@path, 'index')
-      @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
+      @mainModulePath = fs.resolveExtension(mainModulePath, ["", CompileCache.supportedExtensions...])
 
   activationShouldBeDeferred: ->
     @hasActivationCommands() or @hasActivationHooks()

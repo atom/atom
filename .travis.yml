@@ -30,6 +30,7 @@ cache:
     - apm/node_modules
     - script/node_modules
     - ~/.atom/compile-cache
+    - ~/.atom/snapshot-cache
 
 notifications:
   email:

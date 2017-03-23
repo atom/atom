@@ -398,11 +398,16 @@ class Config
     value
 
   # Created during initialization, available as `atom.config`
-  constructor: ({@configDirPath, @resourcePath, @notificationManager, @enablePersistence}={}) ->
+  constructor: ({@notificationManager, @enablePersistence}={}) ->
+    @clear()
+
+  initialize: ({@configDirPath, @resourcePath, projectHomeSchema}) ->
     if @enablePersistence?
       @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
       @configFilePath ?= path.join(@configDirPath, 'config.cson')
-    @clear()
+
+    @schema.properties.core.properties.projectHome = projectHomeSchema
+    @defaultSettings.core.projectHome = projectHomeSchema.default
 
   clear: ->
     @emitter = new Emitter

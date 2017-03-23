@@ -6,8 +6,8 @@ StorageFolder = require '../storage-folder'
 Config = require '../config'
 FileRecoveryService = require './file-recovery-service'
 ipcHelpers = require '../ipc-helpers'
-{BrowserWindow, Menu, app, dialog, ipcMain, shell} = require 'electron'
-{CompositeDisposable} = require 'event-kit'
+{BrowserWindow, Menu, app, dialog, ipcMain, shell, screen} = require 'electron'
+{CompositeDisposable, Disposable} = require 'event-kit'
 fs = require 'fs-plus'
 path = require 'path'
 os = require 'os'
@@ -17,6 +17,7 @@ url = require 'url'
 _ = require 'underscore-plus'
 FindParentDir = null
 Resolve = null
+ConfigSchema = require '../config-schema'
 
 LocationSuffixRegExp = /(:\d+)(:\d+)?$/
 
@@ -68,8 +69,14 @@ class AtomApplication
     @pidsToOpenWindows = {}
     @windows = []
 
-    @config = new Config({configDirPath: process.env.ATOM_HOME, @resourcePath, enablePersistence: true})
-    @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
+    @config = new Config({enablePersistence: true})
+    @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
+    ConfigSchema.projectHome = {
+      type: 'string',
+      default: path.join(fs.getHomeDirectory(), 'github'),
+      description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
+    }
+    @config.initialize({configDirPath: process.env.ATOM_HOME, @resourcePath, projectHomeSchema: ConfigSchema.projectHome})
     @config.load()
     @fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, "recovery"))
     @storageFolder = new StorageFolder(process.env.ATOM_HOME)
@@ -94,7 +101,7 @@ class AtomApplication
     if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
       @config.unset('core.useCustomTitleBar')
       @config.set('core.titleBar', 'custom')
-    
+
     @config.onDidChange 'core.titleBar', @promptForRestart.bind(this)
 
     process.nextTick => @autoUpdateManager.initialize()
@@ -283,6 +290,11 @@ class AtomApplication
     @disposable.add ipcHelpers.on ipcMain, 'restart-application', =>
       @restart()
 
+    @disposable.add ipcHelpers.on ipcMain, 'resolve-proxy', (event, requestId, url) ->
+      event.sender.session.resolveProxy url, (proxy) ->
+        unless event.sender.isDestroyed()
+          event.sender.send('did-resolve-proxy', requestId, proxy)
+
     @disposable.add ipcHelpers.on ipcMain, 'did-change-history-manager', (event) =>
       for atomWindow in @windows
         webContents = atomWindow.browserWindow.webContents
@@ -396,6 +408,8 @@ class AtomApplication
 
     @disposable.add ipcHelpers.on ipcMain, 'did-change-paths', =>
       @saveState(false)
+
+    @disposable.add(@disableZoomOnDisplayChange())
 
   setupDockMenu: ->
     if process.platform is 'darwin'
@@ -815,3 +829,17 @@ class AtomApplication
       args.push("--resource-path=#{@resourcePath}")
     app.relaunch({args})
     app.quit()
+
+  disableZoomOnDisplayChange: ->
+    outerCallback = =>
+      for window in @windows
+        window.disableZoom()
+
+    # Set the limits every time a display is added or removed, otherwise the
+    # configuration gets reset to the default, which allows zooming the
+    # webframe.
+    screen.on('display-added', outerCallback)
+    screen.on('display-removed', outerCallback)
+    new Disposable ->
+      screen.removeListener('display-added', outerCallback)
+      screen.removeListener('display-removed', outerCallback)

@@ -7,6 +7,7 @@
 
 var path = require('path')
 var fs = require('fs-plus')
+var sourceMapSupport = require('source-map-support')
 
 var PackageTranspilationRegistry = require('./package-transpilation-registry')
 var CSON = null
@@ -113,109 +114,119 @@ function writeCachedJavascript (relativeCachePath, code) {
 
 var INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/mg
 
-require('source-map-support').install({
-  handleUncaughtExceptions: false,
+exports.install = function (resourcesPath, nodeRequire) {
+  sourceMapSupport.install({
+    handleUncaughtExceptions: false,
 
-  // Most of this logic is the same as the default implementation in the
-  // source-map-support module, but we've overridden it to read the javascript
-  // code from our cache directory.
-  retrieveSourceMap: function (filePath) {
-    if (!cacheDirectory || !fs.isFileSync(filePath)) {
-      return null
-    }
+    // Most of this logic is the same as the default implementation in the
+    // source-map-support module, but we've overridden it to read the javascript
+    // code from our cache directory.
+    retrieveSourceMap: function (filePath) {
+      if (filePath === '<embedded>') {
+        return {
+          map: snapshotResult.sourceMap, // eslint-disable-line no-undef
+          url: path.join(resourcesPath, 'app', 'static', 'index.js')
+        }
+      }
 
-    try {
-      var sourceCode = fs.readFileSync(filePath, 'utf8')
-    } catch (error) {
-      console.warn('Error reading source file', error.stack)
-      return null
-    }
+      if (!cacheDirectory || !fs.isFileSync(filePath)) {
+        return null
+      }
 
-    var compiler = COMPILERS[path.extname(filePath)]
-    if (!compiler) compiler = COMPILERS['.js']
+      try {
+        var sourceCode = fs.readFileSync(filePath, 'utf8')
+      } catch (error) {
+        console.warn('Error reading source file', error.stack)
+        return null
+      }
 
-    try {
-      var fileData = readCachedJavascript(compiler.getCachePath(sourceCode, filePath))
-    } catch (error) {
-      console.warn('Error reading compiled file', error.stack)
-      return null
-    }
+      var compiler = COMPILERS[path.extname(filePath)]
+      if (!compiler) compiler = COMPILERS['.js']
 
-    if (fileData == null) {
-      return null
-    }
+      try {
+        var fileData = readCachedJavascript(compiler.getCachePath(sourceCode, filePath))
+      } catch (error) {
+        console.warn('Error reading compiled file', error.stack)
+        return null
+      }
 
-    var match, lastMatch
-    INLINE_SOURCE_MAP_REGEXP.lastIndex = 0
-    while ((match = INLINE_SOURCE_MAP_REGEXP.exec(fileData))) {
-      lastMatch = match
-    }
-    if (lastMatch == null) {
-      return null
-    }
+      if (fileData == null) {
+        return null
+      }
 
-    var sourceMappingURL = lastMatch[1]
-    var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1)
+      var match, lastMatch
+      INLINE_SOURCE_MAP_REGEXP.lastIndex = 0
+      while ((match = INLINE_SOURCE_MAP_REGEXP.exec(fileData))) {
+        lastMatch = match
+      }
+      if (lastMatch == null) {
+        return null
+      }
 
-    try {
-      var sourceMap = JSON.parse(new Buffer(rawData, 'base64'))
-    } catch (error) {
-      console.warn('Error parsing source map', error.stack)
-      return null
-    }
+      var sourceMappingURL = lastMatch[1]
+      var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1)
 
-    return {
-      map: sourceMap,
-      url: null
-    }
-  }
-})
+      try {
+        var sourceMap = JSON.parse(new Buffer(rawData, 'base64'))
+      } catch (error) {
+        console.warn('Error parsing source map', error.stack)
+        return null
+      }
 
-var prepareStackTraceWithSourceMapping = Error.prepareStackTrace
-var prepareStackTrace = prepareStackTraceWithSourceMapping
-
-function prepareStackTraceWithRawStackAssignment (error, frames) {
-  if (error.rawStack) { // avoid infinite recursion
-    return prepareStackTraceWithSourceMapping(error, frames)
-  } else {
-    error.rawStack = frames
-    return prepareStackTrace(error, frames)
-  }
-}
-
-Error.stackTraceLimit = 30
-
-Object.defineProperty(Error, 'prepareStackTrace', {
-  get: function () {
-    return prepareStackTraceWithRawStackAssignment
-  },
-
-  set: function (newValue) {
-    prepareStackTrace = newValue
-    process.nextTick(function () {
-      prepareStackTrace = prepareStackTraceWithSourceMapping
-    })
-  }
-})
-
-Error.prototype.getRawStack = function () { // eslint-disable-line no-extend-native
-  // Access this.stack to ensure prepareStackTrace has been run on this error
-  // because it assigns this.rawStack as a side-effect
-  this.stack
-  return this.rawStack
-}
-
-Object.keys(COMPILERS).forEach(function (extension) {
-  var compiler = COMPILERS[extension]
-
-  Object.defineProperty(require.extensions, extension, {
-    enumerable: true,
-    writable: false,
-    value: function (module, filePath) {
-      var code = compileFileAtPath(compiler, filePath, extension)
-      return module._compile(code, filePath)
+      return {
+        map: sourceMap,
+        url: null
+      }
     }
   })
-})
 
+  var prepareStackTraceWithSourceMapping = Error.prepareStackTrace
+  var prepareStackTrace = prepareStackTraceWithSourceMapping
+
+  function prepareStackTraceWithRawStackAssignment (error, frames) {
+    if (error.rawStack) { // avoid infinite recursion
+      return prepareStackTraceWithSourceMapping(error, frames)
+    } else {
+      error.rawStack = frames
+      return prepareStackTrace(error, frames)
+    }
+  }
+
+  Error.stackTraceLimit = 30
+
+  Object.defineProperty(Error, 'prepareStackTrace', {
+    get: function () {
+      return prepareStackTraceWithRawStackAssignment
+    },
+
+    set: function (newValue) {
+      prepareStackTrace = newValue
+      process.nextTick(function () {
+        prepareStackTrace = prepareStackTraceWithSourceMapping
+      })
+    }
+  })
+
+  Error.prototype.getRawStack = function () { // eslint-disable-line no-extend-native
+    // Access this.stack to ensure prepareStackTrace has been run on this error
+    // because it assigns this.rawStack as a side-effect
+    this.stack
+    return this.rawStack
+  }
+
+  Object.keys(COMPILERS).forEach(function (extension) {
+    var compiler = COMPILERS[extension]
+
+    Object.defineProperty(nodeRequire.extensions, extension, {
+      enumerable: true,
+      writable: false,
+      value: function (module, filePath) {
+        var code = compileFileAtPath(compiler, filePath, extension)
+        return module._compile(code, filePath)
+      }
+    })
+  })
+}
+
+exports.supportedExtensions = Object.keys(COMPILERS)
 exports.resetCacheStats()

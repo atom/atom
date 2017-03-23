@@ -53,6 +53,7 @@ describe('Workspace', () => {
         assert: atom.assert.bind(atom),
         textEditorRegistry: atom.textEditors
       })
+      atom.workspace.initialize()
       return atom.workspace.deserialize(workspaceState, atom.deserializers)
     }
 
@@ -975,8 +976,8 @@ i = /test/; #FIXME\
 `
       )
 
-      const atom2 = new AtomEnvironment({
-        applicationDelegate: atom.applicationDelegate,
+      const atom2 = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
+      atom2.initialize({
         window: document.createElement('div'),
         document: Object.assign(
           document.createElement('div'),
@@ -1115,8 +1116,8 @@ i = /test/; #FIXME\
       it("updates the title to contain the project's path", () => {
         document.title = null
 
-        const atom2 = new AtomEnvironment({
-          applicationDelegate: atom.applicationDelegate,
+        const atom2 = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
+        atom2.initialize({
           window: document.createElement('div'),
           document: Object.assign(
             document.createElement('div'),
@@ -1336,7 +1337,9 @@ i = /test/; #FIXME\
       it('calls the callback with all regex results in all files in the project', () => {
         const results = []
         waitsForPromise(() =>
-          atom.workspace.scan(/(a)+/, result => results.push(result))
+          atom.workspace.scan(
+            /(a)+/, {leadingContextLineCount: 1, trailingContextLineCount: 1},
+            result => results.push(result))
         )
 
         runs(() => {
@@ -1347,14 +1350,18 @@ i = /test/; #FIXME\
             matchText: 'aaa',
             lineText: 'aaa bbb',
             lineTextOffset: 0,
-            range: [[0, 0], [0, 3]]
+            range: [[0, 0], [0, 3]],
+            leadingContextLines: [],
+            trailingContextLines: ['cc aa cc']
           })
         })
       })
 
       it('works with with escaped literals (like $ and ^)', () => {
         const results = []
-        waitsForPromise(() => atom.workspace.scan(/\$\w+/, result => results.push(result)))
+        waitsForPromise(() => atom.workspace.scan(
+          /\$\w+/, {leadingContextLineCount: 1, trailingContextLineCount: 1},
+          result => results.push(result)))
 
         runs(() => {
           expect(results.length).toBe(1)
@@ -1365,7 +1372,9 @@ i = /test/; #FIXME\
             matchText: '$bill',
             lineText: 'dollar$bill',
             lineTextOffset: 0,
-            range: [[2, 6], [2, 11]]
+            range: [[2, 6], [2, 11]],
+            leadingContextLines: ['cc aa cc'],
+            trailingContextLines: []
           })
         })
       })
