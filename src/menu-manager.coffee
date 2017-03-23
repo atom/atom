@@ -94,7 +94,7 @@ class MenuManager
   add: (items) ->
     items = _.deepClone(items)
     @merge(@template, item) for item in items
-    @update() if @initialized
+    @update()
     new Disposable => @remove(items)
 
   remove: (items) ->
@@ -147,6 +147,8 @@ class MenuManager
 
   # Public: Refreshes the currently visible menu.
   update: ->
+    return unless @initialized
+
     clearImmediate(@pendingUpdateOperation) if @pendingUpdateOperation?
 
     @pendingUpdateOperation = setImmediate =>

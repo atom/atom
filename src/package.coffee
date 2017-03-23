@@ -33,7 +33,7 @@ class Package
 
   constructor: (params) ->
     {
-      @path, @metadata, @bundledPackage, @packageManager, @config, @styleManager, @commandRegistry,
+      @path, @metadata, @bundledPackage, @preloadedPackage, @packageManager, @config, @styleManager, @commandRegistry,
       @keymapManager, @devMode, @notificationManager, @grammarRegistry, @themeManager,
       @menuManager, @contextMenuManager, @deserializerManager, @viewRegistry
     } = params
@@ -90,6 +90,13 @@ class Package
     @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
     @requireMainModule()
     @settingsPromise = @loadSettings()
+
+    @activationDisposables = new CompositeDisposable
+    @activateKeymaps()
+    @activateContextMenus()
+    @activateMenus()
+    settings.activate() for settings in @settings
+    @settingsActivated = true
 
   finishLoading: ->
     @measure 'loadTime', =>
@@ -232,39 +239,33 @@ class Package
     @stylesheetsActivated = true
 
   activateResources: ->
-    @activationDisposables = new CompositeDisposable
+    @activationDisposables ?= new CompositeDisposable
 
     keymapIsDisabled = _.include(@config.get("core.packagesWithKeymapsDisabled") ? [], @name)
     if keymapIsDisabled
       @deactivateKeymaps()
-    else
+    else unless @preloadedPackage
       @activateKeymaps()
 
-    for [menuPath, map] in @menus when map['context-menu']?
-      try
-        itemsBySelector = map['context-menu']
-        @activationDisposables.add(@contextMenuManager.add(itemsBySelector))
-      catch error
-        if error.code is 'EBADSELECTOR'
-          error.message += " in #{menuPath}"
-          error.stack += "\n  at #{menuPath}:1:1"
-        throw error
-
-    @activationDisposables.add(@menuManager.add(map['menu'])) for [menuPath, map] in @menus when map['menu']?
+    unless @preloadedPackage
+      @activateContextMenus()
+      @activateMenus()
 
     unless @grammarsActivated
       grammar.activate() for grammar in @grammars
       @grammarsActivated = true
 
-    settings.activate() for settings in @settings
-    @settingsActivated = true
+    unless @preloadedPackage
+      settings.activate() for settings in @settings
+      @settingsActivated = true
 
   activateKeymaps: ->
     return if @keymapActivated
 
     @keymapDisposables = new CompositeDisposable()
 
-    @keymapDisposables.add(@keymapManager.add(keymapPath, map)) for [keymapPath, map] in @keymaps
+    validateSelectors = not @preloadedPackage
+    @keymapDisposables.add(@keymapManager.add(keymapPath, map, 0, validateSelectors)) for [keymapPath, map] in @keymaps
     @menuManager.update()
 
     @keymapActivated = true
@@ -282,6 +283,22 @@ class Package
       if map.length > 0
         return true
     false
+
+  activateContextMenus: ->
+    validateSelectors = not @preloadedPackage
+    for [menuPath, map] in @menus when map['context-menu']?
+      try
+        itemsBySelector = map['context-menu']
+        @activationDisposables.add(@contextMenuManager.add(itemsBySelector, validateSelectors))
+      catch error
+        if error.code is 'EBADSELECTOR'
+          error.message += " in #{menuPath}"
+          error.stack += "\n  at #{menuPath}:1:1"
+        throw error
+
+  activateMenus: ->
+    for [menuPath, map] in @menus when map['menu']?
+      @activationDisposables.add(@menuManager.add(map['menu']))
 
   activateServices: ->
     for name, {versions} of @metadata.providedServices

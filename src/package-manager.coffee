@@ -388,11 +388,11 @@ class PackageManager
         metadata.repository.url = metadata.repository.url.replace(/(^git\+)|(\.git$)/g, '')
 
       options = {
-        path: pack.rootDirPath, name: packageName, bundledPackage: true, metadata,
-        packageManager: this, @config, @styleManager, @commandRegistry,
-        @keymapManager, @devMode, @notificationManager, @grammarRegistry,
-        @themeManager, @menuManager, @contextMenuManager, @deserializerManager,
-        @viewRegistry
+        path: pack.rootDirPath, name: packageName, preloadedPackage: true,
+        bundledPackage: true, metadata, packageManager: this, @config,
+        @styleManager, @commandRegistry, @keymapManager, @devMode,
+        @notificationManager, @grammarRegistry, @themeManager, @menuManager,
+        @contextMenuManager, @deserializerManager, @viewRegistry
       }
       if metadata.theme
         pack = new ThemePackage(options)
