@@ -89,11 +89,11 @@ class Package
     @registerTranspilerConfig()
     @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
     @requireMainModule()
+    @settingsPromise = @loadSettings()
 
   finishLoading: ->
     @measure 'loadTime', =>
       @loadStylesheets()
-      @settingsPromise = @loadSettings()
 
   load: ->
     @measure 'loadTime', =>
@@ -468,15 +468,18 @@ class Package
 
     new Promise (resolve) =>
       if @bundledPackage and not @packageManager.devMode
-        settingsDirPath = path.resolve(@packageManager.resourcePath, @path, 'settings')
+        for settingsPath, scopedProperties of @packageManager.packagesCache[@name].settings
+          settings = new ScopedProperties("core/#{settingsPath}", scopedProperties ? {}, @config)
+          @settings.push(settings)
+          settings.activate() if @settingsActivated
+        resolve()
       else
         settingsDirPath = path.join(@path, 'settings')
+        fs.exists settingsDirPath, (settingsDirExists) ->
+          return resolve() unless settingsDirExists
 
-      fs.exists settingsDirPath, (settingsDirExists) ->
-        return resolve() unless settingsDirExists
-
-        fs.list settingsDirPath, ['json', 'cson'], (error, settingsPaths=[]) ->
-          async.each settingsPaths, loadSettingsFile, -> resolve()
+          fs.list settingsDirPath, ['json', 'cson'], (error, settingsPaths=[]) ->
+            async.each settingsPaths, loadSettingsFile, -> resolve()
 
   serialize: ->
     if @mainActivated

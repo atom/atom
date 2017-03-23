@@ -48,7 +48,7 @@ function buildBundledPackagesMetadata () {
       }
     }
 
-    const packageNewMetadata = {metadata: packageMetadata, keymaps: {}, menus: {}, grammarPaths: []}
+    const packageNewMetadata = {metadata: packageMetadata, keymaps: {}, menus: {}, grammarPaths: [], settings: {}}
 
     packageNewMetadata.rootDirPath = path.relative(CONFIG.intermediateAppPath, packagePath)
 
@@ -83,6 +83,12 @@ function buildBundledPackagesMetadata () {
     for (let packageGrammarPath of fs.listSync(packageGrammarsPath, ['json', 'cson'])) {
       const relativePath = path.relative(CONFIG.intermediateAppPath, packageGrammarPath)
       packageNewMetadata.grammarPaths.push(relativePath)
+    }
+
+    const packageSettingsPath = path.join(packagePath, 'settings')
+    for (let packageSettingPath of fs.listSync(packageSettingsPath, ['json', 'cson'])) {
+      const relativePath = path.relative(CONFIG.intermediateAppPath, packageSettingPath)
+      packageNewMetadata.settings[relativePath] = CSON.readFileSync(packageSettingPath)
     }
 
     const packageStyleSheetsPath = path.join(packagePath, 'styles')
