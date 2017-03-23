@@ -48,7 +48,7 @@ function buildBundledPackagesMetadata () {
       }
     }
 
-    const packageNewMetadata = {metadata: packageMetadata, keymaps: {}, menus: {}}
+    const packageNewMetadata = {metadata: packageMetadata, keymaps: {}, menus: {}, grammarPaths: []}
 
     packageNewMetadata.rootDirPath = path.relative(CONFIG.intermediateAppPath, packagePath)
 
@@ -79,6 +79,12 @@ function buildBundledPackagesMetadata () {
       }
     }
 
+    const packageGrammarsPath = path.join(packagePath, 'grammars')
+    for (let packageGrammarPath of fs.listSync(packageGrammarsPath, ['json', 'cson'])) {
+      const relativePath = path.relative(CONFIG.intermediateAppPath, packageGrammarPath)
+      packageNewMetadata.grammarPaths.push(relativePath)
+    }
+
     const packageStyleSheetsPath = path.join(packagePath, 'styles')
     let styleSheets = null
     if (packageMetadata.mainStyleSheet) {
@@ -97,7 +103,7 @@ function buildBundledPackagesMetadata () {
     }
 
     packageNewMetadata.styleSheetPaths =
-      styleSheets.map(styleSheetPath => path.relative(packagePath, styleSheetPath))
+      styleSheets.map(styleSheetPath => path.relative(CONFIG.intermediateAppPath, styleSheetPath))
 
     packages[packageMetadata.name] = packageNewMetadata
     if (packageModuleCache.extensions) {

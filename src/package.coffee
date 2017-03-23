@@ -321,7 +321,7 @@ class Package
 
   getKeymapPaths: ->
     if @bundledPackage and not @packageManager.devMode
-      keymapsDirPath = path.resolve(@packageManager.resourcePath, @path, 'keymaps')
+      keymapsDirPath = path.join(@packageManager.resourcePath, 'keymaps')
     else
       keymapsDirPath = path.join(@path, 'keymaps')
 
@@ -332,7 +332,7 @@ class Package
 
   getMenuPaths: ->
     if @bundledPackage and not @packageManager.devMode
-      menusDirPath = path.resolve(@packageManager.resourcePath, @path, 'menus')
+      menusDirPath = path.join(@packageManager.resourcePath, 'menus')
     else
       menusDirPath = path.join(@path, 'menus')
 
@@ -378,14 +378,14 @@ class Package
 
   getStylesheetsPath: ->
     if @bundledPackage and not @packageManager.devMode
-      path.resolve(@packageManager.resourcePath, @path, 'styles')
+      path.join(@packageManager.resourcePath, 'styles')
     else
       path.join(@path, 'styles')
 
   getStylesheetPaths: ->
     if @bundledPackage and not @packageManager.devMode and @packageManager.packagesCache[@name]?.styleSheetPaths?
       styleSheetPaths = @packageManager.packagesCache[@name].styleSheetPaths
-      styleSheetPaths.map (styleSheetPath) => path.resolve(@packageManager.resourcePath, @path, styleSheetPath)
+      styleSheetPaths.map (styleSheetPath) => path.resolve(@packageManager.resourcePath, styleSheetPath)
     else
       stylesheetDirPath = @getStylesheetsPath()
       if @metadata.mainStyleSheet
@@ -401,12 +401,14 @@ class Package
     return if @grammarsLoaded
 
     if @bundledPackage and not @packageManager.devMode
-      grammarsDirPath = path.resolve(@packageManager.resourcePath, @path, 'grammars')
+      grammarPaths = @packageManager.packagesCache[@name].grammarPaths
     else
-      grammarsDirPath = path.join(@path, 'grammars')
+      grammarPaths = fs.listSync(path.join(@path, 'grammars'), ['json', 'cson'])
 
-    grammarPaths = fs.listSync(grammarsDirPath, ['json', 'cson'])
     for grammarPath in grammarPaths
+      if @bundledPackage and not @packageManager.devMode
+        grammarPath = path.resolve(@packageManager.resourcePath, grammarPath)
+
       try
         grammar = @grammarRegistry.readGrammarSync(grammarPath)
         grammar.packageName = @name
@@ -423,6 +425,9 @@ class Package
     return Promise.resolve() if @grammarsLoaded
 
     loadGrammar = (grammarPath, callback) =>
+      if @bundledPackage and not @packageManager.devMode
+        grammarPath = path.resolve(@packageManager.resourcePath, grammarPath)
+
       @grammarRegistry.readGrammar grammarPath, (error, grammar) =>
         if error?
           detail = "#{error.message} in #{grammarPath}"
@@ -437,15 +442,15 @@ class Package
 
     new Promise (resolve) =>
       if @bundledPackage and not @packageManager.devMode
-        grammarsDirPath = path.resolve(@packageManager.resourcePath, @path, 'grammars')
+        grammarPaths = @packageManager.packagesCache[@name].grammarPaths
+        async.each grammarPaths, loadGrammar, -> resolve()
       else
         grammarsDirPath = path.join(@path, 'grammars')
+        fs.exists grammarsDirPath, (grammarsDirExists) ->
+          return resolve() unless grammarsDirExists
 
-      fs.exists grammarsDirPath, (grammarsDirExists) ->
-        return resolve() unless grammarsDirExists
-
-        fs.list grammarsDirPath, ['json', 'cson'], (error, grammarPaths=[]) ->
-          async.each grammarPaths, loadGrammar, -> resolve()
+          fs.list grammarsDirPath, ['json', 'cson'], (error, grammarPaths=[]) ->
+            async.each grammarPaths, loadGrammar, -> resolve()
 
   loadSettings: ->
     @settings = []
