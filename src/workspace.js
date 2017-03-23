@@ -291,9 +291,9 @@ module.exports = class Workspace extends Model {
     if (this.movedItemSubscription != null) {
       this.movedItemSubscription.dispose()
     }
-    const paneLocations = Object.assign({center: this}, this.docks)
+    const paneContainers = Object.assign({center: this}, this.docks)
     this.movedItemSubscription = new CompositeDisposable(
-      ..._.map(paneLocations, (host, location) => (
+      ..._.map(paneContainers, (host, location) => (
         host.observePanes(pane => {
           pane.onDidAddItem(({item}) => {
             if (typeof item.getURI === 'function') {
@@ -391,7 +391,7 @@ module.exports = class Workspace extends Model {
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observePaneItems (callback) {
     return new CompositeDisposable(
-      ...this.getPaneLocations().map(location => location.observePaneItems(callback))
+      ...this.getPaneContainers().map(container => container.observePaneItems(callback))
     )
   }
 
@@ -462,7 +462,7 @@ module.exports = class Workspace extends Model {
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPane (callback) {
     return new CompositeDisposable(
-      ...this.getPaneLocations().map(location => location.onDidAddPane(callback))
+      ...this.getPaneContainers().map(container => container.onDidAddPane(callback))
     )
   }
 
@@ -476,7 +476,7 @@ module.exports = class Workspace extends Model {
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onWillDestroyPane (callback) {
     return new CompositeDisposable(
-      ...this.getPaneLocations().map(location => location.onWillDestroyPane(callback))
+      ...this.getPaneContainers().map(container => container.onWillDestroyPane(callback))
     )
   }
 
@@ -490,7 +490,7 @@ module.exports = class Workspace extends Model {
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroyPane (callback) {
     return new CompositeDisposable(
-      ...this.getPaneLocations().map(location => location.onDidDestroyPane(callback))
+      ...this.getPaneContainers().map(container => container.onDidDestroyPane(callback))
     )
   }
 
@@ -504,7 +504,7 @@ module.exports = class Workspace extends Model {
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observePanes (callback) {
     return new CompositeDisposable(
-      ...this.getPaneLocations().map(location => location.observePanes(callback))
+      ...this.getPaneContainers().map(container => container.observePanes(callback))
     )
   }
 
@@ -538,7 +538,7 @@ module.exports = class Workspace extends Model {
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPaneItem (callback) {
     return new CompositeDisposable(
-      ...this.getPaneLocations().map(location => location.onDidAddPaneItem(callback))
+      ...this.getPaneContainers().map(container => container.onDidAddPaneItem(callback))
     )
   }
 
@@ -555,7 +555,7 @@ module.exports = class Workspace extends Model {
   // Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
   onWillDestroyPaneItem (callback) {
     return new CompositeDisposable(
-      ...this.getPaneLocations().map(location => location.onWillDestroyPaneItem(callback))
+      ...this.getPaneContainers().map(container => container.onWillDestroyPaneItem(callback))
     )
   }
 
@@ -571,7 +571,7 @@ module.exports = class Workspace extends Model {
   // Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
   onDidDestroyPaneItem (callback) {
     return new CompositeDisposable(
-      ...this.getPaneLocations().map(location => location.onDidDestroyPaneItem(callback))
+      ...this.getPaneContainers().map(container => container.onDidDestroyPaneItem(callback))
     )
   }
 
@@ -778,30 +778,30 @@ module.exports = class Workspace extends Model {
 
     const uri = options.uri == null && typeof item.getURI === 'function' ? item.getURI() : options.uri
 
-    let paneLocation
+    let paneContainer
     if (pane != null) {
-      paneLocation = this.getPaneLocations().find(location => location.getPanes().includes(pane))
+      paneContainer = this.getPaneContainers().find(container => container.getPanes().includes(pane))
     }
 
     // Determine which location to use, unless a split was provided. In that case, make sure it goes
     // in the center location (legacy behavior)
     let location
-    if (paneLocation == null && pane == null && split == null && uri != null) {
+    if (paneContainer == null && pane == null && split == null && uri != null) {
       location = this.itemLocationStore.load(uri)
     }
 
     return Promise.resolve(location)
       .then(location => {
-        if (paneLocation == null) {
+        if (paneContainer == null) {
           if (location == null && typeof item.getDefaultLocation === 'function') {
             location = item.getDefaultLocation()
           }
-          paneLocation = this.docks[location] || this.getCenter()
+          paneContainer = this.docks[location] || this.getCenter()
         }
       })
       .then(() => {
         if (pane != null) return pane
-        pane = paneLocation.getActivePane()
+        pane = paneContainer.getActivePane()
         switch (split) {
           case 'left': return pane.findLeftmostSibling()
           case 'right': return pane.findOrCreateRightmostSibling()
@@ -824,7 +824,7 @@ module.exports = class Workspace extends Model {
         if (activatePane) {
           pane.activate()
         }
-        paneLocation.activate()
+        paneContainer.activate()
 
         let initialColumn = 0
         let initialLine = 0
@@ -966,7 +966,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns an {Array} of items.
   getPaneItems () {
-    return _.flatten(this.getPaneLocations().map(location => location.getPaneItems()))
+    return _.flatten(this.getPaneContainers().map(container => container.getPaneItems()))
   }
 
   // Essential: Get the active {Pane}'s active item.
@@ -994,14 +994,14 @@ module.exports = class Workspace extends Model {
 
   // Save all pane items.
   saveAll () {
-    this.getPaneLocations().forEach(location => {
-      location.saveAll()
+    this.getPaneContainers().forEach(container => {
+      container.saveAll()
     })
   }
 
   confirmClose (options) {
-    return this.getPaneLocations()
-      .map(location => location.confirmClose(options))
+    return this.getPaneContainers()
+      .map(container => container.confirmClose(options))
       .every(saved => saved)
   }
 
@@ -1040,7 +1040,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns an {Array} of {Pane}s.
   getPanes () {
-    return _.flatten(this.getPaneLocations().map(location => location.getPanes()))
+    return _.flatten(this.getPaneContainers().map(container => container.getPanes()))
   }
 
   // Extended: Get the active {Pane}.
@@ -1066,7 +1066,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Pane} or `undefined` if no pane exists for the given URI.
   paneForURI (uri) {
-    for (let location of this.getPaneLocations()) {
+    for (let location of this.getPaneContainers()) {
       const pane = location.paneForURI(uri)
       if (pane != null) {
         return pane
@@ -1080,7 +1080,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Pane} or `undefined` if no pane exists for the given item.
   paneForItem (item) {
-    for (let location of this.getPaneLocations()) {
+    for (let location of this.getPaneContainers()) {
       const pane = location.paneForItem(item)
       if (pane != null) {
         return pane
@@ -1195,7 +1195,7 @@ module.exports = class Workspace extends Model {
     return this.docks.bottom
   }
 
-  getPaneLocations () {
+  getPaneContainers () {
     return [this.getCenter(), ..._.values(this.docks)]
   }
 
@@ -1203,7 +1203,7 @@ module.exports = class Workspace extends Model {
     let foundItems = false
 
     // If any visible item has the given URI, hide it
-    for (const location of this.getPaneLocations()) {
+    for (const location of this.getPaneContainers()) {
       const isCenter = location === this.getCenter()
       if (isCenter || location.isOpen()) {
         for (const pane of location.getPanes()) {
