@@ -9,6 +9,10 @@ module.exports = class WorkspaceCenter {
 
   activate () {}
 
+  getLocation () {
+    return 'center'
+  }
+
   /*
   Section: Event Subscription
   */

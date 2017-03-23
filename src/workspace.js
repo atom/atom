@@ -288,24 +288,16 @@ module.exports = class Workspace extends Model {
   }
 
   subscribeToMovedItems () {
-    if (this.movedItemSubscription != null) {
-      this.movedItemSubscription.dispose()
+    for (const paneContainer of this.getPaneContainers()) {
+      paneContainer.onDidAddPaneItem(({item}) => {
+        if (typeof item.getURI === 'function') {
+          const uri = item.getURI()
+          if (uri != null) {
+            this.itemLocationStore.save(item.getURI(), paneContainer.getLocation())
+          }
+        }
+      })
     }
-    const paneContainers = Object.assign({center: this}, this.docks)
-    this.movedItemSubscription = new CompositeDisposable(
-      ..._.map(paneContainers, (host, location) => (
-        host.observePanes(pane => {
-          pane.onDidAddItem(({item}) => {
-            if (typeof item.getURI === 'function') {
-              const uri = item.getURI()
-              if (uri != null) {
-                this.itemLocationStore.save(item.getURI(), location)
-              }
-            }
-          })
-        })
-      ))
-    )
   }
 
   // Updates the application's title and proxy icon based on whichever file is
@@ -1169,9 +1161,6 @@ module.exports = class Workspace extends Model {
     this.paneContainer.destroy()
     if (this.activeItemSubscriptions != null) {
       this.activeItemSubscriptions.dispose()
-    }
-    if (this.movedItemSubscription != null) {
-      this.movedItemSubscription.dispose()
     }
   }
 
