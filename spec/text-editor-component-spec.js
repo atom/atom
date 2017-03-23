@@ -990,6 +990,32 @@ describe('TextEditorComponent', () => {
       ])
     })
 
+    it('adjusts the left edge of the scroll container based on changes to the gutter container width', async () => {
+      const {component, element, editor} = buildComponent()
+      const {scrollContainer, gutterContainer} = component.refs
+
+      expect(scrollContainer.getBoundingClientRect().left).toBe(gutterContainer.getBoundingClientRect().right)
+      const gutterA = editor.addGutter({name: 'a'})
+      await component.getNextUpdatePromise()
+      expect(scrollContainer.getBoundingClientRect().left).toBe(gutterContainer.getBoundingClientRect().right)
+
+      const gutterB = editor.addGutter({name: 'b'})
+      await component.getNextUpdatePromise()
+      expect(scrollContainer.getBoundingClientRect().left).toBe(gutterContainer.getBoundingClientRect().right)
+
+      gutterA.getElement().style.width = 100 + 'px'
+      await component.getNextUpdatePromise()
+      expect(scrollContainer.getBoundingClientRect().left).toBe(gutterContainer.getBoundingClientRect().right)
+
+      gutterA.destroy()
+      await component.getNextUpdatePromise()
+      expect(scrollContainer.getBoundingClientRect().left).toBe(gutterContainer.getBoundingClientRect().right)
+
+      gutterB.destroy()
+      await component.getNextUpdatePromise()
+      expect(scrollContainer.getBoundingClientRect().left).toBe(gutterContainer.getBoundingClientRect().right)
+    })
+
     it('allows the element of custom gutters to be retrieved before being rendered in the editor component', async () => {
       const {component, element, editor} = buildComponent()
       const [lineNumberGutter] = editor.getGutters()
