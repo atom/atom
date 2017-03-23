@@ -184,11 +184,7 @@ class Project extends Model
   #
   # * `projectPath` {String} The path to the directory to add.
   addPath: (projectPath, options) ->
-    directory = null
-    for provider in @directoryProviders
-      break if directory = provider.directoryForURISync?(projectPath)
-    directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
-
+    directory = @getDirectoryForProjectPath(projectPath)
     return unless directory.existsSync()
     for existingDirectory in @getDirectories()
       return if existingDirectory.getPath() is directory.getPath()
@@ -202,6 +198,13 @@ class Project extends Model
 
     unless options?.emitEvent is false
       @emitter.emit 'did-change-paths', @getPaths()
+
+  getDirectoryForProjectPath: (projectPath) ->
+    directory = null
+    for provider in @directoryProviders
+      break if directory = provider.directoryForURISync?(projectPath)
+    directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
+    directory
 
   # Public: remove a path from the project's list of root paths.
   #

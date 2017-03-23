@@ -1019,23 +1019,38 @@ class AtomEnvironment extends Model
   openLocations: (locations) ->
     needsProjectPaths = @project?.getPaths().length is 0
 
+    foldersToAddToProject = []
+    fileLocationsToOpen = []
+
+    pushFolderToOpen = (folder) ->
+      if folder not in foldersToAddToProject
+        foldersToAddToProject.push(folder)
+
     for {pathToOpen, initialLine, initialColumn, forceAddToWindow} in locations
       if pathToOpen? and (needsProjectPaths or forceAddToWindow)
         if fs.existsSync(pathToOpen)
-          @project.addPath(pathToOpen)
+          pushFolderToOpen @project.getDirectoryForProjectPath(pathToOpen).getPath()
         else if fs.existsSync(path.dirname(pathToOpen))
-          @project.addPath(path.dirname(pathToOpen))
+          pushFolderToOpen @project.getDirectoryForProjectPath(path.dirname(pathToOpen)).getPath()
         else
-          @project.addPath(pathToOpen)
+          pushFolderToOpen @project.getDirectoryForProjectPath(pathToOpen).getPath()
 
       unless fs.isDirectorySync(pathToOpen)
+        fileLocationsToOpen.push({pathToOpen, initialLine, initialColumn})
+
+    if foldersToAddToProject.length > 0
+      @loadState(@getStateKey(foldersToAddToProject)).then (state) =>
+        if state and needsProjectPaths # only load state if this is the first path added to the project
+          files = (location.pathToOpen for location in fileLocationsToOpen)
+          @attemptRestoreProjectStateForPaths(state, foldersToAddToProject, files)
+        else
+          @project.addPath(folder) for folder in foldersToAddToProject
+          for {pathToOpen, initialLine, initialColumn} in fileLocationsToOpen
+            @workspace?.open(pathToOpen, {initialLine, initialColumn})
+    else
+      for {pathToOpen, initialLine, initialColumn} in fileLocationsToOpen
         @workspace?.open(pathToOpen, {initialLine, initialColumn})
-
-    if needsProjectPaths
-      @loadState(@getStateKey(@project.getPaths())).then (state) =>
-        @restoreStateIntoEnvironment(state) if state
-
-    return
+      Promise.resolve(null)
 
 # Preserve this deprecation until 2.0. Sorry. Should have removed Q sooner.
 Promise.prototype.done = (callback) ->
