@@ -240,12 +240,15 @@ class TextEditorComponent {
       innerStyle.transform = `translateY(${-this.getScrollTop()}px)`
       gutterNodes = this.guttersToRender.map((gutter) => {
         if (gutter.name === 'line-number') {
-          return this.renderLineNumberGutter()
+          return this.renderLineNumberGutter(gutter)
         } else {
           return $(CustomGutterComponent, {
             key: gutter,
-            gutter: gutter,
-            height: this.getScrollHeight()
+            element: gutter.getElement(),
+            name: gutter.name,
+            visible: gutter.isVisible(),
+            height: this.getScrollHeight(),
+            decorations: this.decorationsToRender.customGutter.get(gutter.name)
           })
         }
       })
@@ -267,7 +270,7 @@ class TextEditorComponent {
     )
   }
 
-  renderLineNumberGutter () {
+  renderLineNumberGutter (gutter) {
     const {model} = this.props
 
     if (!model.isLineNumberGutterVisible()) return null
@@ -302,6 +305,7 @@ class TextEditorComponent {
 
       this.currentFrameLineNumberGutterProps = {
         ref: 'lineNumberGutter',
+        element: gutter.getElement(),
         parentComponent: this,
         height: this.getScrollHeight(),
         width: this.getLineNumberGutterWidth(),
@@ -680,6 +684,9 @@ class TextEditorComponent {
         case 'overlay':
           this.addOverlayDecorationToRender(decoration, marker)
           break
+        case 'gutter':
+          this.addCustomGutterDecorationToRender(decoration, screenRange)
+          break
       }
     }
   }
@@ -770,13 +777,29 @@ class TextEditorComponent {
 
   addOverlayDecorationToRender (decoration, marker) {
     const {class: className, item, position, avoidOverflow} = decoration
-    const element = TextEditor.viewForOverlayItem(item)
+    const element = TextEditor.viewForItem(item)
     const screenPosition = (position === 'tail')
       ? marker.getTailScreenPosition()
       : marker.getHeadScreenPosition()
 
     this.requestHorizontalMeasurement(screenPosition.row, screenPosition.column)
     this.decorationsToRender.overlays.push({className, element, avoidOverflow, screenPosition})
+  }
+
+  addCustomGutterDecorationToRender (decoration, screenRange) {
+    let decorations = this.decorationsToRender.customGutter.get(decoration.gutterName)
+    if (!decorations) {
+      decorations = []
+      this.decorationsToRender.customGutter.set(decoration.gutterName, decorations)
+    }
+    const top = this.pixelTopForRow(screenRange.start.row)
+    const height = this.pixelTopForRow(screenRange.end.row + 1) - top
+
+    decorations.push({
+      className: decoration.class,
+      element: TextEditor.viewForItem(decoration.item),
+      top, height
+    })
   }
 
   updateAbsolutePositionedDecorations () {
@@ -1984,7 +2007,10 @@ class DummyScrollbarComponent {
 class LineNumberGutterComponent {
   constructor (props) {
     this.props = props
-    etch.initialize(this)
+    this.element = this.props.element
+    this.virtualNode = $.div(null)
+    this.virtualNode.domNode = this.element
+    etch.updateSync(this)
   }
 
   update (newProps) {
@@ -2100,8 +2126,10 @@ class LineNumberGutterComponent {
 class CustomGutterComponent {
   constructor (props) {
     this.props = props
-    etch.initialize(this)
-    this.props.gutter.element = this.element
+    this.element = this.props.element
+    this.virtualNode = $.div(null)
+    this.virtualNode.domNode = this.element
+    etch.updateSync(this)
   }
 
   update (props) {
@@ -2109,20 +2137,67 @@ class CustomGutterComponent {
     etch.updateSync(this)
   }
 
+  destroy () {
+    etch.destroy(this)
+  }
+
   render () {
     return $.div(
       {
         className: 'gutter',
-        attributes: {'gutter-name': this.props.gutter.name},
+        attributes: {'gutter-name': this.props.name},
         style: {
-          display: this.props.gutter.isVisible() ? '' : 'none'
+          display: this.props.visible ? '' : 'none'
         }
       },
-      $.div({
-        className: 'custom-decorations',
-        style: {height: this.props.height + 'px'}
-      })
+      $.div(
+        {
+          className: 'custom-decorations',
+          style: {height: this.props.height + 'px'}
+        },
+        this.renderDecorations()
+      )
     )
+  }
+
+  renderDecorations () {
+    if (!this.props.decorations) return null
+
+    return this.props.decorations.map(({className, element, top, height}) => {
+      return $(CustomGutterDecorationComponent, {
+        className,
+        element,
+        top,
+        height
+      })
+    })
+  }
+}
+
+class CustomGutterDecorationComponent {
+  constructor (props) {
+    this.props = props
+    this.element = document.createElement('div')
+    const {top, height, className, element} = this.props
+
+    this.element.style.position = 'absolute'
+    this.element.style.top = top + 'px'
+    this.element.style.height = height + 'px'
+    if (className != null) this.element.className = className
+    if (element != null) this.element.appendChild(element)
+  }
+
+  update (newProps) {
+    const oldProps = this.props
+    this.props = newProps
+
+    if (newProps.top != oldProps.top) this.element.style.top = newProps.top + 'px'
+    if (newProps.height != oldProps.height) this.element.style.height = newProps.height + 'px'
+    if (newProps.className != oldProps.className) this.element.className = newProps.className || ''
+    if (newProps.element != oldProps.element) {
+      if (this.element.firstChild) this.element.firstChild.remove()
+      this.element.appendChild(newProps.element)
+    }
   }
 }
 
@@ -2450,6 +2525,22 @@ class OverlayComponent {
       if (oldProps.className != null) this.element.classList.remove(oldProps.className)
       if (newProps.className != null) this.element.classList.add(newProps.className)
     }
+  }
+}
+
+class ComponentWrapper {
+  constructor (props) {
+    this.component = props.component
+    this.element = this.component.element
+    this.component.update(props)
+  }
+
+  update (props) {
+    this.component.update(props)
+  }
+
+  destroy () {
+    this.component.destroy()
   }
 }
 

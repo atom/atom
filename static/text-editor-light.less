@@ -24,15 +24,15 @@ atom-text-editor {
   //   background-color: inherit;
   // }
 
-  // .gutter {
-  //   overflow: hidden;
-  //   z-index: 0;
-  //   text-align: right;
-  //   cursor: default;
-  //   min-width: 1em;
-  //   box-sizing: border-box;
-  //   background-color: inherit;
-  // }
+  .gutter {
+    overflow: hidden;
+    z-index: 0;
+    text-align: right;
+    cursor: default;
+    min-width: 1em;
+    box-sizing: border-box;
+    background-color: inherit;
+  }
   //
   // .line-numbers {
   //   position: relative;
@@ -85,15 +85,6 @@ atom-text-editor {
     }
   }
 
-  // .scroll-view {
-  //   position: relative;
-  //   z-index: 0;
-  //   overflow: hidden;
-  //   flex: 1;
-  //   min-width: 0;
-  //   min-height: 0;
-  // }
-
   .highlight {
     background: none;
     padding: 0;
@@ -104,13 +95,6 @@ atom-text-editor {
     pointer-events: none;
     z-index: -1;
   }
-
-  // .lines {
-  //   min-width: 100%;
-  //   position: relative;
-  //   z-index: 1;
-  //   background-color: inherit;
-  // }
 
   .line {
     white-space: pre;
@@ -161,43 +145,6 @@ atom-text-editor {
 
   .cursors.blink-off .cursor {
     opacity: 0;
-  }
-
-  .horizontal-scrollbar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-
-    height: 15px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    z-index: 3;
-    cursor: default;
-
-    .scrollbar-content {
-      height: 15px;
-    }
-  }
-
-  .vertical-scrollbar {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-
-    width: 15px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    z-index: 3;
-    cursor: default;
-  }
-
-  .scrollbar-corner {
-    position: absolute;
-    overflow: auto;
-    bottom: 0;
-    right: 0;
   }
 }
 
