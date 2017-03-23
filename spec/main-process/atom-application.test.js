@@ -5,6 +5,7 @@ import dedent from 'dedent'
 import electron from 'electron'
 import fs from 'fs-plus'
 import path from 'path'
+import until from 'test-until'
 import AtomApplication from '../../src/main-process/atom-application'
 import parseCommandLine from '../../src/main-process/parse-command-line'
 import {timeoutPromise, conditionPromise} from '../async-spec-helpers'
@@ -369,8 +370,14 @@ describe('AtomApplication', function () {
       await app2Window2.loadedPromise
       await new Promise(resolve => setTimeout(resolve, 5000)) // session restoration is async
 
-      assert.deepEqual(await getTreeViewRootDirectories(app2Window1), [tempDirPath1])
-      assert.deepEqual(await getTreeViewRootDirectories(app2Window2), [tempDirPath2])
+      await until(`app2Window1 contains tempDirPath1 (${tempDirPath1})`, () => {
+        const dirs = await getTreeViewRootDirectories(app2Window1)
+        return dirs.length === 1 && dirs[0] == tempDirPath1
+      }, 15000);
+      await until(`app2Window2 contains tempDirPath2 (${tempDirPath2})`, () => {
+        const dirs = await getTreeViewRootDirectories(app2Window2)
+        return dirs.length === 1 && dirs[0] == tempDirPath2
+      }, 15000);
     })
 
     it('does not reopen any previously opened windows when launched with no path and `core.restorePreviousWindowsOnStart` is false', async function () {
