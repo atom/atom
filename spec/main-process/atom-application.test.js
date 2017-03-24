@@ -121,6 +121,7 @@ describe('AtomApplication', function () {
 
       const atomApplication = buildAtomApplication()
       const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'new-file')]))
+      await emitterEventPromise(window1, 'window:locations-opened')
       await focusWindow(window1)
 
       let activeEditorPath
@@ -146,6 +147,7 @@ describe('AtomApplication', function () {
 
       // Opens new windows when opening directories
       const window2 = atomApplication.launch(parseCommandLine([dirCPath]))
+      await emitterEventPromise(window2, 'window:locations-opened')
       assert.notEqual(window2, window1)
       await focusWindow(window2)
       assert.deepEqual(await getTreeViewRootDirectories(window2), [dirCPath])
