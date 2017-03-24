@@ -3,6 +3,7 @@ _ = require 'underscore-plus'
 {Emitter, CompositeDisposable} = require 'event-kit'
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
+LessCompileCache = require './less-compile-cache'
 
 # Extended: Handles loading and activating available themes.
 #
@@ -18,7 +19,14 @@ class ThemeManager
     @packageManager.onDidActivateInitialPackages =>
       @onDidChangeActiveThemes => @packageManager.reloadActivePackageStyleSheets()
 
-  initialize: ({@resourcePath, @configDirPath, @safeMode}) ->
+  initialize: ({@resourcePath, @configDirPath, @safeMode, devMode}) ->
+    @lessSourcesByRelativeFilePath = null
+    if devMode or typeof snapshotAuxiliaryData is 'undefined'
+      @lessSourcesByRelativeFilePath = {}
+      @importedFilePathsByRelativeImportPath = {}
+    else
+      @lessSourcesByRelativeFilePath = snapshotAuxiliaryData.lessSourcesByRelativeFilePath
+      @importedFilePathsByRelativeImportPath = snapshotAuxiliaryData.importedFilePathsByRelativeImportPath
 
   ###
   Section: Event Subscription
@@ -126,10 +134,10 @@ class ThemeManager
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # required stylesheet.
-  requireStylesheet: (stylesheetPath) ->
+  requireStylesheet: (stylesheetPath, priority, skipDeprecatedSelectorsTransformation) ->
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
-      @applyStylesheet(fullPath, content)
+      @applyStylesheet(fullPath, content, priority, skipDeprecatedSelectorsTransformation)
     else
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
 
@@ -175,9 +183,7 @@ class ThemeManager
     @reloadBaseStylesheets()
 
   reloadBaseStylesheets: ->
-    @requireStylesheet('../static/atom')
-    if nativeStylesheetPath = fs.resolveOnLoadPath(process.platform, ['css', 'less'])
-      @requireStylesheet(nativeStylesheetPath)
+    @requireStylesheet('../static/atom', -2, true)
 
   stylesheetElementForId: (id) ->
     escapedId = id.replace(/\\/g, '\\\\')
@@ -196,9 +202,12 @@ class ThemeManager
       fs.readFileSync(stylesheetPath, 'utf8')
 
   loadLessStylesheet: (lessStylesheetPath, importFallbackVariables=false) ->
-    unless @lessCache?
-      LessCompileCache = require './less-compile-cache'
-      @lessCache = new LessCompileCache({@resourcePath, importPaths: @getImportPaths()})
+    @lessCache ?= new LessCompileCache({
+      @resourcePath,
+      @lessSourcesByRelativeFilePath,
+      @importedFilePathsByRelativeImportPath,
+      importPaths: @getImportPaths()
+    })
 
     try
       if importFallbackVariables
@@ -206,8 +215,16 @@ class ThemeManager
         @import "variables/ui-variables";
         @import "variables/syntax-variables";
         """
-        less = fs.readFileSync(lessStylesheetPath, 'utf8')
-        @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
+        relativeFilePath = path.relative(@resourcePath, lessStylesheetPath)
+        lessSource = @lessSourcesByRelativeFilePath[relativeFilePath]
+        if lessSource?
+          content = lessSource.content
+          digest = lessSource.digest
+        else
+          content = baseVarImports + '\n' + fs.readFileSync(lessStylesheetPath, 'utf8')
+          digest = null
+
+        @lessCache.cssForFile(lessStylesheetPath, content, digest)
       else
         @lessCache.read(lessStylesheetPath)
     catch error
@@ -231,8 +248,15 @@ class ThemeManager
   removeStylesheet: (stylesheetPath) ->
     @styleSheetDisposablesBySourcePath[stylesheetPath]?.dispose()
 
-  applyStylesheet: (path, text) ->
-    @styleSheetDisposablesBySourcePath[path] = @styleManager.addStyleSheet(text, sourcePath: path)
+  applyStylesheet: (path, text, priority, skipDeprecatedSelectorsTransformation) ->
+    @styleSheetDisposablesBySourcePath[path] = @styleManager.addStyleSheet(
+      text,
+      {
+        priority,
+        skipDeprecatedSelectorsTransformation,
+        sourcePath: path
+      }
+    )
 
   activateThemes: ->
     new Promise (resolve) =>

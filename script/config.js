@@ -36,7 +36,8 @@ module.exports = {
   atomHomeDirPath,
   homeDirPath,
   getApmBinPath,
-  getNpmBinPath
+  getNpmBinPath,
+  snapshotAuxiliaryData: {}
 }
 
 function getChannel () {

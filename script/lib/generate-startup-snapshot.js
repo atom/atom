@@ -15,6 +15,7 @@ module.exports = function (packagedAppPath) {
     baseDirPath,
     mainPath: path.resolve(baseDirPath, '..', 'src', 'initialize-application-window.js'),
     cachePath: path.join(CONFIG.atomHomeDirPath, 'snapshot-cache'),
+    auxiliaryData: CONFIG.snapshotAuxiliaryData,
     shouldExcludeModule: (modulePath) => {
       if (processedFiles > 0) {
         process.stdout.write('\r')
