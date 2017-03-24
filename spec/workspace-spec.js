@@ -818,9 +818,13 @@ describe('Workspace', () => {
           })
         )
 
-        it('creates a notification', () => {
-          const open = () => workspace.open('file1', workspace.getActivePane())
-          expect(open).toThrow()
+        it('rejects the promise', () => {
+          waitsFor((done) => {
+            workspace.open('file1').catch(error => {
+              expect(error.message).toBe('I dont even know what is happening right now!!')
+              done()
+            })
+          })
         })
       })
     })
