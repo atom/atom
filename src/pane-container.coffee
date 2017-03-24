@@ -22,8 +22,10 @@ class PaneContainer extends Model
 
     @setRoot(new Pane({container: this, @config, applicationDelegate, notificationManager, deserializerManager, @viewRegistry}))
     @setActivePane(@getRoot())
-    @monitorActivePaneItem()
     @monitorPaneItems()
+
+  initialize: ->
+    @monitorActivePaneItem()
 
   getElement: ->
     @element ?= new PaneContainerElement().initialize(this, {views: @viewRegistry})

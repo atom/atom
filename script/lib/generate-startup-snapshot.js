@@ -15,6 +15,7 @@ module.exports = function (packagedAppPath) {
     baseDirPath,
     mainPath: path.resolve(baseDirPath, '..', 'src', 'initialize-application-window.js'),
     cachePath: path.join(CONFIG.atomHomeDirPath, 'snapshot-cache'),
+    auxiliaryData: CONFIG.snapshotAuxiliaryData,
     shouldExcludeModule: (modulePath) => {
       if (processedFiles > 0) {
         process.stdout.write('\r')
@@ -27,7 +28,6 @@ module.exports = function (packagedAppPath) {
         coreModules.has(modulePath) ||
         (relativePath.startsWith(path.join('..', 'src')) && relativePath.endsWith('-element.js')) ||
         relativePath == path.join('..', 'exports', 'atom.js') ||
-        relativePath == path.join('..', 'src', 'config-schema.js') ||
         relativePath == path.join('..', 'src', 'electron-shims.js') ||
         relativePath == path.join('..', 'src', 'safe-clipboard.js') ||
         relativePath == path.join('..', 'node_modules', 'atom-keymap', 'lib', 'command-event.js') ||

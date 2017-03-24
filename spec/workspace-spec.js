@@ -55,6 +55,7 @@ describe('Workspace', () => {
         assert: atom.assert.bind(atom),
         textEditorRegistry: atom.textEditors
       })
+      atom.workspace.initialize()
       return atom.workspace.deserialize(workspaceState, atom.deserializers)
     }
 
@@ -1109,8 +1110,8 @@ i = /test/; #FIXME\
 `
       )
 
-      const atom2 = new AtomEnvironment({
-        applicationDelegate: atom.applicationDelegate,
+      const atom2 = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
+      atom2.initialize({
         window: document.createElement('div'),
         document: Object.assign(
           document.createElement('div'),
@@ -1249,8 +1250,8 @@ i = /test/; #FIXME\
       it("updates the title to contain the project's path", () => {
         document.title = null
 
-        const atom2 = new AtomEnvironment({
-          applicationDelegate: atom.applicationDelegate,
+        const atom2 = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
+        atom2.initialize({
           window: document.createElement('div'),
           document: Object.assign(
             document.createElement('div'),

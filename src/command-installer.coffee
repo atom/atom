@@ -26,7 +26,9 @@ symlinkCommandWithPrivilegeSync = (sourcePath, destinationPath) ->
 
 module.exports =
 class CommandInstaller
-  constructor: (@appVersion, @applicationDelegate) ->
+  constructor: (@applicationDelegate) ->
+
+  initialize: (@appVersion) ->
 
   getInstallDirectory: ->
     "/usr/local/bin"

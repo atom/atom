@@ -17,6 +17,7 @@ url = require 'url'
 _ = require 'underscore-plus'
 FindParentDir = null
 Resolve = null
+ConfigSchema = require '../config-schema'
 
 LocationSuffixRegExp = /(:\d+)(:\d+)?$/
 
@@ -68,8 +69,14 @@ class AtomApplication
     @pidsToOpenWindows = {}
     @windows = []
 
-    @config = new Config({configDirPath: process.env.ATOM_HOME, @resourcePath, enablePersistence: true})
-    @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
+    @config = new Config({enablePersistence: true})
+    @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
+    ConfigSchema.projectHome = {
+      type: 'string',
+      default: path.join(fs.getHomeDirectory(), 'github'),
+      description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
+    }
+    @config.initialize({configDirPath: process.env.ATOM_HOME, @resourcePath, projectHomeSchema: ConfigSchema.projectHome})
     @config.load()
     @fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, "recovery"))
     @storageFolder = new StorageFolder(process.env.ATOM_HOME)

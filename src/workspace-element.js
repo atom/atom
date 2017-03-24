@@ -60,7 +60,7 @@ class WorkspaceElement extends HTMLElement {
   font-family: ${this.config.get('editor.fontFamily')};
   line-height: ${this.config.get('editor.lineHeight')};
 }`
-    this.styles.addStyleSheet(styleSheetSource, {sourcePath: 'global-text-editor-styles'})
+    this.styles.addStyleSheet(styleSheetSource, {sourcePath: 'global-text-editor-styles', priority: -1})
     this.views.performDocumentPoll()
   }
 

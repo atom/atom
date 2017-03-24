@@ -40,15 +40,17 @@ platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
 # {::add} for more information.
 module.exports =
 class ContextMenuManager
-  constructor: ({@resourcePath, @devMode, @keymapManager}) ->
+  constructor: ({@keymapManager}) ->
     @definitions = {'.overlayer': []} # TODO: Remove once color picker package stops touching private data
     @clear()
 
     @keymapManager.onDidLoadBundledKeymaps => @loadPlatformItems()
 
+  initialize: ({@resourcePath, @devMode}) ->
+
   loadPlatformItems: ->
     if platformContextMenu?
-      @add(platformContextMenu)
+      @add(platformContextMenu, @devMode ? false)
     else
       menusDirPath = path.join(@resourcePath, 'menus')
       platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
@@ -107,11 +109,11 @@ class ContextMenuManager
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added menu items.
-  add: (itemsBySelector) ->
+  add: (itemsBySelector, throwOnInvalidSelector = true) ->
     addedItemSets = []
 
     for selector, items of itemsBySelector
-      validateSelector(selector)
+      validateSelector(selector) if throwOnInvalidSelector
       itemSet = new ContextMenuItemSet(selector, items)
       addedItemSets.push(itemSet)
       @itemSets.push(itemSet)
@@ -206,14 +208,17 @@ class ContextMenuManager
   clear: ->
     @activeElement = null
     @itemSets = []
-    @add 'atom-workspace': [{
-      label: 'Inspect Element'
-      command: 'application:inspect'
-      devMode: true
-      created: (event) ->
-        {pageX, pageY} = event
-        @commandDetail = {x: pageX, y: pageY}
-    }]
+    inspectElement = {
+      'atom-workspace': [{
+        label: 'Inspect Element'
+        command: 'application:inspect'
+        devMode: true
+        created: (event) ->
+          {pageX, pageY} = event
+          @commandDetail = {x: pageX, y: pageY}
+      }]
+    }
+    @add(inspectElement, false)
 
 class ContextMenuItemSet
   constructor: (@selector, @items) ->
