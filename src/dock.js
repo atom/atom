@@ -55,11 +55,10 @@ module.exports = class Dock {
         pane.onDidRemoveItem(this.handleDidRemovePaneItem.bind(this))
       })
     )
-
-    this.render(this.state)
   }
 
   getElement () {
+    if (!this.element) this.render(this.state);
     return this.element
   }
 
