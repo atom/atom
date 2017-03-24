@@ -368,7 +368,7 @@ describe "AtomEnvironment", ->
       it "opens an empty buffer", ->
         spyOn(atom.workspace, 'open')
         atom.openInitialEmptyEditorIfNecessary()
-        expect(atom.workspace.open).toHaveBeenCalledWith(null)
+        expect(atom.workspace.open).toHaveBeenCalledWith(null, {pending: true})
 
       describe "when there is already a buffer open", ->
         beforeEach ->
