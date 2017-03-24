@@ -1,6 +1,4 @@
-/** @babel */
-
-import {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise} from './async-spec-helpers'
+const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise} = require('./async-spec-helpers')
 
 const TextEditorComponent = require('../src/text-editor-component')
 const TextEditor = require('../src/text-editor')
@@ -21,7 +19,7 @@ document.registerElement('text-editor-component-test-element', {
   })
 })
 
-describe('TextEditorComponent', () => {
+fdescribe('TextEditorComponent', () => {
   beforeEach(() => {
     jasmine.useRealClock()
   })
@@ -30,12 +28,12 @@ describe('TextEditorComponent', () => {
     it('renders lines and line numbers for the visible region', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
 
-      expect(element.querySelectorAll('.line-number').length).toBe(13)
+      expect(element.querySelectorAll('.line-number').length).toBe(13 + 1) // +1 for placeholder line number
       expect(element.querySelectorAll('.line').length).toBe(13)
 
       element.style.height = 4 * component.measurements.lineHeight + 'px'
       await component.getNextUpdatePromise()
-      expect(element.querySelectorAll('.line-number').length).toBe(9)
+      expect(element.querySelectorAll('.line-number').length).toBe(9 + 1) // +1 for placeholder  line number
       expect(element.querySelectorAll('.line').length).toBe(9)
 
       await setScrollTop(component, 5 * component.getLineHeight())
@@ -43,7 +41,7 @@ describe('TextEditorComponent', () => {
       // After scrolling down beyond > 3 rows, the order of line numbers and lines
       // in the DOM is a bit weird because the first tile is recycled to the bottom
       // when it is scrolled out of view
-      expect(Array.from(element.querySelectorAll('.line-number')).map(element => element.textContent.trim())).toEqual([
+      expect(Array.from(element.querySelectorAll('.line-number')).slice(1).map(element => element.textContent.trim())).toEqual([
         '10', '11', '12', '4', '5', '6', '7', '8', '9'
       ])
       expect(Array.from(element.querySelectorAll('.line')).map(element => element.textContent)).toEqual([
@@ -59,7 +57,7 @@ describe('TextEditorComponent', () => {
       ])
 
       await setScrollTop(component, 2.5 * component.getLineHeight())
-      expect(Array.from(element.querySelectorAll('.line-number')).map(element => element.textContent.trim())).toEqual([
+      expect(Array.from(element.querySelectorAll('.line-number')).slice(1).map(element => element.textContent.trim())).toEqual([
         '1', '2', '3', '4', '5', '6', '7', '8', '9'
       ])
       expect(Array.from(element.querySelectorAll('.line')).map(element => element.textContent)).toEqual([
@@ -107,18 +105,19 @@ describe('TextEditorComponent', () => {
       expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() + 1)
     })
 
-    it('gives the line number gutter an explicit width and height so its layout can be strictly contained', () => {
+    it('gives the line number tiles an explicit width and height so their layout can be strictly contained', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 3})
 
-      const gutterElement = element.querySelector('.gutter.line-numbers')
-      expect(gutterElement.style.width).toBe(element.querySelector('.line-number').offsetWidth + 'px')
-      expect(gutterElement.style.height).toBe(editor.getScreenLineCount() * component.measurements.lineHeight + 'px')
-      expect(gutterElement.style.contain).toBe('strict')
+      const gutterElement = component.refs.lineNumberGutter.element
+      for (const child of gutterElement.children) {
+        expect(child.offsetWidth).toBe(gutterElement.offsetWidth)
+      }
 
-      // Tile nodes also have explicit width and height assignment
-      expect(gutterElement.firstChild.style.width).toBe(element.querySelector('.line-number').offsetWidth + 'px')
-      expect(gutterElement.firstChild.style.height).toBe(3 * component.measurements.lineHeight + 'px')
-      expect(gutterElement.firstChild.style.contain).toBe('strict')
+      editor.setText('\n'.repeat(99))
+      await component.getNextUpdatePromise()
+      for (const child of gutterElement.children) {
+        expect(child.offsetWidth).toBe(gutterElement.offsetWidth)
+      }
     })
 
     it('renders dummy vertical and horizontal scrollbars when content overflows', async () => {
@@ -994,26 +993,30 @@ describe('TextEditorComponent', () => {
       const {component, element, editor} = buildComponent()
       const {scrollContainer, gutterContainer} = component.refs
 
-      expect(scrollContainer.getBoundingClientRect().left).toBe(gutterContainer.getBoundingClientRect().right)
+      function checkScrollContainerLeft () {
+        expect(scrollContainer.getBoundingClientRect().left).toBe(Math.round(gutterContainer.getBoundingClientRect().right))
+      }
+
+      checkScrollContainerLeft()
       const gutterA = editor.addGutter({name: 'a'})
       await component.getNextUpdatePromise()
-      expect(scrollContainer.getBoundingClientRect().left).toBe(gutterContainer.getBoundingClientRect().right)
+      checkScrollContainerLeft()
 
       const gutterB = editor.addGutter({name: 'b'})
       await component.getNextUpdatePromise()
-      expect(scrollContainer.getBoundingClientRect().left).toBe(gutterContainer.getBoundingClientRect().right)
+      checkScrollContainerLeft()
 
       gutterA.getElement().style.width = 100 + 'px'
       await component.getNextUpdatePromise()
-      expect(scrollContainer.getBoundingClientRect().left).toBe(gutterContainer.getBoundingClientRect().right)
+      checkScrollContainerLeft()
 
       gutterA.destroy()
       await component.getNextUpdatePromise()
-      expect(scrollContainer.getBoundingClientRect().left).toBe(gutterContainer.getBoundingClientRect().right)
+      checkScrollContainerLeft()
 
       gutterB.destroy()
       await component.getNextUpdatePromise()
-      expect(scrollContainer.getBoundingClientRect().left).toBe(gutterContainer.getBoundingClientRect().right)
+      checkScrollContainerLeft()
     })
 
     it('allows the element of custom gutters to be retrieved before being rendered in the editor component', async () => {
@@ -1858,7 +1861,7 @@ function lineNumberNodeForScreenRow (component, row) {
   const gutterElement = component.refs.lineNumberGutter.element
   const tileStartRow = component.tileStartRowForRow(row)
   const tileIndex = component.tileIndexForTileStartRow(tileStartRow)
-  return gutterElement.children[tileIndex].children[row - tileStartRow]
+  return gutterElement.children[tileIndex + 1].children[row - tileStartRow]
 }
 
 function lineNodeForScreenRow (component, row) {
