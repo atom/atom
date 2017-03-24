@@ -5,10 +5,9 @@ import dedent from 'dedent'
 import electron from 'electron'
 import fs from 'fs-plus'
 import path from 'path'
-import until from 'test-until'
 import AtomApplication from '../../src/main-process/atom-application'
 import parseCommandLine from '../../src/main-process/parse-command-line'
-import {timeoutPromise, conditionPromise} from '../async-spec-helpers'
+import {timeoutPromise, conditionPromise, emitterEventPromise} from '../async-spec-helpers'
 
 const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 
@@ -366,6 +365,9 @@ describe('AtomApplication', function () {
 
       const atomApplication2 = buildAtomApplication()
       const [app2Window1, app2Window2] = atomApplication2.launch(parseCommandLine([]))
+      const p1 = emitterEventPromise(app2Window1, 'window:locations-opened')
+      const p2 = emitterEventPromise(app2Window2, 'window:locations-opened')
+      await Promise.all([p1, p2])
       await app2Window1.loadedPromise
       await app2Window2.loadedPromise
       await new Promise(resolve => setTimeout(resolve, 5000)) // session restoration is async
@@ -428,6 +430,7 @@ describe('AtomApplication', function () {
 
         const atomApplication = buildAtomApplication()
         const window = atomApplication.launch(parseCommandLine([dirA, dirB]))
+        await emitterEventPromise(window, 'window:locations-opened', 15000)
         await focusWindow(window)
         assert.deepEqual(await getTreeViewRootDirectories(window), [dirA, dirB])
 
