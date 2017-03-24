@@ -17,6 +17,9 @@ environment:
   matrix:
   - NODE_VERSION: 6.8.0
 
+matrix:
+  fast_finish: true
+
 install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
