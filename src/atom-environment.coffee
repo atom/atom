@@ -1072,7 +1072,7 @@ class AtomEnvironment extends Model
       promise = @loadState(@getStateKey(foldersToAddToProject)).then (state) =>
         if state and needsProjectPaths # only load state if this is the first path added to the project
           files = (location.pathToOpen for location in fileLocationsToOpen)
-          @attemptRestoreProjectStateForPaths(state, foldersToAddToProject, files).then =>
+          @attemptRestoreProjectStateForPaths(state, foldersToAddToProject, files)
         else
           promises = []
           @project.addPath(folder) for folder in foldersToAddToProject
