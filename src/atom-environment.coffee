@@ -912,7 +912,7 @@ class AtomEnvironment extends Model
     windowIsUnused = @workspace.getPaneItems().every(paneItemIsEmptyUnnamedTextEditor)
     if windowIsUnused
       @restoreStateIntoThisEnvironment(state)
-      @workspace.open(file) for file in filesToOpen
+      Promise.all (@workspace.open(file) for file in filesToOpen)
     else
       nouns = if projectPaths.length is 1 then 'folder' else 'folders'
       btn = @confirm
@@ -930,9 +930,10 @@ class AtomEnvironment extends Model
           newWindow: true
           devMode: @inDevMode()
           safeMode: @inSafeMode()
+        Promise.resolve(null)
       else if btn is 1
         @project.addPath(selectedPath) for selectedPath in projectPaths
-        @workspace.open(file) for file in filesToOpen
+        Promise.all (@workspace.open(file) for file in filesToOpen)
 
   restoreStateIntoThisEnvironment: (state) ->
     state.fullScreen = @isFullScreen()
@@ -1066,19 +1067,26 @@ class AtomEnvironment extends Model
       unless fs.isDirectorySync(pathToOpen)
         fileLocationsToOpen.push({pathToOpen, initialLine, initialColumn})
 
+    promise = Promise.resolve(null)
     if foldersToAddToProject.length > 0
-      @loadState(@getStateKey(foldersToAddToProject)).then (state) =>
+      promise = @loadState(@getStateKey(foldersToAddToProject)).then (state) =>
         if state and needsProjectPaths # only load state if this is the first path added to the project
           files = (location.pathToOpen for location in fileLocationsToOpen)
-          @attemptRestoreProjectStateForPaths(state, foldersToAddToProject, files)
+          @attemptRestoreProjectStateForPaths(state, foldersToAddToProject, files).then =>
         else
+          promises = []
           @project.addPath(folder) for folder in foldersToAddToProject
           for {pathToOpen, initialLine, initialColumn} in fileLocationsToOpen
-            @workspace?.open(pathToOpen, {initialLine, initialColumn})
+            promises.push @workspace?.open(pathToOpen, {initialLine, initialColumn})
+          Promise.all(promises)
     else
+      promises = []
       for {pathToOpen, initialLine, initialColumn} in fileLocationsToOpen
-        @workspace?.open(pathToOpen, {initialLine, initialColumn})
-      Promise.resolve(null)
+        promises.push @workspace?.open(pathToOpen, {initialLine, initialColumn})
+      promise = Promise.all(promises)
+
+    promise.then =>
+      ipcRenderer.send 'window-command', 'window:locations-opened'
 
   resolveProxy: (url) ->
     return new Promise (resolve, reject) =>
