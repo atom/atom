@@ -625,9 +625,8 @@ module.exports = class Workspace extends Model {
   //     should almost always be omitted to honor user preference.
   //
   // Returns a {Promise} that resolves to the {TextEditor} for the file URI.
-  open (uri_, options = {}) {
+  async open (uri_, options = {}) {
     const uri = this.project.resolvePath(uri_)
-    const {searchAllPanes, split} = options
 
     if (!atom.config.get('core.allowPendingPaneItems')) {
       options.pending = false
@@ -635,43 +634,110 @@ module.exports = class Workspace extends Model {
 
     // Avoid adding URLs as recent documents to work-around this Spotlight crash:
     // https://github.com/atom/atom/issues/10071
-    if ((uri != null) && ((url.parse(uri).protocol == null) || (process.platform === 'win32'))) {
+    if (uri && (!url.parse(uri).protocol || process.platform === 'win32')) {
       this.applicationDelegate.addRecentDocument(uri)
     }
 
-    let pane
-    if (searchAllPanes) { pane = this.paneForURI(uri) }
-    if (pane == null) {
-      switch (split) {
-        case 'left':
-          pane = this.getActivePane().findLeftmostSibling()
-          break
-        case 'right':
-          pane = this.getActivePane().findRightmostSibling()
-          break
-        case 'up':
-          pane = this.getActivePane().findTopmostSibling()
-          break
-        case 'down':
-          pane = this.getActivePane().findBottommostSibling()
-          break
-        default:
-          pane = this.getActivePane()
-          break
+    let pane, item
+
+    // Try to find an existing item with the given URI.
+    if (uri) {
+      if (options.pane) {
+        pane = options.pane
+      } else if (options.searchAllPanes) {
+        pane = this.paneForURI(uri)
+      } else {
+
+        // The `split` option affects where we search for the item.
+        pane = this.getActivePane()
+        switch (options.split) {
+          case 'left':
+            pane = pane.findLeftmostSibling()
+            break
+          case 'right':
+            pane = pane.findRightmostSibling()
+            break
+          case 'up':
+            pane = pane.findTopmostSibling()
+            break
+          case 'down':
+            pane = pane.findBottommostSibling()
+            break
+        }
+      }
+
+      if (pane) item = pane.itemForURI(uri)
+    }
+
+    // Create an item if one was not found.
+    if (!item) {
+      item = await this.createItemForURI(uri, options)
+      if (!item) return
+
+      if (options.pane) {
+        pane = options.pane
+      } else {
+        let location = options.location
+        if (!location && !options.split && uri) {
+          location = await this.itemLocationStore.load(uri)
+        }
+        if (!location && typeof item.getDefaultLocation === 'function') {
+          location = item.getDefaultLocation()
+        }
+
+        const container = this.docks[location] || this.getCenter()
+        pane = container.getActivePane()
+        switch (options.split) {
+          case 'left':
+            pane = pane.findLeftmostSibling()
+            break
+          case 'right':
+            pane = pane.findOrCreateRightmostSibling()
+            break
+          case 'up':
+            pane = pane.findTopmostSibling()
+            break
+          case 'down':
+            pane = pane.findOrCreateBottommostSibling()
+            break
+        }
       }
     }
 
-    let item
-    if (uri != null && pane != null) {
-      item = pane.itemForURI(uri)
-    }
-    if (item == null) {
-      item = this.createItemForURI(uri, options)
-      pane = null
+    if (!options.pending && (pane.getPendingItem() === item)) {
+      pane.clearPendingItem()
     }
 
-    return Promise.resolve(item)
-      .then(item => this.openItem(item, Object.assign({pane, uri}, options)))
+    pane.addItem(item, options)
+    this.itemOpened(item)
+
+    if (options.activateItem !== false) {
+      pane.activateItem(item, {pending: options.pending})
+    }
+
+    if (options.activatePane !== false) {
+      pane.activate()
+      const container = this.getPaneContainers().find(container => container.getPanes().includes(pane))
+      container.activate()
+    }
+
+    let initialColumn = 0
+    let initialLine = 0
+    if (!Number.isNaN(options.initialLine)) {
+      initialLine = options.initialLine
+    }
+    if (!Number.isNaN(options.initialColumn)) {
+      initialColumn = options.initialColumn
+    }
+    if (initialLine >= 0 || initialColumn >= 0) {
+      if (typeof item.setCursorBufferPosition === 'function') {
+        item.setCursorBufferPosition([initialLine, initialColumn])
+      }
+    }
+
+    const index = pane.getActiveItemIndex()
+    this.emitter.emit('did-open', {uri, pane, item, index})
+    return item
   }
 
   // Open Atom's license in the active pane.
@@ -720,16 +786,8 @@ module.exports = class Workspace extends Model {
     return item
   }
 
-  openURIInPane (uri, pane, options = {}) {
-    let item
-    if (uri != null) {
-      item = pane.itemForURI(uri)
-    }
-    if (item == null) {
-      item = this.createItemForURI(uri, options)
-    }
-    return Promise.resolve(item)
-      .then(item => this.openItem(item, Object.assign({pane, uri}, options)))
+  openURIInPane (uri, pane) {
+    return this.open(uri, {pane})
   }
 
   // Returns a {Promise} that resolves to the {TextEditor} (or other item) for the given URI.
@@ -770,83 +828,6 @@ module.exports = class Workspace extends Model {
           throw error
       }
     }
-  }
-
-  async openItem (item, options = {}) {
-    let {pane, split, location} = options
-
-    if (item == null) return undefined
-    if (pane != null && pane.isDestroyed()) return item
-
-    const uri = options.uri == null && typeof item.getURI === 'function' ? item.getURI() : options.uri
-
-    let paneContainer
-    if (pane != null) {
-      paneContainer = this.getPaneContainers().find(container => container.getPanes().includes(pane))
-    }
-
-    if (paneContainer == null) {
-      // Determine which location to use, unless a split was provided. In that case, make sure it goes
-      // in the center location (legacy behavior)
-      if (location == null && pane == null && split == null && uri != null) {
-        location = await this.itemLocationStore.load(uri)
-      }
-      if (location == null && typeof item.getDefaultLocation === 'function') {
-        location = item.getDefaultLocation()
-      }
-      paneContainer = this.docks[location] || this.getCenter()
-    }
-
-    if (pane == null) {
-      pane = paneContainer.getActivePane()
-      switch (split) {
-        case 'left':
-          pane = pane.findLeftmostSibling()
-          break
-        case 'right':
-          pane = pane.findOrCreateRightmostSibling()
-          break
-        case 'up':
-          pane = pane.findTopmostSibling()
-          break
-        case 'down':
-          pane = pane.findOrCreateBottommostSibling()
-          break
-      }
-    }
-
-    if (!options.pending && (pane.getPendingItem() === item)) {
-      pane.clearPendingItem()
-    }
-
-    const activatePane = options.activatePane != null ? options.activatePane : true
-    const activateItem = options.activateItem != null ? options.activateItem : true
-    this.itemOpened(item)
-    if (activateItem) {
-      pane.activateItem(item, {pending: options.pending})
-    }
-    if (activatePane) {
-      pane.activate()
-    }
-    paneContainer.activate()
-
-    let initialColumn = 0
-    let initialLine = 0
-    if (!Number.isNaN(options.initialLine)) {
-      initialLine = options.initialLine
-    }
-    if (!Number.isNaN(options.initialColumn)) {
-      initialColumn = options.initialColumn
-    }
-    if ((initialLine >= 0) || (initialColumn >= 0)) {
-      if (typeof item.setCursorBufferPosition === 'function') {
-        item.setCursorBufferPosition([initialLine, initialColumn])
-      }
-    }
-
-    const index = pane.getActiveItemIndex()
-    this.emitter.emit('did-open', {uri, pane, item, index})
-    return item
   }
 
   openTextFile (uri, options) {
