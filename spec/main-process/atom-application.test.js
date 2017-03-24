@@ -370,16 +370,9 @@ describe('AtomApplication', function () {
       await Promise.all([p1, p2])
       await app2Window1.loadedPromise
       await app2Window2.loadedPromise
-      await new Promise(resolve => setTimeout(resolve, 5000)) // session restoration is async
 
-      await until(`app2Window1 contains tempDirPath1 (${tempDirPath1})`, async () => {
-        const dirs = await getTreeViewRootDirectories(app2Window1)
-        return dirs.length === 1 && dirs[0] == tempDirPath1
-      }, 15000);
-      await until(`app2Window2 contains tempDirPath2 (${tempDirPath2})`, async () => {
-        const dirs = await getTreeViewRootDirectories(app2Window2)
-        return dirs.length === 1 && dirs[0] == tempDirPath2
-      }, 15000);
+      assert.deepEqual(await getTreeViewRootDirectories(app2Window1), [tempDirPath1])
+      assert.deepEqual(await getTreeViewRootDirectories(app2Window2), [tempDirPath2])
     })
 
     it('does not reopen any previously opened windows when launched with no path and `core.restorePreviousWindowsOnStart` is false', async function () {
