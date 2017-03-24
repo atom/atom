@@ -107,7 +107,7 @@ module.exports = function () {
   for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', 'atom-ui', '**', '*.less'))) {
     saveIntoSnapshotAuxiliaryData(lessFilePath, fs.readFileSync(lessFilePath, 'utf8'))
   }
-  
+
   function cacheCompiledCSS (lessCache, lessFilePath, importFallbackVariables) {
     let lessSource = fs.readFileSync(lessFilePath, 'utf8')
     if (importFallbackVariables) {

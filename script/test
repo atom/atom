@@ -71,7 +71,7 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     console.log(`Executing ${packageName} tests`.bold.green)
     const cp = childProcess.spawn(executablePath, testArguments)
     let stderrOutput = ''
-    cp.stderr.on('data', data => (stderrOutput += data))
+    cp.stderr.on('data', data => { stderrOutput += data })
     cp.on('error', error => { callback(error) })
     cp.on('close', exitCode => {
       if (exitCode !== 0) {
