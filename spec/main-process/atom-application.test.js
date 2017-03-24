@@ -365,8 +365,8 @@ describe('AtomApplication', function () {
 
       const atomApplication2 = buildAtomApplication()
       const [app2Window1, app2Window2] = atomApplication2.launch(parseCommandLine([]))
-      const p1 = emitterEventPromise(app2Window1, 'window:locations-opened')
-      const p2 = emitterEventPromise(app2Window2, 'window:locations-opened')
+      const p1 = emitterEventPromise(app2Window1, 'window:locations-opened', 15000)
+      const p2 = emitterEventPromise(app2Window2, 'window:locations-opened', 15000)
       await Promise.all([p1, p2])
       await app2Window1.loadedPromise
       await app2Window2.loadedPromise
