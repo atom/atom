@@ -617,6 +617,12 @@ module.exports = class Workspace extends Model {
   //     activate an existing item for the given URI on any pane.
   //     If `false`, only the active pane will be searched for
   //     an existing item for the same URI. Defaults to `false`.
+  //   * `location` (optional) A {String} containing the name of the location
+  //     in which this item should be opened (one of "left", "right", "bottom",
+  //     or "center"). If omitted, Atom will fall back to the last location in
+  //     which a user has placed an item with the same URI or, if this is a new
+  //     URI, the default location specified by the item. NOTE: This option
+  //     should almost always be omitted to honor user preference.
   //
   // Returns a {Promise} that resolves to the {TextEditor} for the file URI.
   open (uri_, options = {}) {
@@ -767,7 +773,7 @@ module.exports = class Workspace extends Model {
   }
 
   async openItem (item, options = {}) {
-    let {pane, split} = options
+    let {pane, split, location} = options
 
     if (item == null) return undefined
     if (pane != null && pane.isDestroyed()) return item
@@ -779,14 +785,12 @@ module.exports = class Workspace extends Model {
       paneContainer = this.getPaneContainers().find(container => container.getPanes().includes(pane))
     }
 
-    // Determine which location to use, unless a split was provided. In that case, make sure it goes
-    // in the center location (legacy behavior)
-    let location
-    if (paneContainer == null && pane == null && split == null && uri != null) {
-      location = await this.itemLocationStore.load(uri)
-    }
-
     if (paneContainer == null) {
+      // Determine which location to use, unless a split was provided. In that case, make sure it goes
+      // in the center location (legacy behavior)
+      if (location == null && pane == null && split == null && uri != null) {
+        location = await this.itemLocationStore.load(uri)
+      }
       if (location == null && typeof item.getDefaultLocation === 'function') {
         location = item.getDefaultLocation()
       }
