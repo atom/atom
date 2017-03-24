@@ -370,11 +370,11 @@ describe('AtomApplication', function () {
       await app2Window2.loadedPromise
       await new Promise(resolve => setTimeout(resolve, 5000)) // session restoration is async
 
-      await until(`app2Window1 contains tempDirPath1 (${tempDirPath1})`, () => {
+      await until(`app2Window1 contains tempDirPath1 (${tempDirPath1})`, async () => {
         const dirs = await getTreeViewRootDirectories(app2Window1)
         return dirs.length === 1 && dirs[0] == tempDirPath1
       }, 15000);
-      await until(`app2Window2 contains tempDirPath2 (${tempDirPath2})`, () => {
+      await until(`app2Window2 contains tempDirPath2 (${tempDirPath2})`, async () => {
         const dirs = await getTreeViewRootDirectories(app2Window2)
         return dirs.length === 1 && dirs[0] == tempDirPath2
       }, 15000);
