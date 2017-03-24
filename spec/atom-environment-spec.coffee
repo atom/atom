@@ -340,9 +340,9 @@ describe "AtomEnvironment", ->
           callback([tempDirectory])
         waitsForPromise ->
           atom.addProjectFolder()
-        # runs ->
-        #   expect(atom.project.getPaths()).toEqual([tempDirectory])
-        #   expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
+        runs ->
+          expect(atom.project.getPaths()).toEqual([tempDirectory])
+          expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
 
     describe "when there is saved state for the relevant directories", ->
       state = Symbol('savedState')
