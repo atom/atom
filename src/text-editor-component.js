@@ -74,8 +74,14 @@ class TextEditorComponent {
     this.lastKeydown = null
     this.lastKeydownBeforeKeypress = null
     this.accentedCharacterMenuIsOpen = false
-    this.remeasureGutterContainer = false
-    this.guttersToRender = []
+    this.remeasureGutterDimensions = false
+    this.guttersToRender = [this.props.model.getLineNumberGutter()]
+    this.lineNumbersToRender = {
+      maxDigits: 2,
+      numbers: [],
+      keys: [],
+      foldableFlags: []
+    }
     this.decorationsToRender = {
       lineNumbers: new Map(),
       lines: new Map(),
@@ -88,6 +94,9 @@ class TextEditorComponent {
       highlights: new Map(),
       cursors: []
     }
+
+    this.queryGuttersToRender()
+    this.queryMaxLineNumberDigits()
 
     etch.updateSync(this)
 
@@ -140,6 +149,7 @@ class TextEditorComponent {
     if (this.pendingAutoscroll) this.autoscrollVertically()
     this.populateVisibleRowRange()
     this.queryScreenLinesToRender()
+    this.queryLineNumbersToRender()
     this.queryGuttersToRender()
     this.queryDecorationsToRender()
     this.shouldRenderDummyScrollbars = !this.refreshedScrollbarStyle
@@ -150,9 +160,9 @@ class TextEditorComponent {
   measureContentDuringUpdateSync () {
     this.measureHorizontalPositions()
     this.updateAbsolutePositionedDecorations()
-    if (this.remeasureGutterContainer) {
+    if (this.remeasureGutterDimensions) {
       this.measureGutterDimensions()
-      this.remeasureGutterContainer = false
+      this.remeasureGutterDimensions = false
     }
     const wasHorizontalScrollbarVisible = this.isHorizontalScrollbarVisible()
     this.measureLongestLineWidth()
@@ -243,25 +253,10 @@ class TextEditorComponent {
       display: 'flex'
     }
 
-    let gutterNodes
+    let scrollHeight
     if (this.measurements) {
       innerStyle.transform = `translateY(${-this.getScrollTop()}px)`
-      gutterNodes = this.guttersToRender.map((gutter) => {
-        if (gutter.name === 'line-number') {
-          return this.renderLineNumberGutter(gutter)
-        } else {
-          return $(CustomGutterComponent, {
-            key: gutter,
-            element: gutter.getElement(),
-            name: gutter.name,
-            visible: gutter.isVisible(),
-            height: this.getScrollHeight(),
-            decorations: this.decorationsToRender.customGutter.get(gutter.name)
-          })
-        }
-      })
-    } else {
-      gutterNodes = this.renderLineNumberGutter()
+      scrollHeight = this.getScrollHeight()
     }
 
     return $.div(
@@ -274,68 +269,52 @@ class TextEditorComponent {
           backgroundColor: 'inherit'
         }
       },
-      $.div({style: innerStyle}, gutterNodes)
+      $.div({style: innerStyle},
+        this.guttersToRender.map((gutter) => {
+          if (gutter.name === 'line-number') {
+            return this.renderLineNumberGutter(gutter)
+          } else {
+            return $(CustomGutterComponent, {
+              key: gutter,
+              element: gutter.getElement(),
+              name: gutter.name,
+              visible: gutter.isVisible(),
+              height: scrollHeight,
+              decorations: this.decorationsToRender.customGutter.get(gutter.name)
+            })
+          }
+        })
+      )
     )
   }
 
   renderLineNumberGutter (gutter) {
-    const {model} = this.props
-
-    if (!model.isLineNumberGutterVisible()) return null
-
-    if (this.currentFrameLineNumberGutterProps) {
-      return $(LineNumberGutterComponent, this.currentFrameLineNumberGutterProps)
-    }
-
-    const maxLineNumberDigits = Math.max(2, model.getLineCount().toString().length)
+    if (!this.props.model.isLineNumberGutterVisible()) return null
 
     if (this.measurements) {
-      const startRow = this.getRenderedStartRow()
-      const endRow = this.getRenderedEndRow()
-      const renderedRowCount = this.getRenderedRowCount()
-      const bufferRows = new Array(renderedRowCount)
-      const foldableFlags = new Array(renderedRowCount)
-      const softWrappedFlags = new Array(renderedRowCount)
-      const lineNumberDecorations = new Array(renderedRowCount)
-
-      let previousBufferRow = (startRow > 0) ? model.bufferRowForScreenRow(startRow - 1) : -1
-      for (let row = startRow; row < endRow; row++) {
-        const i = row - startRow
-        const bufferRow = model.bufferRowForScreenRow(row)
-        bufferRows[i] = bufferRow
-        softWrappedFlags[i] = bufferRow === previousBufferRow
-        foldableFlags[i] = model.isFoldableAtBufferRow(bufferRow)
-        lineNumberDecorations[i] = this.decorationsToRender.lineNumbers.get(row)
-        previousBufferRow = bufferRow
-      }
-
-      const rowsPerTile = this.getRowsPerTile()
-
-      this.currentFrameLineNumberGutterProps = {
+      const {maxDigits, keys, numbers, foldableFlags} = this.lineNumbersToRender
+      return $(LineNumberGutterComponent, {
         ref: 'lineNumberGutter',
         element: gutter.getElement(),
         parentComponent: this,
+        startRow: this.getRenderedStartRow(),
+        endRow: this.getRenderedEndRow(),
+        rowsPerTile: this.getRowsPerTile(),
+        maxDigits: maxDigits,
+        keys: keys,
+        numbers: numbers,
+        foldableFlags: foldableFlags,
+        decorations: this.decorationsToRender.lineNumbers,
         height: this.getScrollHeight(),
         width: this.getLineNumberGutterWidth(),
         lineHeight: this.getLineHeight(),
-        startRow, endRow, rowsPerTile, maxLineNumberDigits,
-        bufferRows, lineNumberDecorations, softWrappedFlags,
-        foldableFlags
-      }
-
-      return $(LineNumberGutterComponent, this.currentFrameLineNumberGutterProps)
+      })
     } else {
-      return $.div(
-        {
-          ref: 'lineNumberGutter',
-          className: 'gutter line-numbers',
-          attributes: {'gutter-name': 'line-number'}
-        },
-        $.div({className: 'line-number'},
-          '0'.repeat(maxLineNumberDigits),
-          $.div({className: 'icon-right'})
-        )
-      )
+      return $(LineNumberGutterComponent, {
+        ref: 'lineNumberGutter',
+        element: gutter.getElement(),
+        maxDigits: this.lineNumbersToRender.maxDigits
+      })
     }
   }
 
@@ -639,6 +618,51 @@ class TextEditorComponent {
     }
   }
 
+  queryLineNumbersToRender () {
+    const {model} = this.props
+    if (!model.isLineNumberGutterVisible()) return
+
+    this.queryMaxLineNumberDigits()
+
+    const startRow = this.getRenderedStartRow()
+    const endRow = this.getRenderedEndRow()
+    const renderedRowCount = this.getRenderedRowCount()
+
+    const {numbers, keys, foldableFlags} = this.lineNumbersToRender
+    numbers.length = renderedRowCount
+    keys.length = renderedRowCount
+    foldableFlags.length = renderedRowCount
+
+    let previousBufferRow = (startRow > 0) ? model.bufferRowForScreenRow(startRow - 1) : -1
+    let softWrapCount = 0
+    for (let row = startRow; row < endRow; row++) {
+      const i = row - startRow
+      const bufferRow = model.bufferRowForScreenRow(row)
+      if (bufferRow === previousBufferRow) {
+        numbers[i] = -1
+        keys[i] = bufferRow + 1 + '-' + softWrapCount++
+        foldableFlags[i] = false
+      } else {
+        softWrapCount = 0
+        numbers[i] = bufferRow + 1
+        keys[i] = bufferRow + 1
+        foldableFlags[i] = model.isFoldableAtBufferRow(bufferRow)
+      }
+      previousBufferRow = bufferRow
+    }
+  }
+
+  queryMaxLineNumberDigits () {
+    const {model} = this.props
+    if (model.isLineNumberGutterVisible()) {
+      const maxDigits = Math.max(2, model.getLineCount().toString().length)
+      if (maxDigits !== this.lineNumbersToRender.maxDigits) {
+        this.remeasureGutterDimensions = true
+        this.lineNumbersToRender.maxDigits = maxDigits
+      }
+    }
+  }
+
   renderedScreenLineForRow (row) {
     return this.renderedScreenLines[row - this.getRenderedStartRow()]
   }
@@ -648,11 +672,11 @@ class TextEditorComponent {
     this.guttersToRender = this.props.model.getGutters()
 
     if (!oldGuttersToRender || oldGuttersToRender.length !== this.guttersToRender.length) {
-      this.remeasureGutterContainer = true
+      this.remeasureGutterDimensions = true
     } else {
       for (let i = 0, length = this.guttersToRender.length; i < length; i++) {
         if (this.guttersToRender[i] !== oldGuttersToRender[i]) {
-          this.remeasureGutterContainer = true
+          this.remeasureGutterDimensions = true
           break
         }
       }
@@ -1027,7 +1051,6 @@ class TextEditorComponent {
   }
 
   didResizeGutterContainer () {
-    console.log('didResizeGutterContainer');
     if (this.measureGutterDimensions()) {
       this.scheduleUpdate()
     }
@@ -1476,10 +1499,10 @@ class TextEditorComponent {
     }
 
     if (this.refs.lineNumberGutter) {
-      const lineNumberGutterWidth = this.refs.lineNumberGutter.offsetWidth
+      const lineNumberGutterWidth = this.refs.lineNumberGutter.element.offsetWidth
       if (lineNumberGutterWidth !== this.measurements.lineNumberGutterWidth) {
         dimensionsChanged = true
-        this.measurements.lineNumberGutterWidth = this.refs.lineNumberGutter.offsetWidth
+        this.measurements.lineNumberGutterWidth = lineNumberGutterWidth
       }
     } else {
       this.measurements.lineNumberGutterWidth = 0
@@ -2068,85 +2091,81 @@ class LineNumberGutterComponent {
   render () {
     const {
       parentComponent, height, width, lineHeight, startRow, endRow, rowsPerTile,
-      maxLineNumberDigits, bufferRows, softWrappedFlags, foldableFlags,
-      lineNumberDecorations
+      maxDigits, keys, numbers, foldableFlags, decorations
     } = this.props
 
-    const renderedTileCount = parentComponent.getRenderedTileCount()
-    const children = new Array(renderedTileCount)
-    const tileHeight = rowsPerTile * lineHeight + 'px'
-    const tileWidth = width + 'px'
+    let children = null
 
-    let softWrapCount = 0
-    for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow += rowsPerTile) {
-      const tileEndRow = Math.min(endRow, tileStartRow + rowsPerTile)
-      const tileChildren = new Array(tileEndRow - tileStartRow)
-      for (let row = tileStartRow; row < tileEndRow; row++) {
-        const i = row - startRow
-        const bufferRow = bufferRows[i]
-        const softWrapped = softWrappedFlags[i]
-        const foldable = foldableFlags[i]
-        let key, lineNumber
-        let className = 'line-number'
-        if (softWrapped) {
-          softWrapCount++
-          key = `${bufferRow}-${softWrapCount}`
-          lineNumber = '•'
-        } else {
-          softWrapCount = 0
-          key = bufferRow
-          lineNumber = (bufferRow + 1).toString()
+    if (numbers) {
+      const renderedTileCount = parentComponent.getRenderedTileCount()
+      children = new Array(renderedTileCount)
+      const tileHeight = rowsPerTile * lineHeight + 'px'
+      const tileWidth = width + 'px'
+
+      let softWrapCount = 0
+      for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow += rowsPerTile) {
+        const tileEndRow = Math.min(endRow, tileStartRow + rowsPerTile)
+        const tileChildren = new Array(tileEndRow - tileStartRow)
+        for (let row = tileStartRow; row < tileEndRow; row++) {
+          const i = row - startRow
+          const key = keys[i]
+          const foldable = foldableFlags[i]
+          let number = numbers[i]
+
+          let className = 'line-number'
           if (foldable) className += ' foldable'
+
+          const decorationsForRow = decorations.get(row)
+          if (decorationsForRow) className += ' ' + decorationsForRow
+
+          if (number === -1) number = '•'
+          number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
+
+          tileChildren[row - tileStartRow] = $.div({key, className},
+            number,
+            $.div({className: 'icon-right'})
+          )
         }
 
-        const lineNumberDecoration = lineNumberDecorations[i]
-        if (lineNumberDecoration != null) className += ' ' + lineNumberDecoration
+        const tileIndex = parentComponent.tileIndexForTileStartRow(tileStartRow)
+        const top = tileStartRow * lineHeight
 
-        lineNumber = NBSP_CHARACTER.repeat(maxLineNumberDigits - lineNumber.length) + lineNumber
-
-        tileChildren[row - tileStartRow] = $.div({key, className},
-          lineNumber,
-          $.div({className: 'icon-right'})
-        )
+        children[tileIndex] = $.div({
+          key: tileIndex,
+          style: {
+            contain: 'strict',
+            overflow: 'hidden',
+            position: 'absolute',
+            top: 0,
+            height: tileHeight,
+            width: tileWidth,
+            willChange: 'transform',
+            transform: `translateY(${top}px)`,
+            backgroundColor: 'inherit'
+          }
+        }, ...tileChildren)
       }
-
-      const tileIndex = parentComponent.tileIndexForTileStartRow(tileStartRow)
-      const top = tileStartRow * lineHeight
-
-      children[tileIndex] = $.div({
-        key: tileIndex,
-        on: {
-          mousedown: this.didMouseDown
-        },
-        style: {
-          contain: 'strict',
-          overflow: 'hidden',
-          position: 'absolute',
-          height: tileHeight,
-          width: tileWidth,
-          willChange: 'transform',
-          transform: `translateY(${top}px)`,
-          backgroundColor: 'inherit'
-        }
-      }, ...tileChildren)
     }
 
     return $.div(
       {
         className: 'gutter line-numbers',
         attributes: {'gutter-name': 'line-number'},
-        style: {
-          contain: 'strict',
-          overflow: 'hidden',
-          height: height + 'px',
-          width: tileWidth
-        }
+        style: {position: 'relative'},
+        on: {
+          mousedown: this.didMouseDown
+        },
       },
-      ...children
+      $.div({key: 'placeholder', className: 'line-number', style: {visibility: 'hidden'}},
+        '0'.repeat(maxDigits),
+        $.div({className: 'icon-right'})
+      ),
+      children
     )
   }
 
   shouldUpdate (newProps) {
+    return true
     const oldProps = this.props
 
     if (oldProps.height !== newProps.height) return true
@@ -2155,11 +2174,11 @@ class LineNumberGutterComponent {
     if (oldProps.startRow !== newProps.startRow) return true
     if (oldProps.endRow !== newProps.endRow) return true
     if (oldProps.rowsPerTile !== newProps.rowsPerTile) return true
-    if (oldProps.maxLineNumberDigits !== newProps.maxLineNumberDigits) return true
-    if (!arraysEqual(oldProps.bufferRows, newProps.bufferRows)) return true
-    if (!arraysEqual(oldProps.softWrappedFlags, newProps.softWrappedFlags)) return true
+    if (oldProps.maxDigits !== newProps.maxDigits) return true
+    if (!arraysEqual(oldProps.keys, newProps.keys)) return true
+    if (!arraysEqual(oldProps.numbers, newProps.numbers)) return true
     if (!arraysEqual(oldProps.foldableFlags, newProps.foldableFlags)) return true
-    if (!arraysEqual(oldProps.lineNumberDecorations, newProps.lineNumberDecorations)) return true
+    if (!arraysEqual(oldProps.decorations, newProps.decorations)) return true
     return false
   }
 
