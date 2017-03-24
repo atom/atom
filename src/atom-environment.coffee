@@ -1085,7 +1085,7 @@ class AtomEnvironment extends Model
         promises.push @workspace?.open(pathToOpen, {initialLine, initialColumn})
       promise = Promise.all(promises)
 
-    promise.then =>
+    promise.then ->
       ipcRenderer.send 'window-command', 'window:locations-opened'
 
   resolveProxy: (url) ->
