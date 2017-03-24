@@ -638,7 +638,7 @@ module.exports = class Workspace extends Model {
       this.applicationDelegate.addRecentDocument(uri)
     }
 
-    let pane, item
+    let container, pane, item
 
     // Try to find an existing item with the given URI.
     if (uri) {
@@ -647,7 +647,6 @@ module.exports = class Workspace extends Model {
       } else if (options.searchAllPanes) {
         pane = this.paneForURI(uri)
       } else {
-
         // The `split` option affects where we search for the item.
         pane = this.getActivePane()
         switch (options.split) {
@@ -685,7 +684,7 @@ module.exports = class Workspace extends Model {
           location = item.getDefaultLocation()
         }
 
-        const container = this.docks[location] || this.getCenter()
+        container = this.docks[location] || this.getCenter()
         pane = container.getActivePane()
         switch (options.split) {
           case 'left':
@@ -717,7 +716,9 @@ module.exports = class Workspace extends Model {
 
     if (options.activatePane !== false) {
       pane.activate()
-      const container = this.getPaneContainers().find(container => container.getPanes().includes(pane))
+      if (!container) {
+        container = this.getPaneContainers().find(container => container.getPanes().includes(pane))
+      }
       container.activate()
     }
 

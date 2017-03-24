@@ -58,7 +58,7 @@ module.exports = class Dock {
   }
 
   getElement () {
-    if (!this.element) this.render(this.state);
+    if (!this.element) this.render(this.state)
     return this.element
   }
 
