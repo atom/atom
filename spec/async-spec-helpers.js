@@ -64,10 +64,7 @@ function waitsForPromise (fn) {
 }
 
 export function emitterEventPromise (emitter, event, timeout = 5000) {
-  let called = false
-  emitter.once(event, () => {
-    called = true
-    // disposable.dispose()
-  })
-  return until(`${event} is emitted`, () => called, timeout)
+  let emitted = false
+  emitter.once(event, () => { emitted = true })
+  return until(`${event} is emitted`, () => emitted, timeout)
 }
