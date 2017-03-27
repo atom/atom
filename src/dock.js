@@ -192,7 +192,9 @@ module.exports = class Dock {
     this.resizeHandle.update({dockIsOpen: this.state.open})
     this.toggleButton.update({
       open: shouldBeVisible,
-      visible: state.hovered || (state.draggingItem && !shouldBeVisible)
+      // Don't show the toggle button if the dock is closed and empty.
+      visible: (state.hovered && (this.state.open || this.getPaneItems().length > 0)) ||
+        (state.draggingItem && !shouldBeVisible)
     })
   }
 
@@ -206,7 +208,7 @@ module.exports = class Dock {
   handleDidRemovePaneItem () {
     // Hide the dock if you remove the last item.
     if (this.paneContainer.getPaneItems().length === 0) {
-      this.setState({open: false})
+      this.setState({open: false, hovered: false})
     }
   }
 
