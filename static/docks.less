@@ -2,6 +2,7 @@
 @import 'syntax-variables';
 
 @atom-dock-toggle-button-size: 50px;
+@atom-dock-resize-handle-size: 4px;
 
 // Dock --------------
 
@@ -184,6 +185,9 @@ atom-dock {
     &.left, &.right { cursor: col-resize; }
     &.bottom { cursor: row-resize; }
   }
+
+  &.left, &.right { width: @atom-dock-resize-handle-size; }
+  &.bottom { height: @atom-dock-resize-handle-size; }
 }
 
 // Cursor overlay --------------

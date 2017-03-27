@@ -7,7 +7,6 @@ const TextEditor = require('./text-editor')
 
 const MINIMUM_SIZE = 100
 const DEFAULT_INITIAL_SIZE = 300
-const HANDLE_SIZE = 4
 const SHOULD_ANIMATE_CLASS = 'atom-dock-should-animate'
 const OPEN_CLASS = 'atom-dock-open'
 const RESIZE_HANDLE_RESIZABLE_CLASS = 'atom-dock-resize-handle-resizable'
@@ -55,6 +54,12 @@ module.exports = class Dock {
         pane.onDidRemoveItem(this.handleDidRemovePaneItem.bind(this))
       })
     )
+  }
+
+  // This method is called explicitly by the object which adds the Dock to the document.
+  elementAttached () {
+    // Re-render when the dock is attached to make sure we remeasure sizes defined in CSS.
+    this.render(this.state)
   }
 
   getElement () {
@@ -180,7 +185,7 @@ module.exports = class Dock {
     const size = Math.max(MINIMUM_SIZE, state.size == null ? this.getInitialSize() : state.size)
 
     // We need to change the size of the mask...
-    this.maskElement.style[this.widthOrHeight] = `${shouldBeVisible ? size : HANDLE_SIZE}px`
+    this.maskElement.style[this.widthOrHeight] = `${shouldBeVisible ? size : this.resizeHandle.getSize()}px`
     // ...but the content needs to maintain a constant size.
     this.wrapperElement.style[this.widthOrHeight] = `${size}px`
 
@@ -289,7 +294,7 @@ module.exports = class Dock {
     // The area used when detecting "leave" events is actually larger than when detecting entrances.
     if (includeButtonWidth) {
       const hoverMargin = 20
-      const {width, height} = this.toggleButton.getSize()
+      const {width, height} = this.toggleButton.getBounds()
       switch (this.location) {
         case 'right':
           bounds.left -= width + hoverMargin
@@ -607,14 +612,19 @@ class DockResizeHandle {
     this.element.classList.add('atom-dock-resize-handle', props.location)
     this.element.addEventListener('mousedown', this.handleMouseDown)
     this.element.addEventListener('click', this.handleClick)
-    const widthOrHeight = getWidthOrHeight(props.location)
-    this.element.style[widthOrHeight] = `${HANDLE_SIZE}px`
     this.props = props
     this.update(props)
   }
 
   getElement () {
     return this.element
+  }
+
+  getSize () {
+    if (!this.size) {
+      this.size = this.element.getBoundingClientRect()[getWidthOrHeight(this.props.location)]
+    }
+    return this.size
   }
 
   update (newProps) {
@@ -669,11 +679,11 @@ class DockToggleButton {
     return this.element
   }
 
-  getSize () {
-    if (this.size == null) {
-      this.size = this.element.getBoundingClientRect()
+  getBounds () {
+    if (this.bounds == null) {
+      this.bounds = this.element.getBoundingClientRect()
     }
-    return this.size
+    return this.bounds
   }
 
   destroy () {

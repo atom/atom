@@ -9,6 +9,12 @@ class PanelContainerElement extends HTMLElement {
     this.subscriptions = new CompositeDisposable()
   }
 
+  attachedCallback () {
+    if (this.model.dock) {
+      this.model.dock.elementAttached()
+    }
+  }
+
   initialize (model, {views}) {
     this.model = model
     this.views = views
