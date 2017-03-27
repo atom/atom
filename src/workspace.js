@@ -684,6 +684,9 @@ module.exports = class Workspace extends Model {
           location = item.getDefaultLocation()
         }
 
+        const allowedLocations = typeof item.getAllowedLocations === 'function' ? item.getAllowedLocations() : ALL_LOCATIONS
+        location = allowedLocations.includes(location) ? location : allowedLocations[0]
+
         container = this.docks[location] || this.getCenter()
         pane = container.getActivePane()
         switch (options.split) {
@@ -1620,3 +1623,5 @@ module.exports = class Workspace extends Model {
     }
   }
 }
+
+const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom']
