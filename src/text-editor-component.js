@@ -2151,7 +2151,7 @@ class LineNumberGutterComponent {
       {
         className: 'gutter line-numbers',
         attributes: {'gutter-name': 'line-number'},
-        style: {position: 'relative'},
+        style: {position: 'relative', height: height + 'px'},
         on: {
           mousedown: this.didMouseDown
         },

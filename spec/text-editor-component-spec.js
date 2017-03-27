@@ -108,15 +108,18 @@ fdescribe('TextEditorComponent', () => {
     it('gives the line number tiles an explicit width and height so their layout can be strictly contained', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 3})
 
-      const gutterElement = component.refs.lineNumberGutter.element
-      for (const child of gutterElement.children) {
-        expect(child.offsetWidth).toBe(gutterElement.offsetWidth)
+      const lineNumberGutterElement = component.refs.lineNumberGutter.element
+      expect(lineNumberGutterElement.offsetHeight).toBe(component.getScrollHeight())
+
+      for (const child of lineNumberGutterElement.children) {
+        expect(child.offsetWidth).toBe(lineNumberGutterElement.offsetWidth)
       }
 
       editor.setText('\n'.repeat(99))
       await component.getNextUpdatePromise()
-      for (const child of gutterElement.children) {
-        expect(child.offsetWidth).toBe(gutterElement.offsetWidth)
+      expect(lineNumberGutterElement.offsetHeight).toBe(component.getScrollHeight())
+      for (const child of lineNumberGutterElement.children) {
+        expect(child.offsetWidth).toBe(lineNumberGutterElement.offsetWidth)
       }
     })
 
