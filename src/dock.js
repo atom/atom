@@ -192,9 +192,11 @@ module.exports = class Dock {
     this.resizeHandle.update({dockIsOpen: this.state.open})
     this.toggleButton.update({
       open: shouldBeVisible,
-      // Don't show the toggle button if the dock is closed and empty.
-      visible: (state.hovered && (this.state.open || this.getPaneItems().length > 0)) ||
-        (state.draggingItem && !shouldBeVisible)
+      visible:
+        // Don't show the toggle button if the dock is closed and empty...
+        (state.hovered && (this.state.open || this.getPaneItems().length > 0)) ||
+        // ...or if the item can't be dropped in that dock.
+        (!shouldBeVisible && state.draggingItem && isItemAllowed(state.draggingItem, this.location))
     })
   }
 
@@ -748,4 +750,10 @@ function rectContainsPoint (rect, point) {
     point.x <= rect.right &&
     point.y <= rect.bottom
   )
+}
+
+// Is the item allowed in the given location?
+function isItemAllowed (item, location) {
+  if (typeof item.getAllowedLocations !== 'function') return true
+  return item.getAllowedLocations().includes(location)
 }

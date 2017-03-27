@@ -138,7 +138,9 @@ class WorkspaceElement extends HTMLElement {
 
   handleDragStart (event) {
     if (!isTab(event.target)) return
-    this.model.setDraggingItem(true)
+    const {item} = event.target
+    if (!item) return
+    this.model.setDraggingItem(item)
     window.addEventListener('dragend', this.handleDragEnd, true)
     window.addEventListener('drop', this.handleDrop, true)
   }
@@ -152,7 +154,7 @@ class WorkspaceElement extends HTMLElement {
   }
 
   dragEnded () {
-    this.model.setDraggingItem(false)
+    this.model.setDraggingItem(null)
     window.removeEventListener('dragend', this.handleDragEnd, true)
     window.removeEventListener('drop', this.handleDrop, true)
   }
