@@ -7,7 +7,7 @@ import fs from 'fs-plus'
 import path from 'path'
 import AtomApplication from '../../src/main-process/atom-application'
 import parseCommandLine from '../../src/main-process/parse-command-line'
-import {timeoutPromise, conditionPromise} from '../async-spec-helpers'
+import {timeoutPromise, conditionPromise, emitterEventPromise} from '../async-spec-helpers'
 
 const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 
@@ -121,6 +121,7 @@ describe('AtomApplication', function () {
 
       const atomApplication = buildAtomApplication()
       const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'new-file')]))
+      await emitterEventPromise(window1, 'window:locations-opened')
       await focusWindow(window1)
 
       let activeEditorPath
@@ -146,6 +147,7 @@ describe('AtomApplication', function () {
 
       // Opens new windows when opening directories
       const window2 = atomApplication.launch(parseCommandLine([dirCPath]))
+      await emitterEventPromise(window2, 'window:locations-opened')
       assert.notEqual(window2, window1)
       await focusWindow(window2)
       assert.deepEqual(await getTreeViewRootDirectories(window2), [dirCPath])
@@ -365,6 +367,9 @@ describe('AtomApplication', function () {
 
       const atomApplication2 = buildAtomApplication()
       const [app2Window1, app2Window2] = atomApplication2.launch(parseCommandLine([]))
+      const p1 = emitterEventPromise(app2Window1, 'window:locations-opened', 15000)
+      const p2 = emitterEventPromise(app2Window2, 'window:locations-opened', 15000)
+      await Promise.all([p1, p2])
       await app2Window1.loadedPromise
       await app2Window2.loadedPromise
 
@@ -420,6 +425,7 @@ describe('AtomApplication', function () {
 
         const atomApplication = buildAtomApplication()
         const window = atomApplication.launch(parseCommandLine([dirA, dirB]))
+        await emitterEventPromise(window, 'window:locations-opened', 15000)
         await focusWindow(window)
         assert.deepEqual(await getTreeViewRootDirectories(window), [dirA, dirB])
 
