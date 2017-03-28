@@ -114,7 +114,7 @@ function buildBundledPackagesMetadata () {
     }
 
     packageNewMetadata.styleSheetPaths =
-      styleSheets.map(styleSheetPath => path.relative(CONFIG.intermediateAppPath, styleSheetPath))
+      styleSheets.map(styleSheetPath => path.relative(packagePath, styleSheetPath))
 
     packages[packageMetadata.name] = packageNewMetadata
     if (packageModuleCache.extensions) {

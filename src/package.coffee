@@ -100,6 +100,7 @@ class Package
 
   finishLoading: ->
     @measure 'loadTime', =>
+      @path = path.join(@packageManager.resourcePath, @path)
       @loadStylesheets()
 
   load: ->
@@ -337,22 +338,14 @@ class Package
     return
 
   getKeymapPaths: ->
-    if @bundledPackage and not @packageManager.devMode
-      keymapsDirPath = path.join(@packageManager.resourcePath, 'keymaps')
-    else
-      keymapsDirPath = path.join(@path, 'keymaps')
-
+    keymapsDirPath = path.join(@path, 'keymaps')
     if @metadata.keymaps
       @metadata.keymaps.map (name) -> fs.resolve(keymapsDirPath, name, ['json', 'cson', ''])
     else
       fs.listSync(keymapsDirPath, ['cson', 'json'])
 
   getMenuPaths: ->
-    if @bundledPackage and not @packageManager.devMode
-      menusDirPath = path.join(@packageManager.resourcePath, 'menus')
-    else
-      menusDirPath = path.join(@path, 'menus')
-
+    menusDirPath = path.join(@path, 'menus')
     if @metadata.menus
       @metadata.menus.map (name) -> fs.resolve(menusDirPath, name, ['json', 'cson', ''])
     else
@@ -394,15 +387,12 @@ class Package
       @registeredViewProviders = true
 
   getStylesheetsPath: ->
-    if @bundledPackage and not @packageManager.devMode
-      path.join(@packageManager.resourcePath, 'styles')
-    else
-      path.join(@path, 'styles')
+    path.join(@path, 'styles')
 
   getStylesheetPaths: ->
-    if @bundledPackage and not @packageManager.devMode and @packageManager.packagesCache[@name]?.styleSheetPaths?
+    if @bundledPackage and @packageManager.packagesCache[@name]?.styleSheetPaths?
       styleSheetPaths = @packageManager.packagesCache[@name].styleSheetPaths
-      styleSheetPaths.map (styleSheetPath) => path.resolve(@packageManager.resourcePath, styleSheetPath)
+      styleSheetPaths.map (styleSheetPath) => path.join(@path, styleSheetPath)
     else
       stylesheetDirPath = @getStylesheetsPath()
       if @metadata.mainStyleSheet
@@ -611,10 +601,7 @@ class Package
             @activationCommandSubscriptions.add @commandRegistry.add selector, command, ->
           catch error
             if error.code is 'EBADSELECTOR'
-              if @bundledPackage and not @packageManager.devMode
-                metadataPath = path.resolve(@packageManager.resourcePath, @path, 'package.json')
-              else
-                metadataPath = path.join(@path, 'package.json')
+              metadataPath = path.join(@path, 'package.json')
               error.message += " in #{metadataPath}"
               error.stack += "\n  at #{metadataPath}:1:1"
             throw error
@@ -685,10 +672,7 @@ class Package
     if @metadata._atomModuleCache?
       relativeNativeModuleBindingPaths = @metadata._atomModuleCache.extensions?['.node'] ? []
       for relativeNativeModuleBindingPath in relativeNativeModuleBindingPaths
-        if @bundledPackage and not @packageManager.devMode
-          nativeModulePath = path.resolve(@packageManager.resourcePath, @path, relativeNativeModuleBindingPath, '..', '..', '..')
-        else
-          nativeModulePath = path.join(@path, relativeNativeModuleBindingPath, '..', '..', '..')
+        nativeModulePath = path.join(@path, relativeNativeModuleBindingPath, '..', '..', '..')
         nativeModulePaths.push(nativeModulePath)
       return nativeModulePaths
 
@@ -699,11 +683,7 @@ class Package
           traversePath(path.join(modulePath, 'node_modules'))
       return
 
-    if @bundledPackage and not @packageManager.devMode
-      traversePath(path.resolve(@packageManager.resourcePath, @path, 'node_modules'))
-    else
-      traversePath(path.join(@path, 'node_modules'))
-
+    traversePath(path.join(@path, 'node_modules'))
     nativeModulePaths
 
   ###

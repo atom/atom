@@ -1,3 +1,4 @@
+path = require 'path'
 Package = require './package'
 
 module.exports =
@@ -17,7 +18,7 @@ class ThemePackage extends Package
     @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
 
   finishLoading: ->
-
+    @path = path.join(@packageManager.resourcePath, @path)
 
   load: ->
     @loadTime = 0
