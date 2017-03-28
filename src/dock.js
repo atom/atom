@@ -203,9 +203,7 @@ module.exports = class Dock {
 
   handleDidAddPaneItem () {
     // Show the dock if you drop an item into it.
-    if (this.paneContainer.getPaneItems().length === 1) {
-      this.setState({open: true})
-    }
+    this.setState({open: true})
   }
 
   handleDidRemovePaneItem () {
