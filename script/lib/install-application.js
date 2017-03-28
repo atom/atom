@@ -1,6 +1,7 @@
 'use strict'
 
 const fs = require('fs-extra')
+const handleTilde = require('./handle-tilde')
 const path = require('path')
 const runas = require('runas')
 const template = require('lodash.template')
@@ -10,7 +11,7 @@ const CONFIG = require('../config')
 module.exports = function (packagedAppPath, installDir) {
   const packagedAppFileName = path.basename(packagedAppPath)
   if (process.platform === 'darwin') {
-    const installPrefix = installDir !== '' ? installDir : path.join(path.sep, 'Applications')
+    const installPrefix = installDir !== '' ? handleTilde(installDir) : path.join(path.sep, 'Applications')
     const installationDirPath = path.join(installPrefix, packagedAppFileName)
     if (fs.existsSync(installationDirPath)) {
       console.log(`Removing previously installed "${packagedAppFileName}" at "${installationDirPath}"`)
@@ -41,7 +42,7 @@ module.exports = function (packagedAppPath, installDir) {
     const apmExecutableName = CONFIG.channel === 'beta' ? 'apm-beta' : 'apm'
     const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
     const appDescription = CONFIG.appMetadata.description
-    const prefixDirPath = installDir !== '' ? installDir : path.join('/usr', 'local')
+    const prefixDirPath = installDir !== '' ? handleTilde(installDir) : path.join('/usr', 'local')
     const shareDirPath = path.join(prefixDirPath, 'share')
     const installationDirPath = path.join(shareDirPath, atomExecutableName)
     const applicationsDirPath = path.join(shareDirPath, 'applications')
