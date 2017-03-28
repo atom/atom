@@ -325,14 +325,14 @@ class Package
 
   loadKeymaps: ->
     if @bundledPackage and @packageManager.packagesCache[@name]?
-      @keymaps = (["core/#{keymapPath}", keymapObject] for keymapPath, keymapObject of @packageManager.packagesCache[@name].keymaps)
+      @keymaps = (["core:#{keymapPath}", keymapObject] for keymapPath, keymapObject of @packageManager.packagesCache[@name].keymaps)
     else
       @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath, allowDuplicateKeys: false) ? {}]
     return
 
   loadMenus: ->
     if @bundledPackage and @packageManager.packagesCache[@name]?
-      @menus = (["core/#{menuPath}", menuObject] for menuPath, menuObject of @packageManager.packagesCache[@name].menus)
+      @menus = (["core:#{menuPath}", menuObject] for menuPath, menuObject of @packageManager.packagesCache[@name].menus)
     else
       @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath) ? {}]
     return
@@ -476,7 +476,7 @@ class Package
     new Promise (resolve) =>
       if @preloadedPackage
         for settingsPath, scopedProperties of @packageManager.packagesCache[@name].settings
-          settings = new ScopedProperties("core/#{settingsPath}", scopedProperties ? {}, @config)
+          settings = new ScopedProperties("core:#{settingsPath}", scopedProperties ? {}, @config)
           @settings.push(settings)
           settings.activate() if @settingsActivated
         resolve()
