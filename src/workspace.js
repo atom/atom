@@ -712,7 +712,6 @@ module.exports = class Workspace extends Model {
       pane.clearPendingItem()
     }
 
-    pane.addItem(item, options)
     this.itemOpened(item)
 
     if (options.activateItem !== false) {
