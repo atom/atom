@@ -433,13 +433,20 @@ class PackageManager
       null
 
   loadAvailablePackage: (availablePackage) ->
-    if preloadedPackage = @preloadedPackages[availablePackage.name]
-      preloadedPackage.finishLoading()
-      @loadedPackages[availablePackage.name] = preloadedPackage
-      preloadedPackage
-    else if loadedPackage = @getLoadedPackage(availablePackage.name)
+    loadedPackage = @getLoadedPackage(availablePackage.name)
+    if loadedPackage?
       loadedPackage
     else
+      preloadedPackage = @preloadedPackages[availablePackage.name]
+      if preloadedPackage?
+        if availablePackage.isBundled
+          preloadedPackage.finishLoading()
+          @loadedPackages[availablePackage.name] = preloadedPackage
+          return preloadedPackage
+        else
+          preloadedPackage.deactivate()
+          delete preloadedPackage[availablePackage.name]
+
       try
         metadata = @loadPackageMetadata(availablePackage) ? {}
       catch error
