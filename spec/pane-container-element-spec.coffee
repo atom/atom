@@ -3,6 +3,7 @@ PaneAxisElement = require '../src/pane-axis-element'
 PaneAxis = require '../src/pane-axis'
 
 params =
+  location: 'center'
   config: atom.config
   confirm: atom.confirm.bind(atom)
   viewRegistry: atom.views

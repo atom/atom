@@ -15,7 +15,7 @@ class PaneContainer extends Model
   constructor: (params) ->
     super
 
-    {@config, applicationDelegate, notificationManager, deserializerManager, @viewRegistry} = params
+    {@config, applicationDelegate, notificationManager, deserializerManager, @viewRegistry, @location} = params
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
     @itemRegistry = new ItemRegistry
@@ -26,6 +26,8 @@ class PaneContainer extends Model
 
   initialize: ->
     @monitorActivePaneItem()
+
+  getLocation: -> @location
 
   getElement: ->
     @element ?= new PaneContainerElement().initialize(this, {views: @viewRegistry})

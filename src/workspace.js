@@ -54,6 +54,7 @@ module.exports = class Workspace extends Model {
     this.destroyedItemURIs = []
 
     this.paneContainer = new PaneContainer({
+      location: 'center',
       config: this.config,
       applicationDelegate: this.applicationDelegate,
       notificationManager: this.notificationManager,
@@ -111,6 +112,7 @@ module.exports = class Workspace extends Model {
     _.values(this.panelContainers).forEach(panelContainer => { panelContainer.destroy() })
 
     this.paneContainer = new PaneContainer({
+      location: 'center',
       config: this.config,
       applicationDelegate: this.applicationDelegate,
       notificationManager: this.notificationManager,

@@ -34,6 +34,7 @@ module.exports = class Dock {
     this.viewRegistry = params.viewRegistry
 
     this.paneContainer = new PaneContainer({
+      location: this.location,
       config: this.config,
       applicationDelegate: this.applicationDelegate,
       deserializerManager: this.deserializerManager,
