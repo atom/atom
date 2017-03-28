@@ -407,13 +407,13 @@ class Package
   loadGrammarsSync: ->
     return if @grammarsLoaded
 
-    if @bundledPackage and not @packageManager.devMode
+    if @preloadedPackage
       grammarPaths = @packageManager.packagesCache[@name].grammarPaths
     else
       grammarPaths = fs.listSync(path.join(@path, 'grammars'), ['json', 'cson'])
 
     for grammarPath in grammarPaths
-      if @bundledPackage and not @packageManager.devMode
+      if @preloadedPackage
         grammarPath = path.resolve(@packageManager.resourcePath, grammarPath)
 
       try
@@ -432,7 +432,7 @@ class Package
     return Promise.resolve() if @grammarsLoaded
 
     loadGrammar = (grammarPath, callback) =>
-      if @bundledPackage and not @packageManager.devMode
+      if @preloadedPackage
         grammarPath = path.resolve(@packageManager.resourcePath, grammarPath)
 
       @grammarRegistry.readGrammar grammarPath, (error, grammar) =>
@@ -448,7 +448,7 @@ class Package
         callback()
 
     new Promise (resolve) =>
-      if @bundledPackage and not @packageManager.devMode
+      if @preloadedPackage
         grammarPaths = @packageManager.packagesCache[@name].grammarPaths
         async.each grammarPaths, loadGrammar, -> resolve()
       else
@@ -474,7 +474,7 @@ class Package
         callback()
 
     new Promise (resolve) =>
-      if @bundledPackage and not @packageManager.devMode
+      if @preloadedPackage
         for settingsPath, scopedProperties of @packageManager.packagesCache[@name].settings
           settings = new ScopedProperties("core/#{settingsPath}", scopedProperties ? {}, @config)
           @settings.push(settings)
@@ -699,8 +699,8 @@ class Package
   isCompatible: ->
     return @compatible if @compatible?
 
-    if @bundledPackage and not @packageManager.devMode
-      # Bundled packages are always considered compatible
+    if @preloadedPackage
+      # Preloaded packages are always considered compatible
       @compatible = true
     else if @getMainModulePath()
       @incompatibleModules = @getIncompatibleNativeModules()
