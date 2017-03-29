@@ -60,6 +60,8 @@ class TextEditorComponent {
     this.updateScheduled = false
     this.measurements = null
     this.visible = false
+    this.cursorsBlinking = false
+    this.nextUpdateOnlyBlinksCursors = null
     this.horizontalPositionsToMeasure = new Map() // Keys are rows with positions we want to measure, values are arrays of columns to measure
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
     this.lineNodesByScreenLineId = new Map()
@@ -119,8 +121,11 @@ class TextEditorComponent {
     this.scheduleUpdate()
   }
 
-  scheduleUpdate () {
+  scheduleUpdate (nextUpdateOnlyBlinksCursors = false) {
     if (!this.visible) return
+
+    this.nextUpdateOnlyBlinksCursors =
+      this.nextUpdateOnlyBlinksCursors !== false && nextUpdateOnlyBlinksCursors
 
     if (this.updatedSynchronously) {
       this.updateSync()
@@ -135,6 +140,13 @@ class TextEditorComponent {
   updateSync (useScheduler = false) {
     this.updateScheduled = false
     if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
+
+    const onlyBlinkingCursors = this.nextUpdateOnlyBlinksCursors
+    this.nextUpdateOnlyBlinksCursors = null
+    if (onlyBlinkingCursors) {
+      this.updateCursorBlinkSync()
+      return
+    }
 
     this.measuredContent = false
     this.updateSyncBeforeMeasuringContent()
@@ -198,6 +210,12 @@ class TextEditorComponent {
       this.refreshedScrollbarStyle = false
       etch.updateSync(this)
     }
+  }
+
+  updateCursorBlinkSync () {
+    const className = this.getCursorsClassName()
+    this.refs.cursors.className = className
+    this.cursorsVnode.props.className = className
   }
 
   render () {
@@ -460,7 +478,7 @@ class TextEditorComponent {
 
   renderCursorsAndInput () {
     if (this.measuredContent) {
-      const className = this.cursorsVisible ? 'cursors' : 'cursors blink-off'
+      const className = this.getCursorsClassName()
       const cursorHeight = this.getLineHeight() + 'px'
 
       const children = [this.renderHiddenInput()]
@@ -491,6 +509,10 @@ class TextEditorComponent {
     }
 
     return this.cursorsVnode
+  }
+
+  getCursorsClassName () {
+    return this.cursorsVisible ? 'cursors' : 'cursors blink-off'
   }
 
   renderPlaceholderText () {
@@ -1424,10 +1446,10 @@ class TextEditorComponent {
     if (!this.cursorsBlinking) {
       this.cursorBlinkIntervalHandle = window.setInterval(() => {
         this.cursorsVisible = !this.cursorsVisible
-        this.scheduleUpdate()
+        this.scheduleUpdate(true)
       }, CURSOR_BLINK_PERIOD / 2)
       this.cursorsBlinking = true
-      this.scheduleUpdate()
+      this.scheduleUpdate(true)
     }
   }
 
