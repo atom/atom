@@ -28,7 +28,7 @@
     "dedent": "^0.6.0",
     "devtron": "1.3.0",
     "element-resize-detector": "^1.1.10",
-    "etch": "^0.11.0",
+    "etch": "^0.12.0",
     "event-kit": "^2.3.0",
     "find-parent-dir": "^0.3.0",
     "first-mate": "7.0.4",
