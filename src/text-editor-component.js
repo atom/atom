@@ -17,6 +17,8 @@ const NBSP_CHARACTER = '\u00a0'
 const ZERO_WIDTH_NBSP_CHARACTER = '\ufeff'
 const MOUSE_DRAG_AUTOSCROLL_MARGIN = 40
 const MOUSE_WHEEL_SCROLL_SENSITIVITY = 0.8
+const CURSOR_BLINK_RESUME_DELAY = 300
+const CURSOR_BLINK_PERIOD = 800
 
 function scaleMouseDragAutoscrollDelta (delta) {
   return Math.pow(delta / 3, 3) / 280
@@ -458,10 +460,10 @@ class TextEditorComponent {
 
   renderCursorsAndInput () {
     if (this.measuredContent) {
+      const className = this.cursorsVisible ? 'cursors' : 'cursors blink-off'
       const cursorHeight = this.getLineHeight() + 'px'
 
       const children = [this.renderHiddenInput()]
-
       for (let i = 0; i < this.decorationsToRender.cursors.length; i++) {
         const {pixelLeft, pixelTop, pixelWidth} = this.decorationsToRender.cursors[i]
         children.push($.div({
@@ -476,7 +478,8 @@ class TextEditorComponent {
 
       this.cursorsVnode = $.div({
         key: 'cursors',
-        className: 'cursors',
+        ref: 'cursors',
+        className,
         style: {
           position: 'absolute',
           contain: 'strict',
@@ -1008,6 +1011,7 @@ class TextEditorComponent {
 
     if (!this.focused) {
       this.focused = true
+      this.startCursorBlinking()
       this.scheduleUpdate()
     }
 
@@ -1040,6 +1044,7 @@ class TextEditorComponent {
   didBlurHiddenInput (event) {
     if (this.element !== event.relatedTarget && !this.element.contains(event.relatedTarget)) {
       this.focused = false
+      this.stopCursorBlinking()
       this.scheduleUpdate()
       this.element.dispatchEvent(new FocusEvent(event.type, event))
     }
@@ -1048,6 +1053,7 @@ class TextEditorComponent {
   didFocusHiddenInput () {
     if (!this.focused) {
       this.focused = true
+      this.startCursorBlinking()
       this.scheduleUpdate()
     }
   }
@@ -1387,6 +1393,44 @@ class TextEditorComponent {
     })
   }
 
+  didUpdateSelections () {
+    this.pauseCursorBlinking()
+    this.scheduleUpdate()
+  }
+
+  pauseCursorBlinking () {
+    this.stopCursorBlinking()
+    if (this.resumeCursorBlinkingTimeoutHandle) {
+      window.clearTimeout(this.resumeCursorBlinkingTimeoutHandle)
+    }
+    this.resumeCursorBlinkingTimeoutHandle = window.setTimeout(() => {
+      this.cursorsVisible = false
+      this.startCursorBlinking()
+      this.resumeCursorBlinkingTimeoutHandle = null
+    }, CURSOR_BLINK_RESUME_DELAY)
+  }
+
+  stopCursorBlinking () {
+    if (this.cursorsBlinking) {
+      this.cursorsVisible = true
+      this.cursorsBlinking = false
+      window.clearInterval(this.cursorBlinkIntervalHandle)
+      this.cursorBlinkIntervalHandle = null
+      this.scheduleUpdate()
+    }
+  }
+
+  startCursorBlinking () {
+    if (!this.cursorsBlinking) {
+      this.cursorBlinkIntervalHandle = window.setInterval(() => {
+        this.cursorsVisible = !this.cursorsVisible
+        this.scheduleUpdate()
+      }, CURSOR_BLINK_PERIOD / 2)
+      this.cursorsBlinking = true
+      this.scheduleUpdate()
+    }
+  }
+
   didRequestAutoscroll (autoscroll) {
     this.pendingAutoscroll = autoscroll
     this.scheduleUpdate()
@@ -1720,11 +1764,11 @@ class TextEditorComponent {
     const {model} = this.props
     model.component = this
     const scheduleUpdate = this.scheduleUpdate.bind(this)
-    this.disposables.add(model.selectionsMarkerLayer.onDidUpdate(scheduleUpdate))
     this.disposables.add(model.displayLayer.onDidChangeSync(scheduleUpdate))
     this.disposables.add(model.onDidUpdateDecorations(scheduleUpdate))
     this.disposables.add(model.onDidAddGutter(scheduleUpdate))
     this.disposables.add(model.onDidRemoveGutter(scheduleUpdate))
+    this.disposables.add(model.selectionsMarkerLayer.onDidUpdate(this.didUpdateSelections.bind(this)))
     this.disposables.add(model.onDidRequestAutoscroll(this.didRequestAutoscroll.bind(this)))
   }
 
