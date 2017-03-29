@@ -19,7 +19,7 @@ document.registerElement('text-editor-component-test-element', {
   })
 })
 
-fdescribe('TextEditorComponent', () => {
+describe('TextEditorComponent', () => {
   beforeEach(() => {
     jasmine.useRealClock()
   })
