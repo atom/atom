@@ -216,11 +216,10 @@ class TextEditorComponent {
     }
 
     let attributes = null
-    let className = 'editor'
-    if (this.focused) className += ' is-focused'
+    let className = this.focused ? 'editor is-focused' : 'editor'
     if (model.isMini()) {
       attributes = {mini: ''}
-      className += ' mini'
+      className = className + ' mini'
     }
 
     return $('atom-text-editor',
@@ -408,7 +407,7 @@ class TextEditorComponent {
     const displayLayer = this.props.model.displayLayer
     const tileNodes = new Array(this.getRenderedTileCount())
 
-    for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow += rowsPerTile) {
+    for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow = tileStartRow + rowsPerTile) {
       const tileEndRow = Math.min(endRow, tileStartRow + rowsPerTile)
       const tileIndex = this.tileIndexForTileStartRow(tileStartRow)
 
@@ -819,7 +818,7 @@ class TextEditorComponent {
       this.requestHorizontalMeasurement(screenRangeInTile.start.row, screenRangeInTile.start.column)
       this.requestHorizontalMeasurement(screenRangeInTile.end.row, screenRangeInTile.end.column)
 
-      tileStartRow += rowsPerTile
+      tileStartRow = tileStartRow + rowsPerTile
     }
   }
 
@@ -1339,7 +1338,7 @@ class TextEditorComponent {
   }
 
   autoscrollOnMouseDrag ({clientX, clientY}, verticalOnly = false) {
-    let {top, bottom, left, right} = this.refs.scrollContainer.getBoundingClientRect()
+    var {top, bottom, left, right} = this.refs.scrollContainer.getBoundingClientRect() // Using var to avoid deopt on += assignments below
     top += MOUSE_DRAG_AUTOSCROLL_MARGIN
     bottom -= MOUSE_DRAG_AUTOSCROLL_MARGIN
     left += MOUSE_DRAG_AUTOSCROLL_MARGIN
@@ -1710,7 +1709,7 @@ class TextEditorComponent {
 
     let textNodeStartColumn = 0
     for (let i = 0; i < containingTextNodeIndex; i++) {
-      textNodeStartColumn += textNodes[i].length
+      textNodeStartColumn = textNodeStartColumn + textNodes[i].length
     }
     const column = textNodeStartColumn + characterIndex
 
@@ -2124,7 +2123,7 @@ class LineNumberGutterComponent {
       const tileWidth = width + 'px'
 
       let softWrapCount = 0
-      for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow += rowsPerTile) {
+      for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow = tileStartRow + rowsPerTile) {
         const tileEndRow = Math.min(endRow, tileStartRow + rowsPerTile)
         const tileChildren = new Array(tileEndRow - tileStartRow)
         for (let row = tileStartRow; row < tileEndRow; row++) {
@@ -2134,10 +2133,10 @@ class LineNumberGutterComponent {
           let number = numbers[i]
 
           let className = 'line-number'
-          if (foldable) className += ' foldable'
+          if (foldable) className = className + ' foldable'
 
           const decorationsForRow = decorations[row - startRow]
-          if (decorationsForRow) className += ' ' + decorationsForRow
+          if (decorationsForRow) className = className + ' ' + decorationsForRow
 
           if (number === -1) number = '•'
           number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
@@ -2453,7 +2452,7 @@ class LineComponent {
           openScopeNode = newScopeNode
         } else {
           const textNode = document.createTextNode(lineText.substr(startIndex, tagCode))
-          startIndex += tagCode
+          startIndex = startIndex + tagCode
           openScopeNode.appendChild(textNode)
           textNodes.push(textNode)
         }
@@ -2494,7 +2493,7 @@ class LineComponent {
   buildClassName () {
     const {lineDecoration} = this.props
     let className = 'line'
-    if (lineDecoration != null) className += ' ' + lineDecoration
+    if (lineDecoration != null) className = className + ' ' + lineDecoration
     return className
   }
 }
