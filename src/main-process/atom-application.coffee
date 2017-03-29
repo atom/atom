@@ -37,7 +37,10 @@ class AtomApplication
         userNameSafe = new Buffer(process.env.USERNAME).toString('base64')
         options.socketPath = "\\\\.\\pipe\\atom-#{options.version}-#{userNameSafe}-#{process.arch}-sock"
       else
-        options.socketPath = path.join(os.tmpdir(), "atom-#{options.version}-#{process.env.USER}.sock")
+        socketName = "atom-#{options.version}-#{process.env.USER}"
+        if process.env.DISPLAY?
+          socketName += "-#{process.env.DISPLAY}"
+        options.socketPath = path.join(os.tmpdir(), "#{socketName}.sock")
 
     # FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
     # take a few seconds to trigger 'error' event, it could be a bug of node
