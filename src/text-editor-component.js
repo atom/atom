@@ -95,6 +95,11 @@ class TextEditorComponent {
       cursors: []
     }
 
+    this.measuredContent = false
+    this.gutterContainerVnode = null
+    this.cursorsVnode = null
+    this.placeholderTextVnode = null
+
     this.queryGuttersToRender()
     this.queryMaxLineNumberDigits()
 
@@ -129,17 +134,20 @@ class TextEditorComponent {
     this.updateScheduled = false
     if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
 
+    this.measuredContent = false
     this.updateSyncBeforeMeasuringContent()
     if (useScheduler === true) {
       const scheduler = etch.getScheduler()
       scheduler.readDocument(() => {
         this.measureContentDuringUpdateSync()
+        this.measuredContent = true
         scheduler.updateDocument(() => {
           this.updateSyncAfterMeasuringContent()
         })
       })
     } else {
       this.measureContentDuringUpdateSync()
+      this.measuredContent = true
       this.updateSyncAfterMeasuringContent()
     }
   }
@@ -161,7 +169,9 @@ class TextEditorComponent {
     this.measureHorizontalPositions()
     this.updateAbsolutePositionedDecorations()
     if (this.remeasureGutterDimensions) {
-      this.measureGutterDimensions()
+      if (this.measureGutterDimensions()) {
+        this.gutterContainerVnode = null
+      }
       this.remeasureGutterDimensions = false
     }
     const wasHorizontalScrollbarVisible = this.isHorizontalScrollbarVisible()
@@ -247,45 +257,49 @@ class TextEditorComponent {
   renderGutterContainer () {
     if (this.props.model.isMini()) return null
 
-    const innerStyle = {
-      willChange: 'transform',
-      backgroundColor: 'inherit',
-      display: 'flex'
-    }
+    if (!this.measuredContent || !this.gutterContainerVnode) {
+      const innerStyle = {
+        willChange: 'transform',
+        backgroundColor: 'inherit',
+        display: 'flex'
+      }
 
-    let scrollHeight
-    if (this.measurements) {
-      innerStyle.transform = `translateY(${-this.getScrollTop()}px)`
-      scrollHeight = this.getScrollHeight()
-    }
+      let scrollHeight
+      if (this.measurements) {
+        innerStyle.transform = `translateY(${-this.getScrollTop()}px)`
+        scrollHeight = this.getScrollHeight()
+      }
 
-    return $.div(
-      {
-        ref: 'gutterContainer',
-        className: 'gutter-container',
-        style: {
-          position: 'relative',
-          zIndex: 1,
-          backgroundColor: 'inherit'
-        }
-      },
-      $.div({style: innerStyle},
-        this.guttersToRender.map((gutter) => {
-          if (gutter.name === 'line-number') {
-            return this.renderLineNumberGutter(gutter)
-          } else {
-            return $(CustomGutterComponent, {
-              key: gutter,
-              element: gutter.getElement(),
-              name: gutter.name,
-              visible: gutter.isVisible(),
-              height: scrollHeight,
-              decorations: this.decorationsToRender.customGutter.get(gutter.name)
-            })
+      return $.div(
+        {
+          ref: 'gutterContainer',
+          className: 'gutter-container',
+          style: {
+            position: 'relative',
+            zIndex: 1,
+            backgroundColor: 'inherit'
           }
-        })
+        },
+        $.div({style: innerStyle},
+          this.guttersToRender.map((gutter) => {
+            if (gutter.name === 'line-number') {
+              return this.renderLineNumberGutter(gutter)
+            } else {
+              return $(CustomGutterComponent, {
+                key: gutter,
+                element: gutter.getElement(),
+                name: gutter.name,
+                visible: gutter.isVisible(),
+                height: scrollHeight,
+                decorations: this.decorationsToRender.customGutter.get(gutter.name)
+              })
+            }
+          })
+        )
       )
-    )
+    }
+
+    return this.gutterContainerVnode
   }
 
   renderLineNumberGutter (gutter) {
@@ -402,6 +416,7 @@ class TextEditorComponent {
 
       tileNodes[tileIndex] = $(LinesTileComponent, {
         key: tileIndex,
+        measuredContent: this.measuredContent,
         height: tileHeight,
         width: tileWidth,
         top: this.topPixelPositionForRow(tileStartRow),
@@ -443,44 +458,51 @@ class TextEditorComponent {
   }
 
   renderCursorsAndInput () {
-    const cursorHeight = this.getLineHeight() + 'px'
+    if (this.measuredContent) {
+      const cursorHeight = this.getLineHeight() + 'px'
 
-    const children = [this.renderHiddenInput()]
+      const children = [this.renderHiddenInput()]
 
-    for (let i = 0; i < this.decorationsToRender.cursors.length; i++) {
-      const {pixelLeft, pixelTop, pixelWidth} = this.decorationsToRender.cursors[i]
-      children.push($.div({
-        className: 'cursor',
+      for (let i = 0; i < this.decorationsToRender.cursors.length; i++) {
+        const {pixelLeft, pixelTop, pixelWidth} = this.decorationsToRender.cursors[i]
+        children.push($.div({
+          className: 'cursor',
+          style: {
+            height: cursorHeight,
+            width: pixelWidth + 'px',
+            transform: `translate(${pixelLeft}px, ${pixelTop}px)`
+          }
+        }))
+      }
+
+      this.cursorsVnode = $.div({
+        key: 'cursors',
+        className: 'cursors',
         style: {
-          height: cursorHeight,
-          width: pixelWidth + 'px',
-          transform: `translate(${pixelLeft}px, ${pixelTop}px)`
+          position: 'absolute',
+          contain: 'strict',
+          zIndex: 1,
+          width: this.getScrollWidth() + 'px',
+          height: this.getScrollHeight() + 'px'
         }
-      }))
+      }, children)
     }
 
-    return $.div({
-      key: 'cursors',
-      className: 'cursors',
-      style: {
-        position: 'absolute',
-        contain: 'strict',
-        zIndex: 1,
-        width: this.getScrollWidth() + 'px',
-        height: this.getScrollHeight() + 'px'
-      }
-    }, children)
+    return this.cursorsVnode
   }
 
   renderPlaceholderText () {
-    const {model} = this.props
-    if (model.isEmpty()) {
-      const placeholderText = model.getPlaceholderText()
-      if (placeholderText != null) {
-        return $.div({className: 'placeholder-text'}, placeholderText)
+    if (!this.measuredContent) {
+      this.placeholderTextVnode = null
+      const {model} = this.props
+      if (model.isEmpty()) {
+        const placeholderText = model.getPlaceholderText()
+        if (placeholderText != null) {
+          this.placeholderTextVnode = $.div({className: 'placeholder-text'}, placeholderText)
+        }
       }
     }
-    return null
+    return this.placeholderTextVnode
   }
 
   renderHiddenInput () {
@@ -545,7 +567,7 @@ class TextEditorComponent {
         forceScrollbarVisible = true
       }
 
-      const elements = [
+      const dummyScrollbarVnodes = [
         $(DummyScrollbarComponent, {
           ref: 'verticalScrollbar',
           orientation: 'vertical',
@@ -565,7 +587,7 @@ class TextEditorComponent {
       // If both scrollbars are visible, push a dummy element to force a "corner"
       // to render where the two scrollbars meet at the lower right
       if (verticalScrollbarWidth > 0 && horizontalScrollbarHeight > 0) {
-        elements.push($.div(
+        dummyScrollbarVnodes.push($.div(
           {
             ref: 'scrollbarCorner',
             style: {
@@ -580,7 +602,7 @@ class TextEditorComponent {
         ))
       }
 
-      return elements
+      return dummyScrollbarVnodes
     } else {
       return null
     }
@@ -2266,11 +2288,16 @@ class CustomGutterDecorationComponent {
 class LinesTileComponent {
   constructor (props) {
     this.props = props
+    this.linesVnode = null
+    this.highlightsVnode = null
     etch.initialize(this)
   }
 
   update (newProps) {
     if (this.shouldUpdate(newProps)) {
+      if (newProps.width !== this.props.width) {
+        this.linesVnode = null
+      }
       this.props = newProps
       etch.updateSync(this)
     }
@@ -2298,67 +2325,75 @@ class LinesTileComponent {
   }
 
   renderHighlights () {
-    const {top, height, width, lineHeight, highlightDecorations} = this.props
+    const {measuredContent, top, height, width, lineHeight, highlightDecorations} = this.props
 
-    let children = null
-    if (highlightDecorations) {
-      const decorationCount = highlightDecorations.length
-      children = new Array(decorationCount)
-      for (let i = 0; i < decorationCount; i++) {
-        const highlightProps = Object.assign(
-          {parentTileTop: top, lineHeight},
-          highlightDecorations[i]
-        )
-        children[i] = $(HighlightComponent, highlightProps)
-        highlightDecorations[i].flashRequested = false
+    if (measuredContent) {
+      let children = null
+      if (highlightDecorations) {
+        const decorationCount = highlightDecorations.length
+        children = new Array(decorationCount)
+        for (let i = 0; i < decorationCount; i++) {
+          const highlightProps = Object.assign(
+            {parentTileTop: top, lineHeight},
+            highlightDecorations[i]
+          )
+          children[i] = $(HighlightComponent, highlightProps)
+          highlightDecorations[i].flashRequested = false
+        }
       }
+
+      this.highlightsVnode = $.div(
+        {
+          style: {
+            position: 'absolute',
+            contain: 'strict',
+            height: height + 'px',
+            width: width + 'px'
+          },
+        }, children
+      )
     }
 
-    return $.div(
-      {
-        style: {
-          position: 'absolute',
-          contain: 'strict',
-          height: height + 'px',
-          width: width + 'px'
-        },
-      }, children
-    )
+    return this.highlightsVnode
   }
 
   renderLines () {
     const {
-      height, width, top,
+      measuredContent, height, width, top,
       renderedStartRow, tileStartRow, tileEndRow,
       screenLines, lineDecorations, displayLayer,
       lineNodesByScreenLineId, textNodesByScreenLineId,
     } = this.props
 
-    const children = new Array(tileEndRow - tileStartRow)
-    for (let row = tileStartRow; row < tileEndRow; row++) {
-      const screenLine = screenLines[row - renderedStartRow]
-      if (!screenLine) {
-        children.length = i
-        break
+    if (!measuredContent || !this.linesVnode) {
+      const children = new Array(tileEndRow - tileStartRow)
+      for (let row = tileStartRow; row < tileEndRow; row++) {
+        const screenLine = screenLines[row - renderedStartRow]
+        if (!screenLine) {
+          children.length = i
+          break
+        }
+        children[row - tileStartRow] = $(LineComponent, {
+          key: screenLine.id,
+          screenLine,
+          lineDecoration: lineDecorations[row - renderedStartRow],
+          displayLayer,
+          lineNodesByScreenLineId,
+          textNodesByScreenLineId
+        })
       }
-      children[row - tileStartRow] = $(LineComponent, {
-        key: screenLine.id,
-        screenLine,
-        lineDecoration: lineDecorations[row - renderedStartRow],
-        displayLayer,
-        lineNodesByScreenLineId,
-        textNodesByScreenLineId
-      })
+
+      this.linesVnode = $.div({
+        style: {
+          position: 'absolute',
+          contain: 'strict',
+          height: height + 'px',
+          width: width + 'px'
+        }
+      }, children)
     }
 
-    return $.div({
-      style: {
-        position: 'absolute',
-        contain: 'strict',
-        height: height + 'px',
-        width: width + 'px'
-      }
-    }, children)
+    return this.linesVnode
   }
 
   shouldUpdate (newProps) {
