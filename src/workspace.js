@@ -670,8 +670,12 @@ module.exports = class Workspace extends Model {
       if (pane) item = pane.itemForURI(uri)
     }
 
-    // Create an item if one was not found.
-    if (!item) {
+    // If an item is already present, yield the event loop to ensure this method
+    // is consistently asynchronous regardless of the workspace state. If no
+    // item is present, create one.
+    if (item) {
+      await Promise.resolve()
+    } else {
       item = await this.createItemForURI(uri, options)
       if (!item) return
 
