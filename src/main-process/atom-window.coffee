@@ -89,6 +89,9 @@ class AtomWindow
       @emit 'window:loaded'
       @resolveLoadedPromise()
 
+    @browserWindow.on 'window:locations-opened', =>
+      @emit 'window:locations-opened'
+
     @browserWindow.on 'enter-full-screen', =>
       @browserWindow.webContents.send('did-enter-full-screen')
 

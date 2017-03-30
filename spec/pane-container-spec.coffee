@@ -7,9 +7,11 @@ describe "PaneContainer", ->
   beforeEach ->
     confirm = spyOn(atom.applicationDelegate, 'confirm').andReturn(0)
     params = {
+      location: 'center',
       config: atom.config,
       deserializerManager: atom.deserializers
-      applicationDelegate: atom.applicationDelegate
+      applicationDelegate: atom.applicationDelegate,
+      viewRegistry: atom.views
     }
 
   describe "serialization", ->

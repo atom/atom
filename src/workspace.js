@@ -1,4 +1,4 @@
-'use strict'
+'use babel'
 
 const _ = require('underscore-plus')
 const url = require('url')
@@ -7,12 +7,15 @@ const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 const fs = require('fs-plus')
 const {Directory} = require('pathwatcher')
 const DefaultDirectorySearcher = require('./default-directory-searcher')
+const Dock = require('./dock')
 const Model = require('./model')
+const StateStore = require('./state-store')
 const TextEditor = require('./text-editor')
 const PaneContainer = require('./pane-container')
 const Panel = require('./panel')
 const PanelContainer = require('./panel-container')
 const Task = require('./task')
+const WorkspaceCenter = require('./workspace-center')
 
 // Essential: Represents the state of the user interface for the entire window.
 // An instance of this class is available via the `atom.workspace` global.
@@ -42,27 +45,39 @@ module.exports = class Workspace extends Model {
     this.assert = params.assert
     this.deserializerManager = params.deserializerManager
     this.textEditorRegistry = params.textEditorRegistry
+    this.hoveredDock = null
+    this.draggingItem = false
+    this.itemLocationStore = new StateStore('AtomPreviousItemLocations', 1)
 
     this.emitter = new Emitter()
     this.openers = []
     this.destroyedItemURIs = []
 
     this.paneContainer = new PaneContainer({
+      location: 'center',
       config: this.config,
       applicationDelegate: this.applicationDelegate,
       notificationManager: this.notificationManager,
-      deserializerManager: this.deserializerManager
+      deserializerManager: this.deserializerManager,
+      viewRegistry: this.viewRegistry
     })
     this.paneContainer.onDidDestroyPaneItem(this.didDestroyPaneItem)
 
     this.defaultDirectorySearcher = new DefaultDirectorySearcher()
     this.consumeServices(this.packageManager)
 
+    this.center = new WorkspaceCenter(this.paneContainer)
+    this.docks = {
+      left: this.createDock('left'),
+      right: this.createDock('right'),
+      bottom: this.createDock('bottom')
+    }
+
     this.panelContainers = {
       top: new PanelContainer({location: 'top'}),
-      left: new PanelContainer({location: 'left'}),
-      right: new PanelContainer({location: 'right'}),
-      bottom: new PanelContainer({location: 'bottom'}),
+      left: new PanelContainer({location: 'left', dock: this.docks.left}),
+      right: new PanelContainer({location: 'right', dock: this.docks.right}),
+      bottom: new PanelContainer({location: 'bottom', dock: this.docks.bottom}),
       header: new PanelContainer({location: 'header'}),
       footer: new PanelContainer({location: 'footer'}),
       modal: new PanelContainer({location: 'modal'})
@@ -73,7 +88,19 @@ module.exports = class Workspace extends Model {
 
   initialize () {
     this.paneContainer.initialize()
-    this.didChangeActivePaneItem()
+  }
+
+  createDock (location) {
+    const dock = new Dock({
+      location,
+      config: this.config,
+      applicationDelegate: this.applicationDelegate,
+      deserializerManager: this.deserializerManager,
+      notificationManager: this.notificationManager,
+      viewRegistry: this.viewRegistry
+    })
+    dock.onDidDestroyPaneItem(this.didDestroyPaneItem)
+    return dock
   }
 
   reset (packageManager) {
@@ -85,18 +112,27 @@ module.exports = class Workspace extends Model {
     _.values(this.panelContainers).forEach(panelContainer => { panelContainer.destroy() })
 
     this.paneContainer = new PaneContainer({
+      location: 'center',
       config: this.config,
       applicationDelegate: this.applicationDelegate,
       notificationManager: this.notificationManager,
-      deserializerManager: this.deserializerManager
+      deserializerManager: this.deserializerManager,
+      viewRegistry: this.viewRegistry
     })
     this.paneContainer.onDidDestroyPaneItem(this.didDestroyPaneItem)
 
+    this.center = new WorkspaceCenter(this.paneContainer)
+    this.docks = {
+      left: this.createDock('left'),
+      right: this.createDock('right'),
+      bottom: this.createDock('bottom')
+    }
+
     this.panelContainers = {
       top: new PanelContainer({location: 'top'}),
-      left: new PanelContainer({location: 'left'}),
-      right: new PanelContainer({location: 'right'}),
-      bottom: new PanelContainer({location: 'bottom'}),
+      left: new PanelContainer({location: 'left', dock: this.docks.left}),
+      right: new PanelContainer({location: 'right', dock: this.docks.right}),
+      bottom: new PanelContainer({location: 'bottom', dock: this.docks.bottom}),
       header: new PanelContainer({location: 'header'}),
       footer: new PanelContainer({location: 'footer'}),
       modal: new PanelContainer({location: 'modal'})
@@ -113,6 +149,7 @@ module.exports = class Workspace extends Model {
     this.subscribeToActiveItem()
     this.subscribeToFontSize()
     this.subscribeToAddedItems()
+    this.subscribeToMovedItems()
   }
 
   consumeServices ({serviceHub}) {
@@ -130,7 +167,12 @@ module.exports = class Workspace extends Model {
       deserializer: 'Workspace',
       paneContainer: this.paneContainer.serialize(),
       packagesWithActiveGrammars: this.getPackageNamesWithActiveGrammars(),
-      destroyedItemURIs: this.destroyedItemURIs.slice()
+      destroyedItemURIs: this.destroyedItemURIs.slice(),
+      docks: {
+        left: this.docks.left.serialize(),
+        right: this.docks.right.serialize(),
+        bottom: this.docks.bottom.serialize()
+      }
     }
   }
 
@@ -146,7 +188,13 @@ module.exports = class Workspace extends Model {
     if (state.destroyedItemURIs != null) {
       this.destroyedItemURIs = state.destroyedItemURIs
     }
-    return this.paneContainer.deserialize(state.paneContainer, deserializerManager)
+    this.paneContainer.deserialize(state.paneContainer, deserializerManager)
+    for (let location in this.docks) {
+      const serialized = state.docks && state.docks[location]
+      if (serialized) {
+        this.docks[location].deserialize(serialized, deserializerManager)
+      }
+    }
   }
 
   getPackageNamesWithActiveGrammars () {
@@ -174,6 +222,19 @@ module.exports = class Workspace extends Model {
     }
 
     return _.uniq(packageNames)
+  }
+
+  setHoveredDock (hoveredDock) {
+    this.hoveredDock = hoveredDock
+    _.values(this.docks).forEach(dock => {
+      dock.setHovered(dock === hoveredDock)
+    })
+  }
+
+  setDraggingItem (draggingItem) {
+    _.values(this.docks).forEach(dock => {
+      dock.setDraggingItem(draggingItem)
+    })
   }
 
   subscribeToActiveItem () {
@@ -230,6 +291,19 @@ module.exports = class Workspace extends Model {
         this.emitter.emit('did-add-text-editor', {textEditor: item, pane, index})
       }
     })
+  }
+
+  subscribeToMovedItems () {
+    for (const paneContainer of this.getPaneContainers()) {
+      paneContainer.onDidAddPaneItem(({item}) => {
+        if (typeof item.getURI === 'function') {
+          const uri = item.getURI()
+          if (uri != null) {
+            this.itemLocationStore.save(item.getURI(), paneContainer.getLocation())
+          }
+        }
+      })
+    }
   }
 
   // Updates the application's title and proxy icon based on whichever file is
@@ -313,7 +387,11 @@ module.exports = class Workspace extends Model {
   //      subscription or that is added at some later time.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observePaneItems (callback) { return this.paneContainer.observePaneItems(callback) }
+  observePaneItems (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneContainers().map(container => container.observePaneItems(callback))
+    )
+  }
 
   // Essential: Invoke the given callback when the active pane item changes.
   //
@@ -380,7 +458,11 @@ module.exports = class Workspace extends Model {
   //     * `pane` The added pane.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidAddPane (callback) { return this.paneContainer.onDidAddPane(callback) }
+  onDidAddPane (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneContainers().map(container => container.onDidAddPane(callback))
+    )
+  }
 
   // Extended: Invoke the given callback before a pane is destroyed in the
   // workspace.
@@ -390,7 +472,11 @@ module.exports = class Workspace extends Model {
   //     * `pane` The pane to be destroyed.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onWillDestroyPane (callback) { return this.paneContainer.onWillDestroyPane(callback) }
+  onWillDestroyPane (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneContainers().map(container => container.onWillDestroyPane(callback))
+    )
+  }
 
   // Extended: Invoke the given callback when a pane is destroyed in the
   // workspace.
@@ -400,7 +486,11 @@ module.exports = class Workspace extends Model {
   //     * `pane` The destroyed pane.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidDestroyPane (callback) { return this.paneContainer.onDidDestroyPane(callback) }
+  onDidDestroyPane (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneContainers().map(container => container.onDidDestroyPane(callback))
+    )
+  }
 
   // Extended: Invoke the given callback with all current and future panes in the
   // workspace.
@@ -410,7 +500,11 @@ module.exports = class Workspace extends Model {
   //      subscription or that is added at some later time.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observePanes (callback) { return this.paneContainer.observePanes(callback) }
+  observePanes (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneContainers().map(container => container.observePanes(callback))
+    )
+  }
 
   // Extended: Invoke the given callback when the active pane changes.
   //
@@ -440,7 +534,11 @@ module.exports = class Workspace extends Model {
   //     * `index` {Number} indicating the index of the added item in its pane.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidAddPaneItem (callback) { return this.paneContainer.onDidAddPaneItem(callback) }
+  onDidAddPaneItem (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneContainers().map(container => container.onDidAddPaneItem(callback))
+    )
+  }
 
   // Extended: Invoke the given callback when a pane item is about to be
   // destroyed, before the user is prompted to save it.
@@ -453,7 +551,11 @@ module.exports = class Workspace extends Model {
   //       its pane.
   //
   // Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
-  onWillDestroyPaneItem (callback) { return this.paneContainer.onWillDestroyPaneItem(callback) }
+  onWillDestroyPaneItem (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneContainers().map(container => container.onWillDestroyPaneItem(callback))
+    )
+  }
 
   // Extended: Invoke the given callback when a pane item is destroyed.
   //
@@ -465,7 +567,11 @@ module.exports = class Workspace extends Model {
   //       pane.
   //
   // Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
-  onDidDestroyPaneItem (callback) { return this.paneContainer.onDidDestroyPaneItem(callback) }
+  onDidDestroyPaneItem (callback) {
+    return new CompositeDisposable(
+      ...this.getPaneContainers().map(container => container.onDidDestroyPaneItem(callback))
+    )
+  }
 
   // Extended: Invoke the given callback when a text editor is added to the
   // workspace.
@@ -513,11 +619,16 @@ module.exports = class Workspace extends Model {
   //     activate an existing item for the given URI on any pane.
   //     If `false`, only the active pane will be searched for
   //     an existing item for the same URI. Defaults to `false`.
+  //   * `location` (optional) A {String} containing the name of the location
+  //     in which this item should be opened (one of "left", "right", "bottom",
+  //     or "center"). If omitted, Atom will fall back to the last location in
+  //     which a user has placed an item with the same URI or, if this is a new
+  //     URI, the default location specified by the item. NOTE: This option
+  //     should almost always be omitted to honor user preference.
   //
   // Returns a {Promise} that resolves to the {TextEditor} for the file URI.
-  open (uri_, options = {}) {
+  async open (uri_, options = {}) {
     const uri = this.project.resolvePath(uri_)
-    const {searchAllPanes, split} = options
 
     if (!atom.config.get('core.allowPendingPaneItems')) {
       options.pending = false
@@ -525,42 +636,117 @@ module.exports = class Workspace extends Model {
 
     // Avoid adding URLs as recent documents to work-around this Spotlight crash:
     // https://github.com/atom/atom/issues/10071
-    if ((uri != null) && ((url.parse(uri).protocol == null) || (process.platform === 'win32'))) {
+    if (uri && (!url.parse(uri).protocol || process.platform === 'win32')) {
       this.applicationDelegate.addRecentDocument(uri)
     }
 
-    let pane
-    if (searchAllPanes) { pane = this.paneForURI(uri) }
-    if (pane == null) {
-      switch (split) {
-        case 'left':
-          pane = this.getActivePane().findLeftmostSibling()
-          break
-        case 'right':
-          pane = this.getActivePane().findOrCreateRightmostSibling()
-          break
-        case 'up':
-          pane = this.getActivePane().findTopmostSibling()
-          break
-        case 'down':
-          pane = this.getActivePane().findOrCreateBottommostSibling()
-          break
-        default:
-          pane = this.getActivePane()
-          break
+    let container, pane, item
+
+    // Try to find an existing item with the given URI.
+    if (uri) {
+      if (options.pane) {
+        pane = options.pane
+      } else if (options.searchAllPanes) {
+        pane = this.paneForURI(uri)
+      } else {
+        // The `split` option affects where we search for the item.
+        pane = this.getActivePane()
+        switch (options.split) {
+          case 'left':
+            pane = pane.findLeftmostSibling()
+            break
+          case 'right':
+            pane = pane.findRightmostSibling()
+            break
+          case 'up':
+            pane = pane.findTopmostSibling()
+            break
+          case 'down':
+            pane = pane.findBottommostSibling()
+            break
+        }
+      }
+
+      if (pane) item = pane.itemForURI(uri)
+    }
+
+    // If an item is already present, yield the event loop to ensure this method
+    // is consistently asynchronous regardless of the workspace state. If no
+    // item is present, create one.
+    if (item) {
+      await Promise.resolve()
+    } else {
+      item = await this.createItemForURI(uri, options)
+      if (!item) return
+
+      if (options.pane) {
+        pane = options.pane
+      } else {
+        let location = options.location
+        if (!location && !options.split && uri) {
+          location = await this.itemLocationStore.load(uri)
+        }
+        if (!location && typeof item.getDefaultLocation === 'function') {
+          location = item.getDefaultLocation()
+        }
+
+        const allowedLocations = typeof item.getAllowedLocations === 'function' ? item.getAllowedLocations() : ALL_LOCATIONS
+        location = allowedLocations.includes(location) ? location : allowedLocations[0]
+
+        container = this.docks[location] || this.getCenter()
+        pane = container.getActivePane()
+        switch (options.split) {
+          case 'left':
+            pane = pane.findLeftmostSibling()
+            break
+          case 'right':
+            pane = pane.findOrCreateRightmostSibling()
+            break
+          case 'up':
+            pane = pane.findTopmostSibling()
+            break
+          case 'down':
+            pane = pane.findOrCreateBottommostSibling()
+            break
+        }
       }
     }
 
-    let item
-    if (uri != null) {
-      item = pane.itemForURI(uri)
-    }
-    if (item == null) {
-      item = this.createItemForURI(uri, options)
+    if (!options.pending && (pane.getPendingItem() === item)) {
+      pane.clearPendingItem()
     }
 
-    return Promise.resolve(item)
-      .then(item => this.openItem(item, Object.assign({pane, uri}, options)))
+    this.itemOpened(item)
+
+    if (options.activateItem !== false) {
+      pane.activateItem(item, {pending: options.pending})
+    }
+
+    if (options.activatePane !== false) {
+      pane.activate()
+      if (!container) {
+        container = this.getPaneContainers().find(container => container.getPanes().includes(pane))
+      }
+      container.activate()
+    }
+
+    let initialColumn = 0
+    let initialLine = 0
+    if (!Number.isNaN(options.initialLine)) {
+      initialLine = options.initialLine
+    }
+    if (!Number.isNaN(options.initialColumn)) {
+      initialColumn = options.initialColumn
+    }
+    if (initialLine >= 0 || initialColumn >= 0) {
+      if (typeof item.setCursorBufferPosition === 'function') {
+        item.setCursorBufferPosition([initialLine, initialColumn])
+      }
+    }
+
+    const index = pane.getActiveItemIndex()
+    this.emitter.emit('did-open', {uri, pane, item, index})
+    return item
   }
 
   // Open Atom's license in the active pane.
@@ -609,16 +795,8 @@ module.exports = class Workspace extends Model {
     return item
   }
 
-  openURIInPane (uri, pane, options = {}) {
-    let item
-    if (uri != null) {
-      item = pane.itemForURI(uri)
-    }
-    if (item == null) {
-      item = this.createItemForURI(uri, options)
-    }
-    return Promise.resolve(item)
-      .then(item => this.openItem(item, Object.assign({pane, uri}, options)))
+  openURIInPane (uri, pane) {
+    return this.open(uri, {pane})
   }
 
   // Returns a {Promise} that resolves to the {TextEditor} (or other item) for the given URI.
@@ -659,46 +837,6 @@ module.exports = class Workspace extends Model {
           throw error
       }
     }
-  }
-
-  openItem (item, options = {}) {
-    const {pane} = options
-
-    if (item == null) return undefined
-    if (pane.isDestroyed()) return item
-
-    if (!options.pending && (pane.getPendingItem() === item)) {
-      pane.clearPendingItem()
-    }
-
-    const activatePane = options.activatePane != null ? options.activatePane : true
-    const activateItem = options.activateItem != null ? options.activateItem : true
-    this.itemOpened(item)
-    if (activateItem) {
-      pane.activateItem(item, {pending: options.pending})
-    }
-    if (activatePane) {
-      pane.activate()
-    }
-
-    let initialColumn = 0
-    let initialLine = 0
-    if (!Number.isNaN(options.initialLine)) {
-      initialLine = options.initialLine
-    }
-    if (!Number.isNaN(options.initialColumn)) {
-      initialColumn = options.initialColumn
-    }
-    if ((initialLine >= 0) || (initialColumn >= 0)) {
-      if (typeof item.setCursorBufferPosition === 'function') {
-        item.setCursorBufferPosition([initialLine, initialColumn])
-      }
-    }
-
-    const index = pane.getActiveItemIndex()
-    const uri = options.uri == null && typeof item.getURI === 'function' ? item.getURI() : options.uri
-    this.emitter.emit('did-open', {uri, pane, item, index})
-    return item
   }
 
   openTextFile (uri, options) {
@@ -821,7 +959,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns an {Array} of items.
   getPaneItems () {
-    return this.paneContainer.getPaneItems()
+    return _.flatten(this.getPaneContainers().map(container => container.getPaneItems()))
   }
 
   // Essential: Get the active {Pane}'s active item.
@@ -849,11 +987,15 @@ module.exports = class Workspace extends Model {
 
   // Save all pane items.
   saveAll () {
-    return this.paneContainer.saveAll()
+    this.getPaneContainers().forEach(container => {
+      container.saveAll()
+    })
   }
 
   confirmClose (options) {
-    return this.paneContainer.confirmClose(options)
+    return this.getPaneContainers()
+      .map(container => container.confirmClose(options))
+      .every(saved => saved)
   }
 
   // Save the active pane item.
@@ -891,7 +1033,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns an {Array} of {Pane}s.
   getPanes () {
-    return this.paneContainer.getPanes()
+    return _.flatten(this.getPaneContainers().map(container => container.getPanes()))
   }
 
   // Extended: Get the active {Pane}.
@@ -917,7 +1059,12 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Pane} or `undefined` if no pane exists for the given URI.
   paneForURI (uri) {
-    return this.paneContainer.paneForURI(uri)
+    for (let location of this.getPaneContainers()) {
+      const pane = location.paneForURI(uri)
+      if (pane != null) {
+        return pane
+      }
+    }
   }
 
   // Extended: Get the {Pane} containing the given item.
@@ -926,7 +1073,12 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Pane} or `undefined` if no pane exists for the given item.
   paneForItem (item) {
-    return this.paneContainer.paneForItem(item)
+    for (let location of this.getPaneContainers()) {
+      const pane = location.paneForItem(item)
+      if (pane != null) {
+        return pane
+      }
+    }
   }
 
   // Destroy (close) the active pane.
@@ -942,7 +1094,7 @@ module.exports = class Workspace extends Model {
   closeActivePaneItemOrEmptyPaneOrWindow () {
     if (this.getActivePaneItem() != null) {
       this.destroyActivePaneItem()
-    } else if (this.getPanes().length > 1) {
+    } else if (this.getCenter().getPanes().length > 1) {
       this.destroyActivePane()
     } else if (this.config.get('core.closeEmptyWindows')) {
       atom.close()
@@ -1010,6 +1162,61 @@ module.exports = class Workspace extends Model {
     this.paneContainer.destroy()
     if (this.activeItemSubscriptions != null) {
       this.activeItemSubscriptions.dispose()
+    }
+  }
+
+  /*
+  Section: Pane Locations
+  */
+
+  getCenter () {
+    return this.center
+  }
+
+  getLeftDock () {
+    return this.docks.left
+  }
+
+  getRightDock () {
+    return this.docks.right
+  }
+
+  getBottomDock () {
+    return this.docks.bottom
+  }
+
+  getPaneContainers () {
+    return [this.getCenter(), ..._.values(this.docks)]
+  }
+
+  toggle (uri) {
+    let foundItems = false
+
+    // If any visible item has the given URI, hide it
+    for (const location of this.getPaneContainers()) {
+      const isCenter = location === this.getCenter()
+      if (isCenter || location.isOpen()) {
+        for (const pane of location.getPanes()) {
+          const activeItem = pane.getActiveItem()
+          if (activeItem != null && typeof activeItem.getURI === 'function') {
+            const itemURI = activeItem.getURI()
+            if (itemURI === uri) {
+              foundItems = true
+              // We can't really hide the center so we just destroy the item.
+              if (isCenter) {
+                pane.destroyItem(activeItem)
+              } else {
+                location.hide()
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // If no visible items had the URI, show it.
+    if (!foundItems) {
+      this.open(uri, {searchAllPanes: true})
     }
   }
 
@@ -1421,3 +1628,5 @@ module.exports = class Workspace extends Model {
     }
   }
 }
+
+const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom']
