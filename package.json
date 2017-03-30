@@ -64,7 +64,7 @@
     "service-hub": "^0.7.3",
     "sinon": "1.17.4",
     "source-map-support": "^0.3.2",
-    "temp": "0.8.1",
+    "temp": "^0.8.3",
     "test-until": "^1.1.1",
     "text-buffer": "11.4.0",
     "typescript-simple": "1.0.0",
