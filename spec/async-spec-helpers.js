@@ -1,5 +1,7 @@
 /** @babel */
 
+import until from 'test-until'
+
 export function beforeEach (fn) {
   global.beforeEach(function () {
     const result = fn()
@@ -59,4 +61,10 @@ function waitsForPromise (fn) {
       done()
     })
   })
+}
+
+export function emitterEventPromise (emitter, event, timeout = 5000) {
+  let emitted = false
+  emitter.once(event, () => { emitted = true })
+  return until(`${event} is emitted`, () => emitted, timeout)
 }

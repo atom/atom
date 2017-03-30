@@ -190,7 +190,7 @@ export default class TextEditorRegistry {
   }
 
   // Set a {TextEditor}'s grammar based on its path and content, and continue
-  // to update its grammar as gramamrs are added or updated, or the editor's
+  // to update its grammar as grammars are added or updated, or the editor's
   // file path changes.
   //
   // * `editor` The editor whose grammar will be maintained.
