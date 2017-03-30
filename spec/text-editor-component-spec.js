@@ -254,6 +254,37 @@ describe('TextEditorComponent', () => {
       expect(cursorNodes.length).toBe(0)
     })
 
+    it('blinks cursors when the editor is focused and the cursors are not moving', async () => {
+      assertDocumentFocused()
+
+      const {component, element, editor} = buildComponent()
+      editor.addCursorAtScreenPosition([1, 0])
+      element.focus()
+      await component.getNextUpdatePromise()
+      const [cursor1, cursor2] = element.querySelectorAll('.cursor')
+
+      expect(getComputedStyle(cursor1).opacity).toBe('1')
+      expect(getComputedStyle(cursor2).opacity).toBe('1')
+
+      await conditionPromise(() =>
+        getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
+      )
+
+      await conditionPromise(() =>
+        getComputedStyle(cursor1).opacity === '1' && getComputedStyle(cursor2).opacity === '1'
+      )
+
+      await conditionPromise(() =>
+        getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
+      )
+
+      editor.moveRight()
+      await component.getNextUpdatePromise()
+
+      expect(getComputedStyle(cursor1).opacity).toBe('1')
+      expect(getComputedStyle(cursor2).opacity).toBe('1')
+    })
+
     it('places the hidden input element at the location of the last cursor if it is visible', async () => {
       const {component, element, editor} = buildComponent({height: 60, width: 120, rowsPerTile: 2})
       const {hiddenInput} = component.refs
