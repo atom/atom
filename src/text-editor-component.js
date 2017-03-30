@@ -61,6 +61,7 @@ class TextEditorComponent {
     this.measurements = null
     this.visible = false
     this.cursorsBlinking = false
+    this.cursorsBlinkedOff = false
     this.nextUpdateOnlyBlinksCursors = null
     this.horizontalPositionsToMeasure = new Map() // Keys are rows with positions we want to measure, values are arrays of columns to measure
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
@@ -512,7 +513,7 @@ class TextEditorComponent {
   }
 
   getCursorsClassName () {
-    return this.cursorsVisible ? 'cursors' : 'cursors blink-off'
+    return this.cursorsBlinkedOff ? 'cursors blink-off' : 'cursors'
   }
 
   renderPlaceholderText () {
@@ -1426,7 +1427,7 @@ class TextEditorComponent {
       window.clearTimeout(this.resumeCursorBlinkingTimeoutHandle)
     }
     this.resumeCursorBlinkingTimeoutHandle = window.setTimeout(() => {
-      this.cursorsVisible = false
+      this.cursorsBlinkedOff = true
       this.startCursorBlinking()
       this.resumeCursorBlinkingTimeoutHandle = null
     }, CURSOR_BLINK_RESUME_DELAY)
@@ -1434,7 +1435,7 @@ class TextEditorComponent {
 
   stopCursorBlinking () {
     if (this.cursorsBlinking) {
-      this.cursorsVisible = true
+      this.cursorsBlinkedOff = false
       this.cursorsBlinking = false
       window.clearInterval(this.cursorBlinkIntervalHandle)
       this.cursorBlinkIntervalHandle = null
@@ -1445,7 +1446,7 @@ class TextEditorComponent {
   startCursorBlinking () {
     if (!this.cursorsBlinking) {
       this.cursorBlinkIntervalHandle = window.setInterval(() => {
-        this.cursorsVisible = !this.cursorsVisible
+        this.cursorsBlinkedOff = !this.cursorsBlinkedOff
         this.scheduleUpdate(true)
       }, CURSOR_BLINK_PERIOD / 2)
       this.cursorsBlinking = true
