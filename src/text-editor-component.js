@@ -1430,7 +1430,7 @@ class TextEditorComponent {
       this.cursorsBlinkedOff = true
       this.startCursorBlinking()
       this.resumeCursorBlinkingTimeoutHandle = null
-    }, CURSOR_BLINK_RESUME_DELAY)
+    }, (this.props.cursorBlinkResumeDelay || CURSOR_BLINK_RESUME_DELAY))
   }
 
   stopCursorBlinking () {
@@ -1448,7 +1448,7 @@ class TextEditorComponent {
       this.cursorBlinkIntervalHandle = window.setInterval(() => {
         this.cursorsBlinkedOff = !this.cursorsBlinkedOff
         this.scheduleUpdate(true)
-      }, CURSOR_BLINK_PERIOD / 2)
+      }, (this.props.cursorBlinkPeriod || CURSOR_BLINK_PERIOD) / 2)
       this.cursorsBlinking = true
       this.scheduleUpdate(true)
     }
