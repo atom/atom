@@ -1123,6 +1123,8 @@ class TextEditorComponent {
   }
 
   didTextInput (event) {
+    if (!this.isInputEnabled()) return
+
     event.stopPropagation()
 
     // WARNING: If we call preventDefault on the input of a space character,
@@ -1130,9 +1132,6 @@ class TextEditorComponent {
     // causing spaces to scroll elements containing editors. This is impossible
     // to test.
     if (event.data !== ' ') event.preventDefault()
-
-    // TODO: Deal with disabled input
-    // if (!this.isInputEnabled()) return
 
     if (this.compositionCheckpoint) {
       this.props.model.revertToCheckpoint(this.compositionCheckpoint)
@@ -2062,6 +2061,14 @@ class TextEditorComponent {
       })
     }
     return this.nextUpdatePromise
+  }
+
+  setInputEnabled (inputEnabled) {
+    this.props.inputEnabled = inputEnabled
+  }
+
+  isInputEnabled (inputEnabled) {
+    return this.props.inputEnabled != null ? this.props.inputEnabled : true
   }
 }
 
