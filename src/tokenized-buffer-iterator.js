@@ -1,5 +1,7 @@
 const {Point} = require('text-buffer')
 
+const prefixedScopes = new Map()
+
 module.exports = class TokenizedBufferIterator {
   constructor (tokenizedBuffer) {
     this.tokenizedBuffer = tokenizedBuffer
@@ -166,7 +168,15 @@ module.exports = class TokenizedBufferIterator {
   scopeForId (id) {
     const scope = this.tokenizedBuffer.grammar.scopeForId(id)
     if (scope) {
-      return `syntax--${scope.replace(/\./g, '.syntax--')}`
+      let prefixedScope = prefixedScopes.get(scope)
+      if (prefixedScope) {
+        return prefixedScope
+      } else {
+        prefixedScope = `syntax--${scope.replace(/\./g, '.syntax--')}`
+        prefixedScopes.set(scope, prefixedScope)
+        return prefixedScope
+      }
+      return
     } else {
       return null
     }
