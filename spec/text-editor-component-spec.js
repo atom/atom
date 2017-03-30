@@ -1156,6 +1156,52 @@ describe('TextEditorComponent', () => {
     })
   })
 
+  describe('block decorations', () => {
+    ffit('renders visible and yet-to-be-measured block decorations, inserting them between the appropriate lines and refreshing them as needed', async () => {
+      const editor = buildEditor()
+      const {item: item1, decoration: decoration1} = createBlockDecorationAtScreenRow(editor, 0, {height: 80, position: 'before'})
+      const {item: item2, decoration: decoration2} = createBlockDecorationAtScreenRow(editor, 2, {height: 40, margin: 12, position: 'before'})
+      const {item: item3, decoration: decoration3} = createBlockDecorationAtScreenRow(editor, 4, {height: 100, position: 'before'})
+      const {item: item4, decoration: decoration4} = createBlockDecorationAtScreenRow(editor, 7, {height: 120, position: 'before'})
+      const {item: item5, decoration: decoration5} = createBlockDecorationAtScreenRow(editor, 7, {height: 42, position: 'after'})
+      const {item: item6, decoration: decoration6} = createBlockDecorationAtScreenRow(editor, 12, {height: 22, position: 'after'})
+
+      const {component, element} = buildComponent({editor, rowsPerTile: 3})
+      await setEditorHeightInLines(component, 5)
+
+      global.debugContent = true
+      return
+
+      expect(element.querySelectorAll('.line').length).toBe(3)
+      expect(component.getScrollHeight()).toBe(
+        editor.getScreenLineCount() * component.getLineHeight() +
+        item1.offsetHeight + item2.offsetHeight + item3.offsetHeight +
+        item4.offsetHeight + item5.offsetHeight + item6.offsetHeight
+      )
+      expect(tileNodeForScreenRow(0).offsetHeight).toBe(
+        3 * component.getLineHeight() + item1.offsetHeight + item2.offsetHeight
+      )
+      expect(item1.previousSibling).toBeNull()
+      expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 0))
+      expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
+      expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 0))
+      expect(element.contains(item3)).toBe(false)
+      expect(element.contains(item4)).toBe(false)
+      expect(element.contains(item5)).toBe(false)
+      expect(element.contains(item6)).toBe(false)
+    })
+
+    function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, position}) {
+      const marker = editor.markScreenPosition([screenRow, 0], {invalidate: 'never'})
+      const item = document.createElement('div')
+      item.style.height = height + 'px'
+      if (margin != null) item.style.margin = margin + 'px'
+      item.style.width = 30 + 'px'
+      const decoration = editor.decorateMarker(marker, {type: 'block', item, position})
+      return {item, decoration}
+    }
+  })
+
   describe('mouse input', () => {
     describe('on the lines', () => {
       it('positions the cursor on single-click', async () => {
@@ -1831,7 +1877,7 @@ describe('TextEditorComponent', () => {
   })
 })
 
-function buildComponent (params = {}) {
+function buildEditor (params = {}) {
   const text = params.text != null ? params.text : SAMPLE_TEXT
   const buffer = new TextBuffer({text})
   const editorParams = {buffer}
@@ -1839,7 +1885,11 @@ function buildComponent (params = {}) {
   for (const paramName of ['mini', 'autoHeight', 'autoWidth', 'lineNumberGutterVisible', 'placeholderText']) {
     if (params[paramName] != null) editorParams[paramName] = params[paramName]
   }
-  const editor = new TextEditor(editorParams)
+  return new TextEditor(editorParams)
+}
+
+function buildComponent (params = {}) {
+  const editor = params.editor || buildEditor(params)
   const component = new TextEditorComponent({
     model: editor,
     rowsPerTile: params.rowsPerTile,

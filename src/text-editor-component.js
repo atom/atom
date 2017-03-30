@@ -2,6 +2,7 @@ const etch = require('etch')
 const {CompositeDisposable} = require('event-kit')
 const {Point, Range} = require('text-buffer')
 const ResizeDetector = require('element-resize-detector')
+const LineTopIndex = require('line-top-index')
 const TextEditor = require('./text-editor')
 const {isPairedCharacter} = require('./text-utils')
 const $ = etch.dom
@@ -19,6 +20,15 @@ const MOUSE_DRAG_AUTOSCROLL_MARGIN = 40
 const MOUSE_WHEEL_SCROLL_SENSITIVITY = 0.8
 const CURSOR_BLINK_RESUME_DELAY = 300
 const CURSOR_BLINK_PERIOD = 800
+const BLOCK_DECORATION_MEASUREMENT_AREA_VNODE = $.div({
+  ref: 'blockDecorationMeasurementArea',
+  key: 'blockDecorationMeasurementArea',
+  style: {
+    contain: 'strict',
+    position: 'absolute',
+    visibility: 'hidden'
+  }
+})
 
 function scaleMouseDragAutoscrollDelta (delta) {
   return Math.pow(delta / 3, 3) / 280
@@ -57,6 +67,7 @@ class TextEditorComponent {
     this.didScrollDummyScrollbar = this.didScrollDummyScrollbar.bind(this)
     this.didMouseDownOnContent = this.didMouseDownOnContent.bind(this)
     this.disposables = new CompositeDisposable()
+    this.lineTopIndex = new LineTopIndex()
     this.updateScheduled = false
     this.measurements = null
     this.visible = false
@@ -149,6 +160,8 @@ class TextEditorComponent {
       return
     }
 
+    this.measureBlockDecorations()
+
     this.measuredContent = false
     this.updateSyncBeforeMeasuringContent()
     if (useScheduler === true) {
@@ -165,6 +178,31 @@ class TextEditorComponent {
       this.measuredContent = true
       this.updateSyncAfterMeasuringContent()
     }
+  }
+
+  measureBlockDecorations () {
+    const {blockDecorationMeasurementArea} = this.refs
+
+    blockDecorationMeasurementArea.appendChild(document.createElement('div'))
+    this.blockDecorationsToMeasure.forEach((decoration) => {
+      const {item} = decoration.getProperties()
+      blockDecorationMeasurementArea.appendChild(TextEditor.viewForItem(item))
+      blockDecorationMeasurementArea.appendChild(document.createElement('div'))
+    })
+
+    this.blockDecorationsToMeasure.forEach((decoration) => {
+      const {item, position} = decoration.getProperties()
+      const decorationElement = TextEditor.viewForItem(item)
+      const {previousSibling, nextSibling} = decorationElement
+      const height = nextSibling.offsetTop - previousSibling.offsetTop
+      const row = decoration.getMarker().getHeadScreenPosition().row
+      this.lineTopIndex.insertBlock(decoration.id, row, height, position === 'after')
+    })
+
+    while (blockDecorationMeasurementArea.firstChild) {
+      blockDecorationMeasurementArea.firstChild.remove()
+    }
+    this.blockDecorationsToMeasure.clear()
   }
 
   updateSyncBeforeMeasuringContent () {
@@ -230,9 +268,13 @@ class TextEditorComponent {
     if (this.measurements) {
       if (model.getAutoHeight()) {
         style.height = this.getContentHeight() + 'px'
+      } else {
+        style.height = this.element.style.height
       }
       if (model.getAutoWidth()) {
         style.width = this.getGutterContainerWidth() + this.getContentWidth() + 'px'
+      } else {
+        style.width = this.element.style.width
       }
     }
 
@@ -393,15 +435,19 @@ class TextEditorComponent {
       children = [
         this.renderCursorsAndInput(),
         this.renderLineTiles(),
+        BLOCK_DECORATION_MEASUREMENT_AREA_VNODE,
         this.renderPlaceholderText()
       ]
     } else {
-      children = $.div({ref: 'characterMeasurementLine', className: 'line'},
-        $.span({ref: 'normalWidthCharacterSpan'}, NORMAL_WIDTH_CHARACTER),
-        $.span({ref: 'doubleWidthCharacterSpan'}, DOUBLE_WIDTH_CHARACTER),
-        $.span({ref: 'halfWidthCharacterSpan'}, HALF_WIDTH_CHARACTER),
-        $.span({ref: 'koreanCharacterSpan'}, KOREAN_CHARACTER)
-      )
+      children = [
+        BLOCK_DECORATION_MEASUREMENT_AREA_VNODE,
+        $.div({ref: 'characterMeasurementLine', className: 'line'},
+          $.span({ref: 'normalWidthCharacterSpan'}, NORMAL_WIDTH_CHARACTER),
+          $.span({ref: 'doubleWidthCharacterSpan'}, DOUBLE_WIDTH_CHARACTER),
+          $.span({ref: 'halfWidthCharacterSpan'}, HALF_WIDTH_CHARACTER),
+          $.span({ref: 'koreanCharacterSpan'}, KOREAN_CHARACTER)
+        )
+      ]
     }
 
     return $.div(
@@ -1569,6 +1615,7 @@ class TextEditorComponent {
       this.measurements.halfWidthCharacterWidth,
       this.measurements.koreanCharacterWidth
     )
+    this.lineTopIndex.setDefaultLineHeight(this.measurements.lineHeight)
   }
 
   measureGutterDimensions () {
@@ -1792,6 +1839,7 @@ class TextEditorComponent {
     this.disposables.add(model.onDidRemoveGutter(scheduleUpdate))
     this.disposables.add(model.selectionsMarkerLayer.onDidUpdate(this.didUpdateSelections.bind(this)))
     this.disposables.add(model.onDidRequestAutoscroll(this.didRequestAutoscroll.bind(this)))
+    this.blockDecorationsToMeasure = new Set(model.getDecorations({type: 'block'}))
   }
 
   isVisible () {
