@@ -38,8 +38,9 @@ class AtomApplication
         options.socketPath = "\\\\.\\pipe\\atom-#{options.version}-#{userNameSafe}-#{process.arch}-sock"
       else
         socketName = "atom-#{options.version}-#{process.env.USER}"
-        if process.env.DISPLAY?
-          socketName += "-#{process.env.DISPLAY}"
+        unixDisplay = AtomApplication.getUnixDisplay()
+        if unixDisplay?
+          socketName += "-#{unixDisplay}"
         options.socketPath = path.join(os.tmpdir(), "#{socketName}.sock")
 
     # FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
@@ -56,6 +57,10 @@ class AtomApplication
         app.quit()
 
     client.on 'error', -> new AtomApplication(options).initialize(options)
+
+  # Private: make changing displays mockable without changing the actual env
+  # var which would cause the app to fail to load
+  @getUnixDisplay: -> process.env.DISPLAY
 
   windows: null
   applicationMenu: null

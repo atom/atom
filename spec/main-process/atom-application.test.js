@@ -269,6 +269,25 @@ describe('AtomApplication', function () {
       await conditionPromise(async () => (await getTreeViewRootDirectories(reusedWindow)).length > 0)
     })
 
+    it('opens a new window with no project paths to open directories but with different DISPLAYs', async function () {
+      originalGetUnixDisplay = AtomApplication.getUnixDisplay;
+      mockUnixDisplay(':0')
+      const tempDirPath = makeTempDir()
+      const atomApplication = buildAtomApplication()
+      const window1 = atomApplication.launch(parseCommandLine([]))
+      await focusWindow(window1)
+
+      mockUnixDisplay(':1')
+      const window2 = atomApplication.launch(parseCommandLine([tempDirPath]))
+      await focusWindow(window2)
+
+      // don't need the display mock anymore so reset sooner than later
+      AtomApplication.getUnixDisplay = originalGetUnixDisplay;
+
+      assert.notEqual(window1, window2)
+      await conditionPromise(async () => (await getTreeViewRootDirectories(reusedWindow)).length > 0)
+    })
+
     it('opens a new window with a single untitled buffer when launched with no path, even if windows already exist', async function () {
       const atomApplication = buildAtomApplication()
       const window1 = atomApplication.launch(parseCommandLine([]))
@@ -486,6 +505,12 @@ describe('AtomApplication', function () {
     }
     electron.app.hasQuitted = function () {
       return quitted
+    }
+  }
+
+  function mockUnixDisplay (display) {
+    AtomApplication.getUnixDisplay = function () {
+      return display
     }
   }
 
