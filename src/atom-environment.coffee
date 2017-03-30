@@ -39,6 +39,7 @@ Panel = require './panel'
 PaneContainer = require './pane-container'
 PaneAxis = require './pane-axis'
 Pane = require './pane'
+Dock = require './dock'
 Project = require './project'
 TextEditor = require './text-editor'
 TextBuffer = require 'text-buffer'
@@ -49,9 +50,7 @@ AutoUpdateManager = require './auto-update-manager'
 WorkspaceElement = require './workspace-element'
 PanelContainerElement = require './panel-container-element'
 PanelElement = require './panel-element'
-PaneContainerElement = require './pane-container-element'
 PaneAxisElement = require './pane-axis-element'
-PaneElement = require './pane-element'
 {createGutterView} = require './gutter-component-helpers'
 
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
@@ -274,6 +273,7 @@ class AtomEnvironment extends Model
     @deserializers.add(PaneContainer)
     @deserializers.add(PaneAxis)
     @deserializers.add(Pane)
+    @deserializers.add(Dock)
     @deserializers.add(Project)
     @deserializers.add(TextEditor)
     @deserializers.add(TextBuffer)
@@ -288,12 +288,8 @@ class AtomEnvironment extends Model
       new PanelContainerElement().initialize(model, env)
     @views.addViewProvider Panel, (model, env) ->
       new PanelElement().initialize(model, env)
-    @views.addViewProvider PaneContainer, (model, env) ->
-      new PaneContainerElement().initialize(model, env)
     @views.addViewProvider PaneAxis, (model, env) ->
       new PaneAxisElement().initialize(model, env)
-    @views.addViewProvider Pane, (model, env) ->
-      new PaneElement().initialize(model, env)
     @views.addViewProvider(Gutter, createGutterView)
 
   registerDefaultOpeners: ->

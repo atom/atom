@@ -30,8 +30,8 @@ class Project extends Model
     @consumeServices(packageManager)
 
   destroyed: ->
-    buffer.destroy() for buffer in @buffers
-    repository?.destroy() for repository in @repositories
+    buffer.destroy() for buffer in @buffers.slice()
+    repository?.destroy() for repository in @repositories.slice()
     @rootDirectories = []
     @repositories = []
 

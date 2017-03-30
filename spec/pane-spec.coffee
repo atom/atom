@@ -51,7 +51,10 @@ describe "Pane", ->
     [container, pane1, pane2] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config, applicationDelegate: atom.applicationDelegate)
+      container = new PaneContainer
+        location: 'center'
+        config: atom.config
+        applicationDelegate: atom.applicationDelegate
       container.getActivePane().splitRight()
       [pane1, pane2] = container.getPanes()
 

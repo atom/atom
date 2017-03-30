@@ -6,7 +6,12 @@ describe "PaneElement", ->
   beforeEach ->
     spyOn(atom.applicationDelegate, "open")
 
-    container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+    container = new PaneContainer
+      location: 'center'
+      config: atom.config
+      confirm: atom.confirm.bind(atom)
+      viewRegistry: atom.views
+      applicationDelegate: atom.applicationDelegate
     containerElement = atom.views.getView(container)
     pane = container.getActivePane()
     paneElement = atom.views.getView(pane)

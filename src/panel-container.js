@@ -3,11 +3,12 @@
 const {Emitter, CompositeDisposable} = require('event-kit')
 
 module.exports = class PanelContainer {
-  constructor ({location} = {}) {
+  constructor ({location, dock} = {}) {
     this.location = location
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.panels = []
+    this.dock = dock
   }
 
   destroy () {
