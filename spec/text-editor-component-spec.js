@@ -523,6 +523,18 @@ describe('TextEditorComponent', () => {
       expect(component.getScrollBottom()).toBe((6 + 1 + scrollMarginInLines) * component.measurements.lineHeight)
     })
 
+    it('autoscrolls the given range to the center of the screen if the `center` option is true', async () => {
+      const {component, editor} = buildComponent({height: 50})
+      expect(component.getLastVisibleRow()).toBe(3)
+
+      editor.scrollToScreenRange([[4, 0], [6, 0]], {center: true})
+      await component.getNextUpdatePromise()
+
+      const actualScrollCenter = (component.getScrollTop() + component.getScrollBottom()) / 2
+      const expectedScrollCenter = Math.round((4 + 7) / 2 * component.getLineHeight())
+      expect(actualScrollCenter).toBe(expectedScrollCenter)
+    })
+
     it('automatically scrolls horizontally when the requested range is within the horizontal scroll margin of the right edge of the gutter or right edge of the scroll container', async () => {
       const {component, element, editor} = buildComponent()
       const {scrollContainer} = component.refs
