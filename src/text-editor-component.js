@@ -126,7 +126,7 @@ class TextEditorComponent {
     if (!this.visible) return
 
     this.nextUpdateOnlyBlinksCursors =
-      this.nextUpdateOnlyBlinksCursors !== false && nextUpdateOnlyBlinksCursors
+      this.nextUpdateOnlyBlinksCursors !== false && nextUpdateOnlyBlinksCursors === true
 
     if (this.updatedSynchronously) {
       this.updateSync()
