@@ -290,7 +290,7 @@ class TextEditorComponent {
         scrollHeight = this.getScrollHeight()
       }
 
-      return $.div(
+      this.gutterContainerVnode = $.div(
         {
           ref: 'gutterContainer',
           className: 'gutter-container',
