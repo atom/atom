@@ -256,9 +256,11 @@ describe('TextEditorComponent', () => {
 
     it('blinks cursors when the editor is focused and the cursors are not moving', async () => {
       assertDocumentFocused()
-
       const {component, element, editor} = buildComponent()
+      component.props.cursorBlinkPeriod = 40
+      component.props.cursorBlinkResumeDelay = 40
       editor.addCursorAtScreenPosition([1, 0])
+
       element.focus()
       await component.getNextUpdatePromise()
       const [cursor1, cursor2] = element.querySelectorAll('.cursor')
