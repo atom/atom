@@ -296,13 +296,15 @@ module.exports = class Workspace extends Model {
 
   subscribeToMovedItems () {
     for (const paneContainer of this.getPaneContainers()) {
-      paneContainer.onDidAddPaneItem(({item}) => {
-        if (typeof item.getURI === 'function') {
-          const uri = item.getURI()
-          if (uri != null) {
-            this.itemLocationStore.save(item.getURI(), paneContainer.getLocation())
+      paneContainer.observePanes(pane => {
+        pane.onDidAddItem(({item}) => {
+          if (typeof item.getURI === 'function') {
+            const uri = item.getURI()
+            if (uri != null) {
+              this.itemLocationStore.save(item.getURI(), paneContainer.getLocation())
+            }
           }
-        }
+        })
       })
     }
   }
