@@ -2068,6 +2068,38 @@ i = /test/; #FIXME\
     })
   })
 
+  describe('::saveFocusedPaneItem', () => {
+    let editor, workspaceElement
+
+    beforeEach(() => {
+      workspaceElement = atom.views.getView(atom.workspace)
+      document.body.appendChild(workspaceElement)
+      waitsForPromise(() => atom.workspace.open('a').then(o => { editor = o }))
+    })
+
+    afterEach(() => {
+      workspaceElement.remove()
+    })
+
+    it("calls the focused item's save method", () => {
+      spyOn(editor, 'save')
+      editor.getElement().focus()
+      atom.workspace.saveFocusedPaneItem()
+      expect(editor.save).toHaveBeenCalled()
+    })
+
+    it("doesn't save the active editor if it's not focused", () => {
+      spyOn(editor, 'save')
+      const input = document.createElement('input')
+      document.body.appendChild(input)
+      input.focus()
+      expect(document.activeElement).toBe(input)
+      atom.workspace.saveFocusedPaneItem()
+      expect(editor.save).not.toHaveBeenCalled()
+      input.remove()
+    })
+  })
+
   describe('::saveActivePaneItem()', () => {
     let editor = null
     beforeEach(() =>
