@@ -906,6 +906,65 @@ describe('Workspace', () => {
     })
   })
 
+  describe('::hide(uri)', () => {
+    let item
+    const URI = 'atom://hide-test'
+
+    beforeEach(() => {
+      const el = document.createElement('div')
+      item = {
+        getTitle: () => 'Item',
+        getElement: () => el,
+        getURI: () => URI
+      }
+    })
+
+    it('removes matching items from the center', () => {
+      const pane = atom.workspace.getActivePane()
+      pane.addItem(item)
+      atom.workspace.hide(URI)
+      expect(pane.getItems().length).toBe(0)
+    })
+
+    it('hides the dock when an item matches', () => {
+      const dock = atom.workspace.getLeftDock()
+      const pane = dock.getActivePane()
+      pane.addItem(item)
+      dock.activate()
+      expect(dock.isOpen()).toBe(true)
+      const itemFound = atom.workspace.hide(URI)
+      expect(itemFound).toBe(true)
+      expect(dock.isOpen()).toBe(false)
+    })
+  })
+
+  describe('::toggle(uri)', () => {
+    it('shows the item and dock if no item matches', () => {
+      const URI = 'atom://hide-test'
+      workspace.addOpener(uri => {
+        if (uri === URI) {
+          const el = document.createElement('div')
+          return {
+            getDefaultLocation: () => 'left',
+            getTitle: () => 'Item',
+            getElement: () => el,
+            getURI: () => URI
+          }
+        }
+      })
+      const dock = workspace.getLeftDock()
+      expect(dock.isOpen()).toBe(false)
+      waitsFor(done => {
+        workspace.onDidOpen(({item}) => {
+          expect(item.getURI()).toBe(URI)
+          expect(dock.isOpen()).toBe(true)
+          done()
+        })
+        workspace.toggle(URI)
+      })
+    })
+  })
+
   describe('the grammar-used hook', () => {
     it('fires when opening a file or changing the grammar of an open file', () => {
       let editor = null
