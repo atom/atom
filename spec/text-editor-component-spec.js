@@ -294,7 +294,7 @@ describe('TextEditorComponent', () => {
       await setScrollLeft(component, 40)
 
       expect(component.getRenderedStartRow()).toBe(4)
-      expect(component.getRenderedEndRow()).toBe(12)
+      expect(component.getRenderedEndRow()).toBe(10)
 
       // When out of view, the hidden input is positioned at 0, 0
       expect(editor.getCursorScreenPosition()).toEqual([0, 0])
@@ -480,7 +480,7 @@ describe('TextEditorComponent', () => {
   describe('autoscroll', () => {
     it('automatically scrolls vertically when the requested range is within the vertical scroll margin of the top or bottom', async () => {
       const {component, editor} = buildComponent({height: 120})
-      expect(component.getLastVisibleRow()).toBe(8)
+      expect(component.getLastVisibleRow()).toBe(7)
 
       editor.scrollToScreenRange([[4, 0], [6, 0]])
       await component.getNextUpdatePromise()
@@ -503,7 +503,7 @@ describe('TextEditorComponent', () => {
       const {component, element, editor} = buildComponent({autoHeight: false})
       element.style.height = 5.5 * component.measurements.lineHeight + 'px'
       await component.getNextUpdatePromise()
-      expect(component.getLastVisibleRow()).toBe(6)
+      expect(component.getLastVisibleRow()).toBe(5)
       const scrollMarginInLines = 2
 
       editor.scrollToScreenPosition([6, 0])
@@ -525,7 +525,7 @@ describe('TextEditorComponent', () => {
 
     it('autoscrolls the given range to the center of the screen if the `center` option is true', async () => {
       const {component, editor} = buildComponent({height: 50})
-      expect(component.getLastVisibleRow()).toBe(3)
+      expect(component.getLastVisibleRow()).toBe(2)
 
       editor.scrollToScreenRange([[4, 0], [6, 0]], {center: true})
       await component.getNextUpdatePromise()
