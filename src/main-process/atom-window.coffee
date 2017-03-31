@@ -32,6 +32,10 @@ class AtomWindow
         # local development experience when running specs through the UI (which
         # now won't pause when e.g. minimizing the window).
         backgroundThrottling: not @isSpec
+        # Disable the `auxclick` feature so that `click` events are triggered in
+        # response to a middle-click.
+        # (Ref: https://github.com/atom/atom/pull/12696#issuecomment-290496960)
+        disableBlinkFeatures: 'Auxclick'
 
     # Don't set icon on Windows so the exe's ico will be used as window and
     # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
