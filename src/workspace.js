@@ -749,6 +749,47 @@ module.exports = class Workspace extends Model {
     return item
   }
 
+  // Essential: Search the workspace for items matching the given URI and hide them.
+  //
+  // * `uri` (optional) A {String} containing a URI.
+  //
+  // Returns a {boolean} indicating whether any items were found (and hidden).
+  hide (uri) {
+    let foundItems = false
+
+    // If any visible item has the given URI, hide it
+    for (const container of this.getPaneContainers()) {
+      const isCenter = container === this.getCenter()
+      if (isCenter || container.isOpen()) {
+        for (const pane of container.getPanes()) {
+          const activeItem = pane.getActiveItem()
+          if (activeItem != null && typeof activeItem.getURI === 'function') {
+            const itemURI = activeItem.getURI()
+            if (itemURI === uri) {
+              foundItems = true
+              // We can't really hide the center so we just destroy the item.
+              if (isCenter) {
+                pane.destroyItem(activeItem)
+              } else {
+                container.hide()
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return foundItems
+  }
+
+  // Essential: Search the workspace for items matching the given URI. If any are found, hide them.
+  // Otherwise, open the URL.
+  //
+  // * `uri` (optional) A {String} containing a URI.
+  toggle (uri) {
+    if (!this.hide(uri)) this.open(uri, {searchAllPanes: true})
+  }
+
   // Open Atom's license in the active pane.
   openLicense () {
     return this.open(path.join(process.resourcesPath, 'LICENSE.md'))
@@ -1187,37 +1228,6 @@ module.exports = class Workspace extends Model {
 
   getPaneContainers () {
     return [this.getCenter(), ..._.values(this.docks)]
-  }
-
-  toggle (uri) {
-    let foundItems = false
-
-    // If any visible item has the given URI, hide it
-    for (const location of this.getPaneContainers()) {
-      const isCenter = location === this.getCenter()
-      if (isCenter || location.isOpen()) {
-        for (const pane of location.getPanes()) {
-          const activeItem = pane.getActiveItem()
-          if (activeItem != null && typeof activeItem.getURI === 'function') {
-            const itemURI = activeItem.getURI()
-            if (itemURI === uri) {
-              foundItems = true
-              // We can't really hide the center so we just destroy the item.
-              if (isCenter) {
-                pane.destroyItem(activeItem)
-              } else {
-                location.hide()
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // If no visible items had the URI, show it.
-    if (!foundItems) {
-      this.open(uri, {searchAllPanes: true})
-    }
   }
 
   /*
