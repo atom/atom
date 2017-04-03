@@ -1,4 +1,4 @@
-'use strict'
+/** @babel */
 
 /* global advanceClock, HTMLElement, waits */
 
@@ -12,6 +12,7 @@ const _ = require('underscore-plus')
 const fstream = require('fstream')
 const fs = require('fs-plus')
 const AtomEnvironment = require('../src/atom-environment')
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
 describe('Workspace', () => {
   let workspace
@@ -187,7 +188,7 @@ describe('Workspace', () => {
     })
 
     describe("when the 'searchAllPanes' option is false (default)", () => {
-      describe('when called without a uri', () => {
+      describe('when called without a uri or item', () => {
         it('adds and activates an empty editor on the active pane', () => {
           let editor1
           let editor2
@@ -402,6 +403,49 @@ describe('Workspace', () => {
           waitsForPromise(() => workspace.open('a', {searchAllPanes: true}).then(o => { editor = o }))
 
           runs(() => expect(workspace.getActivePaneItem()).toBe(editor))
+        })
+      })
+    })
+
+    describe('when called with an item rather than a URI', () => {
+      it('adds the item itself to the workspace', async () => {
+        const item = document.createElement('div')
+        await atom.workspace.open(item)
+        expect(atom.workspace.getActivePaneItem()).toBe(item)
+      })
+
+      describe('when the active pane already contains the item', () => {
+        it('activates the item', async () => {
+          const item = document.createElement('div')
+
+          await atom.workspace.open(item)
+          await atom.workspace.open()
+          expect(atom.workspace.getActivePaneItem()).not.toBe(item)
+          expect(atom.workspace.getActivePane().getItems().length).toBe(2)
+
+          await atom.workspace.open(item)
+          expect(atom.workspace.getActivePaneItem()).toBe(item)
+          expect(atom.workspace.getActivePane().getItems().length).toBe(2)
+        })
+      })
+
+      describe('when the item already exists in another pane', () => {
+        it('rejects the promise', async () => {
+          const item = document.createElement('div')
+
+          await atom.workspace.open(item)
+          await atom.workspace.open(null, {split: 'right'})
+          expect(atom.workspace.getActivePaneItem()).not.toBe(item)
+          expect(atom.workspace.getActivePane().getItems().length).toBe(1)
+
+          let rejection
+          try {
+            await atom.workspace.open(item)
+          } catch (error) {
+            rejection = error
+          }
+
+          expect(rejection.message).toMatch(/The workspace can only contain one instance of item/)
         })
       })
     })

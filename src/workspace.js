@@ -628,8 +628,14 @@ module.exports = class Workspace extends Model {
   //     should almost always be omitted to honor user preference.
   //
   // Returns a {Promise} that resolves to the {TextEditor} for the file URI.
-  async open (uri_, options = {}) {
-    const uri = this.project.resolvePath(uri_)
+  async open (itemOrURI, options = {}) {
+    let uri, item
+    if (typeof itemOrURI === 'string') {
+      uri = this.project.resolvePath(itemOrURI)
+    } else if (itemOrURI) {
+      item = itemOrURI
+      if (typeof item.getURI === 'function') uri = item.getURI()
+    }
 
     if (!atom.config.get('core.allowPendingPaneItems')) {
       options.pending = false
@@ -641,14 +647,14 @@ module.exports = class Workspace extends Model {
       this.applicationDelegate.addRecentDocument(uri)
     }
 
-    let container, pane, item
+    let container, pane
 
-    // Try to find an existing item with the given URI.
-    if (uri) {
+    // Try to find an existing item in the workspace.
+    if (item || uri) {
       if (options.pane) {
         pane = options.pane
       } else if (options.searchAllPanes) {
-        pane = this.paneForURI(uri)
+        pane = item ? this.paneForItem(item) : this.paneForURI(uri)
       } else {
         // The `split` option affects where we search for the item.
         pane = this.getActivePane()
@@ -668,7 +674,7 @@ module.exports = class Workspace extends Model {
         }
       }
 
-      if (pane) item = pane.itemForURI(uri)
+      if (pane && !item) item = pane.itemForURI(uri)
     }
 
     // If an item is already present, yield the event loop to ensure this method
