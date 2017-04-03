@@ -102,6 +102,10 @@ class Package
       @path = path.join(@packageManager.resourcePath, @path)
       @loadStylesheets()
 
+      # Unfortunately some packages are accessing `@mainModulePath`, so we need
+      # to compute that variable eagerly also for preloaded packages.
+      @getMainModulePath()
+
   load: ->
     @measure 'loadTime', =>
       try
