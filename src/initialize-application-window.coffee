@@ -58,11 +58,13 @@ require('wrap-guide')
 clipboard = new Clipboard
 TextEditor.setClipboard(clipboard)
 
-window.atom = new AtomEnvironment({
+global.atom = new AtomEnvironment({
   clipboard,
   applicationDelegate: new ApplicationDelegate,
   enablePersistence: true
 })
+
+global.atom.preloadPackages()
 
 # Like sands through the hourglass, so are the days of our lives.
 module.exports = ({blobStore}) ->
@@ -82,13 +84,13 @@ module.exports = ({blobStore}) ->
   # Make React faster
   process.env.NODE_ENV ?= 'production' unless devMode
 
-  window.atom.initialize({
+  global.atom.initialize({
     window, document, blobStore,
     configDirPath: process.env.ATOM_HOME,
     env: process.env
   })
 
-  window.atom.startEditorWindow().then ->
+  global.atom.startEditorWindow().then ->
     # Workaround for focus getting cleared upon window creation
     windowFocused = ->
       window.removeEventListener('focus', windowFocused)

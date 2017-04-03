@@ -36,7 +36,7 @@ describe "PackageManager", ->
 
   describe "::loadPackages()", ->
     beforeEach ->
-      spyOn(atom.packages, 'loadPackage')
+      spyOn(atom.packages, 'loadAvailablePackage')
 
     afterEach ->
       atom.packages.deactivatePackages()

@@ -258,6 +258,9 @@ class AtomEnvironment extends Model
     @history.initialize(@window.localStorage)
     @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
 
+  preloadPackages: ->
+    @packages.preloadPackages()
+
   attachSaveStateListeners: ->
     saveState = _.debounce((=>
       window.requestIdleCallback => @saveState({isUnloading: false}) unless @unloaded

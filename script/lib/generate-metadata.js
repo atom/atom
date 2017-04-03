@@ -48,10 +48,18 @@ function buildBundledPackagesMetadata () {
       }
     }
 
-    const packageNewMetadata = {metadata: packageMetadata, keymaps: {}, menus: {}}
+    const packageNewMetadata = {metadata: packageMetadata, keymaps: {}, menus: {}, grammarPaths: [], settings: {}}
+
+    packageNewMetadata.rootDirPath = path.relative(CONFIG.intermediateAppPath, packagePath)
+
     if (packageMetadata.main) {
       const mainPath = require.resolve(path.resolve(packagePath, packageMetadata.main))
-      packageNewMetadata.main = path.relative(CONFIG.intermediateAppPath, mainPath)
+      packageNewMetadata.main = path.relative(path.join(CONFIG.intermediateAppPath, 'static'), mainPath)
+      // Convert backward slashes to forward slashes in order to allow package
+      // main modules to be required from the snapshot. This is because we use
+      // forward slashes to cache the sources in the snapshot, so we need to use
+      // them here as well.
+      packageNewMetadata.main = packageNewMetadata.main.replace(/\\/g, '/')
     }
 
     const packageKeymapsPath = path.join(packagePath, 'keymaps')
@@ -74,6 +82,18 @@ function buildBundledPackagesMetadata () {
           packageNewMetadata.menus[relativePath] = CSON.readFileSync(packageMenuPath)
         }
       }
+    }
+
+    const packageGrammarsPath = path.join(packagePath, 'grammars')
+    for (let packageGrammarPath of fs.listSync(packageGrammarsPath, ['json', 'cson'])) {
+      const relativePath = path.relative(CONFIG.intermediateAppPath, packageGrammarPath)
+      packageNewMetadata.grammarPaths.push(relativePath)
+    }
+
+    const packageSettingsPath = path.join(packagePath, 'settings')
+    for (let packageSettingPath of fs.listSync(packageSettingsPath, ['json', 'cson'])) {
+      const relativePath = path.relative(CONFIG.intermediateAppPath, packageSettingPath)
+      packageNewMetadata.settings[relativePath] = CSON.readFileSync(packageSettingPath)
     }
 
     const packageStyleSheetsPath = path.join(packagePath, 'styles')
