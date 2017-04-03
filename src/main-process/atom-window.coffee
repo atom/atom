@@ -296,7 +296,7 @@ class AtomWindow
       title: 'Save File',
       defaultPath: @representedDirectoryPaths[0]
     }, params)
-    dialog.showSaveDialog(this, params)
+    dialog.showSaveDialog(@browserWindow, params)
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
 
