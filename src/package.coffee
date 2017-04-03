@@ -93,7 +93,6 @@ class Package
 
     @activationDisposables = new CompositeDisposable
     @activateKeymaps()
-    @activateContextMenus()
     @activateMenus()
     settings.activate() for settings in @settings
     @settingsActivated = true
@@ -245,18 +244,17 @@ class Package
     keymapIsDisabled = _.include(@config.get("core.packagesWithKeymapsDisabled") ? [], @name)
     if keymapIsDisabled
       @deactivateKeymaps()
-    else unless @preloadedPackage
+    else unless @keymapActivated
       @activateKeymaps()
 
-    unless @preloadedPackage
-      @activateContextMenus()
+    unless @menusActivated
       @activateMenus()
 
     unless @grammarsActivated
       grammar.activate() for grammar in @grammars
       @grammarsActivated = true
 
-    unless @preloadedPackage
+    unless @settingsActivated
       settings.activate() for settings in @settings
       @settingsActivated = true
 
@@ -285,7 +283,7 @@ class Package
         return true
     false
 
-  activateContextMenus: ->
+  activateMenus: ->
     validateSelectors = not @preloadedPackage
     for [menuPath, map] in @menus when map['context-menu']?
       try
@@ -297,9 +295,10 @@ class Package
           error.stack += "\n  at #{menuPath}:1:1"
         throw error
 
-  activateMenus: ->
     for [menuPath, map] in @menus when map['menu']?
       @activationDisposables.add(@menuManager.add(map['menu']))
+
+    @menusActivated = true
 
   activateServices: ->
     for name, {versions} of @metadata.providedServices
@@ -522,6 +521,7 @@ class Package
     @stylesheetsActivated = false
     @grammarsActivated = false
     @settingsActivated = false
+    @menusActivated = false
 
   reloadStylesheets: ->
     try
