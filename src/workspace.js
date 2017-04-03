@@ -719,7 +719,9 @@ module.exports = class Workspace extends Model {
 
     this.itemOpened(item)
 
-    if (options.activateItem !== false) {
+    if (options.activateItem === false) {
+      pane.addItem(item, {pending: options.pending})
+    } else {
       pane.activateItem(item, {pending: options.pending})
     }
 
@@ -841,6 +843,13 @@ module.exports = class Workspace extends Model {
     return this.open(uri, {pane})
   }
 
+  // Public: Creates a new item that corresponds to the provided URI.
+  //
+  // If no URI is given, or no registered opener can open the URI, a new empty
+  // {TextEditor} will be created.
+  //
+  // * `uri` A {String} containing a URI.
+  //
   // Returns a {Promise} that resolves to the {TextEditor} (or other item) for the given URI.
   createItemForURI (uri, options) {
     if (uri != null) {

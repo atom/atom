@@ -281,6 +281,18 @@ describe('Workspace', () => {
           })
         })
 
+        describe("when the 'activateItem' option is false", () => {
+          it('adds the item to the workspace', () => {
+            let editor
+            waitsForPromise(() => workspace.open('a'))
+            waitsForPromise(() => workspace.open('b', {activateItem: false}).then(o => { editor = o }))
+            runs(() => {
+              expect(workspace.getPaneItems()).toContain(editor)
+              expect(workspace.getActivePaneItem()).not.toBe(editor)
+            })
+          })
+        })
+
         describe('when the active pane does not have an editor for the given uri', () => {
           it('adds and activates a new editor for the given path on the active pane', () => {
             let editor = null
