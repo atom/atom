@@ -50,7 +50,7 @@
           return cachedModule.exports
         }
 
-        snapshotResult.setGlobals(global, process, window, document, require) // eslint-disable-line no-undef
+        snapshotResult.setGlobals(global, process, window, document, console, require) // eslint-disable-line no-undef
       }
 
       const FileSystemBlobStore = useSnapshot ? snapshotResult.customRequire('../src/file-system-blob-store.js') : require('../src/file-system-blob-store') // eslint-disable-line no-undef

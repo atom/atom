@@ -1,5 +1,5 @@
 if (typeof snapshotResult !== 'undefined') {
-  snapshotResult.setGlobals(global, process, global, {}, require) // eslint-disable-line no-undef
+  snapshotResult.setGlobals(global, process, global, {}, console, require) // eslint-disable-line no-undef
 }
 
 const startTime = Date.now()
