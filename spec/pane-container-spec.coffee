@@ -150,6 +150,22 @@ describe "PaneContainer", ->
       pane2.activate()
       expect(observed).toEqual [pane1.itemAtIndex(0), pane2.itemAtIndex(0)]
 
+  describe "::onDidActivatePane", ->
+    it "invokes observers when a pane is activated (even if it was already active)", ->
+      container = new PaneContainer(params)
+      container.initialize()
+      container.getRoot().splitRight()
+      [pane1, pane2] = container.getPanes()
+
+      activatedPanes = []
+      container.onDidActivatePane (pane) -> activatedPanes.push(pane)
+
+      pane1.activate()
+      pane1.activate()
+      pane2.activate()
+      pane2.activate()
+      expect(activatedPanes).toEqual([pane1, pane1, pane2, pane2])
+
   describe "::onDidStopChangingActivePaneItem()", ->
     [container, pane1, pane2, observed] = []
 

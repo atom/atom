@@ -729,10 +729,6 @@ module.exports = class Workspace extends Model {
 
     if (options.activatePane !== false) {
       pane.activate()
-      if (!container) {
-        container = this.getPaneContainers().find(container => container.getPanes().includes(pane))
-      }
-      container.activate()
     }
 
     let initialColumn = 0

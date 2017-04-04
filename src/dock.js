@@ -48,9 +48,7 @@ module.exports = class Dock {
     }
 
     this.subscriptions = new CompositeDisposable(
-      this.paneContainer.observePanes(pane => {
-        pane.onDidAddItem(this.handleDidAddPaneItem.bind(this))
-      }),
+      this.paneContainer.onDidActivatePane(() => this.activate()),
       this.paneContainer.observePanes(pane => {
         pane.onDidRemoveItem(this.handleDidRemovePaneItem.bind(this))
       })
@@ -199,11 +197,6 @@ module.exports = class Dock {
         // ...or if the item can't be dropped in that dock.
         (!shouldBeVisible && state.draggingItem && isItemAllowed(state.draggingItem, this.location))
     })
-  }
-
-  handleDidAddPaneItem () {
-    // Show the dock if you drop an item into it.
-    this.setState({open: true})
   }
 
   handleDidRemovePaneItem () {
