@@ -259,8 +259,8 @@ All JavaScript must adhere to [JavaScript Standard Style](http://standardjs.com/
 
 - Include thoughtfully-worded, well-structured
   [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder.
-- treat `describe` as a noun or situation.
-- treat `it` as a statement about state or how an operation changes state.
+- Treat `describe` as a noun or situation.
+- Treat `it` as a statement about state or how an operation changes state.
 
 #### Example
 
