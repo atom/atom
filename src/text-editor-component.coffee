@@ -525,9 +525,17 @@ class TextEditorComponent
     @presenter.invalidateBlockDecorationDimensions(arguments...)
 
   onMouseDown: (event) =>
-    unless event.button is 0 or (event.button is 1 and process.platform is 'linux')
-      # Only handle mouse down events for left mouse button on all platforms
-      # and middle mouse button on Linux since it pastes the selection clipboard
+    # Handle middle mouse button on linux platform only (paste clipboard)
+    if event.button is 1 and process.platform is 'linux'
+      if selection = require('./safe-clipboard').readText('selection')
+        screenPosition = @screenPositionForMouseEvent(event)
+        @editor.setCursorScreenPosition(screenPosition, autoscroll: false)
+        @editor.insertText(selection)
+        return
+
+    # Handle mouse down events for left mouse button only
+    # (except middle mouse button on linux platform, see above)
+    unless event.button is 0
       return
 
     return if event.target?.classList.contains('horizontal-scrollbar')
@@ -674,7 +682,6 @@ class TextEditorComponent
         stopDragging()
         @editor.finalizeSelections()
         @editor.mergeIntersectingSelections()
-      pasteSelectionClipboard(event)
 
     stopDragging = ->
       dragging = false
@@ -713,11 +720,6 @@ class TextEditorComponent
 
     scaleScrollDelta = (scrollDelta) ->
       Math.pow(scrollDelta / 2, 3) / 280
-
-    pasteSelectionClipboard = (event) =>
-      if event?.which is 2 and process.platform is 'linux'
-        if selection = require('./safe-clipboard').readText('selection')
-          @editor.insertText(selection)
 
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
