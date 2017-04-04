@@ -7,8 +7,8 @@ clone_folder: c:\projects\atom
 clone_depth: 10
 
 platform:
-  - x86
   - x64
+  - x86
 
 environment:
   global:
