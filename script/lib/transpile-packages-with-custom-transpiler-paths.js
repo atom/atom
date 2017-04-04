@@ -8,7 +8,7 @@ const path = require('path')
 const CONFIG = require('../config')
 
 module.exports = function () {
-  console.log(`Transpiling per-package transpilation paths in ${CONFIG.intermediateAppPath}`)
+  console.log(`Transpiling packages with custom transpiler configurations in ${CONFIG.intermediateAppPath}`)
   let pathsToCompile = []
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
     const packagePath = path.join(CONFIG.intermediateAppPath, 'node_modules', packageName)
