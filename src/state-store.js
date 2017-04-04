@@ -77,6 +77,21 @@ class StateStore {
     })
   }
 
+  delete (key) {
+    return new Promise((resolve, reject) => {
+      this.dbPromise.then((db) => {
+        if (db == null) return resolve()
+
+        var request = db.transaction(['states'], 'readwrite')
+          .objectStore('states')
+          .delete(key)
+
+        request.onsuccess = resolve
+        request.onerror = reject
+      })
+    })
+  }
+
   clear () {
     return this.dbPromise.then((db) => {
       if (!db) return
