@@ -178,7 +178,7 @@ describe('Workspace', () => {
     })
   })
 
-  describe('::open(uri, options)', () => {
+  describe('::open(itemOrURI, options)', () => {
     let openEvents = null
 
     beforeEach(() => {
@@ -975,48 +975,107 @@ describe('Workspace', () => {
       }
     })
 
-    it('removes matching items from the center', () => {
-      const pane = atom.workspace.getActivePane()
-      pane.addItem(item)
-      atom.workspace.hide(URI)
-      expect(pane.getItems().length).toBe(0)
+    describe('when called with a URI', () => {
+      it('if the item for the given URI is in the center, removes it', () => {
+        const pane = atom.workspace.getActivePane()
+        pane.addItem(item)
+        atom.workspace.hide(URI)
+        expect(pane.getItems().length).toBe(0)
+      })
+
+      it('if the item for the given URI is in a dock, hides the dock', () => {
+        const dock = atom.workspace.getLeftDock()
+        const pane = dock.getActivePane()
+        pane.addItem(item)
+        dock.activate()
+        expect(dock.isOpen()).toBe(true)
+        const itemFound = atom.workspace.hide(URI)
+        expect(itemFound).toBe(true)
+        expect(dock.isOpen()).toBe(false)
+      })
     })
 
-    it('hides the dock when an item matches', () => {
-      const dock = atom.workspace.getLeftDock()
-      const pane = dock.getActivePane()
-      pane.addItem(item)
-      dock.activate()
-      expect(dock.isOpen()).toBe(true)
-      const itemFound = atom.workspace.hide(URI)
-      expect(itemFound).toBe(true)
-      expect(dock.isOpen()).toBe(false)
+    describe('when called with an item', () => {
+      it('if the item is in the center, removes it', () => {
+        const pane = atom.workspace.getActivePane()
+        pane.addItem(item)
+        atom.workspace.hide(item)
+        expect(pane.getItems().length).toBe(0)
+      })
+
+      it('if the item is in a dock, hides the dock', () => {
+        const dock = atom.workspace.getLeftDock()
+        const pane = dock.getActivePane()
+        pane.addItem(item)
+        dock.activate()
+        expect(dock.isOpen()).toBe(true)
+        const itemFound = atom.workspace.hide(item)
+        expect(itemFound).toBe(true)
+        expect(dock.isOpen()).toBe(false)
+      })
     })
   })
 
-  describe('::toggle(uri)', () => {
-    it('shows the item and dock if no item matches', () => {
-      const URI = 'atom://hide-test'
-      workspace.addOpener(uri => {
-        if (uri === URI) {
-          const el = document.createElement('div')
-          return {
-            getDefaultLocation: () => 'left',
-            getTitle: () => 'Item',
-            getElement: () => el,
-            getURI: () => URI
-          }
+  describe('::toggle(itemOrUri)', () => {
+    describe('when the location resolves to a dock', () => {
+      it('adds or shows the item and its dock if it is not currently visible, and otherwise hides the containing dock', async () => {
+        const item1 = {
+          getDefaultLocation () { return 'left' },
+          getElement () { return (this.element = document.createElement('div')) }
         }
+
+        const item2 = {
+          getDefaultLocation () { return 'left' },
+          getElement () { return (this.element = document.createElement('div')) }
+        }
+
+        const dock = workspace.getLeftDock()
+        expect(dock.isOpen()).toBe(false)
+
+        await workspace.toggle(item1)
+        expect(dock.isOpen()).toBe(true)
+        expect(dock.getActivePaneItem()).toBe(item1)
+
+        await workspace.toggle(item2)
+        expect(dock.isOpen()).toBe(true)
+        expect(dock.getActivePaneItem()).toBe(item2)
+
+        await workspace.toggle(item1)
+        expect(dock.isOpen()).toBe(true)
+        expect(dock.getActivePaneItem()).toBe(item1)
+
+        await workspace.toggle(item1)
+        expect(dock.isOpen()).toBe(false)
+        expect(dock.getActivePaneItem()).toBe(item1)
+
+        await workspace.toggle(item2)
+        expect(dock.isOpen()).toBe(true)
+        expect(dock.getActivePaneItem()).toBe(item2)
       })
-      const dock = workspace.getLeftDock()
-      expect(dock.isOpen()).toBe(false)
-      waitsFor(done => {
-        workspace.onDidOpen(({item}) => {
-          expect(item.getURI()).toBe(URI)
-          expect(dock.isOpen()).toBe(true)
-          done()
-        })
-        workspace.toggle(URI)
+    })
+
+    describe('when the location resolves to the center', () => {
+      it('adds or shows the item if it is not currently the active pane item, and otherwise removes the item', async () => {
+        const item1 = {
+          getDefaultLocation () { return 'center' },
+          getElement () { return (this.element = document.createElement('div')) }
+        }
+
+        const item2 = {
+          getDefaultLocation () { return 'center' },
+          getElement () { return (this.element = document.createElement('div')) }
+        }
+
+        expect(workspace.getActivePaneItem()).toBeUndefined()
+        await workspace.toggle(item1)
+        expect(workspace.getActivePaneItem()).toBe(item1)
+        await workspace.toggle(item2)
+        expect(workspace.getActivePaneItem()).toBe(item2)
+        await workspace.toggle(item1)
+        expect(workspace.getActivePaneItem()).toBe(item1)
+        await workspace.toggle(item1)
+        expect(workspace.paneForItem(item1)).toBeUndefined()
+        expect(workspace.getActivePaneItem()).toBe(item2)
       })
     })
   })

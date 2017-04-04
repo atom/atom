@@ -647,7 +647,7 @@ module.exports = class Workspace extends Model {
       this.applicationDelegate.addRecentDocument(uri)
     }
 
-    let container, pane
+    let container, pane, itemExistsInWorkspace
 
     // Try to find an existing item in the workspace.
     if (item || uri) {
@@ -674,16 +674,23 @@ module.exports = class Workspace extends Model {
         }
       }
 
-      if (pane && !item) item = pane.itemForURI(uri)
+      if (pane) {
+        if (item) {
+          itemExistsInWorkspace = pane.getItems().includes(item)
+        } else {
+          item = pane.itemForURI(uri)
+          itemExistsInWorkspace = item != null
+        }
+      }
     }
 
-    // If an item is already present, yield the event loop to ensure this method
-    // is consistently asynchronous regardless of the workspace state. If no
-    // item is present, create one.
-    if (item) {
-      await Promise.resolve()
-    } else {
-      item = await this.createItemForURI(uri, options)
+    // If we already have an item at this stage, we won't need to do an async
+    // lookup of the URI, so we yield the event loop to ensure this method
+    // is consistently asynchronous.
+    if (item) await Promise.resolve()
+
+    if (!itemExistsInWorkspace) {
+      item = item || await this.createItemForURI(uri, options)
       if (!item) return
 
       if (options.pane) {
@@ -760,10 +767,11 @@ module.exports = class Workspace extends Model {
 
   // Essential: Search the workspace for items matching the given URI and hide them.
   //
-  // * `uri` (optional) A {String} containing a URI.
+  // * `itemOrURI` (optional) The item to hide or a {String} containing the URI
+  //   of the item to hide.
   //
   // Returns a {boolean} indicating whether any items were found (and hidden).
-  hide (uri) {
+  hide (itemOrURI) {
     let foundItems = false
 
     // If any visible item has the given URI, hide it
@@ -772,16 +780,19 @@ module.exports = class Workspace extends Model {
       if (isCenter || container.isOpen()) {
         for (const pane of container.getPanes()) {
           const activeItem = pane.getActiveItem()
-          if (activeItem != null && typeof activeItem.getURI === 'function') {
-            const itemURI = activeItem.getURI()
-            if (itemURI === uri) {
-              foundItems = true
-              // We can't really hide the center so we just destroy the item.
-              if (isCenter) {
-                pane.destroyItem(activeItem)
-              } else {
-                container.hide()
-              }
+          const foundItem = (
+            activeItem != null && (
+              activeItem === itemOrURI ||
+              typeof activeItem.getURI === 'function' && activeItem.getURI() === itemOrURI
+            )
+          )
+          if (foundItem) {
+            foundItems = true
+            // We can't really hide the center so we just destroy the item.
+            if (isCenter) {
+              pane.destroyItem(activeItem)
+            } else {
+              container.hide()
             }
           }
         }
@@ -794,9 +805,16 @@ module.exports = class Workspace extends Model {
   // Essential: Search the workspace for items matching the given URI. If any are found, hide them.
   // Otherwise, open the URL.
   //
-  // * `uri` (optional) A {String} containing a URI.
-  toggle (uri) {
-    if (!this.hide(uri)) this.open(uri, {searchAllPanes: true})
+  // * `itemOrURI` (optional) The item to toggle or a {String} containing the URI
+  //   of the item to toggle.
+  //
+  // Returns a Promise that resolves when the item is shown or hidden.
+  toggle (itemOrURI) {
+    if (this.hide(itemOrURI)) {
+      return Promise.resolve()
+    } else {
+      return this.open(itemOrURI, {searchAllPanes: true})
+    }
   }
 
   // Open Atom's license in the active pane.
