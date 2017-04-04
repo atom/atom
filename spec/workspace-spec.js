@@ -2326,6 +2326,23 @@ i = /test/; #FIXME\
       })
     })
   })
+
+  describe('when an item is moved', () => {
+    it('stores the new location', () => {
+      const ITEM_URI = 'atom://test'
+      const item = {
+        getURI: () => ITEM_URI,
+        getDefaultLocation: jasmine.createSpy().andReturn('left'),
+        getElement: () => document.createElement('div')
+      }
+      const centerPane = workspace.getActivePane()
+      centerPane.addItem(item)
+      const dockPane = atom.workspace.getRightDock().getActivePane()
+      spyOn(workspace.itemLocationStore, 'save')
+      centerPane.moveItemToPane(item, dockPane)
+      expect(workspace.itemLocationStore.save).toHaveBeenCalledWith(ITEM_URI, 'right')
+    })
+  })
 })
 
 const escapeStringRegex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
