@@ -266,14 +266,13 @@ describe('Workspace', () => {
             const ITEM_URI = 'atom://test'
             const item = {
               getURI: () => ITEM_URI,
-              getDefaultLocation: jasmine.createSpy().andReturn('left'),
+              getDefaultLocation: () => 'left',
               getElement: () => document.createElement('div')
             }
             dock.getActivePane().addItem(item)
             expect(dock.getPaneItems()).toHaveLength(1)
             waitsForPromise(() => atom.workspace.open(ITEM_URI, {searchAllPanes: true}))
             runs(() => {
-              expect(item.getDefaultLocation).not.toHaveBeenCalled()
               expect(atom.workspace.getPaneItems()).toHaveLength(1)
               expect(dock.getPaneItems()).toHaveLength(1)
               expect(dock.getPaneItems()[0]).toBe(item)
@@ -330,7 +329,7 @@ describe('Workspace', () => {
             const ITEM_URI = 'atom://test'
             const item = {
               getURI: () => ITEM_URI,
-              getDefaultLocation: jasmine.createSpy().andReturn('left'),
+              getDefaultLocation: () => 'left',
               getElement: () => document.createElement('div')
             }
             const opener = uri => uri === ITEM_URI ? item : null
@@ -344,7 +343,6 @@ describe('Workspace', () => {
             runs(() => {
               expect(dock.getPaneItems()).toHaveLength(1)
               expect(dock.getPaneItems()[0]).toBe(item)
-              expect(item.getDefaultLocation).not.toHaveBeenCalled()
             })
           })
         })
@@ -2328,11 +2326,11 @@ i = /test/; #FIXME\
   })
 
   describe('when an item is moved', () => {
-    it('stores the new location', () => {
+    it("stores the new location if it's not the default", () => {
       const ITEM_URI = 'atom://test'
       const item = {
         getURI: () => ITEM_URI,
-        getDefaultLocation: jasmine.createSpy().andReturn('left'),
+        getDefaultLocation: () => 'left',
         getElement: () => document.createElement('div')
       }
       const centerPane = workspace.getActivePane()
@@ -2341,6 +2339,23 @@ i = /test/; #FIXME\
       spyOn(workspace.itemLocationStore, 'save')
       centerPane.moveItemToPane(item, dockPane)
       expect(workspace.itemLocationStore.save).toHaveBeenCalledWith(ITEM_URI, 'right')
+    })
+
+    it("clears the location if it's the default", () => {
+      const ITEM_URI = 'atom://test'
+      const item = {
+        getURI: () => ITEM_URI,
+        getDefaultLocation: () => 'right',
+        getElement: () => document.createElement('div')
+      }
+      const centerPane = workspace.getActivePane()
+      centerPane.addItem(item)
+      const dockPane = atom.workspace.getRightDock().getActivePane()
+      spyOn(workspace.itemLocationStore, 'save')
+      spyOn(workspace.itemLocationStore, 'delete')
+      centerPane.moveItemToPane(item, dockPane)
+      expect(workspace.itemLocationStore.delete).toHaveBeenCalledWith(ITEM_URI)
+      expect(workspace.itemLocationStore.save).not.toHaveBeenCalled()
     })
   })
 })

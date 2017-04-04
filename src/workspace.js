@@ -301,7 +301,17 @@ module.exports = class Workspace extends Model {
           if (typeof item.getURI === 'function') {
             const uri = item.getURI()
             if (uri != null) {
-              this.itemLocationStore.save(item.getURI(), paneContainer.getLocation())
+              const location = paneContainer.getLocation()
+              let defaultLocation
+              if (typeof item.getDefaultLocation === 'function') {
+                defaultLocation = item.getDefaultLocation()
+              }
+              defaultLocation = defaultLocation || 'center'
+              if (location === defaultLocation) {
+                this.itemLocationStore.delete(item.getURI())
+              } else {
+                this.itemLocationStore.save(item.getURI(), location)
+              }
             }
           }
         })
