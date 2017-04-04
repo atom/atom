@@ -14,6 +14,7 @@ describe "Pane", ->
     getURI: -> @uri
     getPath: -> @path
     serialize: -> {deserializer: 'Item', @name, @uri}
+    copy: -> new Item(@name, @uri)
     isEqual: (other) -> @name is other?.name
     onDidDestroy: (fn) -> @emitter.on('did-destroy', fn)
     destroy: -> @destroyed = true; @emitter.emit('did-destroy')
@@ -791,6 +792,11 @@ describe "Pane", ->
         it "duplicates the active item", ->
           pane2 = pane1.splitLeft(copyActiveItem: true)
           expect(pane2.getActiveItem()).toEqual pane1.getActiveItem()
+
+        it "does nothing if the active item doesn't implement .copy()", ->
+          item1.copy = null
+          pane2 = pane1.splitLeft(copyActiveItem: true)
+          expect(pane2.getActiveItem()).toBeUndefined()
 
       describe "when the parent is a column", ->
         it "replaces itself with a row and inserts a new pane to the left of itself", ->
