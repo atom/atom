@@ -34,8 +34,10 @@ const WorkspaceCenter = require('./workspace-center')
 //
 // ### Required Methods
 //
-// #### `getTitle()` Returns the title of the item to display on its associated
-// #### tab.
+// #### `getTitle()`
+//
+// Returns a {String} containing the title of the item to display on its
+// associated tab.
 //
 // ### Optional Methods
 //
@@ -66,6 +68,27 @@ const WorkspaceCenter = require('./workspace-center')
 // #### `getURI()`
 //
 // Returns the URI associated with the item.
+//
+// #### `getLongTitle()`
+//
+// Returns a {String} containing a longer version of the title to display in
+// places like the window title or on tabs their short titles are ambiguous.
+//
+// #### `onDidChangeTitle`
+//
+// Called by the workspace so it can be notified when the item's title changes.
+// Must return a {Disposable}.
+//
+// #### `getIconName()`
+//
+// Return a {String} with the name of an icon. If this method is defined and
+// returns a string, the item's tab element will be rendered with the `icon` and
+// `icon-${iconName}` CSS classes.
+//
+// ### `onDidChangeIcon(callback)`
+//
+// Called by the workspace so it can be notified when the item's icon changes.
+// Must return a {Disposable}.
 //
 // #### `getDefaultLocation()`
 //
@@ -121,6 +144,22 @@ const WorkspaceCenter = require('./workspace-center')
 //
 // Create a copy of the item. If defined, the workspace will call this method to
 // duplicate the item when splitting panes via certain split commands.
+//
+// #### `getPreferredInitialHeight()`
+//
+// If this item is displayed in the bottom {Dock}, called by the workspace when
+// initially displaying the dock to set its height. Once the dock has been
+// resized by the user, their height will override this value.
+//
+// Returns a {Number}.
+//
+// #### `getPreferredInitialWidth()`
+//
+// If this item is displayed in the left or right {Dock}, called by the
+// workspace when initially displaying the dock to set its width. Once the dock
+// has been resized by the user, their width will override this value.
+//
+// Returns a {Number}.
 //
 // #### `onDidTerminatePendingState(callback)`
 //
