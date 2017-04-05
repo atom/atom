@@ -12,7 +12,7 @@ describe('WorkspaceElement', () => {
 
   describe('when the workspace element is focused', () => {
     it('transfers focus to the active pane', () => {
-      const workspaceElement = atom.views.getView(atom.workspace)
+      const workspaceElement = atom.workspace.getElement()
       jasmine.attachToDOM(workspaceElement)
       const activePaneElement = atom.views.getView(atom.workspace.getActivePane())
       document.body.focus()
@@ -31,7 +31,7 @@ describe('WorkspaceElement', () => {
         return new Disposable(() => {})
       })
 
-      const workspaceElement = atom.views.getView(atom.workspace)
+      const workspaceElement = atom.workspace.getElement()
       observeCallback('legacy')
       expect(workspaceElement.className).toMatch('scrollbars-visible-always')
 
@@ -47,7 +47,7 @@ describe('WorkspaceElement', () => {
       waitsForPromise(() => atom.workspace.open('sample.js'))
 
       runs(() => {
-        workspaceElement = atom.views.getView(atom.workspace)
+        workspaceElement = atom.workspace.getElement()
         jasmine.attachToDOM(workspaceElement)
         editor = atom.workspace.getActiveTextEditor()
         editorElement = atom.views.getView(editor)
@@ -122,7 +122,7 @@ describe('WorkspaceElement', () => {
 
   describe('panel containers', () => {
     it('inserts panel container elements in the correct places in the DOM', () => {
-      const workspaceElement = atom.views.getView(atom.workspace)
+      const workspaceElement = atom.workspace.getElement()
 
       const leftContainer = workspaceElement.querySelector('atom-panel-container.left')
       const rightContainer = workspaceElement.querySelector('atom-panel-container.right')
@@ -144,7 +144,7 @@ describe('WorkspaceElement', () => {
     })
 
     it('stretches header/footer panels to the workspace width', () => {
-      const workspaceElement = atom.views.getView(atom.workspace)
+      const workspaceElement = atom.workspace.getElement()
       jasmine.attachToDOM(workspaceElement)
       expect(workspaceElement.offsetWidth).toBeGreaterThan(0)
 
@@ -158,7 +158,7 @@ describe('WorkspaceElement', () => {
     })
 
     it('shrinks horizontal axis according to header/footer panels height', () => {
-      const workspaceElement = atom.views.getView(atom.workspace)
+      const workspaceElement = atom.workspace.getElement()
       workspaceElement.style.height = '100px'
       const horizontalAxisElement = workspaceElement.querySelector('atom-workspace-axis.horizontal')
       jasmine.attachToDOM(workspaceElement)
@@ -183,7 +183,7 @@ describe('WorkspaceElement', () => {
 
   describe("the 'window:toggle-invisibles' command", () => {
     it('shows/hides invisibles in all open and future editors', () => {
-      const workspaceElement = atom.views.getView(atom.workspace)
+      const workspaceElement = atom.workspace.getElement()
       expect(atom.config.get('editor.showInvisibles')).toBe(false)
       atom.commands.dispatch(workspaceElement, 'window:toggle-invisibles')
       expect(atom.config.get('editor.showInvisibles')).toBe(true)
@@ -194,7 +194,7 @@ describe('WorkspaceElement', () => {
 
   describe("the 'window:run-package-specs' command", () => {
     it("runs the package specs for the active item's project path, or the first project path", () => {
-      const workspaceElement = atom.views.getView(atom.workspace)
+      const workspaceElement = atom.workspace.getElement()
       spyOn(ipcRenderer, 'send')
 
       // No project paths. Don't try to run specs.

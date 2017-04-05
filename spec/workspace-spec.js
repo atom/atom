@@ -2183,16 +2183,11 @@ i = /test/; #FIXME\
   })
 
   describe('::saveFocusedPaneItem', () => {
-    let editor, workspaceElement
+    let editor
 
     beforeEach(() => {
-      workspaceElement = atom.views.getView(atom.workspace)
-      document.body.appendChild(workspaceElement)
+      jasmine.attachToDOM(atom.workspace.getElement())
       waitsForPromise(() => atom.workspace.open('a').then(o => { editor = o }))
-    })
-
-    afterEach(() => {
-      workspaceElement.remove()
     })
 
     it("calls the focused item's save method", () => {

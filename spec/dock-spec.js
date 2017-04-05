@@ -5,7 +5,7 @@ import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
 describe('Dock', () => {
   describe('when a dock is activated', () => {
     it('opens the dock and activates its active pane', () => {
-      jasmine.attachToDOM(atom.views.getView(atom.workspace))
+      jasmine.attachToDOM(atom.workspace.getElement())
       const dock = atom.workspace.getLeftDock()
 
       expect(dock.isOpen()).toBe(false)
@@ -34,8 +34,7 @@ describe('Dock', () => {
   describe('when the dock resize handle is double-clicked', () => {
     describe('when the dock is open', () => {
       it('resizes a vertically-oriented dock to the current item\'s preferred width', async () => {
-        const workspaceElement = atom.views.getView(atom.workspace)
-        jasmine.attachToDOM(workspaceElement)
+        jasmine.attachToDOM(atom.workspace.getElement())
 
         const item = {
           element: document.createElement('div'),
@@ -56,8 +55,7 @@ describe('Dock', () => {
       })
 
       it('resizes a horizontally-oriented dock to the current item\'s preferred width', async () => {
-        const workspaceElement = atom.views.getView(atom.workspace)
-        jasmine.attachToDOM(workspaceElement)
+        jasmine.attachToDOM(atom.workspace.getElement())
 
         const item = {
           element: document.createElement('div'),
@@ -80,8 +78,7 @@ describe('Dock', () => {
 
     describe('when the dock is closed', () => {
       it('does nothing', async () => {
-        const workspaceElement = atom.views.getView(atom.workspace)
-        jasmine.attachToDOM(workspaceElement)
+        jasmine.attachToDOM(atom.workspace.getElement())
 
         const item = {
           element: document.createElement('div'),

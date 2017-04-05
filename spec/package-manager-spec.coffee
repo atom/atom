@@ -7,15 +7,10 @@ fs = require 'fs-plus'
 {mockLocalStorage} = require './spec-helper'
 
 describe "PackageManager", ->
-  workspaceElement = null
-
   createTestElement = (className) ->
     element = document.createElement('div')
     element.className = className
     element
-
-  beforeEach ->
-    workspaceElement = atom.views.getView(atom.workspace)
 
   afterEach ->
     temp.cleanupSync()
@@ -339,7 +334,7 @@ describe "PackageManager", ->
         [mainModule, promise, workspaceCommandListener, registration] = []
 
         beforeEach ->
-          jasmine.attachToDOM(workspaceElement)
+          jasmine.attachToDOM(atom.workspace.getElement())
           mainModule = require './fixtures/packages/package-with-activation-commands/index'
           mainModule.legacyActivationCommandCallCount = 0
           mainModule.activationCommandCallCount = 0
@@ -358,7 +353,7 @@ describe "PackageManager", ->
         it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
           expect(Package.prototype.requireMainModule.callCount).toBe 0
 
-          workspaceElement.dispatchEvent(new CustomEvent('activation-command', bubbles: true))
+          atom.workspace.getElement().dispatchEvent(new CustomEvent('activation-command', bubbles: true))
 
           waitsForPromise ->
             promise
