@@ -2488,21 +2488,21 @@ class LinesTileComponent {
     } = this.props
 
     if (!measuredContent || !this.linesVnode) {
-      const children = new Array(tileEndRow - tileStartRow)
+      const children = []
       for (let row = tileStartRow; row < tileEndRow; row++) {
         const screenLine = screenLines[row - renderedStartRow]
         if (!screenLine) {
-          children.length = row
           break
         }
-        children[row - tileStartRow] = $(LineComponent, {
+
+        children.push($(LineComponent, {
           key: screenLine.id,
           screenLine,
           lineDecoration: lineDecorations[row - renderedStartRow],
           displayLayer,
           lineNodesByScreenLineId,
           textNodesByScreenLineId
-        })
+        }))
       }
 
       this.linesVnode = $.div({
