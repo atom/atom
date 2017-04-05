@@ -145,7 +145,7 @@ const WorkspaceCenter = require('./workspace-center')
 // Create a copy of the item. If defined, the workspace will call this method to
 // duplicate the item when splitting panes via certain split commands.
 //
-// #### `getPreferredInitialHeight()`
+// #### `getPreferredHeight()`
 //
 // If this item is displayed in the bottom {Dock}, called by the workspace when
 // initially displaying the dock to set its height. Once the dock has been
@@ -153,7 +153,7 @@ const WorkspaceCenter = require('./workspace-center')
 //
 // Returns a {Number}.
 //
-// #### `getPreferredInitialWidth()`
+// #### `getPreferredWidth()`
 //
 // If this item is displayed in the left or right {Dock}, called by the
 // workspace when initially displaying the dock to set its width. Once the dock
