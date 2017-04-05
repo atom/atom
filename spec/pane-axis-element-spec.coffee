@@ -14,7 +14,7 @@ buildPane = ->
 describe "PaneAxisElement", ->
   it "correctly subscribes and unsubscribes to the underlying model events on attach/detach", ->
     container = new PaneContainer(config: atom.config, applicationDelegate: atom.applicationDelegate, viewRegistry: atom.views)
-    axis = new PaneAxis
+    axis = new PaneAxis({}, atom.views)
     axis.setContainer(container)
     axisElement = atom.views.getView(axis)
 

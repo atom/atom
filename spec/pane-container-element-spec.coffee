@@ -15,24 +15,24 @@ describe "PaneContainerElement", ->
       childTagNames = ->
         child.nodeName.toLowerCase() for child in paneAxisElement.children
 
-      paneAxis = new PaneAxis
-      paneAxisElement = new PaneAxisElement().initialize(paneAxis, atom)
+      paneAxis = new PaneAxis({}, atom.views)
+      paneAxisElement = paneAxis.getElement()
 
       expect(childTagNames()).toEqual []
 
-      paneAxis.addChild(new PaneAxis)
+      paneAxis.addChild(new PaneAxis({}, atom.views))
       expect(childTagNames()).toEqual [
         'atom-pane-axis'
       ]
 
-      paneAxis.addChild(new PaneAxis)
+      paneAxis.addChild(new PaneAxis({}, atom.views))
       expect(childTagNames()).toEqual [
         'atom-pane-axis'
         'atom-pane-resize-handle'
         'atom-pane-axis'
       ]
 
-      paneAxis.addChild(new PaneAxis)
+      paneAxis.addChild(new PaneAxis({}, atom.views))
       expect(childTagNames()).toEqual [
         'atom-pane-axis'
         'atom-pane-resize-handle'
@@ -66,7 +66,7 @@ describe "PaneContainerElement", ->
   describe "when a pane is split", ->
     it "builds appropriately-oriented atom-pane-axis elements", ->
       container = new PaneContainer(params)
-      containerElement = atom.views.getView(container)
+      containerElement = container.getElement()
 
       pane1 = container.getActivePane()
       pane2 = pane1.splitRight()

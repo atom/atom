@@ -820,7 +820,7 @@ class Pane extends Model
       params.items.push(@copyActiveItem())
 
     if @parent.orientation isnt orientation
-      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}))
+      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}, @viewRegistry))
       @setFlexScale(1)
 
     newPane = new Pane(extend({@applicationDelegate, @notificationManager, @deserializerManager, @config, @viewRegistry}, params))

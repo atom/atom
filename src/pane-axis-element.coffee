@@ -11,8 +11,8 @@ class PaneAxisElement extends HTMLElement
     @subscriptions = null
     @childRemoved({child}) for child in @model.getChildren()
 
-  initialize: (@model, {@views}) ->
-    throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
+  initialize: (@model, @viewRegistry) ->
+    debugger unless @viewRegistry?
     @subscriptions ?= @subscribeToModel()
     @childAdded({child, index}) for child, index in @model.getChildren()
 
@@ -35,7 +35,7 @@ class PaneAxisElement extends HTMLElement
     element?.nodeName.toLowerCase() is 'atom-pane-resize-handle'
 
   childAdded: ({child, index}) ->
-    view = @views.getView(child)
+    view = @viewRegistry.getView(child)
     @insertBefore(view, @children[index * 2])
 
     prevElement = view.previousSibling
@@ -51,7 +51,7 @@ class PaneAxisElement extends HTMLElement
       @insertBefore(resizeHandle, nextElement)
 
   childRemoved: ({child}) ->
-    view = @views.getView(child)
+    view = @viewRegistry.getView(child)
     siblingView = view.previousSibling
     # make sure next sibling view is pane resize view
     if siblingView? and @isPaneResizeHandleElement(siblingView)
