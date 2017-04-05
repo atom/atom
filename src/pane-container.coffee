@@ -68,6 +68,9 @@ class PaneContainer extends Model
   onDidChangeActivePane: (fn) ->
     @emitter.on 'did-change-active-pane', fn
 
+  onDidActivatePane: (fn) ->
+    @emitter.on 'did-activate-pane', fn
+
   observeActivePane: (fn) ->
     fn(@getActivePane())
     @onDidChangeActivePane(fn)
@@ -127,6 +130,7 @@ class PaneContainer extends Model
 
       @activePane = activePane
       @emitter.emit 'did-change-active-pane', @activePane
+    @emitter.emit 'did-activate-pane', @activePane
     @activePane
 
   getActivePaneItem: ->
