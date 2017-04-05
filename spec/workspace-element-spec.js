@@ -50,7 +50,7 @@ describe('WorkspaceElement', () => {
         workspaceElement = atom.workspace.getElement()
         jasmine.attachToDOM(workspaceElement)
         editor = atom.workspace.getActiveTextEditor()
-        editorElement = atom.views.getView(editor)
+        editorElement = editor.getElement()
       })
     })
 

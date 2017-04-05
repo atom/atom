@@ -43,7 +43,7 @@ AnyConstructor = Symbol('any-constructor')
 #
 # ```coffee
 # pane = atom.workspace.getActivePane()
-# paneElement = atom.views.getView(pane)
+# paneElement = pane.getElement()
 # ```
 module.exports =
 class ViewRegistry
@@ -133,7 +133,7 @@ class ViewRegistry
   #
   # ```coffee
   # pane = atom.workspace.getActivePane()
-  # paneElement = atom.views.getView(pane)
+  # paneElement = pane.getElement()
   # ```
   #
   # ### Getting The Workspace Element

@@ -336,7 +336,6 @@ describe "PackageManager", ->
         beforeEach ->
           jasmine.attachToDOM(atom.workspace.getElement())
           mainModule = require './fixtures/packages/package-with-activation-commands/index'
-          mainModule.legacyActivationCommandCallCount = 0
           mainModule.activationCommandCallCount = 0
           spyOn(mainModule, 'activate').andCallThrough()
           spyOn(Package.prototype, 'requireMainModule').andCallThrough()
@@ -366,7 +365,7 @@ describe "PackageManager", ->
             atom.workspace.open()
 
           runs ->
-            editorElement = atom.views.getView(atom.workspace.getActiveTextEditor())
+            editorElement = atom.workspace.getActiveTextEditor().getElement()
             editorCommandListener = jasmine.createSpy("editorCommandListener")
             atom.commands.add 'atom-text-editor', 'activation-command', editorCommandListener
             atom.commands.dispatch(editorElement, 'activation-command')

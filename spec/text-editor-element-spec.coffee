@@ -53,7 +53,7 @@ describe "TextEditorElement", ->
     it "does not render duplicate line numbers", ->
       editor = new TextEditor
       editor.setText('1\n2\n3')
-      element = atom.views.getView(editor)
+      element = editor.getElement()
 
       jasmine.attachToDOM(element)
 
@@ -69,7 +69,7 @@ describe "TextEditorElement", ->
       editor.addGutter({name: 'test-gutter'})
       marker = editor.markBufferRange([[0, 0], [2, 0]])
       editor.decorateMarker(marker, {type: 'gutter', gutterName: 'test-gutter'})
-      element = atom.views.getView(editor)
+      element = editor.getElement()
 
       jasmine.attachToDOM(element)
       initialDecorationCount = element.querySelectorAll('.decoration').length
@@ -230,7 +230,7 @@ describe "TextEditorElement", ->
     it "returns the maximum scroll top that can be applied to the element", ->
       editor = new TextEditor
       editor.setText('1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16')
-      element = atom.views.getView(editor)
+      element = editor.getElement()
       element.style.lineHeight = "10px"
       element.style.width = "200px"
       jasmine.attachToDOM(element)

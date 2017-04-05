@@ -9,10 +9,10 @@ describe('Dock', () => {
       const dock = atom.workspace.getLeftDock()
 
       expect(dock.isOpen()).toBe(false)
-      expect(document.activeElement).toBe(atom.views.getView(atom.workspace.getCenter().getActivePane()))
+      expect(document.activeElement).toBe(atom.workspace.getCenter().getActivePane().getElement())
       dock.activate()
       expect(dock.isOpen()).toBe(true)
-      expect(document.activeElement).toBe(atom.views.getView(dock.getActivePane()))
+      expect(document.activeElement).toBe(dock.getActivePane().getElement())
     })
   })
 

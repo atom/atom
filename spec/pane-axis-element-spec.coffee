@@ -16,20 +16,20 @@ describe "PaneAxisElement", ->
     container = new PaneContainer(config: atom.config, applicationDelegate: atom.applicationDelegate, viewRegistry: atom.views)
     axis = new PaneAxis({}, atom.views)
     axis.setContainer(container)
-    axisElement = atom.views.getView(axis)
+    axisElement = axis.getElement()
 
     panes = [buildPane(), buildPane(), buildPane()]
 
     jasmine.attachToDOM(axisElement)
     axis.addChild(panes[0])
-    expect(axisElement.children[0]).toBe(atom.views.getView(panes[0]))
+    expect(axisElement.children[0]).toBe(panes[0].getElement())
 
     axisElement.remove()
     axis.addChild(panes[1])
     expect(axisElement.children[2]).toBeUndefined()
 
     jasmine.attachToDOM(axisElement)
-    expect(axisElement.children[2]).toBe(atom.views.getView(panes[1]))
+    expect(axisElement.children[2]).toBe(panes[1].getElement())
 
     axis.addChild(panes[2])
-    expect(axisElement.children[4]).toBe(atom.views.getView(panes[2]))
+    expect(axisElement.children[4]).toBe(panes[2].getElement())
