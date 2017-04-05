@@ -310,7 +310,7 @@ module.exports = class Dock {
     // The item may not have been activated yet. If that's the case, just use the first item.
     const activePaneItem = this.paneContainer.getActivePaneItem() || this.paneContainer.getPaneItems()[0]
     if (activePaneItem != null) {
-      initialSize = getPreferredInitialSize(activePaneItem, this.location)
+      initialSize = getPreferredSize(activePaneItem, this.location)
     }
     return initialSize == null ? DEFAULT_INITIAL_SIZE : initialSize
   }
@@ -702,16 +702,16 @@ function getWidthOrHeight (location) {
   return location === 'left' || location === 'right' ? 'width' : 'height'
 }
 
-function getPreferredInitialSize (item, location) {
+function getPreferredSize (item, location) {
   switch (location) {
     case 'left':
     case 'right':
-      return typeof item.getPreferredInitialWidth === 'function'
-        ? item.getPreferredInitialWidth()
+      return typeof item.getPreferredWidth === 'function'
+        ? item.getPreferredWidth()
         : null
     default:
-      return typeof item.getPreferredInitialHeight === 'function'
-        ? item.getPreferredInitialHeight()
+      return typeof item.getPreferredHeight === 'function'
+        ? item.getPreferredHeight()
         : null
   }
 }
