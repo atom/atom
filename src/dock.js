@@ -49,7 +49,7 @@ module.exports = class Dock {
     }
 
     this.subscriptions = new CompositeDisposable(
-      this.paneContainer.onDidActivatePane(() => this.activate()),
+      this.paneContainer.onDidActivatePane(() => this.open()),
       this.paneContainer.observePanes(pane => {
         pane.onDidRemoveItem(this.handleDidRemovePaneItem.bind(this))
       })
@@ -93,6 +93,11 @@ module.exports = class Dock {
   }
 
   activate () {
+    this.open()
+    this.getActivePane().activate()
+  }
+
+  open () {
     this.setState({open: true})
   }
 

@@ -3,13 +3,27 @@
 import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
 
 describe('Dock', () => {
+  describe('when a dock is activated', () => {
+    it('opens the dock and activates its active pane', () => {
+      jasmine.attachToDOM(atom.views.getView(atom.workspace))
+      const dock = atom.workspace.getLeftDock()
+
+      expect(dock.isOpen()).toBe(false)
+      expect(document.activeElement).toBe(atom.views.getView(atom.workspace.getCenter().getActivePane()))
+      dock.activate()
+      expect(dock.isOpen()).toBe(true)
+      expect(document.activeElement).toBe(atom.views.getView(dock.getActivePane()))
+    })
+  })
+
   describe('when a pane in a dock is activated', () => {
-    it('opens the dock', () => {
+    it('opens the dock', async () => {
       const item = {
+        element: document.createElement('div'),
         getDefaultLocation() { return 'left' }
       }
 
-      atom.workspace.open(item, {activatePane: false})
+      await atom.workspace.open(item, {activatePane: false})
       expect(atom.workspace.getLeftDock().isOpen()).toBe(false)
 
       atom.workspace.getLeftDock().getPanes()[0].activate()
