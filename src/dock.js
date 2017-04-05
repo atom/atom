@@ -20,6 +20,7 @@ const CURSOR_OVERLAY_VISIBLE_CLASS = 'atom-dock-cursor-overlay-visible'
 module.exports = class Dock {
   constructor (params) {
     this.handleResizeHandleDragStart = this.handleResizeHandleDragStart.bind(this)
+    this.handleResizeToFit = this.handleResizeToFit.bind(this)
     this.handleMouseMove = this.handleMouseMove.bind(this)
     this.handleMouseUp = this.handleMouseUp.bind(this)
     this.handleDrag = _.throttle(this.handleDrag.bind(this), 30)
@@ -139,7 +140,8 @@ module.exports = class Dock {
       this.wrapperElement.classList.add('atom-dock-content-wrapper', this.location)
       this.resizeHandle = new DockResizeHandle({
         location: this.location,
-        onResizeStart: this.handleResizeHandleDragStart
+        onResizeStart: this.handleResizeHandleDragStart,
+        onResizeToFit: this.handleResizeToFit
       })
       this.toggleButton = new DockToggleButton({
         onDragEnter: this.handleToggleButtonDragEnter.bind(this),
@@ -209,6 +211,14 @@ module.exports = class Dock {
     window.addEventListener('mousemove', this.handleMouseMove)
     window.addEventListener('mouseup', this.handleMouseUp)
     this.setState({resizing: true})
+  }
+
+  handleResizeToFit () {
+    const item = this.getActivePaneItem()
+    if (item) {
+      const size = getPreferredSize(item, this.getLocation())
+      if (size != null) this.setState({size})
+    }
   }
 
   handleMouseMove (event) {
@@ -634,8 +644,10 @@ class DockResizeHandle {
     this.element.removeEventListener('mousedown', this.handleMouseDown)
   }
 
-  handleMouseDown () {
-    if (this.props.dockIsOpen) {
+  handleMouseDown (event) {
+    if (event.detail === 2) {
+      this.props.onResizeToFit()
+    } else if (this.props.dockIsOpen) {
       this.props.onResizeStart()
     }
   }
