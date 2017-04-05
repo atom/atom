@@ -379,7 +379,7 @@ describe('Workspace', () => {
           })
         })
 
-        it('activates the dock with the matching item', () => {
+        it('activates the pane in the dock with the matching item', () => {
           const dock = atom.workspace.getRightDock()
           const ITEM_URI = 'atom://test'
           const item = {
@@ -388,11 +388,9 @@ describe('Workspace', () => {
             getElement: () => document.createElement('div')
           }
           dock.getActivePane().addItem(item)
-          spyOn(dock, 'activate')
+          spyOn(dock.paneForItem(item), 'activate')
           waitsForPromise(() => atom.workspace.open(ITEM_URI, {searchAllPanes: true}))
-          runs(() => {
-            expect(dock.activate).toHaveBeenCalled()
-          })
+          runs(() => expect(dock.paneForItem(item).activate).toHaveBeenCalled())
         })
       })
 
