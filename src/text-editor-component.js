@@ -104,7 +104,8 @@ class TextEditorComponent {
       highlights: new Map(),
       cursors: [],
       overlays: [],
-      customGutter: new Map()
+      customGutter: new Map(),
+      blocks: new Map()
     }
     this.decorationsToMeasure = {
       highlights: new Map(),
@@ -493,6 +494,7 @@ class TextEditorComponent {
         tileStartRow, tileEndRow,
         screenLines: this.renderedScreenLines,
         lineDecorations: this.decorationsToRender.lines,
+        blockDecorations: this.decorationsToRender.blocks,
         highlightDecorations,
         displayLayer,
         lineNodesByScreenLineId,
@@ -781,9 +783,9 @@ class TextEditorComponent {
     this.decorationsToRender.lines = []
     this.decorationsToRender.overlays.length = 0
     this.decorationsToRender.customGutter.clear()
+    this.decorationsToRender.blocks.clear()
     this.decorationsToMeasure.highlights.clear()
     this.decorationsToMeasure.cursors.length = 0
-
 
     const decorationsByMarker =
       this.props.model.decorationManager.decorationPropertiesByMarkerForScreenRowRange(
@@ -823,6 +825,9 @@ class TextEditorComponent {
           break
         case 'gutter':
           this.addCustomGutterDecorationToRender(decoration, screenRange)
+          break
+        case 'block':
+          this.addBlockDecorationToRender(decoration, screenRange, reversed)
           break
       }
     }
@@ -938,6 +943,16 @@ class TextEditorComponent {
       element: TextEditor.viewForItem(decoration.item),
       top, height
     })
+  }
+
+  addBlockDecorationToRender (decoration, screenRange, reversed) {
+    const screenPosition = reversed ? screenRange.start : screenRange.end
+    let rowDecorations = this.decorationsToRender.blocks.get(screenPosition.row)
+    if (rowDecorations == null) {
+      rowDecorations = []
+      this.decorationsToRender.blocks.set(screenPosition.row, rowDecorations)
+    }
+    rowDecorations.push(decoration)
   }
 
   updateAbsolutePositionedDecorations () {
@@ -2483,7 +2498,7 @@ class LinesTileComponent {
     const {
       measuredContent, height, width, top,
       renderedStartRow, tileStartRow, tileEndRow,
-      screenLines, lineDecorations, displayLayer,
+      screenLines, lineDecorations, blockDecorations, displayLayer,
       lineNodesByScreenLineId, textNodesByScreenLineId,
     } = this.props
 
@@ -2495,6 +2510,19 @@ class LinesTileComponent {
           break
         }
 
+        const rowBlockDecorations = blockDecorations.get(row)
+
+        if (rowBlockDecorations) {
+          for (let i = 0; i < rowBlockDecorations.length; i++) {
+            const blockDecoration = rowBlockDecorations[i]
+            if (blockDecoration.position == null || blockDecoration.position === 'before') {
+              children.push($(ElementComponent, {
+                element: TextEditor.viewForItem(blockDecoration.item)
+              }))
+            }
+          }
+        }
+
         children.push($(LineComponent, {
           key: screenLine.id,
           screenLine,
@@ -2503,6 +2531,17 @@ class LinesTileComponent {
           lineNodesByScreenLineId,
           textNodesByScreenLineId
         }))
+
+        if (rowBlockDecorations) {
+          for (let i = 0; i < rowBlockDecorations.length; i++) {
+            const blockDecoration = rowBlockDecorations[i]
+            if (blockDecoration.position === 'after') {
+              children.push($(ElementComponent, {
+                element: TextEditor.viewForItem(blockDecoration.item)
+              }))
+            }
+          }
+        }
       }
 
       this.linesVnode = $.div({
@@ -2761,6 +2800,20 @@ class ComponentWrapper {
 
   destroy () {
     this.component.destroy()
+  }
+}
+
+class ElementComponent {
+  constructor ({element}) {
+    this.element = element
+  }
+
+  destroy () {
+    this.element.remove()
+  }
+
+  update ({element}) {
+    this.element = element
   }
 }
 
