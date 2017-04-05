@@ -17,7 +17,10 @@ class DecorationManager {
   }
 
   observeDecorations (callback) {
-    for (let decoration of this.getDecorations()) { callback(decoration) }
+    const decorations = this.getDecorations()
+    for (let i = 0; i < decorations.length; i++) {
+      callback(decorations[i])
+    }
     return this.onDidAddDecoration(callback)
   }
 
