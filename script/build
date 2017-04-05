@@ -20,6 +20,7 @@ const argv = yargs
   .describe('create-rpm-package', 'Create .rpm package (Linux only)')
   .describe('compress-artifacts', 'Compress Atom binaries (and symbols on macOS)')
   .describe('install', 'Install Atom')
+  .string('install')
   .wrap(yargs.terminalWidth())
   .argv
 
@@ -99,8 +100,8 @@ dumpSymbols()
       console.log('Skipping artifacts compression. Specify the --compress-artifacts option to compress Atom binaries (and symbols on macOS)'.gray)
     }
 
-    if (argv.install) {
-      installApplication(packagedAppPath)
+    if (argv.install != null) {
+      installApplication(packagedAppPath, argv.install)
     } else {
       console.log('Skipping installation. Specify the --install option to install Atom'.gray)
     }

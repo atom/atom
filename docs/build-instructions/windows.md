@@ -35,7 +35,7 @@ To also install the newly built application, use `script\build --create-windows-
 * `--code-sign`: signs the application with the GitHub certificate specified in `$WIN_P12KEY_URL`.
 * `--compress-artifacts`: zips the generated application as `out\atom-windows.zip` (requires [7-Zip](http://www.7-zip.org)).
 * `--create-windows-installer`: creates an `.msi`, an `.exe` and two `.nupkg` packages in the `out` directory.
-* `--install`: installs the application in `%LOCALAPPDATA%\Atom\app-dev\`.
+* `--install[=dir]`: installs the application in `${dir}\Atom\app-dev`; `${dir}` defaults to `%LOCALAPPDATA%`.
 
 ### Running tests
 
