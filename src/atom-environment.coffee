@@ -179,7 +179,7 @@ class AtomEnvironment extends Model
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
       notificationManager: @notifications, @applicationDelegate, viewRegistry: @views, assert: @assert.bind(this),
-      textEditorRegistry: @textEditors,
+      textEditorRegistry: @textEditors, styleManager: @styles
     })
 
     @themes.workspace = @workspace
@@ -285,8 +285,6 @@ class AtomEnvironment extends Model
     registerDefaultCommands({commandRegistry: @commands, @config, @commandInstaller, notificationManager: @notifications, @project, @clipboard})
 
   registerDefaultViewProviders: ->
-    @views.addViewProvider Workspace, (model, env) ->
-      new WorkspaceElement().initialize(model, env)
     @views.addViewProvider PanelContainer, (model, env) ->
       new PanelContainerElement().initialize(model, env)
     @views.addViewProvider Panel, (model, env) ->

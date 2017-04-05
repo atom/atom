@@ -49,6 +49,7 @@ describe('Workspace', () => {
         project: atom.project,
         packageManager: atom.packages,
         grammarRegistry: atom.grammars,
+        styleManager: atom.styles,
         deserializerManager: atom.deserializers,
         notificationManager: atom.notifications,
         applicationDelegate: atom.applicationDelegate,

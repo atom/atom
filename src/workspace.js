@@ -17,6 +17,7 @@ const Panel = require('./panel')
 const PanelContainer = require('./panel-container')
 const Task = require('./task')
 const WorkspaceCenter = require('./workspace-center')
+const WorkspaceElement = require('./workspace-element')
 
 // Essential: Represents the state of the user interface for the entire window.
 // An instance of this class is available via the `atom.workspace` global.
@@ -46,6 +47,7 @@ module.exports = class Workspace extends Model {
     this.assert = params.assert
     this.deserializerManager = params.deserializerManager
     this.textEditorRegistry = params.textEditorRegistry
+    this.styleManager = params.styleManager
     this.hoveredDock = null
     this.draggingItem = false
     this.itemLocationStore = new StateStore('AtomPreviousItemLocations', 1)
@@ -89,6 +91,18 @@ module.exports = class Workspace extends Model {
 
   initialize () {
     this.paneContainer.initialize()
+  }
+
+  getElement () {
+    if (!this.element) {
+      this.element = new WorkspaceElement().initialize(this, {
+        config: this.config,
+        project: this.project,
+        viewRegistry: this.viewRegistry,
+        styleManager: this.styleManager
+      })
+    }
+    return this.element
   }
 
   createDock (location) {
@@ -142,6 +156,7 @@ module.exports = class Workspace extends Model {
     this.originalFontSize = null
     this.openers = []
     this.destroyedItemURIs = []
+    this.element = null
     this.consumeServices(this.packageManager)
     this.initialize()
   }

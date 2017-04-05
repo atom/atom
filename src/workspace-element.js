@@ -60,11 +60,11 @@ class WorkspaceElement extends HTMLElement {
   font-family: ${this.config.get('editor.fontFamily')};
   line-height: ${this.config.get('editor.lineHeight')};
 }`
-    this.styles.addStyleSheet(styleSheetSource, {sourcePath: 'global-text-editor-styles', priority: -1})
-    this.views.performDocumentPoll()
+    this.styleManager.addStyleSheet(styleSheetSource, {sourcePath: 'global-text-editor-styles', priority: -1})
+    this.viewRegistry.performDocumentPoll()
   }
 
-  initialize (model, {views, workspace, project, config, styles}) {
+  initialize (model, {config, project, styleManager, viewRegistry}) {
     this.handleCenterEnter = this.handleCenterEnter.bind(this)
     this.handleCenterLeave = this.handleCenterLeave.bind(this)
     this.handleEdgesMouseMove = _.throttle(this.handleEdgesMouseMove.bind(this), 100)
@@ -74,16 +74,14 @@ class WorkspaceElement extends HTMLElement {
     this.handleDrop = this.handleDrop.bind(this)
 
     this.model = model
-    this.views = views
-    this.workspace = workspace
+    this.viewRegistry = viewRegistry
     this.project = project
     this.config = config
-    this.styles = styles
-    if (this.views == null) { throw new Error('Must pass a views parameter when initializing WorskpaceElements') }
-    if (this.workspace == null) { throw new Error('Must pass a workspace parameter when initializing WorskpaceElements') }
+    this.styleManager = styleManager
+    if (this.viewRegistry == null) { throw new Error('Must pass a viewRegistry parameter when initializing WorskpaceElements') }
     if (this.project == null) { throw new Error('Must pass a project parameter when initializing WorskpaceElements') }
     if (this.config == null) { throw new Error('Must pass a config parameter when initializing WorskpaceElements') }
-    if (this.styles == null) { throw new Error('Must pass a styles parameter when initializing WorskpaceElements') }
+    if (this.styleManager == null) { throw new Error('Must pass a styleManager parameter when initializing WorskpaceElements') }
 
     this.subscriptions = new CompositeDisposable(
       new Disposable(() => {
@@ -100,7 +98,7 @@ class WorkspaceElement extends HTMLElement {
     this.observeScrollbarStyle()
     this.observeTextEditorFontConfig()
 
-    this.paneContainer = this.views.getView(this.model.paneContainer)
+    this.paneContainer = this.viewRegistry.getView(this.model.paneContainer)
     this.verticalAxis.appendChild(this.paneContainer)
     this.addEventListener('focus', this.handleFocus.bind(this))
 
@@ -108,13 +106,13 @@ class WorkspaceElement extends HTMLElement {
     window.addEventListener('dragstart', this.handleDragStart)
 
     this.panelContainers = {
-      top: this.views.getView(this.model.panelContainers.top),
-      left: this.views.getView(this.model.panelContainers.left),
-      right: this.views.getView(this.model.panelContainers.right),
-      bottom: this.views.getView(this.model.panelContainers.bottom),
-      header: this.views.getView(this.model.panelContainers.header),
-      footer: this.views.getView(this.model.panelContainers.footer),
-      modal: this.views.getView(this.model.panelContainers.modal)
+      top: this.viewRegistry.getView(this.model.panelContainers.top),
+      left: this.viewRegistry.getView(this.model.panelContainers.left),
+      right: this.viewRegistry.getView(this.model.panelContainers.right),
+      bottom: this.viewRegistry.getView(this.model.panelContainers.bottom),
+      header: this.viewRegistry.getView(this.model.panelContainers.header),
+      footer: this.viewRegistry.getView(this.model.panelContainers.footer),
+      modal: this.viewRegistry.getView(this.model.panelContainers.modal)
     }
 
     this.horizontalAxis.insertBefore(this.panelContainers.left, this.verticalAxis)
@@ -243,7 +241,7 @@ class WorkspaceElement extends HTMLElement {
   moveActiveItemToPaneOnRight (params) { this.paneContainer.moveActiveItemToPaneOnRight(params) }
 
   runPackageSpecs () {
-    const activePaneItem = this.workspace.getActivePaneItem()
+    const activePaneItem = this.model.getActivePaneItem()
     const activePath = activePaneItem && typeof activePaneItem.getPath === 'function' ? activePaneItem.getPath() : null
     let projectPath
     if (activePath != null) {
@@ -263,7 +261,7 @@ class WorkspaceElement extends HTMLElement {
   }
 
   runBenchmarks () {
-    const activePaneItem = this.workspace.getActivePaneItem()
+    const activePaneItem = this.model.getActivePaneItem()
     const activePath = activePaneItem && typeof activePaneItem.getPath === 'function' ? activePaneItem.getPath() : null
     let projectPath
     if (activePath) {
