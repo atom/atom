@@ -181,28 +181,30 @@ class TextEditorComponent {
   }
 
   measureBlockDecorations () {
-    const {blockDecorationMeasurementArea} = this.refs
+    if (this.blockDecorationsToMeasure.size > 0) {
+      const {blockDecorationMeasurementArea} = this.refs
 
-    blockDecorationMeasurementArea.appendChild(document.createElement('div'))
-    this.blockDecorationsToMeasure.forEach((decoration) => {
-      const {item} = decoration.getProperties()
-      blockDecorationMeasurementArea.appendChild(TextEditor.viewForItem(item))
       blockDecorationMeasurementArea.appendChild(document.createElement('div'))
-    })
+      this.blockDecorationsToMeasure.forEach((decoration) => {
+        const {item} = decoration.getProperties()
+        blockDecorationMeasurementArea.appendChild(TextEditor.viewForItem(item))
+        blockDecorationMeasurementArea.appendChild(document.createElement('div'))
+      })
 
-    this.blockDecorationsToMeasure.forEach((decoration) => {
-      const {item, position} = decoration.getProperties()
-      const decorationElement = TextEditor.viewForItem(item)
-      const {previousSibling, nextSibling} = decorationElement
-      const height = nextSibling.offsetTop - previousSibling.offsetTop
-      const row = decoration.getMarker().getHeadScreenPosition().row
-      this.lineTopIndex.insertBlock(decoration.id, row, height, position === 'after')
-    })
+      this.blockDecorationsToMeasure.forEach((decoration) => {
+        const {item, position} = decoration.getProperties()
+        const decorationElement = TextEditor.viewForItem(item)
+        const {previousSibling, nextSibling} = decorationElement
+        const height = nextSibling.offsetTop - previousSibling.offsetTop
+        const row = decoration.getMarker().getHeadScreenPosition().row
+        this.lineTopIndex.insertBlock(decoration.id, row, height, position === 'after')
+      })
 
-    while (blockDecorationMeasurementArea.firstChild) {
-      blockDecorationMeasurementArea.firstChild.remove()
+      while (blockDecorationMeasurementArea.firstChild) {
+        blockDecorationMeasurementArea.firstChild.remove()
+      }
+      this.blockDecorationsToMeasure.clear()
     }
-    this.blockDecorationsToMeasure.clear()
   }
 
   updateSyncBeforeMeasuringContent () {
