@@ -1161,13 +1161,15 @@ describe('TextEditorComponent', () => {
       const editor = buildEditor({autoHeight: false})
       const {item: item1, decoration: decoration1} = createBlockDecorationAtScreenRow(editor, 0, {height: 11, position: 'before'})
       const {item: item2, decoration: decoration2} = createBlockDecorationAtScreenRow(editor, 2, {height: 22, margin: 10, position: 'before'})
+
+      const {component, element} = buildComponent({editor, rowsPerTile: 3})
+      await setEditorHeightInLines(component, 4)
+
       const {item: item3, decoration: decoration3} = createBlockDecorationAtScreenRow(editor, 4, {height: 33, position: 'before'})
       const {item: item4, decoration: decoration4} = createBlockDecorationAtScreenRow(editor, 7, {height: 44, position: 'before'})
       const {item: item5, decoration: decoration5} = createBlockDecorationAtScreenRow(editor, 7, {height: 55, position: 'after'})
       const {item: item6, decoration: decoration6} = createBlockDecorationAtScreenRow(editor, 12, {height: 66, position: 'after'})
-
-      const {component, element} = buildComponent({editor, rowsPerTile: 3})
-      await setEditorHeightInLines(component, 4)
+      await component.getNextUpdatePromise()
 
       expect(component.getRenderedStartRow()).toBe(0)
       expect(component.getRenderedEndRow()).toBe(6)
@@ -1217,6 +1219,62 @@ describe('TextEditorComponent', () => {
       expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(item5.nextSibling).toBe(lineNodeForScreenRow(component, 8))
+      expect(element.contains(item6)).toBe(false)
+
+      // destroy decoration1
+      await setScrollTop(component, 0)
+      decoration1.destroy()
+      await component.getNextUpdatePromise()
+
+      expect(component.getRenderedStartRow()).toBe(0)
+      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getScrollHeight()).toBe(
+        editor.getScreenLineCount() * component.getLineHeight() +
+        getElementHeight(item2) + getElementHeight(item3) +
+        getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
+      )
+      expect(tileNodeForScreenRow(component, 0).offsetHeight).toBe(
+        3 * component.getLineHeight() + getElementHeight(item2)
+      )
+      expect(tileNodeForScreenRow(component, 3).offsetHeight).toBe(
+        3 * component.getLineHeight() + getElementHeight(item3)
+      )
+      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.contains(item1)).toBe(false)
+      expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
+      expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 2))
+      expect(item3.previousSibling).toBe(lineNodeForScreenRow(component, 3))
+      expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 4))
+      expect(element.contains(item4)).toBe(false)
+      expect(element.contains(item5)).toBe(false)
+      expect(element.contains(item6)).toBe(false)
+
+      // move decoration2 and decoration3
+      decoration2.getMarker().setHeadScreenPosition([1, 0])
+      decoration3.getMarker().setHeadScreenPosition([3, 0])
+      await component.getNextUpdatePromise()
+
+      expect(component.getRenderedStartRow()).toBe(0)
+      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getScrollHeight()).toBe(
+        editor.getScreenLineCount() * component.getLineHeight() +
+        getElementHeight(item2) + getElementHeight(item3) +
+        getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
+      )
+      expect(tileNodeForScreenRow(component, 0).offsetHeight).toBe(
+        3 * component.getLineHeight() + getElementHeight(item2)
+      )
+      expect(tileNodeForScreenRow(component, 3).offsetHeight).toBe(
+        3 * component.getLineHeight() + getElementHeight(item3)
+      )
+      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.contains(item1)).toBe(false)
+      expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
+      expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
+      expect(item3.previousSibling).toBeNull()
+      expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 3))
+      expect(element.contains(item4)).toBe(false)
+      expect(element.contains(item5)).toBe(false)
       expect(element.contains(item6)).toBe(false)
     })
 

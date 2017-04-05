@@ -783,7 +783,7 @@ class TextEditorComponent {
     this.decorationsToRender.lines = []
     this.decorationsToRender.overlays.length = 0
     this.decorationsToRender.customGutter.clear()
-    this.decorationsToRender.blocks.clear()
+    this.decorationsToRender.blocks = new Map()
     this.decorationsToMeasure.highlights.clear()
     this.decorationsToMeasure.cursors.length = 0
 
@@ -1864,7 +1864,28 @@ class TextEditorComponent {
     this.disposables.add(model.onDidRemoveGutter(scheduleUpdate))
     this.disposables.add(model.selectionsMarkerLayer.onDidUpdate(this.didUpdateSelections.bind(this)))
     this.disposables.add(model.onDidRequestAutoscroll(this.didRequestAutoscroll.bind(this)))
-    this.blockDecorationsToMeasure = new Set(model.getDecorations({type: 'block'}))
+    this.blockDecorationsToMeasure = new Set()
+    this.disposables.add(model.observeDecorations((decoration) => {
+      if (decoration.getProperties().type === 'block') this.observeBlockDecoration(decoration)
+    }))
+  }
+
+  observeBlockDecoration (decoration) {
+    this.blockDecorationsToMeasure.add(decoration)
+    const marker = decoration.getMarker()
+    const didUpdateDisposable = marker.bufferMarker.onDidChange((e) => {
+      if (!e.textChanged) {
+        this.lineTopIndex.moveBlock(decoration.id, marker.getHeadScreenPosition().row)
+        this.scheduleUpdate()
+      }
+    })
+    const didDestroyDisposable = decoration.onDidDestroy(() => {
+      this.blockDecorationsToMeasure.delete(decoration)
+      this.lineTopIndex.removeBlock(decoration.id)
+      didUpdateDisposable.dispose()
+      didDestroyDisposable.dispose()
+      this.scheduleUpdate()
+    })
   }
 
   isVisible () {
@@ -2581,6 +2602,26 @@ class LinesTileComponent {
         if (!oldHighlight.screenRange.isEqual(newHighlight.screenRange)) return true
       }
     }
+
+    if (oldProps.blockDecorations.size !== newProps.blockDecorations.size) return true
+
+    let blockDecorationsChanged = false
+
+    oldProps.blockDecorations.forEach((oldDecorations, row) => {
+      if (!blockDecorationsChanged) {
+        const newDecorations = newProps.blockDecorations.get(row)
+        blockDecorationsChanged = (newDecorations == null || !arraysEqual(oldDecorations, newDecorations))
+      }
+    })
+    if (blockDecorationsChanged) return true
+
+    newProps.blockDecorations.forEach((newDecorations, row) => {
+      if (!blockDecorationsChanged) {
+        const oldDecorations = oldProps.blockDecorations.get(row)
+        blockDecorationsChanged = (oldDecorations == null)
+      }
+    })
+    if (blockDecorationsChanged) return true
 
     return false
   }
