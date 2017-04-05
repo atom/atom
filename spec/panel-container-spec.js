@@ -18,11 +18,11 @@ describe('PanelContainer', () => {
       const addPanelSpy = jasmine.createSpy()
       container.onDidAddPanel(addPanelSpy)
 
-      const panel1 = new Panel({item: new TestPanelItem()})
+      const panel1 = new Panel({item: new TestPanelItem()}, atom.views)
       container.addPanel(panel1)
       expect(addPanelSpy).toHaveBeenCalledWith({panel: panel1, index: 0})
 
-      const panel2 = new Panel({item: new TestPanelItem()})
+      const panel2 = new Panel({item: new TestPanelItem()}, atom.views)
       container.addPanel(panel2)
       expect(addPanelSpy).toHaveBeenCalledWith({panel: panel2, index: 1})
     })
@@ -33,9 +33,9 @@ describe('PanelContainer', () => {
       const removePanelSpy = jasmine.createSpy()
       container.onDidRemovePanel(removePanelSpy)
 
-      const panel1 = new Panel({item: new TestPanelItem()})
+      const panel1 = new Panel({item: new TestPanelItem()}, atom.views)
       container.addPanel(panel1)
-      const panel2 = new Panel({item: new TestPanelItem()})
+      const panel2 = new Panel({item: new TestPanelItem()}, atom.views)
       container.addPanel(panel2)
 
       expect(removePanelSpy).not.toHaveBeenCalled()
@@ -52,11 +52,11 @@ describe('PanelContainer', () => {
     it('destroys the container and all of its panels', () => {
       const destroyedPanels = []
 
-      const panel1 = new Panel({item: new TestPanelItem()})
+      const panel1 = new Panel({item: new TestPanelItem()}, atom.views)
       panel1.onDidDestroy(() => { destroyedPanels.push(panel1) })
       container.addPanel(panel1)
 
-      const panel2 = new Panel({item: new TestPanelItem()})
+      const panel2 = new Panel({item: new TestPanelItem()}, atom.views)
       panel2.onDidDestroy(() => { destroyedPanels.push(panel2) })
       container.addPanel(panel2)
 
@@ -73,7 +73,7 @@ describe('PanelContainer', () => {
       beforeEach(() => {
         // 'left' logic is the same as 'top'
         container = new PanelContainer({location: 'left'})
-        initialPanel = new Panel({item: new TestPanelItem()})
+        initialPanel = new Panel({item: new TestPanelItem()}, atom.views)
         container.addPanel(initialPanel)
       })
 
@@ -81,7 +81,7 @@ describe('PanelContainer', () => {
         it('is inserted at the beginning of the list', () => {
           const addPanelSpy = jasmine.createSpy()
           container.onDidAddPanel(addPanelSpy)
-          const panel = new Panel({item: new TestPanelItem(), priority: 0})
+          const panel = new Panel({item: new TestPanelItem(), priority: 0}, atom.views)
           container.addPanel(panel)
 
           expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
@@ -92,11 +92,11 @@ describe('PanelContainer', () => {
       describe('when a panel with priority between two other panels is added', () => {
         it('is inserted at the between the two panels', () => {
           const addPanelSpy = jasmine.createSpy()
-          let panel = new Panel({item: new TestPanelItem(), priority: 1000})
+          let panel = new Panel({item: new TestPanelItem(), priority: 1000}, atom.views)
           container.addPanel(panel)
 
           container.onDidAddPanel(addPanelSpy)
-          panel = new Panel({item: new TestPanelItem(), priority: 101})
+          panel = new Panel({item: new TestPanelItem(), priority: 101}, atom.views)
           container.addPanel(panel)
 
           expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 1})
@@ -110,7 +110,7 @@ describe('PanelContainer', () => {
       beforeEach(() => {
         // 'bottom' logic is the same as 'right'
         container = new PanelContainer({location: 'right'})
-        initialPanel = new Panel({item: new TestPanelItem()})
+        initialPanel = new Panel({item: new TestPanelItem()}, atom.views)
         container.addPanel(initialPanel)
       })
 
@@ -118,7 +118,7 @@ describe('PanelContainer', () => {
         it('is inserted at the beginning of the list', () => {
           const addPanelSpy = jasmine.createSpy()
           container.onDidAddPanel(addPanelSpy)
-          const panel = new Panel({item: new TestPanelItem(), priority: 1000})
+          const panel = new Panel({item: new TestPanelItem(), priority: 1000}, atom.views)
           container.addPanel(panel)
 
           expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
@@ -130,7 +130,7 @@ describe('PanelContainer', () => {
         it('is inserted at the end of the list', () => {
           const addPanelSpy = jasmine.createSpy()
           container.onDidAddPanel(addPanelSpy)
-          const panel = new Panel({item: new TestPanelItem(), priority: 0})
+          const panel = new Panel({item: new TestPanelItem(), priority: 0}, atom.views)
           container.addPanel(panel)
 
           expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 1})

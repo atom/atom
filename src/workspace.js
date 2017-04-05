@@ -1503,7 +1503,7 @@ module.exports = class Workspace extends Model {
 
   addPanel (location, options) {
     if (options == null) { options = {} }
-    return this.panelContainers[location].addPanel(new Panel(options))
+    return this.panelContainers[location].addPanel(new Panel(options, this.viewRegistry))
   }
 
   /*

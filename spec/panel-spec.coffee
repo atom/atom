@@ -7,7 +7,7 @@ describe "Panel", ->
     constructior: ->
 
   beforeEach ->
-    panel = new Panel(item: new TestPanelItem())
+    panel = new Panel({item: new TestPanelItem()}, atom.views)
 
   describe "changing panel visibility", ->
     it 'emits an event when visibility changes', ->

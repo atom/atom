@@ -5,9 +5,7 @@ class PanelElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
 
-  initialize: (@model, {@views}) ->
-    throw new Error("Must pass a views parameter when initializing PanelElements") unless @views?
-
+  initialize: (@model, @viewRegistry) ->
     @appendChild(@getItemView())
 
     @classList.add(@model.getClassName().split(' ')...) if @model.getClassName()?
@@ -15,11 +13,10 @@ class PanelElement extends HTMLElement
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))
     this
 
-  getModel: ->
-    @model ?= new Panel
+  getModel: -> @model
 
   getItemView: ->
-    @views.getView(@getModel().getItem())
+    @viewRegistry.getView(@getModel().getItem())
 
   attachedCallback: ->
     @visibleChanged(@getModel().isVisible())

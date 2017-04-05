@@ -51,9 +51,9 @@ describe('PanelContainerElement', () => {
 
   describe('adding and removing panels', () => {
     it('allows panels to be inserted at any position', () => {
-      const panel1 = new Panel({item: new TestPanelContainerItem(), priority: 10})
-      const panel2 = new Panel({item: new TestPanelContainerItem(), priority: 5})
-      const panel3 = new Panel({item: new TestPanelContainerItem(), priority: 8})
+      const panel1 = new Panel({item: new TestPanelContainerItem(), priority: 10}, atom.views)
+      const panel2 = new Panel({item: new TestPanelContainerItem(), priority: 5}, atom.views)
+      const panel3 = new Panel({item: new TestPanelContainerItem(), priority: 8}, atom.views)
 
       container.addPanel(panel1)
       container.addPanel(panel2)
@@ -68,7 +68,7 @@ describe('PanelContainerElement', () => {
       it('adds atom-panel elements when a new panel is added to the container; removes them when the panels are destroyed', () => {
         expect(element.childNodes.length).toBe(0)
 
-        const panel1 = new Panel({item: new TestPanelContainerItem()})
+        const panel1 = new Panel({item: new TestPanelContainerItem()}, atom.views)
         container.addPanel(panel1)
         expect(element.childNodes.length).toBe(1)
         expect(element.childNodes[0]).toHaveClass('left')
@@ -77,12 +77,12 @@ describe('PanelContainerElement', () => {
 
         expect(element.childNodes[0].tagName).toBe('ATOM-PANEL')
 
-        const panel2 = new Panel({item: new TestPanelContainerItem()})
+        const panel2 = new Panel({item: new TestPanelContainerItem()}, atom.views)
         container.addPanel(panel2)
         expect(element.childNodes.length).toBe(2)
 
-        expect(atom.views.getView(panel1).style.display).not.toBe('none')
-        expect(atom.views.getView(panel2).style.display).not.toBe('none')
+        expect(panel1.getElement().style.display).not.toBe('none')
+        expect(panel2.getElement().style.display).not.toBe('none')
 
         panel1.destroy()
         expect(element.childNodes.length).toBe(1)
@@ -102,19 +102,19 @@ describe('PanelContainerElement', () => {
       it('adds atom-panel elements when a new panel is added to the container; removes them when the panels are destroyed', () => {
         expect(element.childNodes.length).toBe(0)
 
-        const panel1 = new Panel({item: new TestPanelContainerItem(), className: 'one'})
+        const panel1 = new Panel({item: new TestPanelContainerItem(), className: 'one'}, atom.views)
         container.addPanel(panel1)
         expect(element.childNodes.length).toBe(1)
         expect(element.childNodes[0]).toHaveClass('bottom')
         expect(element.childNodes[0]).toHaveClass('tool-panel') // legacy selector support
         expect(element.childNodes[0]).toHaveClass('panel-bottom') // legacy selector support
         expect(element.childNodes[0].tagName).toBe('ATOM-PANEL')
-        expect(atom.views.getView(panel1)).toHaveClass('one')
+        expect(panel1.getElement()).toHaveClass('one')
 
-        const panel2 = new Panel({item: new TestPanelContainerItem(), className: 'two'})
+        const panel2 = new Panel({item: new TestPanelContainerItem(), className: 'two'}, atom.views)
         container.addPanel(panel2)
         expect(element.childNodes.length).toBe(2)
-        expect(atom.views.getView(panel2)).toHaveClass('two')
+        expect(panel2.getElement()).toHaveClass('two')
 
         panel1.destroy()
         expect(element.childNodes.length).toBe(1)
@@ -133,33 +133,33 @@ describe('PanelContainerElement', () => {
     })
 
     it('allows only one panel to be visible at a time', () => {
-      const panel1 = new Panel({item: new TestPanelContainerItem()})
+      const panel1 = new Panel({item: new TestPanelContainerItem()}, atom.views)
       container.addPanel(panel1)
 
-      expect(atom.views.getView(panel1).style.display).not.toBe('none')
+      expect(panel1.getElement().style.display).not.toBe('none')
 
-      const panel2 = new Panel({item: new TestPanelContainerItem()})
+      const panel2 = new Panel({item: new TestPanelContainerItem()}, atom.views)
       container.addPanel(panel2)
 
-      expect(atom.views.getView(panel1).style.display).toBe('none')
-      expect(atom.views.getView(panel2).style.display).not.toBe('none')
+      expect(panel1.getElement().style.display).toBe('none')
+      expect(panel2.getElement().style.display).not.toBe('none')
 
       panel1.show()
 
-      expect(atom.views.getView(panel1).style.display).not.toBe('none')
-      expect(atom.views.getView(panel2).style.display).toBe('none')
+      expect(panel1.getElement().style.display).not.toBe('none')
+      expect(panel2.getElement().style.display).toBe('none')
     })
 
     it("adds the 'modal' class to panels", () => {
-      const panel1 = new Panel({item: new TestPanelContainerItem()})
+      const panel1 = new Panel({item: new TestPanelContainerItem()}, atom.views)
       container.addPanel(panel1)
 
-      expect(atom.views.getView(panel1)).toHaveClass('modal')
+      expect(panel1.getElement()).toHaveClass('modal')
 
       // legacy selector support
-      expect(atom.views.getView(panel1)).not.toHaveClass('tool-panel')
-      expect(atom.views.getView(panel1)).toHaveClass('overlay')
-      expect(atom.views.getView(panel1)).toHaveClass('from-top')
+      expect(panel1.getElement()).not.toHaveClass('tool-panel')
+      expect(panel1.getElement()).toHaveClass('overlay')
+      expect(panel1.getElement()).toHaveClass('from-top')
     })
   })
 })
