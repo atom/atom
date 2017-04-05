@@ -47,8 +47,6 @@ Gutter = require './gutter'
 TextEditorRegistry = require './text-editor-registry'
 AutoUpdateManager = require './auto-update-manager'
 
-WorkspaceElement = require './workspace-element'
-PanelContainerElement = require './panel-container-element'
 PanelElement = require './panel-element'
 PaneAxisElement = require './pane-axis-element'
 {createGutterView} = require './gutter-component-helpers'
@@ -285,8 +283,6 @@ class AtomEnvironment extends Model
     registerDefaultCommands({commandRegistry: @commands, @config, @commandInstaller, notificationManager: @notifications, @project, @clipboard})
 
   registerDefaultViewProviders: ->
-    @views.addViewProvider PanelContainer, (model, env) ->
-      new PanelContainerElement().initialize(model, env)
     @views.addViewProvider Panel, (model, env) ->
       new PanelElement().initialize(model, env)
     @views.addViewProvider PaneAxis, (model, env) ->

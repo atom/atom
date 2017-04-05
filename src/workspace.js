@@ -77,13 +77,13 @@ module.exports = class Workspace extends Model {
     }
 
     this.panelContainers = {
-      top: new PanelContainer({location: 'top'}),
-      left: new PanelContainer({location: 'left', dock: this.docks.left}),
-      right: new PanelContainer({location: 'right', dock: this.docks.right}),
-      bottom: new PanelContainer({location: 'bottom', dock: this.docks.bottom}),
-      header: new PanelContainer({location: 'header'}),
-      footer: new PanelContainer({location: 'footer'}),
-      modal: new PanelContainer({location: 'modal'})
+      top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
+      left: new PanelContainer({viewRegistry: this.viewRegistry, location: 'left', dock: this.docks.left}),
+      right: new PanelContainer({viewRegistry: this.viewRegistry, location: 'right', dock: this.docks.right}),
+      bottom: new PanelContainer({viewRegistry: this.viewRegistry, location: 'bottom', dock: this.docks.bottom}),
+      header: new PanelContainer({viewRegistry: this.viewRegistry, location: 'header'}),
+      footer: new PanelContainer({viewRegistry: this.viewRegistry, location: 'footer'}),
+      modal: new PanelContainer({viewRegistry: this.viewRegistry, location: 'modal'})
     }
 
     this.subscribeToEvents()
@@ -144,13 +144,13 @@ module.exports = class Workspace extends Model {
     }
 
     this.panelContainers = {
-      top: new PanelContainer({location: 'top'}),
-      left: new PanelContainer({location: 'left', dock: this.docks.left}),
-      right: new PanelContainer({location: 'right', dock: this.docks.right}),
-      bottom: new PanelContainer({location: 'bottom', dock: this.docks.bottom}),
-      header: new PanelContainer({location: 'header'}),
-      footer: new PanelContainer({location: 'footer'}),
-      modal: new PanelContainer({location: 'modal'})
+      top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
+      left: new PanelContainer({viewRegistry: this.viewRegistry, location: 'left', dock: this.docks.left}),
+      right: new PanelContainer({viewRegistry: this.viewRegistry, location: 'right', dock: this.docks.right}),
+      bottom: new PanelContainer({viewRegistry: this.viewRegistry, location: 'bottom', dock: this.docks.bottom}),
+      header: new PanelContainer({viewRegistry: this.viewRegistry, location: 'header'}),
+      footer: new PanelContainer({viewRegistry: this.viewRegistry, location: 'footer'}),
+      modal: new PanelContainer({viewRegistry: this.viewRegistry, location: 'modal'})
     }
 
     this.originalFontSize = null

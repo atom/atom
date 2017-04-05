@@ -10,7 +10,7 @@ describe('PanelContainer', () => {
   }
 
   beforeEach(() => {
-    container = new PanelContainer()
+    container = new PanelContainer({viewRegistry: atom.views})
   })
 
   describe('::addPanel(panel)', () => {

@@ -34,8 +34,8 @@ describe('PanelContainerElement', () => {
       model => new TestPanelContainerItemElement().initialize(model)
     )
 
-    container = new PanelContainer({location: 'left'})
-    element = atom.views.getView(container)
+    container = new PanelContainer({viewRegistry: atom.views, location: 'left'})
+    element = container.getElement()
     jasmineContent.appendChild(element)
   })
 
@@ -94,8 +94,8 @@ describe('PanelContainerElement', () => {
 
     describe('when the container is at the bottom location', () => {
       beforeEach(() => {
-        container = new PanelContainer({location: 'bottom'})
-        element = atom.views.getView(container)
+        container = new PanelContainer({viewRegistry: atom.views, location: 'bottom'})
+        element = container.getElement()
         jasmineContent.appendChild(element)
       })
 
@@ -127,8 +127,8 @@ describe('PanelContainerElement', () => {
 
   describe('when the container is modal', () => {
     beforeEach(() => {
-      container = new PanelContainer({location: 'modal'})
-      element = atom.views.getView(container)
+      container = new PanelContainer({viewRegistry: atom.views, location: 'modal'})
+      element = container.getElement()
       jasmineContent.appendChild(element)
     })
 
