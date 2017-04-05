@@ -732,8 +732,7 @@ class Pane extends Model
       false
 
   copyActiveItem: ->
-    if @activeItem?
-      @activeItem.copy?() ? @deserializerManager.deserialize(@activeItem.serialize())
+    @activeItem?.copy?()
 
   ###
   Section: Lifecycle
