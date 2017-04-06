@@ -1235,12 +1235,12 @@ module.exports = class Workspace extends Model {
 
   // Extended: Make the next pane active.
   activateNextPane () {
-    return this.paneContainer.activateNextPane()
+    return this.getActivePaneContainer().activateNextPane()
   }
 
   // Extended: Make the previous pane active.
   activatePreviousPane () {
-    return this.paneContainer.activatePreviousPane()
+    return this.getActivePaneContainer().activatePreviousPane()
   }
 
   // Extended: Get the first {Pane} with an item for the given URI.
