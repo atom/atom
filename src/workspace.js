@@ -76,7 +76,8 @@ module.exports = class Workspace extends Model {
     this.center = new WorkspaceCenter({
       paneContainer: this.paneContainer,
       didActivate: this.didActivatePaneContainer,
-      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer
+      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer,
+      didDestroyPaneItem: this.didDestroyPaneItem
     })
     this.docks = {
       left: this.createDock('left'),
@@ -121,7 +122,8 @@ module.exports = class Workspace extends Model {
       didHide: this.didHideDock,
       didActivate: this.didActivatePaneContainer,
       didChangeActivePane: this.didChangeActivePaneOnPaneContainer,
-      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer
+      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer,
+      didDestroyPaneItem: this.didDestroyPaneItem
     })
     dock.onDidDestroyPaneItem(this.didDestroyPaneItem)
     return dock
@@ -143,12 +145,12 @@ module.exports = class Workspace extends Model {
       deserializerManager: this.deserializerManager,
       viewRegistry: this.viewRegistry
     })
-    this.paneContainer.onDidDestroyPaneItem(this.didDestroyPaneItem)
 
     this.center = new WorkspaceCenter({
       paneContainer: this.paneContainer,
       didActivate: this.didActivatePaneContainer,
-      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer
+      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer,
+      didDestroyPaneItem: this.didDestroyPaneItem
     })
     this.docks = {
       left: this.createDock('left'),

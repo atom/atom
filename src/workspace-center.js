@@ -3,13 +3,14 @@
 const TextEditor = require('./text-editor')
 
 module.exports = class WorkspaceCenter {
-  constructor ({paneContainer, didActivate, didChangeActivePaneItem}) {
+  constructor ({paneContainer, didActivate, didChangeActivePaneItem, didDestroyPaneItem}) {
     this.paneContainer = paneContainer
     this.didActivate = didActivate
     this.paneContainer.onDidActivatePane(() => this.didActivate(this))
     this.paneContainer.onDidChangeActivePaneItem((item) => {
       didChangeActivePaneItem(this, item)
     })
+    this.paneContainer.onDidDestroyPaneItem((item) => didDestroyPaneItem(item))
   }
 
   activate () {
