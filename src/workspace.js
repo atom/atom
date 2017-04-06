@@ -6,6 +6,7 @@ const path = require('path')
 const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 const fs = require('fs-plus')
 const {Directory} = require('pathwatcher')
+const Grim = require('grim')
 const DefaultDirectorySearcher = require('./default-directory-searcher')
 const Dock = require('./dock')
 const Model = require('./model')
@@ -73,7 +74,6 @@ module.exports = class Workspace extends Model {
       right: this.createDock('right'),
       bottom: this.createDock('bottom')
     }
-    this.paneContainer = this.paneContainers.center.paneContainer
     this.activePaneContainer = this.paneContainers.center
 
     this.panelContainers = {
@@ -87,6 +87,11 @@ module.exports = class Workspace extends Model {
     }
 
     this.subscribeToEvents()
+  }
+
+  get paneContainer () {
+    Grim.deprecate('`atom.workspace.paneContainer` has always been private, but it is now gone. Please use `atom.workspace.getCenter()` instead and consult the workspace API docs for public methods.')
+    return this.paneContainers.center.paneContainer
   }
 
   getElement () {
@@ -149,7 +154,6 @@ module.exports = class Workspace extends Model {
       right: this.createDock('right'),
       bottom: this.createDock('bottom')
     }
-    this.paneContainer = this.paneContainers.center.paneContainer
     this.activePaneContainer = this.paneContainers.center
 
     this.panelContainers = {
