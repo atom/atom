@@ -6,19 +6,18 @@ ItemRegistry = require './item-registry'
 PaneContainerElement = require './pane-container-element'
 
 module.exports =
-class PaneContainer extends Model
+class PaneContainer
   serializationVersion: 1
   root: null
   stoppedChangingActivePaneItemDelay: 100
   stoppedChangingActivePaneItemTimeout: null
 
   constructor: (params) ->
-    super
-
     {@config, applicationDelegate, notificationManager, deserializerManager, @viewRegistry, @location} = params
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
     @itemRegistry = new ItemRegistry
+    @alive = true
 
     @setRoot(new Pane({container: this, @config, applicationDelegate, notificationManager, deserializerManager, @viewRegistry}))
     @setActivePane(@getRoot())
@@ -31,6 +30,17 @@ class PaneContainer extends Model
 
   getElement: ->
     @element ?= new PaneContainerElement().initialize(this, {views: @viewRegistry})
+
+  destroy: ->
+    @alive = false
+    @cancelStoppedChangingActivePaneItemTimeout()
+    pane.destroy() for pane in @getRoot().getPanes()
+    @subscriptions.dispose()
+    @emitter.dispose()
+
+  isAlive: -> @alive
+
+  isDestroyed: -> not @isAlive()
 
   serialize: (params) ->
     deserializer: 'PaneContainer'
@@ -205,13 +215,6 @@ class PaneContainer extends Model
 
   didDestroyPane: (event) ->
     @emitter.emit 'did-destroy-pane', event
-
-  # Called by Model superclass when destroyed
-  destroyed: ->
-    @cancelStoppedChangingActivePaneItemTimeout()
-    pane.destroy() for pane in @getRoot().getPanes()
-    @subscriptions.dispose()
-    @emitter.dispose()
 
   cancelStoppedChangingActivePaneItemTimeout: ->
     if @stoppedChangingActivePaneItemTimeout?
