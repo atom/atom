@@ -33,6 +33,7 @@ module.exports = class Dock {
     this.deserializerManager = params.deserializerManager
     this.notificationManager = params.notificationManager
     this.viewRegistry = params.viewRegistry
+    this.didHide = params.didHide
 
     this.paneContainer = new PaneContainer({
       location: this.location,
@@ -103,6 +104,7 @@ module.exports = class Dock {
 
   hide () {
     this.setState({open: false})
+    this.didHide()
   }
 
   toggle () {

@@ -16,6 +16,18 @@ describe('Dock', () => {
     })
   })
 
+  describe('when a dock is hidden', () => {
+    it('transfers focus back to the active center pane', () => {
+      jasmine.attachToDOM(atom.workspace.getElement())
+      const dock = atom.workspace.getLeftDock()
+      dock.activate()
+      expect(document.activeElement).toBe(dock.getActivePane().getElement())
+
+      dock.hide()
+      expect(document.activeElement).toBe(atom.workspace.getCenter().getActivePane().getElement())
+    })
+  })
+
   describe('when a pane in a dock is activated', () => {
     it('opens the dock', async () => {
       const item = {

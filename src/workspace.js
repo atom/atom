@@ -36,6 +36,7 @@ module.exports = class Workspace extends Model {
     this.updateDocumentEdited = this.updateDocumentEdited.bind(this)
     this.didDestroyPaneItem = this.didDestroyPaneItem.bind(this)
     this.didChangeActivePaneItem = this.didChangeActivePaneItem.bind(this)
+    this.didHideDock = this.didHideDock.bind(this)
 
     this.packageManager = params.packageManager
     this.config = params.config
@@ -112,10 +113,15 @@ module.exports = class Workspace extends Model {
       applicationDelegate: this.applicationDelegate,
       deserializerManager: this.deserializerManager,
       notificationManager: this.notificationManager,
-      viewRegistry: this.viewRegistry
+      viewRegistry: this.viewRegistry,
+      didHide: this.didHideDock
     })
     dock.onDidDestroyPaneItem(this.didDestroyPaneItem)
     return dock
+  }
+
+  didHideDock () {
+    this.getCenter().getActivePane().activate()
   }
 
   reset (packageManager) {
