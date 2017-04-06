@@ -18,10 +18,6 @@ nextInstanceId = 1
 # pending items is shown in italics.
 module.exports =
 class Pane
-  container: undefined
-  activeItem: undefined
-  focused: false
-
   @deserialize: (state, {deserializers, applicationDelegate, config, notifications, views}) ->
     {items, activeItemIndex, activeItemURI, activeItemUri} = state
     activeItemURI ?= activeItemUri
@@ -55,6 +51,9 @@ class Pane
     @subscriptionsPerItem = new WeakMap
     @items = []
     @itemStack = []
+    @container = null
+    @activeItem ?= undefined
+    @focused ?= false
 
     @addItems(compact(params?.items ? []))
     @setActiveItem(@items[0]) unless @getActiveItem()?
