@@ -5,19 +5,18 @@ Pane = require './pane'
 ItemRegistry = require './item-registry'
 PaneContainerElement = require './pane-container-element'
 
+SERIALIZATION_VERSION = 1
+STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY = 100
+
 module.exports =
 class PaneContainer
-  serializationVersion: 1
-  root: null
-  stoppedChangingActivePaneItemDelay: 100
-  stoppedChangingActivePaneItemTimeout: null
-
   constructor: (params) ->
     {@config, applicationDelegate, notificationManager, deserializerManager, @viewRegistry, @location} = params
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
     @itemRegistry = new ItemRegistry
     @alive = true
+    @stoppedChangingActivePaneItemTimeout = null
 
     @setRoot(new Pane({container: this, @config, applicationDelegate, notificationManager, deserializerManager, @viewRegistry}))
     @setActivePane(@getRoot())
@@ -44,12 +43,12 @@ class PaneContainer
 
   serialize: (params) ->
     deserializer: 'PaneContainer'
-    version: @serializationVersion
+    version: SERIALIZATION_VERSION
     root: @root?.serialize()
     activePaneId: @activePane.id
 
   deserialize: (state, deserializerManager) ->
-    return unless state.version is @serializationVersion
+    return unless state.version is SERIALIZATION_VERSION
     @setRoot(deserializerManager.deserialize(state.root))
     activePane = find @getRoot().getPanes(), (pane) -> pane.id is state.activePaneId
     @setActivePane(activePane ? @getPanes()[0])
@@ -237,7 +236,7 @@ class PaneContainer
         @stoppedChangingActivePaneItemTimeout =
           setTimeout(
             stoppedChangingActivePaneItemCallback,
-            @stoppedChangingActivePaneItemDelay)
+            STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY)
 
       @subscriptions.add(childSubscription)
 
