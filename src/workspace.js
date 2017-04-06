@@ -20,6 +20,7 @@ const WorkspaceCenter = require('./workspace-center')
 const WorkspaceElement = require('./workspace-element')
 
 const STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY = 100
+const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom']
 
 // Essential: Represents the state of the user interface for the entire window.
 // An instance of this class is available via the `atom.workspace` global.
@@ -66,20 +67,20 @@ module.exports = class Workspace extends Model {
     this.defaultDirectorySearcher = new DefaultDirectorySearcher()
     this.consumeServices(this.packageManager)
 
-    this.center = this.createCenter()
-    this.docks = {
+    this.paneContainers = {
+      center: this.createCenter(),
       left: this.createDock('left'),
       right: this.createDock('right'),
       bottom: this.createDock('bottom')
     }
-    this.paneContainer = this.center.paneContainer
-    this.activePaneContainer = this.center
+    this.paneContainer = this.paneContainers.center.paneContainer
+    this.activePaneContainer = this.paneContainers.center
 
     this.panelContainers = {
       top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
-      left: new PanelContainer({viewRegistry: this.viewRegistry, location: 'left', dock: this.docks.left}),
-      right: new PanelContainer({viewRegistry: this.viewRegistry, location: 'right', dock: this.docks.right}),
-      bottom: new PanelContainer({viewRegistry: this.viewRegistry, location: 'bottom', dock: this.docks.bottom}),
+      left: new PanelContainer({viewRegistry: this.viewRegistry, location: 'left', dock: this.paneContainers.left}),
+      right: new PanelContainer({viewRegistry: this.viewRegistry, location: 'right', dock: this.paneContainers.right}),
+      bottom: new PanelContainer({viewRegistry: this.viewRegistry, location: 'bottom', dock: this.paneContainers.bottom}),
       header: new PanelContainer({viewRegistry: this.viewRegistry, location: 'header'}),
       footer: new PanelContainer({viewRegistry: this.viewRegistry, location: 'footer'}),
       modal: new PanelContainer({viewRegistry: this.viewRegistry, location: 'modal'})
@@ -135,27 +136,27 @@ module.exports = class Workspace extends Model {
     this.emitter.dispose()
     this.emitter = new Emitter()
 
-    this.center.destroy()
-    this.docks.left.destroy()
-    this.docks.right.destroy()
-    this.docks.bottom.destroy()
+    this.paneContainers.center.destroy()
+    this.paneContainers.left.destroy()
+    this.paneContainers.right.destroy()
+    this.paneContainers.bottom.destroy()
 
     _.values(this.panelContainers).forEach(panelContainer => { panelContainer.destroy() })
 
-    this.center = this.createCenter()
-    this.docks = {
+    this.paneContainers = {
+      center: this.createCenter(),
       left: this.createDock('left'),
       right: this.createDock('right'),
       bottom: this.createDock('bottom')
     }
-    this.paneContainer = this.center.paneContainer
-    this.activePaneContainer = this.center
+    this.paneContainer = this.paneContainers.center.paneContainer
+    this.activePaneContainer = this.paneContainers.center
 
     this.panelContainers = {
       top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
-      left: new PanelContainer({viewRegistry: this.viewRegistry, location: 'left', dock: this.docks.left}),
-      right: new PanelContainer({viewRegistry: this.viewRegistry, location: 'right', dock: this.docks.right}),
-      bottom: new PanelContainer({viewRegistry: this.viewRegistry, location: 'bottom', dock: this.docks.bottom}),
+      left: new PanelContainer({viewRegistry: this.viewRegistry, location: 'left', dock: this.paneContainers.left}),
+      right: new PanelContainer({viewRegistry: this.viewRegistry, location: 'right', dock: this.paneContainers.right}),
+      bottom: new PanelContainer({viewRegistry: this.viewRegistry, location: 'bottom', dock: this.paneContainers.bottom}),
       header: new PanelContainer({viewRegistry: this.viewRegistry, location: 'header'}),
       footer: new PanelContainer({viewRegistry: this.viewRegistry, location: 'footer'}),
       modal: new PanelContainer({viewRegistry: this.viewRegistry, location: 'modal'})
@@ -191,10 +192,10 @@ module.exports = class Workspace extends Model {
       packagesWithActiveGrammars: this.getPackageNamesWithActiveGrammars(),
       destroyedItemURIs: this.destroyedItemURIs.slice(),
       paneContainers: {
-        center: this.center.serialize(),
-        left: this.docks.left.serialize(),
-        right: this.docks.right.serialize(),
-        bottom: this.docks.bottom.serialize()
+        center: this.paneContainers.center.serialize(),
+        left: this.paneContainers.left.serialize(),
+        right: this.paneContainers.right.serialize(),
+        bottom: this.paneContainers.bottom.serialize()
       }
     }
   }
@@ -211,13 +212,17 @@ module.exports = class Workspace extends Model {
     if (state.destroyedItemURIs != null) {
       this.destroyedItemURIs = state.destroyedItemURIs
     }
-    this.center.deserialize(state.paneContainer || state.paneContainers.center, deserializerManager)
-    for (let location in this.docks) {
-      const serialized = state.paneContainers && state.paneContainers[location]
-      if (serialized) {
-        this.docks[location].deserialize(serialized, deserializerManager)
-      }
+
+    if (state.paneContainers) {
+      this.paneContainers.center.deserialize(state.paneContainers.center, deserializerManager)
+      this.paneContainers.left.deserialize(state.paneContainers.left, deserializerManager)
+      this.paneContainers.right.deserialize(state.paneContainers.right, deserializerManager)
+      this.paneContainers.bottom.deserialize(state.paneContainers.bottom, deserializerManager)
+    } else if (state.paneContainer) {
+      // TODO: Remove this fallback once a lot of time has passed since 1.17 was released
+      this.paneContainers.center.deserialize(state.paneContainer, deserializerManager)
     }
+
     this.updateWindowTitle()
   }
 
@@ -323,13 +328,13 @@ module.exports = class Workspace extends Model {
 
   setHoveredDock (hoveredDock) {
     this.hoveredDock = hoveredDock
-    _.values(this.docks).forEach(dock => {
+    _.values(this.paneContainers).forEach(dock => {
       dock.setHovered(dock === hoveredDock)
     })
   }
 
   setDraggingItem (draggingItem) {
-    _.values(this.docks).forEach(dock => {
+    _.values(this.paneContainers).forEach(dock => {
       dock.setDraggingItem(draggingItem)
     })
   }
@@ -786,7 +791,7 @@ module.exports = class Workspace extends Model {
         const allowedLocations = typeof item.getAllowedLocations === 'function' ? item.getAllowedLocations() : ALL_LOCATIONS
         location = allowedLocations.includes(location) ? location : allowedLocations[0]
 
-        container = this.docks[location] || this.getCenter()
+        container = this.paneContainers[location] || this.getCenter()
         pane = container.getActivePane()
         switch (options.split) {
           case 'left':
@@ -1349,10 +1354,10 @@ module.exports = class Workspace extends Model {
 
   // Called by Model superclass when destroyed
   destroyed () {
-    this.center.destroy()
-    this.docks.left.destroy()
-    this.docks.right.destroy()
-    this.docks.bottom.destroy()
+    this.paneContainers.center.destroy()
+    this.paneContainers.left.destroy()
+    this.paneContainers.right.destroy()
+    this.paneContainers.bottom.destroy()
     this.cancelStoppedChangingActivePaneItemTimeout()
     if (this.activeItemSubscriptions != null) {
       this.activeItemSubscriptions.dispose()
@@ -1364,23 +1369,28 @@ module.exports = class Workspace extends Model {
   */
 
   getCenter () {
-    return this.center
+    return this.paneContainers.center
   }
 
   getLeftDock () {
-    return this.docks.left
+    return this.paneContainers.left
   }
 
   getRightDock () {
-    return this.docks.right
+    return this.paneContainers.right
   }
 
   getBottomDock () {
-    return this.docks.bottom
+    return this.paneContainers.bottom
   }
 
   getPaneContainers () {
-    return [this.getCenter(), ..._.values(this.docks)]
+    return [
+      this.paneContainers.center,
+      this.paneContainers.left,
+      this.paneContainers.right,
+      this.paneContainers.bottom
+    ]
   }
 
   /*
@@ -1791,5 +1801,3 @@ module.exports = class Workspace extends Model {
     }
   }
 }
-
-const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom']
