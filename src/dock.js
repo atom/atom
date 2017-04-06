@@ -80,8 +80,6 @@ module.exports = class Dock {
   destroy () {
     this.subscriptions.dispose()
     this.paneContainer.destroy()
-    this.resizeHandle.destroy()
-    this.toggleButton.destroy()
     window.removeEventListener('mousemove', this.handleMouseMove)
     window.removeEventListener('mouseup', this.handleMouseUp)
     window.removeEventListener('drag', this.handleDrag)
@@ -651,10 +649,6 @@ class DockResizeHandle {
     }
   }
 
-  destroy () {
-    this.element.removeEventListener('mousedown', this.handleMouseDown)
-  }
-
   handleMouseDown (event) {
     if (event.detail === 2) {
       this.props.onResizeToFit()
@@ -693,11 +687,6 @@ class DockToggleButton {
       this.bounds = this.element.getBoundingClientRect()
     }
     return this.bounds
-  }
-
-  destroy () {
-    this.innerElement.removeEventListener('click', this.handleClick)
-    this.innerElement.removeEventListener('dragenter', this.handleDragEnter)
   }
 
   update (newProps) {
