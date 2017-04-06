@@ -936,7 +936,7 @@ describe('Workspace', () => {
           atom.workspace.open('sample.js', {pending: true, split: 'right'}).then(o => {
             editor1 = o
             rightPane = atom.workspace.getActivePane()
-            spyOn(rightPane, 'destroyed')
+            spyOn(rightPane, 'destroy').andCallThrough()
           })
         )
 
@@ -953,7 +953,7 @@ describe('Workspace', () => {
 
         runs(() => {
           expect(rightPane.getPendingItem()).toBe(editor2)
-          expect(rightPane.destroyed.callCount).toBe(0)
+          expect(rightPane.destroy.callCount).toBe(0)
         })
       })
     })

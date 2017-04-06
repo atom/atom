@@ -1,10 +1,11 @@
 Grim = require 'grim'
 {find, compact, extend, last} = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
-Model = require './model'
 PaneAxis = require './pane-axis'
 TextEditor = require './text-editor'
 PaneElement = require './pane-element'
+
+nextInstanceId = 1
 
 # Extended: A container for presenting content in the center of the workspace.
 # Panes can contain multiple items, one of which is *active* at a given time.
@@ -16,7 +17,7 @@ PaneElement = require './pane-element'
 # simply being added. In the default configuration, the text in the tab for
 # pending items is shown in italics.
 module.exports =
-class Pane extends Model
+class Pane
   container: undefined
   activeItem: undefined
   focused: false
@@ -40,14 +41,17 @@ class Pane extends Model
     }))
 
   constructor: (params) ->
-    super
-
     {
-      @activeItem, @focused, @applicationDelegate, @notificationManager, @config,
+      @id, @activeItem, @focused, @applicationDelegate, @notificationManager, @config,
       @deserializerManager, @viewRegistry
     } = params
 
+    if @id?
+      nextInstanceId = Math.max(nextInstanceId, @id + 1)
+    else
+      @id = nextInstanceId++
     @emitter = new Emitter
+    @alive = true
     @subscriptionsPerItem = new WeakMap
     @items = []
     @itemStack = []
@@ -65,13 +69,15 @@ class Pane extends Model
     itemStackIndices = (itemsToBeSerialized.indexOf(item) for item in @itemStack when typeof item.serialize is 'function')
     activeItemIndex = itemsToBeSerialized.indexOf(@activeItem)
 
-    deserializer: 'Pane'
-    id: @id
-    items: itemsToBeSerialized.map((item) -> item.serialize())
-    itemStackIndices: itemStackIndices
-    activeItemIndex: activeItemIndex
-    focused: @focused
-    flexScale: @flexScale
+    {
+      deserializer: 'Pane',
+      id: @id,
+      items: itemsToBeSerialized.map((item) -> item.serialize())
+      itemStackIndices: itemStackIndices
+      activeItemIndex: activeItemIndex
+      focused: @focused
+      flexScale: @flexScale
+    }
 
   getParent: -> @parent
 
@@ -759,16 +765,21 @@ class Pane extends Model
       @destroyItems()
     else
       @emitter.emit 'will-destroy'
+      @alive = false
       @container?.willDestroyPane(pane: this)
-      super
+      @container.activateNextPane() if @isActive()
+      @emitter.emit 'did-destroy'
+      @emitter.dispose()
+      item.destroy?() for item in @items.slice()
+      @container?.didDestroyPane(pane: this)
 
-  # Called by model superclass.
-  destroyed: ->
-    @container.activateNextPane() if @isActive()
-    @emitter.emit 'did-destroy'
-    @emitter.dispose()
-    item.destroy?() for item in @items.slice()
-    @container?.didDestroyPane(pane: this)
+
+  isAlive: -> @alive
+
+  # Public: Determine whether this pane has been destroyed.
+  #
+  # Returns a {Boolean}.
+  isDestroyed: -> not @isAlive()
 
   ###
   Section: Splitting
