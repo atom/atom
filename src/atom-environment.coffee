@@ -47,8 +47,6 @@ Gutter = require './gutter'
 TextEditorRegistry = require './text-editor-registry'
 AutoUpdateManager = require './auto-update-manager'
 
-{createGutterView} = require './gutter-component-helpers'
-
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
 # An instance of this class is always available as the `atom` global.
@@ -188,7 +186,6 @@ class AtomEnvironment extends Model
     @registerDefaultCommands()
     @registerDefaultOpeners()
     @registerDefaultDeserializers()
-    @registerDefaultViewProviders()
 
     @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate})
 
@@ -280,9 +277,6 @@ class AtomEnvironment extends Model
   registerDefaultCommands: ->
     registerDefaultCommands({commandRegistry: @commands, @config, @commandInstaller, notificationManager: @notifications, @project, @clipboard})
 
-  registerDefaultViewProviders: ->
-    @views.addViewProvider(Gutter, createGutterView)
-
   registerDefaultOpeners: ->
     @workspace.addOpener (uri) =>
       switch uri
@@ -340,7 +334,6 @@ class AtomEnvironment extends Model
     @textEditors.clear()
 
     @views.clear()
-    @registerDefaultViewProviders()
 
   destroy: ->
     return if not @project
