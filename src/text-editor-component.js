@@ -193,12 +193,11 @@ class TextEditorComponent {
       })
 
       this.blockDecorationsToMeasure.forEach((decoration) => {
-        const {item, position} = decoration.getProperties()
+        const {item} = decoration.getProperties()
         const decorationElement = TextEditor.viewForItem(item)
         const {previousSibling, nextSibling} = decorationElement
         const height = nextSibling.offsetTop - previousSibling.offsetTop
-        const row = decoration.getMarker().getHeadScreenPosition().row
-        this.lineTopIndex.insertBlock(decoration.id, row, height, position === 'after')
+        this.lineTopIndex.resizeBlock(decoration, height)
       })
 
       while (blockDecorationMeasurementArea.firstChild) {
@@ -1858,7 +1857,25 @@ class TextEditorComponent {
     const {model} = this.props
     model.component = this
     const scheduleUpdate = this.scheduleUpdate.bind(this)
-    this.disposables.add(model.displayLayer.onDidChangeSync(scheduleUpdate))
+    this.disposables.add(model.displayLayer.onDidReset(() => {
+      this.spliceLineTopIndex(0, Infinity, Infinity)
+      this.scheduleUpdate()
+    }))
+    this.disposables.add(model.displayLayer.onDidChangeSync((changes) => {
+      for (let i = 0; i < changes.length; i++) {
+        const change = changes[i]
+        const startRow = change.start.row
+        const endRow = startRow + change.oldExtent.row
+        const rowDelta = change.newExtent.row - change.oldExtent.row
+        this.spliceLineTopIndex(
+          change.start.row,
+          change.oldExtent.row,
+          change.newExtent.row
+        )
+      }
+
+      this.scheduleUpdate()
+    }))
     this.disposables.add(model.onDidUpdateDecorations(scheduleUpdate))
     this.disposables.add(model.onDidAddGutter(scheduleUpdate))
     this.disposables.add(model.onDidRemoveGutter(scheduleUpdate))
@@ -1871,20 +1888,33 @@ class TextEditorComponent {
   }
 
   observeBlockDecoration (decoration) {
-    this.blockDecorationsToMeasure.add(decoration)
     const marker = decoration.getMarker()
+    const {item, position} = decoration.getProperties()
+    const row = marker.getHeadScreenPosition().row
+    this.lineTopIndex.insertBlock(decoration, row, 0, position === 'after')
+
+    this.blockDecorationsToMeasure.add(decoration)
+
     const didUpdateDisposable = marker.bufferMarker.onDidChange((e) => {
       if (!e.textChanged) {
-        this.lineTopIndex.moveBlock(decoration.id, marker.getHeadScreenPosition().row)
+        this.lineTopIndex.moveBlock(decoration, marker.getHeadScreenPosition().row)
         this.scheduleUpdate()
       }
     })
     const didDestroyDisposable = decoration.onDidDestroy(() => {
       this.blockDecorationsToMeasure.delete(decoration)
-      this.lineTopIndex.removeBlock(decoration.id)
+      this.lineTopIndex.removeBlock(decoration)
       didUpdateDisposable.dispose()
       didDestroyDisposable.dispose()
       this.scheduleUpdate()
+    })
+  }
+
+  spliceLineTopIndex (startRow, oldExtent, newExtent) {
+    const invalidatedBlockDecorations = this.lineTopIndex.splice(startRow, oldExtent, newExtent)
+    invalidatedBlockDecorations.forEach((decoration) => {
+      const newPosition = decoration.getMarker().getHeadScreenPosition()
+      this.lineTopIndex.moveBlock(decoration, newPosition.row)
     })
   }
 
@@ -2537,8 +2567,10 @@ class LinesTileComponent {
           for (let i = 0; i < rowBlockDecorations.length; i++) {
             const blockDecoration = rowBlockDecorations[i]
             if (blockDecoration.position == null || blockDecoration.position === 'before') {
+              const element = TextEditor.viewForItem(blockDecoration.item)
               children.push($(ElementComponent, {
-                element: TextEditor.viewForItem(blockDecoration.item)
+                key: element,
+                element
               }))
             }
           }
@@ -2557,8 +2589,10 @@ class LinesTileComponent {
           for (let i = 0; i < rowBlockDecorations.length; i++) {
             const blockDecoration = rowBlockDecorations[i]
             if (blockDecoration.position === 'after') {
+              const element = TextEditor.viewForItem(blockDecoration.item)
               children.push($(ElementComponent, {
-                element: TextEditor.viewForItem(blockDecoration.item)
+                key: element,
+                element
               }))
             }
           }
@@ -2847,10 +2881,6 @@ class ComponentWrapper {
 class ElementComponent {
   constructor ({element}) {
     this.element = element
-  }
-
-  destroy () {
-    this.element.remove()
   }
 
   update ({element}) {
