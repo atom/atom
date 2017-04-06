@@ -18,6 +18,8 @@ nextInstanceId = 1
 # pending items is shown in italics.
 module.exports =
 class Pane
+  inspect: -> "Pane #{@id}"
+
   @deserialize: (state, {deserializers, applicationDelegate, config, notifications, views}) ->
     {items, activeItemIndex, activeItemURI, activeItemUri} = state
     activeItemURI ?= activeItemUri
@@ -304,7 +306,7 @@ class Pane
   # Called by the view layer to indicate that the pane has gained focus.
   focus: ->
     @focused = true
-    @activate() unless @isActive()
+    @activate()
 
   # Called by the view layer to indicate that the pane has lost focus.
   blur: ->

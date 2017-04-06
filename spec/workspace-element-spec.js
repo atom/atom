@@ -22,6 +22,17 @@ describe('WorkspaceElement', () => {
     })
   })
 
+  describe('when the active pane of an inactive pane container is focused', () => {
+    it('changes the active pane container', () => {
+      const dock = atom.workspace.getLeftDock()
+      dock.open()
+      jasmine.attachToDOM(atom.workspace.getElement())
+      expect(atom.workspace.getActivePaneContainer()).toBe(atom.workspace.getCenter())
+      dock.getActivePane().getElement().focus()
+      expect(atom.workspace.getActivePaneContainer()).toBe(dock)
+    })
+  })
+
   describe('the scrollbar visibility class', () => {
     it('has a class based on the style of the scrollbar', () => {
       let observeCallback
