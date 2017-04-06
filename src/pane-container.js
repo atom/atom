@@ -248,11 +248,17 @@ class PaneContainer {
     for (let pane of this.getPanes()) { if (pane.items.length === 0) { pane.destroy() } }
   }
 
+  didAddPaneItem (item, pane, index) {
+    this.itemRegistry.addItem(item)
+    this.emitter.emit('did-add-pane-item', {item, pane, index})
+  }
+
   willDestroyPaneItem (event) {
     this.emitter.emit('will-destroy-pane-item', event)
   }
 
   didDestroyPaneItem (event) {
+    this.itemRegistry.removeItem(event.item)
     this.emitter.emit('did-destroy-pane-item', event)
   }
 
@@ -308,19 +314,6 @@ class PaneContainer {
         const item = iterable[index]
         this.didAddPaneItem(item, pane, index)
       }
-
-      pane.onDidRemoveItem(({item, moved}) => {
-        if (!moved) { this.removedPaneItem(item) }
-      })
     }))
-  }
-
-  didAddPaneItem (item, pane, index) {
-    this.itemRegistry.addItem(item)
-    this.emitter.emit('did-add-pane-item', {item, pane, index})
-  }
-
-  removedPaneItem (item) {
-    this.itemRegistry.removeItem(item)
   }
 }
