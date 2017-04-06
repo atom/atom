@@ -227,7 +227,6 @@ class AtomEnvironment extends Model
     @themes.initialize({@configDirPath, resourcePath, safeMode, devMode})
 
     @commandInstaller.initialize(@getVersion())
-    @workspace.initialize()
     @autoUpdater.initialize()
 
     @config.load()

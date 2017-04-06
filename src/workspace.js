@@ -90,10 +90,6 @@ module.exports = class Workspace extends Model {
     this.subscribeToEvents()
   }
 
-  initialize () {
-    this.paneContainer.initialize()
-  }
-
   getElement () {
     if (!this.element) {
       this.element = new WorkspaceElement().initialize(this, {
@@ -164,7 +160,6 @@ module.exports = class Workspace extends Model {
     this.destroyedItemURIs = []
     this.element = null
     this.consumeServices(this.packageManager)
-    this.initialize()
   }
 
   subscribeToEvents () {

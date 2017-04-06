@@ -25,7 +25,6 @@ describe "PaneContainer", ->
         serialize: -> deserializer: 'Item'
 
       containerA = new PaneContainer(params)
-      containerA.initialize()
       pane1A = containerA.getActivePane()
       pane1A.addItem(new Item)
       pane2A = pane1A.splitRight(items: [new Item])
@@ -36,7 +35,6 @@ describe "PaneContainer", ->
       expect(pane3A.focused).toBe true
 
       containerB = new PaneContainer(params)
-      containerB.initialize()
       containerB.deserialize(containerA.serialize(), atom.deserializers)
       [pane1B, pane2B, pane3B] = containerB.getPanes()
       expect(pane3B.focused).toBe true
@@ -46,7 +44,6 @@ describe "PaneContainer", ->
       expect(containerA.getActivePane()).toBe pane3A
 
       containerB = new PaneContainer(params)
-      containerB.initialize()
       containerB.deserialize(containerA.serialize(), atom.deserializers)
       [pane1B, pane2B, pane3B] = containerB.getPanes()
       expect(containerB.getActivePane()).toBe pane3B
@@ -56,7 +53,6 @@ describe "PaneContainer", ->
       state = containerA.serialize()
       state.activePaneId = -22
       containerB = new PaneContainer(params)
-      containerB.initialize()
       containerB.deserialize(state, atom.deserializers)
       expect(containerB.getActivePane()).toBe containerB.getPanes()[0]
 
@@ -68,7 +64,6 @@ describe "PaneContainer", ->
         it "leaves the empty panes intact", ->
           state = containerA.serialize()
           containerB = new PaneContainer(params)
-          containerB.initialize()
           containerB.deserialize(state, atom.deserializers)
           [leftPane, column] = containerB.getRoot().getChildren()
           [topPane, bottomPane] = column.getChildren()
@@ -83,7 +78,6 @@ describe "PaneContainer", ->
 
           state = containerA.serialize()
           containerB = new PaneContainer(params)
-          containerB.initialize()
           containerB.deserialize(state, atom.deserializers)
           [leftPane, rightPane] = containerB.getRoot().getChildren()
 
@@ -92,7 +86,6 @@ describe "PaneContainer", ->
 
   it "does not allow the root pane to be destroyed", ->
     container = new PaneContainer(params)
-    container.initialize()
     container.getRoot().destroy()
     expect(container.getRoot()).toBeDefined()
     expect(container.getRoot().isDestroyed()).toBe false
@@ -102,7 +95,6 @@ describe "PaneContainer", ->
 
     beforeEach ->
       container = new PaneContainer(params)
-      container.initialize()
       pane1 = container.getRoot()
 
     it "returns the first pane if no pane has been made active", ->
@@ -132,7 +124,6 @@ describe "PaneContainer", ->
 
     beforeEach ->
       container = new PaneContainer(params)
-      container.initialize()
       container.getRoot().addItems([new Object, new Object])
       container.getRoot().splitRight(items: [new Object, new Object])
       [pane1, pane2] = container.getPanes()
@@ -153,7 +144,6 @@ describe "PaneContainer", ->
   describe "::onDidActivatePane", ->
     it "invokes observers when a pane is activated (even if it was already active)", ->
       container = new PaneContainer(params)
-      container.initialize()
       container.getRoot().splitRight()
       [pane1, pane2] = container.getPanes()
 
@@ -171,7 +161,6 @@ describe "PaneContainer", ->
 
     beforeEach ->
       container = new PaneContainer(root: new Pane(items: [new Object, new Object]))
-      container.initialize()
       container.getRoot().splitRight(items: [new Object, new Object])
       [pane1, pane2] = container.getPanes()
 
@@ -193,7 +182,6 @@ describe "PaneContainer", ->
   describe "::observePanes()", ->
     it "invokes observers with all current and future panes", ->
       container = new PaneContainer(params)
-      container.initialize()
       container.getRoot().splitRight()
       [pane1, pane2] = container.getPanes()
 
@@ -208,7 +196,6 @@ describe "PaneContainer", ->
   describe "::observePaneItems()", ->
     it "invokes observers with all current and future pane items", ->
       container = new PaneContainer(params)
-      container.initialize()
       container.getRoot().addItems([new Object, new Object])
       container.getRoot().splitRight(items: [new Object])
       [pane1, pane2] = container.getPanes()
@@ -229,7 +216,6 @@ describe "PaneContainer", ->
         getURI: -> 'test'
 
       container = new PaneContainer(params)
-      container.initialize()
       container.getRoot().splitRight()
       [pane1, pane2] = container.getPanes()
       pane1.addItem(new TestItem)
@@ -250,7 +236,6 @@ describe "PaneContainer", ->
   describe "::onDidAddPane(callback)", ->
     it "invokes the given callback when panes are added", ->
       container = new PaneContainer(params)
-      container.initialize()
       events = []
       container.onDidAddPane (event) ->
         expect(event.pane in container.getPanes()).toBe true
@@ -270,7 +255,6 @@ describe "PaneContainer", ->
         isDestroyed: -> @_isDestroyed
 
       container = new PaneContainer(params)
-      container.initialize()
       events = []
       container.onWillDestroyPane (event) ->
         itemsDestroyed = (item.isDestroyed() for item in event.pane.getItems())
@@ -287,7 +271,6 @@ describe "PaneContainer", ->
   describe "::onDidDestroyPane(callback)", ->
     it "invokes the given callback when panes are destroyed", ->
       container = new PaneContainer(params)
-      container.initialize()
       events = []
       container.onDidDestroyPane (event) ->
         expect(event.pane in container.getPanes()).toBe false
@@ -304,7 +287,6 @@ describe "PaneContainer", ->
 
     it "invokes the given callback when the container is destroyed", ->
       container = new PaneContainer(params)
-      container.initialize()
       events = []
       container.onDidDestroyPane (event) ->
         expect(event.pane in container.getPanes()).toBe false
@@ -321,7 +303,6 @@ describe "PaneContainer", ->
   describe "::onWillDestroyPaneItem() and ::onDidDestroyPaneItem", ->
     it "invokes the given callbacks when an item will be destroyed on any pane", ->
       container = new PaneContainer(params)
-      container.initialize()
       pane1 = container.getRoot()
       item1 = new Object
       item2 = new Object
@@ -349,7 +330,6 @@ describe "PaneContainer", ->
   describe "::saveAll()", ->
     it "saves all modified pane items", ->
       container = new PaneContainer(params)
-      container.initialize()
       pane1 = container.getRoot()
       pane2 = pane1.splitRight()
 
@@ -391,7 +371,6 @@ describe "PaneContainer", ->
         copy: -> new TestItem(@id)
 
       container = new PaneContainer(params)
-      container.initialize()
       pane1 = container.getRoot()
       item1 = new TestItem('1')
       pane2 = pane1.splitRight(items: [item1])

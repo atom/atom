@@ -340,6 +340,7 @@ class Pane
       @addItemToStack(activeItem) unless modifyStack is false
       @activeItem = activeItem
       @emitter.emit 'did-change-active-item', @activeItem
+      @container?.didChangeActiveItemOnPane(this, @activeItem)
     @activeItem
 
   # Build the itemStack after deserializing

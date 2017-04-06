@@ -22,10 +22,6 @@ class PaneContainer {
     this.setActivePane(this.getRoot())
   }
 
-  initialize () {
-    this.monitorActivePaneItem()
-  }
-
   getLocation () { return this.location }
 
   getElement () {
@@ -171,6 +167,7 @@ class PaneContainer {
 
       this.activePane = activePane
       this.emitter.emit('did-change-active-pane', this.activePane)
+      this.didChangeActiveItemOnPane(this.activePane, this.activePane.getActiveItem())
     }
     this.emitter.emit('did-activate-pane', this.activePane)
     return this.activePane
@@ -278,36 +275,20 @@ class PaneContainer {
     this.emitter.emit('did-destroy-pane', event)
   }
 
+  didChangeActiveItemOnPane (pane, activeItem) {
+    if (pane === this.getActivePane()) {
+      this.emitter.emit('did-change-active-pane-item', activeItem)
+      this.cancelStoppedChangingActivePaneItemTimeout()
+      this.stoppedChangingActivePaneItemTimeout = setTimeout(() => {
+        this.stoppedChangingActivePaneItemTimeout = null
+        this.emitter.emit('did-stop-changing-active-pane-item', activeItem)
+      }, STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY)
+    }
+  }
+
   cancelStoppedChangingActivePaneItemTimeout () {
     if (this.stoppedChangingActivePaneItemTimeout != null) {
       clearTimeout(this.stoppedChangingActivePaneItemTimeout)
     }
-  }
-
-  monitorActivePaneItem () {
-    let childSubscription = null
-
-    this.subscriptions.add(this.observeActivePane(activePane => {
-      if (childSubscription != null) {
-        this.subscriptions.remove(childSubscription)
-        childSubscription.dispose()
-      }
-
-      childSubscription = activePane.observeActiveItem(activeItem => {
-        this.emitter.emit('did-change-active-pane-item', activeItem)
-        this.cancelStoppedChangingActivePaneItemTimeout()
-        const stoppedChangingActivePaneItemCallback = () => {
-          this.stoppedChangingActivePaneItemTimeout = null
-          this.emitter.emit('did-stop-changing-active-pane-item', activeItem)
-        }
-        this.stoppedChangingActivePaneItemTimeout =
-          setTimeout(
-            stoppedChangingActivePaneItemCallback,
-            STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY)
-      }
-      )
-
-      this.subscriptions.add(childSubscription)
-    }))
   }
 }

@@ -57,7 +57,6 @@ describe('Workspace', () => {
         assert: atom.assert.bind(atom),
         textEditorRegistry: atom.textEditors
       })
-      atom.workspace.initialize()
       return atom.workspace.deserialize(workspaceState, atom.deserializers)
     }
 
