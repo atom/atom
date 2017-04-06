@@ -1157,20 +1157,38 @@ describe('TextEditorComponent', () => {
   })
 
   describe('block decorations', () => {
-    ffit('renders visible and yet-to-be-measured block decorations, inserting them between the appropriate lines and refreshing them as needed', async () => {
+    it('renders visible block decorations between the appropriate lines, refreshing and measuring them as needed', async () => {
       const editor = buildEditor({autoHeight: false})
       const {item: item1, decoration: decoration1} = createBlockDecorationAtScreenRow(editor, 0, {height: 11, position: 'before'})
       const {item: item2, decoration: decoration2} = createBlockDecorationAtScreenRow(editor, 2, {height: 22, margin: 10, position: 'before'})
 
+      // render an editor that already contains some block decorations
       const {component, element} = buildComponent({editor, rowsPerTile: 3})
       await setEditorHeightInLines(component, 4)
+      expect(component.getRenderedStartRow()).toBe(0)
+      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getScrollHeight()).toBe(
+        editor.getScreenLineCount() * component.getLineHeight() +
+        getElementHeight(item1) + getElementHeight(item2)
+      )
+      expect(tileNodeForScreenRow(component, 0).offsetHeight).toBe(
+        3 * component.getLineHeight() + getElementHeight(item1) + getElementHeight(item2)
+      )
+      expect(tileNodeForScreenRow(component, 3).offsetHeight).toBe(
+        3 * component.getLineHeight()
+      )
+      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(item1.previousSibling).toBeNull()
+      expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 0))
+      expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
+      expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 2))
 
+      // add block decorations
       const {item: item3, decoration: decoration3} = createBlockDecorationAtScreenRow(editor, 4, {height: 33, position: 'before'})
       const {item: item4, decoration: decoration4} = createBlockDecorationAtScreenRow(editor, 7, {height: 44, position: 'before'})
       const {item: item5, decoration: decoration5} = createBlockDecorationAtScreenRow(editor, 7, {height: 55, position: 'after'})
       const {item: item6, decoration: decoration6} = createBlockDecorationAtScreenRow(editor, 12, {height: 66, position: 'after'})
       await component.getNextUpdatePromise()
-
       expect(component.getRenderedStartRow()).toBe(0)
       expect(component.getRenderedEndRow()).toBe(6)
       expect(component.getScrollHeight()).toBe(
@@ -1225,7 +1243,6 @@ describe('TextEditorComponent', () => {
       await setScrollTop(component, 0)
       decoration1.destroy()
       await component.getNextUpdatePromise()
-
       expect(component.getRenderedStartRow()).toBe(0)
       expect(component.getRenderedEndRow()).toBe(6)
       expect(component.getScrollHeight()).toBe(
@@ -1253,7 +1270,59 @@ describe('TextEditorComponent', () => {
       decoration2.getMarker().setHeadScreenPosition([1, 0])
       decoration3.getMarker().setHeadScreenPosition([3, 0])
       await component.getNextUpdatePromise()
+      expect(component.getRenderedStartRow()).toBe(0)
+      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getScrollHeight()).toBe(
+        editor.getScreenLineCount() * component.getLineHeight() +
+        getElementHeight(item2) + getElementHeight(item3) +
+        getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
+      )
+      expect(tileNodeForScreenRow(component, 0).offsetHeight).toBe(
+        3 * component.getLineHeight() + getElementHeight(item2)
+      )
+      expect(tileNodeForScreenRow(component, 3).offsetHeight).toBe(
+        3 * component.getLineHeight() + getElementHeight(item3)
+      )
+      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.contains(item1)).toBe(false)
+      expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
+      expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
+      expect(item3.previousSibling).toBeNull()
+      expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 3))
+      expect(element.contains(item4)).toBe(false)
+      expect(element.contains(item5)).toBe(false)
+      expect(element.contains(item6)).toBe(false)
 
+      // change the text
+      editor.setCursorScreenPosition([0, 5])
+      editor.insertNewline()
+      await component.getNextUpdatePromise()
+      expect(component.getRenderedStartRow()).toBe(0)
+      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getScrollHeight()).toBe(
+        editor.getScreenLineCount() * component.getLineHeight() +
+        getElementHeight(item2) + getElementHeight(item3) +
+        getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
+      )
+      expect(tileNodeForScreenRow(component, 0).offsetHeight).toBe(
+        3 * component.getLineHeight() + getElementHeight(item2)
+      )
+      expect(tileNodeForScreenRow(component, 3).offsetHeight).toBe(
+        3 * component.getLineHeight() + getElementHeight(item3)
+      )
+      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.contains(item1)).toBe(false)
+      expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
+      expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 2))
+      expect(item3.previousSibling).toBe(lineNodeForScreenRow(component, 3))
+      expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 4))
+      expect(element.contains(item4)).toBe(false)
+      expect(element.contains(item5)).toBe(false)
+      expect(element.contains(item6)).toBe(false)
+
+      // undo the previous change
+      editor.undo()
+      await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
       expect(component.getRenderedEndRow()).toBe(6)
       expect(component.getScrollHeight()).toBe(
@@ -1696,6 +1765,8 @@ describe('TextEditorComponent', () => {
         const {component, editor} = buildComponent()
         spyOn(component, 'handleMouseDragUntilMouseUp')
         editor.setSoftWrapped(true)
+        await component.getNextUpdatePromise()
+
         await setEditorWidthInCharacters(component, 50)
         editor.foldBufferRange([[4, Infinity], [7, Infinity]])
         await component.getNextUpdatePromise()
@@ -1721,6 +1792,8 @@ describe('TextEditorComponent', () => {
       it('adds new selections when a line number is meta-clicked', async () => {
         const {component, editor} = buildComponent()
         editor.setSoftWrapped(true)
+        await component.getNextUpdatePromise()
+
         await setEditorWidthInCharacters(component, 50)
         editor.foldBufferRange([[4, Infinity], [7, Infinity]])
         await component.getNextUpdatePromise()
@@ -1763,6 +1836,8 @@ describe('TextEditorComponent', () => {
         const {component, editor} = buildComponent()
         spyOn(component, 'handleMouseDragUntilMouseUp')
         editor.setSoftWrapped(true)
+        await component.getNextUpdatePromise()
+
         await setEditorWidthInCharacters(component, 50)
         editor.foldBufferRange([[4, Infinity], [7, Infinity]])
         await component.getNextUpdatePromise()
@@ -1804,6 +1879,8 @@ describe('TextEditorComponent', () => {
         const {component, editor} = buildComponent()
         spyOn(component, 'handleMouseDragUntilMouseUp')
         editor.setSoftWrapped(true)
+        await component.getNextUpdatePromise()
+
         await setEditorWidthInCharacters(component, 50)
         editor.foldBufferRange([[4, Infinity], [7, Infinity]])
         await component.getNextUpdatePromise()
