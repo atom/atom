@@ -12,7 +12,6 @@ const Dock = require('./dock')
 const Model = require('./model')
 const StateStore = require('./state-store')
 const TextEditor = require('./text-editor')
-const PaneContainer = require('./pane-container')
 const Panel = require('./panel')
 const PanelContainer = require('./panel-container')
 const Task = require('./task')
@@ -62,7 +61,6 @@ module.exports = class Workspace extends Model {
     this.openers = []
     this.destroyedItemURIs = []
     this.stoppedChangingActivePaneItemTimeout = null
-
 
     this.defaultDirectorySearcher = new DefaultDirectorySearcher()
     this.consumeServices(this.packageManager)

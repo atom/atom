@@ -20,7 +20,7 @@ module.exports = class PanelContainer {
     this.emitter.dispose()
   }
 
-  getElement() {
+  getElement () {
     if (!this.element) {
       this.element = new PanelContainerElement().initialize(this, this.viewRegistry)
     }

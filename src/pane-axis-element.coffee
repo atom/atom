@@ -12,7 +12,6 @@ class PaneAxisElement extends HTMLElement
     @childRemoved({child}) for child in @model.getChildren()
 
   initialize: (@model, @viewRegistry) ->
-    debugger unless @viewRegistry?
     @subscriptions ?= @subscribeToModel()
     @childAdded({child, index}) for child, index in @model.getChildren()
 
