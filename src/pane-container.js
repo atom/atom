@@ -19,7 +19,7 @@ class PaneContainer {
     this.stoppedChangingActivePaneItemTimeout = null
 
     this.setRoot(new Pane({container: this, config: this.config, applicationDelegate, notificationManager, deserializerManager, viewRegistry: this.viewRegistry}))
-    this.setActivePane(this.getRoot())
+    this.didActivatePane(this.getRoot())
   }
 
   getLocation () { return this.location }
@@ -53,7 +53,7 @@ class PaneContainer {
     if (state.version !== SERIALIZATION_VERSION) return
     this.setRoot(deserializerManager.deserialize(state.root))
     const activePane = find(this.getRoot().getPanes(), pane => pane.id === state.activePaneId)
-    this.setActivePane(activePane != null ? activePane : this.getPanes()[0])
+    this.didActivatePane(activePane != null ? activePane : this.getPanes()[0])
     if (this.config.get('core.destroyEmptyPanes')) this.destroyEmptyPanes()
   }
 
@@ -134,7 +134,7 @@ class PaneContainer {
     this.root.setContainer(this)
     this.emitter.emit('did-change-root', this.root)
     if ((this.getActivePane() == null) && this.root instanceof Pane) {
-      this.setActivePane(this.root)
+      this.didActivatePane(this.root)
     }
   }
 
@@ -156,20 +156,6 @@ class PaneContainer {
   }
 
   getActivePane () {
-    return this.activePane
-  }
-
-  setActivePane (activePane) {
-    if (activePane !== this.activePane) {
-      if (!this.getPanes().includes(activePane)) {
-        throw new Error('Setting active pane that is not present in pane container')
-      }
-
-      this.activePane = activePane
-      this.emitter.emit('did-change-active-pane', this.activePane)
-      this.didChangeActiveItemOnPane(this.activePane, this.activePane.getActiveItem())
-    }
-    this.emitter.emit('did-activate-pane', this.activePane)
     return this.activePane
   }
 
@@ -244,20 +230,6 @@ class PaneContainer {
     for (let pane of this.getPanes()) { if (pane.items.length === 0) { pane.destroy() } }
   }
 
-  didAddPaneItem (item, pane, index) {
-    this.itemRegistry.addItem(item)
-    this.emitter.emit('did-add-pane-item', {item, pane, index})
-  }
-
-  willDestroyPaneItem (event) {
-    this.emitter.emit('will-destroy-pane-item', event)
-  }
-
-  didDestroyPaneItem (event) {
-    this.itemRegistry.removeItem(event.item)
-    this.emitter.emit('did-destroy-pane-item', event)
-  }
-
   didAddPane (event) {
     this.emitter.emit('did-add-pane', event)
     const items = event.pane.getItems()
@@ -273,6 +245,34 @@ class PaneContainer {
 
   didDestroyPane (event) {
     this.emitter.emit('did-destroy-pane', event)
+  }
+
+  didActivatePane (activePane) {
+    if (activePane !== this.activePane) {
+      if (!this.getPanes().includes(activePane)) {
+        throw new Error('Setting active pane that is not present in pane container')
+      }
+
+      this.activePane = activePane
+      this.emitter.emit('did-change-active-pane', this.activePane)
+      this.didChangeActiveItemOnPane(this.activePane, this.activePane.getActiveItem())
+    }
+    this.emitter.emit('did-activate-pane', this.activePane)
+    return this.activePane
+  }
+
+  didAddPaneItem (item, pane, index) {
+    this.itemRegistry.addItem(item)
+    this.emitter.emit('did-add-pane-item', {item, pane, index})
+  }
+
+  willDestroyPaneItem (event) {
+    this.emitter.emit('will-destroy-pane-item', event)
+  }
+
+  didDestroyPaneItem (event) {
+    this.itemRegistry.removeItem(event.item)
+    this.emitter.emit('did-destroy-pane-item', event)
   }
 
   didChangeActiveItemOnPane (pane, activeItem) {
