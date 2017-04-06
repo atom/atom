@@ -1176,42 +1176,6 @@ module.exports = class Workspace extends Model {
     this.getActivePane().saveActiveItemAs()
   }
 
-  getFocusedPane () {
-    let el = document.activeElement
-    while (el != null) {
-      if (typeof el.getModel === 'function') {
-        const model = el.getModel()
-        if (model instanceof Pane) return model
-      }
-      el = el.parentElement
-    }
-  }
-
-  // Save the currently focused pane item.
-  //
-  // If the focused pane item currently has a URI according to the item's
-  // `.getURI` method, calls `.save` on the item. Otherwise
-  // {::saveFocusedPaneItemAs} will be called instead. This method does nothing
-  // if the focused item does not implement a `.save` method.
-  saveFocusedPaneItem () {
-    const pane = this.getFocusedPane()
-    if (pane) {
-      pane.saveActiveItem()
-    }
-  }
-
-  // Prompt the user for a path and save the focused pane item to it.
-  //
-  // Opens a native dialog where the user selects a path on disk, then calls
-  // `.saveAs` on the item with the selected path. This method does nothing if
-  // the focused item does not implement a `.saveAs` method.
-  saveFocusedPaneItemAs () {
-    const pane = this.getFocusedPane()
-    if (pane) {
-      pane.saveActiveItemAs()
-    }
-  }
-
   // Destroy (close) the active pane item.
   //
   // Removes the active pane item and calls the `.destroy` method on it if one is
