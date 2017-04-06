@@ -98,7 +98,7 @@ class WorkspaceElement extends HTMLElement {
     this.observeScrollbarStyle()
     this.observeTextEditorFontConfig()
 
-    this.paneContainer = this.viewRegistry.getView(this.model.paneContainer)
+    this.paneContainer = this.model.getCenter().paneContainer.getElement()
     this.verticalAxis.appendChild(this.paneContainer)
     this.addEventListener('focus', this.handleFocus.bind(this))
 
@@ -106,13 +106,13 @@ class WorkspaceElement extends HTMLElement {
     window.addEventListener('dragstart', this.handleDragStart)
 
     this.panelContainers = {
-      top: this.viewRegistry.getView(this.model.panelContainers.top),
-      left: this.viewRegistry.getView(this.model.panelContainers.left),
-      right: this.viewRegistry.getView(this.model.panelContainers.right),
-      bottom: this.viewRegistry.getView(this.model.panelContainers.bottom),
-      header: this.viewRegistry.getView(this.model.panelContainers.header),
-      footer: this.viewRegistry.getView(this.model.panelContainers.footer),
-      modal: this.viewRegistry.getView(this.model.panelContainers.modal)
+      top: this.model.panelContainers.top.getElement(),
+      left: this.model.panelContainers.left.getElement(),
+      right: this.model.panelContainers.right.getElement(),
+      bottom: this.model.panelContainers.bottom.getElement(),
+      header: this.model.panelContainers.header.getElement(),
+      footer: this.model.panelContainers.footer.getElement(),
+      modal: this.model.panelContainers.modal.getElement()
     }
 
     this.horizontalAxis.insertBefore(this.panelContainers.left, this.verticalAxis)

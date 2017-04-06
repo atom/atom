@@ -537,8 +537,8 @@ describe('Workspace', () => {
               pane4 = workspace.getPanes().filter(p => p !== pane1)[0]
               expect(workspace.getActivePane()).toBe(pane4)
               expect(pane4.items).toEqual([editor])
-              expect(workspace.paneContainer.root.children[0]).toBe(pane1)
-              expect(workspace.paneContainer.root.children[1]).toBe(pane4)
+              expect(workspace.getCenter().paneContainer.root.children[0]).toBe(pane1)
+              expect(workspace.getCenter().paneContainer.root.children[1]).toBe(pane4)
             })
           })
         })
@@ -633,8 +633,8 @@ describe('Workspace', () => {
               pane4 = workspace.getPanes().filter(p => p !== pane1)[0]
               expect(workspace.getActivePane()).toBe(pane4)
               expect(pane4.items).toEqual([editor])
-              expect(workspace.paneContainer.root.children[0]).toBe(pane1)
-              expect(workspace.paneContainer.root.children[1]).toBe(pane2)
+              expect(workspace.getCenter().paneContainer.root.children[0]).toBe(pane1)
+              expect(workspace.getCenter().paneContainer.root.children[1]).toBe(pane2)
             })
           })
         })
