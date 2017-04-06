@@ -21,6 +21,14 @@ module.exports = class WorkspaceCenter {
     this.paneContainer.destroy()
   }
 
+  serialize () {
+    return this.paneContainer.serialize()
+  }
+
+  deserialize (state, deserializerManager) {
+    this.paneContainer.deserialize(state, deserializerManager)
+  }
+
   activate () {
     this.getActivePane().activate()
   }

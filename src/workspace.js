@@ -188,10 +188,10 @@ module.exports = class Workspace extends Model {
   serialize () {
     return {
       deserializer: 'Workspace',
-      paneContainer: this.paneContainer.serialize(),
       packagesWithActiveGrammars: this.getPackageNamesWithActiveGrammars(),
       destroyedItemURIs: this.destroyedItemURIs.slice(),
-      docks: {
+      paneContainers: {
+        center: this.center.serialize(),
         left: this.docks.left.serialize(),
         right: this.docks.right.serialize(),
         bottom: this.docks.bottom.serialize()
@@ -211,9 +211,9 @@ module.exports = class Workspace extends Model {
     if (state.destroyedItemURIs != null) {
       this.destroyedItemURIs = state.destroyedItemURIs
     }
-    this.paneContainer.deserialize(state.paneContainer, deserializerManager)
+    this.center.deserialize(state.paneContainer || state.paneContainers.center, deserializerManager)
     for (let location in this.docks) {
-      const serialized = state.docks && state.docks[location]
+      const serialized = state.paneContainers && state.paneContainers[location]
       if (serialized) {
         this.docks[location].deserialize(serialized, deserializerManager)
       }
