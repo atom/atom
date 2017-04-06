@@ -20,7 +20,6 @@ class PaneContainer {
 
     this.setRoot(new Pane({container: this, config: this.config, applicationDelegate, notificationManager, deserializerManager, viewRegistry: this.viewRegistry}))
     this.setActivePane(this.getRoot())
-    this.monitorPaneItems()
   }
 
   initialize () {
@@ -264,6 +263,11 @@ class PaneContainer {
 
   didAddPane (event) {
     this.emitter.emit('did-add-pane', event)
+    const items = event.pane.getItems()
+    for (let i = 0, length = items.length; i < length; i++) {
+      const item = items[i]
+      this.didAddPaneItem(item, event.pane, i)
+    }
   }
 
   willDestroyPane (event) {
@@ -304,16 +308,6 @@ class PaneContainer {
       )
 
       this.subscriptions.add(childSubscription)
-    }))
-  }
-
-  monitorPaneItems () {
-    this.subscriptions.add(this.observePanes(pane => {
-      const iterable = pane.getItems()
-      for (let index = 0; index < iterable.length; index++) {
-        const item = iterable[index]
-        this.didAddPaneItem(item, pane, index)
-      }
     }))
   }
 }
