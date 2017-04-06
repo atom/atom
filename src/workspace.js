@@ -70,7 +70,6 @@ module.exports = class Workspace extends Model {
       deserializerManager: this.deserializerManager,
       viewRegistry: this.viewRegistry
     })
-    this.paneContainer.onDidDestroyPaneItem(this.didDestroyPaneItem)
 
     this.defaultDirectorySearcher = new DefaultDirectorySearcher()
     this.consumeServices(this.packageManager)
@@ -127,7 +126,6 @@ module.exports = class Workspace extends Model {
       didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer,
       didDestroyPaneItem: this.didDestroyPaneItem
     })
-    dock.onDidDestroyPaneItem(this.didDestroyPaneItem)
     return dock
   }
 
