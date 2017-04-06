@@ -10,7 +10,7 @@ module.exports =
 class PaneContainer {
   constructor (params) {
     let applicationDelegate, deserializerManager, notificationManager;
-    ({config: this.config, applicationDelegate, notificationManager, deserializerManager, viewRegistry: this.viewRegistry, location: this.location} = params)
+    ({config: this.config, applicationDelegate, notificationManager, deserializerManager, viewRegistry: this.viewRegistry} = params)
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.itemRegistry = new ItemRegistry()
@@ -19,8 +19,6 @@ class PaneContainer {
     this.setRoot(new Pane({container: this, config: this.config, applicationDelegate, notificationManager, deserializerManager, viewRegistry: this.viewRegistry}))
     this.didActivatePane(this.getRoot())
   }
-
-  getLocation () { return this.location }
 
   getElement () {
     return this.element != null ? this.element : (this.element = new PaneContainerElement().initialize(this, {views: this.viewRegistry}))

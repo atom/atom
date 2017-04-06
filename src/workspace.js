@@ -62,29 +62,17 @@ module.exports = class Workspace extends Model {
     this.destroyedItemURIs = []
     this.stoppedChangingActivePaneItemTimeout = null
 
-    this.paneContainer = new PaneContainer({
-      location: 'center',
-      config: this.config,
-      applicationDelegate: this.applicationDelegate,
-      notificationManager: this.notificationManager,
-      deserializerManager: this.deserializerManager,
-      viewRegistry: this.viewRegistry
-    })
 
     this.defaultDirectorySearcher = new DefaultDirectorySearcher()
     this.consumeServices(this.packageManager)
 
-    this.center = new WorkspaceCenter({
-      paneContainer: this.paneContainer,
-      didActivate: this.didActivatePaneContainer,
-      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer,
-      didDestroyPaneItem: this.didDestroyPaneItem
-    })
+    this.center = this.createCenter()
     this.docks = {
       left: this.createDock('left'),
       right: this.createDock('right'),
       bottom: this.createDock('bottom')
     }
+    this.paneContainer = this.center.paneContainer
     this.activePaneContainer = this.center
 
     this.panelContainers = {
@@ -112,8 +100,22 @@ module.exports = class Workspace extends Model {
     return this.element
   }
 
+  createCenter () {
+    return new WorkspaceCenter({
+      config: this.config,
+      applicationDelegate: this.applicationDelegate,
+      notificationManager: this.notificationManager,
+      deserializerManager: this.deserializerManager,
+      viewRegistry: this.viewRegistry,
+      didActivate: this.didActivatePaneContainer,
+      didChangeActivePane: this.didChangeActivePaneOnPaneContainer,
+      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer,
+      didDestroyPaneItem: this.didDestroyPaneItem
+    })
+  }
+
   createDock (location) {
-    const dock = new Dock({
+    return new Dock({
       location,
       config: this.config,
       applicationDelegate: this.applicationDelegate,
@@ -126,7 +128,6 @@ module.exports = class Workspace extends Model {
       didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer,
       didDestroyPaneItem: this.didDestroyPaneItem
     })
-    return dock
   }
 
   reset (packageManager) {
@@ -137,26 +138,13 @@ module.exports = class Workspace extends Model {
     this.paneContainer.destroy()
     _.values(this.panelContainers).forEach(panelContainer => { panelContainer.destroy() })
 
-    this.paneContainer = new PaneContainer({
-      location: 'center',
-      config: this.config,
-      applicationDelegate: this.applicationDelegate,
-      notificationManager: this.notificationManager,
-      deserializerManager: this.deserializerManager,
-      viewRegistry: this.viewRegistry
-    })
-
-    this.center = new WorkspaceCenter({
-      paneContainer: this.paneContainer,
-      didActivate: this.didActivatePaneContainer,
-      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer,
-      didDestroyPaneItem: this.didDestroyPaneItem
-    })
+    this.center = this.createCenter()
     this.docks = {
       left: this.createDock('left'),
       right: this.createDock('right'),
       bottom: this.createDock('bottom')
     }
+    this.paneContainer = this.center.paneContainer
     this.activePaneContainer = this.center
 
     this.panelContainers = {

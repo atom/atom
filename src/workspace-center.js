@@ -1,16 +1,20 @@
 'use strict'
 
 const TextEditor = require('./text-editor')
+const PaneContainer = require('./pane-container')
 
 module.exports = class WorkspaceCenter {
-  constructor ({paneContainer, didActivate, didChangeActivePaneItem, didDestroyPaneItem}) {
-    this.paneContainer = paneContainer
-    this.didActivate = didActivate
+  constructor (params) {
+    this.paneContainer = new PaneContainer(params)
+    this.didActivate = params.didActivate
     this.paneContainer.onDidActivatePane(() => this.didActivate(this))
-    this.paneContainer.onDidChangeActivePaneItem((item) => {
-      didChangeActivePaneItem(this, item)
+    this.paneContainer.onDidChangeActivePane((pane) => {
+      params.didChangeActivePane(this, pane)
     })
-    this.paneContainer.onDidDestroyPaneItem((item) => didDestroyPaneItem(item))
+    this.paneContainer.onDidChangeActivePaneItem((item) => {
+      params.didChangeActivePaneItem(this, item)
+    })
+    this.paneContainer.onDidDestroyPaneItem((item) => params.didDestroyPaneItem(item))
   }
 
   activate () {

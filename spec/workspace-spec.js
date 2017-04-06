@@ -1194,6 +1194,16 @@ describe('Workspace', () => {
       expect(activePaneContainers).toEqual([center])
       expect(activePanes).toEqual([centerPane2])
       expect(activeItems).toEqual([centerItem3])
+
+      clearEvents()
+      centerPane1.activate()
+      centerPane1.activate()
+      expect(workspace.getActivePaneContainer()).toBe(center)
+      expect(workspace.getActivePane()).toBe(centerPane1)
+      expect(workspace.getActivePaneItem()).toBe(centerItem1)
+      expect(activePaneContainers).toEqual([])
+      expect(activePanes).toEqual([centerPane1])
+      expect(activeItems).toEqual([centerItem1])
     })
   })
 
