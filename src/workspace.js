@@ -19,6 +19,8 @@ const Task = require('./task')
 const WorkspaceCenter = require('./workspace-center')
 const WorkspaceElement = require('./workspace-element')
 
+const STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY = 100
+
 // Essential: Represents the state of the user interface for the entire window.
 // An instance of this class is available via the `atom.workspace` global.
 //
@@ -35,7 +37,6 @@ module.exports = class Workspace extends Model {
     this.updateWindowTitle = this.updateWindowTitle.bind(this)
     this.updateDocumentEdited = this.updateDocumentEdited.bind(this)
     this.didDestroyPaneItem = this.didDestroyPaneItem.bind(this)
-    this.didChangeActivePaneItem = this.didChangeActivePaneItem.bind(this)
     this.didChangeActivePaneOnPaneContainer = this.didChangeActivePaneOnPaneContainer.bind(this)
     this.didChangeActivePaneItemOnPaneContainer = this.didChangeActivePaneItemOnPaneContainer.bind(this)
     this.didActivatePaneContainer = this.didActivatePaneContainer.bind(this)
@@ -59,6 +60,7 @@ module.exports = class Workspace extends Model {
     this.emitter = new Emitter()
     this.openers = []
     this.destroyedItemURIs = []
+    this.stoppedChangingActivePaneItemTimeout = null
 
     this.paneContainer = new PaneContainer({
       location: 'center',
@@ -177,7 +179,7 @@ module.exports = class Workspace extends Model {
   }
 
   subscribeToEvents () {
-    this.subscribeToActiveItem()
+    this.project.onDidChangePaths(this.updateWindowTitle)
     this.subscribeToFontSize()
     this.subscribeToAddedItems()
     this.subscribeToMovedItems()
@@ -259,7 +261,7 @@ module.exports = class Workspace extends Model {
   didActivatePaneContainer (paneContainer) {
     if (paneContainer !== this.getActivePaneContainer()) {
       this.activePaneContainer = paneContainer
-      if (global.debug) debugger
+      this.didChangeActivePaneItem(this.activePaneContainer.getActivePaneItem())
       this.emitter.emit('did-change-active-pane-container', this.activePaneContainer)
       this.emitter.emit('did-change-active-pane', this.activePaneContainer.getActivePane())
       this.emitter.emit('did-change-active-pane-item', this.activePaneContainer.getActivePaneItem())
@@ -274,38 +276,15 @@ module.exports = class Workspace extends Model {
 
   didChangeActivePaneItemOnPaneContainer (paneContainer, item) {
     if (paneContainer === this.getActivePaneContainer()) {
+      this.didChangeActivePaneItem(item)
       this.emitter.emit('did-change-active-pane-item', item)
     }
-  }
-
-  didHideDock () {
-    this.getCenter().activate()
-  }
-
-  setHoveredDock (hoveredDock) {
-    this.hoveredDock = hoveredDock
-    _.values(this.docks).forEach(dock => {
-      dock.setHovered(dock === hoveredDock)
-    })
-  }
-
-  setDraggingItem (draggingItem) {
-    _.values(this.docks).forEach(dock => {
-      dock.setDraggingItem(draggingItem)
-    })
-  }
-
-  subscribeToActiveItem () {
-    this.project.onDidChangePaths(this.updateWindowTitle)
-    this.onDidChangeActivePaneItem(this.didChangeActivePaneItem)
   }
 
   didChangeActivePaneItem (item) {
     this.updateWindowTitle()
     this.updateDocumentEdited()
-    if (this.activeItemSubscriptions != null) {
-      this.activeItemSubscriptions.dispose()
-    }
+    if (this.activeItemSubscriptions) this.activeItemSubscriptions.dispose()
     this.activeItemSubscriptions = new CompositeDisposable()
 
     let modifiedSubscription, titleSubscription
@@ -334,6 +313,35 @@ module.exports = class Workspace extends Model {
 
     if (titleSubscription != null) { this.activeItemSubscriptions.add(titleSubscription) }
     if (modifiedSubscription != null) { this.activeItemSubscriptions.add(modifiedSubscription) }
+
+    this.cancelStoppedChangingActivePaneItemTimeout()
+    this.stoppedChangingActivePaneItemTimeout = setTimeout(() => {
+      this.stoppedChangingActivePaneItemTimeout = null
+      this.emitter.emit('did-stop-changing-active-pane-item', item)
+    }, STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY)
+  }
+
+  cancelStoppedChangingActivePaneItemTimeout () {
+    if (this.stoppedChangingActivePaneItemTimeout != null) {
+      clearTimeout(this.stoppedChangingActivePaneItemTimeout)
+    }
+  }
+
+  didHideDock () {
+    this.getCenter().activate()
+  }
+
+  setHoveredDock (hoveredDock) {
+    this.hoveredDock = hoveredDock
+    _.values(this.docks).forEach(dock => {
+      dock.setHovered(dock === hoveredDock)
+    })
+  }
+
+  setDraggingItem (draggingItem) {
+    _.values(this.docks).forEach(dock => {
+      dock.setDraggingItem(draggingItem)
+    })
   }
 
   subscribeToAddedItems () {
@@ -497,7 +505,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidStopChangingActivePaneItem (callback) {
-    return this.paneContainer.onDidStopChangingActivePaneItem(callback)
+    return this.emitter.on('did-stop-changing-active-pane-item', callback)
   }
 
   // Essential: Invoke the given callback with the current active pane item and
@@ -1352,6 +1360,7 @@ module.exports = class Workspace extends Model {
   // Called by Model superclass when destroyed
   destroyed () {
     this.paneContainer.destroy()
+    this.cancelStoppedChangingActivePaneItemTimeout()
     if (this.activeItemSubscriptions != null) {
       this.activeItemSubscriptions.dispose()
     }

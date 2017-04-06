@@ -1076,7 +1076,7 @@ describe('Workspace', () => {
     })
   })
 
-  describe('pane containers', () => {
+  describe('active pane containers', () => {
     it('maintains the active pane and item globally across active pane containers', () => {
       const leftDock = workspace.getLeftDock()
       const leftItem1 = {element: document.createElement('div')}
@@ -1194,6 +1194,25 @@ describe('Workspace', () => {
       expect(activePaneContainers).toEqual([center])
       expect(activePanes).toEqual([centerPane2])
       expect(activeItems).toEqual([centerItem3])
+    })
+  })
+
+  describe('::onDidStopChangingActivePaneItem()', function () {
+    it('invokes observers when the active item of the active pane stops changing', function () {
+      const pane1 = atom.workspace.getCenter().getActivePane()
+      const pane2 = pane1.splitRight({items: [document.createElement('div'), document.createElement('div')]});
+      atom.workspace.getLeftDock().getActivePane().addItem(document.createElement('div'))
+
+      emittedItems = []
+      atom.workspace.onDidStopChangingActivePaneItem(item => emittedItems.push(item))
+
+      pane2.activateNextItem()
+      pane2.activateNextItem()
+      pane1.activate()
+      atom.workspace.getLeftDock().activate()
+
+      advanceClock(100)
+      expect(emittedItems).toEqual([atom.workspace.getLeftDock().getActivePaneItem()])
     })
   })
 
