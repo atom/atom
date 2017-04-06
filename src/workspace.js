@@ -36,6 +36,9 @@ module.exports = class Workspace extends Model {
     this.updateDocumentEdited = this.updateDocumentEdited.bind(this)
     this.didDestroyPaneItem = this.didDestroyPaneItem.bind(this)
     this.didChangeActivePaneItem = this.didChangeActivePaneItem.bind(this)
+    this.didChangeActivePaneOnPaneContainer = this.didChangeActivePaneOnPaneContainer.bind(this)
+    this.didChangeActivePaneItemOnPaneContainer = this.didChangeActivePaneItemOnPaneContainer.bind(this)
+    this.didActivatePaneContainer = this.didActivatePaneContainer.bind(this)
     this.didHideDock = this.didHideDock.bind(this)
 
     this.packageManager = params.packageManager
@@ -70,12 +73,17 @@ module.exports = class Workspace extends Model {
     this.defaultDirectorySearcher = new DefaultDirectorySearcher()
     this.consumeServices(this.packageManager)
 
-    this.center = new WorkspaceCenter(this.paneContainer)
+    this.center = new WorkspaceCenter({
+      paneContainer: this.paneContainer,
+      didActivate: this.didActivatePaneContainer,
+      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer
+    })
     this.docks = {
       left: this.createDock('left'),
       right: this.createDock('right'),
       bottom: this.createDock('bottom')
     }
+    this.activePaneContainer = this.center
 
     this.panelContainers = {
       top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
@@ -110,14 +118,13 @@ module.exports = class Workspace extends Model {
       deserializerManager: this.deserializerManager,
       notificationManager: this.notificationManager,
       viewRegistry: this.viewRegistry,
-      didHide: this.didHideDock
+      didHide: this.didHideDock,
+      didActivate: this.didActivatePaneContainer,
+      didChangeActivePane: this.didChangeActivePaneOnPaneContainer,
+      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer
     })
     dock.onDidDestroyPaneItem(this.didDestroyPaneItem)
     return dock
-  }
-
-  didHideDock () {
-    this.getCenter().getActivePane().activate()
   }
 
   reset (packageManager) {
@@ -138,12 +145,17 @@ module.exports = class Workspace extends Model {
     })
     this.paneContainer.onDidDestroyPaneItem(this.didDestroyPaneItem)
 
-    this.center = new WorkspaceCenter(this.paneContainer)
+    this.center = new WorkspaceCenter({
+      paneContainer: this.paneContainer,
+      didActivate: this.didActivatePaneContainer,
+      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer
+    })
     this.docks = {
       left: this.createDock('left'),
       right: this.createDock('right'),
       bottom: this.createDock('bottom')
     }
+    this.activePaneContainer = this.center
 
     this.panelContainers = {
       top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
@@ -212,6 +224,7 @@ module.exports = class Workspace extends Model {
         this.docks[location].deserialize(serialized, deserializerManager)
       }
     }
+    this.updateWindowTitle()
   }
 
   getPackageNamesWithActiveGrammars () {
@@ -239,6 +252,32 @@ module.exports = class Workspace extends Model {
     }
 
     return _.uniq(packageNames)
+  }
+
+  didActivatePaneContainer (paneContainer) {
+    if (paneContainer !== this.getActivePaneContainer()) {
+      this.activePaneContainer = paneContainer
+      if (global.debug) debugger
+      this.emitter.emit('did-change-active-pane-container', this.activePaneContainer)
+      this.emitter.emit('did-change-active-pane', this.activePaneContainer.getActivePane())
+      this.emitter.emit('did-change-active-pane-item', this.activePaneContainer.getActivePaneItem())
+    }
+  }
+
+  didChangeActivePaneOnPaneContainer (paneContainer, pane) {
+    if (paneContainer === this.getActivePaneContainer()) {
+      this.emitter.emit('did-change-active-pane', pane)
+    }
+  }
+
+  didChangeActivePaneItemOnPaneContainer (paneContainer, item) {
+    if (paneContainer === this.getActivePaneContainer()) {
+      this.emitter.emit('did-change-active-pane-item', item)
+    }
+  }
+
+  didHideDock () {
+    this.getCenter().activate()
   }
 
   setHoveredDock (hoveredDock) {
@@ -395,6 +434,10 @@ module.exports = class Workspace extends Model {
   Section: Event Subscription
   */
 
+  onDidChangeActivePaneContainer (callback) {
+    return this.emitter.on('did-change-active-pane-container', callback)
+  }
+
   // Essential: Invoke the given callback with all current and future text
   // editors in the workspace.
   //
@@ -434,7 +477,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeActivePaneItem (callback) {
-    return this.paneContainer.onDidChangeActivePaneItem(callback)
+    return this.emitter.on('did-change-active-pane-item', callback)
   }
 
   // Essential: Invoke the given callback when the active pane item stops
@@ -462,7 +505,10 @@ module.exports = class Workspace extends Model {
   //   * `item` The current active pane item.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeActivePaneItem (callback) { return this.paneContainer.observeActivePaneItem(callback) }
+  observeActivePaneItem (callback) {
+    callback(this.getActivePaneItem())
+    return this.onDidChangeActivePaneItem(callback)
+  }
 
   // Essential: Invoke the given callback whenever an item is opened. Unlike
   // {::onDidAddPaneItem}, observers will be notified for items that are already
@@ -541,7 +587,9 @@ module.exports = class Workspace extends Model {
   //   * `pane` A {Pane} that is the current return value of {::getActivePane}.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeActivePane (callback) { return this.paneContainer.onDidChangeActivePane(callback) }
+  onDidChangeActivePane (callback) {
+    return this.emitter.on('did-change-active-pane', callback)
+  }
 
   // Extended: Invoke the given callback with the current active pane and when
   // the active pane changes.
@@ -551,7 +599,10 @@ module.exports = class Workspace extends Model {
   //   * `pane` A {Pane} that is the current return value of {::getActivePane}.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeActivePane (callback) { return this.paneContainer.observeActivePane(callback) }
+  observeActivePane (callback) {
+    callback(this.getActivePane())
+    return this.onDidChangeActivePane(callback)
+  }
 
   // Extended: Invoke the given callback when a pane item is added to the
   // workspace.
@@ -1065,7 +1116,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns an pane item {Object}.
   getActivePaneItem () {
-    return this.paneContainer.getActivePaneItem()
+    return this.getActivePaneContainer().getActivePaneItem()
   }
 
   // Essential: Get all text editors in the workspace.
@@ -1164,6 +1215,10 @@ module.exports = class Workspace extends Model {
   Section: Panes
   */
 
+  getActivePaneContainer () {
+    return this.activePaneContainer
+  }
+
   // Extended: Get all panes in the workspace.
   //
   // Returns an {Array} of {Pane}s.
@@ -1175,7 +1230,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Pane}.
   getActivePane () {
-    return this.paneContainer.getActivePane()
+    return this.getActivePaneContainer().getActivePane()
   }
 
   // Extended: Make the next pane active.

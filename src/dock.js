@@ -33,6 +33,7 @@ module.exports = class Dock {
     this.deserializerManager = params.deserializerManager
     this.notificationManager = params.notificationManager
     this.viewRegistry = params.viewRegistry
+    this.didActivate = params.didActivate
     this.didHide = params.didHide
 
     this.paneContainer = new PaneContainer({
@@ -50,10 +51,13 @@ module.exports = class Dock {
     }
 
     this.subscriptions = new CompositeDisposable(
-      this.paneContainer.onDidActivatePane(() => this.open()),
-      this.paneContainer.observePanes(pane => {
-        pane.onDidRemoveItem(this.handleDidRemovePaneItem.bind(this))
-      })
+      this.paneContainer.onDidActivatePane(() => {
+        this.open()
+        this.didActivate(this)
+      }),
+      this.paneContainer.onDidDestroyPaneItem(this.handleDidRemovePaneItem.bind(this)),
+      this.paneContainer.onDidChangeActivePane((item) => params.didChangeActivePane(this, item)),
+      this.paneContainer.onDidChangeActivePaneItem((item) => params.didChangeActivePaneItem(this, item))
     )
   }
 
@@ -94,7 +98,6 @@ module.exports = class Dock {
   }
 
   activate () {
-    this.open()
     this.getActivePane().activate()
   }
 

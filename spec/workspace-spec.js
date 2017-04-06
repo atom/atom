@@ -1076,6 +1076,127 @@ describe('Workspace', () => {
     })
   })
 
+  describe('pane containers', () => {
+    it('maintains the active pane and item globally across active pane containers', () => {
+      const leftDock = workspace.getLeftDock()
+      const leftItem1 = {element: document.createElement('div')}
+      const leftItem2 = {element: document.createElement('div')}
+      const leftItem3 = {element: document.createElement('div')}
+      const leftPane1 = leftDock.getActivePane()
+      leftPane1.addItems([leftItem1, leftItem2])
+      const leftPane2 = leftPane1.splitDown({items: [leftItem3]})
+
+      const rightDock = workspace.getRightDock()
+      const rightItem1 = {element: document.createElement('div')}
+      const rightItem2 = {element: document.createElement('div')}
+      const rightItem3 = {element: document.createElement('div')}
+      const rightPane1 = rightDock.getActivePane()
+      rightPane1.addItems([rightItem1, rightItem2])
+      const rightPane2 = rightPane1.splitDown({items: [rightItem3]})
+
+      const bottomDock = workspace.getBottomDock()
+      const bottomItem1 = {element: document.createElement('div')}
+      const bottomItem2 = {element: document.createElement('div')}
+      const bottomItem3 = {element: document.createElement('div')}
+      const bottomPane1 = bottomDock.getActivePane()
+      bottomPane1.addItems([bottomItem1, bottomItem2])
+      const bottomPane2 = bottomPane1.splitDown({items: [bottomItem3]})
+
+      const center = workspace.getCenter()
+      const centerItem1 = {element: document.createElement('div')}
+      const centerItem2 = {element: document.createElement('div')}
+      const centerItem3 = {element: document.createElement('div')}
+      const centerPane1 = center.getActivePane()
+      centerPane1.addItems([centerItem1, centerItem2])
+      const centerPane2 = centerPane1.splitDown({items: [centerItem3]})
+
+      const activePaneContainers = []
+      const activePanes = []
+      const activeItems = []
+      workspace.onDidChangeActivePaneContainer((container) => activePaneContainers.push(container))
+      workspace.onDidChangeActivePane((pane) => activePanes.push(pane))
+      workspace.onDidChangeActivePaneItem((item) => activeItems.push(item))
+      function clearEvents () {
+        activePaneContainers.length = 0
+        activePanes.length = 0
+        activeItems.length = 0
+      }
+
+      expect(workspace.getActivePaneContainer()).toBe(center)
+      expect(workspace.getActivePane()).toBe(centerPane2)
+      expect(workspace.getActivePaneItem()).toBe(centerItem3)
+
+      leftDock.activate()
+      expect(workspace.getActivePaneContainer()).toBe(leftDock)
+      expect(workspace.getActivePane()).toBe(leftPane2)
+      expect(workspace.getActivePaneItem()).toBe(leftItem3)
+      expect(activePaneContainers).toEqual([leftDock])
+      expect(activePanes).toEqual([leftPane2])
+      expect(activeItems).toEqual([leftItem3])
+
+      clearEvents()
+      leftPane1.activate()
+      leftPane1.activate()
+      expect(workspace.getActivePaneContainer()).toBe(leftDock)
+      expect(workspace.getActivePane()).toBe(leftPane1)
+      expect(workspace.getActivePaneItem()).toBe(leftItem1)
+      expect(activePaneContainers).toEqual([])
+      expect(activePanes).toEqual([leftPane1])
+      expect(activeItems).toEqual([leftItem1])
+
+      clearEvents()
+      leftPane1.activateItem(leftItem2)
+      leftPane1.activateItem(leftItem2)
+      expect(workspace.getActivePaneContainer()).toBe(leftDock)
+      expect(workspace.getActivePane()).toBe(leftPane1)
+      expect(workspace.getActivePaneItem()).toBe(leftItem2)
+      expect(activePaneContainers).toEqual([])
+      expect(activePanes).toEqual([])
+      expect(activeItems).toEqual([leftItem2])
+
+      clearEvents()
+      expect(rightDock.getActivePane()).toBe(rightPane2)
+      rightPane1.activate()
+      rightPane1.activate()
+      expect(workspace.getActivePaneContainer()).toBe(rightDock)
+      expect(workspace.getActivePane()).toBe(rightPane1)
+      expect(workspace.getActivePaneItem()).toBe(rightItem1)
+      expect(activePaneContainers).toEqual([rightDock])
+      expect(activePanes).toEqual([rightPane1])
+      expect(activeItems).toEqual([rightItem1])
+
+      clearEvents()
+      rightPane1.activateItem(rightItem2)
+      expect(workspace.getActivePaneContainer()).toBe(rightDock)
+      expect(workspace.getActivePane()).toBe(rightPane1)
+      expect(workspace.getActivePaneItem()).toBe(rightItem2)
+      expect(activePaneContainers).toEqual([])
+      expect(activePanes).toEqual([])
+      expect(activeItems).toEqual([rightItem2])
+
+      clearEvents()
+      expect(bottomDock.getActivePane()).toBe(bottomPane2)
+      bottomPane2.activate()
+      bottomPane2.activate()
+      expect(workspace.getActivePaneContainer()).toBe(bottomDock)
+      expect(workspace.getActivePane()).toBe(bottomPane2)
+      expect(workspace.getActivePaneItem()).toBe(bottomItem3)
+      expect(activePaneContainers).toEqual([bottomDock])
+      expect(activePanes).toEqual([bottomPane2])
+      expect(activeItems).toEqual([bottomItem3])
+
+      clearEvents()
+      center.activate()
+      center.activate()
+      expect(workspace.getActivePaneContainer()).toBe(center)
+      expect(workspace.getActivePane()).toBe(centerPane2)
+      expect(workspace.getActivePaneItem()).toBe(centerItem3)
+      expect(activePaneContainers).toEqual([center])
+      expect(activePanes).toEqual([centerPane2])
+      expect(activeItems).toEqual([centerItem3])
+    })
+  })
+
   describe('the grammar-used hook', () => {
     it('fires when opening a file or changing the grammar of an open file', () => {
       let editor = null

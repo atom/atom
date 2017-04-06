@@ -52,8 +52,7 @@ class PaneContainer {
   deserialize (state, deserializerManager) {
     if (state.version !== SERIALIZATION_VERSION) return
     this.setRoot(deserializerManager.deserialize(state.root))
-    const activePane = find(this.getRoot().getPanes(), pane => pane.id === state.activePaneId)
-    this.didActivatePane(activePane != null ? activePane : this.getPanes()[0])
+    this.activePane = find(this.getRoot().getPanes(), pane => pane.id === state.activePaneId) || this.getPanes()[0]
     if (this.config.get('core.destroyEmptyPanes')) this.destroyEmptyPanes()
   }
 
