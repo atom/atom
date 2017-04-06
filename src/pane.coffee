@@ -500,6 +500,8 @@ class Pane
     @setPendingItem(item) if pending
 
     @emitter.emit 'did-add-item', {item, index, moved}
+    @container?.didAddPaneItem(item, this, index) unless moved
+
     @destroyItem(lastPendingItem) if replacingPendingItem
     @setActiveItem(item) unless @getActiveItem()?
     item

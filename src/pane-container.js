@@ -306,22 +306,16 @@ class PaneContainer {
       const iterable = pane.getItems()
       for (let index = 0; index < iterable.length; index++) {
         const item = iterable[index]
-        this.addedPaneItem(item, pane, index)
+        this.didAddPaneItem(item, pane, index)
       }
-
-      pane.onDidAddItem(({item, index, moved}) => {
-        if (!moved) { this.addedPaneItem(item, pane, index) }
-      }
-      )
 
       pane.onDidRemoveItem(({item, moved}) => {
         if (!moved) { this.removedPaneItem(item) }
-      }
-      )
+      })
     }))
   }
 
-  addedPaneItem (item, pane, index) {
+  didAddPaneItem (item, pane, index) {
     this.itemRegistry.addItem(item)
     this.emitter.emit('did-add-pane-item', {item, pane, index})
   }
