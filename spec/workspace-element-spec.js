@@ -14,7 +14,7 @@ describe('WorkspaceElement', () => {
     it('transfers focus to the active pane', () => {
       const workspaceElement = atom.workspace.getElement()
       jasmine.attachToDOM(workspaceElement)
-      const activePaneElement = atom.views.getView(atom.workspace.getActivePane())
+      const activePaneElement = atom.workspace.getActivePane().getElement()
       document.body.focus()
       expect(document.activeElement).not.toBe(activePaneElement)
       workspaceElement.focus()

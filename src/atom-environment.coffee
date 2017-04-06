@@ -290,7 +290,7 @@ class AtomEnvironment extends Model
           @workspace.openTextFile(@getUserInitScriptPath())
 
   registerDefaultTargetForKeymaps: ->
-    @keymaps.defaultTarget = @views.getView(@workspace)
+    @keymaps.defaultTarget = @workspace.getElement()
 
   observeAutoHideMenuBar: ->
     @disposables.add @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
@@ -655,8 +655,7 @@ class AtomEnvironment extends Model
   storeWindowBackground: ->
     return if @inSpecMode()
 
-    workspaceElement = @views.getView(@workspace)
-    backgroundColor = @window.getComputedStyle(workspaceElement)['background-color']
+    backgroundColor = @window.getComputedStyle(@workspace.getElement())['background-color']
     @window.localStorage.setItem('atom:window-background-color', backgroundColor)
 
   # Call this method when establishing a real application window.
@@ -700,7 +699,7 @@ class AtomEnvironment extends Model
         if process.platform is 'darwin' and @config.get('core.titleBar') is 'hidden'
           @document.body.classList.add('hidden-title-bar')
 
-        @document.body.appendChild(@views.getView(@workspace))
+        @document.body.appendChild(@workspace.getElement())
         @backgroundStylesheet?.remove()
 
         @watchProjectPaths()
@@ -1018,8 +1017,8 @@ class AtomEnvironment extends Model
   dispatchApplicationMenuCommand: (command, arg) ->
     activeElement = @document.activeElement
     # Use the workspace element if body has focus
-    if activeElement is @document.body and workspaceElement = @views.getView(@workspace)
-      activeElement = workspaceElement
+    if activeElement is @document.body
+      activeElement = @workspace.getElement()
     @commands.dispatch(activeElement, command, arg)
 
   dispatchContextMenuCommand: (command, args...) ->
