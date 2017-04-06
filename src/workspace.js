@@ -135,7 +135,11 @@ module.exports = class Workspace extends Model {
     this.emitter.dispose()
     this.emitter = new Emitter()
 
-    this.paneContainer.destroy()
+    this.center.destroy()
+    this.docks.left.destroy()
+    this.docks.right.destroy()
+    this.docks.bottom.destroy()
+
     _.values(this.panelContainers).forEach(panelContainer => { panelContainer.destroy() })
 
     this.center = this.createCenter()
@@ -1345,7 +1349,10 @@ module.exports = class Workspace extends Model {
 
   // Called by Model superclass when destroyed
   destroyed () {
-    this.paneContainer.destroy()
+    this.center.destroy()
+    this.docks.left.destroy()
+    this.docks.right.destroy()
+    this.docks.bottom.destroy()
     this.cancelStoppedChangingActivePaneItemTimeout()
     if (this.activeItemSubscriptions != null) {
       this.activeItemSubscriptions.dispose()

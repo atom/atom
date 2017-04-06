@@ -17,6 +17,10 @@ module.exports = class WorkspaceCenter {
     this.paneContainer.onDidDestroyPaneItem((item) => params.didDestroyPaneItem(item))
   }
 
+  destroy () {
+    this.paneContainer.destroy()
+  }
+
   activate () {
     this.getActivePane().activate()
   }
