@@ -613,6 +613,7 @@ class AtomApplication
         states.push({initialPaths: window.representedDirectoryPaths})
     if states.length > 0 or allowEmpty
       @storageFolder.storeSync('application.json', states)
+      @emit('application:did-save-state')
 
   loadState: (options) ->
     restorePreviousState = @config.get('core.restorePreviousWindowsOnStart') ? true
