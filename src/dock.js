@@ -96,23 +96,32 @@ module.exports = class Dock {
     this.setState({draggingItem})
   }
 
+  // Extended: Show the dock and focus its active {Pane}.
   activate () {
     this.getActivePane().activate()
   }
 
+  // Extended: Show the dock without focusing it.
   show () {
     this.setState({visible: true})
   }
 
+  // Extended: Hide the dock and activate the {WorkspaceCenter} if the dock was
+  // was previously focused.
   hide () {
     this.setState({visible: false})
     this.didHide()
   }
 
+  // Extended: Toggle the dock's visiblity without changing the {Workspace}'s
+  // active pane container.
   toggle () {
     this.setState({visible: !this.state.visible})
   }
 
+  // Extended: Check if the dock is visible.
+  //
+  // Returns a {Boolean}.
   isVisible () {
     return this.state.visible
   }
