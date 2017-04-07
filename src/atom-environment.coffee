@@ -173,7 +173,7 @@ class AtomEnvironment extends Model
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
       notificationManager: @notifications, @applicationDelegate, viewRegistry: @views, assert: @assert.bind(this),
-      textEditorRegistry: @textEditors, styleManager: @styles
+      textEditorRegistry: @textEditors, styleManager: @styles, @enablePersistence
     })
 
     @themes.workspace = @workspace

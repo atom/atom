@@ -294,6 +294,15 @@ describe('Workspace', () => {
         })
 
         describe('when the active pane does not have an editor for the given uri', () => {
+          beforeEach(() => {
+            atom.workspace.enablePersistence = true
+          })
+
+          afterEach(async () => {
+            await atom.workspace.itemLocationStore.clear()
+            atom.workspace.enablePersistence = false
+          })
+
           it('adds and activates a new editor for the given path on the active pane', () => {
             let editor = null
             waitsForPromise(() => workspace.open('a').then(o => { editor = o }))

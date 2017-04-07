@@ -42,6 +42,7 @@ module.exports = class Workspace extends Model {
     this.didActivatePaneContainer = this.didActivatePaneContainer.bind(this)
     this.didHideDock = this.didHideDock.bind(this)
 
+    this.enablePersistence = params.enablePersistence
     this.packageManager = params.packageManager
     this.config = params.config
     this.project = params.project
@@ -359,9 +360,9 @@ module.exports = class Workspace extends Model {
     for (const paneContainer of this.getPaneContainers()) {
       paneContainer.observePanes(pane => {
         pane.onDidAddItem(({item}) => {
-          if (typeof item.getURI === 'function') {
+          if (typeof item.getURI === 'function' && this.enablePersistence) {
             const uri = item.getURI()
-            if (uri != null) {
+            if (uri) {
               const location = paneContainer.getLocation()
               let defaultLocation
               if (typeof item.getDefaultLocation === 'function') {
@@ -782,7 +783,7 @@ module.exports = class Workspace extends Model {
         pane = options.pane
       } else {
         let location = options.location
-        if (!location && !options.split && uri) {
+        if (!location && !options.split && uri && this.enablePersistence) {
           location = await this.itemLocationStore.load(uri)
         }
         if (!location && typeof item.getDefaultLocation === 'function') {
