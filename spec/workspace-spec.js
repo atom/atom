@@ -984,10 +984,10 @@ describe('Workspace', () => {
         const pane = dock.getActivePane()
         pane.addItem(item)
         dock.activate()
-        expect(dock.isOpen()).toBe(true)
+        expect(dock.isVisible()).toBe(true)
         const itemFound = atom.workspace.hide(URI)
         expect(itemFound).toBe(true)
-        expect(dock.isOpen()).toBe(false)
+        expect(dock.isVisible()).toBe(false)
       })
     })
 
@@ -1004,10 +1004,10 @@ describe('Workspace', () => {
         const pane = dock.getActivePane()
         pane.addItem(item)
         dock.activate()
-        expect(dock.isOpen()).toBe(true)
+        expect(dock.isVisible()).toBe(true)
         const itemFound = atom.workspace.hide(item)
         expect(itemFound).toBe(true)
-        expect(dock.isOpen()).toBe(false)
+        expect(dock.isVisible()).toBe(false)
       })
     })
   })
@@ -1026,26 +1026,26 @@ describe('Workspace', () => {
         }
 
         const dock = workspace.getLeftDock()
-        expect(dock.isOpen()).toBe(false)
+        expect(dock.isVisible()).toBe(false)
 
         await workspace.toggle(item1)
-        expect(dock.isOpen()).toBe(true)
+        expect(dock.isVisible()).toBe(true)
         expect(dock.getActivePaneItem()).toBe(item1)
 
         await workspace.toggle(item2)
-        expect(dock.isOpen()).toBe(true)
+        expect(dock.isVisible()).toBe(true)
         expect(dock.getActivePaneItem()).toBe(item2)
 
         await workspace.toggle(item1)
-        expect(dock.isOpen()).toBe(true)
+        expect(dock.isVisible()).toBe(true)
         expect(dock.getActivePaneItem()).toBe(item1)
 
         await workspace.toggle(item1)
-        expect(dock.isOpen()).toBe(false)
+        expect(dock.isVisible()).toBe(false)
         expect(dock.getActivePaneItem()).toBe(item1)
 
         await workspace.toggle(item2)
-        expect(dock.isOpen()).toBe(true)
+        expect(dock.isVisible()).toBe(true)
         expect(dock.getActivePaneItem()).toBe(item2)
       })
     })

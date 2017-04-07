@@ -25,7 +25,7 @@ describe('WorkspaceElement', () => {
   describe('when the active pane of an inactive pane container is focused', () => {
     it('changes the active pane container', () => {
       const dock = atom.workspace.getLeftDock()
-      dock.open()
+      dock.show()
       jasmine.attachToDOM(atom.workspace.getElement())
       expect(atom.workspace.getActivePaneContainer()).toBe(atom.workspace.getCenter())
       dock.getActivePane().getElement().focus()

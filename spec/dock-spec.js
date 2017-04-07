@@ -8,10 +8,10 @@ describe('Dock', () => {
       jasmine.attachToDOM(atom.workspace.getElement())
       const dock = atom.workspace.getLeftDock()
 
-      expect(dock.isOpen()).toBe(false)
+      expect(dock.isVisible()).toBe(false)
       expect(document.activeElement).toBe(atom.workspace.getCenter().getActivePane().getElement())
       dock.activate()
-      expect(dock.isOpen()).toBe(true)
+      expect(dock.isVisible()).toBe(true)
       expect(document.activeElement).toBe(dock.getActivePane().getElement())
     })
   })
@@ -36,10 +36,10 @@ describe('Dock', () => {
       }
 
       await atom.workspace.open(item, {activatePane: false})
-      expect(atom.workspace.getLeftDock().isOpen()).toBe(false)
+      expect(atom.workspace.getLeftDock().isVisible()).toBe(false)
 
       atom.workspace.getLeftDock().getPanes()[0].activate()
-      expect(atom.workspace.getLeftDock().isOpen()).toBe(true)
+      expect(atom.workspace.getLeftDock().isVisible()).toBe(true)
     })
   })
 

@@ -858,7 +858,7 @@ module.exports = class Workspace extends Model {
     // If any visible item has the given URI, hide it
     for (const container of this.getPaneContainers()) {
       const isCenter = container === this.getCenter()
-      if (isCenter || container.isOpen()) {
+      if (isCenter || container.isVisible()) {
         for (const pane of container.getPanes()) {
           const activeItem = pane.getActiveItem()
           const foundItem = (
