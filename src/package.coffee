@@ -86,7 +86,6 @@ class Package
     @loadMenus()
     @registerDeserializerMethods()
     @activateCoreStartupServices()
-    @registerTranspilerConfig()
     @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
     @requireMainModule()
     @settingsPromise = @loadSettings()

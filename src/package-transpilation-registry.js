@@ -71,11 +71,6 @@ class PackageTranspilationRegistry {
   getPackageTranspilerSpecForFilePath (filePath) {
     if (this.specByFilePath[filePath] !== undefined) return this.specByFilePath[filePath]
 
-    // ignore node_modules
-    if (filePath.indexOf(path.sep + 'node_modules' + path.sep) > -1) {
-      return false
-    }
-
     let thisPath = filePath
     let lastPath = null
     // Iterate parents from the file path to the root, checking at each level
@@ -85,6 +80,10 @@ class PackageTranspilationRegistry {
     while (thisPath !== lastPath) { // until we reach the root
       let config = this.configByPackagePath[thisPath]
       if (config) {
+        const relativePath = path.relative(thisPath, filePath)
+        if (relativePath.startsWith(`node_modules${path.sep}`) || relativePath.indexOf(`${path.sep}node_modules${path.sep}`) > -1) {
+          return false
+        }
         for (let i = 0; i < config.specs.length; i++) {
           const spec = config.specs[i]
           if (minimatch(filePath, path.join(config.path, spec.glob))) {
