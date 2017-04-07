@@ -124,10 +124,9 @@ describe('AtomApplication', function () {
       await emitterEventPromise(window1, 'window:locations-opened')
       await focusWindow(window1)
 
-      let activeEditorPath
-      activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.observeActivePaneItem(function (textEditor) {
-          if (textEditor) sendBackToMainProcess(textEditor.getPath())
+      let activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.observeTextEditors(function (textEditor) {
+          sendBackToMainProcess(textEditor.getPath())
         })
       })
       assert.equal(activeEditorPath, path.join(dirAPath, 'new-file'))
