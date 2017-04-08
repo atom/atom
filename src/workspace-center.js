@@ -5,6 +5,7 @@ const PaneContainer = require('./pane-container')
 
 module.exports = class WorkspaceCenter {
   constructor (params) {
+    params.location = 'center'
     this.paneContainer = new PaneContainer(params)
     this.didActivate = params.didActivate
     this.paneContainer.onDidActivatePane(() => this.didActivate(this))
