@@ -55,7 +55,9 @@ module.exports = class Dock {
         this.show()
         this.didActivate(this)
       }),
-      this.paneContainer.onDidDestroyPaneItem(this.handleDidRemovePaneItem.bind(this)),
+      this.paneContainer.observePanes(pane => {
+        pane.onDidRemoveItem(this.handleDidRemovePaneItem.bind(this))
+      }),
       this.paneContainer.onDidChangeActivePane((item) => params.didChangeActivePane(this, item)),
       this.paneContainer.onDidChangeActivePaneItem((item) => params.didChangeActivePaneItem(this, item)),
       this.paneContainer.onDidDestroyPaneItem((item) => params.didDestroyPaneItem(item))
