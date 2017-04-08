@@ -37,6 +37,10 @@ module.exports = class WorkspaceCenter {
     return 'center'
   }
 
+  setDraggingItem () {
+    // No-op
+  }
+
   /*
   Section: Event Subscription
   */
