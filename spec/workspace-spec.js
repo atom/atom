@@ -2554,6 +2554,15 @@ i = /test/; #FIXME\
   })
 
   describe('when an item is moved', () => {
+    beforeEach(() => {
+      atom.workspace.enablePersistence = true
+    })
+
+    afterEach(async () => {
+      await atom.workspace.itemLocationStore.clear()
+      atom.workspace.enablePersistence = false
+    })
+
     it("stores the new location if it's not the default", () => {
       const ITEM_URI = 'atom://test'
       const item = {
