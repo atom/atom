@@ -480,8 +480,6 @@ class TextEditorComponent {
       const tileHeight = this.pixelPositionBeforeBlocksForRow(tileEndRow) - this.pixelPositionBeforeBlocksForRow(tileStartRow)
       const tileIndex = this.tileIndexForTileStartRow(tileStartRow)
 
-      const highlightDecorations = this.decorationsToRender.highlights.get(tileStartRow)
-
       tileNodes[tileIndex] = $(LinesTileComponent, {
         key: tileIndex,
         measuredContent: this.measuredContent,
@@ -493,8 +491,8 @@ class TextEditorComponent {
         tileStartRow, tileEndRow,
         screenLines: this.renderedScreenLines,
         lineDecorations: this.decorationsToRender.lines,
-        blockDecorations: this.decorationsToRender.blocks,
-        highlightDecorations,
+        blockDecorations: this.decorationsToRender.blocks.get(tileStartRow),
+        highlightDecorations: this.decorationsToRender.highlights.get(tileStartRow),
         displayLayer,
         lineNodesByScreenLineId,
         textNodesByScreenLineId
@@ -946,12 +944,21 @@ class TextEditorComponent {
 
   addBlockDecorationToRender (decoration, screenRange, reversed) {
     const screenPosition = reversed ? screenRange.start : screenRange.end
-    let rowDecorations = this.decorationsToRender.blocks.get(screenPosition.row)
-    if (rowDecorations == null) {
-      rowDecorations = []
-      this.decorationsToRender.blocks.set(screenPosition.row, rowDecorations)
+    const tileStartRow = this.tileStartRowForRow(screenPosition.row)
+    const screenLine = this.renderedScreenLines[screenPosition.row - this.getRenderedStartRow()]
+
+    let decorationsByScreenLine = this.decorationsToRender.blocks.get(tileStartRow)
+    if (!decorationsByScreenLine) {
+      decorationsByScreenLine = new Map()
+      this.decorationsToRender.blocks.set(tileStartRow, decorationsByScreenLine)
     }
-    rowDecorations.push(decoration)
+
+    let decorations = decorationsByScreenLine.get(screenLine.id)
+    if (!decorations) {
+      decorations = []
+      decorationsByScreenLine.set(screenLine.id, decorations)
+    }
+    decorations.push(decoration)
   }
 
   updateAbsolutePositionedDecorations () {
@@ -2590,25 +2597,31 @@ class LinesTileComponent {
       }
     }
 
-    if (oldProps.blockDecorations.size !== newProps.blockDecorations.size) return true
+    if (oldProps.blockDecorations && newProps.blockDecorations) {
+      if (oldProps.blockDecorations.size !== newProps.blockDecorations.size) return true
 
-    let blockDecorationsChanged = false
+      let blockDecorationsChanged = false
 
-    oldProps.blockDecorations.forEach((oldDecorations, row) => {
-      if (!blockDecorationsChanged) {
-        const newDecorations = newProps.blockDecorations.get(row)
-        blockDecorationsChanged = (newDecorations == null || !arraysEqual(oldDecorations, newDecorations))
-      }
-    })
-    if (blockDecorationsChanged) return true
+      oldProps.blockDecorations.forEach((oldDecorations, screenLineId) => {
+        if (!blockDecorationsChanged) {
+          const newDecorations = newProps.blockDecorations.get(screenLineId)
+          blockDecorationsChanged = (newDecorations == null || !arraysEqual(oldDecorations, newDecorations))
+        }
+      })
+      if (blockDecorationsChanged) return true
 
-    newProps.blockDecorations.forEach((newDecorations, row) => {
-      if (!blockDecorationsChanged) {
-        const oldDecorations = oldProps.blockDecorations.get(row)
-        blockDecorationsChanged = (oldDecorations == null)
-      }
-    })
-    if (blockDecorationsChanged) return true
+      newProps.blockDecorations.forEach((newDecorations, screenLineId) => {
+        if (!blockDecorationsChanged) {
+          const oldDecorations = oldProps.blockDecorations.get(screenLineId)
+          blockDecorationsChanged = (oldDecorations == null)
+        }
+      })
+      if (blockDecorationsChanged) return true
+    } else if (oldProps.blockDecorations) {
+      return true
+    } else if (newProps.blockDecorations) {
+      return true
+    }
 
     return false
   }
@@ -2616,11 +2629,12 @@ class LinesTileComponent {
 
 class LinesComponent {
   constructor (props) {
+    this.props = {}
     const {
       width, height, tileStartRow, tileEndRow, renderedStartRow,
       screenLines, lineDecorations,
       displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
-    } = this.props = props
+    } = props
 
     this.element = document.createElement('div')
     this.element.style.position = 'absolute'
@@ -2644,6 +2658,8 @@ class LinesComponent {
       this.element.appendChild(component.element)
       this.lineComponents.push(component)
     }
+    this.updateBlockDecorations(props)
+    this.props = props
   }
 
   destroy () {
@@ -2653,11 +2669,7 @@ class LinesComponent {
   }
 
   update (props) {
-    var {
-      width, height, tileStartRow, tileEndRow, renderedStartRow,
-      screenLines, lineDecorations,
-      displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
-    } = props
+    var {width, height} = props
 
     if (this.props.width !== width) {
       this.element.style.width = width + 'px'
@@ -2666,6 +2678,19 @@ class LinesComponent {
     if (this.props.height !== height) {
       this.element.style.height = height + 'px'
     }
+
+    this.updateLines(props)
+    this.updateBlockDecorations(props)
+
+    this.props = props
+  }
+
+  updateLines (props) {
+    var {
+      tileStartRow, tileEndRow, renderedStartRow,
+      screenLines, lineDecorations,
+      displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
+    } = props
 
     var oldScreenLines = this.props.screenLines
     var newScreenLines = screenLines
@@ -2718,7 +2743,7 @@ class LinesComponent {
               lineNodesByScreenLineId,
               textNodesByScreenLineId
             })
-            this.element.insertBefore(newScreenLineComponent.element, oldScreenLineComponent.element)
+            this.element.insertBefore(newScreenLineComponent.element, this.getFirstElementForScreenLine(oldScreenLine))
             newScreenLineComponents.push(newScreenLineComponent)
 
             newScreenLineIndex++
@@ -2752,8 +2777,67 @@ class LinesComponent {
         }
       }
     }
+  }
 
-    this.props = props
+  getFirstElementForScreenLine (screenLine) {
+    var blockDecorations = this.props.blockDecorations ? this.props.blockDecorations.get(screenLine.id) : null
+    if (blockDecorations) {
+      var blockDecorationElementsBeforeOldScreenLine = []
+      for (var i = 0; i < blockDecorations.length; i++) {
+        var decoration = blockDecorations[i]
+        if (decoration.position !== 'after') {
+          blockDecorationElementsBeforeOldScreenLine.push(
+            TextEditor.viewForItem(decoration.item)
+          )
+        }
+      }
+
+      for (var i = 0; i < blockDecorationElementsBeforeOldScreenLine.length; i++) {
+        var blockDecorationElement = blockDecorationElementsBeforeOldScreenLine[i]
+        if (!blockDecorationElementsBeforeOldScreenLine.includes(blockDecorationElement.previousSibling)) {
+          return blockDecorationElement
+        }
+      }
+    }
+
+    return this.props.lineNodesByScreenLineId.get(screenLine.id)
+  }
+
+  updateBlockDecorations (props) {
+    var {blockDecorations, lineNodesByScreenLineId} = props
+
+    if (this.props.blockDecorations) {
+      this.props.blockDecorations.forEach((oldDecorations, screenLineId) => {
+        var newDecorations = props.blockDecorations ? props.blockDecorations.get(screenLineId) : null
+        for (var i = 0; i < oldDecorations.length; i++) {
+          var oldDecoration = oldDecorations[i]
+          if (newDecorations && newDecorations.includes(oldDecoration)) continue
+
+          var element = TextEditor.viewForItem(oldDecoration.item)
+          if (element.parentElement !== this.element) continue
+
+          element.remove()
+        }
+      })
+    }
+
+    if (props.blockDecorations) {
+      props.blockDecorations.forEach((newDecorations, screenLineId) => {
+        var oldDecorations = this.props.blockDecorations ? this.props.blockDecorations.get(screenLineId) : null
+        for (var i = 0; i < newDecorations.length; i++) {
+          var newDecoration = newDecorations[i]
+          if (oldDecorations && oldDecorations.includes(newDecoration)) continue
+
+          var element = TextEditor.viewForItem(newDecoration.item)
+          var lineNode = lineNodesByScreenLineId.get(screenLineId)
+          if (newDecoration.position === 'after') {
+            this.element.insertBefore(element, lineNode.nextSibling)
+          } else {
+            this.element.insertBefore(element, lineNode)
+          }
+        }
+      })
+    }
   }
 }
 
