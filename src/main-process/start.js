@@ -24,7 +24,7 @@ module.exports = function start (resourcePath, startTime) {
 
   const args = parseCommandLine(process.argv.slice(1))
   atomPaths.setAtomHome(app.getPath('home'))
-  atomPaths.setUserData()
+  atomPaths.setUserData(app)
   setupCompileCache()
 
   if (handleStartupEventWithSquirrel()) {
