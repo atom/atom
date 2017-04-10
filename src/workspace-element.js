@@ -182,12 +182,12 @@ class WorkspaceElement extends HTMLElement {
   }
 
   updateHoveredDock (mousePosition) {
-    this.model.hoveredDock = null
+    this.hoveredDock = null
     for (let location in this.model.paneContainers) {
       if (location !== 'center') {
         const dock = this.model.paneContainers[location]
-        if (!this.model.hoveredDock && dock.pointWithinHoverArea(mousePosition)) {
-          this.model.hoveredDock = dock
+        if (!this.hoveredDock && dock.pointWithinHoverArea(mousePosition)) {
+          this.hoveredDock = dock
           dock.setHovered(true)
         } else {
           dock.setHovered(false)
@@ -198,7 +198,7 @@ class WorkspaceElement extends HTMLElement {
   }
 
   checkCleanupDockHoverEvents () {
-    if (this.cursorInCenter && !this.model.hoveredDock) {
+    if (this.cursorInCenter && !this.hoveredDock) {
       window.removeEventListener('mousemove', this.handleEdgesMouseMove)
       window.removeEventListener('dragend', this.handleDockDragEnd)
     }

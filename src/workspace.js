@@ -54,7 +54,6 @@ module.exports = class Workspace extends Model {
     this.deserializerManager = params.deserializerManager
     this.textEditorRegistry = params.textEditorRegistry
     this.styleManager = params.styleManager
-    this.hoveredDock = null
     this.draggingItem = false
     this.itemLocationStore = new StateStore('AtomPreviousItemLocations', 1)
 
