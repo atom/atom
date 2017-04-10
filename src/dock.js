@@ -118,7 +118,9 @@ module.exports = class Dock {
   // Extended: Toggle the dock's visiblity without changing the {Workspace}'s
   // active pane container.
   toggle () {
-    this.setState({visible: !this.state.visible})
+    const state = {visible: !this.state.visible}
+    if (!state.visible) state.hovered = false
+    this.setState(state)
   }
 
   // Extended: Check if the dock is visible.
@@ -293,7 +295,7 @@ module.exports = class Dock {
   // Determine whether the cursor is within the dock hover area. This isn't as simple as just using
   // mouseenter/leave because we want to be a little more forgiving. For example, if the cursor is
   // over the footer, we want to show the bottom dock's toggle button.
-  pointWithinHoverArea (point, includeButtonWidth) {
+  pointWithinHoverArea (point, includeButtonWidth = this.state.hovered) {
     const dockBounds = this.innerElement.getBoundingClientRect()
     // Copy the bounds object since we can't mutate it.
     const bounds = {

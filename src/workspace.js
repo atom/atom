@@ -328,13 +328,6 @@ module.exports = class Workspace extends Model {
     this.getCenter().activate()
   }
 
-  setHoveredDock (hoveredDock) {
-    this.hoveredDock = hoveredDock
-    _.values(this.paneContainers).forEach(dock => {
-      dock.setHovered(dock === hoveredDock)
-    })
-  }
-
   setDraggingItem (draggingItem) {
     _.values(this.paneContainers).forEach(dock => {
       dock.setDraggingItem(draggingItem)
