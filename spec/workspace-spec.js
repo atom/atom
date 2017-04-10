@@ -49,6 +49,7 @@ describe('Workspace', () => {
         project: atom.project,
         packageManager: atom.packages,
         grammarRegistry: atom.grammars,
+        styleManager: atom.styles,
         deserializerManager: atom.deserializers,
         notificationManager: atom.notifications,
         applicationDelegate: atom.applicationDelegate,
@@ -56,7 +57,6 @@ describe('Workspace', () => {
         assert: atom.assert.bind(atom),
         textEditorRegistry: atom.textEditors
       })
-      atom.workspace.initialize()
       return atom.workspace.deserialize(workspaceState, atom.deserializers)
     }
 
@@ -294,6 +294,15 @@ describe('Workspace', () => {
         })
 
         describe('when the active pane does not have an editor for the given uri', () => {
+          beforeEach(() => {
+            atom.workspace.enablePersistence = true
+          })
+
+          afterEach(async () => {
+            await atom.workspace.itemLocationStore.clear()
+            atom.workspace.enablePersistence = false
+          })
+
           it('adds and activates a new editor for the given path on the active pane', () => {
             let editor = null
             waitsForPromise(() => workspace.open('a').then(o => { editor = o }))
@@ -378,7 +387,7 @@ describe('Workspace', () => {
           })
         })
 
-        it('activates the dock with the matching item', () => {
+        it('activates the pane in the dock with the matching item', () => {
           const dock = atom.workspace.getRightDock()
           const ITEM_URI = 'atom://test'
           const item = {
@@ -387,11 +396,9 @@ describe('Workspace', () => {
             getElement: () => document.createElement('div')
           }
           dock.getActivePane().addItem(item)
-          spyOn(dock, 'activate')
+          spyOn(dock.paneForItem(item), 'activate')
           waitsForPromise(() => atom.workspace.open(ITEM_URI, {searchAllPanes: true}))
-          runs(() => {
-            expect(dock.activate).toHaveBeenCalled()
-          })
+          runs(() => expect(dock.paneForItem(item).activate).toHaveBeenCalled())
         })
       })
 
@@ -539,8 +546,8 @@ describe('Workspace', () => {
               pane4 = workspace.getPanes().filter(p => p !== pane1)[0]
               expect(workspace.getActivePane()).toBe(pane4)
               expect(pane4.items).toEqual([editor])
-              expect(workspace.paneContainer.root.children[0]).toBe(pane1)
-              expect(workspace.paneContainer.root.children[1]).toBe(pane4)
+              expect(workspace.getCenter().paneContainer.root.children[0]).toBe(pane1)
+              expect(workspace.getCenter().paneContainer.root.children[1]).toBe(pane4)
             })
           })
         })
@@ -635,8 +642,8 @@ describe('Workspace', () => {
               pane4 = workspace.getPanes().filter(p => p !== pane1)[0]
               expect(workspace.getActivePane()).toBe(pane4)
               expect(pane4.items).toEqual([editor])
-              expect(workspace.paneContainer.root.children[0]).toBe(pane1)
-              expect(workspace.paneContainer.root.children[1]).toBe(pane2)
+              expect(workspace.getCenter().paneContainer.root.children[0]).toBe(pane1)
+              expect(workspace.getCenter().paneContainer.root.children[1]).toBe(pane2)
             })
           })
         })
@@ -937,7 +944,7 @@ describe('Workspace', () => {
           atom.workspace.open('sample.js', {pending: true, split: 'right'}).then(o => {
             editor1 = o
             rightPane = atom.workspace.getActivePane()
-            spyOn(rightPane, 'destroyed')
+            spyOn(rightPane, 'destroy').andCallThrough()
           })
         )
 
@@ -954,7 +961,7 @@ describe('Workspace', () => {
 
         runs(() => {
           expect(rightPane.getPendingItem()).toBe(editor2)
-          expect(rightPane.destroyed.callCount).toBe(0)
+          expect(rightPane.destroy.callCount).toBe(0)
         })
       })
     })
@@ -986,10 +993,10 @@ describe('Workspace', () => {
         const pane = dock.getActivePane()
         pane.addItem(item)
         dock.activate()
-        expect(dock.isOpen()).toBe(true)
+        expect(dock.isVisible()).toBe(true)
         const itemFound = atom.workspace.hide(URI)
         expect(itemFound).toBe(true)
-        expect(dock.isOpen()).toBe(false)
+        expect(dock.isVisible()).toBe(false)
       })
     })
 
@@ -1006,10 +1013,10 @@ describe('Workspace', () => {
         const pane = dock.getActivePane()
         pane.addItem(item)
         dock.activate()
-        expect(dock.isOpen()).toBe(true)
+        expect(dock.isVisible()).toBe(true)
         const itemFound = atom.workspace.hide(item)
         expect(itemFound).toBe(true)
-        expect(dock.isOpen()).toBe(false)
+        expect(dock.isVisible()).toBe(false)
       })
     })
   })
@@ -1028,26 +1035,26 @@ describe('Workspace', () => {
         }
 
         const dock = workspace.getLeftDock()
-        expect(dock.isOpen()).toBe(false)
+        expect(dock.isVisible()).toBe(false)
 
         await workspace.toggle(item1)
-        expect(dock.isOpen()).toBe(true)
+        expect(dock.isVisible()).toBe(true)
         expect(dock.getActivePaneItem()).toBe(item1)
 
         await workspace.toggle(item2)
-        expect(dock.isOpen()).toBe(true)
+        expect(dock.isVisible()).toBe(true)
         expect(dock.getActivePaneItem()).toBe(item2)
 
         await workspace.toggle(item1)
-        expect(dock.isOpen()).toBe(true)
+        expect(dock.isVisible()).toBe(true)
         expect(dock.getActivePaneItem()).toBe(item1)
 
         await workspace.toggle(item1)
-        expect(dock.isOpen()).toBe(false)
+        expect(dock.isVisible()).toBe(false)
         expect(dock.getActivePaneItem()).toBe(item1)
 
         await workspace.toggle(item2)
-        expect(dock.isOpen()).toBe(true)
+        expect(dock.isVisible()).toBe(true)
         expect(dock.getActivePaneItem()).toBe(item2)
       })
     })
@@ -1075,6 +1082,156 @@ describe('Workspace', () => {
         expect(workspace.paneForItem(item1)).toBeUndefined()
         expect(workspace.getActivePaneItem()).toBe(item2)
       })
+    })
+  })
+
+  describe('active pane containers', () => {
+    it('maintains the active pane and item globally across active pane containers', () => {
+      const leftDock = workspace.getLeftDock()
+      const leftItem1 = {element: document.createElement('div')}
+      const leftItem2 = {element: document.createElement('div')}
+      const leftItem3 = {element: document.createElement('div')}
+      const leftPane1 = leftDock.getActivePane()
+      leftPane1.addItems([leftItem1, leftItem2])
+      const leftPane2 = leftPane1.splitDown({items: [leftItem3]})
+
+      const rightDock = workspace.getRightDock()
+      const rightItem1 = {element: document.createElement('div')}
+      const rightItem2 = {element: document.createElement('div')}
+      const rightItem3 = {element: document.createElement('div')}
+      const rightPane1 = rightDock.getActivePane()
+      rightPane1.addItems([rightItem1, rightItem2])
+      const rightPane2 = rightPane1.splitDown({items: [rightItem3]})
+
+      const bottomDock = workspace.getBottomDock()
+      const bottomItem1 = {element: document.createElement('div')}
+      const bottomItem2 = {element: document.createElement('div')}
+      const bottomItem3 = {element: document.createElement('div')}
+      const bottomPane1 = bottomDock.getActivePane()
+      bottomPane1.addItems([bottomItem1, bottomItem2])
+      const bottomPane2 = bottomPane1.splitDown({items: [bottomItem3]})
+
+      const center = workspace.getCenter()
+      const centerItem1 = {element: document.createElement('div')}
+      const centerItem2 = {element: document.createElement('div')}
+      const centerItem3 = {element: document.createElement('div')}
+      const centerPane1 = center.getActivePane()
+      centerPane1.addItems([centerItem1, centerItem2])
+      const centerPane2 = centerPane1.splitDown({items: [centerItem3]})
+
+      const activePaneContainers = []
+      const activePanes = []
+      const activeItems = []
+      workspace.onDidChangeActivePaneContainer((container) => activePaneContainers.push(container))
+      workspace.onDidChangeActivePane((pane) => activePanes.push(pane))
+      workspace.onDidChangeActivePaneItem((item) => activeItems.push(item))
+      function clearEvents () {
+        activePaneContainers.length = 0
+        activePanes.length = 0
+        activeItems.length = 0
+      }
+
+      expect(workspace.getActivePaneContainer()).toBe(center)
+      expect(workspace.getActivePane()).toBe(centerPane2)
+      expect(workspace.getActivePaneItem()).toBe(centerItem3)
+
+      leftDock.activate()
+      expect(workspace.getActivePaneContainer()).toBe(leftDock)
+      expect(workspace.getActivePane()).toBe(leftPane2)
+      expect(workspace.getActivePaneItem()).toBe(leftItem3)
+      expect(activePaneContainers).toEqual([leftDock])
+      expect(activePanes).toEqual([leftPane2])
+      expect(activeItems).toEqual([leftItem3])
+
+      clearEvents()
+      leftPane1.activate()
+      leftPane1.activate()
+      expect(workspace.getActivePaneContainer()).toBe(leftDock)
+      expect(workspace.getActivePane()).toBe(leftPane1)
+      expect(workspace.getActivePaneItem()).toBe(leftItem1)
+      expect(activePaneContainers).toEqual([])
+      expect(activePanes).toEqual([leftPane1])
+      expect(activeItems).toEqual([leftItem1])
+
+      clearEvents()
+      leftPane1.activateItem(leftItem2)
+      leftPane1.activateItem(leftItem2)
+      expect(workspace.getActivePaneContainer()).toBe(leftDock)
+      expect(workspace.getActivePane()).toBe(leftPane1)
+      expect(workspace.getActivePaneItem()).toBe(leftItem2)
+      expect(activePaneContainers).toEqual([])
+      expect(activePanes).toEqual([])
+      expect(activeItems).toEqual([leftItem2])
+
+      clearEvents()
+      expect(rightDock.getActivePane()).toBe(rightPane2)
+      rightPane1.activate()
+      rightPane1.activate()
+      expect(workspace.getActivePaneContainer()).toBe(rightDock)
+      expect(workspace.getActivePane()).toBe(rightPane1)
+      expect(workspace.getActivePaneItem()).toBe(rightItem1)
+      expect(activePaneContainers).toEqual([rightDock])
+      expect(activePanes).toEqual([rightPane1])
+      expect(activeItems).toEqual([rightItem1])
+
+      clearEvents()
+      rightPane1.activateItem(rightItem2)
+      expect(workspace.getActivePaneContainer()).toBe(rightDock)
+      expect(workspace.getActivePane()).toBe(rightPane1)
+      expect(workspace.getActivePaneItem()).toBe(rightItem2)
+      expect(activePaneContainers).toEqual([])
+      expect(activePanes).toEqual([])
+      expect(activeItems).toEqual([rightItem2])
+
+      clearEvents()
+      expect(bottomDock.getActivePane()).toBe(bottomPane2)
+      bottomPane2.activate()
+      bottomPane2.activate()
+      expect(workspace.getActivePaneContainer()).toBe(bottomDock)
+      expect(workspace.getActivePane()).toBe(bottomPane2)
+      expect(workspace.getActivePaneItem()).toBe(bottomItem3)
+      expect(activePaneContainers).toEqual([bottomDock])
+      expect(activePanes).toEqual([bottomPane2])
+      expect(activeItems).toEqual([bottomItem3])
+
+      clearEvents()
+      center.activate()
+      center.activate()
+      expect(workspace.getActivePaneContainer()).toBe(center)
+      expect(workspace.getActivePane()).toBe(centerPane2)
+      expect(workspace.getActivePaneItem()).toBe(centerItem3)
+      expect(activePaneContainers).toEqual([center])
+      expect(activePanes).toEqual([centerPane2])
+      expect(activeItems).toEqual([centerItem3])
+
+      clearEvents()
+      centerPane1.activate()
+      centerPane1.activate()
+      expect(workspace.getActivePaneContainer()).toBe(center)
+      expect(workspace.getActivePane()).toBe(centerPane1)
+      expect(workspace.getActivePaneItem()).toBe(centerItem1)
+      expect(activePaneContainers).toEqual([])
+      expect(activePanes).toEqual([centerPane1])
+      expect(activeItems).toEqual([centerItem1])
+    })
+  })
+
+  describe('::onDidStopChangingActivePaneItem()', function () {
+    it('invokes observers when the active item of the active pane stops changing', function () {
+      const pane1 = atom.workspace.getCenter().getActivePane()
+      const pane2 = pane1.splitRight({items: [document.createElement('div'), document.createElement('div')]});
+      atom.workspace.getLeftDock().getActivePane().addItem(document.createElement('div'))
+
+      emittedItems = []
+      atom.workspace.onDidStopChangingActivePaneItem(item => emittedItems.push(item))
+
+      pane2.activateNextItem()
+      pane2.activateNextItem()
+      pane1.activate()
+      atom.workspace.getLeftDock().activate()
+
+      advanceClock(100)
+      expect(emittedItems).toEqual([atom.workspace.getLeftDock().getActivePaneItem()])
     })
   })
 
@@ -2181,38 +2338,6 @@ i = /test/; #FIXME\
     })
   })
 
-  describe('::saveFocusedPaneItem', () => {
-    let editor, workspaceElement
-
-    beforeEach(() => {
-      workspaceElement = atom.views.getView(atom.workspace)
-      document.body.appendChild(workspaceElement)
-      waitsForPromise(() => atom.workspace.open('a').then(o => { editor = o }))
-    })
-
-    afterEach(() => {
-      workspaceElement.remove()
-    })
-
-    it("calls the focused item's save method", () => {
-      spyOn(editor, 'save')
-      editor.getElement().focus()
-      atom.workspace.saveFocusedPaneItem()
-      expect(editor.save).toHaveBeenCalled()
-    })
-
-    it("doesn't save the active editor if it's not focused", () => {
-      spyOn(editor, 'save')
-      const input = document.createElement('input')
-      document.body.appendChild(input)
-      input.focus()
-      expect(document.activeElement).toBe(input)
-      atom.workspace.saveFocusedPaneItem()
-      expect(editor.save).not.toHaveBeenCalled()
-      input.remove()
-    })
-  })
-
   describe('::saveActivePaneItem()', () => {
     let editor = null
     beforeEach(() =>
@@ -2429,6 +2554,15 @@ i = /test/; #FIXME\
   })
 
   describe('when an item is moved', () => {
+    beforeEach(() => {
+      atom.workspace.enablePersistence = true
+    })
+
+    afterEach(async () => {
+      await atom.workspace.itemLocationStore.clear()
+      atom.workspace.enablePersistence = false
+    })
+
     it("stores the new location if it's not the default", () => {
       const ITEM_URI = 'atom://test'
       const item = {

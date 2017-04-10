@@ -1,12 +1,12 @@
 {Emitter} = require 'event-kit'
+PanelElement = require './panel-element'
 
 # Extended: A container representing a panel on the edges of the editor window.
 # You should not create a `Panel` directly, instead use {Workspace::addTopPanel}
 # and friends to add panels.
 #
-# Examples: [tree-view](https://github.com/atom/tree-view),
-# [status-bar](https://github.com/atom/status-bar),
-# and [find-and-replace](https://github.com/atom/find-and-replace) all use
+# Examples: [status-bar](https://github.com/atom/status-bar)
+# and [find-and-replace](https://github.com/atom/find-and-replace) both use
 # panels.
 module.exports =
 class Panel
@@ -14,7 +14,7 @@ class Panel
   Section: Construction and Destruction
   ###
 
-  constructor: ({@item, @visible, @priority, @className}={}) ->
+  constructor: ({@item, @visible, @priority, @className}, @viewRegistry) ->
     @emitter = new Emitter
     @visible ?= true
     @priority ?= 100
@@ -24,6 +24,11 @@ class Panel
     @hide()
     @emitter.emit 'did-destroy', this
     @emitter.dispose()
+
+  getElement: ->
+    unless @element
+      @element = new PanelElement().initialize(this, @viewRegistry)
+    @element
 
   ###
   Section: Event Subscription

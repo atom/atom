@@ -66,7 +66,7 @@ class PaneElement extends HTMLElement
   getModel: -> @model
 
   activated: ->
-    @focus()
+    @focus() unless @hasFocus()
 
   activeStatusChanged: (active) ->
     if active

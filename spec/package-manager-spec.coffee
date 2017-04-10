@@ -7,15 +7,10 @@ fs = require 'fs-plus'
 {mockLocalStorage} = require './spec-helper'
 
 describe "PackageManager", ->
-  workspaceElement = null
-
   createTestElement = (className) ->
     element = document.createElement('div')
     element.className = className
     element
-
-  beforeEach ->
-    workspaceElement = atom.views.getView(atom.workspace)
 
   afterEach ->
     temp.cleanupSync()
@@ -339,9 +334,8 @@ describe "PackageManager", ->
         [mainModule, promise, workspaceCommandListener, registration] = []
 
         beforeEach ->
-          jasmine.attachToDOM(workspaceElement)
+          jasmine.attachToDOM(atom.workspace.getElement())
           mainModule = require './fixtures/packages/package-with-activation-commands/index'
-          mainModule.legacyActivationCommandCallCount = 0
           mainModule.activationCommandCallCount = 0
           spyOn(mainModule, 'activate').andCallThrough()
           spyOn(Package.prototype, 'requireMainModule').andCallThrough()
@@ -358,7 +352,7 @@ describe "PackageManager", ->
         it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
           expect(Package.prototype.requireMainModule.callCount).toBe 0
 
-          workspaceElement.dispatchEvent(new CustomEvent('activation-command', bubbles: true))
+          atom.workspace.getElement().dispatchEvent(new CustomEvent('activation-command', bubbles: true))
 
           waitsForPromise ->
             promise
@@ -371,7 +365,7 @@ describe "PackageManager", ->
             atom.workspace.open()
 
           runs ->
-            editorElement = atom.views.getView(atom.workspace.getActiveTextEditor())
+            editorElement = atom.workspace.getActiveTextEditor().getElement()
             editorCommandListener = jasmine.createSpy("editorCommandListener")
             atom.commands.add 'atom-text-editor', 'activation-command', editorCommandListener
             atom.commands.dispatch(editorElement, 'activation-command')

@@ -8,7 +8,7 @@ const TextEditor = require('./text-editor')
 const MINIMUM_SIZE = 100
 const DEFAULT_INITIAL_SIZE = 300
 const SHOULD_ANIMATE_CLASS = 'atom-dock-should-animate'
-const OPEN_CLASS = 'atom-dock-open'
+const VISIBLE_CLASS = 'atom-dock-open'
 const RESIZE_HANDLE_RESIZABLE_CLASS = 'atom-dock-resize-handle-resizable'
 const TOGGLE_BUTTON_VISIBLE_CLASS = 'atom-dock-toggle-button-visible'
 const CURSOR_OVERLAY_VISIBLE_CLASS = 'atom-dock-cursor-overlay-visible'
@@ -20,6 +20,7 @@ const CURSOR_OVERLAY_VISIBLE_CLASS = 'atom-dock-cursor-overlay-visible'
 module.exports = class Dock {
   constructor (params) {
     this.handleResizeHandleDragStart = this.handleResizeHandleDragStart.bind(this)
+    this.handleResizeToFit = this.handleResizeToFit.bind(this)
     this.handleMouseMove = this.handleMouseMove.bind(this)
     this.handleMouseUp = this.handleMouseUp.bind(this)
     this.handleDrag = _.throttle(this.handleDrag.bind(this), 30)
@@ -32,6 +33,8 @@ module.exports = class Dock {
     this.deserializerManager = params.deserializerManager
     this.notificationManager = params.notificationManager
     this.viewRegistry = params.viewRegistry
+    this.didActivate = params.didActivate
+    this.didHide = params.didHide
 
     this.paneContainer = new PaneContainer({
       location: this.location,
@@ -43,15 +46,21 @@ module.exports = class Dock {
     })
 
     this.state = {
-      open: false,
+      visible: false,
       shouldAnimate: false
     }
 
     this.subscriptions = new CompositeDisposable(
-      this.paneContainer.onDidActivatePane(() => this.activate()),
+      this.paneContainer.onDidActivatePane(() => {
+        this.show()
+        this.didActivate(this)
+      }),
       this.paneContainer.observePanes(pane => {
         pane.onDidRemoveItem(this.handleDidRemovePaneItem.bind(this))
-      })
+      }),
+      this.paneContainer.onDidChangeActivePane((item) => params.didChangeActivePane(this, item)),
+      this.paneContainer.onDidChangeActivePaneItem((item) => params.didChangeActivePaneItem(this, item)),
+      this.paneContainer.onDidDestroyPaneItem((item) => params.didDestroyPaneItem(item))
     )
   }
 
@@ -73,8 +82,6 @@ module.exports = class Dock {
   destroy () {
     this.subscriptions.dispose()
     this.paneContainer.destroy()
-    this.resizeHandle.destroy()
-    this.toggleButton.destroy()
     window.removeEventListener('mousemove', this.handleMouseMove)
     window.removeEventListener('mouseup', this.handleMouseUp)
     window.removeEventListener('drag', this.handleDrag)
@@ -91,20 +98,34 @@ module.exports = class Dock {
     this.setState({draggingItem})
   }
 
+  // Extended: Show the dock and focus its active {Pane}.
   activate () {
-    this.setState({open: true})
+    this.getActivePane().activate()
   }
 
+  // Extended: Show the dock without focusing it.
+  show () {
+    this.setState({visible: true})
+  }
+
+  // Extended: Hide the dock and activate the {WorkspaceCenter} if the dock was
+  // was previously focused.
   hide () {
-    this.setState({open: false})
+    this.setState({visible: false})
+    this.didHide()
   }
 
+  // Extended: Toggle the dock's visiblity without changing the {Workspace}'s
+  // active pane container.
   toggle () {
-    this.setState({open: !this.state.open})
+    this.setState({visible: !this.state.visible})
   }
 
-  isOpen () {
-    return this.state.open
+  // Extended: Check if the dock is visible.
+  //
+  // Returns a {Boolean}.
+  isVisible () {
+    return this.state.visible
   }
 
   setState (newState) {
@@ -115,10 +136,10 @@ module.exports = class Dock {
     // class that changes the animated property. Normally we'd have to defer the class change a
     // frame to ensure the property is animated (or not) appropriately, however we luck out in this
     // case because the drag start always happens before the item is dragged into the toggle button.
-    if (nextState.open !== prevState.open) {
+    if (nextState.visible !== prevState.visible) {
       // Never animate toggling visiblity...
       nextState.shouldAnimate = false
-    } else if (!nextState.open && nextState.draggingItem && !prevState.draggingItem) {
+    } else if (!nextState.visible && nextState.draggingItem && !prevState.draggingItem) {
       // ...but do animate if you start dragging while the panel is hidden.
       nextState.shouldAnimate = true
     }
@@ -140,7 +161,7 @@ module.exports = class Dock {
       this.resizeHandle = new DockResizeHandle({
         location: this.location,
         onResizeStart: this.handleResizeHandleDragStart,
-        toggle: this.toggle.bind(this)
+        onResizeToFit: this.handleResizeToFit
       })
       this.toggleButton = new DockToggleButton({
         onDragEnter: this.handleToggleButtonDragEnter.bind(this),
@@ -162,10 +183,10 @@ module.exports = class Dock {
       this.innerElement.appendChild(this.toggleButton.getElement())
     }
 
-    if (state.open) {
-      this.innerElement.classList.add(OPEN_CLASS)
+    if (state.visible) {
+      this.innerElement.classList.add(VISIBLE_CLASS)
     } else {
-      this.innerElement.classList.remove(OPEN_CLASS)
+      this.innerElement.classList.remove(VISIBLE_CLASS)
     }
 
     if (state.shouldAnimate) {
@@ -180,7 +201,7 @@ module.exports = class Dock {
       this.cursorOverlayElement.classList.remove(CURSOR_OVERLAY_VISIBLE_CLASS)
     }
 
-    const shouldBeVisible = state.open || state.showDropTarget
+    const shouldBeVisible = state.visible || state.showDropTarget
     const size = Math.max(MINIMUM_SIZE, state.size == null ? this.getInitialSize() : state.size)
 
     // We need to change the size of the mask...
@@ -188,12 +209,12 @@ module.exports = class Dock {
     // ...but the content needs to maintain a constant size.
     this.wrapperElement.style[this.widthOrHeight] = `${size}px`
 
-    this.resizeHandle.update({dockIsOpen: this.state.open})
+    this.resizeHandle.update({dockIsVisible: this.state.visible})
     this.toggleButton.update({
-      open: shouldBeVisible,
+      dockIsVisible: shouldBeVisible,
       visible:
         // Don't show the toggle button if the dock is closed and empty...
-        (state.hovered && (this.state.open || this.getPaneItems().length > 0)) ||
+        (state.hovered && (this.state.visible || this.getPaneItems().length > 0)) ||
         // ...or if the item can't be dropped in that dock.
         (!shouldBeVisible && state.draggingItem && isItemAllowed(state.draggingItem, this.location))
     })
@@ -202,7 +223,7 @@ module.exports = class Dock {
   handleDidRemovePaneItem () {
     // Hide the dock if you remove the last item.
     if (this.paneContainer.getPaneItems().length === 0) {
-      this.setState({open: false, hovered: false})
+      this.setState({visible: false, hovered: false})
     }
   }
 
@@ -210,6 +231,14 @@ module.exports = class Dock {
     window.addEventListener('mousemove', this.handleMouseMove)
     window.addEventListener('mouseup', this.handleMouseUp)
     this.setState({resizing: true})
+  }
+
+  handleResizeToFit () {
+    const item = this.getActivePaneItem()
+    if (item) {
+      const size = getPreferredSize(item, this.getLocation())
+      if (size != null) this.setState({size})
+    }
   }
 
   handleMouseMove (event) {
@@ -311,7 +340,7 @@ module.exports = class Dock {
     // The item may not have been activated yet. If that's the case, just use the first item.
     const activePaneItem = this.paneContainer.getActivePaneItem() || this.paneContainer.getPaneItems()[0]
     if (activePaneItem != null) {
-      initialSize = getPreferredInitialSize(activePaneItem, this.location)
+      initialSize = getPreferredSize(activePaneItem, this.location)
     }
     return initialSize == null ? DEFAULT_INITIAL_SIZE : initialSize
   }
@@ -321,7 +350,7 @@ module.exports = class Dock {
       deserializer: 'Dock',
       size: this.state.size,
       paneContainer: this.paneContainer.serialize(),
-      open: this.state.open
+      visible: this.state.visible
     }
   }
 
@@ -329,8 +358,8 @@ module.exports = class Dock {
     this.paneContainer.deserialize(serialized.paneContainer, deserializerManager)
     this.setState({
       size: serialized.size,
-      // If no items could be deserialized, we don't want to show the dock (even if it was open last time)
-      open: serialized.open && (this.paneContainer.getPaneItems().length > 0)
+      // If no items could be deserialized, we don't want to show the dock (even if it was visible last time)
+      visible: serialized.visible && (this.paneContainer.getPaneItems().length > 0)
     })
   }
 
@@ -602,12 +631,10 @@ module.exports = class Dock {
 class DockResizeHandle {
   constructor (props) {
     this.handleMouseDown = this.handleMouseDown.bind(this)
-    this.handleClick = this.handleClick.bind(this)
 
     this.element = document.createElement('div')
     this.element.classList.add('atom-dock-resize-handle', props.location)
     this.element.addEventListener('mousedown', this.handleMouseDown)
-    this.element.addEventListener('click', this.handleClick)
     this.props = props
     this.update(props)
   }
@@ -626,26 +653,17 @@ class DockResizeHandle {
   update (newProps) {
     this.props = Object.assign({}, this.props, newProps)
 
-    if (this.props.dockIsOpen) {
+    if (this.props.dockIsVisible) {
       this.element.classList.add(RESIZE_HANDLE_RESIZABLE_CLASS)
     } else {
       this.element.classList.remove(RESIZE_HANDLE_RESIZABLE_CLASS)
     }
   }
 
-  destroy () {
-    this.element.removeEventListener('mousedown', this.handleMouseDown)
-    this.element.removeEventListener('click', this.handleClick)
-  }
-
-  handleClick () {
-    if (!this.props.dockIsOpen) {
-      this.props.toggle()
-    }
-  }
-
-  handleMouseDown () {
-    if (this.props.dockIsOpen) {
+  handleMouseDown (event) {
+    if (event.detail === 2) {
+      this.props.onResizeToFit()
+    } else if (this.props.dockIsVisible) {
       this.props.onResizeStart()
     }
   }
@@ -682,11 +700,6 @@ class DockToggleButton {
     return this.bounds
   }
 
-  destroy () {
-    this.innerElement.removeEventListener('click', this.handleClick)
-    this.innerElement.removeEventListener('dragenter', this.handleDragEnter)
-  }
-
   update (newProps) {
     this.props = Object.assign({}, this.props, newProps)
 
@@ -696,7 +709,7 @@ class DockToggleButton {
       this.element.classList.remove(TOGGLE_BUTTON_VISIBLE_CLASS)
     }
 
-    this.iconElement.className = 'icon ' + getIconName(this.props.location, this.props.open)
+    this.iconElement.className = 'icon ' + getIconName(this.props.location, this.props.dockIsVisible)
   }
 
   handleClick () {
@@ -712,25 +725,25 @@ function getWidthOrHeight (location) {
   return location === 'left' || location === 'right' ? 'width' : 'height'
 }
 
-function getPreferredInitialSize (item, location) {
+function getPreferredSize (item, location) {
   switch (location) {
     case 'left':
     case 'right':
-      return typeof item.getPreferredInitialWidth === 'function'
-        ? item.getPreferredInitialWidth()
+      return typeof item.getPreferredWidth === 'function'
+        ? item.getPreferredWidth()
         : null
     default:
-      return typeof item.getPreferredInitialHeight === 'function'
-        ? item.getPreferredInitialHeight()
+      return typeof item.getPreferredHeight === 'function'
+        ? item.getPreferredHeight()
         : null
   }
 }
 
-function getIconName (location, open) {
+function getIconName (location, visible) {
   switch (location) {
-    case 'right': return open ? 'icon-chevron-right' : 'icon-chevron-left'
-    case 'bottom': return open ? 'icon-chevron-down' : 'icon-chevron-up'
-    case 'left': return open ? 'icon-chevron-left' : 'icon-chevron-right'
+    case 'right': return visible ? 'icon-chevron-right' : 'icon-chevron-left'
+    case 'bottom': return visible ? 'icon-chevron-down' : 'icon-chevron-up'
+    case 'left': return visible ? 'icon-chevron-left' : 'icon-chevron-right'
     default: throw new Error(`Invalid location: ${location}`)
   }
 }

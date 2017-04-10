@@ -1,6 +1,7 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
 {flatten} = require 'underscore-plus'
 Model = require './model'
+PaneAxisElement = require './pane-axis-element'
 
 module.exports =
 class PaneAxis extends Model
@@ -8,12 +9,12 @@ class PaneAxis extends Model
   container: null
   orientation: null
 
-  @deserialize: (state, {deserializers}) ->
+  @deserialize: (state, {deserializers, views}) ->
     state.children = state.children.map (childState) ->
       deserializers.deserialize(childState)
-    new this(state)
+    new this(state, views)
 
-  constructor: ({@orientation, children, flexScale}={}) ->
+  constructor: ({@orientation, children, flexScale}, @viewRegistry) ->
     @emitter = new Emitter
     @subscriptionsByChild = new WeakMap
     @subscriptions = new CompositeDisposable
@@ -27,6 +28,9 @@ class PaneAxis extends Model
     children: @children.map (child) -> child.serialize()
     orientation: @orientation
     flexScale: @flexScale
+
+  getElement: ->
+    @element ?= new PaneAxisElement().initialize(this, @viewRegistry)
 
   getFlexScale: -> @flexScale
 

@@ -6,17 +6,20 @@ const path = require('path')
 const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 const fs = require('fs-plus')
 const {Directory} = require('pathwatcher')
+const Grim = require('grim')
 const DefaultDirectorySearcher = require('./default-directory-searcher')
 const Dock = require('./dock')
 const Model = require('./model')
 const StateStore = require('./state-store')
 const TextEditor = require('./text-editor')
-const PaneContainer = require('./pane-container')
-const Pane = require('./pane')
 const Panel = require('./panel')
 const PanelContainer = require('./panel-container')
 const Task = require('./task')
 const WorkspaceCenter = require('./workspace-center')
+const WorkspaceElement = require('./workspace-element')
+
+const STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY = 100
+const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom']
 
 // Essential: Represents the state of the user interface for the entire window.
 // An instance of this class is available via the `atom.workspace` global.
@@ -34,8 +37,12 @@ module.exports = class Workspace extends Model {
     this.updateWindowTitle = this.updateWindowTitle.bind(this)
     this.updateDocumentEdited = this.updateDocumentEdited.bind(this)
     this.didDestroyPaneItem = this.didDestroyPaneItem.bind(this)
-    this.didChangeActivePaneItem = this.didChangeActivePaneItem.bind(this)
+    this.didChangeActivePaneOnPaneContainer = this.didChangeActivePaneOnPaneContainer.bind(this)
+    this.didChangeActivePaneItemOnPaneContainer = this.didChangeActivePaneItemOnPaneContainer.bind(this)
+    this.didActivatePaneContainer = this.didActivatePaneContainer.bind(this)
+    this.didHideDock = this.didHideDock.bind(this)
 
+    this.enablePersistence = params.enablePersistence
     this.packageManager = params.packageManager
     this.config = params.config
     this.project = params.project
@@ -46,6 +53,7 @@ module.exports = class Workspace extends Model {
     this.assert = params.assert
     this.deserializerManager = params.deserializerManager
     this.textEditorRegistry = params.textEditorRegistry
+    this.styleManager = params.styleManager
     this.hoveredDock = null
     this.draggingItem = false
     this.itemLocationStore = new StateStore('AtomPreviousItemLocations', 1)
@@ -53,55 +61,77 @@ module.exports = class Workspace extends Model {
     this.emitter = new Emitter()
     this.openers = []
     this.destroyedItemURIs = []
-
-    this.paneContainer = new PaneContainer({
-      location: 'center',
-      config: this.config,
-      applicationDelegate: this.applicationDelegate,
-      notificationManager: this.notificationManager,
-      deserializerManager: this.deserializerManager,
-      viewRegistry: this.viewRegistry
-    })
-    this.paneContainer.onDidDestroyPaneItem(this.didDestroyPaneItem)
+    this.stoppedChangingActivePaneItemTimeout = null
 
     this.defaultDirectorySearcher = new DefaultDirectorySearcher()
     this.consumeServices(this.packageManager)
 
-    this.center = new WorkspaceCenter(this.paneContainer)
-    this.docks = {
+    this.paneContainers = {
+      center: this.createCenter(),
       left: this.createDock('left'),
       right: this.createDock('right'),
       bottom: this.createDock('bottom')
     }
+    this.activePaneContainer = this.paneContainers.center
 
     this.panelContainers = {
-      top: new PanelContainer({location: 'top'}),
-      left: new PanelContainer({location: 'left', dock: this.docks.left}),
-      right: new PanelContainer({location: 'right', dock: this.docks.right}),
-      bottom: new PanelContainer({location: 'bottom', dock: this.docks.bottom}),
-      header: new PanelContainer({location: 'header'}),
-      footer: new PanelContainer({location: 'footer'}),
-      modal: new PanelContainer({location: 'modal'})
+      top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
+      left: new PanelContainer({viewRegistry: this.viewRegistry, location: 'left', dock: this.paneContainers.left}),
+      right: new PanelContainer({viewRegistry: this.viewRegistry, location: 'right', dock: this.paneContainers.right}),
+      bottom: new PanelContainer({viewRegistry: this.viewRegistry, location: 'bottom', dock: this.paneContainers.bottom}),
+      header: new PanelContainer({viewRegistry: this.viewRegistry, location: 'header'}),
+      footer: new PanelContainer({viewRegistry: this.viewRegistry, location: 'footer'}),
+      modal: new PanelContainer({viewRegistry: this.viewRegistry, location: 'modal'})
     }
 
     this.subscribeToEvents()
   }
 
-  initialize () {
-    this.paneContainer.initialize()
+  get paneContainer () {
+    Grim.deprecate('`atom.workspace.paneContainer` has always been private, but it is now gone. Please use `atom.workspace.getCenter()` instead and consult the workspace API docs for public methods.')
+    return this.paneContainers.center.paneContainer
+  }
+
+  getElement () {
+    if (!this.element) {
+      this.element = new WorkspaceElement().initialize(this, {
+        config: this.config,
+        project: this.project,
+        viewRegistry: this.viewRegistry,
+        styleManager: this.styleManager
+      })
+    }
+    return this.element
+  }
+
+  createCenter () {
+    return new WorkspaceCenter({
+      config: this.config,
+      applicationDelegate: this.applicationDelegate,
+      notificationManager: this.notificationManager,
+      deserializerManager: this.deserializerManager,
+      viewRegistry: this.viewRegistry,
+      didActivate: this.didActivatePaneContainer,
+      didChangeActivePane: this.didChangeActivePaneOnPaneContainer,
+      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer,
+      didDestroyPaneItem: this.didDestroyPaneItem
+    })
   }
 
   createDock (location) {
-    const dock = new Dock({
+    return new Dock({
       location,
       config: this.config,
       applicationDelegate: this.applicationDelegate,
       deserializerManager: this.deserializerManager,
       notificationManager: this.notificationManager,
-      viewRegistry: this.viewRegistry
+      viewRegistry: this.viewRegistry,
+      didHide: this.didHideDock,
+      didActivate: this.didActivatePaneContainer,
+      didChangeActivePane: this.didChangeActivePaneOnPaneContainer,
+      didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer,
+      didDestroyPaneItem: this.didDestroyPaneItem
     })
-    dock.onDidDestroyPaneItem(this.didDestroyPaneItem)
-    return dock
   }
 
   reset (packageManager) {
@@ -109,45 +139,40 @@ module.exports = class Workspace extends Model {
     this.emitter.dispose()
     this.emitter = new Emitter()
 
-    this.paneContainer.destroy()
+    this.paneContainers.center.destroy()
+    this.paneContainers.left.destroy()
+    this.paneContainers.right.destroy()
+    this.paneContainers.bottom.destroy()
+
     _.values(this.panelContainers).forEach(panelContainer => { panelContainer.destroy() })
 
-    this.paneContainer = new PaneContainer({
-      location: 'center',
-      config: this.config,
-      applicationDelegate: this.applicationDelegate,
-      notificationManager: this.notificationManager,
-      deserializerManager: this.deserializerManager,
-      viewRegistry: this.viewRegistry
-    })
-    this.paneContainer.onDidDestroyPaneItem(this.didDestroyPaneItem)
-
-    this.center = new WorkspaceCenter(this.paneContainer)
-    this.docks = {
+    this.paneContainers = {
+      center: this.createCenter(),
       left: this.createDock('left'),
       right: this.createDock('right'),
       bottom: this.createDock('bottom')
     }
+    this.activePaneContainer = this.paneContainers.center
 
     this.panelContainers = {
-      top: new PanelContainer({location: 'top'}),
-      left: new PanelContainer({location: 'left', dock: this.docks.left}),
-      right: new PanelContainer({location: 'right', dock: this.docks.right}),
-      bottom: new PanelContainer({location: 'bottom', dock: this.docks.bottom}),
-      header: new PanelContainer({location: 'header'}),
-      footer: new PanelContainer({location: 'footer'}),
-      modal: new PanelContainer({location: 'modal'})
+      top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
+      left: new PanelContainer({viewRegistry: this.viewRegistry, location: 'left', dock: this.paneContainers.left}),
+      right: new PanelContainer({viewRegistry: this.viewRegistry, location: 'right', dock: this.paneContainers.right}),
+      bottom: new PanelContainer({viewRegistry: this.viewRegistry, location: 'bottom', dock: this.paneContainers.bottom}),
+      header: new PanelContainer({viewRegistry: this.viewRegistry, location: 'header'}),
+      footer: new PanelContainer({viewRegistry: this.viewRegistry, location: 'footer'}),
+      modal: new PanelContainer({viewRegistry: this.viewRegistry, location: 'modal'})
     }
 
     this.originalFontSize = null
     this.openers = []
     this.destroyedItemURIs = []
+    this.element = null
     this.consumeServices(this.packageManager)
-    this.initialize()
   }
 
   subscribeToEvents () {
-    this.subscribeToActiveItem()
+    this.project.onDidChangePaths(this.updateWindowTitle)
     this.subscribeToFontSize()
     this.subscribeToAddedItems()
     this.subscribeToMovedItems()
@@ -166,13 +191,13 @@ module.exports = class Workspace extends Model {
   serialize () {
     return {
       deserializer: 'Workspace',
-      paneContainer: this.paneContainer.serialize(),
       packagesWithActiveGrammars: this.getPackageNamesWithActiveGrammars(),
       destroyedItemURIs: this.destroyedItemURIs.slice(),
-      docks: {
-        left: this.docks.left.serialize(),
-        right: this.docks.right.serialize(),
-        bottom: this.docks.bottom.serialize()
+      paneContainers: {
+        center: this.paneContainers.center.serialize(),
+        left: this.paneContainers.left.serialize(),
+        right: this.paneContainers.right.serialize(),
+        bottom: this.paneContainers.bottom.serialize()
       }
     }
   }
@@ -189,13 +214,18 @@ module.exports = class Workspace extends Model {
     if (state.destroyedItemURIs != null) {
       this.destroyedItemURIs = state.destroyedItemURIs
     }
-    this.paneContainer.deserialize(state.paneContainer, deserializerManager)
-    for (let location in this.docks) {
-      const serialized = state.docks && state.docks[location]
-      if (serialized) {
-        this.docks[location].deserialize(serialized, deserializerManager)
-      }
+
+    if (state.paneContainers) {
+      this.paneContainers.center.deserialize(state.paneContainers.center, deserializerManager)
+      this.paneContainers.left.deserialize(state.paneContainers.left, deserializerManager)
+      this.paneContainers.right.deserialize(state.paneContainers.right, deserializerManager)
+      this.paneContainers.bottom.deserialize(state.paneContainers.bottom, deserializerManager)
+    } else if (state.paneContainer) {
+      // TODO: Remove this fallback once a lot of time has passed since 1.17 was released
+      this.paneContainers.center.deserialize(state.paneContainer, deserializerManager)
     }
+
+    this.updateWindowTitle()
   }
 
   getPackageNamesWithActiveGrammars () {
@@ -225,30 +255,33 @@ module.exports = class Workspace extends Model {
     return _.uniq(packageNames)
   }
 
-  setHoveredDock (hoveredDock) {
-    this.hoveredDock = hoveredDock
-    _.values(this.docks).forEach(dock => {
-      dock.setHovered(dock === hoveredDock)
-    })
+  didActivatePaneContainer (paneContainer) {
+    if (paneContainer !== this.getActivePaneContainer()) {
+      this.activePaneContainer = paneContainer
+      this.didChangeActivePaneItem(this.activePaneContainer.getActivePaneItem())
+      this.emitter.emit('did-change-active-pane-container', this.activePaneContainer)
+      this.emitter.emit('did-change-active-pane', this.activePaneContainer.getActivePane())
+      this.emitter.emit('did-change-active-pane-item', this.activePaneContainer.getActivePaneItem())
+    }
   }
 
-  setDraggingItem (draggingItem) {
-    _.values(this.docks).forEach(dock => {
-      dock.setDraggingItem(draggingItem)
-    })
+  didChangeActivePaneOnPaneContainer (paneContainer, pane) {
+    if (paneContainer === this.getActivePaneContainer()) {
+      this.emitter.emit('did-change-active-pane', pane)
+    }
   }
 
-  subscribeToActiveItem () {
-    this.project.onDidChangePaths(this.updateWindowTitle)
-    this.onDidChangeActivePaneItem(this.didChangeActivePaneItem)
+  didChangeActivePaneItemOnPaneContainer (paneContainer, item) {
+    if (paneContainer === this.getActivePaneContainer()) {
+      this.didChangeActivePaneItem(item)
+      this.emitter.emit('did-change-active-pane-item', item)
+    }
   }
 
   didChangeActivePaneItem (item) {
     this.updateWindowTitle()
     this.updateDocumentEdited()
-    if (this.activeItemSubscriptions != null) {
-      this.activeItemSubscriptions.dispose()
-    }
+    if (this.activeItemSubscriptions) this.activeItemSubscriptions.dispose()
     this.activeItemSubscriptions = new CompositeDisposable()
 
     let modifiedSubscription, titleSubscription
@@ -277,6 +310,35 @@ module.exports = class Workspace extends Model {
 
     if (titleSubscription != null) { this.activeItemSubscriptions.add(titleSubscription) }
     if (modifiedSubscription != null) { this.activeItemSubscriptions.add(modifiedSubscription) }
+
+    this.cancelStoppedChangingActivePaneItemTimeout()
+    this.stoppedChangingActivePaneItemTimeout = setTimeout(() => {
+      this.stoppedChangingActivePaneItemTimeout = null
+      this.emitter.emit('did-stop-changing-active-pane-item', item)
+    }, STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY)
+  }
+
+  cancelStoppedChangingActivePaneItemTimeout () {
+    if (this.stoppedChangingActivePaneItemTimeout != null) {
+      clearTimeout(this.stoppedChangingActivePaneItemTimeout)
+    }
+  }
+
+  didHideDock () {
+    this.getCenter().activate()
+  }
+
+  setHoveredDock (hoveredDock) {
+    this.hoveredDock = hoveredDock
+    _.values(this.paneContainers).forEach(dock => {
+      dock.setHovered(dock === hoveredDock)
+    })
+  }
+
+  setDraggingItem (draggingItem) {
+    _.values(this.paneContainers).forEach(dock => {
+      dock.setDraggingItem(draggingItem)
+    })
   }
 
   subscribeToAddedItems () {
@@ -298,9 +360,9 @@ module.exports = class Workspace extends Model {
     for (const paneContainer of this.getPaneContainers()) {
       paneContainer.observePanes(pane => {
         pane.onDidAddItem(({item}) => {
-          if (typeof item.getURI === 'function') {
+          if (typeof item.getURI === 'function' && this.enablePersistence) {
             const uri = item.getURI()
-            if (uri != null) {
+            if (uri) {
               const location = paneContainer.getLocation()
               let defaultLocation
               if (typeof item.getDefaultLocation === 'function') {
@@ -379,6 +441,10 @@ module.exports = class Workspace extends Model {
   Section: Event Subscription
   */
 
+  onDidChangeActivePaneContainer (callback) {
+    return this.emitter.on('did-change-active-pane-container', callback)
+  }
+
   // Essential: Invoke the given callback with all current and future text
   // editors in the workspace.
   //
@@ -418,7 +484,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeActivePaneItem (callback) {
-    return this.paneContainer.onDidChangeActivePaneItem(callback)
+    return this.emitter.on('did-change-active-pane-item', callback)
   }
 
   // Essential: Invoke the given callback when the active pane item stops
@@ -436,7 +502,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidStopChangingActivePaneItem (callback) {
-    return this.paneContainer.onDidStopChangingActivePaneItem(callback)
+    return this.emitter.on('did-stop-changing-active-pane-item', callback)
   }
 
   // Essential: Invoke the given callback with the current active pane item and
@@ -446,7 +512,10 @@ module.exports = class Workspace extends Model {
   //   * `item` The current active pane item.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeActivePaneItem (callback) { return this.paneContainer.observeActivePaneItem(callback) }
+  observeActivePaneItem (callback) {
+    callback(this.getActivePaneItem())
+    return this.onDidChangeActivePaneItem(callback)
+  }
 
   // Essential: Invoke the given callback whenever an item is opened. Unlike
   // {::onDidAddPaneItem}, observers will be notified for items that are already
@@ -525,7 +594,9 @@ module.exports = class Workspace extends Model {
   //   * `pane` A {Pane} that is the current return value of {::getActivePane}.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeActivePane (callback) { return this.paneContainer.onDidChangeActivePane(callback) }
+  onDidChangeActivePane (callback) {
+    return this.emitter.on('did-change-active-pane', callback)
+  }
 
   // Extended: Invoke the given callback with the current active pane and when
   // the active pane changes.
@@ -535,7 +606,10 @@ module.exports = class Workspace extends Model {
   //   * `pane` A {Pane} that is the current return value of {::getActivePane}.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeActivePane (callback) { return this.paneContainer.observeActivePane(callback) }
+  observeActivePane (callback) {
+    callback(this.getActivePane())
+    return this.onDidChangeActivePane(callback)
+  }
 
   // Extended: Invoke the given callback when a pane item is added to the
   // workspace.
@@ -709,7 +783,7 @@ module.exports = class Workspace extends Model {
         pane = options.pane
       } else {
         let location = options.location
-        if (!location && !options.split && uri) {
+        if (!location && !options.split && uri && this.enablePersistence) {
           location = await this.itemLocationStore.load(uri)
         }
         if (!location && typeof item.getDefaultLocation === 'function') {
@@ -719,7 +793,7 @@ module.exports = class Workspace extends Model {
         const allowedLocations = typeof item.getAllowedLocations === 'function' ? item.getAllowedLocations() : ALL_LOCATIONS
         location = allowedLocations.includes(location) ? location : allowedLocations[0]
 
-        container = this.docks[location] || this.getCenter()
+        container = this.paneContainers[location] || this.getCenter()
         pane = container.getActivePane()
         switch (options.split) {
           case 'left':
@@ -785,7 +859,7 @@ module.exports = class Workspace extends Model {
     // If any visible item has the given URI, hide it
     for (const container of this.getPaneContainers()) {
       const isCenter = container === this.getCenter()
-      if (isCenter || container.isOpen()) {
+      if (isCenter || container.isVisible()) {
         for (const pane of container.getPanes()) {
           const activeItem = pane.getActiveItem()
           const foundItem = (
@@ -1049,7 +1123,7 @@ module.exports = class Workspace extends Model {
   //
   // Returns an pane item {Object}.
   getActivePaneItem () {
-    return this.paneContainer.getActivePaneItem()
+    return this.getActivePaneContainer().getActivePaneItem()
   }
 
   // Essential: Get all text editors in the workspace.
@@ -1100,42 +1174,6 @@ module.exports = class Workspace extends Model {
     this.getActivePane().saveActiveItemAs()
   }
 
-  getFocusedPane () {
-    let el = document.activeElement
-    while (el != null) {
-      if (typeof el.getModel === 'function') {
-        const model = el.getModel()
-        if (model instanceof Pane) return model
-      }
-      el = el.parentElement
-    }
-  }
-
-  // Save the currently focused pane item.
-  //
-  // If the focused pane item currently has a URI according to the item's
-  // `.getURI` method, calls `.save` on the item. Otherwise
-  // {::saveFocusedPaneItemAs} will be called instead. This method does nothing
-  // if the focused item does not implement a `.save` method.
-  saveFocusedPaneItem () {
-    const pane = this.getFocusedPane()
-    if (pane) {
-      pane.saveActiveItem()
-    }
-  }
-
-  // Prompt the user for a path and save the focused pane item to it.
-  //
-  // Opens a native dialog where the user selects a path on disk, then calls
-  // `.saveAs` on the item with the selected path. This method does nothing if
-  // the focused item does not implement a `.saveAs` method.
-  saveFocusedPaneItemAs () {
-    const pane = this.getFocusedPane()
-    if (pane) {
-      pane.saveActiveItemAs()
-    }
-  }
-
   // Destroy (close) the active pane item.
   //
   // Removes the active pane item and calls the `.destroy` method on it if one is
@@ -1148,6 +1186,10 @@ module.exports = class Workspace extends Model {
   Section: Panes
   */
 
+  getActivePaneContainer () {
+    return this.activePaneContainer
+  }
+
   // Extended: Get all panes in the workspace.
   //
   // Returns an {Array} of {Pane}s.
@@ -1159,17 +1201,17 @@ module.exports = class Workspace extends Model {
   //
   // Returns a {Pane}.
   getActivePane () {
-    return this.paneContainer.getActivePane()
+    return this.getActivePaneContainer().getActivePane()
   }
 
   // Extended: Make the next pane active.
   activateNextPane () {
-    return this.paneContainer.activateNextPane()
+    return this.getActivePaneContainer().activateNextPane()
   }
 
   // Extended: Make the previous pane active.
   activatePreviousPane () {
-    return this.paneContainer.activatePreviousPane()
+    return this.getActivePaneContainer().activatePreviousPane()
   }
 
   // Extended: Get the first {Pane} with an item for the given URI.
@@ -1278,7 +1320,11 @@ module.exports = class Workspace extends Model {
 
   // Called by Model superclass when destroyed
   destroyed () {
-    this.paneContainer.destroy()
+    this.paneContainers.center.destroy()
+    this.paneContainers.left.destroy()
+    this.paneContainers.right.destroy()
+    this.paneContainers.bottom.destroy()
+    this.cancelStoppedChangingActivePaneItemTimeout()
     if (this.activeItemSubscriptions != null) {
       this.activeItemSubscriptions.dispose()
     }
@@ -1289,23 +1335,28 @@ module.exports = class Workspace extends Model {
   */
 
   getCenter () {
-    return this.center
+    return this.paneContainers.center
   }
 
   getLeftDock () {
-    return this.docks.left
+    return this.paneContainers.left
   }
 
   getRightDock () {
-    return this.docks.right
+    return this.paneContainers.right
   }
 
   getBottomDock () {
-    return this.docks.bottom
+    return this.paneContainers.bottom
   }
 
   getPaneContainers () {
-    return [this.getCenter(), ..._.values(this.docks)]
+    return [
+      this.paneContainers.center,
+      this.paneContainers.left,
+      this.paneContainers.right,
+      this.paneContainers.bottom
+    ]
   }
 
   /*
@@ -1488,7 +1539,7 @@ module.exports = class Workspace extends Model {
 
   addPanel (location, options) {
     if (options == null) { options = {} }
-    return this.panelContainers[location].addPanel(new Panel(options))
+    return this.panelContainers[location].addPanel(new Panel(options, this.viewRegistry))
   }
 
   /*
@@ -1716,5 +1767,3 @@ module.exports = class Workspace extends Model {
     }
   }
 }
-
-const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom']

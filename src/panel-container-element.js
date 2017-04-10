@@ -15,12 +15,9 @@ class PanelContainerElement extends HTMLElement {
     }
   }
 
-  initialize (model, {views}) {
+  initialize (model, viewRegistry) {
     this.model = model
-    this.views = views
-    if (this.views == null) {
-      throw new Error('Must pass a views parameter when initializing PanelContainerElements')
-    }
+    this.viewRegistry = viewRegistry
 
     this.subscriptions.add(this.model.onDidAddPanel(this.panelAdded.bind(this)))
     this.subscriptions.add(this.model.onDidDestroy(this.destroyed.bind(this)))
@@ -37,7 +34,7 @@ class PanelContainerElement extends HTMLElement {
   getModel () { return this.model }
 
   panelAdded ({panel, index}) {
-    const panelElement = this.views.getView(panel)
+    const panelElement = this.viewRegistry.getView(panel)
     panelElement.classList.add(this.model.getLocation())
     if (this.model.isModal()) {
       panelElement.classList.add('overlay', 'from-top')
