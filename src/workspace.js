@@ -54,7 +54,6 @@ module.exports = class Workspace extends Model {
     this.deserializerManager = params.deserializerManager
     this.textEditorRegistry = params.textEditorRegistry
     this.styleManager = params.styleManager
-    this.hoveredDock = null
     this.draggingItem = false
     this.itemLocationStore = new StateStore('AtomPreviousItemLocations', 1)
 
@@ -326,13 +325,6 @@ module.exports = class Workspace extends Model {
 
   didHideDock () {
     this.getCenter().activate()
-  }
-
-  setHoveredDock (hoveredDock) {
-    this.hoveredDock = hoveredDock
-    _.values(this.paneContainers).forEach(dock => {
-      dock.setHovered(dock === hoveredDock)
-    })
   }
 
   setDraggingItem (draggingItem) {

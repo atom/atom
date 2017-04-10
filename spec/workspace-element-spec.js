@@ -1,4 +1,4 @@
-'use strict'
+/** @babel */
 
 /* global getComputedStyle, WheelEvent */
 
@@ -6,6 +6,7 @@ const {ipcRenderer} = require('electron')
 const path = require('path')
 const temp = require('temp').track()
 const {Disposable} = require('event-kit')
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
 describe('WorkspaceElement', () => {
   afterEach(() => { temp.cleanupSync() })
@@ -33,6 +34,172 @@ describe('WorkspaceElement', () => {
     })
   })
 
+  describe('mousing over docks', () => {
+    let workspaceElement
+
+    beforeEach(() => {
+      workspaceElement = atom.workspace.getElement()
+      workspaceElement.style.width = '600px'
+      workspaceElement.style.height = '300px'
+      jasmine.attachToDOM(workspaceElement)
+    })
+
+    it('shows the toggle button when the dock is open', async () => {
+      await Promise.all([
+        atom.workspace.open({
+          element: document.createElement('div'),
+          getDefaultLocation() { return 'left' },
+          getPreferredWidth() { return 150 }
+        }),
+        atom.workspace.open({
+          element: document.createElement('div'),
+          getDefaultLocation() { return 'right' },
+          getPreferredWidth() { return 150 }
+        }),
+        atom.workspace.open({
+          element: document.createElement('div'),
+          getDefaultLocation() { return 'bottom' },
+          getPreferredHeight() { return 100 }
+        })
+      ])
+
+      const leftDock = atom.workspace.getLeftDock()
+      const rightDock = atom.workspace.getRightDock()
+      const bottomDock = atom.workspace.getBottomDock()
+
+      expect(leftDock.isVisible()).toBe(true)
+      expect(rightDock.isVisible()).toBe(true)
+      expect(bottomDock.isVisible()).toBe(true)
+      expectToggleButtonHidden(leftDock)
+      expectToggleButtonHidden(rightDock)
+      expectToggleButtonHidden(bottomDock)
+
+      workspaceElement.paneContainer.dispatchEvent(new MouseEvent('mouseleave'))
+
+      // --- Right Dock ---
+
+      // Mouse over where the toggle button would be if the dock were hovered
+      moveMouse({clientX: 440, clientY: 150})
+      expectToggleButtonHidden(leftDock)
+      expectToggleButtonHidden(rightDock)
+      expectToggleButtonHidden(bottomDock)
+
+      // Mouse over the dock
+      moveMouse({clientX: 460, clientY: 150})
+      expectToggleButtonHidden(leftDock)
+      expectToggleButtonVisible(rightDock, 'icon-chevron-right')
+      expectToggleButtonHidden(bottomDock)
+
+      // Mouse over the toggle button
+      moveMouse({clientX: 440, clientY: 150})
+      expectToggleButtonHidden(leftDock)
+      expectToggleButtonVisible(rightDock, 'icon-chevron-right')
+      expectToggleButtonHidden(bottomDock)
+
+      // Click the toggle button
+      rightDock.toggleButton.innerElement.click()
+      expect(rightDock.isVisible()).toBe(false)
+      expectToggleButtonHidden(rightDock)
+
+      // Mouse to edge of the window
+      moveMouse({clientX: 575, clientY: 150})
+      expectToggleButtonHidden(rightDock)
+      moveMouse({clientX: 600, clientY: 150})
+      expectToggleButtonVisible(rightDock, 'icon-chevron-left')
+
+      // Click the toggle button again
+      rightDock.toggleButton.innerElement.click()
+      expect(rightDock.isVisible()).toBe(true)
+      expectToggleButtonVisible(rightDock, 'icon-chevron-right')
+
+      // --- Left Dock ---
+
+      // Mouse over where the toggle button would be if the dock were hovered
+      moveMouse({clientX: 160, clientY: 150})
+      expectToggleButtonHidden(leftDock)
+      expectToggleButtonHidden(rightDock)
+      expectToggleButtonHidden(bottomDock)
+
+      // Mouse over the dock
+      moveMouse({clientX: 140, clientY: 150})
+      expectToggleButtonVisible(leftDock, 'icon-chevron-left')
+      expectToggleButtonHidden(rightDock)
+      expectToggleButtonHidden(bottomDock)
+
+      // Mouse over the toggle button
+      moveMouse({clientX: 160, clientY: 150})
+      expectToggleButtonVisible(leftDock, 'icon-chevron-left')
+      expectToggleButtonHidden(rightDock)
+      expectToggleButtonHidden(bottomDock)
+
+      // Click the toggle button
+      leftDock.toggleButton.innerElement.click()
+      expect(leftDock.isVisible()).toBe(false)
+      expectToggleButtonHidden(leftDock)
+
+      // Mouse to edge of the window
+      moveMouse({clientX: 25, clientY: 150})
+      expectToggleButtonHidden(leftDock)
+      moveMouse({clientX: 0, clientY: 150})
+      expectToggleButtonVisible(leftDock, 'icon-chevron-right')
+
+      // Click the toggle button again
+      leftDock.toggleButton.innerElement.click()
+      expect(leftDock.isVisible()).toBe(true)
+      expectToggleButtonVisible(leftDock, 'icon-chevron-left')
+
+      // --- Bottom Dock ---
+
+      // Mouse over where the toggle button would be if the dock were hovered
+      moveMouse({clientX: 300, clientY: 190})
+      expectToggleButtonHidden(leftDock)
+      expectToggleButtonHidden(rightDock)
+      expectToggleButtonHidden(bottomDock)
+
+      // Mouse over the dock
+      moveMouse({clientX: 300, clientY: 210})
+      expectToggleButtonHidden(leftDock)
+      expectToggleButtonHidden(rightDock)
+      expectToggleButtonVisible(bottomDock, 'icon-chevron-down')
+
+      // Mouse over the toggle button
+      moveMouse({clientX: 300, clientY: 195})
+      expectToggleButtonHidden(leftDock)
+      expectToggleButtonHidden(rightDock)
+      expectToggleButtonVisible(bottomDock, 'icon-chevron-down')
+
+      // Click the toggle button
+      bottomDock.toggleButton.innerElement.click()
+      expect(bottomDock.isVisible()).toBe(false)
+      expectToggleButtonHidden(bottomDock)
+
+      // Mouse to edge of the window
+      moveMouse({clientX: 300, clientY: 290})
+      expectToggleButtonHidden(leftDock)
+      moveMouse({clientX: 300, clientY: 300})
+      expectToggleButtonVisible(bottomDock, 'icon-chevron-up')
+
+      // Click the toggle button again
+      bottomDock.toggleButton.innerElement.click()
+      expect(bottomDock.isVisible()).toBe(true)
+      expectToggleButtonVisible(bottomDock, 'icon-chevron-down')
+    })
+
+    function moveMouse(coordinates) {
+      window.dispatchEvent(new MouseEvent('mousemove', coordinates))
+      advanceClock(100)
+    }
+
+    function expectToggleButtonHidden(dock) {
+      expect(dock.toggleButton.element).not.toHaveClass('atom-dock-toggle-button-visible')
+    }
+
+    function expectToggleButtonVisible(dock, iconClass) {
+      expect(dock.toggleButton.element).toHaveClass('atom-dock-toggle-button-visible')
+      expect(dock.toggleButton.iconElement).toHaveClass(iconClass)
+    }
+  })
+
   describe('the scrollbar visibility class', () => {
     it('has a class based on the style of the scrollbar', () => {
       let observeCallback
@@ -54,15 +221,13 @@ describe('WorkspaceElement', () => {
   describe('editor font styling', () => {
     let editor, editorElement, workspaceElement
 
-    beforeEach(() => {
-      waitsForPromise(() => atom.workspace.open('sample.js'))
+    beforeEach(async () => {
+      await atom.workspace.open('sample.js')
 
-      runs(() => {
-        workspaceElement = atom.workspace.getElement()
-        jasmine.attachToDOM(workspaceElement)
-        editor = atom.workspace.getActiveTextEditor()
-        editorElement = editor.getElement()
-      })
+      workspaceElement = atom.workspace.getElement()
+      jasmine.attachToDOM(workspaceElement)
+      editor = atom.workspace.getActiveTextEditor()
+      editorElement = editor.getElement()
     })
 
     it("updates the font-size based on the 'editor.fontSize' config value", () => {
