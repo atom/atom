@@ -458,6 +458,39 @@ describe "AtomEnvironment", ->
       atomEnvironment.unloadEditorWindow()
       atomEnvironment.destroy()
 
+  describe "::whenShellEnvironmentLoaded()", ->
+    [atomEnvironment, envLoaded, spy] = []
+
+    beforeEach ->
+      resolve = null
+      promise = new Promise (r) -> resolve = r
+      envLoaded = ->
+        resolve()
+        waitsForPromise -> promise
+      atomEnvironment = new AtomEnvironment
+        applicationDelegate: atom.applicationDelegate
+        updateProcessEnv: -> promise
+      atomEnvironment.initialize({window, document})
+      spyOn(atomEnvironment.packages, 'getAvailablePackagePaths').andReturn []
+      spyOn(atomEnvironment, 'displayWindow').andReturn Promise.resolve()
+      spy = jasmine.createSpy()
+      atomEnvironment.startEditorWindow()
+
+    afterEach ->
+      atomEnvironment.unloadEditorWindow()
+      atomEnvironment.destroy()
+
+    it "is triggered once the shell environment is loaded", ->
+      atomEnvironment.whenShellEnvironmentLoaded spy
+      envLoaded()
+      runs -> expect(spy).toHaveBeenCalled()
+
+    it "triggers the callback immediately if the shell environment is already loaded", ->
+      envLoaded()
+      runs ->
+        atomEnvironment.whenShellEnvironmentLoaded spy
+        expect(spy).toHaveBeenCalled()
+
   describe "::openLocations(locations) (called via IPC from browser process)", ->
     beforeEach ->
       spyOn(atom.workspace, 'open')
