@@ -184,22 +184,41 @@ class TextEditorComponent {
   measureBlockDecorations () {
     if (this.blockDecorationsToMeasure.size > 0) {
       const {blockDecorationMeasurementArea} = this.refs
+      const sentinelElements = new Set()
 
       blockDecorationMeasurementArea.appendChild(document.createElement('div'))
       this.blockDecorationsToMeasure.forEach((decoration) => {
         const {item} = decoration.getProperties()
-        blockDecorationMeasurementArea.appendChild(TextEditor.viewForItem(item))
-        blockDecorationMeasurementArea.appendChild(document.createElement('div'))
+        const decorationElement = TextEditor.viewForItem(item)
+        if (document.contains(decorationElement)) {
+          const parentElement = decorationElement.parentElement
+
+          if (!decorationElement.previousSibling) {
+            const sentinelElement = document.createElement('div')
+            parentElement.insertBefore(sentinelElement, decorationElement)
+            sentinelElements.add(sentinelElement)
+          }
+
+          if (!decorationElement.nextSibling) {
+            const sentinelElement = document.createElement('div')
+            parentElement.appendChild(sentinelElement)
+            sentinelElements.add(sentinelElement)
+          }
+        } else {
+          blockDecorationMeasurementArea.appendChild(decorationElement)
+          blockDecorationMeasurementArea.appendChild(document.createElement('div'))
+        }
       })
 
       this.blockDecorationsToMeasure.forEach((decoration) => {
         const {item} = decoration.getProperties()
         const decorationElement = TextEditor.viewForItem(item)
         const {previousSibling, nextSibling} = decorationElement
-        const height = nextSibling.offsetTop - previousSibling.offsetTop
+        const height = nextSibling.getBoundingClientRect().top - previousSibling.getBoundingClientRect().bottom
         this.lineTopIndex.resizeBlock(decoration, height)
       })
 
+      sentinelElements.forEach((sentinelElement) => sentinelElement.remove())
       while (blockDecorationMeasurementArea.firstChild) {
         blockDecorationMeasurementArea.firstChild.remove()
       }
@@ -1916,6 +1935,11 @@ class TextEditorComponent {
       didDestroyDisposable.dispose()
       this.scheduleUpdate()
     })
+  }
+
+  invalidateBlockDecorationDimensions (decoration) {
+    this.blockDecorationsToMeasure.add(decoration)
+    this.scheduleUpdate()
   }
 
   spliceLineTopIndex (startRow, oldExtent, newExtent) {

@@ -1337,6 +1337,34 @@ describe('TextEditorComponent', () => {
       expect(element.contains(item4)).toBe(false)
       expect(element.contains(item5)).toBe(false)
       expect(element.contains(item6)).toBe(false)
+
+      // invalidate decorations
+      item2.style.height = '20px'
+      item3.style.height = '22px'
+      component.invalidateBlockDecorationDimensions(decoration2)
+      component.invalidateBlockDecorationDimensions(decoration3)
+      await component.getNextUpdatePromise()
+      expect(component.getRenderedStartRow()).toBe(0)
+      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getScrollHeight()).toBe(
+        editor.getScreenLineCount() * component.getLineHeight() +
+        getElementHeight(item2) + getElementHeight(item3) +
+        getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
+      )
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight() + getElementHeight(item2) + getElementHeight(item3)},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()}
+      ])
+      assertLinesAreAlignedWithLineNumbers(component)
+      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.contains(item1)).toBe(false)
+      expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
+      expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
+      expect(item3.previousSibling).toBeNull()
+      expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
+      expect(element.contains(item4)).toBe(false)
+      expect(element.contains(item5)).toBe(false)
+      expect(element.contains(item6)).toBe(false)
     })
 
     function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, position}) {
