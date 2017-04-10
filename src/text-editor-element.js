@@ -66,6 +66,18 @@ class TextEditorElement extends HTMLElement {
     if (this.component) this.component.updatedSynchronously = updatedSynchronously
     return updatedSynchronously
   }
+
+  // Experimental: Invalidate the passed block {Decoration}'s dimensions,
+  // forcing them to be recalculated and the surrounding content to be adjusted
+  // on the next animation frame.
+  //
+  // * {blockDecoration} A {Decoration} representing the block decoration you
+  // want to update the dimensions of.
+  invalidateBlockDecorationDimensions () {
+    if (this.component) {
+      this.component.invalidateBlockDecorationDimensions(...arguments)
+    }
+  }
 }
 
 module.exports =
