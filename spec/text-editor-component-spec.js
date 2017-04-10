@@ -1171,12 +1171,11 @@ describe('TextEditorComponent', () => {
         editor.getScreenLineCount() * component.getLineHeight() +
         getElementHeight(item1) + getElementHeight(item2)
       )
-      expect(tileNodeForScreenRow(component, 0).offsetHeight).toBe(
-        3 * component.getLineHeight() + getElementHeight(item1) + getElementHeight(item2)
-      )
-      expect(tileNodeForScreenRow(component, 3).offsetHeight).toBe(
-        3 * component.getLineHeight()
-      )
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight() + getElementHeight(item1) + getElementHeight(item2)},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()}
+      ])
+      assertLinesAreAlignedWithLineNumbers(component)
       expect(element.querySelectorAll('.line').length).toBe(6)
       expect(item1.previousSibling).toBeNull()
       expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 0))
@@ -1196,12 +1195,11 @@ describe('TextEditorComponent', () => {
         getElementHeight(item1) + getElementHeight(item2) + getElementHeight(item3) +
         getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
       )
-      expect(tileNodeForScreenRow(component, 0).offsetHeight).toBe(
-        3 * component.getLineHeight() + getElementHeight(item1) + getElementHeight(item2)
-      )
-      expect(tileNodeForScreenRow(component, 3).offsetHeight).toBe(
-        3 * component.getLineHeight() + getElementHeight(item3)
-      )
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight() + getElementHeight(item1) + getElementHeight(item2)},
+        {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item3)}
+      ])
+      assertLinesAreAlignedWithLineNumbers(component)
       expect(element.querySelectorAll('.line').length).toBe(6)
       expect(item1.previousSibling).toBeNull()
       expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 0))
@@ -1222,12 +1220,11 @@ describe('TextEditorComponent', () => {
         getElementHeight(item1) + getElementHeight(item2) + getElementHeight(item3) +
         getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
       )
-      expect(tileNodeForScreenRow(component, 3).offsetHeight).toBe(
-        3 * component.getLineHeight() + getElementHeight(item3)
-      )
-      expect(tileNodeForScreenRow(component, 6).offsetHeight).toBe(
-        3 * component.getLineHeight() + getElementHeight(item4) + getElementHeight(item5)
-      )
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item3)},
+        {tileStartRow: 6, height: 3 * component.getLineHeight() + getElementHeight(item4) + getElementHeight(item5)}
+      ])
+      assertLinesAreAlignedWithLineNumbers(component)
       expect(element.querySelectorAll('.line').length).toBe(6)
       expect(element.contains(item1)).toBe(false)
       expect(element.contains(item2)).toBe(false)
@@ -1250,12 +1247,11 @@ describe('TextEditorComponent', () => {
         getElementHeight(item2) + getElementHeight(item3) +
         getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
       )
-      expect(tileNodeForScreenRow(component, 0).offsetHeight).toBe(
-        3 * component.getLineHeight() + getElementHeight(item2)
-      )
-      expect(tileNodeForScreenRow(component, 3).offsetHeight).toBe(
-        3 * component.getLineHeight() + getElementHeight(item3)
-      )
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight() + getElementHeight(item2)},
+        {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item3)}
+      ])
+      assertLinesAreAlignedWithLineNumbers(component)
       expect(element.querySelectorAll('.line').length).toBe(6)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -1277,12 +1273,11 @@ describe('TextEditorComponent', () => {
         getElementHeight(item2) + getElementHeight(item3) +
         getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
       )
-      expect(tileNodeForScreenRow(component, 0).offsetHeight).toBe(
-        3 * component.getLineHeight() + getElementHeight(item2) + getElementHeight(item3)
-      )
-      expect(tileNodeForScreenRow(component, 3).offsetHeight).toBe(
-        3 * component.getLineHeight()
-      )
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight() + getElementHeight(item2) + getElementHeight(item3)},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()}
+      ])
+      assertLinesAreAlignedWithLineNumbers(component)
       expect(element.querySelectorAll('.line').length).toBe(6)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
@@ -1303,12 +1298,11 @@ describe('TextEditorComponent', () => {
         getElementHeight(item2) + getElementHeight(item3) +
         getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
       )
-      expect(tileNodeForScreenRow(component, 0).offsetHeight).toBe(
-        3 * component.getLineHeight() + getElementHeight(item3)
-      )
-      expect(tileNodeForScreenRow(component, 3).offsetHeight).toBe(
-        3 * component.getLineHeight() + getElementHeight(item2)
-      )
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight() + getElementHeight(item3)},
+        {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item2)}
+      ])
+      assertLinesAreAlignedWithLineNumbers(component)
       expect(element.querySelectorAll('.line').length).toBe(6)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBeNull()
@@ -1329,12 +1323,11 @@ describe('TextEditorComponent', () => {
         getElementHeight(item2) + getElementHeight(item3) +
         getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
       )
-      expect(tileNodeForScreenRow(component, 0).offsetHeight).toBe(
-        3 * component.getLineHeight() + getElementHeight(item2) + getElementHeight(item3)
-      )
-      expect(tileNodeForScreenRow(component, 3).offsetHeight).toBe(
-        3 * component.getLineHeight()
-      )
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight() + getElementHeight(item2) + getElementHeight(item3)},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()}
+      ])
+      assertLinesAreAlignedWithLineNumbers(component)
       expect(element.querySelectorAll('.line').length).toBe(6)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
@@ -1354,6 +1347,33 @@ describe('TextEditorComponent', () => {
       item.style.width = 30 + 'px'
       const decoration = editor.decorateMarker(marker, {type: 'block', item, position})
       return {item, decoration}
+    }
+
+    function assertTilesAreSizedAndPositionedCorrectly (component, tiles) {
+      let top = 0
+      for (let tile of tiles) {
+        const linesTileElement = lineNodeForScreenRow(component, tile.tileStartRow).parentElement
+        const linesTileBoundingRect = linesTileElement.getBoundingClientRect()
+        expect(linesTileBoundingRect.height).toBe(tile.height)
+        expect(linesTileBoundingRect.top).toBe(top)
+
+        const lineNumbersTileElement = lineNumberNodeForScreenRow(component, tile.tileStartRow).parentElement
+        const lineNumbersTileBoundingRect = lineNumbersTileElement.getBoundingClientRect()
+        expect(lineNumbersTileBoundingRect.height).toBe(tile.height)
+        expect(lineNumbersTileBoundingRect.top).toBe(top)
+
+        top += tile.height
+      }
+    }
+
+    function assertLinesAreAlignedWithLineNumbers (component) {
+      const startRow = component.getRenderedStartRow()
+      const endRow = component.getRenderedEndRow()
+      for (let row = startRow; row < endRow; row++) {
+        const lineNode = lineNodeForScreenRow(component, row)
+        const lineNumberNode = lineNumberNodeForScreenRow(component, row)
+        expect(lineNumberNode.getBoundingClientRect().top).toBe(lineNode.getBoundingClientRect().top)
+      }
     }
   })
 
@@ -2123,10 +2143,6 @@ function lineNumberNodeForScreenRow (component, row) {
   const tileStartRow = component.tileStartRowForRow(row)
   const tileIndex = component.tileIndexForTileStartRow(tileStartRow)
   return gutterElement.children[tileIndex + 1].children[row - tileStartRow]
-}
-
-function tileNodeForScreenRow (component, row) {
-  return lineNodeForScreenRow(component, row).parentElement
 }
 
 function lineNodeForScreenRow (component, row) {

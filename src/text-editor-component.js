@@ -383,6 +383,7 @@ class TextEditorComponent {
         numbers: numbers,
         foldableFlags: foldableFlags,
         decorations: this.decorationsToRender.lineNumbers,
+        blockDecorations: this.decorationsToRender.blocks,
         height: this.getScrollHeight(),
         width: this.getLineNumberGutterWidth(),
         lineHeight: this.getLineHeight(),
@@ -2335,7 +2336,17 @@ class LineNumberGutterComponent {
           if (number === -1) number = '•'
           number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
 
-          tileChildren[row - tileStartRow] = $.div({key, className},
+          let lineNumberProps = {key, className}
+
+          if (row === 0 || i > 0) {
+            let currentRowTop = parentComponent.pixelPositionAfterBlocksForRow(row)
+            let previousRowBottom = parentComponent.pixelPositionAfterBlocksForRow(row - 1) + lineHeight
+            if (currentRowTop > previousRowBottom) {
+              lineNumberProps.style = {marginTop: (currentRowTop - previousRowBottom) + 'px'}
+            }
+          }
+
+          tileChildren[row - tileStartRow] = $.div(lineNumberProps,
             number,
             $.div({className: 'icon-right'})
           )
@@ -2394,6 +2405,43 @@ class LineNumberGutterComponent {
     if (!arraysEqual(oldProps.numbers, newProps.numbers)) return true
     if (!arraysEqual(oldProps.foldableFlags, newProps.foldableFlags)) return true
     if (!arraysEqual(oldProps.decorations, newProps.decorations)) return true
+
+    let oldTileStartRow = oldProps.startRow
+    let newTileStartRow = newProps.startRow
+    while (oldTileStartRow < oldProps.endRow || newTileStartRow < newProps.endRow) {
+      let oldTileBlockDecorations = oldProps.blockDecorations.get(oldTileStartRow)
+      let newTileBlockDecorations = newProps.blockDecorations.get(newTileStartRow)
+
+      if (oldTileBlockDecorations && newTileBlockDecorations) {
+        if (oldTileBlockDecorations.size !== newTileBlockDecorations.size) return true
+
+        let blockDecorationsChanged = false
+
+        oldTileBlockDecorations.forEach((oldDecorations, screenLineId) => {
+          if (!blockDecorationsChanged) {
+            const newDecorations = newTileBlockDecorations.get(screenLineId)
+            blockDecorationsChanged = (newDecorations == null || !arraysEqual(oldDecorations, newDecorations))
+          }
+        })
+        if (blockDecorationsChanged) return true
+
+        newTileBlockDecorations.forEach((newDecorations, screenLineId) => {
+          if (!blockDecorationsChanged) {
+            const oldDecorations = oldTileBlockDecorations.get(screenLineId)
+            blockDecorationsChanged = (oldDecorations == null)
+          }
+        })
+        if (blockDecorationsChanged) return true
+      } else if (oldTileBlockDecorations) {
+        return true
+      } else if (newTileBlockDecorations) {
+        return true
+      }
+
+      oldTileStartRow += oldProps.rowsPerTile
+      newTileStartRow += newProps.rowsPerTile
+    }
+
     return false
   }
 
