@@ -379,7 +379,7 @@ class TextEditor extends Model
         when 'showCursorOnSelection'
           if value isnt @showCursorOnSelection
             @showCursorOnSelection = value
-            cursor.setShowCursorOnSelection(value) for cursor in @getCursors()
+            @component?.scheduleUpdate()
 
         else
           if param isnt 'ref' and param isnt 'key'

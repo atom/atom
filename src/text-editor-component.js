@@ -920,6 +920,7 @@ class TextEditorComponent {
 
   addCursorDecorationToMeasure (marker, screenRange, reversed) {
     const {model} = this.props
+    if (!model.getShowCursorOnSelection() && !screenRange.isEmpty()) return
     const isLastCursor = model.getLastCursor().getMarker() === marker
     const screenPosition = reversed ? screenRange.start : screenRange.end
     const {row, column} = screenPosition
