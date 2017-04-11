@@ -192,12 +192,12 @@ describe "atom.themes", ->
 
       element = document.querySelector('head style[source-path*="sample.less"]')
       expect(element.getAttribute('source-path')).toEqualPath lessPath
-      expect(element.textContent).toBe """
+      expect(element.textContent.toLowerCase()).toBe """
       #header {
-        color: #4D926F;
+        color: #4d926f;
       }
       h2 {
-        color: #4D926F;
+        color: #4d926f;
       }
 
       """
