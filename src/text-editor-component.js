@@ -2723,6 +2723,7 @@ class LinesTileComponent {
     if (oldProps.top !== newProps.top) return true
     if (oldProps.height !== newProps.height) return true
     if (oldProps.width !== newProps.width) return true
+    if (oldProps.lineHeight !== newProps.lineHeight) return true
     if (!arraysEqual(oldProps.screenLines, newProps.screenLines)) return true
     if (!arraysEqual(oldProps.lineDecorations, newProps.lineDecorations)) return true
 
@@ -2737,7 +2738,9 @@ class LinesTileComponent {
         const newHighlight = newProps.highlightDecorations[i]
         if (oldHighlight.className !== newHighlight.className) return true
         if (newHighlight.flashRequested) return true
+        if (oldHighlight.startPixelTop !== newHighlight.startPixelTop) return true
         if (oldHighlight.startPixelLeft !== newHighlight.startPixelLeft) return true
+        if (oldHighlight.endPixelTop !== newHighlight.endPixelTop) return true
         if (oldHighlight.endPixelLeft !== newHighlight.endPixelLeft) return true
         if (!oldHighlight.screenRange.isEqual(newHighlight.screenRange)) return true
       }
