@@ -34,7 +34,7 @@ class PanelContainerElement extends HTMLElement {
   getModel () { return this.model }
 
   panelAdded ({panel, index}) {
-    const panelElement = this.viewRegistry.getView(panel)
+    const panelElement = panel.getElement()
     panelElement.classList.add(this.model.getLocation())
     if (this.model.isModal()) {
       panelElement.classList.add('overlay', 'from-top')
