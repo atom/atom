@@ -407,9 +407,8 @@ describe('TextEditorComponent', () => {
 
     it('supports the placeholderText parameter', () => {
       const placeholderText = 'Placeholder Test'
-      const {component} = buildComponent({placeholderText, text: ''})
-      const emptyLineSpace = ' '
-      expect(component.refs.content.textContent).toBe(emptyLineSpace + placeholderText)
+      const {element} = buildComponent({placeholderText, text: ''})
+      expect(element.textContent).toContain(placeholderText)
     })
   })
 
