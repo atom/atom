@@ -2636,6 +2636,9 @@ class LinesTileComponent {
       if (newProps.width !== this.props.width) {
         this.linesVnode = null
       }
+      if (newProps.measuredContent || (!newProps.highlightDecorations && this.props.highlightDecorations)) {
+        this.highlightsVnode = null
+      }
       this.props = newProps
       etch.updateSync(this)
     }
@@ -2665,7 +2668,7 @@ class LinesTileComponent {
   renderHighlights () {
     const {measuredContent, top, height, width, lineHeight, highlightDecorations} = this.props
 
-    if (measuredContent) {
+    if (!this.highlightsVnode) {
       let children = null
       if (highlightDecorations) {
         const decorationCount = highlightDecorations.length
