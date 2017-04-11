@@ -5,6 +5,7 @@ describe('Panel', () => {
     getElement () {
       if (!this.element) {
         this.element = document.createElement('div')
+        this.element.tabIndex = -1
         this.element.className = 'test-root'
       }
       return this.element
@@ -18,15 +19,35 @@ describe('Panel', () => {
     expect(element.firstChild).toBe(panel.getItem().getElement())
   })
 
-  it('removes the element when the panel is destroyed', () => {
-    const panel = new Panel({item: new TestPanelItem()}, atom.views)
-    const element = panel.getElement()
-    const jasmineContent = document.getElementById('jasmine-content')
-    jasmineContent.appendChild(element)
+  describe('destroying the panel', () => {
+    it('removes the element when the panel is destroyed', () => {
+      const panel = new Panel({item: new TestPanelItem()}, atom.views)
+      const element = panel.getElement()
+      const jasmineContent = document.getElementById('jasmine-content')
+      jasmineContent.appendChild(element)
 
-    expect(element.parentNode).toBe(jasmineContent)
-    panel.destroy()
-    expect(element.parentNode).not.toBe(jasmineContent)
+      expect(element.parentNode).toBe(jasmineContent)
+      panel.destroy()
+      expect(element.parentNode).not.toBe(jasmineContent)
+    })
+
+    it('does not try to remove the element twice', () => {
+      const item = new TestPanelItem()
+      const panel = new Panel({item}, atom.views)
+      const element = panel.getElement()
+      const jasmineContent = document.getElementById('jasmine-content')
+      jasmineContent.appendChild(element)
+
+      item.getElement().focus()
+      expect(item.getElement()).toHaveFocus()
+
+      // Avoid this error:
+      //   NotFoundError: Failed to execute 'remove' on 'Element':
+      //   The node to be removed is no longer a child of this node.
+      //   Perhaps it was moved in a 'blur' event handler?
+      item.getElement().addEventListener('blur', () => panel.destroy())
+      panel.destroy()
+    })
   })
 
   describe('changing panel visibility', () => {
