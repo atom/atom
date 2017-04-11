@@ -952,6 +952,19 @@ describe('TextEditorComponent', () => {
       expect(highlights[0].classList.contains('a')).toBe(true)
       expect(highlights[1].classList.contains('c')).toBe(true)
     })
+
+    it('clears highlights when recycling a tile that previously contained highlights and now does not', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 2, autoHeight: false})
+      await setEditorHeightInLines(component, 2)
+      const marker = editor.markScreenRange([[1, 2], [1, 10]])
+      editor.decorateMarker(marker, {type: 'highlight', class: 'a'})
+
+      await component.getNextUpdatePromise()
+      expect(element.querySelectorAll('.highlight.a').length).toBe(1)
+
+      await setScrollTop(component, component.getLineHeight() * 3)
+      expect(element.querySelectorAll('.highlight.a').length).toBe(0)
+    })
   })
 
   describe('overlay decorations', () => {
