@@ -166,6 +166,8 @@ class TextEditorComponent {
   }
 
   updateSync (useScheduler = false) {
+    if (!this.visible) return
+
     this.updateScheduled = false
     if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
 
