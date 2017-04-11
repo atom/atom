@@ -175,6 +175,24 @@ describe "PaneElement", ->
 
       expect(pane.isActive()).toBe true
 
+    it "does not re-activate the pane when focus changes within the pane", ->
+      item = document.createElement('div')
+      itemChild = document.createElement('div')
+      item.tabIndex = -1
+      itemChild.tabIndex = -1
+      item.appendChild(itemChild)
+      jasmine.attachToDOM(paneElement)
+
+      pane.activateItem(item)
+      pane.activate()
+
+      activationCount = 0
+      pane.onDidActivate ->
+        activationCount++
+
+      itemChild.focus()
+      expect(activationCount).toBe(0)
+
   describe "when the pane element is attached", ->
     it "focuses the pane element if isFocused() returns true on its model", ->
       pane.focus()
