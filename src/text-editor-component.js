@@ -2662,11 +2662,10 @@ class LinesTileComponent {
       this.renderHighlights(),
       this.renderLines()
     )
-
   }
 
   renderHighlights () {
-    const {measuredContent, top, height, width, lineHeight, highlightDecorations} = this.props
+    const {top, height, width, lineHeight, highlightDecorations} = this.props
 
     if (!this.highlightsVnode) {
       let children = null
