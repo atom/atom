@@ -59,9 +59,9 @@ describe('PanelContainerElement', () => {
       container.addPanel(panel2)
       container.addPanel(panel3)
 
-      expect(element.childNodes[2].getModel()).toBe(panel1)
-      expect(element.childNodes[1].getModel()).toBe(panel3)
-      expect(element.childNodes[0].getModel()).toBe(panel2)
+      expect(element.childNodes[2]).toBe(panel1.getElement())
+      expect(element.childNodes[1]).toBe(panel3.getElement())
+      expect(element.childNodes[0]).toBe(panel2.getElement())
     })
 
     describe('when the container is at the left location', () =>
