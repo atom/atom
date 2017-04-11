@@ -182,6 +182,24 @@ class TextEditorComponent {
   }
 
   measureBlockDecorations () {
+    if (this.remeasureAllBlockDecorations) {
+      this.remeasureAllBlockDecorations = false
+
+      const decorations = this.props.model.getDecorations()
+      for (var i = 0; i < decorations.length; i++) {
+        const decoration = decorations[i]
+        if (decoration.getProperties().type === 'block') {
+          this.blockDecorationsToMeasure.add(decoration)
+        }
+      }
+
+      // Update the width of the line tiles to ensure block decorations are
+      // measured with the most recent width.
+      if (this.blockDecorationsToMeasure.size > 0) {
+        this.updateSyncBeforeMeasuringContent()
+      }
+    }
+
     if (this.blockDecorationsToMeasure.size > 0) {
       const {blockDecorationMeasurementArea} = this.refs
       const sentinelElements = new Set()
@@ -1188,7 +1206,13 @@ class TextEditorComponent {
   }
 
   didResize () {
-    if (this.measureClientContainerDimensions()) {
+    const clientContainerWidthChanged = this.measureClientContainerWidth()
+    const clientContainerHeightChanged = this.measureClientContainerHeight()
+    if (clientContainerWidthChanged || clientContainerHeightChanged) {
+      if (clientContainerWidthChanged) {
+        this.remeasureAllBlockDecorations = true
+      }
+
       this.scheduleUpdate()
     }
   }
@@ -1646,7 +1670,8 @@ class TextEditorComponent {
     this.measurements = {}
     this.measureCharacterDimensions()
     this.measureGutterDimensions()
-    this.measureClientContainerDimensions()
+    this.measureClientContainerHeight()
+    this.measureClientContainerWidth()
     this.measureScrollbarDimensions()
   }
 
@@ -1692,22 +1717,29 @@ class TextEditorComponent {
     return dimensionsChanged
   }
 
-  measureClientContainerDimensions () {
+  measureClientContainerHeight () {
     if (!this.measurements) return false
 
-    let dimensionsChanged = false
     const clientContainerHeight = this.refs.clientContainer.offsetHeight
-    const clientContainerWidth = this.refs.clientContainer.offsetWidth
     if (clientContainerHeight !== this.measurements.clientContainerHeight) {
       this.measurements.clientContainerHeight = clientContainerHeight
-      dimensionsChanged = true
+      return true
+    } else {
+      return false
     }
+  }
+
+  measureClientContainerWidth () {
+    if (!this.measurements) return false
+
+    const clientContainerWidth = this.refs.clientContainer.offsetWidth
     if (clientContainerWidth !== this.measurements.clientContainerWidth) {
       this.measurements.clientContainerWidth = clientContainerWidth
       this.props.model.setEditorWidthInChars(this.getScrollContainerWidth() / this.getBaseCharacterWidth())
-      dimensionsChanged = true
+      return true
+    } else {
+      return false
     }
-    return dimensionsChanged
   }
 
   measureScrollbarDimensions () {

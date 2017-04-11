@@ -1402,6 +1402,74 @@ describe('TextEditorComponent', () => {
       expect(element.contains(item4)).toBe(false)
       expect(element.contains(item5)).toBe(false)
       expect(element.contains(item6)).toBe(false)
+
+      // make decoration before row 0 as wide as the editor, and insert some text into it so that it wraps.
+      item3.style.height = ''
+      item3.style.margin = ''
+      item3.style.width = ''
+      item3.style.wordWrap = 'break-word'
+      const contentWidthInCharacters = Math.floor(component.getScrollContainerClientWidth() / component.getBaseCharacterWidth())
+      item3.textContent = 'x'.repeat(contentWidthInCharacters * 2)
+      component.invalidateBlockDecorationDimensions(decoration3)
+      await component.getNextUpdatePromise()
+
+      // make the editor wider, so that the decoration doesn't wrap anymore.
+      component.element.style.width = (
+        component.getGutterContainerWidth() +
+        component.getScrollContainerClientWidth() * 2 +
+        component.getVerticalScrollbarWidth()
+      ) + 'px'
+      await component.getNextUpdatePromise()
+      expect(component.getRenderedStartRow()).toBe(0)
+      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getScrollHeight()).toBe(
+        editor.getScreenLineCount() * component.getLineHeight() +
+        getElementHeight(item2) + getElementHeight(item3) +
+        getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
+      )
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight() + getElementHeight(item2) + getElementHeight(item3)},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()}
+      ])
+      assertLinesAreAlignedWithLineNumbers(component)
+      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.contains(item1)).toBe(false)
+      expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
+      expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
+      expect(item3.previousSibling).toBeNull()
+      expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
+      expect(element.contains(item4)).toBe(false)
+      expect(element.contains(item5)).toBe(false)
+      expect(element.contains(item6)).toBe(false)
+
+      // make the editor taller and wider and the same time, ensuring the number
+      // of rendered lines is correct.
+      setEditorHeightInLines(component, 10)
+      await setEditorWidthInCharacters(component, 50)
+      expect(component.getRenderedStartRow()).toBe(0)
+      expect(component.getRenderedEndRow()).toBe(9)
+      expect(component.getScrollHeight()).toBe(
+        editor.getScreenLineCount() * component.getLineHeight() +
+        getElementHeight(item2) + getElementHeight(item3) +
+        getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
+      )
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight() + getElementHeight(item2) + getElementHeight(item3)},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()},
+        {tileStartRow: 6, height: 3 * component.getLineHeight() + getElementHeight(item4) + getElementHeight(item5)},
+      ])
+      assertLinesAreAlignedWithLineNumbers(component)
+      expect(element.querySelectorAll('.line').length).toBe(9)
+      expect(element.contains(item1)).toBe(false)
+      expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
+      expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
+      expect(item3.previousSibling).toBeNull()
+      expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
+      expect(item4.previousSibling).toBe(lineNodeForScreenRow(component, 6))
+      expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
+      expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
+      expect(item5.nextSibling).toBe(lineNodeForScreenRow(component, 8))
+      expect(element.contains(item6)).toBe(false)
     })
 
     function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, position}) {
