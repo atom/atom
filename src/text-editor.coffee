@@ -65,6 +65,10 @@ class TextEditor extends Model
     TextEditorComponent ?= require './text-editor-component'
     TextEditorComponent.setScheduler(scheduler)
 
+  @didUpdateStyles: ->
+    TextEditorComponent ?= require './text-editor-component'
+    TextEditorComponent.didUpdateStyles()
+
   @didUpdateScrollbarStyles: ->
     TextEditorComponent ?= require './text-editor-component'
     TextEditorComponent.didUpdateScrollbarStyles()

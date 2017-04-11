@@ -29,6 +29,13 @@ const BLOCK_DECORATION_MEASUREMENT_AREA_VNODE = $.div({
     visibility: 'hidden'
   }
 })
+const CHARACTER_MEASUREMENT_LINE_VNODE = $.div(
+  {key: 'characterMeasurementLine', ref: 'characterMeasurementLine', className: 'line dummy'},
+  $.span({ref: 'normalWidthCharacterSpan'}, NORMAL_WIDTH_CHARACTER),
+  $.span({ref: 'doubleWidthCharacterSpan'}, DOUBLE_WIDTH_CHARACTER),
+  $.span({ref: 'halfWidthCharacterSpan'}, HALF_WIDTH_CHARACTER),
+  $.span({ref: 'koreanCharacterSpan'}, KOREAN_CHARACTER)
+)
 
 function scaleMouseDragAutoscrollDelta (delta) {
   return Math.pow(delta / 3, 3) / 280
@@ -38,6 +45,14 @@ module.exports =
 class TextEditorComponent {
   static setScheduler (scheduler) {
     etch.setScheduler(scheduler)
+  }
+
+  static didUpdateStyles () {
+    if (this.attachedComponents) {
+      this.attachedComponents.forEach((component) => {
+        component.didUpdateStyles()
+      })
+    }
   }
 
   static didUpdateScrollbarStyles () {
@@ -79,7 +94,7 @@ class TextEditorComponent {
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
     this.shouldRenderDummyScrollbars = true
-    this.refreshedScrollbarStyle = false
+    this.remeasureScrollbars = false
     this.pendingAutoscroll = null
     this.scrollTopPending = false
     this.scrollLeftPending = false
@@ -159,6 +174,12 @@ class TextEditorComponent {
     if (onlyBlinkingCursors) {
       this.updateCursorBlinkSync()
       return
+    }
+
+    if (this.remeasureCharacterDimensions) {
+      this.measureCharacterDimensions()
+      this.measureGutterDimensions()
+      this.remeasureCharacterDimensions = false
     }
 
     this.measureBlockDecorations()
@@ -254,7 +275,7 @@ class TextEditorComponent {
     this.queryLineNumbersToRender()
     this.queryGuttersToRender()
     this.queryDecorationsToRender()
-    this.shouldRenderDummyScrollbars = !this.refreshedScrollbarStyle
+    this.shouldRenderDummyScrollbars = !this.remeasureScrollbars
     etch.updateSync(this)
     this.shouldRenderDummyScrollbars = true
     this.didMeasureVisibleBlockDecoration = false
@@ -286,9 +307,9 @@ class TextEditorComponent {
     this.currentFrameLineNumberGutterProps = null
     this.scrollTopPending = false
     this.scrollLeftPending = false
-    if (this.refreshedScrollbarStyle) {
+    if (this.remeasureScrollbars) {
       this.measureScrollbarDimensions()
-      this.refreshedScrollbarStyle = false
+      this.remeasureScrollbars = false
       etch.updateSync(this)
     }
   }
@@ -480,17 +501,13 @@ class TextEditorComponent {
         this.renderCursorsAndInput(),
         this.renderLineTiles(),
         BLOCK_DECORATION_MEASUREMENT_AREA_VNODE,
+        CHARACTER_MEASUREMENT_LINE_VNODE,
         this.renderPlaceholderText()
       ]
     } else {
       children = [
         BLOCK_DECORATION_MEASUREMENT_AREA_VNODE,
-        $.div({ref: 'characterMeasurementLine', className: 'line'},
-          $.span({ref: 'normalWidthCharacterSpan'}, NORMAL_WIDTH_CHARACTER),
-          $.span({ref: 'doubleWidthCharacterSpan'}, DOUBLE_WIDTH_CHARACTER),
-          $.span({ref: 'halfWidthCharacterSpan'}, HALF_WIDTH_CHARACTER),
-          $.span({ref: 'koreanCharacterSpan'}, KOREAN_CHARACTER)
-        )
+        CHARACTER_MEASUREMENT_LINE_VNODE
       ]
     }
 
@@ -505,8 +522,6 @@ class TextEditorComponent {
   }
 
   renderLineTiles () {
-    if (!this.measurements) return []
-
     const {lineNodesByScreenLineId, textNodesByScreenLineId} = this
 
     const startRow = this.getRenderedStartRow()
@@ -676,7 +691,7 @@ class TextEditorComponent {
           this.isVerticalScrollbarVisible()
           ? this.getVerticalScrollbarWidth()
           : 0
-        forceScrollbarVisible = this.refreshedScrollbarStyle
+        forceScrollbarVisible = this.remeasureScrollbars
       } else {
         forceScrollbarVisible = true
       }
@@ -1117,7 +1132,7 @@ class TextEditorComponent {
   }
 
   didShow () {
-    if (!this.visible) {
+    if (!this.visible && this.isVisible()) {
       this.visible = true
       if (!this.measurements) this.performInitialMeasurements()
       this.props.model.setVisible(true)
@@ -1235,8 +1250,14 @@ class TextEditorComponent {
     if (scrollTopChanged || scrollLeftChanged) this.updateSync()
   }
 
+  didUpdateStyles () {
+    this.remeasureCharacterDimensions = true
+    this.horizontalPixelPositionsByScreenLineId.clear()
+    this.scheduleUpdate()
+  }
+
   didUpdateScrollbarStyles () {
-    this.refreshedScrollbarStyle = true
+    this.remeasureScrollbars = true
     this.scheduleUpdate()
   }
 
@@ -1680,7 +1701,7 @@ class TextEditorComponent {
     this.measurements.baseCharacterWidth = this.refs.normalWidthCharacterSpan.getBoundingClientRect().width
     this.measurements.doubleWidthCharacterWidth = this.refs.doubleWidthCharacterSpan.getBoundingClientRect().width
     this.measurements.halfWidthCharacterWidth = this.refs.halfWidthCharacterSpan.getBoundingClientRect().width
-    this.measurements.koreanCharacterWidth = this.refs.koreanCharacterSpan.getBoundingClientRect().widt
+    this.measurements.koreanCharacterWidth = this.refs.koreanCharacterSpan.getBoundingClientRect().width
 
     this.props.model.setDefaultCharWidth(
       this.measurements.baseCharacterWidth,
@@ -2444,7 +2465,7 @@ class LineNumberGutterComponent {
           mousedown: this.didMouseDown
         },
       },
-      $.div({key: 'placeholder', className: 'line-number', style: {visibility: 'hidden'}},
+      $.div({key: 'placeholder', className: 'line-number dummy', style: {visibility: 'hidden'}},
         '0'.repeat(maxDigits),
         $.div({className: 'icon-right'})
       ),
