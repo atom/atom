@@ -34,7 +34,7 @@ class TextEditorElement extends HTMLElement {
   }
 
   onDidChangeScrollTop (callback) {
-    return this.emitter.on('did-change-scrol-top', callback)
+    return this.emitter.on('did-change-scroll-top', callback)
   }
 
   getDefaultCharacterWidth () {
