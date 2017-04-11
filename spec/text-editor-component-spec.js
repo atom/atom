@@ -28,23 +28,23 @@ describe('TextEditorComponent', () => {
     it('renders lines and line numbers for the visible region', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
 
-      expect(element.querySelectorAll('.line-number').length).toBe(13 + 1) // +1 for placeholder line number
-      expect(element.querySelectorAll('.line').length).toBe(13)
+      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(13)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(13)
 
       element.style.height = 4 * component.measurements.lineHeight + 'px'
       await component.getNextUpdatePromise()
-      expect(element.querySelectorAll('.line-number').length).toBe(9 + 1) // +1 for placeholder  line number
-      expect(element.querySelectorAll('.line').length).toBe(9)
+      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(9)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
 
       await setScrollTop(component, 5 * component.getLineHeight())
 
       // After scrolling down beyond > 3 rows, the order of line numbers and lines
       // in the DOM is a bit weird because the first tile is recycled to the bottom
       // when it is scrolled out of view
-      expect(Array.from(element.querySelectorAll('.line-number')).slice(1).map(element => element.textContent.trim())).toEqual([
+      expect(Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map(element => element.textContent.trim())).toEqual([
         '10', '11', '12', '4', '5', '6', '7', '8', '9'
       ])
-      expect(Array.from(element.querySelectorAll('.line')).map(element => element.textContent)).toEqual([
+      expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(element => element.textContent)).toEqual([
         editor.lineTextForScreenRow(9),
         ' ', // this line is blank in the model, but we render a space to prevent the line from collapsing vertically
         editor.lineTextForScreenRow(11),
@@ -57,10 +57,10 @@ describe('TextEditorComponent', () => {
       ])
 
       await setScrollTop(component, 2.5 * component.getLineHeight())
-      expect(Array.from(element.querySelectorAll('.line-number')).slice(1).map(element => element.textContent.trim())).toEqual([
+      expect(Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map(element => element.textContent.trim())).toEqual([
         '1', '2', '3', '4', '5', '6', '7', '8', '9'
       ])
-      expect(Array.from(element.querySelectorAll('.line')).map(element => element.textContent)).toEqual([
+      expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(element => element.textContent)).toEqual([
         editor.lineTextForScreenRow(0),
         editor.lineTextForScreenRow(1),
         editor.lineTextForScreenRow(2),
@@ -2191,6 +2191,53 @@ describe('TextEditorComponent', () => {
       })
     })
   })
+
+  describe('styling changes', () => {
+    it('updates the rendered content based on new measurements when the font dimensions change', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 1, autoHeight: false})
+      await setEditorHeightInLines(component, 3)
+      editor.setCursorScreenPosition([1, 29], {autoscroll: false})
+      await component.getNextUpdatePromise()
+
+      let cursorNode = element.querySelector('.cursor')
+      const initialBaseCharacterWidth = editor.getDefaultCharWidth()
+      const initialDoubleCharacterWidth = editor.getDoubleWidthCharWidth()
+      const initialHalfCharacterWidth = editor.getHalfWidthCharWidth()
+      const initialKoreanCharacterWidth = editor.getKoreanCharWidth()
+      const initialRenderedLineCount = element.querySelectorAll('.line:not(.dummy)').length
+      const initialFontSize = parseInt(getComputedStyle(element).fontSize)
+
+      expect(initialKoreanCharacterWidth).toBeDefined()
+      expect(initialDoubleCharacterWidth).toBeDefined()
+      expect(initialHalfCharacterWidth).toBeDefined()
+      expect(initialBaseCharacterWidth).toBeDefined()
+      expect(initialDoubleCharacterWidth).not.toBe(initialBaseCharacterWidth)
+      expect(initialHalfCharacterWidth).not.toBe(initialBaseCharacterWidth)
+      expect(initialKoreanCharacterWidth).not.toBe(initialBaseCharacterWidth)
+      verifyCursorPosition(component, cursorNode, 1, 29)
+
+      console.log(initialFontSize);
+      element.style.fontSize = initialFontSize - 5 + 'px'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      expect(editor.getDefaultCharWidth()).toBeLessThan(initialBaseCharacterWidth)
+      expect(editor.getDoubleWidthCharWidth()).toBeLessThan(initialDoubleCharacterWidth)
+      expect(editor.getHalfWidthCharWidth()).toBeLessThan(initialHalfCharacterWidth)
+      expect(editor.getKoreanCharWidth()).toBeLessThan(initialKoreanCharacterWidth)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBeGreaterThan(initialRenderedLineCount)
+      verifyCursorPosition(component, cursorNode, 1, 29)
+
+      element.style.fontSize = initialFontSize + 5 + 'px'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      expect(editor.getDefaultCharWidth()).toBeGreaterThan(initialBaseCharacterWidth)
+      expect(editor.getDoubleWidthCharWidth()).toBeGreaterThan(initialDoubleCharacterWidth)
+      expect(editor.getHalfWidthCharWidth()).toBeGreaterThan(initialHalfCharacterWidth)
+      expect(editor.getKoreanCharWidth()).toBeGreaterThan(initialKoreanCharacterWidth)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBeLessThan(initialRenderedLineCount)
+      verifyCursorPosition(component, cursorNode, 1, 29)
+    })
+  })
 })
 
 function buildEditor (params = {}) {
@@ -2227,7 +2274,7 @@ function getBaseCharacterWidth (component) {
 }
 
 async function setEditorHeightInLines(component, heightInLines) {
-  component.element.style.height = component.measurements.lineHeight * heightInLines + 'px'
+  component.element.style.height = component.getLineHeight() * heightInLines + 'px'
   await component.getNextUpdatePromise()
 }
 
