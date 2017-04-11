@@ -166,15 +166,23 @@ class TextEditorComponent {
   }
 
   updateSync (useScheduler = false) {
+    this.updateScheduled = false
+
+    // Don't proceed if we know we are not visible
     if (!this.visible) return
 
-    this.updateScheduled = false
-    if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
+    // Don't proceed if we have to pay for a measurement anyway and detect
+    // that we are no longer visible.
+    if ((this.remeasureCharacterDimensions || this.remeasureAllBlockDecorations) && !this.isVisible()) {
+      if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
+      return
+    }
 
     const onlyBlinkingCursors = this.nextUpdateOnlyBlinksCursors
     this.nextUpdateOnlyBlinksCursors = null
     if (onlyBlinkingCursors) {
       this.updateCursorBlinkSync()
+      if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
       return
     }
 
@@ -202,6 +210,8 @@ class TextEditorComponent {
       this.measuredContent = true
       this.updateSyncAfterMeasuringContent()
     }
+
+    if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
   }
 
   measureBlockDecorations () {

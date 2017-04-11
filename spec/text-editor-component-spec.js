@@ -2236,6 +2236,14 @@ describe('TextEditorComponent', () => {
       expect(element.querySelectorAll('.line:not(.dummy)').length).toBeLessThan(initialRenderedLineCount)
       verifyCursorPosition(component, cursorNode, 1, 29)
     })
+
+    it('gracefully handles the editor being hidden after a styling change', async () => {
+      const {component, element, editor} = buildComponent({autoHeight: false})
+      element.style.fontSize = parseInt(getComputedStyle(element).fontSize) + 5 + 'px'
+      TextEditor.didUpdateStyles()
+      element.style.display = 'none'
+      await component.getNextUpdatePromise()
+    })
   })
 })
 
