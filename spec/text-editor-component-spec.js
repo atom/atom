@@ -1371,9 +1371,13 @@ describe('TextEditorComponent', () => {
       expect(element.contains(item5)).toBe(false)
       expect(element.contains(item6)).toBe(false)
 
-      // invalidate decorations
-      item2.style.height = '20px'
+      // invalidate decorations. this also tests a case where two decorations in
+      // the same tile change their height without affecting the tile height nor
+      // the content height.
       item3.style.height = '22px'
+      item3.style.margin = '10px'
+      item2.style.height = '33px'
+      item2.style.margin = '0px'
       component.invalidateBlockDecorationDimensions(decoration2)
       component.invalidateBlockDecorationDimensions(decoration3)
       await component.getNextUpdatePromise()

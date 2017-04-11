@@ -204,6 +204,8 @@ class TextEditorComponent {
             parentElement.appendChild(sentinelElement)
             sentinelElements.add(sentinelElement)
           }
+
+          this.didMeasureVisibleBlockDecoration = true
         } else {
           blockDecorationMeasurementArea.appendChild(decorationElement)
           blockDecorationMeasurementArea.appendChild(document.createElement('div'))
@@ -237,6 +239,7 @@ class TextEditorComponent {
     this.shouldRenderDummyScrollbars = !this.refreshedScrollbarStyle
     etch.updateSync(this)
     this.shouldRenderDummyScrollbars = true
+    this.didMeasureVisibleBlockDecoration = false
   }
 
   measureContentDuringUpdateSync () {
@@ -403,6 +406,7 @@ class TextEditorComponent {
         foldableFlags: foldableFlags,
         decorations: this.decorationsToRender.lineNumbers,
         blockDecorations: this.decorationsToRender.blocks,
+        didMeasureVisibleBlockDecoration: this.didMeasureVisibleBlockDecoration,
         height: this.getScrollHeight(),
         width: this.getLineNumberGutterWidth(),
         lineHeight: this.getLineHeight(),
@@ -2426,6 +2430,7 @@ class LineNumberGutterComponent {
     if (oldProps.endRow !== newProps.endRow) return true
     if (oldProps.rowsPerTile !== newProps.rowsPerTile) return true
     if (oldProps.maxDigits !== newProps.maxDigits) return true
+    if (newProps.didMeasureVisibleBlockDecoration) return true
     if (!arraysEqual(oldProps.keys, newProps.keys)) return true
     if (!arraysEqual(oldProps.numbers, newProps.numbers)) return true
     if (!arraysEqual(oldProps.foldableFlags, newProps.foldableFlags)) return true
