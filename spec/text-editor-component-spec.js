@@ -2216,7 +2216,6 @@ describe('TextEditorComponent', () => {
       expect(initialKoreanCharacterWidth).not.toBe(initialBaseCharacterWidth)
       verifyCursorPosition(component, cursorNode, 1, 29)
 
-      console.log(initialFontSize);
       element.style.fontSize = initialFontSize - 5 + 'px'
       TextEditor.didUpdateStyles()
       await component.getNextUpdatePromise()
