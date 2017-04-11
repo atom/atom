@@ -5,12 +5,16 @@ fs = require 'fs-plus'
 {Disposable} = require 'atom'
 {buildKeydownEvent} = require '../src/keymap-extensions'
 {mockLocalStorage} = require './spec-helper'
+ModuleCache = require '../src/module-cache'
 
 describe "PackageManager", ->
   createTestElement = (className) ->
     element = document.createElement('div')
     element.className = className
     element
+
+  beforeEach ->
+    spyOn(ModuleCache, 'add')
 
   afterEach ->
     temp.cleanupSync()
@@ -242,6 +246,148 @@ describe "PackageManager", ->
 
         pack2 = atom.packages.loadPackage('package-with-eval-time-api-calls')
         expect(pack2.mainModule).not.toBeNull()
+
+  describe "::loadAvailablePackage(availablePackage)", ->
+    describe "if the package was preloaded", ->
+      it "adds the package path to the module cache", ->
+        availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
+        availablePackage.isBundled = true
+        expect(atom.packages.preloadedPackages[availablePackage.name]).toBeUndefined()
+        expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
+
+        metadata = atom.packages.loadPackageMetadata(availablePackage)
+        atom.packages.preloadPackage(
+          availablePackage.name,
+          {
+            rootDirPath: path.relative(atom.packages.resourcePath, availablePackage.path),
+            metadata
+          }
+        )
+        atom.packages.loadAvailablePackage(availablePackage)
+        expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(true)
+        expect(ModuleCache.add).toHaveBeenCalledWith(availablePackage.path, metadata)
+
+      it "deactivates it if it had been disabled", ->
+        availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
+        availablePackage.isBundled = true
+        expect(atom.packages.preloadedPackages[availablePackage.name]).toBeUndefined()
+        expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
+
+        metadata = atom.packages.loadPackageMetadata(availablePackage)
+        preloadedPackage = atom.packages.preloadPackage(
+          availablePackage.name,
+          {
+            rootDirPath: path.relative(atom.packages.resourcePath, availablePackage.path),
+            metadata
+          }
+        )
+        expect(preloadedPackage.keymapActivated).toBe(true)
+        expect(preloadedPackage.settingsActivated).toBe(true)
+        expect(preloadedPackage.menusActivated).toBe(true)
+
+        atom.packages.loadAvailablePackage(availablePackage, new Set([availablePackage.name]))
+        expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
+        expect(preloadedPackage.keymapActivated).toBe(false)
+        expect(preloadedPackage.settingsActivated).toBe(false)
+        expect(preloadedPackage.menusActivated).toBe(false)
+
+      it "deactivates it and reloads the new one if trying to load the same package outside of the bundle", ->
+        availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
+        availablePackage.isBundled = true
+        expect(atom.packages.preloadedPackages[availablePackage.name]).toBeUndefined()
+        expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
+
+        metadata = atom.packages.loadPackageMetadata(availablePackage)
+        preloadedPackage = atom.packages.preloadPackage(
+          availablePackage.name,
+          {
+            rootDirPath: path.relative(atom.packages.resourcePath, availablePackage.path),
+            metadata
+          }
+        )
+        expect(preloadedPackage.keymapActivated).toBe(true)
+        expect(preloadedPackage.settingsActivated).toBe(true)
+        expect(preloadedPackage.menusActivated).toBe(true)
+
+        availablePackage.isBundled = false
+        atom.packages.loadAvailablePackage(availablePackage)
+        expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(true)
+        expect(preloadedPackage.keymapActivated).toBe(false)
+        expect(preloadedPackage.settingsActivated).toBe(false)
+        expect(preloadedPackage.menusActivated).toBe(false)
+
+    describe "if the package was not preloaded", ->
+      it "adds the package path to the module cache", ->
+        availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
+        availablePackage.isBundled = true
+        metadata = atom.packages.loadPackageMetadata(availablePackage)
+        atom.packages.loadAvailablePackage(availablePackage)
+        expect(ModuleCache.add).toHaveBeenCalledWith(availablePackage.path, metadata)
+
+  describe "preloading", ->
+    it "requires the main module, loads the config schema and activates keymaps, menus and settings without reactivating them during package activation", ->
+      availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
+      availablePackage.isBundled = true
+      expect(atom.packages.preloadedPackages[availablePackage.name]).toBeUndefined()
+      expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
+
+      metadata = atom.packages.loadPackageMetadata(availablePackage)
+      preloadedPackage = atom.packages.preloadPackage(
+        availablePackage.name,
+        {
+          rootDirPath: path.relative(atom.packages.resourcePath, availablePackage.path),
+          metadata
+        }
+      )
+      expect(preloadedPackage.keymapActivated).toBe(true)
+      expect(preloadedPackage.settingsActivated).toBe(true)
+      expect(preloadedPackage.menusActivated).toBe(true)
+      expect(preloadedPackage.mainModule).toBeTruthy()
+      expect(preloadedPackage.configSchemaRegisteredOnLoad).toBeTruthy()
+
+      atom.packages.loadAvailablePackage(availablePackage)
+
+      spyOn(atom.keymaps, 'add')
+      spyOn(atom.menu, 'add')
+      spyOn(atom.contextMenu, 'add')
+      spyOn(atom.config, 'set')
+      atom.packages.activatePackage(availablePackage.name)
+
+      expect(atom.keymaps.add).not.toHaveBeenCalled()
+      expect(atom.menu.add).not.toHaveBeenCalled()
+      expect(atom.contextMenu.add).not.toHaveBeenCalled()
+      expect(atom.config.set).not.toHaveBeenCalled()
+      expect(preloadedPackage.keymapActivated).toBe(true)
+      expect(preloadedPackage.settingsActivated).toBe(true)
+      expect(preloadedPackage.menusActivated).toBe(true)
+      expect(preloadedPackage.mainModule).toBeTruthy()
+      expect(preloadedPackage.configSchemaRegisteredOnLoad).toBeTruthy()
+
+    it "deactivates disabled keymaps during package activation", ->
+      availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
+      availablePackage.isBundled = true
+      expect(atom.packages.preloadedPackages[availablePackage.name]).toBeUndefined()
+      expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
+
+      metadata = atom.packages.loadPackageMetadata(availablePackage)
+      preloadedPackage = atom.packages.preloadPackage(
+        availablePackage.name,
+        {
+          rootDirPath: path.relative(atom.packages.resourcePath, availablePackage.path),
+          metadata
+        }
+      )
+      expect(preloadedPackage.keymapActivated).toBe(true)
+      expect(preloadedPackage.settingsActivated).toBe(true)
+      expect(preloadedPackage.menusActivated).toBe(true)
+
+      atom.packages.loadAvailablePackage(availablePackage)
+      atom.config.set("core.packagesWithKeymapsDisabled", [availablePackage.name])
+      atom.packages.activatePackage(availablePackage.name)
+
+      expect(preloadedPackage.keymapActivated).toBe(false)
+      expect(preloadedPackage.settingsActivated).toBe(true)
+      expect(preloadedPackage.menusActivated).toBe(true)
 
   describe "::unloadPackage(name)", ->
     describe "when the package is active", ->

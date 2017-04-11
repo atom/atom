@@ -42,8 +42,6 @@ class Package
     @metadata ?= @packageManager.loadPackageMetadata(@path)
     @bundledPackage ?= @packageManager.isBundledPackagePath(@path)
     @name = @metadata?.name ? params.name ? path.basename(@path)
-    unless @bundledPackage
-      ModuleCache.add(@path, @metadata)
     @reset()
 
   ###
@@ -99,8 +97,9 @@ class Package
   finishLoading: ->
     @measure 'loadTime', =>
       @path = path.join(@packageManager.resourcePath, @path)
-      @loadStylesheets()
+      ModuleCache.add(@path, @metadata)
 
+      @loadStylesheets()
       # Unfortunately some packages are accessing `@mainModulePath`, so we need
       # to compute that variable eagerly also for preloaded packages.
       @getMainModulePath()
@@ -108,6 +107,8 @@ class Package
   load: ->
     @measure 'loadTime', =>
       try
+        ModuleCache.add(@path, @metadata)
+
         @loadKeymaps()
         @loadMenus()
         @loadStylesheets()
@@ -409,13 +410,13 @@ class Package
   loadGrammarsSync: ->
     return if @grammarsLoaded
 
-    if @preloadedPackage
+    if @preloadedPackage and @packageManager.packagesCache[@name]?
       grammarPaths = @packageManager.packagesCache[@name].grammarPaths
     else
       grammarPaths = fs.listSync(path.join(@path, 'grammars'), ['json', 'cson'])
 
     for grammarPath in grammarPaths
-      if @preloadedPackage
+      if @preloadedPackage and @packageManager.packagesCache[@name]?
         grammarPath = path.resolve(@packageManager.resourcePath, grammarPath)
 
       try
@@ -450,7 +451,7 @@ class Package
         callback()
 
     new Promise (resolve) =>
-      if @preloadedPackage
+      if @preloadedPackage and @packageManager.packagesCache[@name]?
         grammarPaths = @packageManager.packagesCache[@name].grammarPaths
         async.each grammarPaths, loadGrammar, -> resolve()
       else
@@ -476,7 +477,7 @@ class Package
         callback()
 
     new Promise (resolve) =>
-      if @preloadedPackage
+      if @preloadedPackage and @packageManager.packagesCache[@name]?
         for settingsPath, scopedProperties of @packageManager.packagesCache[@name].settings
           settings = new ScopedProperties("core:#{settingsPath}", scopedProperties ? {}, @config)
           @settings.push(settings)

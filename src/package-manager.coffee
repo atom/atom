@@ -71,6 +71,7 @@ class PackageManager
     @serviceHub.clear()
     @deactivatePackages()
     @loadedPackages = {}
+    @preloadedPackages = {}
     @packageStates = {}
     @triggeredActivationHooks.clear()
 
@@ -380,27 +381,30 @@ class PackageManager
 
   preloadPackages: ->
     for packageName, pack of @packagesCache
-      metadata = pack.metadata ? {}
-      unless typeof metadata.name is 'string' and metadata.name.length > 0
-        metadata.name = packageName
+      @preloadPackage(packageName, pack)
 
-      if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
-        metadata.repository.url = metadata.repository.url.replace(/(^git\+)|(\.git$)/g, '')
+  preloadPackage: (packageName, pack) ->
+    metadata = pack.metadata ? {}
+    unless typeof metadata.name is 'string' and metadata.name.length > 0
+      metadata.name = packageName
 
-      options = {
-        path: pack.rootDirPath, name: packageName, preloadedPackage: true,
-        bundledPackage: true, metadata, packageManager: this, @config,
-        @styleManager, @commandRegistry, @keymapManager,
-        @notificationManager, @grammarRegistry, @themeManager, @menuManager,
-        @contextMenuManager, @deserializerManager, @viewRegistry
-      }
-      if metadata.theme
-        pack = new ThemePackage(options)
-      else
-        pack = new Package(options)
+    if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
+      metadata.repository.url = metadata.repository.url.replace(/(^git\+)|(\.git$)/g, '')
 
-      pack.preload()
-      @preloadedPackages[packageName] = pack
+    options = {
+      path: pack.rootDirPath, name: packageName, preloadedPackage: true,
+      bundledPackage: true, metadata, packageManager: this, @config,
+      @styleManager, @commandRegistry, @keymapManager,
+      @notificationManager, @grammarRegistry, @themeManager, @menuManager,
+      @contextMenuManager, @deserializerManager, @viewRegistry
+    }
+    if metadata.theme
+      pack = new ThemePackage(options)
+    else
+      pack = new Package(options)
+
+    pack.preload()
+    @preloadedPackages[packageName] = pack
 
   loadPackages: ->
     # Ensure atom exports is already in the require cache so the load time
@@ -410,12 +414,7 @@ class PackageManager
     disabledPackageNames = new Set(@config.get('core.disabledPackages'))
     @config.transact =>
       for pack in @getAvailablePackages()
-        if disabledPackageNames.has(pack.name)
-          if preloadedPackage = @preloadedPackages[pack.name]
-            preloadedPackage.deactivate()
-            delete preloadedPackage[pack.name]
-        else
-          @loadAvailablePackage(pack)
+        @loadAvailablePackage(pack, disabledPackageNames)
       return
     @initialPackagesLoaded = true
     @emitter.emit 'did-load-initial-packages'
@@ -432,47 +431,53 @@ class PackageManager
       console.warn "Could not resolve '#{nameOrPath}' to a package path"
       null
 
-  loadAvailablePackage: (availablePackage) ->
-    loadedPackage = @getLoadedPackage(availablePackage.name)
-    if loadedPackage?
-      loadedPackage
-    else
-      preloadedPackage = @preloadedPackages[availablePackage.name]
+  loadAvailablePackage: (availablePackage, disabledPackageNames) ->
+    preloadedPackage = @preloadedPackages[availablePackage.name]
+
+    if disabledPackageNames?.has(availablePackage.name)
       if preloadedPackage?
-        if availablePackage.isBundled
-          preloadedPackage.finishLoading()
-          @loadedPackages[availablePackage.name] = preloadedPackage
-          return preloadedPackage
-        else
-          preloadedPackage.deactivate()
-          delete preloadedPackage[availablePackage.name]
+        preloadedPackage.deactivate()
+        delete preloadedPackage[availablePackage.name]
+    else
+      loadedPackage = @getLoadedPackage(availablePackage.name)
+      if loadedPackage?
+        loadedPackage
+      else
+        if preloadedPackage?
+          if availablePackage.isBundled
+            preloadedPackage.finishLoading()
+            @loadedPackages[availablePackage.name] = preloadedPackage
+            return preloadedPackage
+          else
+            preloadedPackage.deactivate()
+            delete preloadedPackage[availablePackage.name]
 
-      try
-        metadata = @loadPackageMetadata(availablePackage) ? {}
-      catch error
-        @handleMetadataError(error, availablePackage.path)
-        return null
-
-      unless availablePackage.isBundled
-        if @isDeprecatedPackage(metadata.name, metadata.version)
-          console.warn "Could not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
+        try
+          metadata = @loadPackageMetadata(availablePackage) ? {}
+        catch error
+          @handleMetadataError(error, availablePackage.path)
           return null
 
-      options = {
-        path: availablePackage.path, name: availablePackage.name, metadata,
-        bundledPackage: availablePackage.isBundled, packageManager: this,
-        @config, @styleManager, @commandRegistry, @keymapManager,
-        @notificationManager, @grammarRegistry, @themeManager, @menuManager,
-        @contextMenuManager, @deserializerManager, @viewRegistry
-      }
-      if metadata.theme
-        pack = new ThemePackage(options)
-      else
-        pack = new Package(options)
-      pack.load()
-      @loadedPackages[pack.name] = pack
-      @emitter.emit 'did-load-package', pack
-      pack
+        unless availablePackage.isBundled
+          if @isDeprecatedPackage(metadata.name, metadata.version)
+            console.warn "Could not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
+            return null
+
+        options = {
+          path: availablePackage.path, name: availablePackage.name, metadata,
+          bundledPackage: availablePackage.isBundled, packageManager: this,
+          @config, @styleManager, @commandRegistry, @keymapManager,
+          @notificationManager, @grammarRegistry, @themeManager, @menuManager,
+          @contextMenuManager, @deserializerManager, @viewRegistry
+        }
+        if metadata.theme
+          pack = new ThemePackage(options)
+        else
+          pack = new Package(options)
+        pack.load()
+        @loadedPackages[pack.name] = pack
+        @emitter.emit 'did-load-package', pack
+        pack
 
   unloadPackages: ->
     @unloadPackage(name) for name in _.keys(@loadedPackages)
