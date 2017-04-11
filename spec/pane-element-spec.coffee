@@ -162,6 +162,10 @@ describe "PaneElement", ->
       paneElement.focus()
       expect(document.activeElement).toBe item
 
+      document.body.focus()
+      pane.activate()
+      expect(document.activeElement).toBe item
+
     it "makes the pane active", ->
       pane.splitRight()
       expect(pane.isActive()).toBe false
