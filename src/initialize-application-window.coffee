@@ -30,7 +30,6 @@ if global.isGeneratingSnapshot
   require('find-and-replace')
   require('fuzzy-finder')
   require('git-diff')
-  require('github')
   require('go-to-line')
   require('grammar-selector')
   require('image-view')
