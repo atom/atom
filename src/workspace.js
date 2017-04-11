@@ -192,6 +192,9 @@ module.exports = class Workspace extends Model {
       deserializer: 'Workspace',
       packagesWithActiveGrammars: this.getPackageNamesWithActiveGrammars(),
       destroyedItemURIs: this.destroyedItemURIs.slice(),
+      // Ensure deserializing 1.17 state with pre 1.17 Atom does not error
+      // TODO: Remove after 1.17 has been on stable for a while
+      paneContainer: {version: 2},
       paneContainers: {
         center: this.paneContainers.center.serialize(),
         left: this.paneContainers.left.serialize(),
