@@ -2627,7 +2627,6 @@ class LinesTileComponent {
   constructor (props) {
     this.props = props
     this.linesVnode = null
-    this.highlightsVnode = null
     etch.initialize(this)
   }
 
@@ -2635,9 +2634,6 @@ class LinesTileComponent {
     if (this.shouldUpdate(newProps)) {
       if (newProps.width !== this.props.width) {
         this.linesVnode = null
-      }
-      if (newProps.measuredContent || (!newProps.highlightDecorations && this.props.highlightDecorations)) {
-        this.highlightsVnode = null
       }
       this.props = newProps
       etch.updateSync(this)
@@ -2667,34 +2663,30 @@ class LinesTileComponent {
   renderHighlights () {
     const {top, height, width, lineHeight, highlightDecorations} = this.props
 
-    if (!this.highlightsVnode) {
-      let children = null
-      if (highlightDecorations) {
-        const decorationCount = highlightDecorations.length
-        children = new Array(decorationCount)
-        for (let i = 0; i < decorationCount; i++) {
-          const highlightProps = Object.assign(
-            {parentTileTop: top, lineHeight},
-            highlightDecorations[i]
-          )
-          children[i] = $(HighlightComponent, highlightProps)
-          highlightDecorations[i].flashRequested = false
-        }
+    let children = null
+    if (highlightDecorations) {
+      const decorationCount = highlightDecorations.length
+      children = new Array(decorationCount)
+      for (let i = 0; i < decorationCount; i++) {
+        const highlightProps = Object.assign(
+          {parentTileTop: top, lineHeight},
+          highlightDecorations[i]
+        )
+        children[i] = $(HighlightComponent, highlightProps)
+        highlightDecorations[i].flashRequested = false
       }
-
-      this.highlightsVnode = $.div(
-        {
-          style: {
-            position: 'absolute',
-            contain: 'strict',
-            height: height + 'px',
-            width: width + 'px'
-          },
-        }, children
-      )
     }
 
-    return this.highlightsVnode
+    return $.div(
+      {
+        style: {
+          position: 'absolute',
+          contain: 'strict',
+          height: height + 'px',
+          width: width + 'px'
+        },
+      }, children
+    )
   }
 
   renderLines () {
