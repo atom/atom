@@ -2912,7 +2912,12 @@ class LinesComponent {
             textNodesByScreenLineId
           })
           this.element.insertBefore(newScreenLineComponent.element, oldScreenLineComponent.element)
-          oldScreenLineComponent.destroy()
+          // Instead of calling destroy on the component here we can simply
+          // remove its associated element, thus skipping the
+          // lineNodesByScreenLineId bookkeeping. This is possible because
+          // lineNodesByScreenLineId has already been updated when creating the
+          // new screen line component.
+          oldScreenLineComponent.element.remove()
           this.lineComponents[lineComponentIndex] = newScreenLineComponent
 
           oldScreenLineIndex++
