@@ -138,9 +138,10 @@ class TextEditorComponent {
     etch.updateSync(this)
 
     this.observeModel()
-    getElementResizeDetector().listenTo(this.element, this.didResize.bind(this))
+    this.resizeDetector = ResizeDetector({strategy: 'scroll'})
+    this.resizeDetector.listenTo(this.element, this.didResize.bind(this))
     if (this.refs.gutterContainer) {
-      getElementResizeDetector().listenTo(this.refs.gutterContainer, this.didResizeGutterContainer.bind(this))
+      this.resizeDetector.listenTo(this.refs.gutterContainer, this.didResizeGutterContainer.bind(this))
     }
   }
 
@@ -759,7 +760,7 @@ class TextEditorComponent {
   renderOverlayDecorations () {
     return this.decorationsToRender.overlays.map((overlayProps) =>
       $(OverlayComponent, Object.assign(
-        {key: overlayProps.element, didResize: this.updateSync},
+        {key: overlayProps.element, resizeDetector: this.resizeDetector, didResize: this.updateSync},
         overlayProps
       ))
     )
@@ -3178,7 +3179,7 @@ class OverlayComponent {
     this.element.style.zIndex = 4
     this.element.style.top = (this.props.pixelTop || 0) + 'px'
     this.element.style.left = (this.props.pixelLeft || 0) + 'px'
-    getElementResizeDetector().listenTo(this.element, this.props.didResize)
+    this.props.resizeDetector.listenTo(this.element, this.props.didResize)
   }
 
   update (newProps) {
@@ -3209,12 +3210,6 @@ function clientRectForRange (textNode, startIndex, endIndex) {
   rangeForMeasurement.setStart(textNode, startIndex)
   rangeForMeasurement.setEnd(textNode, endIndex)
   return rangeForMeasurement.getBoundingClientRect()
-}
-
-let resizeDetector
-function getElementResizeDetector () {
-  if (resizeDetector == null) resizeDetector = ResizeDetector({strategy: 'scroll'})
-  return resizeDetector
 }
 
 function arraysEqual (a, b) {
