@@ -85,8 +85,8 @@ class WorkspaceElement extends HTMLElement {
 
     this.subscriptions = new CompositeDisposable(
       new Disposable(() => {
-        window.removeEventListener('mouseenter', this.handleCenterEnter)
-        window.removeEventListener('mouseleave', this.handleCenterLeave)
+        this.paneContainer.removeEventListener('mouseenter', this.handleCenterEnter)
+        this.paneContainer.removeEventListener('mouseleave', this.handleCenterLeave)
         window.removeEventListener('mousemove', this.handleEdgesMouseMove)
         window.removeEventListener('dragend', this.handleDockDragEnd)
         window.removeEventListener('dragstart', this.handleDragStart)
