@@ -125,7 +125,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate, @clipboard, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@applicationDelegate, @clipboard, @enablePersistence, onlyLoadBaseStyleSheets, @updateProcessEnv} = params
 
     @nextProxyRequestId = 0
     @unloaded = false
@@ -136,6 +136,7 @@ class AtomEnvironment extends Model
     @deserializeTimings = {}
     @views = new ViewRegistry(this)
     @notifications = new NotificationManager
+    @updateProcessEnv ?= updateProcessEnv # For testing
 
     @stateStore = new StateStore('AtomEnvironments', 1)
 
@@ -397,6 +398,17 @@ class AtomEnvironment extends Model
   # and deprecating the old behavior.
   onDidFailAssertion: (callback) ->
     @emitter.on 'did-fail-assertion', callback
+
+  # Extended: Invoke the given callback as soon as the shell environment is
+  # loaded (or immediately if it was already loaded).
+  #
+  # * `callback` {Function} to be called whenever there is an unhandled error
+  whenShellEnvironmentLoaded: (callback) ->
+    if @shellEnvironmentLoaded
+      callback()
+      new Disposable()
+    else
+      @emitter.once 'loaded-shell-environment', callback
 
   ###
   Section: Atom Details
@@ -660,8 +672,10 @@ class AtomEnvironment extends Model
   # Call this method when establishing a real application window.
   startEditorWindow: ->
     @unloaded = false
-    updateProcessEnvPromise = updateProcessEnv(@getLoadSettings().env)
+    updateProcessEnvPromise = @updateProcessEnv(@getLoadSettings().env)
     updateProcessEnvPromise.then =>
+      @shellEnvironmentLoaded = true
+      @emitter.emit('loaded-shell-environment')
       @packages.triggerActivationHook('core:loaded-shell-environment')
 
     loadStatePromise = @loadState().then (state) =>
