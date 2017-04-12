@@ -160,7 +160,7 @@ class DecorationManager {
           const layerDecorations = this.layerDecorationsByMarkerLayer.get(layer)
           if (layerDecorations) {
             layerDecorations.forEach((layerDecoration) => {
-              const properties =  layerDecoration.getPropertiesForMarker(marker) || layerDecoration.getProperties()
+              const properties = layerDecoration.getPropertiesForMarker(marker) || layerDecoration.getProperties()
               decorationsState[`${layerDecoration.id}-${marker.id}`] = {
                 properties,
                 screenRange,
