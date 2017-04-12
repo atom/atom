@@ -357,6 +357,23 @@ describe('Workspace', () => {
           })
         })
       })
+
+      describe('when an item with the given uri exists in an inactive pane container', () => {
+        it('activates that item if it is in that container\'s active pane', async () => {
+          const item = await atom.workspace.open('a')
+          atom.workspace.getLeftDock().activate()
+          expect(await atom.workspace.open('a', {searchAllPanes: false})).toBe(item)
+          expect(atom.workspace.getActivePaneContainer().getLocation()).toBe('center')
+          expect(atom.workspace.getPaneItems()).toEqual([item])
+
+          atom.workspace.getActivePane().splitRight()
+          atom.workspace.getLeftDock().activate()
+          const item2 = await atom.workspace.open('a', {searchAllPanes: false})
+          expect(item2).not.toBe(item)
+          expect(atom.workspace.getActivePaneContainer().getLocation()).toBe('center')
+          expect(atom.workspace.getPaneItems()).toEqual([item, item2])
+        })
+      })
     })
 
     describe("when the 'searchAllPanes' option is true", () => {
