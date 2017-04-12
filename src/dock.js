@@ -205,11 +205,16 @@ module.exports = class Dock {
 
     const shouldBeVisible = state.visible || state.showDropTarget
     const size = Math.max(MINIMUM_SIZE, state.size == null ? this.getInitialSize() : state.size)
+    const resizeHandleSize = this.resizeHandle.getSize()
 
     // We need to change the size of the mask...
-    this.maskElement.style[this.widthOrHeight] = `${shouldBeVisible ? size : this.resizeHandle.getSize()}px`
+    this.maskElement.style[this.widthOrHeight] = `${shouldBeVisible ? size : resizeHandleSize}px`
     // ...but the content needs to maintain a constant size.
     this.wrapperElement.style[this.widthOrHeight] = `${size}px`
+    // ...and the non-absolutely positioned dock element should always be large enough to fit the
+    // resize handle (so the handle doesn't cover the center).
+    const minWidthOrHeight = this.widthOrHeight === 'width' ? 'minWidth' : 'minHeight'
+    this.element.style[minWidthOrHeight] = `${resizeHandleSize}px`
 
     this.resizeHandle.update({dockIsVisible: this.state.visible})
     this.toggleButton.update({
