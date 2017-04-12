@@ -112,7 +112,6 @@ module.exports = class Dock {
   // was previously focused.
   hide () {
     this.setState({visible: false})
-    this.didHide()
   }
 
   // Extended: Toggle the dock's visiblity without changing the {Workspace}'s
@@ -133,12 +132,14 @@ module.exports = class Dock {
   setState (newState) {
     const prevState = this.state
     const nextState = Object.assign({}, prevState, newState)
+    let didHide = false
 
     // Update the `shouldAnimate` state. This needs to be written to the DOM before updating the
     // class that changes the animated property. Normally we'd have to defer the class change a
     // frame to ensure the property is animated (or not) appropriately, however we luck out in this
     // case because the drag start always happens before the item is dragged into the toggle button.
     if (nextState.visible !== prevState.visible) {
+      didHide = !nextState.visible
       // Never animate toggling visiblity...
       nextState.shouldAnimate = false
     } else if (!nextState.visible && nextState.draggingItem && !prevState.draggingItem) {
@@ -148,6 +149,7 @@ module.exports = class Dock {
 
     this.state = nextState
     this.render(this.state)
+    if (didHide) this.didHide()
   }
 
   render (state) {
