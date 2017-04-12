@@ -25,6 +25,12 @@ describe('Dock', () => {
 
       dock.hide()
       expect(document.activeElement).toBe(atom.workspace.getCenter().getActivePane().getElement())
+
+      dock.activate()
+      expect(document.activeElement).toBe(dock.getActivePane().getElement())
+
+      dock.toggle()
+      expect(document.activeElement).toBe(atom.workspace.getCenter().getActivePane().getElement())
     })
   })
 
