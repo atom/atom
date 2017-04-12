@@ -1548,6 +1548,25 @@ describe('TextEditorComponent', () => {
         const {component, element, editor} = buildComponent()
         const {lineHeight} = component.measurements
 
+        editor.setCursorScreenPosition([Infinity, Infinity], {autoscroll: false})
+        component.didMouseDownOnContent({
+          detail: 1,
+          button: 0,
+          clientX: clientLeftForCharacter(component, 0, 0) - 1,
+          clientY: clientTopForLine(component, 0) - 1
+        })
+        expect(editor.getCursorScreenPosition()).toEqual([0, 0])
+
+        const maxRow = editor.getLastScreenRow()
+        editor.setCursorScreenPosition([Infinity, Infinity], {autoscroll: false})
+        component.didMouseDownOnContent({
+          detail: 1,
+          button: 0,
+          clientX: clientLeftForCharacter(component, maxRow, editor.lineLengthForScreenRow(maxRow)) + 1,
+          clientY: clientTopForLine(component, maxRow) + 1
+        })
+        expect(editor.getCursorScreenPosition()).toEqual([maxRow, editor.lineLengthForScreenRow(maxRow)])
+
         component.didMouseDownOnContent({
           detail: 1,
           button: 0,
