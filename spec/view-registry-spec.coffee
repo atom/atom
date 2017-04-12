@@ -5,7 +5,6 @@ describe "ViewRegistry", ->
 
   beforeEach ->
     registry = new ViewRegistry
-    registry.initialize()
 
   afterEach ->
     registry.clearDocumentRequests()
