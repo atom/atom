@@ -176,7 +176,6 @@ module.exports = class TokenizedBufferIterator {
         prefixedScopes.set(scope, prefixedScope)
         return prefixedScope
       }
-      return
     } else {
       return null
     }
