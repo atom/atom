@@ -872,7 +872,7 @@ module.exports = class Workspace extends Model {
       this.applicationDelegate.addRecentDocument(uri)
     }
 
-    let container, pane, itemExistsInWorkspace
+    let pane, itemExistsInWorkspace
 
     // Try to find an existing item in the workspace.
     if (item || uri) {
@@ -881,8 +881,14 @@ module.exports = class Workspace extends Model {
       } else if (options.searchAllPanes) {
         pane = item ? this.paneForItem(item) : this.paneForURI(uri)
       } else {
+        // If an item with the given URI is already in the workspace, assume
+        // that item's pane container is the preferred location for that URI.
+        let container
+        if (uri) container = this.paneContainerForURI(uri)
+        if (!container) container = this.getActivePaneContainer()
+
         // The `split` option affects where we search for the item.
-        pane = this.getActivePane()
+        pane = container.getActivePane()
         switch (options.split) {
           case 'left':
             pane = pane.findLeftmostSibling()
@@ -932,7 +938,7 @@ module.exports = class Workspace extends Model {
         const allowedLocations = typeof item.getAllowedLocations === 'function' ? item.getAllowedLocations() : ALL_LOCATIONS
         location = allowedLocations.includes(location) ? location : allowedLocations[0]
 
-        container = this.paneContainers[location] || this.getCenter()
+        const container = this.paneContainers[location] || this.getCenter()
         pane = container.getActivePane()
         switch (options.split) {
           case 'left':
@@ -1325,6 +1331,9 @@ module.exports = class Workspace extends Model {
   Section: Panes
   */
 
+  // Extended: Get the most recently focused pane container.
+  //
+  // Returns a {Dock} or the {WorkspaceCenter}.
   getActivePaneContainer () {
     return this.activePaneContainer
   }
@@ -1353,11 +1362,22 @@ module.exports = class Workspace extends Model {
     return this.getActivePaneContainer().activatePreviousPane()
   }
 
-  // Extended: Get the first {Pane} with an item for the given URI.
+  // Extended: Get the first pane container that contains an item with the given
+  // URI.
   //
   // * `uri` {String} uri
   //
-  // Returns a {Pane} or `undefined` if no pane exists for the given URI.
+  // Returns a {Dock}, the {WorkspaceCenter}, or `undefined` if no item exists
+  // with the given URI.
+  paneContainerForURI (uri) {
+    return this.getPaneContainers().find(container => container.paneForURI(uri))
+  }
+
+  // Extended: Get the first {Pane} that contains an item with the given URI.
+  //
+  // * `uri` {String} uri
+  //
+  // Returns a {Pane} or `undefined` if no item exists with the given URI.
   paneForURI (uri) {
     for (let location of this.getPaneContainers()) {
       const pane = location.paneForURI(uri)
