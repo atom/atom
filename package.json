@@ -102,7 +102,7 @@
     "dev-live-reload": "0.47.1",
     "encoding-selector": "0.23.3",
     "exception-reporting": "0.41.3",
-    "find-and-replace": "0.207.5",
+    "find-and-replace": "0.208.0",
     "fuzzy-finder": "1.5.4",
     "git-diff": "1.3.5",
     "go-to-line": "0.32.0",
