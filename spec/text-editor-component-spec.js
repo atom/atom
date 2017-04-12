@@ -1221,7 +1221,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
       expect(item1.previousSibling).toBeNull()
       expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -1245,7 +1245,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item3)}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
       expect(item1.previousSibling).toBeNull()
       expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -1270,7 +1270,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 6, height: 3 * component.getLineHeight() + getElementHeight(item4) + getElementHeight(item5)}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
       expect(element.contains(item1)).toBe(false)
       expect(element.contains(item2)).toBe(false)
       expect(item3.previousSibling).toBe(lineNodeForScreenRow(component, 3))
@@ -1297,7 +1297,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item3)}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 2))
@@ -1323,7 +1323,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -1348,7 +1348,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item2)}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBeNull()
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 3))
@@ -1373,7 +1373,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -1405,7 +1405,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -1444,7 +1444,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -1471,7 +1471,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 6, height: 3 * component.getLineHeight() + getElementHeight(item4) + getElementHeight(item5)},
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line').length).toBe(9)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
