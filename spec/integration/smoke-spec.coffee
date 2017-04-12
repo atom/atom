@@ -6,7 +6,7 @@ runAtom = require './helpers/start-atom'
 
 describe "Smoke Test", ->
   return unless process.platform is 'darwin' # Fails on win32
-  
+
   atomHome = temp.mkdirSync('atom-home')
 
   beforeEach ->
@@ -28,6 +28,7 @@ describe "Smoke Test", ->
         .then (exists) -> expect(exists).toBe true
         .waitForPaneItemCount(1, 1000)
         .click("atom-text-editor")
+        .waitUntil((-> @execute(-> document.activeElement.closest('atom-text-editor'))), 5000)
         .keys("Hello!")
         .execute -> atom.workspace.getActiveTextEditor().getText()
         .then ({value}) -> expect(value).toBe "Hello!"
