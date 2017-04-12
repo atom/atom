@@ -28,8 +28,152 @@ const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom']
 // editors, and manipulate panes. To add panels, use {Workspace::addTopPanel}
 // and friends.
 //
-// * `editor` {TextEditor} the new editor
+// ## Workspace Items
 //
+// The term "item" refers to anything that can be displayed
+// in a pane within the workspace, either in the {WorkspaceCenter} or in one
+// of the three {Dock}s. The workspace expects items to conform to the
+// following interface:
+//
+// ### Required Methods
+//
+// #### `getTitle()`
+//
+// Returns a {String} containing the title of the item to display on its
+// associated tab.
+//
+// ### Optional Methods
+//
+// #### `getElement()`
+//
+// If your item already *is* a DOM element, you do not need to implement this
+// method. Otherwise it should return the element you want to display to
+// represent this item.
+//
+// #### `destroy()`
+//
+// Destroys the item. This will be called when the item is removed from its
+// parent pane.
+//
+// #### `onDidDestroy(callback)`
+//
+// Called by the workspace so it can be notified when the item is destroyed.
+// Must return a {Disposable}.
+//
+// #### `serialize()`
+//
+// Serialize the state of the item. Must return an object that can be passed to
+// `JSON.stringify`. The state should include a field called `deserializer`,
+// which names a deserializer declared in your `package.json`. This method is
+// invoked on items when serializing the workspace so they can be restored to
+// the same location later.
+//
+// #### `getURI()`
+//
+// Returns the URI associated with the item.
+//
+// #### `getLongTitle()`
+//
+// Returns a {String} containing a longer version of the title to display in
+// places like the window title or on tabs their short titles are ambiguous.
+//
+// #### `onDidChangeTitle`
+//
+// Called by the workspace so it can be notified when the item's title changes.
+// Must return a {Disposable}.
+//
+// #### `getIconName()`
+//
+// Return a {String} with the name of an icon. If this method is defined and
+// returns a string, the item's tab element will be rendered with the `icon` and
+// `icon-${iconName}` CSS classes.
+//
+// ### `onDidChangeIcon(callback)`
+//
+// Called by the workspace so it can be notified when the item's icon changes.
+// Must return a {Disposable}.
+//
+// #### `getDefaultLocation()`
+//
+// Tells the workspace where your item should be opened in absence of a user
+// override. Items can appear in the center or in a dock on the left, right, or
+// bottom of the workspace.
+//
+// Returns a {String} with one of the following values: `'center'`, `'left'`,
+// `'right'`, `'bottom'`. If this method is not defined, `'center'` is the
+// default.
+//
+// #### `getAllowedLocations()`
+//
+// Tells the workspace where this item can be moved. Returns an {Array} of one
+// or more of the following values: `'center'`, `'left'`, `'right'`, or
+// `'bottom'`.
+//
+// #### `isPermanentDockItem()`
+//
+// Tells the workspace whether or not this item can be closed by the user by
+// clicking an `x` on its tab. Use of this feature is discouraged unless there's
+// a very good reason not to allow users to close your item. Items can be made
+// permanent *only* when they are contained in docks. Center pane items can
+// always be removed. Note that it is currently still possible to close dock
+// items via the `Close Pane` option in the context menu and via Atom APIs, so
+// you should still be prepared to handle your dock items being destroyed by the
+// user even if you implement this method.
+//
+// #### `save()`
+//
+// Saves the item.
+//
+// #### `saveAs(path)`
+//
+// Saves the item to the specified path.
+//
+// #### `getPath()`
+//
+// Returns the local path associated with this item. This is only used to set
+// the initial location of the "save as" dialog.
+//
+// #### `isModified()`
+//
+// Returns whether or not the item is modified to reflect modification in the
+// UI.
+//
+// #### `onDidChangeModified()`
+//
+// Called by the workspace so it can be notified when item's modified status
+// changes. Must return a {Disposable}.
+//
+// #### `copy()`
+//
+// Create a copy of the item. If defined, the workspace will call this method to
+// duplicate the item when splitting panes via certain split commands.
+//
+// #### `getPreferredHeight()`
+//
+// If this item is displayed in the bottom {Dock}, called by the workspace when
+// initially displaying the dock to set its height. Once the dock has been
+// resized by the user, their height will override this value.
+//
+// Returns a {Number}.
+//
+// #### `getPreferredWidth()`
+//
+// If this item is displayed in the left or right {Dock}, called by the
+// workspace when initially displaying the dock to set its width. Once the dock
+// has been resized by the user, their width will override this value.
+//
+// Returns a {Number}.
+//
+// #### `onDidTerminatePendingState(callback)`
+//
+// If the workspace is configured to use *pending pane items*, the workspace
+// will subscribe to this method to terminate the pending state of the item.
+// Must return a {Disposable}.
+//
+// #### `shouldPromptToSave()`
+//
+// This method indicates whether Atom should prompt the user to save this item
+// when the user closes or reloads the window. Returns a boolean.
 module.exports = class Workspace extends Model {
   constructor (params) {
     super(...arguments)
