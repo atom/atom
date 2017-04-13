@@ -699,7 +699,7 @@ class TextEditorComponent {
   }
 
   renderDummyScrollbars () {
-    if (this.shouldRenderDummyScrollbars) {
+    if (this.shouldRenderDummyScrollbars && !this.props.model.isMini()) {
       let scrollHeight, scrollTop, horizontalScrollbarHeight
       let scrollWidth, scrollLeft, verticalScrollbarWidth, forceScrollbarVisible
 
@@ -1812,8 +1812,13 @@ class TextEditorComponent {
   }
 
   measureScrollbarDimensions () {
-    this.measurements.verticalScrollbarWidth = this.refs.verticalScrollbar.getRealScrollbarWidth()
-    this.measurements.horizontalScrollbarHeight = this.refs.horizontalScrollbar.getRealScrollbarHeight()
+    if (this.props.model.isMini()) {
+      this.measurements.verticalScrollbarWidth = 0
+      this.measurements.horizontalScrollbarHeight = 0
+    } else {
+      this.measurements.verticalScrollbarWidth = this.refs.verticalScrollbar.getRealScrollbarWidth()
+      this.measurements.horizontalScrollbarHeight = this.refs.horizontalScrollbar.getRealScrollbarHeight()
+    }
   }
 
   measureLongestLineWidth () {
@@ -2118,7 +2123,9 @@ class TextEditorComponent {
   }
 
   isVerticalScrollbarVisible () {
-    if (this.props.model.getAutoHeight()) return false
+    const {model} = this.props
+    if (model.isMini()) return false
+    if (model.getAutoHeight()) return false
     if (this.getContentHeight() > this.getScrollContainerHeight()) return true
     return (
       this.getContentWidth() > this.getScrollContainerWidth() &&
@@ -2127,8 +2134,10 @@ class TextEditorComponent {
   }
 
   isHorizontalScrollbarVisible () {
-    if (this.props.model.getAutoWidth()) return false
-    if (this.props.model.isSoftWrapped()) return false
+    const {model} = this.props
+    if (model.isMini()) return false
+    if (model.getAutoWidth()) return false
+    if (model.isSoftWrapped()) return false
     if (this.getContentWidth() > this.getScrollContainerWidth()) return true
     return (
       this.getContentHeight() > this.getScrollContainerHeight() &&
