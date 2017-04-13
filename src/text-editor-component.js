@@ -361,11 +361,18 @@ class TextEditorComponent {
       className = className + ' mini'
     }
 
+    const dataset = {}
+    const grammar = model.getGrammar()
+    if (grammar && grammar.scopeName) {
+      dataset.grammar = grammar.scopeName.replace(/\./g, ' ')
+    }
+
     return $('atom-text-editor',
       {
         className,
         style,
         attributes,
+        dataset,
         tabIndex: -1,
         on: {
           focus: this.didFocus,
