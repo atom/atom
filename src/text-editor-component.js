@@ -77,6 +77,7 @@ class TextEditorComponent {
     this.virtualNode = $('atom-text-editor')
     this.virtualNode.domNode = this.element
     this.refs = {}
+    this.resizeDetector = ResizeDetector({strategy: 'scroll'})
 
     this.updateSync = this.updateSync.bind(this)
     this.didScrollDummyScrollbar = this.didScrollDummyScrollbar.bind(this)
@@ -138,7 +139,6 @@ class TextEditorComponent {
     etch.updateSync(this)
 
     this.observeModel()
-    this.resizeDetector = ResizeDetector({strategy: 'scroll'})
     this.resizeDetector.listenTo(this.element, this.didResize.bind(this))
     if (this.refs.gutterContainer) {
       this.resizeDetector.listenTo(this.refs.gutterContainer, this.didResizeGutterContainer.bind(this))
