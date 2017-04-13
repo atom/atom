@@ -250,6 +250,11 @@ class AtomEnvironment extends Model
     @attachSaveStateListeners()
     @windowEventHandler.initialize(@window, @document)
 
+    didChangeStyles = @didChangeStyles.bind(this)
+    @disposables.add(@styles.onDidAddStyleElement(didChangeStyles))
+    @disposables.add(@styles.onDidUpdateStyleElement(didChangeStyles))
+    @disposables.add(@styles.onDidRemoveStyleElement(didChangeStyles))
+
     @observeAutoHideMenuBar()
 
     @history.initialize(@window.localStorage)
@@ -696,11 +701,6 @@ class AtomEnvironment extends Model
         @disposables.add @applicationDelegate.onSaveWindowStateRequest =>
           callback = => @applicationDelegate.didSaveWindowState()
           @saveState({isUnloading: true}).catch(callback).then(callback)
-
-        didChangeStyles = @didChangeStyles.bind(this)
-        @disposables.add(@styles.onDidAddStyleElement(didChangeStyles))
-        @disposables.add(@styles.onDidUpdateStyleElement(didChangeStyles))
-        @disposables.add(@styles.onDidRemoveStyleElement(didChangeStyles))
 
         @listenForUpdates()
 
