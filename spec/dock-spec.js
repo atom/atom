@@ -110,6 +110,10 @@ describe('Dock', () => {
         const dockElement = atom.workspace.getBottomDock().getElement()
         dockElement.querySelector('.atom-dock-resize-handle').dispatchEvent(new MouseEvent('mousedown', {detail: 2}))
         expect(dockElement.offsetHeight).toBe(0)
+
+        // There should still be a hoverable, absolutely-positioned element so users can reveal the
+        // toggle affordance even when fullscreened.
+        expect(dockElement.querySelector('.atom-dock-inner').offsetHeight).toBe(1)
       })
     })
   })
