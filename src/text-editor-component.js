@@ -126,7 +126,12 @@ class TextEditorComponent {
       }
     })
     this.characterMeasurementLineVnode = $.div(
-      {key: 'characterMeasurementLine', ref: 'characterMeasurementLine', className: 'line dummy'},
+      {
+        key: 'characterMeasurementLine',
+        ref: 'characterMeasurementLine',
+        className: 'line dummy',
+        style: {position: 'absolute', visibility: 'hidden'}
+      },
       $.span({ref: 'normalWidthCharacterSpan'}, NORMAL_WIDTH_CHARACTER),
       $.span({ref: 'doubleWidthCharacterSpan'}, DOUBLE_WIDTH_CHARACTER),
       $.span({ref: 'halfWidthCharacterSpan'}, HALF_WIDTH_CHARACTER),
