@@ -485,6 +485,20 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       expect(element.querySelector('.line').classList.contains('cursor-line')).toBe(false)
     })
+
+    it('does not render scrollbars', async () => {
+      const {component, element, editor} = buildComponent({mini: true, autoHeight: false})
+      await setEditorWidthInCharacters(component, 10)
+      await setEditorHeightInLines(component, 1)
+
+      editor.setText('x'.repeat(20) + 'y'.repeat(20))
+      await component.getNextUpdatePromise()
+
+      expect(component.isHorizontalScrollbarVisible()).toBe(false)
+      expect(component.isVerticalScrollbarVisible()).toBe(false)
+      expect(component.refs.horizontalScrollbar).toBeUndefined()
+      expect(component.refs.verticalScrollbar).toBeUndefined()
+    })
   })
 
   describe('focus', () => {
