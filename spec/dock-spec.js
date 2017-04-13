@@ -114,6 +114,9 @@ describe('Dock', () => {
         // There should still be a hoverable, absolutely-positioned element so users can reveal the
         // toggle affordance even when fullscreened.
         expect(dockElement.querySelector('.atom-dock-inner').offsetHeight).toBe(1)
+
+        // The content should be masked away.
+        expect(dockElement.querySelector('.atom-dock-mask').offsetHeight).toBe(0)
       })
     })
   })
