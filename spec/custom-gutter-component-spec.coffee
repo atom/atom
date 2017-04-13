@@ -1,7 +1,7 @@
 CustomGutterComponent = require '../src/custom-gutter-component'
 Gutter = require '../src/gutter'
 
-describe "CustomGutterComponent", ->
+xdescribe "CustomGutterComponent", ->
   [gutterComponent, gutter] = []
 
   beforeEach ->

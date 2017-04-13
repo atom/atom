@@ -2,7 +2,7 @@ LinesYardstick = require '../src/lines-yardstick'
 LineTopIndex = require 'line-top-index'
 {Point} = require 'text-buffer'
 
-describe "LinesYardstick", ->
+xdescribe "LinesYardstick", ->
   [editor, mockLineNodesProvider, createdLineNodes, linesYardstick, buildLineNode] = []
 
   beforeEach ->
