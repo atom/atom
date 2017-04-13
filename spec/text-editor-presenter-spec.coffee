@@ -7,7 +7,7 @@ TextEditorPresenter = require '../src/text-editor-presenter'
 FakeLinesYardstick = require './fake-lines-yardstick'
 LineTopIndex = require 'line-top-index'
 
-describe "TextEditorPresenter", ->
+xdescribe "TextEditorPresenter", ->
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
   describe "::get(Pre|Post)MeasurementState()", ->

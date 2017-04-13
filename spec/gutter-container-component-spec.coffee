@@ -2,7 +2,7 @@ Gutter = require '../src/gutter'
 GutterContainerComponent = require '../src/gutter-container-component'
 DOMElementPool = require '../src/dom-element-pool'
 
-describe "GutterContainerComponent", ->
+xdescribe "GutterContainerComponent", ->
   [gutterContainerComponent] = []
   mockGutterContainer = {}
 
