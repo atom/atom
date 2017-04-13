@@ -410,6 +410,17 @@ describe('TextEditorComponent', () => {
       const {element} = buildComponent({placeholderText, text: ''})
       expect(element.textContent).toContain(placeholderText)
     })
+
+    it('adds the data-grammar attribute and updates it when the grammar changes', async () => {
+      await atom.packages.activatePackage('language-javascript')
+
+      const {editor, element, component} = buildComponent()
+      expect(element.dataset.grammar).toBe('text plain null-grammar')
+
+      editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      await component.getNextUpdatePromise()
+      expect(element.dataset.grammar).toBe('source js')
+    })
   })
 
   describe('mini editors', () => {
