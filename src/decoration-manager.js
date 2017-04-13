@@ -145,7 +145,7 @@ class DecorationManager {
           const bufferRange = marker.getBufferRange()
           const rangeIsReversed = marker.isReversed()
 
-          const decorations = this.decorationsByMarker.get(marker.id)
+          const decorations = this.decorationsByMarker.get(marker)
           if (decorations) {
             decorations.forEach((decoration) => {
               decorationsState[decoration.id] = {

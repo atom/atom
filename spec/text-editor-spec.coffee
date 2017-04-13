@@ -137,7 +137,7 @@ describe "TextEditor", ->
         autoHeight: false
       })
 
-      expect(returnedPromise).toBe(atom.views.getNextUpdatePromise())
+      expect(returnedPromise).toBe(element.component.getNextUpdatePromise())
       expect(changeSpy.callCount).toBe(1)
       expect(editor.getTabLength()).toBe(6)
       expect(editor.getSoftTabs()).toBe(false)
@@ -1877,8 +1877,6 @@ describe "TextEditor", ->
             [[4, 16], [4, 21]]
             [[4, 25], [4, 29]]
           ]
-          for cursor in editor.getCursors()
-            expect(cursor.isVisible()).toBeTruthy()
 
         it "skips lines that are too short to create a non-empty selection", ->
           editor.setSelectedBufferRange([[3, 31], [3, 38]])
@@ -2010,8 +2008,6 @@ describe "TextEditor", ->
             [[2, 16], [2, 21]]
             [[2, 37], [2, 40]]
           ]
-          for cursor in editor.getCursors()
-            expect(cursor.isVisible()).toBeTruthy()
 
         it "skips lines that are too short to create a non-empty selection", ->
           editor.setSelectedBufferRange([[6, 31], [6, 38]])
@@ -2180,54 +2176,6 @@ describe "TextEditor", ->
         makeSelection()
         editor.setCursorScreenPosition([3, 3])
         expect(selection.isEmpty()).toBeTruthy()
-
-    describe "cursor visibility while there is a selection", ->
-      describe "when showCursorOnSelection is true", ->
-        it "is visible while there is no selection", ->
-          expect(selection.isEmpty()).toBeTruthy()
-          expect(editor.getShowCursorOnSelection()).toBeTruthy()
-          expect(editor.getCursors().length).toBe 1
-          expect(editor.getCursors()[0].isVisible()).toBeTruthy()
-
-        it "is visible while there is a selection", ->
-          expect(selection.isEmpty()).toBeTruthy()
-          editor.setSelectedBufferRange([[1, 2], [1, 5]])
-          expect(selection.isEmpty()).toBeFalsy()
-          expect(editor.getCursors().length).toBe 1
-          expect(editor.getCursors()[0].isVisible()).toBeTruthy()
-
-        it "is visible while there are multiple selections", ->
-          expect(editor.getSelections().length).toBe 1
-          editor.setSelectedBufferRanges([[[1, 2], [1, 5]], [[2, 2], [2, 5]]])
-          expect(editor.getSelections().length).toBe 2
-          expect(editor.getCursors().length).toBe 2
-          expect(editor.getCursors()[0].isVisible()).toBeTruthy()
-          expect(editor.getCursors()[1].isVisible()).toBeTruthy()
-
-      describe "when showCursorOnSelection is false", ->
-        it "is visible while there is no selection", ->
-          editor.update({showCursorOnSelection: false})
-          expect(selection.isEmpty()).toBeTruthy()
-          expect(editor.getShowCursorOnSelection()).toBeFalsy()
-          expect(editor.getCursors().length).toBe 1
-          expect(editor.getCursors()[0].isVisible()).toBeTruthy()
-
-        it "is not visible while there is a selection", ->
-          editor.update({showCursorOnSelection: false})
-          expect(selection.isEmpty()).toBeTruthy()
-          editor.setSelectedBufferRange([[1, 2], [1, 5]])
-          expect(selection.isEmpty()).toBeFalsy()
-          expect(editor.getCursors().length).toBe 1
-          expect(editor.getCursors()[0].isVisible()).toBeFalsy()
-
-        it "is not visible while there are multiple selections", ->
-          editor.update({showCursorOnSelection: false})
-          expect(editor.getSelections().length).toBe 1
-          editor.setSelectedBufferRanges([[[1, 2], [1, 5]], [[2, 2], [2, 5]]])
-          expect(editor.getSelections().length).toBe 2
-          expect(editor.getCursors().length).toBe 2
-          expect(editor.getCursors()[0].isVisible()).toBeFalsy()
-          expect(editor.getCursors()[1].isVisible()).toBeFalsy()
 
     it "does not share selections between different edit sessions for the same buffer", ->
       editor2 = null
@@ -3279,7 +3227,6 @@ describe "TextEditor", ->
             expect(line).toBe "  var ort = function(items) {"
             expect(editor.getCursorScreenPosition()).toEqual {row: 1, column: 6}
             expect(changeScreenRangeHandler).toHaveBeenCalled()
-            expect(editor.getLastCursor().isVisible()).toBeTruthy()
 
         describe "when the cursor is at the beginning of a line", ->
           it "joins it with the line above", ->
