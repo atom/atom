@@ -209,7 +209,7 @@ module.exports = class Dock {
     const size = Math.max(MINIMUM_SIZE, state.size == null ? this.getInitialSize() : state.size)
 
     // We need to change the size of the mask...
-    this.maskElement.style[this.widthOrHeight] = `${shouldBeVisible ? size : this.resizeHandle.getSize()}px`
+    this.maskElement.style[this.widthOrHeight] = `${shouldBeVisible ? size : 0}px`
     // ...but the content needs to maintain a constant size.
     this.wrapperElement.style[this.widthOrHeight] = `${size}px`
 
