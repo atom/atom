@@ -421,6 +421,15 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       expect(element.dataset.grammar).toBe('source js')
     })
+
+    it('adds the data-encoding attribute and updates it when the encoding changes', async () => {
+      const {editor, element, component} = buildComponent()
+      expect(element.dataset.encoding).toBe('utf8')
+
+      editor.setEncoding('ascii')
+      await component.getNextUpdatePromise()
+      expect(element.dataset.encoding).toBe('ascii')
+    })
   })
 
   describe('mini editors', () => {
