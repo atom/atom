@@ -20,22 +20,6 @@ const MOUSE_DRAG_AUTOSCROLL_MARGIN = 40
 const MOUSE_WHEEL_SCROLL_SENSITIVITY = 0.8
 const CURSOR_BLINK_RESUME_DELAY = 300
 const CURSOR_BLINK_PERIOD = 800
-const BLOCK_DECORATION_MEASUREMENT_AREA_VNODE = $.div({
-  ref: 'blockDecorationMeasurementArea',
-  key: 'blockDecorationMeasurementArea',
-  style: {
-    contain: 'strict',
-    position: 'absolute',
-    visibility: 'hidden'
-  }
-})
-const CHARACTER_MEASUREMENT_LINE_VNODE = $.div(
-  {key: 'characterMeasurementLine', ref: 'characterMeasurementLine', className: 'line dummy'},
-  $.span({ref: 'normalWidthCharacterSpan'}, NORMAL_WIDTH_CHARACTER),
-  $.span({ref: 'doubleWidthCharacterSpan'}, DOUBLE_WIDTH_CHARACTER),
-  $.span({ref: 'halfWidthCharacterSpan'}, HALF_WIDTH_CHARACTER),
-  $.span({ref: 'koreanCharacterSpan'}, KOREAN_CHARACTER)
-)
 
 function scaleMouseDragAutoscrollDelta (delta) {
   return Math.pow(delta / 3, 3) / 280
@@ -132,6 +116,22 @@ class TextEditorComponent {
     this.gutterContainerVnode = null
     this.cursorsVnode = null
     this.placeholderTextVnode = null
+    this.blockDecorationMeasurementAreaVnode = $.div({
+      ref: 'blockDecorationMeasurementArea',
+      key: 'blockDecorationMeasurementArea',
+      style: {
+        contain: 'strict',
+        position: 'absolute',
+        visibility: 'hidden'
+      }
+    })
+    this.characterMeasurementLineVnode = $.div(
+      {key: 'characterMeasurementLine', ref: 'characterMeasurementLine', className: 'line dummy'},
+      $.span({ref: 'normalWidthCharacterSpan'}, NORMAL_WIDTH_CHARACTER),
+      $.span({ref: 'doubleWidthCharacterSpan'}, DOUBLE_WIDTH_CHARACTER),
+      $.span({ref: 'halfWidthCharacterSpan'}, HALF_WIDTH_CHARACTER),
+      $.span({ref: 'koreanCharacterSpan'}, KOREAN_CHARACTER)
+    )
 
     this.queryGuttersToRender()
     this.queryMaxLineNumberDigits()
@@ -520,14 +520,14 @@ class TextEditorComponent {
       children = [
         this.renderCursorsAndInput(),
         this.renderLineTiles(),
-        BLOCK_DECORATION_MEASUREMENT_AREA_VNODE,
-        CHARACTER_MEASUREMENT_LINE_VNODE,
+        this.blockDecorationMeasurementAreaVnode,
+        this.characterMeasurementLineVnode,
         this.renderPlaceholderText()
       ]
     } else {
       children = [
-        BLOCK_DECORATION_MEASUREMENT_AREA_VNODE,
-        CHARACTER_MEASUREMENT_LINE_VNODE
+        this.blockDecorationMeasurementAreaVnode,
+        this.characterMeasurementLineVnode
       ]
     }
 
