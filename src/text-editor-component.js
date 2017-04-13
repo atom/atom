@@ -361,7 +361,7 @@ class TextEditorComponent {
       className = className + ' mini'
     }
 
-    const dataset = {}
+    const dataset = {encoding: model.getEncoding()}
     const grammar = model.getGrammar()
     if (grammar && grammar.scopeName) {
       dataset.grammar = grammar.scopeName.replace(/\./g, ' ')
