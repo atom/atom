@@ -1,7 +1,6 @@
 const etch = require('etch')
 const {CompositeDisposable} = require('event-kit')
 const {Point, Range} = require('text-buffer')
-const ResizeDetector = require('element-resize-detector')
 const LineTopIndex = require('line-top-index')
 const TextEditor = require('./text-editor')
 const {isPairedCharacter} = require('./text-utils')
@@ -61,7 +60,6 @@ class TextEditorComponent {
     this.virtualNode = $('atom-text-editor')
     this.virtualNode.domNode = this.element
     this.refs = {}
-    this.resizeDetector = ResizeDetector({strategy: 'scroll'})
 
     this.updateSync = this.updateSync.bind(this)
     this.didScrollDummyScrollbar = this.didScrollDummyScrollbar.bind(this)
@@ -144,10 +142,6 @@ class TextEditorComponent {
     etch.updateSync(this)
 
     this.observeModel()
-    this.resizeDetector.listenTo(this.element, this.didResize.bind(this))
-    if (this.refs.gutterContainer) {
-      this.resizeDetector.listenTo(this.refs.gutterContainer, this.didResizeGutterContainer.bind(this))
-    }
   }
 
   update (props) {
@@ -772,7 +766,7 @@ class TextEditorComponent {
   renderOverlayDecorations () {
     return this.decorationsToRender.overlays.map((overlayProps) =>
       $(OverlayComponent, Object.assign(
-        {key: overlayProps.element, resizeDetector: this.resizeDetector, didResize: this.updateSync},
+        {key: overlayProps.element, didResize: () => { this.updateSync() }},
         overlayProps
       ))
     )
@@ -1147,6 +1141,15 @@ class TextEditorComponent {
         }
       })
       this.intersectionObserver.observe(this.element)
+
+      this.resizeObserver = new ResizeObserver(this.didResize.bind(this))
+      this.resizeObserver.observe(this.element)
+
+      if (this.refs.gutterContainer) {
+        this.gutterContainerResizeObserver = new ResizeObserver(this.didResizeGutterContainer.bind(this))
+        this.gutterContainerResizeObserver.observe(this.refs.gutterContainer)
+      }
+
       if (this.isVisible()) {
         this.didShow()
       } else {
@@ -1161,6 +1164,10 @@ class TextEditorComponent {
 
   didDetach () {
     if (this.attached) {
+      this.intersectionObserver.disconnect()
+      this.resizeObserver.disconnect()
+      if (this.gutterContainerResizeObserver) this.gutterContainerResizeObserver.disconnect()
+
       this.didHide()
       this.attached = false
       this.constructor.attachedComponents.delete(this)
@@ -3191,7 +3198,20 @@ class OverlayComponent {
     this.element.style.zIndex = 4
     this.element.style.top = (this.props.pixelTop || 0) + 'px'
     this.element.style.left = (this.props.pixelLeft || 0) + 'px'
-    this.props.resizeDetector.listenTo(this.element, this.props.didResize)
+
+    // Synchronous DOM updates in response to resize events might trigger a
+    // "loop limit exceeded" error. We disconnect the observer before
+    // potentially mutating the DOM, and then reconnect it on the next tick.
+    this.resizeObserver = new ResizeObserver(() => {
+      this.resizeObserver.disconnect()
+      this.props.didResize()
+      process.nextTick(() => { this.resizeObserver.observe(this.element) })
+    })
+    this.resizeObserver.observe(this.element)
+  }
+
+  destroy () {
+    this.resizeObserver.disconnect()
   }
 
   update (newProps) {
