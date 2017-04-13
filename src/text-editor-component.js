@@ -340,14 +340,19 @@ class TextEditorComponent {
       style.contain = 'size'
     }
 
+    let clientContainerHeight = '100%'
+    let clientContainerWidth = '100%'
     if (this.measurements) {
       if (model.getAutoHeight()) {
-        style.height = this.getContentHeight() + 'px'
-      } else {
-        style.height = this.element.style.height
+        clientContainerHeight = this.getContentHeight()
+        if (this.isHorizontalScrollbarVisible()) clientContainerHeight += this.getHorizontalScrollbarHeight()
+        clientContainerHeight += 'px'
       }
       if (model.getAutoWidth()) {
-        style.width = this.getGutterContainerWidth() + this.getContentWidth() + 'px'
+        style.width = 'min-content'
+        clientContainerWidth = this.getGutterContainerWidth() + this.getContentWidth()
+        if (this.isVerticalScrollbarVisible()) clientContainerWidth += this.getVerticalScrollbarWidth()
+        clientContainerWidth += 'px'
       } else {
         style.width = this.element.style.width
       }
@@ -387,8 +392,8 @@ class TextEditorComponent {
             contain: 'strict',
             overflow: 'hidden',
             backgroundColor: 'inherit',
-            width: '100%',
-            height: '100%'
+            height: clientContainerHeight,
+            width: clientContainerWidth
           }
         },
         this.renderGutterContainer(),
@@ -2113,25 +2118,21 @@ class TextEditorComponent {
   }
 
   isVerticalScrollbarVisible () {
+    if (this.props.model.getAutoHeight()) return false
+    if (this.getContentHeight() > this.getScrollContainerHeight()) return true
     return (
-      this.getContentHeight() > this.getScrollContainerHeight() ||
-      (
-        this.getContentWidth() > this.getScrollContainerWidth() &&
-        this.getContentHeight() > (this.getScrollContainerHeight() - this.getHorizontalScrollbarHeight())
-      )
+      this.getContentWidth() > this.getScrollContainerWidth() &&
+      this.getContentHeight() > (this.getScrollContainerHeight() - this.getHorizontalScrollbarHeight())
     )
   }
 
   isHorizontalScrollbarVisible () {
+    if (this.props.model.getAutoWidth()) return false
+    if (this.props.model.isSoftWrapped()) return false
+    if (this.getContentWidth() > this.getScrollContainerWidth()) return true
     return (
-      !this.props.model.isSoftWrapped() &&
-      (
-        this.getContentWidth() > this.getScrollContainerWidth() ||
-        (
-          this.getContentHeight() > this.getScrollContainerHeight() &&
-          this.getContentWidth() > (this.getScrollContainerWidth() - this.getVerticalScrollbarWidth())
-        )
-      )
+      this.getContentHeight() > this.getScrollContainerHeight() &&
+      this.getContentWidth() > (this.getScrollContainerWidth() - this.getVerticalScrollbarWidth())
     )
   }
 

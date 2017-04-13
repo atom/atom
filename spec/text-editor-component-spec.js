@@ -346,7 +346,7 @@ describe('TextEditorComponent', () => {
       editor.setSoftWrapped(true)
       jasmine.attachToDOM(element)
 
-      expect(getBaseCharacterWidth(component)).toBe(55)
+      expect(getEditorWidthInBaseCharacters(component)).toBe(55)
       expect(lineNodeForScreenRow(component, 3).textContent).toBe(
         '    var pivot = items.shift(), current, left = [], '
       )
@@ -384,20 +384,49 @@ describe('TextEditorComponent', () => {
 
     it('resizes based on the content when the autoHeight and/or autoWidth options are true', async () => {
       const {component, element, editor} = buildComponent({autoHeight: true, autoWidth: true})
+      const editorPadding = 3
+      element.style.padding = editorPadding + 'px'
       const {gutterContainer, scrollContainer} = component.refs
       const initialWidth = element.offsetWidth
       const initialHeight = element.offsetHeight
-      expect(initialWidth).toBe(gutterContainer.offsetWidth + scrollContainer.scrollWidth)
-      expect(initialHeight).toBe(scrollContainer.scrollHeight)
+      expect(initialWidth).toBe(component.getGutterContainerWidth() + component.getContentWidth() + 2 * editorPadding)
+      expect(initialHeight).toBe(component.getContentHeight() + 2 * editorPadding)
+
+      // When autoWidth is enabled, width adjusts to content
       editor.setCursorScreenPosition([6, Infinity])
       editor.insertText('x'.repeat(50))
       await component.getNextUpdatePromise()
-      expect(element.offsetWidth).toBe(gutterContainer.offsetWidth + scrollContainer.scrollWidth)
+      expect(element.offsetWidth).toBe(component.getGutterContainerWidth() + component.getContentWidth() + 2 * editorPadding)
       expect(element.offsetWidth).toBeGreaterThan(initialWidth)
+
+      // When autoHeight is enabled, height adjusts to content
       editor.insertText('\n'.repeat(5))
       await component.getNextUpdatePromise()
-      expect(element.offsetHeight).toBe(scrollContainer.scrollHeight)
+      expect(element.offsetHeight).toBe(component.getContentHeight() + 2 * editorPadding)
       expect(element.offsetHeight).toBeGreaterThan(initialHeight)
+
+      // When a horizontal scrollbar is visible, autoHeight accounts for it
+      editor.update({autoWidth: false})
+      await component.getNextUpdatePromise()
+      element.style.width = component.getGutterContainerWidth() + component.getContentHeight() - 20 + 'px'
+      await component.getNextUpdatePromise()
+      expect(component.isHorizontalScrollbarVisible()).toBe(true)
+      expect(component.isVerticalScrollbarVisible()).toBe(false)
+      expect(element.offsetHeight).toBe(component.getContentHeight() + component.getHorizontalScrollbarHeight() + 2 * editorPadding)
+
+      // When a vertical scrollbar is visible, autoWidth accounts for it
+      editor.update({autoWidth: true, autoHeight: false})
+      await component.getNextUpdatePromise()
+      element.style.height = component.getContentHeight() - 20
+      await component.getNextUpdatePromise()
+      expect(component.isHorizontalScrollbarVisible()).toBe(false)
+      expect(component.isVerticalScrollbarVisible()).toBe(true)
+      expect(element.offsetWidth).toBe(
+        component.getGutterContainerWidth() +
+        component.getContentWidth() +
+        component.getVerticalScrollbarWidth() +
+        2 * editorPadding
+      )
     })
 
     it('supports the isLineNumberGutterVisible parameter', () => {
@@ -2327,7 +2356,7 @@ function buildComponent (params = {}) {
   return {component, element, editor}
 }
 
-function getBaseCharacterWidth (component) {
+function getEditorWidthInBaseCharacters (component) {
   return Math.round(component.getScrollContainerWidth() / component.getBaseCharacterWidth())
 }
 
