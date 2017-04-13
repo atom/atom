@@ -196,6 +196,11 @@ class AtomEnvironment extends Model
       @applicationDelegate.didChangeHistoryManager() unless e.reloaded
 
   initialize: (params={}) ->
+    # This will force TextEditorElement to register the custom element, so that
+    # using `document.createElement('atom-text-editor')` works if it's called
+    # before opening a buffer.
+    require './text-editor-element'
+
     {@window, @document, @blobStore, @configDirPath, onlyLoadBaseStyleSheets} = params
     {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
 
