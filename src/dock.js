@@ -56,6 +56,7 @@ module.exports = class Dock {
         this.didActivate(this)
       }),
       this.paneContainer.observePanes(pane => {
+        pane.onDidAddItem(this.handleDidAddPaneItem.bind(this))
         pane.onDidRemoveItem(this.handleDidRemovePaneItem.bind(this))
       }),
       this.paneContainer.onDidChangeActivePane((item) => params.didChangeActivePane(this, item)),
@@ -206,7 +207,11 @@ module.exports = class Dock {
     }
 
     const shouldBeVisible = state.visible || state.showDropTarget
-    const size = Math.max(MINIMUM_SIZE, state.size == null ? this.getInitialSize() : state.size)
+    const size = Math.max(MINIMUM_SIZE,
+      state.size ||
+      (state.draggingItem && getPreferredSize(state.draggingItem, this.location)) ||
+      DEFAULT_INITIAL_SIZE
+    )
 
     // We need to change the size of the mask...
     this.maskElement.style[this.widthOrHeight] = `${shouldBeVisible ? size : 0}px`
@@ -224,10 +229,16 @@ module.exports = class Dock {
     })
   }
 
+  handleDidAddPaneItem () {
+    if (this.state.size == null) {
+      this.setState({size: this.getInitialSize()})
+    }
+  }
+
   handleDidRemovePaneItem () {
     // Hide the dock if you remove the last item.
     if (this.paneContainer.getPaneItems().length === 0) {
-      this.setState({visible: false, hovered: false})
+      this.setState({visible: false, hovered: false, size: null})
     }
   }
 
@@ -340,13 +351,12 @@ module.exports = class Dock {
   }
 
   getInitialSize () {
-    let initialSize
     // The item may not have been activated yet. If that's the case, just use the first item.
     const activePaneItem = this.paneContainer.getActivePaneItem() || this.paneContainer.getPaneItems()[0]
-    if (activePaneItem != null) {
-      initialSize = getPreferredSize(activePaneItem, this.location)
-    }
-    return initialSize == null ? DEFAULT_INITIAL_SIZE : initialSize
+    // If there are items, we should have an explicit width; if not, we shouldn't.
+    return activePaneItem
+      ? getPreferredSize(activePaneItem, this.location) || DEFAULT_INITIAL_SIZE
+      : null
   }
 
   serialize () {
@@ -361,7 +371,7 @@ module.exports = class Dock {
   deserialize (serialized, deserializerManager) {
     this.paneContainer.deserialize(serialized.paneContainer, deserializerManager)
     this.setState({
-      size: serialized.size,
+      size: serialized.size || this.getInitialSize(),
       // If no items could be deserialized, we don't want to show the dock (even if it was visible last time)
       visible: serialized.visible && (this.paneContainer.getPaneItems().length > 0)
     })
