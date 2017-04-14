@@ -1068,7 +1068,7 @@ module.exports = class Workspace extends Model {
     const activatePane = options.activatePane != null ? options.activatePane : true
     const activateItem = options.activateItem != null ? options.activateItem : true
 
-    const uri = this.project.resolvePath(uri)
+    const uri = this.project.resolvePath(uri_)
     let item = this.getActivePane().itemForURI(uri)
     if (uri && (item == null)) {
       for (const opener of this.getOpeners()) {
