@@ -316,7 +316,7 @@ module.exports = class Dock {
         bounds.bottom = Number.POSITIVE_INFINITY
         break
       case 'left':
-        bounds.left = 0
+        bounds.left = Number.NEGATIVE_INFINITY
         break
     }
 

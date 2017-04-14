@@ -16,6 +16,11 @@ atom-dock {
 .atom-dock-inner {
   display: flex;
 
+  // Keep the area at least a pixel wide so that you have something to hover
+  // over to trigger the toggle button affordance even when fullscreen.
+  &.left, &.right { min-width: 1px; }
+  &.bottom { min-height: 1px; }
+
   &.bottom { width: 100%; }
   &.left, &.right { height: 100%; }
 
@@ -45,14 +50,6 @@ atom-dock {
   position: relative;
   background-color: @tool-panel-background-color;
   overflow: hidden; // Mask the content.
-
-  // This shouldn't technically be necessary. Apparently, there's a bug in
-  // Chrome whereby the 100% width (in the bottom dock) and height (in left and
-  // right docks) won't actually take effect when the docks are given more
-  // space because another dock is hidden. Unsetting and resetting the width
-  // will correct the issue, as will changing its "display." However, only this
-  // seems to fix it without an actual runtime change occurring.
-  flex: 1;
 
   // One of these will be overridden by the component with an explicit size.
   // Which depends on the position of the dock.
