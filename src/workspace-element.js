@@ -12,10 +12,13 @@ const _ = require('underscore-plus')
 class WorkspaceElement extends HTMLElement {
   attachedCallback () {
     this.focus()
+    this.htmlElement = document.querySelector('html')
+    this.htmlElement.addEventListener('mouseleave', this.handleCenterLeave)
   }
 
   detachedCallback () {
     this.subscriptions.dispose()
+    this.htmlElement.removeEventListener('mouseleave', this.handleCenterLeave)
   }
 
   initializeContent () {
