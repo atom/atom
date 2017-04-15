@@ -1086,10 +1086,12 @@ class TextEditorComponent {
 
       const pixelTop = this.pixelPositionAfterBlocksForRow(row)
       const pixelLeft = this.pixelLeftForRowAndColumn(row, column)
-      const pixelRight = (cursor.columnWidth === 0)
-        ? pixelLeft
-        : this.pixelLeftForRowAndColumn(row, column + 1)
-      const pixelWidth = pixelRight - pixelLeft
+      let pixelWidth
+      if (cursor.columnWidth === 0) {
+        pixelWidth = this.getBaseCharacterWidth()
+      } else {
+        pixelWidth = this.pixelLeftForRowAndColumn(row, column + 1) - pixelLeft
+      }
 
       const cursorPosition = {pixelTop, pixelLeft, pixelWidth}
       this.decorationsToRender.cursors[i] = cursorPosition
