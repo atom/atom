@@ -602,6 +602,7 @@ class Pane
   destroyItem: (item) ->
     index = @items.indexOf(item)
     if index isnt -1
+      return false if @getContainer()?.getLocation() isnt 'center' and item.isPermanentDockItem?()
       @emitter.emit 'will-destroy-item', {item, index}
       @container?.willDestroyPaneItem({item, index, pane: this})
       if @promptToSaveItem(item)
