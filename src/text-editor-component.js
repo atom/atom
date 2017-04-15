@@ -74,6 +74,7 @@ class TextEditorComponent {
     this.nextUpdateOnlyBlinksCursors = null
     this.horizontalPositionsToMeasure = new Map() // Keys are rows with positions we want to measure, values are arrays of columns to measure
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
+    this.blockDecorationsToMeasure = new Set()
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
     this.shouldRenderDummyScrollbars = true
@@ -114,27 +115,6 @@ class TextEditorComponent {
     this.gutterContainerVnode = null
     this.cursorsVnode = null
     this.placeholderTextVnode = null
-    this.blockDecorationMeasurementAreaVnode = $.div({
-      ref: 'blockDecorationMeasurementArea',
-      key: 'blockDecorationMeasurementArea',
-      style: {
-        contain: 'strict',
-        position: 'absolute',
-        visibility: 'hidden'
-      }
-    })
-    this.characterMeasurementLineVnode = $.div(
-      {
-        key: 'characterMeasurementLine',
-        ref: 'characterMeasurementLine',
-        className: 'line dummy',
-        style: {position: 'absolute', visibility: 'hidden'}
-      },
-      $.span({ref: 'normalWidthCharacterSpan'}, NORMAL_WIDTH_CHARACTER),
-      $.span({ref: 'doubleWidthCharacterSpan'}, DOUBLE_WIDTH_CHARACTER),
-      $.span({ref: 'halfWidthCharacterSpan'}, HALF_WIDTH_CHARACTER),
-      $.span({ref: 'koreanCharacterSpan'}, KOREAN_CHARACTER)
-    )
 
     this.queryGuttersToRender()
     this.queryMaxLineNumberDigits()
@@ -385,11 +365,7 @@ class TextEditorComponent {
         attributes,
         dataset,
         tabIndex: -1,
-        on: {
-          focus: this.didFocus,
-          blur: this.didBlur,
-          mousewheel: this.didMouseWheel
-        }
+        on: {mousewheel: this.didMouseWheel}
       },
       $.div(
         {
@@ -531,14 +507,14 @@ class TextEditorComponent {
       children = [
         this.renderCursorsAndInput(),
         this.renderLineTiles(),
-        this.blockDecorationMeasurementAreaVnode,
-        this.characterMeasurementLineVnode,
+        this.renderBlockDecorationMeasurementArea(),
+        this.renderCharacterMeasurementLine(),
         this.renderPlaceholderText()
       ]
     } else {
       children = [
-        this.blockDecorationMeasurementAreaVnode,
-        this.characterMeasurementLineVnode
+        this.renderBlockDecorationMeasurementArea(),
+        this.renderCharacterMeasurementLine()
       ]
     }
 
@@ -665,6 +641,33 @@ class TextEditorComponent {
       }
     }
     return this.placeholderTextVnode
+  }
+
+  renderCharacterMeasurementLine () {
+    return $.div(
+      {
+        key: 'characterMeasurementLine',
+        ref: 'characterMeasurementLine',
+        className: 'line dummy',
+        style: {position: 'absolute', visibility: 'hidden'}
+      },
+      $.span({ref: 'normalWidthCharacterSpan'}, NORMAL_WIDTH_CHARACTER),
+      $.span({ref: 'doubleWidthCharacterSpan'}, DOUBLE_WIDTH_CHARACTER),
+      $.span({ref: 'halfWidthCharacterSpan'}, HALF_WIDTH_CHARACTER),
+      $.span({ref: 'koreanCharacterSpan'}, KOREAN_CHARACTER)
+    )
+  }
+
+  renderBlockDecorationMeasurementArea () {
+    return $.div({
+      ref: 'blockDecorationMeasurementArea',
+      key: 'blockDecorationMeasurementArea',
+      style: {
+        contain: 'strict',
+        position: 'absolute',
+        visibility: 'hidden'
+      }
+    })
   }
 
   renderHiddenInput () {
@@ -1205,6 +1208,8 @@ class TextEditorComponent {
     }
   }
 
+  // Called by TextEditorElement so that focus events can be handled before
+  // the element is attached to the DOM.
   didFocus () {
     // This element can be focused from a parent custom element's
     // attachedCallback before *its* attachedCallback is fired. This protects
@@ -1243,6 +1248,9 @@ class TextEditorComponent {
     }
   }
 
+  // Called by TextEditorElement so that this function is always the first
+  // listener to be fired, even if other listeners are bound before creating
+  // the component.
   didBlur (event) {
     if (event.relatedTarget === this.refs.hiddenInput) {
       event.stopImmediatePropagation()
@@ -2026,7 +2034,6 @@ class TextEditorComponent {
     this.disposables.add(model.onDidRemoveGutter(scheduleUpdate))
     this.disposables.add(model.selectionsMarkerLayer.onDidUpdate(this.didUpdateSelections.bind(this)))
     this.disposables.add(model.onDidRequestAutoscroll(this.didRequestAutoscroll.bind(this)))
-    this.blockDecorationsToMeasure = new Set()
     this.disposables.add(model.observeDecorations((decoration) => {
       if (decoration.getProperties().type === 'block') this.observeBlockDecoration(decoration)
     }))
@@ -2187,7 +2194,7 @@ class TextEditorComponent {
   }
 
   getGutterContainerWidth () {
-    return this.measurements.gutterContainerWidth
+    return (this.measurements) ? this.measurements.gutterContainerWidth : 0
   }
 
   getLineNumberGutterWidth () {
@@ -2262,6 +2269,7 @@ class TextEditorComponent {
     if (scrollTop !== this.scrollTop) {
       this.scrollTopPending = true
       this.scrollTop = scrollTop
+      this.element.emitter.emit('did-change-scroll-top', scrollTop)
       return true
     } else {
       return false
@@ -2290,6 +2298,7 @@ class TextEditorComponent {
     if (scrollLeft !== this.scrollLeft) {
       this.scrollLeftPending = true
       this.scrollLeft = scrollLeft
+      this.element.emitter.emit('did-change-scroll-left', scrollLeft)
       return true
     } else {
       return false

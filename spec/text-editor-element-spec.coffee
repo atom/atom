@@ -30,11 +30,12 @@ describe "TextEditorElement", ->
       expect(element.getModel().getText()).toBe 'testing'
 
   describe "when the model is assigned", ->
-    it "adds the 'mini' attribute if .isMini() returns true on the model", ->
+    it "adds the 'mini' attribute if .isMini() returns true on the model", (done) ->
       element = new TextEditorElement
-      model = new TextEditor({mini: true})
-      element.setModel(model)
-      expect(element.hasAttribute('mini')).toBe true
+      element.getModel().update({mini: true})
+      atom.views.getNextUpdatePromise().then ->
+        expect(element.hasAttribute('mini')).toBe true
+        done()
 
   describe "when the editor is attached to the DOM", ->
     it "mounts the component and unmounts when removed from the dom", ->
@@ -42,12 +43,12 @@ describe "TextEditorElement", ->
       jasmine.attachToDOM(element)
 
       component = element.component
-      expect(component.mounted).toBe true
+      expect(component.attached).toBe true
       element.remove()
-      expect(component.mounted).toBe false
+      expect(component.attached).toBe false
 
       jasmine.attachToDOM(element)
-      expect(element.component.mounted).toBe true
+      expect(element.component.attached).toBe true
 
   describe "when the editor is detached from the DOM and then reattached", ->
     it "does not render duplicate line numbers", ->
@@ -140,40 +141,6 @@ describe "TextEditorElement", ->
         jasmineContent.appendChild(parentElement)
         expect(document.activeElement).toBe element.querySelector('input')
 
-  describe "when the themes finish loading", ->
-    [themeReloadCallback, initialThemeLoadComplete, element] = []
-
-    beforeEach ->
-      themeReloadCallback = null
-      initialThemeLoadComplete = false
-
-      spyOn(atom.themes, 'isInitialLoadComplete').andCallFake ->
-        initialThemeLoadComplete
-      spyOn(atom.themes, 'onDidChangeActiveThemes').andCallFake (fn) ->
-        themeReloadCallback = fn
-        new Disposable
-
-      element = new TextEditorElement()
-      element.style.height = '200px'
-      element.getModel().update({autoHeight: false})
-      element.getModel().setText [0..20].join("\n")
-
-    it "re-renders the scrollbar", ->
-      jasmineContent.appendChild(element)
-
-      atom.styles.addStyleSheet("""
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-      """, context: 'atom-text-editor')
-
-      initialThemeLoadComplete = true
-      themeReloadCallback()
-
-      verticalScrollbarNode = element.querySelector(".vertical-scrollbar")
-      scrollbarWidth = verticalScrollbarNode.offsetWidth - verticalScrollbarNode.clientWidth
-      expect(scrollbarWidth).toEqual(8)
-
   describe "::onDidAttach and ::onDidDetach", ->
     it "invokes callbacks when the element is attached and detached", ->
       element = new TextEditorElement
@@ -236,19 +203,13 @@ describe "TextEditorElement", ->
       jasmine.attachToDOM(element)
 
       expect(element.getMaxScrollTop()).toBe(0)
-
-      element.style.height = '100px'
-      editor.update({autoHeight: false})
-      element.component.measureDimensions()
-      expect(element.getMaxScrollTop()).toBe(60)
-
-      element.style.height = '120px'
-      element.component.measureDimensions()
-      expect(element.getMaxScrollTop()).toBe(40)
-
-      element.style.height = '200px'
-      element.component.measureDimensions()
-      expect(element.getMaxScrollTop()).toBe(0)
+      waitsForPromise -> editor.update({autoHeight: false})
+      runs -> element.style.height = '100px'
+      waitsFor -> element.getMaxScrollTop() is 60
+      runs -> element.style.height = '120px'
+      waitsFor -> element.getMaxScrollTop() is 40
+      runs -> element.style.height = '200px'
+      waitsFor -> element.getMaxScrollTop() is 0
 
   describe "on TextEditor::setMini", ->
     it "changes the element's 'mini' attribute", ->
@@ -256,9 +217,9 @@ describe "TextEditorElement", ->
       jasmine.attachToDOM(element)
       expect(element.hasAttribute('mini')).toBe false
       element.getModel().setMini(true)
-      expect(element.hasAttribute('mini')).toBe true
-      element.getModel().setMini(false)
-      expect(element.hasAttribute('mini')).toBe false
+      waitsFor -> element.hasAttribute('mini')
+      runs -> element.getModel().setMini(false)
+      waitsFor -> not element.hasAttribute('mini')
 
   describe "events", ->
     element = null

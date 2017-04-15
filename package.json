@@ -27,7 +27,7 @@
     "color": "^0.7.3",
     "dedent": "^0.6.0",
     "devtron": "1.3.0",
-    "etch": "^0.12.0",
+    "etch": "^0.12.2",
     "event-kit": "^2.3.0",
     "find-parent-dir": "^0.3.0",
     "first-mate": "7.0.2",
