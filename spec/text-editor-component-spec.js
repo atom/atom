@@ -320,6 +320,13 @@ describe('TextEditorComponent', () => {
       expect(getComputedStyle(cursor2).opacity).toBe('1')
     })
 
+    it('gives cursors at the end of lines the width of an "x" character', async () => {
+      const {component, element, editor} = buildComponent()
+      editor.setCursorScreenPosition([0, Infinity])
+      await component.getNextUpdatePromise()
+      expect(element.querySelector('.cursor').offsetWidth).toBe(Math.round(component.getBaseCharacterWidth()))
+    })
+
     it('places the hidden input element at the location of the last cursor if it is visible', async () => {
       const {component, element, editor} = buildComponent({height: 60, width: 120, rowsPerTile: 2})
       const {hiddenInput} = component.refs
