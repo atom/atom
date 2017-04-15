@@ -46,6 +46,7 @@ module.exports = class Dock {
     })
 
     this.state = {
+      size: null,
       visible: false,
       shouldAnimate: false
     }
