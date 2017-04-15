@@ -633,7 +633,8 @@ class TextEditorComponent {
           contain: 'strict',
           zIndex: 1,
           width: this.getScrollWidth() + 'px',
-          height: this.getScrollHeight() + 'px'
+          height: this.getScrollHeight() + 'px',
+          pointerEvents: 'none'
         }
       }, children)
     }
