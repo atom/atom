@@ -5,7 +5,6 @@ const dedent = require('dedent')
 class TextEditorElement extends HTMLElement {
   initialize (component) {
     this.component = component
-    this.emitter = new Emitter()
     return this
   }
 
@@ -19,13 +18,39 @@ class TextEditorElement extends HTMLElement {
     return this
   }
 
+  createdCallback () {
+    this.emitter = new Emitter()
+    this.initialText = this.textContent
+    this.tabIndex = -1
+    this.addEventListener('focus', (event) => this.getComponent().didFocus(event))
+    this.addEventListener('blur', (event) => this.getComponent().didBlur(event))
+  }
+
   attachedCallback () {
     this.getComponent().didAttach()
     this.emitter.emit('did-attach')
+    this.updateModelFromAttributes()
   }
 
   detachedCallback () {
+    this.emitter.emit('did-detach')
     this.getComponent().didDetach()
+  }
+
+  attributeChangedCallback (name, oldValue, newValue) {
+    if (this.component) {
+      switch (name) {
+        case 'mini':
+          this.getModel().update({mini: newValue != null})
+          break;
+        case 'placeholder-text':
+          this.getModel().update({placeholderText: newValue})
+          break;
+        case 'gutter-hidden':
+          this.getModel().update({isVisible: newValue != null})
+          break;
+      }
+    }
   }
 
   getModel () {
@@ -33,11 +58,43 @@ class TextEditorElement extends HTMLElement {
   }
 
   setModel (model) {
-    this.getComponent().setModel(model)
+    this.getComponent().update({model})
+    this.updateModelFromAttributes()
+  }
+
+  updateModelFromAttributes () {
+    const props = {
+      mini: this.hasAttribute('mini'),
+      placeholderText: this.getAttribute('placeholder-text'),
+    }
+    if (this.hasAttribute('gutter-hidden')) props.lineNumberGutterVisible = false
+
+    this.getModel().update(props)
+    if (this.initialText) this.getModel().setText(this.initialText)
   }
 
   onDidAttach (callback) {
     return this.emitter.on('did-attach', callback)
+  }
+
+  onDidDetach (callback) {
+    return this.emitter.on('did-detach', callback)
+  }
+
+  setWidth (width) {
+    this.style.width = this.getComponent().getGutterContainerWidth() + width + 'px'
+  }
+
+  getWidth () {
+    this.offsetWidth - this.getComponent().getGutterContainerWidth()
+  }
+
+  setHeight (height) {
+    this.style.height = height + 'px'
+  }
+
+  getHeight () {
+    return this.offsetHeight
   }
 
   onDidChangeScrollLeft (callback) {
@@ -52,12 +109,24 @@ class TextEditorElement extends HTMLElement {
     return this.getComponent().getBaseCharacterWidth()
   }
 
+  getMaxScrollTop () {
+    return this.getComponent().getMaxScrollTop()
+  }
+
   getScrollTop () {
     return this.getComponent().getScrollTop()
   }
 
+  setScrollTop (scrollTop) {
+    this.getComponent().setScrollTop(scrollTop)
+  }
+
   getScrollLeft () {
     return this.getComponent().getScrollLeft()
+  }
+
+  setScrollLeft (scrollLeft) {
+    this.getComponent().setScrollLeft(scrollLeft)
   }
 
   hasFocus () {
@@ -79,6 +148,10 @@ class TextEditorElement extends HTMLElement {
     this.updatedSynchronously = updatedSynchronously
     if (this.component) this.component.updatedSynchronously = updatedSynchronously
     return updatedSynchronously
+  }
+
+  isUpdatedSynchronously () {
+    return this.component ? this.component.updatedSynchronously : this.updatedSynchronously
   }
 
   // Experimental: Invalidate the passed block {Decoration}'s dimensions,

@@ -321,6 +321,7 @@ class TextEditor extends Model
               @cursorLineDecorations = null
             else
               @decorateCursorLine()
+            @component?.scheduleUpdate()
 
         when 'placeholderText'
           if value isnt @placeholderText
