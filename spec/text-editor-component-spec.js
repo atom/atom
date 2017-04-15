@@ -466,6 +466,25 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       expect(element.dataset.encoding).toBe('ascii')
     })
+
+    it('adds the has-selection class when the editor has a non-empty selection', async () => {
+      const {editor, element, component} = buildComponent()
+      expect(element.classList.contains('has-selection')).toBe(false)
+
+      editor.setSelectedBufferRanges([
+        [[0, 0], [0, 0]],
+        [[1, 0], [1, 10]]
+      ])
+      await component.getNextUpdatePromise()
+      expect(element.classList.contains('has-selection')).toBe(true)
+
+      editor.setSelectedBufferRanges([
+        [[0, 0], [0, 0]],
+        [[1, 0], [1, 0]]
+      ])
+      await component.getNextUpdatePromise()
+      expect(element.classList.contains('has-selection')).toBe(false)
+    })
   })
 
   describe('mini editors', () => {

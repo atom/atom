@@ -365,6 +365,13 @@ class TextEditorComponent {
       className = className + ' mini'
     }
 
+    for (var i = 0; i < model.selections.length; i++) {
+      if (!model.selections[i].isEmpty()) {
+        className += ' has-selection'
+        break
+      }
+    }
+
     const dataset = {encoding: model.getEncoding()}
     const grammar = model.getGrammar()
     if (grammar && grammar.scopeName) {
