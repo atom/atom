@@ -1771,6 +1771,7 @@ class TextEditorComponent {
     this.measurements.halfWidthCharacterWidth = this.refs.halfWidthCharacterSpan.getBoundingClientRect().width
     this.measurements.koreanCharacterWidth = this.refs.koreanCharacterSpan.getBoundingClientRect().width
 
+    this.props.model.setLineHeightInPixels(this.measurements.lineHeight)
     this.props.model.setDefaultCharWidth(
       this.measurements.baseCharacterWidth,
       this.measurements.doubleWidthCharacterWidth,
