@@ -244,16 +244,7 @@ describe('AtomApplication', function () {
       const window1 = atomApplication.launch(parseCommandLine([dirAPath, dirBPath]))
       await focusWindow(window1)
 
-      await timeoutPromise(1000)
-
-      let treeViewPaths = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        sendBackToMainProcess(
-          Array
-            .from(document.querySelectorAll('.tree-view .project-root > .header .name'))
-            .map(element => element.dataset.path)
-        )
-      })
-      assert.deepEqual(treeViewPaths, [dirAPath, dirBPath])
+      assert.deepEqual(await getTreeViewRootDirectories(window1), [dirAPath, dirBPath])
     })
 
     it('reuses windows with no project paths to open directories', async function () {
