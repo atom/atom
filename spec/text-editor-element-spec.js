@@ -1,5 +1,6 @@
 /* global HTMLDivElement */
 
+const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
 const TextEditor = require('../src/text-editor')
 const TextEditorElement = require('../src/text-editor-element')
 
@@ -226,7 +227,7 @@ describe('TextEditorElement', () => {
   })
 
   describe('::getMaxScrollTop', () =>
-    it('returns the maximum scroll top that can be applied to the element', () => {
+    it('returns the maximum scroll top that can be applied to the element', async () => {
       const editor = new TextEditor()
       editor.setText('1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16')
       const element = editor.getElement()
@@ -235,25 +236,33 @@ describe('TextEditorElement', () => {
       jasmine.attachToDOM(element)
 
       expect(element.getMaxScrollTop()).toBe(0)
-      waitsForPromise(() => editor.update({autoHeight: false}))
-      runs(() => { element.style.height = '100px' })
-      waitsFor(() => element.getMaxScrollTop() === 60)
-      runs(() => { element.style.height = '120px' })
-      waitsFor(() => element.getMaxScrollTop() === 40)
-      runs(() => { element.style.height = '200px' })
-      waitsFor(() => element.getMaxScrollTop() === 0)
+      await editor.update({autoHeight: false})
+
+      element.style.height = '100px'
+      await element.getNextUpdatePromise()
+      expect(element.getMaxScrollTop()).toBe(60)
+
+      element.style.height = '120px'
+      await element.getNextUpdatePromise()
+      expect(element.getMaxScrollTop()).toBe(40)
+
+      element.style.height = '200px'
+      await element.getNextUpdatePromise()
+      expect(element.getMaxScrollTop()).toBe(0)
     })
   )
 
   describe('on TextEditor::setMini', () =>
-    it("changes the element's 'mini' attribute", () => {
+    it("changes the element's 'mini' attribute", async () => {
       const element = new TextEditorElement()
       jasmine.attachToDOM(element)
       expect(element.hasAttribute('mini')).toBe(false)
       element.getModel().setMini(true)
-      waitsFor(() => element.hasAttribute('mini'))
-      runs(() => element.getModel().setMini(false))
-      waitsFor(() => !element.hasAttribute('mini'))
+      await element.getNextUpdatePromise()
+      expect(element.hasAttribute('mini')).toBe(true)
+      element.getModel().setMini(false)
+      await element.getNextUpdatePromise()
+      expect(element.hasAttribute('mini')).toBe(false)
     })
   )
 
