@@ -1945,7 +1945,7 @@ class TextEditorComponent {
             clientPixelPosition = clientRectForRange(textNode, 0, nextColumnToMeasure - textNodeStartColumn).right
           }
           if (lineNodeClientLeft === -1) lineNodeClientLeft = lineNode.getBoundingClientRect().left
-          positions.set(nextColumnToMeasure, clientPixelPosition - lineNodeClientLeft)
+          positions.set(nextColumnToMeasure, Math.round(clientPixelPosition - lineNodeClientLeft))
           continue columnLoop // eslint-disable-line no-labels
         } else {
           textNodesIndex++
