@@ -1373,6 +1373,16 @@ module.exports = class Workspace extends Model {
     return this.getPaneContainers().find(container => container.paneForURI(uri))
   }
 
+  // Extended: Get the first pane container that contains the given item.
+  //
+  // * `item` the Item that the returned pane container must contain.
+  //
+  // Returns a {Dock}, the {WorkspaceCenter}, or `undefined` if no item exists
+  // with the given URI.
+  paneContainerForItem (uri) {
+    return this.getPaneContainers().find(container => container.paneForItem(uri))
+  }
+
   // Extended: Get the first {Pane} that contains an item with the given URI.
   //
   // * `uri` {String} uri
@@ -1389,7 +1399,7 @@ module.exports = class Workspace extends Model {
 
   // Extended: Get the {Pane} containing the given item.
   //
-  // * `item` Item the returned pane contains.
+  // * `item` the Item that the returned pane must contain.
   //
   // Returns a {Pane} or `undefined` if no pane exists for the given item.
   paneForItem (item) {
