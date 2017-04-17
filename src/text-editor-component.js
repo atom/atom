@@ -97,8 +97,9 @@ class TextEditorComponent {
     this.guttersToRender = [this.props.model.getLineNumberGutter()]
     this.lineNumbersToRender = {
       maxDigits: 2,
-      numbers: [],
+      bufferRows: [],
       keys: [],
+      softWrappedFlags: [],
       foldableFlags: []
     }
     this.decorationsToRender = {
@@ -456,7 +457,7 @@ class TextEditorComponent {
     if (!this.props.model.isLineNumberGutterVisible()) return null
 
     if (this.measurements) {
-      const {maxDigits, keys, numbers, foldableFlags} = this.lineNumbersToRender
+      const {maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags} = this.lineNumbersToRender
       return $(LineNumberGutterComponent, {
         ref: 'lineNumberGutter',
         element: gutter.getElement(),
@@ -466,7 +467,8 @@ class TextEditorComponent {
         rowsPerTile: this.getRowsPerTile(),
         maxDigits: maxDigits,
         keys: keys,
-        numbers: numbers,
+        bufferRows: bufferRows,
+        softWrappedFlags: softWrappedFlags,
         foldableFlags: foldableFlags,
         decorations: this.decorationsToRender.lineNumbers,
         blockDecorations: this.decorationsToRender.blocks,
@@ -841,8 +843,8 @@ class TextEditorComponent {
     const endRow = this.getRenderedEndRow()
     const renderedRowCount = this.getRenderedRowCount()
 
-    const {numbers, keys, foldableFlags} = this.lineNumbersToRender
-    numbers.length = renderedRowCount
+    const {bufferRows, keys, softWrappedFlags, foldableFlags} = this.lineNumbersToRender
+    bufferRows.length = renderedRowCount
     keys.length = renderedRowCount
     foldableFlags.length = renderedRowCount
 
@@ -851,15 +853,17 @@ class TextEditorComponent {
     for (let row = startRow; row < endRow; row++) {
       const i = row - startRow
       const bufferRow = model.bufferRowForScreenRow(row)
+      bufferRows[i] = bufferRow
       if (bufferRow === previousBufferRow) {
-        numbers[i] = -1
-        keys[i] = bufferRow + 1 + '-' + softWrapCount++
+        softWrapCount++
+        softWrappedFlags[i] = true
         foldableFlags[i] = false
+        keys[i] = bufferRow + '-' + softWrapCount
       } else {
         softWrapCount = 0
-        numbers[i] = bufferRow + 1
-        keys[i] = bufferRow + 1
+        softWrappedFlags[i] = false
         foldableFlags[i] = model.isFoldableAtBufferRow(bufferRow)
+        keys[i] = bufferRow
       }
       previousBufferRow = bufferRow
     }
@@ -2500,12 +2504,12 @@ class LineNumberGutterComponent {
   render () {
     const {
       parentComponent, height, width, lineHeight, startRow, endRow, rowsPerTile,
-      maxDigits, keys, numbers, foldableFlags, decorations
+      maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags, decorations
     } = this.props
 
     let children = null
 
-    if (numbers) {
+    if (bufferRows) {
       const renderedTileCount = parentComponent.getRenderedTileCount()
       children = new Array(renderedTileCount)
 
@@ -2515,8 +2519,9 @@ class LineNumberGutterComponent {
         for (let row = tileStartRow; row < tileEndRow; row++) {
           const i = row - startRow
           const key = keys[i]
+          const softWrapped = softWrappedFlags[i]
           const foldable = foldableFlags[i]
-          let number = numbers[i]
+          const bufferRow = bufferRows[i]
 
           let className = 'line-number'
           if (foldable) className = className + ' foldable'
@@ -2524,10 +2529,10 @@ class LineNumberGutterComponent {
           const decorationsForRow = decorations[row - startRow]
           if (decorationsForRow) className = className + ' ' + decorationsForRow
 
-          if (number === -1) number = '•'
+          let number = softWrapped ? '•' : bufferRow + 1
           number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
 
-          let lineNumberProps = {key, className}
+          let lineNumberProps = {key, className, dataset: {bufferRow}}
 
           if (row === 0 || i > 0) {
             let currentRowTop = parentComponent.pixelPositionAfterBlocksForRow(row)
@@ -2567,7 +2572,7 @@ class LineNumberGutterComponent {
 
     return $.div(
       {
-        className: 'gutter line-numbers',
+        className: 'gutter line-bufferRows',
         attributes: {'gutter-name': 'line-number'},
         style: {position: 'relative', height: height + 'px'},
         on: {
@@ -2594,7 +2599,7 @@ class LineNumberGutterComponent {
     if (oldProps.maxDigits !== newProps.maxDigits) return true
     if (newProps.didMeasureVisibleBlockDecoration) return true
     if (!arraysEqual(oldProps.keys, newProps.keys)) return true
-    if (!arraysEqual(oldProps.numbers, newProps.numbers)) return true
+    if (!arraysEqual(oldProps.bufferRows, newProps.bufferRows)) return true
     if (!arraysEqual(oldProps.foldableFlags, newProps.foldableFlags)) return true
     if (!arraysEqual(oldProps.decorations, newProps.decorations)) return true
 

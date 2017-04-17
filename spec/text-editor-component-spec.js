@@ -485,6 +485,21 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       expect(element.classList.contains('has-selection')).toBe(false)
     })
+
+    it('assigns a buffer-row to each line number as a data field', async () => {
+      const {editor, element, component} = buildComponent()
+      editor.setSoftWrapped(true)
+      await component.getNextUpdatePromise()
+      await setEditorWidthInCharacters(component, 40)
+
+      expect(
+        Array.from(element.querySelectorAll('.line-number:not(.dummy)'))
+          .map((element) => element.dataset.bufferRow)
+      ).toEqual([
+        '0', '1', '2', '3', '3', '4', '5', '6', '6', '6',
+        '7', '8', '8', '8', '9', '10', '11', '11', '12'
+      ])
+    })
   })
 
   describe('mini editors', () => {
