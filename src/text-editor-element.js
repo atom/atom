@@ -154,6 +154,37 @@ class TextEditorElement extends HTMLElement {
     return this.getComponent().focused
   }
 
+  // Extended: Converts a buffer position to a pixel position.
+  //
+  // * `bufferPosition` A {Point}-like object that represents a buffer position.
+  //
+  // Be aware that calling this method with a column that does not translate
+  // to column 0 on screen could cause a synchronous DOM update in order to
+  // measure the requested horizontal pixel position if it isn't already
+  // cached.
+  //
+  // Returns an {Object} with two values: `top` and `left`, representing the
+  // pixel position.
+  pixelPositionForBufferPosition (bufferPosition) {
+    const screenPosition = this.getModel().screenPositionForBufferPosition(bufferPosition)
+    return this.getComponent().pixelPositionForScreenPositionSync(screenPosition)
+  }
+
+  // Extended: Converts a screen position to a pixel position.
+  //
+  // * `screenPosition` A {Point}-like object that represents a buffer position.
+  //
+  // Be aware that calling this method with a non-zero column value could
+  // cause a synchronous DOM update in order to measure the requested
+  // horizontal pixel position if it isn't already cached.
+  //
+  // Returns an {Object} with two values: `top` and `left`, representing the
+  // pixel position.
+  pixelPositionForScreenPosition (screenPosition) {
+    screenPosition = this.getModel().clipScreenPosition(screenPosition)
+    return this.getComponent().pixelPositionForScreenPositionSync(screenPosition)
+  }
+
   getComponent () {
     if (!this.component) {
       this.component = new TextEditorComponent({

@@ -74,6 +74,8 @@ class TextEditorComponent {
     this.cursorsBlinking = false
     this.cursorsBlinkedOff = false
     this.nextUpdateOnlyBlinksCursors = null
+    this.extraLinesToMeasure = null
+    this.extraRenderedScreenLines = null
     this.horizontalPositionsToMeasure = new Map() // Keys are rows with positions we want to measure, values are arrays of columns to measure
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
     this.blockDecorationsToMeasure = new Set()
@@ -129,6 +131,17 @@ class TextEditorComponent {
   update (props) {
     this.props = props
     this.scheduleUpdate()
+  }
+
+  pixelPositionForScreenPositionSync ({row, column}) {
+    const top = this.pixelPositionAfterBlocksForRow(row)
+    let left = column === 0 ? 0 : this.pixelLeftForRowAndColumn(row, column)
+    if (left == null) {
+      this.requestHorizontalMeasurement(row, column)
+      this.updateSync()
+      left = this.pixelLeftForRowAndColumn(row, column)
+    }
+    return {top, left}
   }
 
   scheduleUpdate (nextUpdateOnlyBlinksCursors = false) {
@@ -262,7 +275,6 @@ class TextEditorComponent {
   }
 
   updateSyncBeforeMeasuringContent () {
-    this.horizontalPositionsToMeasure.clear()
     if (this.pendingAutoscroll) this.autoscrollVertically()
     this.populateVisibleRowRange()
     this.queryScreenLinesToRender()
@@ -276,8 +288,6 @@ class TextEditorComponent {
   }
 
   measureContentDuringUpdateSync () {
-    this.measureHorizontalPositions()
-    this.updateAbsolutePositionedDecorations()
     if (this.remeasureGutterDimensions) {
       if (this.measureGutterDimensions()) {
         this.gutterContainerVnode = null
@@ -285,7 +295,13 @@ class TextEditorComponent {
       this.remeasureGutterDimensions = false
     }
     const wasHorizontalScrollbarVisible = this.isHorizontalScrollbarVisible()
+
+    this.extraRenderedScreenLines = this.extraLinesToMeasure
+    this.extraLinesToMeasure = null
     this.measureLongestLineWidth()
+    this.measureHorizontalPositions()
+    this.updateAbsolutePositionedDecorations()
+
     if (this.pendingAutoscroll) {
       this.autoscrollHorizontally()
       if (!wasHorizontalScrollbarVisible && this.isHorizontalScrollbarVisible()) {
@@ -566,14 +582,18 @@ class TextEditorComponent {
       })
     }
 
-    if (this.longestLineToMeasure != null && (this.longestLineToMeasureRow < startRow || this.longestLineToMeasureRow >= endRow)) {
-      tileNodes.push($(LineComponent, {
-        key: this.longestLineToMeasure.id,
-        screenLine: this.longestLineToMeasure,
-        displayLayer,
-        lineNodesByScreenLineId,
-        textNodesByScreenLineId
-      }))
+    if (this.extraLinesToMeasure) {
+      this.extraLinesToMeasure.forEach((screenLine, row) => {
+        if (row < startRow || row >= endRow) {
+          tileNodes.push($(LineComponent, {
+            key: 'extra-' + screenLine.id,
+            screenLine,
+            displayLayer,
+            lineNodesByScreenLineId,
+            textNodesByScreenLineId
+          }))
+        }
+      })
     }
 
     return $.div({
@@ -805,8 +825,8 @@ class TextEditorComponent {
     const longestLineRow = model.getApproximateLongestScreenRow()
     const longestLine = model.screenLineForScreenRow(longestLineRow)
     if (longestLine !== this.previousLongestLine) {
+      this.requestExtraLineToMeasure(longestLineRow, longestLine)
       this.longestLineToMeasure = longestLine
-      this.longestLineToMeasureRow = longestLineRow
       this.previousLongestLine = longestLine
     }
   }
@@ -857,7 +877,10 @@ class TextEditorComponent {
   }
 
   renderedScreenLineForRow (row) {
-    return this.renderedScreenLines[row - this.getRenderedStartRow()]
+    return (
+      this.renderedScreenLines[row - this.getRenderedStartRow()] ||
+      (this.extraRenderedScreenLines ? this.extraRenderedScreenLines.get(row) : null)
+    )
   }
 
   queryGuttersToRender () {
@@ -1845,13 +1868,22 @@ class TextEditorComponent {
   measureLongestLineWidth () {
     if (this.longestLineToMeasure) {
       this.measurements.longestLineWidth = this.lineNodesByScreenLineId.get(this.longestLineToMeasure.id).firstChild.offsetWidth
-      this.longestLineToMeasureRow = null
       this.longestLineToMeasure = null
     }
   }
 
+  requestExtraLineToMeasure (row, screenLine) {
+    if (!this.extraLinesToMeasure) this.extraLinesToMeasure = new Map()
+    this.extraLinesToMeasure.set(row, screenLine)
+  }
+
   requestHorizontalMeasurement (row, column) {
     if (column === 0) return
+
+    if (row < this.getRenderedStartRow() || row >= this.getRenderedEndRow()) {
+      this.requestExtraLineToMeasure(row, this.props.model.screenLineForScreenRow(row))
+    }
+
     let columns = this.horizontalPositionsToMeasure.get(row)
     if (columns == null) {
       columns = []
@@ -1882,6 +1914,7 @@ class TextEditorComponent {
 
       this.measureHorizontalPositionsOnLine(lineNode, textNodes, columnsToMeasure, positionsForLine)
     })
+    this.horizontalPositionsToMeasure.clear()
   }
 
   measureHorizontalPositionsOnLine (lineNode, textNodes, columnsToMeasure, positions) {
@@ -1937,7 +1970,12 @@ class TextEditorComponent {
   pixelLeftForRowAndColumn (row, column) {
     if (column === 0) return 0
     const screenLine = this.renderedScreenLineForRow(row)
-    return this.horizontalPixelPositionsByScreenLineId.get(screenLine.id).get(column)
+    if (screenLine) {
+      const horizontalPositionsByColumn = this.horizontalPixelPositionsByScreenLineId.get(screenLine.id)
+      if (horizontalPositionsByColumn) {
+        return horizontalPositionsByColumn.get(column)
+      }
+    }
   }
 
   screenPositionForPixelPosition ({top, left}) {
