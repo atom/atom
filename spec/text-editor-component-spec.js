@@ -2365,6 +2365,36 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
     })
   })
+
+  describe('pixelPositionForScreenPositionSync(point)', () => {
+    it('returns the pixel position for the given point, regardless of whether or not it is currently on screen', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 2, autoHeight: false})
+      await setEditorHeightInLines(component, 3)
+      await setScrollTop(component, 3 * component.getLineHeight())
+
+      const {component: referenceComponent} = buildComponent()
+      const referenceContentRect = referenceComponent.refs.content.getBoundingClientRect()
+
+      {
+        const {top, left} = component.pixelPositionForScreenPositionSync({row: 0, column: 0})
+        expect(top).toBe(clientTopForLine(referenceComponent, 0) - referenceContentRect.top)
+        expect(left).toBe(clientLeftForCharacter(referenceComponent, 0, 0) - referenceContentRect.left)
+      }
+
+      {
+        const {top, left} = component.pixelPositionForScreenPositionSync({row: 0, column: 5})
+        expect(top).toBe(clientTopForLine(referenceComponent, 0) - referenceContentRect.top)
+        expect(left).toBe(clientLeftForCharacter(referenceComponent, 0, 5) - referenceContentRect.left)
+      }
+
+      {
+        const {top, left} = component.pixelPositionForScreenPositionSync({row: 12, column: 1})
+        expect(top).toBe(clientTopForLine(referenceComponent, 12) - referenceContentRect.top)
+        expect(left).toBe(clientLeftForCharacter(referenceComponent, 12, 1) - referenceContentRect.left)
+      }
+    })
+  })
+
 })
 
 function buildEditor (params = {}) {
