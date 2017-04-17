@@ -19,6 +19,16 @@ class TextEditorElement extends HTMLElement {
     return this
   }
 
+  get rootElement () {
+    Grim.deprecate(dedent`
+      The contents of \`atom-text-editor\` elements are no longer encapsulated
+      within a shadow DOM boundary. Please, stop using \`rootElement\` and access
+      the editor contents directly instead.
+    `)
+
+    return this
+  }
+
   createdCallback () {
     this.emitter = new Emitter()
     this.initialText = this.textContent
