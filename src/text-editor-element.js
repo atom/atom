@@ -106,10 +106,19 @@ class TextEditorElement extends HTMLElement {
     return this.emitter.on('did-change-scroll-top', callback)
   }
 
+  // Deprecated: get the width of an `x` character displayed in this element.
+  //
+  // Returns a {Number} of pixels.
   getDefaultCharacterWidth () {
     return this.getComponent().getBaseCharacterWidth()
   }
 
+  // Extended: get the width of an `x` character displayed in this element.
+  //
+  // Returns a {Number} of pixels.
+  getBaseCharacterWidth () {
+    return this.getComponent().getBaseCharacterWidth()
+  }
   getMaxScrollTop () {
     return this.getComponent().getMaxScrollTop()
   }
