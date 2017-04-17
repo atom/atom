@@ -984,6 +984,29 @@ describe('Workspace', () => {
     })
   })
 
+  describe('finding items in the workspace', () => {
+    it('can identify the pane and pane container for a given item or URI', () => {
+      const uri = 'atom://test-pane-for-item'
+      const item = {
+        element: document.createElement('div'),
+        getURI () { return uri }
+      }
+
+      atom.workspace.getActivePane().activateItem(item)
+      expect(atom.workspace.paneForItem(item)).toBe(atom.workspace.getCenter().getActivePane())
+      expect(atom.workspace.paneContainerForItem(item)).toBe(atom.workspace.getCenter())
+      expect(atom.workspace.paneForURI(uri)).toBe(atom.workspace.getCenter().getActivePane())
+      expect(atom.workspace.paneContainerForURI(uri)).toBe(atom.workspace.getCenter())
+
+      atom.workspace.getActivePane().destroyActiveItem()
+      atom.workspace.getLeftDock().getActivePane().activateItem(item)
+      expect(atom.workspace.paneForItem(item)).toBe(atom.workspace.getLeftDock().getActivePane())
+      expect(atom.workspace.paneContainerForItem(item)).toBe(atom.workspace.getLeftDock())
+      expect(atom.workspace.paneForURI(uri)).toBe(atom.workspace.getLeftDock().getActivePane())
+      expect(atom.workspace.paneContainerForURI(uri)).toBe(atom.workspace.getLeftDock())
+    })
+  })
+
   describe('::hide(uri)', () => {
     let item
     const URI = 'atom://hide-test'
