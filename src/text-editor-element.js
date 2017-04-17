@@ -1,4 +1,5 @@
 const {Emitter} = require('atom')
+const Grim = require('grim')
 const TextEditorComponent = require('./text-editor-component')
 const dedent = require('dedent')
 
@@ -42,13 +43,13 @@ class TextEditorElement extends HTMLElement {
       switch (name) {
         case 'mini':
           this.getModel().update({mini: newValue != null})
-          break;
+          break
         case 'placeholder-text':
           this.getModel().update({placeholderText: newValue})
-          break;
+          break
         case 'gutter-hidden':
           this.getModel().update({isVisible: newValue != null})
-          break;
+          break
       }
     }
   }
@@ -65,7 +66,7 @@ class TextEditorElement extends HTMLElement {
   updateModelFromAttributes () {
     const props = {
       mini: this.hasAttribute('mini'),
-      placeholderText: this.getAttribute('placeholder-text'),
+      placeholderText: this.getAttribute('placeholder-text')
     }
     if (this.hasAttribute('gutter-hidden')) props.lineNumberGutterVisible = false
 

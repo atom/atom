@@ -1,3 +1,5 @@
+/* global ResizeObserver */
+
 const etch = require('etch')
 const {CompositeDisposable} = require('event-kit')
 const {Point, Range} = require('text-buffer')
