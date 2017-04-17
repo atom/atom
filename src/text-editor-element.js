@@ -54,6 +54,17 @@ class TextEditorElement extends HTMLElement {
     }
   }
 
+  // Extended: Get a promise that resolves the next time the element's DOM
+  // is updated in any way.
+  //
+  // This can be useful when you've made a change to the model and need to
+  // be sure this change has been flushed to the DOM.
+  //
+  // Returns a {Promise}.
+  getNextUpdatePromise () {
+    return this.getComponent().getNextUpdatePromise()
+  }
+
   getModel () {
     return this.getComponent().props.model
   }
