@@ -31,7 +31,7 @@ module.exports = (packagedAppPath, codeSign) => {
       downloadFileFromGithub(process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
     }
 
-    var signParams = []
+    var signParams = [] // Changing any of these should also be done in code-sign-on-windows.js
     signParams.push(`/f ${certPath}`) // Signing cert file
     signParams.push(`/p ${process.env.ATOM_WIN_CODE_SIGNING_CERT_PASSWORD}`) // Signing cert password
     signParams.push('/fd sha256') // File digest algorithm
