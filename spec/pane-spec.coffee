@@ -21,6 +21,7 @@ describe "Pane", ->
     isDestroyed: -> @destroyed
     onDidTerminatePendingState: (callback) -> @emitter.on 'terminate-pending-state', callback
     terminatePendingState: -> @emitter.emit 'terminate-pending-state'
+    isPermanentDockItem: -> false
 
   beforeEach ->
     confirm = spyOn(atom.applicationDelegate, 'confirm')
@@ -496,6 +497,14 @@ describe "Pane", ->
           expect(item1 in pane.getItems()).toBe true
           expect(item1.isDestroyed()).toBe false
 
+      describe "when force=true", ->
+        it "destroys the item immediately", ->
+          pane.destroyItem(item1, true)
+
+          expect(item1.save).not.toHaveBeenCalled()
+          expect(item1 in pane.getItems()).toBe false
+          expect(item1.isDestroyed()).toBe true
+
     describe "when the last item is destroyed", ->
       describe "when the 'core.destroyEmptyPanes' config option is false (the default)", ->
         it "does not destroy the pane, but leaves it in place with empty items", ->
@@ -511,6 +520,19 @@ describe "Pane", ->
           atom.config.set('core.destroyEmptyPanes', true)
           pane.destroyItem(item) for item in pane.getItems()
           expect(pane.isDestroyed()).toBe true
+
+    describe "when passed a permanent dock item", ->
+      it "doesn't destroy the item", ->
+        spyOn(item1, 'isPermanentDockItem').andReturn true
+        pane.destroyItem(item1)
+        expect(item1 in pane.getItems()).toBe true
+        expect(item1.isDestroyed()).toBe false
+
+      it "destroy the item if force=true", ->
+        spyOn(item1, 'isPermanentDockItem').andReturn true
+        pane.destroyItem(item1, true)
+        expect(item1 in pane.getItems()).toBe false
+        expect(item1.isDestroyed()).toBe true
 
   describe "::destroyActiveItem()", ->
     it "destroys the active item", ->
