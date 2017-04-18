@@ -426,6 +426,7 @@ class TextEditorComponent {
       this.gutterContainerVnode = $.div(
         {
           ref: 'gutterContainer',
+          key: 'gutterContainer',
           className: 'gutter-container',
           style: {
             position: 'relative',
@@ -506,6 +507,7 @@ class TextEditorComponent {
     return $.div(
       {
         ref: 'scrollContainer',
+        key: 'scrollContainer',
         className: 'scroll-view',
         style
       },
