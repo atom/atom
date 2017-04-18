@@ -189,7 +189,7 @@ class LanguageMode
   # row is a comment.
   isLineCommentedAtBufferRow: (bufferRow) ->
     return false unless 0 <= bufferRow <= @editor.getLastBufferRow()
-    @editor.tokenizedBuffer.tokenizedLines[bufferRow]?.isComment() ? false
+    @editor.tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
 
   # Find a row range for a 'paragraph' around specified bufferRow. A paragraph
   # is a block of text bounded by and empty line or a block of text that is not
