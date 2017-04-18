@@ -2315,14 +2315,18 @@ class TextEditorComponent {
   }
 
   getFirstVisibleRow () {
-    return this.rowForPixelPosition(this.getScrollTop())
+    if (this.measurements) {
+      return this.rowForPixelPosition(this.getScrollTop())
+    }
   }
 
   getLastVisibleRow () {
-    return Math.min(
-      this.props.model.getApproximateScreenLineCount() - 1,
-      this.rowForPixelPosition(this.getScrollBottom())
-    )
+    if (this.measurements) {
+      return Math.min(
+        this.props.model.getApproximateScreenLineCount() - 1,
+        this.rowForPixelPosition(this.getScrollBottom())
+      )
+    }
   }
 
   getFirstVisibleColumn () {
