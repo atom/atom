@@ -6,6 +6,7 @@ const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
 const fs = require('fs')
 const path = require('path')
+const Grim = require('grim')
 
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
 const NBSP_CHARACTER = '\u00a0'
@@ -2446,6 +2447,31 @@ describe('TextEditorComponent', () => {
     })
   })
 
+  describe('model methods that delegate to the component / element', () => {
+    it('delegates setHeight and getHeight to the component', async () => {
+      const {component, element, editor} = buildComponent({autoHeight: false})
+      spyOn(Grim, 'deprecate')
+      expect(editor.getHeight()).toBe(component.getScrollContainerHeight())
+      expect(Grim.deprecate.callCount).toBe(1)
+
+      editor.setHeight(100)
+      await component.getNextUpdatePromise()
+      expect(component.getScrollContainerHeight()).toBe(100)
+      expect(Grim.deprecate.callCount).toBe(2)
+    })
+
+    it('delegates setWidth and getWidth to the component', async () => {
+      const {component, element, editor} = buildComponent()
+      spyOn(Grim, 'deprecate')
+      expect(editor.getWidth()).toBe(component.getScrollContainerWidth())
+      expect(Grim.deprecate.callCount).toBe(1)
+
+      editor.setWidth(100)
+      await component.getNextUpdatePromise()
+      expect(component.getScrollContainerWidth()).toBe(100)
+      expect(Grim.deprecate.callCount).toBe(2)
+    })
+  })
 })
 
 function buildEditor (params = {}) {
