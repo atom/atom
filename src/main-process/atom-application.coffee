@@ -13,6 +13,7 @@ path = require 'path'
 os = require 'os'
 net = require 'net'
 url = require 'url'
+qs = require 'querystring'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
 FindParentDir = null
@@ -758,8 +759,24 @@ class AtomApplication
     else
       initialLine = initialColumn = null
 
-    unless url.parse(pathToOpen).protocol?
+    urlPath = url.parse(pathToOpen)
+
+    if !urlPath.protocol?
       pathToOpen = path.resolve(executedFrom, fs.normalize(pathToOpen))
+    else
+      switch urlPath.protocol
+        when 'file:'
+          pathToOpen = path.resolve(executedFrom, fs.normalize(urlPath.path))
+        when 'atm:'
+          if urlPath.host != 'open' then break
+
+          query = qs.parse(urlPath.query)
+
+          pathToOpen = path.resolve(executedFrom, fs.normalize(query.file))
+          initialLine = query.line || null
+          initialColumn = query.col || null
+        else
+          console.error "Invalid file protocol '#{urlPath.protocol}'"
 
     {pathToOpen, initialLine, initialColumn, forceAddToWindow}
 
