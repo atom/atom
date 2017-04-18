@@ -8,6 +8,10 @@ machine:
     version: 7.3
 
 general:
+  branches:
+    only:
+    - master
+    - /^[0-9.]+-releases$/
   artifacts:
     - out/atom-mac.zip
     - out/atom-mac-symbols.zip

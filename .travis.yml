@@ -1,6 +1,11 @@
 git:
   depth: 10
 
+branches:
+  only:
+  - master
+  - /^[0-9.]+-releases$/
+
 matrix:
   include:
     - os: linux
