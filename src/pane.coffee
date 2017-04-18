@@ -599,8 +599,10 @@ class Pane
   # setting is `true`.
   #
   # * `item` Item to destroy
-  # * `force` Destroy the item without prompting to save, or regard for whether
-  #   it's a permanent dock item.
+  # * `force` (optional) {Boolean} Destroy the item without prompting to save
+  #    it, even if the item's `isPermanentDockItem` method returns true.
+  #
+  # Returns a {Boolean} indicating whether or not the item was destroyed.
   destroyItem: (item, force) ->
     index = @items.indexOf(item)
     if index isnt -1
