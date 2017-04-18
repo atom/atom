@@ -64,6 +64,7 @@ class TextEditorComponent {
     this.refs = {}
 
     this.updateSync = this.updateSync.bind(this)
+    this.updatedSynchronously = this.props.updatedSynchronously
     this.didScrollDummyScrollbar = this.didScrollDummyScrollbar.bind(this)
     this.didMouseDownOnContent = this.didMouseDownOnContent.bind(this)
     this.disposables = new CompositeDisposable()
