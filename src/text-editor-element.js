@@ -87,8 +87,8 @@ class TextEditorElement extends HTMLElement {
   updateModelFromAttributes () {
     const props = {
       mini: this.hasAttribute('mini'),
-      placeholderText: this.getAttribute('placeholder-text')
     }
+    if (this.hasAttribute('placeholder-text')) props.placeholderText = this.getAttribute('placeholder-text')
     if (this.hasAttribute('gutter-hidden')) props.lineNumberGutterVisible = false
 
     this.getModel().update(props)

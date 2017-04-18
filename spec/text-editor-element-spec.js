@@ -24,6 +24,12 @@ describe('TextEditorElement', () => {
       expect(element.getModel().getPlaceholderText()).toBe('testing')
     })
 
+    it("only assigns 'placeholder-text' on the model if the attribute is present", () => {
+      const editor = new TextEditor({placeholderText: 'placeholder'})
+      editor.getElement()
+      expect(editor.getPlaceholderText()).toBe('placeholder')
+    })
+
     it("honors the 'gutter-hidden' attribute", () => {
       jasmineContent.innerHTML = '<atom-text-editor gutter-hidden>'
       const element = jasmineContent.firstChild
