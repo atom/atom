@@ -3650,32 +3650,25 @@ class TextEditor extends Model
         })
     defaultCharWidth
 
-  setHeight: (height, reentrant=false) ->
-    if reentrant
-      @height = height
-    else
-      Grim.deprecate("This is now a view method. Call TextEditorElement::setHeight instead.")
-      @getElement().setHeight(height)
+  setHeight: (height) ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::setHeight instead.")
+    @getElement().setHeight(height)
 
   getHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
-    @height
+    @getElement().getHeight()
 
   getAutoHeight: -> @autoHeight ? true
 
   getAutoWidth: -> @autoWidth ? false
 
-  setWidth: (width, fromComponent=false) ->
-    if fromComponent
-      @update({width})
-      @width
-    else
-      Grim.deprecate("This is now a view method. Call TextEditorElement::setWidth instead.")
-      @getElement().setWidth(width)
+  setWidth: (width) ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::setWidth instead.")
+    @getElement().setWidth(width)
 
   getWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
-    @width
+    @getElement().getWidth()
 
   # Experimental: Scroll the editor such that the given screen row is at the
   # top of the visible area.

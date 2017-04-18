@@ -108,7 +108,7 @@ class TextEditorElement extends HTMLElement {
   }
 
   getWidth () {
-    this.offsetWidth - this.getComponent().getGutterContainerWidth()
+    return this.getComponent().getScrollContainerWidth()
   }
 
   setHeight (height) {
@@ -116,7 +116,7 @@ class TextEditorElement extends HTMLElement {
   }
 
   getHeight () {
-    return this.offsetHeight
+    return this.getComponent().getScrollContainerHeight()
   }
 
   onDidChangeScrollLeft (callback) {
