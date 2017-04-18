@@ -1332,13 +1332,17 @@ class TextEditorComponent {
         this.remeasureAllBlockDecorations = true
       }
 
+      this.resizeObserver.disconnect()
       this.scheduleUpdate()
+      process.nextTick(() => { this.resizeObserver.observe(this.element) })
     }
   }
 
   didResizeGutterContainer () {
     if (this.measureGutterDimensions()) {
+      this.gutterContainerResizeObserver.disconnect()
       this.scheduleUpdate()
+      process.nextTick(() => { this.gutterContainerResizeObserver.observe(this.refs.gutterContainer) })
     }
   }
 
