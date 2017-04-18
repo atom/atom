@@ -1,6 +1,7 @@
 const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
 
 const TextEditorComponent = require('../src/text-editor-component')
+const TextEditorElement = require('../src/text-editor-element')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
 const fs = require('fs')
@@ -2378,6 +2379,41 @@ describe('TextEditorComponent', () => {
       TextEditor.didUpdateStyles()
       element.style.display = 'none'
       await component.getNextUpdatePromise()
+    })
+  })
+
+  describe('synchronous updates', () => {
+    let editorElementWasUpdatedSynchronously
+
+    beforeEach(() => {
+      editorElementWasUpdatedSynchronously = TextEditorElement.prototype.updatedSynchronously
+    })
+
+    afterEach(() => {
+      TextEditorElement.prototype.setUpdatedSynchronously(editorElementWasUpdatedSynchronously)
+    })
+
+    it('updates synchronously when updatedSynchronously is true', () => {
+      const editor = buildEditor()
+      const {element} = new TextEditorComponent({model: editor, updatedSynchronously: true})
+      jasmine.attachToDOM(element)
+
+      editor.setText('Lorem ipsum dolor')
+      expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(l => l.textContent)).toEqual([
+        editor.lineTextForScreenRow(0)
+      ])
+    })
+
+    it('updates synchronously when creating a component via TextEditor and TextEditorElement.prototype.updatedSynchronously is true', () => {
+      TextEditorElement.prototype.setUpdatedSynchronously(true)
+      const editor = buildEditor()
+      const element = editor.element
+      jasmine.attachToDOM(element)
+
+      editor.setText('Lorem ipsum dolor')
+      expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(l => l.textContent)).toEqual([
+        editor.lineTextForScreenRow(0)
+      ])
     })
   })
 
