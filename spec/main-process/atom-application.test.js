@@ -93,6 +93,57 @@ describe('AtomApplication', function () {
       assert.equal(openedPath, filePath)
     })
 
+    it('can open files with the atm uri', async function() {
+      const filePath = path.join(makeTempDir(), 'new-file')
+      fs.writeFileSync(filePath, '1\n2\n3\n4\n')
+      const atomApplication = buildAtomApplication()
+
+      const window = atomApplication.launch(parseCommandLine(['atm://open/?file=' + filePath]))
+      await focusWindow(window)
+
+      const openedPath = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.observeTextEditors(function (textEditor) {
+          sendBackToMainProcess(textEditor.getPath());
+        })
+      })
+
+      assert.equal(openedPath, filePath)
+    })
+
+    it('can open files with the atm uri to a specific line number of a file', async function () {
+      const filePath = path.join(makeTempDir(), 'new-file')
+      fs.writeFileSync(filePath, '1\n2\n3\n4\n')
+      const atomApplication = buildAtomApplication()
+
+      const window = atomApplication.launch(parseCommandLine(['atm://open/?file=' + filePath + '&line=3']))
+      await focusWindow(window)
+
+      const cursorRow = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.observeTextEditors(function (textEditor) {
+          sendBackToMainProcess(textEditor.getCursorBufferPosition().row)
+        })
+      })
+
+      assert.equal(cursorRow, 2)
+    })
+
+    it('can open files with the atm uri to a specific line and column of a file', async function () {
+      const filePath = path.join(makeTempDir(), 'new-file')
+      fs.writeFileSync(filePath, '1\n2\n3\n4\n')
+      const atomApplication = buildAtomApplication()
+
+      const window = atomApplication.launch(parseCommandLine(['atm://open/?file=' + filePath + '&line=2&col=2']))
+      await focusWindow(window)
+
+      const cursorPosition = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.observeTextEditors(function (textEditor) {
+          sendBackToMainProcess(textEditor.getCursorBufferPosition())
+        })
+      })
+
+      assert.deepEqual(cursorPosition, {row: 1, column: 1})
+    })
+
     if (process.platform === 'darwin' || process.platform === 'win32') {
       it('positions new windows at an offset distance from the previous window', async function () {
         const atomApplication = buildAtomApplication()
