@@ -773,8 +773,8 @@ class AtomApplication
           query = qs.parse(urlPath.query)
 
           pathToOpen = path.resolve(executedFrom, fs.normalize(query.file))
-          initialLine = parseInt(query.line) or null
-          initialColumn = parseInt(query.col) or null
+          initialLine = Math.max(0, parseInt(query.line) - 1) if query.line?
+          initialColumn = Math.max(0, parseInt(query.col) - 1) if query.col?
         else
           console.error "Invalid file protocol '#{urlPath.protocol}'"
 
