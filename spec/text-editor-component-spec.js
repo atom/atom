@@ -2416,6 +2416,18 @@ describe('TextEditorComponent', () => {
         editor.lineTextForScreenRow(0)
       ])
     })
+
+    it('measures dimensions synchronously when measureDimensions is called on the component', () => {
+      TextEditorElement.prototype.setUpdatedSynchronously(true)
+      const editor = buildEditor({autoHeight: false})
+      const element = editor.element
+      jasmine.attachToDOM(element)
+
+      element.style.height = '100px'
+      expect(element.component.getClientContainerHeight()).not.toBe(100)
+      element.component.measureDimensions()
+      expect(element.component.getClientContainerHeight()).toBe(100)
+    })
   })
 
   describe('pixelPositionForScreenPositionSync(point)', () => {
