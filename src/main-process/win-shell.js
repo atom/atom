@@ -56,11 +56,13 @@ class ShellOption {
 
 exports.appName = appName
 
-exports.fileHandler = new ShellOption(`\\Software\\Classes\\Applications\\${exeName}`,
+exports.fileHandler = new ShellOption('\\Software\\Classes',
   [
-    {key: 'shell\\open\\command', name: '', value: `${appPath} \"%1\"`},
-    {key: 'shell\\open', name: 'FriendlyAppName', value: `${appName}`},
-    {key: 'DefaultIcon', name: '', value: `${fileIconPath}`}
+    {key: `Applications\\${exeName}\\shell\\open\\command`, name: '', value: `${appPath} \"%1\"`},
+    {key: `Applications\\${exeName}\\shell\\open`, name: 'FriendlyAppName', value: `${appName}`},
+    {key: `Applications\\${exeName}\\DefaultIcon`, name: '', value: `${fileIconPath}`},
+	{key: 'atm', name: '', value: 'URL:Atom Text Editor Protocol'},
+	{key: 'atm\\shell\\open\\command', name: '', value: `${appPath} \"%1\"`}
   ]
 )
 
