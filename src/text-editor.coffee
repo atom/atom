@@ -731,9 +731,6 @@ class TextEditor extends Model
   onDidChangePlaceholderText: (callback) ->
     @emitter.on 'did-change-placeholder-text', callback
 
-  onDidChangeFirstVisibleScreenRow: (callback, fromView) ->
-    @emitter.on 'did-change-first-visible-screen-row', callback
-
   onDidChangeScrollTop: (callback) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollTop instead.")
 
@@ -3672,19 +3669,8 @@ class TextEditor extends Model
 
   # Experimental: Scroll the editor such that the given screen row is at the
   # top of the visible area.
-  setFirstVisibleScreenRow: (screenRow, fromView) ->
-    unless fromView
-      maxScreenRow = @getScreenLineCount() - 1
-      unless @scrollPastEnd
-        if @height? and @lineHeightInPixels?
-          maxScreenRow -= Math.floor(@height / @lineHeightInPixels)
-      screenRow = Math.max(Math.min(screenRow, maxScreenRow), 0)
-
-    unless screenRow is @firstVisibleScreenRow
-      @firstVisibleScreenRow = screenRow
-      @emitter.emit 'did-change-first-visible-screen-row', screenRow unless fromView
-
-  getFirstVisibleScreenRow: -> @firstVisibleScreenRow
+  setFirstVisibleScreenRow: (screenRow) ->
+    @getElement().component.setFirstVisibleRow(screenRow)
 
   getFirstVisibleScreenRow: ->
     @getElement().component.getFirstVisibleRow()

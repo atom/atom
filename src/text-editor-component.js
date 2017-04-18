@@ -2310,6 +2310,10 @@ class TextEditorComponent {
     return Math.ceil(this.getRenderedRowCount() / this.getRowsPerTile())
   }
 
+  setFirstVisibleRow (row) {
+    this.setScrollTop(this.pixelPositionBeforeBlocksForRow(row))
+  }
+
   getFirstVisibleRow () {
     return this.rowForPixelPosition(this.getScrollTop())
   }

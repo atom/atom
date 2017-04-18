@@ -2494,6 +2494,23 @@ describe('TextEditorComponent', () => {
       expect(editor.getLastVisibleScreenRow()).toBe(component.getLastVisibleRow())
       expect(editor.getVisibleRowRange()).toEqual([component.getFirstVisibleRow(), component.getLastVisibleRow()])
     })
+
+    it('assigns scrollTop on the component when calling setFirstVisibleScreenRow', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
+      element.style.height = 4 * component.measurements.lineHeight + 'px'
+      await component.getNextUpdatePromise()
+
+      expect(component.getMaxScrollTop() / component.getLineHeight()).toBe(9)
+
+      editor.setFirstVisibleScreenRow(1)
+      expect(component.getFirstVisibleRow()).toBe(1)
+
+      editor.setFirstVisibleScreenRow(5)
+      expect(component.getFirstVisibleRow()).toBe(5)
+
+      editor.setFirstVisibleScreenRow(11)
+      expect(component.getFirstVisibleRow()).toBe(9)
+    })
   })
 })
 
