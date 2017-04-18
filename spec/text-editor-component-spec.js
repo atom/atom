@@ -2483,6 +2483,17 @@ describe('TextEditorComponent', () => {
       expect(component.getScrollContainerWidth()).toBe(100)
       expect(Grim.deprecate.callCount).toBe(2)
     })
+
+    it('delegates getFirstVisibleScreenRow, getLastVisibleScreenRow, and getVisibleRowRange to the component', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
+      element.style.height = 4 * component.measurements.lineHeight + 'px'
+      await component.getNextUpdatePromise()
+      await setScrollTop(component, 5 * component.getLineHeight())
+
+      expect(editor.getFirstVisibleScreenRow()).toBe(component.getFirstVisibleRow())
+      expect(editor.getLastVisibleScreenRow()).toBe(component.getLastVisibleRow())
+      expect(editor.getVisibleRowRange()).toEqual([component.getFirstVisibleRow(), component.getLastVisibleRow()])
+    })
   })
 })
 

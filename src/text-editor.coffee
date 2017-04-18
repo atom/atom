@@ -3686,17 +3686,14 @@ class TextEditor extends Model
 
   getFirstVisibleScreenRow: -> @firstVisibleScreenRow
 
+  getFirstVisibleScreenRow: ->
+    @getElement().component.getFirstVisibleRow()
+
   getLastVisibleScreenRow: ->
-    if @height? and @lineHeightInPixels?
-      Math.min(@firstVisibleScreenRow + Math.floor(@height / @lineHeightInPixels), @getScreenLineCount() - 1)
-    else
-      null
+    @getElement().component.getLastVisibleRow()
 
   getVisibleRowRange: ->
-    if lastVisibleScreenRow = @getLastVisibleScreenRow()
-      [@firstVisibleScreenRow, lastVisibleScreenRow]
-    else
-      null
+    [@getFirstVisibleScreenRow(), @getLastVisibleScreenRow()]
 
   setFirstVisibleScreenColumn: (@firstVisibleScreenColumn) ->
   getFirstVisibleScreenColumn: -> @firstVisibleScreenColumn
