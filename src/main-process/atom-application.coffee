@@ -761,20 +761,20 @@ class AtomApplication
 
     urlPath = url.parse(pathToOpen)
 
-    if !urlPath.protocol?
+    if not urlPath.protocol?
       pathToOpen = path.resolve(executedFrom, fs.normalize(pathToOpen))
     else
       switch urlPath.protocol
         when 'file:'
           pathToOpen = path.resolve(executedFrom, fs.normalize(urlPath.path))
         when 'atm:'
-          if urlPath.host != 'open' then break
+          if urlPath.host isnt 'open' then break
 
           query = qs.parse(urlPath.query)
 
           pathToOpen = path.resolve(executedFrom, fs.normalize(query.file))
-          initialLine = query.line || null
-          initialColumn = query.col || null
+          initialLine = parseInt(query.line) or null
+          initialColumn = parseInt(query.col) or null
         else
           console.error "Invalid file protocol '#{urlPath.protocol}'"
 
