@@ -255,6 +255,7 @@ class TokenizedBuffer extends Model
     new TokenizedLine({openScopes, text, tags, ruleStack, lineEnding, @tokenIterator})
 
   tokenizedLineForRow: (bufferRow) ->
+    debugger
     if 0 <= bufferRow <= @buffer.getLastRow()
       if tokenizedLine = @tokenizedLines[bufferRow]
         tokenizedLine
