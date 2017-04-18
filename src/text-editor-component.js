@@ -1799,6 +1799,12 @@ class TextEditorComponent {
 
   performInitialMeasurements () {
     this.measurements = {}
+    this.measureDimensions()
+  }
+
+  // This method exists because it existed in the previous implementation and some
+  // package tests relied on it
+  measureDimensions () {
     this.measureCharacterDimensions()
     this.measureGutterDimensions()
     this.measureClientContainerHeight()
