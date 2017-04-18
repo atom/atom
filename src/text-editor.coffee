@@ -3681,8 +3681,11 @@ class TextEditor extends Model
   getVisibleRowRange: ->
     [@getFirstVisibleScreenRow(), @getLastVisibleScreenRow()]
 
-  setFirstVisibleScreenColumn: (@firstVisibleScreenColumn) ->
-  getFirstVisibleScreenColumn: -> @firstVisibleScreenColumn
+  setFirstVisibleScreenColumn: (column) ->
+    @getElement().component.setFirstVisibleColumn(column)
+
+  getFirstVisibleScreenColumn: ->
+    @getElement().component.getFirstVisibleColumn()
 
   getScrollTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollTop instead.")

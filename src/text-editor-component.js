@@ -2325,6 +2325,14 @@ class TextEditorComponent {
     )
   }
 
+  getFirstVisibleColumn () {
+    return Math.floor(this.getScrollLeft() / this.getBaseCharacterWidth())
+  }
+
+  setFirstVisibleColumn (column) {
+    this.setScrollLeft(column * this.getBaseCharacterWidth())
+  }
+
   getVisibleTileCount () {
     return Math.floor((this.getLastVisibleRow() - this.getFirstVisibleRow()) / this.getRowsPerTile()) + 2
   }

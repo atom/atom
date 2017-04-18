@@ -2511,6 +2511,19 @@ describe('TextEditorComponent', () => {
       editor.setFirstVisibleScreenRow(11)
       expect(component.getFirstVisibleRow()).toBe(9)
     })
+
+    it('delegates setFirstVisibleScreenColumn and getFirstVisibleScreenColumn to the component', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
+      element.style.width = 30 * component.getBaseCharacterWidth() + 'px'
+      await component.getNextUpdatePromise()
+
+      expect(editor.getFirstVisibleScreenColumn()).toBe(0)
+      component.setScrollLeft(5.5 * component.getBaseCharacterWidth())
+      expect(editor.getFirstVisibleScreenColumn()).toBe(5)
+
+      editor.setFirstVisibleScreenColumn(12)
+      expect(component.getScrollLeft()).toBe(Math.round(12 * component.getBaseCharacterWidth()))
+    })
   })
 })
 
