@@ -82,6 +82,7 @@ class TextEditorComponent {
     this.blockDecorationsToMeasure = new Set()
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
+    this.overlayComponents = new Set()
     this.shouldRenderDummyScrollbars = true
     this.remeasureScrollbars = false
     this.pendingAutoscroll = null
@@ -807,7 +808,11 @@ class TextEditorComponent {
   renderOverlayDecorations () {
     return this.decorationsToRender.overlays.map((overlayProps) =>
       $(OverlayComponent, Object.assign(
-        {key: overlayProps.element, didResize: () => { this.updateSync() }},
+        {
+          key: overlayProps.element,
+          overlayComponents: this.overlayComponents,
+          didResize: () => { this.updateSync() }
+        },
         overlayProps
       ))
     )
@@ -1198,6 +1203,8 @@ class TextEditorComponent {
         this.gutterContainerResizeObserver.observe(this.refs.gutterContainer)
       }
 
+      this.overlayComponents.forEach((component) => component.didAttach())
+
       if (this.isVisible()) {
         this.didShow()
       } else {
@@ -1215,6 +1222,7 @@ class TextEditorComponent {
       this.intersectionObserver.disconnect()
       this.resizeObserver.disconnect()
       if (this.gutterContainerResizeObserver) this.gutterContainerResizeObserver.disconnect()
+      this.overlayComponents.forEach((component) => component.didDetach())
 
       this.didHide()
       this.attached = false
@@ -3283,11 +3291,13 @@ class OverlayComponent {
       this.props.didResize()
       process.nextTick(() => { this.resizeObserver.observe(this.element) })
     })
-    this.resizeObserver.observe(this.element)
+    this.didAttach()
+    this.props.overlayComponents.add(this)
   }
 
   destroy () {
-    this.resizeObserver.disconnect()
+    this.props.overlayComponents.delete(this)
+    this.didDetach()
   }
 
   update (newProps) {
@@ -3299,6 +3309,14 @@ class OverlayComponent {
       if (oldProps.className != null) this.element.classList.remove(oldProps.className)
       if (newProps.className != null) this.element.classList.add(newProps.className)
     }
+  }
+
+  didAttach () {
+    this.resizeObserver.observe(this.element)
+  }
+
+  didDetach () {
+    this.resizeObserver.disconnect()
   }
 }
 
