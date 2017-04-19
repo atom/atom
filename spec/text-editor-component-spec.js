@@ -934,6 +934,19 @@ describe('TextEditorComponent', () => {
       expect(lineNodeForScreenRow(component, 2).classList.contains('b')).toBe(true)
       expect(lineNodeForScreenRow(component, 3).classList.contains('b')).toBe(true)
     })
+
+    it('does not decorate invalidated markers', async () => {
+      const {component, element, editor} = buildComponent()
+      const marker = editor.markScreenRange([[1, 0], [3, 0]], {invalidate: 'touch'})
+      editor.decorateMarker(marker, {type: ['line', 'line-number'], class: 'a'})
+      await component.getNextUpdatePromise()
+      expect(lineNodeForScreenRow(component, 2).classList.contains('a')).toBe(true)
+
+      editor.getBuffer().insert([2, 0], 'x')
+      expect(marker.isValid()).toBe(false)
+      await component.getNextUpdatePromise()
+      expect(lineNodeForScreenRow(component, 2).classList.contains('a')).toBe(false)
+    })
   })
 
   describe('highlight decorations', () => {
