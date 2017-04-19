@@ -118,6 +118,8 @@ class TextEditorComponent {
       highlights: new Map(),
       cursors: []
     }
+    this.pendingScrollTopRow = this.props.initialScrollTopRow
+    this.pendingScrollLeftColumn = this.props.initialScrollLeftColumn
 
     this.measuredContent = false
     this.gutterContainerVnode = null
@@ -1241,6 +1243,7 @@ class TextEditorComponent {
       if (!this.measurements) this.performInitialMeasurements()
       this.props.model.setVisible(true)
       this.updateSync()
+      this.flushPendingLogicalScrollPosition()
     }
   }
 
@@ -1708,6 +1711,24 @@ class TextEditorComponent {
   didRequestAutoscroll (autoscroll) {
     this.pendingAutoscroll = autoscroll
     this.scheduleUpdate()
+  }
+
+  flushPendingLogicalScrollPosition () {
+    let changedScrollTop = false
+    if (this.pendingScrollTopRow > 0) {
+      changedScrollTop = this.setScrollTopRow(this.pendingScrollTopRow)
+      this.pendingScrollTopRow = null
+    }
+
+    let changedScrollLeft = false
+    if (this.pendingScrollLeftColumn > 0) {
+      changedScrollLeft = this.setScrollLeftColumn(this.pendingScrollLeftColumn)
+      this.pendingScrollLeftColumn = null
+    }
+
+    if (changedScrollTop || changedScrollLeft) {
+      this.updateSync()
+    }
   }
 
   autoscrollVertically () {
@@ -2313,10 +2334,6 @@ class TextEditorComponent {
     return Math.ceil(this.getRenderedRowCount() / this.getRowsPerTile())
   }
 
-  setFirstVisibleRow (row) {
-    this.setScrollTop(this.pixelPositionBeforeBlocksForRow(row))
-  }
-
   getFirstVisibleRow () {
     if (this.measurements) {
       return this.rowForPixelPosition(this.getScrollTop())
@@ -2333,11 +2350,9 @@ class TextEditorComponent {
   }
 
   getFirstVisibleColumn () {
-    return Math.floor(this.getScrollLeft() / this.getBaseCharacterWidth())
-  }
-
-  setFirstVisibleColumn (column) {
-    this.setScrollLeft(column * this.getBaseCharacterWidth())
+    if (this.measurements) {
+      return Math.floor(this.getScrollLeft() / this.getBaseCharacterWidth())
+    }
   }
 
   getVisibleTileCount () {
@@ -2374,7 +2389,6 @@ class TextEditorComponent {
   }
 
   getScrollLeft () {
-    // this.scrollLeft = Math.min(this.getMaxScrollLeft(), this.scrollLeft)
     return this.scrollLeft
   }
 
@@ -2400,6 +2414,40 @@ class TextEditorComponent {
 
   setScrollRight (scrollRight) {
     return this.setScrollLeft(scrollRight - this.getScrollContainerClientWidth())
+  }
+
+  setScrollTopRow (scrollTopRow) {
+    if (this.measurements) {
+      return this.setScrollTop(this.pixelPositionBeforeBlocksForRow(scrollTopRow))
+    } else {
+      this.pendingScrollTopRow = scrollTopRow
+    }
+    return false
+  }
+
+  getScrollTopRow () {
+    if (this.measurements) {
+      return this.rowForPixelPosition(this.getScrollTop())
+    } else {
+      return this.pendingScrollTopRow || 0
+    }
+  }
+
+  setScrollLeftColumn (scrollLeftColumn) {
+    if (this.measurements && this.getLongestLineWidth() != null) {
+      return this.setScrollLeft(scrollLeftColumn * this.getBaseCharacterWidth())
+    } else {
+      this.pendingScrollLeftColumn = scrollLeftColumn
+    }
+    return false
+  }
+
+  getScrollLeftColumn () {
+    if (this.measurements) {
+      return Math.floor(this.getScrollLeft() / this.getBaseCharacterWidth())
+    } else {
+      return this.pendingScrollLeftColumn || 0
+    }
   }
 
   // Ensure the spatial index is populated with rows that are currently

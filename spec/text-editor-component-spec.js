@@ -747,6 +747,69 @@ describe('TextEditorComponent', () => {
     })
   })
 
+  describe('logical scroll positions', () => {
+    it('allows the scrollTop to be changed and queried in terms of rows via setScrollTopRow and getScrollTopRow', () => {
+      const {component, element, editor} = buildComponent({attach: false, height: 80})
+
+      // Caches the scrollTopRow if we don't have measurements
+      component.setScrollTopRow(6)
+      expect(component.getScrollTopRow()).toBe(6)
+
+      // Assigns the scrollTop based on the logical position when attached
+      jasmine.attachToDOM(element)
+      const expectedScrollTop = Math.round(6 * component.getLineHeight())
+      expect(component.getScrollTopRow()).toBe(6)
+      expect(component.getScrollTop()).toBe(expectedScrollTop)
+      expect(component.refs.content.style.transform).toBe(`translate(0px, -${expectedScrollTop}px)`)
+
+      // Allows the scrollTopRow to be updated while attached
+      component.setScrollTopRow(4)
+      expect(component.getScrollTopRow()).toBe(4)
+      expect(component.getScrollTop()).toBe(Math.round(4 * component.getLineHeight()))
+
+      // Preserves the scrollTopRow when sdetached
+      element.remove()
+      expect(component.getScrollTopRow()).toBe(4)
+      expect(component.getScrollTop()).toBe(Math.round(4 * component.getLineHeight()))
+
+      component.setScrollTopRow(6)
+      expect(component.getScrollTopRow()).toBe(6)
+      expect(component.getScrollTop()).toBe(Math.round(6 * component.getLineHeight()))
+
+      jasmine.attachToDOM(element)
+      element.style.height = '60px'
+      expect(component.getScrollTopRow()).toBe(6)
+      expect(component.getScrollTop()).toBe(Math.round(6 * component.getLineHeight()))
+    })
+
+    it('allows the scrollLeft to be changed and queried in terms of base character columns via setScrollLeftColumn and getScrollLeftColumn', () => {
+      const {component, element} = buildComponent({attach: false, width: 80})
+
+      // Caches the scrollTopRow if we don't have measurements
+      component.setScrollLeftColumn(2)
+      expect(component.getScrollLeftColumn()).toBe(2)
+
+      // Assigns the scrollTop based on the logical position when attached
+      jasmine.attachToDOM(element)
+      expect(component.getScrollLeft()).toBe(Math.round(2 * component.getBaseCharacterWidth()))
+
+      // Allows the scrollTopRow to be updated while attached
+      component.setScrollLeftColumn(4)
+      expect(component.getScrollLeft()).toBe(Math.round(4 * component.getBaseCharacterWidth()))
+
+      // Preserves the scrollTopRow when detached
+      element.remove()
+      expect(component.getScrollLeft()).toBe(Math.round(4 * component.getBaseCharacterWidth()))
+
+      component.setScrollLeftColumn(6)
+      expect(component.getScrollLeft()).toBe(Math.round(6 * component.getBaseCharacterWidth()))
+
+      jasmine.attachToDOM(element)
+      element.style.width = '60px'
+      expect(component.getScrollLeft()).toBe(Math.round(6 * component.getBaseCharacterWidth()))
+    })
+  })
+
   describe('line and line number decorations', () => {
     it('adds decoration classes on screen lines spanned by decorated markers', async () => {
       const {component, element, editor} = buildComponent({width: 435, attach: false})
