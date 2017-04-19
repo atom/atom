@@ -99,23 +99,34 @@ describe "TextEditor", ->
       expect(editor.getAutoWidth()).toBeFalsy()
       expect(editor.getShowCursorOnSelection()).toBeTruthy()
 
-      editor.update({autoHeight: true, autoWidth: true, showCursorOnSelection: false})
+      element = editor.getElement()
+      element.setHeight(100)
+      element.setWidth(100)
+      jasmine.attachToDOM(element)
+
+      editor.update({showCursorOnSelection: false})
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
       editor.addSelectionForBufferRange([[5, 6], [7, 8]], reversed: true)
-      editor.firstVisibleScreenRow = 5
-      editor.firstVisibleScreenColumn = 5
+      editor.setScrollTopRow(3)
+      expect(editor.getScrollTopRow()).toBe(3)
+      editor.setScrollLeftColumn(4)
+      expect(editor.getScrollLeftColumn()).toBe(4)
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
       editor2 = editor.copy()
+      element2 = editor2.getElement()
+      element2.setHeight(100)
+      element2.setWidth(100)
+      jasmine.attachToDOM(element2)
       expect(editor2.id).not.toBe editor.id
       expect(editor2.getSelectedBufferRanges()).toEqual editor.getSelectedBufferRanges()
       expect(editor2.getSelections()[1].isReversed()).toBeTruthy()
-      expect(editor2.getFirstVisibleScreenRow()).toBe 5
-      expect(editor2.getFirstVisibleScreenColumn()).toBe 5
+      expect(editor2.getScrollTopRow()).toBe(3)
+      expect(editor2.getScrollLeftColumn()).toBe(4)
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
-      expect(editor2.getAutoWidth()).toBeTruthy()
-      expect(editor2.getAutoHeight()).toBeTruthy()
+      expect(editor2.getAutoWidth()).toBe(false)
+      expect(editor2.getAutoHeight()).toBe(false)
       expect(editor2.getShowCursorOnSelection()).toBeFalsy()
 
       # editor2 can now diverge from its origin edit session

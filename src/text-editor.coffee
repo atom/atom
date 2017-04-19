@@ -143,7 +143,7 @@ class TextEditor extends Model
     super
 
     {
-      @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
+      @softTabs, @initialScrollTopRow, @initialScrollLeftColumn, initialLine, initialColumn, tabLength,
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode,
       @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
@@ -153,8 +153,6 @@ class TextEditor extends Model
     } = params
 
     @assert ?= (condition) -> condition
-    @firstVisibleScreenRow ?= 0
-    @firstVisibleScreenColumn ?= 0
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @cursors = []
@@ -415,8 +413,8 @@ class TextEditor extends Model
       displayLayerId: @displayLayer.id
       selectionsMarkerLayerId: @selectionsMarkerLayer.id
 
-      firstVisibleScreenRow: @getFirstVisibleScreenRow()
-      firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
+      initialScrollTopRow: @getScrollTopRow()
+      initialScrollLeftColumn: @getScrollLeftColumn()
 
       atomicSoftTabs: @displayLayer.atomicSoftTabs
       softWrapHangingIndentLength: @displayLayer.softWrapHangingIndent
@@ -766,7 +764,8 @@ class TextEditor extends Model
       @buffer, selectionsMarkerLayer, softTabs,
       suppressCursorCreation: true,
       tabLength: @tokenizedBuffer.getTabLength(),
-      @firstVisibleScreenRow, @firstVisibleScreenColumn,
+      initialScrollTopRow: @getScrollTopRow(),
+      initialScrollLeftColumn: @getScrollLeftColumn(),
       @assert, displayLayer, grammar: @getGrammar(),
       @autoWidth, @autoHeight, @showCursorOnSelection
     })
@@ -3585,7 +3584,8 @@ class TextEditor extends Model
       TextEditorElement ?= require('./text-editor-element')
       new TextEditorComponent({
         model: this,
-        updatedSynchronously: TextEditorElement.prototype.updatedSynchronously
+        updatedSynchronously: TextEditorElement.prototype.updatedSynchronously,
+        @initialScrollTopRow, @initialScrollLeftColumn
       })
       @component.element
 
@@ -3670,10 +3670,9 @@ class TextEditor extends Model
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
     @getElement().getWidth()
 
-  # Experimental: Scroll the editor such that the given screen row is at the
-  # top of the visible area.
+  # Use setScrollTopRow instead of this method
   setFirstVisibleScreenRow: (screenRow) ->
-    @getElement().component.setFirstVisibleRow(screenRow)
+    @setScrollTopRow(screenRow)
 
   getFirstVisibleScreenRow: ->
     @getElement().component.getFirstVisibleRow()
@@ -3684,8 +3683,9 @@ class TextEditor extends Model
   getVisibleRowRange: ->
     [@getFirstVisibleScreenRow(), @getLastVisibleScreenRow()]
 
+  # Use setScrollLeftColumn instead of this method
   setFirstVisibleScreenColumn: (column) ->
-    @getElement().component.setFirstVisibleColumn(column)
+    @setScrollLeftColumn(column)
 
   getFirstVisibleScreenColumn: ->
     @getElement().component.getFirstVisibleColumn()
@@ -3744,6 +3744,18 @@ class TextEditor extends Model
     Grim.deprecate("This is now a view method. Call TextEditorElement::getMaxScrollTop instead.")
 
     @getElement().getMaxScrollTop()
+
+  getScrollTopRow: ->
+    @getElement().component.getScrollTopRow()
+
+  setScrollTopRow: (scrollTopRow) ->
+    @getElement().component.setScrollTopRow(scrollTopRow)
+
+  getScrollLeftColumn: ->
+    @getElement().component.getScrollLeftColumn()
+
+  setScrollLeftColumn: (scrollLeftColumn) ->
+    @getElement().component.setScrollLeftColumn(scrollLeftColumn)
 
   intersectsVisibleRowRange: (startRow, endRow) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::intersectsVisibleRowRange instead.")
