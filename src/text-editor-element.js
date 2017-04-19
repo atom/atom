@@ -149,7 +149,9 @@ class TextEditorElement extends HTMLElement {
   }
 
   setScrollTop (scrollTop) {
-    this.getComponent().setScrollTop(scrollTop)
+    const component = this.getComponent()
+    component.setScrollTop(scrollTop)
+    component.scheduleUpdate()
   }
 
   getScrollLeft () {
@@ -157,7 +159,9 @@ class TextEditorElement extends HTMLElement {
   }
 
   setScrollLeft (scrollLeft) {
-    this.getComponent().setScrollLeft(scrollLeft)
+    const component = this.getComponent()
+    component.setScrollLeft(scrollLeft)
+    component.scheduleUpdate()
   }
 
   hasFocus () {
