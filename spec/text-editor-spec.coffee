@@ -5491,7 +5491,11 @@ describe "TextEditor", ->
 
   describe ".pageUp/Down()", ->
     it "moves the cursor down one page length", ->
-      editor.setRowsPerPage(5)
+      editor.update(autoHeight: false)
+      element = editor.getElement()
+      jasmine.attachToDOM(element)
+      element.style.height = element.component.getLineHeight() * 5 + 'px'
+      element.measureDimensions()
 
       expect(editor.getCursorBufferPosition().row).toBe 0
 
@@ -5509,7 +5513,11 @@ describe "TextEditor", ->
 
   describe ".selectPageUp/Down()", ->
     it "selects one screen height of text up or down", ->
-      editor.setRowsPerPage(5)
+      editor.update(autoHeight: false)
+      element = editor.getElement()
+      jasmine.attachToDOM(element)
+      element.style.height = element.component.getLineHeight() * 5 + 'px'
+      element.measureDimensions()
 
       expect(editor.getCursorBufferPosition().row).toBe 0
 

@@ -103,6 +103,10 @@ class TextEditorElement extends HTMLElement {
     return this.emitter.on('did-detach', callback)
   }
 
+  measureDimensions () {
+    this.getComponent().measureDimensions()
+  }
+
   setWidth (width) {
     this.style.width = this.getComponent().getGutterContainerWidth() + width + 'px'
   }
