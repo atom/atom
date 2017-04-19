@@ -3485,9 +3485,12 @@ class TextEditor extends Model
 
   # Returns the number of rows per page
   getRowsPerPage: ->
-    Math.max(@rowsPerPage ? 1, 1)
-
-  setRowsPerPage: (@rowsPerPage) ->
+    if @component?
+      clientHeight = @component.getScrollContainerClientHeight()
+      lineHeight = @component.getLineHeight()
+      Math.max(1, Math.ceil(clientHeight / lineHeight))
+    else
+      1
 
   ###
   Section: Config
