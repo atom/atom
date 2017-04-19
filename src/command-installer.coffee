@@ -35,6 +35,18 @@ class CommandInstaller
 
   getResourcesDirectory: ->
     process.resourcesPath
+    
+  getAtomCommandName: ->
+    if @appVersion.includes("beta")
+      "atom-beta"
+    else
+      "atom"
+
+  getApmCommandName: ->
+    if @appVersion.includes("beta")
+      "apm-beta"
+    else
+      "atom"
 
   installShellCommandsInteractively: ->
     showErrorDialog = (error) =>
@@ -50,25 +62,19 @@ class CommandInstaller
           if error?
             showErrorDialog(error)
           else
+            atomCmd = @getAtomCommandName()
+            apmCmd = @getApmCommandName()
             @applicationDelegate.confirm
               message: "Commands installed."
-              detailedMessage: "The shell commands `atom` and `apm` are installed."
+              detailedMessage: "The shell commands `#{atomCmd}` and `#{apmCmd}` are installed."
 
   installAtomCommand: (askForPrivilege, callback) ->
-    programName = if @appVersion.includes("beta")
-      "atom-beta"
-    else
-      "atom"
-
+    programName = @getAtomCommandName()
     commandPath = path.join(@getResourcesDirectory(), 'app', 'atom.sh')
     @createSymlink commandPath, programName, askForPrivilege, callback
 
   installApmCommand: (askForPrivilege, callback) ->
-    programName = if @appVersion.includes("beta")
-      "apm-beta"
-    else
-      "apm"
-
+    programName = @getApmCommandName()
     commandPath = path.join(@getResourcesDirectory(), 'app', 'apm', 'node_modules', '.bin', 'apm')
     @createSymlink commandPath, programName, askForPrivilege, callback
 
