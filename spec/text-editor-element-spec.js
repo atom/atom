@@ -18,36 +18,40 @@ describe('TextEditorElement', () => {
     return element
   }
 
-  describe('instantiation', () => {
-    it("honors the 'mini' attribute", () => {
-      jasmineContent.innerHTML = '<atom-text-editor mini>'
-      const element = jasmineContent.firstChild
-      expect(element.getModel().isMini()).toBe(true)
-    })
+  it("honors the 'mini' attribute", () => {
+    jasmineContent.innerHTML = '<atom-text-editor mini>'
+    const element = jasmineContent.firstChild
+    expect(element.getModel().isMini()).toBe(true)
+  })
 
-    it("honors the 'placeholder-text' attribute", () => {
-      jasmineContent.innerHTML = "<atom-text-editor placeholder-text='testing'>"
-      const element = jasmineContent.firstChild
-      expect(element.getModel().getPlaceholderText()).toBe('testing')
-    })
+  it("honors the 'placeholder-text' attribute", () => {
+    jasmineContent.innerHTML = "<atom-text-editor placeholder-text='testing'>"
+    const element = jasmineContent.firstChild
+    expect(element.getModel().getPlaceholderText()).toBe('testing')
+  })
 
-    it("only assigns 'placeholder-text' on the model if the attribute is present", () => {
-      const editor = new TextEditor({placeholderText: 'placeholder'})
-      editor.getElement()
-      expect(editor.getPlaceholderText()).toBe('placeholder')
-    })
+  it("only assigns 'placeholder-text' on the model if the attribute is present", () => {
+    const editor = new TextEditor({placeholderText: 'placeholder'})
+    editor.getElement()
+    expect(editor.getPlaceholderText()).toBe('placeholder')
+  })
 
-    it("honors the 'gutter-hidden' attribute", () => {
-      jasmineContent.innerHTML = '<atom-text-editor gutter-hidden>'
-      const element = jasmineContent.firstChild
-      expect(element.getModel().isLineNumberGutterVisible()).toBe(false)
-    })
+  it("honors the 'gutter-hidden' attribute", () => {
+    jasmineContent.innerHTML = '<atom-text-editor gutter-hidden>'
+    const element = jasmineContent.firstChild
+    expect(element.getModel().isLineNumberGutterVisible()).toBe(false)
 
-    it('honors the text content', () => {
-      jasmineContent.innerHTML = '<atom-text-editor>testing</atom-text-editor>'
-      const element = jasmineContent.firstChild
-      expect(element.getModel().getText()).toBe('testing')
-    })
+    element.removeAttribute('gutter-hidden')
+    expect(element.getModel().isLineNumberGutterVisible()).toBe(true)
+
+    element.setAttribute('gutter-hidden', '')
+    expect(element.getModel().isLineNumberGutterVisible()).toBe(false)
+  })
+
+  it('honors the text content', () => {
+    jasmineContent.innerHTML = '<atom-text-editor>testing</atom-text-editor>'
+    const element = jasmineContent.firstChild
+    expect(element.getModel().getText()).toBe('testing')
   })
 
   describe('when the model is assigned', () =>

@@ -58,7 +58,7 @@ class TextEditorElement extends HTMLElement {
           this.getModel().update({placeholderText: newValue})
           break
         case 'gutter-hidden':
-          this.getModel().update({isVisible: newValue != null})
+          this.getModel().update({lineNumberGutterVisible: newValue == null})
           break
       }
     }
