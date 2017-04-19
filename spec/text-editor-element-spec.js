@@ -11,6 +11,12 @@ describe('TextEditorElement', () => {
     jasmineContent = document.body.querySelector('#jasmine-content')
   })
 
+  function buildTextEditorElement () {
+    const element = new TextEditorElement()
+    element.setUpdatedSynchronously(false)
+    return element
+  }
+
   describe('instantiation', () => {
     it("honors the 'mini' attribute", () => {
       jasmineContent.innerHTML = '<atom-text-editor mini>'
@@ -45,7 +51,7 @@ describe('TextEditorElement', () => {
 
   describe('when the model is assigned', () =>
     it("adds the 'mini' attribute if .isMini() returns true on the model", function (done) {
-      const element = new TextEditorElement()
+      const element = buildTextEditorElement()
       element.getModel().update({mini: true})
       atom.views.getNextUpdatePromise().then(() => {
         expect(element.hasAttribute('mini')).toBe(true)
@@ -56,7 +62,7 @@ describe('TextEditorElement', () => {
 
   describe('when the editor is attached to the DOM', () =>
     it('mounts the component and unmounts when removed from the dom', () => {
-      const element = new TextEditorElement()
+      const element = buildTextEditorElement()
       jasmine.attachToDOM(element)
 
       const { component } = element
@@ -117,7 +123,7 @@ describe('TextEditorElement', () => {
 
   describe('focus and blur handling', () => {
     it('proxies focus/blur events to/from the hidden input', () => {
-      const element = new TextEditorElement()
+      const element = buildTextEditorElement()
       jasmineContent.appendChild(element)
 
       let blurCalled = false
@@ -136,7 +142,7 @@ describe('TextEditorElement', () => {
 
     it("doesn't trigger a blur event on the editor element when focusing an already focused editor element", () => {
       let blurCalled = false
-      const element = new TextEditorElement()
+      const element = buildTextEditorElement()
       element.addEventListener('blur', () => { blurCalled = true })
 
       jasmineContent.appendChild(element)
@@ -164,7 +170,7 @@ describe('TextEditorElement', () => {
       )
 
       it('proxies the focus event to the hidden input', () => {
-        const element = new TextEditorElement()
+        const element = buildTextEditorElement()
         const parentElement = document.createElement('element-that-focuses-child')
         parentElement.appendChild(element)
         jasmineContent.appendChild(parentElement)
@@ -175,7 +181,7 @@ describe('TextEditorElement', () => {
 
   describe('::onDidAttach and ::onDidDetach', () =>
     it('invokes callbacks when the element is attached and detached', () => {
-      const element = new TextEditorElement()
+      const element = buildTextEditorElement()
 
       const attachedCallback = jasmine.createSpy('attachedCallback')
       const detachedCallback = jasmine.createSpy('detachedCallback')
@@ -200,10 +206,9 @@ describe('TextEditorElement', () => {
     it('controls whether the text editor is updated synchronously', () => {
       spyOn(window, 'requestAnimationFrame').andCallFake(fn => fn())
 
-      const element = new TextEditorElement()
+      const element = buildTextEditorElement()
       jasmine.attachToDOM(element)
 
-      element.setUpdatedSynchronously(false)
       expect(element.isUpdatedSynchronously()).toBe(false)
 
       element.getModel().setText('hello')
@@ -221,12 +226,12 @@ describe('TextEditorElement', () => {
 
   describe('::getDefaultCharacterWidth', () => {
     it('returns null before the element is attached', () => {
-      const element = new TextEditorElement()
+      const element = buildTextEditorElement()
       expect(element.getDefaultCharacterWidth()).toBeNull()
     })
 
     it('returns the width of a character in the root scope', () => {
-      const element = new TextEditorElement()
+      const element = buildTextEditorElement()
       jasmine.attachToDOM(element)
       expect(element.getDefaultCharacterWidth()).toBeGreaterThan(0)
     })
@@ -260,7 +265,7 @@ describe('TextEditorElement', () => {
 
   describe('on TextEditor::setMini', () =>
     it("changes the element's 'mini' attribute", async () => {
-      const element = new TextEditorElement()
+      const element = buildTextEditorElement()
       jasmine.attachToDOM(element)
       expect(element.hasAttribute('mini')).toBe(false)
       element.getModel().setMini(true)
@@ -276,7 +281,7 @@ describe('TextEditorElement', () => {
     let element = null
 
     beforeEach(() => {
-      element = new TextEditorElement()
+      element = buildTextEditorElement()
       element.getModel().setText('lorem\nipsum\ndolor\nsit\namet')
       element.setUpdatedSynchronously(true)
       element.setHeight(20)
