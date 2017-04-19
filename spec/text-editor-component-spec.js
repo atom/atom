@@ -1209,6 +1209,14 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       checkScrollContainerLeft()
 
+      gutterA.hide()
+      await component.getNextUpdatePromise()
+      checkScrollContainerLeft()
+
+      gutterA.show()
+      await component.getNextUpdatePromise()
+      checkScrollContainerLeft()
+
       gutterA.destroy()
       await component.getNextUpdatePromise()
       checkScrollContainerLeft()
