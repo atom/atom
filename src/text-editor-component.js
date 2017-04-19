@@ -1393,10 +1393,12 @@ class TextEditorComponent {
       this.compositionCheckpoint = null
     }
 
-    // Undo insertion of the original non-accented character so it is discarded
-    // from the history and does not reappear on undo
+    // If the input event is fired while the accented character menu is open it
+    // means that the user has chosen one of the accented alternatives. Thus, we
+    // will replace the original non accented character with the selected
+    // alternative.
     if (this.accentedCharacterMenuIsOpen) {
-      this.props.model.undo()
+      this.props.model.selectLeft()
     }
 
     this.props.model.insertText(event.data, {groupUndo: true})
@@ -1413,24 +1415,24 @@ class TextEditorComponent {
   // before observing any keyup event, we observe events in the following
   // sequence:
   //
-  // keydown(keyCode: X), keypress, keydown(keyCode: X)
+  // keydown(code: X), keypress, keydown(code: X)
   //
-  // The keyCode X must be the same in the keydown events that bracket the
+  // The code X must be the same in the keydown events that bracket the
   // keypress, meaning we're *holding* the _same_ key we intially pressed.
   // Got that?
   didKeydown (event) {
     if (this.lastKeydownBeforeKeypress != null) {
-      if (this.lastKeydownBeforeKeypress.keyCode === event.keyCode) {
+      if (this.lastKeydownBeforeKeypress.code === event.code) {
         this.accentedCharacterMenuIsOpen = true
-        this.props.model.selectLeft()
       }
+
       this.lastKeydownBeforeKeypress = null
-    } else {
-      this.lastKeydown = event
     }
+
+    this.lastKeydown = event
   }
 
-  didKeypress () {
+  didKeypress (event) {
     this.lastKeydownBeforeKeypress = this.lastKeydown
     this.lastKeydown = null
 
@@ -1439,9 +1441,11 @@ class TextEditorComponent {
     this.accentedCharacterMenuIsOpen = false
   }
 
-  didKeyup () {
-    this.lastKeydownBeforeKeypress = null
-    this.lastKeydown = null
+  didKeyup (event) {
+    if (this.lastKeydownBeforeKeypress && this.lastKeydownBeforeKeypress.code === event.code) {
+      this.lastKeydownBeforeKeypress = null
+      this.lastKeydown = null
+    }
   }
 
   // The IME composition events work like this:
@@ -1451,13 +1455,14 @@ class TextEditorComponent {
   //   2. compositionupdate fired; event.data == 's'
   // User hits arrow keys to move around in completion helper
   //   3. compositionupdate fired; event.data == 's' for each arry key press
-  // User escape to cancel
-  //   4. compositionend fired
-  // OR User chooses a completion
+  // User escape to cancel OR User chooses a completion
   //   4. compositionend fired
   //   5. textInput fired; event.data == the completion string
   didCompositionStart () {
     this.compositionCheckpoint = this.props.model.createCheckpoint()
+    if (this.accentedCharacterMenuIsOpen) {
+      this.props.model.selectLeft()
+    }
   }
 
   didCompositionUpdate (event) {
