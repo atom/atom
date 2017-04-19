@@ -94,6 +94,7 @@ class DecorationManager {
 
       for (let i = 0; i < markers.length; i++) {
         const marker = markers[i]
+        if (!marker.isValid()) continue
 
         let decorationPropertiesForMarker = decorationPropertiesByMarker.get(marker)
         if (decorationPropertiesForMarker == null) {
