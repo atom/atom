@@ -120,7 +120,7 @@
 'atom-workspace atom-text-editor:not([mini])':
   # Atom specific
   'ctrl-<': 'editor:scroll-to-cursor'
-  'ctrl-alt-shift-[': 'editor:fold-selection'
+  'ctrl-alt-f': 'editor:fold-selection'
 
   # Sublime Parity
   'ctrl-enter': 'editor:newline-below'
