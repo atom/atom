@@ -181,7 +181,7 @@ class TextEditorComponent {
 
     const onlyBlinkingCursors = this.nextUpdateOnlyBlinksCursors
     this.nextUpdateOnlyBlinksCursors = null
-    if (onlyBlinkingCursors) {
+    if (useScheduler && onlyBlinkingCursors) {
       this.updateCursorBlinkSync()
       if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
       return
