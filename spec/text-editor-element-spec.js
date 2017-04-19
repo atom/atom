@@ -260,6 +260,26 @@ describe('TextEditorElement', () => {
     })
   )
 
+  describe('::setScrollTop and ::setScrollLeft', () => {
+    it('changes the scroll position', async () => {
+      element = buildTextEditorElement()
+      element.getModel().update({autoHeight: false})
+      element.getModel().setText('lorem\nipsum\ndolor\nsit\namet')
+      element.setHeight(20)
+      await element.getNextUpdatePromise()
+      element.setWidth(20)
+      await element.getNextUpdatePromise()
+
+      element.setScrollTop(22)
+      await element.getNextUpdatePromise()
+      expect(element.getScrollTop()).toBe(22)
+
+      element.setScrollLeft(32)
+      await element.getNextUpdatePromise()
+      expect(element.getScrollLeft()).toBe(32)
+    })
+  })
+
   describe('on TextEditor::setMini', () =>
     it("changes the element's 'mini' attribute", async () => {
       const element = buildTextEditorElement()
