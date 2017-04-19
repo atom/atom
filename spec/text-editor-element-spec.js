@@ -11,9 +11,10 @@ describe('TextEditorElement', () => {
     jasmineContent = document.body.querySelector('#jasmine-content')
   })
 
-  function buildTextEditorElement () {
+  function buildTextEditorElement (options = {}) {
     const element = new TextEditorElement()
     element.setUpdatedSynchronously(false)
+    if (options.attach !== false) jasmine.attachToDOM(element)
     return element
   }
 
@@ -63,7 +64,6 @@ describe('TextEditorElement', () => {
   describe('when the editor is attached to the DOM', () =>
     it('mounts the component and unmounts when removed from the dom', () => {
       const element = buildTextEditorElement()
-      jasmine.attachToDOM(element)
 
       const { component } = element
       expect(component.attached).toBe(true)
@@ -80,7 +80,6 @@ describe('TextEditorElement', () => {
       const editor = new TextEditor()
       editor.setText('1\n2\n3')
       const element = editor.getElement()
-
       jasmine.attachToDOM(element)
 
       const initialCount = element.querySelectorAll('.line-number').length
@@ -107,8 +106,7 @@ describe('TextEditorElement', () => {
     })
 
     it('can be re-focused using the previous `document.activeElement`', () => {
-      const editorElement = document.createElement('atom-text-editor')
-      jasmine.attachToDOM(editorElement)
+      const editorElement = buildTextEditorElement()
       editorElement.focus()
 
       const { activeElement } = document
@@ -181,7 +179,7 @@ describe('TextEditorElement', () => {
 
   describe('::onDidAttach and ::onDidDetach', () =>
     it('invokes callbacks when the element is attached and detached', () => {
-      const element = buildTextEditorElement()
+      const element = buildTextEditorElement({attach: false})
 
       const attachedCallback = jasmine.createSpy('attachedCallback')
       const detachedCallback = jasmine.createSpy('detachedCallback')
@@ -190,7 +188,6 @@ describe('TextEditorElement', () => {
       element.onDidDetach(detachedCallback)
 
       jasmine.attachToDOM(element)
-
       expect(attachedCallback).toHaveBeenCalled()
       expect(detachedCallback).not.toHaveBeenCalled()
 
@@ -226,7 +223,7 @@ describe('TextEditorElement', () => {
 
   describe('::getDefaultCharacterWidth', () => {
     it('returns null before the element is attached', () => {
-      const element = buildTextEditorElement()
+      const element = buildTextEditorElement({attach: false})
       expect(element.getDefaultCharacterWidth()).toBeNull()
     })
 
@@ -266,7 +263,6 @@ describe('TextEditorElement', () => {
   describe('on TextEditor::setMini', () =>
     it("changes the element's 'mini' attribute", async () => {
       const element = buildTextEditorElement()
-      jasmine.attachToDOM(element)
       expect(element.hasAttribute('mini')).toBe(false)
       element.getModel().setMini(true)
       await element.getNextUpdatePromise()
@@ -280,20 +276,20 @@ describe('TextEditorElement', () => {
   describe('events', () => {
     let element = null
 
-    beforeEach(() => {
+    beforeEach(async () => {
       element = buildTextEditorElement()
-      element.getModel().setText('lorem\nipsum\ndolor\nsit\namet')
-      element.setUpdatedSynchronously(true)
-      element.setHeight(20)
-      element.setWidth(20)
       element.getModel().update({autoHeight: false})
+      element.getModel().setText('lorem\nipsum\ndolor\nsit\namet')
+      element.setHeight(20)
+      await element.getNextUpdatePromise()
+      element.setWidth(20)
+      await element.getNextUpdatePromise()
     })
 
     describe('::onDidChangeScrollTop(callback)', () =>
       it('triggers even when subscribing before attaching the element', () => {
         const positions = []
         const subscription1 = element.onDidChangeScrollTop(p => positions.push(p))
-        jasmine.attachToDOM(element)
         element.onDidChangeScrollTop(p => positions.push(p))
 
         positions.length = 0
@@ -319,7 +315,6 @@ describe('TextEditorElement', () => {
       it('triggers even when subscribing before attaching the element', () => {
         const positions = []
         const subscription1 = element.onDidChangeScrollLeft(p => positions.push(p))
-        jasmine.attachToDOM(element)
         element.onDidChangeScrollLeft(p => positions.push(p))
 
         positions.length = 0
