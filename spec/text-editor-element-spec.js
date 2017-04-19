@@ -22,12 +22,24 @@ describe('TextEditorElement', () => {
     jasmineContent.innerHTML = '<atom-text-editor mini>'
     const element = jasmineContent.firstChild
     expect(element.getModel().isMini()).toBe(true)
+
+    element.removeAttribute('mini')
+    expect(element.getModel().isMini()).toBe(false)
+
+    element.setAttribute('mini', '')
+    expect(element.getModel().isMini()).toBe(true)
   })
 
   it("honors the 'placeholder-text' attribute", () => {
     jasmineContent.innerHTML = "<atom-text-editor placeholder-text='testing'>"
     const element = jasmineContent.firstChild
     expect(element.getModel().getPlaceholderText()).toBe('testing')
+
+    element.setAttribute('placeholder-text', 'placeholder')
+    expect(element.getModel().getPlaceholderText()).toBe('placeholder')
+
+    element.removeAttribute('placeholder-text')
+    expect(element.getModel().getPlaceholderText()).toBeNull()
   })
 
   it("only assigns 'placeholder-text' on the model if the attribute is present", () => {
