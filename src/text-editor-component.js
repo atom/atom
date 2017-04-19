@@ -97,6 +97,7 @@ class TextEditorComponent {
     this.accentedCharacterMenuIsOpen = false
     this.remeasureGutterDimensions = false
     this.guttersToRender = [this.props.model.getLineNumberGutter()]
+    this.guttersVisibility = [this.guttersToRender[0].visible]
     this.lineNumbersToRender = {
       maxDigits: 2,
       bufferRows: [],
@@ -897,13 +898,15 @@ class TextEditorComponent {
 
   queryGuttersToRender () {
     const oldGuttersToRender = this.guttersToRender
+    const oldGuttersVisibility = this.guttersVisibility
     this.guttersToRender = this.props.model.getGutters()
+    this.guttersVisibility = this.guttersToRender.map(g => g.visible)
 
     if (!oldGuttersToRender || oldGuttersToRender.length !== this.guttersToRender.length) {
       this.remeasureGutterDimensions = true
     } else {
       for (let i = 0, length = this.guttersToRender.length; i < length; i++) {
-        if (this.guttersToRender[i] !== oldGuttersToRender[i]) {
+        if (this.guttersToRender[i] !== oldGuttersToRender[i] || this.guttersVisibility[i] !== oldGuttersVisibility[i]) {
           this.remeasureGutterDimensions = true
           break
         }
