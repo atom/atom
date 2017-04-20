@@ -1778,8 +1778,16 @@ class TextEditor extends Model
   #     * `block` Positions the view associated with the given item before or
   #       after the row of the given `TextEditorMarker`, depending on the `position`
   #       property.
+  #     * `cursor` Renders a cursor at the head of the given marker. If multiple
+  #       decorations are created for the same marker, their class strings and
+  #       style objects are combined into a single cursor. You can use this
+  #       decoration type to style existing cursors by passing in their markers
+  #       or render artificial cursors that don't actually exist in the model
+  #       by passing a marker that isn't actually associated with a cursor.
   #   * `class` This CSS class will be applied to the decorated line number,
   #     line, highlight, or overlay.
+  #   * `style` An {Object} containing CSS style properties to apply to the
+  #     relevant DOM node. Currently this only works with a `type` of `cursor`.
   #   * `item` (optional) An {HTMLElement} or a model {Object} with a
   #     corresponding view registered. Only applicable to the `gutter`,
   #     `overlay` and `block` decoration types.
