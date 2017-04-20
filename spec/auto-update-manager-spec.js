@@ -68,6 +68,7 @@ describe('AutoUpdateManager (renderer)', () => {
 
   describe('::onUpdateError', () => {
     it('subscribes to "update-error" event', () => {
+      spyOn(console, 'error').andCallFake(() => {}) // don't output the error to the console
       const spy = jasmine.createSpy('spy')
       autoUpdateManager.onUpdateError(spy)
       electronAutoUpdater.emit('error', {}, 'an error message')
