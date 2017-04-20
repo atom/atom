@@ -118,7 +118,7 @@ class TextEditorComponent {
     }
     this.decorationsToMeasure = {
       highlights: new Map(),
-      cursors: []
+      cursors: new Map()
     }
     this.pendingScrollTopRow = this.props.initialScrollTopRow
     this.pendingScrollLeftColumn = this.props.initialScrollLeftColumn
@@ -630,14 +630,20 @@ class TextEditorComponent {
 
       const children = [this.renderHiddenInput()]
       for (let i = 0; i < this.decorationsToRender.cursors.length; i++) {
-        const {pixelLeft, pixelTop, pixelWidth} = this.decorationsToRender.cursors[i]
+        const {pixelLeft, pixelTop, pixelWidth, className: extraCursorClassName, style: extraCursorStyle} = this.decorationsToRender.cursors[i]
+        let cursorClassName = 'cursor'
+        if (extraCursorClassName) cursorClassName += ' ' + extraCursorClassName
+
+        const cursorStyle = {
+          height: cursorHeight,
+          width: pixelWidth + 'px',
+          transform: `translate(${pixelLeft}px, ${pixelTop}px)`
+        }
+        if (extraCursorStyle) Object.assign(cursorStyle, extraCursorStyle)
+
         children.push($.div({
-          className: 'cursor',
-          style: {
-            height: cursorHeight,
-            width: pixelWidth + 'px',
-            transform: `translate(${pixelLeft}px, ${pixelTop}px)`
-          }
+          className: cursorClassName,
+          style: cursorStyle
         }))
       }
 
@@ -922,7 +928,7 @@ class TextEditorComponent {
     this.decorationsToRender.customGutter.clear()
     this.decorationsToRender.blocks = new Map()
     this.decorationsToMeasure.highlights.clear()
-    this.decorationsToMeasure.cursors.length = 0
+    this.decorationsToMeasure.cursors.clear()
 
     const decorationsByMarker =
       this.props.model.decorationManager.decorationPropertiesByMarkerForScreenRowRange(
@@ -955,7 +961,7 @@ class TextEditorComponent {
           this.addHighlightDecorationToMeasure(decoration, screenRange, marker.id)
           break
         case 'cursor':
-          this.addCursorDecorationToMeasure(marker, screenRange, reversed)
+          this.addCursorDecorationToMeasure(decoration, marker, screenRange, reversed)
           break
         case 'overlay':
           this.addOverlayDecorationToRender(decoration, marker)
@@ -1042,22 +1048,43 @@ class TextEditorComponent {
     }
   }
 
-  addCursorDecorationToMeasure (marker, screenRange, reversed) {
+  addCursorDecorationToMeasure (decoration, marker, screenRange, reversed) {
     const {model} = this.props
     if (!model.getShowCursorOnSelection() && !screenRange.isEmpty()) return
-    const isLastCursor = model.getLastCursor().getMarker() === marker
-    const screenPosition = reversed ? screenRange.start : screenRange.end
-    const {row, column} = screenPosition
 
-    if (row < this.getRenderedStartRow() || row >= this.getRenderedEndRow()) return
+    let decorationToMeasure = this.decorationsToMeasure.cursors.get(marker)
+    if (!decorationToMeasure) {
+      const isLastCursor = model.getLastCursor().getMarker() === marker
+      const screenPosition = reversed ? screenRange.start : screenRange.end
+      const {row, column} = screenPosition
 
-    this.requestHorizontalMeasurement(row, column)
-    let columnWidth = 0
-    if (model.lineLengthForScreenRow(row) > column) {
-      columnWidth = 1
-      this.requestHorizontalMeasurement(row, column + 1)
+      if (row < this.getRenderedStartRow() || row >= this.getRenderedEndRow()) return
+
+      this.requestHorizontalMeasurement(row, column)
+      let columnWidth = 0
+      if (model.lineLengthForScreenRow(row) > column) {
+        columnWidth = 1
+        this.requestHorizontalMeasurement(row, column + 1)
+      }
+      decorationToMeasure = {screenPosition, columnWidth, isLastCursor}
+      this.decorationsToMeasure.cursors.set(marker, decorationToMeasure)
     }
-    this.decorationsToMeasure.cursors.push({screenPosition, columnWidth, isLastCursor})
+
+    if (decoration.class) {
+      if (decorationToMeasure.className) {
+        decorationToMeasure.className += ' ' + decoration.class
+      } else {
+        decorationToMeasure.className = decoration.class
+      }
+    }
+
+    if (decoration.style) {
+      if (decorationToMeasure.style) {
+        Object.assign(decorationToMeasure.style, decoration.style)
+      } else {
+        decorationToMeasure.style = Object.assign({}, decoration.style)
+      }
+    }
   }
 
   addOverlayDecorationToRender (decoration, marker) {
@@ -1131,8 +1158,8 @@ class TextEditorComponent {
   updateCursorsToRender () {
     this.decorationsToRender.cursors.length = 0
 
-    for (let i = 0; i < this.decorationsToMeasure.cursors.length; i++) {
-      const cursor = this.decorationsToMeasure.cursors[i]
+    this.decorationsToMeasure.cursors.forEach((cursor) => {
+      const {screenPosition, className, style} = cursor
       const {row, column} = cursor.screenPosition
 
       const pixelTop = this.pixelPositionAfterBlocksForRow(row)
@@ -1144,10 +1171,10 @@ class TextEditorComponent {
         pixelWidth = this.pixelLeftForRowAndColumn(row, column + 1) - pixelLeft
       }
 
-      const cursorPosition = {pixelTop, pixelLeft, pixelWidth}
-      this.decorationsToRender.cursors[i] = cursorPosition
+      const cursorPosition = {pixelTop, pixelLeft, pixelWidth, className, style}
+      this.decorationsToRender.cursors.push(cursorPosition)
       if (cursor.isLastCursor) this.hiddenInputPosition = cursorPosition
-    }
+    })
   }
 
   updateOverlaysToRender () {

@@ -1734,6 +1734,41 @@ describe('TextEditorComponent', () => {
     }
   })
 
+  describe('cursor decorations', () => {
+    it('allows default cursors to be customized', async () => {
+      const {component, element, editor} = buildComponent()
+
+      editor.addCursorAtScreenPosition([1, 0])
+      const [cursorMarker1, cursorMarker2] = editor.getCursors().map(c => c.getMarker())
+
+      editor.decorateMarker(cursorMarker1, {type: 'cursor', class: 'a'})
+      editor.decorateMarker(cursorMarker2, {type: 'cursor', class: 'b', style: {visibility: 'hidden'}})
+      editor.decorateMarker(cursorMarker2, {type: 'cursor', style: {backgroundColor: 'red'}})
+      await component.getNextUpdatePromise()
+
+      const cursorNodes = element.querySelectorAll('.cursor')
+      expect(cursorNodes.length).toBe(2)
+
+
+      expect(cursorNodes[0].className).toBe('cursor a')
+      expect(cursorNodes[1].className).toBe('cursor b')
+      expect(cursorNodes[1].style.visibility).toBe('hidden')
+      expect(cursorNodes[1].style.backgroundColor).toBe('red')
+    })
+
+    it('allows markers that are not actually associated with cursors to be decorated as if they were cursors', async () => {
+      const {component, element, editor} = buildComponent()
+      const marker = editor.markScreenPosition([1, 0])
+      editor.decorateMarker(marker, {type: 'cursor', class: 'a'})
+      await component.getNextUpdatePromise()
+
+      const cursorNodes = element.querySelectorAll('.cursor')
+      expect(cursorNodes.length).toBe(2)
+      expect(cursorNodes[0].className).toBe('cursor')
+      expect(cursorNodes[1].className).toBe('cursor a')
+    })
+  })
+
   describe('mouse input', () => {
     describe('on the lines', () => {
       it('positions the cursor on single-click', async () => {
