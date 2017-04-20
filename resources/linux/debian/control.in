@@ -2,7 +2,7 @@ Package: <%= appFileName %>
 Version: <%= version %>
 Depends: git, gconf2, gconf-service, libgtk2.0-0, libudev0 | libudev1, libgcrypt11 | libgcrypt20, libnotify4, libxtst6, libnss3, python, gvfs-bin, xdg-utils, libcap2
 Recommends: lsb-release
-Suggests: libgnome-keyring0, gir1.2-gnomekeyring-1.0
+Suggests: libsecret-1-0, gir1.2-gnomekeyring-1.0
 Section: devel
 Priority: optional
 Architecture: <%= arch %>
