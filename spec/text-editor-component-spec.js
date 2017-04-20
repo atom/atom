@@ -2837,28 +2837,40 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
 
       expect(component.getMaxScrollTop() / component.getLineHeight()).toBe(9)
+      expect(component.refs.verticalScrollbar.element.scrollTop).toBe(0 * component.getLineHeight())
 
       editor.setFirstVisibleScreenRow(1)
       expect(component.getFirstVisibleRow()).toBe(1)
+      await component.getNextUpdatePromise()
+      expect(component.refs.verticalScrollbar.element.scrollTop).toBe(1 * component.getLineHeight())
 
       editor.setFirstVisibleScreenRow(5)
       expect(component.getFirstVisibleRow()).toBe(5)
+      await component.getNextUpdatePromise()
+      expect(component.refs.verticalScrollbar.element.scrollTop).toBe(5 * component.getLineHeight())
 
       editor.setFirstVisibleScreenRow(11)
       expect(component.getFirstVisibleRow()).toBe(9)
+      await component.getNextUpdatePromise()
+      expect(component.refs.verticalScrollbar.element.scrollTop).toBe(9 * component.getLineHeight())
     })
 
     it('delegates setFirstVisibleScreenColumn and getFirstVisibleScreenColumn to the component', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
       element.style.width = 30 * component.getBaseCharacterWidth() + 'px'
       await component.getNextUpdatePromise()
-
       expect(editor.getFirstVisibleScreenColumn()).toBe(0)
-      component.setScrollLeft(5.5 * component.getBaseCharacterWidth())
+      expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(0 * component.getBaseCharacterWidth())
+
+      setScrollLeft(component, 5.5 * component.getBaseCharacterWidth())
       expect(editor.getFirstVisibleScreenColumn()).toBe(5)
+      await component.getNextUpdatePromise()
+      expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(Math.round(5.5 * component.getBaseCharacterWidth()))
 
       editor.setFirstVisibleScreenColumn(12)
       expect(component.getScrollLeft()).toBe(Math.round(12 * component.getBaseCharacterWidth()))
+      await component.getNextUpdatePromise()
+      expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(Math.round(12 * component.getBaseCharacterWidth()))
     })
   })
 })
