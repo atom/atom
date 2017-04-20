@@ -17,7 +17,7 @@ module.exports = function () {
     if (metadata.atomTranspilers) {
       CompileCache.addTranspilerConfigForPath(packagePath, metadata.name, metadata, metadata.atomTranspilers)
       for (let config of metadata.atomTranspilers) {
-        pathsToCompile = pathsToCompile.concat(glob.sync(path.join(packagePath, config.glob)))
+        pathsToCompile = pathsToCompile.concat(glob.sync(path.join(packagePath, config.glob), {nodir: true}))
       }
     }
   }
