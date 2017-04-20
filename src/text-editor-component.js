@@ -594,11 +594,12 @@ class TextEditorComponent {
     }
 
     if (this.extraLinesToMeasure) {
-      this.extraLinesToMeasure.forEach((screenLine, row) => {
-        if (row < startRow || row >= endRow) {
+      this.extraLinesToMeasure.forEach((screenLine, screenRow) => {
+        if (screenRow < startRow || screenRow >= endRow) {
           tileNodes.push($(LineComponent, {
             key: 'extra-' + screenLine.id,
             screenLine,
+            screenRow,
             displayLayer,
             lineNodesByScreenLineId,
             textNodesByScreenLineId
@@ -2931,7 +2932,7 @@ class LinesTileComponent {
   renderLines () {
     const {
       measuredContent, height, width,
-      screenLines, lineDecorations, blockDecorations, displayLayer,
+      tileStartRow, screenLines, lineDecorations, blockDecorations, displayLayer,
       lineNodesByScreenLineId, textNodesByScreenLineId
     } = this.props
 
@@ -2939,6 +2940,7 @@ class LinesTileComponent {
       this.linesVnode = $(LinesComponent, {
         height,
         width,
+        tileStartRow,
         screenLines,
         lineDecorations,
         blockDecorations,
@@ -2957,6 +2959,8 @@ class LinesTileComponent {
     if (oldProps.height !== newProps.height) return true
     if (oldProps.width !== newProps.width) return true
     if (oldProps.lineHeight !== newProps.lineHeight) return true
+    if (oldProps.tileStartRow !== newProps.tileStartRow) return true
+    if (oldProps.tileEndRow !== newProps.tileEndRow) return true
     if (!arraysEqual(oldProps.screenLines, newProps.screenLines)) return true
     if (!arraysEqual(oldProps.lineDecorations, newProps.lineDecorations)) return true
 
@@ -3013,7 +3017,7 @@ class LinesComponent {
   constructor (props) {
     this.props = {}
     const {
-      width, height,
+      width, height, tileStartRow,
       screenLines, lineDecorations,
       displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
     } = props
@@ -3028,6 +3032,7 @@ class LinesComponent {
     for (let i = 0, length = screenLines.length; i < length; i++) {
       const component = new LineComponent({
         screenLine: screenLines[i],
+        screenRow: tileStartRow + i,
         lineDecoration: lineDecorations[i],
         displayLayer,
         lineNodesByScreenLineId,
@@ -3065,7 +3070,7 @@ class LinesComponent {
 
   updateLines (props) {
     var {
-      screenLines, lineDecorations,
+      screenLines, tileStartRow, lineDecorations,
       displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
     } = props
 
@@ -3084,6 +3089,7 @@ class LinesComponent {
       if (oldScreenLineIndex >= oldScreenLinesEndIndex) {
         var newScreenLineComponent = new LineComponent({
           screenLine: newScreenLine,
+          screenRow: tileStartRow + newScreenLineIndex,
           lineDecoration: lineDecorations[newScreenLineIndex],
           displayLayer,
           lineNodesByScreenLineId,
@@ -3101,7 +3107,10 @@ class LinesComponent {
         oldScreenLineIndex++
       } else if (oldScreenLine === newScreenLine) {
         var lineComponent = this.lineComponents[lineComponentIndex]
-        lineComponent.update({lineDecoration: lineDecorations[newScreenLineIndex]})
+        lineComponent.update({
+          screenRow: tileStartRow + newScreenLineIndex,
+          lineDecoration: lineDecorations[newScreenLineIndex]
+        })
 
         oldScreenLineIndex++
         newScreenLineIndex++
@@ -3114,6 +3123,7 @@ class LinesComponent {
           while (newScreenLineIndex < oldScreenLineIndexInNewScreenLines) {
             var newScreenLineComponent = new LineComponent({ // eslint-disable-line no-redeclare
               screenLine: newScreenLines[newScreenLineIndex],
+              screenRow: tileStartRow + newScreenLineIndex,
               lineDecoration: lineDecorations[newScreenLineIndex],
               displayLayer,
               lineNodesByScreenLineId,
@@ -3138,6 +3148,7 @@ class LinesComponent {
           var oldScreenLineComponent = this.lineComponents[lineComponentIndex]
           var newScreenLineComponent = new LineComponent({ // eslint-disable-line no-redeclare
             screenLine: newScreenLines[newScreenLineIndex],
+            screenRow: tileStartRow + newScreenLineIndex,
             lineDecoration: lineDecorations[newScreenLineIndex],
             displayLayer,
             lineNodesByScreenLineId,
@@ -3224,10 +3235,15 @@ class LinesComponent {
 
 class LineComponent {
   constructor (props) {
-    const {displayLayer, screenLine, lineNodesByScreenLineId, textNodesByScreenLineId} = props
+    const {
+      displayLayer,
+      screenLine, screenRow,
+      lineNodesByScreenLineId, textNodesByScreenLineId
+    } = props
     this.props = props
     this.element = document.createElement('div')
     this.element.className = this.buildClassName()
+    this.element.dataset.screenRow = screenRow
     lineNodesByScreenLineId.set(screenLine.id, this.element)
 
     const textNodes = []
@@ -3277,6 +3293,11 @@ class LineComponent {
     if (this.props.lineDecoration !== newProps.lineDecoration) {
       this.props.lineDecoration = newProps.lineDecoration
       this.element.className = this.buildClassName()
+    }
+
+    if (this.props.screenRow !== newProps.screenRow) {
+      this.props.screenRow = newProps.screenRow
+      this.element.dataset.screenRow = newProps.screenRow
     }
   }
 

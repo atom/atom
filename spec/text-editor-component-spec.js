@@ -48,6 +48,9 @@ describe('TextEditorComponent', () => {
       expect(Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map(element => element.textContent.trim())).toEqual([
         '10', '11', '12', '4', '5', '6', '7', '8', '9'
       ])
+      expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(element => element.dataset.screenRow)).toEqual([
+        '9', '10', '11', '3', '4', '5', '6', '7', '8'
+      ])
       expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(element => element.textContent)).toEqual([
         editor.lineTextForScreenRow(9),
         ' ', // this line is blank in the model, but we render a space to prevent the line from collapsing vertically
@@ -63,6 +66,9 @@ describe('TextEditorComponent', () => {
       await setScrollTop(component, 2.5 * component.getLineHeight())
       expect(Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map(element => element.textContent.trim())).toEqual([
         '1', '2', '3', '4', '5', '6', '7', '8', '9'
+      ])
+      expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(element => element.dataset.screenRow)).toEqual([
+        '0', '1', '2', '3', '4', '5', '6', '7', '8'
       ])
       expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(element => element.textContent)).toEqual([
         editor.lineTextForScreenRow(0),
