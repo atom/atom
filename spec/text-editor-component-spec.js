@@ -1807,10 +1807,7 @@ describe('TextEditorComponent', () => {
       })
 
       it('adds or removes cursors when holding cmd or ctrl when single-clicking', () => {
-        const {component, editor} = buildComponent()
-        spyOn(component, 'getPlatform').andCallFake(() => mockedPlatform)
-
-        let mockedPlatform = 'darwin'
+        const {component, editor} = buildComponent({platform: 'darwin'})
         expect(editor.getCursorScreenPositions()).toEqual([[0, 0]])
 
         // add cursor at 1, 16
@@ -1870,9 +1867,8 @@ describe('TextEditorComponent', () => {
         )
         expect(editor.getCursorScreenPositions()).toEqual([[1, 4]])
 
-        mockedPlatform = 'win32'
-
         // ctrl-click adds cursors on platforms *other* than macOS
+        component.props.platform = 'win32'
         component.didMouseDownOnContent(
           Object.assign(clientPositionForCharacter(component, 1, 16), {
             detail: 1,
@@ -2823,7 +2819,8 @@ function buildComponent (params = {}) {
   const component = new TextEditorComponent({
     model: editor,
     rowsPerTile: params.rowsPerTile,
-    updatedSynchronously: false
+    updatedSynchronously: false,
+    platform: params.platform
   })
   const {element} = component
   if (!editor.getAutoHeight()) {

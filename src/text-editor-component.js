@@ -823,10 +823,6 @@ class TextEditorComponent {
     )
   }
 
-  getPlatform () {
-    return process.platform
-  }
-
   queryScreenLinesToRender () {
     const {model} = this.props
 
@@ -1474,12 +1470,12 @@ class TextEditorComponent {
   }
 
   didMouseDownOnContent (event) {
-    const {model} = this.props
+    const {model, platform} = this.props
     const {target, button, detail, ctrlKey, shiftKey, metaKey} = event
 
     // Only handle mousedown events for left mouse button (or the middle mouse
     // button on Linux where it pastes the selection clipboard).
-    if (!(button === 0 || (this.getPlatform() === 'linux' && button === 1))) return
+    if (!(button === 0 || (platform === 'linux' && button === 1))) return
 
     const screenPosition = this.screenPositionForMouseEvent(event)
 
@@ -1489,7 +1485,7 @@ class TextEditorComponent {
       return
     }
 
-    const addOrRemoveSelection = metaKey || (ctrlKey && this.getPlatform() !== 'darwin')
+    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
 
     switch (detail) {
       case 1:
@@ -1534,7 +1530,7 @@ class TextEditorComponent {
   }
 
   didMouseDownOnLineNumberGutter (event) {
-    const {model} = this.props
+    const {model, platform} = this.props
     const {target, button, ctrlKey, shiftKey, metaKey} = event
 
     // Only handle mousedown events for left mouse button
@@ -1548,7 +1544,7 @@ class TextEditorComponent {
       return
     }
 
-    const addOrRemoveSelection = metaKey || (ctrlKey && this.getPlatform() !== 'darwin')
+    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
     const endBufferRow = model.bufferPositionForScreenPosition([clickedScreenRow, Infinity]).row
     const clickedLineBufferRange = Range(Point(startBufferRow, 0), Point(endBufferRow + 1, 0))
 
