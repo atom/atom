@@ -201,6 +201,10 @@ class TextEditorElement extends HTMLElement {
     return this.getComponent().pixelPositionForScreenPositionSync(screenPosition)
   }
 
+  screenPositionForPixelPosition (pixelPosition) {
+    return this.getComponent().screenPositionForPixelPositionSync(pixelPosition)
+  }
+
   getComponent () {
     if (!this.component) {
       this.component = new TextEditorComponent({
