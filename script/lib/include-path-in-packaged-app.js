@@ -57,17 +57,7 @@ const EXCLUDE_REGEXPS_SOURCES = [
   escapeRegExp(path.join('build', 'Release') + path.sep) + '.*\\.pdb',
 
   // Ignore *.cc and *.h files from native modules
-  escapeRegExp(path.join('ctags', 'src') + path.sep) + '.*\\.(cc|h)*',
-  escapeRegExp(path.join('git-utils', 'src') + path.sep) + '.*\\.(cc|h)*',
-  escapeRegExp(path.join('keytar', 'src') + path.sep) + '.*\\.(cc|h)*',
-  escapeRegExp(path.join('nslog', 'src') + path.sep) + '.*\\.(cc|h)*',
-  escapeRegExp(path.join('oniguruma', 'src') + path.sep) + '.*\\.(cc|h)*',
-  escapeRegExp(path.join('pathwatcher', 'src') + path.sep) + '.*\\.(cc|h)*',
-  escapeRegExp(path.join('runas', 'src') + path.sep) + '.*\\.(cc|h)*',
-  escapeRegExp(path.join('scrollbar-style', 'src') + path.sep) + '.*\\.(cc|h)*',
-  escapeRegExp(path.join('spellchecker', 'src') + path.sep) + '.*\\.(cc|h)*',
-  escapeRegExp(path.join('cached-run-in-this-context', 'src') + path.sep) + '.*\\.(cc|h)?',
-  escapeRegExp(path.join('keyboard-layout', 'src') + path.sep) + '.*\\.(cc|h|mm)*',
+  escapeRegExp('node_modules' + path.sep + '.*\\.(cc|h)$'),
 
   // Ignore build files
   escapeRegExp(path.sep) + 'binding\\.gyp$',
