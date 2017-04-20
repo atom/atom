@@ -1728,13 +1728,13 @@ class TextEditorComponent {
   flushPendingLogicalScrollPosition () {
     let changedScrollTop = false
     if (this.pendingScrollTopRow > 0) {
-      changedScrollTop = this.setScrollTopRow(this.pendingScrollTopRow)
+      changedScrollTop = this.setScrollTopRow(this.pendingScrollTopRow, false)
       this.pendingScrollTopRow = null
     }
 
     let changedScrollLeft = false
     if (this.pendingScrollLeftColumn > 0) {
-      changedScrollLeft = this.setScrollLeftColumn(this.pendingScrollLeftColumn)
+      changedScrollLeft = this.setScrollLeftColumn(this.pendingScrollLeftColumn, false)
       this.pendingScrollLeftColumn = null
     }
 
@@ -2466,13 +2466,17 @@ class TextEditorComponent {
     return this.setScrollLeft(scrollRight - this.getScrollContainerClientWidth())
   }
 
-  setScrollTopRow (scrollTopRow) {
+  setScrollTopRow (scrollTopRow, scheduleUpdate = true) {
     if (this.measurements) {
-      return this.setScrollTop(this.pixelPositionBeforeBlocksForRow(scrollTopRow))
+      const didScroll = this.setScrollTop(this.pixelPositionBeforeBlocksForRow(scrollTopRow))
+      if (didScroll && scheduleUpdate) {
+        this.scheduleUpdate()
+      }
+      return didScroll
     } else {
       this.pendingScrollTopRow = scrollTopRow
+      return false
     }
-    return false
   }
 
   getScrollTopRow () {
@@ -2483,13 +2487,17 @@ class TextEditorComponent {
     }
   }
 
-  setScrollLeftColumn (scrollLeftColumn) {
+  setScrollLeftColumn (scrollLeftColumn, scheduleUpdate = true) {
     if (this.measurements && this.getLongestLineWidth() != null) {
-      return this.setScrollLeft(scrollLeftColumn * this.getBaseCharacterWidth())
+      const didScroll = this.setScrollLeft(scrollLeftColumn * this.getBaseCharacterWidth())
+      if (didScroll && scheduleUpdate) {
+        this.scheduleUpdate()
+      }
+      return didScroll
     } else {
       this.pendingScrollLeftColumn = scrollLeftColumn
+      return false
     }
-    return false
   }
 
   getScrollLeftColumn () {
