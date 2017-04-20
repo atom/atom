@@ -152,6 +152,22 @@ class TextEditorComponent {
     return {top, left}
   }
 
+  screenPositionForPixelPositionSync (pixelPosition) {
+    const {model} = this.props
+
+    const row = Math.max(0, Math.min(
+      this.rowForPixelPosition(pixelPosition.top),
+      model.getApproximateScreenLineCount() - 1
+    ))
+
+    if (!this.renderedScreenLineForRow(row)) {
+      this.requestExtraLineToMeasure(row, model.screenLineForScreenRow(row))
+      this.updateSyncBeforeMeasuringContent()
+      this.measureContentDuringUpdateSync()
+    }
+    return this.screenPositionForPixelPosition(pixelPosition)
+  }
+
   scheduleUpdate (nextUpdateOnlyBlinksCursors = false) {
     if (!this.visible) return
 
