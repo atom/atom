@@ -7,6 +7,8 @@ const TextBuffer = require('text-buffer')
 const fs = require('fs')
 const path = require('path')
 const Grim = require('grim')
+const electron = require('electron')
+const clipboard = require('../src/safe-clipboard')
 
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
 const NBSP_CHARACTER = '\u00a0'
@@ -2126,6 +2128,44 @@ describe('TextEditorComponent', () => {
         didDrag({clientX: 199, clientY: 199})
         expect(component.getScrollTop()).toBe(maxScrollTop)
         expect(component.getScrollLeft()).toBe(maxScrollLeft)
+      })
+
+      it('pastes the previously selected text when clicking the middle mouse button on Linux', async () => {
+        spyOn(electron.ipcRenderer, 'send').andCallFake(function (eventName, selectedText) {
+          if (eventName === 'write-text-to-selection-clipboard') {
+            clipboard.writeText(selectedText, 'selection')
+          }
+        })
+
+        const {component, editor} = buildComponent({platform: 'linux'})
+
+        // Middle mouse pasting.
+        editor.setSelectedBufferRange([[1, 6], [1, 10]])
+        await conditionPromise(() => TextEditor.clipboard.read() === 'sort')
+        component.didMouseDownOnContent({
+          button: 1,
+          clientX: clientLeftForCharacter(component, 10, 0),
+          clientY: clientTopForLine(component, 10)
+        })
+        expect(TextEditor.clipboard.read()).toBe('sort')
+        expect(editor.lineTextForBufferRow(10)).toBe('sort')
+        editor.undo()
+
+        // Ensure left clicks don't interfere.
+        editor.setSelectedBufferRange([[1, 2], [1, 5]])
+        await conditionPromise(() => TextEditor.clipboard.read() === 'var')
+        component.didMouseDownOnContent({
+          button: 0,
+          detail: 1,
+          clientX: clientLeftForCharacter(component, 10, 0),
+          clientY: clientTopForLine(component, 10)
+        })
+        component.didMouseDownOnContent({
+          button: 1,
+          clientX: clientLeftForCharacter(component, 10, 0),
+          clientY: clientTopForLine(component, 10)
+        })
+        expect(editor.lineTextForBufferRow(10)).toBe('var')
       })
     })
 

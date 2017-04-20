@@ -6,6 +6,8 @@ const {Point, Range} = require('text-buffer')
 const LineTopIndex = require('line-top-index')
 const TextEditor = require('./text-editor')
 const {isPairedCharacter} = require('./text-utils')
+const clipboard = require('./safe-clipboard')
+const electron = require('electron')
 const $ = etch.dom
 
 let TextEditorElement
@@ -1485,6 +1487,14 @@ class TextEditorComponent {
       return
     }
 
+    // Handle middle mouse button only on Linux (paste clipboard)
+    if (platform === 'linux' && button === 1) {
+      const selection = clipboard.readText('selection')
+      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
+      model.insertText(selection)
+      return
+    }
+
     const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
 
     switch (detail) {
@@ -2101,7 +2111,7 @@ class TextEditorComponent {
   }
 
   observeModel () {
-    const {model} = this.props
+    const {model, platform} = this.props
     model.component = this
     const scheduleUpdate = this.scheduleUpdate.bind(this)
     this.disposables.add(model.displayLayer.onDidReset(() => {
@@ -2128,6 +2138,30 @@ class TextEditorComponent {
     this.disposables.add(model.observeDecorations((decoration) => {
       if (decoration.getProperties().type === 'block') this.observeBlockDecoration(decoration)
     }))
+
+    if (platform === 'linux') {
+      let immediateId = null
+
+      this.disposables.add(model.onDidChangeSelectionRange(() => {
+        if (immediateId) {
+          clearImmediate(immediateId)
+        }
+
+        immediateId = setImmediate(() => {
+          immediateId = null
+
+          if (model.isDestroyed()) return
+
+          const selectedText = model.getSelectedText()
+          if (selectedText) {
+            // This uses ipcRenderer.send instead of clipboard.writeText because
+            // clipboard.writeText is a sync ipcRenderer call on Linux and that
+            // will slow down selections.
+            electron.ipcRenderer.send('write-text-to-selection-clipboard', selectedText)
+          }
+        })
+      }))
+    }
   }
 
   observeBlockDecoration (decoration) {
