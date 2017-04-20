@@ -46,7 +46,7 @@ class CommandInstaller
     if @appVersion.includes("beta")
       "apm-beta"
     else
-      "atom"
+      "apm"
 
   installShellCommandsInteractively: ->
     showErrorDialog = (error) =>
