@@ -1981,30 +1981,33 @@ class TextEditorComponent {
     let lineNodeClientLeft = -1
     let textNodeStartColumn = 0
     let textNodesIndex = 0
+    let lastTextNodeRight = null
 
     columnLoop: // eslint-disable-line no-labels
     for (let columnsIndex = 0; columnsIndex < columnsToMeasure.length; columnsIndex++) {
+      const nextColumnToMeasure = columnsToMeasure[columnsIndex]
       while (textNodesIndex < textNodes.length) {
-        const nextColumnToMeasure = columnsToMeasure[columnsIndex]
         if (nextColumnToMeasure === 0) {
           positions.set(0, 0)
           continue columnLoop // eslint-disable-line no-labels
         }
-        if (nextColumnToMeasure >= lineNode.textContent.length) {
 
-        }
         if (positions.has(nextColumnToMeasure)) continue columnLoop // eslint-disable-line no-labels
         const textNode = textNodes[textNodesIndex]
         const textNodeEndColumn = textNodeStartColumn + textNode.textContent.length
 
-        if (nextColumnToMeasure <= textNodeEndColumn) {
+        if (nextColumnToMeasure < textNodeEndColumn) {
           let clientPixelPosition
           if (nextColumnToMeasure === textNodeStartColumn) {
             clientPixelPosition = clientRectForRange(textNode, 0, 1).left
           } else {
             clientPixelPosition = clientRectForRange(textNode, 0, nextColumnToMeasure - textNodeStartColumn).right
           }
-          if (lineNodeClientLeft === -1) lineNodeClientLeft = lineNode.getBoundingClientRect().left
+
+          if (lineNodeClientLeft === -1) {
+            lineNodeClientLeft = lineNode.getBoundingClientRect().left
+          }
+
           positions.set(nextColumnToMeasure, Math.round(clientPixelPosition - lineNodeClientLeft))
           continue columnLoop // eslint-disable-line no-labels
         } else {
@@ -2012,6 +2015,17 @@ class TextEditorComponent {
           textNodeStartColumn = textNodeEndColumn
         }
       }
+
+      if (lastTextNodeRight == null) {
+        const lastTextNode = textNodes[textNodes.length - 1]
+        lastTextNodeRight = clientRectForRange(lastTextNode, 0, lastTextNode.textContent.length).right
+      }
+
+      if (lineNodeClientLeft === -1) {
+        lineNodeClientLeft = lineNode.getBoundingClientRect().left
+      }
+
+      positions.set(nextColumnToMeasure, lastTextNodeRight - lineNodeClientLeft)
     }
   }
 

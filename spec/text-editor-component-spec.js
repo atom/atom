@@ -331,6 +331,20 @@ describe('TextEditorComponent', () => {
       expect(element.querySelector('.cursor').offsetWidth).toBe(Math.round(component.getBaseCharacterWidth()))
     })
 
+    it('positions and sizes cursors correctly when they are located next to a fold marker', async () => {
+      const {component, element, editor} = buildComponent()
+      editor.foldBufferRange([[0, 3], [0, 6]])
+
+      editor.setCursorScreenPosition([0, 3])
+      await component.getNextUpdatePromise()
+      const cursor = element.querySelector('.cursor')
+      verifyCursorPosition(component, element.querySelector('.cursor'), 0, 3)
+
+      editor.setCursorScreenPosition([0, 4])
+      await component.getNextUpdatePromise()
+      verifyCursorPosition(component, element.querySelector('.cursor'), 0, 4)
+    })
+
     it('places the hidden input element at the location of the last cursor if it is visible', async () => {
       const {component, element, editor} = buildComponent({height: 60, width: 120, rowsPerTile: 2})
       const {hiddenInput} = component.refs
@@ -2893,7 +2907,7 @@ async function setEditorWidthInCharacters (component, widthInCharacters) {
 function verifyCursorPosition (component, cursorNode, row, column) {
   const rect = cursorNode.getBoundingClientRect()
   expect(Math.round(rect.top)).toBe(clientTopForLine(component, row))
-  expect(Math.round(rect.left)).toBe(clientLeftForCharacter(component, row, column))
+  expect(Math.round(rect.left)).toBe(Math.round(clientLeftForCharacter(component, row, column)))
 }
 
 function clientTopForLine (component, row) {
@@ -2905,7 +2919,7 @@ function clientLeftForCharacter (component, row, column) {
   let textNodeStartColumn = 0
   for (const textNode of textNodes) {
     const textNodeEndColumn = textNodeStartColumn + textNode.textContent.length
-    if (column <= textNodeEndColumn) {
+    if (column < textNodeEndColumn) {
       const range = document.createRange()
       range.setStart(textNode, column - textNodeStartColumn)
       range.setEnd(textNode, column - textNodeStartColumn)
@@ -2913,6 +2927,12 @@ function clientLeftForCharacter (component, row, column) {
     }
     textNodeStartColumn = textNodeEndColumn
   }
+
+  const lastTextNode = textNodes[textNodes.length - 1]
+  const range = document.createRange()
+  range.setStart(lastTextNode, 0)
+  range.setEnd(lastTextNode, lastTextNode.textContent.length)
+  return range.getBoundingClientRect().right
 }
 
 function clientPositionForCharacter (component, row, column) {
