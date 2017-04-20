@@ -57,7 +57,7 @@ const EXCLUDE_REGEXPS_SOURCES = [
   escapeRegExp(path.join('build', 'Release') + path.sep) + '.*\\.pdb',
 
   // Ignore *.cc and *.h files from native modules
-  escapeRegExp('node_modules' + path.sep + '.*\\.(cc|h)$'),
+  escapeRegExp(path.sep) + '.+\\.(cc|h)$',
 
   // Ignore build files
   escapeRegExp(path.sep) + 'binding\\.gyp$',
