@@ -48,7 +48,7 @@ module.exports = function (packagedAppPath) {
         relativePath == path.join('..', 'node_modules', 'less', 'node_modules', 'graceful-fs', 'graceful-fs.js') ||
         relativePath == path.join('..', 'node_modules', 'minimatch', 'minimatch.js') ||
         relativePath == path.join('..', 'node_modules', 'superstring', 'index.js') ||
-        relativePath == path.join('..', 'node_modules', 'oniguruma', 'lib', 'oniguruma.js') ||
+        relativePath == path.join('..', 'node_modules', 'oniguruma', 'src', 'oniguruma.js') ||
         relativePath == path.join('..', 'node_modules', 'request', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'resolve', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'resolve', 'lib', 'core.js') ||
