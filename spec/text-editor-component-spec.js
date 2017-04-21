@@ -212,10 +212,13 @@ describe('TextEditorComponent', () => {
 
     })
 
-    it('updates the bottom/right of dummy scrollbars and client height/width measurements when scrollbar styles change', async () => {
+    it('updates the bottom/right of dummy scrollbars and client height/width measurements without forgetting the previous scroll top/left when scrollbar styles change', async () => {
       const {component, element, editor} = buildComponent({height: 100, width: 100})
       expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(10)
       expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(10)
+      setScrollTop(component, 20)
+      setScrollLeft(component, 10)
+      await component.getNextUpdatePromise()
 
       const style = document.createElement('style')
       style.textContent = '::-webkit-scrollbar { height: 10px; width: 10px; }'
@@ -228,6 +231,8 @@ describe('TextEditorComponent', () => {
       expect(getVerticalScrollbarWidth(component)).toBe(10)
       expect(component.refs.horizontalScrollbar.element.style.right).toBe('10px')
       expect(component.refs.verticalScrollbar.element.style.bottom).toBe('10px')
+      expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(10)
+      expect(component.refs.verticalScrollbar.element.scrollTop).toBe(20)
       expect(component.getScrollContainerClientHeight()).toBe(100 - 10)
       expect(component.getScrollContainerClientWidth()).toBe(100 - component.getGutterContainerWidth() - 10)
     })
