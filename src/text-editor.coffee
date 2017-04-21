@@ -211,7 +211,7 @@ class TextEditor extends Model
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true, persistent: true)
     @selectionsMarkerLayer.trackDestructionInOnDidCreateMarkerCallbacks = true
 
-    @decorationManager = new DecorationManager(@displayLayer)
+    @decorationManager = new DecorationManager(this)
     @decorateMarkerLayer(@selectionsMarkerLayer, type: 'cursor')
     @decorateCursorLine() unless @isMini()
 
@@ -445,14 +445,17 @@ class TextEditor extends Model
     @emitter.on 'did-terminate-pending-state', callback
 
   subscribeToDisplayLayer: ->
-    @disposables.add @selectionsMarkerLayer.onDidCreateMarker @addSelection.bind(this)
     @disposables.add @tokenizedBuffer.onDidChangeGrammar @handleGrammarChange.bind(this)
     @disposables.add @displayLayer.onDidChangeSync (e) =>
       @mergeIntersectingSelections()
+      @component?.didChangeDisplayLayer(e)
       @emitter.emit 'did-change', e
     @disposables.add @displayLayer.onDidReset =>
       @mergeIntersectingSelections()
+      @component?.didResetDisplayLayer()
       @emitter.emit 'did-change', {}
+    @disposables.add @selectionsMarkerLayer.onDidCreateMarker @addSelection.bind(this)
+    @disposables.add @selectionsMarkerLayer.onDidUpdate => @component?.didUpdateSelections()
 
   destroyed: ->
     @disposables.dispose()
@@ -719,6 +722,11 @@ class TextEditor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidRemoveDecoration: (callback) ->
     @decorationManager.onDidRemoveDecoration(callback)
+
+  # Called by DecorationManager when a decoration is added.
+  didAddDecoration: (decoration) ->
+    if decoration.isType('block')
+      @component?.didAddBlockDecoration(decoration)
 
   # Extended: Calls your `callback` when the placeholder text is changed.
   #
@@ -2843,6 +2851,7 @@ class TextEditor extends Model
 
   # Called by the selection
   selectionRangeChanged: (event) ->
+    @component?.didChangeSelectionRange()
     @emitter.emit 'did-change-selection-range', event
 
   createLastSelectionIfNeeded: ->
@@ -3466,6 +3475,7 @@ class TextEditor extends Model
   scrollToScreenRange: (screenRange, options = {}) ->
     screenRange = @clipScreenRange(screenRange)
     scrollEvent = {screenRange, options}
+    @component?.didRequestAutoscroll(scrollEvent)
     @emitter.emit "did-request-autoscroll", scrollEvent
 
   getHorizontalScrollbarHeight: ->
