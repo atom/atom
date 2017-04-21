@@ -1,4 +1,4 @@
-const {Emitter} = require('atom')
+const {Emitter, Range} = require('atom')
 const Grim = require('grim')
 const TextEditorComponent = require('./text-editor-component')
 const dedent = require('dedent')
@@ -246,6 +246,31 @@ class TextEditorElement extends HTMLElement {
 
   screenPositionForPixelPosition (pixelPosition) {
     return this.getComponent().screenPositionForPixelPositionSync(pixelPosition)
+  }
+
+  pixelRectForScreenRange (range) {
+    range = Range.fromObject(range)
+
+    const start = this.pixelPositionForScreenPosition(range.start)
+    const end = this.pixelPositionForScreenPosition(range.end)
+    const lineHeight = this.getComponent().getLineHeight()
+
+    console.log(start, end);
+
+    return {
+      top: start.top,
+      left: start.left,
+      height: end.top + lineHeight - start.top,
+      width: end.left - start.left
+    }
+  }
+
+  pixelRangeForScreenRange (range) {
+    range = Range.fromObject(range)
+    return {
+      start: this.pixelPositionForScreenPosition(range.start),
+      end: this.pixelPositionForScreenPosition(range.end)
+    }
   }
 
   getComponent () {

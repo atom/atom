@@ -329,6 +329,22 @@ describe('TextEditorElement', () => {
     })
   })
 
+  describe('::pixelRectForScreenRange(range)', () => {
+    it('returns a {top/left/width/height} object describing the rectangle between two screen positions, even if they are not on screen', async () => {
+      const element = buildTextEditorElement()
+      const editor = element.getModel()
+      editor.update({autoHeight: false})
+      element.getModel().setText('xxxxxxxxxxxxxxxxxxxxxx\n'.repeat(20))
+      element.style.height = '120px'
+      await element.getNextUpdatePromise()
+      element.setScrollTop(80)
+      await element.getNextUpdatePromise()
+      expect(element.getVisibleRowRange()).toEqual([4, 11])
+
+      expect(element.pixelRectForScreenRange([[2, 3], [13, 11]])).toEqual({top: 34, left: 22, height: 204, width: 57})
+    })
+  })
+
   describe('events', () => {
     let element = null
 
