@@ -1428,8 +1428,10 @@ class TextEditorComponent {
   }
 
   didUpdateScrollbarStyles () {
-    this.remeasureScrollbars = true
-    this.scheduleUpdate()
+    if (!this.props.model.isMini()) {
+      this.remeasureScrollbars = true
+      this.scheduleUpdate()
+    }
   }
 
   didTextInput (event) {

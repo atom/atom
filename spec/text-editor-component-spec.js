@@ -235,6 +235,12 @@ describe('TextEditorComponent', () => {
       expect(component.refs.verticalScrollbar.element.scrollTop).toBe(20)
       expect(component.getScrollContainerClientHeight()).toBe(100 - 10)
       expect(component.getScrollContainerClientWidth()).toBe(100 - component.getGutterContainerWidth() - 10)
+
+      // Ensure we don't throw an error trying to remeasure non-existent scrollbars for mini editors.
+      await editor.update({mini: true})
+      TextEditor.didUpdateScrollbarStyles()
+      component.scheduleUpdate()
+      await component.getNextUpdatePromise()
     })
 
     it('renders cursors within the visible row range', async () => {
