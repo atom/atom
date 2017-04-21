@@ -48,7 +48,6 @@ atom-text-editor {
   .line-numbers {
     width: max-content;
     background-color: inherit;
-    contain: content;
   }
 
   .line-number {
@@ -72,10 +71,7 @@ atom-text-editor {
   }
 
   .lines {
-    contain: strict;
     background-color: inherit;
-    will-change: transform;
-    overflow: hidden;
   }
 
   .highlight {
@@ -84,7 +80,6 @@ atom-text-editor {
   }
 
   .highlight .region {
-    position: absolute;
     pointer-events: none;
     z-index: -1;
   }
