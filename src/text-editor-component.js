@@ -2979,6 +2979,7 @@ class LinesTileComponent {
 
     return $.div(
       {
+        className: 'highlights',
         style: {
           position: 'absolute',
           contain: 'strict',
