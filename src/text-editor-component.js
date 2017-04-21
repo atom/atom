@@ -2069,7 +2069,7 @@ class TextEditorComponent {
         lineNodeClientLeft = lineNode.getBoundingClientRect().left
       }
 
-      positions.set(nextColumnToMeasure, lastTextNodeRight - lineNodeClientLeft)
+      positions.set(nextColumnToMeasure, Math.round(lastTextNodeRight - lineNodeClientLeft))
     }
   }
 
