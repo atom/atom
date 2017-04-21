@@ -233,9 +233,31 @@ class TextEditorElement extends HTMLElement {
   // * {blockDecoration} A {Decoration} representing the block decoration you
   // want to update the dimensions of.
   invalidateBlockDecorationDimensions () {
-    if (this.component) {
-      this.component.invalidateBlockDecorationDimensions(...arguments)
-    }
+    this.getComponent().invalidateBlockDecorationDimensions(...arguments)
+  }
+
+  setFirstVisibleScreenRow (row) {
+    this.getModel().setFirstVisibleScreenRow(row)
+  }
+
+  getFirstVisibleScreenRow () {
+    return this.getModel().getFirstVisibleScreenRow()
+  }
+
+  getLastVisibleScreenRow () {
+    return this.getModel().getLastVisibleScreenRow()
+  }
+
+  getVisibleRowRange () {
+    return this.getModel().getVisibleRowRange()
+  }
+
+  setFirstVisibleScreenColumn (column) {
+    return this.getModel().setFirstVisibleScreenColumn(column)
+  }
+
+  getFirstVisibleScreenColumn () {
+    return this.getModel().getFirstVisibleScreenColumn()
   }
 }
 
