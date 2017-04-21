@@ -822,6 +822,7 @@ class TextEditorComponent {
         dummyScrollbarVnodes.push($.div(
           {
             ref: 'scrollbarCorner',
+            className: 'scrollbar-corner',
             style: {
               position: 'absolute',
               height: '20px',
@@ -2652,6 +2653,7 @@ class DummyScrollbarComponent {
 
     return $.div(
       {
+        className: `${this.props.orientation}-scrollbar`,
         style: outerStyle,
         on: {
           scroll: this.props.didScroll,
