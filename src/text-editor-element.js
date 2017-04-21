@@ -295,6 +295,18 @@ class TextEditorElement extends HTMLElement {
     return this.getModel().getVisibleRowRange()
   }
 
+  intersectsVisibleRowRange (startRow, endRow) {
+    return !(
+      endRow <= this.getFirstVisibleScreenRow() ||
+      this.getLastVisibleScreenRow() <= startRow
+    )
+  }
+
+  selectionIntersectsVisibleRowRange (selection) {
+    const {start, end} = selection.getScreenRange()
+    return this.intersectsVisibleRowRange(start.row, end.row + 1)
+  }
+
   setFirstVisibleScreenColumn (column) {
     return this.getModel().setFirstVisibleScreenColumn(column)
   }

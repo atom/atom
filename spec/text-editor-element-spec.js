@@ -309,6 +309,26 @@ describe('TextEditorElement', () => {
     })
   )
 
+  describe('::intersectsVisibleRowRange(start, end)', () => {
+    it('returns true if the given row range intersects the visible row range', async () => {
+      const element = buildTextEditorElement()
+      const editor = element.getModel()
+      editor.update({autoHeight: false})
+      element.getModel().setText('x\n'.repeat(20))
+      element.style.height = '120px'
+      await element.getNextUpdatePromise()
+      element.setScrollTop(80)
+      await element.getNextUpdatePromise()
+      expect(element.getVisibleRowRange()).toEqual([4, 11])
+
+      expect(element.intersectsVisibleRowRange(0, 4)).toBe(false)
+      expect(element.intersectsVisibleRowRange(0, 5)).toBe(true)
+      expect(element.intersectsVisibleRowRange(5, 8)).toBe(true)
+      expect(element.intersectsVisibleRowRange(11, 12)).toBe(false)
+      expect(element.intersectsVisibleRowRange(12, 13)).toBe(false)
+    })
+  })
+
   describe('events', () => {
     let element = null
 
