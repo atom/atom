@@ -39,6 +39,7 @@ class GutterContainer
         break
     if not inserted
       @gutters.push newGutter
+    @scheduleComponentUpdate()
     @emitter.emit 'did-add-gutter', newGutter
     return newGutter
 
@@ -70,6 +71,7 @@ class GutterContainer
     index = @gutters.indexOf(gutter)
     if index > -1
       @gutters.splice(index, 1)
+      @scheduleComponentUpdate()
       @emitter.emit 'did-remove-gutter', gutter.name
     else
       throw new Error 'The given gutter cannot be removed because it is not ' +

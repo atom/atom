@@ -1,14 +1,15 @@
 DecorationManager = require '../src/decoration-manager'
+TextEditor = require '../src/text-editor'
 
 describe "DecorationManager", ->
-  [decorationManager, buffer, displayLayer, markerLayer1, markerLayer2] = []
+  [decorationManager, buffer, editor, markerLayer1, markerLayer2] = []
 
   beforeEach ->
     buffer = atom.project.bufferForPathSync('sample.js')
-    displayLayer = buffer.addDisplayLayer()
-    markerLayer1 = displayLayer.addMarkerLayer()
-    markerLayer2 = displayLayer.addMarkerLayer()
-    decorationManager = new DecorationManager(displayLayer)
+    editor = new TextEditor({buffer})
+    markerLayer1 = editor.addMarkerLayer()
+    markerLayer2 = editor.addMarkerLayer()
+    decorationManager = new DecorationManager(editor)
 
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
@@ -50,7 +51,7 @@ describe "DecorationManager", ->
       expect(decorationManager.getOverlayDecorations()).toEqual []
 
     it "does not allow destroyed marker layers to be decorated", ->
-      layer = displayLayer.addMarkerLayer()
+      layer = editor.addMarkerLayer()
       layer.destroy()
       expect(->
         decorationManager.decorateMarkerLayer(layer, {type: 'highlight'})

@@ -4,8 +4,9 @@ const LayerDecoration = require('./layer-decoration')
 
 module.exports =
 class DecorationManager {
-  constructor (displayLayer) {
-    this.displayLayer = displayLayer
+  constructor (editor) {
+    this.editor = editor
+    this.displayLayer = this.editor.displayLayer
 
     this.emitter = new Emitter()
     this.decorationCountsByLayer = new Map()
@@ -199,6 +200,7 @@ class DecorationManager {
     decorationsForMarker.add(decoration)
     if (decoration.isType('overlay')) this.overlayDecorations.add(decoration)
     this.observeDecoratedLayer(marker.layer, true)
+    this.editor.didAddDecoration(decoration)
     this.emitDidUpdateDecorations()
     this.emitter.emit('did-add-decoration', decoration)
     return decoration
@@ -222,6 +224,7 @@ class DecorationManager {
   }
 
   emitDidUpdateDecorations () {
+    this.editor.scheduleComponentUpdate()
     this.emitter.emit('did-update-decorations')
   }
 

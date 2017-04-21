@@ -54,6 +54,8 @@ class TextEditorComponent {
     this.props = props
 
     if (!props.model) props.model = new TextEditor()
+    this.props.model.component = this
+
     if (props.element) {
       this.element = props.element
     } else {
@@ -69,7 +71,6 @@ class TextEditorComponent {
     this.updatedSynchronously = this.props.updatedSynchronously
     this.didScrollDummyScrollbar = this.didScrollDummyScrollbar.bind(this)
     this.didMouseDownOnContent = this.didMouseDownOnContent.bind(this)
-    this.disposables = new CompositeDisposable()
     this.lineTopIndex = new LineTopIndex()
     this.updateScheduled = false
     this.measurements = null
@@ -130,10 +131,8 @@ class TextEditorComponent {
 
     this.queryGuttersToRender()
     this.queryMaxLineNumberDigits()
-
+    this.observeBlockDecorations()
     etch.updateSync(this)
-
-    this.observeModel()
   }
 
   update (props) {
@@ -2168,61 +2167,53 @@ class TextEditorComponent {
     return Point(row, column)
   }
 
-  observeModel () {
-    const {model, platform} = this.props
-    model.component = this
-    const scheduleUpdate = this.scheduleUpdate.bind(this)
-    this.disposables.add(model.displayLayer.onDidReset(() => {
-      this.spliceLineTopIndex(0, Infinity, Infinity)
-      this.scheduleUpdate()
-    }))
-    this.disposables.add(model.displayLayer.onDidChangeSync((changes) => {
-      for (let i = 0; i < changes.length; i++) {
-        const change = changes[i]
-        this.spliceLineTopIndex(
-          change.start.row,
-          change.oldExtent.row,
-          change.newExtent.row
-        )
-      }
+  didResetDisplayLayer () {
+    this.spliceLineTopIndex(0, Infinity, Infinity)
+    this.scheduleUpdate()
+  }
 
-      this.scheduleUpdate()
-    }))
-    this.disposables.add(model.onDidUpdateDecorations(scheduleUpdate))
-    this.disposables.add(model.onDidAddGutter(scheduleUpdate))
-    this.disposables.add(model.onDidRemoveGutter(scheduleUpdate))
-    this.disposables.add(model.selectionsMarkerLayer.onDidUpdate(this.didUpdateSelections.bind(this)))
-    this.disposables.add(model.onDidRequestAutoscroll(this.didRequestAutoscroll.bind(this)))
-    this.disposables.add(model.observeDecorations((decoration) => {
-      if (decoration.getProperties().type === 'block') this.observeBlockDecoration(decoration)
-    }))
+  didChangeDisplayLayer (changes) {
+    for (let i = 0; i < changes.length; i++) {
+      const {start, oldExtent, newExtent} = changes[i]
+      this.spliceLineTopIndex(start.row, oldExtent.row, newExtent.row)
+    }
+
+    this.scheduleUpdate()
+  }
+
+  didChangeSelectionRange () {
+    const {model, platform} = this.props
 
     if (platform === 'linux') {
-      let immediateId = null
+      if (this.selectionClipboardImmediateId) {
+        clearImmediate(this.selectionClipboardImmediateId)
+      }
 
-      this.disposables.add(model.onDidChangeSelectionRange(() => {
-        if (immediateId) {
-          clearImmediate(immediateId)
+      this.selectionClipboardImmediateId = setImmediate(() => {
+        this.selectionClipboardImmediateId = null
+
+        if (model.isDestroyed()) return
+
+        const selectedText = model.getSelectedText()
+        if (selectedText) {
+          // This uses ipcRenderer.send instead of clipboard.writeText because
+          // clipboard.writeText is a sync ipcRenderer call on Linux and that
+          // will slow down selections.
+          electron.ipcRenderer.send('write-text-to-selection-clipboard', selectedText)
         }
-
-        immediateId = setImmediate(() => {
-          immediateId = null
-
-          if (model.isDestroyed()) return
-
-          const selectedText = model.getSelectedText()
-          if (selectedText) {
-            // This uses ipcRenderer.send instead of clipboard.writeText because
-            // clipboard.writeText is a sync ipcRenderer call on Linux and that
-            // will slow down selections.
-            electron.ipcRenderer.send('write-text-to-selection-clipboard', selectedText)
-          }
-        })
-      }))
+      })
     }
   }
 
-  observeBlockDecoration (decoration) {
+  observeBlockDecorations () {
+    const {model} = this.props
+    const decorations = model.getDecorations({type: 'block'})
+    for (let i = 0; i < decorations.length; i++) {
+      this.didAddBlockDecoration(decorations[i])
+    }
+  }
+
+  didAddBlockDecoration (decoration) {
     const marker = decoration.getMarker()
     const {position} = decoration.getProperties()
     const row = marker.getHeadScreenPosition().row
