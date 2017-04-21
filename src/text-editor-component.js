@@ -3421,10 +3421,11 @@ class HighlightComponent {
     startPixelTop -= parentTileTop
     endPixelTop -= parentTileTop
 
+    let regionClassName = 'region ' + className
     let children
     if (screenRange.start.row === screenRange.end.row) {
       children = $.div({
-        className: 'region',
+        className: regionClassName,
         style: {
           position: 'absolute',
           boxSizing: 'border-box',
@@ -3437,7 +3438,7 @@ class HighlightComponent {
     } else {
       children = []
       children.push($.div({
-        className: 'region',
+        className: regionClassName,
         style: {
           position: 'absolute',
           boxSizing: 'border-box',
@@ -3450,7 +3451,7 @@ class HighlightComponent {
 
       if (screenRange.end.row - screenRange.start.row > 1) {
         children.push($.div({
-          className: 'region',
+          className: regionClassName,
           style: {
             position: 'absolute',
             boxSizing: 'border-box',
@@ -3464,7 +3465,7 @@ class HighlightComponent {
 
       if (endPixelLeft > 0) {
         children.push($.div({
-          className: 'region',
+          className: regionClassName,
           style: {
             position: 'absolute',
             boxSizing: 'border-box',
