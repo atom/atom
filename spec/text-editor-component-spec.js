@@ -1120,7 +1120,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
 
       {
-        const regions = element.querySelectorAll('.highlight.a .region')
+        const regions = element.querySelectorAll('.highlight.a .region.a')
         expect(regions.length).toBe(1)
         const regionRect = regions[0].getBoundingClientRect()
         expect(regionRect.top).toBe(lineNodeForScreenRow(component, 1).getBoundingClientRect().top)
@@ -1132,7 +1132,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
 
       {
-        const regions = element.querySelectorAll('.highlight.a .region')
+        const regions = element.querySelectorAll('.highlight.a .region.a')
         expect(regions.length).toBe(1)
         const regionRect = regions[0].getBoundingClientRect()
         expect(regionRect.top).toBe(lineNodeForScreenRow(component, 1).getBoundingClientRect().top)
@@ -1154,7 +1154,7 @@ describe('TextEditorComponent', () => {
         // across 2 different tiles
         expect(element.querySelectorAll('.highlight.a').length).toBe(2)
 
-        const regions = element.querySelectorAll('.highlight.a .region')
+        const regions = element.querySelectorAll('.highlight.a .region.a')
         expect(regions.length).toBe(2)
         const region0Rect = regions[0].getBoundingClientRect()
         expect(region0Rect.top).toBe(lineNodeForScreenRow(component, 2).getBoundingClientRect().top)
@@ -1176,7 +1176,7 @@ describe('TextEditorComponent', () => {
         // Still split across 2 tiles
         expect(element.querySelectorAll('.highlight.a').length).toBe(2)
 
-        const regions = element.querySelectorAll('.highlight.a .region')
+        const regions = element.querySelectorAll('.highlight.a .region.a')
         expect(regions.length).toBe(4) // Each tile renders its
 
         const region0Rect = regions[0].getBoundingClientRect()
