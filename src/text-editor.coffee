@@ -104,6 +104,17 @@ class TextEditor extends Model
   Object.defineProperty @prototype, "element",
     get: -> @getElement()
 
+  Object.defineProperty @prototype, "editorElement",
+    get: ->
+      Grim.deprecate("""
+        `TextEditor.prototype.editorElement` has always been private, but now
+        it is gone. Reading the `editorElement` property still returns a
+        reference to the editor element but this field will be removed in a
+        later version of Atom, so we recommend using the `element` property instead.
+      """)
+
+      @getElement()
+
   Object.defineProperty(@prototype, 'displayBuffer', get: ->
     Grim.deprecate("""
       `TextEditor.prototype.displayBuffer` has always been private, but now
