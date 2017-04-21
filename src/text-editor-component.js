@@ -19,7 +19,6 @@ const KOREAN_CHARACTER = '세'
 const NBSP_CHARACTER = '\u00a0'
 const ZERO_WIDTH_NBSP_CHARACTER = '\ufeff'
 const MOUSE_DRAG_AUTOSCROLL_MARGIN = 40
-const MOUSE_WHEEL_SCROLL_SENSITIVITY = 0.8
 const CURSOR_BLINK_RESUME_DELAY = 300
 const CURSOR_BLINK_PERIOD = 800
 
@@ -1361,9 +1360,17 @@ class TextEditorComponent {
   }
 
   didMouseWheel (event) {
+    const scrollSensitivity = this.props.mouseWheelScrollSensitivity || 0.8
+
     let {deltaX, deltaY} = event
-    deltaX = deltaX * MOUSE_WHEEL_SCROLL_SENSITIVITY
-    deltaY = deltaY * MOUSE_WHEEL_SCROLL_SENSITIVITY
+    deltaX = deltaX * scrollSensitivity
+    deltaY = deltaY * scrollSensitivity
+
+    if (this.getPlatform() !== 'darwin' && event.shiftKey) {
+      let temp = deltaX
+      deltaX = deltaY
+      deltaY = temp
+    }
 
     const scrollPositionChanged =
       this.setScrollLeft(this.getScrollLeft() + deltaX) ||
@@ -1514,12 +1521,12 @@ class TextEditorComponent {
   }
 
   didMouseDownOnContent (event) {
-    const {model, platform} = this.props
+    const {model} = this.props
     const {target, button, detail, ctrlKey, shiftKey, metaKey} = event
 
     // Only handle mousedown events for left mouse button (or the middle mouse
     // button on Linux where it pastes the selection clipboard).
-    if (!(button === 0 || (platform === 'linux' && button === 1))) return
+    if (!(button === 0 || (this.getPlatform() === 'linux' && button === 1))) return
 
     const screenPosition = this.screenPositionForMouseEvent(event)
 
@@ -1530,14 +1537,14 @@ class TextEditorComponent {
     }
 
     // Handle middle mouse button only on Linux (paste clipboard)
-    if (platform === 'linux' && button === 1) {
+    if (this.getPlatform() === 'linux' && button === 1) {
       const selection = clipboard.readText('selection')
       model.setCursorScreenPosition(screenPosition, {autoscroll: false})
       model.insertText(selection)
       return
     }
 
-    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
+    const addOrRemoveSelection = metaKey || (ctrlKey && this.getPlatform() !== 'darwin')
 
     switch (detail) {
       case 1:
@@ -1582,7 +1589,7 @@ class TextEditorComponent {
   }
 
   didMouseDownOnLineNumberGutter (event) {
-    const {model, platform} = this.props
+    const {model} = this.props
     const {target, button, ctrlKey, shiftKey, metaKey} = event
 
     // Only handle mousedown events for left mouse button
@@ -1596,7 +1603,7 @@ class TextEditorComponent {
       return
     }
 
-    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
+    const addOrRemoveSelection = metaKey || (ctrlKey && this.getPlatform() !== 'darwin')
     const endBufferRow = model.bufferPositionForScreenPosition([clickedScreenRow, Infinity]).row
     const clickedLineBufferRange = Range(Point(startBufferRow, 0), Point(endBufferRow + 1, 0))
 
@@ -2181,9 +2188,9 @@ class TextEditorComponent {
   }
 
   didChangeSelectionRange () {
-    const {model, platform} = this.props
+    const {model} = this.props
 
-    if (platform === 'linux') {
+    if (this.getPlatform() === 'linux') {
       if (this.selectionClipboardImmediateId) {
         clearImmediate(this.selectionClipboardImmediateId)
       }
@@ -2567,6 +2574,10 @@ class TextEditorComponent {
 
   isInputEnabled (inputEnabled) {
     return this.props.inputEnabled != null ? this.props.inputEnabled : true
+  }
+
+  getPlatform () {
+    return this.props.platform || process.platform
   }
 }
 
