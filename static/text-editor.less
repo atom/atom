@@ -5,17 +5,18 @@
 atom-text-editor {
   display: flex;
   font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+  cursor: text;
 
   .gutter-container {
     width: min-content;
     background-color: inherit;
+    cursor: default;
   }
 
   .gutter {
     overflow: hidden;
     z-index: 0;
     text-align: right;
-    cursor: default;
     min-width: 1em;
     box-sizing: border-box;
     background-color: inherit;
