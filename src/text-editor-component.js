@@ -1,7 +1,6 @@
 /* global ResizeObserver */
 
 const etch = require('etch')
-const {CompositeDisposable} = require('event-kit')
 const {Point, Range} = require('text-buffer')
 const LineTopIndex = require('line-top-index')
 const TextEditor = require('./text-editor')
@@ -1175,7 +1174,7 @@ class TextEditorComponent {
 
     this.decorationsToMeasure.cursors.forEach((cursor) => {
       const {screenPosition, className, style} = cursor
-      const {row, column} = cursor.screenPosition
+      const {row, column} = screenPosition
 
       const pixelTop = this.pixelPositionAfterBlocksForRow(row)
       const pixelLeft = this.pixelLeftForRowAndColumn(row, column)
@@ -2713,7 +2712,8 @@ class LineNumberGutterComponent {
           number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
 
           const lineNumberProps = {
-            key, className,
+            key,
+            className,
             style: {width: width + 'px'},
             dataset: {bufferRow}
           }
