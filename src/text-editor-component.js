@@ -439,7 +439,6 @@ class TextEditorComponent {
     if (!this.measuredContent || !this.gutterContainerVnode) {
       const innerStyle = {
         willChange: 'transform',
-        backgroundColor: 'inherit',
         display: 'flex'
       }
 
@@ -638,8 +637,7 @@ class TextEditorComponent {
         contain: 'strict',
         overflow: 'hidden',
         width: this.getScrollWidth() + 'px',
-        height: this.getScrollHeight() + 'px',
-        backgroundColor: 'inherit'
+        height: this.getScrollHeight() + 'px'
       }
     }, tileNodes)
   }
