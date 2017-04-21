@@ -142,8 +142,25 @@ class TextEditorElement extends HTMLElement {
   getBaseCharacterWidth () {
     return this.getComponent().getBaseCharacterWidth()
   }
+
   getMaxScrollTop () {
     return this.getComponent().getMaxScrollTop()
+  }
+
+  getScrollHeight () {
+    return this.getComponent().getScrollHeight()
+  }
+
+  getScrollWidth () {
+    return this.getComponent().getScrollWidth()
+  }
+
+  getVerticalScrollbarWidth () {
+    return this.getComponent().getVerticalScrollbarWidth()
+  }
+
+  getHorizontalScrollbarHeight () {
+    return this.getComponent().getHorizontalScrollbarHeight()
   }
 
   getScrollTop () {
@@ -156,6 +173,14 @@ class TextEditorElement extends HTMLElement {
     component.scheduleUpdate()
   }
 
+  getScrollBottom () {
+    return this.getComponent().getScrollBottom()
+  }
+
+  setScrollBottom (scrollBottom) {
+    return this.getComponent().setScrollBottom(scrollBottom)
+  }
+
   getScrollLeft () {
     return this.getComponent().getScrollLeft()
   }
@@ -164,6 +189,24 @@ class TextEditorElement extends HTMLElement {
     const component = this.getComponent()
     component.setScrollLeft(scrollLeft)
     component.scheduleUpdate()
+  }
+
+  getScrollRight () {
+    return this.getComponent().getScrollRight()
+  }
+
+  setScrollRight (scrollRight) {
+    return this.getComponent().setScrollRight(scrollRight)
+  }
+
+  // Essential: Scrolls the editor to the top.
+  scrollToTop () {
+    this.setScrollTop(0)
+  }
+
+  // Essential: Scrolls the editor to the bottom.
+  scrollToBottom () {
+    this.setScrollTop(Infinity)
   }
 
   hasFocus () {
