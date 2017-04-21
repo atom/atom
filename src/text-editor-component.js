@@ -339,6 +339,14 @@ class TextEditorComponent {
     this.scrollTopPending = false
     this.scrollLeftPending = false
     if (this.remeasureScrollbars) {
+      // Flush stored scroll positions to the vertical and the horizontal
+      // scrollbars. This is because they have just been destroyed and recreated
+      // as a result of their remeasurement, but we could not assign the scroll
+      // top while they were initialized because they were not attached to the
+      // DOM yet.
+      this.refs.verticalScrollbar.flushScrollPosition()
+      this.refs.horizontalScrollbar.flushScrollPosition()
+
       this.measureScrollbarDimensions()
       this.remeasureScrollbars = false
       etch.updateSync(this)
@@ -2585,31 +2593,21 @@ class DummyScrollbarComponent {
   constructor (props) {
     this.props = props
     etch.initialize(this)
-    if (this.props.orientation === 'horizontal') {
-      this.element.scrollLeft = this.props.scrollLeft
-    } else {
-      this.element.scrollTop = this.props.scrollTop
-    }
   }
 
   update (newProps) {
     const oldProps = this.props
     this.props = newProps
     etch.updateSync(this)
-    if (this.props.orientation === 'horizontal') {
-      if (newProps.scrollLeft !== oldProps.scrollLeft) {
-        this.element.scrollLeft = this.props.scrollLeft
-      }
-    } else {
-      if (newProps.scrollTop !== oldProps.scrollTop) {
-        this.element.scrollTop = this.props.scrollTop
-      }
-    }
+
+    const shouldFlushScrollPosition = (
+      newProps.scrollTop !== oldProps.scrollTop ||
+      newProps.scrollLeft !== oldProps.scrollLeft
+    )
+    if (shouldFlushScrollPosition) this.flushScrollPosition()
   }
 
-  // Scroll position must be updated after the inner element is updated to
-  // ensure the element has an adequate scrollHeight/scrollWidth
-  updateScrollPosition () {
+  flushScrollPosition () {
     if (this.props.orientation === 'horizontal') {
       this.element.scrollLeft = this.props.scrollLeft
     } else {
