@@ -1727,15 +1727,19 @@ class TextEditorComponent {
     if (scrolled) this.updateSync()
   }
 
-  screenPositionForMouseEvent ({clientX, clientY}) {
+  screenPositionForMouseEvent (event) {
+    return this.screenPositionForPixelPosition(this.pixelPositionForMouseEvent(event))
+  }
+
+  pixelPositionForMouseEvent ({clientX, clientY}) {
     const scrollContainerRect = this.refs.scrollContainer.getBoundingClientRect()
     clientX = Math.min(scrollContainerRect.right, Math.max(scrollContainerRect.left, clientX))
     clientY = Math.min(scrollContainerRect.bottom, Math.max(scrollContainerRect.top, clientY))
     const linesRect = this.refs.lineTiles.getBoundingClientRect()
-    return this.screenPositionForPixelPosition({
+    return {
       top: clientY - linesRect.top,
       left: clientX - linesRect.left
-    })
+    }
   }
 
   didUpdateSelections () {
