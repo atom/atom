@@ -2721,13 +2721,16 @@ class LineNumberGutterComponent {
           let number = softWrapped ? '•' : bufferRow + 1
           number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
 
-          let lineNumberProps = {key, className, dataset: {bufferRow}}
-
+          const lineNumberProps = {
+            key, className,
+            style: {width: width + 'px'},
+            dataset: {bufferRow}
+          }
           if (row === 0 || i > 0) {
             let currentRowTop = parentComponent.pixelPositionAfterBlocksForRow(row)
             let previousRowBottom = parentComponent.pixelPositionAfterBlocksForRow(row - 1) + lineHeight
             if (currentRowTop > previousRowBottom) {
-              lineNumberProps.style = {marginTop: (currentRowTop - previousRowBottom) + 'px'}
+              lineNumberProps.style.marginTop = (currentRowTop - previousRowBottom) + 'px'
             }
           }
 

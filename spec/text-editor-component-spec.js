@@ -123,13 +123,23 @@ describe('TextEditorComponent', () => {
 
       for (const child of lineNumberGutterElement.children) {
         expect(child.offsetWidth).toBe(lineNumberGutterElement.offsetWidth)
+        if (!child.classList.contains('line-number')) {
+          for (const lineNumberElement of child.children) {
+            expect(lineNumberElement.offsetWidth).toBe(lineNumberGutterElement.offsetWidth)
+          }
+        }
       }
 
-      editor.setText('\n'.repeat(99))
+      editor.setText('x\n'.repeat(99))
       await component.getNextUpdatePromise()
       expect(lineNumberGutterElement.offsetHeight).toBe(component.getScrollHeight())
       for (const child of lineNumberGutterElement.children) {
         expect(child.offsetWidth).toBe(lineNumberGutterElement.offsetWidth)
+        if (!child.classList.contains('line-number')) {
+          for (const lineNumberElement of child.children) {
+            expect(lineNumberElement.offsetWidth).toBe(lineNumberGutterElement.offsetWidth)
+          }
+        }
       }
     })
 
