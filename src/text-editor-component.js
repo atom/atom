@@ -1182,8 +1182,8 @@ class TextEditorComponent {
 
   didShow () {
     if (!this.visible && this.isVisible()) {
-      this.visible = true
       if (!this.hasInitialMeasurements) this.measureDimensions()
+      this.visible = true
       this.props.model.setVisible(true)
       this.updateSync()
       this.flushPendingLogicalScrollPosition()
