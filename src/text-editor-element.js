@@ -255,8 +255,6 @@ class TextEditorElement extends HTMLElement {
     const end = this.pixelPositionForScreenPosition(range.end)
     const lineHeight = this.getComponent().getLineHeight()
 
-    console.log(start, end);
-
     return {
       top: start.top,
       left: start.left,
