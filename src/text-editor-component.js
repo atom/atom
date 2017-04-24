@@ -2962,15 +2962,11 @@ class CustomGutterDecorationComponent {
 class LinesTileComponent {
   constructor (props) {
     this.props = props
-    this.linesVnode = null
     etch.initialize(this)
   }
 
   update (newProps) {
     if (this.shouldUpdate(newProps)) {
-      if (newProps.width !== this.props.width) {
-        this.linesVnode = null
-      }
       this.props = newProps
       etch.updateSync(this)
     }
@@ -3033,21 +3029,17 @@ class LinesTileComponent {
       lineNodesByScreenLineId, textNodesByScreenLineId
     } = this.props
 
-    if (!measuredContent || !this.linesVnode) {
-      this.linesVnode = $(LinesComponent, {
-        height,
-        width,
-        tileStartRow,
-        screenLines,
-        lineDecorations,
-        blockDecorations,
-        displayLayer,
-        lineNodesByScreenLineId,
-        textNodesByScreenLineId
-      })
-    }
-
-    return this.linesVnode
+    return $(LinesComponent, {
+      height,
+      width,
+      tileStartRow,
+      screenLines,
+      lineDecorations,
+      blockDecorations,
+      displayLayer,
+      lineNodesByScreenLineId,
+      textNodesByScreenLineId
+    })
   }
 
   shouldUpdate (newProps) {
