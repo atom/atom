@@ -327,6 +327,7 @@ class TextEditorComponent {
     this.queryDecorationsToRender()
     this.shouldRenderDummyScrollbars = !this.remeasureScrollbars
     etch.updateSync(this)
+    this.updateClassList()
     this.shouldRenderDummyScrollbars = true
     this.didMeasureVisibleBlockDecoration = false
   }
@@ -403,17 +404,8 @@ class TextEditorComponent {
     }
 
     let attributes = null
-    let className = this.focused ? 'editor is-focused' : 'editor'
     if (model.isMini()) {
       attributes = {mini: ''}
-      className = className + ' mini'
-    }
-
-    for (var i = 0; i < model.selections.length; i++) {
-      if (!model.selections[i].isEmpty()) {
-        className += ' has-selection'
-        break
-      }
     }
 
     const dataset = {encoding: model.getEncoding()}
@@ -424,7 +416,7 @@ class TextEditorComponent {
 
     return $('atom-text-editor',
       {
-        className,
+        // See this.updateClassList() for construction of the class name
         style,
         attributes,
         dataset,
@@ -747,6 +739,41 @@ class TextEditorComponent {
         overlayProps
       ))
     )
+  }
+
+  // Imperatively manipulate the class list of the root element to avoid
+  // clearing classes assigned by package authors.
+  updateClassList () {
+    const {model} = this.props
+
+    const oldClassList = this.classList
+    const newClassList = ['editor']
+    if (this.focused) newClassList.push('is-focused')
+    if (model.isMini()) newClassList.push('mini')
+    for (var i = 0; i < model.selections.length; i++) {
+      if (!model.selections[i].isEmpty()) {
+        newClassList.push('has-selection')
+        break
+      }
+    }
+
+    if (oldClassList) {
+      for (let i = 0; i < oldClassList.length; i++) {
+        const className = oldClassList[i]
+        if (!newClassList.includes(className)) {
+          this.element.classList.remove(className)
+        }
+      }
+    }
+
+    for (let i = 0; i < newClassList.length; i++) {
+      const className = newClassList[i]
+      if (!oldClassList || !oldClassList.includes(className)) {
+        this.element.classList.add(className)
+      }
+    }
+
+    this.classList = newClassList
   }
 
   queryScreenLinesToRender () {
