@@ -612,6 +612,7 @@ class TextEditorComponent {
       didCompositionStart: this.didCompositionStart,
       didCompositionUpdate: this.didCompositionUpdate,
       didCompositionEnd: this.didCompositionEnd,
+      measuredContent: this.measuredContent,
       lineHeight: this.getLineHeight(),
       scrollHeight: this.getScrollHeight(),
       scrollWidth: this.getScrollWidth(),
@@ -2909,8 +2910,10 @@ class CursorsAndInputComponent {
   }
 
   update (props) {
-    this.props = props
-    etch.updateSync(this)
+    if (props.measuredContent) {
+      this.props = props
+      etch.updateSync(this)
+    }
   }
 
   updateCursorBlinkSync (cursorsBlinkedOff) {
