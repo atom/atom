@@ -96,6 +96,7 @@ class TextEditorComponent {
       horizontalScrollbarHeight: 0,
       longestLineWidth: 0
     }
+    this.derivedDimensionsCache = {}
     this.visible = false
     this.cursorsBlinking = false
     this.cursorsBlinkedOff = false
@@ -247,6 +248,7 @@ class TextEditorComponent {
       this.updateSyncAfterMeasuringContent()
     }
 
+    this.derivedDimensionsCache = {}
     if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
   }
 
@@ -316,6 +318,7 @@ class TextEditorComponent {
   }
 
   updateSyncBeforeMeasuringContent () {
+    this.derivedDimensionsCache = {}
     if (this.pendingAutoscroll) this.autoscrollVertically()
     this.populateVisibleRowRange()
     this.queryScreenLinesToRender()
@@ -342,6 +345,7 @@ class TextEditorComponent {
     this.updateAbsolutePositionedDecorations()
 
     if (this.pendingAutoscroll) {
+      this.derivedDimensionsCache = {}
       this.autoscrollHorizontally()
       if (!wasHorizontalScrollbarVisible && this.isHorizontalScrollbarVisible()) {
         this.autoscrollVertically()
@@ -351,6 +355,7 @@ class TextEditorComponent {
   }
 
   updateSyncAfterMeasuringContent () {
+    this.derivedDimensionsCache = {}
     etch.updateSync(this)
 
     this.currentFrameLineNumberGutterProps = null
@@ -2298,46 +2303,70 @@ class TextEditorComponent {
     return (startRow / this.getRowsPerTile()) % this.getRenderedTileCount()
   }
 
-  getFirstTileStartRow () {
-    return this.tileStartRowForRow(this.getFirstVisibleRow())
-  }
-
   getRenderedStartRow () {
-    return this.getFirstTileStartRow()
+    if (this.derivedDimensionsCache.renderedStartRow == null) {
+      this.derivedDimensionsCache.renderedStartRow = this.tileStartRowForRow(this.getFirstVisibleRow())
+    }
+
+    return this.derivedDimensionsCache.renderedStartRow
   }
 
   getRenderedEndRow () {
-    return Math.min(
-      this.props.model.getApproximateScreenLineCount(),
-      this.getFirstTileStartRow() + this.getVisibleTileCount() * this.getRowsPerTile()
-    )
+    if (this.derivedDimensionsCache.renderedEndRow == null) {
+      this.derivedDimensionsCache.renderedEndRow = Math.min(
+        this.props.model.getApproximateScreenLineCount(),
+        this.getRenderedStartRow() + this.getVisibleTileCount() * this.getRowsPerTile()
+      )
+    }
+
+    return this.derivedDimensionsCache.renderedEndRow
   }
 
   getRenderedRowCount () {
-    return Math.max(0, this.getRenderedEndRow() - this.getRenderedStartRow())
+    if (this.derivedDimensionsCache.renderedRowCount == null) {
+      this.derivedDimensionsCache.renderedRowCount = Math.max(0, this.getRenderedEndRow() - this.getRenderedStartRow())
+    }
+
+    return this.derivedDimensionsCache.renderedRowCount
   }
 
   getRenderedTileCount () {
-    return Math.ceil(this.getRenderedRowCount() / this.getRowsPerTile())
+    if (this.derivedDimensionsCache.renderedTileCount == null) {
+      this.derivedDimensionsCache.renderedTileCount = Math.ceil(this.getRenderedRowCount() / this.getRowsPerTile())
+    }
+
+    return this.derivedDimensionsCache.renderedTileCount
   }
 
   getFirstVisibleRow () {
-    return this.rowForPixelPosition(this.getScrollTop())
+    if (this.derivedDimensionsCache.firstVisibleRow == null) {
+      this.derivedDimensionsCache.firstVisibleRow = this.rowForPixelPosition(this.getScrollTop())
+    }
+
+    return this.derivedDimensionsCache.firstVisibleRow
   }
 
   getLastVisibleRow () {
-    return Math.min(
-      this.props.model.getApproximateScreenLineCount() - 1,
-      this.rowForPixelPosition(this.getScrollBottom())
-    )
+    if (this.derivedDimensionsCache.lastVisibleRow == null) {
+      this.derivedDimensionsCache.lastVisibleRow = Math.min(
+        this.props.model.getApproximateScreenLineCount() - 1,
+        this.rowForPixelPosition(this.getScrollBottom())
+      )
+    }
+
+    return this.derivedDimensionsCache.lastVisibleRow
+  }
+
+  getVisibleTileCount () {
+    if (this.derivedDimensionsCache.visibleTileCount == null) {
+      this.derivedDimensionsCache.visibleTileCount = Math.floor((this.getLastVisibleRow() - this.getFirstVisibleRow()) / this.getRowsPerTile()) + 2
+    }
+
+    return this.derivedDimensionsCache.visibleTileCount
   }
 
   getFirstVisibleColumn () {
     return Math.floor(this.getScrollLeft() / this.getBaseCharacterWidth())
-  }
-
-  getVisibleTileCount () {
-    return Math.floor((this.getLastVisibleRow() - this.getFirstVisibleRow()) / this.getRowsPerTile()) + 2
   }
 
   getScrollTop () {
@@ -2348,6 +2377,7 @@ class TextEditorComponent {
   setScrollTop (scrollTop) {
     scrollTop = Math.round(Math.max(0, Math.min(this.getMaxScrollTop(), scrollTop)))
     if (scrollTop !== this.scrollTop) {
+      this.derivedDimensionsCache = {}
       this.scrollTopPending = true
       this.scrollTop = scrollTop
       this.element.emitter.emit('did-change-scroll-top', scrollTop)
@@ -2442,7 +2472,7 @@ class TextEditorComponent {
   // Ensure the spatial index is populated with rows that are currently
   // visible so we *at least* get the longest row in the visible range.
   populateVisibleRowRange () {
-    const endRow = this.getFirstTileStartRow() + this.getVisibleTileCount() * this.getRowsPerTile()
+    const endRow = this.getRenderedStartRow() + this.getVisibleTileCount() * this.getRowsPerTile()
     this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, endRow)
   }
 
