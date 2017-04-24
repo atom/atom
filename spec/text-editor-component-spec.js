@@ -118,7 +118,7 @@ describe('TextEditorComponent', () => {
     it('gives the line number tiles an explicit width and height so their layout can be strictly contained', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 3})
 
-      const lineNumberGutterElement = component.refs.lineNumberGutter.element
+      const lineNumberGutterElement = component.refs.gutterContainer.refs.lineNumberGutter.element
       expect(lineNumberGutterElement.offsetHeight).toBe(component.getScrollHeight())
 
       for (const child of lineNumberGutterElement.children) {
@@ -1421,7 +1421,7 @@ describe('TextEditorComponent', () => {
       editor.addGutter({name: 'c', priority: 0})
 
       await component.getNextUpdatePromise()
-      const gutters = component.refs.gutterContainer.querySelectorAll('.gutter')
+      const gutters = component.refs.gutterContainer.element.querySelectorAll('.gutter')
       expect(Array.from(gutters).map((g) => g.getAttribute('gutter-name'))).toEqual([
         'a', 'b', 'c', 'line-number', 'd', 'e'
       ])
@@ -1432,7 +1432,7 @@ describe('TextEditorComponent', () => {
       const {scrollContainer, gutterContainer} = component.refs
 
       function checkScrollContainerLeft () {
-        expect(scrollContainer.getBoundingClientRect().left).toBe(Math.round(gutterContainer.getBoundingClientRect().right))
+        expect(scrollContainer.getBoundingClientRect().left).toBe(Math.round(gutterContainer.element.getBoundingClientRect().right))
       }
 
       checkScrollContainerLeft()
@@ -3175,7 +3175,7 @@ function clientPositionForCharacter (component, row, column) {
 }
 
 function lineNumberNodeForScreenRow (component, row) {
-  const gutterElement = component.refs.lineNumberGutter.element
+  const gutterElement = component.refs.gutterContainer.refs.lineNumberGutter.element
   const tileStartRow = component.tileStartRowForRow(row)
   const tileIndex = component.tileIndexForTileStartRow(tileStartRow)
   return gutterElement.children[tileIndex + 1].children[row - tileStartRow]
