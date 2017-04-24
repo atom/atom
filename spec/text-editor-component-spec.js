@@ -2915,6 +2915,14 @@ describe('TextEditorComponent', () => {
       ])
     })
 
+    it('does not throw an exception on attachment when setting the soft-wrap column', () => {
+      const {component, element, editor} = buildComponent({width: 435, attach: false, updatedSynchronously: true})
+      editor.setSoftWrapped(true)
+      spyOn(window, 'onerror').andCallThrough()
+      jasmine.attachToDOM(element) // should not throw an exception
+      expect(window.onerror).not.toHaveBeenCalled()
+    })
+
     it('updates synchronously when creating a component via TextEditor and TextEditorElement.prototype.updatedSynchronously is true', () => {
       TextEditorElement.prototype.setUpdatedSynchronously(true)
       const editor = buildEditor()
@@ -3102,7 +3110,7 @@ function buildComponent (params = {}) {
   const component = new TextEditorComponent({
     model: editor,
     rowsPerTile: params.rowsPerTile,
-    updatedSynchronously: false,
+    updatedSynchronously: params.updatedSynchronously || false,
     platform: params.platform,
     mouseWheelScrollSensitivity: params.mouseWheelScrollSensitivity
   })
