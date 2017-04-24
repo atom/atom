@@ -238,9 +238,9 @@ describe('TextEditorElement', () => {
   )
 
   describe('::getDefaultCharacterWidth', () => {
-    it('returns null before the element is attached', () => {
+    it('returns 0 before the element is attached', () => {
       const element = buildTextEditorElement({attach: false})
-      expect(element.getDefaultCharacterWidth()).toBeNull()
+      expect(element.getDefaultCharacterWidth()).toBe(0)
     })
 
     it('returns the width of a character in the root scope', () => {
