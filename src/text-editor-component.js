@@ -453,7 +453,20 @@ class TextEditorComponent {
       return $(GutterContainerComponent, {
         ref: 'gutterContainer',
         key: 'gutterContainer',
-        rootComponent: this
+        rootComponent: this,
+        hasInitialMeasurements: this.hasInitialMeasurements,
+        scrollTop: this.getScrollTop(),
+        scrollHeight: this.getScrollHeight(),
+        lineNumberGutterWidth: this.getLineNumberGutterWidth(),
+        lineHeight: this.getLineHeight(),
+        renderedStartRow: this.getRenderedStartRow(),
+        renderedEndRow: this.getRenderedEndRow(),
+        rowsPerTile: this.getRowsPerTile(),
+        guttersToRender: this.guttersToRender,
+        decorationsToRender: this.decorationsToRender,
+        isLineNumberGutterVisible: this.props.model.isLineNumberGutterVisible(),
+        lineNumbersToRender: this.lineNumbersToRender,
+        didMeasureVisibleBlockDecoration: this.didMeasureVisibleBlockDecoration
       })
     }
   }
@@ -2621,17 +2634,15 @@ class GutterContainerComponent {
   }
 
   render () {
-    const {rootComponent} = this.props
+    const {hasInitialMeasurements, scrollTop, scrollHeight, guttersToRender, decorationsToRender} = this.props
 
     const innerStyle = {
       willChange: 'transform',
       display: 'flex'
     }
 
-    let scrollHeight
-    if (rootComponent.measurements) {
-      innerStyle.transform = `translateY(${-rootComponent.getScrollTop()}px)`
-      scrollHeight = rootComponent.getScrollHeight()
+    if (hasInitialMeasurements) {
+      innerStyle.transform = `translateY(${-scrollTop}px)`
     }
 
     return $.div(
@@ -2646,7 +2657,7 @@ class GutterContainerComponent {
         }
       },
       $.div({style: innerStyle},
-        rootComponent.guttersToRender.map((gutter) => {
+        guttersToRender.map((gutter) => {
           if (gutter.name === 'line-number') {
             return this.renderLineNumberGutter(gutter)
           } else {
@@ -2656,7 +2667,7 @@ class GutterContainerComponent {
               name: gutter.name,
               visible: gutter.isVisible(),
               height: scrollHeight,
-              decorations: rootComponent.decorationsToRender.customGutter.get(gutter.name)
+              decorations: decorationsToRender.customGutter.get(gutter.name)
             })
           }
         })
@@ -2665,36 +2676,40 @@ class GutterContainerComponent {
   }
 
   renderLineNumberGutter (gutter) {
-    const {rootComponent} = this.props
+    const {
+      rootComponent, isLineNumberGutterVisible, hasInitialMeasurements, lineNumbersToRender,
+      renderedStartRow, renderedEndRow, rowsPerTile, decorationsToRender, didMeasureVisibleBlockDecoration,
+      scrollHeight, lineNumberGutterWidth, lineHeight
+    } = this.props
 
-    if (!rootComponent.props.model.isLineNumberGutterVisible()) return null
+    if (!isLineNumberGutterVisible) return null
 
-    if (rootComponent.hasInitialMeasurements) {
-      const {maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags} = rootComponent.lineNumbersToRender
+    if (hasInitialMeasurements) {
+      const {maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags} = lineNumbersToRender
       return $(LineNumberGutterComponent, {
         ref: 'lineNumberGutter',
         element: gutter.getElement(),
         rootComponent: rootComponent,
-        startRow: rootComponent.getRenderedStartRow(),
-        endRow: rootComponent.getRenderedEndRow(),
-        rowsPerTile: rootComponent.getRowsPerTile(),
+        startRow: renderedStartRow,
+        endRow: renderedEndRow,
+        rowsPerTile: rowsPerTile,
         maxDigits: maxDigits,
         keys: keys,
         bufferRows: bufferRows,
         softWrappedFlags: softWrappedFlags,
         foldableFlags: foldableFlags,
-        decorations: rootComponent.decorationsToRender.lineNumbers,
-        blockDecorations: rootComponent.decorationsToRender.blocks,
-        didMeasureVisibleBlockDecoration: rootComponent.didMeasureVisibleBlockDecoration,
-        height: rootComponent.getScrollHeight(),
-        width: rootComponent.getLineNumberGutterWidth(),
-        lineHeight: rootComponent.getLineHeight()
+        decorations: decorationsToRender.lineNumbers,
+        blockDecorations: decorationsToRender.blocks,
+        didMeasureVisibleBlockDecoration: didMeasureVisibleBlockDecoration,
+        height: scrollHeight,
+        width: lineNumberGutterWidth,
+        lineHeight: lineHeight
       })
     } else {
       return $(LineNumberGutterComponent, {
         ref: 'lineNumberGutter',
         element: gutter.getElement(),
-        maxDigits: rootComponent.lineNumbersToRender.maxDigits
+        maxDigits: lineNumbersToRender.maxDigits
       })
     }
   }
