@@ -3084,6 +3084,7 @@ class LinesTileComponent {
     } = this.props
 
     return $(LinesComponent, {
+      measuredContent,
       height,
       width,
       tileStartRow,
@@ -3195,7 +3196,7 @@ class LinesComponent {
   }
 
   update (props) {
-    var {width, height} = props
+    var {width, height, measuredContent} = props
 
     if (this.props.width !== width) {
       this.element.style.width = width + 'px'
@@ -3205,8 +3206,10 @@ class LinesComponent {
       this.element.style.height = height + 'px'
     }
 
-    this.updateLines(props)
-    this.updateBlockDecorations(props)
+    if (!measuredContent) {
+      this.updateLines(props)
+      this.updateBlockDecorations(props)
+    }
 
     this.props = props
   }
