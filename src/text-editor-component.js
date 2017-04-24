@@ -450,7 +450,7 @@ class TextEditorComponent {
     if (this.props.model.isMini()) {
       return null
     } else {
-      return $(GutterContainer, {
+      return $(GutterContainerComponent, {
         ref: 'gutterContainer',
         key: 'gutterContainer',
         rootComponent: this
@@ -2609,7 +2609,7 @@ class DummyScrollbarComponent {
   }
 }
 
-class GutterContainer {
+class GutterContainerComponent {
   constructor (props) {
     this.props = props
     etch.initialize(this)
