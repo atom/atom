@@ -147,8 +147,6 @@ class TextEditorComponent {
     this.pendingScrollLeftColumn = this.props.initialScrollLeftColumn
 
     this.measuredContent = false
-    this.placeholderTextVnode = null
-
     this.queryGuttersToRender()
     this.queryMaxLineNumberDigits()
     this.observeBlockDecorations()
@@ -625,17 +623,14 @@ class TextEditorComponent {
   }
 
   renderPlaceholderText () {
-    if (!this.measuredContent) {
-      this.placeholderTextVnode = null
-      const {model} = this.props
-      if (model.isEmpty()) {
-        const placeholderText = model.getPlaceholderText()
-        if (placeholderText != null) {
-          this.placeholderTextVnode = $.div({className: 'placeholder-text'}, placeholderText)
-        }
+    const {model} = this.props
+    if (model.isEmpty()) {
+      const placeholderText = model.getPlaceholderText()
+      if (placeholderText != null) {
+        return $.div({className: 'placeholder-text'}, placeholderText)
       }
     }
-    return this.placeholderTextVnode
+    return null
   }
 
   renderCharacterMeasurementLine () {
