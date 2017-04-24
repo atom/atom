@@ -1609,33 +1609,7 @@ describe('TextEditorComponent', () => {
       expect(element.contains(item5)).toBe(false)
       expect(element.contains(item6)).toBe(false)
 
-      // scroll past the first tile
-      await setScrollTop(component, 3 * component.getLineHeight() + getElementHeight(item1) + getElementHeight(item2))
-      expect(component.getRenderedStartRow()).toBe(3)
-      expect(component.getRenderedEndRow()).toBe(9)
-      expect(component.getScrollHeight()).toBe(
-        editor.getScreenLineCount() * component.getLineHeight() +
-        getElementHeight(item1) + getElementHeight(item2) + getElementHeight(item3) +
-        getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
-      )
-      assertTilesAreSizedAndPositionedCorrectly(component, [
-        {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item3)},
-        {tileStartRow: 6, height: 3 * component.getLineHeight() + getElementHeight(item4) + getElementHeight(item5)}
-      ])
-      assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
-      expect(element.contains(item1)).toBe(false)
-      expect(element.contains(item2)).toBe(false)
-      expect(item3.previousSibling).toBe(lineNodeForScreenRow(component, 3))
-      expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 4))
-      expect(item4.previousSibling).toBe(lineNodeForScreenRow(component, 6))
-      expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
-      expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
-      expect(item5.nextSibling).toBe(lineNodeForScreenRow(component, 8))
-      expect(element.contains(item6)).toBe(false)
-
       // destroy decoration1
-      await setScrollTop(component, 0)
       decoration1.destroy()
       await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
@@ -1710,6 +1684,30 @@ describe('TextEditorComponent', () => {
       expect(element.contains(item4)).toBe(false)
       expect(element.contains(item5)).toBe(false)
       expect(element.contains(item6)).toBe(false)
+
+      // scroll past the first tile
+      await setScrollTop(component, 3 * component.getLineHeight() + getElementHeight(item3))
+      expect(component.getRenderedStartRow()).toBe(3)
+      expect(component.getRenderedEndRow()).toBe(9)
+      expect(component.getScrollHeight()).toBe(
+        editor.getScreenLineCount() * component.getLineHeight() +
+        getElementHeight(item2) + getElementHeight(item3) +
+        getElementHeight(item4) + getElementHeight(item5) + getElementHeight(item6)
+      )
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item2)},
+        {tileStartRow: 6, height: 3 * component.getLineHeight()}
+      ])
+      assertLinesAreAlignedWithLineNumbers(component)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
+      expect(element.contains(item1)).toBe(false)
+      expect(item2.previousSibling).toBeNull()
+      expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 3))
+      expect(element.contains(item3)).toBe(false)
+      expect(element.contains(item4)).toBe(false)
+      expect(element.contains(item5)).toBe(false)
+      expect(element.contains(item6)).toBe(false)
+      await setScrollTop(component, 0)
 
       // undo the previous change
       editor.undo()

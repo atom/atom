@@ -2742,12 +2742,10 @@ class LineNumberGutterComponent {
             style: {width: width + 'px'},
             dataset: {bufferRow}
           }
-          if (row === 0 || i > 0) {
-            let currentRowTop = rootComponent.pixelPositionAfterBlocksForRow(row)
-            let previousRowBottom = rootComponent.pixelPositionAfterBlocksForRow(row - 1) + lineHeight
-            if (currentRowTop > previousRowBottom) {
-              lineNumberProps.style.marginTop = (currentRowTop - previousRowBottom) + 'px'
-            }
+          const currentRowTop = rootComponent.pixelPositionAfterBlocksForRow(row)
+          const previousRowBottom = rootComponent.pixelPositionAfterBlocksForRow(row - 1) + lineHeight
+          if (currentRowTop > previousRowBottom) {
+            lineNumberProps.style.marginTop = (currentRowTop - previousRowBottom) + 'px'
           }
 
           tileChildren[row - tileStartRow] = $.div(lineNumberProps,
