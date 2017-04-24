@@ -330,9 +330,7 @@ class TextEditorComponent {
 
   measureContentDuringUpdateSync () {
     if (this.remeasureGutterDimensions) {
-      if (this.measureGutterDimensions()) {
-        // TODO: Ensure we update the gutter container in the second phase of the update
-      }
+      this.measureGutterDimensions()
       this.remeasureGutterDimensions = false
     }
     const wasHorizontalScrollbarVisible = this.isHorizontalScrollbarVisible()
@@ -456,6 +454,7 @@ class TextEditorComponent {
         key: 'gutterContainer',
         rootComponent: this,
         hasInitialMeasurements: this.hasInitialMeasurements,
+        measuredContent: this.measuredContent,
         scrollTop: this.getScrollTop(),
         scrollHeight: this.getScrollHeight(),
         lineNumberGutterWidth: this.getLineNumberGutterWidth(),
@@ -2564,8 +2563,17 @@ class GutterContainerComponent {
   }
 
   update (props) {
-    this.props = props
-    etch.updateSync(this)
+    if (this.shouldUpdate(props)) {
+      this.props = props
+      etch.updateSync(this)
+    }
+  }
+
+  shouldUpdate (props) {
+    return (
+      !props.measuredContent ||
+      props.lineNumberGutterWidth !== this.props.lineNumberGutterWidth
+    )
   }
 
   render () {
