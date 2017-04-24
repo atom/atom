@@ -545,6 +545,19 @@ describe('TextEditorComponent', () => {
         '7', '8', '8', '8', '9', '10', '11', '11', '12'
       ])
     })
+
+    it('does not blow away class names added to the element by packages when changing the class name', async () => {
+      assertDocumentFocused()
+      const {component, element, editor} = buildComponent()
+      element.classList.add('a', 'b')
+      expect(element.className).toBe('editor a b')
+      element.focus()
+      await component.getNextUpdatePromise()
+      expect(element.className).toBe('editor a b is-focused')
+      document.body.focus()
+      await component.getNextUpdatePromise()
+      expect(element.className).toBe('editor a b')
+    })
   })
 
   describe('mini editors', () => {
