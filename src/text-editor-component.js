@@ -3045,12 +3045,25 @@ class LinesTileComponent {
   constructor (props) {
     this.props = props
     etch.initialize(this)
+    this.createLines()
+    this.updateBlockDecorations({}, props)
   }
 
   update (newProps) {
     if (this.shouldUpdate(newProps)) {
+      const oldProps = this.props
       this.props = newProps
       etch.updateSync(this)
+      if (!newProps.measuredContent) {
+        this.updateLines(oldProps, newProps)
+        this.updateBlockDecorations(oldProps, newProps)
+      }
+    }
+  }
+
+  destroy () {
+    for (let i = 0; i < this.lineComponents.length; i++) {
+      this.lineComponents[i].destroy()
     }
   }
 
@@ -3069,8 +3082,8 @@ class LinesTileComponent {
           backgroundColor: 'inherit'
         }
       },
-      this.renderHighlights(),
-      this.renderLines()
+      this.renderHighlights()
+      // Lines and block decorations will be manually inserted here for efficiency
     )
   }
 
@@ -3094,35 +3107,195 @@ class LinesTileComponent {
     return $.div(
       {
         className: 'highlights',
-        style: {
-          position: 'absolute',
-          contain: 'strict',
-          height: height + 'px',
-          width: width + 'px'
-        }
-      }, children
+        style: {contain: 'layout'}
+      },
+      children
     )
   }
 
-  renderLines () {
+  createLines () {
     const {
-      measuredContent, height, width,
-      tileStartRow, screenLines, lineDecorations, blockDecorations, displayLayer,
-      lineNodesByScreenLineId, textNodesByScreenLineId
+      element, tileStartRow, screenLines, lineDecorations,
+      displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
     } = this.props
 
-    return $(LinesComponent, {
-      measuredContent,
-      height,
-      width,
-      tileStartRow,
-      screenLines,
-      lineDecorations,
-      blockDecorations,
-      displayLayer,
-      lineNodesByScreenLineId,
-      textNodesByScreenLineId
-    })
+    this.lineComponents = []
+    for (let i = 0, length = screenLines.length; i < length; i++) {
+      const component = new LineComponent({
+        screenLine: screenLines[i],
+        screenRow: tileStartRow + i,
+        lineDecoration: lineDecorations[i],
+        displayLayer,
+        lineNodesByScreenLineId,
+        textNodesByScreenLineId
+      })
+      this.element.appendChild(component.element)
+      this.lineComponents.push(component)
+    }
+  }
+
+  updateLines (oldProps, newProps) {
+    var {
+      screenLines, tileStartRow, lineDecorations,
+      displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
+    } = newProps
+
+    var oldScreenLines = oldProps.screenLines
+    var newScreenLines = screenLines
+    var oldScreenLinesEndIndex = oldScreenLines.length
+    var newScreenLinesEndIndex = newScreenLines.length
+    var oldScreenLineIndex = 0
+    var newScreenLineIndex = 0
+    var lineComponentIndex = 0
+
+    while (oldScreenLineIndex < oldScreenLinesEndIndex || newScreenLineIndex < newScreenLinesEndIndex) {
+      var oldScreenLine = oldScreenLines[oldScreenLineIndex]
+      var newScreenLine = newScreenLines[newScreenLineIndex]
+
+      if (oldScreenLineIndex >= oldScreenLinesEndIndex) {
+        var newScreenLineComponent = new LineComponent({
+          screenLine: newScreenLine,
+          screenRow: tileStartRow + newScreenLineIndex,
+          lineDecoration: lineDecorations[newScreenLineIndex],
+          displayLayer,
+          lineNodesByScreenLineId,
+          textNodesByScreenLineId
+        })
+        this.element.appendChild(newScreenLineComponent.element)
+        this.lineComponents.push(newScreenLineComponent)
+
+        newScreenLineIndex++
+        lineComponentIndex++
+      } else if (newScreenLineIndex >= newScreenLinesEndIndex) {
+        this.lineComponents[lineComponentIndex].destroy()
+        this.lineComponents.splice(lineComponentIndex, 1)
+
+        oldScreenLineIndex++
+      } else if (oldScreenLine === newScreenLine) {
+        var lineComponent = this.lineComponents[lineComponentIndex]
+        lineComponent.update({
+          screenRow: tileStartRow + newScreenLineIndex,
+          lineDecoration: lineDecorations[newScreenLineIndex]
+        })
+
+        oldScreenLineIndex++
+        newScreenLineIndex++
+        lineComponentIndex++
+      } else {
+        var oldScreenLineIndexInNewScreenLines = newScreenLines.indexOf(oldScreenLine)
+        var newScreenLineIndexInOldScreenLines = oldScreenLines.indexOf(newScreenLine)
+        if (newScreenLineIndex < oldScreenLineIndexInNewScreenLines && oldScreenLineIndexInNewScreenLines < newScreenLinesEndIndex) {
+          var newScreenLineComponents = []
+          while (newScreenLineIndex < oldScreenLineIndexInNewScreenLines) {
+            var newScreenLineComponent = new LineComponent({ // eslint-disable-line no-redeclare
+              screenLine: newScreenLines[newScreenLineIndex],
+              screenRow: tileStartRow + newScreenLineIndex,
+              lineDecoration: lineDecorations[newScreenLineIndex],
+              displayLayer,
+              lineNodesByScreenLineId,
+              textNodesByScreenLineId
+            })
+            this.element.insertBefore(newScreenLineComponent.element, this.getFirstElementForScreenLine(oldProps, oldScreenLine))
+            newScreenLineComponents.push(newScreenLineComponent)
+
+            newScreenLineIndex++
+          }
+
+          this.lineComponents.splice(lineComponentIndex, 0, ...newScreenLineComponents)
+          lineComponentIndex = lineComponentIndex + newScreenLineComponents.length
+        } else if (oldScreenLineIndex < newScreenLineIndexInOldScreenLines && newScreenLineIndexInOldScreenLines < oldScreenLinesEndIndex) {
+          while (oldScreenLineIndex < newScreenLineIndexInOldScreenLines) {
+            this.lineComponents[lineComponentIndex].destroy()
+            this.lineComponents.splice(lineComponentIndex, 1)
+
+            oldScreenLineIndex++
+          }
+        } else {
+          var oldScreenLineComponent = this.lineComponents[lineComponentIndex]
+          var newScreenLineComponent = new LineComponent({ // eslint-disable-line no-redeclare
+            screenLine: newScreenLines[newScreenLineIndex],
+            screenRow: tileStartRow + newScreenLineIndex,
+            lineDecoration: lineDecorations[newScreenLineIndex],
+            displayLayer,
+            lineNodesByScreenLineId,
+            textNodesByScreenLineId
+          })
+          this.element.insertBefore(newScreenLineComponent.element, oldScreenLineComponent.element)
+          // Instead of calling destroy on the component here we can simply
+          // remove its associated element, thus skipping the
+          // lineNodesByScreenLineId bookkeeping. This is possible because
+          // lineNodesByScreenLineId has already been updated when creating the
+          // new screen line component.
+          oldScreenLineComponent.element.remove()
+          this.lineComponents[lineComponentIndex] = newScreenLineComponent
+
+          oldScreenLineIndex++
+          newScreenLineIndex++
+          lineComponentIndex++
+        }
+      }
+    }
+  }
+
+  getFirstElementForScreenLine (oldProps, screenLine) {
+    var blockDecorations = oldProps.blockDecorations ? oldProps.blockDecorations.get(screenLine.id) : null
+    if (blockDecorations) {
+      var blockDecorationElementsBeforeOldScreenLine = []
+      for (let i = 0; i < blockDecorations.length; i++) {
+        var decoration = blockDecorations[i]
+        if (decoration.position !== 'after') {
+          blockDecorationElementsBeforeOldScreenLine.push(
+            TextEditor.viewForItem(decoration.item)
+          )
+        }
+      }
+
+      for (let i = 0; i < blockDecorationElementsBeforeOldScreenLine.length; i++) {
+        var blockDecorationElement = blockDecorationElementsBeforeOldScreenLine[i]
+        if (!blockDecorationElementsBeforeOldScreenLine.includes(blockDecorationElement.previousSibling)) {
+          return blockDecorationElement
+        }
+      }
+    }
+
+    return oldProps.lineNodesByScreenLineId.get(screenLine.id)
+  }
+
+  updateBlockDecorations (oldProps, newProps) {
+    var {blockDecorations, lineNodesByScreenLineId} = newProps
+
+    if (oldProps.blockDecorations) {
+      oldProps.blockDecorations.forEach((oldDecorations, screenLineId) => {
+        var newDecorations = newProps.blockDecorations ? newProps.blockDecorations.get(screenLineId) : null
+        for (var i = 0; i < oldDecorations.length; i++) {
+          var oldDecoration = oldDecorations[i]
+          if (newDecorations && newDecorations.includes(oldDecoration)) continue
+
+          var element = TextEditor.viewForItem(oldDecoration.item)
+          if (element.parentElement !== this.element) continue
+
+          element.remove()
+        }
+      })
+    }
+
+    if (blockDecorations) {
+      blockDecorations.forEach((newDecorations, screenLineId) => {
+        var oldDecorations = oldProps.blockDecorations ? oldProps.blockDecorations.get(screenLineId) : null
+        for (var i = 0; i < newDecorations.length; i++) {
+          var newDecoration = newDecorations[i]
+          if (oldDecorations && oldDecorations.includes(newDecoration)) continue
+
+          var element = TextEditor.viewForItem(newDecoration.item)
+          var lineNode = lineNodesByScreenLineId.get(screenLineId)
+          if (newDecoration.position === 'after') {
+            this.element.insertBefore(element, lineNode.nextSibling)
+          } else {
+            this.element.insertBefore(element, lineNode)
+          }
+        }
+      })
+    }
   }
 
   shouldUpdate (newProps) {
@@ -3182,228 +3355,6 @@ class LinesTileComponent {
     }
 
     return false
-  }
-}
-
-class LinesComponent {
-  constructor (props) {
-    this.props = {}
-    const {
-      width, height, tileStartRow,
-      screenLines, lineDecorations,
-      displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
-    } = props
-
-    this.element = document.createElement('div')
-    this.element.style.position = 'absolute'
-    this.element.style.contain = 'strict'
-    this.element.style.height = height + 'px'
-    this.element.style.width = width + 'px'
-
-    this.lineComponents = []
-    for (let i = 0, length = screenLines.length; i < length; i++) {
-      const component = new LineComponent({
-        screenLine: screenLines[i],
-        screenRow: tileStartRow + i,
-        lineDecoration: lineDecorations[i],
-        displayLayer,
-        lineNodesByScreenLineId,
-        textNodesByScreenLineId
-      })
-      this.element.appendChild(component.element)
-      this.lineComponents.push(component)
-    }
-    this.updateBlockDecorations(props)
-    this.props = props
-  }
-
-  destroy () {
-    for (let i = 0; i < this.lineComponents.length; i++) {
-      this.lineComponents[i].destroy()
-    }
-  }
-
-  update (props) {
-    var {width, height, measuredContent} = props
-
-    if (this.props.width !== width) {
-      this.element.style.width = width + 'px'
-    }
-
-    if (this.props.height !== height) {
-      this.element.style.height = height + 'px'
-    }
-
-    if (!measuredContent) {
-      this.updateLines(props)
-      this.updateBlockDecorations(props)
-    }
-
-    this.props = props
-  }
-
-  updateLines (props) {
-    var {
-      screenLines, tileStartRow, lineDecorations,
-      displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
-    } = props
-
-    var oldScreenLines = this.props.screenLines
-    var newScreenLines = screenLines
-    var oldScreenLinesEndIndex = oldScreenLines.length
-    var newScreenLinesEndIndex = newScreenLines.length
-    var oldScreenLineIndex = 0
-    var newScreenLineIndex = 0
-    var lineComponentIndex = 0
-
-    while (oldScreenLineIndex < oldScreenLinesEndIndex || newScreenLineIndex < newScreenLinesEndIndex) {
-      var oldScreenLine = oldScreenLines[oldScreenLineIndex]
-      var newScreenLine = newScreenLines[newScreenLineIndex]
-
-      if (oldScreenLineIndex >= oldScreenLinesEndIndex) {
-        var newScreenLineComponent = new LineComponent({
-          screenLine: newScreenLine,
-          screenRow: tileStartRow + newScreenLineIndex,
-          lineDecoration: lineDecorations[newScreenLineIndex],
-          displayLayer,
-          lineNodesByScreenLineId,
-          textNodesByScreenLineId
-        })
-        this.element.appendChild(newScreenLineComponent.element)
-        this.lineComponents.push(newScreenLineComponent)
-
-        newScreenLineIndex++
-        lineComponentIndex++
-      } else if (newScreenLineIndex >= newScreenLinesEndIndex) {
-        this.lineComponents[lineComponentIndex].destroy()
-        this.lineComponents.splice(lineComponentIndex, 1)
-
-        oldScreenLineIndex++
-      } else if (oldScreenLine === newScreenLine) {
-        var lineComponent = this.lineComponents[lineComponentIndex]
-        lineComponent.update({
-          screenRow: tileStartRow + newScreenLineIndex,
-          lineDecoration: lineDecorations[newScreenLineIndex]
-        })
-
-        oldScreenLineIndex++
-        newScreenLineIndex++
-        lineComponentIndex++
-      } else {
-        var oldScreenLineIndexInNewScreenLines = newScreenLines.indexOf(oldScreenLine)
-        var newScreenLineIndexInOldScreenLines = oldScreenLines.indexOf(newScreenLine)
-        if (newScreenLineIndex < oldScreenLineIndexInNewScreenLines && oldScreenLineIndexInNewScreenLines < newScreenLinesEndIndex) {
-          var newScreenLineComponents = []
-          while (newScreenLineIndex < oldScreenLineIndexInNewScreenLines) {
-            var newScreenLineComponent = new LineComponent({ // eslint-disable-line no-redeclare
-              screenLine: newScreenLines[newScreenLineIndex],
-              screenRow: tileStartRow + newScreenLineIndex,
-              lineDecoration: lineDecorations[newScreenLineIndex],
-              displayLayer,
-              lineNodesByScreenLineId,
-              textNodesByScreenLineId
-            })
-            this.element.insertBefore(newScreenLineComponent.element, this.getFirstElementForScreenLine(oldScreenLine))
-            newScreenLineComponents.push(newScreenLineComponent)
-
-            newScreenLineIndex++
-          }
-
-          this.lineComponents.splice(lineComponentIndex, 0, ...newScreenLineComponents)
-          lineComponentIndex = lineComponentIndex + newScreenLineComponents.length
-        } else if (oldScreenLineIndex < newScreenLineIndexInOldScreenLines && newScreenLineIndexInOldScreenLines < oldScreenLinesEndIndex) {
-          while (oldScreenLineIndex < newScreenLineIndexInOldScreenLines) {
-            this.lineComponents[lineComponentIndex].destroy()
-            this.lineComponents.splice(lineComponentIndex, 1)
-
-            oldScreenLineIndex++
-          }
-        } else {
-          var oldScreenLineComponent = this.lineComponents[lineComponentIndex]
-          var newScreenLineComponent = new LineComponent({ // eslint-disable-line no-redeclare
-            screenLine: newScreenLines[newScreenLineIndex],
-            screenRow: tileStartRow + newScreenLineIndex,
-            lineDecoration: lineDecorations[newScreenLineIndex],
-            displayLayer,
-            lineNodesByScreenLineId,
-            textNodesByScreenLineId
-          })
-          this.element.insertBefore(newScreenLineComponent.element, oldScreenLineComponent.element)
-          // Instead of calling destroy on the component here we can simply
-          // remove its associated element, thus skipping the
-          // lineNodesByScreenLineId bookkeeping. This is possible because
-          // lineNodesByScreenLineId has already been updated when creating the
-          // new screen line component.
-          oldScreenLineComponent.element.remove()
-          this.lineComponents[lineComponentIndex] = newScreenLineComponent
-
-          oldScreenLineIndex++
-          newScreenLineIndex++
-          lineComponentIndex++
-        }
-      }
-    }
-  }
-
-  getFirstElementForScreenLine (screenLine) {
-    var blockDecorations = this.props.blockDecorations ? this.props.blockDecorations.get(screenLine.id) : null
-    if (blockDecorations) {
-      var blockDecorationElementsBeforeOldScreenLine = []
-      for (let i = 0; i < blockDecorations.length; i++) {
-        var decoration = blockDecorations[i]
-        if (decoration.position !== 'after') {
-          blockDecorationElementsBeforeOldScreenLine.push(
-            TextEditor.viewForItem(decoration.item)
-          )
-        }
-      }
-
-      for (let i = 0; i < blockDecorationElementsBeforeOldScreenLine.length; i++) {
-        var blockDecorationElement = blockDecorationElementsBeforeOldScreenLine[i]
-        if (!blockDecorationElementsBeforeOldScreenLine.includes(blockDecorationElement.previousSibling)) {
-          return blockDecorationElement
-        }
-      }
-    }
-
-    return this.props.lineNodesByScreenLineId.get(screenLine.id)
-  }
-
-  updateBlockDecorations (props) {
-    var {blockDecorations, lineNodesByScreenLineId} = props
-
-    if (this.props.blockDecorations) {
-      this.props.blockDecorations.forEach((oldDecorations, screenLineId) => {
-        var newDecorations = props.blockDecorations ? props.blockDecorations.get(screenLineId) : null
-        for (var i = 0; i < oldDecorations.length; i++) {
-          var oldDecoration = oldDecorations[i]
-          if (newDecorations && newDecorations.includes(oldDecoration)) continue
-
-          var element = TextEditor.viewForItem(oldDecoration.item)
-          if (element.parentElement !== this.element) continue
-
-          element.remove()
-        }
-      })
-    }
-
-    if (blockDecorations) {
-      blockDecorations.forEach((newDecorations, screenLineId) => {
-        var oldDecorations = this.props.blockDecorations ? this.props.blockDecorations.get(screenLineId) : null
-        for (var i = 0; i < newDecorations.length; i++) {
-          var newDecoration = newDecorations[i]
-          if (oldDecorations && oldDecorations.includes(newDecoration)) continue
-
-          var element = TextEditor.viewForItem(newDecoration.item)
-          var lineNode = lineNodesByScreenLineId.get(screenLineId)
-          if (newDecoration.position === 'after') {
-            this.element.insertBefore(element, lineNode.nextSibling)
-          } else {
-            this.element.insertBefore(element, lineNode)
-          }
-        }
-      })
-    }
   }
 }
 
