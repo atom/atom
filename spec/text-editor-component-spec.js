@@ -374,7 +374,7 @@ describe('TextEditorComponent', () => {
 
     it('places the hidden input element at the location of the last cursor if it is visible', async () => {
       const {component, element, editor} = buildComponent({height: 60, width: 120, rowsPerTile: 2})
-      const {hiddenInput} = component.refs
+      const {hiddenInput} = component.refs.cursorsAndInput.refs
       setScrollTop(component, 100)
       await setScrollLeft(component, 40)
 
@@ -594,7 +594,7 @@ describe('TextEditorComponent', () => {
 
     it('focuses the hidden input element and adds the is-focused class when focused', async () => {
       const {component, element, editor} = buildComponent()
-      const {hiddenInput} = component.refs
+      const {hiddenInput} = component.refs.cursorsAndInput.refs
 
       expect(document.activeElement).not.toBe(hiddenInput)
       element.focus()
@@ -614,7 +614,7 @@ describe('TextEditorComponent', () => {
 
     it('updates the component when the hidden input is focused directly', async () => {
       const {component, element, editor} = buildComponent()
-      const {hiddenInput} = component.refs
+      const {hiddenInput} = component.refs.cursorsAndInput.refs
       expect(element.classList.contains('is-focused')).toBe(false)
       expect(document.activeElement).not.toBe(hiddenInput)
 
@@ -629,7 +629,7 @@ describe('TextEditorComponent', () => {
       parent.appendChild(element)
       parent.didAttach = () => element.focus()
       jasmine.attachToDOM(parent)
-      expect(document.activeElement).toBe(component.refs.hiddenInput)
+      expect(document.activeElement).toBe(component.refs.cursorsAndInput.refs.hiddenInput)
     })
 
     it('gracefully handles a focus event that occurs prior to detecting the element has become visible', async () => {
@@ -640,7 +640,7 @@ describe('TextEditorComponent', () => {
       element.focus()
       await component.getNextUpdatePromise()
 
-      expect(document.activeElement).toBe(component.refs.hiddenInput)
+      expect(document.activeElement).toBe(component.refs.cursorsAndInput.refs.hiddenInput)
     })
 
     it('emits blur events only when focus shifts to something other than the editor itself or its hidden input', () => {
@@ -2731,7 +2731,7 @@ describe('TextEditorComponent', () => {
       component.didKeydown({code: 'Enter'})
       component.didCompositionUpdate({data: 'á'})
       component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
-      component.didCompositionEnd({data: 'á', target: component.refs.hiddenInput})
+      component.didCompositionEnd({data: 'á', target: component.refs.cursorsAndInput.refs.hiddenInput})
       component.didKeyup({code: 'Enter'})
       expect(editor.getText()).toBe('xá')
       // Ensure another "a" can be typed correctly.
@@ -2763,7 +2763,7 @@ describe('TextEditorComponent', () => {
       component.didKeydown({code: 'Escape'})
       component.didCompositionUpdate({data: 'a'})
       component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-      component.didCompositionEnd({data: 'a', target: component.refs.hiddenInput})
+      component.didCompositionEnd({data: 'a', target: component.refs.cursorsAndInput.refs.hiddenInput})
       component.didKeyup({code: 'Escape'})
       expect(editor.getText()).toBe('xa')
       // Ensure another "a" can be typed correctly.
@@ -2798,7 +2798,7 @@ describe('TextEditorComponent', () => {
       component.didKeydown({code: 'Escape'})
       component.didCompositionUpdate({data: 'a'})
       component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-      component.didCompositionEnd({data: 'a', target: component.refs.hiddenInput})
+      component.didCompositionEnd({data: 'a', target: component.refs.cursorsAndInput.refs.hiddenInput})
       component.didKeyup({code: 'Escape'})
       expect(editor.getText()).toBe('xoa')
       // Ensure another "a" can be typed correctly.
@@ -2828,7 +2828,7 @@ describe('TextEditorComponent', () => {
       expect(editor.getText()).toBe('xá')
       component.didCompositionUpdate({data: 'á'})
       component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
-      component.didCompositionEnd({data: 'á', target: component.refs.hiddenInput})
+      component.didCompositionEnd({data: 'á', target: component.refs.cursorsAndInput.refs.hiddenInput})
       expect(editor.getText()).toBe('xá')
       // Ensure another "a" can be typed correctly.
       component.didKeydown({code: 'KeyA'})
