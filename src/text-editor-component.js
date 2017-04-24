@@ -3115,7 +3115,7 @@ class LinesTileComponent {
   }
 
   renderHighlights () {
-    const {top, height, width, lineHeight, highlightDecorations} = this.props
+    const {top, lineHeight, highlightDecorations} = this.props
 
     let children = null
     if (highlightDecorations) {
@@ -3142,7 +3142,7 @@ class LinesTileComponent {
 
   createLines () {
     const {
-      element, tileStartRow, screenLines, lineDecorations,
+      tileStartRow, screenLines, lineDecorations,
       displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
     } = this.props
 
