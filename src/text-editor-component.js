@@ -66,6 +66,16 @@ class TextEditorComponent {
     this.refs = {}
 
     this.updateSync = this.updateSync.bind(this)
+    this.didBlurHiddenInput = this.didBlurHiddenInput.bind(this)
+    this.didFocusHiddenInput = this.didFocusHiddenInput.bind(this)
+    this.didTextInput = this.didTextInput.bind(this)
+    this.didKeydown = this.didKeydown.bind(this)
+    this.didKeyup = this.didKeyup.bind(this)
+    this.didKeypress = this.didKeypress.bind(this)
+    this.didCompositionStart = this.didCompositionStart.bind(this)
+    this.didCompositionUpdate = this.didCompositionUpdate.bind(this)
+    this.didCompositionEnd = this.didCompositionEnd.bind(this)
+
     this.updatedSynchronously = this.props.updatedSynchronously
     this.didScrollDummyScrollbar = this.didScrollDummyScrollbar.bind(this)
     this.didMouseDownOnContent = this.didMouseDownOnContent.bind(this)
@@ -137,7 +147,6 @@ class TextEditorComponent {
     this.pendingScrollLeftColumn = this.props.initialScrollLeftColumn
 
     this.measuredContent = false
-    this.cursorsVnode = null
     this.placeholderTextVnode = null
 
     this.queryGuttersToRender()
@@ -210,7 +219,7 @@ class TextEditorComponent {
     const onlyBlinkingCursors = this.nextUpdateOnlyBlinksCursors
     this.nextUpdateOnlyBlinksCursors = null
     if (useScheduler && onlyBlinkingCursors) {
-      this.updateCursorBlinkSync()
+      this.refs.cursorsAndInput.updateCursorBlinkSync(this.cursorsBlinkedOff)
       if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
       return
     }
@@ -364,12 +373,6 @@ class TextEditorComponent {
       this.remeasureScrollbars = false
       etch.updateSync(this)
     }
-  }
-
-  updateCursorBlinkSync () {
-    const className = this.getCursorsClassName()
-    this.refs.cursors.className = className
-    this.cursorsVnode.props.className = className
   }
 
   render () {
@@ -600,49 +603,25 @@ class TextEditorComponent {
   }
 
   renderCursorsAndInput () {
-    if (this.measuredContent) {
-      const className = this.getCursorsClassName()
-      const cursorHeight = this.getLineHeight() + 'px'
-
-      const children = [this.renderHiddenInput()]
-      for (let i = 0; i < this.decorationsToRender.cursors.length; i++) {
-        const {pixelLeft, pixelTop, pixelWidth, className: extraCursorClassName, style: extraCursorStyle} = this.decorationsToRender.cursors[i]
-        let cursorClassName = 'cursor'
-        if (extraCursorClassName) cursorClassName += ' ' + extraCursorClassName
-
-        const cursorStyle = {
-          height: cursorHeight,
-          width: pixelWidth + 'px',
-          transform: `translate(${pixelLeft}px, ${pixelTop}px)`
-        }
-        if (extraCursorStyle) Object.assign(cursorStyle, extraCursorStyle)
-
-        children.push($.div({
-          className: cursorClassName,
-          style: cursorStyle
-        }))
-      }
-
-      this.cursorsVnode = $.div({
-        key: 'cursors',
-        ref: 'cursors',
-        className,
-        style: {
-          position: 'absolute',
-          contain: 'strict',
-          zIndex: 1,
-          width: this.getScrollWidth() + 'px',
-          height: this.getScrollHeight() + 'px',
-          pointerEvents: 'none'
-        }
-      }, children)
-    }
-
-    return this.cursorsVnode
-  }
-
-  getCursorsClassName () {
-    return this.cursorsBlinkedOff ? 'cursors blink-off' : 'cursors'
+    return $(CursorsAndInputComponent, {
+      ref: 'cursorsAndInput',
+      key: 'cursorsAndInput',
+      didBlurHiddenInput: this.didBlurHiddenInput,
+      didFocusHiddenInput: this.didFocusHiddenInput,
+      didTextInput: this.didTextInput,
+      didKeydown: this.didKeydown,
+      didKeyup: this.didKeyup,
+      didKeypress: this.didKeypress,
+      didCompositionStart: this.didCompositionStart,
+      didCompositionUpdate: this.didCompositionUpdate,
+      didCompositionEnd: this.didCompositionEnd,
+      lineHeight: this.getLineHeight(),
+      scrollHeight: this.getScrollHeight(),
+      scrollWidth: this.getScrollWidth(),
+      decorationsToRender: this.decorationsToRender,
+      cursorsBlinkedOff: this.cursorsBlinkedOff,
+      hiddenInputPosition: this.hiddenInputPosition
+    })
   }
 
   renderPlaceholderText () {
@@ -682,45 +661,6 @@ class TextEditorComponent {
         contain: 'strict',
         position: 'absolute',
         visibility: 'hidden'
-      }
-    })
-  }
-
-  renderHiddenInput () {
-    let top, left
-    if (this.hiddenInputPosition) {
-      top = this.hiddenInputPosition.pixelTop
-      left = this.hiddenInputPosition.pixelLeft
-    } else {
-      top = 0
-      left = 0
-    }
-
-    return $.input({
-      ref: 'hiddenInput',
-      key: 'hiddenInput',
-      className: 'hidden-input',
-      on: {
-        blur: this.didBlurHiddenInput,
-        focus: this.didFocusHiddenInput,
-        textInput: this.didTextInput,
-        keydown: this.didKeydown,
-        keyup: this.didKeyup,
-        keypress: this.didKeypress,
-        compositionstart: this.didCompositionStart,
-        compositionupdate: this.didCompositionUpdate,
-        compositionend: this.didCompositionEnd
-      },
-      tabIndex: -1,
-      style: {
-        position: 'absolute',
-        width: '1px',
-        height: this.getLineHeight() + 'px',
-        top: top + 'px',
-        left: left + 'px',
-        opacity: 0,
-        padding: 0,
-        border: 0
       }
     })
   }
@@ -1280,7 +1220,7 @@ class TextEditorComponent {
     // Transfer focus to the hidden input, but first ensure the input is in the
     // visible part of the scrolled content to avoid the browser trying to
     // auto-scroll to the form-field.
-    const {hiddenInput} = this.refs
+    const {hiddenInput} = this.refs.cursorsAndInput.refs
     hiddenInput.style.top = this.getScrollTop() + 'px'
     hiddenInput.style.left = this.getScrollLeft() + 'px'
 
@@ -1301,7 +1241,7 @@ class TextEditorComponent {
   // listener to be fired, even if other listeners are bound before creating
   // the component.
   didBlur (event) {
-    if (event.relatedTarget === this.refs.hiddenInput) {
+    if (event.relatedTarget === this.refs.cursorsAndInput.refs.hiddenInput) {
       event.stopImmediatePropagation()
     }
   }
@@ -2956,6 +2896,114 @@ class CustomGutterDecorationComponent {
       if (this.element.firstChild) this.element.firstChild.remove()
       this.element.appendChild(newProps.element)
     }
+  }
+}
+
+class CursorsAndInputComponent {
+  constructor (props) {
+    this.props = props
+    etch.initialize(this)
+  }
+
+  update (props) {
+    this.props = props
+    etch.updateSync(this)
+  }
+
+  updateCursorBlinkSync (cursorsBlinkedOff) {
+    this.props.cursorsBlinkedOff = cursorsBlinkedOff
+    const className = this.getCursorsClassName()
+    this.refs.cursors.className = className
+    this.virtualNode.props.className = className
+  }
+
+  render () {
+    const {lineHeight, decorationsToRender, scrollHeight, scrollWidth} = this.props
+
+    const className = this.getCursorsClassName()
+    const cursorHeight = lineHeight + 'px'
+
+    const children = [this.renderHiddenInput()]
+    for (let i = 0; i < decorationsToRender.cursors.length; i++) {
+      const {pixelLeft, pixelTop, pixelWidth, className: extraCursorClassName, style: extraCursorStyle} = decorationsToRender.cursors[i]
+      let cursorClassName = 'cursor'
+      if (extraCursorClassName) cursorClassName += ' ' + extraCursorClassName
+
+      const cursorStyle = {
+        height: cursorHeight,
+        width: pixelWidth + 'px',
+        transform: `translate(${pixelLeft}px, ${pixelTop}px)`
+      }
+      if (extraCursorStyle) Object.assign(cursorStyle, extraCursorStyle)
+
+      children.push($.div({
+        className: cursorClassName,
+        style: cursorStyle
+      }))
+    }
+
+    return $.div({
+      key: 'cursors',
+      ref: 'cursors',
+      className,
+      style: {
+        position: 'absolute',
+        contain: 'strict',
+        zIndex: 1,
+        width: scrollWidth + 'px',
+        height: scrollHeight + 'px',
+        pointerEvents: 'none'
+      }
+    }, children)
+  }
+
+  getCursorsClassName () {
+    return this.props.cursorsBlinkedOff ? 'cursors blink-off' : 'cursors'
+  }
+
+  renderHiddenInput () {
+    const {
+      lineHeight, hiddenInputPosition, didBlurHiddenInput, didFocusHiddenInput,
+      didTextInput, didKeydown, didKeyup, didKeypress, didCompositionStart,
+      didCompositionUpdate, didCompositionEnd
+    } = this.props
+
+    let top, left
+    if (hiddenInputPosition) {
+      top = hiddenInputPosition.pixelTop
+      left = hiddenInputPosition.pixelLeft
+    } else {
+      top = 0
+      left = 0
+    }
+
+    return $.input({
+      ref: 'hiddenInput',
+      key: 'hiddenInput',
+      className: 'hidden-input',
+      on: {
+        blur: didBlurHiddenInput,
+        focus: didFocusHiddenInput,
+        textInput: didTextInput,
+        keydown: didKeydown,
+        keyup: didKeyup,
+        keypress: didKeypress,
+        compositionstart: didCompositionStart,
+        compositionupdate: didCompositionUpdate,
+        compositionend: didCompositionEnd
+      },
+      tabIndex: -1,
+      style: {
+        position: 'absolute',
+        width: '1px',
+        height: lineHeight + 'px',
+        top: top + 'px',
+        left: left + 'px',
+        opacity: 0,
+        padding: 0,
+        border: 0
+      }
+    })
   }
 }
 
