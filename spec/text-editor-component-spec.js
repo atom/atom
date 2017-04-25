@@ -558,6 +558,36 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       expect(element.className).toBe('editor a b')
     })
+
+    it('ignores resize events when the editor is hidden', async () => {
+      const {component, element, editor} = buildComponent({autoHeight: false})
+      element.style.height = 5 * component.getLineHeight() + 'px'
+      await component.getNextUpdatePromise()
+      const originalClientContainerHeight = component.getClientContainerHeight()
+      const originalGutterContainerWidth = component.getGutterContainerWidth()
+      const originalLineNumberGutterWidth = component.getLineNumberGutterWidth()
+      expect(originalClientContainerHeight).toBeGreaterThan(0)
+      expect(originalGutterContainerWidth).toBeGreaterThan(0)
+      expect(originalLineNumberGutterWidth).toBeGreaterThan(0)
+
+      element.style.display = 'none'
+      // In production, resize events are triggered before the intersection
+      // observer detects the editor's visibility has changed. In tests, we are
+      // unable to reproduce this scenario and so we simulate them.
+      expect(component.visible).toBe(true)
+      component.didResize()
+      component.didResizeGutterContainer()
+      expect(component.getClientContainerHeight()).toBe(originalClientContainerHeight)
+      expect(component.getGutterContainerWidth()).toBe(originalGutterContainerWidth)
+      expect(component.getLineNumberGutterWidth()).toBe(originalLineNumberGutterWidth)
+
+      // Ensure measurements stay the same after receiving the intersection
+      // observer events.
+      await conditionPromise(() => !component.visible)
+      expect(component.getClientContainerHeight()).toBe(originalClientContainerHeight)
+      expect(component.getGutterContainerWidth()).toBe(originalGutterContainerWidth)
+      expect(component.getLineNumberGutterWidth()).toBe(originalLineNumberGutterWidth)
+    })
   })
 
   describe('mini editors', () => {
