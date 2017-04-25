@@ -1311,21 +1311,27 @@ class TextEditorComponent {
   }
 
   didResize () {
-    const clientContainerWidthChanged = this.measureClientContainerWidth()
-    const clientContainerHeightChanged = this.measureClientContainerHeight()
-    if (clientContainerWidthChanged || clientContainerHeightChanged) {
-      if (clientContainerWidthChanged) {
-        this.remeasureAllBlockDecorations = true
-      }
+    // Prevent the component from measuring the client container dimensions when
+    // getting spurious resize events.
+    if (this.isVisible()) {
+      const clientContainerWidthChanged = this.measureClientContainerWidth()
+      const clientContainerHeightChanged = this.measureClientContainerHeight()
+      if (clientContainerWidthChanged || clientContainerHeightChanged) {
+        if (clientContainerWidthChanged) {
+          this.remeasureAllBlockDecorations = true
+        }
 
-      this.resizeObserver.disconnect()
-      this.scheduleUpdate()
-      process.nextTick(() => { this.resizeObserver.observe(this.element) })
+        this.resizeObserver.disconnect()
+        this.scheduleUpdate()
+        process.nextTick(() => { this.resizeObserver.observe(this.element) })
+      }
     }
   }
 
   didResizeGutterContainer () {
-    if (this.measureGutterDimensions()) {
+    // Prevent the component from measuring the gutter dimensions when getting
+    // spurious resize events.
+    if (this.isVisible() && this.measureGutterDimensions()) {
       this.gutterContainerResizeObserver.disconnect()
       this.scheduleUpdate()
       process.nextTick(() => { this.gutterContainerResizeObserver.observe(this.refs.gutterContainer.element) })
