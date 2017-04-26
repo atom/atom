@@ -1,3 +1,5 @@
+/* global MutationObserver */
+
 'use strict'
 
 const EventKit = require('event-kit')
@@ -46,7 +48,7 @@ Tooltip.prototype.init = function (element, options) {
   this.element = element
   this.options = this.getOptions(options)
   this.disposables = new EventKit.CompositeDisposable()
-  this.mutationObserver = new MutationObserver(this.handleMutations.bind(this));
+  this.mutationObserver = new MutationObserver(this.handleMutations.bind(this))
 
   if (this.options.viewport) {
     if (typeof this.options.viewport === 'function') {
@@ -104,21 +106,21 @@ Tooltip.prototype.init = function (element, options) {
     : this.fixTitle()
 }
 
-Tooltip.prototype.startObservingMutations = function() {
+Tooltip.prototype.startObservingMutations = function () {
   this.mutationObserver.observe(this.getTooltipElement(), {
     attributes: true, childList: true, characterData: true, subtree: true
   })
 }
 
-Tooltip.prototype.stopObservingMutations = function() {
-  this.mutationObserver.disconnect();
+Tooltip.prototype.stopObservingMutations = function () {
+  this.mutationObserver.disconnect()
 }
 
-Tooltip.prototype.handleMutations = function(mutations) {
-  this.stopObservingMutations();
-  requestAnimationFrame(function() {
-    this.recalculatePosition();
-    this.startObservingMutations();
+Tooltip.prototype.handleMutations = function (mutations) {
+  this.stopObservingMutations()
+  window.requestAnimationFrame(function () {
+    this.recalculatePosition()
+    this.startObservingMutations()
   }.bind(this))
 }
 
@@ -221,7 +223,7 @@ Tooltip.prototype.show = function () {
     }
 
     var tip = this.getTooltipElement()
-    this.startObservingMutations();
+    this.startObservingMutations()
     var tipId = this.getUID('tooltip')
 
     this.setContent()
@@ -360,7 +362,7 @@ Tooltip.prototype.hide = function (callback) {
   }
 
   this.tip && this.tip.classList.remove('in')
-  this.stopObservingMutations();
+  this.stopObservingMutations()
 
   if (this.hoverState !== 'in') this.tip && this.tip.remove()
 
@@ -503,11 +505,12 @@ Tooltip.prototype.getDelegateComponent = function (element) {
   return component
 }
 
-Tooltip.prototype.recalculatePosition = function() {
-  var tip = this.getTooltipElement();
-  var placement = typeof this.options.placement == 'function' ?
-    this.options.placement.call(this, tip, this.element) :
-    this.options.placement
+Tooltip.prototype.recalculatePosition = function () {
+  var tip = this.getTooltipElement()
+
+  var placement = typeof this.options.placement === 'function'
+    ? this.options.placement.call(this, tip, this.element)
+    : this.options.placement
 
   var autoToken = /\s?auto?\s?/i
   var autoPlace = autoToken.test(placement)
@@ -515,19 +518,19 @@ Tooltip.prototype.recalculatePosition = function() {
 
   tip.classList.add(placement)
 
-  var pos          = this.element.getBoundingClientRect()
-  var actualWidth  = tip.offsetWidth
+  var pos = this.element.getBoundingClientRect()
+  var actualWidth = tip.offsetWidth
   var actualHeight = tip.offsetHeight
 
   if (autoPlace) {
     var orgPlacement = placement
     var viewportDim = this.viewport.getBoundingClientRect()
 
-    placement = placement == 'bottom' && pos.bottom + actualHeight > viewportDim.bottom ? 'top'    :
-                placement == 'top'    && pos.top    - actualHeight < viewportDim.top    ? 'bottom' :
-                placement == 'right'  && pos.right  + actualWidth  > viewportDim.width  ? 'left'   :
-                placement == 'left'   && pos.left   - actualWidth  < viewportDim.left   ? 'right'  :
-                placement
+    placement = placement === 'bottom' && pos.bottom + actualHeight > viewportDim.bottom ? 'top'
+              : placement === 'top' && pos.top - actualHeight < viewportDim.top ? 'bottom'
+              : placement === 'right' && pos.right + actualWidth > viewportDim.width ? 'left'
+              : placement === 'left' && pos.left - actualWidth < viewportDim.left ? 'right'
+              : placement
 
     tip.classList.remove(orgPlacement)
     tip.classList.add(placement)
