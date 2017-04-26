@@ -482,6 +482,40 @@ Tooltip.prototype.getDelegateComponent = function (element) {
   return component
 }
 
+Tooltip.prototype.recalculatePosition = function() {
+  var tip = this.getTooltipElement();
+  var placement = typeof this.options.placement == 'function' ?
+    this.options.placement.call(this, tip, this.element) :
+    this.options.placement
+
+  var autoToken = /\s?auto?\s?/i
+  var autoPlace = autoToken.test(placement)
+  if (autoPlace) placement = placement.replace(autoToken, '') || 'top'
+
+  tip.classList.add(placement)
+
+  var pos          = this.element.getBoundingClientRect()
+  var actualWidth  = tip.offsetWidth
+  var actualHeight = tip.offsetHeight
+
+  if (autoPlace) {
+    var orgPlacement = placement
+    var viewportDim = this.viewport.getBoundingClientRect()
+
+    placement = placement == 'bottom' && pos.bottom + actualHeight > viewportDim.bottom ? 'top'    :
+                placement == 'top'    && pos.top    - actualHeight < viewportDim.top    ? 'bottom' :
+                placement == 'right'  && pos.right  + actualWidth  > viewportDim.width  ? 'left'   :
+                placement == 'left'   && pos.left   - actualWidth  < viewportDim.left   ? 'right'  :
+                placement
+
+    tip.classList.remove(orgPlacement)
+    tip.classList.add(placement)
+  }
+
+  var calculatedOffset = this.getCalculatedOffset(placement, pos, actualWidth, actualHeight)
+  this.applyPlacement(calculatedOffset, placement)
+}
+
 function extend () {
   var args = Array.prototype.slice.apply(arguments)
   var target = args.shift()
