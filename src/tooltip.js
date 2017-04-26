@@ -46,6 +46,7 @@ Tooltip.prototype.init = function (element, options) {
   this.element = element
   this.options = this.getOptions(options)
   this.disposables = new EventKit.CompositeDisposable()
+  this.mutationObserver = new MutationObserver(this.handleMutations.bind(this));
 
   if (this.options.viewport) {
     if (typeof this.options.viewport === 'function') {
@@ -101,6 +102,24 @@ Tooltip.prototype.init = function (element, options) {
   this.options.selector
     ? (this._options = extend({}, this.options, { trigger: 'manual', selector: '' }))
     : this.fixTitle()
+}
+
+Tooltip.prototype.startObservingMutations = function() {
+  this.mutationObserver.observe(this.getTooltipElement(), {
+    attributes: true, childList: true, characterData: true, subtree: true
+  })
+}
+
+Tooltip.prototype.stopObservingMutations = function() {
+  this.mutationObserver.disconnect();
+}
+
+Tooltip.prototype.handleMutations = function(mutations) {
+  this.stopObservingMutations();
+  requestAnimationFrame(function() {
+    this.recalculatePosition();
+    this.startObservingMutations();
+  }.bind(this))
 }
 
 Tooltip.prototype.getDefaults = function () {
@@ -202,6 +221,7 @@ Tooltip.prototype.show = function () {
     }
 
     var tip = this.getTooltipElement()
+    this.startObservingMutations();
     var tipId = this.getUID('tooltip')
 
     this.setContent()
@@ -340,6 +360,7 @@ Tooltip.prototype.hide = function (callback) {
   }
 
   this.tip && this.tip.classList.remove('in')
+  this.stopObservingMutations();
 
   if (this.hoverState !== 'in') this.tip && this.tip.remove()
 
