@@ -46,6 +46,14 @@ Using [chocolatey](https://chocolatey.org/)? Run `cinst Atom` to install the lat
 
 Atom is only available for 64-bit Linux systems.
 
+#### Snap
+
+Atom is available in the Snap store.
+
+  sudo snap install atom --beta --classic
+
+#### deb
+
 1. Download `atom-amd64.deb` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 2. Run `sudo dpkg --install atom-amd64.deb` on the downloaded package.
 3. Launch Atom using the installed `atom` command.
