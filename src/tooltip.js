@@ -116,9 +116,9 @@ Tooltip.prototype.stopObservingMutations = function () {
   this.mutationObserver.disconnect()
 }
 
-Tooltip.prototype.handleMutations = function (mutations) {
-  this.stopObservingMutations()
+Tooltip.prototype.handleMutations = function () {
   window.requestAnimationFrame(function () {
+    this.stopObservingMutations()
     this.recalculatePosition()
     this.startObservingMutations()
   }.bind(this))
