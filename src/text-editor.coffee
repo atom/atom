@@ -789,6 +789,15 @@ class TextEditor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidRemoveGutter: (callback) ->
     @gutterContainer.onDidRemoveGutter callback
+    
+  # Essential: Calls your `callback` when a {Fold} is toggled in the editor.
+  #
+  # * `callback` {Function}
+  #   * `name` The name of the {Fold} that was toggled.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidToggleFold: (callback) ->
+    @foldContainer.onDidToggleFold callback
 
   # Set the number of characters that can be displayed horizontally in the
   # editor.
