@@ -3407,24 +3407,23 @@ class LineComponent {
     const textNodes = []
     textNodesByScreenLineId.set(screenLine.id, textNodes)
 
-    const {lineText, tagCodes} = screenLine
+    const {lineText, tags} = screenLine
     let startIndex = 0
     let openScopeNode = document.createElement('span')
     this.element.appendChild(openScopeNode)
-    for (let i = 0; i < tagCodes.length; i++) {
-      const tagCode = tagCodes[i]
-      if (tagCode !== 0) {
-        if (displayLayer.isCloseTagCode(tagCode)) {
+    for (let i = 0; i < tags.length; i++) {
+      const tag = tags[i]
+      if (tag !== 0) {
+        if (displayLayer.isCloseTag(tag)) {
           openScopeNode = openScopeNode.parentElement
-        } else if (displayLayer.isOpenTagCode(tagCode)) {
-          const scope = displayLayer.tagForCode(tagCode)
+        } else if (displayLayer.isOpenTag(tag)) {
           const newScopeNode = document.createElement('span')
-          newScopeNode.className = classNameForScopeName(scope)
+          newScopeNode.className = displayLayer.classNameForTag(tag)
           openScopeNode.appendChild(newScopeNode)
           openScopeNode = newScopeNode
         } else {
-          const textNode = document.createTextNode(lineText.substr(startIndex, tagCode))
-          startIndex = startIndex + tagCode
+          const textNode = document.createTextNode(lineText.substr(startIndex, tag))
+          startIndex = startIndex + tag
           openScopeNode.appendChild(textNode)
           textNodes.push(textNode)
         }
@@ -3626,16 +3625,6 @@ class OverlayComponent {
   didDetach () {
     this.resizeObserver.disconnect()
   }
-}
-
-const classNamesByScopeName = new Map()
-function classNameForScopeName (scopeName) {
-  let classString = classNamesByScopeName.get(scopeName)
-  if (classString == null) {
-    classString = scopeName.replace(/\.+/g, ' ')
-    classNamesByScopeName.set(scopeName, classString)
-  }
-  return classString
 }
 
 let rangeForMeasurement
