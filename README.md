@@ -90,6 +90,10 @@ but should be compatible with other Linux distributions.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
+### Linux - Ubuntu 14.04
+
+Binary distribution can be simply installed for unbuntu (or kubuntu) using `apt-get` as explained here: [Install Atom in Ubuntu (32bit + 64bit) via PPA](http://www.webupd8.org/2014/05/install-atom-text-editor-in-ubuntu-via-ppa.html).
+
 ## Building
 
 * [Linux](./docs/build-instructions/linux.md)
