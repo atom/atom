@@ -90,6 +90,31 @@ but should be compatible with other Linux distributions.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
+### Linux
+
+#### Ubuntu
+
+Currently, there is only 64 bit package for Ubuntu.
+
+Run in terminal:
+
+    sudo add-apt-repository ppa:webupd8team/atom
+    sudo apt-get update
+    sudo apt-get install atom
+
+#### Arch
+
+Make sure you have `wget` installed:
+
+    # pacman -S wget --needed
+
+Install `atom-editor` package from AUR:
+
+    wget https://aur.archlinux.org/packages/at/atom-editor/atom-editor.tar.gz
+    tar -xf atom-editor.tar.gz
+    cd atom-editor
+    makepkg -si
+
 ## Building
 
 * [Linux](./docs/build-instructions/linux.md)
