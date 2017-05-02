@@ -2,6 +2,16 @@
 
 Ubuntu LTS 12.04 64-bit is the recommended platform.
 
+## Installing on Ubuntu via PPA (Personal Package Archive)
+
+Packages are available for Ubuntu starting on Precise and all later versions.
+
+  ```sh
+  $ sudo apt-add-repository ppa:webupd8team/atom
+  $ sudo apt-get update
+  $ sudo apt-get install atom
+  ```
+
 ## Requirements
 
 * OS with 64-bit or 32-bit architecture
