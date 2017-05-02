@@ -24,6 +24,8 @@ class AtomWindow
     @closedPromise = new Promise((@resolveClosedPromise) =>)
 
     options =
+      frame: false
+      transparent: true
       show: false
       title: 'Atom'
       # Add an opaque backgroundColor (instead of keeping the default
@@ -31,7 +33,8 @@ class AtomWindow
       # We believe this is a regression introduced with Electron 0.37.3, and
       # thus we should remove this as soon as a fix gets released.
       backgroundColor: "#fff"
-      webPreferences:
+      'webPreferences':
+      'direct-write': true
         # Prevent specs from throttling when the window is in the background:
         # this should result in faster CI builds, and an improvement in the
         # local development experience when running specs through the UI (which
