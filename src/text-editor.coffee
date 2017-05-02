@@ -211,6 +211,9 @@ class TextEditor extends Model
       initialLine = Math.max(parseInt(initialLine) or 0, 0)
       initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
       @addCursorAtBufferPosition([initialLine, initialColumn])
+      subscription = @displayBuffer.onDidChange =>
+        @scrollToCursorPosition()
+        subscription.dispose()
 
     @languageMode = new LanguageMode(this)
 
