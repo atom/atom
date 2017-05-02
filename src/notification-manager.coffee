@@ -11,6 +11,10 @@ class NotificationManager
   constructor: ->
     @notifications = []
     @emitter = new Emitter
+    
+    atom.commands.add 'atom-workspace', 'core:cancel', ->
+      @getNotifications.forEach (notification) ->
+        notification.dismiss()
 
   ###
   Section: Events
