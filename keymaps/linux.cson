@@ -44,7 +44,7 @@
   'shift-pageup': 'core:select-page-up'
   'shift-pagedown': 'core:select-page-down'
   'delete': 'core:delete'
-  'shift-delete': 'core:cut'
+  'shift-delete': 'editor:delete-line'
   'pageup': 'core:page-up'
   'pagedown': 'core:page-down'
   'backspace': 'core:backspace'
