@@ -48,6 +48,11 @@ To also install the newly built application, use `--create-debian-package` or `-
   sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 80 --slave /usr/bin/g++ g++ /usr/bin/g++-5
   sudo update-alternatives --config gcc # choose gcc-5 from the list
   ```
+   After That , if your new build doesn't create a launcher icon in super menu , then you can get it by executing 
+   
+   ```sh
+   sudo cp --parents resources/atom.png /usr/local/share/atom/resources/app/
+   ```
 
 ### Fedora 22+
 
