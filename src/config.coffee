@@ -117,6 +117,23 @@ ScopeDescriptor = require './scope-descriptor'
 # atom.config.get('my-package.thingVolume') # -> 11
 # ```
 #
+# #### External Config Schemas
+#
+# If you would like to store your schema in an external file and require it, you must require it prior to setting the `config` value in `module.exports`:
+#
+# ```
+# ConfigSchema = require('./configuration.coffee')
+# module.exports =
+#   config: ConfigSchema
+# ```
+#
+# not:
+#
+# ```
+# module.exports =
+#   config: require('./configuration.coffee')
+# ```
+#
 # ### Supported Types
 #
 # The `type` keyword can be a string with any one of the following. You can also
