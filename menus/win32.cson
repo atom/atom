@@ -189,7 +189,7 @@
       { label: 'Restart and Install Update', command: 'application:install-update', visible: false}
       { label: 'Check for Update', command: 'application:check-for-update', visible: false}
       { label: 'Checking for Update', enabled: false, visible: false}
-      { label: 'Downloading Update', enabled: false, visible: false}
+      { label: 'Downloading Update ...', enabled: false, visible: false}
       { type: 'separator' }
       { label: '&Documentation', command: 'application:open-documentation' }
       { label: 'Frequently Asked Questions', command: 'application:open-faq' }
