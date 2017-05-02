@@ -6,6 +6,11 @@ skip_tags: true
 clone_folder: c:\projects\atom
 clone_depth: 10
 
+branches:
+  only:
+  - master
+  - /^[0-9.]+-releases$/
+
 platform:
   - x64
   - x86
