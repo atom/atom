@@ -151,7 +151,7 @@ module.exports = class Dock {
 
     this.state = nextState
     this.render(this.state)
-    if (didHide) this.didHide()
+    if (didHide) this.didHide(this)
   }
 
   render (state) {

@@ -470,8 +470,10 @@ module.exports = class Workspace extends Model {
     }
   }
 
-  didHideDock () {
-    this.getCenter().activate()
+  didHideDock (dock) {
+    if (dock === this.activePaneContainer) {
+      this.getCenter().activate()
+    }
   }
 
   setDraggingItem (draggingItem) {
