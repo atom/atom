@@ -50,8 +50,13 @@ Atom is only available for 64-bit Linux systems.
 2. Run `sudo dpkg --install atom-amd64.deb` on the downloaded package.
 3. Launch Atom using the installed `atom` command.
 
-The Linux version does not currently automatically update so you will need to
-repeat these steps to upgrade to future releases.
+Otherwise, you can install atom with [webupd8's ppa](http://www.webupd8.org/2014/05/install-atom-text-editor-in-ubuntu-via-ppa.html) and receive updates in the update-manager:
+
+```sh
+sudo add-apt-repository ppa:webupd8team/atom
+sudo apt-get update
+sudo apt-get install atom
+```
 
 ### Red Hat Linux (Fedora 21 and under, CentOS, Red Hat)
 
