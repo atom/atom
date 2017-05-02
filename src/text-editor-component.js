@@ -3418,7 +3418,10 @@ class LineComponent {
           openScopeNode = openScopeNode.parentElement
         } else if (displayLayer.isOpenTag(tag)) {
           const newScopeNode = document.createElement('span')
-          newScopeNode.className = displayLayer.classNameForTag(tag)
+          const className = displayLayer.classNameForTag(tag)
+          const style = displayLayer.inlineStyleForTag(tag)
+          if (className) newScopeNode.className = className
+          if (style) Object.assign(newScopeNode.style, style)
           openScopeNode.appendChild(newScopeNode)
           openScopeNode = newScopeNode
         } else {
