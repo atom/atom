@@ -1792,6 +1792,9 @@ class TextEditor extends Model
   #     * `overlay` Positions the view associated with the given item at the
   #       head or tail of the given `DisplayMarker`, depending on the `position`
   #       property.
+  #     * `text` Wraps the region spanned by the decorated {DisplayMarker}
+  #       inside a `<span>` element which can be styled using the `class` and
+  #       `style` properties.
   #     * `gutter` Tracks a {DisplayMarker} in a {Gutter}. Created by calling
   #       {Gutter::decorateMarker} on the desired `Gutter` instance.
   #     * `block` Positions the view associated with the given item before or
@@ -1804,9 +1807,10 @@ class TextEditor extends Model
   #       or render artificial cursors that don't actually exist in the model
   #       by passing a marker that isn't actually associated with a cursor.
   #   * `class` This CSS class will be applied to the decorated line number,
-  #     line, highlight, or overlay.
+  #     line, highlight, overlay, cursor or text.
   #   * `style` An {Object} containing CSS style properties to apply to the
-  #     relevant DOM node. Currently this only works with a `type` of `cursor`.
+  #     relevant DOM node. Currently this only works with a `type` of `cursor`
+  #     and `text`.
   #   * `item` (optional) An {HTMLElement} or a model {Object} with a
   #     corresponding view registered. Only applicable to the `gutter`,
   #     `overlay` and `block` decoration types.

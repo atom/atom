@@ -1,4 +1,5 @@
 const {Emitter} = require('event-kit')
+const {MarkerTextDecorationLayer} = require('text-buffer')
 const Decoration = require('./decoration')
 const LayerDecoration = require('./layer-decoration')
 
@@ -13,6 +14,8 @@ class DecorationManager {
     this.markerDecorationCountsByLayer = new Map()
     this.decorationsByMarker = new Map()
     this.layerDecorationsByMarkerLayer = new Map()
+    this.textDecorationLayersByMarkerLayerId = new Map()
+    this.textDecorationCountsByLayerId = new Map()
     this.overlayDecorations = new Set()
     this.layerUpdateDisposablesByLayer = new WeakMap()
   }
@@ -199,7 +202,8 @@ class DecorationManager {
     }
     decorationsForMarker.add(decoration)
     if (decoration.isType('overlay')) this.overlayDecorations.add(decoration)
-    this.observeDecoratedLayer(marker.layer, true)
+    if (decoration.isType('text')) this.addMarkerTextDecorationLayerIfNeeded(marker.layer)
+    this.observeDecoratedLayer(marker.layer, decoration.getProperties().type, true)
     this.editor.didAddDecoration(decoration)
     this.emitDidUpdateDecorations()
     this.emitter.emit('did-add-decoration', decoration)
@@ -218,7 +222,8 @@ class DecorationManager {
       this.layerDecorationsByMarkerLayer.set(markerLayer, layerDecorations)
     }
     layerDecorations.add(decoration)
-    this.observeDecoratedLayer(markerLayer, false)
+    if (decorationParams.type === 'text') this.addMarkerTextDecorationLayerIfNeeded(markerLayer)
+    this.observeDecoratedLayer(markerLayer, decorationParams.type, false)
     this.emitDidUpdateDecorations()
     return decoration
   }
@@ -243,7 +248,7 @@ class DecorationManager {
       decorations.delete(decoration)
       if (decorations.size === 0) this.decorationsByMarker.delete(marker)
       this.overlayDecorations.delete(decoration)
-      this.unobserveDecoratedLayer(marker.layer, true)
+      this.unobserveDecoratedLayer(marker.layer, decoration.getProperties().type, true)
       this.emitter.emit('did-remove-decoration', decoration)
       this.emitDidUpdateDecorations()
     }
@@ -258,12 +263,12 @@ class DecorationManager {
       if (decorations.size === 0) {
         this.layerDecorationsByMarkerLayer.delete(markerLayer)
       }
-      this.unobserveDecoratedLayer(markerLayer, true)
+      this.unobserveDecoratedLayer(markerLayer, decoration.getProperties().type, false)
       this.emitDidUpdateDecorations()
     }
   }
 
-  observeDecoratedLayer (layer, isMarkerDecoration) {
+  observeDecoratedLayer (layer, type, isMarkerDecoration) {
     const newCount = (this.decorationCountsByLayer.get(layer) || 0) + 1
     this.decorationCountsByLayer.set(layer, newCount)
     if (newCount === 1) {
@@ -272,9 +277,14 @@ class DecorationManager {
     if (isMarkerDecoration) {
       this.markerDecorationCountsByLayer.set(layer, (this.markerDecorationCountsByLayer.get(layer) || 0) + 1)
     }
+
+    if (type === 'text') {
+      const newTextDecorationsCount = (this.textDecorationCountsByLayerId.get(layer.id) || 0) + 1
+      this.textDecorationCountsByLayerId.set(layer.id, newTextDecorationsCount)
+    }
   }
 
-  unobserveDecoratedLayer (layer, isMarkerDecoration) {
+  unobserveDecoratedLayer (layer, type, isMarkerDecoration) {
     const newCount = this.decorationCountsByLayer.get(layer) - 1
     if (newCount === 0) {
       this.layerUpdateDisposablesByLayer.get(layer).dispose()
@@ -285,5 +295,90 @@ class DecorationManager {
     if (isMarkerDecoration) {
       this.markerDecorationCountsByLayer.set(this.markerDecorationCountsByLayer.get(layer) - 1)
     }
+
+    if (type === 'text') {
+      const newTextDecorationsCount = this.textDecorationCountsByLayerId.get(layer.id) - 1
+      if (newTextDecorationsCount === 0) {
+        const textDecorationLayer = this.textDecorationLayersByMarkerLayerId.get(layer.id)
+        textDecorationLayer.destroy()
+        this.displayLayer.removeTextDecorationLayer(textDecorationLayer)
+        this.textDecorationLayersByMarkerLayerId.delete(layer.id)
+        this.textDecorationCountsByLayerId.delete(layer.id)
+      } else {
+        this.textDecorationCountsByLayerId.set(layer.id, newTextDecorationsCount)
+      }
+    }
+  }
+
+  addMarkerTextDecorationLayerIfNeeded (displayMarkerLayer) {
+    const {bufferMarkerLayer} = displayMarkerLayer
+    let textDecorationLayer = this.textDecorationLayersByMarkerLayerId.get(bufferMarkerLayer.id)
+    if (textDecorationLayer == null) {
+      textDecorationLayer = new MarkerTextDecorationLayer(
+        bufferMarkerLayer,
+        {
+          classNameForMarkerId: (markerId) => this.classNameForMarkerId(markerId, displayMarkerLayer),
+          inlineStyleForMarkerId: (markerId) => this.inlineStyleForMarkerId(markerId, displayMarkerLayer)
+        }
+      )
+      this.textDecorationLayersByMarkerLayerId.set(bufferMarkerLayer.id, textDecorationLayer)
+      this.displayLayer.addTextDecorationLayer(textDecorationLayer)
+    }
+  }
+
+  inlineStyleForMarkerId (markerId, displayMarkerLayer) {
+    let style = null
+
+    const marker = displayMarkerLayer.getMarker(markerId)
+    const layerDecorations = this.layerDecorationsByMarkerLayer.get(displayMarkerLayer)
+    if (layerDecorations) {
+      layerDecorations.forEach((layerDecoration) => {
+        const properties = layerDecoration.getPropertiesForMarker(marker) || layerDecoration.getProperties()
+        if (properties.type === 'text' && properties.style) {
+          if (style == null) style = {}
+          style = Object.assign(style, properties.style)
+        }
+      })
+    }
+
+    const decorations = this.decorationsByMarker.get(marker)
+    if (decorations) {
+      decorations.forEach(({properties}) => {
+        if (properties.type === 'text' && properties.style) {
+          if (style == null) style = {}
+          style = Object.assign(style, properties.style)
+        }
+      })
+    }
+
+    return style
+  }
+
+  classNameForMarkerId (markerId, displayMarkerLayer) {
+    let className = null
+
+    const marker = displayMarkerLayer.getMarker(markerId)
+    const decorations = this.decorationsByMarker.get(marker)
+    if (decorations) {
+      decorations.forEach(({properties}) => {
+        if (properties.type === 'text' && properties.class) {
+          if (className == null) className = ''
+          className += ` ${properties.class}`
+        }
+      })
+    }
+
+    const layerDecorations = this.layerDecorationsByMarkerLayer.get(displayMarkerLayer)
+    if (layerDecorations) {
+      layerDecorations.forEach((layerDecoration) => {
+        const properties = layerDecoration.getPropertiesForMarker(marker) || layerDecoration.getProperties()
+        if (properties.type === 'text' && properties.class) {
+          if (className == null) className = ''
+          className += ` ${properties.class}`
+        }
+      })
+    }
+
+    return className ? className.substring(1) : null
   }
 }

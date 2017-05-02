@@ -62,6 +62,9 @@ class TokenizedBuffer extends Model
     else
       null
 
+  inlineStyleForScopeId: (id) ->
+    # noop
+
   getInvalidatedRanges: ->
     []
 
