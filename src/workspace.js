@@ -471,7 +471,9 @@ module.exports = class Workspace extends Model {
   }
 
   didHideDock (dock) {
-    if (dock === this.activePaneContainer) {
+    const {activeElement} = document
+    const dockElement = dock.getElement()
+    if (dockElement === activeElement || dockElement.contains(activeElement)) {
       this.getCenter().activate()
     }
   }
