@@ -1951,6 +1951,58 @@ describe('TextEditorComponent', () => {
     })
   })
 
+  describe('text decorations', () => {
+    it('injects spans with custom class names and inline styles based on text decorations', async () => {
+      const {component, element, editor} = buildComponent()
+
+      const markerLayer = editor.addMarkerLayer()
+
+      const marker1 = markerLayer.markBufferRange([[0, 2], [2, 7]])
+      const marker2 = markerLayer.markBufferRange([[0, 2], [3, 8]])
+      const marker3 = markerLayer.markBufferRange([[1, 13], [2, 7]])
+
+      editor.decorateMarker(marker1, {type: 'text', class: 'a', style: {color: 'red'}})
+      editor.decorateMarker(marker2, {type: 'text', class: 'b', style: {color: 'blue'}})
+      editor.decorateMarker(marker3, {type: 'text', class: 'c', style: {color: 'green'}})
+      await component.getNextUpdatePromise()
+
+      expect(textContentOnRowMatchingSelector(component, 0, '.a')).toBe(editor.lineTextForScreenRow(0).slice(2))
+      expect(textContentOnRowMatchingSelector(component, 1, '.a')).toBe(editor.lineTextForScreenRow(1))
+      expect(textContentOnRowMatchingSelector(component, 2, '.a')).toBe(editor.lineTextForScreenRow(2).slice(0, 7))
+      expect(textContentOnRowMatchingSelector(component, 3, '.a')).toBe('')
+
+      expect(textContentOnRowMatchingSelector(component, 0, '.b')).toBe(editor.lineTextForScreenRow(0).slice(2))
+      expect(textContentOnRowMatchingSelector(component, 1, '.b')).toBe(editor.lineTextForScreenRow(1))
+      expect(textContentOnRowMatchingSelector(component, 2, '.b')).toBe(editor.lineTextForScreenRow(2))
+      expect(textContentOnRowMatchingSelector(component, 3, '.b')).toBe(editor.lineTextForScreenRow(3).slice(0, 8))
+
+      expect(textContentOnRowMatchingSelector(component, 0, '.c')).toBe('')
+      expect(textContentOnRowMatchingSelector(component, 1, '.c')).toBe(editor.lineTextForScreenRow(1).slice(13))
+      expect(textContentOnRowMatchingSelector(component, 2, '.c')).toBe(editor.lineTextForScreenRow(2).slice(0, 7))
+      expect(textContentOnRowMatchingSelector(component, 3, '.c')).toBe('')
+
+      for (const span of element.querySelectorAll('.a:not(.c)')) {
+        expect(span.style.color).toBe('red')
+      }
+      for (const span of element.querySelectorAll('.b:not(.c):not(.a)')) {
+        expect(span.style.color).toBe('blue')
+      }
+      for (const span of element.querySelectorAll('.c')) {
+        expect(span.style.color).toBe('green')
+      }
+
+      marker2.setHeadScreenPosition([3, 10])
+      await component.getNextUpdatePromise()
+      expect(textContentOnRowMatchingSelector(component, 3, '.b')).toBe(editor.lineTextForScreenRow(3).slice(0, 10))
+    })
+
+    function textContentOnRowMatchingSelector (component, row, selector) {
+      return Array.from(lineNodeForScreenRow(component, row).querySelectorAll(selector))
+        .map((span) => span.textContent)
+        .join('')
+    }
+  })
+
   describe('mouse input', () => {
     describe('on the lines', () => {
       it('positions the cursor on single-click', async () => {

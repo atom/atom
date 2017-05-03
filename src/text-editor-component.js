@@ -138,12 +138,15 @@ class TextEditorComponent {
       cursors: [],
       overlays: [],
       customGutter: new Map(),
-      blocks: new Map()
+      blocks: new Map(),
+      text: []
     }
     this.decorationsToMeasure = {
       highlights: new Map(),
       cursors: new Map()
     }
+    this.textDecorationsByMarker = new Map()
+    this.textDecorationBoundaries = []
     this.pendingScrollTopRow = this.props.initialScrollTopRow
     this.pendingScrollLeftColumn = this.props.initialScrollLeftColumn
 
@@ -559,6 +562,7 @@ class TextEditorComponent {
         tileEndRow,
         screenLines: this.renderedScreenLines.slice(tileStartRow - startRow, tileEndRow - startRow),
         lineDecorations: this.decorationsToRender.lines.slice(tileStartRow - startRow, tileEndRow - startRow),
+        textDecorations: this.decorationsToRender.text.slice(tileStartRow - startRow, tileEndRow - startRow),
         blockDecorations: this.decorationsToRender.blocks.get(tileStartRow),
         highlightDecorations: this.decorationsToRender.highlights.get(tileStartRow),
         displayLayer,
@@ -871,8 +875,11 @@ class TextEditorComponent {
     this.decorationsToRender.overlays.length = 0
     this.decorationsToRender.customGutter.clear()
     this.decorationsToRender.blocks = new Map()
+    this.decorationsToRender.text = []
     this.decorationsToMeasure.highlights.clear()
     this.decorationsToMeasure.cursors.clear()
+    this.textDecorationsByMarker.clear()
+    this.textDecorationBoundaries.length = 0
 
     const decorationsByMarker =
       this.props.model.decorationManager.decorationPropertiesByMarkerForScreenRowRange(
@@ -888,6 +895,8 @@ class TextEditorComponent {
         this.addDecorationToRender(decoration.type, decoration, marker, screenRange, reversed)
       }
     })
+
+    this.populateTextDecorationsToRender()
   }
 
   addDecorationToRender (type, decoration, marker, screenRange, reversed) {
@@ -915,6 +924,9 @@ class TextEditorComponent {
           break
         case 'block':
           this.addBlockDecorationToRender(decoration, screenRange, reversed)
+          break
+        case 'text':
+          this.addTextDecorationToRender(decoration, screenRange, marker)
           break
       }
     }
@@ -1076,6 +1088,122 @@ class TextEditorComponent {
       decorationsByScreenLine.set(screenLine.id, decorations)
     }
     decorations.push(decoration)
+  }
+
+  addTextDecorationToRender (decoration, screenRange, marker) {
+    if (screenRange.isEmpty()) return
+
+    let decorationsForMarker = this.textDecorationsByMarker.get(marker)
+    if (!decorationsForMarker) {
+      decorationsForMarker = []
+      this.textDecorationsByMarker.set(marker, decorationsForMarker)
+      this.textDecorationBoundaries.push({position: screenRange.start, starting: [marker]})
+      this.textDecorationBoundaries.push({position: screenRange.end, ending: [marker]})
+    }
+    decorationsForMarker.push(decoration)
+  }
+
+  populateTextDecorationsToRender () {
+    // Sort all boundaries in ascending order of position
+    this.textDecorationBoundaries.sort((a, b) => a.position.compare(b.position))
+
+    // Combine adjacent boundaries with the same position
+    for (let i = 0; i < this.textDecorationBoundaries.length;) {
+      const boundary = this.textDecorationBoundaries[i]
+      const nextBoundary = this.textDecorationBoundaries[i + 1]
+      if (nextBoundary && nextBoundary.position.isEqual(boundary.position)) {
+        if (nextBoundary.starting) {
+          if (boundary.starting) {
+            boundary.starting.push(...nextBoundary.starting)
+          } else {
+            boundary.starting = nextBoundary.starting
+          }
+        }
+
+        if (nextBoundary.ending) {
+          if (boundary.ending) {
+            boundary.ending.push(...nextBoundary.ending)
+          } else {
+            boundary.ending = nextBoundary.ending
+          }
+        }
+
+        this.textDecorationBoundaries.splice(i + 1, 1)
+      } else {
+        i++
+      }
+    }
+
+    const renderedStartRow = this.getRenderedStartRow()
+    const containingMarkers = []
+
+    // Iterate over boundaries to build up text decorations.
+    for (let i = 0; i < this.textDecorationBoundaries.length; i++) {
+      const boundary = this.textDecorationBoundaries[i]
+
+      // If multiple markers start here, sort them by order of nesting (markers ending later come first)
+      if (boundary.starting && boundary.starting.length > 1) {
+        boundary.starting.sort((a, b) => a.compare(b))
+      }
+
+      // If multiple markers start here, sort them by order of nesting (markers starting earlier come first)
+      if (boundary.ending && boundary.ending.length > 1) {
+        boundary.ending.sort((a, b) => b.compare(a))
+      }
+
+      // Remove markers ending here from containing markers array
+      if (boundary.ending) {
+        for (let j = boundary.ending.length - 1; j >= 0; j--) {
+          containingMarkers.splice(containingMarkers.lastIndexOf(boundary.ending[j]), 1)
+        }
+      }
+      // Add markers starting here to containing markers array
+      if (boundary.starting) containingMarkers.push(...boundary.starting)
+
+      // Determine desired className and style based on containing markers
+      let className, style
+      for (let j = 0; j < containingMarkers.length; j++) {
+        const marker = containingMarkers[j]
+        const decorations = this.textDecorationsByMarker.get(marker)
+        for (let k = 0; k < decorations.length; k++) {
+          const decoration = decorations[k]
+          if (decoration.class) {
+            if (className) {
+              className += ' ' + decoration.class
+            } else {
+              className = decoration.class
+            }
+          }
+          if (decoration.style) {
+            if (style) {
+              Object.assign(style, decoration.style)
+            } else {
+              style = Object.assign({}, decoration.style)
+            }
+          }
+        }
+      }
+
+      // Add decoration start with className/style for current position's column,
+      // and also for the start of every row up until the next decoration boundary
+      this.addTextDecorationStart(boundary.position.row, boundary.position.column, className, style)
+      const nextBoundary = this.textDecorationBoundaries[i + 1]
+      if (nextBoundary) {
+        for (let row = boundary.position.row + 1; row <= nextBoundary.position.row; row++) {
+          this.addTextDecorationStart(row, 0, className, style)
+        }
+      }
+    }
+  }
+
+  addTextDecorationStart (row, column, className, style) {
+    const renderedStartRow = this.getRenderedStartRow()
+    let decorationStarts = this.decorationsToRender.text[row - renderedStartRow]
+    if (!decorationStarts) {
+      decorationStarts = []
+      this.decorationsToRender.text[row - renderedStartRow] = decorationStarts
+    }
+    decorationStarts.push({column, className, style})
   }
 
   updateAbsolutePositionedDecorations () {
@@ -3148,7 +3276,7 @@ class LinesTileComponent {
 
   createLines () {
     const {
-      tileStartRow, screenLines, lineDecorations,
+      tileStartRow, screenLines, lineDecorations, textDecorations,
       displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
     } = this.props
 
@@ -3158,6 +3286,7 @@ class LinesTileComponent {
         screenLine: screenLines[i],
         screenRow: tileStartRow + i,
         lineDecoration: lineDecorations[i],
+        textDecorations: textDecorations[i],
         displayLayer,
         lineNodesByScreenLineId,
         textNodesByScreenLineId
@@ -3169,7 +3298,7 @@ class LinesTileComponent {
 
   updateLines (oldProps, newProps) {
     var {
-      screenLines, tileStartRow, lineDecorations,
+      screenLines, tileStartRow, lineDecorations, textDecorations,
       displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
     } = newProps
 
@@ -3190,6 +3319,7 @@ class LinesTileComponent {
           screenLine: newScreenLine,
           screenRow: tileStartRow + newScreenLineIndex,
           lineDecoration: lineDecorations[newScreenLineIndex],
+          textDecorations: textDecorations[newScreenLineIndex],
           displayLayer,
           lineNodesByScreenLineId,
           textNodesByScreenLineId
@@ -3208,7 +3338,8 @@ class LinesTileComponent {
         var lineComponent = this.lineComponents[lineComponentIndex]
         lineComponent.update({
           screenRow: tileStartRow + newScreenLineIndex,
-          lineDecoration: lineDecorations[newScreenLineIndex]
+          lineDecoration: lineDecorations[newScreenLineIndex],
+          textDecorations: textDecorations[newScreenLineIndex]
         })
 
         oldScreenLineIndex++
@@ -3224,6 +3355,7 @@ class LinesTileComponent {
               screenLine: newScreenLines[newScreenLineIndex],
               screenRow: tileStartRow + newScreenLineIndex,
               lineDecoration: lineDecorations[newScreenLineIndex],
+              textDecorations: textDecorations[newScreenLineIndex],
               displayLayer,
               lineNodesByScreenLineId,
               textNodesByScreenLineId
@@ -3249,6 +3381,7 @@ class LinesTileComponent {
             screenLine: newScreenLines[newScreenLineIndex],
             screenRow: tileStartRow + newScreenLineIndex,
             lineDecoration: lineDecorations[newScreenLineIndex],
+            textDecorations: textDecorations[newScreenLineIndex],
             displayLayer,
             lineNodesByScreenLineId,
             textNodesByScreenLineId
@@ -3387,30 +3520,74 @@ class LinesTileComponent {
       return true
     }
 
+    if (oldProps.textDecorations.length !== newProps.textDecorations.length) return true
+    for (let i = 0; i < oldProps.textDecorations.length; i++) {
+      if (!textDecorationsEqual(oldProps.textDecorations[i], newProps.textDecorations[i])) return true
+    }
+
     return false
   }
 }
 
 class LineComponent {
   constructor (props) {
-    const {
-      displayLayer,
-      screenLine, screenRow,
-      lineNodesByScreenLineId, textNodesByScreenLineId
-    } = props
+    const {screenRow, screenLine, lineNodesByScreenLineId} = props
     this.props = props
     this.element = document.createElement('div')
     this.element.className = this.buildClassName()
     this.element.dataset.screenRow = screenRow
     lineNodesByScreenLineId.set(screenLine.id, this.element)
+    this.appendContents()
+  }
+
+  update (newProps) {
+    if (this.props.lineDecoration !== newProps.lineDecoration) {
+      this.props.lineDecoration = newProps.lineDecoration
+      this.element.className = this.buildClassName()
+    }
+
+    if (this.props.screenRow !== newProps.screenRow) {
+      this.props.screenRow = newProps.screenRow
+      this.element.dataset.screenRow = newProps.screenRow
+    }
+
+    if (!textDecorationsEqual(this.props.textDecorations, newProps.textDecorations)) {
+      this.props.textDecorations = newProps.textDecorations
+      this.element.firstChild.remove()
+      this.appendContents()
+    }
+  }
+
+  destroy () {
+    const {lineNodesByScreenLineId, textNodesByScreenLineId, screenLine} = this.props
+    if (lineNodesByScreenLineId.get(screenLine.id) === this.element) {
+      lineNodesByScreenLineId.delete(screenLine.id)
+      textNodesByScreenLineId.delete(screenLine.id)
+    }
+
+    this.element.remove()
+  }
+
+  appendContents () {
+    const {displayLayer, screenLine, textDecorations, textNodesByScreenLineId} = this.props
 
     const textNodes = []
     textNodesByScreenLineId.set(screenLine.id, textNodes)
 
     const {lineText, tags} = screenLine
-    let startIndex = 0
     let openScopeNode = document.createElement('span')
     this.element.appendChild(openScopeNode)
+
+    let decorationIndex = 0
+    let column = 0
+    let activeClassName = null
+    let activeStyle = null
+    let nextDecoration = textDecorations ? textDecorations[decorationIndex] : null
+    if (nextDecoration && nextDecoration.column === 0) {
+      ({className: activeClassName, style: activeStyle} = nextDecoration)
+      nextDecoration = textDecorations[++decorationIndex]
+    }
+
     for (let i = 0; i < tags.length; i++) {
       const tag = tags[i]
       if (tag !== 0) {
@@ -3422,15 +3599,22 @@ class LineComponent {
           openScopeNode.appendChild(newScopeNode)
           openScopeNode = newScopeNode
         } else {
-          const textNode = document.createTextNode(lineText.substr(startIndex, tag))
-          startIndex = startIndex + tag
-          openScopeNode.appendChild(textNode)
-          textNodes.push(textNode)
+          const nextTokenColumn = column + tag
+          while (nextDecoration && nextDecoration.column <= nextTokenColumn) {
+            const text = lineText.substring(column, nextDecoration.column)
+            this.appendTextNode(textNodes, openScopeNode, text, activeClassName, activeStyle)
+            ,({column, className: activeClassName, style: activeStyle} = nextDecoration)
+            nextDecoration = textDecorations[++decorationIndex]
+          }
+
+          const text = lineText.substring(column, nextTokenColumn)
+          this.appendTextNode(textNodes, openScopeNode, text, activeClassName, activeStyle)
+          column = nextTokenColumn
         }
       }
     }
 
-    if (startIndex === 0) {
+    if (column === 0) {
       const textNode = document.createTextNode(' ')
       this.element.appendChild(textNode)
       textNodes.push(textNode)
@@ -3446,26 +3630,18 @@ class LineComponent {
     }
   }
 
-  update (newProps) {
-    if (this.props.lineDecoration !== newProps.lineDecoration) {
-      this.props.lineDecoration = newProps.lineDecoration
-      this.element.className = this.buildClassName()
+  appendTextNode (textNodes, openScopeNode, text, activeClassName, activeStyle) {
+    if (activeClassName || activeStyle) {
+      const decorationNode = document.createElement('span')
+      if (activeClassName) decorationNode.className = activeClassName
+      if (activeStyle) Object.assign(decorationNode.style, activeStyle)
+      openScopeNode.appendChild(decorationNode)
+      openScopeNode = decorationNode
     }
 
-    if (this.props.screenRow !== newProps.screenRow) {
-      this.props.screenRow = newProps.screenRow
-      this.element.dataset.screenRow = newProps.screenRow
-    }
-  }
-
-  destroy () {
-    const {lineNodesByScreenLineId, textNodesByScreenLineId, screenLine} = this.props
-    if (lineNodesByScreenLineId.get(screenLine.id) === this.element) {
-      lineNodesByScreenLineId.delete(screenLine.id)
-      textNodesByScreenLineId.delete(screenLine.id)
-    }
-
-    this.element.remove()
+    const textNode = document.createTextNode(text)
+    openScopeNode.appendChild(textNode)
+    textNodes.push(textNode)
   }
 
   buildClassName () {
@@ -3635,10 +3811,38 @@ function clientRectForRange (textNode, startIndex, endIndex) {
   return rangeForMeasurement.getBoundingClientRect()
 }
 
+function textDecorationsEqual (oldDecorations, newDecorations) {
+  if (!oldDecorations && newDecorations) return false
+  if (oldDecorations && !newDecorations) return false
+  if (oldDecorations && newDecorations) {
+    if (oldDecorations.length !== newDecorations.length) return false
+    for (let j = 0; j < oldDecorations.length; j++) {
+      if (oldDecorations[j].column !== newDecorations[j].column) return false
+      if (oldDecorations[j].className !== newDecorations[j].className) return false
+      if (!objectsEqual(oldDecorations[j].style, newDecorations[j].style)) return false
+    }
+  }
+  return true
+}
+
 function arraysEqual (a, b) {
   if (a.length !== b.length) return false
   for (let i = 0, length = a.length; i < length; i++) {
     if (a[i] !== b[i]) return false
+  }
+  return true
+}
+
+function objectsEqual (a, b) {
+  if (!a && b) return false
+  if (a && !b) return false
+  if (a && b) {
+    for (key in a) {
+      if (a[key] !== b[key]) return false
+    }
+    for (key in b) {
+      if (a[key] !== b[key]) return false
+    }
   }
   return true
 }
