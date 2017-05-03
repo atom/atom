@@ -658,10 +658,13 @@ class Package
 
     @activationHooks = _.uniq(@activationHooks)
 
+  getNativeBindingDirectory: (modulePath) ->
+    path.join(modulePath, 'build', 'Release')
+
   # Does the given module path contain native code?
   isNativeModule: (modulePath) ->
     try
-      fs.listSync(path.join(modulePath, 'build', 'Release'), ['.node']).length > 0
+      fs.listSync(@getNativeBindingDirectory(modulePath), ['.node']).length > 0
     catch error
       false
 
@@ -676,8 +679,10 @@ class Package
     if @metadata._atomModuleCache?
       relativeNativeModuleBindingPaths = @metadata._atomModuleCache.extensions?['.node'] ? []
       for relativeNativeModuleBindingPath in relativeNativeModuleBindingPaths
-        nativeModulePath = path.join(@path, relativeNativeModuleBindingPath, '..', '..', '..')
-        nativeModulePaths.push(nativeModulePath)
+        relativeNativeModulePath = path.join(relativeNativeModuleBindingPath, '..', '..', '..')
+        if path.dirname(relativeNativeModuleBindingPath) is @getNativeBindingDirectory(relativeNativeModulePath)
+          nativeModulePath = path.join(@path, relativeNativeModulePath)
+          nativeModulePaths.push(nativeModulePath)
       return nativeModulePaths
 
     traversePath = (nodeModulesPath) =>
