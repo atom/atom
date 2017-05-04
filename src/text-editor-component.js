@@ -165,7 +165,7 @@ class TextEditorComponent {
     this.scheduleUpdate()
   }
 
-  pixelPositionForScreenPositionSync ({row, column}) {
+  pixelPositionForScreenPosition ({row, column}) {
     const top = this.pixelPositionAfterBlocksForRow(row)
     let left = column === 0 ? 0 : this.pixelLeftForRowAndColumn(row, column)
     if (left == null) {

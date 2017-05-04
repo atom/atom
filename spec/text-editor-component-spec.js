@@ -3091,7 +3091,7 @@ describe('TextEditorComponent', () => {
     })
   })
 
-  describe('pixelPositionForScreenPositionSync(point)', () => {
+  describe('pixelPositionForScreenPosition(point)', () => {
     it('returns the pixel position for the given point, regardless of whether or not it is currently on screen', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 2, autoHeight: false})
       await setEditorHeightInLines(component, 3)
@@ -3101,19 +3101,19 @@ describe('TextEditorComponent', () => {
       const referenceContentRect = referenceComponent.refs.content.getBoundingClientRect()
 
       {
-        const {top, left} = component.pixelPositionForScreenPositionSync({row: 0, column: 0})
+        const {top, left} = component.pixelPositionForScreenPosition({row: 0, column: 0})
         expect(top).toBe(clientTopForLine(referenceComponent, 0) - referenceContentRect.top)
         expect(left).toBe(clientLeftForCharacter(referenceComponent, 0, 0) - referenceContentRect.left)
       }
 
       {
-        const {top, left} = component.pixelPositionForScreenPositionSync({row: 0, column: 5})
+        const {top, left} = component.pixelPositionForScreenPosition({row: 0, column: 5})
         expect(top).toBe(clientTopForLine(referenceComponent, 0) - referenceContentRect.top)
         expect(left).toBe(clientLeftForCharacter(referenceComponent, 0, 5) - referenceContentRect.left)
       }
 
       {
-        const {top, left} = component.pixelPositionForScreenPositionSync({row: 12, column: 1})
+        const {top, left} = component.pixelPositionForScreenPosition({row: 12, column: 1})
         expect(top).toBe(clientTopForLine(referenceComponent, 12) - referenceContentRect.top)
         expect(left).toBe(clientLeftForCharacter(referenceComponent, 12, 1) - referenceContentRect.left)
       }
@@ -3128,28 +3128,28 @@ describe('TextEditorComponent', () => {
       const {component: referenceComponent} = buildComponent()
 
       {
-        const pixelPosition = referenceComponent.pixelPositionForScreenPositionSync({row: 0, column: 0})
+        const pixelPosition = referenceComponent.pixelPositionForScreenPosition({row: 0, column: 0})
         pixelPosition.top += component.getLineHeight() / 3
         pixelPosition.left += component.getBaseCharacterWidth() / 3
         expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual([0, 0])
       }
 
       {
-        const pixelPosition = referenceComponent.pixelPositionForScreenPositionSync({row: 0, column: 5})
+        const pixelPosition = referenceComponent.pixelPositionForScreenPosition({row: 0, column: 5})
         pixelPosition.top += component.getLineHeight() / 3
         pixelPosition.left += component.getBaseCharacterWidth() / 3
         expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual([0, 5])
       }
 
       {
-        const pixelPosition = referenceComponent.pixelPositionForScreenPositionSync({row: 5, column: 7})
+        const pixelPosition = referenceComponent.pixelPositionForScreenPosition({row: 5, column: 7})
         pixelPosition.top += component.getLineHeight() / 3
         pixelPosition.left += component.getBaseCharacterWidth() / 3
         expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual([5, 7])
       }
 
       {
-        const pixelPosition = referenceComponent.pixelPositionForScreenPositionSync({row: 12, column: 1})
+        const pixelPosition = referenceComponent.pixelPositionForScreenPosition({row: 12, column: 1})
         pixelPosition.top += component.getLineHeight() / 3
         pixelPosition.left += component.getBaseCharacterWidth() / 3
         expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual([12, 1])

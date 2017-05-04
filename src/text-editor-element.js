@@ -225,7 +225,7 @@ class TextEditorElement extends HTMLElement {
   // pixel position.
   pixelPositionForBufferPosition (bufferPosition) {
     const screenPosition = this.getModel().screenPositionForBufferPosition(bufferPosition)
-    return this.getComponent().pixelPositionForScreenPositionSync(screenPosition)
+    return this.getComponent().pixelPositionForScreenPosition(screenPosition)
   }
 
   // Extended: Converts a screen position to a pixel position.
@@ -240,7 +240,7 @@ class TextEditorElement extends HTMLElement {
   // pixel position.
   pixelPositionForScreenPosition (screenPosition) {
     screenPosition = this.getModel().clipScreenPosition(screenPosition)
-    return this.getComponent().pixelPositionForScreenPositionSync(screenPosition)
+    return this.getComponent().pixelPositionForScreenPosition(screenPosition)
   }
 
   screenPositionForPixelPosition (pixelPosition) {
