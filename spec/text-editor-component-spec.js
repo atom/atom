@@ -418,6 +418,14 @@ describe('TextEditorComponent', () => {
       expect(scrollContainer.clientWidth).toBe(scrollContainer.scrollWidth)
     })
 
+    it('accounts for the width of the vertical scrollbar when soft-wrapping lines', async () => {
+      const {component, element, editor} = buildComponent({height: 200, width: 200, attach: false, text: 'a'.repeat(300)})
+      editor.setSoftWrapped(true)
+      jasmine.attachToDOM(element)
+      expect(Math.floor(component.getScrollContainerClientWidth() / component.getBaseCharacterWidth())).toBe(20)
+      expect(editor.lineLengthForScreenRow(0)).toBe(20)
+    })
+
     it('decorates the line numbers of folded lines', async () => {
       const {component, element, editor} = buildComponent()
       editor.foldBufferRow(1)

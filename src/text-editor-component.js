@@ -81,6 +81,7 @@ class TextEditorComponent {
     this.didMouseDownOnContent = this.didMouseDownOnContent.bind(this)
     this.lineTopIndex = new LineTopIndex()
     this.updateScheduled = false
+    this.suppressUpdates = false
     this.hasInitialMeasurements = false
     this.measurements = {
       lineHeight: 0,
@@ -175,6 +176,7 @@ class TextEditorComponent {
 
   scheduleUpdate (nextUpdateOnlyBlinksCursors = false) {
     if (!this.visible) return
+    if (this.suppressUpdates) return
 
     this.nextUpdateOnlyBlinksCursors =
       this.nextUpdateOnlyBlinksCursors !== false && nextUpdateOnlyBlinksCursors === true
@@ -219,6 +221,7 @@ class TextEditorComponent {
     this.measureBlockDecorations()
 
     this.measuredContent = false
+    this.updateModelSoftWrapColumn()
     this.updateSyncBeforeMeasuringContent()
     if (useScheduler === true) {
       const scheduler = etch.getScheduler()
@@ -1945,6 +1948,13 @@ class TextEditorComponent {
     return marginInBaseCharacters * this.getBaseCharacterWidth()
   }
 
+  updateModelSoftWrapColumn () {
+    this.suppressUpdates = true
+    this.props.model.setEditorWidthInChars(this.getScrollContainerClientWidthInBaseCharacters())
+    this.props.model.setEditorWidthInChars(this.getScrollContainerClientWidthInBaseCharacters())
+    this.suppressUpdates = false
+  }
+
   // This method exists because it existed in the previous implementation and some
   // package tests relied on it
   measureDimensions () {
@@ -2013,7 +2023,6 @@ class TextEditorComponent {
     const clientContainerWidth = this.refs.clientContainer.offsetWidth
     if (clientContainerWidth !== this.measurements.clientContainerWidth) {
       this.measurements.clientContainerWidth = clientContainerWidth
-      this.props.model.setEditorWidthInChars(this.getScrollContainerWidth() / this.getBaseCharacterWidth())
       return true
     } else {
       return false
@@ -2434,6 +2443,10 @@ class TextEditorComponent {
 
   getContentWidth () {
     return Math.round(this.getLongestLineWidth() + this.getBaseCharacterWidth())
+  }
+
+  getScrollContainerClientWidthInBaseCharacters () {
+    return Math.floor(this.getScrollContainerClientWidth() / this.getBaseCharacterWidth())
   }
 
   getGutterContainerWidth () {
