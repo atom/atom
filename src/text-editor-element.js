@@ -40,7 +40,6 @@ class TextEditorElement extends HTMLElement {
   attachedCallback () {
     this.getComponent().didAttach()
     this.emitter.emit('did-attach')
-    this.updateModelFromAttributes()
   }
 
   detachedCallback () {
@@ -275,8 +274,10 @@ class TextEditorElement extends HTMLElement {
     if (!this.component) {
       this.component = new TextEditorComponent({
         element: this,
+        mini: this.hasAttribute('mini'),
         updatedSynchronously: this.updatedSynchronously
       })
+      this.updateModelFromAttributes()
     }
 
     return this.component

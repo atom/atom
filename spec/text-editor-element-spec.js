@@ -25,8 +25,16 @@ describe('TextEditorElement', () => {
 
     element.removeAttribute('mini')
     expect(element.getModel().isMini()).toBe(false)
+    expect(element.getComponent().getGutterContainerWidth()).toBe(0)
 
     element.setAttribute('mini', '')
+    expect(element.getModel().isMini()).toBe(true)
+  })
+
+  it('sets the editor to mini if the model is accessed prior to attaching the element', () => {
+    const parent = document.createElement('div')
+    parent.innerHTML = '<atom-text-editor mini>'
+    const element = parent.firstChild
     expect(element.getModel().isMini()).toBe(true)
   })
 

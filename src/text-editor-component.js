@@ -51,7 +51,9 @@ class TextEditorComponent {
   constructor (props) {
     this.props = props
 
-    if (!props.model) props.model = new TextEditor()
+    if (!props.model) {
+      props.model = new TextEditor({mini: props.mini})
+    }
     this.props.model.component = this
 
     if (props.element) {
