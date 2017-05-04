@@ -86,6 +86,8 @@ atom-text-editor {
 
   .line {
     white-space: pre;
+    overflow: hidden;
+    contain: layout paint;
 
     &.cursor-line .fold-marker::after {
       opacity: 1;
