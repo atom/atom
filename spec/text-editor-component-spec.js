@@ -1953,10 +1953,9 @@ describe('TextEditorComponent', () => {
 
   describe('text decorations', () => {
     it('injects spans with custom class names and inline styles based on text decorations', async () => {
-      const {component, element, editor} = buildComponent()
+      const {component, element, editor} = buildComponent({rowsPerTile: 2})
 
       const markerLayer = editor.addMarkerLayer()
-
       const marker1 = markerLayer.markBufferRange([[0, 2], [2, 7]])
       const marker2 = markerLayer.markBufferRange([[0, 2], [3, 8]])
       const marker3 = markerLayer.markBufferRange([[1, 13], [2, 7]])
@@ -1994,6 +1993,47 @@ describe('TextEditorComponent', () => {
       marker2.setHeadScreenPosition([3, 10])
       await component.getNextUpdatePromise()
       expect(textContentOnRowMatchingSelector(component, 3, '.b')).toBe(editor.lineTextForScreenRow(3).slice(0, 10))
+    })
+
+    it('correctly handles text decorations starting before the first rendered row and/or ending after the last rendered row', async () => {
+      const {component, element, editor} = buildComponent({autoHeight: false, rowsPerTile: 1})
+      element.style.height = 3 * component.getLineHeight() + 'px'
+      await component.getNextUpdatePromise()
+      await setScrollTop(component, 4 * component.getLineHeight())
+      expect(component.getRenderedStartRow()).toBe(4)
+      expect(component.getRenderedEndRow()).toBe(9)
+
+      const markerLayer = editor.addMarkerLayer()
+      const marker1 = markerLayer.markBufferRange([[0, 0], [4, 5]])
+      const marker2 = markerLayer.markBufferRange([[7, 2], [10, 8]])
+      editor.decorateMarker(marker1, {type: 'text', class: 'a'})
+      editor.decorateMarker(marker2, {type: 'text', class: 'b'})
+      await component.getNextUpdatePromise()
+
+      expect(textContentOnRowMatchingSelector(component, 4, '.a')).toBe(editor.lineTextForScreenRow(4).slice(0, 5))
+      expect(textContentOnRowMatchingSelector(component, 5, '.a')).toBe('')
+      expect(textContentOnRowMatchingSelector(component, 6, '.a')).toBe('')
+      expect(textContentOnRowMatchingSelector(component, 7, '.a')).toBe('')
+      expect(textContentOnRowMatchingSelector(component, 8, '.a')).toBe('')
+
+      expect(textContentOnRowMatchingSelector(component, 4, '.b')).toBe('')
+      expect(textContentOnRowMatchingSelector(component, 5, '.b')).toBe('')
+      expect(textContentOnRowMatchingSelector(component, 6, '.b')).toBe('')
+      expect(textContentOnRowMatchingSelector(component, 7, '.b')).toBe(editor.lineTextForScreenRow(7).slice(2))
+      expect(textContentOnRowMatchingSelector(component, 8, '.b')).toBe(editor.lineTextForScreenRow(8))
+    })
+
+    it('does not create empty spans when a text decoration contains a row but another text decoration starts or ends at the beginning of it', async () => {
+      const {component, element, editor} = buildComponent()
+      const markerLayer = editor.addMarkerLayer()
+      const marker1 = markerLayer.markBufferRange([[0, 2], [4, 0]])
+      const marker2 = markerLayer.markBufferRange([[2, 0], [5, 8]])
+      editor.decorateMarker(marker1, {type: 'text', class: 'a'})
+      editor.decorateMarker(marker2, {type: 'text', class: 'b'})
+      await component.getNextUpdatePromise()
+      for (const decorationSpan of element.querySelectorAll('.a, .b')) {
+        expect(decorationSpan.textContent).not.toBe('')
+      }
     })
 
     function textContentOnRowMatchingSelector (component, row, selector) {

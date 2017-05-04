@@ -1135,6 +1135,7 @@ class TextEditorComponent {
     }
 
     const renderedStartRow = this.getRenderedStartRow()
+    const renderedEndRow = this.getRenderedEndRow()
     const containingMarkers = []
 
     // Iterate over boundaries to build up text decorations.
@@ -1186,10 +1187,18 @@ class TextEditorComponent {
 
       // Add decoration start with className/style for current position's column,
       // and also for the start of every row up until the next decoration boundary
-      this.addTextDecorationStart(boundary.position.row, boundary.position.column, className, style)
+      if (boundary.position.row >= renderedStartRow) {
+        this.addTextDecorationStart(boundary.position.row, boundary.position.column, className, style)
+      }
       const nextBoundary = this.textDecorationBoundaries[i + 1]
       if (nextBoundary) {
-        for (let row = boundary.position.row + 1; row <= nextBoundary.position.row; row++) {
+        let row = Math.max(boundary.position.row + 1, renderedStartRow)
+        const endRow = Math.min(nextBoundary.position.row, renderedEndRow)
+        for (; row < endRow; row++) {
+          this.addTextDecorationStart(row, 0, className, style)
+        }
+
+        if (row === nextBoundary.position.row && nextBoundary.position.column !== 0) {
           this.addTextDecorationStart(row, 0, className, style)
         }
       }
@@ -3584,7 +3593,9 @@ class LineComponent {
     let activeStyle = null
     let nextDecoration = textDecorations ? textDecorations[decorationIndex] : null
     if (nextDecoration && nextDecoration.column === 0) {
-      ({className: activeClassName, style: activeStyle} = nextDecoration)
+      column = nextDecoration.column
+      activeClassName = nextDecoration.className
+      activeStyle = nextDecoration.style
       nextDecoration = textDecorations[++decorationIndex]
     }
 
@@ -3603,7 +3614,9 @@ class LineComponent {
           while (nextDecoration && nextDecoration.column <= nextTokenColumn) {
             const text = lineText.substring(column, nextDecoration.column)
             this.appendTextNode(textNodes, openScopeNode, text, activeClassName, activeStyle)
-            ,({column, className: activeClassName, style: activeStyle} = nextDecoration)
+            column = nextDecoration.column
+            activeClassName = nextDecoration.className
+            activeStyle = nextDecoration.style
             nextDecoration = textDecorations[++decorationIndex]
           }
 
