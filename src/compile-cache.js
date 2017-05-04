@@ -29,6 +29,7 @@ exports.removeTranspilerConfigForPath = function (packagePath) {
   packagePath = fs.realpathSync(packagePath)
   packageTranspilationRegistry.removeTranspilerConfigForPath(packagePath)
 }
+exports.COMPILERS = COMPILERS
 
 var cacheStats = {}
 var cacheDirectory = null
@@ -38,12 +39,13 @@ exports.setAtomHomeDirectory = function (atomHome) {
   if (process.env.USER === 'root' && process.env.SUDO_USER && process.env.SUDO_USER !== process.env.USER) {
     cacheDir = path.join(cacheDir, 'root')
   }
-  this.setCacheDirectory(cacheDir)
+  setCacheDirectory(cacheDir)
 }
 
-exports.setCacheDirectory = function (directory) {
+function setCacheDirectory (directory) {
   cacheDirectory = directory
 }
+exports.setCacheDirectory = setCacheDirectory
 
 exports.getCacheDirectory = function () {
   return cacheDirectory
@@ -96,6 +98,7 @@ function compileFileAtPath (compiler, filePath, extension) {
   }
   return sourceCode
 }
+exports.compileFileAtPath = compileFileAtPath
 
 function readCachedJavascript (relativeCachePath) {
   var cachePath = path.join(cacheDirectory, relativeCachePath)
@@ -214,18 +217,21 @@ exports.install = function (resourcesPath, nodeRequire) {
     return this.rawStack
   }
 
-  Object.keys(COMPILERS).forEach(function (extension) {
-    var compiler = COMPILERS[extension]
+  // require.extensions will not be set if this is running in a browser.
+  if (require.extensions != null) {
+    Object.keys(COMPILERS).forEach(function (extension) {
+      var compiler = COMPILERS[extension]
 
-    Object.defineProperty(nodeRequire.extensions, extension, {
-      enumerable: true,
-      writable: false,
-      value: function (module, filePath) {
-        var code = compileFileAtPath(compiler, filePath, extension)
-        return module._compile(code, filePath)
-      }
+      Object.defineProperty(nodeRequire.extensions, extension, {
+        enumerable: true,
+        writable: false,
+        value: function (module, filePath) {
+          var code = compileFileAtPath(compiler, filePath, extension)
+          return module._compile(code, filePath)
+        }
+      })
     })
-  })
+  }
 }
 
 exports.supportedExtensions = Object.keys(COMPILERS)
