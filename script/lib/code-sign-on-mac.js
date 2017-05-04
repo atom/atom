@@ -10,7 +10,7 @@ module.exports = function (packagedAppPath) {
     return
   }
 
-  let certPath = process.env.ATOM_MAC_CODE_SIGNING_CERT_PATH;
+  var certPath = process.env.ATOM_MAC_CODE_SIGNING_CERT_PATH;
   if (!certPath) {
     certPath = path.join(os.tmpdir(), 'mac.p12')
     downloadFileFromGithub(process.env.ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
