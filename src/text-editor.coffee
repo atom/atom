@@ -214,7 +214,7 @@ class TextEditor extends Model
     @disposables.add new Disposable =>
       cancelIdleCallback(@backgroundWorkHandle) if @backgroundWorkHandle?
 
-    @displayLayer.addTextDecorationLayer(@tokenizedBuffer)
+    @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
     @disposables.add(@defaultMarkerLayer.onDidDestroy =>
       @assert(false, "defaultMarkerLayer destroyed at an unexpected time")
