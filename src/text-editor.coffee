@@ -3546,7 +3546,11 @@ class TextEditor extends Model
   # Experimental: Does this editor allow scrolling past the last line?
   #
   # Returns a {Boolean}.
-  getScrollPastEnd: -> @scrollPastEnd
+  getScrollPastEnd: ->
+    if @getAutoHeight()
+      false
+    else
+      @scrollPastEnd
 
   # Experimental: How fast does the editor scroll in response to mouse wheel
   # movements?

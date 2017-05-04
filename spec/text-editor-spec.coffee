@@ -5561,6 +5561,12 @@ describe "TextEditor", ->
       editor.update({scrollPastEnd: false})
       expect(editor.getScrollPastEnd()).toBe(false)
 
+    it "always returns false when autoHeight is on", ->
+      editor.update({autoHeight: true, scrollPastEnd: true})
+      expect(editor.getScrollPastEnd()).toBe(false)
+      editor.update({autoHeight: false})
+      expect(editor.getScrollPastEnd()).toBe(true)
+
   describe "auto height", ->
     it "returns true by default but can be customized", ->
       editor = new TextEditor
