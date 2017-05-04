@@ -3112,7 +3112,7 @@ describe('TextEditorComponent', () => {
     })
   })
 
-  describe('screenPositionForPixelPositionSync', () => {
+  describe('screenPositionForPixelPosition', () => {
     it('returns the screen position for the given pixel position, regardless of whether or not it is currently on screen', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 2, autoHeight: false})
       await setEditorHeightInLines(component, 3)
@@ -3123,28 +3123,28 @@ describe('TextEditorComponent', () => {
         const pixelPosition = referenceComponent.pixelPositionForScreenPositionSync({row: 0, column: 0})
         pixelPosition.top += component.getLineHeight() / 3
         pixelPosition.left += component.getBaseCharacterWidth() / 3
-        expect(component.screenPositionForPixelPositionSync(pixelPosition)).toEqual([0, 0])
+        expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual([0, 0])
       }
 
       {
         const pixelPosition = referenceComponent.pixelPositionForScreenPositionSync({row: 0, column: 5})
         pixelPosition.top += component.getLineHeight() / 3
         pixelPosition.left += component.getBaseCharacterWidth() / 3
-        expect(component.screenPositionForPixelPositionSync(pixelPosition)).toEqual([0, 5])
+        expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual([0, 5])
       }
 
       {
         const pixelPosition = referenceComponent.pixelPositionForScreenPositionSync({row: 5, column: 7})
         pixelPosition.top += component.getLineHeight() / 3
         pixelPosition.left += component.getBaseCharacterWidth() / 3
-        expect(component.screenPositionForPixelPositionSync(pixelPosition)).toEqual([5, 7])
+        expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual([5, 7])
       }
 
       {
         const pixelPosition = referenceComponent.pixelPositionForScreenPositionSync({row: 12, column: 1})
         pixelPosition.top += component.getLineHeight() / 3
         pixelPosition.left += component.getBaseCharacterWidth() / 3
-        expect(component.screenPositionForPixelPositionSync(pixelPosition)).toEqual([12, 1])
+        expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual([12, 1])
       }
     })
   })

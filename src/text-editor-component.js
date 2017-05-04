@@ -173,22 +173,6 @@ class TextEditorComponent {
     return {top, left}
   }
 
-  screenPositionForPixelPositionSync (pixelPosition) {
-    const {model} = this.props
-
-    const row = Math.max(0, Math.min(
-      this.rowForPixelPosition(pixelPosition.top),
-      model.getApproximateScreenLineCount() - 1
-    ))
-
-    if (!this.renderedScreenLineForRow(row)) {
-      this.requestExtraLineToMeasure(row, model.screenLineForScreenRow(row))
-      this.updateSyncBeforeMeasuringContent()
-      this.measureContentDuringUpdateSync()
-    }
-    return this.screenPositionForPixelPosition(pixelPosition)
-  }
-
   scheduleUpdate (nextUpdateOnlyBlinksCursors = false) {
     if (!this.visible) return
 
@@ -2181,9 +2165,16 @@ class TextEditorComponent {
       model.getApproximateScreenLineCount() - 1
     )
 
+    let screenLine = this.renderedScreenLineForRow(row)
+    if (!screenLine) {
+      this.requestExtraLineToMeasure(row, model.screenLineForScreenRow(row))
+      this.updateSyncBeforeMeasuringContent()
+      this.measureContentDuringUpdateSync()
+      screenLine = this.renderedScreenLineForRow(row)
+    }
+
     const linesClientLeft = this.refs.lineTiles.getBoundingClientRect().left
     const targetClientLeft = linesClientLeft + Math.max(0, left)
-    const screenLine = this.renderedScreenLineForRow(row)
     const textNodes = this.textNodesByScreenLineId.get(screenLine.id)
 
     let containingTextNodeIndex

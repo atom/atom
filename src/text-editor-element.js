@@ -245,7 +245,7 @@ class TextEditorElement extends HTMLElement {
   }
 
   screenPositionForPixelPosition (pixelPosition) {
-    return this.getComponent().screenPositionForPixelPositionSync(pixelPosition)
+    return this.getComponent().screenPositionForPixelPosition(pixelPosition)
   }
 
   pixelRectForScreenRange (range) {
