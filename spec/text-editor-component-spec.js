@@ -599,9 +599,18 @@ describe('TextEditorComponent', () => {
   })
 
   describe('mini editors', () => {
-    it('adds the mini attribute', () => {
-      const {element, editor} = buildComponent({mini: true})
-      expect(element.hasAttribute('mini')).toBe(true)
+    it('adds the mini attribute and class even when the element is not attached', () => {
+      {
+        const {element, editor} = buildComponent({mini: true})
+        expect(element.hasAttribute('mini')).toBe(true)
+        expect(element.classList.contains('mini')).toBe(true)
+      }
+
+      {
+        const {element, editor} = buildComponent({mini: true, attach: false})
+        expect(element.hasAttribute('mini')).toBe(true)
+        expect(element.classList.contains('mini')).toBe(true)
+      }
     })
 
     it('does not render the gutter container', () => {

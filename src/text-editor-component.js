@@ -157,6 +157,7 @@ class TextEditorComponent {
     this.queryGuttersToRender()
     this.queryMaxLineNumberDigits()
     this.observeBlockDecorations()
+    this.updateClassList()
     etch.updateSync(this)
   }
 
