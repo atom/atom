@@ -4,6 +4,7 @@ const TextEditorComponent = require('../src/text-editor-component')
 const TextEditorElement = require('../src/text-editor-element')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
+const {Point} = TextBuffer
 const fs = require('fs')
 const path = require('path')
 const Grim = require('grim')
@@ -83,14 +84,25 @@ describe('TextEditorComponent', () => {
       ])
     })
 
-    it('bases the width of the lines div on the width of the longest initially-visible screen line', () => {
+    fffit('bases the width of the lines div on the width of the longest initially-visible screen line', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 2, height: 20})
 
-      expect(editor.getApproximateLongestScreenRow()).toBe(3)
-      const expectedWidth = element.querySelectorAll('.line')[3].offsetWidth
-      expect(element.querySelector('.lines').style.width).toBe(expectedWidth + 'px')
+      {
+        expect(editor.getApproximateLongestScreenRow()).toBe(3)
+        const expectedWidth = element.querySelectorAll('.line')[3].offsetWidth
+        expect(element.querySelector('.lines').style.width).toBe(expectedWidth + 'px')
+      }
 
-      // TODO: Confirm that we'll update this value as indexing proceeds
+      {
+        console.log('--------');
+        const promise = component.getNextUpdatePromise()
+        await conditionPromise(() => editor.getApproximateLongestScreenRow() === 6)
+        await promise
+        // Capture the actual width first because calling pixelPositionForScreenPosition will update the DOM.
+        const actualWidth = element.querySelector('.lines').style.width
+        const expectedWidth = component.pixelPositionForScreenPosition(Point(6, Infinity)).left
+        expect(actualWidth).toBe(expectedWidth + 'px')
+      }
     })
 
     it('makes the content at least as tall as the scroll container client height', async () => {

@@ -2266,6 +2266,7 @@ class TextEditorComponent {
   }
 
   didChangeDisplayLayer (changes) {
+    console.log('received change event!');
     for (let i = 0; i < changes.length; i++) {
       const {start, oldExtent, newExtent} = changes[i]
       this.spliceLineTopIndex(start.row, oldExtent.row, newExtent.row)
