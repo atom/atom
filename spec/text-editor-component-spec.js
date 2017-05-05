@@ -93,6 +93,16 @@ describe('TextEditorComponent', () => {
       // TODO: Confirm that we'll update this value as indexing proceeds
     })
 
+    it('makes the content at least as tall as the scroll container client height', async () => {
+      const {component, element, editor} = buildComponent({text: 'a', height: 100})
+      expect(component.refs.content.offsetHeight).toBe(100)
+
+      editor.setText('a\n'.repeat(30))
+      await component.getNextUpdatePromise()
+      expect(component.refs.content.offsetHeight).toBeGreaterThan(100)
+      expect(component.refs.content.offsetHeight).toBe(component.getContentHeight())
+    })
+
     it('honors the scrollPastEnd option by adding empty space equivalent to the clientHeight to the end of the content area', async () => {
       const {component, element, editor} = buildComponent({autoHeight: false, autoWidth: false})
       const {scrollContainer} = component.refs
