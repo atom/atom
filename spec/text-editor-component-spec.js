@@ -3034,6 +3034,26 @@ describe('TextEditorComponent', () => {
       verifyCursorPosition(component, cursorNode, 1, 29)
     })
 
+    it('maintains the scrollTopRow and scrollLeftColumn when the font size changes', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 1, autoHeight: false})
+      await setEditorHeightInLines(component, 3)
+      await setEditorWidthInCharacters(component, 20)
+      component.setScrollTopRow(4)
+      component.setScrollLeftColumn(10)
+      await component.getNextUpdatePromise()
+
+      const initialFontSize = parseInt(getComputedStyle(element).fontSize)
+      element.style.fontSize = initialFontSize - 5 + 'px'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      expect(component.getScrollTopRow()).toBe(4)
+
+      element.style.fontSize = initialFontSize + 5 + 'px'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      expect(component.getScrollTopRow()).toBe(4)
+    })
+
     it('gracefully handles the editor being hidden after a styling change', async () => {
       const {component, element, editor} = buildComponent({autoHeight: false})
       element.style.fontSize = parseInt(getComputedStyle(element).fontSize) + 5 + 'px'

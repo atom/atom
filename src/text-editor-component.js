@@ -215,8 +215,20 @@ class TextEditorComponent {
     }
 
     if (this.remeasureCharacterDimensions) {
+      const originalLineHeight = this.getLineHeight()
+      const originalBaseCharacterWidth = this.getBaseCharacterWidth()
+      const scrollTopRow = this.getScrollTopRow()
+      const scrollLeftColumn = this.getScrollLeftColumn()
+
       this.measureCharacterDimensions()
       this.measureGutterDimensions()
+
+      if (this.getLineHeight() !== originalLineHeight) {
+        this.setScrollTopRow(scrollTopRow)
+      }
+      if (this.getBaseCharacterWidth() !== originalBaseCharacterWidth) {
+        this.setScrollLeftColumn(scrollLeftColumn)
+      }
       this.remeasureCharacterDimensions = false
     }
 
