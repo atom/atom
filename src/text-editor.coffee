@@ -255,11 +255,15 @@ class TextEditor extends Model
     ]
 
   doBackgroundWork: (deadline) =>
+    previousLongestRow = @getApproximateLongestScreenRow()
     if @displayLayer.doBackgroundWork(deadline)
       @presenter?.updateVerticalDimensions()
       @backgroundWorkHandle = requestIdleCallback(@doBackgroundWork)
     else
       @backgroundWorkHandle = null
+
+    if @getApproximateLongestScreenRow() isnt previousLongestRow
+      @component?.scheduleUpdate()
 
   update: (params) ->
     displayLayerParams = {}

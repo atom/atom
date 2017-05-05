@@ -4,6 +4,7 @@ const TextEditorComponent = require('../src/text-editor-component')
 const TextEditorElement = require('../src/text-editor-element')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
+const {Point} = TextBuffer
 const fs = require('fs')
 const path = require('path')
 const Grim = require('grim')
@@ -83,14 +84,34 @@ describe('TextEditorComponent', () => {
       ])
     })
 
-    it('bases the width of the lines div on the width of the longest initially-visible screen line', () => {
-      const {component, element, editor} = buildComponent({rowsPerTile: 2, height: 20})
+    it('bases the width of the lines div on the width of the longest initially-visible screen line', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 2, height: 20, width: 100})
 
-      expect(editor.getApproximateLongestScreenRow()).toBe(3)
-      const expectedWidth = element.querySelectorAll('.line')[3].offsetWidth
-      expect(element.querySelector('.lines').style.width).toBe(expectedWidth + 'px')
+      {
+        expect(editor.getApproximateLongestScreenRow()).toBe(3)
+        const expectedWidth = Math.round(
+          component.pixelPositionForScreenPosition(Point(3, Infinity)).left +
+          component.getBaseCharacterWidth()
+        )
+        expect(element.querySelector('.lines').style.width).toBe(expectedWidth + 'px')
+      }
 
-      // TODO: Confirm that we'll update this value as indexing proceeds
+      {
+        // Get the next update promise synchronously here to ensure we don't
+        // miss the update while polling the condition.
+        const nextUpdatePromise = component.getNextUpdatePromise()
+        await conditionPromise(() => editor.getApproximateLongestScreenRow() === 6)
+        await nextUpdatePromise
+
+        // Capture the width first, then update the DOM so we can measure the
+        // longest line.
+        const actualWidth = element.querySelector('.lines').style.width
+        const expectedWidth = Math.round(
+          component.pixelPositionForScreenPosition(Point(6, Infinity)).left +
+          component.getBaseCharacterWidth()
+        )
+        expect(actualWidth).toBe(expectedWidth + 'px')
+      }
     })
 
     it('honors the scrollPastEnd option by adding empty space equivalent to the clientHeight to the end of the content area', async () => {
