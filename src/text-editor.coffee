@@ -257,7 +257,6 @@ class TextEditor extends Model
   doBackgroundWork: (deadline) =>
     previousLongestRow = @getApproximateLongestScreenRow()
     if @displayLayer.doBackgroundWork(deadline)
-      @presenter?.updateVerticalDimensions()
       @backgroundWorkHandle = requestIdleCallback(@doBackgroundWork)
     else
       @backgroundWorkHandle = null
@@ -358,7 +357,6 @@ class TextEditor extends Model
         when 'showLineNumbers'
           if value isnt @showLineNumbers
             @showLineNumbers = value
-            @presenter?.didChangeShowLineNumbers()
 
         when 'showInvisibles'
           if value isnt @showInvisibles
@@ -388,12 +386,10 @@ class TextEditor extends Model
         when 'autoHeight'
           if value isnt @autoHeight
             @autoHeight = value
-            @presenter?.setAutoHeight(@autoHeight)
 
         when 'autoWidth'
           if value isnt @autoWidth
             @autoWidth = value
-            @presenter?.didChangeAutoWidth()
 
         when 'showCursorOnSelection'
           if value isnt @showCursorOnSelection
@@ -483,7 +479,6 @@ class TextEditor extends Model
     @emitter.emit 'did-destroy'
     @emitter.clear()
     @editorElement = null
-    @presenter = null
 
   ###
   Section: Event Subscription
