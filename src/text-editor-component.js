@@ -239,9 +239,6 @@ class TextEditorComponent {
       this.measuredContent = true
       this.updateSyncAfterMeasuringContent()
     }
-
-    this.derivedDimensionsCache = {}
-    if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
   }
 
   measureBlockDecorations () {
@@ -373,6 +370,9 @@ class TextEditorComponent {
       this.remeasureScrollbars = false
       etch.updateSync(this)
     }
+
+    this.derivedDimensionsCache = {}
+    if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
   }
 
   render () {
