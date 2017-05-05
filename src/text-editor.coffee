@@ -2341,8 +2341,9 @@ class TextEditor extends Model
     cursor
 
   moveCursors: (fn) ->
-    fn(cursor) for cursor in @getCursors()
-    @mergeCursors()
+    @transact =>
+      fn(cursor) for cursor in @getCursors()
+      @mergeCursors()
 
   cursorMoved: (event) ->
     @emitter.emit 'did-change-cursor-position', event
