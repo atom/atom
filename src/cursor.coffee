@@ -12,20 +12,14 @@ EmptyLineRegExp = /(\r\n[\t ]*\r\n)|(\n[\t ]*\n)/g
 # of a {DisplayMarker}.
 module.exports =
 class Cursor extends Model
-  showCursorOnSelection: null
   screenPosition: null
   bufferPosition: null
   goalColumn: null
-  visible: true
 
   # Instantiated by a {TextEditor}
-  constructor: ({@editor, @marker, @showCursorOnSelection, id}) ->
+  constructor: ({@editor, @marker, id}) ->
     @emitter = new Emitter
-
-    @showCursorOnSelection ?= true
-
     @assignId(id)
-    @updateVisibility()
 
   destroy: ->
     @marker.destroy()
@@ -56,15 +50,6 @@ class Cursor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
-
-  # Public: Calls your `callback` when the cursor's visibility has changed
-  #
-  # * `callback` {Function}
-  #   * `visibility` {Boolean}
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeVisibility: (callback) ->
-    @emitter.on 'did-change-visibility', callback
 
   ###
   Section: Managing Cursor Position
@@ -568,21 +553,6 @@ class Cursor extends Model
   Section: Visibility
   ###
 
-  # Public: Sets whether the cursor is visible.
-  setVisible: (visible) ->
-    if @visible isnt visible
-      @visible = visible
-      @emitter.emit 'did-change-visibility', @visible
-
-  # Public: Returns the visibility of the cursor.
-  isVisible: -> @visible
-
-  updateVisibility: ->
-    if @showCursorOnSelection
-      @setVisible(true)
-    else
-      @setVisible(@marker.getBufferRange().isEmpty())
-
   ###
   Section: Comparing to another cursor
   ###
@@ -598,9 +568,6 @@ class Cursor extends Model
   ###
   Section: Utilities
   ###
-
-  # Public: Prevents this cursor from causing scrolling.
-  clearAutoscroll: ->
 
   # Public: Deselects the current selection.
   clearSelection: (options) ->
@@ -650,11 +617,6 @@ class Cursor extends Model
   ###
   Section: Private
   ###
-
-  setShowCursorOnSelection: (value) ->
-    if value isnt @showCursorOnSelection
-      @showCursorOnSelection = value
-      @updateVisibility()
 
   getNonWordCharacters: ->
     @editor.getNonWordCharacters(@getScopeDescriptor().getScopesArray())

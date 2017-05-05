@@ -99,23 +99,34 @@ describe "TextEditor", ->
       expect(editor.getAutoWidth()).toBeFalsy()
       expect(editor.getShowCursorOnSelection()).toBeTruthy()
 
-      editor.update({autoHeight: true, autoWidth: true, showCursorOnSelection: false})
+      element = editor.getElement()
+      element.setHeight(100)
+      element.setWidth(100)
+      jasmine.attachToDOM(element)
+
+      editor.update({showCursorOnSelection: false})
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
       editor.addSelectionForBufferRange([[5, 6], [7, 8]], reversed: true)
-      editor.firstVisibleScreenRow = 5
-      editor.firstVisibleScreenColumn = 5
+      editor.setScrollTopRow(3)
+      expect(editor.getScrollTopRow()).toBe(3)
+      editor.setScrollLeftColumn(4)
+      expect(editor.getScrollLeftColumn()).toBe(4)
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
       editor2 = editor.copy()
+      element2 = editor2.getElement()
+      element2.setHeight(100)
+      element2.setWidth(100)
+      jasmine.attachToDOM(element2)
       expect(editor2.id).not.toBe editor.id
       expect(editor2.getSelectedBufferRanges()).toEqual editor.getSelectedBufferRanges()
       expect(editor2.getSelections()[1].isReversed()).toBeTruthy()
-      expect(editor2.getFirstVisibleScreenRow()).toBe 5
-      expect(editor2.getFirstVisibleScreenColumn()).toBe 5
+      expect(editor2.getScrollTopRow()).toBe(3)
+      expect(editor2.getScrollLeftColumn()).toBe(4)
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
-      expect(editor2.getAutoWidth()).toBeTruthy()
-      expect(editor2.getAutoHeight()).toBeTruthy()
+      expect(editor2.getAutoWidth()).toBe(false)
+      expect(editor2.getAutoHeight()).toBe(false)
       expect(editor2.getShowCursorOnSelection()).toBeFalsy()
 
       # editor2 can now diverge from its origin edit session
@@ -137,7 +148,7 @@ describe "TextEditor", ->
         autoHeight: false
       })
 
-      expect(returnedPromise).toBe(atom.views.getNextUpdatePromise())
+      expect(returnedPromise).toBe(element.component.getNextUpdatePromise())
       expect(changeSpy.callCount).toBe(1)
       expect(editor.getTabLength()).toBe(6)
       expect(editor.getSoftTabs()).toBe(false)
@@ -1877,8 +1888,6 @@ describe "TextEditor", ->
             [[4, 16], [4, 21]]
             [[4, 25], [4, 29]]
           ]
-          for cursor in editor.getCursors()
-            expect(cursor.isVisible()).toBeTruthy()
 
         it "skips lines that are too short to create a non-empty selection", ->
           editor.setSelectedBufferRange([[3, 31], [3, 38]])
@@ -2010,8 +2019,6 @@ describe "TextEditor", ->
             [[2, 16], [2, 21]]
             [[2, 37], [2, 40]]
           ]
-          for cursor in editor.getCursors()
-            expect(cursor.isVisible()).toBeTruthy()
 
         it "skips lines that are too short to create a non-empty selection", ->
           editor.setSelectedBufferRange([[6, 31], [6, 38]])
@@ -2180,54 +2187,6 @@ describe "TextEditor", ->
         makeSelection()
         editor.setCursorScreenPosition([3, 3])
         expect(selection.isEmpty()).toBeTruthy()
-
-    describe "cursor visibility while there is a selection", ->
-      describe "when showCursorOnSelection is true", ->
-        it "is visible while there is no selection", ->
-          expect(selection.isEmpty()).toBeTruthy()
-          expect(editor.getShowCursorOnSelection()).toBeTruthy()
-          expect(editor.getCursors().length).toBe 1
-          expect(editor.getCursors()[0].isVisible()).toBeTruthy()
-
-        it "is visible while there is a selection", ->
-          expect(selection.isEmpty()).toBeTruthy()
-          editor.setSelectedBufferRange([[1, 2], [1, 5]])
-          expect(selection.isEmpty()).toBeFalsy()
-          expect(editor.getCursors().length).toBe 1
-          expect(editor.getCursors()[0].isVisible()).toBeTruthy()
-
-        it "is visible while there are multiple selections", ->
-          expect(editor.getSelections().length).toBe 1
-          editor.setSelectedBufferRanges([[[1, 2], [1, 5]], [[2, 2], [2, 5]]])
-          expect(editor.getSelections().length).toBe 2
-          expect(editor.getCursors().length).toBe 2
-          expect(editor.getCursors()[0].isVisible()).toBeTruthy()
-          expect(editor.getCursors()[1].isVisible()).toBeTruthy()
-
-      describe "when showCursorOnSelection is false", ->
-        it "is visible while there is no selection", ->
-          editor.update({showCursorOnSelection: false})
-          expect(selection.isEmpty()).toBeTruthy()
-          expect(editor.getShowCursorOnSelection()).toBeFalsy()
-          expect(editor.getCursors().length).toBe 1
-          expect(editor.getCursors()[0].isVisible()).toBeTruthy()
-
-        it "is not visible while there is a selection", ->
-          editor.update({showCursorOnSelection: false})
-          expect(selection.isEmpty()).toBeTruthy()
-          editor.setSelectedBufferRange([[1, 2], [1, 5]])
-          expect(selection.isEmpty()).toBeFalsy()
-          expect(editor.getCursors().length).toBe 1
-          expect(editor.getCursors()[0].isVisible()).toBeFalsy()
-
-        it "is not visible while there are multiple selections", ->
-          editor.update({showCursorOnSelection: false})
-          expect(editor.getSelections().length).toBe 1
-          editor.setSelectedBufferRanges([[[1, 2], [1, 5]], [[2, 2], [2, 5]]])
-          expect(editor.getSelections().length).toBe 2
-          expect(editor.getCursors().length).toBe 2
-          expect(editor.getCursors()[0].isVisible()).toBeFalsy()
-          expect(editor.getCursors()[1].isVisible()).toBeFalsy()
 
     it "does not share selections between different edit sessions for the same buffer", ->
       editor2 = null
@@ -3279,7 +3238,6 @@ describe "TextEditor", ->
             expect(line).toBe "  var ort = function(items) {"
             expect(editor.getCursorScreenPosition()).toEqual {row: 1, column: 6}
             expect(changeScreenRangeHandler).toHaveBeenCalled()
-            expect(editor.getLastCursor().isVisible()).toBeTruthy()
 
         describe "when the cursor is at the beginning of a line", ->
           it "joins it with the line above", ->
@@ -5460,8 +5418,8 @@ describe "TextEditor", ->
 
           tokens = editor.tokensForScreenRow(0)
           expect(tokens).toEqual [
-            {text: '//', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--punctuation.syntax--definition.syntax--comment.syntax--js']},
-            {text: ' http://github.com', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']}
+            {text: '//', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--punctuation syntax--definition syntax--comment syntax--js']},
+            {text: ' http://github.com', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']}
           ]
 
         waitsForPromise ->
@@ -5470,9 +5428,9 @@ describe "TextEditor", ->
         runs ->
           tokens = editor.tokensForScreenRow(0)
           expect(tokens).toEqual [
-            {text: '//', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--punctuation.syntax--definition.syntax--comment.syntax--js']},
-            {text: ' ', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']}
-            {text: 'http://github.com', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--markup.syntax--underline.syntax--link.syntax--http.syntax--hyperlink']}
+            {text: '//', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--punctuation syntax--definition syntax--comment syntax--js']},
+            {text: ' ', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']}
+            {text: 'http://github.com', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--markup syntax--underline syntax--link syntax--http syntax--hyperlink']}
           ]
 
       describe "when the grammar is updated", ->
@@ -5485,8 +5443,8 @@ describe "TextEditor", ->
 
             tokens = editor.tokensForScreenRow(0)
             expect(tokens).toEqual [
-              {text: '//', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--punctuation.syntax--definition.syntax--comment.syntax--js']},
-              {text: ' SELECT * FROM OCTOCATS', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']}
+              {text: '//', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--punctuation syntax--definition syntax--comment syntax--js']},
+              {text: ' SELECT * FROM OCTOCATS', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']}
             ]
 
           waitsForPromise ->
@@ -5495,8 +5453,8 @@ describe "TextEditor", ->
           runs ->
             tokens = editor.tokensForScreenRow(0)
             expect(tokens).toEqual [
-              {text: '//', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--punctuation.syntax--definition.syntax--comment.syntax--js']},
-              {text: ' SELECT * FROM OCTOCATS', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']}
+              {text: '//', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--punctuation syntax--definition syntax--comment syntax--js']},
+              {text: ' SELECT * FROM OCTOCATS', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']}
             ]
 
           waitsForPromise ->
@@ -5505,14 +5463,14 @@ describe "TextEditor", ->
           runs ->
             tokens = editor.tokensForScreenRow(0)
             expect(tokens).toEqual [
-              {text: '//', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--punctuation.syntax--definition.syntax--comment.syntax--js']},
-              {text: ' ', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']},
-              {text: 'SELECT', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--keyword.syntax--other.syntax--DML.syntax--sql']},
-              {text: ' ', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']},
-              {text: '*', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--keyword.syntax--operator.syntax--star.syntax--sql']},
-              {text: ' ', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']},
-              {text: 'FROM', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--keyword.syntax--other.syntax--DML.syntax--sql']},
-              {text: ' OCTOCATS', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']}
+              {text: '//', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--punctuation syntax--definition syntax--comment syntax--js']},
+              {text: ' ', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']},
+              {text: 'SELECT', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--keyword syntax--other syntax--DML syntax--sql']},
+              {text: ' ', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']},
+              {text: '*', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--keyword syntax--operator syntax--star syntax--sql']},
+              {text: ' ', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']},
+              {text: 'FROM', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--keyword syntax--other syntax--DML syntax--sql']},
+              {text: ' OCTOCATS', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']}
             ]
 
   describe ".normalizeTabsInBufferRange()", ->
@@ -5533,7 +5491,11 @@ describe "TextEditor", ->
 
   describe ".pageUp/Down()", ->
     it "moves the cursor down one page length", ->
-      editor.setRowsPerPage(5)
+      editor.update(autoHeight: false)
+      element = editor.getElement()
+      jasmine.attachToDOM(element)
+      element.style.height = element.component.getLineHeight() * 5 + 'px'
+      element.measureDimensions()
 
       expect(editor.getCursorBufferPosition().row).toBe 0
 
@@ -5551,7 +5513,11 @@ describe "TextEditor", ->
 
   describe ".selectPageUp/Down()", ->
     it "selects one screen height of text up or down", ->
-      editor.setRowsPerPage(5)
+      editor.update(autoHeight: false)
+      element = editor.getElement()
+      jasmine.attachToDOM(element)
+      element.style.height = element.component.getLineHeight() * 5 + 'px'
+      element.measureDimensions()
 
       expect(editor.getCursorBufferPosition().row).toBe 0
 
@@ -5574,72 +5540,6 @@ describe "TextEditor", ->
       editor.selectPageUp()
       expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [12, 2]]]
 
-  describe "::setFirstVisibleScreenRow() and ::getFirstVisibleScreenRow()", ->
-    beforeEach ->
-      line = Array(9).join('0123456789')
-      editor.setText([1..100].map(-> line).join('\n'))
-      expect(editor.getLineCount()).toBe 100
-      expect(editor.lineTextForBufferRow(0).length).toBe 80
-
-    describe "when the editor doesn't have a height and lineHeightInPixels", ->
-      it "does not affect the editor's visible row range", ->
-        expect(editor.getVisibleRowRange()).toBeNull()
-
-        editor.setFirstVisibleScreenRow(1)
-        expect(editor.getFirstVisibleScreenRow()).toEqual 1
-
-        editor.setFirstVisibleScreenRow(3)
-        expect(editor.getFirstVisibleScreenRow()).toEqual 3
-
-        expect(editor.getVisibleRowRange()).toBeNull()
-        expect(editor.getLastVisibleScreenRow()).toBeNull()
-
-    describe "when the editor has a height and lineHeightInPixels", ->
-      beforeEach ->
-        editor.update({scrollPastEnd: true})
-        editor.setHeight(100, true)
-        editor.setLineHeightInPixels(10)
-
-      it "updates the editor's visible row range", ->
-        editor.setFirstVisibleScreenRow(2)
-        expect(editor.getFirstVisibleScreenRow()).toEqual 2
-        expect(editor.getLastVisibleScreenRow()).toBe 12
-        expect(editor.getVisibleRowRange()).toEqual [2, 12]
-
-      it "notifies ::onDidChangeFirstVisibleScreenRow observers", ->
-        changeCount = 0
-        editor.onDidChangeFirstVisibleScreenRow -> changeCount++
-
-        editor.setFirstVisibleScreenRow(2)
-        expect(changeCount).toBe 1
-
-        editor.setFirstVisibleScreenRow(2)
-        expect(changeCount).toBe 1
-
-        editor.setFirstVisibleScreenRow(3)
-        expect(changeCount).toBe 2
-
-      it "ensures that the top row is less than the buffer's line count", ->
-        editor.setFirstVisibleScreenRow(102)
-        expect(editor.getFirstVisibleScreenRow()).toEqual 99
-        expect(editor.getVisibleRowRange()).toEqual [99, 99]
-
-      it "ensures that the left column is less than the length of the longest screen line", ->
-        editor.setFirstVisibleScreenRow(10)
-        expect(editor.getFirstVisibleScreenRow()).toEqual 10
-
-        editor.setText("\n\n\n")
-
-        editor.setFirstVisibleScreenRow(10)
-        expect(editor.getFirstVisibleScreenRow()).toEqual 3
-
-      describe "when the 'editor.scrollPastEnd' option is set to false", ->
-        it "ensures that the bottom row is less than the buffer's line count", ->
-          editor.update({scrollPastEnd: false})
-          editor.setFirstVisibleScreenRow(95)
-          expect(editor.getFirstVisibleScreenRow()).toEqual 89
-          expect(editor.getVisibleRowRange()).toEqual [89, 99]
-
   describe "::scrollToScreenPosition(position, [options])", ->
     it "triggers ::onDidRequestAutoscroll with the logical coordinates along with the options", ->
       scrollSpy = jasmine.createSpy("::onDidRequestAutoscroll")
@@ -5660,6 +5560,12 @@ describe "TextEditor", ->
       expect(editor.getScrollPastEnd()).toBe(true)
       editor.update({scrollPastEnd: false})
       expect(editor.getScrollPastEnd()).toBe(false)
+
+    it "always returns false when autoHeight is on", ->
+      editor.update({autoHeight: true, scrollPastEnd: true})
+      expect(editor.getScrollPastEnd()).toBe(false)
+      editor.update({autoHeight: false})
+      expect(editor.getScrollPastEnd()).toBe(true)
 
   describe "auto height", ->
     it "returns true by default but can be customized", ->
@@ -5947,20 +5853,20 @@ describe "TextEditor", ->
 
       editor.update({showIndentGuide: false})
       expect(editor.tokensForScreenRow(0)).toEqual [
-        {text: '  ', scopes: ['syntax--source.syntax--js', 'leading-whitespace']},
-        {text: 'foo', scopes: ['syntax--source.syntax--js']}
+        {text: '  ', scopes: ['syntax--source syntax--js', 'leading-whitespace']},
+        {text: 'foo', scopes: ['syntax--source syntax--js']}
       ]
 
       editor.update({showIndentGuide: true})
       expect(editor.tokensForScreenRow(0)).toEqual [
-        {text: '  ', scopes: ['syntax--source.syntax--js', 'leading-whitespace indent-guide']},
-        {text: 'foo', scopes: ['syntax--source.syntax--js']}
+        {text: '  ', scopes: ['syntax--source syntax--js', 'leading-whitespace indent-guide']},
+        {text: 'foo', scopes: ['syntax--source syntax--js']}
       ]
 
       editor.setMini(true)
       expect(editor.tokensForScreenRow(0)).toEqual [
-        {text: '  ', scopes: ['syntax--source.syntax--js', 'leading-whitespace']},
-        {text: 'foo', scopes: ['syntax--source.syntax--js']}
+        {text: '  ', scopes: ['syntax--source syntax--js', 'leading-whitespace']},
+        {text: 'foo', scopes: ['syntax--source syntax--js']}
       ]
 
   describe "when the editor is constructed with the grammar option set", ->

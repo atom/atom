@@ -135,6 +135,7 @@ class AtomEnvironment extends Model
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
     @views = new ViewRegistry(this)
+    TextEditor.setScheduler(@views)
     @notifications = new NotificationManager
     @updateProcessEnv ?= updateProcessEnv # For testing
 
@@ -248,6 +249,11 @@ class AtomEnvironment extends Model
     @installUncaughtErrorHandler()
     @attachSaveStateListeners()
     @windowEventHandler.initialize(@window, @document)
+
+    didChangeStyles = @didChangeStyles.bind(this)
+    @disposables.add(@styles.onDidAddStyleElement(didChangeStyles))
+    @disposables.add(@styles.onDidUpdateStyleElement(didChangeStyles))
+    @disposables.add(@styles.onDidRemoveStyleElement(didChangeStyles))
 
     @observeAutoHideMenuBar()
 
@@ -797,6 +803,11 @@ class AtomEnvironment extends Model
   uninstallWindowEventHandler: ->
     @windowEventHandler?.unsubscribe()
     @windowEventHandler = null
+
+  didChangeStyles: (styleElement) ->
+    TextEditor.didUpdateStyles()
+    if styleElement.textContent.indexOf('scrollbar') >= 0
+      TextEditor.didUpdateScrollbarStyles()
 
   ###
   Section: Messaging the User

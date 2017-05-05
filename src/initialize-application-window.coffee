@@ -58,6 +58,7 @@ if global.isGeneratingSnapshot
 
 clipboard = new Clipboard
 TextEditor.setClipboard(clipboard)
+TextEditor.viewForItem = (item) -> atom.views.getView(item)
 
 global.atom = new AtomEnvironment({
   clipboard,
