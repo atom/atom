@@ -1983,7 +1983,6 @@ describe('TextEditorComponent', () => {
       const marker1 = markerLayer.markBufferRange([[0, 2], [2, 7]])
       const marker2 = markerLayer.markBufferRange([[0, 2], [3, 8]])
       const marker3 = markerLayer.markBufferRange([[1, 13], [2, 7]])
-
       editor.decorateMarker(marker1, {type: 'text', class: 'a', style: {color: 'red'}})
       editor.decorateMarker(marker2, {type: 'text', class: 'b', style: {color: 'blue'}})
       editor.decorateMarker(marker3, {type: 'text', class: 'c', style: {color: 'green'}})
@@ -2057,6 +2056,16 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       for (const decorationSpan of element.querySelectorAll('.a, .b')) {
         expect(decorationSpan.textContent).not.toBe('')
+      }
+    })
+
+    it('does not create empty text nodes when a text decoration ends right after a text tag', async () => {
+      const {component, element, editor} = buildComponent()
+      const marker = editor.markBufferRange([[0, 8], [0, 29]])
+      editor.decorateMarker(marker, {type: 'text', class: 'a'})
+      await component.getNextUpdatePromise()
+      for (const textNode of textNodesForScreenRow(component, 0)) {
+        expect(textNode.textContent).not.toBe('')
       }
     })
 

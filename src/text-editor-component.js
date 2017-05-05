@@ -3639,9 +3639,11 @@ class LineComponent {
             nextDecoration = textDecorations[++decorationIndex]
           }
 
-          const text = lineText.substring(column, nextTokenColumn)
-          this.appendTextNode(textNodes, openScopeNode, text, activeClassName, activeStyle)
-          column = nextTokenColumn
+          if (column < nextTokenColumn) {
+            const text = lineText.substring(column, nextTokenColumn)
+            this.appendTextNode(textNodes, openScopeNode, text, activeClassName, activeStyle)
+            column = nextTokenColumn
+          }
         }
       }
     }
