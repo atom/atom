@@ -826,9 +826,9 @@ describe('TextEditorComponent', () => {
     })
 
     it('accounts for the presence of horizontal scrollbars that appear during the same frame as the autoscroll', async () => {
-      const {component, element, editor} = buildComponent()
+      const {component, element, editor} = buildComponent({autoHeight: false})
       const {scrollContainer} = component.refs
-      element.style.height = component.getScrollHeight() + 'px'
+      element.style.height = component.getContentHeight() / 2 + 'px'
       element.style.width = component.getScrollWidth() + 'px'
       await component.getNextUpdatePromise()
 
@@ -838,6 +838,13 @@ describe('TextEditorComponent', () => {
 
       expect(component.getScrollTop()).toBe(component.getScrollHeight() - component.getScrollContainerClientHeight())
       expect(component.getScrollLeft()).toBe(component.getScrollWidth() - component.getScrollContainerClientWidth())
+
+      // Scrolling to the top should not throw an error. This failed
+      // previously due to horizontalPositionsToMeasure not being empty after
+      // autoscrolling vertically to account for the horizontal scrollbar.
+      spyOn(window, 'onerror')
+      await setScrollTop(component, 0)
+      expect(window.onerror).not.toHaveBeenCalled()
     })
   })
 

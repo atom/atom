@@ -311,7 +311,12 @@ class TextEditorComponent {
 
   updateSyncBeforeMeasuringContent () {
     this.derivedDimensionsCache = {}
-    if (this.pendingAutoscroll) this.autoscrollVertically()
+    if (this.pendingAutoscroll) {
+      const {screenRange, options} = this.pendingAutoscroll
+      this.autoscrollVertically(screenRange, options)
+      this.requestHorizontalMeasurement(screenRange.start.row, screenRange.start.column)
+      this.requestHorizontalMeasurement(screenRange.end.row, screenRange.end.column)
+    }
     this.populateVisibleRowRange()
     this.queryScreenLinesToRender()
     this.queryLineNumbersToRender()
@@ -339,9 +344,10 @@ class TextEditorComponent {
 
     if (this.pendingAutoscroll) {
       this.derivedDimensionsCache = {}
-      this.autoscrollHorizontally()
+      const {screenRange, options} = this.pendingAutoscroll
+      this.autoscrollHorizontally(screenRange, options)
       if (!wasHorizontalScrollbarVisible && this.isHorizontalScrollbarVisible()) {
-        this.autoscrollVertically()
+        this.autoscrollVertically(screenRange, options)
       }
       this.pendingAutoscroll = null
     }
@@ -1860,15 +1866,10 @@ class TextEditorComponent {
     }
   }
 
-  autoscrollVertically () {
-    const {screenRange, options} = this.pendingAutoscroll
-
+  autoscrollVertically (screenRange, options) {
     const screenRangeTop = this.pixelPositionAfterBlocksForRow(screenRange.start.row)
     const screenRangeBottom = this.pixelPositionAfterBlocksForRow(screenRange.end.row) + this.getLineHeight()
     const verticalScrollMargin = this.getVerticalAutoscrollMargin()
-
-    this.requestHorizontalMeasurement(screenRange.start.row, screenRange.start.column)
-    this.requestHorizontalMeasurement(screenRange.end.row, screenRange.end.column)
 
     let desiredScrollTop, desiredScrollBottom
     if (options && options.center) {
@@ -1901,10 +1902,9 @@ class TextEditorComponent {
     return false
   }
 
-  autoscrollHorizontally () {
+  autoscrollHorizontally (screenRange, options) {
     const horizontalScrollMargin = this.getHorizontalAutoscrollMargin()
 
-    const {screenRange, options} = this.pendingAutoscroll
     const gutterContainerWidth = this.getGutterContainerWidth()
     let left = this.pixelLeftForRowAndColumn(screenRange.start.row, screenRange.start.column) + gutterContainerWidth
     let right = this.pixelLeftForRowAndColumn(screenRange.end.row, screenRange.end.column) + gutterContainerWidth
