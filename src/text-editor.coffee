@@ -1017,18 +1017,18 @@ class TextEditor extends Model
     tokens = []
     lineTextIndex = 0
     currentTokenScopes = []
-    {lineText, tagCodes} = @screenLineForScreenRow(screenRow)
-    for tagCode in tagCodes
-      if @displayLayer.isOpenTagCode(tagCode)
-        currentTokenScopes.push(@displayLayer.tagForCode(tagCode))
-      else if @displayLayer.isCloseTagCode(tagCode)
+    {lineText, tags} = @screenLineForScreenRow(screenRow)
+    for tag in tags
+      if @displayLayer.isOpenTag(tag)
+        currentTokenScopes.push(@displayLayer.classNameForTag(tag))
+      else if @displayLayer.isCloseTag(tag)
         currentTokenScopes.pop()
       else
         tokens.push({
-          text: lineText.substr(lineTextIndex, tagCode)
+          text: lineText.substr(lineTextIndex, tag)
           scopes: currentTokenScopes.slice()
         })
-        lineTextIndex += tagCode
+        lineTextIndex += tag
     tokens
 
   screenLineForScreenRow: (screenRow) ->
