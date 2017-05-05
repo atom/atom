@@ -1964,10 +1964,15 @@ class TextEditorComponent {
   }
 
   updateModelSoftWrapColumn () {
-    this.suppressUpdates = true
-    this.props.model.setEditorWidthInChars(this.getScrollContainerClientWidthInBaseCharacters())
-    this.props.model.setEditorWidthInChars(this.getScrollContainerClientWidthInBaseCharacters())
-    this.suppressUpdates = false
+    const {model} = this.props
+    const newEditorWidthInChars = this.getScrollContainerClientWidthInBaseCharacters()
+    if (newEditorWidthInChars !== model.getEditorWidthInChars()) {
+      this.suppressUpdates = true
+      this.props.model.setEditorWidthInChars(newEditorWidthInChars)
+      // Wrapping may cause a vertical scrollbar to appear, which will change the width again.
+      this.props.model.setEditorWidthInChars(this.getScrollContainerClientWidthInBaseCharacters())
+      this.suppressUpdates = false
+    }
   }
 
   // This method exists because it existed in the previous implementation and some
