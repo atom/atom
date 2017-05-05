@@ -3868,10 +3868,10 @@ function objectsEqual (a, b) {
   if (!a && b) return false
   if (a && !b) return false
   if (a && b) {
-    for (key in a) {
+    for (const key in a) {
       if (a[key] !== b[key]) return false
     }
-    for (key in b) {
+    for (const key in b) {
       if (a[key] !== b[key]) return false
     }
   }
