@@ -2435,8 +2435,10 @@ class TextEditorComponent {
         3 * this.getLineHeight(),
         this.getScrollContainerClientHeight() - (3 * this.getLineHeight())
       )
-    } else {
+    } else if (this.props.model.getAutoHeight()) {
       return this.getContentHeight()
+    } else {
+      return Math.max(this.getContentHeight(), this.getScrollContainerClientHeight())
     }
   }
 
