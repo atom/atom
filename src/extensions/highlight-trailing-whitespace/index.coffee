@@ -1,0 +1,1 @@
+module.exports = require 'highlight-trailing-whitespace/src/highlight-trailing-whitespace'
