@@ -3,8 +3,8 @@
 const path = require('path')
 const CONFIG = require('../config')
 
-module.exports = function (path) {
-  return !EXCLUDED_PATHS_REGEXP.test(path)
+module.exports = function (filePath) {
+  return !EXCLUDED_PATHS_REGEXP.test(filePath) || INCLUDED_PATHS_REGEXP.test(filePath)
 }
 
 const EXCLUDE_REGEXPS_SOURCES = [
@@ -82,6 +82,10 @@ if (process.platform === 'darwin') {
 
 const EXCLUDED_PATHS_REGEXP = new RegExp(
   EXCLUDE_REGEXPS_SOURCES.map(path => `(${path})`).join('|')
+)
+
+const INCLUDED_PATHS_REGEXP = new RegExp(
+  escapeRegExp(path.join('node_modules', 'node-gyp', 'src', 'win_delay_load_hook.cc'))
 )
 
 function escapeRegExp (string) {
