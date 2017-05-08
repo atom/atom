@@ -174,6 +174,18 @@ describe('TextEditorComponent', () => {
       }
     })
 
+    it('keeps the number of tiles stable when the visible line count changes during vertical scrolling', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
+      await setEditorHeightInLines(component, 5.5)
+      expect(component.refs.lineTiles.children.length).toBe(3)
+
+      await setScrollTop(component, 0.5 * component.getLineHeight())
+      expect(component.refs.lineTiles.children.length).toBe(3)
+
+      await setScrollTop(component, 1 * component.getLineHeight())
+      expect(component.refs.lineTiles.children.length).toBe(3)
+    })
+
     it('renders dummy vertical and horizontal scrollbars when content overflows', async () => {
       const {component, element, editor} = buildComponent({height: 100, width: 100})
       const verticalScrollbar = component.refs.verticalScrollbar.element
@@ -1916,7 +1928,7 @@ describe('TextEditorComponent', () => {
 
       // make the editor taller and wider and the same time, ensuring the number
       // of rendered lines is correct.
-      setEditorHeightInLines(component, 10)
+      setEditorHeightInLines(component, 13)
       await setEditorWidthInCharacters(component, 50)
       expect(component.getRenderedStartRow()).toBe(0)
       expect(component.getRenderedEndRow()).toBe(9)
@@ -2062,7 +2074,7 @@ describe('TextEditorComponent', () => {
 
     it('correctly handles text decorations starting before the first rendered row and/or ending after the last rendered row', async () => {
       const {component, element, editor} = buildComponent({autoHeight: false, rowsPerTile: 1})
-      element.style.height = 3 * component.getLineHeight() + 'px'
+      element.style.height = 4 * component.getLineHeight() + 'px'
       await component.getNextUpdatePromise()
       await setScrollTop(component, 4 * component.getLineHeight())
       expect(component.getRenderedStartRow()).toBe(4)

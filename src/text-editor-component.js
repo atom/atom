@@ -2555,7 +2555,8 @@ class TextEditorComponent {
 
   getVisibleTileCount () {
     if (this.derivedDimensionsCache.visibleTileCount == null) {
-      this.derivedDimensionsCache.visibleTileCount = Math.floor((this.getLastVisibleRow() - this.getFirstVisibleRow()) / this.getRowsPerTile()) + 2
+      const visibleRowCount = this.getLastVisibleRow() - this.getFirstVisibleRow()
+      this.derivedDimensionsCache.visibleTileCount = Math.ceil(visibleRowCount / this.getRowsPerTile()) + 1
     }
 
     return this.derivedDimensionsCache.visibleTileCount
