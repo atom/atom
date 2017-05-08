@@ -27,6 +27,7 @@ module.exports = function (packagedAppPath) {
         modulePath.endsWith('.node') ||
         coreModules.has(modulePath) ||
         (relativePath.startsWith(path.join('..', 'src')) && relativePath.endsWith('-element.js')) ||
+        relativePath.startsWith(path.join('..', 'node_modules', 'dugite')) ||
         relativePath == path.join('..', 'exports', 'atom.js') ||
         relativePath == path.join('..', 'src', 'electron-shims.js') ||
         relativePath == path.join('..', 'src', 'safe-clipboard.js') ||
@@ -37,6 +38,7 @@ module.exports = function (packagedAppPath) {
         relativePath == path.join('..', 'node_modules', 'cson-parser', 'node_modules', 'coffee-script', 'lib', 'coffee-script', 'register.js') ||
         relativePath == path.join('..', 'node_modules', 'decompress-zip', 'lib', 'decompress-zip.js') ||
         relativePath == path.join('..', 'node_modules', 'debug', 'node.js') ||
+        relativePath == path.join('..', 'node_modules', 'fs-extra', 'lib', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'git-utils', 'lib', 'git.js') ||
         relativePath == path.join('..', 'node_modules', 'glob', 'glob.js') ||
         relativePath == path.join('..', 'node_modules', 'graceful-fs', 'graceful-fs.js') ||
@@ -47,6 +49,8 @@ module.exports = function (packagedAppPath) {
         relativePath == path.join('..', 'node_modules', 'less', 'lib', 'less-node', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'less', 'node_modules', 'graceful-fs', 'graceful-fs.js') ||
         relativePath == path.join('..', 'node_modules', 'minimatch', 'minimatch.js') ||
+        relativePath == path.join('..', 'node_modules', 'node-fetch', 'lib', 'fetch-error.js') ||
+        relativePath == path.join('..', 'node_modules', 'nsfw', 'node_modules', 'fs-extra', 'lib', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'superstring', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'oniguruma', 'src', 'oniguruma.js') ||
         relativePath == path.join('..', 'node_modules', 'request', 'index.js') ||
