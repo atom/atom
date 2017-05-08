@@ -158,6 +158,32 @@ describe "PaneContainer", ->
       pane2.activate()
       expect(observed).toEqual [pane1.itemAtIndex(0), pane2.itemAtIndex(0)]
 
+  describe "::onDidStopChangingActivePaneItem()", ->
+    [container, pane1, pane2, observed] = []
+
+    beforeEach ->
+      container = new PaneContainer(params)
+      container.getRoot().addItems([new Object, new Object])
+      container.getRoot().splitRight(items: [new Object, new Object])
+      [pane1, pane2] = container.getPanes()
+
+      observed = []
+      container.onDidStopChangingActivePaneItem (item) -> observed.push(item)
+
+    it "invokes observers once when the active item of the active pane changes", ->
+      pane2.activateNextItem()
+      pane2.activateNextItem()
+      expect(observed).toEqual []
+      advanceClock 100
+      expect(observed).toEqual [pane2.itemAtIndex(0)]
+
+    it "invokes observers once when the active pane changes", ->
+      pane1.activate()
+      pane2.activate()
+      expect(observed).toEqual []
+      advanceClock 100
+      expect(observed).toEqual [pane2.itemAtIndex(0)]
+
   describe "::onDidActivatePane", ->
     it "invokes observers when a pane is activated (even if it was already active)", ->
       container = new PaneContainer(params)
