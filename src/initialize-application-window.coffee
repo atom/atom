@@ -29,6 +29,7 @@ if global.isGeneratingSnapshot
   require('dalek')
   require('find-and-replace')
   require('fuzzy-finder')
+  require('github')
   require('git-diff')
   require('go-to-line')
   require('grammar-selector')
