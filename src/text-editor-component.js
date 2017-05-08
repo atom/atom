@@ -236,7 +236,6 @@ class TextEditorComponent {
     this.measureBlockDecorations()
 
     this.measuredContent = false
-    this.updateModelSoftWrapColumn()
     this.updateSyncBeforeMeasuringContent()
     if (useScheduler === true) {
       const scheduler = etch.getScheduler()
@@ -321,6 +320,7 @@ class TextEditorComponent {
 
   updateSyncBeforeMeasuringContent () {
     this.derivedDimensionsCache = {}
+    this.updateModelSoftWrapColumn()
     if (this.pendingAutoscroll) {
       const {screenRange, options} = this.pendingAutoscroll
       this.autoscrollVertically(screenRange, options)
@@ -2668,8 +2668,10 @@ class TextEditorComponent {
   // Ensure the spatial index is populated with rows that are currently
   // visible so we *at least* get the longest row in the visible range.
   populateVisibleRowRange () {
-    const endRow = this.getRenderedStartRow() + this.getVisibleTileCount() * this.getRowsPerTile()
-    this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, endRow)
+    const lastPossibleVisibleRow = this.rowForPixelPosition(this.getScrollBottom())
+    const maxPossibleVisibleTileCount = Math.floor((lastPossibleVisibleRow - this.getFirstVisibleRow()) / this.getRowsPerTile()) + 2
+    const lastPossibleRenderedRow = this.getRenderedStartRow() + maxPossibleVisibleTileCount * this.getRowsPerTile()
+    this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, lastPossibleRenderedRow)
   }
 
   getNextUpdatePromise () {

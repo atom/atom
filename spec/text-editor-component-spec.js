@@ -457,6 +457,17 @@ describe('TextEditorComponent', () => {
       expect(editor.lineLengthForScreenRow(0)).toBe(20)
     })
 
+    it('correctly forces the display layer to index visible rows when resizing (regression)', async () => {
+      const text = 'a'.repeat(30) + '\n' + 'b'.repeat(1000)
+      const {component, element, editor} = buildComponent({height: 300, width: 800, attach: false, text})
+      editor.setSoftWrapped(true)
+      jasmine.attachToDOM(element)
+
+      element.style.width = 200 + 'px'
+      await component.getNextUpdatePromise()
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(24)
+    })
+
     it('decorates the line numbers of folded lines', async () => {
       const {component, element, editor} = buildComponent()
       editor.foldBufferRow(1)
