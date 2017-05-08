@@ -59,8 +59,11 @@ function runCoreRenderProcessTests (callback) {
 // Build an array of functions, each running tests for a different bundled package
 const packageTestSuites = []
 for (let packageName in CONFIG.appMetadata.packageDependencies) {
-  const packageSpecDirPath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName, 'spec')
-  if (!fs.existsSync(packageSpecDirPath)) continue
+  const packagePath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName)
+  const packageSpecDirPath = ['spec', 'test']
+    .map(folder => path.join(packagePath, folder))
+    .find(fullPath => fs.existsSync(fullPath))
+  if (!packageSpecDirPath) continue
 
   packageTestSuites.push(function (callback) {
     const testArguments = [
