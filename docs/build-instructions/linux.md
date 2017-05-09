@@ -48,6 +48,14 @@ To also install the newly built application, use `--create-debian-package` or `-
   sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 80 --slave /usr/bin/g++ g++ /usr/bin/g++-5
   sudo update-alternatives --config gcc # choose gcc-5 from the list
   ```
+  
+## PPA for Ubuntu 14.04
+
+```
+sudo add-apt-repository ppa:webupd8team/atom
+sudo apt-get update
+sudo apt-get install atom
+```
 
 ### Fedora 22+
 
