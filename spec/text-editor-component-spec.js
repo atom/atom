@@ -1694,7 +1694,7 @@ describe('TextEditorComponent', () => {
       const {component, element} = buildComponent({editor, rowsPerTile: 3})
       await setEditorHeightInLines(component, 4)
       expect(component.getRenderedStartRow()).toBe(0)
-      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getRenderedEndRow()).toBe(9)
       expect(component.getScrollHeight()).toBe(
         editor.getScreenLineCount() * component.getLineHeight() +
         getElementHeight(item1) + getElementHeight(item2)
@@ -1704,7 +1704,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
       expect(item1.previousSibling.className).toBe('highlights')
       expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -1717,7 +1717,7 @@ describe('TextEditorComponent', () => {
       const {item: item6, decoration: decoration6} = createBlockDecorationAtScreenRow(editor, 12, {height: 66, position: 'after'})
       await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
-      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getRenderedEndRow()).toBe(9)
       expect(component.getScrollHeight()).toBe(
         editor.getScreenLineCount() * component.getLineHeight() +
         getElementHeight(item1) + getElementHeight(item2) + getElementHeight(item3) +
@@ -1728,22 +1728,22 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item3)}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
       expect(item1.previousSibling.className).toBe('highlights')
       expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 2))
       expect(item3.previousSibling).toBe(lineNodeForScreenRow(component, 3))
       expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 4))
-      expect(element.contains(item4)).toBe(false)
-      expect(element.contains(item5)).toBe(false)
+      expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
+      expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(element.contains(item6)).toBe(false)
 
       // destroy decoration1
       decoration1.destroy()
       await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
-      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getRenderedEndRow()).toBe(9)
       expect(component.getScrollHeight()).toBe(
         editor.getScreenLineCount() * component.getLineHeight() +
         getElementHeight(item2) + getElementHeight(item3) +
@@ -1754,14 +1754,14 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item3)}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 2))
       expect(item3.previousSibling).toBe(lineNodeForScreenRow(component, 3))
       expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 4))
-      expect(element.contains(item4)).toBe(false)
-      expect(element.contains(item5)).toBe(false)
+      expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
+      expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(element.contains(item6)).toBe(false)
 
       // move decoration2 and decoration3
@@ -1769,7 +1769,7 @@ describe('TextEditorComponent', () => {
       decoration3.getMarker().setHeadScreenPosition([0, 0])
       await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
-      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getRenderedEndRow()).toBe(9)
       expect(component.getScrollHeight()).toBe(
         editor.getScreenLineCount() * component.getLineHeight() +
         getElementHeight(item2) + getElementHeight(item3) +
@@ -1780,21 +1780,21 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
       expect(item3.previousSibling.className).toBe('highlights')
       expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
-      expect(element.contains(item4)).toBe(false)
-      expect(element.contains(item5)).toBe(false)
+      expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
+      expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(element.contains(item6)).toBe(false)
 
       // change the text
       editor.getBuffer().setTextInRange([[0, 5], [0, 5]], '\n\n')
       await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
-      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getRenderedEndRow()).toBe(9)
       expect(component.getScrollHeight()).toBe(
         editor.getScreenLineCount() * component.getLineHeight() +
         getElementHeight(item2) + getElementHeight(item3) +
@@ -1805,7 +1805,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item2)}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling.className).toBe('highlights')
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 3))
@@ -1818,7 +1818,7 @@ describe('TextEditorComponent', () => {
       // scroll past the first tile
       await setScrollTop(component, 3 * component.getLineHeight() + getElementHeight(item3))
       expect(component.getRenderedStartRow()).toBe(3)
-      expect(component.getRenderedEndRow()).toBe(9)
+      expect(component.getRenderedEndRow()).toBe(12)
       expect(component.getScrollHeight()).toBe(
         editor.getScreenLineCount() * component.getLineHeight() +
         getElementHeight(item2) + getElementHeight(item3) +
@@ -1829,13 +1829,13 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 6, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling.className).toBe('highlights')
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 3))
       expect(element.contains(item3)).toBe(false)
-      expect(element.contains(item4)).toBe(false)
-      expect(element.contains(item5)).toBe(false)
+      expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 9))
+      expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 9))
       expect(element.contains(item6)).toBe(false)
       await setScrollTop(component, 0)
 
@@ -1843,7 +1843,7 @@ describe('TextEditorComponent', () => {
       editor.undo()
       await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
-      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getRenderedEndRow()).toBe(9)
       expect(component.getScrollHeight()).toBe(
         editor.getScreenLineCount() * component.getLineHeight() +
         getElementHeight(item2) + getElementHeight(item3) +
@@ -1854,14 +1854,14 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
       expect(item3.previousSibling.className).toBe('highlights')
       expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
-      expect(element.contains(item4)).toBe(false)
-      expect(element.contains(item5)).toBe(false)
+      expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
+      expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(element.contains(item6)).toBe(false)
 
       // invalidate decorations. this also tests a case where two decorations in
@@ -1875,7 +1875,7 @@ describe('TextEditorComponent', () => {
       component.invalidateBlockDecorationDimensions(decoration3)
       await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
-      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getRenderedEndRow()).toBe(9)
       expect(component.getScrollHeight()).toBe(
         editor.getScreenLineCount() * component.getLineHeight() +
         getElementHeight(item2) + getElementHeight(item3) +
@@ -1886,14 +1886,14 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
       expect(item3.previousSibling.className).toBe('highlights')
       expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
-      expect(element.contains(item4)).toBe(false)
-      expect(element.contains(item5)).toBe(false)
+      expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
+      expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(element.contains(item6)).toBe(false)
 
       // make decoration before row 0 as wide as the editor, and insert some text into it so that it wraps.
@@ -1914,7 +1914,7 @@ describe('TextEditorComponent', () => {
       ) + 'px'
       await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
-      expect(component.getRenderedEndRow()).toBe(6)
+      expect(component.getRenderedEndRow()).toBe(9)
       expect(component.getScrollHeight()).toBe(
         editor.getScreenLineCount() * component.getLineHeight() +
         getElementHeight(item2) + getElementHeight(item3) +
@@ -1925,14 +1925,14 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
       expect(item3.previousSibling.className).toBe('highlights')
       expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
-      expect(element.contains(item4)).toBe(false)
-      expect(element.contains(item5)).toBe(false)
+      expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
+      expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(element.contains(item6)).toBe(false)
 
       // make the editor taller and wider and the same time, ensuring the number
@@ -1940,7 +1940,7 @@ describe('TextEditorComponent', () => {
       setEditorHeightInLines(component, 13)
       await setEditorWidthInCharacters(component, 50)
       expect(component.getRenderedStartRow()).toBe(0)
-      expect(component.getRenderedEndRow()).toBe(9)
+      expect(component.getRenderedEndRow()).toBe(13)
       expect(component.getScrollHeight()).toBe(
         editor.getScreenLineCount() * component.getLineHeight() +
         getElementHeight(item2) + getElementHeight(item3) +
@@ -1952,7 +1952,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 6, height: 3 * component.getLineHeight() + getElementHeight(item4) + getElementHeight(item5)},
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(13)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -1962,7 +1962,7 @@ describe('TextEditorComponent', () => {
       expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(item5.nextSibling).toBe(lineNodeForScreenRow(component, 8))
-      expect(element.contains(item6)).toBe(false)
+      expect(item6.previousSibling).toBe(lineNodeForScreenRow(component, 12))
     })
 
     function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, position}) {
@@ -3104,7 +3104,7 @@ describe('TextEditorComponent', () => {
       expect(element.querySelectorAll('.line:not(.dummy)').length).toBeGreaterThan(initialRenderedLineCount)
       verifyCursorPosition(component, cursorNode, 1, 29)
 
-      element.style.fontSize = initialFontSize + 5 + 'px'
+      element.style.fontSize = initialFontSize + 10 + 'px'
       TextEditor.didUpdateStyles()
       await component.getNextUpdatePromise()
       expect(editor.getDefaultCharWidth()).toBeGreaterThan(initialBaseCharacterWidth)
