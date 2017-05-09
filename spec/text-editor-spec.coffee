@@ -1090,6 +1090,16 @@ describe "TextEditor", ->
         editor.moveToBeginningOfNextParagraph()
         expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
+      it "moves the cursor to the next paragraph when it starts with a whitespace line", ->
+        editor.setText('abcd\n\n  \nefgh\n')
+
+        editor.setCursorBufferPosition [0, 0]
+        editor.moveToBeginningOfNextParagraph()
+        expect(editor.getCursorBufferPosition()).toEqual [1, 0]
+
+        editor.moveToBeginningOfNextParagraph()
+        expect(editor.getCursorBufferPosition()).toEqual [4, 0]
+
     describe ".moveToBeginningOfPreviousParagraph()", ->
       it "moves the cursor before the first line of the previous paragraph", ->
         editor.setCursorBufferPosition [10, 0]

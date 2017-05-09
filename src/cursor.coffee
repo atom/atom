@@ -3,7 +3,7 @@
 _ = require 'underscore-plus'
 Model = require './model'
 
-EmptyLineRegExp = /(\r\n[\t ]*\r\n)|(\n[\t ]*\n)/g
+EmptyLineRegExp = /(\r\n[\t]*\r\n)|(\n[\t]*\n)/g
 
 # Extended: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.
