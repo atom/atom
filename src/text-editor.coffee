@@ -478,7 +478,9 @@ class TextEditor extends Model
     @gutterContainer.destroy()
     @emitter.emit 'did-destroy'
     @emitter.clear()
-    @editorElement = null
+    @component?.element.component = null
+    @component = null
+    @lineNumberGutter.element = null
 
   ###
   Section: Event Subscription
