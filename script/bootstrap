@@ -2,6 +2,7 @@
 
 'use strict'
 
+const CONFIG = require('./config')
 const cleanDependencies = require('./lib/clean-dependencies')
 const deleteMsbuildFromPath = require('./lib/delete-msbuild-from-path')
 const dependenciesFingerprint = require('./lib/dependencies-fingerprint')
