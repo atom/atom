@@ -7,6 +7,7 @@ daysUntilStale: 730
 daysUntilClose: 30
 # Issues or Pull Requests with these labels will never be considered stale
 exemptLabels:
+  - regression
   - security
   - triaged
 # Label to use when marking as stale
