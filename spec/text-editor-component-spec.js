@@ -186,6 +186,15 @@ describe('TextEditorComponent', () => {
       expect(component.refs.lineTiles.children.length).toBe(3)
     })
 
+    it('recycles tiles on resize', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 2, autoHeight: false})
+      await setEditorHeightInLines(component, 7)
+      await setScrollTop(component, 3.5 * component.getLineHeight())
+      const lineNode = lineNodeForScreenRow(component, 7)
+      await setEditorHeightInLines(component, 4)
+      expect(lineNodeForScreenRow(component, 7)).toBe(lineNode)
+    })
+
     it('renders dummy vertical and horizontal scrollbars when content overflows', async () => {
       const {component, element, editor} = buildComponent({height: 100, width: 100})
       const verticalScrollbar = component.refs.verticalScrollbar.element
@@ -3425,7 +3434,7 @@ function clientPositionForCharacter (component, row, column) {
 function lineNumberNodeForScreenRow (component, row) {
   const gutterElement = component.refs.gutterContainer.refs.lineNumberGutter.element
   const tileStartRow = component.tileStartRowForRow(row)
-  const tileIndex = component.tileIndexForTileStartRow(tileStartRow)
+  const tileIndex = component.renderedTileStartRows.indexOf(tileStartRow)
   return gutterElement.children[tileIndex + 1].children[row - tileStartRow]
 }
 

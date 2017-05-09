@@ -127,6 +127,9 @@ class TextEditorComponent {
     this.remeasureGutterDimensions = false
     this.guttersToRender = [this.props.model.getLineNumberGutter()]
     this.guttersVisibility = [this.guttersToRender[0].visible]
+    this.idsByTileStartRow = new Map()
+    this.nextTileId = 0
+    this.renderedTileStartRows = []
     this.lineNumbersToRender = {
       maxDigits: 2,
       bufferRows: [],
@@ -328,6 +331,7 @@ class TextEditorComponent {
       this.requestHorizontalMeasurement(screenRange.end.row, screenRange.end.column)
     }
     this.populateVisibleRowRange()
+    this.populateVisibleTiles()
     this.queryScreenLinesToRender()
     this.queryLineNumbersToRender()
     this.queryGuttersToRender()
@@ -551,15 +555,15 @@ class TextEditorComponent {
     const tileWidth = this.getScrollWidth()
 
     const displayLayer = this.props.model.displayLayer
-    const tileNodes = new Array(this.getRenderedTileCount())
+    const tileNodes = new Array(this.renderedTileStartRows.length)
 
-    for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow = tileStartRow + rowsPerTile) {
+    for (let i = 0; i < this.renderedTileStartRows.length; i++) {
+      const tileStartRow = this.renderedTileStartRows[i]
       const tileEndRow = Math.min(endRow, tileStartRow + rowsPerTile)
       const tileHeight = this.pixelPositionBeforeBlocksForRow(tileEndRow) - this.pixelPositionBeforeBlocksForRow(tileStartRow)
-      const tileIndex = this.tileIndexForTileStartRow(tileStartRow)
 
-      tileNodes[tileIndex] = $(LinesTileComponent, {
-        key: tileIndex,
+      tileNodes[i] = $(LinesTileComponent, {
+        key: this.idsByTileStartRow.get(tileStartRow),
         measuredContent: this.measuredContent,
         height: tileHeight,
         width: tileWidth,
@@ -2495,10 +2499,6 @@ class TextEditorComponent {
     return row - (row % this.getRowsPerTile())
   }
 
-  tileIndexForTileStartRow (startRow) {
-    return (startRow / this.getRowsPerTile()) % this.getRenderedTileCount()
-  }
-
   getRenderedStartRow () {
     if (this.derivedDimensionsCache.renderedStartRow == null) {
       this.derivedDimensionsCache.renderedStartRow = this.tileStartRowForRow(this.getFirstVisibleRow())
@@ -2674,6 +2674,35 @@ class TextEditorComponent {
     const maxPossibleVisibleTileCount = Math.ceil(maxPossibleVisibleRows / this.getRowsPerTile()) + 1
     const lastPossibleRenderedRow = this.getRenderedStartRow() + maxPossibleVisibleTileCount * this.getRowsPerTile()
     this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, lastPossibleRenderedRow)
+  }
+
+  populateVisibleTiles () {
+    const startRow = this.getRenderedStartRow()
+    const endRow = this.getRenderedEndRow()
+    const freeTileIds = []
+    for (let i = 0; i < this.renderedTileStartRows.length; i++) {
+      const tileStartRow = this.renderedTileStartRows[i]
+      if (tileStartRow < startRow || tileStartRow >= endRow) {
+        const tileId = this.idsByTileStartRow.get(tileStartRow)
+        freeTileIds.push(tileId)
+        this.idsByTileStartRow.delete(tileStartRow)
+      }
+    }
+
+    const rowsPerTile = this.getRowsPerTile()
+    this.renderedTileStartRows.length = this.getRenderedTileCount()
+    for (let tileStartRow = startRow, i = 0; tileStartRow < endRow; tileStartRow = tileStartRow + rowsPerTile, i++) {
+      this.renderedTileStartRows[i] = tileStartRow
+      if (!this.idsByTileStartRow.has(tileStartRow)) {
+        if (freeTileIds.length > 0) {
+          this.idsByTileStartRow.set(tileStartRow, freeTileIds.shift())
+        } else {
+          this.idsByTileStartRow.set(tileStartRow, this.nextTileId++)
+        }
+      }
+    }
+
+    this.renderedTileStartRows.sort((a, b) => this.idsByTileStartRow.get(a) - this.idsByTileStartRow.get(b))
   }
 
   getNextUpdatePromise () {
@@ -2914,18 +2943,17 @@ class LineNumberGutterComponent {
     let children = null
 
     if (bufferRows) {
-      const renderedTileCount = rootComponent.getRenderedTileCount()
-      children = new Array(renderedTileCount)
-
-      for (let tileStartRow = startRow; tileStartRow < endRow; tileStartRow = tileStartRow + rowsPerTile) {
+      children = new Array(rootComponent.renderedTileStartRows.length)
+      for (let i = 0; i < rootComponent.renderedTileStartRows.length; i++) {
+        const tileStartRow = rootComponent.renderedTileStartRows[i]
         const tileEndRow = Math.min(endRow, tileStartRow + rowsPerTile)
         const tileChildren = new Array(tileEndRow - tileStartRow)
         for (let row = tileStartRow; row < tileEndRow; row++) {
-          const i = row - startRow
-          const key = keys[i]
-          const softWrapped = softWrappedFlags[i]
-          const foldable = foldableFlags[i]
-          const bufferRow = bufferRows[i]
+          const j = row - startRow
+          const key = keys[j]
+          const softWrapped = softWrappedFlags[j]
+          const foldable = foldableFlags[j]
+          const bufferRow = bufferRows[j]
 
           let className = 'line-number'
           if (foldable) className = className + ' foldable'
@@ -2954,13 +2982,12 @@ class LineNumberGutterComponent {
           )
         }
 
-        const tileIndex = rootComponent.tileIndexForTileStartRow(tileStartRow)
         const tileTop = rootComponent.pixelPositionBeforeBlocksForRow(tileStartRow)
         const tileBottom = rootComponent.pixelPositionBeforeBlocksForRow(tileEndRow)
         const tileHeight = tileBottom - tileTop
 
-        children[tileIndex] = $.div({
-          key: tileIndex,
+        children[i] = $.div({
+          key: rootComponent.idsByTileStartRow.get(tileStartRow),
           style: {
             contain: 'strict',
             overflow: 'hidden',
