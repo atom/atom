@@ -64,8 +64,16 @@ describe "PaneElement", ->
       jasmine.attachToDOM(paneElement)
       paneElement.focus()
 
+      pane.activateItem(item1)
+      # Advance the clock to trigger the pane element's debounced active item
+      # change event handler.
+      advanceClock(51)
+
       expect(document.activeElement).toBe item1
       pane.activateItem(item2)
+      # Advance the clock to trigger the pane element's debounced active item
+      # change event handler.
+      advanceClock(51)
       expect(document.activeElement).toBe item2
 
     describe "if the active item is a model object", ->

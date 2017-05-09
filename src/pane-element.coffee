@@ -1,11 +1,14 @@
-path = require 'path'
 {CompositeDisposable} = require 'event-kit'
+
+{debounce} = require 'underscore-plus'
+path = require 'path'
 
 class PaneElement extends HTMLElement
   attached: false
 
   createdCallback: ->
     @attached = false
+    @hadFocusLocked = false
     @subscriptions = new CompositeDisposable
     @inlineDisplayStyles = new WeakMap
 
@@ -58,6 +61,9 @@ class PaneElement extends HTMLElement
     @subscriptions.add @model.onDidActivate(@activated.bind(this))
     @subscriptions.add @model.observeActive(@activeStatusChanged.bind(this))
     @subscriptions.add @model.observeActiveItem(@activeItemChanged.bind(this))
+    @subscriptions.add @model.observeActiveItem(
+      debounce(@activeItemStoppedChanging.bind(this), 50)
+    )
     @subscriptions.add @model.onDidRemoveItem(@itemRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@paneDestroyed.bind(this))
     @subscriptions.add @model.observeFlexScale(@flexScaleChanged.bind(this))
@@ -82,7 +88,12 @@ class PaneElement extends HTMLElement
 
     return unless item?
 
-    hasFocus = @hasFocus()
+    # Track the focus state (in `@hadFocus`) of the active item if there's not
+    # already a pending focus state change (locked by `@hadFocusLocked`).
+    unless @hadFocusLocked
+      @hadFocus = @hasFocus()
+      @hadFocusLocked = true
+
     itemView = @views.getView(item)
 
     if itemPath = item.getPath?()
@@ -98,7 +109,18 @@ class PaneElement extends HTMLElement
       else
         @hideItemView(child)
 
-    itemView.focus() if hasFocus
+  activeItemStoppedChanging: (item) ->
+    # This function consumes any pending focus state change (captured in
+    # `@hadFocus`). Reset the lock (`@hadFocusLocked`) so the next item change
+    # can again set the focus.
+    @hadFocusLocked = false
+
+    return unless item?
+
+    if @hadFocus
+      itemView = @views.getView(item)
+      itemView.focus()
+      @hadFocus = false
 
   showItemView: (itemView) ->
     inlineDisplayStyle = @inlineDisplayStyles.get(itemView)
