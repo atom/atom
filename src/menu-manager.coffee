@@ -105,6 +105,37 @@ class MenuManager
     @template = []
     @update()
 
+  # Public: Remove the given item definition from the existing template.
+  #
+  # ## Example
+  # ```coffee
+  #   atom.menu.remove [
+  #     {
+  #       label: 'Hello'
+  #       submenu : [{label: 'World!'}]
+  #     }
+  #  ]
+  #```
+  #
+  # items - An {Array} of menu item {Object}s containing the keys:
+  #   :label   - The {String} menu label.
+  #   :submenu - An optional {Array} of sub menu items.
+  #
+  # Returns nothing.
+  remove: (items) ->
+    @delete(@template, item) for item in items
+    @update()
+
+  # Delete items from the template in such a way that only the leafs of the
+  # item definition are removed.
+  delete: (menu, item) ->
+    if item.submenu? and match = _.find(menu, ({label, submenu}) => submenu? and label and @normalizeLabel(label) is @normalizeLabel(item.label))
+      @delete(match.submenu, i) for i in item.submenu
+    else
+      index = menu.indexOf(item)
+      if index > -1
+        menu.splice(index, 1)
+
   # Should the binding for the given selector be included in the menu
   # commands.
   #
