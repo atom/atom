@@ -2670,7 +2670,8 @@ class TextEditorComponent {
   // visible so we *at least* get the longest row in the visible range.
   populateVisibleRowRange () {
     const lastPossibleVisibleRow = this.rowForPixelPosition(this.getScrollBottom())
-    const maxPossibleVisibleTileCount = Math.floor((lastPossibleVisibleRow - this.getFirstVisibleRow()) / this.getRowsPerTile()) + 2
+    const maxPossibleVisibleRows = lastPossibleVisibleRow - this.getFirstVisibleRow()
+    const maxPossibleVisibleTileCount = Math.ceil(maxPossibleVisibleRows / this.getRowsPerTile()) + 1
     const lastPossibleRenderedRow = this.getRenderedStartRow() + maxPossibleVisibleTileCount * this.getRowsPerTile()
     this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, lastPossibleRenderedRow)
   }
