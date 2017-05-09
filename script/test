@@ -6,11 +6,12 @@ require('colors')
 const assert = require('assert')
 const async = require('async')
 const childProcess = require('child_process')
-const fs = require('fs')
+const fs = require('fs-extra')
 const glob = require('glob')
 const path = require('path')
 
 const CONFIG = require('./config')
+const runApmInstall = require('./lib/run-apm-install')
 
 const resourcePath = CONFIG.repositoryRootPath
 let executablePath
@@ -62,19 +63,29 @@ function runCoreRenderProcessTests (callback) {
 // Build an array of functions, each running tests for a different bundled package
 const packageTestSuites = []
 for (let packageName in CONFIG.appMetadata.packageDependencies) {
-  const packagePath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName)
-  const packageSpecDirPath = ['spec', 'test']
-    .map(folder => path.join(packagePath, folder))
-    .find(fullPath => fs.existsSync(fullPath))
-  if (!packageSpecDirPath) continue
+  const repositoryPackagePath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName)
+  const intermediatePackagePath = path.join(CONFIG.intermediateAppPath, 'node_modules', packageName)
+  const testSubdir = ['spec', 'test'].find(subdir => fs.existsSync(path.join(intermediatePackagePath, subdir)))
+
+  if (!testSubdir) {
+    console.log(`Skipping test for ${packageName} because no test folder was found`.bold.yellow)
+    continue
+  }
+
+  const sourceTestFolder = path.join(repositoryPackagePath, testSubdir)
+  const targetTestFolder = path.join(intermediatePackagePath, testSubdir)
 
   packageTestSuites.push(function (callback) {
     const testArguments = [
       '--resource-path', resourcePath,
-      '--test', packageSpecDirPath
+      '--test', targetTestFolder
     ]
 
-    console.log(`Executing ${packageName} tests`.bold.green)
+    fs.removeSync(targetTestFolder)
+    fs.copySync(sourceTestFolder, targetTestFolder)
+    console.log(`Installing dependencies for ${packageName}`.bold.green)
+    runApmInstall(intermediatePackagePath)
+    console.log(`Executing ${packageName} tests`.green)
     const cp = childProcess.spawn(executablePath, testArguments)
     let stderrOutput = ''
     cp.stderr.on('data', data => stderrOutput += data)
