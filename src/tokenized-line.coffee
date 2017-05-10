@@ -12,7 +12,7 @@ class TokenizedLine
 
     {@openScopes, @text, @tags, @ruleStack, @tokenIterator} = properties
 
-  getTokenIterator: -> @tokenIterator.reset(this, arguments...)
+  getTokenIterator: -> @tokenIterator.reset(this)
 
   Object.defineProperty @prototype, 'tokens', get: ->
     iterator = @getTokenIterator()
