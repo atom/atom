@@ -83,9 +83,14 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
 
     fs.removeSync(targetTestFolder)
     fs.copySync(sourceTestFolder, targetTestFolder)
-    console.log(`Installing dependencies for ${packageName}`.bold.green)
-    runApmInstall(intermediatePackagePath)
-    console.log(`Executing ${packageName} tests`.green)
+    const pkgJsonPath = path.join(intermediatePackagePath, 'package.json')
+    if (require(pkgJsonPath).atomTestRunner) {
+      console.log(`Installing dependencies for ${packageName}`.bold.green)
+      runApmInstall(intermediatePackagePath)
+      console.log(`Executing ${packageName} tests`.green)
+    } else {
+      console.log(`Executing ${packageName} tests`.bold.green)
+    }
     const cp = childProcess.spawn(executablePath, testArguments)
     let stderrOutput = ''
     cp.stderr.on('data', data => stderrOutput += data)
