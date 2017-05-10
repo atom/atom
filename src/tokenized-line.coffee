@@ -1,5 +1,5 @@
 Token = require './token'
-CommentScopeRegex = /(\b|\.)comment/
+CommentScopeRegex  = /(\b|\.)comment/
 
 idCounter = 1
 
@@ -10,7 +10,7 @@ class TokenizedLine
 
     return unless properties?
 
-    {@openScopes, @text, @tags, @ruleStack, @tokenIterator} = properties
+    {@openScopes, @text, @tags, @ruleStack, @tokenIterator, @grammar} = properties
 
   getTokenIterator: -> @tokenIterator.reset(this)
 
@@ -48,16 +48,25 @@ class TokenizedLine
     return @isCommentLine if @isCommentLine?
 
     @isCommentLine = false
-    iterator = @getTokenIterator()
-    while iterator.next()
-      scopes = iterator.getScopes()
-      continue if scopes.length is 1
-      for scope in scopes
-        if CommentScopeRegex.test(scope)
-          @isCommentLine = true
-          break
-      break
+
+    for tag in @openScopes
+      if @isCommentOpenTag(tag)
+        @isCommentLine = true
+        return @isCommentLine
+
+    for tag in @tags
+      if @isCommentOpenTag(tag)
+        @isCommentLine = true
+        return @isCommentLine
+
     @isCommentLine
+
+  isCommentOpenTag: (tag) ->
+    if tag < 0 and (tag & 1) is 1
+      scope = @grammar.scopeForId(tag)
+      if CommentScopeRegex.test(scope)
+        return true
+    false
 
   tokenAtIndex: (index) ->
     @tokens[index]
