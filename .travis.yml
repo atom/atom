@@ -23,11 +23,12 @@ install:
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
   - npm install -g npm
-  - script/build --create-debian-package --create-rpm-package --compress-artifacts
+  - script/build
 
 script:
   - script/lint
   - script/test
+  - cat /tmp/disposable.log
 
 cache:
   directories:
