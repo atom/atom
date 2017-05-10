@@ -88,8 +88,20 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     ]
 
     const pkgJsonPath = path.join(repositoryPackagePath, 'package.json')
+    const nodeModulesPath = path.join(repositoryPackagePath, 'node_modules')
+    const nodeModulesBackupPath = path.join(repositoryPackagePath, 'node_modules.bak')
+    let finalize = () => null
     if (require(pkgJsonPath).atomTestRunner) {
       console.log(`Installing test runner dependencies for ${packageName}`.bold.green)
+      if (fs.existsSync(nodeModulesPath)) {
+        fs.copySync(nodeModulesPath, nodeModulesBackupPath)
+        finalize = () => {
+          fs.removeSync(nodeModulesPath)
+          fs.renameSync(nodeModulesBackupPath, nodeModulesPath)
+        }
+      } else {
+        finalize = () => fs.removeSync(nodeModulesPath)
+      }
       runApmInstall(repositoryPackagePath)
       console.log(`Executing ${packageName} tests`.green)
     } else {
@@ -98,12 +110,16 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     const cp = childProcess.spawn(executablePath, testArguments)
     let stderrOutput = ''
     cp.stderr.on('data', data => stderrOutput += data)
-    cp.on('error', error => { callback(error) })
+    cp.on('error', error => {
+      finalize()
+      callback(error)
+    })
     cp.on('close', exitCode => {
       if (exitCode !== 0) {
         console.log(`Package tests failed for ${packageName}:`.red)
         console.log(stderrOutput)
       }
+      finalize()
       callback(null, exitCode)
     })
   })
