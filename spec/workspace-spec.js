@@ -2486,7 +2486,7 @@ i = /test/; #FIXME\
       waitsForPromise(() => atom.workspace.open())
     })
 
-    it('closes the active pane item, or the active pane if it is empty, or the current window if there is only the empty root pane', async () => {
+    it('closes the active center pane item, or the active center pane if it is empty, or the current window if there is only the empty root pane in the center', async () => {
       atom.config.set('core.destroyEmptyPanes', false)
 
       const pane1 = atom.workspace.getActivePane()
@@ -2509,6 +2509,7 @@ i = /test/; #FIXME\
       expect(pane1.getItems().length).toBe(0)
       expect(atom.workspace.getCenter().getPanes().length).toBe(1)
 
+      // The dock items should not be closed
       await atom.workspace.open({
         getTitle: () => 'Permanent Dock Item',
         element: document.createElement('div'),
@@ -2522,13 +2523,6 @@ i = /test/; #FIXME\
       })
 
       expect(atom.workspace.getLeftDock().getPaneItems().length).toBe(2)
-      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      expect(atom.workspace.getLeftDock().getPaneItems().length).toBe(1)
-      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      expect(atom.workspace.getLeftDock().getPaneItems().length).toBe(1)
-      expect(atom.close).not.toHaveBeenCalled()
-
-      atom.workspace.getCenter().activate()
       atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       expect(atom.close).toHaveBeenCalled()
     })
