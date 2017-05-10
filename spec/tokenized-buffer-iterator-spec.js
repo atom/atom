@@ -106,58 +106,5 @@ describe('TokenizedBufferIterator', () => {
       expect(iterator.getCloseScopeIds()).toEqual([257])
       expect(iterator.getOpenScopeIds()).toEqual([])
     })
-
-    it("reports a boundary at line end if the next line's open scopes don't match the containing tags for the current line", () => {
-      const tokenizedBuffer = {
-        tokenizedLineForRow (row) {
-          if (row === 0) {
-            return {
-              tags: [-1, 3, -2, -3],
-              text: 'bar',
-              openScopes: []
-            }
-          } else if (row === 1) {
-            return {
-              tags: [3],
-              text: 'baz',
-              openScopes: [-1]
-            }
-          } else if (row === 2) {
-            return {
-              tags: [-2],
-              text: '',
-              openScopes: [-1]
-            }
-          }
-        }
-      }
-
-      const iterator = new TokenizedBufferIterator(tokenizedBuffer)
-
-      iterator.seek(Point(0, 0))
-      expect(iterator.getPosition()).toEqual(Point(0, 0))
-      expect(iterator.getCloseScopeIds()).toEqual([])
-      expect(iterator.getOpenScopeIds()).toEqual([257])
-
-      iterator.moveToSuccessor()
-      expect(iterator.getPosition()).toEqual(Point(0, 3))
-      expect(iterator.getCloseScopeIds()).toEqual([257])
-      expect(iterator.getOpenScopeIds()).toEqual([259])
-
-      iterator.moveToSuccessor()
-      expect(iterator.getPosition()).toEqual(Point(0, 3))
-      expect(iterator.getCloseScopeIds()).toEqual([259])
-      expect(iterator.getOpenScopeIds()).toEqual([])
-
-      iterator.moveToSuccessor()
-      expect(iterator.getPosition()).toEqual(Point(1, 0))
-      expect(iterator.getCloseScopeIds()).toEqual([])
-      expect(iterator.getOpenScopeIds()).toEqual([257])
-
-      iterator.moveToSuccessor()
-      expect(iterator.getPosition()).toEqual(Point(2, 0))
-      expect(iterator.getCloseScopeIds()).toEqual([257])
-      expect(iterator.getOpenScopeIds()).toEqual([])
-    })
   })
 })
