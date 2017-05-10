@@ -2673,11 +2673,10 @@ class TextEditorComponent {
   // Ensure the spatial index is populated with rows that are currently
   // visible so we *at least* get the longest row in the visible range.
   populateVisibleRowRange () {
-    const lastPossibleVisibleRow = this.rowForPixelPosition(this.getScrollBottom())
-    const maxPossibleVisibleRows = lastPossibleVisibleRow - this.getFirstVisibleRow()
-    const maxPossibleVisibleTileCount = Math.ceil(maxPossibleVisibleRows / this.getRowsPerTile()) + 1
-    const lastPossibleRenderedRow = this.getRenderedStartRow() + maxPossibleVisibleTileCount * this.getRowsPerTile()
-    this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, lastPossibleRenderedRow)
+    const editorHeightInTiles = this.getScrollContainerHeight() / this.getLineHeight()
+    const visibleTileCount = Math.ceil(editorHeightInTiles) + 1
+    const lastRenderedRow = this.getRenderedStartRow() + (visibleTileCount * this.getRowsPerTile())
+    this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, lastRenderedRow)
   }
 
   populateVisibleTiles () {
