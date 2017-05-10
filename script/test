@@ -64,29 +64,28 @@ function runCoreRenderProcessTests (callback) {
 const packageTestSuites = []
 for (let packageName in CONFIG.appMetadata.packageDependencies) {
   const repositoryPackagePath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName)
-  const intermediatePackagePath = path.join(CONFIG.intermediateAppPath, 'node_modules', packageName)
-  const testSubdir = ['spec', 'test'].find(subdir => fs.existsSync(path.join(intermediatePackagePath, subdir)))
+  const testSubdir = ['spec', 'test'].find(subdir => fs.existsSync(path.join(repositoryPackagePath, subdir)))
 
   if (!testSubdir) {
-    console.log(`Skipping test for ${packageName} because no test folder was found`.bold.yellow)
+    packageTestSuites.push(function (callback) {
+      console.log(`Skipping tests for ${packageName} because no test folder was found`.bold.yellow)
+      callback(null, 0)
+    })
     continue
   }
 
-  const sourceTestFolder = path.join(repositoryPackagePath, testSubdir)
-  const targetTestFolder = path.join(intermediatePackagePath, testSubdir)
+  const testFolder = path.join(repositoryPackagePath, testSubdir)
 
   packageTestSuites.push(function (callback) {
     const testArguments = [
       '--resource-path', resourcePath,
-      '--test', targetTestFolder
+      '--test', testFolder
     ]
 
-    fs.removeSync(targetTestFolder)
-    fs.copySync(sourceTestFolder, targetTestFolder)
-    const pkgJsonPath = path.join(intermediatePackagePath, 'package.json')
+    const pkgJsonPath = path.join(repositoryPackagePath, 'package.json')
     if (require(pkgJsonPath).atomTestRunner) {
-      console.log(`Installing dependencies for ${packageName}`.bold.green)
-      runApmInstall(intermediatePackagePath)
+      console.log(`Installing test runner dependencies for ${packageName}`.bold.green)
+      runApmInstall(repositoryPackagePath)
       console.log(`Executing ${packageName} tests`.green)
     } else {
       console.log(`Executing ${packageName} tests`.bold.green)
