@@ -1039,8 +1039,7 @@ class TextEditor extends Model
     @displayLayer.translateScreenPosition(Point(screenRow, 0)).row
 
   bufferRowsForScreenRows: (startScreenRow, endScreenRow) ->
-    for screenRow in [startScreenRow..endScreenRow]
-      @bufferRowForScreenRow(screenRow)
+    @displayLayer.bufferRowsForScreenRows(startScreenRow, endScreenRow)
 
   screenRowForBufferRow: (row) ->
     @displayLayer.translateBufferPosition(Point(row, 0)).row

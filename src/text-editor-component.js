@@ -819,8 +819,9 @@ class TextEditorComponent {
     const endRow = this.getRenderedEndRow()
     const renderedRowCount = this.getRenderedRowCount()
 
-    const {bufferRows, keys, softWrappedFlags, foldableFlags} = this.lineNumbersToRender
-    bufferRows.length = renderedRowCount
+    const {keys, softWrappedFlags, foldableFlags} = this.lineNumbersToRender
+    const bufferRows = model.bufferRowsForScreenRows(startRow, endRow)
+    this.lineNumbersToRender.bufferRows = bufferRows
     keys.length = renderedRowCount
     foldableFlags.length = renderedRowCount
 
@@ -828,8 +829,7 @@ class TextEditorComponent {
     let softWrapCount = 0
     for (let row = startRow; row < endRow; row++) {
       const i = row - startRow
-      const bufferRow = model.bufferRowForScreenRow(row)
-      bufferRows[i] = bufferRow
+      const bufferRow = bufferRows[i]
       if (bufferRow === previousBufferRow) {
         softWrapCount++
         softWrappedFlags[i] = true
