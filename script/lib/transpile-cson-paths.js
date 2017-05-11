@@ -19,7 +19,7 @@ function getPathsToTranspile () {
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
     paths = paths.concat(glob.sync(
       path.join(CONFIG.intermediateAppPath, 'node_modules', packageName, '**', '*.cson'),
-      {ignore: path.join(CONFIG.intermediateAppPath, 'node_modules', packageName, 'spec', '**', '*.cson')}
+      {ignore: path.join(CONFIG.intermediateAppPath, 'node_modules', packageName, 'spec', '**', '*.cson'), nodir: true}
     ))
   }
   return paths

@@ -28,6 +28,19 @@ class Gutter
       @emitter.emit 'did-destroy'
       @emitter.dispose()
 
+  getElement: ->
+    unless @element?
+      @element = document.createElement('div')
+      @element.classList.add('gutter')
+      @element.setAttribute('gutter-name', @name)
+      childNode = document.createElement('div')
+      if @name is 'line-number'
+        childNode.classList.add('line-numbers')
+      else
+        childNode.classList.add('custom-decorations')
+      @element.appendChild(childNode)
+    @element
+
   ###
   Section: Event Subscription
   ###

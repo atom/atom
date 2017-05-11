@@ -12,9 +12,9 @@ describe "PaneElement", ->
       confirm: atom.confirm.bind(atom)
       viewRegistry: atom.views
       applicationDelegate: atom.applicationDelegate
-    containerElement = atom.views.getView(container)
+    containerElement = container.getElement()
     pane = container.getActivePane()
-    paneElement = atom.views.getView(pane)
+    paneElement = pane.getElement()
 
   describe "when the pane's active status changes", ->
     it "adds or removes the .active class as appropriate", ->
@@ -120,7 +120,7 @@ describe "PaneElement", ->
         item2 = document.createElement('div')
         pane.addItem(item1)
         pane.addItem(item2)
-        paneElement = atom.views.getView(pane)
+        paneElement = pane.getElement()
 
         expect(item1.parentElement).toBe paneElement.itemViews
         pane.destroyItem(item1)
@@ -162,6 +162,10 @@ describe "PaneElement", ->
       paneElement.focus()
       expect(document.activeElement).toBe item
 
+      document.body.focus()
+      pane.activate()
+      expect(document.activeElement).toBe item
+
     it "makes the pane active", ->
       pane.splitRight()
       expect(pane.isActive()).toBe false
@@ -170,6 +174,24 @@ describe "PaneElement", ->
       paneElement.focus()
 
       expect(pane.isActive()).toBe true
+
+    it "does not re-activate the pane when focus changes within the pane", ->
+      item = document.createElement('div')
+      itemChild = document.createElement('div')
+      item.tabIndex = -1
+      itemChild.tabIndex = -1
+      item.appendChild(itemChild)
+      jasmine.attachToDOM(paneElement)
+
+      pane.activateItem(item)
+      pane.activate()
+
+      activationCount = 0
+      pane.onDidActivate ->
+        activationCount++
+
+      itemChild.focus()
+      expect(activationCount).toBe(0)
 
   describe "when the pane element is attached", ->
     it "focuses the pane element if isFocused() returns true on its model", ->

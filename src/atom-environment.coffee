@@ -47,12 +47,6 @@ Gutter = require './gutter'
 TextEditorRegistry = require './text-editor-registry'
 AutoUpdateManager = require './auto-update-manager'
 
-WorkspaceElement = require './workspace-element'
-PanelContainerElement = require './panel-container-element'
-PanelElement = require './panel-element'
-PaneAxisElement = require './pane-axis-element'
-{createGutterView} = require './gutter-component-helpers'
-
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
 # An instance of this class is always available as the `atom` global.
@@ -131,7 +125,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate, @clipboard, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@applicationDelegate, @clipboard, @enablePersistence, onlyLoadBaseStyleSheets, @updateProcessEnv} = params
 
     @nextProxyRequestId = 0
     @unloaded = false
@@ -142,6 +136,7 @@ class AtomEnvironment extends Model
     @deserializeTimings = {}
     @views = new ViewRegistry(this)
     @notifications = new NotificationManager
+    @updateProcessEnv ?= updateProcessEnv # For testing
 
     @stateStore = new StateStore('AtomEnvironments', 1)
 
@@ -179,7 +174,7 @@ class AtomEnvironment extends Model
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
       notificationManager: @notifications, @applicationDelegate, viewRegistry: @views, assert: @assert.bind(this),
-      textEditorRegistry: @textEditors,
+      textEditorRegistry: @textEditors, styleManager: @styles, @enablePersistence
     })
 
     @themes.workspace = @workspace
@@ -192,7 +187,6 @@ class AtomEnvironment extends Model
     @registerDefaultCommands()
     @registerDefaultOpeners()
     @registerDefaultDeserializers()
-    @registerDefaultViewProviders()
 
     @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate})
 
@@ -202,6 +196,11 @@ class AtomEnvironment extends Model
       @applicationDelegate.didChangeHistoryManager() unless e.reloaded
 
   initialize: (params={}) ->
+    # This will force TextEditorElement to register the custom element, so that
+    # using `document.createElement('atom-text-editor')` works if it's called
+    # before opening a buffer.
+    require './text-editor-element'
+
     {@window, @document, @blobStore, @configDirPath, onlyLoadBaseStyleSheets} = params
     {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
 
@@ -234,7 +233,6 @@ class AtomEnvironment extends Model
     @themes.initialize({@configDirPath, resourcePath, safeMode, devMode})
 
     @commandInstaller.initialize(@getVersion())
-    @workspace.initialize()
     @autoUpdater.initialize()
 
     @config.load()
@@ -257,6 +255,9 @@ class AtomEnvironment extends Model
 
     @history.initialize(@window.localStorage)
     @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
+
+  preloadPackages: ->
+    @packages.preloadPackages()
 
   attachSaveStateListeners: ->
     saveState = _.debounce((=>
@@ -281,17 +282,6 @@ class AtomEnvironment extends Model
   registerDefaultCommands: ->
     registerDefaultCommands({commandRegistry: @commands, @config, @commandInstaller, notificationManager: @notifications, @project, @clipboard})
 
-  registerDefaultViewProviders: ->
-    @views.addViewProvider Workspace, (model, env) ->
-      new WorkspaceElement().initialize(model, env)
-    @views.addViewProvider PanelContainer, (model, env) ->
-      new PanelContainerElement().initialize(model, env)
-    @views.addViewProvider Panel, (model, env) ->
-      new PanelElement().initialize(model, env)
-    @views.addViewProvider PaneAxis, (model, env) ->
-      new PaneAxisElement().initialize(model, env)
-    @views.addViewProvider(Gutter, createGutterView)
-
   registerDefaultOpeners: ->
     @workspace.addOpener (uri) =>
       switch uri
@@ -305,7 +295,7 @@ class AtomEnvironment extends Model
           @workspace.openTextFile(@getUserInitScriptPath())
 
   registerDefaultTargetForKeymaps: ->
-    @keymaps.defaultTarget = @views.getView(@workspace)
+    @keymaps.defaultTarget = @workspace.getElement()
 
   observeAutoHideMenuBar: ->
     @disposables.add @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
@@ -349,7 +339,6 @@ class AtomEnvironment extends Model
     @textEditors.clear()
 
     @views.clear()
-    @registerDefaultViewProviders()
 
   destroy: ->
     return if not @project
@@ -414,6 +403,17 @@ class AtomEnvironment extends Model
   # and deprecating the old behavior.
   onDidFailAssertion: (callback) ->
     @emitter.on 'did-fail-assertion', callback
+
+  # Extended: Invoke the given callback as soon as the shell environment is
+  # loaded (or immediately if it was already loaded).
+  #
+  # * `callback` {Function} to be called whenever there is an unhandled error
+  whenShellEnvironmentLoaded: (callback) ->
+    if @shellEnvironmentLoaded
+      callback()
+      new Disposable()
+    else
+      @emitter.once 'loaded-shell-environment', callback
 
   ###
   Section: Atom Details
@@ -671,15 +671,16 @@ class AtomEnvironment extends Model
   storeWindowBackground: ->
     return if @inSpecMode()
 
-    workspaceElement = @views.getView(@workspace)
-    backgroundColor = @window.getComputedStyle(workspaceElement)['background-color']
+    backgroundColor = @window.getComputedStyle(@workspace.getElement())['background-color']
     @window.localStorage.setItem('atom:window-background-color', backgroundColor)
 
   # Call this method when establishing a real application window.
   startEditorWindow: ->
     @unloaded = false
-    updateProcessEnvPromise = updateProcessEnv(@getLoadSettings().env)
+    updateProcessEnvPromise = @updateProcessEnv(@getLoadSettings().env)
     updateProcessEnvPromise.then =>
+      @shellEnvironmentLoaded = true
+      @emitter.emit('loaded-shell-environment')
       @packages.triggerActivationHook('core:loaded-shell-environment')
 
     loadStatePromise = @loadState().then (state) =>
@@ -716,7 +717,7 @@ class AtomEnvironment extends Model
         if process.platform is 'darwin' and @config.get('core.titleBar') is 'hidden'
           @document.body.classList.add('hidden-title-bar')
 
-        @document.body.appendChild(@views.getView(@workspace))
+        @document.body.appendChild(@workspace.getElement())
         @backgroundStylesheet?.remove()
 
         @watchProjectPaths()
@@ -1034,8 +1035,8 @@ class AtomEnvironment extends Model
   dispatchApplicationMenuCommand: (command, arg) ->
     activeElement = @document.activeElement
     # Use the workspace element if body has focus
-    if activeElement is @document.body and workspaceElement = @views.getView(@workspace)
-      activeElement = workspaceElement
+    if activeElement is @document.body
+      activeElement = @workspace.getElement()
     @commands.dispatch(activeElement, command, arg)
 
   dispatchContextMenuCommand: (command, args...) ->

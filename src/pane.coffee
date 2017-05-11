@@ -1,10 +1,11 @@
 Grim = require 'grim'
 {find, compact, extend, last} = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
-Model = require './model'
 PaneAxis = require './pane-axis'
 TextEditor = require './text-editor'
 PaneElement = require './pane-element'
+
+nextInstanceId = 1
 
 # Extended: A container for presenting content in the center of the workspace.
 # Panes can contain multiple items, one of which is *active* at a given time.
@@ -16,10 +17,8 @@ PaneElement = require './pane-element'
 # simply being added. In the default configuration, the text in the tab for
 # pending items is shown in italics.
 module.exports =
-class Pane extends Model
-  container: undefined
-  activeItem: undefined
-  focused: false
+class Pane
+  inspect: -> "Pane #{@id}"
 
   @deserialize: (state, {deserializers, applicationDelegate, config, notifications, views}) ->
     {items, activeItemIndex, activeItemURI, activeItemUri} = state
@@ -40,17 +39,23 @@ class Pane extends Model
     }))
 
   constructor: (params) ->
-    super
-
     {
-      @activeItem, @focused, @applicationDelegate, @notificationManager, @config,
+      @id, @activeItem, @focused, @applicationDelegate, @notificationManager, @config,
       @deserializerManager, @viewRegistry
     } = params
 
+    if @id?
+      nextInstanceId = Math.max(nextInstanceId, @id + 1)
+    else
+      @id = nextInstanceId++
     @emitter = new Emitter
+    @alive = true
     @subscriptionsPerItem = new WeakMap
     @items = []
     @itemStack = []
+    @container = null
+    @activeItem ?= undefined
+    @focused ?= false
 
     @addItems(compact(params?.items ? []))
     @setActiveItem(@items[0]) unless @getActiveItem()?
@@ -65,13 +70,15 @@ class Pane extends Model
     itemStackIndices = (itemsToBeSerialized.indexOf(item) for item in @itemStack when typeof item.serialize is 'function')
     activeItemIndex = itemsToBeSerialized.indexOf(@activeItem)
 
-    deserializer: 'Pane'
-    id: @id
-    items: itemsToBeSerialized.map((item) -> item.serialize())
-    itemStackIndices: itemStackIndices
-    activeItemIndex: activeItemIndex
-    focused: @focused
-    flexScale: @flexScale
+    {
+      deserializer: 'Pane',
+      id: @id,
+      items: itemsToBeSerialized.map((item) -> item.serialize())
+      itemStackIndices: itemStackIndices
+      activeItemIndex: activeItemIndex
+      focused: @focused
+      flexScale: @flexScale
+    }
 
   getParent: -> @parent
 
@@ -299,7 +306,7 @@ class Pane extends Model
   # Called by the view layer to indicate that the pane has gained focus.
   focus: ->
     @focused = true
-    @activate() unless @isActive()
+    @activate()
 
   # Called by the view layer to indicate that the pane has lost focus.
   blur: ->
@@ -335,6 +342,7 @@ class Pane extends Model
       @addItemToStack(activeItem) unless modifyStack is false
       @activeItem = activeItem
       @emitter.emit 'did-change-active-item', @activeItem
+      @container?.didChangeActiveItemOnPane(this, @activeItem)
     @activeItem
 
   # Build the itemStack after deserializing
@@ -495,6 +503,8 @@ class Pane extends Model
     @setPendingItem(item) if pending
 
     @emitter.emit 'did-add-item', {item, index, moved}
+    @container?.didAddPaneItem(item, this, index) unless moved
+
     @destroyItem(lastPendingItem) if replacingPendingItem
     @setActiveItem(item) unless @getActiveItem()?
     item
@@ -589,12 +599,17 @@ class Pane extends Model
   # setting is `true`.
   #
   # * `item` Item to destroy
-  destroyItem: (item) ->
+  # * `force` (optional) {Boolean} Destroy the item without prompting to save
+  #    it, even if the item's `isPermanentDockItem` method returns true.
+  #
+  # Returns a {Boolean} indicating whether or not the item was destroyed.
+  destroyItem: (item, force) ->
     index = @items.indexOf(item)
     if index isnt -1
+      return false if not force and @getContainer()?.getLocation() isnt 'center' and item.isPermanentDockItem?()
       @emitter.emit 'will-destroy-item', {item, index}
       @container?.willDestroyPaneItem({item, index, pane: this})
-      if @promptToSaveItem(item)
+      if force or @promptToSaveItem(item)
         @removeItem(item, false)
         item.destroy?()
         true
@@ -732,8 +747,7 @@ class Pane extends Model
       false
 
   copyActiveItem: ->
-    if @activeItem?
-      @activeItem.copy?() ? @deserializerManager.deserialize(@activeItem.serialize())
+    @activeItem?.copy?()
 
   ###
   Section: Lifecycle
@@ -748,7 +762,7 @@ class Pane extends Model
   # Public: Makes this pane the *active* pane, causing it to gain focus.
   activate: ->
     throw new Error("Pane has been destroyed") if @isDestroyed()
-    @container?.setActivePane(this)
+    @container?.didActivatePane(this)
     @emitter.emit 'did-activate'
 
   # Public: Close the pane and destroy all its items.
@@ -760,16 +774,21 @@ class Pane extends Model
       @destroyItems()
     else
       @emitter.emit 'will-destroy'
+      @alive = false
       @container?.willDestroyPane(pane: this)
-      super
+      @container.activateNextPane() if @isActive()
+      @emitter.emit 'did-destroy'
+      @emitter.dispose()
+      item.destroy?() for item in @items.slice()
+      @container?.didDestroyPane(pane: this)
 
-  # Called by model superclass.
-  destroyed: ->
-    @container.activateNextPane() if @isActive()
-    @emitter.emit 'did-destroy'
-    @emitter.dispose()
-    item.destroy?() for item in @items.slice()
-    @container?.didDestroyPane(pane: this)
+
+  isAlive: -> @alive
+
+  # Public: Determine whether this pane has been destroyed.
+  #
+  # Returns a {Boolean}.
+  isDestroyed: -> not @isAlive()
 
   ###
   Section: Splitting
@@ -821,7 +840,7 @@ class Pane extends Model
       params.items.push(@copyActiveItem())
 
     if @parent.orientation isnt orientation
-      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}))
+      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}, @viewRegistry))
       @setFlexScale(1)
 
     newPane = new Pane(extend({@applicationDelegate, @notificationManager, @deserializerManager, @config, @viewRegistry}, params))

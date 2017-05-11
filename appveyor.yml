@@ -6,9 +6,14 @@ skip_tags: true
 clone_folder: c:\projects\atom
 clone_depth: 10
 
+branches:
+  only:
+  - master
+  - /^[0-9.]+-releases$/
+
 platform:
-  - x86
   - x64
+  - x86
 
 environment:
   global:
@@ -26,8 +31,12 @@ install:
   - npm install -g npm
 
 build_script:
-  - cd %APPVEYOR_BUILD_FOLDER%
-  - script\build.cmd --code-sign --create-windows-installer --compress-artifacts
+  - CD %APPVEYOR_BUILD_FOLDER%
+  - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
+      script\build.cmd --code-sign --create-windows-installer --compress-artifacts
+    ) ELSE (
+      script\build.cmd --code-sign --compress-artifacts
+    )
 
 test_script:
   - script\lint.cmd

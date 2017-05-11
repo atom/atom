@@ -86,6 +86,7 @@ class AtomWindow
     @browserWindow.loadSettingsJSON = JSON.stringify(loadSettings)
 
     @browserWindow.on 'window:loaded', =>
+      @disableZoom()
       @emit 'window:loaded'
       @resolveLoadedPromise()
 
@@ -110,7 +111,6 @@ class AtomWindow
 
     hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
     @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()
-    @disableZoom()
 
     @atomApplication.addWindow(this)
 
@@ -296,7 +296,7 @@ class AtomWindow
       title: 'Save File',
       defaultPath: @representedDirectoryPaths[0]
     }, params)
-    dialog.showSaveDialog(this, params)
+    dialog.showSaveDialog(@browserWindow, params)
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
 

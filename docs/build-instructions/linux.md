@@ -10,7 +10,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 * Node.js 6.x (we recommend installing it via [nvm](https://github.com/creationix/nvm))
 * npm 3.10.x or later (run `npm install -g npm`)
 * Ensure node-gyp uses python2 (run `npm config set python /usr/bin/python2 -g`, use `sudo` if you didn't install node via nvm)
-* Development headers for [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring).
+* Development headers for [libsecret](https://wiki.gnome.org/Projects/Libsecret).
 
 For more details, scroll down to find how to setup a specific Linux distro.
 
@@ -29,14 +29,14 @@ To also install the newly built application, use `--create-debian-package` or `-
 * `--compress-artifacts`: zips the generated application as `out/atom-{arch}.tar.gz`.
 * `--create-debian-package`: creates a .deb package as `out/atom-{arch}.deb`
 * `--create-rpm-package`: creates a .rpm package as `out/atom-{arch}.rpm`
-* `--install`: installs the application in `/usr/local/`.
+* `--install[=dir]`: installs the application in `${dir}`; `${dir}` defaults to `/usr/local`.
 
 ### Ubuntu / Debian
 
 * Install GNOME headers and other basic prerequisites:
 
   ```sh
-  sudo apt-get install build-essential git libgnome-keyring-dev fakeroot rpm libx11-dev libxkbfile-dev
+  sudo apt-get install build-essential git libsecret-1-dev fakeroot rpm libx11-dev libxkbfile-dev
   ```
 
 * If `script/build` exits with an error, you may need to install a newer C++ compiler with C++11:
@@ -51,15 +51,15 @@ To also install the newly built application, use `--create-debian-package` or `-
 
 ### Fedora 22+
 
-* `sudo dnf --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools libX11-devel libxkbfile-devel`
+* `sudo dnf --assumeyes install make gcc gcc-c++ glibc-devel git-core libsecret-devel rpmdevtools libX11-devel libxkbfile-devel`
 
 ### Fedora 21 / CentOS / RHEL
 
-* `sudo yum install -y make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* `sudo yum install -y make gcc gcc-c++ glibc-devel git-core libsecret-devel rpmdevtools`
 
 ### Arch
 
-* `sudo pacman -S --needed gconf base-devel git nodejs npm libgnome-keyring python2 libX11-devel libxkbfile-devel`
+* `sudo pacman -S --needed gconf base-devel git nodejs npm libsecret python2 libx11 libxkbfile`
 * `export PYTHON=/usr/bin/python2` before building Atom.
 
 ### Slackware
@@ -68,7 +68,7 @@ To also install the newly built application, use `--create-debian-package` or `-
 
 ### openSUSE
 
-* `sudo zypper install nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools libX11-devel libxkbfile-devel`
+* `sudo zypper install nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libsecret-devel rpmdevtools libX11-devel libxkbfile-devel`
 
 
 ## Troubleshooting

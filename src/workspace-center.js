@@ -1,16 +1,45 @@
 'use strict'
 
 const TextEditor = require('./text-editor')
+const PaneContainer = require('./pane-container')
 
 module.exports = class WorkspaceCenter {
-  constructor (paneContainer) {
-    this.paneContainer = paneContainer
+  constructor (params) {
+    params.location = 'center'
+    this.paneContainer = new PaneContainer(params)
+    this.didActivate = params.didActivate
+    this.paneContainer.onDidActivatePane(() => this.didActivate(this))
+    this.paneContainer.onDidChangeActivePane((pane) => {
+      params.didChangeActivePane(this, pane)
+    })
+    this.paneContainer.onDidChangeActivePaneItem((item) => {
+      params.didChangeActivePaneItem(this, item)
+    })
+    this.paneContainer.onDidDestroyPaneItem((item) => params.didDestroyPaneItem(item))
   }
 
-  activate () {}
+  destroy () {
+    this.paneContainer.destroy()
+  }
+
+  serialize () {
+    return this.paneContainer.serialize()
+  }
+
+  deserialize (state, deserializerManager) {
+    this.paneContainer.deserialize(state, deserializerManager)
+  }
+
+  activate () {
+    this.getActivePane().activate()
+  }
 
   getLocation () {
     return 'center'
+  }
+
+  setDraggingItem () {
+    // No-op
   }
 
   /*
