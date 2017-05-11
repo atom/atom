@@ -221,44 +221,70 @@ describe "AtomEnvironment", ->
         atom.loadState().then (state) -> expect(state).toEqual(serializedState)
 
     it "saves state when the CPU is idle after a keydown or mousedown event", ->
-      spyOn(atom, 'saveState')
+      atomEnv = new AtomEnvironment({
+        applicationDelegate: global.atom.applicationDelegate,
+      })
       idleCallbacks = []
-      spyOn(window, 'requestIdleCallback').andCallFake (callback) -> idleCallbacks.push(callback)
+      atomEnv.initialize({
+        window: {
+          requestIdleCallback: (callback) -> idleCallbacks.push(callback),
+          addEventListener: () ->
+          removeEventListener: () ->
+        },
+        document: document.implementation.createHTMLDocument()
+      })
+
+      spyOn(atomEnv, 'saveState')
 
       keydown = new KeyboardEvent('keydown')
-      atom.document.dispatchEvent(keydown)
-      advanceClock atom.saveStateDebounceInterval
+      atomEnv.document.dispatchEvent(keydown)
+      advanceClock atomEnv.saveStateDebounceInterval
       idleCallbacks.shift()()
-      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
-      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
+      expect(atomEnv.saveState).toHaveBeenCalledWith({isUnloading: false})
+      expect(atomEnv.saveState).not.toHaveBeenCalledWith({isUnloading: true})
 
-      atom.saveState.reset()
+      atomEnv.saveState.reset()
       mousedown = new MouseEvent('mousedown')
-      atom.document.dispatchEvent(mousedown)
-      advanceClock atom.saveStateDebounceInterval
+      atomEnv.document.dispatchEvent(mousedown)
+      advanceClock atomEnv.saveStateDebounceInterval
       idleCallbacks.shift()()
-      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
-      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
+      expect(atomEnv.saveState).toHaveBeenCalledWith({isUnloading: false})
+      expect(atomEnv.saveState).not.toHaveBeenCalledWith({isUnloading: true})
+
+      atomEnv.destroy()
 
     it "ignores mousedown/keydown events happening after calling unloadEditorWindow", ->
-      spyOn(atom, 'saveState')
+      atomEnv = new AtomEnvironment({
+        applicationDelegate: global.atom.applicationDelegate,
+      })
       idleCallbacks = []
-      spyOn(window, 'requestIdleCallback').andCallFake (callback) -> idleCallbacks.push(callback)
+      atomEnv.initialize({
+        window: {
+          requestIdleCallback: (callback) -> idleCallbacks.push(callback),
+          addEventListener: () ->
+          removeEventListener: () ->
+        },
+        document: document.implementation.createHTMLDocument()
+      })
+
+      spyOn(atomEnv, 'saveState')
 
       mousedown = new MouseEvent('mousedown')
-      atom.document.dispatchEvent(mousedown)
-      atom.unloadEditorWindow()
-      expect(atom.saveState).not.toHaveBeenCalled()
+      atomEnv.document.dispatchEvent(mousedown)
+      atomEnv.unloadEditorWindow()
+      expect(atomEnv.saveState).not.toHaveBeenCalled()
 
-      advanceClock atom.saveStateDebounceInterval
+      advanceClock atomEnv.saveStateDebounceInterval
       idleCallbacks.shift()()
-      expect(atom.saveState).not.toHaveBeenCalled()
+      expect(atomEnv.saveState).not.toHaveBeenCalled()
 
       mousedown = new MouseEvent('mousedown')
-      atom.document.dispatchEvent(mousedown)
-      advanceClock atom.saveStateDebounceInterval
+      atomEnv.document.dispatchEvent(mousedown)
+      advanceClock atomEnv.saveStateDebounceInterval
       idleCallbacks.shift()()
-      expect(atom.saveState).not.toHaveBeenCalled()
+      expect(atomEnv.saveState).not.toHaveBeenCalled()
+
+      atomEnv.destroy()
 
     it "serializes the project state with all the options supplied in saveState", ->
       spyOn(atom.project, 'serialize').andReturn({foo: 42})

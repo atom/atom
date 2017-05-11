@@ -264,7 +264,7 @@ class AtomEnvironment extends Model
 
   attachSaveStateListeners: ->
     saveState = _.debounce((=>
-      window.requestIdleCallback => @saveState({isUnloading: false}) unless @unloaded
+      @window.requestIdleCallback => @saveState({isUnloading: false}) unless @unloaded
     ), @saveStateDebounceInterval)
     @document.addEventListener('mousedown', saveState, true)
     @document.addEventListener('keydown', saveState, true)
