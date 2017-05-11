@@ -10,7 +10,7 @@ matrix:
   include:
     - os: linux
       dist: trusty
-      env: NODE_VERSION=7.4.0 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
+      env: NODE_VERSION=7.10.0 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
 
 sudo: required
 
