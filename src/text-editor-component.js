@@ -824,7 +824,7 @@ class TextEditorComponent {
     const renderedRowCount = this.getRenderedRowCount()
 
     const {keys, softWrappedFlags, foldableFlags} = this.lineNumbersToRender
-    const bufferRows = model.bufferRowsForScreenRows(startRow, endRow)
+    const bufferRows = model.bufferRowsForScreenRows(startRow, endRow - 1)
     this.lineNumbersToRender.bufferRows = bufferRows
     keys.length = renderedRowCount
     foldableFlags.length = renderedRowCount
