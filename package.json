@@ -63,7 +63,7 @@
     "semver": "^4.3.3",
     "service-hub": "^0.7.3",
     "sinon": "1.17.4",
-    "source-map-support": "^0.3.2",
+    "@atom/source-map-support": "^0.3.4",
     "temp": "^0.8.3",
     "text-buffer": "11.4.1",
     "typescript-simple": "1.0.0",

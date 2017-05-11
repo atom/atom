@@ -9,7 +9,7 @@
     "csslint": "1.0.2",
     "donna": "1.0.13",
     "electron-chromedriver": "~1.3",
-    "electron-link": "0.0.23",
+    "electron-link": "0.0.24",
     "electron-mksnapshot": "~1.3",
     "electron-packager": "7.3.0",
     "electron-winstaller": "2.5.1",
