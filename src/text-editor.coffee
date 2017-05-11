@@ -3485,7 +3485,7 @@ class TextEditor extends Model
     @getElement().scrollToBottom()
 
   scrollToScreenRange: (screenRange, options = {}) ->
-    screenRange = @clipScreenRange(screenRange)
+    screenRange = @clipScreenRange(screenRange) if options.clip isnt false
     scrollEvent = {screenRange, options}
     @component?.didRequestAutoscroll(scrollEvent)
     @emitter.emit "did-request-autoscroll", scrollEvent

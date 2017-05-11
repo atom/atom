@@ -630,7 +630,8 @@ class Cursor extends Model
     {row, column} = @getScreenPosition()
     new Range(new Point(row, column), new Point(row, column + 1))
 
-  autoscroll: (options) ->
+  autoscroll: (options = {}) ->
+    options.clip = false
     @editor.scrollToScreenRange(@getScreenRange(), options)
 
   getBeginningOfNextParagraphBufferPosition: ->
