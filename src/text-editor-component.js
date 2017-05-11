@@ -3944,11 +3944,11 @@ function debounce (fn, wait) {
       timeout = setTimeout(later, wait - last)
     } else {
       timeout = null
-      result = fn()
+      fn()
     }
   }
 
-  return function() {
+  return function () {
     timestamp = Date.now()
     if (!timeout) timeout = setTimeout(later, wait)
   }
