@@ -1421,7 +1421,8 @@ class TextEditorComponent {
   // listener to be fired, even if other listeners are bound before creating
   // the component.
   didBlur (event) {
-    if (event.relatedTarget === this.refs.cursorsAndInput.refs.hiddenInput) {
+    const {cursorsAndInput} = this.refs
+    if (cursorsAndInput && event.relatedTarget === cursorsAndInput.refs.hiddenInput) {
       event.stopImmediatePropagation()
     }
   }
