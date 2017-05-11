@@ -257,7 +257,6 @@ class AtomEnvironment extends Model
 
     @observeAutoHideMenuBar()
 
-    @history.initialize(@window.localStorage)
     @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
 
   preloadPackages: ->
