@@ -19,8 +19,9 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   applicationDelegate.setWindowDocumentEdited = ->
   window.atom = buildAtomEnvironment({
     applicationDelegate, window, document,
-    configDirPath: process.env.ATOM_HOME
-    enablePersistence: false
+    configDirPath: process.env.ATOM_HOME,
+    enablePersistence: false,
+    openDevToolsOnError: not headless
   })
 
   require './spec-helper'

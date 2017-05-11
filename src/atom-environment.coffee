@@ -125,8 +125,10 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate, @clipboard, @enablePersistence, onlyLoadBaseStyleSheets, @updateProcessEnv} = params
+    {@applicationDelegate, @clipboard, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@updateProcessEnv, @openDevToolsOnError} = params
 
+    @openDevToolsOnError ?= true
     @nextProxyRequestId = 0
     @unloaded = false
     @loadTime = null
@@ -779,7 +781,7 @@ class AtomEnvironment extends Model
 
       eventObject = {message, url, line, column, originalError}
 
-      openDevTools = true
+      openDevTools = @openDevToolsOnError
       eventObject.preventDefault = -> openDevTools = false
 
       @emitter.emit 'will-throw-error', eventObject
