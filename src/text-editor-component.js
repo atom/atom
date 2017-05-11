@@ -81,6 +81,10 @@ class TextEditorComponent {
     this.updatedSynchronously = this.props.updatedSynchronously
     this.didScrollDummyScrollbar = this.didScrollDummyScrollbar.bind(this)
     this.didMouseDownOnContent = this.didMouseDownOnContent.bind(this)
+    this.debouncedResumeCursorBlinking = debounce(
+      this.resumeCursorBlinking.bind(this),
+      (this.props.cursorBlinkResumeDelay || CURSOR_BLINK_RESUME_DELAY)
+    )
     this.lineTopIndex = new LineTopIndex()
     this.updateScheduled = false
     this.suppressUpdates = false
@@ -1829,14 +1833,12 @@ class TextEditorComponent {
 
   pauseCursorBlinking () {
     this.stopCursorBlinking()
-    if (this.resumeCursorBlinkingTimeoutHandle) {
-      window.clearTimeout(this.resumeCursorBlinkingTimeoutHandle)
-    }
-    this.resumeCursorBlinkingTimeoutHandle = window.setTimeout(() => {
-      this.cursorsBlinkedOff = true
-      this.startCursorBlinking()
-      this.resumeCursorBlinkingTimeoutHandle = null
-    }, (this.props.cursorBlinkResumeDelay || CURSOR_BLINK_RESUME_DELAY))
+    this.debouncedResumeCursorBlinking()
+  }
+
+  resumeCursorBlinking () {
+    this.cursorsBlinkedOff = true
+    this.startCursorBlinking()
   }
 
   stopCursorBlinking () {
@@ -3930,4 +3932,23 @@ function constrainRangeToRows (range, startRow, endRow) {
     }
   }
   return range
+}
+
+function debounce (fn, wait) {
+  let timestamp, timeout
+
+  function later () {
+    const last = Date.now() - timestamp
+    if (last < wait && last >= 0) {
+      timeout = setTimeout(later, wait - last)
+    } else {
+      timeout = null
+      result = fn()
+    }
+  }
+
+  return function() {
+    timestamp = Date.now()
+    if (!timeout) timeout = setTimeout(later, wait)
+  }
 }
