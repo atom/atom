@@ -1,5 +1,3 @@
-/* global snapshotResult */
-
 const {userAgent} = process.env
 const [compileCachePath, taskPath] = process.argv.slice(2)
 
