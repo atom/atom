@@ -369,7 +369,7 @@ describe('AtomApplication', function () {
       assert.deepEqual(await getTreeViewRootDirectories(app2Window2), [tempDirPath2])
     })
 
-    it('does not reopen any previously opened windows when launched with no path and `core.restorePreviousWindowsOnStart` is false', async function () {
+    it('does not reopen any previously opened windows when launched with no path and `core.restorePreviousWindowsOnStart` is no', async function () {
       const atomApplication1 = buildAtomApplication()
       const app1Window1 = atomApplication1.launch(parseCommandLine([makeTempDir()]))
       await focusWindow(app1Window1)
@@ -379,7 +379,7 @@ describe('AtomApplication', function () {
       const configPath = path.join(process.env.ATOM_HOME, 'config.cson')
       const config = season.readFileSync(configPath)
       if (!config['*'].core) config['*'].core = {}
-      config['*'].core.restorePreviousWindowsOnStart = false
+      config['*'].core.restorePreviousWindowsOnStart = 'no'
       season.writeFileSync(configPath, config)
 
       const atomApplication2 = buildAtomApplication()

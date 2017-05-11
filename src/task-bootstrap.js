@@ -1,9 +1,5 @@
 /* global snapshotResult */
 
-if (typeof snapshotResult !== 'undefined') {
-  snapshotResult.setGlobals(global, process, global, {}, console, require)
-}
-
 const {userAgent} = process.env
 const [compileCachePath, taskPath] = process.argv.slice(2)
 
