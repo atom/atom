@@ -143,7 +143,7 @@ describe('PackageTranspilationRegistry', () => {
       expect(wrappedCompiler.compile('source', nodeModulesFolder)).toEqual('source-original-compiler')
     })
 
-    describe('when the packages root path contains node_modules', () =>{
+    describe('when the packages root path contains node_modules', () => {
       beforeEach(() => {
         registry.addTranspilerConfigForPath(path.join('/path/with/node_modules/in/root'), 'my-other-package', { some: 'metadata' }, [
           jsSpec

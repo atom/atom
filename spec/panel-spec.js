@@ -102,7 +102,7 @@ describe('Panel', () => {
 
   describe('creating an atom-panel via markup', () => {
     it('does not throw an error', () => {
-      const element = document.createElement('atom-panel')
+      document.createElement('atom-panel')
     })
   })
 })

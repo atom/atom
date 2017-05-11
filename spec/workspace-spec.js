@@ -12,7 +12,7 @@ const _ = require('underscore-plus')
 const fstream = require('fstream')
 const fs = require('fs-plus')
 const AtomEnvironment = require('../src/atom-environment')
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
 
 describe('Workspace', () => {
   let workspace
@@ -1259,10 +1259,10 @@ describe('Workspace', () => {
   describe('::onDidStopChangingActivePaneItem()', function () {
     it('invokes observers when the active item of the active pane stops changing', function () {
       const pane1 = atom.workspace.getCenter().getActivePane()
-      const pane2 = pane1.splitRight({items: [document.createElement('div'), document.createElement('div')]});
+      const pane2 = pane1.splitRight({items: [document.createElement('div'), document.createElement('div')]})
       atom.workspace.getLeftDock().getActivePane().addItem(document.createElement('div'))
 
-      emittedItems = []
+      let emittedItems = []
       atom.workspace.onDidStopChangingActivePaneItem(item => emittedItems.push(item))
 
       pane2.activateNextItem()

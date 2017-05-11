@@ -1,6 +1,6 @@
 /** @babel */
 
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers' // eslint-disable-line no-unused-vars
 
 describe('Dock', () => {
   describe('when a dock is activated', () => {
@@ -38,7 +38,7 @@ describe('Dock', () => {
     it('opens the dock', async () => {
       const item = {
         element: document.createElement('div'),
-        getDefaultLocation() { return 'left' }
+        getDefaultLocation () { return 'left' }
       }
 
       await atom.workspace.open(item, {activatePane: false})
@@ -56,9 +56,9 @@ describe('Dock', () => {
 
         const item = {
           element: document.createElement('div'),
-          getDefaultLocation() { return 'left' },
-          getPreferredWidth() { return 142 },
-          getPreferredHeight() { return 122 }
+          getDefaultLocation () { return 'left' },
+          getPreferredWidth () { return 142 },
+          getPreferredHeight () { return 122 }
         }
 
         await atom.workspace.open(item)
@@ -77,9 +77,9 @@ describe('Dock', () => {
 
         const item = {
           element: document.createElement('div'),
-          getDefaultLocation() { return 'bottom' },
-          getPreferredWidth() { return 122 },
-          getPreferredHeight() { return 142 }
+          getDefaultLocation () { return 'bottom' },
+          getPreferredWidth () { return 122 },
+          getPreferredHeight () { return 142 }
         }
 
         await atom.workspace.open(item)
@@ -100,9 +100,9 @@ describe('Dock', () => {
 
         const item = {
           element: document.createElement('div'),
-          getDefaultLocation() { return 'bottom' },
-          getPreferredWidth() { return 122 },
-          getPreferredHeight() { return 142 }
+          getDefaultLocation () { return 'bottom' },
+          getPreferredWidth () { return 122 },
+          getPreferredHeight () { return 142 }
         }
 
         await atom.workspace.open(item, {activatePane: false})
@@ -128,8 +128,8 @@ describe('Dock', () => {
 
         const createItem = preferredWidth => ({
           element: document.createElement('div'),
-          getDefaultLocation() { return 'left' },
-          getPreferredWidth() { return preferredWidth }
+          getDefaultLocation () { return 'left' },
+          getPreferredWidth () { return preferredWidth }
         })
 
         const dock = atom.workspace.getLeftDock()
@@ -163,7 +163,7 @@ describe('Dock', () => {
 
         const item = {
           element: document.createElement('div'),
-          getDefaultLocation() { return 'left' }
+          getDefaultLocation () { return 'left' }
         }
         const dock = atom.workspace.getLeftDock()
         expect(dock.getPaneItems()).toHaveLength(0)
@@ -181,11 +181,11 @@ describe('Dock', () => {
 
       const item = {
         element: document.createElement('div'),
-        getDefaultLocation() { return 'left' },
-        getPreferredWidth() { return 122 },
+        getDefaultLocation () { return 'left' },
+        getPreferredWidth () { return 122 },
         serialize: () => ({deserializer: 'DockTestItem'})
       }
-      const itemDeserializer = atom.deserializers.add({
+      atom.deserializers.add({
         name: 'DockTestItem',
         deserialize: () => item
       })
@@ -208,8 +208,8 @@ describe('Dock', () => {
 
       const item = {
         element: document.createElement('div'),
-        getDefaultLocation() { return 'left' },
-        getPreferredWidth() { return 122 }
+        getDefaultLocation () { return 'left' },
+        getPreferredWidth () { return 122 }
       }
       const dock = atom.workspace.getLeftDock()
 
@@ -228,12 +228,11 @@ describe('Dock', () => {
 
       const item = {
         element: document.createElement('div'),
-        getDefaultLocation() { return 'left' },
-        getPreferredWidth() { return 144 },
+        getDefaultLocation () { return 'left' },
+        getPreferredWidth () { return 144 },
         serialize: () => ({deserializer: 'DockTestItem'})
       }
       const dock = atom.workspace.getLeftDock()
-      const dockElement = dock.getElement()
 
       dock.setDraggingItem(item)
       expect(dock.wrapperElement.offsetWidth).toBe(144)

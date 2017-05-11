@@ -6,7 +6,7 @@ const {ipcRenderer} = require('electron')
 const path = require('path')
 const temp = require('temp').track()
 const {Disposable} = require('event-kit')
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
 
 describe('WorkspaceElement', () => {
   afterEach(() => { temp.cleanupSync() })
@@ -48,18 +48,18 @@ describe('WorkspaceElement', () => {
       await Promise.all([
         atom.workspace.open({
           element: document.createElement('div'),
-          getDefaultLocation() { return 'left' },
-          getPreferredWidth() { return 150 }
+          getDefaultLocation () { return 'left' },
+          getPreferredWidth () { return 150 }
         }),
         atom.workspace.open({
           element: document.createElement('div'),
-          getDefaultLocation() { return 'right' },
-          getPreferredWidth() { return 150 }
+          getDefaultLocation () { return 'right' },
+          getPreferredWidth () { return 150 }
         }),
         atom.workspace.open({
           element: document.createElement('div'),
-          getDefaultLocation() { return 'bottom' },
-          getPreferredHeight() { return 100 }
+          getDefaultLocation () { return 'bottom' },
+          getPreferredHeight () { return 100 }
         })
       ])
 
@@ -185,16 +185,16 @@ describe('WorkspaceElement', () => {
       expectToggleButtonVisible(bottomDock, 'icon-chevron-down')
     })
 
-    function moveMouse(coordinates) {
+    function moveMouse (coordinates) {
       window.dispatchEvent(new MouseEvent('mousemove', coordinates))
       advanceClock(100)
     }
 
-    function expectToggleButtonHidden(dock) {
+    function expectToggleButtonHidden (dock) {
       expect(dock.toggleButton.element).not.toHaveClass('atom-dock-toggle-button-visible')
     }
 
-    function expectToggleButtonVisible(dock, iconClass) {
+    function expectToggleButtonVisible (dock, iconClass) {
       expect(dock.toggleButton.element).toHaveClass('atom-dock-toggle-button-visible')
       expect(dock.toggleButton.iconElement).toHaveClass(iconClass)
     }
