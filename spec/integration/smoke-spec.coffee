@@ -14,7 +14,10 @@ describe "Smoke Test", ->
     season.writeFileSync(path.join(atomHome, 'config.cson'), {
       '*': {
         welcome: {showOnStartup: false},
-        core: {telemetryConsent: 'no'}
+        core: {
+          telemetryConsent: 'no',
+          disabledPackages: ['github']
+        }
       }
     })
 
