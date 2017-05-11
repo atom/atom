@@ -3385,7 +3385,11 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}.
   isFoldedAtBufferRow: (bufferRow) ->
-    @displayLayer.foldsIntersectingBufferRange(Range(Point(bufferRow, 0), Point(bufferRow, Infinity))).length > 0
+    range = Range(
+      Point(bufferRow, 0),
+      Point(bufferRow, @buffer.lineLengthForRow(bufferRow))
+    )
+    @displayLayer.foldsIntersectingBufferRange(range).length > 0
 
   # Extended: Determine whether the given row in screen coordinates is folded.
   #
