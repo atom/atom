@@ -3377,7 +3377,7 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}.
   isFoldedAtCursorRow: ->
-    @isFoldedAtScreenRow(@getCursorScreenPosition().row)
+    @isFoldedAtBufferRow(@getCursorBufferPosition().row)
 
   # Extended: Determine whether the given row in buffer coordinates is folded.
   #
