@@ -1307,7 +1307,7 @@ module.exports = class Workspace extends Model {
   // {::saveActivePaneItemAs} # will be called instead. This method does nothing
   // if the active item does not implement a `.save` method.
   saveActivePaneItem () {
-    this.getActivePane().saveActiveItem()
+    this.getCenter().getActivePane().saveActiveItem()
   }
 
   // Prompt the user for a path and save the active pane item to it.
@@ -1316,7 +1316,7 @@ module.exports = class Workspace extends Model {
   // `.saveAs` on the item with the selected path. This method does nothing if
   // the active item does not implement a `.saveAs` method.
   saveActivePaneItemAs () {
-    this.getActivePane().saveActiveItemAs()
+    this.getCenter().getActivePane().saveActiveItemAs()
   }
 
   // Destroy (close) the active pane item.
@@ -1419,13 +1419,13 @@ module.exports = class Workspace extends Model {
     }
   }
 
-  // Close the active pane item, or the active pane if it is empty,
-  // or the current window if there is only the empty root pane.
+  // Close the active center pane item, or the active center pane if it is
+  // empty, or the current window if there is only the empty root pane.
   closeActivePaneItemOrEmptyPaneOrWindow () {
-    if (this.getActivePaneItem() != null) {
-      this.destroyActivePaneItem()
+    if (this.getCenter().getActivePaneItem() != null) {
+      this.getCenter().getActivePane().destroyActiveItem()
     } else if (this.getCenter().getPanes().length > 1) {
-      this.destroyActivePane()
+      this.getCenter().destroyActivePane()
     } else if (this.config.get('core.closeEmptyWindows')) {
       atom.close()
     }
