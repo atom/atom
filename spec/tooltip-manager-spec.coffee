@@ -185,8 +185,29 @@ describe "TooltipManager", ->
 
     describe "when the window is resized", ->
       it "hides the tooltips", ->
-        manager.add element, title: "Title"
+        disposable = manager.add element, title: "Title"
         hover element, ->
           expect(document.body.querySelector(".tooltip")).not.toBeNull()
           window.dispatchEvent(new CustomEvent('resize'))
           expect(document.body.querySelector(".tooltip")).toBeNull()
+          disposable.dispose()
+
+    describe "findTooltips", ->
+      it "adds and remove tooltips correctly", ->
+        expect(manager.findTooltips(element).length).toBe(0)
+        disposable1 = manager.add element, title: "elem1"
+        expect(manager.findTooltips(element).length).toBe(1)
+        disposable2 = manager.add element, title: "elem2"
+        expect(manager.findTooltips(element).length).toBe(2)
+        disposable1.dispose()
+        expect(manager.findTooltips(element).length).toBe(1)
+        disposable2.dispose()
+        expect(manager.findTooltips(element).length).toBe(0)
+
+      it "lets us hide tooltips programatically", ->
+        disposable = manager.add element, title: "Title"
+        hover element, ->
+          expect(document.body.querySelector(".tooltip")).not.toBeNull()
+          manager.findTooltips(element)[0].hide()
+          expect(document.body.querySelector(".tooltip")).toBeNull()
+          disposable.dispose()

@@ -41,6 +41,7 @@ class TokenizedBuffer extends Model
 
   destroyed: ->
     @disposables.dispose()
+    @tokenizedLines.length = 0
 
   buildIterator: ->
     new TokenizedBufferIterator(this)
@@ -94,6 +95,7 @@ class TokenizedBuffer extends Model
     false
 
   retokenizeLines: ->
+    return unless @alive
     @fullyTokenized = false
     @tokenizedLines = new Array(@buffer.getLineCount())
     @invalidRows = []
@@ -198,10 +200,7 @@ class TokenizedBuffer extends Model
         @invalidateRow(end + delta + 1)
 
   isFoldableAtRow: (row) ->
-    if @largeFileMode
-      false
-    else
-      @isFoldableCodeAtRow(row) or @isFoldableCommentAtRow(row)
+    @isFoldableCodeAtRow(row) or @isFoldableCommentAtRow(row)
 
   # Returns a {Boolean} indicating whether the given buffer row starts
   # a a foldable row range due to the code's indentation patterns.

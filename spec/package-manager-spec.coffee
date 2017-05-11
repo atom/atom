@@ -5,17 +5,16 @@ fs = require 'fs-plus'
 {Disposable} = require 'atom'
 {buildKeydownEvent} = require '../src/keymap-extensions'
 {mockLocalStorage} = require './spec-helper'
+ModuleCache = require '../src/module-cache'
 
 describe "PackageManager", ->
-  workspaceElement = null
-
   createTestElement = (className) ->
     element = document.createElement('div')
     element.className = className
     element
 
   beforeEach ->
-    workspaceElement = atom.views.getView(atom.workspace)
+    spyOn(ModuleCache, 'add')
 
   afterEach ->
     temp.cleanupSync()
@@ -27,16 +26,16 @@ describe "PackageManager", ->
         apmPath += ".cmd"
       expect(atom.packages.getApmPath()).toBe apmPath
 
-      describe "when the core.apmPath setting is set", ->
-        beforeEach ->
-          atom.config.set("core.apmPath", "/path/to/apm")
+    describe "when the core.apmPath setting is set", ->
+      beforeEach ->
+        atom.config.set("core.apmPath", "/path/to/apm")
 
-        it "returns the value of the core.apmPath config setting", ->
-          expect(atom.packages.getApmPath()).toBe "/path/to/apm"
+      it "returns the value of the core.apmPath config setting", ->
+        expect(atom.packages.getApmPath()).toBe "/path/to/apm"
 
   describe "::loadPackages()", ->
     beforeEach ->
-      spyOn(atom.packages, 'loadPackage')
+      spyOn(atom.packages, 'loadAvailablePackage')
 
     afterEach ->
       atom.packages.deactivatePackages()
@@ -57,11 +56,13 @@ describe "PackageManager", ->
       expect(pack.metadata.name).toBe "package-with-index"
 
     it "returns the package if it has an invalid keymap", ->
+      spyOn(atom, 'inSpecMode').andReturn(false)
       pack = atom.packages.loadPackage("package-with-broken-keymap")
       expect(pack instanceof Package).toBe true
       expect(pack.metadata.name).toBe "package-with-broken-keymap"
 
     it "returns the package if it has an invalid stylesheet", ->
+      spyOn(atom, 'inSpecMode').andReturn(false)
       pack = atom.packages.loadPackage("package-with-invalid-styles")
       expect(pack instanceof Package).toBe true
       expect(pack.metadata.name).toBe "package-with-invalid-styles"
@@ -75,6 +76,7 @@ describe "PackageManager", ->
       expect(addErrorHandler.argsForCall[1][0].options.packageName).toEqual "package-with-invalid-styles"
 
     it "returns null if the package has an invalid package.json", ->
+      spyOn(atom, 'inSpecMode').andReturn(false)
       addErrorHandler = jasmine.createSpy()
       atom.notifications.onDidAddNotification(addErrorHandler)
       expect(atom.packages.loadPackage("package-with-broken-package-json")).toBeNull()
@@ -107,6 +109,7 @@ describe "PackageManager", ->
 
     describe "when the package is deprecated", ->
       it "returns null", ->
+        spyOn(console, 'warn')
         expect(atom.packages.loadPackage(path.join(__dirname, 'fixtures', 'packages', 'wordcount'))).toBeNull()
         expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.9')).toBe true
         expect(atom.packages.isDeprecatedPackage('wordcount', '2.2.0')).toBe true
@@ -244,6 +247,148 @@ describe "PackageManager", ->
         pack2 = atom.packages.loadPackage('package-with-eval-time-api-calls')
         expect(pack2.mainModule).not.toBeNull()
 
+  describe "::loadAvailablePackage(availablePackage)", ->
+    describe "if the package was preloaded", ->
+      it "adds the package path to the module cache", ->
+        availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
+        availablePackage.isBundled = true
+        expect(atom.packages.preloadedPackages[availablePackage.name]).toBeUndefined()
+        expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
+
+        metadata = atom.packages.loadPackageMetadata(availablePackage)
+        atom.packages.preloadPackage(
+          availablePackage.name,
+          {
+            rootDirPath: path.relative(atom.packages.resourcePath, availablePackage.path),
+            metadata
+          }
+        )
+        atom.packages.loadAvailablePackage(availablePackage)
+        expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(true)
+        expect(ModuleCache.add).toHaveBeenCalledWith(availablePackage.path, metadata)
+
+      it "deactivates it if it had been disabled", ->
+        availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
+        availablePackage.isBundled = true
+        expect(atom.packages.preloadedPackages[availablePackage.name]).toBeUndefined()
+        expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
+
+        metadata = atom.packages.loadPackageMetadata(availablePackage)
+        preloadedPackage = atom.packages.preloadPackage(
+          availablePackage.name,
+          {
+            rootDirPath: path.relative(atom.packages.resourcePath, availablePackage.path),
+            metadata
+          }
+        )
+        expect(preloadedPackage.keymapActivated).toBe(true)
+        expect(preloadedPackage.settingsActivated).toBe(true)
+        expect(preloadedPackage.menusActivated).toBe(true)
+
+        atom.packages.loadAvailablePackage(availablePackage, new Set([availablePackage.name]))
+        expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
+        expect(preloadedPackage.keymapActivated).toBe(false)
+        expect(preloadedPackage.settingsActivated).toBe(false)
+        expect(preloadedPackage.menusActivated).toBe(false)
+
+      it "deactivates it and reloads the new one if trying to load the same package outside of the bundle", ->
+        availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
+        availablePackage.isBundled = true
+        expect(atom.packages.preloadedPackages[availablePackage.name]).toBeUndefined()
+        expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
+
+        metadata = atom.packages.loadPackageMetadata(availablePackage)
+        preloadedPackage = atom.packages.preloadPackage(
+          availablePackage.name,
+          {
+            rootDirPath: path.relative(atom.packages.resourcePath, availablePackage.path),
+            metadata
+          }
+        )
+        expect(preloadedPackage.keymapActivated).toBe(true)
+        expect(preloadedPackage.settingsActivated).toBe(true)
+        expect(preloadedPackage.menusActivated).toBe(true)
+
+        availablePackage.isBundled = false
+        atom.packages.loadAvailablePackage(availablePackage)
+        expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(true)
+        expect(preloadedPackage.keymapActivated).toBe(false)
+        expect(preloadedPackage.settingsActivated).toBe(false)
+        expect(preloadedPackage.menusActivated).toBe(false)
+
+    describe "if the package was not preloaded", ->
+      it "adds the package path to the module cache", ->
+        availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
+        availablePackage.isBundled = true
+        metadata = atom.packages.loadPackageMetadata(availablePackage)
+        atom.packages.loadAvailablePackage(availablePackage)
+        expect(ModuleCache.add).toHaveBeenCalledWith(availablePackage.path, metadata)
+
+  describe "preloading", ->
+    it "requires the main module, loads the config schema and activates keymaps, menus and settings without reactivating them during package activation", ->
+      availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
+      availablePackage.isBundled = true
+      expect(atom.packages.preloadedPackages[availablePackage.name]).toBeUndefined()
+      expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
+
+      metadata = atom.packages.loadPackageMetadata(availablePackage)
+      preloadedPackage = atom.packages.preloadPackage(
+        availablePackage.name,
+        {
+          rootDirPath: path.relative(atom.packages.resourcePath, availablePackage.path),
+          metadata
+        }
+      )
+      expect(preloadedPackage.keymapActivated).toBe(true)
+      expect(preloadedPackage.settingsActivated).toBe(true)
+      expect(preloadedPackage.menusActivated).toBe(true)
+      expect(preloadedPackage.mainModule).toBeTruthy()
+      expect(preloadedPackage.configSchemaRegisteredOnLoad).toBeTruthy()
+
+      atom.packages.loadAvailablePackage(availablePackage)
+
+      spyOn(atom.keymaps, 'add')
+      spyOn(atom.menu, 'add')
+      spyOn(atom.contextMenu, 'add')
+      spyOn(atom.config, 'setSchema')
+      atom.packages.activatePackage(availablePackage.name)
+
+      expect(atom.keymaps.add).not.toHaveBeenCalled()
+      expect(atom.menu.add).not.toHaveBeenCalled()
+      expect(atom.contextMenu.add).not.toHaveBeenCalled()
+      expect(atom.config.setSchema).not.toHaveBeenCalled()
+      expect(preloadedPackage.keymapActivated).toBe(true)
+      expect(preloadedPackage.settingsActivated).toBe(true)
+      expect(preloadedPackage.menusActivated).toBe(true)
+      expect(preloadedPackage.mainModule).toBeTruthy()
+      expect(preloadedPackage.configSchemaRegisteredOnLoad).toBeTruthy()
+
+    it "deactivates disabled keymaps during package activation", ->
+      availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
+      availablePackage.isBundled = true
+      expect(atom.packages.preloadedPackages[availablePackage.name]).toBeUndefined()
+      expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
+
+      metadata = atom.packages.loadPackageMetadata(availablePackage)
+      preloadedPackage = atom.packages.preloadPackage(
+        availablePackage.name,
+        {
+          rootDirPath: path.relative(atom.packages.resourcePath, availablePackage.path),
+          metadata
+        }
+      )
+      expect(preloadedPackage.keymapActivated).toBe(true)
+      expect(preloadedPackage.settingsActivated).toBe(true)
+      expect(preloadedPackage.menusActivated).toBe(true)
+
+      atom.packages.loadAvailablePackage(availablePackage)
+      atom.config.set("core.packagesWithKeymapsDisabled", [availablePackage.name])
+      atom.packages.activatePackage(availablePackage.name)
+
+      expect(preloadedPackage.keymapActivated).toBe(false)
+      expect(preloadedPackage.settingsActivated).toBe(true)
+      expect(preloadedPackage.menusActivated).toBe(true)
+
   describe "::unloadPackage(name)", ->
     describe "when the package is active", ->
       it "throws an error", ->
@@ -335,9 +480,8 @@ describe "PackageManager", ->
         [mainModule, promise, workspaceCommandListener, registration] = []
 
         beforeEach ->
-          jasmine.attachToDOM(workspaceElement)
+          jasmine.attachToDOM(atom.workspace.getElement())
           mainModule = require './fixtures/packages/package-with-activation-commands/index'
-          mainModule.legacyActivationCommandCallCount = 0
           mainModule.activationCommandCallCount = 0
           spyOn(mainModule, 'activate').andCallThrough()
           spyOn(Package.prototype, 'requireMainModule').andCallThrough()
@@ -354,7 +498,7 @@ describe "PackageManager", ->
         it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
           expect(Package.prototype.requireMainModule.callCount).toBe 0
 
-          workspaceElement.dispatchEvent(new CustomEvent('activation-command', bubbles: true))
+          atom.workspace.getElement().dispatchEvent(new CustomEvent('activation-command', bubbles: true))
 
           waitsForPromise ->
             promise
@@ -367,7 +511,7 @@ describe "PackageManager", ->
             atom.workspace.open()
 
           runs ->
-            editorElement = atom.views.getView(atom.workspace.getActiveTextEditor())
+            editorElement = atom.workspace.getActiveTextEditor().getElement()
             editorCommandListener = jasmine.createSpy("editorCommandListener")
             atom.commands.add 'atom-text-editor', 'activation-command', editorCommandListener
             atom.commands.dispatch(editorElement, 'activation-command')
@@ -392,6 +536,7 @@ describe "PackageManager", ->
             expect(mainModule.activate.callCount).toBe 1
 
         it "adds a notification when the activation commands are invalid", ->
+          spyOn(atom, 'inSpecMode').andReturn(false)
           addErrorHandler = jasmine.createSpy()
           atom.notifications.onDidAddNotification(addErrorHandler)
           expect(-> atom.packages.activatePackage('package-with-invalid-activation-commands')).not.toThrow()
@@ -400,6 +545,7 @@ describe "PackageManager", ->
           expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-with-invalid-activation-commands"
 
         it "adds a notification when the context menu is invalid", ->
+          spyOn(atom, 'inSpecMode').andReturn(false)
           addErrorHandler = jasmine.createSpy()
           atom.notifications.onDidAddNotification(addErrorHandler)
           expect(-> atom.packages.activatePackage('package-with-invalid-context-menu')).not.toThrow()
@@ -443,11 +589,9 @@ describe "PackageManager", ->
         spyOn(mainModule, 'activate').andCallThrough()
         spyOn(Package.prototype, 'requireMainModule').andCallThrough()
 
-        promise = atom.packages.activatePackage('package-with-activation-hooks')
-
       it "defers requiring/activating the main module until an triggering of an activation hook occurs", ->
+        promise = atom.packages.activatePackage('package-with-activation-hooks')
         expect(Package.prototype.requireMainModule.callCount).toBe 0
-
         atom.packages.triggerActivationHook('language-fictitious:grammar-used')
         atom.packages.triggerDeferredActivationHooks()
 
@@ -458,6 +602,7 @@ describe "PackageManager", ->
           expect(Package.prototype.requireMainModule.callCount).toBe 1
 
       it "does not double register activation hooks when deactivating and reactivating", ->
+        promise = atom.packages.activatePackage('package-with-activation-hooks')
         expect(mainModule.activate.callCount).toBe 0
         atom.packages.triggerActivationHook('language-fictitious:grammar-used')
         atom.packages.triggerDeferredActivationHooks()
@@ -490,6 +635,17 @@ describe "PackageManager", ->
 
         runs ->
           expect(mainModule.activate.callCount).toBe 1
+          expect(Package.prototype.requireMainModule.callCount).toBe 1
+
+      it "activates the package immediately if the activation hook had already been triggered", ->
+        atom.packages.triggerActivationHook('language-fictitious:grammar-used')
+        atom.packages.triggerDeferredActivationHooks()
+        expect(Package.prototype.requireMainModule.callCount).toBe 0
+
+        waitsForPromise ->
+          atom.packages.activatePackage('package-with-activation-hooks')
+
+        runs ->
           expect(Package.prototype.requireMainModule.callCount).toBe 1
 
     describe "when the package has no main module", ->
@@ -536,8 +692,9 @@ describe "PackageManager", ->
       waitsFor -> activatedPackage?
       runs -> expect(activatedPackage.name).toBe 'package-with-main'
 
-    describe "when the package throws an error while loading", ->
+    describe "when the package's main module throws an error on load", ->
       it "adds a notification instead of throwing an exception", ->
+        spyOn(atom, 'inSpecMode').andReturn(false)
         atom.config.set("core.disabledPackages", [])
         addErrorHandler = jasmine.createSpy()
         atom.notifications.onDidAddNotification(addErrorHandler)
@@ -545,6 +702,11 @@ describe "PackageManager", ->
         expect(addErrorHandler.callCount).toBe 1
         expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-that-throws-an-exception package")
         expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-that-throws-an-exception"
+
+      it "re-throws the exception in test mode", ->
+        atom.config.set("core.disabledPackages", [])
+        addErrorHandler = jasmine.createSpy()
+        expect(-> atom.packages.activatePackage("package-that-throws-an-exception")).toThrow("This package throws an exception")
 
     describe "when the package is not found", ->
       it "rejects the promise", ->
@@ -883,6 +1045,7 @@ describe "PackageManager", ->
 
   describe "::serialize", ->
     it "does not serialize packages that threw an error during activation", ->
+      spyOn(atom, 'inSpecMode').andReturn(false)
       spyOn(console, 'warn')
       badPack = null
       waitsForPromise ->
@@ -930,6 +1093,7 @@ describe "PackageManager", ->
       atom.packages.unloadPackages()
 
     it "calls `deactivate` on the package's main module if activate was successful", ->
+      spyOn(atom, 'inSpecMode').andReturn(false)
       pack = null
       waitsForPromise ->
         atom.packages.activatePackage("package-with-deactivate").then (p) -> pack = p
@@ -1018,6 +1182,7 @@ describe "PackageManager", ->
 
   describe "::activate()", ->
     beforeEach ->
+      spyOn(atom, 'inSpecMode').andReturn(false)
       jasmine.snapshotDeprecations()
       spyOn(console, 'warn')
       atom.packages.loadPackages()
@@ -1032,6 +1197,7 @@ describe "PackageManager", ->
       jasmine.restoreDeprecationsSnapshot()
 
     it "sets hasActivatedInitialPackages", ->
+      spyOn(atom.styles, 'getUserStyleSheetPath').andReturn(null)
       spyOn(atom.packages, 'activatePackages')
       expect(atom.packages.hasActivatedInitialPackages()).toBe false
       waitsForPromise -> atom.packages.activate()

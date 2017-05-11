@@ -8,7 +8,7 @@ class DecorationManager extends Model
   didUpdateDecorationsEventScheduled: false
   updatedSynchronously: false
 
-  constructor: (@displayLayer, @defaultMarkerLayer) ->
+  constructor: (@displayLayer) ->
     super
 
     @emitter = new Emitter
@@ -71,9 +71,11 @@ class DecorationManager extends Model
 
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     decorationsByMarkerId = {}
-    for marker in @defaultMarkerLayer.findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow])
-      if decorations = @decorationsByMarkerId[marker.id]
-        decorationsByMarkerId[marker.id] = decorations
+    for layerId of @decorationCountsByLayerId
+      layer = @displayLayer.getMarkerLayer(layerId)
+      for marker in layer.findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow])
+        if decorations = @decorationsByMarkerId[marker.id]
+          decorationsByMarkerId[marker.id] = decorations
     decorationsByMarkerId
 
   decorationsStateForScreenRowRange: (startScreenRow, endScreenRow) ->
@@ -104,7 +106,14 @@ class DecorationManager extends Model
     decorationsState
 
   decorateMarker: (marker, decorationParams) ->
-    throw new Error("Cannot decorate a destroyed marker") if marker.isDestroyed()
+    if marker.isDestroyed()
+      error = new Error("Cannot decorate a destroyed marker")
+      error.metadata = {markerLayerIsDestroyed: marker.layer.isDestroyed()}
+      if marker.destroyStackTrace?
+        error.metadata.destroyStackTrace = marker.destroyStackTrace
+      if marker.bufferMarker?.destroyStackTrace?
+        error.metadata.destroyStackTrace = marker.bufferMarker?.destroyStackTrace
+      throw error
     marker = @displayLayer.getMarkerLayer(marker.layer.id).getMarker(marker.id)
     decoration = new Decoration(marker, this, decorationParams)
     @decorationsByMarkerId[marker.id] ?= []
@@ -117,6 +126,7 @@ class DecorationManager extends Model
     decoration
 
   decorateMarkerLayer: (markerLayer, decorationParams) ->
+    throw new Error("Cannot decorate a destroyed marker layer") if markerLayer.isDestroyed()
     decoration = new LayerDecoration(markerLayer, this, decorationParams)
     @layerDecorationsByMarkerLayerId[markerLayer.id] ?= []
     @layerDecorationsByMarkerLayerId[markerLayer.id].push(decoration)

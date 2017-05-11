@@ -70,7 +70,13 @@ class Task
     compileCachePath = require('./compile-cache').getCacheDirectory()
     taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
     bootstrap = """
-      #{compileCacheRequire}.setCacheDirectory('#{compileCachePath}');
+      if (typeof snapshotResult !== 'undefined') {
+        snapshotResult.setGlobals(global, process, global, {}, console, require)
+      }
+
+      CompileCache = #{compileCacheRequire}
+      CompileCache.setCacheDirectory('#{compileCachePath}');
+      CompileCache.install("#{process.resourcesPath}", require)
       #{taskBootstrapRequire}
     """
     bootstrap = bootstrap.replace(/\\/g, "\\\\")

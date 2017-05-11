@@ -10,7 +10,7 @@ class LineNumberGutterComponent extends TiledComponent
 
     @dummyLineNumberComponent = LineNumbersTileComponent.createDummy(@domElementPool)
 
-    @domNode = @views.getView(@gutter)
+    @domNode = @gutter.getElement()
     @lineNumbersNode = @domNode.firstChild
     @lineNumbersNode.innerHTML = ''
 

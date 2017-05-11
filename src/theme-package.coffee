@@ -1,3 +1,4 @@
+path = require 'path'
 Package = require './package'
 
 module.exports =
@@ -11,6 +12,13 @@ class ThemePackage extends Package
 
   disable: ->
     @config.removeAtKeyPath('core.themes', @name)
+
+  preload: ->
+    @loadTime = 0
+    @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
+
+  finishLoading: ->
+    @path = path.join(@packageManager.resourcePath, @path)
 
   load: ->
     @loadTime = 0

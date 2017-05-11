@@ -41,10 +41,6 @@ module.exports = function parseCommandLine (processArgs) {
     'safe',
     'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.'
   )
-  options.boolean('portable').describe(
-    'portable',
-    'Set portable mode. Copies the ~/.atom folder to be a sibling of the installed Atom location if a .atom folder is not already there.'
-  )
   options.boolean('benchmark').describe('benchmark', 'Open a new window that runs the specified benchmarks.')
   options.boolean('benchmark-test').describe('benchmark--test', 'Run a faster version of the benchmarks in headless mode.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
@@ -104,21 +100,20 @@ module.exports = function parseCommandLine (processArgs) {
   const profileStartup = args['profile-startup']
   const clearWindowState = args['clear-window-state']
   const urlsToOpen = []
-  const setPortable = args.portable
   let devMode = args['dev']
   let devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH || path.join(app.getPath('home'), 'github', 'atom')
   let resourcePath = null
 
   if (args['resource-path']) {
     devMode = true
-    resourcePath = args['resource-path']
+    devResourcePath = args['resource-path']
   }
 
   if (test) {
     devMode = true
   }
 
-  if (devMode && !resourcePath) {
+  if (devMode) {
     resourcePath = devResourcePath
   }
 
@@ -152,7 +147,6 @@ module.exports = function parseCommandLine (processArgs) {
     userDataDir,
     profileStartup,
     timeout,
-    setPortable,
     clearWindowState,
     addToLastWindow,
     mainProcess,

@@ -2,9 +2,10 @@
 
 ## Requirements
 
-* Node.js 4.4.x or later (the architecture of node available to the build system will determine whether you build 32-bit or 64-bit Atom)
+* Node.js 6.x (the architecture of node available to the build system will determine whether you build 32-bit or 64-bit Atom)
 * Python v2.7.x
   * The python.exe must be available at `%SystemDrive%\Python27\python.exe`. If it is installed elsewhere create a symbolic link to the directory containing the python.exe using: `mklink /d %SystemDrive%\Python27 D:\elsewhere\Python27`
+* 7zip (7z.exe available from the command line) - for creating distribution zip files
 * Visual Studio, either:
   * [Visual C++ Build Tools 2015](http://landinghub.visualstudio.com/visual-cpp-build-tools)
   * [Visual Studio 2013 Update 5](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs) (Express Edition or better)
@@ -34,7 +35,7 @@ To also install the newly built application, use `script\build --create-windows-
 * `--code-sign`: signs the application with the GitHub certificate specified in `$WIN_P12KEY_URL`.
 * `--compress-artifacts`: zips the generated application as `out\atom-windows.zip` (requires [7-Zip](http://www.7-zip.org)).
 * `--create-windows-installer`: creates an `.msi`, an `.exe` and two `.nupkg` packages in the `out` directory.
-* `--install`: installs the application in `%LOCALAPPDATA%\Atom\app-dev\`.
+* `--install[=dir]`: installs the application in `${dir}\Atom\app-dev`; `${dir}` defaults to `%LOCALAPPDATA%`.
 
 ### Running tests
 

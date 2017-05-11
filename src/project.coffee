@@ -21,7 +21,6 @@ class Project extends Model
   constructor: ({@notificationManager, packageManager, config, @applicationDelegate}) ->
     @emitter = new Emitter
     @buffers = []
-    @paths = []
     @rootDirectories = []
     @repositories = []
     @directoryProviders = []
@@ -31,8 +30,10 @@ class Project extends Model
     @consumeServices(packageManager)
 
   destroyed: ->
-    buffer.destroy() for buffer in @buffers
-    @setPaths([])
+    buffer.destroy() for buffer in @buffers.slice()
+    repository?.destroy() for repository in @repositories.slice()
+    @rootDirectories = []
+    @repositories = []
 
   reset: (packageManager) ->
     @emitter.dispose()
@@ -62,6 +63,9 @@ class Project extends Model
           fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
         catch error
           return unless error.code is 'ENOENT'
+      unless bufferState.shouldDestroyOnFileDelete?
+        bufferState.shouldDestroyOnFileDelete =
+          -> atom.config.get('core.closeDeletedFileTabs')
       TextBuffer.deserialize(bufferState)
 
     @subscribeToBuffer(buffer) for buffer in @buffers
@@ -70,7 +74,15 @@ class Project extends Model
   serialize: (options={}) ->
     deserializer: 'Project'
     paths: @getPaths()
-    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize({markerLayers: options.isUnloading is true}) if buffer.isRetained())
+    buffers: _.compact(@buffers.map (buffer) ->
+      if buffer.isRetained()
+        state = buffer.serialize({markerLayers: options.isUnloading is true})
+        # Skip saving large buffer text unless unloading to avoid blocking main thread
+        if not options.isUnloading and state.text.length > 2 * 1024 * 1024
+          delete state.text
+          delete state.digestWhenLastPersisted
+        state
+    )
 
   ###
   Section: Event Subscription
@@ -172,11 +184,7 @@ class Project extends Model
   #
   # * `projectPath` {String} The path to the directory to add.
   addPath: (projectPath, options) ->
-    directory = null
-    for provider in @directoryProviders
-      break if directory = provider.directoryForURISync?(projectPath)
-    directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
-
+    directory = @getDirectoryForProjectPath(projectPath)
     return unless directory.existsSync()
     for existingDirectory in @getDirectories()
       return if existingDirectory.getPath() is directory.getPath()
@@ -191,13 +199,20 @@ class Project extends Model
     unless options?.emitEvent is false
       @emitter.emit 'did-change-paths', @getPaths()
 
+  getDirectoryForProjectPath: (projectPath) ->
+    directory = null
+    for provider in @directoryProviders
+      break if directory = provider.directoryForURISync?(projectPath)
+    directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
+    directory
+
   # Public: remove a path from the project's list of root paths.
   #
   # * `projectPath` {String} The path to remove.
   removePath: (projectPath) ->
     # The projectPath may be a URI, in which case it should not be normalized.
     unless projectPath in @getPaths()
-      projectPath = path.normalize(projectPath)
+      projectPath = @defaultDirectoryProvider.normalizePath(projectPath)
 
     indexToRemove = null
     for directory, i in @rootDirectories
@@ -225,11 +240,10 @@ class Project extends Model
       uri
     else
       if fs.isAbsolute(uri)
-        path.normalize(fs.absolute(uri))
-
+        @defaultDirectoryProvider.normalizePath(fs.resolveHome(uri))
       # TODO: what should we do here when there are multiple directories?
       else if projectPath = @getPaths()[0]
-        path.normalize(fs.absolute(path.join(projectPath, uri)))
+        @defaultDirectoryProvider.normalizePath(fs.resolveHome(path.join(projectPath, uri)))
       else
         undefined
 
@@ -352,9 +366,14 @@ class Project extends Model
     else
       @buildBuffer(absoluteFilePath)
 
+  shouldDestroyBufferOnFileDelete: ->
+    atom.config.get('core.closeDeletedFileTabs')
+
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer = new TextBuffer({
+      filePath: absoluteFilePath
+      shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete})
     @addBuffer(buffer)
     buffer.loadSync()
     buffer
@@ -366,7 +385,9 @@ class Project extends Model
   #
   # Returns a {Promise} that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer = new TextBuffer({
+      filePath: absoluteFilePath
+      shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete})
     @addBuffer(buffer)
     buffer.load()
       .then((buffer) -> buffer)

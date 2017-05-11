@@ -11,9 +11,9 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StateStore = require './state-store'
 StorageFolder = require './storage-folder'
-{getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 {updateProcessEnv} = require './update-process-env'
+ConfigSchema = require './config-schema'
 
 DeserializerManager = require './deserializer-manager'
 ViewRegistry = require './view-registry'
@@ -39,20 +39,13 @@ Panel = require './panel'
 PaneContainer = require './pane-container'
 PaneAxis = require './pane-axis'
 Pane = require './pane'
+Dock = require './dock'
 Project = require './project'
 TextEditor = require './text-editor'
 TextBuffer = require 'text-buffer'
 Gutter = require './gutter'
 TextEditorRegistry = require './text-editor-registry'
 AutoUpdateManager = require './auto-update-manager'
-
-WorkspaceElement = require './workspace-element'
-PanelContainerElement = require './panel-container-element'
-PanelElement = require './panel-element'
-PaneContainerElement = require './pane-container-element'
-PaneAxisElement = require './pane-axis-element'
-PaneElement = require './pane-element'
-{createGutterView} = require './gutter-component-helpers'
 
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
@@ -132,64 +125,46 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@blobStore, @applicationDelegate, @window, @document, @clipboard, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@applicationDelegate, @clipboard, @enablePersistence, onlyLoadBaseStyleSheets, @updateProcessEnv} = params
 
+    @nextProxyRequestId = 0
     @unloaded = false
     @loadTime = null
-    {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
-
     @emitter = new Emitter
     @disposables = new CompositeDisposable
+    @deserializers = new DeserializerManager(this)
+    @deserializeTimings = {}
+    @views = new ViewRegistry(this)
+    @notifications = new NotificationManager
+    @updateProcessEnv ?= updateProcessEnv # For testing
 
     @stateStore = new StateStore('AtomEnvironments', 1)
 
-    if clearWindowState
-      @getStorageFolder().clear()
-      @stateStore.clear()
+    @config = new Config({notificationManager: @notifications, @enablePersistence})
+    @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
 
-    @deserializers = new DeserializerManager(this)
-    @deserializeTimings = {}
-
-    @views = new ViewRegistry(this)
-
-    @notifications = new NotificationManager
-
-    @config = new Config({@configDirPath, resourcePath, notificationManager: @notifications, @enablePersistence})
-    @setConfigSchema()
-
-    @keymaps = new KeymapManager({@configDirPath, resourcePath, notificationManager: @notifications})
-
+    @keymaps = new KeymapManager({notificationManager: @notifications})
     @tooltips = new TooltipManager(keymapManager: @keymaps, viewRegistry: @views)
-
     @commands = new CommandRegistry
-    @commands.attach(@window)
-
     @grammars = new GrammarRegistry({@config})
-
-    @styles = new StyleManager({@configDirPath})
-
+    @styles = new StyleManager()
     @packages = new PackageManager({
-      devMode, @configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
+      @config, styleManager: @styles,
       commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
       grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views
     })
-
     @themes = new ThemeManager({
-      packageManager: @packages, @configDirPath, resourcePath, safeMode, @config,
-      styleManager: @styles, notificationManager: @notifications, viewRegistry: @views
+      packageManager: @packages, @config, styleManager: @styles,
+      notificationManager: @notifications, viewRegistry: @views
     })
-
-    @menu = new MenuManager({resourcePath, keymapManager: @keymaps, packageManager: @packages})
-
-    @contextMenu = new ContextMenuManager({resourcePath, devMode, keymapManager: @keymaps})
-
+    @menu = new MenuManager({keymapManager: @keymaps, packageManager: @packages})
+    @contextMenu = new ContextMenuManager({keymapManager: @keymaps})
     @packages.setMenuManager(@menu)
     @packages.setContextMenuManager(@contextMenu)
     @packages.setThemeManager(@themes)
 
     @project = new Project({notificationManager: @notifications, packageManager: @packages, @config, @applicationDelegate})
-
-    @commandInstaller = new CommandInstaller(@getVersion(), @applicationDelegate)
+    @commandInstaller = new CommandInstaller(@applicationDelegate)
 
     @textEditors = new TextEditorRegistry({
       @config, grammarRegistry: @grammars, assert: @assert.bind(this),
@@ -199,12 +174,66 @@ class AtomEnvironment extends Model
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
       notificationManager: @notifications, @applicationDelegate, viewRegistry: @views, assert: @assert.bind(this),
-      textEditorRegistry: @textEditors,
+      textEditorRegistry: @textEditors, styleManager: @styles, @enablePersistence
     })
 
     @themes.workspace = @workspace
 
     @autoUpdater = new AutoUpdateManager({@applicationDelegate})
+
+    if @keymaps.canLoadBundledKeymapsFromMemory()
+      @keymaps.loadBundledKeymaps()
+
+    @registerDefaultCommands()
+    @registerDefaultOpeners()
+    @registerDefaultDeserializers()
+
+    @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate})
+
+    @history = new HistoryManager({@project, @commands, @stateStore})
+    # Keep instances of HistoryManager in sync
+    @disposables.add @history.onDidChangeProjects (e) =>
+      @applicationDelegate.didChangeHistoryManager() unless e.reloaded
+
+  initialize: (params={}) ->
+    # This will force TextEditorElement to register the custom element, so that
+    # using `document.createElement('atom-text-editor')` works if it's called
+    # before opening a buffer.
+    require './text-editor-element'
+
+    {@window, @document, @blobStore, @configDirPath, onlyLoadBaseStyleSheets} = params
+    {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
+
+    if clearWindowState
+      @getStorageFolder().clear()
+      @stateStore.clear()
+
+    @views.initialize()
+
+    ConfigSchema.projectHome = {
+      type: 'string',
+      default: path.join(fs.getHomeDirectory(), 'github'),
+      description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
+    }
+    @config.initialize({@configDirPath, resourcePath, projectHomeSchema: ConfigSchema.projectHome})
+
+    @menu.initialize({resourcePath})
+    @contextMenu.initialize({resourcePath, devMode})
+
+    @keymaps.configDirPath = @configDirPath
+    @keymaps.resourcePath = resourcePath
+    @keymaps.devMode = devMode
+    unless @keymaps.canLoadBundledKeymapsFromMemory()
+      @keymaps.loadBundledKeymaps()
+
+    @commands.attach(@window)
+
+    @styles.initialize({@configDirPath})
+    @packages.initialize({devMode, @configDirPath, resourcePath, safeMode})
+    @themes.initialize({@configDirPath, resourcePath, safeMode, devMode})
+
+    @commandInstaller.initialize(@getVersion())
+    @autoUpdater.initialize()
 
     @config.load()
 
@@ -216,39 +245,19 @@ class AtomEnvironment extends Model
     @stylesElement = @styles.buildStylesElement()
     @document.head.appendChild(@stylesElement)
 
-    @disposables.add(@applicationDelegate.disableZoom())
-
     @keymaps.subscribeToFileReadFailure()
-    @keymaps.loadBundledKeymaps()
-
-    @registerDefaultCommands()
-    @registerDefaultOpeners()
-    @registerDefaultDeserializers()
-    @registerDefaultViewProviders()
 
     @installUncaughtErrorHandler()
     @attachSaveStateListeners()
-    @installWindowEventHandler()
+    @windowEventHandler.initialize(@window, @document)
 
     @observeAutoHideMenuBar()
 
-    @history = new HistoryManager({@project, @commands, localStorage})
-    # Keep instances of HistoryManager in sync
-    @history.onDidChangeProjects (e) =>
-      @applicationDelegate.didChangeHistoryManager() unless e.reloaded
+    @history.initialize(@window.localStorage)
     @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
 
-    new ReopenProjectMenuManager({@menu, @commands, @history, @config, open: (paths) => @open(pathsToOpen: paths)})
-
-    checkPortableHomeWritable = =>
-      responseChannel = "check-portable-home-writable-response"
-      ipcRenderer.on responseChannel, (event, response) ->
-        ipcRenderer.removeAllListeners(responseChannel)
-        @notifications.addWarning("#{response.message.replace(/([\\\.+\\-_#!])/g, '\\$1')}") if not response.writable
-      @disposables.add new Disposable -> ipcRenderer.removeAllListeners(responseChannel)
-      ipcRenderer.send('check-portable-home-writable', responseChannel)
-
-    checkPortableHomeWritable()
+  preloadPackages: ->
+    @packages.preloadPackages()
 
   attachSaveStateListeners: ->
     saveState = _.debounce((=>
@@ -260,14 +269,12 @@ class AtomEnvironment extends Model
       @document.removeEventListener('mousedown', saveState, true)
       @document.removeEventListener('keydown', saveState, true)
 
-  setConfigSchema: ->
-    @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
-
   registerDefaultDeserializers: ->
     @deserializers.add(Workspace)
     @deserializers.add(PaneContainer)
     @deserializers.add(PaneAxis)
     @deserializers.add(Pane)
+    @deserializers.add(Dock)
     @deserializers.add(Project)
     @deserializers.add(TextEditor)
     @deserializers.add(TextBuffer)
@@ -275,35 +282,20 @@ class AtomEnvironment extends Model
   registerDefaultCommands: ->
     registerDefaultCommands({commandRegistry: @commands, @config, @commandInstaller, notificationManager: @notifications, @project, @clipboard})
 
-  registerDefaultViewProviders: ->
-    @views.addViewProvider Workspace, (model, env) ->
-      new WorkspaceElement().initialize(model, env)
-    @views.addViewProvider PanelContainer, (model, env) ->
-      new PanelContainerElement().initialize(model, env)
-    @views.addViewProvider Panel, (model, env) ->
-      new PanelElement().initialize(model, env)
-    @views.addViewProvider PaneContainer, (model, env) ->
-      new PaneContainerElement().initialize(model, env)
-    @views.addViewProvider PaneAxis, (model, env) ->
-      new PaneAxisElement().initialize(model, env)
-    @views.addViewProvider Pane, (model, env) ->
-      new PaneElement().initialize(model, env)
-    @views.addViewProvider(Gutter, createGutterView)
-
   registerDefaultOpeners: ->
     @workspace.addOpener (uri) =>
       switch uri
         when 'atom://.atom/stylesheet'
-          @workspace.open(@styles.getUserStyleSheetPath())
+          @workspace.openTextFile(@styles.getUserStyleSheetPath())
         when 'atom://.atom/keymap'
-          @workspace.open(@keymaps.getUserKeymapPath())
+          @workspace.openTextFile(@keymaps.getUserKeymapPath())
         when 'atom://.atom/config'
-          @workspace.open(@config.getUserConfigPath())
+          @workspace.openTextFile(@config.getUserConfigPath())
         when 'atom://.atom/init-script'
-          @workspace.open(@getUserInitScriptPath())
+          @workspace.openTextFile(@getUserInitScriptPath())
 
   registerDefaultTargetForKeymaps: ->
-    @keymaps.defaultTarget = @views.getView(@workspace)
+    @keymaps.defaultTarget = @workspace.getElement()
 
   observeAutoHideMenuBar: ->
     @disposables.add @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
@@ -315,7 +307,7 @@ class AtomEnvironment extends Model
     @registerDefaultDeserializers()
 
     @config.clear()
-    @setConfigSchema()
+    @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
 
     @keymaps.clear()
     @keymaps.loadBundledKeymaps()
@@ -347,7 +339,6 @@ class AtomEnvironment extends Model
     @textEditors.clear()
 
     @views.clear()
-    @registerDefaultViewProviders()
 
   destroy: ->
     return if not @project
@@ -413,6 +404,17 @@ class AtomEnvironment extends Model
   onDidFailAssertion: (callback) ->
     @emitter.on 'did-fail-assertion', callback
 
+  # Extended: Invoke the given callback as soon as the shell environment is
+  # loaded (or immediately if it was already loaded).
+  #
+  # * `callback` {Function} to be called whenever there is an unhandled error
+  whenShellEnvironmentLoaded: (callback) ->
+    if @shellEnvironmentLoaded
+      callback()
+      new Disposable()
+    else
+      @emitter.once 'loaded-shell-environment', callback
+
   ###
   Section: Atom Details
   ###
@@ -468,7 +470,7 @@ class AtomEnvironment extends Model
   #
   # Returns an {Object} containing all the load setting key/value pairs.
   getLoadSettings: ->
-    getWindowLoadSettings()
+    @applicationDelegate.getWindowLoadSettings()
 
   ###
   Section: Managing The Atom Window
@@ -669,15 +671,16 @@ class AtomEnvironment extends Model
   storeWindowBackground: ->
     return if @inSpecMode()
 
-    workspaceElement = @views.getView(@workspace)
-    backgroundColor = @window.getComputedStyle(workspaceElement)['background-color']
+    backgroundColor = @window.getComputedStyle(@workspace.getElement())['background-color']
     @window.localStorage.setItem('atom:window-background-color', backgroundColor)
 
   # Call this method when establishing a real application window.
   startEditorWindow: ->
     @unloaded = false
-    updateProcessEnvPromise = updateProcessEnv(@getLoadSettings().env)
+    updateProcessEnvPromise = @updateProcessEnv(@getLoadSettings().env)
     updateProcessEnvPromise.then =>
+      @shellEnvironmentLoaded = true
+      @emitter.emit('loaded-shell-environment')
       @packages.triggerActivationHook('core:loaded-shell-environment')
 
     loadStatePromise = @loadState().then (state) =>
@@ -705,10 +708,16 @@ class AtomEnvironment extends Model
         @deserialize(state) if state?
         @deserializeTimings.atom = Date.now() - startTime
 
-        if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
+        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom'
           @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+          @document.body.classList.add('custom-title-bar')
+        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom-inset'
+          @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+          @document.body.classList.add('custom-inset-title-bar')
+        if process.platform is 'darwin' and @config.get('core.titleBar') is 'hidden'
+          @document.body.classList.add('hidden-title-bar')
 
-        @document.body.appendChild(@views.getView(@workspace))
+        @document.body.appendChild(@workspace.getElement())
         @backgroundStylesheet?.remove()
 
         @watchProjectPaths()
@@ -721,7 +730,14 @@ class AtomEnvironment extends Model
 
         @openInitialEmptyEditorIfNecessary()
 
-    Promise.all([loadStatePromise, updateProcessEnvPromise])
+    loadHistoryPromise = @history.loadState().then =>
+      @reopenProjectMenuManager = new ReopenProjectMenuManager({
+        @menu, @commands, @history, @config,
+        open: (paths) => @open(pathsToOpen: paths)
+      })
+      @reopenProjectMenuManager.update()
+
+    Promise.all([loadStatePromise, loadHistoryPromise, updateProcessEnvPromise])
 
   serialize: (options) ->
     version: @constructor.version
@@ -741,6 +757,10 @@ class AtomEnvironment extends Model
     @saveBlobStoreSync()
     @unloaded = true
 
+  saveBlobStoreSync: ->
+    if @enablePersistence
+      @blobStore.save()
+
   openInitialEmptyEditorIfNecessary: ->
     return unless @config.get('core.openEmptyEditorOnStart')
     if @getLoadSettings().initialPaths?.length is 0 and @workspace.getPaneItems().length is 0
@@ -752,7 +772,10 @@ class AtomEnvironment extends Model
       @lastUncaughtError = Array::slice.call(arguments)
       [message, url, line, column, originalError] = @lastUncaughtError
 
-      {line, column} = mapSourcePosition({source: url, line, column})
+      {line, column, source} = mapSourcePosition({source: url, line, column})
+
+      if url is '<embedded>'
+        url = source
 
       eventObject = {message, url, line, column, originalError}
 
@@ -770,10 +793,12 @@ class AtomEnvironment extends Model
     @window.onerror = @previousWindowErrorHandler
 
   installWindowEventHandler: ->
-    @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate, @window, @document})
+    @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate})
+    @windowEventHandler.initialize(@window, @document)
 
   uninstallWindowEventHandler: ->
     @windowEventHandler?.unsubscribe()
+    @windowEventHandler = null
 
   ###
   Section: Messaging the User
@@ -832,14 +857,21 @@ class AtomEnvironment extends Model
   Section: Private
   ###
 
-  assert: (condition, message, callback) ->
+  assert: (condition, message, callbackOrMetadata) ->
     return true if condition
 
     error = new Error("Assertion failed: #{message}")
     Error.captureStackTrace(error, @assert)
-    callback?(error)
+
+    if callbackOrMetadata?
+      if typeof callbackOrMetadata is 'function'
+        callbackOrMetadata?(error)
+      else
+        error.metadata = callbackOrMetadata
 
     @emitter.emit 'did-fail-assertion', error
+    unless @isReleasedVersion()
+      throw error
 
     false
 
@@ -859,7 +891,51 @@ class AtomEnvironment extends Model
 
   addProjectFolder: ->
     @pickFolder (selectedPaths = []) =>
-      @project.addPath(selectedPath) for selectedPath in selectedPaths
+      @addToProject(selectedPaths)
+
+  addToProject: (projectPaths) ->
+    @loadState(@getStateKey(projectPaths)).then (state) =>
+      if state and @project.getPaths().length is 0
+        @attemptRestoreProjectStateForPaths(state, projectPaths)
+      else
+        @project.addPath(folder) for folder in projectPaths
+
+  attemptRestoreProjectStateForPaths: (state, projectPaths, filesToOpen = []) ->
+    paneItemIsEmptyUnnamedTextEditor = (item) ->
+      return false unless item instanceof TextEditor
+      return false if item.getPath() or item.isModified()
+      true
+
+    windowIsUnused = @workspace.getPaneItems().every(paneItemIsEmptyUnnamedTextEditor)
+    if windowIsUnused
+      @restoreStateIntoThisEnvironment(state)
+      Promise.all (@workspace.open(file) for file in filesToOpen)
+    else
+      nouns = if projectPaths.length is 1 then 'folder' else 'folders'
+      btn = @confirm
+        message: 'Previous automatically-saved project state detected'
+        detailedMessage: "There is previously saved state for the selected #{nouns}. " +
+          "Would you like to add the #{nouns} to this window, permanently discarding the saved state, " +
+          "or open the #{nouns} in a new window, restoring the saved state?"
+        buttons: [
+          'Open in new window and recover state'
+          'Add to this window and discard state'
+        ]
+      if btn is 0
+        @open
+          pathsToOpen: projectPaths.concat(filesToOpen)
+          newWindow: true
+          devMode: @inDevMode()
+          safeMode: @inSafeMode()
+        Promise.resolve(null)
+      else if btn is 1
+        @project.addPath(selectedPath) for selectedPath in projectPaths
+        Promise.all (@workspace.open(file) for file in filesToOpen)
+
+  restoreStateIntoThisEnvironment: (state) ->
+    state.fullScreen = @isFullScreen()
+    pane.destroy() for pane in @workspace.getPanes()
+    @deserialize(state)
 
   showSaveDialog: (callback) ->
     callback(@showSaveDialogSync())
@@ -867,17 +943,12 @@ class AtomEnvironment extends Model
   showSaveDialogSync: (options={}) ->
     @applicationDelegate.showSaveDialog(options)
 
-  saveBlobStoreSync: ->
-    return unless @enablePersistence
-
-    @blobStore.save()
-
-  saveState: (options) ->
+  saveState: (options, storageKey) ->
     new Promise (resolve, reject) =>
       if @enablePersistence and @project
         state = @serialize(options)
         savePromise =
-          if storageKey = @getStateKey(@project?.getPaths())
+          if storageKey ?= @getStateKey(@project?.getPaths())
             @stateStore.save(storageKey, state)
           else
             @applicationDelegate.setTemporaryWindowState(state)
@@ -885,9 +956,9 @@ class AtomEnvironment extends Model
       else
         resolve()
 
-  loadState: ->
+  loadState: (stateKey) ->
     if @enablePersistence
-      if stateKey = @getStateKey(@getLoadSettings().initialPaths)
+      if stateKey ?= @getStateKey(@getLoadSettings().initialPaths)
         @stateStore.load(stateKey).then (state) =>
           if state
             state
@@ -964,8 +1035,8 @@ class AtomEnvironment extends Model
   dispatchApplicationMenuCommand: (command, arg) ->
     activeElement = @document.activeElement
     # Use the workspace element if body has focus
-    if activeElement is @document.body and workspaceElement = @views.getView(@workspace)
-      activeElement = workspaceElement
+    if activeElement is @document.body
+      activeElement = @workspace.getElement()
     @commands.dispatch(activeElement, command, arg)
 
   dispatchContextMenuCommand: (command, args...) ->
@@ -974,19 +1045,55 @@ class AtomEnvironment extends Model
   openLocations: (locations) ->
     needsProjectPaths = @project?.getPaths().length is 0
 
+    foldersToAddToProject = []
+    fileLocationsToOpen = []
+
+    pushFolderToOpen = (folder) ->
+      if folder not in foldersToAddToProject
+        foldersToAddToProject.push(folder)
+
     for {pathToOpen, initialLine, initialColumn, forceAddToWindow} in locations
       if pathToOpen? and (needsProjectPaths or forceAddToWindow)
         if fs.existsSync(pathToOpen)
-          @project.addPath(pathToOpen)
+          pushFolderToOpen @project.getDirectoryForProjectPath(pathToOpen).getPath()
         else if fs.existsSync(path.dirname(pathToOpen))
-          @project.addPath(path.dirname(pathToOpen))
+          pushFolderToOpen @project.getDirectoryForProjectPath(path.dirname(pathToOpen)).getPath()
         else
-          @project.addPath(pathToOpen)
+          pushFolderToOpen @project.getDirectoryForProjectPath(pathToOpen).getPath()
 
       unless fs.isDirectorySync(pathToOpen)
-        @workspace?.open(pathToOpen, {initialLine, initialColumn})
+        fileLocationsToOpen.push({pathToOpen, initialLine, initialColumn})
 
-    return
+    promise = Promise.resolve(null)
+    if foldersToAddToProject.length > 0
+      promise = @loadState(@getStateKey(foldersToAddToProject)).then (state) =>
+        if state and needsProjectPaths # only load state if this is the first path added to the project
+          files = (location.pathToOpen for location in fileLocationsToOpen)
+          @attemptRestoreProjectStateForPaths(state, foldersToAddToProject, files)
+        else
+          promises = []
+          @project.addPath(folder) for folder in foldersToAddToProject
+          for {pathToOpen, initialLine, initialColumn} in fileLocationsToOpen
+            promises.push @workspace?.open(pathToOpen, {initialLine, initialColumn})
+          Promise.all(promises)
+    else
+      promises = []
+      for {pathToOpen, initialLine, initialColumn} in fileLocationsToOpen
+        promises.push @workspace?.open(pathToOpen, {initialLine, initialColumn})
+      promise = Promise.all(promises)
+
+    promise.then ->
+      ipcRenderer.send 'window-command', 'window:locations-opened'
+
+  resolveProxy: (url) ->
+    return new Promise (resolve, reject) =>
+      requestId = @nextProxyRequestId++
+      disposable = @applicationDelegate.onDidResolveProxy (id, proxy) ->
+        if id is requestId
+          disposable.dispose()
+          resolve(proxy)
+
+      @applicationDelegate.resolveProxy(requestId, url)
 
 # Preserve this deprecation until 2.0. Sorry. Should have removed Q sooner.
 Promise.prototype.done = (callback) ->

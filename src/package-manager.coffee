@@ -10,6 +10,7 @@ ServiceHub = require 'service-hub'
 Package = require './package'
 ThemePackage = require './theme-package'
 {isDeprecatedPackage, getDeprecatedPackageMetadata} = require './deprecated-packages'
+packageJSON = require('../package.json')
 
 # Extended: Package manager for coordinating the lifecycle of Atom packages.
 #
@@ -30,23 +31,20 @@ module.exports =
 class PackageManager
   constructor: (params) ->
     {
-      configDirPath, @devMode, safeMode, @resourcePath, @config, @styleManager,
-      @notificationManager, @keymapManager, @commandRegistry, @grammarRegistry,
-      @deserializerManager, @viewRegistry
+      @config, @styleManager, @notificationManager, @keymapManager,
+      @commandRegistry, @grammarRegistry, @deserializerManager, @viewRegistry
     } = params
 
     @emitter = new Emitter
     @activationHookEmitter = new Emitter
     @packageDirPaths = []
     @deferredActivationHooks = []
-    if configDirPath? and not safeMode
-      if @devMode
-        @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
-      @packageDirPaths.push(path.join(configDirPath, "packages"))
-
-    @packagesCache = require('../package.json')?._atomPackages ? {}
+    @triggeredActivationHooks = new Set()
+    @packagesCache = packageJSON._atomPackages ? {}
+    @packageDependencies = packageJSON.packageDependencies ? {}
     @initialPackagesLoaded = false
     @initialPackagesActivated = false
+    @preloadedPackages = {}
     @loadedPackages = {}
     @activePackages = {}
     @activatingPackages = {}
@@ -55,6 +53,13 @@ class PackageManager
 
     @packageActivators = []
     @registerPackageActivator(this, ['atom', 'textmate'])
+
+  initialize: (params) ->
+    {configDirPath, @devMode, safeMode, @resourcePath} = params
+    if configDirPath? and not safeMode
+      if @devMode
+        @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
+      @packageDirPaths.push(path.join(configDirPath, "packages"))
 
   setContextMenuManager: (@contextMenuManager) ->
 
@@ -66,7 +71,9 @@ class PackageManager
     @serviceHub.clear()
     @deactivatePackages()
     @loadedPackages = {}
+    @preloadedPackages = {}
     @packageStates = {}
+    @triggeredActivationHooks.clear()
 
   ###
   Section: Event Subscription
@@ -285,31 +292,46 @@ class PackageManager
 
   # Public: Returns an {Array} of {String}s of all the available package paths.
   getAvailablePackagePaths: ->
-    packagePaths = []
-
-    for packageDirPath in @packageDirPaths
-      for packagePath in fs.listSync(packageDirPath)
-        packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
-
-    packagesPath = path.join(@resourcePath, 'node_modules')
-    for packageName of @getPackageDependencies()
-      packagePath = path.join(packagesPath, packageName)
-      packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
-
-    _.uniq(packagePaths)
+    @getAvailablePackages().map((a) -> a.path)
 
   # Public: Returns an {Array} of {String}s of all the available package names.
   getAvailablePackageNames: ->
-    _.uniq _.map @getAvailablePackagePaths(), (packagePath) -> path.basename(packagePath)
+    @getAvailablePackages().map((a) -> a.name)
 
   # Public: Returns an {Array} of {String}s of all the available package metadata.
   getAvailablePackageMetadata: ->
     packages = []
-    for packagePath in @getAvailablePackagePaths()
-      name = path.basename(packagePath)
-      metadata = @getLoadedPackage(name)?.metadata ? @loadPackageMetadata(packagePath, true)
+    for pack in @getAvailablePackages()
+      metadata = @getLoadedPackage(pack.name)?.metadata ? @loadPackageMetadata(pack, true)
       packages.push(metadata)
     packages
+
+  getAvailablePackages: ->
+    packages = []
+    packagesByName = new Set()
+
+    for packageDirPath in @packageDirPaths
+      if fs.isDirectorySync(packageDirPath)
+        for packagePath in fs.readdirSync(packageDirPath)
+          packagePath = path.join(packageDirPath, packagePath)
+          packageName = path.basename(packagePath)
+          if not packageName.startsWith('.') and not packagesByName.has(packageName) and fs.isDirectorySync(packagePath)
+            packages.push({
+              name: packageName,
+              path: packagePath,
+              isBundled: false
+            })
+            packagesByName.add(packageName)
+
+    for packageName of @packageDependencies
+      unless packagesByName.has(packageName)
+        packages.push({
+          name: packageName,
+          path: path.join(@resourcePath, 'node_modules', packageName),
+          isBundled: true
+        })
+
+    packages.sort((a, b) -> a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
 
   ###
   Section: Private
@@ -322,11 +344,6 @@ class PackageManager
     @packageStates[name] = state
 
   getPackageDependencies: ->
-    unless @packageDependencies?
-      try
-        @packageDependencies = require('../package.json')?.packageDependencies
-      @packageDependencies ?= {}
-
     @packageDependencies
 
   hasAtomEngine: (packagePath) ->
@@ -355,63 +372,112 @@ class PackageManager
       keymapsToEnable = _.difference(oldValue, newValue)
       keymapsToDisable = _.difference(newValue, oldValue)
 
-      for packageName in keymapsToDisable when not @isPackageDisabled(packageName)
+      disabledPackageNames = new Set(@config.get('core.disabledPackages'))
+      for packageName in keymapsToDisable when not disabledPackageNames.has(packageName)
         @getLoadedPackage(packageName)?.deactivateKeymaps()
-      for packageName in keymapsToEnable when not @isPackageDisabled(packageName)
+      for packageName in keymapsToEnable when not disabledPackageNames.has(packageName)
         @getLoadedPackage(packageName)?.activateKeymaps()
       null
+
+  preloadPackages: ->
+    for packageName, pack of @packagesCache
+      @preloadPackage(packageName, pack)
+
+  preloadPackage: (packageName, pack) ->
+    metadata = pack.metadata ? {}
+    unless typeof metadata.name is 'string' and metadata.name.length > 0
+      metadata.name = packageName
+
+    if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
+      metadata.repository.url = metadata.repository.url.replace(/(^git\+)|(\.git$)/g, '')
+
+    options = {
+      path: pack.rootDirPath, name: packageName, preloadedPackage: true,
+      bundledPackage: true, metadata, packageManager: this, @config,
+      @styleManager, @commandRegistry, @keymapManager,
+      @notificationManager, @grammarRegistry, @themeManager, @menuManager,
+      @contextMenuManager, @deserializerManager, @viewRegistry
+    }
+    if metadata.theme
+      pack = new ThemePackage(options)
+    else
+      pack = new Package(options)
+
+    pack.preload()
+    @preloadedPackages[packageName] = pack
 
   loadPackages: ->
     # Ensure atom exports is already in the require cache so the load time
     # of the first package isn't skewed by being the first to require atom
     require '../exports/atom'
 
-    packagePaths = @getAvailablePackagePaths()
-    packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
-    packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
+    disabledPackageNames = new Set(@config.get('core.disabledPackages'))
     @config.transact =>
-      @loadPackage(packagePath) for packagePath in packagePaths
+      for pack in @getAvailablePackages()
+        @loadAvailablePackage(pack, disabledPackageNames)
       return
     @initialPackagesLoaded = true
     @emitter.emit 'did-load-initial-packages'
 
   loadPackage: (nameOrPath) ->
-    return null if path.basename(nameOrPath)[0].match /^\./ # primarily to skip .git folder
-
-    return pack if pack = @getLoadedPackage(nameOrPath)
-
-    if packagePath = @resolvePackagePath(nameOrPath)
+    if path.basename(nameOrPath)[0].match(/^\./) # primarily to skip .git folder
+      null
+    else if pack = @getLoadedPackage(nameOrPath)
+      pack
+    else if packagePath = @resolvePackagePath(nameOrPath)
       name = path.basename(nameOrPath)
-      return pack if pack = @getLoadedPackage(name)
-
-      try
-        metadata = @loadPackageMetadata(packagePath) ? {}
-      catch error
-        @handleMetadataError(error, packagePath)
-        return null
-
-      unless @isBundledPackage(metadata.name)
-        if @isDeprecatedPackage(metadata.name, metadata.version)
-          console.warn "Could not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
-          return null
-
-      options = {
-        path: packagePath, metadata, packageManager: this, @config, @styleManager,
-        @commandRegistry, @keymapManager, @devMode, @notificationManager,
-        @grammarRegistry, @themeManager, @menuManager, @contextMenuManager,
-        @deserializerManager, @viewRegistry
-      }
-      if metadata.theme
-        pack = new ThemePackage(options)
-      else
-        pack = new Package(options)
-      pack.load()
-      @loadedPackages[pack.name] = pack
-      @emitter.emit 'did-load-package', pack
-      return pack
+      @loadAvailablePackage({name, path: packagePath, isBundled: @isBundledPackagePath(packagePath)})
     else
       console.warn "Could not resolve '#{nameOrPath}' to a package path"
-    null
+      null
+
+  loadAvailablePackage: (availablePackage, disabledPackageNames) ->
+    preloadedPackage = @preloadedPackages[availablePackage.name]
+
+    if disabledPackageNames?.has(availablePackage.name)
+      if preloadedPackage?
+        preloadedPackage.deactivate()
+        delete preloadedPackage[availablePackage.name]
+    else
+      loadedPackage = @getLoadedPackage(availablePackage.name)
+      if loadedPackage?
+        loadedPackage
+      else
+        if preloadedPackage?
+          if availablePackage.isBundled
+            preloadedPackage.finishLoading()
+            @loadedPackages[availablePackage.name] = preloadedPackage
+            return preloadedPackage
+          else
+            preloadedPackage.deactivate()
+            delete preloadedPackage[availablePackage.name]
+
+        try
+          metadata = @loadPackageMetadata(availablePackage) ? {}
+        catch error
+          @handleMetadataError(error, availablePackage.path)
+          return null
+
+        unless availablePackage.isBundled
+          if @isDeprecatedPackage(metadata.name, metadata.version)
+            console.warn "Could not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
+            return null
+
+        options = {
+          path: availablePackage.path, name: availablePackage.name, metadata,
+          bundledPackage: availablePackage.isBundled, packageManager: this,
+          @config, @styleManager, @commandRegistry, @keymapManager,
+          @notificationManager, @grammarRegistry, @themeManager, @menuManager,
+          @contextMenuManager, @deserializerManager, @viewRegistry
+        }
+        if metadata.theme
+          pack = new ThemePackage(options)
+        else
+          pack = new Package(options)
+        pack.load()
+        @loadedPackages[pack.name] = pack
+        @emitter.emit 'did-load-package', pack
+        pack
 
   unloadPackages: ->
     @unloadPackage(name) for name in _.keys(@loadedPackages)
@@ -460,12 +526,17 @@ class PackageManager
       Promise.resolve(pack)
     else if pack = @loadPackage(name)
       @activatingPackages[pack.name] = pack
-      pack.activate().then =>
+      activationPromise = pack.activate().then =>
         if @activatingPackages[pack.name]?
           delete @activatingPackages[pack.name]
           @activePackages[pack.name] = pack
           @emitter.emit 'did-activate-package', pack
         pack
+
+      unless @deferredActivationHooks?
+        @triggeredActivationHooks.forEach((hook) => @activationHookEmitter.emit(hook))
+
+      activationPromise
     else
       Promise.reject(new Error("Failed to load package '#{name}'"))
 
@@ -476,6 +547,7 @@ class PackageManager
 
   triggerActivationHook: (hook) ->
     return new Error("Cannot trigger an empty activation hook") unless hook? and _.isString(hook) and hook.length > 0
+    @triggeredActivationHooks.add(hook)
     if @deferredActivationHooks?
       @deferredActivationHooks.push hook
     else
@@ -541,10 +613,20 @@ class PackageManager
     @resourcePathWithTrailingSlash ?= "#{@resourcePath}#{path.sep}"
     packagePath?.startsWith(@resourcePathWithTrailingSlash)
 
-  loadPackageMetadata: (packagePath, ignoreErrors=false) ->
-    packageName = path.basename(packagePath)
-    if @isBundledPackagePath(packagePath)
+  loadPackageMetadata: (packagePathOrAvailablePackage, ignoreErrors=false) ->
+    if typeof packagePathOrAvailablePackage is 'object'
+      availablePackage = packagePathOrAvailablePackage
+      packageName = availablePackage.name
+      packagePath = availablePackage.path
+      isBundled = availablePackage.isBundled
+    else
+      packagePath = packagePathOrAvailablePackage
+      packageName = path.basename(packagePath)
+      isBundled = @isBundledPackagePath(packagePath)
+
+    if isBundled
       metadata = @packagesCache[packageName]?.metadata
+
     unless metadata?
       if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
         try

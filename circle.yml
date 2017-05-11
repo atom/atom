@@ -16,8 +16,8 @@ general:
 dependencies:
   pre:
     - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.3/install.sh | bash
-    - nvm install 4.4.7
-    - nvm use 4.4.7
+    - nvm install 6.9.4
+    - nvm use 6.9.4
     - npm install -g npm
 
   override:
@@ -29,6 +29,7 @@ dependencies:
     - script/node_modules
     - node_modules
     - ~/.atom/compile-cache
+    - ~/.atom/snapshot-cache
 
 test:
   override:

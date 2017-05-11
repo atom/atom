@@ -436,6 +436,19 @@ describe('TextEditorRegistry', function () {
       expect(editor.hasAtomicSoftTabs()).toBe(true)
     })
 
+    it('enables or disables cursor on selection visibility based on the config', async function () {
+      editor.update({showCursorOnSelection: true})
+      expect(editor.getShowCursorOnSelection()).toBe(true)
+
+      atom.config.set('editor.showCursorOnSelection', false)
+      registry.maintainConfig(editor)
+      await initialPackageActivation
+      expect(editor.getShowCursorOnSelection()).toBe(false)
+
+      atom.config.set('editor.showCursorOnSelection', true)
+      expect(editor.getShowCursorOnSelection()).toBe(true)
+    })
+
     it('enables or disables line numbers based on the config', async function () {
       editor.update({showLineNumbers: true})
       expect(editor.showLineNumbers).toBe(true)

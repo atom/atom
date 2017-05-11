@@ -11,8 +11,7 @@ const TEXT = LINE_TEXT.repeat(Math.ceil(MAX_SIZE_IN_KB * 1024 / LINE_TEXT.length
 export default async function ({test}) {
   const data = []
 
-  const workspaceElement = atom.views.getView(atom.workspace)
-  document.body.appendChild(workspaceElement)
+  document.body.appendChild(atom.workspace.getElement())
 
   atom.packages.loadPackages()
   await atom.packages.activate()
@@ -26,7 +25,7 @@ export default async function ({test}) {
     console.log(text.length / 1024)
 
     let t0 = window.performance.now()
-    const buffer = new TextBuffer(text)
+    const buffer = new TextBuffer({text})
     const editor = new TextEditor({buffer, largeFileMode: true})
     atom.workspace.getActivePane().activateItem(editor)
     let t1 = window.performance.now()
@@ -80,7 +79,7 @@ export default async function ({test}) {
     await timeout(10000)
   }
 
-  workspaceElement.remove()
+  atom.workspace.getElement().remove()
 
   return data
 }

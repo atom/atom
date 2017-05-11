@@ -19,7 +19,6 @@ module.exports = function () {
     'app-copyright': `Copyright © 2014-${(new Date()).getFullYear()} GitHub, Inc. All rights reserved.`,
     'app-version': CONFIG.appMetadata.version,
     'arch': process.platform === 'darwin' ? 'x64' : process.arch, // OS X is 64-bit only
-    'asar': {unpack: buildAsarUnpackGlobExpression()},
     'build-version': CONFIG.appMetadata.version,
     'download': {cache: CONFIG.electronDownloadPath},
     'dir': CONFIG.intermediateAppPath,
@@ -73,7 +72,7 @@ function copyNonASARResources (packagedAppPath, bundledResourcesPath) {
   } else if (process.platform === 'linux') {
     fs.copySync(path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'png', '1024.png'), path.join(packagedAppPath, 'atom.png'))
   } else if (process.platform === 'win32') {
-    [ 'atom.cmd', 'atom.sh', 'atom.js', 'apm.cmd', 'apm.sh', 'file.ico' ]
+    [ 'atom.cmd', 'atom.sh', 'atom.js', 'apm.cmd', 'apm.sh', 'file.ico', 'folder.ico' ]
       .forEach(file => fs.copySync(path.join('resources', 'win', file), path.join(bundledResourcesPath, 'cli', file)))
   }
 
@@ -94,20 +93,6 @@ function setAtomHelperVersion (packagedAppPath) {
 function chmodNodeFiles (packagedAppPath) {
   console.log(`Changing permissions for node files in ${packagedAppPath}`)
   childProcess.execSync(`find "${packagedAppPath}" -type f -name *.node -exec chmod a-x {} \\;`)
-}
-
-function buildAsarUnpackGlobExpression () {
-  const unpack = [
-    '*.node',
-    'ctags-config',
-    'ctags-darwin',
-    'ctags-linux',
-    'ctags-win32.exe',
-    path.join('**', 'node_modules', 'spellchecker', '**'),
-    path.join('**', 'resources', 'atom.png')
-  ]
-
-  return `{${unpack.join(',')}}`
 }
 
 function getAppName () {
