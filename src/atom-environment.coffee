@@ -680,11 +680,8 @@ class AtomEnvironment extends Model
   # Call this method when establishing a real application window.
   startEditorWindow: ->
     @unloaded = false
-    updateProcessEnvPromise = @updateProcessEnv(@getLoadSettings().env)
-    updateProcessEnvPromise.then =>
-      @shellEnvironmentLoaded = true
-      @emitter.emit('loaded-shell-environment')
-      @packages.triggerActivationHook('core:loaded-shell-environment')
+
+    updateProcessEnvPromise = @updateProcessEnvAndTriggerHooks()
 
     loadStatePromise = @loadState().then (state) =>
       @windowDimensions = state?.windowDimensions
@@ -807,6 +804,12 @@ class AtomEnvironment extends Model
     TextEditor.didUpdateStyles()
     if styleElement.textContent.indexOf('scrollbar') >= 0
       TextEditor.didUpdateScrollbarStyles()
+
+  updateProcessEnvAndTriggerHooks: ->
+    @updateProcessEnv(@getLoadSettings().env).then =>
+      @shellEnvironmentLoaded = true
+      @emitter.emit('loaded-shell-environment')
+      @packages.triggerActivationHook('core:loaded-shell-environment')
 
   ###
   Section: Messaging the User

@@ -452,11 +452,14 @@ describe "AtomEnvironment", ->
       }
       atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
       atomEnvironment.initialize({window, document: fakeDocument})
-      spyOn(atomEnvironment.packages, 'getAvailablePackagePaths').andReturn []
-      spyOn(atomEnvironment, 'displayWindow').andReturn Promise.resolve()
-      atomEnvironment.startEditorWindow()
-      atomEnvironment.unloadEditorWindow()
-      atomEnvironment.destroy()
+      spyOn(atomEnvironment.packages, 'loadPackages').andReturn(Promise.resolve())
+      spyOn(atomEnvironment.packages, 'activate').andReturn(Promise.resolve())
+      spyOn(atomEnvironment, 'displayWindow').andReturn(Promise.resolve())
+      waitsForPromise ->
+        atomEnvironment.startEditorWindow()
+      runs ->
+        atomEnvironment.unloadEditorWindow()
+        atomEnvironment.destroy()
 
   describe "::whenShellEnvironmentLoaded()", ->
     [atomEnvironment, envLoaded, spy] = []
@@ -471,21 +474,19 @@ describe "AtomEnvironment", ->
         applicationDelegate: atom.applicationDelegate
         updateProcessEnv: -> promise
       atomEnvironment.initialize({window, document})
-      spyOn(atomEnvironment.packages, 'getAvailablePackagePaths').andReturn []
-      spyOn(atomEnvironment, 'displayWindow').andReturn Promise.resolve()
       spy = jasmine.createSpy()
-      atomEnvironment.startEditorWindow()
 
     afterEach ->
-      atomEnvironment.unloadEditorWindow()
       atomEnvironment.destroy()
 
     it "is triggered once the shell environment is loaded", ->
       atomEnvironment.whenShellEnvironmentLoaded spy
+      atomEnvironment.updateProcessEnvAndTriggerHooks()
       envLoaded()
       runs -> expect(spy).toHaveBeenCalled()
 
     it "triggers the callback immediately if the shell environment is already loaded", ->
+      atomEnvironment.updateProcessEnvAndTriggerHooks()
       envLoaded()
       runs ->
         atomEnvironment.whenShellEnvironmentLoaded spy
