@@ -470,8 +470,12 @@ module.exports = class Workspace extends Model {
     }
   }
 
-  didHideDock () {
-    this.getCenter().activate()
+  didHideDock (dock) {
+    const {activeElement} = document
+    const dockElement = dock.getElement()
+    if (dockElement === activeElement || dockElement.contains(activeElement)) {
+      this.getCenter().activate()
+    }
   }
 
   setDraggingItem (draggingItem) {

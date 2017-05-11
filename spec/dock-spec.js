@@ -17,7 +17,7 @@ describe('Dock', () => {
   })
 
   describe('when a dock is hidden', () => {
-    it('transfers focus back to the active center pane', () => {
+    it('transfers focus back to the active center pane if the dock had focus', () => {
       jasmine.attachToDOM(atom.workspace.getElement())
       const dock = atom.workspace.getLeftDock()
       dock.activate()
@@ -31,6 +31,19 @@ describe('Dock', () => {
 
       dock.toggle()
       expect(document.activeElement).toBe(atom.workspace.getCenter().getActivePane().getElement())
+
+      // Don't change focus if the dock was not focused in the first place
+      const modalElement = document.createElement('div')
+      modalElement.setAttribute('tabindex', -1)
+      atom.workspace.addModalPanel({item: modalElement})
+      modalElement.focus()
+      expect(document.activeElement).toBe(modalElement)
+
+      dock.show()
+      expect(document.activeElement).toBe(modalElement)
+
+      dock.hide()
+      expect(document.activeElement).toBe(modalElement)
     })
   })
 
