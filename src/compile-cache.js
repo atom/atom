@@ -7,7 +7,7 @@
 
 var path = require('path')
 var fs = require('fs-plus')
-var sourceMapSupport = require('source-map-support')
+var sourceMapSupport = require('@atom/source-map-support')
 
 var PackageTranspilationRegistry = require('./package-transpilation-registry')
 var CSON = null
@@ -114,6 +114,15 @@ function writeCachedJavascript (relativeCachePath, code) {
 
 var INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/mg
 
+let snapshotSourceMapConsumer
+if (global.isGeneratingSnapshot) {
+  // Warm up the source map consumer to efficiently translate positions when
+  // generating stack traces containing a file that was snapshotted.
+  const {SourceMapConsumer} = require('source-map')
+  snapshotSourceMapConsumer = new SourceMapConsumer(snapshotAuxiliaryData.sourceMap) // eslint-disable-line no-undef
+  snapshotSourceMapConsumer.originalPositionFor({line: 42, column: 0})
+}
+
 exports.install = function (resourcesPath, nodeRequire) {
   sourceMapSupport.install({
     handleUncaughtExceptions: false,
@@ -124,7 +133,7 @@ exports.install = function (resourcesPath, nodeRequire) {
     retrieveSourceMap: function (filePath) {
       if (filePath === '<embedded>') {
         return {
-          map: snapshotResult.sourceMap, // eslint-disable-line no-undef
+          map: snapshotSourceMapConsumer,
           url: path.join(resourcesPath, 'app', 'static', 'index.js')
         }
       }
