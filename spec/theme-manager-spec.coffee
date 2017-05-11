@@ -124,7 +124,7 @@ describe "atom.themes", ->
 
     it 'adds theme-* classes to the workspace for each active theme', ->
       atom.config.set('core.themes', ['atom-dark-ui', 'atom-dark-syntax'])
-      workspaceElement = atom.views.getView(atom.workspace)
+      workspaceElement = atom.workspace.getElement()
       atom.themes.onDidChangeActiveThemes didChangeActiveThemesHandler = jasmine.createSpy()
 
       waitsForPromise ->
@@ -192,12 +192,12 @@ describe "atom.themes", ->
 
       element = document.querySelector('head style[source-path*="sample.less"]')
       expect(element.getAttribute('source-path')).toEqualPath lessPath
-      expect(element.textContent).toBe """
+      expect(element.textContent.toLowerCase()).toBe """
       #header {
-        color: #4D926F;
+        color: #4d926f;
       }
       h2 {
-        color: #4D926F;
+        color: #4d926f;
       }
 
       """
@@ -234,10 +234,9 @@ describe "atom.themes", ->
 
 
   describe "base style sheet loading", ->
-    workspaceElement = null
     beforeEach ->
-      workspaceElement = atom.views.getView(atom.workspace)
-      jasmine.attachToDOM(workspaceElement)
+      workspaceElement = atom.workspace.getElement()
+      jasmine.attachToDOM(atom.workspace.getElement())
       workspaceElement.appendChild document.createElement('atom-text-editor')
 
       waitsForPromise ->
@@ -252,7 +251,7 @@ describe "atom.themes", ->
 
       runs ->
         # an override loaded in the base css
-        expect(getComputedStyle(workspaceElement)["background-color"]).toBe "rgb(0, 0, 255)"
+        expect(getComputedStyle(atom.workspace.getElement())["background-color"]).toBe "rgb(0, 0, 255)"
 
         # from within the theme itself
         expect(getComputedStyle(document.querySelector("atom-text-editor")).paddingTop).toBe "150px"
@@ -269,7 +268,7 @@ describe "atom.themes", ->
 
         runs ->
           # an override loaded in the base css
-          expect(getComputedStyle(workspaceElement)["background-color"]).toBe "rgb(0, 0, 255)"
+          expect(getComputedStyle(atom.workspace.getElement())["background-color"]).toBe "rgb(0, 0, 255)"
 
           # from within the theme itself
           expect(getComputedStyle(document.querySelector("atom-text-editor")).backgroundColor).toBe "rgb(0, 152, 255)"

@@ -6,11 +6,12 @@ require('colors')
 const assert = require('assert')
 const async = require('async')
 const childProcess = require('child_process')
-const fs = require('fs')
+const fs = require('fs-extra')
 const glob = require('glob')
 const path = require('path')
 
 const CONFIG = require('./config')
+const runApmInstall = require('./lib/run-apm-install')
 
 const resourcePath = CONFIG.repositoryRootPath
 let executablePath
@@ -38,7 +39,10 @@ function runCoreMainProcessTests (callback) {
   ]
 
   console.log('Executing core main process tests'.bold.green)
-  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit'})
+  const cp = childProcess.spawn(executablePath, testArguments, {
+    stdio: 'inherit',
+    env: Object.assign({}, process.env, {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
+  })
   cp.on('error', error => { callback(error) })
   cp.on('close', exitCode => { callback(null, exitCode) })
 }
@@ -59,25 +63,63 @@ function runCoreRenderProcessTests (callback) {
 // Build an array of functions, each running tests for a different bundled package
 const packageTestSuites = []
 for (let packageName in CONFIG.appMetadata.packageDependencies) {
-  const packageSpecDirPath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName, 'spec')
-  if (!fs.existsSync(packageSpecDirPath)) continue
+  if (process.env.ATOM_PACKAGES_TO_TEST) {
+    const packagesToTest = process.env.ATOM_PACKAGES_TO_TEST.split(',').map(pkg => pkg.trim())
+    if (!packagesToTest.includes(packageName)) continue
+  }
+
+  const repositoryPackagePath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName)
+  const testSubdir = ['spec', 'test'].find(subdir => fs.existsSync(path.join(repositoryPackagePath, subdir)))
+
+  if (!testSubdir) {
+    packageTestSuites.push(function (callback) {
+      console.log(`Skipping tests for ${packageName} because no test folder was found`.bold.yellow)
+      callback(null, 0)
+    })
+    continue
+  }
+
+  const testFolder = path.join(repositoryPackagePath, testSubdir)
 
   packageTestSuites.push(function (callback) {
     const testArguments = [
       '--resource-path', resourcePath,
-      '--test', packageSpecDirPath
+      '--test', testFolder
     ]
 
-    console.log(`Executing ${packageName} tests`.bold.green)
+    const pkgJsonPath = path.join(repositoryPackagePath, 'package.json')
+    const nodeModulesPath = path.join(repositoryPackagePath, 'node_modules')
+    const nodeModulesBackupPath = path.join(repositoryPackagePath, 'node_modules.bak')
+    let finalize = () => null
+    if (require(pkgJsonPath).atomTestRunner) {
+      console.log(`Installing test runner dependencies for ${packageName}`.bold.green)
+      if (fs.existsSync(nodeModulesPath)) {
+        fs.copySync(nodeModulesPath, nodeModulesBackupPath)
+        finalize = () => {
+          fs.removeSync(nodeModulesPath)
+          fs.renameSync(nodeModulesBackupPath, nodeModulesPath)
+        }
+      } else {
+        finalize = () => fs.removeSync(nodeModulesPath)
+      }
+      runApmInstall(repositoryPackagePath)
+      console.log(`Executing ${packageName} tests`.green)
+    } else {
+      console.log(`Executing ${packageName} tests`.bold.green)
+    }
     const cp = childProcess.spawn(executablePath, testArguments)
     let stderrOutput = ''
     cp.stderr.on('data', data => stderrOutput += data)
-    cp.on('error', error => { callback(error) })
+    cp.on('error', error => {
+      finalize()
+      callback(error)
+    })
     cp.on('close', exitCode => {
       if (exitCode !== 0) {
         console.log(`Package tests failed for ${packageName}:`.red)
         console.log(stderrOutput)
       }
+      finalize()
       callback(null, exitCode)
     })
   })

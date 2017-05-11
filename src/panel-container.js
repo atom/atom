@@ -1,13 +1,16 @@
 'use strict'
 
 const {Emitter, CompositeDisposable} = require('event-kit')
+const PanelContainerElement = require('./panel-container-element')
 
 module.exports = class PanelContainer {
-  constructor ({location} = {}) {
+  constructor ({location, dock, viewRegistry} = {}) {
     this.location = location
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.panels = []
+    this.dock = dock
+    this.viewRegistry = viewRegistry
   }
 
   destroy () {
@@ -15,6 +18,13 @@ module.exports = class PanelContainer {
     this.subscriptions.dispose()
     this.emitter.emit('did-destroy', this)
     this.emitter.dispose()
+  }
+
+  getElement () {
+    if (!this.element) {
+      this.element = new PanelContainerElement().initialize(this, this.viewRegistry)
+    }
+    return this.element
   }
 
   /*

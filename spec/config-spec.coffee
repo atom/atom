@@ -9,6 +9,7 @@ describe "Config", ->
   beforeEach ->
     spyOn(atom.config, "load")
     spyOn(atom.config, "save")
+    spyOn(console, 'warn')
     dotAtomPath = temp.path('atom-spec-config')
     atom.config.configDirPath = dotAtomPath
     atom.config.enablePersistence = true
@@ -841,9 +842,7 @@ describe "Config", ->
           expect(CSON.readFileSync(atom.config.configFilePath)).toEqual {}
 
       describe "when the config file contains values that do not adhere to the schema", ->
-        warnSpy = null
         beforeEach ->
-          warnSpy = spyOn console, 'warn'
           fs.writeFileSync atom.config.configFilePath, """
             foo:
               bar: 'baz'
@@ -855,8 +854,8 @@ describe "Config", ->
           expect(atom.config.get("foo.bar")).toBe 'baz'
           expect(atom.config.get("foo.int")).toBe 12
 
-          expect(warnSpy).toHaveBeenCalled()
-          expect(warnSpy.mostRecentCall.args[0]).toContain "foo.int"
+          expect(console.warn).toHaveBeenCalled()
+          expect(console.warn.mostRecentCall.args[0]).toContain "foo.int"
 
       describe "when there is a pending save", ->
         it "does not change the config settings", ->

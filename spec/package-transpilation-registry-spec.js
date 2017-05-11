@@ -142,5 +142,19 @@ describe('PackageTranspilationRegistry', () => {
       expect(wrappedCompiler.compile('source', hitPathMissSubdir)).toEqual('source-original-compiler')
       expect(wrappedCompiler.compile('source', nodeModulesFolder)).toEqual('source-original-compiler')
     })
+
+    describe('when the packages root path contains node_modules', () =>{
+      beforeEach(() => {
+        registry.addTranspilerConfigForPath(path.join('/path/with/node_modules/in/root'), 'my-other-package', { some: 'metadata' }, [
+          jsSpec
+        ])
+      })
+
+      it('returns appropriate values from shouldCompile', () => {
+        spyOn(originalCompiler, 'shouldCompile').andReturn(false)
+        expect(wrappedCompiler.shouldCompile('source', '/path/with/node_modules/in/root/lib/test.js')).toBe(true)
+        expect(wrappedCompiler.shouldCompile('source', '/path/with/node_modules/in/root/lib/node_modules/test.js')).toBe(false)
+      })
+    })
   })
 })

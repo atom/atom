@@ -107,7 +107,7 @@ Explain the problem and include additional details to help maintainers reproduce
 * **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. If you use the keyboard while following the steps, **record the GIF with the [Keybinding Resolver](https://github.com/atom/keybinding-resolver) shown**. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
 * **If you're reporting that Atom crashed**, include a crash report with a stack trace from the operating system. On macOS, the crash report will be available in `Console.app` under "Diagnostic and usage information" > "User diagnostic reports". Include the crash report in the issue in a [code block](https://help.github.com/articles/markdown-basics/#multiple-lines), a [file attachment](https://help.github.com/articles/file-attachments-on-issues-and-pull-requests/), or put it in a [gist](https://gist.github.com/) and provide link to that gist.
 * **If the problem is related to performance**, include a [CPU profile capture and a screenshot](http://flight-manual.atom.io/hacking-atom/sections/debugging/#diagnose-performance-problems-with-the-dev-tools-cpu-profiler) with your report.
-* **If the Chrome's developer tools pane is shown without you triggering it**, that normally means that an exception was thrown. The Console tab will include an entry for the exception. Expand the exception so that the stack trace is visible, and provide the full exception and stack trace in a [code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines) and as a screenshot.
+* **If Chrome's developer tools pane is shown without you triggering it**, that normally means that an exception was thrown. The Console tab will include an entry for the exception. Expand the exception so that the stack trace is visible, and provide the full exception and stack trace in a [code block](https://help.github.com/articles/markdown-basics/#multiple-lines) and as a screenshot.
 * **If the problem wasn't triggered by a specific action**, describe what you were doing before the problem happened and share more information using the guidelines below.
 
 Provide more context by answering these questions:
@@ -143,7 +143,7 @@ Before creating enhancement suggestions, please check [this list](#before-submit
 
 #### How Do I Submit A (Good) Enhancement Suggestion?
 
-Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com/features/issues/). After you've determined [which repository](#atom-and-packages) your enhancement suggestions is related to, create an issue on that repository and provide the following information:
+Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com/features/issues/). After you've determined [which repository](#atom-and-packages) your enhancement suggestion is related to, create an issue on that repository and provide the following information:
 
 * **Use a clear and descriptive title** for the issue to identify the suggestion.
 * **Provide a step-by-step description of the suggested enhancement** in as many details as possible.
@@ -184,7 +184,7 @@ If you want to read about using Atom or developing packages in Atom, the [Atom F
     * Class methods and properties (methods starting with a `@`)
     * Instance methods and properties
 * [Avoid platform-dependent code](http://flight-manual.atom.io/hacking-atom/sections/cross-platform-compatibility/)
-* Using a plain `return` when returning explicitly at the end of a function.
+* Use a plain `return` when returning explicitly at the end of a function.
     * Not `return null`, `return undefined`, `null`, or `undefined`
 
 ## Styleguides
@@ -259,8 +259,8 @@ All JavaScript must adhere to [JavaScript Standard Style](http://standardjs.com/
 
 - Include thoughtfully-worded, well-structured
   [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder.
-- treat `describe` as a noun or situation.
-- treat `it` as a statement about state or how an operation changes state.
+- Treat `describe` as a noun or situation.
+- Treat `it` as a statement about state or how an operation changes state.
 
 #### Example
 

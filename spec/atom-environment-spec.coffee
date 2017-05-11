@@ -321,20 +321,112 @@ describe "AtomEnvironment", ->
         expect(atom.workspace.open).not.toHaveBeenCalled()
 
   describe "adding a project folder", ->
-    it "adds a second path to the project", ->
-      initialPaths = atom.project.getPaths()
-      tempDirectory = temp.mkdirSync("a-new-directory")
-      spyOn(atom, "pickFolder").andCallFake (callback) ->
-        callback([tempDirectory])
-      atom.addProjectFolder()
-      expect(atom.project.getPaths()).toEqual(initialPaths.concat([tempDirectory]))
-
     it "does nothing if the user dismisses the file picker", ->
       initialPaths = atom.project.getPaths()
       tempDirectory = temp.mkdirSync("a-new-directory")
       spyOn(atom, "pickFolder").andCallFake (callback) -> callback(null)
       atom.addProjectFolder()
       expect(atom.project.getPaths()).toEqual(initialPaths)
+
+    describe "when there is no saved state for the added folders", ->
+      beforeEach ->
+        spyOn(atom, 'loadState').andReturn(Promise.resolve(null))
+        spyOn(atom, 'attemptRestoreProjectStateForPaths')
+
+      it "adds the selected folder to the project", ->
+        initialPaths = atom.project.setPaths([])
+        tempDirectory = temp.mkdirSync("a-new-directory")
+        spyOn(atom, "pickFolder").andCallFake (callback) ->
+          callback([tempDirectory])
+        waitsForPromise ->
+          atom.addProjectFolder()
+        runs ->
+          expect(atom.project.getPaths()).toEqual([tempDirectory])
+          expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
+
+    describe "when there is saved state for the relevant directories", ->
+      state = Symbol('savedState')
+
+      beforeEach ->
+        spyOn(atom, "getStateKey").andCallFake (dirs) -> dirs.join(':')
+        spyOn(atom, "loadState").andCallFake (key) ->
+          if key is __dirname then Promise.resolve(state) else Promise.resolve(null)
+        spyOn(atom, "attemptRestoreProjectStateForPaths")
+        spyOn(atom, "pickFolder").andCallFake (callback) ->
+          callback([__dirname])
+        atom.project.setPaths([])
+
+      describe "when there are no project folders", ->
+        it "attempts to restore the project state", ->
+          waitsForPromise ->
+            atom.addProjectFolder()
+          runs ->
+            expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [__dirname])
+            expect(atom.project.getPaths()).toEqual([])
+
+      describe "when there are already project folders", ->
+        openedPath = path.join(__dirname, 'fixtures')
+        beforeEach ->
+          atom.project.setPaths([openedPath])
+
+        it "does not attempt to restore the project state, instead adding the project paths", ->
+          waitsForPromise ->
+            atom.addProjectFolder()
+          runs ->
+            expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
+            expect(atom.project.getPaths()).toEqual([openedPath, __dirname])
+
+  describe "attemptRestoreProjectStateForPaths(state, projectPaths, filesToOpen)", ->
+    describe "when the window is clean (empty or has only unnamed, unmodified buffers)", ->
+      beforeEach ->
+        # Unnamed, unmodified buffer doesn't count toward "clean"-ness
+        waitsForPromise -> atom.workspace.open()
+
+      it "automatically restores the saved state into the current environment", ->
+        state = Symbol()
+        spyOn(atom.workspace, 'open')
+        spyOn(atom, 'restoreStateIntoThisEnvironment')
+
+        atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
+        expect(atom.restoreStateIntoThisEnvironment).toHaveBeenCalledWith(state)
+        expect(atom.workspace.open.callCount).toBe(1)
+        expect(atom.workspace.open).toHaveBeenCalledWith(__filename)
+
+    describe "when the window is dirty", ->
+      editor = null
+
+      beforeEach ->
+        waitsForPromise -> atom.workspace.open().then (e) ->
+          editor = e
+          editor.setText('new editor')
+
+      it "prompts the user to restore the state in a new window, discarding it and adding folder to current window", ->
+        spyOn(atom, "confirm").andReturn(1)
+        spyOn(atom.project, 'addPath')
+        spyOn(atom.workspace, 'open')
+        state = Symbol()
+
+        atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
+        expect(atom.confirm).toHaveBeenCalled()
+        expect(atom.project.addPath.callCount).toBe(1)
+        expect(atom.project.addPath).toHaveBeenCalledWith(__dirname)
+        expect(atom.workspace.open.callCount).toBe(1)
+        expect(atom.workspace.open).toHaveBeenCalledWith(__filename)
+
+      it "prompts the user to restore the state in a new window, opening a new window", ->
+        spyOn(atom, "confirm").andReturn(0)
+        spyOn(atom, "open")
+        state = Symbol()
+
+        atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
+        expect(atom.confirm).toHaveBeenCalled()
+        expect(atom.open).toHaveBeenCalledWith
+          pathsToOpen: [__dirname, __filename]
+          newWindow: true
+          devMode: atom.inDevMode()
+          safeMode: atom.inSafeMode()
+
+
 
   describe "::unloadEditorWindow()", ->
     it "saves the BlobStore so it can be loaded after reload", ->
@@ -366,49 +458,129 @@ describe "AtomEnvironment", ->
       atomEnvironment.unloadEditorWindow()
       atomEnvironment.destroy()
 
+  describe "::whenShellEnvironmentLoaded()", ->
+    [atomEnvironment, envLoaded, spy] = []
+
+    beforeEach ->
+      resolve = null
+      promise = new Promise (r) -> resolve = r
+      envLoaded = ->
+        resolve()
+        waitsForPromise -> promise
+      atomEnvironment = new AtomEnvironment
+        applicationDelegate: atom.applicationDelegate
+        updateProcessEnv: -> promise
+      atomEnvironment.initialize({window, document})
+      spyOn(atomEnvironment.packages, 'getAvailablePackagePaths').andReturn []
+      spyOn(atomEnvironment, 'displayWindow').andReturn Promise.resolve()
+      spy = jasmine.createSpy()
+      atomEnvironment.startEditorWindow()
+
+    afterEach ->
+      atomEnvironment.unloadEditorWindow()
+      atomEnvironment.destroy()
+
+    it "is triggered once the shell environment is loaded", ->
+      atomEnvironment.whenShellEnvironmentLoaded spy
+      envLoaded()
+      runs -> expect(spy).toHaveBeenCalled()
+
+    it "triggers the callback immediately if the shell environment is already loaded", ->
+      envLoaded()
+      runs ->
+        atomEnvironment.whenShellEnvironmentLoaded spy
+        expect(spy).toHaveBeenCalled()
+
   describe "::openLocations(locations) (called via IPC from browser process)", ->
     beforeEach ->
       spyOn(atom.workspace, 'open')
       atom.project.setPaths([])
 
-    describe "when the opened path exists", ->
-      it "adds it to the project's paths", ->
-        pathToOpen = __filename
-        atom.openLocations([{pathToOpen}])
-        expect(atom.project.getPaths()[0]).toBe __dirname
+    describe "when there is no saved state", ->
+      beforeEach ->
+        spyOn(atom, "loadState").andReturn(Promise.resolve(null))
 
-      describe "then a second path is opened with forceAddToWindow", ->
-        it "adds the second path to the project's paths", ->
-          firstPathToOpen = __dirname
-          secondPathToOpen = path.resolve(__dirname, './fixtures')
-          atom.openLocations([{pathToOpen: firstPathToOpen}])
-          atom.openLocations([{pathToOpen: secondPathToOpen, forceAddToWindow: true}])
-          expect(atom.project.getPaths()).toEqual([firstPathToOpen, secondPathToOpen])
+      describe "when the opened path exists", ->
+        it "adds it to the project's paths", ->
+          pathToOpen = __filename
+          waitsForPromise -> atom.openLocations([{pathToOpen}])
+          runs -> expect(atom.project.getPaths()[0]).toBe __dirname
 
-    describe "when the opened path does not exist but its parent directory does", ->
-      it "adds the parent directory to the project paths", ->
-        pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
-        atom.openLocations([{pathToOpen}])
-        expect(atom.project.getPaths()[0]).toBe __dirname
+        describe "then a second path is opened with forceAddToWindow", ->
+          it "adds the second path to the project's paths", ->
+            firstPathToOpen = __dirname
+            secondPathToOpen = path.resolve(__dirname, './fixtures')
+            waitsForPromise -> atom.openLocations([{pathToOpen: firstPathToOpen}])
+            waitsForPromise -> atom.openLocations([{pathToOpen: secondPathToOpen, forceAddToWindow: true}])
+            runs -> expect(atom.project.getPaths()).toEqual([firstPathToOpen, secondPathToOpen])
 
-    describe "when the opened path is a file", ->
-      it "opens it in the workspace", ->
-        pathToOpen = __filename
-        atom.openLocations([{pathToOpen}])
-        expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
+      describe "when the opened path does not exist but its parent directory does", ->
+        it "adds the parent directory to the project paths", ->
+          pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
+          waitsForPromise -> atom.openLocations([{pathToOpen}])
+          runs -> expect(atom.project.getPaths()[0]).toBe __dirname
 
-    describe "when the opened path is a directory", ->
-      it "does not open it in the workspace", ->
-        pathToOpen = __dirname
-        atom.openLocations([{pathToOpen}])
-        expect(atom.workspace.open.callCount).toBe 0
+      describe "when the opened path is a file", ->
+        it "opens it in the workspace", ->
+          pathToOpen = __filename
+          waitsForPromise -> atom.openLocations([{pathToOpen}])
+          runs -> expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
 
-    describe "when the opened path is a uri", ->
-      it "adds it to the project's paths as is", ->
-        pathToOpen = 'remote://server:7644/some/dir/path'
-        spyOn(atom.project, 'addPath')
-        atom.openLocations([{pathToOpen}])
-        expect(atom.project.addPath).toHaveBeenCalledWith(pathToOpen)
+      describe "when the opened path is a directory", ->
+        it "does not open it in the workspace", ->
+          pathToOpen = __dirname
+          waitsForPromise -> atom.openLocations([{pathToOpen}])
+          runs -> expect(atom.workspace.open.callCount).toBe 0
+
+      describe "when the opened path is a uri", ->
+        it "adds it to the project's paths as is", ->
+          pathToOpen = 'remote://server:7644/some/dir/path'
+          spyOn(atom.project, 'addPath')
+          waitsForPromise -> atom.openLocations([{pathToOpen}])
+          runs -> expect(atom.project.addPath).toHaveBeenCalledWith(pathToOpen)
+
+    describe "when there is saved state for the relevant directories", ->
+      state = Symbol('savedState')
+
+      beforeEach ->
+        spyOn(atom, "getStateKey").andCallFake (dirs) -> dirs.join(':')
+        spyOn(atom, "loadState").andCallFake (key) ->
+          if key is __dirname then Promise.resolve(state) else Promise.resolve(null)
+        spyOn(atom, "attemptRestoreProjectStateForPaths")
+
+      describe "when there are no project folders", ->
+        it "attempts to restore the project state", ->
+          pathToOpen = __dirname
+          waitsForPromise -> atom.openLocations([{pathToOpen}])
+          runs ->
+            expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [pathToOpen], [])
+            expect(atom.project.getPaths()).toEqual([])
+
+        it "opens the specified files", ->
+          waitsForPromise -> atom.openLocations([{pathToOpen: __dirname}, {pathToOpen: __filename}])
+          runs ->
+            expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [__dirname], [__filename])
+            expect(atom.project.getPaths()).toEqual([])
+
+
+      describe "when there are already project folders", ->
+        beforeEach ->
+          atom.project.setPaths([__dirname])
+
+        it "does not attempt to restore the project state, instead adding the project paths", ->
+          pathToOpen = path.join(__dirname, 'fixtures')
+          waitsForPromise -> atom.openLocations([{pathToOpen, forceAddToWindow: true}])
+          runs ->
+            expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
+            expect(atom.project.getPaths()).toEqual([__dirname, pathToOpen])
+
+        it "opens the specified files", ->
+          pathToOpen = path.join(__dirname, 'fixtures')
+          fileToOpen = path.join(pathToOpen, 'michelle-is-awesome.txt')
+          waitsForPromise -> atom.openLocations([{pathToOpen}, {pathToOpen: fileToOpen}])
+          runs ->
+            expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalledWith(state, [pathToOpen], [fileToOpen])
+            expect(atom.project.getPaths()).toEqual([__dirname])
 
   describe "::updateAvailable(info) (called via IPC from browser process)", ->
     subscription = null

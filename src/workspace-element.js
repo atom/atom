@@ -5,16 +5,20 @@
 const {ipcRenderer} = require('electron')
 const path = require('path')
 const fs = require('fs-plus')
-const {CompositeDisposable} = require('event-kit')
+const {CompositeDisposable, Disposable} = require('event-kit')
 const scrollbarStyle = require('scrollbar-style')
+const _ = require('underscore-plus')
 
 class WorkspaceElement extends HTMLElement {
   attachedCallback () {
     this.focus()
+    this.htmlElement = document.querySelector('html')
+    this.htmlElement.addEventListener('mouseleave', this.handleCenterLeave)
   }
 
   detachedCallback () {
     this.subscriptions.dispose()
+    this.htmlElement.removeEventListener('mouseleave', this.handleCenterLeave)
   }
 
   initializeContent () {
@@ -59,42 +63,59 @@ class WorkspaceElement extends HTMLElement {
   font-family: ${this.config.get('editor.fontFamily')};
   line-height: ${this.config.get('editor.lineHeight')};
 }`
-    this.styles.addStyleSheet(styleSheetSource, {sourcePath: 'global-text-editor-styles'})
-    this.views.performDocumentPoll()
+    this.styleManager.addStyleSheet(styleSheetSource, {sourcePath: 'global-text-editor-styles', priority: -1})
+    this.viewRegistry.performDocumentPoll()
   }
 
-  initialize (model, {views, workspace, project, config, styles}) {
+  initialize (model, {config, project, styleManager, viewRegistry}) {
+    this.handleCenterEnter = this.handleCenterEnter.bind(this)
+    this.handleCenterLeave = this.handleCenterLeave.bind(this)
+    this.handleEdgesMouseMove = _.throttle(this.handleEdgesMouseMove.bind(this), 100)
+    this.handleDockDragEnd = this.handleDockDragEnd.bind(this)
+    this.handleDragStart = this.handleDragStart.bind(this)
+    this.handleDragEnd = this.handleDragEnd.bind(this)
+    this.handleDrop = this.handleDrop.bind(this)
+
     this.model = model
-    this.views = views
-    this.workspace = workspace
+    this.viewRegistry = viewRegistry
     this.project = project
     this.config = config
-    this.styles = styles
-    if (this.views == null) { throw new Error('Must pass a views parameter when initializing WorskpaceElements') }
-    if (this.workspace == null) { throw new Error('Must pass a workspace parameter when initializing WorskpaceElements') }
+    this.styleManager = styleManager
+    if (this.viewRegistry == null) { throw new Error('Must pass a viewRegistry parameter when initializing WorskpaceElements') }
     if (this.project == null) { throw new Error('Must pass a project parameter when initializing WorskpaceElements') }
     if (this.config == null) { throw new Error('Must pass a config parameter when initializing WorskpaceElements') }
-    if (this.styles == null) { throw new Error('Must pass a styles parameter when initializing WorskpaceElements') }
+    if (this.styleManager == null) { throw new Error('Must pass a styleManager parameter when initializing WorskpaceElements') }
 
-    this.subscriptions = new CompositeDisposable()
+    this.subscriptions = new CompositeDisposable(
+      new Disposable(() => {
+        this.paneContainer.removeEventListener('mouseenter', this.handleCenterEnter)
+        this.paneContainer.removeEventListener('mouseleave', this.handleCenterLeave)
+        window.removeEventListener('mousemove', this.handleEdgesMouseMove)
+        window.removeEventListener('dragend', this.handleDockDragEnd)
+        window.removeEventListener('dragstart', this.handleDragStart)
+        window.removeEventListener('dragend', this.handleDragEnd, true)
+        window.removeEventListener('drop', this.handleDrop, true)
+      })
+    )
     this.initializeContent()
     this.observeScrollbarStyle()
     this.observeTextEditorFontConfig()
 
-    this.paneContainer = this.views.getView(this.model.paneContainer)
+    this.paneContainer = this.model.getCenter().paneContainer.getElement()
     this.verticalAxis.appendChild(this.paneContainer)
     this.addEventListener('focus', this.handleFocus.bind(this))
 
     this.addEventListener('mousewheel', this.handleMousewheel.bind(this), true)
+    window.addEventListener('dragstart', this.handleDragStart)
 
     this.panelContainers = {
-      top: this.views.getView(this.model.panelContainers.top),
-      left: this.views.getView(this.model.panelContainers.left),
-      right: this.views.getView(this.model.panelContainers.right),
-      bottom: this.views.getView(this.model.panelContainers.bottom),
-      header: this.views.getView(this.model.panelContainers.header),
-      footer: this.views.getView(this.model.panelContainers.footer),
-      modal: this.views.getView(this.model.panelContainers.modal)
+      top: this.model.panelContainers.top.getElement(),
+      left: this.model.panelContainers.left.getElement(),
+      right: this.model.panelContainers.right.getElement(),
+      bottom: this.model.panelContainers.bottom.getElement(),
+      header: this.model.panelContainers.header.getElement(),
+      footer: this.model.panelContainers.footer.getElement(),
+      modal: this.model.panelContainers.modal.getElement()
     }
 
     this.horizontalAxis.insertBefore(this.panelContainers.left, this.verticalAxis)
@@ -108,10 +129,83 @@ class WorkspaceElement extends HTMLElement {
 
     this.appendChild(this.panelContainers.modal)
 
+    this.paneContainer.addEventListener('mouseenter', this.handleCenterEnter)
+    this.paneContainer.addEventListener('mouseleave', this.handleCenterLeave)
+
     return this
   }
 
   getModel () { return this.model }
+
+  handleDragStart (event) {
+    if (!isTab(event.target)) return
+    const {item} = event.target
+    if (!item) return
+    this.model.setDraggingItem(item)
+    window.addEventListener('dragend', this.handleDragEnd, true)
+    window.addEventListener('drop', this.handleDrop, true)
+  }
+
+  handleDragEnd (event) {
+    this.dragEnded()
+  }
+
+  handleDrop (event) {
+    this.dragEnded()
+  }
+
+  dragEnded () {
+    this.model.setDraggingItem(null)
+    window.removeEventListener('dragend', this.handleDragEnd, true)
+    window.removeEventListener('drop', this.handleDrop, true)
+  }
+
+  handleCenterEnter (event) {
+    // Just re-entering the center isn't enough to hide the dock toggle buttons, since they poke
+    // into the center and we want to give an affordance.
+    this.cursorInCenter = true
+    this.checkCleanupDockHoverEvents()
+  }
+
+  handleCenterLeave (event) {
+    // If the cursor leaves the center, we start listening to determine whether one of the docs is
+    // being hovered.
+    this.cursorInCenter = false
+    this.updateHoveredDock({x: event.pageX, y: event.pageY})
+    window.addEventListener('mousemove', this.handleEdgesMouseMove)
+    window.addEventListener('dragend', this.handleDockDragEnd)
+  }
+
+  handleEdgesMouseMove (event) {
+    this.updateHoveredDock({x: event.pageX, y: event.pageY})
+  }
+
+  handleDockDragEnd (event) {
+    this.updateHoveredDock({x: event.pageX, y: event.pageY})
+  }
+
+  updateHoveredDock (mousePosition) {
+    this.hoveredDock = null
+    for (let location in this.model.paneContainers) {
+      if (location !== 'center') {
+        const dock = this.model.paneContainers[location]
+        if (!this.hoveredDock && dock.pointWithinHoverArea(mousePosition)) {
+          this.hoveredDock = dock
+          dock.setHovered(true)
+        } else {
+          dock.setHovered(false)
+        }
+      }
+    }
+    this.checkCleanupDockHoverEvents()
+  }
+
+  checkCleanupDockHoverEvents () {
+    if (this.cursorInCenter && !this.hoveredDock) {
+      window.removeEventListener('mousemove', this.handleEdgesMouseMove)
+      window.removeEventListener('dragend', this.handleDockDragEnd)
+    }
+  }
 
   handleMousewheel (event) {
     if (event.ctrlKey && this.config.get('editor.zoomFontWhenCtrlScrolling') && (event.target.closest('atom-text-editor') != null)) {
@@ -146,7 +240,7 @@ class WorkspaceElement extends HTMLElement {
   moveActiveItemToPaneOnRight (params) { this.paneContainer.moveActiveItemToPaneOnRight(params) }
 
   runPackageSpecs () {
-    const activePaneItem = this.workspace.getActivePaneItem()
+    const activePaneItem = this.model.getActivePaneItem()
     const activePath = activePaneItem && typeof activePaneItem.getPath === 'function' ? activePaneItem.getPath() : null
     let projectPath
     if (activePath != null) {
@@ -166,7 +260,7 @@ class WorkspaceElement extends HTMLElement {
   }
 
   runBenchmarks () {
-    const activePaneItem = this.workspace.getActivePaneItem()
+    const activePaneItem = this.model.getActivePaneItem()
     const activePath = activePaneItem && typeof activePaneItem.getPath === 'function' ? activePaneItem.getPath() : null
     let projectPath
     if (activePath) {
@@ -182,3 +276,12 @@ class WorkspaceElement extends HTMLElement {
 }
 
 module.exports = document.registerElement('atom-workspace', {prototype: WorkspaceElement.prototype})
+
+function isTab (element) {
+  let el = element
+  while (el != null) {
+    if (el.getAttribute('is') === 'tabs-tab') { return true }
+    el = el.parentElement
+  }
+  return false
+}

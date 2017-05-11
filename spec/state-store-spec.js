@@ -7,12 +7,21 @@ describe('StateStore', () => {
   let databaseName = `test-database-${Date.now()}`
   let version = 1
 
-  it('can save and load states', () => {
+  it('can save, load, and delete states', () => {
     const store = new StateStore(databaseName, version)
     return store.save('key', {foo: 'bar'})
       .then(() => store.load('key'))
       .then((state) => {
         expect(state).toEqual({foo: 'bar'})
+      })
+      .then(() => store.delete('key'))
+      .then(() => store.load('key'))
+      .then((value) => {
+        expect(value).toBeNull()
+      })
+      .then(() => store.count())
+      .then((count) => {
+        expect(count).toBe(0)
       })
   })
 

@@ -7,7 +7,7 @@ import fs from 'fs-plus'
 import path from 'path'
 import AtomApplication from '../../src/main-process/atom-application'
 import parseCommandLine from '../../src/main-process/parse-command-line'
-import {timeoutPromise, conditionPromise} from '../async-spec-helpers'
+import {timeoutPromise, conditionPromise, emitterEventPromise} from '../async-spec-helpers'
 
 const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 
@@ -51,8 +51,8 @@ describe('AtomApplication', function () {
       await focusWindow(window)
 
       const cursorRow = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.observeActivePaneItem(function (textEditor) {
-          if (textEditor) sendBackToMainProcess(textEditor.getCursorBufferPosition().row)
+        atom.workspace.observeTextEditors(function (textEditor) {
+          sendBackToMainProcess(textEditor.getCursorBufferPosition().row)
         })
       })
 
@@ -68,8 +68,8 @@ describe('AtomApplication', function () {
       await focusWindow(window)
 
       const cursorPosition = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.observeActivePaneItem(function (textEditor) {
-          if (textEditor) sendBackToMainProcess(textEditor.getCursorBufferPosition())
+        atom.workspace.observeTextEditors(function (textEditor) {
+          sendBackToMainProcess(textEditor.getCursorBufferPosition())
         })
       })
 
@@ -85,8 +85,8 @@ describe('AtomApplication', function () {
       await focusWindow(window)
 
       const openedPath = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.observeActivePaneItem(function (textEditor) {
-          if (textEditor) sendBackToMainProcess(textEditor.getPath())
+        atom.workspace.observeTextEditors(function (textEditor) {
+          sendBackToMainProcess(textEditor.getPath())
         })
       })
 
@@ -120,12 +120,12 @@ describe('AtomApplication', function () {
 
       const atomApplication = buildAtomApplication()
       const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'new-file')]))
+      await emitterEventPromise(window1, 'window:locations-opened')
       await focusWindow(window1)
 
-      let activeEditorPath
-      activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.observeActivePaneItem(function (textEditor) {
-          if (textEditor) sendBackToMainProcess(textEditor.getPath())
+      let activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.observeTextEditors(function (textEditor) {
+          sendBackToMainProcess(textEditor.getPath())
         })
       })
       assert.equal(activeEditorPath, path.join(dirAPath, 'new-file'))
@@ -136,8 +136,9 @@ describe('AtomApplication', function () {
       assert.equal(reusedWindow, window1)
       assert.deepEqual(atomApplication.windows, [window1])
       activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
+        const subscription = atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
           sendBackToMainProcess(textEditor.getPath())
+          subscription.dispose()
         })
       })
       assert.equal(activeEditorPath, existingDirCFilePath)
@@ -145,6 +146,7 @@ describe('AtomApplication', function () {
 
       // Opens new windows when opening directories
       const window2 = atomApplication.launch(parseCommandLine([dirBPath]))
+      await emitterEventPromise(window2, 'window:locations-opened')
       assert.notEqual(window2, window1)
       await focusWindow(window2)
       assert.deepEqual(await getTreeViewRootDirectories(window2), [dirBPath])
@@ -161,10 +163,9 @@ describe('AtomApplication', function () {
       const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'new-file')]))
       await focusWindow(window1)
 
-      let activeEditorPath
-      activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.observeActivePaneItem(function (textEditor) {
-          if (textEditor) sendBackToMainProcess(textEditor.getPath())
+      let activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.observeTextEditors(function (textEditor) {
+          sendBackToMainProcess(textEditor.getPath())
         })
       })
       assert.equal(activeEditorPath, path.join(dirAPath, 'new-file'))
@@ -175,8 +176,9 @@ describe('AtomApplication', function () {
       assert.equal(reusedWindow, window1)
       assert.deepEqual(atomApplication.windows, [window1])
       activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
+        const subscription = atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
           sendBackToMainProcess(textEditor.getPath())
+          subscription.dispose()
         })
       })
       assert.equal(activeEditorPath, existingDirCFilePath)
@@ -199,11 +201,9 @@ describe('AtomApplication', function () {
 
       const window1 = atomApplication.launch(parseCommandLine([nonExistentFilePath]))
       await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.observeActivePaneItem(function (textEditor) {
-          if (textEditor) {
-            textEditor.insertText('Hello World!')
-            sendBackToMainProcess(null)
-          }
+        atom.workspace.observeTextEditors(function (textEditor) {
+          textEditor.insertText('Hello World!')
+          sendBackToMainProcess(null)
         })
       })
       await window1.saveState()
@@ -243,16 +243,7 @@ describe('AtomApplication', function () {
       const window1 = atomApplication.launch(parseCommandLine([dirAPath, dirBPath]))
       await focusWindow(window1)
 
-      await timeoutPromise(1000)
-
-      let treeViewPaths = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        sendBackToMainProcess(
-          Array
-            .from(document.querySelectorAll('.tree-view .project-root > .header .name'))
-            .map(element => element.dataset.path)
-        )
-      })
-      assert.deepEqual(treeViewPaths, [dirAPath, dirBPath])
+      assert.deepEqual(await getTreeViewRootDirectories(window1), [dirAPath, dirBPath])
     })
 
     it('reuses windows with no project paths to open directories', async function () {
@@ -311,8 +302,8 @@ describe('AtomApplication', function () {
       const window = atomApplication.launch(parseCommandLine([newFilePath]))
       await focusWindow(window)
       const {editorTitle, editorText} = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.observeActivePaneItem(function (editor) {
-          if (editor) sendBackToMainProcess({editorTitle: editor.getTitle(), editorText: editor.getText()})
+        atom.workspace.observeTextEditors(function (editor) {
+          sendBackToMainProcess({editorTitle: editor.getTitle(), editorText: editor.getText()})
         })
       })
       assert.equal(editorTitle, path.basename(newFilePath))
@@ -355,23 +346,29 @@ describe('AtomApplication', function () {
 
       const atomApplication1 = buildAtomApplication()
       const app1Window1 = atomApplication1.launch(parseCommandLine([tempDirPath1]))
-      await app1Window1.loadedPromise
       const app1Window2 = atomApplication1.launch(parseCommandLine([tempDirPath2]))
-      await app1Window2.loadedPromise
+      await Promise.all([
+        emitterEventPromise(app1Window1, 'window:locations-opened'),
+        emitterEventPromise(app1Window2, 'window:locations-opened')
+      ])
 
-      await app1Window1.saveState()
-      await app1Window2.saveState()
+      await Promise.all([
+        app1Window1.saveState(),
+        app1Window2.saveState()
+      ])
 
       const atomApplication2 = buildAtomApplication()
       const [app2Window1, app2Window2] = atomApplication2.launch(parseCommandLine([]))
-      await app2Window1.loadedPromise
-      await app2Window2.loadedPromise
+      await Promise.all([
+        emitterEventPromise(app2Window1, 'window:locations-opened'),
+        emitterEventPromise(app2Window2, 'window:locations-opened')
+      ])
 
       assert.deepEqual(await getTreeViewRootDirectories(app2Window1), [tempDirPath1])
       assert.deepEqual(await getTreeViewRootDirectories(app2Window2), [tempDirPath2])
     })
 
-    it('does not reopen any previously opened windows when launched with no path and `core.restorePreviousWindowsOnStart` is false', async function () {
+    it('does not reopen any previously opened windows when launched with no path and `core.restorePreviousWindowsOnStart` is no', async function () {
       const atomApplication1 = buildAtomApplication()
       const app1Window1 = atomApplication1.launch(parseCommandLine([makeTempDir()]))
       await focusWindow(app1Window1)
@@ -381,13 +378,13 @@ describe('AtomApplication', function () {
       const configPath = path.join(process.env.ATOM_HOME, 'config.cson')
       const config = season.readFileSync(configPath)
       if (!config['*'].core) config['*'].core = {}
-      config['*'].core.restorePreviousWindowsOnStart = false
+      config['*'].core.restorePreviousWindowsOnStart = 'no'
       season.writeFileSync(configPath, config)
 
       const atomApplication2 = buildAtomApplication()
       const app2Window = atomApplication2.launch(parseCommandLine([]))
       await focusWindow(app2Window)
-      assert.deepEqual(await getTreeViewRootDirectories(app2Window), [])
+      assert.deepEqual(app2Window.representedDirectoryPaths, [])
     })
 
     describe('when closing the last window', function () {
@@ -419,18 +416,22 @@ describe('AtomApplication', function () {
 
         const atomApplication = buildAtomApplication()
         const window = atomApplication.launch(parseCommandLine([dirA, dirB]))
+        await emitterEventPromise(window, 'window:locations-opened')
         await focusWindow(window)
         assert.deepEqual(await getTreeViewRootDirectories(window), [dirA, dirB])
 
+        const saveStatePromise = emitterEventPromise(atomApplication, 'application:did-save-state')
         await evalInWebContents(window.browserWindow.webContents, (sendBackToMainProcess) => {
           atom.project.removePath(atom.project.getPaths()[0])
           sendBackToMainProcess(null)
         })
         assert.deepEqual(await getTreeViewRootDirectories(window), [dirB])
+        await saveStatePromise
 
         // Window state should be saved when the project folder is removed
         const atomApplication2 = buildAtomApplication()
         const [window2] = atomApplication2.launch(parseCommandLine([]))
+        await emitterEventPromise(window2, 'window:locations-opened')
         await focusWindow(window2)
         assert.deepEqual(await getTreeViewRootDirectories(window2), [dirB])
       })
@@ -508,11 +509,15 @@ describe('AtomApplication', function () {
 
   function getTreeViewRootDirectories (atomWindow) {
     return evalInWebContents(atomWindow.browserWindow.webContents, function (sendBackToMainProcess) {
-      sendBackToMainProcess(
-        Array
-          .from(document.querySelectorAll('.tree-view .project-root > .header .name'))
-          .map(element => element.dataset.path)
-      )
+      atom.workspace.getLeftDock().observeActivePaneItem((treeView) => {
+        if (treeView) {
+          sendBackToMainProcess(
+            Array
+              .from(treeView.element.querySelectorAll('.project-root > .header .name'))
+              .map(element => element.dataset.path)
+          )
+        }
+      })
     })
   }
 

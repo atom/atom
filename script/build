@@ -20,12 +20,14 @@ const argv = yargs
   .describe('create-rpm-package', 'Create .rpm package (Linux only)')
   .describe('compress-artifacts', 'Compress Atom binaries (and symbols on macOS)')
   .describe('install', 'Install Atom')
+  .string('install')
   .wrap(yargs.terminalWidth())
   .argv
 
 const checkChromedriverVersion = require('./lib/check-chromedriver-version')
 const cleanOutputDirectory = require('./lib/clean-output-directory')
 const codeSignOnMac = require('./lib/code-sign-on-mac')
+const codeSignOnWindows = require('./lib/code-sign-on-windows')
 const compressArtifacts = require('./lib/compress-artifacts')
 const copyAssets = require('./lib/copy-assets')
 const createDebianPackage = require('./lib/create-debian-package')
@@ -43,6 +45,7 @@ const transpileBabelPaths = require('./lib/transpile-babel-paths')
 const transpileCoffeeScriptPaths = require('./lib/transpile-coffee-script-paths')
 const transpileCsonPaths = require('./lib/transpile-cson-paths')
 const transpilePegJsPaths = require('./lib/transpile-peg-js-paths')
+const transpilePackagesWithCustomTranspilerPaths = require('./lib/transpile-packages-with-custom-transpiler-paths.js')
 
 process.on('unhandledRejection', function (e) {
   console.error(e.stack || e)
@@ -52,6 +55,7 @@ process.on('unhandledRejection', function (e) {
 checkChromedriverVersion()
 cleanOutputDirectory()
 copyAssets()
+transpilePackagesWithCustomTranspilerPaths()
 transpileBabelPaths()
 transpileCoffeeScriptPaths()
 transpileCsonPaths()
@@ -75,7 +79,12 @@ dumpSymbols()
         return createWindowsInstaller(packagedAppPath, argv.codeSign).then(() => packagedAppPath)
       }
       else {
-        console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer. Code-signing was skipped too.'.gray)
+        console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer.'.gray)
+        if (argv.codeSign) {
+          codeSignOnWindows(packagedAppPath)
+        } else {
+          console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
+        }
       }
     } else if (process.platform === 'linux') {
       if (argv.createDebianPackage) {
@@ -99,8 +108,8 @@ dumpSymbols()
       console.log('Skipping artifacts compression. Specify the --compress-artifacts option to compress Atom binaries (and symbols on macOS)'.gray)
     }
 
-    if (argv.install) {
-      installApplication(packagedAppPath)
+    if (argv.install != null) {
+      installApplication(packagedAppPath, argv.install)
     } else {
       console.log('Skipping installation. Specify the --install option to install Atom'.gray)
     }

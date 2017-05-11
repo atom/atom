@@ -1,17 +1,14 @@
-{setDimensionsAndBackground} = require './gutter-component-helpers'
-
 # This class represents a gutter other than the 'line-numbers' gutter.
 # The contents of this gutter may be specified by Decorations.
 
 module.exports =
 class CustomGutterComponent
-
   constructor: ({@gutter, @views}) ->
     @decorationNodesById = {}
     @decorationItemsById = {}
     @visible = true
 
-    @domNode = @views.getView(@gutter)
+    @domNode = @gutter.getElement()
     @decorationsNode = @domNode.firstChild
     # Clear the contents in case the domNode is being reused.
     @decorationsNode.innerHTML = ''
@@ -107,3 +104,16 @@ class CustomGutterComponent
         newItemNode.style.height = decorationHeight + 'px'
         decorationNode.appendChild(newItemNode)
         @decorationItemsById[decorationId] = newItem
+
+setDimensionsAndBackground = (oldState, newState, domNode) ->
+  if newState.scrollHeight isnt oldState.scrollHeight
+    domNode.style.height = newState.scrollHeight + 'px'
+    oldState.scrollHeight = newState.scrollHeight
+
+  if newState.scrollTop isnt oldState.scrollTop
+    domNode.style['-webkit-transform'] = "translate3d(0px, #{-newState.scrollTop}px, 0px)"
+    oldState.scrollTop = newState.scrollTop
+
+  if newState.backgroundColor isnt oldState.backgroundColor
+    domNode.style.backgroundColor = newState.backgroundColor
+    oldState.backgroundColor = newState.backgroundColor

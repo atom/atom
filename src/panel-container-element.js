@@ -9,23 +9,32 @@ class PanelContainerElement extends HTMLElement {
     this.subscriptions = new CompositeDisposable()
   }
 
-  initialize (model, {views}) {
-    this.model = model
-    this.views = views
-    if (this.views == null) {
-      throw new Error('Must pass a views parameter when initializing PanelContainerElements')
+  attachedCallback () {
+    if (this.model.dock) {
+      this.model.dock.elementAttached()
     }
+  }
+
+  initialize (model, viewRegistry) {
+    this.model = model
+    this.viewRegistry = viewRegistry
 
     this.subscriptions.add(this.model.onDidAddPanel(this.panelAdded.bind(this)))
     this.subscriptions.add(this.model.onDidDestroy(this.destroyed.bind(this)))
     this.classList.add(this.model.getLocation())
+
+    // Add the dock.
+    if (this.model.dock != null) {
+      this.appendChild(this.model.dock.getElement())
+    }
+
     return this
   }
 
   getModel () { return this.model }
 
   panelAdded ({panel, index}) {
-    const panelElement = this.views.getView(panel)
+    const panelElement = panel.getElement()
     panelElement.classList.add(this.model.getLocation())
     if (this.model.isModal()) {
       panelElement.classList.add('overlay', 'from-top')

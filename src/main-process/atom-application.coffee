@@ -121,6 +121,8 @@ class AtomApplication
 
   launch: (options) ->
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test or options.benchmark or options.benchmarkTest
+      if @config.get('core.restorePreviousWindowsOnStart') is 'always'
+        @loadState(_.deepClone(options))
       @openWithOptions(options)
     else
       @loadState(options) or @openPath(options)
@@ -575,6 +577,7 @@ class AtomApplication
       windowDimensions ?= @getDimensionsForNewWindow()
       openedWindow = new AtomWindow(this, @fileRecoveryService, {initialPaths, locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState, env})
       openedWindow.focus()
+      @lastFocusedWindow = openedWindow
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -613,10 +616,10 @@ class AtomApplication
         states.push({initialPaths: window.representedDirectoryPaths})
     if states.length > 0 or allowEmpty
       @storageFolder.storeSync('application.json', states)
+      @emit('application:did-save-state')
 
   loadState: (options) ->
-    restorePreviousState = @config.get('core.restorePreviousWindowsOnStart') ? true
-    if restorePreviousState and (states = @storageFolder.load('application.json'))?.length > 0
+    if (@config.get('core.restorePreviousWindowsOnStart') in ['yes', 'always']) and (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
         @openWithOptions(Object.assign(options, {
           initialPaths: state.initialPaths
@@ -641,7 +644,8 @@ class AtomApplication
   openUrl: ({urlToOpen, devMode, safeMode, env}) ->
     unless @packages?
       PackageManager = require '../package-manager'
-      @packages = new PackageManager
+      @packages = new PackageManager()
+      @packages.initialize
         configDirPath: process.env.ATOM_HOME
         devMode: devMode
         resourcePath: @resourcePath

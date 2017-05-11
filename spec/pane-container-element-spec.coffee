@@ -2,30 +2,37 @@ PaneContainer = require '../src/pane-container'
 PaneAxisElement = require '../src/pane-axis-element'
 PaneAxis = require '../src/pane-axis'
 
+params =
+  location: 'center'
+  config: atom.config
+  confirm: atom.confirm.bind(atom)
+  viewRegistry: atom.views
+  applicationDelegate: atom.applicationDelegate
+
 describe "PaneContainerElement", ->
   describe "when panes are added or removed", ->
     it "inserts or removes resize elements", ->
       childTagNames = ->
         child.nodeName.toLowerCase() for child in paneAxisElement.children
 
-      paneAxis = new PaneAxis
-      paneAxisElement = new PaneAxisElement().initialize(paneAxis, atom)
+      paneAxis = new PaneAxis({}, atom.views)
+      paneAxisElement = paneAxis.getElement()
 
       expect(childTagNames()).toEqual []
 
-      paneAxis.addChild(new PaneAxis)
+      paneAxis.addChild(new PaneAxis({}, atom.views))
       expect(childTagNames()).toEqual [
         'atom-pane-axis'
       ]
 
-      paneAxis.addChild(new PaneAxis)
+      paneAxis.addChild(new PaneAxis({}, atom.views))
       expect(childTagNames()).toEqual [
         'atom-pane-axis'
         'atom-pane-resize-handle'
         'atom-pane-axis'
       ]
 
-      paneAxis.addChild(new PaneAxis)
+      paneAxis.addChild(new PaneAxis({}, atom.views))
       expect(childTagNames()).toEqual [
         'atom-pane-axis'
         'atom-pane-resize-handle'
@@ -42,12 +49,12 @@ describe "PaneContainerElement", ->
       ]
 
     it "transfers focus to the next pane if a focused pane is removed", ->
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
-      containerElement = atom.views.getView(container)
+      container = new PaneContainer(params)
+      containerElement = container.getElement()
       leftPane = container.getActivePane()
-      leftPaneElement = atom.views.getView(leftPane)
+      leftPaneElement = leftPane.getElement()
       rightPane = leftPane.splitRight()
-      rightPaneElement = atom.views.getView(rightPane)
+      rightPaneElement = rightPane.getElement()
 
       jasmine.attachToDOM(containerElement)
       rightPaneElement.focus()
@@ -58,8 +65,8 @@ describe "PaneContainerElement", ->
 
   describe "when a pane is split", ->
     it "builds appropriately-oriented atom-pane-axis elements", ->
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
-      containerElement = atom.views.getView(container)
+      container = new PaneContainer(params)
+      containerElement = container.getElement()
 
       pane1 = container.getActivePane()
       pane2 = pane1.splitRight()
@@ -67,25 +74,25 @@ describe "PaneContainerElement", ->
 
       horizontalPanes = containerElement.querySelectorAll('atom-pane-container > atom-pane-axis.horizontal > atom-pane')
       expect(horizontalPanes.length).toBe 1
-      expect(horizontalPanes[0]).toBe atom.views.getView(pane1)
+      expect(horizontalPanes[0]).toBe pane1.getElement()
 
       verticalPanes = containerElement.querySelectorAll('atom-pane-container > atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane')
       expect(verticalPanes.length).toBe 2
-      expect(verticalPanes[0]).toBe atom.views.getView(pane2)
-      expect(verticalPanes[1]).toBe atom.views.getView(pane3)
+      expect(verticalPanes[0]).toBe pane2.getElement()
+      expect(verticalPanes[1]).toBe pane3.getElement()
 
       pane1.destroy()
       verticalPanes = containerElement.querySelectorAll('atom-pane-container > atom-pane-axis.vertical > atom-pane')
       expect(verticalPanes.length).toBe 2
-      expect(verticalPanes[0]).toBe atom.views.getView(pane2)
-      expect(verticalPanes[1]).toBe atom.views.getView(pane3)
+      expect(verticalPanes[0]).toBe pane2.getElement()
+      expect(verticalPanes[1]).toBe pane3.getElement()
 
   describe "when the resize element is dragged ", ->
     [container, containerElement] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
-      containerElement = atom.views.getView(container)
+      container = new PaneContainer(params)
+      containerElement = container.getElement()
       document.querySelector('#jasmine-content').appendChild(containerElement)
 
     dragElementToPosition = (element, clientX) ->
@@ -201,7 +208,7 @@ describe "PaneContainerElement", ->
     [leftPane, rightPane] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+      container = new PaneContainer(params)
       leftPane = container.getActivePane()
       rightPane = leftPane.splitRight()
 
@@ -210,11 +217,11 @@ describe "PaneContainerElement", ->
         expect(leftPane.getFlexScale()).toBe 1
         expect(rightPane.getFlexScale()).toBe 1
 
-        atom.commands.dispatch(atom.views.getView(leftPane), 'pane:increase-size')
+        atom.commands.dispatch(leftPane.getElement(), 'pane:increase-size')
         expect(leftPane.getFlexScale()).toBe 1.1
         expect(rightPane.getFlexScale()).toBe 1
 
-        atom.commands.dispatch(atom.views.getView(rightPane), 'pane:increase-size')
+        atom.commands.dispatch(rightPane.getElement(), 'pane:increase-size')
         expect(leftPane.getFlexScale()).toBe 1.1
         expect(rightPane.getFlexScale()).toBe 1.1
 
@@ -223,11 +230,11 @@ describe "PaneContainerElement", ->
         expect(leftPane.getFlexScale()).toBe 1
         expect(rightPane.getFlexScale()).toBe 1
 
-        atom.commands.dispatch(atom.views.getView(leftPane), 'pane:decrease-size')
+        atom.commands.dispatch(leftPane.getElement(), 'pane:decrease-size')
         expect(leftPane.getFlexScale()).toBe 1/1.1
         expect(rightPane.getFlexScale()).toBe 1
 
-        atom.commands.dispatch(atom.views.getView(rightPane), 'pane:decrease-size')
+        atom.commands.dispatch(rightPane.getElement(), 'pane:decrease-size')
         expect(leftPane.getFlexScale()).toBe 1/1.1
         expect(rightPane.getFlexScale()).toBe 1/1.1
 
@@ -258,7 +265,7 @@ describe "PaneContainerElement", ->
           element.cloneNode(true)
         element
 
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+      container = new PaneContainer(params)
 
       [item1, item2, item3, item4, item5, item6, item7, item8, item9] =
         [buildElement('1'), buildElement('2'), buildElement('3'),
@@ -279,7 +286,7 @@ describe "PaneContainerElement", ->
       pane8 = pane7.splitRight(items: [item8])
       pane9 = pane8.splitRight(items: [item9])
 
-      containerElement = atom.views.getView(container)
+      containerElement = container.getElement()
       containerElement.style.height = '400px'
       containerElement.style.width = '400px'
       jasmine.attachToDOM(containerElement)

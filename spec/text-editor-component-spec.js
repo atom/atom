@@ -5006,6 +5006,35 @@ describe('TextEditorComponent', function () {
       expect(atom.clipboard.read()).toBe('sort')
       expect(editor.lineTextForBufferRow(10)).toBe('sort')
     })
+
+    it('pastes the previously selected text at the clicked location, left clicks do not interfere', async function () {
+      let clipboardWrittenTo = false
+      spyOn(require('electron').ipcRenderer, 'send').andCallFake(function (eventName, selectedText) {
+        if (eventName === 'write-text-to-selection-clipboard') {
+          require('../src/safe-clipboard').writeText(selectedText, 'selection')
+          clipboardWrittenTo = true
+        }
+      })
+      atom.clipboard.write('')
+      component.trackSelectionClipboard()
+      editor.setSelectedBufferRange([[1, 6], [1, 10]])
+      advanceClock(0)
+
+      componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([10, 0]), {
+        button: 0
+      }))
+      componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([10, 0]), {
+        which: 1
+      }))
+      componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([10, 0]), {
+        button: 1
+      }))
+      componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([10, 0]), {
+        which: 2
+      }))
+      expect(atom.clipboard.read()).toBe('sort')
+      expect(editor.lineTextForBufferRow(10)).toBe('sort')
+    })
   })
 
   function buildMouseEvent (type, ...propertiesObjects) {

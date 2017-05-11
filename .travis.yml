@@ -1,12 +1,18 @@
 git:
   depth: 10
 
+branches:
+  only:
+  - master
+  - /^[0-9.]+-releases$/
+
 matrix:
   include:
     - os: linux
+      dist: trusty
       env: NODE_VERSION=6.9.4 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
 
-sudo: false
+sudo: required
 
 before_install:
   - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
@@ -50,7 +56,7 @@ addons:
     - clang-3.3
     - fakeroot
     - git
-    - libgnome-keyring-dev
+    - libsecret-1-dev
     - rpm
     - libx11-dev
     - libxkbfile-dev
