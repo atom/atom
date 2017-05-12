@@ -328,10 +328,15 @@ describe "PackageManager", ->
     it "requires the main module, loads the config schema and activates keymaps, menus and settings without reactivating them during package activation", ->
       availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
       availablePackage.isBundled = true
+      metadata = atom.packages.loadPackageMetadata(availablePackage)
       expect(atom.packages.preloadedPackages[availablePackage.name]).toBeUndefined()
       expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
 
-      metadata = atom.packages.loadPackageMetadata(availablePackage)
+      atom.packages.packagesCache = {}
+      atom.packages.packagesCache[availablePackage.name] = {
+        main: path.join(availablePackage.path, metadata.main),
+        grammarPaths: []
+      }
       preloadedPackage = atom.packages.preloadPackage(
         availablePackage.name,
         {
@@ -345,14 +350,15 @@ describe "PackageManager", ->
       expect(preloadedPackage.mainModule).toBeTruthy()
       expect(preloadedPackage.configSchemaRegisteredOnLoad).toBeTruthy()
 
-      atom.packages.loadAvailablePackage(availablePackage)
-
       spyOn(atom.keymaps, 'add')
       spyOn(atom.menu, 'add')
       spyOn(atom.contextMenu, 'add')
       spyOn(atom.config, 'setSchema')
-      atom.packages.activatePackage(availablePackage.name)
 
+      atom.packages.loadAvailablePackage(availablePackage)
+      expect(preloadedPackage.getMainModulePath()).toBe(path.join(availablePackage.path, metadata.main))
+
+      atom.packages.activatePackage(availablePackage.name)
       expect(atom.keymaps.add).not.toHaveBeenCalled()
       expect(atom.menu.add).not.toHaveBeenCalled()
       expect(atom.contextMenu.add).not.toHaveBeenCalled()
@@ -366,10 +372,15 @@ describe "PackageManager", ->
     it "deactivates disabled keymaps during package activation", ->
       availablePackage = atom.packages.getAvailablePackages().find (p) -> p.name is 'spell-check'
       availablePackage.isBundled = true
+      metadata = atom.packages.loadPackageMetadata(availablePackage)
       expect(atom.packages.preloadedPackages[availablePackage.name]).toBeUndefined()
       expect(atom.packages.isPackageLoaded(availablePackage.name)).toBe(false)
 
-      metadata = atom.packages.loadPackageMetadata(availablePackage)
+      atom.packages.packagesCache = {}
+      atom.packages.packagesCache[availablePackage.name] = {
+        main: path.join(availablePackage.path, metadata.main),
+        grammarPaths: []
+      }
       preloadedPackage = atom.packages.preloadPackage(
         availablePackage.name,
         {
