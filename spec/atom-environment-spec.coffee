@@ -230,8 +230,8 @@ describe "AtomEnvironment", ->
       atomEnv.initialize({
         window: {
           requestIdleCallback: (callback) -> idleCallbacks.push(callback),
-          addEventListener: () ->
-          removeEventListener: () ->
+          addEventListener: ->
+          removeEventListener: ->
         },
         document: document.implementation.createHTMLDocument()
       })
@@ -263,8 +263,8 @@ describe "AtomEnvironment", ->
       atomEnv.initialize({
         window: {
           requestIdleCallback: (callback) -> idleCallbacks.push(callback),
-          addEventListener: () ->
-          removeEventListener: () ->
+          addEventListener: ->
+          removeEventListener: ->
         },
         document: document.implementation.createHTMLDocument()
       })
