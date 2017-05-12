@@ -2667,7 +2667,7 @@ class TextEditorComponent {
 
   getScrollLeftColumn () {
     if (this.hasInitialMeasurements && this.getLongestLineWidth() != null) {
-      return Math.floor(this.getScrollLeft() / this.getBaseCharacterWidth())
+      return Math.round(this.getScrollLeft() / this.getBaseCharacterWidth())
     } else {
       return this.pendingScrollLeftColumn || 0
     }

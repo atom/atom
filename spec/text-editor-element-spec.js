@@ -349,7 +349,16 @@ describe('TextEditorElement', () => {
       await element.getNextUpdatePromise()
       expect(element.getVisibleRowRange()).toEqual([4, 11])
 
-      expect(element.pixelRectForScreenRange([[2, 3], [13, 11]])).toEqual({top: 34, left: 22, height: 204, width: 57})
+      const top = 2 * editor.getLineHeightInPixels()
+      const bottom = 13 * editor.getLineHeightInPixels()
+      const left = Math.round(3 * editor.getDefaultCharWidth())
+      const right = Math.round(11 * editor.getDefaultCharWidth())
+      expect(element.pixelRectForScreenRange([[2, 3], [13, 11]])).toEqual({
+        top,
+        left,
+        height: bottom + editor.getLineHeightInPixels() - top,
+        width: right - left
+      })
     })
   })
 
