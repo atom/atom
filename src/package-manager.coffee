@@ -73,6 +73,8 @@ class PackageManager
     @loadedPackages = {}
     @preloadedPackages = {}
     @packageStates = {}
+    @packagesCache = packageJSON._atomPackages ? {}
+    @packageDependencies = packageJSON.packageDependencies ? {}
     @triggeredActivationHooks.clear()
 
   ###
