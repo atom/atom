@@ -41,7 +41,7 @@ function runCoreMainProcessTests (callback) {
   console.log('Executing core main process tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {
     stdio: 'inherit',
-    env: Object.assign({}, process.env, {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
+    env: Object.assign({ELECTRON_ENABLE_LOGGING: 1}, process.env, {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
   })
   cp.on('error', error => { callback(error) })
   cp.on('close', exitCode => { callback(null, exitCode) })
@@ -55,7 +55,11 @@ function runCoreRenderProcessTests (callback) {
   ]
 
   console.log('Executing core render process tests'.bold.green)
-  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit'})
+  const cp = childProcess.spawn(
+    executablePath,
+    testArguments,
+    {stdio: 'inherit', env: Object.assign({ELECTRON_ENABLE_LOGGING: 1}, process.env)}
+  )
   cp.on('error', error => { callback(error) })
   cp.on('close', exitCode => { callback(null, exitCode) })
 }
@@ -107,7 +111,11 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     } else {
       console.log(`Executing ${packageName} tests`.bold.green)
     }
-    const cp = childProcess.spawn(executablePath, testArguments)
+    const cp = childProcess.spawn(
+      executablePath,
+      testArguments,
+      {env: Object.assign({ELECTRON_ENABLE_LOGGING: 1}, process.env)}
+    )
     let stderrOutput = ''
     cp.stderr.on('data', data => stderrOutput += data)
     cp.on('error', error => {
