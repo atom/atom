@@ -180,6 +180,7 @@ jasmine.useRealClock = ->
   jasmine.unspy(window, 'setTimeout')
   jasmine.unspy(window, 'clearTimeout')
   jasmine.unspy(_._, 'now')
+  jasmine.unspy(Date, 'now')
 
 # The clock is halfway mocked now in a sad and terrible way... only setTimeout
 # and clearTimeout are included. This method will also include setInterval. We
