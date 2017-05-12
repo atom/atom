@@ -50,10 +50,17 @@ describe "AtomEnvironment", ->
 
   describe "window onerror handler", ->
     devToolsPromise = null
+    originalOpenDevToolsOnError = null
     beforeEach ->
+      originalOpenDevToolsOnError = atom.openDevToolsOnError
+      originalOpenDevToolsOnError = true
       devToolsPromise = Promise.resolve()
       spyOn(atom, 'openDevTools').andReturn(devToolsPromise)
       spyOn(atom, 'executeJavaScriptInDevTools')
+
+    afterEach ->
+      atom.openDevToolsOnError = originalOpenDevToolsOnError
+
 
     it "will open the dev tools when an error is triggered", ->
       try
