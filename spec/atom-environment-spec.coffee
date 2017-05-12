@@ -314,9 +314,12 @@ describe "AtomEnvironment", ->
             }
           )
         })
+        atom2.initialize({document, window})
         atom2.deserialize(atom.serialize())
 
         expect(atom2.textEditors.getGrammarOverride(editor)).toBe('text.plain')
+
+        atom2.destroy()
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
