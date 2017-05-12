@@ -194,7 +194,7 @@ class Project extends Model
     repo = null
     for provider in @repositoryProviders
       break if repo = provider.repositoryForDirectorySync?(directory)
-    @repositories.push(repo ? null)
+    @repositories.push(repo) if repo
 
     unless options?.emitEvent is false
       @emitter.emit 'did-change-paths', @getPaths()
