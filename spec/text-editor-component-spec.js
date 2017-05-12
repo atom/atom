@@ -446,7 +446,18 @@ describe('TextEditorComponent', () => {
     })
 
     it('soft wraps lines based on the content width when soft wrap is enabled', async () => {
-      const {component, element, editor} = buildComponent({width: 435, attach: false})
+      let baseCharacterWidth, gutterContainerWidth
+      {
+        const {component, editor} = buildComponent()
+        baseCharacterWidth = component.getBaseCharacterWidth()
+        gutterContainerWidth = component.getGutterContainerWidth()
+        editor.destroy()
+      }
+
+      const {component, element, editor} = buildComponent({
+        width: gutterContainerWidth + (baseCharacterWidth * 55),
+        attach: false
+      })
       editor.setSoftWrapped(true)
       jasmine.attachToDOM(element)
 
@@ -471,9 +482,12 @@ describe('TextEditorComponent', () => {
     })
 
     it('accounts for the width of the vertical scrollbar when soft-wrapping lines', async () => {
-      const {component, element, editor} = buildComponent({height: 200, width: 200, attach: false, text: 'a'.repeat(300)})
-      editor.setSoftWrapped(true)
-      jasmine.attachToDOM(element)
+      const {component, element, editor} = buildComponent({
+        height: 200,
+        text: 'a'.repeat(300),
+        softWrapped: true
+      })
+      await setEditorWidthInCharacters(component, 23)
       expect(Math.floor(component.getScrollContainerClientWidth() / component.getBaseCharacterWidth())).toBe(20)
       expect(editor.lineLengthForScreenRow(0)).toBe(20)
     })
@@ -871,16 +885,15 @@ describe('TextEditorComponent', () => {
     it('does not horizontally autoscroll by more than half of the visible "base-width" characters if the editor is narrower than twice the scroll margin', async () => {
       const {component, editor} = buildComponent({autoHeight: false})
       await setEditorWidthInCharacters(component, 1.5 * editor.horizontalScrollMargin)
-
-      const contentWidthInCharacters = Math.floor(component.getScrollContainerClientWidth() / component.getBaseCharacterWidth())
-      expect(contentWidthInCharacters).toBe(9)
+      const editorWidthInChars = component.getScrollContainerWidth() / component.getBaseCharacterWidth()
+      expect(Math.round(editorWidthInChars)).toBe(9)
 
       editor.scrollToScreenRange([[6, 10], [6, 15]])
       await component.getNextUpdatePromise()
       let expectedScrollLeft = Math.floor(
         clientLeftForCharacter(component, 6, 10) -
         lineNodeForScreenRow(component, 1).getBoundingClientRect().left -
-        (4 * component.getBaseCharacterWidth())
+        Math.floor((editorWidthInChars - 1) / 2) * component.getBaseCharacterWidth()
       )
       expect(component.getScrollLeft()).toBe(expectedScrollLeft)
     })
@@ -1105,10 +1118,8 @@ describe('TextEditorComponent', () => {
 
   describe('line and line number decorations', () => {
     it('adds decoration classes on screen lines spanned by decorated markers', async () => {
-      const {component, element, editor} = buildComponent({width: 435, attach: false})
-      editor.setSoftWrapped(true)
-      jasmine.attachToDOM(element)
-
+      const {component, element, editor} = buildComponent({softWrapped: true})
+      await setEditorWidthInCharacters(component, 55)
       expect(lineNodeForScreenRow(component, 3).textContent).toBe(
         '    var pivot = items.shift(), current, left = [], '
       )
@@ -2831,11 +2842,12 @@ describe('TextEditorComponent', () => {
     })
 
     describe('on the scrollbars', () => {
-      it('delegates the mousedown events to the parent component unless the mousedown was on the actual scrollbar', () => {
-        const {component, element, editor} = buildComponent({height: 100, width: 100})
+      it('delegates the mousedown events to the parent component unless the mousedown was on the actual scrollbar', async () => {
+        const {component, element, editor} = buildComponent({height: 100})
+        await setEditorWidthInCharacters(component, 8.5)
+
         const verticalScrollbar = component.refs.verticalScrollbar
         const horizontalScrollbar = component.refs.horizontalScrollbar
-
         const leftEdgeOfVerticalScrollbar = verticalScrollbar.element.getBoundingClientRect().right - getVerticalScrollbarWidth(component)
         const topEdgeOfHorizontalScrollbar = horizontalScrollbar.element.getBoundingClientRect().bottom - getHorizontalScrollbarHeight(component)
 
@@ -3350,7 +3362,7 @@ function buildEditor (params = {}) {
   const buffer = new TextBuffer({text})
   const editorParams = {buffer}
   if (params.height != null) params.autoHeight = false
-  for (const paramName of ['mini', 'autoHeight', 'autoWidth', 'lineNumberGutterVisible', 'placeholderText']) {
+  for (const paramName of ['mini', 'autoHeight', 'autoWidth', 'lineNumberGutterVisible', 'placeholderText', 'softWrapped']) {
     if (params[paramName] != null) editorParams[paramName] = params[paramName]
   }
   return new TextEditor(editorParams)
