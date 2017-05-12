@@ -67,7 +67,7 @@ class PaneElement extends HTMLElement
 
   activated: ->
     @isActivating = true
-    @focus()
+    @focus() unless @hasFocus() # Don't steal focus from children.
     @isActivating = false
 
   activeStatusChanged: (active) ->
