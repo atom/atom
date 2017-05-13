@@ -53,6 +53,12 @@ Atom is only available for 64-bit Linux systems.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
+Alternatively,in a terminal:
+
+1. Add repository: `sudo add-apt-repository ppa:webupd8team/atom`.
+2. Update the Repository: `sudo apt-get update`.
+3. Install Atom: `sudo apt-get install atom`.
+
 ### Red Hat Linux (Fedora 21 and under, CentOS, Red Hat)
 
 Atom is only available for 64-bit Linux systems.
