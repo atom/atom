@@ -2761,6 +2761,22 @@ describe "TextEditor", ->
             expect(editor.isFoldedAtBufferRow(6)).toBeFalsy()
             expect(editor.lineTextForBufferRow(6)).toBe "    if (items.length <= 1) return items;"
 
+        describe "when the last line of selection does not end with a valid line ending", ->
+          it "appends line ending to last line and moves the lines spanned by the selection to the preceeding row", ->
+            expect(editor.lineTextForBufferRow(9)).toBe "  };"
+            expect(editor.lineTextForBufferRow(10)).toBe ""
+            expect(editor.lineTextForBufferRow(11)).toBe "  return sort(Array.apply(this, arguments));"
+            expect(editor.lineTextForBufferRow(12)).toBe "};"
+
+            editor.setSelectedBufferRange([[10, 0], [12, 2]])
+            editor.moveLineUp()
+
+            expect(editor.getSelectedBufferRange()).toEqual [[9, 0], [11, 2]]
+            expect(editor.lineTextForBufferRow(9)).toBe ""
+            expect(editor.lineTextForBufferRow(10)).toBe "  return sort(Array.apply(this, arguments));"
+            expect(editor.lineTextForBufferRow(11)).toBe "};"
+            expect(editor.lineTextForBufferRow(12)).toBe "  };"
+
       describe "when there are multiple selections", ->
         describe "when all the selections span different lines", ->
           describe "when there is no folds", ->
