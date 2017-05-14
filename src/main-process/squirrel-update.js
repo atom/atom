@@ -70,10 +70,10 @@ function addCommandsToPath (callback) {
   }
 
   return installCommands((error) => {
-    if (error != null) { return callback(error) }
+    if (error) return callback(error)
 
     return WinPowerShell.getPath((error, pathEnv) => {
-      if (error != null) { return callback(error) }
+      if (error) return callback(error)
 
       const pathSegments = pathEnv.split(/;+/).filter(pathSegment => pathSegment)
       if (pathSegments.indexOf(binFolder) === -1) {
@@ -88,7 +88,7 @@ function addCommandsToPath (callback) {
 // Remove atom and apm from the PATH
 function removeCommandsFromPath (callback) {
   WinPowerShell.getPath((error, pathEnv) => {
-    if (error != null) { return callback(error) }
+    if (error) return callback(error)
 
     const pathSegments = pathEnv.split(/;+/).filter(pathSegment => pathSegment && (pathSegment !== binFolder))
     const newPathEnv = pathSegments.join(';')
@@ -116,7 +116,7 @@ function updateShortcuts (callback) {
     const desktopShortcutPath = path.join(homeDirectory, 'Desktop', 'Atom.lnk')
     // Check if the desktop shortcut has been previously deleted and
     // and keep it deleted if it was
-    return fs.exists(desktopShortcutPath, desktopShortcutExists =>
+    return fs.exists(desktopShortcutPath, (desktopShortcutExists) => {
       createShortcuts(() => {
         if (desktopShortcutExists) {
           return callback()
@@ -125,7 +125,7 @@ function updateShortcuts (callback) {
           return fs.unlink(desktopShortcutPath, callback)
         }
       })
-    )
+    })
   } else {
     return createShortcuts(callback)
   }
