@@ -34,6 +34,16 @@ const configSchema = {
 
         description: 'List of names of installed packages which are not loaded at startup.'
       },
+      versionPinnedPackages: {
+        type: 'array',
+        default: [],
+
+        items: {
+          type: 'string'
+        },
+
+        description: 'List of names of installed packages which are not automatically updated.'
+      },
       customFileTypes: {
         type: 'object',
         default: {},
