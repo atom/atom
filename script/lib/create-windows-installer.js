@@ -7,7 +7,6 @@ const glob = require('glob')
 const os = require('os')
 const path = require('path')
 const spawnSync = require('./spawn-sync')
-const syncRequest = require('sync-request')
 
 const CONFIG = require('../config')
 
@@ -72,21 +71,7 @@ module.exports = (packagedAppPath, codeSign) => {
     }
   }
 
-  const updateNuget = () => {
-    const nugetUrl = 'https://dist.nuget.org/win-x86-commandline/v3.5.0/nuget.exe'
-    console.log('Updating Nuget from ' + nugetUrl)
-    const nugetPath = path.join(__dirname, '..', 'node_modules', 'electron-winstaller', 'vendor', 'nuget.exe')
-    const response = syncRequest('GET', nugetUrl)
-
-    if (response.statusCode === 200) {
-      fs.writeFileSync(nugetPath, response.body)
-    } else {
-      throw new Error('Error updating nuget. HTTP Status ' + response.statusCode + '.')
-    }
-  }
-
   console.log(`Creating Windows Installer for ${packagedAppPath}`)
-  updateNuget()
   return electronInstaller.createWindowsInstaller(options)
     .then(extractSignedExes)
     .then(cleanUp, error => {
