@@ -46,8 +46,6 @@ deploy: off
 artifacts:
   - path: out\AtomSetup.exe
     name: AtomSetup.exe
-  - path: out\AtomSetup.msi
-    name: AtomSetup.msi
   - path: out\atom-windows.zip
     name: atom-windows.zip
   - path: out\RELEASES
