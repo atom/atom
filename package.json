@@ -1,7 +1,7 @@
 {
   "name": "atom",
   "productName": "Atom",
-  "version": "1.18.0-dev",
+  "version": "1.19.0-dev",
   "description": "A hackable text editor for the 21st Century.",
   "main": "./src/main-process/main.js",
   "repository": {
