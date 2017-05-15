@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>atom</id>
+    <version><%= version %></version>
+    <authors>The Atom Community</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <title>Atom</title>
+    <description>The hackable, collaborative editor of tomorrow!</description>
+    <summary>Atom</summary>
+  </metadata>
+
+  <files>
+    <file src="<%= build_dir %>\**\*" target="lib\net40" />
+  </files>
+</package>
