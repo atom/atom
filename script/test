@@ -141,7 +141,7 @@ let testSuitesToRun = testSuitesForPlatform(process.platform)
 function testSuitesForPlatform(platform) {
   switch(platform) {
     case 'darwin':  return [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
-    case 'win32':   return (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
+    case 'win32':   return []
     case 'linux':   return [runCoreMainProcessTests]
     default:        return []
   }
