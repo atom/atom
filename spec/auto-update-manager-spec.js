@@ -2,7 +2,7 @@
 
 import AutoUpdateManager from '../src/auto-update-manager'
 import {remote} from 'electron'
-const electronAutoUpdater = remote.require('electron').autoUpdater
+const electronAutoUpdater = remote.autoUpdater
 
 describe('AutoUpdateManager (renderer)', () => {
 
