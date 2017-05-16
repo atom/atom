@@ -210,6 +210,16 @@ describe('TextEditorComponent', () => {
       expect(lineNumberNodeForScreenRow(component, 0).querySelector('.foldable')).toBeNull()
     })
 
+    it('shows the foldable icon on the last screen row of a buffer row that can be folded', async () => {
+      const {component, element, editor} = buildComponent({text: 'abc\n  de\nfghijklm\n  no', softWrapped: true})
+      await setEditorWidthInCharacters(component, 5)
+      expect(lineNumberNodeForScreenRow(component, 0).classList.contains('foldable')).toBe(true)
+      expect(lineNumberNodeForScreenRow(component, 1).classList.contains('foldable')).toBe(false)
+      expect(lineNumberNodeForScreenRow(component, 2).classList.contains('foldable')).toBe(false)
+      expect(lineNumberNodeForScreenRow(component, 3).classList.contains('foldable')).toBe(true)
+      expect(lineNumberNodeForScreenRow(component, 4).classList.contains('foldable')).toBe(false)
+    })
+
     it('renders dummy vertical and horizontal scrollbars when content overflows', async () => {
       const {component, element, editor} = buildComponent({height: 100, width: 100})
       const verticalScrollbar = component.refs.verticalScrollbar.element

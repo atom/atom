@@ -823,7 +823,7 @@ class TextEditorComponent {
     const endRow = this.getRenderedEndRow()
     const renderedRowCount = this.getRenderedRowCount()
 
-    const bufferRows = model.bufferRowsForScreenRows(startRow, endRow - 1)
+    const bufferRows = model.bufferRowsForScreenRows(startRow, endRow)
     const keys = new Array(endRow - startRow)
     const foldableFlags = new Array(endRow - startRow)
     const softWrappedFlags = new Array(endRow - startRow)
@@ -836,16 +836,25 @@ class TextEditorComponent {
       if (bufferRow === previousBufferRow) {
         softWrapCount++
         softWrappedFlags[i] = true
-        foldableFlags[i] = false
         keys[i] = bufferRow + '-' + softWrapCount
       } else {
         softWrapCount = 0
         softWrappedFlags[i] = false
-        foldableFlags[i] = model.isFoldableAtBufferRow(bufferRow)
         keys[i] = bufferRow
       }
+
+      const nextBufferRow = bufferRows[i + 1]
+      if (bufferRow !== nextBufferRow) {
+        foldableFlags[i] = model.isFoldableAtBufferRow(bufferRow)
+      } else {
+        foldableFlags[i] = false
+      }
+
       previousBufferRow = bufferRow
     }
+
+    // Delete extra buffer row at the end because it's not currently on screen.
+    bufferRows.pop()
 
     this.lineNumbersToRender.bufferRows = bufferRows
     this.lineNumbersToRender.keys = keys
