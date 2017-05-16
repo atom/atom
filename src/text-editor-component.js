@@ -823,11 +823,10 @@ class TextEditorComponent {
     const endRow = this.getRenderedEndRow()
     const renderedRowCount = this.getRenderedRowCount()
 
-    const {keys, softWrappedFlags, foldableFlags} = this.lineNumbersToRender
     const bufferRows = model.bufferRowsForScreenRows(startRow, endRow - 1)
-    this.lineNumbersToRender.bufferRows = bufferRows
-    keys.length = renderedRowCount
-    foldableFlags.length = renderedRowCount
+    const keys = new Array(endRow - startRow)
+    const foldableFlags = new Array(endRow - startRow)
+    const softWrappedFlags = new Array(endRow - startRow)
 
     let previousBufferRow = (startRow > 0) ? model.bufferRowForScreenRow(startRow - 1) : -1
     let softWrapCount = 0
@@ -847,6 +846,11 @@ class TextEditorComponent {
       }
       previousBufferRow = bufferRow
     }
+
+    this.lineNumbersToRender.bufferRows = bufferRows
+    this.lineNumbersToRender.keys = keys
+    this.lineNumbersToRender.foldableFlags = foldableFlags
+    this.lineNumbersToRender.softWrappedFlags = softWrappedFlags
   }
 
   queryMaxLineNumberDigits () {

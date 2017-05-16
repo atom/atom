@@ -195,6 +195,21 @@ describe('TextEditorComponent', () => {
       expect(lineNodeForScreenRow(component, 7)).toBe(lineNode)
     })
 
+    it('updates lines numbers when a row\'s foldability changes (regression)', async () => {
+      const {component, element, editor} = buildComponent({text: 'abc\n'})
+      editor.setCursorBufferPosition([1, 0])
+      await component.getNextUpdatePromise()
+      expect(lineNumberNodeForScreenRow(component, 0).querySelector('.foldable')).toBeNull()
+
+      editor.insertText('  def')
+      await component.getNextUpdatePromise()
+      expect(lineNumberNodeForScreenRow(component, 0).querySelector('.foldable')).toBeDefined()
+
+      editor.undo()
+      await component.getNextUpdatePromise()
+      expect(lineNumberNodeForScreenRow(component, 0).querySelector('.foldable')).toBeNull()
+    })
+
     it('renders dummy vertical and horizontal scrollbars when content overflows', async () => {
       const {component, element, editor} = buildComponent({height: 100, width: 100})
       const verticalScrollbar = component.refs.verticalScrollbar.element
