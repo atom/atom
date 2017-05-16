@@ -1704,7 +1704,7 @@ class TextEditorComponent {
     const clickedScreenRow = this.screenPositionForMouseEvent(event).row
     const startBufferRow = model.bufferPositionForScreenPosition([clickedScreenRow, 0]).row
 
-    if (target && target.matches('.foldable .icon-right')) {
+    if (target && (target.matches('.foldable .icon-right') || target.matches('.folded .icon-right'))) {
       model.toggleFoldAtBufferRow(startBufferRow)
       return
     }

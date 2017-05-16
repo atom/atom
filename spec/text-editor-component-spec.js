@@ -2798,7 +2798,7 @@ describe('TextEditorComponent', () => {
 
       it('toggles folding when clicking on the right icon of a foldable line number', async () => {
         const {component, element, editor} = buildComponent()
-        const target = element.querySelectorAll('.line-number')[1].querySelector('.icon-right')
+        let target = element.querySelectorAll('.line-number')[1].querySelector('.icon-right')
         expect(editor.isFoldedAtScreenRow(1)).toBe(false)
 
         component.didMouseDownOnLineNumberGutter({target, button: 0, clientY: clientTopForLine(component, 1)})
@@ -2806,7 +2806,16 @@ describe('TextEditorComponent', () => {
         await component.getNextUpdatePromise()
 
         component.didMouseDownOnLineNumberGutter({target, button: 0, clientY: clientTopForLine(component, 1)})
+        await component.getNextUpdatePromise()
         expect(editor.isFoldedAtScreenRow(1)).toBe(false)
+
+        editor.foldBufferRange([[5, 12], [5, 17]])
+        await component.getNextUpdatePromise()
+        expect(editor.isFoldedAtScreenRow(5)).toBe(true)
+
+        target = element.querySelectorAll('.line-number')[6].querySelector('.icon-right')
+        component.didMouseDownOnLineNumberGutter({target, button: 0, clientY: clientTopForLine(component, 5)})
+        expect(editor.isFoldedAtScreenRow(5)).toBe(false)
       })
 
       it('autoscrolls when dragging near the top or bottom of the gutter', async () => {
