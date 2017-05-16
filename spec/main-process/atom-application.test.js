@@ -437,6 +437,27 @@ describe('AtomApplication', function () {
         assert.deepEqual(await getTreeViewRootDirectories(window2), [dirB])
       })
     })
+
+    describe('when opening atom:// URLs', function () {
+      it('loads the urlMain file in a new window', async function () {
+        const packagePath = path.join(__dirname, '..', 'fixtures', 'packages', 'package-with-url-main')
+        const packagesDirPath = path.join(process.env.ATOM_HOME, 'packages')
+        fs.mkdirSync(packagesDirPath)
+        fs.symlinkSync(packagePath, path.join(packagesDirPath, 'package-with-url-main'), 'junction')
+
+        const atomApplication = buildAtomApplication()
+        const launchOptions = parseCommandLine([])
+        launchOptions.urlsToOpen = ['atom://package-with-url-main/test']
+        let windows = atomApplication.launch(launchOptions)
+        await windows[0].loadedPromise
+
+        let reached = await evalInWebContents(windows[0].browserWindow.webContents, function (sendBackToMainProcess) {
+          sendBackToMainProcess(global.reachedUrlMain)
+        })
+        assert.equal(reached, true);
+        windows[0].close();
+      })
+    })
   })
 
   describe('before quitting', function () {
