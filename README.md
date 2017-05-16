@@ -87,8 +87,7 @@ but should be compatible with other Linux distributions.
 3. Run `tar xf atom-amd64.tar.gz` in the directory where you want to extract the Atom folder.
 4. Launch Atom using the installed `atom` command from the newly extracted directory.
 
-The Linux version does not currently automatically update so you will need to
-repeat these steps to upgrade to future releases.
+The Linux version does not currently automatically update so you will need to repeat these steps to upgrade to future releases.
 
 ## Building
 
