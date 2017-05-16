@@ -824,9 +824,9 @@ class TextEditorComponent {
     const renderedRowCount = this.getRenderedRowCount()
 
     const bufferRows = model.bufferRowsForScreenRows(startRow, endRow)
-    const keys = new Array(endRow - startRow)
-    const foldableFlags = new Array(endRow - startRow)
-    const softWrappedFlags = new Array(endRow - startRow)
+    const keys = new Array(renderedRowCount)
+    const foldableFlags = new Array(renderedRowCount)
+    const softWrappedFlags = new Array(renderedRowCount)
 
     let previousBufferRow = (startRow > 0) ? model.bufferRowForScreenRow(startRow - 1) : -1
     let softWrapCount = 0
