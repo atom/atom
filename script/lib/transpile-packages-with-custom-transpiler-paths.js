@@ -6,6 +6,7 @@ const glob = require('glob')
 const path = require('path')
 
 const CONFIG = require('../config')
+const backupNodeModules = require('./backup-node-modules')
 const runApmInstall = require('./run-apm-install')
 
 require('colors')
@@ -19,9 +20,7 @@ module.exports = function () {
     const metadata = require(metadataPath)
     if (metadata.atomTranspilers) {
       console.log(' transpiling for package '.cyan + packageName.cyan)
-      const nodeModulesPath = path.join(packagePath, 'node_modules')
-      const nodeModulesBackupPath = path.join(packagePath, 'node_modules.bak')
-      fs.copySync(nodeModulesPath, nodeModulesBackupPath)
+      const restoreNodeModules = backupNodeModules(packagePath)
       runApmInstall(packagePath)
 
       CompileCache.addTranspilerConfigForPath(packagePath, metadata.name, metadata, metadata.atomTranspilers)
@@ -30,8 +29,7 @@ module.exports = function () {
         pathsToCompile.forEach(transpilePath)
       }
 
-      fs.removeSync(nodeModulesPath)
-      fs.renameSync(nodeModulesBackupPath, nodeModulesPath)
+      restoreNodeModules()
     }
   }
 }
