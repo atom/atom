@@ -3,11 +3,11 @@ path = require 'path'
 
 process.title = 'repository-status-handler'
 
-module.exports = () ->
+module.exports = ->
   @async()
-  
-  process.on 'message', ({repoPath, paths}) =>
-    paths = paths || []
+
+  process.on 'message', ({repoPath, paths}) ->
+    paths = paths or []
 
     repo = Git.open(repoPath)
 
