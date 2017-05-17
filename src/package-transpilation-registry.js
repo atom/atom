@@ -19,6 +19,7 @@ class PackageTranspilationRegistry {
   }
 
   addTranspilerConfigForPath (packagePath, packageName, packageMeta, config) {
+    console.log(">>>>> ADDING: " + packagePath)
     this.configByPackagePath[packagePath] = {
       name: packageName,
       meta: packageMeta,
@@ -28,6 +29,7 @@ class PackageTranspilationRegistry {
   }
 
   removeTranspilerConfigForPath (packagePath) {
+    console.log(">>>>> REMOVING: " + packagePath)
     delete this.configByPackagePath[packagePath]
     const packagePathWithSep = packagePath.endsWith(path.sep) ?
       packagePath : packagePath + path.sep;
