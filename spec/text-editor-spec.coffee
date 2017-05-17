@@ -4040,6 +4040,18 @@ describe "TextEditor", ->
           beforeEach ->
             editor.update({autoIndentOnPaste: true})
 
+          it "does not override autoIndent option", ->
+            atom.clipboard.write('first')
+
+            editor.mutateSelectedText (selection, index) =>
+              spyOn(selection, 'insertText')
+
+            editor.pasteText autoIndent: false
+
+            editor.mutateSelectedText (selection, index) =>
+              expect(selection.insertText).toHaveBeenCalledWith('first', autoIndent: false);
+
+
           describe "when pasting multiple lines before any non-whitespace characters", ->
             it "auto-indents the lines spanned by the pasted text, based on the first pasted line", ->
               atom.clipboard.write("a(x);\n  b(x);\n    c(x);\n", indentBasis: 0)
@@ -4108,6 +4120,17 @@ describe "TextEditor", ->
         describe "when `autoIndentOnPaste` is false", ->
           beforeEach ->
             editor.update({autoIndentOnPaste: false})
+
+          it "does not override autoIndent option", ->
+            atom.clipboard.write('first')
+
+            editor.mutateSelectedText (selection, index) =>
+              spyOn(selection, 'insertText')
+
+            editor.pasteText autoIndent: true
+
+            editor.mutateSelectedText (selection, index) =>
+              expect(selection.insertText).toHaveBeenCalledWith('first', autoIndent: true);
 
           describe "when the cursor is indented further than the original copied text", ->
             it "increases the indentation of the copied lines to match", ->
