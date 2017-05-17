@@ -174,6 +174,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
         'core:cut': -> @cutSelectedText()
         'core:copy': -> @copySelectedText()
         'core:paste': -> @pasteText()
+        'core:paste-verbatim': -> @pasteText autoIndent: false
         'editor:delete-to-previous-word-boundary': -> @deleteToPreviousWordBoundary()
         'editor:delete-to-next-word-boundary': -> @deleteToNextWordBoundary()
         'editor:delete-to-beginning-of-word': -> @deleteToBeginningOfWord()

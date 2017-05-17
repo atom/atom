@@ -3188,7 +3188,7 @@ class TextEditor extends Model
     return false unless @emitWillInsertTextEvent(clipboardText)
 
     metadata ?= {}
-    options.autoIndent = @shouldAutoIndentOnPaste()
+    options.autoIndent = @shouldAutoIndentOnPaste() unless options.autoIndent?
 
     @mutateSelectedText (selection, index) =>
       if metadata.selections?.length is @getSelections().length
