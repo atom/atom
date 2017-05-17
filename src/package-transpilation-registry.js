@@ -29,6 +29,13 @@ class PackageTranspilationRegistry {
 
   removeTranspilerConfigForPath (packagePath) {
     delete this.configByPackagePath[packagePath]
+    const packagePathWithSep = packagePath.endsWith(path.sep) ?
+      packagePath : packagePath + path.sep;
+    Object.keys(this.specByFilePath).forEach(filePath => {
+      if (filePath.startsWith(packagePathWithSep)) {
+        delete this.specByFilePath[filePath]
+      }
+    })
   }
 
   // Wraps the transpiler in an object with the same interface

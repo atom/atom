@@ -40,6 +40,7 @@ module.exports = function () {
         pathsToCompile.forEach(transpilePath)
       }
 
+      CompileCache.removeTranspilerConfigForPath(intermediatePackagePath)
       rootPackageBackup.restore()
       intermediatePackageBackup.restore()
     }
