@@ -96,6 +96,10 @@ class GitRepository
       @project.getBuffers().forEach (buffer) => @subscribeToBuffer(buffer)
       @subscriptions.add @project.onDidAddBuffer (buffer) => @subscribeToBuffer(buffer)
 
+    window.requestIdleCallback =>
+      @statusTask = new Task require.resolve('./repository-status-handler')
+      @statusTask.start()
+
   # Public: Destroy this {GitRepository} object.
   #
   # This destroys any tasks and subscriptions and releases the underlying
@@ -467,28 +471,31 @@ class GitRepository
   # Refreshes the current git status in an outside process and asynchronously
   # updates the relevant properties.
   refreshStatus: ->
-    @handlerPath ?= require.resolve('./repository-status-handler')
-
     relativeProjectPaths = @project?.getPaths()
       .map (projectPath) => @relativize(projectPath)
       .filter (projectPath) -> projectPath.length > 0 and not path.isAbsolute(projectPath)
 
-    @statusTask?.terminate()
     new Promise (resolve) =>
-      @statusTask = Task.once @handlerPath, @getPath(), relativeProjectPaths, ({statuses, upstream, branch, submodules}) =>
-        statusesUnchanged = _.isEqual(statuses, @statuses) and
-                            _.isEqual(upstream, @upstream) and
-                            _.isEqual(branch, @branch) and
-                            _.isEqual(submodules, @submodules)
+      window.requestIdleCallback =>
+        repoPath = @getPath()
+        responseSub = @statusTask.on repoPath, ({statuses, upstream, branch, submodules}) =>
+          statusesUnchanged = _.isEqual(statuses, @statuses) and
+                              _.isEqual(upstream, @upstream) and
+                              _.isEqual(branch, @branch) and
+                              _.isEqual(submodules, @submodules)
 
-        @statuses = statuses
-        @upstream = upstream
-        @branch = branch
-        @submodules = submodules
+          @statuses = statuses
+          @upstream = upstream
+          @branch = branch
+          @submodules = submodules
 
-        for submodulePath, submoduleRepo of @getRepo().submodules
-          submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
+          for submodulePath, submoduleRepo of @getRepo().submodules
+            submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
-        unless statusesUnchanged
-          @emitter.emit 'did-change-statuses'
-        resolve()
+          unless statusesUnchanged
+            @emitter.emit 'did-change-statuses'
+
+          responseSub.dispose()
+          resolve()
+
+        @statusTask.send {repoPath, paths: relativeProjectPaths}
