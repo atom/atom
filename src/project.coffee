@@ -53,35 +53,28 @@ class Project extends Model
   ###
 
   deserialize: (state) ->
-    state.paths = [state.path] if state.path? # backward compatibility
-
-    @buffers = _.compact state.buffers.map (bufferState) ->
-      # Check that buffer's file path is accessible
-      return if fs.isDirectorySync(bufferState.filePath)
+    bufferPromises = []
+    for bufferState in state.buffers
+      continue if fs.isDirectorySync(bufferState.filePath)
       if bufferState.filePath
         try
           fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
         catch error
-          return unless error.code is 'ENOENT'
+          continue unless error.code is 'ENOENT'
       unless bufferState.shouldDestroyOnFileDelete?
-        bufferState.shouldDestroyOnFileDelete =
-          -> atom.config.get('core.closeDeletedFileTabs')
-      TextBuffer.deserialize(bufferState)
-
-    @subscribeToBuffer(buffer) for buffer in @buffers
-    @setPaths(state.paths)
+        bufferState.shouldDestroyOnFileDelete = ->
+          atom.config.get('core.closeDeletedFileTabs')
+      bufferPromises.push(TextBuffer.deserialize(bufferState))
+    Promise.all(bufferPromises).then (@buffers) =>
+      @subscribeToBuffer(buffer) for buffer in @buffers
+      @setPaths(state.paths)
 
   serialize: (options={}) ->
     deserializer: 'Project'
     paths: @getPaths()
     buffers: _.compact(@buffers.map (buffer) ->
       if buffer.isRetained()
-        state = buffer.serialize({markerLayers: options.isUnloading is true})
-        # Skip saving large buffer text unless unloading to avoid blocking main thread
-        if not options.isUnloading and state.text.length > 2 * 1024 * 1024
-          delete state.text
-          delete state.digestWhenLastPersisted
-        state
+        buffer.serialize({markerLayers: options.isUnloading is true})
     )
 
   ###
@@ -371,11 +364,12 @@ class Project extends Model
 
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
-    buffer = new TextBuffer({
-      filePath: absoluteFilePath
-      shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete})
+    params = {shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete}
+    if absoluteFilePath?
+      buffer = TextBuffer.loadSync(absoluteFilePath, params)
+    else
+      buffer = new TextBuffer(params)
     @addBuffer(buffer)
-    buffer.loadSync()
     buffer
 
   # Given a file path, this sets its {TextBuffer}.
@@ -385,13 +379,14 @@ class Project extends Model
   #
   # Returns a {Promise} that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    buffer = new TextBuffer({
-      filePath: absoluteFilePath
-      shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete})
-    @addBuffer(buffer)
-    buffer.load()
-      .then((buffer) -> buffer)
-      .catch(=> @removeBuffer(buffer))
+    params = {shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete}
+    if absoluteFilePath?
+      promise = TextBuffer.load(absoluteFilePath, params)
+    else
+      promise = Promise.resolve(new TextBuffer(params))
+    promise.then (buffer) =>
+      @addBuffer(buffer)
+      buffer
 
   addBuffer: (buffer, options={}) ->
     @addBufferAtIndex(buffer, @buffers.length, options)

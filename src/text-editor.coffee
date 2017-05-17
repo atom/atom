@@ -185,8 +185,9 @@ class TextEditor extends Model
     @softWrapAtPreferredLineLength ?= false
     @preferredLineLength ?= 80
 
-    @buffer ?= new TextBuffer({shouldDestroyOnFileDelete: ->
-      atom.config.get('core.closeDeletedFileTabs')})
+    @buffer ?= new TextBuffer({
+      shouldDestroyOnFileDelete: -> atom.config.get('core.closeDeletedFileTabs')
+    })
     @tokenizedBuffer ?= new TokenizedBuffer({
       grammar, tabLength, @buffer, @largeFileMode, @assert
     })
@@ -2981,7 +2982,7 @@ class TextEditor extends Model
   # Returns a {Boolean} or undefined if no non-comment lines had leading
   # whitespace.
   usesSoftTabs: ->
-    for bufferRow in [0..@buffer.getLastRow()]
+    for bufferRow in [0..Math.min(1000, @buffer.getLastRow())]
       continue if @tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
 
       line = @buffer.lineForRow(bufferRow)

@@ -25,8 +25,12 @@ describe "Project", ->
       deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
       state = atom.project.serialize()
       state.paths.push('/directory/that/does/not/exist')
-      deserializedProject.deserialize(state, atom.deserializers)
-      expect(deserializedProject.getPaths()).toEqual(atom.project.getPaths())
+
+      waitsForPromise ->
+        deserializedProject.deserialize(state, atom.deserializers)
+
+      runs ->
+        expect(deserializedProject.getPaths()).toEqual(atom.project.getPaths())
 
     it "does not include unretained buffers in the serialized state", ->
       waitsForPromise ->
@@ -36,7 +40,11 @@ describe "Project", ->
         expect(atom.project.getBuffers().length).toBe 1
 
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+
+      waitsForPromise ->
         deserializedProject.deserialize(atom.project.serialize({isUnloading: false}))
+
+      runs ->
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "listens for destroyed events on deserialized buffers and removes them when they are destroyed", ->
@@ -46,8 +54,11 @@ describe "Project", ->
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+
+      waitsForPromise ->
         deserializedProject.deserialize(atom.project.serialize({isUnloading: false}))
 
+      runs ->
         expect(deserializedProject.getBuffers().length).toBe 1
         deserializedProject.getBuffers()[0].destroy()
         expect(deserializedProject.getBuffers().length).toBe 0
@@ -85,18 +96,24 @@ describe "Project", ->
       waitsForPromise ->
         atom.workspace.open('a')
 
+      bufferA = null
+      layerA = null
+      markerA = null
+
       runs ->
         bufferA = atom.project.getBuffers()[0]
         layerA = bufferA.addMarkerLayer(persistent: true)
         markerA = layerA.markPosition([0, 3])
 
+      waitsForPromise ->
         notQuittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        notQuittingProject.deserialize(atom.project.serialize({isUnloading: false}))
-        expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).toBeUndefined()
+        notQuittingProject.deserialize(atom.project.serialize({isUnloading: false})).then ->
+          expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).toBeUndefined()
 
+      waitsForPromise ->
         quittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        quittingProject.deserialize(atom.project.serialize({isUnloading: true}))
-        expect(quittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).not.toBeUndefined()
+        quittingProject.deserialize(atom.project.serialize({isUnloading: true})).then ->
+          expect(quittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).not.toBeUndefined()
 
   describe "when an editor is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
@@ -108,8 +125,10 @@ describe "Project", ->
       waitsForPromise ->
         atom.workspace.open().then (o) -> editor = o
 
-      runs ->
+      waitsForPromise ->
         editor.saveAs(tempFile)
+
+      runs ->
         expect(atom.project.getPaths()[0]).toBe path.dirname(tempFile)
 
   describe "before and after saving a buffer", ->
@@ -127,12 +146,13 @@ describe "Project", ->
       spyOn(atom.project.applicationDelegate, 'emitDidSavePath')
       spyOn(atom.project.applicationDelegate, 'emitWillSavePath')
 
-      buffer.save()
+      waitsForPromise -> buffer.save()
 
-      expect(atom.project.applicationDelegate.emitDidSavePath.calls.length).toBe(1)
-      expect(atom.project.applicationDelegate.emitDidSavePath).toHaveBeenCalledWith(buffer.getPath())
-      expect(atom.project.applicationDelegate.emitWillSavePath.calls.length).toBe(1)
-      expect(atom.project.applicationDelegate.emitWillSavePath).toHaveBeenCalledWith(buffer.getPath())
+      runs ->
+        expect(atom.project.applicationDelegate.emitDidSavePath.calls.length).toBe(1)
+        expect(atom.project.applicationDelegate.emitDidSavePath).toHaveBeenCalledWith(buffer.getPath())
+        expect(atom.project.applicationDelegate.emitWillSavePath.calls.length).toBe(1)
+        expect(atom.project.applicationDelegate.emitWillSavePath).toHaveBeenCalledWith(buffer.getPath())
 
   describe "when a watch error is thrown from the TextBuffer", ->
     editor = null

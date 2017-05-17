@@ -28,20 +28,20 @@ describe "TextEditor", ->
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
-      editor2 = TextEditor.deserialize(editor.serialize(), {
-        assert: atom.assert,
-        textEditors: atom.textEditors,
-        project: {
-          bufferForIdSync: (id) -> TextBuffer.deserialize(editor.buffer.serialize())
-        }
-      })
+      waitsForPromise ->
+        TextBuffer.deserialize(editor.buffer.serialize()).then (buffer2) ->
+          editor2 = TextEditor.deserialize(editor.serialize(), {
+            assert: atom.assert,
+            textEditors: atom.textEditors,
+            project: {bufferForIdSync: -> buffer2}
+          })
 
-      expect(editor2.id).toBe editor.id
-      expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
-      expect(editor2.getSelectedBufferRanges()).toEqual [[[1, 2], [3, 4]], [[5, 6], [7, 5]]]
-      expect(editor2.getSelections()[1].isReversed()).toBeTruthy()
-      expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
-      editor2.destroy()
+          expect(editor2.id).toBe editor.id
+          expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
+          expect(editor2.getSelectedBufferRanges()).toEqual [[[1, 2], [3, 4]], [[5, 6], [7, 5]]]
+          expect(editor2.getSelections()[1].isReversed()).toBeTruthy()
+          expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
+          editor2.destroy()
 
     it "restores the editor's layout configuration", ->
       editor.update({
@@ -58,22 +58,22 @@ describe "TextEditor", ->
 
       # Force buffer and display layer to be deserialized as well, rather than
       # reusing the same buffer instance
-      editor2 = TextEditor.deserialize(editor.serialize(), {
-        assert: atom.assert,
-        textEditors: atom.textEditors,
-        project: {
-          bufferForIdSync: (id) -> TextBuffer.deserialize(editor.buffer.serialize())
-        }
-      })
+      waitsForPromise ->
+        TextBuffer.deserialize(editor.buffer.serialize()).then (buffer2) ->
+          editor2 = TextEditor.deserialize(editor.serialize(), {
+            assert: atom.assert,
+            textEditors: atom.textEditors,
+            project: {bufferForIdSync: -> buffer2}
+          })
 
-      expect(editor2.getSoftTabs()).toBe(editor.getSoftTabs())
-      expect(editor2.hasAtomicSoftTabs()).toBe(editor.hasAtomicSoftTabs())
-      expect(editor2.getTabLength()).toBe(editor.getTabLength())
-      expect(editor2.getSoftWrapColumn()).toBe(editor.getSoftWrapColumn())
-      expect(editor2.getSoftWrapHangingIndentLength()).toBe(editor.getSoftWrapHangingIndentLength())
-      expect(editor2.getInvisibles()).toEqual(editor.getInvisibles())
-      expect(editor2.getEditorWidthInChars()).toBe(editor.getEditorWidthInChars())
-      expect(editor2.displayLayer.tabLength).toBe(editor2.getTabLength())
+          expect(editor2.getSoftTabs()).toBe(editor.getSoftTabs())
+          expect(editor2.hasAtomicSoftTabs()).toBe(editor.hasAtomicSoftTabs())
+          expect(editor2.getTabLength()).toBe(editor.getTabLength())
+          expect(editor2.getSoftWrapColumn()).toBe(editor.getSoftWrapColumn())
+          expect(editor2.getSoftWrapHangingIndentLength()).toBe(editor.getSoftWrapHangingIndentLength())
+          expect(editor2.getInvisibles()).toEqual(editor.getInvisibles())
+          expect(editor2.getEditorWidthInChars()).toBe(editor.getEditorWidthInChars())
+          expect(editor2.displayLayer.tabLength).toBe(editor2.getTabLength())
 
   describe "when the editor is constructed with the largeFileMode option set to true", ->
     it "loads the editor but doesn't tokenize", ->

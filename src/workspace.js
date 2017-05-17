@@ -1920,7 +1920,7 @@ module.exports = class Workspace extends Model {
     if (editor.getPath()) {
       const checkoutHead = () => {
         return this.project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
-          .then(repository => repository != null ? repository.checkoutHeadForEditor(editor) : undefined)
+          .then(repository => repository && repository.checkoutHeadForEditor(editor))
       }
 
       if (this.config.get('editor.confirmCheckoutHeadRevision')) {

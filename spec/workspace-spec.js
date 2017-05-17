@@ -32,32 +32,35 @@ describe('Workspace', () => {
   afterEach(() => temp.cleanupSync())
 
   describe('serialization', () => {
-    const simulateReload = () => {
-      const workspaceState = atom.workspace.serialize()
-      const projectState = atom.project.serialize({isUnloading: true})
-      atom.workspace.destroy()
-      atom.project.destroy()
-      atom.project = new Project({
-        notificationManager: atom.notifications,
-        packageManager: atom.packages,
-        confirm: atom.confirm.bind(atom),
-        applicationDelegate: atom.applicationDelegate
+    function simulateReload() {
+      waitsForPromise(() => {
+        const workspaceState = atom.workspace.serialize()
+        const projectState = atom.project.serialize({isUnloading: true})
+        atom.workspace.destroy()
+        atom.project.destroy()
+        atom.project = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm.bind(atom),
+          applicationDelegate: atom.applicationDelegate
+        })
+        return atom.project.deserialize(projectState).then(() => {
+          atom.workspace = new Workspace({
+            config: atom.config,
+            project: atom.project,
+            packageManager: atom.packages,
+            grammarRegistry: atom.grammars,
+            styleManager: atom.styles,
+            deserializerManager: atom.deserializers,
+            notificationManager: atom.notifications,
+            applicationDelegate: atom.applicationDelegate,
+            viewRegistry: atom.views,
+            assert: atom.assert.bind(atom),
+            textEditorRegistry: atom.textEditors
+          })
+          atom.workspace.deserialize(workspaceState, atom.deserializers)
+        })
       })
-      atom.project.deserialize(projectState)
-      atom.workspace = new Workspace({
-        config: atom.config,
-        project: atom.project,
-        packageManager: atom.packages,
-        grammarRegistry: atom.grammars,
-        styleManager: atom.styles,
-        deserializerManager: atom.deserializers,
-        notificationManager: atom.notifications,
-        applicationDelegate: atom.applicationDelegate,
-        viewRegistry: atom.views,
-        assert: atom.assert.bind(atom),
-        textEditorRegistry: atom.textEditors
-      })
-      return atom.workspace.deserialize(workspaceState, atom.deserializers)
     }
 
     describe('when the workspace contains text editors', () => {
@@ -89,9 +92,11 @@ describe('Workspace', () => {
         runs(() => {
           pane4.getActiveItem().setCursorScreenPosition([0, 2])
           pane2.activate()
+        })
 
-          simulateReload()
+        simulateReload()
 
+        runs(() => {
           expect(atom.workspace.getTextEditors().length).toBe(5)
           const [editor1, editor2, untitledEditor, editor3, editor4] = atom.workspace.getTextEditors()
           const firstDirectory = atom.project.getDirectories()[0]
@@ -117,7 +122,10 @@ describe('Workspace', () => {
         atom.workspace.getActivePane().destroy()
         expect(atom.workspace.getTextEditors().length).toBe(0)
         simulateReload()
-        expect(atom.workspace.getTextEditors().length).toBe(0)
+
+        runs(() => {
+          expect(atom.workspace.getTextEditors().length).toBe(0)
+        })
       })
     })
 
@@ -156,9 +164,11 @@ describe('Workspace', () => {
         runs(() => {
           pane4.getActiveItem().setCursorScreenPosition([0, 2])
           pane2.activate()
+        })
 
-          simulateReload()
+        simulateReload()
 
+        runs(() => {
           expect(atom.workspace.getTextEditors().length).toBe(5)
           const [editor1, editor2, untitledEditor, editor3, editor4] = atom.workspace.getTextEditors()
           const firstDirectory = atom.project.getDirectories()[0]
@@ -1634,13 +1644,16 @@ i = /test/; #FIXME\
           )
         })
 
-        atom2.project.deserialize(atom.project.serialize())
-        atom2.workspace.deserialize(atom.workspace.serialize(), atom2.deserializers)
-        const item = atom2.workspace.getActivePaneItem()
-        const pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
-        expect(document.title).toMatch(new RegExp(`^${item.getLongTitle()} \\u2014 ${pathEscaped}`))
+        waitsForPromise(() => atom2.project.deserialize(atom.project.serialize()))
 
-        atom2.destroy()
+        runs(() => {
+          atom2.workspace.deserialize(atom.workspace.serialize(), atom2.deserializers)
+          const item = atom2.workspace.getActivePaneItem()
+          const pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
+          expect(document.title).toMatch(new RegExp(`^${item.getLongTitle()} \\u2014 ${pathEscaped}`))
+
+          atom2.destroy()
+        })
       })
     })
   })
