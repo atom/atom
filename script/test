@@ -95,7 +95,8 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     if (require(pkgJsonPath).atomTestRunner) {
       console.log(`Installing test runner dependencies for ${packageName}`.bold.green)
       if (fs.existsSync(nodeModulesPath)) {
-        finalize = backupNodeModules(repositoryPackagePath)
+        const backup = backupNodeModules(repositoryPackagePath)
+        finalize = backup.restore
       } else {
         finalize = () => fs.removeSync(nodeModulesPath)
       }
