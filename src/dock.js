@@ -626,6 +626,16 @@ module.exports = class Dock {
     return this.paneContainer.getActivePane()
   }
 
+  // Extended: Make the next pane active.
+  activateNextPane () {
+    return this.paneContainer.activateNextPane()
+  }
+
+  // Extended: Make the previous pane active.
+  activatePreviousPane () {
+    return this.paneContainer.activatePreviousPane()
+  }
+
   paneForURI (uri) {
     return this.paneContainer.paneForURI(uri)
   }
