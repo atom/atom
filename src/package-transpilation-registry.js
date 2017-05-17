@@ -32,10 +32,10 @@ class PackageTranspilationRegistry {
     console.log(">>>>> REMOVING: " + packagePath)
     delete this.configByPackagePath[packagePath]
     const packagePathWithSep = packagePath.endsWith(path.sep) ?
-      packagePath : packagePath + path.sep;
+      path.join(packagePath) : path.join(packagePath) + path.sep;
     Object.keys(this.specByFilePath).forEach(filePath => {
       console.log('checking if ' + filePath + ' starts with ' + packagePathWithSep)
-      if (filePath.startsWith(packagePathWithSep)) {
+      if (path.join(filePath).startsWith(packagePathWithSep)) {
         console.log(' >> REMOVING ' + filePath)
         delete this.specByFilePath[filePath]
       }
