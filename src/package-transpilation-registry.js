@@ -32,7 +32,9 @@ class PackageTranspilationRegistry {
     const packagePathWithSep = packagePath.endsWith(path.sep) ?
       packagePath : packagePath + path.sep;
     Object.keys(this.specByFilePath).forEach(filePath => {
+      console.log('checking if ' + filePath + ' starts with ' + packagePathWithSep)
       if (filePath.startsWith(packagePathWithSep)) {
+        console.log(' >> REMOVING ' + filePath)
         delete this.specByFilePath[filePath]
       }
     })
@@ -46,7 +48,13 @@ class PackageTranspilationRegistry {
       getCachePath: (sourceCode, filePath) => {
         const spec = this.getPackageTranspilerSpecForFilePath(filePath)
         if (spec) {
-          return this.getCachePath(sourceCode, filePath, spec)
+          try {
+            return this.getCachePath(sourceCode, filePath, spec)
+          } catch (err) {
+            console.log("ERROR!!!")
+            console.log("The file being transpiled was " + filePath)
+            console.log(spec)
+          }
         }
 
         return transpiler.getCachePath(sourceCode, filePath)
