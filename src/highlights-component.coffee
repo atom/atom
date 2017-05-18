@@ -93,6 +93,8 @@ class HighlightsComponent
           else
             regionNode.style[property] = ''
 
+      regionNode.textContent = newRegionState.text if newRegionState.text?
+
     return
 
   flashHighlightNodeIfRequested: (id, newHighlightState) ->

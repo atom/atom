@@ -1215,7 +1215,7 @@ class TextEditorPresenter
       highlightState.flashDuration = properties.flashDuration
       highlightState.class = properties.class
       highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
-      highlightState.regions = @buildHighlightRegions(rangeWithinTile)
+      highlightState.regions = @buildHighlightRegions(rangeWithinTile, properties.includeMarkerText)
 
       for region in highlightState.regions
         @repositionRegionWithinTile(region, tileStartRow)
@@ -1245,7 +1245,7 @@ class TextEditorPresenter
   repositionRegionWithinTile: (region, tileStartRow) ->
     region.top += @scrollTop - @lineTopIndex.pixelPositionBeforeBlocksForRow(tileStartRow)
 
-  buildHighlightRegions: (screenRange) ->
+  buildHighlightRegions: (screenRange, includeMarkerText=false) ->
     lineHeightInPixels = @lineHeight
     startPixelPosition = @pixelPositionForScreenPosition(screenRange.start)
     endPixelPosition = @pixelPositionForScreenPosition(screenRange.end)
@@ -1266,24 +1266,38 @@ class TextEditorPresenter
       else
         region.width = endPixelPosition.left - startPixelPosition.left
 
+      if includeMarkerText
+        region.text = @getTextInScreenRange(screenRange)
+
       regions.push(region)
     else
       # First row, extending from selection start to the right side of screen
-      regions.push(
+      region =
         top: startPixelPosition.top
         left: startPixelPosition.left
         height: lineHeightInPixels
         right: 0
-      )
+
+      if includeMarkerText
+        region.text = @getTextInScreenRange([screenRange.start, [screenRange.start.row, Infinity]])
+
+      regions.push(region)
 
       # Middle rows, extending from left side to right side of screen
       if spannedRows > 2
-        regions.push(
+        region =
           top: startPixelPosition.top + lineHeightInPixels
           height: endPixelPosition.top - startPixelPosition.top - lineHeightInPixels
           left: 0
           right: 0
-        )
+
+        if includeMarkerText
+          region.text = @getTextInScreenRange([
+            [screenRange.start.row + 1, 0]
+            [screenRange.end.row - 1, Infinity]
+          ])
+
+        regions.push(region)
 
       # Last row, extending from left side of screen to selection end
       if screenRange.end.column > 0
@@ -1297,9 +1311,18 @@ class TextEditorPresenter
         else
           region.width = endPixelPosition.left
 
+        if includeMarkerText
+          region.text = @getTextInScreenRange([
+            [screenRange.end.row, 0]
+            screenRange.end
+          ])
+
         regions.push(region)
 
     regions
+
+  getTextInScreenRange: (screenRange) ->
+    @model.getTextInRange(@displayLayer.translateScreenRange(screenRange))
 
   setOverlayDimensions: (decorationId, itemWidth, itemHeight, contentMargin) ->
     @overlayDimensions[decorationId] ?= {}
