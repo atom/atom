@@ -85,15 +85,19 @@ describe "Project", ->
       waitsForPromise ->
         atom.workspace.open('a')
 
+      notQuittingProject = null
+      quittingProject = null
       runs ->
         bufferA = atom.project.getBuffers()[0]
         layerA = bufferA.addMarkerLayer(persistent: true)
         markerA = layerA.markPosition([0, 3])
 
+        notQuittingProject?.destroy()
         notQuittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
         notQuittingProject.deserialize(atom.project.serialize({isUnloading: false}))
         expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).toBeUndefined()
 
+        quittingProject?.destroy()
         quittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
         quittingProject.deserialize(atom.project.serialize({isUnloading: true}))
         expect(quittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).not.toBeUndefined()

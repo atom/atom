@@ -274,9 +274,11 @@ describe "AtomEnvironment", ->
       waitsForPromise ->
         atom.workspace.open('sample.js').then (e) -> editor = e
 
+      atom2 = null
       runs ->
         atom.textEditors.setGrammarOverride(editor, 'text.plain')
 
+        atom2?.destroy()
         atom2 = new AtomEnvironment({
           applicationDelegate: atom.applicationDelegate,
           window: document.createElement('div'),
