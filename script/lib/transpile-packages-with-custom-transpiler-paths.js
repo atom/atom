@@ -1,15 +1,19 @@
 'use strict'
 
 const CompileCache = require('../../src/compile-cache')
-const fs = require('fs')
+const fs = require('fs-extra')
 const glob = require('glob')
 const path = require('path')
 
 const CONFIG = require('../config')
+const backupNodeModules = require('./backup-node-modules')
+const runApmInstall = require('./run-apm-install')
+
+require('colors')
+
 
 module.exports = function () {
   console.log(`Transpiling packages with custom transpiler configurations in ${CONFIG.intermediateAppPath}`)
-  let pathsToCompile = []
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
     const rootPackagePath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName)
     const intermediatePackagePath = path.join(CONFIG.intermediateAppPath, 'node_modules', packageName)
@@ -45,10 +49,6 @@ module.exports = function () {
       rootPackageBackup.restore()
       intermediatePackageBackup.restore()
     }
-  }
-
-  for (let path of pathsToCompile) {
-    transpilePath(path)
   }
 }
 
