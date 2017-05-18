@@ -40,6 +40,11 @@ module.exports = function () {
         pathsToCompile.forEach(transpilePath)
       }
 
+      // Now that we've transpiled everything in-place, we no longer want Atom to try to transpile
+      // the same files when they're being required.
+      delete metadata.atomTranspilers
+      fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, '  '), 'utf8')
+
       CompileCache.removeTranspilerConfigForPath(intermediatePackagePath)
       rootPackageBackup.restore()
       intermediatePackageBackup.restore()
