@@ -110,9 +110,10 @@ class GitRepository
       @emitter.dispose()
       @emitter = null
 
-    if @statusTask?
-      @statusTask.terminate()
-      @statusTask = null
+    window.requestIdleCallback =>
+      if @statusTask?
+        @statusTask.terminate()
+        @statusTask = null
 
     if @repo?
       @repo.release()
