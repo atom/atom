@@ -1,6 +1,7 @@
 fs = require 'fs'
 {Directory} = require 'pathwatcher'
 GitRepository = require './git-repository'
+StatusHandlerHelper = require './repository-status-handler-helper'
 
 # Returns the .gitdir path in the agnostic Git symlink .git file given, or
 # null if the path is not a valid gitfile.
@@ -77,7 +78,11 @@ class GitRepositoryProvider
     unless repo
       repo = GitRepository.open(gitDirPath, {@project, @config})
       return null unless repo
-      repo.onDidDestroy(=> delete @pathToRepository[gitDirPath])
+      repo.onDidDestroy =>
+        delete @pathToRepository[gitDirPath]
+        if Object.keys(@pathToRepository).length is 0
+          StatusHandlerHelper.terminateHandler()
+
       @pathToRepository[gitDirPath] = repo
       repo.refreshIndex()
       repo.refreshStatus()
