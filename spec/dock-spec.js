@@ -286,21 +286,34 @@ describe('Dock', () => {
     })
   })
 
-  describe('when dragging an item over an empty dock', () => {
-    it('has the preferred size of the item', () => {
+  describe('drag handling', () => {
+    it('expands docks to match the preferred size of the dragged item', () => {
       jasmine.attachToDOM(atom.workspace.getElement())
 
-      const item = {
-        element: document.createElement('div'),
+      const element = document.createElement('div')
+      element.setAttribute('is', 'tabs-tab')
+      element.item = {
+        element,
         getDefaultLocation() { return 'left' },
-        getPreferredWidth() { return 144 },
-        serialize: () => ({deserializer: 'DockTestItem'})
+        getPreferredWidth() { return 144 }
       }
-      const dock = atom.workspace.getLeftDock()
-      const dockElement = dock.getElement()
 
-      dock.setDraggingItem(item)
-      expect(dock.wrapperElement.offsetWidth).toBe(144)
+      const dragEvent = new DragEvent('dragstart')
+      Object.defineProperty(dragEvent, 'target', {value: element})
+
+      atom.workspace.getElement().handleDragStart(dragEvent)
+      expect(atom.workspace.getLeftDock().wrapperElement.offsetWidth).toBe(144)
+    })
+
+    it('does nothing when text nodes are dragged', () => {
+      jasmine.attachToDOM(atom.workspace.getElement())
+
+      const textNode = document.createTextNode('hello')
+
+      const dragEvent = new DragEvent('dragstart')
+      Object.defineProperty(dragEvent, 'target', {value: textNode})
+
+      expect(() => atom.workspace.getElement().handleDragStart(dragEvent)).not.toThrow()
     })
   })
 })
