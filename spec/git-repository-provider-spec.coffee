@@ -12,6 +12,9 @@ describe "GitRepositoryProvider", ->
     provider = new GitRepositoryProvider(atom.project, atom.config, atom.confirm)
 
   afterEach ->
+    if provider?
+      provider.pathToRepository[key].destroy() for key in Object.keys(provider.pathToRepository)
+
     temp.cleanupSync()
 
   describe ".repositoryForDirectory(directory)", ->
@@ -22,8 +25,12 @@ describe "GitRepositoryProvider", ->
           provider.repositoryForDirectory(directory).then (result) ->
             expect(result).toBeInstanceOf GitRepository
             expect(provider.pathToRepository[result.getPath()]).toBeTruthy()
-            expect(result.statusTask).toBeTruthy()
             expect(result.getType()).toBe 'git'
+            waitForStatusTask = new Promise (resolve) ->
+              window.requestIdleCallback ->
+                resolve()
+            waitForStatusTask.then ->
+              expect(result.statusTask).toBeTruthy()
 
       it "returns the same GitRepository for different Directory objects in the same repo", ->
         firstRepo = null
@@ -62,7 +69,7 @@ describe "GitRepositoryProvider", ->
 
     describe "when specified a Directory with a valid gitfile-linked repository", ->
       it "returns a Promise that resolves to a GitRepository", ->
-        waitsForPromise ->
+        waitsForPromise {timeout: if process.env.CI then 60000 else 10000}, ->
           gitDirPath = path.join(__dirname, 'fixtures', 'git', 'master.git')
           workDirPath = temp.mkdirSync('git-workdir')
           fs.writeFileSync(path.join(workDirPath, '.git'), 'gitdir: ' + gitDirPath+'\n')
@@ -71,8 +78,12 @@ describe "GitRepositoryProvider", ->
           provider.repositoryForDirectory(directory).then (result) ->
             expect(result).toBeInstanceOf GitRepository
             expect(provider.pathToRepository[result.getPath()]).toBeTruthy()
-            expect(result.statusTask).toBeTruthy()
             expect(result.getType()).toBe 'git'
+            waitForStatusTask = new Promise (resolve) ->
+              window.requestIdleCallback ->
+                resolve()
+            waitForStatusTask.then ->
+              expect(result.statusTask).toBeTruthy()
 
     describe "when specified a Directory without existsSync()", ->
       directory = null
