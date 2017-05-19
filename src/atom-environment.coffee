@@ -135,6 +135,7 @@ class AtomEnvironment extends Model
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
     @views = new ViewRegistry(this)
+    TextEditor.setScheduler(@views)
     @notifications = new NotificationManager
     @updateProcessEnv ?= updateProcessEnv # For testing
 
@@ -208,8 +209,6 @@ class AtomEnvironment extends Model
       @getStorageFolder().clear()
       @stateStore.clear()
 
-    @views.initialize()
-
     ConfigSchema.projectHome = {
       type: 'string',
       default: path.join(fs.getHomeDirectory(), 'github'),
@@ -251,9 +250,13 @@ class AtomEnvironment extends Model
     @attachSaveStateListeners()
     @windowEventHandler.initialize(@window, @document)
 
+    didChangeStyles = @didChangeStyles.bind(this)
+    @disposables.add(@styles.onDidAddStyleElement(didChangeStyles))
+    @disposables.add(@styles.onDidUpdateStyleElement(didChangeStyles))
+    @disposables.add(@styles.onDidRemoveStyleElement(didChangeStyles))
+
     @observeAutoHideMenuBar()
 
-    @history.initialize(@window.localStorage)
     @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
 
   preloadPackages: ->
@@ -261,7 +264,7 @@ class AtomEnvironment extends Model
 
   attachSaveStateListeners: ->
     saveState = _.debounce((=>
-      window.requestIdleCallback => @saveState({isUnloading: false}) unless @unloaded
+      @window.requestIdleCallback => @saveState({isUnloading: false}) unless @unloaded
     ), @saveStateDebounceInterval)
     @document.addEventListener('mousedown', saveState, true)
     @document.addEventListener('keydown', saveState, true)
@@ -677,11 +680,8 @@ class AtomEnvironment extends Model
   # Call this method when establishing a real application window.
   startEditorWindow: ->
     @unloaded = false
-    updateProcessEnvPromise = @updateProcessEnv(@getLoadSettings().env)
-    updateProcessEnvPromise.then =>
-      @shellEnvironmentLoaded = true
-      @emitter.emit('loaded-shell-environment')
-      @packages.triggerActivationHook('core:loaded-shell-environment')
+
+    updateProcessEnvPromise = @updateProcessEnvAndTriggerHooks()
 
     loadStatePromise = @loadState().then (state) =>
       @windowDimensions = state?.windowDimensions
@@ -799,6 +799,17 @@ class AtomEnvironment extends Model
   uninstallWindowEventHandler: ->
     @windowEventHandler?.unsubscribe()
     @windowEventHandler = null
+
+  didChangeStyles: (styleElement) ->
+    TextEditor.didUpdateStyles()
+    if styleElement.textContent.indexOf('scrollbar') >= 0
+      TextEditor.didUpdateScrollbarStyles()
+
+  updateProcessEnvAndTriggerHooks: ->
+    @updateProcessEnv(@getLoadSettings().env).then =>
+      @shellEnvironmentLoaded = true
+      @emitter.emit('loaded-shell-environment')
+      @packages.triggerActivationHook('core:loaded-shell-environment')
 
   ###
   Section: Messaging the User

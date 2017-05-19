@@ -5,54 +5,21 @@
 atom-text-editor {
   display: flex;
   font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+  cursor: text;
 
-  .editor--private, .editor-contents--private {
-    height: 100%;
-    width: 100%;
-  }
-
-  .editor-contents--private {
-    width: 100%;
-    cursor: text;
-    display: flex;
-    -webkit-user-select: none;
-    position: relative;
+  .gutter-container {
+    width: min-content;
+    background-color: inherit;
+    cursor: default;
   }
 
   .gutter {
     overflow: hidden;
     z-index: 0;
     text-align: right;
-    cursor: default;
     min-width: 1em;
     box-sizing: border-box;
-  }
-
-  .line-numbers {
-    position: relative;
-  }
-
-  .line-number {
-    position: relative;
-    white-space: nowrap;
-    padding-left: .5em;
-    opacity: 0.6;
-
-    &.cursor-line {
-      opacity: 1;
-    }
-
-    .icon-right {
-      .octicon(chevron-down, 0.8em);
-      display: inline-block;
-      visibility: hidden;
-      opacity: .6;
-      padding: 0 .4em;
-
-      &::before {
-        text-align: center;
-      }
-    }
+    background-color: inherit;
   }
 
   .gutter:hover {
@@ -78,14 +45,33 @@ atom-text-editor {
     }
   }
 
-  .scroll-view {
-    position: relative;
-    z-index: 0;
+  .line-numbers {
+    width: max-content;
+    background-color: inherit;
+  }
 
-    overflow: hidden;
-    flex: 1;
-    min-width: 0;
-    min-height: 0;
+  .line-number {
+    width: min-content;
+    padding-left: .5em;
+    white-space: nowrap;
+    opacity: 0.6;
+    position: relative;
+
+    .icon-right {
+      .octicon(chevron-down, 0.8em);
+      display: inline-block;
+      visibility: hidden;
+      opacity: .6;
+      padding: 0 .4em;
+
+      &::before {
+        text-align: center;
+      }
+    }
+  }
+
+  .lines {
+    background-color: inherit;
   }
 
   .highlight {
@@ -94,19 +80,14 @@ atom-text-editor {
   }
 
   .highlight .region {
-    position: absolute;
     pointer-events: none;
     z-index: -1;
   }
 
-  .lines {
-    min-width: 100%;
-    position: relative;
-    z-index: 1;
-  }
-
   .line {
     white-space: pre;
+    overflow: hidden;
+    contain: layout;
 
     &.cursor-line .fold-marker::after {
       opacity: 1;
@@ -139,17 +120,6 @@ atom-text-editor {
     box-shadow: inset 1px 0;
   }
 
-  .hidden-input {
-    padding: 0;
-    border: 0;
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    left: 0;
-    opacity: 0;
-    width: 1px;
-  }
-
   .cursor {
     z-index: 4;
     pointer-events: none;
@@ -165,43 +135,6 @@ atom-text-editor {
 
   .cursors.blink-off .cursor {
     opacity: 0;
-  }
-
-  .horizontal-scrollbar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-
-    height: 15px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    z-index: 3;
-    cursor: default;
-
-    .scrollbar-content {
-      height: 15px;
-    }
-  }
-
-  .vertical-scrollbar {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-
-    width: 15px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    z-index: 3;
-    cursor: default;
-  }
-
-  .scrollbar-corner {
-    position: absolute;
-    overflow: auto;
-    bottom: 0;
-    right: 0;
   }
 }
 

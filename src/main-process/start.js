@@ -22,6 +22,8 @@ module.exports = function start (resourcePath, startTime) {
   const previousConsoleLog = console.log
   console.log = nslog
 
+  app.commandLine.appendSwitch('enable-experimental-web-platform-features')
+
   const args = parseCommandLine(process.argv.slice(1))
   atomPaths.setAtomHome(app.getPath('home'))
   atomPaths.setUserData(app)
