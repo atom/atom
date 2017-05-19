@@ -65,7 +65,6 @@ describe('Dock', () => {
   describe('activating the next pane', () => {
     describe('when the dock has more than one pane', () => {
       it('activates the next pane', () => {
-        jasmine.attachToDOM(atom.workspace.getElement())
         const dock = atom.workspace.getLeftDock()
         const pane1 = dock.getPanes()[0]
         const pane2 = pane1.splitRight()
@@ -84,7 +83,6 @@ describe('Dock', () => {
 
     describe('when the dock has only one pane', () => {
       it('leaves the current pane active', () => {
-        jasmine.attachToDOM(atom.workspace.getElement())
         const dock = atom.workspace.getLeftDock()
 
         expect(dock.getPanes().length).toBe(1)
@@ -99,7 +97,6 @@ describe('Dock', () => {
   describe('activating the previous pane', () => {
     describe('when the dock has more than one pane', () => {
       it('activates the previous pane', () => {
-        jasmine.attachToDOM(atom.workspace.getElement())
         const dock = atom.workspace.getLeftDock()
         const pane1 = dock.getPanes()[0]
         const pane2 = pane1.splitRight()
@@ -118,7 +115,6 @@ describe('Dock', () => {
 
     describe('when the dock has only one pane', () => {
       it('leaves the current pane active', () => {
-        jasmine.attachToDOM(atom.workspace.getElement())
         const dock = atom.workspace.getLeftDock()
 
         expect(dock.getPanes().length).toBe(1)
