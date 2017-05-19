@@ -186,7 +186,12 @@
       "spyOn",
       "waitsFor",
       "waitsForPromise",
-      "indexedDB"
+      "indexedDB",
+      "IntersectionObserver",
+      "FocusEvent",
+      "requestAnimationFrame",
+      "HTMLElement",
+      "snapshotResult"
     ]
   }
 }
