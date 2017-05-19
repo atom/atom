@@ -3,28 +3,23 @@ Task = require './task'
 handlerInstance = null
 
 startHandler = ->
-  new Promise (resolve) ->
-    window.requestIdleCallback ->
-      if not handlerInstance?
-        handlerInstance = new Task require.resolve('./repository-status-handler')
-        handlerInstance.start()
-      resolve()
+  if not handlerInstance?
+    handlerInstance = new Task require.resolve('./repository-status-handler')
+    handlerInstance.start()
 
 terminateHandler = ->
-  window.requestIdleCallback ->
-    if handlerInstance?
-      handlerInstance.terminate()
-      handlerInstance = null
+  if handlerInstance?
+    handlerInstance.terminate()
+    handlerInstance = null
 
 refreshStatus = (repoPath, paths) ->
-  startHandler().then ->
-    new Promise (resolve) ->
-      window.requestIdleCallback ->
-        responseSub = handlerInstance.on repoPath, (result) ->
-          responseSub.dispose()
-          resolve(result)
+  startHandler()
+  new Promise (resolve) ->
+    responseSub = handlerInstance.on repoPath, (result) ->
+      responseSub.dispose()
+      resolve(result)
 
-        handlerInstance.send {repoPath, paths}
+    handlerInstance.send {repoPath, paths}
 
 module.exports = {
   terminateHandler,
