@@ -190,7 +190,8 @@
       "IntersectionObserver",
       "FocusEvent",
       "requestAnimationFrame",
-      "HTMLElement"
+      "HTMLElement",
+      "snapshotResult"
     ]
   }
 }
