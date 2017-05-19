@@ -3,6 +3,7 @@
 'use strict'
 
 require('colors')
+const argv = require('minimist')(process.argv.slice(2))
 const assert = require('assert')
 const async = require('async')
 const childProcess = require('child_process')
@@ -137,12 +138,24 @@ function runBenchmarkTests (callback) {
 let testSuitesToRun = testSuitesForPlatform(process.platform)
 
 function testSuitesForPlatform(platform) {
+  let suites = [];
   switch(platform) {
-    case 'darwin':  return [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
-    case 'win32':   return (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
-    case 'linux':   return [runCoreMainProcessTests]
-    default:        return []
+    case 'darwin':
+      suites = [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
+      break;
+    case 'win32':
+      suites = (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
+      break;
+    case 'linux':
+      suites = [runCoreMainProcessTests]
+      break;
   }
+
+  if(argv.skipMainProccessTests) {
+    suites = suites.filter(suite => suite !== runCoreMainProcessTests);
+  }
+
+  return suites;
 }
 
 async.series(testSuitesToRun, function (err, exitCodes) {
