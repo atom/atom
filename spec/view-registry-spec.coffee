@@ -5,7 +5,6 @@ describe "ViewRegistry", ->
 
   beforeEach ->
     registry = new ViewRegistry
-    registry.initialize()
 
   afterEach ->
     registry.clearDocumentRequests()
@@ -127,8 +126,6 @@ describe "ViewRegistry", ->
       spyOn(window, 'clearInterval').andCallFake(fakeClearInterval)
       events = []
 
-      registry.pollDocument -> events.push('poll')
-      registry.pollAfterNextUpdate()
       registry.updateDocument -> events.push('write 1')
       registry.readDocument ->
         registry.updateDocument -> events.push('write from read 1')
@@ -147,108 +144,20 @@ describe "ViewRegistry", ->
         'write 2'
         'read 1'
         'read 2'
-        'poll'
         'write from read 1'
         'write from read 2'
       ]
-
-    it "pauses DOM polling when reads or writes are pending", ->
-      spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
-      spyOn(window, 'clearInterval').andCallFake(fakeClearInterval)
-      events = []
-
-      registry.pollDocument -> events.push('poll')
-      registry.updateDocument -> events.push('write')
-      registry.readDocument -> events.push('read')
-
-      window.dispatchEvent(new UIEvent('resize'))
-      expect(events).toEqual []
-
-      frameRequests[0]()
-      expect(events).toEqual ['write', 'read', 'poll']
-
-      window.dispatchEvent(new UIEvent('resize'))
-      expect(events).toEqual ['write', 'read', 'poll', 'poll']
-
-    it "polls the document after updating when ::pollAfterNextUpdate() has been called", ->
-      events = []
-      registry.pollDocument -> events.push('poll')
-      registry.updateDocument -> events.push('write')
-      registry.readDocument -> events.push('read')
-      frameRequests.shift()()
-      expect(events).toEqual ['write', 'read']
-
-      events = []
-      registry.pollAfterNextUpdate()
-      registry.updateDocument -> events.push('write')
-      registry.readDocument -> events.push('read')
-      frameRequests.shift()()
-      expect(events).toEqual ['write', 'read', 'poll']
-
-  describe "::pollDocument(fn)", ->
-    [testElement, testStyleSheet, disposable1, disposable2, events] = []
-
-    beforeEach ->
-      testElement = document.createElement('div')
-      testStyleSheet = document.createElement('style')
-      testStyleSheet.textContent = 'body {}'
-      jasmineContent = document.getElementById('jasmine-content')
-      jasmineContent.appendChild(testElement)
-      jasmineContent.appendChild(testStyleSheet)
-
-      events = []
-      disposable1 = registry.pollDocument -> events.push('poll 1')
-      disposable2 = registry.pollDocument -> events.push('poll 2')
-
-    it "calls all registered polling functions after document or stylesheet changes until they are disabled via a returned disposable", ->
-      jasmine.useRealClock()
-      expect(events).toEqual []
-
-      testElement.style.width = '400px'
-
-      waitsFor "events to occur in response to DOM mutation", -> events.length > 0
-
-      runs ->
-        expect(events).toEqual ['poll 1', 'poll 2']
-        events.length = 0
-
-        testStyleSheet.textContent = 'body {color: #333;}'
-
-      waitsFor "events to occur in reponse to style sheet mutation", -> events.length > 0
-
-      runs ->
-        expect(events).toEqual ['poll 1', 'poll 2']
-        events.length = 0
-
-        disposable1.dispose()
-        testElement.style.color = '#fff'
-
-      waitsFor "more events to occur in response to DOM mutation", -> events.length > 0
-
-      runs ->
-        expect(events).toEqual ['poll 2']
-
-    it "calls all registered polling functions when the window resizes", ->
-      expect(events).toEqual []
-
-      window.dispatchEvent(new UIEvent('resize'))
-
-      expect(events).toEqual ['poll 1', 'poll 2']
 
   describe "::getNextUpdatePromise()", ->
     it "returns a promise that resolves at the end of the next update cycle", ->
       updateCalled = false
       readCalled = false
-      pollCalled = false
 
       waitsFor 'getNextUpdatePromise to resolve', (done) ->
         registry.getNextUpdatePromise().then ->
           expect(updateCalled).toBe true
           expect(readCalled).toBe true
-          expect(pollCalled).toBe true
           done()
 
         registry.updateDocument -> updateCalled = true
         registry.readDocument -> readCalled = true
-        registry.pollDocument -> pollCalled = true
-        registry.pollAfterNextUpdate()

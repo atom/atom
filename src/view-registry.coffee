@@ -27,21 +27,13 @@ module.exports =
 class ViewRegistry
   animationFrameRequest: null
   documentReadInProgress: false
-  performDocumentPollAfterUpdate: false
-  debouncedPerformDocumentPoll: null
-  minimumPollInterval: 200
 
   constructor: (@atomEnvironment) ->
-    @polling = false
     @clear()
-
-  initialize: ->
-    @observer = new MutationObserver(@requestDocumentPoll)
 
   clear: ->
     @views = new WeakMap
     @providers = []
-    @debouncedPerformDocumentPoll = _.throttle(@performDocumentPoll, @minimumPollInterval).bind(this)
     @clearDocumentRequests()
 
   # Essential: Add a provider that will be used to construct views in the
@@ -175,16 +167,6 @@ class ViewRegistry
     new Disposable =>
       @documentReaders = @documentReaders.filter (reader) -> reader isnt fn
 
-  pollDocument: (fn) ->
-    @startPollingDocument() if @documentPollers.length is 0
-    @documentPollers.push(fn)
-    new Disposable =>
-      @documentPollers = @documentPollers.filter (poller) -> poller isnt fn
-      @stopPollingDocument() if @documentPollers.length is 0
-
-  pollAfterNextUpdate: ->
-    @performDocumentPollAfterUpdate = true
-
   getNextUpdatePromise: ->
     @nextUpdatePromise ?= new Promise (resolve) =>
       @resolveNextUpdatePromise = resolve
@@ -192,13 +174,11 @@ class ViewRegistry
   clearDocumentRequests: ->
     @documentReaders = []
     @documentWriters = []
-    @documentPollers = []
     @nextUpdatePromise = null
     @resolveNextUpdatePromise = null
     if @animationFrameRequest?
       cancelAnimationFrame(@animationFrameRequest)
       @animationFrameRequest = null
-    @stopPollingDocument()
 
   requestDocumentUpdate: ->
     @animationFrameRequest ?= requestAnimationFrame(@performDocumentUpdate)
@@ -213,32 +193,9 @@ class ViewRegistry
 
     @documentReadInProgress = true
     reader() while reader = @documentReaders.shift()
-    @performDocumentPoll() if @performDocumentPollAfterUpdate
-    @performDocumentPollAfterUpdate = false
     @documentReadInProgress = false
 
     # process updates requested as a result of reads
     writer() while writer = @documentWriters.shift()
 
     resolveNextUpdatePromise?()
-
-  startPollingDocument: ->
-    window.addEventListener('resize', @requestDocumentPoll)
-    @observer.observe(document, {subtree: true, childList: true, attributes: true})
-    @polling = true
-
-  stopPollingDocument: ->
-    if @polling
-      window.removeEventListener('resize', @requestDocumentPoll)
-      @observer.disconnect()
-      @polling = false
-
-  requestDocumentPoll: =>
-    if @animationFrameRequest?
-      @performDocumentPollAfterUpdate = true
-    else
-      @debouncedPerformDocumentPoll()
-
-  performDocumentPoll: ->
-    poller() for poller in @documentPollers
-    return

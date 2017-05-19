@@ -13,14 +13,14 @@
 
 // Editors
 & when ( lightness(@syntax-background-color) < 50% ) {
-  .platform-darwin atom-text-editor:not([mini]) .editor-contents--private {
+  .platform-darwin atom-text-editor:not([mini]) {
     .cursor-white();
   }
 }
 
 // Mini Editors
 & when ( lightness(@input-background-color) < 50% ) {
-  .platform-darwin atom-text-editor[mini] .editor-contents--private {
+  .platform-darwin atom-text-editor[mini] {
     .cursor-white();
   }
 }

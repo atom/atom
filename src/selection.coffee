@@ -769,8 +769,6 @@ class Selection extends Model
     {oldHeadScreenPosition, oldTailScreenPosition, newHeadScreenPosition} = e
     {textChanged} = e
 
-    @cursor.updateVisibility()
-
     unless oldHeadScreenPosition.isEqual(newHeadScreenPosition)
       @cursor.goalColumn = null
       cursorMovedEvent = {
