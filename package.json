@@ -65,7 +65,7 @@
     "sinon": "1.17.4",
     "@atom/source-map-support": "^0.3.4",
     "temp": "^0.8.3",
-    "text-buffer": "13.0.0-1",
+    "text-buffer": "13.0.0-2",
     "typescript-simple": "1.0.0",
     "underscore-plus": "^1.6.6",
     "winreg": "^1.2.1",
