@@ -2277,23 +2277,12 @@ i = /test/; #FIXME\
   }) // Cancels other ongoing searches
 
   describe('::replace(regex, replacementText, paths, iterator)', () => {
-    let filePath
-    let commentFilePath
-    let sampleContent
-    let sampleCommentContent
+    let fixturesDir, projectDir
 
     beforeEach(() => {
-      atom.project.setPaths([atom.project.getDirectories()[0].resolve('../')])
-
-      filePath = atom.project.getDirectories()[0].resolve('sample.js')
-      commentFilePath = atom.project.getDirectories()[0].resolve('sample-with-comments.js')
-      sampleContent = fs.readFileSync(filePath).toString()
-      sampleCommentContent = fs.readFileSync(commentFilePath).toString()
-    })
-
-    afterEach(() => {
-      fs.writeFileSync(filePath, sampleContent)
-      fs.writeFileSync(commentFilePath, sampleCommentContent)
+      fixturesDir = path.dirname(atom.project.getPaths()[0])
+      projectDir = temp.mkdirSync('atom')
+      atom.project.setPaths([projectDir])
     })
 
     describe("when a file doesn't exist", () => {
@@ -2315,6 +2304,9 @@ i = /test/; #FIXME\
 
     describe('when called with unopened files', () => {
       it('replaces properly', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
+
         const results = []
         waitsForPromise(() =>
           atom.workspace.replace(/items/gi, 'items', [filePath], result => results.push(result))
@@ -2330,6 +2322,9 @@ i = /test/; #FIXME\
 
     describe('when a buffer is already open', () => {
       it('replaces properly and saves when not modified', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), path.join(projectDir, 'sample.js'))
+
         let editor = null
         const results = []
 
@@ -2351,6 +2346,10 @@ i = /test/; #FIXME\
       })
 
       it('does not replace when the path is not specified', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        const commentFilePath = path.join(projectDir, 'sample-with-comments.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
+        fs.copyFileSync(path.join(fixturesDir, 'sample-with-comments.js'), path.join(projectDir, 'sample-with-comments.js'))
         const results = []
 
         waitsForPromise(() => atom.workspace.open('sample-with-comments.js'))
@@ -2366,6 +2365,9 @@ i = /test/; #FIXME\
       })
 
       it('does NOT save when modified', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
+
         let editor = null
         const results = []
 
