@@ -49,6 +49,70 @@ describe('Dock', () => {
     })
   })
 
+  describe('activating the next pane', () => {
+    describe('when the dock has more than one pane', () => {
+      it('activates the next pane', () => {
+        const dock = atom.workspace.getLeftDock()
+        const pane1 = dock.getPanes()[0]
+        const pane2 = pane1.splitRight()
+        const pane3 = pane2.splitRight()
+        pane2.activate()
+        expect(pane1.isActive()).toBe(false)
+        expect(pane2.isActive()).toBe(true)
+        expect(pane3.isActive()).toBe(false)
+
+        dock.activateNextPane()
+        expect(pane1.isActive()).toBe(false)
+        expect(pane2.isActive()).toBe(false)
+        expect(pane3.isActive()).toBe(true)
+      })
+    })
+
+    describe('when the dock has only one pane', () => {
+      it('leaves the current pane active', () => {
+        const dock = atom.workspace.getLeftDock()
+
+        expect(dock.getPanes().length).toBe(1)
+        const pane = dock.getPanes()[0]
+        expect(pane.isActive()).toBe(true)
+        dock.activateNextPane()
+        expect(pane.isActive()).toBe(true)
+      })
+    })
+  })
+
+  describe('activating the previous pane', () => {
+    describe('when the dock has more than one pane', () => {
+      it('activates the previous pane', () => {
+        const dock = atom.workspace.getLeftDock()
+        const pane1 = dock.getPanes()[0]
+        const pane2 = pane1.splitRight()
+        const pane3 = pane2.splitRight()
+        pane2.activate()
+        expect(pane1.isActive()).toBe(false)
+        expect(pane2.isActive()).toBe(true)
+        expect(pane3.isActive()).toBe(false)
+
+        dock.activatePreviousPane()
+        expect(pane1.isActive()).toBe(true)
+        expect(pane2.isActive()).toBe(false)
+        expect(pane3.isActive()).toBe(false)
+      })
+    })
+
+    describe('when the dock has only one pane', () => {
+      it('leaves the current pane active', () => {
+        const dock = atom.workspace.getLeftDock()
+
+        expect(dock.getPanes().length).toBe(1)
+        const pane = dock.getPanes()[0]
+        expect(pane.isActive()).toBe(true)
+        dock.activatePreviousPane()
+        expect(pane.isActive()).toBe(true)
+      })
+    })
+  })
+
   describe('when the dock resize handle is double-clicked', () => {
     describe('when the dock is open', () => {
       it('resizes a vertically-oriented dock to the current item\'s preferred width', async () => {

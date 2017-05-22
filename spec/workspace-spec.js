@@ -2534,6 +2534,62 @@ i = /test/; #FIXME\
     })
   })
 
+  describe('::activateNextPane', () => {
+    describe('when the active workspace pane is inside a dock', () => {
+      it('activates the next pane in the dock', () => {
+        const dock = atom.workspace.getLeftDock()
+        const dockPane1 = dock.getPanes()[0]
+        const dockPane2 = dockPane1.splitRight()
+
+        dockPane2.focus()
+        expect(atom.workspace.getActivePane()).toBe(dockPane2)
+        atom.workspace.activateNextPane()
+        expect(atom.workspace.getActivePane()).toBe(dockPane1)
+      })
+    })
+
+    describe('when the active workspace pane is inside the workspace center', () => {
+      it('activates the next pane in the workspace center', () => {
+        const center = atom.workspace.getCenter()
+        const centerPane1 = center.getPanes()[0]
+        const centerPane2 = centerPane1.splitRight()
+
+        centerPane2.focus()
+        expect(atom.workspace.getActivePane()).toBe(centerPane2)
+        atom.workspace.activateNextPane()
+        expect(atom.workspace.getActivePane()).toBe(centerPane1)
+      })
+    })
+  })
+
+  describe('::activatePreviousPane', () => {
+    describe('when the active workspace pane is inside a dock', () => {
+      it('activates the previous pane in the dock', () => {
+        const dock = atom.workspace.getLeftDock()
+        const dockPane1 = dock.getPanes()[0]
+        const dockPane2 = dockPane1.splitRight()
+
+        dockPane1.focus()
+        expect(atom.workspace.getActivePane()).toBe(dockPane1)
+        atom.workspace.activatePreviousPane()
+        expect(atom.workspace.getActivePane()).toBe(dockPane2)
+      })
+    })
+
+    describe('when the active workspace pane is inside the workspace center', () => {
+      it('activates the previous pane in the workspace center', () => {
+        const center = atom.workspace.getCenter()
+        const centerPane1 = center.getPanes()[0]
+        const centerPane2 = centerPane1.splitRight()
+
+        centerPane1.focus()
+        expect(atom.workspace.getActivePane()).toBe(centerPane1)
+        atom.workspace.activatePreviousPane()
+        expect(atom.workspace.getActivePane()).toBe(centerPane2)
+      })
+    })
+  })
+
   describe('when the core.allowPendingPaneItems option is falsey', () => {
     it('does not open item with `pending: true` option as pending', () => {
       let pane = null
