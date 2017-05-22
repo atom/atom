@@ -5,6 +5,7 @@
 const {ipcRenderer} = require('electron')
 const path = require('path')
 const temp = require('temp').track()
+const PaneContainer = require('../src/pane-container')
 const {Disposable} = require('event-kit')
 const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
@@ -31,6 +32,267 @@ describe('WorkspaceElement', () => {
       expect(atom.workspace.getActivePaneContainer()).toBe(atom.workspace.getCenter())
       dock.getActivePane().getElement().focus()
       expect(atom.workspace.getActivePaneContainer()).toBe(dock)
+    })
+  })
+
+  describe('changing focus, copying, and moving items directionally between panes', function () {
+    let pane1, pane2, pane3, pane4, pane5, pane6, pane7, pane8, pane9,
+      workspace, containerElement
+
+    beforeEach(function () {
+      atom.config.set('core.destroyEmptyPanes', false)
+      expect(document.hasFocus()).toBe(true, 'Document needs to be focused to run this test')
+
+      workspace = atom.workspace
+
+      // Set up a grid of 9 panes, in the following arrangement, where the
+      // numbers correspond to the variable names below.
+      //
+      // -------
+      // |1|2|3|
+      // -------
+      // |4|5|6|
+      // -------
+      // |7|8|9|
+      // -------
+
+      const container = workspace.getActivePaneContainer()
+      expect(container.getLocation()).toEqual('center')
+      expect(container.getPanes().length).toEqual(1)
+
+      pane1 = container.getActivePane()
+      pane4 = pane1.splitDown()
+      pane7 = pane4.splitDown()
+
+      pane2 = pane1.splitRight()
+      pane3 = pane2.splitRight()
+
+      pane5 = pane4.splitRight()
+      pane6 = pane5.splitRight()
+
+      pane8 = pane7.splitRight()
+      pane9 = pane8.splitRight()
+
+      containerElement = container.paneContainer.getElement()
+      containerElement.style.height = '400px'
+      containerElement.style.width = '400px'
+      jasmine.attachToDOM(containerElement)
+    })
+
+    describe('::focusPaneViewAbove()', function () {
+      describe('when there are multiple rows above the focused pane', () =>
+        it('focuses up to the adjacent row', function () {
+          pane8.activate()
+          containerElement.focusPaneViewAbove()
+          expect(document.activeElement).toBe(pane5.getElement())
+        })
+      )
+
+      describe('when there are no rows above the focused pane', () =>
+        it('keeps the current pane focused', function () {
+          pane2.activate()
+          containerElement.focusPaneViewAbove()
+          expect(document.activeElement).toBe(pane2.getElement())
+        })
+      )
+    })
+
+    describe('::focusPaneViewBelow()', function () {
+      describe('when there are multiple rows below the focused pane', () =>
+        it('focuses down to the adjacent row', function () {
+          pane2.activate()
+          containerElement.focusPaneViewBelow()
+          expect(document.activeElement).toBe(pane5.getElement())
+        })
+      )
+
+      describe('when there are no rows below the focused pane', () =>
+        it('keeps the current pane focused', function () {
+          pane8.activate()
+          containerElement.focusPaneViewBelow()
+          expect(document.activeElement).toBe(pane8.getElement())
+        })
+      )
+    })
+
+    describe('::focusPaneViewOnLeft()', function () {
+      describe('when there are multiple columns to the left of the focused pane', () =>
+        it('focuses left to the adjacent column', function () {
+          pane6.activate()
+          containerElement.focusPaneViewOnLeft()
+          expect(document.activeElement).toBe(pane5.getElement())
+        })
+      )
+
+      describe('when there are no columns to the left of the focused pane', () =>
+        it('keeps the current pane focused', function () {
+          pane4.activate()
+          containerElement.focusPaneViewOnLeft()
+          expect(document.activeElement).toBe(pane4.getElement())
+        })
+      )
+    })
+
+    describe('::focusPaneViewOnRight()', function () {
+      describe('when there are multiple columns to the right of the focused pane', () =>
+        it('focuses right to the adjacent column', function () {
+          pane4.activate()
+          containerElement.focusPaneViewOnRight()
+          expect(document.activeElement).toBe(pane5.getElement())
+        })
+      )
+
+      describe('when there are no columns to the right of the focused pane', () =>
+        it('keeps the current pane focused', function () {
+          pane6.activate()
+          containerElement.focusPaneViewOnRight()
+          expect(document.activeElement).toBe(pane6.getElement())
+        })
+      )
+    })
+
+    describe('::moveActiveItemToPaneAbove(keepOriginal)', function () {
+      describe('when there are multiple rows above the focused pane', () =>
+        it('moves the active item up to the adjacent row', function () {
+          const item = document.createElement('div')
+          pane8.activate()
+          pane8.activateItem(item)
+          containerElement.moveActiveItemToPaneAbove()
+          expect(workspace.paneForItem(item)).toBe(pane5)
+          expect(pane5.getActiveItem()).toBe(item)
+        })
+      )
+
+      describe('when there are no rows above the focused pane', () =>
+        it('keeps the active pane focused', function () {
+          const item = document.createElement('div')
+          pane2.activate()
+          pane2.activateItem(item)
+          containerElement.moveActiveItemToPaneAbove()
+          expect(workspace.paneForItem(item)).toBe(pane2)
+        })
+      )
+
+      describe('when `keepOriginal: true` is passed in the params', () =>
+        it('keeps the item and adds a copy of it to the adjacent pane', function () {
+          const itemA = document.createElement('div')
+          const itemB = document.createElement('div')
+          itemA.copy = () => itemB
+          pane8.activate()
+          pane8.activateItem(itemA)
+          containerElement.moveActiveItemToPaneAbove({keepOriginal: true})
+          expect(workspace.paneForItem(itemA)).toBe(pane8)
+          expect(pane5.getActiveItem()).toBe(itemB)
+        })
+      )
+    })
+
+    describe('::moveActiveItemToPaneBelow(keepOriginal)', function () {
+      describe('when there are multiple rows below the focused pane', () =>
+        it('moves the active item down to the adjacent row', function () {
+          const item = document.createElement('div')
+          pane2.activate()
+          pane2.activateItem(item)
+          containerElement.moveActiveItemToPaneBelow()
+          expect(workspace.paneForItem(item)).toBe(pane5)
+          expect(pane5.getActiveItem()).toBe(item)
+        })
+      )
+
+      describe('when there are no rows below the focused pane', () =>
+        it('keeps the active item in the focused pane', function () {
+          const item = document.createElement('div')
+          pane8.activate()
+          pane8.activateItem(item)
+          containerElement.moveActiveItemToPaneBelow()
+          expect(workspace.paneForItem(item)).toBe(pane8)
+        })
+      )
+
+      describe('when `keepOriginal: true` is passed in the params', () =>
+        it('keeps the item and adds a copy of it to the adjacent pane', function () {
+          const itemA = document.createElement('div')
+          const itemB = document.createElement('div')
+          itemA.copy = () => itemB
+          pane2.activate()
+          pane2.activateItem(itemA)
+          containerElement.moveActiveItemToPaneBelow({keepOriginal: true})
+          expect(workspace.paneForItem(itemA)).toBe(pane2)
+          expect(pane5.getActiveItem()).toBe(itemB)
+        })
+      )
+    })
+
+    describe('::moveActiveItemToPaneOnLeft(keepOriginal)', function () {
+      describe('when there are multiple columns to the left of the focused pane', () =>
+        it('moves the active item left to the adjacent column', function () {
+          const item = document.createElement('div')
+          pane6.activate()
+          pane6.activateItem(item)
+          containerElement.moveActiveItemToPaneOnLeft()
+          expect(workspace.paneForItem(item)).toBe(pane5)
+          expect(pane5.getActiveItem()).toBe(item)
+        })
+      )
+
+      describe('when there are no columns to the left of the focused pane', () =>
+        it('keeps the active item in the focused pane', function () {
+          const item = document.createElement('div')
+          pane4.activate()
+          pane4.activateItem(item)
+          containerElement.moveActiveItemToPaneOnLeft()
+          expect(workspace.paneForItem(item)).toBe(pane4)
+        })
+      )
+
+      describe('when `keepOriginal: true` is passed in the params', () =>
+        it('keeps the item and adds a copy of it to the adjacent pane', function () {
+          const itemA = document.createElement('div')
+          const itemB = document.createElement('div')
+          itemA.copy = () => itemB
+          pane6.activate()
+          pane6.activateItem(itemA)
+          containerElement.moveActiveItemToPaneOnLeft({keepOriginal: true})
+          expect(workspace.paneForItem(itemA)).toBe(pane6)
+          expect(pane5.getActiveItem()).toBe(itemB)
+        })
+      )
+    })
+
+    describe('::moveActiveItemToPaneOnRight(keepOriginal)', function () {
+      describe('when there are multiple columns to the right of the focused pane', () =>
+        it('moves the active item right to the adjacent column', function () {
+          const item = document.createElement('div')
+          pane4.activate()
+          pane4.activateItem(item)
+          containerElement.moveActiveItemToPaneOnRight()
+          expect(workspace.paneForItem(item)).toBe(pane5)
+          expect(pane5.getActiveItem()).toBe(item)
+        })
+      )
+
+      describe('when there are no columns to the right of the focused pane', () =>
+        it('keeps the active item in the focused pane', function () {
+          const item = document.createElement('div')
+          pane6.activate()
+          pane6.activateItem(item)
+          containerElement.moveActiveItemToPaneOnRight()
+          expect(workspace.paneForItem(item)).toBe(pane6)
+        })
+      )
+
+      describe('when `keepOriginal: true` is passed in the params', () =>
+        it('keeps the item and adds a copy of it to the adjacent pane', function () {
+          const itemA = document.createElement('div')
+          const itemB = document.createElement('div')
+          itemA.copy = () => itemB
+          pane4.activate()
+          pane4.activateItem(itemA)
+          containerElement.moveActiveItemToPaneOnRight({keepOriginal: true})
+          expect(workspace.paneForItem(itemA)).toBe(pane4)
+          expect(pane5.getActiveItem()).toBe(itemB)
+        })
+      )
     })
   })
 
