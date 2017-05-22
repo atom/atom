@@ -41,7 +41,7 @@ module.exports = function (packagedAppPath) {
         relativePath == path.join('..', 'node_modules', 'glob', 'glob.js') ||
         relativePath == path.join('..', 'node_modules', 'graceful-fs', 'graceful-fs.js') ||
         relativePath == path.join('..', 'node_modules', 'htmlparser2', 'lib', 'index.js') ||
-        relativePath == path.join('..', 'node_modules', 'iconv-lite', 'encodings', 'index.js') ||
+        relativePath == path.join('..', 'node_modules', 'iconv-lite', 'lib', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'less', 'index.js') ||
         relativePath == path.join('..', 'node_modules', 'less', 'lib', 'less', 'fs.js') ||
         relativePath == path.join('..', 'node_modules', 'less', 'lib', 'less-node', 'index.js') ||
