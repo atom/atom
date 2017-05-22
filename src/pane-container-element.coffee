@@ -57,16 +57,26 @@ class PaneContainerElement extends HTMLElement
       @model.moveActiveItemToPane(destPane)
     destPane.focus()
 
-  nearestPaneInDirection: (direction) ->
+  nearestPaneInDirection: (direction, pane = null) ->
     distance = (pointA, pointB) ->
       x = pointB.x - pointA.x
       y = pointB.y - pointA.y
       Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
 
-    paneView = @model.getActivePane().getElement()
+    pane = pane or atom.workspace.getActivePane()
+    paneView = pane.getElement()
     box = @boundingBoxForPaneView(paneView)
 
-    paneViews = _.toArray(@querySelectorAll('atom-pane'))
+    visiblePaneContainers = atom.workspace.getPaneContainers()
+      .filter (container) =>
+        isCenter = container == atom.workspace.getCenter()
+        isCenter or container.isVisible()
+
+    visiblePanes = _.flatten(visiblePaneContainers.map (container) => container.getPanes())
+
+    paneViews = visiblePanes
+      .map (otherPane) =>
+        otherPane.getElement()
       .filter (otherPaneView) =>
         otherBox = @boundingBoxForPaneView(otherPaneView)
         switch direction

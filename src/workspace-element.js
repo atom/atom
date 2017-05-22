@@ -238,6 +238,11 @@ class WorkspaceElement extends HTMLElement {
 
   moveActiveItemToPaneOnRight (params) { this.paneContainer.moveActiveItemToPaneOnRight(params) }
 
+  nearestVisiblePaneInDirection (direction, pane) {
+    const paneContainerElement = pane.getContainer().getElement()
+    return paneContainerElement.nearestPaneInDirection(direction, pane)
+  }
+
   runPackageSpecs () {
     const activePaneItem = this.model.getActivePaneItem()
     const activePath = activePaneItem && typeof activePaneItem.getPath === 'function' ? activePaneItem.getPath() : null
