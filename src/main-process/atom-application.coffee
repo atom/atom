@@ -237,7 +237,7 @@ class AtomApplication
     @on 'application:open-discussions', -> shell.openExternal('https://discuss.atom.io')
     @on 'application:open-faq', -> shell.openExternal('https://atom.io/faq')
     @on 'application:open-terms-of-use', -> shell.openExternal('https://atom.io/terms')
-    @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
+    @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#reporting-bugs')
     @on 'application:search-issues', -> shell.openExternal('https://github.com/search?q=+is%3Aissue+user%3Aatom')
 
     @on 'application:install-update', =>
