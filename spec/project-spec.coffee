@@ -1,4 +1,5 @@
 temp = require('temp').track()
+TextBuffer = require('text-buffer')
 Project = require '../src/project'
 fs = require 'fs-plus'
 path = require 'path'
@@ -326,7 +327,8 @@ describe "Project", ->
           expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
 
   describe ".bufferForPath(path)", ->
-    [buffer] = []
+    buffer = null
+
     beforeEach ->
       waitsForPromise ->
         atom.project.bufferForPath("a").then (o) ->
@@ -345,6 +347,23 @@ describe "Project", ->
         waitsForPromise ->
           atom.project.bufferForPath("b").then (anotherBuffer) ->
             expect(anotherBuffer).not.toBe buffer
+
+        waitsForPromise ->
+          Promise.all([
+            atom.project.bufferForPath('c'),
+            atom.project.bufferForPath('c')
+          ]).then ([buffer1, buffer2]) ->
+            expect(buffer1).toBe(buffer2)
+
+      it "retries loading the buffer if it previously failed", ->
+        waitsForPromise shouldReject: true, ->
+          spyOn(TextBuffer, 'load').andCallFake ->
+            Promise.reject(new Error('Could not open file'))
+          atom.project.bufferForPath('b')
+
+        waitsForPromise shouldReject: false, ->
+          TextBuffer.load.andCallThrough()
+          atom.project.bufferForPath('b')
 
       it "creates a new buffer if the previous buffer was destroyed", ->
         buffer.release()

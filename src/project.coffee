@@ -27,6 +27,7 @@ class Project extends Model
     @defaultDirectoryProvider = new DefaultDirectoryProvider()
     @repositoryPromisesByPath = new Map()
     @repositoryProviders = [new GitRepositoryProvider(this, config)]
+    @loadPromisesByPath = {}
     @consumeServices(packageManager)
 
   destroyed: ->
@@ -42,6 +43,7 @@ class Project extends Model
     buffer?.destroy() for buffer in @buffers
     @buffers = []
     @setPaths([])
+    @loadPromisesByPath = {}
     @consumeServices(packageManager)
 
   destroyUnretainedBuffers: ->
@@ -381,12 +383,18 @@ class Project extends Model
   buildBuffer: (absoluteFilePath) ->
     params = {shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete}
     if absoluteFilePath?
-      promise = TextBuffer.load(absoluteFilePath, params)
+      promise =
+        @loadPromisesByPath[absoluteFilePath] ?=
+        TextBuffer.load(absoluteFilePath, params).catch (error) =>
+          delete @loadPromisesByPath[absoluteFilePath]
+          throw error
     else
       promise = Promise.resolve(new TextBuffer(params))
     promise.then (buffer) =>
+      delete @loadPromisesByPath[absoluteFilePath]
       @addBuffer(buffer)
       buffer
+
 
   addBuffer: (buffer, options={}) ->
     @addBufferAtIndex(buffer, @buffers.length, options)
