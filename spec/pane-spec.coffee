@@ -1115,17 +1115,19 @@ describe "Pane", ->
       editor1.insertText('Some text')
       advanceClock(editor1.getBuffer().stoppedChangingDelay)
 
-      editor1.save()
+      waitsForPromise -> editor1.save()
 
-      editor1.insertText('More text')
-      advanceClock(editor1.getBuffer().stoppedChangingDelay)
+      runs ->
+        editor1.insertText('More text')
+        advanceClock(editor1.getBuffer().stoppedChangingDelay)
 
-      expect(pane.getPendingItem()).toBeNull()
-      expect(eventCount).toBe 1
+        expect(pane.getPendingItem()).toBeNull()
+        expect(eventCount).toBe 1
 
       # Reset fixture back to original state
-      editor1.setText(originalText)
-      editor1.save()
+      waitsForPromise ->
+        editor1.setText(originalText)
+        editor1.save()
 
     it "only calls clearPendingItem if there is a pending item to clear", ->
       spyOn(pane, "clearPendingItem").andCallThrough()
