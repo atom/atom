@@ -437,6 +437,7 @@ class GitRepository
       if bufferPath = buffer.getPath()
         @getPathStatus(bufferPath)
 
+    getBufferPathStatus()
     bufferSubscriptions = new CompositeDisposable
     bufferSubscriptions.add buffer.onDidSave(getBufferPathStatus)
     bufferSubscriptions.add buffer.onDidReload(getBufferPathStatus)
