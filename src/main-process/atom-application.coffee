@@ -644,7 +644,7 @@ class AtomApplication
   openUrl: ({urlToOpen, devMode, safeMode, env}) ->
     unless @packages?
       PackageManager = require '../package-manager'
-      @packages = new PackageManager()
+      @packages = new PackageManager({})
       @packages.initialize
         configDirPath: process.env.ATOM_HOME
         devMode: devMode
