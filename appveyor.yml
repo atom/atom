@@ -32,9 +32,9 @@ install:
 
 build_script:
   - CD %APPVEYOR_BUILD_FOLDER%
+  - IF NOT EXIST C:\sqtemp MKDIR C:\sqtemp
+  - SET SQUIRREL_TEMP=C:\sqtemp
   - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
-      IF NOT EXIST C:\sqtemp MKDIR C:\sqtemp
-      SET SQUIRREL_TEMP=C:\sqtemp
       script\build.cmd --code-sign --create-windows-installer --compress-artifacts
     ) ELSE (
       script\build.cmd --code-sign --compress-artifacts
