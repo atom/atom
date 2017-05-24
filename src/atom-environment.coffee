@@ -901,13 +901,17 @@ class AtomEnvironment extends Model
         @project.addPath(folder) for folder in projectPaths
 
   attemptRestoreProjectStateForPaths: (state, projectPaths, filesToOpen = []) ->
-    paneItemIsEmptyUnnamedTextEditor = (item) ->
-      return false unless item instanceof TextEditor
-      return false if item.getPath() or item.isModified()
+    center = @workspace.getCenter()
+    windowIsUnused = =>
+      for container in @workspace.getPaneContainers()
+        for item in container.getPaneItems()
+          if item instanceof TextEditor
+            return false if item.getPath() or item.isModified()
+          else
+            return false if container is center
       true
 
-    windowIsUnused = @workspace.getPaneItems().every(paneItemIsEmptyUnnamedTextEditor)
-    if windowIsUnused
+    if windowIsUnused()
       @restoreStateIntoThisEnvironment(state)
       Promise.all (@workspace.open(file) for file in filesToOpen)
     else
