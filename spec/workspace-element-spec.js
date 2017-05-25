@@ -5,7 +5,6 @@
 const {ipcRenderer} = require('electron')
 const path = require('path')
 const temp = require('temp').track()
-const PaneContainer = require('../src/pane-container')
 const {Disposable} = require('event-kit')
 const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
