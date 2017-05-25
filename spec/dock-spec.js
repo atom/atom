@@ -1,5 +1,7 @@
 /** @babel */
 
+const TextEditor = require('../src/text-editor')
+
 import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
 
 describe('Dock', () => {
@@ -327,6 +329,30 @@ describe('Dock', () => {
       Object.defineProperty(dragEvent, 'target', {value: textNode})
 
       expect(() => atom.workspace.getElement().handleDragStart(dragEvent)).not.toThrow()
+    })
+  })
+
+  describe('.observeTextEditors()', () => {
+    it('invokes the observer with current and future text editors', () => {
+      const dock = atom.workspace.getLeftDock()
+      const dockPane = dock.getActivePane()
+      const observed = []
+
+      const editorAddedBeforeRegisteringObserver = new TextEditor()
+      const nonEditorItemAddedBeforeRegisteringObserver = document.createElement('div')
+      dockPane.activateItem(editorAddedBeforeRegisteringObserver)
+      dockPane.activateItem(nonEditorItemAddedBeforeRegisteringObserver)
+
+      dock.observeTextEditors(editor => observed.push(editor))
+
+      const editorAddedAfterRegisteringObserver = new TextEditor()
+      const nonEditorItemAddedAfterRegisteringObserver = document.createElement('div')
+      dockPane.activateItem(editorAddedAfterRegisteringObserver)
+      dockPane.activateItem(nonEditorItemAddedAfterRegisteringObserver)
+
+      expect(observed).toEqual(
+        [editorAddedBeforeRegisteringObserver, editorAddedAfterRegisteringObserver]
+      )
     })
   })
 })
