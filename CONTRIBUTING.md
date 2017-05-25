@@ -2,13 +2,15 @@
 
 :+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
 
-The following is a set of guidelines for contributing to Atom and its packages, which are hosted in the [Atom Organization](https://github.com/atom) on GitHub.
-These are just guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
+The following is a set of guidelines for contributing to Atom and its packages, which are hosted in the [Atom Organization](https://github.com/atom) on GitHub. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
 #### Table Of Contents
 
+[Code of Conduct](#code-of-conduct)
+
+[I don't want to read this whole thing, I just have a question!!!](#i-dont-want-to-read-this-whole-thing-i-just-have-a-question)
+
 [What should I know before I get started?](#what-should-i-know-before-i-get-started)
-  * [Code of Conduct](#code-of-conduct)
   * [Atom and Packages](#atom-and-packages)
   * [Atom Design Decisions](#design-decisions)
 
@@ -28,31 +30,45 @@ These are just guidelines, not rules. Use your best judgment, and feel free to p
 [Additional Notes](#additional-notes)
   * [Issue and Pull Request Labels](#issue-and-pull-request-labels)
 
+## Code of Conduct
+
+This project and everyone participating in it is governed by the [Atom Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [atom@github.com](mailto:atom@github.com).
+
+## I don't want to read this whole thing I just have a question!!!
+
+> **Note:** [Please don't file an issue to ask a question.](http://blog.atom.io/2016/04/19/managing-the-deluge-of-atom-issues.html) You'll get faster results by using the resources below.
+
+We have an official message board with a detailed FAQ and where the community chimes in with helpful advice if you have questions.
+
+* [Discuss, the official Atom and Electron message board](https://discuss.atom.io)
+* [Atom FAQ](https://discuss.atom.io/c/faq)
+
+If chat is more your speed, you can join the Atom and Electron Slack team:
+
+* [Join the Atom and Electron Slack Team](http://atom-slack.herokuapp.com/)
+    * Even though Slack is a chat service, sometimes it takes several hours for community members to respond &mdash; please be patient!
+    * Use the `#atom` channel for general questions or discussion about Atom
+    * Use the `#electron` channel for questions about Electron
+    * Use the `#packages` channel for questions or discussion about writing or contributing to Atom packages (both core and community)
+    * Use the `#ui` channel for questions and discussion about Atom UI and themes
+    * There are many other channels available, check the channel list
+
 ## What should I know before I get started?
-
-### Code of Conduct
-
-This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDUCT.md).
-By participating, you are expected to uphold this code.
-Please report unacceptable behavior to [atom@github.com](mailto:atom@github.com).
 
 ### Atom and Packages
 
-Atom is a large open source project—it's made up of over [200 repositories](https://github.com/atom).
-When you initially consider contributing to Atom, you might be unsure about which of those 200 repositories implements the functionality you want to change or report a bug for.
-This section should help you with that.
+Atom is a large open source project &mdash; it's made up of over [200 repositories](https://github.com/atom). When you initially consider contributing to Atom, you might be unsure about which of those 200 repositories implements the functionality you want to change or report a bug for. This section should help you with that.
 
-Atom is intentionally very modular.
-Nearly every non-editor UI element you interact with comes from a package, even fundamental things like tabs and the status-bar.
-These packages are packages in the same way that packages in the [package store](https://atom.io/packages) are packages, with one difference: they are bundled into the [default distribution](https://github.com/atom/atom/blob/10b8de6fc499a7def9b072739486e68530d67ab4/package.json#L58).
+Atom is intentionally very modular. Nearly every non-editor UI element you interact with comes from a package, even fundamental things like tabs and the status-bar. These packages are packages in the same way that packages in the [Atom package repository](https://atom.io/packages) are packages, with one difference: they are bundled into the [default distribution](https://github.com/atom/atom/blob/10b8de6fc499a7def9b072739486e68530d67ab4/package.json#L58).
 
+<a id="atom-packages-image"/>
 ![atom-packages](https://cloud.githubusercontent.com/assets/69169/10472281/84fc9792-71d3-11e5-9fd1-19da717df079.png)
 
 To get a sense for the packages that are bundled with Atom, you can go to Settings > Packages within Atom and take a look at the Core Packages section.
 
 Here's a list of the big ones:
 
-* [atom/atom](https://github.com/atom/atom) - Atom Core! The core editor component is responsible for basic text editing (e.g. cursors, selections, scrolling), text indentation, wrapping, and folding, text rendering, editor rendering, file system operations (e.g. saving), and installation and auto-updating. You should also use this repository for feedback related to the [core API](https://atom.io/docs/api/latest) and for large, overarching design proposals.
+* [atom/atom](https://github.com/atom/atom) - Atom Core! The core editor component is responsible for basic text editing (e.g. cursors, selections, scrolling), text indentation, wrapping, and folding, text rendering, editor rendering, file system operations (e.g. saving), and installation and auto-updating. You should also use this repository for feedback related to the [Atom API](https://atom.io/docs/api/latest) and for large, overarching design proposals.
 * [tree-view](https://github.com/atom/tree-view) - file and directory listing on the left of the UI.
 * [fuzzy-finder](https://github.com/atom/fuzzy-finder) - the quick file opener.
 * [find-and-replace](https://github.com/atom/find-and-replace) - all search and replace functionality.
@@ -68,11 +84,23 @@ Here's a list of the big ones:
 * [apm](https://github.com/atom/apm) - the `apm` command line tool (Atom Package Manager). You should use this repository for any contributions related to the `apm` tool and to publishing packages.
 * [atom.io](https://github.com/atom/atom.io) - the repository for feedback on the [Atom.io website](https://atom.io) and the [Atom.io package API](https://github.com/atom/atom/blob/master/docs/apm-rest-api.md) used by [apm](https://github.com/atom/apm).
 
-There are many more, but this list should be a good starting point.
-For more information on how to work with Atom's official packages, see [Contributing to Atom Packages](https://github.com/atom/atom/blob/master/docs/contributing-to-packages.md).
+There are many more, but this list should be a good starting point. For more information on how to work with Atom's official packages, see [Contributing to Atom Packages](http://flight-manual.atom.io/hacking-atom/sections/contributing-to-official-atom-packages/).
 
-Also, because Atom is so extensible, it's possible that a feature you've become accustomed to in Atom or an issue you're encountering isn't coming from a bundled package at all, but rather a [community package](https://atom.io/packages) you've installed.
-Each community package has its own repository too, and you should be able to find it in Settings > Packages for the packages you installed and contribute there.
+Also, because Atom is so extensible, it's possible that a feature you've become accustomed to in Atom or an issue you're encountering isn't coming from a bundled package at all, but rather a [community package](https://atom.io/packages) you've installed. Each community package has its own repository too, the [Atom FAQ](https://discuss.atom.io/c/faq) has instructions on how to [contact the maintainers of any Atom community package or theme.](https://discuss.atom.io/t/i-have-a-question-about-a-specific-atom-community-package-where-is-the-best-place-to-ask-it/25581)
+
+#### Package Conventions
+
+Thera are a few conventions that have developed over time around packages:
+
+* Packages that add one or more syntax highlighting grammars are named `language-[language-name]`
+    * Language packages can add other things besides just a grammar. Many offer commonly-used snippets. Try not to add too much though.
+* Theme packages are split into two categories: UI and Syntax themes
+    * UI themes are named `[theme-name]-ui`
+    * Syntax themes are named `[theme-name]-syntax`
+    * Often themes that are designed to work together are given the same root name, for example: `one-dark-ui` and `one-dark-syntax`
+    * UI themes style everything outside of the editor pane &mdash; all of the green areas in the [packages image above](#atom-packages-image)
+    * Syntax themes style just the items inside the editor pane, mostly syntax highlighting
+* Packages that add [autocomplete providers](https://github.com/atom/autocomplete-plus/wiki/Autocomplete-Providers) are named `autocomplete-[what-they-autocomplete]` &mdash; ex: [autocomplete-css](https://github.com/atom/autocomplete-css)
 
 ### Design Decisions
 
@@ -86,12 +114,14 @@ This section guides you through submitting a bug report for Atom. Following thes
 
 Before creating bug reports, please check [this list](#before-submitting-a-bug-report) as you might find out that you don't need to create one. When you are creating a bug report, please [include as many details as possible](#how-do-i-submit-a-good-bug-report). Fill out [the required template](ISSUE_TEMPLATE.md), the information it asks for helps us resolve issues faster.
 
+> **Note:** If you find a **Closed** issue that seems like it is the same thing that you're experiencing, open a new issue and include a link to the original issue in the body of your new one.
+
 #### Before Submitting A Bug Report
 
 * **Check the [debugging guide](http://flight-manual.atom.io/hacking-atom/sections/debugging/).** You might be able to find the cause of the problem and fix things yourself. Most importantly, check if you can reproduce the problem [in the latest version of Atom](http://flight-manual.atom.io/hacking-atom/sections/debugging/#update-to-the-latest-version), if the problem happens when you run Atom in [safe mode](http://flight-manual.atom.io/hacking-atom/sections/debugging/#check-if-the-problem-shows-up-in-safe-mode), and if you can get the desired behavior by changing [Atom's or packages' config settings](http://flight-manual.atom.io/hacking-atom/sections/debugging/#check-atom-and-package-settings).
 * **Check the [FAQs on the forum](https://discuss.atom.io/c/faq)** for a list of common questions and problems.
 * **Determine [which repository the problem should be reported in](#atom-and-packages)**.
-* **Perform a [cursory search](https://github.com/issues?q=+is%3Aissue+user%3Aatom)** to see if the problem has already been reported. If it has, add a comment to the existing issue instead of opening a new one.
+* **Perform a [cursory search](https://github.com/issues?q=+is%3Aissue+user%3Aatom)** to see if the problem has already been reported. If it has **and the issue is still open**, add a comment to the existing issue instead of opening a new one.
 
 #### How Do I Submit A (Good) Bug Report?
 
@@ -106,8 +136,8 @@ Explain the problem and include additional details to help maintainers reproduce
 * **Explain which behavior you expected to see instead and why.**
 * **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. If you use the keyboard while following the steps, **record the GIF with the [Keybinding Resolver](https://github.com/atom/keybinding-resolver) shown**. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
 * **If you're reporting that Atom crashed**, include a crash report with a stack trace from the operating system. On macOS, the crash report will be available in `Console.app` under "Diagnostic and usage information" > "User diagnostic reports". Include the crash report in the issue in a [code block](https://help.github.com/articles/markdown-basics/#multiple-lines), a [file attachment](https://help.github.com/articles/file-attachments-on-issues-and-pull-requests/), or put it in a [gist](https://gist.github.com/) and provide link to that gist.
-* **If the problem is related to performance**, include a [CPU profile capture and a screenshot](http://flight-manual.atom.io/hacking-atom/sections/debugging/#diagnose-performance-problems-with-the-dev-tools-cpu-profiler) with your report.
-* **If Chrome's developer tools pane is shown without you triggering it**, that normally means that an exception was thrown. The Console tab will include an entry for the exception. Expand the exception so that the stack trace is visible, and provide the full exception and stack trace in a [code block](https://help.github.com/articles/markdown-basics/#multiple-lines) and as a screenshot.
+* **If the problem is related to performance or memory**, include a [CPU profile capture](http://flight-manual.atom.io/hacking-atom/sections/debugging/#diagnose-runtime-performance) with your report.
+* **If Chrome's developer tools pane is shown without you triggering it**, that normally means that you have a syntax error in one of your themes or in your `styles.less`. Try running in [Safe Mode](http://flight-manual.atom.io/hacking-atom/sections/debugging/#using-safe-mode) and using a different theme or comment out the contents of your `styles.less` to see if that fixes the problem.
 * **If the problem wasn't triggered by a specific action**, describe what you were doing before the problem happened and share more information using the guidelines below.
 
 Provide more context by answering these questions:
@@ -169,23 +199,20 @@ If you want to read about using Atom or developing packages in Atom, the [Atom F
 ### Pull Requests
 
 * Fill in [the required template](PULL_REQUEST_TEMPLATE.md)
+* Do not include issue numbers in the PR title
 * Include screenshots and animated GIFs in your pull request whenever possible.
 * Follow the [JavaScript](#javascript-styleguide) and [CoffeeScript](#coffeescript-styleguide) styleguides.
-* Include thoughtfully-worded, well-structured
-  [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder. Run them using `apm test`. See the [Specs Styleguide](#specs-styleguide) below.
-* Document new code based on the
-  [Documentation Styleguide](#documentation-styleguide)
-* End files with a newline.
+* Include thoughtfully-worded, well-structured [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder. Run them using `atom --test spec`. See the [Specs Styleguide](#specs-styleguide) below.
+* Document new code based on the [Documentation Styleguide](#documentation-styleguide)
+* End all files with a newline
+* [Avoid platform-dependent code](http://flight-manual.atom.io/hacking-atom/sections/cross-platform-compatibility/)
 * Place requires in the following order:
     * Built in Node Modules (such as `path`)
     * Built in Atom and Electron Modules (such as `atom`, `remote`)
     * Local Modules (using relative paths)
 * Place class properties in the following order:
-    * Class methods and properties (methods starting with a `@`)
+    * Class methods and properties (methods starting with a `@` in CoffeeScript or `static` in JavaScript)
     * Instance methods and properties
-* [Avoid platform-dependent code](http://flight-manual.atom.io/hacking-atom/sections/cross-platform-compatibility/)
-* Use a plain `return` when returning explicitly at the end of a function.
-    * Not `return null`, `return undefined`, `null`, or `undefined`
 
 ## Styleguides
 
@@ -194,7 +221,7 @@ If you want to read about using Atom or developing packages in Atom, the [Atom F
 * Use the present tense ("Add feature" not "Added feature")
 * Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
 * Limit the first line to 72 characters or less
-* Reference issues and pull requests liberally
+* Reference issues and pull requests liberally after the first line
 * When only changing documentation, include `[ci skip]` in the commit description
 * Consider starting the commit message with an applicable emoji:
     * :art: `:art:` when improving the format/structure of the code
@@ -257,8 +284,7 @@ All JavaScript must adhere to [JavaScript Standard Style](http://standardjs.com/
 
 ### Specs Styleguide
 
-- Include thoughtfully-worded, well-structured
-  [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder.
+- Include thoughtfully-worded, well-structured [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder.
 - Treat `describe` as a noun or situation.
 - Treat `it` as a statement about state or how an operation changes state.
 
