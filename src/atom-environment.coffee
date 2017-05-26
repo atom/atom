@@ -821,6 +821,9 @@ class AtomEnvironment extends Model
     @emitter.emit 'did-beep'
 
   # Essential: A flexible way to open a dialog akin to an alert dialog.
+  # 
+  # If the dialog is closed (via `Esc` key or `X` in the top corner) without selecting a button
+  # the first button will be clicked unless a "Cancel" or "No" button is provided.
   #
   # ## Examples
   #
@@ -839,7 +842,7 @@ class AtomEnvironment extends Model
   #   * `buttons` (optional) Either an array of strings or an object where keys are
   #     button names and the values are callbacks to invoke when clicked.
   #
-  # Returns the chosen button index {Number} if the buttons option was an array.
+  # Returns the chosen button index {Number} if the buttons option is an array or the return value of the callback if the buttons option is an object.
   confirm: (params={}) ->
     @applicationDelegate.confirm(params)
 
