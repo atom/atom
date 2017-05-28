@@ -98,12 +98,12 @@ class Pane
   getFlexScale: -> @flexScale
 
   increaseSize: ->
-    if @getContainer().getPanes().length == 1
+    if @getContainer().getPanes().length is 1
       return @getFlexScale()
     @setFlexScale(@getFlexScale() * 1.1)
 
   decreaseSize: ->
-    if @getContainer().getPanes().length == 1
+    if @getContainer().getPanes().length is 1
       return @getFlexScale()
     @setFlexScale(@getFlexScale() / 1.1)
 
