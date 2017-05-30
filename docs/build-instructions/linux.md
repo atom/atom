@@ -125,6 +125,21 @@ On Fedora you would do the following:
 sudo yum remove gyp
 ```
 
+
+### Ubuntu 14.04, gyp, Python
+
+  ```
+  gyp_main.py: error: no such option: --no-parallel
+  gyp ERR! configure error 
+  gyp ERR! stack Error: `gyp` failed with exit code: 2
+  ```
+
+`npm config set python /usr/bin/python2 -g` is not enough on 14.04 because gyp requires Python 2.6 (not 2.7)
+
+http://stackoverflow.com/questions/21155922/error-installing-node-gyp-on-ubuntu
+
+One solution is to use Atom with a Python version manager 2.6+ instead of `npm config set python...`
+
 ### Linux build error reports in atom/atom
 * Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Alinux&type=Issues)
   to get a list of reports about build errors on Linux.
