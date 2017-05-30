@@ -46,7 +46,7 @@ module.exports = function (packagedAppPath) {
         relativePath === path.join('..', 'node_modules', 'markdown-preview', 'node_modules', 'htmlparser2', 'lib', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'roaster', 'node_modules', 'htmlparser2', 'lib', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'task-lists', 'node_modules', 'htmlparser2', 'lib', 'index.js') ||
-        relativePath === path.join('..', 'node_modules', 'iconv-lite', 'encodings', 'index.js') ||
+        relativePath === path.join('..', 'node_modules', 'iconv-lite', 'lib', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'less', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'less', 'lib', 'less', 'fs.js') ||
         relativePath === path.join('..', 'node_modules', 'less', 'lib', 'less-node', 'index.js') ||

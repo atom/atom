@@ -31,6 +31,8 @@ install:
   - npm install -g npm
 
 build_script:
+  - IF NOT EXIST C:\sqtemp MKDIR C:\sqtemp
+  - SET SQUIRREL_TEMP=C:\sqtemp
   - CD %APPVEYOR_BUILD_FOLDER%
   - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
       script\build.cmd --code-sign --create-windows-installer --compress-artifacts
@@ -46,8 +48,6 @@ deploy: off
 artifacts:
   - path: out\AtomSetup.exe
     name: AtomSetup.exe
-  - path: out\AtomSetup.msi
-    name: AtomSetup.msi
   - path: out\atom-windows.zip
     name: atom-windows.zip
   - path: out\RELEASES

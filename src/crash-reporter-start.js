@@ -4,7 +4,7 @@ module.exports = function (extra) {
     productName: 'Atom',
     companyName: 'GitHub',
     submitURL: 'https://crashreporter.atom.io',
-    autoSubmit: false,
+    uploadToServer: false,
     extra: extra
   })
 }

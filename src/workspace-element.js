@@ -64,7 +64,6 @@ class WorkspaceElement extends HTMLElement {
   line-height: ${this.config.get('editor.lineHeight')};
 }`
     this.styleManager.addStyleSheet(styleSheetSource, {sourcePath: 'global-text-editor-styles', priority: -1})
-    this.viewRegistry.performDocumentPoll()
   }
 
   initialize (model, {config, project, styleManager, viewRegistry}) {
@@ -280,7 +279,7 @@ module.exports = document.registerElement('atom-workspace', {prototype: Workspac
 function isTab (element) {
   let el = element
   while (el != null) {
-    if (el.getAttribute('is') === 'tabs-tab') { return true }
+    if (el.getAttribute && el.getAttribute('is') === 'tabs-tab') return true
     el = el.parentElement
   }
   return false

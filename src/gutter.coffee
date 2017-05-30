@@ -1,4 +1,5 @@
 {Emitter} = require 'event-kit'
+CustomGutterComponent = null
 
 DefaultPriority = -100
 
@@ -27,19 +28,6 @@ class Gutter
       @gutterContainer.removeGutter(this)
       @emitter.emit 'did-destroy'
       @emitter.dispose()
-
-  getElement: ->
-    unless @element?
-      @element = document.createElement('div')
-      @element.classList.add('gutter')
-      @element.setAttribute('gutter-name', @name)
-      childNode = document.createElement('div')
-      if @name is 'line-number'
-        childNode.classList.add('line-numbers')
-      else
-        childNode.classList.add('custom-decorations')
-      @element.appendChild(childNode)
-    @element
 
   ###
   Section: Event Subscription
@@ -70,12 +58,14 @@ class Gutter
   hide: ->
     if @visible
       @visible = false
+      @gutterContainer.scheduleComponentUpdate()
       @emitter.emit 'did-change-visible', this
 
   # Essential: Show the gutter.
   show: ->
     if not @visible
       @visible = true
+      @gutterContainer.scheduleComponentUpdate()
       @emitter.emit 'did-change-visible', this
 
   # Essential: Determine whether the gutter is visible.
@@ -100,3 +90,6 @@ class Gutter
   # Returns a {Decoration} object
   decorateMarker: (marker, options) ->
     @gutterContainer.addGutterDecoration(this, marker, options)
+
+  getElement: ->
+    @element ?= document.createElement('div')

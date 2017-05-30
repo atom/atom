@@ -26,17 +26,16 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
-      # Add an opaque backgroundColor (instead of keeping the default
-      # transparent one) to prevent subpixel anti-aliasing from being disabled.
-      # We believe this is a regression introduced with Electron 0.37.3, and
-      # thus we should remove this as soon as a fix gets released.
-      backgroundColor: "#fff"
       webPreferences:
         # Prevent specs from throttling when the window is in the background:
         # this should result in faster CI builds, and an improvement in the
         # local development experience when running specs through the UI (which
         # now won't pause when e.g. minimizing the window).
         backgroundThrottling: not @isSpec
+        # Disable the `auxclick` feature so that `click` events are triggered in
+        # response to a middle-click.
+        # (Ref: https://github.com/atom/atom/pull/12696#issuecomment-290496960)
+        disableBlinkFeatures: 'Auxclick'
 
     # Don't set icon on Windows so the exe's ico will be used as window and
     # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
@@ -315,4 +314,4 @@ class AtomWindow
   copy: -> @browserWindow.copy()
 
   disableZoom: ->
-    @browserWindow.webContents.setZoomLevelLimits(1, 1)
+    @browserWindow.webContents.setVisualZoomLevelLimits(1, 1)

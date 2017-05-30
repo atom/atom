@@ -64,6 +64,7 @@ beforeEach ->
   atom.project.setPaths([specProjectPath])
 
   window.resetTimeouts()
+  spyOn(Date, 'now').andCallFake -> window.now
   spyOn(_._, "now").andCallFake -> window.now
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
@@ -179,6 +180,7 @@ jasmine.useRealClock = ->
   jasmine.unspy(window, 'setTimeout')
   jasmine.unspy(window, 'clearTimeout')
   jasmine.unspy(_._, 'now')
+  jasmine.unspy(Date, 'now')
 
 # The clock is halfway mocked now in a sad and terrible way... only setTimeout
 # and clearTimeout are included. This method will also include setInterval. We
@@ -186,6 +188,8 @@ jasmine.useRealClock = ->
 jasmine.useMockClock = ->
   spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
   spyOn(window, 'clearInterval').andCallFake(fakeClearInterval)
+  spyOn(Date, 'now').andCallFake(-> window.now)
+
 
 addCustomMatchers = (spec) ->
   spec.addMatchers
