@@ -421,6 +421,17 @@ describe "AtomEnvironment", ->
         expect(atom.workspace.open.callCount).toBe(1)
         expect(atom.workspace.open).toHaveBeenCalledWith(__filename)
 
+      describe "when a dock has a non-text editor", ->
+        it "doesn't prompt the user to restore state", ->
+          dock = atom.workspace.getLeftDock()
+          dock.getActivePane().addItem
+            getTitle: -> 'title'
+            element: document.createElement 'div'
+          state = Symbol()
+          spyOn(atom, 'confirm')
+          atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
+          expect(atom.confirm).not.toHaveBeenCalled()
+
     describe "when the window is dirty", ->
       editor = null
 
@@ -428,6 +439,17 @@ describe "AtomEnvironment", ->
         waitsForPromise -> atom.workspace.open().then (e) ->
           editor = e
           editor.setText('new editor')
+
+      describe "when a dock has a modified editor", ->
+        it "prompts the user to restore the state", ->
+          dock = atom.workspace.getLeftDock()
+          dock.getActivePane().addItem editor
+          spyOn(atom, "confirm").andReturn(1)
+          spyOn(atom.project, 'addPath')
+          spyOn(atom.workspace, 'open')
+          state = Symbol()
+          atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
+          expect(atom.confirm).toHaveBeenCalled()
 
       it "prompts the user to restore the state in a new window, discarding it and adding folder to current window", ->
         spyOn(atom, "confirm").andReturn(1)

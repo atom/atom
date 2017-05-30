@@ -1,0 +1,5 @@
+{
+  "name": "package-with-url-main",
+  "version": "1.0.0",
+  "urlMain": "./index.js"
+}

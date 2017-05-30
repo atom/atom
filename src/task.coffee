@@ -155,6 +155,9 @@ class Task
 
     true
 
+  # Public: Cancel the running task and emit an event if it was canceled.
+  #
+  # Returns a {Boolean} indicating whether the task was terminated.
   cancel: ->
     didForcefullyTerminate = @terminate()
     if didForcefullyTerminate
