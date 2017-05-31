@@ -1,5 +1,6 @@
 /* global HTMLDivElement */
 
+// eslint-disable-next-line no-unused-vars
 const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
 const TextEditor = require('../src/text-editor')
 const TextEditorElement = require('../src/text-editor-element')
@@ -286,7 +287,7 @@ describe('TextEditorElement', () => {
 
   describe('::setScrollTop and ::setScrollLeft', () => {
     it('changes the scroll position', async () => {
-      element = buildTextEditorElement()
+      const element = buildTextEditorElement()
       element.getModel().update({autoHeight: false})
       element.getModel().setText('lorem\nipsum\ndolor\nsit\namet')
       element.setHeight(20)

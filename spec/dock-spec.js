@@ -307,8 +307,8 @@ describe('Dock', () => {
       element.setAttribute('is', 'tabs-tab')
       element.item = {
         element,
-        getDefaultLocation() { return 'left' },
-        getPreferredWidth() { return 144 }
+        getDefaultLocation () { return 'left' },
+        getPreferredWidth () { return 144 }
       }
 
       const dragEvent = new DragEvent('dragstart')

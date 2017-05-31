@@ -453,8 +453,8 @@ describe('AtomApplication', function () {
         let reached = await evalInWebContents(windows[0].browserWindow.webContents, function (sendBackToMainProcess) {
           sendBackToMainProcess(global.reachedUrlMain)
         })
-        assert.equal(reached, true);
-        windows[0].close();
+        assert.equal(reached, true)
+        windows[0].close()
       })
     })
   })
