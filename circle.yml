@@ -16,8 +16,8 @@ general:
 dependencies:
   pre:
     - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.3/install.sh | bash
-    - nvm install 7.10.0
-    - nvm use 7.10.0
+    - nvm install 6.9.4
+    - nvm use 6.9.4
     - npm install -g npm
 
   override:
