@@ -7,7 +7,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 * OS with 64-bit or 32-bit architecture
 * C++11 toolchain
 * Git
-* Node.js 6.x (we recommend installing it via [nvm](https://github.com/creationix/nvm))
+* Node.js 6.x or later (we recommend installing it via [nvm](https://github.com/creationix/nvm))
 * npm 3.10.x or later (run `npm install -g npm`)
 * Ensure node-gyp uses python2 (run `npm config set python /usr/bin/python2 -g`, use `sudo` if you didn't install node via nvm)
 * Development headers for [libsecret](https://wiki.gnome.org/Projects/Libsecret).
