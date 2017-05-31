@@ -3627,6 +3627,9 @@ class TextEditor extends Model
       })
       @component.element
 
+  getAllowedLocations: ->
+    ['center']
+
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
   # Returns a {String}.
