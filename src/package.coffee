@@ -64,7 +64,7 @@ class Package
     @config.removeAtKeyPath('core.disabledPackages', @name)
 
   disable: ->
-    @config.pushAtKeyPath('core.disabledPackages', @name)
+    @config.insertInOrderAtKeyPath('core.disabledPackages', @name)
 
   isTheme: ->
     @metadata?.theme?

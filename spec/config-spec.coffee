@@ -1105,6 +1105,17 @@ describe "Config", ->
         expect(atom.config.get("foo.bar.baz")).toEqual ["a", "b"]
         expect(observeHandler).toHaveBeenCalledWith atom.config.get("foo.bar.baz")
 
+    describe ".insertInOrderAtKeyPath(keyPath, value)", ->
+      it "insert the given value to the array in alphabetic order at the key path and updates observers", ->
+        atom.config.set("foo.bar.baz", ["b"])
+        observeHandler = jasmine.createSpy "observeHandler"
+        atom.config.observe "foo.bar.baz", observeHandler
+        observeHandler.reset()
+
+        expect(atom.config.insertInOrderAtKeyPath("foo.bar.baz", "a")).toBe true
+        expect(atom.config.get("foo.bar.baz")).toEqual ["a", "b"]
+        expect(observeHandler).toHaveBeenCalledWith atom.config.get("foo.bar.baz")
+
     describe ".unshiftAtKeyPath(keyPath, value)", ->
       it "unshifts the given value to the array at the key path and updates observers", ->
         atom.config.set("foo.bar.baz", ["b"])

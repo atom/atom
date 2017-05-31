@@ -787,6 +787,12 @@ class Config
     @set(keyPath, arrayValue)
     result
 
+  insertInOrderAtKeyPath: (keyPath, value) ->
+    arrayValue = @get(keyPath) ? []
+    arrayValue.push(value)
+    arrayValue.sort()
+    @set(keyPath, arrayValue)
+
   unshiftAtKeyPath: (keyPath, value) ->
     arrayValue = @get(keyPath) ? []
     result = arrayValue.unshift(value)
