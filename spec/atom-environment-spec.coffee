@@ -477,8 +477,6 @@ describe "AtomEnvironment", ->
           devMode: atom.inDevMode()
           safeMode: atom.inSafeMode()
 
-
-
   describe "::unloadEditorWindow()", ->
     it "saves the BlobStore so it can be loaded after reload", ->
       configDirPath = temp.mkdirSync('atom-spec-environment')

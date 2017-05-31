@@ -694,9 +694,14 @@ class AtomEnvironment extends Model
         @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
         @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
         @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
-        @disposables.add @applicationDelegate.onSaveWindowStateRequest =>
-          callback = => @applicationDelegate.didSaveWindowState()
-          @saveState({isUnloading: true}).catch(callback).then(callback)
+        @disposables.add @applicationDelegate.onDidRequestUnload =>
+          @saveState({isUnloading: true})
+            .catch(console.error)
+            .then =>
+              @workspace?.confirmClose({
+                windowCloseRequested: true,
+                projectHasPaths: @project.getPaths().length > 0
+              })
 
         @listenForUpdates()
 

@@ -1299,9 +1299,9 @@ module.exports = class Workspace extends Model {
   }
 
   confirmClose (options) {
-    return this.getPaneContainers()
-      .map(container => container.confirmClose(options))
-      .every(saved => saved)
+    return Promise.all(this.getPaneContainers().map(container =>
+      container.confirmClose(options)
+    )).then((results) => !results.includes(false))
   }
 
   // Save the active pane item.
@@ -1311,7 +1311,7 @@ module.exports = class Workspace extends Model {
   // {::saveActivePaneItemAs} # will be called instead. This method does nothing
   // if the active item does not implement a `.save` method.
   saveActivePaneItem () {
-    this.getCenter().getActivePane().saveActiveItem()
+    return this.getCenter().getActivePane().saveActiveItem()
   }
 
   // Prompt the user for a path and save the active pane item to it.

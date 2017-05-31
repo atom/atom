@@ -200,15 +200,17 @@ describe "PaneContainer", ->
 
     it "returns true if the user saves all modified files when prompted", ->
       confirm.andReturn(0)
-      saved = container.confirmClose()
-      expect(saved).toBeTruthy()
-      expect(confirm).toHaveBeenCalled()
+      waitsForPromise ->
+        container.confirmClose().then (saved) ->
+          expect(confirm).toHaveBeenCalled()
+          expect(saved).toBeTruthy()
 
     it "returns false if the user cancels saving any modified file", ->
       confirm.andReturn(1)
-      saved = container.confirmClose()
-      expect(saved).toBeFalsy()
-      expect(confirm).toHaveBeenCalled()
+      waitsForPromise ->
+        container.confirmClose().then (saved) ->
+          expect(confirm).toHaveBeenCalled()
+          expect(saved).toBeFalsy()
 
   describe "::onDidAddPane(callback)", ->
     it "invokes the given callback when panes are added", ->

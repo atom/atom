@@ -460,11 +460,12 @@ describe "Pane", ->
           it "saves the item before destroying it", ->
             itemURI = "test"
             confirm.andReturn(0)
-            pane.destroyItem(item1)
 
-            expect(item1.save).toHaveBeenCalled()
-            expect(item1 in pane.getItems()).toBe false
-            expect(item1.isDestroyed()).toBe true
+            waitsForPromise ->
+              pane.destroyItem(item1).then ->
+                expect(item1.save).toHaveBeenCalled()
+                expect(item1 in pane.getItems()).toBe false
+                expect(item1.isDestroyed()).toBe true
 
         describe "when the item has no uri", ->
           it "presents a save-as dialog, then saves the item with the given uri before removing and destroying it", ->
@@ -472,21 +473,23 @@ describe "Pane", ->
 
             showSaveDialog.andReturn("/selected/path")
             confirm.andReturn(0)
-            pane.destroyItem(item1)
 
-            expect(showSaveDialog).toHaveBeenCalled()
-            expect(item1.saveAs).toHaveBeenCalledWith("/selected/path")
-            expect(item1 in pane.getItems()).toBe false
-            expect(item1.isDestroyed()).toBe true
+            waitsForPromise ->
+              pane.destroyItem(item1).then ->
+                expect(showSaveDialog).toHaveBeenCalled()
+                expect(item1.saveAs).toHaveBeenCalledWith("/selected/path")
+                expect(item1 in pane.getItems()).toBe false
+                expect(item1.isDestroyed()).toBe true
 
       describe "if the [Don't Save] option is selected", ->
         it "removes and destroys the item without saving it", ->
           confirm.andReturn(2)
-          pane.destroyItem(item1)
 
-          expect(item1.save).not.toHaveBeenCalled()
-          expect(item1 in pane.getItems()).toBe false
-          expect(item1.isDestroyed()).toBe true
+          waitsForPromise ->
+            pane.destroyItem(item1).then ->
+              expect(item1.save).not.toHaveBeenCalled()
+              expect(item1 in pane.getItems()).toBe false
+              expect(item1.isDestroyed()).toBe true
 
       describe "if the [Cancel] option is selected", ->
         it "does not save, remove, or destroy the item", ->
@@ -550,11 +553,14 @@ describe "Pane", ->
     it "destroys all items", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
       [item1, item2, item3] = pane.getItems()
-      pane.destroyItems()
-      expect(item1.isDestroyed()).toBe true
-      expect(item2.isDestroyed()).toBe true
-      expect(item3.isDestroyed()).toBe true
-      expect(pane.getItems()).toEqual []
+
+      waitsForPromise -> pane.destroyItems()
+
+      runs ->
+        expect(item1.isDestroyed()).toBe true
+        expect(item2.isDestroyed()).toBe true
+        expect(item3.isDestroyed()).toBe true
+        expect(pane.getItems()).toEqual []
 
   describe "::observeItems()", ->
     it "invokes the observer with all current and future items", ->
@@ -620,24 +626,22 @@ describe "Pane", ->
           pane.saveActiveItem()
           expect(showSaveDialog).not.toHaveBeenCalled()
 
-    describe "when the item's saveAs method throws a well-known IO error", ->
-      notificationSpy = null
-      beforeEach ->
-        atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
-
+    describe "when the item's saveAs rejects with a well-known IO error", ->
       it "creates a notification", ->
         pane.getActiveItem().saveAs = ->
           error = new Error("EACCES, permission denied '/foo'")
           error.path = '/foo'
           error.code = 'EACCES'
-          throw error
+          Promise.reject(error)
 
-        pane.saveActiveItem()
-        expect(notificationSpy).toHaveBeenCalled()
-        notification = notificationSpy.mostRecentCall.args[0]
-        expect(notification.getType()).toBe 'warning'
-        expect(notification.getMessage()).toContain 'Permission denied'
-        expect(notification.getMessage()).toContain '/foo'
+        waitsFor (done) ->
+          subscription = atom.notifications.onDidAddNotification (notification) ->
+            expect(notification.getType()).toBe 'warning'
+            expect(notification.getMessage()).toContain 'Permission denied'
+            expect(notification.getMessage()).toContain '/foo'
+            subscription.dispose()
+            done()
+          pane.saveActiveItem()
 
   describe "::saveActiveItemAs()", ->
     pane = null
@@ -661,23 +665,21 @@ describe "Pane", ->
         expect(showSaveDialog).not.toHaveBeenCalled()
 
     describe "when the item's saveAs method throws a well-known IO error", ->
-      notificationSpy = null
-      beforeEach ->
-        atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
-
       it "creates a notification", ->
         pane.getActiveItem().saveAs = ->
           error = new Error("EACCES, permission denied '/foo'")
           error.path = '/foo'
           error.code = 'EACCES'
-          throw error
+          Promise.reject(error)
 
-        pane.saveActiveItemAs()
-        expect(notificationSpy).toHaveBeenCalled()
-        notification = notificationSpy.mostRecentCall.args[0]
-        expect(notification.getType()).toBe 'warning'
-        expect(notification.getMessage()).toContain 'Permission denied'
-        expect(notification.getMessage()).toContain '/foo'
+        waitsFor (done) ->
+          subscription = atom.notifications.onDidAddNotification (notification) ->
+            expect(notification.getType()).toBe 'warning'
+            expect(notification.getMessage()).toContain 'Permission denied'
+            expect(notification.getMessage()).toContain '/foo'
+            subscription.dispose()
+            done()
+          pane.saveActiveItemAs()
 
   describe "::itemForURI(uri)", ->
     it "returns the item for which a call to .getURI() returns the given uri", ->
@@ -786,7 +788,6 @@ describe "Pane", ->
         expect(pane1.getPendingItem()).toEqual item6
         pane2.moveItemToPane(item5, pane1, 0)
         expect(pane1.getPendingItem()).toEqual item6
-
 
   describe "split methods", ->
     [pane1, item1, container] = []
@@ -926,11 +927,10 @@ describe "Pane", ->
       item1.save = jasmine.createSpy("save")
 
       confirm.andReturn(0)
-      pane.close()
-
-      expect(confirm).toHaveBeenCalled()
-      expect(item1.save).toHaveBeenCalled()
-      expect(pane.isDestroyed()).toBe true
+      pane.close().then ->
+        expect(confirm).toHaveBeenCalled()
+        expect(item1.save).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe true
 
     it "does not destroy the pane if cancel is called", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
@@ -941,11 +941,12 @@ describe "Pane", ->
       item1.save = jasmine.createSpy("save")
 
       confirm.andReturn(1)
-      pane.close()
 
-      expect(confirm).toHaveBeenCalled()
-      expect(item1.save).not.toHaveBeenCalled()
-      expect(pane.isDestroyed()).toBe false
+      waitsForPromise ->
+        pane.close().then ->
+          expect(confirm).toHaveBeenCalled()
+          expect(item1.save).not.toHaveBeenCalled()
+          expect(pane.isDestroyed()).toBe false
 
     describe "when item fails to save", ->
       [pane, item1, item2] = []
@@ -972,12 +973,12 @@ describe "Pane", ->
           else
             return 1 # click cancel
 
-        pane.close()
-
-        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-        expect(confirmations).toBe(2)
-        expect(item1.save).toHaveBeenCalled()
-        expect(pane.isDestroyed()).toBe false
+        waitsForPromise ->
+          pane.close().then ->
+            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+            expect(confirmations).toBe(2)
+            expect(item1.save).toHaveBeenCalled()
+            expect(pane.isDestroyed()).toBe false
 
       it "does destroy the pane if the user saves the file under a new name", ->
         item1.saveAs = jasmine.createSpy("saveAs").andReturn(true)
@@ -989,14 +990,14 @@ describe "Pane", ->
 
         showSaveDialog.andReturn("new/path")
 
-        pane.close()
-
-        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-        expect(confirmations).toBe(2)
-        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
-        expect(item1.save).toHaveBeenCalled()
-        expect(item1.saveAs).toHaveBeenCalled()
-        expect(pane.isDestroyed()).toBe true
+        waitsForPromise ->
+          pane.close().then ->
+            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+            expect(confirmations).toBe(2)
+            expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
+            expect(item1.save).toHaveBeenCalled()
+            expect(item1.saveAs).toHaveBeenCalled()
+            expect(pane.isDestroyed()).toBe true
 
       it "asks again if the saveAs also fails", ->
         item1.saveAs = jasmine.createSpy("saveAs").andCallFake ->
@@ -1014,14 +1015,14 @@ describe "Pane", ->
 
         showSaveDialog.andReturn("new/path")
 
-        pane.close()
-
-        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-        expect(confirmations).toBe(3)
-        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
-        expect(item1.save).toHaveBeenCalled()
-        expect(item1.saveAs).toHaveBeenCalled()
-        expect(pane.isDestroyed()).toBe true
+        waitsForPromise ->
+          pane.close().then ->
+            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+            expect(confirmations).toBe(3)
+            expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
+            expect(item1.save).toHaveBeenCalled()
+            expect(item1.saveAs).toHaveBeenCalled()
+            expect(pane.isDestroyed()).toBe true
 
   describe "::destroy()", ->
     [container, pane1, pane2] = []

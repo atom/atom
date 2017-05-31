@@ -149,11 +149,11 @@ describe "PaneContainerElement", ->
       )
       expectPaneScale [leftPane, 0.5], [middlePane, 0.75], [rightPane, 1.75]
 
-      middlePane.close()
-      expectPaneScale [leftPane, 0.44], [rightPane, 1.55]
+      waitsForPromise -> middlePane.close()
+      runs -> expectPaneScale [leftPane, 0.44], [rightPane, 1.55]
 
-      leftPane.close()
-      expectPaneScale [rightPane, 1]
+      waitsForPromise -> leftPane.close()
+      runs -> expectPaneScale [rightPane, 1]
 
     it "splits or closes panes in orthogonal direction that the pane is being dragged", ->
       leftPane = container.getActivePane()
@@ -173,8 +173,8 @@ describe "PaneContainerElement", ->
       expectPaneScale [lowerPane, 1], [leftPane, 1], [leftPane.getParent(), 0.5]
 
       # dynamically close pane, the pane's flexscale will recorver to origin value
-      lowerPane.close()
-      expectPaneScale [leftPane, 0.5], [rightPane, 1.5]
+      waitsForPromise -> lowerPane.close()
+      runs -> expectPaneScale [leftPane, 0.5], [rightPane, 1.5]
 
     it "unsubscribes from mouse events when the pane is detached", ->
       container.getActivePane().splitRight()

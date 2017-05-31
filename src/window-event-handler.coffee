@@ -147,19 +147,12 @@ class WindowEventHandler
     @document.body.classList.remove("fullscreen")
 
   handleWindowBeforeunload: (event) =>
-    projectHasPaths = @atomEnvironment.project.getPaths().length > 0
-    confirmed = @atomEnvironment.workspace?.confirmClose(windowCloseRequested: true, projectHasPaths: projectHasPaths)
-    if confirmed and not @reloadRequested and not @atomEnvironment.inSpecMode() and @atomEnvironment.getCurrentWindow().isWebViewFocused()
+    if not @reloadRequested and not @atomEnvironment.inSpecMode() and @atomEnvironment.getCurrentWindow().isWebViewFocused()
       @atomEnvironment.hide()
     @reloadRequested = false
-
     @atomEnvironment.storeWindowDimensions()
-    if confirmed
-      @atomEnvironment.unloadEditorWindow()
-      @atomEnvironment.destroy()
-    else
-      @applicationDelegate.didCancelWindowUnload()
-      event.returnValue = false
+    @atomEnvironment.unloadEditorWindow()
+    @atomEnvironment.destroy()
 
   handleWindowToggleFullScreen: =>
     @atomEnvironment.toggleFullScreen()

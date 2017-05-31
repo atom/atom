@@ -2394,38 +2394,47 @@ i = /test/; #FIXME\
   })
 
   describe('::saveActivePaneItem()', () => {
-    let editor = null
-    beforeEach(() =>
-      waitsForPromise(() => atom.workspace.open('sample.js').then(o => { editor = o }))
-    )
+    let editor, notificationSpy
+
+    beforeEach(() => {
+      waitsForPromise(() => atom.workspace.open('sample.js').then(o => {
+        editor = o
+      }))
+
+      notificationSpy = jasmine.createSpy('did-add-notification')
+      atom.notifications.onDidAddNotification(notificationSpy)
+    })
 
     describe('when there is an error', () => {
       it('emits a warning notification when the file cannot be saved', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           throw new Error("'/some/file' is a directory")
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-        expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the directory cannot be written to', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           throw new Error("ENOTDIR, not a directory '/Some/dir/and-a-file.js'")
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-        expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the user does not have permission', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           const error = new Error("EACCES, permission denied '/Some/dir/and-a-file.js'")
           error.code = 'EACCES'
@@ -2433,10 +2442,13 @@ i = /test/; #FIXME\
           throw error
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-        expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the operation is not permitted', () => {
@@ -2446,10 +2458,17 @@ i = /test/; #FIXME\
           error.path = '/Some/dir/and-a-file.js'
           throw error
         })
+
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the file is already open by another app', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           const error = new Error("EBUSY, resource busy or locked '/Some/dir/and-a-file.js'")
           error.code = 'EBUSY'
@@ -2457,17 +2476,16 @@ i = /test/; #FIXME\
           throw error
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-
-        const notificaiton = addedSpy.mostRecentCall.args[0]
-        expect(notificaiton.getType()).toBe('warning')
-        expect(notificaiton.getMessage()).toContain('Unable to save')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the file system is read-only', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           const error = new Error("EROFS, read-only file system '/Some/dir/and-a-file.js'")
           error.code = 'EROFS'
@@ -2475,13 +2493,13 @@ i = /test/; #FIXME\
           throw error
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-
-        const notification = addedSpy.mostRecentCall.args[0]
-        expect(notification.getType()).toBe('warning')
-        expect(notification.getMessage()).toContain('Unable to save')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the file cannot be saved', () => {
@@ -2489,8 +2507,9 @@ i = /test/; #FIXME\
           throw new Error('no one knows')
         })
 
-        const save = () => atom.workspace.saveActivePaneItem()
-        expect(save).toThrow()
+        waitsForPromise({shouldReject: true}, () =>
+          atom.workspace.saveActivePaneItem()
+        )
       })
     })
   })
