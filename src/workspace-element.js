@@ -283,9 +283,8 @@ class WorkspaceElement extends HTMLElement {
     const visiblePanes = _.flatten(visiblePaneContainers.map(container => container.getPanes()))
 
     const paneViews = visiblePanes
-      .map(otherPane => {
-        return otherPane.getElement()
-      }).filter(otherPaneView => {
+      .map(otherPane => otherPane.getElement())
+      .filter(otherPaneView => {
         const otherBox = this.boundingBoxForPaneView(otherPaneView)
         switch (direction) {
           case 'left': return otherBox.right.x <= box.left.x
