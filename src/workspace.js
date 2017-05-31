@@ -1282,12 +1282,12 @@ module.exports = class Workspace extends Model {
     return this.getPaneItems().filter(item => item instanceof TextEditor)
   }
 
-  // Essential: Get the active item if it is an {TextEditor}.
+  // Essential: Get the workspace center's active item if it is a {TextEditor}.
   //
-  // Returns an {TextEditor} or `undefined` if the current active item is not an
-  // {TextEditor}.
+  // Returns a {TextEditor} or `undefined` if the workspace center's current
+  // active item is not a {TextEditor}.
   getActiveTextEditor () {
-    const activeItem = this.getActivePaneItem()
+    const activeItem = this.getCenter().getActivePaneItem()
     if (activeItem instanceof TextEditor) { return activeItem }
   }
 

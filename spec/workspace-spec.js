@@ -1419,6 +1419,42 @@ describe('Workspace', () => {
     })
   })
 
+  describe('::getActiveTextEditor()', () => {
+    describe("when the workspace center's active pane item is a text editor", () => {
+      describe('when the workspace center has focus', function () {
+        it('returns the text editor', () => {
+          const workspaceCenter = workspace.getCenter()
+          const editor = new TextEditor()
+          workspaceCenter.getActivePane().activateItem(editor)
+          workspaceCenter.activate()
+
+          expect(workspace.getActiveTextEditor()).toBe(editor)
+        })
+      })
+
+      describe('when a dock has focus', function () {
+        it('returns the text editor', () => {
+          const workspaceCenter = workspace.getCenter()
+          const editor = new TextEditor()
+          workspaceCenter.getActivePane().activateItem(editor)
+          workspace.getLeftDock().activate()
+
+          expect(workspace.getActiveTextEditor()).toBe(editor)
+        })
+      })
+    })
+
+    describe("when the workspace center's active pane item is not a text editor", () => {
+      it('returns undefined', () => {
+        const workspaceCenter = workspace.getCenter()
+        const nonEditorItem = document.createElement('div')
+        workspaceCenter.getActivePane().activateItem(nonEditorItem)
+
+        expect(workspace.getActiveTextEditor()).toBeUndefined()
+      })
+    })
+  })
+
   describe('::observeTextEditors()', () => {
     it('invokes the observer with current and future text editors', () => {
       const observed = []
