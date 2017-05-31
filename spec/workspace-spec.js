@@ -1471,6 +1471,90 @@ describe('Workspace', () => {
     })
   })
 
+  describe('::observeActiveTextEditor()', () => {
+    let center, pane, observed
+
+    beforeEach(() => {
+      center = workspace.getCenter()
+      pane = center.getActivePane()
+      observed = []
+    })
+
+    it('invokes the observer with current active text editor and each time a different text editor becomes active', () => {
+      const inactiveEditorBeforeRegisteringObserver = new TextEditor()
+      const activeEditorBeforeRegisteringObserver = new TextEditor()
+      pane.activateItem(inactiveEditorBeforeRegisteringObserver)
+      pane.activateItem(activeEditorBeforeRegisteringObserver)
+
+      workspace.observeActiveTextEditor(editor => observed.push(editor))
+
+      const editorAddedAfterRegisteringObserver = new TextEditor()
+      const nonEditorItemAddedAfterRegisteringObserver = document.createElement('div')
+      pane.activateItem(editorAddedAfterRegisteringObserver)
+
+      expect(observed).toEqual(
+        [activeEditorBeforeRegisteringObserver, editorAddedAfterRegisteringObserver]
+      )
+    })
+
+    it('does not invoke the observer when there is no current active text editor', () => {
+      const editor = new TextEditor()
+      const nonEditorItem = document.createElement('div')
+      pane.activateItem(editor)
+      pane.activateItem(nonEditorItem)
+
+      workspace.observeActiveTextEditor(editor => observed.push(editor))
+
+      expect(observed).toEqual([])
+    })
+
+    it("invokes the observer when a text editor becomes the workspace center's active pane item while a dock has focus", () => {
+      workspace.observeActiveTextEditor(editor => observed.push(editor))
+
+      const dock = workspace.getLeftDock()
+      dock.activate()
+      expect(atom.workspace.getActivePaneContainer()).toBe(dock)
+
+      const editor = new TextEditor()
+      center.getActivePane().activateItem(editor)
+      expect(atom.workspace.getActivePaneContainer()).toBe(dock)
+
+      expect(observed).toEqual([editor])
+    })
+
+    it('invokes the observer when the last text editor is closed', () => {
+      workspace.observeActiveTextEditor(editor => observed.push(editor))
+
+      const editor = new TextEditor()
+      pane.activateItem(editor)
+      pane.destroyItem(editor)
+
+      expect(observed).toEqual([editor, undefined])
+    })
+
+    it("invokes the observer when the workspace center's active pane item changes from an editor item to a non-editor item", () => {
+      workspace.observeActiveTextEditor(editor => observed.push(editor))
+
+      const editor = new TextEditor()
+      const nonEditorItem = document.createElement('div')
+      pane.activateItem(editor)
+      pane.activateItem(nonEditorItem)
+
+      expect(observed).toEqual([editor, undefined])
+    })
+
+    it("does not invoke the observer when the workspace center's active pane item changes from a non-editor item to another non-editor item", () => {
+      workspace.observeActiveTextEditor(editor => observed.push(editor))
+
+      const nonEditorItem1 = document.createElement('div')
+      const nonEditorItem2 = document.createElement('div')
+      pane.activateItem(nonEditorItem1)
+      pane.activateItem(nonEditorItem1)
+
+      expect(observed).toEqual([])
+    })
+  })
+
   describe('when an editor is destroyed', () => {
     it('removes the editor', () => {
       let editor = null
