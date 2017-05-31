@@ -1532,6 +1532,12 @@ module.exports = class Workspace extends Model {
     ]
   }
 
+  getVisiblePaneContainers() {
+    const center = this.getCenter()
+    return atom.workspace.getPaneContainers()
+      .filter(container => container === center || container.isVisible())
+  }
+
   /*
   Section: Panels
 

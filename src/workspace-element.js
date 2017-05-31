@@ -274,9 +274,7 @@ class WorkspaceElement extends HTMLElement {
     const paneView = pane.getElement()
     const box = this.boundingBoxForPaneView(paneView)
 
-    const center = atom.workspace.getCenter()
-    const visiblePaneContainers = atom.workspace.getPaneContainers()
-      .filter(container => container === center || container.isVisible())
+    const visiblePaneContainers = atom.workspace.getVisiblePaneContainers()
 
     const visiblePanes = _.flatten(visiblePaneContainers.map(container => container.getPanes()))
 
