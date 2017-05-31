@@ -1410,24 +1410,8 @@ class TextEditorComponent {
       this.scheduleUpdate()
     }
 
-    // Transfer focus to the hidden input, but first ensure the input is in the
-    // visible part of the scrolled content to avoid the browser trying to
-    // auto-scroll to the form-field.
     const {hiddenInput} = this.refs.cursorsAndInput.refs
-    hiddenInput.style.top = this.getScrollTop() + 'px'
-    hiddenInput.style.left = this.getScrollLeft() + 'px'
-
     hiddenInput.focus()
-
-    // Restore the previous position of the field now that it is already focused
-    // and won't cause unwanted scrolling.
-    if (this.hiddenInputPosition) {
-      hiddenInput.style.top = this.hiddenInputPosition.pixelTop + 'px'
-      hiddenInput.style.left = this.hiddenInputPosition.pixelLeft + 'px'
-    } else {
-      hiddenInput.style.top = 0
-      hiddenInput.style.left = 0
-    }
   }
 
   // Called by TextEditorElement so that this function is always the first
@@ -1450,6 +1434,12 @@ class TextEditorComponent {
   }
 
   didFocusHiddenInput () {
+    // Focusing the hidden input when it is off-screen causes the browser to
+    // scroll it into view. Since we use synthetic scrolling this behavior
+    // causes all the lines to disappear so we counteract it by always setting
+    // the scroll position to 0.
+    this.refs.scrollContainer.scrollTop = 0
+    this.refs.scrollContainer.scrollLeft = 0
     if (!this.focused) {
       this.focused = true
       this.startCursorBlinking()
