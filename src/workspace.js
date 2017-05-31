@@ -1349,6 +1349,10 @@ module.exports = class Workspace extends Model {
     return _.flatten(this.getPaneContainers().map(container => container.getPanes()))
   }
 
+  getVisiblePanes() {
+    return _.flatten(this.getVisiblePaneContainers().map(container => container.getPanes()))
+  }
+
   // Extended: Get the active {Pane}.
   //
   // Returns a {Pane}.
