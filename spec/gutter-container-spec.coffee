@@ -3,7 +3,9 @@ GutterContainer = require '../src/gutter-container'
 
 describe 'GutterContainer', ->
   gutterContainer = null
-  fakeTextEditor = {}
+  fakeTextEditor = {
+    scheduleComponentUpdate: ->
+  }
 
   beforeEach ->
     gutterContainer = new GutterContainer fakeTextEditor

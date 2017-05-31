@@ -11,6 +11,7 @@ const glob = require('glob')
 const path = require('path')
 
 const CONFIG = require('./config')
+const backupNodeModules = require('./lib/backup-node-modules')
 const runApmInstall = require('./lib/run-apm-install')
 
 const resourcePath = CONFIG.repositoryRootPath
@@ -94,11 +95,8 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     if (require(pkgJsonPath).atomTestRunner) {
       console.log(`Installing test runner dependencies for ${packageName}`.bold.green)
       if (fs.existsSync(nodeModulesPath)) {
-        fs.copySync(nodeModulesPath, nodeModulesBackupPath)
-        finalize = () => {
-          fs.removeSync(nodeModulesPath)
-          fs.renameSync(nodeModulesBackupPath, nodeModulesPath)
-        }
+        const backup = backupNodeModules(repositoryPackagePath)
+        finalize = backup.restore
       } else {
         finalize = () => fs.removeSync(nodeModulesPath)
       }
@@ -109,7 +107,8 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     }
     const cp = childProcess.spawn(executablePath, testArguments)
     let stderrOutput = ''
-    cp.stderr.on('data', data => stderrOutput += data)
+    cp.stderr.on('data', data => { stderrOutput += data })
+    cp.stdout.on('data', data => { stderrOutput += data })
     cp.on('error', error => {
       finalize()
       callback(error)

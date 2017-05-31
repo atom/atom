@@ -6,15 +6,6 @@ const glob = require('glob')
 const path = require('path')
 
 const CONFIG = require('../config')
-const BABEL_OPTIONS = require('../../static/babelrc.json')
-const BABEL_PREFIXES = [
-  "'use babel'",
-  '"use babel"',
-  '/** @babel */',
-  '/* @flow */'
-]
-const PREFIX_LENGTH = Math.max.apply(null, BABEL_PREFIXES.map(prefix => prefix.length))
-const BUFFER = Buffer(PREFIX_LENGTH)
 
 module.exports = function () {
   console.log(`Transpiling Babel paths in ${CONFIG.intermediateAppPath}`)

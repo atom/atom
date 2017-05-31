@@ -237,8 +237,8 @@ class AtomApplication
     @on 'application:open-discussions', -> shell.openExternal('https://discuss.atom.io')
     @on 'application:open-faq', -> shell.openExternal('https://atom.io/faq')
     @on 'application:open-terms-of-use', -> shell.openExternal('https://atom.io/terms')
-    @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
-    @on 'application:search-issues', -> shell.openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
+    @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#reporting-bugs')
+    @on 'application:search-issues', -> shell.openExternal('https://github.com/search?q=+is%3Aissue+user%3Aatom')
 
     @on 'application:install-update', =>
       @quitting = true
@@ -644,7 +644,7 @@ class AtomApplication
   openUrl: ({urlToOpen, devMode, safeMode, env}) ->
     unless @packages?
       PackageManager = require '../package-manager'
-      @packages = new PackageManager()
+      @packages = new PackageManager({})
       @packages.initialize
         configDirPath: process.env.ATOM_HOME
         devMode: devMode

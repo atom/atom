@@ -7,7 +7,7 @@
 
 var path = require('path')
 var fs = require('fs-plus')
-var sourceMapSupport = require('source-map-support')
+var sourceMapSupport = require('@atom/source-map-support')
 
 var PackageTranspilationRegistry = require('./package-transpilation-registry')
 var CSON = null
@@ -115,6 +115,18 @@ function writeCachedJavascript (relativeCachePath, code) {
 var INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/mg
 
 exports.install = function (resourcesPath, nodeRequire) {
+  const snapshotSourceMapConsumer = {
+    originalPositionFor ({line, column}) {
+      const {relativePath, row} = snapshotResult.translateSnapshotRow(line)
+      return {
+        column,
+        line: row,
+        source: path.join(resourcesPath, 'app', 'static', relativePath),
+        name: null
+      }
+    }
+  }
+
   sourceMapSupport.install({
     handleUncaughtExceptions: false,
 
@@ -123,10 +135,7 @@ exports.install = function (resourcesPath, nodeRequire) {
     // code from our cache directory.
     retrieveSourceMap: function (filePath) {
       if (filePath === '<embedded>') {
-        return {
-          map: snapshotResult.sourceMap, // eslint-disable-line no-undef
-          url: path.join(resourcesPath, 'app', 'static', 'index.js')
-        }
+        return {map: snapshotSourceMapConsumer}
       }
 
       if (!cacheDirectory || !fs.isFileSync(filePath)) {

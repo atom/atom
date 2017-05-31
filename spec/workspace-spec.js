@@ -2486,7 +2486,7 @@ i = /test/; #FIXME\
       waitsForPromise(() => atom.workspace.open())
     })
 
-    it('closes the active pane item, or the active pane if it is empty, or the current window if there is only the empty root pane', async () => {
+    it('closes the active center pane item, or the active center pane if it is empty, or the current window if there is only the empty root pane in the center', async () => {
       atom.config.set('core.destroyEmptyPanes', false)
 
       const pane1 = atom.workspace.getActivePane()
@@ -2509,6 +2509,7 @@ i = /test/; #FIXME\
       expect(pane1.getItems().length).toBe(0)
       expect(atom.workspace.getCenter().getPanes().length).toBe(1)
 
+      // The dock items should not be closed
       await atom.workspace.open({
         getTitle: () => 'Permanent Dock Item',
         element: document.createElement('div'),
@@ -2523,14 +2524,63 @@ i = /test/; #FIXME\
 
       expect(atom.workspace.getLeftDock().getPaneItems().length).toBe(2)
       atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      expect(atom.workspace.getLeftDock().getPaneItems().length).toBe(1)
-      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      expect(atom.workspace.getLeftDock().getPaneItems().length).toBe(1)
-      expect(atom.close).not.toHaveBeenCalled()
-
-      atom.workspace.getCenter().activate()
-      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       expect(atom.close).toHaveBeenCalled()
+    })
+  })
+
+  describe('::activateNextPane', () => {
+    describe('when the active workspace pane is inside a dock', () => {
+      it('activates the next pane in the dock', () => {
+        const dock = atom.workspace.getLeftDock()
+        const dockPane1 = dock.getPanes()[0]
+        const dockPane2 = dockPane1.splitRight()
+
+        dockPane2.focus()
+        expect(atom.workspace.getActivePane()).toBe(dockPane2)
+        atom.workspace.activateNextPane()
+        expect(atom.workspace.getActivePane()).toBe(dockPane1)
+      })
+    })
+
+    describe('when the active workspace pane is inside the workspace center', () => {
+      it('activates the next pane in the workspace center', () => {
+        const center = atom.workspace.getCenter()
+        const centerPane1 = center.getPanes()[0]
+        const centerPane2 = centerPane1.splitRight()
+
+        centerPane2.focus()
+        expect(atom.workspace.getActivePane()).toBe(centerPane2)
+        atom.workspace.activateNextPane()
+        expect(atom.workspace.getActivePane()).toBe(centerPane1)
+      })
+    })
+  })
+
+  describe('::activatePreviousPane', () => {
+    describe('when the active workspace pane is inside a dock', () => {
+      it('activates the previous pane in the dock', () => {
+        const dock = atom.workspace.getLeftDock()
+        const dockPane1 = dock.getPanes()[0]
+        const dockPane2 = dockPane1.splitRight()
+
+        dockPane1.focus()
+        expect(atom.workspace.getActivePane()).toBe(dockPane1)
+        atom.workspace.activatePreviousPane()
+        expect(atom.workspace.getActivePane()).toBe(dockPane2)
+      })
+    })
+
+    describe('when the active workspace pane is inside the workspace center', () => {
+      it('activates the previous pane in the workspace center', () => {
+        const center = atom.workspace.getCenter()
+        const centerPane1 = center.getPanes()[0]
+        const centerPane2 = centerPane1.splitRight()
+
+        centerPane1.focus()
+        expect(atom.workspace.getActivePane()).toBe(centerPane1)
+        atom.workspace.activatePreviousPane()
+        expect(atom.workspace.getActivePane()).toBe(centerPane2)
+      })
     })
   })
 

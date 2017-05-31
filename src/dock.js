@@ -151,7 +151,7 @@ module.exports = class Dock {
 
     this.state = nextState
     this.render(this.state)
-    if (didHide) this.didHide()
+    if (didHide) this.didHide(this)
   }
 
   render (state) {
@@ -624,6 +624,16 @@ module.exports = class Dock {
   // Returns a {Pane}.
   getActivePane () {
     return this.paneContainer.getActivePane()
+  }
+
+  // Extended: Make the next pane active.
+  activateNextPane () {
+    return this.paneContainer.activateNextPane()
+  }
+
+  // Extended: Make the previous pane active.
+  activatePreviousPane () {
+    return this.paneContainer.activatePreviousPane()
   }
 
   paneForURI (uri) {

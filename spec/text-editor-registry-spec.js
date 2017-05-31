@@ -19,7 +19,7 @@ describe('TextEditorRegistry', function () {
       packageManager: {deferredActivationHooks: null}
     })
 
-    editor = new TextEditor()
+    editor = new TextEditor({autoHeight: false})
   })
 
   afterEach(function () {

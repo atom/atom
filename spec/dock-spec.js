@@ -17,7 +17,7 @@ describe('Dock', () => {
   })
 
   describe('when a dock is hidden', () => {
-    it('transfers focus back to the active center pane', () => {
+    it('transfers focus back to the active center pane if the dock had focus', () => {
       jasmine.attachToDOM(atom.workspace.getElement())
       const dock = atom.workspace.getLeftDock()
       dock.activate()
@@ -31,6 +31,19 @@ describe('Dock', () => {
 
       dock.toggle()
       expect(document.activeElement).toBe(atom.workspace.getCenter().getActivePane().getElement())
+
+      // Don't change focus if the dock was not focused in the first place
+      const modalElement = document.createElement('div')
+      modalElement.setAttribute('tabindex', -1)
+      atom.workspace.addModalPanel({item: modalElement})
+      modalElement.focus()
+      expect(document.activeElement).toBe(modalElement)
+
+      dock.show()
+      expect(document.activeElement).toBe(modalElement)
+
+      dock.hide()
+      expect(document.activeElement).toBe(modalElement)
     })
   })
 
@@ -46,6 +59,70 @@ describe('Dock', () => {
 
       atom.workspace.getLeftDock().getPanes()[0].activate()
       expect(atom.workspace.getLeftDock().isVisible()).toBe(true)
+    })
+  })
+
+  describe('activating the next pane', () => {
+    describe('when the dock has more than one pane', () => {
+      it('activates the next pane', () => {
+        const dock = atom.workspace.getLeftDock()
+        const pane1 = dock.getPanes()[0]
+        const pane2 = pane1.splitRight()
+        const pane3 = pane2.splitRight()
+        pane2.activate()
+        expect(pane1.isActive()).toBe(false)
+        expect(pane2.isActive()).toBe(true)
+        expect(pane3.isActive()).toBe(false)
+
+        dock.activateNextPane()
+        expect(pane1.isActive()).toBe(false)
+        expect(pane2.isActive()).toBe(false)
+        expect(pane3.isActive()).toBe(true)
+      })
+    })
+
+    describe('when the dock has only one pane', () => {
+      it('leaves the current pane active', () => {
+        const dock = atom.workspace.getLeftDock()
+
+        expect(dock.getPanes().length).toBe(1)
+        const pane = dock.getPanes()[0]
+        expect(pane.isActive()).toBe(true)
+        dock.activateNextPane()
+        expect(pane.isActive()).toBe(true)
+      })
+    })
+  })
+
+  describe('activating the previous pane', () => {
+    describe('when the dock has more than one pane', () => {
+      it('activates the previous pane', () => {
+        const dock = atom.workspace.getLeftDock()
+        const pane1 = dock.getPanes()[0]
+        const pane2 = pane1.splitRight()
+        const pane3 = pane2.splitRight()
+        pane2.activate()
+        expect(pane1.isActive()).toBe(false)
+        expect(pane2.isActive()).toBe(true)
+        expect(pane3.isActive()).toBe(false)
+
+        dock.activatePreviousPane()
+        expect(pane1.isActive()).toBe(true)
+        expect(pane2.isActive()).toBe(false)
+        expect(pane3.isActive()).toBe(false)
+      })
+    })
+
+    describe('when the dock has only one pane', () => {
+      it('leaves the current pane active', () => {
+        const dock = atom.workspace.getLeftDock()
+
+        expect(dock.getPanes().length).toBe(1)
+        const pane = dock.getPanes()[0]
+        expect(pane.isActive()).toBe(true)
+        dock.activatePreviousPane()
+        expect(pane.isActive()).toBe(true)
+      })
     })
   })
 
@@ -222,20 +299,34 @@ describe('Dock', () => {
     })
   })
 
-  describe('when dragging an item over an empty dock', () => {
-    it('has the preferred size of the item', () => {
+  describe('drag handling', () => {
+    it('expands docks to match the preferred size of the dragged item', () => {
       jasmine.attachToDOM(atom.workspace.getElement())
 
-      const item = {
-        element: document.createElement('div'),
-        getDefaultLocation () { return 'left' },
-        getPreferredWidth () { return 144 },
-        serialize: () => ({deserializer: 'DockTestItem'})
+      const element = document.createElement('div')
+      element.setAttribute('is', 'tabs-tab')
+      element.item = {
+        element,
+        getDefaultLocation() { return 'left' },
+        getPreferredWidth() { return 144 }
       }
-      const dock = atom.workspace.getLeftDock()
 
-      dock.setDraggingItem(item)
-      expect(dock.wrapperElement.offsetWidth).toBe(144)
+      const dragEvent = new DragEvent('dragstart')
+      Object.defineProperty(dragEvent, 'target', {value: element})
+
+      atom.workspace.getElement().handleDragStart(dragEvent)
+      expect(atom.workspace.getLeftDock().wrapperElement.offsetWidth).toBe(144)
+    })
+
+    it('does nothing when text nodes are dragged', () => {
+      jasmine.attachToDOM(atom.workspace.getElement())
+
+      const textNode = document.createTextNode('hello')
+
+      const dragEvent = new DragEvent('dragstart')
+      Object.defineProperty(dragEvent, 'target', {value: textNode})
+
+      expect(() => atom.workspace.getElement().handleDragStart(dragEvent)).not.toThrow()
     })
   })
 })

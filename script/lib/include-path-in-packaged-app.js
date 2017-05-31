@@ -67,7 +67,7 @@ const EXCLUDE_REGEXPS_SOURCES = [
 
   // Ignore test and example folders
   'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + '_*te?sts?_*' + escapeRegExp(path.sep),
-  'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'examples?' + escapeRegExp(path.sep),
+  'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'examples?' + escapeRegExp(path.sep)
 ]
 
 // Ignore spec directories in all bundled packages
@@ -89,5 +89,5 @@ const INCLUDED_PATHS_REGEXP = new RegExp(
 )
 
 function escapeRegExp (string) {
-  return string.replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&")
+  return string.replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&')
 }

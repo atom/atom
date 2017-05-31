@@ -11,6 +11,7 @@ module.exports = function () {
     path.join(CONFIG.repositoryRootPath, 'exports', '**', '*.js'),
     path.join(CONFIG.repositoryRootPath, 'spec', '*.js'),
     path.join(CONFIG.repositoryRootPath, 'spec', 'main-process', '*.js'),
+    path.join(CONFIG.repositoryRootPath, 'script', '**', '*.js'),
     path.join(CONFIG.repositoryRootPath, 'src', '**', '*.js'),
     path.join(CONFIG.repositoryRootPath, 'static', '*.js')
   ]

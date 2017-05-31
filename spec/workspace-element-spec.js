@@ -230,28 +230,32 @@ describe('WorkspaceElement', () => {
       editorElement = editor.getElement()
     })
 
-    it("updates the font-size based on the 'editor.fontSize' config value", () => {
+    it("updates the font-size based on the 'editor.fontSize' config value", async () => {
       const initialCharWidth = editor.getDefaultCharWidth()
       expect(getComputedStyle(editorElement).fontSize).toBe(atom.config.get('editor.fontSize') + 'px')
+
       atom.config.set('editor.fontSize', atom.config.get('editor.fontSize') + 5)
+      await editorElement.component.getNextUpdatePromise()
       expect(getComputedStyle(editorElement).fontSize).toBe(atom.config.get('editor.fontSize') + 'px')
       expect(editor.getDefaultCharWidth()).toBeGreaterThan(initialCharWidth)
     })
 
-    it("updates the font-family based on the 'editor.fontFamily' config value", () => {
+    it("updates the font-family based on the 'editor.fontFamily' config value", async () => {
       const initialCharWidth = editor.getDefaultCharWidth()
       let fontFamily = atom.config.get('editor.fontFamily')
       expect(getComputedStyle(editorElement).fontFamily).toBe(fontFamily)
 
       atom.config.set('editor.fontFamily', 'sans-serif')
       fontFamily = atom.config.get('editor.fontFamily')
+      await editorElement.component.getNextUpdatePromise()
       expect(getComputedStyle(editorElement).fontFamily).toBe(fontFamily)
       expect(editor.getDefaultCharWidth()).not.toBe(initialCharWidth)
     })
 
-    it("updates the line-height based on the 'editor.lineHeight' config value", () => {
+    it("updates the line-height based on the 'editor.lineHeight' config value", async () => {
       const initialLineHeight = editor.getLineHeightInPixels()
       atom.config.set('editor.lineHeight', '30px')
+      await editorElement.component.getNextUpdatePromise()
       expect(getComputedStyle(editorElement).lineHeight).toBe(atom.config.get('editor.lineHeight'))
       expect(editor.getLineHeightInPixels()).not.toBe(initialLineHeight)
     })

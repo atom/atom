@@ -1,7 +1,6 @@
 'use strict'
 
 const childProcess = require('child_process')
-const path = require('path')
 
 const CONFIG = require('../config')
 
@@ -11,7 +10,7 @@ module.exports = function (packagePath) {
   installEnv.ATOM_RESOURCE_PATH = CONFIG.repositoryRootPath
   // Set our target (Electron) version so that node-pre-gyp can download the
   // proper binaries.
-  installEnv.npm_config_target = CONFIG.appMetadata.electronVersion;
+  installEnv.npm_config_target = CONFIG.appMetadata.electronVersion
   childProcess.execFileSync(
     CONFIG.getApmBinPath(),
     ['--loglevel=error', 'install'],
