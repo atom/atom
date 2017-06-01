@@ -933,8 +933,8 @@ class AtomEnvironment extends Model
           "Would you like to add the #{nouns} to this window, permanently discarding the saved state, " +
           "or open the #{nouns} in a new window, restoring the saved state?"
         buttons: [
-          'Open in new window and recover state'
-          'Add to this window and discard state'
+          '&Open in new window and recover state'
+          '&Add to this window and discard state'
         ]
       if btn is 0
         @open
