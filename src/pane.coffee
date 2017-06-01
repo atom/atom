@@ -654,7 +654,6 @@ class Pane
         when 0
           new Promise (resolve) ->
             saveFn item, (error) ->
-              console.log 'error', error
               saveError(error).then(resolve)
         when 1
           Promise.resolve(false)

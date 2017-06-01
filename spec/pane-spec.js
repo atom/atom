@@ -3,6 +3,7 @@ const {Emitter} = require('event-kit')
 const Grim = require('grim')
 const Pane = require('../src/pane')
 const PaneContainer = require('../src/pane-container')
+const {it, fit, ffit, fffit, beforeEach} = require('./async-spec-helpers')
 
 describe('Pane', () => {
   let confirm, showSaveDialog, deserializerDisposable
@@ -335,28 +336,22 @@ describe('Pane', () => {
       expect(callbackCalled).toBeTruthy()
     })
 
-    it("isn't called when a pending item is replaced with a new one", () => {
+    it("isn't called when a pending item is replaced with a new one", async () => {
       pane = null
       const pendingSpy = jasmine.createSpy('onItemDidTerminatePendingState')
       const destroySpy = jasmine.createSpy('onWillDestroyItem')
 
-      waitsForPromise(() =>
-        atom.workspace.open('sample.txt', {pending: true}).then(() => {
-          pane = atom.workspace.getActivePane()
-        })
-      )
-
-      runs(() => {
-        pane.onItemDidTerminatePendingState(pendingSpy)
-        pane.onWillDestroyItem(destroySpy)
+      await atom.workspace.open('sample.txt', {pending: true}).then(() => {
+        pane = atom.workspace.getActivePane()
       })
 
-      waitsForPromise(() => atom.workspace.open('sample.js', {pending: true}))
+      pane.onItemDidTerminatePendingState(pendingSpy)
+      pane.onWillDestroyItem(destroySpy)
 
-      runs(() => {
-        expect(destroySpy).toHaveBeenCalled()
-        expect(pendingSpy).not.toHaveBeenCalled()
-      })
+      await atom.workspace.open('sample.js', {pending: true})
+
+      expect(destroySpy).toHaveBeenCalled()
+      expect(pendingSpy).not.toHaveBeenCalled()
     })
   })
 
@@ -552,58 +547,49 @@ describe('Pane', () => {
 
       describe('if the [Save] option is selected', () => {
         describe('when the item has a uri', () => {
-          it('saves the item before destroying it', () => {
+          it('saves the item before destroying it', async () => {
             itemURI = 'test'
             confirm.andReturn(0)
 
-            waitsForPromise(() =>
-              pane.destroyItem(item1).then(() => {
-                expect(item1.save).toHaveBeenCalled()
-                expect(pane.getItems().includes(item1)).toBe(false)
-                expect(item1.isDestroyed()).toBe(true)
-              })
-            )
+            await pane.destroyItem(item1)
+            expect(item1.save).toHaveBeenCalled()
+            expect(pane.getItems().includes(item1)).toBe(false)
+            expect(item1.isDestroyed()).toBe(true)
           })
         })
 
         describe('when the item has no uri', () => {
-          it('presents a save-as dialog, then saves the item with the given uri before removing and destroying it', () => {
+          it('presents a save-as dialog, then saves the item with the given uri before removing and destroying it', async () => {
             itemURI = null
 
             showSaveDialog.andReturn('/selected/path')
             confirm.andReturn(0)
 
-            waitsForPromise(() =>
-              pane.destroyItem(item1).then(() => {
-                expect(showSaveDialog).toHaveBeenCalled()
-                expect(item1.saveAs).toHaveBeenCalledWith('/selected/path')
-                expect(pane.getItems().includes(item1)).toBe(false)
-                expect(item1.isDestroyed()).toBe(true)
-              })
-            )
+            await pane.destroyItem(item1)
+            expect(showSaveDialog).toHaveBeenCalled()
+            expect(item1.saveAs).toHaveBeenCalledWith('/selected/path')
+            expect(pane.getItems().includes(item1)).toBe(false)
+            expect(item1.isDestroyed()).toBe(true)
           })
         })
       })
 
       describe("if the [Don't Save] option is selected", () => {
-        it('removes and destroys the item without saving it', () => {
+        it('removes and destroys the item without saving it', async () => {
           confirm.andReturn(2)
 
-          waitsForPromise(() =>
-            pane.destroyItem(item1).then(() => {
-              expect(item1.save).not.toHaveBeenCalled()
-              expect(pane.getItems().includes(item1)).toBe(false)
-              expect(item1.isDestroyed()).toBe(true)
-            })
-          )
+          await pane.destroyItem(item1)
+          expect(item1.save).not.toHaveBeenCalled()
+          expect(pane.getItems().includes(item1)).toBe(false)
+          expect(item1.isDestroyed()).toBe(true)
         })
       })
 
       describe('if the [Cancel] option is selected', () => {
-        it('does not save, remove, or destroy the item', () => {
+        it('does not save, remove, or destroy the item', async () => {
           confirm.andReturn(1)
-          pane.destroyItem(item1)
 
+          await pane.destroyItem(item1)
           expect(item1.save).not.toHaveBeenCalled()
           expect(pane.getItems().includes(item1)).toBe(true)
           expect(item1.isDestroyed()).toBe(false)
@@ -611,9 +597,8 @@ describe('Pane', () => {
       })
 
       describe('when force=true', () => {
-        it('destroys the item immediately', () => {
-          pane.destroyItem(item1, true)
-
+        it('destroys the item immediately', async () => {
+          await pane.destroyItem(item1, true)
           expect(item1.save).not.toHaveBeenCalled()
           expect(pane.getItems().includes(item1)).toBe(false)
           expect(item1.isDestroyed()).toBe(true)
@@ -677,18 +662,15 @@ describe('Pane', () => {
   })
 
   describe('::destroyItems()', () => {
-    it('destroys all items', () => {
+    it('destroys all items', async () => {
       const pane = new Pane(paneParams({items: [new Item('A'), new Item('B'), new Item('C')]}))
       const [item1, item2, item3] = pane.getItems()
 
-      waitsForPromise(() => pane.destroyItems())
-
-      runs(() => {
-        expect(item1.isDestroyed()).toBe(true)
-        expect(item2.isDestroyed()).toBe(true)
-        expect(item3.isDestroyed()).toBe(true)
-        expect(pane.getItems()).toEqual([])
-      })
+      await pane.destroyItems()
+      expect(item1.isDestroyed()).toBe(true)
+      expect(item2.isDestroyed()).toBe(true)
+      expect(item3.isDestroyed()).toBe(true)
+      expect(pane.getItems()).toEqual([])
     })
   })
 
@@ -1143,7 +1125,7 @@ describe('Pane', () => {
   })
 
   describe('::close()', () => {
-    it('prompts to save unsaved items before destroying the pane', () => {
+    it('prompts to save unsaved items before destroying the pane', async () => {
       const pane = new Pane(paneParams({items: [new Item('A'), new Item('B')]}))
       const [item1] = pane.getItems()
 
@@ -1152,17 +1134,13 @@ describe('Pane', () => {
       item1.save = jasmine.createSpy('save')
 
       confirm.andReturn(0)
-
-      waitsForPromise(() =>
-        pane.close().then(() => {
-          expect(confirm).toHaveBeenCalled()
-          expect(item1.save).toHaveBeenCalled()
-          expect(pane.isDestroyed()).toBe(true)
-        })
-      )
+      await pane.close()
+      expect(confirm).toHaveBeenCalled()
+      expect(item1.save).toHaveBeenCalled()
+      expect(pane.isDestroyed()).toBe(true)
     })
 
-    it('does not destroy the pane if cancel is called', () => {
+    it('does not destroy the pane if cancel is called', async () => {
       const pane = new Pane(paneParams({items: [new Item('A'), new Item('B')]}))
       const [item1] = pane.getItems()
 
@@ -1171,14 +1149,10 @@ describe('Pane', () => {
       item1.save = jasmine.createSpy('save')
 
       confirm.andReturn(1)
-
-      waitsForPromise(() =>
-        pane.close().then(() => {
-          expect(confirm).toHaveBeenCalled()
-          expect(item1.save).not.toHaveBeenCalled()
-          expect(pane.isDestroyed()).toBe(false)
-        })
-      )
+      await pane.close()
+      expect(confirm).toHaveBeenCalled()
+      expect(item1.save).not.toHaveBeenCalled()
+      expect(pane.isDestroyed()).toBe(false)
     })
 
     describe('when item fails to save', () => {
@@ -1199,7 +1173,7 @@ describe('Pane', () => {
         })
       })
 
-      it('does not destroy the pane if save fails and user clicks cancel', () => {
+      it('does not destroy the pane if save fails and user clicks cancel', async () => {
         let confirmations = 0
         confirm.andCallFake(() => {
           confirmations++
@@ -1210,17 +1184,14 @@ describe('Pane', () => {
           }
         }) // click cancel
 
-        waitsForPromise(() =>
-          pane.close().then(() => {
-            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-            expect(confirmations).toBe(2)
-            expect(item1.save).toHaveBeenCalled()
-            expect(pane.isDestroyed()).toBe(false)
-          })
-        )
+        await pane.close()
+        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+        expect(confirmations).toBe(2)
+        expect(item1.save).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe(false)
       })
 
-      it('does destroy the pane if the user saves the file under a new name', () => {
+      it('does destroy the pane if the user saves the file under a new name', async () => {
         item1.saveAs = jasmine.createSpy('saveAs').andReturn(true)
 
         let confirmations = 0
@@ -1231,19 +1202,16 @@ describe('Pane', () => {
 
         showSaveDialog.andReturn('new/path')
 
-        waitsForPromise(() =>
-          pane.close().then(() => {
-            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-            expect(confirmations).toBe(2)
-            expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
-            expect(item1.save).toHaveBeenCalled()
-            expect(item1.saveAs).toHaveBeenCalled()
-            expect(pane.isDestroyed()).toBe(true)
-          })
-        )
+        await pane.close()
+        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+        expect(confirmations).toBe(2)
+        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
+        expect(item1.save).toHaveBeenCalled()
+        expect(item1.saveAs).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe(true)
       })
 
-      it('asks again if the saveAs also fails', () => {
+      it('asks again if the saveAs also fails', async () => {
         item1.saveAs = jasmine.createSpy('saveAs').andCallFake(() => {
           const error = new Error("EACCES, permission denied '/test/path'")
           error.path = '/test/path'
@@ -1262,16 +1230,13 @@ describe('Pane', () => {
 
         showSaveDialog.andReturn('new/path')
 
-        waitsForPromise(() =>
-          pane.close().then(() => {
-            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-            expect(confirmations).toBe(3)
-            expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
-            expect(item1.save).toHaveBeenCalled()
-            expect(item1.saveAs).toHaveBeenCalled()
-            expect(pane.isDestroyed()).toBe(true)
-          })
-        )
+        await pane.close()
+        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+        expect(confirmations).toBe(3)
+        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
+        expect(item1.save).toHaveBeenCalled()
+        expect(item1.saveAs).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe(true)
       })
     })
   })
@@ -1335,36 +1300,23 @@ describe('Pane', () => {
   })
 
   describe('pending state', () => {
-    let editor1 = null
-    let pane = null
-    let eventCount = null
+    let editor1, pane, eventCount
 
-    beforeEach(() => {
-      waitsForPromise(() =>
-        atom.workspace.open('sample.txt', {pending: true}).then(function (o) {
-          editor1 = o
-          pane = atom.workspace.getActivePane()
-        })
-      )
-
-      runs(() => {
-        eventCount = 0
-        editor1.onDidTerminatePendingState(() => eventCount++)
-      })
+    beforeEach(async () => {
+      editor1 = await atom.workspace.open('sample.txt', {pending: true})
+      pane = atom.workspace.getActivePane()
+      eventCount = 0
+      editor1.onDidTerminatePendingState(() => eventCount++)
     })
 
-    it('does not open file in pending state by default', () => {
-      waitsForPromise(() =>
-        atom.workspace.open('sample.js').then(function (o) {
-          editor1 = o
-          pane = atom.workspace.getActivePane()
-        })
-      )
-
-      runs(() => expect(pane.getPendingItem()).toBeNull())
+    it('does not open file in pending state by default', async () => {
+      await atom.workspace.open('sample.js')
+      expect(pane.getPendingItem()).toBeNull()
     })
 
-    it("opens file in pending state if 'pending' option is true", () => expect(pane.getPendingItem()).toEqual(editor1))
+    it("opens file in pending state if 'pending' option is true", () => {
+      expect(pane.getPendingItem()).toEqual(editor1)
+    })
 
     it('terminates pending state if ::terminatePendingState is invoked', () => {
       editor1.terminatePendingState()
@@ -1381,26 +1333,22 @@ describe('Pane', () => {
       expect(eventCount).toBe(1)
     })
 
-    it('only calls terminate handler once when text is modified twice', () => {
+    it('only calls terminate handler once when text is modified twice', async () => {
       const originalText = editor1.getText()
       editor1.insertText('Some text')
       advanceClock(editor1.getBuffer().stoppedChangingDelay)
 
-      waitsForPromise(() => editor1.save())
+      await editor1.save()
 
-      runs(() => {
-        editor1.insertText('More text')
-        advanceClock(editor1.getBuffer().stoppedChangingDelay)
+      editor1.insertText('More text')
+      advanceClock(editor1.getBuffer().stoppedChangingDelay)
 
-        expect(pane.getPendingItem()).toBeNull()
-        expect(eventCount).toBe(1)
-      })
+      expect(pane.getPendingItem()).toBeNull()
+      expect(eventCount).toBe(1)
 
       // Reset fixture back to original state
-      waitsForPromise(() => {
-        editor1.setText(originalText)
-        return editor1.save()
-      })
+      editor1.setText(originalText)
+      await editor1.save()
     })
 
     it('only calls clearPendingItem if there is a pending item to clear', () => {
