@@ -660,6 +660,14 @@ module.exports = class Workspace extends Model {
     return this.emitter.on('did-stop-changing-active-pane-item', callback)
   }
 
+  // Essential: Invoke the given callback when a text editor becomes the active
+  // text editor and when there is no longer an active text editor.
+  //
+  // * `callback` {Function} to be called when the active text editor changes.
+  //   * `editor` The active {TextEditor} or undefined if there is no longer an
+  //      active text editor.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeActiveTextEditor (callback) {
     return this.emitter.on('did-change-active-text-editor', callback)
   }
