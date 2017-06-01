@@ -116,6 +116,7 @@ class TextEditorComponent {
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
     this.overlayComponents = new Set()
+    this.overlayDimensionsByElement = new WeakMap()
     this.shouldRenderDummyScrollbars = true
     this.remeasureScrollbars = false
     this.pendingAutoscroll = null
@@ -754,6 +755,7 @@ class TextEditorComponent {
         {
           key: overlayProps.element,
           overlayComponents: this.overlayComponents,
+          measuredDimensions: this.overlayDimensionsByElement.get(overlayProps.element),
           didResize: () => { this.updateSync() }
         },
         overlayProps
@@ -1300,15 +1302,16 @@ class TextEditorComponent {
       const {row, column} = screenPosition
       let wrapperTop = contentClientRect.top + this.pixelPositionAfterBlocksForRow(row) + this.getLineHeight()
       let wrapperLeft = contentClientRect.left + this.pixelLeftForRowAndColumn(row, column)
+      const clientRect = element.getBoundingClientRect()
+      this.overlayDimensionsByElement.set(element, clientRect)
 
       if (avoidOverflow !== false) {
         const computedStyle = window.getComputedStyle(element)
-        const elementHeight = element.offsetHeight
         const elementTop = wrapperTop + parseInt(computedStyle.marginTop)
-        const elementBottom = elementTop + elementHeight
-        const flippedElementTop = wrapperTop - this.getLineHeight() - elementHeight - parseInt(computedStyle.marginBottom)
+        const elementBottom = elementTop + clientRect.height
+        const flippedElementTop = wrapperTop - this.getLineHeight() - clientRect.height - parseInt(computedStyle.marginBottom)
         const elementLeft = wrapperLeft + parseInt(computedStyle.marginLeft)
-        const elementRight = elementLeft + element.offsetWidth
+        const elementRight = elementLeft + clientRect.width
 
         if (elementBottom > windowInnerHeight && flippedElementTop >= 0) {
           wrapperTop -= (elementTop - flippedElementTop)
@@ -1320,8 +1323,8 @@ class TextEditorComponent {
         }
       }
 
-      decoration.pixelTop = wrapperTop
-      decoration.pixelLeft = wrapperLeft
+      decoration.pixelTop = Math.round(wrapperTop)
+      decoration.pixelLeft = Math.round(wrapperLeft)
     }
   }
 
@@ -3845,10 +3848,13 @@ class OverlayComponent {
     // Synchronous DOM updates in response to resize events might trigger a
     // "loop limit exceeded" error. We disconnect the observer before
     // potentially mutating the DOM, and then reconnect it on the next tick.
-    this.resizeObserver = new ResizeObserver(() => {
-      this.resizeObserver.disconnect()
-      this.props.didResize()
-      process.nextTick(() => { this.resizeObserver.observe(this.element) })
+    this.resizeObserver = new ResizeObserver((entries) => {
+      const {contentRect} = entries[0]
+      if (contentRect.width !== this.props.measuredDimensions.width || contentRect.height !== this.props.measuredDimensions.height) {
+        this.resizeObserver.disconnect()
+        this.props.didResize()
+        process.nextTick(() => { this.resizeObserver.observe(this.element) })
+      }
     })
     this.didAttach()
     this.props.overlayComponents.add(this)
