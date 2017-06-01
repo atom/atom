@@ -31,7 +31,7 @@
     "event-kit": "^2.3.0",
     "find-parent-dir": "^0.3.0",
     "first-mate": "7.0.7",
-    "fs-plus": "^3.0.0",
+    "fs-plus": "^3.0.1",
     "fstream": "0.1.24",
     "fuzzaldrin": "^2.1",
     "git-utils": "5.0.0",
