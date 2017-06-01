@@ -425,12 +425,13 @@ module.exports = class Workspace extends Model {
     }
 
     if (paneContainer === this.getCenter()) {
+      const itemIsTextEditor = item instanceof TextEditor
       const activeTextEditorChanged =
-        (item instanceof TextEditor) || (this.activeTextEditor instanceof TextEditor)
+        itemIsTextEditor || (this.activeTextEditor instanceof TextEditor)
 
       if (activeTextEditorChanged) {
-        this.activeTextEditor = (item instanceof TextEditor) ? item : null
-        const itemValue = (item instanceof TextEditor) ? item : undefined
+        this.activeTextEditor = itemIsTextEditor ? item : null
+        const itemValue = itemIsTextEditor ? item : undefined
         this.emitter.emit('did-change-active-text-editor', itemValue)
       }
     }
