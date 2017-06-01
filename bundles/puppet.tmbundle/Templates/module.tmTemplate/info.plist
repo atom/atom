@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>command</key>
+	<string>if [[ ! -d "$TM_NEW_FILE" ]]; then
+   mkdir -p "$TM_NEW_FILE/manifests"
+   mkdir -p "$TM_NEW_FILE/files"
+   mkdir -p "$TM_NEW_FILE/templates"
+   TM_YEAR=`date +%Y` \
+   TM_DATE=`date +%Y-%m-%d` \
+   TM_USERNAME=`niutil -readprop / /users/\$USER realname` \
+   perl -pe 's/\$\{([^}]*)\}/$ENV{$1}/g' \
+      &lt; init.pp &gt; "$TM_NEW_FILE/manifests/init.pp"
+fi
+</string>
+	<key>name</key>
+	<string>module</string>
+	<key>uuid</key>
+	<string>285328A3-F7E4-4D5C-9175-D5EFD947C787</string>
+</dict>
+</plist>

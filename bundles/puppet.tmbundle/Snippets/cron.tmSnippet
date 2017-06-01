@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>cron { "${1:name}":
+	$2
+}$0</string>
+	<key>name</key>
+	<string>cron</string>
+	<key>scope</key>
+	<string>source.puppet</string>
+	<key>tabTrigger</key>
+	<string>cron</string>
+	<key>uuid</key>
+	<string>C22C1778-E61D-40EC-8E06-4B4A5ABEC0E7</string>
+</dict>
+</plist>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>case \$${1:variable} {
+	"${2:value}": {
+		${3:# code}
+	}
+	default: {
+		${4:# code}
+	}
+}$0</string>
+	<key>name</key>
+	<string>case</string>
+	<key>scope</key>
+	<string>source.puppet</string>
+	<key>tabTrigger</key>
+	<string>case</string>
+	<key>uuid</key>
+	<string>4C76CA5D-F7F7-4354-AAAD-1F8B00D73823</string>
+</dict>
+</plist>

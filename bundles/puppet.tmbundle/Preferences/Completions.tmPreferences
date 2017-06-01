@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Completions</string>
+	<key>scope</key>
+	<string>source.puppet</string>
+	<key>settings</key>
+	<dict>
+		<key>completions</key>
+		<array>
+			<string>name</string>
+			<string>provider</string>
+			<string>ensure</string>
+			<string>enable</string>
+			<string>command</string>
+			<string>path</string>
+			<string>owner</string>
+			<string>group</string>
+			<string>refresh</string>
+			<string>refreshonly</string>
+			<string>unless</string>
+			<string>backup</string>
+			<string>content</string>
+			<string>source</string>
+			<string>mode</string>
+			<string>recurse</string>
+		</array>
+	</dict>
+	<key>uuid</key>
+	<string>A0062DFA-F753-41C5-B48A-5DF9AA1352DD</string>
+</dict>
+</plist>

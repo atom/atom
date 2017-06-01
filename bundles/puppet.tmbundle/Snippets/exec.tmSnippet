@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>exec { "${1:name}":
+	command =&gt; "${2:/bin/echo}",
+	#path =&gt; "/usr/bin:/usr/sbin:/bin:/usr/local/bin",
+	#refreshonly =&gt; true,
+}$0</string>
+	<key>name</key>
+	<string>exec</string>
+	<key>scope</key>
+	<string>source.puppet</string>
+	<key>tabTrigger</key>
+	<string>exec</string>
+	<key>uuid</key>
+	<string>849952B4-0D8A-4B5F-996D-35D531AAAE81</string>
+</dict>
+</plist>
