@@ -66,22 +66,11 @@ class Task
   constructor: (taskPath) ->
     @emitter = new Emitter
 
-    compileCacheRequire = "require('#{require.resolve('./compile-cache')}')"
     compileCachePath = require('./compile-cache').getCacheDirectory()
-    taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
-    bootstrap = """
-      CompileCache = #{compileCacheRequire}
-      CompileCache.setCacheDirectory('#{compileCachePath}');
-      CompileCache.install("#{process.resourcesPath}", require)
-      #{taskBootstrapRequire}
-    """
-    bootstrap = bootstrap.replace(/\\/g, "\\\\")
-
     taskPath = require.resolve(taskPath)
-    taskPath = taskPath.replace(/\\/g, "\\\\")
 
-    env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
-    @childProcess = ChildProcess.fork '--eval', [bootstrap], {env, silent: true}
+    env = Object.assign({}, process.env, {userAgent: navigator.userAgent})
+    @childProcess = ChildProcess.fork require.resolve('./task-bootstrap'), [compileCachePath, taskPath], {env, silent: true}
 
     @on "task:log", -> console.log(arguments...)
     @on "task:warn", -> console.warn(arguments...)
@@ -166,6 +155,9 @@ class Task
 
     true
 
+  # Public: Cancel the running task and emit an event if it was canceled.
+  #
+  # Returns a {Boolean} indicating whether the task was terminated.
   cancel: ->
     didForcefullyTerminate = @terminate()
     if didForcefullyTerminate

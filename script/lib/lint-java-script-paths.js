@@ -9,6 +9,7 @@ const CONFIG = require('../config')
 module.exports = function () {
   const globPathsToLint = [
     path.join(CONFIG.repositoryRootPath, 'exports', '**', '*.js'),
+    path.join(CONFIG.repositoryRootPath, 'script', '**', '*.js'),
     path.join(CONFIG.repositoryRootPath, 'src', '**', '*.js'),
     path.join(CONFIG.repositoryRootPath, 'static', '*.js')
   ]

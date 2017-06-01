@@ -29,10 +29,12 @@ describe "AtomEnvironment", ->
         atom.setSize(originalSize.width, originalSize.height)
 
       it 'sets the size of the window, and can retrieve the size just set', ->
-        newWidth = originalSize.width + 12
-        newHeight = originalSize.height + 23
-        atom.setSize(newWidth, newHeight)
-        expect(atom.getSize()).toEqual width: newWidth, height: newHeight
+        newWidth = originalSize.width - 12
+        newHeight = originalSize.height - 23
+        waitsForPromise ->
+          atom.setSize(newWidth, newHeight)
+        runs ->
+          expect(atom.getSize()).toEqual width: newWidth, height: newHeight
 
   describe ".isReleasedVersion()", ->
     it "returns false if the version is a SHA and true otherwise", ->
@@ -221,44 +223,70 @@ describe "AtomEnvironment", ->
         atom.loadState().then (state) -> expect(state).toEqual(serializedState)
 
     it "saves state when the CPU is idle after a keydown or mousedown event", ->
-      spyOn(atom, 'saveState')
+      atomEnv = new AtomEnvironment({
+        applicationDelegate: global.atom.applicationDelegate,
+      })
       idleCallbacks = []
-      spyOn(window, 'requestIdleCallback').andCallFake (callback) -> idleCallbacks.push(callback)
+      atomEnv.initialize({
+        window: {
+          requestIdleCallback: (callback) -> idleCallbacks.push(callback),
+          addEventListener: ->
+          removeEventListener: ->
+        },
+        document: document.implementation.createHTMLDocument()
+      })
+
+      spyOn(atomEnv, 'saveState')
 
       keydown = new KeyboardEvent('keydown')
-      atom.document.dispatchEvent(keydown)
-      advanceClock atom.saveStateDebounceInterval
+      atomEnv.document.dispatchEvent(keydown)
+      advanceClock atomEnv.saveStateDebounceInterval
       idleCallbacks.shift()()
-      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
-      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
+      expect(atomEnv.saveState).toHaveBeenCalledWith({isUnloading: false})
+      expect(atomEnv.saveState).not.toHaveBeenCalledWith({isUnloading: true})
 
-      atom.saveState.reset()
+      atomEnv.saveState.reset()
       mousedown = new MouseEvent('mousedown')
-      atom.document.dispatchEvent(mousedown)
-      advanceClock atom.saveStateDebounceInterval
+      atomEnv.document.dispatchEvent(mousedown)
+      advanceClock atomEnv.saveStateDebounceInterval
       idleCallbacks.shift()()
-      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
-      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
+      expect(atomEnv.saveState).toHaveBeenCalledWith({isUnloading: false})
+      expect(atomEnv.saveState).not.toHaveBeenCalledWith({isUnloading: true})
+
+      atomEnv.destroy()
 
     it "ignores mousedown/keydown events happening after calling unloadEditorWindow", ->
-      spyOn(atom, 'saveState')
+      atomEnv = new AtomEnvironment({
+        applicationDelegate: global.atom.applicationDelegate,
+      })
       idleCallbacks = []
-      spyOn(window, 'requestIdleCallback').andCallFake (callback) -> idleCallbacks.push(callback)
+      atomEnv.initialize({
+        window: {
+          requestIdleCallback: (callback) -> idleCallbacks.push(callback),
+          addEventListener: ->
+          removeEventListener: ->
+        },
+        document: document.implementation.createHTMLDocument()
+      })
+
+      spyOn(atomEnv, 'saveState')
 
       mousedown = new MouseEvent('mousedown')
-      atom.document.dispatchEvent(mousedown)
-      atom.unloadEditorWindow()
-      expect(atom.saveState).not.toHaveBeenCalled()
+      atomEnv.document.dispatchEvent(mousedown)
+      atomEnv.unloadEditorWindow()
+      expect(atomEnv.saveState).not.toHaveBeenCalled()
 
-      advanceClock atom.saveStateDebounceInterval
+      advanceClock atomEnv.saveStateDebounceInterval
       idleCallbacks.shift()()
-      expect(atom.saveState).not.toHaveBeenCalled()
+      expect(atomEnv.saveState).not.toHaveBeenCalled()
 
       mousedown = new MouseEvent('mousedown')
-      atom.document.dispatchEvent(mousedown)
-      advanceClock atom.saveStateDebounceInterval
+      atomEnv.document.dispatchEvent(mousedown)
+      advanceClock atomEnv.saveStateDebounceInterval
       idleCallbacks.shift()()
-      expect(atom.saveState).not.toHaveBeenCalled()
+      expect(atomEnv.saveState).not.toHaveBeenCalled()
+
+      atomEnv.destroy()
 
     it "serializes the project state with all the options supplied in saveState", ->
       spyOn(atom.project, 'serialize').andReturn({foo: 42})
@@ -290,9 +318,12 @@ describe "AtomEnvironment", ->
             }
           )
         })
+        atom2.initialize({document, window})
         atom2.deserialize(atom.serialize())
 
         expect(atom2.textEditors.getGrammarOverride(editor)).toBe('text.plain')
+
+        atom2.destroy()
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
@@ -394,6 +425,17 @@ describe "AtomEnvironment", ->
         expect(atom.workspace.open.callCount).toBe(1)
         expect(atom.workspace.open).toHaveBeenCalledWith(__filename)
 
+      describe "when a dock has a non-text editor", ->
+        it "doesn't prompt the user to restore state", ->
+          dock = atom.workspace.getLeftDock()
+          dock.getActivePane().addItem
+            getTitle: -> 'title'
+            element: document.createElement 'div'
+          state = Symbol()
+          spyOn(atom, 'confirm')
+          atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
+          expect(atom.confirm).not.toHaveBeenCalled()
+
     describe "when the window is dirty", ->
       editor = null
 
@@ -401,6 +443,17 @@ describe "AtomEnvironment", ->
         waitsForPromise -> atom.workspace.open().then (e) ->
           editor = e
           editor.setText('new editor')
+
+      describe "when a dock has a modified editor", ->
+        it "prompts the user to restore the state", ->
+          dock = atom.workspace.getLeftDock()
+          dock.getActivePane().addItem editor
+          spyOn(atom, "confirm").andReturn(1)
+          spyOn(atom.project, 'addPath')
+          spyOn(atom.workspace, 'open')
+          state = Symbol()
+          atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
+          expect(atom.confirm).toHaveBeenCalled()
 
       it "prompts the user to restore the state in a new window, discarding it and adding folder to current window", ->
         spyOn(atom, "confirm").andReturn(1)
@@ -454,11 +507,14 @@ describe "AtomEnvironment", ->
       }
       atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
       atomEnvironment.initialize({window, document: fakeDocument})
-      spyOn(atomEnvironment.packages, 'getAvailablePackagePaths').andReturn []
-      spyOn(atomEnvironment, 'displayWindow').andReturn Promise.resolve()
-      atomEnvironment.startEditorWindow()
-      atomEnvironment.unloadEditorWindow()
-      atomEnvironment.destroy()
+      spyOn(atomEnvironment.packages, 'loadPackages').andReturn(Promise.resolve())
+      spyOn(atomEnvironment.packages, 'activate').andReturn(Promise.resolve())
+      spyOn(atomEnvironment, 'displayWindow').andReturn(Promise.resolve())
+      waitsForPromise ->
+        atomEnvironment.startEditorWindow()
+      runs ->
+        atomEnvironment.unloadEditorWindow()
+        atomEnvironment.destroy()
 
   describe "::whenShellEnvironmentLoaded()", ->
     [atomEnvironment, envLoaded, spy] = []
@@ -473,21 +529,19 @@ describe "AtomEnvironment", ->
         applicationDelegate: atom.applicationDelegate
         updateProcessEnv: -> promise
       atomEnvironment.initialize({window, document})
-      spyOn(atomEnvironment.packages, 'getAvailablePackagePaths').andReturn []
-      spyOn(atomEnvironment, 'displayWindow').andReturn Promise.resolve()
       spy = jasmine.createSpy()
-      atomEnvironment.startEditorWindow()
 
     afterEach ->
-      atomEnvironment.unloadEditorWindow()
       atomEnvironment.destroy()
 
     it "is triggered once the shell environment is loaded", ->
       atomEnvironment.whenShellEnvironmentLoaded spy
+      atomEnvironment.updateProcessEnvAndTriggerHooks()
       envLoaded()
       runs -> expect(spy).toHaveBeenCalled()
 
     it "triggers the callback immediately if the shell environment is already loaded", ->
+      atomEnvironment.updateProcessEnvAndTriggerHooks()
       envLoaded()
       runs ->
         atomEnvironment.whenShellEnvironmentLoaded spy
