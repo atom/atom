@@ -447,6 +447,7 @@ class Pane
   # Public: Make the given item *active*, causing it to be displayed by
   # the pane's view.
   #
+  # * `item` The item to activate
   # * `options` (optional) {Object}
   #   * `pending` (optional) {Boolean} indicating that the item should be added
   #     in a pending state if it does not yet exist in the pane. Existing pending

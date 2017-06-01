@@ -116,6 +116,7 @@ class TextEditorComponent {
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
     this.overlayComponents = new Set()
+    this.overlayDimensionsByElement = new WeakMap()
     this.shouldRenderDummyScrollbars = true
     this.remeasureScrollbars = false
     this.pendingAutoscroll = null
@@ -134,6 +135,7 @@ class TextEditorComponent {
     this.idsByTileStartRow = new Map()
     this.nextTileId = 0
     this.renderedTileStartRows = []
+    this.showLineNumbers = this.props.model.doesShowLineNumbers()
     this.lineNumbersToRender = {
       maxDigits: 2,
       bufferRows: [],
@@ -481,6 +483,7 @@ class TextEditorComponent {
         guttersToRender: this.guttersToRender,
         decorationsToRender: this.decorationsToRender,
         isLineNumberGutterVisible: this.props.model.isLineNumberGutterVisible(),
+        showLineNumbers: this.showLineNumbers,
         lineNumbersToRender: this.lineNumbersToRender,
         didMeasureVisibleBlockDecoration: this.didMeasureVisibleBlockDecoration
       })
@@ -754,6 +757,7 @@ class TextEditorComponent {
         {
           key: overlayProps.element,
           overlayComponents: this.overlayComponents,
+          measuredDimensions: this.overlayDimensionsByElement.get(overlayProps.element),
           didResize: () => { this.updateSync() }
         },
         overlayProps
@@ -816,6 +820,10 @@ class TextEditorComponent {
   queryLineNumbersToRender () {
     const {model} = this.props
     if (!model.isLineNumberGutterVisible()) return
+    if (this.showLineNumbers !== model.doesShowLineNumbers()) {
+      this.remeasureGutterDimensions = true
+      this.showLineNumbers = model.doesShowLineNumbers()
+    }
 
     this.queryMaxLineNumberDigits()
 
@@ -1300,15 +1308,16 @@ class TextEditorComponent {
       const {row, column} = screenPosition
       let wrapperTop = contentClientRect.top + this.pixelPositionAfterBlocksForRow(row) + this.getLineHeight()
       let wrapperLeft = contentClientRect.left + this.pixelLeftForRowAndColumn(row, column)
+      const clientRect = element.getBoundingClientRect()
+      this.overlayDimensionsByElement.set(element, clientRect)
 
       if (avoidOverflow !== false) {
         const computedStyle = window.getComputedStyle(element)
-        const elementHeight = element.offsetHeight
         const elementTop = wrapperTop + parseInt(computedStyle.marginTop)
-        const elementBottom = elementTop + elementHeight
-        const flippedElementTop = wrapperTop - this.getLineHeight() - elementHeight - parseInt(computedStyle.marginBottom)
+        const elementBottom = elementTop + clientRect.height
+        const flippedElementTop = wrapperTop - this.getLineHeight() - clientRect.height - parseInt(computedStyle.marginBottom)
         const elementLeft = wrapperLeft + parseInt(computedStyle.marginLeft)
-        const elementRight = elementLeft + element.offsetWidth
+        const elementRight = elementLeft + clientRect.width
 
         if (elementBottom > windowInnerHeight && flippedElementTop >= 0) {
           wrapperTop -= (elementTop - flippedElementTop)
@@ -1320,8 +1329,8 @@ class TextEditorComponent {
         }
       }
 
-      decoration.pixelTop = wrapperTop
-      decoration.pixelLeft = wrapperLeft
+      decoration.pixelTop = Math.round(wrapperTop)
+      decoration.pixelLeft = Math.round(wrapperLeft)
     }
   }
 
@@ -1410,24 +1419,8 @@ class TextEditorComponent {
       this.scheduleUpdate()
     }
 
-    // Transfer focus to the hidden input, but first ensure the input is in the
-    // visible part of the scrolled content to avoid the browser trying to
-    // auto-scroll to the form-field.
     const {hiddenInput} = this.refs.cursorsAndInput.refs
-    hiddenInput.style.top = this.getScrollTop() + 'px'
-    hiddenInput.style.left = this.getScrollLeft() + 'px'
-
     hiddenInput.focus()
-
-    // Restore the previous position of the field now that it is already focused
-    // and won't cause unwanted scrolling.
-    if (this.hiddenInputPosition) {
-      hiddenInput.style.top = this.hiddenInputPosition.pixelTop + 'px'
-      hiddenInput.style.left = this.hiddenInputPosition.pixelLeft + 'px'
-    } else {
-      hiddenInput.style.top = 0
-      hiddenInput.style.left = 0
-    }
   }
 
   // Called by TextEditorElement so that this function is always the first
@@ -1450,6 +1443,12 @@ class TextEditorComponent {
   }
 
   didFocusHiddenInput () {
+    // Focusing the hidden input when it is off-screen causes the browser to
+    // scroll it into view. Since we use synthetic scrolling this behavior
+    // causes all the lines to disappear so we counteract it by always setting
+    // the scroll position to 0.
+    this.refs.scrollContainer.scrollTop = 0
+    this.refs.scrollContainer.scrollLeft = 0
     if (!this.focused) {
       this.focused = true
       this.startCursorBlinking()
@@ -2899,7 +2898,7 @@ class GutterContainerComponent {
 
   renderLineNumberGutter (gutter) {
     const {
-      rootComponent, isLineNumberGutterVisible, hasInitialMeasurements, lineNumbersToRender,
+      rootComponent, isLineNumberGutterVisible, showLineNumbers, hasInitialMeasurements, lineNumbersToRender,
       renderedStartRow, renderedEndRow, rowsPerTile, decorationsToRender, didMeasureVisibleBlockDecoration,
       scrollHeight, lineNumberGutterWidth, lineHeight
     } = this.props
@@ -2925,13 +2924,15 @@ class GutterContainerComponent {
         didMeasureVisibleBlockDecoration: didMeasureVisibleBlockDecoration,
         height: scrollHeight,
         width: lineNumberGutterWidth,
-        lineHeight: lineHeight
+        lineHeight: lineHeight,
+        showLineNumbers
       })
     } else {
       return $(LineNumberGutterComponent, {
         ref: 'lineNumberGutter',
         element: gutter.getElement(),
-        maxDigits: lineNumbersToRender.maxDigits
+        maxDigits: lineNumbersToRender.maxDigits,
+        showLineNumbers
       })
     }
   }
@@ -2955,7 +2956,7 @@ class LineNumberGutterComponent {
 
   render () {
     const {
-      rootComponent, height, width, lineHeight, startRow, endRow, rowsPerTile,
+      rootComponent, showLineNumbers, height, width, lineHeight, startRow, endRow, rowsPerTile,
       maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags, decorations
     } = this.props
 
@@ -2980,8 +2981,11 @@ class LineNumberGutterComponent {
           const decorationsForRow = decorations[row - startRow]
           if (decorationsForRow) className = className + ' ' + decorationsForRow
 
-          let number = softWrapped ? '•' : bufferRow + 1
-          number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
+          let number = null
+          if (showLineNumbers) {
+            number = softWrapped ? '•' : bufferRow + 1
+            number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
+          }
 
           const lineNumberProps = {
             key,
@@ -3024,7 +3028,7 @@ class LineNumberGutterComponent {
 
     return $.div(
       {
-        className: 'gutter line-bufferRows',
+        className: 'gutter line-numbers',
         attributes: {'gutter-name': 'line-number'},
         style: {position: 'relative', height: height + 'px'},
         on: {
@@ -3032,7 +3036,7 @@ class LineNumberGutterComponent {
         }
       },
       $.div({key: 'placeholder', className: 'line-number dummy', style: {visibility: 'hidden'}},
-        '0'.repeat(maxDigits),
+        showLineNumbers ? '0'.repeat(maxDigits) : null,
         $.div({className: 'icon-right'})
       ),
       children
@@ -3042,6 +3046,7 @@ class LineNumberGutterComponent {
   shouldUpdate (newProps) {
     const oldProps = this.props
 
+    if (oldProps.showLineNumbers !== newProps.showLineNumbers) return true
     if (oldProps.height !== newProps.height) return true
     if (oldProps.width !== newProps.width) return true
     if (oldProps.lineHeight !== newProps.lineHeight) return true
@@ -3855,10 +3860,13 @@ class OverlayComponent {
     // Synchronous DOM updates in response to resize events might trigger a
     // "loop limit exceeded" error. We disconnect the observer before
     // potentially mutating the DOM, and then reconnect it on the next tick.
-    this.resizeObserver = new ResizeObserver(() => {
-      this.resizeObserver.disconnect()
-      this.props.didResize()
-      process.nextTick(() => { this.resizeObserver.observe(this.element) })
+    this.resizeObserver = new ResizeObserver((entries) => {
+      const {contentRect} = entries[0]
+      if (contentRect.width !== this.props.measuredDimensions.width || contentRect.height !== this.props.measuredDimensions.height) {
+        this.resizeObserver.disconnect()
+        this.props.didResize()
+        process.nextTick(() => { this.resizeObserver.observe(this.element) })
+      }
     })
     this.didAttach()
     this.props.overlayComponents.add(this)
