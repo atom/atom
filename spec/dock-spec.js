@@ -1,5 +1,7 @@
 /** @babel */
 
+const Grim = require('grim')
+
 import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
 
 describe('Dock', () => {
@@ -327,6 +329,15 @@ describe('Dock', () => {
       Object.defineProperty(dragEvent, 'target', {value: textNode})
 
       expect(() => atom.workspace.getElement().handleDragStart(dragEvent)).not.toThrow()
+    })
+  })
+
+  describe('::getActiveTextEditor()', () => {
+    it('is deprecated', () => {
+      spyOn(Grim, 'deprecate')
+
+      atom.workspace.getLeftDock().getActiveTextEditor()
+      expect(Grim.deprecate.callCount).toBe(1)
     })
   })
 })
