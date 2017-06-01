@@ -135,6 +135,7 @@ class TextEditorComponent {
     this.idsByTileStartRow = new Map()
     this.nextTileId = 0
     this.renderedTileStartRows = []
+    this.showLineNumbers = this.props.model.doesShowLineNumbers()
     this.lineNumbersToRender = {
       maxDigits: 2,
       bufferRows: [],
@@ -482,6 +483,7 @@ class TextEditorComponent {
         guttersToRender: this.guttersToRender,
         decorationsToRender: this.decorationsToRender,
         isLineNumberGutterVisible: this.props.model.isLineNumberGutterVisible(),
+        showLineNumbers: this.showLineNumbers,
         lineNumbersToRender: this.lineNumbersToRender,
         didMeasureVisibleBlockDecoration: this.didMeasureVisibleBlockDecoration
       })
@@ -818,6 +820,10 @@ class TextEditorComponent {
   queryLineNumbersToRender () {
     const {model} = this.props
     if (!model.isLineNumberGutterVisible()) return
+    if (this.showLineNumbers !== model.doesShowLineNumbers()) {
+      this.remeasureGutterDimensions = true
+      this.showLineNumbers = model.doesShowLineNumbers()
+    }
 
     this.queryMaxLineNumberDigits()
 
@@ -2892,7 +2898,7 @@ class GutterContainerComponent {
 
   renderLineNumberGutter (gutter) {
     const {
-      rootComponent, isLineNumberGutterVisible, hasInitialMeasurements, lineNumbersToRender,
+      rootComponent, isLineNumberGutterVisible, showLineNumbers, hasInitialMeasurements, lineNumbersToRender,
       renderedStartRow, renderedEndRow, rowsPerTile, decorationsToRender, didMeasureVisibleBlockDecoration,
       scrollHeight, lineNumberGutterWidth, lineHeight
     } = this.props
@@ -2918,13 +2924,15 @@ class GutterContainerComponent {
         didMeasureVisibleBlockDecoration: didMeasureVisibleBlockDecoration,
         height: scrollHeight,
         width: lineNumberGutterWidth,
-        lineHeight: lineHeight
+        lineHeight: lineHeight,
+        showLineNumbers
       })
     } else {
       return $(LineNumberGutterComponent, {
         ref: 'lineNumberGutter',
         element: gutter.getElement(),
-        maxDigits: lineNumbersToRender.maxDigits
+        maxDigits: lineNumbersToRender.maxDigits,
+        showLineNumbers
       })
     }
   }
@@ -2948,7 +2956,7 @@ class LineNumberGutterComponent {
 
   render () {
     const {
-      rootComponent, height, width, lineHeight, startRow, endRow, rowsPerTile,
+      rootComponent, showLineNumbers, height, width, lineHeight, startRow, endRow, rowsPerTile,
       maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags, decorations
     } = this.props
 
@@ -2973,8 +2981,11 @@ class LineNumberGutterComponent {
           const decorationsForRow = decorations[row - startRow]
           if (decorationsForRow) className = className + ' ' + decorationsForRow
 
-          let number = softWrapped ? '•' : bufferRow + 1
-          number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
+          let number = null
+          if (showLineNumbers) {
+            number = softWrapped ? '•' : bufferRow + 1
+            number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
+          }
 
           const lineNumberProps = {
             key,
@@ -3017,7 +3028,7 @@ class LineNumberGutterComponent {
 
     return $.div(
       {
-        className: 'gutter line-bufferRows',
+        className: 'gutter line-numbers',
         attributes: {'gutter-name': 'line-number'},
         style: {position: 'relative', height: height + 'px'},
         on: {
@@ -3025,7 +3036,7 @@ class LineNumberGutterComponent {
         }
       },
       $.div({key: 'placeholder', className: 'line-number dummy', style: {visibility: 'hidden'}},
-        '0'.repeat(maxDigits),
+        showLineNumbers ? '0'.repeat(maxDigits) : null,
         $.div({className: 'icon-right'})
       ),
       children
@@ -3035,6 +3046,7 @@ class LineNumberGutterComponent {
   shouldUpdate (newProps) {
     const oldProps = this.props
 
+    if (oldProps.showLineNumbers !== newProps.showLineNumbers) return true
     if (oldProps.height !== newProps.height) return true
     if (oldProps.width !== newProps.width) return true
     if (oldProps.lineHeight !== newProps.lineHeight) return true

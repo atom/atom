@@ -596,9 +596,30 @@ describe('TextEditorComponent', () => {
       )
     })
 
-    it('supports the isLineNumberGutterVisible parameter', () => {
+    it('does not render the line number gutter at all if the isLineNumberGutterVisible parameter is false', () => {
       const {component, element, editor} = buildComponent({lineNumberGutterVisible: false})
       expect(element.querySelector('.line-number')).toBe(null)
+    })
+
+    it('does not render the line numbers but still renders the line number gutter if showLineNumbers is false', async () => {
+      function checkScrollContainerLeft (component) {
+        const {scrollContainer, gutterContainer} = component.refs
+        expect(scrollContainer.getBoundingClientRect().left).toBe(Math.round(gutterContainer.element.getBoundingClientRect().right))
+      }
+
+      const {component, element, editor} = buildComponent({showLineNumbers: false})
+      expect(Array.from(element.querySelectorAll('.line-number')).every((e) => e.textContent === '')).toBe(true)
+      checkScrollContainerLeft(component)
+
+      await editor.update({showLineNumbers: true})
+      expect(Array.from(element.querySelectorAll('.line-number')).map((e) => e.textContent)).toEqual([
+        '00', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'
+      ])
+      checkScrollContainerLeft(component)
+
+      await editor.update({showLineNumbers: false})
+      expect(Array.from(element.querySelectorAll('.line-number')).every((e) => e.textContent === '')).toBe(true)
+      checkScrollContainerLeft(component)
     })
 
     it('supports the placeholderText parameter', () => {
@@ -3401,7 +3422,7 @@ function buildEditor (params = {}) {
   const buffer = new TextBuffer({text})
   const editorParams = {buffer}
   if (params.height != null) params.autoHeight = false
-  for (const paramName of ['mini', 'autoHeight', 'autoWidth', 'lineNumberGutterVisible', 'placeholderText', 'softWrapped']) {
+  for (const paramName of ['mini', 'autoHeight', 'autoWidth', 'lineNumberGutterVisible', 'showLineNumbers', 'placeholderText', 'softWrapped']) {
     if (params[paramName] != null) editorParams[paramName] = params[paramName]
   }
   return new TextEditor(editorParams)

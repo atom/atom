@@ -98,7 +98,6 @@ class TextEditor extends Model
   registered: false
   atomicSoftTabs: true
   invisibles: null
-  showLineNumbers: true
   scrollSensitivity: 40
 
   Object.defineProperty @prototype, "element",
@@ -156,7 +155,7 @@ class TextEditor extends Model
     {
       @softTabs, @initialScrollTopRow, @initialScrollLeftColumn, initialLine, initialColumn, tabLength,
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
-      @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode,
+      @mini, @placeholderText, lineNumberGutterVisible, @showLineNumbers, @largeFileMode,
       @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
       @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide,
       @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength,
@@ -184,6 +183,7 @@ class TextEditor extends Model
     @softWrapped ?= false
     @softWrapAtPreferredLineLength ?= false
     @preferredLineLength ?= 80
+    @showLineNumbers ?= true
 
     @buffer ?= new TextBuffer({shouldDestroyOnFileDelete: ->
       atom.config.get('core.closeDeletedFileTabs')})
@@ -357,6 +357,7 @@ class TextEditor extends Model
         when 'showLineNumbers'
           if value isnt @showLineNumbers
             @showLineNumbers = value
+            @component?.scheduleUpdate()
 
         when 'showInvisibles'
           if value isnt @showInvisibles
