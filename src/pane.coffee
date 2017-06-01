@@ -7,6 +7,9 @@ PaneElement = require './pane-element'
 
 nextInstanceId = 1
 
+class SaveCancelledError extends Error
+  constructor: -> super
+
 # Extended: A container for presenting content in the center of the workspace.
 # Panes can contain multiple items, one of which is *active* at a given time.
 # The view corresponding to the active item is displayed in the interface. In
@@ -399,7 +402,6 @@ class Pane
     @addItemToStack(@activeItem)
     @emitter.emit 'done-choosing-mru-item'
 
-
   # Public: Makes the next item active.
   activateNextItem: ->
     index = @getActiveItemIndex()
@@ -654,7 +656,10 @@ class Pane
         when 0
           new Promise (resolve) ->
             saveFn item, (error) ->
-              saveError(error).then(resolve)
+              if error instanceof SaveCancelledError
+                resolve(false)
+              else
+                saveError(error).then(resolve)
         when 1
           Promise.resolve(false)
         when 2
@@ -733,6 +738,8 @@ class Pane
             nextAction(error)
           else
             @handleSaveError(error, item)
+    else
+      nextAction(new SaveCancelledError('Save Cancelled'))
 
   # Public: Save all items.
   saveItems: ->
@@ -800,7 +807,6 @@ class Pane
       @emitter.dispose()
       item.destroy?() for item in @items.slice()
       @container?.didDestroyPane(pane: this)
-
 
   isAlive: -> @alive
 

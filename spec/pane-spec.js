@@ -777,6 +777,28 @@ describe('Pane', () => {
         })
       })
     })
+
+    describe("when the item's saveAs throws a well-known IO error", () => {
+      it('creates a notification', () => {
+        pane.getActiveItem().saveAs = () => {
+          const error = new Error("EACCES, permission denied '/foo'")
+          error.path = '/foo'
+          error.code = 'EACCES'
+          throw error
+        }
+
+        waitsFor((done) => {
+          const subscription = atom.notifications.onDidAddNotification(function (notification) {
+            expect(notification.getType()).toBe('warning')
+            expect(notification.getMessage()).toContain('Permission denied')
+            expect(notification.getMessage()).toContain('/foo')
+            subscription.dispose()
+            done()
+          })
+          pane.saveActiveItem()
+        })
+      })
+    })
   })
 
   describe('::saveActiveItemAs()', () => {
@@ -1187,6 +1209,27 @@ describe('Pane', () => {
         await pane.close()
         expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
         expect(confirmations).toBe(2)
+        expect(item1.save).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe(false)
+      })
+
+      it('does not destroy the pane if user starts to save but then does not choose a path', async () => {
+        item1.saveAs = jasmine.createSpy('saveAs').andReturn(true)
+
+        let confirmationCount = 0
+        confirm.andCallFake(() => {
+          switch (confirmationCount++) {
+            case 0: return 0
+            case 1: return 0
+            default: return 1
+          }
+        })
+
+        showSaveDialog.andReturn(undefined)
+
+        await pane.close()
+        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+        expect(confirmationCount).toBe(3)
         expect(item1.save).toHaveBeenCalled()
         expect(pane.isDestroyed()).toBe(false)
       })
