@@ -590,9 +590,9 @@ module.exports = class Dock {
     return this.paneContainer.getTextEditors()
   }
 
-  // Essential: Get the active item if it is an {TextEditor}.
+  // Essential: Get the active item if it is a {TextEditor}.
   //
-  // Returns an {TextEditor} or `undefined` if the current active item is not an
+  // Returns a {TextEditor} or `undefined` if the current active item is not a
   // {TextEditor}.
   getActiveTextEditor () {
     const activeItem = this.getActivePaneItem()
