@@ -2947,6 +2947,7 @@ class LineNumberGutterComponent {
     this.element = this.props.element
     this.virtualNode = $.div(null)
     this.virtualNode.domNode = this.element
+    this.nodePool = new NodePool()
     etch.updateSync(this)
   }
 
@@ -2959,7 +2960,7 @@ class LineNumberGutterComponent {
 
   render () {
     const {
-      rootComponent, showLineNumbers, height, width, lineHeight, startRow, endRow, rowsPerTile,
+      rootComponent, nodePool, showLineNumbers, height, width, lineHeight, startRow, endRow, rowsPerTile,
       maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags, decorations
     } = this.props
 
@@ -2993,19 +2994,18 @@ class LineNumberGutterComponent {
           const lineNumberProps = {
             key,
             className,
-            style: {width: width + 'px'},
-            dataset: {bufferRow}
+            width,
+            bufferRow,
+            number,
+            nodePool: this.nodePool
           }
           const currentRowTop = rootComponent.pixelPositionAfterBlocksForRow(row)
           const previousRowBottom = rootComponent.pixelPositionAfterBlocksForRow(row - 1) + lineHeight
           if (currentRowTop > previousRowBottom) {
-            lineNumberProps.style.marginTop = (currentRowTop - previousRowBottom) + 'px'
+            lineNumberProps.marginTop = currentRowTop - previousRowBottom
           }
 
-          tileChildren[row - tileStartRow] = $.div(lineNumberProps,
-            number,
-            $.div({className: 'icon-right'})
-          )
+          tileChildren[row - tileStartRow] = $(LineNumberComponent, lineNumberProps)
         }
 
         const tileTop = rootComponent.pixelPositionBeforeBlocksForRow(tileStartRow)
@@ -3104,6 +3104,49 @@ class LineNumberGutterComponent {
 
   didMouseDown (event) {
     this.props.rootComponent.didMouseDownOnLineNumberGutter(event)
+  }
+}
+
+class LineNumberComponent {
+  constructor (props) {
+    const {className, width, marginTop, bufferRow, number, nodePool} = props
+    this.props = props
+    const style = {width: width + 'px'}
+    if (marginTop != null) style.marginTop = marginTop + 'px'
+    this.element = nodePool.getElement('DIV', className, style)
+    this.element.dataset.bufferRow = bufferRow
+    if (number) this.element.appendChild(nodePool.getTextNode(number))
+    this.element.appendChild(nodePool.getElement('DIV', 'icon-right', null))
+  }
+
+  destroy () {
+    this.element.remove()
+    this.props.nodePool.release(this.element)
+  }
+
+  update (props) {
+    const {nodePool, className, width, marginTop, number} = props
+
+    if (this.props.className !== className) this.element.className = className
+    if (this.props.width !== width) this.element.style.width = width + 'px'
+    if (this.props.marginTop !== marginTop) {
+      if (marginTop != null) {
+        this.element.style.marginTop = marginTop + 'px'
+      } else {
+        this.element.style.marginTop = ''
+      }
+    }
+    if (this.props.number !== number) {
+      if (number) {
+        this.element.insertBefore(nodePool.getTextNode(number), this.element.firstChild)
+      } else {
+        const numberNode = this.element.firstChild
+        numberNode.remove()
+        nodePool.release(numberNode)
+      }
+    }
+
+    this.props = props
   }
 }
 
