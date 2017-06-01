@@ -427,7 +427,7 @@ module.exports = class Workspace extends Model {
     if (paneContainer === this.getCenter()) {
       const itemIsTextEditor = item instanceof TextEditor
       const activeTextEditorChanged =
-        itemIsTextEditor || (this.activeTextEditor instanceof TextEditor)
+        itemIsTextEditor || (this.activeTextEditor != null)
 
       if (activeTextEditorChanged) {
         this.activeTextEditor = itemIsTextEditor ? item : null
