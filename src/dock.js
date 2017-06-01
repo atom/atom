@@ -385,21 +385,6 @@ module.exports = class Dock {
   Section: Event Subscription
   */
 
-  // Essential: Invoke the given callback with all current and future text
-  // editors in the dock.
-  //
-  // * `callback` {Function} to be called with current and future text editors.
-  //   * `editor` An {TextEditor} that is present in {::getTextEditors} at the time
-  //     of subscription or that is added at some later time.
-  //
-  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeTextEditors (callback) {
-    for (const textEditor of this.getTextEditors()) {
-      callback(textEditor)
-    }
-    return this.onDidAddTextEditor(({textEditor}) => callback(textEditor))
-  }
-
   // Essential: Invoke the given callback with all current and future panes items
   // in the dock.
   //
