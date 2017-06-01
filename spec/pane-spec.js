@@ -1162,7 +1162,7 @@ describe('Pane', () => {
       expect(pane.isDestroyed()).toBe(true)
     })
 
-    it('does not destroy the pane if cancel is called', async () => {
+    it('does not destroy the pane if the user clicks cancel', async () => {
       const pane = new Pane(paneParams({items: [new Item('A'), new Item('B')]}))
       const [item1] = pane.getItems()
 
@@ -1171,9 +1171,27 @@ describe('Pane', () => {
       item1.save = jasmine.createSpy('save')
 
       confirm.andReturn(1)
+
       await pane.close()
       expect(confirm).toHaveBeenCalled()
       expect(item1.save).not.toHaveBeenCalled()
+      expect(pane.isDestroyed()).toBe(false)
+    })
+
+    it('does not destroy the pane if the user starts to save but then does not choose a path', async () => {
+      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B')]}))
+      const [item1] = pane.getItems()
+
+      item1.shouldPromptToSave = () => true
+      item1.saveAs = jasmine.createSpy('saveAs')
+
+      confirm.andReturn(0)
+      showSaveDialog.andReturn(undefined)
+
+      await pane.close()
+      expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+      expect(confirm.callCount).toBe(1)
+      expect(item1.saveAs).not.toHaveBeenCalled()
       expect(pane.isDestroyed()).toBe(false)
     })
 
@@ -1209,27 +1227,6 @@ describe('Pane', () => {
         await pane.close()
         expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
         expect(confirmations).toBe(2)
-        expect(item1.save).toHaveBeenCalled()
-        expect(pane.isDestroyed()).toBe(false)
-      })
-
-      it('does not destroy the pane if user starts to save but then does not choose a path', async () => {
-        item1.saveAs = jasmine.createSpy('saveAs').andReturn(true)
-
-        let confirmationCount = 0
-        confirm.andCallFake(() => {
-          switch (confirmationCount++) {
-            case 0: return 0
-            case 1: return 0
-            default: return 1
-          }
-        })
-
-        showSaveDialog.andReturn(undefined)
-
-        await pane.close()
-        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-        expect(confirmationCount).toBe(3)
         expect(item1.save).toHaveBeenCalled()
         expect(pane.isDestroyed()).toBe(false)
       })
