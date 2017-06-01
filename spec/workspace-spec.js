@@ -120,62 +120,6 @@ describe('Workspace', () => {
         expect(atom.workspace.getTextEditors().length).toBe(0)
       })
     })
-
-    describe('where a dock contains an editor', () => {
-      afterEach(() => {
-        atom.workspace.getRightDock().paneContainer.destroy()
-      })
-
-      it('constructs the view with the same panes', () => {
-        const pane1 = atom.workspace.getRightDock().getActivePane()
-        const pane2 = pane1.splitRight({copyActiveItem: true})
-        const pane3 = pane2.splitRight({copyActiveItem: true})
-        let pane4 = null
-
-        waitsForPromise(() =>
-          atom.workspace.open(null, {location: 'right'}).then(editor => editor.setText('An untitled editor.'))
-        )
-
-        waitsForPromise(() =>
-          atom.workspace.open('b', {location: 'right'}).then(editor => pane2.activateItem(editor.copy()))
-        )
-
-        waitsForPromise(() =>
-          atom.workspace.open('../sample.js', {location: 'right'}).then(editor => pane3.activateItem(editor))
-        )
-
-        runs(() => {
-          pane3.activeItem.setCursorScreenPosition([2, 4])
-          pane4 = pane2.splitDown()
-        })
-
-        waitsForPromise(() =>
-          atom.workspace.open('../sample.txt', {location: 'right'}).then(editor => pane4.activateItem(editor))
-        )
-
-        runs(() => {
-          pane4.getActiveItem().setCursorScreenPosition([0, 2])
-          pane2.activate()
-
-          simulateReload()
-
-          expect(atom.workspace.getTextEditors().length).toBe(5)
-          const [editor1, editor2, untitledEditor, editor3, editor4] = atom.workspace.getTextEditors()
-          const firstDirectory = atom.project.getDirectories()[0]
-          expect(firstDirectory).toBeDefined()
-          expect(editor1.getPath()).toBe(firstDirectory.resolve('b'))
-          expect(editor2.getPath()).toBe(firstDirectory.resolve('../sample.txt'))
-          expect(editor2.getCursorScreenPosition()).toEqual([0, 2])
-          expect(editor3.getPath()).toBe(firstDirectory.resolve('b'))
-          expect(editor4.getPath()).toBe(firstDirectory.resolve('../sample.js'))
-          expect(editor4.getCursorScreenPosition()).toEqual([2, 4])
-          expect(untitledEditor.getPath()).toBeUndefined()
-          expect(untitledEditor.getText()).toBe('An untitled editor.')
-
-          expect(atom.workspace.getRightDock().getActiveTextEditor().getPath()).toBe(editor3.getPath())
-        })
-      })
-    })
   })
 
   describe('::open(itemOrURI, options)', () => {
@@ -426,6 +370,13 @@ describe('Workspace', () => {
 
           runs(() => expect(workspace.getActivePaneItem()).toBe(editor))
         })
+      })
+    })
+
+    describe('when attempting to open an editor in a dock', () => {
+      it('opens the editor in the workspace center', async () => {
+        await atom.workspace.open('sample.txt', {location: 'right'})
+        expect(atom.workspace.getCenter().getActivePaneItem().getFileName()).toEqual('sample.txt')
       })
     })
 
