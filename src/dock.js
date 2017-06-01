@@ -569,13 +569,6 @@ module.exports = class Dock {
     return this.paneContainer.getActivePaneItem()
   }
 
-  // Essential: Get all text editors in the dock.
-  //
-  // Returns an {Array} of {TextEditor}s.
-  getTextEditors () {
-    return this.paneContainer.getTextEditors()
-  }
-
   // Deprecated: Get the active item if it is a {TextEditor}.
   //
   // Returns a {TextEditor} or `undefined` if the current active item is not a
