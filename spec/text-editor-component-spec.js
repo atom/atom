@@ -27,6 +27,11 @@ document.registerElement('text-editor-component-test-element', {
 describe('TextEditorComponent', () => {
   beforeEach(() => {
     jasmine.useRealClock()
+
+    // Force scrollbars to be visible regardless of local system configuration
+    const scrollbarStyle = document.createElement('style')
+    scrollbarStyle.textContent = '::-webkit-scrollbar { -webkit-appearance: none }'
+    jasmine.attachToDOM(scrollbarStyle)
   })
 
   describe('rendering', () => {
