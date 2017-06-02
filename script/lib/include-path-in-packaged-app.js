@@ -70,7 +70,8 @@ const EXCLUDE_REGEXPS_SOURCES = [
   'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + '_*te?sts?_*' + escapeRegExp(path.sep),
   'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'docs' + escapeRegExp(path.sep),
   'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'examples?' + escapeRegExp(path.sep),
-  'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'samples?' + escapeRegExp(path.sep)
+  'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'samples?' + escapeRegExp(path.sep),
+  'node_modules' + escapeRegExp(path.sep) + '.*' + '\.md$'
 ]
 
 // Ignore spec directories in all bundled packages
