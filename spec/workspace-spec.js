@@ -31,35 +31,35 @@ describe('Workspace', () => {
 
   afterEach(() => temp.cleanupSync())
 
-  describe('serialization', () => {
-    const simulateReload = () => {
-      const workspaceState = atom.workspace.serialize()
-      const projectState = atom.project.serialize({isUnloading: true})
-      atom.workspace.destroy()
-      atom.project.destroy()
-      atom.project = new Project({
-        notificationManager: atom.notifications,
-        packageManager: atom.packages,
-        confirm: atom.confirm.bind(atom),
-        applicationDelegate: atom.applicationDelegate
-      })
-      atom.project.deserialize(projectState)
-      atom.workspace = new Workspace({
-        config: atom.config,
-        project: atom.project,
-        packageManager: atom.packages,
-        grammarRegistry: atom.grammars,
-        styleManager: atom.styles,
-        deserializerManager: atom.deserializers,
-        notificationManager: atom.notifications,
-        applicationDelegate: atom.applicationDelegate,
-        viewRegistry: atom.views,
-        assert: atom.assert.bind(atom),
-        textEditorRegistry: atom.textEditors
-      })
-      return atom.workspace.deserialize(workspaceState, atom.deserializers)
-    }
+  const simulateReload = () => {
+    const workspaceState = workspace.serialize()
+    const projectState = atom.project.serialize({isUnloading: true})
+    workspace.destroy()
+    atom.project.destroy()
+    atom.project = new Project({
+      notificationManager: atom.notifications,
+      packageManager: atom.packages,
+      confirm: atom.confirm.bind(atom),
+      applicationDelegate: atom.applicationDelegate
+    })
+    atom.project.deserialize(projectState)
+    workspace = atom.workspace = new Workspace({
+      config: atom.config,
+      project: atom.project,
+      packageManager: atom.packages,
+      grammarRegistry: atom.grammars,
+      styleManager: atom.styles,
+      deserializerManager: atom.deserializers,
+      notificationManager: atom.notifications,
+      applicationDelegate: atom.applicationDelegate,
+      viewRegistry: atom.views,
+      assert: atom.assert.bind(atom),
+      textEditorRegistry: atom.textEditors
+    })
+    return workspace.deserialize(workspaceState, atom.deserializers)
+  }
 
+  describe('serialization', () => {
     describe('when the workspace contains text editors', () => {
       it('constructs the view with the same panes', () => {
         const pane1 = atom.workspace.getActivePane()
@@ -119,20 +119,6 @@ describe('Workspace', () => {
         simulateReload()
         expect(atom.workspace.getTextEditors().length).toBe(0)
       })
-    })
-
-    it('remembers whether the workspace had an active text editor', async () => {
-      await atom.workspace.open('../sample.txt')
-      expect(atom.workspace.hasActiveTextEditor).toBe(true)
-
-      simulateReload()
-      expect(atom.workspace.hasActiveTextEditor).toBe(true)
-
-      atom.workspace.getActivePane().destroy()
-      expect(atom.workspace.hasActiveTextEditor).toBe(false)
-
-      simulateReload()
-      expect(atom.workspace.hasActiveTextEditor).toBe(false)
     })
   })
 
@@ -1517,6 +1503,17 @@ describe('Workspace', () => {
       pane.activateItem(nonEditorItem1)
 
       expect(observed).toEqual([])
+    })
+
+    it('invokes the observer when closing the one and only text editor after deserialization', async () => {
+      pane.activateItem(new TextEditor())
+
+      simulateReload()
+
+      const editor = workspace.getActiveTextEditor()
+      workspace.observeActiveTextEditor(editor => observed.push(editor))
+      workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+      expect(observed).toEqual([editor, undefined])
     })
   })
 
