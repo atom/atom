@@ -448,8 +448,6 @@ class TextEditor extends Model
     @disposables.add @buffer.onDidChangeModified =>
       @terminatePendingState() if not @hasTerminatedPendingState and @buffer.isModified()
 
-    @preserveCursorPositionOnBufferReload()
-
   terminatePendingState: ->
     @emitter.emit 'did-terminate-pending-state' if not @hasTerminatedPendingState
     @hasTerminatedPendingState = true
@@ -2361,14 +2359,6 @@ class TextEditor extends Model
       else
         positions[position] = true
     return
-
-  preserveCursorPositionOnBufferReload: ->
-    cursorPosition = null
-    @disposables.add @buffer.onWillReload =>
-      cursorPosition = @getCursorBufferPosition()
-    @disposables.add @buffer.onDidReload =>
-      @setCursorBufferPosition(cursorPosition) if cursorPosition
-      cursorPosition = null
 
   ###
   Section: Selections

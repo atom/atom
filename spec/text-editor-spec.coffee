@@ -4941,12 +4941,6 @@ describe "TextEditor", ->
       expect(editor.indentLevelForLine("     \t \thello")).toBe(4)
       expect(editor.indentLevelForLine("     \t \t hello")).toBe(4.5)
 
-  describe "when the buffer is reloaded", ->
-    it "preserves the current cursor position", ->
-      editor.setCursorScreenPosition([0, 1])
-      editor.buffer.reload()
-      expect(editor.getCursorScreenPosition()).toEqual [0, 1]
-
   describe "when a better-matched grammar is added to syntax", ->
     it "switches to the better-matched grammar and re-tokenizes the buffer", ->
       editor.destroy()
