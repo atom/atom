@@ -59,6 +59,10 @@ const EXCLUDE_REGEXPS_SOURCES = [
   // Ignore *.cc and *.h files from native modules
   escapeRegExp(path.sep) + '.+\\.(cc|h)$',
 
+  // Shell scripts need to be outside of ASAR because Git will call them 
+  // directly
+  escapeRegExp(path.join('node_modules', 'github', 'bin')),
+
   // Ignore build files
   escapeRegExp(path.sep) + 'binding\\.gyp$',
   escapeRegExp(path.sep) + '.+\\.target.mk$',
