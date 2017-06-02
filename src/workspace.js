@@ -345,8 +345,7 @@ module.exports = class Workspace extends Model {
         left: this.paneContainers.left.serialize(),
         right: this.paneContainers.right.serialize(),
         bottom: this.paneContainers.bottom.serialize()
-      },
-      hasActiveTextEditor: this.hasActiveTextEditor
+      }
     }
   }
 
@@ -373,9 +372,7 @@ module.exports = class Workspace extends Model {
       this.paneContainers.center.deserialize(state.paneContainer, deserializerManager)
     }
 
-    if (state.hasActiveTextEditor != null) {
-      this.hasActiveTextEditor = state.hasActiveTextEditor
-    }
+    this.hasActiveTextEditor = this.getActiveTextEditor() != null
 
     this.updateWindowTitle()
   }
