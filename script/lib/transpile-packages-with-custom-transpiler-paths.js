@@ -11,7 +11,6 @@ const runApmInstall = require('./run-apm-install')
 
 require('colors')
 
-
 module.exports = function () {
   console.log(`Transpiling packages with custom transpiler configurations in ${CONFIG.intermediateAppPath}`)
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {

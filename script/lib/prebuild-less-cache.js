@@ -55,7 +55,7 @@ module.exports = function () {
           path.join(CONFIG.intermediateAppPath, 'node_modules', syntaxTheme, 'styles'),
           path.join(CONFIG.intermediateAppPath, 'node_modules', uiTheme, 'styles'),
           path.join(CONFIG.intermediateAppPath, 'static', 'variables'),
-          path.join(CONFIG.intermediateAppPath, 'static'),
+          path.join(CONFIG.intermediateAppPath, 'static')
         ]
       })
 
@@ -72,30 +72,21 @@ module.exports = function () {
         }
       }
 
-      function cacheCompiledCSS(lessFilePath, importFallbackVariables) {
-        let lessSource = fs.readFileSync(lessFilePath, 'utf8')
-        if (importFallbackVariables) {
-          lessSource = FALLBACK_VARIABLE_IMPORTS + lessSource
-        }
-        lessCache.cssForFile(lessFilePath, lessSource)
-        saveIntoSnapshotAuxiliaryData(lessFilePath, lessSource)
-      }
-
       // Cache all styles in static; don't append variable imports
       for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'static', '**', '*.less'))) {
-        cacheCompiledCSS(lessFilePath, false)
+        cacheCompiledCSS(lessCache, lessFilePath, false)
       }
 
       // Cache styles for all bundled non-theme packages
       for (let nonThemePackage of nonThemePackages) {
         for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', nonThemePackage, '**', '*.less'))) {
-          cacheCompiledCSS(lessFilePath, true)
+          cacheCompiledCSS(lessCache, lessFilePath, true)
         }
       }
 
       // Cache styles for this UI theme
       const uiThemeMainPath = path.join(CONFIG.intermediateAppPath, 'node_modules', uiTheme, 'index.less')
-      cacheCompiledCSS(uiThemeMainPath, true)
+      cacheCompiledCSS(lessCache, uiThemeMainPath, true)
       for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', uiTheme, '**', '*.less'))) {
         if (lessFilePath !== uiThemeMainPath) {
           saveIntoSnapshotAuxiliaryData(lessFilePath, fs.readFileSync(lessFilePath, 'utf8'))
@@ -104,7 +95,7 @@ module.exports = function () {
 
       // Cache styles for this syntax theme
       const syntaxThemeMainPath = path.join(CONFIG.intermediateAppPath, 'node_modules', syntaxTheme, 'index.less')
-      cacheCompiledCSS(syntaxThemeMainPath, true)
+      cacheCompiledCSS(lessCache, syntaxThemeMainPath, true)
       for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', syntaxTheme, '**', '*.less'))) {
         if (lessFilePath !== syntaxThemeMainPath) {
           saveIntoSnapshotAuxiliaryData(lessFilePath, fs.readFileSync(lessFilePath, 'utf8'))
@@ -115,5 +106,14 @@ module.exports = function () {
 
   for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', 'atom-ui', '**', '*.less'))) {
     saveIntoSnapshotAuxiliaryData(lessFilePath, fs.readFileSync(lessFilePath, 'utf8'))
+  }
+
+  function cacheCompiledCSS (lessCache, lessFilePath, importFallbackVariables) {
+    let lessSource = fs.readFileSync(lessFilePath, 'utf8')
+    if (importFallbackVariables) {
+      lessSource = FALLBACK_VARIABLE_IMPORTS + lessSource
+    }
+    lessCache.cssForFile(lessFilePath, lessSource)
+    saveIntoSnapshotAuxiliaryData(lessFilePath, lessSource)
   }
 }

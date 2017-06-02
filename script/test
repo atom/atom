@@ -107,8 +107,8 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     }
     const cp = childProcess.spawn(executablePath, testArguments)
     let stderrOutput = ''
-    cp.stderr.on('data', data => stderrOutput += data)
-    cp.stdout.on('data', data => stderrOutput += data)
+    cp.stderr.on('data', data => { stderrOutput += data })
+    cp.stdout.on('data', data => { stderrOutput += data })
     cp.on('error', error => {
       finalize()
       callback(error)
