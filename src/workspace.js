@@ -297,6 +297,7 @@ module.exports = class Workspace extends Model {
       bottom: this.createDock('bottom')
     }
     this.activePaneContainer = this.paneContainers.center
+    this.hasActiveTextEditor = false
 
     this.panelContainers = {
       top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
