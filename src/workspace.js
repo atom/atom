@@ -690,13 +690,12 @@ module.exports = class Workspace extends Model {
   // an active text editor.
   //
   // * `callback` {Function} to be called when the active text editor changes.
-  //   * `editor` The active {TextEditor} or undefined if there is no longer an
+  //   * `editor` The active {TextEditor} or undefined if there is not an
   //      active text editor.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observeActiveTextEditor (callback) {
-    const activeTextEditor = this.getActiveTextEditor()
-    if (activeTextEditor != null) { callback(activeTextEditor) }
+    callback(this.getActiveTextEditor())
 
     return this.onDidChangeActiveTextEditor(callback)
   }
