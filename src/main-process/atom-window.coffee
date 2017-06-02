@@ -194,7 +194,7 @@ class AtomWindow
 
   prepareToUnload: ->
     if @isSpecWindow()
-      return Promise.resolve()
+      return Promise.resolve(true)
     @lastPrepareToUnloadPromise = new Promise (resolve) =>
       callback = (event, result) =>
         if BrowserWindow.fromWebContents(event.sender) is @browserWindow
