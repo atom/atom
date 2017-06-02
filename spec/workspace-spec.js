@@ -120,6 +120,20 @@ describe('Workspace', () => {
         expect(atom.workspace.getTextEditors().length).toBe(0)
       })
     })
+
+    it('remembers whether the workspace had an active text editor', async () => {
+      await atom.workspace.open('../sample.txt')
+      expect(atom.workspace.hasActiveTextEditor).toBe(true)
+
+      simulateReload()
+      expect(atom.workspace.hasActiveTextEditor).toBe(true)
+
+      atom.workspace.getActivePane().destroy()
+      expect(atom.workspace.hasActiveTextEditor).toBe(false)
+
+      simulateReload()
+      expect(atom.workspace.hasActiveTextEditor).toBe(false)
+    })
   })
 
   describe('::open(itemOrURI, options)', () => {

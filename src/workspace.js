@@ -216,7 +216,7 @@ module.exports = class Workspace extends Model {
       bottom: this.createDock('bottom')
     }
     this.activePaneContainer = this.paneContainers.center
-    this.activeTextEditor = null
+    this.hasActiveTextEditor = false
 
     this.panelContainers = {
       top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
@@ -345,7 +345,8 @@ module.exports = class Workspace extends Model {
         left: this.paneContainers.left.serialize(),
         right: this.paneContainers.right.serialize(),
         bottom: this.paneContainers.bottom.serialize()
-      }
+      },
+      hasActiveTextEditor: this.hasActiveTextEditor
     }
   }
 
@@ -370,6 +371,10 @@ module.exports = class Workspace extends Model {
     } else if (state.paneContainer) {
       // TODO: Remove this fallback once a lot of time has passed since 1.17 was released
       this.paneContainers.center.deserialize(state.paneContainer, deserializerManager)
+    }
+
+    if (state.hasActiveTextEditor != null) {
+      this.hasActiveTextEditor = state.hasActiveTextEditor
     }
 
     this.updateWindowTitle()
@@ -425,12 +430,11 @@ module.exports = class Workspace extends Model {
     }
 
     if (paneContainer === this.getCenter()) {
-      const newActiveTextEditor = (item instanceof TextEditor) ? item : null
-      const oldActiveTextEditor = this.activeTextEditor
+      const hadActiveTextEditor = this.hasActiveTextEditor
+      this.hasActiveTextEditor = item instanceof TextEditor
 
-      if (newActiveTextEditor || oldActiveTextEditor) {
-        this.activeTextEditor = newActiveTextEditor
-        const itemValue = (this.activeTextEditor || undefined)
+      if (this.hasActiveTextEditor || hadActiveTextEditor) {
+        const itemValue = this.hasActiveTextEditor ? item : undefined
         this.emitter.emit('did-change-active-text-editor', itemValue)
       }
     }
