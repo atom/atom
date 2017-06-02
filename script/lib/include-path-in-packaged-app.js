@@ -47,6 +47,7 @@ const EXCLUDE_REGEXPS_SOURCES = [
   escapeRegExp(path.join('build', 'Release', 'obj.target')),
   escapeRegExp(path.join('build', 'Release', 'obj')),
   escapeRegExp(path.join('build', 'Release', '.deps')),
+  escapeRegExp(path.join('deps', 'libgit2')),
   escapeRegExp(path.join('vendor', 'apm')),
 
   // These are only required in dev-mode, when pegjs grammars aren't precompiled
