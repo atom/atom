@@ -4064,6 +4064,7 @@ class NodePool {
       var newElement = document.createElement(type)
       if (className) newElement.className = className
       if (style) Object.assign(newElement.style, style)
+      this.stylesByNode.set(newElement, style)
       return newElement
     }
   }
