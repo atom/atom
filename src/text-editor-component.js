@@ -2960,7 +2960,7 @@ class LineNumberGutterComponent {
 
   render () {
     const {
-      rootComponent, nodePool, showLineNumbers, height, width, lineHeight, startRow, endRow, rowsPerTile,
+      rootComponent, showLineNumbers, height, width, lineHeight, startRow, endRow, rowsPerTile,
       maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags, decorations
     } = this.props
 
@@ -4034,14 +4034,16 @@ class NodePool {
   getElement (type, className, style) {
     var element
     var elementsByDepth = this.elementsByType[type]
-    while (elementsByDepth && elementsByDepth.length > 0) {
-      var elements = elementsByDepth[elementsByDepth.length - 1]
-      if (elements && elements.length > 0) {
-        element = elements.pop()
-        if (elements.length === 0) elementsByDepth.pop()
-        break
-      } else {
-        elementsByDepth.pop()
+    if (elementsByDepth) {
+      while (elementsByDepth.length > 0) {
+        var elements = elementsByDepth[elementsByDepth.length - 1]
+        if (elements && elements.length > 0) {
+          element = elements.pop()
+          if (elements.length === 0) elementsByDepth.pop()
+          break
+        } else {
+          elementsByDepth.pop()
+        }
       }
     }
 
