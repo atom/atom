@@ -53,6 +53,13 @@ Atom is only available for 64-bit Linux systems.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
+### Arch Linux and Parabola GNU/Linux-libre
+
+1. Run 'sudo pacman -S atom'
+2. Launch Atom using the installed 'atom' command.
+
+The Arch Linux or Parabola GNU/Linux-libre version are update via pacman package management system.
+
 ### Red Hat Linux (Fedora 21 and under, CentOS, Red Hat)
 
 Atom is only available for 64-bit Linux systems.
