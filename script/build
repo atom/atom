@@ -32,6 +32,7 @@ const compressArtifacts = require('./lib/compress-artifacts')
 const copyAssets = require('./lib/copy-assets')
 const createDebianPackage = require('./lib/create-debian-package')
 const createRpmPackage = require('./lib/create-rpm-package')
+const createFlatpak = require('./lib/create-flatpak')
 const createWindowsInstaller = require('./lib/create-windows-installer')
 const dumpSymbols = require('./lib/dump-symbols')
 const generateAPIDocs = require('./lib/generate-api-docs')
@@ -96,6 +97,12 @@ dumpSymbols()
         createRpmPackage(packagedAppPath)
       } else {
         console.log('Skipping creating rpm package. Specify the --create-rpm-package option to create it.'.gray)
+      }
+
+      if (argv.createFlatpak) {
+        createFlatpak(packagedAppPath)
+      } else {
+        console.log('Skipping creating flatpak. Specify the --create-flatpak option to create it.'.gray)
       }
     }
 
