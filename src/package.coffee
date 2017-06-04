@@ -172,7 +172,10 @@ class Package
             else
               @activateNow()
           catch error
-            @handleError("Failed to activate the #{@name} package", error)
+            if atom.inSpecMode()
+              raise error
+            else
+              @handleError("Failed to activate the #{@name} package", error)
 
     Promise.all([@grammarsPromise, @settingsPromise, @activationPromise])
 
