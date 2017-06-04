@@ -32,21 +32,18 @@ unmerge = (menu, item) ->
 
 findMatchingItemIndex = (menu, {type, label, submenu}) ->
   return -1 if type is 'separator'
+  normalizedLabel = normalizeLabel(label)
   for item, index in menu
-    if normalizeLabel(item.label) is normalizeLabel(label) and item.submenu? is submenu?
+    if item.normalizedLabel is normalizedLabel and item.submenu? is submenu?
       return index
   -1
 
 normalizeLabel = (label) ->
   return undefined unless label?
-
-  if process.platform is 'darwin'
-    label
-  else
-    label.replace(/\&/g, '')
+  label.replace(/&(?!&)/g, '') # Remove accelerators (& followed by anything not an &)
 
 cloneMenuItem = (item) ->
-  item = _.pick(item, 'type', 'label', 'enabled', 'visible', 'command', 'submenu', 'commandDetail', 'role')
+  item = _.pick(item, 'type', 'label', 'enabled', 'visible', 'command', 'submenu', 'commandDetail', 'role', 'normalizedLabel')
   if item.submenu?
     item.submenu = item.submenu.map (submenuItem) -> cloneMenuItem(submenuItem)
   item

@@ -93,6 +93,11 @@ class MenuManager
   # added menu items.
   add: (items) ->
     items = _.deepClone(items)
+
+    # Cache normalized labels for sorting
+    for item in items
+      item.normalizedLabel = MenuHelpers.normalizeLabel(item.label)
+
     @merge(@template, item) for item in items
     @update()
     new Disposable => @remove(items)
@@ -197,12 +202,12 @@ class MenuManager
       []
 
   sortPackagesMenu: ->
-    packagesMenu = _.find @template, ({label}) -> MenuHelpers.normalizeLabel(label) is 'Packages'
+    packagesMenu = _.find @template, ({label}) -> label.normalizedLabel is 'Packages'
     return unless packagesMenu?.submenu?
 
     packagesMenu.submenu.sort (item1, item2) ->
-      if item1.label and item2.label
-        MenuHelpers.normalizeLabel(item1.label).localeCompare(MenuHelpers.normalizeLabel(item2.label))
+      if item1.normalizedLabel and item2.normalizedLabel
+        item1.normalizedLabel.localeCompare(item2.normalizedLabel)
       else
         0
     @update()
