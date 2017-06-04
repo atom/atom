@@ -75,6 +75,13 @@ Atom is only available for 64-bit Linux systems.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
+### Arch Linux
+
+Both 32-bit and 64-bit versions are available.
+
+1. Run `sudo pacman -S atom` to install from the [official repositories](https://www.archlinux.org/packages/?q=atom).
+2. Launch Atom using the installed `atom` command.
+
 ### Archive extraction
 
 An archive is available for people who don't want to install `atom` as root.
