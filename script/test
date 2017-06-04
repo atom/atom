@@ -18,14 +18,17 @@ const resourcePath = CONFIG.repositoryRootPath
 let executablePath
 if (process.platform === 'darwin') {
   const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '*.app'))
+  assert(executablePaths.length > 0, `No application to run tests against was found in the build output directory. Try running script/build.`)
   assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
   executablePath = path.join(executablePaths[0], 'Contents', 'MacOS', path.basename(executablePaths[0], '.app'))
 } else if (process.platform === 'linux') {
   const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '**', 'atom'))
+  assert(executablePaths.length > 0, `No application to run tests against was found in the build output directory. Try running script/build.`)
   assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
   executablePath = executablePaths[0]
 } else if (process.platform === 'win32') {
   const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '**', 'atom.exe'))
+  assert(executablePaths.length > 0, `No application to run tests against was found in the build output directory. Try running script/build.`)
   assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
   executablePath = executablePaths[0]
 } else {
