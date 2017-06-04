@@ -2,11 +2,11 @@
 
 import {TextEditor, TextBuffer} from 'atom'
 
-const MIN_SIZE_IN_KB = 0 * 1024
-const MAX_SIZE_IN_KB = 10 * 1024
-const SIZE_STEP_IN_KB = 1024
+const MIN_SIZE_IN_KB = 0 * 512
+const MAX_SIZE_IN_KB = 10 * 512
+const SIZE_STEP_IN_KB = 512
 const LINE_TEXT = 'Lorem ipsum dolor sit amet\n'
-const TEXT = LINE_TEXT.repeat(Math.ceil(MAX_SIZE_IN_KB * 1024 / LINE_TEXT.length))
+const TEXT = LINE_TEXT.repeat(Math.ceil(MAX_SIZE_IN_KB * 512 / LINE_TEXT.length))
 
 export default async function ({test}) {
   const data = []
@@ -21,8 +21,8 @@ export default async function ({test}) {
   }
 
   for (let sizeInKB = MIN_SIZE_IN_KB; sizeInKB < MAX_SIZE_IN_KB; sizeInKB += SIZE_STEP_IN_KB) {
-    const text = TEXT.slice(0, sizeInKB * 1024)
-    console.log(text.length / 1024)
+    const text = TEXT.slice(0, sizeInKB * 512)
+    console.log(text.length / 512)
 
     let t0 = window.performance.now()
     const buffer = new TextBuffer({text})
