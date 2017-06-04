@@ -341,7 +341,7 @@ const configSchema = {
         default: 14,
         minimum: 1,
         maximum: 100,
-        description: 'Height in pixels of editor text.'
+        description: 'Height in points of editor text.'
       },
       lineHeight: {
         type: ['string', 'number'],
