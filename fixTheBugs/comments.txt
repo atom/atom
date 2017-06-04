@@ -1,0 +1,12 @@
+(1).min
+ we should define MAXINT value and declare int i before starting for loop.
+
+(2).Corrupt
+ change char array size [43] because in line character.
+
+(3).numbers
+ change (' ') to (" ")
+ and remover ; end of the for loop.
+
+(4).theta 
+ change size == -1 because logic should be correct.
