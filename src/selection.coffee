@@ -485,6 +485,7 @@ class Selection extends Model
   # is empty unless the selection spans multiple lines in which case all lines
   # are removed.
   deleteLine: ->
+    initPos = @cursor.getScreenPosition()
     if @isEmpty()
       start = @cursor.getScreenRow()
       range = @editor.bufferRowsForScreenRows(start, start + 1)
@@ -499,6 +500,7 @@ class Selection extends Model
       if end isnt @editor.buffer.getLastRow() and range.end.column is 0
         end--
       @editor.buffer.deleteRows(start, end)
+    @cursor.setScreenPosition(initPos)
 
   # Public: Joins the current line with the one below it. Lines will
   # be separated by a single space.
