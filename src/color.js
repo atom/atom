@@ -89,6 +89,7 @@ export default class Color {
     return this.alpha === 1 ? this.toHexString() : this.toRGBAString()
   }
 
+  // Verify if the color is equals to 'this' color
   isEqual (color) {
     if (this === color) {
       return true
