@@ -216,6 +216,7 @@ module.exports = class Workspace extends Model {
       bottom: this.createDock('bottom')
     }
     this.activePaneContainer = this.paneContainers.center
+    this.activeTextEditor = null
 
     this.panelContainers = {
       top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
@@ -421,6 +422,17 @@ module.exports = class Workspace extends Model {
     if (paneContainer === this.getActivePaneContainer()) {
       this.didChangeActivePaneItem(item)
       this.emitter.emit('did-change-active-pane-item', item)
+    }
+
+    if (paneContainer === this.getCenter()) {
+      const activeTextEditorChanged =
+        (item instanceof TextEditor) || (this.activeTextEditor instanceof TextEditor)
+
+      if (activeTextEditorChanged) {
+        this.activeTextEditor = (item instanceof TextEditor) ? item : null
+        const itemValue = (item instanceof TextEditor) ? item : undefined
+        this.emitter.emit('did-change-active-text-editor', itemValue)
+      }
     }
   }
 
@@ -648,6 +660,10 @@ module.exports = class Workspace extends Model {
     return this.emitter.on('did-stop-changing-active-pane-item', callback)
   }
 
+  onDidChangeActiveTextEditor (callback) {
+    return this.emitter.on('did-change-active-text-editor', callback)
+  }
+
   // Essential: Invoke the given callback with the current active pane item and
   // with all future active pane items in the workspace.
   //
@@ -658,6 +674,13 @@ module.exports = class Workspace extends Model {
   observeActivePaneItem (callback) {
     callback(this.getActivePaneItem())
     return this.onDidChangeActivePaneItem(callback)
+  }
+
+  observeActiveTextEditor (callback) {
+    const activeTextEditor = this.getActiveTextEditor()
+    if (activeTextEditor != null) { callback(activeTextEditor) }
+
+    return this.onDidChangeActiveTextEditor(callback)
   }
 
   // Essential: Invoke the given callback whenever an item is opened. Unlike
@@ -1282,12 +1305,12 @@ module.exports = class Workspace extends Model {
     return this.getPaneItems().filter(item => item instanceof TextEditor)
   }
 
-  // Essential: Get the active item if it is an {TextEditor}.
+  // Essential: Get the workspace center's active item if it is a {TextEditor}.
   //
-  // Returns an {TextEditor} or `undefined` if the current active item is not an
-  // {TextEditor}.
+  // Returns a {TextEditor} or `undefined` if the workspace center's current
+  // active item is not a {TextEditor}.
   getActiveTextEditor () {
-    const activeItem = this.getActivePaneItem()
+    const activeItem = this.getCenter().getActivePaneItem()
     if (activeItem instanceof TextEditor) { return activeItem }
   }
 
