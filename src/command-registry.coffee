@@ -213,7 +213,7 @@ class CommandRegistry
   handleCommandEvent: (event) =>
     propagationStopped = false
     immediatePropagationStopped = false
-    matched = false
+    matched = []
     currentTarget = event.target
 
     dispatchedEvent = new CustomEvent(event.type, {bubbles: true, detail: event.detail})
@@ -246,14 +246,15 @@ class CommandRegistry
             .sort (a, b) -> a.compare(b)
         listeners = selectorBasedListeners.concat(listeners)
 
-      matched = true if listeners.length > 0
-
       # Call inline listeners first in reverse registration order,
       # and selector-based listeners by specificity and reverse
       # registration order.
       for listener in listeners by -1
         break if immediatePropagationStopped
-        listener.callback.call(currentTarget, dispatchedEvent)
+        matched.push
+          currentTarget: currentTarget
+          dispatchedEvent: dispatchedEvent
+          value: listener.callback.call(currentTarget, dispatchedEvent)
 
       break if currentTarget is window
       break if propagationStopped
