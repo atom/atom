@@ -262,7 +262,7 @@ class CommandRegistry
 
     @emitter.emit 'did-dispatch', dispatchedEvent
 
-    matched
+    if matched.length > 0 then matched else false
 
   commandRegistered: (commandName) ->
     if @rootNode? and not @registeredCommands[commandName]
