@@ -2624,6 +2624,29 @@ i = /test/; #FIXME\
     })
   })
 
+  describe('::getVisiblePaneContainers', () => {
+    it('returns all visible pane containers', () => {
+      const center = workspace.getCenter()
+      const leftDock = workspace.getLeftDock()
+      const rightDock = workspace.getRightDock()
+      const bottomDock = workspace.getBottomDock()
+
+      leftDock.hide()
+      rightDock.hide()
+      bottomDock.hide()
+      expect(workspace.getVisiblePaneContainers()).toEqual([center])
+
+      leftDock.show()
+      expect(workspace.getVisiblePaneContainers().sort()).toEqual([center, leftDock])
+
+      rightDock.show()
+      expect(workspace.getVisiblePaneContainers().sort()).toEqual([center, leftDock, rightDock])
+
+      bottomDock.show()
+      expect(workspace.getVisiblePaneContainers().sort()).toEqual([center, leftDock, rightDock, bottomDock])
+    })
+  })
+
   describe('when the core.allowPendingPaneItems option is falsey', () => {
     it('does not open item with `pending: true` option as pending', () => {
       let pane = null
