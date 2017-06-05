@@ -4,6 +4,7 @@ const _ = require('underscore-plus')
 const {CompositeDisposable} = require('event-kit')
 const PaneContainer = require('./pane-container')
 const TextEditor = require('./text-editor')
+const Grim = require('grim')
 
 const MINIMUM_SIZE = 100
 const DEFAULT_INITIAL_SIZE = 300
@@ -384,21 +385,6 @@ module.exports = class Dock {
   Section: Event Subscription
   */
 
-  // Essential: Invoke the given callback with all current and future text
-  // editors in the dock.
-  //
-  // * `callback` {Function} to be called with current and future text editors.
-  //   * `editor` An {TextEditor} that is present in {::getTextEditors} at the time
-  //     of subscription or that is added at some later time.
-  //
-  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeTextEditors (callback) {
-    for (const textEditor of this.getTextEditors()) {
-      callback(textEditor)
-    }
-    return this.onDidAddTextEditor(({textEditor}) => callback(textEditor))
-  }
-
   // Essential: Invoke the given callback with all current and future panes items
   // in the dock.
   //
@@ -565,25 +551,6 @@ module.exports = class Dock {
     return this.paneContainer.onDidDestroyPaneItem(callback)
   }
 
-  // Extended: Invoke the given callback when a text editor is added to the
-  // dock.
-  //
-  // * `callback` {Function} to be called when panes are added.
-  //   * `event` {Object} with the following keys:
-  //     * `textEditor` {TextEditor} that was added.
-  //     * `pane` {Pane} containing the added text editor.
-  //     * `index` {Number} indicating the index of the added text editor in its
-  //        pane.
-  //
-  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidAddTextEditor (callback) {
-    return this.onDidAddPaneItem(({item, pane, index}) => {
-      if (item instanceof TextEditor) {
-        callback({textEditor: item, pane, index})
-      }
-    })
-  }
-
   /*
   Section: Pane Items
   */
@@ -602,18 +569,13 @@ module.exports = class Dock {
     return this.paneContainer.getActivePaneItem()
   }
 
-  // Essential: Get all text editors in the dock.
+  // Deprecated: Get the active item if it is a {TextEditor}.
   //
-  // Returns an {Array} of {TextEditor}s.
-  getTextEditors () {
-    return this.getPaneItems().filter(item => item instanceof TextEditor)
-  }
-
-  // Essential: Get the active item if it is an {TextEditor}.
-  //
-  // Returns an {TextEditor} or `undefined` if the current active item is not an
+  // Returns a {TextEditor} or `undefined` if the current active item is not a
   // {TextEditor}.
   getActiveTextEditor () {
+    Grim.deprecate('Text editors are not allowed in docks. Use atom.workspace.getActiveTextEditor() instead.')
+
     const activeItem = this.getActivePaneItem()
     if (activeItem instanceof TextEditor) { return activeItem }
   }

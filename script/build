@@ -14,7 +14,7 @@ const yargs = require('yargs')
 const argv = yargs
   .usage('Usage: $0 [options]')
   .help('help')
-  .describe('code-sign',  'Code-sign executables (macOS and Windows only)')
+  .describe('code-sign', 'Code-sign executables (macOS and Windows only)')
   .describe('create-windows-installer', 'Create installer (Windows only)')
   .describe('create-debian-package', 'Create .deb package (Linux only)')
   .describe('create-rpm-package', 'Create .rpm package (Linux only)')
@@ -77,8 +77,7 @@ dumpSymbols()
     } else if (process.platform === 'win32') {
       if (argv.createWindowsInstaller) {
         return createWindowsInstaller(packagedAppPath, argv.codeSign).then(() => packagedAppPath)
-      }
-      else {
+      } else {
         console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer.'.gray)
         if (argv.codeSign) {
           codeSignOnWindows(packagedAppPath)

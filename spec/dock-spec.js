@@ -1,6 +1,6 @@
 /** @babel */
 
-const TextEditor = require('../src/text-editor')
+const Grim = require('grim')
 
 import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
 
@@ -332,27 +332,12 @@ describe('Dock', () => {
     })
   })
 
-  describe('.observeTextEditors()', () => {
-    it('invokes the observer with current and future text editors', () => {
-      const dock = atom.workspace.getLeftDock()
-      const dockPane = dock.getActivePane()
-      const observed = []
+  describe('::getActiveTextEditor()', () => {
+    it('is deprecated', () => {
+      spyOn(Grim, 'deprecate')
 
-      const editorAddedBeforeRegisteringObserver = new TextEditor()
-      const nonEditorItemAddedBeforeRegisteringObserver = document.createElement('div')
-      dockPane.activateItem(editorAddedBeforeRegisteringObserver)
-      dockPane.activateItem(nonEditorItemAddedBeforeRegisteringObserver)
-
-      dock.observeTextEditors(editor => observed.push(editor))
-
-      const editorAddedAfterRegisteringObserver = new TextEditor()
-      const nonEditorItemAddedAfterRegisteringObserver = document.createElement('div')
-      dockPane.activateItem(editorAddedAfterRegisteringObserver)
-      dockPane.activateItem(nonEditorItemAddedAfterRegisteringObserver)
-
-      expect(observed).toEqual(
-        [editorAddedBeforeRegisteringObserver, editorAddedAfterRegisteringObserver]
-      )
+      atom.workspace.getLeftDock().getActiveTextEditor()
+      expect(Grim.deprecate.callCount).toBe(1)
     })
   })
 })
