@@ -22,8 +22,8 @@ Do you want to ask a question? Are you looking for support? The Atom message boa
 ### Steps to Reproduce
 
 1. [First Step]
-2. [Second Step]
-3. [and so on...]
+1. [Second Step]
+1. [and so on...]
 
 **Expected behavior:** [What you expect to happen]
 
