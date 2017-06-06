@@ -427,6 +427,20 @@ describe "PackageManager", ->
         atom.packages.unloadPackage(pack.name)
         expect(atom.packages.isPackageLoaded(pack.name)).toBeFalsy()
 
+      it "clears the require cache entries for all the package files and dependencies", ->
+        pathsForPackage = (pack) ->
+          Object.keys(require.cache).filter (p) ->
+            p.indexOf(pack.path + path.sep) is 0
+
+        pack = atom.packages.loadPackage('package-with-main')
+        require.cache[path.join(pack.path, 'main-module.coffee')] = {}
+        require.cache[path.join(pack.path + '-other', 'main.coffee')] = {}
+
+        expect(pathsForPackage(pack).length > 0).toBeTruthy()
+        atom.packages.unloadPackage(pack.name)
+        expect(pathsForPackage(pack).length > 0).toBeFalsy()
+        expect(require.cache[path.join(pack.path + '-other', 'main.coffee')]).not.toBeUndefined()
+
     it "invokes ::onDidUnloadPackage listeners with the unloaded package", ->
       atom.packages.loadPackage('package-with-main')
       unloadedPackage = null

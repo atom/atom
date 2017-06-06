@@ -491,6 +491,9 @@ class PackageManager
 
     if pack = @getLoadedPackage(name)
       delete @loadedPackages[pack.name]
+      Object.keys(require.cache)
+      .filter (p) -> p.indexOf(pack.path + path.sep) is 0
+      .forEach (p) -> delete require.cache[p]
       @emitter.emit 'did-unload-package', pack
     else
       throw new Error("No loaded package for name '#{name}'")
