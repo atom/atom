@@ -3545,6 +3545,9 @@ class TextEditor extends Model
   getElement: ->
     @editorElement ?= new TextEditorElement().initialize(this, atom)
 
+  getAllowedLocations: ->
+    ['center']
+
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
   # Returns a {String}.
