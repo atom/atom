@@ -216,6 +216,7 @@ module.exports = class Workspace extends Model {
       bottom: this.createDock('bottom')
     }
     this.activePaneContainer = this.paneContainers.center
+    this.hasActiveTextEditor = false
 
     this.panelContainers = {
       top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
@@ -296,6 +297,7 @@ module.exports = class Workspace extends Model {
       bottom: this.createDock('bottom')
     }
     this.activePaneContainer = this.paneContainers.center
+    this.hasActiveTextEditor = false
 
     this.panelContainers = {
       top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
@@ -371,6 +373,8 @@ module.exports = class Workspace extends Model {
       this.paneContainers.center.deserialize(state.paneContainer, deserializerManager)
     }
 
+    this.hasActiveTextEditor = this.getActiveTextEditor() != null
+
     this.updateWindowTitle()
   }
 
@@ -421,6 +425,16 @@ module.exports = class Workspace extends Model {
     if (paneContainer === this.getActivePaneContainer()) {
       this.didChangeActivePaneItem(item)
       this.emitter.emit('did-change-active-pane-item', item)
+    }
+
+    if (paneContainer === this.getCenter()) {
+      const hadActiveTextEditor = this.hasActiveTextEditor
+      this.hasActiveTextEditor = item instanceof TextEditor
+
+      if (this.hasActiveTextEditor || hadActiveTextEditor) {
+        const itemValue = this.hasActiveTextEditor ? item : undefined
+        this.emitter.emit('did-change-active-text-editor', itemValue)
+      }
     }
   }
 
@@ -648,6 +662,18 @@ module.exports = class Workspace extends Model {
     return this.emitter.on('did-stop-changing-active-pane-item', callback)
   }
 
+  // Essential: Invoke the given callback when a text editor becomes the active
+  // text editor and when there is no longer an active text editor.
+  //
+  // * `callback` {Function} to be called when the active text editor changes.
+  //   * `editor` The active {TextEditor} or undefined if there is no longer an
+  //      active text editor.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeActiveTextEditor (callback) {
+    return this.emitter.on('did-change-active-text-editor', callback)
+  }
+
   // Essential: Invoke the given callback with the current active pane item and
   // with all future active pane items in the workspace.
   //
@@ -658,6 +684,21 @@ module.exports = class Workspace extends Model {
   observeActivePaneItem (callback) {
     callback(this.getActivePaneItem())
     return this.onDidChangeActivePaneItem(callback)
+  }
+
+  // Essential: Invoke the given callback with the current active text editor
+  // (if any), with all future active text editors, and when there is no longer
+  // an active text editor.
+  //
+  // * `callback` {Function} to be called when the active text editor changes.
+  //   * `editor` The active {TextEditor} or undefined if there is not an
+  //      active text editor.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeActiveTextEditor (callback) {
+    callback(this.getActiveTextEditor())
+
+    return this.onDidChangeActiveTextEditor(callback)
   }
 
   // Essential: Invoke the given callback whenever an item is opened. Unlike
@@ -1282,12 +1323,12 @@ module.exports = class Workspace extends Model {
     return this.getPaneItems().filter(item => item instanceof TextEditor)
   }
 
-  // Essential: Get the active item if it is an {TextEditor}.
+  // Essential: Get the workspace center's active item if it is a {TextEditor}.
   //
-  // Returns an {TextEditor} or `undefined` if the current active item is not an
-  // {TextEditor}.
+  // Returns a {TextEditor} or `undefined` if the workspace center's current
+  // active item is not a {TextEditor}.
   getActiveTextEditor () {
-    const activeItem = this.getActivePaneItem()
+    const activeItem = this.getCenter().getActivePaneItem()
     if (activeItem instanceof TextEditor) { return activeItem }
   }
 

@@ -86,6 +86,7 @@ class TextEditorComponent {
       (this.props.cursorBlinkResumeDelay || CURSOR_BLINK_RESUME_DELAY)
     )
     this.lineTopIndex = new LineTopIndex()
+    this.lineNodesPool = new NodePool()
     this.updateScheduled = false
     this.suppressUpdates = false
     this.hasInitialMeasurements = false
@@ -585,6 +586,7 @@ class TextEditorComponent {
         blockDecorations: this.decorationsToRender.blocks.get(tileStartRow),
         highlightDecorations: this.decorationsToRender.highlights.get(tileStartRow),
         displayLayer,
+        nodePool: this.lineNodesPool,
         lineNodesByScreenLineId,
         textNodesByScreenLineId
       })
@@ -598,6 +600,7 @@ class TextEditorComponent {
             screenLine,
             screenRow,
             displayLayer,
+            nodePool: this.lineNodesPool,
             lineNodesByScreenLineId,
             textNodesByScreenLineId
           }))
@@ -2944,6 +2947,7 @@ class LineNumberGutterComponent {
     this.element = this.props.element
     this.virtualNode = $.div(null)
     this.virtualNode.domNode = this.element
+    this.nodePool = new NodePool()
     etch.updateSync(this)
   }
 
@@ -2990,19 +2994,18 @@ class LineNumberGutterComponent {
           const lineNumberProps = {
             key,
             className,
-            style: {width: width + 'px'},
-            dataset: {bufferRow}
+            width,
+            bufferRow,
+            number,
+            nodePool: this.nodePool
           }
           const currentRowTop = rootComponent.pixelPositionAfterBlocksForRow(row)
           const previousRowBottom = rootComponent.pixelPositionAfterBlocksForRow(row - 1) + lineHeight
           if (currentRowTop > previousRowBottom) {
-            lineNumberProps.style.marginTop = (currentRowTop - previousRowBottom) + 'px'
+            lineNumberProps.marginTop = currentRowTop - previousRowBottom
           }
 
-          tileChildren[row - tileStartRow] = $.div(lineNumberProps,
-            number,
-            $.div({className: 'icon-right'})
-          )
+          tileChildren[row - tileStartRow] = $(LineNumberComponent, lineNumberProps)
         }
 
         const tileTop = rootComponent.pixelPositionBeforeBlocksForRow(tileStartRow)
@@ -3101,6 +3104,49 @@ class LineNumberGutterComponent {
 
   didMouseDown (event) {
     this.props.rootComponent.didMouseDownOnLineNumberGutter(event)
+  }
+}
+
+class LineNumberComponent {
+  constructor (props) {
+    const {className, width, marginTop, bufferRow, number, nodePool} = props
+    this.props = props
+    const style = {width: width + 'px'}
+    if (marginTop != null) style.marginTop = marginTop + 'px'
+    this.element = nodePool.getElement('DIV', className, style)
+    this.element.dataset.bufferRow = bufferRow
+    if (number) this.element.appendChild(nodePool.getTextNode(number))
+    this.element.appendChild(nodePool.getElement('DIV', 'icon-right', null))
+  }
+
+  destroy () {
+    this.element.remove()
+    this.props.nodePool.release(this.element)
+  }
+
+  update (props) {
+    const {nodePool, className, width, marginTop, number} = props
+
+    if (this.props.className !== className) this.element.className = className
+    if (this.props.width !== width) this.element.style.width = width + 'px'
+    if (this.props.marginTop !== marginTop) {
+      if (marginTop != null) {
+        this.element.style.marginTop = marginTop + 'px'
+      } else {
+        this.element.style.marginTop = ''
+      }
+    }
+    if (this.props.number !== number) {
+      if (number) {
+        this.element.insertBefore(nodePool.getTextNode(number), this.element.firstChild)
+      } else {
+        const numberNode = this.element.firstChild
+        numberNode.remove()
+        nodePool.release(numberNode)
+      }
+    }
+
+    this.props = props
   }
 }
 
@@ -3367,7 +3413,7 @@ class LinesTileComponent {
   createLines () {
     const {
       tileStartRow, screenLines, lineDecorations, textDecorations,
-      displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
+      nodePool, displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
     } = this.props
 
     this.lineComponents = []
@@ -3378,6 +3424,7 @@ class LinesTileComponent {
         lineDecoration: lineDecorations[i],
         textDecorations: textDecorations[i],
         displayLayer,
+        nodePool,
         lineNodesByScreenLineId,
         textNodesByScreenLineId
       })
@@ -3389,7 +3436,7 @@ class LinesTileComponent {
   updateLines (oldProps, newProps) {
     var {
       screenLines, tileStartRow, lineDecorations, textDecorations,
-      displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
+      nodePool, displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
     } = newProps
 
     var oldScreenLines = oldProps.screenLines
@@ -3411,6 +3458,7 @@ class LinesTileComponent {
           lineDecoration: lineDecorations[newScreenLineIndex],
           textDecorations: textDecorations[newScreenLineIndex],
           displayLayer,
+          nodePool,
           lineNodesByScreenLineId,
           textNodesByScreenLineId
         })
@@ -3447,6 +3495,7 @@ class LinesTileComponent {
               lineDecoration: lineDecorations[newScreenLineIndex],
               textDecorations: textDecorations[newScreenLineIndex],
               displayLayer,
+              nodePool,
               lineNodesByScreenLineId,
               textNodesByScreenLineId
             })
@@ -3473,6 +3522,7 @@ class LinesTileComponent {
             lineDecoration: lineDecorations[newScreenLineIndex],
             textDecorations: textDecorations[newScreenLineIndex],
             displayLayer,
+            nodePool,
             lineNodesByScreenLineId,
             textNodesByScreenLineId
           })
@@ -3616,10 +3666,9 @@ class LinesTileComponent {
 
 class LineComponent {
   constructor (props) {
-    const {screenRow, screenLine, lineNodesByScreenLineId} = props
+    const {nodePool, screenRow, screenLine, lineNodesByScreenLineId} = props
     this.props = props
-    this.element = document.createElement('div')
-    this.element.className = this.buildClassName()
+    this.element = nodePool.getElement('DIV', this.buildClassName(), null)
     this.element.dataset.screenRow = screenRow
     lineNodesByScreenLineId.set(screenLine.id, this.element)
     this.appendContents()
@@ -3644,23 +3693,24 @@ class LineComponent {
   }
 
   destroy () {
-    const {lineNodesByScreenLineId, textNodesByScreenLineId, screenLine} = this.props
+    const {nodePool, lineNodesByScreenLineId, textNodesByScreenLineId, screenLine} = this.props
     if (lineNodesByScreenLineId.get(screenLine.id) === this.element) {
       lineNodesByScreenLineId.delete(screenLine.id)
       textNodesByScreenLineId.delete(screenLine.id)
     }
 
     this.element.remove()
+    nodePool.release(this.element)
   }
 
   appendContents () {
-    const {displayLayer, screenLine, textDecorations, textNodesByScreenLineId} = this.props
+    const {displayLayer, nodePool, screenLine, textDecorations, textNodesByScreenLineId} = this.props
 
     const textNodes = []
     textNodesByScreenLineId.set(screenLine.id, textNodes)
 
     const {lineText, tags} = screenLine
-    let openScopeNode = document.createElement('span')
+    let openScopeNode = nodePool.getElement('SPAN', null, null)
     this.element.appendChild(openScopeNode)
 
     let decorationIndex = 0
@@ -3681,8 +3731,7 @@ class LineComponent {
         if (displayLayer.isCloseTag(tag)) {
           openScopeNode = openScopeNode.parentElement
         } else if (displayLayer.isOpenTag(tag)) {
-          const newScopeNode = document.createElement('span')
-          newScopeNode.className = displayLayer.classNameForTag(tag)
+          const newScopeNode = nodePool.getElement('SPAN', displayLayer.classNameForTag(tag), null)
           openScopeNode.appendChild(newScopeNode)
           openScopeNode = newScopeNode
         } else {
@@ -3706,7 +3755,7 @@ class LineComponent {
     }
 
     if (column === 0) {
-      const textNode = document.createTextNode(' ')
+      const textNode = nodePool.getTextNode(' ')
       this.element.appendChild(textNode)
       textNodes.push(textNode)
     }
@@ -3715,22 +3764,22 @@ class LineComponent {
       // Insert a zero-width non-breaking whitespace, so that LinesYardstick can
       // take the fold-marker::after pseudo-element into account during
       // measurements when such marker is the last character on the line.
-      const textNode = document.createTextNode(ZERO_WIDTH_NBSP_CHARACTER)
+      const textNode = nodePool.getTextNode(ZERO_WIDTH_NBSP_CHARACTER)
       this.element.appendChild(textNode)
       textNodes.push(textNode)
     }
   }
 
   appendTextNode (textNodes, openScopeNode, text, activeClassName, activeStyle) {
+    const {nodePool} = this.props
+
     if (activeClassName || activeStyle) {
-      const decorationNode = document.createElement('span')
-      if (activeClassName) decorationNode.className = activeClassName
-      if (activeStyle) Object.assign(decorationNode.style, activeStyle)
+      const decorationNode = nodePool.getElement('SPAN', activeClassName, activeStyle)
       openScopeNode.appendChild(decorationNode)
       openScopeNode = decorationNode
     }
 
-    const textNode = document.createTextNode(text)
+    const textNode = nodePool.getTextNode(text)
     openScopeNode.appendChild(textNode)
     textNodes.push(textNode)
   }
@@ -3972,5 +4021,85 @@ function debounce (fn, wait) {
   return function () {
     timestamp = Date.now()
     if (!timeout) timeout = setTimeout(later, wait)
+  }
+}
+
+class NodePool {
+  constructor () {
+    this.elementsByType = {}
+    this.textNodes = []
+    this.stylesByNode = new WeakMap()
+  }
+
+  getElement (type, className, style) {
+    var element
+    var elementsByDepth = this.elementsByType[type]
+    if (elementsByDepth) {
+      while (elementsByDepth.length > 0) {
+        var elements = elementsByDepth[elementsByDepth.length - 1]
+        if (elements && elements.length > 0) {
+          element = elements.pop()
+          if (elements.length === 0) elementsByDepth.pop()
+          break
+        } else {
+          elementsByDepth.pop()
+        }
+      }
+    }
+
+    if (element) {
+      element.className = className
+      var existingStyle = this.stylesByNode.get(element)
+      if (existingStyle) {
+        for (var key in existingStyle) {
+          if (!style || !style[key]) element.style[key] = ''
+        }
+      }
+      if (style) Object.assign(element.style, style)
+      this.stylesByNode.set(element, style)
+
+      while (element.firstChild) element.firstChild.remove()
+      return element
+    } else {
+      var newElement = document.createElement(type)
+      if (className) newElement.className = className
+      if (style) Object.assign(newElement.style, style)
+      this.stylesByNode.set(newElement, style)
+      return newElement
+    }
+  }
+
+  getTextNode (text) {
+    if (this.textNodes.length > 0) {
+      var node = this.textNodes.pop()
+      node.textContent = text
+      return node
+    } else {
+      return document.createTextNode(text)
+    }
+  }
+
+  release (node, depth = 0) {
+    var {nodeName} = node
+    if (nodeName === '#text') {
+      this.textNodes.push(node)
+    } else {
+      var elementsByDepth = this.elementsByType[nodeName]
+      if (!elementsByDepth) {
+        elementsByDepth = []
+        this.elementsByType[nodeName] = elementsByDepth
+      }
+
+      var elements = elementsByDepth[depth]
+      if (!elements) {
+        elements = []
+        elementsByDepth[depth] = elements
+      }
+
+      elements.push(node)
+      for (var i = 0; i < node.childNodes.length; i++) {
+        this.release(node.childNodes[i], depth + 1)
+      }
+    }
   }
 }

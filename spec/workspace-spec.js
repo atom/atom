@@ -1,7 +1,3 @@
-/** @babel */
-
-/* global advanceClock, HTMLElement, waits */
-
 const path = require('path')
 const temp = require('temp').track()
 const TextEditor = require('../src/text-editor')
@@ -31,38 +27,38 @@ describe('Workspace', () => {
 
   afterEach(() => temp.cleanupSync())
 
-  describe('serialization', () => {
-    function simulateReload() {
-      waitsForPromise(() => {
-        const workspaceState = atom.workspace.serialize()
-        const projectState = atom.project.serialize({isUnloading: true})
-        atom.workspace.destroy()
-        atom.project.destroy()
-        atom.project = new Project({
-          notificationManager: atom.notifications,
-          packageManager: atom.packages,
-          confirm: atom.confirm.bind(atom),
-          applicationDelegate: atom.applicationDelegate
-        })
-        return atom.project.deserialize(projectState).then(() => {
-          atom.workspace = new Workspace({
-            config: atom.config,
-            project: atom.project,
-            packageManager: atom.packages,
-            grammarRegistry: atom.grammars,
-            styleManager: atom.styles,
-            deserializerManager: atom.deserializers,
-            notificationManager: atom.notifications,
-            applicationDelegate: atom.applicationDelegate,
-            viewRegistry: atom.views,
-            assert: atom.assert.bind(atom),
-            textEditorRegistry: atom.textEditors
-          })
-          atom.workspace.deserialize(workspaceState, atom.deserializers)
-        })
+  function simulateReload() {
+    waitsForPromise(() => {
+      const workspaceState = workspace.serialize()
+      const projectState = atom.project.serialize({isUnloading: true})
+      workspace.destroy()
+      atom.project.destroy()
+      atom.project = new Project({
+        notificationManager: atom.notifications,
+        packageManager: atom.packages,
+        confirm: atom.confirm.bind(atom),
+        applicationDelegate: atom.applicationDelegate
       })
-    }
+      return atom.project.deserialize(projectState).then(() => {
+        workspace = atom.workspace = new Workspace({
+          config: atom.config,
+          project: atom.project,
+          packageManager: atom.packages,
+          grammarRegistry: atom.grammars,
+          styleManager: atom.styles,
+          deserializerManager: atom.deserializers,
+          notificationManager: atom.notifications,
+          applicationDelegate: atom.applicationDelegate,
+          viewRegistry: atom.views,
+          assert: atom.assert.bind(atom),
+          textEditorRegistry: atom.textEditors
+        })
+        workspace.deserialize(workspaceState, atom.deserializers)
+      })
+    })
+  }
 
+  describe('serialization', () => {
     describe('when the workspace contains text editors', () => {
       it('constructs the view with the same panes', () => {
         const pane1 = atom.workspace.getActivePane()
@@ -125,64 +121,6 @@ describe('Workspace', () => {
 
         runs(() => {
           expect(atom.workspace.getTextEditors().length).toBe(0)
-        })
-      })
-    })
-
-    describe('where a dock contains an editor', () => {
-      afterEach(() => {
-        atom.workspace.getRightDock().paneContainer.destroy()
-      })
-
-      it('constructs the view with the same panes', () => {
-        const pane1 = atom.workspace.getRightDock().getActivePane()
-        const pane2 = pane1.splitRight({copyActiveItem: true})
-        const pane3 = pane2.splitRight({copyActiveItem: true})
-        let pane4 = null
-
-        waitsForPromise(() =>
-          atom.workspace.open(null, {location: 'right'}).then(editor => editor.setText('An untitled editor.'))
-        )
-
-        waitsForPromise(() =>
-          atom.workspace.open('b', {location: 'right'}).then(editor => pane2.activateItem(editor.copy()))
-        )
-
-        waitsForPromise(() =>
-          atom.workspace.open('../sample.js', {location: 'right'}).then(editor => pane3.activateItem(editor))
-        )
-
-        runs(() => {
-          pane3.activeItem.setCursorScreenPosition([2, 4])
-          pane4 = pane2.splitDown()
-        })
-
-        waitsForPromise(() =>
-          atom.workspace.open('../sample.txt', {location: 'right'}).then(editor => pane4.activateItem(editor))
-        )
-
-        runs(() => {
-          pane4.getActiveItem().setCursorScreenPosition([0, 2])
-          pane2.activate()
-        })
-
-        simulateReload()
-
-        runs(() => {
-          expect(atom.workspace.getTextEditors().length).toBe(5)
-          const [editor1, editor2, untitledEditor, editor3, editor4] = atom.workspace.getTextEditors()
-          const firstDirectory = atom.project.getDirectories()[0]
-          expect(firstDirectory).toBeDefined()
-          expect(editor1.getPath()).toBe(firstDirectory.resolve('b'))
-          expect(editor2.getPath()).toBe(firstDirectory.resolve('../sample.txt'))
-          expect(editor2.getCursorScreenPosition()).toEqual([0, 2])
-          expect(editor3.getPath()).toBe(firstDirectory.resolve('b'))
-          expect(editor4.getPath()).toBe(firstDirectory.resolve('../sample.js'))
-          expect(editor4.getCursorScreenPosition()).toEqual([2, 4])
-          expect(untitledEditor.getPath()).toBeUndefined()
-          expect(untitledEditor.getText()).toBe('An untitled editor.')
-
-          expect(atom.workspace.getRightDock().getActiveTextEditor().getPath()).toBe(editor3.getPath())
         })
       })
     })
@@ -436,6 +374,13 @@ describe('Workspace', () => {
 
           runs(() => expect(workspace.getActivePaneItem()).toBe(editor))
         })
+      })
+    })
+
+    describe('when attempting to open an editor in a dock', () => {
+      it('opens the editor in the workspace center', async () => {
+        await atom.workspace.open('sample.txt', {location: 'right'})
+        expect(atom.workspace.getCenter().getActivePaneItem().getFileName()).toEqual('sample.txt')
       })
     })
 
@@ -1429,6 +1374,42 @@ describe('Workspace', () => {
     })
   })
 
+  describe('::getActiveTextEditor()', () => {
+    describe("when the workspace center's active pane item is a text editor", () => {
+      describe('when the workspace center has focus', function () {
+        it('returns the text editor', () => {
+          const workspaceCenter = workspace.getCenter()
+          const editor = new TextEditor()
+          workspaceCenter.getActivePane().activateItem(editor)
+          workspaceCenter.activate()
+
+          expect(workspace.getActiveTextEditor()).toBe(editor)
+        })
+      })
+
+      describe('when a dock has focus', function () {
+        it('returns the text editor', () => {
+          const workspaceCenter = workspace.getCenter()
+          const editor = new TextEditor()
+          workspaceCenter.getActivePane().activateItem(editor)
+          workspace.getLeftDock().activate()
+
+          expect(workspace.getActiveTextEditor()).toBe(editor)
+        })
+      })
+    })
+
+    describe("when the workspace center's active pane item is not a text editor", () => {
+      it('returns undefined', () => {
+        const workspaceCenter = workspace.getCenter()
+        const nonEditorItem = document.createElement('div')
+        workspaceCenter.getActivePane().activateItem(nonEditorItem)
+
+        expect(workspace.getActiveTextEditor()).toBeUndefined()
+      })
+    })
+  })
+
   describe('::observeTextEditors()', () => {
     it('invokes the observer with current and future text editors', () => {
       const observed = []
@@ -1442,6 +1423,94 @@ describe('Workspace', () => {
       waitsForPromise(() => workspace.open())
 
       expect(observed).toEqual(workspace.getTextEditors())
+    })
+  })
+
+  describe('::observeActiveTextEditor()', () => {
+    it('invokes the observer with current active text editor and each time a different text editor becomes active', () => {
+      const pane = workspace.getCenter().getActivePane()
+      observed = []
+
+      const inactiveEditorBeforeRegisteringObserver = new TextEditor()
+      const activeEditorBeforeRegisteringObserver = new TextEditor()
+      pane.activateItem(inactiveEditorBeforeRegisteringObserver)
+      pane.activateItem(activeEditorBeforeRegisteringObserver)
+
+      workspace.observeActiveTextEditor(editor => observed.push(editor))
+
+      const editorAddedAfterRegisteringObserver = new TextEditor()
+      const nonEditorItemAddedAfterRegisteringObserver = document.createElement('div')
+      pane.activateItem(editorAddedAfterRegisteringObserver)
+
+      expect(observed).toEqual(
+        [activeEditorBeforeRegisteringObserver, editorAddedAfterRegisteringObserver]
+      )
+    })
+  })
+
+  describe('::onDidChangeActiveTextEditor()', () => {
+    let center, pane, observed
+
+    beforeEach(() => {
+      center = workspace.getCenter()
+      pane = center.getActivePane()
+      observed = []
+    })
+
+    it("invokes the observer when a text editor becomes the workspace center's active pane item while a dock has focus", () => {
+      workspace.onDidChangeActiveTextEditor(editor => observed.push(editor))
+
+      const dock = workspace.getLeftDock()
+      dock.activate()
+      expect(atom.workspace.getActivePaneContainer()).toBe(dock)
+
+      const editor = new TextEditor()
+      center.getActivePane().activateItem(editor)
+      expect(atom.workspace.getActivePaneContainer()).toBe(dock)
+
+      expect(observed).toEqual([editor])
+    })
+
+    it('invokes the observer when the last text editor is closed', () => {
+      const editor = new TextEditor()
+      pane.activateItem(editor)
+
+      workspace.onDidChangeActiveTextEditor(editor => observed.push(editor))
+      pane.destroyItem(editor)
+      expect(observed).toEqual([undefined])
+    })
+
+    it("invokes the observer when the workspace center's active pane item changes from an editor item to a non-editor item", () => {
+      const editor = new TextEditor()
+      const nonEditorItem = document.createElement('div')
+      pane.activateItem(editor)
+
+      workspace.onDidChangeActiveTextEditor(editor => observed.push(editor))
+      pane.activateItem(nonEditorItem)
+      expect(observed).toEqual([undefined])
+    })
+
+    it("does not invoke the observer when the workspace center's active pane item changes from a non-editor item to another non-editor item", () => {
+      workspace.onDidChangeActiveTextEditor(editor => observed.push(editor))
+
+      const nonEditorItem1 = document.createElement('div')
+      const nonEditorItem2 = document.createElement('div')
+      pane.activateItem(nonEditorItem1)
+      pane.activateItem(nonEditorItem1)
+
+      expect(observed).toEqual([])
+    })
+
+    it('invokes the observer when closing the one and only text editor after deserialization', async () => {
+      pane.activateItem(new TextEditor())
+
+      simulateReload()
+
+      runs(() => {
+        workspace.onDidChangeActiveTextEditor(editor => observed.push(editor))
+        workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+        expect(observed).toEqual([undefined])
+      })
     })
   })
 
