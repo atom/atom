@@ -214,9 +214,7 @@ class PaneContainer {
   moveActiveItemToPane (destPane) {
     const item = this.activePane.getActiveItem()
 
-    if (typeof item.getAllowedLocations === 'function' && !item.getAllowedLocations().includes(destPane.getContainer().getLocation())) {
-      return
-    }
+    if (!destPane.isItemAllowed(item)) { return }
 
     this.activePane.moveItemToPane(item, destPane)
     destPane.setActiveItem(item)
@@ -225,9 +223,7 @@ class PaneContainer {
   copyActiveItemToPane (destPane) {
     const item = this.activePane.copyActiveItem()
 
-    if (typeof item.getAllowedLocations === 'function' && !item.getAllowedLocations().includes(destPane.getContainer().getLocation())) {
-      return
-    }
+    if (!destPane.isItemAllowed(item)) { return }
 
     destPane.activateItem(item)
   }
