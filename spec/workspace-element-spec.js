@@ -480,6 +480,26 @@ describe('WorkspaceElement', () => {
         })
       )
     })
+
+    describe('::moveActiveItemToNearestPaneInDirection(direction, params)', () => {
+      describe('when the item is not allowed in nearest pane in the given direction', () => {
+        it('does not move or copy the active item', function () {
+          const item = {
+            element: document.createElement('div'),
+            getAllowedLocations: () => ['left', 'right'],
+          }
+
+          workspace.getBottomDock().show()
+          startingPane.activate()
+          startingPane.activateItem(item)
+          workspaceElement.moveActiveItemToNearestPaneInDirection('below', {keepOriginal: false})
+          expect(workspace.paneForItem(item)).toBe(startingPane)
+
+          workspaceElement.moveActiveItemToNearestPaneInDirection('below', {keepOriginal: true})
+          expect(workspace.paneForItem(item)).toBe(startingPane)
+        })
+      })
+    })
   })
 
   describe('mousing over docks', () => {
