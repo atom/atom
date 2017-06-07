@@ -632,6 +632,12 @@ class TextEditor extends Model
   onDidInsertText: (callback) ->
     @emitter.on 'did-insert-text', callback
 
+  onWillMutateSelectedText: (callback) ->
+    @emitter.on 'will-mutate-selected-text', callback
+
+  onDidMutateSelectedText: (callback) ->
+    @emitter.on 'did-mutate-selected-text', callback
+
   # Essential: Invoke the given callback after the buffer is saved to disk.
   #
   # * `callback` {Function} to be called after the buffer is saved.
@@ -1156,9 +1162,12 @@ class TextEditor extends Model
   #      argument will be a {Selection} and the second argument will be the
   #      {Number} index of that selection.
   mutateSelectedText: (fn, groupingInterval=0) ->
-    @mergeIntersectingSelections =>
+    @emitter.emit 'will-mutate-selected-text'
+    result = @mergeIntersectingSelections =>
       @transact groupingInterval, =>
         fn(selection, index) for selection, index in @getSelectionsOrderedByBufferPosition()
+    @emitter.emit 'did-mutate-selected-text'
+    result
 
   # Move lines intersecting the most recent selection or multiple selections
   # up by one row in screen coordinates.

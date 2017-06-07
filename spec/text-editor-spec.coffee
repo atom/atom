@@ -3028,6 +3028,22 @@ describe "TextEditor", ->
           expect(willInsertSpy).toHaveBeenCalled()
           expect(didInsertSpy).not.toHaveBeenCalled()
 
+      describe "when there are ::onWillMutateSelectedText and ::onDidMutateSelectedText observers", ->
+        it "notifies the observers just once before and after mutating the selections", ->
+          events = []
+
+          editor.onWillMutateSelectedText -> events.push("will-mutate")
+          editor.onDidMutateSelectedText -> events.push("did-mutate")
+
+          editor.setSelectedBufferRanges([
+            [[0, 0], [0, 0]]
+            [[1, 0], [1, 0]]
+            [[4, 0], [4, 0]]
+          ])
+          editor.insertText("hey")
+
+          expect(events).toEqual(["will-mutate", "did-mutate"])
+
       describe "when the undo option is set to 'skip'", ->
         beforeEach ->
           editor.setSelectedBufferRange([[1, 2], [1, 2]])
@@ -3377,6 +3393,22 @@ describe "TextEditor", ->
           editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[0, 16], [0, 24]]])
           editor.backspace()
           expect(editor.lineTextForBufferRow(0)).toBe 'var  =  () {'
+
+      describe "when there are ::onWillMutateSelectedText and ::onDidMutateSelectedText observers", ->
+        it "notifies the observers just once before and after mutating the selections", ->
+          events = []
+
+          editor.onWillMutateSelectedText -> events.push("will-mutate")
+          editor.onDidMutateSelectedText -> events.push("did-mutate")
+
+          editor.setSelectedBufferRanges([
+            [[0, 0], [0, 0]]
+            [[1, 0], [1, 0]]
+            [[4, 0], [4, 0]]
+          ])
+          editor.backspace()
+
+          expect(events).toEqual(["will-mutate", "did-mutate"])
 
     describe ".deleteToPreviousWordBoundary()", ->
       describe "when no text is selected", ->
