@@ -24,7 +24,7 @@ document.registerElement('text-editor-component-test-element', {
   })
 })
 
-describe('TextEditorComponent', () => {
+fdescribe('TextEditorComponent', () => {
   beforeEach(() => {
     jasmine.useRealClock()
 
@@ -959,6 +959,14 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
 
       expect(component.getScrollLeft()).toBe(component.getScrollWidth() - component.getScrollContainerClientWidth())
+    })
+
+    it('does not try to measure lines that do not exist when the animation frame is delivered', async () => {
+      const {component, editor} = buildComponent({autoHeight: false, height: 30, rowsPerTile: 2})
+      editor.scrollToBufferPosition([11, 5])
+      editor.getBuffer().deleteRows(11, 12)
+      await component.getNextUpdatePromise()
+      expect(component.getScrollBottom()).toBe((10 + 1) * component.measurements.lineHeight)
     })
 
     it('accounts for the presence of horizontal scrollbars that appear during the same frame as the autoscroll', async () => {

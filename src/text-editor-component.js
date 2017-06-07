@@ -332,7 +332,7 @@ class TextEditorComponent {
     this.derivedDimensionsCache = {}
     this.updateModelSoftWrapColumn()
     if (this.pendingAutoscroll) {
-      const {screenRange, options} = this.pendingAutoscroll
+      let {screenRange, options} = this.pendingAutoscroll
       this.autoscrollVertically(screenRange, options)
       this.requestHorizontalMeasurement(screenRange.start.row, screenRange.start.column)
       this.requestHorizontalMeasurement(screenRange.end.row, screenRange.end.column)
@@ -2097,7 +2097,12 @@ class TextEditorComponent {
     if (column === 0) return
 
     if (row < this.getRenderedStartRow() || row >= this.getRenderedEndRow()) {
-      this.requestExtraLineToMeasure(row, this.props.model.screenLineForScreenRow(row))
+      const screenLine = this.props.model.screenLineForScreenRow(row)
+      if (screenLine) {
+        this.requestExtraLineToMeasure(row, screenLine)
+      } else {
+        return
+      }
     }
 
     let columns = this.horizontalPositionsToMeasure.get(row)
