@@ -76,7 +76,8 @@ class Project extends Model
     paths: @getPaths()
     buffers: _.compact(@buffers.map (buffer) ->
       if buffer.isRetained()
-        buffer.serialize({markerLayers: options.isUnloading is true})
+        isUnloading = options.isUnloading is true
+        buffer.serialize({markerLayers: isUnloading, history: isUnloading})
     )
 
   ###
