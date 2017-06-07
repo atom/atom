@@ -16,8 +16,8 @@ const CURSOR_OVERLAY_VISIBLE_CLASS = 'atom-dock-cursor-overlay-visible'
 
 // Extended: A container at the edges of the editor window capable of holding items.
 // You should not create a Dock directly. Instead, access one of the three docks of the workspace
-// via {::getLeftDock}, {::getRightDock}, and {::getBottomDock} or add an item to a dock via
-// {Workspace::open}.
+// via {Workspace::getLeftDock}, {Workspace::getRightDock}, and {Workspace::getBottomDock}
+// or add an item to a dock via {Workspace::open}.
 module.exports = class Dock {
   constructor (params) {
     this.handleResizeHandleDragStart = this.handleResizeHandleDragStart.bind(this)

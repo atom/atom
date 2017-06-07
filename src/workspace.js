@@ -1548,18 +1548,22 @@ module.exports = class Workspace extends Model {
   Section: Pane Locations
   */
 
+  // Essential: Get the {WorkspaceCenter} at the center of the editor window.
   getCenter () {
     return this.paneContainers.center
   }
 
+  // Essential: Get the {Dock} to the left of the editor window.
   getLeftDock () {
     return this.paneContainers.left
   }
 
+  // Essential: Get the {Dock} to the right of the editor window.
   getRightDock () {
     return this.paneContainers.right
   }
 
+  // Essential: Get the {Dock} below the editor window.
   getBottomDock () {
     return this.paneContainers.bottom
   }
