@@ -738,7 +738,7 @@ class Pane
             nextAction(error)
           else
             @handleSaveError(error, item)
-    else
+    else if nextAction?
       nextAction(new SaveCancelledError('Save Cancelled'))
 
   # Public: Save all items.

@@ -739,20 +739,27 @@ describe('Pane', () => {
 
     describe('when the current item has no uri', () => {
       describe('when the current item has a saveAs method', () => {
-        it('opens a save dialog and saves the current item as the selected path', () => {
+        it('opens a save dialog and saves the current item as the selected path', async () => {
           pane.getActiveItem().saveAs = jasmine.createSpy('saveAs')
-          pane.saveActiveItem()
+          await pane.saveActiveItem()
           expect(showSaveDialog).toHaveBeenCalled()
           expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith('/selected/path')
         })
       })
 
       describe('when the current item has no saveAs method', () => {
-        it('does nothing', () => {
+        it('does nothing', async () => {
           expect(pane.getActiveItem().saveAs).toBeUndefined()
-          pane.saveActiveItem()
+          await pane.saveActiveItem()
           expect(showSaveDialog).not.toHaveBeenCalled()
         })
+      })
+
+      it('does nothing if the user cancels choosing a path', async () => {
+        pane.getActiveItem().saveAs = jasmine.createSpy('saveAs')
+        showSaveDialog.andReturn(undefined)
+        await pane.saveActiveItem()
+        expect(pane.getActiveItem().saveAs).not.toHaveBeenCalled()
       })
     })
 
