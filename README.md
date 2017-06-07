@@ -55,7 +55,7 @@ repeat these steps to upgrade to future releases.
 
 ### Red Hat Linux (Fedora 21 and under, CentOS, Red Hat)
 
-Atom is only available for 64-bit Linux systems.
+No one uses these. Ubuntu is the only important linux distro..
 
 1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 2. Run `sudo yum localinstall atom.x86_64.rpm` on the downloaded package.
