@@ -1568,7 +1568,6 @@ module.exports = class Workspace extends Model {
     return this.paneContainers.bottom
   }
 
-  // Essential: Get an {Array} of the current {WorkspaceCenter} and {Dock}s.
   getPaneContainers () {
     return [
       this.paneContainers.center,
