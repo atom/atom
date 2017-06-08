@@ -427,6 +427,12 @@ const configSchema = {
         minimum: 0,
         description: 'When soft wrap is enabled, defines length of additional indentation applied to wrapped lines, in number of characters.'
       },
+      verticalScrollMargin: {
+        type: 'integer',
+        default: 2,
+        minimum: 0,
+        description: 'Margin to leave at top and bottom of window when moving the cursor vertically.'
+      },
       scrollSensitivity: {
         type: 'integer',
         default: 40,

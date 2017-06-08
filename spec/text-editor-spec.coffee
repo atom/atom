@@ -54,6 +54,7 @@ describe "TextEditor", ->
         invisibles: {space: 'S'}
         showInvisibles: true
         editorWidthInChars: 120
+        verticalScrollMargin: 10
       })
 
       # Force buffer and display layer to be deserialized as well, rather than
@@ -73,6 +74,7 @@ describe "TextEditor", ->
       expect(editor2.getSoftWrapHangingIndentLength()).toBe(editor.getSoftWrapHangingIndentLength())
       expect(editor2.getInvisibles()).toEqual(editor.getInvisibles())
       expect(editor2.getEditorWidthInChars()).toBe(editor.getEditorWidthInChars())
+      expect(editor2.getVerticalScrollMargin()).toBe(editor.getVerticalScrollMargin())
       expect(editor2.displayLayer.tabLength).toBe(editor2.getTabLength())
 
   describe "when the editor is constructed with the largeFileMode option set to true", ->
@@ -145,7 +147,7 @@ describe "TextEditor", ->
       returnedPromise = editor.update({
         tabLength: 6, softTabs: false, softWrapped: true, editorWidthInChars: 40,
         showInvisibles: false, mini: false, lineNumberGutterVisible: false, scrollPastEnd: true,
-        autoHeight: false
+        autoHeight: false, verticalScrollMargin: 12
       })
 
       expect(returnedPromise).toBe(element.component.getNextUpdatePromise())
@@ -159,6 +161,7 @@ describe "TextEditor", ->
       expect(editor.isLineNumberGutterVisible()).toBe(false)
       expect(editor.getScrollPastEnd()).toBe(true)
       expect(editor.getAutoHeight()).toBe(false)
+      expect(editor.getVerticalScrollMargin()).toBe(12)
 
   describe "title", ->
     describe ".getTitle()", ->
@@ -5924,3 +5927,58 @@ describe "TextEditor", ->
   describe "::getElement", ->
     it "returns an element", ->
       expect(editor.getElement() instanceof HTMLElement).toBe(true)
+
+  describe "verticalScrollMargin", ->
+    it "scrolls the window down before reaching the bottom with a given margin", ->
+      # give plenty of text to allow for scrolling
+      editor.setText('a\n'.repeat(50))
+
+      # make sure editor element has valid dimensions
+      element = editor.getElement()
+      element.style.width  = '200px'
+      element.style.height = '120px'
+      jasmine.attachToDOM(element)
+
+      component = element.getComponent()
+      # for a height of 120px and a line height of 17px, this will be 7 rows
+      rowCount = component.getLastVisibleRow()
+
+      for scrollMargin in [0..4]
+        editor.update({verticalScrollMargin: scrollMargin})
+
+        # margin is clamped so that it is no larger than half the screen
+        maxScrollMargin = Math.floor(((component.getScrollContainerClientHeight() / editor.getLineHeightInPixels()) - 1) / 2)
+        clampedScrollMargin = Math.min(scrollMargin, maxScrollMargin)
+
+        # move from row 0 to 15, making sure margin is respected
+        for row in [0..15]
+          editor.scrollToScreenPosition([row, 0])
+          scrollBottomRow = component.getScrollTopRow() + rowCount
+          expect(scrollBottomRow).toBe Math.max(row + clampedScrollMargin, rowCount)
+
+    it "scrolls the window up before reaching the top with a given margin", ->
+      # give plenty of text to allow for scrolling
+      editor.setText('a\n'.repeat(50))
+
+      # make sure editor element has valid dimensions
+      element = editor.getElement()
+      element.style.width  = '200px'
+      element.style.height = '120px'
+      jasmine.attachToDOM(element)
+
+      component = element.getComponent()
+      # for a height of 120px and a line height of 17px, this will be 7 rows
+      rowCount = component.getLastVisibleRow()
+
+      for scrollMargin in [0..4]
+        editor.update({verticalScrollMargin: scrollMargin})
+
+        # margin is clamped so that it is no larger than half the screen
+        maxScrollMargin = Math.floor(((component.getScrollContainerClientHeight() / editor.getLineHeightInPixels()) - 1) / 2)
+        clampedScrollMargin = Math.min(scrollMargin, maxScrollMargin)
+        initialTop = 25 - rowCount + clampedScrollMargin
+
+        # move from row 25 to 0, making sure margin is respected
+        for row in [25..0]
+          editor.scrollToScreenPosition([row, 0])
+          expect(component.getScrollTopRow()).toBe Math.max(0, Math.min(row - clampedScrollMargin, initialTop))
