@@ -159,7 +159,7 @@ class TextEditor extends Model
       @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
       @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide,
       @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength,
-      @showCursorOnSelection
+      @showCursorOnSelection, @verticalScrollMargin
     } = params
 
     @assert ?= (condition) -> condition
@@ -184,6 +184,7 @@ class TextEditor extends Model
     @softWrapAtPreferredLineLength ?= false
     @preferredLineLength ?= 80
     @showLineNumbers ?= true
+    @verticalScrollMargin ?= 2
 
     @buffer ?= new TextBuffer({shouldDestroyOnFileDelete: ->
       atom.config.get('core.closeDeletedFileTabs')})
@@ -396,6 +397,10 @@ class TextEditor extends Model
           if value isnt @showCursorOnSelection
             @showCursorOnSelection = value
             @component?.scheduleUpdate()
+
+        when 'verticalScrollMargin'
+          if value isnt @verticalScrollMargin
+            @verticalScrollMargin = value
 
         else
           if param isnt 'ref' and param isnt 'key'
@@ -788,7 +793,8 @@ class TextEditor extends Model
       initialScrollTopRow: @getScrollTopRow(),
       initialScrollLeftColumn: @getScrollLeftColumn(),
       @assert, displayLayer, grammar: @getGrammar(),
-      @autoWidth, @autoHeight, @showCursorOnSelection
+      @autoWidth, @autoHeight, @showCursorOnSelection,
+      @verticalScrollMargin
     })
 
   # Controls visibility based on the given {Boolean}.
@@ -3651,8 +3657,12 @@ class TextEditor extends Model
     @getElement().pixelPositionForScreenPosition(screenPosition)
 
   getVerticalScrollMargin: ->
-    maxScrollMargin = Math.floor(((@height / @getLineHeightInPixels()) - 1) / 2)
-    Math.min(@verticalScrollMargin, maxScrollMargin)
+    # these can be uninitialized (e.g. in spec tests)
+    if !@height or !@getLineHeightInPixels()
+      @verticalScrollMargin
+    else
+      maxScrollMargin = Math.floor(((@height / @getLineHeightInPixels()) - 1) / 2)
+      Math.min(@verticalScrollMargin, maxScrollMargin)
 
   setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
 

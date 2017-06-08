@@ -10,6 +10,7 @@ const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['editor.atomicSoftTabs', 'atomicSoftTabs'],
   ['editor.showInvisibles', 'showInvisibles'],
   ['editor.tabLength', 'tabLength'],
+  ['editor.verticalScrollMargin', 'verticalScrollMargin'],
   ['editor.invisibles', 'invisibles'],
   ['editor.showCursorOnSelection', 'showCursorOnSelection'],
   ['editor.showIndentGuide', 'showIndentGuide'],
