@@ -7,6 +7,9 @@ PaneElement = require './pane-element'
 
 nextInstanceId = 1
 
+class SaveCancelledError extends Error
+  constructor: -> super
+
 # Extended: A container for presenting content in the center of the workspace.
 # Panes can contain multiple items, one of which is *active* at a given time.
 # The view corresponding to the active item is displayed in the interface. In
@@ -410,7 +413,6 @@ class Pane
     @addItemToStack(@activeItem)
     @emitter.emit 'done-choosing-mru-item'
 
-
   # Public: Makes the next item active.
   activateNextItem: ->
     index = @getActiveItemIndex()
@@ -614,39 +616,47 @@ class Pane
   # * `force` (optional) {Boolean} Destroy the item without prompting to save
   #    it, even if the item's `isPermanentDockItem` method returns true.
   #
-  # Returns a {Boolean} indicating whether or not the item was destroyed.
+  # Returns a {Promise} that resolves with a {Boolean} indicating whether or not
+  # the item was destroyed.
   destroyItem: (item, force) ->
     index = @items.indexOf(item)
     if index isnt -1
       return false if not force and @getContainer()?.getLocation() isnt 'center' and item.isPermanentDockItem?()
       @emitter.emit 'will-destroy-item', {item, index}
       @container?.willDestroyPaneItem({item, index, pane: this})
-      if force or @promptToSaveItem(item)
+      if force or not item?.shouldPromptToSave?()
         @removeItem(item, false)
         item.destroy?()
-        true
       else
-        false
+        @promptToSaveItem(item).then (result) =>
+          if result
+            @removeItem(item, false)
+            item.destroy?()
+          result
 
   # Public: Destroy all items.
   destroyItems: ->
-    @destroyItem(item) for item in @getItems()
-    return
+    Promise.all(
+      @getItems().map(@destroyItem.bind(this))
+    )
 
   # Public: Destroy all items except for the active item.
   destroyInactiveItems: ->
-    @destroyItem(item) for item in @getItems() when item isnt @activeItem
-    return
+    Promise.all(
+      @getItems()
+        .filter((item) => item isnt @activeItem)
+        .map(@destroyItem.bind(this))
+    )
 
   promptToSaveItem: (item, options={}) ->
-    return true unless item.shouldPromptToSave?(options)
+    return Promise.resolve(true) unless item.shouldPromptToSave?(options)
 
     if typeof item.getURI is 'function'
       uri = item.getURI()
     else if typeof item.getUri is 'function'
       uri = item.getUri()
     else
-      return true
+      return Promise.resolve(true)
 
     saveDialog = (saveButtonText, saveFn, message) =>
       chosen = @applicationDelegate.confirm
@@ -654,15 +664,23 @@ class Pane
         detailedMessage: "Your changes will be lost if you close this item without saving."
         buttons: [saveButtonText, "Cancel", "Don't Save"]
       switch chosen
-        when 0 then saveFn(item, saveError)
-        when 1 then false
-        when 2 then true
+        when 0
+          new Promise (resolve) ->
+            saveFn item, (error) ->
+              if error instanceof SaveCancelledError
+                resolve(false)
+              else
+                saveError(error).then(resolve)
+        when 1
+          Promise.resolve(false)
+        when 2
+          Promise.resolve(true)
 
     saveError = (error) =>
       if error
         saveDialog("Save as", @saveItemAs, "'#{item.getTitle?() ? uri}' could not be saved.\nError: #{@getMessageForErrorCode(error.code)}")
       else
-        true
+        Promise.resolve(true)
 
     saveDialog("Save", @saveItem, "'#{item.getTitle?() ? uri}' has changes, do you want to save them?")
 
@@ -675,6 +693,8 @@ class Pane
   #
   # * `nextAction` (optional) {Function} which will be called after the item is
   #   successfully saved.
+  #
+  # Returns a {Promise} that resolves when the save is complete
   saveActiveItemAs: (nextAction) ->
     @saveItemAs(@getActiveItem(), nextAction)
 
@@ -685,6 +705,8 @@ class Pane
   #   after the item is successfully saved, or with the error if it failed.
   #   The return value will be that of `nextAction` or `undefined` if it was not
   #   provided
+  #
+  # Returns a {Promise} that resolves when the save is complete
   saveItem: (item, nextAction) =>
     if typeof item?.getURI is 'function'
       itemURI = item.getURI()
@@ -692,14 +714,16 @@ class Pane
       itemURI = item.getUri()
 
     if itemURI?
-      try
-        item.save?()
+      if item.save?
+        promisify -> item.save()
+          .then -> nextAction?()
+          .catch (error) =>
+            if nextAction
+              nextAction(error)
+            else
+              @handleSaveError(error, item)
+      else
         nextAction?()
-      catch error
-        if nextAction
-          nextAction(error)
-        else
-          @handleSaveError(error, item)
     else
       @saveItemAs(item, nextAction)
 
@@ -718,14 +742,15 @@ class Pane
     saveOptions.defaultPath ?= item.getPath()
     newItemPath = @applicationDelegate.showSaveDialog(saveOptions)
     if newItemPath
-      try
-        item.saveAs(newItemPath)
-        nextAction?()
-      catch error
-        if nextAction
-          nextAction(error)
-        else
-          @handleSaveError(error, item)
+      promisify -> item.saveAs(newItemPath)
+        .then -> nextAction?()
+        .catch (error) =>
+          if nextAction?
+            nextAction(error)
+          else
+            @handleSaveError(error, item)
+    else if nextAction?
+      nextAction(new SaveCancelledError('Save Cancelled'))
 
   # Public: Save all items.
   saveItems: ->
@@ -793,7 +818,6 @@ class Pane
       @emitter.dispose()
       item.destroy?() for item in @items.slice()
       @container?.didDestroyPane(pane: this)
-
 
   isAlive: -> @alive
 
@@ -921,13 +945,13 @@ class Pane
     bottommostSibling = @findBottommostSibling()
     if bottommostSibling is this then @splitDown() else bottommostSibling
 
+  # Private: Close the pane unless the user cancels the action via a dialog.
+  #
+  # Returns a {Promise} that resolves once the pane is either closed, or the
+  # closing has been cancelled.
   close: ->
-    @destroy() if @confirmClose()
-
-  confirmClose: ->
-    for item in @getItems()
-      return false unless @promptToSaveItem(item)
-    true
+    Promise.all(@getItems().map(@promptToSaveItem.bind(this))).then (results) =>
+      @destroy() unless results.includes(false)
 
   handleSaveError: (error, item) ->
     itemPath = error.path ? item?.getPath?()
@@ -960,3 +984,9 @@ class Pane
       when 'EROFS' then 'Read-only file system'
       when 'ESPIPE' then 'Invalid seek'
       when 'ETIMEDOUT' then 'Connection timed out'
+
+promisify = (callback) ->
+  try
+    Promise.resolve(callback())
+  catch error
+    Promise.reject(error)

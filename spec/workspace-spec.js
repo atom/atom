@@ -1,7 +1,3 @@
-/** @babel */
-
-/* global advanceClock, HTMLElement, waits */
-
 const path = require('path')
 const temp = require('temp').track()
 const TextEditor = require('../src/text-editor')
@@ -31,32 +27,35 @@ describe('Workspace', () => {
 
   afterEach(() => temp.cleanupSync())
 
-  const simulateReload = () => {
-    const workspaceState = workspace.serialize()
-    const projectState = atom.project.serialize({isUnloading: true})
-    workspace.destroy()
-    atom.project.destroy()
-    atom.project = new Project({
-      notificationManager: atom.notifications,
-      packageManager: atom.packages,
-      confirm: atom.confirm.bind(atom),
-      applicationDelegate: atom.applicationDelegate
+  function simulateReload() {
+    waitsForPromise(() => {
+      const workspaceState = workspace.serialize()
+      const projectState = atom.project.serialize({isUnloading: true})
+      workspace.destroy()
+      atom.project.destroy()
+      atom.project = new Project({
+        notificationManager: atom.notifications,
+        packageManager: atom.packages,
+        confirm: atom.confirm.bind(atom),
+        applicationDelegate: atom.applicationDelegate
+      })
+      return atom.project.deserialize(projectState).then(() => {
+        workspace = atom.workspace = new Workspace({
+          config: atom.config,
+          project: atom.project,
+          packageManager: atom.packages,
+          grammarRegistry: atom.grammars,
+          styleManager: atom.styles,
+          deserializerManager: atom.deserializers,
+          notificationManager: atom.notifications,
+          applicationDelegate: atom.applicationDelegate,
+          viewRegistry: atom.views,
+          assert: atom.assert.bind(atom),
+          textEditorRegistry: atom.textEditors
+        })
+        workspace.deserialize(workspaceState, atom.deserializers)
+      })
     })
-    atom.project.deserialize(projectState)
-    workspace = atom.workspace = new Workspace({
-      config: atom.config,
-      project: atom.project,
-      packageManager: atom.packages,
-      grammarRegistry: atom.grammars,
-      styleManager: atom.styles,
-      deserializerManager: atom.deserializers,
-      notificationManager: atom.notifications,
-      applicationDelegate: atom.applicationDelegate,
-      viewRegistry: atom.views,
-      assert: atom.assert.bind(atom),
-      textEditorRegistry: atom.textEditors
-    })
-    return workspace.deserialize(workspaceState, atom.deserializers)
   }
 
   describe('serialization', () => {
@@ -89,9 +88,11 @@ describe('Workspace', () => {
         runs(() => {
           pane4.getActiveItem().setCursorScreenPosition([0, 2])
           pane2.activate()
+        })
 
-          simulateReload()
+        simulateReload()
 
+        runs(() => {
           expect(atom.workspace.getTextEditors().length).toBe(5)
           const [editor1, editor2, untitledEditor, editor3, editor4] = atom.workspace.getTextEditors()
           const firstDirectory = atom.project.getDirectories()[0]
@@ -117,7 +118,10 @@ describe('Workspace', () => {
         atom.workspace.getActivePane().destroy()
         expect(atom.workspace.getTextEditors().length).toBe(0)
         simulateReload()
-        expect(atom.workspace.getTextEditors().length).toBe(0)
+
+        runs(() => {
+          expect(atom.workspace.getTextEditors().length).toBe(0)
+        })
       })
     })
   })
@@ -1502,9 +1506,11 @@ describe('Workspace', () => {
 
       simulateReload()
 
-      workspace.onDidChangeActiveTextEditor(editor => observed.push(editor))
-      workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      expect(observed).toEqual([undefined])
+      runs(() => {
+        workspace.onDidChangeActiveTextEditor(editor => observed.push(editor))
+        workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+        expect(observed).toEqual([undefined])
+      })
     })
   })
 
@@ -1707,13 +1713,16 @@ i = /test/; #FIXME\
           )
         })
 
-        atom2.project.deserialize(atom.project.serialize())
-        atom2.workspace.deserialize(atom.workspace.serialize(), atom2.deserializers)
-        const item = atom2.workspace.getActivePaneItem()
-        const pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
-        expect(document.title).toMatch(new RegExp(`^${item.getLongTitle()} \\u2014 ${pathEscaped}`))
+        waitsForPromise(() => atom2.project.deserialize(atom.project.serialize()))
 
-        atom2.destroy()
+        runs(() => {
+          atom2.workspace.deserialize(atom.workspace.serialize(), atom2.deserializers)
+          const item = atom2.workspace.getActivePaneItem()
+          const pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
+          expect(document.title).toMatch(new RegExp(`^${item.getLongTitle()} \\u2014 ${pathEscaped}`))
+
+          atom2.destroy()
+        })
       })
     })
   })
@@ -2337,23 +2346,12 @@ i = /test/; #FIXME\
   }) // Cancels other ongoing searches
 
   describe('::replace(regex, replacementText, paths, iterator)', () => {
-    let filePath
-    let commentFilePath
-    let sampleContent
-    let sampleCommentContent
+    let fixturesDir, projectDir
 
     beforeEach(() => {
-      atom.project.setPaths([atom.project.getDirectories()[0].resolve('../')])
-
-      filePath = atom.project.getDirectories()[0].resolve('sample.js')
-      commentFilePath = atom.project.getDirectories()[0].resolve('sample-with-comments.js')
-      sampleContent = fs.readFileSync(filePath).toString()
-      sampleCommentContent = fs.readFileSync(commentFilePath).toString()
-    })
-
-    afterEach(() => {
-      fs.writeFileSync(filePath, sampleContent)
-      fs.writeFileSync(commentFilePath, sampleCommentContent)
+      fixturesDir = path.dirname(atom.project.getPaths()[0])
+      projectDir = temp.mkdirSync('atom')
+      atom.project.setPaths([projectDir])
     })
 
     describe("when a file doesn't exist", () => {
@@ -2375,6 +2373,9 @@ i = /test/; #FIXME\
 
     describe('when called with unopened files', () => {
       it('replaces properly', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
+
         const results = []
         waitsForPromise(() =>
           atom.workspace.replace(/items/gi, 'items', [filePath], result => results.push(result))
@@ -2390,6 +2391,9 @@ i = /test/; #FIXME\
 
     describe('when a buffer is already open', () => {
       it('replaces properly and saves when not modified', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), path.join(projectDir, 'sample.js'))
+
         let editor = null
         const results = []
 
@@ -2411,6 +2415,10 @@ i = /test/; #FIXME\
       })
 
       it('does not replace when the path is not specified', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        const commentFilePath = path.join(projectDir, 'sample-with-comments.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
+        fs.copyFileSync(path.join(fixturesDir, 'sample-with-comments.js'), path.join(projectDir, 'sample-with-comments.js'))
         const results = []
 
         waitsForPromise(() => atom.workspace.open('sample-with-comments.js'))
@@ -2426,6 +2434,9 @@ i = /test/; #FIXME\
       })
 
       it('does NOT save when modified', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
+
         let editor = null
         const results = []
 
@@ -2452,38 +2463,47 @@ i = /test/; #FIXME\
   })
 
   describe('::saveActivePaneItem()', () => {
-    let editor = null
-    beforeEach(() =>
-      waitsForPromise(() => atom.workspace.open('sample.js').then(o => { editor = o }))
-    )
+    let editor, notificationSpy
+
+    beforeEach(() => {
+      waitsForPromise(() => atom.workspace.open('sample.js').then(o => {
+        editor = o
+      }))
+
+      notificationSpy = jasmine.createSpy('did-add-notification')
+      atom.notifications.onDidAddNotification(notificationSpy)
+    })
 
     describe('when there is an error', () => {
       it('emits a warning notification when the file cannot be saved', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           throw new Error("'/some/file' is a directory")
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-        expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the directory cannot be written to', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           throw new Error("ENOTDIR, not a directory '/Some/dir/and-a-file.js'")
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-        expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the user does not have permission', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           const error = new Error("EACCES, permission denied '/Some/dir/and-a-file.js'")
           error.code = 'EACCES'
@@ -2491,10 +2511,13 @@ i = /test/; #FIXME\
           throw error
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-        expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the operation is not permitted', () => {
@@ -2504,10 +2527,17 @@ i = /test/; #FIXME\
           error.path = '/Some/dir/and-a-file.js'
           throw error
         })
+
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the file is already open by another app', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           const error = new Error("EBUSY, resource busy or locked '/Some/dir/and-a-file.js'")
           error.code = 'EBUSY'
@@ -2515,17 +2545,16 @@ i = /test/; #FIXME\
           throw error
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-
-        const notificaiton = addedSpy.mostRecentCall.args[0]
-        expect(notificaiton.getType()).toBe('warning')
-        expect(notificaiton.getMessage()).toContain('Unable to save')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the file system is read-only', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           const error = new Error("EROFS, read-only file system '/Some/dir/and-a-file.js'")
           error.code = 'EROFS'
@@ -2533,13 +2562,13 @@ i = /test/; #FIXME\
           throw error
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-
-        const notification = addedSpy.mostRecentCall.args[0]
-        expect(notification.getType()).toBe('warning')
-        expect(notification.getMessage()).toContain('Unable to save')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the file cannot be saved', () => {
@@ -2547,8 +2576,9 @@ i = /test/; #FIXME\
           throw new Error('no one knows')
         })
 
-        const save = () => atom.workspace.saveActivePaneItem()
-        expect(save).toThrow()
+        waitsForPromise({shouldReject: true}, () =>
+          atom.workspace.saveActivePaneItem()
+        )
       })
     })
   })

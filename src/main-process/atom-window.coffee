@@ -147,7 +147,8 @@ class AtomWindow
         event.preventDefault()
         @unloading = true
         @atomApplication.saveState(false)
-        @saveState().then(=> @close())
+        @prepareToUnload().then (result) =>
+          @close() if result
 
     @browserWindow.on 'closed', =>
       @fileRecoveryService.didCloseWindow(this)
@@ -191,21 +192,19 @@ class AtomWindow
       @browserWindow.on 'blur', =>
         @browserWindow.focusOnWebView()
 
-  didCancelWindowUnload: ->
-    @unloading = false
-
-  saveState: ->
+  prepareToUnload: ->
     if @isSpecWindow()
-      return Promise.resolve()
-
-    @lastSaveStatePromise = new Promise (resolve) =>
-      callback = (event) =>
+      return Promise.resolve(true)
+    @lastPrepareToUnloadPromise = new Promise (resolve) =>
+      callback = (event, result) =>
         if BrowserWindow.fromWebContents(event.sender) is @browserWindow
-          ipcMain.removeListener('did-save-window-state', callback)
-          resolve()
-      ipcMain.on('did-save-window-state', callback)
-      @browserWindow.webContents.send('save-window-state')
-    @lastSaveStatePromise
+          ipcMain.removeListener('did-prepare-to-unload', callback)
+          unless result
+            @unloading = false
+            @atomApplication.quitting = false
+          resolve(result)
+      ipcMain.on('did-prepare-to-unload', callback)
+      @browserWindow.webContents.send('prepare-to-unload')
 
   openPath: (pathToOpen, initialLine, initialColumn) ->
     @openLocations([{pathToOpen, initialLine, initialColumn}])
@@ -287,7 +286,8 @@ class AtomWindow
 
   reload: ->
     @loadedPromise = new Promise((@resolveLoadedPromise) =>)
-    @saveState().then => @browserWindow.reload()
+    @prepareToUnload().then (result) =>
+      @browserWindow.reload() if result
     @loadedPromise
 
   showSaveDialog: (params) ->

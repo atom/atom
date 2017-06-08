@@ -10,7 +10,7 @@ matrix:
   include:
     - os: linux
       dist: trusty
-      env: NODE_VERSION=6.9.4 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
+      env: NODE_VERSION=6.9.4 DISPLAY=:99.0 CXX=g++-6 CC=gcc-6
 
 sudo: required
 
@@ -51,9 +51,11 @@ addons:
       - out/atom-amd64.tar.gz
     target_paths: travis-artifacts/$TRAVIS_BUILD_ID
   apt:
+    sources:
+    - ubuntu-toolchain-r-test
     packages:
-    - build-essential
-    - clang-3.3
+    - gcc-6
+    - g++-6
     - fakeroot
     - git
     - libsecret-1-dev

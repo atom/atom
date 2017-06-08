@@ -172,18 +172,13 @@ class PaneContainer {
   }
 
   confirmClose (options) {
-    let allSaved = true
-
-    for (let pane of this.getPanes()) {
-      for (let item of pane.getItems()) {
-        if (!pane.promptToSaveItem(item, options)) {
-          allSaved = false
-          break
-        }
+    const promises = []
+    for (const pane of this.getPanes()) {
+      for (const item of pane.getItems()) {
+        promises.push(pane.promptToSaveItem(item, options))
       }
     }
-
-    return allSaved
+    return Promise.all(promises).then((results) => !results.includes(false))
   }
 
   activateNextPane () {

@@ -270,7 +270,7 @@ class AtomApplication
       unless @quitting
         event.preventDefault()
         @quitting = true
-        Promise.all(@windows.map((window) -> window.saveState())).then(-> app.quit())
+        Promise.all(@windows.map((window) -> window.prepareToUnload())).then(-> app.quit())
 
     @disposable.add ipcHelpers.on app, 'will-quit', =>
       @killAllProcesses()
@@ -372,11 +372,6 @@ class AtomApplication
 
     @disposable.add ipcHelpers.respondTo 'set-temporary-window-state', (win, state) ->
       win.temporaryState = state
-
-    @disposable.add ipcHelpers.on ipcMain, 'did-cancel-window-unload', =>
-      @quitting = false
-      for window in @windows
-        window.didCancelWindowUnload()
 
     clipboard = require '../safe-clipboard'
     @disposable.add ipcHelpers.on ipcMain, 'write-text-to-selection-clipboard', (event, selectedText) ->

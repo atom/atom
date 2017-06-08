@@ -207,7 +207,7 @@ describe('AtomApplication', function () {
           sendBackToMainProcess(null)
         })
       })
-      await window1.saveState()
+      await window1.prepareToUnload()
       window1.close()
       await window1.closedPromise
 
@@ -221,7 +221,7 @@ describe('AtomApplication', function () {
         sendBackToMainProcess(textEditor.getText())
       })
       assert.equal(window2Text, 'Hello World! How are you?')
-      await window2.saveState()
+      await window2.prepareToUnload()
       window2.close()
       await window2.closedPromise
 
@@ -354,8 +354,8 @@ describe('AtomApplication', function () {
       ])
 
       await Promise.all([
-        app1Window1.saveState(),
-        app1Window2.saveState()
+        app1Window1.prepareToUnload(),
+        app1Window2.prepareToUnload()
       ])
 
       const atomApplication2 = buildAtomApplication()
@@ -471,7 +471,7 @@ describe('AtomApplication', function () {
       await focusWindow(window2)
       electron.app.quit()
       assert(!electron.app.hasQuitted())
-      await Promise.all([window1.lastSaveStatePromise, window2.lastSaveStatePromise])
+      await Promise.all([window1.lastPrepareToUnloadPromise, window2.lastPrepareToUnloadPromise])
       assert(electron.app.hasQuitted())
     })
   })
