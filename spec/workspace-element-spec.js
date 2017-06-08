@@ -499,6 +499,21 @@ describe('WorkspaceElement', () => {
           expect(workspace.paneForItem(item)).toBe(startingPane)
         })
       })
+
+      describe("when the item doesn't implement a `copy` function", () => {
+        it('does not copy the active item', function () {
+          const item = document.createElement('div')
+          const paneBelow = startingPane.splitDown()
+          expect(paneBelow.getItems().length).toEqual(0)
+
+          startingPane.activate()
+          startingPane.activateItem(item)
+          workspaceElement.focusPaneViewAbove()
+          workspaceElement.moveActiveItemToNearestPaneInDirection('below', {keepOriginal: true})
+          expect(workspace.paneForItem(item)).toBe(startingPane)
+          expect(paneBelow.getItems().length).toEqual(0)
+        })
+      })
     })
   })
 

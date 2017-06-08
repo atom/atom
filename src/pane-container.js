@@ -223,9 +223,9 @@ class PaneContainer {
   copyActiveItemToPane (destPane) {
     const item = this.activePane.copyActiveItem()
 
-    if (!destPane.isItemAllowed(item)) { return }
-
-    destPane.activateItem(item)
+    if (item && destPane.isItemAllowed(item)) {
+      destPane.activateItem(item)
+    }
   }
 
   destroyEmptyPanes () {
