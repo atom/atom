@@ -103,10 +103,16 @@ Node.js installed, or node isn't identified as Node.js on your machine. If it's
 the latter, this might be caused by installing Node.js via the distro package
 manager and not nvm, so entering `sudo ln -s /usr/bin/nodejs /usr/bin/node` into
 your terminal may fix the issue. On some variants (mostly Debian based distros)
-you can use `update-alternatives` too:
+you can use `update-alternatives`:
 
 ```sh
 sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 1 --slave /usr/bin/js js /usr/bin/nodejs
+```
+
+or install nodejs-legacy package which is a cleaner way to fix the issue
+
+```sh
+sudo apt-get install nodejs-legacy
 ```
 
 ### AttributeError: 'module' object has no attribute 'script_main'
