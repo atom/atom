@@ -4785,9 +4785,9 @@ describe "TextEditor", ->
       editor.foldBufferRow(1)
       editor.getLastCursor().moveToTop()
       editor.getLastCursor().moveDown()
-      expect(buffer.getLineCount()).toBe(13)
+      expect(buffer.getLineCount()).toBe(29) # cf: check
       editor.deleteLine()
-      expect(buffer.getLineCount()).toBe(4)
+      expect(buffer.getLineCount()).toBe(20) # cf: check
 
     it "deletes the entire file from the bottom up", ->
       count = buffer.getLineCount()
@@ -4940,6 +4940,28 @@ describe "TextEditor", ->
       expect(editor.indentLevelForLine("    \t \thello")).toBe(4)
       expect(editor.indentLevelForLine("     \t \thello")).toBe(4)
       expect(editor.indentLevelForLine("     \t \t hello")).toBe(4.5)
+
+  describe "when multiple scopes open/close on the same line", ->
+    beforeEach ->
+      # setting new indent regexes that exploit the new semantics
+      atom.config.set(".source.js.editor.increaseIndentPattern", "[\\{\\[\\(]")
+      atom.config.set(".source.js.editor.decreaseIndentPattern", "^\\s*[\\}\\]\\)]")
+      atom.config.set(".source.js.editor.decreaseNextIndentPattern", "[\\}\\]\\)]")
+
+    it "correctly counts the number of occurences of increaseIndentPattern", ->
+      # HERE CF
+      expect(editor.indentationForBufferRow(15)).toBe 0
+      expect(editor.indentationForBufferRow(16)).toBe 2
+
+    it "correctly counts the number of occurences of decreaseIndentPattern", ->
+      expect(editor.indentationForBufferRow(23)).toBe 2
+      expect(editor.indentationForBufferRow(24)).toBe 1
+
+    it "correctly counts the number of occurences of decreaseNextIndentPattern", ->
+      expect(editor.indentationForBufferRow(27)).toBe 0
+      expect(editor.indentationForBufferRow(28)).toBe 2
+      expect(editor.indentationForBufferRow(29)).toBe 0
+
 
   describe "when the buffer is reloaded", ->
     it "preserves the current cursor position", ->
