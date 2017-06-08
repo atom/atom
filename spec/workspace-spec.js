@@ -2657,6 +2657,69 @@ i = /test/; #FIXME\
     })
   })
 
+  describe('::getVisiblePanes', () => {
+    it('returns all panes in visible pane containers', () => {
+      const center = workspace.getCenter()
+      const leftDock = workspace.getLeftDock()
+      const rightDock = workspace.getRightDock()
+      const bottomDock = workspace.getBottomDock()
+
+      const centerPane = center.getPanes()[0]
+      const leftDockPane = leftDock.getPanes()[0]
+      const rightDockPane = rightDock.getPanes()[0]
+      const bottomDockPane = bottomDock.getPanes()[0]
+
+      leftDock.hide()
+      rightDock.hide()
+      bottomDock.hide()
+      expect(workspace.getVisiblePanes()).toContain(centerPane)
+      expect(workspace.getVisiblePanes()).not.toContain(leftDockPane)
+      expect(workspace.getVisiblePanes()).not.toContain(rightDockPane)
+      expect(workspace.getVisiblePanes()).not.toContain(bottomDockPane)
+
+      leftDock.show()
+      expect(workspace.getVisiblePanes()).toContain(centerPane)
+      expect(workspace.getVisiblePanes()).toContain(leftDockPane)
+      expect(workspace.getVisiblePanes()).not.toContain(rightDockPane)
+      expect(workspace.getVisiblePanes()).not.toContain(bottomDockPane)
+
+      rightDock.show()
+      expect(workspace.getVisiblePanes()).toContain(centerPane)
+      expect(workspace.getVisiblePanes()).toContain(leftDockPane)
+      expect(workspace.getVisiblePanes()).toContain(rightDockPane)
+      expect(workspace.getVisiblePanes()).not.toContain(bottomDockPane)
+
+      bottomDock.show()
+      expect(workspace.getVisiblePanes()).toContain(centerPane)
+      expect(workspace.getVisiblePanes()).toContain(leftDockPane)
+      expect(workspace.getVisiblePanes()).toContain(rightDockPane)
+      expect(workspace.getVisiblePanes()).toContain(bottomDockPane)
+    })
+  })
+
+  describe('::getVisiblePaneContainers', () => {
+    it('returns all visible pane containers', () => {
+      const center = workspace.getCenter()
+      const leftDock = workspace.getLeftDock()
+      const rightDock = workspace.getRightDock()
+      const bottomDock = workspace.getBottomDock()
+
+      leftDock.hide()
+      rightDock.hide()
+      bottomDock.hide()
+      expect(workspace.getVisiblePaneContainers()).toEqual([center])
+
+      leftDock.show()
+      expect(workspace.getVisiblePaneContainers().sort()).toEqual([center, leftDock])
+
+      rightDock.show()
+      expect(workspace.getVisiblePaneContainers().sort()).toEqual([center, leftDock, rightDock])
+
+      bottomDock.show()
+      expect(workspace.getVisiblePaneContainers().sort()).toEqual([center, leftDock, rightDock, bottomDock])
+    })
+  })
+
   describe('when the core.allowPendingPaneItems option is falsey', () => {
     it('does not open item with `pending: true` option as pending', () => {
       let pane = null

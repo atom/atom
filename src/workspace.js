@@ -1390,6 +1390,10 @@ module.exports = class Workspace extends Model {
     return _.flatten(this.getPaneContainers().map(container => container.getPanes()))
   }
 
+  getVisiblePanes () {
+    return _.flatten(this.getVisiblePaneContainers().map(container => container.getPanes()))
+  }
+
   // Extended: Get the active {Pane}.
   //
   // Returns a {Pane}.
@@ -1575,6 +1579,12 @@ module.exports = class Workspace extends Model {
       this.paneContainers.right,
       this.paneContainers.bottom
     ]
+  }
+
+  getVisiblePaneContainers () {
+    const center = this.getCenter()
+    return atom.workspace.getPaneContainers()
+      .filter(container => container === center || container.isVisible())
   }
 
   /*

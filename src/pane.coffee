@@ -91,6 +91,17 @@ class Pane
       @container = container
       container.didAddPane({pane: this})
 
+  # Private: Determine whether the given item is allowed to exist in this pane.
+  #
+  # * `item` the Item
+  #
+  # Returns a {Boolean}.
+  isItemAllowed: (item) ->
+    if (typeof item.getAllowedLocations isnt 'function')
+      true
+    else
+      item.getAllowedLocations().includes(@getContainer().getLocation())
+
   setFlexScale: (@flexScale) ->
     @emitter.emit 'did-change-flex-scale', @flexScale
     @flexScale
