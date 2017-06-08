@@ -486,7 +486,7 @@ describe('WorkspaceElement', () => {
         it('does not move or copy the active item', function () {
           const item = {
             element: document.createElement('div'),
-            getAllowedLocations: () => ['left', 'right'],
+            getAllowedLocations: () => ['left', 'right']
           }
 
           workspace.getBottomDock().show()
