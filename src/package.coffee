@@ -72,7 +72,7 @@ class Package
   measure: (key, fn) ->
     startTime = Date.now()
     value = fn()
-    @[key] = Date.now() - startTime
+    @metadata[key] = Date.now() - startTime
     value
 
   getType: -> 'atom'
