@@ -1437,7 +1437,10 @@ class TextEditor extends Model
   #
   # If the current grammar doesn't support comments, does nothing.
   toggleLineCommentsInSelection: ->
-    @mutateSelectedText (selection) -> selection.toggleLineComments()
+    @mutateSelectedText (selection) ->
+      selection.toggleLineComments()
+    @transact =>
+      @moveDown(1)
 
   # Convert multiple lines to a single line.
   #
