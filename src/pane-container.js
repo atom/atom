@@ -5,6 +5,7 @@ const ItemRegistry = require('./item-registry')
 const PaneContainerElement = require('./pane-container-element')
 
 const SERIALIZATION_VERSION = 1
+const STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY = 100
 
 module.exports =
 class PaneContainer {
@@ -15,6 +16,7 @@ class PaneContainer {
     this.subscriptions = new CompositeDisposable()
     this.itemRegistry = new ItemRegistry()
     this.alive = true
+    this.stoppedChangingActivePaneItemTimeout = null
 
     this.setRoot(new Pane({container: this, config: this.config, applicationDelegate, notificationManager, deserializerManager, viewRegistry: this.viewRegistry}))
     this.didActivatePane(this.getRoot())
@@ -29,6 +31,7 @@ class PaneContainer {
   destroy () {
     this.alive = false
     for (let pane of this.getRoot().getPanes()) { pane.destroy() }
+    this.cancelStoppedChangingActivePaneItemTimeout()
     this.subscriptions.dispose()
     this.emitter.dispose()
   }
@@ -275,6 +278,21 @@ class PaneContainer {
   didChangeActiveItemOnPane (pane, activeItem) {
     if (pane === this.getActivePane()) {
       this.emitter.emit('did-change-active-pane-item', activeItem)
+
+      this.cancelStoppedChangingActivePaneItemTimeout()
+      // `setTimeout()` isn't available during the snapshotting phase, but that's okay.
+      if (typeof setTimeout === 'function') {
+        this.stoppedChangingActivePaneItemTimeout = setTimeout(() => {
+          this.stoppedChangingActivePaneItemTimeout = null
+          this.emitter.emit('did-stop-changing-active-pane-item', activeItem)
+        }, STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY)
+      }
+    }
+  }
+
+  cancelStoppedChangingActivePaneItemTimeout () {
+    if (this.stoppedChangingActivePaneItemTimeout != null) {
+      clearTimeout(this.stoppedChangingActivePaneItemTimeout)
     }
   }
 }
