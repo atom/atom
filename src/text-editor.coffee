@@ -3658,11 +3658,11 @@ class TextEditor extends Model
 
   getVerticalScrollMargin: ->
     # these can be uninitialized (e.g. in spec tests)
-    if !@height or !@getLineHeightInPixels()
-      @verticalScrollMargin
-    else
+    if @height and @getLineHeightInPixels()
       maxScrollMargin = Math.floor(((@height / @getLineHeightInPixels()) - 1) / 2)
       Math.min(@verticalScrollMargin, maxScrollMargin)
+    else
+      @verticalScrollMargin
 
   setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
 
