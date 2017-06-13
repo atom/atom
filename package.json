@@ -61,7 +61,7 @@
     "scrollbar-style": "^3.2",
     "season": "^6.0.0",
     "semver": "^4.3.3",
-    "service-hub": "^0.7.3",
+    "service-hub": "^0.7.4",
     "sinon": "1.17.4",
     "@atom/source-map-support": "^0.3.4",
     "temp": "^0.8.3",
