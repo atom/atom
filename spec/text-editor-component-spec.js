@@ -2035,6 +2035,15 @@ describe('TextEditorComponent', () => {
       expect(item6.previousSibling).toBe(lineNodeForScreenRow(component, 12))
     })
 
+    it('bases the width of the block decoration measurement area on the editor scroll width', async () => {
+      const {component, element} = buildComponent({autoHeight: false, width: 150})
+      expect(component.refs.blockDecorationMeasurementArea.offsetWidth).toBe(component.getScrollWidth())
+
+      element.style.width = '800px'
+      await component.getNextUpdatePromise()
+      expect(component.refs.blockDecorationMeasurementArea.offsetWidth).toBe(component.getScrollWidth())
+    })
+
     function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, position}) {
       const marker = editor.markScreenPosition([screenRow, 0], {invalidate: 'never'})
       const item = document.createElement('div')

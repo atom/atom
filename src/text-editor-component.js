@@ -678,7 +678,8 @@ class TextEditorComponent {
       style: {
         contain: 'strict',
         position: 'absolute',
-        visibility: 'hidden'
+        visibility: 'hidden',
+        width: this.getScrollWidth() + 'px'
       }
     })
   }
