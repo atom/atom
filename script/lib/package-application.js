@@ -104,6 +104,8 @@ function buildAsarUnpackGlobExpression () {
     'ctags-linux',
     'ctags-win32.exe',
     path.join('**', 'node_modules', 'spellchecker', '**'),
+    path.join('**', 'node_modules', 'dugite', 'git', '**'),
+    path.join('**', 'node_modules', 'github', 'bin', '**'),
     path.join('**', 'resources', 'atom.png')
   ]
 
