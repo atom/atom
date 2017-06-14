@@ -26,6 +26,7 @@ module.exports = class Dock {
     this.handleMouseUp = this.handleMouseUp.bind(this)
     this.handleDrag = _.throttle(this.handleDrag.bind(this), 30)
     this.handleDragEnd = this.handleDragEnd.bind(this)
+    this.handleMaskTransitionEnd = this.handleMaskTransitionEnd.bind(this)
 
     this.location = params.location
     this.widthOrHeight = getWidthOrHeight(this.location)
@@ -182,6 +183,7 @@ module.exports = class Dock {
       this.element.appendChild(this.innerElement)
       this.innerElement.appendChild(this.maskElement)
       this.maskElement.appendChild(this.wrapperElement)
+      this.maskElement.addEventListener('transitionend', this.handleMaskTransitionEnd)
       this.wrapperElement.appendChild(this.resizeHandle.getElement())
       this.wrapperElement.appendChild(this.paneContainer.getElement())
       this.wrapperElement.appendChild(this.cursorOverlayElement)
@@ -215,6 +217,18 @@ module.exports = class Dock {
       DEFAULT_INITIAL_SIZE
     )
 
+    // Hide and show the contents when the dock visiblity changes. This allows users to use
+    // IntersectionObservers to track the visiblity of their item.
+    if (shouldBeVisible) {
+      this.wrapperElement.style.display = 'flex'
+    } else if (!state.shouldAnimate && !shouldBeVisible) {
+      // If we're hiding the dock but not animating it, we need to set the `display` immediately
+      // since we'll never get a transitionend event. We could always have a miniscule (0.00001s)
+      // transition so that we always take the same code path, but that causes the dock to stutter
+      // when resizing.
+      this.wrapperElement.style.display = 'none'
+    }
+
     // We need to change the size of the mask...
     this.maskElement.style[this.widthOrHeight] = `${shouldBeVisible ? size : 0}px`
     // ...but the content needs to maintain a constant size.
@@ -229,6 +243,14 @@ module.exports = class Dock {
         // ...or if the item can't be dropped in that dock.
         (!shouldBeVisible && state.draggingItem && isItemAllowed(state.draggingItem, this.location))
     })
+  }
+
+  // Hide the contents when the hiding animation completes. Again, this is so that users can use
+  // IntersectionObservers to track item visibility.
+  handleMaskTransitionEnd (event) {
+    if (!this.state.visible && !this.state.showDropTarget) {
+      this.wrapperElement.style.display = 'none'
+    }
   }
 
   handleDidAddPaneItem () {

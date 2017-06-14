@@ -2,7 +2,7 @@
 
 const Grim = require('grim')
 
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+import {it, fit, ffit, fffit, beforeEach, afterEach, timeoutPromise} from './async-spec-helpers'
 
 describe('Dock', () => {
   describe('when a dock is activated', () => {
@@ -46,6 +46,79 @@ describe('Dock', () => {
 
       dock.hide()
       expect(document.activeElement).toBe(modalElement)
+    })
+  })
+
+  fdescribe('IntersectionObserver events', () => {
+    let entry
+    let element
+    let dock
+    let spy
+    let item
+
+    beforeEach(() => {
+      jasmine.useRealClock()
+      element = document.createElement('div')
+      item = {
+        element,
+        getDefaultLocation () { return 'left' }
+      }
+      dock = atom.workspace.getLeftDock()
+      jasmine.attachToDOM(atom.workspace.getElement())
+      spy = jasmine.createSpy()
+      const io = new IntersectionObserver(spy)
+      io.observe(element)
+    })
+
+    it('are triggered when hiding and showing the dock', async () => {
+      await atom.workspace.open(item)
+      dock.show()
+      await timeoutPromise(50) // Wait for the animation event
+      expect(spy.callCount).toBe(1)
+      entry = spy.calls[0].args[0][0]
+      expect(entry.intersectionRect.width).not.toBe(0)
+
+      spy.reset()
+      dock.hide()
+      await timeoutPromise(50) // Wait for the animation event
+      expect(spy.callCount).toBe(1)
+      entry = spy.calls[0].args[0][0]
+      expect(entry.intersectionRect.width).toBe(0)
+      expect(entry.intersectionRect.height).toBe(0)
+
+      spy.reset()
+      dock.show()
+      await timeoutPromise(50) // Wait for the animation event
+      expect(spy.callCount).toBe(1)
+      entry = spy.calls[0].args[0][0]
+      expect(entry.intersectionRect.width).not.toBe(0)
+    })
+
+    it('are triggered when adding the item to a visible dock', async () => {
+      dock.show()
+      await atom.workspace.open(item)
+      await timeoutPromise(50) // Wait for the animation event
+      expect(spy.callCount).toBe(1)
+      entry = spy.calls[0].args[0][0]
+      expect(entry.intersectionRect.width).not.toBe(0)
+    })
+
+    it('are triggered when activating another item', async () => {
+      dock.show()
+      await atom.workspace.open(item)
+      await timeoutPromise(50) // Wait for the animation event
+      spy.reset()
+
+      // Open another item.
+      await atom.workspace.open({
+        element: document.createElement('div'),
+        getDefaultLocation () { return 'left' }
+      })
+      await timeoutPromise(50) // Wait for the animation event
+      expect(spy.callCount).toBe(1)
+      entry = spy.calls[0].args[0][0]
+      expect(entry.intersectionRect.width).toBe(0)
+      expect(entry.intersectionRect.height).toBe(0)
     })
   })
 
