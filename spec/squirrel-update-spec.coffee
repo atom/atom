@@ -79,7 +79,7 @@ describe "Windows Squirrel Update", ->
 
       jasmine.unspy(Spawner, 'spawn')
       spyOn(Spawner, 'spawn').andCallFake (command, args, callback) ->
-        if path.basename(command) is 'Update.exe' and args?[0] is '--createShortcut'
+        if path.basename(command) is 'Update.exe' and args?[0] is '--createShortcut' and args?[3].match /Desktop/i
           fs.writeFileSync(desktopShortcutPath, '')
         else
           # simply ignore other commands
