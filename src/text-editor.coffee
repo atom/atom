@@ -1787,8 +1787,13 @@ class TextEditor extends Model
   #        spanned by the `DisplayMarker`.
   #     * `line-number` Adds the given `class` to the line numbers overlapping
   #       the rows spanned by the `DisplayMarker`.
-  #     * `highlight` Creates a `.highlight` div with the nested class with up
-  #       to 3 nested regions that fill the area spanned by the `DisplayMarker`.
+  #     * `text` Injects spans into all text overlapping the marked range,
+  #       then adds the given `class` or `style` properties to these spans.
+  #       Use this to manipulate the foreground color or styling of text in
+  #       a given range.
+  #     * `highlight` Creates an absolutely-positioned `.highlight` div
+  #       containing nested divs to cover the marked region. For example, this
+  #       is used to implement selections.
   #     * `overlay` Positions the view associated with the given item at the
   #       head or tail of the given `DisplayMarker`, depending on the `position`
   #       property.
@@ -1804,9 +1809,10 @@ class TextEditor extends Model
   #       or render artificial cursors that don't actually exist in the model
   #       by passing a marker that isn't actually associated with a cursor.
   #   * `class` This CSS class will be applied to the decorated line number,
-  #     line, highlight, or overlay.
+  #     line, text spans, highlight regions, cursors, or overlay.
   #   * `style` An {Object} containing CSS style properties to apply to the
-  #     relevant DOM node. Currently this only works with a `type` of `cursor`.
+  #     relevant DOM node. Currently this only works with a `type` of `cursor`
+  #     or `text`.
   #   * `item` (optional) An {HTMLElement} or a model {Object} with a
   #     corresponding view registered. Only applicable to the `gutter`,
   #     `overlay` and `block` decoration types.
