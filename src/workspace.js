@@ -216,6 +216,7 @@ module.exports = class Workspace extends Model {
       bottom: this.createDock('bottom')
     }
     this.activePaneContainer = this.paneContainers.center
+    this.hasActiveTextEditor = false
 
     this.panelContainers = {
       top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
@@ -296,6 +297,7 @@ module.exports = class Workspace extends Model {
       bottom: this.createDock('bottom')
     }
     this.activePaneContainer = this.paneContainers.center
+    this.hasActiveTextEditor = false
 
     this.panelContainers = {
       top: new PanelContainer({viewRegistry: this.viewRegistry, location: 'top'}),
@@ -371,6 +373,8 @@ module.exports = class Workspace extends Model {
       this.paneContainers.center.deserialize(state.paneContainer, deserializerManager)
     }
 
+    this.hasActiveTextEditor = this.getActiveTextEditor() != null
+
     this.updateWindowTitle()
   }
 
@@ -421,6 +425,16 @@ module.exports = class Workspace extends Model {
     if (paneContainer === this.getActivePaneContainer()) {
       this.didChangeActivePaneItem(item)
       this.emitter.emit('did-change-active-pane-item', item)
+    }
+
+    if (paneContainer === this.getCenter()) {
+      const hadActiveTextEditor = this.hasActiveTextEditor
+      this.hasActiveTextEditor = item instanceof TextEditor
+
+      if (this.hasActiveTextEditor || hadActiveTextEditor) {
+        const itemValue = this.hasActiveTextEditor ? item : undefined
+        this.emitter.emit('did-change-active-text-editor', itemValue)
+      }
     }
   }
 
@@ -648,6 +662,18 @@ module.exports = class Workspace extends Model {
     return this.emitter.on('did-stop-changing-active-pane-item', callback)
   }
 
+  // Essential: Invoke the given callback when a text editor becomes the active
+  // text editor and when there is no longer an active text editor.
+  //
+  // * `callback` {Function} to be called when the active text editor changes.
+  //   * `editor` The active {TextEditor} or undefined if there is no longer an
+  //      active text editor.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeActiveTextEditor (callback) {
+    return this.emitter.on('did-change-active-text-editor', callback)
+  }
+
   // Essential: Invoke the given callback with the current active pane item and
   // with all future active pane items in the workspace.
   //
@@ -658,6 +684,21 @@ module.exports = class Workspace extends Model {
   observeActivePaneItem (callback) {
     callback(this.getActivePaneItem())
     return this.onDidChangeActivePaneItem(callback)
+  }
+
+  // Essential: Invoke the given callback with the current active text editor
+  // (if any), with all future active text editors, and when there is no longer
+  // an active text editor.
+  //
+  // * `callback` {Function} to be called when the active text editor changes.
+  //   * `editor` The active {TextEditor} or undefined if there is not an
+  //      active text editor.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeActiveTextEditor (callback) {
+    callback(this.getActiveTextEditor())
+
+    return this.onDidChangeActiveTextEditor(callback)
   }
 
   // Essential: Invoke the given callback whenever an item is opened. Unlike
@@ -1282,12 +1323,12 @@ module.exports = class Workspace extends Model {
     return this.getPaneItems().filter(item => item instanceof TextEditor)
   }
 
-  // Essential: Get the active item if it is an {TextEditor}.
+  // Essential: Get the workspace center's active item if it is a {TextEditor}.
   //
-  // Returns an {TextEditor} or `undefined` if the current active item is not an
-  // {TextEditor}.
+  // Returns a {TextEditor} or `undefined` if the workspace center's current
+  // active item is not a {TextEditor}.
   getActiveTextEditor () {
-    const activeItem = this.getActivePaneItem()
+    const activeItem = this.getCenter().getActivePaneItem()
     if (activeItem instanceof TextEditor) { return activeItem }
   }
 
@@ -1299,9 +1340,9 @@ module.exports = class Workspace extends Model {
   }
 
   confirmClose (options) {
-    return this.getPaneContainers()
-      .map(container => container.confirmClose(options))
-      .every(saved => saved)
+    return Promise.all(this.getPaneContainers().map(container =>
+      container.confirmClose(options)
+    )).then((results) => !results.includes(false))
   }
 
   // Save the active pane item.
@@ -1311,7 +1352,7 @@ module.exports = class Workspace extends Model {
   // {::saveActivePaneItemAs} # will be called instead. This method does nothing
   // if the active item does not implement a `.save` method.
   saveActivePaneItem () {
-    this.getCenter().getActivePane().saveActiveItem()
+    return this.getCenter().getActivePane().saveActiveItem()
   }
 
   // Prompt the user for a path and save the active pane item to it.
@@ -1347,6 +1388,10 @@ module.exports = class Workspace extends Model {
   // Returns an {Array} of {Pane}s.
   getPanes () {
     return _.flatten(this.getPaneContainers().map(container => container.getPanes()))
+  }
+
+  getVisiblePanes () {
+    return _.flatten(this.getVisiblePaneContainers().map(container => container.getPanes()))
   }
 
   // Extended: Get the active {Pane}.
@@ -1507,18 +1552,22 @@ module.exports = class Workspace extends Model {
   Section: Pane Locations
   */
 
+  // Essential: Get the {WorkspaceCenter} at the center of the editor window.
   getCenter () {
     return this.paneContainers.center
   }
 
+  // Essential: Get the {Dock} to the left of the editor window.
   getLeftDock () {
     return this.paneContainers.left
   }
 
+  // Essential: Get the {Dock} to the right of the editor window.
   getRightDock () {
     return this.paneContainers.right
   }
 
+  // Essential: Get the {Dock} below the editor window.
   getBottomDock () {
     return this.paneContainers.bottom
   }
@@ -1530,6 +1579,12 @@ module.exports = class Workspace extends Model {
       this.paneContainers.right,
       this.paneContainers.bottom
     ]
+  }
+
+  getVisiblePaneContainers () {
+    const center = this.getCenter()
+    return atom.workspace.getPaneContainers()
+      .filter(container => container === center || container.isVisible())
   }
 
   /*
@@ -1920,7 +1975,7 @@ module.exports = class Workspace extends Model {
     if (editor.getPath()) {
       const checkoutHead = () => {
         return this.project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
-          .then(repository => repository != null ? repository.checkoutHeadForEditor(editor) : undefined)
+          .then(repository => repository && repository.checkoutHeadForEditor(editor))
       }
 
       if (this.config.get('editor.confirmCheckoutHeadRevision')) {

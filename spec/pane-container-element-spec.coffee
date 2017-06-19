@@ -149,11 +149,11 @@ describe "PaneContainerElement", ->
       )
       expectPaneScale [leftPane, 0.5], [middlePane, 0.75], [rightPane, 1.75]
 
-      middlePane.close()
-      expectPaneScale [leftPane, 0.44], [rightPane, 1.55]
+      waitsForPromise -> middlePane.close()
+      runs -> expectPaneScale [leftPane, 0.44], [rightPane, 1.55]
 
-      leftPane.close()
-      expectPaneScale [rightPane, 1]
+      waitsForPromise -> leftPane.close()
+      runs -> expectPaneScale [rightPane, 1]
 
     it "splits or closes panes in orthogonal direction that the pane is being dragged", ->
       leftPane = container.getActivePane()
@@ -173,8 +173,8 @@ describe "PaneContainerElement", ->
       expectPaneScale [lowerPane, 1], [leftPane, 1], [leftPane.getParent(), 0.5]
 
       # dynamically close pane, the pane's flexscale will recorver to origin value
-      lowerPane.close()
-      expectPaneScale [leftPane, 0.5], [rightPane, 1.5]
+      waitsForPromise -> lowerPane.close()
+      runs -> expectPaneScale [leftPane, 0.5], [rightPane, 1.5]
 
     it "unsubscribes from mouse events when the pane is detached", ->
       container.getActivePane().splitRight()
@@ -237,192 +237,3 @@ describe "PaneContainerElement", ->
         atom.commands.dispatch(rightPane.getElement(), 'pane:decrease-size')
         expect(leftPane.getFlexScale()).toBe 1/1.1
         expect(rightPane.getFlexScale()).toBe 1/1.1
-
-  describe "changing focus, copying and moving items directionally between panes", ->
-    [item1, item2, item3, item4, item5, item6, item7, item8, item9,
-     pane1, pane2, pane3, pane4, pane5, pane6, pane7, pane8, pane9,
-     container, containerElement] = []
-
-    beforeEach ->
-      atom.config.set("core.destroyEmptyPanes", false)
-
-      # Set up a grid of 9 panes, in the following arrangement, where the
-      # numbers correspond to the variable names below.
-      #
-      # -------
-      # |1|2|3|
-      # -------
-      # |4|5|6|
-      # -------
-      # |7|8|9|
-      # -------
-
-      buildElement = (id) ->
-        element = document.createElement('div')
-        element.textContent = id
-        element.tabIndex = -1
-        element.copy = ->
-          element.cloneNode(true)
-        element
-
-      container = new PaneContainer(params)
-
-      [item1, item2, item3, item4, item5, item6, item7, item8, item9] =
-        [buildElement('1'), buildElement('2'), buildElement('3'),
-         buildElement('4'), buildElement('5'), buildElement('6'),
-         buildElement('7'), buildElement('8'), buildElement('9')]
-
-      pane1 = container.getActivePane()
-      pane1.activateItem(item1)
-      pane4 = pane1.splitDown(items: [item4])
-      pane7 = pane4.splitDown(items: [item7])
-
-      pane2 = pane1.splitRight(items: [item2])
-      pane3 = pane2.splitRight(items: [item3])
-
-      pane5 = pane4.splitRight(items: [item5])
-      pane6 = pane5.splitRight(items: [item6])
-
-      pane8 = pane7.splitRight(items: [item8])
-      pane9 = pane8.splitRight(items: [item9])
-
-      containerElement = container.getElement()
-      containerElement.style.height = '400px'
-      containerElement.style.width = '400px'
-      jasmine.attachToDOM(containerElement)
-
-    describe "::focusPaneViewAbove()", ->
-      describe "when there are multiple rows above the focused pane", ->
-        it "focuses up to the adjacent row", ->
-          pane8.activate()
-          containerElement.focusPaneViewAbove()
-          expect(document.activeElement).toBe pane5.getActiveItem()
-
-      describe "when there are no rows above the focused pane", ->
-        it "keeps the current pane focused", ->
-          pane2.activate()
-          containerElement.focusPaneViewAbove()
-          expect(document.activeElement).toBe pane2.getActiveItem()
-
-    describe "::focusPaneViewBelow()", ->
-      describe "when there are multiple rows below the focused pane", ->
-        it "focuses down to the adjacent row", ->
-          pane2.activate()
-          containerElement.focusPaneViewBelow()
-          expect(document.activeElement).toBe pane5.getActiveItem()
-
-      describe "when there are no rows below the focused pane", ->
-        it "keeps the current pane focused", ->
-          pane8.activate()
-          containerElement.focusPaneViewBelow()
-          expect(document.activeElement).toBe pane8.getActiveItem()
-
-    describe "::focusPaneViewOnLeft()", ->
-      describe "when there are multiple columns to the left of the focused pane", ->
-        it "focuses left to the adjacent column", ->
-          pane6.activate()
-          containerElement.focusPaneViewOnLeft()
-          expect(document.activeElement).toBe pane5.getActiveItem()
-
-      describe "when there are no columns to the left of the focused pane", ->
-        it "keeps the current pane focused", ->
-          pane4.activate()
-          containerElement.focusPaneViewOnLeft()
-          expect(document.activeElement).toBe pane4.getActiveItem()
-
-    describe "::focusPaneViewOnRight()", ->
-      describe "when there are multiple columns to the right of the focused pane", ->
-        it "focuses right to the adjacent column", ->
-          pane4.activate()
-          containerElement.focusPaneViewOnRight()
-          expect(document.activeElement).toBe pane5.getActiveItem()
-
-      describe "when there are no columns to the right of the focused pane", ->
-        it "keeps the current pane focused", ->
-          pane6.activate()
-          containerElement.focusPaneViewOnRight()
-          expect(document.activeElement).toBe pane6.getActiveItem()
-
-    describe "::moveActiveItemToPaneAbove(keepOriginal)", ->
-      describe "when there are multiple rows above the focused pane", ->
-        it "moves the active item up to the adjacent row", ->
-          pane8.activate()
-          containerElement.moveActiveItemToPaneAbove()
-          expect(container.paneForItem(item8)).toBe pane5
-          expect(pane5.getActiveItem()).toBe item8
-
-      describe "when there are no rows above the focused pane", ->
-        it "keeps the active item in the focused pane", ->
-          pane2.activate()
-          containerElement.moveActiveItemToPaneAbove()
-          expect(container.paneForItem(item2)).toBe pane2
-
-      describe "when `keepOriginal: true` is passed in the params", ->
-        it "keeps the item and adds a copy of it to the adjacent pane", ->
-          pane8.activate()
-          containerElement.moveActiveItemToPaneAbove(keepOriginal: true)
-          expect(container.paneForItem(item8)).toBe pane8
-          expect(pane5.getActiveItem().textContent).toBe '8'
-
-    describe "::moveActiveItemToPaneBelow(keepOriginal)", ->
-      describe "when there are multiple rows below the focused pane", ->
-        it "moves the active item down to the adjacent row", ->
-          pane2.activate()
-          containerElement.moveActiveItemToPaneBelow()
-          expect(container.paneForItem(item2)).toBe pane5
-          expect(pane5.getActiveItem()).toBe item2
-
-      describe "when there are no rows below the focused pane", ->
-        it "keeps the active item in the focused pane", ->
-          pane8.activate()
-          containerElement.moveActiveItemToPaneBelow()
-          expect(container.paneForItem(item8)).toBe pane8
-
-      describe "when `keepOriginal: true` is passed in the params", ->
-        it "keeps the item and adds a copy of it to the adjacent pane", ->
-          pane2.activate()
-          containerElement.moveActiveItemToPaneBelow(keepOriginal: true)
-          expect(container.paneForItem(item2)).toBe pane2
-          expect(pane5.getActiveItem().textContent).toBe '2'
-
-    describe "::moveActiveItemToPaneOnLeft(keepOriginal)", ->
-      describe "when there are multiple columns to the left of the focused pane", ->
-        it "moves the active item left to the adjacent column", ->
-          pane6.activate()
-          containerElement.moveActiveItemToPaneOnLeft()
-          expect(container.paneForItem(item6)).toBe pane5
-          expect(pane5.getActiveItem()).toBe item6
-
-      describe "when there are no columns to the left of the focused pane", ->
-        it "keeps the active item in the focused pane", ->
-          pane4.activate()
-          containerElement.moveActiveItemToPaneOnLeft()
-          expect(container.paneForItem(item4)).toBe pane4
-
-      describe "when `keepOriginal: true` is passed in the params", ->
-        it "keeps the item and adds a copy of it to the adjacent pane", ->
-          pane6.activate()
-          containerElement.moveActiveItemToPaneOnLeft(keepOriginal: true)
-          expect(container.paneForItem(item6)).toBe pane6
-          expect(pane5.getActiveItem().textContent).toBe '6'
-
-    describe "::moveActiveItemToPaneOnRight(keepOriginal)", ->
-      describe "when there are multiple columns to the right of the focused pane", ->
-        it "moves the active item right to the adjacent column", ->
-          pane4.activate()
-          containerElement.moveActiveItemToPaneOnRight()
-          expect(container.paneForItem(item4)).toBe pane5
-          expect(pane5.getActiveItem()).toBe item4
-
-      describe "when there are no columns to the right of the focused pane", ->
-        it "keeps the active item in the focused pane", ->
-          pane6.activate()
-          containerElement.moveActiveItemToPaneOnRight()
-          expect(container.paneForItem(item6)).toBe pane6
-
-      describe "when `keepOriginal: true` is passed in the params", ->
-        it "keeps the item and adds a copy of it to the adjacent pane", ->
-          pane4.activate()
-          containerElement.moveActiveItemToPaneOnRight(keepOriginal: true)
-          expect(container.paneForItem(item4)).toBe pane4
-          expect(pane5.getActiveItem().textContent).toBe '4'

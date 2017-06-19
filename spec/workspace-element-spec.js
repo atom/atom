@@ -34,6 +34,489 @@ describe('WorkspaceElement', () => {
     })
   })
 
+  describe('finding the nearest visible pane in a specific direction', () => {
+    let pane1, pane2, pane3, pane4, pane5, pane6, pane7, pane8, pane9,
+      leftDockPane, rightDockPane, bottomDockPane, workspace, workspaceElement
+
+    beforeEach(function () {
+      atom.config.set('core.destroyEmptyPanes', false)
+      expect(document.hasFocus()).toBe(true, 'Document needs to be focused to run this test')
+
+      workspace = atom.workspace
+
+      // Set up a workspace center with a grid of 9 panes, in the following
+      // arrangement, where the numbers correspond to the variable names below.
+      //
+      // -------
+      // |1|2|3|
+      // -------
+      // |4|5|6|
+      // -------
+      // |7|8|9|
+      // -------
+
+      const container = workspace.getActivePaneContainer()
+      expect(container.getLocation()).toEqual('center')
+      expect(container.getPanes().length).toEqual(1)
+
+      pane1 = container.getActivePane()
+      pane4 = pane1.splitDown()
+      pane7 = pane4.splitDown()
+
+      pane2 = pane1.splitRight()
+      pane3 = pane2.splitRight()
+
+      pane5 = pane4.splitRight()
+      pane6 = pane5.splitRight()
+
+      pane8 = pane7.splitRight()
+      pane9 = pane8.splitRight()
+
+      const leftDock = workspace.getLeftDock()
+      const rightDock = workspace.getRightDock()
+      const bottomDock = workspace.getBottomDock()
+
+      expect(leftDock.isVisible()).toBe(false)
+      expect(rightDock.isVisible()).toBe(false)
+      expect(bottomDock.isVisible()).toBe(false)
+
+      expect(leftDock.getPanes().length).toBe(1)
+      expect(rightDock.getPanes().length).toBe(1)
+      expect(bottomDock.getPanes().length).toBe(1)
+
+      leftDockPane = leftDock.getPanes()[0]
+      rightDockPane = rightDock.getPanes()[0]
+      bottomDockPane = bottomDock.getPanes()[0]
+
+      workspaceElement = atom.workspace.getElement()
+      workspaceElement.style.height = '400px'
+      workspaceElement.style.width = '400px'
+      jasmine.attachToDOM(workspaceElement)
+    })
+
+    describe('finding the nearest pane above', () => {
+      describe('when there are multiple rows above the pane', () => {
+        it('returns the pane in the adjacent row above', () => {
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('above', pane8)
+          expect(nearestPaneElement).toBe(pane5.getElement())
+        })
+      })
+
+      describe('when there are no rows above the pane', () => {
+        it('returns null', () => {
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('above', pane2)
+          expect(nearestPaneElement).toBeUndefined() // TODO Expect toBeNull()
+        })
+      })
+
+      describe('when the bottom dock contains the pane', () => {
+        it('returns the pane in the adjacent row above', () => {
+          workspace.getBottomDock().show()
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('above', bottomDockPane)
+          expect(nearestPaneElement).toBe(pane7.getElement())
+        })
+      })
+    })
+
+    describe('finding the nearest pane below', () => {
+      describe('when there are multiple rows below the pane', () => {
+        it('returns the pane in the adjacent row below', () => {
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('below', pane2)
+          expect(nearestPaneElement).toBe(pane5.getElement())
+        })
+      })
+
+      describe('when there are no rows below the pane', () => {
+        it('returns null', () => {
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('below', pane8)
+          expect(nearestPaneElement).toBeUndefined() // TODO Expect toBeNull()
+        })
+      })
+
+      describe('when the bottom dock is visible', () => {
+        describe("when the workspace center's bottommost row contains the pane", () => {
+          it("returns the pane in the bottom dock's adjacent row below", () => {
+            workspace.getBottomDock().show()
+            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('below', pane8)
+            expect(nearestPaneElement).toBe(bottomDockPane.getElement())
+          })
+        })
+      })
+    })
+
+    describe('finding the nearest pane to the left', () => {
+      describe('when there are multiple columns to the left of the pane', () => {
+        it('returns the pane in the adjacent column to the left', () => {
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', pane6)
+          expect(nearestPaneElement).toBe(pane5.getElement())
+        })
+      })
+
+      describe('when there are no columns to the left of the pane', () => {
+        it('returns null', () => {
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', pane4)
+          expect(nearestPaneElement).toBeUndefined() // TODO Expect toBeNull()
+        })
+      })
+
+      describe('when the right dock contains the pane', () => {
+        it('returns the pane in the adjacent column to the left', () => {
+          workspace.getRightDock().show()
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', rightDockPane)
+          expect(nearestPaneElement).toBe(pane3.getElement())
+        })
+      })
+
+      describe('when the left dock is visible', () => {
+        describe("when the workspace center's leftmost column contains the pane", () => {
+          it("returns the pane in the left dock's adjacent column to the left", () => {
+            workspace.getLeftDock().show()
+            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', pane4)
+            expect(nearestPaneElement).toBe(leftDockPane.getElement())
+          })
+        })
+
+        describe('when the bottom dock contains the pane', () => {
+          it("returns the pane in the left dock's adjacent column to the left", () => {
+            workspace.getLeftDock().show()
+            workspace.getBottomDock().show()
+            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', bottomDockPane)
+            expect(nearestPaneElement).toBe(leftDockPane.getElement())
+          })
+        })
+      })
+    })
+
+    describe('finding the nearest pane to the right', () => {
+      describe('when there are multiple columns to the right of the pane', () => {
+        it('returns the pane in the adjacent column to the right', () => {
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', pane4)
+          expect(nearestPaneElement).toBe(pane5.getElement())
+        })
+      })
+
+      describe('when there are no columns to the right of the pane', () => {
+        it('returns null', () => {
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', pane6)
+          expect(nearestPaneElement).toBeUndefined() // TODO Expect toBeNull()
+        })
+      })
+
+      describe('when the left dock contains the pane', () => {
+        it('returns the pane in the adjacent column to the right', () => {
+          workspace.getLeftDock().show()
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', leftDockPane)
+          expect(nearestPaneElement).toBe(pane1.getElement())
+        })
+      })
+
+      describe('when the right dock is visible', () => {
+        describe("when the workspace center's rightmost column contains the pane", () => {
+          it("returns the pane in the right dock's adjacent column to the right", () => {
+            workspace.getRightDock().show()
+            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', pane6)
+            expect(nearestPaneElement).toBe(rightDockPane.getElement())
+          })
+        })
+
+        describe('when the bottom dock contains the pane', () => {
+          it("returns the pane in the right dock's adjacent column to the right", () => {
+            workspace.getRightDock().show()
+            workspace.getBottomDock().show()
+            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', bottomDockPane)
+            expect(nearestPaneElement).toBe(rightDockPane.getElement())
+          })
+        })
+      })
+    })
+  })
+
+  describe('changing focus, copying, and moving items directionally between panes', function () {
+    let workspace, workspaceElement, startingPane
+
+    beforeEach(function () {
+      atom.config.set('core.destroyEmptyPanes', false)
+      expect(document.hasFocus()).toBe(true, 'Document needs to be focused to run this test')
+
+      workspace = atom.workspace
+      expect(workspace.getLeftDock().isVisible()).toBe(false)
+      expect(workspace.getRightDock().isVisible()).toBe(false)
+      expect(workspace.getBottomDock().isVisible()).toBe(false)
+
+      const panes = workspace.getCenter().getPanes()
+      expect(panes.length).toEqual(1)
+      startingPane = panes[0]
+
+      workspaceElement = atom.workspace.getElement()
+      workspaceElement.style.height = '400px'
+      workspaceElement.style.width = '400px'
+      jasmine.attachToDOM(workspaceElement)
+    })
+
+    describe('::focusPaneViewAbove()', function () {
+      describe('when there is a row above the focused pane', () =>
+        it('focuses up to the adjacent row', function () {
+          const paneAbove = startingPane.splitUp()
+          startingPane.activate()
+          workspaceElement.focusPaneViewAbove()
+          expect(document.activeElement).toBe(paneAbove.getElement())
+        })
+      )
+
+      describe('when there are no rows above the focused pane', () =>
+        it('keeps the current pane focused', function () {
+          startingPane.activate()
+          workspaceElement.focusPaneViewAbove()
+          expect(document.activeElement).toBe(startingPane.getElement())
+        })
+      )
+    })
+
+    describe('::focusPaneViewBelow()', function () {
+      describe('when there is a row below the focused pane', () =>
+        it('focuses down to the adjacent row', function () {
+          const paneBelow = startingPane.splitDown()
+          startingPane.activate()
+          workspaceElement.focusPaneViewBelow()
+          expect(document.activeElement).toBe(paneBelow.getElement())
+        })
+      )
+
+      describe('when there are no rows below the focused pane', () =>
+        it('keeps the current pane focused', function () {
+          startingPane.activate()
+          workspaceElement.focusPaneViewBelow()
+          expect(document.activeElement).toBe(startingPane.getElement())
+        })
+      )
+    })
+
+    describe('::focusPaneViewOnLeft()', function () {
+      describe('when there is a column to the left of the focused pane', () =>
+        it('focuses left to the adjacent column', function () {
+          const paneOnLeft = startingPane.splitLeft()
+          startingPane.activate()
+          workspaceElement.focusPaneViewOnLeft()
+          expect(document.activeElement).toBe(paneOnLeft.getElement())
+        })
+      )
+
+      describe('when there are no columns to the left of the focused pane', () =>
+        it('keeps the current pane focused', function () {
+          startingPane.activate()
+          workspaceElement.focusPaneViewOnLeft()
+          expect(document.activeElement).toBe(startingPane.getElement())
+        })
+      )
+    })
+
+    describe('::focusPaneViewOnRight()', function () {
+      describe('when there is a column to the right of the focused pane', () =>
+        it('focuses right to the adjacent column', function () {
+          const paneOnRight = startingPane.splitRight()
+          startingPane.activate()
+          workspaceElement.focusPaneViewOnRight()
+          expect(document.activeElement).toBe(paneOnRight.getElement())
+        })
+      )
+
+      describe('when there are no columns to the right of the focused pane', () =>
+        it('keeps the current pane focused', function () {
+          startingPane.activate()
+          workspaceElement.focusPaneViewOnRight()
+          expect(document.activeElement).toBe(startingPane.getElement())
+        })
+      )
+    })
+
+    describe('::moveActiveItemToPaneAbove(keepOriginal)', function () {
+      describe('when there is a row above the focused pane', () =>
+        it('moves the active item up to the adjacent row', function () {
+          const item = document.createElement('div')
+          const paneAbove = startingPane.splitUp()
+          startingPane.activate()
+          startingPane.activateItem(item)
+          workspaceElement.moveActiveItemToPaneAbove()
+          expect(workspace.paneForItem(item)).toBe(paneAbove)
+          expect(paneAbove.getActiveItem()).toBe(item)
+        })
+      )
+
+      describe('when there are no rows above the focused pane', () =>
+        it('keeps the active pane focused', function () {
+          const item = document.createElement('div')
+          startingPane.activate()
+          startingPane.activateItem(item)
+          workspaceElement.moveActiveItemToPaneAbove()
+          expect(workspace.paneForItem(item)).toBe(startingPane)
+        })
+      )
+
+      describe('when `keepOriginal: true` is passed in the params', () =>
+        it('keeps the item and adds a copy of it to the adjacent pane', function () {
+          const itemA = document.createElement('div')
+          const itemB = document.createElement('div')
+          itemA.copy = () => itemB
+          const paneAbove = startingPane.splitUp()
+          startingPane.activate()
+          startingPane.activateItem(itemA)
+          workspaceElement.moveActiveItemToPaneAbove({keepOriginal: true})
+          expect(workspace.paneForItem(itemA)).toBe(startingPane)
+          expect(paneAbove.getActiveItem()).toBe(itemB)
+        })
+      )
+    })
+
+    describe('::moveActiveItemToPaneBelow(keepOriginal)', function () {
+      describe('when there is a row below the focused pane', () =>
+        it('moves the active item down to the adjacent row', function () {
+          const item = document.createElement('div')
+          const paneBelow = startingPane.splitDown()
+          startingPane.activate()
+          startingPane.activateItem(item)
+          workspaceElement.moveActiveItemToPaneBelow()
+          expect(workspace.paneForItem(item)).toBe(paneBelow)
+          expect(paneBelow.getActiveItem()).toBe(item)
+        })
+      )
+
+      describe('when there are no rows below the focused pane', () =>
+        it('keeps the active item in the focused pane', function () {
+          const item = document.createElement('div')
+          startingPane.activate()
+          startingPane.activateItem(item)
+          workspaceElement.moveActiveItemToPaneBelow()
+          expect(workspace.paneForItem(item)).toBe(startingPane)
+        })
+      )
+
+      describe('when `keepOriginal: true` is passed in the params', () =>
+        it('keeps the item and adds a copy of it to the adjacent pane', function () {
+          const itemA = document.createElement('div')
+          const itemB = document.createElement('div')
+          itemA.copy = () => itemB
+          const paneBelow = startingPane.splitDown()
+          startingPane.activate()
+          startingPane.activateItem(itemA)
+          workspaceElement.moveActiveItemToPaneBelow({keepOriginal: true})
+          expect(workspace.paneForItem(itemA)).toBe(startingPane)
+          expect(paneBelow.getActiveItem()).toBe(itemB)
+        })
+      )
+    })
+
+    describe('::moveActiveItemToPaneOnLeft(keepOriginal)', function () {
+      describe('when there is a column to the left of the focused pane', () =>
+        it('moves the active item left to the adjacent column', function () {
+          const item = document.createElement('div')
+          const paneOnLeft = startingPane.splitLeft()
+          startingPane.activate()
+          startingPane.activateItem(item)
+          workspaceElement.moveActiveItemToPaneOnLeft()
+          expect(workspace.paneForItem(item)).toBe(paneOnLeft)
+          expect(paneOnLeft.getActiveItem()).toBe(item)
+        })
+      )
+
+      describe('when there are no columns to the left of the focused pane', () =>
+        it('keeps the active item in the focused pane', function () {
+          const item = document.createElement('div')
+          startingPane.activate()
+          startingPane.activateItem(item)
+          workspaceElement.moveActiveItemToPaneOnLeft()
+          expect(workspace.paneForItem(item)).toBe(startingPane)
+        })
+      )
+
+      describe('when `keepOriginal: true` is passed in the params', () =>
+        it('keeps the item and adds a copy of it to the adjacent pane', function () {
+          const itemA = document.createElement('div')
+          const itemB = document.createElement('div')
+          itemA.copy = () => itemB
+          const paneOnLeft = startingPane.splitLeft()
+          startingPane.activate()
+          startingPane.activateItem(itemA)
+          workspaceElement.moveActiveItemToPaneOnLeft({keepOriginal: true})
+          expect(workspace.paneForItem(itemA)).toBe(startingPane)
+          expect(paneOnLeft.getActiveItem()).toBe(itemB)
+        })
+      )
+    })
+
+    describe('::moveActiveItemToPaneOnRight(keepOriginal)', function () {
+      describe('when there is a column to the right of the focused pane', () =>
+        it('moves the active item right to the adjacent column', function () {
+          const item = document.createElement('div')
+          const paneOnRight = startingPane.splitRight()
+          startingPane.activate()
+          startingPane.activateItem(item)
+          workspaceElement.moveActiveItemToPaneOnRight()
+          expect(workspace.paneForItem(item)).toBe(paneOnRight)
+          expect(paneOnRight.getActiveItem()).toBe(item)
+        })
+      )
+
+      describe('when there are no columns to the right of the focused pane', () =>
+        it('keeps the active item in the focused pane', function () {
+          const item = document.createElement('div')
+          startingPane.activate()
+          startingPane.activateItem(item)
+          workspaceElement.moveActiveItemToPaneOnRight()
+          expect(workspace.paneForItem(item)).toBe(startingPane)
+        })
+      )
+
+      describe('when `keepOriginal: true` is passed in the params', () =>
+        it('keeps the item and adds a copy of it to the adjacent pane', function () {
+          const itemA = document.createElement('div')
+          const itemB = document.createElement('div')
+          itemA.copy = () => itemB
+          const paneOnRight = startingPane.splitRight()
+          startingPane.activate()
+          startingPane.activateItem(itemA)
+          workspaceElement.moveActiveItemToPaneOnRight({keepOriginal: true})
+          expect(workspace.paneForItem(itemA)).toBe(startingPane)
+          expect(paneOnRight.getActiveItem()).toBe(itemB)
+        })
+      )
+    })
+
+    describe('::moveActiveItemToNearestPaneInDirection(direction, params)', () => {
+      describe('when the item is not allowed in nearest pane in the given direction', () => {
+        it('does not move or copy the active item', function () {
+          const item = {
+            element: document.createElement('div'),
+            getAllowedLocations: () => ['left', 'right']
+          }
+
+          workspace.getBottomDock().show()
+          startingPane.activate()
+          startingPane.activateItem(item)
+          workspaceElement.moveActiveItemToNearestPaneInDirection('below', {keepOriginal: false})
+          expect(workspace.paneForItem(item)).toBe(startingPane)
+
+          workspaceElement.moveActiveItemToNearestPaneInDirection('below', {keepOriginal: true})
+          expect(workspace.paneForItem(item)).toBe(startingPane)
+        })
+      })
+
+      describe("when the item doesn't implement a `copy` function", () => {
+        it('does not copy the active item', function () {
+          const item = document.createElement('div')
+          const paneBelow = startingPane.splitDown()
+          expect(paneBelow.getItems().length).toEqual(0)
+
+          startingPane.activate()
+          startingPane.activateItem(item)
+          workspaceElement.focusPaneViewAbove()
+          workspaceElement.moveActiveItemToNearestPaneInDirection('below', {keepOriginal: true})
+          expect(workspace.paneForItem(item)).toBe(startingPane)
+          expect(paneBelow.getItems().length).toEqual(0)
+        })
+      })
+    })
+  })
+
   describe('mousing over docks', () => {
     let workspaceElement
 

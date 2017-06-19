@@ -1,4 +1,5 @@
 temp = require('temp').track()
+TextBuffer = require('text-buffer')
 Project = require '../src/project'
 fs = require 'fs-plus'
 path = require 'path'
@@ -25,8 +26,12 @@ describe "Project", ->
       deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
       state = atom.project.serialize()
       state.paths.push('/directory/that/does/not/exist')
-      deserializedProject.deserialize(state, atom.deserializers)
-      expect(deserializedProject.getPaths()).toEqual(atom.project.getPaths())
+
+      waitsForPromise ->
+        deserializedProject.deserialize(state, atom.deserializers)
+
+      runs ->
+        expect(deserializedProject.getPaths()).toEqual(atom.project.getPaths())
 
     it "does not include unretained buffers in the serialized state", ->
       waitsForPromise ->
@@ -36,7 +41,11 @@ describe "Project", ->
         expect(atom.project.getBuffers().length).toBe 1
 
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+
+      waitsForPromise ->
         deserializedProject.deserialize(atom.project.serialize({isUnloading: false}))
+
+      runs ->
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "listens for destroyed events on deserialized buffers and removes them when they are destroyed", ->
@@ -46,12 +55,14 @@ describe "Project", ->
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+
+      waitsForPromise ->
         deserializedProject.deserialize(atom.project.serialize({isUnloading: false}))
 
+      runs ->
         expect(deserializedProject.getBuffers().length).toBe 1
         deserializedProject.getBuffers()[0].destroy()
         expect(deserializedProject.getBuffers().length).toBe 0
-
 
     it "does not deserialize buffers when their path is a directory that exists", ->
       pathToOpen = path.join(temp.mkdirSync('atom-spec-project'), 'file.txt')
@@ -81,26 +92,35 @@ describe "Project", ->
         deserializedProject.deserialize(atom.project.serialize({isUnloading: false}))
         expect(deserializedProject.getBuffers().length).toBe 0
 
-    it "serializes marker layers only if Atom is quitting", ->
+    it "serializes marker layers and history only if Atom is quitting", ->
       waitsForPromise ->
         atom.workspace.open('a')
 
       notQuittingProject = null
       quittingProject = null
+      bufferA = null
+      layerA = null
+      markerA = null
+
       runs ->
         bufferA = atom.project.getBuffers()[0]
         layerA = bufferA.addMarkerLayer(persistent: true)
         markerA = layerA.markPosition([0, 3])
+        bufferA.append('!')
 
+      waitsForPromise ->
         notQuittingProject?.destroy()
         notQuittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        notQuittingProject.deserialize(atom.project.serialize({isUnloading: false}))
-        expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).toBeUndefined()
+        notQuittingProject.deserialize(atom.project.serialize({isUnloading: false})).then ->
+          expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).toBeUndefined()
+          expect(notQuittingProject.getBuffers()[0].undo()).toBe(false)
 
+      waitsForPromise ->
         quittingProject?.destroy()
         quittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        quittingProject.deserialize(atom.project.serialize({isUnloading: true}))
-        expect(quittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).not.toBeUndefined()
+        quittingProject.deserialize(atom.project.serialize({isUnloading: true})).then ->
+          expect(quittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).not.toBeUndefined()
+          expect(quittingProject.getBuffers()[0].undo()).toBe(true)
 
   describe "when an editor is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
@@ -112,8 +132,10 @@ describe "Project", ->
       waitsForPromise ->
         atom.workspace.open().then (o) -> editor = o
 
-      runs ->
+      waitsForPromise ->
         editor.saveAs(tempFile)
+
+      runs ->
         expect(atom.project.getPaths()[0]).toBe path.dirname(tempFile)
 
   describe "before and after saving a buffer", ->
@@ -131,12 +153,13 @@ describe "Project", ->
       spyOn(atom.project.applicationDelegate, 'emitDidSavePath')
       spyOn(atom.project.applicationDelegate, 'emitWillSavePath')
 
-      buffer.save()
+      waitsForPromise -> buffer.save()
 
-      expect(atom.project.applicationDelegate.emitDidSavePath.calls.length).toBe(1)
-      expect(atom.project.applicationDelegate.emitDidSavePath).toHaveBeenCalledWith(buffer.getPath())
-      expect(atom.project.applicationDelegate.emitWillSavePath.calls.length).toBe(1)
-      expect(atom.project.applicationDelegate.emitWillSavePath).toHaveBeenCalledWith(buffer.getPath())
+      runs ->
+        expect(atom.project.applicationDelegate.emitDidSavePath.calls.length).toBe(1)
+        expect(atom.project.applicationDelegate.emitDidSavePath).toHaveBeenCalledWith(buffer.getPath())
+        expect(atom.project.applicationDelegate.emitWillSavePath.calls.length).toBe(1)
+        expect(atom.project.applicationDelegate.emitWillSavePath).toHaveBeenCalledWith(buffer.getPath())
 
   describe "when a watch error is thrown from the TextBuffer", ->
     editor = null
@@ -310,7 +333,8 @@ describe "Project", ->
           expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
 
   describe ".bufferForPath(path)", ->
-    [buffer] = []
+    buffer = null
+
     beforeEach ->
       waitsForPromise ->
         atom.project.bufferForPath("a").then (o) ->
@@ -329,6 +353,23 @@ describe "Project", ->
         waitsForPromise ->
           atom.project.bufferForPath("b").then (anotherBuffer) ->
             expect(anotherBuffer).not.toBe buffer
+
+        waitsForPromise ->
+          Promise.all([
+            atom.project.bufferForPath('c'),
+            atom.project.bufferForPath('c')
+          ]).then ([buffer1, buffer2]) ->
+            expect(buffer1).toBe(buffer2)
+
+      it "retries loading the buffer if it previously failed", ->
+        waitsForPromise shouldReject: true, ->
+          spyOn(TextBuffer, 'load').andCallFake ->
+            Promise.reject(new Error('Could not open file'))
+          atom.project.bufferForPath('b')
+
+        waitsForPromise shouldReject: false, ->
+          TextBuffer.load.andCallThrough()
+          atom.project.bufferForPath('b')
 
       it "creates a new buffer if the previous buffer was destroyed", ->
         buffer.release()

@@ -91,7 +91,7 @@ Also, because Atom is so extensible, it's possible that a feature you've become 
 
 #### Package Conventions
 
-Thera are a few conventions that have developed over time around packages:
+There are a few conventions that have developed over time around packages:
 
 * Packages that add one or more syntax highlighting grammars are named `language-[language-name]`
     * Language packages can add other things besides just a grammar. Many offer commonly-used snippets. Try not to add too much though.
