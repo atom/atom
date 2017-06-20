@@ -3,9 +3,8 @@
 import fs from 'fs'
 import path from 'path'
 
-import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
+import {Emitter, CompositeDisposable} from 'event-kit'
 import nsfw from 'nsfw'
-const {MODIFIED, CREATED, DELETED, RENAMED} = nsfw.actions
 
 import NativeWatcherRegistry from './native-watcher-registry'
 
@@ -29,7 +28,6 @@ class NativeWatcher {
 
     this.watcher = null
     this.running = false
-    this.refCount = 0
   }
 
   // Private: Begin watching for filesystem events.
@@ -97,7 +95,7 @@ class NativeWatcher {
   // Private: Stop the native watcher and release any operating system resources associated with it.
   //
   // Has no effect if the watcher is not running.
-  async stop() {
+  async stop () {
     if (!this.running) {
       return
     }
@@ -127,7 +125,7 @@ class NativeWatcher {
   //
   // * `err` The native filesystem error.
   onError (err) {
-    //
+    console.error(err)
   }
 }
 
@@ -187,14 +185,15 @@ export default class FileSystemManager {
   getWatcher (rootPath) {
     const watcher = new Watcher(rootPath)
 
-    (async () => {
+    const init = async () => {
       const normalizedPath = await new Promise((resolve, reject) => {
         fs.realpath(rootPath, (err, real) => (err ? reject(err) : resolve(real)))
       })
       watcher.normalizedPath = normalizedPath
 
       this.nativeWatchers.attach(normalizedPath, watcher, () => new NativeWatcher(normalizedPath))
-    })()
+    }
+    init()
 
     return watcher
   }
