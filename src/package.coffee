@@ -96,7 +96,7 @@ class Package
 
   finishLoading: ->
     @measure 'loadTime', =>
-      @path = path.join(@packageManager.resourcePath, @path)
+      @path = path.resolve(@packageManager.resourcePath, @path)
       ModuleCache.add(@path, @metadata)
 
       @loadStylesheets()
