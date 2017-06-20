@@ -19,7 +19,7 @@ class RegistryNode {
   // Returns: A {ParentResult} if the exact requested directory or a parent directory is being watched, a
   //   {ChildrenResult} if one or more child paths are being watched, or a {MissingResult} if no relevant watchers
   //   exist.
-  lookup(pathSegments) {
+  lookup (pathSegments) {
     if (pathSegments.length === 0) {
       return new ChildrenResult(this.leaves())
     }
@@ -40,7 +40,7 @@ class RegistryNode {
   //
   // Returns: The root of a new tree with the {RegistryWatcherNode} inserted at the correct location. Callers should
   // replace their node references with the returned value.
-  insert(pathSegments, leaf) {
+  insert (pathSegments, leaf) {
     if (pathSegments.length === 0) {
       return leaf
     }
@@ -57,7 +57,7 @@ class RegistryNode {
   // Private: Discover all {RegistryWatcherNode} instances beneath this tree node.
   //
   // Returns: A possibly empty {Array} of {RegistryWatcherNode} instances that are the descendants of this node.
-  leaves() {
+  leaves () {
     const results = []
     for (const p of Object.keys(this.children)) {
       results.push(...this.children[p].leaves())
@@ -87,14 +87,14 @@ class RegistryWatcherNode {
   // * `pathSegments` filesystem path of a new {Watcher} already split into an Array of directory names.
   //
   // Returns: A {ParentResult} referencing this node.
-  lookup(pathSegments) {
+  lookup (pathSegments) {
     return new ParentResult(this, pathSegments)
   }
 
   // Private: Discover this {RegistryWatcherNode} instance.
   //
   // Returns: An {Array} containing this node.
-  leaves() {
+  leaves () {
     return [this]
   }
 }
