@@ -44,14 +44,33 @@ Using [chocolatey](https://chocolatey.org/)? Run `cinst Atom` to install the lat
 
 ### Debian Linux (Ubuntu)
 
-Atom is only available for 64-bit Linux systems.
+Webupd8 Team is maintaining an unofficial PPA with most recent Atom packages for all current Ubuntu releases, and derivatives. While official Linux binary is 64-bit only, the PPA supports both 32-bit and 64-bit.
 
-1. Download `atom-amd64.deb` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
-2. Run `sudo dpkg --install atom-amd64.deb` on the downloaded package.
-3. Launch Atom using the installed `atom` command.
+###### 1. Add PPA
 
-The Linux version does not currently automatically update so you will need to
-repeat these steps to upgrade to future releases.
+Open terminal (Ctrl+Alt+T) and run the command:
+
+`sudo add-apt-repository ppa:webupd8team/atom`
+
+Type in password when it prompts and hit Enter.
+
+###### 2. Update and install Atom editor:
+
+Update system package index and install the text editor via command:
+
+sudo apt update; sudo apt install atom
+
+install-atom-editor
+
+Once Atom is installed and a new release is out in future, you can simply upgrade the editor by running regular system updates via Software Updater utility.
+
+###### 3. (Optional) To remove Atom text editor
+
+To remove the software, use Synaptic Package Manager or just run apt command with remove flag:
+
+sudo apt remove --purge atom
+
+And the PPA can be remove via Software & Updates utility under Other Software tab.
 
 ### Red Hat Linux (Fedora 21 and under, CentOS, Red Hat)
 
