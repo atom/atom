@@ -155,6 +155,8 @@ class Watcher {
       this.subs.add(native.onDidStart(payload => {
         this.emitter.emit('did-start', payload)
       }))
+
+      native.start()
     }
 
     this.subs.add(native.onDidChange(events => {
