@@ -72,3 +72,27 @@ export function emitterEventPromise (emitter, event, timeout = 15000) {
     })
   })
 }
+
+export function promisify (original) {
+  return function (...args) {
+    return new Promise((resolve, reject) => {
+      args.push((err, ...results) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(...results)
+        }
+      })
+
+      return original(...args)
+    })
+  }
+}
+
+export function promisifySome (obj, fnNames) {
+  const result = {}
+  for (fnName of fnNames) {
+    result[fnName] = promisify(obj[fnName])
+  }
+  return result
+}
