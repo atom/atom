@@ -1941,8 +1941,6 @@ describe('TextEditorComponent', () => {
       item3.style.margin = '10px'
       item2.style.height = '33px'
       item2.style.margin = '0px'
-      component.invalidateBlockDecorationDimensions(decoration2)
-      component.invalidateBlockDecorationDimensions(decoration3)
       await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
       expect(component.getRenderedEndRow()).toBe(9)
@@ -1973,7 +1971,6 @@ describe('TextEditorComponent', () => {
       item3.style.wordWrap = 'break-word'
       const contentWidthInCharacters = Math.floor(component.getScrollContainerClientWidth() / component.getBaseCharacterWidth())
       item3.textContent = 'x'.repeat(contentWidthInCharacters * 2)
-      component.invalidateBlockDecorationDimensions(decoration3)
       await component.getNextUpdatePromise()
 
       // make the editor wider, so that the decoration doesn't wrap anymore.
