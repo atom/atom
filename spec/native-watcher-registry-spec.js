@@ -1,7 +1,5 @@
 /** @babel */
 
-import path from 'path'
-
 import NativeWatcherRegistry from '../src/native-watcher-registry'
 
 class MockWatcher {
@@ -31,11 +29,11 @@ class MockNative {
     this.attached = []
   }
 
-  dispose() {
+  dispose () {
     this.disposed = true
   }
 
-  stop() {
+  stop () {
     this.stopped = true
   }
 }
@@ -48,7 +46,7 @@ describe('NativeWatcherRegistry', function () {
     watcher = new MockWatcher()
   })
 
-  it('attaches a Watcher to a newly created NativeWatcher for a new directory', function() {
+  it('attaches a Watcher to a newly created NativeWatcher for a new directory', function () {
     const NATIVE = new MockNative('created')
     registry.attach('/some/path', watcher, () => NATIVE)
 
