@@ -3,7 +3,7 @@
 import fs from 'fs'
 import path from 'path'
 
-import {Emitter, CompositeDisposable} from 'event-kit'
+import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
 import nsfw from 'nsfw'
 
 import NativeWatcherRegistry from './native-watcher-registry'
@@ -65,11 +65,23 @@ class NativeWatcher {
     return this.emitter.on('did-start', callback)
   }
 
-  // Private: Register a callback to be invoked with normalized filesystem events as they arrive.
+  // Private: Register a callback to be invoked with normalized filesystem events as they arrive. Starts the watcher
+  // automatically if it is not already running. The watcher will be stopped automatically when all subscribers
+  // dispose their subscriptions.
   //
   // Returns: A {Disposable} to revoke the subscription.
   onDidChange (callback) {
-    return this.emitter.on('did-change', callback)
+    if (!this.isRunning()) {
+      this.start()
+    }
+
+    const sub = this.emitter.on('did-change', callback)
+    return new Disposable(() => {
+      sub.dispose()
+      if (this.emitter.listenerCountForEventName('did-change') === 0) {
+        this.stop()
+      }
+    })
   }
 
   // Private: Register a callback to be invoked when a {Watcher} should attach to a different {NativeWatcher}.
