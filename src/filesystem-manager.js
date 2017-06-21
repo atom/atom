@@ -193,6 +193,7 @@ class Watcher {
 export default class FileSystemManager {
   constructor () {
     this.nativeWatchers = new NativeWatcherRegistry()
+    this.liveWatchers = new Set()
   }
 
   getWatcher (rootPath) {
@@ -204,7 +205,17 @@ export default class FileSystemManager {
       })
       watcher.normalizedPath = normalizedPath
 
-      this.nativeWatchers.attach(normalizedPath, watcher, () => new NativeWatcher(normalizedPath))
+      this.nativeWatchers.attach(normalizedPath, watcher, () => {
+        const nativeWatcher = new NativeWatcher(normalizedPath)
+
+        this.liveWatchers.add(nativeWatcher)
+        const sub = nativeWatcher.onDidStop(() => {
+          this.liveWatchers.delete(nativeWatcher)
+          sub.dispose()
+        })
+
+        return nativeWatcher
+      })
     }
     init()
 
