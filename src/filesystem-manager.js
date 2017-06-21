@@ -142,6 +142,7 @@ class Watcher {
   constructor (watchedPath) {
     this.watchedPath = watchedPath
     this.normalizedPath = null
+    this.native = null
 
     this.emitter = new Emitter()
     this.subs = new CompositeDisposable()
@@ -157,6 +158,7 @@ class Watcher {
 
   attachToNative (native) {
     this.subs.dispose()
+    this.native = native
 
     if (native.isRunning()) {
       this.emitter.emit('did-start')
