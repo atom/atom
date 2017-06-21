@@ -130,6 +130,10 @@ class NativeWatcher {
   //
   // * `err` The native filesystem error.
   onError (err) {
+    if (!this.isRunning()) {
+      return
+    }
+
     console.error(err)
   }
 }
