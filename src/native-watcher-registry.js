@@ -54,6 +54,37 @@ class RegistryNode {
     return this
   }
 
+  // Private: Remove a {RegistryWatcherNode} by the exact watched directory.
+  //
+  // * `pathSegments` absolute pre-split filesystem path of the node to remove.
+  //
+  // Returns: The root of a new tree with the {RegistryWatcherNode} removed. Callers should replace their node
+  // references with the returned value.
+  remove (pathSegments) {
+    if (pathSegments.length === 0) {
+      // Attempt to remove a path with child watchers. Do nothing.
+      return this
+    }
+
+    const pathKey = pathSegments[0]
+    const child = this.children[pathKey]
+    if (child === undefined) {
+      // Attempt to remove a path that isn't watched. Do nothing.
+      return this
+    }
+
+    // Recurse
+    const newChild = child.remove(pathSegments.slice(1))
+    if (newChild === null) {
+      delete this.children[pathKey]
+    } else {
+      this.children[pathKey] = newChild
+    }
+
+    // Remove this node if all of its children have been removed
+    return Object.keys(this.children).length === 0 ? null : this
+  }
+
   // Private: Discover all {RegistryWatcherNode} instances beneath this tree node.
   //
   // Returns: A possibly empty {Array} of {RegistryWatcherNode} instances that are the descendants of this node.
@@ -89,6 +120,15 @@ class RegistryWatcherNode {
   // Returns: A {ParentResult} referencing this node.
   lookup (pathSegments) {
     return new ParentResult(this, pathSegments)
+  }
+
+  // Private: Remove this leaf node if the watcher's exact path matches.
+  //
+  // * `pathSegments` filesystem path of the node to remove.
+  //
+  // Returns: {null} if the `pathSegments` are an exact match, {this} otherwise.
+  remove (pathSegments) {
+    return pathSegments.length === 0 ? null : this
   }
 
   // Private: Discover this {RegistryWatcherNode} instance.
@@ -205,6 +245,11 @@ export default class NativeWatcherRegistry {
       const native = createNative()
       const leaf = new RegistryWatcherNode(native)
       this.tree = this.tree.insert(pathSegments, leaf)
+
+      const sub = native.onDidStop(() => {
+        this.tree = this.tree.remove(pathSegments)
+        sub.dispose()
+      })
 
       watcher.attachToNative(native, '')
 
