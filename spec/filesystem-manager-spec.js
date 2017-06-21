@@ -116,7 +116,54 @@ describe('FileSystemManager', function () {
       expect(nextPayload[0].oldPath).toBe(rootFile)
     })
 
-    xit('adopts existing child watchers and filters events appropriately to them')
+    it('adopts existing child watchers and filters events appropriately to them', async function () {
+      const parentDir = await temp.mkdir('atom-fsmanager-').then(fs.realpath)
+
+      // Create the directory tree
+      const rootFile = path.join(parentDir, 'rootfile.txt')
+      const subDir0 = path.join(parentDir, 'subdir0')
+      const subFile0 = path.join(subDir0, 'subfile1.txt')
+      const subDir1 = path.join(parentDir, 'subdir1')
+      const subFile1 = path.join(subDir1, 'subfile1.txt')
+      await Promise.all([
+        fs.writeFile(rootFile, 'rootfile\n', {encoding: 'utf8'}),
+        fs.mkdir(subDir0).then(
+          fs.writeFile(subFile0, 'subfile 0\n', {encoding: 'utf8'})
+        ),
+        fs.mkdir(subDir1).then(
+          fs.writeFile(subFile1, 'subfile 1\n', {encoding: 'utf8'})
+        )
+      ])
+
+      // Begin the child watchers
+      const subWatcher0 = manager.getWatcher(subDir0)
+      const subWatcher1 = manager.getWatcher(subDir1)
+
+      await Promise.all(
+        [subWatcher0, subWatcher1].map(watcher => waitForEvent(cb => watcher.onDidStart(cb)))
+      )
+      expect(subWatcher0.native).not.toBe(subWatcher1.native)
+
+      // Create the parent watcher
+      const parentWatcher = manager.getWatcher(parentDir)
+      await waitForEvent(cb => parentWatcher.onDidStart(cb))
+
+      expect(subWatcher0.native).toBe(parentWatcher.native)
+      expect(subWatcher1.native).toBe(parentWatcher.native)
+
+      // Ensure events are filtered correctly
+      await Promise.all([
+        fs.appendFile(rootFile, 'change\n', {encoding: 'utf8'}),
+        fs.appendFile(subFile0, 'change\n', {encoding: 'utf8'}),
+        fs.appendFile(subFile1, 'change\n', {encoding: 'utf8'})
+      ])
+
+      await Promise.all([
+        waitForChanges(subWatcher0, subFile0),
+        waitForChanges(subWatcher1, subFile1),
+        waitForChanges(parentWatcher, rootFile, subFile0, subFile1)
+      ])
+    })
 
     describe('event normalization', function () {
       xit('normalizes "changed" events')
