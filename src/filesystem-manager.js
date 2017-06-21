@@ -105,6 +105,11 @@ class NativeWatcher {
     this.emitter.emit('did-stop')
   }
 
+  // Private: Detach any event subscribers.
+  dispose () {
+    this.emitter.dispose()
+  }
+
   // Private: Callback function invoked by the native watcher when a debounced group of filesystem events arrive.
   // Normalize and re-broadcast them to any subscribers.
   //
