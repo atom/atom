@@ -222,3 +222,11 @@ export default class FileSystemManager {
     return watcher
   }
 }
+
+// Private: Return a Promise that resolves when all {NativeWatcher} instances associated with a FileSystemManager
+// have stopped listening. This is useful for `afterEach()` blocks in unit tests.
+export function stopAllWatchers (manager) {
+  return Promise.all(
+    Array.from(manager.liveWatchers, watcher => watcher.stop())
+  )
+}

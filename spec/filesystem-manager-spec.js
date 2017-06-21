@@ -6,7 +6,7 @@ import fsCb from 'fs-plus'
 import path from 'path'
 
 import {CompositeDisposable} from 'event-kit'
-import FileSystemManager from '../src/filesystem-manager'
+import FileSystemManager, {stopAllWatchers} from '../src/filesystem-manager'
 
 tempCb.track()
 
@@ -24,12 +24,8 @@ describe('FileSystemManager', function () {
   afterEach(async function () {
     subs.dispose()
 
-    const cleanup = [temp.cleanup()]
-    const nativeWatchers = manager.nativeWatchers.tree.leaves().map(node => node.getNativeWatcher())
-    for (const native of nativeWatchers) {
-      cleanup.push(native.stop())
-    }
-    await Promise.all(cleanup)
+    await stopAllWatchers(manager)
+    await temp.cleanup()
   })
 
   function waitForEvent (fn) {

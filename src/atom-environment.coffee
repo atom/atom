@@ -46,7 +46,7 @@ TextBuffer = require 'text-buffer'
 Gutter = require './gutter'
 TextEditorRegistry = require './text-editor-registry'
 AutoUpdateManager = require './auto-update-manager'
-FileSystemManager = require './filesystem-manager'
+FileSystemManager = require('./filesystem-manager').default
 
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
