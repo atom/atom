@@ -98,7 +98,6 @@ describe('FileSystemManager', function () {
       const firstRootChange = waitForChanges(rootWatcher, subFile)
       const firstChildChange = waitForChanges(childWatcher, subFile)
 
-      console.log(`changing ${subFile}`)
       await fs.appendFile(subFile, 'changes\n', {encoding: 'utf8'})
       const firstPayloads = await Promise.all([firstRootChange, firstChildChange])
 
