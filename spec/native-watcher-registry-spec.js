@@ -1,5 +1,8 @@
 /** @babel */
 
+import path from 'path'
+import {Emitter} from 'event-kit'
+
 import NativeWatcherRegistry from '../src/native-watcher-registry'
 
 class MockWatcher {
@@ -19,6 +22,8 @@ class MockNative {
     this.attached = []
     this.disposed = false
     this.stopped = false
+
+    this.emitter = new Emitter()
   }
 
   reattachTo (newNative) {
@@ -29,12 +34,17 @@ class MockNative {
     this.attached = []
   }
 
+  onDidStop (callback) {
+    return this.emitter.on('did-stop', callback)
+  }
+
   dispose () {
     this.disposed = true
   }
 
   stop () {
     this.stopped = true
+    this.emitter.emit('did-stop')
   }
 }
 
@@ -107,5 +117,38 @@ describe('NativeWatcherRegistry', function () {
     expect(EXISTING2.disposed).toBe(false)
   })
 
-  it('removes NativeWatchers when all Watchers have been disposed')
+  describe('removing NativeWatchers', function () {
+    it('happens when they stop', function () {
+      const STOPPED = new MockNative('stopped')
+      const stoppedWatcher = new MockWatcher()
+      const stoppedPath = ['watcher', 'that', 'will', 'be', 'stopped']
+      registry.attach(path.join(...stoppedPath), stoppedWatcher, () => STOPPED)
+
+      const RUNNING = new MockNative('running')
+      const runningWatcher = new MockWatcher()
+      const runningPath = ['watcher', 'that', 'will', 'continue', 'to', 'exist']
+      registry.attach(path.join(...runningPath), runningWatcher, () => RUNNING)
+
+      STOPPED.stop()
+
+      const runningNode = registry.tree.lookup(runningPath).when({
+        parent: node => node,
+        missing: () => false,
+        children: () => false
+      })
+      expect(runningNode).toBeTruthy()
+      expect(runningNode.getNativeWatcher()).toBe(RUNNING)
+
+      const stoppedNode = registry.tree.lookup(stoppedPath).when({
+        parent: () => false,
+        missing: () => true,
+        children: () => false
+      })
+      expect(stoppedNode).toBe(true)
+    })
+
+    it("keeps a parent watcher that's still running")
+
+    it('reassigns new child watchers when a parent watcher is stopped')
+  })
 })
