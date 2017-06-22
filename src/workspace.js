@@ -184,7 +184,6 @@ module.exports = class Workspace extends Model {
     this.didChangeActivePaneOnPaneContainer = this.didChangeActivePaneOnPaneContainer.bind(this)
     this.didChangeActivePaneItemOnPaneContainer = this.didChangeActivePaneItemOnPaneContainer.bind(this)
     this.didActivatePaneContainer = this.didActivatePaneContainer.bind(this)
-    this.didHideDock = this.didHideDock.bind(this)
 
     this.enablePersistence = params.enablePersistence
     this.packageManager = params.packageManager
@@ -270,7 +269,6 @@ module.exports = class Workspace extends Model {
       deserializerManager: this.deserializerManager,
       notificationManager: this.notificationManager,
       viewRegistry: this.viewRegistry,
-      didHide: this.didHideDock,
       didActivate: this.didActivatePaneContainer,
       didChangeActivePane: this.didChangeActivePaneOnPaneContainer,
       didChangeActivePaneItem: this.didChangeActivePaneItemOnPaneContainer,
@@ -321,6 +319,7 @@ module.exports = class Workspace extends Model {
     this.subscribeToFontSize()
     this.subscribeToAddedItems()
     this.subscribeToMovedItems()
+    this.subscribeToDockToggling()
   }
 
   consumeServices ({serviceHub}) {
@@ -484,14 +483,6 @@ module.exports = class Workspace extends Model {
     }
   }
 
-  didHideDock (dock) {
-    const {activeElement} = document
-    const dockElement = dock.getElement()
-    if (dockElement === activeElement || dockElement.contains(activeElement)) {
-      this.getCenter().activate()
-    }
-  }
-
   setDraggingItem (draggingItem) {
     _.values(this.paneContainers).forEach(dock => {
       dock.setDraggingItem(draggingItem)
@@ -510,6 +501,20 @@ module.exports = class Workspace extends Model {
         item.onDidDestroy(() => { subscriptions.dispose() })
         this.emitter.emit('did-add-text-editor', {textEditor: item, pane, index})
       }
+    })
+  }
+
+  subscribeToDockToggling () {
+    const docks = [this.getLeftDock(), this.getRightDock(), this.getBottomDock()]
+    docks.forEach(dock => {
+      dock.onDidChangeVisible(visible => {
+        if (visible) return
+        const {activeElement} = document
+        const dockElement = dock.getElement()
+        if (dockElement === activeElement || dockElement.contains(activeElement)) {
+          this.getCenter().activate()
+        }
+      })
     })
   }
 
