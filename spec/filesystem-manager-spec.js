@@ -29,6 +29,7 @@ describe('FileSystemManager', function () {
 
   function waitForChanges (watcher, ...fileNames) {
     const waiting = new Set(fileNames)
+    let fired = false
     const relevantEvents = []
 
     return new Promise(resolve => {
@@ -39,7 +40,8 @@ describe('FileSystemManager', function () {
           }
         }
 
-        if (waiting.size === 0) {
+        if (!fired && waiting.size === 0) {
+          fired = true
           resolve(relevantEvents)
           sub.dispose()
         }
