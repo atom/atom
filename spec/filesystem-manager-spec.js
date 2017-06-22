@@ -27,12 +27,6 @@ describe('FileSystemManager', function () {
     await stopAllWatchers(manager)
   })
 
-  function waitForEvent (fn) {
-    return new Promise(resolve => {
-      subs.add(fn(resolve))
-    })
-  }
-
   function waitForChanges (watcher, ...fileNames) {
     const waiting = new Set(fileNames)
     const relevantEvents = []
@@ -54,21 +48,53 @@ describe('FileSystemManager', function () {
   }
 
   describe('getWatcher()', function () {
-    it('broadcasts onDidStart when the watcher begins listening', async function () {
+    it('resolves getStartPromise() when the watcher begins listening', async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-')
 
       const watcher = manager.getWatcher(rootDir)
-      await waitForEvent(cb => watcher.onDidStart(cb))
+      watcher.onDidChange(() => {})
+
+      await watcher.getStartPromise()
     })
 
-    it('reuses an existing native watcher and broadcasts onDidStart immediately if attached to an existing watcher', async function () {
+    it('does not start actually watching until an onDidChange subscriber is registered', async function () {
+      const rootDir = await temp.mkdir('atom-fsmanager-')
+      const watcher = manager.getWatcher(rootDir)
+
+      let started = false
+      const startPromise = watcher.getStartPromise().then(() => {
+        started = true
+      })
+
+      expect(watcher.native).toBe(null)
+      expect(watcher.normalizedPath).toBe(null)
+      expect(started).toBe(false)
+
+      await watcher.getNormalizedPathPromise()
+
+      expect(watcher.native).toBe(null)
+      expect(watcher.normalizedPath).not.toBe(null)
+      expect(started).toBe(false)
+
+      watcher.onDidChange(() => {})
+      await startPromise
+
+      expect(watcher.native).not.toBe(null)
+      expect(started).toBe(true)
+    })
+
+    it('automatically stops and removes the watcher when all onDidChange subscribers dispose')
+
+    it('reuses an existing native watcher and resolves getStartPromise immediately if attached to a running watcher', async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-')
 
       const watcher0 = manager.getWatcher(rootDir)
-      await waitForEvent(cb => watcher0.onDidStart(cb))
+      watcher0.onDidChange(() => {})
+      await watcher0.getStartPromise()
 
       const watcher1 = manager.getWatcher(rootDir)
-      await waitForEvent(cb => watcher1.onDidStart(cb))
+      watcher1.onDidChange(() => {})
+      await watcher1.getStartPromise()
 
       expect(watcher0.native).toBe(watcher1.native)
     })
@@ -87,17 +113,20 @@ describe('FileSystemManager', function () {
       ])
 
       const rootWatcher = manager.getWatcher(rootDir)
-      await waitForEvent(cb => rootWatcher.onDidStart(cb))
-
       const childWatcher = manager.getWatcher(subDir)
-      await waitForEvent(cb => childWatcher.onDidStart(cb))
 
       expect(rootWatcher.native).toBe(childWatcher.native)
 
       const firstRootChange = waitForChanges(rootWatcher, subFile)
       const firstChildChange = waitForChanges(childWatcher, subFile)
 
+      await Promise.all([
+        rootWatcher.getStartPromise(),
+        childWatcher.getStartPromise()
+      ])
+
       await fs.appendFile(subFile, 'changes\n', {encoding: 'utf8'})
+
       const firstPayloads = await Promise.all([firstRootChange, firstChildChange])
 
       for (const events of firstPayloads) {
@@ -123,6 +152,7 @@ describe('FileSystemManager', function () {
       const subFile0 = path.join(subDir0, 'subfile1.txt')
       const subDir1 = path.join(parentDir, 'subdir1')
       const subFile1 = path.join(subDir1, 'subfile1.txt')
+
       await Promise.all([
         fs.writeFile(rootFile, 'rootfile\n', {encoding: 'utf8'}),
         fs.mkdir(subDir0).then(
@@ -135,16 +165,23 @@ describe('FileSystemManager', function () {
 
       // Begin the child watchers
       const subWatcher0 = manager.getWatcher(subDir0)
+      const subWatcherChanges0 = waitForChanges(subWatcher0, subFile0)
+
       const subWatcher1 = manager.getWatcher(subDir1)
+      const subWatcherChanges1 = waitForChanges(subWatcher1, subFile1)
 
       await Promise.all(
-        [subWatcher0, subWatcher1].map(watcher => waitForEvent(cb => watcher.onDidStart(cb)))
+        [subWatcher0, subWatcher1].map(watcher => {
+          return watcher.getStartPromise()
+        })
       )
       expect(subWatcher0.native).not.toBe(subWatcher1.native)
 
       // Create the parent watcher
       const parentWatcher = manager.getWatcher(parentDir)
-      await waitForEvent(cb => parentWatcher.onDidStart(cb))
+      const parentWatcherChanges = waitForChanges(parentWatcher, rootFile, subFile0, subFile1)
+
+      await parentWatcher.getStartPromise()
 
       expect(subWatcher0.native).toBe(parentWatcher.native)
       expect(subWatcher1.native).toBe(parentWatcher.native)
@@ -157,9 +194,9 @@ describe('FileSystemManager', function () {
       ])
 
       await Promise.all([
-        waitForChanges(subWatcher0, subFile0),
-        waitForChanges(subWatcher1, subFile1),
-        waitForChanges(parentWatcher, rootFile, subFile0, subFile1)
+        subWatcherChanges0,
+        subWatcherChanges1,
+        parentWatcherChanges
       ])
     })
 
