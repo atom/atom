@@ -19,6 +19,7 @@ module.exports = function () {
     'app-copyright': `Copyright © 2014-${(new Date()).getFullYear()} GitHub, Inc. All rights reserved.`,
     'app-version': CONFIG.appMetadata.version,
     'arch': process.platform === 'darwin' ? 'x64' : process.arch, // OS X is 64-bit only
+    'asar': {unpack: buildAsarUnpackGlobExpression()},
     'build-version': CONFIG.appMetadata.version,
     'download': {cache: CONFIG.electronDownloadPath},
     'dir': CONFIG.intermediateAppPath,
@@ -93,6 +94,22 @@ function setAtomHelperVersion (packagedAppPath) {
 function chmodNodeFiles (packagedAppPath) {
   console.log(`Changing permissions for node files in ${packagedAppPath}`)
   childProcess.execSync(`find "${packagedAppPath}" -type f -name *.node -exec chmod a-x {} \\;`)
+}
+
+function buildAsarUnpackGlobExpression () {
+  const unpack = [
+    '*.node',
+    'ctags-config',
+    'ctags-darwin',
+    'ctags-linux',
+    'ctags-win32.exe',
+    path.join('**', 'node_modules', 'spellchecker', '**'),
+    path.join('**', 'node_modules', 'dugite', 'git', '**'),
+    path.join('**', 'node_modules', 'github', 'bin', '**'),
+    path.join('**', 'resources', 'atom.png')
+  ]
+
+  return `{${unpack.join(',')}}`
 }
 
 function getAppName () {

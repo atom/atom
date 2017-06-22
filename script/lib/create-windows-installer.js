@@ -19,6 +19,7 @@ module.exports = (packagedAppPath, codeSign) => {
     loadingGif: path.join(CONFIG.repositoryRootPath, 'resources', 'win', 'loading.gif'),
     outputDirectory: CONFIG.buildOutputPath,
     noMsi: true,
+    noDelta: true,
     remoteReleases: `https://atom.io/api/updates${archSuffix}?version=${CONFIG.appMetadata.version}`,
     setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
   }
