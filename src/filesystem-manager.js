@@ -151,21 +151,60 @@ class NativeWatcher {
 }
 
 class Watcher {
-  constructor (watchedPath) {
+  constructor (watchedPath, nativeWatcherRegistry) {
     this.watchedPath = watchedPath
+    this.nativeWatcherRegistry = nativeWatcherRegistry
+
     this.normalizedPath = null
     this.native = null
+    this.changeCallbacks = new Map()
+
+    this.normalizedPathPromise = new Promise((resolve, reject) => {
+      fs.realpath(watchedPath, (err, real) => {
+        if (err) {
+          reject(err)
+          return
+        }
+
+        this.normalizedPath = real
+        resolve(real)
+      })
+    })
+
+    this.startPromise = new Promise(resolve => {
+      this.resolveStartPromise = resolve
+    })
 
     this.emitter = new Emitter()
     this.subs = new CompositeDisposable()
   }
 
-  onDidStart (callback) {
-    return this.emitter.on('did-start', callback)
+  getNormalizedPathPromise () {
+    return this.normalizedPathPromise
+  }
+
+  getStartPromise () {
+    return this.startPromise
   }
 
   onDidChange (callback) {
-    return this.emitter.on('did-change', callback)
+    if (this.native) {
+      const sub = this.native.onDidChange(events => this.onNativeEvents(events, callback))
+      this.changeCallbacks.set(callback, sub)
+
+      this.native.start()
+    } else {
+      // Attach and retry
+      this.nativeWatcherRegistry.attach(this).then(() => {
+        this.onDidChange(callback)
+      })
+    }
+
+    return new Disposable(() => {
+      const sub = this.changeCallbacks.get(callback)
+      this.changeCallbacks.delete(callback)
+      sub.dispose()
+    })
   }
 
   attachToNative (native) {
@@ -173,30 +212,45 @@ class Watcher {
     this.native = native
 
     if (native.isRunning()) {
-      this.emitter.emit('did-start')
+      this.resolveStartPromise()
     } else {
-      this.subs.add(native.onDidStart(payload => {
-        this.emitter.emit('did-start', payload)
+      this.subs.add(native.onDidStart(() => {
+        this.resolveStartPromise()
       }))
+    }
 
+    // Transfer any native event subscriptions to the new NativeWatcher.
+    for (const [callback, formerSub] of this.changeCallbacks) {
+      const newSub = native.onDidChange(events => this.onNativeEvents(events, callback))
+      this.changeCallbacks.set(callback, newSub)
+      formerSub.dispose()
+    }
+
+    if (this.changeCallbacks.size > 0) {
       native.start()
     }
 
-    this.subs.add(native.onDidChange(events => {
-      // TODO does event.oldPath resolve symlinks?
-      const filtered = events.filter(event => event.oldPath.startsWith(this.normalizedPath))
-
-      if (filtered.length > 0) {
-        this.emitter.emit('did-change', filtered)
+    this.subs.add(native.onShouldDetach(replacement => {
+      if (replacement !== native) {
+        this.attachToNative(replacement)
       }
     }))
+  }
 
-    this.subs.add(native.onShouldDetach(
-      this.attachToNative.bind(this)
-    ))
+  onNativeEvents (events, callback) {
+    // TODO does event.oldPath resolve symlinks?
+    const filtered = events.filter(event => event.oldPath.startsWith(this.normalizedPath))
+
+    if (filtered.length > 0) {
+      callback(filtered)
+    }
   }
 
   dispose () {
+    for (const sub of this.changeCallbacks.values()) {
+      sub.dispose()
+    }
+
     this.emitter.dispose()
     this.subs.dispose()
   }
@@ -204,20 +258,10 @@ class Watcher {
 
 export default class FileSystemManager {
   constructor () {
-    this.nativeWatchers = new NativeWatcherRegistry()
     this.liveWatchers = new Set()
-  }
 
-  getWatcher (rootPath) {
-    const watcher = new Watcher(rootPath)
-
-    const init = async () => {
-      const normalizedPath = await new Promise((resolve, reject) => {
-        fs.realpath(rootPath, (err, real) => (err ? reject(err) : resolve(real)))
-      })
-      watcher.normalizedPath = normalizedPath
-
-      this.nativeWatchers.attach(normalizedPath, watcher, () => {
+    this.nativeWatchers = new NativeWatcherRegistry(
+      normalizedPath => {
         const nativeWatcher = new NativeWatcher(normalizedPath)
 
         this.liveWatchers.add(nativeWatcher)
@@ -227,11 +271,12 @@ export default class FileSystemManager {
         })
 
         return nativeWatcher
-      })
-    }
-    init()
+      }
+    )
+  }
 
-    return watcher
+  getWatcher (rootPath) {
+    return new Watcher(rootPath, this.nativeWatchers)
   }
 }
 
