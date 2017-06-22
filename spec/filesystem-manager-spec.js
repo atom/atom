@@ -25,7 +25,6 @@ describe('FileSystemManager', function () {
     subs.dispose()
 
     await stopAllWatchers(manager)
-    await temp.cleanup()
   })
 
   function waitForEvent (fn) {
