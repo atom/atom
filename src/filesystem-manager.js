@@ -113,6 +113,13 @@ class NativeWatcher {
     return this.emitter.on('did-stop', callback)
   }
 
+  // Private: Register a callback to be invoked with any errors reported from the watcher.
+  //
+  // Returns: A {Disposable} to revoke the subscription.
+  onDidError (callback) {
+    return this.emitter.on('did-error', callback)
+  }
+
   // Private: Broadcast an `onShouldDetach` event to prompt any {Watcher} instances bound here to attach to a new
   // {NativeWatcher} instead.
   reattachTo (other) {
@@ -160,11 +167,7 @@ class NativeWatcher {
   //
   // * `err` The native filesystem error.
   onError (err) {
-    if (!this.isRunning()) {
-      return
-    }
-
-    console.error(err)
+    this.emitter.emit('did-error', err)
   }
 }
 
@@ -232,6 +235,10 @@ class Watcher {
     })
   }
 
+  onDidError (callback) {
+    return this.emitter.on('did-error', callback)
+  }
+
   attachToNative (native) {
     this.subs.dispose()
     this.native = native
@@ -250,6 +257,10 @@ class Watcher {
       this.changeCallbacks.set(callback, newSub)
       formerSub.dispose()
     }
+
+    this.subs.add(native.onDidError(err => {
+      this.emitter.emit('did-error', err)
+    }))
 
     this.subs.add(native.onShouldDetach(replacement => {
       if (replacement !== native) {
