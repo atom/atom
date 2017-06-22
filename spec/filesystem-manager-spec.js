@@ -83,7 +83,23 @@ describe('FileSystemManager', function () {
       expect(started).toBe(true)
     })
 
-    it('automatically stops and removes the watcher when all onDidChange subscribers dispose')
+    it('automatically stops and removes the watcher when all onDidChange subscribers dispose', async function () {
+      const dir = await temp.mkdir('atom-fsmanager-')
+      const watcher = manager.getWatcher(dir)
+
+      const sub0 = watcher.onDidChange(() => {})
+      const sub1 = watcher.onDidChange(() => {})
+
+      await watcher.getStartPromise()
+      expect(watcher.native).not.toBe(null)
+      expect(watcher.native.isRunning()).toBe(true)
+
+      sub0.dispose()
+      expect(watcher.native.isRunning()).toBe(true)
+
+      sub1.dispose()
+      expect(watcher.native.isRunning()).toBe(false)
+    })
 
     it('reuses an existing native watcher and resolves getStartPromise immediately if attached to a running watcher', async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-')
