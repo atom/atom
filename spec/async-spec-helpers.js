@@ -20,6 +20,11 @@ export function afterEach (fn) {
 
 ['it', 'fit', 'ffit', 'fffit'].forEach(function (name) {
   module.exports[name] = function (description, fn) {
+    if (fn === undefined) {
+      global[name](description)
+      return
+    }
+
     global[name](description, function () {
       const result = fn()
       if (result instanceof Promise) {
