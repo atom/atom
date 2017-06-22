@@ -1,13 +1,20 @@
 /** @babel */
 
+import {it, beforeEach} from './async-spec-helpers'
+
 import path from 'path'
 import {Emitter} from 'event-kit'
 
 import NativeWatcherRegistry from '../src/native-watcher-registry'
 
 class MockWatcher {
-  constructor () {
+  constructor (normalizedPath) {
+    this.normalizedPath = normalizedPath
     this.native = null
+  }
+
+  getNormalizedPathPromise () {
+    return Promise.resolve(this.normalizedPath)
   }
 
   attachToNative (native) {
@@ -49,85 +56,143 @@ class MockNative {
 }
 
 describe('NativeWatcherRegistry', function () {
-  let registry, watcher
+  let createNative, registry
 
   beforeEach(function () {
-    registry = new NativeWatcherRegistry()
-    watcher = new MockWatcher()
+    registry = new NativeWatcherRegistry(normalizedPath => createNative(normalizedPath))
   })
 
-  it('attaches a Watcher to a newly created NativeWatcher for a new directory', function () {
+  it('attaches a Watcher to a newly created NativeWatcher for a new directory', async function () {
+    const watcher = new MockWatcher(path.join('some', 'path'))
     const NATIVE = new MockNative('created')
-    registry.attach('/some/path', watcher, () => NATIVE)
+    createNative = () => NATIVE
+
+    await registry.attach(watcher)
 
     expect(watcher.native).toBe(NATIVE)
   })
 
-  it('reuses an existing NativeWatcher on the same directory', function () {
+  it('reuses an existing NativeWatcher on the same directory', async function () {
     const EXISTING = new MockNative('existing')
-    registry.attach('/existing/path', new MockWatcher(), () => EXISTING)
+    const existingPath = path.join('existing', 'path')
+    let firstTime = true
+    createNative = () => {
+      if (firstTime) {
+        firstTime = false
+        return EXISTING
+      }
 
-    registry.attach('/existing/path', watcher, () => new MockNative('no'))
+      return new MockNative('nope')
+    }
+    await registry.attach(new MockWatcher(existingPath))
+
+    const watcher = new MockWatcher(existingPath)
+    await registry.attach(watcher)
 
     expect(watcher.native).toBe(EXISTING)
   })
 
-  it('attaches to an existing NativeWatcher on a parent directory', function () {
+  it('attaches to an existing NativeWatcher on a parent directory', async function () {
     const EXISTING = new MockNative('existing')
-    registry.attach('/existing/path', new MockWatcher(), () => EXISTING)
+    const parentDir = path.join('existing', 'path')
+    const subDir = path.join(parentDir, 'sub', 'directory')
+    let firstTime = true
+    createNative = () => {
+      if (firstTime) {
+        firstTime = false
+        return EXISTING
+      }
 
-    registry.attach('/existing/path/sub/directory/', watcher, () => new MockNative('no'))
+      return new MockNative('nope')
+    }
+    await registry.attach(new MockWatcher(parentDir))
+
+    const watcher = new MockWatcher(subDir)
+    await registry.attach(watcher)
 
     expect(watcher.native).toBe(EXISTING)
   })
 
-  it('adopts Watchers from NativeWatchers on child directories', function () {
-    const EXISTING0 = new MockNative('existing0')
-    const watcher0 = new MockWatcher()
-    registry.attach('/existing/path/child/directory/zero', watcher0, () => EXISTING0)
+  it('adopts Watchers from NativeWatchers on child directories', async function () {
+    const parentDir = path.join('existing', 'path')
+    const childDir0 = path.join(parentDir, 'child', 'directory', 'zero')
+    const childDir1 = path.join(parentDir, 'child', 'directory', 'one')
+    const otherDir = path.join('another', 'path')
 
-    const EXISTING1 = new MockNative('existing1')
-    const watcher1 = new MockWatcher()
-    registry.attach('/existing/path/child/directory/one', watcher1, () => EXISTING1)
+    const CHILD0 = new MockNative('existing0')
+    const CHILD1 = new MockNative('existing1')
+    const OTHER = new MockNative('existing2')
+    const PARENT = new MockNative('parent')
 
-    const EXISTING2 = new MockNative('existing2')
-    const watcher2 = new MockWatcher()
-    registry.attach('/another/path', watcher2, () => EXISTING2)
+    createNative = dir => {
+      if (dir === childDir0) {
+        return CHILD0
+      } else if (dir === childDir1) {
+        return CHILD1
+      } else if (dir === otherDir) {
+        return OTHER
+      } else if (dir === parentDir) {
+        return PARENT
+      } else {
+        throw new Error(`Unexpected path: ${dir}`)
+      }
+    }
 
-    expect(watcher0.native).toBe(EXISTING0)
-    expect(watcher1.native).toBe(EXISTING1)
-    expect(watcher2.native).toBe(EXISTING2)
+    const watcher0 = new MockWatcher(childDir0)
+    await registry.attach(watcher0)
+
+    const watcher1 = new MockWatcher(childDir1)
+    await registry.attach(watcher1)
+
+    const watcher2 = new MockWatcher(otherDir)
+    await registry.attach(watcher2)
+
+    expect(watcher0.native).toBe(CHILD0)
+    expect(watcher1.native).toBe(CHILD1)
+    expect(watcher2.native).toBe(OTHER)
 
     // Consolidate all three watchers beneath the same native watcher on the parent directory
-    const CREATED = new MockNative('created')
-    registry.attach('/existing/path/', watcher, () => CREATED)
+    const watcher = new MockWatcher(parentDir)
+    await registry.attach(watcher)
 
-    expect(watcher.native).toBe(CREATED)
+    expect(watcher.native).toBe(PARENT)
 
-    expect(watcher0.native).toBe(CREATED)
-    expect(EXISTING0.stopped).toBe(true)
-    expect(EXISTING0.disposed).toBe(true)
+    expect(watcher0.native).toBe(PARENT)
+    expect(CHILD0.stopped).toBe(true)
+    expect(CHILD0.disposed).toBe(true)
 
-    expect(watcher1.native).toBe(CREATED)
-    expect(EXISTING1.stopped).toBe(true)
-    expect(EXISTING1.disposed).toBe(true)
+    expect(watcher1.native).toBe(PARENT)
+    expect(CHILD1.stopped).toBe(true)
+    expect(CHILD1.disposed).toBe(true)
 
-    expect(watcher2.native).toBe(EXISTING2)
-    expect(EXISTING2.stopped).toBe(false)
-    expect(EXISTING2.disposed).toBe(false)
+    expect(watcher2.native).toBe(OTHER)
+    expect(OTHER.stopped).toBe(false)
+    expect(OTHER.disposed).toBe(false)
   })
 
   describe('removing NativeWatchers', function () {
-    it('happens when they stop', function () {
+    it('happens when they stop', async function () {
       const STOPPED = new MockNative('stopped')
-      const stoppedWatcher = new MockWatcher()
-      const stoppedPath = ['watcher', 'that', 'will', 'be', 'stopped']
-      registry.attach(path.join(...stoppedPath), stoppedWatcher, () => STOPPED)
-
       const RUNNING = new MockNative('running')
-      const runningWatcher = new MockWatcher()
+
+      const stoppedPath = ['watcher', 'that', 'will', 'be', 'stopped']
       const runningPath = ['watcher', 'that', 'will', 'continue', 'to', 'exist']
-      registry.attach(path.join(...runningPath), runningWatcher, () => RUNNING)
+
+      createNative = dir => {
+        if (dir === path.join(...stoppedPath)) {
+          return STOPPED
+        } else if (dir === path.join(...runningPath)) {
+          return RUNNING
+        } else {
+          throw new Error(`Unexpected path: ${dir}`)
+        }
+      }
+
+      const stoppedWatcher = new MockWatcher(path.join(...stoppedPath))
+      await registry.attach(stoppedWatcher)
+
+      const runningWatcher = new MockWatcher(path.join(...runningPath))
+      await registry.attach(runningWatcher)
 
       STOPPED.stop()
 

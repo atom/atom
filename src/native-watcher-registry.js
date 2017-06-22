@@ -221,8 +221,12 @@ class ChildrenResult {
 export default class NativeWatcherRegistry {
 
   // Private: Instantiate an empty registry.
-  constructor () {
+  //
+  // * `createNative` {Function} that will be called with a normalized filesystem path to create a new native
+  //   filesystem watcher.
+  constructor (createNative) {
     this.tree = new RegistryNode()
+    this.createNative = createNative
   }
 
   // Private: Attach a watcher to a directory, assigning it a {NativeWatcher}. If a suitable {NativeWatcher} already
@@ -234,15 +238,13 @@ export default class NativeWatcherRegistry {
   // be broadcast on each with the new parent watcher as an event payload to give child watchers a chance to attach to
   // the new watcher.
   //
-  // * `directory` a normalized path to be watched as a {String}.
   // * `watcher` an unattached {Watcher}.
-  // * `createNative` callback to be invoked if no existing {NativeWatcher} covers the {Watcher}. It should
-  //   synchronously return a new {NativeWatcher} instance watching {directory}.
-  attach (directory, watcher, createNative) {
-    const pathSegments = directory.split(path.sep).filter(segment => segment.length > 0)
+  async attach (watcher) {
+    const normalizedDirectory = await watcher.getNormalizedPathPromise()
+    const pathSegments = normalizedDirectory.split(path.sep).filter(segment => segment.length > 0)
 
     const attachToNew = () => {
-      const native = createNative()
+      const native = this.createNative(normalizedDirectory)
       const leaf = new RegistryWatcherNode(native)
       this.tree = this.tree.insert(pathSegments, leaf)
 
@@ -272,7 +274,7 @@ export default class NativeWatcherRegistry {
         for (let i = 0; i < children.length; i++) {
           const child = children[i]
           const childNative = child.getNativeWatcher()
-          childNative.reattachTo(newNative, directory)
+          childNative.reattachTo(newNative, normalizedDirectory)
           childNative.dispose()
 
           // Don't await this Promise. Subscribers can listen for `onDidStop` to be notified if they choose.
