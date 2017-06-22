@@ -111,9 +111,9 @@ class NativeWatcher {
     if (!this.running) {
       return
     }
+    this.running = false
 
     await this.watcher.stop()
-    this.running = false
     this.emitter.emit('did-stop')
   }
 
