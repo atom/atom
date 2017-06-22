@@ -248,8 +248,8 @@ export default class NativeWatcherRegistry {
       const leaf = new RegistryWatcherNode(native)
       this.tree = this.tree.insert(pathSegments, leaf)
 
-      const sub = native.onDidStop(() => {
-        this.tree = this.tree.remove(pathSegments)
+      const sub = native.onWillStop(() => {
+        this.tree = this.tree.remove(pathSegments) || new RegistryNode()
         sub.dispose()
       })
 

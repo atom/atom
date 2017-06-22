@@ -41,8 +41,8 @@ class MockNative {
     this.attached = []
   }
 
-  onDidStop (callback) {
-    return this.emitter.on('did-stop', callback)
+  onWillStop (callback) {
+    return this.emitter.on('will-stop', callback)
   }
 
   dispose () {
@@ -51,7 +51,7 @@ class MockNative {
 
   stop () {
     this.stopped = true
-    this.emitter.emit('did-stop')
+    this.emitter.emit('will-stop')
   }
 }
 

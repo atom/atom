@@ -93,14 +93,17 @@ describe('FileSystemManager', function () {
       const sub1 = watcher.onDidChange(() => {})
 
       await watcher.getStartPromise()
-      expect(watcher.native).not.toBe(null)
-      expect(watcher.native.isRunning()).toBe(true)
+      const native = watcher.native
+      expect(native).not.toBe(null)
+      expect(native.isRunning()).toBe(true)
 
       sub0.dispose()
-      expect(watcher.native.isRunning()).toBe(true)
+      expect(watcher.native).toBe(native)
+      expect(native.isRunning()).toBe(true)
 
       sub1.dispose()
-      expect(watcher.native.isRunning()).toBe(false)
+      expect(watcher.native).toBeNull()
+      expect(native.isRunning()).toBe(false)
     })
 
     it('reuses an existing native watcher and resolves getStartPromise immediately if attached to a running watcher', async function () {
@@ -117,48 +120,73 @@ describe('FileSystemManager', function () {
       expect(watcher0.native).toBe(watcher1.native)
     })
 
-    it('reuses an existing native watcher on a parent directory and filters events', async function () {
-      const rootDir = await temp.mkdir('atom-fsmanager-').then(fs.realpath)
+    it("reuses existing native watchers even while they're still starting", async function () {
+      const rootDir = await temp.mkdir('atom-fsmanager-')
 
+      const watcher0 = manager.getWatcher(rootDir)
+      watcher0.onDidChange(() => {})
+      await watcher0.getAttachedPromise()
+      expect(watcher0.native.isRunning()).toBe(false)
+
+      const watcher1 = manager.getWatcher(rootDir)
+      watcher1.onDidChange(() => {})
+      await watcher1.getAttachedPromise()
+
+      expect(watcher0.native).toBe(watcher1.native)
+
+      await Promise.all([watcher0.getStartPromise(), watcher1.getStartPromise()])
+    })
+
+    it("doesn't attach new watchers to a native watcher that's stopping", async function () {
+      const rootDir = await temp.mkdir('atom-fsmanager-')
+
+      const watcher0 = manager.getWatcher(rootDir)
+      const sub = watcher0.onDidChange(() => {})
+      await watcher0.getStartPromise()
+      const native0 = watcher0.native
+
+      sub.dispose()
+
+      const watcher1 = manager.getWatcher(rootDir)
+      watcher1.onDidChange(() => {})
+
+      expect(watcher1.native).not.toBe(native0)
+    })
+
+    it('reuses an existing native watcher on a parent directory and filters events', async function () {
+      const rootDir = await temp.mkdir('atom-fsmanager-0-').then(fs.realpath)
       const rootFile = path.join(rootDir, 'rootfile.txt')
       const subDir = path.join(rootDir, 'subdir')
       const subFile = path.join(subDir, 'subfile.txt')
-      await Promise.all([
-        fs.mkdir(subDir).then(
-          fs.writeFile(subFile, 'subfile\n', {encoding: 'utf8'})
-        ),
-        fs.writeFile(rootFile, 'rootfile\n', {encoding: 'utf8'})
-      ])
 
+      await fs.mkdir(subDir)
+
+      // Keep the watchers alive with an undisposed subscription
       const rootWatcher = manager.getWatcher(rootDir)
+      rootWatcher.onDidChange(() => {})
       const childWatcher = manager.getWatcher(subDir)
-
-      expect(rootWatcher.native).toBe(childWatcher.native)
-
-      const firstRootChange = waitForChanges(rootWatcher, subFile)
-      const firstChildChange = waitForChanges(childWatcher, subFile)
+      childWatcher.onDidChange(() => {})
 
       await Promise.all([
         rootWatcher.getStartPromise(),
         childWatcher.getStartPromise()
       ])
 
-      await fs.appendFile(subFile, 'changes\n', {encoding: 'utf8'})
+      expect(rootWatcher.native).toBe(childWatcher.native)
+      expect(rootWatcher.native.isRunning()).toBe(true)
 
-      const firstPayloads = await Promise.all([firstRootChange, firstChildChange])
+      const firstChanges = Promise.all([
+        waitForChanges(rootWatcher, subFile),
+        waitForChanges(childWatcher, subFile)
+      ])
 
-      for (const events of firstPayloads) {
-        expect(events.length).toBe(1)
-        expect(events[0].oldPath).toBe(subFile)
-      }
+      await fs.writeFile(subFile, 'subfile\n', {encoding: 'utf8'})
+      await firstChanges
 
       const nextRootEvent = waitForChanges(rootWatcher, rootFile)
-      await fs.appendFile(rootFile, 'changes\n', {encoding: 'utf8'})
+      await fs.writeFile(rootFile, 'rootfile\n', {encoding: 'utf8'})
 
-      const nextPayload = await nextRootEvent
-
-      expect(nextPayload.length).toBe(1)
-      expect(nextPayload[0].oldPath).toBe(rootFile)
+      await nextRootEvent
     })
 
     it('adopts existing child watchers and filters events appropriately to them', async function () {
@@ -181,17 +209,17 @@ describe('FileSystemManager', function () {
         )
       ])
 
-      // Begin the child watchers
+      // Begin the child watchers and keep them alive
       const subWatcher0 = manager.getWatcher(subDir0)
+      subWatcher0.onDidChange(() => {})
       const subWatcherChanges0 = waitForChanges(subWatcher0, subFile0)
 
       const subWatcher1 = manager.getWatcher(subDir1)
+      subWatcher1.onDidChange(() => {})
       const subWatcherChanges1 = waitForChanges(subWatcher1, subFile1)
 
       await Promise.all(
-        [subWatcher0, subWatcher1].map(watcher => {
-          return watcher.getStartPromise()
-        })
+        [subWatcher0, subWatcher1].map(watcher => watcher.getStartPromise())
       )
       expect(subWatcher0.native).not.toBe(subWatcher1.native)
 

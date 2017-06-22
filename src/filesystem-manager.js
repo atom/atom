@@ -16,6 +16,14 @@ const ACTION_MAP = new Map([
   [nsfw.actions.RENAMED, 'renamed']
 ])
 
+// Private: Possible states of a {NativeWatcher}.
+export const WATCHER_STATE = {
+  STOPPED: Symbol('stopped'),
+  STARTING: Symbol('starting'),
+  RUNNING: Symbol('running'),
+  STOPPING: Symbol('stopping')
+}
+
 // Private: Interface with and normalize events from a native OS filesystem watcher.
 class NativeWatcher {
 
@@ -27,16 +35,17 @@ class NativeWatcher {
     this.emitter = new Emitter()
 
     this.watcher = null
-    this.running = false
+    this.state = WATCHER_STATE.STOPPED
   }
 
   // Private: Begin watching for filesystem events.
   //
   // Has no effect if the watcher has already been started.
   async start () {
-    if (this.running) {
+    if (this.state !== WATCHER_STATE.STOPPED) {
       return
     }
+    this.state = WATCHER_STATE.STARTING
 
     this.watcher = await nsfw(
       this.normalizedPath,
@@ -49,13 +58,14 @@ class NativeWatcher {
 
     await this.watcher.start()
 
-    this.running = true
+
+    this.state = WATCHER_STATE.RUNNING
     this.emitter.emit('did-start')
   }
 
-  // Private: Return true if the underlying watcher has been started.
+  // Private: Return true if the underlying watcher is actively listening for filesystem events.
   isRunning () {
-    return this.running
+    return this.state === WATCHER_STATE.RUNNING
   }
 
   // Private: Register a callback to be invoked when the filesystem watcher has been initialized.
@@ -71,9 +81,7 @@ class NativeWatcher {
   //
   // Returns: A {Disposable} to revoke the subscription.
   onDidChange (callback) {
-    if (!this.isRunning()) {
-      this.start()
-    }
+    this.start()
 
     const sub = this.emitter.on('did-change', callback)
     return new Disposable(() => {
@@ -91,7 +99,14 @@ class NativeWatcher {
     return this.emitter.on('should-detach', callback)
   }
 
-  // Private: Register a callback to be invoked when the filesystem watcher has been initialized.
+  // Private: Register a callback to be invoked when a {NativeWatcher} is about to be stopped.
+  //
+  // Returns: A {Disposable} to revoke the subscription.
+  onWillStop (callback) {
+    return this.emitter.on('will-stop', callback)
+  }
+
+  // Private: Register a callback to be invoked when the filesystem watcher has been stopped.
   //
   // Returns: A {Disposable} to revoke the subscription.
   onDidStop (callback) {
@@ -108,12 +123,15 @@ class NativeWatcher {
   //
   // Has no effect if the watcher is not running.
   async stop () {
-    if (!this.running) {
+    if (this.state !== WATCHER_STATE.RUNNING) {
       return
     }
-    this.running = false
+    this.state = WATCHER_STATE.STOPPING
+    this.emitter.emit('will-stop')
 
     await this.watcher.stop()
+    this.state = WATCHER_STATE.STOPPED
+
     this.emitter.emit('did-stop')
   }
 
@@ -171,6 +189,9 @@ class Watcher {
       })
     })
 
+    this.attachedPromise = new Promise(resolve => {
+      this.resolveAttachedPromise = resolve
+    })
     this.startPromise = new Promise(resolve => {
       this.resolveStartPromise = resolve
     })
@@ -181,6 +202,10 @@ class Watcher {
 
   getNormalizedPathPromise () {
     return this.normalizedPathPromise
+  }
+
+  getAttachedPromise () {
+    return this.attachedPromise
   }
 
   getStartPromise () {
@@ -194,7 +219,7 @@ class Watcher {
 
       this.native.start()
     } else {
-      // Attach and retry
+      // Attach to a new native listener and retry
       this.nativeWatcherRegistry.attach(this).then(() => {
         this.onDidChange(callback)
       })
@@ -226,15 +251,18 @@ class Watcher {
       formerSub.dispose()
     }
 
-    if (this.changeCallbacks.size > 0) {
-      native.start()
-    }
-
     this.subs.add(native.onShouldDetach(replacement => {
       if (replacement !== native) {
         this.attachToNative(replacement)
       }
     }))
+
+    this.subs.add(native.onWillStop(() => {
+      this.subs.dispose()
+      this.native = null
+    }))
+
+    this.resolveAttachedPromise()
   }
 
   onNativeEvents (events, callback) {
@@ -265,7 +293,7 @@ export default class FileSystemManager {
         const nativeWatcher = new NativeWatcher(normalizedPath)
 
         this.liveWatchers.add(nativeWatcher)
-        const sub = nativeWatcher.onDidStop(() => {
+        const sub = nativeWatcher.onWillStop(() => {
           this.liveWatchers.delete(nativeWatcher)
           sub.dispose()
         })
