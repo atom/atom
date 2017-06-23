@@ -122,8 +122,11 @@ class NativeWatcher {
 
   // Private: Broadcast an `onShouldDetach` event to prompt any {Watcher} instances bound here to attach to a new
   // {NativeWatcher} instead.
-  reattachTo (other) {
-    this.emitter.emit('should-detach', other)
+  //
+  // * `replacement` the new {NativeWatcher} instance that a live {Watcher} instance should reattach to instead.
+  // * `watchedPath` absolute path watched by the new {NativeWatcher}.
+  reattachTo (replacement, watchedPath) {
+    this.emitter.emit('should-detach', {replacement, watchedPath})
   }
 
   // Private: Stop the native watcher and release any operating system resources associated with it.
@@ -262,8 +265,8 @@ class Watcher {
       this.emitter.emit('did-error', err)
     }))
 
-    this.subs.add(native.onShouldDetach(replacement => {
-      if (replacement !== native) {
+    this.subs.add(native.onShouldDetach(({replacement, watchedPath}) => {
+      if (replacement !== native && this.normalizedPath.startsWith(watchedPath)) {
         this.attachToNative(replacement)
       }
     }))
