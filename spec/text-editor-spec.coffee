@@ -5929,56 +5929,161 @@ describe "TextEditor", ->
       expect(editor.getElement() instanceof HTMLElement).toBe(true)
 
   describe "verticalScrollMargin", ->
+    it "scrolls the window to the top when there is a margin of 0", ->
+      # Give plenty of text to allow for scrolling.
+      editor.setText('a\n'.repeat(50))
+
+      # Make sure editor element has valid dimensions.
+      element = editor.getElement()
+      element.style.width  = '200px'
+      element.style.height = '120px'
+      jasmine.attachToDOM(element)
+
+      component = element.getComponent()
+      scrollMargin = 0
+
+      editor.update({verticalScrollMargin: scrollMargin})
+
+      # Move from row 20 to row 10.
+      # This makes sure we hit the top of screen but not the top of the buffer.
+      for row in [20..10]
+        editor.scrollToScreenPosition([row, 0])
+
+      # With margin of 0, the top of the screen should match our last position (10).
+      expect(component.getScrollTopRow()).toBe 10
+
+    it "scrolls the window to the bottom when there is a margin of 0", ->
+      # give plenty of text to allow for scrolling
+      editor.setText('a\n'.repeat(50))
+
+      # Make sure editor element has valid dimensions.
+      element = editor.getElement()
+      element.style.width  = '200px'
+      element.style.height = '120px'
+      jasmine.attachToDOM(element)
+
+      component = element.getComponent()
+      # Number of visible rows.
+      # For a height of 120px and a line height of 17px, this will be 7 rows.
+      rowCount = component.getLastVisibleRow()
+      scrollMargin = 0
+
+      editor.update({verticalScrollMargin: scrollMargin})
+
+      # Move from row 0 to row 10.
+      # This makes sure we hit the bottom of screen.
+      for row in [0..10]
+        editor.scrollToScreenPosition([row, 0])
+
+      # With margin of 0, the bottom of the screen should match our last position (10)
+      scrollBottomRow = component.getScrollTopRow() + rowCount
+      expect(scrollBottomRow).toBe 10
+
+    it "scrolls the window up before reaching the top with a given margin", ->
+      # Give plenty of text to allow for scrolling.
+      editor.setText('a\n'.repeat(50))
+
+      # Make sure editor element has valid dimensions.
+      element = editor.getElement()
+      element.style.width  = '200px'
+      element.style.height = '120px'
+      jasmine.attachToDOM(element)
+
+      component = element.getComponent()
+      scrollMargin = 2
+
+      editor.update({verticalScrollMargin: scrollMargin})
+
+      # Move from row 20 to row 10.
+      # This makes sure we hit the top of screen but not the top of the buffer.
+      for row in [20..10]
+        editor.scrollToScreenPosition([row, 0])
+
+      # Top of the screen should be last position (10) - margin (2)
+      expect(component.getScrollTopRow()).toBe 10 - scrollMargin
+
     it "scrolls the window down before reaching the bottom with a given margin", ->
       # give plenty of text to allow for scrolling
       editor.setText('a\n'.repeat(50))
 
-      # make sure editor element has valid dimensions
+      # Make sure editor element has valid dimensions.
       element = editor.getElement()
       element.style.width  = '200px'
       element.style.height = '120px'
       jasmine.attachToDOM(element)
 
       component = element.getComponent()
-      # for a height of 120px and a line height of 17px, this will be 7 rows
+      # Number of visible rows.
+      # For a height of 120px and a line height of 17px, this will be 7 rows.
       rowCount = component.getLastVisibleRow()
+      scrollMargin = 2
 
-      for scrollMargin in [0..4]
-        editor.update({verticalScrollMargin: scrollMargin})
+      editor.update({verticalScrollMargin: scrollMargin})
 
-        # margin is clamped so that it is no larger than half the screen
-        maxScrollMargin = Math.floor(((component.getScrollContainerClientHeight() / editor.getLineHeightInPixels()) - 1) / 2)
-        clampedScrollMargin = Math.min(scrollMargin, maxScrollMargin)
+      # Move from row 0 to row 10.
+      # This makes sure we hit the bottom of screen.
+      for row in [0..10]
+        editor.scrollToScreenPosition([row, 0])
 
-        # move from row 0 to 15, making sure margin is respected
-        for row in [0..15]
-          editor.scrollToScreenPosition([row, 0])
-          scrollBottomRow = component.getScrollTopRow() + rowCount
-          expect(scrollBottomRow).toBe Math.max(row + clampedScrollMargin, rowCount)
+      # Bottom of the screen should be last position (10) + margin (2)
+      scrollBottomRow = component.getScrollTopRow() + rowCount
+      expect(scrollBottomRow).toBe 10 + scrollMargin
 
-    it "scrolls the window up before reaching the top with a given margin", ->
+    it "scrolls the window up before reaching the top with a clamped margin", ->
+      # Give plenty of text to allow for scrolling.
+      editor.setText('a\n'.repeat(50))
+
+      # Make sure editor element has valid dimensions.
+      element = editor.getElement()
+      element.style.width  = '200px'
+      element.style.height = '120px'
+      jasmine.attachToDOM(element)
+
+      component = element.getComponent()
+      # Set scroll margin larger than half screen height.
+      # For a height of 120px and a line height of 17px, screen height is 7 rows.
+      scrollMargin = 5
+
+      editor.update({verticalScrollMargin: scrollMargin})
+
+      # Move from row 20 to row 10.
+      # This makes sure we hit the top of screen but not the top of the buffer.
+      for row in [20..10]
+        editor.scrollToScreenPosition([row, 0])
+
+      # Margin gets clamped so that it is no larger than half the screen.
+      maxScrollMargin = Math.floor(((component.getScrollContainerClientHeight() / editor.getLineHeightInPixels()) - 1) / 2)
+      clampedScrollMargin = Math.min(scrollMargin, maxScrollMargin)
+      # Top of the screen should be last position (10) - clampedScrollMargin
+      expect(component.getScrollTopRow()).toBe 10 - clampedScrollMargin
+
+    it "scrolls the window down before reaching the bottom with a clamped margin", ->
       # give plenty of text to allow for scrolling
       editor.setText('a\n'.repeat(50))
 
-      # make sure editor element has valid dimensions
+      # Make sure editor element has valid dimensions.
       element = editor.getElement()
       element.style.width  = '200px'
       element.style.height = '120px'
       jasmine.attachToDOM(element)
 
       component = element.getComponent()
-      # for a height of 120px and a line height of 17px, this will be 7 rows
+      # Number of visible rows.
+      # For a height of 120px and a line height of 17px, this will be 7 rows.
       rowCount = component.getLastVisibleRow()
+      # Set scroll margin larger than half screen height (i.e. larger than 7/2).
+      scrollMargin = 5
 
-      for scrollMargin in [0..4]
-        editor.update({verticalScrollMargin: scrollMargin})
+      editor.update({verticalScrollMargin: scrollMargin})
 
-        # margin is clamped so that it is no larger than half the screen
-        maxScrollMargin = Math.floor(((component.getScrollContainerClientHeight() / editor.getLineHeightInPixels()) - 1) / 2)
-        clampedScrollMargin = Math.min(scrollMargin, maxScrollMargin)
-        initialTop = 25 - rowCount + clampedScrollMargin
+      # Move from row 0 to row 10.
+      # This makes sure we hit the bottom of screen.
+      for row in [0..10]
+        editor.scrollToScreenPosition([row, 0])
 
-        # move from row 25 to 0, making sure margin is respected
-        for row in [25..0]
-          editor.scrollToScreenPosition([row, 0])
-          expect(component.getScrollTopRow()).toBe Math.max(0, Math.min(row - clampedScrollMargin, initialTop))
+      # Margin gets clamped so that it is no larger than half the screen.
+      maxScrollMargin = Math.floor(((component.getScrollContainerClientHeight() / editor.getLineHeightInPixels()) - 1) / 2)
+      clampedScrollMargin = Math.min(scrollMargin, maxScrollMargin)
+      # Bottom of the screen should be last position (10) + clampedScrollMargin (2)
+      scrollBottomRow = component.getScrollTopRow() + rowCount
+      expect(scrollBottomRow).toBe 10 + clampedScrollMargin
