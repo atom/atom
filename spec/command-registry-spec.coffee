@@ -165,8 +165,11 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(new CustomEvent('command-2', bubbles: true))
       expect(calls).toEqual []
 
-    it "invokes callbacks registered with ::onWillDispatch and ::onDidDispatch", ->
+    it "invokes callbacks registered with ::onWillDispatch and ::onDidDispatch and ::onDidFinish", ->
       sequence = []
+
+      registry.onDidFinish (event) ->
+        sequence.push ['onDidFinish', event]
 
       registry.onDidDispatch (event) ->
         sequence.push ['onDidDispatch', event]
@@ -183,9 +186,70 @@ describe "CommandRegistry", ->
       expect(sequence[1][0]).toBe 'listener'
       expect(sequence[2][0]).toBe 'onDidDispatch'
 
-      expect(sequence[0][1] is sequence[1][1] is sequence[2][1]).toBe true
-      expect(sequence[0][1].constructor).toBe CustomEvent
-      expect(sequence[0][1].target).toBe grandchild
+      waitsFor ( -> sequence.length is 4 ), "onDidFinish never called"
+
+      runs ->
+        expect(sequence[3][0]).toBe 'onDidFinish'
+
+        expect(sequence[0][1] is sequence[1][1] is sequence[2][1] is sequence[3][1]).toBe true
+        expect(sequence[0][1].constructor).toBe CustomEvent
+        expect(sequence[0][1].target).toBe grandchild
+
+    it "invokes callbacks registered with ::onDidFinish on resolve", ->
+      sequence = []
+
+      registry.onDidFinish (event) ->
+        sequence.push ['onDidFinish', event]
+
+      registry.add '.grandchild', 'command', (event) ->
+        sequence.push ['listener', event]
+        new Promise (resolve) ->
+          setTimeout ( ->
+              sequence.push ['resolve', event]
+              resolve()
+          ), 100
+
+      grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+      advanceClock 100
+
+      waitsFor ( -> sequence.length is 3 ), "onDidFinish never called for resolve"
+
+      runs ->
+        expect(sequence[0][0]).toBe 'listener'
+        expect(sequence[1][0]).toBe 'resolve'
+        expect(sequence[2][0]).toBe 'onDidFinish'
+
+        expect(sequence[0][1] is sequence[1][1] is sequence[2][1]).toBe true
+        expect(sequence[0][1].constructor).toBe CustomEvent
+        expect(sequence[0][1].target).toBe grandchild
+
+    it "invokes callbacks registered with ::onDidFinish on reject", ->
+      sequence = []
+
+      registry.onDidFinish (event) ->
+        sequence.push ['onDidFinish', event]
+
+      registry.add '.grandchild', 'command', (event) ->
+        sequence.push ['listener', event]
+        new Promise (_, reject) ->
+          setTimeout ( ->
+              sequence.push ['reject', event]
+              reject()
+          ), 100
+
+      grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+      advanceClock 100
+
+      waitsFor ( -> sequence.length is 3 ), "onDidFinish never called for reject"
+
+      runs ->
+        expect(sequence[0][0]).toBe 'listener'
+        expect(sequence[1][0]).toBe 'reject'
+        expect(sequence[2][0]).toBe 'onDidFinish'
+
+        expect(sequence[0][1] is sequence[1][1] is sequence[2][1]).toBe true
+        expect(sequence[0][1].constructor).toBe CustomEvent
+        expect(sequence[0][1].target).toBe grandchild
 
   describe "::add(selector, commandName, callback)", ->
     it "throws an error when called with an invalid selector", ->
