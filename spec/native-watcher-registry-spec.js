@@ -212,8 +212,66 @@ describe('NativeWatcherRegistry', function () {
       expect(stoppedNode).toBe(true)
     })
 
-    it("keeps a parent watcher that's still running")
+    it('reassigns new child watchers when a parent watcher is stopped', async function () {
+      const CHILD0 = new MockNative('child0')
+      const CHILD1 = new MockNative('child1')
+      const PARENT = new MockNative('parent')
 
-    it('reassigns new child watchers when a parent watcher is stopped')
+      const parentDir = path.join('parent')
+      const childDir0 = path.join(parentDir, 'child0')
+      const childDir1 = path.join(parentDir, 'child1')
+
+      createNative = dir => {
+        if (dir === parentDir) {
+          return PARENT
+        } else if (dir === childDir0) {
+          return CHILD0
+        } else if (dir === childDir1) {
+          return CHILD1
+        } else {
+          throw new Error(`Unexpected directory ${dir}`)
+        }
+      }
+
+      const parentWatcher = new MockWatcher(parentDir)
+      const childWatcher0 = new MockWatcher(childDir0)
+      const childWatcher1 = new MockWatcher(childDir1)
+
+      await registry.attach(parentWatcher)
+      await Promise.all([
+        registry.attach(childWatcher0),
+        registry.attach(childWatcher1)
+      ])
+
+      // All three watchers should share the parent watcher's native watcher.
+      expect(parentWatcher.native).toBe(PARENT)
+      expect(childWatcher0.native).toBe(PARENT)
+      expect(childWatcher1.native).toBe(PARENT)
+
+      // Stopping the parent should detach and recreate the child watchers.
+      // (Here, they'll be the same watcher instances used before, because of the fake createNative implementation.)
+      PARENT.stop()
+
+      expect(childWatcher0.native).toBe(CHILD0)
+      expect(childWatcher1.native).toBe(CHILD1)
+
+      expect(registry.tree.lookup(['parent']).when({
+        parent: () => false,
+        missing: () => false,
+        children: () => true
+      })).toBe(true)
+
+      expect(registry.tree.lookup(['parent', 'child0']).when({
+        parent: () => true,
+        missing: () => false,
+        children: () => false
+      })).toBe(true)
+
+      expect(registry.tree.lookup(['parent', 'child1']).when({
+        parent: () => true,
+        missing: () => false,
+        children: () => false
+      })).toBe(true)
+    })
   })
 })

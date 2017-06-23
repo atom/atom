@@ -21,7 +21,7 @@ class RegistryNode {
   //   exist.
   lookup (pathSegments) {
     if (pathSegments.length === 0) {
-      return new ChildrenResult(this.leaves())
+      return new ChildrenResult(this.leaves([]))
     }
 
     const child = this.children[pathSegments[0]]
@@ -85,13 +85,17 @@ class RegistryNode {
     return Object.keys(this.children).length === 0 ? null : this
   }
 
-  // Private: Discover all {RegistryWatcherNode} instances beneath this tree node.
+  // Private: Discover all {RegistryWatcherNode} instances beneath this tree node and the child paths
+  //  that they are watching.
   //
-  // Returns: A possibly empty {Array} of {RegistryWatcherNode} instances that are the descendants of this node.
-  leaves () {
+  // * `prefix` {Array} of intermediate path segments to prepend to the resulting child paths.
+  //
+  // Returns: A possibly empty {Array} of `{node, path}` objects describing {RegistryWatcherNode}
+  //  instances beneath this node.
+  leaves (prefix) {
     const results = []
     for (const p of Object.keys(this.children)) {
-      results.push(...this.children[p].leaves())
+      results.push(...this.children[p].leaves(prefix + [p]))
     }
     return results
   }
@@ -104,8 +108,11 @@ class RegistryWatcherNode {
   // Private: Allocate a new node to track a {NativeWatcher}.
   //
   // * `nativeWatcher` An existing {NativeWatcher} instance.
-  constructor (nativeWatcher) {
+  // * `childPaths` {Array} of child directories that are currently the responsibility of this
+  //   {NativeWatcher}, if any
+  constructor (nativeWatcher, childPaths) {
     this.nativeWatcher = nativeWatcher
+    this.childPaths = new Set(childPaths)
   }
 
   // Private: Accessor for the {NativeWatcher}.
@@ -133,9 +140,11 @@ class RegistryWatcherNode {
 
   // Private: Discover this {RegistryWatcherNode} instance.
   //
-  // Returns: An {Array} containing this node.
-  leaves () {
-    return [this]
+  // * `prefix` {Array} of intermediate path segments to prepend to the resulting child paths.
+  //
+  // Returns: An {Array} containing a `{node, path}` object describing this node.
+  leaves (prefix) {
+    return [{node: this, path: prefix}]
   }
 }
 
@@ -243,9 +252,9 @@ export default class NativeWatcherRegistry {
     const normalizedDirectory = await watcher.getNormalizedPathPromise()
     const pathSegments = normalizedDirectory.split(path.sep).filter(segment => segment.length > 0)
 
-    const attachToNew = () => {
+    const attachToNew = (childPaths) => {
       const native = this.createNative(normalizedDirectory)
-      const leaf = new RegistryWatcherNode(native)
+      const leaf = new RegistryWatcherNode(native, childPaths)
       this.tree = this.tree.insert(pathSegments, leaf)
 
       const sub = native.onWillStop(() => {
@@ -268,7 +277,7 @@ export default class NativeWatcherRegistry {
         watcher.attachToNative(native, subpath)
       },
       children: children => {
-        const newNative = attachToNew()
+        const newNative = attachToNew([])
 
         // One or more NativeWatchers exist on child directories of the requested path.
         for (let i = 0; i < children.length; i++) {
@@ -281,7 +290,7 @@ export default class NativeWatcherRegistry {
           childNative.stop()
         }
       },
-      missing: attachToNew
+      missing: () => attachToNew([])
     })
   }
 }
