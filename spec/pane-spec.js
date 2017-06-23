@@ -461,9 +461,10 @@ describe('Pane', () => {
       ;[item1, item2, item3] = pane.getItems()
     })
 
-    it('removes the item from the items list and destroys it', () => {
+    it('removes the item from the items list and destroys it', async () => {
       expect(pane.getActiveItem()).toBe(item1)
-      pane.destroyItem(item2)
+      const destroyed = await pane.destroyItem(item2)
+      expect(destroyed).toBe(true)
       expect(pane.getItems().includes(item2)).toBe(false)
       expect(item2.isDestroyed()).toBe(true)
       expect(pane.getActiveItem()).toBe(item1)
@@ -551,7 +552,8 @@ describe('Pane', () => {
             itemURI = 'test'
             confirm.andReturn(0)
 
-            await pane.destroyItem(item1)
+            const destroyed = await pane.destroyItem(item1)
+            expect(destroyed).toBe(true)
             expect(item1.save).toHaveBeenCalled()
             expect(pane.getItems().includes(item1)).toBe(false)
             expect(item1.isDestroyed()).toBe(true)
@@ -565,7 +567,8 @@ describe('Pane', () => {
             showSaveDialog.andReturn('/selected/path')
             confirm.andReturn(0)
 
-            await pane.destroyItem(item1)
+            const destroyed = await pane.destroyItem(item1)
+            expect(destroyed).toBe(true)
             expect(showSaveDialog).toHaveBeenCalled()
             expect(item1.saveAs).toHaveBeenCalledWith('/selected/path')
             expect(pane.getItems().includes(item1)).toBe(false)
@@ -578,7 +581,8 @@ describe('Pane', () => {
         it('removes and destroys the item without saving it', async () => {
           confirm.andReturn(2)
 
-          await pane.destroyItem(item1)
+          const destroyed = await pane.destroyItem(item1)
+          expect(destroyed).toBe(true)
           expect(item1.save).not.toHaveBeenCalled()
           expect(pane.getItems().includes(item1)).toBe(false)
           expect(item1.isDestroyed()).toBe(true)
@@ -589,7 +593,8 @@ describe('Pane', () => {
         it('does not save, remove, or destroy the item', async () => {
           confirm.andReturn(1)
 
-          await pane.destroyItem(item1)
+          const destroyed = await pane.destroyItem(item1)
+          expect(destroyed).toBe(false)
           expect(item1.save).not.toHaveBeenCalled()
           expect(pane.getItems().includes(item1)).toBe(true)
           expect(item1.isDestroyed()).toBe(false)
@@ -598,7 +603,8 @@ describe('Pane', () => {
 
       describe('when force=true', () => {
         it('destroys the item immediately', async () => {
-          await pane.destroyItem(item1, true)
+          const destroyed = await pane.destroyItem(item1, true)
+          expect(destroyed).toBe(true)
           expect(item1.save).not.toHaveBeenCalled()
           expect(pane.getItems().includes(item1)).toBe(false)
           expect(item1.isDestroyed()).toBe(true)

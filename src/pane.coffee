@@ -627,6 +627,7 @@ class Pane
       if force or not item?.shouldPromptToSave?()
         @removeItem(item, false)
         item.destroy?()
+        true
       else
         @promptToSaveItem(item).then (result) =>
           if result
