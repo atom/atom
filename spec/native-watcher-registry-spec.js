@@ -17,9 +17,14 @@ class MockWatcher {
     return Promise.resolve(this.normalizedPath)
   }
 
-  attachToNative (native) {
-    this.native = native
-    this.native.attached.push(this)
+  attachToNative (native, nativePath) {
+    if (this.normalizedPath.startsWith(nativePath)) {
+      if (this.native) {
+        this.native.attached = this.native.attached.filter(each => each !== this)
+      }
+      this.native = native
+      this.native.attached.push(this)
+    }
   }
 }
 
@@ -33,12 +38,10 @@ class MockNative {
     this.emitter = new Emitter()
   }
 
-  reattachTo (newNative) {
+  reattachTo (newNative, nativePath) {
     for (const watcher of this.attached) {
-      watcher.attachToNative(newNative)
+      watcher.attachToNative(newNative, nativePath)
     }
-
-    this.attached = []
   }
 
   onWillStop (callback) {
@@ -196,7 +199,7 @@ describe('NativeWatcherRegistry', function () {
 
       STOPPED.stop()
 
-      const runningNode = registry.tree.lookup(runningPath).when({
+      const runningNode = registry.tree.root.lookup(runningPath).when({
         parent: node => node,
         missing: () => false,
         children: () => false
@@ -204,7 +207,7 @@ describe('NativeWatcherRegistry', function () {
       expect(runningNode).toBeTruthy()
       expect(runningNode.getNativeWatcher()).toBe(RUNNING)
 
-      const stoppedNode = registry.tree.lookup(stoppedPath).when({
+      const stoppedNode = registry.tree.root.lookup(stoppedPath).when({
         parent: () => false,
         missing: () => true,
         children: () => false
@@ -249,25 +252,24 @@ describe('NativeWatcherRegistry', function () {
       expect(childWatcher1.native).toBe(PARENT)
 
       // Stopping the parent should detach and recreate the child watchers.
-      // (Here, they'll be the same watcher instances used before, because of the fake createNative implementation.)
       PARENT.stop()
 
       expect(childWatcher0.native).toBe(CHILD0)
       expect(childWatcher1.native).toBe(CHILD1)
 
-      expect(registry.tree.lookup(['parent']).when({
+      expect(registry.tree.root.lookup(['parent']).when({
         parent: () => false,
         missing: () => false,
         children: () => true
       })).toBe(true)
 
-      expect(registry.tree.lookup(['parent', 'child0']).when({
+      expect(registry.tree.root.lookup(['parent', 'child0']).when({
         parent: () => true,
         missing: () => false,
         children: () => false
       })).toBe(true)
 
-      expect(registry.tree.lookup(['parent', 'child1']).when({
+      expect(registry.tree.root.lookup(['parent', 'child1']).when({
         parent: () => true,
         missing: () => false,
         children: () => false
