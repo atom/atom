@@ -205,8 +205,8 @@ describe "CommandRegistry", ->
         sequence.push ['listener', event]
         new Promise (resolve) ->
           setTimeout ( ->
-              sequence.push ['resolve', event]
-              resolve()
+            sequence.push ['resolve', event]
+            resolve()
           ), 100
 
       grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
@@ -233,8 +233,8 @@ describe "CommandRegistry", ->
         sequence.push ['listener', event]
         new Promise (_, reject) ->
           setTimeout ( ->
-              sequence.push ['reject', event]
-              reject()
+            sequence.push ['reject', event]
+            reject()
           ), 100
 
       grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
