@@ -198,6 +198,13 @@ class CommandRegistry
   onDidDispatch: (callback) ->
     @emitter.on 'did-dispatch', callback
 
+  # Public: Invoke the given callback after finishing a command event.
+  #
+  # * `callback` {Function} to be called after finishing each command
+  #   * `event` The Event that was dispatched
+  onDidFinish: (callback) ->
+    @emitter.on 'did-finish', callback
+
   getSnapshot: ->
     snapshot = {}
     for commandName, listeners of @selectorBasedListenersByCommandName
@@ -251,10 +258,7 @@ class CommandRegistry
       # registration order.
       for listener in listeners by -1
         break if immediatePropagationStopped
-        matched.push
-          currentTarget: currentTarget
-          dispatchedEvent: dispatchedEvent
-          value: listener.callback.call(currentTarget, dispatchedEvent)
+        matched.push listener.callback.call(currentTarget, dispatchedEvent)
 
       break if currentTarget is window
       break if propagationStopped
@@ -262,7 +266,12 @@ class CommandRegistry
 
     @emitter.emit 'did-dispatch', dispatchedEvent
 
-    if matched.length > 0 then matched else false
+    Promise.all(matched).then(
+      ( => @emitter.emit 'did-finish', dispatchedEvent)
+      ( => @emitter.emit 'did-finish', dispatchedEvent)
+    )
+
+    matched.length > 0
 
   commandRegistered: (commandName) ->
     if @rootNode? and not @registeredCommands[commandName]
