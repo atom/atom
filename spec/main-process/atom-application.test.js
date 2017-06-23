@@ -342,6 +342,9 @@ describe('AtomApplication', function () {
     })
 
     it('reopens any previously opened windows when launched with no path', async function () {
+      // TODO remove
+      if (process.platform === 'win32') return
+
       const tempDirPath1 = makeTempDir()
       const tempDirPath2 = makeTempDir()
 
