@@ -86,9 +86,9 @@ class RegistryTree {
 
 }
 
-// Private: Non-leaf node in a tree used by the {NativeWatcherRegistry} to cover the allocated {Watcher} instances with
-// the most efficient set of {NativeWatcher} instances possible. Each {RegistryNode} maps to a directory in the
-// filesystem tree.
+// Private: Non-leaf node in a {RegistryTree} used by the {NativeWatcherRegistry} to cover the allocated {Watcher}
+// instances with the most efficient set of {NativeWatcher} instances possible. Each {RegistryNode} maps to a directory
+// in the filesystem tree.
 class RegistryNode {
 
   // Private: Construct a new, empty node representing a node with no watchers.
@@ -138,7 +138,7 @@ class RegistryNode {
     return this
   }
 
-  // Private: Remove a {RegistryWatcherNode} by the exact watched directory.
+  // Private: Remove a {RegistryWatcherNode} by its exact watched directory.
   //
   // * `pathSegments` absolute pre-split filesystem path of the node to remove.
   // * `createSplitNative` callback to be invoked with each child path segment {Array} if the {RegistryWatcherNode}
@@ -186,6 +186,7 @@ class RegistryNode {
     return results
   }
 
+  // Private: Return a {String} representation of this subtree for diagnostics and testing.
   print (indent = 0) {
     let spaces = ''
     for (let i = 0; i < indent; i++) {
@@ -246,6 +247,7 @@ class RegistryWatcherNode {
     return this.nativeWatcher
   }
 
+  // Private: Return the absolute path watched by this {NativeWatcher} as an {Array} of directory names.
   getAbsolutePathSegments () {
     return this.absolutePathSegments
   }
@@ -298,6 +300,8 @@ class RegistryWatcherNode {
     return [{node: this, path: prefix}]
   }
 
+  // Private: Return a {String} representation of this watcher for diagnostics and testing. Indicates the number of
+  // child paths that this node's {NativeWatcher} is responsible for.
   print (indent = 0) {
     let result = ''
     for (let i = 0; i < indent; i++) {
@@ -316,6 +320,7 @@ class RegistryWatcherNode {
 // Private: A {RegisteryNode} traversal result that's returned when neither a directory, its children, nor its parents
 // are present in the tree.
 class MissingResult {
+
   // Private: Instantiate a new {MissingResult}.
   //
   // * `lastParent` the final succesfully traversed {RegistryNode}.
