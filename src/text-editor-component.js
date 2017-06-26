@@ -2349,8 +2349,11 @@ class TextEditorComponent {
 
     let resizeObserver
     if (decoration.properties.item) {
-      resizeObserver = new ResizeObserver(() => {
-        this.invalidateBlockDecorationDimensions(decoration)
+      resizeObserver = new ResizeObserver((entries) => {
+        // We only call observe a single time, therefore entries should only have one entry
+        const height = entries[0].contentRect.height
+        this.lineTopIndex.resizeBlock(decoration, height)
+        this.scheduleUpdate()
       })
 
       resizeObserver.observe(decoration.properties.item)
