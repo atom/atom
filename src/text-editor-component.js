@@ -4034,7 +4034,6 @@ class NodePool {
   constructor () {
     this.elementsByType = {}
     this.textNodes = []
-    this.stylesByNode = new WeakMap()
   }
 
   getElement (type, className, style) {
@@ -4055,14 +4054,10 @@ class NodePool {
 
     if (element) {
       element.className = className
-      var existingStyle = this.stylesByNode.get(element)
-      if (existingStyle) {
-        for (var key in existingStyle) {
-          if (!style || !style[key]) element.style[key] = ''
-        }
-      }
+      element.styleMap.forEach((value, key) => {
+        if (!style || style[key] == null) element.style[key] = ''
+      })
       if (style) Object.assign(element.style, style)
-      this.stylesByNode.set(element, style)
 
       while (element.firstChild) element.firstChild.remove()
       return element
@@ -4070,7 +4065,6 @@ class NodePool {
       var newElement = document.createElement(type)
       if (className) newElement.className = className
       if (style) Object.assign(newElement.style, style)
-      this.stylesByNode.set(newElement, style)
       return newElement
     }
   }
