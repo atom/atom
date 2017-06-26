@@ -275,5 +275,64 @@ describe('NativeWatcherRegistry', function () {
         children: () => false
       })).toBe(true)
     })
+
+    it('consolidates children when splitting a parent watcher', async function () {
+      const CHILD0 = new MockNative('child0')
+      const PARENT = new MockNative('parent')
+
+      const parentDir = path.join('parent')
+      const childDir0 = path.join(parentDir, 'child0')
+      const childDir1 = path.join(parentDir, 'child0', 'child1')
+
+      createNative = dir => {
+        if (dir === parentDir) {
+          return PARENT
+        } else if (dir === childDir0) {
+          return CHILD0
+        } else {
+          throw new Error(`Unexpected directory ${dir}`)
+        }
+      }
+
+      const parentWatcher = new MockWatcher(parentDir)
+      const childWatcher0 = new MockWatcher(childDir0)
+      const childWatcher1 = new MockWatcher(childDir1)
+
+      await registry.attach(parentWatcher)
+      await Promise.all([
+        registry.attach(childWatcher0),
+        registry.attach(childWatcher1)
+      ])
+
+      // All three watchers should share the parent watcher's native watcher.
+      expect(parentWatcher.native).toBe(PARENT)
+      expect(childWatcher0.native).toBe(PARENT)
+      expect(childWatcher1.native).toBe(PARENT)
+
+      // Stopping the parent should detach and create the child watchers. Both child watchers should
+      // share the same native watcher.
+      PARENT.stop()
+
+      expect(childWatcher0.native).toBe(CHILD0)
+      expect(childWatcher1.native).toBe(CHILD0)
+
+      expect(registry.tree.root.lookup(['parent']).when({
+        parent: () => false,
+        missing: () => false,
+        children: () => true
+      })).toBe(true)
+
+      expect(registry.tree.root.lookup(['parent', 'child0']).when({
+        parent: () => true,
+        missing: () => false,
+        children: () => false
+      })).toBe(true)
+
+      expect(registry.tree.root.lookup(['parent', 'child0', 'child1']).when({
+        parent: () => true,
+        missing: () => false,
+        children: () => false
+      })).toBe(true)
+    })
   })
 })
