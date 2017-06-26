@@ -2,14 +2,35 @@
 
 import path from 'path'
 
+// Private: Map userland filesystem watcher subscriptions efficiently to deliver filesystem change notifications to
+// each watcher with the most efficient coverage of native watchers.
+//
+// * If two watchers subscribe to the same directory, use a single native watcher for each.
+// * Re-use a native watcher watching a parent directory for a watcher on a child directory. If the parent directory
+//   watcher is removed, it will be split into child watchers.
+// * If any child directories already being watched, stop and replace them with a watcher on the parent directory.
+//
+// Uses a Trie whose structure mirrors the directory structure.
 class RegistryTree {
 
+  // Private: Construct a tree with no native watchers.
+  //
+  // * `basePathSegments` the position of this tree's root relative to the filesystem's root as an {Array} of directory
+  //   names.
+  // * `createNative` {Function} used to construct new native watchers. It should accept an absolute path as an argument
+  //   and return a new {NativeWatcher}.
   constructor (basePathSegments, createNative) {
     this.basePathSegments = basePathSegments
     this.root = new RegistryNode()
     this.createNative = createNative
   }
 
+  // Private: Identify the native watcher that should be used to produce events at a watched path, creating a new one
+  // if necessary.
+  //
+  // * `pathSegments` the path to watch represented as an {Array} of directory names relative to this {RegistryTree}'s
+  //   root.
+  // * `attachToNative` {Function} invoked with the appropriate native watcher and the absolute path to its watch root.
   add (pathSegments, attachToNative) {
     const absolutePathSegments = this.basePathSegments.concat(pathSegments)
     const absolutePath = path.join(...absolutePathSegments)
@@ -53,10 +74,12 @@ class RegistryTree {
     })
   }
 
+  // Private: Access the root node of the tree.
   getRoot () {
     return this.root
   }
 
+  // Private: Return a {String} representation of this tree's structure for diagnostics and testing.
   print () {
     return this.root.print()
   }
