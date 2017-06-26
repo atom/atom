@@ -57,6 +57,10 @@ class RegistryTree {
     return this.root
   }
 
+  print () {
+    return this.root.print()
+  }
+
 }
 
 // Private: Non-leaf node in a tree used by the {NativeWatcherRegistry} to cover the allocated {Watcher} instances with
@@ -158,6 +162,19 @@ class RegistryNode {
     }
     return results
   }
+
+  print (indent = 0) {
+    let spaces = ''
+    for (let i = 0; i < indent; i++) {
+      spaces += ' '
+    }
+
+    let result = ''
+    for (const p of Object.keys(this.children)) {
+      result += `${spaces}${p}\n${this.children[p].print(indent + 2)}`
+    }
+    return result
+  }
 }
 
 // Private: Leaf node within a {NativeWatcherRegistry} tree. Represents a directory that is covered by a
@@ -256,6 +273,20 @@ class RegistryWatcherNode {
   // Returns: An {Array} containing a `{node, path}` object describing this node.
   leaves (prefix) {
     return [{node: this, path: prefix}]
+  }
+
+  print (indent = 0) {
+    let result = ''
+    for (let i = 0; i < indent; i++) {
+      result += ' '
+    }
+    result += '[watcher'
+    if (this.childPaths.size > 0) {
+      result += ` +${this.childPaths.size}`
+    }
+    result += ']\n'
+
+    return result
   }
 }
 
