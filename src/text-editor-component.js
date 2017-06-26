@@ -163,6 +163,18 @@ class TextEditorComponent {
     this.pendingScrollTopRow = this.props.initialScrollTopRow
     this.pendingScrollLeftColumn = this.props.initialScrollLeftColumn
 
+    this.blockDecorationObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        for (let decoration of this.decorationsToObserve) {
+          if (entry.target === decoration.getProperties().item) {
+            this.lineTopIndex.resizeBlock(decoration, entry.contentRect.height)
+            break
+          }
+        }
+      }
+      this.scheduleUpdate()
+    })
+
     this.measuredContent = false
     this.queryGuttersToRender()
     this.queryMaxLineNumberDigits()
@@ -911,6 +923,8 @@ class TextEditorComponent {
   }
 
   queryDecorationsToRender () {
+    this.blockDecorationObserver.disconnect()
+    this.decorationsToObserve = []
     this.decorationsToRender.lineNumbers = []
     this.decorationsToRender.lines = []
     this.decorationsToRender.overlays.length = 0
@@ -922,11 +936,24 @@ class TextEditorComponent {
     this.textDecorationsByMarker.clear()
     this.textDecorationBoundaries.length = 0
 
-    const decorationsByMarker =
-      this.props.model.decorationManager.decorationPropertiesByMarkerForScreenRowRange(
-        this.getRenderedStartRow(),
-        this.getRenderedEndRow()
-      )
+    const startRow = this.getRenderedStartRow()
+    const endRow = this.getRenderedEndRow()
+
+    const decorationsByMarker = this.props.model.decorationManager
+      .decorationPropertiesByMarkerForScreenRowRange(startRow, endRow)
+
+    const decorations = this.props.model.decorationManager
+      .decorationsForScreenRowRange(startRow, endRow)
+
+    for (let id in decorations) {
+      decorations[id].forEach((decoration) => {
+        const props = decoration.getProperties()
+        if (props.type === 'block' && props.item) {
+          this.decorationsToObserve.push(decoration)
+          this.blockDecorationObserver.observe(props.item)
+        }
+      })
+    }
 
     decorationsByMarker.forEach((decorations, marker) => {
       const screenRange = marker.getScreenRange()
@@ -2347,18 +2374,6 @@ class TextEditorComponent {
 
     this.blockDecorationsToMeasure.add(decoration)
 
-    let resizeObserver
-    if (decoration.properties.item) {
-      resizeObserver = new ResizeObserver((entries) => {
-        // We only call observe a single time, therefore entries should only have one entry
-        const height = entries[0].contentRect.height
-        this.lineTopIndex.resizeBlock(decoration, height)
-        this.scheduleUpdate()
-      })
-
-      resizeObserver.observe(decoration.properties.item)
-    }
-
     const didUpdateDisposable = marker.bufferMarker.onDidChange((e) => {
       if (!e.textChanged) {
         this.lineTopIndex.moveBlock(decoration, marker.getHeadScreenPosition().row)
@@ -2370,7 +2385,8 @@ class TextEditorComponent {
       this.lineTopIndex.removeBlock(decoration)
       didUpdateDisposable.dispose()
       didDestroyDisposable.dispose()
-      if (resizeObserver) resizeObserver.disconnect()
+      const item = decoration.getProperties().item
+      if (item) this.blockDecorationObserver.unobserve(item)
       this.scheduleUpdate()
     })
   }
