@@ -821,7 +821,7 @@ class AtomEnvironment extends Model
     @emitter.emit 'did-beep'
 
   # Essential: A flexible way to open a dialog akin to an alert dialog.
-  # 
+  #
   # If the dialog is closed (via `Esc` key or `X` in the top corner) without selecting a button
   # the first button will be clicked unless a "Cancel" or "No" button is provided.
   #
