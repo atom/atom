@@ -213,7 +213,7 @@ class RegistryWatcherNode {
   // Private: Identify how this watcher relates to a request to watch a directory tree.
   //
   // * `pathSegments` filesystem path of a new {Watcher} already split into an Array of directory names.
-  //g
+  //
   // Returns: A {ParentResult} referencing this node.
   lookup (pathSegments) {
     return new ParentResult(this, pathSegments)
