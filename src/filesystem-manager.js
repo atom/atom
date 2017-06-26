@@ -58,7 +58,6 @@ class NativeWatcher {
 
     await this.watcher.start()
 
-
     this.state = WATCHER_STATE.RUNNING
     this.emitter.emit('did-start')
   }
