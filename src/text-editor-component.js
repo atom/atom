@@ -1,4 +1,4 @@
-/* global ResizeObserver, MutationObserver */
+/* global ResizeObserver */
 
 const etch = require('etch')
 const {Point, Range} = require('text-buffer')
@@ -2347,15 +2347,13 @@ class TextEditorComponent {
 
     this.blockDecorationsToMeasure.add(decoration)
 
-    let mutationObserver
+    let resizeObserver
     if (decoration.properties.item) {
-      mutationObserver = new MutationObserver(() => {
+      resizeObserver = new ResizeObserver(() => {
         this.invalidateBlockDecorationDimensions(decoration)
       })
 
-      mutationObserver.observe(decoration.properties.item, {
-        attributes: true, childList: true, characterData: true, subtree: true
-      })
+      resizeObserver.observe(decoration.properties.item)
     }
 
     const didUpdateDisposable = marker.bufferMarker.onDidChange((e) => {
@@ -2369,7 +2367,7 @@ class TextEditorComponent {
       this.lineTopIndex.removeBlock(decoration)
       didUpdateDisposable.dispose()
       didDestroyDisposable.dispose()
-      if (mutationObserver) mutationObserver.disconnect()
+      if (resizeObserver) resizeObserver.disconnect()
       this.scheduleUpdate()
     })
   }
