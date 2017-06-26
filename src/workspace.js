@@ -587,6 +587,7 @@ module.exports = class Workspace extends Model {
 
     document.title = titleParts.join(' \u2014 ')
     this.applicationDelegate.setRepresentedFilename(representedPath)
+    this.emitter.emit('did-change-window-title')
   }
 
   // On macOS, fades the application window's proxy icon when the current file
@@ -862,6 +863,10 @@ module.exports = class Workspace extends Model {
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddTextEditor (callback) {
     return this.emitter.on('did-add-text-editor', callback)
+  }
+
+  onDidChangeWindowTitle (callback) {
+    return this.emitter.on('did-change-window-title', callback)
   }
 
   /*

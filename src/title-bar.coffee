@@ -10,7 +10,7 @@ class TitleBar
 
     @element.addEventListener 'dblclick', @dblclickHandler
 
-    @workspace.onDidChangeActivePaneItem => @updateTitle()
+    @workspace.onDidChangeWindowTitle => @updateTitle()
     @themes.onDidChangeActiveThemes => @updateWindowSheetOffset()
 
     @updateTitle()
