@@ -2035,6 +2035,31 @@ describe('TextEditorComponent', () => {
       expect(item6.previousSibling).toBe(lineNodeForScreenRow(component, 12))
     })
 
+    it('measures block decorations correctly when they are added before the component width has been updated', async () => {
+      {
+        const {editor, component, element} = buildComponent({autoHeight: false, width: 500, attach: false})
+        const marker = editor.markScreenPosition([0, 0])
+        const item = document.createElement('div')
+        item.textContent = 'block decoration'
+        const decoration = editor.decorateMarker(marker, {type: 'block', item})
+
+        jasmine.attachToDOM(element)
+        assertLinesAreAlignedWithLineNumbers(component)
+      }
+
+      {
+        const {editor, component, element} = buildComponent({autoHeight: false, width: 800})
+        const marker = editor.markScreenPosition([0, 0])
+        const item = document.createElement('div')
+        item.textContent = 'block decoration that could wrap many times'
+        const decoration = editor.decorateMarker(marker, {type: 'block', item})
+
+        element.style.width = '50px'
+        await component.getNextUpdatePromise()
+        assertLinesAreAlignedWithLineNumbers(component)
+      }
+    })
+
     it('bases the width of the block decoration measurement area on the editor scroll width', async () => {
       const {component, element} = buildComponent({autoHeight: false, width: 150})
       expect(component.refs.blockDecorationMeasurementArea.offsetWidth).toBe(component.getScrollWidth())

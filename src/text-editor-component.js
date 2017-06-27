@@ -312,6 +312,11 @@ class TextEditorComponent {
         }
       })
 
+      if (this.resizeBlockDecorationMeasurementsArea) {
+        this.resizeBlockDecorationMeasurementsArea = false
+        this.refs.blockDecorationMeasurementArea.style.width = this.getScrollWidth() + 'px'
+      }
+
       this.blockDecorationsToMeasure.forEach((decoration) => {
         const {item} = decoration.getProperties()
         const decorationElement = TextEditor.viewForItem(item)
@@ -1391,6 +1396,7 @@ class TextEditorComponent {
       if (!this.hasInitialMeasurements) this.measureDimensions()
       this.visible = true
       this.props.model.setVisible(true)
+      this.resizeBlockDecorationMeasurementsArea = true
       this.updateSync()
       this.flushPendingLogicalScrollPosition()
     }
