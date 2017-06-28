@@ -1,24 +1,37 @@
-{Menu} = require 'electron'
+let ContextMenu;
+import { Menu } from 'electron';
 
-module.exports =
-class ContextMenu
-  constructor: (template, @atomWindow) ->
-    template = @createClickHandlers(template)
-    menu = Menu.buildFromTemplate(template)
-    menu.popup(@atomWindow.browserWindow)
+export default
+(ContextMenu = class ContextMenu {
+  constructor(template, atomWindow) {
+    this.atomWindow = atomWindow;
+    template = this.createClickHandlers(template);
+    let menu = Menu.buildFromTemplate(template);
+    menu.popup(this.atomWindow.browserWindow);
+  }
 
-  # It's necessary to build the event handlers in this process, otherwise
-  # closures are dragged across processes and failed to be garbage collected
-  # appropriately.
-  createClickHandlers: (template) ->
-    for item in template
-      if item.command
-        item.commandDetail ?= {}
-        item.commandDetail.contextCommand = true
-        item.commandDetail.atomWindow = @atomWindow
-        do (item) =>
-          item.click = =>
-            global.atomApplication.sendCommandToWindow(item.command, @atomWindow, item.commandDetail)
-      else if item.submenu
-        @createClickHandlers(item.submenu)
-      item
+  // It's necessary to build the event handlers in this process, otherwise
+  // closures are dragged across processes and failed to be garbage collected
+  // appropriately.
+  createClickHandlers(template) {
+    return (() => {
+      let result = [];
+      for (let item of Array.from(template)) {
+        if (item.command) {
+          if (item.commandDetail == null) { item.commandDetail = {}; }
+          item.commandDetail.contextCommand = true;
+          item.commandDetail.atomWindow = this.atomWindow;
+          (item => {
+            return item.click = () => {
+              return global.atomApplication.sendCommandToWindow(item.command, this.atomWindow, item.commandDetail);
+            };
+          })(item);
+        } else if (item.submenu) {
+          this.createClickHandlers(item.submenu);
+        }
+        result.push(item);
+      }
+      return result;
+    })();
+  }
+});

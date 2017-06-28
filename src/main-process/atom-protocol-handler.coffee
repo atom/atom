@@ -1,43 +1,61 @@
-{protocol} = require 'electron'
-fs = require 'fs'
-path = require 'path'
+let AtomProtocolHandler;
+import { protocol } from 'electron';
+import fs from 'fs';
+import path from 'path';
 
-# Handles requests with 'atom' protocol.
-#
-# It's created by {AtomApplication} upon instantiation and is used to create a
-# custom resource loader for 'atom://' URLs.
-#
-# The following directories are searched in order:
-#   * ~/.atom/assets
-#   * ~/.atom/dev/packages (unless in safe mode)
-#   * ~/.atom/packages
-#   * RESOURCE_PATH/node_modules
-#
-module.exports =
-class AtomProtocolHandler
-  constructor: (resourcePath, safeMode) ->
-    @loadPaths = []
+// Handles requests with 'atom' protocol.
+//
+// It's created by {AtomApplication} upon instantiation and is used to create a
+// custom resource loader for 'atom://' URLs.
+//
+// The following directories are searched in order:
+//   * ~/.atom/assets
+//   * ~/.atom/dev/packages (unless in safe mode)
+//   * ~/.atom/packages
+//   * RESOURCE_PATH/node_modules
+//
+export default
+(AtomProtocolHandler = class AtomProtocolHandler {
+  constructor(resourcePath, safeMode) {
+    this.loadPaths = [];
 
-    unless safeMode
-      @loadPaths.push(path.join(process.env.ATOM_HOME, 'dev', 'packages'))
+    if (!safeMode) {
+      this.loadPaths.push(path.join(process.env.ATOM_HOME, 'dev', 'packages'));
+    }
 
-    @loadPaths.push(path.join(process.env.ATOM_HOME, 'packages'))
-    @loadPaths.push(path.join(resourcePath, 'node_modules'))
+    this.loadPaths.push(path.join(process.env.ATOM_HOME, 'packages'));
+    this.loadPaths.push(path.join(resourcePath, 'node_modules'));
 
-    @registerAtomProtocol()
+    this.registerAtomProtocol();
+  }
 
-  # Creates the 'atom' custom protocol handler.
-  registerAtomProtocol: ->
-    protocol.registerFileProtocol 'atom', (request, callback) =>
-      relativePath = path.normalize(request.url.substr(7))
+  // Creates the 'atom' custom protocol handler.
+  registerAtomProtocol() {
+    return protocol.registerFileProtocol('atom', (request, callback) => {
+      let filePath;
+      let relativePath = path.normalize(request.url.substr(7));
 
-      if relativePath.indexOf('assets/') is 0
-        assetsPath = path.join(process.env.ATOM_HOME, relativePath)
-        filePath = assetsPath if fs.statSyncNoException(assetsPath).isFile?()
+      if (relativePath.indexOf('assets/') === 0) {
+        let assetsPath = path.join(process.env.ATOM_HOME, relativePath);
+        if (__guardMethod__(fs.statSyncNoException(assetsPath), 'isFile', o => o.isFile())) { filePath = assetsPath; }
+      }
 
-      unless filePath
-        for loadPath in @loadPaths
-          filePath = path.join(loadPath, relativePath)
-          break if fs.statSyncNoException(filePath).isFile?()
+      if (!filePath) {
+        for (let loadPath of Array.from(this.loadPaths)) {
+          filePath = path.join(loadPath, relativePath);
+          if (__guardMethod__(fs.statSyncNoException(filePath), 'isFile', o1 => o1.isFile())) { break; }
+        }
+      }
 
-      callback(filePath)
+      return callback(filePath);
+    });
+  }
+});
+
+function __guardMethod__(obj, methodName, transform) {
+  if (typeof obj !== 'undefined' && obj !== null && typeof obj[methodName] === 'function') {
+    return transform(obj, methodName);
+  } else {
+    return undefined;
+  }
+}
