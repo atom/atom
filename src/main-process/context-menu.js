@@ -1,39 +1,37 @@
 'use babel'
 
-let ContextMenu;
-import { Menu } from 'electron';
+import { Menu } from 'electron'
 
-export default
-(ContextMenu = class ContextMenu {
-  constructor(template, atomWindow) {
-    this.atomWindow = atomWindow;
-    template = this.createClickHandlers(template);
-    let menu = Menu.buildFromTemplate(template);
-    menu.popup(this.atomWindow.browserWindow);
+export default class ContextMenu {
+  constructor (template, atomWindow) {
+    this.atomWindow = atomWindow
+    template = this.createClickHandlers(template)
+    let menu = Menu.buildFromTemplate(template)
+    menu.popup(this.atomWindow.browserWindow)
   }
 
   // It's necessary to build the event handlers in this process, otherwise
   // closures are dragged across processes and failed to be garbage collected
   // appropriately.
-  createClickHandlers(template) {
+  createClickHandlers (template) {
     return (() => {
-      let result = [];
+      let result = []
       for (let item of Array.from(template)) {
         if (item.command) {
-          if (item.commandDetail == null) { item.commandDetail = {}; }
-          item.commandDetail.contextCommand = true;
+          if (item.commandDetail == null) { item.commandDetail = {} }
+          item.commandDetail.contextCommand = true
           item.commandDetail.atomWindow = this.atomWindow;
           (item => {
-            return item.click = () => {
-              return global.atomApplication.sendCommandToWindow(item.command, this.atomWindow, item.commandDetail);
-            };
-          })(item);
+            item.click = () => {
+              return global.atomApplication.sendCommandToWindow(item.command, this.atomWindow, item.commandDetail)
+            }
+          })(item)
         } else if (item.submenu) {
-          this.createClickHandlers(item.submenu);
+          this.createClickHandlers(item.submenu)
         }
-        result.push(item);
+        result.push(item)
       }
-      return result;
-    })();
+      return result
+    })()
   }
-});
+}
