@@ -1,3 +1,5 @@
+'use babel'
+
 let powershellPath;
 import path from 'path';
 import Spawner from './spawner';

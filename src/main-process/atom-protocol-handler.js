@@ -1,3 +1,5 @@
+'use babel'
+
 let AtomProtocolHandler;
 import { protocol } from 'electron';
 import fs from 'fs';

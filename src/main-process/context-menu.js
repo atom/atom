@@ -1,3 +1,5 @@
+'use babel'
+
 let ContextMenu;
 import { Menu } from 'electron';
 

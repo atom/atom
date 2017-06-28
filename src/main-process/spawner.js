@@ -1,3 +1,5 @@
+'use babel'
+
 import ChildProcess from 'child_process';
 
 // Spawn a command and invoke the callback when it completes with an error
