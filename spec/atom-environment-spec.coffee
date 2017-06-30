@@ -302,7 +302,7 @@ describe "AtomEnvironment", ->
       waitsForPromise ->
         atom.workspace.open('sample.js').then (e) -> editor = e
 
-      runs ->
+      waitsForPromise ->
         atom.textEditors.setGrammarOverride(editor, 'text.plain')
 
         atom2 = new AtomEnvironment({
@@ -317,11 +317,9 @@ describe "AtomEnvironment", ->
           )
         })
         atom2.initialize({document, window})
-        atom2.deserialize(atom.serialize())
-
-        expect(atom2.textEditors.getGrammarOverride(editor)).toBe('text.plain')
-
-        atom2.destroy()
+        atom2.deserialize(atom.serialize()).then ->
+          expect(atom2.textEditors.getGrammarOverride(editor)).toBe('text.plain')
+          atom2.destroy()
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
@@ -478,8 +476,6 @@ describe "AtomEnvironment", ->
           newWindow: true
           devMode: atom.inDevMode()
           safeMode: atom.inSafeMode()
-
-
 
   describe "::unloadEditorWindow()", ->
     it "saves the BlobStore so it can be loaded after reload", ->

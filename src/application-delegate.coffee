@@ -232,19 +232,14 @@ class ApplicationDelegate
     new Disposable ->
       ipcRenderer.removeListener('context-command', outerCallback)
 
-  onSaveWindowStateRequest: (callback) ->
+  onDidRequestUnload: (callback) ->
     outerCallback = (event, message) ->
-      callback(event)
+      callback(event).then (shouldUnload) ->
+        ipcRenderer.send('did-prepare-to-unload', shouldUnload)
 
-    ipcRenderer.on('save-window-state', outerCallback)
+    ipcRenderer.on('prepare-to-unload', outerCallback)
     new Disposable ->
-      ipcRenderer.removeListener('save-window-state', outerCallback)
-
-  didSaveWindowState: ->
-    ipcRenderer.send('did-save-window-state')
-
-  didCancelWindowUnload: ->
-    ipcRenderer.send('did-cancel-window-unload')
+      ipcRenderer.removeListener('prepare-to-unload', outerCallback)
 
   onDidChangeHistoryManager: (callback) ->
     outerCallback = (event, message) ->

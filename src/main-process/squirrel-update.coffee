@@ -87,8 +87,8 @@ removeCommandsFromPath = (callback) ->
 
 # Create a desktop and start menu shortcut by using the command line API
 # provided by Squirrel's Update.exe
-createShortcuts = (callback) ->
-  spawnUpdate(['--createShortcut', exeName], callback)
+createShortcuts = (locations, callback) ->
+  spawnUpdate(['--createShortcut', exeName, '-l', locations.join(',')], callback)
 
 # Update the desktop and start menu shortcuts by using the command line API
 # provided by Squirrel's Update.exe
@@ -98,14 +98,12 @@ updateShortcuts = (callback) ->
     # Check if the desktop shortcut has been previously deleted and
     # and keep it deleted if it was
     fs.exists desktopShortcutPath, (desktopShortcutExists) ->
-      createShortcuts ->
-        if desktopShortcutExists
-          callback()
-        else
-          # Remove the unwanted desktop shortcut that was recreated
-          fs.unlink(desktopShortcutPath, callback)
+      locations = ['StartMenu']
+      locations.push 'Desktop' if desktopShortcutExists
+
+      createShortcuts locations, callback
   else
-    createShortcuts(callback)
+    createShortcuts ['Desktop', 'StartMenu'], callback
 
 # Remove the desktop and start menu shortcuts by using the command line API
 # provided by Squirrel's Update.exe
@@ -135,7 +133,7 @@ updateContextMenus = (callback) ->
 exports.handleStartupEvent = (app, squirrelCommand) ->
   switch squirrelCommand
     when '--squirrel-install'
-      createShortcuts ->
+      createShortcuts ['Desktop', 'StartMenu'], ->
         addCommandsToPath ->
           WinShell.fileHandler.register ->
             updateContextMenus ->

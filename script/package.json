@@ -12,7 +12,7 @@
     "electron-link": "0.1.0",
     "electron-mksnapshot": "~1.6",
     "electron-packager": "7.3.0",
-    "electron-winstaller": "2.5.2",
+    "electron-winstaller": "2.6.2",
     "fs-extra": "0.30.0",
     "glob": "7.0.3",
     "joanna": "0.0.8",

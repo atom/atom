@@ -91,7 +91,7 @@ Also, because Atom is so extensible, it's possible that a feature you've become 
 
 #### Package Conventions
 
-Thera are a few conventions that have developed over time around packages:
+There are a few conventions that have developed over time around packages:
 
 * Packages that add one or more syntax highlighting grammars are named `language-[language-name]`
     * Language packages can add other things besides just a grammar. Many offer commonly-used snippets. Try not to add too much though.
@@ -196,6 +196,19 @@ Unsure where to begin contributing to Atom? You can start by looking through the
 Both issue lists are sorted by total number of comments. While not perfect, number of comments is a reasonable proxy for impact a given change will have.
 
 If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](http://flight-manual.atom.io) is free and available online. You can find the source to the manual in [atom/flight-manual.atom.io](https://github.com/atom/flight-manual.atom.io).
+
+#### Local development
+
+All packages can be developed locally, by checking out the corresponding repository and registering the package to Atom with `apm`:
+
+```
+$ git clone url-to-git-repository
+$ cd path-to-package/
+$ apm link -d
+$ atom -d .
+```
+
+By running Atom with the `-d` flag, you signal it to run with development packages installed. `apm link` makes sure that your local repository is loaded by Atom.
 
 ### Pull Requests
 

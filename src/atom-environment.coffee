@@ -694,9 +694,14 @@ class AtomEnvironment extends Model
         @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
         @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
         @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
-        @disposables.add @applicationDelegate.onSaveWindowStateRequest =>
-          callback = => @applicationDelegate.didSaveWindowState()
-          @saveState({isUnloading: true}).catch(callback).then(callback)
+        @disposables.add @applicationDelegate.onDidRequestUnload =>
+          @saveState({isUnloading: true})
+            .catch(console.error)
+            .then =>
+              @workspace?.confirmClose({
+                windowCloseRequested: true,
+                projectHasPaths: @project.getPaths().length > 0
+              })
 
         @listenForUpdates()
 
@@ -705,30 +710,30 @@ class AtomEnvironment extends Model
         @packages.loadPackages()
 
         startTime = Date.now()
-        @deserialize(state) if state?
-        @deserializeTimings.atom = Date.now() - startTime
+        @deserialize(state).then =>
+          @deserializeTimings.atom = Date.now() - startTime
 
-        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom'
-          @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
-          @document.body.classList.add('custom-title-bar')
-        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom-inset'
-          @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
-          @document.body.classList.add('custom-inset-title-bar')
-        if process.platform is 'darwin' and @config.get('core.titleBar') is 'hidden'
-          @document.body.classList.add('hidden-title-bar')
+          if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom'
+            @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+            @document.body.classList.add('custom-title-bar')
+          if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom-inset'
+            @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+            @document.body.classList.add('custom-inset-title-bar')
+          if process.platform is 'darwin' and @config.get('core.titleBar') is 'hidden'
+            @document.body.classList.add('hidden-title-bar')
 
-        @document.body.appendChild(@workspace.getElement())
-        @backgroundStylesheet?.remove()
+          @document.body.appendChild(@workspace.getElement())
+          @backgroundStylesheet?.remove()
 
-        @watchProjectPaths()
+          @watchProjectPaths()
 
-        @packages.activate()
-        @keymaps.loadUserKeymap()
-        @requireUserInitScript() unless @getLoadSettings().safeMode
+          @packages.activate()
+          @keymaps.loadUserKeymap()
+          @requireUserInitScript() unless @getLoadSettings().safeMode
 
-        @menu.update()
+          @menu.update()
 
-        @openInitialEmptyEditorIfNecessary()
+          @openInitialEmptyEditorIfNecessary()
 
     loadHistoryPromise = @history.loadState().then =>
       @reopenProjectMenuManager = new ReopenProjectMenuManager({
@@ -986,6 +991,8 @@ class AtomEnvironment extends Model
       Promise.resolve(null)
 
   deserialize: (state) ->
+    return Promise.resolve() unless state?
+
     if grammarOverridesByPath = state.grammars?.grammarOverridesByPath
       @grammars.grammarOverridesByPath = grammarOverridesByPath
 
@@ -994,14 +1001,19 @@ class AtomEnvironment extends Model
     @packages.packageStates = state.packageStates ? {}
 
     startTime = Date.now()
-    @project.deserialize(state.project, @deserializers) if state.project?
-    @deserializeTimings.project = Date.now() - startTime
+    if state.project?
+      projectPromise = @project.deserialize(state.project, @deserializers)
+    else
+      projectPromise = Promise.resolve()
 
-    @textEditors.deserialize(state.textEditors) if state.textEditors
+    projectPromise.then =>
+      @deserializeTimings.project = Date.now() - startTime
 
-    startTime = Date.now()
-    @workspace.deserialize(state.workspace, @deserializers) if state.workspace?
-    @deserializeTimings.workspace = Date.now() - startTime
+      @textEditors.deserialize(state.textEditors) if state.textEditors
+
+      startTime = Date.now()
+      @workspace.deserialize(state.workspace, @deserializers) if state.workspace?
+      @deserializeTimings.workspace = Date.now() - startTime
 
   getStateKey: (paths) ->
     if paths?.length > 0

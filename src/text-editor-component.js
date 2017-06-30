@@ -312,6 +312,11 @@ class TextEditorComponent {
         }
       })
 
+      if (this.resizeBlockDecorationMeasurementsArea) {
+        this.resizeBlockDecorationMeasurementsArea = false
+        this.refs.blockDecorationMeasurementArea.style.width = this.getScrollWidth() + 'px'
+      }
+
       this.blockDecorationsToMeasure.forEach((decoration) => {
         const {item} = decoration.getProperties()
         const decorationElement = TextEditor.viewForItem(item)
@@ -332,7 +337,7 @@ class TextEditorComponent {
     this.derivedDimensionsCache = {}
     this.updateModelSoftWrapColumn()
     if (this.pendingAutoscroll) {
-      const {screenRange, options} = this.pendingAutoscroll
+      let {screenRange, options} = this.pendingAutoscroll
       this.autoscrollVertically(screenRange, options)
       this.requestHorizontalMeasurement(screenRange.start.row, screenRange.start.column)
       this.requestHorizontalMeasurement(screenRange.end.row, screenRange.end.column)
@@ -678,7 +683,8 @@ class TextEditorComponent {
       style: {
         contain: 'strict',
         position: 'absolute',
-        visibility: 'hidden'
+        visibility: 'hidden',
+        width: this.getScrollWidth() + 'px'
       }
     })
   }
@@ -1390,6 +1396,7 @@ class TextEditorComponent {
       if (!this.hasInitialMeasurements) this.measureDimensions()
       this.visible = true
       this.props.model.setVisible(true)
+      this.resizeBlockDecorationMeasurementsArea = true
       this.updateSync()
       this.flushPendingLogicalScrollPosition()
     }
@@ -2097,7 +2104,12 @@ class TextEditorComponent {
     if (column === 0) return
 
     if (row < this.getRenderedStartRow() || row >= this.getRenderedEndRow()) {
-      this.requestExtraLineToMeasure(row, this.props.model.screenLineForScreenRow(row))
+      const screenLine = this.props.model.screenLineForScreenRow(row)
+      if (screenLine) {
+        this.requestExtraLineToMeasure(row, screenLine)
+      } else {
+        return
+      }
     }
 
     let columns = this.horizontalPositionsToMeasure.get(row)
@@ -4028,7 +4040,6 @@ class NodePool {
   constructor () {
     this.elementsByType = {}
     this.textNodes = []
-    this.stylesByNode = new WeakMap()
   }
 
   getElement (type, className, style) {
@@ -4049,14 +4060,10 @@ class NodePool {
 
     if (element) {
       element.className = className
-      var existingStyle = this.stylesByNode.get(element)
-      if (existingStyle) {
-        for (var key in existingStyle) {
-          if (!style || !style[key]) element.style[key] = ''
-        }
-      }
+      element.styleMap.forEach((value, key) => {
+        if (!style || style[key] == null) element.style[key] = ''
+      })
       if (style) Object.assign(element.style, style)
-      this.stylesByNode.set(element, style)
 
       while (element.firstChild) element.firstChild.remove()
       return element
@@ -4064,7 +4071,6 @@ class NodePool {
       var newElement = document.createElement(type)
       if (className) newElement.className = className
       if (style) Object.assign(newElement.style, style)
-      this.stylesByNode.set(newElement, style)
       return newElement
     }
   }

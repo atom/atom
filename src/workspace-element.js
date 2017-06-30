@@ -222,21 +222,92 @@ class WorkspaceElement extends HTMLElement {
     this.model.getActivePane().activate()
   }
 
-  focusPaneViewAbove () { this.paneContainer.focusPaneViewAbove() }
+  focusPaneViewAbove () { this.focusPaneViewInDirection('above') }
 
-  focusPaneViewBelow () { this.paneContainer.focusPaneViewBelow() }
+  focusPaneViewBelow () { this.focusPaneViewInDirection('below') }
 
-  focusPaneViewOnLeft () { this.paneContainer.focusPaneViewOnLeft() }
+  focusPaneViewOnLeft () { this.focusPaneViewInDirection('left') }
 
-  focusPaneViewOnRight () { this.paneContainer.focusPaneViewOnRight() }
+  focusPaneViewOnRight () { this.focusPaneViewInDirection('right') }
 
-  moveActiveItemToPaneAbove (params) { this.paneContainer.moveActiveItemToPaneAbove(params) }
+  focusPaneViewInDirection (direction, pane) {
+    const activePane = this.model.getActivePane()
+    const paneToFocus = this.nearestVisiblePaneInDirection(direction, activePane)
+    paneToFocus && paneToFocus.focus()
+  }
 
-  moveActiveItemToPaneBelow (params) { this.paneContainer.moveActiveItemToPaneBelow(params) }
+  moveActiveItemToPaneAbove (params) {
+    this.moveActiveItemToNearestPaneInDirection('above', params)
+  }
 
-  moveActiveItemToPaneOnLeft (params) { this.paneContainer.moveActiveItemToPaneOnLeft(params) }
+  moveActiveItemToPaneBelow (params) {
+    this.moveActiveItemToNearestPaneInDirection('below', params)
+  }
 
-  moveActiveItemToPaneOnRight (params) { this.paneContainer.moveActiveItemToPaneOnRight(params) }
+  moveActiveItemToPaneOnLeft (params) {
+    this.moveActiveItemToNearestPaneInDirection('left', params)
+  }
+
+  moveActiveItemToPaneOnRight (params) {
+    this.moveActiveItemToNearestPaneInDirection('right', params)
+  }
+
+  moveActiveItemToNearestPaneInDirection (direction, params) {
+    const activePane = this.model.getActivePane()
+    const nearestPaneView = this.nearestVisiblePaneInDirection(direction, activePane)
+    if (nearestPaneView == null) { return }
+    if (params && params.keepOriginal) {
+      activePane.getContainer().copyActiveItemToPane(nearestPaneView.getModel())
+    } else {
+      activePane.getContainer().moveActiveItemToPane(nearestPaneView.getModel())
+    }
+    nearestPaneView.focus()
+  }
+
+  nearestVisiblePaneInDirection (direction, pane) {
+    const distance = function (pointA, pointB) {
+      const x = pointB.x - pointA.x
+      const y = pointB.y - pointA.y
+      return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
+    }
+
+    const paneView = pane.getElement()
+    const box = this.boundingBoxForPaneView(paneView)
+
+    const paneViews = atom.workspace.getVisiblePanes()
+      .map(otherPane => otherPane.getElement())
+      .filter(otherPaneView => {
+        const otherBox = this.boundingBoxForPaneView(otherPaneView)
+        switch (direction) {
+          case 'left': return otherBox.right.x <= box.left.x
+          case 'right': return otherBox.left.x >= box.right.x
+          case 'above': return otherBox.bottom.y <= box.top.y
+          case 'below': return otherBox.top.y >= box.bottom.y
+        }
+      }).sort((paneViewA, paneViewB) => {
+        const boxA = this.boundingBoxForPaneView(paneViewA)
+        const boxB = this.boundingBoxForPaneView(paneViewB)
+        switch (direction) {
+          case 'left': return distance(box.left, boxA.right) - distance(box.left, boxB.right)
+          case 'right': return distance(box.right, boxA.left) - distance(box.right, boxB.left)
+          case 'above': return distance(box.top, boxA.bottom) - distance(box.top, boxB.bottom)
+          case 'below': return distance(box.bottom, boxA.top) - distance(box.bottom, boxB.top)
+        }
+      })
+
+    return paneViews[0]
+  }
+
+  boundingBoxForPaneView (paneView) {
+    const boundingBox = paneView.getBoundingClientRect()
+
+    return {
+      left: {x: boundingBox.left, y: boundingBox.top},
+      right: {x: boundingBox.right, y: boundingBox.top},
+      top: {x: boundingBox.left, y: boundingBox.top},
+      bottom: {x: boundingBox.left, y: boundingBox.bottom}
+    }
+  }
 
   runPackageSpecs () {
     const activePaneItem = this.model.getActivePaneItem()

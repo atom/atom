@@ -40,7 +40,7 @@ module.exports = class PanelContainer {
   }
 
   onDidDestroy (callback) {
-    return this.emitter.on('did-destroy', callback)
+    return this.emitter.once('did-destroy', callback)
   }
 
   /*

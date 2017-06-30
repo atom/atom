@@ -48,32 +48,6 @@ describe "WindowEventHandler", ->
       window.dispatchEvent(new CustomEvent('window:close'))
       expect(atom.close).toHaveBeenCalled()
 
-  describe "beforeunload event", ->
-    beforeEach ->
-      jasmine.unspy(TextEditor.prototype, "shouldPromptToSave")
-      spyOn(atom, 'destroy')
-      spyOn(ipcRenderer, 'send')
-
-    describe "when pane items are modified", ->
-      editor = null
-      beforeEach ->
-        waitsForPromise -> atom.workspace.open("sample.js").then (o) -> editor = o
-        runs -> editor.insertText("I look different, I feel different.")
-
-      it "prompts the user to save them, and allows the unload to continue if they confirm", ->
-        spyOn(atom.workspace, 'confirmClose').andReturn(true)
-        window.dispatchEvent(new CustomEvent('beforeunload'))
-        expect(atom.workspace.confirmClose).toHaveBeenCalled()
-        expect(ipcRenderer.send).not.toHaveBeenCalledWith('did-cancel-window-unload')
-        expect(atom.destroy).toHaveBeenCalled()
-
-      it "cancels the unload if the user selects cancel", ->
-        spyOn(atom.workspace, 'confirmClose').andReturn(false)
-        window.dispatchEvent(new CustomEvent('beforeunload'))
-        expect(atom.workspace.confirmClose).toHaveBeenCalled()
-        expect(ipcRenderer.send).toHaveBeenCalledWith('did-cancel-window-unload')
-        expect(atom.destroy).not.toHaveBeenCalled()
-
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->
       {shell} = require 'electron'

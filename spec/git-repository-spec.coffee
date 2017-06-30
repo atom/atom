@@ -293,20 +293,32 @@ describe "GitRepository", ->
 
       statusHandler = jasmine.createSpy('statusHandler')
       atom.project.getRepositories()[0].onDidChangeStatus statusHandler
-      editor.save()
-      expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
+
+      waitsForPromise ->
+        editor.save()
+
+      runs ->
+        expect(statusHandler.callCount).toBe 1
+        expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
 
     it "emits a status-changed event when a buffer is reloaded", ->
       fs.writeFileSync(editor.getPath(), 'changed')
 
       statusHandler = jasmine.createSpy('statusHandler')
       atom.project.getRepositories()[0].onDidChangeStatus statusHandler
-      editor.getBuffer().reload()
-      expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
-      editor.getBuffer().reload()
-      expect(statusHandler.callCount).toBe 1
+
+      waitsForPromise ->
+        editor.getBuffer().reload()
+
+      runs ->
+        expect(statusHandler.callCount).toBe 1
+        expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
+
+      waitsForPromise ->
+        editor.getBuffer().reload()
+
+      runs ->
+        expect(statusHandler.callCount).toBe 1
 
     it "emits a status-changed event when a buffer's path changes", ->
       fs.writeFileSync(editor.getPath(), 'changed')
@@ -324,7 +336,7 @@ describe "GitRepository", ->
       expect(-> editor.save()).not.toThrow()
 
   describe "when a project is deserialized", ->
-    [buffer, project2] = []
+    [buffer, project2, statusHandler] = []
 
     afterEach ->
       project2?.destroy()
@@ -335,20 +347,21 @@ describe "GitRepository", ->
       waitsForPromise ->
         atom.workspace.open('file.txt')
 
-      runs ->
+      waitsForPromise ->
         project2 = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm, applicationDelegate: atom.applicationDelegate})
         project2.deserialize(atom.project.serialize({isUnloading: false}))
-        buffer = project2.getBuffers()[0]
 
       waitsFor ->
-        buffer.loaded
+        buffer = project2.getBuffers()[0]
 
-      runs ->
+      waitsForPromise ->
         originalContent = buffer.getText()
         buffer.append('changes')
 
         statusHandler = jasmine.createSpy('statusHandler')
         project2.getRepositories()[0].onDidChangeStatus statusHandler
         buffer.save()
+
+      runs ->
         expect(statusHandler.callCount).toBe 1
         expect(statusHandler).toHaveBeenCalledWith {path: buffer.getPath(), pathStatus: 256}
