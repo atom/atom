@@ -170,7 +170,7 @@ class Pane
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
+    @emitter.once 'did-destroy', callback
 
   # Public: Invoke the given callback when the value of the {::isActive}
   # property changes.
