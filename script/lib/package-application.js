@@ -26,7 +26,7 @@ module.exports = function () {
     electronVersion: CONFIG.appMetadata.electronVersion,
     extendInfo: path.join(CONFIG.repositoryRootPath, 'resources', 'mac', 'atom-Info.plist'),
     helperBundleId: 'com.github.atom.helper',
-    icon: getIcon(),
+    icon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom'),
     name: appName,
     out: CONFIG.buildOutputPath,
     overwrite: true,
@@ -117,19 +117,6 @@ function getAppName () {
     return CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
   } else {
     return 'atom'
-  }
-}
-
-function getIcon () {
-  switch (process.platform) {
-    case 'darwin':
-      return path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.icns')
-    case 'linux':
-      // Don't pass an icon, as the dock/window list icon is set via the icon
-      // option in the BrowserWindow constructor in atom-window.coffee.
-      return null
-    default:
-      return path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
   }
 }
 
