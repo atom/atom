@@ -114,6 +114,9 @@ class TextEditorComponent {
     this.horizontalPositionsToMeasure = new Map() // Keys are rows with positions we want to measure, values are arrays of columns to measure
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
     this.blockDecorationsToMeasure = new Set()
+    this.blockDecorationsByElement = new WeakMap()
+    this.heightsByBlockDecoration = new WeakMap()
+    this.blockDecorationResizeObserver = new ResizeObserver(this.didResizeBlockDecorations.bind(this))
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
     this.overlayComponents = new Set()
@@ -322,6 +325,7 @@ class TextEditorComponent {
         const decorationElement = TextEditor.viewForItem(item)
         const {previousSibling, nextSibling} = decorationElement
         const height = nextSibling.getBoundingClientRect().top - previousSibling.getBoundingClientRect().bottom
+        this.heightsByBlockDecoration.set(decoration, height)
         this.lineTopIndex.resizeBlock(decoration, height)
       })
 
@@ -2347,11 +2351,14 @@ class TextEditorComponent {
 
   didAddBlockDecoration (decoration) {
     const marker = decoration.getMarker()
-    const {position} = decoration.getProperties()
+    const {item, position} = decoration.getProperties()
+    const element = TextEditor.viewForItem(item)
     const row = marker.getHeadScreenPosition().row
     this.lineTopIndex.insertBlock(decoration, row, 0, position === 'after')
 
     this.blockDecorationsToMeasure.add(decoration)
+    this.blockDecorationsByElement.set(element, decoration)
+    this.blockDecorationResizeObserver.observe(element)
 
     const didUpdateDisposable = marker.bufferMarker.onDidChange((e) => {
       if (!e.textChanged) {
@@ -2361,11 +2368,27 @@ class TextEditorComponent {
     })
     const didDestroyDisposable = decoration.onDidDestroy(() => {
       this.blockDecorationsToMeasure.delete(decoration)
+      this.heightsByBlockDecoration.delete(decoration)
+      this.blockDecorationsByElement.delete(element)
+      this.blockDecorationResizeObserver.unobserve(element)
       this.lineTopIndex.removeBlock(decoration)
       didUpdateDisposable.dispose()
       didDestroyDisposable.dispose()
       this.scheduleUpdate()
     })
+  }
+
+  didResizeBlockDecorations (entries) {
+    if (!this.visible) return
+
+    for (let i = 0; i < entries.length; i++) {
+      const {target, contentRect} = entries[i]
+      const decoration = this.blockDecorationsByElement.get(target)
+      const previousHeight = this.heightsByBlockDecoration.get(decoration)
+      if (this.element.contains(target) && contentRect.height !== previousHeight) {
+        this.invalidateBlockDecorationDimensions(decoration)
+      }
+    }
   }
 
   invalidateBlockDecorationDimensions (decoration) {
