@@ -123,8 +123,8 @@ function getAppName () {
 function runPackager (options) {
   return electronPackager(options)
     .then(packageOutputDirPaths => {
-        assert(packageOutputDirPaths.length === 1, 'Generated more than one electron application!')
-        return renamePackagedAppDir(packageOutputDirPaths[0])
+      assert(packageOutputDirPaths.length === 1, 'Generated more than one electron application!')
+      return renamePackagedAppDir(packageOutputDirPaths[0])
     })
 }
 
