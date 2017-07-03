@@ -1727,17 +1727,17 @@ describe('TextEditorComponent', () => {
       let [decorationNode1, decorationNode2] = gutterA.getElement().firstChild.children
       const [decorationNode3] = gutterB.getElement().firstChild.children
 
-      expect(decorationNode1.className).toBe('a')
+      expect(decorationNode1.className).toBe('decoration a')
       expect(decorationNode1.getBoundingClientRect().top).toBe(clientTopForLine(component, 2))
       expect(decorationNode1.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 5))
       expect(decorationNode1.firstChild).toBeNull()
 
-      expect(decorationNode2.className).toBe('b')
+      expect(decorationNode2.className).toBe('decoration b')
       expect(decorationNode2.getBoundingClientRect().top).toBe(clientTopForLine(component, 6))
       expect(decorationNode2.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 8))
       expect(decorationNode2.firstChild).toBe(decorationElement1)
 
-      expect(decorationNode3.className).toBe('')
+      expect(decorationNode3.className).toBe('decoration')
       expect(decorationNode3.getBoundingClientRect().top).toBe(clientTopForLine(component, 9))
       expect(decorationNode3.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 12) + component.getLineHeight())
       expect(decorationNode3.firstChild).toBe(decorationElement2)
@@ -1746,9 +1746,9 @@ describe('TextEditorComponent', () => {
       decoration2.setProperties({type: 'gutter', gutterName: 'a', item: decorationElement2})
       decoration3.destroy()
       await component.getNextUpdatePromise()
-      expect(decorationNode1.className).toBe('c')
+      expect(decorationNode1.className).toBe('decoration c')
       expect(decorationNode1.firstChild).toBe(decorationElement1)
-      expect(decorationNode2.className).toBe('')
+      expect(decorationNode2.className).toBe('decoration')
       expect(decorationNode2.firstChild).toBe(decorationElement2)
       expect(gutterB.getElement().firstChild.children.length).toBe(0)
     })

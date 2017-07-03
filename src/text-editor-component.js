@@ -1105,7 +1105,7 @@ class TextEditorComponent {
     const height = this.pixelPositionBeforeBlocksForRow(screenRange.end.row + 1) - top
 
     decorations.push({
-      className: decoration.class,
+      className: 'decoration' + (decoration.class ? ' ' + decoration.class : ''),
       element: TextEditor.viewForItem(decoration.item),
       top,
       height
