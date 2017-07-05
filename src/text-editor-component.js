@@ -3167,8 +3167,10 @@ class LineNumberComponent {
   }
 
   update (props) {
-    const {nodePool, className, width, marginTop, number} = props
+    const {nodePool, className, width, marginTop, bufferRow, screenRow, number} = props
 
+    if (this.props.bufferRow !== bufferRow) this.element.dataset.bufferRow = bufferRow
+    if (this.props.screenRow !== screenRow) this.element.dataset.screenRow = screenRow
     if (this.props.className !== className) this.element.className = className
     if (this.props.width !== width) this.element.style.width = width + 'px'
     if (this.props.marginTop !== marginTop) {
