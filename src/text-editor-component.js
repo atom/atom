@@ -845,6 +845,7 @@ class TextEditorComponent {
     const renderedRowCount = this.getRenderedRowCount()
 
     const bufferRows = model.bufferRowsForScreenRows(startRow, endRow)
+    const screenRows = new Array(renderedRowCount)
     const keys = new Array(renderedRowCount)
     const foldableFlags = new Array(renderedRowCount)
     const softWrappedFlags = new Array(renderedRowCount)
@@ -871,6 +872,7 @@ class TextEditorComponent {
         foldableFlags[i] = false
       }
 
+      screenRows[i] = row
       previousBufferRow = bufferRow
     }
 
@@ -878,6 +880,7 @@ class TextEditorComponent {
     bufferRows.pop()
 
     this.lineNumbersToRender.bufferRows = bufferRows
+    this.lineNumbersToRender.screenRows = screenRows
     this.lineNumbersToRender.keys = keys
     this.lineNumbersToRender.foldableFlags = foldableFlags
     this.lineNumbersToRender.softWrappedFlags = softWrappedFlags
@@ -2944,7 +2947,7 @@ class GutterContainerComponent {
     if (!isLineNumberGutterVisible) return null
 
     if (hasInitialMeasurements) {
-      const {maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags} = lineNumbersToRender
+      const {maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags} = lineNumbersToRender
       return $(LineNumberGutterComponent, {
         ref: 'lineNumberGutter',
         element: gutter.getElement(),
@@ -2955,6 +2958,7 @@ class GutterContainerComponent {
         maxDigits: maxDigits,
         keys: keys,
         bufferRows: bufferRows,
+        screenRows: screenRows,
         softWrappedFlags: softWrappedFlags,
         foldableFlags: foldableFlags,
         decorations: decorationsToRender.lineNumbers,
@@ -2996,7 +3000,7 @@ class LineNumberGutterComponent {
   render () {
     const {
       rootComponent, showLineNumbers, height, width, lineHeight, startRow, endRow, rowsPerTile,
-      maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags, decorations
+      maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags, decorations
     } = this.props
 
     let children = null
@@ -3013,6 +3017,7 @@ class LineNumberGutterComponent {
           const softWrapped = softWrappedFlags[j]
           const foldable = foldableFlags[j]
           const bufferRow = bufferRows[j]
+          const screenRow = screenRows[j]
 
           let className = 'line-number'
           if (foldable) className = className + ' foldable'
@@ -3031,6 +3036,7 @@ class LineNumberGutterComponent {
             className,
             width,
             bufferRow,
+            screenRow,
             number,
             nodePool: this.nodePool
           }
@@ -3144,12 +3150,13 @@ class LineNumberGutterComponent {
 
 class LineNumberComponent {
   constructor (props) {
-    const {className, width, marginTop, bufferRow, number, nodePool} = props
+    const {className, width, marginTop, bufferRow, screenRow, number, nodePool} = props
     this.props = props
     const style = {width: width + 'px'}
     if (marginTop != null) style.marginTop = marginTop + 'px'
     this.element = nodePool.getElement('DIV', className, style)
     this.element.dataset.bufferRow = bufferRow
+    this.element.dataset.screenRow = screenRow
     if (number) this.element.appendChild(nodePool.getTextNode(number))
     this.element.appendChild(nodePool.getElement('DIV', 'icon-right', null))
   }
