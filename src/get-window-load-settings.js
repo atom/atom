@@ -4,7 +4,7 @@ let windowLoadSettings = null
 
 module.exports = () => {
   if (!windowLoadSettings) {
-    windowLoadSettings = remote.getCurrentWindow().loadSettings
+    windowLoadSettings = JSON.parse(remote.getCurrentWindow().loadSettingsJSON)
   }
   return windowLoadSettings
 }

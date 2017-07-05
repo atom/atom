@@ -26,17 +26,16 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
-      # Add an opaque backgroundColor (instead of keeping the default
-      # transparent one) to prevent subpixel anti-aliasing from being disabled.
-      # We believe this is a regression introduced with Electron 0.37.3, and
-      # thus we should remove this as soon as a fix gets released.
-      backgroundColor: "#fff"
       webPreferences:
         # Prevent specs from throttling when the window is in the background:
         # this should result in faster CI builds, and an improvement in the
         # local development experience when running specs through the UI (which
         # now won't pause when e.g. minimizing the window).
         backgroundThrottling: not @isSpec
+        # Disable the `auxclick` feature so that `click` events are triggered in
+        # response to a middle-click.
+        # (Ref: https://github.com/atom/atom/pull/12696#issuecomment-290496960)
+        disableBlinkFeatures: 'Auxclick'
 
     # Don't set icon on Windows so the exe's ico will be used as window and
     # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
@@ -83,11 +82,21 @@ class AtomWindow
     @representedDirectoryPaths = loadSettings.initialPaths
     @env = loadSettings.env if loadSettings.env?
 
-    @browserWindow.loadSettings = loadSettings
+    @browserWindow.loadSettingsJSON = JSON.stringify(loadSettings)
 
     @browserWindow.on 'window:loaded', =>
+      @disableZoom()
       @emit 'window:loaded'
       @resolveLoadedPromise()
+
+    @browserWindow.on 'window:locations-opened', =>
+      @emit 'window:locations-opened'
+
+    @browserWindow.on 'enter-full-screen', =>
+      @browserWindow.webContents.send('did-enter-full-screen')
+
+    @browserWindow.on 'leave-full-screen', =>
+      @browserWindow.webContents.send('did-leave-full-screen')
 
     @browserWindow.loadURL url.format
       protocol: 'file'
@@ -138,7 +147,8 @@ class AtomWindow
         event.preventDefault()
         @unloading = true
         @atomApplication.saveState(false)
-        @saveState().then(=> @close())
+        @prepareToUnload().then (result) =>
+          @close() if result
 
     @browserWindow.on 'closed', =>
       @fileRecoveryService.didCloseWindow(this)
@@ -150,7 +160,7 @@ class AtomWindow
 
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
-        buttons: ['Close', 'Keep Waiting']
+        buttons: ['Force Close', 'Keep Waiting']
         message: 'Editor is not responding'
         detail: 'The editor is not responding. Would you like to force close it or just keep waiting?'
       @browserWindow.destroy() if chosen is 0
@@ -182,21 +192,19 @@ class AtomWindow
       @browserWindow.on 'blur', =>
         @browserWindow.focusOnWebView()
 
-  didCancelWindowUnload: ->
-    @unloading = false
-
-  saveState: ->
+  prepareToUnload: ->
     if @isSpecWindow()
-      return Promise.resolve()
-
-    @lastSaveStatePromise = new Promise (resolve) =>
-      callback = (event) =>
+      return Promise.resolve(true)
+    @lastPrepareToUnloadPromise = new Promise (resolve) =>
+      callback = (event, result) =>
         if BrowserWindow.fromWebContents(event.sender) is @browserWindow
-          ipcMain.removeListener('did-save-window-state', callback)
-          resolve()
-      ipcMain.on('did-save-window-state', callback)
-      @browserWindow.webContents.send('save-window-state')
-    @lastSaveStatePromise
+          ipcMain.removeListener('did-prepare-to-unload', callback)
+          unless result
+            @unloading = false
+            @atomApplication.quitting = false
+          resolve(result)
+      ipcMain.on('did-prepare-to-unload', callback)
+      @browserWindow.webContents.send('prepare-to-unload')
 
   openPath: (pathToOpen, initialLine, initialColumn) ->
     @openLocations([{pathToOpen, initialLine, initialColumn}])
@@ -278,7 +286,8 @@ class AtomWindow
 
   reload: ->
     @loadedPromise = new Promise((@resolveLoadedPromise) =>)
-    @saveState().then => @browserWindow.reload()
+    @prepareToUnload().then (result) =>
+      @browserWindow.reload() if result
     @loadedPromise
 
   showSaveDialog: (params) ->
@@ -286,7 +295,7 @@ class AtomWindow
       title: 'Save File',
       defaultPath: @representedDirectoryPaths[0]
     }, params)
-    dialog.showSaveDialog(this, params)
+    dialog.showSaveDialog(@browserWindow, params)
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
 
@@ -303,3 +312,6 @@ class AtomWindow
     @atomApplication.saveState()
 
   copy: -> @browserWindow.copy()
+
+  disableZoom: ->
+    @browserWindow.webContents.setVisualZoomLevelLimits(1, 1)

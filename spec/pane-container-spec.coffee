@@ -7,9 +7,11 @@ describe "PaneContainer", ->
   beforeEach ->
     confirm = spyOn(atom.applicationDelegate, 'confirm').andReturn(0)
     params = {
+      location: 'center',
       config: atom.config,
       deserializerManager: atom.deserializers
-      applicationDelegate: atom.applicationDelegate
+      applicationDelegate: atom.applicationDelegate,
+      viewRegistry: atom.views
     }
 
   describe "serialization", ->
@@ -117,6 +119,23 @@ describe "PaneContainer", ->
       expect(container.getActivePane()).toBe pane1
       expect(pane1.isActive()).toBe true
 
+  describe "::onDidChangeActivePane()", ->
+    [container, pane1, pane2, observed] = []
+
+    beforeEach ->
+      container = new PaneContainer(params)
+      container.getRoot().addItems([new Object, new Object])
+      container.getRoot().splitRight(items: [new Object, new Object])
+      [pane1, pane2] = container.getPanes()
+
+      observed = []
+      container.onDidChangeActivePane (pane) -> observed.push(pane)
+
+    it "invokes observers when the active pane changes", ->
+      pane1.activate()
+      pane2.activate()
+      expect(observed).toEqual [pane1, pane2]
+
   describe "::onDidChangeActivePaneItem()", ->
     [container, pane1, pane2, observed] = []
 
@@ -143,24 +162,42 @@ describe "PaneContainer", ->
     [container, pane1, pane2, observed] = []
 
     beforeEach ->
-      container = new PaneContainer(root: new Pane(items: [new Object, new Object]))
+      container = new PaneContainer(params)
+      container.getRoot().addItems([new Object, new Object])
       container.getRoot().splitRight(items: [new Object, new Object])
       [pane1, pane2] = container.getPanes()
 
       observed = []
       container.onDidStopChangingActivePaneItem (item) -> observed.push(item)
 
-    it "invokes observers when the active item of the active pane stops changing", ->
+    it "invokes observers once when the active item of the active pane changes", ->
       pane2.activateNextItem()
       pane2.activateNextItem()
-      advanceClock(100)
+      expect(observed).toEqual []
+      advanceClock 100
       expect(observed).toEqual [pane2.itemAtIndex(0)]
 
-    it "invokes observers when the active pane stops changing", ->
+    it "invokes observers once when the active pane changes", ->
       pane1.activate()
       pane2.activate()
-      advanceClock(100)
+      expect(observed).toEqual []
+      advanceClock 100
       expect(observed).toEqual [pane2.itemAtIndex(0)]
+
+  describe "::onDidActivatePane", ->
+    it "invokes observers when a pane is activated (even if it was already active)", ->
+      container = new PaneContainer(params)
+      container.getRoot().splitRight()
+      [pane1, pane2] = container.getPanes()
+
+      activatedPanes = []
+      container.onDidActivatePane (pane) -> activatedPanes.push(pane)
+
+      pane1.activate()
+      pane1.activate()
+      pane2.activate()
+      pane2.activate()
+      expect(activatedPanes).toEqual([pane1, pane1, pane2, pane2])
 
   describe "::observePanes()", ->
     it "invokes observers with all current and future panes", ->
@@ -206,15 +243,17 @@ describe "PaneContainer", ->
 
     it "returns true if the user saves all modified files when prompted", ->
       confirm.andReturn(0)
-      saved = container.confirmClose()
-      expect(saved).toBeTruthy()
-      expect(confirm).toHaveBeenCalled()
+      waitsForPromise ->
+        container.confirmClose().then (saved) ->
+          expect(confirm).toHaveBeenCalled()
+          expect(saved).toBeTruthy()
 
     it "returns false if the user cancels saving any modified file", ->
       confirm.andReturn(1)
-      saved = container.confirmClose()
-      expect(saved).toBeFalsy()
-      expect(confirm).toHaveBeenCalled()
+      waitsForPromise ->
+        container.confirmClose().then (saved) ->
+          expect(confirm).toHaveBeenCalled()
+          expect(saved).toBeFalsy()
 
   describe "::onDidAddPane(callback)", ->
     it "invokes the given callback when panes are added", ->

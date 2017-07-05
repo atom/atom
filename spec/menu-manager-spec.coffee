@@ -5,11 +5,8 @@ describe "MenuManager", ->
   menu = null
 
   beforeEach ->
-    menu = new MenuManager(
-      resourcePath: atom.getLoadSettings().resourcePath
-      keymapManager: atom.keymaps
-      packageManager: atom.packages
-    )
+    menu = new MenuManager({keymapManager: atom.keymaps, packageManager: atom.packages})
+    menu.initialize({resourcePath: atom.getLoadSettings().resourcePath})
 
   describe "::add(items)", ->
     it "can add new menus that can be removed with the returned disposable", ->
@@ -62,7 +59,7 @@ describe "MenuManager", ->
       atom.keymaps.add 'test', 'atom-workspace': 'ctrl-b': 'b'
       menu.update()
 
-      waits 1
+      waits 50
 
       runs -> expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toEqual ['ctrl-b']
 

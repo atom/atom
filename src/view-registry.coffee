@@ -23,44 +23,17 @@ AnyConstructor = Symbol('any-constructor')
 # an ideal tool for implementing views in Atom.
 #
 # You can access the `ViewRegistry` object via `atom.views`.
-#
-# ## Examples
-#
-# ### Getting the workspace element
-#
-# ```coffee
-# workspaceElement = atom.views.getView(atom.workspace)
-# ```
-#
-# ### Getting An Editor Element
-#
-# ```coffee
-# textEditor = atom.workspace.getActiveTextEditor()
-# textEditorElement = atom.views.getView(textEditor)
-# ```
-#
-# ### Getting A Pane Element
-#
-# ```coffee
-# pane = atom.workspace.getActivePane()
-# paneElement = atom.views.getView(pane)
-# ```
 module.exports =
 class ViewRegistry
   animationFrameRequest: null
   documentReadInProgress: false
-  performDocumentPollAfterUpdate: false
-  debouncedPerformDocumentPoll: null
-  minimumPollInterval: 200
 
   constructor: (@atomEnvironment) ->
-    @observer = new MutationObserver(@requestDocumentPoll)
     @clear()
 
   clear: ->
     @views = new WeakMap
     @providers = []
-    @debouncedPerformDocumentPoll = _.throttle(@performDocumentPoll, @minimumPollInterval).bind(this)
     @clearDocumentRequests()
 
   # Essential: Add a provider that will be used to construct views in the
@@ -117,42 +90,19 @@ class ViewRegistry
   # layer, but view layer access may be necessary if you want to perform DOM
   # manipulation that isn't supported via the model API.
   #
-  # ## Examples
-  #
-  # ### Getting An Editor Element
-  #
-  # ```coffee
-  # textEditor = atom.workspace.getActiveTextEditor()
-  # textEditorElement = atom.views.getView(textEditor)
-  # ```
-  #
-  # ### Getting A Pane Element
-  #
-  # ```coffee
-  # pane = atom.workspace.getActivePane()
-  # paneElement = atom.views.getView(pane)
-  # ```
-  #
-  # ### Getting The Workspace Element
-  #
-  # ```coffee
-  # workspaceElement = atom.views.getView(atom.workspace)
-  # ```
-  #
-  # * `object` The object for which you want to retrieve a view. This can be a
-  #   pane item, a pane, or the workspace itself.
-  #
   # ## View Resolution Algorithm
   #
   # The view associated with the object is resolved using the following
   # sequence
   #
   #  1. Is the object an instance of `HTMLElement`? If true, return the object.
-  #  2. Does the object have a property named `element` with a value which is
+  #  2. Does the object have a method named `getElement` that returns an
+  #     instance of `HTMLElement`? If true, return that value.
+  #  3. Does the object have a property named `element` with a value which is
   #     an instance of `HTMLElement`? If true, return the property value.
-  #  3. Is the object a jQuery object, indicated by the presence of a `jquery`
+  #  4. Is the object a jQuery object, indicated by the presence of a `jquery`
   #     property? If true, return the root DOM element (i.e. `object[0]`).
-  #  4. Has a view provider been registered for the object? If true, use the
+  #  5. Has a view provider been registered for the object? If true, use the
   #     provider to create a view associated with the object, and return the
   #     view.
   #
@@ -217,16 +167,6 @@ class ViewRegistry
     new Disposable =>
       @documentReaders = @documentReaders.filter (reader) -> reader isnt fn
 
-  pollDocument: (fn) ->
-    @startPollingDocument() if @documentPollers.length is 0
-    @documentPollers.push(fn)
-    new Disposable =>
-      @documentPollers = @documentPollers.filter (poller) -> poller isnt fn
-      @stopPollingDocument() if @documentPollers.length is 0
-
-  pollAfterNextUpdate: ->
-    @performDocumentPollAfterUpdate = true
-
   getNextUpdatePromise: ->
     @nextUpdatePromise ?= new Promise (resolve) =>
       @resolveNextUpdatePromise = resolve
@@ -234,13 +174,11 @@ class ViewRegistry
   clearDocumentRequests: ->
     @documentReaders = []
     @documentWriters = []
-    @documentPollers = []
     @nextUpdatePromise = null
     @resolveNextUpdatePromise = null
     if @animationFrameRequest?
       cancelAnimationFrame(@animationFrameRequest)
       @animationFrameRequest = null
-    @stopPollingDocument()
 
   requestDocumentUpdate: ->
     @animationFrameRequest ?= requestAnimationFrame(@performDocumentUpdate)
@@ -255,29 +193,9 @@ class ViewRegistry
 
     @documentReadInProgress = true
     reader() while reader = @documentReaders.shift()
-    @performDocumentPoll() if @performDocumentPollAfterUpdate
-    @performDocumentPollAfterUpdate = false
     @documentReadInProgress = false
 
     # process updates requested as a result of reads
     writer() while writer = @documentWriters.shift()
 
     resolveNextUpdatePromise?()
-
-  startPollingDocument: ->
-    window.addEventListener('resize', @requestDocumentPoll)
-    @observer.observe(document, {subtree: true, childList: true, attributes: true})
-
-  stopPollingDocument: ->
-    window.removeEventListener('resize', @requestDocumentPoll)
-    @observer.disconnect()
-
-  requestDocumentPoll: =>
-    if @animationFrameRequest?
-      @performDocumentPollAfterUpdate = true
-    else
-      @debouncedPerformDocumentPoll()
-
-  performDocumentPoll: ->
-    poller() for poller in @documentPollers
-    return

@@ -1,8 +1,3 @@
-/** @babel */
-
-import path from 'path'
-import fs from 'fs-plus'
-
 // This is loaded by atom-environment.coffee. See
 // https://atom.io/docs/api/latest/Config for more information about config
 // schemas.
@@ -39,6 +34,16 @@ const configSchema = {
 
         description: 'List of names of installed packages which are not loaded at startup.'
       },
+      versionPinnedPackages: {
+        type: 'array',
+        default: [],
+
+        items: {
+          type: 'string'
+        },
+
+        description: 'List of names of installed packages which are not automatically updated.'
+      },
       customFileTypes: {
         type: 'object',
         default: {},
@@ -57,11 +62,6 @@ const configSchema = {
           type: 'string'
         },
         description: 'Names of UI and syntax themes which will be used when Atom starts.'
-      },
-      projectHome: {
-        type: 'string',
-        default: path.join(fs.getHomeDirectory(), 'github'),
-        description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
       },
       audioBeep: {
         type: 'boolean',
@@ -258,9 +258,10 @@ const configSchema = {
         default: true
       },
       restorePreviousWindowsOnStart: {
-        description: 'When checked restores the last state of all Atom windows when started from the icon or `atom` by itself from the command line; otherwise a blank environment is loaded.',
-        type: 'boolean',
-        default: true
+        type: 'string',
+        enum: ['no', 'yes', 'always'],
+        default: 'yes',
+        description: "When selected 'no', a blank environment is loaded. When selected 'yes' and Atom is started from the icon or `atom` by itself from the command line, restores the last state of all Atom windows; otherwise a blank environment is loaded. When selected 'always', restores the last state of all Atom windows always, no matter how Atom is started."
       },
       reopenProjectMenuCount: {
         description: 'How many recent projects to show in the Reopen Project menu.',
@@ -506,4 +507,4 @@ if (process.platform === 'darwin') {
   }
 }
 
-export default configSchema
+module.exports = configSchema

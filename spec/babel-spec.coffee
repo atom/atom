@@ -43,6 +43,7 @@ describe "Babel transpiler support", ->
 
   describe "when a .js file does not start with 'use babel';", ->
     it "does not transpile it using babel", ->
+      spyOn(console, 'error')
       expect(-> require('./fixtures/babel/invalid.js')).toThrow()
 
     it "does not try to log to stdout or stderr while parsing the file", ->

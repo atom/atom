@@ -1,9 +1,14 @@
 Grim = require 'grim'
 {find, compact, extend, last} = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
-Model = require './model'
 PaneAxis = require './pane-axis'
 TextEditor = require './text-editor'
+PaneElement = require './pane-element'
+
+nextInstanceId = 1
+
+class SaveCancelledError extends Error
+  constructor: -> super
 
 # Extended: A container for presenting content in the center of the workspace.
 # Panes can contain multiple items, one of which is *active* at a given time.
@@ -15,12 +20,10 @@ TextEditor = require './text-editor'
 # simply being added. In the default configuration, the text in the tab for
 # pending items is shown in italics.
 module.exports =
-class Pane extends Model
-  container: undefined
-  activeItem: undefined
-  focused: false
+class Pane
+  inspect: -> "Pane #{@id}"
 
-  @deserialize: (state, {deserializers, applicationDelegate, config, notifications}) ->
+  @deserialize: (state, {deserializers, applicationDelegate, config, notifications, views}) ->
     {items, activeItemIndex, activeItemURI, activeItemUri} = state
     activeItemURI ?= activeItemUri
     items = items.map (itemState) -> deserializers.deserialize(itemState)
@@ -34,39 +37,51 @@ class Pane extends Model
     new Pane(extend(state, {
       deserializerManager: deserializers,
       notificationManager: notifications,
+      viewRegistry: views,
       config, applicationDelegate
     }))
 
   constructor: (params) ->
-    super
-
     {
-      @activeItem, @focused, @applicationDelegate, @notificationManager, @config,
-      @deserializerManager
+      @id, @activeItem, @focused, @applicationDelegate, @notificationManager, @config,
+      @deserializerManager, @viewRegistry
     } = params
 
+    if @id?
+      nextInstanceId = Math.max(nextInstanceId, @id + 1)
+    else
+      @id = nextInstanceId++
     @emitter = new Emitter
+    @alive = true
     @subscriptionsPerItem = new WeakMap
     @items = []
     @itemStack = []
+    @container = null
+    @activeItem ?= undefined
+    @focused ?= false
 
     @addItems(compact(params?.items ? []))
     @setActiveItem(@items[0]) unless @getActiveItem()?
     @addItemsToStack(params?.itemStackIndices ? [])
     @setFlexScale(params?.flexScale ? 1)
 
+  getElement: ->
+    @element ?= new PaneElement().initialize(this, {views: @viewRegistry, @applicationDelegate})
+
   serialize: ->
     itemsToBeSerialized = compact(@items.map((item) -> item if typeof item.serialize is 'function'))
     itemStackIndices = (itemsToBeSerialized.indexOf(item) for item in @itemStack when typeof item.serialize is 'function')
     activeItemIndex = itemsToBeSerialized.indexOf(@activeItem)
 
-    deserializer: 'Pane'
-    id: @id
-    items: itemsToBeSerialized.map((item) -> item.serialize())
-    itemStackIndices: itemStackIndices
-    activeItemIndex: activeItemIndex
-    focused: @focused
-    flexScale: @flexScale
+    {
+      deserializer: 'Pane',
+      id: @id,
+      items: itemsToBeSerialized.map((item) -> item.serialize())
+      itemStackIndices: itemStackIndices
+      activeItemIndex: activeItemIndex
+      focused: @focused
+      flexScale: @flexScale
+    }
 
   getParent: -> @parent
 
@@ -78,6 +93,17 @@ class Pane extends Model
     if container and container isnt @container
       @container = container
       container.didAddPane({pane: this})
+
+  # Private: Determine whether the given item is allowed to exist in this pane.
+  #
+  # * `item` the Item
+  #
+  # Returns a {Boolean}.
+  isItemAllowed: (item) ->
+    if (typeof item.getAllowedLocations isnt 'function')
+      true
+    else
+      item.getAllowedLocations().includes(@getContainer().getLocation())
 
   setFlexScale: (@flexScale) ->
     @emitter.emit 'did-change-flex-scale', @flexScale
@@ -144,7 +170,7 @@ class Pane extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
+    @emitter.once 'did-destroy', callback
 
   # Public: Invoke the given callback when the value of the {::isActive}
   # property changes.
@@ -294,7 +320,7 @@ class Pane extends Model
   # Called by the view layer to indicate that the pane has gained focus.
   focus: ->
     @focused = true
-    @activate() unless @isActive()
+    @activate()
 
   # Called by the view layer to indicate that the pane has lost focus.
   blur: ->
@@ -330,6 +356,7 @@ class Pane extends Model
       @addItemToStack(activeItem) unless modifyStack is false
       @activeItem = activeItem
       @emitter.emit 'did-change-active-item', @activeItem
+      @container?.didChangeActiveItemOnPane(this, @activeItem)
     @activeItem
 
   # Build the itemStack after deserializing
@@ -386,7 +413,6 @@ class Pane extends Model
     @addItemToStack(@activeItem)
     @emitter.emit 'done-choosing-mru-item'
 
-
   # Public: Makes the next item active.
   activateNextItem: ->
     index = @getActiveItemIndex()
@@ -434,6 +460,7 @@ class Pane extends Model
   # Public: Make the given item *active*, causing it to be displayed by
   # the pane's view.
   #
+  # * `item` The item to activate
   # * `options` (optional) {Object}
   #   * `pending` (optional) {Boolean} indicating that the item should be added
   #     in a pending state if it does not yet exist in the pane. Existing pending
@@ -490,6 +517,8 @@ class Pane extends Model
     @setPendingItem(item) if pending
 
     @emitter.emit 'did-add-item', {item, index, moved}
+    @container?.didAddPaneItem(item, this, index) unless moved
+
     @destroyItem(lastPendingItem) if replacingPendingItem
     @setActiveItem(item) unless @getActiveItem()?
     item
@@ -587,43 +616,57 @@ class Pane extends Model
   # case nothing happens.
   #
   # * `item` Item to destroy
-  destroyItem: (item) ->
+  # * `force` (optional) {Boolean} Destroy the item without prompting to save
+  #    it, even if the item's `isPermanentDockItem` method returns true.
+  #
+  # Returns a {Promise} that resolves with a {Boolean} indicating whether or not
+  # the item was destroyed.
+  destroyItem: (item, force) ->
     index = @items.indexOf(item)
     if index isnt -1
+      return false if not force and @getContainer()?.getLocation() isnt 'center' and item.isPermanentDockItem?()
+
       preventClosing = false
       prevent = -> preventClosing = true
 
       @emitter.emit 'will-destroy-item', {item, index}
-      @container?.willDestroyPaneItem({item, index, prevent, pane: this})
+      @container?.willDestroyPaneItem({item, index, pane: this})
 
       if preventClosing
         false
-      else if @promptToSaveItem(item)
+      else if force or not item?.shouldPromptToSave?()
         @removeItem(item, false)
         item.destroy?()
-        true
       else
-        false
+        @promptToSaveItem(item).then (result) =>
+          if result
+            @removeItem(item, false)
+            item.destroy?()
+          result
 
   # Public: Destroy all items.
   destroyItems: ->
-    @destroyItem(item) for item in @getItems()
-    return
+    Promise.all(
+      @getItems().map(@destroyItem.bind(this))
+    )
 
   # Public: Destroy all items except for the active item.
   destroyInactiveItems: ->
-    @destroyItem(item) for item in @getItems() when item isnt @activeItem
-    return
+    Promise.all(
+      @getItems()
+        .filter((item) => item isnt @activeItem)
+        .map(@destroyItem.bind(this))
+    )
 
   promptToSaveItem: (item, options={}) ->
-    return true unless item.shouldPromptToSave?(options)
+    return Promise.resolve(true) unless item.shouldPromptToSave?(options)
 
     if typeof item.getURI is 'function'
       uri = item.getURI()
     else if typeof item.getUri is 'function'
       uri = item.getUri()
     else
-      return true
+      return Promise.resolve(true)
 
     saveDialog = (saveButtonText, saveFn, message) =>
       chosen = @applicationDelegate.confirm
@@ -631,15 +674,23 @@ class Pane extends Model
         detailedMessage: "Your changes will be lost if you close this item without saving."
         buttons: [saveButtonText, "Cancel", "Don't Save"]
       switch chosen
-        when 0 then saveFn(item, saveError)
-        when 1 then false
-        when 2 then true
+        when 0
+          new Promise (resolve) ->
+            saveFn item, (error) ->
+              if error instanceof SaveCancelledError
+                resolve(false)
+              else
+                saveError(error).then(resolve)
+        when 1
+          Promise.resolve(false)
+        when 2
+          Promise.resolve(true)
 
     saveError = (error) =>
       if error
         saveDialog("Save as", @saveItemAs, "'#{item.getTitle?() ? uri}' could not be saved.\nError: #{@getMessageForErrorCode(error.code)}")
       else
-        true
+        Promise.resolve(true)
 
     saveDialog("Save", @saveItem, "'#{item.getTitle?() ? uri}' has changes, do you want to save them?")
 
@@ -652,6 +703,8 @@ class Pane extends Model
   #
   # * `nextAction` (optional) {Function} which will be called after the item is
   #   successfully saved.
+  #
+  # Returns a {Promise} that resolves when the save is complete
   saveActiveItemAs: (nextAction) ->
     @saveItemAs(@getActiveItem(), nextAction)
 
@@ -662,6 +715,8 @@ class Pane extends Model
   #   after the item is successfully saved, or with the error if it failed.
   #   The return value will be that of `nextAction` or `undefined` if it was not
   #   provided
+  #
+  # Returns a {Promise} that resolves when the save is complete
   saveItem: (item, nextAction) =>
     if typeof item?.getURI is 'function'
       itemURI = item.getURI()
@@ -669,14 +724,16 @@ class Pane extends Model
       itemURI = item.getUri()
 
     if itemURI?
-      try
-        item.save?()
+      if item.save?
+        promisify -> item.save()
+          .then -> nextAction?()
+          .catch (error) =>
+            if nextAction
+              nextAction(error)
+            else
+              @handleSaveError(error, item)
+      else
         nextAction?()
-      catch error
-        if nextAction
-          nextAction(error)
-        else
-          @handleSaveError(error, item)
     else
       @saveItemAs(item, nextAction)
 
@@ -695,14 +752,15 @@ class Pane extends Model
     saveOptions.defaultPath ?= item.getPath()
     newItemPath = @applicationDelegate.showSaveDialog(saveOptions)
     if newItemPath
-      try
-        item.saveAs(newItemPath)
-        nextAction?()
-      catch error
-        if nextAction
-          nextAction(error)
-        else
-          @handleSaveError(error, item)
+      promisify -> item.saveAs(newItemPath)
+        .then -> nextAction?()
+        .catch (error) =>
+          if nextAction?
+            nextAction(error)
+          else
+            @handleSaveError(error, item)
+    else if nextAction?
+      nextAction(new SaveCancelledError('Save Cancelled'))
 
   # Public: Save all items.
   saveItems: ->
@@ -736,8 +794,7 @@ class Pane extends Model
       false
 
   copyActiveItem: ->
-    if @activeItem?
-      @activeItem.copy?() ? @deserializerManager.deserialize(@activeItem.serialize())
+    @activeItem?.copy?()
 
   ###
   Section: Lifecycle
@@ -752,7 +809,7 @@ class Pane extends Model
   # Public: Makes this pane the *active* pane, causing it to gain focus.
   activate: ->
     throw new Error("Pane has been destroyed") if @isDestroyed()
-    @container?.setActivePane(this)
+    @container?.didActivatePane(this)
     @emitter.emit 'did-activate'
 
   # Public: Close the pane and destroy all its items.
@@ -764,16 +821,20 @@ class Pane extends Model
       @destroyItems()
     else
       @emitter.emit 'will-destroy'
+      @alive = false
       @container?.willDestroyPane(pane: this)
-      super
+      @container.activateNextPane() if @isActive()
+      @emitter.emit 'did-destroy'
+      @emitter.dispose()
+      item.destroy?() for item in @items.slice()
+      @container?.didDestroyPane(pane: this)
 
-  # Called by model superclass.
-  destroyed: ->
-    @container.activateNextPane() if @isActive()
-    @emitter.emit 'did-destroy'
-    @emitter.dispose()
-    item.destroy?() for item in @items.slice()
-    @container?.didDestroyPane(pane: this)
+  isAlive: -> @alive
+
+  # Public: Determine whether this pane has been destroyed.
+  #
+  # Returns a {Boolean}.
+  isDestroyed: -> not @isAlive()
 
   ###
   Section: Splitting
@@ -825,10 +886,10 @@ class Pane extends Model
       params.items.push(@copyActiveItem())
 
     if @parent.orientation isnt orientation
-      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}))
+      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}, @viewRegistry))
       @setFlexScale(1)
 
-    newPane = new Pane(extend({@applicationDelegate, @notificationManager, @deserializerManager, @config}, params))
+    newPane = new Pane(extend({@applicationDelegate, @notificationManager, @deserializerManager, @config, @viewRegistry}, params))
     switch side
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)
@@ -850,17 +911,21 @@ class Pane extends Model
     else
       this
 
-  # If the parent is a horizontal axis, returns its last child if it is a pane;
-  # otherwise returns a new pane created by splitting this pane rightward.
-  findOrCreateRightmostSibling: ->
+  findRightmostSibling: ->
     if @parent.orientation is 'horizontal'
       rightmostSibling = last(@parent.children)
       if rightmostSibling instanceof PaneAxis
-        @splitRight()
+        this
       else
         rightmostSibling
     else
-      @splitRight()
+      this
+
+  # If the parent is a horizontal axis, returns its last child if it is a pane;
+  # otherwise returns a new pane created by splitting this pane rightward.
+  findOrCreateRightmostSibling: ->
+    rightmostSibling = @findRightmostSibling()
+    if rightmostSibling is this then @splitRight() else rightmostSibling
 
   # If the parent is a vertical axis, returns its first child if it is a pane;
   # otherwise returns this pane.
@@ -874,25 +939,29 @@ class Pane extends Model
     else
       this
 
-  # If the parent is a vertical axis, returns its last child if it is a pane;
-  # otherwise returns a new pane created by splitting this pane bottomward.
-  findOrCreateBottommostSibling: ->
+  findBottommostSibling: ->
     if @parent.orientation is 'vertical'
       bottommostSibling = last(@parent.children)
       if bottommostSibling instanceof PaneAxis
-        @splitDown()
+        this
       else
         bottommostSibling
     else
-      @splitDown()
+      this
 
+  # If the parent is a vertical axis, returns its last child if it is a pane;
+  # otherwise returns a new pane created by splitting this pane bottomward.
+  findOrCreateBottommostSibling: ->
+    bottommostSibling = @findBottommostSibling()
+    if bottommostSibling is this then @splitDown() else bottommostSibling
+
+  # Private: Close the pane unless the user cancels the action via a dialog.
+  #
+  # Returns a {Promise} that resolves once the pane is either closed, or the
+  # closing has been cancelled.
   close: ->
-    @destroy() if @confirmClose()
-
-  confirmClose: ->
-    for item in @getItems()
-      return false unless @promptToSaveItem(item)
-    true
+    Promise.all(@getItems().map(@promptToSaveItem.bind(this))).then (results) =>
+      @destroy() unless results.includes(false)
 
   handleSaveError: (error, item) ->
     itemPath = error.path ? item?.getPath?()
@@ -925,3 +994,9 @@ class Pane extends Model
       when 'EROFS' then 'Read-only file system'
       when 'ESPIPE' then 'Invalid seek'
       when 'ETIMEDOUT' then 'Connection timed out'
+
+promisify = (callback) ->
+  try
+    Promise.resolve(callback())
+  catch error
+    Promise.reject(error)

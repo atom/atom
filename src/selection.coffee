@@ -54,7 +54,7 @@ class Selection extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
+    @emitter.once 'did-destroy', callback
 
   ###
   Section: Managing the selection range
@@ -768,8 +768,6 @@ class Selection extends Model
     {oldHeadBufferPosition, oldTailBufferPosition, newHeadBufferPosition} = e
     {oldHeadScreenPosition, oldTailScreenPosition, newHeadScreenPosition} = e
     {textChanged} = e
-
-    @cursor.updateVisibility()
 
     unless oldHeadScreenPosition.isEqual(newHeadScreenPosition)
       @cursor.goalColumn = null

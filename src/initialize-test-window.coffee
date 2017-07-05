@@ -70,6 +70,7 @@ module.exports = ({blobStore}) ->
 
     clipboard = new Clipboard
     TextEditor.setClipboard(clipboard)
+    TextEditor.viewForItem = (item) -> atom.views.getView(item)
 
     testRunner = require(testRunnerPath)
     legacyTestRunner = require(legacyTestRunnerPath)
@@ -79,7 +80,9 @@ module.exports = ({blobStore}) ->
       params.clipboard = clipboard unless params.hasOwnProperty("clipboard")
       params.blobStore = blobStore unless params.hasOwnProperty("blobStore")
       params.onlyLoadBaseStyleSheets = true unless params.hasOwnProperty("onlyLoadBaseStyleSheets")
-      new AtomEnvironment(params)
+      atomEnvironment = new AtomEnvironment(params)
+      atomEnvironment.initialize(params)
+      atomEnvironment
 
     promise = testRunner({
       logFile, headless, testPaths, buildAtomEnvironment, buildDefaultApplicationDelegate, legacyTestRunner

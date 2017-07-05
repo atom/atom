@@ -112,7 +112,7 @@ describe("FileRecoveryService", () => {
       const mockWindow = {}
       const filePath = temp.path()
       fs.writeFileSync(filePath, "content")
-      fs.chmodSync(filePath, 0o444)
+      fs.chmodSync(filePath, 0444)
 
       let logs = []
       this.stub(console, 'log', (message) => logs.push(message))

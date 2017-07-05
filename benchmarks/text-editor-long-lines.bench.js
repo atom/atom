@@ -15,7 +15,7 @@ const TEXT = REPEATED_TEXT.repeat(Math.ceil(SIZES_IN_KB[SIZES_IN_KB.length - 1] 
 export default async function ({test}) {
   const data = []
 
-  const workspaceElement = atom.views.getView(atom.workspace)
+  const workspaceElement = atom.workspace.getElement()
   document.body.appendChild(workspaceElement)
 
   atom.packages.loadPackages()
@@ -33,7 +33,7 @@ export default async function ({test}) {
 
     let t0 = window.performance.now()
     const buffer = new TextBuffer({text})
-    const editor = new TextEditor({buffer, largeFileMode: true})
+    const editor = new TextEditor({buffer, autoHeight: false, largeFileMode: true})
     editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
     atom.workspace.getActivePane().activateItem(editor)
     let t1 = window.performance.now()
