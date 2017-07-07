@@ -9,12 +9,15 @@ describe('Dock', () => {
     it('opens the dock and activates its active pane', () => {
       jasmine.attachToDOM(atom.workspace.getElement())
       const dock = atom.workspace.getLeftDock()
+      const didChangeVisibleSpy = jasmine.createSpy()
+      dock.onDidChangeVisible(didChangeVisibleSpy)
 
       expect(dock.isVisible()).toBe(false)
       expect(document.activeElement).toBe(atom.workspace.getCenter().getActivePane().getElement())
       dock.activate()
       expect(dock.isVisible()).toBe(true)
       expect(document.activeElement).toBe(dock.getActivePane().getElement())
+      expect(didChangeVisibleSpy).toHaveBeenCalledWith(true)
     })
   })
 
@@ -22,17 +25,24 @@ describe('Dock', () => {
     it('transfers focus back to the active center pane if the dock had focus', () => {
       jasmine.attachToDOM(atom.workspace.getElement())
       const dock = atom.workspace.getLeftDock()
+      const didChangeVisibleSpy = jasmine.createSpy()
+      dock.onDidChangeVisible(didChangeVisibleSpy)
+
       dock.activate()
       expect(document.activeElement).toBe(dock.getActivePane().getElement())
+      expect(didChangeVisibleSpy.mostRecentCall.args[0]).toBe(true)
 
       dock.hide()
       expect(document.activeElement).toBe(atom.workspace.getCenter().getActivePane().getElement())
+      expect(didChangeVisibleSpy.mostRecentCall.args[0]).toBe(false)
 
       dock.activate()
       expect(document.activeElement).toBe(dock.getActivePane().getElement())
+      expect(didChangeVisibleSpy.mostRecentCall.args[0]).toBe(true)
 
       dock.toggle()
       expect(document.activeElement).toBe(atom.workspace.getCenter().getActivePane().getElement())
+      expect(didChangeVisibleSpy.mostRecentCall.args[0]).toBe(false)
 
       // Don't change focus if the dock was not focused in the first place
       const modalElement = document.createElement('div')
@@ -43,9 +53,11 @@ describe('Dock', () => {
 
       dock.show()
       expect(document.activeElement).toBe(modalElement)
+      expect(didChangeVisibleSpy.mostRecentCall.args[0]).toBe(true)
 
       dock.hide()
       expect(document.activeElement).toBe(modalElement)
+      expect(didChangeVisibleSpy.mostRecentCall.args[0]).toBe(false)
     })
   })
 

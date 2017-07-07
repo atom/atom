@@ -58,10 +58,6 @@ artifacts:
     name: atom-full.nupkg
 
 cache:
-  - '%APPVEYOR_BUILD_FOLDER%\script\node_modules'
-  - '%APPVEYOR_BUILD_FOLDER%\apm\node_modules'
-  - '%APPVEYOR_BUILD_FOLDER%\node_modules'
   - '%APPVEYOR_BUILD_FOLDER%\electron'
   - '%USERPROFILE%\.atom\.apm'
   - '%USERPROFILE%\.atom\compile-cache'
-  - '%USERPROFILE%\.atom\snapshot-cache'

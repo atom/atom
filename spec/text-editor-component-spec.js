@@ -667,19 +667,38 @@ describe('TextEditorComponent', () => {
       expect(element.classList.contains('has-selection')).toBe(false)
     })
 
-    it('assigns a buffer-row to each line number as a data field', async () => {
+    it('assigns buffer-row and screen-row to each line number as data fields', async () => {
       const {editor, element, component} = buildComponent()
       editor.setSoftWrapped(true)
       await component.getNextUpdatePromise()
       await setEditorWidthInCharacters(component, 40)
+      {
+        const bufferRows = Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map((e) => e.dataset.bufferRow)
+        const screenRows = Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map((e) => e.dataset.screenRow)
+        expect(bufferRows).toEqual([
+          '0', '1', '2', '3', '3', '4', '5', '6', '6', '6',
+          '7', '8', '8', '8', '9', '10', '11', '11', '12'
+        ])
+        expect(screenRows).toEqual([
+          '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+          '10', '11', '12', '13', '14', '15', '16', '17', '18'
+        ])
+      }
 
-      expect(
-        Array.from(element.querySelectorAll('.line-number:not(.dummy)'))
-          .map((element) => element.dataset.bufferRow)
-      ).toEqual([
-        '0', '1', '2', '3', '3', '4', '5', '6', '6', '6',
-        '7', '8', '8', '8', '9', '10', '11', '11', '12'
-      ])
+      editor.getBuffer().insert([2, 0], '\n')
+      await component.getNextUpdatePromise()
+      {
+        const bufferRows = Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map((e) => e.dataset.bufferRow)
+        const screenRows = Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map((e) => e.dataset.screenRow)
+        expect(bufferRows).toEqual([
+          '0', '1', '2', '3', '4', '4', '5', '6', '7', '7',
+          '7', '8', '9', '9', '9', '10', '11', '12', '12', '13'
+        ])
+        expect(screenRows).toEqual([
+          '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+          '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'
+        ])
+      }
     })
 
     it('does not blow away class names added to the element by packages when changing the class name', async () => {
@@ -1727,17 +1746,17 @@ describe('TextEditorComponent', () => {
       let [decorationNode1, decorationNode2] = gutterA.getElement().firstChild.children
       const [decorationNode3] = gutterB.getElement().firstChild.children
 
-      expect(decorationNode1.className).toBe('a')
+      expect(decorationNode1.className).toBe('decoration a')
       expect(decorationNode1.getBoundingClientRect().top).toBe(clientTopForLine(component, 2))
       expect(decorationNode1.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 5))
       expect(decorationNode1.firstChild).toBeNull()
 
-      expect(decorationNode2.className).toBe('b')
+      expect(decorationNode2.className).toBe('decoration b')
       expect(decorationNode2.getBoundingClientRect().top).toBe(clientTopForLine(component, 6))
       expect(decorationNode2.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 8))
       expect(decorationNode2.firstChild).toBe(decorationElement1)
 
-      expect(decorationNode3.className).toBe('')
+      expect(decorationNode3.className).toBe('decoration')
       expect(decorationNode3.getBoundingClientRect().top).toBe(clientTopForLine(component, 9))
       expect(decorationNode3.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 12) + component.getLineHeight())
       expect(decorationNode3.firstChild).toBe(decorationElement2)
@@ -1746,9 +1765,9 @@ describe('TextEditorComponent', () => {
       decoration2.setProperties({type: 'gutter', gutterName: 'a', item: decorationElement2})
       decoration3.destroy()
       await component.getNextUpdatePromise()
-      expect(decorationNode1.className).toBe('c')
+      expect(decorationNode1.className).toBe('decoration c')
       expect(decorationNode1.firstChild).toBe(decorationElement1)
-      expect(decorationNode2.className).toBe('')
+      expect(decorationNode2.className).toBe('decoration')
       expect(decorationNode2.firstChild).toBe(decorationElement2)
       expect(gutterB.getElement().firstChild.children.length).toBe(0)
     })
@@ -1941,8 +1960,6 @@ describe('TextEditorComponent', () => {
       item3.style.margin = '10px'
       item2.style.height = '33px'
       item2.style.margin = '0px'
-      component.invalidateBlockDecorationDimensions(decoration2)
-      component.invalidateBlockDecorationDimensions(decoration3)
       await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
       expect(component.getRenderedEndRow()).toBe(9)
@@ -1973,7 +1990,6 @@ describe('TextEditorComponent', () => {
       item3.style.wordWrap = 'break-word'
       const contentWidthInCharacters = Math.floor(component.getScrollContainerClientWidth() / component.getBaseCharacterWidth())
       item3.textContent = 'x'.repeat(contentWidthInCharacters * 2)
-      component.invalidateBlockDecorationDimensions(decoration3)
       await component.getNextUpdatePromise()
 
       // make the editor wider, so that the decoration doesn't wrap anymore.
@@ -2033,6 +2049,31 @@ describe('TextEditorComponent', () => {
       expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(item5.nextSibling).toBe(lineNodeForScreenRow(component, 8))
       expect(item6.previousSibling).toBe(lineNodeForScreenRow(component, 12))
+    })
+
+    it('measures block decorations correctly when they are added before the component width has been updated', async () => {
+      {
+        const {editor, component, element} = buildComponent({autoHeight: false, width: 500, attach: false})
+        const marker = editor.markScreenPosition([0, 0])
+        const item = document.createElement('div')
+        item.textContent = 'block decoration'
+        const decoration = editor.decorateMarker(marker, {type: 'block', item})
+
+        jasmine.attachToDOM(element)
+        assertLinesAreAlignedWithLineNumbers(component)
+      }
+
+      {
+        const {editor, component, element} = buildComponent({autoHeight: false, width: 800})
+        const marker = editor.markScreenPosition([0, 0])
+        const item = document.createElement('div')
+        item.textContent = 'block decoration that could wrap many times'
+        const decoration = editor.decorateMarker(marker, {type: 'block', item})
+
+        element.style.width = '50px'
+        await component.getNextUpdatePromise()
+        assertLinesAreAlignedWithLineNumbers(component)
+      }
     })
 
     it('bases the width of the block decoration measurement area on the editor scroll width', async () => {

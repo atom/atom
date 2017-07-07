@@ -114,6 +114,9 @@ class TextEditorComponent {
     this.horizontalPositionsToMeasure = new Map() // Keys are rows with positions we want to measure, values are arrays of columns to measure
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
     this.blockDecorationsToMeasure = new Set()
+    this.blockDecorationsByElement = new WeakMap()
+    this.heightsByBlockDecoration = new WeakMap()
+    this.blockDecorationResizeObserver = new ResizeObserver(this.didResizeBlockDecorations.bind(this))
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
     this.overlayComponents = new Set()
@@ -312,11 +315,17 @@ class TextEditorComponent {
         }
       })
 
+      if (this.resizeBlockDecorationMeasurementsArea) {
+        this.resizeBlockDecorationMeasurementsArea = false
+        this.refs.blockDecorationMeasurementArea.style.width = this.getScrollWidth() + 'px'
+      }
+
       this.blockDecorationsToMeasure.forEach((decoration) => {
         const {item} = decoration.getProperties()
         const decorationElement = TextEditor.viewForItem(item)
         const {previousSibling, nextSibling} = decorationElement
         const height = nextSibling.getBoundingClientRect().top - previousSibling.getBoundingClientRect().bottom
+        this.heightsByBlockDecoration.set(decoration, height)
         this.lineTopIndex.resizeBlock(decoration, height)
       })
 
@@ -836,6 +845,7 @@ class TextEditorComponent {
     const renderedRowCount = this.getRenderedRowCount()
 
     const bufferRows = model.bufferRowsForScreenRows(startRow, endRow)
+    const screenRows = new Array(renderedRowCount)
     const keys = new Array(renderedRowCount)
     const foldableFlags = new Array(renderedRowCount)
     const softWrappedFlags = new Array(renderedRowCount)
@@ -862,6 +872,7 @@ class TextEditorComponent {
         foldableFlags[i] = false
       }
 
+      screenRows[i] = row
       previousBufferRow = bufferRow
     }
 
@@ -869,6 +880,7 @@ class TextEditorComponent {
     bufferRows.pop()
 
     this.lineNumbersToRender.bufferRows = bufferRows
+    this.lineNumbersToRender.screenRows = screenRows
     this.lineNumbersToRender.keys = keys
     this.lineNumbersToRender.foldableFlags = foldableFlags
     this.lineNumbersToRender.softWrappedFlags = softWrappedFlags
@@ -1105,7 +1117,7 @@ class TextEditorComponent {
     const height = this.pixelPositionBeforeBlocksForRow(screenRange.end.row + 1) - top
 
     decorations.push({
-      className: decoration.class,
+      className: 'decoration' + (decoration.class ? ' ' + decoration.class : ''),
       element: TextEditor.viewForItem(decoration.item),
       top,
       height
@@ -1391,6 +1403,7 @@ class TextEditorComponent {
       if (!this.hasInitialMeasurements) this.measureDimensions()
       this.visible = true
       this.props.model.setVisible(true)
+      this.resizeBlockDecorationMeasurementsArea = true
       this.updateSync()
       this.flushPendingLogicalScrollPosition()
     }
@@ -2341,11 +2354,14 @@ class TextEditorComponent {
 
   didAddBlockDecoration (decoration) {
     const marker = decoration.getMarker()
-    const {position} = decoration.getProperties()
+    const {item, position} = decoration.getProperties()
+    const element = TextEditor.viewForItem(item)
     const row = marker.getHeadScreenPosition().row
     this.lineTopIndex.insertBlock(decoration, row, 0, position === 'after')
 
     this.blockDecorationsToMeasure.add(decoration)
+    this.blockDecorationsByElement.set(element, decoration)
+    this.blockDecorationResizeObserver.observe(element)
 
     const didUpdateDisposable = marker.bufferMarker.onDidChange((e) => {
       if (!e.textChanged) {
@@ -2355,11 +2371,27 @@ class TextEditorComponent {
     })
     const didDestroyDisposable = decoration.onDidDestroy(() => {
       this.blockDecorationsToMeasure.delete(decoration)
+      this.heightsByBlockDecoration.delete(decoration)
+      this.blockDecorationsByElement.delete(element)
+      this.blockDecorationResizeObserver.unobserve(element)
       this.lineTopIndex.removeBlock(decoration)
       didUpdateDisposable.dispose()
       didDestroyDisposable.dispose()
       this.scheduleUpdate()
     })
+  }
+
+  didResizeBlockDecorations (entries) {
+    if (!this.visible) return
+
+    for (let i = 0; i < entries.length; i++) {
+      const {target, contentRect} = entries[i]
+      const decoration = this.blockDecorationsByElement.get(target)
+      const previousHeight = this.heightsByBlockDecoration.get(decoration)
+      if (this.element.contains(target) && contentRect.height !== previousHeight) {
+        this.invalidateBlockDecorationDimensions(decoration)
+      }
+    }
   }
 
   invalidateBlockDecorationDimensions (decoration) {
@@ -2915,7 +2947,7 @@ class GutterContainerComponent {
     if (!isLineNumberGutterVisible) return null
 
     if (hasInitialMeasurements) {
-      const {maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags} = lineNumbersToRender
+      const {maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags} = lineNumbersToRender
       return $(LineNumberGutterComponent, {
         ref: 'lineNumberGutter',
         element: gutter.getElement(),
@@ -2926,6 +2958,7 @@ class GutterContainerComponent {
         maxDigits: maxDigits,
         keys: keys,
         bufferRows: bufferRows,
+        screenRows: screenRows,
         softWrappedFlags: softWrappedFlags,
         foldableFlags: foldableFlags,
         decorations: decorationsToRender.lineNumbers,
@@ -2967,7 +3000,7 @@ class LineNumberGutterComponent {
   render () {
     const {
       rootComponent, showLineNumbers, height, width, lineHeight, startRow, endRow, rowsPerTile,
-      maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags, decorations
+      maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags, decorations
     } = this.props
 
     let children = null
@@ -2984,6 +3017,7 @@ class LineNumberGutterComponent {
           const softWrapped = softWrappedFlags[j]
           const foldable = foldableFlags[j]
           const bufferRow = bufferRows[j]
+          const screenRow = screenRows[j]
 
           let className = 'line-number'
           if (foldable) className = className + ' foldable'
@@ -3002,6 +3036,7 @@ class LineNumberGutterComponent {
             className,
             width,
             bufferRow,
+            screenRow,
             number,
             nodePool: this.nodePool
           }
@@ -3115,12 +3150,13 @@ class LineNumberGutterComponent {
 
 class LineNumberComponent {
   constructor (props) {
-    const {className, width, marginTop, bufferRow, number, nodePool} = props
+    const {className, width, marginTop, bufferRow, screenRow, number, nodePool} = props
     this.props = props
     const style = {width: width + 'px'}
     if (marginTop != null) style.marginTop = marginTop + 'px'
     this.element = nodePool.getElement('DIV', className, style)
     this.element.dataset.bufferRow = bufferRow
+    this.element.dataset.screenRow = screenRow
     if (number) this.element.appendChild(nodePool.getTextNode(number))
     this.element.appendChild(nodePool.getElement('DIV', 'icon-right', null))
   }
@@ -3131,8 +3167,10 @@ class LineNumberComponent {
   }
 
   update (props) {
-    const {nodePool, className, width, marginTop, number} = props
+    const {nodePool, className, width, marginTop, bufferRow, screenRow, number} = props
 
+    if (this.props.bufferRow !== bufferRow) this.element.dataset.bufferRow = bufferRow
+    if (this.props.screenRow !== screenRow) this.element.dataset.screenRow = screenRow
     if (this.props.className !== className) this.element.className = className
     if (this.props.width !== width) this.element.style.width = width + 'px'
     if (this.props.marginTop !== marginTop) {
@@ -4034,7 +4072,6 @@ class NodePool {
   constructor () {
     this.elementsByType = {}
     this.textNodes = []
-    this.stylesByNode = new WeakMap()
   }
 
   getElement (type, className, style) {
@@ -4055,14 +4092,10 @@ class NodePool {
 
     if (element) {
       element.className = className
-      var existingStyle = this.stylesByNode.get(element)
-      if (existingStyle) {
-        for (var key in existingStyle) {
-          if (!style || !style[key]) element.style[key] = ''
-        }
-      }
+      element.styleMap.forEach((value, key) => {
+        if (!style || style[key] == null) element.style[key] = ''
+      })
       if (style) Object.assign(element.style, style)
-      this.stylesByNode.set(element, style)
 
       while (element.firstChild) element.firstChild.remove()
       return element
@@ -4070,7 +4103,6 @@ class NodePool {
       var newElement = document.createElement(type)
       if (className) newElement.className = className
       if (style) Object.assign(newElement.style, style)
-      this.stylesByNode.set(newElement, style)
       return newElement
     }
   }
