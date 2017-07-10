@@ -1647,9 +1647,21 @@ class TextEditorComponent {
     const {target, button, detail, ctrlKey, shiftKey, metaKey} = event
     const platform = this.getPlatform()
 
+    // On Linux, position the cursor on middle mouse button click. A
+    // textInput event with the contents of the selection clipboard will be
+    // dispatched by the browser automatically on mouseup.
+    if (platform === 'linux' && button === 1) {
+      const screenPosition = this.screenPositionForMouseEvent(event)
+      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
+      return
+    }
+
     // Only handle mousedown events for left mouse button (or the middle mouse
     // button on Linux where it pastes the selection clipboard).
-    if (!(button === 0 || (platform === 'linux' && button === 1))) return
+    if (button !== 0) return
+
+    // Ctrl-click brings up the context menu on macOS
+    if (platform === 'darwin' && ctrlKey) return
 
     const screenPosition = this.screenPositionForMouseEvent(event)
 
@@ -1658,17 +1670,6 @@ class TextEditorComponent {
       model.destroyFoldsIntersectingBufferRange(Range(bufferPosition, bufferPosition))
       return
     }
-
-    // Handle middle mouse button only on Linux (paste clipboard)
-    if (platform === 'linux' && button === 1) {
-      const selection = clipboard.readText('selection')
-      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
-      model.insertText(selection)
-      return
-    }
-
-    // Ctrl-click brings up the context menu on macOS
-    if (platform === 'darwin' && ctrlKey) return
 
     const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
 
