@@ -5,7 +5,7 @@ handlerInstance = null
 startHandler = ->
   if not handlerInstance?
     handlerInstance = new Task require.resolve('./repository-status-handler')
-    terminatedSub = handlerInstance.on "exit", status ->
+    terminatedSub = handlerInstance.on "exit", ->
       terminatedSub.dispose()
       handlerInstance = null
     handlerInstance.start()
