@@ -1667,6 +1667,9 @@ class TextEditorComponent {
       return
     }
 
+    // Ctrl-click brings up the context menu on macOS
+    if (platform === 'darwin' && ctrlKey) return
+
     const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
 
     switch (detail) {
