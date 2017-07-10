@@ -1645,10 +1645,11 @@ class TextEditorComponent {
   didMouseDownOnContent (event) {
     const {model} = this.props
     const {target, button, detail, ctrlKey, shiftKey, metaKey} = event
+    const platform = this.getPlatform()
 
     // Only handle mousedown events for left mouse button (or the middle mouse
     // button on Linux where it pastes the selection clipboard).
-    if (!(button === 0 || (this.getPlatform() === 'linux' && button === 1))) return
+    if (!(button === 0 || (platform === 'linux' && button === 1))) return
 
     const screenPosition = this.screenPositionForMouseEvent(event)
 
@@ -1659,14 +1660,14 @@ class TextEditorComponent {
     }
 
     // Handle middle mouse button only on Linux (paste clipboard)
-    if (this.getPlatform() === 'linux' && button === 1) {
+    if (platform === 'linux' && button === 1) {
       const selection = clipboard.readText('selection')
       model.setCursorScreenPosition(screenPosition, {autoscroll: false})
       model.insertText(selection)
       return
     }
 
-    const addOrRemoveSelection = metaKey || (ctrlKey && this.getPlatform() !== 'darwin')
+    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
 
     switch (detail) {
       case 1:
