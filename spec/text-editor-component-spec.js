@@ -1746,17 +1746,17 @@ describe('TextEditorComponent', () => {
       let [decorationNode1, decorationNode2] = gutterA.getElement().firstChild.children
       const [decorationNode3] = gutterB.getElement().firstChild.children
 
-      expect(decorationNode1.className).toBe('a')
+      expect(decorationNode1.className).toBe('decoration a')
       expect(decorationNode1.getBoundingClientRect().top).toBe(clientTopForLine(component, 2))
       expect(decorationNode1.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 5))
       expect(decorationNode1.firstChild).toBeNull()
 
-      expect(decorationNode2.className).toBe('b')
+      expect(decorationNode2.className).toBe('decoration b')
       expect(decorationNode2.getBoundingClientRect().top).toBe(clientTopForLine(component, 6))
       expect(decorationNode2.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 8))
       expect(decorationNode2.firstChild).toBe(decorationElement1)
 
-      expect(decorationNode3.className).toBe('')
+      expect(decorationNode3.className).toBe('decoration')
       expect(decorationNode3.getBoundingClientRect().top).toBe(clientTopForLine(component, 9))
       expect(decorationNode3.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 12) + component.getLineHeight())
       expect(decorationNode3.firstChild).toBe(decorationElement2)
@@ -1765,9 +1765,9 @@ describe('TextEditorComponent', () => {
       decoration2.setProperties({type: 'gutter', gutterName: 'a', item: decorationElement2})
       decoration3.destroy()
       await component.getNextUpdatePromise()
-      expect(decorationNode1.className).toBe('c')
+      expect(decorationNode1.className).toBe('decoration c')
       expect(decorationNode1.firstChild).toBe(decorationElement1)
-      expect(decorationNode2.className).toBe('')
+      expect(decorationNode2.className).toBe('decoration')
       expect(decorationNode2.firstChild).toBe(decorationElement2)
       expect(gutterB.getElement().firstChild.children.length).toBe(0)
     })
@@ -2412,10 +2412,13 @@ describe('TextEditorComponent', () => {
             ctrlKey: true
           })
         )
-        expect(editor.getCursorScreenPositions()).toEqual([[1, 4]])
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[1, 16], [1, 16]]
+        ])
 
         // ctrl-click adds cursors on platforms *other* than macOS
         component.props.platform = 'win32'
+        editor.setCursorScreenPosition([1, 4])
         component.didMouseDownOnContent(
           Object.assign(clientPositionForCharacter(component, 1, 16), {
             detail: 1,
@@ -2675,42 +2678,18 @@ describe('TextEditorComponent', () => {
         expect(component.getScrollLeft()).toBe(maxScrollLeft)
       })
 
-      it('pastes the previously selected text when clicking the middle mouse button on Linux', async () => {
-        spyOn(electron.ipcRenderer, 'send').andCallFake(function (eventName, selectedText) {
-          if (eventName === 'write-text-to-selection-clipboard') {
-            clipboard.writeText(selectedText, 'selection')
-          }
-        })
-
+      it('positions the cursor on clicking the middle mouse button on Linux', async () => {
+        // The browser synthesizes the paste as a textInput event on mouseup
+        // so it is not possible to test it here.
         const {component, editor} = buildComponent({platform: 'linux'})
 
-        // Middle mouse pasting.
         editor.setSelectedBufferRange([[1, 6], [1, 10]])
-        await conditionPromise(() => TextEditor.clipboard.read() === 'sort')
         component.didMouseDownOnContent({
           button: 1,
           clientX: clientLeftForCharacter(component, 10, 0),
           clientY: clientTopForLine(component, 10)
         })
-        expect(TextEditor.clipboard.read()).toBe('sort')
-        expect(editor.lineTextForBufferRow(10)).toBe('sort')
-        editor.undo()
-
-        // Ensure left clicks don't interfere.
-        editor.setSelectedBufferRange([[1, 2], [1, 5]])
-        await conditionPromise(() => TextEditor.clipboard.read() === 'var')
-        component.didMouseDownOnContent({
-          button: 0,
-          detail: 1,
-          clientX: clientLeftForCharacter(component, 10, 0),
-          clientY: clientTopForLine(component, 10)
-        })
-        component.didMouseDownOnContent({
-          button: 1,
-          clientX: clientLeftForCharacter(component, 10, 0),
-          clientY: clientTopForLine(component, 10)
-        })
-        expect(editor.lineTextForBufferRow(10)).toBe('var')
+        expect(editor.getSelectedBufferRange()).toEqual([[10, 0], [10, 0]])
       })
     })
 
