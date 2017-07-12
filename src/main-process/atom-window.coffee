@@ -309,6 +309,8 @@ class AtomWindow
 
   setRepresentedDirectoryPaths: (@representedDirectoryPaths) ->
     @representedDirectoryPaths.sort()
+    @loadSettings.initialPaths = @representedDirectoryPaths
+    @browserWindow.loadSettingsJSON = JSON.stringify(@loadSettings)
     @atomApplication.saveState()
 
   copy: -> @browserWindow.copy()
