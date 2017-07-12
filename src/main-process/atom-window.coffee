@@ -54,14 +54,14 @@ class AtomWindow
     @browserWindow = new BrowserWindow(options)
     @handleEvents()
 
-    loadSettings = Object.assign({}, settings)
-    loadSettings.appVersion = app.getVersion()
-    loadSettings.resourcePath = @resourcePath
-    loadSettings.devMode ?= false
-    loadSettings.safeMode ?= false
-    loadSettings.atomHome = process.env.ATOM_HOME
-    loadSettings.clearWindowState ?= false
-    loadSettings.initialPaths ?=
+    @loadSettings = Object.assign({}, settings)
+    @loadSettings.appVersion = app.getVersion()
+    @loadSettings.resourcePath = @resourcePath
+    @loadSettings.devMode ?= false
+    @loadSettings.safeMode ?= false
+    @loadSettings.atomHome = process.env.ATOM_HOME
+    @loadSettings.clearWindowState ?= false
+    @loadSettings.initialPaths ?=
       for {pathToOpen} in locationsToOpen when pathToOpen
         stat = fs.statSyncNoException(pathToOpen) or null
         if stat?.isDirectory()
@@ -72,17 +72,17 @@ class AtomWindow
             parentDirectory
           else
             pathToOpen
-    loadSettings.initialPaths.sort()
+    @loadSettings.initialPaths.sort()
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
       @constructor.includeShellLoadTime = false
-      loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
+      @loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
 
-    @representedDirectoryPaths = loadSettings.initialPaths
-    @env = loadSettings.env if loadSettings.env?
+    @representedDirectoryPaths = @loadSettings.initialPaths
+    @env = @loadSettings.env if @loadSettings.env?
 
-    @browserWindow.loadSettingsJSON = JSON.stringify(loadSettings)
+    @browserWindow.loadSettingsJSON = JSON.stringify(@loadSettings)
 
     @browserWindow.on 'window:loaded', =>
       @disableZoom()
