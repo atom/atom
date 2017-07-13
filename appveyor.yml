@@ -28,7 +28,7 @@ matrix:
 install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
-  - npm install -g npm@5.1
+  - npm install -g npm@5.1.0
 
 build_script:
   - IF NOT EXIST C:\sqtemp MKDIR C:\sqtemp
