@@ -34,11 +34,10 @@ build_script:
   - IF NOT EXIST C:\sqtemp MKDIR C:\sqtemp
   - SET SQUIRREL_TEMP=C:\sqtemp
   - CD %APPVEYOR_BUILD_FOLDER%
-  - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
-      script\build.cmd --code-sign --create-windows-installer --compress-artifacts
-    ) ELSE (
-      script\build.cmd --code-sign --compress-artifacts
-    )
+  - script\build.cmd
+  - cd script\node_modules
+  - npm list npm
+  - CD %APPVEYOR_BUILD_FOLDER%
 
 test_script:
   - script\lint.cmd
