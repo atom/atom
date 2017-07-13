@@ -18,7 +18,7 @@ dependencies:
     - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.3/install.sh | bash
     - nvm install 6.9.4
     - nvm use 6.9.4
-    - npm install -g npm
+    - npm install -g npm@5.1.0
 
   override:
     - script/build --code-sign --compress-artifacts
