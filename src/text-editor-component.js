@@ -3271,7 +3271,7 @@ class CustomGutterDecorationComponent {
     if (newProps.className !== oldProps.className) this.element.className = newProps.className || ''
     if (newProps.element !== oldProps.element) {
       if (this.element.firstChild) this.element.firstChild.remove()
-      this.element.appendChild(newProps.element)
+      if (newProps.element != null) this.element.appendChild(newProps.element)
     }
   }
 }
