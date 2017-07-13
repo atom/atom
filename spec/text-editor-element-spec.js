@@ -9,6 +9,10 @@ describe('TextEditorElement', () => {
 
   beforeEach(() => {
     jasmineContent = document.body.querySelector('#jasmine-content')
+    // Force scrollbars to be visible regardless of local system configuration
+    const scrollbarStyle = document.createElement('style')
+    scrollbarStyle.textContent = '::-webkit-scrollbar { -webkit-appearance: none }'
+    jasmine.attachToDOM(scrollbarStyle)
   })
 
   function buildTextEditorElement (options = {}) {
