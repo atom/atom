@@ -58,5 +58,6 @@ function getApmBinPath () {
 function getNpmBinPath () {
   const npmBinName = process.platform === 'win32' ? 'npm.cmd' : 'npm'
   const localNpmBinPath = path.resolve(repositoryRootPath, 'script', 'node_modules', '.bin', npmBinName)
+  console.log('Decided npm is ' + localNpmBinPath)
   return fs.existsSync(localNpmBinPath) ? localNpmBinPath : npmBinName
 }
