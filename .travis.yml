@@ -20,9 +20,15 @@ before_install:
 install:
   - git clone https://github.com/creationix/nvm.git /tmp/.nvm
   - source /tmp/.nvm/nvm.sh
+  - nvm --version
+  - npm --version
+  - which npm
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
   - npm install -g npm
+  - npm --version
+  - which npm
+  - echo $PATH
   - script/build --create-debian-package --create-rpm-package --compress-artifacts
 
 script:
