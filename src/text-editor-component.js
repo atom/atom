@@ -1112,8 +1112,26 @@ class TextEditorComponent {
       decorations = []
       this.decorationsToRender.customGutter.set(decoration.gutterName, decorations)
     }
-    const top = this.pixelPositionAfterBlocksForRow(screenRange.start.row)
-    const height = this.pixelPositionBeforeBlocksForRow(screenRange.end.row + 1) - top
+
+    let omitLastRow = false
+    if (screenRange.isEmpty()) {
+      if (decoration.onlyNonEmpty) return
+    } else {
+      if (decoration.onlyEmpty) return
+      if (decoration.omitEmptyLastRow !== false) {
+        omitLastRow = screenRange.end.column === 0
+      }
+    }
+
+    let rangeStartRow = screenRange.start.row
+    let rangeEndRow = screenRange.end.row
+
+    if (decoration.onlyHead) {
+      rangeStartRow = rangeEndRow
+    }
+
+    const top = this.pixelPositionAfterBlocksForRow(rangeStartRow)
+    const height = this.pixelPositionBeforeBlocksForRow(rangeEndRow + (omitLastRow ? 0 : 1)) - top
 
     decorations.push({
       className: 'decoration' + (decoration.class ? ' ' + decoration.class : ''),
