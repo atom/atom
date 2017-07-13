@@ -174,6 +174,10 @@ class TextEditorComponent {
   }
 
   update (props) {
+    if (props.model !== this.props.model) {
+      this.props.model.component = null
+      props.model.component = this
+    }
     this.props = props
     this.scheduleUpdate()
   }
