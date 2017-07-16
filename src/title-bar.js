@@ -1,10 +1,12 @@
-module.exports =
-class TitleBar {
+/**
+ * Class containing the actions and settings for the TitleBar of the application
+ */
+module.exports = class TitleBar {
   constructor ({workspace, themes, applicationDelegate}) {
     this.dblclickHandler = this.dblclickHandler.bind(this)
     this.workspace = workspace
     this.themes = themes
-    this.applicationDelegate = applicationDelegate
+    this.applicationDelegate = applicationDelegate;
     this.element = document.createElement('div')
     this.element.classList.add('title-bar')
 
@@ -21,27 +23,33 @@ class TitleBar {
     this.updateWindowSheetOffset()
   }
 
-  dblclickHandler () {
-    // User preference deciding which action to take on a title bar double-click
+  /**
+   * Handles window sizing on double click based on set user preferences
+   */
+  dblclickHandler() {
     switch (this.applicationDelegate.getUserDefault('AppleActionOnDoubleClick', 'string')) {
       case 'Minimize':
         this.applicationDelegate.minimizeWindow()
-        break
+        break;
       case 'Maximize':
-        if (this.applicationDelegate.isWindowMaximized()) {
-          this.applicationDelegate.unmaximizeWindow()
-        } else {
+        this.applicationDelegate.isWindowMaximized() ?
+          this.applicationDelegate.unmaximizeWindow() :
           this.applicationDelegate.maximizeWindow()
-        }
-        break
+        break;
     }
   }
 
-  updateTitle () {
+  /**
+   * Sets the title bar text to the title of the current document
+   */
+  updateTitle() {
     this.titleElement.textContent = document.title
   }
 
-  updateWindowSheetOffset () {
+  /**
+   * Sets the visual offset amount based on the offset of the current element
+   */
+  updateWindowSheetOffset() {
     this.applicationDelegate.getCurrentWindow().setSheetOffset(this.element.offsetHeight)
   }
 }
