@@ -26,15 +26,17 @@ module.exports = class TitleBar {
   /**
    * Handles window sizing on double click based on set user preferences
    */
-  dblclickHandler() {
+  dblclickHandler () {
     switch (this.applicationDelegate.getUserDefault('AppleActionOnDoubleClick', 'string')) {
       case 'Minimize':
         this.applicationDelegate.minimizeWindow()
         break
       case 'Maximize':
-        this.applicationDelegate.isWindowMaximized() ?
-          this.applicationDelegate.unmaximizeWindow() :
+        if (this.applicationDelegate.isWindowMaximized()) {
+          this.applicationDelegate.unmaximizeWindow()
+        } else {
           this.applicationDelegate.maximizeWindow()
+        }
         break
     }
   }
@@ -42,14 +44,14 @@ module.exports = class TitleBar {
   /**
    * Sets the title bar text to the title of the current document
    */
-  updateTitle() {
+  updateTitle () {
     this.titleElement.textContent = document.title
   }
 
   /**
    * Sets the visual offset amount based on the offset of the current element
    */
-  updateWindowSheetOffset() {
+  updateWindowSheetOffset () {
     this.applicationDelegate.getCurrentWindow().setSheetOffset(this.element.offsetHeight)
   }
 }
