@@ -6,7 +6,7 @@ module.exports = class TitleBar {
     this.dblclickHandler = this.dblclickHandler.bind(this)
     this.workspace = workspace
     this.themes = themes
-    this.applicationDelegate = applicationDelegate;
+    this.applicationDelegate = applicationDelegate
     this.element = document.createElement('div')
     this.element.classList.add('title-bar')
 
@@ -30,12 +30,12 @@ module.exports = class TitleBar {
     switch (this.applicationDelegate.getUserDefault('AppleActionOnDoubleClick', 'string')) {
       case 'Minimize':
         this.applicationDelegate.minimizeWindow()
-        break;
+        break
       case 'Maximize':
         this.applicationDelegate.isWindowMaximized() ?
           this.applicationDelegate.unmaximizeWindow() :
           this.applicationDelegate.maximizeWindow()
-        break;
+        break
     }
   }
 
