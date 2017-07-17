@@ -53,6 +53,8 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
+let artifactsPromise = Promise.resolve()
+
 if (!argv.existingArtifacts) {
   checkChromedriverVersion()
   cleanOutputDirectory()
@@ -66,9 +68,10 @@ if (!argv.existingArtifacts) {
   prebuildLessCache()
   generateMetadata()
   generateAPIDocs()
+  artifactsPromise = dumpSymbols()
 }
 
-dumpSymbols()
+artifactsPromise
   .then(packageApplication)
   .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
   .then(packagedAppPath => {
