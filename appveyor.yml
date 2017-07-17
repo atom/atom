@@ -31,18 +31,19 @@ install:
   - npm install -g npm@5.3.0
 
 build_script:
-  - IF NOT EXIST C:\sqtemp MKDIR C:\sqtemp
-  - SET SQUIRREL_TEMP=C:\sqtemp
   - CD %APPVEYOR_BUILD_FOLDER%
-  - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
-      script\build.cmd --code-sign --create-windows-installer --compress-artifacts
-    ) ELSE (
-      script\build.cmd --code-sign --compress-artifacts
-    )
+  - script\build.cmd --code-sign --compress-artifacts
 
 test_script:
   - script\lint.cmd
   - script\test.cmd
+
+after_test:
+  - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
+      IF NOT EXIST C:\sqtemp MKDIR C:\sqtemp
+      SET SQUIRREL_TEMP=C:\sqtemp
+      script\build.cmd --existing-binaries --code-sign --create-windows-installer
+    )
 
 deploy: off
 artifacts:
