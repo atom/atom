@@ -14,7 +14,7 @@ const yargs = require('yargs')
 const argv = yargs
   .usage('Usage: $0 [options]')
   .help('help')
-  .describe('existing-artifacts', 'Use existing Atom binaries (skip clean/transpile/cache)')
+  .describe('existing-binaries', 'Use existing Atom binaries (skip clean/transpile/cache)')
   .describe('code-sign', 'Code-sign executables (macOS and Windows only)')
   .describe('create-windows-installer', 'Create installer (Windows only)')
   .describe('create-debian-package', 'Create .deb package (Linux only)')
@@ -53,9 +53,9 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
-let artifactsPromise = Promise.resolve()
+let binariesPromise = Promise.resolve()
 
-if (!argv.existingArtifacts) {
+if (!argv.existingBinaries) {
   checkChromedriverVersion()
   cleanOutputDirectory()
   copyAssets()
@@ -68,10 +68,10 @@ if (!argv.existingArtifacts) {
   prebuildLessCache()
   generateMetadata()
   generateAPIDocs()
-  artifactsPromise = dumpSymbols()
+  binariesPromise = dumpSymbols()
 }
 
-artifactsPromise
+binariesPromise
   .then(packageApplication)
   .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
   .then(packagedAppPath => {
