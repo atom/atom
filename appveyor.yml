@@ -42,7 +42,7 @@ after_test:
   - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
       IF NOT EXIST C:\sqtemp MKDIR C:\sqtemp
       SET SQUIRREL_TEMP=C:\sqtemp
-      script\build.cmd --existing-artifacts --code-sign --create-windows-installer
+      script\build.cmd --existing-binaries --code-sign --create-windows-installer
     )
 
 deploy: off
