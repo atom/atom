@@ -630,7 +630,7 @@ class Pane
       prevent = -> preventClosing = true
 
       @emitter.emit 'will-destroy-item', {item, index}
-      @container?.willDestroyPaneItem({item, index, pane: this})
+      @container?.willDestroyPaneItem({item, index, prevent, pane: this})
 
       if preventClosing
         false
