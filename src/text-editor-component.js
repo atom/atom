@@ -251,20 +251,17 @@ class TextEditorComponent {
 
     this.measureBlockDecorations()
 
-    this.measuredContent = false
     this.updateSyncBeforeMeasuringContent()
     if (useScheduler === true) {
       const scheduler = etch.getScheduler()
       scheduler.readDocument(() => {
         this.measureContentDuringUpdateSync()
-        this.measuredContent = true
         scheduler.updateDocument(() => {
           this.updateSyncAfterMeasuringContent()
         })
       })
     } else {
       this.measureContentDuringUpdateSync()
-      this.measuredContent = true
       this.updateSyncAfterMeasuringContent()
     }
   }
@@ -341,6 +338,7 @@ class TextEditorComponent {
   }
 
   updateSyncBeforeMeasuringContent () {
+    this.measuredContent = false
     this.derivedDimensionsCache = {}
     this.updateModelSoftWrapColumn()
     if (this.pendingAutoscroll) {
@@ -384,6 +382,8 @@ class TextEditorComponent {
       }
       this.pendingAutoscroll = null
     }
+
+    this.measuredContent = true
   }
 
   updateSyncAfterMeasuringContent () {
