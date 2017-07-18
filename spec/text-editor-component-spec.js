@@ -3335,6 +3335,15 @@ describe('TextEditorComponent', () => {
         expect(left).toBe(clientLeftForCharacter(referenceComponent, 12, 1) - referenceContentRect.left)
       }
     })
+
+    it('does not get the component into an inconsistent state when the model has unflushed changes (regression)', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 2, autoHeight: false, text: ''})
+      await setEditorHeightInLines(component, 10)
+
+      const updatePromise = editor.getBuffer().append("hi\n")
+      component.screenPositionForPixelPosition({top: 800, left: 1})
+      await updatePromise
+    })
   })
 
   describe('screenPositionForPixelPosition', () => {
