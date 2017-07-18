@@ -10,3 +10,4 @@
 #   editor.onDidSave ->
 #     console.log "Saved! #{editor.getPath()}"
 atom.config.set('editor.softWrap', true)
+atom.config.set('core.telemetryConsent', 'no')
