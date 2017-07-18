@@ -205,6 +205,30 @@ export default class BufferedProcess {
     })
   }
 
+  // Kill all child processes of the spawned process on Nix platforms.
+  //
+  killOnNix () {
+    if (!this.process) return
+
+    const parentPid = this.process.pid
+    const cmd = 'pkill'
+    const args = ['-P', `${parentPid}` ]
+
+    let pkillProcess
+
+    try {
+      pkillProcess = ChildProcess.spawn(cmd, args)
+    } catch (spawnError) {
+      this.killProcess()
+      return
+    }
+
+    pkillProcess.on('error', () => { })
+    pkillProcess.stdout.on('close', () => {
+      this.killProcess()
+    })
+  }
+
   killProcess () {
     if (this.process) this.process.kill()
     this.process = null
@@ -238,7 +262,7 @@ export default class BufferedProcess {
     if (process.platform === 'win32') {
       this.killOnWindows()
     } else {
-      this.killProcess()
+      this.killOnNix()
     }
   }
 
