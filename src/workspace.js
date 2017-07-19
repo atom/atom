@@ -612,7 +612,7 @@ module.exports = class Workspace extends Model {
   // editors in the workspace.
   //
   // * `callback` {Function} to be called with current and future text editors.
-  //   * `editor` An {TextEditor} that is present in {::getTextEditors} at the time
+  //   * `editor` A {TextEditor} that is present in {::getTextEditors} at the time
   //     of subscription or that is added at some later time.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
