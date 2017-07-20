@@ -4,7 +4,7 @@ const os = require('os')
 const path = require('path')
 const {spawnSync} = require('child_process')
 
-module.exports = function (fileToSignPath) {
+module.exports = function (filesToSign) {
   if (!process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL && !process.env.ATOM_WIN_CODE_SIGNING_CERT_PATH) {
     console.log('Skipping code signing because the ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL environment variable is not defined'.gray)
     return
@@ -16,15 +16,17 @@ module.exports = function (fileToSignPath) {
     downloadFileFromGithub(process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
   }
   try {
-    console.log(`Code-signing executable at ${fileToSignPath}`)
-    signFile(fileToSignPath)
+    for (const fileToSign of filesToSign) {
+      console.log(`Code-signing executable at ${fileToSign}`)
+      signFile(fileToSign)
+    }
   } finally {
     if (!process.env.ATOM_WIN_CODE_SIGNING_CERT_PATH) {
       fs.removeSync(certPath)
     }
   }
 
-  function signFile (fileToSignPath) {
+  function signFile (fileToSign) {
     const signCommand = path.resolve(__dirname, '..', 'node_modules', 'electron-winstaller', 'vendor', 'signtool.exe')
     const args = [
       'sign',
@@ -33,7 +35,7 @@ module.exports = function (fileToSignPath) {
       '/fd sha256', // File digest algorithm
       '/tr http://timestamp.digicert.com', // Time stamp server
       '/td sha256', // Times stamp algorithm
-      `"${fileToSignPath}"`
+      `"${fileToSign}"`
     ]
     const result = spawnSync(signCommand, args, {stdio: 'inherit', shell: true})
     if (result.status !== 0) {

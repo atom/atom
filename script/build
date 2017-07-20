@@ -81,13 +81,13 @@ dumpSymbols()
       }
       case 'win32': {
         if (argv.codeSign) {
-          codeSignOnWindows(path.join(packagedAppPath, 'Atom.exe'))
+          codeSignOnWindows([ path.join(packagedAppPath, 'Atom.exe'), path.join(packagedAppPath, 'Update.exe') ])
         } else {
           console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
         }
         if (argv.createWindowsInstaller) {
           return createWindowsInstaller(packagedAppPath)
-            .then(() => argv.codeSign && codeSignOnWindows(path.join(CONFIG.buildOutputPath, 'AtomSetup.exe')))
+            .then(() => argv.codeSign && codeSignOnWindows([ path.join(CONFIG.buildOutputPath, 'AtomSetup.exe') ]))
             .then(() => packagedAppPath)
         } else {
           console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer.'.gray)
