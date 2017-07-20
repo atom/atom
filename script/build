@@ -81,7 +81,11 @@ dumpSymbols()
       }
       case 'win32': {
         if (argv.codeSign) {
-          codeSignOnWindows([ path.join(packagedAppPath, 'Atom.exe'), path.join(packagedAppPath, 'Update.exe') ])
+          const executablesToSign = [ path.join(packagedAppPath, 'Atom.exe') ]
+          if (argv.createWindowsInstaller) {
+            executablesToSign.push(path.join(__dirname, 'node_modules', 'electron-winstaller', 'vendor', 'Update.exe'))
+          }
+          codeSignOnWindows(executablesToSign)
         } else {
           console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
         }
