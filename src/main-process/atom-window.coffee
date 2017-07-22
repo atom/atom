@@ -317,3 +317,5 @@ class AtomWindow
 
   disableZoom: ->
     @browserWindow.webContents.setVisualZoomLevelLimits(1, 1)
+
+  setVibrancy: (vibrancy) -> @browserWindow.setVibrancy(vibrancy)
