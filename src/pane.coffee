@@ -637,7 +637,7 @@ class Pane
   # Public: Destroy all items.
   destroyItems: ->
     Promise.all(
-      @getItems().map(@destroyItem.bind(this))
+      @getItems().map((item) => @destroyItem(item))
     )
 
   # Public: Destroy all items except for the active item.
@@ -645,7 +645,7 @@ class Pane
     Promise.all(
       @getItems()
         .filter((item) => item isnt @activeItem)
-        .map(@destroyItem.bind(this))
+        .map((item) => @destroyItem(item))
     )
 
   promptToSaveItem: (item, options={}) ->
@@ -950,7 +950,7 @@ class Pane
   # Returns a {Promise} that resolves once the pane is either closed, or the
   # closing has been cancelled.
   close: ->
-    Promise.all(@getItems().map(@promptToSaveItem.bind(this))).then (results) =>
+    Promise.all(@getItems().map((item) => @promptToSaveItem(item))).then (results) =>
       @destroy() unless results.includes(false)
 
   handleSaveError: (error, item) ->
