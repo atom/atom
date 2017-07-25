@@ -108,7 +108,7 @@ elif [ $OS == 'Linux' ]; then
     ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
   fi
 
-  ATOM_HOME="${ATOM_HOME:-$HOME/.atom}"
+  ATOM_HOME="${ATOM_HOME:-$HOME/.onetwo}"
   mkdir -p "$ATOM_HOME"
 
   : ${TMPDIR:=/tmp}
