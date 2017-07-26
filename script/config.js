@@ -42,7 +42,7 @@ function getChannel () {
 
 function getApmBinPath () {
   const apmBinName = process.platform === 'win32' ? 'apm.cmd' : 'apm'
-  return path.join(apmRootPath, 'node_modules', 'atom-package-manager', 'bin', apmBinName)
+  return path.join(apmRootPath, 'node_modules', 'onetwo-package-manager', 'bin', apmBinName)
 }
 
 function getNpmBinPath () {

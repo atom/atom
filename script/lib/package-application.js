@@ -57,7 +57,7 @@ module.exports = function () {
 function copyNonASARResources (packagedAppPath, bundledResourcesPath) {
   console.log(`Copying non-ASAR resources to ${bundledResourcesPath}`)
   fs.copySync(
-    path.join(CONFIG.repositoryRootPath, 'apm', 'node_modules', 'atom-package-manager'),
+    path.join(CONFIG.repositoryRootPath, 'apm', 'node_modules', 'onetwo-package-manager'),
     path.join(bundledResourcesPath, 'app', 'apm'),
     {filter: includePathInPackagedApp}
   )

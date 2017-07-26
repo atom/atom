@@ -6,6 +6,6 @@
     "url": "https://github.com/atom/atom.git"
   },
   "dependencies": {
-    "onetwo-package-manager": "2.0.1"
+    "onetwo-package-manager": "2.0.3"
   }
 }

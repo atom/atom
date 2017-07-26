@@ -150,7 +150,7 @@ class PackageManager
     apmRoot = path.join(process.resourcesPath, 'app', 'apm')
     @apmPath = path.join(apmRoot, 'bin', commandName)
     unless fs.isFileSync(@apmPath)
-      @apmPath = path.join(apmRoot, 'node_modules', 'atom-package-manager', 'bin', commandName)
+      @apmPath = path.join(apmRoot, 'node_modules', 'onetwo-package-manager', 'bin', commandName)
     @apmPath
 
   # Public: Get the paths being used to look for packages.
