@@ -3766,13 +3766,27 @@ describe "TextEditor", ->
                 expect(buffer.lineForRow(7)).toMatch /^\t\t\t\t$/
                 expect(editor.getCursorBufferPosition()).toEqual [7, 4]
 
-      describe "when the selection is not empty", ->
+      describe "when selection spans across multiple lines", ->
         it "indents the selected lines", ->
           editor.setSelectedBufferRange([[0, 0], [10, 0]])
           selection = editor.getLastSelection()
           spyOn(selection, "indentSelectedRows")
           editor.indent()
           expect(selection.indentSelectedRows).toHaveBeenCalled()
+
+      describe "when a single line has been selected from start to end", ->
+        it "indents the selected line", ->
+          editor.setSelectedBufferRange([[0, 0], [0, 29]])
+          selection = editor.getLastSelection()
+          spyOn(selection, "indentSelectedRows")
+          editor.indent()
+          expect(selection.indentSelectedRows).toHaveBeenCalled()
+
+      describe "when selection is made within a single line", ->
+        it "inserts a tab in place of the selection", ->
+          editor.setSelectedBufferRange([[0, 4], [0, 13]])
+          editor.indent()
+          expect(buffer.lineForRow(0)).toEqual "var #{editor.getTabText()} = function () {"
 
       describe "if editor.softTabs is false", ->
         it "inserts a tab character into the buffer", ->
@@ -4262,12 +4276,19 @@ describe "TextEditor", ->
           editor.outdentSelectedRows()
           expect(buffer.lineForRow(0)).toBe "foo\t var quicksort = function () {"
 
-      describe "when one line is selected", ->
+      describe "when part of one line is selected", ->
         it "outdents line and retains editor", ->
           editor.setSelectedBufferRange([[1, 4], [1, 14]])
           editor.outdentSelectedRows()
           expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
           expect(editor.getSelectedBufferRange()).toEqual [[1, 4 - editor.getTabLength()], [1, 14 - editor.getTabLength()]]
+
+      describe "when one line is selected from start to end", ->
+        it "outdents line and retains editor", ->
+          editor.setSelectedBufferRange([[1, 0], [1, 30]])
+          editor.outdentSelectedRows()
+          expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
+          expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [1, 30 - editor.getTabLength()]]
 
       describe "when multiple lines are selected", ->
         it "outdents selected lines and retains editor", ->

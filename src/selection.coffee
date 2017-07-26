@@ -649,16 +649,19 @@ class Selection extends Model
   # Indent the current line(s).
   #
   # If the selection is empty, indents the current line if the cursor precedes
-  # non-whitespace characters, and otherwise inserts a tab. If the selection is
-  # non empty, calls {::indentSelectedRows}.
+  # non-whitespace characters, and otherwise inserts a tab.
+  #
+  # If the selection is non empty, on single line and does not contain the
+  # whole line, inserts a tab. Otherwise calls {::indentSelectedRows}.
   #
   # * `options` (optional) {Object} with the keys:
   #   * `autoIndent` If `true`, the line is indented to an automatically-inferred
   #     level. Otherwise, {TextEditor::getTabText} is inserted.
   indent: ({autoIndent}={}) ->
-    {row} = @cursor.getBufferPosition()
+    bufferRange = @getBufferRange()
 
     if @isEmpty()
+      {row} = @cursor.getBufferPosition()
       @cursor.skipLeadingWhitespace()
       desiredIndent = @editor.suggestedIndentForBufferRow(row)
       delta = desiredIndent - @cursor.getIndentLevel()
@@ -668,10 +671,12 @@ class Selection extends Model
         @insertText(@editor.buildIndentString(delta))
       else
         @insertText(@editor.buildIndentString(1, @cursor.getBufferColumn()))
+    else if bufferRange.isSingleLine() and not bufferRange.containsRange(@editor.bufferRangeForBufferRow(bufferRange.start.row))
+      @insertText(@editor.getTabText())
     else
       @indentSelectedRows()
 
-  # Public: If the selection spans multiple rows, indent all of them.
+  # Public: Indents all selected rows by one level.
   indentSelectedRows: ->
     [start, end] = @getBufferRowRange()
     for row in [start..end]
