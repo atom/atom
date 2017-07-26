@@ -656,10 +656,9 @@ class Selection extends Model
   #   * `autoIndent` If `true`, the line is indented to an automatically-inferred
   #     level. Otherwise, {TextEditor::getTabText} is inserted.
   indent: ({autoIndent}={}) ->
-    [start, end] = @getBufferRowRange()
+    {row} = @cursor.getBufferPosition()
 
-    if @isEmpty() or start is end
-      {row} = @cursor.getBufferPosition()
+    if @isEmpty()
       @cursor.skipLeadingWhitespace()
       desiredIndent = @editor.suggestedIndentForBufferRow(row)
       delta = desiredIndent - @cursor.getIndentLevel()
