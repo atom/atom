@@ -660,7 +660,7 @@ class Selection extends Model
   indent: ({autoIndent}={}) ->
     bufferRange = @getBufferRange()
 
-    if @isEmpty()
+    if bufferRange.isEmpty()
       {row} = @cursor.getBufferPosition()
       @cursor.skipLeadingWhitespace()
       desiredIndent = @editor.suggestedIndentForBufferRow(row)
@@ -671,7 +671,7 @@ class Selection extends Model
         @insertText(@editor.buildIndentString(delta))
       else
         @insertText(@editor.buildIndentString(1, @cursor.getBufferColumn()))
-    else if bufferRange.isSingleLine() and not bufferRange.containsRange(@editor.bufferRangeForBufferRow(bufferRange.start.row))
+    else if bufferRange.isSingleLine() and not bufferRange.isEqual(@editor.bufferRangeForBufferRow(bufferRange.start.row))
       @insertText(@editor.getTabText())
     else
       @indentSelectedRows()
