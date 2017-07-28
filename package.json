@@ -193,5 +193,8 @@
       "HTMLElement",
       "snapshotResult"
     ]
+  },
+  "devDependencies": {
+    "jasmine-reporters": "^1.1.0"
   }
 }
