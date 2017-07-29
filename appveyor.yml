@@ -18,6 +18,7 @@ platform:
 environment:
   global:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
+    TEST_JUNIT_XML_PATH: c:\projects\atom\junit-results.xml
 
   matrix:
   - NODE_VERSION: 6.9.4
@@ -39,6 +40,9 @@ test_script:
   - script\test.cmd
 
 after_test:
+  - ps: |
+      $wc = New-Object 'System.Net.WebClient'
+      $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $env:TEST_JUNIT_XML_PATH)
   - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
       IF NOT EXIST C:\sqtemp MKDIR C:\sqtemp
       SET SQUIRREL_TEMP=C:\sqtemp
