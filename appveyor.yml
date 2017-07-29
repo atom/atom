@@ -18,7 +18,7 @@ platform:
 environment:
   global:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
-    TEST_JUNIT_XML_PATH: c:\projects\atom\junit-results.xml
+    TEST_JUNIT_XML_ROOT: c:\projects\junit-test-results
 
   matrix:
   - NODE_VERSION: 6.9.4
@@ -27,6 +27,7 @@ matrix:
   fast_finish: true
 
 install:
+  - IF NOT EXIST %TEST_JUNIT_XML_ROOT% MKDIR %TEST_JUNIT_XML_ROOT%
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
   - npm install -g npm@5.3.0
