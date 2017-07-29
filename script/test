@@ -32,18 +32,29 @@ if (process.platform === 'darwin') {
   throw new Error('Running tests on this platform is not supported.')
 }
 
+function prepareEnv (suiteName) {
+  const env = {}
+
+  if (process.env.CIRCLE_TEST_REPORTS) {
+    // CircleCI
+    // Tell Jasmine to output this suite's results to the directory that Circle expects to find JUnit XML files in.
+    const outputPath = path.join(process.env.CIRCLE_TEST_REPORTS, suiteName, 'test-results.xml')
+    env.TEST_JUNIT_XML_PATH = outputPath
+  }
+
+  return env
+}
+
 function runCoreMainProcessTests (callback) {
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
   const testArguments = [
     '--resource-path', resourcePath,
     '--test', '--main-process', testPath
   ]
+  const testEnv = Object.assign({}, prepareEnv('core-main-process'), process.env, {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
 
   console.log('Executing core main process tests'.bold.green)
-  const cp = childProcess.spawn(executablePath, testArguments, {
-    stdio: 'inherit',
-    env: Object.assign({}, process.env, {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
-  })
+  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
   cp.on('error', error => { callback(error) })
   cp.on('close', exitCode => { callback(null, exitCode) })
 }
@@ -54,9 +65,10 @@ function runCoreRenderProcessTests (callback) {
     '--resource-path', resourcePath,
     '--test', testPath
   ]
+  const testEnv = prepareEnv('core-render-process')
 
   console.log('Executing core render process tests'.bold.green)
-  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit'})
+  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
   cp.on('error', error => { callback(error) })
   cp.on('close', exitCode => { callback(null, exitCode) })
 }
@@ -87,6 +99,7 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
       '--resource-path', resourcePath,
       '--test', testFolder
     ]
+    const testEnv = prepareEnv(`bundled-package-${packageName}`)
 
     const pkgJsonPath = path.join(repositoryPackagePath, 'package.json')
     const nodeModulesPath = path.join(repositoryPackagePath, 'node_modules')
@@ -105,7 +118,7 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     } else {
       console.log(`Executing ${packageName} tests`.bold.green)
     }
-    const cp = childProcess.spawn(executablePath, testArguments)
+    const cp = childProcess.spawn(executablePath, testArguments, {env: testEnv})
     let stderrOutput = ''
     cp.stderr.on('data', data => { stderrOutput += data })
     cp.stdout.on('data', data => { stderrOutput += data })
@@ -127,9 +140,10 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
 function runBenchmarkTests (callback) {
   const benchmarksPath = path.join(CONFIG.repositoryRootPath, 'benchmarks')
   const testArguments = ['--benchmark-test', benchmarksPath]
+  const testEnv = prepareEnv('benchmark')
 
   console.log('Executing benchmark tests'.bold.green)
-  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit'})
+  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
   cp.on('error', error => { callback(error) })
   cp.on('close', exitCode => { callback(null, exitCode) })
 }
