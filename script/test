@@ -35,10 +35,10 @@ if (process.platform === 'darwin') {
 function prepareEnv (suiteName) {
   const env = {}
 
-  if (process.env.CIRCLE_TEST_REPORTS) {
-    // CircleCI
-    // Tell Jasmine to output this suite's results to the directory that Circle expects to find JUnit XML files in.
-    const outputPath = path.join(process.env.CIRCLE_TEST_REPORTS, suiteName, 'test-results.xml')
+  if (process.env.TEST_JUNIT_XML_ROOT) {
+    // Tell Jasmine to output this suite's results as a JUnit XML file to a subdirectory of the root, so that a
+    // CI system can interpret it.
+    const outputPath = path.join(process.env.TEST_JUNIT_XML_ROOT, suiteName, 'test-results.xml')
     env.TEST_JUNIT_XML_PATH = outputPath
   }
 
