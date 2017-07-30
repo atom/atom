@@ -2,6 +2,7 @@ const {extend} = require('underscore-plus')
 const {Emitter} = require('event-kit')
 const Grim = require('grim')
 const Pane = require('../src/pane')
+const PaneAxis = require('../src/pane-axis')
 const PaneContainer = require('../src/pane-container')
 const {it, fit, ffit, fffit, beforeEach} = require('./async-spec-helpers')
 
@@ -1150,6 +1151,228 @@ describe('Pane', () => {
       const pane2 = pane1.splitRight()
       expect(pane1.isActive()).toBe(false)
       expect(pane2.isActive()).toBe(true)
+    })
+  })
+
+  describe('move to very direction methods', () => {
+    let pane1, container
+
+    function layoutFor(paneAxis) {
+      const layout = {}
+      layout[paneAxis.getOrientation()] = paneAxis.getChildren().map(child => {
+        if (child instanceof Pane) {
+          return child
+        } else if (child instanceof PaneAxis) {
+          return layoutFor(child)
+        }
+      })
+      return layout
+    }
+
+    beforeEach(() => {
+      container = new PaneContainer({config: atom.config, confirm, deserializerManager: atom.deserializers, location: "center"})
+      pane1 = container.getActivePane()
+      pane1.addItem(new Item('A'))
+    })
+
+    describe('when the parent is the container is not pane-axis', () => {
+      describe('::movePaneToVeryTop()', () => {
+        it('does nothing', () => {
+          pane1.moveToVeryRight()
+          expect(container.root).toBe(pane1)
+        })
+      })
+      describe('::movePaneToVeryBottom()', () => {
+        it('does nothing', () => {
+          pane1.moveToVeryRight()
+          expect(container.root).toBe(pane1)
+        })
+      })
+      describe('::movePaneToVeryLeft()', () => {
+        it('does nothing', () => {
+          pane1.moveToVeryRight()
+          expect(container.root).toBe(pane1)
+        })
+      })
+      describe('::moveToVeryRight()', () => {
+        it('does nothing', () => {
+          pane1.moveToVeryRight()
+          expect(container.root).toBe(pane1)
+        })
+      })
+    })
+
+    describe('when root pane-axis is horizontal', () => {
+      let pane2, pane3
+
+      beforeEach(() => {
+        pane2 = pane1.splitRight({items: [new Item('B')]})
+        pane3 = pane2.splitRight({items: [new Item('C')]})
+      })
+
+      describe('initial layout', () => {
+        it('have horizontal orientation with 3 panes', () => {
+          expect(layoutFor(container.root)).toEqual({horizontal: [pane1, pane2, pane3]})
+        })
+      })
+
+      describe('::moveToVeryTop()', () => {
+        it('move leftmost pane to very top', () => {
+          pane1.moveToVeryTop()
+          expect(layoutFor(container.root)).toEqual({vertical: [pane1, {horizontal: [pane2, pane3]}]})
+        })
+        it('move middle pane to very top', () => {
+          pane2.moveToVeryTop()
+          expect(layoutFor(container.root)).toEqual({vertical: [pane2, {horizontal: [pane1, pane3]}]})
+        })
+        it('move rightmost pane to very top', () => {
+          pane3.moveToVeryTop()
+          expect(layoutFor(container.root)).toEqual({vertical: [pane3, {horizontal: [pane1, pane2]}]})
+        })
+      })
+
+      describe('::moveToVeryBottom()', () => {
+        it('move leftmost pane to very bottom', () => {
+          pane1.moveToVeryBottom()
+          expect(layoutFor(container.root)).toEqual({vertical: [{horizontal: [pane2, pane3]}, pane1]})
+        })
+        it('move middle pane to very bottom', () => {
+          pane2.moveToVeryBottom()
+          expect(layoutFor(container.root)).toEqual({vertical: [{horizontal: [pane1, pane3]}, pane2]})
+        })
+        it('move rightmost pane to very bottom', () => {
+          pane3.moveToVeryBottom()
+          expect(layoutFor(container.root)).toEqual({vertical: [{horizontal: [pane1, pane2]}, pane3]})
+        })
+      })
+
+      describe('::moveToVeryRight()', () => {
+        it('move leftmost pane to very right', () => {
+          pane1.moveToVeryRight()
+          expect(layoutFor(container.root)).toEqual({horizontal: [pane2, pane3, pane1]})
+        })
+        it('move middle pane to very right', () => {
+          pane2.moveToVeryRight()
+          expect(layoutFor(container.root)).toEqual({horizontal: [pane1, pane3, pane2]})
+        })
+        it('move rightmost pane to very right', () => {
+          pane3.moveToVeryRight()
+          expect(layoutFor(container.root)).toEqual({horizontal: [pane1, pane2, pane3]})
+        })
+      })
+
+      describe('::moveToVeryLeft()', () => {
+        it('move leftmost pane to very left', () => {
+          pane1.moveToVeryLeft()
+          expect(layoutFor(container.root)).toEqual({horizontal: [pane1, pane2, pane3]})
+        })
+        it('move middle pane to very left', () => {
+          pane2.moveToVeryLeft()
+          expect(layoutFor(container.root)).toEqual({horizontal: [pane2, pane1, pane3]})
+        })
+        it('move rightmost pane to very left', () => {
+          pane3.moveToVeryLeft()
+          expect(layoutFor(container.root)).toEqual({horizontal: [pane3, pane1, pane2]})
+        })
+      })
+    })
+
+    describe('when root pane-axis is vertical', () => {
+      let pane2, pane3
+
+      beforeEach(() => {
+        pane2 = pane1.splitDown({items: [new Item('B')]})
+        pane3 = pane2.splitDown({items: [new Item('C')]})
+      })
+
+      describe('initial layout', () => {
+        it('have vertical orientation with 3 panes', () => {
+          expect(layoutFor(container.root)).toEqual({vertical: [pane1, pane2, pane3]})
+        })
+      })
+
+      describe('::moveToVeryTop()', () => {
+        it('move topmost pane to very top', () => {
+          pane1.moveToVeryTop()
+          expect(layoutFor(container.root)).toEqual({vertical: [pane1, pane2, pane3]})
+        })
+        it('move middle pane to very top', () => {
+          pane2.moveToVeryTop()
+          expect(layoutFor(container.root)).toEqual({vertical: [pane2, pane1, pane3]})
+        })
+        it('move bottommost pane to very top', () => {
+          pane3.moveToVeryTop()
+          expect(layoutFor(container.root)).toEqual({vertical: [pane3, pane1, pane2]})
+        })
+      })
+
+      describe('::moveToVeryBottom()', () => {
+        it('move leftmost pane to very bottom', () => {
+          pane1.moveToVeryBottom()
+          expect(layoutFor(container.root)).toEqual({vertical: [pane2, pane3, pane1]})
+        })
+        it('move middle pane to very bottom', () => {
+          pane2.moveToVeryBottom()
+          expect(layoutFor(container.root)).toEqual({vertical: [pane1, pane3, pane2]})
+        })
+        it('move rightmost pane to very bottom', () => {
+          pane3.moveToVeryBottom()
+          expect(layoutFor(container.root)).toEqual({vertical: [pane1, pane2, pane3]})
+        })
+      })
+
+      describe('::moveToVeryLeft()', () => {
+        it('move topmost pane to very left', () => {
+          pane1.moveToVeryLeft()
+          expect(layoutFor(container.root)).toEqual({horizontal: [pane1, {vertical: [pane2, pane3]}]})
+        })
+        it('move middle pane to very left', () => {
+          pane2.moveToVeryLeft()
+          expect(layoutFor(container.root)).toEqual({horizontal: [pane2, {vertical: [pane1, pane3]}]})
+        })
+        it('move rightmost pane to very left', () => {
+          pane3.moveToVeryLeft()
+          expect(layoutFor(container.root)).toEqual({horizontal: [pane3, {vertical: [pane1, pane2]}]})
+        })
+      })
+
+      describe('::moveToVeryRight()', () => {
+        it('move topmost pane to very right', () => {
+          pane1.moveToVeryRight()
+          expect(layoutFor(container.root)).toEqual({horizontal: [{vertical: [pane2, pane3]}, pane1]})
+        })
+        it('move middle pane to very right', () => {
+          pane2.moveToVeryRight()
+          expect(layoutFor(container.root)).toEqual({horizontal: [{vertical: [pane1, pane3]}, pane2]})
+        })
+
+        it('move rightmost pane to very right', () => {
+          pane3.moveToVeryRight()
+          expect(layoutFor(container.root)).toEqual({horizontal: [{vertical: [pane1, pane2]}, pane3]})
+        })
+      })
+    })
+
+    describe('reparenting nested pane-axis', () => {
+      it('does not create nested horizontal pane', () => {
+        const pane2 = pane1.splitRight({items: [new Item('B')]})
+        const pane3 = pane2.splitRight({items: [new Item('C')]})
+        expect(layoutFor(container.root)).toEqual({horizontal: [pane1, pane2, pane3]})
+        pane1.moveToVeryBottom()
+        expect(layoutFor(container.root)).toEqual({vertical: [{horizontal: [pane2, pane3]}, pane1]})
+        pane1.moveToVeryRight()
+        expect(layoutFor(container.root)).toEqual({horizontal: [pane2, pane3, pane1]})
+      })
+
+      it('does not create nested vertical pane', () => {
+        const pane2 = pane1.splitDown({items: [new Item('B')]})
+        const pane3 = pane2.splitDown({items: [new Item('C')]})
+        expect(layoutFor(container.root)).toEqual({vertical: [pane1, pane2, pane3]})
+        pane1.moveToVeryRight()
+        expect(layoutFor(container.root)).toEqual({horizontal: [{vertical: [pane2, pane3]}, pane1]})
+        pane1.moveToVeryBottom()
+        expect(layoutFor(container.root)).toEqual({vertical: [pane2, pane3, pane1]})
+      })
     })
   })
 
