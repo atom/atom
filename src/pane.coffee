@@ -889,6 +889,56 @@ class Pane
     newPane.activate()
     newPane
 
+  moveToVeryTop: -> @moveToVery('top')
+  moveToVeryBottom: -> @moveToVery('bottom')
+  moveToVeryLeft: -> @moveToVery('left')
+  moveToVeryRight: -> @moveToVery('right')
+
+  # Move this-pane to VERY top/bottom/left/right direction in pane-layout.
+  # The steps are here.
+  #  1. determine final root pane-axis orientation.
+  #  2. If final orientation is not same as current one, create new pane-axis and
+  #     move current root as child of that new pane-axis.
+  #     Then set this new pane-axis as root.
+  #  3. Move pane(remove from current pane-axis then add to new root).
+  #     This make pane as immediate-child of root pane-axis.
+  #  4. Cleanup
+  #    Moving pane from one pane-axis to another create nestet pane-axis.
+  #    `nested` means below, both can be pulled up to parent(= reparent).
+  #      - `vertical` pane-axis containing same `vertical` pane-axis as immediate child
+  #      - `horizontal` pane-axis containing same `horizontal` pane-axis as immediate child
+  moveToVery: (direction) ->
+    return if @container?.getLocation() isnt 'center'
+    return unless @container.getRoot() instanceof PaneAxis
+
+    root = @container.getRoot()
+    if direction in ["top", "bottom"]
+      orientation = "vertical"
+    else
+      orientation = "horizontal"
+
+    if root.getOrientation() isnt orientation
+      root = new PaneAxis({orientation, children: [root], @flexScale}, @viewRegistry)
+      @container.setRoot(root)
+
+    # Remove this pane,
+    originalParent = @parent
+    originalParent.removeChild(this, true) # avoid automatic repalrenting to keep pane-layout stable.
+
+    # Then move this pane to immediate-child of root.
+    if direction in ["top", "left"]
+      root.addChild(this, 0)
+    else
+      root.addChild(this)
+
+    # Now we finished moving, cleanup odd state of pane-layout from now.
+    if originalParent.children.length is 1
+      originalParent.reparentLastChild()
+
+    root.reparentNestedChildPaneAxises()
+
+    this.activate()
+
   # If the parent is a horizontal axis, returns its first child if it is a pane;
   # otherwise returns this pane.
   findLeftmostSibling: ->

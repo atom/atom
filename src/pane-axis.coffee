@@ -131,6 +131,27 @@ class PaneAxis extends Model
     @parent.replaceChild(this, lastChild)
     @destroy()
 
+  reparentNestedChildPaneAxises: ->
+    eachPaneAxis = (base, fn) ->
+      if base.children
+        fn(base)
+        for child in base.children
+          eachPaneAxis(child, fn)
+      return
+
+    eachPaneAxis this, (paneAxis) ->
+      parent = paneAxis.getParent()
+      if (parent instanceof PaneAxis) and (paneAxis.getOrientation() is parent.getOrientation())
+        anchor = null
+        for child in paneAxis.children
+          unless anchor?
+            parent.replaceChild(paneAxis, child)
+          else
+            parent.insertChildAfter(anchor, child)
+          anchor = child
+
+        paneAxis.destroy()
+
   subscribeToChild: (child) ->
     subscription = child.onDidDestroy => @removeChild(child)
     @subscriptionsByChild.set(child, subscription)
