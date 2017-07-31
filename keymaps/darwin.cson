@@ -111,6 +111,7 @@
   'alt-right': 'editor:move-to-end-of-word'
   'alt-shift-left': 'editor:select-to-beginning-of-word'
   'alt-shift-right': 'editor:select-to-end-of-word'
+  'alt-shift-m': 'tree-view:move'
 
   # Apple Specific
   'cmd-backspace': 'editor:delete-to-beginning-of-line'
