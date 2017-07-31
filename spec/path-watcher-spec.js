@@ -6,25 +6,23 @@ import fsCb from 'fs-plus'
 import path from 'path'
 
 import {CompositeDisposable} from 'event-kit'
-import FileSystemManager, {stopAllWatchers} from '../src/filesystem-manager'
+import PathWatcher, {stopAllWatchers} from '../src/path-watcher'
 
 tempCb.track()
 
 const fs = promisifySome(fsCb, ['writeFile', 'mkdir', 'symlink', 'appendFile', 'realpath'])
 const temp = promisifySome(tempCb, ['mkdir'])
 
-describe('FileSystemManager', function () {
-  let subs, manager
+describe('PathWatcher', function () {
+  let subs
 
   beforeEach(function () {
     subs = new CompositeDisposable()
-    manager = new FileSystemManager()
   })
 
   afterEach(async function () {
     subs.dispose()
-
-    await stopAllWatchers(manager)
+    await stopAllWatchers()
   })
 
   function waitForChanges (watcher, ...fileNames) {
@@ -49,11 +47,11 @@ describe('FileSystemManager', function () {
     })
   }
 
-  describe('getWatcher()', function () {
+  describe('new PatchWatcher()', function () {
     it('resolves getStartPromise() when the watcher begins listening', async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
-      const watcher = manager.getWatcher(rootDir)
+      const watcher = new PathWatcher(rootDir)
       watcher.onDidChange(() => {})
 
       await watcher.getStartPromise()
@@ -61,7 +59,7 @@ describe('FileSystemManager', function () {
 
     it('does not start actually watching until an onDidChange subscriber is registered', async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
-      const watcher = manager.getWatcher(rootDir)
+      const watcher = new PathWatcher(rootDir)
 
       let started = false
       const startPromise = watcher.getStartPromise().then(() => {
@@ -87,7 +85,7 @@ describe('FileSystemManager', function () {
 
     it('automatically stops and removes the watcher when all onDidChange subscribers dispose', async function () {
       const dir = await temp.mkdir('atom-fsmanager-test-')
-      const watcher = manager.getWatcher(dir)
+      const watcher = new PathWatcher(dir)
 
       const sub0 = watcher.onDidChange(() => {})
       const sub1 = watcher.onDidChange(() => {})
@@ -109,11 +107,11 @@ describe('FileSystemManager', function () {
     it('reuses an existing native watcher and resolves getStartPromise immediately if attached to a running watcher', async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
-      const watcher0 = manager.getWatcher(rootDir)
+      const watcher0 = new PathWatcher(rootDir)
       watcher0.onDidChange(() => {})
       await watcher0.getStartPromise()
 
-      const watcher1 = manager.getWatcher(rootDir)
+      const watcher1 = new PathWatcher(rootDir)
       watcher1.onDidChange(() => {})
       await watcher1.getStartPromise()
 
@@ -123,12 +121,12 @@ describe('FileSystemManager', function () {
     it("reuses existing native watchers even while they're still starting", async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
-      const watcher0 = manager.getWatcher(rootDir)
+      const watcher0 = new PathWatcher(rootDir)
       watcher0.onDidChange(() => {})
       await watcher0.getAttachedPromise()
       expect(watcher0.native.isRunning()).toBe(false)
 
-      const watcher1 = manager.getWatcher(rootDir)
+      const watcher1 = new PathWatcher(rootDir)
       watcher1.onDidChange(() => {})
       await watcher1.getAttachedPromise()
 
@@ -140,14 +138,14 @@ describe('FileSystemManager', function () {
     it("doesn't attach new watchers to a native watcher that's stopping", async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
-      const watcher0 = manager.getWatcher(rootDir)
+      const watcher0 = new PathWatcher(rootDir)
       const sub = watcher0.onDidChange(() => {})
       await watcher0.getStartPromise()
       const native0 = watcher0.native
 
       sub.dispose()
 
-      const watcher1 = manager.getWatcher(rootDir)
+      const watcher1 = new PathWatcher(rootDir)
       watcher1.onDidChange(() => {})
 
       expect(watcher1.native).not.toBe(native0)
@@ -162,9 +160,9 @@ describe('FileSystemManager', function () {
       await fs.mkdir(subDir)
 
       // Keep the watchers alive with an undisposed subscription
-      const rootWatcher = manager.getWatcher(rootDir)
+      const rootWatcher = new PathWatcher(rootDir)
       rootWatcher.onDidChange(() => {})
-      const childWatcher = manager.getWatcher(subDir)
+      const childWatcher = new PathWatcher(subDir)
       childWatcher.onDidChange(() => {})
 
       await Promise.all([
@@ -208,11 +206,11 @@ describe('FileSystemManager', function () {
       ])
 
       // Begin the child watchers and keep them alive
-      const subWatcher0 = manager.getWatcher(subDir0)
+      const subWatcher0 = new PathWatcher(subDir0)
       subWatcher0.onDidChange(() => {})
       const subWatcherChanges0 = waitForChanges(subWatcher0, subFile0)
 
-      const subWatcher1 = manager.getWatcher(subDir1)
+      const subWatcher1 = new PathWatcher(subDir1)
       subWatcher1.onDidChange(() => {})
       const subWatcherChanges1 = waitForChanges(subWatcher1, subFile1)
 
@@ -222,7 +220,7 @@ describe('FileSystemManager', function () {
       expect(subWatcher0.native).not.toBe(subWatcher1.native)
 
       // Create the parent watcher
-      const parentWatcher = manager.getWatcher(parentDir)
+      const parentWatcher = new PathWatcher(parentDir)
       const parentWatcherChanges = waitForChanges(parentWatcher, rootFile, subFile0, subFile1)
 
       await parentWatcher.getStartPromise()
@@ -242,18 +240,6 @@ describe('FileSystemManager', function () {
         subWatcherChanges1,
         parentWatcherChanges
       ])
-    })
-
-    describe('event normalization', function () {
-      xit('normalizes "changed" events')
-      xit('normalizes "added" events')
-      xit('normalizes "deleted" events')
-      xit('normalizes "renamed" events')
-    })
-
-    describe('symlinks', function () {
-      xit('reports events with symlink paths')
-      xit('uses the same native watcher even for symlink paths')
     })
   })
 })
