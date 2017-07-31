@@ -43,7 +43,11 @@ test_script:
 after_test:
   - ps: |
       $wc = New-Object 'System.Net.WebClient'
-      $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", $env:TEST_JUNIT_XML_PATH)
+      $endpoint = "https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)"
+      Get-ChildItem -Path $env:TEST_JUNIT_XML_ROOT -Recurse -Include *.xml | ForEach-Object {
+        Write-Output "Uploading JUnit XML $($_)"
+        $wc.UploadFile($endpoint, $_)
+      }
   - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
       IF NOT EXIST C:\sqtemp MKDIR C:\sqtemp
       SET SQUIRREL_TEMP=C:\sqtemp
