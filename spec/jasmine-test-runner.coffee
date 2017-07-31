@@ -9,6 +9,7 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
 
   if process.env.TEST_JUNIT_XML_PATH
     require 'jasmine-reporters'
+    console.log "Producing JUnit XML output at #{process.env.TEST_JUNIT_XML_PATH}."
     jasmine.getEnv().addReporter new jasmine.JUnitXmlReporter(process.env.TEST_JUNIT_XML_PATH, true, true)
 
   # Allow document.title to be assigned in specs without screwing up spec window title
