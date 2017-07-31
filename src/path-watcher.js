@@ -24,6 +24,22 @@ export const WATCHER_STATE = {
   STOPPING: Symbol('stopping')
 }
 
+const LIVE = new Set()
+
+const REGISTRY = new NativeWatcherRegistry(
+  normalizedPath => {
+    const nativeWatcher = new NativeWatcher(normalizedPath)
+
+    LIVE.add(nativeWatcher)
+    const sub = nativeWatcher.onWillStop(() => {
+      LIVE.delete(nativeWatcher)
+      sub.dispose()
+    })
+
+    return nativeWatcher
+  }
+)
+
 // Private: Interface with and normalize events from a native OS filesystem watcher.
 class NativeWatcher {
 
@@ -173,8 +189,8 @@ class NativeWatcher {
   }
 }
 
-class Watcher {
-  constructor (watchedPath, nativeWatcherRegistry) {
+export default class PathWatcher {
+  constructor (watchedPath, options) {
     this.watchedPath = watchedPath
     this.nativeWatcherRegistry = nativeWatcherRegistry
 
@@ -297,34 +313,10 @@ class Watcher {
   }
 }
 
-export default class FileSystemManager {
-  constructor () {
-    this.liveWatchers = new Set()
-
-    this.nativeWatchers = new NativeWatcherRegistry(
-      normalizedPath => {
-        const nativeWatcher = new NativeWatcher(normalizedPath)
-
-        this.liveWatchers.add(nativeWatcher)
-        const sub = nativeWatcher.onWillStop(() => {
-          this.liveWatchers.delete(nativeWatcher)
-          sub.dispose()
-        })
-
-        return nativeWatcher
-      }
-    )
-  }
-
-  getWatcher (rootPath) {
-    return new Watcher(rootPath, this.nativeWatchers)
-  }
-}
-
 // Private: Return a Promise that resolves when all {NativeWatcher} instances associated with a FileSystemManager
 // have stopped listening. This is useful for `afterEach()` blocks in unit tests.
-export function stopAllWatchers (manager) {
+export function stopAllWatchers () {
   return Promise.all(
-    Array.from(manager.liveWatchers, watcher => watcher.stop())
+    Array.from(LIVE, watcher => watcher.stop())
   )
 }
