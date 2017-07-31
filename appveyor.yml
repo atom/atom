@@ -44,7 +44,8 @@ after_test:
   - ps: |
       $wc = New-Object 'System.Net.WebClient'
       $endpoint = "https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)"
-      Get-ChildItem -Path $env:TEST_JUNIT_XML_ROOT\* -Recurse -File -Name -Include *.xml | ForEach-Object {
+      Write-Output "Searching for JUnit XML output beneath $($env:TEST_JUNIT_XML_ROOT)"
+      Get-ChildItem -Path "$($env:TEST_JUNIT_XML_ROOT)\*" -Recurse -File -Name -Include "*.xml" | ForEach-Object {
         Write-Output "Uploading JUnit XML $($_)"
         $wc.UploadFile($endpoint, $_)
       }
