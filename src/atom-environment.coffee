@@ -46,7 +46,6 @@ TextBuffer = require 'text-buffer'
 Gutter = require './gutter'
 TextEditorRegistry = require './text-editor-registry'
 AutoUpdateManager = require './auto-update-manager'
-FileSystemManager = require('./filesystem-manager').default
 
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
@@ -118,9 +117,6 @@ class AtomEnvironment extends Model
   # Private: An {AutoUpdateManager} instance
   autoUpdater: null
 
-  # Public: A {FileSystemManager} instance
-  filesystem: null
-
   saveStateDebounceInterval: 1000
 
   ###
@@ -141,7 +137,6 @@ class AtomEnvironment extends Model
     @views = new ViewRegistry(this)
     TextEditor.setScheduler(@views)
     @notifications = new NotificationManager
-    @filesystem = new FileSystemManager
     @updateProcessEnv ?= updateProcessEnv # For testing
 
     @stateStore = new StateStore('AtomEnvironments', 1)
