@@ -1350,6 +1350,7 @@ describe('Pane', () => {
     let editor1, pane, eventCount
 
     beforeEach(async () => {
+      jasmine.useMockClock()
       editor1 = await atom.workspace.open('sample.txt', {pending: true})
       pane = atom.workspace.getActivePane()
       eventCount = 0
