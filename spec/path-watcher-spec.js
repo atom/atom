@@ -33,7 +33,7 @@ describe('watchPath', function () {
     return new Promise(resolve => {
       const sub = watcher.onDidChange(events => {
         for (const event of events) {
-          if (waiting.delete(event.oldPath)) {
+          if (waiting.delete(event.path)) {
             relevantEvents.push(event)
           }
         }
