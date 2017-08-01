@@ -4,6 +4,7 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {Emitter, Disposable} = require 'event-kit'
 TextBuffer = require 'text-buffer'
+watchPath = require('./path-watcher').default
 
 DefaultDirectoryProvider = require './default-directory-provider'
 Model = require './model'
@@ -28,11 +29,13 @@ class Project extends Model
     @repositoryPromisesByPath = new Map()
     @repositoryProviders = [new GitRepositoryProvider(this, config)]
     @loadPromisesByPath = {}
+    @watchersByPath = {}
     @consumeServices(packageManager)
 
   destroyed: ->
     buffer.destroy() for buffer in @buffers.slice()
     repository?.destroy() for repository in @repositories.slice()
+    watcher.dispose() for _, watcher in @watchersByPath
     @rootDirectories = []
     @repositories = []
 
@@ -114,6 +117,26 @@ class Project extends Model
     callback(buffer) for buffer in @getBuffers()
     @onDidAddBuffer callback
 
+  # Public: Invoke the given callback when any filesystem change occurs within an open
+  # project path.
+  #
+  # To watch paths outside of open projects, use the {watchPaths} function.
+  #
+  # * `callback` {Function} to be called with batches of filesystem events reported by
+  #   the operating system.
+  #    * `events` An {Array} of objects the describe filesystem events.
+  #     * `type` {String} describing the filesystem action that occurred. One of `"created"`,
+  #       `"modified"`, `"deleted"`, or `"renamed"`.
+  #     * `path` {String} containing the absolute path to the filesystem entry
+  #       that was acted upon.
+  #     * `oldPath` For rename events, {String} containing the filesystem entry's
+  #       former absolute path.
+  #
+  # Returns a {PathWatcher} that may be used like a {Disposable} to manage
+  # this event subscription.
+  onDidChangeFiles: (callback) ->
+    @emitter.on 'did-change-files', callback
+
   ###
   Section: Accessing the git repository
   ###
@@ -171,6 +194,7 @@ class Project extends Model
     repository?.destroy() for repository in @repositories
     @rootDirectories = []
     @repositories = []
+    watcher.dispose() for _, watcher in @watchersByPath
 
     @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
 
@@ -186,6 +210,11 @@ class Project extends Model
       return if existingDirectory.getPath() is directory.getPath()
 
     @rootDirectories.push(directory)
+    @watchersByPath[directory] = watchPath directory.getPath(), {}, (events) =>
+      @emitter.emit 'did-change-files', events
+
+    for root, watcher in @watchersByPath
+      watcher.dispose() unless @rootDirectoryies.includes root
 
     repo = null
     for provider in @repositoryProviders
@@ -220,6 +249,7 @@ class Project extends Model
       [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
       [removedRepository] = @repositories.splice(indexToRemove, 1)
       removedRepository?.destroy() unless removedRepository in @repositories
+      @watchersByPath[projectPath]?.dispose()
       @emitter.emit "did-change-paths", @getPaths()
       true
     else
