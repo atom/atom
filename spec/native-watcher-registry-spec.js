@@ -7,6 +7,24 @@ import {Emitter} from 'event-kit'
 
 import NativeWatcherRegistry from '../src/native-watcher-registry'
 
+function findRootDirectory () {
+  let current = process.cwd()
+  while (true) {
+    let next = path.resolve(current, '..')
+    if (next === current) {
+      return next
+    } else {
+      current = next
+    }
+  }
+}
+const ROOT = findRootDirectory()
+
+function absolute(parts) {
+  const candidate = path.join(...parts)
+  return path.isAbsolute(candidate) ? candidate : path.join(ROOT, candidate)
+}
+
 class MockWatcher {
   constructor (normalizedPath) {
     this.normalizedPath = normalizedPath
@@ -66,7 +84,7 @@ describe('NativeWatcherRegistry', function () {
   })
 
   it('attaches a Watcher to a newly created NativeWatcher for a new directory', async function () {
-    const watcher = new MockWatcher(path.join('some', 'path'))
+    const watcher = new MockWatcher(absolute('some', 'path'))
     const NATIVE = new MockNative('created')
     createNative = () => NATIVE
 
@@ -77,7 +95,7 @@ describe('NativeWatcherRegistry', function () {
 
   it('reuses an existing NativeWatcher on the same directory', async function () {
     const EXISTING = new MockNative('existing')
-    const existingPath = path.join('existing', 'path')
+    const existingPath = absolute('existing', 'path')
     let firstTime = true
     createNative = () => {
       if (firstTime) {
@@ -97,7 +115,7 @@ describe('NativeWatcherRegistry', function () {
 
   it('attaches to an existing NativeWatcher on a parent directory', async function () {
     const EXISTING = new MockNative('existing')
-    const parentDir = path.join('existing', 'path')
+    const parentDir = absolute('existing', 'path')
     const subDir = path.join(parentDir, 'sub', 'directory')
     let firstTime = true
     createNative = () => {
@@ -117,10 +135,10 @@ describe('NativeWatcherRegistry', function () {
   })
 
   it('adopts Watchers from NativeWatchers on child directories', async function () {
-    const parentDir = path.join('existing', 'path')
+    const parentDir = absolute('existing', 'path')
     const childDir0 = path.join(parentDir, 'child', 'directory', 'zero')
     const childDir1 = path.join(parentDir, 'child', 'directory', 'one')
-    const otherDir = path.join('another', 'path')
+    const otherDir = absolute('another', 'path')
 
     const CHILD0 = new MockNative('existing0')
     const CHILD1 = new MockNative('existing1')
@@ -220,7 +238,7 @@ describe('NativeWatcherRegistry', function () {
       const CHILD1 = new MockNative('child1')
       const PARENT = new MockNative('parent')
 
-      const parentDir = path.join('parent')
+      const parentDir = absolute('parent')
       const childDir0 = path.join(parentDir, 'child0')
       const childDir1 = path.join(parentDir, 'child1')
 
@@ -280,7 +298,7 @@ describe('NativeWatcherRegistry', function () {
       const CHILD0 = new MockNative('child0')
       const PARENT = new MockNative('parent')
 
-      const parentDir = path.join('parent')
+      const parentDir = absolute('parent')
       const childDir0 = path.join(parentDir, 'child0')
       const childDir1 = path.join(parentDir, 'child0', 'child1')
 
