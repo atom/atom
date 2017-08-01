@@ -212,7 +212,7 @@ class Project extends Model
       return if existingDirectory.getPath() is directory.getPath()
 
     @rootDirectories.push(directory)
-    @watchersByPath[directory] = watchPath directory.getPath(), {}, (events) =>
+    @watchersByPath[directory.getPath()] = watchPath directory.getPath(), {}, (events) =>
       @emitter.emit 'did-change-files', events
 
     for root, watcher in @watchersByPath
