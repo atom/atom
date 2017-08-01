@@ -71,6 +71,7 @@ on_finish:
       $endpoint = "https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)"
       Write-Output "Searching for JUnit XML output beneath $($env:TEST_JUNIT_XML_ROOT)"
       Get-ChildItem -Path $env:TEST_JUNIT_XML_ROOT -Recurse -File -Name -Include "*.xml" | ForEach-Object {
-        Write-Output "Uploading JUnit XML $($_)"
-        $wc.UploadFile($endpoint, $_)
+        $full = "$($env:TEST_JUNIT_XML_ROOT)\$($_)"
+        Write-Output "Uploading JUnit XML file $($full)"
+        $wc.UploadFile($endpoint, $full)
       }
