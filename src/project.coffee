@@ -194,7 +194,9 @@ class Project extends Model
     repository?.destroy() for repository in @repositories
     @rootDirectories = []
     @repositories = []
+
     watcher.dispose() for _, watcher in @watchersByPath
+    @watchersByPath = {}
 
     @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
 
