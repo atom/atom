@@ -173,7 +173,22 @@ class NativeWatcher {
   }
 }
 
+// Extended: Manage a subscription to filesystem events that occur beneath a root directory. Construct these by calling
+// {watchPath}.
+//
+// Maybe PathWatchers may be backed by the same native watcher to conserve operation system resources. Native watchers are
+// started when at least one subscription is registered, and stopped when all subscriptions are disposed.
+//
+// Acts as a {Disposable}.
+//
 export class PathWatcher {
+
+  // Private: Instantiate a new PathWatcher. Call {watchPath} instead.
+  //
+  // * `nativeWatcherRegistry` {NativeWatcherRegistry} used to find and consolidate redundant watchers.
+  // * `watchedPath` {String} containing the absolute path to the root of the watched filesystem tree.
+  // * `options` See {watchPath} for options.
+  //
   constructor (nativeWatcherRegistry, watchedPath, options) {
     this.watchedPath = watchedPath
     this.nativeWatcherRegistry = nativeWatcherRegistry
@@ -205,18 +220,45 @@ export class PathWatcher {
     this.subs = new CompositeDisposable()
   }
 
+  // Private: Return a {Promise} that will resolve with the normalized root path.
   getNormalizedPathPromise () {
     return this.normalizedPathPromise
   }
 
+  // Private: Return a {Promise} that will resolve the first time that this watcher is attached to a native watcher.
   getAttachedPromise () {
     return this.attachedPromise
   }
 
+  // Extended: Return a {Promise} that will resolve when the underlying native watcher is ready to begin sending events.
+  // When testing filesystem watchers, it's important to await this promise before making filesystem changes that you
+  // intend to assert about because there will be a delay between the instantiation of the watcher and the activation
+  // of the underlying OS resources that feed it events.
+  //
+  // ```js
+  // const {watchPath} = require('atom')
+  // const ROOT = path.join(__dirname, 'fixtures')
+  // const FILE = path.join(ROOT, 'filename.txt')
+  //
+  // describe('something', function () {
+  //   it("doesn't miss events", async function () {
+  //     const watcher = watchPath(ROOT, {}, events => {})
+  //     await watcher.getStartPromise()
+  //     fs.writeFile(FILE, 'contents\n', err => {
+  //       // The watcher is listening and the event should be received asyncronously
+  //     }
+  //   })
+  // })
+  // ```
   getStartPromise () {
     return this.startPromise
   }
 
+  // Private: Attach another {Function} to be called with each batch of filesystem events. See {watchPath} for the
+  // spec of the callback's argument.
+  //
+  // Returns a {Disposable} that will stop the underlying watcher when all callbacks mapped to it have been disposed.
+  //
   onDidChange (callback) {
     if (this.native) {
       const sub = this.native.onDidChange(events => this.onNativeEvents(events, callback))
@@ -237,10 +279,15 @@ export class PathWatcher {
     })
   }
 
+  // Extended: Invoke a {Function} when any errors related to this watcher are reported.
+  //
+  // Returns a {Disposable}.
+  //
   onDidError (callback) {
     return this.emitter.on('did-error', callback)
   }
 
+  // Private: Wire this watcher to an operating system-level native watcher implementation.
   attachToNative (native) {
     this.subs.dispose()
     this.native = native
@@ -278,15 +325,19 @@ export class PathWatcher {
     this.resolveAttachedPromise()
   }
 
+  // Private: Invoked when the attached native watcher creates a batch of native filesystem events. The native watcher's
+  // events may include events for paths above this watcher's root path, so filter them to only include the relevant
+  // ones, then re-broadcast them to our subscribers.
   onNativeEvents (events, callback) {
-    // TODO does event.oldPath resolve symlinks?
-    const filtered = events.filter(event => event.oldPath.startsWith(this.normalizedPath))
+    const filtered = events.filter(event => event.path.startsWith(this.normalizedPath))
 
     if (filtered.length > 0) {
       callback(filtered)
     }
   }
 
+  // Extended: Unsubscribe all subscribers from filesystem events. The native watcher resources may take some time to
+  // be cleaned up, but the watcher will stop broadcasting events immediately.
   dispose () {
     for (const sub of this.changeCallbacks.values()) {
       sub.dispose()
@@ -297,7 +348,12 @@ export class PathWatcher {
   }
 }
 
+// Private: Globally tracked state used to de-duplicate related [PathWatchers]{PathWatcher}.
 class PathWatcherManager {
+
+  // Private: Access or lazily initialize the singleton manager instance.
+  //
+  // Returns the one and only {PathWatcherManager}.
   static instance () {
     if (!PathWatcherManager.theManager) {
       PathWatcherManager.theManager = new PathWatcherManager()
@@ -305,6 +361,7 @@ class PathWatcherManager {
     return PathWatcherManager.theManager
   }
 
+  // Private: Initialize global {PathWatcher} state.
   constructor () {
     this.live = new Set()
     this.nativeRegistry = new NativeWatcherRegistry(
@@ -322,13 +379,16 @@ class PathWatcherManager {
     )
   }
 
+  // Private: Create a {PathWatcher} tied to this global state. See {watchPath} for detailed arguments.
   createWatcher (rootPath, options, eventCallback) {
-    console.log(`watching root path = ${rootPath}`)
     const watcher = new PathWatcher(this.nativeRegistry, rootPath, options)
     watcher.onDidChange(eventCallback)
     return watcher
   }
 
+  // Private: Stop all living watchers.
+  //
+  // Returns a {Promise} that resolves when all native watcher resources are disposed.
   stopAllWatchers () {
     return Promise.all(
       Array.from(this.live, watcher => watcher.stop())
@@ -336,6 +396,45 @@ class PathWatcherManager {
   }
 }
 
+// Extended: Invoke a callback with each filesystem event that occurs beneath a specified path. If you only need to
+// watch events within the project's root paths, use {Project::onDidChangeFiles} instead.
+//
+// watchPath handles the efficient re-use of operating system resources across living watchers. Watching the same path
+// more than once, or the child of a watched path, will re-use the existing native watcher.
+//
+// * `rootPath` {String} specifies the absolute path to the root of the filesystem content to watch.
+// * `options` Control the watcher's behavior.
+//    * `recursive` If true, passing the path to a directory will recursively watch all changes beneath that
+//       directory. If false, only the file or directory itself will be watched.
+// * `eventCallback` {Function} or other callable to be called each time a batch of filesystem events is observed.
+//    * `events` {Array} of objects that describe the events that have occurred.
+//      * `type` {String} describing the filesystem action that occurred. One of `"created"`, `"modified"`, `"deleted"`,
+//        or `"renamed"`.
+//      * `path` {String} containing the absolute path to the filesystem entry that was acted upon.
+//      * `oldPath` For rename events, {String} containing the filesystem entry's former absolute path.
+//
+// Returns a {PathWatcher}. Note that every {PathWatcher} is a {Disposable}, so they can be managed by
+// [CompositeDisposables]{CompositeDisposable} if desired.
+//
+// ```js
+// const {watchPath} = require('atom')
+//
+// const disposable = watchPath('/var/log', {}, events => {
+//   console.log(`Received batch of ${events.length} events.`)
+//   for (const event of events) {
+//     console.log(`Event action: ${event.type}`)  // "created", "modified", "deleted", "renamed"
+//     console.log(`Event path: ${event.path}`)  // absolute path to the filesystem entry that was touched
+//     if (event.type === 'renamed') {
+//       console.log(`.. renamed from: ${event.oldPath}`)
+//     }
+//   }
+// })
+//
+//  // Immediately stop receiving filesystem events. If this is the last watcher, asynchronously release any OS
+//  // resources required to subscribe to these events.
+//  disposable.dispose()
+// ```
+//
 export default function watchPath (rootPath, options, eventCallback) {
   return PathWatcherManager.instance().createWatcher(rootPath, options, eventCallback)
 }
