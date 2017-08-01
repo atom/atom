@@ -4,7 +4,7 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {Emitter, Disposable} = require 'event-kit'
 TextBuffer = require 'text-buffer'
-watchPath = require('./path-watcher').default
+{watchPath} = require('./path-watcher')
 
 DefaultDirectoryProvider = require './default-directory-provider'
 Model = require './model'

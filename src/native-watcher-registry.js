@@ -1,6 +1,4 @@
-/** @babel */
-
-import path from 'path'
+const path = require('path')
 
 // Private: re-join the segments split from an absolute path to form another absolute path.
 function absolute(...parts) {
@@ -403,7 +401,7 @@ class ChildrenResult {
 // 2. Subscribing to an existing {NativeWatcher} on a parent of a desired directory.
 // 3. Replacing multiple {NativeWatcher} instances on child directories with a single new {NativeWatcher} on the
 //    parent.
-export default class NativeWatcherRegistry {
+class NativeWatcherRegistry {
 
   // Private: Instantiate an empty registry.
   //
@@ -432,3 +430,5 @@ export default class NativeWatcherRegistry {
     })
   }
 }
+
+module.exports = {NativeWatcherRegistry}

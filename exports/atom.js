@@ -7,7 +7,7 @@ import BufferedNodeProcess from '../src/buffered-node-process'
 import BufferedProcess from '../src/buffered-process'
 import GitRepository from '../src/git-repository'
 import Notification from '../src/notification'
-import watchPath from '../src/path-watcher'
+import {watchPath} from '../src/path-watcher'
 
 const atomExport = {
   BufferedNodeProcess,

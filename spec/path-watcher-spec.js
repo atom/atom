@@ -6,7 +6,7 @@ import fsCb from 'fs-plus'
 import path from 'path'
 
 import {CompositeDisposable} from 'event-kit'
-import watchPath, {stopAllWatchers} from '../src/path-watcher'
+import {watchPath, stopAllWatchers} from '../src/path-watcher'
 
 tempCb.track()
 

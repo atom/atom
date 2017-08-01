@@ -5,7 +5,7 @@ import {it, beforeEach} from './async-spec-helpers'
 import path from 'path'
 import {Emitter} from 'event-kit'
 
-import NativeWatcherRegistry from '../src/native-watcher-registry'
+import {NativeWatcherRegistry} from '../src/native-watcher-registry'
 
 function findRootDirectory () {
   let current = process.cwd()

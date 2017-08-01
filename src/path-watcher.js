@@ -1,12 +1,9 @@
-/** @babel */
+const fs = require('fs')
+const path = require('path')
 
-import fs from 'fs'
-import path from 'path'
-
-import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
-import nsfw from 'nsfw'
-
-import NativeWatcherRegistry from './native-watcher-registry'
+const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
+const nsfw = require('nsfw')
+const {NativeWatcherRegistry} = require('./native-watcher-registry')
 
 // Private: Associate native watcher action type flags with descriptive String equivalents.
 const ACTION_MAP = new Map([
@@ -185,7 +182,7 @@ class NativeWatcher {
 //
 // Acts as a {Disposable}.
 //
-export class PathWatcher {
+class PathWatcher {
 
   // Private: Instantiate a new PathWatcher. Call {watchPath} instead.
   //
@@ -439,12 +436,14 @@ class PathWatcherManager {
 //  disposable.dispose()
 // ```
 //
-export default function watchPath (rootPath, options, eventCallback) {
+function watchPath (rootPath, options, eventCallback) {
   return PathWatcherManager.instance().createWatcher(rootPath, options, eventCallback)
 }
 
 // Private: Return a Promise that resolves when all {NativeWatcher} instances associated with a FileSystemManager
 // have stopped listening. This is useful for `afterEach()` blocks in unit tests.
-export function stopAllWatchers () {
+function stopAllWatchers () {
   return PathWatcherManager.instance().stopAllWatchers()
 }
+
+module.exports = {watchPath, stopAllWatchers}
