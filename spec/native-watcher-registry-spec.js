@@ -20,7 +20,7 @@ function findRootDirectory () {
 }
 const ROOT = findRootDirectory()
 
-function absolute(parts) {
+function absolute(...parts) {
   const candidate = path.join(...parts)
   return path.isAbsolute(candidate) ? candidate : path.join(ROOT, candidate)
 }
@@ -196,28 +196,30 @@ describe('NativeWatcherRegistry', function () {
       const STOPPED = new MockNative('stopped')
       const RUNNING = new MockNative('running')
 
-      const stoppedPath = ['watcher', 'that', 'will', 'be', 'stopped']
-      const runningPath = ['watcher', 'that', 'will', 'continue', 'to', 'exist']
+      const stoppedPath = absolute('watcher', 'that', 'will', 'be', 'stopped')
+      const stoppedPathParts = stoppedPath.split(path.sep).filter(part => part.length > 0)
+      const runningPath = absolute('watcher', 'that', 'will', 'continue', 'to', 'exist')
+      const runningPathParts = runningPath.split(path.sep).filter(part => part.length > 0)
 
       createNative = dir => {
-        if (dir === path.join(...stoppedPath)) {
+        if (dir === stoppedPath) {
           return STOPPED
-        } else if (dir === path.join(...runningPath)) {
+        } else if (dir === runningPath) {
           return RUNNING
         } else {
           throw new Error(`Unexpected path: ${dir}`)
         }
       }
 
-      const stoppedWatcher = new MockWatcher(path.join(...stoppedPath))
+      const stoppedWatcher = new MockWatcher(stoppedPath)
       await registry.attach(stoppedWatcher)
 
-      const runningWatcher = new MockWatcher(path.join(...runningPath))
+      const runningWatcher = new MockWatcher(runningPath)
       await registry.attach(runningWatcher)
 
       STOPPED.stop()
 
-      const runningNode = registry.tree.root.lookup(runningPath).when({
+      const runningNode = registry.tree.root.lookup(runningPathParts).when({
         parent: node => node,
         missing: () => false,
         children: () => false
@@ -225,7 +227,7 @@ describe('NativeWatcherRegistry', function () {
       expect(runningNode).toBeTruthy()
       expect(runningNode.getNativeWatcher()).toBe(RUNNING)
 
-      const stoppedNode = registry.tree.root.lookup(stoppedPath).when({
+      const stoppedNode = registry.tree.root.lookup(stoppedPathParts).when({
         parent: () => false,
         missing: () => true,
         children: () => false
