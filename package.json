@@ -14,6 +14,7 @@
   "license": "MIT",
   "electronVersion": "1.6.9",
   "dependencies": {
+    "@atom/source-map-support": "^0.3.4",
     "async": "0.2.6",
     "atom-keymap": "8.2.2",
     "atom-select-list": "^0.1.0",
@@ -38,6 +39,7 @@
     "glob": "^7.1.1",
     "grim": "1.5.0",
     "jasmine-json": "~0.0",
+    "jasmine-reporters": "^2.2.1",
     "jasmine-tagged": "^1.1.4",
     "key-path-helpers": "^0.4.0",
     "less-cache": "1.1.0",
@@ -45,6 +47,8 @@
     "marked": "^0.3.6",
     "minimatch": "^3.0.3",
     "mocha": "2.5.1",
+    "mocha-junit-reporter": "^1.13.0",
+    "mocha-multi-reporters": "^1.1.4",
     "mock-spawn": "^0.2.6",
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
@@ -63,7 +67,6 @@
     "semver": "^4.3.3",
     "service-hub": "^0.7.4",
     "sinon": "1.17.4",
-    "@atom/source-map-support": "^0.3.4",
     "temp": "^0.8.3",
     "text-buffer": "13.0.7",
     "typescript-simple": "1.0.0",
@@ -193,8 +196,5 @@
       "HTMLElement",
       "snapshotResult"
     ]
-  },
-  "devDependencies": {
-    "jasmine-reporters": "^1.1.0"
   }
 }
