@@ -6,7 +6,7 @@ import fsCb from 'fs-plus'
 import path from 'path'
 
 import {CompositeDisposable} from 'event-kit'
-import PathWatcher, {stopAllWatchers} from '../src/path-watcher'
+import watchPath, {stopAllWatchers} from '../src/path-watcher'
 
 tempCb.track()
 
@@ -47,72 +47,21 @@ describe('PathWatcher', function () {
     })
   }
 
-  describe('new PatchWatcher()', function () {
+  describe('watchPath()', function () {
     it('resolves getStartPromise() when the watcher begins listening', async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
-      const watcher = new PathWatcher(rootDir)
-      watcher.onDidChange(() => {})
-
+      const watcher = watchPath(rootDir, {}, () => {})
       await watcher.getStartPromise()
-    })
-
-    it('does not start actually watching until an onDidChange subscriber is registered', async function () {
-      const rootDir = await temp.mkdir('atom-fsmanager-test-')
-      const watcher = new PathWatcher(rootDir)
-
-      let started = false
-      const startPromise = watcher.getStartPromise().then(() => {
-        started = true
-      })
-
-      expect(watcher.native).toBe(null)
-      expect(watcher.normalizedPath).toBe(null)
-      expect(started).toBe(false)
-
-      await watcher.getNormalizedPathPromise()
-
-      expect(watcher.native).toBe(null)
-      expect(watcher.normalizedPath).not.toBe(null)
-      expect(started).toBe(false)
-
-      watcher.onDidChange(() => {})
-      await startPromise
-
-      expect(watcher.native).not.toBe(null)
-      expect(started).toBe(true)
-    })
-
-    it('automatically stops and removes the watcher when all onDidChange subscribers dispose', async function () {
-      const dir = await temp.mkdir('atom-fsmanager-test-')
-      const watcher = new PathWatcher(dir)
-
-      const sub0 = watcher.onDidChange(() => {})
-      const sub1 = watcher.onDidChange(() => {})
-
-      await watcher.getStartPromise()
-      const native = watcher.native
-      expect(native).not.toBe(null)
-      expect(native.isRunning()).toBe(true)
-
-      sub0.dispose()
-      expect(watcher.native).toBe(native)
-      expect(native.isRunning()).toBe(true)
-
-      sub1.dispose()
-      expect(watcher.native).toBeNull()
-      expect(native.isRunning()).toBe(false)
     })
 
     it('reuses an existing native watcher and resolves getStartPromise immediately if attached to a running watcher', async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
-      const watcher0 = new PathWatcher(rootDir)
-      watcher0.onDidChange(() => {})
+      const watcher0 = watchPath(rootDir, {}, () => {})
       await watcher0.getStartPromise()
 
-      const watcher1 = new PathWatcher(rootDir)
-      watcher1.onDidChange(() => {})
+      const watcher1 = watchPath(rootDir, {}, () => {})
       await watcher1.getStartPromise()
 
       expect(watcher0.native).toBe(watcher1.native)
@@ -121,13 +70,11 @@ describe('PathWatcher', function () {
     it("reuses existing native watchers even while they're still starting", async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
-      const watcher0 = new PathWatcher(rootDir)
-      watcher0.onDidChange(() => {})
+      const watcher0 = watchPath(rootDir, {}, () => {})
       await watcher0.getAttachedPromise()
       expect(watcher0.native.isRunning()).toBe(false)
 
-      const watcher1 = new PathWatcher(rootDir)
-      watcher1.onDidChange(() => {})
+      const watcher1 = watchPath(rootDir, {}, () => {})
       await watcher1.getAttachedPromise()
 
       expect(watcher0.native).toBe(watcher1.native)
@@ -138,15 +85,13 @@ describe('PathWatcher', function () {
     it("doesn't attach new watchers to a native watcher that's stopping", async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
-      const watcher0 = new PathWatcher(rootDir)
-      const sub = watcher0.onDidChange(() => {})
+      const watcher0 = watchPath(rootDir, {}, () => {})
       await watcher0.getStartPromise()
       const native0 = watcher0.native
 
-      sub.dispose()
+      watcher0.dispose()
 
-      const watcher1 = new PathWatcher(rootDir)
-      watcher1.onDidChange(() => {})
+      const watcher1 = watchPath(rootDir, {}, () => {})
 
       expect(watcher1.native).not.toBe(native0)
     })
@@ -160,10 +105,8 @@ describe('PathWatcher', function () {
       await fs.mkdir(subDir)
 
       // Keep the watchers alive with an undisposed subscription
-      const rootWatcher = new PathWatcher(rootDir)
-      rootWatcher.onDidChange(() => {})
-      const childWatcher = new PathWatcher(subDir)
-      childWatcher.onDidChange(() => {})
+      const rootWatcher = watchPath(rootDir, {}, () => {})
+      const childWatcher = watchPath(subDir, {}, () => {})
 
       await Promise.all([
         rootWatcher.getStartPromise(),
@@ -206,12 +149,10 @@ describe('PathWatcher', function () {
       ])
 
       // Begin the child watchers and keep them alive
-      const subWatcher0 = new PathWatcher(subDir0)
-      subWatcher0.onDidChange(() => {})
+      const subWatcher0 = watchPath(subDir0, {}, () => {})
       const subWatcherChanges0 = waitForChanges(subWatcher0, subFile0)
 
-      const subWatcher1 = new PathWatcher(subDir1)
-      subWatcher1.onDidChange(() => {})
+      const subWatcher1 = watchPath(subDir1, {}, () => {})
       const subWatcherChanges1 = waitForChanges(subWatcher1, subFile1)
 
       await Promise.all(
@@ -220,7 +161,7 @@ describe('PathWatcher', function () {
       expect(subWatcher0.native).not.toBe(subWatcher1.native)
 
       // Create the parent watcher
-      const parentWatcher = new PathWatcher(parentDir)
+      const parentWatcher = watchPath(parentDir, {}, () => {})
       const parentWatcherChanges = waitForChanges(parentWatcher, rootFile, subFile0, subFile1)
 
       await parentWatcher.getStartPromise()
