@@ -548,6 +548,57 @@ describe "Project", ->
       atom.project.removePath(ftpURI)
       expect(atom.project.getPaths()).toEqual []
 
+  describe ".onDidChangeFiles()", ->
+    sub = []
+    events = []
+    checkCallback = ->
+
+    beforeEach ->
+      sub = atom.project.onDidChangeFiles (incoming) ->
+        events.push incoming...
+        checkCallback()
+
+    afterEach ->
+      sub.dispose()
+
+    waitForEvents = (paths) ->
+      remaining = new Set(fs.realpathSync(path) for path in paths)
+      new Promise (resolve, reject) ->
+        checkCallback = ->
+          remaining.delete(event.path) for event in events
+          resolve() if remaining.size is 0
+
+        expire = ->
+          checkCallback = ->
+          console.error "Paths not seen:", Array.from(remaining)
+          reject(new Error('Expired before all expected events were delivered.'))
+
+        checkCallback()
+        setTimeout expire, 2000
+
+    it "reports filesystem changes within project paths", ->
+      dirOne = temp.mkdirSync('atom-spec-project')
+      fileOne = path.join(dirOne, 'file-one.txt')
+      fileTwo = path.join(dirOne, 'file-two.txt')
+      dirTwo = temp.mkdirSync('atom-spec-project')
+      fileThree = path.join(dirTwo, 'file-three.txt')
+
+      atom.project.setPaths([dirOne])
+
+      waitsForPromise -> atom.project.watchersByPath[dirOne].getStartPromise()
+
+      runs ->
+        expect(atom.project.watchersByPath[dirTwo]).toEqual undefined
+
+        fs.writeFileSync fileThree, "three\n"
+        fs.writeFileSync fileTwo, "two\n"
+        fs.writeFileSync fileOne, "one\n"
+
+      waitsForPromise -> waitForEvents [fileOne, fileTwo]
+
+      runs ->
+        expect(events.some (event) -> event.path is fileThree).toBeFalsy()
+
   describe ".onDidAddBuffer()", ->
     it "invokes the callback with added text buffers", ->
       buffers = []
