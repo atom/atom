@@ -161,7 +161,16 @@ class NativeWatcher {
       const oldPath = path.join(event.directory, oldFileName)
       const newPath = newFileName && path.join(event.directory, newFileName)
 
-      return {oldPath, newPath, type}
+      const payload = {type}
+
+      if (event.file) {
+        payload.path = path.join(event.directory, event.file)
+      } else {
+        payload.oldPath = path.join(event.directory, event.oldFile)
+        payload.path = path.join(event.directory, event.newFile)
+      }
+
+      return payload
     }))
   }
 
