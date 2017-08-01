@@ -24,22 +24,6 @@ export const WATCHER_STATE = {
   STOPPING: Symbol('stopping')
 }
 
-const LIVE = new Set()
-
-const REGISTRY = new NativeWatcherRegistry(
-  normalizedPath => {
-    const nativeWatcher = new NativeWatcher(normalizedPath)
-
-    LIVE.add(nativeWatcher)
-    const sub = nativeWatcher.onWillStop(() => {
-      LIVE.delete(nativeWatcher)
-      sub.dispose()
-    })
-
-    return nativeWatcher
-  }
-)
-
 // Private: Interface with and normalize events from a native OS filesystem watcher.
 class NativeWatcher {
 
@@ -189,8 +173,8 @@ class NativeWatcher {
   }
 }
 
-export default class PathWatcher {
-  constructor (watchedPath, options) {
+export class PathWatcher {
+  constructor (nativeWatcherRegistry, watchedPath, options) {
     this.watchedPath = watchedPath
     this.nativeWatcherRegistry = nativeWatcherRegistry
 
@@ -313,10 +297,51 @@ export default class PathWatcher {
   }
 }
 
+class PathWatcherManager {
+  static instance () {
+    if (!PathWatcherManager.theManager) {
+      PathWatcherManager.theManager = new PathWatcherManager()
+    }
+    return PathWatcherManager.theManager
+  }
+
+  constructor () {
+    this.live = new Set()
+    this.nativeRegistry = new NativeWatcherRegistry(
+      normalizedPath => {
+        const nativeWatcher = new NativeWatcher(normalizedPath)
+
+        this.live.add(nativeWatcher)
+        const sub = nativeWatcher.onWillStop(() => {
+          this.live.delete(nativeWatcher)
+          sub.dispose()
+        })
+
+        return nativeWatcher
+      }
+    )
+  }
+
+  createWatcher (rootPath, options, eventCallback) {
+    console.log(`watching root path = ${rootPath}`)
+    const watcher = new PathWatcher(this.nativeRegistry, rootPath, options)
+    watcher.onDidChange(eventCallback)
+    return watcher
+  }
+
+  stopAllWatchers () {
+    return Promise.all(
+      Array.from(this.live, watcher => watcher.stop())
+    )
+  }
+}
+
+export default function watchPath (rootPath, options, eventCallback) {
+  return PathWatcherManager.instance().createWatcher(rootPath, options, eventCallback)
+}
+
 // Private: Return a Promise that resolves when all {NativeWatcher} instances associated with a FileSystemManager
 // have stopped listening. This is useful for `afterEach()` blocks in unit tests.
 export function stopAllWatchers () {
-  return Promise.all(
-    Array.from(LIVE, watcher => watcher.stop())
-  )
+  return PathWatcherManager.instance().stopAllWatchers()
 }
