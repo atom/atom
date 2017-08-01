@@ -2,6 +2,12 @@
 
 import path from 'path'
 
+// Private: re-join the segments split from an absolute path to form another absolute path.
+function absolute(...parts) {
+  const candidate = path.join(...parts)
+  return path.isAbsolute(candidate) ? candidate : path.join(path.sep, candidate)
+}
+
 // Private: Map userland filesystem watcher subscriptions efficiently to deliver filesystem change notifications to
 // each watcher with the most efficient coverage of native watchers.
 //
@@ -10,7 +16,7 @@ import path from 'path'
 //   watcher is removed, it will be split into child watchers.
 // * If any child directories already being watched, stop and replace them with a watcher on the parent directory.
 //
-// Uses a Trie whose structure mirrors the directory structure.
+// Uses a trie whose structure mirrors the directory structure.
 class RegistryTree {
 
   // Private: Construct a tree with no native watchers.
@@ -33,7 +39,7 @@ class RegistryTree {
   // * `attachToNative` {Function} invoked with the appropriate native watcher and the absolute path to its watch root.
   add (pathSegments, attachToNative) {
     const absolutePathSegments = this.basePathSegments.concat(pathSegments)
-    const absolutePath = path.join(...absolutePathSegments)
+    const absolutePath = absolute(...absolutePathSegments)
 
     const attachToNew = (childPaths) => {
       const native = this.createNative(absolutePath)
@@ -55,7 +61,7 @@ class RegistryTree {
         // Attach this Watcher to it as a filtering watcher and record it as a dependent child path.
         const native = parent.getNativeWatcher()
         parent.addChildPath(remaining)
-        attachToNative(native, path.join(...parent.getAbsolutePathSegments()))
+        attachToNative(native, absolute(...parent.getAbsolutePathSegments()))
       },
       children: children => {
         // One or more NativeWatchers exist on child directories of the requested path. Create a new native watcher
