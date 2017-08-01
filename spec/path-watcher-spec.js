@@ -13,7 +13,7 @@ tempCb.track()
 const fs = promisifySome(fsCb, ['writeFile', 'mkdir', 'symlink', 'appendFile', 'realpath'])
 const temp = promisifySome(tempCb, ['mkdir'])
 
-describe('PathWatcher', function () {
+describe('watchPath', function () {
   let subs
 
   beforeEach(function () {
