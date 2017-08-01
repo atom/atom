@@ -156,11 +156,6 @@ class NativeWatcher {
   onEvents (events) {
     this.emitter.emit('did-change', events.map(event => {
       const type = ACTION_MAP.get(event.action) || `unexpected (${event.action})`
-      const oldFileName = event.file || event.oldFile
-      const newFileName = event.newFile
-      const oldPath = path.join(event.directory, oldFileName)
-      const newPath = newFileName && path.join(event.directory, newFileName)
-
       const payload = {type}
 
       if (event.file) {
