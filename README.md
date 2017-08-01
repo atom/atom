@@ -2,7 +2,7 @@
 
 [![macOS Build Status](https://circleci.com/gh/atom/atom/tree/master.svg?style=shield)](https://circleci.com/gh/atom/atom) [![Linux Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/1tkktwh654w07eim?svg=true)](https://ci.appveyor.com/project/Atom/atom)
 [![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom)
-[![Join the Atom Community on Slack](http://atom-slack.herokuapp.com/badge.svg)](http://atom-slack.herokuapp.com/)
+[![Join the Atom Community on Slack](https://atom-slack.herokuapp.com/badge.svg)](https://atom-slack.herokuapp.com)
 
 Atom is a hackable text editor for the 21st century, built on [Electron](https://github.com/atom/electron), and based on everything we love about our favorite editors. We designed it to be deeply customizable, but still approachable using the default configuration.
 
@@ -16,20 +16,22 @@ By participating, you are expected to uphold this code. Please report unacceptab
 
 ## Documentation
 
-If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](http://flight-manual.atom.io) is free and available online. You can find the source to the manual in [atom/flight-manual.atom.io](https://github.com/atom/flight-manual.atom.io).
+If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://flight-manual.atom.io) is free and available online. You can find the source to the manual in [atom/flight-manual.atom.io](https://github.com/atom/flight-manual.atom.io).
 
 The [API reference](https://atom.io/docs/api) for developing packages is also documented on Atom.io.
 
 ## Installing
 
 ### Prerequisites
-- [Git](https://git-scm.com/)
+- [Git](https://git-scm.com)
 
 ### macOS
 
 Download the latest [Atom release](https://github.com/atom/atom/releases/latest).
 
 Atom will automatically update when a new release is available.
+
+Using (Homebrew)[https://brew.sh]? Run to `brew cask install atom` install the latest version of Atom.
 
 ### Windows
 
@@ -40,7 +42,7 @@ Atom will automatically update when a new release is available.
 You can also download `atom-windows.zip` (32-bit) or `atom-x64-windows.zip` (64-bit) from the [releases page](https://github.com/atom/atom/releases/latest).
 The `.zip` version will not automatically update.
 
-Using [chocolatey](https://chocolatey.org/)? Run `cinst Atom` to install the latest version of Atom.
+Using [Chocolatey](https://chocolatey.org)? Run `cinst Atom` to install the latest version of Atom.
 
 ### Debian Linux (Ubuntu)
 
