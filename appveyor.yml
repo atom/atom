@@ -41,15 +41,6 @@ test_script:
   - script\test.cmd
 
 after_test:
-  - ps: |
-      $wc = New-Object 'System.Net.WebClient'
-      $endpoint = "https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)"
-      Write-Output "Searching for JUnit XML output beneath $($env:TEST_JUNIT_XML_ROOT)"
-      Get-ChildItem -Path $env:TEST_JUNIT_XML_ROOT -Recurse -File -Name
-      Get-ChildItem -Path $env:TEST_JUNIT_XML_ROOT -Recurse -File -Name -Include "*.xml" | ForEach-Object {
-        Write-Output "Uploading JUnit XML $($_)"
-        $wc.UploadFile($endpoint, $_)
-      }
   - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
       IF NOT EXIST C:\sqtemp MKDIR C:\sqtemp
       SET SQUIRREL_TEMP=C:\sqtemp
@@ -73,3 +64,13 @@ cache:
   - '%APPVEYOR_BUILD_FOLDER%\electron'
   - '%USERPROFILE%\.atom\.apm'
   - '%USERPROFILE%\.atom\compile-cache'
+
+on_finish:
+  - ps: |
+      $wc = New-Object 'System.Net.WebClient'
+      $endpoint = "https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)"
+      Write-Output "Searching for JUnit XML output beneath $($env:TEST_JUNIT_XML_ROOT)"
+      Get-ChildItem -Path $env:TEST_JUNIT_XML_ROOT -Recurse -File -Name -Include "*.xml" | ForEach-Object {
+        Write-Output "Uploading JUnit XML $($_)"
+        $wc.UploadFile($endpoint, $_)
+      }
