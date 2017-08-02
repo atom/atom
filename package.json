@@ -39,7 +39,7 @@
     "glob": "^7.1.1",
     "grim": "1.5.0",
     "jasmine-json": "~0.0",
-    "jasmine-reporters": "^2.2.1",
+    "jasmine-reporters": "1.1.0",
     "jasmine-tagged": "^1.1.4",
     "key-path-helpers": "^0.4.0",
     "less-cache": "1.1.0",
