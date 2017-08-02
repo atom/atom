@@ -31,7 +31,7 @@ Download the latest [Atom release](https://github.com/atom/atom/releases/latest)
 
 Atom will automatically update when a new release is available.
 
-Using (Homebrew)[https://brew.sh]? Run to `brew cask install atom` install the latest version of Atom.
+Using (Homebrew)[https://brew.sh]? Run `brew cask install atom` to install the latest version of Atom.
 
 ### Windows
 
