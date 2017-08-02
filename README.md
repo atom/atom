@@ -31,8 +31,6 @@ Download the latest [Atom release](https://github.com/atom/atom/releases/latest)
 
 Atom will automatically update when a new release is available.
 
-Using (Homebrew)[https://brew.sh]? Run `brew cask install atom` to install the latest version of Atom.
-
 ### Windows
 
 Download the latest [Atom installer](https://github.com/atom/atom/releases/latest).  AtomSetup.exe is 32-bit, AtomSetup-x64.exe for 64-bit systems.
