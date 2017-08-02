@@ -17,6 +17,7 @@ describe('PanelContainerElement', () => {
       this.model = model
       return this
     }
+    focus() {}
   }
 
   const TestPanelContainerItemElement = document.registerElement(
@@ -158,6 +159,45 @@ describe('PanelContainerElement', () => {
       expect(panel1.getElement()).not.toHaveClass('tool-panel')
       expect(panel1.getElement()).toHaveClass('overlay')
       expect(panel1.getElement()).toHaveClass('from-top')
+    })
+
+    it("focuses the first tabbable item if available", () => {
+      const panel1 = new Panel({item: new TestPanelContainerItem(), visible: false}, atom.views)
+      container.addPanel(panel1)
+
+      const panelEl = panel1.getElement()
+      const inputEl = document.createElement('input')
+      panelEl.appendChild(inputEl)
+
+      expect(document.activeElement).not.toBe(inputEl)
+      panel1.show()
+      expect(document.activeElement).toBe(inputEl)
+    })
+
+    it("focuses the entire panel item when no tabbable item is available and the panel is focusable", () => {
+      const panel1 = new Panel({item: new TestPanelContainerItem(), visible: false}, atom.views)
+      container.addPanel(panel1)
+      const panelEl = panel1.getElement()
+
+      spyOn(panelEl, 'focus')
+      panel1.show()
+      expect(panelEl.focus).toHaveBeenCalled()
+    })
+
+    it("returns focus to the original activeElement", () => {
+      const panel1 = new Panel({item: new TestPanelContainerItem(), visible: false}, atom.views)
+      container.addPanel(panel1)
+      const previousActiveElement = document.activeElement
+      const panelEl = panel1.getElement()
+      panelEl.appendChild(document.createElement('input'))
+
+      panel1.show()
+      panel1.hide()
+
+      waitsFor(() => document.activeElement === previousActiveElement)
+      runs(() => {
+        expect(document.activeElement).toBe(previousActiveElement)
+      })
     })
   })
 })
