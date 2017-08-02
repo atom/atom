@@ -12,7 +12,6 @@ export default function (testPaths) {
   }
 
   if (process.env.TEST_JUNIT_XML_PATH) {
-    console.log(`Mocha: Producing JUnit XML output at ${process.env.TEST_JUNIT_XML_PATH}.`)
     reporterOptions = {
       reporterEnabled: 'list, mocha-junit-reporter',
       mochaJunitReporterReporterOptions: {
