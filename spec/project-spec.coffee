@@ -562,7 +562,7 @@ describe "Project", ->
       sub.dispose()
 
     waitForEvents = (paths) ->
-      remaining = new Set(fs.realpathSync(path) for path in paths)
+      remaining = new Set(fs.realpathSync(p) for p in paths)
       new Promise (resolve, reject) ->
         checkCallback = ->
           remaining.delete(event.path) for event in events
