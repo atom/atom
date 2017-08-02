@@ -23,11 +23,12 @@ module.exports = function (packagedAppPath) {
       process.stdout.write(`Generating snapshot script at "${snapshotScriptPath}" (${++processedFiles})`)
 
       const relativePath = path.relative(baseDirPath, modulePath)
-      return (
+      const result = (
         modulePath.endsWith('.node') ||
         coreModules.has(modulePath) ||
         (relativePath.startsWith(path.join('..', 'src')) && relativePath.endsWith('-element.js')) ||
         relativePath.startsWith(path.join('..', 'node_modules', 'dugite')) ||
+        relativePath.startsWith(path.join('..', 'node_modules', 'nsfw')) ||
         relativePath === path.join('..', 'exports', 'atom.js') ||
         relativePath === path.join('..', 'src', 'electron-shims.js') ||
         relativePath === path.join('..', 'src', 'safe-clipboard.js') ||
@@ -39,6 +40,7 @@ module.exports = function (packagedAppPath) {
         relativePath === path.join('..', 'node_modules', 'decompress-zip', 'lib', 'decompress-zip.js') ||
         relativePath === path.join('..', 'node_modules', 'debug', 'node.js') ||
         relativePath === path.join('..', 'node_modules', 'fs-extra', 'lib', 'index.js') ||
+        relativePath === path.join('..', 'node_modules', 'github', 'node_modules', 'fs-extra', 'lib', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'git-utils', 'lib', 'git.js') ||
         relativePath === path.join('..', 'node_modules', 'glob', 'glob.js') ||
         relativePath === path.join('..', 'node_modules', 'graceful-fs', 'graceful-fs.js') ||
@@ -69,6 +71,8 @@ module.exports = function (packagedAppPath) {
         relativePath === path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js') ||
         relativePath === path.join('..', 'node_modules', 'tree-view', 'node_modules', 'minimatch', 'minimatch.js')
       )
+      fs.appendFileSync('snapshot-files.txt', `${relativePath} = ${result}\n`)
+      return result
     }
   }).then((snapshotScript) => {
     fs.writeFileSync(snapshotScriptPath, snapshotScript)
