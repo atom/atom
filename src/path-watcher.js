@@ -14,7 +14,7 @@ const ACTION_MAP = new Map([
 ])
 
 // Private: Possible states of a {NativeWatcher}.
-export const WATCHER_STATE = {
+const WATCHER_STATE = {
   STOPPED: Symbol('stopped'),
   STARTING: Symbol('starting'),
   RUNNING: Symbol('running'),
