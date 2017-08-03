@@ -25,9 +25,8 @@ function absolute (...parts) {
   return path.isAbsolute(candidate) ? candidate : path.join(ROOT, candidate)
 }
 
-function prependRoot (...parts) {
-  const candidate = path.join(...parts)
-  return path.isAbsolute(candidate) ? parts : [ROOT].concat(parts)
+function parts (fullPath) {
+  return fullPath.split(path.sep).filter(part => part.length > 0)
 }
 
 class MockWatcher {
@@ -282,19 +281,19 @@ describe('NativeWatcherRegistry', function () {
       expect(childWatcher0.native).toBe(CHILD0)
       expect(childWatcher1.native).toBe(CHILD1)
 
-      expect(registry.tree.root.lookup(prependRoot('parent')).when({
+      expect(registry.tree.root.lookup(parts(parentDir)).when({
         parent: () => false,
         missing: () => false,
         children: () => true
       })).toBe(true)
 
-      expect(registry.tree.root.lookup(prependRoot('parent', 'child0')).when({
+      expect(registry.tree.root.lookup(parts(childDir0)).when({
         parent: () => true,
         missing: () => false,
         children: () => false
       })).toBe(true)
 
-      expect(registry.tree.root.lookup(prependRoot('parent', 'child1')).when({
+      expect(registry.tree.root.lookup(parts(childDir1)).when({
         parent: () => true,
         missing: () => false,
         children: () => false
@@ -341,19 +340,19 @@ describe('NativeWatcherRegistry', function () {
       expect(childWatcher0.native).toBe(CHILD0)
       expect(childWatcher1.native).toBe(CHILD0)
 
-      expect(registry.tree.root.lookup(prependRoot('parent')).when({
+      expect(registry.tree.root.lookup(parts(parentDir)).when({
         parent: () => false,
         missing: () => false,
         children: () => true
       })).toBe(true)
 
-      expect(registry.tree.root.lookup(prependRoot('parent', 'child0')).when({
+      expect(registry.tree.root.lookup(parts(childDir0)).when({
         parent: () => true,
         missing: () => false,
         children: () => false
       })).toBe(true)
 
-      expect(registry.tree.root.lookup(prependRoot('parent', 'child0', 'child1')).when({
+      expect(registry.tree.root.lookup(parts(childDir1)).when({
         parent: () => true,
         missing: () => false,
         children: () => false
