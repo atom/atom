@@ -7,7 +7,7 @@ path = require 'path'
 GitRepository = require '../src/git-repository'
 
 logToFile = (text) ->
-  fs.appendFileSync path.join(process.env.HOME, 'project-spec.log'), text
+  fs.appendFileSync path.join(process.env.HOME || 'C:\\Users\\appveyor', 'project-spec.log'), text
 
 describe "Project", ->
   beforeEach ->
