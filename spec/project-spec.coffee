@@ -6,8 +6,8 @@ path = require 'path'
 {Directory} = require 'pathwatcher'
 GitRepository = require '../src/git-repository'
 
-logToFile = text ->
-  fs.appendFileSync 'project-spec.log', text
+logToFile = (text) ->
+  fs.appendFileSync path.join(process.env.HOME, 'project-spec.log'), text
 
 describe "Project", ->
   beforeEach ->
@@ -19,7 +19,7 @@ describe "Project", ->
   afterEach ->
     waitsForPromise ->
       new Promise (resolve, reject) ->
-        temp.cleanup err ->
+        temp.cleanup (err) ->
           if err?
             reject(err)
           else
