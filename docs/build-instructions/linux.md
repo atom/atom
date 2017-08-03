@@ -90,11 +90,17 @@ this is the reason for this error you can issue
 
 and restart Atom.  If Atom now works fine, you can make this setting permanent:
 
-On most Linux distributions: 
-  ```echo -e "fs.inotify.max_user_watches=204800\n"  sudo tee -a /etc/sysctl.conf```
+ * On most Linux distributions:
 
-On Arch Linux, instead run: 
-  ```echo -e "fs.inotify.max_user_watches=204800\n"  sudo tee -a /usr/lib/sysctl.d/90-override.conf```
+  ```
+  echo "fs.inotify.max_user_watches=204800" | sudo tee -a /etc/sysctl.conf
+  ```
+
+ * On Arch Linux, instead run: 
+
+  ```
+  echo "fs.inotify.max_user_watches=204800" |sudo tee -a /usr/lib/sysctl.d/90-override.conf
+  ```
 
 See also 
  * [Arch forum post](https://bbs.archlinux.org/viewtopic.php?id=193020)
