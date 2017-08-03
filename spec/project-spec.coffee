@@ -4,6 +4,7 @@ Project = require '../src/project'
 fs = require 'fs-plus'
 path = require 'path'
 {Directory} = require 'pathwatcher'
+{stopAllWatchers} = require '../src/path-watcher'
 GitRepository = require '../src/git-repository'
 
 logToFile = (text) ->
@@ -17,13 +18,8 @@ describe "Project", ->
     waits(1)
 
   afterEach ->
-    waitsForPromise ->
-      new Promise (resolve, reject) ->
-        temp.cleanup (err) ->
-          if err?
-            reject(err)
-          else
-            resolve()
+    waitsForPromise -> stopAllWatchers()
+    runs -> temp.cleanupSync()
 
   describe "serialization", ->
     deserializedProject = null
