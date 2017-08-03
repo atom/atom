@@ -577,10 +577,10 @@ describe "Project", ->
         setTimeout expire, 2000
 
     it "reports filesystem changes within project paths", ->
-      dirOne = temp.mkdirSync('atom-spec-project')
+      dirOne = temp.mkdirSync('atom-spec-project-one')
       fileOne = path.join(dirOne, 'file-one.txt')
       fileTwo = path.join(dirOne, 'file-two.txt')
-      dirTwo = temp.mkdirSync('atom-spec-project')
+      dirTwo = temp.mkdirSync('atom-spec-project-two')
       fileThree = path.join(dirTwo, 'file-three.txt')
 
       atom.project.setPaths([dirOne])
