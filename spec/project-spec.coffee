@@ -560,6 +560,7 @@ describe "Project", ->
 
     beforeEach ->
       sub = atom.project.onDidChangeFiles (incoming) ->
+        logToFile "Events received: #{require('util').inspect incoming}"
         events.push incoming...
         checkCallback()
 
@@ -597,6 +598,7 @@ describe "Project", ->
         expect(atom.project.watchersByPath[dirTwo]).toEqual undefined
         logToFile "Watching #{dirOne} but not #{dirTwo}\n"
 
+        logToFile "Writing #{fileOne}, #{fileTwo}, #{fileThree}"
         fs.writeFileSync fileThree, "three\n"
         fs.writeFileSync fileTwo, "two\n"
         fs.writeFileSync fileOne, "one\n"
