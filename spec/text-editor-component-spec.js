@@ -1737,6 +1737,8 @@ describe('TextEditorComponent', () => {
       const marker3 = editor.markScreenRange([[9, 0], [12, 0]])
       const decorationElement1 = document.createElement('div')
       const decorationElement2 = document.createElement('div')
+      // Packages may adopt this class name for decorations to be styled the same as line numbers
+      decorationElement2.className = 'line-number'
 
       const decoration1 = gutterA.decorateMarker(marker1, {class: 'a'})
       const decoration2 = gutterA.decorateMarker(marker2, {class: 'b', item: decorationElement1})
@@ -1755,11 +1757,22 @@ describe('TextEditorComponent', () => {
       expect(decorationNode2.getBoundingClientRect().top).toBe(clientTopForLine(component, 6))
       expect(decorationNode2.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 8))
       expect(decorationNode2.firstChild).toBe(decorationElement1)
+      expect(decorationElement1.offsetHeight).toBe(decorationNode2.offsetHeight)
+      expect(decorationElement1.offsetWidth).toBe(decorationNode2.offsetWidth)
 
       expect(decorationNode3.className).toBe('decoration')
       expect(decorationNode3.getBoundingClientRect().top).toBe(clientTopForLine(component, 9))
       expect(decorationNode3.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 12) + component.getLineHeight())
       expect(decorationNode3.firstChild).toBe(decorationElement2)
+      expect(decorationElement2.offsetHeight).toBe(decorationNode3.offsetHeight)
+      expect(decorationElement2.offsetWidth).toBe(decorationNode3.offsetWidth)
+
+      // Inline styled height is updated when line height changes
+      element.style.fontSize = parseInt(getComputedStyle(element).fontSize) + 10 + 'px'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      expect(decorationElement1.offsetHeight).toBe(decorationNode2.offsetHeight)
+      expect(decorationElement2.offsetHeight).toBe(decorationNode3.offsetHeight)
 
       decoration1.setProperties({type: 'gutter', gutterName: 'a', class: 'c', item: decorationElement1})
       decoration2.setProperties({type: 'gutter', gutterName: 'a'})
@@ -1767,6 +1780,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       expect(decorationNode1.className).toBe('decoration c')
       expect(decorationNode1.firstChild).toBe(decorationElement1)
+      expect(decorationElement1.offsetHeight).toBe(decorationNode1.offsetHeight)
       expect(decorationNode2.className).toBe('decoration')
       expect(decorationNode2.firstChild).toBeNull()
       expect(gutterB.getElement().firstChild.children.length).toBe(0)
