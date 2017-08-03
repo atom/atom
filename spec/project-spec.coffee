@@ -14,7 +14,13 @@ describe "Project", ->
     waits(1)
 
   afterEach ->
-    temp.cleanupSync()
+    waitsForPromise ->
+      new Promise (resolve, reject) ->
+        temp.cleanup err ->
+          if err?
+            reject(err)
+          else
+            resolve()
 
   describe "serialization", ->
     deserializedProject = null
