@@ -3,6 +3,7 @@ machine:
     XCODE_SCHEME: test
     XCODE_WORKSPACE: test
     XCODE_PROJECT: test
+    TEST_JUNIT_XML_ROOT: ${CIRCLE_TEST_REPORTS}
 
   xcode:
     version: 7.3
