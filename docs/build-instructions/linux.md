@@ -90,11 +90,16 @@ this is the reason for this error you can issue
 
 and restart Atom.  If Atom now works fine, you can make this setting permanent:
 
-  ```sh
-  echo 32768 | sudo tee -a /proc/sys/fs/inotify/max_user_watches
-  ```
+On most Linux distributions: 
+  ```echo -e "fs.inotify.max_user_watches=204800\n"  sudo tee -a /etc/sysctl.conf```
 
-See also [#2082](https://github.com/atom/atom/issues/2082).
+On Arch Linux, instead run: 
+  ```echo -e "fs.inotify.max_user_watches=204800\n"  sudo tee -a /usr/lib/sysctl.d/90-override.conf```
+
+See also 
+ * [Arch forum post](https://bbs.archlinux.org/viewtopic.php?id=193020)
+ * [#2082](https://github.com/atom/atom/issues/2082).
+ * [Readme](https://github.com/syncthing/syncthing-inotify)
 
 ### /usr/bin/env: node: No such file or directory
 
