@@ -99,7 +99,7 @@ and restart Atom.  If Atom now works fine, you can make this setting permanent:
  * On Arch Linux, instead run: 
 
   ```
-  echo "fs.inotify.max_user_watches=204800" |sudo tee -a /usr/lib/sysctl.d/90-override.conf
+  echo "fs.inotify.max_user_watches=204800" | sudo tee -a /usr/lib/sysctl.d/90-override.conf
   ```
 
 See also 
