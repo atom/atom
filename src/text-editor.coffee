@@ -292,8 +292,7 @@ class TextEditor extends Model
 
         when 'detectEncoding'
           if value
-            @buffer.detectEncoding().then (encoding) =>
-              @buffer.setEncoding(encoding ? atom.config.get('core.fileEncoding'))
+            @buffer.detectEncoding().then (encoding) => @buffer.setEncoding(encoding)
             .catch => @buffer.setEncoding(atom.config.get('core.fileEncoding'))
 
         when 'softTabs'
