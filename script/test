@@ -154,7 +154,8 @@ function testSuitesForPlatform (platform) {
     case 'darwin':
       return [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
     case 'win32':
-      return (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
+      // return (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
+      return (process.arch === 'x64') ? [runCoreRenderProcessTests] : []
     case 'linux':
       return [runCoreMainProcessTests]
     default:
