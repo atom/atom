@@ -424,15 +424,8 @@ describe('TextEditorComponent', () => {
       editor.moveRight()
       await component.getNextUpdatePromise()
 
-      await conditionPromise(() =>
-        getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
-      )
-      await conditionPromise(() =>
-        getComputedStyle(cursor1).opacity === '1' && getComputedStyle(cursor2).opacity === '1'
-      )
-      await conditionPromise(() =>
-        getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
-      )
+      expect(getComputedStyle(cursor1).opacity).toBe('1')
+      expect(getComputedStyle(cursor2).opacity).toBe('1')
     })
 
     it('gives cursors at the end of lines the width of an "x" character', async () => {
