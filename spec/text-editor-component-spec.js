@@ -411,26 +411,28 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       const [cursor1, cursor2] = element.querySelectorAll('.cursor')
 
-      expect(getComputedStyle(cursor1).opacity).toBe('1')
-      expect(getComputedStyle(cursor2).opacity).toBe('1')
-
-      await conditionPromise(() =>
-        getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
-      )
-
       await conditionPromise(() =>
         getComputedStyle(cursor1).opacity === '1' && getComputedStyle(cursor2).opacity === '1'
       )
-
       await conditionPromise(() =>
         getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
+      )
+      await conditionPromise(() =>
+        getComputedStyle(cursor1).opacity === '1' && getComputedStyle(cursor2).opacity === '1'
       )
 
       editor.moveRight()
       await component.getNextUpdatePromise()
 
-      expect(getComputedStyle(cursor1).opacity).toBe('1')
-      expect(getComputedStyle(cursor2).opacity).toBe('1')
+      await conditionPromise(() =>
+        getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
+      )
+      await conditionPromise(() =>
+        getComputedStyle(cursor1).opacity === '1' && getComputedStyle(cursor2).opacity === '1'
+      )
+      await conditionPromise(() =>
+        getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
+      )
     })
 
     it('gives cursors at the end of lines the width of an "x" character', async () => {
