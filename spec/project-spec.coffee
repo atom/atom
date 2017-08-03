@@ -6,6 +6,9 @@ path = require 'path'
 {Directory} = require 'pathwatcher'
 GitRepository = require '../src/git-repository'
 
+logToFile = text ->
+  fs.appendFileSync 'project-spec.log', text
+
 describe "Project", ->
   beforeEach ->
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
@@ -589,14 +592,14 @@ describe "Project", ->
       dirTwo = temp.mkdirSync('atom-spec-project-two')
       fileThree = path.join(dirTwo, 'file-three.txt')
 
-      process.stderr.write "Setting project paths to #{dirOne}\n"
+      logToFile "Setting project paths to #{dirOne}\n"
       atom.project.setPaths([dirOne])
 
       waitsForPromise -> atom.project.watchersByPath[dirOne].getStartPromise()
 
       runs ->
         expect(atom.project.watchersByPath[dirTwo]).toEqual undefined
-        process.stderr.write "Watching #{dirOne} but not #{dirTwo}\n"
+        logToFile "Watching #{dirOne} but not #{dirTwo}\n"
 
         fs.writeFileSync fileThree, "three\n"
         fs.writeFileSync fileTwo, "two\n"
@@ -605,7 +608,7 @@ describe "Project", ->
       waitsForPromise -> waitForEvents [fileOne, fileTwo]
 
       runs ->
-        process.stderr.write "Events seen:\n#{require('util').inspect events}\n"
+        logToFile "Events seen:\n#{require('util').inspect events}\n"
         expect(events.some (event) -> event.path is fileThree).toBeFalsy()
 
   describe ".onDidAddBuffer()", ->
