@@ -755,6 +755,17 @@ describe('Pane', () => {
         })
       })
 
+      describe('when the current item has a saveAs method and a project is open', () => {
+        it('opens a save dialog with the project directory', async () => {
+          pane.getActiveItem().saveAs = jasmine.createSpy('saveAs')
+          atom.project.setPaths([__dirname])
+          await pane.saveActiveItem()
+          expect(showSaveDialog).toHaveBeenCalledWith({
+            defaultPath: __dirname
+          })
+        })
+      })
+
       it('does nothing if the user cancels choosing a path', async () => {
         pane.getActiveItem().saveAs = jasmine.createSpy('saveAs')
         showSaveDialog.andReturn(undefined)
