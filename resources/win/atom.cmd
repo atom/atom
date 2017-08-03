@@ -3,6 +3,7 @@
 SET EXPECT_OUTPUT=
 SET WAIT=
 SET PSARGS=%*
+SET ELECTRON_ENABLE_LOGGING=
 
 FOR %%a IN (%*) DO (
   IF /I "%%a"=="-f"                         SET EXPECT_OUTPUT=YES
