@@ -53,8 +53,6 @@ function runCoreMainProcessTests (callback) {
   ]
   const testEnv = Object.assign({}, prepareEnv('core-main-process'), {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
 
-  console.log(`test environment: ${require('util').inspect(testEnv)}`)
-
   console.log('Executing core main process tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
   cp.on('error', error => { callback(error) })
