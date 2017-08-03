@@ -583,12 +583,14 @@ describe "Project", ->
       dirTwo = temp.mkdirSync('atom-spec-project-two')
       fileThree = path.join(dirTwo, 'file-three.txt')
 
+      console.log "Setting project paths to #{dirOne}"
       atom.project.setPaths([dirOne])
 
       waitsForPromise -> atom.project.watchersByPath[dirOne].getStartPromise()
 
       runs ->
         expect(atom.project.watchersByPath[dirTwo]).toEqual undefined
+        console.log "Watching #{dirOne} but not #{dirTwo}"
 
         fs.writeFileSync fileThree, "three\n"
         fs.writeFileSync fileTwo, "two\n"
@@ -597,6 +599,7 @@ describe "Project", ->
       waitsForPromise -> waitForEvents [fileOne, fileTwo]
 
       runs ->
+        console.log "Events seen:\n#{require('util').inspect events}"
         expect(events.some (event) -> event.path is fileThree).toBeFalsy()
 
   describe ".onDidAddBuffer()", ->
