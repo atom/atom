@@ -71,7 +71,7 @@ function runCoreRenderProcessTests (callback) {
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
   cp.on('error', error => {
     try {
-      const projectSpecLog = fs.readFileSync(path.join(process.env.HOME or 'C:\\Users\\appveyor', 'project-spec.log'), {encoding: 'utf8'})
+      const projectSpecLog = fs.readFileSync(path.join(process.env.HOME || 'C:\\Users\\appveyor', 'project-spec.log'), {encoding: 'utf8'})
       console.log(`project-spec log:\n${projectSpecLog}\n`)
     } catch (e) {
       console.error(`Unable to open log file:\n${e.stack}`)
