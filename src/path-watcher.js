@@ -335,25 +335,18 @@ class NativeWatcher {
 //
 // Compatible with the {Disposable} protocol. When disposed, no more events will be delivered.
 //
-// Arguments accepted by `watchPath`:
-//
-// * `rootPath` {String} specifies the absolute path to the root of the filesystem content to watch.
-// * `options` Control the watcher's behavior. Currently a placeholder.
-// * `eventCallback` {Function} or other callable to be called each time a batch of filesystem events is observed.
-//    * `events` {Array} of objects that describe the events that have occurred.
-//      * `type` {String} describing the filesystem action that occurred. One of `"created"`, `"modified"`, `"deleted"`,
-//        or `"renamed"`.
-//      * `path` {String} containing the absolute path to the filesystem entry that was acted upon.
-//      * `oldPath` For rename events, {String} containing the filesystem entry's former absolute path.
-//
 // ```js
 // const {watchPath} = require('atom')
 //
 // const disposable = watchPath('/var/log', {}, events => {
 //   console.log(`Received batch of ${events.length} events.`)
 //   for (const event of events) {
-//     console.log(`Event action: ${event.type}`)  // "created", "modified", "deleted", "renamed"
-//     console.log(`Event path: ${event.path}`)  // absolute path to the filesystem entry that was touched
+//     // "created", "modified", "deleted", "renamed"
+//     console.log(`Event action: ${event.type}`)
+//
+//     // absolute path to the filesystem entry that was touched
+//     console.log(`Event path: ${event.path}`)
+//
 //     if (event.type === 'renamed') {
 //       console.log(`.. renamed from: ${event.oldPath}`)
 //     }
@@ -364,6 +357,18 @@ class NativeWatcher {
 //  // resources required to subscribe to these events.
 //  disposable.dispose()
 // ```
+//
+// `watchPath` accepts the following arguments:
+//
+// `rootPath` {String} specifies the absolute path to the root of the filesystem content to watch.
+// `options` Control the watcher's behavior. Currently a placeholder.
+// `eventCallback` {Function} or other callable to be called each time a batch of filesystem events is observed.
+//   * `events` {Array} of objects that describe the events that have occurred.
+//     * `type` {String} describing the filesystem action that occurred. One of `"created"`, `"modified"`, `"deleted"`,
+//        or `"renamed"`.
+//     * `path` {String} containing the absolute path to the filesystem entry that was acted upon.
+//     * `oldPath` For rename events, {String} containing the filesystem entry's former absolute path.
+//
 class PathWatcher {
 
   // Private: Instantiate a new PathWatcher. Call {watchPath} instead.
@@ -440,8 +445,9 @@ class PathWatcher {
   // Private: Attach another {Function} to be called with each batch of filesystem events. See {watchPath} for the
   // spec of the callback's argument.
   //
-  // Returns a {Disposable} that will stop the underlying watcher when all callbacks mapped to it have been disposed.
+  // * `callback` {Function} to be called with each batch of filesystem events.
   //
+  // Returns a {Disposable} that will stop the underlying watcher when all callbacks mapped to it have been disposed.
   onDidChange (callback) {
     if (this.native) {
       const sub = this.native.onDidChange(events => this.onNativeEvents(events, callback))
@@ -464,8 +470,10 @@ class PathWatcher {
 
   // Extended: Invoke a {Function} when any errors related to this watcher are reported.
   //
-  // Returns a {Disposable}.
+  // * `callback` {Function} to be called when an error occurs.
+  //   * `err` An {Error} describing the failure condition.
   //
+  // Returns a {Disposable}.
   onDidError (callback) {
     return this.emitter.on('did-error', callback)
   }
