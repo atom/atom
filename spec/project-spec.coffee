@@ -14,10 +14,6 @@ describe "Project", ->
     # Wait for project's service consumers to be asynchronously added
     waits(1)
 
-  afterEach ->
-    waitsForPromise -> stopAllWatchers()
-    runs -> temp.cleanupSync()
-
   describe "serialization", ->
     deserializedProject = null
 
@@ -585,8 +581,10 @@ describe "Project", ->
       dirTwo = temp.mkdirSync('atom-spec-project-two')
       fileThree = path.join(dirTwo, 'file-three.txt')
 
-      atom.project.setPaths([dirOne])
+      # Ensure that all preexisting watchers are stopped
+      waitsForPromise -> stopAllWatchers()
 
+      runs -> atom.project.setPaths([dirOne])
       waitsForPromise -> atom.project.watchersByPath[dirOne].getStartPromise()
 
       runs ->
