@@ -18,7 +18,7 @@ async function updateProcessEnv (launchEnv) {
   if (launchEnv) {
     if (shouldGetEnvFromShell(launchEnv)) {
       envToAssign = await getEnvFromShell(launchEnv)
-    } else if (launchEnv.PWD) {
+    } else if (launchEnv.PWD || launchEnv.PROMPT || launchEnv.PSModulePath) {
       envToAssign = launchEnv
     }
   }
