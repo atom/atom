@@ -326,14 +326,44 @@ class NativeWatcher {
   }
 }
 
-// Extended: Manage a subscription to filesystem events that occur beneath a root directory. Construct these by calling
-// {watchPath}.
+// Extended: Manage a subscription to filesystem events that occur beneath a root directory. Don't instantiate these
+// directly. Instead, construct them by calling `watchPath`, or use them indirectly through {Project::onDidChangeFiles}
+// instead if you only need to watch for events within active project directories.
 //
-// Maybe PathWatchers may be backed by the same native watcher to conserve operation system resources. Native watchers are
-// started when at least one subscription is registered, and stopped when all subscriptions are disposed.
+// Multiple PathWatchers may be backed by a single native watcher to conserve operation system resources. Native
+// watchers are started when at least one subscription is registered, and stopped when all subscriptions are disposed.
 //
-// Acts as a {Disposable}.
+// Compatible with the {Disposable} protocol. When disposed, no more events will be delivered.
 //
+// Arguments accepted by `watchPath`:
+//
+// * `rootPath` {String} specifies the absolute path to the root of the filesystem content to watch.
+// * `options` Control the watcher's behavior. Currently a placeholder.
+// * `eventCallback` {Function} or other callable to be called each time a batch of filesystem events is observed.
+//    * `events` {Array} of objects that describe the events that have occurred.
+//      * `type` {String} describing the filesystem action that occurred. One of `"created"`, `"modified"`, `"deleted"`,
+//        or `"renamed"`.
+//      * `path` {String} containing the absolute path to the filesystem entry that was acted upon.
+//      * `oldPath` For rename events, {String} containing the filesystem entry's former absolute path.
+//
+// ```js
+// const {watchPath} = require('atom')
+//
+// const disposable = watchPath('/var/log', {}, events => {
+//   console.log(`Received batch of ${events.length} events.`)
+//   for (const event of events) {
+//     console.log(`Event action: ${event.type}`)  // "created", "modified", "deleted", "renamed"
+//     console.log(`Event path: ${event.path}`)  // absolute path to the filesystem entry that was touched
+//     if (event.type === 'renamed') {
+//       console.log(`.. renamed from: ${event.oldPath}`)
+//     }
+//   }
+// })
+//
+//  // Immediately stop receiving filesystem events. If this is the last watcher, asynchronously release any OS
+//  // resources required to subscribe to these events.
+//  disposable.dispose()
+// ```
 class PathWatcher {
 
   // Private: Instantiate a new PathWatcher. Call {watchPath} instead.
@@ -557,8 +587,6 @@ class PathWatcherManager {
 //
 // * `rootPath` {String} specifies the absolute path to the root of the filesystem content to watch.
 // * `options` Control the watcher's behavior.
-//    * `recursive` If true, passing the path to a directory will recursively watch all changes beneath that
-//       directory. If false, only the file or directory itself will be watched.
 // * `eventCallback` {Function} or other callable to be called each time a batch of filesystem events is observed.
 //    * `events` {Array} of objects that describe the events that have occurred.
 //      * `type` {String} describing the filesystem action that occurred. One of `"created"`, `"modified"`, `"deleted"`,

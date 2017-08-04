@@ -117,10 +117,24 @@ class Project extends Model
     callback(buffer) for buffer in @getBuffers()
     @onDidAddBuffer callback
 
-  # Public: Invoke the given callback when any filesystem change occurs within an open
+  # Public: Invoke a callback when a filesystem change occurs within any open
   # project path.
   #
-  # To watch paths outside of open projects, use the {watchPaths} function.
+  # ```js
+  # const disposable = atom.project.onDidChangeFiles(events => {
+  #   for (const event of events) {
+  #     console.log(`Event action: ${event.type}`)  // "created", "modified", "deleted", "renamed"
+  #     console.log(`Event path: ${event.path}`)  // absolute path to the filesystem entry that was touched
+  #     if (event.type === 'renamed') {
+  #       console.log(`.. renamed from: ${event.oldPath}`)
+  #     }
+  #   }
+  # }
+  #
+  # disposable.dispose()
+  # ```
+  #
+  # To watch paths outside of open projects, use the [watchPaths]{PathWatcher} function instead.
   #
   # * `callback` {Function} to be called with batches of filesystem events reported by
   #   the operating system.
@@ -132,8 +146,7 @@ class Project extends Model
   #     * `oldPath` For rename events, {String} containing the filesystem entry's
   #       former absolute path.
   #
-  # Returns a {PathWatcher} that may be used like a {Disposable} to manage
-  # this event subscription.
+  # Returns a {Disposable} to manage this event subscription.
   onDidChangeFiles: (callback) ->
     @emitter.on 'did-change-files', callback
 
