@@ -1,6 +1,6 @@
 'use strict'
 
-const focusTrap = require('focus-trap');
+const focusTrap = require('focus-trap')
 const {CompositeDisposable} = require('event-kit')
 
 class PanelContainerElement extends HTMLElement {
@@ -57,15 +57,15 @@ class PanelContainerElement extends HTMLElement {
         fallbackFocus: panelElement,
         // closing is handled by core Atom commands and this already deactivates
         // on visibility changes
-        escapeDeactivates: false,
-      });
+        escapeDeactivates: false
+      })
 
       this.subscriptions.add(panel.onDidChangeVisible(visible => {
         if (visible) {
           this.hideAllPanelsExcept(panel)
-          modalFocusTrap.activate();
+          modalFocusTrap.activate()
         } else {
-          modalFocusTrap.deactivate();
+          modalFocusTrap.deactivate()
         }
       }))
     }
