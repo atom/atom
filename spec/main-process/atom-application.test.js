@@ -508,7 +508,8 @@ describe('AtomApplication', function () {
   }
 
   function makeTempDir (name) {
-    return fs.realpathSync(require('temp').mkdirSync(name))
+    const temp = require('temp').track()
+    return fs.realpathSync(temp.mkdirSync(name))
   }
 
   let channelIdCounter = 0
