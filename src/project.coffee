@@ -117,7 +117,7 @@ class Project extends Model
     callback(buffer) for buffer in @getBuffers()
     @onDidAddBuffer callback
 
-  # Public: Invoke a callback when a filesystem change occurs within any open
+  # Extended: Invoke a callback when a filesystem change occurs within any open
   # project path.
   #
   # ```js
@@ -134,11 +134,11 @@ class Project extends Model
   # disposable.dispose()
   # ```
   #
-  # To watch paths outside of open projects, use the [watchPaths]{PathWatcher} function instead.
+  # To watch paths outside of open projects, use the `watchPaths` function instead; see {PathWatcher}.
   #
   # * `callback` {Function} to be called with batches of filesystem events reported by
   #   the operating system.
-  #    * `events` An {Array} of objects the describe filesystem events.
+  #    * `events` An {Array} of objects that describe a batch of filesystem events.
   #     * `type` {String} describing the filesystem action that occurred. One of `"created"`,
   #       `"modified"`, `"deleted"`, or `"renamed"`.
   #     * `path` {String} containing the absolute path to the filesystem entry
