@@ -411,19 +411,14 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       const [cursor1, cursor2] = element.querySelectorAll('.cursor')
 
-      expect(getComputedStyle(cursor1).opacity).toBe('1')
-      expect(getComputedStyle(cursor2).opacity).toBe('1')
-
-      await conditionPromise(() =>
-        getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
-      )
-
       await conditionPromise(() =>
         getComputedStyle(cursor1).opacity === '1' && getComputedStyle(cursor2).opacity === '1'
       )
-
       await conditionPromise(() =>
         getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
+      )
+      await conditionPromise(() =>
+        getComputedStyle(cursor1).opacity === '1' && getComputedStyle(cursor2).opacity === '1'
       )
 
       editor.moveRight()
