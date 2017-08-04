@@ -1443,27 +1443,6 @@ describe('TextEditorComponent', () => {
       expect(highlights[0].classList.contains('b')).toBe(false)
       expect(highlights[1].classList.contains('b')).toBe(false)
 
-      // Flash existing highlight
-      decoration.flash('c', 100)
-      await component.getNextUpdatePromise()
-      expect(highlights[0].classList.contains('c')).toBe(true)
-      expect(highlights[1].classList.contains('c')).toBe(true)
-
-      // Add second flash class
-      decoration.flash('d', 100)
-      await component.getNextUpdatePromise()
-      expect(highlights[0].classList.contains('c')).toBe(true)
-      expect(highlights[1].classList.contains('c')).toBe(true)
-      expect(highlights[0].classList.contains('d')).toBe(true)
-      expect(highlights[1].classList.contains('d')).toBe(true)
-
-      await conditionPromise(() =>
-        !highlights[0].classList.contains('c') &&
-        !highlights[1].classList.contains('c') &&
-        !highlights[0].classList.contains('d') &&
-        !highlights[1].classList.contains('d')
-      )
-
       // Flashing the same class again before the first flash completes
       // removes the flash class and adds it back on the next frame to ensure
       // CSS transitions apply to the second flash.
@@ -1486,6 +1465,27 @@ describe('TextEditorComponent', () => {
         !highlights[0].classList.contains('e') &&
         !highlights[1].classList.contains('e')
       )
+    })
+
+    it("flashing a highlight decoration doesn't unflash other highlight decorations", async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3, height: 200})
+      const marker = editor.markScreenRange([[2, 4], [3, 4]])
+      const decoration = editor.decorateMarker(marker, {type: 'highlight', class: 'a'})
+
+      // Flash one class
+      decoration.flash('c', 1000)
+      await component.getNextUpdatePromise()
+      const highlights = element.querySelectorAll('.highlight.a')
+      expect(highlights[0].classList.contains('c')).toBe(true)
+      expect(highlights[1].classList.contains('c')).toBe(true)
+
+      // Flash another class while the previously-flashed class is still highlighted
+      decoration.flash('d', 100)
+      await component.getNextUpdatePromise()
+      expect(highlights[0].classList.contains('c')).toBe(true)
+      expect(highlights[1].classList.contains('c')).toBe(true)
+      expect(highlights[0].classList.contains('d')).toBe(true)
+      expect(highlights[1].classList.contains('d')).toBe(true)
     })
 
     it('supports layer decorations', async () => {
