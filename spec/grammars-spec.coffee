@@ -24,7 +24,8 @@ describe "the `grammars` global", ->
   afterEach ->
     atom.packages.deactivatePackages()
     atom.packages.unloadPackages()
-    temp.cleanupSync()
+    try
+      temp.cleanupSync()
 
   describe ".selectGrammar(filePath)", ->
     it "always returns a grammar", ->

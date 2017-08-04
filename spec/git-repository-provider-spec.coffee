@@ -12,7 +12,8 @@ describe "GitRepositoryProvider", ->
     provider = new GitRepositoryProvider(atom.project, atom.config, atom.confirm)
 
   afterEach ->
-    temp.cleanupSync()
+    try
+      temp.cleanupSync()
 
   describe ".repositoryForDirectory(directory)", ->
     describe "when specified a Directory with a Git repository", ->

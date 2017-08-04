@@ -10,7 +10,8 @@ describe "DefaultDirectoryProvider", ->
     tmp = temp.mkdirSync('atom-spec-default-dir-provider')
 
   afterEach ->
-    temp.cleanupSync()
+    try
+      temp.cleanupSync()
 
   describe ".directoryForURISync(uri)", ->
     it "returns a Directory with a path that matches the uri", ->
