@@ -411,19 +411,14 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       const [cursor1, cursor2] = element.querySelectorAll('.cursor')
 
-      expect(getComputedStyle(cursor1).opacity).toBe('1')
-      expect(getComputedStyle(cursor2).opacity).toBe('1')
-
-      await conditionPromise(() =>
-        getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
-      )
-
       await conditionPromise(() =>
         getComputedStyle(cursor1).opacity === '1' && getComputedStyle(cursor2).opacity === '1'
       )
-
       await conditionPromise(() =>
         getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
+      )
+      await conditionPromise(() =>
+        getComputedStyle(cursor1).opacity === '1' && getComputedStyle(cursor2).opacity === '1'
       )
 
       editor.moveRight()
@@ -1448,27 +1443,6 @@ describe('TextEditorComponent', () => {
       expect(highlights[0].classList.contains('b')).toBe(false)
       expect(highlights[1].classList.contains('b')).toBe(false)
 
-      // Flash existing highlight
-      decoration.flash('c', 100)
-      await component.getNextUpdatePromise()
-      expect(highlights[0].classList.contains('c')).toBe(true)
-      expect(highlights[1].classList.contains('c')).toBe(true)
-
-      // Add second flash class
-      decoration.flash('d', 100)
-      await component.getNextUpdatePromise()
-      expect(highlights[0].classList.contains('c')).toBe(true)
-      expect(highlights[1].classList.contains('c')).toBe(true)
-      expect(highlights[0].classList.contains('d')).toBe(true)
-      expect(highlights[1].classList.contains('d')).toBe(true)
-
-      await conditionPromise(() =>
-        !highlights[0].classList.contains('c') &&
-        !highlights[1].classList.contains('c') &&
-        !highlights[0].classList.contains('d') &&
-        !highlights[1].classList.contains('d')
-      )
-
       // Flashing the same class again before the first flash completes
       // removes the flash class and adds it back on the next frame to ensure
       // CSS transitions apply to the second flash.
@@ -1491,6 +1465,27 @@ describe('TextEditorComponent', () => {
         !highlights[0].classList.contains('e') &&
         !highlights[1].classList.contains('e')
       )
+    })
+
+    it("flashing a highlight decoration doesn't unflash other highlight decorations", async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3, height: 200})
+      const marker = editor.markScreenRange([[2, 4], [3, 4]])
+      const decoration = editor.decorateMarker(marker, {type: 'highlight', class: 'a'})
+
+      // Flash one class
+      decoration.flash('c', 1000)
+      await component.getNextUpdatePromise()
+      const highlights = element.querySelectorAll('.highlight.a')
+      expect(highlights[0].classList.contains('c')).toBe(true)
+      expect(highlights[1].classList.contains('c')).toBe(true)
+
+      // Flash another class while the previously-flashed class is still highlighted
+      decoration.flash('d', 100)
+      await component.getNextUpdatePromise()
+      expect(highlights[0].classList.contains('c')).toBe(true)
+      expect(highlights[1].classList.contains('c')).toBe(true)
+      expect(highlights[0].classList.contains('d')).toBe(true)
+      expect(highlights[1].classList.contains('d')).toBe(true)
     })
 
     it('supports layer decorations', async () => {
@@ -1737,6 +1732,8 @@ describe('TextEditorComponent', () => {
       const marker3 = editor.markScreenRange([[9, 0], [12, 0]])
       const decorationElement1 = document.createElement('div')
       const decorationElement2 = document.createElement('div')
+      // Packages may adopt this class name for decorations to be styled the same as line numbers
+      decorationElement2.className = 'line-number'
 
       const decoration1 = gutterA.decorateMarker(marker1, {class: 'a'})
       const decoration2 = gutterA.decorateMarker(marker2, {class: 'b', item: decorationElement1})
@@ -1755,11 +1752,22 @@ describe('TextEditorComponent', () => {
       expect(decorationNode2.getBoundingClientRect().top).toBe(clientTopForLine(component, 6))
       expect(decorationNode2.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 8))
       expect(decorationNode2.firstChild).toBe(decorationElement1)
+      expect(decorationElement1.offsetHeight).toBe(decorationNode2.offsetHeight)
+      expect(decorationElement1.offsetWidth).toBe(decorationNode2.offsetWidth)
 
       expect(decorationNode3.className).toBe('decoration')
       expect(decorationNode3.getBoundingClientRect().top).toBe(clientTopForLine(component, 9))
       expect(decorationNode3.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 12) + component.getLineHeight())
       expect(decorationNode3.firstChild).toBe(decorationElement2)
+      expect(decorationElement2.offsetHeight).toBe(decorationNode3.offsetHeight)
+      expect(decorationElement2.offsetWidth).toBe(decorationNode3.offsetWidth)
+
+      // Inline styled height is updated when line height changes
+      element.style.fontSize = parseInt(getComputedStyle(element).fontSize) + 10 + 'px'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      expect(decorationElement1.offsetHeight).toBe(decorationNode2.offsetHeight)
+      expect(decorationElement2.offsetHeight).toBe(decorationNode3.offsetHeight)
 
       decoration1.setProperties({type: 'gutter', gutterName: 'a', class: 'c', item: decorationElement1})
       decoration2.setProperties({type: 'gutter', gutterName: 'a'})
@@ -1767,6 +1775,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       expect(decorationNode1.className).toBe('decoration c')
       expect(decorationNode1.firstChild).toBe(decorationElement1)
+      expect(decorationElement1.offsetHeight).toBe(decorationNode1.offsetHeight)
       expect(decorationNode2.className).toBe('decoration')
       expect(decorationNode2.firstChild).toBeNull()
       expect(gutterB.getElement().firstChild.children.length).toBe(0)
