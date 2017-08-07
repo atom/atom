@@ -3016,6 +3016,17 @@ describe('TextEditorComponent', () => {
     })
   })
 
+  describe('paste event', () => {
+    it("prevents the browser's default processing for the event on Linux", () => {
+      const {component} = buildComponent({platform: 'linux'})
+      const event = { preventDefault: () => {} }
+      spyOn(event, 'preventDefault')
+
+      component.didPaste(event)
+      expect(event.preventDefault).toHaveBeenCalled()
+    })
+  })
+
   describe('keyboard input', () => {
     it('handles inserted accented characters via the press-and-hold menu on macOS correctly', () => {
       const {editor, component, element} = buildComponent({text: ''})
