@@ -2687,18 +2687,42 @@ describe('TextEditorComponent', () => {
         expect(component.getScrollLeft()).toBe(maxScrollLeft)
       })
 
-      it('positions the cursor on clicking the middle mouse button on Linux', async () => {
-        // The browser synthesizes the paste as a textInput event on mouseup
-        // so it is not possible to test it here.
+      it('pastes the previously selected text when clicking the middle mouse button on Linux', async () => {
+        spyOn(electron.ipcRenderer, 'send').andCallFake(function (eventName, selectedText) {
+          if (eventName === 'write-text-to-selection-clipboard') {
+            clipboard.writeText(selectedText, 'selection')
+          }
+        })
+
         const {component, editor} = buildComponent({platform: 'linux'})
 
+        // Middle mouse pasting.
         editor.setSelectedBufferRange([[1, 6], [1, 10]])
+        await conditionPromise(() => TextEditor.clipboard.read() === 'sort')
         component.didMouseDownOnContent({
           button: 1,
           clientX: clientLeftForCharacter(component, 10, 0),
           clientY: clientTopForLine(component, 10)
         })
-        expect(editor.getSelectedBufferRange()).toEqual([[10, 0], [10, 0]])
+        expect(TextEditor.clipboard.read()).toBe('sort')
+        expect(editor.lineTextForBufferRow(10)).toBe('sort')
+        editor.undo()
+
+        // Ensure left clicks don't interfere.
+        editor.setSelectedBufferRange([[1, 2], [1, 5]])
+        await conditionPromise(() => TextEditor.clipboard.read() === 'var')
+        component.didMouseDownOnContent({
+          button: 0,
+          detail: 1,
+          clientX: clientLeftForCharacter(component, 10, 0),
+          clientY: clientTopForLine(component, 10)
+        })
+        component.didMouseDownOnContent({
+          button: 1,
+          clientX: clientLeftForCharacter(component, 10, 0),
+          clientY: clientTopForLine(component, 10)
+        })
+        expect(editor.lineTextForBufferRow(10)).toBe('var')
       })
     })
 
@@ -2989,6 +3013,17 @@ describe('TextEditorComponent', () => {
         })
         expect(editor.getCursorScreenPosition()).toEqual([4, 0])
       })
+    })
+  })
+
+  describe('paste event', () => {
+    it("prevents the browser's default processing for the event on Linux", () => {
+      const {component} = buildComponent({platform: 'linux'})
+      const event = { preventDefault: () => {} }
+      spyOn(event, 'preventDefault')
+
+      component.didPaste(event)
+      expect(event.preventDefault).toHaveBeenCalled()
     })
   })
 
