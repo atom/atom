@@ -326,14 +326,15 @@ class NativeWatcher {
   }
 }
 
-// Extended: Manage a subscription to filesystem events that occur beneath a root directory. Don't instantiate these
-// directly. Instead, construct them by calling `watchPath`, or use them indirectly through {Project::onDidChangeFiles}
-// instead if you only need to watch for events within active project directories.
+// Extended: Manage a subscription to filesystem events that occur beneath a root directory. Construct these by
+// calling `watchPath`. To watch for events within active project directories, use {Project::onDidChangeFiles}
+// instead.
 //
-// Multiple PathWatchers may be backed by a single native watcher to conserve operation system resources. Native
-// watchers are started when at least one subscription is registered, and stopped when all subscriptions are disposed.
+// Multiple PathWatchers may be backed by a single native watcher to conserve operation system resources.
 //
-// Compatible with the {Disposable} protocol. When disposed, no more events will be delivered.
+// Call {::dispose} to stop receiving events and, if possible, release underlying resources. A PathWatcher may be
+// added to a {CompositeDisposable} to manage its lifetime along with other {Disposable} resources like event
+// subscriptions.
 //
 // ```js
 // const {watchPath} = require('atom')
@@ -353,22 +354,22 @@ class NativeWatcher {
 //   }
 // })
 //
-//  // Immediately stop receiving filesystem events. If this is the last watcher, asynchronously release any OS
-//  // resources required to subscribe to these events.
+//  // Immediately stop receiving filesystem events. If this is the last
+//  // watcher, asynchronously release any OS resources required to
+//  // subscribe to these events.
 //  disposable.dispose()
 // ```
 //
 // `watchPath` accepts the following arguments:
 //
 // `rootPath` {String} specifies the absolute path to the root of the filesystem content to watch.
-// `options` Control the watcher's behavior. Currently a placeholder.
-// `eventCallback` {Function} or other callable to be called each time a batch of filesystem events is observed.
-//   * `events` {Array} of objects that describe the events that have occurred.
-//     * `type` {String} describing the filesystem action that occurred. One of `"created"`, `"modified"`, `"deleted"`,
-//        or `"renamed"`.
-//     * `path` {String} containing the absolute path to the filesystem entry that was acted upon.
-//     * `oldPath` For rename events, {String} containing the filesystem entry's former absolute path.
 //
+// `options` Control the watcher's behavior. Currently a placeholder.
+//
+// `eventCallback` {Function} to be called each time a batch of filesystem events is observed. Each event object has
+// the keys: `type`, a {String} describing the filesystem action that occurred, one of `"created"`, `"modified"`,
+// `"deleted"`, or `"renamed"`; `path`, a {String} containing the absolute path to the filesystem entry that was acted
+// upon; for rename events only, `oldPath`, a {String} containing the filesystem entry's former absolute path.
 class PathWatcher {
 
   // Private: Instantiate a new PathWatcher. Call {watchPath} instead.
@@ -433,7 +434,8 @@ class PathWatcher {
   //     const watcher = watchPath(ROOT, {}, events => {})
   //     await watcher.getStartPromise()
   //     fs.writeFile(FILE, 'contents\n', err => {
-  //       // The watcher is listening and the event should be received asyncronously
+  //       // The watcher is listening and the event should be
+  //       // received asyncronously
   //     }
   //   })
   // })
@@ -527,8 +529,8 @@ class PathWatcher {
     }
   }
 
-  // Extended: Unsubscribe all subscribers from filesystem events. The native watcher resources may take some time to
-  // be cleaned up, but the watcher will stop broadcasting events immediately.
+  // Extended: Unsubscribe all subscribers from filesystem events. Native resources will be release asynchronously,
+  // but this watcher will stop broadcasting events immediately.
   dispose () {
     for (const sub of this.changeCallbacks.values()) {
       sub.dispose()
