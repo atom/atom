@@ -7,10 +7,10 @@ const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 const nsfw = require('nsfw')
 const {NativeWatcherRegistry} = require('./native-watcher-registry')
 
-// Private: Associate native watcher action type flags with descriptive String equivalents.
+// Private: Associate native watcher action action flags with descriptive String equivalents.
 const ACTION_MAP = new Map([
-  [nsfw.actions.MODIFIED, 'changed'],
-  [nsfw.actions.CREATED, 'added'],
+  [nsfw.actions.MODIFIED, 'modified'],
+  [nsfw.actions.CREATED, 'created'],
   [nsfw.actions.DELETED, 'deleted'],
   [nsfw.actions.RENAMED, 'renamed']
 ])
@@ -43,8 +43,8 @@ class AtomBackend {
         return
       }
 
-      const announce = (type, oldPath) => {
-        const payload = {type, path: realPath}
+      const announce = (action, oldPath) => {
+        const payload = {action, path: realPath}
         if (oldPath) payload.oldPath = oldPath
         eventCallback([payload])
       }
@@ -93,14 +93,14 @@ class AtomBackend {
       const realPath = await getRealPath(event.path)
       if (!realPath) return
 
-      eventCallback([{type: 'added', path: realPath}])
+      eventCallback([{action: 'added', path: realPath}])
     }))
 
     this.subs.add(treeView.onEntryDeleted(async event => {
       const realPath = await getRealPath(event.path)
       if (!realPath || isOpenInEditor(realPath)) return
 
-      eventCallback([{type: 'deleted', path: realPath}])
+      eventCallback([{action: 'deleted', path: realPath}])
     }))
 
     this.subs.add(treeView.onEntryMoved(async event => {
@@ -110,7 +110,7 @@ class AtomBackend {
       ])
       if (!realNewPath || !realOldPath || isOpenInEditor(realNewPath) || isOpenInEditor(realOldPath)) return
 
-      eventCallback([{type: 'renamed', path: realNewPath, oldPath: realOldPath}])
+      eventCallback([{action: 'renamed', path: realNewPath, oldPath: realOldPath}])
     }))
   }
 
@@ -124,8 +124,8 @@ class NSFWBackend {
   async start (rootPath, eventCallback, errorCallback) {
     const handler = events => {
       eventCallback(events.map(event => {
-        const type = ACTION_MAP.get(event.action) || `unexpected (${event.action})`
-        const payload = {type}
+        const action = ACTION_MAP.get(event.action) || `unexpected (${event.action})`
+        const payload = {action}
 
         if (event.file) {
           payload.path = path.join(event.directory, event.file)
@@ -343,12 +343,12 @@ class NativeWatcher {
 //   console.log(`Received batch of ${events.length} events.`)
 //   for (const event of events) {
 //     // "created", "modified", "deleted", "renamed"
-//     console.log(`Event action: ${event.type}`)
+//     console.log(`Event action: ${event.action}`)
 //
 //     // absolute path to the filesystem entry that was touched
 //     console.log(`Event path: ${event.path}`)
 //
-//     if (event.type === 'renamed') {
+//     if (event.action === 'renamed') {
 //       console.log(`.. renamed from: ${event.oldPath}`)
 //     }
 //   }
@@ -367,7 +367,7 @@ class NativeWatcher {
 // `options` Control the watcher's behavior. Currently a placeholder.
 //
 // `eventCallback` {Function} to be called each time a batch of filesystem events is observed. Each event object has
-// the keys: `type`, a {String} describing the filesystem action that occurred, one of `"created"`, `"modified"`,
+// the keys: `action`, a {String} describing the filesystem action that occurred, one of `"created"`, `"modified"`,
 // `"deleted"`, or `"renamed"`; `path`, a {String} containing the absolute path to the filesystem entry that was acted
 // upon; for rename events only, `oldPath`, a {String} containing the filesystem entry's former absolute path.
 class PathWatcher {
@@ -599,8 +599,8 @@ class PathWatcherManager {
 // * `options` Control the watcher's behavior.
 // * `eventCallback` {Function} or other callable to be called each time a batch of filesystem events is observed.
 //    * `events` {Array} of objects that describe the events that have occurred.
-//      * `type` {String} describing the filesystem action that occurred. One of `"created"`, `"modified"`, `"deleted"`,
-//        or `"renamed"`.
+//      * `action` {String} describing the filesystem action that occurred. One of `"created"`, `"modified"`,
+//        `"deleted"`, or `"renamed"`.
 //      * `path` {String} containing the absolute path to the filesystem entry that was acted upon.
 //      * `oldPath` For rename events, {String} containing the filesystem entry's former absolute path.
 //
@@ -613,9 +613,11 @@ class PathWatcherManager {
 // const disposable = watchPath('/var/log', {}, events => {
 //   console.log(`Received batch of ${events.length} events.`)
 //   for (const event of events) {
-//     console.log(`Event action: ${event.type}`)  // "created", "modified", "deleted", "renamed"
-//     console.log(`Event path: ${event.path}`)  // absolute path to the filesystem entry that was touched
-//     if (event.type === 'renamed') {
+//     // "created", "modified", "deleted", "renamed"
+//     console.log(`Event action: ${event.action}`)
+//     // absolute path to the filesystem entry that was touched
+//     console.log(`Event path: ${event.path}`)
+//     if (event.action === 'renamed') {
 //       console.log(`.. renamed from: ${event.oldPath}`)
 //     }
 //   }
