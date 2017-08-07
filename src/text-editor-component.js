@@ -70,6 +70,7 @@ class TextEditorComponent {
     this.updateSync = this.updateSync.bind(this)
     this.didBlurHiddenInput = this.didBlurHiddenInput.bind(this)
     this.didFocusHiddenInput = this.didFocusHiddenInput.bind(this)
+    this.didPaste = this.didPaste.bind(this)
     this.didTextInput = this.didTextInput.bind(this)
     this.didKeydown = this.didKeydown.bind(this)
     this.didKeyup = this.didKeyup.bind(this)
@@ -1553,7 +1554,7 @@ class TextEditorComponent {
 
   didPaste (event) {
     // TODO Explain the motivation for this logic
-    if ((this.props.platform || process.platform) === 'linux') event.preventDefault()
+    if (this.getPlatform() === 'linux') event.preventDefault()
   }
 
   didTextInput (event) {
