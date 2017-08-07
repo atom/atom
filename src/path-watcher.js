@@ -7,7 +7,7 @@ const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 const nsfw = require('nsfw')
 const {NativeWatcherRegistry} = require('./native-watcher-registry')
 
-// Private: Associate native watcher action action flags with descriptive String equivalents.
+// Private: Associate native watcher action flags with descriptive String equivalents.
 const ACTION_MAP = new Map([
   [nsfw.actions.MODIFIED, 'modified'],
   [nsfw.actions.CREATED, 'created'],
