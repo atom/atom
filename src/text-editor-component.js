@@ -5,6 +5,7 @@ const {Point, Range} = require('text-buffer')
 const LineTopIndex = require('line-top-index')
 const TextEditor = require('./text-editor')
 const {isPairedCharacter} = require('./text-utils')
+const clipboard = require('./safe-clipboard')
 const electron = require('electron')
 const $ = etch.dom
 
@@ -641,6 +642,7 @@ class TextEditorComponent {
       didBlurHiddenInput: this.didBlurHiddenInput,
       didFocusHiddenInput: this.didFocusHiddenInput,
       didTextInput: this.didTextInput,
+      didPaste: this.didPaste,
       didKeydown: this.didKeydown,
       didKeyup: this.didKeyup,
       didKeypress: this.didKeypress,
@@ -1549,6 +1551,11 @@ class TextEditorComponent {
     }
   }
 
+  didPaste (event) {
+    // TODO Explain the motivation for this logic
+    if ((this.props.platform || process.platform) === 'linux') event.preventDefault()
+  }
+
   didTextInput (event) {
     if (!this.isInputEnabled()) return
 
@@ -1654,8 +1661,10 @@ class TextEditorComponent {
     // textInput event with the contents of the selection clipboard will be
     // dispatched by the browser automatically on mouseup.
     if (platform === 'linux' && button === 1) {
+      const selection = clipboard.readText('selection')
       const screenPosition = this.screenPositionForMouseEvent(event)
       model.setCursorScreenPosition(screenPosition, {autoscroll: false})
+      model.insertText(selection)
       return
     }
 
@@ -3356,8 +3365,8 @@ class CursorsAndInputComponent {
   renderHiddenInput () {
     const {
       lineHeight, hiddenInputPosition, didBlurHiddenInput, didFocusHiddenInput,
-      didTextInput, didKeydown, didKeyup, didKeypress, didCompositionStart,
-      didCompositionUpdate, didCompositionEnd
+      didPaste, didTextInput, didKeydown, didKeyup, didKeypress,
+      didCompositionStart, didCompositionUpdate, didCompositionEnd
     } = this.props
 
     let top, left
@@ -3376,6 +3385,7 @@ class CursorsAndInputComponent {
       on: {
         blur: didBlurHiddenInput,
         focus: didFocusHiddenInput,
+        paste: didPaste,
         textInput: didTextInput,
         keydown: didKeydown,
         keyup: didKeyup,
