@@ -5,6 +5,7 @@ const {Point, Range} = require('text-buffer')
 const LineTopIndex = require('line-top-index')
 const TextEditor = require('./text-editor')
 const {isPairedCharacter} = require('./text-utils')
+const clipboard = require('./safe-clipboard')
 const electron = require('electron')
 const $ = etch.dom
 
@@ -69,6 +70,7 @@ class TextEditorComponent {
     this.updateSync = this.updateSync.bind(this)
     this.didBlurHiddenInput = this.didBlurHiddenInput.bind(this)
     this.didFocusHiddenInput = this.didFocusHiddenInput.bind(this)
+    this.didPaste = this.didPaste.bind(this)
     this.didTextInput = this.didTextInput.bind(this)
     this.didKeydown = this.didKeydown.bind(this)
     this.didKeyup = this.didKeyup.bind(this)
@@ -641,6 +643,7 @@ class TextEditorComponent {
       didBlurHiddenInput: this.didBlurHiddenInput,
       didFocusHiddenInput: this.didFocusHiddenInput,
       didTextInput: this.didTextInput,
+      didPaste: this.didPaste,
       didKeydown: this.didKeydown,
       didKeyup: this.didKeyup,
       didKeypress: this.didKeypress,
@@ -1549,6 +1552,16 @@ class TextEditorComponent {
     }
   }
 
+  didPaste (event) {
+    // On Linux, Chromium translates a middle-button mouse click into a
+    // mousedown event *and* a paste event. Since Atom supports the middle mouse
+    // click as a way of closing a tab, we only want the mousedown event, not
+    // the paste event. And since we don't use the `paste` event for any
+    // behavior in Atom, we can no-op the event to eliminate this issue.
+    // See https://github.com/atom/atom/pull/15183#issue-248432413.
+    if (this.getPlatform() === 'linux') event.preventDefault()
+  }
+
   didTextInput (event) {
     if (!this.isInputEnabled()) return
 
@@ -1654,8 +1667,10 @@ class TextEditorComponent {
     // textInput event with the contents of the selection clipboard will be
     // dispatched by the browser automatically on mouseup.
     if (platform === 'linux' && button === 1) {
+      const selection = clipboard.readText('selection')
       const screenPosition = this.screenPositionForMouseEvent(event)
       model.setCursorScreenPosition(screenPosition, {autoscroll: false})
+      model.insertText(selection)
       return
     }
 
@@ -3356,8 +3371,8 @@ class CursorsAndInputComponent {
   renderHiddenInput () {
     const {
       lineHeight, hiddenInputPosition, didBlurHiddenInput, didFocusHiddenInput,
-      didTextInput, didKeydown, didKeyup, didKeypress, didCompositionStart,
-      didCompositionUpdate, didCompositionEnd
+      didPaste, didTextInput, didKeydown, didKeyup, didKeypress,
+      didCompositionStart, didCompositionUpdate, didCompositionEnd
     } = this.props
 
     let top, left
@@ -3376,6 +3391,7 @@ class CursorsAndInputComponent {
       on: {
         blur: didBlurHiddenInput,
         focus: didFocusHiddenInput,
+        paste: didPaste,
         textInput: didTextInput,
         keydown: didKeydown,
         keyup: didKeyup,
