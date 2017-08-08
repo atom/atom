@@ -5,7 +5,7 @@ branches:
   only:
   - master
   - /^[0-9.]+-releases$/
-  - patch-*
+  - patch-1 # Deleteme
 
 matrix:
   include:
