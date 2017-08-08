@@ -23,7 +23,7 @@ module.exports = function (packagedAppPath) {
       process.stdout.write(`Generating snapshot script at "${snapshotScriptPath}" (${++processedFiles})`)
 
       const relativePath = path.relative(baseDirPath, modulePath)
-      const result = (
+      return (
         modulePath.endsWith('.node') ||
         coreModules.has(modulePath) ||
         (relativePath.startsWith(path.join('..', 'src')) && relativePath.endsWith('-element.js')) ||
@@ -70,8 +70,6 @@ module.exports = function (packagedAppPath) {
         relativePath === path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js') ||
         relativePath === path.join('..', 'node_modules', 'tree-view', 'node_modules', 'minimatch', 'minimatch.js')
       )
-      fs.appendFileSync('snapshot-files.txt', `${relativePath} = ${result}\n`)
-      return result
     }
   }).then((snapshotScript) => {
     fs.writeFileSync(snapshotScriptPath, snapshotScript)
