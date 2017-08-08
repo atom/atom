@@ -5,6 +5,7 @@ branches:
   only:
   - master
   - /^[0-9.]+-releases$/
+  - patch-*
 
 matrix:
   include:
