@@ -143,6 +143,7 @@ class ApplicationDelegate
       message: message
       detail: detailedMessage
       buttons: buttonLabels
+      normalizeAccessKeys: true
     })
 
     if _.isArray(buttons)

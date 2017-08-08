@@ -18,31 +18,30 @@ platform:
 environment:
   global:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
+    TEST_JUNIT_XML_ROOT: c:\projects\junit-test-results
 
   matrix:
-  - NODE_VERSION: 6.8.0
+  - NODE_VERSION: 6.9.4
 
 matrix:
   fast_finish: true
 
 install:
+  - IF NOT EXIST %TEST_JUNIT_XML_ROOT% MKDIR %TEST_JUNIT_XML_ROOT%
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
-  - npm install -g npm
+  - npm install -g npm@5.3.0
 
 build_script:
-  - IF NOT EXIST C:\sqtemp MKDIR C:\sqtemp
-  - SET SQUIRREL_TEMP=C:\sqtemp
   - CD %APPVEYOR_BUILD_FOLDER%
-  - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
-      script\build.cmd --code-sign --create-windows-installer --compress-artifacts
-    ) ELSE (
-      script\build.cmd --code-sign --compress-artifacts
-    )
+  - script\build.cmd --code-sign --compress-artifacts
 
 test_script:
   - script\lint.cmd
   - script\test.cmd
+
+after_test:
+  - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] ( script\create-installer.cmd )
 
 deploy: off
 artifacts:
@@ -58,10 +57,17 @@ artifacts:
     name: atom-full.nupkg
 
 cache:
-  - '%APPVEYOR_BUILD_FOLDER%\script\node_modules'
-  - '%APPVEYOR_BUILD_FOLDER%\apm\node_modules'
-  - '%APPVEYOR_BUILD_FOLDER%\node_modules'
   - '%APPVEYOR_BUILD_FOLDER%\electron'
   - '%USERPROFILE%\.atom\.apm'
   - '%USERPROFILE%\.atom\compile-cache'
-  - '%USERPROFILE%\.atom\snapshot-cache'
+
+on_finish:
+  - ps: |
+      $wc = New-Object 'System.Net.WebClient'
+      $endpoint = "https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)"
+      Write-Output "Searching for JUnit XML output beneath $($env:TEST_JUNIT_XML_ROOT)"
+      Get-ChildItem -Path $env:TEST_JUNIT_XML_ROOT -Recurse -File -Name -Include "*.xml" | ForEach-Object {
+        $full = "$($env:TEST_JUNIT_XML_ROOT)\$($_)"
+        Write-Output "Uploading JUnit XML file $($full)"
+        $wc.UploadFile($endpoint, $full)
+      }

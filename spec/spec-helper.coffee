@@ -64,8 +64,8 @@ beforeEach ->
   atom.project.setPaths([specProjectPath])
 
   window.resetTimeouts()
-  spyOn(Date, 'now').andCallFake -> window.now
   spyOn(_._, "now").andCallFake -> window.now
+  spyOn(Date, 'now').andCallFake(-> window.now)
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
 
@@ -188,8 +188,6 @@ jasmine.useRealClock = ->
 jasmine.useMockClock = ->
   spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
   spyOn(window, 'clearInterval').andCallFake(fakeClearInterval)
-  spyOn(Date, 'now').andCallFake(-> window.now)
-
 
 addCustomMatchers = (spec) ->
   spec.addMatchers

@@ -66,7 +66,7 @@ class Panel {
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy (callback) {
-    return this.emitter.on('did-destroy', callback)
+    return this.emitter.once('did-destroy', callback)
   }
 
   /*

@@ -25,7 +25,13 @@ describe('Workspace', () => {
     waitsForPromise(() => atom.workspace.itemLocationStore.clear())
   })
 
-  afterEach(() => temp.cleanupSync())
+  afterEach(() => {
+    try {
+      temp.cleanupSync()
+    } catch (e) {
+      // Do nothing
+    }
+  })
 
   function simulateReload() {
     waitsForPromise(() => {
@@ -1582,6 +1588,7 @@ i = /test/; #FIXME\
       expect(atom2.grammars.getGrammars().map(grammar => grammar.name).sort()).toEqual([
         'CoffeeScript',
         'CoffeeScript (Literate)',
+        'JSDoc',
         'JavaScript',
         'Null Grammar',
         'Regular Expression Replacement (JavaScript)',

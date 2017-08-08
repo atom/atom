@@ -647,7 +647,7 @@ class TextEditor extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
+    @emitter.once 'did-destroy', callback
 
   # Extended: Calls your `callback` when a {Cursor} is added to the editor.
   # Immediately calls your callback for each existing cursor.
@@ -1582,6 +1582,8 @@ class TextEditor extends Model
   # undo history, no changes will be made to the buffer and this method will
   # return `false`.
   #
+  # * `checkpoint` The checkpoint to revert to.
+  #
   # Returns a {Boolean} indicating whether the operation succeeded.
   revertToCheckpoint: (checkpoint) -> @buffer.revertToCheckpoint(checkpoint)
 
@@ -1590,6 +1592,8 @@ class TextEditor extends Model
   #
   # If the given checkpoint is no longer present in the undo history, no
   # grouping will be performed and this method will return `false`.
+  #
+  # * `checkpoint` The checkpoint from which to group changes.
   #
   # Returns a {Boolean} indicating whether the operation succeeded.
   groupChangesSinceCheckpoint: (checkpoint) -> @buffer.groupChangesSinceCheckpoint(checkpoint)

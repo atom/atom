@@ -70,6 +70,7 @@ class TextEditorComponent {
     this.updateSync = this.updateSync.bind(this)
     this.didBlurHiddenInput = this.didBlurHiddenInput.bind(this)
     this.didFocusHiddenInput = this.didFocusHiddenInput.bind(this)
+    this.didPaste = this.didPaste.bind(this)
     this.didTextInput = this.didTextInput.bind(this)
     this.didKeydown = this.didKeydown.bind(this)
     this.didKeyup = this.didKeyup.bind(this)
@@ -114,6 +115,9 @@ class TextEditorComponent {
     this.horizontalPositionsToMeasure = new Map() // Keys are rows with positions we want to measure, values are arrays of columns to measure
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
     this.blockDecorationsToMeasure = new Set()
+    this.blockDecorationsByElement = new WeakMap()
+    this.heightsByBlockDecoration = new WeakMap()
+    this.blockDecorationResizeObserver = new ResizeObserver(this.didResizeBlockDecorations.bind(this))
     this.lineNodesByScreenLineId = new Map()
     this.textNodesByScreenLineId = new Map()
     this.overlayComponents = new Set()
@@ -172,6 +176,10 @@ class TextEditorComponent {
   }
 
   update (props) {
+    if (props.model !== this.props.model) {
+      this.props.model.component = null
+      props.model.component = this
+    }
     this.props = props
     this.scheduleUpdate()
   }
@@ -245,20 +253,17 @@ class TextEditorComponent {
 
     this.measureBlockDecorations()
 
-    this.measuredContent = false
     this.updateSyncBeforeMeasuringContent()
     if (useScheduler === true) {
       const scheduler = etch.getScheduler()
       scheduler.readDocument(() => {
         this.measureContentDuringUpdateSync()
-        this.measuredContent = true
         scheduler.updateDocument(() => {
           this.updateSyncAfterMeasuringContent()
         })
       })
     } else {
       this.measureContentDuringUpdateSync()
-      this.measuredContent = true
       this.updateSyncAfterMeasuringContent()
     }
   }
@@ -312,11 +317,17 @@ class TextEditorComponent {
         }
       })
 
+      if (this.resizeBlockDecorationMeasurementsArea) {
+        this.resizeBlockDecorationMeasurementsArea = false
+        this.refs.blockDecorationMeasurementArea.style.width = this.getScrollWidth() + 'px'
+      }
+
       this.blockDecorationsToMeasure.forEach((decoration) => {
         const {item} = decoration.getProperties()
         const decorationElement = TextEditor.viewForItem(item)
         const {previousSibling, nextSibling} = decorationElement
         const height = nextSibling.getBoundingClientRect().top - previousSibling.getBoundingClientRect().bottom
+        this.heightsByBlockDecoration.set(decoration, height)
         this.lineTopIndex.resizeBlock(decoration, height)
       })
 
@@ -329,6 +340,7 @@ class TextEditorComponent {
   }
 
   updateSyncBeforeMeasuringContent () {
+    this.measuredContent = false
     this.derivedDimensionsCache = {}
     this.updateModelSoftWrapColumn()
     if (this.pendingAutoscroll) {
@@ -372,6 +384,8 @@ class TextEditorComponent {
       }
       this.pendingAutoscroll = null
     }
+
+    this.measuredContent = true
   }
 
   updateSyncAfterMeasuringContent () {
@@ -629,6 +643,7 @@ class TextEditorComponent {
       didBlurHiddenInput: this.didBlurHiddenInput,
       didFocusHiddenInput: this.didFocusHiddenInput,
       didTextInput: this.didTextInput,
+      didPaste: this.didPaste,
       didKeydown: this.didKeydown,
       didKeyup: this.didKeyup,
       didKeypress: this.didKeypress,
@@ -836,6 +851,7 @@ class TextEditorComponent {
     const renderedRowCount = this.getRenderedRowCount()
 
     const bufferRows = model.bufferRowsForScreenRows(startRow, endRow)
+    const screenRows = new Array(renderedRowCount)
     const keys = new Array(renderedRowCount)
     const foldableFlags = new Array(renderedRowCount)
     const softWrappedFlags = new Array(renderedRowCount)
@@ -862,6 +878,7 @@ class TextEditorComponent {
         foldableFlags[i] = false
       }
 
+      screenRows[i] = row
       previousBufferRow = bufferRow
     }
 
@@ -869,6 +886,7 @@ class TextEditorComponent {
     bufferRows.pop()
 
     this.lineNumbersToRender.bufferRows = bufferRows
+    this.lineNumbersToRender.screenRows = screenRows
     this.lineNumbersToRender.keys = keys
     this.lineNumbersToRender.foldableFlags = foldableFlags
     this.lineNumbersToRender.softWrappedFlags = softWrappedFlags
@@ -1105,7 +1123,7 @@ class TextEditorComponent {
     const height = this.pixelPositionBeforeBlocksForRow(screenRange.end.row + 1) - top
 
     decorations.push({
-      className: decoration.class,
+      className: 'decoration' + (decoration.class ? ' ' + decoration.class : ''),
       element: TextEditor.viewForItem(decoration.item),
       top,
       height
@@ -1391,6 +1409,7 @@ class TextEditorComponent {
       if (!this.hasInitialMeasurements) this.measureDimensions()
       this.visible = true
       this.props.model.setVisible(true)
+      this.resizeBlockDecorationMeasurementsArea = true
       this.updateSync()
       this.flushPendingLogicalScrollPosition()
     }
@@ -1533,6 +1552,16 @@ class TextEditorComponent {
     }
   }
 
+  didPaste (event) {
+    // On Linux, Chromium translates a middle-button mouse click into a
+    // mousedown event *and* a paste event. Since Atom supports the middle mouse
+    // click as a way of closing a tab, we only want the mousedown event, not
+    // the paste event. And since we don't use the `paste` event for any
+    // behavior in Atom, we can no-op the event to eliminate this issue.
+    // See https://github.com/atom/atom/pull/15183#issue-248432413.
+    if (this.getPlatform() === 'linux') event.preventDefault()
+  }
+
   didTextInput (event) {
     if (!this.isInputEnabled()) return
 
@@ -1632,10 +1661,25 @@ class TextEditorComponent {
   didMouseDownOnContent (event) {
     const {model} = this.props
     const {target, button, detail, ctrlKey, shiftKey, metaKey} = event
+    const platform = this.getPlatform()
+
+    // On Linux, position the cursor on middle mouse button click. A
+    // textInput event with the contents of the selection clipboard will be
+    // dispatched by the browser automatically on mouseup.
+    if (platform === 'linux' && button === 1) {
+      const selection = clipboard.readText('selection')
+      const screenPosition = this.screenPositionForMouseEvent(event)
+      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
+      model.insertText(selection)
+      return
+    }
 
     // Only handle mousedown events for left mouse button (or the middle mouse
     // button on Linux where it pastes the selection clipboard).
-    if (!(button === 0 || (this.getPlatform() === 'linux' && button === 1))) return
+    if (button !== 0) return
+
+    // Ctrl-click brings up the context menu on macOS
+    if (platform === 'darwin' && ctrlKey) return
 
     const screenPosition = this.screenPositionForMouseEvent(event)
 
@@ -1645,15 +1689,7 @@ class TextEditorComponent {
       return
     }
 
-    // Handle middle mouse button only on Linux (paste clipboard)
-    if (this.getPlatform() === 'linux' && button === 1) {
-      const selection = clipboard.readText('selection')
-      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
-      model.insertText(selection)
-      return
-    }
-
-    const addOrRemoveSelection = metaKey || (ctrlKey && this.getPlatform() !== 'darwin')
+    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
 
     switch (detail) {
       case 1:
@@ -2341,11 +2377,14 @@ class TextEditorComponent {
 
   didAddBlockDecoration (decoration) {
     const marker = decoration.getMarker()
-    const {position} = decoration.getProperties()
+    const {item, position} = decoration.getProperties()
+    const element = TextEditor.viewForItem(item)
     const row = marker.getHeadScreenPosition().row
     this.lineTopIndex.insertBlock(decoration, row, 0, position === 'after')
 
     this.blockDecorationsToMeasure.add(decoration)
+    this.blockDecorationsByElement.set(element, decoration)
+    this.blockDecorationResizeObserver.observe(element)
 
     const didUpdateDisposable = marker.bufferMarker.onDidChange((e) => {
       if (!e.textChanged) {
@@ -2355,11 +2394,27 @@ class TextEditorComponent {
     })
     const didDestroyDisposable = decoration.onDidDestroy(() => {
       this.blockDecorationsToMeasure.delete(decoration)
+      this.heightsByBlockDecoration.delete(decoration)
+      this.blockDecorationsByElement.delete(element)
+      this.blockDecorationResizeObserver.unobserve(element)
       this.lineTopIndex.removeBlock(decoration)
       didUpdateDisposable.dispose()
       didDestroyDisposable.dispose()
       this.scheduleUpdate()
     })
+  }
+
+  didResizeBlockDecorations (entries) {
+    if (!this.visible) return
+
+    for (let i = 0; i < entries.length; i++) {
+      const {target, contentRect} = entries[i]
+      const decoration = this.blockDecorationsByElement.get(target)
+      const previousHeight = this.heightsByBlockDecoration.get(decoration)
+      if (this.element.contains(target) && contentRect.height !== previousHeight) {
+        this.invalidateBlockDecorationDimensions(decoration)
+      }
+    }
   }
 
   invalidateBlockDecorationDimensions (decoration) {
@@ -2915,7 +2970,7 @@ class GutterContainerComponent {
     if (!isLineNumberGutterVisible) return null
 
     if (hasInitialMeasurements) {
-      const {maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags} = lineNumbersToRender
+      const {maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags} = lineNumbersToRender
       return $(LineNumberGutterComponent, {
         ref: 'lineNumberGutter',
         element: gutter.getElement(),
@@ -2926,6 +2981,7 @@ class GutterContainerComponent {
         maxDigits: maxDigits,
         keys: keys,
         bufferRows: bufferRows,
+        screenRows: screenRows,
         softWrappedFlags: softWrappedFlags,
         foldableFlags: foldableFlags,
         decorations: decorationsToRender.lineNumbers,
@@ -2967,7 +3023,7 @@ class LineNumberGutterComponent {
   render () {
     const {
       rootComponent, showLineNumbers, height, width, lineHeight, startRow, endRow, rowsPerTile,
-      maxDigits, keys, bufferRows, softWrappedFlags, foldableFlags, decorations
+      maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags, decorations
     } = this.props
 
     let children = null
@@ -2984,6 +3040,7 @@ class LineNumberGutterComponent {
           const softWrapped = softWrappedFlags[j]
           const foldable = foldableFlags[j]
           const bufferRow = bufferRows[j]
+          const screenRow = screenRows[j]
 
           let className = 'line-number'
           if (foldable) className = className + ' foldable'
@@ -3002,6 +3059,7 @@ class LineNumberGutterComponent {
             className,
             width,
             bufferRow,
+            screenRow,
             number,
             nodePool: this.nodePool
           }
@@ -3115,12 +3173,13 @@ class LineNumberGutterComponent {
 
 class LineNumberComponent {
   constructor (props) {
-    const {className, width, marginTop, bufferRow, number, nodePool} = props
+    const {className, width, marginTop, bufferRow, screenRow, number, nodePool} = props
     this.props = props
     const style = {width: width + 'px'}
     if (marginTop != null) style.marginTop = marginTop + 'px'
     this.element = nodePool.getElement('DIV', className, style)
     this.element.dataset.bufferRow = bufferRow
+    this.element.dataset.screenRow = screenRow
     if (number) this.element.appendChild(nodePool.getTextNode(number))
     this.element.appendChild(nodePool.getElement('DIV', 'icon-right', null))
   }
@@ -3131,8 +3190,10 @@ class LineNumberComponent {
   }
 
   update (props) {
-    const {nodePool, className, width, marginTop, number} = props
+    const {nodePool, className, width, marginTop, bufferRow, screenRow, number} = props
 
+    if (this.props.bufferRow !== bufferRow) this.element.dataset.bufferRow = bufferRow
+    if (this.props.screenRow !== screenRow) this.element.dataset.screenRow = screenRow
     if (this.props.className !== className) this.element.className = className
     if (this.props.width !== width) this.element.style.width = width + 'px'
     if (this.props.marginTop !== marginTop) {
@@ -3217,7 +3278,10 @@ class CustomGutterDecorationComponent {
     this.element.style.top = top + 'px'
     this.element.style.height = height + 'px'
     if (className != null) this.element.className = className
-    if (element != null) this.element.appendChild(element)
+    if (element != null) {
+      this.element.appendChild(element)
+      element.style.height = height + 'px'
+    }
   }
 
   update (newProps) {
@@ -3225,11 +3289,17 @@ class CustomGutterDecorationComponent {
     this.props = newProps
 
     if (newProps.top !== oldProps.top) this.element.style.top = newProps.top + 'px'
-    if (newProps.height !== oldProps.height) this.element.style.height = newProps.height + 'px'
+    if (newProps.height !== oldProps.height) {
+      this.element.style.height = newProps.height + 'px'
+      if (newProps.element) newProps.element.style.height = newProps.height + 'px'
+    }
     if (newProps.className !== oldProps.className) this.element.className = newProps.className || ''
     if (newProps.element !== oldProps.element) {
       if (this.element.firstChild) this.element.firstChild.remove()
-      this.element.appendChild(newProps.element)
+      if (newProps.element != null) {
+        this.element.appendChild(newProps.element)
+        newProps.element.style.height = newProps.height + 'px'
+      }
     }
   }
 }
@@ -3301,8 +3371,8 @@ class CursorsAndInputComponent {
   renderHiddenInput () {
     const {
       lineHeight, hiddenInputPosition, didBlurHiddenInput, didFocusHiddenInput,
-      didTextInput, didKeydown, didKeyup, didKeypress, didCompositionStart,
-      didCompositionUpdate, didCompositionEnd
+      didPaste, didTextInput, didKeydown, didKeyup, didKeypress,
+      didCompositionStart, didCompositionUpdate, didCompositionEnd
     } = this.props
 
     let top, left
@@ -3321,6 +3391,7 @@ class CursorsAndInputComponent {
       on: {
         blur: didBlurHiddenInput,
         focus: didFocusHiddenInput,
+        paste: didPaste,
         textInput: didTextInput,
         keydown: didKeydown,
         keyup: didKeyup,
@@ -4034,7 +4105,6 @@ class NodePool {
   constructor () {
     this.elementsByType = {}
     this.textNodes = []
-    this.stylesByNode = new WeakMap()
   }
 
   getElement (type, className, style) {
@@ -4055,14 +4125,10 @@ class NodePool {
 
     if (element) {
       element.className = className
-      var existingStyle = this.stylesByNode.get(element)
-      if (existingStyle) {
-        for (var key in existingStyle) {
-          if (!style || !style[key]) element.style[key] = ''
-        }
-      }
+      element.styleMap.forEach((value, key) => {
+        if (!style || style[key] == null) element.style[key] = ''
+      })
       if (style) Object.assign(element.style, style)
-      this.stylesByNode.set(element, style)
 
       while (element.firstChild) element.firstChild.remove()
       return element
@@ -4070,7 +4136,6 @@ class NodePool {
       var newElement = document.createElement(type)
       if (className) newElement.className = className
       if (style) Object.assign(newElement.style, style)
-      this.stylesByNode.set(newElement, style)
       return newElement
     }
   }

@@ -2,6 +2,7 @@
 
 'use strict'
 
+const childProcess = require('child_process')
 const CONFIG = require('./config')
 const cleanDependencies = require('./lib/clean-dependencies')
 const deleteMsbuildFromPath = require('./lib/delete-msbuild-from-path')
@@ -26,6 +27,11 @@ if (process.platform === 'win32') deleteMsbuildFromPath()
 
 installScriptDependencies()
 installApm()
+childProcess.execFileSync(
+  CONFIG.getApmBinPath(),
+  ['--version'],
+  {stdio: 'inherit'}
+)
 runApmInstall(CONFIG.repositoryRootPath)
 
 dependenciesFingerprint.write()

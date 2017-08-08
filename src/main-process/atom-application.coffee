@@ -120,7 +120,9 @@ class AtomApplication
     Promise.all(windowsClosePromises).then(=> @disposable.dispose())
 
   launch: (options) ->
-    if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test or options.benchmark or options.benchmarkTest
+    if options.test or options.benchmark or options.benchmarkTest
+      @openWithOptions(options)
+    else if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0
       if @config.get('core.restorePreviousWindowsOnStart') is 'always'
         @loadState(_.deepClone(options))
       @openWithOptions(options)

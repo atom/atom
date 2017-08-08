@@ -411,19 +411,14 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       const [cursor1, cursor2] = element.querySelectorAll('.cursor')
 
-      expect(getComputedStyle(cursor1).opacity).toBe('1')
-      expect(getComputedStyle(cursor2).opacity).toBe('1')
-
-      await conditionPromise(() =>
-        getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
-      )
-
       await conditionPromise(() =>
         getComputedStyle(cursor1).opacity === '1' && getComputedStyle(cursor2).opacity === '1'
       )
-
       await conditionPromise(() =>
         getComputedStyle(cursor1).opacity === '0' && getComputedStyle(cursor2).opacity === '0'
+      )
+      await conditionPromise(() =>
+        getComputedStyle(cursor1).opacity === '1' && getComputedStyle(cursor2).opacity === '1'
       )
 
       editor.moveRight()
@@ -667,19 +662,38 @@ describe('TextEditorComponent', () => {
       expect(element.classList.contains('has-selection')).toBe(false)
     })
 
-    it('assigns a buffer-row to each line number as a data field', async () => {
+    it('assigns buffer-row and screen-row to each line number as data fields', async () => {
       const {editor, element, component} = buildComponent()
       editor.setSoftWrapped(true)
       await component.getNextUpdatePromise()
       await setEditorWidthInCharacters(component, 40)
+      {
+        const bufferRows = Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map((e) => e.dataset.bufferRow)
+        const screenRows = Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map((e) => e.dataset.screenRow)
+        expect(bufferRows).toEqual([
+          '0', '1', '2', '3', '3', '4', '5', '6', '6', '6',
+          '7', '8', '8', '8', '9', '10', '11', '11', '12'
+        ])
+        expect(screenRows).toEqual([
+          '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+          '10', '11', '12', '13', '14', '15', '16', '17', '18'
+        ])
+      }
 
-      expect(
-        Array.from(element.querySelectorAll('.line-number:not(.dummy)'))
-          .map((element) => element.dataset.bufferRow)
-      ).toEqual([
-        '0', '1', '2', '3', '3', '4', '5', '6', '6', '6',
-        '7', '8', '8', '8', '9', '10', '11', '11', '12'
-      ])
+      editor.getBuffer().insert([2, 0], '\n')
+      await component.getNextUpdatePromise()
+      {
+        const bufferRows = Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map((e) => e.dataset.bufferRow)
+        const screenRows = Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map((e) => e.dataset.screenRow)
+        expect(bufferRows).toEqual([
+          '0', '1', '2', '3', '4', '4', '5', '6', '7', '7',
+          '7', '8', '9', '9', '9', '10', '11', '12', '12', '13'
+        ])
+        expect(screenRows).toEqual([
+          '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+          '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'
+        ])
+      }
     })
 
     it('does not blow away class names added to the element by packages when changing the class name', async () => {
@@ -1429,27 +1443,6 @@ describe('TextEditorComponent', () => {
       expect(highlights[0].classList.contains('b')).toBe(false)
       expect(highlights[1].classList.contains('b')).toBe(false)
 
-      // Flash existing highlight
-      decoration.flash('c', 100)
-      await component.getNextUpdatePromise()
-      expect(highlights[0].classList.contains('c')).toBe(true)
-      expect(highlights[1].classList.contains('c')).toBe(true)
-
-      // Add second flash class
-      decoration.flash('d', 100)
-      await component.getNextUpdatePromise()
-      expect(highlights[0].classList.contains('c')).toBe(true)
-      expect(highlights[1].classList.contains('c')).toBe(true)
-      expect(highlights[0].classList.contains('d')).toBe(true)
-      expect(highlights[1].classList.contains('d')).toBe(true)
-
-      await conditionPromise(() =>
-        !highlights[0].classList.contains('c') &&
-        !highlights[1].classList.contains('c') &&
-        !highlights[0].classList.contains('d') &&
-        !highlights[1].classList.contains('d')
-      )
-
       // Flashing the same class again before the first flash completes
       // removes the flash class and adds it back on the next frame to ensure
       // CSS transitions apply to the second flash.
@@ -1472,6 +1465,27 @@ describe('TextEditorComponent', () => {
         !highlights[0].classList.contains('e') &&
         !highlights[1].classList.contains('e')
       )
+    })
+
+    it("flashing a highlight decoration doesn't unflash other highlight decorations", async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3, height: 200})
+      const marker = editor.markScreenRange([[2, 4], [3, 4]])
+      const decoration = editor.decorateMarker(marker, {type: 'highlight', class: 'a'})
+
+      // Flash one class
+      decoration.flash('c', 1000)
+      await component.getNextUpdatePromise()
+      const highlights = element.querySelectorAll('.highlight.a')
+      expect(highlights[0].classList.contains('c')).toBe(true)
+      expect(highlights[1].classList.contains('c')).toBe(true)
+
+      // Flash another class while the previously-flashed class is still highlighted
+      decoration.flash('d', 100)
+      await component.getNextUpdatePromise()
+      expect(highlights[0].classList.contains('c')).toBe(true)
+      expect(highlights[1].classList.contains('c')).toBe(true)
+      expect(highlights[0].classList.contains('d')).toBe(true)
+      expect(highlights[1].classList.contains('d')).toBe(true)
     })
 
     it('supports layer decorations', async () => {
@@ -1718,6 +1732,8 @@ describe('TextEditorComponent', () => {
       const marker3 = editor.markScreenRange([[9, 0], [12, 0]])
       const decorationElement1 = document.createElement('div')
       const decorationElement2 = document.createElement('div')
+      // Packages may adopt this class name for decorations to be styled the same as line numbers
+      decorationElement2.className = 'line-number'
 
       const decoration1 = gutterA.decorateMarker(marker1, {class: 'a'})
       const decoration2 = gutterA.decorateMarker(marker2, {class: 'b', item: decorationElement1})
@@ -1727,29 +1743,41 @@ describe('TextEditorComponent', () => {
       let [decorationNode1, decorationNode2] = gutterA.getElement().firstChild.children
       const [decorationNode3] = gutterB.getElement().firstChild.children
 
-      expect(decorationNode1.className).toBe('a')
+      expect(decorationNode1.className).toBe('decoration a')
       expect(decorationNode1.getBoundingClientRect().top).toBe(clientTopForLine(component, 2))
       expect(decorationNode1.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 5))
       expect(decorationNode1.firstChild).toBeNull()
 
-      expect(decorationNode2.className).toBe('b')
+      expect(decorationNode2.className).toBe('decoration b')
       expect(decorationNode2.getBoundingClientRect().top).toBe(clientTopForLine(component, 6))
       expect(decorationNode2.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 8))
       expect(decorationNode2.firstChild).toBe(decorationElement1)
+      expect(decorationElement1.offsetHeight).toBe(decorationNode2.offsetHeight)
+      expect(decorationElement1.offsetWidth).toBe(decorationNode2.offsetWidth)
 
-      expect(decorationNode3.className).toBe('')
+      expect(decorationNode3.className).toBe('decoration')
       expect(decorationNode3.getBoundingClientRect().top).toBe(clientTopForLine(component, 9))
       expect(decorationNode3.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 12) + component.getLineHeight())
       expect(decorationNode3.firstChild).toBe(decorationElement2)
+      expect(decorationElement2.offsetHeight).toBe(decorationNode3.offsetHeight)
+      expect(decorationElement2.offsetWidth).toBe(decorationNode3.offsetWidth)
+
+      // Inline styled height is updated when line height changes
+      element.style.fontSize = parseInt(getComputedStyle(element).fontSize) + 10 + 'px'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      expect(decorationElement1.offsetHeight).toBe(decorationNode2.offsetHeight)
+      expect(decorationElement2.offsetHeight).toBe(decorationNode3.offsetHeight)
 
       decoration1.setProperties({type: 'gutter', gutterName: 'a', class: 'c', item: decorationElement1})
-      decoration2.setProperties({type: 'gutter', gutterName: 'a', item: decorationElement2})
+      decoration2.setProperties({type: 'gutter', gutterName: 'a'})
       decoration3.destroy()
       await component.getNextUpdatePromise()
-      expect(decorationNode1.className).toBe('c')
+      expect(decorationNode1.className).toBe('decoration c')
       expect(decorationNode1.firstChild).toBe(decorationElement1)
-      expect(decorationNode2.className).toBe('')
-      expect(decorationNode2.firstChild).toBe(decorationElement2)
+      expect(decorationElement1.offsetHeight).toBe(decorationNode1.offsetHeight)
+      expect(decorationNode2.className).toBe('decoration')
+      expect(decorationNode2.firstChild).toBeNull()
       expect(gutterB.getElement().firstChild.children.length).toBe(0)
     })
   })
@@ -1941,8 +1969,6 @@ describe('TextEditorComponent', () => {
       item3.style.margin = '10px'
       item2.style.height = '33px'
       item2.style.margin = '0px'
-      component.invalidateBlockDecorationDimensions(decoration2)
-      component.invalidateBlockDecorationDimensions(decoration3)
       await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
       expect(component.getRenderedEndRow()).toBe(9)
@@ -1973,7 +1999,6 @@ describe('TextEditorComponent', () => {
       item3.style.wordWrap = 'break-word'
       const contentWidthInCharacters = Math.floor(component.getScrollContainerClientWidth() / component.getBaseCharacterWidth())
       item3.textContent = 'x'.repeat(contentWidthInCharacters * 2)
-      component.invalidateBlockDecorationDimensions(decoration3)
       await component.getNextUpdatePromise()
 
       // make the editor wider, so that the decoration doesn't wrap anymore.
@@ -2033,6 +2058,31 @@ describe('TextEditorComponent', () => {
       expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(item5.nextSibling).toBe(lineNodeForScreenRow(component, 8))
       expect(item6.previousSibling).toBe(lineNodeForScreenRow(component, 12))
+    })
+
+    it('measures block decorations correctly when they are added before the component width has been updated', async () => {
+      {
+        const {editor, component, element} = buildComponent({autoHeight: false, width: 500, attach: false})
+        const marker = editor.markScreenPosition([0, 0])
+        const item = document.createElement('div')
+        item.textContent = 'block decoration'
+        const decoration = editor.decorateMarker(marker, {type: 'block', item})
+
+        jasmine.attachToDOM(element)
+        assertLinesAreAlignedWithLineNumbers(component)
+      }
+
+      {
+        const {editor, component, element} = buildComponent({autoHeight: false, width: 800})
+        const marker = editor.markScreenPosition([0, 0])
+        const item = document.createElement('div')
+        item.textContent = 'block decoration that could wrap many times'
+        const decoration = editor.decorateMarker(marker, {type: 'block', item})
+
+        element.style.width = '50px'
+        await component.getNextUpdatePromise()
+        assertLinesAreAlignedWithLineNumbers(component)
+      }
     })
 
     it('bases the width of the block decoration measurement area on the editor scroll width', async () => {
@@ -2371,10 +2421,13 @@ describe('TextEditorComponent', () => {
             ctrlKey: true
           })
         )
-        expect(editor.getCursorScreenPositions()).toEqual([[1, 4]])
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [[1, 16], [1, 16]]
+        ])
 
         // ctrl-click adds cursors on platforms *other* than macOS
         component.props.platform = 'win32'
+        editor.setCursorScreenPosition([1, 4])
         component.didMouseDownOnContent(
           Object.assign(clientPositionForCharacter(component, 1, 16), {
             detail: 1,
@@ -2963,6 +3016,17 @@ describe('TextEditorComponent', () => {
     })
   })
 
+  describe('paste event', () => {
+    it("prevents the browser's default processing for the event on Linux", () => {
+      const {component} = buildComponent({platform: 'linux'})
+      const event = { preventDefault: () => {} }
+      spyOn(event, 'preventDefault')
+
+      component.didPaste(event)
+      expect(event.preventDefault).toHaveBeenCalled()
+    })
+  })
+
   describe('keyboard input', () => {
     it('handles inserted accented characters via the press-and-hold menu on macOS correctly', () => {
       const {editor, component, element} = buildComponent({text: ''})
@@ -3314,6 +3378,15 @@ describe('TextEditorComponent', () => {
         expect(top).toBe(clientTopForLine(referenceComponent, 12) - referenceContentRect.top)
         expect(left).toBe(clientLeftForCharacter(referenceComponent, 12, 1) - referenceContentRect.left)
       }
+    })
+
+    it('does not get the component into an inconsistent state when the model has unflushed changes (regression)', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 2, autoHeight: false, text: ''})
+      await setEditorHeightInLines(component, 10)
+
+      const updatePromise = editor.getBuffer().append("hi\n")
+      component.screenPositionForPixelPosition({top: 800, left: 1})
+      await updatePromise
     })
   })
 

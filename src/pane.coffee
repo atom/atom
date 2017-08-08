@@ -170,7 +170,7 @@ class Pane
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
+    @emitter.once 'did-destroy', callback
 
   # Public: Invoke the given callback when the value of the {::isActive}
   # property changes.
@@ -637,7 +637,7 @@ class Pane
   # Public: Destroy all items.
   destroyItems: ->
     Promise.all(
-      @getItems().map(@destroyItem.bind(this))
+      @getItems().map((item) => @destroyItem(item))
     )
 
   # Public: Destroy all items except for the active item.
@@ -645,7 +645,7 @@ class Pane
     Promise.all(
       @getItems()
         .filter((item) => item isnt @activeItem)
-        .map(@destroyItem.bind(this))
+        .map((item) => @destroyItem(item))
     )
 
   promptToSaveItem: (item, options={}) ->
@@ -662,7 +662,7 @@ class Pane
       chosen = @applicationDelegate.confirm
         message: message
         detailedMessage: "Your changes will be lost if you close this item without saving."
-        buttons: [saveButtonText, "Cancel", "Don't Save"]
+        buttons: [saveButtonText, "Cancel", "&Don't Save"]
       switch chosen
         when 0
           new Promise (resolve) ->
@@ -950,7 +950,7 @@ class Pane
   # Returns a {Promise} that resolves once the pane is either closed, or the
   # closing has been cancelled.
   close: ->
-    Promise.all(@getItems().map(@promptToSaveItem.bind(this))).then (results) =>
+    Promise.all(@getItems().map((item) => @promptToSaveItem(item))).then (results) =>
       @destroy() unless results.includes(false)
 
   handleSaveError: (error, item) ->

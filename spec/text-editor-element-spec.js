@@ -9,6 +9,10 @@ describe('TextEditorElement', () => {
 
   beforeEach(() => {
     jasmineContent = document.body.querySelector('#jasmine-content')
+    // Force scrollbars to be visible regardless of local system configuration
+    const scrollbarStyle = document.createElement('style')
+    scrollbarStyle.textContent = '::-webkit-scrollbar { -webkit-appearance: none }'
+    jasmine.attachToDOM(scrollbarStyle)
   })
 
   function buildTextEditorElement (options = {}) {
@@ -197,6 +201,33 @@ describe('TextEditorElement', () => {
         parentElement.appendChild(element)
         jasmineContent.appendChild(parentElement)
         expect(document.activeElement).toBe(element.querySelector('input'))
+      })
+    })
+  })
+
+  describe('::setModel', () => {
+    describe('when the element does not have an editor yet', () => {
+      it('uses the supplied one', () => {
+        const element = buildTextEditorElement({attach: false})
+        const editor = new TextEditor()
+        element.setModel(editor)
+        jasmine.attachToDOM(element)
+        expect(editor.element).toBe(element)
+        expect(element.getModel()).toBe(editor)
+      })
+    })
+
+    describe('when the element already has an editor', () => {
+      it('unbinds it and then swaps it with the supplied one', async () => {
+        const element = buildTextEditorElement({attach: true})
+        const previousEditor = element.getModel()
+        expect(previousEditor.element).toBe(element)
+
+        const newEditor = new TextEditor()
+        element.setModel(newEditor)
+        expect(previousEditor.element).not.toBe(element)
+        expect(newEditor.element).toBe(element)
+        expect(element.getModel()).toBe(newEditor)
       })
     })
   })
