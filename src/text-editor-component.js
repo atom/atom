@@ -70,6 +70,7 @@ class TextEditorComponent {
     this.updateSync = this.updateSync.bind(this)
     this.didBlurHiddenInput = this.didBlurHiddenInput.bind(this)
     this.didFocusHiddenInput = this.didFocusHiddenInput.bind(this)
+    this.didPaste = this.didPaste.bind(this)
     this.didTextInput = this.didTextInput.bind(this)
     this.didKeydown = this.didKeydown.bind(this)
     this.didKeyup = this.didKeyup.bind(this)
@@ -175,6 +176,10 @@ class TextEditorComponent {
   }
 
   update (props) {
+    if (props.model !== this.props.model) {
+      this.props.model.component = null
+      props.model.component = this
+    }
     this.props = props
     this.scheduleUpdate()
   }
@@ -248,20 +253,17 @@ class TextEditorComponent {
 
     this.measureBlockDecorations()
 
-    this.measuredContent = false
     this.updateSyncBeforeMeasuringContent()
     if (useScheduler === true) {
       const scheduler = etch.getScheduler()
       scheduler.readDocument(() => {
         this.measureContentDuringUpdateSync()
-        this.measuredContent = true
         scheduler.updateDocument(() => {
           this.updateSyncAfterMeasuringContent()
         })
       })
     } else {
       this.measureContentDuringUpdateSync()
-      this.measuredContent = true
       this.updateSyncAfterMeasuringContent()
     }
   }
@@ -338,6 +340,7 @@ class TextEditorComponent {
   }
 
   updateSyncBeforeMeasuringContent () {
+    this.measuredContent = false
     this.derivedDimensionsCache = {}
     this.updateModelSoftWrapColumn()
     if (this.pendingAutoscroll) {
@@ -381,6 +384,8 @@ class TextEditorComponent {
       }
       this.pendingAutoscroll = null
     }
+
+    this.measuredContent = true
   }
 
   updateSyncAfterMeasuringContent () {
@@ -638,6 +643,7 @@ class TextEditorComponent {
       didBlurHiddenInput: this.didBlurHiddenInput,
       didFocusHiddenInput: this.didFocusHiddenInput,
       didTextInput: this.didTextInput,
+      didPaste: this.didPaste,
       didKeydown: this.didKeydown,
       didKeyup: this.didKeyup,
       didKeypress: this.didKeypress,
@@ -1546,6 +1552,16 @@ class TextEditorComponent {
     }
   }
 
+  didPaste (event) {
+    // On Linux, Chromium translates a middle-button mouse click into a
+    // mousedown event *and* a paste event. Since Atom supports the middle mouse
+    // click as a way of closing a tab, we only want the mousedown event, not
+    // the paste event. And since we don't use the `paste` event for any
+    // behavior in Atom, we can no-op the event to eliminate this issue.
+    // See https://github.com/atom/atom/pull/15183#issue-248432413.
+    if (this.getPlatform() === 'linux') event.preventDefault()
+  }
+
   didTextInput (event) {
     if (!this.isInputEnabled()) return
 
@@ -1645,10 +1661,25 @@ class TextEditorComponent {
   didMouseDownOnContent (event) {
     const {model} = this.props
     const {target, button, detail, ctrlKey, shiftKey, metaKey} = event
+    const platform = this.getPlatform()
+
+    // On Linux, position the cursor on middle mouse button click. A
+    // textInput event with the contents of the selection clipboard will be
+    // dispatched by the browser automatically on mouseup.
+    if (platform === 'linux' && button === 1) {
+      const selection = clipboard.readText('selection')
+      const screenPosition = this.screenPositionForMouseEvent(event)
+      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
+      model.insertText(selection)
+      return
+    }
 
     // Only handle mousedown events for left mouse button (or the middle mouse
     // button on Linux where it pastes the selection clipboard).
-    if (!(button === 0 || (this.getPlatform() === 'linux' && button === 1))) return
+    if (button !== 0) return
+
+    // Ctrl-click brings up the context menu on macOS
+    if (platform === 'darwin' && ctrlKey) return
 
     const screenPosition = this.screenPositionForMouseEvent(event)
 
@@ -1658,15 +1689,7 @@ class TextEditorComponent {
       return
     }
 
-    // Handle middle mouse button only on Linux (paste clipboard)
-    if (this.getPlatform() === 'linux' && button === 1) {
-      const selection = clipboard.readText('selection')
-      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
-      model.insertText(selection)
-      return
-    }
-
-    const addOrRemoveSelection = metaKey || (ctrlKey && this.getPlatform() !== 'darwin')
+    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
 
     switch (detail) {
       case 1:
@@ -3255,7 +3278,10 @@ class CustomGutterDecorationComponent {
     this.element.style.top = top + 'px'
     this.element.style.height = height + 'px'
     if (className != null) this.element.className = className
-    if (element != null) this.element.appendChild(element)
+    if (element != null) {
+      this.element.appendChild(element)
+      element.style.height = height + 'px'
+    }
   }
 
   update (newProps) {
@@ -3263,11 +3289,17 @@ class CustomGutterDecorationComponent {
     this.props = newProps
 
     if (newProps.top !== oldProps.top) this.element.style.top = newProps.top + 'px'
-    if (newProps.height !== oldProps.height) this.element.style.height = newProps.height + 'px'
+    if (newProps.height !== oldProps.height) {
+      this.element.style.height = newProps.height + 'px'
+      if (newProps.element) newProps.element.style.height = newProps.height + 'px'
+    }
     if (newProps.className !== oldProps.className) this.element.className = newProps.className || ''
     if (newProps.element !== oldProps.element) {
       if (this.element.firstChild) this.element.firstChild.remove()
-      this.element.appendChild(newProps.element)
+      if (newProps.element != null) {
+        this.element.appendChild(newProps.element)
+        newProps.element.style.height = newProps.height + 'px'
+      }
     }
   }
 }
@@ -3339,8 +3371,8 @@ class CursorsAndInputComponent {
   renderHiddenInput () {
     const {
       lineHeight, hiddenInputPosition, didBlurHiddenInput, didFocusHiddenInput,
-      didTextInput, didKeydown, didKeyup, didKeypress, didCompositionStart,
-      didCompositionUpdate, didCompositionEnd
+      didPaste, didTextInput, didKeydown, didKeyup, didKeypress,
+      didCompositionStart, didCompositionUpdate, didCompositionEnd
     } = this.props
 
     let top, left
@@ -3359,6 +3391,7 @@ class CursorsAndInputComponent {
       on: {
         blur: didBlurHiddenInput,
         focus: didFocusHiddenInput,
+        paste: didPaste,
         textInput: didTextInput,
         keydown: didKeydown,
         keyup: didKeyup,

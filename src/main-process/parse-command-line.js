@@ -55,6 +55,7 @@ module.exports = function parseCommandLine (processArgs) {
   options.string('socket-path')
   options.string('user-data-dir')
   options.boolean('clear-window-state').describe('clear-window-state', 'Delete all Atom environment state.')
+  options.boolean('enable-electron-logging').describe('enable-electron-logging', 'Enable low-level logging messages from Electron.')
 
   const args = options.argv
 

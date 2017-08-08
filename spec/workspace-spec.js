@@ -1582,6 +1582,7 @@ i = /test/; #FIXME\
       expect(atom2.grammars.getGrammars().map(grammar => grammar.name).sort()).toEqual([
         'CoffeeScript',
         'CoffeeScript (Literate)',
+        'JSDoc',
         'JavaScript',
         'Null Grammar',
         'Regular Expression Replacement (JavaScript)',
