@@ -4,6 +4,7 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {Emitter, Disposable} = require 'event-kit'
 TextBuffer = require 'text-buffer'
+{watchPath} = require('./path-watcher')
 
 DefaultDirectoryProvider = require './default-directory-provider'
 Model = require './model'
@@ -28,11 +29,13 @@ class Project extends Model
     @repositoryPromisesByPath = new Map()
     @repositoryProviders = [new GitRepositoryProvider(this, config)]
     @loadPromisesByPath = {}
+    @watchersByPath = {}
     @consumeServices(packageManager)
 
   destroyed: ->
     buffer.destroy() for buffer in @buffers.slice()
     repository?.destroy() for repository in @repositories.slice()
+    watcher.dispose() for _, watcher in @watchersByPath
     @rootDirectories = []
     @repositories = []
 
@@ -114,6 +117,43 @@ class Project extends Model
     callback(buffer) for buffer in @getBuffers()
     @onDidAddBuffer callback
 
+  # Extended: Invoke a callback when a filesystem change occurs within any open
+  # project path.
+  #
+  # ```js
+  # const disposable = atom.project.onDidChangeFiles(events => {
+  #   for (const event of events) {
+  #     // "created", "modified", "deleted", or "renamed"
+  #     console.log(`Event action: ${event.type}`)
+  #
+  #     // absolute path to the filesystem entry that was touched
+  #     console.log(`Event path: ${event.path}`)
+  #
+  #     if (event.type === 'renamed') {
+  #       console.log(`.. renamed from: ${event.oldPath}`)
+  #     }
+  #   }
+  # }
+  #
+  # disposable.dispose()
+  # ```
+  #
+  # To watch paths outside of open projects, use the `watchPaths` function instead; see {PathWatcher}.
+  #
+  # * `callback` {Function} to be called with batches of filesystem events reported by
+  #   the operating system.
+  #    * `events` An {Array} of objects that describe a batch of filesystem events.
+  #     * `type` {String} describing the filesystem action that occurred. One of `"created"`,
+  #       `"modified"`, `"deleted"`, or `"renamed"`.
+  #     * `path` {String} containing the absolute path to the filesystem entry
+  #       that was acted upon.
+  #     * `oldPath` For rename events, {String} containing the filesystem entry's
+  #       former absolute path.
+  #
+  # Returns a {Disposable} to manage this event subscription.
+  onDidChangeFiles: (callback) ->
+    @emitter.on 'did-change-files', callback
+
   ###
   Section: Accessing the git repository
   ###
@@ -172,6 +212,9 @@ class Project extends Model
     @rootDirectories = []
     @repositories = []
 
+    watcher.dispose() for _, watcher in @watchersByPath
+    @watchersByPath = {}
+
     @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
 
     @emitter.emit 'did-change-paths', projectPaths
@@ -186,6 +229,11 @@ class Project extends Model
       return if existingDirectory.getPath() is directory.getPath()
 
     @rootDirectories.push(directory)
+    @watchersByPath[directory.getPath()] = watchPath directory.getPath(), {}, (events) =>
+      @emitter.emit 'did-change-files', events
+
+    for root, watcher in @watchersByPath
+      watcher.dispose() unless @rootDirectoryies.includes root
 
     repo = null
     for provider in @repositoryProviders
@@ -220,6 +268,7 @@ class Project extends Model
       [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
       [removedRepository] = @repositories.splice(indexToRemove, 1)
       removedRepository?.destroy() unless removedRepository in @repositories
+      @watchersByPath[projectPath]?.dispose()
       @emitter.emit "did-change-paths", @getPaths()
       true
     else

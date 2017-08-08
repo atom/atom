@@ -28,7 +28,11 @@ describe('updateProcessEnv(launchEnv)', function () {
     }
     process.env = originalProcessEnv
     process.platform = originalProcessPlatform
-    temp.cleanupSync()
+    try {
+      temp.cleanupSync()
+    } catch (e) {
+      // Do nothing
+    }
   })
 
   describe('when the launch environment appears to come from a shell', function () {

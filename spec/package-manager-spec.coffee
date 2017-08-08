@@ -17,7 +17,8 @@ describe "PackageManager", ->
     spyOn(ModuleCache, 'add')
 
   afterEach ->
-    temp.cleanupSync()
+    try
+      temp.cleanupSync()
 
   describe "::getApmPath()", ->
     it "returns the path to the apm command", ->

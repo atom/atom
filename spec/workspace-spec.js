@@ -25,7 +25,13 @@ describe('Workspace', () => {
     waitsForPromise(() => atom.workspace.itemLocationStore.clear())
   })
 
-  afterEach(() => temp.cleanupSync())
+  afterEach(() => {
+    try {
+      temp.cleanupSync()
+    } catch (e) {
+      // Do nothing
+    }
+  })
 
   function simulateReload() {
     waitsForPromise(() => {
