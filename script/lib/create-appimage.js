@@ -74,18 +74,12 @@ module.exports = function (packagedAppPath) {
   console.log(`Writing control file into "${appimagePackageConfigPath}"`)
   const packageSizeInKilobytes = spawnSync('du', ['-sk', packagedAppPath]).stdout.toString().split(/\s+/)[0]
   const controlFileTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'appimage', 'control.in'))
-  const controlFileContents = template(controlFileTemplate)({
-    appFileName: atomExecutableName, version: appVersion, arch: arch,
-    installedSize: packageSizeInKilobytes, description: appDescription
-  })
+  const controlFileContents = template(controlFileTemplate)({appFileName: atomExecutableName, version: appVersion, arch: arch, installedSize: packageSizeInKilobytes, description: appDescription})
   fs.writeFileSync(path.join(appimagePackageConfigPath, 'control'), controlFileContents)
 
   console.log(`Writing desktop entry file into "${appimagePackageApplicationsDirPath}"`)
   const desktopEntryTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.desktop.in'))
-  const desktopEntryContents = template(desktopEntryTemplate)({
-    appName: appName, appFileName: atomExecutableName, description: appDescription,
-    installDir: '/usr', iconPath: atomExecutableName
-  })
+  const desktopEntryContents = template(desktopEntryTemplate)({appName: appName, appFileName: atomExecutableName, description: appDescription, installDir: '/usr', iconPath: atomExecutableName})
   fs.writeFileSync(path.join(appimagePackageApplicationsDirPath, `${atomExecutableName}.desktop`), desktopEntryContents)
 
   console.log(`Copying icon into "${appimagePackageIconsDirPath}"`)
@@ -101,7 +95,7 @@ module.exports = function (packagedAppPath) {
   )
 
   console.log(`Generating .AppImage file from ${appimagePackageDirPath}`)
-  spawnSync('wget', ["-c", "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"], {stdio: 'inherit'})
-  spawnSync('chmod', ["+x", "appimagetool-*.AppImage"], {stdio: 'inherit'})
+  spawnSync('wget', ['-c', 'https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage'], {stdio: 'inherit'})
+  spawnSync('chmod', ['+x', 'appimagetool-*.AppImage'], {stdio: 'inherit'})
   spawnSync('appimagetool', [appimagePackageDirPath, outputAppImagePackageFilePath], {stdio: 'inherit'})
 }
