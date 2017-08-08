@@ -36,9 +36,9 @@ build_script:
   - CD %APPVEYOR_BUILD_FOLDER%
   - script\build.cmd --code-sign --compress-artifacts
 
-# test_script:
-#  - script\lint.cmd
-#  - script\test.cmd
+test_script:
+- script\lint.cmd
+- script\test.cmd
 
 after_test:
   - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] ( script\create-installer.cmd )
