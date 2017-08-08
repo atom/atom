@@ -23,7 +23,7 @@ install:
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
   - npm install -g npm@5.3.0
-  - script/build --create-debian-package --create-rpm-package --compress-artifacts
+  - script/build --create-debian-package --create-rpm-package --create-appimage --compress-artifacts
 
 script:
   - script/lint
@@ -48,6 +48,7 @@ addons:
     paths:
       - out/atom-amd64.deb
       - out/atom.x86_64.rpm
+      - out/atom.x86_64.AppImage
       - out/atom-amd64.tar.gz
     target_paths: travis-artifacts/$TRAVIS_BUILD_ID
   apt:
