@@ -14,8 +14,9 @@ describe "GitRepositoryProvider", ->
   afterEach ->
     if provider?
       provider.pathToRepository[key].destroy() for key in Object.keys(provider.pathToRepository)
-
-    temp.cleanupSync()
+    
+    try
+      temp.cleanupSync()
 
   describe ".repositoryForDirectory(directory)", ->
     describe "when specified a Directory with a Git repository", ->

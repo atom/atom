@@ -6,7 +6,8 @@ StorageFolder = require '../src/storage-folder'
 
 describe "AtomEnvironment", ->
   afterEach ->
-    temp.cleanupSync()
+    try
+      temp.cleanupSync()
 
   describe 'window sizing methods', ->
     describe '::getPosition and ::setPosition', ->
