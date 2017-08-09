@@ -118,7 +118,7 @@ binariesPromise
           console.log('Skipping creating rpm package. Specify the --create-rpm-package option to create it.'.gray)
         }
         
-        if (argv.createAppImage) {
+        if (argv.createAppimage) {
           createAppImage(packagedAppPath)
         } else {
           console.log('Skipping creating AppImage. Specify the --create-appimage option to create it.'.gray)
