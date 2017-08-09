@@ -19,9 +19,13 @@ environment:
   global:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
     TEST_JUNIT_XML_ROOT: c:\projects\junit-test-results
+    NODE_VERSION: 6.9.4
 
   matrix:
-  - NODE_VERSION: 6.9.4
+  - TASK: test
+    BUILD_ARG:
+  - TASK: installer
+    BUILD_ARG: --create-windows-installer
 
 matrix:
   fast_finish: true
@@ -34,14 +38,16 @@ install:
 
 build_script:
   - CD %APPVEYOR_BUILD_FOLDER%
-  - script\build.cmd --code-sign --compress-artifacts
+  - script\build.cmd --code-sign --compress-artifacts %BUILD_ARG%
 
 test_script:
-  - script\lint.cmd
-  - script\test.cmd
-
-after_test:
-  - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] ( script\create-installer.cmd )
+  - |
+    IF [%TASK]==[test] (
+      script\lint.cmd
+      script\test.cmd
+    ) ELSE (
+      ECHO
+    )
 
 deploy: off
 artifacts:
