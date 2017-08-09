@@ -73,13 +73,18 @@ module.exports = function (packagedAppPath) {
   const desktopEntryTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.desktop.in'))
   const desktopEntryContents = template(desktopEntryTemplate)({appName: appName, appFileName: atomExecutableName, description: appDescription, installDir: '/usr', iconPath: atomExecutableName})
   fs.writeFileSync(path.join(appimagePackageApplicationsDirPath, `${atomExecutableName}.desktop`), desktopEntryContents)
+  fs.writeFileSync(path.join(appimagePackageDirPath, `${atomExecutableName}.desktop`), desktopEntryContents)
 
   console.log(`Copying icon into "${appimagePackageIconsDirPath}"`)
   fs.copySync(
     path.join(packagedAppPath, 'resources', 'app', 'resources', 'atom.png'),
     path.join(appimagePackageIconsDirPath, `${atomExecutableName}.png`)
   )
-
+  fs.copySync(
+    path.join(packagedAppPath, 'resources', 'app', 'resources', 'atom.png'),
+    path.join(appimagePackageDirPath, `${atomExecutableName}.png`)
+  )
+  
   console.log(`Copying license into "${appimagePackageDocsDirPath}"`)
   fs.copySync(
     path.join(packagedAppPath, 'resources', 'LICENSE.md'),
