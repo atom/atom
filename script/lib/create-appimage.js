@@ -90,6 +90,9 @@ module.exports = function (packagedAppPath) {
     path.join(packagedAppPath, 'resources', 'LICENSE.md'),
     path.join(appimagePackageDocsDirPath, 'copyright')
   )
+  
+  console.log(`Symlinking AppRun into "${appimagePackageDirPath}"`)
+  fs.ensureSymlinkSync(path.join(appimagePackageBinDirPath, atomExecutableName), path.join(appimagePackageDirPath, 'AppRun'))
 
   console.log(`Generating .AppImage file from ${appimagePackageDirPath}`)
   spawnSync('wget', ['-c', 'https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage'], {stdio: 'inherit'})
