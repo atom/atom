@@ -36,6 +36,8 @@ install:
 
 build_script:
   - CD %APPVEYOR_BUILD_FOLDER%
+  - IF NOT EXIST C:\tmp MKDIR C:\tmp
+  - SET SQUIRREL_TEMP=C:\tmp
   - IF [%TASK%]==[installer] (
       IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
         script\build.cmd --code-sign --compress-artifacts --create-windows-installer
