@@ -36,8 +36,7 @@ install:
 
 build_script:
   - CD %APPVEYOR_BUILD_FOLDER%
-  - |
-    IF [%TASK%]==[installer] (
+  - IF [%TASK%]==[installer] (
       SET BUILD_ARG=--create-windows-installer
     ) ELSE (
       SET BUILD_ARG=
@@ -45,12 +44,11 @@ build_script:
   - script\build.cmd --code-sign --compress-artifacts %BUILD_ARG%
 
 test_script:
-  - |
-    IF [%TASK%]==[test] (
-      script\lint.cmd
+  - IF [%TASK%]==[test] (
+      script\lint.cmd &&
       script\test.cmd
     ) ELSE (
-      ECHO
+      ECHO Skipping tests
     )
 
 deploy: off
