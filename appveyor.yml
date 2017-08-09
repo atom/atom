@@ -49,7 +49,7 @@ build_script:
       SET BUILD=yes &&
       ECHO "Skipping installer build on non-installer build matrix row"
     )
-  - IF [%BUILD]==[yes] (
+  - IF [%BUILD%]==[yes] (
       script\build.cmd --code-sign --compress-artifacts %BUILD_ARG%
     )
 
