@@ -38,19 +38,13 @@ build_script:
   - CD %APPVEYOR_BUILD_FOLDER%
   - IF [%TASK%]==[installer] (
       IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
-        SET BUILD_ARG=--create-windows-installer &&
-        SET BUILD=yes
+        script\build.cmd --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
-        ECHO "Skipping installer and Atom build on non-release branch" &&
-        SET BUILD=no
+        ECHO Skipping installer and Atom build on non-release branch
       )
     ) ELSE (
-      SET BUILD_ARG= &&
-      SET BUILD=yes &&
-      ECHO "Skipping installer build on non-installer build matrix row"
-    )
-  - IF [%BUILD%]==[yes] (
-      script\build.cmd --code-sign --compress-artifacts %BUILD_ARG%
+      ECHO Skipping installer build on non-installer build matrix row &&
+      script\build.cmd --code-sign --compress-artifacts
     )
 
 test_script:
@@ -58,7 +52,7 @@ test_script:
       script\lint.cmd &&
       script\test.cmd
     ) ELSE (
-      ECHO Skipping tests
+      ECHO Skipping tests on installer build matrix row
     )
 
 deploy: off
