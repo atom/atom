@@ -42,7 +42,7 @@ build_script:
 
 test_script:
   - |
-    IF [%TASK]==[test] (
+    IF [%TASK%]==[test] (
       script\lint.cmd
       script\test.cmd
     ) ELSE (
