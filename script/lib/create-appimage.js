@@ -76,7 +76,7 @@ module.exports = function (packagedAppPath) {
 
   console.log(`Copying icon into "${appimagePackageIconsDirPath}"`)
   fs.copySync(
-    path.join(packagedAppPath, 'resources', 'app.asar.unpacked', 'resources', 'atom.png'),
+    path.join(packagedAppPath, 'resources', 'app', 'resources', 'atom.png'),
     path.join(appimagePackageIconsDirPath, `${atomExecutableName}.png`)
   )
 
