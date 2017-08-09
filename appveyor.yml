@@ -38,15 +38,20 @@ build_script:
   - CD %APPVEYOR_BUILD_FOLDER%
   - IF [%TASK%]==[installer] (
       IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
-        SET BUILD_ARG=--create-windows-installer
+        SET BUILD_ARG=--create-windows-installer &&
+        SET BUILD=yes
       ) ELSE (
-        ECHO "Skipping installer build on non-release branch"
+        ECHO "Skipping installer and Atom build on non-release branch" &&
+        SET BUILD=no
       )
     ) ELSE (
       SET BUILD_ARG= &&
+      SET BUILD=yes &&
       ECHO "Skipping installer build on non-installer build matrix row"
     )
-  - script\build.cmd --code-sign --compress-artifacts %BUILD_ARG%
+  - IF [%BUILD]==[yes] (
+      script\build.cmd --code-sign --compress-artifacts %BUILD_ARG%
+    )
 
 test_script:
   - IF [%TASK%]==[test] (
