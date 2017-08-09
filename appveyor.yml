@@ -19,9 +19,11 @@ environment:
   global:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
     TEST_JUNIT_XML_ROOT: c:\projects\junit-test-results
+    NODE_VERSION: 6.9.4
 
   matrix:
-  - NODE_VERSION: 6.9.4
+  - TASK: test
+  - TASK: installer
 
 matrix:
   fast_finish: true
@@ -34,14 +36,24 @@ install:
 
 build_script:
   - CD %APPVEYOR_BUILD_FOLDER%
-  - script\build.cmd --code-sign --compress-artifacts
+  - IF [%TASK%]==[installer] (
+      IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
+        script\build.cmd --code-sign --compress-artifacts --create-windows-installer
+      ) ELSE (
+        ECHO Skipping installer and Atom build on non-release branch
+      )
+    ) ELSE (
+      ECHO Skipping installer build on non-installer build matrix row &&
+      script\build.cmd --code-sign --compress-artifacts
+    )
 
 test_script:
-  - script\lint.cmd
-  - script\test.cmd
-
-after_test:
-  - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] ( script\create-installer.cmd )
+  - IF [%TASK%]==[test] (
+      script\lint.cmd &&
+      script\test.cmd
+    ) ELSE (
+      ECHO Skipping tests on installer build matrix row
+    )
 
 deploy: off
 artifacts:
