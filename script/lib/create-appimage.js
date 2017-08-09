@@ -28,7 +28,6 @@ module.exports = function (packagedAppPath) {
 
   const outputAppImagePackageFilePath = path.join(CONFIG.buildOutputPath, `atom-${arch}.AppImage`)
   const appimagePackageDirPath = path.join(os.tmpdir(), path.basename(packagedAppPath))
-  const appimagePackageConfigPath = path.join(appimagePackageDirPath, 'APPIMAGE')
   const appimagePackageInstallDirPath = path.join(appimagePackageDirPath, 'usr')
   const appimagePackageBinDirPath = path.join(appimagePackageInstallDirPath, 'bin')
   const appimagePackageShareDirPath = path.join(appimagePackageInstallDirPath, 'share')
@@ -52,7 +51,6 @@ module.exports = function (packagedAppPath) {
 
   console.log(`Creating AppImage package directory structure at "${appimagePackageDirPath}"`)
   fs.mkdirpSync(appimagePackageDirPath)
-  fs.mkdirpSync(appimagePackageConfigPath)
   fs.mkdirpSync(appimagePackageInstallDirPath)
   fs.mkdirpSync(appimagePackageShareDirPath)
   fs.mkdirpSync(appimagePackageApplicationsDirPath)
@@ -70,12 +68,6 @@ module.exports = function (packagedAppPath) {
     path.join('..', 'share', atomExecutableName, 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'),
     path.join(appimagePackageBinDirPath, apmExecutableName)
   )
-
-  console.log(`Writing control file into "${appimagePackageConfigPath}"`)
-  const packageSizeInKilobytes = spawnSync('du', ['-sk', packagedAppPath]).stdout.toString().split(/\s+/)[0]
-  const controlFileTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'appimage', 'control.in'))
-  const controlFileContents = template(controlFileTemplate)({appFileName: atomExecutableName, version: appVersion, arch: arch, installedSize: packageSizeInKilobytes, description: appDescription})
-  fs.writeFileSync(path.join(appimagePackageConfigPath, 'control'), controlFileContents)
 
   console.log(`Writing desktop entry file into "${appimagePackageApplicationsDirPath}"`)
   const desktopEntryTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.desktop.in'))
