@@ -11,6 +11,8 @@ module.exports = function (packagedAppPath) {
   const baseDirPath = path.join(CONFIG.intermediateAppPath, 'static')
   let processedFiles = 0
 
+  console.log(`Creating snapshot with auxiliary data containing: ${Object.keys(CONFIG.snapshotAuxiliaryData)}`)
+
   return electronLink({
     baseDirPath,
     mainPath: path.resolve(baseDirPath, '..', 'src', 'initialize-application-window.js'),
