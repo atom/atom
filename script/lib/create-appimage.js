@@ -88,6 +88,6 @@ module.exports = function (packagedAppPath) {
 
   console.log(`Generating .AppImage file from ${appimagePackageDirPath}`)
   spawnSync('wget', ['-c', 'https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage'], {stdio: 'inherit'})
-  spawnSync('chmod', ['+x', 'appimagetool-*.AppImage'], {stdio: 'inherit'})
-  spawnSync('appimagetool', [appimagePackageDirPath, outputAppImagePackageFilePath], {stdio: 'inherit'})
+  spawnSync('chmod', ['+x', 'appimagetool-x86_64.AppImage'], {stdio: 'inherit'})
+  spawnSync('./appimagetool-x86_64.AppImage', [appimagePackageDirPath, outputAppImagePackageFilePath], {stdio: 'inherit'})
 }
