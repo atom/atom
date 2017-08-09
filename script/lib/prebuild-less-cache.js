@@ -67,7 +67,7 @@ module.exports = function () {
         const relativeImportPath = path.relative(CONFIG.intermediateAppPath, absoluteImportPath)
         if (!CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath.hasOwnProperty(relativeImportPath)) {
           CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath[relativeImportPath] = []
-          console.log(`Adding ${relativeFilePath} to snapshot auxiliary data importedFilePathsByRelativeImportPath`)
+          console.log(`Adding ${relativeImportPath} to snapshot auxiliary data importedFilePathsByRelativeImportPath`)
           for (const importedFile of klawSync(absoluteImportPath, {nodir: true})) {
             CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath[relativeImportPath].push(
               path.relative(CONFIG.intermediateAppPath, importedFile.path)
