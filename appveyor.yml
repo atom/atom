@@ -57,6 +57,8 @@ artifacts:
     name: atom-delta.nupkg
   - path: out\atom-*-full.nupkg
     name: atom-full.nupkg
+  - path: out\startup.js
+    name: startup.js
 
 cache:
   - '%APPVEYOR_BUILD_FOLDER%\electron'
