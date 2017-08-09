@@ -29,10 +29,12 @@ module.exports = function () {
     }
   }
 
+  console.log('Initializing lessSourcesByRelativeFilePath')
   CONFIG.snapshotAuxiliaryData.lessSourcesByRelativeFilePath = {}
   function saveIntoSnapshotAuxiliaryData (absoluteFilePath, content) {
     const relativeFilePath = path.relative(CONFIG.intermediateAppPath, absoluteFilePath)
     if (!CONFIG.snapshotAuxiliaryData.lessSourcesByRelativeFilePath.hasOwnProperty(relativeFilePath)) {
+      console.log(`Adding ${relativeFilePath} to snapshot auxiliary data lessSourcesByRelativeFilePath`)
       CONFIG.snapshotAuxiliaryData.lessSourcesByRelativeFilePath[relativeFilePath] = {
         content: content,
         digest: LessCache.digestForContent(content)
@@ -40,6 +42,7 @@ module.exports = function () {
     }
   }
 
+  console.log('Initializing importedFilePathsByRelativeImportPath')
   CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath = {}
   // Warm cache for every combination of the default UI and syntax themes,
   // because themes assign variables which may be used in any style sheet.
@@ -64,6 +67,7 @@ module.exports = function () {
         const relativeImportPath = path.relative(CONFIG.intermediateAppPath, absoluteImportPath)
         if (!CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath.hasOwnProperty(relativeImportPath)) {
           CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath[relativeImportPath] = []
+          console.log(`Adding ${relativeImportPath} to snapshot auxiliary data importedFilePathsByRelativeImportPath`)
           for (const importedFile of klawSync(absoluteImportPath, {nodir: true})) {
             CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath[relativeImportPath].push(
               path.relative(CONFIG.intermediateAppPath, importedFile.path)
@@ -104,7 +108,9 @@ module.exports = function () {
     }
   }
 
+  console.log('about to scan for less files')
   for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', 'atom-ui', '**', '*.less'))) {
+    console.log(`saving ${lessFilePath}`)
     saveIntoSnapshotAuxiliaryData(lessFilePath, fs.readFileSync(lessFilePath, 'utf8'))
   }
 
