@@ -1949,7 +1949,7 @@ module.exports = class Workspace extends Model {
       }
 
       if (!outOfProcessFinished.length) {
-        let flags = 'g'
+        let flags = 'gm' // set multiline flag so ^ and $ match start/end of line, not file
         if (regex.ignoreCase) { flags += 'i' }
 
         const task = Task.once(
