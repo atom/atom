@@ -39,7 +39,7 @@ build_script:
   - ps: |
       New-Item -Name "out" -ItemType "directory"
       if ($env:TASK -eq "installer") {
-        if ($env:PROCESSOR_ARCHITECTURE -eq "x86") {
+        if ($env:PLATFORM -eq "x86") {
           "C`n" | Set-Content -NoNewline "out\c.txt"
           "D`n" | Set-Content -NoNewline "out\d.txt"
         } else {
