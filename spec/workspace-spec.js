@@ -2395,13 +2395,13 @@ i = /test/; #FIXME\
         })
       })
 
-      it('uses the multiline flag when searching', () => {
+      it('does not discard the multiline flag', () => {
         const filePath = path.join(projectDir, 'sample.js')
         fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
 
         const results = []
         waitsForPromise(() =>
-          atom.workspace.replace(/;$/gi, 'items', [filePath], result => results.push(result))
+          atom.workspace.replace(/;$/gmi, 'items', [filePath], result => results.push(result))
         )
 
         runs(() => {
