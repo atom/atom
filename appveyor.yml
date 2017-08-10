@@ -40,15 +40,15 @@ build_script:
       New-Item -Name "out" -ItemType "directory"
       if ($env:TASK -eq "installer") {
         if (![Environment]::Is64BitOperatingSystem) {
-          "C\n" | Set-Content "out\c.txt"
-          "D\n" | Set-Content "out\d.txt"
+          "C`n" | Set-Content -NoNewline "out\c.txt"
+          "D`n" | Set-Content -NoNewline "out\d.txt"
         } else {
-          "G\n" | Set-Content "out\g.txt"
-          "H\n" | Set-Content "out\h.txt"
+          "G`n" | Set-Content -NoNewline "out\g.txt"
+          "H`n" | Set-Content -NoNewline "out\h.txt"
         }
       } else {
-        "WRONG\n" | Set-Content "out\c.txt"
-        "WRONG\n" | Set-Content "out\d.txt"
+        "WRONG`n" | Set-Content -NoNewline "out\c.txt"
+        "WRONG`n" | Set-Content -NoNewline "out\d.txt"
       }
 
 test_script:
