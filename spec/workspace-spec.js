@@ -2394,6 +2394,22 @@ i = /test/; #FIXME\
           expect(results[0].replacements).toBe(6)
         })
       })
+
+      it('uses the multiline flag when searching', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
+
+        const results = []
+        waitsForPromise(() =>
+          atom.workspace.replace(/;$/gi, 'items', [filePath], result => results.push(result))
+        )
+
+        runs(() => {
+          expect(results).toHaveLength(1)
+          expect(results[0].filePath).toBe(filePath)
+          expect(results[0].replacements).toBe(8)
+        })
+      })
     })
 
     describe('when a buffer is already open', () => {
