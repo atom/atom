@@ -62,6 +62,8 @@ artifacts:
     name: d.txt
   - path: out\g.txt
     name: g.txt
+  - path: out\h.txt
+    name: h.txt
 
 cache:
   - '%APPVEYOR_BUILD_FOLDER%\electron'
