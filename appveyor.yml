@@ -37,6 +37,7 @@ install:
 build_script:
   - CD %APPVEYOR_BUILD_FOLDER%
   - ps: |
+      New-Item -Name "out" -ItemType "directory"
       if ($env:TASK -eq "installer") {
         if (![Environment]::Is64BitOperatingSystem) {
           "C\n" | Set-Content "out\c.txt"
