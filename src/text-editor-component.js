@@ -1651,7 +1651,7 @@ class TextEditorComponent {
   }
 
   didCompositionUpdate (event) {
-    this.props.model.insertText(event.data, {select: true})
+    this.props.model.insertText(event.data, {select: this.accentedCharacterMenuIsOpen})
   }
 
   didCompositionEnd (event) {
