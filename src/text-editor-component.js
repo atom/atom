@@ -1651,7 +1651,14 @@ class TextEditorComponent {
   }
 
   didCompositionUpdate (event) {
-    this.props.model.insertText(event.data, {select: true})
+    if (parseInt(process.versions.chrome) === 56) {
+      process.nextTick(() => {
+        const previewText = this.refs.cursorsAndInput.refs.hiddenInput.value
+        this.props.model.insertText(previewText, {select: true})
+      })
+    } else {
+      this.props.model.insertText(event.data, {select: true})
+    }
   }
 
   didCompositionEnd (event) {
