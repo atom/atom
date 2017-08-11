@@ -551,10 +551,11 @@ describe('Pane', () => {
             itemURI = 'test'
             confirm.andReturn(0)
 
-            await pane.destroyItem(item1)
+            const success = await pane.destroyItem(item1)
             expect(item1.save).toHaveBeenCalled()
             expect(pane.getItems().includes(item1)).toBe(false)
             expect(item1.isDestroyed()).toBe(true)
+            expect(success).toBe(true)
           })
         })
 
@@ -565,11 +566,12 @@ describe('Pane', () => {
             showSaveDialog.andReturn('/selected/path')
             confirm.andReturn(0)
 
-            await pane.destroyItem(item1)
+            const success = await pane.destroyItem(item1)
             expect(showSaveDialog).toHaveBeenCalled()
             expect(item1.saveAs).toHaveBeenCalledWith('/selected/path')
             expect(pane.getItems().includes(item1)).toBe(false)
             expect(item1.isDestroyed()).toBe(true)
+            expect(success).toBe(true)
           })
         })
       })
@@ -578,10 +580,11 @@ describe('Pane', () => {
         it('removes and destroys the item without saving it', async () => {
           confirm.andReturn(2)
 
-          await pane.destroyItem(item1)
+          const success = await pane.destroyItem(item1)
           expect(item1.save).not.toHaveBeenCalled()
           expect(pane.getItems().includes(item1)).toBe(false)
           expect(item1.isDestroyed()).toBe(true)
+          expect(success).toBe(true);
         })
       })
 
@@ -589,19 +592,21 @@ describe('Pane', () => {
         it('does not save, remove, or destroy the item', async () => {
           confirm.andReturn(1)
 
-          await pane.destroyItem(item1)
+          const success = await pane.destroyItem(item1)
           expect(item1.save).not.toHaveBeenCalled()
           expect(pane.getItems().includes(item1)).toBe(true)
           expect(item1.isDestroyed()).toBe(false)
+          expect(success).toBe(false)
         })
       })
 
       describe('when force=true', () => {
         it('destroys the item immediately', async () => {
-          await pane.destroyItem(item1, true)
+          const success = await pane.destroyItem(item1, true)
           expect(item1.save).not.toHaveBeenCalled()
           expect(pane.getItems().includes(item1)).toBe(false)
           expect(item1.isDestroyed()).toBe(true)
+          expect(success).toBe(true)
         })
       })
     })
@@ -630,18 +635,20 @@ describe('Pane', () => {
     })
 
     describe('when passed a permanent dock item', () => {
-      it("doesn't destroy the item", () => {
+      it("doesn't destroy the item", async () => {
         spyOn(item1, 'isPermanentDockItem').andReturn(true)
-        pane.destroyItem(item1)
+        const success = await pane.destroyItem(item1)
         expect(pane.getItems().includes(item1)).toBe(true)
         expect(item1.isDestroyed()).toBe(false)
+        expect(success).toBe(false);
       })
 
-      it('destroy the item if force=true', () => {
+      it('destroy the item if force=true', async () => {
         spyOn(item1, 'isPermanentDockItem').andReturn(true)
-        pane.destroyItem(item1, true)
+        const success = await pane.destroyItem(item1, true)
         expect(pane.getItems().includes(item1)).toBe(false)
         expect(item1.isDestroyed()).toBe(true)
+        expect(success).toBe(true)
       })
     })
   })
