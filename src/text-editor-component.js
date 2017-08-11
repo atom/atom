@@ -1644,6 +1644,10 @@ class TextEditorComponent {
   //   4. compositionend fired
   //   5. textInput fired; event.data == the completion string
   didCompositionStart () {
+    if (parseInt(process.versions.chrome) === 56) {
+      this.getHiddenInput().value = ''
+    }
+
     this.compositionCheckpoint = this.props.model.createCheckpoint()
     if (this.accentedCharacterMenuIsOpen) {
       this.props.model.selectLeft()
@@ -1653,7 +1657,7 @@ class TextEditorComponent {
   didCompositionUpdate (event) {
     if (parseInt(process.versions.chrome) === 56) {
       process.nextTick(() => {
-        const previewText = this.refs.cursorsAndInput.refs.hiddenInput.value
+        const previewText = this.getHiddenInput().value
         this.props.model.insertText(previewText, {select: true})
       })
     } else {
@@ -2813,6 +2817,10 @@ class TextEditorComponent {
 
   isInputEnabled (inputEnabled) {
     return this.props.inputEnabled != null ? this.props.inputEnabled : true
+  }
+
+  getHiddenInput () {
+    return this.refs.cursorsAndInput.refs.hiddenInput
   }
 
   getPlatform () {
