@@ -3417,8 +3417,10 @@ class CursorsAndInputComponent {
 
 class LinesTileComponent {
   constructor (props) {
+    this.highlightComponentsByKey = new Map()
     this.props = props
     etch.initialize(this)
+    this.updateHighlights()
     this.createLines()
     this.updateBlockDecorations({}, props)
   }
@@ -3432,13 +3434,22 @@ class LinesTileComponent {
         this.updateLines(oldProps, newProps)
         this.updateBlockDecorations(oldProps, newProps)
       }
+      this.updateHighlights()
     }
   }
 
   destroy () {
+    this.highlightComponentsByKey.forEach((highlightComponent) => {
+      highlightComponent.destroy()
+    })
+    this.highlightComponentsByKey.clear()
+
     for (let i = 0; i < this.lineComponents.length; i++) {
       this.lineComponents[i].destroy()
     }
+    this.lineComponents.length = 0
+
+    return etch.destroy(this)
   }
 
   render () {
@@ -3456,34 +3467,12 @@ class LinesTileComponent {
           backgroundColor: 'inherit'
         }
       },
-      this.renderHighlights()
-      // Lines and block decorations will be manually inserted here for efficiency
-    )
-  }
-
-  renderHighlights () {
-    const {top, lineHeight, highlightDecorations} = this.props
-
-    let children = null
-    if (highlightDecorations) {
-      const decorationCount = highlightDecorations.length
-      children = new Array(decorationCount)
-      for (let i = 0; i < decorationCount; i++) {
-        const highlightProps = Object.assign(
-          {parentTileTop: top, lineHeight},
-          highlightDecorations[i]
-        )
-        children[i] = $(HighlightComponent, highlightProps)
-        highlightDecorations[i].flashRequested = false
-      }
-    }
-
-    return $.div(
-      {
+      $.div({
+        ref: 'highlights',
         className: 'highlights',
-        style: {contain: 'layout'}
-      },
-      children
+        style: {layout: 'contain'}
+      })
+      // Lines and block decorations will be manually inserted here for efficiency
     )
   }
 
@@ -3674,6 +3663,40 @@ class LinesTileComponent {
         }
       })
     }
+  }
+
+  updateHighlights () {
+    const {top, lineHeight, highlightDecorations} = this.props
+
+    const visibleHighlightDecorations = new Set()
+    if (highlightDecorations) {
+      for (let i = 0; i < highlightDecorations.length; i++) {
+        const highlightDecoration = highlightDecorations[i]
+
+        const highlightProps = Object.assign(
+          {parentTileTop: top, lineHeight},
+          highlightDecorations[i]
+        )
+        let highlightComponent = this.highlightComponentsByKey.get(highlightDecoration.key)
+        if (highlightComponent) {
+          highlightComponent.update(highlightProps)
+        } else {
+          highlightComponent = new HighlightComponent(highlightProps)
+          this.refs.highlights.appendChild(highlightComponent.element)
+          this.highlightComponentsByKey.set(highlightDecoration.key, highlightComponent)
+        }
+
+        highlightDecorations[i].flashRequested = false
+        visibleHighlightDecorations.add(highlightDecoration.key)
+      }
+    }
+
+    this.highlightComponentsByKey.forEach((highlightComponent, key) => {
+      if (!visibleHighlightDecorations.has(key)) {
+        highlightComponent.destroy()
+        this.highlightComponentsByKey.delete(key)
+      }
+    })
   }
 
   shouldUpdate (newProps) {
@@ -3874,6 +3897,17 @@ class HighlightComponent {
     this.props = props
     etch.initialize(this)
     if (this.props.flashRequested) this.performFlash()
+  }
+
+  destroy () {
+    if (this.timeoutsByClassName) {
+      this.timeoutsByClassName.forEach((timeout) => {
+        window.clearTimeout(timeout)
+      })
+      this.timeoutsByClassName.clear()
+    }
+
+    return etch.destroy(this)
   }
 
   update (newProps) {

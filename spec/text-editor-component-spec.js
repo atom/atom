@@ -1524,6 +1524,27 @@ describe('TextEditorComponent', () => {
       await setScrollTop(component, component.getLineHeight() * 3)
       expect(element.querySelectorAll('.highlight.a').length).toBe(0)
     })
+
+    it('does not move existing highlights when adding or removing other highlight decorations (regression)', async () => {
+      const {component, element, editor} = buildComponent()
+
+      const marker1 = editor.markScreenRange([[1, 6], [1, 10]])
+      editor.decorateMarker(marker1, {type: 'highlight', class: 'a'})
+      await component.getNextUpdatePromise()
+      const marker1Region = element.querySelector('.highlight.a')
+      expect(Array.from(marker1Region.parentElement.children).indexOf(marker1Region)).toBe(0)
+
+      const marker2 = editor.markScreenRange([[1, 2], [1, 4]])
+      editor.decorateMarker(marker2, {type: 'highlight', class: 'b'})
+      await component.getNextUpdatePromise()
+      const marker2Region = element.querySelector('.highlight.b')
+      expect(Array.from(marker1Region.parentElement.children).indexOf(marker1Region)).toBe(0)
+      expect(Array.from(marker2Region.parentElement.children).indexOf(marker2Region)).toBe(1)
+
+      marker2.destroy()
+      await component.getNextUpdatePromise()
+      expect(Array.from(marker1Region.parentElement.children).indexOf(marker1Region)).toBe(0)
+    })
   })
 
   describe('overlay decorations', () => {
