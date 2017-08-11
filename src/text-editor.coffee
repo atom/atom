@@ -3527,6 +3527,10 @@ class TextEditor extends Model
     else
       1
 
+  Object.defineProperty(@prototype, 'rowsPerPage', {
+    get: -> @getRowsPerPage()
+  })
+
   ###
   Section: Config
   ###
