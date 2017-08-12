@@ -1570,6 +1570,10 @@ class TextEditorComponent {
   }
 
   didTextInput (event) {
+    // Workaround for Chromium not preventing composition events when
+    // preventDefault is called on the keydown event that precipitated them.
+    if (this.lastKeydown && this.lastKeydown.defaultPrevented) return
+
     if (!this.isInputEnabled()) return
 
     event.stopPropagation()
@@ -1626,7 +1630,6 @@ class TextEditorComponent {
 
   didKeypress (event) {
     this.lastKeydownBeforeKeypress = this.lastKeydown
-    this.lastKeydown = null
 
     // This cancels the accented character behavior if we type a key normally
     // with the menu open.
@@ -1636,7 +1639,6 @@ class TextEditorComponent {
   didKeyup (event) {
     if (this.lastKeydownBeforeKeypress && this.lastKeydownBeforeKeypress.code === event.code) {
       this.lastKeydownBeforeKeypress = null
-      this.lastKeydown = null
     }
   }
 
@@ -1662,6 +1664,10 @@ class TextEditorComponent {
   }
 
   didCompositionUpdate (event) {
+    // Workaround for Chromium not preventing composition events when
+    // preventDefault is called on the keydown event that precipitated them.
+    if (this.lastKeydown && this.lastKeydown.defaultPrevented) return
+
     if (this.getChromeVersion() === 56) {
       process.nextTick(() => {
         if (this.compositionCheckpoint) {
