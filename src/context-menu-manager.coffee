@@ -176,27 +176,6 @@ class ContextMenuManager
         .filter((submenuItem) -> submenuItem isnt null)
     return item
 
-  convertLegacyItemsBySelector: (legacyItemsBySelector, devMode) ->
-    itemsBySelector = {}
-
-    for selector, commandsByLabel of legacyItemsBySelector
-      itemsBySelector[selector] = @convertLegacyItems(commandsByLabel, devMode)
-
-    itemsBySelector
-
-  convertLegacyItems: (legacyItems, devMode) ->
-    items = []
-
-    for label, commandOrSubmenu of legacyItems
-      if typeof commandOrSubmenu is 'object'
-        items.push({label, submenu: @convertLegacyItems(commandOrSubmenu, devMode), devMode})
-      else if commandOrSubmenu is '-'
-        items.push({type: 'separator'})
-      else
-        items.push({label, command: commandOrSubmenu, devMode})
-
-    items
-
   showForEvent: (event) ->
     @activeElement = event.target
     menuTemplate = @templateForEvent(event)
