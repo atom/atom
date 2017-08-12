@@ -3399,6 +3399,15 @@ describe('TextEditorComponent', () => {
         expect(top).toBe(clientTopForLine(referenceComponent, 12) - referenceContentRect.top)
         expect(left).toBe(clientLeftForCharacter(referenceComponent, 12, 1) - referenceContentRect.left)
       }
+
+      // Measuring a currently rendered line while an autoscroll that causes
+      // that line to go off-screen is in progress.
+      {
+        editor.setCursorScreenPosition([10, 0])
+        const {top, left} = component.pixelPositionForScreenPosition({row: 3, column: 5})
+        expect(top).toBe(clientTopForLine(referenceComponent, 3) - referenceContentRect.top)
+        expect(left).toBe(clientLeftForCharacter(referenceComponent, 3, 5) - referenceContentRect.left)
+      }
     })
 
     it('does not get the component into an inconsistent state when the model has unflushed changes (regression)', async () => {
@@ -3444,6 +3453,16 @@ describe('TextEditorComponent', () => {
         pixelPosition.top += component.getLineHeight() / 3
         pixelPosition.left += component.getBaseCharacterWidth() / 3
         expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual([12, 1])
+      }
+
+      // Measuring a currently rendered line while an autoscroll that causes
+      // that line to go off-screen is in progress.
+      {
+        const pixelPosition = referenceComponent.pixelPositionForScreenPosition({row: 3, column: 4})
+        pixelPosition.top += component.getLineHeight() / 3
+        pixelPosition.left += component.getBaseCharacterWidth() / 3
+        editor.setCursorBufferPosition([10, 0])
+        expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual([3, 4])
       }
     })
   })
