@@ -147,8 +147,19 @@ class ContextMenuManager
       currentTarget = currentTarget.parentElement
 
     @pruneRedundantSeparators(template)
+    @addAccelerators(template, event.target)
 
     template
+
+  # Adds an `accelerator` property to items that have key bindings. Electron
+  # uses this property to surface the relevant keymaps in the context menu.
+  addAccelerators: (template, target) ->
+    for id, item of template
+      keymaps = @keymapManager.findKeyBindings({command: item.command, target})
+      accelerator = MenuHelpers.acceleratorForKeystroke(keymaps?[0]?.keystrokes)
+      item.accelerator = accelerator if accelerator
+      if Array.isArray(item.submenu)
+        @addAccelerators(item.submenu, target)
 
   pruneRedundantSeparators: (menu) ->
     keepNextItemIfSeparator = false

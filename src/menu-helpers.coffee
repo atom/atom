@@ -46,9 +46,29 @@ normalizeLabel = (label) ->
     label.replace(/\&/g, '')
 
 cloneMenuItem = (item) ->
-  item = _.pick(item, 'type', 'label', 'enabled', 'visible', 'command', 'submenu', 'commandDetail', 'role')
+  item = _.pick(item, 'type', 'label', 'enabled', 'visible', 'command', 'submenu', 'commandDetail', 'role', 'accelerator')
   if item.submenu?
     item.submenu = item.submenu.map (submenuItem) -> cloneMenuItem(submenuItem)
   item
 
-module.exports = {merge, unmerge, normalizeLabel, cloneMenuItem}
+# Determine the Electron accelerator for a given Atom keystroke.
+#
+# keystroke - The keystroke.
+#
+# Returns a String containing the keystroke in a format that can be interpreted
+#   by Electron to provide nice icons where available.
+acceleratorForKeystroke = (keystroke) ->
+  return null unless keystroke
+  modifiers = keystroke.split(/-(?=.)/)
+  key = modifiers.pop().toUpperCase().replace('+', 'Plus')
+
+  modifiers = modifiers.map (modifier) ->
+    modifier.replace(/shift/ig, "Shift")
+    .replace(/cmd/ig, "Command")
+    .replace(/ctrl/ig, "Ctrl")
+    .replace(/alt/ig, "Alt")
+
+  keys = modifiers.concat([key])
+  keys.join("+")
+
+module.exports = {merge, unmerge, normalizeLabel, cloneMenuItem, acceleratorForKeystroke}
