@@ -119,6 +119,44 @@ describe('TextEditorComponent', () => {
       }
     })
 
+    it('re-renders lines when their height changes', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
+      element.style.height = 4 * component.measurements.lineHeight + 'px'
+      await component.getNextUpdatePromise()
+      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(9)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+
+      element.style.lineHeight = '2.0'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(6)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
+
+      element.style.lineHeight = '0.7'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(12)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(12)
+
+      element.style.lineHeight = '0.05'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(13)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(13)
+
+      element.style.lineHeight = '0'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(13)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(13)
+
+      element.style.lineHeight = '1'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(9)
+      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+    })
+
     it('makes the content at least as tall as the scroll container client height', async () => {
       const {component, element, editor} = buildComponent({text: 'a', height: 100})
       expect(component.refs.content.offsetHeight).toBe(100)

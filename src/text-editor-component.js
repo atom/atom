@@ -2066,7 +2066,7 @@ class TextEditorComponent {
   }
 
   measureCharacterDimensions () {
-    this.measurements.lineHeight = this.refs.characterMeasurementLine.getBoundingClientRect().height
+    this.measurements.lineHeight = Math.max(1, this.refs.characterMeasurementLine.getBoundingClientRect().height)
     this.measurements.baseCharacterWidth = this.refs.normalWidthCharacterSpan.getBoundingClientRect().width
     this.measurements.doubleWidthCharacterWidth = this.refs.doubleWidthCharacterSpan.getBoundingClientRect().width
     this.measurements.halfWidthCharacterWidth = this.refs.halfWidthCharacterSpan.getBoundingClientRect().width
