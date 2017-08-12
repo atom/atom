@@ -1644,7 +1644,7 @@ class TextEditorComponent {
   //   4. compositionend fired
   //   5. textInput fired; event.data == the completion string
   didCompositionStart () {
-    if (parseInt(process.versions.chrome) === 56) {
+    if (this.getChromeVersion() === 56) {
       this.getHiddenInput().value = ''
     }
 
@@ -1655,7 +1655,7 @@ class TextEditorComponent {
   }
 
   didCompositionUpdate (event) {
-    if (parseInt(process.versions.chrome) === 56) {
+    if (this.getChromeVersion() === 56) {
       process.nextTick(() => {
         if (this.compositionCheckpoint) {
           const previewText = this.getHiddenInput().value
@@ -2827,6 +2827,10 @@ class TextEditorComponent {
 
   getPlatform () {
     return this.props.platform || process.platform
+  }
+
+  getChromeVersion () {
+    return this.props.chromeVersion || parseInt(process.versions.chrome)
   }
 }
 
