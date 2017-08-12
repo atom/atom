@@ -50,24 +50,29 @@ class PanelContainerElement extends HTMLElement {
 
     if (this.model.isModal()) {
       this.hideAllPanelsExcept(panel)
-      const modalFocusTrap = focusTrap(panelElement, {
-        // focus-trap will attempt to give focus to the first tabbable element
-        // on activation. If there aren't any tabbable elements,
-        // give focus to the panel element itself
-        fallbackFocus: panelElement,
-        // closing is handled by core Atom commands and this already deactivates
-        // on visibility changes
-        escapeDeactivates: false
-      })
-
       this.subscriptions.add(panel.onDidChangeVisible(visible => {
-        if (visible) {
-          this.hideAllPanelsExcept(panel)
-          modalFocusTrap.activate()
-        } else {
-          modalFocusTrap.deactivate()
-        }
+        if (visible) this.hideAllPanelsExcept(panel)
       }))
+
+      if (panel.autoFocus) {
+        const modalFocusTrap = focusTrap(panelElement, {
+          // focus-trap will attempt to give focus to the first tabbable element
+          // on activation. If there aren't any tabbable elements,
+          // give focus to the panel element itself
+          fallbackFocus: panelElement,
+          // closing is handled by core Atom commands and this already deactivates
+          // on visibility changes
+          escapeDeactivates: false
+        })
+
+        this.subscriptions.add(panel.onDidChangeVisible(visible => {
+          if (visible) {
+            modalFocusTrap.activate()
+          } else {
+            modalFocusTrap.deactivate()
+          }
+        }))
+      }
     }
   }
 

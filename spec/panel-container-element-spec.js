@@ -161,42 +161,55 @@ describe('PanelContainerElement', () => {
       expect(panel1.getElement()).toHaveClass('from-top')
     })
 
-    it("focuses the first tabbable item if available", () => {
-      const panel1 = new Panel({item: new TestPanelContainerItem(), visible: false}, atom.views)
-      container.addPanel(panel1)
+    describe("autoFocus", () => {
+      function createPanel() {
+        const panel = new Panel(
+          {
+            item: new TestPanelContainerItem(),
+            autoFocus: true,
+            visible: false
+          },
+          atom.views
+        )
 
-      const panelEl = panel1.getElement()
-      const inputEl = document.createElement('input')
-      panelEl.appendChild(inputEl)
+        container.addPanel(panel)
+        return panel
+      }
 
-      expect(document.activeElement).not.toBe(inputEl)
-      panel1.show()
-      expect(document.activeElement).toBe(inputEl)
-    })
+      it("focuses the first tabbable item if available", () => {
+        const panel = createPanel();
 
-    it("focuses the entire panel item when no tabbable item is available and the panel is focusable", () => {
-      const panel1 = new Panel({item: new TestPanelContainerItem(), visible: false}, atom.views)
-      container.addPanel(panel1)
-      const panelEl = panel1.getElement()
+        const panelEl = panel.getElement()
+        const inputEl = document.createElement('input')
+        panelEl.appendChild(inputEl)
 
-      spyOn(panelEl, 'focus')
-      panel1.show()
-      expect(panelEl.focus).toHaveBeenCalled()
-    })
+        expect(document.activeElement).not.toBe(inputEl)
+        panel.show()
+        expect(document.activeElement).toBe(inputEl)
+      })
 
-    it("returns focus to the original activeElement", () => {
-      const panel1 = new Panel({item: new TestPanelContainerItem(), visible: false}, atom.views)
-      container.addPanel(panel1)
-      const previousActiveElement = document.activeElement
-      const panelEl = panel1.getElement()
-      panelEl.appendChild(document.createElement('input'))
+      it("focuses the entire panel item when no tabbable item is available and the panel is focusable", () => {
+        const panel = createPanel();
+        const panelEl = panel.getElement()
 
-      panel1.show()
-      panel1.hide()
+        spyOn(panelEl, 'focus')
+        panel.show()
+        expect(panelEl.focus).toHaveBeenCalled()
+      })
 
-      waitsFor(() => document.activeElement === previousActiveElement)
-      runs(() => {
-        expect(document.activeElement).toBe(previousActiveElement)
+      it("returns focus to the original activeElement", () => {
+        const panel = createPanel();
+        const previousActiveElement = document.activeElement
+        const panelEl = panel.getElement()
+        panelEl.appendChild(document.createElement('input'))
+
+        panel.show()
+        panel.hide()
+
+        waitsFor(() => document.activeElement === previousActiveElement)
+        runs(() => {
+          expect(document.activeElement).toBe(previousActiveElement)
+        })
       })
     })
   })
