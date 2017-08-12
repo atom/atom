@@ -2851,20 +2851,22 @@ class DummyScrollbarComponent {
       outerStyle.bottom = 0
       outerStyle.left = 0
       outerStyle.right = right + 'px'
-      outerStyle.height = '20px'
+      outerStyle.height = '15px'
       outerStyle.overflowY = 'hidden'
       outerStyle.overflowX = this.props.forceScrollbarVisible ? 'scroll' : 'auto'
-      innerStyle.height = '20px'
+      outerStyle.cursor = 'default'
+      innerStyle.height = '15px'
       innerStyle.width = (this.props.scrollWidth || 0) + 'px'
     } else {
       let bottom = (this.props.horizontalScrollbarHeight || 0)
       outerStyle.right = 0
       outerStyle.top = 0
       outerStyle.bottom = bottom + 'px'
-      outerStyle.width = '20px'
+      outerStyle.width = '15px'
       outerStyle.overflowX = 'hidden'
       outerStyle.overflowY = this.props.forceScrollbarVisible ? 'scroll' : 'auto'
-      innerStyle.width = '20px'
+      outerStyle.cursor = 'default'
+      innerStyle.width = '15px'
       innerStyle.height = (this.props.scrollHeight || 0) + 'px'
     }
 
