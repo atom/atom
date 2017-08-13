@@ -1670,7 +1670,7 @@ class TextEditorComponent {
 
     if (this.getChromeVersion() === 56) {
       process.nextTick(() => {
-        if (this.compositionCheckpoint) {
+        if (this.compositionCheckpoint != null) {
           const previewText = this.getHiddenInput().value
           this.props.model.insertText(previewText, {select: true})
         }
