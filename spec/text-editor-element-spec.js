@@ -203,6 +203,22 @@ describe('TextEditorElement', () => {
         expect(document.activeElement).toBe(element.querySelector('input'))
       })
     })
+
+    describe('if focused when invisible due to a zero height and width', () => {
+      it('focuses the hidden input and does not throw an exception', () => {
+        const parentElement = document.createElement('div')
+        parentElement.style.position = 'absolute'
+        parentElement.style.width = '0px'
+        parentElement.style.height = '0px'
+
+        const element = buildTextEditorElement({attach: false})
+        parentElement.appendChild(element)
+        jasmineContent.appendChild(parentElement)
+
+        element.focus()
+        expect(document.activeElement).toBe(element.component.getHiddenInput())
+      })
+    })
   })
 
   describe('::setModel', () => {
