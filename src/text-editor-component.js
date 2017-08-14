@@ -2253,11 +2253,11 @@ class TextEditorComponent {
   }
 
   pixelPositionBeforeBlocksForRow (row) {
-    return this.lineTopIndex.pixelPositionBeforeBlocksForRow(row)
+    return roundToNearestPixel(this.lineTopIndex.pixelPositionBeforeBlocksForRow(row))
   }
 
   pixelPositionAfterBlocksForRow (row) {
-    return this.lineTopIndex.pixelPositionAfterBlocksForRow(row)
+    return roundToNearestPixel(this.lineTopIndex.pixelPositionAfterBlocksForRow(row))
   }
 
   pixelLeftForRowAndColumn (row, column) {
