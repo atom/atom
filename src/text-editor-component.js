@@ -552,6 +552,7 @@ class TextEditorComponent {
       ]
     } else {
       children = [
+        this.renderCursorsAndInput(),
         this.renderBlockDecorationMeasurementArea(),
         this.renderCharacterMeasurementLine()
       ]
@@ -1449,16 +1450,14 @@ class TextEditorComponent {
       this.scheduleUpdate()
     }
 
-    const {hiddenInput} = this.refs.cursorsAndInput.refs
-    hiddenInput.focus()
+    this.getHiddenInput().focus()
   }
 
   // Called by TextEditorElement so that this function is always the first
   // listener to be fired, even if other listeners are bound before creating
   // the component.
   didBlur (event) {
-    const {cursorsAndInput} = this.refs
-    if (cursorsAndInput && event.relatedTarget === cursorsAndInput.refs.hiddenInput) {
+    if (event.relatedTarget === this.getHiddenInput()) {
       event.stopImmediatePropagation()
     }
   }
