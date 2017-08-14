@@ -1689,6 +1689,18 @@ class TextEditorComponent {
     const {target, button, detail, ctrlKey, shiftKey, metaKey} = event
     const platform = this.getPlatform()
 
+    // Ignore clicks on block decorations.
+    if (target) {
+      let element = target
+      while (element && element !== this.element) {
+        if (this.blockDecorationsByElement.has(element)) {
+          return
+        }
+
+        element = element.parentElement
+      }
+    }
+
     // On Linux, position the cursor on middle mouse button click. A
     // textInput event with the contents of the selection clipboard will be
     // dispatched by the browser automatically on mouseup.
