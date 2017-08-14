@@ -1358,8 +1358,8 @@ class TextEditorComponent {
         }
       }
 
-      decoration.pixelTop = Math.round(wrapperTop)
-      decoration.pixelLeft = Math.round(wrapperLeft)
+      decoration.pixelTop = roundToNearestPixel(wrapperTop)
+      decoration.pixelLeft = roundToNearestPixel(wrapperLeft)
     }
   }
 
@@ -2227,7 +2227,7 @@ class TextEditorComponent {
             lineNodeClientLeft = lineNode.getBoundingClientRect().left
           }
 
-          positions.set(nextColumnToMeasure, Math.round(clientPixelPosition - lineNodeClientLeft))
+          positions.set(nextColumnToMeasure, roundToNearestPixel(clientPixelPosition - lineNodeClientLeft))
           continue columnLoop // eslint-disable-line no-labels
         } else {
           textNodesIndex++
@@ -2244,7 +2244,7 @@ class TextEditorComponent {
         lineNodeClientLeft = lineNode.getBoundingClientRect().left
       }
 
-      positions.set(nextColumnToMeasure, Math.round(lastTextNodeRight - lineNodeClientLeft))
+      positions.set(nextColumnToMeasure, roundToNearestPixel(lastTextNodeRight - lineNodeClientLeft))
     }
   }
 
@@ -2568,7 +2568,7 @@ class TextEditorComponent {
   }
 
   getContentWidth () {
-    return Math.round(this.getLongestLineWidth() + this.getBaseCharacterWidth())
+    return roundToNearestPixel(this.getLongestLineWidth() + this.getBaseCharacterWidth())
   }
 
   getScrollContainerClientWidthInBaseCharacters () {
@@ -2676,7 +2676,7 @@ class TextEditorComponent {
   }
 
   setScrollTop (scrollTop) {
-    scrollTop = Math.round(Math.max(0, Math.min(this.getMaxScrollTop(), scrollTop)))
+    scrollTop = roundToNearestPixel(Math.max(0, Math.min(this.getMaxScrollTop(), scrollTop)))
     if (scrollTop !== this.scrollTop) {
       this.derivedDimensionsCache = {}
       this.scrollTopPending = true
@@ -2705,7 +2705,7 @@ class TextEditorComponent {
   }
 
   setScrollLeft (scrollLeft) {
-    scrollLeft = Math.round(Math.max(0, Math.min(this.getMaxScrollLeft(), scrollLeft)))
+    scrollLeft = roundToNearestPixel(Math.max(0, Math.min(this.getMaxScrollLeft(), scrollLeft)))
     if (scrollLeft !== this.scrollLeft) {
       this.scrollLeftPending = true
       this.scrollLeft = scrollLeft
@@ -2764,7 +2764,7 @@ class TextEditorComponent {
 
   getScrollLeftColumn () {
     if (this.hasInitialMeasurements && this.getLongestLineWidth() != null) {
-      return Math.round(this.getScrollLeft() / this.getBaseCharacterWidth())
+      return roundToNearestPixel(this.getScrollLeft() / this.getBaseCharacterWidth())
     } else {
       return this.pendingScrollLeftColumn || 0
     }
@@ -4164,6 +4164,10 @@ function debounce (fn, wait) {
     timestamp = Date.now()
     if (!timeout) timeout = setTimeout(later, wait)
   }
+}
+
+function roundToNearestPixel (value) {
+  return Math.round(value / window.devicePixelRatio) * window.devicePixelRatio
 }
 
 class NodePool {
