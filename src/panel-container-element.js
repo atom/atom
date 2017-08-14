@@ -51,7 +51,7 @@ class PanelContainerElement extends HTMLElement {
     if (this.model.isModal()) {
       this.hideAllPanelsExcept(panel)
       this.subscriptions.add(panel.onDidChangeVisible(visible => {
-        if (visible) this.hideAllPanelsExcept(panel)
+        if (visible) { this.hideAllPanelsExcept(panel) }
       }))
 
       if (panel.autoFocus) {

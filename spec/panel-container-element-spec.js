@@ -178,12 +178,12 @@ describe('PanelContainerElement', () => {
 
       it("focuses the first tabbable item if available", () => {
         const panel = createPanel()
-
         const panelEl = panel.getElement()
         const inputEl = document.createElement('input')
-        panelEl.appendChild(inputEl)
 
+        panelEl.appendChild(inputEl)
         expect(document.activeElement).not.toBe(inputEl)
+
         panel.show()
         expect(document.activeElement).toBe(inputEl)
       })
