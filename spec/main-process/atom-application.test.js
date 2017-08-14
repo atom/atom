@@ -18,7 +18,7 @@ describe('AtomApplication', function () {
 
   beforeEach(function () {
     originalAppQuit = electron.app.quit
-    originalShowMessageBox = electron.dialog
+    originalShowMessageBox = electron.dialog.showMessageBox
     mockElectronAppQuit()
     originalAtomHome = process.env.ATOM_HOME
     process.env.ATOM_HOME = makeTempDir('atom-home')
@@ -478,7 +478,7 @@ describe('AtomApplication', function () {
     assert(electron.app.hasQuitted())
   })
 
-  it.only('prevents quitting if user cancels when prompted to save an item', async () => {
+  it('prevents quitting if user cancels when prompted to save an item', async () => {
     const atomApplication = buildAtomApplication()
     const window1 = atomApplication.launch(parseCommandLine([]))
     const window2 = atomApplication.launch(parseCommandLine([]))
