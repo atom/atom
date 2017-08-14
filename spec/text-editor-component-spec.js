@@ -2153,6 +2153,39 @@ describe('TextEditorComponent', () => {
       expect(component.refs.blockDecorationMeasurementArea.offsetWidth).toBe(component.getScrollWidth())
     })
 
+    it('does not change the cursor position when clicking on a block decoration', async () => {
+      const {editor, component} = buildComponent()
+
+      const decorationElement = document.createElement('div')
+      decorationElement.textContent = 'Parent'
+      const childElement = document.createElement('div')
+      childElement.textContent = 'Child'
+      decorationElement.appendChild(childElement)
+      const marker = editor.markScreenPosition([4, 0])
+      editor.decorateMarker(marker, {type: 'block', item: decorationElement})
+      await component.getNextUpdatePromise()
+
+      const decorationElementClientRect = decorationElement.getBoundingClientRect()
+      component.didMouseDownOnContent({
+        target: decorationElement,
+        detail: 1,
+        button: 0,
+        clientX: decorationElementClientRect.left,
+        clientY: decorationElementClientRect.top
+      })
+      expect(editor.getCursorScreenPosition()).toEqual([0, 0])
+
+      const childElementClientRect = childElement.getBoundingClientRect()
+      component.didMouseDownOnContent({
+        target: childElement,
+        detail: 1,
+        button: 0,
+        clientX: childElementClientRect.left,
+        clientY: childElementClientRect.top
+      })
+      expect(editor.getCursorScreenPosition()).toEqual([0, 0])
+    })
+
     function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, position}) {
       const marker = editor.markScreenPosition([screenRow, 0], {invalidate: 'never'})
       const item = document.createElement('div')
