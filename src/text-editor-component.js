@@ -1574,10 +1574,6 @@ class TextEditorComponent {
   }
 
   didTextInput (event) {
-    // Workaround for Chromium not preventing composition events when
-    // preventDefault is called on the keydown event that precipitated them.
-    if (this.lastKeydown && this.lastKeydown.defaultPrevented) return
-
     if (!this.isInputEnabled()) return
 
     event.stopPropagation()
@@ -1670,7 +1666,16 @@ class TextEditorComponent {
   didCompositionUpdate (event) {
     // Workaround for Chromium not preventing composition events when
     // preventDefault is called on the keydown event that precipitated them.
-    if (this.lastKeydown && this.lastKeydown.defaultPrevented) return
+    if (this.lastKeydown && this.lastKeydown.defaultPrevented) {
+      this.getHiddenInput().disabled = true
+      process.nextTick(() => {
+        // Disabling the hidden input makes it lose focus as well, so we have to
+        // re-enable and re-focus it.
+        this.getHiddenInput().disabled = false
+        this.getHiddenInput().focus()
+      })
+      return
+    }
 
     if (this.getChromeVersion() === 56) {
       process.nextTick(() => {
