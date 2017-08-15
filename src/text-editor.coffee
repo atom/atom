@@ -647,7 +647,7 @@ class TextEditor extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
+    @emitter.once 'did-destroy', callback
 
   # Extended: Calls your `callback` when a {Cursor} is added to the editor.
   # Immediately calls your callback for each existing cursor.
@@ -1582,6 +1582,8 @@ class TextEditor extends Model
   # undo history, no changes will be made to the buffer and this method will
   # return `false`.
   #
+  # * `checkpoint` The checkpoint to revert to.
+  #
   # Returns a {Boolean} indicating whether the operation succeeded.
   revertToCheckpoint: (checkpoint) -> @buffer.revertToCheckpoint(checkpoint)
 
@@ -1590,6 +1592,8 @@ class TextEditor extends Model
   #
   # If the given checkpoint is no longer present in the undo history, no
   # grouping will be performed and this method will return `false`.
+  #
+  # * `checkpoint` The checkpoint from which to group changes.
   #
   # Returns a {Boolean} indicating whether the operation succeeded.
   groupChangesSinceCheckpoint: (checkpoint) -> @buffer.groupChangesSinceCheckpoint(checkpoint)
@@ -1787,8 +1791,13 @@ class TextEditor extends Model
   #        spanned by the `DisplayMarker`.
   #     * `line-number` Adds the given `class` to the line numbers overlapping
   #       the rows spanned by the `DisplayMarker`.
-  #     * `highlight` Creates a `.highlight` div with the nested class with up
-  #       to 3 nested regions that fill the area spanned by the `DisplayMarker`.
+  #     * `text` Injects spans into all text overlapping the marked range,
+  #       then adds the given `class` or `style` properties to these spans.
+  #       Use this to manipulate the foreground color or styling of text in
+  #       a given range.
+  #     * `highlight` Creates an absolutely-positioned `.highlight` div
+  #       containing nested divs to cover the marked region. For example, this
+  #       is used to implement selections.
   #     * `overlay` Positions the view associated with the given item at the
   #       head or tail of the given `DisplayMarker`, depending on the `position`
   #       property.
@@ -1804,9 +1813,10 @@ class TextEditor extends Model
   #       or render artificial cursors that don't actually exist in the model
   #       by passing a marker that isn't actually associated with a cursor.
   #   * `class` This CSS class will be applied to the decorated line number,
-  #     line, highlight, or overlay.
+  #     line, text spans, highlight regions, cursors, or overlay.
   #   * `style` An {Object} containing CSS style properties to apply to the
-  #     relevant DOM node. Currently this only works with a `type` of `cursor`.
+  #     relevant DOM node. Currently this only works with a `type` of `cursor`
+  #     or `text`.
   #   * `item` (optional) An {HTMLElement} or a model {Object} with a
   #     corresponding view registered. Only applicable to the `gutter`,
   #     `overlay` and `block` decoration types.
@@ -3516,6 +3526,10 @@ class TextEditor extends Model
       Math.max(1, Math.ceil(clientHeight / lineHeight))
     else
       1
+
+  Object.defineProperty(@prototype, 'rowsPerPage', {
+    get: -> @getRowsPerPage()
+  })
 
   ###
   Section: Config

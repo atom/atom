@@ -1,7 +1,7 @@
 'use strict'
 
 const _ = require('underscore-plus')
-const {CompositeDisposable} = require('event-kit')
+const {CompositeDisposable, Emitter} = require('event-kit')
 const PaneContainer = require('./pane-container')
 const TextEditor = require('./text-editor')
 const Grim = require('grim')
@@ -35,7 +35,8 @@ module.exports = class Dock {
     this.notificationManager = params.notificationManager
     this.viewRegistry = params.viewRegistry
     this.didActivate = params.didActivate
-    this.didHide = params.didHide
+
+    this.emitter = new Emitter()
 
     this.paneContainer = new PaneContainer({
       location: this.location,
@@ -53,6 +54,7 @@ module.exports = class Dock {
     }
 
     this.subscriptions = new CompositeDisposable(
+      this.emitter,
       this.paneContainer.onDidActivatePane(() => {
         this.show()
         this.didActivate(this)
@@ -135,14 +137,12 @@ module.exports = class Dock {
   setState (newState) {
     const prevState = this.state
     const nextState = Object.assign({}, prevState, newState)
-    let didHide = false
 
     // Update the `shouldAnimate` state. This needs to be written to the DOM before updating the
     // class that changes the animated property. Normally we'd have to defer the class change a
     // frame to ensure the property is animated (or not) appropriately, however we luck out in this
     // case because the drag start always happens before the item is dragged into the toggle button.
     if (nextState.visible !== prevState.visible) {
-      didHide = !nextState.visible
       // Never animate toggling visiblity...
       nextState.shouldAnimate = false
     } else if (!nextState.visible && nextState.draggingItem && !prevState.draggingItem) {
@@ -152,7 +152,11 @@ module.exports = class Dock {
 
     this.state = nextState
     this.render(this.state)
-    if (didHide) this.didHide(this)
+
+    const {visible} = this.state
+    if (visible !== prevState.visible) {
+      this.emitter.emit('did-change-visible', visible)
+    }
   }
 
   render (state) {
@@ -379,11 +383,30 @@ module.exports = class Dock {
     })
   }
 
-  // PaneContainer-delegating methods
-
   /*
   Section: Event Subscription
   */
+
+  // Essential: Invoke the given callback when the visibility of the dock changes.
+  //
+  // * `callback` {Function} to be called when the visibility changes.
+  //   * `visible` {Boolean} Is the dock now visible?
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeVisible (callback) {
+    return this.emitter.on('did-change-visible', callback)
+  }
+
+  // Essential: Invoke the given callback with the current and all future visibilities of the dock.
+  //
+  // * `callback` {Function} to be called when the visibility changes.
+  //   * `visible` {Boolean} Is the dock now visible?
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeVisible (callback) {
+    callback(this.isVisible())
+    return this.onDidChangeVisible(callback)
+  }
 
   // Essential: Invoke the given callback with all current and future panes items
   // in the dock.

@@ -120,7 +120,9 @@ class AtomApplication
     Promise.all(windowsClosePromises).then(=> @disposable.dispose())
 
   launch: (options) ->
-    if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test or options.benchmark or options.benchmarkTest
+    if options.test or options.benchmark or options.benchmarkTest
+      @openWithOptions(options)
+    else if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0
       if @config.get('core.restorePreviousWindowsOnStart') is 'always'
         @loadState(_.deepClone(options))
       @openWithOptions(options)
@@ -267,10 +269,19 @@ class AtomApplication
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
     @disposable.add ipcHelpers.on app, 'before-quit', (event) =>
-      unless @quitting
+      resolveBeforeQuitPromise = null
+      @lastBeforeQuitPromise = new Promise((resolve) -> resolveBeforeQuitPromise = resolve)
+      if @quitting
+        resolveBeforeQuitPromise()
+      else
         event.preventDefault()
         @quitting = true
-        Promise.all(@windows.map((window) -> window.prepareToUnload())).then(-> app.quit())
+        windowUnloadPromises = @windows.map((window) -> window.prepareToUnload())
+        Promise.all(windowUnloadPromises).then((windowUnloadedResults) ->
+          didUnloadAllWindows = windowUnloadedResults.every((didUnloadWindow) -> didUnloadWindow)
+          app.quit() if didUnloadAllWindows
+          resolveBeforeQuitPromise()
+        )
 
     @disposable.add ipcHelpers.on app, 'will-quit', =>
       @killAllProcesses()

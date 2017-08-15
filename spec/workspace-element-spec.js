@@ -9,7 +9,13 @@ const {Disposable} = require('event-kit')
 const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
 describe('WorkspaceElement', () => {
-  afterEach(() => { temp.cleanupSync() })
+  afterEach(() => {
+    try {
+      temp.cleanupSync()
+    } catch (e) {
+      // Do nothing
+    }
+  })
 
   describe('when the workspace element is focused', () => {
     it('transfers focus to the active pane', () => {
