@@ -231,3 +231,75 @@ describe "ContextMenuManager", ->
             }
           ]
         ])
+
+  describe "::templateForEvent(target)", ->
+    [keymaps, item] = []
+
+    beforeEach ->
+      keymaps = atom.keymaps.add('source', {
+        '.child': {
+          'ctrl-a': 'test:my-command',
+          'shift-b': 'test:my-other-command'
+        }
+      })
+      item = {
+        label: 'My Command',
+        command: 'test:my-command',
+        submenu: [
+          {
+            label: 'My Other Command',
+            command: 'test:my-other-command',
+          }
+        ]
+      }
+      contextMenu.add('.parent': [item])
+
+    afterEach ->
+      keymaps.dispose()
+
+
+    it "adds Electron-style accelerators to items that have keybindings", ->
+      dispatchedEvent = {target: child}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual(
+        [
+          label: 'My Command',
+          command: 'test:my-command',
+          accelerator: 'Ctrl+A',
+          submenu: [
+            {
+              label: 'My Other Command',
+              command: 'test:my-other-command',
+              accelerator: 'Shift+B',
+            }
+          ]
+        ])
+
+    it "adds accelerators when a parent node has key bindings for a given command", ->
+      dispatchedEvent = {target: grandchild}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual(
+        [
+          label: 'My Command',
+          command: 'test:my-command',
+          accelerator: 'Ctrl+A',
+          submenu: [
+            {
+              label: 'My Other Command',
+              command: 'test:my-other-command',
+              accelerator: 'Shift+B',
+            }
+          ]
+        ])
+
+    it "does not add accelerators when a child node has key bindings for a given command", ->
+      dispatchedEvent = {target: parent}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual(
+        [
+          label: 'My Command',
+          command: 'test:my-command',
+          submenu: [
+            {
+              label: 'My Other Command',
+              command: 'test:my-other-command',
+            }
+          ]
+        ])

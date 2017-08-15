@@ -1,5 +1,6 @@
 {app, Menu} = require 'electron'
 _ = require 'underscore-plus'
+MenuHelpers = require '../menu-helpers'
 
 # Used to manage the global application menu.
 #
@@ -154,19 +155,7 @@ class ApplicationMenu
   #                       are Arrays containing the keystroke.
   #
   # Returns a String containing the keystroke in a format that can be interpreted
-  #   by atom shell to provide nice icons where available.
+  #   by Electron to provide nice icons where available.
   acceleratorForCommand: (command, keystrokesByCommand) ->
     firstKeystroke = keystrokesByCommand[command]?[0]
-    return null unless firstKeystroke
-
-    modifiers = firstKeystroke.split(/-(?=.)/)
-    key = modifiers.pop().toUpperCase().replace('+', 'Plus')
-
-    modifiers = modifiers.map (modifier) ->
-      modifier.replace(/shift/ig, "Shift")
-              .replace(/cmd/ig, "Command")
-              .replace(/ctrl/ig, "Ctrl")
-              .replace(/alt/ig, "Alt")
-
-    keys = modifiers.concat([key])
-    keys.join("+")
+    MenuHelpers.acceleratorForKeystroke(firstKeystroke)
