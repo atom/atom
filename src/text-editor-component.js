@@ -1496,8 +1496,14 @@ class TextEditorComponent {
     const scrollSensitivity = this.props.model.getScrollSensitivity() / 100
 
     let {deltaX, deltaY} = event
-    deltaX = deltaX * scrollSensitivity
-    deltaY = deltaY * scrollSensitivity
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      deltaX = deltaX * scrollSensitivity
+      deltaY = 0
+    } else {
+      deltaX = 0
+      deltaY = deltaY * scrollSensitivity
+    }
 
     if (this.getPlatform() !== 'darwin' && event.shiftKey) {
       let temp = deltaX
@@ -1505,11 +1511,10 @@ class TextEditorComponent {
       deltaY = temp
     }
 
-    const scrollPositionChanged =
-      this.setScrollLeft(this.getScrollLeft() + deltaX) ||
-      this.setScrollTop(this.getScrollTop() + deltaY)
+    const scrollLeftChanged = deltaX !== 0 && this.setScrollLeft(this.getScrollLeft() + deltaX)
+    const scrollTopChanged = deltaY !== 0 && this.setScrollTop(this.getScrollTop() + deltaY)
 
-    if (scrollPositionChanged) this.updateSync()
+    if (scrollLeftChanged || scrollTopChanged) this.updateSync()
   }
 
   didResize () {
