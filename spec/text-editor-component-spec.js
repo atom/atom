@@ -486,8 +486,8 @@ describe('TextEditorComponent', () => {
       verifyCursorPosition(component, element.querySelector('.cursor'), 0, 4)
     })
 
-    it('positions cursors correctly when the lines container has a margin and/or is padded', async () => {
-      const {component, element, editor} = buildComponent()
+    it('positions cursors and placeholder text correctly when the lines container has a margin and/or is padded', async () => {
+      const {component, element, editor} = buildComponent({placeholderText: 'testing'})
 
       component.refs.lineTiles.style.marginLeft = '10px'
       TextEditor.didUpdateStyles()
@@ -510,6 +510,13 @@ describe('TextEditorComponent', () => {
       TextEditor.didUpdateStyles()
       await component.getNextUpdatePromise()
       verifyCursorPosition(component, element.querySelector('.cursor'), 2, 2)
+
+      editor.setText('')
+      await component.getNextUpdatePromise()
+
+      const placeholderTextLeft = element.querySelector('.placeholder-text').getBoundingClientRect().left
+      const linesLeft = component.refs.lineTiles.getBoundingClientRect().left
+      expect(placeholderTextLeft).toBe(linesLeft)
     })
 
     it('places the hidden input element at the location of the last cursor if it is visible', async () => {
