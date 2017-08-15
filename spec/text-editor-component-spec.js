@@ -3610,6 +3610,23 @@ describe('TextEditorComponent', () => {
       element.style.display = 'none'
       await component.getNextUpdatePromise()
     })
+
+    it('does not throw an exception when the editor is soft-wrapped and changing the font size changes also the longest screen line', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
+      editor.setText(
+        'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do\n' +
+        'eiusmod tempor incididunt ut labore et dolore magna' +
+        'aliqua. Ut enim ad minim veniam, quis nostrud exercitation'
+      )
+      editor.setSoftWrapped(true)
+      await setEditorHeightInLines(component, 2)
+      await setEditorWidthInCharacters(component, 56)
+      await setScrollTop(component, 3 * component.getLineHeight())
+
+      element.style.fontSize = '20px'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+    })
   })
 
   describe('synchronous updates', () => {
