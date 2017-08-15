@@ -1,21 +1,21 @@
 DecorationManager = require '../src/decoration-manager'
+TextEditor = require '../src/text-editor'
 
 describe "DecorationManager", ->
-  [decorationManager, buffer, displayLayer, markerLayer1, markerLayer2] = []
+  [decorationManager, buffer, editor, markerLayer1, markerLayer2] = []
 
   beforeEach ->
     buffer = atom.project.bufferForPathSync('sample.js')
-    displayLayer = buffer.addDisplayLayer()
-    markerLayer1 = displayLayer.addMarkerLayer()
-    markerLayer2 = displayLayer.addMarkerLayer()
-    decorationManager = new DecorationManager(displayLayer)
+    editor = new TextEditor({buffer})
+    markerLayer1 = editor.addMarkerLayer()
+    markerLayer2 = editor.addMarkerLayer()
+    decorationManager = new DecorationManager(editor)
 
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
 
   afterEach ->
-    decorationManager.destroy()
-    buffer.release()
+    buffer.destroy()
 
   describe "decorations", ->
     [layer1Marker, layer2Marker, layer1MarkerDecoration, layer2MarkerDecoration, decorationProperties] = []
@@ -29,7 +29,6 @@ describe "DecorationManager", ->
     it "can add decorations associated with markers and remove them", ->
       expect(layer1MarkerDecoration).toBeDefined()
       expect(layer1MarkerDecoration.getProperties()).toBe decorationProperties
-      expect(decorationManager.decorationForId(layer1MarkerDecoration.id)).toBe layer1MarkerDecoration
       expect(decorationManager.decorationsForScreenRowRange(2, 3)).toEqual {
         "#{layer1Marker.id}": [layer1MarkerDecoration],
         "#{layer2Marker.id}": [layer2MarkerDecoration]
@@ -37,15 +36,12 @@ describe "DecorationManager", ->
 
       layer1MarkerDecoration.destroy()
       expect(decorationManager.decorationsForScreenRowRange(2, 3)[layer1Marker.id]).not.toBeDefined()
-      expect(decorationManager.decorationForId(layer1MarkerDecoration.id)).not.toBeDefined()
       layer2MarkerDecoration.destroy()
       expect(decorationManager.decorationsForScreenRowRange(2, 3)[layer2Marker.id]).not.toBeDefined()
-      expect(decorationManager.decorationForId(layer2MarkerDecoration.id)).not.toBeDefined()
 
     it "will not fail if the decoration is removed twice", ->
       layer1MarkerDecoration.destroy()
       layer1MarkerDecoration.destroy()
-      expect(decorationManager.decorationForId(layer1MarkerDecoration.id)).not.toBeDefined()
 
     it "does not allow destroyed markers to be decorated", ->
       layer1Marker.destroy()
@@ -55,7 +51,7 @@ describe "DecorationManager", ->
       expect(decorationManager.getOverlayDecorations()).toEqual []
 
     it "does not allow destroyed marker layers to be decorated", ->
-      layer = displayLayer.addMarkerLayer()
+      layer = editor.addMarkerLayer()
       layer.destroy()
       expect(->
         decorationManager.decorateMarkerLayer(layer, {type: 'highlight'})

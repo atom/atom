@@ -27,7 +27,7 @@ class PaneElement extends HTMLElement
 
   subscribeToDOMEvents: ->
     handleFocus = (event) =>
-      @model.focus() unless @isActivating or @contains(event.relatedTarget)
+      @model.focus() unless @isActivating or @model.isDestroyed() or @contains(event.relatedTarget)
       if event.target is this and view = @getActiveView()
         view.focus()
         event.stopPropagation()
@@ -67,7 +67,7 @@ class PaneElement extends HTMLElement
 
   activated: ->
     @isActivating = true
-    @focus()
+    @focus() unless @hasFocus() # Don't steal focus from children.
     @isActivating = false
 
   activeStatusChanged: (active) ->

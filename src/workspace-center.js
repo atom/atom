@@ -3,6 +3,7 @@
 const TextEditor = require('./text-editor')
 const PaneContainer = require('./pane-container')
 
+// Essential: Represents the workspace at the center of the entire window.
 module.exports = class WorkspaceCenter {
   constructor (params) {
     params.location = 'center'
@@ -224,6 +225,25 @@ module.exports = class WorkspaceCenter {
   // Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
   onDidDestroyPaneItem (callback) {
     return this.paneContainer.onDidDestroyPaneItem(callback)
+  }
+
+  // Extended: Invoke the given callback when a text editor is added to the
+  // workspace center.
+  //
+  // * `callback` {Function} to be called when panes are added.
+  //   * `event` {Object} with the following keys:
+  //     * `textEditor` {TextEditor} that was added.
+  //     * `pane` {Pane} containing the added text editor.
+  //     * `index` {Number} indicating the index of the added text editor in its
+  //        pane.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidAddTextEditor (callback) {
+    return this.onDidAddPaneItem(({item, pane, index}) => {
+      if (item instanceof TextEditor) {
+        callback({textEditor: item, pane, index})
+      }
+    })
   }
 
   /*

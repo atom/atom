@@ -21,7 +21,8 @@ describe "CommandInstaller on #darwin", ->
     spyOn(CommandInstaller::, 'getInstallDirectory').andReturn(installationPath)
 
   afterEach ->
-    temp.cleanupSync()
+    try
+      temp.cleanupSync()
 
   it "shows an error dialog when installing commands interactively fails", ->
     appDelegate = jasmine.createSpyObj("appDelegate", ["confirm"])

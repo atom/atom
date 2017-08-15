@@ -73,6 +73,8 @@ class PackageManager
     @loadedPackages = {}
     @preloadedPackages = {}
     @packageStates = {}
+    @packagesCache = packageJSON._atomPackages ? {}
+    @packageDependencies = packageJSON.packageDependencies ? {}
     @triggeredActivationHooks.clear()
 
   ###
@@ -426,7 +428,7 @@ class PackageManager
       pack
     else if packagePath = @resolvePackagePath(nameOrPath)
       name = path.basename(nameOrPath)
-      @loadAvailablePackage({name, path: packagePath, isBundled: @isBundledPackage(name)})
+      @loadAvailablePackage({name, path: packagePath, isBundled: @isBundledPackagePath(packagePath)})
     else
       console.warn "Could not resolve '#{nameOrPath}' to a package path"
       null

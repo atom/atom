@@ -16,12 +16,12 @@ module.exports = function () {
 
 function getPathsToTranspile () {
   let paths = []
-  paths = paths.concat(glob.sync(path.join(CONFIG.intermediateAppPath, 'src', '**', '*.coffee')))
-  paths = paths.concat(glob.sync(path.join(CONFIG.intermediateAppPath, 'spec', '*.coffee')))
+  paths = paths.concat(glob.sync(path.join(CONFIG.intermediateAppPath, 'src', '**', '*.coffee'), {nodir: true}))
+  paths = paths.concat(glob.sync(path.join(CONFIG.intermediateAppPath, 'spec', '*.coffee'), {nodir: true}))
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
     paths = paths.concat(glob.sync(
       path.join(CONFIG.intermediateAppPath, 'node_modules', packageName, '**', '*.coffee'),
-      {ignore: path.join(CONFIG.intermediateAppPath, 'node_modules', packageName, 'spec', '**', '*.coffee')}
+      {ignore: path.join(CONFIG.intermediateAppPath, 'node_modules', packageName, 'spec', '**', '*.coffee'), nodir: true}
     ))
   }
   return paths

@@ -21,8 +21,8 @@ formatStackTrace = (spec, message='', stackTrace) ->
   lines.shift() if message.trim() is errorMatch?[1]?.trim()
 
   for line, index in lines
-    # Remove prefix of lines matching: at .<anonymous> (path:1:2)
-    prefixMatch = line.match(/at \.<anonymous> \(([^)]+)\)/)
+    # Remove prefix of lines matching: at jasmine.Spec.<anonymous> (path:1:2)
+    prefixMatch = line.match(/at jasmine\.Spec\.<anonymous> \(([^)]+)\)/)
     line = "at #{prefixMatch[1]}" if prefixMatch
 
     # Relativize locations to spec directory

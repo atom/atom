@@ -31,6 +31,9 @@ while getopts ":wtfvh-:" opt; do
         foreground|benchmark|benchmark-test|test)
           EXPECT_OUTPUT=1
           ;;
+        enable-electron-logging)
+          export ELECTRON_ENABLE_LOGGING=1
+          ;;
       esac
       ;;
     w)
@@ -48,10 +51,6 @@ done
 
 if [ $REDIRECT_STDERR ]; then
   exec 2> /dev/null
-fi
-
-if [ $EXPECT_OUTPUT ]; then
-  export ELECTRON_ENABLE_LOGGING=1
 fi
 
 if [ $OS == 'Mac' ]; then

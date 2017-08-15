@@ -6,7 +6,7 @@ _ = require 'underscore-plus'
 {deprecate} = require 'grim'
 {CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 fs = require 'fs-plus'
-{mapSourcePosition} = require 'source-map-support'
+{mapSourcePosition} = require '@atom/source-map-support'
 Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StateStore = require './state-store'
@@ -135,6 +135,7 @@ class AtomEnvironment extends Model
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
     @views = new ViewRegistry(this)
+    TextEditor.setScheduler(@views)
     @notifications = new NotificationManager
     @updateProcessEnv ?= updateProcessEnv # For testing
 
@@ -208,8 +209,6 @@ class AtomEnvironment extends Model
       @getStorageFolder().clear()
       @stateStore.clear()
 
-    @views.initialize()
-
     ConfigSchema.projectHome = {
       type: 'string',
       default: path.join(fs.getHomeDirectory(), 'github'),
@@ -251,9 +250,13 @@ class AtomEnvironment extends Model
     @attachSaveStateListeners()
     @windowEventHandler.initialize(@window, @document)
 
+    didChangeStyles = @didChangeStyles.bind(this)
+    @disposables.add(@styles.onDidAddStyleElement(didChangeStyles))
+    @disposables.add(@styles.onDidUpdateStyleElement(didChangeStyles))
+    @disposables.add(@styles.onDidRemoveStyleElement(didChangeStyles))
+
     @observeAutoHideMenuBar()
 
-    @history.initialize(@window.localStorage)
     @disposables.add @applicationDelegate.onDidChangeHistoryManager(=> @history.loadState())
 
   preloadPackages: ->
@@ -261,7 +264,7 @@ class AtomEnvironment extends Model
 
   attachSaveStateListeners: ->
     saveState = _.debounce((=>
-      window.requestIdleCallback => @saveState({isUnloading: false}) unless @unloaded
+      @window.requestIdleCallback => @saveState({isUnloading: false}) unless @unloaded
     ), @saveStateDebounceInterval)
     @document.addEventListener('mousedown', saveState, true)
     @document.addEventListener('keydown', saveState, true)
@@ -677,11 +680,8 @@ class AtomEnvironment extends Model
   # Call this method when establishing a real application window.
   startEditorWindow: ->
     @unloaded = false
-    updateProcessEnvPromise = @updateProcessEnv(@getLoadSettings().env)
-    updateProcessEnvPromise.then =>
-      @shellEnvironmentLoaded = true
-      @emitter.emit('loaded-shell-environment')
-      @packages.triggerActivationHook('core:loaded-shell-environment')
+
+    updateProcessEnvPromise = @updateProcessEnvAndTriggerHooks()
 
     loadStatePromise = @loadState().then (state) =>
       @windowDimensions = state?.windowDimensions
@@ -694,9 +694,14 @@ class AtomEnvironment extends Model
         @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
         @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
         @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
-        @disposables.add @applicationDelegate.onSaveWindowStateRequest =>
-          callback = => @applicationDelegate.didSaveWindowState()
-          @saveState({isUnloading: true}).catch(callback).then(callback)
+        @disposables.add @applicationDelegate.onDidRequestUnload =>
+          @saveState({isUnloading: true})
+            .catch(console.error)
+            .then =>
+              @workspace?.confirmClose({
+                windowCloseRequested: true,
+                projectHasPaths: @project.getPaths().length > 0
+              })
 
         @listenForUpdates()
 
@@ -705,30 +710,30 @@ class AtomEnvironment extends Model
         @packages.loadPackages()
 
         startTime = Date.now()
-        @deserialize(state) if state?
-        @deserializeTimings.atom = Date.now() - startTime
+        @deserialize(state).then =>
+          @deserializeTimings.atom = Date.now() - startTime
 
-        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom'
-          @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
-          @document.body.classList.add('custom-title-bar')
-        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom-inset'
-          @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
-          @document.body.classList.add('custom-inset-title-bar')
-        if process.platform is 'darwin' and @config.get('core.titleBar') is 'hidden'
-          @document.body.classList.add('hidden-title-bar')
+          if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom'
+            @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+            @document.body.classList.add('custom-title-bar')
+          if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom-inset'
+            @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+            @document.body.classList.add('custom-inset-title-bar')
+          if process.platform is 'darwin' and @config.get('core.titleBar') is 'hidden'
+            @document.body.classList.add('hidden-title-bar')
 
-        @document.body.appendChild(@workspace.getElement())
-        @backgroundStylesheet?.remove()
+          @document.body.appendChild(@workspace.getElement())
+          @backgroundStylesheet?.remove()
 
-        @watchProjectPaths()
+          @watchProjectPaths()
 
-        @packages.activate()
-        @keymaps.loadUserKeymap()
-        @requireUserInitScript() unless @getLoadSettings().safeMode
+          @packages.activate()
+          @keymaps.loadUserKeymap()
+          @requireUserInitScript() unless @getLoadSettings().safeMode
 
-        @menu.update()
+          @menu.update()
 
-        @openInitialEmptyEditorIfNecessary()
+          @openInitialEmptyEditorIfNecessary()
 
     loadHistoryPromise = @history.loadState().then =>
       @reopenProjectMenuManager = new ReopenProjectMenuManager({
@@ -799,6 +804,17 @@ class AtomEnvironment extends Model
   uninstallWindowEventHandler: ->
     @windowEventHandler?.unsubscribe()
     @windowEventHandler = null
+
+  didChangeStyles: (styleElement) ->
+    TextEditor.didUpdateStyles()
+    if styleElement.textContent.indexOf('scrollbar') >= 0
+      TextEditor.didUpdateScrollbarStyles()
+
+  updateProcessEnvAndTriggerHooks: ->
+    @updateProcessEnv(@getLoadSettings().env).then =>
+      @shellEnvironmentLoaded = true
+      @emitter.emit('loaded-shell-environment')
+      @packages.triggerActivationHook('core:loaded-shell-environment')
 
   ###
   Section: Messaging the User
@@ -901,13 +917,17 @@ class AtomEnvironment extends Model
         @project.addPath(folder) for folder in projectPaths
 
   attemptRestoreProjectStateForPaths: (state, projectPaths, filesToOpen = []) ->
-    paneItemIsEmptyUnnamedTextEditor = (item) ->
-      return false unless item instanceof TextEditor
-      return false if item.getPath() or item.isModified()
+    center = @workspace.getCenter()
+    windowIsUnused = =>
+      for container in @workspace.getPaneContainers()
+        for item in container.getPaneItems()
+          if item instanceof TextEditor
+            return false if item.getPath() or item.isModified()
+          else
+            return false if container is center
       true
 
-    windowIsUnused = @workspace.getPaneItems().every(paneItemIsEmptyUnnamedTextEditor)
-    if windowIsUnused
+    if windowIsUnused()
       @restoreStateIntoThisEnvironment(state)
       Promise.all (@workspace.open(file) for file in filesToOpen)
     else
@@ -918,8 +938,8 @@ class AtomEnvironment extends Model
           "Would you like to add the #{nouns} to this window, permanently discarding the saved state, " +
           "or open the #{nouns} in a new window, restoring the saved state?"
         buttons: [
-          'Open in new window and recover state'
-          'Add to this window and discard state'
+          '&Open in new window and recover state'
+          '&Add to this window and discard state'
         ]
       if btn is 0
         @open
@@ -971,6 +991,8 @@ class AtomEnvironment extends Model
       Promise.resolve(null)
 
   deserialize: (state) ->
+    return Promise.resolve() unless state?
+
     if grammarOverridesByPath = state.grammars?.grammarOverridesByPath
       @grammars.grammarOverridesByPath = grammarOverridesByPath
 
@@ -979,14 +1001,19 @@ class AtomEnvironment extends Model
     @packages.packageStates = state.packageStates ? {}
 
     startTime = Date.now()
-    @project.deserialize(state.project, @deserializers) if state.project?
-    @deserializeTimings.project = Date.now() - startTime
+    if state.project?
+      projectPromise = @project.deserialize(state.project, @deserializers)
+    else
+      projectPromise = Promise.resolve()
 
-    @textEditors.deserialize(state.textEditors) if state.textEditors
+    projectPromise.then =>
+      @deserializeTimings.project = Date.now() - startTime
 
-    startTime = Date.now()
-    @workspace.deserialize(state.workspace, @deserializers) if state.workspace?
-    @deserializeTimings.workspace = Date.now() - startTime
+      @textEditors.deserialize(state.textEditors) if state.textEditors
+
+      startTime = Date.now()
+      @workspace.deserialize(state.workspace, @deserializers) if state.workspace?
+      @deserializeTimings.workspace = Date.now() - startTime
 
   getStateKey: (paths) ->
     if paths?.length > 0

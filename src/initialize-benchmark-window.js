@@ -54,6 +54,7 @@ export default async function () {
 
     const clipboard = new Clipboard()
     TextEditor.setClipboard(clipboard)
+    TextEditor.viewForItem = (item) => atom.views.getView(item)
 
     const applicationDelegate = new ApplicationDelegate()
     const environmentParams = {

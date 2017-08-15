@@ -7,6 +7,9 @@ TokenIterator = require './token-iterator'
 ScopeDescriptor = require './scope-descriptor'
 TokenizedBufferIterator = require './tokenized-buffer-iterator'
 NullGrammar = require './null-grammar'
+{toFirstMateScopeId} = require './first-mate-helpers'
+
+prefixedScopes = new Map()
 
 module.exports =
 class TokenizedBuffer extends Model
@@ -45,6 +48,19 @@ class TokenizedBuffer extends Model
 
   buildIterator: ->
     new TokenizedBufferIterator(this)
+
+  classNameForScopeId: (id) ->
+    scope = @grammar.scopeForId(toFirstMateScopeId(id))
+    if scope
+      prefixedScope = prefixedScopes.get(scope)
+      if prefixedScope
+        prefixedScope
+      else
+        prefixedScope = "syntax--#{scope.replace(/\./g, ' syntax--')}"
+        prefixedScopes.set(scope, prefixedScope)
+        prefixedScope
+    else
+      null
 
   getInvalidatedRanges: ->
     []
@@ -252,7 +268,7 @@ class TokenizedBuffer extends Model
   buildTokenizedLineForRowWithText: (row, text, ruleStack = @stackForRow(row - 1), openScopes = @openScopesForRow(row)) ->
     lineEnding = @buffer.lineEndingForRow(row)
     {tags, ruleStack} = @grammar.tokenizeLine(text, ruleStack, row is 0, false)
-    new TokenizedLine({openScopes, text, tags, ruleStack, lineEnding, @tokenIterator})
+    new TokenizedLine({openScopes, text, tags, ruleStack, lineEnding, @tokenIterator, @grammar})
 
   tokenizedLineForRow: (bufferRow) ->
     if 0 <= bufferRow <= @buffer.getLastRow()
@@ -262,7 +278,7 @@ class TokenizedBuffer extends Model
         text = @buffer.lineForRow(bufferRow)
         lineEnding = @buffer.lineEndingForRow(bufferRow)
         tags = [@grammar.startIdForScope(@grammar.scopeName), text.length, @grammar.endIdForScope(@grammar.scopeName)]
-        @tokenizedLines[bufferRow] = new TokenizedLine({openScopes: [], text, tags, lineEnding, @tokenIterator})
+        @tokenizedLines[bufferRow] = new TokenizedLine({openScopes: [], text, tags, lineEnding, @tokenIterator, @grammar})
 
   tokenizedLinesForRows: (startRow, endRow) ->
     for row in [startRow..endRow] by 1
@@ -328,17 +344,16 @@ class TokenizedBuffer extends Model
       @indentLevelForLine(line)
 
   indentLevelForLine: (line) ->
-    if match = line.match(/^[\t ]+/)
-      indentLength = 0
-      for character in match[0]
-        if character is '\t'
-          indentLength += @getTabLength() - (indentLength % @getTabLength())
-        else
-          indentLength++
+    indentLength = 0
+    for char in line
+      if char is '\t'
+        indentLength += @getTabLength() - (indentLength % @getTabLength())
+      else if char is ' '
+        indentLength++
+      else
+        break
 
-      indentLength / @getTabLength()
-    else
-      0
+    indentLength / @getTabLength()
 
   scopeDescriptorForPosition: (position) ->
     {row, column} = @buffer.clipPosition(Point.fromObject(position))

@@ -1,7 +1,7 @@
 const {app} = require('electron')
 const nslog = require('nslog')
 const path = require('path')
-const temp = require('temp')
+const temp = require('temp').track()
 const parseCommandLine = require('./parse-command-line')
 const startCrashReporter = require('../crash-reporter-start')
 const atomPaths = require('../atom-paths')
@@ -21,6 +21,8 @@ module.exports = function start (resourcePath, startTime) {
 
   const previousConsoleLog = console.log
   console.log = nslog
+
+  app.commandLine.appendSwitch('enable-experimental-web-platform-features')
 
   const args = parseCommandLine(process.argv.slice(1))
   atomPaths.setAtomHome(app.getPath('home'))
