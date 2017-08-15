@@ -220,13 +220,13 @@ describe('TextEditorComponent', () => {
     it('keeps the number of tiles stable when the visible line count changes during vertical scrolling', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
       await setEditorHeightInLines(component, 5.5)
-      expect(component.refs.lineTiles.children.length).toBe(3)
+      expect(component.refs.lineTiles.children.length).toBe(3 + 1) // account for cursors container
 
       await setScrollTop(component, 0.5 * component.getLineHeight())
-      expect(component.refs.lineTiles.children.length).toBe(3)
+      expect(component.refs.lineTiles.children.length).toBe(3 + 1) // account for cursors container
 
       await setScrollTop(component, 1 * component.getLineHeight())
-      expect(component.refs.lineTiles.children.length).toBe(3)
+      expect(component.refs.lineTiles.children.length).toBe(3 + 1) // account for cursors container
     })
 
     it('recycles tiles on resize', async () => {
@@ -479,12 +479,37 @@ describe('TextEditorComponent', () => {
 
       editor.setCursorScreenPosition([0, 3])
       await component.getNextUpdatePromise()
-      const cursor = element.querySelector('.cursor')
       verifyCursorPosition(component, element.querySelector('.cursor'), 0, 3)
 
       editor.setCursorScreenPosition([0, 4])
       await component.getNextUpdatePromise()
       verifyCursorPosition(component, element.querySelector('.cursor'), 0, 4)
+    })
+
+    it('positions cursors correctly when the lines container has a margin and/or is padded', async () => {
+      const {component, element, editor} = buildComponent()
+
+      component.refs.lineTiles.style.marginLeft = '10px'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+
+      editor.setCursorBufferPosition([0, 3])
+      await component.getNextUpdatePromise()
+      verifyCursorPosition(component, element.querySelector('.cursor'), 0, 3)
+
+      editor.setCursorScreenPosition([1, 0])
+      await component.getNextUpdatePromise()
+      verifyCursorPosition(component, element.querySelector('.cursor'), 1, 0)
+
+      component.refs.lineTiles.style.paddingTop = '5px'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      verifyCursorPosition(component, element.querySelector('.cursor'), 1, 0)
+
+      editor.setCursorScreenPosition([2, 2])
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+      verifyCursorPosition(component, element.querySelector('.cursor'), 2, 2)
     })
 
     it('places the hidden input element at the location of the last cursor if it is visible', async () => {

@@ -549,7 +549,6 @@ class TextEditorComponent {
       style.willChange = 'transform'
       style.transform = `translate(${-this.getScrollLeft()}px, ${-this.getScrollTop()}px)`
       children = [
-        this.renderCursorsAndInput(),
         this.renderLineTiles(),
         this.renderBlockDecorationMeasurementArea(),
         this.renderCharacterMeasurementLine(),
@@ -557,7 +556,7 @@ class TextEditorComponent {
       ]
     } else {
       children = [
-        this.renderCursorsAndInput(),
+        this.renderLineTiles(),
         this.renderBlockDecorationMeasurementArea(),
         this.renderCharacterMeasurementLine()
       ]
@@ -574,69 +573,72 @@ class TextEditorComponent {
   }
 
   renderLineTiles () {
-    const {lineNodesByScreenLineId, textNodesByScreenLineId} = this
-
-    const startRow = this.getRenderedStartRow()
-    const endRow = this.getRenderedEndRow()
-    const rowsPerTile = this.getRowsPerTile()
-    const tileWidth = this.getScrollWidth()
-
-    const displayLayer = this.props.model.displayLayer
-    const tileNodes = new Array(this.renderedTileStartRows.length)
-
-    for (let i = 0; i < this.renderedTileStartRows.length; i++) {
-      const tileStartRow = this.renderedTileStartRows[i]
-      const tileEndRow = Math.min(endRow, tileStartRow + rowsPerTile)
-      const tileHeight = this.pixelPositionBeforeBlocksForRow(tileEndRow) - this.pixelPositionBeforeBlocksForRow(tileStartRow)
-
-      tileNodes[i] = $(LinesTileComponent, {
-        key: this.idsByTileStartRow.get(tileStartRow),
-        measuredContent: this.measuredContent,
-        height: tileHeight,
-        width: tileWidth,
-        top: this.pixelPositionBeforeBlocksForRow(tileStartRow),
-        lineHeight: this.getLineHeight(),
-        renderedStartRow: startRow,
-        tileStartRow,
-        tileEndRow,
-        screenLines: this.renderedScreenLines.slice(tileStartRow - startRow, tileEndRow - startRow),
-        lineDecorations: this.decorationsToRender.lines.slice(tileStartRow - startRow, tileEndRow - startRow),
-        textDecorations: this.decorationsToRender.text.slice(tileStartRow - startRow, tileEndRow - startRow),
-        blockDecorations: this.decorationsToRender.blocks.get(tileStartRow),
-        highlightDecorations: this.decorationsToRender.highlights.get(tileStartRow),
-        displayLayer,
-        nodePool: this.lineNodesPool,
-        lineNodesByScreenLineId,
-        textNodesByScreenLineId
-      })
+    const children = []
+    const style = {
+      position: 'absolute',
+      contain: 'strict',
+      overflow: 'hidden'
     }
 
-    this.extraRenderedScreenLines.forEach((screenLine, screenRow) => {
-      if (screenRow < startRow || screenRow >= endRow) {
-        tileNodes.push($(LineComponent, {
-          key: 'extra-' + screenLine.id,
-          screenLine,
-          screenRow,
-          displayLayer,
+    if (this.hasInitialMeasurements) {
+      const {lineNodesByScreenLineId, textNodesByScreenLineId} = this
+
+      const startRow = this.getRenderedStartRow()
+      const endRow = this.getRenderedEndRow()
+      const rowsPerTile = this.getRowsPerTile()
+      const tileWidth = this.getScrollWidth()
+
+      for (let i = 0; i < this.renderedTileStartRows.length; i++) {
+        const tileStartRow = this.renderedTileStartRows[i]
+        const tileEndRow = Math.min(endRow, tileStartRow + rowsPerTile)
+        const tileHeight = this.pixelPositionBeforeBlocksForRow(tileEndRow) - this.pixelPositionBeforeBlocksForRow(tileStartRow)
+
+        children.push($(LinesTileComponent, {
+          key: this.idsByTileStartRow.get(tileStartRow),
+          measuredContent: this.measuredContent,
+          height: tileHeight,
+          width: tileWidth,
+          top: this.pixelPositionBeforeBlocksForRow(tileStartRow),
+          lineHeight: this.getLineHeight(),
+          renderedStartRow: startRow,
+          tileStartRow,
+          tileEndRow,
+          screenLines: this.renderedScreenLines.slice(tileStartRow - startRow, tileEndRow - startRow),
+          lineDecorations: this.decorationsToRender.lines.slice(tileStartRow - startRow, tileEndRow - startRow),
+          textDecorations: this.decorationsToRender.text.slice(tileStartRow - startRow, tileEndRow - startRow),
+          blockDecorations: this.decorationsToRender.blocks.get(tileStartRow),
+          highlightDecorations: this.decorationsToRender.highlights.get(tileStartRow),
+          displayLayer: this.props.model.displayLayer,
           nodePool: this.lineNodesPool,
           lineNodesByScreenLineId,
           textNodesByScreenLineId
         }))
       }
-    })
 
-    return $.div({
-      key: 'lineTiles',
-      ref: 'lineTiles',
-      className: 'lines',
-      style: {
-        position: 'absolute',
-        contain: 'strict',
-        overflow: 'hidden',
-        width: this.getScrollWidth() + 'px',
-        height: this.getScrollHeight() + 'px'
-      }
-    }, tileNodes)
+      this.extraRenderedScreenLines.forEach((screenLine, screenRow) => {
+        if (screenRow < startRow || screenRow >= endRow) {
+          children.push($(LineComponent, {
+            key: 'extra-' + screenLine.id,
+            screenLine,
+            screenRow,
+            displayLayer: this.props.model.displayLayer,
+            nodePool: this.lineNodesPool,
+            lineNodesByScreenLineId,
+            textNodesByScreenLineId
+          }))
+        }
+      })
+
+      style.width = this.getScrollWidth() + 'px'
+      style.height = this.getScrollHeight() + 'px'
+    }
+
+    children.push(this.renderCursorsAndInput())
+
+    return $.div(
+      {key: 'lineTiles', ref: 'lineTiles', className: 'lines', style},
+      children
+    )
   }
 
   renderCursorsAndInput () {
