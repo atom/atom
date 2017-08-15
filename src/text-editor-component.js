@@ -1486,7 +1486,7 @@ class TextEditorComponent {
   }
 
   didMouseWheel (event) {
-    const scrollSensitivity = this.props.mouseWheelScrollSensitivity || 0.8
+    const scrollSensitivity = this.props.model.getScrollSensitivity() / 100
 
     let {deltaX, deltaY} = event
     deltaX = deltaX * scrollSensitivity
