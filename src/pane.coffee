@@ -621,12 +621,15 @@ class Pane
   destroyItem: (item, force) ->
     index = @items.indexOf(item)
     if index isnt -1
-      return false if not force and @getContainer()?.getLocation() isnt 'center' and item.isPermanentDockItem?()
+      if not force and @getContainer()?.getLocation() isnt 'center' and item.isPermanentDockItem?()
+        return Promise.resolve(false)
+
       @emitter.emit 'will-destroy-item', {item, index}
       @container?.willDestroyPaneItem({item, index, pane: this})
       if force or not item?.shouldPromptToSave?()
         @removeItem(item, false)
         item.destroy?()
+        Promise.resolve(true)
       else
         @promptToSaveItem(item).then (result) =>
           if result
