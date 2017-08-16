@@ -618,6 +618,7 @@ class TextEditorComponent {
         if (screenRow < startRow || screenRow >= endRow) {
           children.push($(LineComponent, {
             key: 'extra-' + screenLine.id,
+            hidden: true,
             screenLine,
             screenRow,
             displayLayer: this.props.model.displayLayer,
@@ -3863,10 +3864,15 @@ class LineComponent {
   }
 
   appendContents () {
-    const {displayLayer, nodePool, screenLine, textDecorations, textNodesByScreenLineId} = this.props
+    const {displayLayer, nodePool, hidden, screenLine, textDecorations, textNodesByScreenLineId} = this.props
 
     const textNodes = []
     textNodesByScreenLineId.set(screenLine.id, textNodes)
+
+    if (hidden) {
+      this.element.style.position = 'absolute'
+      this.element.style.visibility = 'hidden'
+    }
 
     const {lineText, tags} = screenLine
     let openScopeNode = nodePool.getElement('SPAN', null, null)
