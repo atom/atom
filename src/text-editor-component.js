@@ -1887,7 +1887,7 @@ class TextEditorComponent {
     }
 
     window.addEventListener('mousemove', didMouseMove)
-    window.addEventListener('mouseup', didMouseUp)
+    window.addEventListener('mouseup', didMouseUp, {capture: true})
   }
 
   autoscrollOnMouseDrag ({clientX, clientY}, verticalOnly = false) {
