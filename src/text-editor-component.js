@@ -32,6 +32,10 @@ class TextEditorComponent {
     etch.setScheduler(scheduler)
   }
 
+  static getScheduler () {
+    return etch.getScheduler()
+  }
+
   static didUpdateStyles () {
     if (this.attachedComponents) {
       this.attachedComponents.forEach((component) => {
@@ -389,6 +393,7 @@ class TextEditorComponent {
       this.pendingAutoscroll = null
     }
 
+    this.linesToMeasure.clear()
     this.measuredContent = true
   }
 
@@ -849,7 +854,6 @@ class TextEditorComponent {
         this.extraRenderedScreenLines.set(row, screenLine)
       }
     })
-    this.linesToMeasure.clear()
   }
 
   queryLineNumbersToRender () {
