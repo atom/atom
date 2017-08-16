@@ -244,6 +244,7 @@ class TextEditorComponent {
 
       this.measureCharacterDimensions()
       this.measureGutterDimensions()
+      this.queryLongestLine()
 
       if (this.getLineHeight() !== originalLineHeight) {
         this.setScrollTopRow(scrollTopRow)
@@ -357,6 +358,7 @@ class TextEditorComponent {
     this.populateVisibleRowRange()
     this.populateVisibleTiles()
     this.queryScreenLinesToRender()
+    this.queryLongestLine()
     this.queryLineNumbersToRender()
     this.queryGuttersToRender()
     this.queryDecorationsToRender()
@@ -832,10 +834,14 @@ class TextEditorComponent {
       this.getRenderedStartRow(),
       this.getRenderedEndRow()
     )
+  }
+
+  queryLongestLine () {
+    const {model} = this.props
 
     const longestLineRow = model.getApproximateLongestScreenRow()
     const longestLine = model.screenLineForScreenRow(longestLineRow)
-    if (longestLine !== this.previousLongestLine) {
+    if (longestLine !== this.previousLongestLine || this.remeasureCharacterDimensions) {
       this.requestLineToMeasure(longestLineRow, longestLine)
       this.longestLineToMeasure = longestLine
       this.previousLongestLine = longestLine

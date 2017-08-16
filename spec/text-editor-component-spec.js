@@ -108,8 +108,8 @@ describe('TextEditorComponent', () => {
         await conditionPromise(() => editor.getApproximateLongestScreenRow() === 6)
         await nextUpdatePromise
 
-        // Capture the width first, then update the DOM so we can measure the
-        // longest line.
+        // Capture the width of the lines before requesting the width of
+        // longest line, because making that request forces a DOM update
         const actualWidth = element.querySelector('.lines').style.width
         const expectedWidth = Math.round(
           component.pixelPositionForScreenPosition(Point(6, Infinity)).left +
@@ -3662,6 +3662,31 @@ describe('TextEditorComponent', () => {
       element.style.fontSize = '20px'
       TextEditor.didUpdateStyles()
       await component.getNextUpdatePromise()
+    })
+
+    it('updates the width of the lines div based on the longest screen line', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 1, autoHeight: false})
+      editor.setText(
+        'Lorem ipsum dolor sit\n' +
+        'amet, consectetur adipisicing\n' +
+        'elit, sed do\n' +
+        'eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation'
+      )
+      await setEditorHeightInLines(component, 2)
+
+      console.log('update font size >>>>>>>>>>>>>>>');
+      element.style.fontSize = '20px'
+      TextEditor.didUpdateStyles()
+      await component.getNextUpdatePromise()
+
+      // Capture the width of the lines before requesting the width of
+      // longest line, because making that request forces a DOM update
+      const actualWidth = element.querySelector('.lines').style.width
+      const expectedWidth = Math.round(
+        component.pixelPositionForScreenPosition(Point(3, Infinity)).left +
+        component.getBaseCharacterWidth()
+      )
+      expect(actualWidth).toBe(expectedWidth + 'px')
     })
   })
 
