@@ -1140,41 +1140,45 @@ describe('TextEditorComponent', () => {
   })
 
   describe('scrolling via the mouse wheel', () => {
-    it('scrolls vertically when deltaY is not 0', () => {
+    it('scrolls vertically or horizontally depending on whether deltaX or deltaY is larger', () => {
       const scrollSensitivity = 30
-      const {component, editor} = buildComponent({height: 50, scrollSensitivity})
+      const {component, editor} = buildComponent({height: 50, width: 50, scrollSensitivity})
 
       {
         const expectedScrollTop = 20 * (scrollSensitivity / 100)
-        component.didMouseWheel({deltaX: 0, deltaY: 20})
+        const expectedScrollLeft = component.getScrollLeft()
+        component.didMouseWheel({deltaX: 5, deltaY: 20})
         expect(component.getScrollTop()).toBe(expectedScrollTop)
-        expect(component.refs.content.style.transform).toBe(`translate(0px, -${expectedScrollTop}px)`)
+        expect(component.getScrollLeft()).toBe(expectedScrollLeft)
+        expect(component.refs.content.style.transform).toBe(`translate(${-expectedScrollLeft}px, ${-expectedScrollTop}px)`)
       }
 
       {
         const expectedScrollTop = component.getScrollTop() - (10 * (scrollSensitivity / 100))
-        component.didMouseWheel({deltaX: 0, deltaY: -10})
+        const expectedScrollLeft = component.getScrollLeft()
+        component.didMouseWheel({deltaX: 5, deltaY: -10})
         expect(component.getScrollTop()).toBe(expectedScrollTop)
-        expect(component.refs.content.style.transform).toBe(`translate(0px, -${expectedScrollTop}px)`)
+        expect(component.getScrollLeft()).toBe(expectedScrollLeft)
+        expect(component.refs.content.style.transform).toBe(`translate(${-expectedScrollLeft}px, ${-expectedScrollTop}px)`)
       }
-    })
-
-    it('scrolls horizontally when deltaX is not 0', () => {
-      const scrollSensitivity = 60
-      const {component, editor} = buildComponent({width: 50, scrollSensitivity})
 
       {
+        global.debug = true
+        const expectedScrollTop = component.getScrollTop()
         const expectedScrollLeft = 20 * (scrollSensitivity / 100)
-        component.didMouseWheel({deltaX: 20, deltaY: 0})
+        component.didMouseWheel({deltaX: 20, deltaY: -10})
+        expect(component.getScrollTop()).toBe(expectedScrollTop)
         expect(component.getScrollLeft()).toBe(expectedScrollLeft)
-        expect(component.refs.content.style.transform).toBe(`translate(-${expectedScrollLeft}px, 0px)`)
+        expect(component.refs.content.style.transform).toBe(`translate(${-expectedScrollLeft}px, ${-expectedScrollTop}px)`)
       }
 
       {
+        const expectedScrollTop = component.getScrollTop()
         const expectedScrollLeft = component.getScrollLeft() - (10 * (scrollSensitivity / 100))
-        component.didMouseWheel({deltaX: -10, deltaY: 0})
+        component.didMouseWheel({deltaX: -10, deltaY: 8})
+        expect(component.getScrollTop()).toBe(expectedScrollTop)
         expect(component.getScrollLeft()).toBe(expectedScrollLeft)
-        expect(component.refs.content.style.transform).toBe(`translate(-${expectedScrollLeft}px, 0px)`)
+        expect(component.refs.content.style.transform).toBe(`translate(${-expectedScrollLeft}px, ${-expectedScrollTop}px)`)
       }
     })
 
