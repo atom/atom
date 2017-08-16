@@ -38,26 +38,26 @@ describe('TextEditorComponent', () => {
     it('renders lines and line numbers for the visible region', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
 
-      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(13)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(13)
+      expect(queryOnScreenLineNumberElements(element).length).toBe(13)
+      expect(queryOnScreenLineElements(element).length).toBe(13)
 
       element.style.height = 4 * component.measurements.lineHeight + 'px'
       await component.getNextUpdatePromise()
-      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(9)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+      expect(queryOnScreenLineNumberElements(element).length).toBe(9)
+      expect(queryOnScreenLineElements(element).length).toBe(9)
 
       await setScrollTop(component, 5 * component.getLineHeight())
 
       // After scrolling down beyond > 3 rows, the order of line numbers and lines
       // in the DOM is a bit weird because the first tile is recycled to the bottom
       // when it is scrolled out of view
-      expect(Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map(element => element.textContent.trim())).toEqual([
+      expect(queryOnScreenLineNumberElements(element).map(element => element.textContent.trim())).toEqual([
         '10', '11', '12', '4', '5', '6', '7', '8', '9'
       ])
-      expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(element => element.dataset.screenRow)).toEqual([
+      expect(queryOnScreenLineElements(element).map(element => element.dataset.screenRow)).toEqual([
         '9', '10', '11', '3', '4', '5', '6', '7', '8'
       ])
-      expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(element => element.textContent)).toEqual([
+      expect(queryOnScreenLineElements(element).map(element => element.textContent)).toEqual([
         editor.lineTextForScreenRow(9),
         ' ', // this line is blank in the model, but we render a space to prevent the line from collapsing vertically
         editor.lineTextForScreenRow(11),
@@ -70,13 +70,13 @@ describe('TextEditorComponent', () => {
       ])
 
       await setScrollTop(component, 2.5 * component.getLineHeight())
-      expect(Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map(element => element.textContent.trim())).toEqual([
+      expect(queryOnScreenLineNumberElements(element).map(element => element.textContent.trim())).toEqual([
         '1', '2', '3', '4', '5', '6', '7', '8', '9'
       ])
-      expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(element => element.dataset.screenRow)).toEqual([
+      expect(queryOnScreenLineElements(element).map(element => element.dataset.screenRow)).toEqual([
         '0', '1', '2', '3', '4', '5', '6', '7', '8'
       ])
-      expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(element => element.textContent)).toEqual([
+      expect(queryOnScreenLineElements(element).map(element => element.textContent)).toEqual([
         editor.lineTextForScreenRow(0),
         editor.lineTextForScreenRow(1),
         editor.lineTextForScreenRow(2),
@@ -123,38 +123,38 @@ describe('TextEditorComponent', () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
       element.style.height = 4 * component.measurements.lineHeight + 'px'
       await component.getNextUpdatePromise()
-      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(9)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+      expect(queryOnScreenLineNumberElements(element).length).toBe(9)
+      expect(queryOnScreenLineElements(element).length).toBe(9)
 
       element.style.lineHeight = '2.0'
       TextEditor.didUpdateStyles()
       await component.getNextUpdatePromise()
-      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(6)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(6)
+      expect(queryOnScreenLineNumberElements(element).length).toBe(6)
+      expect(queryOnScreenLineElements(element).length).toBe(6)
 
       element.style.lineHeight = '0.7'
       TextEditor.didUpdateStyles()
       await component.getNextUpdatePromise()
-      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(12)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(12)
+      expect(queryOnScreenLineNumberElements(element).length).toBe(12)
+      expect(queryOnScreenLineElements(element).length).toBe(12)
 
       element.style.lineHeight = '0.05'
       TextEditor.didUpdateStyles()
       await component.getNextUpdatePromise()
-      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(13)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(13)
+      expect(queryOnScreenLineNumberElements(element).length).toBe(13)
+      expect(queryOnScreenLineElements(element).length).toBe(13)
 
       element.style.lineHeight = '0'
       TextEditor.didUpdateStyles()
       await component.getNextUpdatePromise()
-      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(13)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(13)
+      expect(queryOnScreenLineNumberElements(element).length).toBe(13)
+      expect(queryOnScreenLineElements(element).length).toBe(13)
 
       element.style.lineHeight = '1'
       TextEditor.didUpdateStyles()
       await component.getNextUpdatePromise()
-      expect(element.querySelectorAll('.line-number:not(.dummy)').length).toBe(9)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+      expect(queryOnScreenLineNumberElements(element).length).toBe(9)
+      expect(queryOnScreenLineElements(element).length).toBe(9)
     })
 
     it('makes the content at least as tall as the scroll container client height', async () => {
@@ -595,7 +595,7 @@ describe('TextEditorComponent', () => {
 
       element.style.width = 200 + 'px'
       await component.getNextUpdatePromise()
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(24)
+      expect(queryOnScreenLineElements(element).length).toBe(24)
     })
 
     it('decorates the line numbers of folded lines', async () => {
@@ -738,8 +738,8 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       await setEditorWidthInCharacters(component, 40)
       {
-        const bufferRows = Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map((e) => e.dataset.bufferRow)
-        const screenRows = Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map((e) => e.dataset.screenRow)
+        const bufferRows = queryOnScreenLineNumberElements(element).map((e) => e.dataset.bufferRow)
+        const screenRows = queryOnScreenLineNumberElements(element).map((e) => e.dataset.screenRow)
         expect(bufferRows).toEqual([
           '0', '1', '2', '3', '3', '4', '5', '6', '6', '6',
           '7', '8', '8', '8', '9', '10', '11', '11', '12'
@@ -753,8 +753,8 @@ describe('TextEditorComponent', () => {
       editor.getBuffer().insert([2, 0], '\n')
       await component.getNextUpdatePromise()
       {
-        const bufferRows = Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map((e) => e.dataset.bufferRow)
-        const screenRows = Array.from(element.querySelectorAll('.line-number:not(.dummy)')).map((e) => e.dataset.screenRow)
+        const bufferRows = queryOnScreenLineNumberElements(element).map((e) => e.dataset.bufferRow)
+        const screenRows = queryOnScreenLineNumberElements(element).map((e) => e.dataset.screenRow)
         expect(bufferRows).toEqual([
           '0', '1', '2', '3', '4', '4', '5', '6', '7', '7',
           '7', '8', '9', '9', '9', '10', '11', '12', '12', '13'
@@ -1897,7 +1897,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+      expect(queryOnScreenLineElements(element).length).toBe(9)
       expect(item1.previousSibling.className).toBe('highlights')
       expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -1921,7 +1921,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item3)}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+      expect(queryOnScreenLineElements(element).length).toBe(9)
       expect(item1.previousSibling.className).toBe('highlights')
       expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -1947,7 +1947,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item3)}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+      expect(queryOnScreenLineElements(element).length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 2))
@@ -1973,7 +1973,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+      expect(queryOnScreenLineElements(element).length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -1998,7 +1998,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight() + getElementHeight(item2)}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+      expect(queryOnScreenLineElements(element).length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling.className).toBe('highlights')
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 3))
@@ -2022,7 +2022,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 6, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+      expect(queryOnScreenLineElements(element).length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling.className).toBe('highlights')
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 3))
@@ -2047,7 +2047,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+      expect(queryOnScreenLineElements(element).length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -2077,7 +2077,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+      expect(queryOnScreenLineElements(element).length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -2115,7 +2115,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()}
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(9)
+      expect(queryOnScreenLineElements(element).length).toBe(9)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -2142,7 +2142,7 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 6, height: 3 * component.getLineHeight() + getElementHeight(item4) + getElementHeight(item5)},
       ])
       assertLinesAreAlignedWithLineNumbers(component)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBe(13)
+      expect(queryOnScreenLineElements(element).length).toBe(13)
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
@@ -3586,7 +3586,7 @@ describe('TextEditorComponent', () => {
       const initialDoubleCharacterWidth = editor.getDoubleWidthCharWidth()
       const initialHalfCharacterWidth = editor.getHalfWidthCharWidth()
       const initialKoreanCharacterWidth = editor.getKoreanCharWidth()
-      const initialRenderedLineCount = element.querySelectorAll('.line:not(.dummy)').length
+      const initialRenderedLineCount = queryOnScreenLineElements(element).length
       const initialFontSize = parseInt(getComputedStyle(element).fontSize)
 
       expect(initialKoreanCharacterWidth).toBeDefined()
@@ -3605,7 +3605,7 @@ describe('TextEditorComponent', () => {
       expect(editor.getDoubleWidthCharWidth()).toBeLessThan(initialDoubleCharacterWidth)
       expect(editor.getHalfWidthCharWidth()).toBeLessThan(initialHalfCharacterWidth)
       expect(editor.getKoreanCharWidth()).toBeLessThan(initialKoreanCharacterWidth)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBeGreaterThan(initialRenderedLineCount)
+      expect(queryOnScreenLineElements(element).length).toBeGreaterThan(initialRenderedLineCount)
       verifyCursorPosition(component, cursorNode, 1, 29)
 
       element.style.fontSize = initialFontSize + 10 + 'px'
@@ -3615,7 +3615,7 @@ describe('TextEditorComponent', () => {
       expect(editor.getDoubleWidthCharWidth()).toBeGreaterThan(initialDoubleCharacterWidth)
       expect(editor.getHalfWidthCharWidth()).toBeGreaterThan(initialHalfCharacterWidth)
       expect(editor.getKoreanCharWidth()).toBeGreaterThan(initialKoreanCharacterWidth)
-      expect(element.querySelectorAll('.line:not(.dummy)').length).toBeLessThan(initialRenderedLineCount)
+      expect(queryOnScreenLineElements(element).length).toBeLessThan(initialRenderedLineCount)
       verifyCursorPosition(component, cursorNode, 1, 29)
     })
 
@@ -3674,7 +3674,6 @@ describe('TextEditorComponent', () => {
       )
       await setEditorHeightInLines(component, 2)
 
-      console.log('update font size >>>>>>>>>>>>>>>');
       element.style.fontSize = '20px'
       TextEditor.didUpdateStyles()
       await component.getNextUpdatePromise()
@@ -3707,7 +3706,7 @@ describe('TextEditorComponent', () => {
       jasmine.attachToDOM(element)
 
       editor.setText('Lorem ipsum dolor')
-      expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(l => l.textContent)).toEqual([
+      expect(queryOnScreenLineElements(element).map(l => l.textContent)).toEqual([
         editor.lineTextForScreenRow(0)
       ])
     })
@@ -3727,7 +3726,7 @@ describe('TextEditorComponent', () => {
       jasmine.attachToDOM(element)
 
       editor.setText('Lorem ipsum dolor')
-      expect(Array.from(element.querySelectorAll('.line:not(.dummy)')).map(l => l.textContent)).toEqual([
+      expect(queryOnScreenLineElements(element).map(l => l.textContent)).toEqual([
         editor.lineTextForScreenRow(0)
       ])
     })
@@ -4089,4 +4088,12 @@ function getElementHeight (element) {
 
 function getNextTickPromise () {
   return new Promise((resolve) => process.nextTick(resolve))
+}
+
+function queryOnScreenLineNumberElements (element) {
+  return Array.from(element.querySelectorAll('.line-number:not(.dummy)'))
+}
+
+function queryOnScreenLineElements (element) {
+  return Array.from(element.querySelectorAll('.line:not(.dummy):not([data-off-screen])'))
 }

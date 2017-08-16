@@ -620,7 +620,7 @@ class TextEditorComponent {
         if (screenRow < startRow || screenRow >= endRow) {
           children.push($(LineComponent, {
             key: 'extra-' + screenLine.id,
-            hidden: true,
+            offScreen: true,
             screenLine,
             screenRow,
             displayLayer: this.props.model.displayLayer,
@@ -3832,11 +3832,18 @@ class LinesTileComponent {
 
 class LineComponent {
   constructor (props) {
-    const {nodePool, screenRow, screenLine, lineNodesByScreenLineId} = props
+    const {nodePool, screenRow, screenLine, lineNodesByScreenLineId, offScreen} = props
     this.props = props
     this.element = nodePool.getElement('DIV', this.buildClassName(), null)
     this.element.dataset.screenRow = screenRow
     lineNodesByScreenLineId.set(screenLine.id, this.element)
+
+    if (offScreen) {
+      this.element.style.position = 'absolute'
+      this.element.style.visibility = 'hidden'
+      this.element.dataset.offScreen = true
+    }
+
     this.appendContents()
   }
 
@@ -3870,15 +3877,10 @@ class LineComponent {
   }
 
   appendContents () {
-    const {displayLayer, nodePool, hidden, screenLine, textDecorations, textNodesByScreenLineId} = this.props
+    const {displayLayer, nodePool, screenLine, textDecorations, textNodesByScreenLineId} = this.props
 
     const textNodes = []
     textNodesByScreenLineId.set(screenLine.id, textNodes)
-
-    if (hidden) {
-      this.element.style.position = 'absolute'
-      this.element.style.visibility = 'hidden'
-    }
 
     const {lineText, tags} = screenLine
     let openScopeNode = nodePool.getElement('SPAN', null, null)
@@ -4234,7 +4236,7 @@ class NodePool {
         if (!style || style[key] == null) element.style[key] = ''
       })
       if (style) Object.assign(element.style, style)
-
+      for (const key in element.dataset) delete element.dataset[key]
       while (element.firstChild) element.firstChild.remove()
       return element
     } else {
