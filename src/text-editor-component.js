@@ -551,8 +551,7 @@ class TextEditorComponent {
       children = [
         this.renderLineTiles(),
         this.renderBlockDecorationMeasurementArea(),
-        this.renderCharacterMeasurementLine(),
-        this.renderPlaceholderText()
+        this.renderCharacterMeasurementLine()
       ]
     } else {
       children = [
@@ -633,6 +632,7 @@ class TextEditorComponent {
       style.height = this.getScrollHeight() + 'px'
     }
 
+    children.push(this.renderPlaceholderText())
     children.push(this.renderCursorsAndInput())
 
     return $.div(
