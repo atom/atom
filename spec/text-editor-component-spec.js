@@ -205,6 +205,23 @@ describe('TextEditorComponent', () => {
       expect(component.getFirstVisibleRow()).toBe(editor.getScreenLineCount() + 1)
     })
 
+    it('does not fire onDidChangeScrollTop listeners when assigning the same maximal value and the content height has fractional pixels (regression)', async () => {
+      const {component, element, editor} = buildComponent({autoHeight: false, autoWidth: false})
+      await setEditorHeightInLines(component, 3)
+
+      // Force a fractional content height with a block decoration
+      const item = document.createElement("div")
+      item.style.height = '10.6px'
+      editor.decorateMarker(editor.markBufferPosition([0, 0]), {type: "block", item})
+      await component.getNextUpdatePromise()
+
+      component.setScrollTop(Infinity)
+      element.onDidChangeScrollTop((newScrollTop) => {
+        throw new Error('Scroll top should not have changed')
+      })
+      component.setScrollTop(component.getScrollTop())
+    })
+
     it('gives the line number tiles an explicit width and height so their layout can be strictly contained', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 3})
 

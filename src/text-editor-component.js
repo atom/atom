@@ -2728,7 +2728,7 @@ class TextEditorComponent {
   }
 
   getMaxScrollTop () {
-    return Math.max(0, this.getScrollHeight() - this.getScrollContainerClientHeight())
+    return Math.round(Math.max(0, this.getScrollHeight() - this.getScrollContainerClientHeight()))
   }
 
   getScrollBottom () {
@@ -2756,7 +2756,7 @@ class TextEditorComponent {
   }
 
   getMaxScrollLeft () {
-    return Math.max(0, this.getScrollWidth() - this.getScrollContainerClientWidth())
+    return Math.round(Math.max(0, this.getScrollWidth() - this.getScrollContainerClientWidth()))
   }
 
   getScrollRight () {
