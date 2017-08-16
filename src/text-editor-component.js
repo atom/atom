@@ -1671,17 +1671,6 @@ class TextEditorComponent {
   //   4. compositionend fired
   //   5. textInput fired; event.data == the completion string
   didCompositionStart () {
-    if (this.getChromeVersion() === 56) {
-      this.getHiddenInput().value = ''
-    }
-
-    this.compositionCheckpoint = this.props.model.createCheckpoint()
-    if (this.accentedCharacterMenuIsOpen) {
-      this.props.model.selectLeft()
-    }
-  }
-
-  didCompositionUpdate (event) {
     // Workaround for Chromium not preventing composition events when
     // preventDefault is called on the keydown event that precipitated them.
     if (this.lastKeydown && this.lastKeydown.defaultPrevented) {
@@ -1695,6 +1684,17 @@ class TextEditorComponent {
       return
     }
 
+    if (this.getChromeVersion() === 56) {
+      this.getHiddenInput().value = ''
+    }
+
+    this.compositionCheckpoint = this.props.model.createCheckpoint()
+    if (this.accentedCharacterMenuIsOpen) {
+      this.props.model.selectLeft()
+    }
+  }
+
+  didCompositionUpdate (event) {
     if (this.getChromeVersion() === 56) {
       process.nextTick(() => {
         if (this.compositionCheckpoint != null) {
