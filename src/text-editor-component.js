@@ -248,6 +248,7 @@ class TextEditorComponent {
 
       this.measureCharacterDimensions()
       this.measureGutterDimensions()
+      this.queryLongestLine()
 
       if (this.getLineHeight() !== originalLineHeight) {
         this.setScrollTopRow(scrollTopRow)
@@ -361,6 +362,7 @@ class TextEditorComponent {
     this.populateVisibleRowRange()
     this.populateVisibleTiles()
     this.queryScreenLinesToRender()
+    this.queryLongestLine()
     this.queryLineNumbersToRender()
     this.queryGuttersToRender()
     this.queryDecorationsToRender()
@@ -623,7 +625,7 @@ class TextEditorComponent {
         if (screenRow < startRow || screenRow >= endRow) {
           children.push($(LineComponent, {
             key: 'extra-' + screenLine.id,
-            hidden: true,
+            offScreen: true,
             screenLine,
             screenRow,
             displayLayer: this.props.model.displayLayer,
@@ -837,10 +839,14 @@ class TextEditorComponent {
       this.getRenderedStartRow(),
       this.getRenderedEndRow()
     )
+  }
+
+  queryLongestLine () {
+    const {model} = this.props
 
     const longestLineRow = model.getApproximateLongestScreenRow()
     const longestLine = model.screenLineForScreenRow(longestLineRow)
-    if (longestLine !== this.previousLongestLine) {
+    if (longestLine !== this.previousLongestLine || this.remeasureCharacterDimensions) {
       this.requestLineToMeasure(longestLineRow, longestLine)
       this.longestLineToMeasure = longestLine
       this.previousLongestLine = longestLine
@@ -3830,11 +3836,18 @@ class LinesTileComponent {
 
 class LineComponent {
   constructor (props) {
-    const {nodePool, screenRow, screenLine, lineNodesByScreenLineId} = props
+    const {nodePool, screenRow, screenLine, lineNodesByScreenLineId, offScreen} = props
     this.props = props
     this.element = nodePool.getElement('DIV', this.buildClassName(), null)
     this.element.dataset.screenRow = screenRow
     lineNodesByScreenLineId.set(screenLine.id, this.element)
+
+    if (offScreen) {
+      this.element.style.position = 'absolute'
+      this.element.style.visibility = 'hidden'
+      this.element.dataset.offScreen = true
+    }
+
     this.appendContents()
   }
 
@@ -3868,15 +3881,10 @@ class LineComponent {
   }
 
   appendContents () {
-    const {displayLayer, nodePool, hidden, screenLine, textDecorations, textNodesByScreenLineId} = this.props
+    const {displayLayer, nodePool, screenLine, textDecorations, textNodesByScreenLineId} = this.props
 
     const textNodes = []
     textNodesByScreenLineId.set(screenLine.id, textNodes)
-
-    if (hidden) {
-      this.element.style.position = 'absolute'
-      this.element.style.visibility = 'hidden'
-    }
 
     const {lineText, tags} = screenLine
     let openScopeNode = nodePool.getElement('SPAN', null, null)
@@ -4232,7 +4240,7 @@ class NodePool {
         if (!style || style[key] == null) element.style[key] = ''
       })
       if (style) Object.assign(element.style, style)
-
+      for (const key in element.dataset) delete element.dataset[key]
       while (element.firstChild) element.firstChild.remove()
       return element
     } else {
