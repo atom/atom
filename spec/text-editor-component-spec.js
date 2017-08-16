@@ -3765,6 +3765,22 @@ describe('TextEditorComponent', () => {
       component.screenPositionForPixelPosition({top: 800, left: 1})
       await updatePromise
     })
+
+    it('does not shift cursors downward or render off-screen content when measuring off-screen lines (regression)', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 2, autoHeight: false})
+      await setEditorHeightInLines(component, 3)
+      const {top, left} = component.pixelPositionForScreenPosition({row: 12, column: 1})
+
+      expect(element.querySelector('.cursor').getBoundingClientRect().top).toBe(component.refs.lineTiles.getBoundingClientRect().top)
+      expect(element.querySelector('.line[data-screen-row="12"]').style.visibility).toBe('hidden')
+
+      // Ensure previously measured off screen lines don't have any weird
+      // styling when they come on screen in the next frame
+      await setEditorHeightInLines(component, 13)
+      const previouslyMeasuredLineElement = element.querySelector('.line[data-screen-row="12"]')
+      expect(previouslyMeasuredLineElement.style.display).toBe('')
+      expect(previouslyMeasuredLineElement.style.visibility).toBe('')
+    })
   })
 
   describe('screenPositionForPixelPosition', () => {
