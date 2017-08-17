@@ -305,7 +305,9 @@ describe('TextEditorComponent', () => {
       expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(0)
       expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(0)
       expect(verticalScrollbar.style.bottom).toBe(getVerticalScrollbarWidth(component) + 'px')
+      expect(verticalScrollbar.style.visibility).toBe('')
       expect(horizontalScrollbar.style.right).toBe(getHorizontalScrollbarHeight(component) + 'px')
+      expect(horizontalScrollbar.style.visibility).toBe('')
       expect(component.refs.scrollbarCorner).toBeDefined()
 
       setScrollTop(component, 100)
@@ -323,20 +325,26 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(0)
       expect(getHorizontalScrollbarHeight(component)).toBe(0)
+      expect(verticalScrollbar.style.visibility).toBe('')
       expect(verticalScrollbar.style.bottom).toBe('0px')
+      expect(horizontalScrollbar.style.visibility).toBe('hidden')
       expect(component.refs.scrollbarCorner).toBeUndefined()
 
       editor.setText('a'.repeat(100))
       await component.getNextUpdatePromise()
       expect(getVerticalScrollbarWidth(component)).toBe(0)
       expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(0)
+      expect(verticalScrollbar.style.visibility).toBe('hidden')
       expect(horizontalScrollbar.style.right).toBe('0px')
+      expect(horizontalScrollbar.style.visibility).toBe('')
       expect(component.refs.scrollbarCorner).toBeUndefined()
 
       editor.setText('')
       await component.getNextUpdatePromise()
       expect(getVerticalScrollbarWidth(component)).toBe(0)
       expect(getHorizontalScrollbarHeight(component)).toBe(0)
+      expect(verticalScrollbar.style.visibility).toBe('hidden')
+      expect(horizontalScrollbar.style.visibility).toBe('hidden')
       expect(component.refs.scrollbarCorner).toBeUndefined()
 
       editor.setText(SAMPLE_TEXT)
@@ -348,6 +356,8 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       expect(getVerticalScrollbarWidth(component)).toBe(0)
       expect(getHorizontalScrollbarHeight(component)).toBe(0)
+      expect(verticalScrollbar.style.visibility).toBe('hidden')
+      expect(horizontalScrollbar.style.visibility).toBe('hidden')
 
       // Shows scrollbars if the only reason we overflow is the presence of the
       // scrollbar for the opposite axis.
@@ -356,13 +366,16 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(0)
       expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(0)
+      expect(verticalScrollbar.style.visibility).toBe('')
+      expect(horizontalScrollbar.style.visibility).toBe('')
 
       element.style.width = component.getGutterContainerWidth() + component.getContentWidth() + component.getVerticalScrollbarWidth() - 1 + 'px'
       element.style.height = component.getContentHeight() - 1 + 'px'
       await component.getNextUpdatePromise()
       expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(0)
       expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(0)
-
+      expect(verticalScrollbar.style.visibility).toBe('')
+      expect(horizontalScrollbar.style.visibility).toBe('')
     })
 
     it('updates the bottom/right of dummy scrollbars and client height/width measurements without forgetting the previous scroll top/left when scrollbar styles change', async () => {
@@ -3174,7 +3187,7 @@ describe('TextEditorComponent', () => {
         const leftEdgeOfVerticalScrollbar = verticalScrollbar.element.getBoundingClientRect().right - getVerticalScrollbarWidth(component)
         const topEdgeOfHorizontalScrollbar = horizontalScrollbar.element.getBoundingClientRect().bottom - getHorizontalScrollbarHeight(component)
 
-        verticalScrollbar.didMousedown({
+        verticalScrollbar.didMouseDown({
           button: 0,
           detail: 1,
           clientY: clientTopForLine(component, 4),
@@ -3182,7 +3195,7 @@ describe('TextEditorComponent', () => {
         })
         expect(editor.getCursorScreenPosition()).toEqual([0, 0])
 
-        verticalScrollbar.didMousedown({
+        verticalScrollbar.didMouseDown({
           button: 0,
           detail: 1,
           clientY: clientTopForLine(component, 4),
@@ -3190,7 +3203,7 @@ describe('TextEditorComponent', () => {
         })
         expect(editor.getCursorScreenPosition()).toEqual([4, 6])
 
-        horizontalScrollbar.didMousedown({
+        horizontalScrollbar.didMouseDown({
           button: 0,
           detail: 1,
           clientY: topEdgeOfHorizontalScrollbar,
@@ -3198,7 +3211,7 @@ describe('TextEditorComponent', () => {
         })
         expect(editor.getCursorScreenPosition()).toEqual([4, 6])
 
-        horizontalScrollbar.didMousedown({
+        horizontalScrollbar.didMouseDown({
           button: 0,
           detail: 1,
           clientY: topEdgeOfHorizontalScrollbar - 1,
