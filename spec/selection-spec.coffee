@@ -83,3 +83,40 @@ describe "Selection", ->
       selection.setBufferRange([[2, 0], [2, 10]])
       selection.destroy()
       expect(selection.marker.isDestroyed()).toBeTruthy()
+
+  describe ".insertText(text, options)", ->
+    it "allows pasting white space only lines when autoIndent is enabled", ->
+      selection.setBufferRange [[0, 0], [0, 0]]
+      selection.insertText("    \n    \n\n", autoIndent: true)
+      expect(buffer.lineForRow(0)).toBe "    "
+      expect(buffer.lineForRow(1)).toBe "    "
+      expect(buffer.lineForRow(2)).toBe ""
+
+    it "auto-indents if only a newline is inserted", ->
+      selection.setBufferRange [[2, 0], [3, 0]]
+      selection.insertText("\n", autoIndent: true)
+      expect(buffer.lineForRow(2)).toBe "  "
+
+    it "auto-indents if only a carriage return + newline is inserted", ->
+      selection.setBufferRange [[2, 0], [3, 0]]
+      selection.insertText("\r\n", autoIndent: true)
+      expect(buffer.lineForRow(2)).toBe "  "
+
+  describe ".fold()", ->
+    it "folds the buffer range spanned by the selection", ->
+      selection.setBufferRange([[0, 3], [1, 6]])
+      selection.fold()
+
+      expect(selection.getScreenRange()).toEqual([[0, 4], [0, 4]])
+      expect(selection.getBufferRange()).toEqual([[1, 6], [1, 6]])
+      expect(editor.lineTextForScreenRow(0)).toBe "var#{editor.displayLayer.foldCharacter}sort = function(items) {"
+      expect(editor.isFoldedAtBufferRow(0)).toBe(true)
+
+    it "doesn't create a fold when the selection is empty", ->
+      selection.setBufferRange([[0, 3], [0, 3]])
+      selection.fold()
+
+      expect(selection.getScreenRange()).toEqual([[0, 3], [0, 3]])
+      expect(selection.getBufferRange()).toEqual([[0, 3], [0, 3]])
+      expect(editor.lineTextForScreenRow(0)).toBe "var quicksort = function () {"
+      expect(editor.isFoldedAtBufferRow(0)).toBe(false)

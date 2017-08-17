@@ -1,39 +1,41 @@
-ChildProcess = require 'child_process'
 {EventEmitter} = require 'events'
 fs = require 'fs-plus'
 path = require 'path'
 temp = require 'temp'
-SquirrelUpdate = require '../src/browser/squirrel-update'
+SquirrelUpdate = require '../src/main-process/squirrel-update'
+Spawner = require '../src/main-process/spawner'
+WinPowerShell = require '../src/main-process/win-powershell'
+WinShell = require '../src/main-process/win-shell'
 
-describe "Windows squirrel updates", ->
+# Run passed callback as Spawner.spawn() would do
+invokeCallback = (callback) ->
+  error = null
+  stdout = ''
+  callback?(error, stdout)
+
+describe "Windows Squirrel Update", ->
   tempHomeDirectory = null
 
   beforeEach ->
-    # Prevent the actually home directory from being manipulated
+    # Prevent the actual home directory from being manipulated
     tempHomeDirectory = temp.mkdirSync('atom-temp-home-')
     spyOn(fs, 'getHomeDirectory').andReturn(tempHomeDirectory)
 
-    # Prevent any commands from actually running and affecting the host
-    originalSpawn = ChildProcess.spawn
-    spyOn(ChildProcess, 'spawn').andCallFake (command, args) ->
-      if path.basename(command) is 'Update.exe' and args?[0] is '--createShortcut'
-        fs.writeFileSync(path.join(tempHomeDirectory, 'Desktop', 'Atom.lnk'), '')
+    # Prevent any spawned command from actually running and affecting the host
+    spyOn(Spawner, 'spawn').andCallFake (command, args, callback) ->
+      # do nothing on command, just run passed callback
+      invokeCallback callback
 
-      # Just spawn something that won't actually modify the host
-      if process.platform is 'win32'
-        originalSpawn('dir')
-      else
-        originalSpawn('ls')
-
-  it "ignores errors spawning Squirrel", ->
-    jasmine.unspy(ChildProcess, 'spawn')
-    spyOn(ChildProcess, 'spawn').andCallFake -> throw new Error("EBUSY")
-
-    app = quit: jasmine.createSpy('quit')
-    expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')).toBe true
-
-    waitsFor ->
-      app.quit.callCount is 1
+    # Prevent any actual change to Windows Shell
+    class FakeShellOption
+      isRegistered: (callback) -> callback true
+      register: (callback) -> callback null
+      deregister: (callback) -> callback null, true
+      update: (callback) -> callback null
+    WinShell.fileHandler = new FakeShellOption()
+    WinShell.fileContextMenu = new FakeShellOption()
+    WinShell.folderContextMenu = new FakeShellOption()
+    WinShell.folderBackgroundContextMenu = new FakeShellOption()
 
   it "quits the app on all squirrel events", ->
     app = quit: jasmine.createSpy('quit')
@@ -67,28 +69,56 @@ describe "Windows squirrel updates", ->
     runs ->
       expect(SquirrelUpdate.handleStartupEvent(app, '--not-squirrel')).toBe false
 
-  it "keeps the desktop shortcut deleted on updates if it was previously deleted after install", ->
-    desktopShortcutPath = path.join(tempHomeDirectory, 'Desktop', 'Atom.lnk')
-    expect(fs.existsSync(desktopShortcutPath)).toBe false
+  describe "Desktop shortcut", ->
+    desktopShortcutPath = '/non/existing/path'
 
-    app = quit: jasmine.createSpy('quit')
-    expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')).toBe true
+    beforeEach ->
+      desktopShortcutPath = path.join(tempHomeDirectory, 'Desktop', 'Atom.lnk')
 
-    waitsFor ->
-      app.quit.callCount is 1
+      jasmine.unspy(Spawner, 'spawn')
+      spyOn(Spawner, 'spawn').andCallFake (command, args, callback) ->
+        if path.basename(command) is 'Update.exe' and args?[0] is '--createShortcut'
+          fs.writeFileSync(desktopShortcutPath, '')
+        else
+          # simply ignore other commands
 
-    runs ->
-      app.quit.reset()
-      expect(fs.existsSync(desktopShortcutPath)).toBe true
-      fs.removeSync(desktopShortcutPath)
+        invokeCallback callback
+
+    it "does not exist before install", ->
       expect(fs.existsSync(desktopShortcutPath)).toBe false
-      expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated')).toBe true
 
-    waitsFor ->
-      app.quit.callCount is 1
+    describe "on install", ->
+      beforeEach ->
+        app = quit: jasmine.createSpy('quit')
+        SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')
+        waitsFor ->
+          app.quit.callCount is 1
 
-    runs ->
-      expect(fs.existsSync(desktopShortcutPath)).toBe false
+      it "creates desktop shortcut", ->
+        expect(fs.existsSync(desktopShortcutPath)).toBe true
+
+      describe "when shortcut is deleted and then app is updated", ->
+        beforeEach ->
+          fs.removeSync(desktopShortcutPath)
+          expect(fs.existsSync(desktopShortcutPath)).toBe false
+
+          app = quit: jasmine.createSpy('quit')
+          SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated')
+          waitsFor ->
+            app.quit.callCount is 1
+
+        it "does not recreate shortcut", ->
+          expect(fs.existsSync(desktopShortcutPath)).toBe false
+
+      describe "when shortcut is kept and app is updated", ->
+        beforeEach ->
+          app = quit: jasmine.createSpy('quit')
+          SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated')
+          waitsFor ->
+            app.quit.callCount is 1
+
+        it "still has desktop shortcut", ->
+          expect(fs.existsSync(desktopShortcutPath)).toBe true
 
   describe ".restartAtom", ->
     it "quits the app and spawns a new one", ->
@@ -98,7 +128,7 @@ describe "Windows squirrel updates", ->
       SquirrelUpdate.restartAtom(app)
       expect(app.quit.callCount).toBe 1
 
-      expect(ChildProcess.spawn.callCount).toBe 0
+      expect(Spawner.spawn.callCount).toBe 0
       app.emit('will-quit')
-      expect(ChildProcess.spawn.callCount).toBe 1
-      expect(path.basename(ChildProcess.spawn.argsForCall[0][0])).toBe 'atom.cmd'
+      expect(Spawner.spawn.callCount).toBe 1
+      expect(path.basename(Spawner.spawn.argsForCall[0][0])).toBe 'atom.cmd'

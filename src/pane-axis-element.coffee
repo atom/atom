@@ -2,20 +2,18 @@
 PaneResizeHandleElement = require './pane-resize-handle-element'
 
 class PaneAxisElement extends HTMLElement
-  createdCallback: ->
-    @subscriptions = new CompositeDisposable
+  attachedCallback: ->
+    @subscriptions ?= @subscribeToModel()
+    @childAdded({child, index}) for child, index in @model.getChildren()
 
   detachedCallback: ->
     @subscriptions.dispose()
+    @subscriptions = null
+    @childRemoved({child}) for child in @model.getChildren()
 
   initialize: (@model, {@views}) ->
     throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
-
-    @subscriptions.add @model.onDidAddChild(@childAdded.bind(this))
-    @subscriptions.add @model.onDidRemoveChild(@childRemoved.bind(this))
-    @subscriptions.add @model.onDidReplaceChild(@childReplaced.bind(this))
-    @subscriptions.add @model.observeFlexScale(@flexScaleChanged.bind(this))
-
+    @subscriptions ?= @subscribeToModel()
     @childAdded({child, index}) for child, index in @model.getChildren()
 
     switch @model.getOrientation()
@@ -24,6 +22,14 @@ class PaneAxisElement extends HTMLElement
       when 'vertical'
         @classList.add('vertical', 'pane-column')
     this
+
+  subscribeToModel: ->
+    subscriptions = new CompositeDisposable
+    subscriptions.add @model.onDidAddChild(@childAdded.bind(this))
+    subscriptions.add @model.onDidRemoveChild(@childRemoved.bind(this))
+    subscriptions.add @model.onDidReplaceChild(@childReplaced.bind(this))
+    subscriptions.add @model.observeFlexScale(@flexScaleChanged.bind(this))
+    subscriptions
 
   isPaneResizeHandleElement: (element) ->
     element?.nodeName.toLowerCase() is 'atom-pane-resize-handle'

@@ -4,6 +4,7 @@ path = require 'path'
 {join} = path
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
+{Directory} = require 'pathwatcher'
 DefaultDirectorySearcher = require './default-directory-searcher'
 Model = require './model'
 TextEditor = require './text-editor'
@@ -43,6 +44,12 @@ class Workspace extends Model
     @defaultDirectorySearcher = new DefaultDirectorySearcher()
     @consumeServices(@packageManager)
 
+    # One cannot simply .bind here since it could be used as a component with
+    # Etch, in which case it'd be `new`d. And when it's `new`d, `this` is always
+    # the newly created object.
+    realThis = this
+    @buildTextEditor = -> Workspace.prototype.buildTextEditor.apply(realThis, arguments)
+
     @panelContainers =
       top: new PanelContainer({location: 'top'})
       left: new PanelContainer({location: 'left'})
@@ -81,6 +88,7 @@ class Workspace extends Model
   subscribeToEvents: ->
     @subscribeToActiveItem()
     @subscribeToFontSize()
+    @subscribeToAddedItems()
 
   consumeServices: ({serviceHub}) ->
     @directorySearchers = []
@@ -153,6 +161,16 @@ class Workspace extends Model
       @activeItemSubscriptions.add(titleSubscription) if titleSubscription?
       @activeItemSubscriptions.add(modifiedSubscription) if modifiedSubscription?
 
+  subscribeToAddedItems: ->
+    @onDidAddPaneItem ({item, pane, index}) =>
+      if item instanceof TextEditor
+        grammarSubscription = item.observeGrammar(@handleGrammarUsed.bind(this))
+        editorRegistrySubscription = atom.textEditors.add(item)
+        item.onDidDestroy ->
+          grammarSubscription.dispose()
+          editorRegistrySubscription.dispose()
+        @emitter.emit 'did-add-text-editor', {textEditor: item, pane, index}
+
   # Updates the application's title and proxy icon based on whichever file is
   # open.
   updateWindowTitle: =>
@@ -183,7 +201,7 @@ class Workspace extends Model
     document.title = titleParts.join(" \u2014 ")
     @applicationDelegate.setRepresentedFilename(representedPath)
 
-  # On OS X, fades the application window's proxy icon when the current file
+  # On macOS, fades the application window's proxy icon when the current file
   # has been modified.
   updateDocumentEdited: =>
     modified = @getActivePaneItem()?.isModified?() ? false
@@ -376,8 +394,7 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddTextEditor: (callback) ->
-    @onDidAddPaneItem ({item, pane, index}) ->
-      callback({textEditor: item, pane, index}) if item instanceof TextEditor
+    @emitter.on 'did-add-text-editor', callback
 
   ###
   Section: Opening
@@ -394,15 +411,18 @@ class Workspace extends Model
   #     initially. Defaults to `0`.
   #   * `initialColumn` A {Number} indicating which column to move the cursor to
   #     initially. Defaults to `0`.
-  #   * `split` Either 'left', 'right', 'top' or 'bottom'.
+  #   * `split` Either 'left', 'right', 'up' or 'down'.
   #     If 'left', the item will be opened in leftmost pane of the current active pane's row.
-  #     If 'right', the item will be opened in the rightmost pane of the current active pane's row.
-  #     If 'up', the item will be opened in topmost pane of the current active pane's row.
-  #     If 'down', the item will be opened in the bottommost pane of the current active pane's row.
+  #     If 'right', the item will be opened in the rightmost pane of the current active pane's row. If only one pane exists in the row, a new pane will be created.
+  #     If 'up', the item will be opened in topmost pane of the current active pane's column.
+  #     If 'down', the item will be opened in the bottommost pane of the current active pane's column. If only one pane exists in the column, a new pane will be created.
   #   * `activatePane` A {Boolean} indicating whether to call {Pane::activate} on
   #     containing pane. Defaults to `true`.
   #   * `activateItem` A {Boolean} indicating whether to call {Pane::activateItem}
   #     on containing pane. Defaults to `true`.
+  #   * `pending` A {Boolean} indicating whether or not the item should be opened
+  #     in a pending state. Existing pending items in a pane are replaced with
+  #     new pending items when they are opened.
   #   * `searchAllPanes` A {Boolean}. If `true`, the workspace will attempt to
   #     activate an existing item for the given URI on any pane.
   #     If `false`, only the active pane will be searched for
@@ -413,6 +433,9 @@ class Workspace extends Model
     searchAllPanes = options.searchAllPanes
     split = options.split
     uri = @project.resolvePath(uri)
+
+    if not atom.config.get('core.allowPendingPaneItems')
+      options.pending = false
 
     # Avoid adding URLs as recent documents to work-around this Spotlight crash:
     # https://github.com/atom/atom/issues/10071
@@ -473,7 +496,8 @@ class Workspace extends Model
     activateItem = options.activateItem ? true
 
     if uri?
-      item = pane.itemForURI(uri)
+      if item = pane.itemForURI(uri)
+        pane.clearPendingItem() if not options.pending and pane.getPendingItem() is item
       item ?= opener(uri, options) for opener in @getOpeners() when not item
 
     try
@@ -496,7 +520,7 @@ class Workspace extends Model
         return item if pane.isDestroyed()
 
         @itemOpened(item)
-        pane.activateItem(item) if activateItem
+        pane.activateItem(item, {pending: options.pending}) if activateItem
         pane.activate() if activatePane
 
         initialLine = initialColumn = 0
@@ -535,7 +559,12 @@ class Workspace extends Model
         throw error
 
     @project.bufferForPath(filePath, options).then (buffer) =>
-      @buildTextEditor(_.extend({buffer, largeFileMode}, options))
+      @buildTextEditor(Object.assign({buffer, largeFileMode}, options))
+
+  handleGrammarUsed: (grammar) ->
+    return unless grammar?
+
+    @packageManager.triggerActivationHook("#{grammar.packageName}:grammar-used")
 
   # Public: Returns a {Boolean} that is `true` if `object` is a `TextEditor`.
   #
@@ -547,9 +576,8 @@ class Workspace extends Model
   #
   # Returns a {TextEditor}.
   buildTextEditor: (params) ->
-    params = _.extend({
-      @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
-      @grammarRegistry, @project, @assert, @applicationDelegate
+    params = Object.assign({
+      @config, @clipboard, @grammarRegistry, @assert
     }, params)
     new TextEditor(params)
 
@@ -565,7 +593,11 @@ class Workspace extends Model
 
   # Public: Register an opener for a uri.
   #
-  # An {TextEditor} will be used if no openers return a value.
+  # When a URI is opened via {Workspace::open}, Atom loops through its registered
+  # opener functions until one returns a value for the given uri.
+  # Openers are expected to return an object that inherits from HTMLElement or
+  # a model which has an associated view in the {ViewRegistry}.
+  # A {TextEditor} will be used if no opener returns a value.
   #
   # ## Examples
   #
@@ -1070,3 +1102,22 @@ class Workspace extends Model
 
       inProcessFinished = true
       checkFinished()
+
+  checkoutHeadRevision: (editor) ->
+    if editor.getPath()
+      checkoutHead = =>
+        @project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
+          .then (repository) ->
+            repository?.checkoutHeadForEditor(editor)
+
+      if @config.get('editor.confirmCheckoutHeadRevision')
+        @applicationDelegate.confirm
+          message: 'Confirm Checkout HEAD Revision'
+          detailedMessage: "Are you sure you want to discard all changes to \"#{editor.getFileName()}\" since the last Git commit?"
+          buttons:
+            OK: checkoutHead
+            Cancel: null
+      else
+        checkoutHead()
+    else
+      Promise.resolve(false)

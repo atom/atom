@@ -6,8 +6,8 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
   * OS with 64-bit or 32-bit architecture
   * C++ toolchain
-  * [Git](http://git-scm.com/)
-  * [Node.js](http://nodejs.org/download/) (0.10.x or above)
+  * [Git](https://git-scm.com/)
+  * [Node.js](https://nodejs.org/en/download/) (0.10.x or above)
   * [npm](https://www.npmjs.com/) v1.4.x or above (automatically bundled with Node.js)
     * `npm -v` to check the version.
     * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses python2.
@@ -25,7 +25,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 ### Fedora / CentOS / RHEL
 
 * `sudo dnf --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
-* Instructions for [Node.js](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager#enterprise-linux-and-fedora).
+* Instructions for [Node.js](https://nodejs.org/en/download/package-manager/#enterprise-linux-and-fedora).
 
 ### Arch
 
@@ -64,7 +64,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
   script/build
   ```
 
-  This will create the atom application at `$TMPDIR/atom-build/Atom`.
+  This will create the atom application at `out/Atom`.
 
 4. Install the `atom` and `apm` commands to `/usr/local/bin` by executing:
 
@@ -74,30 +74,44 @@ If you have problems with permissions don't forget to prefix with `sudo`
 
   To use the newly installed Atom, quit and restart all running Atom instances.
 
-5. *Optionally*, you may generate distributable packages of Atom at `$TMPDIR/atom-build`. Currently, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
+5. *Optionally*, you may generate distributable packages of Atom at `out`. Currently, `.deb` and `.rpm` package types are supported, as well as a `.tar.gz` archive. To create a `.deb` package run:
 
   ```sh
   script/grunt mkdeb
   ```
 
-  To create an `.rpm` package run
+  To create a `.rpm` package run
 
   ```sh
   script/grunt mkrpm
   ```
 
+  To create a `.tar.gz` archive run
+
+  ```sh
+  script/grunt mktar
+  ```
+
 ## Advanced Options
-
-### Custom install directory
-
-```sh
-sudo script/grunt install --install-dir /install/atom/here
-```
 
 ### Custom build directory
 
 ```sh
 script/build --build-dir /build/atom/here
+```
+
+### Custom install directory
+
+To install to a custom location from the standard build directory:
+
+```sh
+sudo script/grunt install --install-dir /install/atom/here
+```
+
+If you customized your build directory as described above:
+
+```sh
+sudo script/grunt install --build-dir /build/atom/here --install-dir /install/atom/here
 ```
 
 ## Troubleshooting

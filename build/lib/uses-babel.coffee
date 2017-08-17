@@ -4,6 +4,7 @@ BABEL_PREFIXES = [
   "'use babel'"
   '"use babel"'
   '/** @babel */'
+  '/* @flow */'
 ]
 
 PREFIX_LENGTH = Math.max(BABEL_PREFIXES.map((prefix) -> prefix.length)...)

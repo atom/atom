@@ -94,6 +94,13 @@ isCJKCharacter = (character) ->
   isHalfWidthCharacter(character) or
   isKoreanCharacter(character)
 
+isWordStart = (previousCharacter, character) ->
+  (previousCharacter is ' ' or previousCharacter is '\t') and
+  (character isnt ' '  and character isnt '\t')
+
+isWrapBoundary = (previousCharacter, character) ->
+  isWordStart(previousCharacter, character) or isCJKCharacter(character)
+
 # Does the given string contain at least surrogate pair, variation sequence,
 # or combined character?
 #
@@ -107,4 +114,8 @@ hasPairedCharacter = (string) ->
     index++
   false
 
-module.exports = {isPairedCharacter, hasPairedCharacter, isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isCJKCharacter}
+module.exports = {
+  isPairedCharacter, hasPairedCharacter,
+  isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter,
+  isWrapBoundary
+}

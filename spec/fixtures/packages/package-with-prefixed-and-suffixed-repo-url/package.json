@@ -1,0 +1,8 @@
+{
+  "name": "package-with-a-git-prefixed-git-repo-url",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/example/repo.git"
+  },
+  "_id": "this is here to simulate the URL being already normalized by npm. we still need to stript git+ from the beginning and .git from the end."
+}

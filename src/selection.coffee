@@ -1,5 +1,5 @@
 {Point, Range} = require 'text-buffer'
-{pick} = _ = require 'underscore-plus'
+{pick} = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 Model = require './model'
 
@@ -87,7 +87,7 @@ class Selection extends Model
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     options.reversed ?= @isReversed()
-    @editor.destroyFoldsContainingBufferRange(bufferRange) unless options.preserveFolds
+    @editor.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
       needsFlash = options.flash
       delete options.flash if options.flash?
@@ -174,7 +174,7 @@ class Selection extends Model
   #     range. Defaults to `true` if this is the most recently added selection,
   #     `false` otherwise.
   clear: (options) ->
-    @marker.setProperties(goalScreenRange: null)
+    @goalScreenRange = null
     @marker.clearTail() unless @retainSelection
     @autoscroll() if options?.autoscroll ? @isLastSelection()
     @finalize()
@@ -365,7 +365,6 @@ class Selection extends Model
   #   * `undo` if `skip`, skips the undo stack for this operation.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
-    @editor.unfoldBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
     @clear()
 
@@ -378,7 +377,8 @@ class Selection extends Model
       indentAdjustment = @editor.indentLevelForLine(precedingText) - options.indentBasis
       @adjustIndent(remainingLines, indentAdjustment)
 
-    if options.autoIndent and not NonWhitespaceRegExp.test(precedingText) and remainingLines.length > 0
+    textIsAutoIndentable = text is '\n' or text is '\r\n' or NonWhitespaceRegExp.test(text)
+    if options.autoIndent and textIsAutoIndentable and not NonWhitespaceRegExp.test(precedingText) and remainingLines.length > 0
       autoIndentFirstLine = true
       firstLine = precedingText + firstInsertedLine
       desiredIndentLevel = @editor.languageMode.suggestedIndentForLineAtBufferRow(oldBufferRange.start.row, firstLine)
@@ -393,7 +393,7 @@ class Selection extends Model
     if options.select
       @setBufferRange(newBufferRange, reversed: wasReversed)
     else
-      @cursor.setBufferPosition(newBufferRange.end, clip: 'forward') if wasReversed
+      @cursor.setBufferPosition(newBufferRange.end) if wasReversed
 
     if autoIndentFirstLine
       @editor.setIndentationForBufferRow(oldBufferRange.start.row, desiredIndentLevel)
@@ -410,7 +410,7 @@ class Selection extends Model
   # Public: Removes the first character before the selection if the selection
   # is empty otherwise it deletes the selection.
   backspace: ->
-    @selectLeft() if @isEmpty() and not @editor.isFoldedAtScreenRow(@cursor.getScreenRow())
+    @selectLeft() if @isEmpty()
     @deleteSelectedText()
 
   # Public: Removes the selection or, if nothing is selected, then all
@@ -445,11 +445,7 @@ class Selection extends Model
   # Public: Removes the selection or the next character after the start of the
   # selection if the selection is empty.
   delete: ->
-    if @isEmpty()
-      if @cursor.isAtEndOfLine() and fold = @editor.largestFoldStartingAtScreenRow(@cursor.getScreenRow() + 1)
-        @selectToBufferPosition(fold.getBufferRange().end)
-      else
-        @selectRight()
+    @selectRight() if @isEmpty()
     @deleteSelectedText()
 
   # Public: If the selection is empty, removes all text from the cursor to the
@@ -482,8 +478,6 @@ class Selection extends Model
   # Public: Removes only the selected text.
   deleteSelectedText: ->
     bufferRange = @getBufferRange()
-    if bufferRange.isEmpty() and fold = @editor.largestFoldContainingBufferRow(bufferRange.start.row)
-      bufferRange = bufferRange.union(fold.getBufferRange(includeNewline: true))
     @editor.buffer.delete(bufferRange) unless bufferRange.isEmpty()
     @cursor?.setBufferPosition(bufferRange.start)
 
@@ -515,7 +509,7 @@ class Selection extends Model
     if selectedRange.isEmpty()
       return if selectedRange.start.row is @editor.buffer.getLastRow()
     else
-      joinMarker = @editor.markBufferRange(selectedRange, invalidationStrategy: 'never')
+      joinMarker = @editor.markBufferRange(selectedRange, invalidate: 'never')
 
     rowCount = Math.max(1, selectedRange.getRowCount() - 1)
     for row in [0...rowCount]
@@ -634,8 +628,9 @@ class Selection extends Model
   # Public: Creates a fold containing the current selection.
   fold: ->
     range = @getBufferRange()
-    @editor.createFold(range.start.row, range.end.row)
-    @cursor.setBufferPosition([range.end.row + 1, 0])
+    unless range.isEmpty()
+      @editor.foldBufferRange(range)
+      @cursor.setBufferPosition(range.end)
 
   # Private: Increase the indentation level of the given text by given number
   # of levels. Leaves the first line unchanged.
@@ -689,7 +684,7 @@ class Selection extends Model
 
   # Public: Moves the selection down one row.
   addSelectionBelow: ->
-    range = (@getGoalScreenRange() ? @getScreenRange()).copy()
+    range = @getGoalScreenRange().copy()
     nextRow = range.end.row + 1
 
     for row in [nextRow..@editor.getLastScreenRow()]
@@ -702,14 +697,15 @@ class Selection extends Model
       else
         continue if clippedRange.isEmpty()
 
-      @editor.addSelectionForScreenRange(clippedRange, goalScreenRange: range)
+      selection = @editor.addSelectionForScreenRange(clippedRange)
+      selection.setGoalScreenRange(range)
       break
 
     return
 
   # Public: Moves the selection up one row.
   addSelectionAbove: ->
-    range = (@getGoalScreenRange() ? @getScreenRange()).copy()
+    range = @getGoalScreenRange().copy()
     previousRow = range.end.row - 1
 
     for row in [previousRow..0]
@@ -722,7 +718,8 @@ class Selection extends Model
       else
         continue if clippedRange.isEmpty()
 
-      @editor.addSelectionForScreenRange(clippedRange, goalScreenRange: range)
+      selection = @editor.addSelectionForScreenRange(clippedRange)
+      selection.setGoalScreenRange(range)
       break
 
     return
@@ -741,7 +738,7 @@ class Selection extends Model
     else
       options.goalScreenRange = myGoalScreenRange ? otherGoalScreenRange
 
-    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), _.extend(autoscroll: false, options))
+    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), Object.assign(autoscroll: false, options))
     otherSelection.destroy()
 
   ###
@@ -755,11 +752,17 @@ class Selection extends Model
   #
   # * `otherSelection` A {Selection} to compare against
   compare: (otherSelection) ->
-    @getBufferRange().compare(otherSelection.getBufferRange())
+    @marker.compare(otherSelection.marker)
 
   ###
   Section: Private Utilities
   ###
+
+  setGoalScreenRange: (range) ->
+    @goalScreenRange = Range.fromObject(range)
+
+  getGoalScreenRange: ->
+    @goalScreenRange ? @getScreenRange()
 
   markerDidChange: (e) ->
     {oldHeadBufferPosition, oldTailBufferPosition, newHeadBufferPosition} = e
@@ -810,11 +813,11 @@ class Selection extends Model
       @wordwise = false
       @linewise = false
 
-  autoscroll: ->
+  autoscroll: (options) ->
     if @marker.hasTail()
-      @editor.scrollToScreenRange(@getScreenRange(), reversed: @isReversed())
+      @editor.scrollToScreenRange(@getScreenRange(), Object.assign({reversed: @isReversed()}, options))
     else
-      @cursor.autoscroll()
+      @cursor.autoscroll(options)
 
   clearAutoscroll: ->
 
@@ -831,7 +834,3 @@ class Selection extends Model
   # Returns a {Point} representing the new tail position.
   plantTail: ->
     @marker.plantTail()
-
-  getGoalScreenRange: ->
-    if goalScreenRange = @marker.getProperties().goalScreenRange
-      Range.fromObject(goalScreenRange)

@@ -1,0 +1,29 @@
+#!/usr/bin/env node
+var fingerprint = require('./utils/fingerprint')
+var fs = require('fs')
+var path = require('path')
+
+if (!fs.existsSync(path.resolve(__dirname, '..', 'node_modules', '.atom-ci-fingerprint'))) {
+  return
+}
+
+if (fingerprint.fingerprintMatches()) {
+  console.log('node_modules matches current fingerprint ' + fingerprint.fingerprint() + ' - not removing')
+  return
+}
+
+var fsPlus
+try {
+  fsPlus = require('fs-plus')
+} catch (error) {
+  console.log(error.message)
+  return
+}
+
+try {
+  fsPlus.removeSync(path.resolve(__dirname, '..', 'node_modules'))
+  fsPlus.removeSync(path.resolve(__dirname, '..', 'apm', 'node_modules'))
+} catch (error) {
+  console.error(error.message)
+  process.exit(1)
+}

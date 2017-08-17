@@ -1,12 +1,13 @@
 PaneContainer = require '../src/pane-container'
 
 describe "PaneElement", ->
-  [paneElement, container, pane] = []
+  [paneElement, container, containerElement, pane] = []
 
   beforeEach ->
     spyOn(atom.applicationDelegate, "open")
 
     container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+    containerElement = atom.views.getView(container)
     pane = container.getActivePane()
     paneElement = atom.views.getView(pane)
 
@@ -195,3 +196,18 @@ describe "PaneElement", ->
         event = buildDragEvent("drop", [])
         paneElement.dispatchEvent(event)
         expect(atom.applicationDelegate.open).not.toHaveBeenCalled()
+
+  describe "resize", ->
+    it "shrinks independently of its contents' width", ->
+      jasmine.attachToDOM(containerElement)
+      item = document.createElement('div')
+      item.style.width = "2000px"
+      item.style.height = "30px"
+      paneElement.insertBefore(item, paneElement.children[0])
+
+      paneElement.style.flexGrow = 0.1
+      expect(paneElement.getBoundingClientRect().width).toBeGreaterThan(0)
+      expect(paneElement.getBoundingClientRect().width).toBeLessThan(item.getBoundingClientRect().width)
+
+      paneElement.style.flexGrow = 0
+      expect(paneElement.getBoundingClientRect().width).toBe(0)

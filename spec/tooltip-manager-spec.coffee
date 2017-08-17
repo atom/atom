@@ -28,6 +28,12 @@ describe "TooltipManager", ->
       hover element, ->
         expect(document.body.querySelector(".tooltip")).toHaveText("Title")
 
+    it "creates a tooltip immediately if the trigger type is manual", ->
+      disposable = manager.add element, title: "Title", trigger: "manual"
+      expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+      disposable.dispose()
+      expect(document.body.querySelector(".tooltip")).toBeNull()
+
     it "allows jQuery elements to be passed as the target", ->
       element2 = document.createElement('div')
       jasmine.attachToDOM(element2)

@@ -1,9 +1,9 @@
 module.exports =
 class MarkerObservationWindow
-  constructor: (@displayBuffer, @bufferWindow) ->
+  constructor: (@decorationManager, @bufferWindow) ->
 
   setScreenRange: (range) ->
-    @bufferWindow.setRange(@displayBuffer.bufferRangeForScreenRange(range))
+    @bufferWindow.setRange(@decorationManager.bufferRangeForScreenRange(range))
 
   setBufferRange: (range) ->
     @bufferWindow.setRange(range)

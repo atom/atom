@@ -1,7 +1,7 @@
 path = require 'path'
 
 _ = require 'underscore-plus'
-ipc = require 'ipc'
+{ipcRenderer} = require 'electron'
 CSON = require 'season'
 fs = require 'fs-plus'
 {Disposable} = require 'event-kit'
@@ -176,7 +176,7 @@ class MenuManager
   unmerge: (menu, item) ->
     MenuHelpers.unmerge(menu, item)
 
-  # OSX can't handle displaying accelerators for multiple keystrokes.
+  # macOS can't handle displaying accelerators for multiple keystrokes.
   # If they are sent across, it will stop processing accelerators for the rest
   # of the menu items.
   filterMultipleKeystroke: (keystrokesByCommand) ->
@@ -191,7 +191,7 @@ class MenuManager
 
   sendToBrowserProcess: (template, keystrokesByCommand) ->
     keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
-    ipc.send 'update-application-menu', template, keystrokesByCommand
+    ipcRenderer.send 'update-application-menu', template, keystrokesByCommand
 
   # Get an {Array} of {String} classes for the given element.
   classesForElement: (element) ->

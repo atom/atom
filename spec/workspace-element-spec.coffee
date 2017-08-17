@@ -1,4 +1,4 @@
-ipc = require 'ipc'
+{ipcRenderer} = require 'electron'
 path = require 'path'
 temp = require('temp').track()
 
@@ -47,9 +47,14 @@ describe "WorkspaceElement", ->
 
     it "updates the font-family based on the 'editor.fontFamily' config value", ->
       initialCharWidth = editor.getDefaultCharWidth()
-      expect(getComputedStyle(editorElement).fontFamily).toBe atom.config.get('editor.fontFamily')
+      fontFamily = atom.config.get('editor.fontFamily')
+      fontFamily += ", 'Apple Color Emoji'" if process.platform is 'darwin'
+      expect(getComputedStyle(editorElement).fontFamily).toBe fontFamily
+
       atom.config.set('editor.fontFamily', 'sans-serif')
-      expect(getComputedStyle(editorElement).fontFamily).toBe atom.config.get('editor.fontFamily')
+      fontFamily = atom.config.get('editor.fontFamily')
+      fontFamily += ", 'Apple Color Emoji'" if process.platform is 'darwin'
+      expect(getComputedStyle(editorElement).fontFamily).toBe fontFamily
       expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
 
     it "updates the line-height based on the 'editor.lineHeight' config value", ->
@@ -127,35 +132,35 @@ describe "WorkspaceElement", ->
   describe "the 'window:run-package-specs' command", ->
     it "runs the package specs for the active item's project path, or the first project path", ->
       workspaceElement = atom.views.getView(atom.workspace)
-      spyOn(ipc, 'send')
+      spyOn(ipcRenderer, 'send')
 
       # No project paths. Don't try to run specs.
       atom.commands.dispatch(workspaceElement, "window:run-package-specs")
-      expect(ipc.send).not.toHaveBeenCalledWith("run-package-specs")
+      expect(ipcRenderer.send).not.toHaveBeenCalledWith("run-package-specs")
 
       projectPaths = [temp.mkdirSync("dir1-"), temp.mkdirSync("dir2-")]
       atom.project.setPaths(projectPaths)
 
       # No active item. Use first project directory.
       atom.commands.dispatch(workspaceElement, "window:run-package-specs")
-      expect(ipc.send).toHaveBeenCalledWith("run-package-specs", path.join(projectPaths[0], "spec"))
-      ipc.send.reset()
+      expect(ipcRenderer.send).toHaveBeenCalledWith("run-package-specs", path.join(projectPaths[0], "spec"))
+      ipcRenderer.send.reset()
 
       # Active item doesn't implement ::getPath(). Use first project directory.
       item = document.createElement("div")
       atom.workspace.getActivePane().activateItem(item)
       atom.commands.dispatch(workspaceElement, "window:run-package-specs")
-      expect(ipc.send).toHaveBeenCalledWith("run-package-specs", path.join(projectPaths[0], "spec"))
-      ipc.send.reset()
+      expect(ipcRenderer.send).toHaveBeenCalledWith("run-package-specs", path.join(projectPaths[0], "spec"))
+      ipcRenderer.send.reset()
 
       # Active item has no path. Use first project directory.
       item.getPath = -> null
       atom.commands.dispatch(workspaceElement, "window:run-package-specs")
-      expect(ipc.send).toHaveBeenCalledWith("run-package-specs", path.join(projectPaths[0], "spec"))
-      ipc.send.reset()
+      expect(ipcRenderer.send).toHaveBeenCalledWith("run-package-specs", path.join(projectPaths[0], "spec"))
+      ipcRenderer.send.reset()
 
       # Active item has path. Use project path for item path.
       item.getPath = -> path.join(projectPaths[1], "a-file.txt")
       atom.commands.dispatch(workspaceElement, "window:run-package-specs")
-      expect(ipc.send).toHaveBeenCalledWith("run-package-specs", path.join(projectPaths[1], "spec"))
-      ipc.send.reset()
+      expect(ipcRenderer.send).toHaveBeenCalledWith("run-package-specs", path.join(projectPaths[1], "spec"))
+      ipcRenderer.send.reset()

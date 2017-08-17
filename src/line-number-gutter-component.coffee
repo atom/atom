@@ -93,9 +93,9 @@ class LineNumberGutterComponent extends TiledComponent
     {target} = event
     lineNumber = target.parentNode
 
-    if target.classList.contains('icon-right') and lineNumber.classList.contains('foldable')
+    if target.classList.contains('icon-right')
       bufferRow = parseInt(lineNumber.getAttribute('data-buffer-row'))
       if lineNumber.classList.contains('folded')
         @editor.unfoldBufferRow(bufferRow)
-      else
+      else if lineNumber.classList.contains('foldable')
         @editor.foldBufferRow(bufferRow)

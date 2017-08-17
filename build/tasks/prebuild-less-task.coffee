@@ -8,24 +8,6 @@ module.exports = (grunt) ->
   cacheMisses = 0
   cacheHits = 0
 
-  compileBootstrap = ->
-    appDir = grunt.config.get('atom.appDir')
-    bootstrapLessPath = path.join(appDir, 'static', 'bootstrap.less')
-    bootstrapCssPath = path.join(appDir, 'static', 'bootstrap.css')
-
-    lessCache = new LessCache
-      cacheDir: temp.mkdirSync('atom-less-cache')
-      fallbackDir: grunt.config.get('prebuild-less.options.cachePath')
-      syncCaches: true
-      resourcePath: path.resolve('.')
-
-    bootstrapCss = lessCache.readFileSync(bootstrapLessPath)
-    grunt.file.write(bootstrapCssPath, bootstrapCss)
-    rm(bootstrapLessPath)
-    rm(path.join(appDir, 'node_modules', 'bootstrap', 'less'))
-    cacheMisses += lessCache.stats.misses
-    cacheHits += lessCache.stats.hits
-
   importFallbackVariables = (lessFilePath) ->
     if lessFilePath.indexOf('static') is 0
       false
@@ -33,8 +15,6 @@ module.exports = (grunt) ->
       true
 
   grunt.registerMultiTask 'prebuild-less', 'Prebuild cached of compiled Less files', ->
-    compileBootstrap()
-
     uiThemes = [
       'atom-dark-ui'
       'atom-light-ui'

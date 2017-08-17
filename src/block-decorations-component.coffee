@@ -26,7 +26,10 @@ class BlockDecorationsComponent
 
     for id, blockDecorationState of @oldState.blockDecorations
       unless @newState.blockDecorations.hasOwnProperty(id)
-        @blockDecorationNodesById[id].remove()
+        blockDecorationNode = @blockDecorationNodesById[id]
+        blockDecorationNode.previousSibling.remove()
+        blockDecorationNode.nextSibling.remove()
+        blockDecorationNode.remove()
         delete @blockDecorationNodesById[id]
         delete @oldState.blockDecorations[id]
 
@@ -41,19 +44,27 @@ class BlockDecorationsComponent
     for decorationId, blockDecorationNode of @blockDecorationNodesById
       style = getComputedStyle(blockDecorationNode)
       decoration = @newState.blockDecorations[decorationId].decoration
-      marginBottom = parseInt(style.marginBottom) ? 0
-      marginTop = parseInt(style.marginTop) ? 0
-      @presenter.setBlockDecorationDimensions(
-        decoration,
-        blockDecorationNode.offsetWidth,
-        blockDecorationNode.offsetHeight + marginTop + marginBottom
-      )
+      topRuler = blockDecorationNode.previousSibling
+      bottomRuler = blockDecorationNode.nextSibling
+
+      width = blockDecorationNode.offsetWidth
+      height = bottomRuler.offsetTop - topRuler.offsetTop
+      @presenter.setBlockDecorationDimensions(decoration, width, height)
 
   createAndAppendBlockDecorationNode: (id) ->
     blockDecorationState = @newState.blockDecorations[id]
+    blockDecorationClass = "atom--block-decoration-#{id}"
+    topRuler = document.createElement("div")
     blockDecorationNode = @views.getView(blockDecorationState.decoration.getProperties().item)
-    blockDecorationNode.id = "atom--block-decoration-#{id}"
+    bottomRuler = document.createElement("div")
+    topRuler.classList.add(blockDecorationClass)
+    blockDecorationNode.classList.add(blockDecorationClass)
+    bottomRuler.classList.add(blockDecorationClass)
+
+    @container.appendChild(topRuler)
     @container.appendChild(blockDecorationNode)
+    @container.appendChild(bottomRuler)
+
     @blockDecorationNodesById[id] = blockDecorationNode
     @updateBlockDecorationNode(id)
 
@@ -63,9 +74,13 @@ class BlockDecorationsComponent
     blockDecorationNode = @blockDecorationNodesById[id]
 
     if newBlockDecorationState.isVisible
+      blockDecorationNode.previousSibling.classList.remove("atom--invisible-block-decoration")
       blockDecorationNode.classList.remove("atom--invisible-block-decoration")
+      blockDecorationNode.nextSibling.classList.remove("atom--invisible-block-decoration")
     else
+      blockDecorationNode.previousSibling.classList.add("atom--invisible-block-decoration")
       blockDecorationNode.classList.add("atom--invisible-block-decoration")
+      blockDecorationNode.nextSibling.classList.add("atom--invisible-block-decoration")
 
     if oldBlockDecorationState.screenRow isnt newBlockDecorationState.screenRow
       blockDecorationNode.dataset.screenRow = newBlockDecorationState.screenRow
