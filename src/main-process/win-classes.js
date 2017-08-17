@@ -12,13 +12,12 @@ class ClassesOption {
     this.register = this.register.bind(this)
     this.deregister = this.deregister.bind(this)
     this.update = this.update.bind(this)
-    this.key = key
     this.parts = parts
   }
 
   isRegistered (part, callback) {
     new Registry({hive: 'HKCR', key: this.parts[0].key})
-      .get(parts.name, (err, val) => callback((err == null) && (val != null) && val.value === this.parts[0].value))
+      .get(part.name, (err, val) => callback((err == null) && (val != null) && val.value === this.parts[0].value))
   }
 
   register (callback) {
@@ -57,6 +56,7 @@ exports.protocolHandler = new ClassesOption('',
   [
     {key: 'atm', name: '', value: 'URL:Atom Text Editor Protocol'},
     {key: 'atm', name: 'URL Protocol', value: ''},
+    {key: 'atom\\DefaultIcon', name: '', value: fileIconPath},
     {key: 'atm\\shell\\open\\command', name: '', value: `${appPath} \"%1\"`}
   ]
 )
