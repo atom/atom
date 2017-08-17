@@ -308,6 +308,21 @@ const configSchema = {
         description: 'Warn before opening files larger than this number of megabytes.',
         type: 'number',
         default: 40
+      },
+      fileSystemWatcher: {
+        description: 'Choose the underlying implementation used to watch for filesystem changes. Emulating changes will miss any events caused by applications other than Atom, but may help prevent crashes or freezes.',
+        type: 'string',
+        default: 'native',
+        enum: [
+          {
+            value: 'native',
+            description: 'Native operating system APIs'
+          },
+          {
+            value: 'atom',
+            description: 'Emulated with Atom events'
+          }
+        ]
       }
     }
   },

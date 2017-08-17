@@ -98,7 +98,6 @@ class TextEditor extends Model
   registered: false
   atomicSoftTabs: true
   invisibles: null
-  scrollSensitivity: 40
 
   Object.defineProperty @prototype, "element",
     get: -> @getElement()
@@ -156,7 +155,7 @@ class TextEditor extends Model
       @softTabs, @initialScrollTopRow, @initialScrollLeftColumn, initialLine, initialColumn, tabLength,
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, @showLineNumbers, @largeFileMode,
-      @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
+      @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @scrollSensitivity, @editorWidthInChars,
       @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide,
       @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength,
       @showCursorOnSelection
@@ -172,6 +171,7 @@ class TextEditor extends Model
 
     @mini ?= false
     @scrollPastEnd ?= false
+    @scrollSensitivity ?= 40
     @showInvisibles ?= true
     @softTabs ?= true
     tabLength ?= 2
@@ -1582,6 +1582,8 @@ class TextEditor extends Model
   # undo history, no changes will be made to the buffer and this method will
   # return `false`.
   #
+  # * `checkpoint` The checkpoint to revert to.
+  #
   # Returns a {Boolean} indicating whether the operation succeeded.
   revertToCheckpoint: (checkpoint) -> @buffer.revertToCheckpoint(checkpoint)
 
@@ -1590,6 +1592,8 @@ class TextEditor extends Model
   #
   # If the given checkpoint is no longer present in the undo history, no
   # grouping will be performed and this method will return `false`.
+  #
+  # * `checkpoint` The checkpoint from which to group changes.
   #
   # Returns a {Boolean} indicating whether the operation succeeded.
   groupChangesSinceCheckpoint: (checkpoint) -> @buffer.groupChangesSinceCheckpoint(checkpoint)
@@ -3522,6 +3526,10 @@ class TextEditor extends Model
       Math.max(1, Math.ceil(clientHeight / lineHeight))
     else
       1
+
+  Object.defineProperty(@prototype, 'rowsPerPage', {
+    get: -> @getRowsPerPage()
+  })
 
   ###
   Section: Config

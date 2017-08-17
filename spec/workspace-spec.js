@@ -25,7 +25,13 @@ describe('Workspace', () => {
     waitsForPromise(() => atom.workspace.itemLocationStore.clear())
   })
 
-  afterEach(() => temp.cleanupSync())
+  afterEach(() => {
+    try {
+      temp.cleanupSync()
+    } catch (e) {
+      // Do nothing
+    }
+  })
 
   function simulateReload() {
     waitsForPromise(() => {
@@ -1582,6 +1588,7 @@ i = /test/; #FIXME\
       expect(atom2.grammars.getGrammars().map(grammar => grammar.name).sort()).toEqual([
         'CoffeeScript',
         'CoffeeScript (Literate)',
+        'JSDoc',
         'JavaScript',
         'Null Grammar',
         'Regular Expression Replacement (JavaScript)',
@@ -2385,6 +2392,22 @@ i = /test/; #FIXME\
           expect(results).toHaveLength(1)
           expect(results[0].filePath).toBe(filePath)
           expect(results[0].replacements).toBe(6)
+        })
+      })
+
+      it('does not discard the multiline flag', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
+
+        const results = []
+        waitsForPromise(() =>
+          atom.workspace.replace(/;$/gmi, 'items', [filePath], result => results.push(result))
+        )
+
+        runs(() => {
+          expect(results).toHaveLength(1)
+          expect(results[0].filePath).toBe(filePath)
+          expect(results[0].replacements).toBe(8)
         })
       })
     })

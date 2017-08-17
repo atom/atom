@@ -6,7 +6,7 @@
   * Open the dev tools with `alt-cmd-i`
   * Evaluate `process.versions.electron` in the console.
 * Based on this version, download the appropriate Electron symbols from the [releases](https://github.com/atom/electron/releases) page.
-  * The file name should look like `electron-v0.X.Y-darwin-x64-dsym.zip`.
+  * The file name should look like `electron-v1.X.Y-darwin-x64-dsym.zip`.
   * Decompress these symbols in your `~/Downloads` directory.
 * Now create a time profile in Instruments.
   * Open `Instruments.app`.

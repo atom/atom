@@ -184,7 +184,7 @@ describe "TokenizedBuffer", ->
           it "schedules the invalidated lines to be tokenized in the background", ->
             buffer.insert([5, 30], '/* */')
             buffer.setTextInRange([[2, 0], [3, 0]], '/*')
-            expect(tokenizedBuffer.tokenizedLines[2].tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
+            expect(tokenizedBuffer.tokenizedLines[2].tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.begin.js']
             expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual ['source.js']
 
             advanceClock()
@@ -214,7 +214,7 @@ describe "TokenizedBuffer", ->
           it "schedules the invalidated lines to be tokenized in the background", ->
             buffer.insert([5, 30], '/* */')
             buffer.insert([2, 0], '/*\nabcde\nabcder')
-            expect(tokenizedBuffer.tokenizedLines[2].tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
+            expect(tokenizedBuffer.tokenizedLines[2].tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.begin.js']
             expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.tokenizedLines[4].tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.tokenizedLines[5].tokens[0].scopes).toEqual ['source.js']
@@ -596,10 +596,10 @@ describe "TokenizedBuffer", ->
           {position: Point(0, 9), closeTags: ["syntax--keyword syntax--operator syntax--assignment syntax--js"], openTags: []}
           {position: Point(0, 10), closeTags: [], openTags: ["syntax--constant syntax--numeric syntax--decimal syntax--js"]}
           {position: Point(0, 11), closeTags: ["syntax--constant syntax--numeric syntax--decimal syntax--js"], openTags: []}
-          {position: Point(0, 12), closeTags: [], openTags: ["syntax--comment syntax--block syntax--js", "syntax--punctuation syntax--definition syntax--comment syntax--js"]}
-          {position: Point(0, 14), closeTags: ["syntax--punctuation syntax--definition syntax--comment syntax--js"], openTags: []}
-          {position: Point(1, 5), closeTags: [], openTags: ["syntax--punctuation syntax--definition syntax--comment syntax--js"]}
-          {position: Point(1, 7), closeTags: ["syntax--punctuation syntax--definition syntax--comment syntax--js", "syntax--comment syntax--block syntax--js"], openTags: ["syntax--storage syntax--type syntax--var syntax--js"]}
+          {position: Point(0, 12), closeTags: [], openTags: ["syntax--comment syntax--block syntax--js", "syntax--punctuation syntax--definition syntax--comment syntax--begin syntax--js"]}
+          {position: Point(0, 14), closeTags: ["syntax--punctuation syntax--definition syntax--comment syntax--begin syntax--js"], openTags: []}
+          {position: Point(1, 5), closeTags: [], openTags: ["syntax--punctuation syntax--definition syntax--comment syntax--end syntax--js"]}
+          {position: Point(1, 7), closeTags: ["syntax--punctuation syntax--definition syntax--comment syntax--end syntax--js", "syntax--comment syntax--block syntax--js"], openTags: ["syntax--storage syntax--type syntax--var syntax--js"]}
           {position: Point(1, 10), closeTags: ["syntax--storage syntax--type syntax--var syntax--js"], openTags: []}
           {position: Point(1, 15), closeTags: [], openTags: ["syntax--keyword syntax--operator syntax--assignment syntax--js"]}
           {position: Point(1, 16), closeTags: ["syntax--keyword syntax--operator syntax--assignment syntax--js"], openTags: []}

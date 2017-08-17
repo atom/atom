@@ -9,7 +9,8 @@ describe "atom.themes", ->
 
   afterEach ->
     atom.themes.deactivateThemes()
-    temp.cleanupSync()
+    try
+      temp.cleanupSync()
 
   describe "theme getters and setters", ->
     beforeEach ->

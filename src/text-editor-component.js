@@ -32,6 +32,10 @@ class TextEditorComponent {
     etch.setScheduler(scheduler)
   }
 
+  static getScheduler () {
+    return etch.getScheduler()
+  }
+
   static didUpdateStyles () {
     if (this.attachedComponents) {
       this.attachedComponents.forEach((component) => {
@@ -70,6 +74,7 @@ class TextEditorComponent {
     this.updateSync = this.updateSync.bind(this)
     this.didBlurHiddenInput = this.didBlurHiddenInput.bind(this)
     this.didFocusHiddenInput = this.didFocusHiddenInput.bind(this)
+    this.didPaste = this.didPaste.bind(this)
     this.didTextInput = this.didTextInput.bind(this)
     this.didKeydown = this.didKeydown.bind(this)
     this.didKeyup = this.didKeyup.bind(this)
@@ -109,8 +114,8 @@ class TextEditorComponent {
     this.cursorsBlinking = false
     this.cursorsBlinkedOff = false
     this.nextUpdateOnlyBlinksCursors = null
-    this.extraLinesToMeasure = null
-    this.extraRenderedScreenLines = null
+    this.linesToMeasure = new Map()
+    this.extraRenderedScreenLines = new Map()
     this.horizontalPositionsToMeasure = new Map() // Keys are rows with positions we want to measure, values are arrays of columns to measure
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
     this.blockDecorationsToMeasure = new Set()
@@ -175,6 +180,10 @@ class TextEditorComponent {
   }
 
   update (props) {
+    if (props.model !== this.props.model) {
+      this.props.model.component = null
+      props.model.component = this
+    }
     this.props = props
     this.scheduleUpdate()
   }
@@ -208,15 +217,17 @@ class TextEditorComponent {
   }
 
   updateSync (useScheduler = false) {
-    this.updateScheduled = false
-
     // Don't proceed if we know we are not visible
-    if (!this.visible) return
+    if (!this.visible) {
+      this.updateScheduled = false
+      return
+    }
 
     // Don't proceed if we have to pay for a measurement anyway and detect
     // that we are no longer visible.
     if ((this.remeasureCharacterDimensions || this.remeasureAllBlockDecorations) && !this.isVisible()) {
       if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
+      this.updateScheduled = false
       return
     }
 
@@ -225,6 +236,7 @@ class TextEditorComponent {
     if (useScheduler && onlyBlinkingCursors) {
       this.refs.cursorsAndInput.updateCursorBlinkSync(this.cursorsBlinkedOff)
       if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
+      this.updateScheduled = false
       return
     }
 
@@ -236,6 +248,7 @@ class TextEditorComponent {
 
       this.measureCharacterDimensions()
       this.measureGutterDimensions()
+      this.queryLongestLine()
 
       if (this.getLineHeight() !== originalLineHeight) {
         this.setScrollTopRow(scrollTopRow)
@@ -248,22 +261,21 @@ class TextEditorComponent {
 
     this.measureBlockDecorations()
 
-    this.measuredContent = false
     this.updateSyncBeforeMeasuringContent()
     if (useScheduler === true) {
       const scheduler = etch.getScheduler()
       scheduler.readDocument(() => {
         this.measureContentDuringUpdateSync()
-        this.measuredContent = true
         scheduler.updateDocument(() => {
           this.updateSyncAfterMeasuringContent()
         })
       })
     } else {
       this.measureContentDuringUpdateSync()
-      this.measuredContent = true
       this.updateSyncAfterMeasuringContent()
     }
+
+    this.updateScheduled = false
   }
 
   measureBlockDecorations () {
@@ -338,6 +350,7 @@ class TextEditorComponent {
   }
 
   updateSyncBeforeMeasuringContent () {
+    this.measuredContent = false
     this.derivedDimensionsCache = {}
     this.updateModelSoftWrapColumn()
     if (this.pendingAutoscroll) {
@@ -349,9 +362,11 @@ class TextEditorComponent {
     this.populateVisibleRowRange()
     this.populateVisibleTiles()
     this.queryScreenLinesToRender()
+    this.queryLongestLine()
     this.queryLineNumbersToRender()
     this.queryGuttersToRender()
     this.queryDecorationsToRender()
+    this.queryExtraScreenLinesToRender()
     this.shouldRenderDummyScrollbars = !this.remeasureScrollbars
     etch.updateSync(this)
     this.updateClassList()
@@ -366,8 +381,6 @@ class TextEditorComponent {
     }
     const wasHorizontalScrollbarVisible = this.isHorizontalScrollbarVisible()
 
-    this.extraRenderedScreenLines = this.extraLinesToMeasure
-    this.extraLinesToMeasure = null
     this.measureLongestLineWidth()
     this.measureHorizontalPositions()
     this.updateAbsolutePositionedDecorations()
@@ -381,6 +394,9 @@ class TextEditorComponent {
       }
       this.pendingAutoscroll = null
     }
+
+    this.linesToMeasure.clear()
+    this.measuredContent = true
   }
 
   updateSyncAfterMeasuringContent () {
@@ -540,14 +556,13 @@ class TextEditorComponent {
       style.willChange = 'transform'
       style.transform = `translate(${-this.getScrollLeft()}px, ${-this.getScrollTop()}px)`
       children = [
-        this.renderCursorsAndInput(),
         this.renderLineTiles(),
         this.renderBlockDecorationMeasurementArea(),
-        this.renderCharacterMeasurementLine(),
-        this.renderPlaceholderText()
+        this.renderCharacterMeasurementLine()
       ]
     } else {
       children = [
+        this.renderLineTiles(),
         this.renderBlockDecorationMeasurementArea(),
         this.renderCharacterMeasurementLine()
       ]
@@ -564,71 +579,74 @@ class TextEditorComponent {
   }
 
   renderLineTiles () {
-    const {lineNodesByScreenLineId, textNodesByScreenLineId} = this
-
-    const startRow = this.getRenderedStartRow()
-    const endRow = this.getRenderedEndRow()
-    const rowsPerTile = this.getRowsPerTile()
-    const tileWidth = this.getScrollWidth()
-
-    const displayLayer = this.props.model.displayLayer
-    const tileNodes = new Array(this.renderedTileStartRows.length)
-
-    for (let i = 0; i < this.renderedTileStartRows.length; i++) {
-      const tileStartRow = this.renderedTileStartRows[i]
-      const tileEndRow = Math.min(endRow, tileStartRow + rowsPerTile)
-      const tileHeight = this.pixelPositionBeforeBlocksForRow(tileEndRow) - this.pixelPositionBeforeBlocksForRow(tileStartRow)
-
-      tileNodes[i] = $(LinesTileComponent, {
-        key: this.idsByTileStartRow.get(tileStartRow),
-        measuredContent: this.measuredContent,
-        height: tileHeight,
-        width: tileWidth,
-        top: this.pixelPositionBeforeBlocksForRow(tileStartRow),
-        lineHeight: this.getLineHeight(),
-        renderedStartRow: startRow,
-        tileStartRow,
-        tileEndRow,
-        screenLines: this.renderedScreenLines.slice(tileStartRow - startRow, tileEndRow - startRow),
-        lineDecorations: this.decorationsToRender.lines.slice(tileStartRow - startRow, tileEndRow - startRow),
-        textDecorations: this.decorationsToRender.text.slice(tileStartRow - startRow, tileEndRow - startRow),
-        blockDecorations: this.decorationsToRender.blocks.get(tileStartRow),
-        highlightDecorations: this.decorationsToRender.highlights.get(tileStartRow),
-        displayLayer,
-        nodePool: this.lineNodesPool,
-        lineNodesByScreenLineId,
-        textNodesByScreenLineId
-      })
+    const children = []
+    const style = {
+      position: 'absolute',
+      contain: 'strict',
+      overflow: 'hidden'
     }
 
-    if (this.extraLinesToMeasure) {
-      this.extraLinesToMeasure.forEach((screenLine, screenRow) => {
+    if (this.hasInitialMeasurements) {
+      const {lineNodesByScreenLineId, textNodesByScreenLineId} = this
+
+      const startRow = this.getRenderedStartRow()
+      const endRow = this.getRenderedEndRow()
+      const rowsPerTile = this.getRowsPerTile()
+      const tileWidth = this.getScrollWidth()
+
+      for (let i = 0; i < this.renderedTileStartRows.length; i++) {
+        const tileStartRow = this.renderedTileStartRows[i]
+        const tileEndRow = Math.min(endRow, tileStartRow + rowsPerTile)
+        const tileHeight = this.pixelPositionBeforeBlocksForRow(tileEndRow) - this.pixelPositionBeforeBlocksForRow(tileStartRow)
+
+        children.push($(LinesTileComponent, {
+          key: this.idsByTileStartRow.get(tileStartRow),
+          measuredContent: this.measuredContent,
+          height: tileHeight,
+          width: tileWidth,
+          top: this.pixelPositionBeforeBlocksForRow(tileStartRow),
+          lineHeight: this.getLineHeight(),
+          renderedStartRow: startRow,
+          tileStartRow,
+          tileEndRow,
+          screenLines: this.renderedScreenLines.slice(tileStartRow - startRow, tileEndRow - startRow),
+          lineDecorations: this.decorationsToRender.lines.slice(tileStartRow - startRow, tileEndRow - startRow),
+          textDecorations: this.decorationsToRender.text.slice(tileStartRow - startRow, tileEndRow - startRow),
+          blockDecorations: this.decorationsToRender.blocks.get(tileStartRow),
+          highlightDecorations: this.decorationsToRender.highlights.get(tileStartRow),
+          displayLayer: this.props.model.displayLayer,
+          nodePool: this.lineNodesPool,
+          lineNodesByScreenLineId,
+          textNodesByScreenLineId
+        }))
+      }
+
+      this.extraRenderedScreenLines.forEach((screenLine, screenRow) => {
         if (screenRow < startRow || screenRow >= endRow) {
-          tileNodes.push($(LineComponent, {
+          children.push($(LineComponent, {
             key: 'extra-' + screenLine.id,
+            offScreen: true,
             screenLine,
             screenRow,
-            displayLayer,
+            displayLayer: this.props.model.displayLayer,
             nodePool: this.lineNodesPool,
             lineNodesByScreenLineId,
             textNodesByScreenLineId
           }))
         }
       })
+
+      style.width = this.getScrollWidth() + 'px'
+      style.height = this.getScrollHeight() + 'px'
     }
 
-    return $.div({
-      key: 'lineTiles',
-      ref: 'lineTiles',
-      className: 'lines',
-      style: {
-        position: 'absolute',
-        contain: 'strict',
-        overflow: 'hidden',
-        width: this.getScrollWidth() + 'px',
-        height: this.getScrollHeight() + 'px'
-      }
-    }, tileNodes)
+    children.push(this.renderPlaceholderText())
+    children.push(this.renderCursorsAndInput())
+
+    return $.div(
+      {key: 'lineTiles', ref: 'lineTiles', className: 'lines', style},
+      children
+    )
   }
 
   renderCursorsAndInput () {
@@ -638,6 +656,7 @@ class TextEditorComponent {
       didBlurHiddenInput: this.didBlurHiddenInput,
       didFocusHiddenInput: this.didFocusHiddenInput,
       didTextInput: this.didTextInput,
+      didPaste: this.didPaste,
       didKeydown: this.didKeydown,
       didKeyup: this.didKeyup,
       didKeypress: this.didKeypress,
@@ -820,14 +839,27 @@ class TextEditorComponent {
       this.getRenderedStartRow(),
       this.getRenderedEndRow()
     )
+  }
+
+  queryLongestLine () {
+    const {model} = this.props
 
     const longestLineRow = model.getApproximateLongestScreenRow()
     const longestLine = model.screenLineForScreenRow(longestLineRow)
-    if (longestLine !== this.previousLongestLine) {
-      this.requestExtraLineToMeasure(longestLineRow, longestLine)
+    if (longestLine !== this.previousLongestLine || this.remeasureCharacterDimensions) {
+      this.requestLineToMeasure(longestLineRow, longestLine)
       this.longestLineToMeasure = longestLine
       this.previousLongestLine = longestLine
     }
+  }
+
+  queryExtraScreenLinesToRender () {
+    this.extraRenderedScreenLines.clear()
+    this.linesToMeasure.forEach((screenLine, row) => {
+      if (row < this.getRenderedStartRow() || row >= this.getRenderedEndRow()) {
+        this.extraRenderedScreenLines.set(row, screenLine)
+      }
+    })
   }
 
   queryLineNumbersToRender () {
@@ -900,7 +932,7 @@ class TextEditorComponent {
   renderedScreenLineForRow (row) {
     return (
       this.renderedScreenLines[row - this.getRenderedStartRow()] ||
-      (this.extraRenderedScreenLines ? this.extraRenderedScreenLines.get(row) : null)
+      this.extraRenderedScreenLines.get(row)
     )
   }
 
@@ -1117,7 +1149,7 @@ class TextEditorComponent {
     const height = this.pixelPositionBeforeBlocksForRow(screenRange.end.row + 1) - top
 
     decorations.push({
-      className: decoration.class,
+      className: 'decoration' + (decoration.class ? ' ' + decoration.class : ''),
       element: TextEditor.viewForItem(decoration.item),
       top,
       height
@@ -1436,16 +1468,14 @@ class TextEditorComponent {
       this.scheduleUpdate()
     }
 
-    const {hiddenInput} = this.refs.cursorsAndInput.refs
-    hiddenInput.focus()
+    this.getHiddenInput().focus()
   }
 
   // Called by TextEditorElement so that this function is always the first
   // listener to be fired, even if other listeners are bound before creating
   // the component.
   didBlur (event) {
-    const {cursorsAndInput} = this.refs
-    if (cursorsAndInput && event.relatedTarget === cursorsAndInput.refs.hiddenInput) {
+    if (event.relatedTarget === this.getHiddenInput()) {
       event.stopImmediatePropagation()
     }
   }
@@ -1474,11 +1504,17 @@ class TextEditorComponent {
   }
 
   didMouseWheel (event) {
-    const scrollSensitivity = this.props.mouseWheelScrollSensitivity || 0.8
+    const scrollSensitivity = this.props.model.getScrollSensitivity() / 100
 
     let {deltaX, deltaY} = event
-    deltaX = deltaX * scrollSensitivity
-    deltaY = deltaY * scrollSensitivity
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      deltaX = deltaX * scrollSensitivity
+      deltaY = 0
+    } else {
+      deltaX = 0
+      deltaY = deltaY * scrollSensitivity
+    }
 
     if (this.getPlatform() !== 'darwin' && event.shiftKey) {
       let temp = deltaX
@@ -1486,11 +1522,10 @@ class TextEditorComponent {
       deltaY = temp
     }
 
-    const scrollPositionChanged =
-      this.setScrollLeft(this.getScrollLeft() + deltaX) ||
-      this.setScrollTop(this.getScrollTop() + deltaY)
+    const scrollLeftChanged = deltaX !== 0 && this.setScrollLeft(this.getScrollLeft() + deltaX)
+    const scrollTopChanged = deltaY !== 0 && this.setScrollTop(this.getScrollTop() + deltaY)
 
-    if (scrollPositionChanged) this.updateSync()
+    if (scrollLeftChanged || scrollTopChanged) this.updateSync()
   }
 
   didResize () {
@@ -1544,6 +1579,16 @@ class TextEditorComponent {
       this.remeasureScrollbars = true
       this.scheduleUpdate()
     }
+  }
+
+  didPaste (event) {
+    // On Linux, Chromium translates a middle-button mouse click into a
+    // mousedown event *and* a paste event. Since Atom supports the middle mouse
+    // click as a way of closing a tab, we only want the mousedown event, not
+    // the paste event. And since we don't use the `paste` event for any
+    // behavior in Atom, we can no-op the event to eliminate this issue.
+    // See https://github.com/atom/atom/pull/15183#issue-248432413.
+    if (this.getPlatform() === 'linux') event.preventDefault()
   }
 
   didTextInput (event) {
@@ -1603,7 +1648,6 @@ class TextEditorComponent {
 
   didKeypress (event) {
     this.lastKeydownBeforeKeypress = this.lastKeydown
-    this.lastKeydown = null
 
     // This cancels the accented character behavior if we type a key normally
     // with the menu open.
@@ -1613,7 +1657,6 @@ class TextEditorComponent {
   didKeyup (event) {
     if (this.lastKeydownBeforeKeypress && this.lastKeydownBeforeKeypress.code === event.code) {
       this.lastKeydownBeforeKeypress = null
-      this.lastKeydown = null
     }
   }
 
@@ -1628,6 +1671,23 @@ class TextEditorComponent {
   //   4. compositionend fired
   //   5. textInput fired; event.data == the completion string
   didCompositionStart () {
+    // Workaround for Chromium not preventing composition events when
+    // preventDefault is called on the keydown event that precipitated them.
+    if (this.lastKeydown && this.lastKeydown.defaultPrevented) {
+      this.getHiddenInput().disabled = true
+      process.nextTick(() => {
+        // Disabling the hidden input makes it lose focus as well, so we have to
+        // re-enable and re-focus it.
+        this.getHiddenInput().disabled = false
+        this.getHiddenInput().focus()
+      })
+      return
+    }
+
+    if (this.getChromeVersion() === 56) {
+      this.getHiddenInput().value = ''
+    }
+
     this.compositionCheckpoint = this.props.model.createCheckpoint()
     if (this.accentedCharacterMenuIsOpen) {
       this.props.model.selectLeft()
@@ -1635,7 +1695,16 @@ class TextEditorComponent {
   }
 
   didCompositionUpdate (event) {
-    this.props.model.insertText(event.data, {select: true})
+    if (this.getChromeVersion() === 56) {
+      process.nextTick(() => {
+        if (this.compositionCheckpoint != null) {
+          const previewText = this.getHiddenInput().value
+          this.props.model.insertText(previewText, {select: true})
+        }
+      })
+    } else {
+      this.props.model.insertText(event.data, {select: true})
+    }
   }
 
   didCompositionEnd (event) {
@@ -1645,10 +1714,37 @@ class TextEditorComponent {
   didMouseDownOnContent (event) {
     const {model} = this.props
     const {target, button, detail, ctrlKey, shiftKey, metaKey} = event
+    const platform = this.getPlatform()
+
+    // Ignore clicks on block decorations.
+    if (target) {
+      let element = target
+      while (element && element !== this.element) {
+        if (this.blockDecorationsByElement.has(element)) {
+          return
+        }
+
+        element = element.parentElement
+      }
+    }
+
+    // On Linux, position the cursor on middle mouse button click. A
+    // textInput event with the contents of the selection clipboard will be
+    // dispatched by the browser automatically on mouseup.
+    if (platform === 'linux' && button === 1) {
+      const selection = clipboard.readText('selection')
+      const screenPosition = this.screenPositionForMouseEvent(event)
+      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
+      model.insertText(selection)
+      return
+    }
 
     // Only handle mousedown events for left mouse button (or the middle mouse
     // button on Linux where it pastes the selection clipboard).
-    if (!(button === 0 || (this.getPlatform() === 'linux' && button === 1))) return
+    if (button !== 0) return
+
+    // Ctrl-click brings up the context menu on macOS
+    if (platform === 'darwin' && ctrlKey) return
 
     const screenPosition = this.screenPositionForMouseEvent(event)
 
@@ -1658,15 +1754,7 @@ class TextEditorComponent {
       return
     }
 
-    // Handle middle mouse button only on Linux (paste clipboard)
-    if (this.getPlatform() === 'linux' && button === 1) {
-      const selection = clipboard.readText('selection')
-      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
-      model.insertText(selection)
-      return
-    }
-
-    const addOrRemoveSelection = metaKey || (ctrlKey && this.getPlatform() !== 'darwin')
+    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
 
     switch (detail) {
       case 1:
@@ -1799,7 +1887,7 @@ class TextEditorComponent {
     }
 
     window.addEventListener('mousemove', didMouseMove)
-    window.addEventListener('mouseup', didMouseUp)
+    window.addEventListener('mouseup', didMouseUp, {capture: true})
   }
 
   autoscrollOnMouseDrag ({clientX, clientY}, verticalOnly = false) {
@@ -2023,7 +2111,7 @@ class TextEditorComponent {
   }
 
   measureCharacterDimensions () {
-    this.measurements.lineHeight = this.refs.characterMeasurementLine.getBoundingClientRect().height
+    this.measurements.lineHeight = Math.max(1, this.refs.characterMeasurementLine.getBoundingClientRect().height)
     this.measurements.baseCharacterWidth = this.refs.normalWidthCharacterSpan.getBoundingClientRect().width
     this.measurements.doubleWidthCharacterWidth = this.refs.doubleWidthCharacterSpan.getBoundingClientRect().width
     this.measurements.halfWidthCharacterWidth = this.refs.halfWidthCharacterSpan.getBoundingClientRect().width
@@ -2102,29 +2190,24 @@ class TextEditorComponent {
     }
   }
 
-  requestExtraLineToMeasure (row, screenLine) {
-    if (!this.extraLinesToMeasure) this.extraLinesToMeasure = new Map()
-    this.extraLinesToMeasure.set(row, screenLine)
+  requestLineToMeasure (row, screenLine) {
+    this.linesToMeasure.set(row, screenLine)
   }
 
   requestHorizontalMeasurement (row, column) {
     if (column === 0) return
 
-    if (row < this.getRenderedStartRow() || row >= this.getRenderedEndRow()) {
-      const screenLine = this.props.model.screenLineForScreenRow(row)
-      if (screenLine) {
-        this.requestExtraLineToMeasure(row, screenLine)
-      } else {
-        return
-      }
-    }
+    const screenLine = this.props.model.screenLineForScreenRow(row)
+    if (screenLine) {
+      this.requestLineToMeasure(row, screenLine)
 
-    let columns = this.horizontalPositionsToMeasure.get(row)
-    if (columns == null) {
-      columns = []
-      this.horizontalPositionsToMeasure.set(row, columns)
+      let columns = this.horizontalPositionsToMeasure.get(row)
+      if (columns == null) {
+        columns = []
+        this.horizontalPositionsToMeasure.set(row, columns)
+      }
+      columns.push(column)
     }
-    columns.push(column)
   }
 
   measureHorizontalPositions () {
@@ -2237,7 +2320,7 @@ class TextEditorComponent {
 
     let screenLine = this.renderedScreenLineForRow(row)
     if (!screenLine) {
-      this.requestExtraLineToMeasure(row, model.screenLineForScreenRow(row))
+      this.requestLineToMeasure(row, model.screenLineForScreenRow(row))
       this.updateSyncBeforeMeasuringContent()
       this.measureContentDuringUpdateSync()
       screenLine = this.renderedScreenLineForRow(row)
@@ -2632,6 +2715,8 @@ class TextEditorComponent {
   }
 
   setScrollTop (scrollTop) {
+    if (Number.isNaN(scrollTop) || scrollTop == null) return false
+
     scrollTop = Math.round(Math.max(0, Math.min(this.getMaxScrollTop(), scrollTop)))
     if (scrollTop !== this.scrollTop) {
       this.derivedDimensionsCache = {}
@@ -2645,7 +2730,7 @@ class TextEditorComponent {
   }
 
   getMaxScrollTop () {
-    return Math.max(0, this.getScrollHeight() - this.getScrollContainerClientHeight())
+    return Math.round(Math.max(0, this.getScrollHeight() - this.getScrollContainerClientHeight()))
   }
 
   getScrollBottom () {
@@ -2661,6 +2746,8 @@ class TextEditorComponent {
   }
 
   setScrollLeft (scrollLeft) {
+    if (Number.isNaN(scrollLeft) || scrollLeft == null) return false
+
     scrollLeft = Math.round(Math.max(0, Math.min(this.getMaxScrollLeft(), scrollLeft)))
     if (scrollLeft !== this.scrollLeft) {
       this.scrollLeftPending = true
@@ -2673,7 +2760,7 @@ class TextEditorComponent {
   }
 
   getMaxScrollLeft () {
-    return Math.max(0, this.getScrollWidth() - this.getScrollContainerClientWidth())
+    return Math.round(Math.max(0, this.getScrollWidth() - this.getScrollContainerClientWidth()))
   }
 
   getScrollRight () {
@@ -2785,8 +2872,16 @@ class TextEditorComponent {
     return this.props.inputEnabled != null ? this.props.inputEnabled : true
   }
 
+  getHiddenInput () {
+    return this.refs.cursorsAndInput.refs.hiddenInput
+  }
+
   getPlatform () {
     return this.props.platform || process.platform
+  }
+
+  getChromeVersion () {
+    return this.props.chromeVersion || parseInt(process.versions.chrome)
   }
 }
 
@@ -2828,20 +2923,22 @@ class DummyScrollbarComponent {
       outerStyle.bottom = 0
       outerStyle.left = 0
       outerStyle.right = right + 'px'
-      outerStyle.height = '20px'
+      outerStyle.height = '15px'
       outerStyle.overflowY = 'hidden'
       outerStyle.overflowX = this.props.forceScrollbarVisible ? 'scroll' : 'auto'
-      innerStyle.height = '20px'
+      outerStyle.cursor = 'default'
+      innerStyle.height = '15px'
       innerStyle.width = (this.props.scrollWidth || 0) + 'px'
     } else {
       let bottom = (this.props.horizontalScrollbarHeight || 0)
       outerStyle.right = 0
       outerStyle.top = 0
       outerStyle.bottom = bottom + 'px'
-      outerStyle.width = '20px'
+      outerStyle.width = '15px'
       outerStyle.overflowX = 'hidden'
       outerStyle.overflowY = this.props.forceScrollbarVisible ? 'scroll' : 'auto'
-      innerStyle.width = '20px'
+      outerStyle.cursor = 'default'
+      innerStyle.width = '15px'
       innerStyle.height = (this.props.scrollHeight || 0) + 'px'
     }
 
@@ -3255,7 +3352,10 @@ class CustomGutterDecorationComponent {
     this.element.style.top = top + 'px'
     this.element.style.height = height + 'px'
     if (className != null) this.element.className = className
-    if (element != null) this.element.appendChild(element)
+    if (element != null) {
+      this.element.appendChild(element)
+      element.style.height = height + 'px'
+    }
   }
 
   update (newProps) {
@@ -3263,11 +3363,17 @@ class CustomGutterDecorationComponent {
     this.props = newProps
 
     if (newProps.top !== oldProps.top) this.element.style.top = newProps.top + 'px'
-    if (newProps.height !== oldProps.height) this.element.style.height = newProps.height + 'px'
+    if (newProps.height !== oldProps.height) {
+      this.element.style.height = newProps.height + 'px'
+      if (newProps.element) newProps.element.style.height = newProps.height + 'px'
+    }
     if (newProps.className !== oldProps.className) this.element.className = newProps.className || ''
     if (newProps.element !== oldProps.element) {
       if (this.element.firstChild) this.element.firstChild.remove()
-      this.element.appendChild(newProps.element)
+      if (newProps.element != null) {
+        this.element.appendChild(newProps.element)
+        newProps.element.style.height = newProps.height + 'px'
+      }
     }
   }
 }
@@ -3339,8 +3445,8 @@ class CursorsAndInputComponent {
   renderHiddenInput () {
     const {
       lineHeight, hiddenInputPosition, didBlurHiddenInput, didFocusHiddenInput,
-      didTextInput, didKeydown, didKeyup, didKeypress, didCompositionStart,
-      didCompositionUpdate, didCompositionEnd
+      didPaste, didTextInput, didKeydown, didKeyup, didKeypress,
+      didCompositionStart, didCompositionUpdate, didCompositionEnd
     } = this.props
 
     let top, left
@@ -3359,6 +3465,7 @@ class CursorsAndInputComponent {
       on: {
         blur: didBlurHiddenInput,
         focus: didFocusHiddenInput,
+        paste: didPaste,
         textInput: didTextInput,
         keydown: didKeydown,
         keyup: didKeyup,
@@ -3384,8 +3491,10 @@ class CursorsAndInputComponent {
 
 class LinesTileComponent {
   constructor (props) {
+    this.highlightComponentsByKey = new Map()
     this.props = props
     etch.initialize(this)
+    this.updateHighlights()
     this.createLines()
     this.updateBlockDecorations({}, props)
   }
@@ -3399,13 +3508,22 @@ class LinesTileComponent {
         this.updateLines(oldProps, newProps)
         this.updateBlockDecorations(oldProps, newProps)
       }
+      this.updateHighlights()
     }
   }
 
   destroy () {
+    this.highlightComponentsByKey.forEach((highlightComponent) => {
+      highlightComponent.destroy()
+    })
+    this.highlightComponentsByKey.clear()
+
     for (let i = 0; i < this.lineComponents.length; i++) {
       this.lineComponents[i].destroy()
     }
+    this.lineComponents.length = 0
+
+    return etch.destroy(this)
   }
 
   render () {
@@ -3423,34 +3541,12 @@ class LinesTileComponent {
           backgroundColor: 'inherit'
         }
       },
-      this.renderHighlights()
-      // Lines and block decorations will be manually inserted here for efficiency
-    )
-  }
-
-  renderHighlights () {
-    const {top, lineHeight, highlightDecorations} = this.props
-
-    let children = null
-    if (highlightDecorations) {
-      const decorationCount = highlightDecorations.length
-      children = new Array(decorationCount)
-      for (let i = 0; i < decorationCount; i++) {
-        const highlightProps = Object.assign(
-          {parentTileTop: top, lineHeight},
-          highlightDecorations[i]
-        )
-        children[i] = $(HighlightComponent, highlightProps)
-        highlightDecorations[i].flashRequested = false
-      }
-    }
-
-    return $.div(
-      {
+      $.div({
+        ref: 'highlights',
         className: 'highlights',
-        style: {contain: 'layout'}
-      },
-      children
+        style: {layout: 'contain'}
+      })
+      // Lines and block decorations will be manually inserted here for efficiency
     )
   }
 
@@ -3643,6 +3739,40 @@ class LinesTileComponent {
     }
   }
 
+  updateHighlights () {
+    const {top, lineHeight, highlightDecorations} = this.props
+
+    const visibleHighlightDecorations = new Set()
+    if (highlightDecorations) {
+      for (let i = 0; i < highlightDecorations.length; i++) {
+        const highlightDecoration = highlightDecorations[i]
+
+        const highlightProps = Object.assign(
+          {parentTileTop: top, lineHeight},
+          highlightDecorations[i]
+        )
+        let highlightComponent = this.highlightComponentsByKey.get(highlightDecoration.key)
+        if (highlightComponent) {
+          highlightComponent.update(highlightProps)
+        } else {
+          highlightComponent = new HighlightComponent(highlightProps)
+          this.refs.highlights.appendChild(highlightComponent.element)
+          this.highlightComponentsByKey.set(highlightDecoration.key, highlightComponent)
+        }
+
+        highlightDecorations[i].flashRequested = false
+        visibleHighlightDecorations.add(highlightDecoration.key)
+      }
+    }
+
+    this.highlightComponentsByKey.forEach((highlightComponent, key) => {
+      if (!visibleHighlightDecorations.has(key)) {
+        highlightComponent.destroy()
+        this.highlightComponentsByKey.delete(key)
+      }
+    })
+  }
+
   shouldUpdate (newProps) {
     const oldProps = this.props
     if (oldProps.top !== newProps.top) return true
@@ -3710,11 +3840,18 @@ class LinesTileComponent {
 
 class LineComponent {
   constructor (props) {
-    const {nodePool, screenRow, screenLine, lineNodesByScreenLineId} = props
+    const {nodePool, screenRow, screenLine, lineNodesByScreenLineId, offScreen} = props
     this.props = props
     this.element = nodePool.getElement('DIV', this.buildClassName(), null)
     this.element.dataset.screenRow = screenRow
     lineNodesByScreenLineId.set(screenLine.id, this.element)
+
+    if (offScreen) {
+      this.element.style.position = 'absolute'
+      this.element.style.visibility = 'hidden'
+      this.element.dataset.offScreen = true
+    }
+
     this.appendContents()
   }
 
@@ -3841,6 +3978,17 @@ class HighlightComponent {
     this.props = props
     etch.initialize(this)
     if (this.props.flashRequested) this.performFlash()
+  }
+
+  destroy () {
+    if (this.timeoutsByClassName) {
+      this.timeoutsByClassName.forEach((timeout) => {
+        window.clearTimeout(timeout)
+      })
+      this.timeoutsByClassName.clear()
+    }
+
+    return etch.destroy(this)
   }
 
   update (newProps) {
@@ -4096,7 +4244,7 @@ class NodePool {
         if (!style || style[key] == null) element.style[key] = ''
       })
       if (style) Object.assign(element.style, style)
-
+      for (const key in element.dataset) delete element.dataset[key]
       while (element.firstChild) element.firstChild.remove()
       return element
     } else {

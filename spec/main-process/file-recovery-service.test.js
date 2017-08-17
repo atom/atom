@@ -16,7 +16,11 @@ describe("FileRecoveryService", () => {
   })
 
   afterEach(() => {
-    temp.cleanupSync()
+    try {
+      temp.cleanupSync()
+    } catch (e) {
+      // Ignore
+    }
   })
 
   describe("when no crash happens during a save", () => {
