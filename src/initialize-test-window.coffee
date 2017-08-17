@@ -70,6 +70,7 @@ module.exports = ({blobStore}) ->
 
     clipboard = new Clipboard
     TextEditor.setClipboard(clipboard)
+    TextEditor.viewForItem = (item) -> atom.views.getView(item)
 
     testRunner = require(testRunnerPath)
     legacyTestRunner = require(legacyTestRunnerPath)

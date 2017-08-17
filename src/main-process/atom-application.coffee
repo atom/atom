@@ -120,7 +120,11 @@ class AtomApplication
     Promise.all(windowsClosePromises).then(=> @disposable.dispose())
 
   launch: (options) ->
-    if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test or options.benchmark or options.benchmarkTest
+    if options.test or options.benchmark or options.benchmarkTest
+      @openWithOptions(options)
+    else if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0
+      if @config.get('core.restorePreviousWindowsOnStart') is 'always'
+        @loadState(_.deepClone(options))
       @openWithOptions(options)
     else
       @loadState(options) or @openPath(options)
@@ -235,8 +239,8 @@ class AtomApplication
     @on 'application:open-discussions', -> shell.openExternal('https://discuss.atom.io')
     @on 'application:open-faq', -> shell.openExternal('https://atom.io/faq')
     @on 'application:open-terms-of-use', -> shell.openExternal('https://atom.io/terms')
-    @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
-    @on 'application:search-issues', -> shell.openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
+    @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#reporting-bugs')
+    @on 'application:search-issues', -> shell.openExternal('https://github.com/search?q=+is%3Aissue+user%3Aatom')
 
     @on 'application:install-update', =>
       @quitting = true
@@ -265,10 +269,19 @@ class AtomApplication
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
     @disposable.add ipcHelpers.on app, 'before-quit', (event) =>
-      unless @quitting
+      resolveBeforeQuitPromise = null
+      @lastBeforeQuitPromise = new Promise((resolve) -> resolveBeforeQuitPromise = resolve)
+      if @quitting
+        resolveBeforeQuitPromise()
+      else
         event.preventDefault()
         @quitting = true
-        Promise.all(@windows.map((window) -> window.saveState())).then(-> app.quit())
+        windowUnloadPromises = @windows.map((window) -> window.prepareToUnload())
+        Promise.all(windowUnloadPromises).then((windowUnloadedResults) ->
+          didUnloadAllWindows = windowUnloadedResults.every((didUnloadWindow) -> didUnloadWindow)
+          app.quit() if didUnloadAllWindows
+          resolveBeforeQuitPromise()
+        )
 
     @disposable.add ipcHelpers.on app, 'will-quit', =>
       @killAllProcesses()
@@ -370,11 +383,6 @@ class AtomApplication
 
     @disposable.add ipcHelpers.respondTo 'set-temporary-window-state', (win, state) ->
       win.temporaryState = state
-
-    @disposable.add ipcHelpers.on ipcMain, 'did-cancel-window-unload', =>
-      @quitting = false
-      for window in @windows
-        window.didCancelWindowUnload()
 
     clipboard = require '../safe-clipboard'
     @disposable.add ipcHelpers.on ipcMain, 'write-text-to-selection-clipboard', (event, selectedText) ->
@@ -575,6 +583,7 @@ class AtomApplication
       windowDimensions ?= @getDimensionsForNewWindow()
       openedWindow = new AtomWindow(this, @fileRecoveryService, {initialPaths, locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState, env})
       openedWindow.focus()
+      @lastFocusedWindow = openedWindow
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -616,8 +625,7 @@ class AtomApplication
       @emit('application:did-save-state')
 
   loadState: (options) ->
-    restorePreviousState = @config.get('core.restorePreviousWindowsOnStart') ? true
-    if restorePreviousState and (states = @storageFolder.load('application.json'))?.length > 0
+    if (@config.get('core.restorePreviousWindowsOnStart') in ['yes', 'always']) and (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
         @openWithOptions(Object.assign(options, {
           initialPaths: state.initialPaths
@@ -642,7 +650,7 @@ class AtomApplication
   openUrl: ({urlToOpen, devMode, safeMode, env}) ->
     unless @packages?
       PackageManager = require '../package-manager'
-      @packages = new PackageManager()
+      @packages = new PackageManager({})
       @packages.initialize
         configDirPath: process.env.ATOM_HOME
         devMode: devMode

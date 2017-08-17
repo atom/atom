@@ -77,22 +77,28 @@ module.exports = function (packagedAppPath) {
   const packageSizeInKilobytes = spawnSync('du', ['-sk', packagedAppPath]).stdout.toString().split(/\s+/)[0]
   const controlFileTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'debian', 'control.in'))
   const controlFileContents = template(controlFileTemplate)({
-    appFileName: atomExecutableName, version: appVersion, arch: arch,
-    installedSize: packageSizeInKilobytes, description: appDescription
+    appFileName: atomExecutableName,
+    version: appVersion,
+    arch: arch,
+    installedSize: packageSizeInKilobytes,
+    description: appDescription
   })
   fs.writeFileSync(path.join(debianPackageConfigPath, 'control'), controlFileContents)
 
   console.log(`Writing desktop entry file into "${debianPackageApplicationsDirPath}"`)
   const desktopEntryTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.desktop.in'))
   const desktopEntryContents = template(desktopEntryTemplate)({
-    appName: appName, appFileName: atomExecutableName, description: appDescription,
-    installDir: '/usr', iconPath: atomExecutableName
+    appName: appName,
+    appFileName: atomExecutableName,
+    description: appDescription,
+    installDir: '/usr',
+    iconPath: atomExecutableName
   })
   fs.writeFileSync(path.join(debianPackageApplicationsDirPath, `${atomExecutableName}.desktop`), desktopEntryContents)
 
   console.log(`Copying icon into "${debianPackageIconsDirPath}"`)
   fs.copySync(
-    path.join(packagedAppPath, 'resources', 'app', 'resources', 'atom.png'),
+    path.join(packagedAppPath, 'resources', 'app.asar.unpacked', 'resources', 'atom.png'),
     path.join(debianPackageIconsDirPath, `${atomExecutableName}.png`)
   )
 

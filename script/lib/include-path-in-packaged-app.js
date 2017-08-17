@@ -3,8 +3,8 @@
 const path = require('path')
 const CONFIG = require('../config')
 
-module.exports = function (path) {
-  return !EXCLUDED_PATHS_REGEXP.test(path)
+module.exports = function (filePath) {
+  return !EXCLUDED_PATHS_REGEXP.test(filePath) || INCLUDED_PATHS_REGEXP.test(filePath)
 }
 
 const EXCLUDE_REGEXPS_SOURCES = [
@@ -67,7 +67,7 @@ const EXCLUDE_REGEXPS_SOURCES = [
 
   // Ignore test and example folders
   'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + '_*te?sts?_*' + escapeRegExp(path.sep),
-  'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'examples?' + escapeRegExp(path.sep),
+  'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'examples?' + escapeRegExp(path.sep)
 ]
 
 // Ignore spec directories in all bundled packages
@@ -84,6 +84,10 @@ const EXCLUDED_PATHS_REGEXP = new RegExp(
   EXCLUDE_REGEXPS_SOURCES.map(path => `(${path})`).join('|')
 )
 
+const INCLUDED_PATHS_REGEXP = new RegExp(
+  escapeRegExp(path.join('node_modules', 'node-gyp', 'src', 'win_delay_load_hook.cc'))
+)
+
 function escapeRegExp (string) {
-  return string.replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&")
+  return string.replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&')
 }

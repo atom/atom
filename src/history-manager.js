@@ -17,10 +17,6 @@ export class HistoryManager {
     this.disposables.add(project.onDidChangePaths((projectPaths) => this.addProject(projectPaths)))
   }
 
-  initialize (localStorage) {
-    this.localStorage = localStorage
-  }
-
   destroy () {
     this.disposables.dispose()
   }
@@ -98,10 +94,6 @@ export class HistoryManager {
 
   async loadState () {
     let history = await this.stateStore.load('history-manager')
-    if (!history) {
-      history = JSON.parse(this.localStorage.getItem('history'))
-    }
-
     if (history && history.projects) {
       this.projects = history.projects.filter(p => Array.isArray(p.paths) && p.paths.length > 0).map(p => new HistoryProject(p.paths, new Date(p.lastOpened)))
       this.didChangeProjects({reloaded: true})

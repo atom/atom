@@ -69,8 +69,11 @@ module.exports = function (packagedAppPath, installDir) {
     const iconPath = path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'png', '1024.png')
     const desktopEntryTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.desktop.in'))
     const desktopEntryContents = template(desktopEntryTemplate)({
-      appName, appFileName: atomExecutableName, description: appDescription,
-      installDir: prefixDirPath, iconPath
+      appName,
+      appFileName: atomExecutableName,
+      description: appDescription,
+      installDir: prefixDirPath,
+      iconPath
     })
     fs.writeFileSync(desktopEntryPath, desktopEntryContents)
 

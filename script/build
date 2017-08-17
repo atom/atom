@@ -10,11 +10,13 @@ require('./bootstrap')
 require('coffee-script/register')
 require('colors')
 
+const path = require('path')
 const yargs = require('yargs')
 const argv = yargs
   .usage('Usage: $0 [options]')
   .help('help')
-  .describe('code-sign',  'Code-sign executables (macOS and Windows only)')
+  .describe('existing-binaries', 'Use existing Atom binaries (skip clean/transpile/cache)')
+  .describe('code-sign', 'Code-sign executables (macOS and Windows only)')
   .describe('create-windows-installer', 'Create installer (Windows only)')
   .describe('create-debian-package', 'Create .deb package (Linux only)')
   .describe('create-rpm-package', 'Create .rpm package (Linux only)')
@@ -52,51 +54,67 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
-checkChromedriverVersion()
-cleanOutputDirectory()
-copyAssets()
-transpilePackagesWithCustomTranspilerPaths()
-transpileBabelPaths()
-transpileCoffeeScriptPaths()
-transpileCsonPaths()
-transpilePegJsPaths()
-generateModuleCache()
-prebuildLessCache()
-generateMetadata()
-generateAPIDocs()
-dumpSymbols()
+const CONFIG = require('./config')
+let binariesPromise = Promise.resolve()
+
+if (!argv.existingBinaries) {
+  checkChromedriverVersion()
+  cleanOutputDirectory()
+  copyAssets()
+  transpilePackagesWithCustomTranspilerPaths()
+  transpileBabelPaths()
+  transpileCoffeeScriptPaths()
+  transpileCsonPaths()
+  transpilePegJsPaths()
+  generateModuleCache()
+  prebuildLessCache()
+  generateMetadata()
+  generateAPIDocs()
+  binariesPromise = dumpSymbols()
+}
+
+binariesPromise
   .then(packageApplication)
   .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
   .then(packagedAppPath => {
-    if (process.platform === 'darwin') {
-      if (argv.codeSign) {
-        codeSignOnMac(packagedAppPath)
-      } else {
-        console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
-      }
-    } else if (process.platform === 'win32') {
-      if (argv.createWindowsInstaller) {
-        return createWindowsInstaller(packagedAppPath, argv.codeSign).then(() => packagedAppPath)
-      }
-      else {
-        console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer.'.gray)
+    switch (process.platform) {
+      case 'darwin': {
         if (argv.codeSign) {
-          codeSignOnWindows(packagedAppPath)
+          codeSignOnMac(packagedAppPath)
         } else {
           console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
         }
       }
-    } else if (process.platform === 'linux') {
-      if (argv.createDebianPackage) {
-        createDebianPackage(packagedAppPath)
-      } else {
-        console.log('Skipping creating debian package. Specify the --create-debian-package option to create it.'.gray)
+      case 'win32': {
+        if (argv.codeSign) {
+          const executablesToSign = [ path.join(packagedAppPath, 'Atom.exe') ]
+          if (argv.createWindowsInstaller) {
+            executablesToSign.push(path.join(__dirname, 'node_modules', 'electron-winstaller', 'vendor', 'Update.exe'))
+          }
+          codeSignOnWindows(executablesToSign)
+        } else {
+          console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
+        }
+        if (argv.createWindowsInstaller) {
+          return createWindowsInstaller(packagedAppPath)
+            .then(() => argv.codeSign && codeSignOnWindows([ path.join(CONFIG.buildOutputPath, 'AtomSetup.exe') ]))
+            .then(() => packagedAppPath)
+        } else {
+          console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer.'.gray)
+        }
       }
+      case 'linux': {
+        if (argv.createDebianPackage) {
+          createDebianPackage(packagedAppPath)
+        } else {
+          console.log('Skipping creating debian package. Specify the --create-debian-package option to create it.'.gray)
+        }
 
-      if (argv.createRpmPackage) {
-        createRpmPackage(packagedAppPath)
-      } else {
-        console.log('Skipping creating rpm package. Specify the --create-rpm-package option to create it.'.gray)
+        if (argv.createRpmPackage) {
+          createRpmPackage(packagedAppPath)
+        } else {
+          console.log('Skipping creating rpm package. Specify the --create-rpm-package option to create it.'.gray)
+        }
       }
     }
 

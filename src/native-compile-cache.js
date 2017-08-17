@@ -83,7 +83,7 @@ class NativeCompileCache {
         compiledWrapper = compilationResult.result
       }
 
-      let args = [moduleSelf.exports, require, moduleSelf, filename, dirname, process, global]
+      let args = [moduleSelf.exports, require, moduleSelf, filename, dirname, process, global, Buffer]
       return compiledWrapper.apply(moduleSelf.exports, args)
     }
   }

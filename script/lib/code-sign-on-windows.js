@@ -4,10 +4,7 @@ const os = require('os')
 const path = require('path')
 const {spawnSync} = require('child_process')
 
-// This is only used when specifying --code-sign WITHOUT --create-windows-installer
-// as Squirrel has to take care of code-signing in order to correctly wrap during the building of setup
-
-module.exports = function (packagedAppPath) {
+module.exports = function (filesToSign) {
   if (!process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL && !process.env.ATOM_WIN_CODE_SIGNING_CERT_PATH) {
     console.log('Skipping code signing because the ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL environment variable is not defined'.gray)
     return
@@ -19,25 +16,26 @@ module.exports = function (packagedAppPath) {
     downloadFileFromGithub(process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
   }
   try {
-    console.log(`Code-signing application at ${packagedAppPath}`)
-    signFile(path.join(packagedAppPath, 'atom.exe'))
+    for (const fileToSign of filesToSign) {
+      console.log(`Code-signing executable at ${fileToSign}`)
+      signFile(fileToSign)
+    }
   } finally {
     if (!process.env.ATOM_WIN_CODE_SIGNING_CERT_PATH) {
-      console.log(`Deleting certificate at ${certPath}`)
       fs.removeSync(certPath)
     }
   }
 
-  function signFile(filePath) {
+  function signFile (fileToSign) {
     const signCommand = path.resolve(__dirname, '..', 'node_modules', 'electron-winstaller', 'vendor', 'signtool.exe')
-    const args = [ // Changing any of these should also be done in create-windows-installer.js
+    const args = [
       'sign',
       `/f ${certPath}`, // Signing cert file
       `/p ${process.env.ATOM_WIN_CODE_SIGNING_CERT_PASSWORD}`, // Signing cert password
       '/fd sha256', // File digest algorithm
       '/tr http://timestamp.digicert.com', // Time stamp server
       '/td sha256', // Times stamp algorithm
-      `"${filePath}"`
+      `"${fileToSign}"`
     ]
     const result = spawnSync(signCommand, args, {stdio: 'inherit', shell: true})
     if (result.status !== 0) {

@@ -105,7 +105,7 @@ class Decoration
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
+    @emitter.once 'did-destroy', callback
 
   ###
   Section: Decoration Details
@@ -150,7 +150,7 @@ class Decoration
     @properties = translateDecorationParamsOldToNew(newProperties)
     if newProperties.type?
       @decorationManager.decorationDidChangeType(this)
-    @decorationManager.scheduleUpdateDecorationsEvent()
+    @decorationManager.emitDidUpdateDecorations()
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
 
   ###
@@ -171,9 +171,8 @@ class Decoration
     true
 
   flash: (klass, duration=500) ->
-    @properties.flashCount ?= 0
-    @properties.flashCount++
+    @properties.flashRequested = true
     @properties.flashClass = klass
     @properties.flashDuration = duration
-    @decorationManager.scheduleUpdateDecorationsEvent()
+    @decorationManager.emitDidUpdateDecorations()
     @emitter.emit 'did-flash'

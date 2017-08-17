@@ -3,6 +3,7 @@ machine:
     XCODE_SCHEME: test
     XCODE_WORKSPACE: test
     XCODE_PROJECT: test
+    TEST_JUNIT_XML_ROOT: ${CIRCLE_TEST_REPORTS}
 
   xcode:
     version: 7.3
@@ -18,7 +19,7 @@ dependencies:
     - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.3/install.sh | bash
     - nvm install 6.9.4
     - nvm use 6.9.4
-    - npm install -g npm
+    - npm install -g npm@5.3.0
 
   override:
     - script/build --code-sign --compress-artifacts
