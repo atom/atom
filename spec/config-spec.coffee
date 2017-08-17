@@ -1,5 +1,5 @@
 path = require 'path'
-temp = require 'temp'
+temp = require('temp').track()
 CSON = require 'season'
 fs = require 'fs-plus'
 
@@ -9,13 +9,15 @@ describe "Config", ->
   beforeEach ->
     spyOn(atom.config, "load")
     spyOn(atom.config, "save")
-    dotAtomPath = temp.path('dot-atom-dir')
+    spyOn(console, 'warn')
+    dotAtomPath = temp.path('atom-spec-config')
     atom.config.configDirPath = dotAtomPath
     atom.config.enablePersistence = true
     atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.cson")
 
   afterEach ->
     atom.config.enablePersistence = false
+    fs.removeSync(dotAtomPath)
 
   describe ".get(keyPath, {scope, sources, excludeSources})", ->
     it "allows a key path's value to be read", ->
@@ -486,8 +488,8 @@ describe "Config", ->
       observeHandler.reset() # clear the initial call
       atom.config.set('foo.bar.baz', "value 2")
       expect(observeHandler).toHaveBeenCalledWith("value 2")
-      observeHandler.reset()
 
+      observeHandler.reset()
       atom.config.set('foo.bar.baz', "value 1")
       expect(observeHandler).toHaveBeenCalledWith("value 1")
       advanceClock(100) # complete pending save that was requested in ::set
@@ -840,9 +842,7 @@ describe "Config", ->
           expect(CSON.readFileSync(atom.config.configFilePath)).toEqual {}
 
       describe "when the config file contains values that do not adhere to the schema", ->
-        warnSpy = null
         beforeEach ->
-          warnSpy = spyOn console, 'warn'
           fs.writeFileSync atom.config.configFilePath, """
             foo:
               bar: 'baz'
@@ -854,8 +854,8 @@ describe "Config", ->
           expect(atom.config.get("foo.bar")).toBe 'baz'
           expect(atom.config.get("foo.int")).toBe 12
 
-          expect(warnSpy).toHaveBeenCalled()
-          expect(warnSpy.mostRecentCall.args[0]).toContain "foo.int"
+          expect(console.warn).toHaveBeenCalled()
+          expect(console.warn.mostRecentCall.args[0]).toContain "foo.int"
 
       describe "when there is a pending save", ->
         it "does not change the config settings", ->
@@ -1079,6 +1079,7 @@ describe "Config", ->
 
       describe "when the configDirPath doesn't exist", ->
         it "copies the contents of dot-atom to ~/.atom", ->
+          return if process.platform is 'win32' # Flakey test on Win32
           initializationDone = false
           jasmine.unspy(window, "setTimeout")
           atom.config.initializeConfigDirectory ->

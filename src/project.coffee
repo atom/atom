@@ -21,18 +21,20 @@ class Project extends Model
   constructor: ({@notificationManager, packageManager, config, @applicationDelegate}) ->
     @emitter = new Emitter
     @buffers = []
-    @paths = []
     @rootDirectories = []
     @repositories = []
     @directoryProviders = []
     @defaultDirectoryProvider = new DefaultDirectoryProvider()
     @repositoryPromisesByPath = new Map()
     @repositoryProviders = [new GitRepositoryProvider(this, config)]
+    @loadPromisesByPath = {}
     @consumeServices(packageManager)
 
   destroyed: ->
-    buffer.destroy() for buffer in @buffers
-    @setPaths([])
+    buffer.destroy() for buffer in @buffers.slice()
+    repository?.destroy() for repository in @repositories.slice()
+    @rootDirectories = []
+    @repositories = []
 
   reset: (packageManager) ->
     @emitter.dispose()
@@ -41,6 +43,7 @@ class Project extends Model
     buffer?.destroy() for buffer in @buffers
     @buffers = []
     @setPaths([])
+    @loadPromisesByPath = {}
     @consumeServices(packageManager)
 
   destroyUnretainedBuffers: ->
@@ -52,25 +55,30 @@ class Project extends Model
   ###
 
   deserialize: (state) ->
-    state.paths = [state.path] if state.path? # backward compatibility
-
-    @buffers = _.compact state.buffers.map (bufferState) ->
-      # Check that buffer's file path is accessible
-      return if fs.isDirectorySync(bufferState.filePath)
+    bufferPromises = []
+    for bufferState in state.buffers
+      continue if fs.isDirectorySync(bufferState.filePath)
       if bufferState.filePath
         try
           fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
         catch error
-          return unless error.code is 'ENOENT'
-      TextBuffer.deserialize(bufferState)
-
-    @subscribeToBuffer(buffer) for buffer in @buffers
-    @setPaths(state.paths)
+          continue unless error.code is 'ENOENT'
+      unless bufferState.shouldDestroyOnFileDelete?
+        bufferState.shouldDestroyOnFileDelete = ->
+          atom.config.get('core.closeDeletedFileTabs')
+      bufferPromises.push(TextBuffer.deserialize(bufferState))
+    Promise.all(bufferPromises).then (@buffers) =>
+      @subscribeToBuffer(buffer) for buffer in @buffers
+      @setPaths(state.paths)
 
   serialize: (options={}) ->
     deserializer: 'Project'
     paths: @getPaths()
-    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize({markerLayers: options.isUnloading is true}) if buffer.isRetained())
+    buffers: _.compact(@buffers.map (buffer) ->
+      if buffer.isRetained()
+        isUnloading = options.isUnloading is true
+        buffer.serialize({markerLayers: isUnloading, history: isUnloading})
+    )
 
   ###
   Section: Event Subscription
@@ -172,11 +180,7 @@ class Project extends Model
   #
   # * `projectPath` {String} The path to the directory to add.
   addPath: (projectPath, options) ->
-    directory = null
-    for provider in @directoryProviders
-      break if directory = provider.directoryForURISync?(projectPath)
-    directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
-
+    directory = @getDirectoryForProjectPath(projectPath)
     return unless directory.existsSync()
     for existingDirectory in @getDirectories()
       return if existingDirectory.getPath() is directory.getPath()
@@ -191,13 +195,20 @@ class Project extends Model
     unless options?.emitEvent is false
       @emitter.emit 'did-change-paths', @getPaths()
 
+  getDirectoryForProjectPath: (projectPath) ->
+    directory = null
+    for provider in @directoryProviders
+      break if directory = provider.directoryForURISync?(projectPath)
+    directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
+    directory
+
   # Public: remove a path from the project's list of root paths.
   #
   # * `projectPath` {String} The path to remove.
   removePath: (projectPath) ->
     # The projectPath may be a URI, in which case it should not be normalized.
     unless projectPath in @getPaths()
-      projectPath = path.normalize(projectPath)
+      projectPath = @defaultDirectoryProvider.normalizePath(projectPath)
 
     indexToRemove = null
     for directory, i in @rootDirectories
@@ -225,11 +236,10 @@ class Project extends Model
       uri
     else
       if fs.isAbsolute(uri)
-        path.normalize(fs.absolute(uri))
-
+        @defaultDirectoryProvider.normalizePath(fs.resolveHome(uri))
       # TODO: what should we do here when there are multiple directories?
       else if projectPath = @getPaths()[0]
-        path.normalize(fs.absolute(path.join(projectPath, uri)))
+        @defaultDirectoryProvider.normalizePath(fs.resolveHome(path.join(projectPath, uri)))
       else
         undefined
 
@@ -352,11 +362,17 @@ class Project extends Model
     else
       @buildBuffer(absoluteFilePath)
 
+  shouldDestroyBufferOnFileDelete: ->
+    atom.config.get('core.closeDeletedFileTabs')
+
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
+    params = {shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete}
+    if absoluteFilePath?
+      buffer = TextBuffer.loadSync(absoluteFilePath, params)
+    else
+      buffer = new TextBuffer(params)
     @addBuffer(buffer)
-    buffer.loadSync()
     buffer
 
   # Given a file path, this sets its {TextBuffer}.
@@ -366,11 +382,20 @@ class Project extends Model
   #
   # Returns a {Promise} that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
-    @addBuffer(buffer)
-    buffer.load()
-      .then((buffer) -> buffer)
-      .catch(=> @removeBuffer(buffer))
+    params = {shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete}
+    if absoluteFilePath?
+      promise =
+        @loadPromisesByPath[absoluteFilePath] ?=
+        TextBuffer.load(absoluteFilePath, params).catch (error) =>
+          delete @loadPromisesByPath[absoluteFilePath]
+          throw error
+    else
+      promise = Promise.resolve(new TextBuffer(params))
+    promise.then (buffer) =>
+      delete @loadPromisesByPath[absoluteFilePath]
+      @addBuffer(buffer)
+      buffer
+
 
   addBuffer: (buffer, options={}) ->
     @addBufferAtIndex(buffer, @buffers.length, options)

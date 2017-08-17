@@ -129,7 +129,7 @@ class GitRepository
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
+    @emitter.once 'did-destroy', callback
 
   ###
   Section: Event Subscription
@@ -238,6 +238,7 @@ class GitRepository
 
   # Public: Returns the git configuration value specified by the key.
   #
+  # * `key`  The {String} key for the configuration to lookup.
   # * `path` An optional {String} path in the repository to get this information
   #   for, only needed if the repository has submodules.
   getConfigValue: (key, path) -> @getRepo(path).getConfigValue(key)
@@ -436,6 +437,7 @@ class GitRepository
       if bufferPath = buffer.getPath()
         @getPathStatus(bufferPath)
 
+    getBufferPathStatus()
     bufferSubscriptions = new CompositeDisposable
     bufferSubscriptions.add buffer.onDidSave(getBufferPathStatus)
     bufferSubscriptions.add buffer.onDidReload(getBufferPathStatus)
@@ -448,9 +450,10 @@ class GitRepository
 
   # Subscribes to editor view event.
   checkoutHeadForEditor: (editor) ->
-    if filePath = editor.getPath()
-      editor.buffer.reload() if editor.buffer.isModified()
+    buffer = editor.getBuffer()
+    if filePath = buffer.getPath()
       @checkoutHead(filePath)
+      buffer.reload()
 
   # Returns the corresponding {Repository}
   getRepo: (path) ->

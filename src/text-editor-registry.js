@@ -1,7 +1,7 @@
 /** @babel */
 
 import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
-import {Point, Range} from 'atom'
+import {Point, Range} from 'text-buffer'
 import TextEditor from './text-editor'
 import ScopeDescriptor from './scope-descriptor'
 
@@ -11,6 +11,7 @@ const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['editor.showInvisibles', 'showInvisibles'],
   ['editor.tabLength', 'tabLength'],
   ['editor.invisibles', 'invisibles'],
+  ['editor.showCursorOnSelection', 'showCursorOnSelection'],
   ['editor.showIndentGuide', 'showIndentGuide'],
   ['editor.showLineNumbers', 'showLineNumbers'],
   ['editor.softWrap', 'softWrapped'],
@@ -39,9 +40,8 @@ const GRAMMAR_SELECTION_RANGE = Range(Point.ZERO, Point(10, 0)).freeze()
 // done using your editor, be sure to call `dispose` on the returned disposable
 // to avoid leaking editors.
 export default class TextEditorRegistry {
-  constructor ({config, grammarRegistry, clipboard, assert, packageManager}) {
+  constructor ({config, grammarRegistry, assert, packageManager}) {
     this.assert = assert
-    this.clipboard = clipboard
     this.config = config
     this.grammarRegistry = grammarRegistry
     this.scopedSettingsDelegate = new ScopedSettingsDelegate(config)
@@ -109,10 +109,7 @@ export default class TextEditorRegistry {
   }
 
   build (params) {
-    params = Object.assign({
-      clipboard: this.clipboard,
-      assert: this.assert
-    }, params)
+    params = Object.assign({assert: this.assert}, params)
 
     let scope = null
     if (params.buffer) {
@@ -193,7 +190,7 @@ export default class TextEditorRegistry {
   }
 
   // Set a {TextEditor}'s grammar based on its path and content, and continue
-  // to update its grammar as gramamrs are added or updated, or the editor's
+  // to update its grammar as grammars are added or updated, or the editor's
   // file path changes.
   //
   // * `editor` The editor whose grammar will be maintained.

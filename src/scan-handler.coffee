@@ -2,13 +2,13 @@ path = require "path"
 async = require "async"
 {PathSearcher, PathScanner, search} = require 'scandal'
 
-module.exports = (rootPaths, regexSource, options) ->
+module.exports = (rootPaths, regexSource, options, searchOptions={}) ->
   callback = @async()
 
   PATHS_COUNTER_SEARCHED_CHUNK = 50
   pathsSearched = 0
 
-  searcher = new PathSearcher()
+  searcher = new PathSearcher(searchOptions)
 
   searcher.on 'file-error', ({code, path, message}) ->
     emit('scan:file-error', {code, path, message})

@@ -15,14 +15,11 @@ class Cursor extends Model
   screenPosition: null
   bufferPosition: null
   goalColumn: null
-  visible: true
 
   # Instantiated by a {TextEditor}
   constructor: ({@editor, @marker, id}) ->
     @emitter = new Emitter
-
     @assignId(id)
-    @updateVisibility()
 
   destroy: ->
     @marker.destroy()
@@ -52,16 +49,7 @@ class Cursor extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
-
-  # Public: Calls your `callback` when the cursor's visibility has changed
-  #
-  # * `callback` {Function}
-  #   * `visibility` {Boolean}
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeVisibility: (callback) ->
-    @emitter.on 'did-change-visibility', callback
+    @emitter.once 'did-destroy', callback
 
   ###
   Section: Managing Cursor Position
@@ -565,18 +553,6 @@ class Cursor extends Model
   Section: Visibility
   ###
 
-  # Public: Sets whether the cursor is visible.
-  setVisible: (visible) ->
-    if @visible isnt visible
-      @visible = visible
-      @emitter.emit 'did-change-visibility', @visible
-
-  # Public: Returns the visibility of the cursor.
-  isVisible: -> @visible
-
-  updateVisibility: ->
-    @setVisible(@marker.getBufferRange().isEmpty())
-
   ###
   Section: Comparing to another cursor
   ###
@@ -592,9 +568,6 @@ class Cursor extends Model
   ###
   Section: Utilities
   ###
-
-  # Public: Prevents this cursor from causing scrolling.
-  clearAutoscroll: ->
 
   # Public: Deselects the current selection.
   clearSelection: (options) ->
@@ -653,14 +626,12 @@ class Cursor extends Model
     fn()
     @autoscroll() if options.autoscroll ? @isLastCursor()
 
-  getPixelRect: ->
-    @editor.pixelRectForScreenRange(@getScreenRange())
-
   getScreenRange: ->
     {row, column} = @getScreenPosition()
     new Range(new Point(row, column), new Point(row, column + 1))
 
-  autoscroll: (options) ->
+  autoscroll: (options = {}) ->
+    options.clip = false
     @editor.scrollToScreenRange(@getScreenRange(), options)
 
   getBeginningOfNextParagraphBufferPosition: ->

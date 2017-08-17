@@ -67,6 +67,29 @@ describe "BufferedProcess", ->
           expect(window.onerror.mostRecentCall.args[0]).toContain 'Failed to spawn command `bad-command-nope2`'
           expect(window.onerror.mostRecentCall.args[4].name).toBe 'BufferedProcessError'
 
+  describe "when autoStart is false", ->
+    it "doesnt start unless start method is called", ->
+      stdout = ''
+      stderr = ''
+      exitCallback = jasmine.createSpy('exit callback')
+      apmProcess = new BufferedProcess
+        autoStart: false
+        command: atom.packages.getApmPath()
+        args: ['-h']
+        options: {}
+        stdout: (lines) -> stdout += lines
+        stderr: (lines) -> stderr += lines
+        exit: exitCallback
+
+      expect(apmProcess.started).not.toBe(true)
+      apmProcess.start()
+      expect(apmProcess.started).toBe(true)
+
+      waitsFor -> exitCallback.callCount is 1
+      runs ->
+        expect(stderr).toContain 'apm - Atom Package Manager'
+        expect(stdout).toEqual ''
+
   it "calls the specified stdout, stderr, and exit callbacks", ->
     stdout = ''
     stderr = ''

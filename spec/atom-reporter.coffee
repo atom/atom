@@ -1,4 +1,5 @@
 path = require 'path'
+process = require 'process'
 _ = require 'underscore-plus'
 grim = require 'grim'
 marked = require 'marked'
@@ -20,12 +21,15 @@ formatStackTrace = (spec, message='', stackTrace) ->
   lines.shift() if message.trim() is errorMatch?[1]?.trim()
 
   for line, index in lines
-    # Remove prefix of lines matching: at [object Object].<anonymous> (path:1:2)
-    prefixMatch = line.match(/at \[object Object\]\.<anonymous> \(([^)]+)\)/)
+    # Remove prefix of lines matching: at jasmine.Spec.<anonymous> (path:1:2)
+    prefixMatch = line.match(/at jasmine\.Spec\.<anonymous> \(([^)]+)\)/)
     line = "at #{prefixMatch[1]}" if prefixMatch
 
     # Relativize locations to spec directory
-    lines[index] = line.replace("at #{spec.specDirectory}#{path.sep}", 'at ')
+    if process.platform is 'win32'
+      line = line.replace('file:///', '').replace(///#{path.posix.sep}///g, path.win32.sep)
+    line = line.replace("at #{spec.specDirectory}#{path.sep}", 'at ')
+    lines[index] = line.replace("(#{spec.specDirectory}#{path.sep}", '(') # at step (path:1:2)
 
   lines = lines.map (line) -> line.trim()
   lines.join('\n').trim()
@@ -97,7 +101,7 @@ class AtomReporter
     if @failedCount is 1
       @message.textContent = "#{@failedCount} failure"
     else
-      @message.textConent = "#{@failedCount} failures"
+      @message.textContent = "#{@failedCount} failures"
 
   reportSuiteResults: (suite) ->
 
@@ -109,42 +113,6 @@ class AtomReporter
 
   reportSpecStarting: (spec) ->
     @specStarted(spec)
-
-  addDeprecations: (spec) ->
-    deprecations = grim.getDeprecations()
-    @deprecationCount += deprecations.length
-    @deprecations.style.display = '' if @deprecationCount > 0
-    if @deprecationCount is 1
-      @deprecationStatus.textContent = "1 deprecation"
-    else
-      @deprecationStatus.textContent = "#{@deprecationCount} deprecations"
-
-    for deprecation in deprecations
-      @deprecationList.appendChild(@buildDeprecationElement(spec, deprecation))
-
-    grim.clearDeprecations()
-
-  buildDeprecationElement: (spec, deprecation) ->
-    div = document.createElement('div')
-    div.className = 'padded'
-    div.innerHTML = """
-      <div class="result-message fail deprecation-message">
-        #{marked(deprecation.message)}
-      </div>
-    """
-
-    for stack in deprecation.getStacks()
-      fullStack = stack.map ({functionName, location}) ->
-        if functionName is '<unknown>'
-          "  at #{location}"
-        else
-          "  at #{functionName} (#{location})"
-      pre = document.createElement('pre')
-      pre.className = 'stack-trace padded'
-      pre.textContent = formatStackTrace(spec, deprecation.message, fullStack.join('\n'))
-      div.appendChild(pre)
-
-    div
 
   handleEvents: ->
     listen document, 'click', '.spec-toggle', (event) ->
@@ -273,7 +241,6 @@ class AtomReporter
       specView = new SpecResultView(spec)
       specView.attach()
       @failedCount++
-    @addDeprecations(spec)
 
 class SuiteResultView
   constructor: (@suite) ->

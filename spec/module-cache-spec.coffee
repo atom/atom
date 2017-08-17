@@ -1,12 +1,15 @@
 path = require 'path'
 Module = require 'module'
 fs = require 'fs-plus'
-temp = require 'temp'
+temp = require('temp').track()
 ModuleCache = require '../src/module-cache'
 
 describe 'ModuleCache', ->
   beforeEach ->
     spyOn(Module, '_findPath').andCallThrough()
+
+  afterEach ->
+    temp.cleanupSync()
 
   it 'resolves Electron module paths without hitting the filesystem', ->
     builtins = ModuleCache.cache.builtins

@@ -1,3 +1,7 @@
+if (typeof snapshotResult !== 'undefined') {
+  snapshotResult.setGlobals(global, process, global, {}, console, require)
+}
+
 const startTime = Date.now()
 
 const electron = require('electron')
@@ -19,7 +23,7 @@ if (args.resourcePath) {
   const stableResourcePath = path.dirname(path.dirname(__dirname))
   const defaultRepositoryPath = path.join(electron.app.getPath('home'), 'github', 'atom')
 
-  if (args.dev || args.test) {
+  if (args.dev || args.test || args.benchmark || args.benchmarkTest) {
     if (process.env.ATOM_DEV_RESOURCE_PATH) {
       resourcePath = process.env.ATOM_DEV_RESOURCE_PATH
     } else if (fs.statSyncNoException(defaultRepositoryPath)) {

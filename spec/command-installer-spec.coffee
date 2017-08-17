@@ -1,6 +1,6 @@
 path = require 'path'
 fs = require 'fs-plus'
-temp = require 'temp'
+temp = require('temp').track()
 CommandInstaller = require '../src/command-installer'
 
 describe "CommandInstaller on #darwin", ->
@@ -20,9 +20,13 @@ describe "CommandInstaller on #darwin", ->
     spyOn(CommandInstaller::, 'getResourcesDirectory').andReturn(resourcesPath)
     spyOn(CommandInstaller::, 'getInstallDirectory').andReturn(installationPath)
 
+  afterEach ->
+    temp.cleanupSync()
+
   it "shows an error dialog when installing commands interactively fails", ->
     appDelegate = jasmine.createSpyObj("appDelegate", ["confirm"])
-    installer = new CommandInstaller("2.0.2", appDelegate)
+    installer = new CommandInstaller(appDelegate)
+    installer.initialize("2.0.2")
     spyOn(installer, "installAtomCommand").andCallFake (__, callback) -> callback(new Error("an error"))
 
     installer.installShellCommandsInteractively()
@@ -45,7 +49,8 @@ describe "CommandInstaller on #darwin", ->
 
   it "shows a success dialog when installing commands interactively succeeds", ->
     appDelegate = jasmine.createSpyObj("appDelegate", ["confirm"])
-    installer = new CommandInstaller("2.0.2", appDelegate)
+    installer = new CommandInstaller(appDelegate)
+    installer.initialize("2.0.2")
     spyOn(installer, "installAtomCommand").andCallFake (__, callback) -> callback()
     spyOn(installer, "installApmCommand").andCallFake (__, callback) -> callback()
 
@@ -58,7 +63,8 @@ describe "CommandInstaller on #darwin", ->
 
   describe "when using a stable version of atom", ->
     beforeEach ->
-      installer = new CommandInstaller("2.0.2")
+      installer = new CommandInstaller()
+      installer.initialize("2.0.2")
 
     it "symlinks the atom command as 'atom'", ->
       installedAtomPath = path.join(installationPath, 'atom')
@@ -88,7 +94,8 @@ describe "CommandInstaller on #darwin", ->
 
   describe "when using a beta version of atom", ->
     beforeEach ->
-      installer = new CommandInstaller("2.2.0-beta.0")
+      installer = new CommandInstaller()
+      installer.initialize("2.2.0-beta.0")
 
     it "symlinks the atom command as 'atom-beta'", ->
       installedAtomPath = path.join(installationPath, 'atom-beta')

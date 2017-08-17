@@ -1,17 +1,23 @@
+<!--
+
+Have you read Atom's Code of Conduct? By filing an Issue, you are expected to comply with it, including treating everyone with respect: https://github.com/atom/atom/blob/master/CODE_OF_CONDUCT.md
+
+Do you want to ask a question? Are you looking for support? The Atom message board is the best place for getting support: https://discuss.atom.io
+
+-->
+
 ### Prerequisites
 
-* [ ] Can you reproduce the problem in [safe mode](http://flight-manual.atom.io/hacking-atom/sections/debugging/#using-safe-mode)?
-* [ ] Are you running the [latest version of Atom](http://flight-manual.atom.io/hacking-atom/sections/debugging/#update-to-the-latest-version)?
-* [ ] Did you check the [debugging guide](http://flight-manual.atom.io/hacking-atom/sections/debugging/)?
-* [ ] Did you check the [FAQs on Discuss](https://discuss.atom.io/c/faq)?
-* [ ] Are you reporting to the [correct repository](https://github.com/atom/atom/blob/master/CONTRIBUTING.md#atom-and-packages)?
-* [ ] Did you [perform a cursory search](https://github.com/issues?q=is%3Aissue+user%3Aatom+-repo%3Aatom%2Felectron) to see if your bug or enhancement is already reported?
-
-For more information on how to write a good [bug report](https://github.com/atom/atom/blob/master/CONTRIBUTING.md#how-do-i-submit-a-good-bug-report) or [enhancement request](https://github.com/atom/atom/blob/master/CONTRIBUTING.md#how-do-i-submit-a-good-enhancement-suggestion), see the `CONTRIBUTING` guide.
+* [ ] Put an X between the brackets on this line if you have done all of the following:
+    * Reproduced the problem in Safe Mode: http://flight-manual.atom.io/hacking-atom/sections/debugging/#using-safe-mode
+    * Followed all applicable steps in the debugging guide: http://flight-manual.atom.io/hacking-atom/sections/debugging/
+    * Checked the FAQs on the message board for common solutions: https://discuss.atom.io/c/faq
+    * Checked that your issue isn't already filed: https://github.com/issues?utf8=✓&q=is%3Aissue+user%3Aatom
+    * Checked that there is not already an Atom package that provides the described functionality: https://atom.io/packages
 
 ### Description
 
-[Description of the bug or feature]
+[Description of the issue]
 
 ### Steps to Reproduce
 
@@ -19,10 +25,16 @@ For more information on how to write a good [bug report](https://github.com/atom
 2. [Second Step]
 3. [and so on...]
 
-**Expected behavior:** [What you expected to happen]
+**Expected behavior:** [What you expect to happen]
 
-**Actual behavior:** [What actually happened]
+**Actual behavior:** [What actually happens]
+
+**Reproduces how often:** [What percentage of the time does it reproduce?]
 
 ### Versions
 
-You can get this information from executing `atom --version` and `apm --version` at the command line. Also, please include the OS and what version of the OS you're running.
+You can get this information from copy and pasting the output of `atom --version` and `apm --version` from the command line. Also, please include the OS and what version of the OS you're running.
+
+### Additional Information
+
+Any additional information, configuration or data that might be necessary to reproduce the issue.

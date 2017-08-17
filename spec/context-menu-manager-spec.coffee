@@ -5,7 +5,8 @@ describe "ContextMenuManager", ->
 
   beforeEach ->
     {resourcePath} = atom.getLoadSettings()
-    contextMenu = new ContextMenuManager({resourcePath, keymapManager: atom.keymaps})
+    contextMenu = new ContextMenuManager({keymapManager: atom.keymaps})
+    contextMenu.initialize({resourcePath})
 
     parent = document.createElement("div")
     child = document.createElement("div")

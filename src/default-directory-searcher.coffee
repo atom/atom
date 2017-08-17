@@ -11,13 +11,16 @@ class DirectorySearch
       excludeVcsIgnores: options.excludeVcsIgnores
       globalExclusions: options.exclusions
       follow: options.follow
+    searchOptions =
+      leadingContextLineCount: options.leadingContextLineCount
+      trailingContextLineCount: options.trailingContextLineCount
     @task = new Task(require.resolve('./scan-handler'))
     @task.on 'scan:result-found', options.didMatch
     @task.on 'scan:file-error', options.didError
     @task.on 'scan:paths-searched', options.didSearchPaths
     @promise = new Promise (resolve, reject) =>
       @task.on('task:cancelled', reject)
-      @task.start rootPaths, regex.source, scanHandlerOptions, =>
+      @task.start rootPaths, regex.source, scanHandlerOptions, searchOptions, =>
         @task.terminate()
         resolve()
 

@@ -6,8 +6,8 @@ StorageFolder = require '../storage-folder'
 Config = require '../config'
 FileRecoveryService = require './file-recovery-service'
 ipcHelpers = require '../ipc-helpers'
-{BrowserWindow, Menu, app, dialog, ipcMain, shell} = require 'electron'
-{CompositeDisposable} = require 'event-kit'
+{BrowserWindow, Menu, app, dialog, ipcMain, shell, screen} = require 'electron'
+{CompositeDisposable, Disposable} = require 'event-kit'
 fs = require 'fs-plus'
 path = require 'path'
 os = require 'os'
@@ -17,6 +17,7 @@ url = require 'url'
 _ = require 'underscore-plus'
 FindParentDir = null
 Resolve = null
+ConfigSchema = require '../config-schema'
 
 LocationSuffixRegExp = /(:\d+)(:\d+)?$/
 
@@ -34,7 +35,7 @@ class AtomApplication
     unless options.socketPath?
       if process.platform is 'win32'
         userNameSafe = new Buffer(process.env.USERNAME).toString('base64')
-        options.socketPath = "\\\\.\\pipe\\atom-#{options.version}-#{userNameSafe}-sock"
+        options.socketPath = "\\\\.\\pipe\\atom-#{options.version}-#{userNameSafe}-#{process.arch}-sock"
       else
         options.socketPath = path.join(os.tmpdir(), "atom-#{options.version}-#{process.env.USER}.sock")
 
@@ -42,7 +43,7 @@ class AtomApplication
     # take a few seconds to trigger 'error' event, it could be a bug of node
     # or atom-shell, before it's fixed we check the existence of socketPath to
     # speedup startup.
-    if (process.platform isnt 'win32' and not fs.existsSync options.socketPath) or options.test
+    if (process.platform isnt 'win32' and not fs.existsSync options.socketPath) or options.test or options.benchmark or options.benchmarkTest
       new AtomApplication(options).initialize(options)
       return
 
@@ -63,16 +64,27 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @logFile, @setPortable, @userDataDir} = options
-    @socketPath = null if options.test
+    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @logFile, @userDataDir} = options
+    @socketPath = null if options.test or options.benchmark or options.benchmarkTest
     @pidsToOpenWindows = {}
     @windows = []
 
-    @config = new Config({configDirPath: process.env.ATOM_HOME, @resourcePath, enablePersistence: true})
-    @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
+    @config = new Config({enablePersistence: true})
+    @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
+    ConfigSchema.projectHome = {
+      type: 'string',
+      default: path.join(fs.getHomeDirectory(), 'github'),
+      description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
+    }
+    @config.initialize({configDirPath: process.env.ATOM_HOME, @resourcePath, projectHomeSchema: ConfigSchema.projectHome})
     @config.load()
     @fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, "recovery"))
     @storageFolder = new StorageFolder(process.env.ATOM_HOME)
+    @autoUpdateManager = new AutoUpdateManager(
+      @version,
+      options.test or options.benchmark or options.benchmarkTest,
+      @config
+    )
 
     @disposable = new CompositeDisposable
     @handleEvents()
@@ -84,14 +96,19 @@ class AtomApplication
   initialize: (options) ->
     global.atomApplication = this
 
-    @config.onDidChange 'core.useCustomTitleBar', @promptForRestart.bind(this)
+    # DEPRECATED: This can be removed at some point (added in 1.13)
+    # It converts `useCustomTitleBar: true` to `titleBar: "custom"`
+    if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
+      @config.unset('core.useCustomTitleBar')
+      @config.set('core.titleBar', 'custom')
 
-    @autoUpdateManager = new AutoUpdateManager(@version, options.test, @resourcePath, @config)
+    @config.onDidChange 'core.titleBar', @promptForRestart.bind(this)
+
+    process.nextTick => @autoUpdateManager.initialize()
     @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
     @listenForArgumentsFromNewProcess()
-    @setupJavaScriptArguments()
     @setupDockMenu()
 
     @launch(options)
@@ -103,23 +120,45 @@ class AtomApplication
     Promise.all(windowsClosePromises).then(=> @disposable.dispose())
 
   launch: (options) ->
-    if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
+    if options.test or options.benchmark or options.benchmarkTest
+      @openWithOptions(options)
+    else if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0
+      if @config.get('core.restorePreviousWindowsOnStart') is 'always'
+        @loadState(_.deepClone(options))
       @openWithOptions(options)
     else
       @loadState(options) or @openPath(options)
 
-  openWithOptions: ({initialPaths, pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, profileStartup, timeout, clearWindowState, addToLastWindow, env}) ->
+  openWithOptions: (options) ->
+    {
+      initialPaths, pathsToOpen, executedFrom, urlsToOpen, benchmark,
+      benchmarkTest, test, pidToKillWhenClosed, devMode, safeMode, newWindow,
+      logFile, profileStartup, timeout, clearWindowState, addToLastWindow, env
+    } = options
+
     app.focus()
 
     if test
-      @runTests({headless: true, devMode, @resourcePath, executedFrom, pathsToOpen, logFile, timeout, env})
+      @runTests({
+        headless: true, devMode, @resourcePath, executedFrom, pathsToOpen,
+        logFile, timeout, env
+      })
+    else if benchmark or benchmarkTest
+      @runBenchmarks({headless: true, test: benchmarkTest, @resourcePath, executedFrom, pathsToOpen, timeout, env})
     else if pathsToOpen.length > 0
-      @openPaths({initialPaths, pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, clearWindowState, addToLastWindow, env})
+      @openPaths({
+        initialPaths, pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow,
+        devMode, safeMode, profileStartup, clearWindowState, addToLastWindow, env
+      })
     else if urlsToOpen.length > 0
-      @openUrl({urlToOpen, devMode, safeMode, env}) for urlToOpen in urlsToOpen
+      for urlToOpen in urlsToOpen
+        @openUrl({urlToOpen, devMode, safeMode, env})
     else
       # Always open a editor window if this is the first instance of Atom.
-      @openPath({initialPaths, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, clearWindowState, addToLastWindow, env})
+      @openPath({
+        initialPaths, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup,
+        clearWindowState, addToLastWindow, env
+      })
 
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
@@ -181,10 +220,6 @@ class AtomApplication
         # which is why this check is here.
         throw error unless error.code is 'ENOENT'
 
-  # Configures required javascript environment flags.
-  setupJavaScriptArguments: ->
-    app.commandLine.appendSwitch 'js-flags', '--harmony'
-
   # Registers basic application commands, non-idempotent.
   handleEvents: ->
     getLoadSettings = =>
@@ -204,8 +239,8 @@ class AtomApplication
     @on 'application:open-discussions', -> shell.openExternal('https://discuss.atom.io')
     @on 'application:open-faq', -> shell.openExternal('https://atom.io/faq')
     @on 'application:open-terms-of-use', -> shell.openExternal('https://atom.io/terms')
-    @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
-    @on 'application:search-issues', -> shell.openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
+    @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#reporting-bugs')
+    @on 'application:search-issues', -> shell.openExternal('https://github.com/search?q=+is%3Aissue+user%3Aatom')
 
     @on 'application:install-update', =>
       @quitting = true
@@ -237,7 +272,7 @@ class AtomApplication
       unless @quitting
         event.preventDefault()
         @quitting = true
-        Promise.all(@windows.map((window) -> window.saveState())).then(-> app.quit())
+        Promise.all(@windows.map((window) -> window.prepareToUnload())).then(-> app.quit())
 
     @disposable.add ipcHelpers.on app, 'will-quit', =>
       @killAllProcesses()
@@ -259,6 +294,17 @@ class AtomApplication
     @disposable.add ipcHelpers.on ipcMain, 'restart-application', =>
       @restart()
 
+    @disposable.add ipcHelpers.on ipcMain, 'resolve-proxy', (event, requestId, url) ->
+      event.sender.session.resolveProxy url, (proxy) ->
+        unless event.sender.isDestroyed()
+          event.sender.send('did-resolve-proxy', requestId, proxy)
+
+    @disposable.add ipcHelpers.on ipcMain, 'did-change-history-manager', (event) =>
+      for atomWindow in @windows
+        webContents = atomWindow.browserWindow.webContents
+        if webContents isnt event.sender
+          webContents.send('did-change-history-manager')
+
     # A request from the associated render process to open a new render process.
     @disposable.add ipcHelpers.on ipcMain, 'open', (event, options) =>
       window = @atomWindowForEvent(event)
@@ -279,6 +325,9 @@ class AtomApplication
 
     @disposable.add ipcHelpers.on ipcMain, 'run-package-specs', (event, packageSpecPath) =>
       @runTests({resourcePath: @devResourcePath, pathsToOpen: [packageSpecPath], headless: false})
+
+    @disposable.add ipcHelpers.on ipcMain, 'run-benchmarks', (event, benchmarksPath) =>
+      @runBenchmarks({resourcePath: @devResourcePath, pathsToOpen: [benchmarksPath], headless: false, test: false})
 
     @disposable.add ipcHelpers.on ipcMain, 'command', (event, command) =>
       @emit(command)
@@ -326,11 +375,6 @@ class AtomApplication
     @disposable.add ipcHelpers.respondTo 'set-temporary-window-state', (win, state) ->
       win.temporaryState = state
 
-    @disposable.add ipcHelpers.on ipcMain, 'did-cancel-window-unload', =>
-      @quitting = false
-      for window in @windows
-        window.didCancelWindowUnload()
-
     clipboard = require '../safe-clipboard'
     @disposable.add ipcHelpers.on ipcMain, 'write-text-to-selection-clipboard', (event, selectedText) ->
       clipboard.writeText(selectedText, 'selection')
@@ -360,6 +404,11 @@ class AtomApplication
     @disposable.add ipcHelpers.on ipcMain, 'did-save-path', (event, path) =>
       @fileRecoveryService.didSavePath(@atomWindowForEvent(event), path)
       event.returnValue = true
+
+    @disposable.add ipcHelpers.on ipcMain, 'did-change-paths', =>
+      @saveState(false)
+
+    @disposable.add(@disableZoomOnDisplayChange())
 
   setupDockMenu: ->
     if process.platform is 'darwin'
@@ -485,7 +534,7 @@ class AtomApplication
   openPaths: ({initialPaths, pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window, clearWindowState, addToLastWindow, env}={}) ->
     if not pathsToOpen? or pathsToOpen.length is 0
       return
-
+    env = process.env unless env?
     devMode = Boolean(devMode)
     safeMode = Boolean(safeMode)
     clearWindowState = Boolean(clearWindowState)
@@ -525,6 +574,7 @@ class AtomApplication
       windowDimensions ?= @getDimensionsForNewWindow()
       openedWindow = new AtomWindow(this, @fileRecoveryService, {initialPaths, locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState, env})
       openedWindow.focus()
+      @lastFocusedWindow = openedWindow
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -560,14 +610,13 @@ class AtomApplication
     states = []
     for window in @windows
       unless window.isSpec
-        if loadSettings = window.getLoadSettings()
-          states.push(initialPaths: loadSettings.initialPaths)
+        states.push({initialPaths: window.representedDirectoryPaths})
     if states.length > 0 or allowEmpty
       @storageFolder.storeSync('application.json', states)
+      @emit('application:did-save-state')
 
   loadState: (options) ->
-    restorePreviousState = @config.get('core.restorePreviousWindowsOnStart') ? true
-    if restorePreviousState and (states = @storageFolder.load('application.json'))?.length > 0
+    if (@config.get('core.restorePreviousWindowsOnStart') in ['yes', 'always']) and (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
         @openWithOptions(Object.assign(options, {
           initialPaths: state.initialPaths
@@ -592,7 +641,8 @@ class AtomApplication
   openUrl: ({urlToOpen, devMode, safeMode, env}) ->
     unless @packages?
       PackageManager = require '../package-manager'
-      @packages = new PackageManager
+      @packages = new PackageManager({})
+      @packages.initialize
         configDirPath: process.env.ATOM_HOME
         devMode: devMode
         resourcePath: @resourcePath
@@ -650,6 +700,29 @@ class AtomApplication
     isSpec = true
     safeMode ?= false
     new AtomWindow(this, @fileRecoveryService, {windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode, env})
+
+  runBenchmarks: ({headless, test, resourcePath, executedFrom, pathsToOpen, env}) ->
+    if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
+      resourcePath = @resourcePath
+
+    try
+      windowInitializationScript = require.resolve(path.resolve(@devResourcePath, 'src', 'initialize-benchmark-window'))
+    catch error
+      windowInitializationScript = require.resolve(path.resolve(__dirname, '..', '..', 'src', 'initialize-benchmark-window'))
+
+    benchmarkPaths = []
+    if pathsToOpen?
+      for pathToOpen in pathsToOpen
+        benchmarkPaths.push(path.resolve(executedFrom, fs.normalize(pathToOpen)))
+
+    if benchmarkPaths.length is 0
+      process.stderr.write 'Error: Specify at least one benchmark path.\n\n'
+      process.exit(1)
+
+    devMode = true
+    isSpec = true
+    safeMode = false
+    new AtomWindow(this, @fileRecoveryService, {windowInitializationScript, resourcePath, headless, test, isSpec, devMode, benchmarkPaths, safeMode, env})
 
   resolveTestRunnerPath: (testPath) ->
     FindParentDir ?= require 'find-parent-dir'
@@ -749,7 +822,6 @@ class AtomApplication
   restart: ->
     args = []
     args.push("--safe") if @safeMode
-    args.push("--portable") if @setPortable
     args.push("--log-file=#{@logFile}") if @logFile?
     args.push("--socket-path=#{@socketPath}") if @socketPath?
     args.push("--user-data-dir=#{@userDataDir}") if @userDataDir?
@@ -758,3 +830,17 @@ class AtomApplication
       args.push("--resource-path=#{@resourcePath}")
     app.relaunch({args})
     app.quit()
+
+  disableZoomOnDisplayChange: ->
+    outerCallback = =>
+      for window in @windows
+        window.disableZoom()
+
+    # Set the limits every time a display is added or removed, otherwise the
+    # configuration gets reset to the default, which allows zooming the
+    # webframe.
+    screen.on('display-added', outerCallback)
+    screen.on('display-removed', outerCallback)
+    new Disposable ->
+      screen.removeListener('display-added', outerCallback)
+      screen.removeListener('display-removed', outerCallback)

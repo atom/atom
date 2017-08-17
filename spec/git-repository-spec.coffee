@@ -1,11 +1,11 @@
-temp = require 'temp'
+temp = require('temp').track()
 GitRepository = require '../src/git-repository'
 fs = require 'fs-plus'
 path = require 'path'
 Project = require '../src/project'
 
 copyRepository = ->
-  workingDirPath = temp.mkdirSync('atom-working-dir')
+  workingDirPath = temp.mkdirSync('atom-spec-git')
   fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
   workingDirPath
@@ -19,6 +19,8 @@ describe "GitRepository", ->
 
   afterEach ->
     repo.destroy() if repo?.repo?
+    try
+      temp.cleanupSync() # These tests sometimes lag at shutting down resources
 
   describe "@open(path)", ->
     it "returns null when no repository is found", ->
@@ -29,8 +31,8 @@ describe "GitRepository", ->
       expect(-> new GitRepository(path.join(temp.dir, 'nogit.txt'))).toThrow()
 
   describe ".getPath()", ->
-    it "returns the repository path for a .git directory path", ->
-      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git', 'HEAD'))
+    it "returns the repository path for a .git directory path with a directory", ->
+      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git', 'objects'))
       expect(repo.getPath()).toBe path.join(__dirname, 'fixtures', 'git', 'master.git')
 
     it "returns the repository path for a repository path", ->
@@ -137,6 +139,8 @@ describe "GitRepository", ->
         editor = atom.workspace.getActiveTextEditor()
 
     it "displays a confirmation dialog by default", ->
+      return if process.platform is 'win32' # Permissions issues with this test on Windows
+
       atom.confirm.andCallFake ({buttons}) -> buttons.OK()
       atom.config.set('editor.confirmCheckoutHeadRevision', true)
 
@@ -145,6 +149,7 @@ describe "GitRepository", ->
       expect(fs.readFileSync(filePath, 'utf8')).toBe ''
 
     it "does not display a dialog when confirmation is disabled", ->
+      return if process.platform is 'win32' # Flakey EPERM opening a.txt on Win32
       atom.config.set('editor.confirmCheckoutHeadRevision', false)
 
       repo.checkoutHeadForEditor(editor)
@@ -154,7 +159,7 @@ describe "GitRepository", ->
 
   describe ".destroy()", ->
     it "throws an exception when any method is called after it is called", ->
-      repo = new GitRepository(require.resolve('./fixtures/git/master.git/HEAD'))
+      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git'))
       repo.destroy()
       expect(-> repo.getShortHead()).toThrow()
 
@@ -288,20 +293,32 @@ describe "GitRepository", ->
 
       statusHandler = jasmine.createSpy('statusHandler')
       atom.project.getRepositories()[0].onDidChangeStatus statusHandler
-      editor.save()
-      expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
+
+      waitsForPromise ->
+        editor.save()
+
+      runs ->
+        expect(statusHandler.callCount).toBe 1
+        expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
 
     it "emits a status-changed event when a buffer is reloaded", ->
       fs.writeFileSync(editor.getPath(), 'changed')
 
       statusHandler = jasmine.createSpy('statusHandler')
       atom.project.getRepositories()[0].onDidChangeStatus statusHandler
-      editor.getBuffer().reload()
-      expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
-      editor.getBuffer().reload()
-      expect(statusHandler.callCount).toBe 1
+
+      waitsForPromise ->
+        editor.getBuffer().reload()
+
+      runs ->
+        expect(statusHandler.callCount).toBe 1
+        expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
+
+      waitsForPromise ->
+        editor.getBuffer().reload()
+
+      runs ->
+        expect(statusHandler.callCount).toBe 1
 
     it "emits a status-changed event when a buffer's path changes", ->
       fs.writeFileSync(editor.getPath(), 'changed')
@@ -319,7 +336,7 @@ describe "GitRepository", ->
       expect(-> editor.save()).not.toThrow()
 
   describe "when a project is deserialized", ->
-    [buffer, project2] = []
+    [buffer, project2, statusHandler] = []
 
     afterEach ->
       project2?.destroy()
@@ -330,20 +347,21 @@ describe "GitRepository", ->
       waitsForPromise ->
         atom.workspace.open('file.txt')
 
-      runs ->
+      waitsForPromise ->
         project2 = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm, applicationDelegate: atom.applicationDelegate})
         project2.deserialize(atom.project.serialize({isUnloading: false}))
-        buffer = project2.getBuffers()[0]
 
       waitsFor ->
-        buffer.loaded
+        buffer = project2.getBuffers()[0]
 
-      runs ->
+      waitsForPromise ->
         originalContent = buffer.getText()
         buffer.append('changes')
 
         statusHandler = jasmine.createSpy('statusHandler')
         project2.getRepositories()[0].onDidChangeStatus statusHandler
         buffer.save()
+
+      runs ->
         expect(statusHandler.callCount).toBe 1
         expect(statusHandler).toHaveBeenCalledWith {path: buffer.getPath(), pathStatus: 256}

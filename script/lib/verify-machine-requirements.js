@@ -17,8 +17,11 @@ module.exports = function () {
 function verifyNode () {
   const fullVersion = process.versions.node
   const majorVersion = fullVersion.split('.')[0]
-  if (majorVersion >= 4) {
+  if (majorVersion >= 6) {
     console.log(`Node:\tv${fullVersion}`)
+  } else if (majorVersion >= 4) {
+    console.log(`Node:\tv${fullVersion}`)
+    console.warn('\tWarning: Building on Node below version 6 is deprecated. Please use Node 6.x+ to build Atom.')
   } else {
     throw new Error(`node v4+ is required to build Atom. node v${fullVersion} is installed.`)
   }
@@ -49,7 +52,7 @@ function verifyPython () {
     }
   }
 
-  const stdout = childProcess.execFileSync(pythonExecutable, ['-c', 'import platform\nprint(platform.python_version())'], {env: process.env})
+  let stdout = childProcess.execFileSync(pythonExecutable, ['-c', 'import platform\nprint(platform.python_version())'], {env: process.env})
   if (stdout.indexOf('+') !== -1) stdout = stdout.replace(/\+/g, '')
   if (stdout.indexOf('rc') !== -1) stdout = stdout.replace(/rc(.*)$/ig, '')
   const fullVersion = stdout.toString().trim()

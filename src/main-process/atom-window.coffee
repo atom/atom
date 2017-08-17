@@ -26,79 +26,94 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
-      # Add an opaque backgroundColor (instead of keeping the default
-      # transparent one) to prevent subpixel anti-aliasing from being disabled.
-      # We believe this is a regression introduced with Electron 0.37.3, and
-      # thus we should remove this as soon as a fix gets released.
-      backgroundColor: "#fff"
       webPreferences:
         # Prevent specs from throttling when the window is in the background:
         # this should result in faster CI builds, and an improvement in the
         # local development experience when running specs through the UI (which
         # now won't pause when e.g. minimizing the window).
         backgroundThrottling: not @isSpec
+        # Disable the `auxclick` feature so that `click` events are triggered in
+        # response to a middle-click.
+        # (Ref: https://github.com/atom/atom/pull/12696#issuecomment-290496960)
+        disableBlinkFeatures: 'Auxclick'
 
     # Don't set icon on Windows so the exe's ico will be used as window and
     # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
     if process.platform is 'linux'
       options.icon = @constructor.iconPath
 
-    if @shouldHideTitleBar()
+    if @shouldAddCustomTitleBar()
       options.titleBarStyle = 'hidden'
 
-    @browserWindow = new BrowserWindow options
-    @atomApplication.addWindow(this)
+    if @shouldAddCustomInsetTitleBar()
+      options.titleBarStyle = 'hidden-inset'
 
+    if @shouldHideTitleBar()
+      options.frame = false
+
+    @browserWindow = new BrowserWindow(options)
     @handleEvents()
 
-    loadSettings = Object.assign({}, settings)
-    loadSettings.appVersion = app.getVersion()
-    loadSettings.resourcePath = @resourcePath
-    loadSettings.devMode ?= false
-    loadSettings.safeMode ?= false
-    loadSettings.atomHome = process.env.ATOM_HOME
-    loadSettings.clearWindowState ?= false
-    loadSettings.initialPaths ?=
+    @loadSettings = Object.assign({}, settings)
+    @loadSettings.appVersion = app.getVersion()
+    @loadSettings.resourcePath = @resourcePath
+    @loadSettings.devMode ?= false
+    @loadSettings.safeMode ?= false
+    @loadSettings.atomHome = process.env.ATOM_HOME
+    @loadSettings.clearWindowState ?= false
+    @loadSettings.initialPaths ?=
       for {pathToOpen} in locationsToOpen when pathToOpen
-        if fs.statSyncNoException(pathToOpen).isFile?()
-          path.dirname(pathToOpen)
-        else
+        stat = fs.statSyncNoException(pathToOpen) or null
+        if stat?.isDirectory()
           pathToOpen
-
-    loadSettings.initialPaths.sort()
+        else
+          parentDirectory = path.dirname(pathToOpen)
+          if stat?.isFile() or fs.existsSync(parentDirectory)
+            parentDirectory
+          else
+            pathToOpen
+    @loadSettings.initialPaths.sort()
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
       @constructor.includeShellLoadTime = false
-      loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
+      @loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
 
-    @browserWindow.loadSettings = loadSettings
+    @representedDirectoryPaths = @loadSettings.initialPaths
+    @env = @loadSettings.env if @loadSettings.env?
+
+    @browserWindow.loadSettingsJSON = JSON.stringify(@loadSettings)
 
     @browserWindow.on 'window:loaded', =>
+      @disableZoom()
       @emit 'window:loaded'
       @resolveLoadedPromise()
 
-    @setLoadSettings(loadSettings)
-    @env = loadSettings.env if loadSettings.env?
+    @browserWindow.on 'window:locations-opened', =>
+      @emit 'window:locations-opened'
+
+    @browserWindow.on 'enter-full-screen', =>
+      @browserWindow.webContents.send('did-enter-full-screen')
+
+    @browserWindow.on 'leave-full-screen', =>
+      @browserWindow.webContents.send('did-leave-full-screen')
+
+    @browserWindow.loadURL url.format
+      protocol: 'file'
+      pathname: "#{@resourcePath}/static/index.html"
+      slashes: true
+
+    @browserWindow.showSaveDialog = @showSaveDialog.bind(this)
+
     @browserWindow.focusOnWebView() if @isSpec
     @browserWindow.temporaryState = {windowDimensions} if windowDimensions?
 
     hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
     @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()
 
-  setLoadSettings: (loadSettings) ->
-    @browserWindow.loadURL url.format
-      protocol: 'file'
-      pathname: "#{@resourcePath}/static/index.html"
-      slashes: true
-      hash: encodeURIComponent(JSON.stringify(loadSettings))
+    @atomApplication.addWindow(this)
 
-  getLoadSettings: ->
-    if @browserWindow.webContents? and not @browserWindow.webContents.isLoading()
-      hash = url.parse(@browserWindow.webContents.getURL()).hash.substr(1)
-      JSON.parse(decodeURIComponent(hash))
-
-  hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
+  hasProjectPath: -> @representedDirectoryPaths.length > 0
 
   setupContextMenu: ->
     ContextMenu = require './context-menu'
@@ -112,7 +127,7 @@ class AtomWindow
     true
 
   containsPath: (pathToCheck) ->
-    @getLoadSettings()?.initialPaths?.some (projectPath) ->
+    @representedDirectoryPaths.some (projectPath) ->
       if not projectPath
         false
       else if not pathToCheck
@@ -132,7 +147,8 @@ class AtomWindow
         event.preventDefault()
         @unloading = true
         @atomApplication.saveState(false)
-        @saveState().then(=> @close())
+        @prepareToUnload().then (result) =>
+          @close() if result
 
     @browserWindow.on 'closed', =>
       @fileRecoveryService.didCloseWindow(this)
@@ -144,13 +160,16 @@ class AtomWindow
 
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
-        buttons: ['Close', 'Keep Waiting']
+        buttons: ['Force Close', 'Keep Waiting']
         message: 'Editor is not responding'
         detail: 'The editor is not responding. Would you like to force close it or just keep waiting?'
       @browserWindow.destroy() if chosen is 0
 
     @browserWindow.webContents.on 'crashed', =>
-      @atomApplication.exit(100) if @headless
+      if @headless
+        console.log "Renderer process crashed, exiting"
+        @atomApplication.exit(100)
+        return
 
       @fileRecoveryService.didCrashWindow(this)
       chosen = dialog.showMessageBox @browserWindow,
@@ -173,21 +192,19 @@ class AtomWindow
       @browserWindow.on 'blur', =>
         @browserWindow.focusOnWebView()
 
-  didCancelWindowUnload: ->
-    @unloading = false
-
-  saveState: ->
+  prepareToUnload: ->
     if @isSpecWindow()
-      return Promise.resolve()
-
-    @lastSaveStatePromise = new Promise (resolve) =>
-      callback = (event) =>
+      return Promise.resolve(true)
+    @lastPrepareToUnloadPromise = new Promise (resolve) =>
+      callback = (event, result) =>
         if BrowserWindow.fromWebContents(event.sender) is @browserWindow
-          ipcMain.removeListener('did-save-window-state', callback)
-          resolve()
-      ipcMain.on('did-save-window-state', callback)
-      @browserWindow.webContents.send('save-window-state')
-    @lastSaveStatePromise
+          ipcMain.removeListener('did-prepare-to-unload', callback)
+          unless result
+            @unloading = false
+            @atomApplication.quitting = false
+          resolve(result)
+      ipcMain.on('did-prepare-to-unload', callback)
+      @browserWindow.webContents.send('prepare-to-unload')
 
   openPath: (pathToOpen, initialLine, initialColumn) ->
     @openLocations([{pathToOpen, initialLine, initialColumn}])
@@ -223,10 +240,20 @@ class AtomWindow
     [width, height] = @browserWindow.getSize()
     {x, y, width, height}
 
+  shouldAddCustomTitleBar: ->
+    not @isSpec and
+    process.platform is 'darwin' and
+    @atomApplication.config.get('core.titleBar') is 'custom'
+
+  shouldAddCustomInsetTitleBar: ->
+    not @isSpec and
+    process.platform is 'darwin' and
+    @atomApplication.config.get('core.titleBar') is 'custom-inset'
+
   shouldHideTitleBar: ->
     not @isSpec and
     process.platform is 'darwin' and
-    @atomApplication.config.get('core.useCustomTitleBar')
+    @atomApplication.config.get('core.titleBar') is 'hidden'
 
   close: -> @browserWindow.close()
 
@@ -259,8 +286,16 @@ class AtomWindow
 
   reload: ->
     @loadedPromise = new Promise((@resolveLoadedPromise) =>)
-    @saveState().then => @browserWindow.reload()
+    @prepareToUnload().then (result) =>
+      @browserWindow.reload() if result
     @loadedPromise
+
+  showSaveDialog: (params) ->
+    params = Object.assign({
+      title: 'Save File',
+      defaultPath: @representedDirectoryPaths[0]
+    }, params)
+    dialog.showSaveDialog(@browserWindow, params)
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
 
@@ -272,4 +307,13 @@ class AtomWindow
 
   setRepresentedFilename: (representedFilename) -> @browserWindow.setRepresentedFilename(representedFilename)
 
+  setRepresentedDirectoryPaths: (@representedDirectoryPaths) ->
+    @representedDirectoryPaths.sort()
+    @loadSettings.initialPaths = @representedDirectoryPaths
+    @browserWindow.loadSettingsJSON = JSON.stringify(@loadSettings)
+    @atomApplication.saveState()
+
   copy: -> @browserWindow.copy()
+
+  disableZoom: ->
+    @browserWindow.webContents.setVisualZoomLevelLimits(1, 1)
