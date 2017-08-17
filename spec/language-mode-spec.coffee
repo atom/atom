@@ -461,6 +461,9 @@ describe "LanguageMode", ->
         expect(languageMode.isFoldableAtBufferRow(24)).toBe true
         expect(languageMode.isFoldableAtBufferRow(28)).toBe false
 
+      it "returns true for lines that end with a comment and are followed by an indented line", ->
+        expect(languageMode.isFoldableAtBufferRow(5)).toBe true
+
       it "does not return true for a line in the middle of a comment that's followed by an indented line", ->
         expect(languageMode.isFoldableAtBufferRow(7)).toBe false
         editor.buffer.insert([8, 0], '  ')
