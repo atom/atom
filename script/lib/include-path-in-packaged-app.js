@@ -47,7 +47,6 @@ const EXCLUDE_REGEXPS_SOURCES = [
   escapeRegExp(path.join('build', 'Release', 'obj.target')),
   escapeRegExp(path.join('build', 'Release', 'obj')),
   escapeRegExp(path.join('build', 'Release', '.deps')),
-  escapeRegExp(path.join('deps', 'libgit2')),
   escapeRegExp(path.join('vendor', 'apm')),
 
   // These are only required in dev-mode, when pegjs grammars aren't precompiled
@@ -55,6 +54,7 @@ const EXCLUDE_REGEXPS_SOURCES = [
   escapeRegExp(path.join('node_modules', 'pegjs')),
   escapeRegExp(path.join('node_modules', '.bin', 'pegjs')),
   escapeRegExp(path.join('node_modules', 'spellchecker', 'vendor', 'hunspell') + path.sep) + '.*',
+  escapeRegExp(path.join('build', 'Release') + path.sep) + '.*\\.pdb',
 
   // Ignore *.cc and *.h files from native modules
   escapeRegExp(path.sep) + '.+\\.(cc|h)$',
@@ -64,17 +64,10 @@ const EXCLUDE_REGEXPS_SOURCES = [
   escapeRegExp(path.sep) + '.+\\.target.mk$',
   escapeRegExp(path.sep) + 'linker\\.lock$',
   escapeRegExp(path.join('build', 'Release') + path.sep) + '.+\\.node\\.dSYM',
-  escapeRegExp(path.join('build', 'Release') + path.sep) + '.*\\.(pdb|lib|exp|map|ipdb|iobj)',
 
   // Ignore test and example folders
   'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + '_*te?sts?_*' + escapeRegExp(path.sep),
-  'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'spec' + escapeRegExp(path.sep),
-  'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'docs' + escapeRegExp(path.sep),
-  'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'examples?' + escapeRegExp(path.sep),
-  'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'samples?' + escapeRegExp(path.sep),
-  'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.md$',
-  'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.d\\.ts$',
-  'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.js\\.map$'
+  'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'examples?' + escapeRegExp(path.sep)
 ]
 
 // Ignore spec directories in all bundled packages
