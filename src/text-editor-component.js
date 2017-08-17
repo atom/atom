@@ -554,10 +554,10 @@ class TextEditorComponent {
       backgroundColor: 'inherit'
     }
     if (this.hasInitialMeasurements) {
-      style.width = this.getScrollWidth() + 'px'
-      style.height = this.getScrollHeight() + 'px'
+      style.width = ceilToPhysicalPixelBoundary(this.getScrollWidth()) + 'px'
+      style.height = ceilToPhysicalPixelBoundary(this.getScrollHeight()) + 'px'
       style.willChange = 'transform'
-      style.transform = `translate(${-this.getScrollLeft()}px, ${-this.getScrollTop()}px)`
+      style.transform = `translate(${-roundToPhysicalPixelBoundary(this.getScrollLeft())}px, ${-roundToPhysicalPixelBoundary(this.getScrollTop())}px)`
       children = [
         this.renderLineTiles(),
         this.renderBlockDecorationMeasurementArea(),
@@ -3018,7 +3018,7 @@ class GutterContainerComponent {
     }
 
     if (hasInitialMeasurements) {
-      innerStyle.transform = `translateY(${-scrollTop}px)`
+      innerStyle.transform = `translateY(${-roundToPhysicalPixelBoundary(scrollTop)}px)`
     }
 
     return $.div(
@@ -3185,7 +3185,7 @@ class LineNumberGutterComponent {
       {
         className: 'gutter line-numbers',
         attributes: {'gutter-name': 'line-number'},
-        style: {position: 'relative', height: height + 'px'},
+        style: {position: 'relative', height: ceilToPhysicalPixelBoundary(height) + 'px'},
         on: {
           mousedown: this.didMouseDown
         }
@@ -4300,4 +4300,14 @@ class NodePool {
       }
     }
   }
+}
+
+function roundToPhysicalPixelBoundary (virtualPixelPosition) {
+  const virtualPixelsPerPhysicalPixel = (1 / window.devicePixelRatio)
+  return Math.round(virtualPixelPosition / virtualPixelsPerPhysicalPixel) * virtualPixelsPerPhysicalPixel
+}
+
+function ceilToPhysicalPixelBoundary (virtualPixelPosition) {
+  const virtualPixelsPerPhysicalPixel = (1 / window.devicePixelRatio)
+  return Math.ceil(virtualPixelPosition / virtualPixelsPerPhysicalPixel) * virtualPixelsPerPhysicalPixel
 }
