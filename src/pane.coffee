@@ -742,7 +742,7 @@ class Pane
     return unless item?.saveAs?
 
     saveOptions = item.getSaveDialogOptions?() ? {}
-    saveOptions.defaultPath ?= item.getPath()
+    saveOptions.defaultPath ?= item.getPath() ? atom.project.getPaths()[0]
     newItemPath = @applicationDelegate.showSaveDialog(saveOptions)
     if newItemPath
       promisify -> item.saveAs(newItemPath)
