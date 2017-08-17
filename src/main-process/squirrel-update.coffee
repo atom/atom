@@ -2,6 +2,7 @@ fs = require 'fs-plus'
 path = require 'path'
 Spawner = require './spawner'
 WinShell = require './win-shell'
+WinClasses = require './win-classes.js'
 WinPowerShell = require './win-powershell'
 
 appFolder = path.resolve(process.execPath, '..')
@@ -137,14 +138,16 @@ exports.handleStartupEvent = (app, squirrelCommand) ->
         addCommandsToPath ->
           WinShell.fileHandler.register ->
             updateContextMenus ->
-              app.quit()
+              WinClasses.protocolHandler.register ->
+                app.quit()
       true
     when '--squirrel-updated'
       updateShortcuts ->
         addCommandsToPath ->
           WinShell.fileHandler.update ->
             updateContextMenus ->
-              app.quit()
+              WinClasses.protocolHandler.update ->
+                app.quit()
       true
     when '--squirrel-uninstall'
       removeShortcuts ->
@@ -153,7 +156,8 @@ exports.handleStartupEvent = (app, squirrelCommand) ->
             WinShell.fileContextMenu.deregister ->
               WinShell.folderContextMenu.deregister ->
                 WinShell.folderBackgroundContextMenu.deregister ->
-                  app.quit()
+                  WinClasses.protocolHandler.deregister ->
+                    app.quit()
       true
     when '--squirrel-obsolete'
       app.quit()
