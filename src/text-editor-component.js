@@ -551,10 +551,10 @@ class TextEditorComponent {
       backgroundColor: 'inherit'
     }
     if (this.hasInitialMeasurements) {
-      style.width = this.getScrollWidth() + 'px'
-      style.height = this.getScrollHeight() + 'px'
+      style.width = ceilToPhysicalPixelBoundary(this.getScrollWidth()) + 'px'
+      style.height = ceilToPhysicalPixelBoundary(this.getScrollHeight()) + 'px'
       style.willChange = 'transform'
-      style.transform = `translate(${-this.getScrollLeft()}px, ${-this.getScrollTop()}px)`
+      style.transform = `translate(${-roundToPhysicalPixelBoundary(this.getScrollLeft())}px, ${-roundToPhysicalPixelBoundary(this.getScrollTop())}px)`
       children = [
         this.renderLineTiles(),
         this.renderBlockDecorationMeasurementArea(),
@@ -3015,7 +3015,7 @@ class GutterContainerComponent {
     }
 
     if (hasInitialMeasurements) {
-      innerStyle.transform = `translateY(${-scrollTop}px)`
+      innerStyle.transform = `translateY(${-roundToPhysicalPixelBoundary(scrollTop)}px)`
     }
 
     return $.div(
@@ -3171,10 +3171,10 @@ class LineNumberGutterComponent {
             overflow: 'hidden',
             position: 'absolute',
             top: 0,
-            height: tileHeight + 'px',
-            width: width + 'px',
+            height: ceilToPhysicalPixelBoundary(tileHeight) + 'px',
+            width: ceilToPhysicalPixelBoundary(width) + 'px',
             willChange: 'transform',
-            transform: `translateY(${tileTop}px)`,
+            transform: `translateY(${roundToPhysicalPixelBoundary(tileTop)}px)`,
             backgroundColor: 'inherit'
           }
         }, ...tileChildren)
@@ -3185,7 +3185,7 @@ class LineNumberGutterComponent {
       {
         className: 'gutter line-numbers',
         attributes: {'gutter-name': 'line-number'},
-        style: {position: 'relative', height: height + 'px'},
+        style: {position: 'relative', height: ceilToPhysicalPixelBoundary(height) + 'px'},
         on: {
           mousedown: this.didMouseDown
         }
@@ -3548,10 +3548,10 @@ class LinesTileComponent {
         style: {
           contain: 'strict',
           position: 'absolute',
-          height: height + 'px',
-          width: width + 'px',
+          height: ceilToPhysicalPixelBoundary(height) + 'px',
+          width: ceilToPhysicalPixelBoundary(width) + 'px',
           willChange: 'transform',
-          transform: `translateY(${top}px)`,
+          transform: `translateY(${roundToPhysicalPixelBoundary(top)}px)`,
           backgroundColor: 'inherit'
         }
       },
@@ -4302,4 +4302,14 @@ class NodePool {
       }
     }
   }
+}
+
+function roundToPhysicalPixelBoundary (virtualPixelPosition) {
+  const virtualPixelsPerPhysicalPixel = (1 / window.devicePixelRatio)
+  return Math.round(virtualPixelPosition / virtualPixelsPerPhysicalPixel) * virtualPixelsPerPhysicalPixel
+}
+
+function ceilToPhysicalPixelBoundary (virtualPixelPosition) {
+  const virtualPixelsPerPhysicalPixel = (1 / window.devicePixelRatio)
+  return Math.ceil(virtualPixelPosition / virtualPixelsPerPhysicalPixel) * virtualPixelsPerPhysicalPixel
 }
