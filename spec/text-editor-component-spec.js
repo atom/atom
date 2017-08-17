@@ -1296,6 +1296,38 @@ describe('TextEditorComponent', () => {
     })
   })
 
+  describe('scrolling via the API', () => {
+    it('ignores scroll requests to NaN, null or undefined positions', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 2, autoHeight: false})
+      await setEditorHeightInLines(component, 3)
+      await setEditorWidthInCharacters(component, 10)
+
+      const initialScrollTop = Math.round(2 * component.getLineHeight())
+      const initialScrollLeft = Math.round(5 * component.getBaseCharacterWidth())
+      setScrollTop(component, initialScrollTop)
+      setScrollLeft(component, initialScrollLeft)
+      await component.getNextUpdatePromise()
+
+      setScrollTop(component, NaN)
+      setScrollLeft(component, NaN)
+      await component.getNextUpdatePromise()
+      expect(component.getScrollTop()).toBe(initialScrollTop)
+      expect(component.getScrollLeft()).toBe(initialScrollLeft)
+
+      setScrollTop(component, null)
+      setScrollLeft(component, null)
+      await component.getNextUpdatePromise()
+      expect(component.getScrollTop()).toBe(initialScrollTop)
+      expect(component.getScrollLeft()).toBe(initialScrollLeft)
+
+      setScrollTop(component, undefined)
+      setScrollLeft(component, undefined)
+      await component.getNextUpdatePromise()
+      expect(component.getScrollTop()).toBe(initialScrollTop)
+      expect(component.getScrollLeft()).toBe(initialScrollLeft)
+    })
+  })
+
   describe('line and line number decorations', () => {
     it('adds decoration classes on screen lines spanned by decorated markers', async () => {
       const {component, element, editor} = buildComponent({softWrapped: true})
