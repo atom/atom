@@ -606,8 +606,8 @@ class PathWatcherManager {
 //      * `path` {String} containing the absolute path to the filesystem entry that was acted upon.
 //      * `oldPath` For rename events, {String} containing the filesystem entry's former absolute path.
 //
-// Returns a {PathWatcher}. Note that every {PathWatcher} is a {Disposable}, so they can be managed by
-// [CompositeDisposables]{CompositeDisposable} if desired.
+// Returns a {Promise} that will resolve to a {PathWatcher} once it has started. Note that every {PathWatcher}
+// is a {Disposable}, so they can be managed by a {CompositeDisposable} if desired.
 //
 // ```js
 // const {watchPath} = require('atom')
@@ -631,7 +631,8 @@ class PathWatcherManager {
 // ```
 //
 function watchPath (rootPath, options, eventCallback) {
-  return PathWatcherManager.instance().createWatcher(rootPath, options, eventCallback)
+  const watcher = PathWatcherManager.instance().createWatcher(rootPath, options, eventCallback)
+  return watcher.getStartPromise().then(() => watcher)
 }
 
 // Private: Return a Promise that resolves when all {NativeWatcher} instances associated with a FileSystemManager
