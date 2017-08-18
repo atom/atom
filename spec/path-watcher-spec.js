@@ -52,7 +52,7 @@ describe('watchPath', function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
       const watcher = await watchPath(rootDir, {}, () => {})
-      expect(watcher).to.be.a('PathWatcher')
+      expect(watcher.constructor.name).toBe('PathWatcher')
     })
 
     it('reuses an existing native watcher and resolves getStartPromise immediately if attached to a running watcher', async function () {
