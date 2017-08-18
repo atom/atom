@@ -505,14 +505,16 @@ class PathWatcher {
     }))
 
     this.subs.add(native.onShouldDetach(({replacement, watchedPath}) => {
-      if (replacement !== native && this.normalizedPath.startsWith(watchedPath)) {
+      if (this.native === native && replacement !== native && this.normalizedPath.startsWith(watchedPath)) {
         this.attachToNative(replacement)
       }
     }))
 
     this.subs.add(native.onWillStop(() => {
-      this.subs.dispose()
-      this.native = null
+      if (this.native === native) {
+        this.subs.dispose()
+        this.native = null
+      }
     }))
 
     this.resolveAttachedPromise()
