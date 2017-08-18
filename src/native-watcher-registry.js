@@ -431,6 +431,14 @@ class NativeWatcherRegistry {
       watcher.attachToNative(native, nativePath)
     })
   }
+
+  // Private: Generate a visual representation of the currently active watchers managed by this
+  // registry.
+  //
+  // Returns a {String} showing the tree structure.
+  print () {
+    return this.tree.print()
+  }
 }
 
 module.exports = {NativeWatcherRegistry}

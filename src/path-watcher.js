@@ -339,7 +339,7 @@ class NativeWatcher {
 // ```js
 // const {watchPath} = require('atom')
 //
-// const disposable = watchPath('/var/log', {}, events => {
+// const disposable = await watchPath('/var/log', {}, events => {
 //   console.log(`Received batch of ${events.length} events.`)
 //   for (const event of events) {
 //     // "created", "modified", "deleted", "renamed"
@@ -424,6 +424,8 @@ class PathWatcher {
   // intend to assert about because there will be a delay between the instantiation of the watcher and the activation
   // of the underlying OS resources that feed it events.
   //
+  // PathWatchers acquired through `watchPath` are already started.
+  //
   // ```js
   // const {watchPath} = require('atom')
   // const ROOT = path.join(__dirname, 'fixtures')
@@ -505,14 +507,16 @@ class PathWatcher {
     }))
 
     this.subs.add(native.onShouldDetach(({replacement, watchedPath}) => {
-      if (replacement !== native && this.normalizedPath.startsWith(watchedPath)) {
+      if (this.native === native && replacement !== native && this.normalizedPath.startsWith(watchedPath)) {
         this.attachToNative(replacement)
       }
     }))
 
     this.subs.add(native.onWillStop(() => {
-      this.subs.dispose()
-      this.native = null
+      if (this.native === native) {
+        this.subs.dispose()
+        this.native = null
+      }
     }))
 
     this.resolveAttachedPromise()
@@ -579,6 +583,11 @@ class PathWatcherManager {
     return watcher
   }
 
+  // Private: Return a {String} depicting the currently active native watchers.
+  print () {
+    return this.nativeRegistry.print()
+  }
+
   // Private: Stop all living watchers.
   //
   // Returns a {Promise} that resolves when all native watcher resources are disposed.
@@ -604,13 +613,13 @@ class PathWatcherManager {
 //      * `path` {String} containing the absolute path to the filesystem entry that was acted upon.
 //      * `oldPath` For rename events, {String} containing the filesystem entry's former absolute path.
 //
-// Returns a {PathWatcher}. Note that every {PathWatcher} is a {Disposable}, so they can be managed by
-// [CompositeDisposables]{CompositeDisposable} if desired.
+// Returns a {Promise} that will resolve to a {PathWatcher} once it has started. Note that every {PathWatcher}
+// is a {Disposable}, so they can be managed by a {CompositeDisposable} if desired.
 //
 // ```js
 // const {watchPath} = require('atom')
 //
-// const disposable = watchPath('/var/log', {}, events => {
+// const disposable = await watchPath('/var/log', {}, events => {
 //   console.log(`Received batch of ${events.length} events.`)
 //   for (const event of events) {
 //     // "created", "modified", "deleted", "renamed"
@@ -629,7 +638,8 @@ class PathWatcherManager {
 // ```
 //
 function watchPath (rootPath, options, eventCallback) {
-  return PathWatcherManager.instance().createWatcher(rootPath, options, eventCallback)
+  const watcher = PathWatcherManager.instance().createWatcher(rootPath, options, eventCallback)
+  return watcher.getStartPromise().then(() => watcher)
 }
 
 // Private: Return a Promise that resolves when all {NativeWatcher} instances associated with a FileSystemManager
@@ -638,4 +648,9 @@ function stopAllWatchers () {
   return PathWatcherManager.instance().stopAllWatchers()
 }
 
-module.exports = {watchPath, stopAllWatchers}
+// Private: Show the currently active native watchers.
+function printWatchers () {
+  return PathWatcherManager.instance().print()
+}
+
+module.exports = {watchPath, stopAllWatchers, printWatchers}
