@@ -581,6 +581,11 @@ class PathWatcherManager {
     return watcher
   }
 
+  // Private: Return a {String} depicting the currently active native watchers.
+  print () {
+    return this.nativeRegistry.print()
+  }
+
   // Private: Stop all living watchers.
   //
   // Returns a {Promise} that resolves when all native watcher resources are disposed.
@@ -641,4 +646,9 @@ function stopAllWatchers () {
   return PathWatcherManager.instance().stopAllWatchers()
 }
 
-module.exports = {watchPath, stopAllWatchers}
+// Private: Show the currently active native watchers.
+function printWatchers () {
+  return PathWatcherManager.instance().print()
+}
+
+module.exports = {watchPath, stopAllWatchers, printWatchers}
