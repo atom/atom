@@ -339,7 +339,7 @@ class NativeWatcher {
 // ```js
 // const {watchPath} = require('atom')
 //
-// const disposable = watchPath('/var/log', {}, events => {
+// const disposable = await watchPath('/var/log', {}, events => {
 //   console.log(`Received batch of ${events.length} events.`)
 //   for (const event of events) {
 //     // "created", "modified", "deleted", "renamed"
@@ -423,6 +423,8 @@ class PathWatcher {
   // When testing filesystem watchers, it's important to await this promise before making filesystem changes that you
   // intend to assert about because there will be a delay between the instantiation of the watcher and the activation
   // of the underlying OS resources that feed it events.
+  //
+  // PathWatchers acquired through `watchPath` are already started.
   //
   // ```js
   // const {watchPath} = require('atom')
@@ -617,7 +619,7 @@ class PathWatcherManager {
 // ```js
 // const {watchPath} = require('atom')
 //
-// const disposable = watchPath('/var/log', {}, events => {
+// const disposable = await watchPath('/var/log', {}, events => {
 //   console.log(`Received batch of ${events.length} events.`)
 //   for (const event of events) {
 //     // "created", "modified", "deleted", "renamed"

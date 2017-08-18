@@ -140,6 +140,10 @@ class Project extends Model
   #
   # To watch paths outside of open projects, use the `watchPaths` function instead; see {PathWatcher}.
   #
+  # When writing tests against functionality that uses this method, be sure to wait for the
+  # {Promise} returned by {getWatcherPromise()} before manipulating the filesystem to ensure that
+  # the watcher is receiving events.
+  #
   # * `callback` {Function} to be called with batches of filesystem events reported by
   #   the operating system.
   #    * `events` An {Array} of objects that describe a batch of filesystem events.
