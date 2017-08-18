@@ -436,7 +436,7 @@ class NativeWatcherRegistry {
   // registry.
   //
   // Returns a {String} showing the tree structure.
-  print() {
+  print () {
     return this.tree.print()
   }
 }
