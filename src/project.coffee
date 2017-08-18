@@ -29,13 +29,13 @@ class Project extends Model
     @repositoryPromisesByPath = new Map()
     @repositoryProviders = [new GitRepositoryProvider(this, config)]
     @loadPromisesByPath = {}
-    @watchersByPath = {}
+    @watcherPromisesByPath = {}
     @consumeServices(packageManager)
 
   destroyed: ->
     buffer.destroy() for buffer in @buffers.slice()
     repository?.destroy() for repository in @repositories.slice()
-    watcher.dispose() for _, watcher in @watchersByPath
+    watcher.dispose() for _, watcher in @watcherPromisesByPath
     @rootDirectories = []
     @repositories = []
 
@@ -212,8 +212,8 @@ class Project extends Model
     @rootDirectories = []
     @repositories = []
 
-    watcher.dispose() for _, watcher in @watchersByPath
-    @watchersByPath = {}
+    watcher.then((w) -> w.dispose()) for _, watcher in @watcherPromisesByPath
+    @watcherPromisesByPath = {}
 
     @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
 
@@ -229,11 +229,15 @@ class Project extends Model
       return if existingDirectory.getPath() is directory.getPath()
 
     @rootDirectories.push(directory)
-    @watchersByPath[directory.getPath()] = watchPath directory.getPath(), {}, (events) =>
-      @emitter.emit 'did-change-files', events
+    @watcherPromisesByPath[directory.getPath()] = watchPath directory.getPath(), {}, (events) =>
+      # Stop event delivery immediately on removal of a rootDirectory, even if its watcher
+      # promise has yet to resolve at the time of removal
+      if @rootDirectories.includes directory
+        @emitter.emit 'did-change-files', events
 
-    for root, watcher in @watchersByPath
-      watcher.dispose() unless @rootDirectoryies.includes root
+    for root, watcherPromise in @watcherPromisesByPath
+      unless @rootDirectories.includes root
+        watcherPromise.then (watcher) -> watcher.dispose()
 
     repo = null
     for provider in @repositoryProviders
@@ -249,6 +253,21 @@ class Project extends Model
       break if directory = provider.directoryForURISync?(projectPath)
     directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
     directory
+
+  # Extended: Access a {Promise} that resolves when the filesystem watcher associated with a project
+  # root directory is ready to begin receiving events.
+  #
+  # This is especially useful in test cases, where it's important to know that the watcher is
+  # ready before manipulating the filesystem to produce events.
+  #
+  # * `projectPath` {String} One of the project's root directories.
+  #
+  # Returns a {Promise} that resolves with the {PathWatcher} associated with this project root
+  # once it has initialized and is ready to start sending events. The Promise will reject with
+  # an error instead if `projectPath` is not currently a root directory.
+  getWatcherPromise: (projectPath) ->
+    @watcherPromisesByPath[projectPath] or
+      Promise.reject(new Error("#{projectPath} is not a project root"))
 
   # Public: remove a path from the project's list of root paths.
   #
@@ -268,7 +287,8 @@ class Project extends Model
       [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
       [removedRepository] = @repositories.splice(indexToRemove, 1)
       removedRepository?.destroy() unless removedRepository in @repositories
-      @watchersByPath[projectPath]?.dispose()
+      @watcherPromisesByPath[projectPath]?.then (w) -> w.dispose()
+      delete @watcherPromisesByPath[projectPath]
       @emitter.emit "did-change-paths", @getPaths()
       true
     else
