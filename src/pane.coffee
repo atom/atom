@@ -742,7 +742,8 @@ class Pane
     return unless item?.saveAs?
 
     saveOptions = item.getSaveDialogOptions?() ? {}
-    saveOptions.defaultPath ?= item.getPath()
+    itemPath = item.getPath()
+    saveOptions.defaultPath ?= itemPath if itemPath
     newItemPath = @applicationDelegate.showSaveDialog(saveOptions)
     if newItemPath
       promisify -> item.saveAs(newItemPath)
