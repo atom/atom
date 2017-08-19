@@ -1316,7 +1316,7 @@ class TextEditorComponent {
         const {start, end} = highlight.screenRange
         highlight.startPixelTop = this.pixelPositionAfterBlocksForRow(start.row)
         highlight.startPixelLeft = this.pixelLeftForRowAndColumn(start.row, start.column)
-        highlight.endPixelTop = this.pixelPositionBeforeBlocksForRow(end.row + 1)
+        highlight.endPixelTop = this.pixelPositionBeforeBlocksForRow(end.row) + this.getLineHeight()
         highlight.endPixelLeft = this.pixelLeftForRowAndColumn(end.row, end.column)
       }
       this.decorationsToRender.highlights.set(tileRow, highlights)

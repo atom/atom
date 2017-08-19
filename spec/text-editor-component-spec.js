@@ -1697,6 +1697,22 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       expect(Array.from(marker1Region.parentElement.children).indexOf(marker1Region)).toBe(0)
     })
+
+    it('correctly positions highlights that end on rows preceding block decorations', async () => {
+      const {editor, element, component} = buildComponent()
+
+      const item = document.createElement('div')
+      item.style.height = '30px'
+      editor.decorateMarker(editor.markBufferPosition([4, 0]), {
+        type: 'block',  position: 'after', item
+      })
+      editor.setSelectedBufferRange([[3, 0], [4, Infinity]])
+      await component.getNextUpdatePromise()
+
+      const regions = element.querySelectorAll('.selection .region')
+      expect(regions[0].offsetTop).toBe(3 * component.getLineHeight())
+      expect(regions[1].offsetTop).toBe(4 * component.getLineHeight())
+    })
   })
 
   describe('overlay decorations', () => {
