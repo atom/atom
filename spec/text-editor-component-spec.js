@@ -1698,20 +1698,30 @@ describe('TextEditorComponent', () => {
       expect(Array.from(marker1Region.parentElement.children).indexOf(marker1Region)).toBe(0)
     })
 
-    it('correctly positions highlights that end on rows preceding block decorations', async () => {
+    it('correctly positions highlights that end on rows preceding or following block decorations', async () => {
       const {editor, element, component} = buildComponent()
 
-      const item = document.createElement('div')
-      item.style.height = '30px'
+      const item1 = document.createElement('div')
+      item1.style.height = '30px'
+      item1.style.backgroundColor = 'blue'
       editor.decorateMarker(editor.markBufferPosition([4, 0]), {
-        type: 'block',  position: 'after', item
+        type: 'block',  position: 'after', item: item1
       })
-      editor.setSelectedBufferRange([[3, 0], [4, Infinity]])
-      await component.getNextUpdatePromise()
+      const item2 = document.createElement('div')
+      item2.style.height = '30px'
+      item2.style.backgroundColor = 'yellow'
+      editor.decorateMarker(editor.markBufferPosition([4, 0]), {
+        type: 'block',  position: 'before', item: item2
+      })
+      editor.decorateMarker(editor.markBufferRange([[3, 0], [4, Infinity]]), {
+        type: 'highlight', class: 'highlight'
+      })
 
-      const regions = element.querySelectorAll('.selection .region')
+      await component.getNextUpdatePromise()
+      const regions = element.querySelectorAll('.highlight .region')
       expect(regions[0].offsetTop).toBe(3 * component.getLineHeight())
-      expect(regions[1].offsetTop).toBe(4 * component.getLineHeight())
+      expect(regions[0].offsetHeight).toBe(component.getLineHeight())
+      expect(regions[1].offsetTop).toBe(4 * component.getLineHeight() + 30)
     })
   })
 
