@@ -1982,7 +1982,6 @@ describe('TextEditorComponent', () => {
   })
 
   describe('block decorations', () => {
-    it('renders visible block decorations between the appropriate lines, refreshing and measuring them as needed', async () => {
       const editor = buildEditor({autoHeight: false})
       const {item: item1, decoration: decoration1} = createBlockDecorationAtScreenRow(editor, 0, {height: 11, position: 'before'})
       const {item: item2, decoration: decoration2} = createBlockDecorationAtScreenRow(editor, 2, {height: 22, margin: 10, position: 'before'})
@@ -2010,8 +2009,8 @@ describe('TextEditorComponent', () => {
       // add block decorations
       const {item: item3, decoration: decoration3} = createBlockDecorationAtScreenRow(editor, 4, {height: 33, position: 'before'})
       const {item: item4, decoration: decoration4} = createBlockDecorationAtScreenRow(editor, 7, {height: 44, position: 'before'})
-      const {item: item5, decoration: decoration5} = createBlockDecorationAtScreenRow(editor, 7, {height: 55, position: 'after'})
-      const {item: item6, decoration: decoration6} = createBlockDecorationAtScreenRow(editor, 12, {height: 66, position: 'after'})
+      const {item: item5, decoration: decoration5} = createBlockDecorationAtScreenRow(editor, 7, {height: 50, marginBottom: 5, position: 'after'})
+      const {item: item6, decoration: decoration6} = createBlockDecorationAtScreenRow(editor, 12, {height: 60, marginTop: 6, position: 'after'})
       await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
       expect(component.getRenderedEndRow()).toBe(9)
@@ -2343,11 +2342,13 @@ describe('TextEditorComponent', () => {
       expect(editor.getCursorScreenPosition()).toEqual([0, 0])
     })
 
-    function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, position}) {
+    function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, marginTop, marginBottom, position}) {
       const marker = editor.markScreenPosition([screenRow, 0], {invalidate: 'never'})
       const item = document.createElement('div')
       item.style.height = height + 'px'
       if (margin != null) item.style.margin = margin + 'px'
+      if (marginTop != null) item.style.marginTop = marginTop + 'px'
+      if (marginBottom != null) item.style.marginBottom = marginBottom + 'px'
       item.style.width = 30 + 'px'
       const decoration = editor.decorateMarker(marker, {type: 'block', item, position})
       return {item, decoration}
