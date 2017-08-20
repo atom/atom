@@ -2293,6 +2293,16 @@ class TextEditorComponent {
     return Math.max(0, this.lineTopIndex.rowForPixelPosition(pixelPosition))
   }
 
+  heightForBlockDecorationsBeforeRow (row) {
+    return this.pixelPositionAfterBlocksForRow(row) - this.pixelPositionBeforeBlocksForRow(row)
+  }
+
+  heightForBlockDecorationsAfterRow (row) {
+    const currentRowBottom = this.pixelPositionAfterBlocksForRow(row) + this.getLineHeight()
+    const nextRowTop = this.pixelPositionBeforeBlocksForRow(row + 1)
+    return nextRowTop - currentRowBottom
+  }
+
   pixelPositionBeforeBlocksForRow (row) {
     return this.lineTopIndex.pixelPositionBeforeBlocksForRow(row)
   }
@@ -3110,7 +3120,7 @@ class LineNumberGutterComponent {
 
   render () {
     const {
-      rootComponent, showLineNumbers, height, width, lineHeight, startRow, endRow, rowsPerTile,
+      rootComponent, showLineNumbers, height, width, startRow, endRow, rowsPerTile,
       maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags, decorations
     } = this.props
 
@@ -3123,6 +3133,7 @@ class LineNumberGutterComponent {
         const tileEndRow = Math.min(endRow, tileStartRow + rowsPerTile)
         const tileChildren = new Array(tileEndRow - tileStartRow)
         for (let row = tileStartRow; row < tileEndRow; row++) {
+          const indexInTile = row - tileStartRow
           const j = row - startRow
           const key = keys[j]
           const softWrapped = softWrappedFlags[j]
@@ -3142,22 +3153,25 @@ class LineNumberGutterComponent {
             number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
           }
 
-          const lineNumberProps = {
+          // We need to adjust the line number position to account for block
+          // decorations preceding the current row and following the preceding
+          // row. Note that we ignore the latter when the line number starts at
+          // the beginning of the tile, because the tile will already be
+          // positioned to take into account block decorations added after the
+          // last row of the previous tile.
+          let marginTop = rootComponent.heightForBlockDecorationsBeforeRow(row)
+          if (indexInTile > 0) marginTop += rootComponent.heightForBlockDecorationsAfterRow(row - 1)
+
+          tileChildren[row - tileStartRow] = $(LineNumberComponent, {
             key,
             className,
             width,
             bufferRow,
             screenRow,
             number,
+            marginTop,
             nodePool: this.nodePool
-          }
-          const currentRowTop = rootComponent.pixelPositionAfterBlocksForRow(row)
-          const previousRowBottom = rootComponent.pixelPositionAfterBlocksForRow(row - 1) + lineHeight
-          if (currentRowTop > previousRowBottom) {
-            lineNumberProps.marginTop = currentRowTop - previousRowBottom
-          }
-
-          tileChildren[row - tileStartRow] = $(LineNumberComponent, lineNumberProps)
+          })
         }
 
         const tileTop = rootComponent.pixelPositionBeforeBlocksForRow(tileStartRow)
@@ -3264,7 +3278,7 @@ class LineNumberComponent {
     const {className, width, marginTop, bufferRow, screenRow, number, nodePool} = props
     this.props = props
     const style = {width: width + 'px'}
-    if (marginTop != null) style.marginTop = marginTop + 'px'
+    if (marginTop != null && marginTop > 0) style.marginTop = marginTop + 'px'
     this.element = nodePool.getElement('DIV', className, style)
     this.element.dataset.bufferRow = bufferRow
     this.element.dataset.screenRow = screenRow

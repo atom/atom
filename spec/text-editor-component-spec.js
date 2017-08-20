@@ -2233,6 +2233,23 @@ describe('TextEditorComponent', () => {
       expect(item6.previousSibling).toBe(lineNodeForScreenRow(component, 12))
     })
 
+    it('correctly positions line numbers when block decorations are located at tile boundaries', async () => {
+      const {editor, component, element} = buildComponent({rowsPerTile: 3})
+      createBlockDecorationAtScreenRow(editor, 0, {height: 5, position: 'before'})
+      createBlockDecorationAtScreenRow(editor, 2, {height: 7, position: 'after'})
+      createBlockDecorationAtScreenRow(editor, 3, {height: 9, position: 'before'})
+      createBlockDecorationAtScreenRow(editor, 3, {height: 11, position: 'after'})
+      createBlockDecorationAtScreenRow(editor, 5, {height: 13, position: 'after'})
+
+      await component.getNextUpdatePromise()
+      assertLinesAreAlignedWithLineNumbers(component)
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight() + 5 + 7},
+        {tileStartRow: 3, height: 3 * component.getLineHeight() + 9 + 11 + 13},
+        {tileStartRow: 6, height: 3 * component.getLineHeight()}
+      ])
+    })
+
     it('measures block decorations correctly when they are added before the component width has been updated', async () => {
       {
         const {editor, component, element} = buildComponent({autoHeight: false, width: 500, attach: false})
