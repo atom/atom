@@ -3120,7 +3120,7 @@ class LineNumberGutterComponent {
 
   render () {
     const {
-      rootComponent, showLineNumbers, height, width, lineHeight, startRow, endRow, rowsPerTile,
+      rootComponent, showLineNumbers, height, width, startRow, endRow, rowsPerTile,
       maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags, decorations
     } = this.props
 
