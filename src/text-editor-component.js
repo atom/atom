@@ -3167,15 +3167,12 @@ class LineNumberGutterComponent {
         children[i] = $.div({
           key: rootComponent.idsByTileStartRow.get(tileStartRow),
           style: {
-            contain: 'strict',
-            overflow: 'hidden',
+            contain: 'layout style',
             position: 'absolute',
             top: 0,
             height: tileHeight + 'px',
             width: width + 'px',
-            willChange: 'transform',
-            transform: `translateY(${tileTop}px)`,
-            backgroundColor: 'inherit'
+            transform: `translateY(${tileTop}px)`
           }
         }, ...tileChildren)
       }
@@ -3535,13 +3532,11 @@ class LinesTileComponent {
     return $.div(
       {
         style: {
-          contain: 'strict',
+          contain: 'layout style',
           position: 'absolute',
           height: height + 'px',
           width: width + 'px',
-          willChange: 'transform',
-          transform: `translateY(${top}px)`,
-          backgroundColor: 'inherit'
+          transform: `translateY(${top}px)`
         }
       },
       this.renderHighlights()
