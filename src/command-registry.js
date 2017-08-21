@@ -144,7 +144,7 @@ module.exports = class CommandRegistry {
       this.selectorBasedListenersByCommandName[commandName] = []
     }
     const listenersForCommand = this.selectorBasedListenersByCommandName[commandName]
-    const selectorListener = new SelectorBasedListener(selector, commandFromListener(listener))
+    const selectorListener = new SelectorBasedListener(selector, commandName, listener)
     listenersForCommand.push(selectorListener)
 
     this.commandRegistered(commandName)
@@ -158,17 +158,17 @@ module.exports = class CommandRegistry {
   }
 
   addInlineListener (element, commandName, listener) {
-    let listenersForElement
     if (this.inlineListenersByCommandName[commandName] == null) {
       this.inlineListenersByCommandName[commandName] = new WeakMap
     }
 
     const listenersForCommand = this.inlineListenersByCommandName[commandName]
-    if (!(listenersForElement = listenersForCommand.get(element))) {
+    let listenersForElement = listenersForCommand.get(element)
+    if (!listenersForElement) {
       listenersForElement = []
       listenersForCommand.set(element, listenersForElement)
     }
-    const inlineListener = new InlineListener(commandFromListener(listener))
+    const inlineListener = new InlineListener(commandName, listener)
     listenersForElement.push(inlineListener)
 
     this.commandRegistered(commandName)
@@ -200,23 +200,20 @@ module.exports = class CommandRegistry {
         listeners = this.inlineListenersByCommandName[name]
         if (listeners.has(currentTarget) && !commandNames.has(name)) {
           commandNames.add(name)
-          // don't allow those with a command derived from an object to invoke its
-          // handler directly. rather, they should call ::dispatch a CustomEvent with
-          // its `name` property
-          commands.push(_.omit(listeners.get(currentTarget), 'handleEvent'))
+          const targetListeners = listeners.get(currentTarget);
+          commands.push(
+            ...targetListeners.map(listener => listener.getPublicCommand())
+          );
         }
       }
 
       for (const commandName in this.selectorBasedListenersByCommandName) {
         listeners = this.selectorBasedListenersByCommandName[commandName]
         for (const listener of listeners) {
-          if (
-            currentTarget.webkitMatchesSelector &&
-            currentTarget.webkitMatchesSelector(listener.selector)
-          ) {
+          if (listener.matchesTarget(currentTarget)) {
             if (!commandNames.has(commandName)) {
               commandNames.add(commandName)
-              commands.push(_.omit(listener, 'handleEvent'))
+              commands.push(listener.getPublicCommand())
             }
           }
         }
@@ -341,9 +338,7 @@ module.exports = class CommandRegistry {
       if (currentTarget.webkitMatchesSelector != null) {
         const selectorBasedListeners =
           (this.selectorBasedListenersByCommandName[event.type] || [])
-            .filter(listener =>
-              currentTarget.webkitMatchesSelector(listener.selector)
-            )
+            .filter(listener => listener.matchesTarget(currentTarget))
             .sort((a, b) => a.compare(b))
         listeners = selectorBasedListeners.concat(listeners)
       }
@@ -360,7 +355,7 @@ module.exports = class CommandRegistry {
         if (immediatePropagationStopped) {
           break
         }
-        listener.command.call(currentTarget, dispatchedEvent)
+        listener.command.handleEvent.call(currentTarget, dispatchedEvent)
       }
 
       if (currentTarget === window) {
@@ -386,9 +381,9 @@ module.exports = class CommandRegistry {
 }
 
 class SelectorBasedListener {
-  constructor (selector, command) {
+  constructor (selector, commandName, listener) {
     this.selector = selector
-    this.command = command
+    this.command = commandFromListener(commandName, listener)
     this.specificity = calculateSpecificity(this.selector)
     this.sequenceNumber = SequenceCount++
   }
@@ -399,11 +394,23 @@ class SelectorBasedListener {
       this.sequenceNumber - other.sequenceNumber
     )
   }
+
+  getPublicCommand () {
+    return getPublicCommand.call(this)
+  }
+
+  matchesTarget (target) {
+      return target.webkitMatchesSelector && target.webkitMatchesSelector(this.selector)
+  }
 }
 
 class InlineListener {
-  constructor (command) {
-    this.command = command
+  constructor (commandName, listener) {
+    this.command = commandFromListener(commandName, listener)
+  }
+
+  getPublicCommand () {
+    return getPublicCommand.call(this)
   }
 }
 
@@ -414,7 +421,14 @@ function commandFromListener (name, listener) {
     {
       name,
       displayName: listener.displayName ? listener.displayName : _.humanizeEventName(name),
-      handleEvent: typeof listener === 'function' ? listener : listener.handleEvent,
+      handleEvent: typeof listener === 'function' ? listener : listener.handleEvent
     }
   )
+}
+
+// don't allow those with a command derived from an object to invoke its
+// handler directly. rather, they should call ::dispatch a CustomEvent with
+// its `name` property
+function getPublicCommand() {
+  return _.omit(this.command, 'handleEvent')
 }

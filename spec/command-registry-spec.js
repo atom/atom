@@ -273,7 +273,7 @@ describe("CommandRegistry", () => {
       ]);
     });
 
-    it("returns commands with manual displayNames if set in the listener", () => {
+    it("returns commands with arbitrary metadata if set in a listener object", () => {
       registry.add('.grandchild', 'namespace:command-1', () => {});
       registry.add('.grandchild', 'namespace:command-2', {
         displayName: 'Custom Command 2',
@@ -283,7 +283,15 @@ describe("CommandRegistry", () => {
         },
         handleEvent() {}
       });
-      registry.add('.grandchild', 'namespace:command-3', () => {});
+      registry.add('.grandchild', 'namespace:command-3', {
+        name: 'some:other:incorrect:commandname',
+        displayName: 'Custom Command 3',
+        metadata: {
+          some: 'other',
+          object: 'data'
+        },
+        handleEvent() {}
+      });
 
       const commands = registry.findCommands({target: grandchild});
       expect(commands).toEqual([
@@ -300,30 +308,32 @@ describe("CommandRegistry", () => {
           name: 'namespace:command-2'
         },
         {
-          displayName: 'Namespace: Command 3',
+          displayName: 'Custom Command 3',
+          metadata: {
+            some : 'other',
+            object : 'data'
+          },
           name: 'namespace:command-3'
         }
       ]);
     });
 
-    it("ignores a `name` property if passed in registration object", () => {
-      registry.add('.grandchild', 'namespace:command-2', {
-        name: 'some:other:commandname',
-        displayName: 'Custom Command 2',
-        metadata: {
-          some: 'other',
-          object: 'data'
-        },
-        handleEvent() {}
-      });
+    it("returns commands with arbitrary metadata if set on a listener function", () => {
+      function listener () {}
+      listener.displayName = 'Custom Command 2'
+      listener.metadata = {
+        some: 'other',
+        object: 'data'
+      };
 
+      registry.add('.grandchild', 'namespace:command-2', listener);
       const commands = registry.findCommands({target: grandchild});
       expect(commands).toEqual([
         {
-          displayName: 'Custom Command 2',
+          displayName : 'Custom Command 2',
           metadata: {
-            some : 'other',
-            object : 'data'
+            some: 'other',
+            object: 'data'
           },
           name: 'namespace:command-2'
         }
