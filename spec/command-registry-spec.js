@@ -224,32 +224,35 @@ describe("CommandRegistry", () => {
       expect(addError.message).toContain(badSelector);
     });
 
-    it("throws an error when called with a non-function callback and selector target", () => {
+    it("throws an error when called with a null callback and selector target", () => {
       const badCallback = null;
-      let addError = null;
 
-      try {
+      expect(() => {
         registry.add('.selector', 'foo:bar', badCallback);
-      } catch (error) {
-        addError = error;
-      }
-      expect(addError.message).toContain("Can't register a command with non-function callback.");
+      }).toThrow(new Error('Cannot register a command with a null listener.'));
     });
 
-    it("throws an error when called with an non-function callback and object target", () => {
+    it("throws an error when called with an null callback and object target", () => {
       const badCallback = null;
-      let addError = null;
 
-      try {
+      expect(() => {
         registry.add(document.body, 'foo:bar', badCallback);
-      } catch (error) {
-        addError = error;
-      }
-      expect(addError.message).toContain("Can't register a command with non-function callback.");
+      }).toThrow(new Error('Cannot register a command with a null listener.'));
+    });
+
+    it("throws an error when called with an object listener without a handleEvent method", () => {
+      const badListener = {
+        title: 'a listener without a handleEvent callback',
+        description: 'this should throw an error'
+      };
+
+      expect(() => {
+        registry.add(document.body, 'foo:bar', badListener);
+      }).toThrow(new Error('Listener must be a callback function or an object with a handleEvent method.'));
     });
   });
 
-  describe("::findCommands({target})", () =>
+  describe("::findCommands({target})", () => {
     it("returns commands that can be invoked on the target or its ancestors", () => {
       registry.add('.parent', 'namespace:command-1', () => {});
       registry.add('.child', 'namespace:command-2', () => {});
@@ -268,8 +271,65 @@ describe("CommandRegistry", () => {
         {name: 'namespace:command-2', displayName: 'Namespace: Command 2'},
         {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
       ]);
-  })
-);
+    });
+
+    it("returns commands with manual displayNames if set in the listener", () => {
+      registry.add('.grandchild', 'namespace:command-1', () => {});
+      registry.add('.grandchild', 'namespace:command-2', {
+        displayName: 'Custom Command 2',
+        metadata: {
+          some: 'other',
+          object: 'data'
+        },
+        handleEvent() {}
+      });
+      registry.add('.grandchild', 'namespace:command-3', () => {});
+
+      const commands = registry.findCommands({target: grandchild});
+      expect(commands).toEqual([
+        {
+          displayName: 'Namespace: Command 1',
+          name: 'namespace:command-1'
+        },
+        {
+          displayName: 'Custom Command 2',
+          metadata: {
+            some : 'other',
+            object : 'data'
+          },
+          name: 'namespace:command-2'
+        },
+        {
+          displayName: 'Namespace: Command 3',
+          name: 'namespace:command-3'
+        }
+      ]);
+    });
+
+    it("ignores a `name` property if passed in registration object", () => {
+      registry.add('.grandchild', 'namespace:command-2', {
+        name: 'some:other:commandname',
+        displayName: 'Custom Command 2',
+        metadata: {
+          some: 'other',
+          object: 'data'
+        },
+        handleEvent() {}
+      });
+
+      const commands = registry.findCommands({target: grandchild});
+      expect(commands).toEqual([
+        {
+          displayName: 'Custom Command 2',
+          metadata: {
+            some : 'other',
+            object : 'data'
+          },
+          name: 'namespace:command-2'
+        }
+      ]);
+    });
+  });
 
   describe("::dispatch(target, commandName)", () => {
     it("simulates invocation of the given command ", () => {
