@@ -1,5 +1,3 @@
-/* global HTMLDivElement */
-
 const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
 const TextEditor = require('../src/text-editor')
 const TextEditorElement = require('../src/text-editor-element')

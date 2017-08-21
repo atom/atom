@@ -1,7 +1,5 @@
 'use strict'
 
-/* global HTMLElement */
-
 const {ipcRenderer} = require('electron')
 const path = require('path')
 const fs = require('fs-plus')

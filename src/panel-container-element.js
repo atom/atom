@@ -1,7 +1,5 @@
 'use strict'
 
-/* global HTMLElement */
-
 const {CompositeDisposable} = require('event-kit')
 
 class PanelContainerElement extends HTMLElement {
