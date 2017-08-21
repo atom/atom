@@ -120,6 +120,8 @@ class TextEditorComponent {
     this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
     this.blockDecorationsToMeasure = new Set()
     this.blockDecorationsByElement = new WeakMap()
+    this.blockDecorationSentinel = document.createElement('div')
+    this.blockDecorationSentinel.style.height = '1px'
     this.heightsByBlockDecoration = new WeakMap()
     this.blockDecorationResizeObserver = new ResizeObserver(this.didResizeBlockDecorations.bind(this))
     this.lineNodesByScreenLineId = new Map()
@@ -309,21 +311,22 @@ class TextEditorComponent {
           const parentElement = decorationElement.parentElement
 
           if (!decorationElement.previousSibling) {
-            const sentinelElement = document.createElement('div')
+            const sentinelElement = this.blockDecorationSentinel.cloneNode()
             parentElement.insertBefore(sentinelElement, decorationElement)
             sentinelElements.add(sentinelElement)
           }
 
           if (!decorationElement.nextSibling) {
-            const sentinelElement = document.createElement('div')
+            const sentinelElement = this.blockDecorationSentinel.cloneNode()
             parentElement.appendChild(sentinelElement)
             sentinelElements.add(sentinelElement)
           }
 
           this.didMeasureVisibleBlockDecoration = true
         } else {
+          blockDecorationMeasurementArea.appendChild(this.blockDecorationSentinel.cloneNode())
           blockDecorationMeasurementArea.appendChild(decorationElement)
-          blockDecorationMeasurementArea.appendChild(document.createElement('div'))
+          blockDecorationMeasurementArea.appendChild(this.blockDecorationSentinel.cloneNode())
         }
       })
 
@@ -1316,7 +1319,7 @@ class TextEditorComponent {
         const {start, end} = highlight.screenRange
         highlight.startPixelTop = this.pixelPositionAfterBlocksForRow(start.row)
         highlight.startPixelLeft = this.pixelLeftForRowAndColumn(start.row, start.column)
-        highlight.endPixelTop = this.pixelPositionBeforeBlocksForRow(end.row + 1)
+        highlight.endPixelTop = this.pixelPositionAfterBlocksForRow(end.row) + this.getLineHeight()
         highlight.endPixelLeft = this.pixelLeftForRowAndColumn(end.row, end.column)
       }
       this.decorationsToRender.highlights.set(tileRow, highlights)
