@@ -1,7 +1,5 @@
 'use strict'
 
-/* global HTMLElement */
-
 const Panel = require('../src/panel')
 const PanelContainer = require('../src/panel-container')
 
