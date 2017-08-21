@@ -1982,6 +1982,7 @@ describe('TextEditorComponent', () => {
   })
 
   describe('block decorations', () => {
+    it('renders visible block decorations between the appropriate lines, refreshing and measuring them as needed', async () => {
       const editor = buildEditor({autoHeight: false})
       const {item: item1, decoration: decoration1} = createBlockDecorationAtScreenRow(editor, 0, {height: 11, position: 'before'})
       const {item: item2, decoration: decoration2} = createBlockDecorationAtScreenRow(editor, 2, {height: 22, margin: 10, position: 'before'})
