@@ -1697,6 +1697,32 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       expect(Array.from(marker1Region.parentElement.children).indexOf(marker1Region)).toBe(0)
     })
+
+    it('correctly positions highlights that end on rows preceding or following block decorations', async () => {
+      const {editor, element, component} = buildComponent()
+
+      const item1 = document.createElement('div')
+      item1.style.height = '30px'
+      item1.style.backgroundColor = 'blue'
+      editor.decorateMarker(editor.markBufferPosition([4, 0]), {
+        type: 'block',  position: 'after', item: item1
+      })
+      const item2 = document.createElement('div')
+      item2.style.height = '30px'
+      item2.style.backgroundColor = 'yellow'
+      editor.decorateMarker(editor.markBufferPosition([4, 0]), {
+        type: 'block',  position: 'before', item: item2
+      })
+      editor.decorateMarker(editor.markBufferRange([[3, 0], [4, Infinity]]), {
+        type: 'highlight', class: 'highlight'
+      })
+
+      await component.getNextUpdatePromise()
+      const regions = element.querySelectorAll('.highlight .region')
+      expect(regions[0].offsetTop).toBe(3 * component.getLineHeight())
+      expect(regions[0].offsetHeight).toBe(component.getLineHeight())
+      expect(regions[1].offsetTop).toBe(4 * component.getLineHeight() + 30)
+    })
   })
 
   describe('overlay decorations', () => {
@@ -1984,8 +2010,8 @@ describe('TextEditorComponent', () => {
       // add block decorations
       const {item: item3, decoration: decoration3} = createBlockDecorationAtScreenRow(editor, 4, {height: 33, position: 'before'})
       const {item: item4, decoration: decoration4} = createBlockDecorationAtScreenRow(editor, 7, {height: 44, position: 'before'})
-      const {item: item5, decoration: decoration5} = createBlockDecorationAtScreenRow(editor, 7, {height: 55, position: 'after'})
-      const {item: item6, decoration: decoration6} = createBlockDecorationAtScreenRow(editor, 12, {height: 66, position: 'after'})
+      const {item: item5, decoration: decoration5} = createBlockDecorationAtScreenRow(editor, 7, {height: 50, marginBottom: 5, position: 'after'})
+      const {item: item6, decoration: decoration6} = createBlockDecorationAtScreenRow(editor, 12, {height: 60, marginTop: 6, position: 'after'})
       await component.getNextUpdatePromise()
       expect(component.getRenderedStartRow()).toBe(0)
       expect(component.getRenderedEndRow()).toBe(9)
@@ -2317,11 +2343,13 @@ describe('TextEditorComponent', () => {
       expect(editor.getCursorScreenPosition()).toEqual([0, 0])
     })
 
-    function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, position}) {
+    function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, marginTop, marginBottom, position}) {
       const marker = editor.markScreenPosition([screenRow, 0], {invalidate: 'never'})
       const item = document.createElement('div')
       item.style.height = height + 'px'
       if (margin != null) item.style.margin = margin + 'px'
+      if (marginTop != null) item.style.marginTop = marginTop + 'px'
+      if (marginBottom != null) item.style.marginBottom = marginBottom + 'px'
       item.style.width = 30 + 'px'
       const decoration = editor.decorateMarker(marker, {type: 'block', item, position})
       return {item, decoration}
