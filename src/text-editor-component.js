@@ -1864,6 +1864,7 @@ class TextEditorComponent {
   handleMouseDragUntilMouseUp ({didDrag, didStopDragging}) {
     let dragging = false
     let lastMousemoveEvent
+    let bufferWillChangeDisposable
 
     const animationFrameLoop = () => {
       window.requestAnimationFrame(() => {
@@ -1885,6 +1886,7 @@ class TextEditorComponent {
     function didMouseUp () {
       window.removeEventListener('mousemove', didMouseMove)
       window.removeEventListener('mouseup', didMouseUp)
+      bufferWillChangeDisposable.dispose()
       if (dragging) {
         dragging = false
         didStopDragging()
@@ -1893,6 +1895,10 @@ class TextEditorComponent {
 
     window.addEventListener('mousemove', didMouseMove)
     window.addEventListener('mouseup', didMouseUp, {capture: true})
+    // Simulate a mouse-up event if the buffer is about to change. This prevents
+    // unwanted selections when users perform edits while holding the left mouse
+    // button at the same time.
+    bufferWillChangeDisposable = this.props.model.getBuffer().onWillChange(didMouseUp)
   }
 
   autoscrollOnMouseDrag ({clientX, clientY}, verticalOnly = false) {
