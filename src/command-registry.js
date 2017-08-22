@@ -1,7 +1,5 @@
 'use strict'
 
-/* global Event, CustomEvent */
-
 const { Emitter, Disposable, CompositeDisposable } = require('event-kit')
 const { calculateSpecificity, validateSelector } = require('clear-cut')
 const _ = require('underscore-plus')
@@ -124,7 +122,7 @@ module.exports = class CommandRegistry {
     if (typeof commandName === 'object') {
       const commands = commandName
       throwOnInvalidSelector = listener
-      const disposable = new CompositeDisposable
+      const disposable = new CompositeDisposable()
       for (commandName in commands) {
         listener = commands[commandName]
         disposable.add(this.add(target, commandName, listener, throwOnInvalidSelector))
@@ -132,15 +130,15 @@ module.exports = class CommandRegistry {
       return disposable
     }
 
-    // type Listener = ?(e: CustomEvent) => void | ?{
-    //   displayName?: string,
-    //   description?: string,
-    //   handleEvent(e: CustomEvent): void,
-    // }
     if (listener == null) {
       throw new Error('Cannot register a command with a null listener.')
     }
 
+    // type Listener = ((e: CustomEvent) => void) | {
+    //   displayName?: string,
+    //   description?: string,
+    //   handleEvent(e: CustomEvent): void,
+    // }
     if ((typeof listener !== 'function') && (typeof listener.handleEvent !== 'function')) {
       throw new Error('Listener must be a callback function or an object with a handleEvent method.')
     }
@@ -175,7 +173,7 @@ module.exports = class CommandRegistry {
 
   addInlineListener (element, commandName, listener) {
     if (this.inlineListenersByCommandName[commandName] == null) {
-      this.inlineListenersByCommandName[commandName] = new WeakMap
+      this.inlineListenersByCommandName[commandName] = new WeakMap()
     }
 
     const listenersForCommand = this.inlineListenersByCommandName[commandName]
@@ -206,6 +204,13 @@ module.exports = class CommandRegistry {
   //  * `name` The name of the command. For example, `user:insert-date`.
   //  * `displayName` The display name of the command. For example,
   //    `User: Insert Date`.
+  // Additional metadata may also be present in the returned descriptor:
+  //  * `description` a {String} describing the function of the command in more
+  //    detail than the title
+  //  * `tags` an {Array} of {String}s that describe keywords related to the
+  //    command
+  //  Any additional nonstandard metadata provided when the command was `add`ed
+  //  may also be present in the returned descriptor.
   findCommands ({ target }) {
     const commandNames = new Set()
     const commands = []
@@ -216,10 +221,10 @@ module.exports = class CommandRegistry {
         listeners = this.inlineListenersByCommandName[name]
         if (listeners.has(currentTarget) && !commandNames.has(name)) {
           commandNames.add(name)
-          const targetListeners = listeners.get(currentTarget);
+          const targetListeners = listeners.get(currentTarget)
           commands.push(
             ...targetListeners.map(listener => listener.descriptor)
-          );
+          )
         }
       }
 
@@ -423,7 +428,7 @@ class SelectorBasedListener {
 
 class InlineListener {
   constructor (commandName, listener) {
-    this.callback = extractCallback(listener);
+    this.callback = extractCallback(listener)
     this.descriptor = extractDescriptor(commandName, listener)
   }
 }
@@ -437,11 +442,11 @@ function extractDescriptor (name, listener) {
     _.omit(listener, 'handleEvent'),
     {
       name,
-      displayName: listener.displayName ? listener.displayName : _.humanizeEventName(name),
+      displayName: listener.displayName ? listener.displayName : _.humanizeEventName(name)
     }
   )
 }
 
 function extractCallback (listener) {
-  return typeof listener === 'function' ? listener : listener.handleEvent;
+  return typeof listener === 'function' ? listener : listener.handleEvent
 }
