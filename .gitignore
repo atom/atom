@@ -12,6 +12,7 @@ debug.log
 /atom-shell/
 /out/
 docs/output
+Pdf/
 docs/includes
 spec/fixtures/evil-files/
 out/
