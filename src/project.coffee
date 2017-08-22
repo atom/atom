@@ -147,7 +147,7 @@ class Project extends Model
   # * `callback` {Function} to be called with batches of filesystem events reported by
   #   the operating system.
   #    * `events` An {Array} of objects that describe a batch of filesystem events.
-  #     * `type` {String} describing the filesystem action that occurred. One of `"created"`,
+  #     * `action` {String} describing the filesystem action that occurred. One of `"created"`,
   #       `"modified"`, `"deleted"`, or `"renamed"`.
   #     * `path` {String} containing the absolute path to the filesystem entry
   #       that was acted upon.
