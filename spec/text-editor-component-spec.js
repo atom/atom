@@ -4055,6 +4055,79 @@ describe('TextEditorComponent', () => {
       expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(Math.round(12 * component.getBaseCharacterWidth()))
     })
   })
+
+  describe('handleMouseDragUntilMouseUp', () => {
+    it('repeatedly schedules `didDrag` calls on new animation frames after moving the mouse, and calls `didStopDragging` on mouseup', async () => {
+      const {component} = buildComponent()
+
+      let dragEvents
+      let dragging = false
+      component.handleMouseDragUntilMouseUp({
+        didDrag: (event) => {
+          dragging = true
+          dragEvents.push(event)
+        },
+        didStopDragging: () => { dragging = false }
+      })
+      expect(dragging).toBe(false)
+
+      dragEvents = []
+      const moveEvent1 = new MouseEvent('mousemove')
+      window.dispatchEvent(moveEvent1)
+      expect(dragging).toBe(false)
+      await getNextAnimationFramePromise()
+      expect(dragging).toBe(true)
+      expect(dragEvents).toEqual([moveEvent1])
+      await getNextAnimationFramePromise()
+      expect(dragging).toBe(true)
+      expect(dragEvents).toEqual([moveEvent1, moveEvent1])
+
+      dragEvents = []
+      const moveEvent2 = new MouseEvent('mousemove')
+      window.dispatchEvent(moveEvent2)
+      expect(dragging).toBe(true)
+      expect(dragEvents).toEqual([])
+      await getNextAnimationFramePromise()
+      expect(dragging).toBe(true)
+      expect(dragEvents).toEqual([moveEvent2])
+      await getNextAnimationFramePromise()
+      expect(dragging).toBe(true)
+      expect(dragEvents).toEqual([moveEvent2, moveEvent2])
+
+      dragEvents = []
+      window.dispatchEvent(new MouseEvent('mouseup'))
+      expect(dragging).toBe(false)
+      expect(dragEvents).toEqual([])
+      window.dispatchEvent(new MouseEvent('mousemove'))
+      await getNextAnimationFramePromise()
+      expect(dragging).toBe(false)
+      expect(dragEvents).toEqual([])
+    })
+
+    it('calls `didStopDragging` if the buffer changes while dragging', async () => {
+      const {component, editor} = buildComponent()
+
+      let dragging = false
+      component.handleMouseDragUntilMouseUp({
+        didDrag: (event) => { dragging = true },
+        didStopDragging: () => { dragging = false }
+      })
+
+      window.dispatchEvent(new MouseEvent('mousemove'))
+      await getNextAnimationFramePromise()
+      expect(dragging).toBe(true)
+
+      editor.delete()
+      expect(dragging).toBe(false)
+      window.dispatchEvent(new MouseEvent('mousemove'))
+      await getNextAnimationFramePromise()
+      expect(dragging).toBe(false)
+    })
+
+    function getNextAnimationFramePromise () {
+      return new Promise((resolve) => requestAnimationFrame(resolve))
+    }
+  })
 })
 
 function buildEditor (params = {}) {
