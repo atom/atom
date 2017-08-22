@@ -240,15 +240,15 @@ describe("CommandRegistry", () => {
       }).toThrow(new Error('Cannot register a command with a null listener.'));
     });
 
-    it("throws an error when called with an object listener without a handleEvent method", () => {
+    it("throws an error when called with an object listener without a onDidDispatch method", () => {
       const badListener = {
-        title: 'a listener without a handleEvent callback',
+        title: 'a listener without a onDidDispatch callback',
         description: 'this should throw an error'
       };
 
       expect(() => {
         registry.add(document.body, 'foo:bar', badListener);
-      }).toThrow(new Error('Listener must be a callback function or an object with a handleEvent method.'));
+      }).toThrow(new Error('Listener must be a callback function or an object with a onDidDispatch method.'));
     });
   });
 
@@ -281,7 +281,7 @@ describe("CommandRegistry", () => {
           some: 'other',
           object: 'data'
         },
-        handleEvent() {}
+        onDidDispatch() {}
       });
       registry.add('.grandchild', 'namespace:command-3', {
         name: 'some:other:incorrect:commandname',
@@ -290,7 +290,7 @@ describe("CommandRegistry", () => {
           some: 'other',
           object: 'data'
         },
-        handleEvent() {}
+        onDidDispatch() {}
       });
 
       const commands = registry.findCommands({target: grandchild});
