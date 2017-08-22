@@ -91,11 +91,22 @@ module.exports = class CommandRegistry {
   //   DOM element, the command will be associated with just that element.
   // * `commandName` A {String} containing the name of a command you want to
   //   handle such as `user:insert-date`.
-  // * `callback` A {Function} to call when the given command is invoked on an
-  //   element matching the selector. It will be called with `this` referencing
-  //   the matching DOM node.
-  //   * `event` A standard DOM event instance. Call `stopPropagation` or
-  //     `stopImmediatePropagation` to terminate bubbling early.
+  // * `listener` A listener which handles the event.  Either A {Function} to
+  //   call when the given command is invoked on an element matching the
+  //   selector, or an {Object} with a `handleEvent` property which is such a
+  //   function.
+  //
+  //   It will be called with `this` referencing the matching DOM node.
+  //     * `event` A standard DOM event instance. Call `stopPropagation` or
+  //       `stopImmediatePropagation` to terminate bubbling early.
+  //
+  //   Additionally, `listener` may have additional properties which are returned
+  //   to those who query using `atom.commands.findCommands`, as well as several
+  //   meaningful metadata properties:
+  //     * `displayName`: Overrides any generated `displayName` that would
+  //       otherwise be generated from the event name.
+  //     * `description`: Used by consumers to display detailed information about
+  //       the command.
   //
   // ## Arguments: Registering Multiple Commands
   //
@@ -121,7 +132,12 @@ module.exports = class CommandRegistry {
       return disposable
     }
 
-    if ((listener === null) || (listener === undefined)) {
+    // type Listener = ?(e: CustomEvent) => void | ?{
+    //   displayName?: string,
+    //   description?: string,
+    //   handleEvent(e: CustomEvent): void,
+    // }
+    if (listener == null) {
       throw new Error('Cannot register a command with a null listener.')
     }
 
@@ -186,7 +202,7 @@ module.exports = class CommandRegistry {
   // * `params` An {Object} containing one or more of the following keys:
   //   * `target` A DOM node that is the hypothetical target of a given command.
   //
-  // Returns an {Array} of {Object}s containing the following keys:
+  // Returns an {Array} of `CommandDescriptor` {Object}s containing the following keys:
   //  * `name` The name of the command. For example, `user:insert-date`.
   //  * `displayName` The display name of the command. For example,
   //    `User: Insert Date`.
@@ -202,7 +218,7 @@ module.exports = class CommandRegistry {
           commandNames.add(name)
           const targetListeners = listeners.get(currentTarget);
           commands.push(
-            ...targetListeners.map(listener => listener.getPublicCommand())
+            ...targetListeners.map(listener => listener.descriptor)
           );
         }
       }
@@ -213,7 +229,7 @@ module.exports = class CommandRegistry {
           if (listener.matchesTarget(currentTarget)) {
             if (!commandNames.has(commandName)) {
               commandNames.add(commandName)
-              commands.push(listener.getPublicCommand())
+              commands.push(listener.descriptor)
             }
           }
         }
@@ -355,7 +371,7 @@ module.exports = class CommandRegistry {
         if (immediatePropagationStopped) {
           break
         }
-        listener.command.handleEvent.call(currentTarget, dispatchedEvent)
+        listener.callback.call(currentTarget, dispatchedEvent)
       }
 
       if (currentTarget === window) {
@@ -380,10 +396,15 @@ module.exports = class CommandRegistry {
   }
 }
 
+// type Listener = {
+//   descriptor: CommandDescriptor,
+//   callback: (e: CustomEvent) => void,
+// };
 class SelectorBasedListener {
   constructor (selector, commandName, listener) {
     this.selector = selector
-    this.command = commandFromListener(commandName, listener)
+    this.callback = extractCallback(listener)
+    this.descriptor = extractDescriptor(commandName, listener)
     this.specificity = calculateSpecificity(this.selector)
     this.sequenceNumber = SequenceCount++
   }
@@ -395,40 +416,32 @@ class SelectorBasedListener {
     )
   }
 
-  getPublicCommand () {
-    return getPublicCommand.call(this)
-  }
-
   matchesTarget (target) {
-      return target.webkitMatchesSelector && target.webkitMatchesSelector(this.selector)
+    return target.webkitMatchesSelector && target.webkitMatchesSelector(this.selector)
   }
 }
 
 class InlineListener {
   constructor (commandName, listener) {
-    this.command = commandFromListener(commandName, listener)
-  }
-
-  getPublicCommand () {
-    return getPublicCommand.call(this)
+    this.callback = extractCallback(listener);
+    this.descriptor = extractDescriptor(commandName, listener)
   }
 }
 
-function commandFromListener (name, listener) {
+// type CommandDescriptor = {
+//   name: string,
+//   displayName: string,
+// };
+function extractDescriptor (name, listener) {
   return Object.assign(
-    {},
-    listener,
+    _.omit(listener, 'handleEvent'),
     {
       name,
       displayName: listener.displayName ? listener.displayName : _.humanizeEventName(name),
-      handleEvent: typeof listener === 'function' ? listener : listener.handleEvent
     }
   )
 }
 
-// don't allow those with a command derived from an object to invoke its
-// handler directly. rather, they should call ::dispatch a CustomEvent with
-// its `name` property
-function getPublicCommand() {
-  return _.omit(this.command, 'handleEvent')
+function extractCallback (listener) {
+  return typeof listener === 'function' ? listener : listener.handleEvent;
 }
