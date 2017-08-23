@@ -6,7 +6,7 @@ fs = require 'fs-plus'
 path = require 'path'
 GitUtils = require 'git-utils'
 
-Task = require './task'
+StatusHandlerHelper = require './repository-status-handler-helper'
 
 # Extended: Represents the underlying git operations performed by Atom.
 #
@@ -105,10 +105,6 @@ class GitRepository
       @emitter.emit 'did-destroy'
       @emitter.dispose()
       @emitter = null
-
-    if @statusTask?
-      @statusTask.terminate()
-      @statusTask = null
 
     if @repo?
       @repo.release()
@@ -469,28 +465,24 @@ class GitRepository
   # Refreshes the current git status in an outside process and asynchronously
   # updates the relevant properties.
   refreshStatus: ->
-    @handlerPath ?= require.resolve('./repository-status-handler')
-
+    repoPath = @getPath()
     relativeProjectPaths = @project?.getPaths()
       .map (projectPath) => @relativize(projectPath)
       .filter (projectPath) -> projectPath.length > 0 and not path.isAbsolute(projectPath)
 
-    @statusTask?.terminate()
-    new Promise (resolve) =>
-      @statusTask = Task.once @handlerPath, @getPath(), relativeProjectPaths, ({statuses, upstream, branch, submodules}) =>
-        statusesUnchanged = _.isEqual(statuses, @statuses) and
-                            _.isEqual(upstream, @upstream) and
-                            _.isEqual(branch, @branch) and
-                            _.isEqual(submodules, @submodules)
+    StatusHandlerHelper.refreshStatus(repoPath, relativeProjectPaths).then ({statuses, upstream, branch, submodules}) =>
+      statusesUnchanged = _.isEqual(statuses, @statuses) and
+                          _.isEqual(upstream, @upstream) and
+                          _.isEqual(branch, @branch) and
+                          _.isEqual(submodules, @submodules)
 
-        @statuses = statuses
-        @upstream = upstream
-        @branch = branch
-        @submodules = submodules
+      @statuses = statuses
+      @upstream = upstream
+      @branch = branch
+      @submodules = submodules
 
-        for submodulePath, submoduleRepo of @getRepo().submodules
-          submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
+      for submodulePath, submoduleRepo of @getRepo().submodules
+        submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
-        unless statusesUnchanged
-          @emitter.emit 'did-change-statuses'
-        resolve()
+      unless statusesUnchanged
+        @emitter.emit 'did-change-statuses'

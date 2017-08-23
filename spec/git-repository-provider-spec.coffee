@@ -12,6 +12,9 @@ describe "GitRepositoryProvider", ->
     provider = new GitRepositoryProvider(atom.project, atom.config, atom.confirm)
 
   afterEach ->
+    if provider?
+      provider.pathToRepository[key].destroy() for key in Object.keys(provider.pathToRepository)
+    
     try
       temp.cleanupSync()
 
@@ -23,7 +26,6 @@ describe "GitRepositoryProvider", ->
           provider.repositoryForDirectory(directory).then (result) ->
             expect(result).toBeInstanceOf GitRepository
             expect(provider.pathToRepository[result.getPath()]).toBeTruthy()
-            expect(result.statusTask).toBeTruthy()
             expect(result.getType()).toBe 'git'
 
       it "returns the same GitRepository for different Directory objects in the same repo", ->
@@ -72,7 +74,6 @@ describe "GitRepositoryProvider", ->
           provider.repositoryForDirectory(directory).then (result) ->
             expect(result).toBeInstanceOf GitRepository
             expect(provider.pathToRepository[result.getPath()]).toBeTruthy()
-            expect(result.statusTask).toBeTruthy()
             expect(result.getType()).toBe 'git'
 
     describe "when specified a Directory without existsSync()", ->

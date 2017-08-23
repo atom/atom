@@ -1,36 +1,44 @@
 Git = require 'git-utils'
 path = require 'path'
 
-module.exports = (repoPath, paths = []) ->
-  repo = Git.open(repoPath)
+process.title = 'repository-status-handler'
 
-  upstream = {}
-  statuses = {}
-  submodules = {}
-  branch = null
+module.exports = ->
+  @async()
 
-  if repo?
-    # Statuses in main repo
-    workingDirectoryPath = repo.getWorkingDirectory()
-    repoStatus = (if paths.length > 0 then repo.getStatusForPaths(paths) else repo.getStatus())
-    for filePath, status of repoStatus
-      statuses[filePath] = status
+  process.on 'message', ({repoPath, paths}) ->
+    paths = paths or []
 
-    # Statuses in submodules
-    for submodulePath, submoduleRepo of repo.submodules
-      submodules[submodulePath] =
-        branch: submoduleRepo.getHead()
-        upstream: submoduleRepo.getAheadBehindCount()
+    repo = Git.open(repoPath)
+    statuses = {}
+    upstream = {}
+    submodules = {}
+    branch = null
 
-      workingDirectoryPath = submoduleRepo.getWorkingDirectory()
-      for filePath, status of submoduleRepo.getStatus()
-        absolutePath = path.join(workingDirectoryPath, filePath)
-        # Make path relative to parent repository
-        relativePath = repo.relativize(absolutePath)
-        statuses[relativePath] = status
+    try
+      if repo?
+        # Statuses in main repo
+        workingDirectoryPath = repo.getWorkingDirectory()
+        repoStatus = (if paths.length > 0 then repo.getStatusForPaths(paths) else repo.getStatus())
+        for filePath, status of repoStatus
+          statuses[filePath] = status
 
-    upstream = repo.getAheadBehindCount()
-    branch = repo.getHead()
-    repo.release()
+          # Statuses in submodules
+          for submodulePath, submoduleRepo of repo.submodules
+            submodules[submodulePath] =
+            branch: submoduleRepo.getHead()
+            upstream: submoduleRepo.getAheadBehindCount()
 
-  {statuses, upstream, branch, submodules}
+            workingDirectoryPath = submoduleRepo.getWorkingDirectory()
+            for filePath, status of submoduleRepo.getStatus()
+              absolutePath = path.join(workingDirectoryPath, filePath)
+              # Make path relative to parent repository
+              relativePath = repo.relativize(absolutePath)
+              statuses[relativePath] = status
+
+              upstream = repo.getAheadBehindCount()
+              branch = repo.getHead()
+    finally
+      repo.release()
+
+    emit repoPath, {statuses, upstream, branch, submodules}
