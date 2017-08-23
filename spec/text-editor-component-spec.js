@@ -4225,12 +4225,12 @@ function lineNumberNodeForScreenRow (component, row) {
 
 function lineNodeForScreenRow (component, row) {
   const renderedScreenLine = component.renderedScreenLineForRow(row)
-  return component.lineNodesByScreenLineId.get(renderedScreenLine.id)
+  return component.lineComponentsByScreenLineId.get(renderedScreenLine.id).element
 }
 
 function textNodesForScreenRow (component, row) {
   const screenLine = component.renderedScreenLineForRow(row)
-  return component.textNodesByScreenLineId.get(screenLine.id)
+  return component.lineComponentsByScreenLineId.get(screenLine.id).textNodes
 }
 
 function setScrollTop (component, scrollTop) {
