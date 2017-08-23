@@ -12,6 +12,9 @@ describe "GitRepositoryProvider", ->
     provider = new GitRepositoryProvider(atom.project, atom.config, atom.confirm)
 
   afterEach ->
+    if provider?
+      provider.pathToRepository[key].destroy() for key in Object.keys(provider.pathToRepository)
+      
     try
       temp.cleanupSync()
 
