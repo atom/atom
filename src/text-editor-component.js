@@ -2227,13 +2227,16 @@ class TextEditorComponent {
       const lineComponent = this.lineComponentsByScreenLineId.get(screenLine.id)
 
       if (!lineComponent) {
-        const error = new Error('Requested measurement of a line that is not currently rendered')
+        const error = new Error('Requested measurement of a line component that is not currently rendered')
         error.metadata = {
           row,
           columnsToMeasure,
           renderedScreenLineIds: this.renderedScreenLines.map((line) => line.id),
           extraRenderedScreenLineIds: Array.from(this.extraRenderedScreenLines.keys()),
-          lineNodeScreenLineIds: Array.from(this.lineNodesByScreenLineId.keys())
+          lineComponentScreenLineIds: Array.from(this.lineComponentsByScreenLineId.keys()),
+          renderedStartRow: this.getRenderedStartRow(),
+          renderedEndRow: this.getRenderedEndRow(),
+          requestedScreenLineId: screenLine.id
         }
         throw error
       }
