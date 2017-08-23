@@ -2230,7 +2230,13 @@ class TextEditorComponent {
 
       if (!lineNode) {
         const error = new Error('Requested measurement of a line that is not currently rendered')
-        error.metadata = {row, columnsToMeasure}
+        error.metadata = {
+          row,
+          columnsToMeasure,
+          renderedScreenLineIds: this.renderedScreenLines.map((line) => line.id),
+          extraRenderedScreenLineIds: Array.from(this.extraRenderedScreenLines.keys()),
+          lineNodeScreenLineIds: Array.from(this.lineNodesByScreenLineId.keys())
+        }
         throw error
       }
 
