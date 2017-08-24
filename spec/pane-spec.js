@@ -1152,6 +1152,32 @@ describe('Pane', () => {
       })
     })
 
+    describe('when the pane is empty', () => {
+      describe('when `moveActiveItem: true` is passed in the params', () => {
+        it('gracefully ignores the moveActiveItem parameter', () => {
+          pane1.destroyItem(item1)
+          expect(pane1.getActiveItem()).toBe(undefined)
+
+          const pane2 = pane1.split('horizontal', 'before', {moveActiveItem: true})
+          expect(container.root.children).toEqual([pane2, pane1])
+
+          expect(pane2.getActiveItem()).toBe(undefined)
+        })
+      })
+
+      describe('when `copyActiveItem: true` is passed in the params', () => {
+        it('gracefully ignores the copyActiveItem parameter', () => {
+          pane1.destroyItem(item1)
+          expect(pane1.getActiveItem()).toBe(undefined)
+
+          const pane2 = pane1.split('horizontal', 'before', {copyActiveItem: true})
+          expect(container.root.children).toEqual([pane2, pane1])
+
+          expect(pane2.getActiveItem()).toBe(undefined)
+        })
+      })
+    })
+
     it('activates the new pane', () => {
       expect(pane1.isActive()).toBe(true)
       const pane2 = pane1.splitRight()
