@@ -1056,7 +1056,7 @@ describe('Pane', () => {
 
       describe('when `moveActiveItem: true` is passed in the params', () => {
         it('moves the active item', () => {
-          const pane2 = pane1.splitLeft({moveActiveItem: true})
+          const pane2 = pane1.splitRight({moveActiveItem: true})
           expect(pane2.getActiveItem()).toBe(item1)
         })
       })
@@ -1092,7 +1092,7 @@ describe('Pane', () => {
 
       describe('when `moveActiveItem: true` is passed in the params', () => {
         it('moves the active item', () => {
-          const pane2 = pane1.splitLeft({moveActiveItem: true})
+          const pane2 = pane1.splitUp({moveActiveItem: true})
           expect(pane2.getActiveItem()).toBe(item1)
         })
       })
@@ -1128,7 +1128,7 @@ describe('Pane', () => {
 
       describe('when `moveActiveItem: true` is passed in the params', () => {
         it('moves the active item', () => {
-          const pane2 = pane1.splitLeft({moveActiveItem: true})
+          const pane2 = pane1.splitDown({moveActiveItem: true})
           expect(pane2.getActiveItem()).toBe(item1)
         })
       })
