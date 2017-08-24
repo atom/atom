@@ -4,6 +4,7 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {Emitter, Disposable} = require 'event-kit'
 TextBuffer = require 'text-buffer'
+{watchPath} = require('./path-watcher')
 
 DefaultDirectoryProvider = require './default-directory-provider'
 Model = require './model'
@@ -27,11 +28,14 @@ class Project extends Model
     @defaultDirectoryProvider = new DefaultDirectoryProvider()
     @repositoryPromisesByPath = new Map()
     @repositoryProviders = [new GitRepositoryProvider(this, config)]
+    @loadPromisesByPath = {}
+    @watcherPromisesByPath = {}
     @consumeServices(packageManager)
 
   destroyed: ->
     buffer.destroy() for buffer in @buffers.slice()
     repository?.destroy() for repository in @repositories.slice()
+    watcher.dispose() for _, watcher in @watcherPromisesByPath
     @rootDirectories = []
     @repositories = []
 
@@ -42,6 +46,7 @@ class Project extends Model
     buffer?.destroy() for buffer in @buffers
     @buffers = []
     @setPaths([])
+    @loadPromisesByPath = {}
     @consumeServices(packageManager)
 
   destroyUnretainedBuffers: ->
@@ -53,35 +58,29 @@ class Project extends Model
   ###
 
   deserialize: (state) ->
-    state.paths = [state.path] if state.path? # backward compatibility
-
-    @buffers = _.compact state.buffers.map (bufferState) ->
-      # Check that buffer's file path is accessible
-      return if fs.isDirectorySync(bufferState.filePath)
+    bufferPromises = []
+    for bufferState in state.buffers
+      continue if fs.isDirectorySync(bufferState.filePath)
       if bufferState.filePath
         try
           fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
         catch error
-          return unless error.code is 'ENOENT'
+          continue unless error.code is 'ENOENT'
       unless bufferState.shouldDestroyOnFileDelete?
-        bufferState.shouldDestroyOnFileDelete =
-          -> atom.config.get('core.closeDeletedFileTabs')
-      TextBuffer.deserialize(bufferState)
-
-    @subscribeToBuffer(buffer) for buffer in @buffers
-    @setPaths(state.paths)
+        bufferState.shouldDestroyOnFileDelete = ->
+          atom.config.get('core.closeDeletedFileTabs')
+      bufferPromises.push(TextBuffer.deserialize(bufferState))
+    Promise.all(bufferPromises).then (@buffers) =>
+      @subscribeToBuffer(buffer) for buffer in @buffers
+      @setPaths(state.paths)
 
   serialize: (options={}) ->
     deserializer: 'Project'
     paths: @getPaths()
     buffers: _.compact(@buffers.map (buffer) ->
       if buffer.isRetained()
-        state = buffer.serialize({markerLayers: options.isUnloading is true})
-        # Skip saving large buffer text unless unloading to avoid blocking main thread
-        if not options.isUnloading and state.text.length > 2 * 1024 * 1024
-          delete state.text
-          delete state.digestWhenLastPersisted
-        state
+        isUnloading = options.isUnloading is true
+        buffer.serialize({markerLayers: isUnloading, history: isUnloading})
     )
 
   ###
@@ -117,6 +116,47 @@ class Project extends Model
   observeBuffers: (callback) ->
     callback(buffer) for buffer in @getBuffers()
     @onDidAddBuffer callback
+
+  # Extended: Invoke a callback when a filesystem change occurs within any open
+  # project path.
+  #
+  # ```js
+  # const disposable = atom.project.onDidChangeFiles(events => {
+  #   for (const event of events) {
+  #     // "created", "modified", "deleted", or "renamed"
+  #     console.log(`Event action: ${event.type}`)
+  #
+  #     // absolute path to the filesystem entry that was touched
+  #     console.log(`Event path: ${event.path}`)
+  #
+  #     if (event.type === 'renamed') {
+  #       console.log(`.. renamed from: ${event.oldPath}`)
+  #     }
+  #   }
+  # }
+  #
+  # disposable.dispose()
+  # ```
+  #
+  # To watch paths outside of open projects, use the `watchPaths` function instead; see {PathWatcher}.
+  #
+  # When writing tests against functionality that uses this method, be sure to wait for the
+  # {Promise} returned by {getWatcherPromise()} before manipulating the filesystem to ensure that
+  # the watcher is receiving events.
+  #
+  # * `callback` {Function} to be called with batches of filesystem events reported by
+  #   the operating system.
+  #    * `events` An {Array} of objects that describe a batch of filesystem events.
+  #     * `action` {String} describing the filesystem action that occurred. One of `"created"`,
+  #       `"modified"`, `"deleted"`, or `"renamed"`.
+  #     * `path` {String} containing the absolute path to the filesystem entry
+  #       that was acted upon.
+  #     * `oldPath` For rename events, {String} containing the filesystem entry's
+  #       former absolute path.
+  #
+  # Returns a {Disposable} to manage this event subscription.
+  onDidChangeFiles: (callback) ->
+    @emitter.on 'did-change-files', callback
 
   ###
   Section: Accessing the git repository
@@ -176,6 +216,9 @@ class Project extends Model
     @rootDirectories = []
     @repositories = []
 
+    watcher.then((w) -> w.dispose()) for _, watcher in @watcherPromisesByPath
+    @watcherPromisesByPath = {}
+
     @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
 
     @emitter.emit 'did-change-paths', projectPaths
@@ -190,6 +233,15 @@ class Project extends Model
       return if existingDirectory.getPath() is directory.getPath()
 
     @rootDirectories.push(directory)
+    @watcherPromisesByPath[directory.getPath()] = watchPath directory.getPath(), {}, (events) =>
+      # Stop event delivery immediately on removal of a rootDirectory, even if its watcher
+      # promise has yet to resolve at the time of removal
+      if @rootDirectories.includes directory
+        @emitter.emit 'did-change-files', events
+
+    for root, watcherPromise in @watcherPromisesByPath
+      unless @rootDirectories.includes root
+        watcherPromise.then (watcher) -> watcher.dispose()
 
     repo = null
     for provider in @repositoryProviders
@@ -205,6 +257,21 @@ class Project extends Model
       break if directory = provider.directoryForURISync?(projectPath)
     directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
     directory
+
+  # Extended: Access a {Promise} that resolves when the filesystem watcher associated with a project
+  # root directory is ready to begin receiving events.
+  #
+  # This is especially useful in test cases, where it's important to know that the watcher is
+  # ready before manipulating the filesystem to produce events.
+  #
+  # * `projectPath` {String} One of the project's root directories.
+  #
+  # Returns a {Promise} that resolves with the {PathWatcher} associated with this project root
+  # once it has initialized and is ready to start sending events. The Promise will reject with
+  # an error instead if `projectPath` is not currently a root directory.
+  getWatcherPromise: (projectPath) ->
+    @watcherPromisesByPath[projectPath] or
+      Promise.reject(new Error("#{projectPath} is not a project root"))
 
   # Public: remove a path from the project's list of root paths.
   #
@@ -224,6 +291,8 @@ class Project extends Model
       [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
       [removedRepository] = @repositories.splice(indexToRemove, 1)
       removedRepository?.destroy() unless removedRepository in @repositories
+      @watcherPromisesByPath[projectPath]?.then (w) -> w.dispose()
+      delete @watcherPromisesByPath[projectPath]
       @emitter.emit "did-change-paths", @getPaths()
       true
     else
@@ -371,11 +440,12 @@ class Project extends Model
 
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
-    buffer = new TextBuffer({
-      filePath: absoluteFilePath
-      shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete})
+    params = {shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete}
+    if absoluteFilePath?
+      buffer = TextBuffer.loadSync(absoluteFilePath, params)
+    else
+      buffer = new TextBuffer(params)
     @addBuffer(buffer)
-    buffer.loadSync()
     buffer
 
   # Given a file path, this sets its {TextBuffer}.
@@ -385,13 +455,20 @@ class Project extends Model
   #
   # Returns a {Promise} that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    buffer = new TextBuffer({
-      filePath: absoluteFilePath
-      shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete})
-    @addBuffer(buffer)
-    buffer.load()
-      .then((buffer) -> buffer)
-      .catch(=> @removeBuffer(buffer))
+    params = {shouldDestroyOnFileDelete: @shouldDestroyBufferOnFileDelete}
+    if absoluteFilePath?
+      promise =
+        @loadPromisesByPath[absoluteFilePath] ?=
+        TextBuffer.load(absoluteFilePath, params).catch (error) =>
+          delete @loadPromisesByPath[absoluteFilePath]
+          throw error
+    else
+      promise = Promise.resolve(new TextBuffer(params))
+    promise.then (buffer) =>
+      delete @loadPromisesByPath[absoluteFilePath]
+      @addBuffer(buffer)
+      buffer
+
 
   addBuffer: (buffer, options={}) ->
     @addBufferAtIndex(buffer, @buffers.length, options)

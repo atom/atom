@@ -1,9 +1,10 @@
 'use strict'
 
 const _ = require('underscore-plus')
-const {CompositeDisposable} = require('event-kit')
+const {CompositeDisposable, Emitter} = require('event-kit')
 const PaneContainer = require('./pane-container')
 const TextEditor = require('./text-editor')
+const Grim = require('grim')
 
 const MINIMUM_SIZE = 100
 const DEFAULT_INITIAL_SIZE = 300
@@ -15,8 +16,8 @@ const CURSOR_OVERLAY_VISIBLE_CLASS = 'atom-dock-cursor-overlay-visible'
 
 // Extended: A container at the edges of the editor window capable of holding items.
 // You should not create a Dock directly. Instead, access one of the three docks of the workspace
-// via {::getLeftDock}, {::getRightDock}, and {::getBottomDock} or add an item to a dock via
-// {Workspace::open}.
+// via {Workspace::getLeftDock}, {Workspace::getRightDock}, and {Workspace::getBottomDock}
+// or add an item to a dock via {Workspace::open}.
 module.exports = class Dock {
   constructor (params) {
     this.handleResizeHandleDragStart = this.handleResizeHandleDragStart.bind(this)
@@ -34,7 +35,8 @@ module.exports = class Dock {
     this.notificationManager = params.notificationManager
     this.viewRegistry = params.viewRegistry
     this.didActivate = params.didActivate
-    this.didHide = params.didHide
+
+    this.emitter = new Emitter()
 
     this.paneContainer = new PaneContainer({
       location: this.location,
@@ -52,6 +54,7 @@ module.exports = class Dock {
     }
 
     this.subscriptions = new CompositeDisposable(
+      this.emitter,
       this.paneContainer.onDidActivatePane(() => {
         this.show()
         this.didActivate(this)
@@ -134,14 +137,12 @@ module.exports = class Dock {
   setState (newState) {
     const prevState = this.state
     const nextState = Object.assign({}, prevState, newState)
-    let didHide = false
 
     // Update the `shouldAnimate` state. This needs to be written to the DOM before updating the
     // class that changes the animated property. Normally we'd have to defer the class change a
     // frame to ensure the property is animated (or not) appropriately, however we luck out in this
     // case because the drag start always happens before the item is dragged into the toggle button.
     if (nextState.visible !== prevState.visible) {
-      didHide = !nextState.visible
       // Never animate toggling visiblity...
       nextState.shouldAnimate = false
     } else if (!nextState.visible && nextState.draggingItem && !prevState.draggingItem) {
@@ -151,7 +152,11 @@ module.exports = class Dock {
 
     this.state = nextState
     this.render(this.state)
-    if (didHide) this.didHide(this)
+
+    const {visible} = this.state
+    if (visible !== prevState.visible) {
+      this.emitter.emit('did-change-visible', visible)
+    }
   }
 
   render (state) {
@@ -378,25 +383,29 @@ module.exports = class Dock {
     })
   }
 
-  // PaneContainer-delegating methods
-
   /*
   Section: Event Subscription
   */
 
-  // Essential: Invoke the given callback with all current and future text
-  // editors in the dock.
+  // Essential: Invoke the given callback when the visibility of the dock changes.
   //
-  // * `callback` {Function} to be called with current and future text editors.
-  //   * `editor` An {TextEditor} that is present in {::getTextEditors} at the time
-  //     of subscription or that is added at some later time.
+  // * `callback` {Function} to be called when the visibility changes.
+  //   * `visible` {Boolean} Is the dock now visible?
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeTextEditors (callback) {
-    for (const textEditor of this.getTextEditors()) {
-      callback(textEditor)
-    }
-    return this.onDidAddTextEditor(({textEditor}) => callback(textEditor))
+  onDidChangeVisible (callback) {
+    return this.emitter.on('did-change-visible', callback)
+  }
+
+  // Essential: Invoke the given callback with the current and all future visibilities of the dock.
+  //
+  // * `callback` {Function} to be called when the visibility changes.
+  //   * `visible` {Boolean} Is the dock now visible?
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeVisible (callback) {
+    callback(this.isVisible())
+    return this.onDidChangeVisible(callback)
   }
 
   // Essential: Invoke the given callback with all current and future panes items
@@ -583,18 +592,13 @@ module.exports = class Dock {
     return this.paneContainer.getActivePaneItem()
   }
 
-  // Essential: Get all text editors in the dock.
+  // Deprecated: Get the active item if it is a {TextEditor}.
   //
-  // Returns an {Array} of {TextEditor}s.
-  getTextEditors () {
-    return this.paneContainer.getTextEditors()
-  }
-
-  // Essential: Get the active item if it is an {TextEditor}.
-  //
-  // Returns an {TextEditor} or `undefined` if the current active item is not an
+  // Returns a {TextEditor} or `undefined` if the current active item is not a
   // {TextEditor}.
   getActiveTextEditor () {
+    Grim.deprecate('Text editors are not allowed in docks. Use atom.workspace.getActiveTextEditor() instead.')
+
     const activeItem = this.getActivePaneItem()
     if (activeItem instanceof TextEditor) { return activeItem }
   }

@@ -20,6 +20,7 @@ atom-text-editor {
     min-width: 1em;
     box-sizing: border-box;
     background-color: inherit;
+    position: relative;
   }
 
   .gutter:hover {
@@ -51,7 +52,6 @@ atom-text-editor {
   }
 
   .line-number {
-    width: min-content;
     padding-left: .5em;
     white-space: nowrap;
     opacity: 0.6;
@@ -86,7 +86,6 @@ atom-text-editor {
 
   .line {
     white-space: pre;
-    overflow: hidden;
     contain: layout;
 
     &.cursor-line .fold-marker::after {

@@ -14,10 +14,11 @@ const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 describe('AtomApplication', function () {
   this.timeout(60 * 1000)
 
-  let originalAppQuit, originalAtomHome, atomApplicationsToDestroy
+  let originalAppQuit, originalShowMessageBox, originalAtomHome, atomApplicationsToDestroy
 
   beforeEach(function () {
     originalAppQuit = electron.app.quit
+    originalShowMessageBox = electron.dialog.showMessageBox
     mockElectronAppQuit()
     originalAtomHome = process.env.ATOM_HOME
     process.env.ATOM_HOME = makeTempDir('atom-home')
@@ -39,6 +40,7 @@ describe('AtomApplication', function () {
     }
     await clearElectronSession()
     electron.app.quit = originalAppQuit
+    electron.dialog.showMessageBox = originalShowMessageBox
   })
 
   describe('launch', function () {
@@ -207,7 +209,7 @@ describe('AtomApplication', function () {
           sendBackToMainProcess(null)
         })
       })
-      await window1.saveState()
+      await window1.prepareToUnload()
       window1.close()
       await window1.closedPromise
 
@@ -221,7 +223,7 @@ describe('AtomApplication', function () {
         sendBackToMainProcess(textEditor.getText())
       })
       assert.equal(window2Text, 'Hello World! How are you?')
-      await window2.saveState()
+      await window2.prepareToUnload()
       window2.close()
       await window2.closedPromise
 
@@ -342,6 +344,8 @@ describe('AtomApplication', function () {
     })
 
     it('reopens any previously opened windows when launched with no path', async function () {
+      if (process.platform === 'win32') return; // Test is too flakey on Windows
+
       const tempDirPath1 = makeTempDir()
       const tempDirPath2 = makeTempDir()
 
@@ -354,8 +358,8 @@ describe('AtomApplication', function () {
       ])
 
       await Promise.all([
-        app1Window1.saveState(),
-        app1Window2.saveState()
+        app1Window1.prepareToUnload(),
+        app1Window2.prepareToUnload()
       ])
 
       const atomApplication2 = buildAtomApplication()
@@ -460,20 +464,42 @@ describe('AtomApplication', function () {
     })
   })
 
-  describe('before quitting', function () {
-    it('waits until all the windows have saved their state and then quits', async function () {
-      const dirAPath = makeTempDir("a")
-      const dirBPath = makeTempDir("b")
-      const atomApplication = buildAtomApplication()
-      const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'file-a')]))
-      await focusWindow(window1)
-      const window2 = atomApplication.launch(parseCommandLine([path.join(dirBPath, 'file-b')]))
-      await focusWindow(window2)
-      electron.app.quit()
-      assert(!electron.app.hasQuitted())
-      await Promise.all([window1.lastSaveStatePromise, window2.lastSaveStatePromise])
-      assert(electron.app.hasQuitted())
+  it('waits until all the windows have saved their state before quitting', async function () {
+    const dirAPath = makeTempDir("a")
+    const dirBPath = makeTempDir("b")
+    const atomApplication = buildAtomApplication()
+    const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'file-a')]))
+    await focusWindow(window1)
+    const window2 = atomApplication.launch(parseCommandLine([path.join(dirBPath, 'file-b')]))
+    await focusWindow(window2)
+    electron.app.quit()
+    assert(!electron.app.hasQuitted())
+    await Promise.all([window1.lastPrepareToUnloadPromise, window2.lastPrepareToUnloadPromise])
+    assert(electron.app.hasQuitted())
+  })
+
+  it('prevents quitting if user cancels when prompted to save an item', async () => {
+    const atomApplication = buildAtomApplication()
+    const window1 = atomApplication.launch(parseCommandLine([]))
+    const window2 = atomApplication.launch(parseCommandLine([]))
+    await Promise.all([window1.loadedPromise, window2.loadedPromise])
+    await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+      atom.workspace.getActiveTextEditor().insertText('unsaved text')
+      sendBackToMainProcess()
     })
+
+    // Choosing "Cancel"
+    mockElectronShowMessageBox({choice: 1})
+    electron.app.quit()
+    await atomApplication.lastBeforeQuitPromise
+    assert(!electron.app.hasQuitted())
+    assert.equal(electron.app.quit.callCount, 1) // Ensure choosing "Cancel" doesn't try to quit the electron app more than once (regression)
+
+    // Choosing "Don't save"
+    mockElectronShowMessageBox({choice: 2})
+    electron.app.quit()
+    await atomApplication.lastBeforeQuitPromise
+    assert(electron.app.hasQuitted())
   })
 
   function buildAtomApplication () {
@@ -494,6 +520,12 @@ describe('AtomApplication', function () {
   function mockElectronAppQuit () {
     let quitted = false
     electron.app.quit = function () {
+      if (electron.app.quit.callCount) {
+        electron.app.quit.callCount++
+      } else {
+        electron.app.quit.callCount = 1
+      }
+
       let shouldQuit = true
       electron.app.emit('before-quit', {preventDefault: () => { shouldQuit = false }})
       if (shouldQuit) {
@@ -505,8 +537,15 @@ describe('AtomApplication', function () {
     }
   }
 
+  function mockElectronShowMessageBox ({choice}) {
+    electron.dialog.showMessageBox = function () {
+      return choice
+    }
+  }
+
   function makeTempDir (name) {
-    return fs.realpathSync(require('temp').mkdirSync(name))
+    const temp = require('temp').track()
+    return fs.realpathSync(temp.mkdirSync(name))
   }
 
   let channelIdCounter = 0

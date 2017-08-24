@@ -1,5 +1,3 @@
-/* global HTMLDivElement */
-
 const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
 const TextEditor = require('../src/text-editor')
 const TextEditorElement = require('../src/text-editor-element')
@@ -9,6 +7,10 @@ describe('TextEditorElement', () => {
 
   beforeEach(() => {
     jasmineContent = document.body.querySelector('#jasmine-content')
+    // Force scrollbars to be visible regardless of local system configuration
+    const scrollbarStyle = document.createElement('style')
+    scrollbarStyle.textContent = '::-webkit-scrollbar { -webkit-appearance: none }'
+    jasmine.attachToDOM(scrollbarStyle)
   })
 
   function buildTextEditorElement (options = {}) {
@@ -197,6 +199,49 @@ describe('TextEditorElement', () => {
         parentElement.appendChild(element)
         jasmineContent.appendChild(parentElement)
         expect(document.activeElement).toBe(element.querySelector('input'))
+      })
+    })
+
+    describe('if focused when invisible due to a zero height and width', () => {
+      it('focuses the hidden input and does not throw an exception', () => {
+        const parentElement = document.createElement('div')
+        parentElement.style.position = 'absolute'
+        parentElement.style.width = '0px'
+        parentElement.style.height = '0px'
+
+        const element = buildTextEditorElement({attach: false})
+        parentElement.appendChild(element)
+        jasmineContent.appendChild(parentElement)
+
+        element.focus()
+        expect(document.activeElement).toBe(element.component.getHiddenInput())
+      })
+    })
+  })
+
+  describe('::setModel', () => {
+    describe('when the element does not have an editor yet', () => {
+      it('uses the supplied one', () => {
+        const element = buildTextEditorElement({attach: false})
+        const editor = new TextEditor()
+        element.setModel(editor)
+        jasmine.attachToDOM(element)
+        expect(editor.element).toBe(element)
+        expect(element.getModel()).toBe(editor)
+      })
+    })
+
+    describe('when the element already has an editor', () => {
+      it('unbinds it and then swaps it with the supplied one', async () => {
+        const element = buildTextEditorElement({attach: true})
+        const previousEditor = element.getModel()
+        expect(previousEditor.element).toBe(element)
+
+        const newEditor = new TextEditor()
+        element.setModel(newEditor)
+        expect(previousEditor.element).not.toBe(element)
+        expect(newEditor.element).toBe(element)
+        expect(element.getModel()).toBe(newEditor)
       })
     })
   })

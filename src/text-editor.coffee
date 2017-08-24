@@ -98,7 +98,6 @@ class TextEditor extends Model
   registered: false
   atomicSoftTabs: true
   invisibles: null
-  scrollSensitivity: 40
 
   Object.defineProperty @prototype, "element",
     get: -> @getElement()
@@ -156,7 +155,7 @@ class TextEditor extends Model
       @softTabs, @initialScrollTopRow, @initialScrollLeftColumn, initialLine, initialColumn, tabLength,
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, @showLineNumbers, @largeFileMode,
-      @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
+      @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @scrollSensitivity, @editorWidthInChars,
       @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide,
       @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength,
       @showCursorOnSelection
@@ -172,6 +171,7 @@ class TextEditor extends Model
 
     @mini ?= false
     @scrollPastEnd ?= false
+    @scrollSensitivity ?= 40
     @showInvisibles ?= true
     @softTabs ?= true
     tabLength ?= 2
@@ -185,8 +185,9 @@ class TextEditor extends Model
     @preferredLineLength ?= 80
     @showLineNumbers ?= true
 
-    @buffer ?= new TextBuffer({shouldDestroyOnFileDelete: ->
-      atom.config.get('core.closeDeletedFileTabs')})
+    @buffer ?= new TextBuffer({
+      shouldDestroyOnFileDelete: -> atom.config.get('core.closeDeletedFileTabs')
+    })
     @tokenizedBuffer ?= new TokenizedBuffer({
       grammar, tabLength, @buffer, @largeFileMode, @assert
     })
@@ -447,8 +448,6 @@ class TextEditor extends Model
     @disposables.add @buffer.onDidChangeModified =>
       @terminatePendingState() if not @hasTerminatedPendingState and @buffer.isModified()
 
-    @preserveCursorPositionOnBufferReload()
-
   terminatePendingState: ->
     @emitter.emit 'did-terminate-pending-state' if not @hasTerminatedPendingState
     @hasTerminatedPendingState = true
@@ -648,7 +647,7 @@ class TextEditor extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
+    @emitter.once 'did-destroy', callback
 
   # Extended: Calls your `callback` when a {Cursor} is added to the editor.
   # Immediately calls your callback for each existing cursor.
@@ -1583,6 +1582,8 @@ class TextEditor extends Model
   # undo history, no changes will be made to the buffer and this method will
   # return `false`.
   #
+  # * `checkpoint` The checkpoint to revert to.
+  #
   # Returns a {Boolean} indicating whether the operation succeeded.
   revertToCheckpoint: (checkpoint) -> @buffer.revertToCheckpoint(checkpoint)
 
@@ -1591,6 +1592,8 @@ class TextEditor extends Model
   #
   # If the given checkpoint is no longer present in the undo history, no
   # grouping will be performed and this method will return `false`.
+  #
+  # * `checkpoint` The checkpoint from which to group changes.
   #
   # Returns a {Boolean} indicating whether the operation succeeded.
   groupChangesSinceCheckpoint: (checkpoint) -> @buffer.groupChangesSinceCheckpoint(checkpoint)
@@ -1788,8 +1791,13 @@ class TextEditor extends Model
   #        spanned by the `DisplayMarker`.
   #     * `line-number` Adds the given `class` to the line numbers overlapping
   #       the rows spanned by the `DisplayMarker`.
-  #     * `highlight` Creates a `.highlight` div with the nested class with up
-  #       to 3 nested regions that fill the area spanned by the `DisplayMarker`.
+  #     * `text` Injects spans into all text overlapping the marked range,
+  #       then adds the given `class` or `style` properties to these spans.
+  #       Use this to manipulate the foreground color or styling of text in
+  #       a given range.
+  #     * `highlight` Creates an absolutely-positioned `.highlight` div
+  #       containing nested divs to cover the marked region. For example, this
+  #       is used to implement selections.
   #     * `overlay` Positions the view associated with the given item at the
   #       head or tail of the given `DisplayMarker`, depending on the `position`
   #       property.
@@ -1805,9 +1813,10 @@ class TextEditor extends Model
   #       or render artificial cursors that don't actually exist in the model
   #       by passing a marker that isn't actually associated with a cursor.
   #   * `class` This CSS class will be applied to the decorated line number,
-  #     line, highlight, or overlay.
+  #     line, text spans, highlight regions, cursors, or overlay.
   #   * `style` An {Object} containing CSS style properties to apply to the
-  #     relevant DOM node. Currently this only works with a `type` of `cursor`.
+  #     relevant DOM node. Currently this only works with a `type` of `cursor`
+  #     or `text`.
   #   * `item` (optional) An {HTMLElement} or a model {Object} with a
   #     corresponding view registered. Only applicable to the `gutter`,
   #     `overlay` and `block` decoration types.
@@ -2360,14 +2369,6 @@ class TextEditor extends Model
       else
         positions[position] = true
     return
-
-  preserveCursorPositionOnBufferReload: ->
-    cursorPosition = null
-    @disposables.add @buffer.onWillReload =>
-      cursorPosition = @getCursorBufferPosition()
-    @disposables.add @buffer.onDidReload =>
-      @setCursorBufferPosition(cursorPosition) if cursorPosition
-      cursorPosition = null
 
   ###
   Section: Selections
@@ -2982,7 +2983,7 @@ class TextEditor extends Model
   # Returns a {Boolean} or undefined if no non-comment lines had leading
   # whitespace.
   usesSoftTabs: ->
-    for bufferRow in [0..@buffer.getLastRow()]
+    for bufferRow in [0..Math.min(1000, @buffer.getLastRow())]
       continue if @tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
 
       line = @buffer.lineForRow(bufferRow)
@@ -3526,6 +3527,10 @@ class TextEditor extends Model
     else
       1
 
+  Object.defineProperty(@prototype, 'rowsPerPage', {
+    get: -> @getRowsPerPage()
+  })
+
   ###
   Section: Config
   ###
@@ -3627,6 +3632,9 @@ class TextEditor extends Model
         @initialScrollTopRow, @initialScrollLeftColumn
       })
       @component.element
+
+  getAllowedLocations: ->
+    ['center']
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
