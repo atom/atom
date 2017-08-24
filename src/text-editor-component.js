@@ -124,8 +124,7 @@ class TextEditorComponent {
     this.blockDecorationSentinel.style.height = '1px'
     this.heightsByBlockDecoration = new WeakMap()
     this.blockDecorationResizeObserver = new ResizeObserver(this.didResizeBlockDecorations.bind(this))
-    this.lineNodesByScreenLineId = new Map()
-    this.textNodesByScreenLineId = new Map()
+    this.lineComponentsByScreenLineId = new Map()
     this.overlayComponents = new Set()
     this.overlayDimensionsByElement = new WeakMap()
     this.shouldRenderDummyScrollbars = true
@@ -590,7 +589,7 @@ class TextEditorComponent {
     }
 
     if (this.hasInitialMeasurements) {
-      const {lineNodesByScreenLineId, textNodesByScreenLineId} = this
+      const {lineComponentsByScreenLineId} = this
 
       const startRow = this.getRenderedStartRow()
       const endRow = this.getRenderedEndRow()
@@ -619,8 +618,7 @@ class TextEditorComponent {
           highlightDecorations: this.decorationsToRender.highlights.get(tileStartRow),
           displayLayer: this.props.model.displayLayer,
           nodePool: this.lineNodesPool,
-          lineNodesByScreenLineId,
-          textNodesByScreenLineId
+          lineComponentsByScreenLineId
         }))
       }
 
@@ -633,8 +631,7 @@ class TextEditorComponent {
             screenRow,
             displayLayer: this.props.model.displayLayer,
             nodePool: this.lineNodesPool,
-            lineNodesByScreenLineId,
-            textNodesByScreenLineId
+            lineComponentsByScreenLineId
           }))
         }
       })
@@ -2196,7 +2193,8 @@ class TextEditorComponent {
 
   measureLongestLineWidth () {
     if (this.longestLineToMeasure) {
-      this.measurements.longestLineWidth = this.lineNodesByScreenLineId.get(this.longestLineToMeasure.id).firstChild.offsetWidth
+      const lineComponent = this.lineComponentsByScreenLineId.get(this.longestLineToMeasure.id)
+      this.measurements.longestLineWidth = lineComponent.element.firstChild.offsetWidth
       this.longestLineToMeasure = null
     }
   }
@@ -2226,21 +2224,25 @@ class TextEditorComponent {
       columnsToMeasure.sort((a, b) => a - b)
 
       const screenLine = this.renderedScreenLineForRow(row)
-      const lineNode = this.lineNodesByScreenLineId.get(screenLine.id)
+      const lineComponent = this.lineComponentsByScreenLineId.get(screenLine.id)
 
-      if (!lineNode) {
-        const error = new Error('Requested measurement of a line that is not currently rendered')
+      if (!lineComponent) {
+        const error = new Error('Requested measurement of a line component that is not currently rendered')
         error.metadata = {
           row,
           columnsToMeasure,
           renderedScreenLineIds: this.renderedScreenLines.map((line) => line.id),
           extraRenderedScreenLineIds: Array.from(this.extraRenderedScreenLines.keys()),
-          lineNodeScreenLineIds: Array.from(this.lineNodesByScreenLineId.keys())
+          lineComponentScreenLineIds: Array.from(this.lineComponentsByScreenLineId.keys()),
+          renderedStartRow: this.getRenderedStartRow(),
+          renderedEndRow: this.getRenderedEndRow(),
+          requestedScreenLineId: screenLine.id
         }
         throw error
       }
 
-      const textNodes = this.textNodesByScreenLineId.get(screenLine.id)
+      const lineNode = lineComponent.element
+      const textNodes = lineComponent.textNodes
       let positionsForLine = this.horizontalPixelPositionsByScreenLineId.get(screenLine.id)
       if (positionsForLine == null) {
         positionsForLine = new Map()
@@ -2355,7 +2357,7 @@ class TextEditorComponent {
 
     const linesClientLeft = this.refs.lineTiles.getBoundingClientRect().left
     const targetClientLeft = linesClientLeft + Math.max(0, left)
-    const textNodes = this.textNodesByScreenLineId.get(screenLine.id)
+    const {textNodes} = this.lineComponentsByScreenLineId.get(screenLine.id)
 
     let containingTextNodeIndex
     {
@@ -3591,7 +3593,7 @@ class LinesTileComponent {
   createLines () {
     const {
       tileStartRow, screenLines, lineDecorations, textDecorations,
-      nodePool, displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
+      nodePool, displayLayer, lineComponentsByScreenLineId
     } = this.props
 
     this.lineComponents = []
@@ -3603,8 +3605,7 @@ class LinesTileComponent {
         textDecorations: textDecorations[i],
         displayLayer,
         nodePool,
-        lineNodesByScreenLineId,
-        textNodesByScreenLineId
+        lineComponentsByScreenLineId
       })
       this.element.appendChild(component.element)
       this.lineComponents.push(component)
@@ -3614,7 +3615,7 @@ class LinesTileComponent {
   updateLines (oldProps, newProps) {
     var {
       screenLines, tileStartRow, lineDecorations, textDecorations,
-      nodePool, displayLayer, lineNodesByScreenLineId, textNodesByScreenLineId
+      nodePool, displayLayer, lineComponentsByScreenLineId
     } = newProps
 
     var oldScreenLines = oldProps.screenLines
@@ -3637,8 +3638,7 @@ class LinesTileComponent {
           textDecorations: textDecorations[newScreenLineIndex],
           displayLayer,
           nodePool,
-          lineNodesByScreenLineId,
-          textNodesByScreenLineId
+          lineComponentsByScreenLineId
         })
         this.element.appendChild(newScreenLineComponent.element)
         this.lineComponents.push(newScreenLineComponent)
@@ -3674,8 +3674,7 @@ class LinesTileComponent {
               textDecorations: textDecorations[newScreenLineIndex],
               displayLayer,
               nodePool,
-              lineNodesByScreenLineId,
-              textNodesByScreenLineId
+              lineComponentsByScreenLineId
             })
             this.element.insertBefore(newScreenLineComponent.element, this.getFirstElementForScreenLine(oldProps, oldScreenLine))
             newScreenLineComponents.push(newScreenLineComponent)
@@ -3701,8 +3700,7 @@ class LinesTileComponent {
             textDecorations: textDecorations[newScreenLineIndex],
             displayLayer,
             nodePool,
-            lineNodesByScreenLineId,
-            textNodesByScreenLineId
+            lineComponentsByScreenLineId
           })
           this.element.insertBefore(newScreenLineComponent.element, oldScreenLineComponent.element)
           oldScreenLineComponent.destroy()
@@ -3737,11 +3735,11 @@ class LinesTileComponent {
       }
     }
 
-    return oldProps.lineNodesByScreenLineId.get(screenLine.id)
+    return oldProps.lineComponentsByScreenLineId.get(screenLine.id).element
   }
 
   updateBlockDecorations (oldProps, newProps) {
-    var {blockDecorations, lineNodesByScreenLineId} = newProps
+    var {blockDecorations, lineComponentsByScreenLineId} = newProps
 
     if (oldProps.blockDecorations) {
       oldProps.blockDecorations.forEach((oldDecorations, screenLineId) => {
@@ -3766,7 +3764,7 @@ class LinesTileComponent {
           if (oldDecorations && oldDecorations.includes(newDecoration)) continue
 
           var element = TextEditor.viewForItem(newDecoration.item)
-          var lineNode = lineNodesByScreenLineId.get(screenLineId)
+          var lineNode = lineComponentsByScreenLineId.get(screenLineId).element
           if (newDecoration.position === 'after') {
             this.element.insertBefore(element, lineNode.nextSibling)
           } else {
@@ -3878,11 +3876,11 @@ class LinesTileComponent {
 
 class LineComponent {
   constructor (props) {
-    const {nodePool, screenRow, screenLine, lineNodesByScreenLineId, offScreen} = props
+    const {nodePool, screenRow, screenLine, lineComponentsByScreenLineId, offScreen} = props
     this.props = props
     this.element = nodePool.getElement('DIV', this.buildClassName(), null)
     this.element.dataset.screenRow = screenRow
-    lineNodesByScreenLineId.set(screenLine.id, this.element)
+    this.textNodes = []
 
     if (offScreen) {
       this.element.style.position = 'absolute'
@@ -3891,6 +3889,7 @@ class LineComponent {
     }
 
     this.appendContents()
+    lineComponentsByScreenLineId.set(screenLine.id, this)
   }
 
   update (newProps) {
@@ -3912,10 +3911,10 @@ class LineComponent {
   }
 
   destroy () {
-    const {nodePool, lineNodesByScreenLineId, textNodesByScreenLineId, screenLine} = this.props
-    if (lineNodesByScreenLineId.get(screenLine.id) === this.element) {
-      lineNodesByScreenLineId.delete(screenLine.id)
-      textNodesByScreenLineId.delete(screenLine.id)
+    const {nodePool, lineComponentsByScreenLineId, screenLine} = this.props
+
+    if (lineComponentsByScreenLineId.get(screenLine.id) === this) {
+      lineComponentsByScreenLineId.delete(screenLine.id)
     }
 
     this.element.remove()
@@ -3923,10 +3922,9 @@ class LineComponent {
   }
 
   appendContents () {
-    const {displayLayer, nodePool, screenLine, textDecorations, textNodesByScreenLineId} = this.props
+    const {displayLayer, nodePool, screenLine, textDecorations} = this.props
 
-    const textNodes = []
-    textNodesByScreenLineId.set(screenLine.id, textNodes)
+    this.textNodes.length = 0
 
     const {lineText, tags} = screenLine
     let openScopeNode = nodePool.getElement('SPAN', null, null)
@@ -3957,7 +3955,7 @@ class LineComponent {
           const nextTokenColumn = column + tag
           while (nextDecoration && nextDecoration.column <= nextTokenColumn) {
             const text = lineText.substring(column, nextDecoration.column)
-            this.appendTextNode(textNodes, openScopeNode, text, activeClassName, activeStyle)
+            this.appendTextNode(openScopeNode, text, activeClassName, activeStyle)
             column = nextDecoration.column
             activeClassName = nextDecoration.className
             activeStyle = nextDecoration.style
@@ -3966,7 +3964,7 @@ class LineComponent {
 
           if (column < nextTokenColumn) {
             const text = lineText.substring(column, nextTokenColumn)
-            this.appendTextNode(textNodes, openScopeNode, text, activeClassName, activeStyle)
+            this.appendTextNode(openScopeNode, text, activeClassName, activeStyle)
             column = nextTokenColumn
           }
         }
@@ -3976,7 +3974,7 @@ class LineComponent {
     if (column === 0) {
       const textNode = nodePool.getTextNode(' ')
       this.element.appendChild(textNode)
-      textNodes.push(textNode)
+      this.textNodes.push(textNode)
     }
 
     if (lineText.endsWith(displayLayer.foldCharacter)) {
@@ -3985,11 +3983,11 @@ class LineComponent {
       // measurements when such marker is the last character on the line.
       const textNode = nodePool.getTextNode(ZERO_WIDTH_NBSP_CHARACTER)
       this.element.appendChild(textNode)
-      textNodes.push(textNode)
+      this.textNodes.push(textNode)
     }
   }
 
-  appendTextNode (textNodes, openScopeNode, text, activeClassName, activeStyle) {
+  appendTextNode (openScopeNode, text, activeClassName, activeStyle) {
     const {nodePool} = this.props
 
     if (activeClassName || activeStyle) {
@@ -4000,7 +3998,7 @@ class LineComponent {
 
     const textNode = nodePool.getTextNode(text)
     openScopeNode.appendChild(textNode)
-    textNodes.push(textNode)
+    this.textNodes.push(textNode)
   }
 
   buildClassName () {
