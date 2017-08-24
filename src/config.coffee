@@ -4,7 +4,7 @@ fs = require 'fs-plus'
 CSON = require 'season'
 path = require 'path'
 async = require 'async'
-pathWatcher = require 'pathwatcher'
+{watchPath} = require './path-watcher'
 {
   getValueAtKeyPath, setValueAtKeyPath, deleteValueAtKeyPath,
   pushKeyPath, splitKeyPath,
@@ -880,8 +880,9 @@ class Config
     return if @shouldNotAccessFileSystem()
 
     try
-      @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
-        @requestLoad() if eventType is 'change' and @watchSubscription?
+      @watchSubscription ?= watchPath @configFilePath, {}, (events) =>
+        for {action} in events
+          @requestLoad() if action in ['created', 'modified', 'renamed'] and @watchSubscription?
     catch error
       @notifyFailure """
         Unable to watch path: `#{path.basename(@configFilePath)}`. Make sure you have permissions to
@@ -891,7 +892,7 @@ class Config
       """
 
   unobserveUserConfig: ->
-    @watchSubscription?.close()
+    @watchSubscription?.dispose()
     @watchSubscription = null
 
   notifyFailure: (errorMessage, detail) ->
