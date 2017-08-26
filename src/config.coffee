@@ -399,6 +399,8 @@ class Config
 
   # Created during initialization, available as `atom.config`
   constructor: ({@notificationManager, @enablePersistence}={}) ->
+    @settingsLoaded = false
+    @pendingOperations = []
     @clear()
 
   initialize: ({@configDirPath, @resourcePath, projectHomeSchema}) ->
@@ -646,6 +648,10 @@ class Config
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: ->
+    unless @settingsLoaded
+      @pendingOperations.push(() => @set.apply(@, arguments))
+      return
+
     [keyPath, value, options] = arguments
     scopeSelector = options?.scopeSelector
     source = options?.source
@@ -677,6 +683,10 @@ class Config
   #   * `scopeSelector` (optional) {String}. See {::set}
   #   * `source` (optional) {String}. See {::set}
   unset: (keyPath, options) ->
+    unless @settingsLoaded
+      @pendingOperations.push(() => @unset.apply(@, arguments))
+      return
+
     {scopeSelector, source} = options ? {}
     source ?= @getUserConfigPath()
 
@@ -944,7 +954,12 @@ class Config
 
     @transact =>
       @settings = {}
+      @settingsLoaded = true
       @set(key, value, save: false) for key, value of newSettings
+      if @pendingOperations.length
+        op() for op in @pendingOperations
+        @debouncedSave()
+        @pendingOperations = []
       return
 
   getRawValue: (keyPath, options) ->
