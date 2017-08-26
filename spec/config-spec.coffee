@@ -1756,3 +1756,34 @@ describe "Config", ->
 
           expect(atom.config.set('foo.bar.str_options', 'One')).toBe false
           expect(atom.config.get('foo.bar.str_options')).toEqual 'two'
+  describe "when .set/.unset is called prior to .loadUserConfig", ->
+    console.log 'this test'
+    beforeEach ->
+      fs.writeFileSync config.configFilePath, """
+        '*':
+          foo:
+            bar: 'baz'
+          do:
+            ray: 'me'
+      """
+
+    it "ensures that all settings are loaded correctly", ->
+      console.log 'test start'
+      config.unset('foo.bar')
+      expect(config.save).not.toHaveBeenCalled()
+      config.set('foo.qux', 'boo')
+      expect(config.save).not.toHaveBeenCalled()
+      expect(config.get('foo.qux')).toBeUndefined()
+      expect(config.get('do.ray')).toBeUndefined()
+
+      console.log 'loadUserConfig'
+      config.loadUserConfig()
+
+      waitsFor -> config.get('foo.bar') is undefined
+      runs ->
+        expect(config.save).toHaveBeenCalled()
+        expect(config.get('foo.bar')).toBeUndefined()
+        expect(config.get('foo.qux')).toBe('boo')
+        expect(config.get('do.ray')).toBe('me')
+
+      console.log 'end test'
