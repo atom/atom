@@ -851,6 +851,8 @@ class Config
 
     console.log 'loadUserConfig'
     try
+      # fs.makeTreeSync(path.dirname(@configFilePath))
+      # CSON.writeFileSync(@configFilePath, {flag: 'x'}, {}) # fails if file exists
       unless fs.existsSync(@configFilePath)
         fs.makeTreeSync(path.dirname(@configFilePath))
         CSON.writeFileSync(@configFilePath, {})
