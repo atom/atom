@@ -849,6 +849,7 @@ class Config
   loadUserConfig: ->
     return if @shouldNotAccessFileSystem()
 
+    console.log 'loadUserConfig'
     try
       unless fs.existsSync(@configFilePath)
         fs.makeTreeSync(path.dirname(@configFilePath))
@@ -880,9 +881,14 @@ class Config
     return if @shouldNotAccessFileSystem()
 
     try
-      @watchSubscription ?= watchPath @configFilePath, {}, (events) =>
+      console.trace 'create watch subscription', @watchSubscriptionPromise
+      @watchSubscriptionPromise ?= watchPath @configFilePath, {}, (events) =>
+        console.log events
         for {action} in events
-          @requestLoad() if action in ['created', 'modified', 'renamed'] and @watchSubscription?
+          console.log action, @watchSubscriptionPromise?
+          if action in ['created', 'modified', 'renamed'] and @watchSubscriptionPromise?
+            console.warn 'request load'
+            @requestLoad()
     catch error
       @notifyFailure """
         Unable to watch path: `#{path.basename(@configFilePath)}`. Make sure you have permissions to
@@ -891,9 +897,12 @@ class Config
         [watches]:https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path
       """
 
+    @watchSubscriptionPromise
+
   unobserveUserConfig: ->
-    @watchSubscription?.dispose()
-    @watchSubscription = null
+    @watchSubscriptionPromise?.then((watcher) => watcher?.dispose())
+    @watchSubscriptionPromise = null
+    console.log 'unobserve'
 
   notifyFailure: (errorMessage, detail) ->
     @notificationManager?.addError(errorMessage, {detail, dismissable: true})

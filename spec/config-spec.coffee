@@ -899,12 +899,15 @@ describe "Config", ->
         previousSetTimeoutCallCount = setTimeout.callCount
         runs ->
           fs.writeFileSync(atom.config.configFilePath, data)
-        waitsFor "debounced config file load", ->
-          setTimeout.callCount > previousSetTimeoutCallCount
+        # waitsFor "debounced config file load", ->
+        #   setTimeout.callCount > previousSetTimeoutCallCount
+        waitsFor "file written", ->
+          fs.readFileSync(atom.config.configFilePath, 'utf8') is data
         runs ->
           advanceClock(1000)
 
       beforeEach ->
+        console.log 'beforeEach'
         atom.config.setSchema 'foo',
           type: 'object'
           properties:
@@ -930,16 +933,28 @@ describe "Config", ->
               scoped: true
         """
         atom.config.loadUserConfig()
-        atom.config.observeUserConfig()
-        updatedHandler = jasmine.createSpy("updatedHandler")
-        atom.config.onDidChange updatedHandler
+
+        console.log 'observeUserConfig promise', atom.config.observeUserConfig()
+        waitsForPromise -> atom.config.observeUserConfig()
+
+        runs ->
+          updatedHandler = jasmine.createSpy("updatedHandler")
+          atom.config.onDidChange updatedHandler
 
       afterEach ->
+        # WHY IS THIS NOT RUNNING?
+        console.log 'afterEach'
         atom.config.unobserveUserConfig()
         fs.removeSync(dotAtomPath)
 
       describe "when the config file changes to contain valid cson", ->
-        it "updates the config data", ->
+        afterEach ->
+          # WHY IS THIS NOT RUNNING?
+          console.log 'afterEach'
+          atom.config.unobserveUserConfig()
+          fs.removeSync(dotAtomPath)
+
+        fit "updates the config data", ->
           writeConfigFile("foo: { bar: 'quux', baz: 'bar'}")
           waitsFor 'update event', -> updatedHandler.callCount > 0
           runs ->
