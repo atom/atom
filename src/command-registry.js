@@ -91,10 +91,12 @@ module.exports = class CommandRegistry {
   //   handle such as `user:insert-date`.
   // * `listener` A listener which handles the event.  Either A {Function} to
   //   call when the given command is invoked on an element matching the
-  //   selector, or an {Object} with a `onDidDispatch` property which is such a
+  //   selector, or an {Object} with a `didDispatch` property which is such a
   //   function.
   //
-  //   It will be called with `this` referencing the matching DOM node.
+  //   The function (`listener` itself if it is a function, or the `didDispatch`
+  //   method if `listener` is an object) will be called with `this` referencing
+  //   the matching DOM node and the following argument:
   //     * `event` A standard DOM event instance. Call `stopPropagation` or
   //       `stopImmediatePropagation` to terminate bubbling early.
   //
@@ -137,10 +139,10 @@ module.exports = class CommandRegistry {
     // type Listener = ((e: CustomEvent) => void) | {
     //   displayName?: string,
     //   description?: string,
-    //   onDidDispatch(e: CustomEvent): void,
+    //   didDispatch(e: CustomEvent): void,
     // }
-    if ((typeof listener !== 'function') && (typeof listener.onDidDispatch !== 'function')) {
-      throw new Error('Listener must be a callback function or an object with a onDidDispatch method.')
+    if ((typeof listener !== 'function') && (typeof listener.didDispatch !== 'function')) {
+      throw new Error('Listener must be a callback function or an object with a didDispatch method.')
     }
 
     if (typeof target === 'string') {
@@ -376,7 +378,7 @@ module.exports = class CommandRegistry {
         if (immediatePropagationStopped) {
           break
         }
-        listener.onDidDispatch.call(currentTarget, dispatchedEvent)
+        listener.didDispatch.call(currentTarget, dispatchedEvent)
       }
 
       if (currentTarget === window) {
@@ -403,12 +405,12 @@ module.exports = class CommandRegistry {
 
 // type Listener = {
 //   descriptor: CommandDescriptor,
-//   extractOnDidDispatch: (e: CustomEvent) => void,
+//   extractDidDispatch: (e: CustomEvent) => void,
 // };
 class SelectorBasedListener {
   constructor (selector, commandName, listener) {
     this.selector = selector
-    this.onDidDispatch = extractOnDidDispatch(listener)
+    this.didDispatch = extractDidDispatch(listener)
     this.descriptor = extractDescriptor(commandName, listener)
     this.specificity = calculateSpecificity(this.selector)
     this.sequenceNumber = SequenceCount++
@@ -428,7 +430,7 @@ class SelectorBasedListener {
 
 class InlineListener {
   constructor (commandName, listener) {
-    this.onDidDispatch = extractOnDidDispatch(listener)
+    this.didDispatch = extractDidDispatch(listener)
     this.descriptor = extractDescriptor(commandName, listener)
   }
 }
@@ -439,7 +441,7 @@ class InlineListener {
 // };
 function extractDescriptor (name, listener) {
   return Object.assign(
-    _.omit(listener, 'onDidDispatch'),
+    _.omit(listener, 'didDispatch'),
     {
       name,
       displayName: listener.displayName ? listener.displayName : _.humanizeEventName(name)
@@ -447,6 +449,6 @@ function extractDescriptor (name, listener) {
   )
 }
 
-function extractOnDidDispatch (listener) {
-  return typeof listener === 'function' ? listener : listener.onDidDispatch
+function extractDidDispatch (listener) {
+  return typeof listener === 'function' ? listener : listener.didDispatch
 }

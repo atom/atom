@@ -232,7 +232,7 @@ describe("CommandRegistry", () => {
       }).toThrow(new Error('Cannot register a command with a null listener.'));
     });
 
-    it("throws an error when called with an null callback and object target", () => {
+    it("throws an error when called with a null callback and object target", () => {
       const badCallback = null;
 
       expect(() => {
@@ -240,20 +240,20 @@ describe("CommandRegistry", () => {
       }).toThrow(new Error('Cannot register a command with a null listener.'));
     });
 
-    it("throws an error when called with an object listener without a onDidDispatch method", () => {
+    it("throws an error when called with an object listener without a didDispatch method", () => {
       const badListener = {
-        title: 'a listener without a onDidDispatch callback',
+        title: 'a listener without a didDispatch callback',
         description: 'this should throw an error'
       };
 
       expect(() => {
         registry.add(document.body, 'foo:bar', badListener);
-      }).toThrow(new Error('Listener must be a callback function or an object with a onDidDispatch method.'));
+      }).toThrow(new Error('Listener must be a callback function or an object with a didDispatch method.'));
     });
   });
 
   describe("::findCommands({target})", () => {
-    it("returns commands that can be invoked on the target or its ancestors", () => {
+    it("returns command descriptors that can be invoked on the target or its ancestors", () => {
       registry.add('.parent', 'namespace:command-1', () => {});
       registry.add('.child', 'namespace:command-2', () => {});
       registry.add('.grandchild', 'namespace:command-3', () => {});
@@ -273,7 +273,7 @@ describe("CommandRegistry", () => {
       ]);
     });
 
-    it("returns commands with arbitrary metadata if set in a listener object", () => {
+    it("returns command descriptors with arbitrary metadata if set in a listener object", () => {
       registry.add('.grandchild', 'namespace:command-1', () => {});
       registry.add('.grandchild', 'namespace:command-2', {
         displayName: 'Custom Command 2',
@@ -281,7 +281,7 @@ describe("CommandRegistry", () => {
           some: 'other',
           object: 'data'
         },
-        onDidDispatch() {}
+        didDispatch() {}
       });
       registry.add('.grandchild', 'namespace:command-3', {
         name: 'some:other:incorrect:commandname',
@@ -290,7 +290,7 @@ describe("CommandRegistry", () => {
           some: 'other',
           object: 'data'
         },
-        onDidDispatch() {}
+        didDispatch() {}
       });
 
       const commands = registry.findCommands({target: grandchild});
@@ -318,7 +318,7 @@ describe("CommandRegistry", () => {
       ]);
     });
 
-    it("returns commands with arbitrary metadata if set on a listener function", () => {
+    it("returns command descriptors with arbitrary metadata if set on a listener function", () => {
       function listener () {}
       listener.displayName = 'Custom Command 2'
       listener.metadata = {
