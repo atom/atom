@@ -156,7 +156,7 @@ class TextEditorComponent {
     this.decorationsToRender = {
       lineNumbers: null,
       lines: null,
-      highlights: new Map(),
+      highlights: [],
       cursors: [],
       overlays: [],
       customGutter: new Map(),
@@ -164,7 +164,7 @@ class TextEditorComponent {
       text: []
     }
     this.decorationsToMeasure = {
-      highlights: new Map(),
+      highlights: [],
       cursors: new Map()
     }
     this.textDecorationsByMarker = new Map()
@@ -546,7 +546,6 @@ class TextEditorComponent {
   }
 
   renderContent () {
-    let children
     let style = {
       contain: 'strict',
       overflow: 'hidden',
@@ -557,17 +556,6 @@ class TextEditorComponent {
       style.height = ceilToPhysicalPixelBoundary(this.getScrollHeight()) + 'px'
       style.willChange = 'transform'
       style.transform = `translate(${-roundToPhysicalPixelBoundary(this.getScrollLeft())}px, ${-roundToPhysicalPixelBoundary(this.getScrollTop())}px)`
-      children = [
-        this.renderLineTiles(),
-        this.renderBlockDecorationMeasurementArea(),
-        this.renderCharacterMeasurementLine()
-      ]
-    } else {
-      children = [
-        this.renderLineTiles(),
-        this.renderBlockDecorationMeasurementArea(),
-        this.renderCharacterMeasurementLine()
-      ]
     }
 
     return $.div(
@@ -576,8 +564,21 @@ class TextEditorComponent {
         on: {mousedown: this.didMouseDownOnContent},
         style
       },
-      children
+      this.renderHighlightDecorations(),
+      this.renderLineTiles(),
+      this.renderBlockDecorationMeasurementArea(),
+      this.renderCharacterMeasurementLine()
     )
+  }
+
+  renderHighlightDecorations () {
+    return $(HighlightsComponent, {
+      hasInitialMeasurements: this.hasInitialMeasurements,
+      highlightDecorations: this.decorationsToRender.highlights.slice(),
+      width: this.getScrollWidth(),
+      height: this.getScrollHeight(),
+      lineHeight: this.getLineHeight()
+    })
   }
 
   renderLineTiles () {
@@ -615,7 +616,6 @@ class TextEditorComponent {
           lineDecorations: this.decorationsToRender.lines.slice(tileStartRow - startRow, tileEndRow - startRow),
           textDecorations: this.decorationsToRender.text.slice(tileStartRow - startRow, tileEndRow - startRow),
           blockDecorations: this.decorationsToRender.blocks.get(tileStartRow),
-          highlightDecorations: this.decorationsToRender.highlights.get(tileStartRow),
           displayLayer: this.props.model.displayLayer,
           nodePool: this.lineNodesPool,
           lineComponentsByScreenLineId
@@ -963,7 +963,7 @@ class TextEditorComponent {
     this.decorationsToRender.customGutter.clear()
     this.decorationsToRender.blocks = new Map()
     this.decorationsToRender.text = []
-    this.decorationsToMeasure.highlights.clear()
+    this.decorationsToMeasure.highlights.length = 0
     this.decorationsToMeasure.cursors.clear()
     this.textDecorationsByMarker.clear()
     this.textDecorationBoundaries.length = 0
@@ -1061,34 +1061,16 @@ class TextEditorComponent {
 
     const {class: className, flashRequested, flashClass, flashDuration} = decoration
     decoration.flashRequested = false
-
-    let tileStartRow = this.tileStartRowForRow(screenRange.start.row)
-    const rowsPerTile = this.getRowsPerTile()
-
-    while (tileStartRow <= screenRange.end.row) {
-      const tileEndRow = tileStartRow + rowsPerTile
-      const screenRangeInTile = constrainRangeToRows(screenRange, tileStartRow, tileEndRow)
-
-      let tileHighlights = this.decorationsToMeasure.highlights.get(tileStartRow)
-      if (!tileHighlights) {
-        tileHighlights = []
-        this.decorationsToMeasure.highlights.set(tileStartRow, tileHighlights)
-      }
-
-      tileHighlights.push({
-        screenRange: screenRangeInTile,
-        key,
-        className,
-        flashRequested,
-        flashClass,
-        flashDuration
-      })
-
-      this.requestHorizontalMeasurement(screenRangeInTile.start.row, screenRangeInTile.start.column)
-      this.requestHorizontalMeasurement(screenRangeInTile.end.row, screenRangeInTile.end.column)
-
-      tileStartRow = tileStartRow + rowsPerTile
-    }
+    this.decorationsToMeasure.highlights.push({
+      screenRange,
+      key,
+      className,
+      flashRequested,
+      flashClass,
+      flashDuration
+    })
+    this.requestHorizontalMeasurement(screenRange.start.row, screenRange.start.column)
+    this.requestHorizontalMeasurement(screenRange.end.row, screenRange.end.column)
   }
 
   addCursorDecorationToMeasure (decoration, marker, screenRange, reversed) {
@@ -1309,18 +1291,16 @@ class TextEditorComponent {
   }
 
   updateHighlightsToRender () {
-    this.decorationsToRender.highlights.clear()
-    this.decorationsToMeasure.highlights.forEach((highlights, tileRow) => {
-      for (let i = 0, length = highlights.length; i < length; i++) {
-        const highlight = highlights[i]
-        const {start, end} = highlight.screenRange
-        highlight.startPixelTop = this.pixelPositionAfterBlocksForRow(start.row)
-        highlight.startPixelLeft = this.pixelLeftForRowAndColumn(start.row, start.column)
-        highlight.endPixelTop = this.pixelPositionAfterBlocksForRow(end.row) + this.getLineHeight()
-        highlight.endPixelLeft = this.pixelLeftForRowAndColumn(end.row, end.column)
-      }
-      this.decorationsToRender.highlights.set(tileRow, highlights)
-    })
+    this.decorationsToRender.highlights.length = 0
+    for (let i = 0; i < this.decorationsToMeasure.highlights.length; i++) {
+      const highlight = this.decorationsToMeasure.highlights[i]
+      const {start, end} = highlight.screenRange
+      highlight.startPixelTop = this.pixelPositionAfterBlocksForRow(start.row)
+      highlight.startPixelLeft = this.pixelLeftForRowAndColumn(start.row, start.column)
+      highlight.endPixelTop = this.pixelPositionAfterBlocksForRow(end.row) + this.getLineHeight()
+      highlight.endPixelLeft = this.pixelLeftForRowAndColumn(end.row, end.column)
+      this.decorationsToRender.highlights.push(highlight)
+    }
   }
 
   updateCursorsToRender () {
@@ -3533,10 +3513,8 @@ class CursorsAndInputComponent {
 
 class LinesTileComponent {
   constructor (props) {
-    this.highlightComponentsByKey = new Map()
     this.props = props
     etch.initialize(this)
-    this.updateHighlights()
     this.createLines()
     this.updateBlockDecorations({}, props)
   }
@@ -3550,16 +3528,10 @@ class LinesTileComponent {
         this.updateLines(oldProps, newProps)
         this.updateBlockDecorations(oldProps, newProps)
       }
-      this.updateHighlights()
     }
   }
 
   destroy () {
-    this.highlightComponentsByKey.forEach((highlightComponent) => {
-      highlightComponent.destroy()
-    })
-    this.highlightComponentsByKey.clear()
-
     for (let i = 0; i < this.lineComponents.length; i++) {
       this.lineComponents[i].destroy()
     }
@@ -3580,12 +3552,7 @@ class LinesTileComponent {
           width: width + 'px',
           transform: `translateY(${top}px)`
         }
-      },
-      $.div({
-        ref: 'highlights',
-        className: 'highlights',
-        style: {layout: 'contain'}
-      })
+      }
       // Lines and block decorations will be manually inserted here for efficiency
     )
   }
@@ -3775,40 +3742,6 @@ class LinesTileComponent {
     }
   }
 
-  updateHighlights () {
-    const {top, lineHeight, highlightDecorations} = this.props
-
-    const visibleHighlightDecorations = new Set()
-    if (highlightDecorations) {
-      for (let i = 0; i < highlightDecorations.length; i++) {
-        const highlightDecoration = highlightDecorations[i]
-
-        const highlightProps = Object.assign(
-          {parentTileTop: top, lineHeight},
-          highlightDecorations[i]
-        )
-        let highlightComponent = this.highlightComponentsByKey.get(highlightDecoration.key)
-        if (highlightComponent) {
-          highlightComponent.update(highlightProps)
-        } else {
-          highlightComponent = new HighlightComponent(highlightProps)
-          this.refs.highlights.appendChild(highlightComponent.element)
-          this.highlightComponentsByKey.set(highlightDecoration.key, highlightComponent)
-        }
-
-        highlightDecorations[i].flashRequested = false
-        visibleHighlightDecorations.add(highlightDecoration.key)
-      }
-    }
-
-    this.highlightComponentsByKey.forEach((highlightComponent, key) => {
-      if (!visibleHighlightDecorations.has(key)) {
-        highlightComponent.destroy()
-        this.highlightComponentsByKey.delete(key)
-      }
-    })
-  }
-
   shouldUpdate (newProps) {
     const oldProps = this.props
     if (oldProps.top !== newProps.top) return true
@@ -3819,25 +3752,6 @@ class LinesTileComponent {
     if (oldProps.tileEndRow !== newProps.tileEndRow) return true
     if (!arraysEqual(oldProps.screenLines, newProps.screenLines)) return true
     if (!arraysEqual(oldProps.lineDecorations, newProps.lineDecorations)) return true
-
-    if (!oldProps.highlightDecorations && newProps.highlightDecorations) return true
-    if (oldProps.highlightDecorations && !newProps.highlightDecorations) return true
-
-    if (oldProps.highlightDecorations && newProps.highlightDecorations) {
-      if (oldProps.highlightDecorations.length !== newProps.highlightDecorations.length) return true
-
-      for (let i = 0, length = oldProps.highlightDecorations.length; i < length; i++) {
-        const oldHighlight = oldProps.highlightDecorations[i]
-        const newHighlight = newProps.highlightDecorations[i]
-        if (oldHighlight.className !== newHighlight.className) return true
-        if (newHighlight.flashRequested) return true
-        if (oldHighlight.startPixelTop !== newHighlight.startPixelTop) return true
-        if (oldHighlight.startPixelLeft !== newHighlight.startPixelLeft) return true
-        if (oldHighlight.endPixelTop !== newHighlight.endPixelTop) return true
-        if (oldHighlight.endPixelLeft !== newHighlight.endPixelLeft) return true
-        if (!oldHighlight.screenRange.isEqual(newHighlight.screenRange)) return true
-      }
-    }
 
     if (oldProps.blockDecorations && newProps.blockDecorations) {
       if (oldProps.blockDecorations.size !== newProps.blockDecorations.size) return true
@@ -4009,6 +3923,90 @@ class LineComponent {
   }
 }
 
+class HighlightsComponent {
+  constructor (props) {
+    this.props = {}
+    this.element = document.createElement('div')
+    this.element.className = 'highlights'
+    this.element.style.contain = 'strict'
+    this.element.style.position = 'absolute'
+    this.element.style.overflow = 'hidden'
+    this.highlightComponentsByKey = new Map()
+    this.update(props)
+  }
+
+  destroy () {
+    this.highlightComponentsByKey.forEach((highlightComponent) => {
+      highlightComponent.destroy()
+    })
+    this.highlightComponentsByKey.clear()
+  }
+
+  update (newProps) {
+    if (this.shouldUpdate(newProps)) {
+      this.props = newProps
+      const {height, width, lineHeight, highlightDecorations} = this.props
+
+      this.element.style.height = height + 'px'
+      this.element.style.width = width + 'px'
+
+      const visibleHighlightDecorations = new Set()
+      if (highlightDecorations) {
+        for (let i = 0; i < highlightDecorations.length; i++) {
+          const highlightDecoration = highlightDecorations[i]
+          const highlightProps = Object.assign({lineHeight}, highlightDecorations[i])
+
+          let highlightComponent = this.highlightComponentsByKey.get(highlightDecoration.key)
+          if (highlightComponent) {
+            highlightComponent.update(highlightProps)
+          } else {
+            highlightComponent = new HighlightComponent(highlightProps)
+            this.element.appendChild(highlightComponent.element)
+            this.highlightComponentsByKey.set(highlightDecoration.key, highlightComponent)
+          }
+
+          highlightDecorations[i].flashRequested = false
+          visibleHighlightDecorations.add(highlightDecoration.key)
+        }
+      }
+
+      this.highlightComponentsByKey.forEach((highlightComponent, key) => {
+        if (!visibleHighlightDecorations.has(key)) {
+          highlightComponent.destroy()
+          this.highlightComponentsByKey.delete(key)
+        }
+      })
+    }
+  }
+
+  shouldUpdate (newProps) {
+    const oldProps = this.props
+
+    if (!newProps.hasInitialMeasurements) return false
+
+    if (oldProps.width !== newProps.width) return true
+    if (oldProps.height !== newProps.height) return true
+    if (oldProps.lineHeight !== newProps.lineHeight) return true
+    if (!oldProps.highlightDecorations && newProps.highlightDecorations) return true
+    if (oldProps.highlightDecorations && !newProps.highlightDecorations) return true
+    if (oldProps.highlightDecorations && newProps.highlightDecorations) {
+      if (oldProps.highlightDecorations.length !== newProps.highlightDecorations.length) return true
+
+      for (let i = 0, length = oldProps.highlightDecorations.length; i < length; i++) {
+        const oldHighlight = oldProps.highlightDecorations[i]
+        const newHighlight = newProps.highlightDecorations[i]
+        if (oldHighlight.className !== newHighlight.className) return true
+        if (newHighlight.flashRequested) return true
+        if (oldHighlight.startPixelTop !== newHighlight.startPixelTop) return true
+        if (oldHighlight.startPixelLeft !== newHighlight.startPixelLeft) return true
+        if (oldHighlight.endPixelTop !== newHighlight.endPixelTop) return true
+        if (oldHighlight.endPixelLeft !== newHighlight.endPixelLeft) return true
+        if (!oldHighlight.screenRange.isEqual(newHighlight.screenRange)) return true
+      }
+    }
+  }
+}
+
 class HighlightComponent {
   constructor (props) {
     this.props = props
@@ -4054,15 +4052,12 @@ class HighlightComponent {
   }
 
   render () {
-    let {startPixelTop, endPixelTop} = this.props
     const {
-      className, screenRange, parentTileTop, lineHeight,
-      startPixelLeft, endPixelLeft
+      className, screenRange, lineHeight,
+      startPixelTop, startPixelLeft, endPixelTop, endPixelLeft
     } = this.props
-    startPixelTop -= parentTileTop
-    endPixelTop -= parentTileTop
+    const regionClassName = 'region ' + className
 
-    let regionClassName = 'region ' + className
     let children
     if (screenRange.start.row === screenRange.end.row) {
       children = $.div({
