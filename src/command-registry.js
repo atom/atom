@@ -1,7 +1,5 @@
 'use strict'
 
-/* global Event, CustomEvent */
-
 const { Emitter, Disposable, CompositeDisposable } = require('event-kit')
 const { calculateSpecificity, validateSelector } = require('clear-cut')
 const _ = require('underscore-plus')
@@ -91,11 +89,24 @@ module.exports = class CommandRegistry {
   //   DOM element, the command will be associated with just that element.
   // * `commandName` A {String} containing the name of a command you want to
   //   handle such as `user:insert-date`.
-  // * `callback` A {Function} to call when the given command is invoked on an
-  //   element matching the selector. It will be called with `this` referencing
-  //   the matching DOM node.
-  //   * `event` A standard DOM event instance. Call `stopPropagation` or
-  //     `stopImmediatePropagation` to terminate bubbling early.
+  // * `listener` A listener which handles the event.  Either A {Function} to
+  //   call when the given command is invoked on an element matching the
+  //   selector, or an {Object} with a `didDispatch` property which is such a
+  //   function.
+  //
+  //   The function (`listener` itself if it is a function, or the `didDispatch`
+  //   method if `listener` is an object) will be called with `this` referencing
+  //   the matching DOM node and the following argument:
+  //     * `event` A standard DOM event instance. Call `stopPropagation` or
+  //       `stopImmediatePropagation` to terminate bubbling early.
+  //
+  //   Additionally, `listener` may have additional properties which are returned
+  //   to those who query using `atom.commands.findCommands`, as well as several
+  //   meaningful metadata properties:
+  //     * `displayName`: Overrides any generated `displayName` that would
+  //       otherwise be generated from the event name.
+  //     * `description`: Used by consumers to display detailed information about
+  //       the command.
   //
   // ## Arguments: Registering Multiple Commands
   //
@@ -109,72 +120,79 @@ module.exports = class CommandRegistry {
   //
   // Returns a {Disposable} on which `.dispose()` can be called to remove the
   // added command handler(s).
-  add (target, commandName, callback, throwOnInvalidSelector = true) {
+  add (target, commandName, listener, throwOnInvalidSelector = true) {
     if (typeof commandName === 'object') {
       const commands = commandName
-      throwOnInvalidSelector = callback
+      throwOnInvalidSelector = listener
       const disposable = new CompositeDisposable()
       for (commandName in commands) {
-        callback = commands[commandName]
-        disposable.add(
-          this.add(target, commandName, callback, throwOnInvalidSelector)
-        )
+        listener = commands[commandName]
+        disposable.add(this.add(target, commandName, listener, throwOnInvalidSelector))
       }
       return disposable
     }
 
-    if (typeof callback !== 'function') {
-      throw new Error("Can't register a command with non-function callback.")
+    if (listener == null) {
+      throw new Error('Cannot register a command with a null listener.')
+    }
+
+    // type Listener = ((e: CustomEvent) => void) | {
+    //   displayName?: string,
+    //   description?: string,
+    //   didDispatch(e: CustomEvent): void,
+    // }
+    if ((typeof listener !== 'function') && (typeof listener.didDispatch !== 'function')) {
+      throw new Error('Listener must be a callback function or an object with a didDispatch method.')
     }
 
     if (typeof target === 'string') {
       if (throwOnInvalidSelector) {
         validateSelector(target)
       }
-      return this.addSelectorBasedListener(target, commandName, callback)
+      return this.addSelectorBasedListener(target, commandName, listener)
     } else {
-      return this.addInlineListener(target, commandName, callback)
+      return this.addInlineListener(target, commandName, listener)
     }
   }
 
-  addSelectorBasedListener (selector, commandName, callback) {
+  addSelectorBasedListener (selector, commandName, listener) {
     if (this.selectorBasedListenersByCommandName[commandName] == null) {
       this.selectorBasedListenersByCommandName[commandName] = []
     }
     const listenersForCommand = this.selectorBasedListenersByCommandName[commandName]
-    const listener = new SelectorBasedListener(selector, callback)
-    listenersForCommand.push(listener)
+    const selectorListener = new SelectorBasedListener(selector, commandName, listener)
+    listenersForCommand.push(selectorListener)
 
     this.commandRegistered(commandName)
 
     return new Disposable(() => {
-      listenersForCommand.splice(listenersForCommand.indexOf(listener), 1)
+      listenersForCommand.splice(listenersForCommand.indexOf(selectorListener), 1)
       if (listenersForCommand.length === 0) {
-        return delete this.selectorBasedListenersByCommandName[commandName]
+        delete this.selectorBasedListenersByCommandName[commandName]
       }
     })
   }
 
-  addInlineListener (element, commandName, callback) {
+  addInlineListener (element, commandName, listener) {
     if (this.inlineListenersByCommandName[commandName] == null) {
       this.inlineListenersByCommandName[commandName] = new WeakMap()
     }
 
     const listenersForCommand = this.inlineListenersByCommandName[commandName]
     let listenersForElement = listenersForCommand.get(element)
-    if (listenersForElement == null) {
+    if (!listenersForElement) {
       listenersForElement = []
       listenersForCommand.set(element, listenersForElement)
     }
-    const listener = new InlineListener(callback)
-    listenersForElement.push(listener)
+    const inlineListener = new InlineListener(commandName, listener)
+    listenersForElement.push(inlineListener)
 
     this.commandRegistered(commandName)
 
-    return new Disposable(function () {
-      listenersForElement.splice(listenersForElement.indexOf(listener), 1)
+    return new Disposable(() => {
+      listenersForElement.splice(listenersForElement.indexOf(inlineListener), 1)
       if (listenersForElement.length === 0) {
-        return listenersForCommand.delete(element)
+        listenersForCommand.delete(element)
       }
     })
   }
@@ -184,10 +202,17 @@ module.exports = class CommandRegistry {
   // * `params` An {Object} containing one or more of the following keys:
   //   * `target` A DOM node that is the hypothetical target of a given command.
   //
-  // Returns an {Array} of {Object}s containing the following keys:
+  // Returns an {Array} of `CommandDescriptor` {Object}s containing the following keys:
   //  * `name` The name of the command. For example, `user:insert-date`.
   //  * `displayName` The display name of the command. For example,
   //    `User: Insert Date`.
+  // Additional metadata may also be present in the returned descriptor:
+  //  * `description` a {String} describing the function of the command in more
+  //    detail than the title
+  //  * `tags` an {Array} of {String}s that describe keywords related to the
+  //    command
+  //  Any additional nonstandard metadata provided when the command was `add`ed
+  //  may also be present in the returned descriptor.
   findCommands ({ target }) {
     const commandNames = new Set()
     const commands = []
@@ -198,23 +223,20 @@ module.exports = class CommandRegistry {
         listeners = this.inlineListenersByCommandName[name]
         if (listeners.has(currentTarget) && !commandNames.has(name)) {
           commandNames.add(name)
-          commands.push({ name, displayName: _.humanizeEventName(name) })
+          const targetListeners = listeners.get(currentTarget)
+          commands.push(
+            ...targetListeners.map(listener => listener.descriptor)
+          )
         }
       }
 
       for (const commandName in this.selectorBasedListenersByCommandName) {
         listeners = this.selectorBasedListenersByCommandName[commandName]
         for (const listener of listeners) {
-          if (
-            currentTarget.webkitMatchesSelector &&
-            currentTarget.webkitMatchesSelector(listener.selector)
-          ) {
+          if (listener.matchesTarget(currentTarget)) {
             if (!commandNames.has(commandName)) {
               commandNames.add(commandName)
-              commands.push({
-                name: commandName,
-                displayName: _.humanizeEventName(commandName)
-              })
+              commands.push(listener.descriptor)
             }
           }
         }
@@ -339,9 +361,7 @@ module.exports = class CommandRegistry {
       if (currentTarget.webkitMatchesSelector != null) {
         const selectorBasedListeners =
           (this.selectorBasedListenersByCommandName[event.type] || [])
-            .filter(listener =>
-              currentTarget.webkitMatchesSelector(listener.selector)
-            )
+            .filter(listener => listener.matchesTarget(currentTarget))
             .sort((a, b) => a.compare(b))
         listeners = selectorBasedListeners.concat(listeners)
       }
@@ -358,7 +378,7 @@ module.exports = class CommandRegistry {
         if (immediatePropagationStopped) {
           break
         }
-        listener.callback.call(currentTarget, dispatchedEvent)
+        listener.didDispatch.call(currentTarget, dispatchedEvent)
       }
 
       if (currentTarget === window) {
@@ -383,10 +403,15 @@ module.exports = class CommandRegistry {
   }
 }
 
+// type Listener = {
+//   descriptor: CommandDescriptor,
+//   extractDidDispatch: (e: CustomEvent) => void,
+// };
 class SelectorBasedListener {
-  constructor (selector, callback) {
+  constructor (selector, commandName, listener) {
     this.selector = selector
-    this.callback = callback
+    this.didDispatch = extractDidDispatch(listener)
+    this.descriptor = extractDescriptor(commandName, listener)
     this.specificity = calculateSpecificity(this.selector)
     this.sequenceNumber = SequenceCount++
   }
@@ -397,10 +422,33 @@ class SelectorBasedListener {
       this.sequenceNumber - other.sequenceNumber
     )
   }
+
+  matchesTarget (target) {
+    return target.webkitMatchesSelector && target.webkitMatchesSelector(this.selector)
+  }
 }
 
 class InlineListener {
-  constructor (callback) {
-    this.callback = callback
+  constructor (commandName, listener) {
+    this.didDispatch = extractDidDispatch(listener)
+    this.descriptor = extractDescriptor(commandName, listener)
   }
+}
+
+// type CommandDescriptor = {
+//   name: string,
+//   displayName: string,
+// };
+function extractDescriptor (name, listener) {
+  return Object.assign(
+    _.omit(listener, 'didDispatch'),
+    {
+      name,
+      displayName: listener.displayName ? listener.displayName : _.humanizeEventName(name)
+    }
+  )
+}
+
+function extractDidDispatch (listener) {
+  return typeof listener === 'function' ? listener : listener.didDispatch
 }
