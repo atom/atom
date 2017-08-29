@@ -47,46 +47,53 @@ module.exports = function (packagedAppPath, installDir) {
     const shareDirPath = path.join(prefixDirPath, 'share')
     const installationDirPath = path.join(shareDirPath, atomExecutableName)
     const applicationsDirPath = path.join(shareDirPath, 'applications')
-    const desktopEntryPath = path.join(applicationsDirPath, `${atomExecutableName}.desktop`)
+
     const binDirPath = path.join(prefixDirPath, 'bin')
-    const atomBinDestinationPath = path.join(binDirPath, atomExecutableName)
-    const apmBinDestinationPath = path.join(binDirPath, apmExecutableName)
 
     fs.mkdirpSync(applicationsDirPath)
     fs.mkdirpSync(binDirPath)
 
     install(installationDirPath, packagedAppFileName, packagedAppPath)
 
-    if (fs.existsSync(desktopEntryPath)) {
-      console.log(`Removing existing desktop entry file at "${desktopEntryPath}"`)
-      fs.removeSync(desktopEntryPath)
+    { // Install xdg desktop file
+      const desktopEntryPath = path.join(applicationsDirPath, `${atomExecutableName}.desktop`)
+      if (fs.existsSync(desktopEntryPath)) {
+        console.log(`Removing existing desktop entry file at "${desktopEntryPath}"`)
+        fs.removeSync(desktopEntryPath)
+      }
+      console.log(`Writing desktop entry file at "${desktopEntryPath}"`)
+      const iconPath = path.join(installationDirPath, 'atom.png')
+      const desktopEntryTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.desktop.in'))
+      const desktopEntryContents = template(desktopEntryTemplate)({
+        appName,
+        appFileName: atomExecutableName,
+        description: appDescription,
+        installDir: prefixDirPath,
+        iconPath
+      })
+      fs.writeFileSync(desktopEntryPath, desktopEntryContents)
     }
-    console.log(`Writing desktop entry file at "${desktopEntryPath}"`)
-    const iconPath = path.join(installationDirPath, 'atom.png')
-    const desktopEntryTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.desktop.in'))
-    const desktopEntryContents = template(desktopEntryTemplate)({
-      appName,
-      appFileName: atomExecutableName,
-      description: appDescription,
-      installDir: prefixDirPath,
-      iconPath
-    })
-    fs.writeFileSync(desktopEntryPath, desktopEntryContents)
 
-    if (fs.existsSync(atomBinDestinationPath)) {
-      console.log(`Removing existing executable at "${atomBinDestinationPath}"`)
-      fs.removeSync(atomBinDestinationPath)
+    { // Add atom executable to the PATH
+      const atomBinDestinationPath = path.join(binDirPath, atomExecutableName)
+      if (fs.existsSync(atomBinDestinationPath)) {
+        console.log(`Removing existing executable at "${atomBinDestinationPath}"`)
+        fs.removeSync(atomBinDestinationPath)
+      }
+      console.log(`Copying atom.sh to "${atomBinDestinationPath}"`)
+      fs.copySync(path.join(CONFIG.repositoryRootPath, 'atom.sh'), atomBinDestinationPath)
     }
-    console.log(`Copying atom.sh to "${atomBinDestinationPath}"`)
-    fs.copySync(path.join(CONFIG.repositoryRootPath, 'atom.sh'), atomBinDestinationPath)
 
-    try {
-      fs.lstatSync(apmBinDestinationPath)
-      console.log(`Removing existing executable at "${apmBinDestinationPath}"`)
-      fs.removeSync(apmBinDestinationPath)
-    } catch (e) { }
-    console.log(`Symlinking apm to "${apmBinDestinationPath}"`)
-    fs.symlinkSync(path.join('..', 'share', atomExecutableName, 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'), apmBinDestinationPath)
+    { // Link apm executable to the PATH
+      const apmBinDestinationPath = path.join(binDirPath, apmExecutableName)
+      try {
+        fs.lstatSync(apmBinDestinationPath)
+        console.log(`Removing existing executable at "${apmBinDestinationPath}"`)
+        fs.removeSync(apmBinDestinationPath)
+      } catch (e) { }
+      console.log(`Symlinking apm to "${apmBinDestinationPath}"`)
+      fs.symlinkSync(path.join('..', 'share', atomExecutableName, 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'), apmBinDestinationPath)
+    }
 
     console.log(`Changing permissions to 755 for "${installationDirPath}"`)
     fs.chmodSync(installationDirPath, '755')
