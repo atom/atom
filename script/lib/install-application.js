@@ -7,27 +7,28 @@ const template = require('lodash.template')
 
 const CONFIG = require('../config')
 
+function install (installationDirPath, packagedAppFileName, packagedAppPath) {
+  if (fs.existsSync(installationDirPath)) {
+    console.log(`Removing previously installed "${packagedAppFileName}" at "${installationDirPath}"`)
+    fs.removeSync(installationDirPath)
+  }
+
+  console.log(`Installing "${packagedAppFileName}" at "${installationDirPath}"`)
+  fs.copySync(packagedAppPath, installationDirPath)
+}
+
+
 module.exports = function (packagedAppPath, installDir) {
   const packagedAppFileName = path.basename(packagedAppPath)
   if (process.platform === 'darwin') {
     const installPrefix = installDir !== '' ? handleTilde(installDir) : path.join(path.sep, 'Applications')
     const installationDirPath = path.join(installPrefix, packagedAppFileName)
-    if (fs.existsSync(installationDirPath)) {
-      console.log(`Removing previously installed "${packagedAppFileName}" at "${installationDirPath}"`)
-      fs.removeSync(installationDirPath)
-    }
-    console.log(`Installing "${packagedAppPath}" at "${installationDirPath}"`)
-    fs.copySync(packagedAppPath, installationDirPath)
+    install(installationDirPath, packagedAppFileName, packagedAppPath)
   } else if (process.platform === 'win32') {
     const installPrefix = installDir !== '' ? installDir : process.env.LOCALAPPDATA
     const installationDirPath = path.join(installPrefix, packagedAppFileName, 'app-dev')
     try {
-      if (fs.existsSync(installationDirPath)) {
-        console.log(`Removing previously installed "${packagedAppFileName}" at "${installationDirPath}"`)
-        fs.removeSync(installationDirPath)
-      }
-      console.log(`Installing "${packagedAppPath}" at "${installationDirPath}"`)
-      fs.copySync(packagedAppPath, installationDirPath)
+      install(installationDirPath, packagedAppFileName, packagedAppPath)
     } catch (e) {
       console.log(`Administrator elevation required to install into "${installationDirPath}"`)
       const fsAdmin = require('fs-admin')
@@ -54,12 +55,7 @@ module.exports = function (packagedAppPath, installDir) {
     fs.mkdirpSync(applicationsDirPath)
     fs.mkdirpSync(binDirPath)
 
-    if (fs.existsSync(installationDirPath)) {
-      console.log(`Removing previously installed "${packagedAppFileName}" at "${installationDirPath}"`)
-      fs.removeSync(installationDirPath)
-    }
-    console.log(`Installing "${packagedAppFileName}" at "${installationDirPath}"`)
-    fs.copySync(packagedAppPath, installationDirPath)
+    install(installationDirPath, packagedAppFileName, packagedAppPath)
 
     if (fs.existsSync(desktopEntryPath)) {
       console.log(`Removing existing desktop entry file at "${desktopEntryPath}"`)
