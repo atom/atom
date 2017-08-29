@@ -75,7 +75,7 @@ const EXCLUDE_REGEXPS_SOURCES = [
   'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.md$',
   'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.d\\.ts$',
   'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.js\\.map$'
- ]
+]
 
 // Ignore spec directories in all bundled packages
 for (let packageName in CONFIG.appMetadata.packageDependencies) {
