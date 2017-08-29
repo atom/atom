@@ -47,7 +47,6 @@ const EXCLUDE_REGEXPS_SOURCES = [
   escapeRegExp(path.join('build', 'Release', 'obj.target')),
   escapeRegExp(path.join('build', 'Release', 'obj')),
   escapeRegExp(path.join('build', 'Release', '.deps')),
-  escapeRegExp(path.join('deps', 'libgit2')),
   escapeRegExp(path.join('vendor', 'apm')),
 
   // These are only required in dev-mode, when pegjs grammars aren't precompiled
@@ -72,9 +71,9 @@ const EXCLUDE_REGEXPS_SOURCES = [
   'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'docs' + escapeRegExp(path.sep),
   'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'examples?' + escapeRegExp(path.sep),
   'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'samples?' + escapeRegExp(path.sep),
-  // 'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.md$',
-  // 'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.d\\.ts$',
-  // 'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.js\\.map$'
+  'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.md$',
+  'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.d\\.ts$',
+  'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.js\\.map$'
 ]
 
 // Ignore spec directories in all bundled packages
