@@ -2950,7 +2950,8 @@ class DummyScrollbarComponent {
     const outerStyle = {
       position: 'absolute',
       contain: 'strict',
-      zIndex: 1
+      zIndex: 1,
+      willChange: 'transform'
     }
     const innerStyle = {}
     if (orientation === 'horizontal') {
