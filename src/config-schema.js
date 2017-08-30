@@ -19,6 +19,12 @@ const configSchema = {
         title: 'Exclude VCS Ignored Paths',
         description: 'Files and directories ignored by the current project\'s VCS system will be ignored by some packages, such as the fuzzy finder and find and replace. For example, projects using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
       },
+      gitRepositoryRefreshOnWindowFocus: {
+          type: 'boolean',
+          default: false,
+          title: 'Re-index Git Repositories on Window Focus',
+          description: 'If true, Atom will pause to re-index all Git repositories that are open in the tree view each time the focus returns to the Atom window. May cause a 3-10 second delay each time you switch to and from another window.'
+      },
       followSymlinks: {
         type: 'boolean',
         default: true,
