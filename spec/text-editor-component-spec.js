@@ -2276,6 +2276,93 @@ describe('TextEditorComponent', () => {
       ])
     })
 
+    it('removes block decorations whose markers are invalidated, and adds them back when they become valid again', async () => {
+      const editor = buildEditor({rowsPerTile: 3, autoHeight: false})
+      const {item, decoration, marker} = createBlockDecorationAtScreenRow(editor, 3, {height: 44, position: 'before', invalidate: 'touch'})
+      const {component, element} = buildComponent({editor, rowsPerTile: 3})
+
+      // Invalidating the marker removes the block decoration.
+      editor.getBuffer().deleteRows(2, 3)
+      await component.getNextUpdatePromise()
+      expect(item.parentElement).toBeNull()
+      assertLinesAreAlignedWithLineNumbers(component)
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight()},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()},
+        {tileStartRow: 6, height: 3 * component.getLineHeight()}
+      ])
+
+      // Moving invalid markers is ignored.
+      marker.setScreenRange([[2, 0], [2, 0]])
+      await component.getNextUpdatePromise()
+      expect(item.parentElement).toBeNull()
+      assertLinesAreAlignedWithLineNumbers(component)
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight()},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()},
+        {tileStartRow: 6, height: 3 * component.getLineHeight()}
+      ])
+
+      // Making the marker valid again adds back the block decoration.
+      marker.bufferMarker.valid = true
+      marker.setScreenRange([[3, 0], [3, 0]])
+      await component.getNextUpdatePromise()
+      expect(item.nextSibling).toBe(lineNodeForScreenRow(component, 3))
+      assertLinesAreAlignedWithLineNumbers(component)
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight()},
+        {tileStartRow: 3, height: 3 * component.getLineHeight() + 44},
+        {tileStartRow: 6, height: 3 * component.getLineHeight()}
+      ])
+
+      // Destroying the decoration and invalidating the marker at the same time
+      // removes the block decoration correctly.
+      editor.getBuffer().deleteRows(2, 3)
+      decoration.destroy()
+      await component.getNextUpdatePromise()
+      expect(item.parentElement).toBeNull()
+      assertLinesAreAlignedWithLineNumbers(component)
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight()},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()},
+        {tileStartRow: 6, height: 3 * component.getLineHeight()}
+      ])
+    })
+
+    it('does not render block decorations when decorating invalid markers', async () => {
+      const editor = buildEditor({rowsPerTile: 3, autoHeight: false})
+      const {component, element} = buildComponent({editor, rowsPerTile: 3})
+
+      const marker = editor.markScreenPosition([3, 0], {invalidate: 'touch'})
+      const item = document.createElement('div')
+      item.style.height = 30 + 'px'
+      item.style.width = 30 + 'px'
+      editor.getBuffer().deleteRows(1, 4)
+
+      const decoration = editor.decorateMarker(marker, {type: 'block', item, position: 'before'})
+      await component.getNextUpdatePromise()
+      expect(item.parentElement).toBeNull()
+      assertLinesAreAlignedWithLineNumbers(component)
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight()},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()},
+        {tileStartRow: 6, height: 3 * component.getLineHeight()}
+      ])
+
+      // Making the marker valid again causes the corresponding block decoration
+      // to be added to the editor.
+      marker.bufferMarker.valid = true
+      marker.setScreenRange([[2, 0], [2, 0]])
+      await component.getNextUpdatePromise()
+      expect(item.nextSibling).toBe(lineNodeForScreenRow(component, 2))
+      assertLinesAreAlignedWithLineNumbers(component)
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight() + 30},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()},
+        {tileStartRow: 6, height: 3 * component.getLineHeight()}
+      ])
+    })
+
     it('measures block decorations correctly when they are added before the component width has been updated', async () => {
       {
         const {editor, component, element} = buildComponent({autoHeight: false, width: 500, attach: false})
@@ -2343,8 +2430,8 @@ describe('TextEditorComponent', () => {
       expect(editor.getCursorScreenPosition()).toEqual([0, 0])
     })
 
-    function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, marginTop, marginBottom, position}) {
-      const marker = editor.markScreenPosition([screenRow, 0], {invalidate: 'never'})
+    function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, marginTop, marginBottom, position, invalidate}) {
+      const marker = editor.markScreenPosition([screenRow, 0], {invalidate: invalidate || 'never'})
       const item = document.createElement('div')
       item.style.height = height + 'px'
       if (margin != null) item.style.margin = margin + 'px'
@@ -2352,7 +2439,7 @@ describe('TextEditorComponent', () => {
       if (marginBottom != null) item.style.marginBottom = marginBottom + 'px'
       item.style.width = 30 + 'px'
       const decoration = editor.decorateMarker(marker, {type: 'block', item, position})
-      return {item, decoration}
+      return {item, decoration, marker}
     }
 
     function assertTilesAreSizedAndPositionedCorrectly (component, tiles) {
