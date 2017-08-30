@@ -5,6 +5,7 @@ const handleTilde = require('./handle-tilde')
 const path = require('path')
 const template = require('lodash.template')
 const startCase = require('lodash.startcase')
+const execSync = require('child_process').execSync
 
 const CONFIG = require('../config')
 
@@ -95,6 +96,11 @@ module.exports = function (packagedAppPath, installDir) {
           fs.copySync(iconPath, path.join(baseIconThemeDirPath, `${size}x${size}`, 'apps', fullIconName))
         }
       })
+
+      console.log(`Updating icon cache for "${baseIconThemeDirPath}"`)
+      try {
+        execSync(`gtk-update-icon-cache ${baseIconThemeDirPath} --force`)
+      } catch (e) {}
     }
 
     { // Install xdg desktop file
