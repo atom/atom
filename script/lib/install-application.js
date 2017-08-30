@@ -18,6 +18,20 @@ function install (installationDirPath, packagedAppFileName, packagedAppPath) {
   fs.copySync(packagedAppPath, installationDirPath)
 }
 
+function findBaseIconThemeDirPath () {
+  const defaultBaseIconThemeDir = '/usr/share/icons/hicolor'
+  const dataDirsString = process.env.XDG_DATA_DIRS
+  if (dataDirsString) {
+    const dataDirs = dataDirsString.split(path.delimiter)
+    if (dataDirs.includes('/usr/share/') || dataDirs.includes('/usr/share')) {
+      return defaultBaseIconThemeDir
+    } else {
+      return path.join(dataDirs[0], 'icons', 'hicolor')
+    }
+  } else {
+    return defaultBaseIconThemeDir
+  }
+}
 
 module.exports = function (packagedAppPath, installDir) {
   const packagedAppFileName = path.basename(packagedAppPath)
@@ -56,6 +70,33 @@ module.exports = function (packagedAppPath, installDir) {
 
     install(installationDirPath, packagedAppFileName, packagedAppPath)
 
+    { // Install icons
+      const baseIconThemeDirPath = findBaseIconThemeDirPath()
+      const fullIconName = atomExecutableName + '.png'
+
+      let existingIconsFound = false
+      fs.readdirSync(baseIconThemeDirPath).forEach(size => {
+        const iconPath = path.join(baseIconThemeDirPath, size, 'apps', fullIconName)
+        if (fs.existsSync(iconPath)) {
+          if (!existingIconsFound) {
+            console.log(`Removing existing icons from "${baseIconThemeDirPath}"`)
+          }
+          existingIconsFound = true
+          fs.removeSync(iconPath)
+        }
+      })
+
+      console.log(`Installing icons at "${baseIconThemeDirPath}"`)
+      const appIconsPath = path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'png')
+      fs.readdirSync(appIconsPath).forEach(imageName => {
+        if (/\.png$/.test(imageName)) {
+          const size = path.basename(imageName, '.png')
+          const iconPath = path.join(appIconsPath, imageName)
+          fs.copySync(iconPath, path.join(baseIconThemeDirPath, `${size}x${size}`, 'apps', fullIconName))
+        }
+      })
+    }
+
     { // Install xdg desktop file
       const desktopEntryPath = path.join(applicationsDirPath, `${atomExecutableName}.desktop`)
       if (fs.existsSync(desktopEntryPath)) {
@@ -63,14 +104,13 @@ module.exports = function (packagedAppPath, installDir) {
         fs.removeSync(desktopEntryPath)
       }
       console.log(`Writing desktop entry file at "${desktopEntryPath}"`)
-      const iconPath = path.join(installationDirPath, 'atom.png')
       const desktopEntryTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.desktop.in'))
       const desktopEntryContents = template(desktopEntryTemplate)({
         appName,
         appFileName: atomExecutableName,
         description: appDescription,
         installDir: prefixDirPath,
-        iconPath
+        iconPath: atomExecutableName
       })
       fs.writeFileSync(desktopEntryPath, desktopEntryContents)
     }
