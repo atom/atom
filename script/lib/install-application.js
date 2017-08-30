@@ -4,6 +4,7 @@ const fs = require('fs-extra')
 const handleTilde = require('./handle-tilde')
 const path = require('path')
 const template = require('lodash.template')
+const startCase = require('lodash.startcase')
 
 const CONFIG = require('../config')
 
@@ -39,9 +40,9 @@ module.exports = function (packagedAppPath, installDir) {
       })
     }
   } else {
-    const atomExecutableName = CONFIG.channel === 'beta' ? 'atom-beta' : 'atom'
-    const apmExecutableName = CONFIG.channel === 'beta' ? 'apm-beta' : 'apm'
-    const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+    const atomExecutableName = CONFIG.channel === 'stable' ? 'atom' : 'atom-' + CONFIG.channel
+    const apmExecutableName = CONFIG.channel === 'stable' ? 'apm' : 'apm-' + CONFIG.channel
+    const appName = CONFIG.channel === 'stable' ? 'Atom' : startCase('Atom ' + CONFIG.channel)
     const appDescription = CONFIG.appMetadata.description
     const prefixDirPath = installDir !== '' ? handleTilde(installDir) : path.join('/usr', 'local')
     const shareDirPath = path.join(prefixDirPath, 'share')
