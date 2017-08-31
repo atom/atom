@@ -688,8 +688,8 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       element.style.width = component.getGutterContainerWidth() + component.getContentHeight() - 20 + 'px'
       await component.getNextUpdatePromise()
-      expect(component.isHorizontalScrollbarVisible()).toBe(true)
-      expect(component.isVerticalScrollbarVisible()).toBe(false)
+      expect(component.canScrollHorizontally()).toBe(true)
+      expect(component.canScrollVertically()).toBe(false)
       expect(element.offsetHeight).toBe(component.getContentHeight() + component.getHorizontalScrollbarHeight() + 2 * editorPadding)
 
       // When a vertical scrollbar is visible, autoWidth accounts for it
@@ -697,8 +697,8 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
       element.style.height = component.getContentHeight() - 20
       await component.getNextUpdatePromise()
-      expect(component.isHorizontalScrollbarVisible()).toBe(false)
-      expect(component.isVerticalScrollbarVisible()).toBe(true)
+      expect(component.canScrollHorizontally()).toBe(false)
+      expect(component.canScrollVertically()).toBe(true)
       expect(element.offsetWidth).toBe(
         component.getGutterContainerWidth() +
         component.getContentWidth() +
@@ -898,8 +898,8 @@ describe('TextEditorComponent', () => {
       editor.setText('x'.repeat(20) + 'y'.repeat(20))
       await component.getNextUpdatePromise()
 
-      expect(component.isHorizontalScrollbarVisible()).toBe(false)
-      expect(component.isVerticalScrollbarVisible()).toBe(false)
+      expect(component.canScrollVertically()).toBe(false)
+      expect(component.canScrollHorizontally()).toBe(false)
       expect(component.refs.horizontalScrollbar).toBeUndefined()
       expect(component.refs.verticalScrollbar).toBeUndefined()
     })
