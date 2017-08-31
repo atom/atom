@@ -1522,11 +1522,15 @@ class TextEditorComponent {
     let {deltaX, deltaY} = event
 
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      deltaX = deltaX * scrollSensitivity
+      deltaX = (Math.sign(deltaX) === 1)
+        ? Math.max(1, deltaX * scrollSensitivity)
+        : Math.min(-1, deltaX * scrollSensitivity)
       deltaY = 0
     } else {
       deltaX = 0
-      deltaY = deltaY * scrollSensitivity
+      deltaY = (Math.sign(deltaY) === 1)
+        ? Math.max(1, deltaY * scrollSensitivity)
+        : Math.min(-1, deltaY * scrollSensitivity)
     }
 
     if (this.getPlatform() !== 'darwin' && event.shiftKey) {
