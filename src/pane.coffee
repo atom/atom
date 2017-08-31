@@ -888,7 +888,7 @@ class Pane
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)
 
-    @moveItemToPane(@activeItem, newPane) if params?.moveActiveItem
+    @moveItemToPane(@activeItem, newPane) if params?.moveActiveItem and @activeItem
 
     newPane.activate()
     newPane

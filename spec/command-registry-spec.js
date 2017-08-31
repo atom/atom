@@ -224,33 +224,36 @@ describe("CommandRegistry", () => {
       expect(addError.message).toContain(badSelector);
     });
 
-    it("throws an error when called with a non-function callback and selector target", () => {
+    it("throws an error when called with a null callback and selector target", () => {
       const badCallback = null;
-      let addError = null;
 
-      try {
+      expect(() => {
         registry.add('.selector', 'foo:bar', badCallback);
-      } catch (error) {
-        addError = error;
-      }
-      expect(addError.message).toContain("Can't register a command with non-function callback.");
+      }).toThrow(new Error('Cannot register a command with a null listener.'));
     });
 
-    it("throws an error when called with an non-function callback and object target", () => {
+    it("throws an error when called with a null callback and object target", () => {
       const badCallback = null;
-      let addError = null;
 
-      try {
+      expect(() => {
         registry.add(document.body, 'foo:bar', badCallback);
-      } catch (error) {
-        addError = error;
-      }
-      expect(addError.message).toContain("Can't register a command with non-function callback.");
+      }).toThrow(new Error('Cannot register a command with a null listener.'));
+    });
+
+    it("throws an error when called with an object listener without a didDispatch method", () => {
+      const badListener = {
+        title: 'a listener without a didDispatch callback',
+        description: 'this should throw an error'
+      };
+
+      expect(() => {
+        registry.add(document.body, 'foo:bar', badListener);
+      }).toThrow(new Error('Listener must be a callback function or an object with a didDispatch method.'));
     });
   });
 
-  describe("::findCommands({target})", () =>
-    it("returns commands that can be invoked on the target or its ancestors", () => {
+  describe("::findCommands({target})", () => {
+    it("returns command descriptors that can be invoked on the target or its ancestors", () => {
       registry.add('.parent', 'namespace:command-1', () => {});
       registry.add('.child', 'namespace:command-2', () => {});
       registry.add('.grandchild', 'namespace:command-3', () => {});
@@ -268,8 +271,75 @@ describe("CommandRegistry", () => {
         {name: 'namespace:command-2', displayName: 'Namespace: Command 2'},
         {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
       ]);
-  })
-);
+    });
+
+    it("returns command descriptors with arbitrary metadata if set in a listener object", () => {
+      registry.add('.grandchild', 'namespace:command-1', () => {});
+      registry.add('.grandchild', 'namespace:command-2', {
+        displayName: 'Custom Command 2',
+        metadata: {
+          some: 'other',
+          object: 'data'
+        },
+        didDispatch() {}
+      });
+      registry.add('.grandchild', 'namespace:command-3', {
+        name: 'some:other:incorrect:commandname',
+        displayName: 'Custom Command 3',
+        metadata: {
+          some: 'other',
+          object: 'data'
+        },
+        didDispatch() {}
+      });
+
+      const commands = registry.findCommands({target: grandchild});
+      expect(commands).toEqual([
+        {
+          displayName: 'Namespace: Command 1',
+          name: 'namespace:command-1'
+        },
+        {
+          displayName: 'Custom Command 2',
+          metadata: {
+            some : 'other',
+            object : 'data'
+          },
+          name: 'namespace:command-2'
+        },
+        {
+          displayName: 'Custom Command 3',
+          metadata: {
+            some : 'other',
+            object : 'data'
+          },
+          name: 'namespace:command-3'
+        }
+      ]);
+    });
+
+    it("returns command descriptors with arbitrary metadata if set on a listener function", () => {
+      function listener () {}
+      listener.displayName = 'Custom Command 2'
+      listener.metadata = {
+        some: 'other',
+        object: 'data'
+      };
+
+      registry.add('.grandchild', 'namespace:command-2', listener);
+      const commands = registry.findCommands({target: grandchild});
+      expect(commands).toEqual([
+        {
+          displayName : 'Custom Command 2',
+          metadata: {
+            some: 'other',
+            object: 'data'
+          },
+          name: 'namespace:command-2'
+        }
+      ]);
+    });
+  });
 
   describe("::dispatch(target, commandName)", () => {
     it("simulates invocation of the given command ", () => {
