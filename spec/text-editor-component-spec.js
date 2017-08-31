@@ -1209,7 +1209,6 @@ describe('TextEditorComponent', () => {
       }
 
       {
-        global.debug = true
         const expectedScrollTop = component.getScrollTop()
         const expectedScrollLeft = 20 * (scrollSensitivity / 100)
         component.didMouseWheel({deltaX: 20, deltaY: -10})
@@ -1225,6 +1224,40 @@ describe('TextEditorComponent', () => {
         expect(component.getScrollTop()).toBe(expectedScrollTop)
         expect(component.getScrollLeft()).toBe(expectedScrollLeft)
         expect(component.refs.content.style.transform).toBe(`translate(${-expectedScrollLeft}px, ${-expectedScrollTop}px)`)
+      }
+    })
+
+    it('always scrolls by a minimum of 1, even when the delta is small or the scroll sensitivity is low', () => {
+      const scrollSensitivity = 10
+      const {component, editor} = buildComponent({height: 50, width: 50, scrollSensitivity})
+
+      {
+        component.didMouseWheel({deltaX: 0, deltaY: 3})
+        expect(component.getScrollTop()).toBe(1)
+        expect(component.getScrollLeft()).toBe(0)
+        expect(component.refs.content.style.transform).toBe(`translate(0px, -1px)`)
+      }
+
+      {
+        component.didMouseWheel({deltaX: 4, deltaY: 0})
+        expect(component.getScrollTop()).toBe(1)
+        expect(component.getScrollLeft()).toBe(1)
+        expect(component.refs.content.style.transform).toBe(`translate(-1px, -1px)`)
+      }
+
+      editor.update({scrollSensitivity: 100})
+      {
+        component.didMouseWheel({deltaX: 0, deltaY: -0.3})
+        expect(component.getScrollTop()).toBe(0)
+        expect(component.getScrollLeft()).toBe(1)
+        expect(component.refs.content.style.transform).toBe(`translate(-1px, 0px)`)
+      }
+
+      {
+        component.didMouseWheel({deltaX: -0.1, deltaY: 0})
+        expect(component.getScrollTop()).toBe(0)
+        expect(component.getScrollLeft()).toBe(0)
+        expect(component.refs.content.style.transform).toBe(`translate(0px, 0px)`)
       }
     })
 
