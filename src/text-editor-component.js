@@ -2983,7 +2983,7 @@ class DummyScrollbarComponent {
     const {
       orientation, scrollWidth, scrollHeight,
       verticalScrollbarWidth, horizontalScrollbarHeight,
-      canScroll, forceScrollbarVisible, didScroll, didMouseDown
+      canScroll, forceScrollbarVisible, didScroll
     } = this.props
 
     const outerStyle = {
@@ -3025,7 +3025,7 @@ class DummyScrollbarComponent {
         style: outerStyle,
         on: {
           scroll: didScroll,
-          mousedown: didMouseDown
+          mousedown: this.didMouseDown
         }
       },
       $.div({style: innerStyle})
