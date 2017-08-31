@@ -158,6 +158,7 @@ class WindowEventHandler
     @atomEnvironment.toggleFullScreen()
 
   handleWindowClose: =>
+    @atomEnvironment.storeWindowDimensions()
     @atomEnvironment.close()
 
   handleWindowReload: =>
