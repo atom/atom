@@ -738,7 +738,7 @@ class TextEditor extends Model
   # Called by DecorationManager when a decoration is added.
   didAddDecoration: (decoration) ->
     if decoration.isType('block')
-      @component?.didAddBlockDecoration(decoration)
+      @component?.addBlockDecoration(decoration)
 
   # Extended: Calls your `callback` when the placeholder text is changed.
   #
