@@ -1508,7 +1508,7 @@ describe('TextEditorComponent', () => {
       }
     })
 
-    it('renders multi-line highlights that span across tiles', async () => {
+    it('renders multi-line highlights', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 3})
       const marker = editor.markScreenRange([[2, 4], [3, 4]])
       editor.decorateMarker(marker, {type: 'highlight', class: 'a'})
@@ -1516,9 +1516,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
 
       {
-        // We have 2 top-level highlight divs due to the regions being split
-        // across 2 different tiles
-        expect(element.querySelectorAll('.highlight.a').length).toBe(2)
+        expect(element.querySelectorAll('.highlight.a').length).toBe(1)
 
         const regions = element.querySelectorAll('.highlight.a .region.a')
         expect(regions.length).toBe(2)
@@ -1539,11 +1537,10 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
 
       {
-        // Still split across 2 tiles
-        expect(element.querySelectorAll('.highlight.a').length).toBe(2)
+        expect(element.querySelectorAll('.highlight.a').length).toBe(1)
 
         const regions = element.querySelectorAll('.highlight.a .region.a')
-        expect(regions.length).toBe(4) // Each tile renders its
+        expect(regions.length).toBe(3)
 
         const region0Rect = regions[0].getBoundingClientRect()
         expect(region0Rect.top).toBe(lineNodeForScreenRow(component, 2).getBoundingClientRect().top)
@@ -1553,21 +1550,15 @@ describe('TextEditorComponent', () => {
 
         const region1Rect = regions[1].getBoundingClientRect()
         expect(region1Rect.top).toBe(lineNodeForScreenRow(component, 3).getBoundingClientRect().top)
-        expect(region1Rect.bottom).toBe(lineNodeForScreenRow(component, 4).getBoundingClientRect().top)
+        expect(region1Rect.bottom).toBe(lineNodeForScreenRow(component, 5).getBoundingClientRect().top)
         expect(Math.round(region1Rect.left)).toBe(component.refs.content.getBoundingClientRect().left)
         expect(Math.round(region1Rect.right)).toBe(component.refs.content.getBoundingClientRect().right)
 
         const region2Rect = regions[2].getBoundingClientRect()
-        expect(region2Rect.top).toBe(lineNodeForScreenRow(component, 4).getBoundingClientRect().top)
-        expect(region2Rect.bottom).toBe(lineNodeForScreenRow(component, 5).getBoundingClientRect().top)
+        expect(region2Rect.top).toBe(lineNodeForScreenRow(component, 5).getBoundingClientRect().top)
+        expect(region2Rect.bottom).toBe(lineNodeForScreenRow(component, 6).getBoundingClientRect().top)
         expect(Math.round(region2Rect.left)).toBe(component.refs.content.getBoundingClientRect().left)
-        expect(Math.round(region2Rect.right)).toBe(component.refs.content.getBoundingClientRect().right)
-
-        const region3Rect = regions[3].getBoundingClientRect()
-        expect(region3Rect.top).toBe(lineNodeForScreenRow(component, 5).getBoundingClientRect().top)
-        expect(region3Rect.bottom).toBe(lineNodeForScreenRow(component, 5).getBoundingClientRect().bottom)
-        expect(Math.round(region3Rect.left)).toBe(component.refs.content.getBoundingClientRect().left)
-        expect(Math.round(region3Rect.right)).toBe(clientLeftForCharacter(component, 5, 4))
+        expect(Math.round(region2Rect.right)).toBe(clientLeftForCharacter(component, 5, 4))
       }
     })
 
@@ -1580,20 +1571,15 @@ describe('TextEditorComponent', () => {
       // Flash on initial appearence of highlight
       await component.getNextUpdatePromise()
       const highlights = element.querySelectorAll('.highlight.a')
-      expect(highlights.length).toBe(2) // split across 2 tiles
+      expect(highlights.length).toBe(1)
 
       expect(highlights[0].classList.contains('b')).toBe(true)
-      expect(highlights[1].classList.contains('b')).toBe(true)
 
-      await conditionPromise(() =>
-        !highlights[0].classList.contains('b') &&
-        !highlights[1].classList.contains('b')
-      )
+      await conditionPromise(() => !highlights[0].classList.contains('b'))
 
       // Don't flash on next update if another flash wasn't requested
       await setScrollTop(component, 100)
       expect(highlights[0].classList.contains('b')).toBe(false)
-      expect(highlights[1].classList.contains('b')).toBe(false)
 
       // Flashing the same class again before the first flash completes
       // removes the flash class and adds it back on the next frame to ensure
@@ -1601,22 +1587,13 @@ describe('TextEditorComponent', () => {
       decoration.flash('e', 100)
       await component.getNextUpdatePromise()
       expect(highlights[0].classList.contains('e')).toBe(true)
-      expect(highlights[1].classList.contains('e')).toBe(true)
 
       decoration.flash('e', 100)
       await component.getNextUpdatePromise()
       expect(highlights[0].classList.contains('e')).toBe(false)
-      expect(highlights[1].classList.contains('e')).toBe(false)
 
-      await conditionPromise(() =>
-        highlights[0].classList.contains('e') &&
-        highlights[1].classList.contains('e')
-      )
-
-      await conditionPromise(() =>
-        !highlights[0].classList.contains('e') &&
-        !highlights[1].classList.contains('e')
-      )
+      await conditionPromise(() => highlights[0].classList.contains('e'))
+      await conditionPromise(() => !highlights[0].classList.contains('e'))
     })
 
     it("flashing a highlight decoration doesn't unflash other highlight decorations", async () => {
@@ -1628,16 +1605,14 @@ describe('TextEditorComponent', () => {
       decoration.flash('c', 1000)
       await component.getNextUpdatePromise()
       const highlights = element.querySelectorAll('.highlight.a')
+      expect(highlights.length).toBe(1)
       expect(highlights[0].classList.contains('c')).toBe(true)
-      expect(highlights[1].classList.contains('c')).toBe(true)
 
       // Flash another class while the previously-flashed class is still highlighted
       decoration.flash('d', 100)
       await component.getNextUpdatePromise()
       expect(highlights[0].classList.contains('c')).toBe(true)
-      expect(highlights[1].classList.contains('c')).toBe(true)
       expect(highlights[0].classList.contains('d')).toBe(true)
-      expect(highlights[1].classList.contains('d')).toBe(true)
     })
 
     it('supports layer decorations', async () => {
@@ -2002,7 +1977,7 @@ describe('TextEditorComponent', () => {
       ])
       assertLinesAreAlignedWithLineNumbers(component)
       expect(queryOnScreenLineElements(element).length).toBe(9)
-      expect(item1.previousSibling.className).toBe('highlights')
+      expect(item1.previousSibling).toBeNull()
       expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 2))
@@ -2026,7 +2001,7 @@ describe('TextEditorComponent', () => {
       ])
       assertLinesAreAlignedWithLineNumbers(component)
       expect(queryOnScreenLineElements(element).length).toBe(9)
-      expect(item1.previousSibling.className).toBe('highlights')
+      expect(item1.previousSibling).toBeNull()
       expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 1))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 2))
@@ -2081,7 +2056,7 @@ describe('TextEditorComponent', () => {
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
-      expect(item3.previousSibling.className).toBe('highlights')
+      expect(item3.previousSibling).toBeNull()
       expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
@@ -2104,9 +2079,9 @@ describe('TextEditorComponent', () => {
       assertLinesAreAlignedWithLineNumbers(component)
       expect(queryOnScreenLineElements(element).length).toBe(9)
       expect(element.contains(item1)).toBe(false)
-      expect(item2.previousSibling.className).toBe('highlights')
+      expect(item2.previousSibling).toBeNull()
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 3))
-      expect(item3.previousSibling.className).toBe('highlights')
+      expect(item3.previousSibling).toBeNull()
       expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(element.contains(item4)).toBe(false)
       expect(element.contains(item5)).toBe(false)
@@ -2128,7 +2103,7 @@ describe('TextEditorComponent', () => {
       assertLinesAreAlignedWithLineNumbers(component)
       expect(queryOnScreenLineElements(element).length).toBe(9)
       expect(element.contains(item1)).toBe(false)
-      expect(item2.previousSibling.className).toBe('highlights')
+      expect(item2.previousSibling).toBeNull()
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 3))
       expect(element.contains(item3)).toBe(false)
       expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 9))
@@ -2155,7 +2130,7 @@ describe('TextEditorComponent', () => {
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
-      expect(item3.previousSibling.className).toBe('highlights')
+      expect(item3.previousSibling).toBeNull()
       expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
@@ -2185,7 +2160,7 @@ describe('TextEditorComponent', () => {
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
-      expect(item3.previousSibling.className).toBe('highlights')
+      expect(item3.previousSibling).toBeNull()
       expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
       expect(item5.previousSibling).toBe(lineNodeForScreenRow(component, 7))
@@ -2223,7 +2198,7 @@ describe('TextEditorComponent', () => {
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
-      expect(item3.previousSibling.className).toBe('highlights')
+      expect(item3.previousSibling).toBeNull()
       expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
@@ -2250,7 +2225,7 @@ describe('TextEditorComponent', () => {
       expect(element.contains(item1)).toBe(false)
       expect(item2.previousSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 1))
-      expect(item3.previousSibling.className).toBe('highlights')
+      expect(item3.previousSibling).toBeNull()
       expect(item3.nextSibling).toBe(lineNodeForScreenRow(component, 0))
       expect(item4.previousSibling).toBe(lineNodeForScreenRow(component, 6))
       expect(item4.nextSibling).toBe(lineNodeForScreenRow(component, 7))
