@@ -2471,37 +2471,61 @@ class TextEditorComponent {
     const {model} = this.props
     const decorations = model.getDecorations({type: 'block'})
     for (let i = 0; i < decorations.length; i++) {
-      this.didAddBlockDecoration(decorations[i])
+      this.addBlockDecoration(decorations[i])
     }
   }
 
-  didAddBlockDecoration (decoration) {
+  addBlockDecoration (decoration, subscribeToChanges = true) {
     const marker = decoration.getMarker()
     const {item, position} = decoration.getProperties()
     const element = TextEditor.viewForItem(item)
-    const row = marker.getHeadScreenPosition().row
-    this.lineTopIndex.insertBlock(decoration, row, 0, position === 'after')
 
-    this.blockDecorationsToMeasure.add(decoration)
-    this.blockDecorationsByElement.set(element, decoration)
-    this.blockDecorationResizeObserver.observe(element)
+    if (marker.isValid()) {
+      const row = marker.getHeadScreenPosition().row
+      this.lineTopIndex.insertBlock(decoration, row, 0, position === 'after')
+      this.blockDecorationsToMeasure.add(decoration)
+      this.blockDecorationsByElement.set(element, decoration)
+      this.blockDecorationResizeObserver.observe(element)
 
-    const didUpdateDisposable = marker.bufferMarker.onDidChange((e) => {
-      if (!e.textChanged) {
-        this.lineTopIndex.moveBlock(decoration, marker.getHeadScreenPosition().row)
-        this.scheduleUpdate()
-      }
-    })
-    const didDestroyDisposable = decoration.onDidDestroy(() => {
-      this.blockDecorationsToMeasure.delete(decoration)
-      this.heightsByBlockDecoration.delete(decoration)
-      this.blockDecorationsByElement.delete(element)
-      this.blockDecorationResizeObserver.unobserve(element)
-      this.lineTopIndex.removeBlock(decoration)
-      didUpdateDisposable.dispose()
-      didDestroyDisposable.dispose()
       this.scheduleUpdate()
-    })
+    }
+
+    if (subscribeToChanges) {
+      let wasValid = marker.isValid()
+
+      const didUpdateDisposable = marker.bufferMarker.onDidChange(({textChanged}) => {
+        const isValid = marker.isValid()
+        if (wasValid && !isValid) {
+          wasValid = false
+          this.blockDecorationsToMeasure.delete(decoration)
+          this.heightsByBlockDecoration.delete(decoration)
+          this.blockDecorationsByElement.delete(element)
+          this.blockDecorationResizeObserver.unobserve(element)
+          this.lineTopIndex.removeBlock(decoration)
+          this.scheduleUpdate()
+        } else if (!wasValid && isValid) {
+          wasValid = true
+          this.addBlockDecoration(decoration, false)
+        } else if (isValid && !textChanged) {
+          this.lineTopIndex.moveBlock(decoration, marker.getHeadScreenPosition().row)
+          this.scheduleUpdate()
+        }
+      })
+
+      const didDestroyDisposable = decoration.onDidDestroy(() => {
+        didUpdateDisposable.dispose()
+        didDestroyDisposable.dispose()
+
+        if (marker.isValid()) {
+          this.blockDecorationsToMeasure.delete(decoration)
+          this.heightsByBlockDecoration.delete(decoration)
+          this.blockDecorationsByElement.delete(element)
+          this.blockDecorationResizeObserver.unobserve(element)
+          this.lineTopIndex.removeBlock(decoration)
+          this.scheduleUpdate()
+        }
+      })
+    }
   }
 
   didResizeBlockDecorations (entries) {
