@@ -468,7 +468,11 @@ module.exports = class PackageManager {
   }
 
   preloadPackages () {
-    return Object.entries(this.packagesCache).map(p => this.preloadPackage(p[0], p[1]))
+    const result = [];
+    for (const packageName in this.packagesCache) {
+      result.push(this.preloadPackage(packageName, this.packagesCache[packageName]));
+    }
+    return result;
   }
 
   preloadPackage (packageName, pack) {
