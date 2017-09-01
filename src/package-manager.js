@@ -468,11 +468,11 @@ module.exports = class PackageManager {
   }
 
   preloadPackages () {
-    const result = [];
+    const result = []
     for (const packageName in this.packagesCache) {
-      result.push(this.preloadPackage(packageName, this.packagesCache[packageName]));
+      result.push(this.preloadPackage(packageName, this.packagesCache[packageName]))
     }
-    return result;
+    return result
   }
 
   preloadPackage (packageName, pack) {
