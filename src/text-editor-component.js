@@ -286,7 +286,8 @@ class TextEditorComponent {
       const decorations = this.props.model.getDecorations()
       for (var i = 0; i < decorations.length; i++) {
         const decoration = decorations[i]
-        if (decoration.getProperties().type === 'block') {
+        const marker = decoration.getMarker()
+        if (marker.isValid() && decoration.getProperties().type === 'block') {
           this.blockDecorationsToMeasure.add(decoration)
         }
       }
