@@ -2396,6 +2396,23 @@ describe('TextEditorComponent', () => {
       ])
     })
 
+    it('does not try to remeasure block decorations whose markers are invalid (regression)', async () => {
+      const editor = buildEditor({rowsPerTile: 3, autoHeight: false})
+      const {component, element} = buildComponent({editor, rowsPerTile: 3})
+      const {decoration, marker} = createBlockDecorationAtScreenRow(editor, 2, {height: '12px', invalidate: 'touch'})
+      editor.getBuffer().deleteRows(0, 3)
+      await component.getNextUpdatePromise()
+
+      // Trigger a re-measurement of all block decorations.
+      await setEditorWidthInCharacters(component, 20)
+      assertLinesAreAlignedWithLineNumbers(component)
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight()},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()},
+        {tileStartRow: 6, height: 3 * component.getLineHeight()}
+      ])
+    })
+
     it('measures block decorations correctly when they are added before the component width has been updated', async () => {
       {
         const {editor, component, element} = buildComponent({autoHeight: false, width: 500, attach: false})
