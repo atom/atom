@@ -108,10 +108,14 @@ beforeEach ->
 afterEach ->
   ensureNoDeprecatedFunctionCalls()
   ensureNoDeprecatedStylesheets()
-  atom.reset()
-  document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
-  warnIfLeakingPathSubscriptions()
-  waits(0) # yield to ui thread to make screen update more frequently
+
+  waitsForPromise ->
+    atom.reset()
+
+  runs ->
+    document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
+    warnIfLeakingPathSubscriptions()
+    waits(0) # yield to ui thread to make screen update more frequently
 
 warnIfLeakingPathSubscriptions = ->
   watchedPaths = pathwatcher.getWatchedPaths()

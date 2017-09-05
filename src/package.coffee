@@ -506,15 +506,18 @@ class Package
     @configSchemaRegisteredOnActivate = false
     @deactivateResources()
     @deactivateKeymaps()
+    result = Promise.resolve()
     if @mainActivated
       try
-        @mainModule?.deactivate?()
-        @mainModule?.deactivateConfig?()
-        @mainActivated = false
-        @mainInitialized = false
+        result = Promise.resolve(@mainModule?.deactivate?()).then =>
+          @mainModule?.deactivateConfig?()
+          @mainActivated = false
+          @mainInitialized = false
       catch e
         console.error "Error deactivating package '#{@name}'", e.stack
-    @emitter.emit 'did-deactivate'
+    result = result.then =>
+      @emitter.emit 'did-deactivate'
+    result
 
   deactivateResources: ->
     grammar.deactivate() for grammar in @grammars
