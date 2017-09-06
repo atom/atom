@@ -1763,22 +1763,22 @@ class TextEditorComponent {
           if (existingSelection) {
             if (model.hasMultipleCursors()) existingSelection.destroy()
           } else {
-            model.addCursorAtScreenPosition(screenPosition)
+            model.addCursorAtScreenPosition(screenPosition, {autoscroll: false})
           }
         } else {
           if (shiftKey) {
-            model.selectToScreenPosition(screenPosition)
+            model.selectToScreenPosition(screenPosition, {autoscroll: false})
           } else {
-            model.setCursorScreenPosition(screenPosition)
+            model.setCursorScreenPosition(screenPosition, {autoscroll: false})
           }
         }
         break
       case 2:
-        if (addOrRemoveSelection) model.addCursorAtScreenPosition(screenPosition)
+        if (addOrRemoveSelection) model.addCursorAtScreenPosition(screenPosition, {autoscroll: false})
         model.getLastSelection().selectWord({autoscroll: false})
         break
       case 3:
-        if (addOrRemoveSelection) model.addCursorAtScreenPosition(screenPosition)
+        if (addOrRemoveSelection) model.addCursorAtScreenPosition(screenPosition, {autoscroll: false})
         model.getLastSelection().selectLine(null, {autoscroll: false})
         break
     }
