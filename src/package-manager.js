@@ -77,15 +77,16 @@ module.exports = class PackageManager {
     this.themeManager = themeManager
   }
 
-  async reset () {
+  reset () {
     this.serviceHub.clear()
-    await this.deactivatePackages()
-    this.loadedPackages = {}
-    this.preloadedPackages = {}
-    this.packageStates = {}
-    this.packagesCache = packageJSON._atomPackages != null ? packageJSON._atomPackages : {}
-    this.packageDependencies = packageJSON.packageDependencies != null ? packageJSON.packageDependencies : {}
-    this.triggeredActivationHooks.clear()
+    return this.deactivatePackages().then(_ => {
+      this.loadedPackages = {}
+      this.preloadedPackages = {}
+      this.packageStates = {}
+      this.packagesCache = packageJSON._atomPackages != null ? packageJSON._atomPackages : {}
+      this.packageDependencies = packageJSON.packageDependencies != null ? packageJSON.packageDependencies : {}
+      this.triggeredActivationHooks.clear()
+    })
   }
 
   /*
@@ -744,24 +745,26 @@ module.exports = class PackageManager {
   }
 
   // Deactivate all packages
-  async deactivatePackages () {
-    await this.config.transactAsync(() =>
+  deactivatePackages () {
+    return this.config.transactAsync(() =>
       Promise.all(this.getLoadedPackages().map(pack => this.deactivatePackage(pack.name, true)))
-    )
-    this.unobserveDisabledPackages()
-    this.unobservePackagesWithKeymapsDisabled()
+    ).then(_ => {
+      this.unobserveDisabledPackages()
+      this.unobservePackagesWithKeymapsDisabled()
+    })
   }
 
   // Deactivate the package with the given name
-  async deactivatePackage (name, suppressSerialization) {
+  deactivatePackage (name, suppressSerialization) {
     const pack = this.getLoadedPackage(name)
     if (!suppressSerialization && this.isPackageActive(pack.name)) {
       this.serializePackage(pack)
     }
-    await pack.deactivate()
-    delete this.activePackages[pack.name]
-    delete this.activatingPackages[pack.name]
-    this.emitter.emit('did-deactivate-package', pack)
+    return pack.deactivate().then(_ => {
+      delete this.activePackages[pack.name]
+      delete this.activatingPackages[pack.name]
+      this.emitter.emit('did-deactivate-package', pack)
+    })
   }
 
   handleMetadataError (error, packagePath) {
