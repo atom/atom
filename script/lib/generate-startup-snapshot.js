@@ -76,7 +76,20 @@ module.exports = function (packagedAppPath) {
     process.stdout.write('\n')
 
     console.log('Verifying if snapshot can be executed via `mksnapshot`')
-    vm.runInNewContext(snapshotScript, undefined, {filename: snapshotScriptPath, displayErrors: true})
+    const verifySnapshotScriptPath = path.join(CONFIG.repositoryRootPath, 'script', 'verify-snapshot-script')
+    let nodeBundledInElectronPath
+    if (process.platform === 'darwin') {
+      nodeBundledInElectronPath = path.join(packagedAppPath, 'Contents', 'MacOS', 'Atom')
+    } else if (process.platform === 'win32') {
+      nodeBundledInElectronPath = path.join(packagedAppPath, 'atom.exe')
+    } else {
+      nodeBundledInElectronPath = path.join(packagedAppPath, 'atom')
+    }
+    childProcess.execFileSync(
+      nodeBundledInElectronPath,
+      [verifySnapshotScriptPath, snapshotScriptPath],
+      {env: Object.assign(process.env, {ELECTRON_RUN_AS_NODE: 1})}
+    )
 
     const generatedStartupBlobPath = path.join(CONFIG.buildOutputPath, 'snapshot_blob.bin')
     console.log(`Generating startup blob at "${generatedStartupBlobPath}"`)
