@@ -1375,7 +1375,8 @@ describe "PackageManager", ->
           atom.themes.activateThemes()
 
       afterEach ->
-        atom.themes.deactivateThemes()
+          waitsForPromise ->
+            atom.themes.deactivateThemes()
 
       it "enables and disables a theme", ->
         packageName = 'theme-with-package-file'
