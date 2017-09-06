@@ -685,7 +685,7 @@ describe('TextEditorRegistry', function () {
       registry.setGrammarOverride(editor, 'source.c')
       registry.setGrammarOverride(editor2, 'source.js')
 
-      atom.packages.deactivatePackage('language-javascript')
+      await atom.packages.deactivatePackage('language-javascript')
 
       const editorCopy = TextEditor.deserialize(editor.serialize(), atom)
       const editor2Copy = TextEditor.deserialize(editor2.serialize(), atom)
