@@ -3,7 +3,6 @@ const fs = require('fs')
 const path = require('path')
 const electronLink = require('electron-link')
 const CONFIG = require('../config')
-const vm = require('vm')
 
 module.exports = function (packagedAppPath) {
   const snapshotScriptPath = path.join(CONFIG.buildOutputPath, 'startup.js')
