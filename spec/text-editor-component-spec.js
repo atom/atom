@@ -2388,6 +2388,31 @@ describe('TextEditorComponent', () => {
       ])
     })
 
+    it('does not attempt to render block decorations located outside the visible range', async () => {
+      const {editor, component} = buildComponent({autoHeight: false, rowsPerTile: 2})
+      await setEditorHeightInLines(component, 2)
+      expect(component.getRenderedStartRow()).toBe(0)
+      expect(component.getRenderedEndRow()).toBe(4)
+
+      const marker1 = editor.markScreenRange([[3, 0], [5, 0]], {reversed: false})
+      const item1 = document.createElement('div')
+      editor.decorateMarker(marker1, {type: 'block', item: item1})
+
+      const marker2 = editor.markScreenRange([[3, 0], [5, 0]], {reversed: true})
+      const item2 = document.createElement('div')
+      editor.decorateMarker(marker2, {type: 'block', item: item2})
+
+      await component.getNextUpdatePromise()
+      expect(item1.parentElement).toBeNull()
+      expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 3))
+
+      await setScrollTop(component, 4 * component.getLineHeight())
+      expect(component.getRenderedStartRow()).toBe(4)
+      expect(component.getRenderedEndRow()).toBe(8)
+      expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 5))
+      expect(item2.parentElement).toBeNull()
+    })
+
     it('measures block decorations correctly when they are added before the component width has been updated', async () => {
       {
         const {editor, component, element} = buildComponent({autoHeight: false, width: 500, attach: false})
