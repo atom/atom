@@ -31,6 +31,10 @@ Download the latest [Atom release](https://github.com/atom/atom/releases/latest)
 
 Atom will automatically update when a new release is available.
 
+After installing follow this step:
+
+When Atom installs it automatically creates a symlink in your /usr/local/bin. However in case it hasn't, you can create it yourself on your Mac `ln -s /Applications/Atom.app/Contents/Resources/app/atom.sh /usr/local/bin/atom` ,Now you can use atom folder_name to open a folder and atom file_name to open a file.
+
 ### Windows
 
 Download the latest [Atom installer](https://github.com/atom/atom/releases/latest).  AtomSetup.exe is 32-bit, AtomSetup-x64.exe for 64-bit systems.
