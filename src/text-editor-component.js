@@ -1171,9 +1171,11 @@ class TextEditorComponent {
   }
 
   addBlockDecorationToRender (decoration, screenRange, reversed) {
-    const screenPosition = reversed ? screenRange.start : screenRange.end
-    const tileStartRow = this.tileStartRowForRow(screenPosition.row)
-    const screenLine = this.renderedScreenLines[screenPosition.row - this.getRenderedStartRow()]
+    const {row} = reversed ? screenRange.start : screenRange.end
+    if (row < this.getRenderedStartRow() || row >= this.getRenderedEndRow()) return
+
+    const tileStartRow = this.tileStartRowForRow(row)
+    const screenLine = this.renderedScreenLines[row - this.getRenderedStartRow()]
 
     let decorationsByScreenLine = this.decorationsToRender.blocks.get(tileStartRow)
     if (!decorationsByScreenLine) {
