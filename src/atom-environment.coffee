@@ -328,7 +328,7 @@ class AtomEnvironment extends Model
 
     @contextMenu.clear()
 
-    @packages.reset().then ->
+    @packages.reset().then =>
       @workspace.reset(@packages)
       @registerDefaultOpeners()
       @project.reset(@packages)
