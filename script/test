@@ -3,7 +3,7 @@
 'use strict'
 
 require('colors')
-const argv = require('minimist')(process.argv.slice(2))
+const argv = require('yargs').argv
 const assert = require('assert')
 const async = require('async')
 const childProcess = require('child_process')
@@ -166,7 +166,7 @@ function testSuitesForPlatform (platform) {
       console.log(`Unrecognized platform: ${platform}`)
   }
 
-  if(argv.skipMainProccessTests) {
+  if(argv.skipMainProcessTests) {
     suites = suites.filter(suite => suite !== runCoreMainProcessTests);
   }
 
