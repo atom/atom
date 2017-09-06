@@ -88,7 +88,7 @@ module.exports = function (packagedAppPath) {
     childProcess.execFileSync(
       nodeBundledInElectronPath,
       [verifySnapshotScriptPath, snapshotScriptPath],
-      {env: Object.assign(process.env, {ELECTRON_RUN_AS_NODE: 1})}
+      {env: Object.assign({}, process.env, {ELECTRON_RUN_AS_NODE: 1})}
     )
 
     const generatedStartupBlobPath = path.join(CONFIG.buildOutputPath, 'snapshot_blob.bin')
