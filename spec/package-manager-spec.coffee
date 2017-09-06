@@ -1181,7 +1181,7 @@ describe "PackageManager", ->
 
       waitsForPromise ->
         try
-         atom.packages.deactivatePackage("package-that-throws-on-deactivate")
+          atom.packages.deactivatePackage("package-that-throws-on-deactivate")
         catch error
           thrownError = error
 
@@ -1375,8 +1375,8 @@ describe "PackageManager", ->
           atom.themes.activateThemes()
 
       afterEach ->
-          waitsForPromise ->
-            atom.themes.deactivateThemes()
+        waitsForPromise ->
+          atom.themes.deactivateThemes()
 
       it "enables and disables a theme", ->
         packageName = 'theme-with-package-file'
