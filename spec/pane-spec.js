@@ -1056,7 +1056,7 @@ describe('Pane', () => {
 
       describe('when `moveActiveItem: true` is passed in the params', () => {
         it('moves the active item', () => {
-          const pane2 = pane1.splitLeft({moveActiveItem: true})
+          const pane2 = pane1.splitRight({moveActiveItem: true})
           expect(pane2.getActiveItem()).toBe(item1)
         })
       })
@@ -1092,7 +1092,7 @@ describe('Pane', () => {
 
       describe('when `moveActiveItem: true` is passed in the params', () => {
         it('moves the active item', () => {
-          const pane2 = pane1.splitLeft({moveActiveItem: true})
+          const pane2 = pane1.splitUp({moveActiveItem: true})
           expect(pane2.getActiveItem()).toBe(item1)
         })
       })
@@ -1128,7 +1128,7 @@ describe('Pane', () => {
 
       describe('when `moveActiveItem: true` is passed in the params', () => {
         it('moves the active item', () => {
-          const pane2 = pane1.splitLeft({moveActiveItem: true})
+          const pane2 = pane1.splitDown({moveActiveItem: true})
           expect(pane2.getActiveItem()).toBe(item1)
         })
       })
@@ -1148,6 +1148,32 @@ describe('Pane', () => {
           const column = container.root.children[0]
           expect(column.orientation).toBe('vertical')
           expect(column.children).toEqual([pane1, pane3, pane2])
+        })
+      })
+    })
+
+    describe('when the pane is empty', () => {
+      describe('when `moveActiveItem: true` is passed in the params', () => {
+        it('gracefully ignores the moveActiveItem parameter', () => {
+          pane1.destroyItem(item1)
+          expect(pane1.getActiveItem()).toBe(undefined)
+
+          const pane2 = pane1.split('horizontal', 'before', {moveActiveItem: true})
+          expect(container.root.children).toEqual([pane2, pane1])
+
+          expect(pane2.getActiveItem()).toBe(undefined)
+        })
+      })
+
+      describe('when `copyActiveItem: true` is passed in the params', () => {
+        it('gracefully ignores the copyActiveItem parameter', () => {
+          pane1.destroyItem(item1)
+          expect(pane1.getActiveItem()).toBe(undefined)
+
+          const pane2 = pane1.split('horizontal', 'before', {copyActiveItem: true})
+          expect(container.root.children).toEqual([pane2, pane1])
+
+          expect(pane2.getActiveItem()).toBe(undefined)
         })
       })
     })

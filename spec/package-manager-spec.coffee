@@ -1,5 +1,6 @@
 path = require 'path'
 Package = require '../src/package'
+PackageManager = require '../src/package-manager'
 temp = require('temp').track()
 fs = require 'fs-plus'
 {Disposable} = require 'atom'
@@ -19,6 +20,22 @@ describe "PackageManager", ->
   afterEach ->
     try
       temp.cleanupSync()
+
+  describe "initialize", ->
+    it "adds regular package path", ->
+      packageManger = new PackageManager({})
+      configDirPath = path.join('~', 'someConfig')
+      packageManger.initialize({configDirPath})
+      expect(packageManger.packageDirPaths.length).toBe 1
+      expect(packageManger.packageDirPaths[0]).toBe path.join(configDirPath, 'packages')
+
+    it "adds regular package path and dev package path in dev mode", ->
+      packageManger = new PackageManager({})
+      configDirPath = path.join('~', 'someConfig')
+      packageManger.initialize({configDirPath, devMode: true})
+      expect(packageManger.packageDirPaths.length).toBe 2
+      expect(packageManger.packageDirPaths).toContain path.join(configDirPath, 'packages')
+      expect(packageManger.packageDirPaths).toContain path.join(configDirPath, 'dev', 'packages')
 
   describe "::getApmPath()", ->
     it "returns the path to the apm command", ->
