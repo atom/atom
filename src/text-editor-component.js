@@ -2523,7 +2523,7 @@ class TextEditorComponent {
         didUpdateDisposable.dispose()
         didDestroyDisposable.dispose()
 
-        if (marker.isValid()) {
+        if (wasValid) {
           this.blockDecorationsToMeasure.delete(decoration)
           this.heightsByBlockDecoration.delete(decoration)
           this.blockDecorationsByElement.delete(element)
