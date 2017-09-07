@@ -3880,7 +3880,8 @@ class LineComponent {
     this.textNodes.length = 0
 
     const {lineText, tags} = screenLine
-    let openScopeNode = this.element
+    let openScopeNode = nodePool.getElement('SPAN', null, null)
+    this.element.appendChild(openScopeNode)
 
     let decorationIndex = 0
     let column = 0
