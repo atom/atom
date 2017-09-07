@@ -3880,8 +3880,7 @@ class LineComponent {
     this.textNodes.length = 0
 
     const {lineText, tags} = screenLine
-    let openScopeNode = nodePool.getElement('SPAN', null, null)
-    this.element.appendChild(openScopeNode)
+    let openScopeNode = this.element
 
     let decorationIndex = 0
     let column = 0
@@ -4309,7 +4308,7 @@ class NodePool {
     }
 
     if (element) {
-      element.className = className
+      element.className = className || ''
       element.styleMap.forEach((value, key) => {
         if (!style || style[key] == null) element.style[key] = ''
       })
