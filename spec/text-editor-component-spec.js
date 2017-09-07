@@ -378,35 +378,50 @@ describe('TextEditorComponent', () => {
       expect(horizontalScrollbar.style.visibility).toBe('')
     })
 
-    it('updates the bottom/right of dummy scrollbars and client height/width measurements without forgetting the previous scroll top/left when scrollbar styles change', async () => {
-      const {component, element, editor} = buildComponent({height: 100, width: 100})
-      expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(10)
-      expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(10)
-      setScrollTop(component, 20)
-      setScrollLeft(component, 10)
-      await component.getNextUpdatePromise()
+    describe('when scrollbar styles change or the editor element is detached and then reattached', () => {
+      it('updates the bottom/right of dummy scrollbars and client height/width measurements', async () => {
+        const {component, element, editor} = buildComponent({height: 100, width: 100})
+        expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(10)
+        expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(10)
+        setScrollTop(component, 20)
+        setScrollLeft(component, 10)
+        await component.getNextUpdatePromise()
 
-      const style = document.createElement('style')
-      style.textContent = '::-webkit-scrollbar { height: 10px; width: 10px; }'
-      jasmine.attachToDOM(style)
+        // Updating scrollbar styles.
+        const style = document.createElement('style')
+        style.textContent = '::-webkit-scrollbar { height: 10px; width: 10px; }'
+        jasmine.attachToDOM(style)
+        TextEditor.didUpdateScrollbarStyles()
+        await component.getNextUpdatePromise()
 
-      TextEditor.didUpdateScrollbarStyles()
-      await component.getNextUpdatePromise()
+        expect(getHorizontalScrollbarHeight(component)).toBe(10)
+        expect(getVerticalScrollbarWidth(component)).toBe(10)
+        expect(component.refs.horizontalScrollbar.element.style.right).toBe('10px')
+        expect(component.refs.verticalScrollbar.element.style.bottom).toBe('10px')
+        expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(10)
+        expect(component.refs.verticalScrollbar.element.scrollTop).toBe(20)
+        expect(component.getScrollContainerClientHeight()).toBe(100 - 10)
+        expect(component.getScrollContainerClientWidth()).toBe(100 - component.getGutterContainerWidth() - 10)
 
-      expect(getHorizontalScrollbarHeight(component)).toBe(10)
-      expect(getVerticalScrollbarWidth(component)).toBe(10)
-      expect(component.refs.horizontalScrollbar.element.style.right).toBe('10px')
-      expect(component.refs.verticalScrollbar.element.style.bottom).toBe('10px')
-      expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(10)
-      expect(component.refs.verticalScrollbar.element.scrollTop).toBe(20)
-      expect(component.getScrollContainerClientHeight()).toBe(100 - 10)
-      expect(component.getScrollContainerClientWidth()).toBe(100 - component.getGutterContainerWidth() - 10)
+        // Detaching and re-attaching the editor element.
+        element.remove()
+        jasmine.attachToDOM(element)
 
-      // Ensure we don't throw an error trying to remeasure non-existent scrollbars for mini editors.
-      await editor.update({mini: true})
-      TextEditor.didUpdateScrollbarStyles()
-      component.scheduleUpdate()
-      await component.getNextUpdatePromise()
+        expect(getHorizontalScrollbarHeight(component)).toBe(10)
+        expect(getVerticalScrollbarWidth(component)).toBe(10)
+        expect(component.refs.horizontalScrollbar.element.style.right).toBe('10px')
+        expect(component.refs.verticalScrollbar.element.style.bottom).toBe('10px')
+        expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(10)
+        expect(component.refs.verticalScrollbar.element.scrollTop).toBe(20)
+        expect(component.getScrollContainerClientHeight()).toBe(100 - 10)
+        expect(component.getScrollContainerClientWidth()).toBe(100 - component.getGutterContainerWidth() - 10)
+
+        // Ensure we don't throw an error trying to remeasure non-existent scrollbars for mini editors.
+        await editor.update({mini: true})
+        TextEditor.didUpdateScrollbarStyles()
+        component.scheduleUpdate()
+        await component.getNextUpdatePromise()
+      })
     })
 
     it('renders cursors within the visible row range', async () => {
@@ -1142,7 +1157,7 @@ describe('TextEditorComponent', () => {
       expect(component.getScrollTopRow()).toBe(4)
       expect(component.getScrollTop()).toBe(Math.round(4 * component.getLineHeight()))
 
-      // Preserves the scrollTopRow when sdetached
+      // Preserves the scrollTopRow when detached
       element.remove()
       expect(component.getScrollTopRow()).toBe(4)
       expect(component.getScrollTop()).toBe(Math.round(4 * component.getLineHeight()))
