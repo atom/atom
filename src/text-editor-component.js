@@ -1423,6 +1423,9 @@ class TextEditorComponent {
 
       if (this.isVisible()) {
         this.didShow()
+
+        if (this.refs.verticalScrollbar) this.refs.verticalScrollbar.flushScrollPosition()
+        if (this.refs.horizontalScrollbar) this.refs.horizontalScrollbar.flushScrollPosition()
       } else {
         this.didHide()
       }
