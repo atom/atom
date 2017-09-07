@@ -2299,6 +2299,27 @@ describe('TextEditorComponent', () => {
       ])
     })
 
+    it('removes block decorations whose markers have been destroyed', async () => {
+      const {editor, component, element} = buildComponent({rowsPerTile: 3})
+      const {marker} = createBlockDecorationAtScreenRow(editor, 2, {height: 5, position: 'before'})
+      await component.getNextUpdatePromise()
+      assertLinesAreAlignedWithLineNumbers(component)
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight() + 5},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()},
+        {tileStartRow: 6, height: 3 * component.getLineHeight()}
+      ])
+
+      marker.destroy()
+      await component.getNextUpdatePromise()
+      assertLinesAreAlignedWithLineNumbers(component)
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight()},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()},
+        {tileStartRow: 6, height: 3 * component.getLineHeight()}
+      ])
+    })
+
     it('removes block decorations whose markers are invalidated, and adds them back when they become valid again', async () => {
       const editor = buildEditor({rowsPerTile: 3, autoHeight: false})
       const {item, decoration, marker} = createBlockDecorationAtScreenRow(editor, 3, {height: 44, position: 'before', invalidate: 'touch'})
