@@ -166,7 +166,7 @@ function testSuitesForPlatform (platform) {
       console.log(`Unrecognized platform: ${platform}`)
   }
 
-  if(argv.skipMainProcessTests) {
+  if (argv.skipMainProcessTests) {
     suites = suites.filter(suite => suite !== runCoreMainProcessTests);
   }
 
