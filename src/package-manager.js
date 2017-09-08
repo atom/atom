@@ -761,7 +761,7 @@ module.exports = class PackageManager {
 
     const deactivationResult = pack.deactivate()
     if (deactivationResult && typeof deactivationResult.then === 'function') {
-      await deactivationResult;
+      await deactivationResult
     }
 
     delete this.activePackages[pack.name]
