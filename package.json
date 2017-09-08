@@ -103,7 +103,7 @@
     "bracket-matcher": "0.87.3",
     "command-palette": "0.41.1",
     "dalek": "0.2.1",
-    "deprecation-cop": "0.56.7",
+    "deprecation-cop": "0.56.9",
     "dev-live-reload": "0.47.1",
     "encoding-selector": "0.23.5",
     "exception-reporting": "0.41.4",
