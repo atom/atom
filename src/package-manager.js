@@ -755,6 +755,10 @@ module.exports = class PackageManager {
   // Deactivate the package with the given name
   async deactivatePackage (name, suppressSerialization) {
     const pack = this.getLoadedPackage(name)
+    if (pack == null) {
+      return
+    }
+
     if (!suppressSerialization && this.isPackageActive(pack.name)) {
       this.serializePackage(pack)
     }
