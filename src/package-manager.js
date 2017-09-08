@@ -758,7 +758,12 @@ module.exports = class PackageManager {
     if (!suppressSerialization && this.isPackageActive(pack.name)) {
       this.serializePackage(pack)
     }
-    await pack.deactivate()
+
+    const deactivationResult = pack.deactivate()
+    if (deactivationResult && typeof deactivationResult.then === 'function') {
+      await deactivationResult;
+    }
+
     delete this.activePackages[pack.name]
     delete this.activatingPackages[pack.name]
     this.emitter.emit('did-deactivate-package', pack)
