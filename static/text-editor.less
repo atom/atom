@@ -145,3 +145,17 @@ atom-overlay {
   display: block;
   z-index: 4;
 }
+
+// This adds the background color to scrollbars for only a very short time.
+// So that the native macOS "When scrolling" scrollbars adjust for dark themes.
+.platform-darwin .scrollbars-visible-when-scrolling {
+  atom-text-editor {
+    .vertical-scrollbar,
+    .horizontal-scrollbar {
+      @keyframes scrollbars-visible-when-scrolling-fix {
+        0% { background-color: @syntax-background-color; }
+      }
+      animation: scrollbars-visible-when-scrolling-fix 0.01s;
+    }
+  }
+}
