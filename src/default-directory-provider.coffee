@@ -55,4 +55,10 @@ class DefaultDirectoryProvider
         "#{matchData[1].toUpperCase()}#{uri.slice(1)}"
       else
         uri
-    path.normalize(pathWithNormalizedDiskDriveLetter)
+
+    # On Windows, a bare drive such as 'C:' gets normalized to 'C:.'
+    normalizedPath = path.normalize(pathWithNormalizedDiskDriveLetter)
+    if process.platform is 'win32' and /^[A-Z]:\.$/.test(normalizedPath)
+      return normalizedPath.slice(0, -1)
+    else
+      return normalizedPath
