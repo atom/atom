@@ -286,7 +286,7 @@ class ThemeManager
     @removeActiveThemeClasses()
     @unwatchUserStylesheet()
     results = @getActiveThemes().map((pack) => @packageManager.deactivatePackage(pack.name))
-    Promise.all(results.filter((r) => typeof r?.then is 'function'))
+    Promise.all(results.filter((r) -> typeof r?.then is 'function'))
 
   isInitialLoadComplete: -> @initialLoadComplete
 
