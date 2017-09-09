@@ -262,33 +262,31 @@ class ThemeManager
     new Promise (resolve) =>
       # @config.observe runs the callback once, then on subsequent changes.
       @config.observe 'core.themes', =>
-        @deactivateThemes()
+        @deactivateThemes().then =>
+          @warnForNonExistentThemes()
+          @refreshLessCache() # Update cache for packages in core.themes config
 
-        @warnForNonExistentThemes()
+          promises = []
+          for themeName in @getEnabledThemeNames()
+            if @packageManager.resolvePackagePath(themeName)
+              promises.push(@packageManager.activatePackage(themeName))
+            else
+              console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
 
-        @refreshLessCache() # Update cache for packages in core.themes config
-
-        promises = []
-        for themeName in @getEnabledThemeNames()
-          if @packageManager.resolvePackagePath(themeName)
-            promises.push(@packageManager.activatePackage(themeName))
-          else
-            console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
-
-        Promise.all(promises).then =>
-          @addActiveThemeClasses()
-          @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
-          @loadUserStylesheet()
-          @reloadBaseStylesheets()
-          @initialLoadComplete = true
-          @emitter.emit 'did-change-active-themes'
-          resolve()
+          Promise.all(promises).then =>
+            @addActiveThemeClasses()
+            @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
+            @loadUserStylesheet()
+            @reloadBaseStylesheets()
+            @initialLoadComplete = true
+            @emitter.emit 'did-change-active-themes'
+            resolve()
 
   deactivateThemes: ->
     @removeActiveThemeClasses()
     @unwatchUserStylesheet()
-    @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
-    null
+    results = @getActiveThemes().map((pack) => @packageManager.deactivatePackage(pack.name))
+    Promise.all(results.filter((r) -> typeof r?.then is 'function'))
 
   isInitialLoadComplete: -> @initialLoadComplete
 
