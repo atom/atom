@@ -117,7 +117,7 @@ class TextEditorComponent {
     this.linesToMeasure = new Map()
     this.extraRenderedScreenLines = new Map()
     this.horizontalPositionsToMeasure = new Map() // Keys are rows with positions we want to measure, values are arrays of columns to measure
-    this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
+    this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horizontal pixel positions
     this.blockDecorationsToMeasure = new Set()
     this.blockDecorationsByElement = new WeakMap()
     this.blockDecorationSentinel = document.createElement('div')
