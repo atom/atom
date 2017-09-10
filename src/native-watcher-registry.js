@@ -329,7 +329,7 @@ class MissingResult {
 
   // Private: Instantiate a new {MissingResult}.
   //
-  // * `lastParent` the final succesfully traversed {RegistryNode}.
+  // * `lastParent` the final successfully traversed {RegistryNode}.
   constructor (lastParent) {
     this.lastParent = lastParent
   }
