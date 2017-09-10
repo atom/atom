@@ -3704,7 +3704,7 @@ describe "TextEditor", ->
         describe "when autoIndent is enabled", ->
           describe "when the cursor's column is less than the suggested level of indentation", ->
             describe "when 'softTabs' is true (the default)", ->
-              it "moves the cursor to the end of the leading whitespace and inserts enough whitespace to bring the line to the suggested level of indentaion", ->
+              it "moves the cursor to the end of the leading whitespace and inserts enough whitespace to bring the line to the suggested level of indentation", ->
                 buffer.insert([5, 0], "  \n")
                 editor.setCursorBufferPosition [5, 0]
                 editor.indent(autoIndent: true)
@@ -3727,7 +3727,7 @@ describe "TextEditor", ->
                 expect(buffer.lineForRow(13).length).toBe 8
 
             describe "when 'softTabs' is false", ->
-              it "moves the cursor to the end of the leading whitespace and inserts enough tabs to bring the line to the suggested level of indentaion", ->
+              it "moves the cursor to the end of the leading whitespace and inserts enough tabs to bring the line to the suggested level of indentation", ->
                 convertToHardTabs(buffer)
                 editor.setSoftTabs(false)
                 buffer.insert([5, 0], "\t\n")
