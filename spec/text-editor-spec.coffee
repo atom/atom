@@ -3517,7 +3517,7 @@ describe "TextEditor", ->
             expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
 
       describe "when text is selected", ->
-        it "still deletes all text to begginning of the line", ->
+        it "still deletes all text to beginning of the line", ->
           editor.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
           editor.deleteToBeginningOfLine()
           expect(buffer.lineForRow(1)).toBe 'ems) {'
