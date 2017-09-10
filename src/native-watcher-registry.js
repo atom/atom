@@ -239,7 +239,7 @@ class RegistryWatcherNode {
     this.childPaths.add(path.join(...childPathSegments))
   }
 
-  // Private: Stop assuming responsbility for a previously assigned child path. If this node is
+  // Private: Stop assuming responsibility for a previously assigned child path. If this node is
   // removed, the named child path will no longer be allocated a {RegistryWatcherNode}.
   //
   // * `childPathSegments` the {Array} of path segments between this node's directory and the no longer
