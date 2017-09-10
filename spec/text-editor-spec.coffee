@@ -4992,7 +4992,7 @@ describe "TextEditor", ->
             editor.insertText('\n')
             expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
 
-        describe "when the line preceding the newline does't add a level of indentation", ->
+        describe "when the line preceding the newline doesn't add a level of indentation", ->
           it "indents the new line to the same level as the preceding line", ->
             editor.setCursorBufferPosition([5, 14])
             editor.insertText('\n')
