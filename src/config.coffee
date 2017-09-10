@@ -221,7 +221,7 @@ ScopeDescriptor = require './scope-descriptor'
 # #### object / Grouping other types
 #
 # A config setting with the type `object` allows grouping a set of config
-# settings. The group will be visualy separated and has its own group headline.
+# settings. The group will be visually separated and has its own group headline.
 # The sub options must be listed under a `properties` key.
 #
 # ```coffee

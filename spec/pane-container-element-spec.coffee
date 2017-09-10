@@ -172,7 +172,7 @@ describe "PaneContainerElement", ->
       lowerPane = leftPane.splitDown()
       expectPaneScale [lowerPane, 1], [leftPane, 1], [leftPane.getParent(), 0.5]
 
-      # dynamically close pane, the pane's flexscale will recorver to origin value
+      # dynamically close pane, the pane's flexscale will recover to origin value
       waitsForPromise -> lowerPane.close()
       runs -> expectPaneScale [leftPane, 0.5], [rightPane, 1.5]
 

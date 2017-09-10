@@ -2773,7 +2773,7 @@ i = /test/; #FIXME\
     })
   })
 
-  describe('when the core.allowPendingPaneItems option is falsey', () => {
+  describe('when the core.allowPendingPaneItems option is falsy', () => {
     it('does not open item with `pending: true` option as pending', () => {
       let pane = null
       atom.config.set('core.allowPendingPaneItems', false)

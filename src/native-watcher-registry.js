@@ -239,7 +239,7 @@ class RegistryWatcherNode {
     this.childPaths.add(path.join(...childPathSegments))
   }
 
-  // Private: Stop assuming responsbility for a previously assigned child path. If this node is
+  // Private: Stop assuming responsibility for a previously assigned child path. If this node is
   // removed, the named child path will no longer be allocated a {RegistryWatcherNode}.
   //
   // * `childPathSegments` the {Array} of path segments between this node's directory and the no longer
@@ -323,13 +323,13 @@ class RegistryWatcherNode {
   }
 }
 
-// Private: A {RegisteryNode} traversal result that's returned when neither a directory, its children, nor its parents
+// Private: A {RegistryNode} traversal result that's returned when neither a directory, its children, nor its parents
 // are present in the tree.
 class MissingResult {
 
   // Private: Instantiate a new {MissingResult}.
   //
-  // * `lastParent` the final succesfully traversed {RegistryNode}.
+  // * `lastParent` the final successfully traversed {RegistryNode}.
   constructor (lastParent) {
     this.lastParent = lastParent
   }

@@ -359,13 +359,13 @@ describe "LanguageMode", ->
           expect([fold.start.row, fold.end.row]).toEqual [1, 9]
 
       describe "when bufferRow can't be folded", ->
-        it "searches upward for the first row that begins a syntatic region containing the given buffer row (and folds it)", ->
+        it "searches upward for the first row that begins a syntactic region containing the given buffer row (and folds it)", ->
           languageMode.foldBufferRow(8)
           [fold] = languageMode.unfoldAll()
           expect([fold.start.row, fold.end.row]).toEqual [1, 9]
 
       describe "when the bufferRow is already folded", ->
-        it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
+        it "searches upward for the first row that begins a syntactic region containing the folded row (and folds it)", ->
           languageMode.foldBufferRow(2)
           expect(editor.isFoldedAtBufferRow(0)).toBe(false)
           expect(editor.isFoldedAtBufferRow(1)).toBe(true)
@@ -381,7 +381,7 @@ describe "LanguageMode", ->
           expect([fold.start.row, fold.end.row]).toEqual [1, 3]
 
       describe "when the bufferRow is a single-line comment", ->
-        it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
+        it "searches upward for the first row that begins a syntactic region containing the folded row (and folds it)", ->
           buffer.insert([1, 0], "  //this is a single line comment\n")
           languageMode.foldBufferRow(1)
           [fold] = languageMode.unfoldAll()

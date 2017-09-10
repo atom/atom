@@ -78,10 +78,10 @@ class WorkspaceElement extends HTMLElement {
     this.project = project
     this.config = config
     this.styleManager = styleManager
-    if (this.viewRegistry == null) { throw new Error('Must pass a viewRegistry parameter when initializing WorskpaceElements') }
-    if (this.project == null) { throw new Error('Must pass a project parameter when initializing WorskpaceElements') }
-    if (this.config == null) { throw new Error('Must pass a config parameter when initializing WorskpaceElements') }
-    if (this.styleManager == null) { throw new Error('Must pass a styleManager parameter when initializing WorskpaceElements') }
+    if (this.viewRegistry == null) { throw new Error('Must pass a viewRegistry parameter when initializing WorkspaceElements') }
+    if (this.project == null) { throw new Error('Must pass a project parameter when initializing WorkspaceElements') }
+    if (this.config == null) { throw new Error('Must pass a config parameter when initializing WorkspaceElements') }
+    if (this.styleManager == null) { throw new Error('Must pass a styleManager parameter when initializing WorkspaceElements') }
 
     this.subscriptions = new CompositeDisposable(
       new Disposable(() => {

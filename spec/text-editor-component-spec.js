@@ -1616,7 +1616,7 @@ describe('TextEditorComponent', () => {
       const decoration = editor.decorateMarker(marker, {type: 'highlight', class: 'a'})
       decoration.flash('b', 10)
 
-      // Flash on initial appearence of highlight
+      // Flash on initial appearance of highlight
       await component.getNextUpdatePromise()
       const highlights = element.querySelectorAll('.highlight.a')
       expect(highlights.length).toBe(1)

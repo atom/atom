@@ -1223,7 +1223,7 @@ class TextEditor extends Model
       @autoIndentSelectedRows() if @shouldAutoIndent()
       @scrollToBufferPosition([newSelectionRanges[0].start.row, 0])
 
-  # Move lines intersecting the most recent selection or muiltiple selections
+  # Move lines intersecting the most recent selection or multiple selections
   # down by one row in screen coordinates.
   moveLineDown: ->
     selections = @getSelectedBufferRanges()
@@ -2510,7 +2510,7 @@ class TextEditor extends Model
   # Essential: Select from the current cursor position to the given position in
   # buffer coordinates.
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   #
   # * `position` An instance of {Point}, with a given `row` and `column`.
   selectToBufferPosition: (position) ->
@@ -2521,7 +2521,7 @@ class TextEditor extends Model
   # Essential: Select from the current cursor position to the given position in
   # screen coordinates.
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   #
   # * `position` An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position, options) ->
@@ -2535,7 +2535,7 @@ class TextEditor extends Model
   #
   # * `rowCount` (optional) {Number} number of rows to select (default: 1)
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectUp: (rowCount) ->
     @expandSelectionsBackward (selection) -> selection.selectUp(rowCount)
 
@@ -2544,7 +2544,7 @@ class TextEditor extends Model
   #
   # * `rowCount` (optional) {Number} number of rows to select (default: 1)
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectDown: (rowCount) ->
     @expandSelectionsForward (selection) -> selection.selectDown(rowCount)
 
@@ -2553,7 +2553,7 @@ class TextEditor extends Model
   #
   # * `columnCount` (optional) {Number} number of columns to select (default: 1)
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectLeft: (columnCount) ->
     @expandSelectionsBackward (selection) -> selection.selectLeft(columnCount)
 
@@ -2562,7 +2562,7 @@ class TextEditor extends Model
   #
   # * `columnCount` (optional) {Number} number of columns to select (default: 1)
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectRight: (columnCount) ->
     @expandSelectionsForward (selection) -> selection.selectRight(columnCount)
 
@@ -2589,7 +2589,7 @@ class TextEditor extends Model
   # Essential: Move the cursor of each selection to the beginning of its line
   # while preserving the selection's tail position.
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectToBeginningOfLine: ->
     @expandSelectionsBackward (selection) -> selection.selectToBeginningOfLine()
 

@@ -117,7 +117,7 @@ class TextEditorComponent {
     this.linesToMeasure = new Map()
     this.extraRenderedScreenLines = new Map()
     this.horizontalPositionsToMeasure = new Map() // Keys are rows with positions we want to measure, values are arrays of columns to measure
-    this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
+    this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horizontal pixel positions
     this.blockDecorationsToMeasure = new Set()
     this.blockDecorationsByElement = new WeakMap()
     this.blockDecorationSentinel = document.createElement('div')
@@ -2750,7 +2750,7 @@ class TextEditorComponent {
   // but keeping this calculation simple ensures the number of tiles remains
   // fixed for a given editor height, which eliminates situations where a
   // tile is repeatedly added and removed during scrolling in certain
-  // comibinations of editor height and line height.
+  // combinations of editor height and line height.
   getVisibleTileCount () {
     if (this.derivedDimensionsCache.visibleTileCount == null) {
       const editorHeightInTiles = this.getScrollContainerHeight() / this.getLineHeight() / this.getRowsPerTile()
