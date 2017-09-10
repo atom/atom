@@ -2745,7 +2745,7 @@ class TextEditorComponent {
   // but keeping this calculation simple ensures the number of tiles remains
   // fixed for a given editor height, which eliminates situations where a
   // tile is repeatedly added and removed during scrolling in certain
-  // comibinations of editor height and line height.
+  // combinations of editor height and line height.
   getVisibleTileCount () {
     if (this.derivedDimensionsCache.visibleTileCount == null) {
       const editorHeightInTiles = this.getScrollContainerHeight() / this.getLineHeight() / this.getRowsPerTile()
