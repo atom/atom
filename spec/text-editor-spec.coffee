@@ -2258,7 +2258,7 @@ describe "TextEditor", ->
 
 
           describe "when the preceding row consists of folded code", ->
-            it "moves the line above the folded row and preseveres the correct folds", ->
+            it "moves the line above the folded row and perseveres the correct folds", ->
               expect(editor.lineTextForBufferRow(8)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
               expect(editor.lineTextForBufferRow(9)).toBe "  };"
 
