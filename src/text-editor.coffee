@@ -1223,7 +1223,7 @@ class TextEditor extends Model
       @autoIndentSelectedRows() if @shouldAutoIndent()
       @scrollToBufferPosition([newSelectionRanges[0].start.row, 0])
 
-  # Move lines intersecting the most recent selection or muiltiple selections
+  # Move lines intersecting the most recent selection or multiple selections
   # down by one row in screen coordinates.
   moveLineDown: ->
     selections = @getSelectedBufferRanges()
