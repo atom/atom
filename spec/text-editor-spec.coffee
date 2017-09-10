@@ -1364,7 +1364,7 @@ describe "TextEditor", ->
         expect(selections[0].getScreenRange()).toEqual [[3, 0], [10, 0]]
 
     describe ".selectToBeginningOfPreviousParagraph()", ->
-      it "selects from the cursor to the first line of the pevious paragraph", ->
+      it "selects from the cursor to the first line of the previous paragraph", ->
         editor.setSelectedBufferRange([[3, 0], [4, 5]])
         editor.addCursorAtScreenPosition([5, 6])
         editor.selectToScreenPosition([6, 2])
