@@ -13,7 +13,7 @@ class DefaultDirectoryProvider
   #
   # Returns:
   # * {Directory} if the given URI is compatible with this provider.
-  # * `null` if the given URI is not compatibile with this provider.
+  # * `null` if the given URI is not compatible with this provider.
   directoryForURISync: (uri) ->
     normalizedPath = @normalizePath(uri)
     {host} = url.parse(uri)
@@ -39,7 +39,7 @@ class DefaultDirectoryProvider
   #
   # Returns a {Promise} that resolves to:
   # * {Directory} if the given URI is compatible with this provider.
-  # * `null` if the given URI is not compatibile with this provider.
+  # * `null` if the given URI is not compatible with this provider.
   directoryForURI: (uri) ->
     Promise.resolve(@directoryForURISync(uri))
 
