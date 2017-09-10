@@ -4820,7 +4820,7 @@ describe "TextEditor", ->
         expect(buffer.lineForRow(6)).toBe(line7)
         expect(buffer.getLineCount()).toBe(count - 1)
 
-    describe "when the line being deleted preceeds a fold, and the command is undone", ->
+    describe "when the line being deleted precedes a fold, and the command is undone", ->
       it "restores the line and preserves the fold", ->
         editor.setCursorBufferPosition([4])
         editor.foldCurrentRow()
