@@ -376,7 +376,7 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.storage.type.var.js', [0, 3])).toEqual [[0, 0], [0, 3]]
 
     describe "when the selector matches a run of multiple tokens at the position", ->
-      it "returns the range covered by all contigous tokens (within a single line)", ->
+      it "returns the range covered by all contiguous tokens (within a single line)", ->
         expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.function', [1, 18])).toEqual [[1, 6], [1, 28]]
 
   describe ".indentLevelForRow(row)", ->
