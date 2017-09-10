@@ -437,7 +437,7 @@ class PathWatcher {
   //     await watcher.getStartPromise()
   //     fs.writeFile(FILE, 'contents\n', err => {
   //       // The watcher is listening and the event should be
-  //       // received asyncronously
+  //       // received asynchronously
   //     }
   //   })
   // })
