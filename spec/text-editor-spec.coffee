@@ -1800,7 +1800,7 @@ describe "TextEditor", ->
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 3], [5, 5]]])
         expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [3, 3]], [[3, 3], [5, 5]]]
 
-      it "recyles existing selection instances", ->
+      it "recycles existing selection instances", ->
         selection = editor.getLastSelection()
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
 
@@ -1849,7 +1849,7 @@ describe "TextEditor", ->
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]])
         expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [5, 5]]]
 
-      it "recyles existing selection instances", ->
+      it "recycles existing selection instances", ->
         selection = editor.getLastSelection()
         editor.setSelectedScreenRanges([[[2, 2], [3, 4]], [[4, 4], [5, 5]]])
 
