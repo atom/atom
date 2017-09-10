@@ -323,7 +323,7 @@ class RegistryWatcherNode {
   }
 }
 
-// Private: A {RegisteryNode} traversal result that's returned when neither a directory, its children, nor its parents
+// Private: A {RegistryNode} traversal result that's returned when neither a directory, its children, nor its parents
 // are present in the tree.
 class MissingResult {
 
