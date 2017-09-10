@@ -620,7 +620,7 @@ describe "TextEditor", ->
         expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
     describe ".moveToBottom()", ->
-      it "moves the cusor to the bottom of the buffer", ->
+      it "moves the cursor to the bottom of the buffer", ->
         editor.setCursorScreenPosition [0, 0]
         editor.addCursorAtScreenPosition [1, 0]
         editor.moveToBottom()
@@ -1397,7 +1397,7 @@ describe "TextEditor", ->
         expect(selection1.isReversed()).toBeTruthy()
 
     describe ".selectToTop()", ->
-      it "selects text from cusor position to the top of the buffer", ->
+      it "selects text from cursor position to the top of the buffer", ->
         editor.setCursorScreenPosition [11, 2]
         editor.addCursorAtScreenPosition [10, 0]
         editor.selectToTop()
@@ -1407,7 +1407,7 @@ describe "TextEditor", ->
         expect(editor.getLastSelection().isReversed()).toBeTruthy()
 
     describe ".selectToBottom()", ->
-      it "selects text from cusor position to the bottom of the buffer", ->
+      it "selects text from cursor position to the bottom of the buffer", ->
         editor.setCursorScreenPosition [10, 0]
         editor.addCursorAtScreenPosition [9, 3]
         editor.selectToBottom()
@@ -1422,7 +1422,7 @@ describe "TextEditor", ->
         expect(editor.getLastSelection().getBufferRange()).toEqual buffer.getRange()
 
     describe ".selectToBeginningOfLine()", ->
-      it "selects text from cusor position to beginning of line", ->
+      it "selects text from cursor position to beginning of line", ->
         editor.setCursorScreenPosition [12, 2]
         editor.addCursorAtScreenPosition [11, 3]
 
@@ -1441,7 +1441,7 @@ describe "TextEditor", ->
         expect(selection2.isReversed()).toBeTruthy()
 
     describe ".selectToEndOfLine()", ->
-      it "selects text from cusor position to end of line", ->
+      it "selects text from cursor position to end of line", ->
         editor.setCursorScreenPosition [12, 0]
         editor.addCursorAtScreenPosition [11, 3]
 
@@ -1483,7 +1483,7 @@ describe "TextEditor", ->
           expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [4, 0]]
 
     describe ".selectToBeginningOfWord()", ->
-      it "selects text from cusor position to beginning of word", ->
+      it "selects text from cursor position to beginning of word", ->
         editor.setCursorScreenPosition [0, 13]
         editor.addCursorAtScreenPosition [3, 49]
 
@@ -1502,7 +1502,7 @@ describe "TextEditor", ->
         expect(selection2.isReversed()).toBeTruthy()
 
     describe ".selectToEndOfWord()", ->
-      it "selects text from cusor position to end of word", ->
+      it "selects text from cursor position to end of word", ->
         editor.setCursorScreenPosition [0, 4]
         editor.addCursorAtScreenPosition [3, 48]
 
@@ -1521,7 +1521,7 @@ describe "TextEditor", ->
         expect(selection2.isReversed()).toBeFalsy()
 
     describe ".selectToBeginningOfNextWord()", ->
-      it "selects text from cusor position to beginning of next word", ->
+      it "selects text from cursor position to beginning of next word", ->
         editor.setCursorScreenPosition [0, 4]
         editor.addCursorAtScreenPosition [3, 48]
 
