@@ -91,3 +91,8 @@ repeat these steps to upgrade to future releases.
 [MIT](https://github.com/atom/atom/blob/master/LICENSE.md)
 
 When using the Atom or other GitHub logos, be sure to follow the [GitHub logo guidelines](https://github.com/logos).
+
+
+## Issues
+
+* Atom can reset all your settings. Please make a backup of `.atom` directory. [WIP](https://github.com/atom/atom/issues/14909)
