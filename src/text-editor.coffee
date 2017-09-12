@@ -17,7 +17,6 @@ TextEditorElement = null
 {isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require './text-utils'
 
 ZERO_WIDTH_NBSP = '\ufeff'
-MAX_SCREEN_LINE_LENGTH = 500
 
 # Essential: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -158,7 +157,7 @@ class TextEditor extends Model
       @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @scrollSensitivity, @editorWidthInChars,
       @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide,
       @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength,
-      @showCursorOnSelection
+      @showCursorOnSelection, @maxScreenLineLength
     } = params
 
     @assert ?= (condition) -> condition
@@ -183,6 +182,7 @@ class TextEditor extends Model
     @softWrapped ?= false
     @softWrapAtPreferredLineLength ?= false
     @preferredLineLength ?= 80
+    @maxScreenLineLength ?= 500
     @showLineNumbers ?= true
 
     @buffer ?= new TextBuffer({
@@ -323,6 +323,11 @@ class TextEditor extends Model
             @preferredLineLength = value
             displayLayerParams.softWrapColumn = @getSoftWrapColumn()
 
+        when 'maxScreenLineLength'
+          if value isnt @maxScreenLineLength
+            @maxScreenLineLength = value
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
+
         when 'mini'
           if value isnt @mini
             @mini = value
@@ -433,7 +438,7 @@ class TextEditor extends Model
       softWrapHangingIndentLength: @displayLayer.softWrapHangingIndent
 
       @id, @softTabs, @softWrapped, @softWrapAtPreferredLineLength,
-      @preferredLineLength, @mini, @editorWidthInChars, @width, @largeFileMode,
+      @preferredLineLength, @mini, @editorWidthInChars, @width, @largeFileMode, @maxScreenLineLength,
       @registered, @invisibles, @showInvisibles, @showIndentGuide, @autoHeight, @autoWidth
     }
 
@@ -3039,7 +3044,7 @@ class TextEditor extends Model
       else
         @getEditorWidthInChars()
     else
-      MAX_SCREEN_LINE_LENGTH
+      @maxScreenLineLength
 
   ###
   Section: Indentation

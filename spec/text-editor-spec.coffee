@@ -74,6 +74,7 @@ describe "TextEditor", ->
           expect(editor2.getInvisibles()).toEqual(editor.getInvisibles())
           expect(editor2.getEditorWidthInChars()).toBe(editor.getEditorWidthInChars())
           expect(editor2.displayLayer.tabLength).toBe(editor2.getTabLength())
+          expect(editor2.displayLayer.softWrapColumn).toBe(editor2.getSoftWrapColumn())
 
   describe "when the editor is constructed with the largeFileMode option set to true", ->
     it "loads the editor but doesn't tokenize", ->
@@ -145,7 +146,7 @@ describe "TextEditor", ->
       returnedPromise = editor.update({
         tabLength: 6, softTabs: false, softWrapped: true, editorWidthInChars: 40,
         showInvisibles: false, mini: false, lineNumberGutterVisible: false, scrollPastEnd: true,
-        autoHeight: false
+        autoHeight: false, maxScreenLineLength: 1000
       })
 
       expect(returnedPromise).toBe(element.component.getNextUpdatePromise())
@@ -5918,3 +5919,11 @@ describe "TextEditor", ->
   describe "::getElement", ->
     it "returns an element", ->
       expect(editor.getElement() instanceof HTMLElement).toBe(true)
+
+  describe 'setMaxScreenLineLength', ->
+    it "sets the maximum line length in the editor before soft wrapping is forced", ->
+      expect(editor.getSoftWrapColumn()).toBe(500)
+      editor.update({
+        maxScreenLineLength: 1500
+      })
+      expect(editor.getSoftWrapColumn()).toBe(1500)

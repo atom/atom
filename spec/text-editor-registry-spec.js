@@ -544,6 +544,21 @@ describe('TextEditorRegistry', function () {
       expect(editor.getSoftWrapColumn()).toBe(80)
     })
 
+    it('allows for custom definition of maximum soft wrap based on config', async function () {
+      editor.update({
+        softWrapped: false,
+        maxScreenLineLength: 1500,
+      })
+
+      expect(editor.getSoftWrapColumn()).toBe(1500)
+
+      atom.config.set('editor.softWrap', false)
+      atom.config.set('editor.maxScreenLineLength', 500)
+      registry.maintainConfig(editor)
+      await initialPackageActivation
+      expect(editor.getSoftWrapColumn()).toBe(500)
+    })
+
     it('sets the preferred line length based on the config', async function () {
       editor.update({preferredLineLength: 80})
       expect(editor.getPreferredLineLength()).toBe(80)
