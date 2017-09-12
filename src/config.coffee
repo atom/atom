@@ -956,9 +956,7 @@ class Config
       @set(key, value, save: false) for key, value of newSettings
       if @pendingOperations.length
         op() for op in @pendingOperations
-        @requestSave()
         @pendingOperations = []
-      return
 
   getRawValue: (keyPath, options) ->
     unless options?.excludeSources?.indexOf(@getUserConfigPath()) >= 0
