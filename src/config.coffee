@@ -429,6 +429,7 @@ class Config
     , 100
 
     debouncedSave = _.debounce =>
+      @savePending = false
       @save()
     , 100
     @requestSave = =>
@@ -922,7 +923,6 @@ class Config
     @notificationManager?.addError(errorMessage, {detail, dismissable: true})
 
   save: ->
-    @savePending = false
     return if @shouldNotAccessFileSystem()
 
     allSettings = {'*': @settings}
