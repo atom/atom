@@ -1753,7 +1753,6 @@ describe "Config", ->
   fdescribe "when .set/.unset is called prior to .loadUserConfig", ->
     beforeEach ->
       atom.config.settingsLoaded = false
-
       fs.writeFileSync atom.config.configFilePath, """
         '*':
           foo:
@@ -1762,20 +1761,23 @@ describe "Config", ->
             ray: 'me'
       """
 
-    it "ensures that all settings are loaded correctly", ->
-      atom.config.unset('foo.bar')
-      expect(atom.config.save).not.toHaveBeenCalled()
-      atom.config.set('foo.qux', 'boo')
-      expect(atom.config.save).not.toHaveBeenCalled()
-      expect(atom.config.get('foo.qux')).toBeUndefined()
+    it "ensures that early set and unset calls are replayed after the config is loaded from disk", ->
+      atom.config.unset 'foo.bar'
+      atom.config.set 'foo.qux', 'boo'
+
+      expect(atom.config.get('foo.bar')).toBeUndefined()
+      expect(atom.config.get('foo.qux')).toBe 'boo'
       expect(atom.config.get('do.ray')).toBeUndefined()
 
-      atom.config.loadUserConfig()
       advanceClock 100
+      expect(atom.config.save).not.toHaveBeenCalled()
 
+      atom.config.loadUserConfig()
+
+      advanceClock 100
       waitsFor -> atom.config.save.callCount > 0
 
       runs ->
         expect(atom.config.get('foo.bar')).toBeUndefined()
-        expect(atom.config.get('foo.qux')).toBe('boo')
-        expect(atom.config.get('do.ray')).toBe('me')
+        expect(atom.config.get('foo.qux')).toBe 'boo'
+        expect(atom.config.get('do.ray')).toBe 'me'
