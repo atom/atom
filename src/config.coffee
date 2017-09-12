@@ -4,7 +4,7 @@ fs = require 'fs-plus'
 CSON = require 'season'
 path = require 'path'
 async = require 'async'
-pathWatcher = require 'pathwatcher'
+{watchPath} = require './path-watcher'
 {
   getValueAtKeyPath, setValueAtKeyPath, deleteValueAtKeyPath,
   pushKeyPath, splitKeyPath,
@@ -417,17 +417,24 @@ class Config
     @defaultSettings = {}
     @settings = {}
     @scopedSettingsStore = new ScopedPropertyStore
+
+    @settingsLoaded = false
+    @savePending = false
     @configFileHasErrors = false
     @transactDepth = 0
-    @savePending = false
-    @requestLoad = _.debounce(@loadUserConfig, 100)
-    @requestSave = =>
-      @savePending = true
-      debouncedSave.call(this)
-    save = =>
+    @pendingOperations = []
+
+    @requestLoad = _.debounce =>
+      @loadUserConfig()
+    , 100
+
+    debouncedSave = _.debounce =>
       @savePending = false
       @save()
-    debouncedSave = _.debounce(save, 100)
+    , 100
+    @requestSave = =>
+      @savePending = true
+      debouncedSave()
 
   shouldNotAccessFileSystem: -> not @enablePersistence
 
@@ -647,6 +654,10 @@ class Config
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: ->
     [keyPath, value, options] = arguments
+
+    unless @settingsLoaded
+      @pendingOperations.push => @set.call(this, keyPath, value, options)
+
     scopeSelector = options?.scopeSelector
     source = options?.source
     shouldSave = options?.save ? true
@@ -667,7 +678,8 @@ class Config
     else
       @setRawValue(keyPath, value)
 
-    @requestSave() if source is @getUserConfigPath() and shouldSave and not @configFileHasErrors
+    if source is @getUserConfigPath() and shouldSave and not @configFileHasErrors and @settingsLoaded
+      @requestSave()
     true
 
   # Essential: Restore the setting at `keyPath` to its default value.
@@ -677,6 +689,9 @@ class Config
   #   * `scopeSelector` (optional) {String}. See {::set}
   #   * `source` (optional) {String}. See {::set}
   unset: (keyPath, options) ->
+    unless @settingsLoaded
+      @pendingOperations.push => @unset.call(this, keyPath, options)
+
     {scopeSelector, source} = options ? {}
     source ?= @getUserConfigPath()
 
@@ -688,7 +703,8 @@ class Config
           setValueAtKeyPath(settings, keyPath, undefined)
           settings = withoutEmptyObjects(settings)
           @set(null, settings, {scopeSelector, source, priority: @priorityForSource(source)}) if settings?
-          @requestSave()
+          if source is @getUserConfigPath() and not @configFileHasErrors and @settingsLoaded
+            @requestSave()
       else
         @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
         @emitChangeEvent()
@@ -848,21 +864,26 @@ class Config
 
   loadUserConfig: ->
     return if @shouldNotAccessFileSystem()
+    return if @savePending
 
     try
-      unless fs.existsSync(@configFilePath)
-        fs.makeTreeSync(path.dirname(@configFilePath))
-        CSON.writeFileSync(@configFilePath, {})
+      fs.makeTreeSync(path.dirname(@configFilePath))
+      CSON.writeFileSync(@configFilePath, {}, {flag: 'wx'}) # fails if file exists
     catch error
-      @configFileHasErrors = true
-      @notifyFailure("Failed to initialize `#{path.basename(@configFilePath)}`", error.stack)
-      return
+      if error.code isnt 'EEXIST'
+        @configFileHasErrors = true
+        @notifyFailure("Failed to initialize `#{path.basename(@configFilePath)}`", error.stack)
+        return
 
     try
-      unless @savePending
-        userConfig = CSON.readFileSync(@configFilePath)
-        @resetUserSettings(userConfig)
-        @configFileHasErrors = false
+      userConfig = CSON.readFileSync(@configFilePath)
+      userConfig = {} if userConfig is null
+
+      unless isPlainObject(userConfig)
+        throw new Error("`#{path.basename(@configFilePath)}` must contain valid JSON or CSON")
+
+      @resetUserSettings(userConfig)
+      @configFileHasErrors = false
     catch error
       @configFileHasErrors = true
       message = "Failed to load `#{path.basename(@configFilePath)}`"
@@ -880,8 +901,10 @@ class Config
     return if @shouldNotAccessFileSystem()
 
     try
-      @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
-        @requestLoad() if eventType is 'change' and @watchSubscription?
+      @watchSubscriptionPromise ?= watchPath @configFilePath, {}, (events) =>
+        for {action} in events
+          if action in ['created', 'modified', 'renamed'] and @watchSubscriptionPromise?
+            @requestLoad()
     catch error
       @notifyFailure """
         Unable to watch path: `#{path.basename(@configFilePath)}`. Make sure you have permissions to
@@ -890,9 +913,11 @@ class Config
         [watches]:https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path
       """
 
+    @watchSubscriptionPromise
+
   unobserveUserConfig: ->
-    @watchSubscription?.close()
-    @watchSubscription = null
+    @watchSubscriptionPromise?.then (watcher) -> watcher?.dispose()
+    @watchSubscriptionPromise = null
 
   notifyFailure: (errorMessage, detail) ->
     @notificationManager?.addError(errorMessage, {detail, dismissable: true})
@@ -915,11 +940,6 @@ class Config
   ###
 
   resetUserSettings: (newSettings) ->
-    unless isPlainObject(newSettings)
-      @settings = {}
-      @emitChangeEvent()
-      return
-
     if newSettings.global?
       newSettings['*'] = newSettings.global
       delete newSettings.global
@@ -932,8 +952,11 @@ class Config
 
     @transact =>
       @settings = {}
+      @settingsLoaded = true
       @set(key, value, save: false) for key, value of newSettings
-      return
+      if @pendingOperations.length
+        op() for op in @pendingOperations
+        @pendingOperations = []
 
   getRawValue: (keyPath, options) ->
     unless options?.excludeSources?.indexOf(@getUserConfigPath()) >= 0
