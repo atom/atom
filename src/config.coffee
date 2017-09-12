@@ -864,9 +864,10 @@ class Config
       fs.makeTreeSync(path.dirname(@configFilePath))
       CSON.writeFileSync(@configFilePath, {}, {flag: 'wx'}) # fails if file exists
     catch error
-      @configFileHasErrors = true
-      @notifyFailure("Failed to initialize `#{path.basename(@configFilePath)}`", error.stack)
-      return
+      if error.code isnt 'EEXIST'
+        @configFileHasErrors = true
+        @notifyFailure("Failed to initialize `#{path.basename(@configFilePath)}`", error.stack)
+        return
 
     try
       unless @savePending
