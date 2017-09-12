@@ -656,7 +656,7 @@ class Config
     [keyPath, value, options] = arguments
 
     unless @settingsLoaded
-      @pendingOperations.push () => @set.call(this, keyPath, value, options)
+      @pendingOperations.push => @set.call(this, keyPath, value, options)
 
     scopeSelector = options?.scopeSelector
     source = options?.source
@@ -690,7 +690,7 @@ class Config
   #   * `source` (optional) {String}. See {::set}
   unset: (keyPath, options) ->
     unless @settingsLoaded
-      @pendingOperations.push () => @unset.call(this, keyPath, options)
+      @pendingOperations.push => @unset.call(this, keyPath, options)
 
     {scopeSelector, source} = options ? {}
     source ?= @getUserConfigPath()
@@ -916,7 +916,7 @@ class Config
     @watchSubscriptionPromise
 
   unobserveUserConfig: ->
-    @watchSubscriptionPromise?.then((watcher) => watcher?.dispose())
+    @watchSubscriptionPromise?.then (watcher) -> watcher?.dispose()
     @watchSubscriptionPromise = null
 
   notifyFailure: (errorMessage, detail) ->
