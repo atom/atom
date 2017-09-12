@@ -872,6 +872,11 @@ class Config
     try
       unless @savePending
         userConfig = CSON.readFileSync(@configFilePath)
+        userConfig = {} if userConfig is null
+
+        unless isPlainObject(userConfig)
+          throw new Error("`#{path.basename(@configFilePath)}` must contain valid JSON or CSON")
+
         @resetUserSettings(userConfig)
         @configFileHasErrors = false
     catch error
@@ -930,11 +935,6 @@ class Config
   ###
 
   resetUserSettings: (newSettings) ->
-    unless isPlainObject(newSettings)
-      @settings = {}
-      @emitChangeEvent()
-      return
-
     if newSettings.global?
       newSettings['*'] = newSettings.global
       delete newSettings.global
