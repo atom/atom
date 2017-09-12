@@ -419,17 +419,21 @@ class Config
     @defaultSettings = {}
     @settings = {}
     @scopedSettingsStore = new ScopedPropertyStore
+
+    @savePending = false
     @configFileHasErrors = false
     @transactDepth = 0
-    @savePending = false
-    @requestLoad = _.debounce(@loadUserConfig, 100)
+
+    @requestLoad = _.debounce =>
+      @loadUserConfig()
+    , 100
+
+    debouncedSave = _.debounce =>
+      @save()
+    , 100
     @requestSave = =>
       @savePending = true
-      debouncedSave.call(this)
-    save = =>
-      @savePending = false
-      @save()
-    debouncedSave = _.debounce(save, 100)
+      debouncedSave()
 
   shouldNotAccessFileSystem: -> not @enablePersistence
 
@@ -652,7 +656,6 @@ class Config
 
     unless @settingsLoaded
       @pendingOperations.push () => @set.call(this, keyPath, value, options)
-      return
 
     scopeSelector = options?.scopeSelector
     source = options?.source
@@ -674,7 +677,8 @@ class Config
     else
       @setRawValue(keyPath, value)
 
-    @requestSave() if source is @getUserConfigPath() and shouldSave and not @configFileHasErrors
+    if source is @getUserConfigPath() and shouldSave and not @configFileHasErrors and @settingsLoaded
+      @requestSave()
     true
 
   # Essential: Restore the setting at `keyPath` to its default value.
@@ -686,7 +690,6 @@ class Config
   unset: (keyPath, options) ->
     unless @settingsLoaded
       @pendingOperations.push () => @unset.call(this, keyPath, options)
-      return
 
     {scopeSelector, source} = options ? {}
     source ?= @getUserConfigPath()
@@ -699,7 +702,7 @@ class Config
           setValueAtKeyPath(settings, keyPath, undefined)
           settings = withoutEmptyObjects(settings)
           @set(null, settings, {scopeSelector, source, priority: @priorityForSource(source)}) if settings?
-          @requestSave()
+          @requestSave() if source is @getUserConfigPath and not @configFileHasErrors and @settingsLoaded
       else
         @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
         @emitChangeEvent()
@@ -859,6 +862,7 @@ class Config
 
   loadUserConfig: ->
     return if @shouldNotAccessFileSystem()
+    return if @savePending
 
     try
       fs.makeTreeSync(path.dirname(@configFilePath))
@@ -870,15 +874,14 @@ class Config
         return
 
     try
-      unless @savePending
-        userConfig = CSON.readFileSync(@configFilePath)
-        userConfig = {} if userConfig is null
+      userConfig = CSON.readFileSync(@configFilePath)
+      userConfig = {} if userConfig is null
 
-        unless isPlainObject(userConfig)
-          throw new Error("`#{path.basename(@configFilePath)}` must contain valid JSON or CSON")
+      unless isPlainObject(userConfig)
+        throw new Error("`#{path.basename(@configFilePath)}` must contain valid JSON or CSON")
 
-        @resetUserSettings(userConfig)
-        @configFileHasErrors = false
+      @resetUserSettings(userConfig)
+      @configFileHasErrors = false
     catch error
       @configFileHasErrors = true
       message = "Failed to load `#{path.basename(@configFilePath)}`"
@@ -918,6 +921,7 @@ class Config
     @notificationManager?.addError(errorMessage, {detail, dismissable: true})
 
   save: ->
+    @savePending = false
     return if @shouldNotAccessFileSystem()
 
     allSettings = {'*': @settings}
