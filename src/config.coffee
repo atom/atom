@@ -702,7 +702,8 @@ class Config
           setValueAtKeyPath(settings, keyPath, undefined)
           settings = withoutEmptyObjects(settings)
           @set(null, settings, {scopeSelector, source, priority: @priorityForSource(source)}) if settings?
-          @requestSave() if source is @getUserConfigPath and not @configFileHasErrors and @settingsLoaded
+          if source is @getUserConfigPath() and not @configFileHasErrors and @settingsLoaded
+            @requestSave()
       else
         @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
         @emitChangeEvent()
