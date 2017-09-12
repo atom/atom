@@ -860,7 +860,6 @@ class Config
   loadUserConfig: ->
     return if @shouldNotAccessFileSystem()
 
-    console.log 'loadUserConfig'
     try
       fs.makeTreeSync(path.dirname(@configFilePath))
       CSON.writeFileSync(@configFilePath, {}, {flag: 'wx'}) # fails if file exists
@@ -891,13 +890,9 @@ class Config
     return if @shouldNotAccessFileSystem()
 
     try
-      console.trace 'create watch subscription', @watchSubscriptionPromise
       @watchSubscriptionPromise ?= watchPath @configFilePath, {}, (events) =>
-        console.log events
         for {action} in events
-          console.log action, @watchSubscriptionPromise?
           if action in ['created', 'modified', 'renamed'] and @watchSubscriptionPromise?
-            console.warn 'request load'
             @requestLoad()
     catch error
       @notifyFailure """
@@ -912,7 +907,6 @@ class Config
   unobserveUserConfig: ->
     @watchSubscriptionPromise?.then((watcher) => watcher?.dispose())
     @watchSubscriptionPromise = null
-    console.log 'unobserve'
 
   notifyFailure: (errorMessage, detail) ->
     @notificationManager?.addError(errorMessage, {detail, dismissable: true})
