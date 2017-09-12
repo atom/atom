@@ -951,7 +951,7 @@ class Config
       @set(key, value, save: false) for key, value of newSettings
       if @pendingOperations.length
         op() for op in @pendingOperations
-        @debouncedSave()
+        @requestSave()
         @pendingOperations = []
       return
 
