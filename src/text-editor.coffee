@@ -153,7 +153,7 @@ class TextEditor extends Model
 
     {
       @softTabs, @initialScrollTopRow, @initialScrollLeftColumn, initialLine, initialColumn, tabLength,
-      @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
+      @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, @showLineNumbers, @largeFileMode,
       @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @scrollSensitivity, @editorWidthInChars,
       @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide,
