@@ -399,8 +399,6 @@ class Config
 
   # Created during initialization, available as `atom.config`
   constructor: ({@notificationManager, @enablePersistence}={}) ->
-    @settingsLoaded = false
-    @pendingOperations = []
     @clear()
 
   initialize: ({@configDirPath, @resourcePath, projectHomeSchema}) ->
@@ -420,9 +418,11 @@ class Config
     @settings = {}
     @scopedSettingsStore = new ScopedPropertyStore
 
+    @settingsLoaded = false
     @savePending = false
     @configFileHasErrors = false
     @transactDepth = 0
+    @pendingOperations = []
 
     @requestLoad = _.debounce =>
       @loadUserConfig()
