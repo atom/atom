@@ -934,7 +934,7 @@ describe "Config", ->
         waitsForPromise -> atom.config.observeUserConfig()
 
         runs ->
-          updatedHandler = jasmine.createSpy("updatedHandler")
+          updatedHandler = jasmine.createSpy "updatedHandler"
           atom.config.onDidChange updatedHandler
 
       afterEach ->
@@ -953,7 +953,7 @@ describe "Config", ->
             expect(atom.config.get('foo.baz')).toBe 'bar'
 
         it "does not fire a change event for paths that did not change", ->
-          atom.config.onDidChange 'foo.bar', noChangeSpy = jasmine.createSpy()
+          atom.config.onDidChange 'foo.bar', noChangeSpy = jasmine.createSpy "unchanged"
 
           writeConfigFile "foo: { bar: 'baz', baz: 'ok'}", 2
           waitsFor 'update event', -> updatedHandler.callCount > 0
@@ -976,7 +976,7 @@ describe "Config", ->
             runs -> updatedHandler.reset()
 
           it "does not fire a change event for paths that did not change", ->
-            noChangeSpy = jasmine.createSpy()
+            noChangeSpy = jasmine.createSpy "unchanged"
             atom.config.onDidChange('foo.bar', noChangeSpy)
 
             writeConfigFile "foo: { bar: ['baz', 'ok'], baz: 'another'}", 2
@@ -1004,7 +1004,7 @@ describe "Config", ->
               expect(atom.config.get('foo.scoped', scope: ['.source.ruby'])).toBe false
 
           it "does not fire a change event for paths that did not change", ->
-            noChangeSpy = jasmine.createSpy()
+            noChangeSpy = jasmine.createSpy "no change"
             atom.config.onDidChange('foo.scoped', scope: ['.source.ruby'], noChangeSpy)
 
             writeConfigFile """
@@ -1054,7 +1054,7 @@ describe "Config", ->
       describe "when the config file changes to contain invalid cson", ->
         addErrorHandler = null
         beforeEach ->
-          atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy()
+          atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy "error handler"
           writeConfigFile "}}}", 4
           waitsFor "error to be logged", -> addErrorHandler.callCount > 0
 
