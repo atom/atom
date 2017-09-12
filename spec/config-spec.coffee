@@ -931,7 +931,6 @@ describe "Config", ->
         """
         atom.config.loadUserConfig()
 
-        console.log 'observeUserConfig promise', atom.config.observeUserConfig()
         waitsForPromise -> atom.config.observeUserConfig()
 
         runs ->
@@ -939,17 +938,10 @@ describe "Config", ->
           atom.config.onDidChange updatedHandler
 
       afterEach ->
-        # WHY IS THIS NOT RUNNING?
-        console.log 'afterEach'
         atom.config.unobserveUserConfig()
         fs.removeSync(dotAtomPath)
 
       describe "when the config file changes to contain valid cson", ->
-        afterEach ->
-          # WHY IS THIS NOT RUNNING?
-          console.log 'afterEach'
-          atom.config.unobserveUserConfig()
-          fs.removeSync(dotAtomPath)
 
         it "updates the config data", ->
           writeConfigFile "foo: { bar: 'quux', baz: 'bar'}", 2
@@ -1759,7 +1751,6 @@ describe "Config", ->
           expect(atom.config.get('foo.bar.str_options')).toEqual 'two'
 
   describe "when .set/.unset is called prior to .loadUserConfig", ->
-    console.log 'this test'
     beforeEach ->
       fs.writeFileSync config.configFilePath, """
         '*':
