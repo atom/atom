@@ -1750,7 +1750,7 @@ describe "Config", ->
           expect(atom.config.set('foo.bar.str_options', 'One')).toBe false
           expect(atom.config.get('foo.bar.str_options')).toEqual 'two'
 
-  describe "when .set/.unset is called prior to .loadUserConfig", ->
+  fdescribe "when .set/.unset is called prior to .loadUserConfig", ->
     beforeEach ->
       atom.config.settingsLoaded = false
 
