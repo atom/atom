@@ -648,11 +648,12 @@ class Config
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: ->
+    [keyPath, value, options] = arguments
+
     unless @settingsLoaded
-      @pendingOperations.push(() => @set.apply(@, arguments))
+      @pendingOperations.push () => @set.call(this, keyPath, value, options)
       return
 
-    [keyPath, value, options] = arguments
     scopeSelector = options?.scopeSelector
     source = options?.source
     shouldSave = options?.save ? true
@@ -684,7 +685,7 @@ class Config
   #   * `source` (optional) {String}. See {::set}
   unset: (keyPath, options) ->
     unless @settingsLoaded
-      @pendingOperations.push(() => @unset.apply(@, arguments))
+      @pendingOperations.push () => @unset.call(this, keyPath, options)
       return
 
     {scopeSelector, source} = options ? {}
