@@ -1752,7 +1752,9 @@ describe "Config", ->
 
   describe "when .set/.unset is called prior to .loadUserConfig", ->
     beforeEach ->
-      fs.writeFileSync config.configFilePath, """
+      atom.config.settingsLoaded = false
+
+      fs.writeFileSync atom.config.configFilePath, """
         '*':
           foo:
             bar: 'baz'
@@ -1761,22 +1763,19 @@ describe "Config", ->
       """
 
     it "ensures that all settings are loaded correctly", ->
-      console.log 'test start'
-      config.unset('foo.bar')
-      expect(config.save).not.toHaveBeenCalled()
-      config.set('foo.qux', 'boo')
-      expect(config.save).not.toHaveBeenCalled()
-      expect(config.get('foo.qux')).toBeUndefined()
-      expect(config.get('do.ray')).toBeUndefined()
+      atom.config.unset('foo.bar')
+      expect(atom.config.save).not.toHaveBeenCalled()
+      atom.config.set('foo.qux', 'boo')
+      expect(atom.config.save).not.toHaveBeenCalled()
+      expect(atom.config.get('foo.qux')).toBeUndefined()
+      expect(atom.config.get('do.ray')).toBeUndefined()
 
-      console.log 'loadUserConfig'
-      config.loadUserConfig()
+      atom.config.loadUserConfig()
+      advanceClock 100
 
-      waitsFor -> config.get('foo.bar') is undefined
+      waitsFor -> atom.config.save.callCount > 0
+
       runs ->
-        expect(config.save).toHaveBeenCalled()
-        expect(config.get('foo.bar')).toBeUndefined()
-        expect(config.get('foo.qux')).toBe('boo')
-        expect(config.get('do.ray')).toBe('me')
-
-      console.log 'end test'
+        expect(atom.config.get('foo.bar')).toBeUndefined()
+        expect(atom.config.get('foo.qux')).toBe('boo')
+        expect(atom.config.get('do.ray')).toBe('me')
