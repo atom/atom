@@ -820,7 +820,8 @@ module.exports = class Workspace extends Model {
   // Extended: Invoke the given callback when a pane item is about to be
   // destroyed, before the user is prompted to save it.
   //
-  // * `callback` {Function} to be called before pane items are destroyed.
+  // * `callback` {Function} to be called before pane items are destroyed. If this function returns
+  //   a {Promise}, then the item will not be destroyed until the promise resolves.
   //   * `event` {Object} with the following keys:
   //     * `item` The item to be destroyed.
   //     * `pane` {Pane} containing the item to be destroyed.
