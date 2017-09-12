@@ -878,7 +878,7 @@ describe "Config", ->
 
         beforeEach ->
           atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy()
-          spyOn(fs, "existsSync").andCallFake ->
+          spyOn(fs, "makeTreeSync").andCallFake ->
             error = new Error()
             error.code = 'EPERM'
             throw error
