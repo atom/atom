@@ -5,6 +5,7 @@ import {Disposable} from 'event-kit'
 export default {
   name: 'Null Grammar',
   scopeName: 'text.plain.null-grammar',
+  //loop for checked condition
   scopeForId (id) {
     if (id === -1 || id === -2) {
       return this.scopeName
