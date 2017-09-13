@@ -625,7 +625,6 @@ class Pane
         return Promise.resolve(false)
 
       callback = =>
-        @container?.willDestroyPaneItem({item, index, pane: this})
         if force or not item?.shouldPromptToSave?()
           @removeItem(item, false)
           item.destroy?()
@@ -639,10 +638,14 @@ class Pane
 
       # In the case where there are no `onWillDestroyPaneItem` listeners, preserve the old behavior
       # where `Pane.destroyItem` and callers such as `Pane.close` take effect synchronously.
-      if @emitter.listenerCountForEventName('will-destroy-item') is 0
-        return Promise.resolve(callback())
-      else
-        @emitter.emitAsync('will-destroy-item', {item, index}).then(callback)
+      return Promise.resolve(callback()) unless (
+        @emitter.listenerCountForEventName('will-destroy-item') or
+        @container?.emitter.listenerCountForEventName('will-destroy-pane-item')
+      )
+
+      @emitter.emitAsync('will-destroy-item', {item, index})
+        .then => @container?.willDestroyPaneItem({item, index, pane: this})
+        .then(callback)
 
   # Public: Destroy all items.
   destroyItems: ->
