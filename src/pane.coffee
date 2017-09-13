@@ -624,18 +624,25 @@ class Pane
       if not force and @getContainer()?.getLocation() isnt 'center' and item.isPermanentDockItem?()
         return Promise.resolve(false)
 
-      @emitter.emit 'will-destroy-item', {item, index}
-      @container?.willDestroyPaneItem({item, index, pane: this})
-      if force or not item?.shouldPromptToSave?()
-        @removeItem(item, false)
-        item.destroy?()
-        Promise.resolve(true)
+      callback = =>
+        @container?.willDestroyPaneItem({item, index, pane: this})
+        if force or not item?.shouldPromptToSave?()
+          @removeItem(item, false)
+          item.destroy?()
+          true
+        else
+          @promptToSaveItem(item).then (result) =>
+            if result
+              @removeItem(item, false)
+              item.destroy?()
+            result
+
+      # In the case where there are no `onWillDestroyPaneItem` listeners, preserve the old behavior
+      # where `Pane.destroyItem` and callers such as `Pane.close` take effect synchronously.
+      if @emitter.listenerCountForEventName('will-destroy-item') is 0
+        return Promise.resolve(callback())
       else
-        @promptToSaveItem(item).then (result) =>
-          if result
-            @removeItem(item, false)
-            item.destroy?()
-          result
+        @emitter.emitAsync('will-destroy-item', {item, index}).then(callback)
 
   # Public: Destroy all items.
   destroyItems: ->

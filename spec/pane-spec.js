@@ -3,7 +3,7 @@ const {Emitter} = require('event-kit')
 const Grim = require('grim')
 const Pane = require('../src/pane')
 const PaneContainer = require('../src/pane-container')
-const {it, fit, ffit, fffit, beforeEach} = require('./async-spec-helpers')
+const {it, fit, ffit, fffit, beforeEach, timeoutPromise} = require('./async-spec-helpers')
 
 describe('Pane', () => {
   let confirm, showSaveDialog, deserializerDisposable
@@ -491,14 +491,21 @@ describe('Pane', () => {
       expect(pane.getActiveItem()).toBeUndefined()
     })
 
-    it('invokes ::onWillDestroyItem() observers before destroying the item', () => {
+    it('invokes ::onWillDestroyItem() observers before destroying the item', async () => {
+      jasmine.useRealClock()
+
+      let handlerDidFinish = false
       const events = []
-      pane.onWillDestroyItem(function (event) {
+      pane.onWillDestroyItem(async (event) => {
         expect(item2.isDestroyed()).toBe(false)
         events.push(event)
+        await timeoutPromise(50)
+        expect(item2.isDestroyed()).toBe(false)
+        handlerDidFinish = true
       })
 
-      pane.destroyItem(item2)
+      await pane.destroyItem(item2)
+      expect(handlerDidFinish).toBe(true)
       expect(item2.isDestroyed()).toBe(true)
       expect(events).toEqual([{item: item2, index: 1}])
     })
