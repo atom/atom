@@ -4,7 +4,7 @@ fs = require 'fs-plus'
 CSON = require 'season'
 path = require 'path'
 async = require 'async'
-{watchPath} = require './path-watcher'
+{watchPath} = require './backport-watch-path'
 {
   getValueAtKeyPath, setValueAtKeyPath, deleteValueAtKeyPath,
   pushKeyPath, splitKeyPath,
