@@ -17,34 +17,42 @@ function stat(filePath) {
 
 const INTERVAL = 100
 
-exports.watchPath = async function (filePath, options, eventCallback) {
+exports.watchPath = function (filePath, options, eventCallback) {
   let fileStat = null
-  let pollInterval = null
 
-  const getStatus = async () => {
-    try {
-      const nextStat = await stat(filePath)
-      if (fileStat === null) {
-        fileStat = nextStat
-        eventCallback([{action: 'created', path: filePath}])
-      } else if (nextStat.mtime - fileStat.mtime !== 0 || nextStat.ctime - fileStat.ctime !== 0) {
-        fileStat = nextStat
-        eventCallback([{action: 'modified', path: filePath}])
+  const getStatus = () => {
+    stat(filePath).then(
+      nextStat => {
+        if (fileStat === null) {
+          fileStat = nextStat
+          eventCallback([{action: 'created', path: filePath}])
+        } else if (nextStat.mtime - fileStat.mtime !== 0 || nextStat.ctime - fileStat.ctime !== 0) {
+          fileStat = nextStat
+          eventCallback([{action: 'modified', path: filePath}])
+        }
+      },
+      () => {
+        if (fileStat !== null) {
+          fileStat = null
+          eventCallback([{action: 'deleted', path: filePath}])
+        }
       }
-    } catch (e) {
-      console.log('error', e)
-      if (fileStat !== null) {
-        fileStat = null
-        eventCallback([{action: 'deleted', path: filePath}])
-      }
-    }
+    )
   }
 
-  fileStat = await stat(filePath).catch(null)
-  pollInterval = setInterval(getStatus, INTERVAL)
+  return stat(filePath).then(
+    nextStat => {
+      fileStat = nextStat
+    },
+    () => {
+      fileStat = null
+    }
+  ).then(() => {
+    const pollInterval = setInterval(getStatus, INTERVAL)
 
-  return new Disposable(() => {
-    clearInterval(pollInterval)
-    return Promise.resolve()
+    return new Disposable(() => {
+      clearInterval(pollInterval)
+      return Promise.resolve()
+    })
   })
 }
