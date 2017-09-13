@@ -3,7 +3,7 @@
 const fs = require('fs-plus')
 const {Disposable} = require('event-kit')
 
-function stat(filePath) {
+function stat (filePath) {
   return new Promise((resolve, reject) => {
     fs.stat(filePath, (err, stat) => {
       if (err) {
