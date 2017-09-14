@@ -1,12 +1,12 @@
 const {Emitter} = require('event-kit')
 
-// Extended: A container representing a panel on the edges of the editor window.
-// You should not create a `Panel` directly, instead use {Workspace::addTopPanel}
-// and friends to add panels.
-//
-// Examples: [status-bar](https://github.com/atom/status-bar)
-// and [find-and-replace](https://github.com/atom/find-and-replace) both use
-// panels.
+/* Extended: A container representing a panel on the edges of the editor window.
+ You should not create a `Panel` directly, instead use {Workspace::addTopPanel}
+ and friends to add panels.
+
+ Examples: [status-bar](https://github.com/atom/status-bar)
+ and [find-and-replace](https://github.com/atom/find-and-replace) both use
+ panels.*/
 module.exports =
 class Panel {
   /*
@@ -48,22 +48,22 @@ class Panel {
   Section: Event Subscription
   */
 
-  // Public: Invoke the given callback when the pane hidden or shown.
-  //
-  // * `callback` {Function} to be called when the pane is destroyed.
-  //   * `visible` {Boolean} true when the panel has been shown
-  //
-  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  /* Public: Invoke the given callback when the pane hidden or shown.
+  
+     * `callback` {Function} to be called when the pane is destroyed.
+     * `visible` {Boolean} true when the panel has been shown
+  
+   Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.*/
   onDidChangeVisible (callback) {
     return this.emitter.on('did-change-visible', callback)
   }
 
-  // Public: Invoke the given callback when the pane is destroyed.
-  //
-  // * `callback` {Function} to be called when the pane is destroyed.
-  //   * `panel` {Panel} this panel
-  //
-  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  /* Public: Invoke the given callback when the pane is destroyed.
+  
+     * `callback` {Function} to be called when the pane is destroyed.
+     * `panel` {Panel} this panel
+  
+   Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.*/
   onDidDestroy (callback) {
     return this.emitter.once('did-destroy', callback)
   }
