@@ -867,8 +867,9 @@ class Config
     return if @savePending
 
     try
-      fs.makeTreeSync(path.dirname(@configFilePath))
-      CSON.writeFileSync(@configFilePath, {}, {flag: 'wx'}) # fails if file exists
+      unless fs.existsSync(@configFilePath)
+        fs.makeTreeSync(path.dirname(@configFilePath))
+        CSON.writeFileSync(@configFilePath, {}, {flag: 'wx'}) # fails if file exists
     catch error
       if error.code isnt 'EEXIST'
         @configFileHasErrors = true
