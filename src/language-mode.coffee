@@ -250,20 +250,18 @@ class LanguageMode
     @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
 
   suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, line, tokenizedLine, options) ->
-    iterator = tokenizedLine.getTokenIterator()
-    iterator.next()
-    scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
-
-    increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
-
     if options?.skipBlankLines ? true
       precedingRow = @buffer.previousNonBlankRow(bufferRow)
       return 0 unless precedingRow?
     else
       precedingRow = bufferRow - 1
       return 0 if precedingRow < 0
+
+    precedingLineIterator = @editor.tokenizedBuffer.tokenizedLineForRow(precedingRow).getTokenIterator()
+    precedingLineIterator.next()
+    precedingLineScopeDescriptor = new ScopeDescriptor(scopes: precedingLineIterator.getScopes())
+    increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(precedingLineScopeDescriptor)
+    decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(precedingLineScopeDescriptor)
 
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
     return desiredIndentLevel unless increaseIndentRegex
@@ -274,6 +272,11 @@ class LanguageMode
       desiredIndentLevel -= 1 if decreaseNextIndentRegex?.testSync(precedingLine)
 
     unless @buffer.isRowBlank(precedingRow)
+      iterator = tokenizedLine.getTokenIterator()
+      iterator.next()
+      continue while iterator.getText().match(/^[ \t]+$/) and iterator.next()
+      scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
+      decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
       desiredIndentLevel -= 1 if decreaseIndentRegex?.testSync(line)
 
     Math.max(desiredIndentLevel, 0)
