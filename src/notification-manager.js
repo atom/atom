@@ -53,6 +53,8 @@ class NotificationManager {
   //      notification can be dismissed by the user. Defaults to `false`.
   //    * `icon` (optional) A {String} name of an icon from Octicons to display
   //      in the notification header. Defaults to `'check'`.
+  //
+  // Returns the {Notification} that was added.
   addSuccess (message, options) {
     return this.addNotification(new Notification('success', message, options))
   }
@@ -79,6 +81,8 @@ class NotificationManager {
   //      notification can be dismissed by the user. Defaults to `false`.
   //    * `icon` (optional) A {String} name of an icon from Octicons to display
   //      in the notification header. Defaults to `'info'`.
+  //
+  // Returns the {Notification} that was added.
   addInfo (message, options) {
     return this.addNotification(new Notification('info', message, options))
   }
@@ -105,6 +109,8 @@ class NotificationManager {
   //      notification can be dismissed by the user. Defaults to `false`.
   //    * `icon` (optional) A {String} name of an icon from Octicons to display
   //      in the notification header. Defaults to `'alert'`.
+  //
+  // Returns the {Notification} that was added.
   addWarning (message, options) {
     return this.addNotification(new Notification('warning', message, options))
   }
@@ -133,6 +139,8 @@ class NotificationManager {
   //      in the notification header. Defaults to `'flame'`.
   //    * `stack` (optional) A preformatted {String} with stack trace
   //      information describing the location of the error.
+  //
+  // Returns the {Notification} that was added.
   addError (message, options) {
     return this.addNotification(new Notification('error', message, options))
   }
@@ -161,6 +169,8 @@ class NotificationManager {
   //      in the notification header. Defaults to `'bug'`.
   //    * `stack` (optional) A preformatted {String} with stack trace
   //      information describing the location of the error.
+  //
+  // Returns the {Notification} that was added.
   addFatalError (message, options) {
     return this.addNotification(new Notification('fatal', message, options))
   }
