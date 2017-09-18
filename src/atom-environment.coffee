@@ -998,11 +998,18 @@ class AtomEnvironment extends Model
 
     @setFullScreen(state.fullScreen)
 
+    missingProjectPaths = []
+
     @packages.packageStates = state.packageStates ? {}
 
     startTime = Date.now()
     if state.project?
       projectPromise = @project.deserialize(state.project, @deserializers)
+        .catch (err) ->
+          if err.missingProjectPaths?
+            missingProjectPaths.push(err.missingProjectPaths...)
+          else
+            @notifications.addError "Unable to deserialize project", stack: err.stack
     else
       projectPromise = Promise.resolve()
 
@@ -1014,6 +1021,19 @@ class AtomEnvironment extends Model
       startTime = Date.now()
       @workspace.deserialize(state.workspace, @deserializers) if state.workspace?
       @deserializeTimings.workspace = Date.now() - startTime
+
+      if missingProjectPaths.length
+        count = if missingProjectPaths.length is 1 then '' else missingProjectPaths.length + ' '
+        noun = if missingProjectPaths.length is 1 then 'directory' else 'directories'
+        toBe = if missingProjectPaths.length is 1 then 'is' else 'are'
+        escaped = missingProjectPaths.map (projectPath) -> "`#{projectPath}`"
+        group = switch escaped.length
+          when 1 then escaped[0]
+          when 2 then "#{escaped[0]} and #{escaped[1]}"
+          else escaped[..-2].join(", ") + ", and #{escaped[escaped.length - 1]}"
+
+        @notifications.addError "Unable to open #{count}project #{noun}",
+          description: "Project #{noun} #{group} #{toBe} no longer on disk."
 
   getStateKey: (paths) ->
     if paths?.length > 0
