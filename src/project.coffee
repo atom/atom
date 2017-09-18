@@ -211,7 +211,10 @@ class Project extends Model
   # Public: Set the paths of the project's directories.
   #
   # * `projectPaths` {Array} of {String} paths.
-  setPaths: (projectPaths) ->
+  # * `options` An optional {Object} that may contain the following keys:
+  #   * `mustExist` If `true`, throw an Error if any `projectPaths` do not exist. The existing `projectPaths` will
+  #     still be added to the project.
+  setPaths: (projectPaths, options = {}) ->
     repository?.destroy() for repository in @repositories
     @rootDirectories = []
     @repositories = []
@@ -219,26 +222,38 @@ class Project extends Model
     watcher.then((w) -> w.dispose()) for _, watcher in @watcherPromisesByPath
     @watcherPromisesByPath = {}
 
-    @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
+    added = false
+    missingProjectPaths = []
+    for projectPath in projectPaths
+      try
+        @addPath(projectPath, emitEvent: false, mustExist: true)
+        added = true
+      catch e
+        missingProjectPaths.push e.missingProjectPaths...
 
-    @emitter.emit 'did-change-paths', projectPaths
+    if added
+      @emitter.emit 'did-change-paths', projectPaths
+
+    if options.mustExist is true and missingProjectPaths
+      err = new Error "One or more project directories do not exist"
+      err.missingProjectPaths = missingProjectPaths
+      throw err
 
   # Public: Add a path to the project's list of root paths
   #
   # * `projectPath` {String} The path to the directory to add.
   # * `options` An optional {Object} that may contain the following keys:
-  #   * `mustExist` If `true`, throw an Error if `projectPath` does not exist.
+  #   * `mustExist` If `true`, throw an Error if the `projectPath` does not exist.
   addPath: (projectPath, options = {}) ->
     directory = @getDirectoryForProjectPath(projectPath)
     unless directory.existsSync()
       if options.mustExist is true
         err = new Error "Project directory #{directory} does not exist"
-        err.missingProjectPaths = [directory]
+        err.missingProjectPaths = [projectPath]
         throw err
       else
         return
 
-    return unless directory.existsSync()
     for existingDirectory in @getDirectories()
       return if existingDirectory.getPath() is directory.getPath()
 

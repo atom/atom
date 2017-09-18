@@ -411,7 +411,7 @@ describe "Project", ->
       runs ->
         expect(repository.isDestroyed()).toBe(false)
 
-  describe ".setPaths(paths)", ->
+  describe ".setPaths(paths, options)", ->
     describe "when path is a file", ->
       it "sets its path to the files parent directory and updates the root directory", ->
         filePath = require.resolve('./fixtures/dir/a')
@@ -448,6 +448,17 @@ describe "Project", ->
         expect(onDidChangePathsSpy.callCount).toBe 1
         expect(onDidChangePathsSpy.mostRecentCall.args[0]).toEqual(paths)
 
+      it "optionally throws an error with any paths that did not exist", ->
+        paths = [temp.mkdirSync("exists0"), "/doesnt-exists/0", temp.mkdirSync("exists1"), "/doesnt-exists/1"]
+
+        try
+          atom.project.setPaths paths, mustExist: true
+          expect('no exception thrown').toBeUndefined()
+        catch e
+          expect(e.missingProjectPaths).toEqual [paths[1], paths[3]]
+
+        expect(atom.project.getPaths()).toEqual [paths[0], paths[2]]
+
     describe "when no paths are given", ->
       it "clears its path", ->
         atom.project.setPaths([])
@@ -459,7 +470,7 @@ describe "Project", ->
       expect(atom.project.getPaths()[0]).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
       expect(atom.project.getDirectories()[0].path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
 
-  describe ".addPath(path)", ->
+  describe ".addPath(path, options)", ->
     it "calls callbacks registered with ::onDidChangePaths", ->
       onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
       atom.project.onDidChangePaths(onDidChangePathsSpy)
