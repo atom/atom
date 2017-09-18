@@ -75,7 +75,11 @@ describe "Project", ->
         expect(atom.project.getBuffers().length).toBe 1
         fs.mkdirSync(pathToOpen)
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+
+      waitsForPromise ->
         deserializedProject.deserialize(atom.project.serialize({isUnloading: false}))
+
+      runs ->
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "does not deserialize buffers when their path is inaccessible", ->
@@ -90,7 +94,11 @@ describe "Project", ->
         expect(atom.project.getBuffers().length).toBe 1
         fs.chmodSync(pathToOpen, '000')
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+
+      waitsForPromise ->
         deserializedProject.deserialize(atom.project.serialize({isUnloading: false}))
+
+      runs ->
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "serializes marker layers and history only if Atom is quitting", ->
@@ -100,6 +108,7 @@ describe "Project", ->
       bufferA = null
       layerA = null
       markerA = null
+      notQuittingProject = null
 
       runs ->
         bufferA = atom.project.getBuffers()[0]
@@ -109,9 +118,11 @@ describe "Project", ->
 
       waitsForPromise ->
         notQuittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        notQuittingProject.deserialize(atom.project.serialize({isUnloading: false})).then ->
-          expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).toBeUndefined()
-          expect(notQuittingProject.getBuffers()[0].undo()).toBe(false)
+        notQuittingProject.deserialize(atom.project.serialize({isUnloading: false}))
+
+      runs ->
+        expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).toBeUndefined()
+        expect(notQuittingProject.getBuffers()[0].undo()).toBe(false)
 
       waitsForPromise ->
         quittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
