@@ -58,19 +58,34 @@ class Project extends Model
   ###
 
   deserialize: (state) ->
+    checkNotDirectory = (filePath) ->
+      new Promise (resolve, reject) ->
+        fs.isDirectory filePath, (isDir) ->
+          if isDir then reject() else resolve()
+
+    checkAccess = (filePath) ->
+      new Promise (resolve, reject) ->
+        fs.open filePath, 'r', (err, fd) ->
+          return reject() if err?
+          fs.close fd, () -> resolve()
+
     bufferPromises = []
     for bufferState in state.buffers
-      continue if fs.isDirectorySync(bufferState.filePath)
-      if bufferState.filePath
-        try
-          fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
-        catch error
-          continue unless error.code is 'ENOENT'
-      unless bufferState.shouldDestroyOnFileDelete?
-        bufferState.shouldDestroyOnFileDelete = ->
-          atom.config.get('core.closeDeletedFileTabs')
-      bufferPromises.push(TextBuffer.deserialize(bufferState))
-    Promise.all(bufferPromises).then (@buffers) =>
+      bufferState.shouldDestroyOnFileDelete ?= -> atom.config.get('core.closeDeletedFileTabs')
+
+      promise = Promise.resolve()
+      if bufferState.filePath?
+        promise = promise.then () -> Promise.all([
+          checkNotDirectory(bufferState.filePath),
+          checkAccess(bufferState.filePath)
+        ])
+      promise = promise.then () -> TextBuffer.deserialize(bufferState)
+      promise = promise.catch (err) -> null
+
+      bufferPromises.push promise
+
+    Promise.all(bufferPromises).then (buffers) =>
+      @buffers = buffers.filter(Boolean)
       @subscribeToBuffer(buffer) for buffer in @buffers
       @setPaths(state.paths, mustExist: true)
 
