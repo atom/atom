@@ -16,9 +16,13 @@ describe "Project", ->
 
   describe "serialization", ->
     deserializedProject = null
+    notQuittingProject = null
+    quittingProject = null
 
     afterEach ->
       deserializedProject?.destroy()
+      notQuittingProject?.destroy()
+      quittingProject?.destroy()
 
     it "does not deserialize paths to non directories", ->
       deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
@@ -101,34 +105,50 @@ describe "Project", ->
       runs ->
         expect(deserializedProject.getBuffers().length).toBe 0
 
-    it "serializes marker layers and history only if Atom is quitting", ->
+    it "does not deserialize buffers with their path is no longer present", ->
+      pathToOpen = path.join(temp.mkdirSync('atom-spec-project'), 'file.txt')
+      fs.writeFileSync(pathToOpen, '')
+
       waitsForPromise ->
-        atom.workspace.open('a')
+        atom.workspace.open(pathToOpen)
+
+      runs ->
+        expect(atom.project.getBuffers().length).toBe 1
+        fs.unlinkSync(pathToOpen)
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+
+      waitsForPromise ->
+        deserializedProject.deserialize(atom.project.serialize({isUnloading: false}))
+
+      runs ->
+        expect(deserializedProject.getBuffers().length).toBe 0
+
+    it "serializes marker layers and history only if Atom is quitting", ->
+      waitsForPromise -> atom.workspace.open('a')
 
       bufferA = null
       layerA = null
       markerA = null
-      notQuittingProject = null
 
       runs ->
         bufferA = atom.project.getBuffers()[0]
         layerA = bufferA.addMarkerLayer(persistent: true)
         markerA = layerA.markPosition([0, 3])
         bufferA.append('!')
-
-      waitsForPromise ->
         notQuittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        notQuittingProject.deserialize(atom.project.serialize({isUnloading: false}))
+
+      waitsForPromise -> notQuittingProject.deserialize(atom.project.serialize({isUnloading: false}))
 
       runs ->
         expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).toBeUndefined()
         expect(notQuittingProject.getBuffers()[0].undo()).toBe(false)
-
-      waitsForPromise ->
         quittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        quittingProject.deserialize(atom.project.serialize({isUnloading: true})).then ->
-          expect(quittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).not.toBeUndefined()
-          expect(quittingProject.getBuffers()[0].undo()).toBe(true)
+
+      waitsForPromise -> quittingProject.deserialize(atom.project.serialize({isUnloading: true}))
+
+      runs ->
+        expect(quittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).not.toBeUndefined()
+        expect(quittingProject.getBuffers()[0].undo()).toBe(true)
 
   describe "when an editor is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
