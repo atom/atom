@@ -14,7 +14,7 @@ class Selection extends Model
   initialScreenRange: null
   wordwise: false
 
-  constructor: ({@cursor, @marker, @editor, id, @clipboard}) ->
+  constructor: ({@cursor, @marker, @editor, id}) ->
     @emitter = new Emitter
 
     @assignId(id)
@@ -54,7 +54,7 @@ class Selection extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
+    @emitter.once 'did-destroy', callback
 
   ###
   Section: Managing the selection range
@@ -366,7 +366,7 @@ class Selection extends Model
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     wasReversed = @isReversed()
-    @clear()
+    @clear(options)
 
     autoIndentFirstLine = false
     precedingText = @editor.getTextInRange([[oldBufferRange.start.row, 0], oldBufferRange.start])
@@ -403,7 +403,7 @@ class Selection extends Model
     else if options.autoDecreaseIndent and NonWhitespaceRegExp.test(text)
       @editor.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
 
-    @autoscroll() if @isLastSelection()
+    @autoscroll() if options.autoscroll ? @isLastSelection()
 
     newBufferRange
 
@@ -512,7 +512,7 @@ class Selection extends Model
       joinMarker = @editor.markBufferRange(selectedRange, invalidate: 'never')
 
     rowCount = Math.max(1, selectedRange.getRowCount() - 1)
-    for row in [0...rowCount]
+    for [0...rowCount]
       @cursor.setBufferPosition([selectedRange.start.row])
       @cursor.moveToEndOfLine()
 
@@ -605,7 +605,7 @@ class Selection extends Model
     startLevel = @editor.indentLevelForLine(precedingText)
 
     if maintainClipboard
-      {text: clipboardText, metadata} = @clipboard.readWithMetadata()
+      {text: clipboardText, metadata} = @editor.constructor.clipboard.readWithMetadata()
       metadata ?= {}
       unless metadata.selections?
         metadata.selections = [{
@@ -618,9 +618,9 @@ class Selection extends Model
         indentBasis: startLevel,
         fullLine: fullLine
       })
-      @clipboard.write([clipboardText, selectionText].join("\n"), metadata)
+      @editor.constructor.clipboard.write([clipboardText, selectionText].join("\n"), metadata)
     else
-      @clipboard.write(selectionText, {
+      @editor.constructor.clipboard.write(selectionText, {
         indentBasis: startLevel,
         fullLine: fullLine
       })
@@ -656,7 +656,7 @@ class Selection extends Model
   #   * `autoIndent` If `true`, the line is indented to an automatically-inferred
   #     level. Otherwise, {TextEditor::getTabText} is inserted.
   indent: ({autoIndent}={}) ->
-    {row, column} = @cursor.getBufferPosition()
+    {row} = @cursor.getBufferPosition()
 
     if @isEmpty()
       @cursor.skipLeadingWhitespace()
@@ -768,8 +768,6 @@ class Selection extends Model
     {oldHeadBufferPosition, oldTailBufferPosition, newHeadBufferPosition} = e
     {oldHeadScreenPosition, oldTailScreenPosition, newHeadScreenPosition} = e
     {textChanged} = e
-
-    @cursor.updateVisibility()
 
     unless oldHeadScreenPosition.isEqual(newHeadScreenPosition)
       @cursor.goalColumn = null

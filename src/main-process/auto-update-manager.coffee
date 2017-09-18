@@ -4,7 +4,7 @@ path = require 'path'
 
 IdleState = 'idle'
 CheckingState = 'checking'
-DownladingState = 'downloading'
+DownloadingState = 'downloading'
 UpdateAvailableState = 'update-available'
 NoUpdateAvailableState = 'no-update-available'
 UnsupportedState = 'unsupported'
@@ -14,16 +14,17 @@ module.exports =
 class AutoUpdateManager
   Object.assign @prototype, EventEmitter.prototype
 
-  constructor: (@version, @testMode, resourcePath, @config) ->
+  constructor: (@version, @testMode, @config) ->
     @state = IdleState
     @iconPath = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
-    @feedUrl = "https://atom.io/api/updates?version=#{@version}"
-    process.nextTick => @setupAutoUpdater()
 
-  setupAutoUpdater: ->
+  initialize: ->
     if process.platform is 'win32'
+      archSuffix = if process.arch is 'ia32' then '' else '-' + process.arch
+      @feedUrl = "https://atom.io/api/updates#{archSuffix}?version=#{@version}"
       autoUpdater = require './auto-updater-win32'
     else
+      @feedUrl = "https://atom.io/api/updates?version=#{@version}"
       {autoUpdater} = require 'electron'
 
     autoUpdater.on 'error', (event, message) =>
@@ -42,7 +43,7 @@ class AutoUpdateManager
       @emitWindowEvent('update-not-available')
 
     autoUpdater.on 'update-available', =>
-      @setState(DownladingState)
+      @setState(DownloadingState)
       # We use sendMessage to send an event called 'update-available' in 'update-downloaded'
       # once the update download is complete. This mismatch between the electron
       # autoUpdater events is unfortunate but in the interest of not changing the

@@ -1,4 +1,4 @@
-{app, protocol} = require 'electron'
+{protocol} = require 'electron'
 fs = require 'fs'
 path = require 'path'
 

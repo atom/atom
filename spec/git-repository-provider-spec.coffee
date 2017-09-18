@@ -1,6 +1,6 @@
 path = require 'path'
 fs = require 'fs-plus'
-temp = require 'temp'
+temp = require('temp').track()
 {Directory} = require 'pathwatcher'
 GitRepository = require '../src/git-repository'
 GitRepositoryProvider = require '../src/git-repository-provider'
@@ -10,6 +10,10 @@ describe "GitRepositoryProvider", ->
 
   beforeEach ->
     provider = new GitRepositoryProvider(atom.project, atom.config, atom.confirm)
+
+  afterEach ->
+    try
+      temp.cleanupSync()
 
   describe ".repositoryForDirectory(directory)", ->
     describe "when specified a Directory with a Git repository", ->

@@ -11,8 +11,7 @@ describe "Package", ->
       keymapManager: atom.keymaps, commandRegistry: atom.command,
       grammarRegistry: atom.grammars, themeManager: atom.themes,
       menuManager: atom.menu, contextMenuManager: atom.contextMenu,
-      deserializerManager: atom.deserializers, viewRegistry: atom.views,
-      devMode: false
+      deserializerManager: atom.deserializers, viewRegistry: atom.views
     )
 
   buildPackage = (packagePath) -> build(Package, packagePath)
@@ -21,17 +20,21 @@ describe "Package", ->
 
   describe "when the package contains incompatible native modules", ->
     beforeEach ->
+      atom.packages.devMode = false
       mockLocalStorage()
 
+    afterEach ->
+      atom.packages.devMode = true
+
     it "does not activate it", ->
-      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-incompatible-native-module')
       pack = buildPackage(packagePath)
       expect(pack.isCompatible()).toBe false
       expect(pack.incompatibleModules[0].name).toBe 'native-module'
       expect(pack.incompatibleModules[0].path).toBe path.join(packagePath, 'node_modules', 'native-module')
 
     it "utilizes _atomModuleCache if present to determine the package's native dependencies", ->
-      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-ignored-incompatible-native-module')
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-ignored-incompatible-native-module')
       pack = buildPackage(packagePath)
       expect(pack.getNativeModuleDependencyPaths().length).toBe(1) # doesn't see the incompatible module
       expect(pack.isCompatible()).toBe true
@@ -41,8 +44,7 @@ describe "Package", ->
       expect(pack.isCompatible()).toBe false
 
     it "caches the incompatible native modules in local storage", ->
-      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
-
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-incompatible-native-module')
       expect(buildPackage(packagePath).isCompatible()).toBe false
       expect(global.localStorage.getItem.callCount).toBe 1
       expect(global.localStorage.setItem.callCount).toBe 1
@@ -51,9 +53,25 @@ describe "Package", ->
       expect(global.localStorage.getItem.callCount).toBe 2
       expect(global.localStorage.setItem.callCount).toBe 1
 
+    it "logs an error to the console describing the problem", ->
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-incompatible-native-module')
+
+      spyOn(console, 'warn')
+      spyOn(atom.notifications, 'addFatalError')
+
+      buildPackage(packagePath).activateNow()
+
+      expect(atom.notifications.addFatalError).not.toHaveBeenCalled()
+      expect(console.warn.callCount).toBe(1)
+      expect(console.warn.mostRecentCall.args[0]).toContain('it requires one or more incompatible native modules (native-module)')
+
   describe "::rebuild()", ->
     beforeEach ->
+      atom.packages.devMode = false
       mockLocalStorage()
+
+    afterEach ->
+      atom.packages.devMode = true
 
     it "returns a promise resolving to the results of `apm rebuild`", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-index')
@@ -120,7 +138,8 @@ describe "Package", ->
       jasmine.attachToDOM(editorElement)
 
     afterEach ->
-      theme.deactivate() if theme?
+      waitsForPromise ->
+        Promise.resolve(theme.deactivate()) if theme?
 
     describe "when the theme contains a single style file", ->
       it "loads and applies css", ->
@@ -182,11 +201,13 @@ describe "Package", ->
 
       it "deactivated event fires on .deactivate()", ->
         theme.onDidDeactivate spy = jasmine.createSpy()
-        theme.deactivate()
-        expect(spy).toHaveBeenCalled()
+        waitsForPromise ->
+          Promise.resolve(theme.deactivate())
+        runs ->
+          expect(spy).toHaveBeenCalled()
 
   describe ".loadMetadata()", ->
-    [packagePath, pack, metadata] = []
+    [packagePath, metadata] = []
 
     beforeEach ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-different-directory-name')
@@ -194,3 +215,26 @@ describe "Package", ->
 
     it "uses the package name defined in package.json", ->
       expect(metadata.name).toBe 'package-with-a-totally-different-name'
+
+  describe "the initialize() hook", ->
+    it "gets called when the package is activated", ->
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-deserializers')
+      pack = buildPackage(packagePath)
+      pack.requireMainModule()
+      mainModule = pack.mainModule
+      spyOn(mainModule, 'initialize')
+      expect(mainModule.initialize).not.toHaveBeenCalled()
+      pack.activate()
+      expect(mainModule.initialize).toHaveBeenCalled()
+      expect(mainModule.initialize.callCount).toBe(1)
+
+    it "gets called when a deserializer is used", ->
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-deserializers')
+      pack = buildPackage(packagePath)
+      pack.requireMainModule()
+      mainModule = pack.mainModule
+      spyOn(mainModule, 'initialize')
+      pack.load()
+      expect(mainModule.initialize).not.toHaveBeenCalled()
+      atom.deserializers.deserialize({deserializer: 'Deserializer1', a: 'b'})
+      expect(mainModule.initialize).toHaveBeenCalled()

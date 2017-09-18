@@ -15,14 +15,11 @@ class Cursor extends Model
   screenPosition: null
   bufferPosition: null
   goalColumn: null
-  visible: true
 
   # Instantiated by a {TextEditor}
-  constructor: ({@editor, @marker, @config, id}) ->
+  constructor: ({@editor, @marker, id}) ->
     @emitter = new Emitter
-
     @assignId(id)
-    @updateVisibility()
 
   destroy: ->
     @marker.destroy()
@@ -40,7 +37,7 @@ class Cursor extends Model
   #     * `newBufferPosition` {Point}
   #     * `newScreenPosition` {Point}
   #     * `textChanged` {Boolean}
-  #     * `Cursor` {Cursor} that triggered the event
+  #     * `cursor` {Cursor} that triggered the event
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangePosition: (callback) ->
@@ -52,16 +49,7 @@ class Cursor extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
-
-  # Public: Calls your `callback` when the cursor's visibility has changed
-  #
-  # * `callback` {Function}
-  #   * `visibility` {Boolean}
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeVisibility: (callback) ->
-    @emitter.on 'did-change-visibility', callback
+    @emitter.once 'did-destroy', callback
 
   ###
   Section: Managing Cursor Position
@@ -160,8 +148,8 @@ class Cursor extends Model
     [before, after] = @editor.getTextInBufferRange(range)
     return false if /\s/.test(before) or /\s/.test(after)
 
-    nonWordCharacters = @config.get('editor.nonWordCharacters', scope: @getScopeDescriptor()).split('')
-    _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
+    nonWordCharacters = @getNonWordCharacters()
+    nonWordCharacters.includes(before) isnt nonWordCharacters.includes(after)
 
   # Public: Returns whether this cursor is between a word's start and end.
   #
@@ -565,18 +553,6 @@ class Cursor extends Model
   Section: Visibility
   ###
 
-  # Public: Sets whether the cursor is visible.
-  setVisible: (visible) ->
-    if @visible isnt visible
-      @visible = visible
-      @emitter.emit 'did-change-visibility', @visible
-
-  # Public: Returns the visibility of the cursor.
-  isVisible: -> @visible
-
-  updateVisibility: ->
-    @setVisible(@marker.getBufferRange().isEmpty())
-
   ###
   Section: Comparing to another cursor
   ###
@@ -593,9 +569,6 @@ class Cursor extends Model
   Section: Utilities
   ###
 
-  # Public: Prevents this cursor from causing scrolling.
-  clearAutoscroll: ->
-
   # Public: Deselects the current selection.
   clearSelection: (options) ->
     @selection?.clear(options)
@@ -608,9 +581,7 @@ class Cursor extends Model
   #
   # Returns a {RegExp}.
   wordRegExp: (options) ->
-    scope = @getScopeDescriptor()
-    nonWordCharacters = _.escapeRegExp(@config.get('editor.nonWordCharacters', {scope}))
-
+    nonWordCharacters = _.escapeRegExp(@getNonWordCharacters())
     source = "^[\t ]*$|[^\\s#{nonWordCharacters}]+"
     if options?.includeNonWordCharacters ? true
       source += "|" + "[#{nonWordCharacters}]+"
@@ -624,7 +595,7 @@ class Cursor extends Model
   #
   # Returns a {RegExp}.
   subwordRegExp: (options={}) ->
-    nonWordCharacters = @config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
+    nonWordCharacters = @getNonWordCharacters()
     lowercaseLetters = 'a-z\\u00DF-\\u00F6\\u00F8-\\u00FF'
     uppercaseLetters = 'A-Z\\u00C0-\\u00D6\\u00D8-\\u00DE'
     snakeCamelSegment = "[#{uppercaseLetters}]?[#{lowercaseLetters}]+"
@@ -647,19 +618,20 @@ class Cursor extends Model
   Section: Private
   ###
 
+  getNonWordCharacters: ->
+    @editor.getNonWordCharacters(@getScopeDescriptor().getScopesArray())
+
   changePosition: (options, fn) ->
     @clearSelection(autoscroll: false)
     fn()
     @autoscroll() if options.autoscroll ? @isLastCursor()
 
-  getPixelRect: ->
-    @editor.pixelRectForScreenRange(@getScreenRange())
-
   getScreenRange: ->
     {row, column} = @getScreenPosition()
     new Range(new Point(row, column), new Point(row, column + 1))
 
-  autoscroll: (options) ->
+  autoscroll: (options = {}) ->
+    options.clip = false
     @editor.scrollToScreenRange(@getScreenRange(), options)
 
   getBeginningOfNextParagraphBufferPosition: ->
@@ -681,7 +653,6 @@ class Cursor extends Model
     {row, column} = start
     scanRange = [[row-1, column], [0, 0]]
     position = new Point(0, 0)
-    zero = new Point(0, 0)
     @editor.backwardsScanInBufferRange EmptyLineRegExp, scanRange, ({range, stop}) ->
       position = range.start.traverse(Point(1, 0))
       stop() unless position.isEqual(start)

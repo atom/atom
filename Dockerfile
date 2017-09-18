@@ -2,7 +2,7 @@
 # DESCRIPTION:    Image to build Atom and create a .rpm file
 
 # Base docker image
-FROM fedora:21
+FROM nodesource/fedora21:4.2.6
 
 # Install dependencies
 RUN yum install -y \
@@ -11,12 +11,10 @@ RUN yum install -y \
     gcc-c++ \
     glibc-devel \
     git-core \
-    libgnome-keyring-devel \
-    rpmdevtools \
-    nodejs \
-    npm
+    libsecret-devel \
+    rpmdevtools
 
-RUN npm install -g npm@1.4.28 --loglevel error
+RUN npm install -g npm --loglevel error
 
 ADD . /atom
 WORKDIR /atom

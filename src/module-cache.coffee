@@ -20,7 +20,7 @@ class Range extends semver.Range
       @unmatchedVersions.add(version)
     matches
 
-nativeModules = process.binding('natives')
+nativeModules = null
 
 cache =
   builtins: {}
@@ -171,6 +171,7 @@ resolveModulePath = (relativePath, parentModule) ->
   return unless relativePath
   return unless parentModule?.filename
 
+  nativeModules ?= process.binding('natives')
   return if nativeModules.hasOwnProperty(relativePath)
   return if relativePath[0] is '.'
   return if isAbsolute(relativePath)
@@ -196,8 +197,8 @@ resolveModulePath = (relativePath, parentModule) ->
 registerBuiltins = (devMode) ->
   if devMode or not cache.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
     fs = require 'fs-plus'
-    atomCoffeePath = path.join(cache.resourcePath, 'exports', 'atom.coffee')
-    cache.builtins.atom = atomCoffeePath if fs.isFileSync(atomCoffeePath)
+    atomJsPath = path.join(cache.resourcePath, 'exports', 'atom.js')
+    cache.builtins.atom = atomJsPath if fs.isFileSync(atomJsPath)
   cache.builtins.atom ?= path.join(cache.resourcePath, 'exports', 'atom.js')
 
   electronAsarRoot = path.join(process.resourcesPath, 'electron.asar')
@@ -211,35 +212,6 @@ registerBuiltins = (devMode) ->
   rendererBuiltins = ['ipc-renderer', 'remote', 'screen']
   for builtin in rendererBuiltins
     cache.builtins[builtin] = path.join(rendererRoot, "#{builtin}.js")
-
-if cache.debug
-  cache.findPathCount = 0
-  cache.findPathTime = 0
-  cache.loadCount = 0
-  cache.requireTime = 0
-  global.moduleCache = cache
-
-  originalLoad = Module::load
-  Module::load = ->
-    cache.loadCount++
-    originalLoad.apply(this, arguments)
-
-  originalRequire = Module::require
-  Module::require = ->
-    startTime = Date.now()
-    exports = originalRequire.apply(this, arguments)
-    cache.requireTime += Date.now() - startTime
-    exports
-
-  originalFindPath = Module._findPath
-  Module._findPath = (request, paths) ->
-    cacheKey = JSON.stringify({request, paths})
-    cache.findPathCount++ unless Module._pathCache[cacheKey]
-
-    startTime = Date.now()
-    foundPath = originalFindPath.apply(global, arguments)
-    cache.findPathTime += Date.now() - startTime
-    foundPath
 
 exports.create = (modulePath) ->
   fs = require 'fs-plus'

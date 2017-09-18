@@ -1,5 +1,4 @@
 Grim = require 'grim'
-_ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
 {ipcRenderer} = require 'electron'
@@ -7,6 +6,10 @@ path = require 'path'
 module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   window[key] = value for key, value of require '../vendor/jasmine'
   require 'jasmine-tagged'
+
+  if process.env.TEST_JUNIT_XML_PATH
+    require 'jasmine-reporters'
+    jasmine.getEnv().addReporter new jasmine.JUnitXmlReporter(process.env.TEST_JUNIT_XML_PATH, true, true)
 
   # Allow document.title to be assigned in specs without screwing up spec window title
   documentTitle = null

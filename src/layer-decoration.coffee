@@ -1,5 +1,3 @@
-_ = require 'underscore-plus'
-
 idCounter = 0
 nextId = -> idCounter++
 
@@ -11,7 +9,7 @@ class LayerDecoration
     @id = nextId()
     @destroyed = false
     @markerLayerDestroyedDisposable = @markerLayer.onDidDestroy => @destroy()
-    @overridePropertiesByMarkerId = {}
+    @overridePropertiesByMarker = null
 
   # Essential: Destroys the decoration.
   destroy: ->
@@ -44,7 +42,7 @@ class LayerDecoration
   setProperties: (newProperties) ->
     return if @destroyed
     @properties = newProperties
-    @decorationManager.scheduleUpdateDecorationsEvent()
+    @decorationManager.emitDidUpdateDecorations()
 
   # Essential: Override the decoration properties for a specific marker.
   #
@@ -54,8 +52,13 @@ class LayerDecoration
   #   Pass `null` to clear the override.
   setPropertiesForMarker: (marker, properties) ->
     return if @destroyed
+    @overridePropertiesByMarker ?= new Map()
+    marker = @markerLayer.getMarker(marker.id)
     if properties?
-      @overridePropertiesByMarkerId[marker.id] = properties
+      @overridePropertiesByMarker.set(marker, properties)
     else
-      delete @overridePropertiesByMarkerId[marker.id]
-    @decorationManager.scheduleUpdateDecorationsEvent()
+      @overridePropertiesByMarker.delete(marker)
+    @decorationManager.emitDidUpdateDecorations()
+
+  getPropertiesForMarker: (marker) ->
+    @overridePropertiesByMarker?.get(marker)

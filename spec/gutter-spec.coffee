@@ -1,7 +1,9 @@
 Gutter = require '../src/gutter'
 
 describe 'Gutter', ->
-  fakeGutterContainer = {}
+  fakeGutterContainer = {
+    scheduleComponentUpdate: ->
+  }
   name = 'name'
 
   describe '::hide', ->

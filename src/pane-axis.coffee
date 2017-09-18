@@ -1,6 +1,7 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
 {flatten} = require 'underscore-plus'
 Model = require './model'
+PaneAxisElement = require './pane-axis-element'
 
 module.exports =
 class PaneAxis extends Model
@@ -8,12 +9,12 @@ class PaneAxis extends Model
   container: null
   orientation: null
 
-  @deserialize: (state, {deserializers}) ->
+  @deserialize: (state, {deserializers, views}) ->
     state.children = state.children.map (childState) ->
       deserializers.deserialize(childState)
-    new this(state)
+    new this(state, views)
 
-  constructor: ({@orientation, children, flexScale}={}) ->
+  constructor: ({@orientation, children, flexScale}, @viewRegistry) ->
     @emitter = new Emitter
     @subscriptionsByChild = new WeakMap
     @subscriptions = new CompositeDisposable
@@ -27,6 +28,9 @@ class PaneAxis extends Model
     children: @children.map (child) -> child.serialize()
     orientation: @orientation
     flexScale: @flexScale
+
+  getElement: ->
+    @element ?= new PaneAxisElement().initialize(this, @viewRegistry)
 
   getFlexScale: -> @flexScale
 
@@ -65,7 +69,7 @@ class PaneAxis extends Model
     @emitter.on 'did-replace-child', fn
 
   onDidDestroy: (fn) ->
-    @emitter.on 'did-destroy', fn
+    @emitter.once 'did-destroy', fn
 
   onDidChangeFlexScale: (fn) ->
     @emitter.on 'did-change-flex-scale', fn
@@ -75,12 +79,10 @@ class PaneAxis extends Model
     @onDidChangeFlexScale(fn)
 
   addChild: (child, index=@children.length) ->
+    @children.splice(index, 0, child)
     child.setParent(this)
     child.setContainer(@container)
-
     @subscribeToChild(child)
-
-    @children.splice(index, 0, child)
     @emitter.emit 'did-add-child', {child, index}
 
   adjustFlexScale: ->

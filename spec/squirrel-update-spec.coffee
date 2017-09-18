@@ -1,11 +1,10 @@
 {EventEmitter} = require 'events'
 fs = require 'fs-plus'
 path = require 'path'
-temp = require 'temp'
+temp = require('temp').track()
 SquirrelUpdate = require '../src/main-process/squirrel-update'
 Spawner = require '../src/main-process/spawner'
-WinPowerShell = require '../src/main-process/win-powershell'
-WinRegistry = require '../src/main-process/win-registry'
+WinShell = require '../src/main-process/win-shell'
 
 # Run passed callback as Spawner.spawn() would do
 invokeCallback = (callback) ->
@@ -26,12 +25,20 @@ describe "Windows Squirrel Update", ->
       # do nothing on command, just run passed callback
       invokeCallback callback
 
-    # Prevent any actual change to Windows registry
-    for own method of WinRegistry
-      # all WinRegistry APIs share the same signature
-      spyOn(WinRegistry, method).andCallFake (callback) ->
-        # do nothing on registry, just run passed callback
-        invokeCallback callback
+    # Prevent any actual change to Windows Shell
+    class FakeShellOption
+      isRegistered: (callback) -> callback true
+      register: (callback) -> callback null
+      deregister: (callback) -> callback null, true
+      update: (callback) -> callback null
+    WinShell.fileHandler = new FakeShellOption()
+    WinShell.fileContextMenu = new FakeShellOption()
+    WinShell.folderContextMenu = new FakeShellOption()
+    WinShell.folderBackgroundContextMenu = new FakeShellOption()
+
+  afterEach ->
+    try
+      temp.cleanupSync()
 
   it "quits the app on all squirrel events", ->
     app = quit: jasmine.createSpy('quit')
@@ -73,7 +80,7 @@ describe "Windows Squirrel Update", ->
 
       jasmine.unspy(Spawner, 'spawn')
       spyOn(Spawner, 'spawn').andCallFake (command, args, callback) ->
-        if path.basename(command) is 'Update.exe' and args?[0] is '--createShortcut'
+        if path.basename(command) is 'Update.exe' and args?[0] is '--createShortcut' and args?[3].match /Desktop/i
           fs.writeFileSync(desktopShortcutPath, '')
         else
           # simply ignore other commands

@@ -1,0 +1,12 @@
+{
+  "name": "package-with-directory-provider",
+
+  "providedServices": {
+    "atom.directory-provider": {
+      "description": "Provides custom Directory instances",
+      "versions": {
+        "0.1.1": "provideDirectoryProvider"
+      }
+    }
+  }
+}

@@ -49,6 +49,10 @@ exports.compile = function (sourceCode, filePath) {
     Logger.prototype.verbose = noop
   }
 
+  if (process.platform === 'win32') {
+    filePath = 'file:///' + path.resolve(filePath).replace(/\\/g, '/')
+  }
+
   var options = {filename: filePath}
   for (var key in defaultOptions) {
     options[key] = defaultOptions[key]

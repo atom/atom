@@ -1,28 +1,16 @@
-path = require 'path'
 {Disposable, CompositeDisposable} = require 'event-kit'
-fs = require 'fs-plus'
 listen = require './delegated-listener'
 
 # Handles low-level events related to the @window.
 module.exports =
 class WindowEventHandler
-  constructor: ({@atomEnvironment, @applicationDelegate, @window, @document}) ->
+  constructor: ({@atomEnvironment, @applicationDelegate}) ->
     @reloadRequested = false
     @subscriptions = new CompositeDisposable
 
-    @previousOnbeforeunloadHandler = @window.onbeforeunload
-    @window.onbeforeunload = @handleWindowBeforeunload
-    @addEventListener(@window, 'focus', @handleWindowFocus)
-    @addEventListener(@window, 'blur', @handleWindowBlur)
+    @handleNativeKeybindings()
 
-    @addEventListener(@document, 'keyup', @handleDocumentKeyEvent)
-    @addEventListener(@document, 'keydown', @handleDocumentKeyEvent)
-    @addEventListener(@document, 'drop', @handleDocumentDrop)
-    @addEventListener(@document, 'dragover', @handleDocumentDragover)
-    @addEventListener(@document, 'contextmenu', @handleDocumentContextmenu)
-    @subscriptions.add listen(@document, 'click', 'a', @handleLinkClick)
-    @subscriptions.add listen(@document, 'submit', 'form', @handleFormSubmit)
-
+  initialize: (@window, @document) ->
     @subscriptions.add @atomEnvironment.commands.add @window,
       'window:toggle-full-screen': @handleWindowToggleFullScreen
       'window:close': @handleWindowClose
@@ -37,14 +25,31 @@ class WindowEventHandler
       'core:focus-next': @handleFocusNext
       'core:focus-previous': @handleFocusPrevious
 
-    @handleNativeKeybindings()
+    @addEventListener(@window, 'beforeunload', @handleWindowBeforeunload)
+    @addEventListener(@window, 'focus', @handleWindowFocus)
+    @addEventListener(@window, 'blur', @handleWindowBlur)
+
+    @addEventListener(@document, 'keyup', @handleDocumentKeyEvent)
+    @addEventListener(@document, 'keydown', @handleDocumentKeyEvent)
+    @addEventListener(@document, 'drop', @handleDocumentDrop)
+    @addEventListener(@document, 'dragover', @handleDocumentDragover)
+    @addEventListener(@document, 'contextmenu', @handleDocumentContextmenu)
+    @subscriptions.add listen(@document, 'click', 'a', @handleLinkClick)
+    @subscriptions.add listen(@document, 'submit', 'form', @handleFormSubmit)
+
+    @subscriptions.add(@applicationDelegate.onDidEnterFullScreen(@handleEnterFullScreen))
+    @subscriptions.add(@applicationDelegate.onDidLeaveFullScreen(@handleLeaveFullScreen))
 
   # Wire commands that should be handled by Chromium for elements with the
   # `.native-key-bindings` class.
   handleNativeKeybindings: ->
     bindCommandToAction = (command, action) =>
-      @subscriptions.add @atomEnvironment.commands.add '.native-key-bindings', command, (event) =>
-        @applicationDelegate.getCurrentWindow().webContents[action]()
+      @subscriptions.add @atomEnvironment.commands.add(
+        '.native-key-bindings',
+        command,
+        ((event) => @applicationDelegate.getCurrentWindow().webContents[action]()),
+        false
+      )
 
     bindCommandToAction('core:copy', 'copy')
     bindCommandToAction('core:paste', 'paste')
@@ -54,7 +59,6 @@ class WindowEventHandler
     bindCommandToAction('core:cut', 'cut')
 
   unsubscribe: ->
-    @window.onbeforeunload = @previousOnbeforeunloadHandler
     @subscriptions.dispose()
 
   on: (target, eventName, handler) ->
@@ -136,21 +140,18 @@ class WindowEventHandler
     @document.body.classList.add('is-blurred')
     @atomEnvironment.storeWindowDimensions()
 
-  handleWindowBeforeunload: =>
-    confirmed = @atomEnvironment.workspace?.confirmClose(windowCloseRequested: true)
-    if confirmed and not @reloadRequested and not @atomEnvironment.inSpecMode() and @atomEnvironment.getCurrentWindow().isWebViewFocused()
+  handleEnterFullScreen: =>
+    @document.body.classList.add("fullscreen")
+
+  handleLeaveFullScreen: =>
+    @document.body.classList.remove("fullscreen")
+
+  handleWindowBeforeunload: (event) =>
+    if not @reloadRequested and not @atomEnvironment.inSpecMode() and @atomEnvironment.getCurrentWindow().isWebViewFocused()
       @atomEnvironment.hide()
     @reloadRequested = false
-
     @atomEnvironment.storeWindowDimensions()
-    if confirmed
-      @atomEnvironment.unloadEditorWindow()
-    else
-      @applicationDelegate.didCancelWindowUnload()
-
-    confirmed
-
-  handleWindowUnload: =>
+    @atomEnvironment.unloadEditorWindow()
     @atomEnvironment.destroy()
 
   handleWindowToggleFullScreen: =>

@@ -1,11 +1,13 @@
 _ = require 'underscore-plus'
-{screen, ipcRenderer, remote, shell, webFrame} = require 'electron'
+{ipcRenderer, remote, shell} = require 'electron'
 ipcHelpers = require './ipc-helpers'
 {Disposable} = require 'event-kit'
-{getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
+getWindowLoadSettings = require './get-window-load-settings'
 
 module.exports =
 class ApplicationDelegate
+  getWindowLoadSettings: -> getWindowLoadSettings()
+
   open: (params) ->
     ipcRenderer.send('open', params)
 
@@ -20,13 +22,13 @@ class ApplicationDelegate
     remote.getCurrentWindow()
 
   closeWindow: ->
-    ipcRenderer.send("call-window-method", "close")
+    ipcHelpers.call('window-method', 'close')
 
   getTemporaryWindowState: ->
-    ipcHelpers.call('get-temporary-window-state')
+    ipcHelpers.call('get-temporary-window-state').then (stateJSON) -> JSON.parse(stateJSON)
 
   setTemporaryWindowState: (state) ->
-    ipcHelpers.call('set-temporary-window-state', state)
+    ipcHelpers.call('set-temporary-window-state', JSON.stringify(state))
 
   getWindowSize: ->
     [width, height] = remote.getCurrentWindow().getSize()
@@ -55,80 +57,79 @@ class ApplicationDelegate
     ipcHelpers.call('hide-window')
 
   reloadWindow: ->
-    ipcRenderer.send("call-window-method", "reload")
+    ipcHelpers.call('window-method', 'reload')
+
+  restartApplication: ->
+    ipcRenderer.send("restart-application")
+
+  minimizeWindow: ->
+    ipcHelpers.call('window-method', 'minimize')
 
   isWindowMaximized: ->
     remote.getCurrentWindow().isMaximized()
 
   maximizeWindow: ->
-    ipcRenderer.send("call-window-method", "maximize")
+    ipcHelpers.call('window-method', 'maximize')
+
+  unmaximizeWindow: ->
+    ipcHelpers.call('window-method', 'unmaximize')
 
   isWindowFullScreen: ->
     remote.getCurrentWindow().isFullScreen()
 
   setWindowFullScreen: (fullScreen=false) ->
-    ipcRenderer.send("call-window-method", "setFullScreen", fullScreen)
+    ipcHelpers.call('window-method', 'setFullScreen', fullScreen)
+
+  onDidEnterFullScreen: (callback) ->
+    ipcHelpers.on(ipcRenderer, 'did-enter-full-screen', callback)
+
+  onDidLeaveFullScreen: (callback) ->
+    ipcHelpers.on(ipcRenderer, 'did-leave-full-screen', callback)
 
   openWindowDevTools: ->
-    new Promise (resolve) ->
-      # Defer DevTools interaction to the next tick, because using them during
-      # event handling causes some wrong input events to be triggered on
-      # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
-      process.nextTick ->
-        if remote.getCurrentWindow().isDevToolsOpened()
-          resolve()
-        else
-          remote.getCurrentWindow().once("devtools-opened", -> resolve())
-          ipcRenderer.send("call-window-method", "openDevTools")
+    # Defer DevTools interaction to the next tick, because using them during
+    # event handling causes some wrong input events to be triggered on
+    # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
+    new Promise(process.nextTick).then(-> ipcHelpers.call('window-method', 'openDevTools'))
 
   closeWindowDevTools: ->
-    new Promise (resolve) ->
-      # Defer DevTools interaction to the next tick, because using them during
-      # event handling causes some wrong input events to be triggered on
-      # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
-      process.nextTick ->
-        unless remote.getCurrentWindow().isDevToolsOpened()
-          resolve()
-        else
-          remote.getCurrentWindow().once("devtools-closed", -> resolve())
-          ipcRenderer.send("call-window-method", "closeDevTools")
+    # Defer DevTools interaction to the next tick, because using them during
+    # event handling causes some wrong input events to be triggered on
+    # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
+    new Promise(process.nextTick).then(-> ipcHelpers.call('window-method', 'closeDevTools'))
 
   toggleWindowDevTools: ->
-    new Promise (resolve) =>
-      # Defer DevTools interaction to the next tick, because using them during
-      # event handling causes some wrong input events to be triggered on
-      # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
-      process.nextTick =>
-        if remote.getCurrentWindow().isDevToolsOpened()
-          @closeWindowDevTools().then(resolve)
-        else
-          @openWindowDevTools().then(resolve)
+    # Defer DevTools interaction to the next tick, because using them during
+    # event handling causes some wrong input events to be triggered on
+    # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
+    new Promise(process.nextTick).then(-> ipcHelpers.call('window-method', 'toggleDevTools'))
 
   executeJavaScriptInWindowDevTools: (code) ->
     ipcRenderer.send("execute-javascript-in-dev-tools", code)
 
   setWindowDocumentEdited: (edited) ->
-    ipcRenderer.send("call-window-method", "setDocumentEdited", edited)
+    ipcHelpers.call('window-method', 'setDocumentEdited', edited)
 
   setRepresentedFilename: (filename) ->
-    ipcRenderer.send("call-window-method", "setRepresentedFilename", filename)
+    ipcHelpers.call('window-method', 'setRepresentedFilename', filename)
 
   addRecentDocument: (filename) ->
     ipcRenderer.send("add-recent-document", filename)
 
   setRepresentedDirectoryPaths: (paths) ->
-    loadSettings = getWindowLoadSettings()
-    loadSettings['initialPaths'] = paths
-    setWindowLoadSettings(loadSettings)
+    ipcHelpers.call('window-method', 'setRepresentedDirectoryPaths', paths)
 
   setAutoHideWindowMenuBar: (autoHide) ->
-    ipcRenderer.send("call-window-method", "setAutoHideMenuBar", autoHide)
+    ipcHelpers.call('window-method', 'setAutoHideMenuBar', autoHide)
 
   setWindowMenuBarVisibility: (visible) ->
     remote.getCurrentWindow().setMenuBarVisibility(visible)
 
   getPrimaryDisplayWorkAreaSize: ->
     remote.screen.getPrimaryDisplay().workAreaSize
+
+  getUserDefault: (key, type) ->
+    remote.systemPreferences.getUserDefault(key, type)
 
   confirm: ({message, detailedMessage, buttons}) ->
     buttons ?= {}
@@ -142,6 +143,7 @@ class ApplicationDelegate
       message: message
       detail: detailedMessage
       buttons: buttonLabels
+      normalizeAccessKeys: true
     })
 
     if _.isArray(buttons)
@@ -153,13 +155,9 @@ class ApplicationDelegate
   showMessageDialog: (params) ->
 
   showSaveDialog: (params) ->
-    if _.isString(params)
-      params = defaultPath: params
-    else
-      params = _.clone(params)
-    params.title ?= 'Save File'
-    params.defaultPath ?= getWindowLoadSettings().initialPaths[0]
-    remote.dialog.showSaveDialog remote.getCurrentWindow(), params
+    if typeof params is 'string'
+      params = {defaultPath: params}
+    @getCurrentWindow().showSaveDialog(params)
 
   playBeepSound: ->
     shell.beep()
@@ -243,25 +241,28 @@ class ApplicationDelegate
     new Disposable ->
       ipcRenderer.removeListener('url-message', outerCallback)
 
-  didCancelWindowUnload: ->
-    ipcRenderer.send('did-cancel-window-unload')
+  onDidRequestUnload: (callback) ->
+    outerCallback = (event, message) ->
+      callback(event).then (shouldUnload) ->
+        ipcRenderer.send('did-prepare-to-unload', shouldUnload)
+
+    ipcRenderer.on('prepare-to-unload', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('prepare-to-unload', outerCallback)
+
+  onDidChangeHistoryManager: (callback) ->
+    outerCallback = (event, message) ->
+      callback(event)
+
+    ipcRenderer.on('did-change-history-manager', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('did-change-history-manager', outerCallback)
+
+  didChangeHistoryManager: ->
+    ipcRenderer.send('did-change-history-manager')
 
   openExternal: (url) ->
     shell.openExternal(url)
-
-  disableZoom: ->
-    outerCallback = ->
-      webFrame.setZoomLevelLimits(1, 1)
-
-    outerCallback()
-    # Set the limits every time a display is added or removed, otherwise the
-    # configuration gets reset to the default, which allows zooming the
-    # webframe.
-    screen.on('display-added', outerCallback)
-    screen.on('display-removed', outerCallback)
-    new Disposable ->
-      screen.removeListener('display-added', outerCallback)
-      screen.removeListener('display-removed', outerCallback)
 
   checkForUpdate: ->
     ipcRenderer.send('command', 'application:check-for-update')
@@ -274,3 +275,20 @@ class ApplicationDelegate
 
   getAutoUpdateManagerErrorMessage: ->
     ipcRenderer.sendSync('get-auto-update-manager-error')
+
+  emitWillSavePath: (path) ->
+    ipcRenderer.sendSync('will-save-path', path)
+
+  emitDidSavePath: (path) ->
+    ipcRenderer.sendSync('did-save-path', path)
+
+  resolveProxy: (requestId, url) ->
+    ipcRenderer.send('resolve-proxy', requestId, url)
+
+  onDidResolveProxy: (callback) ->
+    outerCallback = (event, requestId, proxy) ->
+      callback(requestId, proxy)
+
+    ipcRenderer.on('did-resolve-proxy', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('did-resolve-proxy', outerCallback)

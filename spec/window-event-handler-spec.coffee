@@ -1,13 +1,10 @@
 KeymapManager = require 'atom-keymap'
-path = require 'path'
-fs = require 'fs-plus'
-temp = require 'temp'
 TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
 {ipcRenderer} = require 'electron'
 
 describe "WindowEventHandler", ->
-  [projectPath, windowEventHandler] = []
+  [windowEventHandler] = []
 
   beforeEach ->
     atom.uninstallWindowEventHandler()
@@ -18,8 +15,8 @@ describe "WindowEventHandler", ->
       loadSettings.initialPath = initialPath
       loadSettings
     atom.project.destroy()
-    windowEventHandler = new WindowEventHandler({atomEnvironment: atom, applicationDelegate: atom.applicationDelegate, window, document})
-    projectPath = atom.project.getPaths()[0]
+    windowEventHandler = new WindowEventHandler({atomEnvironment: atom, applicationDelegate: atom.applicationDelegate})
+    windowEventHandler.initialize(window, document)
 
   afterEach ->
     windowEventHandler.unsubscribe()
@@ -27,6 +24,7 @@ describe "WindowEventHandler", ->
 
   describe "when the window is loaded", ->
     it "doesn't have .is-blurred on the body tag", ->
+      return if process.platform is 'win32' #Win32TestFailures - can not steal focus
       expect(document.body.className).not.toMatch("is-blurred")
 
   describe "when the window is blurred", ->
@@ -49,29 +47,6 @@ describe "WindowEventHandler", ->
       spyOn(atom, 'close')
       window.dispatchEvent(new CustomEvent('window:close'))
       expect(atom.close).toHaveBeenCalled()
-
-  describe "beforeunload event", ->
-    beforeEach ->
-      jasmine.unspy(TextEditor.prototype, "shouldPromptToSave")
-      spyOn(ipcRenderer, 'send')
-
-    describe "when pane items are modified", ->
-      editor = null
-      beforeEach ->
-        waitsForPromise -> atom.workspace.open("sample.js").then (o) -> editor = o
-        runs -> editor.insertText("I look different, I feel different.")
-
-      it "prompts the user to save them, and allows the unload to continue if they confirm", ->
-        spyOn(atom.workspace, 'confirmClose').andReturn(true)
-        window.dispatchEvent(new CustomEvent('beforeunload'))
-        expect(atom.workspace.confirmClose).toHaveBeenCalled()
-        expect(ipcRenderer.send).not.toHaveBeenCalledWith('did-cancel-window-unload')
-
-      it "cancels the unload if the user selects cancel", ->
-        spyOn(atom.workspace, 'confirmClose').andReturn(false)
-        window.dispatchEvent(new CustomEvent('beforeunload'))
-        expect(atom.workspace.confirmClose).toHaveBeenCalled()
-        expect(ipcRenderer.send).toHaveBeenCalledWith('did-cancel-window-unload')
 
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->
@@ -206,6 +181,7 @@ describe "WindowEventHandler", ->
       webContentsSpy = jasmine.createSpyObj("webContents", ["copy", "paste"])
       spyOn(atom.applicationDelegate, "getCurrentWindow").andReturn({
         webContents: webContentsSpy
+        on: ->
       })
 
       nativeKeyBindingsInput = document.createElement("input")

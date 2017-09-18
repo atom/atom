@@ -1,7 +1,7 @@
 fs = require 'fs-plus'
 path = require 'path'
 Spawner = require './spawner'
-WinRegistry = require './win-registry'
+WinShell = require './win-shell'
 WinPowerShell = require './win-powershell'
 
 appFolder = path.resolve(process.execPath, '..')
@@ -87,8 +87,8 @@ removeCommandsFromPath = (callback) ->
 
 # Create a desktop and start menu shortcut by using the command line API
 # provided by Squirrel's Update.exe
-createShortcuts = (callback) ->
-  spawnUpdate(['--createShortcut', exeName], callback)
+createShortcuts = (locations, callback) ->
+  spawnUpdate(['--createShortcut', exeName, '-l', locations.join(',')], callback)
 
 # Update the desktop and start menu shortcuts by using the command line API
 # provided by Squirrel's Update.exe
@@ -98,14 +98,12 @@ updateShortcuts = (callback) ->
     # Check if the desktop shortcut has been previously deleted and
     # and keep it deleted if it was
     fs.exists desktopShortcutPath, (desktopShortcutExists) ->
-      createShortcuts ->
-        if desktopShortcutExists
-          callback()
-        else
-          # Remove the unwanted desktop shortcut that was recreated
-          fs.unlink(desktopShortcutPath, callback)
+      locations = ['StartMenu']
+      locations.push 'Desktop' if desktopShortcutExists
+
+      createShortcuts locations, callback
   else
-    createShortcuts(callback)
+    createShortcuts ['Desktop', 'StartMenu'], callback
 
 # Remove the desktop and start menu shortcuts by using the command line API
 # provided by Squirrel's Update.exe
@@ -125,26 +123,37 @@ exports.restartAtom = (app) ->
   app.once 'will-quit', -> Spawner.spawn(path.join(binFolder, 'atom.cmd'), args)
   app.quit()
 
+updateContextMenus = (callback) ->
+  WinShell.fileContextMenu.update ->
+    WinShell.folderContextMenu.update ->
+      WinShell.folderBackgroundContextMenu.update ->
+        callback()
+
 # Handle squirrel events denoted by --squirrel-* command line arguments.
 exports.handleStartupEvent = (app, squirrelCommand) ->
   switch squirrelCommand
     when '--squirrel-install'
-      createShortcuts ->
-        WinRegistry.installContextMenu ->
-          addCommandsToPath ->
-            app.quit()
+      createShortcuts ['Desktop', 'StartMenu'], ->
+        addCommandsToPath ->
+          WinShell.fileHandler.register ->
+            updateContextMenus ->
+              app.quit()
       true
     when '--squirrel-updated'
       updateShortcuts ->
-        WinRegistry.installContextMenu ->
-          addCommandsToPath ->
-            app.quit()
+        addCommandsToPath ->
+          WinShell.fileHandler.update ->
+            updateContextMenus ->
+              app.quit()
       true
     when '--squirrel-uninstall'
       removeShortcuts ->
-        WinRegistry.uninstallContextMenu ->
-          removeCommandsFromPath ->
-            app.quit()
+        removeCommandsFromPath ->
+          WinShell.fileHandler.deregister ->
+            WinShell.fileContextMenu.deregister ->
+              WinShell.folderContextMenu.deregister ->
+                WinShell.folderBackgroundContextMenu.deregister ->
+                  app.quit()
       true
     when '--squirrel-obsolete'
       app.quit()

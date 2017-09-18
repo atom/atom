@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 
 StartDotRegex = /^\.?/
-WhitespaceRegex = /\S/
 
 # Represents a single unit of text as selected by a grammar.
 module.exports =

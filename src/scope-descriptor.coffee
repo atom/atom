@@ -10,12 +10,12 @@
 #
 # You should not need to create a `ScopeDescriptor` directly.
 #
-# * {Editor::getRootScopeDescriptor} to get the language's descriptor.
-# * {Editor::scopeDescriptorForBufferPosition} to get the descriptor at a
+# * {TextEditor::getRootScopeDescriptor} to get the language's descriptor.
+# * {TextEditor::scopeDescriptorForBufferPosition} to get the descriptor at a
 #   specific position in the buffer.
 # * {Cursor::getScopeDescriptor} to get a cursor's descriptor based on position.
 #
-# See the [scopes and scope descriptor guide](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
+# See the [scopes and scope descriptor guide](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
 # for more information.
 module.exports =
 class ScopeDescriptor
@@ -47,3 +47,11 @@ class ScopeDescriptor
 
   toString: ->
     @getScopeChain()
+
+  isEqual: (other) ->
+    if @scopes.length isnt other.scopes.length
+      return false
+    for scope, i in @scopes
+      if scope isnt other.scopes[i]
+        return false
+    true

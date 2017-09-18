@@ -1,13 +1,12 @@
 module.exports =
 class TokenIterator
-  constructor: ({@grammarRegistry}, line) ->
-    @reset(line) if line?
+  constructor: (@tokenizedBuffer) ->
 
   reset: (@line) ->
     @index = null
     @startColumn = 0
     @endColumn = 0
-    @scopes = @line.openScopes.map (id) => @grammarRegistry.scopeForId(id)
+    @scopes = @line.openScopes.map (id) => @tokenizedBuffer.grammar.scopeForId(id)
     @scopeStarts = @scopes.slice()
     @scopeEnds = []
     this
@@ -26,7 +25,7 @@ class TokenIterator
     while @index < tags.length
       tag = tags[@index]
       if tag < 0
-        scope = @grammarRegistry.scopeForId(tag)
+        scope = @tokenizedBuffer.grammar.scopeForId(tag)
         if tag % 2 is 0
           if @scopeStarts[@scopeStarts.length - 1] is scope
             @scopeStarts.pop()
