@@ -72,7 +72,7 @@ class Project extends Model
       bufferPromises.push(TextBuffer.deserialize(bufferState))
     Promise.all(bufferPromises).then (@buffers) =>
       @subscribeToBuffer(buffer) for buffer in @buffers
-      @setPaths(state.paths)
+      @setPaths(state.paths, mustExist: true)
 
   serialize: (options={}) ->
     deserializer: 'Project'
@@ -234,7 +234,7 @@ class Project extends Model
     if added
       @emitter.emit 'did-change-paths', projectPaths
 
-    if options.mustExist is true and missingProjectPaths
+    if options.mustExist is true and missingProjectPaths.length > 0
       err = new Error "One or more project directories do not exist"
       err.missingProjectPaths = missingProjectPaths
       throw err
