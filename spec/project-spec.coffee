@@ -498,6 +498,11 @@ describe "Project", ->
       atom.project.addPath('/this-definitely/does-not-exist')
       expect(atom.project.getPaths()).toEqual(previousPaths)
 
+    it "optionally throws on non-existent directories", ->
+      expect ->
+        atom.project.addPath '/this-definitely/does-not-exist', mustExist: true
+      .toThrow()
+
   describe ".removePath(path)", ->
     onDidChangePathsSpy = null
 

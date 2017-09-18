@@ -226,8 +226,18 @@ class Project extends Model
   # Public: Add a path to the project's list of root paths
   #
   # * `projectPath` {String} The path to the directory to add.
-  addPath: (projectPath, options) ->
+  # * `options` An optional {Object} that may contain the following keys:
+  #   * `mustExist` If `true`, throw an Error if `projectPath` does not exist.
+  addPath: (projectPath, options = {}) ->
     directory = @getDirectoryForProjectPath(projectPath)
+    unless directory.existsSync()
+      if options.mustExist is true
+        err = new Error "Project directory #{directory} does not exist"
+        err.missingProjectPaths = [directory]
+        throw err
+      else
+        return
+
     return unless directory.existsSync()
     for existingDirectory in @getDirectories()
       return if existingDirectory.getPath() is directory.getPath()
@@ -248,7 +258,7 @@ class Project extends Model
       break if repo = provider.repositoryForDirectorySync?(directory)
     @repositories.push(repo ? null)
 
-    unless options?.emitEvent is false
+    unless options.emitEvent is false
       @emitter.emit 'did-change-paths', @getPaths()
 
   getDirectoryForProjectPath: (projectPath) ->
