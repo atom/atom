@@ -25,11 +25,14 @@ describe "Project", ->
       state = atom.project.serialize()
       state.paths.push('/directory/that/does/not/exist')
 
+      err = null
       waitsForPromise ->
         deserializedProject.deserialize(state, atom.deserializers)
+          .catch (e) -> err = e
 
       runs ->
         expect(deserializedProject.getPaths()).toEqual(atom.project.getPaths())
+        expect(err.missingProjectPaths).toEqual ['/directory/that/does/not/exist']
 
     it "does not include unretained buffers in the serialized state", ->
       waitsForPromise ->
