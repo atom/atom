@@ -122,11 +122,11 @@ describe "PaneElement", ->
           item1.changePathCallbacks = []
           item1.setPath = (path) ->
             @path = path
-            callback() for callback in changePathCallbacks
+            callback() for callback in @changePathCallbacks
             return
           item1.getPath = -> @path
           item1.onDidChangePath = (callback) ->
-            @changePathCallbacks.push(callback)
+            @changePathCallbacks.push callback
             return dispose: =>
               @changePathCallbacks = @changePathCallbacks.filter (f) -> f isnt callback
 
