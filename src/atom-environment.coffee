@@ -1022,7 +1022,7 @@ class AtomEnvironment extends Model
       @workspace.deserialize(state.workspace, @deserializers) if state.workspace?
       @deserializeTimings.workspace = Date.now() - startTime
 
-      if missingProjectPaths.length
+      if missingProjectPaths.length > 0
         count = if missingProjectPaths.length is 1 then '' else missingProjectPaths.length + ' '
         noun = if missingProjectPaths.length is 1 then 'directory' else 'directories'
         toBe = if missingProjectPaths.length is 1 then 'is' else 'are'
