@@ -653,7 +653,7 @@ class AtomApplication
 
     pack = @findPackageWithName(parsedUrl.host, devMode)
     if pack?.urlMain
-      @openPackageUrlMain(parsedUrl.host, urlToOpen, devMode, safeMode, env)
+      @openPackageUrlMain(parsedUrl.host, pack.urlMain, urlToOpen, devMode, safeMode, env)
     else
       @openWithAtomUrl(urlToOpen, devMode, safeMode, env)
 
@@ -676,9 +676,9 @@ class AtomApplication
   findPackageWithName: (packageName, devMode) ->
     _.find @getPackageManager(devMode).getAvailablePackageMetadata(), ({name}) -> name is packageName
 
-  openPackageUrlMain: (packageName, urlToOpen, devMode, safeMode, env) ->
+  openPackageUrlMain: (packageName, packageUrlMain, urlToOpen, devMode, safeMode, env) ->
     packagePath = @getPackageManager(devMode).resolvePackagePath(packageName)
-    windowInitializationScript = path.resolve(packagePath, pack.urlMain)
+    windowInitializationScript = path.resolve(packagePath, packageUrlMain)
     windowDimensions = @getDimensionsForNewWindow()
     new AtomWindow(this, @fileRecoveryService, {windowInitializationScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions, env})
 
