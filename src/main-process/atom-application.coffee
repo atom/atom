@@ -653,7 +653,7 @@ class AtomApplication
 
     pack = @findPackageWithName(parsedUrl.host, devMode)
     if pack?.urlMain
-      @openPackageUrlMain(urlToOpen, devMode, safeMode, env)
+      @openPackageUrlMain(parsedUrl.host, urlToOpen, devMode, safeMode, env)
     else
       @openWithAtomUrl(urlToOpen, devMode, safeMode, env)
 
@@ -674,6 +674,15 @@ class AtomApplication
         @lastFocusedWindow.sendUrlMessage url
 
   findPackageWithName: (packageName, devMode) ->
+    _.find @getPackageManager().getAvailablePackageMetadata(), ({name}) -> name is packageName
+
+  openPackageUrlMain: (packageName, urlToOpen, devMode, safeMode, env) ->
+    packagePath = @getPackageManager().resolvePackagePath(packageName)
+    windowInitializationScript = path.resolve(packagePath, pack.urlMain)
+    windowDimensions = @getDimensionsForNewWindow()
+    new AtomWindow(this, @fileRecoveryService, {windowInitializationScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions, env})
+
+  getPackageManager: ->
     unless @packages?
       PackageManager = require '../package-manager'
       @packages = new PackageManager({})
@@ -682,13 +691,8 @@ class AtomApplication
         devMode: devMode
         resourcePath: @resourcePath
 
-    _.find @packages.getAvailablePackageMetadata(), ({name}) -> name is packageName
+    @packages
 
-  openPackageUrlMain: (urlToOpen, devMode, safeMode, env) ->
-    packagePath = @packages.resolvePackagePath(packageName)
-    windowInitializationScript = path.resolve(packagePath, pack.urlMain)
-    windowDimensions = @getDimensionsForNewWindow()
-    new AtomWindow(this, @fileRecoveryService, {windowInitializationScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions, env})
 
   # Opens up a new {AtomWindow} to run specs within.
   #
