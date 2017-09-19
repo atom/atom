@@ -79,7 +79,7 @@ class PaneElement extends HTMLElement
   activeItemChanged: (item) ->
     delete @dataset.activeItemName
     delete @dataset.activeItemPath
-    @changePathDisposable?.dispose?()
+    @changePathDisposable?.dispose()
 
     return unless item?
 
@@ -126,6 +126,7 @@ class PaneElement extends HTMLElement
 
   paneDestroyed: ->
     @subscriptions.dispose()
+    @changePathDisposable?.dispose()
 
   flexScaleChanged: (flexScale) ->
     @style.flexGrow = flexScale
