@@ -649,12 +649,15 @@ class AtomApplication
   #   :safeMode - Boolean to control the opened window's safe mode.
   openUrl: ({urlToOpen, devMode, safeMode, env}) ->
     parsedUrl = url.parse(urlToOpen)
-    if parsedUrl.host is "atom"
-      @openWithCommandFromUrl(urlToOpen, devMode, safeMode, env)
-    else
-      @openPackageUrlMain(parsedUrl.host, devMode, safeMode, env)
+    return unless parsedUrl.protocol is "atom:"
 
-  openWithCommandFromUrl: (url, devMode, safeMode, env) ->
+    pack = @findPackageWithName(parsedUrl.host)
+    if pack?.urlMain
+      @openPackageUrlMain(urlToOpen, devMode, safeMode, env)
+    else
+      @openWithAtomUrl(urlToOpen, devMode, safeMode, env)
+
+  openWithAtomUrl: (url, devMode, safeMode, env) ->
     resourcePath = @resourcePath
     if devMode
       try
@@ -670,7 +673,7 @@ class AtomApplication
       @lastFocusedWindow.on 'window:loaded', =>
         @lastFocusedWindow.sendUrlMessage url
 
-  openPackageUrlMain: (packageName, devMode, safeMode, env) ->
+  findPackageWithName: (packageName) ->
     unless @packages?
       PackageManager = require '../package-manager'
       @packages = new PackageManager({})
@@ -679,17 +682,13 @@ class AtomApplication
         devMode: devMode
         resourcePath: @resourcePath
 
-    pack = _.find @packages.getAvailablePackageMetadata(), ({name}) -> name is packageName
-    if pack?
-      if pack.urlMain
-        packagePath = @packages.resolvePackagePath(packageName)
-        windowInitializationScript = path.resolve(packagePath, pack.urlMain)
-        windowDimensions = @getDimensionsForNewWindow()
-        new AtomWindow(this, @fileRecoveryService, {windowInitializationScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions, env})
-      else
-        console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
-    else
-      console.log "Opening unknown url: #{urlToOpen}" # TODO: should this forward the URL to the workspace?
+    _.find @packages.getAvailablePackageMetadata(), ({name}) -> name is packageName
+
+  openPackageUrlMain: (urlToOpen, devMode, safeMode, env) ->
+    packagePath = @packages.resolvePackagePath(packageName)
+    windowInitializationScript = path.resolve(packagePath, pack.urlMain)
+    windowDimensions = @getDimensionsForNewWindow()
+    new AtomWindow(this, @fileRecoveryService, {windowInitializationScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions, env})
 
   # Opens up a new {AtomWindow} to run specs within.
   #
