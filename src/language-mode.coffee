@@ -266,10 +266,21 @@ class LanguageMode
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
     return desiredIndentLevel unless increaseIndentRegex
 
-    unless @editor.isBufferRowCommented(precedingRow)
-      precedingLine = @buffer.lineForRow(precedingRow)
-      desiredIndentLevel += 1 if increaseIndentRegex?.testSync(precedingLine)
-      desiredIndentLevel -= 1 if decreaseNextIndentRegex?.testSync(precedingLine)
+    precedingLineIterator = @editor.tokenizedBuffer.tokenizedLineForRow(precedingRow).getTokenIterator()
+    precedingLine = ''
+    while precedingLineIterator.next()
+        isCommentText = precedingLineIterator.getScopes().some((element) ->
+            scope = ".#{element}."
+            scope.includes('.comment.')
+        )
+        isCommentText = false if precedingLineIterator.getScopes().some((element) ->
+            scope = ".#{element}."
+            scope.includes('.punctuation.') and scope.includes('.definition.') and scope.includes('.comment.')
+        )
+        precedingLine += precedingLineIterator.getText() unless isCommentText
+
+    desiredIndentLevel += 1 if increaseIndentRegex?.testSync(precedingLine)
+    desiredIndentLevel -= 1 if decreaseNextIndentRegex?.testSync(precedingLine)
 
     unless @buffer.isRowBlank(precedingRow)
       iterator = tokenizedLine.getTokenIterator()
