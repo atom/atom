@@ -289,6 +289,14 @@ module.exports = class CommandRegistry {
     return this.emitter.on('did-dispatch', callback)
   }
 
+  // Public: Invoke the given callback after finishing a command event.
+  //
+  // * `callback` {Function} to be called after finishing each command
+  //   * `event` The Event that was dispatched
+  onDidFinish (callback) {
+    return this.emitter.on('did-finish', callback)
+  }
+
   getSnapshot () {
     const snapshot = {}
     for (const commandName in this.selectorBasedListenersByCommandName) {
@@ -309,7 +317,7 @@ module.exports = class CommandRegistry {
   handleCommandEvent (event) {
     let propagationStopped = false
     let immediatePropagationStopped = false
-    let matched = false
+    let matched = []
     let currentTarget = event.target
 
     const dispatchedEvent = new CustomEvent(event.type, {
@@ -373,10 +381,6 @@ module.exports = class CommandRegistry {
         listeners = selectorBasedListeners.concat(listeners)
       }
 
-      if (listeners.length > 0) {
-        matched = true
-      }
-
       // Call inline listeners first in reverse registration order,
       // and selector-based listeners by specificity and reverse
       // registration order.
@@ -385,7 +389,7 @@ module.exports = class CommandRegistry {
         if (immediatePropagationStopped) {
           break
         }
-        listener.didDispatch.call(currentTarget, dispatchedEvent)
+        matched.push(listener.didDispatch.call(currentTarget, dispatchedEvent))
       }
 
       if (currentTarget === window) {
@@ -399,7 +403,12 @@ module.exports = class CommandRegistry {
 
     this.emitter.emit('did-dispatch', dispatchedEvent)
 
-    return matched
+    Promise.all(matched).then(
+      _ => this.emitter.emit('did-finish', dispatchedEvent),
+      _ => this.emitter.emit('did-finish', dispatchedEvent)
+    )
+
+    return matched.length > 0
   }
 
   commandRegistered (commandName) {
