@@ -674,15 +674,15 @@ class AtomApplication
         @lastFocusedWindow.sendUrlMessage url
 
   findPackageWithName: (packageName, devMode) ->
-    _.find @getPackageManager().getAvailablePackageMetadata(), ({name}) -> name is packageName
+    _.find @getPackageManager(devMode).getAvailablePackageMetadata(), ({name}) -> name is packageName
 
   openPackageUrlMain: (packageName, urlToOpen, devMode, safeMode, env) ->
-    packagePath = @getPackageManager().resolvePackagePath(packageName)
+    packagePath = @getPackageManager(devMode).resolvePackagePath(packageName)
     windowInitializationScript = path.resolve(packagePath, pack.urlMain)
     windowDimensions = @getDimensionsForNewWindow()
     new AtomWindow(this, @fileRecoveryService, {windowInitializationScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions, env})
 
-  getPackageManager: ->
+  getPackageManager: (devMode) ->
     unless @packages?
       PackageManager = require '../package-manager'
       @packages = new PackageManager({})
