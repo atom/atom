@@ -16,19 +16,19 @@ const {Disposable} = require('event-kit')
 // automatically installing the package right away is not.
 //
 // Packages can register their desire to handle URLs via a special key in their
-// `package.json` called "urlHandlers". The value of this key should be an object
+// `package.json` called "urlHandler". The value of this key should be an object
 // that contains, at minimum, a key named "method". This is the name of the method
 // on your package object that Atom will call when it receives a URL your package
 // is responsible for handling. It will pass the full URL as the only argument, and you
 // are free to do your own URL parsing to handle it.
 //
 // If your package can defer activation until a URL it needs to handle is triggered,
-// you can additionally specify the `"defer": true` option in your "urlHandlers" object.
+// you can additionally specify the `"deferActivation": true` option in your "urlHandler" object.
 // When Atom receives a request for a URL in your package's namespace, it will activate your
 // pacakge and then call `methodName` on it as before.
 //
 // If your package specifies a deprecated `urlMain` property, you cannot register URL handlers
-// via the `urlHandlers` key.
+// via the `urlHandler` key.
 //
 // ## Example
 //
@@ -40,7 +40,7 @@ const {Disposable} = require('event-kit')
 // {
 //   "name": "my-package",
 //   "main": "./lib/my-package.js",
-//   "urlHandlers": {
+//   "urlHandler": {
 //     "method": "handleUrl",
 //     "deferActivation": true,
 //   }
