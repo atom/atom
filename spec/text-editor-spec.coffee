@@ -76,6 +76,15 @@ describe "TextEditor", ->
           expect(editor2.displayLayer.tabLength).toBe(editor2.getTabLength())
           expect(editor2.displayLayer.softWrapColumn).toBe(editor2.getSoftWrapColumn())
 
+    it "ignores buffers with retired IDs", ->
+      editor2 = TextEditor.deserialize(editor.serialize(), {
+        assert: atom.assert,
+        textEditors: atom.textEditors,
+        project: {bufferForIdSync: -> null}
+      })
+
+      expect(editor2).toBeNull()
+
   describe "when the editor is constructed with the largeFileMode option set to true", ->
     it "loads the editor but doesn't tokenize", ->
       editor = null

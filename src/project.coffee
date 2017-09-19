@@ -30,6 +30,8 @@ class Project extends Model
     @repositoryProviders = [new GitRepositoryProvider(this, config)]
     @loadPromisesByPath = {}
     @watcherPromisesByPath = {}
+    @retiredBufferIDs = new Set()
+    @retiredBufferPaths = new Set()
     @consumeServices(packageManager)
 
   destroyed: ->
@@ -58,29 +60,17 @@ class Project extends Model
   ###
 
   deserialize: (state) ->
-    checkNotDirectory = (filePath) ->
-      new Promise (resolve, reject) ->
-        fs.isDirectory filePath, (isDir) ->
-          if isDir then reject() else resolve()
+    @retiredBufferIDs = new Set()
+    @retiredBufferPaths = new Set()
 
-    checkAccess = (filePath) ->
-      new Promise (resolve, reject) ->
-        fs.open filePath, 'r', (err, fd) ->
-          return reject() if err?
-          fs.close fd, () -> resolve()
-
-    handleBufferState = (bufferState) ->
+    handleBufferState = (bufferState) =>
       bufferState.shouldDestroyOnFileDelete ?= -> atom.config.get('core.closeDeletedFileTabs')
+      bufferState.mustExist = true
 
-      promise = Promise.resolve()
-      if bufferState.filePath?
-        promise = promise.then () -> Promise.all([
-          checkNotDirectory(bufferState.filePath),
-          checkAccess(bufferState.filePath)
-        ])
-      promise = promise.then () -> TextBuffer.deserialize(bufferState)
-      promise = promise.catch (err) -> null
-      promise
+      TextBuffer.deserialize(bufferState).catch (err) =>
+        @retiredBufferIDs.add(bufferState.id)
+        @retiredBufferPaths.add(bufferState.filePath)
+        null
 
     bufferPromises = (handleBufferState(bufferState) for bufferState in state.buffers)
 
@@ -465,11 +455,13 @@ class Project extends Model
   # Only to be used in specs
   bufferForPathSync: (filePath) ->
     absoluteFilePath = @resolvePath(filePath)
+    return null if @retiredBufferPaths.has absoluteFilePath
     existingBuffer = @findBufferForPath(absoluteFilePath) if filePath
     existingBuffer ? @buildBufferSync(absoluteFilePath)
 
   # Only to be used when deserializing
   bufferForIdSync: (id) ->
+    return null if @retiredBufferIDs.has id
     existingBuffer = @findBufferForId(id) if id
     existingBuffer ? @buildBufferSync()
 
