@@ -22,7 +22,7 @@ Config = require './config'
 KeymapManager = require './keymap-extensions'
 TooltipManager = require './tooltip-manager'
 CommandRegistry = require './command-registry'
-MessageRegistry = require './message-registry'
+UrlHandlerRegistry = require './url-handler-registry'
 GrammarRegistry = require './grammar-registry'
 {HistoryManager, HistoryProject} = require './history-manager'
 ReopenProjectMenuManager = require './reopen-project-menu-manager'
@@ -148,13 +148,14 @@ class AtomEnvironment extends Model
     @keymaps = new KeymapManager({notificationManager: @notifications})
     @tooltips = new TooltipManager(keymapManager: @keymaps, viewRegistry: @views)
     @commands = new CommandRegistry
-    @messages = new MessageRegistry
+    @urlHandlerRegistry = new UrlHandlerRegistry
     @grammars = new GrammarRegistry({@config})
     @styles = new StyleManager()
     @packages = new PackageManager({
       @config, styleManager: @styles,
       commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
-      grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views
+      grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views,
+      urlHandlerRegistry: @urlHandlerRegistry
     })
     @themes = new ThemeManager({
       packageManager: @packages, @config, styleManager: @styles,
@@ -1073,7 +1074,7 @@ class AtomEnvironment extends Model
     @commands.dispatch(@contextMenu.activeElement, command, args)
 
   dispatchUrlMessage: (uri) ->
-    @messages.dispatch(uri)
+    @urlHandlerRegistry.handleUrl(uri)
 
   openLocations: (locations) ->
     needsProjectPaths = @project?.getPaths().length is 0

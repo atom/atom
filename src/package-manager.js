@@ -31,7 +31,8 @@ module.exports = class PackageManager {
   constructor (params) {
     ({
       config: this.config, styleManager: this.styleManager, notificationManager: this.notificationManager, keymapManager: this.keymapManager,
-      commandRegistry: this.commandRegistry, grammarRegistry: this.grammarRegistry, deserializerManager: this.deserializerManager, viewRegistry: this.viewRegistry
+      commandRegistry: this.commandRegistry, grammarRegistry: this.grammarRegistry, deserializerManager: this.deserializerManager, viewRegistry: this.viewRegistry,
+      urlHandlerRegistry: this.urlHandlerRegistry
     } = params)
 
     this.emitter = new Emitter()
