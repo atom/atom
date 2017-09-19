@@ -728,9 +728,10 @@ class Pane {
   }
 
   // Public: Destroy the active item and activate the next item.
+  //
+  // Returns a {Promise} that resolves when the item is destroyed.
   destroyActiveItem () {
-    this.destroyItem(this.activeItem)
-    return false
+    return this.destroyItem(this.activeItem)
   }
 
   // Public: Destroy the given item.
