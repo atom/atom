@@ -143,6 +143,26 @@ describe "Project", ->
       runs ->
         expect(deserializedProject.getBuffers().length).toBe 0
 
+    it "deserializes buffers that have never been saved before", ->
+      pathToOpen = path.join(temp.mkdirSync('atom-spec-project'), 'file.txt')
+
+      waitsForPromise ->
+        atom.workspace.open(pathToOpen)
+
+      runs ->
+        atom.workspace.getActiveTextEditor().setText('unsaved\n')
+        expect(atom.project.getBuffers().length).toBe 1
+
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+
+      waitsForPromise ->
+        deserializedProject.deserialize(atom.project.serialize({isUnloading: false}))
+
+      runs ->
+        expect(deserializedProject.getBuffers().length).toBe 1
+        expect(deserializedProject.getBuffers()[0].getPath()).toBe pathToOpen
+        expect(deserializedProject.getBuffers()[0].getText()).toBe 'unsaved\n'
+
     it "serializes marker layers and history only if Atom is quitting", ->
       waitsForPromise -> atom.workspace.open('a')
 
