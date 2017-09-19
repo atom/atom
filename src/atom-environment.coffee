@@ -1005,7 +1005,7 @@ class AtomEnvironment extends Model
     startTime = Date.now()
     if state.project?
       projectPromise = @project.deserialize(state.project, @deserializers)
-        .catch (err) ->
+        .catch (err) =>
           if err.missingProjectPaths?
             missingProjectPaths.push(err.missingProjectPaths...)
           else
