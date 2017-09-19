@@ -121,10 +121,14 @@ describe "PaneElement", ->
           item1.path = '/foo/bar.txt'
           item1.changePathCallbacks = []
           item1.setPath = (path) ->
-            this.path = path
+            @path = path
             callback() for callback in changePathCallbacks
-          item1.getPath = -> this.path
-          item1.onDidChangePath = (callback) -> this.changePathCallbacks.push(callback)
+            return
+          item1.getPath = -> @path
+          item1.onDidChangePath = (callback) ->
+            @changePathCallbacks.push(callback)
+            return dispose: =>
+              @changePathCallbacks = @changePathCallbacks.filter (f) -> f isnt callback
 
           item2 = document.createElement('div')
 
