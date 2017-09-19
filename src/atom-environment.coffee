@@ -693,7 +693,7 @@ class AtomEnvironment extends Model
         @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
         @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
         @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
-        @disposables.add(@applicationDelegate.onUrlMessage(@dispatchUrlMessage.bind(this)))
+        @disposables.add(@applicationDelegate.onURLMessage(@dispatchUrlMessage.bind(this)))
         @disposables.add @applicationDelegate.onDidRequestUnload =>
           @saveState({isUnloading: true})
             .catch(console.error)
