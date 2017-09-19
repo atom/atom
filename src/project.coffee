@@ -227,8 +227,10 @@ class Project extends Model
   #
   # * `projectPaths` {Array} of {String} paths.
   # * `options` An optional {Object} that may contain the following keys:
-  #   * `mustExist` If `true`, throw an Error if any `projectPaths` do not exist. The existing `projectPaths` will
-  #     still be added to the project.
+  #   * `mustExist` If `true`, throw an Error if any `projectPaths` do not exist. Any remaining `projectPaths` that
+  #     do exist will still be added to the project. Default: `false`.
+  #   * `exact` If `true`, only add a `projectPath` if it names an existing directory. If `false` and any `projectPath`
+  #     is a file or does not exist, its parent directory will be added instead. Default: `false`.
   setPaths: (projectPaths, options = {}) ->
     repository?.destroy() for repository in @repositories
     @rootDirectories = []
@@ -241,10 +243,13 @@ class Project extends Model
     missingProjectPaths = []
     for projectPath in projectPaths
       try
-        @addPath(projectPath, emitEvent: false, mustExist: true)
+        @addPath projectPath, emitEvent: false, mustExist: true, exact: true
         added = true
       catch e
-        missingProjectPaths.push e.missingProjectPaths...
+        if e.missingProjectPaths?
+          missingProjectPaths.push e.missingProjectPaths...
+        else
+          throw e
 
     if added
       @emitter.emit 'did-change-paths', projectPaths
@@ -258,10 +263,18 @@ class Project extends Model
   #
   # * `projectPath` {String} The path to the directory to add.
   # * `options` An optional {Object} that may contain the following keys:
-  #   * `mustExist` If `true`, throw an Error if the `projectPath` does not exist.
+  #   * `mustExist` If `true`, throw an Error if the `projectPath` does not exist. If `false`, a `projectPath` that does
+  #     not exist is ignored. Default: `false`.
+  #   * `exact` If `true`, only add `projectPath` if it names an existing directory. If `false`, if `projectPath` is a
+  #     a file or does not exist, its parent directory will be added instead.
   addPath: (projectPath, options = {}) ->
     directory = @getDirectoryForProjectPath(projectPath)
-    unless directory.existsSync()
+
+    ok = true
+    ok = ok and directory.getPath() is projectPath if options.exact is true
+    ok = ok and directory.existsSync()
+
+    unless ok
       if options.mustExist is true
         err = new Error "Project directory #{directory} does not exist"
         err.missingProjectPaths = [projectPath]

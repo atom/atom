@@ -24,7 +24,7 @@ describe "Project", ->
       notQuittingProject?.destroy()
       quittingProject?.destroy()
 
-    it "does not deserialize paths to non directories", ->
+    it "does not deserialize paths to directories that don't exist", ->
       deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
       state = atom.project.serialize()
       state.paths.push('/directory/that/does/not/exist')
@@ -37,6 +37,26 @@ describe "Project", ->
       runs ->
         expect(deserializedProject.getPaths()).toEqual(atom.project.getPaths())
         expect(err.missingProjectPaths).toEqual ['/directory/that/does/not/exist']
+
+    it "does not deserialize paths that are now files", ->
+      childPath = path.join(temp.mkdirSync('atom-spec-project'), 'child')
+      fs.mkdirSync(childPath)
+
+      deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+      atom.project.setPaths([childPath])
+      state = atom.project.serialize()
+
+      fs.rmdirSync(childPath)
+      fs.writeFileSync(childPath, 'suprise!\n')
+
+      err = null
+      waitsForPromise ->
+        deserializedProject.deserialize(state, atom.deserializers)
+          .catch (e) -> err = e
+
+      runs ->
+        expect(deserializedProject.getPaths()).toEqual([])
+        expect(err.missingProjectPaths).toEqual [childPath]
 
     it "does not include unretained buffers in the serialized state", ->
       waitsForPromise ->
@@ -69,7 +89,7 @@ describe "Project", ->
         deserializedProject.getBuffers()[0].destroy()
         expect(deserializedProject.getBuffers().length).toBe 0
 
-    it "does not deserialize buffers when their path is a directory that exists", ->
+    it "does not deserialize buffers when their path is now a directory", ->
       pathToOpen = path.join(temp.mkdirSync('atom-spec-project'), 'file.txt')
 
       waitsForPromise ->
@@ -447,7 +467,7 @@ describe "Project", ->
 
   describe ".setPaths(paths, options)", ->
     describe "when path is a file", ->
-      it "sets its path to the files parent directory and updates the root directory", ->
+      it "sets its path to the file's parent directory and updates the root directory", ->
         filePath = require.resolve('./fixtures/dir/a')
         atom.project.setPaths([filePath])
         expect(atom.project.getPaths()[0]).toEqual path.dirname(filePath)
