@@ -1074,7 +1074,12 @@ class AtomEnvironment extends Model
     @commands.dispatch(@contextMenu.activeElement, command, args)
 
   dispatchUrlMessage: (uri) ->
-    @urlHandlerRegistry.handleUrl(uri)
+    if @packages.hasLoadedInitialPackages()
+      @urlHandlerRegistry.handleUrl(uri)
+    else
+      sub = @packages.onDidLoadInitialPackages ->
+        sub.dispose()
+        @urlHandlerRegistry.handleUrl(uri)
 
   openLocations: (locations) ->
     needsProjectPaths = @project?.getPaths().length is 0
