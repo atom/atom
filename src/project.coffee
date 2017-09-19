@@ -69,8 +69,7 @@ class Project extends Model
           return reject() if err?
           fs.close fd, () -> resolve()
 
-    bufferPromises = []
-    for bufferState in state.buffers
+    handleBufferState = (bufferState) ->
       bufferState.shouldDestroyOnFileDelete ?= -> atom.config.get('core.closeDeletedFileTabs')
 
       promise = Promise.resolve()
@@ -81,13 +80,14 @@ class Project extends Model
         ])
       promise = promise.then () -> TextBuffer.deserialize(bufferState)
       promise = promise.catch (err) -> null
+      promise
 
-      bufferPromises.push promise
+    bufferPromises = (handleBufferState(bufferState) for bufferState in state.buffers)
 
     Promise.all(bufferPromises).then (buffers) =>
       @buffers = buffers.filter(Boolean)
       @subscribeToBuffer(buffer) for buffer in @buffers
-      @setPaths(state.paths, mustExist: true)
+      @setPaths(state.paths or [], mustExist: true)
 
   serialize: (options={}) ->
     deserializer: 'Project'
