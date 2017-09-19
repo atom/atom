@@ -669,7 +669,7 @@ class AtomApplication
       @lastFocusedWindow.sendUrlMessage url
     else
       windowDimensions = @getDimensionsForNewWindow()
-      @lastFocusedWindow = new AtomWindow({resourcePath, windowInitializationScript, devMode, safeMode, windowDimensions, env})
+      @lastFocusedWindow = new AtomWindow(this, @fileRecoveryService, {resourcePath, windowInitializationScript, devMode, safeMode, windowDimensions, env})
       @lastFocusedWindow.on 'window:loaded', =>
         @lastFocusedWindow.sendUrlMessage url
 
