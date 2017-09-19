@@ -651,7 +651,7 @@ class AtomApplication
     parsedUrl = url.parse(urlToOpen)
     return unless parsedUrl.protocol is "atom:"
 
-    pack = @findPackageWithName(parsedUrl.host)
+    pack = @findPackageWithName(parsedUrl.host, devMode)
     if pack?.urlMain
       @openPackageUrlMain(urlToOpen, devMode, safeMode, env)
     else
@@ -673,7 +673,7 @@ class AtomApplication
       @lastFocusedWindow.on 'window:loaded', =>
         @lastFocusedWindow.sendUrlMessage url
 
-  findPackageWithName: (packageName) ->
+  findPackageWithName: (packageName, devMode) ->
     unless @packages?
       PackageManager = require '../package-manager'
       @packages = new PackageManager({})
