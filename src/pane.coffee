@@ -111,9 +111,15 @@ class Pane
 
   getFlexScale: -> @flexScale
 
-  increaseSize: -> @setFlexScale(@getFlexScale() * 1.1)
+  increaseSize: ->
+    if @getContainer().getPanes().length is 1
+      return @getFlexScale()
+    @setFlexScale(@getFlexScale() * 1.1)
 
-  decreaseSize: -> @setFlexScale(@getFlexScale() / 1.1)
+  decreaseSize: ->
+    if @getContainer().getPanes().length is 1
+      return @getFlexScale()
+    @setFlexScale(@getFlexScale() / 1.1)
 
   ###
   Section: Event Subscription
