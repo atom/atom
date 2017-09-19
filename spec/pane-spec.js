@@ -491,23 +491,31 @@ describe('Pane', () => {
       expect(pane.getActiveItem()).toBeUndefined()
     })
 
-    it('invokes ::onWillDestroyItem() observers before destroying the item', async () => {
+    it('invokes ::onWillDestroyItem() and PaneContainer::onWillDestroyPaneItem observers before destroying the item', async () => {
       jasmine.useRealClock()
-
-      let handlerDidFinish = false
+      pane.container = new PaneContainer({config: atom.config, confirm})
       const events = []
+
       pane.onWillDestroyItem(async (event) => {
         expect(item2.isDestroyed()).toBe(false)
-        events.push(event)
         await timeoutPromise(50)
         expect(item2.isDestroyed()).toBe(false)
-        handlerDidFinish = true
+        events.push(['will-destroy-item', event])
+      })
+
+      pane.container.onWillDestroyPaneItem(async (event) => {
+        expect(item2.isDestroyed()).toBe(false)
+        await timeoutPromise(50)
+        expect(item2.isDestroyed()).toBe(false)
+        events.push(['will-destroy-pane-item', event])
       })
 
       await pane.destroyItem(item2)
-      expect(handlerDidFinish).toBe(true)
       expect(item2.isDestroyed()).toBe(true)
-      expect(events).toEqual([{item: item2, index: 1}])
+      expect(events).toEqual([
+        ['will-destroy-item', {item: item2, index: 1}],
+        ['will-destroy-pane-item', {item: item2, index: 1, pane}]
+      ])
     })
 
     it('invokes ::onWillRemoveItem() observers', () => {
