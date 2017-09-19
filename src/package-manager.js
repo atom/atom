@@ -648,6 +648,10 @@ module.exports = class PackageManager {
     })
   }
 
+  registerUrlHandlerForPackage (packageName, handler) {
+    return this.urlHandlerRegistry.registerHostHandler(packageName, handler)
+  }
+
   // another type of package manager can handle other package types.
   // See ThemeManager
   registerPackageActivator (activator, types) {

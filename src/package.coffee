@@ -84,6 +84,7 @@ class Package
     @loadMenus()
     @registerDeserializerMethods()
     @activateCoreStartupServices()
+    @registerUrlHandler()
     @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
     @requireMainModule()
     @settingsPromise = @loadSettings()
@@ -114,6 +115,7 @@ class Package
         @loadStylesheets()
         @registerDeserializerMethods()
         @activateCoreStartupServices()
+        @registerUrlHandler()
         @registerTranspilerConfig()
         @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
         @settingsPromise = @loadSettings()
@@ -317,6 +319,21 @@ class Package
         if typeof @mainModule[methodName] is 'function'
           @activationDisposables.add @packageManager.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
     return
+
+  registerUrlHandler: ->
+    handlerConfig = @getUrlHandler()
+    if methodName = handlerConfig?.method
+      @urlHandlerSubscription = @packageManager.registerUrlHandlerForPackage @name, (url) =>
+        @handleUrl(url, methodName)
+
+  unregisterUrlHandler: ->
+    @urlHandlerSubscription?.dispose()
+
+  handleUrl: (url, methodName) ->
+    @activate().then =>
+      @mainModule[methodName]?(url)
+    unless @mainActivated
+      @activateNow()
 
   registerTranspilerConfig: ->
     if @metadata.atomTranspilers
@@ -595,7 +612,7 @@ class Package
       @mainModulePath = fs.resolveExtension(mainModulePath, ["", CompileCache.supportedExtensions...])
 
   activationShouldBeDeferred: ->
-    @hasActivationCommands() or @hasActivationHooks()
+    @hasActivationCommands() or @hasActivationHooks() or @hasDeferredUrlHandler()
 
   hasActivationHooks: ->
     @getActivationHooks()?.length > 0
@@ -604,6 +621,9 @@ class Package
     for selector, commands of @getActivationCommands()
       return true if commands.length > 0
     false
+
+  hasDeferredUrlHandler: ->
+    @getUrlHandler() and @getUrlHandler().deferActivation isnt false
 
   subscribeToDeferredActivation: ->
     @subscribeToActivationCommands()
@@ -672,6 +692,9 @@ class Package
         @activationHooks.push(@metadata.activationHooks)
 
     @activationHooks = _.uniq(@activationHooks)
+
+  getUrlHandler: ->
+    @metadata?.urlHandler
 
   # Does the given module path contain native code?
   isNativeModule: (modulePath) ->
