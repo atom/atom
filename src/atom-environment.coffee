@@ -1009,7 +1009,7 @@ class AtomEnvironment extends Model
           if err.missingProjectPaths?
             missingProjectPaths.push(err.missingProjectPaths...)
           else
-            @notifications.addError "Unable to deserialize project", stack: err.stack
+            @notifications.addError "Unable to deserialize project", description: err.message, stack: err.stack
     else
       projectPromise = Promise.resolve()
 
