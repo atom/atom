@@ -1,7 +1,7 @@
 const url = require('url')
 const {Disposable} = require('event-kit')
 
-// Public: Associates listener functions with URLs from outside the application.
+// Private: Associates listener functions with URLs from outside the application.
 //
 // The global URL handler registry maps URLs to listener functions. URLs are mapped
 // based on the hostname of the URL; the format is atom://package/command?args.
