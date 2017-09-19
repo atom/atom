@@ -208,10 +208,10 @@ describe("CommandRegistry", () => {
       expect(sequence[1][0]).toBe('listener');
       expect(sequence[2][0]).toBe('onDidDispatch');
 
-      waitsFor(() => sequence.length === 4), "onDidFinish never called");
+      waitsFor(() => sequence.length === 4, "onDidFinish never called");
 
       runs(() => {
-        expect(sequence[3][0]).toBe 'onDidFinish'
+        expect(sequence[3][0]).toBe('onDidFinish');
 
         expect(sequence[0][1] === sequence[1][1] && sequence[1][1] === sequence[2][1] && sequence[2][1] === sequence[3][1]).toBe(true);
         expect(sequence[0][1].constructor).toBe(CustomEvent);
