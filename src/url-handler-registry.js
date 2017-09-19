@@ -22,17 +22,19 @@ const {Disposable} = require('event-kit')
 // is responsible for handling. It will pass the full URL as the only argument, and you
 // are free to do your own URL parsing to handle it.
 //
-// If your package can defer activation until a URL it needs to handle is triggered,
-// you can additionally specify the `"deferActivation": true` option in your "urlHandler" object.
-// When Atom receives a request for a URL in your package's namespace, it will activate your
-// pacakge and then call `methodName` on it as before.
+// By default, Atom will defer activation of your package until a URL it needs to handle
+// is triggered. If you need your package to activate right away, you can add
+// `"deferActivation": false` to your "urlHandler" configuration object. When activation
+// is deferred, once Atom receives a request for a URL in your package's namespace, it will
+// activate your pacakge and then call `methodName` on it as before.
 //
 // If your package specifies a deprecated `urlMain` property, you cannot register URL handlers
 // via the `urlHandler` key.
 //
 // ## Example
 //
-// Here is a message that could open a specific panel in a package's view:
+// Here is a sample package that will be activated and have its `handleUrl` method called
+// when a URL beginning with `atom://my-package` is triggered:
 //
 // `package.json`:
 //
@@ -41,8 +43,7 @@ const {Disposable} = require('event-kit')
 //   "name": "my-package",
 //   "main": "./lib/my-package.js",
 //   "urlHandler": {
-//     "method": "handleUrl",
-//     "deferActivation": true,
+//     "method": "handleUrl"
 //   }
 // }
 // ```
@@ -60,9 +61,6 @@ const {Disposable} = require('event-kit')
 //   }
 // }
 // ```
-//
-// In this example, when Atom handles `atom://my-package/something`, it will activate your
-// package and then call `handleUrl` passing in the string `"atom://my-package/something"`
 module.exports =
 class UrlHandlerRegistry {
   constructor () {
