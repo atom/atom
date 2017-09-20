@@ -49,6 +49,8 @@ class Project extends Model
     @buffers = []
     @setPaths([])
     @loadPromisesByPath = {}
+    @retiredBufferIDs = new Set()
+    @retiredBufferPaths = new Set()
     @consumeServices(packageManager)
 
   destroyUnretainedBuffers: ->
