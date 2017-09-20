@@ -538,10 +538,16 @@ describe('Pane', () => {
 
       await pane.destroyItem(item2)
       expect(item2.isDestroyed()).toBe(true)
-      expect(events).toEqual([
-        ['will-destroy-item', {item: item2, index: 1}],
-        ['will-destroy-pane-item', {item: item2, index: 1, pane}]
-      ])
+
+      expect(events[0][0]).toEqual('will-destroy-item')
+      expect(events[0][1].item).toEqual(item2)
+      expect(events[0][1].index).toEqual(1)
+
+      expect(events[1][0]).toEqual('will-destroy-pane-item')
+      expect(events[1][1].item).toEqual(item2)
+      expect(events[1][1].index).toEqual(1)
+      expect(typeof events[1][1].prevent).toEqual('function')
+      expect(events[1][1].pane).toEqual(pane)
     })
 
     it('invokes ::onWillRemoveItem() observers', () => {
