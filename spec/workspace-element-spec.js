@@ -1,7 +1,5 @@
 /** @babel */
 
-/* global getComputedStyle, WheelEvent */
-
 const {ipcRenderer} = require('electron')
 const path = require('path')
 const temp = require('temp').track()

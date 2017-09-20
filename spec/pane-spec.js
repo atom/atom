@@ -3,7 +3,7 @@ const {Emitter} = require('event-kit')
 const Grim = require('grim')
 const Pane = require('../src/pane')
 const PaneContainer = require('../src/pane-container')
-const {it, fit, ffit, fffit, beforeEach} = require('./async-spec-helpers')
+const {it, fit, ffit, fffit, beforeEach, timeoutPromise} = require('./async-spec-helpers')
 
 describe('Pane', () => {
   let confirm, showSaveDialog, deserializerDisposable
@@ -497,6 +497,7 @@ describe('Pane', () => {
         deserializerManager: atom.deserializers,
         applicationDelegate: atom.applicationDelegate
       })
+
       pane.setContainer(container)
       container.onWillDestroyPaneItem(e => e.prevent())
       pane.itemStack = [item2, item3, item1]
@@ -516,16 +517,31 @@ describe('Pane', () => {
       expect(pane.getActiveItem()).toBe(item1)
     })
 
-    it('invokes ::onWillDestroyItem() observers before destroying the item', () => {
+    it('invokes ::onWillDestroyItem() and PaneContainer::onWillDestroyPaneItem observers before destroying the item', async () => {
+      jasmine.useRealClock()
+      pane.container = new PaneContainer({config: atom.config, confirm})
       const events = []
-      pane.onWillDestroyItem(function (event) {
+
+      pane.onWillDestroyItem(async (event) => {
         expect(item2.isDestroyed()).toBe(false)
-        events.push(event)
+        await timeoutPromise(50)
+        expect(item2.isDestroyed()).toBe(false)
+        events.push(['will-destroy-item', event])
       })
 
-      pane.destroyItem(item2)
+      pane.container.onWillDestroyPaneItem(async (event) => {
+        expect(item2.isDestroyed()).toBe(false)
+        await timeoutPromise(50)
+        expect(item2.isDestroyed()).toBe(false)
+        events.push(['will-destroy-pane-item', event])
+      })
+
+      await pane.destroyItem(item2)
       expect(item2.isDestroyed()).toBe(true)
-      expect(events).toEqual([{item: item2, index: 1}])
+      expect(events).toEqual([
+        ['will-destroy-item', {item: item2, index: 1}],
+        ['will-destroy-pane-item', {item: item2, index: 1, pane}]
+      ])
     })
 
     it('invokes ::onWillRemoveItem() observers', () => {
@@ -592,7 +608,7 @@ describe('Pane', () => {
             confirm.andReturn(0)
 
             const success = await pane.destroyItem(item1)
-            expect(showSaveDialog).toHaveBeenCalled()
+            expect(showSaveDialog).toHaveBeenCalledWith({})
             expect(item1.saveAs).toHaveBeenCalledWith('/selected/path')
             expect(pane.getItems().includes(item1)).toBe(false)
             expect(item1.isDestroyed()).toBe(true)
@@ -774,7 +790,7 @@ describe('Pane', () => {
         it('opens a save dialog and saves the current item as the selected path', async () => {
           pane.getActiveItem().saveAs = jasmine.createSpy('saveAs')
           await pane.saveActiveItem()
-          expect(showSaveDialog).toHaveBeenCalled()
+          expect(showSaveDialog).toHaveBeenCalledWith({})
           expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith('/selected/path')
         })
       })
@@ -1081,7 +1097,7 @@ describe('Pane', () => {
 
       describe('when `moveActiveItem: true` is passed in the params', () => {
         it('moves the active item', () => {
-          const pane2 = pane1.splitLeft({moveActiveItem: true})
+          const pane2 = pane1.splitRight({moveActiveItem: true})
           expect(pane2.getActiveItem()).toBe(item1)
         })
       })
@@ -1117,7 +1133,7 @@ describe('Pane', () => {
 
       describe('when `moveActiveItem: true` is passed in the params', () => {
         it('moves the active item', () => {
-          const pane2 = pane1.splitLeft({moveActiveItem: true})
+          const pane2 = pane1.splitUp({moveActiveItem: true})
           expect(pane2.getActiveItem()).toBe(item1)
         })
       })
@@ -1153,7 +1169,7 @@ describe('Pane', () => {
 
       describe('when `moveActiveItem: true` is passed in the params', () => {
         it('moves the active item', () => {
-          const pane2 = pane1.splitLeft({moveActiveItem: true})
+          const pane2 = pane1.splitDown({moveActiveItem: true})
           expect(pane2.getActiveItem()).toBe(item1)
         })
       })
@@ -1173,6 +1189,32 @@ describe('Pane', () => {
           const column = container.root.children[0]
           expect(column.orientation).toBe('vertical')
           expect(column.children).toEqual([pane1, pane3, pane2])
+        })
+      })
+    })
+
+    describe('when the pane is empty', () => {
+      describe('when `moveActiveItem: true` is passed in the params', () => {
+        it('gracefully ignores the moveActiveItem parameter', () => {
+          pane1.destroyItem(item1)
+          expect(pane1.getActiveItem()).toBe(undefined)
+
+          const pane2 = pane1.split('horizontal', 'before', {moveActiveItem: true})
+          expect(container.root.children).toEqual([pane2, pane1])
+
+          expect(pane2.getActiveItem()).toBe(undefined)
+        })
+      })
+
+      describe('when `copyActiveItem: true` is passed in the params', () => {
+        it('gracefully ignores the copyActiveItem parameter', () => {
+          pane1.destroyItem(item1)
+          expect(pane1.getActiveItem()).toBe(undefined)
+
+          const pane2 = pane1.split('horizontal', 'before', {copyActiveItem: true})
+          expect(container.root.children).toEqual([pane2, pane1])
+
+          expect(pane2.getActiveItem()).toBe(undefined)
         })
       })
     })
@@ -1284,7 +1326,7 @@ describe('Pane', () => {
         await pane.close()
         expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
         expect(confirmations).toBe(2)
-        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
+        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalledWith({})
         expect(item1.save).toHaveBeenCalled()
         expect(item1.saveAs).toHaveBeenCalled()
         expect(pane.isDestroyed()).toBe(true)
@@ -1312,7 +1354,7 @@ describe('Pane', () => {
         await pane.close()
         expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
         expect(confirmations).toBe(3)
-        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
+        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalledWith({})
         expect(item1.save).toHaveBeenCalled()
         expect(item1.saveAs).toHaveBeenCalled()
         expect(pane.isDestroyed()).toBe(true)

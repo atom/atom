@@ -27,6 +27,9 @@ environment:
 
 matrix:
   fast_finish: true
+  exclude:
+    - platform: x86
+      TASK: test
 
 install:
   - IF NOT EXIST %TEST_JUNIT_XML_ROOT% MKDIR %TEST_JUNIT_XML_ROOT%

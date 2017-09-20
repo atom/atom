@@ -409,6 +409,12 @@ const configSchema = {
         minimum: 1,
         description: 'Identifies the length of a line which is used when wrapping text with the `Soft Wrap At Preferred Line Length` setting enabled, in number of characters.'
       },
+      maxScreenLineLength: {
+        type: 'integer',
+        default: 500,
+        minimum: 500,
+        description: 'Defines the maximum width of the editor window before soft wrapping is enforced, in number of characters.'
+      },
       tabLength: {
         type: 'integer',
         default: 2,

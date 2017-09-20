@@ -585,10 +585,10 @@ describe "Project", ->
       waitsForPromise -> stopAllWatchers()
 
       runs -> atom.project.setPaths([dirOne])
-      waitsForPromise -> atom.project.watchersByPath[dirOne].getStartPromise()
+      waitsForPromise -> atom.project.getWatcherPromise dirOne
 
       runs ->
-        expect(atom.project.watchersByPath[dirTwo]).toEqual undefined
+        expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual undefined
 
         fs.writeFileSync fileThree, "three\n"
         fs.writeFileSync fileTwo, "two\n"

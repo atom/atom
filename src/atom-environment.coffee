@@ -328,20 +328,14 @@ class AtomEnvironment extends Model
 
     @contextMenu.clear()
 
-    @packages.reset()
-
-    @workspace.reset(@packages)
-    @registerDefaultOpeners()
-
-    @project.reset(@packages)
-
-    @workspace.subscribeToEvents()
-
-    @grammars.clear()
-
-    @textEditors.clear()
-
-    @views.clear()
+    @packages.reset().then =>
+      @workspace.reset(@packages)
+      @registerDefaultOpeners()
+      @project.reset(@packages)
+      @workspace.subscribeToEvents()
+      @grammars.clear()
+      @textEditors.clear()
+      @views.clear()
 
   destroy: ->
     return if not @project
@@ -445,7 +439,9 @@ class AtomEnvironment extends Model
   getVersion: ->
     @appVersion ?= @getLoadSettings().appVersion
 
-  # Returns the release channel as a {String}. Will return one of `'dev', 'beta', 'stable'`
+  # Public: Gets the release channel of the Atom application.
+  #
+  # Returns the release channel as a {String}. Will return one of `dev`, `beta`, or `stable`.
   getReleaseChannel: ->
     version = @getVersion()
     if version.indexOf('beta') > -1
@@ -702,6 +698,11 @@ class AtomEnvironment extends Model
                 windowCloseRequested: true,
                 projectHasPaths: @project.getPaths().length > 0
               })
+            .then (closing) =>
+              if closing
+                @packages.deactivatePackages().then -> closing
+              else
+                closing
 
         @listenForUpdates()
 
@@ -758,7 +759,6 @@ class AtomEnvironment extends Model
     return if not @project
 
     @storeWindowBackground()
-    @packages.deactivatePackages()
     @saveBlobStoreSync()
     @unloaded = true
 
