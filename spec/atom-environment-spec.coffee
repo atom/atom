@@ -325,7 +325,7 @@ describe "AtomEnvironment", ->
     describe "deserialization failures", ->
 
       it "propagates project state restoration failures", ->
-        spyOn(atom.project, 'deserialize').andCallFake =>
+        spyOn(atom.project, 'deserialize').andCallFake ->
           err = new Error('deserialization failure')
           err.missingProjectPaths = ['/foo']
           Promise.reject(err)
@@ -337,7 +337,7 @@ describe "AtomEnvironment", ->
             {description: 'Project directory `/foo` is no longer on disk.'}
 
       it "accumulates and reports two errors with one notification", ->
-        spyOn(atom.project, 'deserialize').andCallFake =>
+        spyOn(atom.project, 'deserialize').andCallFake ->
           err = new Error('deserialization failure')
           err.missingProjectPaths = ['/foo', '/wat']
           Promise.reject(err)
@@ -349,7 +349,7 @@ describe "AtomEnvironment", ->
             {description: 'Project directories `/foo` and `/wat` are no longer on disk.'}
 
       it "accumulates and reports three+ errors with one notification", ->
-        spyOn(atom.project, 'deserialize').andCallFake =>
+        spyOn(atom.project, 'deserialize').andCallFake ->
           err = new Error('deserialization failure')
           err.missingProjectPaths = ['/foo', '/wat', '/stuff', '/things']
           Promise.reject(err)
