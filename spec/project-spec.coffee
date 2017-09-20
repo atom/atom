@@ -47,7 +47,7 @@ describe "Project", ->
       state = atom.project.serialize()
 
       fs.rmdirSync(childPath)
-      fs.writeFileSync(childPath, 'suprise!\n')
+      fs.writeFileSync(childPath, 'surprise!\n')
 
       err = null
       waitsForPromise ->
