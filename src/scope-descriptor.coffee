@@ -10,8 +10,8 @@
 #
 # You should not need to create a `ScopeDescriptor` directly.
 #
-# * {Editor::getRootScopeDescriptor} to get the language's descriptor.
-# * {Editor::scopeDescriptorForBufferPosition} to get the descriptor at a
+# * {TextEditor::getRootScopeDescriptor} to get the language's descriptor.
+# * {TextEditor::scopeDescriptorForBufferPosition} to get the descriptor at a
 #   specific position in the buffer.
 # * {Cursor::getScopeDescriptor} to get a cursor's descriptor based on position.
 #

@@ -29,13 +29,15 @@ class Project extends Model
     @repositoryPromisesByPath = new Map()
     @repositoryProviders = [new GitRepositoryProvider(this, config)]
     @loadPromisesByPath = {}
-    @watchersByPath = {}
+    @watcherPromisesByPath = {}
+    @retiredBufferIDs = new Set()
+    @retiredBufferPaths = new Set()
     @consumeServices(packageManager)
 
   destroyed: ->
     buffer.destroy() for buffer in @buffers.slice()
     repository?.destroy() for repository in @repositories.slice()
-    watcher.dispose() for _, watcher in @watchersByPath
+    watcher.dispose() for _, watcher in @watcherPromisesByPath
     @rootDirectories = []
     @repositories = []
 
@@ -47,6 +49,8 @@ class Project extends Model
     @buffers = []
     @setPaths([])
     @loadPromisesByPath = {}
+    @retiredBufferIDs = new Set()
+    @retiredBufferPaths = new Set()
     @consumeServices(packageManager)
 
   destroyUnretainedBuffers: ->
@@ -58,21 +62,28 @@ class Project extends Model
   ###
 
   deserialize: (state) ->
-    bufferPromises = []
-    for bufferState in state.buffers
-      continue if fs.isDirectorySync(bufferState.filePath)
-      if bufferState.filePath
-        try
-          fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
-        catch error
-          continue unless error.code is 'ENOENT'
-      unless bufferState.shouldDestroyOnFileDelete?
-        bufferState.shouldDestroyOnFileDelete = ->
-          atom.config.get('core.closeDeletedFileTabs')
-      bufferPromises.push(TextBuffer.deserialize(bufferState))
-    Promise.all(bufferPromises).then (@buffers) =>
+    @retiredBufferIDs = new Set()
+    @retiredBufferPaths = new Set()
+
+    handleBufferState = (bufferState) =>
+      bufferState.shouldDestroyOnFileDelete ?= -> atom.config.get('core.closeDeletedFileTabs')
+
+      # Use a little guilty knowledge of the way TextBuffers are serialized.
+      # This allows TextBuffers that have never been saved (but have filePaths) to be deserialized, but prevents
+      # TextBuffers backed by files that have been deleted from being saved.
+      bufferState.mustExist = bufferState.digestWhenLastPersisted isnt false
+
+      TextBuffer.deserialize(bufferState).catch (err) =>
+        @retiredBufferIDs.add(bufferState.id)
+        @retiredBufferPaths.add(bufferState.filePath)
+        null
+
+    bufferPromises = (handleBufferState(bufferState) for bufferState in state.buffers)
+
+    Promise.all(bufferPromises).then (buffers) =>
+      @buffers = buffers.filter(Boolean)
       @subscribeToBuffer(buffer) for buffer in @buffers
-      @setPaths(state.paths)
+      @setPaths(state.paths or [], mustExist: true, exact: true)
 
   serialize: (options={}) ->
     deserializer: 'Project'
@@ -140,10 +151,14 @@ class Project extends Model
   #
   # To watch paths outside of open projects, use the `watchPaths` function instead; see {PathWatcher}.
   #
+  # When writing tests against functionality that uses this method, be sure to wait for the
+  # {Promise} returned by {getWatcherPromise()} before manipulating the filesystem to ensure that
+  # the watcher is receiving events.
+  #
   # * `callback` {Function} to be called with batches of filesystem events reported by
   #   the operating system.
   #    * `events` An {Array} of objects that describe a batch of filesystem events.
-  #     * `type` {String} describing the filesystem action that occurred. One of `"created"`,
+  #     * `action` {String} describing the filesystem action that occurred. One of `"created"`,
   #       `"modified"`, `"deleted"`, or `"renamed"`.
   #     * `path` {String} containing the absolute path to the filesystem entry
   #       that was acted upon.
@@ -207,40 +222,79 @@ class Project extends Model
   # Public: Set the paths of the project's directories.
   #
   # * `projectPaths` {Array} of {String} paths.
-  setPaths: (projectPaths) ->
+  # * `options` An optional {Object} that may contain the following keys:
+  #   * `mustExist` If `true`, throw an Error if any `projectPaths` do not exist. Any remaining `projectPaths` that
+  #     do exist will still be added to the project. Default: `false`.
+  #   * `exact` If `true`, only add a `projectPath` if it names an existing directory. If `false` and any `projectPath`
+  #     is a file or does not exist, its parent directory will be added instead. Default: `false`.
+  setPaths: (projectPaths, options = {}) ->
     repository?.destroy() for repository in @repositories
     @rootDirectories = []
     @repositories = []
 
-    watcher.dispose() for _, watcher in @watchersByPath
-    @watchersByPath = {}
+    watcher.then((w) -> w.dispose()) for _, watcher in @watcherPromisesByPath
+    @watcherPromisesByPath = {}
 
-    @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
+    missingProjectPaths = []
+    for projectPath in projectPaths
+      try
+        @addPath projectPath, emitEvent: false, mustExist: true, exact: options.exact is true
+      catch e
+        if e.missingProjectPaths?
+          missingProjectPaths.push e.missingProjectPaths...
+        else
+          throw e
 
     @emitter.emit 'did-change-paths', projectPaths
+
+    if options.mustExist is true and missingProjectPaths.length > 0
+      err = new Error "One or more project directories do not exist"
+      err.missingProjectPaths = missingProjectPaths
+      throw err
 
   # Public: Add a path to the project's list of root paths
   #
   # * `projectPath` {String} The path to the directory to add.
-  addPath: (projectPath, options) ->
+  # * `options` An optional {Object} that may contain the following keys:
+  #   * `mustExist` If `true`, throw an Error if the `projectPath` does not exist. If `false`, a `projectPath` that does
+  #     not exist is ignored. Default: `false`.
+  #   * `exact` If `true`, only add `projectPath` if it names an existing directory. If `false`, if `projectPath` is a
+  #     a file or does not exist, its parent directory will be added instead.
+  addPath: (projectPath, options = {}) ->
     directory = @getDirectoryForProjectPath(projectPath)
-    return unless directory.existsSync()
+
+    ok = true
+    ok = ok and directory.getPath() is projectPath if options.exact is true
+    ok = ok and directory.existsSync()
+
+    unless ok
+      if options.mustExist is true
+        err = new Error "Project directory #{directory} does not exist"
+        err.missingProjectPaths = [projectPath]
+        throw err
+      else
+        return
+
     for existingDirectory in @getDirectories()
       return if existingDirectory.getPath() is directory.getPath()
 
     @rootDirectories.push(directory)
-    @watchersByPath[directory.getPath()] = watchPath directory.getPath(), {}, (events) =>
-      @emitter.emit 'did-change-files', events
+    @watcherPromisesByPath[directory.getPath()] = watchPath directory.getPath(), {}, (events) =>
+      # Stop event delivery immediately on removal of a rootDirectory, even if its watcher
+      # promise has yet to resolve at the time of removal
+      if @rootDirectories.includes directory
+        @emitter.emit 'did-change-files', events
 
-    for root, watcher in @watchersByPath
-      watcher.dispose() unless @rootDirectoryies.includes root
+    for root, watcherPromise in @watcherPromisesByPath
+      unless @rootDirectories.includes root
+        watcherPromise.then (watcher) -> watcher.dispose()
 
     repo = null
     for provider in @repositoryProviders
       break if repo = provider.repositoryForDirectorySync?(directory)
     @repositories.push(repo ? null)
 
-    unless options?.emitEvent is false
+    unless options.emitEvent is false
       @emitter.emit 'did-change-paths', @getPaths()
 
   getDirectoryForProjectPath: (projectPath) ->
@@ -249,6 +303,21 @@ class Project extends Model
       break if directory = provider.directoryForURISync?(projectPath)
     directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
     directory
+
+  # Extended: Access a {Promise} that resolves when the filesystem watcher associated with a project
+  # root directory is ready to begin receiving events.
+  #
+  # This is especially useful in test cases, where it's important to know that the watcher is
+  # ready before manipulating the filesystem to produce events.
+  #
+  # * `projectPath` {String} One of the project's root directories.
+  #
+  # Returns a {Promise} that resolves with the {PathWatcher} associated with this project root
+  # once it has initialized and is ready to start sending events. The Promise will reject with
+  # an error instead if `projectPath` is not currently a root directory.
+  getWatcherPromise: (projectPath) ->
+    @watcherPromisesByPath[projectPath] or
+      Promise.reject(new Error("#{projectPath} is not a project root"))
 
   # Public: remove a path from the project's list of root paths.
   #
@@ -268,7 +337,8 @@ class Project extends Model
       [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
       [removedRepository] = @repositories.splice(indexToRemove, 1)
       removedRepository?.destroy() unless removedRepository in @repositories
-      @watchersByPath[projectPath]?.dispose()
+      @watcherPromisesByPath[projectPath]?.then (w) -> w.dispose()
+      delete @watcherPromisesByPath[projectPath]
       @emitter.emit "did-change-paths", @getPaths()
       true
     else
@@ -388,11 +458,13 @@ class Project extends Model
   # Only to be used in specs
   bufferForPathSync: (filePath) ->
     absoluteFilePath = @resolvePath(filePath)
+    return null if @retiredBufferPaths.has absoluteFilePath
     existingBuffer = @findBufferForPath(absoluteFilePath) if filePath
     existingBuffer ? @buildBufferSync(absoluteFilePath)
 
   # Only to be used when deserializing
   bufferForIdSync: (id) ->
+    return null if @retiredBufferIDs.has id
     existingBuffer = @findBufferForId(id) if id
     existingBuffer ? @buildBufferSync()
 

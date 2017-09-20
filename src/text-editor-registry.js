@@ -18,6 +18,7 @@ const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['editor.softWrapHangingIndent', 'softWrapHangingIndentLength'],
   ['editor.softWrapAtPreferredLineLength', 'softWrapAtPreferredLineLength'],
   ['editor.preferredLineLength', 'preferredLineLength'],
+  ['editor.maxScreenLineLength', 'maxScreenLineLength'],
   ['editor.autoIndent', 'autoIndent'],
   ['editor.autoIndentOnPaste', 'autoIndentOnPaste'],
   ['editor.scrollPastEnd', 'scrollPastEnd'],

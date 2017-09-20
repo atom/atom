@@ -19,6 +19,8 @@ module.exports = function parseCommandLine (processArgs) {
     will be opened in that window. Otherwise, they will be opened in a new
     window.
 
+    Paths that start with \`atom://\` will be interpreted as URLs.
+
     Environment Variables:
 
       ATOM_DEV_RESOURCE_PATH  The path from which Atom loads source code in dev mode.
@@ -76,7 +78,6 @@ module.exports = function parseCommandLine (processArgs) {
 
   const addToLastWindow = args['add']
   const safeMode = args['safe']
-  const pathsToOpen = args._
   const benchmark = args['benchmark']
   const benchmarkTest = args['benchmark-test']
   const test = args['test']
@@ -100,10 +101,19 @@ module.exports = function parseCommandLine (processArgs) {
   const userDataDir = args['user-data-dir']
   const profileStartup = args['profile-startup']
   const clearWindowState = args['clear-window-state']
+  const pathsToOpen = []
   const urlsToOpen = []
   let devMode = args['dev']
   let devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH || path.join(app.getPath('home'), 'github', 'atom')
   let resourcePath = null
+
+  for (const path of args._) {
+    if (path.startsWith('atom://')) {
+      urlsToOpen.push(path)
+    } else {
+      pathsToOpen.push(path)
+    }
+  }
 
   if (args['resource-path']) {
     devMode = true

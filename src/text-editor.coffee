@@ -17,7 +17,6 @@ TextEditorElement = null
 {isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require './text-utils'
 
 ZERO_WIDTH_NBSP = '\ufeff'
-MAX_SCREEN_LINE_LENGTH = 500
 
 # Essential: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -98,7 +97,6 @@ class TextEditor extends Model
   registered: false
   atomicSoftTabs: true
   invisibles: null
-  scrollSensitivity: 40
 
   Object.defineProperty @prototype, "element",
     get: -> @getElement()
@@ -130,7 +128,10 @@ class TextEditor extends Model
       state.tokenizedBuffer = state.displayBuffer.tokenizedBuffer
 
     try
-      state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
+      tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
+      return null unless tokenizedBuffer?
+
+      state.tokenizedBuffer = tokenizedBuffer
       state.tabLength = state.tokenizedBuffer.getTabLength()
     catch error
       if error.syscall is 'read'
@@ -154,12 +155,12 @@ class TextEditor extends Model
 
     {
       @softTabs, @initialScrollTopRow, @initialScrollLeftColumn, initialLine, initialColumn, tabLength,
-      @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
+      @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, @showLineNumbers, @largeFileMode,
-      @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
+      @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @scrollSensitivity, @editorWidthInChars,
       @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide,
       @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength,
-      @showCursorOnSelection
+      @showCursorOnSelection, @maxScreenLineLength
     } = params
 
     @assert ?= (condition) -> condition
@@ -172,6 +173,7 @@ class TextEditor extends Model
 
     @mini ?= false
     @scrollPastEnd ?= false
+    @scrollSensitivity ?= 40
     @showInvisibles ?= true
     @softTabs ?= true
     tabLength ?= 2
@@ -183,6 +185,7 @@ class TextEditor extends Model
     @softWrapped ?= false
     @softWrapAtPreferredLineLength ?= false
     @preferredLineLength ?= 80
+    @maxScreenLineLength ?= 500
     @showLineNumbers ?= true
 
     @buffer ?= new TextBuffer({
@@ -323,6 +326,11 @@ class TextEditor extends Model
             @preferredLineLength = value
             displayLayerParams.softWrapColumn = @getSoftWrapColumn()
 
+        when 'maxScreenLineLength'
+          if value isnt @maxScreenLineLength
+            @maxScreenLineLength = value
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
+
         when 'mini'
           if value isnt @mini
             @mini = value
@@ -433,7 +441,7 @@ class TextEditor extends Model
       softWrapHangingIndentLength: @displayLayer.softWrapHangingIndent
 
       @id, @softTabs, @softWrapped, @softWrapAtPreferredLineLength,
-      @preferredLineLength, @mini, @editorWidthInChars, @width, @largeFileMode,
+      @preferredLineLength, @mini, @editorWidthInChars, @width, @largeFileMode, @maxScreenLineLength,
       @registered, @invisibles, @showInvisibles, @showIndentGuide, @autoHeight, @autoWidth
     }
 
@@ -738,7 +746,7 @@ class TextEditor extends Model
   # Called by DecorationManager when a decoration is added.
   didAddDecoration: (decoration) ->
     if decoration.isType('block')
-      @component?.didAddBlockDecoration(decoration)
+      @component?.addBlockDecoration(decoration)
 
   # Extended: Calls your `callback` when the placeholder text is changed.
   #
@@ -1223,7 +1231,7 @@ class TextEditor extends Model
       @autoIndentSelectedRows() if @shouldAutoIndent()
       @scrollToBufferPosition([newSelectionRanges[0].start.row, 0])
 
-  # Move lines intersecting the most recent selection or muiltiple selections
+  # Move lines intersecting the most recent selection or multiple selections
   # down by one row in screen coordinates.
   moveLineDown: ->
     selections = @getSelectedBufferRanges()
@@ -2510,7 +2518,7 @@ class TextEditor extends Model
   # Essential: Select from the current cursor position to the given position in
   # buffer coordinates.
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   #
   # * `position` An instance of {Point}, with a given `row` and `column`.
   selectToBufferPosition: (position) ->
@@ -2521,7 +2529,7 @@ class TextEditor extends Model
   # Essential: Select from the current cursor position to the given position in
   # screen coordinates.
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   #
   # * `position` An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position, options) ->
@@ -2535,7 +2543,7 @@ class TextEditor extends Model
   #
   # * `rowCount` (optional) {Number} number of rows to select (default: 1)
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectUp: (rowCount) ->
     @expandSelectionsBackward (selection) -> selection.selectUp(rowCount)
 
@@ -2544,7 +2552,7 @@ class TextEditor extends Model
   #
   # * `rowCount` (optional) {Number} number of rows to select (default: 1)
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectDown: (rowCount) ->
     @expandSelectionsForward (selection) -> selection.selectDown(rowCount)
 
@@ -2553,7 +2561,7 @@ class TextEditor extends Model
   #
   # * `columnCount` (optional) {Number} number of columns to select (default: 1)
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectLeft: (columnCount) ->
     @expandSelectionsBackward (selection) -> selection.selectLeft(columnCount)
 
@@ -2562,7 +2570,7 @@ class TextEditor extends Model
   #
   # * `columnCount` (optional) {Number} number of columns to select (default: 1)
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectRight: (columnCount) ->
     @expandSelectionsForward (selection) -> selection.selectRight(columnCount)
 
@@ -2589,7 +2597,7 @@ class TextEditor extends Model
   # Essential: Move the cursor of each selection to the beginning of its line
   # while preserving the selection's tail position.
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectToBeginningOfLine: ->
     @expandSelectionsBackward (selection) -> selection.selectToBeginningOfLine()
 
@@ -3039,7 +3047,7 @@ class TextEditor extends Model
       else
         @getEditorWidthInChars()
     else
-      MAX_SCREEN_LINE_LENGTH
+      @maxScreenLineLength
 
   ###
   Section: Indentation
@@ -3526,6 +3534,10 @@ class TextEditor extends Model
       Math.max(1, Math.ceil(clientHeight / lineHeight))
     else
       1
+
+  Object.defineProperty(@prototype, 'rowsPerPage', {
+    get: -> @getRowsPerPage()
+  })
 
   ###
   Section: Config

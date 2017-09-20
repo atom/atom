@@ -48,21 +48,18 @@ describe('watchPath', function () {
   }
 
   describe('watchPath()', function () {
-    it('resolves getStartPromise() when the watcher begins listening', async function () {
+    it('resolves the returned promise when the watcher begins listening', async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
-      const watcher = watchPath(rootDir, {}, () => {})
-      await watcher.getStartPromise()
+      const watcher = await watchPath(rootDir, {}, () => {})
+      expect(watcher.constructor.name).toBe('PathWatcher')
     })
 
     it('reuses an existing native watcher and resolves getStartPromise immediately if attached to a running watcher', async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
-      const watcher0 = watchPath(rootDir, {}, () => {})
-      await watcher0.getStartPromise()
-
-      const watcher1 = watchPath(rootDir, {}, () => {})
-      await watcher1.getStartPromise()
+      const watcher0 = await watchPath(rootDir, {}, () => {})
+      const watcher1 = await watchPath(rootDir, {}, () => {})
 
       expect(watcher0.native).toBe(watcher1.native)
     })
@@ -70,28 +67,21 @@ describe('watchPath', function () {
     it("reuses existing native watchers even while they're still starting", async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
-      const watcher0 = watchPath(rootDir, {}, () => {})
-      await watcher0.getAttachedPromise()
-      expect(watcher0.native.isRunning()).toBe(false)
-
-      const watcher1 = watchPath(rootDir, {}, () => {})
-      await watcher1.getAttachedPromise()
-
+      const [watcher0, watcher1] = await Promise.all([
+        watchPath(rootDir, {}, () => {}),
+        watchPath(rootDir, {}, () => {})
+      ])
       expect(watcher0.native).toBe(watcher1.native)
-
-      await Promise.all([watcher0.getStartPromise(), watcher1.getStartPromise()])
     })
 
     it("doesn't attach new watchers to a native watcher that's stopping", async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
-      const watcher0 = watchPath(rootDir, {}, () => {})
-      await watcher0.getStartPromise()
+      const watcher0 = await watchPath(rootDir, {}, () => {})
       const native0 = watcher0.native
 
       watcher0.dispose()
-
-      const watcher1 = watchPath(rootDir, {}, () => {})
+      const watcher1 = await watchPath(rootDir, {}, () => {})
 
       expect(watcher1.native).not.toBe(native0)
     })
@@ -105,13 +95,8 @@ describe('watchPath', function () {
       await fs.mkdir(subDir)
 
       // Keep the watchers alive with an undisposed subscription
-      const rootWatcher = watchPath(rootDir, {}, () => {})
-      const childWatcher = watchPath(subDir, {}, () => {})
-
-      await Promise.all([
-        rootWatcher.getStartPromise(),
-        childWatcher.getStartPromise()
-      ])
+      const rootWatcher = await watchPath(rootDir, {}, () => {})
+      const childWatcher = await watchPath(subDir, {}, () => {})
 
       expect(rootWatcher.native).toBe(childWatcher.native)
       expect(rootWatcher.native.isRunning()).toBe(true)
@@ -120,13 +105,11 @@ describe('watchPath', function () {
         waitForChanges(rootWatcher, subFile),
         waitForChanges(childWatcher, subFile)
       ])
-
       await fs.writeFile(subFile, 'subfile\n', {encoding: 'utf8'})
       await firstChanges
 
       const nextRootEvent = waitForChanges(rootWatcher, rootFile)
       await fs.writeFile(rootFile, 'rootfile\n', {encoding: 'utf8'})
-
       await nextRootEvent
     })
 
@@ -149,22 +132,17 @@ describe('watchPath', function () {
       ])
 
       // Begin the child watchers and keep them alive
-      const subWatcher0 = watchPath(subDir0, {}, () => {})
+      const subWatcher0 = await watchPath(subDir0, {}, () => {})
       const subWatcherChanges0 = waitForChanges(subWatcher0, subFile0)
 
-      const subWatcher1 = watchPath(subDir1, {}, () => {})
+      const subWatcher1 = await watchPath(subDir1, {}, () => {})
       const subWatcherChanges1 = waitForChanges(subWatcher1, subFile1)
 
-      await Promise.all(
-        [subWatcher0, subWatcher1].map(watcher => watcher.getStartPromise())
-      )
       expect(subWatcher0.native).not.toBe(subWatcher1.native)
 
       // Create the parent watcher
-      const parentWatcher = watchPath(parentDir, {}, () => {})
+      const parentWatcher = await watchPath(parentDir, {}, () => {})
       const parentWatcherChanges = waitForChanges(parentWatcher, rootFile, subFile0, subFile1)
-
-      await parentWatcher.getStartPromise()
 
       expect(subWatcher0.native).toBe(parentWatcher.native)
       expect(subWatcher1.native).toBe(parentWatcher.native)

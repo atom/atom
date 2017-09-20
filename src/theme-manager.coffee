@@ -127,7 +127,7 @@ class ThemeManager
 
   # Resolve and apply the stylesheet specified by the path.
   #
-  # This supports both CSS and Less stylsheets.
+  # This supports both CSS and Less stylesheets.
   #
   # * `stylesheetPath` A {String} path to the stylesheet that can be an absolute
   #   path or a relative path that will be resolved against the load path.
@@ -142,8 +142,8 @@ class ThemeManager
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
 
   unwatchUserStylesheet: ->
-    @userStylsheetSubscriptions?.dispose()
-    @userStylsheetSubscriptions = null
+    @userStylesheetSubscriptions?.dispose()
+    @userStylesheetSubscriptions = null
     @userStylesheetFile = null
     @userStyleSheetDisposable?.dispose()
     @userStyleSheetDisposable = null
@@ -156,11 +156,11 @@ class ThemeManager
 
     try
       @userStylesheetFile = new File(userStylesheetPath)
-      @userStylsheetSubscriptions = new CompositeDisposable()
+      @userStylesheetSubscriptions = new CompositeDisposable()
       reloadStylesheet = => @loadUserStylesheet()
-      @userStylsheetSubscriptions.add(@userStylesheetFile.onDidChange(reloadStylesheet))
-      @userStylsheetSubscriptions.add(@userStylesheetFile.onDidRename(reloadStylesheet))
-      @userStylsheetSubscriptions.add(@userStylesheetFile.onDidDelete(reloadStylesheet))
+      @userStylesheetSubscriptions.add(@userStylesheetFile.onDidChange(reloadStylesheet))
+      @userStylesheetSubscriptions.add(@userStylesheetFile.onDidRename(reloadStylesheet))
+      @userStylesheetSubscriptions.add(@userStylesheetFile.onDidDelete(reloadStylesheet))
     catch error
       message = """
         Unable to watch path: `#{path.basename(userStylesheetPath)}`. Make sure
@@ -262,33 +262,31 @@ class ThemeManager
     new Promise (resolve) =>
       # @config.observe runs the callback once, then on subsequent changes.
       @config.observe 'core.themes', =>
-        @deactivateThemes()
+        @deactivateThemes().then =>
+          @warnForNonExistentThemes()
+          @refreshLessCache() # Update cache for packages in core.themes config
 
-        @warnForNonExistentThemes()
+          promises = []
+          for themeName in @getEnabledThemeNames()
+            if @packageManager.resolvePackagePath(themeName)
+              promises.push(@packageManager.activatePackage(themeName))
+            else
+              console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
 
-        @refreshLessCache() # Update cache for packages in core.themes config
-
-        promises = []
-        for themeName in @getEnabledThemeNames()
-          if @packageManager.resolvePackagePath(themeName)
-            promises.push(@packageManager.activatePackage(themeName))
-          else
-            console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
-
-        Promise.all(promises).then =>
-          @addActiveThemeClasses()
-          @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
-          @loadUserStylesheet()
-          @reloadBaseStylesheets()
-          @initialLoadComplete = true
-          @emitter.emit 'did-change-active-themes'
-          resolve()
+          Promise.all(promises).then =>
+            @addActiveThemeClasses()
+            @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
+            @loadUserStylesheet()
+            @reloadBaseStylesheets()
+            @initialLoadComplete = true
+            @emitter.emit 'did-change-active-themes'
+            resolve()
 
   deactivateThemes: ->
     @removeActiveThemeClasses()
     @unwatchUserStylesheet()
-    @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
-    null
+    results = @getActiveThemes().map((pack) => @packageManager.deactivatePackage(pack.name))
+    Promise.all(results.filter((r) -> typeof r?.then is 'function'))
 
   isInitialLoadComplete: -> @initialLoadComplete
 

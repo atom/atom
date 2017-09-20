@@ -222,7 +222,7 @@ describe("ReopenProjectMenuManager", () => {
       expect(label).toBe('https://launch.pad/apollo/11')
     })
 
-    it("returns a comma-seperated list of base names if there are multiple", () => {
+    it("returns a comma-separated list of base names if there are multiple", () => {
       const project = { paths: [ '/var/one', '/usr/bin/two', '/etc/mission/control/three' ] }
       const label = ReopenProjectMenuManager.createLabel(project)
       expect(label).toBe('one, two, three')

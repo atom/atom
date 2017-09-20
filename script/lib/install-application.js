@@ -3,7 +3,6 @@
 const fs = require('fs-extra')
 const handleTilde = require('./handle-tilde')
 const path = require('path')
-const runas = require('runas')
 const template = require('lodash.template')
 
 const CONFIG = require('../config')
@@ -31,11 +30,12 @@ module.exports = function (packagedAppPath, installDir) {
       fs.copySync(packagedAppPath, installationDirPath)
     } catch (e) {
       console.log(`Administrator elevation required to install into "${installationDirPath}"`)
-      const copyScriptPath = path.join(CONFIG.repositoryRootPath, 'script', 'copy-folder.cmd')
-      const exitCode = runas('cmd', ['/c', copyScriptPath, packagedAppPath, installationDirPath], {admin: true})
-      if (exitCode !== 0) {
-        throw new Error(`Installation failed. "${copyScriptPath}" exited with status: ${exitCode}`)
-      }
+      const fsAdmin = require('fs-admin')
+      return new Promise((resolve, reject) => {
+        fsAdmin.recursiveCopy(packagedAppPath, installationDirPath, (error) => {
+          error ? reject(error) : resolve()
+        })
+      })
     }
   } else {
     const atomExecutableName = CONFIG.channel === 'beta' ? 'atom-beta' : 'atom'
@@ -95,4 +95,6 @@ module.exports = function (packagedAppPath, installDir) {
     console.log(`Changing permissions to 755 for "${installationDirPath}"`)
     fs.chmodSync(installationDirPath, '755')
   }
+
+  return Promise.resolve()
 }

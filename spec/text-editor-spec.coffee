@@ -74,6 +74,16 @@ describe "TextEditor", ->
           expect(editor2.getInvisibles()).toEqual(editor.getInvisibles())
           expect(editor2.getEditorWidthInChars()).toBe(editor.getEditorWidthInChars())
           expect(editor2.displayLayer.tabLength).toBe(editor2.getTabLength())
+          expect(editor2.displayLayer.softWrapColumn).toBe(editor2.getSoftWrapColumn())
+
+    it "ignores buffers with retired IDs", ->
+      editor2 = TextEditor.deserialize(editor.serialize(), {
+        assert: atom.assert,
+        textEditors: atom.textEditors,
+        project: {bufferForIdSync: -> null}
+      })
+
+      expect(editor2).toBeNull()
 
   describe "when the editor is constructed with the largeFileMode option set to true", ->
     it "loads the editor but doesn't tokenize", ->
@@ -145,7 +155,7 @@ describe "TextEditor", ->
       returnedPromise = editor.update({
         tabLength: 6, softTabs: false, softWrapped: true, editorWidthInChars: 40,
         showInvisibles: false, mini: false, lineNumberGutterVisible: false, scrollPastEnd: true,
-        autoHeight: false
+        autoHeight: false, maxScreenLineLength: 1000
       })
 
       expect(returnedPromise).toBe(element.component.getNextUpdatePromise())
@@ -620,7 +630,7 @@ describe "TextEditor", ->
         expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
     describe ".moveToBottom()", ->
-      it "moves the cusor to the bottom of the buffer", ->
+      it "moves the cursor to the bottom of the buffer", ->
         editor.setCursorScreenPosition [0, 0]
         editor.addCursorAtScreenPosition [1, 0]
         editor.moveToBottom()
@@ -1364,7 +1374,7 @@ describe "TextEditor", ->
         expect(selections[0].getScreenRange()).toEqual [[3, 0], [10, 0]]
 
     describe ".selectToBeginningOfPreviousParagraph()", ->
-      it "selects from the cursor to the first line of the pevious paragraph", ->
+      it "selects from the cursor to the first line of the previous paragraph", ->
         editor.setSelectedBufferRange([[3, 0], [4, 5]])
         editor.addCursorAtScreenPosition([5, 6])
         editor.selectToScreenPosition([6, 2])
@@ -1397,7 +1407,7 @@ describe "TextEditor", ->
         expect(selection1.isReversed()).toBeTruthy()
 
     describe ".selectToTop()", ->
-      it "selects text from cusor position to the top of the buffer", ->
+      it "selects text from cursor position to the top of the buffer", ->
         editor.setCursorScreenPosition [11, 2]
         editor.addCursorAtScreenPosition [10, 0]
         editor.selectToTop()
@@ -1407,7 +1417,7 @@ describe "TextEditor", ->
         expect(editor.getLastSelection().isReversed()).toBeTruthy()
 
     describe ".selectToBottom()", ->
-      it "selects text from cusor position to the bottom of the buffer", ->
+      it "selects text from cursor position to the bottom of the buffer", ->
         editor.setCursorScreenPosition [10, 0]
         editor.addCursorAtScreenPosition [9, 3]
         editor.selectToBottom()
@@ -1422,7 +1432,7 @@ describe "TextEditor", ->
         expect(editor.getLastSelection().getBufferRange()).toEqual buffer.getRange()
 
     describe ".selectToBeginningOfLine()", ->
-      it "selects text from cusor position to beginning of line", ->
+      it "selects text from cursor position to beginning of line", ->
         editor.setCursorScreenPosition [12, 2]
         editor.addCursorAtScreenPosition [11, 3]
 
@@ -1441,7 +1451,7 @@ describe "TextEditor", ->
         expect(selection2.isReversed()).toBeTruthy()
 
     describe ".selectToEndOfLine()", ->
-      it "selects text from cusor position to end of line", ->
+      it "selects text from cursor position to end of line", ->
         editor.setCursorScreenPosition [12, 0]
         editor.addCursorAtScreenPosition [11, 3]
 
@@ -1483,7 +1493,7 @@ describe "TextEditor", ->
           expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [4, 0]]
 
     describe ".selectToBeginningOfWord()", ->
-      it "selects text from cusor position to beginning of word", ->
+      it "selects text from cursor position to beginning of word", ->
         editor.setCursorScreenPosition [0, 13]
         editor.addCursorAtScreenPosition [3, 49]
 
@@ -1502,7 +1512,7 @@ describe "TextEditor", ->
         expect(selection2.isReversed()).toBeTruthy()
 
     describe ".selectToEndOfWord()", ->
-      it "selects text from cusor position to end of word", ->
+      it "selects text from cursor position to end of word", ->
         editor.setCursorScreenPosition [0, 4]
         editor.addCursorAtScreenPosition [3, 48]
 
@@ -1521,7 +1531,7 @@ describe "TextEditor", ->
         expect(selection2.isReversed()).toBeFalsy()
 
     describe ".selectToBeginningOfNextWord()", ->
-      it "selects text from cusor position to beginning of next word", ->
+      it "selects text from cursor position to beginning of next word", ->
         editor.setCursorScreenPosition [0, 4]
         editor.addCursorAtScreenPosition [3, 48]
 
@@ -1800,7 +1810,7 @@ describe "TextEditor", ->
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 3], [5, 5]]])
         expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [3, 3]], [[3, 3], [5, 5]]]
 
-      it "recyles existing selection instances", ->
+      it "recycles existing selection instances", ->
         selection = editor.getLastSelection()
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
 
@@ -1849,7 +1859,7 @@ describe "TextEditor", ->
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]])
         expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [5, 5]]]
 
-      it "recyles existing selection instances", ->
+      it "recycles existing selection instances", ->
         selection = editor.getLastSelection()
         editor.setSelectedScreenRanges([[[2, 2], [3, 4]], [[4, 4], [5, 5]]])
 
@@ -2258,7 +2268,7 @@ describe "TextEditor", ->
 
 
           describe "when the preceding row consists of folded code", ->
-            it "moves the line above the folded row and preseveres the correct folds", ->
+            it "moves the line above the folded row and perseveres the correct folds", ->
               expect(editor.lineTextForBufferRow(8)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
               expect(editor.lineTextForBufferRow(9)).toBe "  };"
 
@@ -3517,7 +3527,7 @@ describe "TextEditor", ->
             expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
 
       describe "when text is selected", ->
-        it "still deletes all text to begginning of the line", ->
+        it "still deletes all text to beginning of the line", ->
           editor.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
           editor.deleteToBeginningOfLine()
           expect(buffer.lineForRow(1)).toBe 'ems) {'
@@ -3704,7 +3714,7 @@ describe "TextEditor", ->
         describe "when autoIndent is enabled", ->
           describe "when the cursor's column is less than the suggested level of indentation", ->
             describe "when 'softTabs' is true (the default)", ->
-              it "moves the cursor to the end of the leading whitespace and inserts enough whitespace to bring the line to the suggested level of indentaion", ->
+              it "moves the cursor to the end of the leading whitespace and inserts enough whitespace to bring the line to the suggested level of indentation", ->
                 buffer.insert([5, 0], "  \n")
                 editor.setCursorBufferPosition [5, 0]
                 editor.indent(autoIndent: true)
@@ -3727,7 +3737,7 @@ describe "TextEditor", ->
                 expect(buffer.lineForRow(13).length).toBe 8
 
             describe "when 'softTabs' is false", ->
-              it "moves the cursor to the end of the leading whitespace and inserts enough tabs to bring the line to the suggested level of indentaion", ->
+              it "moves the cursor to the end of the leading whitespace and inserts enough tabs to bring the line to the suggested level of indentation", ->
                 convertToHardTabs(buffer)
                 editor.setSoftTabs(false)
                 buffer.insert([5, 0], "\t\n")
@@ -4820,7 +4830,7 @@ describe "TextEditor", ->
         expect(buffer.lineForRow(6)).toBe(line7)
         expect(buffer.getLineCount()).toBe(count - 1)
 
-    describe "when the line being deleted preceeds a fold, and the command is undone", ->
+    describe "when the line being deleted precedes a fold, and the command is undone", ->
       it "restores the line and preserves the fold", ->
         editor.setCursorBufferPosition([4])
         editor.foldCurrentRow()
@@ -4992,7 +5002,7 @@ describe "TextEditor", ->
             editor.insertText('\n')
             expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
 
-        describe "when the line preceding the newline does't add a level of indentation", ->
+        describe "when the line preceding the newline doesn't add a level of indentation", ->
           it "indents the new line to the same level as the preceding line", ->
             editor.setCursorBufferPosition([5, 14])
             editor.insertText('\n')
@@ -5918,3 +5928,11 @@ describe "TextEditor", ->
   describe "::getElement", ->
     it "returns an element", ->
       expect(editor.getElement() instanceof HTMLElement).toBe(true)
+
+  describe 'setMaxScreenLineLength', ->
+    it "sets the maximum line length in the editor before soft wrapping is forced", ->
+      expect(editor.getSoftWrapColumn()).toBe(500)
+      editor.update({
+        maxScreenLineLength: 1500
+      })
+      expect(editor.getSoftWrapColumn()).toBe(1500)

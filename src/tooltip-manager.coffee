@@ -65,7 +65,7 @@ class TooltipManager
   #   * `title` A {String} or {Function} to use for the text in the tip. If
   #     a function is passed, `this` will be set to the `target` element. This
   #     option is mutually exclusive with the `item` option.
-  #   * `html` A {Boolean} affecting the interpetation of the `title` option.
+  #   * `html` A {Boolean} affecting the interpretation of the `title` option.
   #     If `true` (the default), the `title` string will be interpreted as HTML.
   #     Otherwise it will be interpreted as plain text.
   #   * `item` A view (object with an `.element` property) or a DOM element
