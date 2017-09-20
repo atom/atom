@@ -762,7 +762,7 @@ class Pane {
     // In the case where there are no `onWillDestroyPaneItem` listeners, preserve the old behavior
     // where `Pane.destroyItem` and callers such as `Pane.close` take effect synchronously.
     if (this.emitter.listenerCountForEventName('will-destroy-item') > 0) {
-      await this.emitter.emitAsync('will-destroy-item', {item, index, prevent})
+      await this.emitter.emitAsync('will-destroy-item', {item, index})
     }
     if (this.container && this.container.emitter.listenerCountForEventName('will-destroy-pane-item') > 0) {
       let preventClosing = false
