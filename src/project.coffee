@@ -83,7 +83,7 @@ class Project extends Model
     Promise.all(bufferPromises).then (buffers) =>
       @buffers = buffers.filter(Boolean)
       @subscribeToBuffer(buffer) for buffer in @buffers
-      @setPaths(state.paths or [], mustExist: true)
+      @setPaths(state.paths or [], mustExist: true, exact: true)
 
   serialize: (options={}) ->
     deserializer: 'Project'
@@ -239,7 +239,7 @@ class Project extends Model
     missingProjectPaths = []
     for projectPath in projectPaths
       try
-        @addPath projectPath, emitEvent: false, mustExist: true, exact: true
+        @addPath projectPath, emitEvent: false, mustExist: true, exact: options.exact is true
         added = true
       catch e
         if e.missingProjectPaths?
