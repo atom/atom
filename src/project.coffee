@@ -235,20 +235,17 @@ class Project extends Model
     watcher.then((w) -> w.dispose()) for _, watcher in @watcherPromisesByPath
     @watcherPromisesByPath = {}
 
-    added = false
     missingProjectPaths = []
     for projectPath in projectPaths
       try
         @addPath projectPath, emitEvent: false, mustExist: true, exact: options.exact is true
-        added = true
       catch e
         if e.missingProjectPaths?
           missingProjectPaths.push e.missingProjectPaths...
         else
           throw e
 
-    if added
-      @emitter.emit 'did-change-paths', projectPaths
+    @emitter.emit 'did-change-paths', projectPaths
 
     if options.mustExist is true and missingProjectPaths.length > 0
       err = new Error "One or more project directories do not exist"
