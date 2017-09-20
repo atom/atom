@@ -151,7 +151,7 @@ function runBenchmarkTests (callback) {
 let testSuitesToRun = testSuitesForPlatform(process.platform)
 
 function testSuitesForPlatform (platform) {
-  let suites = [];
+  let suites = []
   switch (platform) {
     case 'darwin':
       suites = [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
@@ -167,10 +167,10 @@ function testSuitesForPlatform (platform) {
   }
 
   if (argv.skipMainProcessTests) {
-    suites = suites.filter(suite => suite !== runCoreMainProcessTests);
+    suites = suites.filter(suite => suite !== runCoreMainProcessTests)
   }
 
-  return suites;
+  return suites
 }
 
 async.series(testSuitesToRun, function (err, exitCodes) {
