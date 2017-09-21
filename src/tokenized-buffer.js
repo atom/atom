@@ -1,7 +1,6 @@
 const _ = require('underscore-plus')
 const {CompositeDisposable, Emitter} = require('event-kit')
 const {Point, Range} = require('text-buffer')
-const Model = require('./model')
 const TokenizedLine = require('./tokenized-line')
 const TokenIterator = require('./token-iterator')
 const ScopeDescriptor = require('./scope-descriptor')
@@ -275,7 +274,7 @@ class TokenizedBuffer {
     if (row >= 0 && row <= this.buffer.getLastRow()) {
       const nextRow = this.buffer.nextNonBlankRow(row)
       const tokenizedLine = this.tokenizedLines[row]
-      if (this.buffer.isRowBlank(row) || (tokenizedLine != null ? tokenizedLine.isComment() : undefined) || (nextRow == null)) {
+      if (this.buffer.isRowBlank(row) || (tokenizedLine && tokenizedLine.isComment()) || nextRow == null) {
         return false
       } else {
         return this.indentLevelForRow(nextRow) > this.indentLevelForRow(row)
@@ -288,15 +287,11 @@ class TokenizedBuffer {
   isFoldableCommentAtRow (row) {
     const previousRow = row - 1
     const nextRow = row + 1
-    if (nextRow > this.buffer.getLastRow()) {
-      return false
-    } else {
-      return Boolean(
-        !(this.tokenizedLines[previousRow] != null ? this.tokenizedLines[previousRow].isComment() : undefined) &&
-        (this.tokenizedLines[row] != null ? this.tokenizedLines[row].isComment() : undefined) &&
-        (this.tokenizedLines[nextRow] != null ? this.tokenizedLines[nextRow].isComment() : undefined)
-      )
-    }
+    return (
+      (!this.tokenizedLines[previousRow] || !this.tokenizedLines[previousRow].isComment()) &&
+      (this.tokenizedLines[row] && this.tokenizedLines[row].isComment()) &&
+      (this.tokenizedLines[nextRow] && this.tokenizedLines[nextRow].isComment())
+    )
   }
 
   buildTokenizedLinesForRows (startRow, endRow, startingStack, startingopenScopes) {
@@ -327,7 +322,7 @@ class TokenizedBuffer {
   }
 
   buildTokenizedLineForRowWithText (row, text, currentRuleStack = this.stackForRow(row - 1), openScopes = this.openScopesForRow(row)) {
-    const lineEnding = this.buffer.lineEndingForRow(row);
+    const lineEnding = this.buffer.lineEndingForRow(row)
     const {tags, ruleStack} = this.grammar.tokenizeLine(text, currentRuleStack, row === 0, false)
     return new TokenizedLine({
       openScopes,
@@ -353,7 +348,7 @@ class TokenizedBuffer {
           text.length,
           this.grammar.endIdForScope(this.grammar.scopeName)
         ]
-        return this.tokenizedLines[bufferRow] = new TokenizedLine({
+        this.tokenizedLines[bufferRow] = new TokenizedLine({
           openScopes: [],
           text,
           tags,
@@ -361,6 +356,7 @@ class TokenizedBuffer {
           tokenIterator: this.tokenIterator,
           grammar: this.grammar
         })
+        return this.tokenizedLines[bufferRow]
       }
     }
   }
@@ -404,7 +400,7 @@ class TokenizedBuffer {
                 }
                 const path = require('path')
                 error.privateMetadataDescription = `The contents of \`${path.basename(this.buffer.getPath())}\``
-                return error.privateMetadata = {
+                error.privateMetadata = {
                   filePath: this.buffer.getPath(),
                   fileContents: this.buffer.getText()
                 }
@@ -570,7 +566,7 @@ class TokenizedBuffer {
   }
 
   logLines (start = 0, end = this.buffer.getLastRow()) {
-    for (let row = start; row <= end1; row++) {
+    for (let row = start; row <= end; row++) {
       const line = this.tokenizedLines[row].text
       console.log(row, line, line.length)
     }
