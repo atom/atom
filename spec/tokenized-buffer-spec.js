@@ -54,324 +54,350 @@ describe('TokenizedBuffer', () => {
     })
   })
 
-  describe('when the buffer is destroyed', () => {
-    beforeEach(() => {
-      buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
-      startTokenizing(tokenizedBuffer)
-    })
-
-    it('stops tokenization', () => {
-      tokenizedBuffer.destroy()
-      spyOn(tokenizedBuffer, 'tokenizeNextChunk')
-      advanceClock()
-      expect(tokenizedBuffer.tokenizeNextChunk).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('when the buffer contains soft-tabs', () => {
-    beforeEach(() => {
-      buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
-      startTokenizing(tokenizedBuffer)
-    })
-
-    afterEach(() => {
-      tokenizedBuffer.destroy()
-      buffer.release()
-    })
-
-    describe('on construction', () =>
-      it('tokenizes lines chunk at a time in the background', () => {
-        const line0 = tokenizedBuffer.tokenizedLines[0]
-        expect(line0).toBeUndefined()
-
-        const line11 = tokenizedBuffer.tokenizedLines[11]
-        expect(line11).toBeUndefined()
-
-        // tokenize chunk 1
-        advanceClock()
-        expect(tokenizedBuffer.tokenizedLines[0].ruleStack != null).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLines[4].ruleStack != null).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLines[5]).toBeUndefined()
-
-        // tokenize chunk 2
-        advanceClock()
-        expect(tokenizedBuffer.tokenizedLines[5].ruleStack != null).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLines[9].ruleStack != null).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLines[10]).toBeUndefined()
-
-        // tokenize last chunk
-        advanceClock()
-        expect(tokenizedBuffer.tokenizedLines[10].ruleStack != null).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLines[12].ruleStack != null).toBeTruthy()
-      })
-    )
-
-    describe('when the buffer is partially tokenized', () => {
+  describe('tokenizing', () => {
+    describe('when the buffer is destroyed', () => {
       beforeEach(() => {
-        // tokenize chunk 1 only
-        advanceClock()
+        buffer = atom.project.bufferForPathSync('sample.js')
+        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
+        startTokenizing(tokenizedBuffer)
       })
 
-      describe('when there is a buffer change inside the tokenized region', () => {
-        describe('when lines are added', () => {
-          it('pushes the invalid rows down', () => {
-            expect(tokenizedBuffer.firstInvalidRow()).toBe(5)
-            buffer.insert([1, 0], '\n\n')
-            expect(tokenizedBuffer.firstInvalidRow()).toBe(7)
+      it('stops tokenization', () => {
+        tokenizedBuffer.destroy()
+        spyOn(tokenizedBuffer, 'tokenizeNextChunk')
+        advanceClock()
+        expect(tokenizedBuffer.tokenizeNextChunk).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('when the buffer contains soft-tabs', () => {
+      beforeEach(() => {
+        buffer = atom.project.bufferForPathSync('sample.js')
+        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
+        startTokenizing(tokenizedBuffer)
+      })
+
+      afterEach(() => {
+        tokenizedBuffer.destroy()
+        buffer.release()
+      })
+
+      describe('on construction', () =>
+        it('tokenizes lines chunk at a time in the background', () => {
+          const line0 = tokenizedBuffer.tokenizedLines[0]
+          expect(line0).toBeUndefined()
+
+          const line11 = tokenizedBuffer.tokenizedLines[11]
+          expect(line11).toBeUndefined()
+
+          // tokenize chunk 1
+          advanceClock()
+          expect(tokenizedBuffer.tokenizedLines[0].ruleStack != null).toBeTruthy()
+          expect(tokenizedBuffer.tokenizedLines[4].ruleStack != null).toBeTruthy()
+          expect(tokenizedBuffer.tokenizedLines[5]).toBeUndefined()
+
+          // tokenize chunk 2
+          advanceClock()
+          expect(tokenizedBuffer.tokenizedLines[5].ruleStack != null).toBeTruthy()
+          expect(tokenizedBuffer.tokenizedLines[9].ruleStack != null).toBeTruthy()
+          expect(tokenizedBuffer.tokenizedLines[10]).toBeUndefined()
+
+          // tokenize last chunk
+          advanceClock()
+          expect(tokenizedBuffer.tokenizedLines[10].ruleStack != null).toBeTruthy()
+          expect(tokenizedBuffer.tokenizedLines[12].ruleStack != null).toBeTruthy()
+        })
+      )
+
+      describe('when the buffer is partially tokenized', () => {
+        beforeEach(() => {
+          // tokenize chunk 1 only
+          advanceClock()
+        })
+
+        describe('when there is a buffer change inside the tokenized region', () => {
+          describe('when lines are added', () => {
+            it('pushes the invalid rows down', () => {
+              expect(tokenizedBuffer.firstInvalidRow()).toBe(5)
+              buffer.insert([1, 0], '\n\n')
+              expect(tokenizedBuffer.firstInvalidRow()).toBe(7)
+            })
+          })
+
+          describe('when lines are removed', () => {
+            it('pulls the invalid rows up', () => {
+              expect(tokenizedBuffer.firstInvalidRow()).toBe(5)
+              buffer.delete([[1, 0], [3, 0]])
+              expect(tokenizedBuffer.firstInvalidRow()).toBe(2)
+            })
+          })
+
+          describe('when the change invalidates all the lines before the current invalid region', () => {
+            it('retokenizes the invalidated lines and continues into the valid region', () => {
+              expect(tokenizedBuffer.firstInvalidRow()).toBe(5)
+              buffer.insert([2, 0], '/*')
+              expect(tokenizedBuffer.firstInvalidRow()).toBe(3)
+              advanceClock()
+              expect(tokenizedBuffer.firstInvalidRow()).toBe(8)
+            })
           })
         })
 
-        describe('when lines are removed', () => {
-          it('pulls the invalid rows up', () => {
-            expect(tokenizedBuffer.firstInvalidRow()).toBe(5)
-            buffer.delete([[1, 0], [3, 0]])
-            expect(tokenizedBuffer.firstInvalidRow()).toBe(2)
-          })
-        })
-
-        describe('when the change invalidates all the lines before the current invalid region', () => {
-          it('retokenizes the invalidated lines and continues into the valid region', () => {
-            expect(tokenizedBuffer.firstInvalidRow()).toBe(5)
-            buffer.insert([2, 0], '/*')
-            expect(tokenizedBuffer.firstInvalidRow()).toBe(3)
-            advanceClock()
+        describe('when there is a buffer change surrounding an invalid row', () => {
+          it('pushes the invalid row to the end of the change', () => {
+            buffer.setTextInRange([[4, 0], [6, 0]], '\n\n\n')
             expect(tokenizedBuffer.firstInvalidRow()).toBe(8)
           })
         })
-      })
 
-      describe('when there is a buffer change surrounding an invalid row', () => {
-        it('pushes the invalid row to the end of the change', () => {
-          buffer.setTextInRange([[4, 0], [6, 0]], '\n\n\n')
-          expect(tokenizedBuffer.firstInvalidRow()).toBe(8)
+        describe('when there is a buffer change inside an invalid region', () => {
+          it('does not attempt to tokenize the lines in the change, and preserves the existing invalid row', () => {
+            expect(tokenizedBuffer.firstInvalidRow()).toBe(5)
+            buffer.setTextInRange([[6, 0], [7, 0]], '\n\n\n')
+            expect(tokenizedBuffer.tokenizedLines[6]).toBeUndefined()
+            expect(tokenizedBuffer.tokenizedLines[7]).toBeUndefined()
+            expect(tokenizedBuffer.firstInvalidRow()).toBe(5)
+          })
         })
       })
 
-      describe('when there is a buffer change inside an invalid region', () => {
-        it('does not attempt to tokenize the lines in the change, and preserves the existing invalid row', () => {
-          expect(tokenizedBuffer.firstInvalidRow()).toBe(5)
-          buffer.setTextInRange([[6, 0], [7, 0]], '\n\n\n')
-          expect(tokenizedBuffer.tokenizedLines[6]).toBeUndefined()
-          expect(tokenizedBuffer.tokenizedLines[7]).toBeUndefined()
-          expect(tokenizedBuffer.firstInvalidRow()).toBe(5)
-        })
-      })
-    })
+      describe('when the buffer is fully tokenized', () => {
+        beforeEach(() => fullyTokenize(tokenizedBuffer))
 
-    describe('when the buffer is fully tokenized', () => {
-      beforeEach(() => fullyTokenize(tokenizedBuffer))
+        describe('when there is a buffer change that is smaller than the chunk size', () => {
+          describe('when lines are updated, but none are added or removed', () => {
+            it('updates tokens to reflect the change', () => {
+              buffer.setTextInRange([[0, 0], [2, 0]], 'foo()\n7\n')
 
-      describe('when there is a buffer change that is smaller than the chunk size', () => {
-        describe('when lines are updated, but none are added or removed', () => {
-          it('updates tokens to reflect the change', () => {
-            buffer.setTextInRange([[0, 0], [2, 0]], 'foo()\n7\n')
+              expect(tokenizedBuffer.tokenizedLines[0].tokens[1]).toEqual({value: '(', scopes: ['source.js', 'meta.function-call.js', 'meta.arguments.js', 'punctuation.definition.arguments.begin.bracket.round.js']})
+              expect(tokenizedBuffer.tokenizedLines[1].tokens[0]).toEqual({value: '7', scopes: ['source.js', 'constant.numeric.decimal.js']})
+              // line 2 is unchanged
+              expect(tokenizedBuffer.tokenizedLines[2].tokens[1]).toEqual({value: 'if', scopes: ['source.js', 'keyword.control.js']})
+            })
 
-            expect(tokenizedBuffer.tokenizedLines[0].tokens[1]).toEqual({value: '(', scopes: ['source.js', 'meta.function-call.js', 'meta.arguments.js', 'punctuation.definition.arguments.begin.bracket.round.js']})
-            expect(tokenizedBuffer.tokenizedLines[1].tokens[0]).toEqual({value: '7', scopes: ['source.js', 'constant.numeric.decimal.js']})
-            // line 2 is unchanged
-            expect(tokenizedBuffer.tokenizedLines[2].tokens[1]).toEqual({value: 'if', scopes: ['source.js', 'keyword.control.js']})
+            describe('when the change invalidates the tokenization of subsequent lines', () => {
+              it('schedules the invalidated lines to be tokenized in the background', () => {
+                buffer.insert([5, 30], '/* */')
+                buffer.insert([2, 0], '/*')
+                expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual(['source.js'])
+
+                advanceClock()
+                expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
+                expect(tokenizedBuffer.tokenizedLines[4].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
+                expect(tokenizedBuffer.tokenizedLines[5].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
+              })
+            })
+
+            it('resumes highlighting with the state of the previous line', () => {
+              buffer.insert([0, 0], '/*')
+              buffer.insert([5, 0], '*/')
+
+              buffer.insert([1, 0], 'var ')
+              expect(tokenizedBuffer.tokenizedLines[1].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
+            })
+          })
+
+          describe('when lines are both updated and removed', () => {
+            it('updates tokens to reflect the change', () => {
+              buffer.setTextInRange([[1, 0], [3, 0]], 'foo()')
+
+              // previous line 0 remains
+              expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({value: 'var', scopes: ['source.js', 'storage.type.var.js']})
+
+              // previous line 3 should be combined with input to form line 1
+              expect(tokenizedBuffer.tokenizedLines[1].tokens[0]).toEqual({value: 'foo', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js']})
+              expect(tokenizedBuffer.tokenizedLines[1].tokens[6]).toEqual({value: '=', scopes: ['source.js', 'keyword.operator.assignment.js']})
+
+              // lines below deleted regions should be shifted upward
+              expect(tokenizedBuffer.tokenizedLines[2].tokens[1]).toEqual({value: 'while', scopes: ['source.js', 'keyword.control.js']})
+              expect(tokenizedBuffer.tokenizedLines[3].tokens[1]).toEqual({value: '=', scopes: ['source.js', 'keyword.operator.assignment.js']})
+              expect(tokenizedBuffer.tokenizedLines[4].tokens[1]).toEqual({value: '<', scopes: ['source.js', 'keyword.operator.comparison.js']})
+            })
           })
 
           describe('when the change invalidates the tokenization of subsequent lines', () => {
             it('schedules the invalidated lines to be tokenized in the background', () => {
               buffer.insert([5, 30], '/* */')
-              buffer.insert([2, 0], '/*')
+              buffer.setTextInRange([[2, 0], [3, 0]], '/*')
+              expect(tokenizedBuffer.tokenizedLines[2].tokens[0].scopes).toEqual(['source.js', 'comment.block.js', 'punctuation.definition.comment.begin.js'])
               expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual(['source.js'])
 
               advanceClock()
               expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
               expect(tokenizedBuffer.tokenizedLines[4].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
-              expect(tokenizedBuffer.tokenizedLines[5].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
             })
           })
 
-          it('resumes highlighting with the state of the previous line', () => {
-            buffer.insert([0, 0], '/*')
-            buffer.insert([5, 0], '*/')
+          describe('when lines are both updated and inserted', () => {
+            it('updates tokens to reflect the change', () => {
+              buffer.setTextInRange([[1, 0], [2, 0]], 'foo()\nbar()\nbaz()\nquux()')
 
-            buffer.insert([1, 0], 'var ')
-            expect(tokenizedBuffer.tokenizedLines[1].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
+              // previous line 0 remains
+              expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({ value: 'var', scopes: ['source.js', 'storage.type.var.js']})
+
+              // 3 new lines inserted
+              expect(tokenizedBuffer.tokenizedLines[1].tokens[0]).toEqual({value: 'foo', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js']})
+              expect(tokenizedBuffer.tokenizedLines[2].tokens[0]).toEqual({value: 'bar', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js']})
+              expect(tokenizedBuffer.tokenizedLines[3].tokens[0]).toEqual({value: 'baz', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js']})
+
+              // previous line 2 is joined with quux() on line 4
+              expect(tokenizedBuffer.tokenizedLines[4].tokens[0]).toEqual({value: 'quux', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js']})
+              expect(tokenizedBuffer.tokenizedLines[4].tokens[4]).toEqual({value: 'if', scopes: ['source.js', 'keyword.control.js']})
+
+              // previous line 3 is pushed down to become line 5
+              expect(tokenizedBuffer.tokenizedLines[5].tokens[3]).toEqual({value: '=', scopes: ['source.js', 'keyword.operator.assignment.js']})
+            })
+          })
+
+          describe('when the change invalidates the tokenization of subsequent lines', () => {
+            it('schedules the invalidated lines to be tokenized in the background', () => {
+              buffer.insert([5, 30], '/* */')
+              buffer.insert([2, 0], '/*\nabcde\nabcder')
+              expect(tokenizedBuffer.tokenizedLines[2].tokens[0].scopes).toEqual(['source.js', 'comment.block.js', 'punctuation.definition.comment.begin.js'])
+              expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
+              expect(tokenizedBuffer.tokenizedLines[4].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
+              expect(tokenizedBuffer.tokenizedLines[5].tokens[0].scopes).toEqual(['source.js'])
+
+              advanceClock() // tokenize invalidated lines in background
+              expect(tokenizedBuffer.tokenizedLines[5].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
+              expect(tokenizedBuffer.tokenizedLines[6].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
+              expect(tokenizedBuffer.tokenizedLines[7].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
+              expect(tokenizedBuffer.tokenizedLines[8].tokens[0].scopes).not.toBe(['source.js', 'comment.block.js'])
+            })
           })
         })
 
-        describe('when lines are both updated and removed', () => {
-          it('updates tokens to reflect the change', () => {
-            buffer.setTextInRange([[1, 0], [3, 0]], 'foo()')
-
-            // previous line 0 remains
-            expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({value: 'var', scopes: ['source.js', 'storage.type.var.js']})
-
-            // previous line 3 should be combined with input to form line 1
-            expect(tokenizedBuffer.tokenizedLines[1].tokens[0]).toEqual({value: 'foo', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js']})
-            expect(tokenizedBuffer.tokenizedLines[1].tokens[6]).toEqual({value: '=', scopes: ['source.js', 'keyword.operator.assignment.js']})
-
-            // lines below deleted regions should be shifted upward
-            expect(tokenizedBuffer.tokenizedLines[2].tokens[1]).toEqual({value: 'while', scopes: ['source.js', 'keyword.control.js']})
-            expect(tokenizedBuffer.tokenizedLines[3].tokens[1]).toEqual({value: '=', scopes: ['source.js', 'keyword.operator.assignment.js']})
-            expect(tokenizedBuffer.tokenizedLines[4].tokens[1]).toEqual({value: '<', scopes: ['source.js', 'keyword.operator.comparison.js']})
-          })
-        })
-
-        describe('when the change invalidates the tokenization of subsequent lines', () => {
-          it('schedules the invalidated lines to be tokenized in the background', () => {
-            buffer.insert([5, 30], '/* */')
-            buffer.setTextInRange([[2, 0], [3, 0]], '/*')
-            expect(tokenizedBuffer.tokenizedLines[2].tokens[0].scopes).toEqual(['source.js', 'comment.block.js', 'punctuation.definition.comment.begin.js'])
-            expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual(['source.js'])
+        describe('when there is an insertion that is larger than the chunk size', () =>
+          it('tokenizes the initial chunk synchronously, then tokenizes the remaining lines in the background', () => {
+            const commentBlock = _.multiplyString('// a comment\n', tokenizedBuffer.chunkSize + 2)
+            buffer.insert([0, 0], commentBlock)
+            expect(tokenizedBuffer.tokenizedLines[0].ruleStack != null).toBeTruthy()
+            expect(tokenizedBuffer.tokenizedLines[4].ruleStack != null).toBeTruthy()
+            expect(tokenizedBuffer.tokenizedLines[5]).toBeUndefined()
 
             advanceClock()
-            expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
-            expect(tokenizedBuffer.tokenizedLines[4].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
+            expect(tokenizedBuffer.tokenizedLines[5].ruleStack != null).toBeTruthy()
+            expect(tokenizedBuffer.tokenizedLines[6].ruleStack != null).toBeTruthy()
           })
-        })
+        )
 
-        describe('when lines are both updated and inserted', () => {
-          it('updates tokens to reflect the change', () => {
-            buffer.setTextInRange([[1, 0], [2, 0]], 'foo()\nbar()\nbaz()\nquux()')
+        it('does not break out soft tabs across a scope boundary', async () => {
+          await atom.packages.activatePackage('language-gfm')
 
-            // previous line 0 remains
-            expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({ value: 'var', scopes: ['source.js', 'storage.type.var.js']})
+          tokenizedBuffer.setTabLength(4)
+          tokenizedBuffer.setGrammar(atom.grammars.selectGrammar('.md'))
+          buffer.setText('    <![]()\n    ')
+          fullyTokenize(tokenizedBuffer)
 
-            // 3 new lines inserted
-            expect(tokenizedBuffer.tokenizedLines[1].tokens[0]).toEqual({value: 'foo', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js']})
-            expect(tokenizedBuffer.tokenizedLines[2].tokens[0]).toEqual({value: 'bar', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js']})
-            expect(tokenizedBuffer.tokenizedLines[3].tokens[0]).toEqual({value: 'baz', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js']})
+          let length = 0
+          for (let tag of tokenizedBuffer.tokenizedLines[1].tags) {
+            if (tag > 0) length += tag
+          }
 
-            // previous line 2 is joined with quux() on line 4
-            expect(tokenizedBuffer.tokenizedLines[4].tokens[0]).toEqual({value: 'quux', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js']})
-            expect(tokenizedBuffer.tokenizedLines[4].tokens[4]).toEqual({value: 'if', scopes: ['source.js', 'keyword.control.js']})
-
-            // previous line 3 is pushed down to become line 5
-            expect(tokenizedBuffer.tokenizedLines[5].tokens[3]).toEqual({value: '=', scopes: ['source.js', 'keyword.operator.assignment.js']})
-          })
-        })
-
-        describe('when the change invalidates the tokenization of subsequent lines', () => {
-          it('schedules the invalidated lines to be tokenized in the background', () => {
-            buffer.insert([5, 30], '/* */')
-            buffer.insert([2, 0], '/*\nabcde\nabcder')
-            expect(tokenizedBuffer.tokenizedLines[2].tokens[0].scopes).toEqual(['source.js', 'comment.block.js', 'punctuation.definition.comment.begin.js'])
-            expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
-            expect(tokenizedBuffer.tokenizedLines[4].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
-            expect(tokenizedBuffer.tokenizedLines[5].tokens[0].scopes).toEqual(['source.js'])
-
-            advanceClock() // tokenize invalidated lines in background
-            expect(tokenizedBuffer.tokenizedLines[5].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
-            expect(tokenizedBuffer.tokenizedLines[6].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
-            expect(tokenizedBuffer.tokenizedLines[7].tokens[0].scopes).toEqual(['source.js', 'comment.block.js'])
-            expect(tokenizedBuffer.tokenizedLines[8].tokens[0].scopes).not.toBe(['source.js', 'comment.block.js'])
-          })
+          expect(length).toBe(4)
         })
       })
+    })
 
-      describe('when there is an insertion that is larger than the chunk size', () =>
-        it('tokenizes the initial chunk synchronously, then tokenizes the remaining lines in the background', () => {
-          const commentBlock = _.multiplyString('// a comment\n', tokenizedBuffer.chunkSize + 2)
-          buffer.insert([0, 0], commentBlock)
-          expect(tokenizedBuffer.tokenizedLines[0].ruleStack != null).toBeTruthy()
-          expect(tokenizedBuffer.tokenizedLines[4].ruleStack != null).toBeTruthy()
-          expect(tokenizedBuffer.tokenizedLines[5]).toBeUndefined()
+    describe('when the buffer contains hard-tabs', () => {
+      beforeEach(async () => {
+        atom.packages.activatePackage('language-coffee-script')
 
-          advanceClock()
-          expect(tokenizedBuffer.tokenizedLines[5].ruleStack != null).toBeTruthy()
-          expect(tokenizedBuffer.tokenizedLines[6].ruleStack != null).toBeTruthy()
-        })
-      )
+        buffer = atom.project.bufferForPathSync('sample-with-tabs.coffee')
+        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.coffee'), tabLength: 2})
+        startTokenizing(tokenizedBuffer)
+      })
 
-      it('does not break out soft tabs across a scope boundary', async () => {
-        await atom.packages.activatePackage('language-gfm')
+      afterEach(() => {
+        tokenizedBuffer.destroy()
+        buffer.release()
+      })
 
-        tokenizedBuffer.setTabLength(4)
-        tokenizedBuffer.setGrammar(atom.grammars.selectGrammar('.md'))
-        buffer.setText('    <![]()\n    ')
+      describe('when the buffer is fully tokenized', () => {
+        beforeEach(() => fullyTokenize(tokenizedBuffer))
+      })
+    })
+
+    describe('when tokenization completes', () => {
+      it('emits the `tokenized` event', async () => {
+        const editor = await atom.workspace.open('sample.js')
+
+        const tokenizedHandler = jasmine.createSpy('tokenized handler')
+        editor.tokenizedBuffer.onDidTokenize(tokenizedHandler)
+        fullyTokenize(editor.tokenizedBuffer)
+        expect(tokenizedHandler.callCount).toBe(1)
+      })
+
+      it("doesn't re-emit the `tokenized` event when it is re-tokenized", async () => {
+        const editor = await atom.workspace.open('sample.js')
+        fullyTokenize(editor.tokenizedBuffer)
+
+        const tokenizedHandler = jasmine.createSpy('tokenized handler')
+        editor.tokenizedBuffer.onDidTokenize(tokenizedHandler)
+        editor.getBuffer().insert([0, 0], "'")
+        fullyTokenize(editor.tokenizedBuffer)
+        expect(tokenizedHandler).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('when the grammar is updated because a grammar it includes is activated', async () => {
+      it('re-emits the `tokenized` event', async () => {
+        const editor = await atom.workspace.open('coffee.coffee')
+
+        const tokenizedHandler = jasmine.createSpy('tokenized handler')
+        editor.tokenizedBuffer.onDidTokenize(tokenizedHandler)
+        fullyTokenize(editor.tokenizedBuffer)
+        tokenizedHandler.reset()
+
+        await atom.packages.activatePackage('language-coffee-script')
+        fullyTokenize(editor.tokenizedBuffer)
+        expect(tokenizedHandler.callCount).toBe(1)
+      })
+
+      it('retokenizes the buffer', async () => {
+        await atom.packages.activatePackage('language-ruby-on-rails')
+        await atom.packages.activatePackage('language-ruby')
+
+        buffer = atom.project.bufferForPathSync()
+        buffer.setText("<div class='name'><%= User.find(2).full_name %></div>")
+
+        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.selectGrammar('test.erb'), tabLength: 2})
         fullyTokenize(tokenizedBuffer)
+        expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({
+          value: "<div class='name'>",
+          scopes: ['text.html.ruby']
+        })
 
-        let length = 0
-        for (let tag of tokenizedBuffer.tokenizedLines[1].tags) {
-          if (tag > 0) length += tag
-        }
-
-        expect(length).toBe(4)
+        await atom.packages.activatePackage('language-html')
+        fullyTokenize(tokenizedBuffer)
+        expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({
+          value: '<',
+          scopes: ['text.html.ruby', 'meta.tag.block.any.html', 'punctuation.definition.tag.begin.html']
+        })
       })
     })
-  })
 
-  describe('when the buffer contains hard-tabs', () => {
-    beforeEach(async () => {
-      atom.packages.activatePackage('language-coffee-script')
+    describe('when the buffer is configured with the null grammar', () => {
+      it('does not actually tokenize using the grammar', () => {
+        spyOn(NullGrammar, 'tokenizeLine').andCallThrough()
+        buffer = atom.project.bufferForPathSync('sample.will-use-the-null-grammar')
+        buffer.setText('a\nb\nc')
+        tokenizedBuffer = new TokenizedBuffer({buffer, tabLength: 2})
+        const tokenizeCallback = jasmine.createSpy('onDidTokenize')
+        tokenizedBuffer.onDidTokenize(tokenizeCallback)
 
-      buffer = atom.project.bufferForPathSync('sample-with-tabs.coffee')
-      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.coffee'), tabLength: 2})
-      startTokenizing(tokenizedBuffer)
-    })
+        expect(tokenizedBuffer.tokenizedLines[0]).toBeUndefined()
+        expect(tokenizedBuffer.tokenizedLines[1]).toBeUndefined()
+        expect(tokenizedBuffer.tokenizedLines[2]).toBeUndefined()
+        expect(tokenizeCallback.callCount).toBe(0)
+        expect(NullGrammar.tokenizeLine).not.toHaveBeenCalled()
 
-    afterEach(() => {
-      tokenizedBuffer.destroy()
-      buffer.release()
-    })
-
-    describe('when the buffer is fully tokenized', () => {
-      beforeEach(() => fullyTokenize(tokenizedBuffer))
-    })
-  })
-
-  describe('when the grammar is tokenized', () => {
-    it('emits the `tokenized` event', async () => {
-      const editor = await atom.workspace.open('sample.js')
-
-      const tokenizedHandler = jasmine.createSpy('tokenized handler')
-      editor.tokenizedBuffer.onDidTokenize(tokenizedHandler)
-      fullyTokenize(editor.tokenizedBuffer)
-      expect(tokenizedHandler.callCount).toBe(1)
-    })
-
-    it("doesn't re-emit the `tokenized` event when it is re-tokenized", async () => {
-      const editor = await atom.workspace.open('sample.js')
-      fullyTokenize(editor.tokenizedBuffer)
-
-      const tokenizedHandler = jasmine.createSpy('tokenized handler')
-      editor.tokenizedBuffer.onDidTokenize(tokenizedHandler)
-      editor.getBuffer().insert([0, 0], "'")
-      fullyTokenize(editor.tokenizedBuffer)
-      expect(tokenizedHandler).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('when the grammar is updated because a grammar it includes is activated', async () => {
-    it('re-emits the `tokenized` event', async () => {
-      const editor = await atom.workspace.open('coffee.coffee')
-
-      const tokenizedHandler = jasmine.createSpy('tokenized handler')
-      editor.tokenizedBuffer.onDidTokenize(tokenizedHandler)
-      fullyTokenize(editor.tokenizedBuffer)
-      tokenizedHandler.reset()
-
-      await atom.packages.activatePackage('language-coffee-script')
-      fullyTokenize(editor.tokenizedBuffer)
-      expect(tokenizedHandler.callCount).toBe(1)
-    })
-
-    it('retokenizes the buffer', async () => {
-      await atom.packages.activatePackage('language-ruby-on-rails')
-      await atom.packages.activatePackage('language-ruby')
-
-      buffer = atom.project.bufferForPathSync()
-      buffer.setText("<div class='name'><%= User.find(2).full_name %></div>")
-
-      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.selectGrammar('test.erb'), tabLength: 2})
-      fullyTokenize(tokenizedBuffer)
-      expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({
-        value: "<div class='name'>",
-        scopes: ['text.html.ruby']
-      })
-
-      await atom.packages.activatePackage('language-html')
-      fullyTokenize(tokenizedBuffer)
-      expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({
-        value: '<',
-        scopes: ['text.html.ruby', 'meta.tag.block.any.html', 'punctuation.definition.tag.begin.html']
+        fullyTokenize(tokenizedBuffer)
+        expect(tokenizedBuffer.tokenizedLines[0]).toBeUndefined()
+        expect(tokenizedBuffer.tokenizedLines[1]).toBeUndefined()
+        expect(tokenizedBuffer.tokenizedLines[2]).toBeUndefined()
+        expect(tokenizeCallback.callCount).toBe(0)
+        expect(NullGrammar.tokenizeLine).not.toHaveBeenCalled()
       })
     })
   })
@@ -502,7 +528,7 @@ describe('TokenizedBuffer', () => {
     })
   }) // }
 
-  describe('::isFoldableAtRow(row)', () => {
+  describe('.isFoldableAtRow(row)', () => {
     beforeEach(() => {
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.insert([10, 0], '  // multi-line\n  // comment\n  // block\n')
@@ -574,7 +600,7 @@ describe('TokenizedBuffer', () => {
     })
   })
 
-  describe('::tokenizedLineForRow(row)', () => {
+  describe('.tokenizedLineForRow(row)', () => {
     it("returns the tokenized line for a row, or a placeholder line if it hasn't been tokenized yet", () => {
       buffer = atom.project.bufferForPathSync('sample.js')
       const grammar = atom.grammars.grammarForScopeName('source.js')
@@ -610,30 +636,6 @@ describe('TokenizedBuffer', () => {
       tokenizedBuffer = new TokenizedBuffer({buffer, grammar, tabLength: 2})
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenizedLineForRow(999)).toBeUndefined()
-    })
-  })
-
-  describe('when the buffer is configured with the null grammar', () => {
-    it('does not actually tokenize using the grammar', () => {
-      spyOn(NullGrammar, 'tokenizeLine').andCallThrough()
-      buffer = atom.project.bufferForPathSync('sample.will-use-the-null-grammar')
-      buffer.setText('a\nb\nc')
-      tokenizedBuffer = new TokenizedBuffer({buffer, tabLength: 2})
-      const tokenizeCallback = jasmine.createSpy('onDidTokenize')
-      tokenizedBuffer.onDidTokenize(tokenizeCallback)
-
-      expect(tokenizedBuffer.tokenizedLines[0]).toBeUndefined()
-      expect(tokenizedBuffer.tokenizedLines[1]).toBeUndefined()
-      expect(tokenizedBuffer.tokenizedLines[2]).toBeUndefined()
-      expect(tokenizeCallback.callCount).toBe(0)
-      expect(NullGrammar.tokenizeLine).not.toHaveBeenCalled()
-
-      fullyTokenize(tokenizedBuffer)
-      expect(tokenizedBuffer.tokenizedLines[0]).toBeUndefined()
-      expect(tokenizedBuffer.tokenizedLines[1]).toBeUndefined()
-      expect(tokenizedBuffer.tokenizedLines[2]).toBeUndefined()
-      expect(tokenizeCallback.callCount).toBe(0)
-      expect(NullGrammar.tokenizeLine).not.toHaveBeenCalled()
     })
   })
 
