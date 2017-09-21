@@ -1,30 +1,26 @@
 Task = require './task'
 
-handlerInstance = null
+module.exports =
+class StatusHandlerHelper
+  terminateHandler: ->
+    if @handlerInstance?
+      @handlerInstance.terminate()
+      @handlerInstance = null
 
-startHandler = ->
-  if not handlerInstance?
-    handlerInstance = new Task require.resolve('./repository-status-handler')
-    terminatedSub = handlerInstance.on "exit", ->
-      terminatedSub.dispose()
-      handlerInstance = null
-    handlerInstance.start()
+  refreshStatus: (repoPath, paths) ->
+    new Promise (resolve) =>
+      responseSub = @getHandler().on repoPath, (result) ->
+        responseSub.dispose()
+        resolve(result)
 
-terminateHandler = ->
-  if handlerInstance?
-    handlerInstance.terminate()
-    handlerInstance = null
+      @getHandler().send {repoPath, paths}
 
-refreshStatus = (repoPath, paths) ->
-  startHandler()
-  new Promise (resolve) ->
-    responseSub = handlerInstance.on repoPath, (result) ->
-      responseSub.dispose()
-      resolve(result)
+  getHandler: ->
+    if not @handlerInstance?
+      @handlerInstance = new Task require.resolve('./repository-status-handler')
+      terminatedSub = @handlerInstance.on "exit", =>
+        terminatedSub.dispose()
+        @handlerInstance = null
+      @handlerInstance.start()
 
-    handlerInstance.send {repoPath, paths}
-
-module.exports = {
-  terminateHandler,
-  refreshStatus
-}
+    @handlerInstance

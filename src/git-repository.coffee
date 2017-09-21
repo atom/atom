@@ -76,6 +76,12 @@ class GitRepository
     unless @repo?
       throw new Error("No Git repository found searching path: #{path}")
 
+    if options.statusHandlerHelper?
+      @statusHandlerHelper = options.statusHandlerHelper
+    else
+      @statusHandlerHelper = new StatusHandlerHelper
+      @subscriptions.add new Disposable(-> @statusHandlerHelper.terminate())
+
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
     for submodulePath, submoduleRepo of @repo.submodules
@@ -470,7 +476,7 @@ class GitRepository
       .map (projectPath) => @relativize(projectPath)
       .filter (projectPath) -> projectPath.length > 0 and not path.isAbsolute(projectPath)
 
-    StatusHandlerHelper.refreshStatus(repoPath, relativeProjectPaths).then ({statuses, upstream, branch, submodules}) =>
+    @statusHandlerHelper.refreshStatus(repoPath, relativeProjectPaths).then ({statuses, upstream, branch, submodules}) =>
       statusesUnchanged = _.isEqual(statuses, @statuses) and
                           _.isEqual(upstream, @upstream) and
                           _.isEqual(branch, @branch) and
