@@ -80,7 +80,7 @@ class GitRepository
       @statusHandlerHelper = options.statusHandlerHelper
     else
       @statusHandlerHelper = new StatusHandlerHelper
-      @subscriptions.add new Disposable(-> @statusHandlerHelper.terminate())
+      @subscriptions.add new Disposable(=> @statusHandlerHelper.terminate())
 
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
