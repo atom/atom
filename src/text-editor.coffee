@@ -128,7 +128,10 @@ class TextEditor extends Model
       state.tokenizedBuffer = state.displayBuffer.tokenizedBuffer
 
     try
-      state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
+      tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
+      return null unless tokenizedBuffer?
+
+      state.tokenizedBuffer = tokenizedBuffer
       state.tabLength = state.tokenizedBuffer.getTabLength()
     catch error
       if error.syscall is 'read'

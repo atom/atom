@@ -23,11 +23,15 @@ class TokenizedBuffer extends Model
   changeCount: 0
 
   @deserialize: (state, atomEnvironment) ->
+    buffer = null
     if state.bufferId
-      state.buffer = atomEnvironment.project.bufferForIdSync(state.bufferId)
+      buffer = atomEnvironment.project.bufferForIdSync(state.bufferId)
     else
       # TODO: remove this fallback after everyone transitions to the latest version.
-      state.buffer = atomEnvironment.project.bufferForPathSync(state.bufferPath)
+      buffer = atomEnvironment.project.bufferForPathSync(state.bufferPath)
+    return null unless buffer?
+
+    state.buffer = buffer
     state.assert = atomEnvironment.assert
     new this(state)
 

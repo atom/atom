@@ -831,6 +831,9 @@ class AtomEnvironment extends Model
 
   # Essential: A flexible way to open a dialog akin to an alert dialog.
   #
+  # If the dialog is closed (via `Esc` key or `X` in the top corner) without selecting a button
+  # the first button will be clicked unless a "Cancel" or "No" button is provided.
+  #
   # ## Examples
   #
   # ```coffee
@@ -848,7 +851,7 @@ class AtomEnvironment extends Model
   #   * `buttons` (optional) Either an array of strings or an object where keys are
   #     button names and the values are callbacks to invoke when clicked.
   #
-  # Returns the chosen button index {Number} if the buttons option was an array.
+  # Returns the chosen button index {Number} if the buttons option is an array or the return value of the callback if the buttons option is an object.
   confirm: (params={}) ->
     @applicationDelegate.confirm(params)
 
@@ -1002,11 +1005,18 @@ class AtomEnvironment extends Model
 
     @setFullScreen(state.fullScreen)
 
+    missingProjectPaths = []
+
     @packages.packageStates = state.packageStates ? {}
 
     startTime = Date.now()
     if state.project?
       projectPromise = @project.deserialize(state.project, @deserializers)
+        .catch (err) =>
+          if err.missingProjectPaths?
+            missingProjectPaths.push(err.missingProjectPaths...)
+          else
+            @notifications.addError "Unable to deserialize project", description: err.message, stack: err.stack
     else
       projectPromise = Promise.resolve()
 
@@ -1018,6 +1028,19 @@ class AtomEnvironment extends Model
       startTime = Date.now()
       @workspace.deserialize(state.workspace, @deserializers) if state.workspace?
       @deserializeTimings.workspace = Date.now() - startTime
+
+      if missingProjectPaths.length > 0
+        count = if missingProjectPaths.length is 1 then '' else missingProjectPaths.length + ' '
+        noun = if missingProjectPaths.length is 1 then 'directory' else 'directories'
+        toBe = if missingProjectPaths.length is 1 then 'is' else 'are'
+        escaped = missingProjectPaths.map (projectPath) -> "`#{projectPath}`"
+        group = switch escaped.length
+          when 1 then escaped[0]
+          when 2 then "#{escaped[0]} and #{escaped[1]}"
+          else escaped[..-2].join(", ") + ", and #{escaped[escaped.length - 1]}"
+
+        @notifications.addError "Unable to open #{count}project #{noun}",
+          description: "Project #{noun} #{group} #{toBe} no longer on disk."
 
   getStateKey: (paths) ->
     if paths?.length > 0

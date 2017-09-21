@@ -30,6 +30,8 @@ class Project extends Model
     @repositoryProviders = [new GitRepositoryProvider(this, config)]
     @loadPromisesByPath = {}
     @watcherPromisesByPath = {}
+    @retiredBufferIDs = new Set()
+    @retiredBufferPaths = new Set()
     @consumeServices(packageManager)
 
   destroyed: ->
@@ -47,6 +49,8 @@ class Project extends Model
     @buffers = []
     @setPaths([])
     @loadPromisesByPath = {}
+    @retiredBufferIDs = new Set()
+    @retiredBufferPaths = new Set()
     @consumeServices(packageManager)
 
   destroyUnretainedBuffers: ->
@@ -58,21 +62,28 @@ class Project extends Model
   ###
 
   deserialize: (state) ->
-    bufferPromises = []
-    for bufferState in state.buffers
-      continue if fs.isDirectorySync(bufferState.filePath)
-      if bufferState.filePath
-        try
-          fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
-        catch error
-          continue unless error.code is 'ENOENT'
-      unless bufferState.shouldDestroyOnFileDelete?
-        bufferState.shouldDestroyOnFileDelete = ->
-          atom.config.get('core.closeDeletedFileTabs')
-      bufferPromises.push(TextBuffer.deserialize(bufferState))
-    Promise.all(bufferPromises).then (@buffers) =>
+    @retiredBufferIDs = new Set()
+    @retiredBufferPaths = new Set()
+
+    handleBufferState = (bufferState) =>
+      bufferState.shouldDestroyOnFileDelete ?= -> atom.config.get('core.closeDeletedFileTabs')
+
+      # Use a little guilty knowledge of the way TextBuffers are serialized.
+      # This allows TextBuffers that have never been saved (but have filePaths) to be deserialized, but prevents
+      # TextBuffers backed by files that have been deleted from being saved.
+      bufferState.mustExist = bufferState.digestWhenLastPersisted isnt false
+
+      TextBuffer.deserialize(bufferState).catch (err) =>
+        @retiredBufferIDs.add(bufferState.id)
+        @retiredBufferPaths.add(bufferState.filePath)
+        null
+
+    bufferPromises = (handleBufferState(bufferState) for bufferState in state.buffers)
+
+    Promise.all(bufferPromises).then (buffers) =>
+      @buffers = buffers.filter(Boolean)
       @subscribeToBuffer(buffer) for buffer in @buffers
-      @setPaths(state.paths)
+      @setPaths(state.paths or [], mustExist: true, exact: true)
 
   serialize: (options={}) ->
     deserializer: 'Project'
@@ -211,7 +222,12 @@ class Project extends Model
   # Public: Set the paths of the project's directories.
   #
   # * `projectPaths` {Array} of {String} paths.
-  setPaths: (projectPaths) ->
+  # * `options` An optional {Object} that may contain the following keys:
+  #   * `mustExist` If `true`, throw an Error if any `projectPaths` do not exist. Any remaining `projectPaths` that
+  #     do exist will still be added to the project. Default: `false`.
+  #   * `exact` If `true`, only add a `projectPath` if it names an existing directory. If `false` and any `projectPath`
+  #     is a file or does not exist, its parent directory will be added instead. Default: `false`.
+  setPaths: (projectPaths, options = {}) ->
     repository?.destroy() for repository in @repositories
     @rootDirectories = []
     @repositories = []
@@ -219,16 +235,46 @@ class Project extends Model
     watcher.then((w) -> w.dispose()) for _, watcher in @watcherPromisesByPath
     @watcherPromisesByPath = {}
 
-    @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
+    missingProjectPaths = []
+    for projectPath in projectPaths
+      try
+        @addPath projectPath, emitEvent: false, mustExist: true, exact: options.exact is true
+      catch e
+        if e.missingProjectPaths?
+          missingProjectPaths.push e.missingProjectPaths...
+        else
+          throw e
 
     @emitter.emit 'did-change-paths', projectPaths
+
+    if options.mustExist is true and missingProjectPaths.length > 0
+      err = new Error "One or more project directories do not exist"
+      err.missingProjectPaths = missingProjectPaths
+      throw err
 
   # Public: Add a path to the project's list of root paths
   #
   # * `projectPath` {String} The path to the directory to add.
-  addPath: (projectPath, options) ->
+  # * `options` An optional {Object} that may contain the following keys:
+  #   * `mustExist` If `true`, throw an Error if the `projectPath` does not exist. If `false`, a `projectPath` that does
+  #     not exist is ignored. Default: `false`.
+  #   * `exact` If `true`, only add `projectPath` if it names an existing directory. If `false`, if `projectPath` is a
+  #     a file or does not exist, its parent directory will be added instead.
+  addPath: (projectPath, options = {}) ->
     directory = @getDirectoryForProjectPath(projectPath)
-    return unless directory.existsSync()
+
+    ok = true
+    ok = ok and directory.getPath() is projectPath if options.exact is true
+    ok = ok and directory.existsSync()
+
+    unless ok
+      if options.mustExist is true
+        err = new Error "Project directory #{directory} does not exist"
+        err.missingProjectPaths = [projectPath]
+        throw err
+      else
+        return
+
     for existingDirectory in @getDirectories()
       return if existingDirectory.getPath() is directory.getPath()
 
@@ -248,7 +294,7 @@ class Project extends Model
       break if repo = provider.repositoryForDirectorySync?(directory)
     @repositories.push(repo ? null)
 
-    unless options?.emitEvent is false
+    unless options.emitEvent is false
       @emitter.emit 'did-change-paths', @getPaths()
 
   getDirectoryForProjectPath: (projectPath) ->
@@ -412,11 +458,13 @@ class Project extends Model
   # Only to be used in specs
   bufferForPathSync: (filePath) ->
     absoluteFilePath = @resolvePath(filePath)
+    return null if @retiredBufferPaths.has absoluteFilePath
     existingBuffer = @findBufferForPath(absoluteFilePath) if filePath
     existingBuffer ? @buildBufferSync(absoluteFilePath)
 
   # Only to be used when deserializing
   bufferForIdSync: (id) ->
+    return null if @retiredBufferIDs.has id
     existingBuffer = @findBufferForId(id) if id
     existingBuffer ? @buildBufferSync()
 
