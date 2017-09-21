@@ -3,16 +3,17 @@ const TokenizedBuffer = require('../src/tokenized-buffer')
 const TextBuffer = require('text-buffer')
 const {Point} = TextBuffer
 const _ = require('underscore-plus')
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
 describe('TokenizedBuffer', () => {
   let tokenizedBuffer, buffer
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // enable async tokenization
     TokenizedBuffer.prototype.chunkSize = 5
     jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
 
-    waitsForPromise(() => atom.packages.activatePackage('language-javascript'))
+    await atom.packages.activatePackage('language-javascript')
   })
 
   afterEach(() => tokenizedBuffer && tokenizedBuffer.destroy())
@@ -30,10 +31,9 @@ describe('TokenizedBuffer', () => {
 
   describe('serialization', () => {
     describe('when the underlying buffer has a path', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         buffer = atom.project.bufferForPathSync('sample.js')
-
-        waitsForPromise(() => atom.packages.activatePackage('language-coffee-script'))
+        await atom.packages.activatePackage('language-coffee-script')
       })
 
       it('deserializes it searching among the buffers in the current project', () => {
@@ -280,35 +280,31 @@ describe('TokenizedBuffer', () => {
         })
       )
 
-      it('does not break out soft tabs across a scope boundary', () => {
-        waitsForPromise(() => atom.packages.activatePackage('language-gfm'))
+      it('does not break out soft tabs across a scope boundary', async () => {
+        await atom.packages.activatePackage('language-gfm')
 
-        runs(() => {
-          tokenizedBuffer.setTabLength(4)
-          tokenizedBuffer.setGrammar(atom.grammars.selectGrammar('.md'))
-          buffer.setText('    <![]()\n    ')
-          fullyTokenize(tokenizedBuffer)
+        tokenizedBuffer.setTabLength(4)
+        tokenizedBuffer.setGrammar(atom.grammars.selectGrammar('.md'))
+        buffer.setText('    <![]()\n    ')
+        fullyTokenize(tokenizedBuffer)
 
-          let length = 0
-          for (let tag of tokenizedBuffer.tokenizedLines[1].tags) {
-            if (tag > 0) { length += tag }
-          }
+        let length = 0
+        for (let tag of tokenizedBuffer.tokenizedLines[1].tags) {
+          if (tag > 0) length += tag
+        }
 
-          expect(length).toBe(4)
-        })
+        expect(length).toBe(4)
       })
     })
   })
 
   describe('when the buffer contains hard-tabs', () => {
-    beforeEach(() => {
-      waitsForPromise(() => atom.packages.activatePackage('language-coffee-script'))
+    beforeEach(async () => {
+      atom.packages.activatePackage('language-coffee-script')
 
-      runs(() => {
-        buffer = atom.project.bufferForPathSync('sample-with-tabs.coffee')
-        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.coffee'), tabLength: 2})
-        startTokenizing(tokenizedBuffer)
-      })
+      buffer = atom.project.bufferForPathSync('sample-with-tabs.coffee')
+      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.coffee'), tabLength: 2})
+      startTokenizing(tokenizedBuffer)
     })
 
     afterEach(() => {
@@ -322,82 +318,60 @@ describe('TokenizedBuffer', () => {
   })
 
   describe('when the grammar is tokenized', () => {
-    it('emits the `tokenized` event', () => {
-      let editor = null
+    it('emits the `tokenized` event', async () => {
+      const editor = await atom.workspace.open('sample.js')
+
       const tokenizedHandler = jasmine.createSpy('tokenized handler')
-
-      waitsForPromise(() => atom.workspace.open('sample.js').then(o => editor = o))
-
-      runs(() => {
-        ({ tokenizedBuffer } = editor)
-        tokenizedBuffer.onDidTokenize(tokenizedHandler)
-        fullyTokenize(tokenizedBuffer)
-        expect(tokenizedHandler.callCount).toBe(1)
-      })
+      editor.tokenizedBuffer.onDidTokenize(tokenizedHandler)
+      fullyTokenize(editor.tokenizedBuffer)
+      expect(tokenizedHandler.callCount).toBe(1)
     })
 
-    it("doesn't re-emit the `tokenized` event when it is re-tokenized", () => {
-      let editor = null
+    it("doesn't re-emit the `tokenized` event when it is re-tokenized", async () => {
+      const editor = await atom.workspace.open('sample.js')
+      fullyTokenize(editor.tokenizedBuffer)
+
       const tokenizedHandler = jasmine.createSpy('tokenized handler')
-
-      waitsForPromise(() => atom.workspace.open('sample.js').then(o => editor = o))
-
-      runs(() => {
-        ({ tokenizedBuffer } = editor)
-        fullyTokenize(tokenizedBuffer)
-
-        tokenizedBuffer.onDidTokenize(tokenizedHandler)
-        editor.getBuffer().insert([0, 0], "'")
-        fullyTokenize(tokenizedBuffer)
-        expect(tokenizedHandler).not.toHaveBeenCalled()
-      })
+      editor.tokenizedBuffer.onDidTokenize(tokenizedHandler)
+      editor.getBuffer().insert([0, 0], "'")
+      fullyTokenize(editor.tokenizedBuffer)
+      expect(tokenizedHandler).not.toHaveBeenCalled()
     })
   })
 
-  describe('when the grammar is updated because a grammar it includes is activated', () => {
-    it('re-emits the `tokenized` event', () => {
-      let editor = null
-      tokenizedBuffer = null
+  describe('when the grammar is updated because a grammar it includes is activated', async () => {
+    it('re-emits the `tokenized` event', async () => {
+      const editor = await atom.workspace.open('coffee.coffee')
+
       const tokenizedHandler = jasmine.createSpy('tokenized handler')
+      editor.tokenizedBuffer.onDidTokenize(tokenizedHandler)
+      fullyTokenize(editor.tokenizedBuffer)
+      tokenizedHandler.reset()
 
-      waitsForPromise(() => atom.workspace.open('coffee.coffee').then(o => editor = o))
-
-      runs(() => {
-        ({ tokenizedBuffer } = editor)
-        tokenizedBuffer.onDidTokenize(tokenizedHandler)
-        fullyTokenize(tokenizedBuffer)
-        tokenizedHandler.reset()
-      })
-
-      waitsForPromise(() => atom.packages.activatePackage('language-coffee-script'))
-
-      runs(() => {
-        fullyTokenize(tokenizedBuffer)
-        expect(tokenizedHandler.callCount).toBe(1)
-      })
+      await atom.packages.activatePackage('language-coffee-script')
+      fullyTokenize(editor.tokenizedBuffer)
+      expect(tokenizedHandler.callCount).toBe(1)
     })
 
-    it('retokenizes the buffer', () => {
-      waitsForPromise(() => atom.packages.activatePackage('language-ruby-on-rails'))
+    it('retokenizes the buffer', async () => {
+      await atom.packages.activatePackage('language-ruby-on-rails')
+      await atom.packages.activatePackage('language-ruby')
 
-      waitsForPromise(() => atom.packages.activatePackage('language-ruby'))
+      buffer = atom.project.bufferForPathSync()
+      buffer.setText("<div class='name'><%= User.find(2).full_name %></div>")
 
-      runs(() => {
-        buffer = atom.project.bufferForPathSync()
-        buffer.setText("<div class='name'><%= User.find(2).full_name %></div>")
-        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.selectGrammar('test.erb'), tabLength: 2})
-        fullyTokenize(tokenizedBuffer)
-
-        const {tokens} = tokenizedBuffer.tokenizedLines[0]
-        expect(tokens[0]).toEqual({value: "<div class='name'>", scopes: ['text.html.ruby']})
+      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.selectGrammar('test.erb'), tabLength: 2})
+      fullyTokenize(tokenizedBuffer)
+      expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({
+        value: "<div class='name'>",
+        scopes: ['text.html.ruby']
       })
 
-      waitsForPromise(() => atom.packages.activatePackage('language-html'))
-
-      runs(() => {
-        fullyTokenize(tokenizedBuffer)
-        const {tokens} = tokenizedBuffer.tokenizedLines[0]
-        expect(tokens[0]).toEqual({value: '<', scopes: ['text.html.ruby', 'meta.tag.block.any.html', 'punctuation.definition.tag.begin.html']})
+      await atom.packages.activatePackage('language-html')
+      fullyTokenize(tokenizedBuffer)
+      expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({
+        value: '<',
+        scopes: ['text.html.ruby', 'meta.tag.block.any.html', 'punctuation.definition.tag.begin.html']
       })
     })
   })
@@ -728,29 +702,27 @@ describe('TokenizedBuffer', () => {
         iterator.moveToSuccessor()
       }) // ensure we don't infinitely loop (regression test)
 
-      it('does not report columns beyond the length of the line', () => {
-        waitsForPromise(() => atom.packages.activatePackage('language-coffee-script'))
+      it('does not report columns beyond the length of the line', async () => {
+        await atom.packages.activatePackage('language-coffee-script')
 
-        runs(() => {
-          buffer = new TextBuffer({text: '# hello\n# world'})
-          tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.coffee'), tabLength: 2})
-          fullyTokenize(tokenizedBuffer)
+        buffer = new TextBuffer({text: '# hello\n# world'})
+        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.coffee'), tabLength: 2})
+        fullyTokenize(tokenizedBuffer)
 
-          const iterator = tokenizedBuffer.buildIterator()
-          iterator.seek(Point(0, 0))
-          iterator.moveToSuccessor()
-          iterator.moveToSuccessor()
-          expect(iterator.getPosition().column).toBe(7)
+        const iterator = tokenizedBuffer.buildIterator()
+        iterator.seek(Point(0, 0))
+        iterator.moveToSuccessor()
+        iterator.moveToSuccessor()
+        expect(iterator.getPosition().column).toBe(7)
 
-          iterator.moveToSuccessor()
-          expect(iterator.getPosition().column).toBe(0)
+        iterator.moveToSuccessor()
+        expect(iterator.getPosition().column).toBe(0)
 
-          iterator.seek(Point(0, 7))
-          expect(iterator.getPosition().column).toBe(7)
+        iterator.seek(Point(0, 7))
+        expect(iterator.getPosition().column).toBe(7)
 
-          iterator.seek(Point(0, 8))
-          expect(iterator.getPosition().column).toBe(7)
-        })
+        iterator.seek(Point(0, 8))
+        expect(iterator.getPosition().column).toBe(7)
       })
 
       it('correctly terminates scopes at the beginning of the line (regression)', () => {
