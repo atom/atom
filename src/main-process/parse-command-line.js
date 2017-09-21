@@ -58,8 +58,18 @@ module.exports = function parseCommandLine (processArgs) {
   options.string('user-data-dir')
   options.boolean('clear-window-state').describe('clear-window-state', 'Delete all Atom environment state.')
   options.boolean('enable-electron-logging').describe('enable-electron-logging', 'Enable low-level logging messages from Electron.')
+  options.boolean('url-handler')
 
-  const args = options.argv
+  let args = options.argv
+
+  // If --url-handler is set, then we parse NOTHING else
+  if (args.urlHandler) {
+    args = {
+      urlHandler: true,
+      'url-handler': true,
+      _: args._
+    }
+  }
 
   if (args.help) {
     process.stdout.write(options.help())
@@ -101,8 +111,8 @@ module.exports = function parseCommandLine (processArgs) {
   const userDataDir = args['user-data-dir']
   const profileStartup = args['profile-startup']
   const clearWindowState = args['clear-window-state']
-  const pathsToOpen = []
-  const urlsToOpen = []
+  let pathsToOpen = []
+  let urlsToOpen = []
   let devMode = args['dev']
   let devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH || path.join(app.getPath('home'), 'github', 'atom')
   let resourcePath = null
@@ -112,6 +122,14 @@ module.exports = function parseCommandLine (processArgs) {
       urlsToOpen.push(path)
     } else {
       pathsToOpen.push(path)
+    }
+  }
+
+  // When performing as a URL handler, only accept one URL and no paths
+  if (args.urlHandler) {
+    pathsToOpen = []
+    if (urlsToOpen.length > 1) {
+      urlsToOpen.length = 1
     }
   }
 
