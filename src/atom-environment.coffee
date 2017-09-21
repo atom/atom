@@ -32,6 +32,7 @@ ThemeManager = require './theme-manager'
 MenuManager = require './menu-manager'
 ContextMenuManager = require './context-menu-manager'
 CommandInstaller = require './command-installer'
+ProtocolHandlerInstaller = require './protocol-handler-installer'
 Project = require './project'
 TitleBar = require './title-bar'
 Workspace = require './workspace'
@@ -169,6 +170,7 @@ class AtomEnvironment extends Model
 
     @project = new Project({notificationManager: @notifications, packageManager: @packages, @config, @applicationDelegate})
     @commandInstaller = new CommandInstaller(@applicationDelegate)
+    @protocolHandlerInstaller = new ProtocolHandlerInstaller()
 
     @textEditors = new TextEditorRegistry({
       @config, grammarRegistry: @grammars, assert: @assert.bind(this),
@@ -235,6 +237,7 @@ class AtomEnvironment extends Model
     @themes.initialize({@configDirPath, resourcePath, safeMode, devMode})
 
     @commandInstaller.initialize(@getVersion())
+    @protocolHandlerInstaller.initialize(@config)
     @autoUpdater.initialize()
 
     @config.load()
@@ -353,6 +356,7 @@ class AtomEnvironment extends Model
     @stylesElement.remove()
     @config.unobserveUserConfig()
     @autoUpdater.destroy()
+    @protocolHandlerInstaller.destroy()
 
     @uninstallWindowEventHandler()
 

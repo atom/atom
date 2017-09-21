@@ -519,6 +519,15 @@ if (['win32', 'linux'].includes(process.platform)) {
   }
 }
 
+if (['win32', 'darwin'].includes(process.platform)) {
+  configSchema.core.properties.defaultProtocolHandler = {
+    title: 'Open atom:// URIs',
+    type: 'boolean',
+    default: true,
+    description: 'Register Atom as the default handler for atom:// URIs'
+  }
+}
+
 if (process.platform === 'darwin') {
   configSchema.core.properties.titleBar = {
     type: 'string',
