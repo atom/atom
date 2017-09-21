@@ -345,7 +345,7 @@ describe "TokenizedBuffer", ->
       runs ->
         fullyTokenize(tokenizedBuffer)
         {tokens} = tokenizedBuffer.tokenizedLines[0]
-        expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby", "meta.tag.block.any.html", "punctuation.definition.tag.begin.html"]
+        expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby", "meta.tag.block.div.html", "punctuation.definition.tag.begin.html"]
 
   describe ".tokenForPosition(position)", ->
     afterEach ->
