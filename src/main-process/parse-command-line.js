@@ -67,7 +67,7 @@ module.exports = function parseCommandLine (processArgs) {
     args = {
       urlHandler: true,
       'url-handler': true,
-      _: args._.slice(0, 1)
+      _: args._.filter(str => str.startsWith('atom://')).slice(0, 1)
     }
   }
 
