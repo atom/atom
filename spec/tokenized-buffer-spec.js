@@ -372,7 +372,7 @@ describe('TokenizedBuffer', () => {
         fullyTokenize(tokenizedBuffer)
         expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({
           value: '<',
-          scopes: ['text.html.ruby', 'meta.tag.block.any.html', 'punctuation.definition.tag.begin.html']
+          scopes: ['text.html.ruby', 'meta.tag.block.div.html', 'punctuation.definition.tag.begin.html']
         })
       })
     })
