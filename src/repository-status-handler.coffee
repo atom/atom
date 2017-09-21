@@ -15,8 +15,8 @@ module.exports = ->
     submodules = {}
     branch = null
 
-    try
-      if repo?
+    if repo?
+      try
         # Statuses in main repo
         workingDirectoryPath = repo.getWorkingDirectory()
         repoStatus = (if paths.length > 0 then repo.getStatusForPaths(paths) else repo.getStatus())
@@ -38,7 +38,7 @@ module.exports = ->
 
               upstream = repo.getAheadBehindCount()
               branch = repo.getHead()
-    finally
-      repo.release()
+      finally
+        repo.release()
 
     emit repoPath, {statuses, upstream, branch, submodules}
