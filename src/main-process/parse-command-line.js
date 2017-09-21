@@ -67,7 +67,7 @@ module.exports = function parseCommandLine (processArgs) {
     args = {
       urlHandler: true,
       'url-handler': true,
-      _: args._
+      _: args._.slice(0, 1)
     }
   }
 
@@ -122,14 +122,6 @@ module.exports = function parseCommandLine (processArgs) {
       urlsToOpen.push(path)
     } else {
       pathsToOpen.push(path)
-    }
-  }
-
-  // When performing as a URL handler, only accept one URL and no paths
-  if (args.urlHandler) {
-    pathsToOpen = []
-    if (urlsToOpen.length > 1) {
-      urlsToOpen.length = 1
     }
   }
 
