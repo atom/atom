@@ -57,6 +57,105 @@ class TokenizedBuffer {
     return !this.alive
   }
 
+  /*
+  Section - auto-indent
+  */
+
+  // Get the suggested indentation level for an existing line in the buffer.
+  //
+  // * bufferRow - A {Number} indicating the buffer row
+  //
+  // Returns a {Number}.
+  suggestedIndentForBufferRow (bufferRow, options) {
+    const line = this.buffer.lineForRow(bufferRow)
+    const tokenizedLine = this.tokenizedLineForRow(bufferRow)
+    return this._suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
+  }
+
+  // Get the suggested indentation level for a given line of text, if it were inserted at the given
+  // row in the buffer.
+  //
+  // * bufferRow - A {Number} indicating the buffer row
+  //
+  // Returns a {Number}.
+  suggestedIndentForLineAtBufferRow (bufferRow, line, options) {
+    const tokenizedLine = this.buildTokenizedLineForRowWithText(bufferRow, line)
+    return this._suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
+  }
+
+  // Get the suggested indentation level for a line in the buffer on which the user is currently
+  // typing. This may return a different result from {::suggestedIndentForBufferRow} in order
+  // to avoid unexpected changes in indentation.
+  //
+  // * bufferRow - The row {Number}
+  //
+  // Returns a {Number}.
+  suggestedIndentForEditedBufferRow (bufferRow) {
+    const line = this.buffer.lineForRow(bufferRow)
+    const currentIndentLevel = this.indentLevelForLine(line)
+    if (currentIndentLevel === 0) return currentIndentLevel
+
+    const scopeDescriptor = this.scopeDescriptorForPosition([bufferRow, 0])
+    const decreaseIndentRegex = this.decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    if (!decreaseIndentRegex) return currentIndentLevel
+
+    if (!decreaseIndentRegex.testSync(line)) return currentIndentLevel
+
+    const precedingRow = this.buffer.previousNonBlankRow(bufferRow)
+    if (precedingRow == null) return currentIndentLevel
+
+    const precedingLine = this.buffer.lineForRow(precedingRow)
+    let desiredIndentLevel = this.indentLevelForLine(precedingLine)
+
+    const increaseIndentRegex = this.increaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    if (increaseIndentRegex) {
+      if (!increaseIndentRegex.testSync(precedingLine)) desiredIndentLevel -= 1
+    }
+
+    const decreaseNextIndentRegex = this.decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
+    if (decreaseNextIndentRegex) {
+      if (decreaseNextIndentRegex.testSync(precedingLine)) desiredIndentLevel -= 1
+    }
+
+    if (desiredIndentLevel < 0) return 0
+    if (desiredIndentLevel > currentIndentLevel) return currentIndentLevel
+    return desiredIndentLevel
+  }
+
+  _suggestedIndentForTokenizedLineAtBufferRow (bufferRow, line, tokenizedLine, options) {
+    const iterator = tokenizedLine.getTokenIterator()
+    iterator.next()
+    const scopeDescriptor = new ScopeDescriptor({scopes: iterator.getScopes()})
+
+    const increaseIndentRegex = this.increaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    const decreaseIndentRegex = this.decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    const decreaseNextIndentRegex = this.decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
+
+    let precedingRow
+    if (!options || options.skipBlankLines !== false) {
+      precedingRow = this.buffer.previousNonBlankRow(bufferRow)
+      if (precedingRow == null) return 0
+    } else {
+      precedingRow = bufferRow - 1
+      if (precedingRow < 0) return 0
+    }
+
+    const precedingLine = this.buffer.lineForRow(precedingRow)
+    let desiredIndentLevel = this.indentLevelForLine(precedingLine)
+    if (!increaseIndentRegex) return desiredIndentLevel
+
+    if (!this.isRowCommented(precedingRow)) {
+      if (increaseIndentRegex && increaseIndentRegex.testSync(precedingLine)) desiredIndentLevel += 1
+      if (decreaseNextIndentRegex && decreaseNextIndentRegex.testSync(precedingLine)) desiredIndentLevel -= 1
+    }
+
+    if (!this.buffer.isRowBlank(precedingRow)) {
+      if (decreaseIndentRegex && decreaseIndentRegex.testSync(line)) desiredIndentLevel -= 1
+    }
+
+    return Math.max(desiredIndentLevel, 0)
+  }
+
   buildIterator () {
     return new TokenizedBufferIterator(this)
   }
@@ -593,6 +692,24 @@ class TokenizedBuffer {
       foldEndRow = nextRow
     }
     return foldEndRow
+  }
+
+  increaseIndentRegexForScopeDescriptor (scopeDescriptor) {
+    if (this.scopedSettingsDelegate) {
+      return this.regexForPattern(this.scopedSettingsDelegate.getIncreaseIndentPattern(scopeDescriptor))
+    }
+  }
+
+  decreaseIndentRegexForScopeDescriptor (scopeDescriptor) {
+    if (this.scopedSettingsDelegate) {
+      return this.regexForPattern(this.scopedSettingsDelegate.getDecreaseIndentPattern(scopeDescriptor))
+    }
+  }
+
+  decreaseNextIndentRegexForScopeDescriptor (scopeDescriptor) {
+    if (this.scopedSettingsDelegate) {
+      return this.regexForPattern(this.scopedSettingsDelegate.getDecreaseNextIndentPattern(scopeDescriptor))
+    }
   }
 
   foldEndRegexForScopeDescriptor (scopes) {

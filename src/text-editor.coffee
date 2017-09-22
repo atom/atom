@@ -5,7 +5,6 @@ Grim = require 'grim'
 {CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 {OnigRegExp} = require 'oniguruma'
 {Point, Range} = TextBuffer = require 'text-buffer'
-LanguageMode = require './language-mode'
 DecorationManager = require './decoration-manager'
 TokenizedBuffer = require './tokenized-buffer'
 Cursor = require './cursor'
@@ -80,7 +79,6 @@ class TextEditor extends Model
   serializationVersion: 1
 
   buffer: null
-  languageMode: null
   cursors: null
   showCursorOnSelection: null
   selections: null
@@ -244,8 +242,6 @@ class TextEditor extends Model
       initialLine = Math.max(parseInt(initialLine) or 0, 0)
       initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
       @addCursorAtBufferPosition([initialLine, initialColumn])
-
-    @languageMode = new LanguageMode(this)
 
     @gutterContainer = new GutterContainer(this)
     @lineNumberGutter = @gutterContainer.addGutter
@@ -3085,7 +3081,8 @@ class TextEditor extends Model
     else
       endColumn = @lineTextForBufferRow(bufferRow).match(/^\s*/)[0].length
     newIndentString = @buildIndentString(newLevel)
-    @buffer.setTextInRange([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
+    if newIndentString.length isnt endColumn
+      @buffer.setTextInRange([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
 
   # Extended: Indent rows intersecting selections by one level.
   indentSelectedRows: ->
@@ -3626,18 +3623,6 @@ class TextEditor extends Model
   getCommentStrings: (scopes) ->
     @scopedSettingsDelegate?.getCommentStrings?(scopes)
 
-  getIncreaseIndentPattern: (scopes) ->
-    @scopedSettingsDelegate?.getIncreaseIndentPattern?(scopes)
-
-  getDecreaseIndentPattern: (scopes) ->
-    @scopedSettingsDelegate?.getDecreaseIndentPattern?(scopes)
-
-  getDecreaseNextIndentPattern: (scopes) ->
-    @scopedSettingsDelegate?.getDecreaseNextIndentPattern?(scopes)
-
-  getFoldEndPattern: (scopes) ->
-    @scopedSettingsDelegate?.getFoldEndPattern?(scopes)
-
   ###
   Section: Event Handlers
   ###
@@ -3873,15 +3858,32 @@ class TextEditor extends Model
   Section: Language Mode Delegated Methods
   ###
 
-  suggestedIndentForBufferRow: (bufferRow, options) -> @languageMode.suggestedIndentForBufferRow(bufferRow, options)
+  suggestedIndentForBufferRow: (bufferRow, options) -> @tokenizedBuffer.suggestedIndentForBufferRow(bufferRow, options)
 
-  autoIndentBufferRow: (bufferRow, options) -> @languageMode.autoIndentBufferRow(bufferRow, options)
+  # Given a buffer row, indent it.
+  #
+  # * bufferRow - The row {Number}.
+  # * options - An options {Object} to pass through to {TextEditor::setIndentationForBufferRow}.
+  autoIndentBufferRow: (bufferRow, options) ->
+    indentLevel = @suggestedIndentForBufferRow(bufferRow, options)
+    @setIndentationForBufferRow(bufferRow, indentLevel, options)
 
-  autoIndentBufferRows: (startRow, endRow) -> @languageMode.autoIndentBufferRows(startRow, endRow)
+  # Indents all the rows between two buffer row numbers.
+  #
+  # * startRow - The row {Number} to start at
+  # * endRow - The row {Number} to end at
+  autoIndentBufferRows: (startRow, endRow) ->
+    row = startRow
+    while row <= endRow
+      @autoIndentBufferRow(row)
+      row++
+    return
 
-  autoDecreaseIndentForBufferRow: (bufferRow) -> @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
+  autoDecreaseIndentForBufferRow: (bufferRow) ->
+    indentLevel = @tokenizedBuffer.suggestedIndentForEditedBufferRow(bufferRow)
+    @setIndentationForBufferRow(bufferRow, indentLevel)
 
-  toggleLineCommentForBufferRow: (row) -> @languageMode.toggleLineCommentsForBufferRow(row)
+  toggleLineCommentForBufferRow: (row) -> @toggleLineCommentsForBufferRows(row, row)
 
   toggleLineCommentsForBufferRows: (start, end) ->
     scope = @scopeDescriptorForBufferPosition([start, 0])
