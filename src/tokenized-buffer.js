@@ -392,38 +392,6 @@ class TokenizedBuffer {
     return scopes
   }
 
-  indentLevelForRow (bufferRow) {
-    const line = this.buffer.lineForRow(bufferRow)
-    let indentLevel = 0
-
-    if (line === '') {
-      let nextRow = bufferRow + 1
-      const lineCount = this.buffer.getLineCount()
-      while (nextRow < lineCount) {
-        const nextLine = this.buffer.lineForRow(nextRow)
-        if (nextLine !== '') {
-          indentLevel = Math.ceil(this.indentLevelForLine(nextLine))
-          break
-        }
-        nextRow++
-      }
-
-      let previousRow = bufferRow - 1
-      while (previousRow >= 0) {
-        const previousLine = this.buffer.lineForRow(previousRow)
-        if (previousLine !== '') {
-          indentLevel = Math.max(Math.ceil(this.indentLevelForLine(previousLine)), indentLevel)
-          break
-        }
-        previousRow--
-      }
-
-      return indentLevel
-    } else {
-      return this.indentLevelForLine(line)
-    }
-  }
-
   indentLevelForLine (line, tabLength = this.tabLength) {
     let indentLength = 0
     for (let i = 0, {length} = line; i < length; i++) {
