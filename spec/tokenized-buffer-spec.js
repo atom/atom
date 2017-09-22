@@ -901,6 +901,30 @@ describe('TokenizedBuffer', () => {
         }
       `)
     })
+
+    it('works for coffee-script', async () => {
+      const editor = await atom.workspace.open('coffee.coffee')
+      await atom.packages.activatePackage('language-coffee-script')
+      buffer = editor.buffer
+      tokenizedBuffer = editor.tokenizedBuffer
+
+      expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(0, Infinity))).toEqual([[0, Infinity], [20, Infinity]])
+      expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(1, Infinity))).toEqual([[1, Infinity], [17, Infinity]])
+      expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(2, Infinity))).toEqual([[1, Infinity], [17, Infinity]])
+      expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(19, Infinity))).toEqual([[19, Infinity], [20, Infinity]])
+    })
+
+    it('works for javascript', async () => {
+      const editor = await atom.workspace.open('sample.js')
+      await atom.packages.activatePackage('language-javascript')
+      buffer = editor.buffer
+      tokenizedBuffer = editor.tokenizedBuffer
+
+      expect(editor.tokenizedBuffer.getFoldableRangeContainingPoint(Point(0, Infinity))).toEqual([[0, Infinity], [12, Infinity]])
+      expect(editor.tokenizedBuffer.getFoldableRangeContainingPoint(Point(1, Infinity))).toEqual([[1, Infinity], [9, Infinity]])
+      expect(editor.tokenizedBuffer.getFoldableRangeContainingPoint(Point(2, Infinity))).toEqual([[1, Infinity], [9, Infinity]])
+      expect(editor.tokenizedBuffer.getFoldableRangeContainingPoint(Point(4, Infinity))).toEqual([[4, Infinity], [7, Infinity]])
+    })
   })
 
   function simulateFold (ranges) {
