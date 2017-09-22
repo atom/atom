@@ -178,7 +178,7 @@ class TokenizedBuffer {
     while (this.firstInvalidRow() != null && rowsRemaining > 0) {
       var endRow, filledRegion
       const startRow = this.invalidRows.shift()
-      const lastRow = this.getLastRow()
+      const lastRow = this.buffer.getLastRow()
       if (startRow > lastRow) continue
 
       let row = startRow
@@ -398,7 +398,7 @@ class TokenizedBuffer {
 
     if (line === '') {
       let nextRow = bufferRow + 1
-      const lineCount = this.getLineCount()
+      const lineCount = this.buffer.getLineCount()
       while (nextRow < lineCount) {
         const nextLine = this.buffer.lineForRow(nextRow)
         if (nextLine !== '') {
@@ -640,17 +640,6 @@ class TokenizedBuffer {
       }
       return this.regexesByPattern[pattern]
     }
-  }
-
-  // Gets the row number of the last line.
-  //
-  // Returns a {Number}.
-  getLastRow () {
-    return this.buffer.getLastRow()
-  }
-
-  getLineCount () {
-    return this.buffer.getLineCount()
   }
 
   logLines (start = 0, end = this.buffer.getLastRow()) {
