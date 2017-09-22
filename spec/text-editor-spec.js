@@ -2,7 +2,7 @@ const dedent = require('dedent')
 const {Point, Range} = require('text-buffer')
 const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
-describe('LanguageMode', () => {
+describe('TextEditor', () => {
   let editor
 
   afterEach(() => {
