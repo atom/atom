@@ -3311,13 +3311,14 @@ class TextEditor extends Model
   # indentation level up to the nearest following row with a lower indentation
   # level.
   foldCurrentRow: ->
-    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
-    @foldBufferRow(bufferRow)
+    {row} = @getCursorBufferPosition()
+    range = @tokenizedBuffer.getFoldableRangeContainingPoint(Point(row, Infinity))
+    @displayLayer.foldBufferRange(range)
 
   # Essential: Unfold the most recent cursor's row by one level.
   unfoldCurrentRow: ->
-    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
-    @unfoldBufferRow(bufferRow)
+    position = @getCursorBufferPosition()
+    @displayLayer.destroyFoldsIntersectingBufferRange(Range(position, position))
 
   # Essential: Fold the given row in buffer coordinates based on its indentation
   # level.
@@ -3327,13 +3328,26 @@ class TextEditor extends Model
   #
   # * `bufferRow` A {Number}.
   foldBufferRow: (bufferRow) ->
-    @languageMode.foldBufferRow(bufferRow)
+    position = Point(bufferRow, Infinity)
+    loop
+      foldableRange = @tokenizedBuffer.getFoldableRangeContainingPoint(position, @getTabLength())
+      if foldableRange
+        existingFolds = @displayLayer.foldsIntersectingBufferRange(Range(foldableRange.start, foldableRange.start))
+        if existingFolds.length is 0
+          @displayLayer.foldBufferRange(foldableRange)
+        else
+          firstExistingFoldRange = @displayLayer.bufferRangeForFold(existingFolds[0])
+          if firstExistingFoldRange.start.isLessThan(position)
+            position = Point(firstExistingFoldRange.start.row, 0)
+            continue
+      return
 
   # Essential: Unfold all folds containing the given row in buffer coordinates.
   #
   # * `bufferRow` A {Number}
   unfoldBufferRow: (bufferRow) ->
-    @displayLayer.destroyFoldsIntersectingBufferRange(Range(Point(bufferRow, 0), Point(bufferRow, Infinity)))
+    position = Point(bufferRow, Infinity)
+    @displayLayer.destroyFoldsIntersectingBufferRange(Range(position, position))
 
   # Extended: For each selection, fold the rows it intersects.
   foldSelectedLines: ->
@@ -3342,18 +3356,25 @@ class TextEditor extends Model
 
   # Extended: Fold all foldable lines.
   foldAll: ->
-    @languageMode.foldAll()
+    @displayLayer.destroyAllFolds()
+    for range in @tokenizedBuffer.getFoldableRanges(@getTabLength())
+      @displayLayer.foldBufferRange(range)
+    return
 
   # Extended: Unfold all existing folds.
   unfoldAll: ->
-    @languageMode.unfoldAll()
+    result = @displayLayer.destroyAllFolds()
     @scrollToCursorPosition()
+    result
 
   # Extended: Fold all foldable lines at the given indent level.
   #
   # * `level` A {Number}.
   foldAllAtIndentLevel: (level) ->
-    @languageMode.foldAllAtIndentLevel(level)
+    @displayLayer.destroyAllFolds()
+    for range in @tokenizedBuffer.getFoldableRangesAtIndentLevel(level, @getTabLength())
+      @displayLayer.foldBufferRange(range)
+    return
 
   # Extended: Determine whether the given row in buffer coordinates is foldable.
   #
@@ -3547,6 +3568,7 @@ class TextEditor extends Model
   # for specific syntactic scopes. See the `ScopedSettingsDelegate` in
   # `text-editor-registry.js` for an example implementation.
   setScopedSettingsDelegate: (@scopedSettingsDelegate) ->
+    @tokenizedBuffer.scopedSettingsDelegate = this.scopedSettingsDelegate
 
   # Experimental: Retrieve the {Object} that provides the editor with settings
   # for specific syntactic scopes.

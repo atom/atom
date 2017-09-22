@@ -1,8 +1,9 @@
 const NullGrammar = require('../src/null-grammar')
 const TokenizedBuffer = require('../src/tokenized-buffer')
 const TextBuffer = require('text-buffer')
-const {Point} = TextBuffer
+const {Point, Range} = TextBuffer
 const _ = require('underscore-plus')
+const dedent = require('dedent')
 const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
 describe('TokenizedBuffer', () => {
@@ -12,7 +13,6 @@ describe('TokenizedBuffer', () => {
     // enable async tokenization
     TokenizedBuffer.prototype.chunkSize = 5
     jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
-
     await atom.packages.activatePackage('language-javascript')
   })
 
@@ -528,78 +528,6 @@ describe('TokenizedBuffer', () => {
     })
   }) // }
 
-  describe('.isFoldableAtRow(row)', () => {
-    beforeEach(() => {
-      buffer = atom.project.bufferForPathSync('sample.js')
-      buffer.insert([10, 0], '  // multi-line\n  // comment\n  // block\n')
-      buffer.insert([0, 0], '// multi-line\n// comment\n// block\n')
-      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
-      fullyTokenize(tokenizedBuffer)
-    })
-
-    it('includes the first line of multi-line comments', () => {
-      expect(tokenizedBuffer.isFoldableAtRow(0)).toBe(true)
-      expect(tokenizedBuffer.isFoldableAtRow(1)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(2)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(3)).toBe(true) // because of indent
-      expect(tokenizedBuffer.isFoldableAtRow(13)).toBe(true)
-      expect(tokenizedBuffer.isFoldableAtRow(14)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(15)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(16)).toBe(false)
-
-      buffer.insert([0, Infinity], '\n')
-
-      expect(tokenizedBuffer.isFoldableAtRow(0)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(1)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(2)).toBe(true)
-      expect(tokenizedBuffer.isFoldableAtRow(3)).toBe(false)
-
-      buffer.undo()
-
-      expect(tokenizedBuffer.isFoldableAtRow(0)).toBe(true)
-      expect(tokenizedBuffer.isFoldableAtRow(1)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(2)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(3)).toBe(true)
-    }) // because of indent
-
-    it('includes non-comment lines that precede an increase in indentation', () => {
-      buffer.insert([2, 0], '  ') // commented lines preceding an indent aren't foldable
-
-      expect(tokenizedBuffer.isFoldableAtRow(1)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(2)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(3)).toBe(true)
-      expect(tokenizedBuffer.isFoldableAtRow(4)).toBe(true)
-      expect(tokenizedBuffer.isFoldableAtRow(5)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe(true)
-      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe(false)
-
-      buffer.insert([7, 0], '  ')
-
-      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe(true)
-      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe(false)
-
-      buffer.undo()
-
-      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe(true)
-      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe(false)
-
-      buffer.insert([7, 0], '    \n      x\n')
-
-      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe(true)
-      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe(false)
-
-      buffer.insert([9, 0], '  ')
-
-      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe(true)
-      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe(false)
-      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe(false)
-    })
-  })
-
   describe('.tokenizedLineForRow(row)', () => {
     it("returns the tokenized line for a row, or a placeholder line if it hasn't been tokenized yet", () => {
       buffer = atom.project.bufferForPathSync('sample.js')
@@ -750,4 +678,239 @@ describe('TokenizedBuffer', () => {
       })
     })
   })
+
+  describe('.isFoldableAtRow(row)', () => {
+    beforeEach(() => {
+      buffer = atom.project.bufferForPathSync('sample.js')
+      buffer.insert([10, 0], '  // multi-line\n  // comment\n  // block\n')
+      buffer.insert([0, 0], '// multi-line\n// comment\n// block\n')
+      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
+      fullyTokenize(tokenizedBuffer)
+    })
+
+    it('includes the first line of multi-line comments', () => {
+      expect(tokenizedBuffer.isFoldableAtRow(0)).toBe(true)
+      expect(tokenizedBuffer.isFoldableAtRow(1)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(2)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(3)).toBe(true) // because of indent
+      expect(tokenizedBuffer.isFoldableAtRow(13)).toBe(true)
+      expect(tokenizedBuffer.isFoldableAtRow(14)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(15)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(16)).toBe(false)
+
+      buffer.insert([0, Infinity], '\n')
+
+      expect(tokenizedBuffer.isFoldableAtRow(0)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(1)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(2)).toBe(true)
+      expect(tokenizedBuffer.isFoldableAtRow(3)).toBe(false)
+
+      buffer.undo()
+
+      expect(tokenizedBuffer.isFoldableAtRow(0)).toBe(true)
+      expect(tokenizedBuffer.isFoldableAtRow(1)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(2)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(3)).toBe(true)
+    }) // because of indent
+
+    it('includes non-comment lines that precede an increase in indentation', () => {
+      buffer.insert([2, 0], '  ') // commented lines preceding an indent aren't foldable
+
+      expect(tokenizedBuffer.isFoldableAtRow(1)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(2)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(3)).toBe(true)
+      expect(tokenizedBuffer.isFoldableAtRow(4)).toBe(true)
+      expect(tokenizedBuffer.isFoldableAtRow(5)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe(true)
+      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe(false)
+
+      buffer.insert([7, 0], '  ')
+
+      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe(true)
+      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe(false)
+
+      buffer.undo()
+
+      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe(true)
+      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe(false)
+
+      buffer.insert([7, 0], '    \n      x\n')
+
+      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe(true)
+      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe(false)
+
+      buffer.insert([9, 0], '  ')
+
+      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe(true)
+      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe(false)
+      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe(false)
+    })
+  })
+
+  describe('.getFoldableRangesAtIndentLevel', () => {
+    it('returns the ranges that can be folded at the given indent level', () => {
+      buffer = new TextBuffer(dedent `
+        if (a) {
+          b();
+          if (c) {
+            d()
+            if (e) {
+              f()
+            }
+            g()
+          }
+          h()
+        }
+        i()
+        if (j) {
+          k()
+        }
+      `)
+
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+
+      expect(simulateFold(tokenizedBuffer.getFoldableRangesAtIndentLevel(0, 2))).toBe(dedent `
+        if (a) {⋯
+        }
+        i()
+        if (j) {⋯
+        }
+      `)
+
+      expect(simulateFold(tokenizedBuffer.getFoldableRangesAtIndentLevel(1, 2))).toBe(dedent `
+        if (a) {
+          b();
+          if (c) {⋯
+          }
+          h()
+        }
+        i()
+        if (j) {
+          k()
+        }
+      `)
+
+      expect(simulateFold(tokenizedBuffer.getFoldableRangesAtIndentLevel(2, 2))).toBe(dedent `
+        if (a) {
+          b();
+          if (c) {
+            d()
+            if (e) {⋯
+            }
+            g()
+          }
+          h()
+        }
+        i()
+        if (j) {
+          k()
+        }
+      `)
+    })
+  })
+
+  describe('.getFoldableRanges', () => {
+    it('returns the ranges that can be folded', () => {
+      buffer = new TextBuffer(dedent `
+        if (a) {
+          b();
+          if (c) {
+            d()
+            if (e) {
+              f()
+            }
+            g()
+          }
+          h()
+        }
+        i()
+        if (j) {
+          k()
+        }
+      `)
+
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+
+      expect(tokenizedBuffer.getFoldableRanges(2).map(r => r.toString())).toEqual([
+        ...tokenizedBuffer.getFoldableRangesAtIndentLevel(0, 2),
+        ...tokenizedBuffer.getFoldableRangesAtIndentLevel(1, 2),
+        ...tokenizedBuffer.getFoldableRangesAtIndentLevel(2, 2),
+      ].sort((a, b) => (a.start.row - b.start.row) || (a.end.row - b.end.row)).map(r => r.toString()))
+    })
+  })
+
+  describe('.getFoldableRangeContainingPoint', () => {
+    it('returns the range for the smallest fold that contains the given range', () => {
+      buffer = new TextBuffer(dedent `
+        if (a) {
+          b();
+          if (c) {
+            d()
+            if (e) {
+              f()
+            }
+            g()
+          }
+          h()
+        }
+        i()
+        if (j) {
+          k()
+        }
+      `)
+
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+
+      expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(0, 5), 2)).toBeNull()
+
+      let range = tokenizedBuffer.getFoldableRangeContainingPoint(Point(0, 10), 2)
+      expect(simulateFold([range])).toBe(dedent `
+        if (a) {⋯
+        }
+        i()
+        if (j) {
+          k()
+        }
+      `)
+
+      range = tokenizedBuffer.getFoldableRangeContainingPoint(Point(1, Infinity), 2)
+      expect(simulateFold([range])).toBe(dedent `
+        if (a) {⋯
+        }
+        i()
+        if (j) {
+          k()
+        }
+      `)
+
+      range = tokenizedBuffer.getFoldableRangeContainingPoint(Point(2, 20), 2)
+      expect(simulateFold([range])).toBe(dedent `
+        if (a) {
+          b();
+          if (c) {⋯
+          }
+          h()
+        }
+        i()
+        if (j) {
+          k()
+        }
+      `)
+    })
+  })
+
+  function simulateFold (ranges) {
+    buffer.transact(() => {
+      for (const range of ranges.reverse()) {
+        buffer.setTextInRange(range, '⋯')
+      }
+    })
+    let text = buffer.getText()
+    buffer.undo()
+    return text
+  }
 })

@@ -1,8 +1,10 @@
-{Range} = require 'text-buffer'
+{Range, Point} = require 'text-buffer'
 _ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
 ScopeDescriptor = require './scope-descriptor'
 NullGrammar = require './null-grammar'
+
+NON_WHITESPACE_REGEX = /\S/
 
 module.exports =
 class LanguageMode
@@ -90,148 +92,28 @@ class LanguageMode
             buffer.setTextInRange([[row, 0], [row, indentString.length]], indentString + commentStartString)
     return
 
-  # Folds all the foldable lines in the buffer.
-  foldAll: ->
-    @unfoldAll()
-    foldedRowRanges = {}
-    for currentRow in [0..@buffer.getLastRow()] by 1
-      rowRange = [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
-      continue unless startRow?
-      continue if foldedRowRanges[rowRange]
-
-      @editor.foldBufferRowRange(startRow, endRow)
-      foldedRowRanges[rowRange] = true
-    return
-
-  # Unfolds all the foldable lines in the buffer.
-  unfoldAll: ->
-    @editor.displayLayer.destroyAllFolds()
-
-  # Fold all comment and code blocks at a given indentLevel
-  #
-  # indentLevel - A {Number} indicating indentLevel; 0 based.
-  foldAllAtIndentLevel: (indentLevel) ->
-    @unfoldAll()
-    foldedRowRanges = {}
-    for currentRow in [0..@buffer.getLastRow()] by 1
-      rowRange = [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
-      continue unless startRow?
-      continue if foldedRowRanges[rowRange]
-
-      # assumption: startRow will always be the min indent level for the entire range
-      if @editor.indentationForBufferRow(startRow) is indentLevel
-        @editor.foldBufferRowRange(startRow, endRow)
-        foldedRowRanges[rowRange] = true
-    return
-
-  # Given a buffer row, creates a fold at it.
-  #
-  # bufferRow - A {Number} indicating the buffer row
-  #
-  # Returns the new {Fold}.
-  foldBufferRow: (bufferRow) ->
-    for currentRow in [bufferRow..0] by -1
-      [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
-      continue unless startRow? and startRow <= bufferRow <= endRow
-      unless @editor.isFoldedAtBufferRow(startRow)
-        return @editor.foldBufferRowRange(startRow, endRow)
-
-  # Find the row range for a fold at a given bufferRow. Will handle comments
-  # and code.
-  #
-  # bufferRow - A {Number} indicating the buffer row
-  #
-  # Returns an {Array} of the [startRow, endRow]. Returns null if no range.
-  rowRangeForFoldAtBufferRow: (bufferRow) ->
-    rowRange = @rowRangeForCommentAtBufferRow(bufferRow)
-    rowRange ?= @rowRangeForCodeFoldAtBufferRow(bufferRow)
-    rowRange
-
-  rowRangeForCommentAtBufferRow: (bufferRow) ->
-    return unless @editor.tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
-
-    startRow = bufferRow
-    endRow = bufferRow
-
-    if bufferRow > 0
-      for currentRow in [bufferRow-1..0] by -1
-        break unless @editor.tokenizedBuffer.tokenizedLines[currentRow]?.isComment()
-        startRow = currentRow
-
-    if bufferRow < @buffer.getLastRow()
-      for currentRow in [bufferRow+1..@buffer.getLastRow()] by 1
-        break unless @editor.tokenizedBuffer.tokenizedLines[currentRow]?.isComment()
-        endRow = currentRow
-
-    return [startRow, endRow] if startRow isnt endRow
-
-  rowRangeForCodeFoldAtBufferRow: (bufferRow) ->
-    return null unless @isFoldableAtBufferRow(bufferRow)
-
-    startIndentLevel = @editor.indentationForBufferRow(bufferRow)
-    scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
-    for row in [(bufferRow + 1)..@editor.getLastBufferRow()] by 1
-      continue if @editor.isBufferRowBlank(row)
-      indentation = @editor.indentationForBufferRow(row)
-      if indentation <= startIndentLevel
-        includeRowInFold = indentation is startIndentLevel and @foldEndRegexForScopeDescriptor(scopeDescriptor)?.searchSync(@editor.lineTextForBufferRow(row))
-        foldEndRow = row if includeRowInFold
-        break
-
-      foldEndRow = row
-
-    [bufferRow, foldEndRow]
-
-  isFoldableAtBufferRow: (bufferRow) ->
-    @editor.tokenizedBuffer.isFoldableAtRow(bufferRow)
-
-  # Returns a {Boolean} indicating whether the line at the given buffer
-  # row is a comment.
-  isLineCommentedAtBufferRow: (bufferRow) ->
-    return false unless 0 <= bufferRow <= @editor.getLastBufferRow()
-    @editor.tokenizedBuffer.tokenizedLines[bufferRow]?.isComment() ? false
-
   # Find a row range for a 'paragraph' around specified bufferRow. A paragraph
   # is a block of text bounded by and empty line or a block of text that is not
   # the same type (comments next to source code).
   rowRangeForParagraphAtBufferRow: (bufferRow) ->
-    scope = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
-    commentStrings = @editor.getCommentStrings(scope)
-    commentStartRegex = null
-    if commentStrings?.commentStartString? and not commentStrings.commentEndString?
-      commentStartRegexString = _.escapeRegExp(commentStrings.commentStartString).replace(/(\s+)$/, '(?:$1)?')
-      commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
+    return unless NON_WHITESPACE_REGEX.test(@editor.lineTextForBufferRow(bufferRow))
 
-    filterCommentStart = (line) ->
-      if commentStartRegex?
-        matches = commentStartRegex.searchSync(line)
-        line = line.substring(matches[0].end) if matches?.length
-      line
-
-    return unless /\S/.test(filterCommentStart(@editor.lineTextForBufferRow(bufferRow)))
-
-    if @isLineCommentedAtBufferRow(bufferRow)
-      isOriginalRowComment = true
-      range = @rowRangeForCommentAtBufferRow(bufferRow)
-      [firstRow, lastRow] = range or [bufferRow, bufferRow]
-    else
-      isOriginalRowComment = false
-      [firstRow, lastRow] = [0, @editor.getLastBufferRow()-1]
+    isCommented = @editor.tokenizedBuffer.isRowCommented(bufferRow)
 
     startRow = bufferRow
-    while startRow > firstRow
-      break if @isLineCommentedAtBufferRow(startRow - 1) isnt isOriginalRowComment
-      break unless /\S/.test(filterCommentStart(@editor.lineTextForBufferRow(startRow - 1)))
+    while startRow > 0
+      break unless NON_WHITESPACE_REGEX.test(@editor.lineTextForBufferRow(startRow - 1))
+      break if @editor.tokenizedBuffer.isRowCommented(startRow - 1) isnt isCommented
       startRow--
 
     endRow = bufferRow
-    lastRow = @editor.getLastBufferRow()
-    while endRow < lastRow
-      break if @isLineCommentedAtBufferRow(endRow + 1) isnt isOriginalRowComment
-      break unless /\S/.test(filterCommentStart(@editor.lineTextForBufferRow(endRow + 1)))
+    rowCount = @editor.getLineCount()
+    while endRow < rowCount
+      break unless NON_WHITESPACE_REGEX.test(@editor.lineTextForBufferRow(endRow + 1))
+      break if @editor.tokenizedBuffer.isRowCommented(endRow + 1) isnt isCommented
       endRow++
 
-    new Range([startRow, 0], [endRow, @editor.lineTextForBufferRow(endRow).length])
+    new Range(new Point(startRow, 0), new Point(endRow, @editor.buffer.lineLengthForRow(endRow)))
 
   # Given a buffer row, this returns a suggested indentation level.
   #
@@ -345,6 +227,3 @@ class LanguageMode
 
   decreaseNextIndentRegexForScopeDescriptor: (scopeDescriptor) ->
     @cacheRegex(@editor.getDecreaseNextIndentPattern(scopeDescriptor))
-
-  foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
-    @cacheRegex(@editor.getFoldEndPattern(scopeDescriptor))

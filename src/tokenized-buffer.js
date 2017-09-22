@@ -6,7 +6,10 @@ const TokenIterator = require('./token-iterator')
 const ScopeDescriptor = require('./scope-descriptor')
 const TokenizedBufferIterator = require('./tokenized-buffer-iterator')
 const NullGrammar = require('./null-grammar')
+const {OnigRegExp} = require('oniguruma')
 const {toFirstMateScopeId} = require('./first-mate-helpers')
+
+const NON_WHITESPACE_REGEX = /\S/
 
 let nextId = 0
 const prefixedScopes = new Map()
@@ -26,6 +29,7 @@ class TokenizedBuffer {
     this.emitter = new Emitter()
     this.disposables = new CompositeDisposable()
     this.tokenIterator = new TokenIterator(this)
+    this.regexesByPattern = {}
 
     this.alive = true
     this.id = params.id != null ? params.id : nextId++
@@ -265,33 +269,7 @@ class TokenizedBuffer {
   }
 
   isFoldableAtRow (row) {
-    return this.isFoldableCodeAtRow(row) || this.isFoldableCommentAtRow(row)
-  }
-
-  // Returns a {Boolean} indicating whether the given buffer row starts
-  // a a foldable row range due to the code's indentation patterns.
-  isFoldableCodeAtRow (row) {
-    if (row >= 0 && row <= this.buffer.getLastRow()) {
-      const nextRow = this.buffer.nextNonBlankRow(row)
-      const tokenizedLine = this.tokenizedLines[row]
-      if (this.buffer.isRowBlank(row) || (tokenizedLine && tokenizedLine.isComment()) || nextRow == null) {
-        return false
-      } else {
-        return this.indentLevelForRow(nextRow) > this.indentLevelForRow(row)
-      }
-    } else {
-      return false
-    }
-  }
-
-  isFoldableCommentAtRow (row) {
-    const previousRow = row - 1
-    const nextRow = row + 1
-    return (
-      (!this.tokenizedLines[previousRow] || !this.tokenizedLines[previousRow].isComment()) &&
-      (this.tokenizedLines[row] && this.tokenizedLines[row].isComment()) &&
-      (this.tokenizedLines[nextRow] && this.tokenizedLines[nextRow].isComment())
-    )
+    return this.endRowForFoldAtRow(row, 1) != null
   }
 
   buildTokenizedLinesForRows (startRow, endRow, startingStack, startingopenScopes) {
@@ -552,6 +530,116 @@ class TokenizedBuffer {
     }
 
     return new Range(new Point(position.row, startColumn), new Point(position.row, endColumn))
+  }
+
+  isRowCommented (row) {
+    return this.tokenizedLines[row] && this.tokenizedLines[row].isComment()
+  }
+
+  getFoldableRangeContainingPoint (point, tabLength) {
+    if (point.column >= this.buffer.lineLengthForRow(point.row)) {
+      const endRow = this.endRowForFoldAtRow(point.row, tabLength)
+      if (endRow != null) {
+        return Range(Point(point.row, Infinity), Point(endRow, Infinity))
+      }
+    }
+
+    for (let row = point.row - 1; row >= 0; row--) {
+      const endRow = this.endRowForFoldAtRow(row, tabLength)
+      if (endRow != null && endRow > point.row) {
+        return Range(Point(row, Infinity), Point(endRow, Infinity))
+      }
+    }
+    return null
+  }
+
+  getFoldableRangesAtIndentLevel (indentLevel, tabLength) {
+    const result = []
+    let row = 0
+    const lineCount = this.buffer.getLineCount()
+    while (row < lineCount) {
+      if (this.indentLevelForLine(this.buffer.lineForRow(row), tabLength) === indentLevel) {
+        const endRow = this.endRowForFoldAtRow(row, tabLength)
+        if (endRow != null) {
+          result.push(Range(Point(row, Infinity), Point(endRow, Infinity)))
+          row = endRow + 1
+          continue
+        }
+      }
+      row++
+    }
+    return result
+  }
+
+  getFoldableRanges (tabLength) {
+    const result = []
+    let row = 0
+    const lineCount = this.buffer.getLineCount()
+    while (row < lineCount) {
+      const endRow = this.endRowForFoldAtRow(row, tabLength)
+      if (endRow != null) {
+        result.push(Range(Point(row, Infinity), Point(endRow, Infinity)))
+      }
+      row++
+    }
+    return result
+  }
+
+  endRowForFoldAtRow (row, tabLength) {
+    if (this.isRowCommented(row)) {
+      return this.endRowForCommentFoldAtRow(row)
+    } else {
+      return this.endRowForCodeFoldAtRow(row, tabLength)
+    }
+  }
+
+  endRowForCommentFoldAtRow (row) {
+    if (this.isRowCommented(row - 1)) return
+
+    let endRow
+    for (let nextRow = row + 1, end = this.buffer.getLineCount(); nextRow < end; nextRow++) {
+      if (!this.isRowCommented(nextRow)) break
+      endRow = nextRow
+    }
+
+    return endRow
+  }
+
+  endRowForCodeFoldAtRow (row, tabLength) {
+    let foldEndRow
+    const line = this.buffer.lineForRow(row)
+    if (!NON_WHITESPACE_REGEX.test(line)) return
+    const startIndentLevel = this.indentLevelForLine(line, tabLength)
+    const scopeDescriptor = this.scopeDescriptorForPosition([row, 0])
+    const foldEndRegex = this.foldEndRegexForScopeDescriptor(scopeDescriptor)
+    for (let nextRow = row + 1, end = this.buffer.getLineCount(); nextRow < end; nextRow++) {
+      const line = this.buffer.lineForRow(nextRow)
+      if (!NON_WHITESPACE_REGEX.test(line)) continue
+      const indentation = this.indentLevelForLine(line, tabLength)
+      if (indentation < startIndentLevel) {
+        break
+      } else if (indentation === startIndentLevel) {
+        if (foldEndRegex && foldEndRegex.searchSync(line)) foldEndRow = nextRow
+        break
+      }
+      foldEndRow = nextRow
+    }
+    return foldEndRow
+  }
+
+  foldEndRegexForScopeDescriptor (scopes) {
+    if (this.scopedSettingsDelegate) {
+      return this.regexForPattern(this.scopedSettingsDelegate.getFoldEndPattern(scopes))
+    }
+  }
+
+  regexForPattern (pattern) {
+    if (pattern) {
+      if (!this.regexesByPattern[pattern]) {
+        this.regexesByPattern[pattern] = new OnigRegExp(pattern)
+      }
+      return this.regexesByPattern[pattern]
+    }
   }
 
   // Gets the row number of the last line.
