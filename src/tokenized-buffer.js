@@ -85,7 +85,8 @@ class TokenizedBuffer {
 
   // Get the suggested indentation level for a line in the buffer on which the user is currently
   // typing. This may return a different result from {::suggestedIndentForBufferRow} in order
-  // to avoid unexpected changes in indentation.
+  // to avoid unexpected changes in indentation. It may also return undefined if no change should
+  // be made.
   //
   // * bufferRow - The row {Number}
   //
@@ -93,16 +94,16 @@ class TokenizedBuffer {
   suggestedIndentForEditedBufferRow (bufferRow) {
     const line = this.buffer.lineForRow(bufferRow)
     const currentIndentLevel = this.indentLevelForLine(line)
-    if (currentIndentLevel === 0) return currentIndentLevel
+    if (currentIndentLevel === 0) return
 
     const scopeDescriptor = this.scopeDescriptorForPosition([bufferRow, 0])
     const decreaseIndentRegex = this.decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    if (!decreaseIndentRegex) return currentIndentLevel
+    if (!decreaseIndentRegex) return
 
-    if (!decreaseIndentRegex.testSync(line)) return currentIndentLevel
+    if (!decreaseIndentRegex.testSync(line)) return
 
     const precedingRow = this.buffer.previousNonBlankRow(bufferRow)
-    if (precedingRow == null) return currentIndentLevel
+    if (precedingRow == null) return
 
     const precedingLine = this.buffer.lineForRow(precedingRow)
     let desiredIndentLevel = this.indentLevelForLine(precedingLine)
@@ -118,7 +119,7 @@ class TokenizedBuffer {
     }
 
     if (desiredIndentLevel < 0) return 0
-    if (desiredIndentLevel > currentIndentLevel) return currentIndentLevel
+    if (desiredIndentLevel >= currentIndentLevel) return
     return desiredIndentLevel
   }
 

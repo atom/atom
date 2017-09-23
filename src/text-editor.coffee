@@ -3083,8 +3083,7 @@ class TextEditor extends Model
     else
       endColumn = @lineTextForBufferRow(bufferRow).match(/^\s*/)[0].length
     newIndentString = @buildIndentString(newLevel)
-    if newIndentString.length isnt endColumn
-      @buffer.setTextInRange([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
+    @buffer.setTextInRange([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
 
   # Extended: Indent rows intersecting selections by one level.
   indentSelectedRows: ->
@@ -3883,7 +3882,7 @@ class TextEditor extends Model
 
   autoDecreaseIndentForBufferRow: (bufferRow) ->
     indentLevel = @tokenizedBuffer.suggestedIndentForEditedBufferRow(bufferRow)
-    @setIndentationForBufferRow(bufferRow, indentLevel)
+    @setIndentationForBufferRow(bufferRow, indentLevel) if indentLevel?
 
   toggleLineCommentForBufferRow: (row) -> @toggleLineCommentsForBufferRows(row, row)
 
