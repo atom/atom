@@ -3316,7 +3316,8 @@ class TextEditor extends Model
 
   # Essential: Unfold the most recent cursor's row by one level.
   unfoldCurrentRow: ->
-    position = @getCursorBufferPosition()
+    {row} = @getCursorBufferPosition()
+    position = Point(row, Infinity)
     @displayLayer.destroyFoldsIntersectingBufferRange(Range(position, position))
 
   # Essential: Fold the given row in buffer coordinates based on its indentation
