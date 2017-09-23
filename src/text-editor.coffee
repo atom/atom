@@ -122,6 +122,8 @@ class TextEditor extends Model
     this
   )
 
+  Object.defineProperty(@prototype, 'languageMode', get: -> @tokenizedBuffer)
+
   @deserialize: (state, atomEnvironment) ->
     # TODO: Return null on version mismatch when 1.8.0 has been out for a while
     if state.version isnt @prototype.serializationVersion and state.displayBuffer?
