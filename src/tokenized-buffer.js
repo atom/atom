@@ -32,6 +32,7 @@ class TokenizedBuffer {
     this.regexesByPattern = {}
 
     this.alive = true
+    this.visible = false
     this.id = params.id != null ? params.id : nextId++
     this.buffer = params.buffer
     this.tabLength = params.tabLength
@@ -735,6 +736,8 @@ class TokenizedBuffer {
     }
   }
 }
+
+module.exports.prototype.chunkSize = 50
 
 function selectorMatchesAnyScope (selector, scopes) {
   const targetClasses = selector.replace(/^\./, '').split('.')
