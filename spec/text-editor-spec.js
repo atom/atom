@@ -1,4 +1,3 @@
-const dedent = require('dedent')
 const {Point, Range} = require('text-buffer')
 const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
@@ -7,49 +6,6 @@ describe('TextEditor', () => {
 
   afterEach(() => {
     editor.destroy()
-  })
-
-  describe('.suggestedIndentForBufferRow', () => {
-    describe('javascript', () => {
-      beforeEach(async () => {
-        editor = await atom.workspace.open('sample.js', {autoIndent: false})
-        await atom.packages.activatePackage('language-javascript')
-      })
-
-      it('bases indentation off of the previous non-blank line', () => {
-        expect(editor.suggestedIndentForBufferRow(0)).toBe(0)
-        expect(editor.suggestedIndentForBufferRow(1)).toBe(1)
-        expect(editor.suggestedIndentForBufferRow(2)).toBe(2)
-        expect(editor.suggestedIndentForBufferRow(5)).toBe(3)
-        expect(editor.suggestedIndentForBufferRow(7)).toBe(2)
-        expect(editor.suggestedIndentForBufferRow(9)).toBe(1)
-        expect(editor.suggestedIndentForBufferRow(11)).toBe(1)
-      })
-
-      it('does not take invisibles into account', () => {
-        editor.update({showInvisibles: true})
-        expect(editor.suggestedIndentForBufferRow(0)).toBe(0)
-        expect(editor.suggestedIndentForBufferRow(1)).toBe(1)
-        expect(editor.suggestedIndentForBufferRow(2)).toBe(2)
-        expect(editor.suggestedIndentForBufferRow(5)).toBe(3)
-        expect(editor.suggestedIndentForBufferRow(7)).toBe(2)
-        expect(editor.suggestedIndentForBufferRow(9)).toBe(1)
-        expect(editor.suggestedIndentForBufferRow(11)).toBe(1)
-      })
-    })
-
-    describe('css', () => {
-      beforeEach(async () => {
-        editor = await atom.workspace.open('css.css', {autoIndent: true})
-        await atom.packages.activatePackage('language-source')
-        await atom.packages.activatePackage('language-css')
-      })
-
-      it('does not return negative values (regression)', () => {
-        editor.setText('.test {\npadding: 0;\n}')
-        expect(editor.suggestedIndentForBufferRow(2)).toBe(0)
-      })
-    })
   })
 
   describe('.toggleLineCommentsForBufferRows', () => {
