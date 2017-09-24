@@ -158,6 +158,94 @@ class TokenizedBuffer {
     return Math.max(desiredIndentLevel, 0)
   }
 
+  /*
+  Section - Comments
+  */
+
+  toggleLineCommentsForBufferRows (start, end) {
+    const scope = this.scopeDescriptorForPosition([start, 0])
+    const commentStrings = this.commentStringsForScopeDescriptor(scope)
+    if (!commentStrings) return
+    const {commentStartString, commentEndString} = commentStrings
+    if (!commentStartString) return
+
+    const commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
+    const commentStartRegex = new OnigRegExp(`^(\\s*)(${commentStartRegexString})`)
+
+    if (commentEndString) {
+      const shouldUncomment = commentStartRegex.testSync(this.buffer.lineForRow(start))
+      if (shouldUncomment) {
+        const commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '(?:$1)?')
+        const commentEndRegex = new OnigRegExp(`(${commentEndRegexString})(\\s*)$`)
+        const startMatch = commentStartRegex.searchSync(this.buffer.lineForRow(start))
+        const endMatch = commentEndRegex.searchSync(this.buffer.lineForRow(end))
+        if (startMatch && endMatch) {
+          this.buffer.transact(() => {
+            const columnStart = startMatch[1].length
+            const columnEnd = columnStart + startMatch[2].length
+            this.buffer.setTextInRange([[start, columnStart], [start, columnEnd]], '')
+
+            const endLength = this.buffer.lineLengthForRow(end) - endMatch[2].length
+            const endColumn = endLength - endMatch[1].length
+            return this.buffer.setTextInRange([[end, endColumn], [end, endLength]], '')
+          })
+        }
+      } else {
+        this.buffer.transact(() => {
+          const indentLength = this.buffer.lineForRow(start).match(/^\s*/)[0].length
+          this.buffer.insert([start, indentLength], commentStartString)
+          this.buffer.insert([end, this.buffer.lineLengthForRow(end)], commentEndString)
+        })
+      }
+    } else {
+      let allBlank = true
+      let allBlankOrCommented = true
+
+      for (let row = start; row <= end; row++) {
+        const line = this.buffer.lineForRow(row)
+        const blank = line.match(/^\s*$/)
+        if (!blank) allBlank = false
+        if (!blank && !commentStartRegex.testSync(line)) allBlankOrCommented = false
+      }
+
+      const shouldUncomment = allBlankOrCommented && !allBlank
+
+      if (shouldUncomment) {
+        for (let row = start; row <= end; row++) {
+          const match = commentStartRegex.searchSync(this.buffer.lineForRow(row))
+          if (match) {
+            const columnStart = match[1].length
+            const columnEnd = columnStart + match[2].length
+            this.buffer.setTextInRange([[row, columnStart], [row, columnEnd]], '')
+          }
+        }
+      } else {
+        const indents = []
+        for (let row = start; row <= end; row++) {
+          const line = this.buffer.lineForRow(row)
+          if (NON_WHITESPACE_REGEX.test(line)) {
+            indents.push(this.indentLevelForLine(line))
+          }
+        }
+        if (indents.length === 0) indents.push(0)
+        const indent = Math.min(...indents)
+
+        const tabLength = this.getTabLength()
+        const indentString = ' '.repeat(tabLength * indent)
+        const indentRegex = new RegExp(`(\t|[ ]{${tabLength}}){${Math.floor(indent)}}`)
+        for (let row = start; row <= end; row++) {
+          const line = this.buffer.lineForRow(row)
+          const indentMatch = line.match(indentRegex)
+          if (indentMatch) {
+            this.buffer.insert([row, indentMatch[0].length], commentStartString)
+          } else {
+            this.buffer.insert([row, 0], indentString + commentStartString)
+          }
+        }
+      }
+    }
+  }
+
   buildIterator () {
     return new TokenizedBufferIterator(this)
   }
@@ -717,6 +805,12 @@ class TokenizedBuffer {
   foldEndRegexForScopeDescriptor (scopes) {
     if (this.scopedSettingsDelegate) {
       return this.regexForPattern(this.scopedSettingsDelegate.getFoldEndPattern(scopes))
+    }
+  }
+
+  commentStringsForScopeDescriptor (scopes) {
+    if (this.scopedSettingsDelegate) {
+      return this.scopedSettingsDelegate.getCommentStrings(scopes)
     }
   }
 
