@@ -57,8 +57,9 @@ class GitRepository
   #
   # * `path` The {String} path to the Git repository to open.
   # * `options` An optional {Object} with the following keys:
-  #   * `refreshOnWindowFocus` A {Boolean}, `true` to refresh the index and
-  #     statuses when the window is focused.
+  #   * `project` An optional {Project} representing a project open in the editor,
+  #      will be wired up with event handlers to check status after changes
+  #   * `config` An {Object} that is not used
   #
   # Returns a {GitRepository} instance or `null` if the repository could not be opened.
   @open: (path, options) ->
@@ -81,16 +82,15 @@ class GitRepository
     for submodulePath, submoduleRepo of @repo.submodules
       submoduleRepo.upstream = {ahead: 0, behind: 0}
 
-    {@project, @config, refreshOnWindowFocus} = options
+    {@project, @config} = options
 
-    refreshOnWindowFocus ?= true
-    if refreshOnWindowFocus
-      onWindowFocus = =>
+    onWindowFocus = =>
+      if atom.config.get('core.gitRepositoryRefreshOnWindowFocus')
         @refreshIndex()
         @refreshStatus()
 
-      window.addEventListener 'focus', onWindowFocus
-      @subscriptions.add new Disposable(-> window.removeEventListener 'focus', onWindowFocus)
+    window.addEventListener 'focus', onWindowFocus
+    @subscriptions.add new Disposable(-> window.removeEventListener 'focus', onWindowFocus)
 
     if @project?
       @project.getBuffers().forEach (buffer) => @subscribeToBuffer(buffer)
