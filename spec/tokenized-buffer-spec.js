@@ -5,6 +5,7 @@ const {Point, Range} = TextBuffer
 const _ = require('underscore-plus')
 const dedent = require('dedent')
 const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const {ScopedSettingsDelegate} = require('../src/text-editor-registry')
 
 describe('TokenizedBuffer', () => {
   let tokenizedBuffer, buffer
@@ -16,7 +17,10 @@ describe('TokenizedBuffer', () => {
     await atom.packages.activatePackage('language-javascript')
   })
 
-  afterEach(() => tokenizedBuffer && tokenizedBuffer.destroy())
+  afterEach(() => {
+    buffer && buffer.destroy()
+    tokenizedBuffer && tokenizedBuffer.destroy()
+  })
 
   function startTokenizing (tokenizedBuffer) {
     tokenizedBuffer.setVisible(true)
@@ -640,159 +644,181 @@ describe('TokenizedBuffer', () => {
   })
 
   describe('.toggleLineCommentsForBufferRows', () => {
-    let editor
-
     describe('xml', () => {
       beforeEach(async () => {
-        editor = await atom.workspace.open('sample.xml', {autoIndent: false})
-        editor.setText('<!-- test -->')
         await atom.packages.activatePackage('language-xml')
+        buffer = new TextBuffer('<!-- test -->')
+        tokenizedBuffer = new TokenizedBuffer({
+          buffer,
+          grammar: atom.grammars.grammarForScopeName('text.xml'),
+          scopedSettingsDelegate: new ScopedSettingsDelegate(atom.config)
+        })
       })
 
       it('removes the leading whitespace from the comment end pattern match when uncommenting lines', () => {
-        editor.toggleLineCommentsForBufferRows(0, 0)
-        expect(editor.lineTextForBufferRow(0)).toBe('test')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(0, 0)
+        expect(buffer.lineForRow(0)).toBe('test')
       })
     })
 
     describe('less', () => {
       beforeEach(async () => {
-        editor = await atom.workspace.open('sample.less', {autoIndent: false})
         await atom.packages.activatePackage('language-less')
         await atom.packages.activatePackage('language-css')
+        buffer = await TextBuffer.load(require.resolve('./fixtures/sample.less'))
+        tokenizedBuffer = new TokenizedBuffer({
+          buffer,
+          grammar: atom.grammars.grammarForScopeName('source.css.less'),
+          scopedSettingsDelegate: new ScopedSettingsDelegate(atom.config)
+        })
       })
 
       it('only uses the `commentEnd` pattern if it comes from the same grammar as the `commentStart` when commenting lines', () => {
-        editor.toggleLineCommentsForBufferRows(0, 0)
-        expect(editor.lineTextForBufferRow(0)).toBe('// @color: #4D926F;')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(0, 0)
+        expect(buffer.lineForRow(0)).toBe('// @color: #4D926F;')
       })
     })
 
     describe('css', () => {
       beforeEach(async () => {
-        editor = await atom.workspace.open('css.css', {autoIndent: false})
         await atom.packages.activatePackage('language-css')
+        buffer = await TextBuffer.load(require.resolve('./fixtures/css.css'))
+        tokenizedBuffer = new TokenizedBuffer({
+          buffer,
+          grammar: atom.grammars.grammarForScopeName('source.css'),
+          scopedSettingsDelegate: new ScopedSettingsDelegate(atom.config)
+        })
       })
 
       it('comments/uncomments lines in the given range', () => {
-        editor.toggleLineCommentsForBufferRows(0, 1)
-        expect(editor.lineTextForBufferRow(0)).toBe('/*body {')
-        expect(editor.lineTextForBufferRow(1)).toBe('  font-size: 1234px;*/')
-        expect(editor.lineTextForBufferRow(2)).toBe('  width: 110%;')
-        expect(editor.lineTextForBufferRow(3)).toBe('  font-weight: bold !important;')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(0, 1)
+        expect(buffer.lineForRow(0)).toBe('/*body {')
+        expect(buffer.lineForRow(1)).toBe('  font-size: 1234px;*/')
+        expect(buffer.lineForRow(2)).toBe('  width: 110%;')
+        expect(buffer.lineForRow(3)).toBe('  font-weight: bold !important;')
 
-        editor.toggleLineCommentsForBufferRows(2, 2)
-        expect(editor.lineTextForBufferRow(0)).toBe('/*body {')
-        expect(editor.lineTextForBufferRow(1)).toBe('  font-size: 1234px;*/')
-        expect(editor.lineTextForBufferRow(2)).toBe('  /*width: 110%;*/')
-        expect(editor.lineTextForBufferRow(3)).toBe('  font-weight: bold !important;')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(2, 2)
+        expect(buffer.lineForRow(0)).toBe('/*body {')
+        expect(buffer.lineForRow(1)).toBe('  font-size: 1234px;*/')
+        expect(buffer.lineForRow(2)).toBe('  /*width: 110%;*/')
+        expect(buffer.lineForRow(3)).toBe('  font-weight: bold !important;')
 
-        editor.toggleLineCommentsForBufferRows(0, 1)
-        expect(editor.lineTextForBufferRow(0)).toBe('body {')
-        expect(editor.lineTextForBufferRow(1)).toBe('  font-size: 1234px;')
-        expect(editor.lineTextForBufferRow(2)).toBe('  /*width: 110%;*/')
-        expect(editor.lineTextForBufferRow(3)).toBe('  font-weight: bold !important;')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(0, 1)
+        expect(buffer.lineForRow(0)).toBe('body {')
+        expect(buffer.lineForRow(1)).toBe('  font-size: 1234px;')
+        expect(buffer.lineForRow(2)).toBe('  /*width: 110%;*/')
+        expect(buffer.lineForRow(3)).toBe('  font-weight: bold !important;')
       })
 
       it('uncomments lines with leading whitespace', () => {
-        editor.setTextInBufferRange([[2, 0], [2, Infinity]], '  /*width: 110%;*/')
-        editor.toggleLineCommentsForBufferRows(2, 2)
-        expect(editor.lineTextForBufferRow(2)).toBe('  width: 110%;')
+        buffer.setTextInRange([[2, 0], [2, Infinity]], '  /*width: 110%;*/')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(2, 2)
+        expect(buffer.lineForRow(2)).toBe('  width: 110%;')
       })
 
       it('uncomments lines with trailing whitespace', () => {
-        editor.setTextInBufferRange([[2, 0], [2, Infinity]], '/*width: 110%;*/  ')
-        editor.toggleLineCommentsForBufferRows(2, 2)
-        expect(editor.lineTextForBufferRow(2)).toBe('width: 110%;  ')
+        buffer.setTextInRange([[2, 0], [2, Infinity]], '/*width: 110%;*/  ')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(2, 2)
+        expect(buffer.lineForRow(2)).toBe('width: 110%;  ')
       })
 
       it('uncomments lines with leading and trailing whitespace', () => {
-        editor.setTextInBufferRange([[2, 0], [2, Infinity]], '   /*width: 110%;*/ ')
-        editor.toggleLineCommentsForBufferRows(2, 2)
-        expect(editor.lineTextForBufferRow(2)).toBe('   width: 110%; ')
+        buffer.setTextInRange([[2, 0], [2, Infinity]], '   /*width: 110%;*/ ')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(2, 2)
+        expect(buffer.lineForRow(2)).toBe('   width: 110%; ')
       })
     })
 
     describe('coffeescript', () => {
       beforeEach(async () => {
-        editor = await atom.workspace.open('coffee.coffee', {autoIndent: false})
         await atom.packages.activatePackage('language-coffee-script')
+        buffer = await TextBuffer.load(require.resolve('./fixtures/coffee.coffee'))
+        tokenizedBuffer = new TokenizedBuffer({
+          buffer,
+          tabLength: 2,
+          grammar: atom.grammars.grammarForScopeName('source.coffee'),
+          scopedSettingsDelegate: new ScopedSettingsDelegate(atom.config)
+        })
       })
 
       it('comments/uncomments lines in the given range', () => {
-        editor.toggleLineCommentsForBufferRows(4, 6)
-        expect(editor.lineTextForBufferRow(4)).toBe('    # pivot = items.shift()')
-        expect(editor.lineTextForBufferRow(5)).toBe('    # left = []')
-        expect(editor.lineTextForBufferRow(6)).toBe('    # right = []')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(4, 6)
+        expect(buffer.lineForRow(4)).toBe('    # pivot = items.shift()')
+        expect(buffer.lineForRow(5)).toBe('    # left = []')
+        expect(buffer.lineForRow(6)).toBe('    # right = []')
 
-        editor.toggleLineCommentsForBufferRows(4, 5)
-        expect(editor.lineTextForBufferRow(4)).toBe('    pivot = items.shift()')
-        expect(editor.lineTextForBufferRow(5)).toBe('    left = []')
-        expect(editor.lineTextForBufferRow(6)).toBe('    # right = []')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(4, 5)
+        expect(buffer.lineForRow(4)).toBe('    pivot = items.shift()')
+        expect(buffer.lineForRow(5)).toBe('    left = []')
+        expect(buffer.lineForRow(6)).toBe('    # right = []')
       })
 
       it('comments/uncomments empty lines', () => {
-        editor.toggleLineCommentsForBufferRows(4, 7)
-        expect(editor.lineTextForBufferRow(4)).toBe('    # pivot = items.shift()')
-        expect(editor.lineTextForBufferRow(5)).toBe('    # left = []')
-        expect(editor.lineTextForBufferRow(6)).toBe('    # right = []')
-        expect(editor.lineTextForBufferRow(7)).toBe('    # ')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(4, 7)
+        expect(buffer.lineForRow(4)).toBe('    # pivot = items.shift()')
+        expect(buffer.lineForRow(5)).toBe('    # left = []')
+        expect(buffer.lineForRow(6)).toBe('    # right = []')
+        expect(buffer.lineForRow(7)).toBe('    # ')
 
-        editor.toggleLineCommentsForBufferRows(4, 5)
-        expect(editor.lineTextForBufferRow(4)).toBe('    pivot = items.shift()')
-        expect(editor.lineTextForBufferRow(5)).toBe('    left = []')
-        expect(editor.lineTextForBufferRow(6)).toBe('    # right = []')
-        expect(editor.lineTextForBufferRow(7)).toBe('    # ')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(4, 5)
+        expect(buffer.lineForRow(4)).toBe('    pivot = items.shift()')
+        expect(buffer.lineForRow(5)).toBe('    left = []')
+        expect(buffer.lineForRow(6)).toBe('    # right = []')
+        expect(buffer.lineForRow(7)).toBe('    # ')
       })
     })
 
     describe('javascript', () => {
       beforeEach(async () => {
-        editor = await atom.workspace.open('sample.js', {autoIndent: false})
         await atom.packages.activatePackage('language-javascript')
+        buffer = await TextBuffer.load(require.resolve('./fixtures/sample.js'))
+        tokenizedBuffer = new TokenizedBuffer({
+          buffer,
+          tabLength: 2,
+          grammar: atom.grammars.grammarForScopeName('source.js'),
+          scopedSettingsDelegate: new ScopedSettingsDelegate(atom.config)
+        })
       })
 
       it('comments/uncomments lines in the given range', () => {
-        editor.toggleLineCommentsForBufferRows(4, 7)
-        expect(editor.lineTextForBufferRow(4)).toBe('    // while(items.length > 0) {')
-        expect(editor.lineTextForBufferRow(5)).toBe('    //   current = items.shift();')
-        expect(editor.lineTextForBufferRow(6)).toBe('    //   current < pivot ? left.push(current) : right.push(current);')
-        expect(editor.lineTextForBufferRow(7)).toBe('    // }')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(4, 7)
+        expect(buffer.lineForRow(4)).toBe('    // while(items.length > 0) {')
+        expect(buffer.lineForRow(5)).toBe('    //   current = items.shift();')
+        expect(buffer.lineForRow(6)).toBe('    //   current < pivot ? left.push(current) : right.push(current);')
+        expect(buffer.lineForRow(7)).toBe('    // }')
 
-        editor.toggleLineCommentsForBufferRows(4, 5)
-        expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
-        expect(editor.lineTextForBufferRow(5)).toBe('      current = items.shift();')
-        console.log(JSON.stringify(editor.lineTextForBufferRow(5)));
-        return
-        expect(editor.lineTextForBufferRow(6)).toBe('    //   current < pivot ? left.push(current) : right.push(current);')
-        expect(editor.lineTextForBufferRow(7)).toBe('    // }')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(4, 5)
+        expect(buffer.lineForRow(4)).toBe('    while(items.length > 0) {')
+        expect(buffer.lineForRow(5)).toBe('      current = items.shift();')
+        expect(buffer.lineForRow(6)).toBe('    //   current < pivot ? left.push(current) : right.push(current);')
+        expect(buffer.lineForRow(7)).toBe('    // }')
 
-        editor.setText('\tvar i;')
-        editor.toggleLineCommentsForBufferRows(0, 0)
-        expect(editor.lineTextForBufferRow(0)).toBe('\t// var i;')
+        buffer.setText('\tvar i;')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(0, 0)
+        expect(buffer.lineForRow(0)).toBe('\t// var i;')
 
-        editor.setText('var i;')
-        editor.toggleLineCommentsForBufferRows(0, 0)
-        expect(editor.lineTextForBufferRow(0)).toBe('// var i;')
+        buffer.setText('var i;')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(0, 0)
+        expect(buffer.lineForRow(0)).toBe('// var i;')
 
-        editor.setText(' var i;')
-        editor.toggleLineCommentsForBufferRows(0, 0)
-        expect(editor.lineTextForBufferRow(0)).toBe(' // var i;')
+        buffer.setText(' var i;')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(0, 0)
+        expect(buffer.lineForRow(0)).toBe(' // var i;')
 
-        editor.setText('  ')
-        editor.toggleLineCommentsForBufferRows(0, 0)
-        expect(editor.lineTextForBufferRow(0)).toBe('  // ')
+        buffer.setText('  ')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(0, 0)
+        expect(buffer.lineForRow(0)).toBe('// ')
 
-        editor.setText('    a\n  \n    b')
-        editor.toggleLineCommentsForBufferRows(0, 2)
-        expect(editor.lineTextForBufferRow(0)).toBe('    // a')
-        expect(editor.lineTextForBufferRow(1)).toBe('    // ')
-        expect(editor.lineTextForBufferRow(2)).toBe('    // b')
+        buffer.setText('    a\n  \n    b')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(0, 2)
+        expect(buffer.lineForRow(0)).toBe('    // a')
+        expect(buffer.lineForRow(1)).toBe('    // ')
+        expect(buffer.lineForRow(2)).toBe('    // b')
 
-        editor.setText('    \n    // var i;')
-        editor.toggleLineCommentsForBufferRows(0, 1)
-        expect(editor.lineTextForBufferRow(0)).toBe('    ')
-        expect(editor.lineTextForBufferRow(1)).toBe('    var i;')
+        buffer.setText('    \n    // var i;')
+        tokenizedBuffer.toggleLineCommentsForBufferRows(0, 1)
+        expect(buffer.lineForRow(0)).toBe('    ')
+        expect(buffer.lineForRow(1)).toBe('    var i;')
       })
     })
   })

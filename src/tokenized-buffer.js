@@ -38,6 +38,7 @@ class TokenizedBuffer {
     this.tabLength = params.tabLength
     this.largeFileMode = params.largeFileMode
     this.assert = params.assert
+    this.scopedSettingsDelegate = params.scopedSettingsDelegate
 
     this.setGrammar(params.grammar || NullGrammar)
     this.disposables.add(this.buffer.registerTextDecorationLayer(this))
@@ -220,26 +221,28 @@ class TokenizedBuffer {
           }
         }
       } else {
-        const indents = []
+        let minIndentLevel = null
         for (let row = start; row <= end; row++) {
           const line = this.buffer.lineForRow(row)
           if (NON_WHITESPACE_REGEX.test(line)) {
-            indents.push(this.indentLevelForLine(line))
+            const indentLevel = this.indentLevelForLine(line)
+            if (minIndentLevel == null || indentLevel < minIndentLevel) minIndentLevel = indentLevel
           }
         }
-        if (indents.length === 0) indents.push(0)
-        const indent = Math.min(...indents)
+        if (minIndentLevel == null) minIndentLevel = 0
 
         const tabLength = this.getTabLength()
-        const indentString = ' '.repeat(tabLength * indent)
-        const indentRegex = new RegExp(`(\t|[ ]{${tabLength}}){${Math.floor(indent)}}`)
+        const indentString = ' '.repeat(tabLength * minIndentLevel)
         for (let row = start; row <= end; row++) {
           const line = this.buffer.lineForRow(row)
-          const indentMatch = line.match(indentRegex)
-          if (indentMatch) {
-            this.buffer.insert([row, indentMatch[0].length], commentStartString)
+          if (NON_WHITESPACE_REGEX.test(line)) {
+            const indentColumn = this.columnForIndentLevel(line, minIndentLevel)
+            this.buffer.insert(Point(row, indentColumn), commentStartString)
           } else {
-            this.buffer.insert([row, 0], indentString + commentStartString)
+            this.buffer.setTextInRange(
+              new Range(new Point(row, 0), new Point(row, Infinity)),
+              indentString + commentStartString
+            )
           }
         }
       }
@@ -579,6 +582,24 @@ class TokenizedBuffer {
       }
     }
     return scopes
+  }
+
+  columnForIndentLevel (line, indentLevel, tabLength = this.tabLength) {
+    let column = 0
+    let indentLength = 0
+    const goalIndentLength = indentLevel * tabLength
+    while (indentLength < goalIndentLength) {
+      const char = line[column]
+      if (char === '\t') {
+        indentLength += tabLength - (indentLength % tabLength)
+      } else if (char === ' ') {
+        indentLength++
+      } else {
+        break
+      }
+      column++
+    }
+    return column
   }
 
   indentLevelForLine (line, tabLength = this.tabLength) {
