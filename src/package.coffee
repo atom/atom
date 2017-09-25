@@ -517,7 +517,7 @@ class Package
       console.error "Error deactivating package '#{@name}'", e.stack
 
     # We support then-able async promises as well as sync ones from deactivate
-    if deactivationResult?.then is 'function'
+    if typeof deactivationResult?.then is 'function'
       deactivationResult.then => @afterDeactivation()
     else
       @afterDeactivation()
