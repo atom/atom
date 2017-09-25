@@ -3343,9 +3343,9 @@ describe('TextEditorComponent', () => {
         await component.getNextUpdatePromise()
         expect(editor.isFoldedAtScreenRow(5)).toBe(true)
 
-        target = element.querySelectorAll('.line-number')[6].querySelector('.icon-right')
-        component.didMouseDownOnLineNumberGutter({target, button: 0, clientY: clientTopForLine(component, 5)})
-        expect(editor.isFoldedAtScreenRow(5)).toBe(false)
+        target = element.querySelectorAll('.line-number')[4].querySelector('.icon-right')
+        component.didMouseDownOnLineNumberGutter({target, button: 0, clientY: clientTopForLine(component, 4)})
+        expect(editor.isFoldedAtScreenRow(4)).toBe(false)
       })
 
       it('autoscrolls when dragging near the top or bottom of the gutter', async () => {

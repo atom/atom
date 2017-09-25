@@ -429,3 +429,5 @@ class ScopedSettingsDelegate {
     }
   }
 }
+
+TextEditorRegistry.ScopedSettingsDelegate = ScopedSettingsDelegate

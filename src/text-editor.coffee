@@ -4,7 +4,6 @@ fs = require 'fs-plus'
 Grim = require 'grim'
 {CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 {Point, Range} = TextBuffer = require 'text-buffer'
-LanguageMode = require './language-mode'
 DecorationManager = require './decoration-manager'
 TokenizedBuffer = require './tokenized-buffer'
 Cursor = require './cursor'
@@ -16,6 +15,7 @@ TextEditorComponent = null
 TextEditorElement = null
 {isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require './text-utils'
 
+NON_WHITESPACE_REGEXP = /\S/
 ZERO_WIDTH_NBSP = '\ufeff'
 
 # Essential: This class represents all essential editing state for a single
@@ -78,7 +78,6 @@ class TextEditor extends Model
   serializationVersion: 1
 
   buffer: null
-  languageMode: null
   cursors: null
   showCursorOnSelection: null
   selections: null
@@ -121,6 +120,8 @@ class TextEditor extends Model
     """)
     this
   )
+
+  Object.defineProperty(@prototype, 'languageMode', get: -> @tokenizedBuffer)
 
   @deserialize: (state, atomEnvironment) ->
     # TODO: Return null on version mismatch when 1.8.0 has been out for a while
@@ -242,8 +243,6 @@ class TextEditor extends Model
       initialLine = Math.max(parseInt(initialLine) or 0, 0)
       initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
       @addCursorAtBufferPosition([initialLine, initialColumn])
-
-    @languageMode = new LanguageMode(this)
 
     @gutterContainer = new GutterContainer(this)
     @lineNumberGutter = @gutterContainer.addGutter
@@ -482,7 +481,6 @@ class TextEditor extends Model
     @tokenizedBuffer.destroy()
     selection.destroy() for selection in @selections.slice()
     @buffer.release()
-    @languageMode.destroy()
     @gutterContainer.destroy()
     @emitter.emit 'did-destroy'
     @emitter.clear()
@@ -3311,13 +3309,15 @@ class TextEditor extends Model
   # indentation level up to the nearest following row with a lower indentation
   # level.
   foldCurrentRow: ->
-    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
-    @foldBufferRow(bufferRow)
+    {row} = @getCursorBufferPosition()
+    range = @tokenizedBuffer.getFoldableRangeContainingPoint(Point(row, Infinity))
+    @displayLayer.foldBufferRange(range)
 
   # Essential: Unfold the most recent cursor's row by one level.
   unfoldCurrentRow: ->
-    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
-    @unfoldBufferRow(bufferRow)
+    {row} = @getCursorBufferPosition()
+    position = Point(row, Infinity)
+    @displayLayer.destroyFoldsIntersectingBufferRange(Range(position, position))
 
   # Essential: Fold the given row in buffer coordinates based on its indentation
   # level.
@@ -3327,13 +3327,26 @@ class TextEditor extends Model
   #
   # * `bufferRow` A {Number}.
   foldBufferRow: (bufferRow) ->
-    @languageMode.foldBufferRow(bufferRow)
+    position = Point(bufferRow, Infinity)
+    loop
+      foldableRange = @tokenizedBuffer.getFoldableRangeContainingPoint(position, @getTabLength())
+      if foldableRange
+        existingFolds = @displayLayer.foldsIntersectingBufferRange(Range(foldableRange.start, foldableRange.start))
+        if existingFolds.length is 0
+          @displayLayer.foldBufferRange(foldableRange)
+        else
+          firstExistingFoldRange = @displayLayer.bufferRangeForFold(existingFolds[0])
+          if firstExistingFoldRange.start.isLessThan(position)
+            position = Point(firstExistingFoldRange.start.row, 0)
+            continue
+      return
 
   # Essential: Unfold all folds containing the given row in buffer coordinates.
   #
   # * `bufferRow` A {Number}
   unfoldBufferRow: (bufferRow) ->
-    @displayLayer.destroyFoldsIntersectingBufferRange(Range(Point(bufferRow, 0), Point(bufferRow, Infinity)))
+    position = Point(bufferRow, Infinity)
+    @displayLayer.destroyFoldsIntersectingBufferRange(Range(position, position))
 
   # Extended: For each selection, fold the rows it intersects.
   foldSelectedLines: ->
@@ -3342,18 +3355,25 @@ class TextEditor extends Model
 
   # Extended: Fold all foldable lines.
   foldAll: ->
-    @languageMode.foldAll()
+    @displayLayer.destroyAllFolds()
+    for range in @tokenizedBuffer.getFoldableRanges(@getTabLength())
+      @displayLayer.foldBufferRange(range)
+    return
 
   # Extended: Unfold all existing folds.
   unfoldAll: ->
-    @languageMode.unfoldAll()
+    result = @displayLayer.destroyAllFolds()
     @scrollToCursorPosition()
+    result
 
   # Extended: Fold all foldable lines at the given indent level.
   #
   # * `level` A {Number}.
   foldAllAtIndentLevel: (level) ->
-    @languageMode.foldAllAtIndentLevel(level)
+    @displayLayer.destroyAllFolds()
+    for range in @tokenizedBuffer.getFoldableRangesAtIndentLevel(level, @getTabLength())
+      @displayLayer.foldBufferRange(range)
+    return
 
   # Extended: Determine whether the given row in buffer coordinates is foldable.
   #
@@ -3547,6 +3567,7 @@ class TextEditor extends Model
   # for specific syntactic scopes. See the `ScopedSettingsDelegate` in
   # `text-editor-registry.js` for an example implementation.
   setScopedSettingsDelegate: (@scopedSettingsDelegate) ->
+    @tokenizedBuffer.scopedSettingsDelegate = this.scopedSettingsDelegate
 
   # Experimental: Retrieve the {Object} that provides the editor with settings
   # for specific syntactic scopes.
@@ -3602,18 +3623,6 @@ class TextEditor extends Model
 
   getCommentStrings: (scopes) ->
     @scopedSettingsDelegate?.getCommentStrings?(scopes)
-
-  getIncreaseIndentPattern: (scopes) ->
-    @scopedSettingsDelegate?.getIncreaseIndentPattern?(scopes)
-
-  getDecreaseIndentPattern: (scopes) ->
-    @scopedSettingsDelegate?.getDecreaseIndentPattern?(scopes)
-
-  getDecreaseNextIndentPattern: (scopes) ->
-    @scopedSettingsDelegate?.getDecreaseNextIndentPattern?(scopes)
-
-  getFoldEndPattern: (scopes) ->
-    @scopedSettingsDelegate?.getFoldEndPattern?(scopes)
 
   ###
   Section: Event Handlers
@@ -3850,14 +3859,51 @@ class TextEditor extends Model
   Section: Language Mode Delegated Methods
   ###
 
-  suggestedIndentForBufferRow: (bufferRow, options) -> @languageMode.suggestedIndentForBufferRow(bufferRow, options)
+  suggestedIndentForBufferRow: (bufferRow, options) -> @tokenizedBuffer.suggestedIndentForBufferRow(bufferRow, options)
 
-  autoIndentBufferRow: (bufferRow, options) -> @languageMode.autoIndentBufferRow(bufferRow, options)
+  # Given a buffer row, indent it.
+  #
+  # * bufferRow - The row {Number}.
+  # * options - An options {Object} to pass through to {TextEditor::setIndentationForBufferRow}.
+  autoIndentBufferRow: (bufferRow, options) ->
+    indentLevel = @suggestedIndentForBufferRow(bufferRow, options)
+    @setIndentationForBufferRow(bufferRow, indentLevel, options)
 
-  autoIndentBufferRows: (startRow, endRow) -> @languageMode.autoIndentBufferRows(startRow, endRow)
+  # Indents all the rows between two buffer row numbers.
+  #
+  # * startRow - The row {Number} to start at
+  # * endRow - The row {Number} to end at
+  autoIndentBufferRows: (startRow, endRow) ->
+    row = startRow
+    while row <= endRow
+      @autoIndentBufferRow(row)
+      row++
+    return
 
-  autoDecreaseIndentForBufferRow: (bufferRow) -> @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
+  autoDecreaseIndentForBufferRow: (bufferRow) ->
+    indentLevel = @tokenizedBuffer.suggestedIndentForEditedBufferRow(bufferRow)
+    @setIndentationForBufferRow(bufferRow, indentLevel) if indentLevel?
 
-  toggleLineCommentForBufferRow: (row) -> @languageMode.toggleLineCommentsForBufferRow(row)
+  toggleLineCommentForBufferRow: (row) -> @toggleLineCommentsForBufferRows(row, row)
 
-  toggleLineCommentsForBufferRows: (start, end) -> @languageMode.toggleLineCommentsForBufferRows(start, end)
+  toggleLineCommentsForBufferRows: (start, end) -> @tokenizedBuffer.toggleLineCommentsForBufferRows(start, end)
+
+  rowRangeForParagraphAtBufferRow: (bufferRow) ->
+    return unless NON_WHITESPACE_REGEXP.test(@lineTextForBufferRow(bufferRow))
+
+    isCommented = @tokenizedBuffer.isRowCommented(bufferRow)
+
+    startRow = bufferRow
+    while startRow > 0
+      break unless NON_WHITESPACE_REGEXP.test(@lineTextForBufferRow(startRow - 1))
+      break if @tokenizedBuffer.isRowCommented(startRow - 1) isnt isCommented
+      startRow--
+
+    endRow = bufferRow
+    rowCount = @getLineCount()
+    while endRow < rowCount
+      break unless NON_WHITESPACE_REGEXP.test(@lineTextForBufferRow(endRow + 1))
+      break if @tokenizedBuffer.isRowCommented(endRow + 1) isnt isCommented
+      endRow++
+
+    new Range(new Point(startRow, 0), new Point(endRow, @buffer.lineLengthForRow(endRow)))

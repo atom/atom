@@ -1168,6 +1168,58 @@ describe "TextEditor", ->
         editor.setCursorBufferPosition([3, 1])
         expect(editor.getCurrentParagraphBufferRange()).toBeUndefined()
 
+      it 'will limit paragraph range to comments', ->
+        waitsForPromise ->
+          atom.packages.activatePackage('language-javascript')
+
+        runs ->
+          editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+          editor.setText("""
+            var quicksort = function () {
+              /* Single line comment block */
+              var sort = function(items) {};
+
+              /*
+              A multiline
+              comment is here
+              */
+              var sort = function(items) {};
+
+              // A comment
+              //
+              // Multiple comment
+              // lines
+              var sort = function(items) {};
+              // comment line after fn
+
+              var nosort = function(items) {
+                item;
+              }
+
+            };
+          """)
+
+          paragraphBufferRangeForRow = (row) ->
+            editor.setCursorBufferPosition([row, 0])
+            editor.getLastCursor().getCurrentParagraphBufferRange()
+
+          expect(paragraphBufferRangeForRow(0)).toEqual([[0, 0], [0, 29]])
+          expect(paragraphBufferRangeForRow(1)).toEqual([[1, 0], [1, 33]])
+          expect(paragraphBufferRangeForRow(2)).toEqual([[2, 0], [2, 32]])
+          expect(paragraphBufferRangeForRow(3)).toBeFalsy()
+          expect(paragraphBufferRangeForRow(4)).toEqual([[4, 0], [7, 4]])
+          expect(paragraphBufferRangeForRow(5)).toEqual([[4, 0], [7, 4]])
+          expect(paragraphBufferRangeForRow(6)).toEqual([[4, 0], [7, 4]])
+          expect(paragraphBufferRangeForRow(7)).toEqual([[4, 0], [7, 4]])
+          expect(paragraphBufferRangeForRow(8)).toEqual([[8, 0], [8, 32]])
+          expect(paragraphBufferRangeForRow(9)).toBeFalsy()
+          expect(paragraphBufferRangeForRow(10)).toEqual([[10, 0], [13, 10]])
+          expect(paragraphBufferRangeForRow(11)).toEqual([[10, 0], [13, 10]])
+          expect(paragraphBufferRangeForRow(12)).toEqual([[10, 0], [13, 10]])
+          expect(paragraphBufferRangeForRow(14)).toEqual([[14, 0], [14, 32]])
+          expect(paragraphBufferRangeForRow(15)).toEqual([[15, 0], [15, 26]])
+          expect(paragraphBufferRangeForRow(18)).toEqual([[17, 0], [19, 3]])
+
     describe "getCursorAtScreenPosition(screenPosition)", ->
       it "returns the cursor at the given screenPosition", ->
         cursor1 = editor.addCursorAtScreenPosition([0, 2])

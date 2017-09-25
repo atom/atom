@@ -381,7 +381,7 @@ class Selection extends Model
     if options.autoIndent and textIsAutoIndentable and not NonWhitespaceRegExp.test(precedingText) and remainingLines.length > 0
       autoIndentFirstLine = true
       firstLine = precedingText + firstInsertedLine
-      desiredIndentLevel = @editor.languageMode.suggestedIndentForLineAtBufferRow(oldBufferRange.start.row, firstLine)
+      desiredIndentLevel = @editor.tokenizedBuffer.suggestedIndentForLineAtBufferRow(oldBufferRange.start.row, firstLine)
       indentAdjustment = desiredIndentLevel - @editor.indentLevelForLine(firstLine)
       @adjustIndent(remainingLines, indentAdjustment)
 
