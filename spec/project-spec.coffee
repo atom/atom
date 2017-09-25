@@ -166,6 +166,8 @@ describe "Project", ->
     it "serializes marker layers and history only if Atom is quitting", ->
       waitsForPromise -> atom.workspace.open('a')
 
+      notQuittingProject = null
+      quittingProject = null
       bufferA = null
       layerA = null
       markerA = null
@@ -175,9 +177,14 @@ describe "Project", ->
         layerA = bufferA.addMarkerLayer(persistent: true)
         markerA = layerA.markPosition([0, 3])
         bufferA.append('!')
+
+      waitsForPromise ->
+        notQuittingProject?.destroy()
         notQuittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
 
-      waitsForPromise -> notQuittingProject.deserialize(atom.project.serialize({isUnloading: false}))
+      waitsForPromise ->
+        quittingProject?.destroy()
+        notQuittingProject.deserialize(atom.project.serialize({isUnloading: false}))
 
       runs ->
         expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).toBeUndefined()
