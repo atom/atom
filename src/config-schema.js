@@ -55,6 +55,25 @@ const configSchema = {
           }
         }
       },
+      uriHandlerRegistration: {
+        type: 'string',
+        default: 'prompt',
+        description: 'When should Atom register itself as the default handler for atom:// URIs',
+        enum: [
+          {
+            value: 'prompt',
+            description: 'Prompt to register Atom as the default atom:// URI handler'
+          },
+          {
+            value: 'always',
+            description: 'Always become the default atom:// URI handler automatically'
+          },
+          {
+            value: 'never',
+            description: 'Never become the default atom:// URI handler'
+          }
+        ]
+      },
       themes: {
         type: 'array',
         default: ['one-dark-ui', 'one-dark-syntax'],
@@ -516,15 +535,6 @@ if (['win32', 'linux'].includes(process.platform)) {
     type: 'boolean',
     default: false,
     description: 'Automatically hide the menu bar and toggle it by pressing Alt. This is only supported on Windows & Linux.'
-  }
-}
-
-if (['win32', 'darwin'].includes(process.platform)) {
-  configSchema.core.properties.defaultProtocolHandler = {
-    title: 'Open atom:// URIs',
-    type: 'boolean',
-    default: true,
-    description: 'Register Atom as the default handler for atom:// URIs'
   }
 }
 

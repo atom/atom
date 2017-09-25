@@ -237,7 +237,7 @@ class AtomEnvironment extends Model
     @themes.initialize({@configDirPath, resourcePath, safeMode, devMode})
 
     @commandInstaller.initialize(@getVersion())
-    @protocolHandlerInstaller.initialize(@config)
+    @protocolHandlerInstaller.initialize(@config, @notifications)
     @autoUpdater.initialize()
 
     @config.load()
