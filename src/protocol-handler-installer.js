@@ -1,71 +1,66 @@
-const {CompositeDisposable} = require('event-kit')
-
 const {remote} = require('electron')
 
-function isSupported () {
-  return ['win32', 'darwin'].includes(process.platform)
-}
-
-function isDefaultProtocolClient () {
-  return remote.app.isDefaultProtocolClient('atom', process.execPath, ['--url-handler'])
-}
-
-function setAsDefaultProtocolClient () {
-  // This Electron API is only available on Windows and macOS. There might be some
-  // hacks to make it work on Linux; see https://github.com/electron/electron/issues/6440
-  return isSupported() && remote.app.setAsDefaultProtocolClient('atom', process.execPath, ['--url-handler'])
-}
+const SETTING = 'core.uriHandlerRegistration'
+const PROMPT = 'prompt'
+const ALWAYS = 'always'
+const NEVER = 'never'
 
 module.exports =
 class ProtocolHandlerInstaller {
-  constructor () {
-    this.subscriptions = new CompositeDisposable()
+  isSupported () {
+    return ['win32', 'darwin'].includes(process.platform)
+  }
+
+  isDefaultProtocolClient () {
+    return remote.app.isDefaultProtocolClient('atom', process.execPath, ['--url-handler'])
+  }
+
+  setAsDefaultProtocolClient () {
+    // This Electron API is only available on Windows and macOS. There might be some
+    // hacks to make it work on Linux; see https://github.com/electron/electron/issues/6440
+    return this.isSupported() && remote.app.setAsDefaultProtocolClient('atom', process.execPath, ['--url-handler'])
   }
 
   initialize (config, notifications) {
-    this.config = config
-    this.notifications = notifications
+    if (!this.isSupported()) {
+      return false
+    }
 
-    this.subscriptions.add(this.config.observe('core.uriHandlerRegistration', this.onValueChange.bind(this)))
-  }
-
-  onValueChange () {
-    if (!isDefaultProtocolClient()) {
-      const behaviorWhenNotProtocolClient = this.config.get('core.uriHandlerRegistration')
+    if (!this.isDefaultProtocolClient()) {
+      const behaviorWhenNotProtocolClient = config.get(SETTING)
       switch (behaviorWhenNotProtocolClient) {
-        case 'prompt':
-          this.promptToBecomeProtocolClient()
+        case PROMPT:
+          this.promptToBecomeProtocolClient(config, notifications)
           break
-        case 'always':
-          setAsDefaultProtocolClient()
+        case ALWAYS:
+          this.setAsDefaultProtocolClient()
           break
-        case 'never':
+        case NEVER:
         default:
           // Do nothing
       }
     }
   }
 
-  promptToBecomeProtocolClient () {
+  promptToBecomeProtocolClient (config, notifications) {
     let notification
+
+    const withSetting = (value, fn) => {
+      return function () {
+        config.set(SETTING, value)
+        fn()
+      }
+    }
 
     const accept = () => {
       notification.dismiss()
-      setAsDefaultProtocolClient()
-    }
-    const acceptAlways = () => {
-      this.config.set('core.uriHandlerRegistration', 'always')
-      return accept()
+      this.setAsDefaultProtocolClient()
     }
     const decline = () => {
       notification.dismiss()
     }
-    const declineAlways = () => {
-      this.config.set('core.uriHandlerRegistration', 'never')
-      return decline()
-    }
 
-    notification = this.notifications.addInfo('Register as default atom:// URI handler?', {
+    notification = notifications.addInfo('Register as default atom:// URI handler?', {
       dismissable: true,
       icon: 'link',
       description: 'Atom is not currently set as the defaut handler for atom:// URIs. Would you like Atom to handle ' +
@@ -79,7 +74,7 @@ class ProtocolHandlerInstaller {
         {
           text: 'Yes, Always',
           className: 'btn btn-info',
-          onDidClick: acceptAlways
+          onDidClick: withSetting(ALWAYS, accept)
         },
         {
           text: 'No',
@@ -89,13 +84,9 @@ class ProtocolHandlerInstaller {
         {
           text: 'No, Never',
           className: 'btn btn-info',
-          onDidClick: declineAlways
+          onDidClick: withSetting(NEVER, decline)
         }
       ]
     })
-  }
-
-  destroy () {
-    this.subscriptions.dispose()
   }
 }
