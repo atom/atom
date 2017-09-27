@@ -357,6 +357,7 @@ class AtomEnvironment extends Model
     @config.unobserveUserConfig()
     @autoUpdater.destroy()
     @protocolHandlerInstaller.destroy()
+    @urlHandlerRegistry.destroy()
 
     @uninstallWindowEventHandler()
 

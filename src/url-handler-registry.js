@@ -1,5 +1,5 @@
 const url = require('url')
-const {Disposable} = require('event-kit')
+const {Emitter, Disposable} = require('event-kit')
 
 // Private: Associates listener functions with URLs from outside the application.
 //
@@ -64,8 +64,13 @@ const {Disposable} = require('event-kit')
 // ```
 module.exports =
 class UrlHandlerRegistry {
-  constructor () {
+  constructor (maxHistoryLength = 50) {
     this.registrations = new Map()
+    this.history = []
+    this.maxHistoryLength = maxHistoryLength
+    this._id = 0
+
+    this.emitter = new Emitter()
   }
 
   registerHostHandler (host, callback) {
@@ -92,8 +97,32 @@ class UrlHandlerRegistry {
     }
 
     const registration = this.registrations.get(host)
-    if (registration) {
-      registration(parsed, uri)
+    const historyEntry = {id: ++this._id, url: uri, handled: false, host}
+    try {
+      if (registration) {
+        historyEntry.handled = true
+        registration(parsed, uri)
+      }
+    } finally {
+      this.history.unshift(historyEntry)
+      if (this.history.length > this.maxHistoryLength) {
+        this.history.length = this.maxHistoryLength
+      }
+      this.emitter.emit('history-change')
     }
+  }
+
+  getRecentlyHandledUrls () {
+    return this.history
+  }
+
+  onHistoryChange (cb) {
+    return this.emitter.on('history-change', cb)
+  }
+
+  destroy () {
+    this.emitter.dispose()
+    this.registrations = new Map()
+    this._id = 0
   }
 }
