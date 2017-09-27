@@ -37,7 +37,7 @@
     "fs-plus": "^3.0.1",
     "fstream": "0.1.24",
     "fuzzaldrin": "^2.1",
-    "git-utils": "5.0.0",
+    "git-utils": "5.0.1-0",
     "glob": "^7.1.1",
     "grim": "1.5.0",
     "jasmine-json": "~0.0",
