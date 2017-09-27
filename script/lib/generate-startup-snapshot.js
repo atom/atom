@@ -39,7 +39,7 @@ module.exports = function (packagedAppPath) {
         relativePath === path.join('..', 'node_modules', 'debug', 'node.js') ||
         relativePath === path.join('..', 'node_modules', 'fs-extra', 'lib', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'github', 'node_modules', 'fs-extra', 'lib', 'index.js') ||
-        relativePath === path.join('..', 'node_modules', 'git-utils', 'lib', 'git.js') ||
+        relativePath === path.join('..', 'node_modules', 'git-utils', 'src', 'git.js') ||
         relativePath === path.join('..', 'node_modules', 'glob', 'glob.js') ||
         relativePath === path.join('..', 'node_modules', 'graceful-fs', 'graceful-fs.js') ||
         relativePath === path.join('..', 'node_modules', 'htmlparser2', 'lib', 'index.js') ||
