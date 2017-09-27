@@ -283,10 +283,14 @@ describe "GitRepository", ->
     [editor] = []
 
     beforeEach ->
+      statusRefreshed = false
       atom.project.setPaths([copyRepository()])
+      atom.project.getRepositories()[0].onDidChangeStatuses -> statusRefreshed = true
 
       waitsForPromise ->
         atom.workspace.open('other.txt').then (o) -> editor = o
+
+      waitsFor 'repo to refresh', -> statusRefreshed
 
     it "emits a status-changed event when a buffer is saved", ->
       editor.insertNewline()
