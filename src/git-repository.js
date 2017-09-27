@@ -85,6 +85,7 @@ class GitRepository {
       throw new Error(`No Git repository found searching path: ${path}`)
     }
 
+    this.statusRefreshCount = 0
     this.statuses = {}
     this.upstream = {ahead: 0, behind: 0}
     for (let submodulePath in this.repo.submodules) {
@@ -544,6 +545,7 @@ class GitRepository {
   // Refreshes the current git status in an outside process and asynchronously
   // updates the relevant properties.
   async refreshStatus () {
+    const statusRefreshCount = ++this.statusRefreshCount
     const repo = this.getRepo()
 
     const relativeProjectPaths = this.project && this.project.getPaths()
@@ -578,6 +580,8 @@ class GitRepository {
       }
     }
 
+    if (this.statusRefreshCount !== statusRefreshCount || this.isDestroyed()) return
+
     const statusesUnchanged =
       _.isEqual(branch, this.branch) &&
       _.isEqual(statuses, this.statuses) &&
@@ -590,12 +594,9 @@ class GitRepository {
     this.submodules = submodules
 
     for (let submodulePath in repo.submodules) {
-      const submoduleRepo = repo.submodules[submodulePath]
-      submoduleRepo.upstream = submodules[submodulePath].upstream
+      repo.submodules[submodulePath].upstream = submodules[submodulePath].upstream
     }
 
-    if (!statusesUnchanged && !this.isDestroyed()) {
-      this.emitter.emit('did-change-statuses')
-    }
+    if (!statusesUnchanged) this.emitter.emit('did-change-statuses')
   }
 }
