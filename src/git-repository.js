@@ -205,7 +205,7 @@ class GitRepository {
   // repository.
   isProjectAtRoot () {
     if (this.projectAtRoot == null) {
-      this.projectAtRoot = this.project && this.project.relativize(this.getWorkingDirectory())
+      this.projectAtRoot = this.project && this.project.relativize(this.getWorkingDirectory()) === ''
     }
     return this.projectAtRoot
   }
