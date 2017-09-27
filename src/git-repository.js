@@ -12,6 +12,8 @@ const fs = require('fs-plus')
 const path = require('path')
 const GitUtils = require('git-utils')
 
+let nextId = 0
+
 // Extended: Represents the underlying git operations performed by Atom.
 //
 // This class shouldn't be instantiated directly but instead by accessing the
@@ -78,6 +80,7 @@ class GitRepository {
   }
 
   constructor (path, options = {}) {
+    this.id = nextId++
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.repo = GitUtils.open(path)
@@ -117,14 +120,12 @@ class GitRepository {
   // This destroys any tasks and subscriptions and releases the underlying
   // libgit2 repository handle. This method is idempotent.
   destroy () {
+    this.repo = null
+
     if (this.emitter) {
       this.emitter.emit('did-destroy')
       this.emitter.dispose()
       this.emitter = null
-    }
-
-    if (this.repo) {
-      this.repo = null
     }
 
     if (this.subscriptions) {
