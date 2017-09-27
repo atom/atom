@@ -11,7 +11,6 @@ const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 const fs = require('fs-plus')
 const path = require('path')
 const GitUtils = require('git-utils')
-const Task = require('./task')
 
 // Extended: Represents the underlying git operations performed by Atom.
 //
@@ -99,7 +98,7 @@ class GitRepository {
     if (options.refreshOnWindowFocus || options.refreshOnWindowFocus == null) {
       const onWindowFocus = () => {
         this.refreshIndex()
-        return this.refreshStatus()
+        this.refreshStatus()
       }
 
       window.addEventListener('focus', onWindowFocus)
@@ -117,23 +116,17 @@ class GitRepository {
   // This destroys any tasks and subscriptions and releases the underlying
   // libgit2 repository handle. This method is idempotent.
   destroy () {
-    if (this.emitter != null) {
+    if (this.emitter) {
       this.emitter.emit('did-destroy')
       this.emitter.dispose()
       this.emitter = null
     }
 
-    if (this.statusTask != null) {
-      this.statusTask.terminate()
-      this.statusTask = null
-    }
-
-    if (this.repo != null) {
-      this.repo.release()
+    if (this.repo) {
       this.repo = null
     }
 
-    if (this.subscriptions != null) {
+    if (this.subscriptions) {
       this.subscriptions.dispose()
       this.subscriptions = null
     }
@@ -550,42 +543,59 @@ class GitRepository {
 
   // Refreshes the current git status in an outside process and asynchronously
   // updates the relevant properties.
-  refreshStatus () {
-    if (this.handlerPath == null) this.handlerPath = require.resolve('./repository-status-handler')
+  async refreshStatus () {
+    const repo = this.getRepo()
 
     const relativeProjectPaths = this.project && this.project.getPaths()
       .map(projectPath => this.relativize(projectPath))
       .filter(projectPath => (projectPath.length > 0) && !path.isAbsolute(projectPath))
 
-    if (this.statusTask) this.statusTask.terminate()
+    const branch = await repo.getHeadAsync()
+    const upstream = await repo.getAheadBehindCountAsync()
 
-    return new Promise(resolve => {
-      this.statusTask = Task.once(this.handlerPath, this.getPath(), relativeProjectPaths, ({statuses, upstream, branch, submodules}) => {
-        const statusesUnchanged =
-          _.isEqual(statuses, this.statuses) &&
-          _.isEqual(upstream, this.upstream) &&
-          _.isEqual(branch, this.branch) &&
-          _.isEqual(submodules, this.submodules)
+    const statuses = {}
+    const repoStatus = relativeProjectPaths.length > 0
+      ? await repo.getStatusAsync(relativeProjectPaths)
+      : await repo.getStatusAsync()
+    for (let filePath in repoStatus) {
+      statuses[filePath] = repoStatus[filePath]
+    }
 
-        this.statuses = statuses
-        this.upstream = upstream
-        this.branch = branch
-        this.submodules = submodules
+    const submodules = {}
+    for (let submodulePath in repo.submodules) {
+      const submoduleRepo = repo.submodules[submodulePath]
+      submodules[submodulePath] = {
+        branch: await submoduleRepo.getHeadAsync(),
+        upstream: await submoduleRepo.getAheadBehindCountAsync()
+      }
 
-        const submodulesByPath = this.getRepo().submodules
-        for (let submodulePath in submodulesByPath) {
-          const submoduleRepo = submodulesByPath[submodulePath]
-          submoduleRepo.upstream =
-            (submodules[submodulePath] && submodules[submodulePath].upstream) ||
-            {ahead: 0, behind: 0}
-        }
+      const workingDirectoryPath = submoduleRepo.getWorkingDirectory()
+      const submoduleStatus = await submoduleRepo.getStatusAsync()
+      for (let filePath in submoduleStatus) {
+        const absolutePath = path.join(workingDirectoryPath, filePath)
+        const relativizePath = repo.relativize(absolutePath)
+        statuses[relativizePath] = submoduleStatus[filePath]
+      }
+    }
 
-        if (!statusesUnchanged) {
-          this.emitter.emit('did-change-statuses')
-        }
+    const statusesUnchanged =
+      _.isEqual(branch, this.branch) &&
+      _.isEqual(statuses, this.statuses) &&
+      _.isEqual(upstream, this.upstream) &&
+      _.isEqual(submodules, this.submodules)
 
-        resolve()
-      })
-    })
+    this.branch = branch
+    this.statuses = statuses
+    this.upstream = upstream
+    this.submodules = submodules
+
+    for (let submodulePath in repo.submodules) {
+      const submoduleRepo = repo.submodules[submodulePath]
+      submoduleRepo.upstream = submodules[submodulePath].upstream
+    }
+
+    if (!statusesUnchanged && !this.isDestroyed()) {
+      this.emitter.emit('did-change-statuses')
+    }
   }
 }
