@@ -1,5 +1,7 @@
 /** @babel */
 
+import url from 'url'
+
 import {it} from './async-spec-helpers'
 
 import UrlHandlerRegistry from '../src/url-handler-registry'
@@ -13,16 +15,16 @@ describe('UrlHandlerRegistry', () => {
     registry.registerHostHandler('test-package', testPackageSpy)
     registry.registerHostHandler('other-package', otherPackageSpy)
 
-    registry.handleUrl("atom://yet-another-package/path")
+    registry.handleUrl('atom://yet-another-package/path')
     expect(testPackageSpy).not.toHaveBeenCalled()
     expect(otherPackageSpy).not.toHaveBeenCalled()
 
-    registry.handleUrl("atom://test-package/path")
-    expect(testPackageSpy).toHaveBeenCalledWith("atom://test-package/path")
+    registry.handleUrl('atom://test-package/path')
+    expect(testPackageSpy).toHaveBeenCalledWith(url.parse('atom://test-package/path', true), 'atom://test-package/path')
     expect(otherPackageSpy).not.toHaveBeenCalled()
 
-    registry.handleUrl("atom://other-package/path")
-    expect(otherPackageSpy).toHaveBeenCalledWith("atom://other-package/path")
+    registry.handleUrl('atom://other-package/path')
+    expect(otherPackageSpy).toHaveBeenCalledWith(url.parse('atom://other-package/path', true), 'atom://other-package/path')
   })
 
   it('refuses to handle bad URLs', () => {

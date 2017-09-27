@@ -19,8 +19,9 @@ const {Disposable} = require('event-kit')
 // `package.json` called "urlHandler". The value of this key should be an object
 // that contains, at minimum, a key named "method". This is the name of the method
 // on your package object that Atom will call when it receives a URL your package
-// is responsible for handling. It will pass the parsed URL as the only argument (by using
+// is responsible for handling. It will pass the parsed URL as the first argument (by using
 // [Node's `url.parse(uri, true)`](https://nodejs.org/docs/latest/api/url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost))
+// and the raw URL as the second argument.
 //
 // By default, Atom will defer activation of your package until a URL it needs to handle
 // is triggered. If you need your package to activate right away, you can add
@@ -84,14 +85,15 @@ class UrlHandlerRegistry {
   }
 
   handleUrl (uri) {
-    const {protocol, slashes, auth, port, host} = url.parse(uri)
+    const parsed = url.parse(uri, true)
+    const {protocol, slashes, auth, port, host} = parsed
     if (protocol !== 'atom:' || slashes !== true || auth || port) {
       throw new Error(`UrlHandlerRegistry#handleUrl asked to handle an invalid URL: ${uri}`)
     }
 
     const registration = this.registrations.get(host)
     if (registration) {
-      registration(url.parse(uri, true))
+      registration(parsed, uri)
     }
   }
 }
