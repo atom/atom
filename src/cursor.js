@@ -598,9 +598,14 @@ class Cursor extends Model {
   //   * `wordRegex` A {RegExp} indicating what constitutes a "word"
   //     (default: {::wordRegExp}).
   getCurrentWordBufferRange (options = {}) {
-    const startOptions = Object.assign(_.clone(options), {allowPrevious: false})
-    const endOptions = Object.assign(_.clone(options), {allowNext: false})
-    return new Range(this.getBeginningOfCurrentWordBufferPosition(startOptions), this.getEndOfCurrentWordBufferPosition(endOptions))
+    const position = this.getBufferPosition()
+    const ranges = this.editor.buffer.buffer.findAllInRangeSync(
+      options.wordRegex || this.wordRegExp(),
+      new Range(new Point(position.row, 0), new Point(position.row, Infinity))
+    )
+    return ranges.find(range =>
+      range.end.column >= position.column && range.start.column <= position.column
+    ) || new Range(position, position)
   }
 
   // Public: Returns the buffer Range for the current line.
