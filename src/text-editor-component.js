@@ -1883,7 +1883,7 @@ class TextEditorComponent {
 
     function didMouseUp () {
       window.removeEventListener('mousemove', didMouseMove)
-      window.removeEventListener('mouseup', didMouseUp)
+      window.removeEventListener('mouseup', didMouseUp, {capture: true})
       bufferWillChangeDisposable.dispose()
       if (dragging) {
         dragging = false
