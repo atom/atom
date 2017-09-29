@@ -51,7 +51,9 @@ describe('PackageManager', () => {
     describe('when the core.apmPath setting is set', () => {
       beforeEach(() => atom.config.set('core.apmPath', '/path/to/apm'))
 
-      it('returns the value of the core.apmPath config setting', () => expect(atom.packages.getApmPath()).toBe('/path/to/apm'))
+      it('returns the value of the core.apmPath config setting', () => {
+        expect(atom.packages.getApmPath()).toBe('/path/to/apm')
+      })
     })
   })
 
@@ -111,7 +113,9 @@ describe('PackageManager', () => {
       expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual('package-with-broken-package-json')
     })
 
-    it('returns null if the package name or path starts with a dot', () => expect(atom.packages.loadPackage('/Users/user/.atom/packages/.git')).toBeNull())
+    it('returns null if the package name or path starts with a dot', () => {
+      expect(atom.packages.loadPackage('/Users/user/.atom/packages/.git')).toBeNull()
+    })
 
     it('normalizes short repository urls in package.json', () => {
       let {metadata} = atom.packages.loadPackage('package-with-short-url-package-json')
