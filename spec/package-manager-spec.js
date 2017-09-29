@@ -7,6 +7,7 @@ const {Disposable} = require('atom')
 const {buildKeydownEvent} = require('../src/keymap-extensions')
 const {mockLocalStorage} = require('./spec-helper')
 const ModuleCache = require('../src/module-cache')
+const {it, fit, ffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
 describe('PackageManager', () => {
   function createTestElement (className) {
@@ -57,9 +58,9 @@ describe('PackageManager', () => {
   describe('::loadPackages()', () => {
     beforeEach(() => spyOn(atom.packages, 'loadAvailablePackage'))
 
-    afterEach(() => {
-      waitsForPromise(() => atom.packages.deactivatePackages())
-      runs(() => atom.packages.unloadPackages())
+    afterEach(async () => {
+      await atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
     })
 
     it('sets hasLoadedInitialPackages', () => {
@@ -188,9 +189,9 @@ describe('PackageManager', () => {
       const model1 = {worksWithViewProvider1: true}
       const model2 = {worksWithViewProvider2: true}
 
-      afterEach(() => {
-        waitsForPromise(() => atom.packages.deactivatePackage('package-with-view-providers'))
-        runs(() => atom.packages.unloadPackage('package-with-view-providers'))
+      afterEach(async () => {
+        await atom.packages.deactivatePackage('package-with-view-providers')
+        atom.packages.unloadPackage('package-with-view-providers')
       })
 
       it('does not load the view providers immediately', () => {
@@ -201,20 +202,18 @@ describe('PackageManager', () => {
         expect(() => atom.views.getView(model2)).toThrow()
       })
 
-      it('registers the view providers when the package is activated', () => {
+      it('registers the view providers when the package is activated', async () => {
         atom.packages.loadPackage('package-with-view-providers')
 
-        waitsForPromise(() =>
-          atom.packages.activatePackage('package-with-view-providers').then(() => {
-            const element1 = atom.views.getView(model1)
-            expect(element1 instanceof HTMLDivElement).toBe(true)
-            expect(element1.dataset.createdBy).toBe('view-provider-1')
+        await atom.packages.activatePackage('package-with-view-providers')
 
-            const element2 = atom.views.getView(model2)
-            expect(element2 instanceof HTMLDivElement).toBe(true)
-            expect(element2.dataset.createdBy).toBe('view-provider-2')
-          })
-        )
+        const element1 = atom.views.getView(model1)
+        expect(element1 instanceof HTMLDivElement).toBe(true)
+        expect(element1.dataset.createdBy).toBe('view-provider-1')
+
+        const element2 = atom.views.getView(model2)
+        expect(element2 instanceof HTMLDivElement).toBe(true)
+        expect(element2.dataset.createdBy).toBe('view-provider-2')
       })
 
       it("registers the view providers when any of the package's deserializers are used", () => {
@@ -458,20 +457,14 @@ describe('PackageManager', () => {
 
   describe('::unloadPackage(name)', () => {
     describe('when the package is active', () => {
-      it('throws an error', () => {
-        let pack
+      it('throws an error', async () => {
+        const pack = await atom.packages.activatePackage('package-with-main')
+        expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
+        expect(atom.packages.isPackageActive(pack.name)).toBeTruthy()
 
-        waitsForPromise(() => atom.packages.activatePackage('package-with-main').then(p => {
-          pack = p
-        }))
-
-        runs(() => {
-          expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
-          expect(atom.packages.isPackageActive(pack.name)).toBeTruthy()
-          expect(() => atom.packages.unloadPackage(pack.name)).toThrow()
-          expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
-          expect(atom.packages.isPackageActive(pack.name)).toBeTruthy()
-        })
+        expect(() => atom.packages.unloadPackage(pack.name)).toThrow()
+        expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
+        expect(atom.packages.isPackageActive(pack.name)).toBeTruthy()
       })
     })
 
@@ -505,63 +498,48 @@ describe('PackageManager', () => {
 
   describe('::activatePackage(id)', () => {
     describe('when called multiple times', () => {
-      it('it only calls activate on the package once', () => {
+      it('it only calls activate on the package once', async () => {
         spyOn(Package.prototype, 'activateNow').andCallThrough()
-        waitsForPromise(() => atom.packages.activatePackage('package-with-index'))
-        waitsForPromise(() => atom.packages.activatePackage('package-with-index'))
-        waitsForPromise(() => atom.packages.activatePackage('package-with-index'))
+        await atom.packages.activatePackage('package-with-index')
+        await atom.packages.activatePackage('package-with-index')
+        await atom.packages.activatePackage('package-with-index')
 
-        runs(() => expect(Package.prototype.activateNow.callCount).toBe(1))
+        expect(Package.prototype.activateNow.callCount).toBe(1)
       })
     })
 
     describe('when the package has a main module', () => {
       describe('when the metadata specifies a main module path˜', () => {
-        it('requires the module at the specified path', () => {
+        it('requires the module at the specified path', async () => {
           const mainModule = require('./fixtures/packages/package-with-main/main-module')
           spyOn(mainModule, 'activate')
 
-          let pack
-          waitsForPromise(() => atom.packages.activatePackage('package-with-main').then(p => {
-            pack = p
-          }))
-
-          runs(() => {
-            expect(mainModule.activate).toHaveBeenCalled()
-            expect(pack.mainModule).toBe(mainModule)
-          })
+          const pack = await atom.packages.activatePackage('package-with-main')
+          expect(mainModule.activate).toHaveBeenCalled()
+          expect(pack.mainModule).toBe(mainModule)
         })
       })
 
       describe('when the metadata does not specify a main module', () => {
-        it('requires index.coffee', () => {
+        it('requires index.coffee', async () => {
           const indexModule = require('./fixtures/packages/package-with-index/index')
           spyOn(indexModule, 'activate')
-          let pack
-          waitsForPromise(() => atom.packages.activatePackage('package-with-index').then(p => {
-            pack = p
-          }))
 
-          runs(() => {
-            expect(indexModule.activate).toHaveBeenCalled()
-            expect(pack.mainModule).toBe(indexModule)
-          })
+          const pack = await atom.packages.activatePackage('package-with-index')
+          expect(indexModule.activate).toHaveBeenCalled()
+          expect(pack.mainModule).toBe(indexModule)
         })
       })
 
-      it('assigns config schema, including defaults when package contains a schema', () => {
+      it('assigns config schema, including defaults when package contains a schema', async () => {
         expect(atom.config.get('package-with-config-schema.numbers.one')).toBeUndefined()
 
-        waitsForPromise(() => atom.packages.activatePackage('package-with-config-schema'))
-
-        runs(() => {
-          expect(atom.config.get('package-with-config-schema.numbers.one')).toBe(1)
-          expect(atom.config.get('package-with-config-schema.numbers.two')).toBe(2)
-
-          expect(atom.config.set('package-with-config-schema.numbers.one', 'nope')).toBe(false)
-          expect(atom.config.set('package-with-config-schema.numbers.one', '10')).toBe(true)
-          expect(atom.config.get('package-with-config-schema.numbers.one')).toBe(10)
-        })
+        await atom.packages.activatePackage('package-with-config-schema')
+        expect(atom.config.get('package-with-config-schema.numbers.one')).toBe(1)
+        expect(atom.config.get('package-with-config-schema.numbers.two')).toBe(2)
+        expect(atom.config.set('package-with-config-schema.numbers.one', 'nope')).toBe(false)
+        expect(atom.config.set('package-with-config-schema.numbers.one', '10')).toBe(true)
+        expect(atom.config.get('package-with-config-schema.numbers.one')).toBe(10)
       })
 
       describe('when the package metadata includes `activationCommands`', () => {
@@ -587,43 +565,42 @@ describe('PackageManager', () => {
           mainModule = null
         })
 
-        it('defers requiring/activating the main module until an activation event bubbles to the root view', () => {
+        it('defers requiring/activating the main module until an activation event bubbles to the root view', async () => {
           expect(Package.prototype.requireMainModule.callCount).toBe(0)
 
           atom.workspace.getElement().dispatchEvent(new CustomEvent('activation-command', {bubbles: true}))
 
-          waitsForPromise(() => promise)
-
-          runs(() => expect(Package.prototype.requireMainModule.callCount).toBe(1))
+          await promise
+          expect(Package.prototype.requireMainModule.callCount).toBe(1)
         })
 
-        it('triggers the activation event on all handlers registered during activation', () => {
-          waitsForPromise(() => atom.workspace.open())
+        it('triggers the activation event on all handlers registered during activation', async () => {
+          await atom.workspace.open()
 
-          runs(() => {
-            const editorElement = atom.workspace.getActiveTextEditor().getElement()
-            const editorCommandListener = jasmine.createSpy('editorCommandListener')
-            atom.commands.add('atom-text-editor', 'activation-command', editorCommandListener)
-            atom.commands.dispatch(editorElement, 'activation-command')
-            expect(mainModule.activate.callCount).toBe(1)
-            expect(mainModule.activationCommandCallCount).toBe(1)
-            expect(editorCommandListener.callCount).toBe(1)
-            expect(workspaceCommandListener.callCount).toBe(1)
-            atom.commands.dispatch(editorElement, 'activation-command')
-            expect(mainModule.activationCommandCallCount).toBe(2)
-            expect(editorCommandListener.callCount).toBe(2)
-            expect(workspaceCommandListener.callCount).toBe(2)
-            expect(mainModule.activate.callCount).toBe(1)
-          })
+          const editorElement = atom.workspace.getActiveTextEditor().getElement()
+          const editorCommandListener = jasmine.createSpy('editorCommandListener')
+          atom.commands.add('atom-text-editor', 'activation-command', editorCommandListener)
+
+          atom.commands.dispatch(editorElement, 'activation-command')
+          expect(mainModule.activate.callCount).toBe(1)
+          expect(mainModule.activationCommandCallCount).toBe(1)
+          expect(editorCommandListener.callCount).toBe(1)
+          expect(workspaceCommandListener.callCount).toBe(1)
+
+          atom.commands.dispatch(editorElement, 'activation-command')
+          expect(mainModule.activationCommandCallCount).toBe(2)
+          expect(editorCommandListener.callCount).toBe(2)
+          expect(workspaceCommandListener.callCount).toBe(2)
+          expect(mainModule.activate.callCount).toBe(1)
         })
 
-        it('activates the package immediately when the events are empty', () => {
+        it('activates the package immediately when the events are empty', async () => {
           mainModule = require('./fixtures/packages/package-with-empty-activation-commands/index')
           spyOn(mainModule, 'activate').andCallThrough()
 
-          waitsForPromise(() => atom.packages.activatePackage('package-with-empty-activation-commands'))
+          atom.packages.activatePackage('package-with-empty-activation-commands')
 
-          runs(() => expect(mainModule.activate.callCount).toBe(1))
+          expect(mainModule.activate.callCount).toBe(1)
         })
 
         it('adds a notification when the activation commands are invalid', () => {
@@ -646,34 +623,38 @@ describe('PackageManager', () => {
           expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual('package-with-invalid-context-menu')
         })
 
-        it('adds a notification when the grammar is invalid', () => {
-          const addErrorHandler = jasmine.createSpy()
-          atom.notifications.onDidAddNotification(addErrorHandler)
+        it('adds a notification when the grammar is invalid', async () => {
+          let notificationEvent
 
-          expect(() => atom.packages.activatePackage('package-with-invalid-grammar')).not.toThrow()
+          await new Promise(resolve => {
+            const subscription = atom.notifications.onDidAddNotification(event => {
+              notificationEvent = event
+              subscription.dispose()
+              resolve()
+            })
 
-          waitsFor(() => addErrorHandler.callCount > 0)
-
-          runs(() => {
-            expect(addErrorHandler.callCount).toBe(1)
-            expect(addErrorHandler.argsForCall[0][0].message).toContain('Failed to load a package-with-invalid-grammar package grammar')
-            expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual('package-with-invalid-grammar')
+            atom.packages.activatePackage('package-with-invalid-grammar')
           })
+
+          expect(notificationEvent.message).toContain('Failed to load a package-with-invalid-grammar package grammar')
+          expect(notificationEvent.options.packageName).toEqual('package-with-invalid-grammar')
         })
 
-        it('adds a notification when the settings are invalid', () => {
-          const addErrorHandler = jasmine.createSpy()
-          atom.notifications.onDidAddNotification(addErrorHandler)
+        it('adds a notification when the settings are invalid', async () => {
+          let notificationEvent
 
-          expect(() => atom.packages.activatePackage('package-with-invalid-settings')).not.toThrow()
+          await new Promise(resolve => {
+            const subscription = atom.notifications.onDidAddNotification(event => {
+              notificationEvent = event
+              subscription.dispose()
+              resolve()
+            })
 
-          waitsFor(() => addErrorHandler.callCount > 0)
-
-          runs(() => {
-            expect(addErrorHandler.callCount).toBe(1)
-            expect(addErrorHandler.argsForCall[0][0].message).toContain('Failed to load the package-with-invalid-settings package settings')
-            expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual('package-with-invalid-settings')
+            atom.packages.activatePackage('package-with-invalid-settings')
           })
+
+          expect(notificationEvent.message).toContain('Failed to load the package-with-invalid-settings package settings')
+          expect(notificationEvent.options.packageName).toEqual('package-with-invalid-settings')
         })
       })
     })
@@ -687,62 +668,53 @@ describe('PackageManager', () => {
         spyOn(Package.prototype, 'requireMainModule').andCallThrough()
       })
 
-      it('defers requiring/activating the main module until an triggering of an activation hook occurs', () => {
+      it('defers requiring/activating the main module until an triggering of an activation hook occurs', async () => {
         promise = atom.packages.activatePackage('package-with-activation-hooks')
         expect(Package.prototype.requireMainModule.callCount).toBe(0)
         atom.packages.triggerActivationHook('language-fictitious:grammar-used')
         atom.packages.triggerDeferredActivationHooks()
 
-        waitsForPromise(() => promise)
-
-        runs(() => expect(Package.prototype.requireMainModule.callCount).toBe(1))
+        await promise
+        expect(Package.prototype.requireMainModule.callCount).toBe(1)
       })
 
-      it('does not double register activation hooks when deactivating and reactivating', () => {
+      it('does not double register activation hooks when deactivating and reactivating', async () => {
         promise = atom.packages.activatePackage('package-with-activation-hooks')
         expect(mainModule.activate.callCount).toBe(0)
         atom.packages.triggerActivationHook('language-fictitious:grammar-used')
         atom.packages.triggerDeferredActivationHooks()
 
-        waitsForPromise(() => promise)
+        await promise
+        expect(mainModule.activate.callCount).toBe(1)
 
-        runs(() => expect(mainModule.activate.callCount).toBe(1))
+        await atom.packages.deactivatePackage('package-with-activation-hooks')
 
-        waitsForPromise(() => atom.packages.deactivatePackage('package-with-activation-hooks'))
+        promise = atom.packages.activatePackage('package-with-activation-hooks')
+        atom.packages.triggerActivationHook('language-fictitious:grammar-used')
+        atom.packages.triggerDeferredActivationHooks()
 
-        runs(() => {
-          promise = atom.packages.activatePackage('package-with-activation-hooks')
-          atom.packages.triggerActivationHook('language-fictitious:grammar-used')
-          atom.packages.triggerDeferredActivationHooks()
-        })
-
-        waitsForPromise(() => promise)
-
-        runs(() => expect(mainModule.activate.callCount).toBe(2))
+        await promise
+        expect(mainModule.activate.callCount).toBe(2)
       })
 
-      it('activates the package immediately when activationHooks is empty', () => {
+      it('activates the package immediately when activationHooks is empty', async () => {
         mainModule = require('./fixtures/packages/package-with-empty-activation-hooks/index')
         spyOn(mainModule, 'activate').andCallThrough()
 
-        runs(() => expect(Package.prototype.requireMainModule.callCount).toBe(0))
+        expect(Package.prototype.requireMainModule.callCount).toBe(0)
 
-        waitsForPromise(() => atom.packages.activatePackage('package-with-empty-activation-hooks'))
-
-        runs(() => {
-          expect(mainModule.activate.callCount).toBe(1)
-          expect(Package.prototype.requireMainModule.callCount).toBe(1)
-        })
+        await atom.packages.activatePackage('package-with-empty-activation-hooks')
+        expect(mainModule.activate.callCount).toBe(1)
+        expect(Package.prototype.requireMainModule.callCount).toBe(1)
       })
 
-      it('activates the package immediately if the activation hook had already been triggered', () => {
+      it('activates the package immediately if the activation hook had already been triggered', async () => {
         atom.packages.triggerActivationHook('language-fictitious:grammar-used')
         atom.packages.triggerDeferredActivationHooks()
         expect(Package.prototype.requireMainModule.callCount).toBe(0)
 
-        waitsForPromise(() => atom.packages.activatePackage('package-with-activation-hooks'))
-
-        runs(() => expect(Package.prototype.requireMainModule.callCount).toBe(1))
+        await atom.packages.activatePackage('package-with-activation-hooks')
+        expect(Package.prototype.requireMainModule.callCount).toBe(1)
       })
     })
 
@@ -757,42 +729,33 @@ describe('PackageManager', () => {
     })
 
     describe('when the package does not export an activate function', () => {
-      it('activates the package and does not throw an exception or log a warning', () => {
+      it('activates the package and does not throw an exception or log a warning', async () => {
         spyOn(console, 'warn')
-        expect(() => atom.packages.activatePackage('package-with-no-activate')).not.toThrow()
-
-        waitsFor(() => atom.packages.isPackageActive('package-with-no-activate'))
-
-        runs(() => expect(console.warn).not.toHaveBeenCalled())
+        await atom.packages.activatePackage('package-with-no-activate')
+        expect(console.warn).not.toHaveBeenCalled()
       })
     })
 
-    it("passes the activate method the package's previously serialized state if it exists", () => {
-      let pack
-      waitsForPromise(() => atom.packages.activatePackage('package-with-serialization').then(p => {
-        pack = p
-      }))
-      runs(() => {
-        expect(pack.mainModule.someNumber).not.toBe(77)
-        pack.mainModule.someNumber = 77
-        atom.packages.serializePackage('package-with-serialization')
-      })
-      waitsForPromise(() => atom.packages.deactivatePackage('package-with-serialization'))
-      runs(() => spyOn(pack.mainModule, 'activate').andCallThrough())
-      waitsForPromise(() => atom.packages.activatePackage('package-with-serialization'))
-      runs(() => expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77}))
+    it("passes the activate method the package's previously serialized state if it exists", async () => {
+      const pack = await atom.packages.activatePackage('package-with-serialization')
+      expect(pack.mainModule.someNumber).not.toBe(77)
+      pack.mainModule.someNumber = 77
+      atom.packages.serializePackage('package-with-serialization')
+      await atom.packages.deactivatePackage('package-with-serialization')
+
+      spyOn(pack.mainModule, 'activate').andCallThrough()
+      await atom.packages.activatePackage('package-with-serialization')
+      expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
     })
 
-    it('invokes ::onDidActivatePackage listeners with the activated package', () => {
+    it('invokes ::onDidActivatePackage listeners with the activated package', async () => {
       let activatedPackage
       atom.packages.onDidActivatePackage(pack => {
         activatedPackage = pack
       })
 
-      atom.packages.activatePackage('package-with-main')
-
-      waitsFor(() => activatedPackage)
-      runs(() => expect(activatedPackage.name).toBe('package-with-main'))
+      await atom.packages.activatePackage('package-with-main')
+      expect(activatedPackage.name).toBe('package-with-main')
     })
 
     describe("when the package's main module throws an error on load", () => {
@@ -814,82 +777,65 @@ describe('PackageManager', () => {
     })
 
     describe('when the package is not found', () => {
-      it('rejects the promise', () => {
+      it('rejects the promise', async () => {
+        spyOn(console, 'warn')
         atom.config.set('core.disabledPackages', [])
 
-        const onSuccess = jasmine.createSpy('onSuccess')
-        const onFailure = jasmine.createSpy('onFailure')
-        spyOn(console, 'warn')
-
-        atom.packages.activatePackage('this-doesnt-exist').then(onSuccess, onFailure)
-
-        waitsFor('promise to be rejected', () => onFailure.callCount > 0)
-
-        runs(() => {
+        try {
+          await atom.packages.activatePackage('this-doesnt-exist')
+          expect('Error to be thrown').toBe('')
+        } catch (error) {
           expect(console.warn.callCount).toBe(1)
-          expect(onFailure.mostRecentCall.args[0] instanceof Error).toBe(true)
-          expect(onFailure.mostRecentCall.args[0].message).toContain("Failed to load package 'this-doesnt-exist'")
-        })
+          expect(error.message).toContain("Failed to load package 'this-doesnt-exist'")
+        }
       })
     })
 
     describe('keymap loading', () => {
       describe("when the metadata does not contain a 'keymaps' manifest", () => {
-        it('loads all the .cson/.json files in the keymaps directory', () => {
+        it('loads all the .cson/.json files in the keymaps directory', async () => {
           const element1 = createTestElement('test-1')
           const element2 = createTestElement('test-2')
           const element3 = createTestElement('test-3')
-
           expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element1})).toHaveLength(0)
           expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element2})).toHaveLength(0)
           expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element3})).toHaveLength(0)
 
-          waitsForPromise(() => atom.packages.activatePackage('package-with-keymaps'))
-
-          runs(() => {
-            expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element1})[0].command).toBe('test-1')
-            expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element2})[0].command).toBe('test-2')
-            expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element3})).toHaveLength(0)
-          })
+          await atom.packages.activatePackage('package-with-keymaps')
+          expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element1})[0].command).toBe('test-1')
+          expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element2})[0].command).toBe('test-2')
+          expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element3})).toHaveLength(0)
         })
       })
 
       describe("when the metadata contains a 'keymaps' manifest", () => {
-        it('loads only the keymaps specified by the manifest, in the specified order', () => {
+        it('loads only the keymaps specified by the manifest, in the specified order', async () => {
           const element1 = createTestElement('test-1')
           const element3 = createTestElement('test-3')
-
           expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element1})).toHaveLength(0)
 
-          waitsForPromise(() => atom.packages.activatePackage('package-with-keymaps-manifest'))
-
-          runs(() => {
-            expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element1})[0].command).toBe('keymap-1')
-            expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-n', target: element1})[0].command).toBe('keymap-2')
-            expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-y', target: element3})).toHaveLength(0)
-          })
+          await atom.packages.activatePackage('package-with-keymaps-manifest')
+          expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element1})[0].command).toBe('keymap-1')
+          expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-n', target: element1})[0].command).toBe('keymap-2')
+          expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-y', target: element3})).toHaveLength(0)
         })
       })
 
       describe('when the keymap file is empty', () => {
-        it('does not throw an error on activation', () => {
-          waitsForPromise(() => atom.packages.activatePackage('package-with-empty-keymap'))
-
-          runs(() => expect(atom.packages.isPackageActive('package-with-empty-keymap')).toBe(true))
+        it('does not throw an error on activation', async () => {
+          await atom.packages.activatePackage('package-with-empty-keymap')
+          expect(atom.packages.isPackageActive('package-with-empty-keymap')).toBe(true)
         })
       })
 
       describe("when the package's keymaps have been disabled", () => {
-        it('does not add the keymaps', () => {
+        it('does not add the keymaps', async () => {
           const element1 = createTestElement('test-1')
-
           expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element1})).toHaveLength(0)
 
           atom.config.set('core.packagesWithKeymapsDisabled', ['package-with-keymaps-manifest'])
-
-          waitsForPromise(() => atom.packages.activatePackage('package-with-keymaps-manifest'))
-
-          runs(() => expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element1})).toHaveLength(0))
+          await atom.packages.activatePackage('package-with-keymaps-manifest')
+          expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element1})).toHaveLength(0)
         })
       })
 
@@ -903,19 +849,17 @@ describe('PackageManager', () => {
       })
 
       describe("when the package's keymaps are disabled and re-enabled after it is activated", () => {
-        it('removes and re-adds the keymaps', () => {
+        it('removes and re-adds the keymaps', async () => {
           const element1 = createTestElement('test-1')
           atom.packages.observePackagesWithKeymapsDisabled()
 
-          waitsForPromise(() => atom.packages.activatePackage('package-with-keymaps-manifest'))
+          await atom.packages.activatePackage('package-with-keymaps-manifest')
 
-          runs(() => {
-            atom.config.set('core.packagesWithKeymapsDisabled', ['package-with-keymaps-manifest'])
-            expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element1})).toHaveLength(0)
+          atom.config.set('core.packagesWithKeymapsDisabled', ['package-with-keymaps-manifest'])
+          expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element1})).toHaveLength(0)
 
-            atom.config.set('core.packagesWithKeymapsDisabled', [])
-            expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element1})[0].command).toBe('keymap-1')
-          })
+          atom.config.set('core.packagesWithKeymapsDisabled', [])
+          expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: element1})[0].command).toBe('keymap-1')
         })
       })
 
@@ -944,28 +888,20 @@ describe('PackageManager', () => {
           temp.cleanupSync()
         })
 
-        it("doesn't override user-defined keymaps", () => {
+        it("doesn't override user-defined keymaps", async () => {
           fs.writeFileSync(userKeymapPath, `".test-1": {"ctrl-z": "user-command"}`)
           atom.keymaps.loadUserKeymap()
 
-          waitsForPromise(() => atom.packages.activatePackage('package-with-keymaps'))
+          await atom.packages.activatePackage('package-with-keymaps')
+          atom.keymaps.handleKeyboardEvent(buildKeydownEvent('z', {ctrl: true, target: element}))
+          expect(events.length).toBe(1)
+          expect(events[0].type).toBe('user-command')
 
-          runs(() => {
-            atom.keymaps.handleKeyboardEvent(buildKeydownEvent('z', {ctrl: true, target: element}))
-
-            expect(events.length).toBe(1)
-            expect(events[0].type).toBe('user-command')
-          })
-
-          waitsForPromise(() => atom.packages.deactivatePackage('package-with-keymaps'))
-
-          waitsForPromise(() => atom.packages.activatePackage('package-with-keymaps'))
-
-          runs(() => {
-            atom.keymaps.handleKeyboardEvent(buildKeydownEvent('z', {ctrl: true, target: element}))
-            expect(events.length).toBe(2)
-            expect(events[1].type).toBe('user-command')
-          })
+          await atom.packages.deactivatePackage('package-with-keymaps')
+          await atom.packages.activatePackage('package-with-keymaps')
+          atom.keymaps.handleKeyboardEvent(buildKeydownEvent('z', {ctrl: true, target: element}))
+          expect(events.length).toBe(2)
+          expect(events[1].type).toBe('user-command')
         })
       })
     })
@@ -977,53 +913,45 @@ describe('PackageManager', () => {
       })
 
       describe("when the metadata does not contain a 'menus' manifest", () => {
-        it('loads all the .cson/.json files in the menus directory', () => {
+        it('loads all the .cson/.json files in the menus directory', async () => {
           const element = createTestElement('test-1')
-
           expect(atom.contextMenu.templateForElement(element)).toEqual([])
 
-          waitsForPromise(() => atom.packages.activatePackage('package-with-menus'))
-
-          runs(() => {
-            expect(atom.menu.template.length).toBe(2)
-            expect(atom.menu.template[0].label).toBe('Second to Last')
-            expect(atom.menu.template[1].label).toBe('Last')
-            expect(atom.contextMenu.templateForElement(element)[0].label).toBe('Menu item 1')
-            expect(atom.contextMenu.templateForElement(element)[1].label).toBe('Menu item 2')
-            expect(atom.contextMenu.templateForElement(element)[2].label).toBe('Menu item 3')
-          })
+          await atom.packages.activatePackage('package-with-menus')
+          expect(atom.menu.template.length).toBe(2)
+          expect(atom.menu.template[0].label).toBe('Second to Last')
+          expect(atom.menu.template[1].label).toBe('Last')
+          expect(atom.contextMenu.templateForElement(element)[0].label).toBe('Menu item 1')
+          expect(atom.contextMenu.templateForElement(element)[1].label).toBe('Menu item 2')
+          expect(atom.contextMenu.templateForElement(element)[2].label).toBe('Menu item 3')
         })
       })
 
       describe("when the metadata contains a 'menus' manifest", () => {
-        it('loads only the menus specified by the manifest, in the specified order', () => {
+        it('loads only the menus specified by the manifest, in the specified order', async () => {
           const element = createTestElement('test-1')
-
           expect(atom.contextMenu.templateForElement(element)).toEqual([])
 
-          waitsForPromise(() => atom.packages.activatePackage('package-with-menus-manifest'))
-
-          runs(() => {
-            expect(atom.menu.template[0].label).toBe('Second to Last')
-            expect(atom.menu.template[1].label).toBe('Last')
-            expect(atom.contextMenu.templateForElement(element)[0].label).toBe('Menu item 2')
-            expect(atom.contextMenu.templateForElement(element)[1].label).toBe('Menu item 1')
-            expect(atom.contextMenu.templateForElement(element)[2]).toBeUndefined()
-          })
+          await atom.packages.activatePackage('package-with-menus-manifest')
+          expect(atom.menu.template[0].label).toBe('Second to Last')
+          expect(atom.menu.template[1].label).toBe('Last')
+          expect(atom.contextMenu.templateForElement(element)[0].label).toBe('Menu item 2')
+          expect(atom.contextMenu.templateForElement(element)[1].label).toBe('Menu item 1')
+          expect(atom.contextMenu.templateForElement(element)[2]).toBeUndefined()
         })
       })
 
       describe('when the menu file is empty', () => {
-        it('does not throw an error on activation', () => {
-          waitsForPromise(() => atom.packages.activatePackage('package-with-empty-menu'))
-          runs(() => expect(atom.packages.isPackageActive('package-with-empty-menu')).toBe(true))
+        it('does not throw an error on activation', async () => {
+          await atom.packages.activatePackage('package-with-empty-menu')
+          expect(atom.packages.isPackageActive('package-with-empty-menu')).toBe(true)
         })
       })
     })
 
     describe('stylesheet loading', () => {
       describe("when the metadata contains a 'styleSheets' manifest", () => {
-        it('loads style sheets from the styles directory as specified by the manifest', () => {
+        it('loads style sheets from the styles directory as specified by the manifest', async () => {
           const one = require.resolve('./fixtures/packages/package-with-style-sheets-manifest/styles/1.css')
           const two = require.resolve('./fixtures/packages/package-with-style-sheets-manifest/styles/2.less')
           const three = require.resolve('./fixtures/packages/package-with-style-sheets-manifest/styles/3.css')
@@ -1032,20 +960,16 @@ describe('PackageManager', () => {
           expect(atom.themes.stylesheetElementForId(two)).toBeNull()
           expect(atom.themes.stylesheetElementForId(three)).toBeNull()
 
-          waitsForPromise(() => atom.packages.activatePackage('package-with-style-sheets-manifest'))
-
-          runs(() => {
-            expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
-            expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
-            expect(atom.themes.stylesheetElementForId(three)).toBeNull()
-
-            expect(getComputedStyle(document.querySelector('#jasmine-content')).fontSize).toBe('1px')
-          })
+          await atom.packages.activatePackage('package-with-style-sheets-manifest')
+          expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
+          expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
+          expect(atom.themes.stylesheetElementForId(three)).toBeNull()
+          expect(getComputedStyle(document.querySelector('#jasmine-content')).fontSize).toBe('1px')
         })
       })
 
       describe("when the metadata does not contain a 'styleSheets' manifest", () => {
-        it('loads all style sheets from the styles directory', () => {
+        it('loads all style sheets from the styles directory', async () => {
           const one = require.resolve('./fixtures/packages/package-with-styles/styles/1.css')
           const two = require.resolve('./fixtures/packages/package-with-styles/styles/2.less')
           const three = require.resolve('./fixtures/packages/package-with-styles/styles/3.test-context.css')
@@ -1056,73 +980,64 @@ describe('PackageManager', () => {
           expect(atom.themes.stylesheetElementForId(three)).toBeNull()
           expect(atom.themes.stylesheetElementForId(four)).toBeNull()
 
-          waitsForPromise(() => atom.packages.activatePackage('package-with-styles'))
-
-          runs(() => {
-            expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
-            expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
-            expect(atom.themes.stylesheetElementForId(three)).not.toBeNull()
-            expect(atom.themes.stylesheetElementForId(four)).not.toBeNull()
-            expect(getComputedStyle(document.querySelector('#jasmine-content')).fontSize).toBe('3px')
-          })
+          await atom.packages.activatePackage('package-with-styles')
+          expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
+          expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
+          expect(atom.themes.stylesheetElementForId(three)).not.toBeNull()
+          expect(atom.themes.stylesheetElementForId(four)).not.toBeNull()
+          expect(getComputedStyle(document.querySelector('#jasmine-content')).fontSize).toBe('3px')
         })
       })
 
-      it("assigns the stylesheet's context based on the filename", () => {
-        waitsForPromise(() => atom.packages.activatePackage('package-with-styles'))
+      it("assigns the stylesheet's context based on the filename", async () => {
+        await atom.packages.activatePackage('package-with-styles')
 
-        runs(() => {
-          let count = 0
-
-          for (let styleElement of atom.styles.getStyleElements()) {
-            if (styleElement.sourcePath.match(/1.css/)) {
-              expect(styleElement.context).toBe(undefined)
-              count++
-            }
-
-            if (styleElement.sourcePath.match(/2.less/)) {
-              expect(styleElement.context).toBe(undefined)
-              count++
-            }
-
-            if (styleElement.sourcePath.match(/3.test-context.css/)) {
-              expect(styleElement.context).toBe('test-context')
-              count++
-            }
-
-            if (styleElement.sourcePath.match(/4.css/)) {
-              expect(styleElement.context).toBe(undefined)
-              count++
-            }
+        let count = 0
+        for (let styleElement of atom.styles.getStyleElements()) {
+          if (styleElement.sourcePath.match(/1.css/)) {
+            expect(styleElement.context).toBe(undefined)
+            count++
           }
 
-          expect(count).toBe(4)
-        })
+          if (styleElement.sourcePath.match(/2.less/)) {
+            expect(styleElement.context).toBe(undefined)
+            count++
+          }
+
+          if (styleElement.sourcePath.match(/3.test-context.css/)) {
+            expect(styleElement.context).toBe('test-context')
+            count++
+          }
+
+          if (styleElement.sourcePath.match(/4.css/)) {
+            expect(styleElement.context).toBe(undefined)
+            count++
+          }
+        }
+
+        expect(count).toBe(4)
       })
     })
 
     describe('grammar loading', () => {
-      it("loads the package's grammars", () => {
-        waitsForPromise(() => atom.packages.activatePackage('package-with-grammars'))
-
-        runs(() => {
-          expect(atom.grammars.selectGrammar('a.alot').name).toBe('Alot')
-          expect(atom.grammars.selectGrammar('a.alittle').name).toBe('Alittle')
-        })
+      it("loads the package's grammars", async () => {
+        await atom.packages.activatePackage('package-with-grammars')
+        expect(atom.grammars.selectGrammar('a.alot').name).toBe('Alot')
+        expect(atom.grammars.selectGrammar('a.alittle').name).toBe('Alittle')
       })
     })
 
     describe('scoped-property loading', () => {
-      it('loads the scoped properties', () => {
-        waitsForPromise(() => atom.packages.activatePackage('package-with-settings'))
-
-        runs(() => expect(atom.config.get('editor.increaseIndentPattern', {scope: ['.source.omg']})).toBe('^a'))
+      it('loads the scoped properties', async () => {
+        await atom.packages.activatePackage('package-with-settings')
+        expect(atom.config.get('editor.increaseIndentPattern', {scope: ['.source.omg']})).toBe('^a')
       })
     })
 
     describe('service registration', () => {
-      it("registers the package's provided and consumed services", () => {
+      it("registers the package's provided and consumed services", async () => {
         const consumerModule = require('./fixtures/packages/package-with-consumed-services')
+
         let firstServiceV3Disposed = false
         let firstServiceV4Disposed = false
         let secondServiceDisposed = false
@@ -1130,241 +1045,154 @@ describe('PackageManager', () => {
         spyOn(consumerModule, 'consumeFirstServiceV4').andReturn(new Disposable(() => { firstServiceV4Disposed = true }))
         spyOn(consumerModule, 'consumeSecondService').andReturn(new Disposable(() => { secondServiceDisposed = true }))
 
-        waitsForPromise(() => atom.packages.activatePackage('package-with-consumed-services'))
+        await atom.packages.activatePackage('package-with-consumed-services')
+        await atom.packages.activatePackage('package-with-provided-services')
+        expect(consumerModule.consumeFirstServiceV3.callCount).toBe(1)
+        expect(consumerModule.consumeFirstServiceV3).toHaveBeenCalledWith('first-service-v3')
+        expect(consumerModule.consumeFirstServiceV4).toHaveBeenCalledWith('first-service-v4')
+        expect(consumerModule.consumeSecondService).toHaveBeenCalledWith('second-service')
 
-        waitsForPromise(() => atom.packages.activatePackage('package-with-provided-services'))
+        consumerModule.consumeFirstServiceV3.reset()
+        consumerModule.consumeFirstServiceV4.reset()
+        consumerModule.consumeSecondService.reset()
 
-        runs(() => {
-          expect(consumerModule.consumeFirstServiceV3.callCount).toBe(1)
-          expect(consumerModule.consumeFirstServiceV3).toHaveBeenCalledWith('first-service-v3')
-          expect(consumerModule.consumeFirstServiceV4).toHaveBeenCalledWith('first-service-v4')
-          expect(consumerModule.consumeSecondService).toHaveBeenCalledWith('second-service')
+        await atom.packages.deactivatePackage('package-with-provided-services')
+        expect(firstServiceV3Disposed).toBe(true)
+        expect(firstServiceV4Disposed).toBe(true)
+        expect(secondServiceDisposed).toBe(true)
 
-          consumerModule.consumeFirstServiceV3.reset()
-          consumerModule.consumeFirstServiceV4.reset()
-          consumerModule.consumeSecondService.reset()
-        })
-
-        waitsForPromise(() => atom.packages.deactivatePackage('package-with-provided-services'))
-
-        runs(() => {
-          expect(firstServiceV3Disposed).toBe(true)
-          expect(firstServiceV4Disposed).toBe(true)
-          expect(secondServiceDisposed).toBe(true)
-        })
-
-        waitsForPromise(() => atom.packages.deactivatePackage('package-with-consumed-services'))
-
-        waitsForPromise(() => atom.packages.activatePackage('package-with-provided-services'))
-
-        runs(() => {
-          expect(consumerModule.consumeFirstServiceV3).not.toHaveBeenCalled()
-          expect(consumerModule.consumeFirstServiceV4).not.toHaveBeenCalled()
-          expect(consumerModule.consumeSecondService).not.toHaveBeenCalled()
-        })
+        await atom.packages.deactivatePackage('package-with-consumed-services')
+        await atom.packages.activatePackage('package-with-provided-services')
+        expect(consumerModule.consumeFirstServiceV3).not.toHaveBeenCalled()
+        expect(consumerModule.consumeFirstServiceV4).not.toHaveBeenCalled()
+        expect(consumerModule.consumeSecondService).not.toHaveBeenCalled()
       })
 
-      it('ignores provided and consumed services that do not exist', () => {
+      it('ignores provided and consumed services that do not exist', async () => {
         const addErrorHandler = jasmine.createSpy()
         atom.notifications.onDidAddNotification(addErrorHandler)
 
-        waitsForPromise(() => atom.packages.activatePackage('package-with-missing-consumed-services'))
-
-        waitsForPromise(() => atom.packages.activatePackage('package-with-missing-provided-services'))
-
-        runs(() => {
-          expect(atom.packages.isPackageActive('package-with-missing-consumed-services')).toBe(true)
-          expect(atom.packages.isPackageActive('package-with-missing-provided-services')).toBe(true)
-          expect(addErrorHandler.callCount).toBe(0)
-        })
+        await atom.packages.activatePackage('package-with-missing-consumed-services')
+        await atom.packages.activatePackage('package-with-missing-provided-services')
+        expect(atom.packages.isPackageActive('package-with-missing-consumed-services')).toBe(true)
+        expect(atom.packages.isPackageActive('package-with-missing-provided-services')).toBe(true)
+        expect(addErrorHandler.callCount).toBe(0)
       })
     })
   })
 
   describe('::serialize', () => {
-    it('does not serialize packages that threw an error during activation', () => {
+    it('does not serialize packages that threw an error during activation', async () => {
       spyOn(atom, 'inSpecMode').andReturn(false)
       spyOn(console, 'warn')
 
-      let badPack
-      waitsForPromise(() => atom.packages.activatePackage('package-that-throws-on-activate').then(p => {
-        badPack = p
-      }))
+      const badPack = await atom.packages.activatePackage('package-that-throws-on-activate')
+      spyOn(badPack.mainModule, 'serialize').andCallThrough()
 
-      runs(() => {
-        spyOn(badPack.mainModule, 'serialize').andCallThrough()
-
-        atom.packages.serialize()
-        expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
-      })
+      atom.packages.serialize()
+      expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
     })
 
-    it("absorbs exceptions that are thrown by the package module's serialize method", () => {
+    it("absorbs exceptions that are thrown by the package module's serialize method", async () => {
       spyOn(console, 'error')
 
-      waitsForPromise(() => atom.packages.activatePackage('package-with-serialize-error'))
-
-      waitsForPromise(() => atom.packages.activatePackage('package-with-serialization'))
-
-      runs(() => {
-        atom.packages.serialize()
-        expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
-        expect(atom.packages.packageStates['package-with-serialization']).toEqual({someNumber: 1})
-        expect(console.error).toHaveBeenCalled()
-      })
+      await atom.packages.activatePackage('package-with-serialize-error')
+      await atom.packages.activatePackage('package-with-serialization')
+      atom.packages.serialize()
+      expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
+      expect(atom.packages.packageStates['package-with-serialization']).toEqual({someNumber: 1})
+      expect(console.error).toHaveBeenCalled()
     })
   })
 
   describe('::deactivatePackages()', () => {
-    it('deactivates all packages but does not serialize them', () => {
-      let pack1, pack2
+    it('deactivates all packages but does not serialize them', async () => {
+      const pack1 = await atom.packages.activatePackage('package-with-deactivate')
+      const pack2 = await atom.packages.activatePackage('package-with-serialization')
 
-      waitsForPromise(() => {
-        atom.packages.activatePackage('package-with-deactivate').then(p => {
-          pack1 = p
-        })
-        return atom.packages.activatePackage('package-with-serialization').then(p => {
-          pack2 = p
-        })
-      })
-
-      runs(() => {
-        spyOn(pack1.mainModule, 'deactivate')
-        spyOn(pack2.mainModule, 'serialize')
-      })
-
-      waitsForPromise(() => atom.packages.deactivatePackages())
-
-      runs(() => {
-        expect(pack1.mainModule.deactivate).toHaveBeenCalled()
-        expect(pack2.mainModule.serialize).not.toHaveBeenCalled()
-      })
+      spyOn(pack1.mainModule, 'deactivate')
+      spyOn(pack2.mainModule, 'serialize')
+      await atom.packages.deactivatePackages()
+      expect(pack1.mainModule.deactivate).toHaveBeenCalled()
+      expect(pack2.mainModule.serialize).not.toHaveBeenCalled()
     })
   })
 
   describe('::deactivatePackage(id)', () => {
     afterEach(() => atom.packages.unloadPackages())
 
-    it("calls `deactivate` on the package's main module if activate was successful", () => {
+    it("calls `deactivate` on the package's main module if activate was successful", async () => {
       spyOn(atom, 'inSpecMode').andReturn(false)
 
-      let pack
-      waitsForPromise(() => atom.packages.activatePackage('package-with-deactivate').then(p => {
-        pack = p
-      }))
+      const pack = await atom.packages.activatePackage('package-with-deactivate')
+      expect(atom.packages.isPackageActive('package-with-deactivate')).toBeTruthy()
+      spyOn(pack.mainModule, 'deactivate').andCallThrough()
 
-      runs(() => {
-        expect(atom.packages.isPackageActive('package-with-deactivate')).toBeTruthy()
-        spyOn(pack.mainModule, 'deactivate').andCallThrough()
-      })
+      await atom.packages.deactivatePackage('package-with-deactivate')
+      expect(pack.mainModule.deactivate).toHaveBeenCalled()
+      expect(atom.packages.isPackageActive('package-with-module')).toBeFalsy()
 
-      waitsForPromise(() => atom.packages.deactivatePackage('package-with-deactivate'))
+      spyOn(console, 'warn')
+      const badPack = await atom.packages.activatePackage('package-that-throws-on-activate')
+      expect(atom.packages.isPackageActive('package-that-throws-on-activate')).toBeTruthy()
+      spyOn(badPack.mainModule, 'deactivate').andCallThrough()
 
-      runs(() => {
-        expect(pack.mainModule.deactivate).toHaveBeenCalled()
-        expect(atom.packages.isPackageActive('package-with-module')).toBeFalsy()
-
-        spyOn(console, 'warn')
-      })
-
-      let badPack = null
-      waitsForPromise(() => atom.packages.activatePackage('package-that-throws-on-activate').then(p => {
-        badPack = p
-      }))
-
-      runs(() => {
-        expect(atom.packages.isPackageActive('package-that-throws-on-activate')).toBeTruthy()
-        spyOn(badPack.mainModule, 'deactivate').andCallThrough()
-      })
-
-      waitsForPromise(() => atom.packages.deactivatePackage('package-that-throws-on-activate'))
-
-      runs(() => {
-        expect(badPack.mainModule.deactivate).not.toHaveBeenCalled()
-        expect(atom.packages.isPackageActive('package-that-throws-on-activate')).toBeFalsy()
-      })
+      await atom.packages.deactivatePackage('package-that-throws-on-activate')
+      expect(badPack.mainModule.deactivate).not.toHaveBeenCalled()
+      expect(atom.packages.isPackageActive('package-that-throws-on-activate')).toBeFalsy()
     })
 
-    it("absorbs exceptions that are thrown by the package module's deactivate method", () => {
+    it("absorbs exceptions that are thrown by the package module's deactivate method", async () => {
       spyOn(console, 'error')
-      let thrownError = null
-
-      waitsForPromise(() => atom.packages.activatePackage('package-that-throws-on-deactivate'))
-
-      waitsForPromise(() => {
-        try {
-          return atom.packages.deactivatePackage('package-that-throws-on-deactivate')
-        } catch (error) {
-          thrownError = error
-        }
-      })
-
-      runs(() => {
-        expect(thrownError).toBeNull()
-        expect(console.error).toHaveBeenCalled()
-      })
+      await atom.packages.activatePackage('package-that-throws-on-deactivate')
+      await atom.packages.deactivatePackage('package-that-throws-on-deactivate')
+      expect(console.error).toHaveBeenCalled()
     })
 
-    it("removes the package's grammars", () => {
-      waitsForPromise(() => atom.packages.activatePackage('package-with-grammars'))
-
-      waitsForPromise(() => atom.packages.deactivatePackage('package-with-grammars'))
-
-      runs(() => {
-        expect(atom.grammars.selectGrammar('a.alot').name).toBe('Null Grammar')
-        expect(atom.grammars.selectGrammar('a.alittle').name).toBe('Null Grammar')
-      })
+    it("removes the package's grammars", async () => {
+      await atom.packages.activatePackage('package-with-grammars')
+      await atom.packages.deactivatePackage('package-with-grammars')
+      expect(atom.grammars.selectGrammar('a.alot').name).toBe('Null Grammar')
+      expect(atom.grammars.selectGrammar('a.alittle').name).toBe('Null Grammar')
     })
 
-    it("removes the package's keymaps", () => {
-      waitsForPromise(() => atom.packages.activatePackage('package-with-keymaps'))
-
-      waitsForPromise(() => atom.packages.deactivatePackage('package-with-keymaps'))
-
-      runs(() => {
-        expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: createTestElement('test-1')})).toHaveLength(0)
-        expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: createTestElement('test-2')})).toHaveLength(0)
-      })
+    it("removes the package's keymaps", async () => {
+      await atom.packages.activatePackage('package-with-keymaps')
+      await atom.packages.deactivatePackage('package-with-keymaps')
+      expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: createTestElement('test-1')})).toHaveLength(0)
+      expect(atom.keymaps.findKeyBindings({keystrokes: 'ctrl-z', target: createTestElement('test-2')})).toHaveLength(0)
     })
 
-    it("removes the package's stylesheets", () => {
-      waitsForPromise(() => atom.packages.activatePackage('package-with-styles'))
+    it("removes the package's stylesheets", async () => {
+      await atom.packages.activatePackage('package-with-styles')
+      await atom.packages.deactivatePackage('package-with-styles')
 
-      waitsForPromise(() => atom.packages.deactivatePackage('package-with-styles'))
-
-      runs(() => {
-        const one = require.resolve('./fixtures/packages/package-with-style-sheets-manifest/styles/1.css')
-        const two = require.resolve('./fixtures/packages/package-with-style-sheets-manifest/styles/2.less')
-        const three = require.resolve('./fixtures/packages/package-with-style-sheets-manifest/styles/3.css')
-        expect(atom.themes.stylesheetElementForId(one)).not.toExist()
-        expect(atom.themes.stylesheetElementForId(two)).not.toExist()
-        expect(atom.themes.stylesheetElementForId(three)).not.toExist()
-      })
+      const one = require.resolve('./fixtures/packages/package-with-style-sheets-manifest/styles/1.css')
+      const two = require.resolve('./fixtures/packages/package-with-style-sheets-manifest/styles/2.less')
+      const three = require.resolve('./fixtures/packages/package-with-style-sheets-manifest/styles/3.css')
+      expect(atom.themes.stylesheetElementForId(one)).not.toExist()
+      expect(atom.themes.stylesheetElementForId(two)).not.toExist()
+      expect(atom.themes.stylesheetElementForId(three)).not.toExist()
     })
 
-    it("removes the package's scoped-properties", () => {
-      waitsForPromise(() => atom.packages.activatePackage('package-with-settings'))
+    it("removes the package's scoped-properties", async () => {
+      await atom.packages.activatePackage('package-with-settings')
+      expect(atom.config.get('editor.increaseIndentPattern', {scope: ['.source.omg']})).toBe('^a')
 
-      runs(() => expect(atom.config.get('editor.increaseIndentPattern', {scope: ['.source.omg']})).toBe('^a'))
-
-      waitsForPromise(() => atom.packages.deactivatePackage('package-with-settings'))
-
-      runs(() => expect(atom.config.get('editor.increaseIndentPattern', {scope: ['.source.omg']})).toBeUndefined())
+      await atom.packages.deactivatePackage('package-with-settings')
+      expect(atom.config.get('editor.increaseIndentPattern', {scope: ['.source.omg']})).toBeUndefined()
     })
 
-    it('invokes ::onDidDeactivatePackage listeners with the deactivated package', () => {
-      waitsForPromise(() => atom.packages.activatePackage('package-with-main'))
+    it('invokes ::onDidDeactivatePackage listeners with the deactivated package', async () => {
+      await atom.packages.activatePackage('package-with-main')
 
       let deactivatedPackage
-      runs(() => {
-        atom.packages.onDidDeactivatePackage(pack => {
-          deactivatedPackage = pack
-        })
+      atom.packages.onDidDeactivatePackage(pack => {
+        deactivatedPackage = pack
       })
 
-      waitsForPromise(() => atom.packages.deactivatePackage('package-with-main'))
-
-      runs(() => expect(deactivatedPackage.name).toBe('package-with-main'))
+      await atom.packages.deactivatePackage('package-with-main')
+      expect(deactivatedPackage.name).toBe('package-with-main')
     })
   })
 
@@ -1379,20 +1207,19 @@ describe('PackageManager', () => {
       expect(loadedPackages.length).toBeGreaterThan(0)
     })
 
-    afterEach(() => {
-      waitsForPromise(() => atom.packages.deactivatePackages())
-      runs(() => {
-        atom.packages.unloadPackages()
-        jasmine.restoreDeprecationsSnapshot()
-      })
+    afterEach(async () => {
+      await atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
+      jasmine.restoreDeprecationsSnapshot()
     })
 
-    it('sets hasActivatedInitialPackages', () => {
+    it('sets hasActivatedInitialPackages', async () => {
       spyOn(atom.styles, 'getUserStyleSheetPath').andReturn(null)
       spyOn(atom.packages, 'activatePackages')
       expect(atom.packages.hasActivatedInitialPackages()).toBe(false)
-      waitsForPromise(() => atom.packages.activate())
-      runs(() => expect(atom.packages.hasActivatedInitialPackages()).toBe(true))
+
+      await atom.packages.activate()
+      expect(atom.packages.hasActivatedInitialPackages()).toBe(true)
     })
 
     it('activates all the packages, and none of the themes', () => {
@@ -1411,73 +1238,52 @@ describe('PackageManager', () => {
       themes.map((theme) => expect(['theme']).toContain(theme.getType()))
     })
 
-    it('calls callbacks registered with ::onDidActivateInitialPackages', () => {
+    it('calls callbacks registered with ::onDidActivateInitialPackages', async () => {
       const package1 = atom.packages.loadPackage('package-with-main')
       const package2 = atom.packages.loadPackage('package-with-index')
       const package3 = atom.packages.loadPackage('package-with-activation-commands')
       spyOn(atom.packages, 'getLoadedPackages').andReturn([package1, package2, package3])
       spyOn(atom.themes, 'activatePackages')
-      const activateSpy = jasmine.createSpy('activateSpy')
-      atom.packages.onDidActivateInitialPackages(activateSpy)
 
       atom.packages.activate()
-      waitsFor(() => activateSpy.callCount > 0)
-      runs(() => {
-        let needle, needle1, needle2
-        jasmine.unspy(atom.packages, 'getLoadedPackages')
-        expect(atom.packages.getActivePackages().includes(package1)).toBe(true)
-        expect(atom.packages.getActivePackages().includes(package2)).toBe(true)
-        expect(atom.packages.getActivePackages().includes(package3)).toBe(false)
-      })
+      await new Promise(resolve => atom.packages.onDidActivateInitialPackages(resolve))
+
+      jasmine.unspy(atom.packages, 'getLoadedPackages')
+      expect(atom.packages.getActivePackages().includes(package1)).toBe(true)
+      expect(atom.packages.getActivePackages().includes(package2)).toBe(true)
+      expect(atom.packages.getActivePackages().includes(package3)).toBe(false)
     })
   })
 
   describe('::enablePackage(id) and ::disablePackage(id)', () => {
     describe('with packages', () => {
-      it('enables a disabled package', () => {
+      it('enables a disabled package', async () => {
         const packageName = 'package-with-main'
         atom.config.pushAtKeyPath('core.disabledPackages', packageName)
         atom.packages.observeDisabledPackages()
         expect(atom.config.get('core.disabledPackages')).toContain(packageName)
 
         const pack = atom.packages.enablePackage(packageName)
-        const loadedPackages = atom.packages.getLoadedPackages()
-        let activatedPackages = null
-        waitsFor(() => {
-          activatedPackages = atom.packages.getActivePackages()
-          return activatedPackages.length > 0
-        })
+        await new Promise(resolve => atom.packages.onDidActivatePackage(resolve))
 
-        runs(() => {
-          expect(loadedPackages).toContain(pack)
-          expect(activatedPackages).toContain(pack)
-          expect(atom.config.get('core.disabledPackages')).not.toContain(packageName)
-        })
+        expect(atom.packages.getLoadedPackages()).toContain(pack)
+        expect(atom.packages.getActivePackages()).toContain(pack)
+        expect(atom.config.get('core.disabledPackages')).not.toContain(packageName)
       })
 
-      it('disables an enabled package', () => {
+      it('disables an enabled package', async () => {
         const packageName = 'package-with-main'
-        let pack = null
-        let activatedPackages = null
+        const pack = await atom.packages.activatePackage(packageName)
 
-        waitsForPromise(() => atom.packages.activatePackage(packageName))
-
-        runs(() => {
-          atom.packages.observeDisabledPackages()
-          expect(atom.config.get('core.disabledPackages')).not.toContain(packageName)
-
-          pack = atom.packages.disablePackage(packageName)
+        atom.packages.observeDisabledPackages()
+        expect(atom.config.get('core.disabledPackages')).not.toContain(packageName)
+        await new Promise(resolve => {
+          atom.packages.onDidDeactivatePackage(resolve)
+          atom.packages.disablePackage(packageName)
         })
 
-        waitsFor(() => {
-          activatedPackages = atom.packages.getActivePackages()
-          return activatedPackages.length === 0
-        })
-
-        runs(() => {
-          expect(activatedPackages).not.toContain(pack)
-          expect(atom.config.get('core.disabledPackages')).toContain(packageName)
-        })
+        expect(atom.packages.getActivePackages()).not.toContain(pack)
+        expect(atom.config.get('core.disabledPackages')).toContain(packageName)
       })
 
       it('returns null if the package cannot be loaded', () => {
@@ -1499,48 +1305,30 @@ describe('PackageManager', () => {
     })
 
     describe('with themes', () => {
-      let didChangeActiveThemesHandler = null
+      beforeEach(() => atom.themes.activateThemes())
+      afterEach(() => atom.themes.deactivateThemes())
 
-      beforeEach(() => {
-        waitsForPromise(() => atom.themes.activateThemes())
-      })
-
-      afterEach(() => {
-        waitsForPromise(() => atom.themes.deactivateThemes())
-      })
-
-      it('enables and disables a theme', () => {
+      it('enables and disables a theme', async () => {
         const packageName = 'theme-with-package-file'
-
         expect(atom.config.get('core.themes')).not.toContain(packageName)
         expect(atom.config.get('core.disabledPackages')).not.toContain(packageName)
 
         // enabling of theme
-        let pack = atom.packages.enablePackage(packageName)
+        const pack = atom.packages.enablePackage(packageName)
+        await new Promise(resolve => atom.packages.onDidActivatePackage(resolve))
+        expect(atom.packages.isPackageActive(packageName)).toBe(true)
+        expect(atom.config.get('core.themes')).toContain(packageName)
+        expect(atom.config.get('core.disabledPackages')).not.toContain(packageName)
 
-        waitsFor('theme to enable', 500, () => {
-          return atom.packages.getActivePackages().includes(pack)
+        await new Promise(resolve => {
+          atom.themes.onDidChangeActiveThemes(resolve)
+          atom.packages.disablePackage(packageName)
         })
 
-        runs(() => {
-          expect(atom.config.get('core.themes')).toContain(packageName)
-          expect(atom.config.get('core.disabledPackages')).not.toContain(packageName)
-
-          didChangeActiveThemesHandler = jasmine.createSpy('didChangeActiveThemesHandler')
-          didChangeActiveThemesHandler.reset()
-          atom.themes.onDidChangeActiveThemes(didChangeActiveThemesHandler)
-
-          pack = atom.packages.disablePackage(packageName)
-        })
-
-        waitsFor('did-change-active-themes event to fire', 500, () => didChangeActiveThemesHandler.callCount === 1)
-
-        runs(() => {
-          expect(atom.packages.getActivePackages()).not.toContain(pack)
-          expect(atom.config.get('core.themes')).not.toContain(packageName)
-          expect(atom.config.get('core.themes')).not.toContain(packageName)
-          expect(atom.config.get('core.disabledPackages')).not.toContain(packageName)
-        })
+        expect(atom.packages.getActivePackages()).not.toContain(pack)
+        expect(atom.config.get('core.themes')).not.toContain(packageName)
+        expect(atom.config.get('core.themes')).not.toContain(packageName)
+        expect(atom.config.get('core.disabledPackages')).not.toContain(packageName)
       })
     })
   })
