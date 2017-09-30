@@ -44,35 +44,35 @@ export default class Color {
   }
 
   set red (red) {
-    this._red = parseColor(red)
+    this.red = parseColor(red)
   }
 
   set green (green) {
-    this._green = parseColor(green)
+    this.green = parseColor(green)
   }
 
   set blue (blue) {
-    this._blue = parseColor(blue)
+    this.blue = parseColor(blue)
   }
 
   set alpha (alpha) {
-    this._alpha = parseAlpha(alpha)
+    this.alpha = parseAlpha(alpha)
   }
 
   get red () {
-    return this._red
+    return this.red
   }
 
   get green () {
-    return this._green
+    return this.green
   }
 
   get blue () {
-    return this._blue
+    return this.blue
   }
 
   get alpha () {
-    return this._alpha
+    return this.alpha
   }
 
   // Essential: Returns a {String} in the form `'#abcdef'`.
