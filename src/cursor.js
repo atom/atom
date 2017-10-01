@@ -520,7 +520,7 @@ class Cursor extends Model {
       ? new Range(new Point(position.row - 1, 0), position)
       : new Range(new Point(position.row, 0), position)
 
-    const ranges = this.editor.buffer.buffer.findAllInRangeSync(
+    const ranges = this.editor.buffer.findAllInRangeSync(
       options.wordRegex || this.wordRegExp(),
       scanRange
     )
@@ -552,7 +552,7 @@ class Cursor extends Model {
       ? new Range(position, new Point(position.row + 2, 0))
       : new Range(position, new Point(position.row, Infinity))
 
-    const ranges = this.editor.buffer.buffer.findAllInRangeSync(
+    const ranges = this.editor.buffer.findAllInRangeSync(
       options.wordRegex || this.wordRegExp(),
       scanRange
     )
@@ -593,7 +593,7 @@ class Cursor extends Model {
   //     (default: {::wordRegExp}).
   getCurrentWordBufferRange (options = {}) {
     const position = this.getBufferPosition()
-    const ranges = this.editor.buffer.buffer.findAllInRangeSync(
+    const ranges = this.editor.buffer.findAllInRangeSync(
       options.wordRegex || this.wordRegExp(),
       new Range(new Point(position.row, 0), new Point(position.row, Infinity))
     )
