@@ -112,27 +112,15 @@ export default class Color {
 
 function parseColor (colorString) {
   const color = parseInt(colorString, 10)
-  if (isNaN(color)) {
-    return 0
-  } else {
-    return Math.min(Math.max(color, 0), 255)
-  }
+  return isNaN(color) ? 0 : Math.min(Math.max(color, 0), 255)
 }
 
 function parseAlpha (alphaString) {
   const alpha = parseFloat(alphaString)
-  if (isNaN(alpha)) {
-    return 1
-  } else {
-    return Math.min(Math.max(alpha, 0), 1)
-  }
+  return isNaN(alpha) ? 1 : Math.min(Math.max(alpha, 0), 1)
 }
 
 function numberToHexString (number) {
   const hex = number.toString(16)
-  if (number < 16) {
-    return `0${hex}`
-  } else {
-    return hex
-  }
+  return number < 16 ? `0${hex}` : hex
 }
