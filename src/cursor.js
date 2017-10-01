@@ -281,8 +281,8 @@ class Cursor extends Model {
       while (columnCount > column && row > 0) {
         columnCount -= column
         column = this.editor.lineLengthForScreenRow(--row)
-        columnCount--
-      } // subtract 1 for the row move
+        columnCount-- // subtract 1 for the row move
+      }
 
       column = column - columnCount
       this.setScreenPosition({row, column}, {clipDirection: 'backward'})
