@@ -1,0 +1,17 @@
+"*":
+  core:
+    telemetryConsent: "no"
+    themes: [
+      "onetwo-light-ui"
+      "onetwo-light-syntax"
+    ]
+  editor:
+    invisibles: {}
+    softTabs: false
+    softWrap: true
+  tabs:
+    alwaysShowTabBar: false
+  welcome:
+    showOnStartup: false
+  "wrap-guide":
+    enabled: false
