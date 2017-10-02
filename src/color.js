@@ -37,10 +37,10 @@ export default class Color {
   }
 
   constructor (red, green, blue, alpha) {
-    this.red = red
-    this.green = green
-    this.blue = blue
-    this.alpha = alpha
+    this._red = red
+    this._green = green
+    this._blue = blue
+    this._alpha = alpha
   }
 
   set red (red) {
