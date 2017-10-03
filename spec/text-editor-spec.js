@@ -1,3 +1,5 @@
+const fs = require('fs')
+const temp = require('temp').track()
 const {Point, Range} = require('text-buffer')
 const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
@@ -6,6 +8,54 @@ describe('TextEditor', () => {
 
   afterEach(() => {
     editor.destroy()
+  })
+
+  describe('.shouldPromptToSave()', () => {
+    beforeEach(async () => {
+      editor = await atom.workspace.open('sample.js')
+      jasmine.unspy(editor, 'shouldPromptToSave')
+    })
+
+    it('returns true when buffer has unsaved changes', () => {
+      expect(editor.shouldPromptToSave()).toBeFalsy()
+      editor.setText('changed')
+      expect(editor.shouldPromptToSave()).toBeTruthy()
+    })
+
+    it("returns false when an editor's buffer is in use by more than one buffer", async () => {
+      editor.setText('changed')
+
+      atom.workspace.getActivePane().splitRight()
+      const editor2 = await atom.workspace.open('sample.js', {autoIndent: false})
+      expect(editor.shouldPromptToSave()).toBeFalsy()
+
+      editor2.destroy()
+      expect(editor.shouldPromptToSave()).toBeTruthy()
+    })
+
+    it('returns true when the window is closing if the file has changed on disk', async () => {
+      jasmine.useRealClock()
+
+      editor.setText('initial stuff')
+      await editor.saveAs(temp.openSync('test-file').path)
+
+      editor.setText('other stuff')
+      fs.writeFileSync(editor.getPath(), 'new stuff')
+      expect(editor.shouldPromptToSave({windowCloseRequested: true, projectHasPaths: true})).toBeFalsy()
+
+      await new Promise(resolve => editor.onDidConflict(resolve))
+      expect(editor.shouldPromptToSave({windowCloseRequested: true, projectHasPaths: true})).toBeTruthy()
+    })
+
+    it('returns false when the window is closing and the project has one or more directory paths', () => {
+      editor.setText('changed')
+      expect(editor.shouldPromptToSave({windowCloseRequested: true, projectHasPaths: true})).toBeFalsy()
+    })
+
+    it('returns false when the window is closing and the project has no directory paths', () => {
+      editor.setText('changed')
+      expect(editor.shouldPromptToSave({windowCloseRequested: true, projectHasPaths: false})).toBeTruthy()
+    })
   })
 
   describe('folding', () => {
