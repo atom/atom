@@ -471,7 +471,7 @@ class TokenizedBuffer {
   }
 
   isFoldableAtRow (row) {
-    return this.endRowForFoldAtRow(row, 1) != null
+    return this.endRowForFoldAtRow(row, 1, true) != null
   }
 
   buildTokenizedLinesForRows (startRow, endRow, startingStack, startingopenScopes) {
@@ -773,27 +773,28 @@ class TokenizedBuffer {
     return result
   }
 
-  endRowForFoldAtRow (row, tabLength) {
+  endRowForFoldAtRow (row, tabLength, existenceOnly = false) {
     if (this.isRowCommented(row)) {
-      return this.endRowForCommentFoldAtRow(row)
+      return this.endRowForCommentFoldAtRow(row, existenceOnly)
     } else {
-      return this.endRowForCodeFoldAtRow(row, tabLength)
+      return this.endRowForCodeFoldAtRow(row, tabLength, existenceOnly)
     }
   }
 
-  endRowForCommentFoldAtRow (row) {
+  endRowForCommentFoldAtRow (row, existenceOnly) {
     if (this.isRowCommented(row - 1)) return
 
     let endRow
     for (let nextRow = row + 1, end = this.buffer.getLineCount(); nextRow < end; nextRow++) {
       if (!this.isRowCommented(nextRow)) break
       endRow = nextRow
+      if (existenceOnly) break
     }
 
     return endRow
   }
 
-  endRowForCodeFoldAtRow (row, tabLength) {
+  endRowForCodeFoldAtRow (row, tabLength, existenceOnly) {
     let foldEndRow
     const line = this.buffer.lineForRow(row)
     if (!NON_WHITESPACE_REGEX.test(line)) return
@@ -811,6 +812,7 @@ class TokenizedBuffer {
         break
       }
       foldEndRow = nextRow
+      if (existenceOnly) break
     }
     return foldEndRow
   }
