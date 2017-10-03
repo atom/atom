@@ -286,6 +286,31 @@ describe('TextEditorComponent', () => {
       expect(lineNumberNodeForScreenRow(component, 0).querySelector('.foldable')).toBeNull()
     })
 
+    it('gracefully handles folds that change the soft-wrap boundary by causing the vertical scrollbar to disappear (regression)', async () => {
+      const text =  ('x'.repeat(100) + '\n') + 'y\n'.repeat(28) + '  z\n'.repeat(50)
+      const {component, element, editor} = buildComponent({text, height: 1000, width: 500})
+
+      element.addEventListener('scroll', (event) => {
+        event.stopPropagation()
+      }, true)
+
+      editor.setSoftWrapped(true)
+      jasmine.attachToDOM(element)
+      await component.getNextUpdatePromise()
+
+      const firstScreenLineLengthWithVerticalScrollbar = element.querySelector('.line').textContent.length
+
+      setScrollTop(component, 620)
+      await component.getNextUpdatePromise()
+
+      editor.foldBufferRow(28)
+      await component.getNextUpdatePromise()
+
+      const firstLineElement = element.querySelector('.line')
+      expect(firstLineElement.dataset.screenRow).toBe('0')
+      expect(firstLineElement.textContent.length).toBeGreaterThan(firstScreenLineLengthWithVerticalScrollbar)
+    })
+
     it('shows the foldable icon on the last screen row of a buffer row that can be folded', async () => {
       const {component, element, editor} = buildComponent({text: 'abc\n  de\nfghijklm\n  no', softWrapped: true})
       await setEditorWidthInCharacters(component, 5)
