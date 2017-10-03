@@ -807,7 +807,7 @@ describe('TokenizedBuffer', () => {
 
         buffer.setText('  ')
         tokenizedBuffer.toggleLineCommentsForBufferRows(0, 0)
-        expect(buffer.lineForRow(0)).toBe('// ')
+        expect(buffer.lineForRow(0)).toBe('  // ')
 
         buffer.setText('    a\n  \n    b')
         tokenizedBuffer.toggleLineCommentsForBufferRows(0, 2)

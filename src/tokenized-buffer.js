@@ -222,13 +222,18 @@ class TokenizedBuffer {
         }
       } else {
         let minIndentLevel = null
+        let minBlankIndentLevel
         for (let row = start; row <= end; row++) {
           const line = this.buffer.lineForRow(row)
           if (NON_WHITESPACE_REGEX.test(line)) {
             const indentLevel = this.indentLevelForLine(line)
             if (minIndentLevel == null || indentLevel < minIndentLevel) minIndentLevel = indentLevel
+          } else if (minIndentLevel == null) {
+            const indentLevel = this.indentLevelForLine(line)
+            if (minBlankIndentLevel == null || indentLevel < minBlankIndentLevel) minBlankIndentLevel = indentLevel
           }
         }
+        if (minIndentLevel == null) minIndentLevel = minBlankIndentLevel
         if (minIndentLevel == null) minIndentLevel = 0
 
         const tabLength = this.getTabLength()
