@@ -961,7 +961,7 @@ class TextEditor extends Model
   # this editor.
   shouldPromptToSave: ({windowCloseRequested, projectHasPaths}={}) ->
     if windowCloseRequested and projectHasPaths and atom.stateStore.isConnected()
-      false
+      @buffer.isInConflict()
     else
       @isModified() and not @buffer.hasMultipleEditors()
 
