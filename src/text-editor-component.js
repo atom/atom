@@ -362,7 +362,7 @@ class TextEditorComponent {
       this.requestHorizontalMeasurement(screenRange.start.row, screenRange.start.column)
       this.requestHorizontalMeasurement(screenRange.end.row, screenRange.end.column)
     }
-    this.populateVisibleRowRange()
+    this.populateVisibleRowRange(this.getRenderedStartRow())
     this.populateVisibleTiles()
     this.queryScreenLinesToRender()
     this.queryLongestLine()
@@ -2096,14 +2096,29 @@ class TextEditorComponent {
     return marginInBaseCharacters * this.getBaseCharacterWidth()
   }
 
+  // This method is called at the beginning of a frame render to relay any
+  // potential changes in the editor's width into the model before proceeding.
   updateModelSoftWrapColumn () {
     const {model} = this.props
     const newEditorWidthInChars = this.getScrollContainerClientWidthInBaseCharacters()
     if (newEditorWidthInChars !== model.getEditorWidthInChars()) {
       this.suppressUpdates = true
+
+      const renderedStartRow = this.getRenderedStartRow()
       this.props.model.setEditorWidthInChars(newEditorWidthInChars)
-      // Wrapping may cause a vertical scrollbar to appear, which will change the width again.
+
+      // Relaying a change in to the editor's client width may cause the
+      // vertical scrollbar to appear or disappear, which causes the editor's
+      // client width to change *again*. Make sure the display layer is fully
+      // populated for the visible area before recalculating the editor's
+      // width in characters. Then update the display layer *again* just in
+      // case a change in scrollbar visibility causes lines to wrap
+      // differently. We capture the renderedStartRow before resetting the
+      // display layer because once it has been reset, we can't compute the
+      // rendered start row accurately. 😥
+      this.populateVisibleRowRange(renderedStartRow)
       this.props.model.setEditorWidthInChars(this.getScrollContainerClientWidthInBaseCharacters())
+
       this.suppressUpdates = false
     }
   }
@@ -2867,12 +2882,11 @@ class TextEditorComponent {
     }
   }
 
-  // Ensure the spatial index is populated with rows that are currently
-  // visible so we *at least* get the longest row in the visible range.
-  populateVisibleRowRange () {
+  // Ensure the spatial index is populated with rows that are currently visible
+  populateVisibleRowRange (renderedStartRow) {
     const editorHeightInTiles = this.getScrollContainerHeight() / this.getLineHeight()
     const visibleTileCount = Math.ceil(editorHeightInTiles) + 1
-    const lastRenderedRow = this.getRenderedStartRow() + (visibleTileCount * this.getRowsPerTile())
+    const lastRenderedRow = renderedStartRow + (visibleTileCount * this.getRowsPerTile())
     this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, lastRenderedRow)
   }
 
