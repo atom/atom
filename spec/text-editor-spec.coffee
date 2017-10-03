@@ -1168,6 +1168,58 @@ describe "TextEditor", ->
         editor.setCursorBufferPosition([3, 1])
         expect(editor.getCurrentParagraphBufferRange()).toBeUndefined()
 
+      it 'will limit paragraph range to comments', ->
+        waitsForPromise ->
+          atom.packages.activatePackage('language-javascript')
+
+        runs ->
+          editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+          editor.setText("""
+            var quicksort = function () {
+              /* Single line comment block */
+              var sort = function(items) {};
+
+              /*
+              A multiline
+              comment is here
+              */
+              var sort = function(items) {};
+
+              // A comment
+              //
+              // Multiple comment
+              // lines
+              var sort = function(items) {};
+              // comment line after fn
+
+              var nosort = function(items) {
+                item;
+              }
+
+            };
+          """)
+
+          paragraphBufferRangeForRow = (row) ->
+            editor.setCursorBufferPosition([row, 0])
+            editor.getLastCursor().getCurrentParagraphBufferRange()
+
+          expect(paragraphBufferRangeForRow(0)).toEqual([[0, 0], [0, 29]])
+          expect(paragraphBufferRangeForRow(1)).toEqual([[1, 0], [1, 33]])
+          expect(paragraphBufferRangeForRow(2)).toEqual([[2, 0], [2, 32]])
+          expect(paragraphBufferRangeForRow(3)).toBeFalsy()
+          expect(paragraphBufferRangeForRow(4)).toEqual([[4, 0], [7, 4]])
+          expect(paragraphBufferRangeForRow(5)).toEqual([[4, 0], [7, 4]])
+          expect(paragraphBufferRangeForRow(6)).toEqual([[4, 0], [7, 4]])
+          expect(paragraphBufferRangeForRow(7)).toEqual([[4, 0], [7, 4]])
+          expect(paragraphBufferRangeForRow(8)).toEqual([[8, 0], [8, 32]])
+          expect(paragraphBufferRangeForRow(9)).toBeFalsy()
+          expect(paragraphBufferRangeForRow(10)).toEqual([[10, 0], [13, 10]])
+          expect(paragraphBufferRangeForRow(11)).toEqual([[10, 0], [13, 10]])
+          expect(paragraphBufferRangeForRow(12)).toEqual([[10, 0], [13, 10]])
+          expect(paragraphBufferRangeForRow(14)).toEqual([[14, 0], [14, 32]])
+          expect(paragraphBufferRangeForRow(15)).toEqual([[15, 0], [15, 26]])
+          expect(paragraphBufferRangeForRow(18)).toEqual([[17, 0], [19, 3]])
+
     describe "getCursorAtScreenPosition(screenPosition)", ->
       it "returns the cursor at the given screenPosition", ->
         cursor1 = editor.addCursorAtScreenPosition([0, 2])
@@ -5271,37 +5323,6 @@ describe "TextEditor", ->
         [[5, 3], [6, 1]],
         [[6, 3], [6, 4]],
       ])
-
-  describe ".shouldPromptToSave()", ->
-    it "returns true when buffer changed", ->
-      jasmine.unspy(editor, 'shouldPromptToSave')
-      expect(editor.shouldPromptToSave()).toBeFalsy()
-      buffer.setText('changed')
-      expect(editor.shouldPromptToSave()).toBeTruthy()
-
-    it "returns false when an edit session's buffer is in use by more than one session", ->
-      jasmine.unspy(editor, 'shouldPromptToSave')
-      buffer.setText('changed')
-
-      editor2 = null
-      waitsForPromise ->
-        atom.workspace.getActivePane().splitRight()
-        atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor2 = o
-
-      runs ->
-        expect(editor.shouldPromptToSave()).toBeFalsy()
-        editor2.destroy()
-        expect(editor.shouldPromptToSave()).toBeTruthy()
-
-    it "returns false when close of a window requested and edit session opened inside project", ->
-      jasmine.unspy(editor, 'shouldPromptToSave')
-      buffer.setText('changed')
-      expect(editor.shouldPromptToSave(windowCloseRequested: true, projectHasPaths: true)).toBeFalsy()
-
-    it "returns true when close of a window requested and edit session opened without project", ->
-      jasmine.unspy(editor, 'shouldPromptToSave')
-      buffer.setText('changed')
-      expect(editor.shouldPromptToSave(windowCloseRequested: true, projectHasPaths: false)).toBeTruthy()
 
   describe "when the editor contains surrogate pair characters", ->
     it "correctly backspaces over them", ->
