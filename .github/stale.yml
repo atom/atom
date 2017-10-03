@@ -17,7 +17,7 @@ markComment: >
 
   This issue has been automatically marked as stale because it has not had
   recent activity. Because the Atom team treats their issues
-  [as their backlog](https://en.wikipedia.org/wiki/Scrum_(software_development)#Product_backlog) stale issues
+  [as their backlog](https://en.wikipedia.org/wiki/Scrum_(software_development)#Product_backlog), stale issues
   are closed. If you would like this issue to remain open:
 
   1. Verify that you can still reproduce the issue in the latest version of Atom
