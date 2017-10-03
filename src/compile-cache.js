@@ -82,19 +82,13 @@ exports.resetCacheStats = function () {
 
 function compileFileAtPath (compiler, filePath, extension) {
   var sourceCode = fs.readFileSync(filePath, 'utf8')
-  if (compiler.shouldCompile(sourceCode, filePath)) {
+  return (compiler.shouldCompile(sourceCode, filePath)) ? sourceCode
     var cachePath = compiler.getCachePath(sourceCode, filePath)
     var compiledCode = readCachedJavaScript(cachePath)
-    if (compiledCode != null) {
-      cacheStats[extension].hits++
-    } else {
-      cacheStats[extension].misses++
-      compiledCode = compiler.compile(sourceCode, filePath)
-      writeCachedJavaScript(cachePath, compiledCode)
-    }
-    return compiledCode
+ 
+    return (compiledCode != null) ? cacheStats[extension].hits++ : cacheStats[extension].misses++  
   }
-  return sourceCode
+ 
 }
 
 function readCachedJavaScript (relativeCachePath) {
