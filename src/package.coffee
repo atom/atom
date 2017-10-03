@@ -323,15 +323,15 @@ class Package
   registerUrlHandler: ->
     handlerConfig = @getUrlHandler()
     if methodName = handlerConfig?.method
-      @urlHandlerSubscription = @packageManager.registerUrlHandlerForPackage @name, (url) =>
-        @handleUrl(url, methodName)
+      @urlHandlerSubscription = @packageManager.registerUrlHandlerForPackage @name, (args...) =>
+        @handleUrl(methodName, args)
 
   unregisterUrlHandler: ->
     @urlHandlerSubscription?.dispose()
 
-  handleUrl: (url, methodName) ->
+  handleUrl: (methodName, args) ->
     @activate().then =>
-      @mainModule[methodName]?(url)
+      @mainModule[methodName]?.apply(@mainModule, args)
     unless @mainActivated
       @activateNow()
 

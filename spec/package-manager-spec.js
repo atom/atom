@@ -1,4 +1,5 @@
 const path = require('path')
+const url = require('url')
 const Package = require('../src/package')
 const PackageManager = require('../src/package-manager')
 const temp = require('temp').track()
@@ -1035,6 +1036,20 @@ describe('PackageManager', () => {
       it('loads the scoped properties', async () => {
         await atom.packages.activatePackage('package-with-settings')
         expect(atom.config.get('editor.increaseIndentPattern', {scope: ['.source.omg']})).toBe('^a')
+      })
+    })
+
+
+    describe("URL handler registration", () => {
+      it("registers the package's specified URL handler", async () => {
+        const uri = 'atom://package-with-url-handler/some/url?with=args'
+        const mod = require('./fixtures/packages/package-with-url-handler')
+        spyOn(mod, 'handleUrl')
+        spyOn(atom.packages, 'hasLoadedInitialPackages').andReturn(true)
+        const activationPromise = atom.packages.activatePackage('package-with-url-handler')
+        atom.dispatchUrlMessage(uri)
+        await activationPromise
+        expect(mod.handleUrl).toHaveBeenCalledWith(url.parse(uri, true), uri)
       })
     })
 
