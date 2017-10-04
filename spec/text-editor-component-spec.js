@@ -6,7 +6,7 @@ const TextEditorComponent = require('../src/text-editor-component')
 const TextEditorElement = require('../src/text-editor-element')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
-const {Point} = TextBuffer
+const {Point, Range} = TextBuffer
 const fs = require('fs')
 const path = require('path')
 const Grim = require('grim')
@@ -36,7 +36,7 @@ describe('TextEditorComponent', () => {
     jasmine.attachToDOM(scrollbarStyle)
   })
 
-  fit('randomized test', async () => {
+  xit('randomized test', async () => {
     jasmine.getEnv().defaultTimeoutInterval = 24 * 60 * 60 * 1000
 
     const initialSeed = Date.now()
@@ -90,6 +90,36 @@ describe('TextEditorComponent', () => {
       element.remove()
       editor.destroy()
     }
+  })
+
+  fit('failing test', async () => {
+      const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
+      editor.setSoftWrapped(true)
+      await setEditorHeightInLines(component, 7)
+      await setEditorWidthInCharacters(component, 20)
+      element.focus()
+
+      const range = new Range(Point(2, 27), Point(11,38))
+      editor.setSelectedBufferRange(range)
+      editor.backspace()
+
+      await component.getNextUpdatePromise()
+
+      const renderedLines = queryOnScreenLineElements(element)
+        .sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+        .map((e) => e.textContent)
+      const actualLines = editor.displayLayer.getScreenLines(
+        component.getRenderedStartRow(),
+        component.getRenderedEndRow()
+      ).map((l) => l.lineText || ' ')
+
+      expect(renderedLines.length).toBe(actualLines.length)
+      for (let i = 0; i < renderedLines.length; i++) {
+        expect(renderedLines[i]).toBe(actualLines[i])
+      }
+
+      element.remove()
+      editor.destroy()
   })
 
   describe('rendering', () => {
