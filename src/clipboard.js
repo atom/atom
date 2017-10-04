@@ -61,10 +61,6 @@ export default class Clipboard {
   // * `metadata` The metadata stored by an earlier call to {::write}.
   readWithMetadata () {
     let text = this.read()
-    if (this.signatureForMetadata === this.md5(text)) {
-      return {text, metadata: this.metadata}
-    } else {
-      return {text}
-    }
+    return this.signatureForMetadata === this.md5(text) ? {text, metadata: this.metadata} : {text}
   }
 }
