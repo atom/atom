@@ -1,10 +1,12 @@
 const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
 
+const Random = require('random-seed')
+const {getRandomBufferRange, buildRandomLines} = require('./helpers/random')
 const TextEditorComponent = require('../src/text-editor-component')
 const TextEditorElement = require('../src/text-editor-element')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
-const {Point} = TextBuffer
+const {Point, Range} = TextBuffer
 const fs = require('fs')
 const path = require('path')
 const Grim = require('grim')
@@ -893,6 +895,73 @@ describe('TextEditorComponent', () => {
       expect(component.getClientContainerHeight()).toBe(originalClientContainerHeight)
       expect(component.getGutterContainerWidth()).toBe(originalGutterContainerWidth)
       expect(component.getLineNumberGutterWidth()).toBe(originalLineNumberGutterWidth)
+    })
+
+    describe('randomized test', () => {
+      let originalTimeout
+
+      beforeEach(() => {
+        originalTimeout = jasmine.getEnv().defaultTimeoutInterval
+        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000
+      })
+
+      afterEach(() => {
+        jasmine.getEnv().defaultTimeoutInterval = originalTimeout
+      })
+
+      it('randomized insertions and deletions', async () => {
+        const initialSeed = Date.now()
+        for (var i = 0; i < 50; i++) {
+          let seed = initialSeed + i
+          // seed = 1507195048481
+          const failureMessage = 'Randomized test failed with seed: ' + seed
+          const random = Random(seed)
+
+          const rowsPerTile = random.intBetween(1, 6)
+          const {component, element, editor} = buildComponent({rowsPerTile, autoHeight: false})
+          editor.setSoftWrapped(Boolean(random(2)))
+          await setEditorWidthInCharacters(component, random(20))
+          await setEditorHeightInLines(component, random(10))
+          element.focus()
+
+          for (var j = 0; j < 5; j++) {
+            const k = random(10)
+            const range = getRandomBufferRange(random, editor.buffer)
+
+            if (k < 1) {
+              editor.setSoftWrapped(!editor.isSoftWrapped())
+            } else if (k < 4) {
+              editor.setSelectedBufferRange(range)
+              editor.backspace()
+            } else if (k < 8) {
+              const linesToInsert = buildRandomLines(random, 5)
+              editor.setCursorBufferPosition(range.start)
+              editor.insertText(linesToInsert)
+            } else {
+              editor.setSelectedBufferRange(range)
+            }
+
+            component.scheduleUpdate()
+            await component.getNextUpdatePromise()
+
+            const renderedLines = queryOnScreenLineElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+            const renderedLineNumbers = queryOnScreenLineNumberElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+            const renderedStartRow = component.getRenderedStartRow()
+            const actualLines = editor.displayLayer.getScreenLines(renderedStartRow, component.getRenderedEndRow())
+
+            expect(renderedLines.length).toBe(actualLines.length, failureMessage)
+            expect(renderedLineNumbers.length).toBe(actualLines.length, failureMessage)
+            for (let i = 0; i < renderedLines.length; i++) {
+              expect(renderedLines[i].textContent).toBe(actualLines[i].lineText || ' ', failureMessage)
+              expect(parseInt(renderedLines[i].dataset.screenRow)).toBe(renderedStartRow + i, failureMessage)
+              expect(parseInt(renderedLineNumbers[i].dataset.screenRow)).toBe(renderedStartRow + i, failureMessage)
+            }
+          }
+
+          element.remove()
+          editor.destroy()
+        }
+      })
     })
   })
 
@@ -4503,4 +4572,12 @@ function queryOnScreenLineNumberElements (element) {
 
 function queryOnScreenLineElements (element) {
   return Array.from(element.querySelectorAll('.line:not(.dummy):not([data-off-screen])'))
+}
+
+function arraysEqual (a, b) {
+  if (a.length !== b.length) return false
+  for (let i = 0, length = a.length; i < length; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
 }
