@@ -205,11 +205,7 @@ class Cursor extends Model {
     const line = this.editor.lineTextForBufferRow(bufferPosition.row)
     const firstCharacterColumn = line.search(/\S/)
 
-    if (firstCharacterColumn === -1) {
-      return false
-    } else {
-      return bufferPosition.column > firstCharacterColumn
-    }
+    return firstCharacterColumn === -1 ? false : bufferPosition.column > firstCharacterColumn 
   }
 
   // Public: Identifies if this cursor is the last in the {TextEditor}.
@@ -234,11 +230,8 @@ class Cursor extends Model {
   moveUp (rowCount = 1, {moveToEndOfSelection} = {}) {
     let row, column
     const range = this.marker.getScreenRange()
-    if (moveToEndOfSelection && !range.isEmpty()) {
-      ({row, column} = range.start)
-    } else {
-      ({row, column} = this.getScreenPosition())
-    }
+   
+    return moveToEndOfSelection && !range.isEmpty() ? {row, column} = range.start : {row, column} = this.getScreenPosition()
 
     if (this.goalColumn != null) column = this.goalColumn
     this.setScreenPosition({row: row - rowCount, column}, {skipSoftWrapIndentation: true})
