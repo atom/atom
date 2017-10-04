@@ -1,5 +1,7 @@
 const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
 
+const Random = require('random-seed')
+const {getRandomBufferRange, buildRandomLines} = require('./random')
 const TextEditorComponent = require('../src/text-editor-component')
 const TextEditorElement = require('../src/text-editor-element')
 const TextEditor = require('../src/text-editor')
@@ -32,6 +34,62 @@ describe('TextEditorComponent', () => {
     const scrollbarStyle = document.createElement('style')
     scrollbarStyle.textContent = '::-webkit-scrollbar { -webkit-appearance: none }'
     jasmine.attachToDOM(scrollbarStyle)
+  })
+
+  fit('randomized test', async () => {
+    jasmine.getEnv().defaultTimeoutInterval = 24 * 60 * 60 * 1000
+
+    const initialSeed = Date.now()
+    for (var i = 0; i < 1000; i++) {
+      let seed = initialSeed + i
+      console.log(seed);
+      const random = Random(seed)
+
+      const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
+      editor.setSoftWrapped(true)
+      await setEditorHeightInLines(component, 7)
+      await setEditorWidthInCharacters(component, 20)
+      element.focus()
+
+      for (var j = 0; j < 100; j++) {
+        const k = random(10)
+        const range = getRandomBufferRange(random, editor.buffer)
+        if (k < 2) {
+          editor.setSelectedBufferRange(range)
+          editor.backspace()
+        } else if (k < 6) {
+          const linesToInsert = buildRandomLines(random, 5)
+          editor.setCursorBufferPosition(range.start)
+          editor.insertText(linesToInsert)
+        } else {
+          component.setScrollTop(range.start.row * component.getLineHeight())
+          component.scheduleUpdate()
+        }
+
+        await component.getNextUpdatePromise()
+
+        const renderedLines = queryOnScreenLineElements(element)
+          .sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+          .map((e) => e.textContent)
+        const actualLines = editor.displayLayer.getScreenLines(
+          component.getRenderedStartRow(),
+          component.getRenderedEndRow()
+        ).map((l) => l.lineText || ' ')
+
+        expect(renderedLines.length).toBe(actualLines.length)
+        for (let i = 0; i < renderedLines.length; i++) {
+          expect(renderedLines[i]).toBe(actualLines[i])
+        }
+
+        if (!arraysEqual(renderedLines, actualLines)) {
+          console.log('FAILING SEED: ' + seed);
+          return
+        }
+      }
+
+      element.remove()
+      editor.destroy()
+    }
   })
 
   describe('rendering', () => {
@@ -4503,4 +4561,12 @@ function queryOnScreenLineNumberElements (element) {
 
 function queryOnScreenLineElements (element) {
   return Array.from(element.querySelectorAll('.line:not(.dummy):not([data-off-screen])'))
+}
+
+function arraysEqual (a, b) {
+  if (a.length !== b.length) return false
+  for (let i = 0, length = a.length; i < length; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
 }
