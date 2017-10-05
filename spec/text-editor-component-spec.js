@@ -14,7 +14,6 @@ const electron = require('electron')
 const clipboard = require('../src/safe-clipboard')
 
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
-const NBSP_CHARACTER = '\u00a0'
 
 document.registerElement('text-editor-component-test-element', {
   prototype: Object.create(HTMLElement.prototype, {
@@ -911,9 +910,9 @@ describe('TextEditorComponent', () => {
 
       it('renders the visible rows correctly after randomly mutating the editor', async () => {
         const initialSeed = Date.now()
-        for (var i = 0; i < 50; i++) {
+        for (var i = 0; i < 20; i++) {
           let seed = initialSeed + i
-          // seed = 1507195048481
+          // seed = 1507224195357
           const failureMessage = 'Randomized test failed with seed: ' + seed
           const random = Random(seed)
 
@@ -925,20 +924,32 @@ describe('TextEditorComponent', () => {
           element.focus()
 
           for (var j = 0; j < 5; j++) {
-            const k = random(10)
+            const k = random(100)
             const range = getRandomBufferRange(random, editor.buffer)
 
-            if (k < 1) {
+            if (k < 10) {
               editor.setSoftWrapped(!editor.isSoftWrapped())
-            } else if (k < 4) {
+            } else if (k < 15) {
+              if (random(2)) setEditorWidthInCharacters(component, random(20))
+              if (random(2)) setEditorHeightInLines(component, random(10))
+            } else if (k < 40) {
               editor.setSelectedBufferRange(range)
               editor.backspace()
-            } else if (k < 8) {
+            } else if (k < 80) {
               const linesToInsert = buildRandomLines(random, 5)
               editor.setCursorBufferPosition(range.start)
               editor.insertText(linesToInsert)
-            } else {
+            } else if (k < 90) {
+              if (random(2)) {
+                editor.foldBufferRange(range)
+              } else {
+                editor.destroyFoldsIntersectingBufferRange(range)
+              }
+            } else if (k < 95) {
               editor.setSelectedBufferRange(range)
+            } else {
+              if (random(2)) component.setScrollTop(random(component.getScrollHeight()))
+              if (random(2)) component.setScrollLeft(random(component.getScrollWidth()))
             }
 
             component.scheduleUpdate()
@@ -947,14 +958,26 @@ describe('TextEditorComponent', () => {
             const renderedLines = queryOnScreenLineElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
             const renderedLineNumbers = queryOnScreenLineNumberElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
             const renderedStartRow = component.getRenderedStartRow()
-            const actualLines = editor.displayLayer.getScreenLines(renderedStartRow, component.getRenderedEndRow())
+            const expectedLines = editor.displayLayer.getScreenLines(renderedStartRow, component.getRenderedEndRow())
 
-            expect(renderedLines.length).toBe(actualLines.length, failureMessage)
-            expect(renderedLineNumbers.length).toBe(actualLines.length, failureMessage)
-            for (let i = 0; i < renderedLines.length; i++) {
-              expect(renderedLines[i].textContent).toBe(actualLines[i].lineText || ' ', failureMessage)
-              expect(parseInt(renderedLines[i].dataset.screenRow)).toBe(renderedStartRow + i, failureMessage)
-              expect(parseInt(renderedLineNumbers[i].dataset.screenRow)).toBe(renderedStartRow + i, failureMessage)
+            expect(renderedLines.length).toBe(expectedLines.length, failureMessage)
+            expect(renderedLineNumbers.length).toBe(expectedLines.length, failureMessage)
+            for (let k = 0; k < renderedLines.length; k++) {
+              const expectedLine = expectedLines[k]
+              const expectedText = expectedLine.lineText || ' '
+
+              const renderedLine = renderedLines[k]
+              const renderedLineNumber = renderedLineNumbers[k]
+              let renderedText = renderedLine.textContent
+              // We append zero width NBSPs after folds at the end of the
+              // line in order to support measurement.
+              if (expectedText.endsWith(editor.displayLayer.foldCharacter)) {
+                renderedText = renderedText.substring(0, renderedText.length - 1)
+              }
+
+              expect(renderedText).toBe(expectedText, failureMessage)
+              expect(parseInt(renderedLine.dataset.screenRow)).toBe(renderedStartRow + k, failureMessage)
+              expect(parseInt(renderedLineNumber.dataset.screenRow)).toBe(renderedStartRow + k, failureMessage)
             }
           }
 
