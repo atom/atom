@@ -897,7 +897,7 @@ describe('TextEditorComponent', () => {
       expect(component.getLineNumberGutterWidth()).toBe(originalLineNumberGutterWidth)
     })
 
-    describe('randomized test', () => {
+    describe('randomized tests', () => {
       let originalTimeout
 
       beforeEach(() => {
@@ -909,7 +909,7 @@ describe('TextEditorComponent', () => {
         jasmine.getEnv().defaultTimeoutInterval = originalTimeout
       })
 
-      it('randomized insertions and deletions', async () => {
+      it('renders the visible rows correctly after randomly mutating the editor', async () => {
         const initialSeed = Date.now()
         for (var i = 0; i < 50; i++) {
           let seed = initialSeed + i
