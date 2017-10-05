@@ -1,5 +1,7 @@
 const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
 
+const Random = require('../script/node_modules/random-seed')
+const {getRandomBufferRange, buildRandomLines} = require('./helpers/random')
 const TextEditorComponent = require('../src/text-editor-component')
 const TextEditorElement = require('../src/text-editor-element')
 const TextEditor = require('../src/text-editor')
@@ -12,7 +14,6 @@ const electron = require('electron')
 const clipboard = require('../src/safe-clipboard')
 
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
-const NBSP_CHARACTER = '\u00a0'
 
 document.registerElement('text-editor-component-test-element', {
   prototype: Object.create(HTMLElement.prototype, {
@@ -893,6 +894,97 @@ describe('TextEditorComponent', () => {
       expect(component.getClientContainerHeight()).toBe(originalClientContainerHeight)
       expect(component.getGutterContainerWidth()).toBe(originalGutterContainerWidth)
       expect(component.getLineNumberGutterWidth()).toBe(originalLineNumberGutterWidth)
+    })
+
+    describe('randomized tests', () => {
+      let originalTimeout
+
+      beforeEach(() => {
+        originalTimeout = jasmine.getEnv().defaultTimeoutInterval
+        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000
+      })
+
+      afterEach(() => {
+        jasmine.getEnv().defaultTimeoutInterval = originalTimeout
+      })
+
+      it('renders the visible rows correctly after randomly mutating the editor', async () => {
+        const initialSeed = Date.now()
+        for (var i = 0; i < 20; i++) {
+          let seed = initialSeed + i
+          // seed = 1507224195357
+          const failureMessage = 'Randomized test failed with seed: ' + seed
+          const random = Random(seed)
+
+          const rowsPerTile = random.intBetween(1, 6)
+          const {component, element, editor} = buildComponent({rowsPerTile, autoHeight: false})
+          editor.setSoftWrapped(Boolean(random(2)))
+          await setEditorWidthInCharacters(component, random(20))
+          await setEditorHeightInLines(component, random(10))
+          element.focus()
+
+          for (var j = 0; j < 5; j++) {
+            const k = random(100)
+            const range = getRandomBufferRange(random, editor.buffer)
+
+            if (k < 10) {
+              editor.setSoftWrapped(!editor.isSoftWrapped())
+            } else if (k < 15) {
+              if (random(2)) setEditorWidthInCharacters(component, random(20))
+              if (random(2)) setEditorHeightInLines(component, random(10))
+            } else if (k < 40) {
+              editor.setSelectedBufferRange(range)
+              editor.backspace()
+            } else if (k < 80) {
+              const linesToInsert = buildRandomLines(random, 5)
+              editor.setCursorBufferPosition(range.start)
+              editor.insertText(linesToInsert)
+            } else if (k < 90) {
+              if (random(2)) {
+                editor.foldBufferRange(range)
+              } else {
+                editor.destroyFoldsIntersectingBufferRange(range)
+              }
+            } else if (k < 95) {
+              editor.setSelectedBufferRange(range)
+            } else {
+              if (random(2)) component.setScrollTop(random(component.getScrollHeight()))
+              if (random(2)) component.setScrollLeft(random(component.getScrollWidth()))
+            }
+
+            component.scheduleUpdate()
+            await component.getNextUpdatePromise()
+
+            const renderedLines = queryOnScreenLineElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+            const renderedLineNumbers = queryOnScreenLineNumberElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+            const renderedStartRow = component.getRenderedStartRow()
+            const expectedLines = editor.displayLayer.getScreenLines(renderedStartRow, component.getRenderedEndRow())
+
+            expect(renderedLines.length).toBe(expectedLines.length, failureMessage)
+            expect(renderedLineNumbers.length).toBe(expectedLines.length, failureMessage)
+            for (let k = 0; k < renderedLines.length; k++) {
+              const expectedLine = expectedLines[k]
+              const expectedText = expectedLine.lineText || ' '
+
+              const renderedLine = renderedLines[k]
+              const renderedLineNumber = renderedLineNumbers[k]
+              let renderedText = renderedLine.textContent
+              // We append zero width NBSPs after folds at the end of the
+              // line in order to support measurement.
+              if (expectedText.endsWith(editor.displayLayer.foldCharacter)) {
+                renderedText = renderedText.substring(0, renderedText.length - 1)
+              }
+
+              expect(renderedText).toBe(expectedText, failureMessage)
+              expect(parseInt(renderedLine.dataset.screenRow)).toBe(renderedStartRow + k, failureMessage)
+              expect(parseInt(renderedLineNumber.dataset.screenRow)).toBe(renderedStartRow + k, failureMessage)
+            }
+          }
+
+          element.remove()
+          editor.destroy()
+        }
+      })
     })
   })
 
