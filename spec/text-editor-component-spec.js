@@ -6,7 +6,7 @@ const TextEditorComponent = require('../src/text-editor-component')
 const TextEditorElement = require('../src/text-editor-element')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
-const {Point} = TextBuffer
+const {Point, Range} = TextBuffer
 const fs = require('fs')
 const path = require('path')
 const Grim = require('grim')
@@ -908,11 +908,42 @@ describe('TextEditorComponent', () => {
         jasmine.getEnv().defaultTimeoutInterval = originalTimeout
       })
 
-      it('renders the visible rows correctly after randomly mutating the editor', async () => {
+      it('failing test', async () => {
+        const rowsPerTile = 1
+        const {component, element, editor} = buildComponent({rowsPerTile, autoHeight: false})
+
+        await setEditorHeightInLines(component, 1)
+        await setEditorWidthInCharacters(component, 7)
+
+        element.focus()
+        component.setScrollTop(component.measurements.lineHeight)
+
+        component.scheduleUpdate()
+        await component.getNextUpdatePromise()
+
+        editor.setSelectedBufferRange(new Range(Point(0,1),Point(12,2)))
+        editor.backspace()
+
+        component.scheduleUpdate()
+        await component.getNextUpdatePromise()
+
+        const renderedLines = queryOnScreenLineElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+        const renderedLineNumbers = queryOnScreenLineNumberElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+        const renderedStartRow = component.getRenderedStartRow()
+        const expectedLines = editor.displayLayer.getScreenLines(renderedStartRow, component.getRenderedEndRow())
+
+        expect(renderedLines.length).toBe(expectedLines.length)
+        expect(renderedLineNumbers.length).toBe(expectedLines.length)
+
+        element.remove()
+        editor.destroy()
+      })
+
+      xit('renders the visible rows correctly after randomly mutating the editor', async () => {
         const initialSeed = Date.now()
-        for (var i = 0; i < 20; i++) {
+        for (var i = 0; i < 1; i++) {
           let seed = initialSeed + i
-          // seed = 1507224195357
+          seed = 1507231571985
           const failureMessage = 'Randomized test failed with seed: ' + seed
           const random = Random(seed)
 
@@ -921,9 +952,10 @@ describe('TextEditorComponent', () => {
           editor.setSoftWrapped(Boolean(random(2)))
           await setEditorWidthInCharacters(component, random(20))
           await setEditorHeightInLines(component, random(10))
+
           element.focus()
 
-          for (var j = 0; j < 5; j++) {
+          for (var j = 0; j < 10; j++) {
             const k = random(100)
             const range = getRandomBufferRange(random, editor.buffer)
 
