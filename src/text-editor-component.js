@@ -2118,6 +2118,7 @@ class TextEditorComponent {
       // rendered start row accurately. 😥
       this.populateVisibleRowRange(renderedStartRow)
       this.props.model.setEditorWidthInChars(this.getScrollContainerClientWidthInBaseCharacters())
+      this.derivedDimensionsCache = {}
 
       this.suppressUpdates = false
     }
