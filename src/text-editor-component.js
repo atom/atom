@@ -2884,10 +2884,25 @@ class TextEditorComponent {
 
   // Ensure the spatial index is populated with rows that are currently visible
   populateVisibleRowRange (renderedStartRow) {
-    const editorHeightInTiles = this.getScrollContainerHeight() / this.getLineHeight()
-    const visibleTileCount = Math.ceil(editorHeightInTiles) + 1
-    const lastRenderedRow = renderedStartRow + (visibleTileCount * this.getRowsPerTile())
-    this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, lastRenderedRow)
+    const {model} = this.props
+    const previousScreenLineCount = model.getApproximateScreenLineCount()
+
+    const renderedEndRow = renderedStartRow + (this.getVisibleTileCount() * this.getRowsPerTile())
+    this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, renderedEndRow)
+
+    // It is possible for the approximate screen line count to exceed the actual
+    // number of lines. This may happen if there are many soft-wraps and the
+    // display layer hasn't indexed the entire contents of the buffer. In that
+    // circumstance, if a user attempts to scroll to a position that does not
+    // exist, we are unable to clip it correctly in `setScrollTop` because the
+    // line count approximation is also wrong. Therefore, after populating the
+    // spatial index, we will make sure that the approximate screen line count
+    // did not change. If it did, we need to clear the derived dimensions cache
+    // (which contains, for example, the rendered row range) because it could
+    // contain incorrect values.
+    if (model.getApproximateScreenLineCount() !== previousScreenLineCount) {
+      this.derivedDimensionsCache = {}
+    }
   }
 
   populateVisibleTiles () {
