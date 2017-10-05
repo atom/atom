@@ -6,7 +6,7 @@ const TextEditorComponent = require('../src/text-editor-component')
 const TextEditorElement = require('../src/text-editor-element')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
-const {Point, Range} = TextBuffer
+const {Point} = TextBuffer
 const fs = require('fs')
 const path = require('path')
 const Grim = require('grim')
@@ -4572,12 +4572,4 @@ function queryOnScreenLineNumberElements (element) {
 
 function queryOnScreenLineElements (element) {
   return Array.from(element.querySelectorAll('.line:not(.dummy):not([data-off-screen])'))
-}
-
-function arraysEqual (a, b) {
-  if (a.length !== b.length) return false
-  for (let i = 0, length = a.length; i < length; i++) {
-    if (a[i] !== b[i]) return false
-  }
-  return true
 }
