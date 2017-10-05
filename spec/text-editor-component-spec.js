@@ -1,6 +1,6 @@
 const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
 
-const Random = require('random-seed')
+const Random = require('../script/node_modules/random-seed')
 const {getRandomBufferRange, buildRandomLines} = require('./helpers/random')
 const TextEditorComponent = require('../src/text-editor-component')
 const TextEditorElement = require('../src/text-editor-element')
