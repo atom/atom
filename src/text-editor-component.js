@@ -1595,30 +1595,30 @@ class TextEditorComponent {
   }
 
   didTextInput (event) {
-    if (!this.isInputEnabled()) return
-
-    event.stopPropagation()
-
-    // WARNING: If we call preventDefault on the input of a space character,
-    // then the browser interprets the spacebar keypress as a page-down command,
-    // causing spaces to scroll elements containing editors. This is impossible
-    // to test.
-    if (event.data !== ' ') event.preventDefault()
-
     if (this.compositionCheckpoint) {
       this.props.model.revertToCheckpoint(this.compositionCheckpoint)
       this.compositionCheckpoint = null
     }
 
-    // If the input event is fired while the accented character menu is open it
-    // means that the user has chosen one of the accented alternatives. Thus, we
-    // will replace the original non accented character with the selected
-    // alternative.
-    if (this.accentedCharacterMenuIsOpen) {
-      this.props.model.selectLeft()
-    }
+    if (this.isInputEnabled()) {
+      event.stopPropagation()
 
-    this.props.model.insertText(event.data, {groupUndo: true})
+      // WARNING: If we call preventDefault on the input of a space character,
+      // then the browser interprets the spacebar keypress as a page-down command,
+      // causing spaces to scroll elements containing editors. This is impossible
+      // to test.
+      if (event.data !== ' ') event.preventDefault()
+
+      // If the input event is fired while the accented character menu is open it
+      // means that the user has chosen one of the accented alternatives. Thus, we
+      // will replace the original non accented character with the selected
+      // alternative.
+      if (this.accentedCharacterMenuIsOpen) {
+        this.props.model.selectLeft()
+      }
+
+      this.props.model.insertText(event.data, {groupUndo: true})
+    }
   }
 
   // We need to get clever to detect when the accented character menu is
