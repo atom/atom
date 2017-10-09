@@ -528,7 +528,7 @@ class Cursor extends Model {
     let result
     for (let range of ranges) {
       if (position.isLessThanOrEqual(range.start)) break
-      if (allowPrevious || position.isLessThanOrEqual(range.end)) result = range.start
+      if (allowPrevious || position.isLessThanOrEqual(range.end)) result = Point.fromObject(range.start)
     }
 
     return result || (allowPrevious ? new Point(0, 0) : position)
@@ -559,7 +559,7 @@ class Cursor extends Model {
 
     for (let range of ranges) {
       if (position.isLessThan(range.start) && !allowNext) break
-      if (position.isLessThan(range.end)) return range.end
+      if (position.isLessThan(range.end)) return Point.fromObject(range.end)
     }
 
     return allowNext ? this.editor.getEofBufferPosition() : position
@@ -597,9 +597,10 @@ class Cursor extends Model {
       options.wordRegex || this.wordRegExp(),
       new Range(new Point(position.row, 0), new Point(position.row, Infinity))
     )
-    return ranges.find(range =>
+    const range = ranges.find(range =>
       range.end.column >= position.column && range.start.column <= position.column
-    ) || new Range(position, position)
+    )
+    return range ? Range.fromObject(range) : new Range(position, position)
   }
 
   // Public: Returns the buffer Range for the current line.
