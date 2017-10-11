@@ -49,7 +49,7 @@ class AtomWindow
     if @shouldAddCustomInsetTitleBar()
       options.titleBarStyle = 'hidden-inset'
 
-    if @shouldHideTitleBar()
+    if @shouldHideTitleBar() or @forceHideTitleBar()
       options.frame = false
 
     @browserWindow = new BrowserWindow(options)
@@ -255,7 +255,11 @@ class AtomWindow
     not @isSpec and
     process.platform is 'darwin' and
     @atomApplication.config.get('core.titleBar') is 'hidden'
-
+  
+  forceHideTitleBar: ->
+    not @isSpec and
+    @atomApplication.config.get('core.titleBar') is 'forcehidden'
+   
   close: -> @browserWindow.close()
 
   focus: -> @browserWindow.focus()
