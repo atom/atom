@@ -2541,6 +2541,24 @@ describe('TextEditorComponent', () => {
       ])
     })
 
+    it('does not throw exceptions when destroying a block decoration inside a marker change event (regression)', async () => {
+      const {editor, component} = buildComponent({rowsPerTile: 3})
+
+      const marker = editor.markScreenPosition([2, 0])
+      marker.onDidChange(() => { marker.destroy() })
+      const item = document.createElement('div')
+      editor.decorateMarker(marker, {type: 'block', item})
+
+      await component.getNextUpdatePromise()
+      expect(item.nextSibling).toBe(lineNodeForScreenRow(component, 2))
+
+      marker.setBufferRange([[0, 0], [0, 0]])
+      expect(marker.isDestroyed()).toBe(true)
+
+      await component.getNextUpdatePromise()
+      expect(item.parentElement).toBeNull()
+    })
+
     it('does not attempt to render block decorations located outside the visible range', async () => {
       const {editor, component} = buildComponent({autoHeight: false, rowsPerTile: 2})
       await setEditorHeightInLines(component, 2)
