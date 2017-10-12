@@ -1,4 +1,6 @@
 "*":
+  autosave:
+    enabled: true
   core:
     telemetryConsent: "no"
     themes: [
@@ -15,3 +17,4 @@
     showOnStartup: false
   "wrap-guide":
     enabled: false
+  
