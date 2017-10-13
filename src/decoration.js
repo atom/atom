@@ -6,7 +6,7 @@ const nextId = () => idCounter++
 
 // Applies changes to a decorationsParam {Object} to make it possible to
 // differentiate decorations on custom gutters versus the line-number gutter.
-const translateDecorationParamsOldToNew = function(decorationParams) {
+const translateDecorationParamsOldToNew = function (decorationParams) {
   if (decorationParams.type === 'line-number') {
     decorationParams.gutterName = 'line-number'
   }
@@ -47,14 +47,16 @@ class Decoration {
   // Returns {Boolean}
   // Note: 'line-number' is a special subtype of the 'gutter' type. I.e., a
   // 'line-number' is a 'gutter', but a 'gutter' is not a 'line-number'.
-  static isType(decorationProperties, type) {
+  static isType (decorationProperties, type) {
     // 'line-number' is a special case of 'gutter'.
     if (_.isArray(decorationProperties.type)) {
-      if (decorationProperties.type.includes(type))
+      if (decorationProperties.type.includes(type)) {
         return true
+      }
 
-      if (type === 'gutter' && decorationProperties.type.includes('line-number'))
+      if (type === 'gutter' && decorationProperties.type.includes('line-number')) {
         return true
+      }
 
       return false
     } else {
@@ -70,7 +72,7 @@ class Decoration {
   Section: Construction and Destruction
   */
 
-  constructor(marker, decorationManager, properties) {
+  constructor (marker, decorationManager, properties) {
     this.marker = marker
     this.decorationManager = decorationManager
     this.emitter = new Emitter()
@@ -84,7 +86,7 @@ class Decoration {
   //
   // You can also destroy the marker if you own it, which will destroy this
   // decoration.
-  destroy() {
+  destroy () {
     if (this.destroyed) { return }
     this.markerDestroyDisposable.dispose()
     this.markerDestroyDisposable = null
@@ -94,7 +96,7 @@ class Decoration {
     return this.emitter.dispose()
   }
 
-  isDestroyed() { return this.destroyed }
+  isDestroyed () { return this.destroyed }
 
   /*
   Section: Event Subscription
@@ -108,7 +110,7 @@ class Decoration {
   //     * `newProperties` {Object} the new parameters the decoration now has
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeProperties(callback) {
+  onDidChangeProperties (callback) {
     return this.emitter.on('did-change-properties', callback)
   }
 
@@ -117,7 +119,7 @@ class Decoration {
   // * `callback` {Function}
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidDestroy(callback) {
+  onDidDestroy (callback) {
     return this.emitter.once('did-destroy', callback)
   }
 
@@ -126,10 +128,10 @@ class Decoration {
   */
 
   // Essential: An id unique across all {Decoration} objects
-  getId() { return this.id }
+  getId () { return this.id }
 
   // Essential: Returns the marker associated with this {Decoration}
-  getMarker() { return this.marker }
+  getMarker () { return this.marker }
 
   // Public: Check if this decoration is of type `type`
   //
@@ -138,7 +140,7 @@ class Decoration {
   //   type matches any in the array.
   //
   // Returns {Boolean}
-  isType(type) {
+  isType (type) {
     return Decoration.isType(this.properties, type)
   }
 
@@ -147,7 +149,7 @@ class Decoration {
   */
 
   // Essential: Returns the {Decoration}'s properties.
-  getProperties() {
+  getProperties () {
     return this.properties
   }
 
@@ -160,7 +162,7 @@ class Decoration {
   // ```
   //
   // * `newProperties` {Object} eg. `{type: 'line-number', class: 'my-new-class'}`
-  setProperties(newProperties) {
+  setProperties (newProperties) {
     if (this.destroyed) { return }
     const oldProperties = this.properties
     this.properties = translateDecorationParamsOldToNew(newProperties)
@@ -175,7 +177,7 @@ class Decoration {
   Section: Utility
   */
 
-  inspect() {
+  inspect () {
     return `<Decoration ${this.id}>`
   }
 
@@ -183,7 +185,7 @@ class Decoration {
   Section: Private methods
   */
 
-  matchesPattern(decorationPattern) {
+  matchesPattern (decorationPattern) {
     if (decorationPattern == null) { return false }
     for (let key in decorationPattern) {
       const value = decorationPattern[key]
@@ -192,7 +194,7 @@ class Decoration {
     return true
   }
 
-  flash(klass, duration) {
+  flash (klass, duration) {
     if (duration == null) { duration = 500 }
     this.properties.flashRequested = true
     this.properties.flashClass = klass
