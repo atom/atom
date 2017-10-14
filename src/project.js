@@ -52,9 +52,7 @@ class Project extends Model {
   destroyed () {
     for (let buffer of this.buffers.slice()) { buffer.destroy() }
     for (let repository of this.repositories.slice()) {
-      if (repository != null) {
-        repository.destroy()
-      }
+      if (repository != null) repository.destroy()
     }
     for (let watcher = 0; watcher < this.watcherPromisesByPath.length; watcher++) { _ = this.watcherPromisesByPath[watcher]; watcher.dispose() }
     this.rootDirectories = []
@@ -66,9 +64,7 @@ class Project extends Model {
     this.emitter = new Emitter()
 
     for (let buffer of this.buffers) {
-      if (buffer != null) {
-        buffer.destroy()
-      }
+      if (buffer != null) buffer.destroy()
     }
     this.buffers = []
     this.setPaths([])
@@ -79,7 +75,9 @@ class Project extends Model {
   }
 
   destroyUnretainedBuffers () {
-    for (let buffer of this.getBuffers()) { if (!buffer.isRetained()) { buffer.destroy() } }
+    for (let buffer of this.getBuffers()) {
+      if (!buffer.isRetained()) buffer.destroy()
+    }
   }
 
   /*
@@ -91,8 +89,10 @@ class Project extends Model {
     this.retiredBufferIDs = new Set()
     this.retiredBufferPaths = new Set()
 
-    const handleBufferState = bufferState => {
-      if (bufferState.shouldDestroyOnFileDelete == null) { bufferState.shouldDestroyOnFileDelete = () => atom.config.get('core.closeDeletedFileTabs') }
+    const handleBufferState = (bufferState) => {
+      if (bufferState.shouldDestroyOnFileDelete == null) {
+        bufferState.shouldDestroyOnFileDelete = () => atom.config.get('core.closeDeletedFileTabs')
+      }
 
       // Use a little guilty knowledge of the way TextBuffers are serialized.
       // This allows TextBuffers that have never been saved (but have filePaths) to be deserialized, but prevents
@@ -116,7 +116,9 @@ class Project extends Model {
 
     return Promise.all(bufferPromises).then(buffers => {
       this.buffers = buffers.filter(Boolean)
-      for (let buffer of this.buffers) { this.subscribeToBuffer(buffer) }
+      for (let buffer of this.buffers) {
+        this.subscribeToBuffer(buffer)
+      }
       return this.setPaths(state.paths || [], {mustExist: true, exact: true})
     })
   }
@@ -227,7 +229,9 @@ class Project extends Model {
   // Promise.all(atom.project.getDirectories().map(
   //     atom.project.repositoryForDirectory.bind(atom.project)))
   // ```
-  getRepositories () { return this.repositories }
+  getRepositories () {
+    return this.repositories
+  }
 
   // Public: Get the repository for a given directory asynchronously.
   //
@@ -245,7 +249,7 @@ class Project extends Model {
         let left
         const repo = (left = _.find(repositories, repo => repo != null)) != null ? left : null
 
-        // If no repository is found, remove the entry in for the directory in
+        // If no repository is found, remove the entry for the directory in
         // @repositoryPromisesByPath in case some other RepositoryProvider is
         // registered in the future that could supply a Repository for the
         // directory.
@@ -264,7 +268,9 @@ class Project extends Model {
 
   // Public: Get an {Array} of {String}s containing the paths of the project's
   // directories.
-  getPaths () { return this.rootDirectories.map((rootDirectory) => rootDirectory.getPath()) }
+  getPaths () {
+    return this.rootDirectories.map((rootDirectory) => rootDirectory.getPath())
+  }
 
   // Public: Set the paths of the project's directories.
   //
@@ -276,9 +282,7 @@ class Project extends Model {
   //     is a file or does not exist, its parent directory will be added instead. Default: `false`.
   setPaths (projectPaths, options = {}) {
     for (let repository of this.repositories) {
-      if (repository != null) {
-        repository.destroy()
-      }
+      if (repository != null) repository.destroy()
     }
     this.rootDirectories = []
     this.repositories = []
@@ -320,7 +324,9 @@ class Project extends Model {
     const directory = this.getDirectoryForProjectPath(projectPath)
 
     let ok = true
-    if (options.exact === true) { ok = ok && (directory.getPath() === projectPath) }
+    if (options.exact === true) {
+      ok = (directory.getPath() === projectPath)
+    }
     ok = ok && directory.existsSync()
 
     if (!ok) {
@@ -420,9 +426,7 @@ class Project extends Model {
       this.rootDirectories.splice(indexToRemove, 1)
       const [removedRepository] = Array.from(this.repositories.splice(indexToRemove, 1))
       if (!this.repositories.includes(removedRepository)) {
-        if (removedRepository != null) {
-          removedRepository.destroy()
-        }
+        if (removedRepository) removedRepository.destroy()
       }
       if (this.watcherPromisesByPath[projectPath] != null) {
         this.watcherPromisesByPath[projectPath].then(w => w.dispose())
@@ -566,17 +570,19 @@ class Project extends Model {
 
   // Only to be used in specs
   bufferForPathSync (filePath) {
-    let existingBuffer
     const absoluteFilePath = this.resolvePath(filePath)
     if (this.retiredBufferPaths.has(absoluteFilePath)) { return null }
+
+    let existingBuffer
     if (filePath) { existingBuffer = this.findBufferForPath(absoluteFilePath) }
     return existingBuffer != null ? existingBuffer : this.buildBufferSync(absoluteFilePath)
   }
 
   // Only to be used when deserializing
   bufferForIdSync (id) {
-    let existingBuffer
     if (this.retiredBufferIDs.has(id)) { return null }
+
+    let existingBuffer
     if (id) { existingBuffer = this.findBufferForId(id) }
     return existingBuffer != null ? existingBuffer : this.buildBufferSync()
   }
@@ -605,8 +611,9 @@ class Project extends Model {
 
   // Still needed when deserializing a tokenized buffer
   buildBufferSync (absoluteFilePath) {
-    let buffer
     const params = {shouldDestroyOnFileDelete: this.shouldDestroyBufferOnFileDelete}
+
+    let buffer
     if (absoluteFilePath != null) {
       buffer = TextBuffer.loadSync(absoluteFilePath, params)
     } else {
@@ -623,15 +630,18 @@ class Project extends Model {
   //
   // Returns a {Promise} that resolves to the {TextBuffer}.
   buildBuffer (absoluteFilePath) {
-    let promise
     const params = {shouldDestroyOnFileDelete: this.shouldDestroyBufferOnFileDelete}
+
+    let promise
     if (absoluteFilePath != null) {
-      promise =
-        this.loadPromisesByPath[absoluteFilePath] != null ? this.loadPromisesByPath[absoluteFilePath] : (this.loadPromisesByPath[absoluteFilePath] =
-        TextBuffer.load(absoluteFilePath, params).catch(error => {
-          delete this.loadPromisesByPath[absoluteFilePath]
-          throw error
-        }))
+      if (this.loadPromisesByPath[absoluteFilePath] == null) {
+        this.loadPromisesByPath[absoluteFilePath] =
+          TextBuffer.load(absoluteFilePath, params).catch(error => {
+            delete this.loadPromisesByPath[absoluteFilePath]
+            throw error
+          })
+      }
+      promise = this.loadPromisesByPath[absoluteFilePath]
     } else {
       promise = Promise.resolve(new TextBuffer(params))
     }
@@ -690,14 +700,13 @@ class Project extends Model {
     })
     return buffer.onWillThrowWatchError(({error, handle}) => {
       handle()
-      return this.notificationManager.addWarning(`\
-Unable to read file after file \`${error.eventType}\` event.
-Make sure you have permission to access \`${buffer.getPath()}\`.\
-`, {
-  detail: error.message,
-  dismissable: true
-}
-      )
+      const message =
+        `Unable to read file after file \`${error.eventType}\` event.` +
+        `Make sure you have permission to access \`${buffer.getPath()}\`.`
+      this.notificationManager.addWarning(message, {
+        detail: error.message,
+        dismissable: true
+      })
     })
   }
 }
