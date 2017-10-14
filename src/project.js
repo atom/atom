@@ -1,7 +1,6 @@
 /*
  * decaffeinate suggestions:
  * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
  * DS103: Rewrite code to no longer use __guard__
  * DS104: Avoid inline assignments
  * DS204: Change includes calls to have a more natural evaluation order
@@ -71,7 +70,7 @@ class Project extends Model {
     this.loadPromisesByPath = {}
     this.retiredBufferIDs = new Set()
     this.retiredBufferPaths = new Set()
-    return this.consumeServices(packageManager)
+    this.consumeServices(packageManager)
   }
 
   destroyUnretainedBuffers () {
@@ -119,7 +118,7 @@ class Project extends Model {
       for (let buffer of this.buffers) {
         this.subscribeToBuffer(buffer)
       }
-      return this.setPaths(state.paths || [], {mustExist: true, exact: true})
+      this.setPaths(state.paths || [], {mustExist: true, exact: true})
     })
   }
 
@@ -348,7 +347,7 @@ class Project extends Model {
       // Stop event delivery immediately on removal of a rootDirectory, even if its watcher
       // promise has yet to resolve at the time of removal
       if (this.rootDirectories.includes(directory)) {
-        return this.emitter.emit('did-change-files', events)
+        this.emitter.emit('did-change-files', events)
       }
     })
 
@@ -369,7 +368,7 @@ class Project extends Model {
     this.repositories.push(repo != null ? repo : null)
 
     if (options.emitEvent !== false) {
-      return this.emitter.emit('did-change-paths', this.getPaths())
+      this.emitter.emit('did-change-paths', this.getPaths())
     }
   }
 
@@ -695,10 +694,10 @@ class Project extends Model {
     buffer.onDidDestroy(() => this.removeBuffer(buffer))
     buffer.onDidChangePath(() => {
       if (!(this.getPaths().length > 0)) {
-        return this.setPaths([path.dirname(buffer.getPath())])
+        this.setPaths([path.dirname(buffer.getPath())])
       }
     })
-    return buffer.onWillThrowWatchError(({error, handle}) => {
+    buffer.onWillThrowWatchError(({error, handle}) => {
       handle()
       const message =
         `Unable to read file after file \`${error.eventType}\` event.` +
