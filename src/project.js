@@ -10,7 +10,6 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-let Project
 const path = require('path')
 
 let _ = require('underscore-plus')
@@ -27,7 +26,7 @@ const GitRepositoryProvider = require('./git-repository-provider')
 //
 // An instance of this class is always available as the `atom.project` global.
 module.exports =
-(Project = class Project extends Model {
+class Project extends Model {
   /*
   Section: Construction and Destruction
   */
@@ -66,7 +65,7 @@ module.exports =
     }
     for (let watcher = 0; watcher < this.watcherPromisesByPath.length; watcher++) { _ = this.watcherPromisesByPath[watcher]; watcher.dispose() }
     this.rootDirectories = []
-    return this.repositories = []
+    this.repositories = []
   }
 
   reset (packageManager) {
@@ -107,7 +106,7 @@ module.exports =
       // TextBuffers backed by files that have been deleted from being saved.
       bufferState.mustExist = bufferState.digestWhenLastPersisted !== false
 
-      return TextBuffer.deserialize(bufferState).catch(err => {
+      return TextBuffer.deserialize(bufferState).catch((_) => {
         this.retiredBufferIDs.add(bufferState.id)
         this.retiredBufferPaths.add(bufferState.filePath)
         return null
@@ -363,7 +362,10 @@ module.exports =
 
     let repo = null
     for (let provider of this.repositoryProviders) {
-      if (repo = typeof provider.repositoryForDirectorySync === 'function' ? provider.repositoryForDirectorySync(directory) : undefined) { break }
+      if (provider.repositoryForDirectorySync) {
+        repo = provider.repositoryForDirectorySync(directory)
+      }
+      if (repo) { break }
     }
     this.repositories.push(repo != null ? repo : null)
 
@@ -375,9 +377,14 @@ module.exports =
   getDirectoryForProjectPath (projectPath) {
     let directory = null
     for (let provider of this.directoryProviders) {
-      if (directory = typeof provider.directoryForURISync === 'function' ? provider.directoryForURISync(projectPath) : undefined) { break }
+      if (typeof provider.directoryForURISync === 'function') {
+        directory = provider.directoryForURISync(projectPath)
+        if (directory) break
+      }
     }
-    if (directory == null) { directory = this.defaultDirectoryProvider.directoryForURISync(projectPath) }
+    if (directory == null) {
+      directory = this.defaultDirectoryProvider.directoryForURISync(projectPath)
+    }
     return directory
   }
 
@@ -417,7 +424,7 @@ module.exports =
     }
 
     if (indexToRemove != null) {
-      const [removedDirectory] = Array.from(this.rootDirectories.splice(indexToRemove, 1))
+      this.rootDirectories.splice(indexToRemove, 1)
       const [removedRepository] = Array.from(this.repositories.splice(indexToRemove, 1))
       if (!this.repositories.includes(removedRepository)) {
         if (removedRepository != null) {
@@ -700,7 +707,7 @@ Make sure you have permission to access \`${buffer.getPath()}\`.\
       )
     })
   }
-})
+}
 
 function __guardMethod__ (obj, methodName, transform) {
   if (typeof obj !== 'undefined' && obj !== null && typeof obj[methodName] === 'function') {
