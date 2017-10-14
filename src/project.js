@@ -1,6 +1,5 @@
 /*
  * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
  * DS103: Rewrite code to no longer use __guard__
  * DS104: Avoid inline assignments
  * DS204: Change includes calls to have a more natural evaluation order
@@ -295,7 +294,7 @@ class Project extends Model {
         this.addPath(projectPath, {emitEvent: false, mustExist: true, exact: options.exact === true})
       } catch (e) {
         if (e.missingProjectPaths != null) {
-          missingProjectPaths.push(...Array.from(e.missingProjectPaths || []))
+          missingProjectPaths.push(...e.missingProjectPaths)
         } else {
           throw e
         }
@@ -423,7 +422,7 @@ class Project extends Model {
 
     if (indexToRemove != null) {
       this.rootDirectories.splice(indexToRemove, 1)
-      const [removedRepository] = Array.from(this.repositories.splice(indexToRemove, 1))
+      const [removedRepository] = this.repositories.splice(indexToRemove, 1)
       if (!this.repositories.includes(removedRepository)) {
         if (removedRepository) removedRepository.destroy()
       }
@@ -671,7 +670,7 @@ class Project extends Model {
   }
 
   removeBufferAtIndex (index, options = {}) {
-    const [buffer] = Array.from(this.buffers.splice(index, 1))
+    const [buffer] = this.buffers.splice(index, 1)
     return (buffer != null ? buffer.destroy() : undefined)
   }
 
