@@ -1,6 +1,5 @@
 /*
  * decaffeinate suggestions:
- * DS001: Remove Babel/TypeScript constructor workaround
  * DS101: Remove unnecessary use of Array.from
  * DS102: Remove unnecessary code created because of implicit returns
  * DS103: Rewrite code to no longer use __guard__
@@ -32,13 +31,7 @@ class Project extends Model {
   */
 
   constructor ({notificationManager, packageManager, config, applicationDelegate}) {
-    {
-      // Hack: trick Babel/TypeScript into allowing this before super.
-      if (false) { super() }
-      let thisFn = (() => { this }).toString()
-      let thisName = thisFn.slice(thisFn.indexOf('{') + 1, thisFn.indexOf(';')).trim()
-      eval(`${thisName} = this;`)
-    }
+    super()
     this.notificationManager = notificationManager
     this.applicationDelegate = applicationDelegate
     this.emitter = new Emitter()
