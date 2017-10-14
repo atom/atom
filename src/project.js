@@ -1,11 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS104: Avoid inline assignments
- * DS204: Change includes calls to have a more natural evaluation order
- * DS205: Consider reworking code to avoid use of IIFEs
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const path = require('path')
 
 let _ = require('underscore-plus')
@@ -82,7 +74,6 @@ class Project extends Model {
   */
 
   deserialize (state) {
-    let bufferState
     this.retiredBufferIDs = new Set()
     this.retiredBufferPaths = new Set()
 
@@ -103,13 +94,10 @@ class Project extends Model {
       })
     }
 
-    const bufferPromises = ((() => {
-      const result = []
-      for (bufferState of state.buffers) {
-        result.push(handleBufferState(bufferState))
-      }
-      return result
-    })())
+    const bufferPromises = []
+    for (let bufferState of state.buffers) {
+      bufferPromises.push(handleBufferState(bufferState))
+    }
 
     return Promise.all(bufferPromises).then(buffers => {
       this.buffers = buffers.filter(Boolean)
