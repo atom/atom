@@ -241,10 +241,11 @@ class Project extends Model {
     const pathForDirectory = directory.getRealPathSync()
     let promise = this.repositoryPromisesByPath.get(pathForDirectory)
     if (!promise) {
-      const promises = this.repositoryProviders.map(provider => provider.repositoryForDirectory(directory))
-      promise = Promise.all(promises).then(repositories => {
-        let left
-        const repo = (left = _.find(repositories, repo => repo != null)) != null ? left : null
+      const promises = this.repositoryProviders.map((provider) =>
+        provider.repositoryForDirectory(directory)
+      )
+      promise = Promise.all(promises).then((repositories) => {
+        const repo = repositories.find((repo) => repo != null) || null
 
         // If no repository is found, remove the entry for the directory in
         // @repositoryPromisesByPath in case some other RepositoryProvider is
@@ -447,7 +448,7 @@ class Project extends Model {
   resolvePath (uri) {
     if (!uri) { return }
 
-    if ((uri != null ? uri.match(/[A-Za-z0-9+-.]+:\/\//) : undefined)) { // leave path alone if it has a scheme
+    if (uri.match(/[A-Za-z0-9+-.]+:\/\//)) { // leave path alone if it has a scheme
       return uri
     } else {
       let projectPath
@@ -481,7 +482,7 @@ class Project extends Model {
     if (fullPath != null) {
       for (let rootDirectory of this.rootDirectories) {
         const relativePath = rootDirectory.relativize(fullPath)
-        if ((relativePath != null ? relativePath.length : undefined) < result[1].length) {
+        if ((relativePath != null) && (relativePath.length < result[1].length)) {
           result = [rootDirectory.getPath(), relativePath]
         }
       }
