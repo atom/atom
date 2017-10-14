@@ -1,6 +1,6 @@
 const path = require('path')
 
-let _ = require('underscore-plus')
+const _ = require('underscore-plus')
 const fs = require('fs-plus')
 const {Emitter, Disposable} = require('event-kit')
 const TextBuffer = require('text-buffer')
