@@ -409,8 +409,7 @@ class Project extends Model {
   // * `projectPath` {String} The path to remove.
   removePath (projectPath) {
     // The projectPath may be a URI, in which case it should not be normalized.
-    let needle
-    if ((needle = projectPath, !this.getPaths().includes(needle))) {
+    if (!this.getPaths().includes(projectPath)) {
       projectPath = this.defaultDirectoryProvider.normalizePath(projectPath)
     }
 
