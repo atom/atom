@@ -43,7 +43,9 @@ class Project extends Model {
     for (let repository of this.repositories.slice()) {
       if (repository != null) repository.destroy()
     }
-    for (let watcher = 0; watcher < this.watcherPromisesByPath.length; watcher++) { _ = this.watcherPromisesByPath[watcher]; watcher.dispose() }
+    for (let path in this.watcherPromisesByPath) {
+      this.watcherPromisesByPath[path].then(watcher => { watcher.dispose() })
+    }
     this.rootDirectories = []
     this.repositories = []
   }
@@ -277,7 +279,9 @@ class Project extends Model {
     this.rootDirectories = []
     this.repositories = []
 
-    for (let watcher = 0; watcher < this.watcherPromisesByPath.length; watcher++) { _ = this.watcherPromisesByPath[watcher]; watcher.then(w => w.dispose()) }
+    for (let path in this.watcherPromisesByPath) {
+      this.watcherPromisesByPath[path].then(watcher => { watcher.dispose() })
+    }
     this.watcherPromisesByPath = {}
 
     const missingProjectPaths = []
@@ -342,10 +346,9 @@ class Project extends Model {
       }
     })
 
-    for (let watcherPromise = 0; watcherPromise < this.watcherPromisesByPath.length; watcherPromise++) {
-      const root = this.watcherPromisesByPath[watcherPromise]
-      if (!this.rootDirectories.includes(root)) {
-        watcherPromise.then(watcher => watcher.dispose())
+    for (let path in this.watcherPromisesByPath) {
+      if (!this.rootDirectories.includes(path)) {
+        this.watcherPromisesByPath[path].then(watcher => { watcher.dispose() })
       }
     }
 
