@@ -1,6 +1,5 @@
 /*
  * decaffeinate suggestions:
- * DS103: Rewrite code to no longer use __guard__
  * DS104: Avoid inline assignments
  * DS204: Change includes calls to have a more natural evaluation order
  * DS205: Consider reworking code to avoid use of IIFEs
@@ -251,8 +250,12 @@ class Project extends Model {
         // @repositoryPromisesByPath in case some other RepositoryProvider is
         // registered in the future that could supply a Repository for the
         // directory.
-        if (repo == null) { this.repositoryPromisesByPath.delete(pathForDirectory) }
-        __guardMethod__(repo, 'onDidDestroy', o => o.onDidDestroy(() => this.repositoryPromisesByPath.delete(pathForDirectory)))
+        if (repo == null) this.repositoryPromisesByPath.delete(pathForDirectory)
+
+        if (repo && repo.onDidDestroy) {
+          repo.onDidDestroy(() => this.repositoryPromisesByPath.delete(pathForDirectory))
+        }
+
         return repo
       })
       this.repositoryPromisesByPath.set(pathForDirectory, promise)
@@ -555,7 +558,8 @@ class Project extends Model {
 
   // Is the buffer for the given path modified?
   isPathModified (filePath) {
-    return __guard__(this.findBufferForPath(this.resolvePath(filePath)), x => x.isModified())
+    const bufferForPath = this.findBufferForPath(this.resolvePath(filePath))
+    return bufferForPath && bufferForPath.isModified()
   }
 
   findBufferForPath (filePath) {
@@ -707,15 +711,4 @@ class Project extends Model {
       })
     })
   }
-}
-
-function __guardMethod__ (obj, methodName, transform) {
-  if (typeof obj !== 'undefined' && obj !== null && typeof obj[methodName] === 'function') {
-    return transform(obj, methodName)
-  } else {
-    return undefined
-  }
-}
-function __guard__ (value, transform) {
-  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined
 }
