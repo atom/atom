@@ -1,6 +1,5 @@
 /*
  * decaffeinate suggestions:
- * DS103: Rewrite code to no longer use __guard__
  * DS201: Simplify complex destructure assignments
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
@@ -16,7 +15,9 @@ const GitRepository = require('../src/git-repository')
 
 describe('Project', function () {
   beforeEach(function () {
-    atom.project.setPaths([__guard__(atom.project.getDirectories()[0], x => x.resolve('dir'))])
+    const directory = atom.project.getDirectories()[0]
+    const paths = directory ? [directory.resolve('dir')] : [null]
+    atom.project.setPaths(paths)
 
     // Wait for project's service consumers to be asynchronously added
     waits(1)
@@ -198,7 +199,7 @@ describe('Project', function () {
       waitsForPromise(() => notQuittingProject.deserialize(atom.project.serialize({isUnloading: false})))
 
       runs(function () {
-        expect(__guard__(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id), x => x.getMarker(markerA.id))).toBeUndefined()
+        expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id), x => x.getMarker(markerA.id)).toBeUndefined()
         expect(notQuittingProject.getBuffers()[0].undo()).toBe(false)
         quittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
       })
@@ -206,7 +207,7 @@ describe('Project', function () {
       waitsForPromise(() => quittingProject.deserialize(atom.project.serialize({isUnloading: true})))
 
       runs(function () {
-        expect(__guard__(quittingProject.getBuffers()[0].getMarkerLayer(layerA.id), x => x.getMarker(markerA.id))).not.toBeUndefined()
+        expect(quittingProject.getBuffers()[0].getMarkerLayer(layerA.id), x => x.getMarker(markerA.id)).not.toBeUndefined()
         expect(quittingProject.getBuffers()[0].undo()).toBe(true)
       })
     })
@@ -926,7 +927,3 @@ describe('Project', function () {
     it('normalizes disk drive letter in passed path on #win32', () => expect(atom.project.resolvePath('d:\\file.txt')).toEqual('D:\\file.txt'))
   )
 })
-
-function __guard__ (value, transform) {
-  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined
-}
