@@ -1,6 +1,5 @@
 /*
  * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
  * DS102: Remove unnecessary code created because of implicit returns
  * DS103: Rewrite code to no longer use __guard__
  * DS201: Simplify complex destructure assignments
@@ -230,7 +229,7 @@ describe('Project', function () {
   )
 
   describe('before and after saving a buffer', function () {
-    let [buffer] = Array.from([])
+    let buffer
     beforeEach(() =>
       waitsForPromise(() =>
         atom.project.bufferForPath(path.join(__dirname, 'fixtures', 'sample.js')).then(function (o) {
@@ -286,7 +285,7 @@ describe('Project', function () {
   })
 
   describe('when a custom repository-provider service is provided', function () {
-    let [fakeRepositoryProvider, fakeRepository] = Array.from([])
+    let fakeRepositoryProvider, fakeRepository
 
     beforeEach(function () {
       fakeRepository = {destroy () { return null }}
@@ -391,7 +390,7 @@ describe('Project', function () {
   })
 
   describe('.open(path)', function () {
-    let [absolutePath, newBufferHandler] = Array.from([])
+    let absolutePath, newBufferHandler
 
     beforeEach(function () {
       absolutePath = require.resolve('./fixtures/dir/a')
@@ -485,8 +484,7 @@ describe('Project', function () {
           Promise.all([
             atom.project.bufferForPath('c'),
             atom.project.bufferForPath('c')
-          ]).then(function (...args) {
-            const [buffer1, buffer2] = Array.from(args[0])
+          ]).then(function ([buffer1, buffer2]) {
             return expect(buffer1).toBe(buffer2)
           })
         )
@@ -581,7 +579,7 @@ describe('Project', function () {
 
         atom.project.setPaths([directory1, directory2, directory3])
 
-        const [repo1, repo2, repo3] = Array.from(atom.project.getRepositories())
+        const [repo1, repo2, repo3] = atom.project.getRepositories()
         expect(repo1).toBeNull()
         expect(repo2.getShortHead()).toBe('master')
         expect(repo2.getPath()).toBe(fs.realpathSync(path.join(directory2, '.git')))
@@ -634,7 +632,7 @@ describe('Project', function () {
       const onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
       atom.project.onDidChangePaths(onDidChangePathsSpy)
 
-      const [oldPath] = Array.from(atom.project.getPaths())
+      const [oldPath] = atom.project.getPaths()
 
       const newPath = temp.mkdirSync('dir')
       atom.project.addPath(newPath)
@@ -646,7 +644,7 @@ describe('Project', function () {
     it("doesn't add redundant paths", function () {
       const onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
       atom.project.onDidChangePaths(onDidChangePathsSpy)
-      const [oldPath] = Array.from(atom.project.getPaths())
+      const [oldPath] = atom.project.getPaths()
 
       // Doesn't re-add an existing root directory
       atom.project.addPath(oldPath)
@@ -738,7 +736,7 @@ describe('Project', function () {
 
     beforeEach(() =>
       sub = atom.project.onDidChangeFiles(function (incoming) {
-        events.push(...Array.from(incoming || []))
+        events.push(...incoming || [])
         return checkCallback()
       })
     )
@@ -755,7 +753,7 @@ describe('Project', function () {
 
         const expire = function () {
           checkCallback = function () {}
-          console.error('Paths not seen:', Array.from(remaining))
+          console.error('Paths not seen:', remaining)
           return reject(new Error('Expired before all expected events were delivered.'))
         }
 
