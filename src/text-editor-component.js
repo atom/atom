@@ -4202,7 +4202,7 @@ class OverlayComponent {
       if (contentRect.width !== this.props.measuredDimensions.width || contentRect.height !== this.props.measuredDimensions.height) {
         this.resizeObserver.disconnect()
         this.props.didResize()
-        process.nextTick(() => { this.resizeObserver.observe(this.element) })
+        process.nextTick(() => { this.resizeObserver.observe(this.props.element) })
       }
     })
     this.didAttach()
@@ -4226,7 +4226,7 @@ class OverlayComponent {
   }
 
   didAttach () {
-    this.resizeObserver.observe(this.element)
+    this.resizeObserver.observe(this.props.element)
   }
 
   didDetach () {
