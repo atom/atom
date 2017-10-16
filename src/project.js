@@ -346,9 +346,9 @@ class Project extends Model {
       }
     })
 
-    for (let path in this.watcherPromisesByPath) {
-      if (!this.rootDirectories.find(dir => dir.getPath() === path)) {
-        this.watcherPromisesByPath[path].then(watcher => { watcher.dispose() })
+    for (let watchedPath in this.watcherPromisesByPath) {
+      if (!this.rootDirectories.find(dir => dir.getPath() === watchedPath)) {
+        this.watcherPromisesByPath[watchedPath].then(watcher => { watcher.dispose() })
       }
     }
 
