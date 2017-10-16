@@ -85,7 +85,7 @@ Here's a list of the big ones:
 * [apm](https://github.com/atom/apm) - the `apm` command line tool (Atom Package Manager). You should use this repository for any contributions related to the `apm` tool and to publishing packages.
 * [atom.io](https://github.com/atom/atom.io) - the repository for feedback on the [Atom.io website](https://atom.io) and the [Atom.io package API](https://github.com/atom/atom/blob/master/docs/apm-rest-api.md) used by [apm](https://github.com/atom/apm).
 
-There are many more, but this list should be a good starting point. For more information on how to work with Atom's official packages, see [Contributing to Atom Packages](http://flight-manual.atom.io/hacking-atom/sections/contributing-to-official-atom-packages/).
+There are many more, but this list should be a good starting point. For more information on how to work with Atom's official packages, see [Contributing to Atom Packages][contributing-to-official-atom-packages].
 
 Also, because Atom is so extensible, it's possible that a feature you've become accustomed to in Atom or an issue you're encountering isn't coming from a bundled package at all, but rather a [community package](https://atom.io/packages) you've installed. Each community package has its own repository too, the [Atom FAQ](https://discuss.atom.io/c/faq) has instructions on how to [contact the maintainers of any Atom community package or theme.](https://discuss.atom.io/t/i-have-a-question-about-a-specific-atom-community-package-where-is-the-best-place-to-ask-it/25581)
 
@@ -199,16 +199,7 @@ If you want to read about using Atom or developing packages in Atom, the [Atom F
 
 #### Local development
 
-All packages can be developed locally, by checking out the corresponding repository and registering the package to Atom with `apm`:
-
-```
-$ git clone url-to-git-repository
-$ cd path-to-package/
-$ apm link -d
-$ atom -d .
-```
-
-By running Atom with the `-d` flag, you signal it to run with development packages installed. `apm link` makes sure that your local repository is loaded by Atom.
+All packages can be developed locally. For instructions on how to do this, see [Contributing to Official Atom Packages][contributing-to-official-atom-packages] in the [Atom Flight Manual](http://flight-manual.atom.io).
 
 ### Pull Requests
 
@@ -500,3 +491,4 @@ Please open an issue on `atom/atom` if you have suggestions for new labels, and 
 
 [beginner]:https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+label%3Abeginner+label%3Ahelp-wanted+user%3Aatom+sort%3Acomments-desc
 [help-wanted]:https://github.com/issues?q=is%3Aopen+is%3Aissue+label%3Ahelp-wanted+user%3Aatom+sort%3Acomments-desc+-label%3Abeginner
+[contributing-to-official-atom-packages]:http://flight-manual.atom.io/hacking-atom/sections/contributing-to-official-atom-packages/
