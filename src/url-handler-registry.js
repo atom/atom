@@ -49,7 +49,7 @@ const {Emitter, Disposable} = require('event-kit')
 // }
 // ```
 //
-// `lib/my-package.json`
+// `lib/my-package.js`
 //
 // ```javascript
 // module.exports = {
