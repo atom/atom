@@ -123,6 +123,7 @@ class UrlHandlerRegistry {
   destroy () {
     this.emitter.dispose()
     this.registrations = new Map()
+    this.history = []
     this._id = 0
   }
 }
