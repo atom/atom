@@ -22,6 +22,7 @@ Config = require './config'
 KeymapManager = require './keymap-extensions'
 TooltipManager = require './tooltip-manager'
 CommandRegistry = require './command-registry'
+URIHandlerRegistry = require './uri-handler-registry'
 GrammarRegistry = require './grammar-registry'
 {HistoryManager, HistoryProject} = require './history-manager'
 ReopenProjectMenuManager = require './reopen-project-menu-manager'
@@ -31,6 +32,7 @@ ThemeManager = require './theme-manager'
 MenuManager = require './menu-manager'
 ContextMenuManager = require './context-menu-manager'
 CommandInstaller = require './command-installer'
+ProtocolHandlerInstaller = require './protocol-handler-installer'
 Project = require './project'
 TitleBar = require './title-bar'
 Workspace = require './workspace'
@@ -147,12 +149,14 @@ class AtomEnvironment extends Model
     @keymaps = new KeymapManager({notificationManager: @notifications})
     @tooltips = new TooltipManager(keymapManager: @keymaps, viewRegistry: @views)
     @commands = new CommandRegistry
+    @uriHandlerRegistry = new URIHandlerRegistry
     @grammars = new GrammarRegistry({@config})
     @styles = new StyleManager()
     @packages = new PackageManager({
       @config, styleManager: @styles,
       commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
-      grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views
+      grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views,
+      uriHandlerRegistry: @uriHandlerRegistry
     })
     @themes = new ThemeManager({
       packageManager: @packages, @config, styleManager: @styles,
@@ -166,6 +170,7 @@ class AtomEnvironment extends Model
 
     @project = new Project({notificationManager: @notifications, packageManager: @packages, @config, @applicationDelegate})
     @commandInstaller = new CommandInstaller(@applicationDelegate)
+    @protocolHandlerInstaller = new ProtocolHandlerInstaller()
 
     @textEditors = new TextEditorRegistry({
       @config, grammarRegistry: @grammars, assert: @assert.bind(this),
@@ -232,6 +237,7 @@ class AtomEnvironment extends Model
     @themes.initialize({@configDirPath, resourcePath, safeMode, devMode})
 
     @commandInstaller.initialize(@getVersion())
+    @protocolHandlerInstaller.initialize(@config, @notifications)
     @autoUpdater.initialize()
 
     @config.load()
@@ -350,6 +356,7 @@ class AtomEnvironment extends Model
     @stylesElement.remove()
     @config.unobserveUserConfig()
     @autoUpdater.destroy()
+    @uriHandlerRegistry.destroy()
 
     @uninstallWindowEventHandler()
 
@@ -690,6 +697,7 @@ class AtomEnvironment extends Model
         @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
         @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
         @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
+        @disposables.add(@applicationDelegate.onURIMessage(@dispatchURIMessage.bind(this)))
         @disposables.add @applicationDelegate.onDidRequestUnload =>
           @saveState({isUnloading: true})
             .catch(console.error)
@@ -1091,6 +1099,14 @@ class AtomEnvironment extends Model
 
   dispatchContextMenuCommand: (command, args...) ->
     @commands.dispatch(@contextMenu.activeElement, command, args)
+
+  dispatchURIMessage: (uri) ->
+    if @packages.hasLoadedInitialPackages()
+      @uriHandlerRegistry.handleURI(uri)
+    else
+      sub = @packages.onDidLoadInitialPackages ->
+        sub.dispose()
+        @uriHandlerRegistry.handleURI(uri)
 
   openLocations: (locations) ->
     needsProjectPaths = @project?.getPaths().length is 0
