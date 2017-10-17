@@ -23,7 +23,7 @@ class ProtocolHandlerInstaller {
 
   initialize (config, notifications) {
     if (!this.isSupported()) {
-      return false
+      return
     }
 
     if (!this.isDefaultProtocolClient()) {
