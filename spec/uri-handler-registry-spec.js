@@ -4,30 +4,30 @@ import url from 'url'
 
 import {it} from './async-spec-helpers'
 
-import UrlHandlerRegistry from '../src/url-handler-registry'
+import URIHandlerRegistry from '../src/uri-handler-registry'
 
-describe('UrlHandlerRegistry', () => {
+describe('URIHandlerRegistry', () => {
   let registry
 
   beforeEach(() => {
-    registry = new UrlHandlerRegistry(5)
+    registry = new URIHandlerRegistry(5)
   })
 
-  it('handles URLs on a per-host basis', () => {
+  it('handles URIs on a per-host basis', () => {
     const testPackageSpy = jasmine.createSpy()
     const otherPackageSpy = jasmine.createSpy()
     registry.registerHostHandler('test-package', testPackageSpy)
     registry.registerHostHandler('other-package', otherPackageSpy)
 
-    registry.handleUrl('atom://yet-another-package/path')
+    registry.handleURI('atom://yet-another-package/path')
     expect(testPackageSpy).not.toHaveBeenCalled()
     expect(otherPackageSpy).not.toHaveBeenCalled()
 
-    registry.handleUrl('atom://test-package/path')
+    registry.handleURI('atom://test-package/path')
     expect(testPackageSpy).toHaveBeenCalledWith(url.parse('atom://test-package/path', true), 'atom://test-package/path')
     expect(otherPackageSpy).not.toHaveBeenCalled()
 
-    registry.handleUrl('atom://other-package/path')
+    registry.handleURI('atom://other-package/path')
     expect(otherPackageSpy).toHaveBeenCalledWith(url.parse('atom://other-package/path', true), 'atom://other-package/path')
   })
 
@@ -39,7 +39,7 @@ describe('UrlHandlerRegistry', () => {
     registry.registerHostHandler('two', spy2)
     registry.onHistoryChange(changeSpy)
 
-    const urls = [
+    const uris = [
       'atom://one/something?asdf=1',
       'atom://fake/nothing',
       'atom://two/other/stuff',
@@ -47,19 +47,19 @@ describe('UrlHandlerRegistry', () => {
       'atom://two/more/stuff'
     ]
 
-    urls.forEach(u => registry.handleUrl(u))
+    uris.forEach(u => registry.handleURI(u))
 
     expect(changeSpy.callCount).toBe(5)
-    expect(registry.getRecentlyHandledUrls()).toEqual(urls.map((u, idx) => {
-      return {id: idx + 1, url: u, handled: !u.match(/fake/), host: url.parse(u).host}
+    expect(registry.getRecentlyHandledURIs()).toEqual(uris.map((u, idx) => {
+      return {id: idx + 1, uri: u, handled: !u.match(/fake/), host: url.parse(u).host}
     }).reverse())
 
-    registry.handleUrl('atom://another/url')
+    registry.handleURI('atom://another/url')
     expect(changeSpy.callCount).toBe(6)
-    const history = registry.getRecentlyHandledUrls()
+    const history = registry.getRecentlyHandledURIs()
     expect(history.length).toBe(5)
-    expect(history[0].url).toBe('atom://another/url')
-    expect(history[4].url).toBe(urls[1])
+    expect(history[0].uri).toBe('atom://another/url')
+    expect(history[4].uri).toBe(uris[1])
   })
 
   it('refuses to handle bad URLs', () => {
@@ -69,7 +69,7 @@ describe('UrlHandlerRegistry', () => {
       'user:pass@atom://package/path',
       'smth://package/path'
     ].forEach(uri => {
-      expect(() => registry.handleUrl(uri)).toThrow()
+      expect(() => registry.handleURI(uri)).toThrow()
     })
   })
 })

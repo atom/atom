@@ -1,41 +1,41 @@
 const url = require('url')
 const {Emitter, Disposable} = require('event-kit')
 
-// Private: Associates listener functions with URLs from outside the application.
+// Private: Associates listener functions with URIs from outside the application.
 //
-// The global URL handler registry maps URLs to listener functions. URLs are mapped
-// based on the hostname of the URL; the format is atom://package/command?args.
-// The "core" package name is reserved for URLs handled by Atom core (it is not possible
+// The global URI handler registry maps URIs to listener functions. URIs are mapped
+// based on the hostname of the URI; the format is atom://package/command?args.
+// The "core" package name is reserved for URIs handled by Atom core (it is not possible
 // to register a package with the name "core").
 //
-// Because URL handling can be triggered from outside the application (e.g. from
+// Because URI handling can be triggered from outside the application (e.g. from
 // the user's browser), package authors should take great care to ensure that malicious
 // activities cannot be performed by an attacker. A good rule to follow is that
-// **URL handlers should not take action on behalf of the user**. For example, clicking
+// **URI handlers should not take action on behalf of the user**. For example, clicking
 // a link to open a pane item that prompts the user to install a package is okay;
 // automatically installing the package right away is not.
 //
-// Packages can register their desire to handle URLs via a special key in their
-// `package.json` called "urlHandler". The value of this key should be an object
+// Packages can register their desire to handle URIs via a special key in their
+// `package.json` called "uriHandler". The value of this key should be an object
 // that contains, at minimum, a key named "method". This is the name of the method
-// on your package object that Atom will call when it receives a URL your package
-// is responsible for handling. It will pass the parsed URL as the first argument (by using
+// on your package object that Atom will call when it receives a URI your package
+// is responsible for handling. It will pass the parsed URI as the first argument (by using
 // [Node's `url.parse(uri, true)`](https://nodejs.org/docs/latest/api/url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost))
-// and the raw URL as the second argument.
+// and the raw URI string as the second argument.
 //
-// By default, Atom will defer activation of your package until a URL it needs to handle
+// By default, Atom will defer activation of your package until a URI it needs to handle
 // is triggered. If you need your package to activate right away, you can add
-// `"deferActivation": false` to your "urlHandler" configuration object. When activation
-// is deferred, once Atom receives a request for a URL in your package's namespace, it will
+// `"deferActivation": false` to your "uriHandler" configuration object. When activation
+// is deferred, once Atom receives a request for a URI in your package's namespace, it will
 // activate your pacakge and then call `methodName` on it as before.
 //
-// If your package specifies a deprecated `urlMain` property, you cannot register URL handlers
-// via the `urlHandler` key.
+// If your package specifies a deprecated `urlMain` property, you cannot register URI handlers
+// via the `uriHandler` key.
 //
 // ## Example
 //
-// Here is a sample package that will be activated and have its `handleUrl` method called
-// when a URL beginning with `atom://my-package` is triggered:
+// Here is a sample package that will be activated and have its `handleURI` method called
+// when a URI beginning with `atom://my-package` is triggered:
 //
 // `package.json`:
 //
@@ -43,8 +43,8 @@ const {Emitter, Disposable} = require('event-kit')
 // {
 //   "name": "my-package",
 //   "main": "./lib/my-package.js",
-//   "urlHandler": {
-//     "method": "handleUrl"
+//   "uriHandler": {
+//     "method": "handleURI"
 //   }
 // }
 // ```
@@ -57,13 +57,13 @@ const {Emitter, Disposable} = require('event-kit')
 //     // code to activate your package
 //   }
 //
-//   handleUrl(url) {
-//     // parse and handle url
+//   handleURI(parsedUri, rawUri) {
+//     // parse and handle uri
 //   }
 // }
 // ```
 module.exports =
-class UrlHandlerRegistry {
+class URIHandlerRegistry {
   constructor (maxHistoryLength = 50) {
     this.registrations = new Map()
     this.history = []
@@ -75,11 +75,11 @@ class UrlHandlerRegistry {
 
   registerHostHandler (host, callback) {
     if (typeof callback !== 'function') {
-      throw new Error('Cannot register a URL host handler with a non-function callback')
+      throw new Error('Cannot register a URI host handler with a non-function callback')
     }
 
     if (this.registrations.has(host)) {
-      throw new Error(`There is already a URL host handler for the host ${host}`)
+      throw new Error(`There is already a URI host handler for the host ${host}`)
     } else {
       this.registrations.set(host, callback)
     }
@@ -89,15 +89,15 @@ class UrlHandlerRegistry {
     })
   }
 
-  handleUrl (uri) {
+  handleURI (uri) {
     const parsed = url.parse(uri, true)
     const {protocol, slashes, auth, port, host} = parsed
     if (protocol !== 'atom:' || slashes !== true || auth || port) {
-      throw new Error(`UrlHandlerRegistry#handleUrl asked to handle an invalid URL: ${uri}`)
+      throw new Error(`URIHandlerRegistry#handleURI asked to handle an invalid URI: ${uri}`)
     }
 
     const registration = this.registrations.get(host)
-    const historyEntry = {id: ++this._id, url: uri, handled: false, host}
+    const historyEntry = {id: ++this._id, uri: uri, handled: false, host}
     try {
       if (registration) {
         historyEntry.handled = true
@@ -112,7 +112,7 @@ class UrlHandlerRegistry {
     }
   }
 
-  getRecentlyHandledUrls () {
+  getRecentlyHandledURIs () {
     return this.history
   }
 

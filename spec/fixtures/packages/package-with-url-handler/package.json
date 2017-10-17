@@ -1,6 +1,0 @@
-{
-  "name": "package-with-url-handler",
-  "urlHandler": {
-    "method": "handleUrl"
-  }
-}

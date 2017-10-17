@@ -666,12 +666,12 @@ class AtomApplication
 
     windowInitializationScript ?= require.resolve('../initialize-application-window')
     if @lastFocusedWindow?
-      @lastFocusedWindow.sendUrlMessage url
+      @lastFocusedWindow.sendURIMessage url
     else
       windowDimensions = @getDimensionsForNewWindow()
       @lastFocusedWindow = new AtomWindow(this, @fileRecoveryService, {resourcePath, windowInitializationScript, devMode, safeMode, windowDimensions, env})
       @lastFocusedWindow.on 'window:loaded', =>
-        @lastFocusedWindow.sendUrlMessage url
+        @lastFocusedWindow.sendURIMessage url
 
   findPackageWithName: (packageName, devMode) ->
     _.find @getPackageManager(devMode).getAvailablePackageMetadata(), ({name}) -> name is packageName

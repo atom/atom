@@ -22,7 +22,7 @@ Config = require './config'
 KeymapManager = require './keymap-extensions'
 TooltipManager = require './tooltip-manager'
 CommandRegistry = require './command-registry'
-UrlHandlerRegistry = require './url-handler-registry'
+URIHandlerRegistry = require './uri-handler-registry'
 GrammarRegistry = require './grammar-registry'
 {HistoryManager, HistoryProject} = require './history-manager'
 ReopenProjectMenuManager = require './reopen-project-menu-manager'
@@ -149,14 +149,14 @@ class AtomEnvironment extends Model
     @keymaps = new KeymapManager({notificationManager: @notifications})
     @tooltips = new TooltipManager(keymapManager: @keymaps, viewRegistry: @views)
     @commands = new CommandRegistry
-    @urlHandlerRegistry = new UrlHandlerRegistry
+    @uriHandlerRegistry = new URIHandlerRegistry
     @grammars = new GrammarRegistry({@config})
     @styles = new StyleManager()
     @packages = new PackageManager({
       @config, styleManager: @styles,
       commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
       grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views,
-      urlHandlerRegistry: @urlHandlerRegistry
+      uriHandlerRegistry: @uriHandlerRegistry
     })
     @themes = new ThemeManager({
       packageManager: @packages, @config, styleManager: @styles,
@@ -356,7 +356,7 @@ class AtomEnvironment extends Model
     @stylesElement.remove()
     @config.unobserveUserConfig()
     @autoUpdater.destroy()
-    @urlHandlerRegistry.destroy()
+    @uriHandlerRegistry.destroy()
 
     @uninstallWindowEventHandler()
 
@@ -697,7 +697,7 @@ class AtomEnvironment extends Model
         @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
         @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
         @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
-        @disposables.add(@applicationDelegate.onURLMessage(@dispatchUrlMessage.bind(this)))
+        @disposables.add(@applicationDelegate.onURIMessage(@dispatchURIMessage.bind(this)))
         @disposables.add @applicationDelegate.onDidRequestUnload =>
           @saveState({isUnloading: true})
             .catch(console.error)
@@ -1100,13 +1100,13 @@ class AtomEnvironment extends Model
   dispatchContextMenuCommand: (command, args...) ->
     @commands.dispatch(@contextMenu.activeElement, command, args)
 
-  dispatchUrlMessage: (uri) ->
+  dispatchURIMessage: (uri) ->
     if @packages.hasLoadedInitialPackages()
-      @urlHandlerRegistry.handleUrl(uri)
+      @uriHandlerRegistry.handleURI(uri)
     else
       sub = @packages.onDidLoadInitialPackages ->
         sub.dispose()
-        @urlHandlerRegistry.handleUrl(uri)
+        @uriHandlerRegistry.handleURI(uri)
 
   openLocations: (locations) ->
     needsProjectPaths = @project?.getPaths().length is 0

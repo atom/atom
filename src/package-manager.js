@@ -32,7 +32,7 @@ module.exports = class PackageManager {
     ({
       config: this.config, styleManager: this.styleManager, notificationManager: this.notificationManager, keymapManager: this.keymapManager,
       commandRegistry: this.commandRegistry, grammarRegistry: this.grammarRegistry, deserializerManager: this.deserializerManager, viewRegistry: this.viewRegistry,
-      urlHandlerRegistry: this.urlHandlerRegistry
+      uriHandlerRegistry: this.uriHandlerRegistry
     } = params)
 
     this.emitter = new Emitter()
@@ -649,7 +649,7 @@ module.exports = class PackageManager {
   }
 
   registerUrlHandlerForPackage (packageName, handler) {
-    return this.urlHandlerRegistry.registerHostHandler(packageName, handler)
+    return this.uriHandlerRegistry.registerHostHandler(packageName, handler)
   }
 
   // another type of package manager can handle other package types.

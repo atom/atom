@@ -233,13 +233,13 @@ class ApplicationDelegate
     new Disposable ->
       ipcRenderer.removeListener('context-command', outerCallback)
 
-  onURLMessage: (callback) ->
+  onURIMessage: (callback) ->
     outerCallback = (event, args...) ->
       callback(args...)
 
-    ipcRenderer.on('url-message', outerCallback)
+    ipcRenderer.on('uri-message', outerCallback)
     new Disposable ->
-      ipcRenderer.removeListener('url-message', outerCallback)
+      ipcRenderer.removeListener('uri-message', outerCallback)
 
   onDidRequestUnload: (callback) ->
     outerCallback = (event, message) ->

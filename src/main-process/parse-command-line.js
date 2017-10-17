@@ -58,15 +58,15 @@ module.exports = function parseCommandLine (processArgs) {
   options.string('user-data-dir')
   options.boolean('clear-window-state').describe('clear-window-state', 'Delete all Atom environment state.')
   options.boolean('enable-electron-logging').describe('enable-electron-logging', 'Enable low-level logging messages from Electron.')
-  options.boolean('url-handler')
+  options.boolean('uri-handler')
 
   let args = options.argv
 
-  // If --url-handler is set, then we parse NOTHING else
-  if (args.urlHandler) {
+  // If --uri-handler is set, then we parse NOTHING else
+  if (args.uriHandler) {
     args = {
-      urlHandler: true,
-      'url-handler': true,
+      uriHandler: true,
+      'uri-handler': true,
       _: args._.filter(str => str.startsWith('atom://')).slice(0, 1)
     }
   }

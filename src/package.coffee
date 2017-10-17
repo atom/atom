@@ -323,13 +323,13 @@ class Package
   registerUrlHandler: ->
     handlerConfig = @getUrlHandler()
     if methodName = handlerConfig?.method
-      @urlHandlerSubscription = @packageManager.registerUrlHandlerForPackage @name, (args...) =>
-        @handleUrl(methodName, args)
+      @uriHandlerSubscription = @packageManager.registerUrlHandlerForPackage @name, (args...) =>
+        @handleURI(methodName, args)
 
   unregisterUrlHandler: ->
-    @urlHandlerSubscription?.dispose()
+    @uriHandlerSubscription?.dispose()
 
-  handleUrl: (methodName, args) ->
+  handleURI: (methodName, args) ->
     @activate().then =>
       @mainModule[methodName]?.apply(@mainModule, args)
     unless @mainActivated
@@ -695,7 +695,7 @@ class Package
     @activationHooks = _.uniq(@activationHooks)
 
   getUrlHandler: ->
-    @metadata?.urlHandler
+    @metadata?.uriHandler
 
   # Does the given module path contain native code?
   isNativeModule: (modulePath) ->

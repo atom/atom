@@ -12,13 +12,13 @@ class ProtocolHandlerInstaller {
   }
 
   isDefaultProtocolClient () {
-    return remote.app.isDefaultProtocolClient('atom', process.execPath, ['--url-handler'])
+    return remote.app.isDefaultProtocolClient('atom', process.execPath, ['--uri-handler'])
   }
 
   setAsDefaultProtocolClient () {
     // This Electron API is only available on Windows and macOS. There might be some
     // hacks to make it work on Linux; see https://github.com/electron/electron/issues/6440
-    return this.isSupported() && remote.app.setAsDefaultProtocolClient('atom', process.execPath, ['--url-handler'])
+    return this.isSupported() && remote.app.setAsDefaultProtocolClient('atom', process.execPath, ['--uri-handler'])
   }
 
   initialize (config, notifications) {
