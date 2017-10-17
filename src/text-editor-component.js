@@ -1595,30 +1595,30 @@ class TextEditorComponent {
   }
 
   didTextInput (event) {
-    if (!this.isInputEnabled()) return
-
-    event.stopPropagation()
-
-    // WARNING: If we call preventDefault on the input of a space character,
-    // then the browser interprets the spacebar keypress as a page-down command,
-    // causing spaces to scroll elements containing editors. This is impossible
-    // to test.
-    if (event.data !== ' ') event.preventDefault()
-
     if (this.compositionCheckpoint) {
       this.props.model.revertToCheckpoint(this.compositionCheckpoint)
       this.compositionCheckpoint = null
     }
 
-    // If the input event is fired while the accented character menu is open it
-    // means that the user has chosen one of the accented alternatives. Thus, we
-    // will replace the original non accented character with the selected
-    // alternative.
-    if (this.accentedCharacterMenuIsOpen) {
-      this.props.model.selectLeft()
-    }
+    if (this.isInputEnabled()) {
+      event.stopPropagation()
 
-    this.props.model.insertText(event.data, {groupUndo: true})
+      // WARNING: If we call preventDefault on the input of a space character,
+      // then the browser interprets the spacebar keypress as a page-down command,
+      // causing spaces to scroll elements containing editors. This is impossible
+      // to test.
+      if (event.data !== ' ') event.preventDefault()
+
+      // If the input event is fired while the accented character menu is open it
+      // means that the user has chosen one of the accented alternatives. Thus, we
+      // will replace the original non accented character with the selected
+      // alternative.
+      if (this.accentedCharacterMenuIsOpen) {
+        this.props.model.selectLeft()
+      }
+
+      this.props.model.insertText(event.data, {groupUndo: true})
+    }
   }
 
   // We need to get clever to detect when the accented character menu is
@@ -2118,6 +2118,7 @@ class TextEditorComponent {
       // rendered start row accurately. 😥
       this.populateVisibleRowRange(renderedStartRow)
       this.props.model.setEditorWidthInChars(this.getScrollContainerClientWidthInBaseCharacters())
+      this.derivedDimensionsCache = {}
 
       this.suppressUpdates = false
     }
@@ -2522,6 +2523,7 @@ class TextEditorComponent {
         didDestroyDisposable.dispose()
 
         if (wasValid) {
+          wasValid = false
           this.blockDecorationsToMeasure.delete(decoration)
           this.heightsByBlockDecoration.delete(decoration)
           this.blockDecorationsByElement.delete(element)
@@ -2884,10 +2886,17 @@ class TextEditorComponent {
 
   // Ensure the spatial index is populated with rows that are currently visible
   populateVisibleRowRange (renderedStartRow) {
-    const editorHeightInTiles = this.getScrollContainerHeight() / this.getLineHeight()
-    const visibleTileCount = Math.ceil(editorHeightInTiles) + 1
-    const lastRenderedRow = renderedStartRow + (visibleTileCount * this.getRowsPerTile())
-    this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, lastRenderedRow)
+    const {model} = this.props
+    const previousScreenLineCount = model.getApproximateScreenLineCount()
+
+    const renderedEndRow = renderedStartRow + (this.getVisibleTileCount() * this.getRowsPerTile())
+    this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, renderedEndRow)
+
+    // If the approximate screen line count changes, previously-cached derived
+    // dimensions could now be out of date.
+    if (model.getApproximateScreenLineCount() !== previousScreenLineCount) {
+      this.derivedDimensionsCache = {}
+    }
   }
 
   populateVisibleTiles () {
@@ -4193,7 +4202,7 @@ class OverlayComponent {
       if (contentRect.width !== this.props.measuredDimensions.width || contentRect.height !== this.props.measuredDimensions.height) {
         this.resizeObserver.disconnect()
         this.props.didResize()
-        process.nextTick(() => { this.resizeObserver.observe(this.element) })
+        process.nextTick(() => { this.resizeObserver.observe(this.props.element) })
       }
     })
     this.didAttach()
@@ -4217,7 +4226,7 @@ class OverlayComponent {
   }
 
   didAttach () {
-    this.resizeObserver.observe(this.element)
+    this.resizeObserver.observe(this.props.element)
   }
 
   didDetach () {
