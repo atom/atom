@@ -648,7 +648,7 @@ module.exports = class PackageManager {
     })
   }
 
-  registerUrlHandlerForPackage (packageName, handler) {
+  registerURIHandlerForPackage (packageName, handler) {
     return this.uriHandlerRegistry.registerHostHandler(packageName, handler)
   }
 
