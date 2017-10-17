@@ -330,10 +330,8 @@ class Package
     @uriHandlerSubscription?.dispose()
 
   handleURI: (methodName, args) ->
-    @activate().then =>
-      @mainModule[methodName]?.apply(@mainModule, args)
-    unless @mainActivated
-      @activateNow()
+    @activate().then => @mainModule[methodName]?.apply(@mainModule, args)
+    @activateNow() unless @mainActivated
 
   registerTranspilerConfig: ->
     if @metadata.atomTranspilers
