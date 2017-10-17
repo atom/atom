@@ -521,6 +521,7 @@ class Package
     @activationCommandSubscriptions?.dispose()
     @activationHookSubscriptions?.dispose()
     @configSchemaRegisteredOnActivate = false
+    @unregisterUrlHandler()
     @deactivateResources()
     @deactivateKeymaps()
 
