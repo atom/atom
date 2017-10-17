@@ -655,9 +655,9 @@ class AtomApplication
     if pack?.urlMain
       @openPackageUrlMain(parsedUrl.host, pack.urlMain, urlToOpen, devMode, safeMode, env)
     else
-      @openWithAtomUrl(urlToOpen, devMode, safeMode, env)
+      @openPackageUriHandler(urlToOpen, devMode, safeMode, env)
 
-  openWithAtomUrl: (url, devMode, safeMode, env) ->
+  openPackageUriHandler: (url, devMode, safeMode, env) ->
     resourcePath = @resourcePath
     if devMode
       try
