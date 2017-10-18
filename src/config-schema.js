@@ -17,7 +17,7 @@ const configSchema = {
         type: 'boolean',
         default: true,
         title: 'Exclude VCS Ignored Paths',
-        description: 'Files and directories ignored by the current project\'s VCS system will be ignored by some packages, such as the fuzzy finder and find and replace. For example, projects using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
+        description: 'Files and directories ignored by the current project\'s VCS will be ignored by some packages, such as the fuzzy finder and find and replace. For example, projects using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
       },
       followSymlinks: {
         type: 'boolean',
