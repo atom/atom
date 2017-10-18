@@ -4422,7 +4422,7 @@ describe('TextEditorComponent', () => {
       expect(dragEvents).toEqual([])
     })
 
-    it('calls `didStopDragging` if the buffer changes while dragging', async () => {
+    it('calls `didStopDragging` if the user interacts with the keyboard while dragging', async () => {
       const {component, editor} = buildComponent()
 
       let dragging = false
@@ -4435,8 +4435,14 @@ describe('TextEditorComponent', () => {
       await getNextAnimationFramePromise()
       expect(dragging).toBe(true)
 
-      editor.delete()
+      // Buffer changes don't cause dragging to be stopped.
+      editor.insertText('X')
+      expect(dragging).toBe(true)
+
+      // Keyboard interaction prevents users from dragging further.
+      component.didKeydown({code: 'KeyX'})
       expect(dragging).toBe(false)
+
       window.dispatchEvent(new MouseEvent('mousemove'))
       await getNextAnimationFramePromise()
       expect(dragging).toBe(false)
