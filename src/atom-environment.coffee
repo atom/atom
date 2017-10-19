@@ -239,7 +239,7 @@ class AtomEnvironment extends Model
 
     @commandInstaller.initialize(@getVersion())
     @protocolHandlerInstaller.initialize(@config, @notifications)
-    @uriHandlerRegistry.registerHostHandler('core', CoreURIHandlers.create(@))
+    @uriHandlerRegistry.registerHostHandler('core', CoreURIHandlers.create(this))
     @autoUpdater.initialize()
 
     @config.load()
