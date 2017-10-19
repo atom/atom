@@ -8,17 +8,31 @@ function openFile (atom, {query}) {
   })
 }
 
+function windowShouldOpenFile ({query}) {
+  const {filename} = query
+  return (win) => win.containsPath(filename)
+}
+
 const ROUTER = {
-  '/open/file': openFile
+  '/open/file': { handler: openFile, getWindowPredicate: windowShouldOpenFile }
 }
 
 module.exports = {
   create (atomEnv) {
     return function coreURIHandler (parsed) {
-      const handler = ROUTER[parsed.pathname]
-      if (handler) {
-        handler(atomEnv, parsed)
+      const config = ROUTER[parsed.pathname]
+      if (config) {
+        config.handler(atomEnv, parsed)
       }
+    }
+  },
+
+  windowPredicate (parsed) {
+    const config = ROUTER[parsed.pathname]
+    if (config && config.getWindowPredicate) {
+      return config.getWindowPredicate(parsed)
+    } else {
+      return (win) => true
     }
   }
 }

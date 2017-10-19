@@ -655,28 +655,34 @@ class AtomApplication
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
   openUrl: ({urlToOpen, devMode, safeMode, env}) ->
-    parsedUrl = url.parse(urlToOpen)
+    parsedUrl = url.parse(urlToOpen, true)
     return unless parsedUrl.protocol is "atom:"
 
     pack = @findPackageWithName(parsedUrl.host, devMode)
     if pack?.urlMain
       @openPackageUrlMain(parsedUrl.host, pack.urlMain, urlToOpen, devMode, safeMode, env)
     else
-      @openPackageUriHandler(urlToOpen, devMode, safeMode, env)
+      @openPackageUriHandler(urlToOpen, parsedUrl, devMode, safeMode, env)
 
-  openPackageUriHandler: (url, devMode, safeMode, env) ->
-    resourcePath = @resourcePath
-    if devMode
-      try
-        windowInitializationScript = require.resolve(path.join(@devResourcePath, 'src', 'initialize-application-window'))
-        resourcePath = @devResourcePath
+  openPackageUriHandler: (url, parsedUrl, devMode, safeMode, env) ->
+    bestWindow = null
+    if parsedUrl.host is 'core'
+      predicate = require('../core-uri-handlers').windowPredicate(parsedUrl)
+      bestWindow = @getLastFocusedWindow (win) ->
+        !win.isSpecWindow() && predicate(win)
 
-    windowInitializationScript ?= require.resolve('../initialize-application-window')
-    lastNonSpecWindow = @getLastFocusedWindow (win) -> !win.isSpecWindow()
-    if lastNonSpecWindow?
-      lastNonSpecWindow.sendURIMessage url
-      lastNonSpecWindow.focus()
+    bestWindow ?= @getLastFocusedWindow (win) -> !win.isSpecWindow()
+    if bestWindow?
+      bestWindow.sendURIMessage url
+      bestWindow.focus()
     else
+      resourcePath = @resourcePath
+      if devMode
+        try
+          windowInitializationScript = require.resolve(path.join(@devResourcePath, 'src', 'initialize-application-window'))
+          resourcePath = @devResourcePath
+
+      windowInitializationScript ?= require.resolve('../initialize-application-window')
       windowDimensions = @getDimensionsForNewWindow()
       win = new AtomWindow(this, @fileRecoveryService, {resourcePath, windowInitializationScript, devMode, safeMode, windowDimensions, env})
       @windows.addWindow(win)
