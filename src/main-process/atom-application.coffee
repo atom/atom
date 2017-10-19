@@ -191,8 +191,8 @@ class AtomApplication
   getAllWindows: () =>
     @windows.all().slice()
 
-  getLastFocusedWindow: () =>
-    @windows.getLastFocusedWindow()
+  getLastFocusedWindow: (predicate) =>
+    @windows.getLastFocusedWindow(predicate)
 
   # Creates server to listen for additional atom application launches.
   #
@@ -672,8 +672,10 @@ class AtomApplication
         resourcePath = @devResourcePath
 
     windowInitializationScript ?= require.resolve('../initialize-application-window')
-    if @getLastFocusedWindow()?
-      @getLastFocusedWindow().sendURIMessage url
+    lastNonSpecWindow = @getLastFocusedWindow (win) -> !win.isSpecWindow()
+    if lastNonSpecWindow?
+      lastNonSpecWindow.sendURIMessage url
+      lastNonSpecWindow.focus()
     else
       windowDimensions = @getDimensionsForNewWindow()
       win = new AtomWindow(this, @fileRecoveryService, {resourcePath, windowInitializationScript, devMode, safeMode, windowDimensions, env})
