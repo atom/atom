@@ -943,9 +943,9 @@ describe('TextEditorComponent', () => {
 
       it('renders the visible rows correctly after randomly mutating the editor', async () => {
         const initialSeed = Date.now()
-        for (var i = 0; i < 1; i++) {
+        for (var i = 0; i < 20; i++) {
           let seed = initialSeed + i
-          seed = 1507231571985
+          // seed = 1507231571985
           const failureMessage = 'Randomized test failed with seed: ' + seed
           const random = Random(seed)
 
@@ -957,7 +957,7 @@ describe('TextEditorComponent', () => {
 
           element.focus()
 
-          for (var j = 0; j < 10; j++) {
+          for (var j = 0; j < 5; j++) {
             const k = random(100)
             const range = getRandomBufferRange(random, editor.buffer)
 
