@@ -1,9 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS201: Simplify complex destructure assignments
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const temp = require('temp').track()
 const TextBuffer = require('text-buffer')
 const Project = require('../src/project')
@@ -35,7 +29,9 @@ describe('Project', () => {
       if (notQuittingProject != null) {
         notQuittingProject.destroy()
       }
-      (quittingProject != null ? quittingProject.destroy() : undefined)
+      if (quittingProject != null) {
+        quittingProject.destroy()
+      }
     })
 
     it("does not deserialize paths to directories that don't exist", () => {
@@ -330,8 +326,8 @@ describe('Project', () => {
 
   describe('when a custom directory-provider service is provided', () => {
     class DummyDirectory {
-      constructor (path1) {
-        this.path = path1
+      constructor (aPath) {
+        this.path = aPath
       }
       getPath () { return this.path }
       getFile () { return {existsSync () { return false }} }
@@ -736,7 +732,7 @@ describe('Project', () => {
 
     beforeEach(() =>
       sub = atom.project.onDidChangeFiles((incoming) => {
-        events.push(...incoming || [])
+        events.push(...incoming)
         checkCallback()
       })
     )
@@ -924,6 +920,8 @@ describe('Project', () => {
   )
 
   describe('.resolvePath(uri)', () =>
-    it('normalizes disk drive letter in passed path on #win32', () => expect(atom.project.resolvePath('d:\\file.txt')).toEqual('D:\\file.txt'))
+    it('normalizes disk drive letter in passed path on #win32', () => {
+      expect(atom.project.resolvePath('d:\\file.txt')).toEqual('D:\\file.txt')
+    })
   )
 })
