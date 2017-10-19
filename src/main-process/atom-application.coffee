@@ -188,7 +188,7 @@ class AtomApplication
         window.browserWindow.removeListener 'blur', blurHandler
       window.browserWindow.webContents.once 'did-finish-load', => @saveState(false)
 
-  getAllWindows: () =>
+  getAllWindows: =>
     @windows.all().slice()
 
   getLastFocusedWindow: (predicate) =>
@@ -669,9 +669,9 @@ class AtomApplication
     if parsedUrl.host is 'core'
       predicate = require('../core-uri-handlers').windowPredicate(parsedUrl)
       bestWindow = @getLastFocusedWindow (win) ->
-        !win.isSpecWindow() && predicate(win)
+        not win.isSpecWindow() and predicate(win)
 
-    bestWindow ?= @getLastFocusedWindow (win) -> !win.isSpecWindow()
+    bestWindow ?= @getLastFocusedWindow (win) -> not win.isSpecWindow()
     if bestWindow?
       bestWindow.sendURIMessage url
       bestWindow.focus()
@@ -686,7 +686,7 @@ class AtomApplication
       windowDimensions = @getDimensionsForNewWindow()
       win = new AtomWindow(this, @fileRecoveryService, {resourcePath, windowInitializationScript, devMode, safeMode, windowDimensions, env})
       @windows.addWindow(win)
-      win.on 'window:loaded', =>
+      win.on 'window:loaded', ->
         win.sendURIMessage url
 
   findPackageWithName: (packageName, devMode) ->
@@ -910,8 +910,8 @@ class WindowStack
     @windows.splice(currentIndex, 1) if currentIndex > -1
 
   getLastFocusedWindow: (predicate) =>
-    predicate ?= (win) => true
+    predicate ?= (win) -> true
     @windows.find(predicate)
 
-  all: () =>
+  all: =>
     @windows
