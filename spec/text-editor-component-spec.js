@@ -896,6 +896,39 @@ describe('TextEditorComponent', () => {
       expect(component.getLineNumberGutterWidth()).toBe(originalLineNumberGutterWidth)
     })
 
+    it('gracefully handles edits that change the maxScrollTop by causing the horizontal scrollbar to disappear', async () => {
+      const rowsPerTile = 1
+      const {component, element, editor} = buildComponent({rowsPerTile, autoHeight: false})
+
+      await setEditorHeightInLines(component, 1)
+      await setEditorWidthInCharacters(component, 7)
+
+      element.focus()
+      component.setScrollTop(component.measurements.lineHeight)
+
+      component.scheduleUpdate()
+      await component.getNextUpdatePromise()
+
+      editor.setSelectedBufferRange(new Range(Point(0,1),Point(12,2)))
+      editor.backspace()
+
+      // component.scheduleUpdate()
+      await component.getNextUpdatePromise()
+
+      expect(component.getScrollTop()).toBe(0)
+
+      const renderedLines = queryOnScreenLineElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+      const renderedLineNumbers = queryOnScreenLineNumberElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+      const renderedStartRow = component.getRenderedStartRow()
+      const expectedLines = editor.displayLayer.getScreenLines(renderedStartRow, component.getRenderedEndRow())
+
+      expect(renderedLines.length).toBe(expectedLines.length)
+      expect(renderedLineNumbers.length).toBe(expectedLines.length)
+
+      element.remove()
+      editor.destroy()
+    })
+
     describe('randomized tests', () => {
       let originalTimeout
 
@@ -908,38 +941,7 @@ describe('TextEditorComponent', () => {
         jasmine.getEnv().defaultTimeoutInterval = originalTimeout
       })
 
-      it('failing test', async () => {
-        const rowsPerTile = 1
-        const {component, element, editor} = buildComponent({rowsPerTile, autoHeight: false})
-
-        await setEditorHeightInLines(component, 1)
-        await setEditorWidthInCharacters(component, 7)
-
-        element.focus()
-        component.setScrollTop(component.measurements.lineHeight)
-
-        component.scheduleUpdate()
-        await component.getNextUpdatePromise()
-
-        editor.setSelectedBufferRange(new Range(Point(0,1),Point(12,2)))
-        editor.backspace()
-
-        component.scheduleUpdate()
-        await component.getNextUpdatePromise()
-
-        const renderedLines = queryOnScreenLineElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
-        const renderedLineNumbers = queryOnScreenLineNumberElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
-        const renderedStartRow = component.getRenderedStartRow()
-        const expectedLines = editor.displayLayer.getScreenLines(renderedStartRow, component.getRenderedEndRow())
-
-        expect(renderedLines.length).toBe(expectedLines.length)
-        expect(renderedLineNumbers.length).toBe(expectedLines.length)
-
-        element.remove()
-        editor.destroy()
-      })
-
-      xit('renders the visible rows correctly after randomly mutating the editor', async () => {
+      it('renders the visible rows correctly after randomly mutating the editor', async () => {
         const initialSeed = Date.now()
         for (var i = 0; i < 1; i++) {
           let seed = initialSeed + i

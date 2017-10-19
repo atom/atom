@@ -266,9 +266,13 @@ class TextEditorComponent {
     if (useScheduler === true) {
       const scheduler = etch.getScheduler()
       scheduler.readDocument(() => {
-        this.measureContentDuringUpdateSync()
+        const restartFrame = this.measureContentDuringUpdateSync()
         scheduler.updateDocument(() => {
-          this.updateSyncAfterMeasuringContent()
+          if (restartFrame) {
+            this.updateSync(true)
+          } else {
+            this.updateSyncAfterMeasuringContent()
+          }
         })
       })
     } else {
@@ -391,15 +395,16 @@ class TextEditorComponent {
     this.measureHorizontalPositions()
     this.updateAbsolutePositionedDecorations()
 
+    const isHorizontalScrollbarVisible = (
+      this.canScrollHorizontally() &&
+      this.getHorizontalScrollbarHeight() > 0
+    )
+
     if (this.pendingAutoscroll) {
       this.derivedDimensionsCache = {}
       const {screenRange, options} = this.pendingAutoscroll
       this.autoscrollHorizontally(screenRange, options)
 
-      const isHorizontalScrollbarVisible = (
-        this.canScrollHorizontally() &&
-        this.getHorizontalScrollbarHeight() > 0
-      )
       if (!wasHorizontalScrollbarVisible && isHorizontalScrollbarVisible) {
         this.autoscrollVertically(screenRange, options)
       }
@@ -408,6 +413,8 @@ class TextEditorComponent {
 
     this.linesToMeasure.clear()
     this.measuredContent = true
+
+    return wasHorizontalScrollbarVisible !== isHorizontalScrollbarVisible
   }
 
   updateSyncAfterMeasuringContent () {
