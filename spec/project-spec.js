@@ -42,7 +42,7 @@ describe('Project', () => {
       let err = null
       waitsForPromise(() =>
         deserializedProject.deserialize(state, atom.deserializers)
-          .catch(e => err = e)
+          .catch(e => { err = e })
       )
 
       runs(() => {
@@ -65,7 +65,7 @@ describe('Project', () => {
       let err = null
       waitsForPromise(() =>
         deserializedProject.deserialize(state, atom.deserializers)
-          .catch(e => err = e)
+          .catch(e => { err = e })
       )
 
       runs(() => {
@@ -216,7 +216,7 @@ describe('Project', () => {
       expect(atom.project.getPaths()[0]).toBeUndefined()
       let editor = null
 
-      waitsForPromise(() => atom.workspace.open().then(o => editor = o))
+      waitsForPromise(() => atom.workspace.open().then(o => { editor = o }))
 
       waitsForPromise(() => editor.saveAs(tempFile))
 
@@ -255,7 +255,7 @@ describe('Project', () => {
   describe('when a watch error is thrown from the TextBuffer', () => {
     let editor = null
     beforeEach(() =>
-      waitsForPromise(() => atom.workspace.open(require.resolve('./fixtures/dir/a')).then(o => editor = o))
+      waitsForPromise(() => atom.workspace.open(require.resolve('./fixtures/dir/a')).then(o => { editor = o }))
     )
 
     it('creates a warning notification', () => {
@@ -397,7 +397,7 @@ describe('Project', () => {
     describe("when given an absolute path that isn't currently open", () =>
       it("returns a new edit session for the given path and emits 'buffer-created'", () => {
         let editor = null
-        waitsForPromise(() => atom.workspace.open(absolutePath).then(o => editor = o))
+        waitsForPromise(() => atom.workspace.open(absolutePath).then(o => { editor = o }))
 
         runs(() => {
           expect(editor.buffer.getPath()).toBe(absolutePath)
@@ -409,7 +409,7 @@ describe('Project', () => {
     describe("when given a relative path that isn't currently opened", () =>
       it("returns a new edit session for the given path (relative to the project root) and emits 'buffer-created'", () => {
         let editor = null
-        waitsForPromise(() => atom.workspace.open(absolutePath).then(o => editor = o))
+        waitsForPromise(() => atom.workspace.open(absolutePath).then(o => { editor = o }))
 
         runs(() => {
           expect(editor.buffer.getPath()).toBe(absolutePath)
@@ -422,7 +422,7 @@ describe('Project', () => {
       it('returns a new edit session containing currently opened buffer', () => {
         let editor = null
 
-        waitsForPromise(() => atom.workspace.open(absolutePath).then(o => editor = o))
+        waitsForPromise(() => atom.workspace.open(absolutePath).then(o => { editor = o }))
 
         runs(() => newBufferHandler.reset())
 
@@ -442,7 +442,7 @@ describe('Project', () => {
     describe('when not passed a path', () =>
       it("returns a new edit session and emits 'buffer-created'", () => {
         let editor = null
-        waitsForPromise(() => atom.workspace.open().then(o => editor = o))
+        waitsForPromise(() => atom.workspace.open().then(o => { editor = o }))
 
         runs(() => {
           expect(editor.buffer.getPath()).toBeUndefined()
@@ -539,7 +539,7 @@ describe('Project', () => {
       let repository = null
       const directory = new Directory(path.join(__dirname, '..'))
 
-      waitsForPromise(() => atom.project.repositoryForDirectory(directory).then(repo => repository = repo))
+      waitsForPromise(() => atom.project.repositoryForDirectory(directory).then(repo => { repository = repo }))
 
       runs(() => {
         expect(repository.isDestroyed()).toBe(false)
@@ -547,7 +547,7 @@ describe('Project', () => {
         expect(repository.isDestroyed()).toBe(true)
       })
 
-      waitsForPromise(() => atom.project.repositoryForDirectory(directory).then(repo => repository = repo))
+      waitsForPromise(() => atom.project.repositoryForDirectory(directory).then(repo => { repository = repo }))
 
       runs(() => expect(repository.isDestroyed()).toBe(false))
     })
@@ -730,12 +730,12 @@ describe('Project', () => {
     const events = []
     let checkCallback = () => {}
 
-    beforeEach(() =>
+    beforeEach(() => {
       sub = atom.project.onDidChangeFiles((incoming) => {
         events.push(...incoming)
         checkCallback()
       })
-    )
+    })
 
     afterEach(() => sub.dispose())
 
