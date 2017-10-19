@@ -137,7 +137,7 @@ describe('AtomApplication', function () {
       // Does not change the project paths when doing so.
       const reusedWindow = atomApplication.launch(parseCommandLine([existingDirCFilePath]))
       assert.equal(reusedWindow, window1)
-      assert.deepEqual(atomApplication.windows, [window1])
+      assert.deepEqual(atomApplication.getAllWindows(), [window1])
       activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         const subscription = atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
           sendBackToMainProcess(textEditor.getPath())
@@ -177,7 +177,7 @@ describe('AtomApplication', function () {
       // parent directory to the project
       let reusedWindow = atomApplication.launch(parseCommandLine([existingDirCFilePath, '--add']))
       assert.equal(reusedWindow, window1)
-      assert.deepEqual(atomApplication.windows, [window1])
+      assert.deepEqual(atomApplication.getAllWindows(), [window1])
       activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         const subscription = atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
           sendBackToMainProcess(textEditor.getPath())
@@ -191,7 +191,7 @@ describe('AtomApplication', function () {
       // the directory to the project
       reusedWindow = atomApplication.launch(parseCommandLine([dirBPath, '-a']))
       assert.equal(reusedWindow, window1)
-      assert.deepEqual(atomApplication.windows, [window1])
+      assert.deepEqual(atomApplication.getAllWindows(), [window1])
 
       await conditionPromise(async () => (await getTreeViewRootDirectories(reusedWindow)).length === 3)
       assert.deepEqual(await getTreeViewRootDirectories(window1), [dirAPath, dirCPath, dirBPath])
@@ -276,7 +276,7 @@ describe('AtomApplication', function () {
       })
       assert.equal(window2EditorTitle, 'untitled')
 
-      assert.deepEqual(atomApplication.windows, [window1, window2])
+      assert.deepEqual(atomApplication.getAllWindows(), [window2, window1])
     })
 
     it('does not open an empty editor when opened with no path if the core.openEmptyEditorOnStart config setting is false', async function () {
@@ -514,7 +514,7 @@ describe('AtomApplication', function () {
   async function focusWindow (window) {
     window.focus()
     await window.loadedPromise
-    await conditionPromise(() => window.atomApplication.lastFocusedWindow === window)
+    await conditionPromise(() => window.atomApplication.getLastFocusedWindow() === window)
   }
 
   function mockElectronAppQuit () {
