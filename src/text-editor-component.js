@@ -806,9 +806,12 @@ class TextEditorComponent {
           measuredDimensions: this.overlayDimensionsByElement.get(overlayProps.element),
           didResize: (overlayComponent) => {
             this.updateOverlayToRender(overlayProps)
-            overlayComponent.update({
-              measuredDimensions: this.overlayDimensionsByElement.get(overlayProps.element)
-            })
+            overlayComponent.update(Object.assign(
+              {
+                measuredDimensions: this.overlayDimensionsByElement.get(overlayProps.element)
+              },
+              overlayProps
+            ))
           }
         },
         overlayProps
@@ -4225,6 +4228,19 @@ class OverlayComponent {
     this.didDetach()
   }
 
+  getNextUpdatePromise () {
+    if (!this.nextUpdatePromise) {
+      this.nextUpdatePromise = new Promise((resolve) => {
+        this.resolveNextUpdatePromise = () => {
+          this.nextUpdatePromise = null
+          this.resolveNextUpdatePromise = null
+          resolve()
+        }
+      })
+    }
+    return this.nextUpdatePromise
+  }
+
   update (newProps) {
     const oldProps = this.props
     this.props = Object.assign({}, oldProps, newProps)
@@ -4234,6 +4250,8 @@ class OverlayComponent {
       if (oldProps.className != null) this.element.classList.remove(oldProps.className)
       if (newProps.className != null) this.element.classList.add(newProps.className)
     }
+
+    if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
   }
 
   didAttach () {
