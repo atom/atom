@@ -46,6 +46,7 @@
     "key-path-helpers": "^0.4.0",
     "less-cache": "1.1.0",
     "line-top-index": "0.3.1",
+    "lockfile": "^1.0.3",
     "marked": "^0.3.6",
     "minimatch": "^3.0.3",
     "mocha": "2.5.1",

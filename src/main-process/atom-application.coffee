@@ -4,6 +4,7 @@ AtomProtocolHandler = require './atom-protocol-handler'
 AutoUpdateManager = require './auto-update-manager'
 StorageFolder = require '../storage-folder'
 Config = require '../config'
+ConfigStorage = require '../config-storage'
 FileRecoveryService = require './file-recovery-service'
 ipcHelpers = require '../ipc-helpers'
 {BrowserWindow, Menu, app, dialog, ipcMain, shell, screen} = require 'electron'
@@ -69,15 +70,16 @@ class AtomApplication
     @pidsToOpenWindows = {}
     @windows = []
 
-    @config = new Config({enablePersistence: true})
+    @config = new Config()
     @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
     ConfigSchema.projectHome = {
       type: 'string',
       default: path.join(fs.getHomeDirectory(), 'github'),
       description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
     }
-    @config.initialize({configDirPath: process.env.ATOM_HOME, @resourcePath, projectHomeSchema: ConfigSchema.projectHome})
-    @config.load()
+    @configStorage = new ConfigStorage({@config, configDirPath: process.env.ATOM_HOME, @resourcePath, enablePersistence: true})
+    @config.initialize({configFilePath: @configStorage.getUserConfigPath(), projectHomeSchema: ConfigSchema.projectHome})
+    @configStorage.start()
     @fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, "recovery"))
     @storageFolder = new StorageFolder(process.env.ATOM_HOME)
     @autoUpdateManager = new AutoUpdateManager(

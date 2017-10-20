@@ -19,6 +19,7 @@ DeserializerManager = require './deserializer-manager'
 ViewRegistry = require './view-registry'
 NotificationManager = require './notification-manager'
 Config = require './config'
+ConfigStorage = require './config-storage'
 KeymapManager = require './keymap-extensions'
 TooltipManager = require './tooltip-manager'
 CommandRegistry = require './command-registry'
@@ -141,7 +142,7 @@ class AtomEnvironment extends Model
 
     @stateStore = new StateStore('AtomEnvironments', 1)
 
-    @config = new Config({notificationManager: @notifications, @enablePersistence})
+    @config = new Config()
     @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
 
     @keymaps = new KeymapManager({notificationManager: @notifications})
@@ -214,7 +215,11 @@ class AtomEnvironment extends Model
       default: path.join(fs.getHomeDirectory(), 'github'),
       description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
     }
-    @config.initialize({@configDirPath, resourcePath, projectHomeSchema: ConfigSchema.projectHome})
+
+    @config.initialize({projectHomeSchema: ConfigSchema.projectHome})
+    if @enablePersistence
+      @configStorage = new ConfigStorage({@config, @configDirPath, resourcePath, notificationManager: @notifications})
+      @configStorage.start()
 
     @menu.initialize({resourcePath})
     @contextMenu.initialize({resourcePath, devMode})
@@ -234,7 +239,7 @@ class AtomEnvironment extends Model
     @commandInstaller.initialize(@getVersion())
     @autoUpdater.initialize()
 
-    @config.load()
+    @configStorage?.load()
 
     @themes.loadBaseStylesheets()
     @initialStyleElements = @styles.getSnapshot()
@@ -348,7 +353,7 @@ class AtomEnvironment extends Model
     @project = null
     @commands.clear()
     @stylesElement.remove()
-    @config.unobserveUserConfig()
+    @configPersistence?.stop()
     @autoUpdater.destroy()
 
     @uninstallWindowEventHandler()
