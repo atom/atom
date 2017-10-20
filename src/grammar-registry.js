@@ -58,10 +58,10 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
 
     let score = this.getGrammarPathScore(grammar, filePath)
     if ((score > 0) && !grammar.bundledPackage) {
-      score += 0.25
+      score += 0.125
     }
     if (this.grammarMatchesContents(grammar, contents)) {
-      score += 0.125
+      score += 0.25
     }
     return score
   }
