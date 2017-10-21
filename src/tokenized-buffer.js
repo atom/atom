@@ -115,10 +115,9 @@ class TokenizedBuffer {
       if (!increaseIndentRegex.testSync(precedingLine)) desiredIndentLevel -= 1
     }
 
-    const decreaseNextIndentRegex = this.decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
-    if (decreaseNextIndentRegex) {
-      if (decreaseNextIndentRegex.testSync(precedingLine)) desiredIndentLevel -= 1
-    }
+    // We do not check decreaseNextIndentRegex here. If decreaseIndentRegex.testSync(line)
+    // already passed then there is no need to decrease the indentation further
+    // than has already happened.
 
     if (desiredIndentLevel < 0) return 0
     if (desiredIndentLevel >= currentIndentLevel) return
@@ -147,12 +146,18 @@ class TokenizedBuffer {
     let desiredIndentLevel = this.indentLevelForLine(precedingLine)
     if (!increaseIndentRegex) return desiredIndentLevel
 
+    // Used to block decreaseIndentRegex when decreaseNextIndentRegex already fired
+    let decreaseNextIndentTriggered = false
+
     if (!this.isRowCommented(precedingRow)) {
       if (increaseIndentRegex && increaseIndentRegex.testSync(precedingLine)) desiredIndentLevel += 1
-      if (decreaseNextIndentRegex && decreaseNextIndentRegex.testSync(precedingLine)) desiredIndentLevel -= 1
+      if (decreaseNextIndentRegex && decreaseNextIndentRegex.testSync(precedingLine)) {
+        desiredIndentLevel -= 1
+        decreaseNextIndentTriggered = true
+      }
     }
 
-    if (!this.buffer.isRowBlank(precedingRow)) {
+    if (!this.buffer.isRowBlank(precedingRow) && !decreaseNextIndentTriggered) {
       if (decreaseIndentRegex && decreaseIndentRegex.testSync(line)) desiredIndentLevel -= 1
     }
 
