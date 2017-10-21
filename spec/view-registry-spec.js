@@ -87,8 +87,6 @@ describe('ViewRegistry', () => {
 
       describe('when a view provider is registered generically, and works with the object', () =>
         it('constructs a view element and assigns the model on it', () => {
-          const model = {a: 'b'}
-
           registry.addViewProvider((model) => {
             if (model.a === 'b') {
               const element = document.createElement('div')
