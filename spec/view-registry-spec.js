@@ -208,8 +208,8 @@ describe('ViewRegistry', () => {
           done()
         })
 
-        registry.updateDocument(() => updateCalled = true)
-        registry.readDocument(() => readCalled = true)
+        registry.updateDocument(() => { updateCalled = true })
+        registry.readDocument(() => { readCalled = true })
       })
     })
   )
