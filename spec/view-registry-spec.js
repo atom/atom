@@ -104,7 +104,7 @@ describe('ViewRegistry', () => {
 
       describe("when no view provider is registered for the object's constructor", () =>
         it('throws an exception', () => {
-          expect(() => registry.getView(new Object())).toThrow()
+          expect(() => registry.getView({})).toThrow()
         })
       )
     })
