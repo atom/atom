@@ -149,7 +149,6 @@ class ViewRegistry {
       return object[0]
     }
 
-    let viewConstructor
     for (let provider of this.providers) {
       if (provider.modelConstructor === AnyConstructor) {
         element = provider.createView(object, this.atomEnvironment)
@@ -161,9 +160,9 @@ class ViewRegistry {
         element = provider.createView && provider.createView(object, this.atomEnvironment)
         if (element) { return element }
 
-        viewConstructor = provider.viewConstructor
-        if (viewConstructor) {
-          element = new viewConstructor()
+        let ViewConstructor = provider.viewConstructor
+        if (ViewConstructor) {
+          element = new ViewConstructor()
           if (element.initialize) {
             element.initialize(object)
           } else if (element.setModel) {
@@ -175,9 +174,9 @@ class ViewRegistry {
     }
 
     if (object && object.getViewClass) {
-      viewConstructor = object.getViewClass()
-      if (viewConstructor) {
-        const view = new viewConstructor(object)
+      let ViewConstructor = object.getViewClass()
+      if (ViewConstructor) {
+        const view = new ViewConstructor(object)
         return view[0]
       }
     }
