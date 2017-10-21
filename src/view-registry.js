@@ -122,14 +122,12 @@ class ViewRegistry {
   getView (object) {
     if (object == null) { return }
 
-    let view
-    if (view = this.views.get(object)) {
-      return view
-    } else {
+    let view = this.views.get(object)
+    if (!view) {
       view = this.createView(object)
       this.views.set(object, view)
-      return view
     }
+    return view
   }
 
   createView (object) {
@@ -154,18 +152,17 @@ class ViewRegistry {
     let viewConstructor
     for (let provider of this.providers) {
       if (provider.modelConstructor === AnyConstructor) {
-        if (element = provider.createView(object, this.atomEnvironment)) {
-          return element
-        }
+        element = provider.createView(object, this.atomEnvironment)
+        if (element) { return element }
         continue
       }
 
       if (object instanceof provider.modelConstructor) {
-        if (element = provider.createView && provider.createView(object, this.atomEnvironment)) {
-          return element
-        }
+        element = provider.createView && provider.createView(object, this.atomEnvironment)
+        if (element) { return element }
 
-        if (viewConstructor = provider.viewConstructor) {
+        viewConstructor = provider.viewConstructor
+        if (viewConstructor) {
           element = new viewConstructor()
           if (element.initialize) {
             element.initialize(object)
