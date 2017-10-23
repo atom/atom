@@ -4222,6 +4222,19 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(3)).toBe("    if (items.length <= 1) return items;")
               expect(editor.getCursorBufferPosition()).toEqual([3, 13])
 
+        it "respects options that preserve the formatting of the pasted text", ->
+          editor.update({autoIndentOnPaste: true})
+          atom.clipboard.write("a(x);\n  b(x);\r\nc(x);\n", indentBasis: 0)
+          editor.setCursorBufferPosition([5, 0])
+          editor.insertText('  ')
+          editor.pasteText({autoIndent: false, preserveTrailingLineIndentation: true, normalizeLineEndings: false})
+
+          expect(editor.lineTextForBufferRow(5)).toBe "  a(x);"
+          expect(editor.lineTextForBufferRow(6)).toBe "  b(x);"
+          expect(editor.buffer.lineEndingForRow(6)).toBe "\r\n"
+          expect(editor.lineTextForBufferRow(7)).toBe "c(x);"
+          expect(editor.lineTextForBufferRow(8)).toBe "      current = items.shift();"
+
     describe ".indentSelectedRows()", ->
       describe "when nothing is selected", ->
         describe "when softTabs is enabled", ->
