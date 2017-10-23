@@ -112,10 +112,9 @@ class TooltipManager {
   // Returns a {Disposable} on which `.dispose()` can be called to remove the
   // tooltip.
   add (target, options) {
-    let disposable
     if (target.jquery) {
-      disposable = new CompositeDisposable()
-      for (let element of target) { disposable.add(this.add(element, options)) }
+      const disposable = new CompositeDisposable()
+      for (const element of target) { disposable.add(this.add(element, options)) }
       return disposable
     }
 
@@ -153,7 +152,7 @@ class TooltipManager {
 
     window.addEventListener('resize', hideTooltip)
 
-    disposable = new Disposable(() => {
+    const disposable = new Disposable(() => {
       window.removeEventListener('resize', hideTooltip)
       hideTooltip()
       tooltip.destroy()
@@ -187,13 +186,13 @@ class TooltipManager {
   }
 }
 
-const humanizeKeystrokes = function (keystroke) {
+function humanizeKeystrokes (keystroke) {
   let keystrokes = keystroke.split(' ')
   keystrokes = (keystrokes.map((stroke) => _.humanizeKeystroke(stroke)))
   return keystrokes.join(' ')
 }
 
-var getKeystroke = function (bindings) {
+function getKeystroke (bindings) {
   if (bindings && bindings.length) {
     return `<span class="keystroke">${humanizeKeystrokes(bindings[0].keystrokes)}</span>`
   }
