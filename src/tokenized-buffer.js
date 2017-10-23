@@ -165,37 +165,32 @@ class TokenizedBuffer {
 
   toggleLineCommentsForBufferRows (start, end) {
     const scope = this.scopeDescriptorForPosition([start, 0])
-    const commentStrings = this.commentStringsForScopeDescriptor(scope)
-    if (!commentStrings) return
-    const {commentStartString, commentEndString} = commentStrings
+    let {commentStartString, commentEndString} = this.commentStringsForScopeDescriptor(scope)
     if (!commentStartString) return
-
-    const commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
-    const commentStartRegex = new OnigRegExp(`^(\\s*)(${commentStartRegexString})`)
+    commentStartString = commentStartString.trim()
 
     if (commentEndString) {
-      const shouldUncomment = commentStartRegex.testSync(this.buffer.lineForRow(start))
-      if (shouldUncomment) {
-        const commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '(?:$1)?')
-        const commentEndRegex = new OnigRegExp(`(${commentEndRegexString})(\\s*)$`)
-        const startMatch = commentStartRegex.searchSync(this.buffer.lineForRow(start))
-        const endMatch = commentEndRegex.searchSync(this.buffer.lineForRow(end))
-        if (startMatch && endMatch) {
+      commentEndString = commentEndString.trim()
+      const startDelimiterColumnRange = this.columnRangeForStartDelimiter(
+        this.buffer.lineForRow(start),
+        commentStartString
+      )
+      if (startDelimiterColumnRange) {
+        const endDelimiterColumnRange = this.columnRangeForEndDelimiter(
+          this.buffer.lineForRow(end),
+          commentEndString
+        )
+        if (endDelimiterColumnRange) {
           this.buffer.transact(() => {
-            const columnStart = startMatch[1].length
-            const columnEnd = columnStart + startMatch[2].length
-            this.buffer.setTextInRange([[start, columnStart], [start, columnEnd]], '')
-
-            const endLength = this.buffer.lineLengthForRow(end) - endMatch[2].length
-            const endColumn = endLength - endMatch[1].length
-            return this.buffer.setTextInRange([[end, endColumn], [end, endLength]], '')
+            this.buffer.delete([[end, endDelimiterColumnRange[0]], [end, endDelimiterColumnRange[1]]])
+            this.buffer.delete([[start, startDelimiterColumnRange[0]], [start, startDelimiterColumnRange[1]]])
           })
         }
       } else {
         this.buffer.transact(() => {
           const indentLength = this.buffer.lineForRow(start).match(/^\s*/)[0].length
-          this.buffer.insert([start, indentLength], commentStartString)
-          this.buffer.insert([end, this.buffer.lineLengthForRow(end)], commentEndString)
+          this.buffer.insert([start, indentLength], commentStartString + ' ')
+          this.buffer.insert([end, this.buffer.lineLengthForRow(end)], ' ' + commentEndString)
         })
       }
     } else {
@@ -204,7 +199,7 @@ class TokenizedBuffer {
       for (let row = start; row <= end; row++) {
         const line = this.buffer.lineForRow(row)
         if (NON_WHITESPACE_REGEX.test(line)) {
-          if (commentStartRegex.testSync(line)) {
+          if (this.columnRangeForStartDelimiter(line, commentStartString)) {
             hasCommentedLines = true
           } else {
             hasUncommentedLines = true
@@ -216,12 +211,11 @@ class TokenizedBuffer {
 
       if (shouldUncomment) {
         for (let row = start; row <= end; row++) {
-          const match = commentStartRegex.searchSync(this.buffer.lineForRow(row))
-          if (match) {
-            const columnStart = match[1].length
-            const columnEnd = columnStart + match[2].length
-            this.buffer.setTextInRange([[row, columnStart], [row, columnEnd]], '')
-          }
+          const columnRange = this.columnRangeForStartDelimiter(
+            this.buffer.lineForRow(row),
+            commentStartString
+          )
+          if (columnRange) this.buffer.delete([[row, columnRange[0]], [row, columnRange[1]]])
         }
       } else {
         let minIndentLevel = Infinity
@@ -247,16 +241,36 @@ class TokenizedBuffer {
           const line = this.buffer.lineForRow(row)
           if (NON_WHITESPACE_REGEX.test(line)) {
             const indentColumn = this.columnForIndentLevel(line, minIndentLevel)
-            this.buffer.insert(Point(row, indentColumn), commentStartString)
+            this.buffer.insert(Point(row, indentColumn), commentStartString + ' ')
           } else {
             this.buffer.setTextInRange(
               new Range(new Point(row, 0), new Point(row, Infinity)),
-              indentString + commentStartString
+              indentString + commentStartString + ' '
             )
           }
         }
       }
     }
+  }
+
+  columnRangeForStartDelimiter (line, delimiter) {
+    const startColumn = line.search(NON_WHITESPACE_REGEX)
+    if (startColumn === -1) return null
+    if (!line.startsWith(delimiter, startColumn)) return null
+
+    let endColumn = startColumn + delimiter.length
+    if (line[endColumn] === ' ') endColumn++
+    return [startColumn, endColumn]
+  }
+
+  columnRangeForEndDelimiter (line, delimiter) {
+    let startColumn = line.lastIndexOf(delimiter)
+    if (startColumn === -1) return null
+
+    const endColumn = startColumn + delimiter.length
+    if (NON_WHITESPACE_REGEX.test(line.slice(endColumn))) return null
+    if (line[startColumn - 1] === ' ') startColumn--
+    return [startColumn, endColumn]
   }
 
   buildIterator () {
@@ -844,6 +858,8 @@ class TokenizedBuffer {
   commentStringsForScopeDescriptor (scopes) {
     if (this.scopedSettingsDelegate) {
       return this.scopedSettingsDelegate.getCommentStrings(scopes)
+    } else {
+      return {}
     }
   }
 

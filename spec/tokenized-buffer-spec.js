@@ -692,38 +692,38 @@ describe('TokenizedBuffer', () => {
 
       it('comments/uncomments lines in the given range', () => {
         tokenizedBuffer.toggleLineCommentsForBufferRows(0, 1)
-        expect(buffer.lineForRow(0)).toBe('/*body {')
-        expect(buffer.lineForRow(1)).toBe('  font-size: 1234px;*/')
+        expect(buffer.lineForRow(0)).toBe('/* body {')
+        expect(buffer.lineForRow(1)).toBe('  font-size: 1234px; */')
         expect(buffer.lineForRow(2)).toBe('  width: 110%;')
         expect(buffer.lineForRow(3)).toBe('  font-weight: bold !important;')
 
         tokenizedBuffer.toggleLineCommentsForBufferRows(2, 2)
-        expect(buffer.lineForRow(0)).toBe('/*body {')
-        expect(buffer.lineForRow(1)).toBe('  font-size: 1234px;*/')
-        expect(buffer.lineForRow(2)).toBe('  /*width: 110%;*/')
+        expect(buffer.lineForRow(0)).toBe('/* body {')
+        expect(buffer.lineForRow(1)).toBe('  font-size: 1234px; */')
+        expect(buffer.lineForRow(2)).toBe('  /* width: 110%; */')
         expect(buffer.lineForRow(3)).toBe('  font-weight: bold !important;')
 
         tokenizedBuffer.toggleLineCommentsForBufferRows(0, 1)
         expect(buffer.lineForRow(0)).toBe('body {')
         expect(buffer.lineForRow(1)).toBe('  font-size: 1234px;')
-        expect(buffer.lineForRow(2)).toBe('  /*width: 110%;*/')
+        expect(buffer.lineForRow(2)).toBe('  /* width: 110%; */')
         expect(buffer.lineForRow(3)).toBe('  font-weight: bold !important;')
       })
 
       it('uncomments lines with leading whitespace', () => {
-        buffer.setTextInRange([[2, 0], [2, Infinity]], '  /*width: 110%;*/')
+        buffer.setTextInRange([[2, 0], [2, Infinity]], '  /* width: 110%; */')
         tokenizedBuffer.toggleLineCommentsForBufferRows(2, 2)
         expect(buffer.lineForRow(2)).toBe('  width: 110%;')
       })
 
       it('uncomments lines with trailing whitespace', () => {
-        buffer.setTextInRange([[2, 0], [2, Infinity]], '/*width: 110%;*/  ')
+        buffer.setTextInRange([[2, 0], [2, Infinity]], '/* width: 110%; */  ')
         tokenizedBuffer.toggleLineCommentsForBufferRows(2, 2)
         expect(buffer.lineForRow(2)).toBe('width: 110%;  ')
       })
 
       it('uncomments lines with leading and trailing whitespace', () => {
-        buffer.setTextInRange([[2, 0], [2, Infinity]], '   /*width: 110%;*/ ')
+        buffer.setTextInRange([[2, 0], [2, Infinity]], '   /* width: 110%; */ ')
         tokenizedBuffer.toggleLineCommentsForBufferRows(2, 2)
         expect(buffer.lineForRow(2)).toBe('   width: 110%; ')
       })
