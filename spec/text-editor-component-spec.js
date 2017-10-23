@@ -1896,8 +1896,7 @@ describe('TextEditorComponent', () => {
       const decoration = editor.decorateMarker(marker, {type: 'overlay', item: overlayElement, class: 'a'})
       await component.getNextUpdatePromise()
 
-      let overlayComponent
-      component.overlayComponents.forEach(c => overlayComponent = c)
+      const overlayComponent = component.overlayComponents.values().next().value
 
       const overlayWrapper = overlayElement.parentElement
       expect(overlayWrapper.classList.contains('a')).toBe(true)
