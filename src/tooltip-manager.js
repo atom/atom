@@ -1,6 +1,5 @@
 /*
  * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
@@ -153,7 +152,7 @@ class TooltipManager {
 
     const hideTooltip = function () {
       tooltip.leave({currentTarget: target})
-      return tooltip.hide()
+      tooltip.hide()
     }
 
     window.addEventListener('resize', hideTooltip)
@@ -170,7 +169,7 @@ class TooltipManager {
           tooltipsForTarget.splice(index, 1)
         }
         if (tooltipsForTarget.length === 0) {
-          return this.tooltips.delete(target)
+          this.tooltips.delete(target)
         }
       }
     })
