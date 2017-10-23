@@ -804,7 +804,15 @@ class TextEditorComponent {
           key: overlayProps.element,
           overlayComponents: this.overlayComponents,
           measuredDimensions: this.overlayDimensionsByElement.get(overlayProps.element),
-          didResize: () => { this.updateSync() }
+          didResize: (overlayComponent) => {
+            this.updateOverlayToRender(overlayProps)
+            overlayComponent.update(Object.assign(
+              {
+                measuredDimensions: this.overlayDimensionsByElement.get(overlayProps.element)
+              },
+              overlayProps
+            ))
+          }
         },
         overlayProps
       ))
@@ -1339,42 +1347,47 @@ class TextEditorComponent {
     })
   }
 
+  updateOverlayToRender (decoration) {
+    const windowInnerHeight = this.getWindowInnerHeight()
+    const windowInnerWidth = this.getWindowInnerWidth()
+    const contentClientRect = this.refs.content.getBoundingClientRect()
+
+    const {element, screenPosition, avoidOverflow} = decoration
+    const {row, column} = screenPosition
+    let wrapperTop = contentClientRect.top + this.pixelPositionAfterBlocksForRow(row) + this.getLineHeight()
+    let wrapperLeft = contentClientRect.left + this.pixelLeftForRowAndColumn(row, column)
+    const clientRect = element.getBoundingClientRect()
+    this.overlayDimensionsByElement.set(element, clientRect)
+
+    if (avoidOverflow !== false) {
+      const computedStyle = window.getComputedStyle(element)
+      const elementTop = wrapperTop + parseInt(computedStyle.marginTop)
+      const elementBottom = elementTop + clientRect.height
+      const flippedElementTop = wrapperTop - this.getLineHeight() - clientRect.height - parseInt(computedStyle.marginBottom)
+      const elementLeft = wrapperLeft + parseInt(computedStyle.marginLeft)
+      const elementRight = elementLeft + clientRect.width
+
+      if (elementBottom > windowInnerHeight && flippedElementTop >= 0) {
+        wrapperTop -= (elementTop - flippedElementTop)
+      }
+      if (elementLeft < 0) {
+        wrapperLeft -= elementLeft
+      } else if (elementRight > windowInnerWidth) {
+        wrapperLeft -= (elementRight - windowInnerWidth)
+      }
+    }
+
+    decoration.pixelTop = Math.round(wrapperTop)
+    decoration.pixelLeft = Math.round(wrapperLeft)
+  }
+
   updateOverlaysToRender () {
     const overlayCount = this.decorationsToRender.overlays.length
     if (overlayCount === 0) return null
 
-    const windowInnerHeight = this.getWindowInnerHeight()
-    const windowInnerWidth = this.getWindowInnerWidth()
-    const contentClientRect = this.refs.content.getBoundingClientRect()
     for (let i = 0; i < overlayCount; i++) {
       const decoration = this.decorationsToRender.overlays[i]
-      const {element, screenPosition, avoidOverflow} = decoration
-      const {row, column} = screenPosition
-      let wrapperTop = contentClientRect.top + this.pixelPositionAfterBlocksForRow(row) + this.getLineHeight()
-      let wrapperLeft = contentClientRect.left + this.pixelLeftForRowAndColumn(row, column)
-      const clientRect = element.getBoundingClientRect()
-      this.overlayDimensionsByElement.set(element, clientRect)
-
-      if (avoidOverflow !== false) {
-        const computedStyle = window.getComputedStyle(element)
-        const elementTop = wrapperTop + parseInt(computedStyle.marginTop)
-        const elementBottom = elementTop + clientRect.height
-        const flippedElementTop = wrapperTop - this.getLineHeight() - clientRect.height - parseInt(computedStyle.marginBottom)
-        const elementLeft = wrapperLeft + parseInt(computedStyle.marginLeft)
-        const elementRight = elementLeft + clientRect.width
-
-        if (elementBottom > windowInnerHeight && flippedElementTop >= 0) {
-          wrapperTop -= (elementTop - flippedElementTop)
-        }
-        if (elementLeft < 0) {
-          wrapperLeft -= elementLeft
-        } else if (elementRight > windowInnerWidth) {
-          wrapperLeft -= (elementRight - windowInnerWidth)
-        }
-      }
-
-      decoration.pixelTop = Math.round(wrapperTop)
-      decoration.pixelLeft = Math.round(wrapperLeft)
+      this.updateOverlayToRender(decoration)
     }
   }
 
@@ -4202,7 +4215,7 @@ class OverlayComponent {
       const {contentRect} = entries[0]
       if (contentRect.width !== this.props.measuredDimensions.width || contentRect.height !== this.props.measuredDimensions.height) {
         this.resizeObserver.disconnect()
-        this.props.didResize()
+        this.props.didResize(this)
         process.nextTick(() => { this.resizeObserver.observe(this.props.element) })
       }
     })
@@ -4215,15 +4228,30 @@ class OverlayComponent {
     this.didDetach()
   }
 
+  getNextUpdatePromise () {
+    if (!this.nextUpdatePromise) {
+      this.nextUpdatePromise = new Promise((resolve) => {
+        this.resolveNextUpdatePromise = () => {
+          this.nextUpdatePromise = null
+          this.resolveNextUpdatePromise = null
+          resolve()
+        }
+      })
+    }
+    return this.nextUpdatePromise
+  }
+
   update (newProps) {
     const oldProps = this.props
-    this.props = newProps
+    this.props = Object.assign({}, oldProps, newProps)
     if (this.props.pixelTop != null) this.element.style.top = this.props.pixelTop + 'px'
     if (this.props.pixelLeft != null) this.element.style.left = this.props.pixelLeft + 'px'
     if (newProps.className !== oldProps.className) {
       if (oldProps.className != null) this.element.classList.remove(oldProps.className)
       if (newProps.className != null) this.element.classList.add(newProps.className)
     }
+
+    if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
   }
 
   didAttach () {
