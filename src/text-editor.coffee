@@ -3310,8 +3310,8 @@ class TextEditor extends Model
   # level.
   foldCurrentRow: ->
     {row} = @getCursorBufferPosition()
-    range = @tokenizedBuffer.getFoldableRangeContainingPoint(Point(row, Infinity))
-    @displayLayer.foldBufferRange(range)
+    if range = @tokenizedBuffer.getFoldableRangeContainingPoint(Point(row, Infinity))
+      @displayLayer.foldBufferRange(range)
 
   # Essential: Unfold the most recent cursor's row by one level.
   unfoldCurrentRow: ->
