@@ -356,13 +356,19 @@ class Selection extends Model
   #
   # * `text` A {String} representing the text to add
   # * `options` (optional) {Object} with keys:
-  #   * `select` if `true`, selects the newly added text.
-  #   * `autoIndent` if `true`, indents all inserted text appropriately.
-  #   * `autoIndentNewline` if `true`, indent newline appropriately.
-  #   * `autoDecreaseIndent` if `true`, decreases indent level appropriately
+  #   * `select` If `true`, selects the newly added text.
+  #   * `autoIndent` If `true`, indents all inserted text appropriately.
+  #   * `autoIndentNewline` If `true`, indent newline appropriately.
+  #   * `autoDecreaseIndent` If `true`, decreases indent level appropriately
   #     (for example, when a closing bracket is inserted).
+  #   * `preserveTrailingLineIndentation` By default, when pasting multiple
+  #   lines, Atom attempts to preserve the relative indent level between the
+  #   first line and trailing lines, even if the indent level of the first
+  #   line has changed from the copied text. If this option is `true`, this
+  #   behavior is suppressed.
+  #     level between the first lines and the trailing lines.
   #   * `normalizeLineEndings` (optional) {Boolean} (default: true)
-  #   * `undo` if `skip`, skips the undo stack for this operation.
+  #   * `undo` If `skip`, skips the undo stack for this operation.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     wasReversed = @isReversed()
@@ -373,7 +379,7 @@ class Selection extends Model
     remainingLines = text.split('\n')
     firstInsertedLine = remainingLines.shift()
 
-    if options.indentBasis?
+    if options.indentBasis? and not options.preserveTrailingLineIndentation
       indentAdjustment = @editor.indentLevelForLine(precedingText) - options.indentBasis
       @adjustIndent(remainingLines, indentAdjustment)
 
