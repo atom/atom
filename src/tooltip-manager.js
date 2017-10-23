@@ -1,8 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const _ = require('underscore-plus')
 const {Disposable, CompositeDisposable} = require('event-kit')
 let Tooltip = null
@@ -198,7 +193,7 @@ const humanizeKeystrokes = function (keystroke) {
 }
 
 var getKeystroke = function (bindings) {
-  if (bindings != null ? bindings.length : undefined) {
+  if (bindings && bindings.length) {
     return `<span class="keystroke">${humanizeKeystrokes(bindings[0].keystrokes)}</span>`
   }
 }
