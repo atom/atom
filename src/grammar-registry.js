@@ -1,10 +1,11 @@
-const _ = require('underscore-plus')
 const FirstMate = require('first-mate')
 const Token = require('./token')
 const fs = require('fs-plus')
 const Grim = require('grim')
 
-const PathSplitRegex = new RegExp('[/.]')
+const PATH_MATCH_MAX_LENGTH = 33554431 // 2^25 - 1
+const PATH_MATCH_OFFSET = 134217728 // 2^27 = 1 << 27
+const CONTENT_MATCH_MAX_LENGTH = 67108863 // 2^26 - 1
 
 // Extended: Syntax class holding the grammars used for tokenizing.
 //
@@ -37,45 +38,72 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
   }
 
   selectGrammarWithScore (filePath, fileContents) {
-    let bestMatch = null
-    let highestScore = -Infinity
-    for (let grammar of this.grammars) {
+    const bestMatch = {grammar: null, score: 0}
+    for (const grammar of this.grammars) {
       const score = this.getGrammarScore(grammar, filePath, fileContents)
-      if ((score > highestScore) || (bestMatch == null)) {
-        bestMatch = grammar
-        highestScore = score
+      if (score > bestMatch.score || bestMatch.grammar === null) {
+        bestMatch.grammar = grammar
+        bestMatch.score = score
       }
     }
-    return {grammar: bestMatch, score: highestScore}
+    return bestMatch
   }
 
   // Extended: Returns a {Number} representing how well the grammar matches the
   // `filePath` and `contents`.
   getGrammarScore (grammar, filePath, contents) {
-    if ((contents == null) && fs.isFileSync(filePath)) {
+    if (contents == null && fs.isFileSync(filePath)) {
       contents = fs.readFileSync(filePath, 'utf8')
     }
 
-    let score = this.getGrammarPathScore(grammar, filePath)
-    if ((score > 0) && !grammar.bundledPackage) {
-      score += 0.125
-    }
-    if (this.grammarMatchesContents(grammar, contents)) {
-      score += 0.25
+    // The score is an integer from range [0, Number.MAX_SAFE_INTEGER] or a
+    // value that can be represented in 53 bits. This integer is partitioned
+    // into segments that hold sub-scores for various criteria in the order of
+    // importance from the most significant bit to the least significant bit.
+    // Such encoding ensures that a higher ranking criterion will always
+    // overpower all of the lower ranking criteria combined and makes it easy
+    // to determine the best match by searching for the highest score.
+    //
+    // The layout for the integer is as follows [MSB:LSB]:
+    //   bits 52:28   length of the longest file path match plus one, zero
+    //                indicates no match
+    //   bit  27      whether the matched file type was user-defined
+    //   bits 26:1    length of the longest 'first line match' plus one, zero
+    //                indicates no match
+    //   bit   0      whether the package containing the grammar is not bundled
+    //                with the editor (only set if any of higher bits has been
+    //                set to avoid such packages overriding any unknown file types)
+    //
+    // In the unlikely event of any of the criteria exceeding the allocated
+    // amount of bits, the value will be clamped to the maximum available value
+    // for that bit range.
+    //
+    // Score of 0 indicates that there is no match.
+    //
+    // Due to bitwise operations only working with integers up to 32 bits in
+    // size, all equivalent operations are performed using addition and
+    // multiplication of values.
+    let score = this.getGrammarPathScore(grammar, filePath) +
+                this.getContentScore(grammar, contents)
+
+    if (score > 0 && !grammar.bundledPackage) {
+      // Set the bit in position 0.
+      ++score
     }
     return score
   }
 
   getGrammarPathScore (grammar, filePath) {
-    if (!filePath) { return -1 }
+    if (!filePath) { return 0 }
     if (process.platform === 'win32') { filePath = filePath.replace(/\\/g, '/') }
 
-    const pathComponents = filePath.toLowerCase().split(PathSplitRegex)
-    let pathScore = -1
+    const path = filePath.toLowerCase()
+    let pathScore = 0
 
     let customFileTypes
-    if (this.config.get('core.customFileTypes')) {
-      customFileTypes = this.config.get('core.customFileTypes')[grammar.scopeName]
+    const allCustomFileTypes = this.config.get('core.customFileTypes')
+    if (allCustomFileTypes) {
+      customFileTypes = allCustomFileTypes[grammar.scopeName]
     }
 
     let { fileTypes } = grammar
@@ -84,40 +112,44 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
     }
 
     for (let i = 0; i < fileTypes.length; i++) {
-      const fileType = fileTypes[i]
-      const fileTypeComponents = fileType.toLowerCase().split(PathSplitRegex)
-      const pathSuffix = pathComponents.slice(-fileTypeComponents.length)
-      if (_.isEqual(pathSuffix, fileTypeComponents)) {
-        pathScore = Math.max(pathScore, fileType.length)
-        if (i >= grammar.fileTypes.length) {
-          pathScore += 0.5
+      const fileType = fileTypes[i].toLowerCase()
+      if (fileType && path.endsWith(fileType)) {
+        let score = fileType.length
+        const lengthDifference = path.length - fileType.length
+        if (lengthDifference) {
+          const charBeforeMatch = path.charAt(lengthDifference - 1)
+          if (charBeforeMatch === '.' || charBeforeMatch === '_') {
+            ++score
+          } else if (charBeforeMatch !== '/') {
+            continue
+          }
         }
+
+        // Clamp value, shift left once.
+        score = Math.min(score, PATH_MATCH_MAX_LENGTH) * 2
+
+        if (i >= grammar.fileTypes.length) {
+          // User defined file type, set the currently least significant bit.
+          ++score
+        }
+
+        pathScore = Math.max(pathScore, score)
       }
     }
 
-    return pathScore
+    // Shift the result left by offset.
+    return pathScore * PATH_MATCH_OFFSET
   }
 
-  grammarMatchesContents (grammar, contents) {
-    if ((contents == null) || (grammar.firstLineRegex == null)) { return false }
+  getContentScore (grammar, contents) {
+    if (contents == null || grammar.firstLineRegex == null) { return 0 }
 
-    let escaped = false
-    let numberOfNewlinesInRegex = 0
-    for (let character of grammar.firstLineRegex.source) {
-      switch (character) {
-        case '\\':
-          escaped = !escaped
-          break
-        case 'n':
-          if (escaped) { numberOfNewlinesInRegex++ }
-          escaped = false
-          break
-        default:
-          escaped = false
-      }
+    const match = grammar.firstLineRegex.searchSync(contents)
+    if (match) {
+      // Add one to score due to successful match, clamp value, shift left once.
+      return Math.min(match[0].length + 1, CONTENT_MATCH_MAX_LENGTH) * 2
     }
-    const lines = contents.split('\n')
-    return grammar.firstLineRegex.testSync(lines.slice(0, numberOfNewlinesInRegex + 1).join('\n'))
+    return 0
   }
 
   // Deprecated: Get the grammar override for the given file path.

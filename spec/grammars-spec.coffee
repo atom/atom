@@ -55,33 +55,16 @@ describe "the `grammars` global", ->
         expect(atom.grammars.selectGrammar('something\\.git\\config').scopeName).toBe 'source.git-config'
 
     it "can use the filePath to load the correct grammar based on the grammar's filetype", ->
-      waitsForPromise ->
-        atom.packages.activatePackage('language-git')
-
-      runs ->
-        expect(atom.grammars.selectGrammar("file.js").name).toBe "JavaScript" # based on extension (.js)
-        expect(atom.grammars.selectGrammar(path.join(temp.dir, '.git', 'config')).name).toBe "Git Config" # based on end of the path (.git/config)
-        expect(atom.grammars.selectGrammar("Rakefile").name).toBe "Ruby" # based on the file's basename (Rakefile)
-        expect(atom.grammars.selectGrammar("curb").name).toBe "Null Grammar"
-        expect(atom.grammars.selectGrammar("/hu.git/config").name).toBe "Null Grammar"
+      expect(atom.grammars.selectGrammar("file.js").name).toBe "JavaScript" # based on extension (.js)
+      expect(atom.grammars.selectGrammar(path.join(temp.dir, '.git', 'config')).name).toBe "Git Config" # based on end of the path (.git/config)
+      expect(atom.grammars.selectGrammar("Rakefile").name).toBe "Ruby" # based on the file's basename (Rakefile)
+      expect(atom.grammars.selectGrammar("curb").name).toBe "Null Grammar"
+      expect(atom.grammars.selectGrammar("/hu.git/config").name).toBe "Null Grammar"
+      expect(atom.grammars.selectGrammar("/.git.config").name).toBe "Null Grammar" # differentiates between a '.' and '/' as file type path delimiters
 
     it "uses the filePath's shebang line if the grammar cannot be determined by the extension or basename", ->
       filePath = require.resolve("./fixtures/shebang")
       expect(atom.grammars.selectGrammar(filePath).name).toBe "Ruby"
-
-    it "uses the number of newlines in the first line regex to determine the number of lines to test against", ->
-      waitsForPromise ->
-        atom.packages.activatePackage('language-property-list')
-
-      runs ->
-        fileContent = "first-line\n<html>"
-        expect(atom.grammars.selectGrammar("dummy.coffee", fileContent).name).toBe "CoffeeScript"
-
-        fileContent = '<?xml version="1.0" encoding="UTF-8"?>'
-        expect(atom.grammars.selectGrammar("grammar.tmLanguage", fileContent).name).toBe "Null Grammar"
-
-        fileContent += '\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
-        expect(atom.grammars.selectGrammar("grammar.tmLanguage", fileContent).name).toBe "Property List (XML)"
 
     it "doesn't read the file when the file contents are specified", ->
       filePath = require.resolve("./fixtures/shebang")
@@ -143,13 +126,13 @@ describe "the `grammars` global", ->
         expect(atom.grammars.selectGrammar('Rakefile', '').scopeName).toBe 'source.coffee'
         expect(atom.grammars.selectGrammar('Cakefile', '').scopeName).toBe 'source.ruby'
 
-      it "favors user-defined file types over grammars with matching first-line-regexps", ->
+      it "favors user-defined file types over grammars with matching first-line-match patterns", ->
         atom.config.set('core.customFileTypes', 'source.ruby': ['bootstrap'])
         expect(atom.grammars.selectGrammar('bootstrap', '#!/usr/bin/env node').scopeName).toBe 'source.ruby'
 
-  describe "when there is a grammar with a first line pattern, the file type of the file is known, but from a different grammar", ->
-    it "favors file type over the matching pattern", ->
-      expect(atom.grammars.selectGrammar('foo.rb', '#!/usr/bin/env node').scopeName).toBe 'source.ruby'
+    describe "when there is a grammar with a first line pattern, the file type of the file is known, but from a different grammar", ->
+      it "favors file type over the matching pattern", ->
+        expect(atom.grammars.selectGrammar('foo.rb', '#!/usr/bin/env node').scopeName).toBe 'source.ruby'
 
   describe ".removeGrammar(grammar)", ->
     it "removes the grammar, so it won't be returned by selectGrammar", ->
