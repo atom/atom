@@ -173,6 +173,26 @@ describe('TextEditor', () => {
       })
     })
 
+    describe('.foldCurrentRow()', () => {
+      it('creates a fold at the location of the last cursor', async () => {
+        editor = await atom.workspace.open()
+        editor.setText('\nif (x) {\n  y()\n}')
+        editor.setCursorBufferPosition([1, 0])
+        expect(editor.getScreenLineCount()).toBe(4)
+        editor.foldCurrentRow()
+        expect(editor.getScreenLineCount()).toBe(3)
+      })
+
+      it('does nothing when the current row cannot be folded', async () => {
+        editor = await atom.workspace.open()
+        editor.setText('var x;\nx++\nx++')
+        editor.setCursorBufferPosition([0, 0])
+        expect(editor.getScreenLineCount()).toBe(3)
+        editor.foldCurrentRow()
+        expect(editor.getScreenLineCount()).toBe(3)
+      })
+    })
+
     describe('.foldAllAtIndentLevel(indentLevel)', () => {
       it('folds blocks of text at the given indentation level', async () => {
         editor = await atom.workspace.open('sample.js', {autoIndent: false})
