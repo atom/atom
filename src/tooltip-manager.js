@@ -207,6 +207,6 @@ const humanizeKeystrokes = function (keystroke) {
 
 var getKeystroke = function (bindings) {
   if (bindings != null ? bindings.length : undefined) {
-    return `<span class=\"keystroke\">${humanizeKeystrokes(bindings[0].keystrokes)}</span>`
+    return `<span class="keystroke">${humanizeKeystrokes(bindings[0].keystrokes)}</span>`
   }
 }
