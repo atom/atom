@@ -51,6 +51,7 @@
   'cmd-x': 'core:cut'
   'cmd-c': 'core:copy'
   'cmd-v': 'core:paste'
+  'cmd-shift-v': 'core:paste-verbatim'
   'shift-up': 'core:select-up'
   'shift-down': 'core:select-down'
   'shift-left': 'core:select-left'

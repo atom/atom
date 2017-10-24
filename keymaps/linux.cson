@@ -35,6 +35,7 @@
   'ctrl-x': 'core:cut'
   'ctrl-c': 'core:copy'
   'ctrl-v': 'core:paste'
+  'ctrl-shift-v': 'core:paste-verbatim'
   'ctrl-insert': 'core:copy'
   'shift-insert': 'core:paste'
   'shift-up': 'core:select-up'
