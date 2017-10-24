@@ -163,114 +163,13 @@ class TokenizedBuffer {
   Section - Comments
   */
 
-  toggleLineCommentsForBufferRows (start, end) {
-    const scope = this.scopeDescriptorForPosition([start, 0])
-    let {commentStartString, commentEndString} = this.commentStringsForScopeDescriptor(scope)
-    if (!commentStartString) return
-    commentStartString = commentStartString.trim()
-
-    if (commentEndString) {
-      commentEndString = commentEndString.trim()
-      const startDelimiterColumnRange = this.columnRangeForStartDelimiter(
-        this.buffer.lineForRow(start),
-        commentStartString
-      )
-      if (startDelimiterColumnRange) {
-        const endDelimiterColumnRange = this.columnRangeForEndDelimiter(
-          this.buffer.lineForRow(end),
-          commentEndString
-        )
-        if (endDelimiterColumnRange) {
-          this.buffer.transact(() => {
-            this.buffer.delete([[end, endDelimiterColumnRange[0]], [end, endDelimiterColumnRange[1]]])
-            this.buffer.delete([[start, startDelimiterColumnRange[0]], [start, startDelimiterColumnRange[1]]])
-          })
-        }
-      } else {
-        this.buffer.transact(() => {
-          const indentLength = this.buffer.lineForRow(start).match(/^\s*/)[0].length
-          this.buffer.insert([start, indentLength], commentStartString + ' ')
-          this.buffer.insert([end, this.buffer.lineLengthForRow(end)], ' ' + commentEndString)
-        })
-      }
+  commentStringsForPosition (position) {
+    if (this.scopedSettingsDelegate) {
+      const scope = this.scopeDescriptorForPosition(position)
+      return this.scopedSettingsDelegate.getCommentStrings(scope)
     } else {
-      let hasCommentedLines = false
-      let hasUncommentedLines = false
-      for (let row = start; row <= end; row++) {
-        const line = this.buffer.lineForRow(row)
-        if (NON_WHITESPACE_REGEX.test(line)) {
-          if (this.columnRangeForStartDelimiter(line, commentStartString)) {
-            hasCommentedLines = true
-          } else {
-            hasUncommentedLines = true
-          }
-        }
-      }
-
-      const shouldUncomment = hasCommentedLines && !hasUncommentedLines
-
-      if (shouldUncomment) {
-        for (let row = start; row <= end; row++) {
-          const columnRange = this.columnRangeForStartDelimiter(
-            this.buffer.lineForRow(row),
-            commentStartString
-          )
-          if (columnRange) this.buffer.delete([[row, columnRange[0]], [row, columnRange[1]]])
-        }
-      } else {
-        let minIndentLevel = Infinity
-        let minBlankIndentLevel = Infinity
-        for (let row = start; row <= end; row++) {
-          const line = this.buffer.lineForRow(row)
-          const indentLevel = this.indentLevelForLine(line)
-          if (NON_WHITESPACE_REGEX.test(line)) {
-            if (indentLevel < minIndentLevel) minIndentLevel = indentLevel
-          } else {
-            if (indentLevel < minBlankIndentLevel) minBlankIndentLevel = indentLevel
-          }
-        }
-        minIndentLevel = Number.isFinite(minIndentLevel)
-          ? minIndentLevel
-          : Number.isFinite(minBlankIndentLevel)
-              ? minBlankIndentLevel
-              : 0
-
-        const tabLength = this.getTabLength()
-        const indentString = ' '.repeat(tabLength * minIndentLevel)
-        for (let row = start; row <= end; row++) {
-          const line = this.buffer.lineForRow(row)
-          if (NON_WHITESPACE_REGEX.test(line)) {
-            const indentColumn = this.columnForIndentLevel(line, minIndentLevel)
-            this.buffer.insert(Point(row, indentColumn), commentStartString + ' ')
-          } else {
-            this.buffer.setTextInRange(
-              new Range(new Point(row, 0), new Point(row, Infinity)),
-              indentString + commentStartString + ' '
-            )
-          }
-        }
-      }
+      return {}
     }
-  }
-
-  columnRangeForStartDelimiter (line, delimiter) {
-    const startColumn = line.search(NON_WHITESPACE_REGEX)
-    if (startColumn === -1) return null
-    if (!line.startsWith(delimiter, startColumn)) return null
-
-    let endColumn = startColumn + delimiter.length
-    if (line[endColumn] === ' ') endColumn++
-    return [startColumn, endColumn]
-  }
-
-  columnRangeForEndDelimiter (line, delimiter) {
-    let startColumn = line.lastIndexOf(delimiter)
-    if (startColumn === -1) return null
-
-    const endColumn = startColumn + delimiter.length
-    if (NON_WHITESPACE_REGEX.test(line.slice(endColumn))) return null
-    if (line[startColumn - 1] === ' ') startColumn--
-    return [startColumn, endColumn]
   }
 
   buildIterator () {
@@ -608,24 +507,6 @@ class TokenizedBuffer {
     return scopes
   }
 
-  columnForIndentLevel (line, indentLevel, tabLength = this.tabLength) {
-    let column = 0
-    let indentLength = 0
-    const goalIndentLength = indentLevel * tabLength
-    while (indentLength < goalIndentLength) {
-      const char = line[column]
-      if (char === '\t') {
-        indentLength += tabLength - (indentLength % tabLength)
-      } else if (char === ' ') {
-        indentLength++
-      } else {
-        break
-      }
-      column++
-    }
-    return column
-  }
-
   indentLevelForLine (line, tabLength = this.tabLength) {
     let indentLength = 0
     for (let i = 0, {length} = line; i < length; i++) {
@@ -852,14 +733,6 @@ class TokenizedBuffer {
   foldEndRegexForScopeDescriptor (scopes) {
     if (this.scopedSettingsDelegate) {
       return this.regexForPattern(this.scopedSettingsDelegate.getFoldEndPattern(scopes))
-    }
-  }
-
-  commentStringsForScopeDescriptor (scopes) {
-    if (this.scopedSettingsDelegate) {
-      return this.scopedSettingsDelegate.getCommentStrings(scopes)
-    } else {
-      return {}
     }
   }
 
