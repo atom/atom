@@ -1,6 +1,5 @@
 /*
  * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
@@ -10,7 +9,7 @@ const Tooltip = require('../src/tooltip')
 const _ = require('underscore-plus')
 
 describe('TooltipManager', function () {
-  let [manager, element] = Array.from([])
+  let manager, element
 
   const ctrlX = _.humanizeKeystroke('ctrl-x')
   const ctrlY = _.humanizeKeystroke('ctrl-y')
