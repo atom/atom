@@ -123,7 +123,6 @@ describe('TooltipManager', function () {
     })
 
     it('allows a custom class to be specified for the tooltip', function () {
-      const tooltipElement = document.createElement('div')
       manager.add(element, {title: 'Title', class: 'custom-tooltip-class'})
       return hover(element, () => expect(document.body.querySelector('.tooltip').classList.contains('custom-tooltip-class')).toBe(true))
     })
