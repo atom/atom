@@ -17,7 +17,7 @@ describe('TooltipManager', function () {
 
   beforeEach(function () {
     manager = new TooltipManager({keymapManager: atom.keymaps, viewRegistry: atom.views})
-    return element = createElement('foo')
+    element = createElement('foo')
   })
 
   var createElement = function (className) {
