@@ -1,8 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const {CompositeDisposable} = require('atom')
 const TooltipManager = require('../src/tooltip-manager')
 const Tooltip = require('../src/tooltip')
@@ -28,12 +23,12 @@ describe('TooltipManager', function () {
 
   const mouseEnter = function (element) {
     element.dispatchEvent(new CustomEvent('mouseenter', {bubbles: false}))
-    return element.dispatchEvent(new CustomEvent('mouseover', {bubbles: true}))
+    element.dispatchEvent(new CustomEvent('mouseover', {bubbles: true}))
   }
 
   const mouseLeave = function (element) {
     element.dispatchEvent(new CustomEvent('mouseleave', {bubbles: false}))
-    return element.dispatchEvent(new CustomEvent('mouseout', {bubbles: true}))
+    element.dispatchEvent(new CustomEvent('mouseout', {bubbles: true}))
   }
 
   const hover = function (element, fn) {
@@ -41,17 +36,17 @@ describe('TooltipManager', function () {
     advanceClock(manager.hoverDefaults.delay.show)
     fn()
     mouseLeave(element)
-    return advanceClock(manager.hoverDefaults.delay.hide)
+    advanceClock(manager.hoverDefaults.delay.hide)
   }
 
-  return describe('::add(target, options)', function () {
+  describe('::add(target, options)', function () {
     describe("when the trigger is 'hover' (the default)", function () {
       it('creates a tooltip when hovering over the target element', function () {
         manager.add(element, {title: 'Title'})
-        return hover(element, () => expect(document.body.querySelector('.tooltip')).toHaveText('Title'))
+        hover(element, () => expect(document.body.querySelector('.tooltip')).toHaveText('Title'))
       })
 
-      return it('displays tooltips immediately when hovering over new elements once a tooltip has been displayed once', function () {
+      it('displays tooltips immediately when hovering over new elements once a tooltip has been displayed once', function () {
         const disposables = new CompositeDisposable()
         const element1 = createElement('foo')
         disposables.add(manager.add(element1, {title: 'Title'}))
@@ -75,7 +70,7 @@ describe('TooltipManager', function () {
         advanceClock(manager.hoverDefaults.delay.show)
         expect(document.body.querySelector('.tooltip')).not.toBeNull()
 
-        return disposables.dispose()
+        disposables.dispose()
       })
     })
 
@@ -84,7 +79,7 @@ describe('TooltipManager', function () {
         const disposable = manager.add(element, {title: 'Title', trigger: 'manual'})
         expect(document.body.querySelector('.tooltip')).toHaveText('Title')
         disposable.dispose()
-        return expect(document.body.querySelector('.tooltip')).toBeNull()
+        expect(document.body.querySelector('.tooltip')).toBeNull()
       })
     )
 
@@ -111,19 +106,19 @@ describe('TooltipManager', function () {
         element.click()
         expect(document.body.querySelector('.tooltip')).not.toBeNull()
         element.click()
-        return expect(document.body.querySelector('.tooltip')).toBeNull()
+        expect(document.body.querySelector('.tooltip')).toBeNull()
       })
     )
 
     it('allows a custom item to be specified for the content of the tooltip', function () {
       const tooltipElement = document.createElement('div')
       manager.add(element, {item: {element: tooltipElement}})
-      return hover(element, () => expect(tooltipElement.closest('.tooltip')).not.toBeNull())
+      hover(element, () => expect(tooltipElement.closest('.tooltip')).not.toBeNull())
     })
 
     it('allows a custom class to be specified for the tooltip', function () {
       manager.add(element, {title: 'Title', class: 'custom-tooltip-class'})
-      return hover(element, () => expect(document.body.querySelector('.tooltip').classList.contains('custom-tooltip-class')).toBe(true))
+      hover(element, () => expect(document.body.querySelector('.tooltip').classList.contains('custom-tooltip-class')).toBe(true))
     })
 
     it('allows jQuery elements to be passed as the target', function () {
@@ -142,7 +137,7 @@ describe('TooltipManager', function () {
       disposable.dispose()
 
       hover(element, () => expect(document.body.querySelector('.tooltip')).toBeNull())
-      return hover(element2, () => expect(document.body.querySelector('.tooltip')).toBeNull())
+      hover(element2, () => expect(document.body.querySelector('.tooltip')).toBeNull())
     })
 
     describe('when a keyBindingCommand is specified', function () {
@@ -158,9 +153,9 @@ describe('TooltipManager', function () {
 
           manager.add(element, {title: 'Title', keyBindingCommand: 'test-command'})
 
-          return hover(element, function () {
+          hover(element, function () {
             const tooltipElement = document.body.querySelector('.tooltip')
-            return expect(tooltipElement).toHaveText(`Title ${ctrlX} ${ctrlY}`)
+            expect(tooltipElement).toHaveText(`Title ${ctrlX} ${ctrlY}`)
           })
         })
       )
@@ -171,14 +166,14 @@ describe('TooltipManager', function () {
 
           manager.add(element, {keyBindingCommand: 'test-command'})
 
-          return hover(element, function () {
+          hover(element, function () {
             const tooltipElement = document.body.querySelector('.tooltip')
-            return expect(tooltipElement).toHaveText(`${ctrlX} ${ctrlY}`)
+            expect(tooltipElement).toHaveText(`${ctrlX} ${ctrlY}`)
           })
         })
       )
 
-      return describe('when a keyBindingTarget is specified', function () {
+      describe('when a keyBindingTarget is specified', function () {
         it('looks up the key binding relative to the target', function () {
           atom.keymaps.add('test', {
             '.bar': { 'ctrl-x ctrl-z': 'test-command'
@@ -190,18 +185,18 @@ describe('TooltipManager', function () {
 
           manager.add(element, {keyBindingCommand: 'test-command', keyBindingTarget: element})
 
-          return hover(element, function () {
+          hover(element, function () {
             const tooltipElement = document.body.querySelector('.tooltip')
-            return expect(tooltipElement).toHaveText(`${ctrlX} ${ctrlY}`)
+            expect(tooltipElement).toHaveText(`${ctrlX} ${ctrlY}`)
           })
         })
 
-        return it('does not display the keybinding if there is nothing mapped to the specified keyBindingCommand', function () {
+        it('does not display the keybinding if there is nothing mapped to the specified keyBindingCommand', function () {
           manager.add(element, {title: 'A Title', keyBindingCommand: 'test-command', keyBindingTarget: element})
 
-          return hover(element, function () {
+          hover(element, function () {
             const tooltipElement = document.body.querySelector('.tooltip')
-            return expect(tooltipElement.textContent).toBe('A Title')
+            expect(tooltipElement.textContent).toBe('A Title')
           })
         })
       })
@@ -215,23 +210,23 @@ describe('TooltipManager', function () {
 
         disposable.dispose()
 
-        return hover(element, () => expect(document.body.querySelector('.tooltip')).toBeNull())
+        hover(element, () => expect(document.body.querySelector('.tooltip')).toBeNull())
       })
     )
 
     describe('when the window is resized', () =>
       it('hides the tooltips', function () {
         const disposable = manager.add(element, {title: 'Title'})
-        return hover(element, function () {
+        hover(element, function () {
           expect(document.body.querySelector('.tooltip')).not.toBeNull()
           window.dispatchEvent(new CustomEvent('resize'))
           expect(document.body.querySelector('.tooltip')).toBeNull()
-          return disposable.dispose()
+          disposable.dispose()
         })
       })
     )
 
-    return describe('findTooltips', function () {
+    describe('findTooltips', function () {
       it('adds and remove tooltips correctly', function () {
         expect(manager.findTooltips(element).length).toBe(0)
         const disposable1 = manager.add(element, {title: 'elem1'})
@@ -241,16 +236,16 @@ describe('TooltipManager', function () {
         disposable1.dispose()
         expect(manager.findTooltips(element).length).toBe(1)
         disposable2.dispose()
-        return expect(manager.findTooltips(element).length).toBe(0)
+        expect(manager.findTooltips(element).length).toBe(0)
       })
 
-      return it('lets us hide tooltips programmatically', function () {
+      it('lets us hide tooltips programmatically', function () {
         const disposable = manager.add(element, {title: 'Title'})
-        return hover(element, function () {
+        hover(element, function () {
           expect(document.body.querySelector('.tooltip')).not.toBeNull()
           manager.findTooltips(element)[0].hide()
           expect(document.body.querySelector('.tooltip')).toBeNull()
-          return disposable.dispose()
+          disposable.dispose()
         })
       })
     })
