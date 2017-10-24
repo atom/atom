@@ -9,6 +9,8 @@ TokenizedBuffer = require './tokenized-buffer'
 Cursor = require './cursor'
 Model = require './model'
 Selection = require './selection'
+TextEditorUtils = require './text-editor-utils'
+
 TextMateScopeSelector = require('first-mate').ScopeSelector
 GutterContainer = require './gutter-container'
 TextEditorComponent = null
@@ -122,6 +124,8 @@ class TextEditor extends Model
   )
 
   Object.defineProperty(@prototype, 'languageMode', get: -> @tokenizedBuffer)
+
+  Object.assign(@prototype, TextEditorUtils)
 
   @deserialize: (state, atomEnvironment) ->
     # TODO: Return null on version mismatch when 1.8.0 has been out for a while
@@ -3622,9 +3626,6 @@ class TextEditor extends Model
   getNonWordCharacters: (scopes) ->
     @scopedSettingsDelegate?.getNonWordCharacters?(scopes) ? @nonWordCharacters
 
-  getCommentStrings: (scopes) ->
-    @scopedSettingsDelegate?.getCommentStrings?(scopes)
-
   ###
   Section: Event Handlers
   ###
@@ -3886,8 +3887,6 @@ class TextEditor extends Model
     @setIndentationForBufferRow(bufferRow, indentLevel) if indentLevel?
 
   toggleLineCommentForBufferRow: (row) -> @toggleLineCommentsForBufferRows(row, row)
-
-  toggleLineCommentsForBufferRows: (start, end) -> @tokenizedBuffer.toggleLineCommentsForBufferRows(start, end)
 
   rowRangeForParagraphAtBufferRow: (bufferRow) ->
     return unless NON_WHITESPACE_REGEXP.test(@lineTextForBufferRow(bufferRow))
