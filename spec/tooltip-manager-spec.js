@@ -9,28 +9,6 @@ describe('TooltipManager', () => {
   const ctrlX = _.humanizeKeystroke('ctrl-x')
   const ctrlY = _.humanizeKeystroke('ctrl-y')
 
-  beforeEach(function () {
-    manager = new TooltipManager({keymapManager: atom.keymaps, viewRegistry: atom.views})
-    element = createElement('foo')
-  })
-
-  var createElement = function (className) {
-    const el = document.createElement('div')
-    el.classList.add(className)
-    jasmine.attachToDOM(el)
-    return el
-  }
-
-  const mouseEnter = function (element) {
-    element.dispatchEvent(new CustomEvent('mouseenter', {bubbles: false}))
-    element.dispatchEvent(new CustomEvent('mouseover', {bubbles: true}))
-  }
-
-  const mouseLeave = function (element) {
-    element.dispatchEvent(new CustomEvent('mouseleave', {bubbles: false}))
-    element.dispatchEvent(new CustomEvent('mouseout', {bubbles: true}))
-  }
-
   const hover = function (element, fn) {
     mouseEnter(element)
     advanceClock(manager.hoverDefaults.delay.show)
@@ -38,6 +16,11 @@ describe('TooltipManager', () => {
     mouseLeave(element)
     advanceClock(manager.hoverDefaults.delay.hide)
   }
+
+  beforeEach(function () {
+    manager = new TooltipManager({keymapManager: atom.keymaps, viewRegistry: atom.views})
+    element = createElement('foo')
+  })
 
   describe('::add(target, options)', () => {
     describe("when the trigger is 'hover' (the default)", () => {
@@ -251,3 +234,20 @@ describe('TooltipManager', () => {
     })
   })
 })
+
+function createElement (className) {
+  const el = document.createElement('div')
+  el.classList.add(className)
+  jasmine.attachToDOM(el)
+  return el
+}
+
+function mouseEnter (element) {
+  element.dispatchEvent(new CustomEvent('mouseenter', {bubbles: false}))
+  element.dispatchEvent(new CustomEvent('mouseover', {bubbles: true}))
+}
+
+function mouseLeave (element) {
+  element.dispatchEvent(new CustomEvent('mouseleave', {bubbles: false}))
+  element.dispatchEvent(new CustomEvent('mouseout', {bubbles: true}))
+}
