@@ -91,7 +91,7 @@ describe('TooltipManager', function () {
 
     describe("when the trigger is 'click'", () =>
       it('shows and hides the tooltip when the target element is clicked', function () {
-        const disposable = manager.add(element, {title: 'Title', trigger: 'click'})
+        manager.add(element, {title: 'Title', trigger: 'click'})
         expect(document.body.querySelector('.tooltip')).toBeNull()
         element.click()
         expect(document.body.querySelector('.tooltip')).not.toBeNull()
