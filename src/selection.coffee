@@ -87,7 +87,7 @@ class Selection extends Model
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     options.reversed ?= @isReversed()
-    @editor.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
+    @editor.destroyFoldsContainingBufferPositions([bufferRange.start, bufferRange.end], true) unless options.preserveFolds
     @modifySelection =>
       needsFlash = options.flash
       delete options.flash if options.flash?
