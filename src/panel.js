@@ -13,16 +13,15 @@ class Panel {
   Section: Construction and Destruction
   */
 
-  constructor ({item, visible, priority, className}, viewRegistry) {
+  constructor ({item, autoFocus, visible, priority, className}, viewRegistry) {
     this.destroyed = false
     this.item = item
-    this.visible = visible
-    this.priority = priority
+    this.autoFocus = autoFocus == null ? false : autoFocus
+    this.visible = visible == null ? true : visible
+    this.priority = priority == null ? 100 : priority
     this.className = className
     this.viewRegistry = viewRegistry
     this.emitter = new Emitter()
-    if (this.visible == null) this.visible = true
-    if (this.priority == null) this.priority = 100
   }
 
   // Public: Destroy and remove this panel from the UI.
@@ -66,7 +65,7 @@ class Panel {
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy (callback) {
-    return this.emitter.on('did-destroy', callback)
+    return this.emitter.once('did-destroy', callback)
   }
 
   /*

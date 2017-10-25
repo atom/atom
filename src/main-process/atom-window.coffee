@@ -26,6 +26,7 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
+      tabbingIdentifier: 'atom'
       webPreferences:
         # Prevent specs from throttling when the window is in the background:
         # this should result in faster CI builds, and an improvement in the
@@ -54,14 +55,14 @@ class AtomWindow
     @browserWindow = new BrowserWindow(options)
     @handleEvents()
 
-    loadSettings = Object.assign({}, settings)
-    loadSettings.appVersion = app.getVersion()
-    loadSettings.resourcePath = @resourcePath
-    loadSettings.devMode ?= false
-    loadSettings.safeMode ?= false
-    loadSettings.atomHome = process.env.ATOM_HOME
-    loadSettings.clearWindowState ?= false
-    loadSettings.initialPaths ?=
+    @loadSettings = Object.assign({}, settings)
+    @loadSettings.appVersion = app.getVersion()
+    @loadSettings.resourcePath = @resourcePath
+    @loadSettings.devMode ?= false
+    @loadSettings.safeMode ?= false
+    @loadSettings.atomHome = process.env.ATOM_HOME
+    @loadSettings.clearWindowState ?= false
+    @loadSettings.initialPaths ?=
       for {pathToOpen} in locationsToOpen when pathToOpen
         stat = fs.statSyncNoException(pathToOpen) or null
         if stat?.isDirectory()
@@ -72,17 +73,17 @@ class AtomWindow
             parentDirectory
           else
             pathToOpen
-    loadSettings.initialPaths.sort()
+    @loadSettings.initialPaths.sort()
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
       @constructor.includeShellLoadTime = false
-      loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
+      @loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
 
-    @representedDirectoryPaths = loadSettings.initialPaths
-    @env = loadSettings.env if loadSettings.env?
+    @representedDirectoryPaths = @loadSettings.initialPaths
+    @env = @loadSettings.env if @loadSettings.env?
 
-    @browserWindow.loadSettingsJSON = JSON.stringify(loadSettings)
+    @browserWindow.loadSettingsJSON = JSON.stringify(@loadSettings)
 
     @browserWindow.on 'window:loaded', =>
       @disableZoom()
@@ -147,7 +148,8 @@ class AtomWindow
         event.preventDefault()
         @unloading = true
         @atomApplication.saveState(false)
-        @saveState().then(=> @close())
+        @prepareToUnload().then (result) =>
+          @close() if result
 
     @browserWindow.on 'closed', =>
       @fileRecoveryService.didCloseWindow(this)
@@ -159,7 +161,7 @@ class AtomWindow
 
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
-        buttons: ['Close', 'Keep Waiting']
+        buttons: ['Force Close', 'Keep Waiting']
         message: 'Editor is not responding'
         detail: 'The editor is not responding. Would you like to force close it or just keep waiting?'
       @browserWindow.destroy() if chosen is 0
@@ -191,21 +193,19 @@ class AtomWindow
       @browserWindow.on 'blur', =>
         @browserWindow.focusOnWebView()
 
-  didCancelWindowUnload: ->
-    @unloading = false
-
-  saveState: ->
+  prepareToUnload: ->
     if @isSpecWindow()
-      return Promise.resolve()
-
-    @lastSaveStatePromise = new Promise (resolve) =>
-      callback = (event) =>
+      return Promise.resolve(true)
+    @lastPrepareToUnloadPromise = new Promise (resolve) =>
+      callback = (event, result) =>
         if BrowserWindow.fromWebContents(event.sender) is @browserWindow
-          ipcMain.removeListener('did-save-window-state', callback)
-          resolve()
-      ipcMain.on('did-save-window-state', callback)
-      @browserWindow.webContents.send('save-window-state')
-    @lastSaveStatePromise
+          ipcMain.removeListener('did-prepare-to-unload', callback)
+          unless result
+            @unloading = false
+            @atomApplication.quitting = false
+          resolve(result)
+      ipcMain.on('did-prepare-to-unload', callback)
+      @browserWindow.webContents.send('prepare-to-unload')
 
   openPath: (pathToOpen, initialLine, initialColumn) ->
     @openLocations([{pathToOpen, initialLine, initialColumn}])
@@ -231,6 +231,9 @@ class AtomWindow
     else
       unless @atomApplication.sendCommandToFirstResponder(command)
         @sendCommandToBrowserWindow(command, args...)
+
+  sendURIMessage: (uri) ->
+    @browserWindow.webContents.send 'uri-message', uri
 
   sendCommandToBrowserWindow: (command, args...) ->
     action = if args[0]?.contextCommand then 'context-command' else 'command'
@@ -287,7 +290,8 @@ class AtomWindow
 
   reload: ->
     @loadedPromise = new Promise((@resolveLoadedPromise) =>)
-    @saveState().then => @browserWindow.reload()
+    @prepareToUnload().then (result) =>
+      @browserWindow.reload() if result
     @loadedPromise
 
   showSaveDialog: (params) ->
@@ -309,6 +313,8 @@ class AtomWindow
 
   setRepresentedDirectoryPaths: (@representedDirectoryPaths) ->
     @representedDirectoryPaths.sort()
+    @loadSettings.initialPaths = @representedDirectoryPaths
+    @browserWindow.loadSettingsJSON = JSON.stringify(@loadSettings)
     @atomApplication.saveState()
 
   copy: -> @browserWindow.copy()

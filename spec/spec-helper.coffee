@@ -58,14 +58,14 @@ if specPackagePath = FindParentDir.sync(testPaths[0], 'package.json')
 if specDirectory = FindParentDir.sync(testPaths[0], 'fixtures')
   specProjectPath = path.join(specDirectory, 'fixtures')
 else
-  specProjectPath = path.join(__dirname, 'fixtures')
+  specProjectPath = require('os').tmpdir()
 
 beforeEach ->
   atom.project.setPaths([specProjectPath])
 
   window.resetTimeouts()
-  spyOn(Date, 'now').andCallFake -> window.now
   spyOn(_._, "now").andCallFake -> window.now
+  spyOn(Date, 'now').andCallFake(-> window.now)
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
 
@@ -108,10 +108,14 @@ beforeEach ->
 afterEach ->
   ensureNoDeprecatedFunctionCalls()
   ensureNoDeprecatedStylesheets()
-  atom.reset()
-  document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
-  warnIfLeakingPathSubscriptions()
-  waits(0) # yield to ui thread to make screen update more frequently
+
+  waitsForPromise ->
+    atom.reset()
+
+  runs ->
+    document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
+    warnIfLeakingPathSubscriptions()
+    waits(0) # yield to ui thread to make screen update more frequently
 
 warnIfLeakingPathSubscriptions = ->
   watchedPaths = pathwatcher.getWatchedPaths()
@@ -188,8 +192,6 @@ jasmine.useRealClock = ->
 jasmine.useMockClock = ->
   spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
   spyOn(window, 'clearInterval').andCallFake(fakeClearInterval)
-  spyOn(Date, 'now').andCallFake(-> window.now)
-
 
 addCustomMatchers = (spec) ->
   spec.addMatchers

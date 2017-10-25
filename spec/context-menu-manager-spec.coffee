@@ -11,11 +11,21 @@ describe "ContextMenuManager", ->
     parent = document.createElement("div")
     child = document.createElement("div")
     grandchild = document.createElement("div")
+    parent.tabIndex = -1
+    child.tabIndex = -1
+    grandchild.tabIndex = -1
     parent.classList.add('parent')
     child.classList.add('child')
     grandchild.classList.add('grandchild')
     child.appendChild(grandchild)
     parent.appendChild(child)
+
+    document.body.appendChild(parent)
+
+  afterEach ->
+    document.body.blur()
+    document.body.removeChild(parent)
+
 
   describe "::add(itemsBySelector)", ->
     it "can add top-level menu items that can be removed with the returned disposable", ->
@@ -228,6 +238,98 @@ describe "ContextMenuManager", ->
           submenu: [
             {
               label: 'D',
+            }
+          ]
+        ])
+
+  describe "::templateForEvent(target)", ->
+    [keymaps, item] = []
+
+    beforeEach ->
+      keymaps = atom.keymaps.add('source', {
+        '.child': {
+          'ctrl-a': 'test:my-command',
+          'shift-b': 'test:my-other-command'
+        }
+      })
+      item = {
+        label: 'My Command',
+        command: 'test:my-command',
+        submenu: [
+          {
+            label: 'My Other Command',
+            command: 'test:my-other-command',
+          }
+        ]
+      }
+      contextMenu.add('.parent': [item])
+
+    afterEach ->
+      keymaps.dispose()
+
+
+    it "adds Electron-style accelerators to items that have keybindings", ->
+      child.focus()
+      dispatchedEvent = {target: child}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual(
+        [
+          label: 'My Command',
+          command: 'test:my-command',
+          accelerator: 'Ctrl+A',
+          submenu: [
+            {
+              label: 'My Other Command',
+              command: 'test:my-other-command',
+              accelerator: 'Shift+B',
+            }
+          ]
+        ])
+
+    it "adds accelerators when a parent node has key bindings for a given command", ->
+      grandchild.focus()
+      dispatchedEvent = {target: grandchild}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual(
+        [
+          label: 'My Command',
+          command: 'test:my-command',
+          accelerator: 'Ctrl+A',
+          submenu: [
+            {
+              label: 'My Other Command',
+              command: 'test:my-other-command',
+              accelerator: 'Shift+B',
+            }
+          ]
+        ])
+
+    it "does not add accelerators when a child node has key bindings for a given command", ->
+      parent.focus()
+      dispatchedEvent = {target: parent}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual(
+        [
+          label: 'My Command',
+          command: 'test:my-command',
+          submenu: [
+            {
+              label: 'My Other Command',
+              command: 'test:my-other-command',
+            }
+          ]
+        ])
+
+    it "adds accelerators based on focus, not context menu target", ->
+      grandchild.focus()
+      dispatchedEvent = {target: parent}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual(
+        [
+          label: 'My Command',
+          command: 'test:my-command',
+          accelerator: 'Ctrl+A',
+          submenu: [
+            {
+              label: 'My Other Command',
+              command: 'test:my-other-command',
+              accelerator: 'Shift+B',
             }
           ]
         ])

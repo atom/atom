@@ -20,6 +20,11 @@ export function afterEach (fn) {
 
 ['it', 'fit', 'ffit', 'fffit'].forEach(function (name) {
   module.exports[name] = function (description, fn) {
+    if (fn === undefined) {
+      global[name](description)
+      return
+    }
+
     global[name](description, function () {
       const result = fn()
       if (result instanceof Promise) {
@@ -71,4 +76,28 @@ export function emitterEventPromise (emitter, event, timeout = 15000) {
       resolve()
     })
   })
+}
+
+export function promisify (original) {
+  return function (...args) {
+    return new Promise((resolve, reject) => {
+      args.push((err, ...results) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(...results)
+        }
+      })
+
+      return original(...args)
+    })
+  }
+}
+
+export function promisifySome (obj, fnNames) {
+  const result = {}
+  for (const fnName of fnNames) {
+    result[fnName] = promisify(obj[fnName])
+  }
+  return result
 }

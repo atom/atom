@@ -143,6 +143,7 @@ class ApplicationDelegate
       message: message
       detail: detailedMessage
       buttons: buttonLabels
+      normalizeAccessKeys: true
     })
 
     if _.isArray(buttons)
@@ -232,19 +233,22 @@ class ApplicationDelegate
     new Disposable ->
       ipcRenderer.removeListener('context-command', outerCallback)
 
-  onSaveWindowStateRequest: (callback) ->
-    outerCallback = (event, message) ->
-      callback(event)
+  onURIMessage: (callback) ->
+    outerCallback = (event, args...) ->
+      callback(args...)
 
-    ipcRenderer.on('save-window-state', outerCallback)
+    ipcRenderer.on('uri-message', outerCallback)
     new Disposable ->
-      ipcRenderer.removeListener('save-window-state', outerCallback)
+      ipcRenderer.removeListener('uri-message', outerCallback)
 
-  didSaveWindowState: ->
-    ipcRenderer.send('did-save-window-state')
+  onDidRequestUnload: (callback) ->
+    outerCallback = (event, message) ->
+      callback(event).then (shouldUnload) ->
+        ipcRenderer.send('did-prepare-to-unload', shouldUnload)
 
-  didCancelWindowUnload: ->
-    ipcRenderer.send('did-cancel-window-unload')
+    ipcRenderer.on('prepare-to-unload', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('prepare-to-unload', outerCallback)
 
   onDidChangeHistoryManager: (callback) ->
     outerCallback = (event, message) ->

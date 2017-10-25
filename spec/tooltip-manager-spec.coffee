@@ -204,7 +204,7 @@ describe "TooltipManager", ->
         disposable2.dispose()
         expect(manager.findTooltips(element).length).toBe(0)
 
-      it "lets us hide tooltips programatically", ->
+      it "lets us hide tooltips programmatically", ->
         disposable = manager.add element, title: "Title"
         hover element, ->
           expect(document.body.querySelector(".tooltip")).not.toBeNull()

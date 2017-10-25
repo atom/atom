@@ -2,7 +2,7 @@
 
 [![macOS Build Status](https://circleci.com/gh/atom/atom/tree/master.svg?style=shield)](https://circleci.com/gh/atom/atom) [![Linux Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/1tkktwh654w07eim?svg=true)](https://ci.appveyor.com/project/Atom/atom)
 [![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom)
-[![Join the Atom Community on Slack](http://atom-slack.herokuapp.com/badge.svg)](http://atom-slack.herokuapp.com/)
+[![Join the Atom Community on Slack](https://atom-slack.herokuapp.com/badge.svg)](https://atom-slack.herokuapp.com)
 
 Atom is a hackable text editor for the 21st century, built on [Electron](https://github.com/atom/electron), and based on everything we love about our favorite editors. We designed it to be deeply customizable, but still approachable using the default configuration.
 
@@ -16,14 +16,14 @@ By participating, you are expected to uphold this code. Please report unacceptab
 
 ## Documentation
 
-If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](http://flight-manual.atom.io) is free and available online. You can find the source to the manual in [atom/flight-manual.atom.io](https://github.com/atom/flight-manual.atom.io).
+If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://flight-manual.atom.io) is free and available online. You can find the source to the manual in [atom/flight-manual.atom.io](https://github.com/atom/flight-manual.atom.io).
 
 The [API reference](https://atom.io/docs/api) for developing packages is also documented on Atom.io.
 
 ## Installing
 
 ### Prerequisites
-- [Git](https://git-scm.com/)
+- [Git](https://git-scm.com)
 
 ### macOS
 
@@ -40,9 +40,9 @@ Atom will automatically update when a new release is available.
 You can also download `atom-windows.zip` (32-bit) or `atom-x64-windows.zip` (64-bit) from the [releases page](https://github.com/atom/atom/releases/latest).
 The `.zip` version will not automatically update.
 
-Using [chocolatey](https://chocolatey.org/)? Run `cinst Atom` to install the latest version of Atom.
+Using [Chocolatey](https://chocolatey.org)? Run `cinst Atom` to install the latest version of Atom.
 
-### Debian Linux (Ubuntu)
+### Debian based (Debian, Ubuntu, Linux Mint)
 
 Atom is only available for 64-bit Linux systems.
 
@@ -53,23 +53,12 @@ Atom is only available for 64-bit Linux systems.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
-### Red Hat Linux (Fedora 21 and under, CentOS, Red Hat)
+### RPM based (Red Hat, openSUSE, Fedora, CentOS)
 
 Atom is only available for 64-bit Linux systems.
 
 1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
-2. Run `sudo yum localinstall atom.x86_64.rpm` on the downloaded package.
-3. Launch Atom using the installed `atom` command.
-
-The Linux version does not currently automatically update so you will need to
-repeat these steps to upgrade to future releases.
-
-### Fedora 22+
-
-Atom is only available for 64-bit Linux systems.
-
-1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
-2. Run `sudo dnf install ./atom.x86_64.rpm` on the downloaded package.
+2. Run `sudo rpm -i atom.x86_64.rpm` on the downloaded package.
 3. Launch Atom using the installed `atom` command.
 
 The Linux version does not currently automatically update so you will need to

@@ -7,7 +7,23 @@ import {assert} from 'chai'
 export default function (testPaths) {
   global.assert = assert
 
-  const mocha = new Mocha({reporter: 'spec'})
+  let reporterOptions = {
+    reporterEnabled: 'list'
+  }
+
+  if (process.env.TEST_JUNIT_XML_PATH) {
+    reporterOptions = {
+      reporterEnabled: 'list, mocha-junit-reporter',
+      mochaJunitReporterReporterOptions: {
+        mochaFile: process.env.TEST_JUNIT_XML_PATH
+      }
+    }
+  }
+
+  const mocha = new Mocha({
+    reporter: 'mocha-multi-reporters',
+    reporterOptions
+  })
   for (let testPath of testPaths) {
     if (fs.isDirectorySync(testPath)) {
       for (let testFilePath of fs.listTreeSync(testPath)) {

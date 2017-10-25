@@ -15,7 +15,11 @@ describe('StyleManager', () => {
   })
 
   afterEach(() => {
-    temp.cleanupSync()
+    try {
+      temp.cleanupSync()
+    } catch (e) {
+      // Do nothing
+    }
   })
 
   describe('::addStyleSheet(source, params)', () => {

@@ -22,6 +22,7 @@ Config = require './config'
 KeymapManager = require './keymap-extensions'
 TooltipManager = require './tooltip-manager'
 CommandRegistry = require './command-registry'
+URIHandlerRegistry = require './uri-handler-registry'
 GrammarRegistry = require './grammar-registry'
 {HistoryManager, HistoryProject} = require './history-manager'
 ReopenProjectMenuManager = require './reopen-project-menu-manager'
@@ -31,6 +32,7 @@ ThemeManager = require './theme-manager'
 MenuManager = require './menu-manager'
 ContextMenuManager = require './context-menu-manager'
 CommandInstaller = require './command-installer'
+ProtocolHandlerInstaller = require './protocol-handler-installer'
 Project = require './project'
 TitleBar = require './title-bar'
 Workspace = require './workspace'
@@ -147,12 +149,14 @@ class AtomEnvironment extends Model
     @keymaps = new KeymapManager({notificationManager: @notifications})
     @tooltips = new TooltipManager(keymapManager: @keymaps, viewRegistry: @views)
     @commands = new CommandRegistry
+    @uriHandlerRegistry = new URIHandlerRegistry
     @grammars = new GrammarRegistry({@config})
     @styles = new StyleManager()
     @packages = new PackageManager({
       @config, styleManager: @styles,
       commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
-      grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views
+      grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views,
+      uriHandlerRegistry: @uriHandlerRegistry
     })
     @themes = new ThemeManager({
       packageManager: @packages, @config, styleManager: @styles,
@@ -166,6 +170,7 @@ class AtomEnvironment extends Model
 
     @project = new Project({notificationManager: @notifications, packageManager: @packages, @config, @applicationDelegate})
     @commandInstaller = new CommandInstaller(@applicationDelegate)
+    @protocolHandlerInstaller = new ProtocolHandlerInstaller()
 
     @textEditors = new TextEditorRegistry({
       @config, grammarRegistry: @grammars, assert: @assert.bind(this),
@@ -232,6 +237,7 @@ class AtomEnvironment extends Model
     @themes.initialize({@configDirPath, resourcePath, safeMode, devMode})
 
     @commandInstaller.initialize(@getVersion())
+    @protocolHandlerInstaller.initialize(@config, @notifications)
     @autoUpdater.initialize()
 
     @config.load()
@@ -328,20 +334,14 @@ class AtomEnvironment extends Model
 
     @contextMenu.clear()
 
-    @packages.reset()
-
-    @workspace.reset(@packages)
-    @registerDefaultOpeners()
-
-    @project.reset(@packages)
-
-    @workspace.subscribeToEvents()
-
-    @grammars.clear()
-
-    @textEditors.clear()
-
-    @views.clear()
+    @packages.reset().then =>
+      @workspace.reset(@packages)
+      @registerDefaultOpeners()
+      @project.reset(@packages)
+      @workspace.subscribeToEvents()
+      @grammars.clear()
+      @textEditors.clear()
+      @views.clear()
 
   destroy: ->
     return if not @project
@@ -356,6 +356,7 @@ class AtomEnvironment extends Model
     @stylesElement.remove()
     @config.unobserveUserConfig()
     @autoUpdater.destroy()
+    @uriHandlerRegistry.destroy()
 
     @uninstallWindowEventHandler()
 
@@ -445,7 +446,9 @@ class AtomEnvironment extends Model
   getVersion: ->
     @appVersion ?= @getLoadSettings().appVersion
 
-  # Returns the release channel as a {String}. Will return one of `'dev', 'beta', 'stable'`
+  # Public: Gets the release channel of the Atom application.
+  #
+  # Returns the release channel as a {String}. Will return one of `dev`, `beta`, or `stable`.
   getReleaseChannel: ->
     version = @getVersion()
     if version.indexOf('beta') > -1
@@ -694,9 +697,20 @@ class AtomEnvironment extends Model
         @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
         @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
         @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
-        @disposables.add @applicationDelegate.onSaveWindowStateRequest =>
-          callback = => @applicationDelegate.didSaveWindowState()
-          @saveState({isUnloading: true}).catch(callback).then(callback)
+        @disposables.add(@applicationDelegate.onURIMessage(@dispatchURIMessage.bind(this)))
+        @disposables.add @applicationDelegate.onDidRequestUnload =>
+          @saveState({isUnloading: true})
+            .catch(console.error)
+            .then =>
+              @workspace?.confirmClose({
+                windowCloseRequested: true,
+                projectHasPaths: @project.getPaths().length > 0
+              })
+            .then (closing) =>
+              if closing
+                @packages.deactivatePackages().then -> closing
+              else
+                closing
 
         @listenForUpdates()
 
@@ -705,30 +719,30 @@ class AtomEnvironment extends Model
         @packages.loadPackages()
 
         startTime = Date.now()
-        @deserialize(state) if state?
-        @deserializeTimings.atom = Date.now() - startTime
+        @deserialize(state).then =>
+          @deserializeTimings.atom = Date.now() - startTime
 
-        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom'
-          @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
-          @document.body.classList.add('custom-title-bar')
-        if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom-inset'
-          @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
-          @document.body.classList.add('custom-inset-title-bar')
-        if process.platform is 'darwin' and @config.get('core.titleBar') is 'hidden'
-          @document.body.classList.add('hidden-title-bar')
+          if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom'
+            @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+            @document.body.classList.add('custom-title-bar')
+          if process.platform is 'darwin' and @config.get('core.titleBar') is 'custom-inset'
+            @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+            @document.body.classList.add('custom-inset-title-bar')
+          if process.platform is 'darwin' and @config.get('core.titleBar') is 'hidden'
+            @document.body.classList.add('hidden-title-bar')
 
-        @document.body.appendChild(@workspace.getElement())
-        @backgroundStylesheet?.remove()
+          @document.body.appendChild(@workspace.getElement())
+          @backgroundStylesheet?.remove()
 
-        @watchProjectPaths()
+          @watchProjectPaths()
 
-        @packages.activate()
-        @keymaps.loadUserKeymap()
-        @requireUserInitScript() unless @getLoadSettings().safeMode
+          @packages.activate()
+          @keymaps.loadUserKeymap()
+          @requireUserInitScript() unless @getLoadSettings().safeMode
 
-        @menu.update()
+          @menu.update()
 
-        @openInitialEmptyEditorIfNecessary()
+          @openInitialEmptyEditorIfNecessary()
 
     loadHistoryPromise = @history.loadState().then =>
       @reopenProjectMenuManager = new ReopenProjectMenuManager({
@@ -753,7 +767,6 @@ class AtomEnvironment extends Model
     return if not @project
 
     @storeWindowBackground()
-    @packages.deactivatePackages()
     @saveBlobStoreSync()
     @unloaded = true
 
@@ -822,6 +835,9 @@ class AtomEnvironment extends Model
 
   # Essential: A flexible way to open a dialog akin to an alert dialog.
   #
+  # If the dialog is closed (via `Esc` key or `X` in the top corner) without selecting a button
+  # the first button will be clicked unless a "Cancel" or "No" button is provided.
+  #
   # ## Examples
   #
   # ```coffee
@@ -839,7 +855,7 @@ class AtomEnvironment extends Model
   #   * `buttons` (optional) Either an array of strings or an object where keys are
   #     button names and the values are callbacks to invoke when clicked.
   #
-  # Returns the chosen button index {Number} if the buttons option was an array.
+  # Returns the chosen button index {Number} if the buttons option is an array or the return value of the callback if the buttons option is an object.
   confirm: (params={}) ->
     @applicationDelegate.confirm(params)
 
@@ -933,8 +949,8 @@ class AtomEnvironment extends Model
           "Would you like to add the #{nouns} to this window, permanently discarding the saved state, " +
           "or open the #{nouns} in a new window, restoring the saved state?"
         buttons: [
-          'Open in new window and recover state'
-          'Add to this window and discard state'
+          '&Open in new window and recover state'
+          '&Add to this window and discard state'
         ]
       if btn is 0
         @open
@@ -986,22 +1002,49 @@ class AtomEnvironment extends Model
       Promise.resolve(null)
 
   deserialize: (state) ->
+    return Promise.resolve() unless state?
+
     if grammarOverridesByPath = state.grammars?.grammarOverridesByPath
       @grammars.grammarOverridesByPath = grammarOverridesByPath
 
     @setFullScreen(state.fullScreen)
 
+    missingProjectPaths = []
+
     @packages.packageStates = state.packageStates ? {}
 
     startTime = Date.now()
-    @project.deserialize(state.project, @deserializers) if state.project?
-    @deserializeTimings.project = Date.now() - startTime
+    if state.project?
+      projectPromise = @project.deserialize(state.project, @deserializers)
+        .catch (err) =>
+          if err.missingProjectPaths?
+            missingProjectPaths.push(err.missingProjectPaths...)
+          else
+            @notifications.addError "Unable to deserialize project", description: err.message, stack: err.stack
+    else
+      projectPromise = Promise.resolve()
 
-    @textEditors.deserialize(state.textEditors) if state.textEditors
+    projectPromise.then =>
+      @deserializeTimings.project = Date.now() - startTime
 
-    startTime = Date.now()
-    @workspace.deserialize(state.workspace, @deserializers) if state.workspace?
-    @deserializeTimings.workspace = Date.now() - startTime
+      @textEditors.deserialize(state.textEditors) if state.textEditors
+
+      startTime = Date.now()
+      @workspace.deserialize(state.workspace, @deserializers) if state.workspace?
+      @deserializeTimings.workspace = Date.now() - startTime
+
+      if missingProjectPaths.length > 0
+        count = if missingProjectPaths.length is 1 then '' else missingProjectPaths.length + ' '
+        noun = if missingProjectPaths.length is 1 then 'directory' else 'directories'
+        toBe = if missingProjectPaths.length is 1 then 'is' else 'are'
+        escaped = missingProjectPaths.map (projectPath) -> "`#{projectPath}`"
+        group = switch escaped.length
+          when 1 then escaped[0]
+          when 2 then "#{escaped[0]} and #{escaped[1]}"
+          else escaped[..-2].join(", ") + ", and #{escaped[escaped.length - 1]}"
+
+        @notifications.addError "Unable to open #{count}project #{noun}",
+          description: "Project #{noun} #{group} #{toBe} no longer on disk."
 
   getStateKey: (paths) ->
     if paths?.length > 0
@@ -1056,6 +1099,14 @@ class AtomEnvironment extends Model
 
   dispatchContextMenuCommand: (command, args...) ->
     @commands.dispatch(@contextMenu.activeElement, command, args)
+
+  dispatchURIMessage: (uri) ->
+    if @packages.hasLoadedInitialPackages()
+      @uriHandlerRegistry.handleURI(uri)
+    else
+      sub = @packages.onDidLoadInitialPackages ->
+        sub.dispose()
+        @uriHandlerRegistry.handleURI(uri)
 
   openLocations: (locations) ->
     needsProjectPaths = @project?.getPaths().length is 0

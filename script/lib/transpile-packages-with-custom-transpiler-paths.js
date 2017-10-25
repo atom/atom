@@ -25,7 +25,7 @@ module.exports = function () {
       const rootPackageBackup = backupNodeModules(rootPackagePath)
       const intermediatePackageBackup = backupNodeModules(intermediatePackagePath)
 
-      // Run `apm install` in the *root* pacakge's path, so we get devDeps w/o apm's weird caching
+      // Run `apm install` in the *root* package's path, so we get devDeps w/o apm's weird caching
       // Then copy this folder into the intermediate package's path so we can run the transpilation in-line.
       runApmInstall(rootPackagePath)
       if (fs.existsSync(intermediatePackageBackup.nodeModulesPath)) {

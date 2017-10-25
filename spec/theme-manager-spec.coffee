@@ -8,8 +8,11 @@ describe "atom.themes", ->
     spyOn(console, 'warn')
 
   afterEach ->
-    atom.themes.deactivateThemes()
-    temp.cleanupSync()
+    waitsForPromise ->
+      atom.themes.deactivateThemes()
+    runs ->
+      try
+        temp.cleanupSync()
 
   describe "theme getters and setters", ->
     beforeEach ->

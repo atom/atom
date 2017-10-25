@@ -18,6 +18,7 @@ const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['editor.softWrapHangingIndent', 'softWrapHangingIndentLength'],
   ['editor.softWrapAtPreferredLineLength', 'softWrapAtPreferredLineLength'],
   ['editor.preferredLineLength', 'preferredLineLength'],
+  ['editor.maxScreenLineLength', 'maxScreenLineLength'],
   ['editor.autoIndent', 'autoIndent'],
   ['editor.autoIndentOnPaste', 'autoIndentOnPaste'],
   ['editor.scrollPastEnd', 'scrollPastEnd'],
@@ -287,7 +288,7 @@ export default class TextEditorRegistry {
 
         let currentScore = this.editorGrammarScores.get(editor)
         if (currentScore == null || score > currentScore) {
-          editor.setGrammar(grammar, score)
+          editor.setGrammar(grammar)
           this.editorGrammarScores.set(editor, score)
         }
       }
@@ -428,3 +429,5 @@ class ScopedSettingsDelegate {
     }
   }
 }
+
+TextEditorRegistry.ScopedSettingsDelegate = ScopedSettingsDelegate

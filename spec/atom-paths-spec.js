@@ -88,7 +88,11 @@ describe('AtomPaths', () => {
     afterEach(() => {
       delete process.env.ATOM_HOME
       fs.removeSync(electronUserDataPath)
-      temp.cleanupSync()
+      try {
+        temp.cleanupSync()
+      } catch (e) {
+        // Ignore
+      }
       app.setPath('userData', defaultElectronUserDataPath)
     })
 

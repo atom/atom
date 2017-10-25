@@ -4,20 +4,21 @@ fs = require 'fs-plus'
 Grim = require 'grim'
 {CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 {Point, Range} = TextBuffer = require 'text-buffer'
-LanguageMode = require './language-mode'
 DecorationManager = require './decoration-manager'
 TokenizedBuffer = require './tokenized-buffer'
 Cursor = require './cursor'
 Model = require './model'
 Selection = require './selection'
+TextEditorUtils = require './text-editor-utils'
+
 TextMateScopeSelector = require('first-mate').ScopeSelector
 GutterContainer = require './gutter-container'
 TextEditorComponent = null
 TextEditorElement = null
 {isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require './text-utils'
 
+NON_WHITESPACE_REGEXP = /\S/
 ZERO_WIDTH_NBSP = '\ufeff'
-MAX_SCREEN_LINE_LENGTH = 500
 
 # Essential: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -79,7 +80,6 @@ class TextEditor extends Model
   serializationVersion: 1
 
   buffer: null
-  languageMode: null
   cursors: null
   showCursorOnSelection: null
   selections: null
@@ -98,8 +98,6 @@ class TextEditor extends Model
   registered: false
   atomicSoftTabs: true
   invisibles: null
-  showLineNumbers: true
-  scrollSensitivity: 40
 
   Object.defineProperty @prototype, "element",
     get: -> @getElement()
@@ -125,13 +123,20 @@ class TextEditor extends Model
     this
   )
 
+  Object.defineProperty(@prototype, 'languageMode', get: -> @tokenizedBuffer)
+
+  Object.assign(@prototype, TextEditorUtils)
+
   @deserialize: (state, atomEnvironment) ->
     # TODO: Return null on version mismatch when 1.8.0 has been out for a while
     if state.version isnt @prototype.serializationVersion and state.displayBuffer?
       state.tokenizedBuffer = state.displayBuffer.tokenizedBuffer
 
     try
-      state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
+      tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
+      return null unless tokenizedBuffer?
+
+      state.tokenizedBuffer = tokenizedBuffer
       state.tabLength = state.tokenizedBuffer.getTabLength()
     catch error
       if error.syscall is 'read'
@@ -155,12 +160,12 @@ class TextEditor extends Model
 
     {
       @softTabs, @initialScrollTopRow, @initialScrollLeftColumn, initialLine, initialColumn, tabLength,
-      @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
-      @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode,
-      @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
+      @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
+      @mini, @placeholderText, lineNumberGutterVisible, @showLineNumbers, @largeFileMode,
+      @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @scrollSensitivity, @editorWidthInChars,
       @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide,
       @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength,
-      @showCursorOnSelection
+      @showCursorOnSelection, @maxScreenLineLength
     } = params
 
     @assert ?= (condition) -> condition
@@ -173,6 +178,7 @@ class TextEditor extends Model
 
     @mini ?= false
     @scrollPastEnd ?= false
+    @scrollSensitivity ?= 40
     @showInvisibles ?= true
     @softTabs ?= true
     tabLength ?= 2
@@ -184,9 +190,12 @@ class TextEditor extends Model
     @softWrapped ?= false
     @softWrapAtPreferredLineLength ?= false
     @preferredLineLength ?= 80
+    @maxScreenLineLength ?= 500
+    @showLineNumbers ?= true
 
-    @buffer ?= new TextBuffer({shouldDestroyOnFileDelete: ->
-      atom.config.get('core.closeDeletedFileTabs')})
+    @buffer ?= new TextBuffer({
+      shouldDestroyOnFileDelete: -> atom.config.get('core.closeDeletedFileTabs')
+    })
     @tokenizedBuffer ?= new TokenizedBuffer({
       grammar, tabLength, @buffer, @largeFileMode, @assert
     })
@@ -238,8 +247,6 @@ class TextEditor extends Model
       initialLine = Math.max(parseInt(initialLine) or 0, 0)
       initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
       @addCursorAtBufferPosition([initialLine, initialColumn])
-
-    @languageMode = new LanguageMode(this)
 
     @gutterContainer = new GutterContainer(this)
     @lineNumberGutter = @gutterContainer.addGutter
@@ -322,6 +329,11 @@ class TextEditor extends Model
             @preferredLineLength = value
             displayLayerParams.softWrapColumn = @getSoftWrapColumn()
 
+        when 'maxScreenLineLength'
+          if value isnt @maxScreenLineLength
+            @maxScreenLineLength = value
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
+
         when 'mini'
           if value isnt @mini
             @mini = value
@@ -357,6 +369,7 @@ class TextEditor extends Model
         when 'showLineNumbers'
           if value isnt @showLineNumbers
             @showLineNumbers = value
+            @component?.scheduleUpdate()
 
         when 'showInvisibles'
           if value isnt @showInvisibles
@@ -431,7 +444,7 @@ class TextEditor extends Model
       softWrapHangingIndentLength: @displayLayer.softWrapHangingIndent
 
       @id, @softTabs, @softWrapped, @softWrapAtPreferredLineLength,
-      @preferredLineLength, @mini, @editorWidthInChars, @width, @largeFileMode,
+      @preferredLineLength, @mini, @editorWidthInChars, @width, @largeFileMode, @maxScreenLineLength,
       @registered, @invisibles, @showInvisibles, @showIndentGuide, @autoHeight, @autoWidth
     }
 
@@ -445,8 +458,6 @@ class TextEditor extends Model
     @disposables.add @buffer.onDidDestroy => @destroy()
     @disposables.add @buffer.onDidChangeModified =>
       @terminatePendingState() if not @hasTerminatedPendingState and @buffer.isModified()
-
-    @preserveCursorPositionOnBufferReload()
 
   terminatePendingState: ->
     @emitter.emit 'did-terminate-pending-state' if not @hasTerminatedPendingState
@@ -474,7 +485,6 @@ class TextEditor extends Model
     @tokenizedBuffer.destroy()
     selection.destroy() for selection in @selections.slice()
     @buffer.release()
-    @languageMode.destroy()
     @gutterContainer.destroy()
     @emitter.emit 'did-destroy'
     @emitter.clear()
@@ -647,7 +657,7 @@ class TextEditor extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
+    @emitter.once 'did-destroy', callback
 
   # Extended: Calls your `callback` when a {Cursor} is added to the editor.
   # Immediately calls your callback for each existing cursor.
@@ -738,7 +748,7 @@ class TextEditor extends Model
   # Called by DecorationManager when a decoration is added.
   didAddDecoration: (decoration) ->
     if decoration.isType('block')
-      @component?.didAddBlockDecoration(decoration)
+      @component?.addBlockDecoration(decoration)
 
   # Extended: Calls your `callback` when the placeholder text is changed.
   #
@@ -955,7 +965,7 @@ class TextEditor extends Model
   # this editor.
   shouldPromptToSave: ({windowCloseRequested, projectHasPaths}={}) ->
     if windowCloseRequested and projectHasPaths and atom.stateStore.isConnected()
-      false
+      @buffer.isInConflict()
     else
       @isModified() and not @buffer.hasMultipleEditors()
 
@@ -1223,7 +1233,7 @@ class TextEditor extends Model
       @autoIndentSelectedRows() if @shouldAutoIndent()
       @scrollToBufferPosition([newSelectionRanges[0].start.row, 0])
 
-  # Move lines intersecting the most recent selection or muiltiple selections
+  # Move lines intersecting the most recent selection or multiple selections
   # down by one row in screen coordinates.
   moveLineDown: ->
     selections = @getSelectedBufferRanges()
@@ -1582,6 +1592,8 @@ class TextEditor extends Model
   # undo history, no changes will be made to the buffer and this method will
   # return `false`.
   #
+  # * `checkpoint` The checkpoint to revert to.
+  #
   # Returns a {Boolean} indicating whether the operation succeeded.
   revertToCheckpoint: (checkpoint) -> @buffer.revertToCheckpoint(checkpoint)
 
@@ -1590,6 +1602,8 @@ class TextEditor extends Model
   #
   # If the given checkpoint is no longer present in the undo history, no
   # grouping will be performed and this method will return `false`.
+  #
+  # * `checkpoint` The checkpoint from which to group changes.
   #
   # Returns a {Boolean} indicating whether the operation succeeded.
   groupChangesSinceCheckpoint: (checkpoint) -> @buffer.groupChangesSinceCheckpoint(checkpoint)
@@ -1787,8 +1801,13 @@ class TextEditor extends Model
   #        spanned by the `DisplayMarker`.
   #     * `line-number` Adds the given `class` to the line numbers overlapping
   #       the rows spanned by the `DisplayMarker`.
-  #     * `highlight` Creates a `.highlight` div with the nested class with up
-  #       to 3 nested regions that fill the area spanned by the `DisplayMarker`.
+  #     * `text` Injects spans into all text overlapping the marked range,
+  #       then adds the given `class` or `style` properties to these spans.
+  #       Use this to manipulate the foreground color or styling of text in
+  #       a given range.
+  #     * `highlight` Creates an absolutely-positioned `.highlight` div
+  #       containing nested divs to cover the marked region. For example, this
+  #       is used to implement selections.
   #     * `overlay` Positions the view associated with the given item at the
   #       head or tail of the given `DisplayMarker`, depending on the `position`
   #       property.
@@ -1804,9 +1823,10 @@ class TextEditor extends Model
   #       or render artificial cursors that don't actually exist in the model
   #       by passing a marker that isn't actually associated with a cursor.
   #   * `class` This CSS class will be applied to the decorated line number,
-  #     line, highlight, or overlay.
+  #     line, text spans, highlight regions, cursors, or overlay.
   #   * `style` An {Object} containing CSS style properties to apply to the
-  #     relevant DOM node. Currently this only works with a `type` of `cursor`.
+  #     relevant DOM node. Currently this only works with a `type` of `cursor`
+  #     or `text`.
   #   * `item` (optional) An {HTMLElement} or a model {Object} with a
   #     corresponding view registered. Only applicable to the `gutter`,
   #     `overlay` and `block` decoration types.
@@ -2192,7 +2212,7 @@ class TextEditor extends Model
   #
   # Returns a {Cursor}.
   addCursorAtBufferPosition: (bufferPosition, options) ->
-    @selectionsMarkerLayer.markBufferPosition(bufferPosition, Object.assign({invalidate: 'never'}, options))
+    @selectionsMarkerLayer.markBufferPosition(bufferPosition, {invalidate: 'never'})
     @getLastSelection().cursor.autoscroll() unless options?.autoscroll is false
     @getLastSelection().cursor
 
@@ -2360,14 +2380,6 @@ class TextEditor extends Model
         positions[position] = true
     return
 
-  preserveCursorPositionOnBufferReload: ->
-    cursorPosition = null
-    @disposables.add @buffer.onWillReload =>
-      cursorPosition = @getCursorBufferPosition()
-    @disposables.add @buffer.onDidReload =>
-      @setCursorBufferPosition(cursorPosition) if cursorPosition
-      cursorPosition = null
-
   ###
   Section: Selections
   ###
@@ -2508,7 +2520,7 @@ class TextEditor extends Model
   # Essential: Select from the current cursor position to the given position in
   # buffer coordinates.
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   #
   # * `position` An instance of {Point}, with a given `row` and `column`.
   selectToBufferPosition: (position) ->
@@ -2519,7 +2531,7 @@ class TextEditor extends Model
   # Essential: Select from the current cursor position to the given position in
   # screen coordinates.
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   #
   # * `position` An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position, options) ->
@@ -2533,7 +2545,7 @@ class TextEditor extends Model
   #
   # * `rowCount` (optional) {Number} number of rows to select (default: 1)
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectUp: (rowCount) ->
     @expandSelectionsBackward (selection) -> selection.selectUp(rowCount)
 
@@ -2542,7 +2554,7 @@ class TextEditor extends Model
   #
   # * `rowCount` (optional) {Number} number of rows to select (default: 1)
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectDown: (rowCount) ->
     @expandSelectionsForward (selection) -> selection.selectDown(rowCount)
 
@@ -2551,7 +2563,7 @@ class TextEditor extends Model
   #
   # * `columnCount` (optional) {Number} number of columns to select (default: 1)
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectLeft: (columnCount) ->
     @expandSelectionsBackward (selection) -> selection.selectLeft(columnCount)
 
@@ -2560,7 +2572,7 @@ class TextEditor extends Model
   #
   # * `columnCount` (optional) {Number} number of columns to select (default: 1)
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectRight: (columnCount) ->
     @expandSelectionsForward (selection) -> selection.selectRight(columnCount)
 
@@ -2587,7 +2599,7 @@ class TextEditor extends Model
   # Essential: Move the cursor of each selection to the beginning of its line
   # while preserving the selection's tail position.
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectToBeginningOfLine: ->
     @expandSelectionsBackward (selection) -> selection.selectToBeginningOfLine()
 
@@ -2981,7 +2993,7 @@ class TextEditor extends Model
   # Returns a {Boolean} or undefined if no non-comment lines had leading
   # whitespace.
   usesSoftTabs: ->
-    for bufferRow in [0..@buffer.getLastRow()]
+    for bufferRow in [0..Math.min(1000, @buffer.getLastRow())]
       continue if @tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
 
       line = @buffer.lineForRow(bufferRow)
@@ -3037,7 +3049,7 @@ class TextEditor extends Model
       else
         @getEditorWidthInChars()
     else
-      MAX_SCREEN_LINE_LENGTH
+      @maxScreenLineLength
 
   ###
   Section: Indentation
@@ -3239,12 +3251,13 @@ class TextEditor extends Model
   # corresponding clipboard selection text.
   #
   # * `options` (optional) See {Selection::insertText}.
-  pasteText: (options={}) ->
+  pasteText: (options) ->
+    options = Object.assign({}, options)
     {text: clipboardText, metadata} = @constructor.clipboard.readWithMetadata()
     return false unless @emitWillInsertTextEvent(clipboardText)
 
     metadata ?= {}
-    options.autoIndent = @shouldAutoIndentOnPaste()
+    options.autoIndent ?= @shouldAutoIndentOnPaste()
 
     @mutateSelectedText (selection, index) =>
       if metadata.selections?.length is @getSelections().length
@@ -3301,13 +3314,15 @@ class TextEditor extends Model
   # indentation level up to the nearest following row with a lower indentation
   # level.
   foldCurrentRow: ->
-    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
-    @foldBufferRow(bufferRow)
+    {row} = @getCursorBufferPosition()
+    if range = @tokenizedBuffer.getFoldableRangeContainingPoint(Point(row, Infinity))
+      @displayLayer.foldBufferRange(range)
 
   # Essential: Unfold the most recent cursor's row by one level.
   unfoldCurrentRow: ->
-    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
-    @unfoldBufferRow(bufferRow)
+    {row} = @getCursorBufferPosition()
+    position = Point(row, Infinity)
+    @displayLayer.destroyFoldsIntersectingBufferRange(Range(position, position))
 
   # Essential: Fold the given row in buffer coordinates based on its indentation
   # level.
@@ -3317,13 +3332,26 @@ class TextEditor extends Model
   #
   # * `bufferRow` A {Number}.
   foldBufferRow: (bufferRow) ->
-    @languageMode.foldBufferRow(bufferRow)
+    position = Point(bufferRow, Infinity)
+    loop
+      foldableRange = @tokenizedBuffer.getFoldableRangeContainingPoint(position, @getTabLength())
+      if foldableRange
+        existingFolds = @displayLayer.foldsIntersectingBufferRange(Range(foldableRange.start, foldableRange.start))
+        if existingFolds.length is 0
+          @displayLayer.foldBufferRange(foldableRange)
+        else
+          firstExistingFoldRange = @displayLayer.bufferRangeForFold(existingFolds[0])
+          if firstExistingFoldRange.start.isLessThan(position)
+            position = Point(firstExistingFoldRange.start.row, 0)
+            continue
+      return
 
   # Essential: Unfold all folds containing the given row in buffer coordinates.
   #
   # * `bufferRow` A {Number}
   unfoldBufferRow: (bufferRow) ->
-    @displayLayer.destroyFoldsIntersectingBufferRange(Range(Point(bufferRow, 0), Point(bufferRow, Infinity)))
+    position = Point(bufferRow, Infinity)
+    @displayLayer.destroyFoldsIntersectingBufferRange(Range(position, position))
 
   # Extended: For each selection, fold the rows it intersects.
   foldSelectedLines: ->
@@ -3332,18 +3360,25 @@ class TextEditor extends Model
 
   # Extended: Fold all foldable lines.
   foldAll: ->
-    @languageMode.foldAll()
+    @displayLayer.destroyAllFolds()
+    for range in @tokenizedBuffer.getFoldableRanges(@getTabLength())
+      @displayLayer.foldBufferRange(range)
+    return
 
   # Extended: Unfold all existing folds.
   unfoldAll: ->
-    @languageMode.unfoldAll()
+    result = @displayLayer.destroyAllFolds()
     @scrollToCursorPosition()
+    result
 
   # Extended: Fold all foldable lines at the given indent level.
   #
   # * `level` A {Number}.
   foldAllAtIndentLevel: (level) ->
-    @languageMode.foldAllAtIndentLevel(level)
+    @displayLayer.destroyAllFolds()
+    for range in @tokenizedBuffer.getFoldableRangesAtIndentLevel(level, @getTabLength())
+      @displayLayer.foldBufferRange(range)
+    return
 
   # Extended: Determine whether the given row in buffer coordinates is foldable.
   #
@@ -3525,6 +3560,10 @@ class TextEditor extends Model
     else
       1
 
+  Object.defineProperty(@prototype, 'rowsPerPage', {
+    get: -> @getRowsPerPage()
+  })
+
   ###
   Section: Config
   ###
@@ -3533,6 +3572,7 @@ class TextEditor extends Model
   # for specific syntactic scopes. See the `ScopedSettingsDelegate` in
   # `text-editor-registry.js` for an example implementation.
   setScopedSettingsDelegate: (@scopedSettingsDelegate) ->
+    @tokenizedBuffer.scopedSettingsDelegate = this.scopedSettingsDelegate
 
   # Experimental: Retrieve the {Object} that provides the editor with settings
   # for specific syntactic scopes.
@@ -3586,21 +3626,6 @@ class TextEditor extends Model
   getNonWordCharacters: (scopes) ->
     @scopedSettingsDelegate?.getNonWordCharacters?(scopes) ? @nonWordCharacters
 
-  getCommentStrings: (scopes) ->
-    @scopedSettingsDelegate?.getCommentStrings?(scopes)
-
-  getIncreaseIndentPattern: (scopes) ->
-    @scopedSettingsDelegate?.getIncreaseIndentPattern?(scopes)
-
-  getDecreaseIndentPattern: (scopes) ->
-    @scopedSettingsDelegate?.getDecreaseIndentPattern?(scopes)
-
-  getDecreaseNextIndentPattern: (scopes) ->
-    @scopedSettingsDelegate?.getDecreaseNextIndentPattern?(scopes)
-
-  getFoldEndPattern: (scopes) ->
-    @scopedSettingsDelegate?.getFoldEndPattern?(scopes)
-
   ###
   Section: Event Handlers
   ###
@@ -3626,6 +3651,9 @@ class TextEditor extends Model
         @initialScrollTopRow, @initialScrollLeftColumn
       })
       @component.element
+
+  getAllowedLocations: ->
+    ['center']
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
@@ -3833,14 +3861,49 @@ class TextEditor extends Model
   Section: Language Mode Delegated Methods
   ###
 
-  suggestedIndentForBufferRow: (bufferRow, options) -> @languageMode.suggestedIndentForBufferRow(bufferRow, options)
+  suggestedIndentForBufferRow: (bufferRow, options) -> @tokenizedBuffer.suggestedIndentForBufferRow(bufferRow, options)
 
-  autoIndentBufferRow: (bufferRow, options) -> @languageMode.autoIndentBufferRow(bufferRow, options)
+  # Given a buffer row, indent it.
+  #
+  # * bufferRow - The row {Number}.
+  # * options - An options {Object} to pass through to {TextEditor::setIndentationForBufferRow}.
+  autoIndentBufferRow: (bufferRow, options) ->
+    indentLevel = @suggestedIndentForBufferRow(bufferRow, options)
+    @setIndentationForBufferRow(bufferRow, indentLevel, options)
 
-  autoIndentBufferRows: (startRow, endRow) -> @languageMode.autoIndentBufferRows(startRow, endRow)
+  # Indents all the rows between two buffer row numbers.
+  #
+  # * startRow - The row {Number} to start at
+  # * endRow - The row {Number} to end at
+  autoIndentBufferRows: (startRow, endRow) ->
+    row = startRow
+    while row <= endRow
+      @autoIndentBufferRow(row)
+      row++
+    return
 
-  autoDecreaseIndentForBufferRow: (bufferRow) -> @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
+  autoDecreaseIndentForBufferRow: (bufferRow) ->
+    indentLevel = @tokenizedBuffer.suggestedIndentForEditedBufferRow(bufferRow)
+    @setIndentationForBufferRow(bufferRow, indentLevel) if indentLevel?
 
-  toggleLineCommentForBufferRow: (row) -> @languageMode.toggleLineCommentsForBufferRow(row)
+  toggleLineCommentForBufferRow: (row) -> @toggleLineCommentsForBufferRows(row, row)
 
-  toggleLineCommentsForBufferRows: (start, end) -> @languageMode.toggleLineCommentsForBufferRows(start, end)
+  rowRangeForParagraphAtBufferRow: (bufferRow) ->
+    return unless NON_WHITESPACE_REGEXP.test(@lineTextForBufferRow(bufferRow))
+
+    isCommented = @tokenizedBuffer.isRowCommented(bufferRow)
+
+    startRow = bufferRow
+    while startRow > 0
+      break unless NON_WHITESPACE_REGEXP.test(@lineTextForBufferRow(startRow - 1))
+      break if @tokenizedBuffer.isRowCommented(startRow - 1) isnt isCommented
+      startRow--
+
+    endRow = bufferRow
+    rowCount = @getLineCount()
+    while endRow < rowCount
+      break unless NON_WHITESPACE_REGEXP.test(@lineTextForBufferRow(endRow + 1))
+      break if @tokenizedBuffer.isRowCommented(endRow + 1) isnt isCommented
+      endRow++
+
+    new Range(new Point(startRow, 0), new Point(endRow, @buffer.lineLengthForRow(endRow)))
