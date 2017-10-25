@@ -88,14 +88,9 @@ module.exports = class ConfigStorage {
   }
 
   load () {
-    // Do not try and load while we are waiting to load
-    if (this.isLoading) return
+    if (this.isLoading) return // Do not try and load while we are already loading
     this.isLoading = true
-    this.actualLoad()
-    this.isLoading = false
-  }
 
-  actualLoad () {
     try {
       const userConfig = CSON.readFileSync(this.configFilePath) || {}
 
@@ -110,6 +105,8 @@ module.exports = class ConfigStorage {
       this.settingsLoaded = true
       this.notifyFailure(`Failed to load \`${path.basename(this.configFilePath)}\``, (error.location != null) ? error.stack : error.message)
     }
+
+    this.isLoading = false
   }
 
   save () {
@@ -126,13 +123,20 @@ module.exports = class ConfigStorage {
     clearInterval(this.saveTimer)
     this.saveTimer = null
 
-    this.withinConfigFileLock(() => {
-      this.actualLoad() // Reload the user configuration file in case it changed
-      this.actualSave()
-    }, (err) => {
-      this.isSaving = false
-      if (err) {
-        this.save() // Try again
+    const lockFilePath = this.configFilePath + '.lock'
+    lockFile.lock(lockFilePath, {}, (err) => {
+      try {
+        if (err) {
+          this.isSaving = false
+          this.save() // Try again
+        } else {
+          this.load() // Reload the user configuration file in case it changed
+          this.actualSave()
+          lockFile.unlock(lockFilePath, () => { this.isSaving = false })
+        }
+      } catch (err) {
+        this.isSaving = false
+        this.save()
       }
     })
   }
@@ -172,20 +176,6 @@ module.exports = class ConfigStorage {
         break
       }
     }
-  }
-
-  withinConfigFileLock (acquiredOperation, releaseOperation) {
-    const lockFilePath = this.configFilePath + '.lock'
-    lockFile.lock(lockFilePath, {}, (err) => {
-      if (err) {
-        releaseOperation(err)
-      } else {
-        acquiredOperation()
-        lockFile.unlock(lockFilePath, () => {
-          releaseOperation()
-        })
-      }
-    })
   }
 
   observeUserConfigFile () {
