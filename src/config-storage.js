@@ -91,9 +91,8 @@ module.exports = class ConfigStorage {
     // Do not try and load while we are waiting to load
     if (this.isLoading) return
     this.isLoading = true
-
-    // Only load the config if we can get a lock as it might be mid-write
-    this.withinConfigFileLock(() => this.actualLoad(), () => { this.isLoading = false })
+    this.actualLoad()
+    this.isLoading = false
   }
 
   actualLoad () {
