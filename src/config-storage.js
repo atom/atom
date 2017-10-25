@@ -98,7 +98,6 @@ module.exports = class ConfigStorage {
 
   actualLoad () {
     try {
-      console.log('Load file')
       const userConfig = CSON.readFileSync(this.configFilePath) || {}
 
       if (!isPlainObject(userConfig)) {
@@ -117,7 +116,6 @@ module.exports = class ConfigStorage {
   save () {
     // Debounce and retry saves to 250 ms
     if (this.saveTimer == null) {
-      console.log('Save interval setup')
       this.saveTimer = setInterval(() => this.startSave(), 250)
     }
   }
@@ -133,7 +131,6 @@ module.exports = class ConfigStorage {
       this.actualLoad() // Reload the user configuration file in case it changed
       this.actualSave()
     }, (err) => {
-      console.log('Save complete')
       this.isSaving = false
       if (err) {
         this.save() // Try again
@@ -148,13 +145,11 @@ module.exports = class ConfigStorage {
       this.applyOperation(op)
     }
 
-    console.log(`There are ${this.pendingOperations.length} operations, applied ${pendingOperationsCount}`)
     let allSettings = {'*': this.config.settings}
     allSettings = Object.assign(allSettings, this.config.scopedSettingsStore.propertiesForSource(this.getUserConfigPath()))
     allSettings = sortObject(allSettings)
 
     try {
-      console.log(`Save ${JSON.stringify(allSettings)} to file`)
       CSON.writeFileSync(this.configFilePath, allSettings)
       // Remove the operations we successfully processed
       this.pendingOperations = this.pendingOperations.slice(pendingOperationsCount)
@@ -182,16 +177,12 @@ module.exports = class ConfigStorage {
 
   withinConfigFileLock (acquiredOperation, releaseOperation) {
     const lockFilePath = this.configFilePath + '.lock'
-    console.log(`Lock ${lockFilePath}`)
     lockFile.lock(lockFilePath, {}, (err) => {
       if (err) {
-        console.log('Lock failed')
         releaseOperation(err)
       } else {
-        console.log('Lock acquired')
         acquiredOperation()
         lockFile.unlock(lockFilePath, () => {
-          console.log('Lock released')
           releaseOperation()
         })
       }
