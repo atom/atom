@@ -3,7 +3,7 @@ const {Emitter} = require('event-kit')
 const Grim = require('grim')
 const Pane = require('../src/pane')
 const PaneContainer = require('../src/pane-container')
-const {it, fit, ffit, fffit, beforeEach, timeoutPromise} = require('./async-spec-helpers')
+const {it, fit, ffit, fffit, beforeEach, timeoutPromise} = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
 
 describe('Pane', () => {
   let confirm, showSaveDialog, deserializerDisposable
@@ -599,7 +599,7 @@ describe('Pane', () => {
           expect(item1.save).not.toHaveBeenCalled()
           expect(pane.getItems().includes(item1)).toBe(false)
           expect(item1.isDestroyed()).toBe(true)
-          expect(success).toBe(true);
+          expect(success).toBe(true)
         })
       })
 
@@ -655,7 +655,7 @@ describe('Pane', () => {
         const success = await pane.destroyItem(item1)
         expect(pane.getItems().includes(item1)).toBe(true)
         expect(item1.isDestroyed()).toBe(false)
-        expect(success).toBe(false);
+        expect(success).toBe(false)
       })
 
       it('destroy the item if force=true', async () => {

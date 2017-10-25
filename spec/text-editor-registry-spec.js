@@ -547,7 +547,7 @@ describe('TextEditorRegistry', function () {
     it('allows for custom definition of maximum soft wrap based on config', async function () {
       editor.update({
         softWrapped: false,
-        maxScreenLineLength: 1500,
+        maxScreenLineLength: 1500
       })
 
       expect(editor.getSoftWrapColumn()).toBe(1500)

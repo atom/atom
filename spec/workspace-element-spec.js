@@ -39,7 +39,7 @@ describe('WorkspaceElement', () => {
   })
 
   describe('finding the nearest visible pane in a specific direction', () => {
-    let pane1, pane2, pane3, pane4, pane5, pane6, pane7, pane8, pane9,
+    let pane1, pane2, pane3, pane4, pane5, pane6, pane7, pane8, pane9, // eslint-disable-line no-unused-vars
       leftDockPane, rightDockPane, bottomDockPane, workspace, workspaceElement
 
     beforeEach(function () {
@@ -101,14 +101,14 @@ describe('WorkspaceElement', () => {
     describe('finding the nearest pane above', () => {
       describe('when there are multiple rows above the pane', () => {
         it('returns the pane in the adjacent row above', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('above', pane8)
+          const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('above', pane8)
           expect(nearestPaneElement).toBe(pane5.getElement())
         })
       })
 
       describe('when there are no rows above the pane', () => {
         it('returns null', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('above', pane2)
+          const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('above', pane2)
           expect(nearestPaneElement).toBeUndefined() // TODO Expect toBeNull()
         })
       })
@@ -116,7 +116,7 @@ describe('WorkspaceElement', () => {
       describe('when the bottom dock contains the pane', () => {
         it('returns the pane in the adjacent row above', () => {
           workspace.getBottomDock().show()
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('above', bottomDockPane)
+          const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('above', bottomDockPane)
           expect(nearestPaneElement).toBe(pane7.getElement())
         })
       })
@@ -125,14 +125,14 @@ describe('WorkspaceElement', () => {
     describe('finding the nearest pane below', () => {
       describe('when there are multiple rows below the pane', () => {
         it('returns the pane in the adjacent row below', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('below', pane2)
+          const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('below', pane2)
           expect(nearestPaneElement).toBe(pane5.getElement())
         })
       })
 
       describe('when there are no rows below the pane', () => {
         it('returns null', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('below', pane8)
+          const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('below', pane8)
           expect(nearestPaneElement).toBeUndefined() // TODO Expect toBeNull()
         })
       })
@@ -141,7 +141,7 @@ describe('WorkspaceElement', () => {
         describe("when the workspace center's bottommost row contains the pane", () => {
           it("returns the pane in the bottom dock's adjacent row below", () => {
             workspace.getBottomDock().show()
-            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('below', pane8)
+            const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('below', pane8)
             expect(nearestPaneElement).toBe(bottomDockPane.getElement())
           })
         })
@@ -151,14 +151,14 @@ describe('WorkspaceElement', () => {
     describe('finding the nearest pane to the left', () => {
       describe('when there are multiple columns to the left of the pane', () => {
         it('returns the pane in the adjacent column to the left', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', pane6)
+          const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', pane6)
           expect(nearestPaneElement).toBe(pane5.getElement())
         })
       })
 
       describe('when there are no columns to the left of the pane', () => {
         it('returns null', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', pane4)
+          const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', pane4)
           expect(nearestPaneElement).toBeUndefined() // TODO Expect toBeNull()
         })
       })
@@ -166,7 +166,7 @@ describe('WorkspaceElement', () => {
       describe('when the right dock contains the pane', () => {
         it('returns the pane in the adjacent column to the left', () => {
           workspace.getRightDock().show()
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', rightDockPane)
+          const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', rightDockPane)
           expect(nearestPaneElement).toBe(pane3.getElement())
         })
       })
@@ -175,7 +175,7 @@ describe('WorkspaceElement', () => {
         describe("when the workspace center's leftmost column contains the pane", () => {
           it("returns the pane in the left dock's adjacent column to the left", () => {
             workspace.getLeftDock().show()
-            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', pane4)
+            const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', pane4)
             expect(nearestPaneElement).toBe(leftDockPane.getElement())
           })
         })
@@ -184,7 +184,7 @@ describe('WorkspaceElement', () => {
           it("returns the pane in the left dock's adjacent column to the left", () => {
             workspace.getLeftDock().show()
             workspace.getBottomDock().show()
-            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', bottomDockPane)
+            const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', bottomDockPane)
             expect(nearestPaneElement).toBe(leftDockPane.getElement())
           })
         })
@@ -194,14 +194,14 @@ describe('WorkspaceElement', () => {
     describe('finding the nearest pane to the right', () => {
       describe('when there are multiple columns to the right of the pane', () => {
         it('returns the pane in the adjacent column to the right', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', pane4)
+          const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', pane4)
           expect(nearestPaneElement).toBe(pane5.getElement())
         })
       })
 
       describe('when there are no columns to the right of the pane', () => {
         it('returns null', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', pane6)
+          const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', pane6)
           expect(nearestPaneElement).toBeUndefined() // TODO Expect toBeNull()
         })
       })
@@ -209,7 +209,7 @@ describe('WorkspaceElement', () => {
       describe('when the left dock contains the pane', () => {
         it('returns the pane in the adjacent column to the right', () => {
           workspace.getLeftDock().show()
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', leftDockPane)
+          const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', leftDockPane)
           expect(nearestPaneElement).toBe(pane1.getElement())
         })
       })
@@ -218,7 +218,7 @@ describe('WorkspaceElement', () => {
         describe("when the workspace center's rightmost column contains the pane", () => {
           it("returns the pane in the right dock's adjacent column to the right", () => {
             workspace.getRightDock().show()
-            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', pane6)
+            const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', pane6)
             expect(nearestPaneElement).toBe(rightDockPane.getElement())
           })
         })
@@ -227,7 +227,7 @@ describe('WorkspaceElement', () => {
           it("returns the pane in the right dock's adjacent column to the right", () => {
             workspace.getRightDock().show()
             workspace.getBottomDock().show()
-            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', bottomDockPane)
+            const nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', bottomDockPane)
             expect(nearestPaneElement).toBe(rightDockPane.getElement())
           })
         })

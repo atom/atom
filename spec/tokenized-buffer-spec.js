@@ -1,11 +1,10 @@
 const NullGrammar = require('../src/null-grammar')
 const TokenizedBuffer = require('../src/tokenized-buffer')
 const TextBuffer = require('text-buffer')
-const {Point, Range} = TextBuffer
+const {Point} = TextBuffer
 const _ = require('underscore-plus')
 const dedent = require('dedent')
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
-const {ScopedSettingsDelegate} = require('../src/text-editor-registry')
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
 
 describe('TokenizedBuffer', () => {
   let tokenizedBuffer, buffer
@@ -48,7 +47,7 @@ describe('TokenizedBuffer', () => {
     })
 
     describe('when the underlying buffer has no path', () => {
-      beforeEach(() => buffer = atom.project.bufferForPathSync(null))
+      beforeEach(() => { buffer = atom.project.bufferForPathSync(null) })
 
       it('deserializes it searching among the buffers in the current project', () => {
         const tokenizedBufferA = new TokenizedBuffer({buffer, tabLength: 2})
@@ -237,7 +236,7 @@ describe('TokenizedBuffer', () => {
               buffer.setTextInRange([[1, 0], [2, 0]], 'foo()\nbar()\nbaz()\nquux()')
 
               // previous line 0 remains
-              expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({ value: 'var', scopes: ['source.js', 'storage.type.var.js']})
+              expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({value: 'var', scopes: ['source.js', 'storage.type.var.js']})
 
               // 3 new lines inserted
               expect(tokenizedBuffer.tokenizedLines[1].tokens[0]).toEqual({value: 'foo', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js']})
@@ -802,7 +801,7 @@ describe('TokenizedBuffer', () => {
       expect(tokenizedBuffer.getFoldableRanges(2).map(r => r.toString())).toEqual([
         ...tokenizedBuffer.getFoldableRangesAtIndentLevel(0, 2),
         ...tokenizedBuffer.getFoldableRangesAtIndentLevel(1, 2),
-        ...tokenizedBuffer.getFoldableRangesAtIndentLevel(2, 2),
+        ...tokenizedBuffer.getFoldableRangesAtIndentLevel(2, 2)
       ].sort((a, b) => (a.start.row - b.start.row) || (a.end.row - b.end.row)).map(r => r.toString()))
     })
   })

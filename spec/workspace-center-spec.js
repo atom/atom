@@ -2,7 +2,7 @@
 
 const TextEditor = require('../src/text-editor')
 
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers' // eslint-disable-line no-unused-vars
 
 describe('WorkspaceCenter', () => {
   describe('.observeTextEditors()', () => {

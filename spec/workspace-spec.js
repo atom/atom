@@ -33,7 +33,7 @@ describe('Workspace', () => {
     }
   })
 
-  function simulateReload() {
+  function simulateReload () {
     waitsForPromise(() => {
       const workspaceState = workspace.serialize()
       const projectState = atom.project.serialize({isUnloading: true})
@@ -1435,7 +1435,7 @@ describe('Workspace', () => {
   describe('::observeActiveTextEditor()', () => {
     it('invokes the observer with current active text editor and each time a different text editor becomes active', () => {
       const pane = workspace.getCenter().getActivePane()
-      observed = []
+      const observed = []
 
       const inactiveEditorBeforeRegisteringObserver = new TextEditor()
       const activeEditorBeforeRegisteringObserver = new TextEditor()
@@ -1445,7 +1445,7 @@ describe('Workspace', () => {
       workspace.observeActiveTextEditor(editor => observed.push(editor))
 
       const editorAddedAfterRegisteringObserver = new TextEditor()
-      const nonEditorItemAddedAfterRegisteringObserver = document.createElement('div')
+      const nonEditorItemAddedAfterRegisteringObserver = document.createElement('div') // eslint-disable-line no-unused-vars
       pane.activateItem(editorAddedAfterRegisteringObserver)
 
       expect(observed).toEqual(
@@ -1502,7 +1502,7 @@ describe('Workspace', () => {
       const nonEditorItem1 = document.createElement('div')
       const nonEditorItem2 = document.createElement('div')
       pane.activateItem(nonEditorItem1)
-      pane.activateItem(nonEditorItem1)
+      pane.activateItem(nonEditorItem2)
 
       expect(observed).toEqual([])
     })

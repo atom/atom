@@ -1,5 +1,5 @@
 const PaneContainer = require('../src/pane-container')
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
 
 describe('PaneContainer', () => {
   let confirm, params

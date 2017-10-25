@@ -1,7 +1,6 @@
 const fs = require('fs')
 const temp = require('temp').track()
-const {Point, Range} = require('text-buffer')
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
 const TextBuffer = require('text-buffer')
 const TextEditor = require('../src/text-editor')
 

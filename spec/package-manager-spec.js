@@ -8,7 +8,7 @@ const {Disposable} = require('atom')
 const {buildKeydownEvent} = require('../src/keymap-extensions')
 const {mockLocalStorage} = require('./spec-helper')
 const ModuleCache = require('../src/module-cache')
-const {it, fit, ffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const {it, fit, ffit, beforeEach, afterEach} = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
 
 describe('PackageManager', () => {
   function createTestElement (className) {
@@ -1039,8 +1039,7 @@ describe('PackageManager', () => {
       })
     })
 
-
-    describe("URI handler registration", () => {
+    describe('URI handler registration', () => {
       it("registers the package's specified URI handler", async () => {
         const uri = 'atom://package-with-uri-handler/some/url?with=args'
         const mod = require('./fixtures/packages/package-with-uri-handler')

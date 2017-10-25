@@ -17,7 +17,7 @@ describe('PanelContainerElement', () => {
       this.model = model
       return this
     }
-    focus() {}
+    focus () {}
   }
 
   const TestPanelContainerItemElement = document.registerElement(
@@ -161,8 +161,8 @@ describe('PanelContainerElement', () => {
       expect(panel1.getElement()).toHaveClass('from-top')
     })
 
-    describe("autoFocus", () => {
-      function createPanel() {
+    describe('autoFocus', () => {
+      function createPanel () {
         const panel = new Panel(
           {
             item: new TestPanelContainerItem(),
@@ -176,7 +176,7 @@ describe('PanelContainerElement', () => {
         return panel
       }
 
-      it("focuses the first tabbable item if available", () => {
+      it('focuses the first tabbable item if available', () => {
         const panel = createPanel()
         const panelEl = panel.getElement()
         const inputEl = document.createElement('input')
@@ -188,7 +188,7 @@ describe('PanelContainerElement', () => {
         expect(document.activeElement).toBe(inputEl)
       })
 
-      it("focuses the entire panel item when no tabbable item is available and the panel is focusable", () => {
+      it('focuses the entire panel item when no tabbable item is available and the panel is focusable', () => {
         const panel = createPanel()
         const panelEl = panel.getElement()
 
@@ -197,7 +197,7 @@ describe('PanelContainerElement', () => {
         expect(panelEl.focus).toHaveBeenCalled()
       })
 
-      it("returns focus to the original activeElement", () => {
+      it('returns focus to the original activeElement', () => {
         const panel = createPanel()
         const previousActiveElement = document.activeElement
         const panelEl = panel.getElement()
