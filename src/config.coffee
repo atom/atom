@@ -628,6 +628,7 @@ class Config
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: (keyPath, value, options) ->
     @setActual(keyPath, value, options)
+    @emitter.emit 'did-set-or-unset', ['set', keyPath, value, options]
 
   setActual: (keyPath, value, options) ->
     scopeSelector = options?.scopeSelector
@@ -659,6 +660,7 @@ class Config
   #   * `source` (optional) {String}. See {::set}
   unset: (keyPath, options) ->
     @unsetActual(keyPath, options)
+    @emitter.emit 'did-set-or-unset', ['unset', keyPath, options]
 
   unsetActual: (keyPath, options) ->
     {scopeSelector, source} = options ? {}
@@ -764,6 +766,9 @@ class Config
     @transactDepth--
     @emitChangeEvent()
 
+  onDidSetOrUnset: (callback) ->
+    @emitter.on 'did-set-or-unset', callback
+
   pushAtKeyPath: (keyPath, value) ->
     arrayValue = @get(keyPath) ? []
     result = arrayValue.push(value)
@@ -822,7 +827,7 @@ class Config
 
     @transact =>
       @settings = {}
-      @set(key, value) for key, value of newSettings
+      @setActual(key, value) for key, value of newSettings
 
   getRawValue: (keyPath, options) ->
     unless options?.excludeSources?.indexOf(@getUserConfigPath()) >= 0

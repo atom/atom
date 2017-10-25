@@ -77,7 +77,7 @@ class AtomApplication
       default: path.join(fs.getHomeDirectory(), 'github'),
       description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
     }
-    @configStorage = new ConfigStorage({@config, configDirPath: process.env.ATOM_HOME, @resourcePath, enablePersistence: true})
+    @configStorage = new ConfigStorage({@config, configDirPath: process.env.ATOM_HOME, @resourcePath})
     @config.initialize({configFilePath: @configStorage.getUserConfigPath(), projectHomeSchema: ConfigSchema.projectHome})
     @configStorage.start()
     @fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, "recovery"))

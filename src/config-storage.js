@@ -8,25 +8,27 @@ const {watchPath} = require('./path-watcher')
 const Color = require('./color')
 
 module.exports = class ConfigStorage {
+  static createConfigFilePath(configDirPath) {
+    return fs.resolve(configDirPath, 'config', ['json', 'cson']) || path.join(configDirPath, 'config.cson')
+  }
+
   constructor ({config, configDirPath, resourcePath, notificationManager}) {
     this.config = config
     this.configDirPath = configDirPath
+    this.configFilePath = ConfigStorage.createConfigFilePath(configDirPath)
     this.resourcePath = resourcePath
     this.notificationManager = notificationManager
-    this.configFilePath = fs.resolve(configDirPath, 'config', ['json', 'cson'])
-    this.configFilePath = this.configFilePath || path.join(configDirPath, 'config.cson')
-    console.log(`ConfigFilePath is ${this.configFilePath}`)
-
     this.isLoading = false
     this.isSaving = false
   }
 
-  getUserConfigPath() {
+  getUserConfigPath () {
     return this.configFilePath
   }
 
   start () {
     this.pendingOperations = []
+    this.configListener = this.config.onDidSetOrUnset(op => this.capturePendingOperation(op))
     this.initializeConfigDirectory()
     this.initializeUserConfig()
     this.load()
@@ -34,12 +36,27 @@ module.exports = class ConfigStorage {
   }
 
   stop () {
+    if (this.configListener != null) {
+      this.configListener.dispose()
+      this.configListener = null
+    }
     this.save()
     this.unobserveUserConfigFile()
   }
 
+  capturePendingOperation (op) {
+    const option = op.slice(-1)[0]
+    const userConfigSource = option == null || option.source == null || option.source == this.getUserConfigPath()
+    const shouldSave = option == null || option.save
+
+    if (shouldSave && userConfigSource) {
+      this.pendingOperations.push(op)
+      this.save()
+    }
+  }
+
   initializeConfigDirectory (done) {
-    // TODO: Make this method async
+    // Ideally this method would be async but traverseTree isn't so...
     if (fs.existsSync(this.configDirPath)) return
 
     fs.makeTreeSync(this.configDirPath)
@@ -72,73 +89,112 @@ module.exports = class ConfigStorage {
 
   load () {
     // Do not try and load while we are waiting to load
-    console.trace('load')
     if (this.isLoading) return
     this.isLoading = true
 
-    console.log('will load')
-
     // Only load the config if we can get a lock as it might be mid-write
-    this.withinConfigFileLock(() => {
-      try {
-        console.log('load access file')
-        const userConfig = CSON.readFileSync(this.configFilePath) || {}
+    this.withinConfigFileLock(() => this.actualLoad(), () => { this.isLoading = false })
+  }
 
-        if (!isPlainObject(userConfig)) {
-          throw new Error(`\`${path.basename(this.configFilePath)}\` must contain valid JSON or CSON`)
-        }
+  actualLoad () {
+    try {
+      console.log('Load file')
+      const userConfig = CSON.readFileSync(this.configFilePath) || {}
 
-        console.log('load applying settings')
-        this.config.applyUserSettings(userConfig)
-        this.configFileHasErrors = false
-      } catch (error) {
-        this.configFileHasErrors = true
-        this.settingsLoaded = true
-        this.notifyFailure(`Failed to load \`${path.basename(this.configFilePath)}\``, (error.location != null) ? error.stack : error.message)
+      if (!isPlainObject(userConfig)) {
+        throw new Error(`\`${path.basename(this.configFilePath)}\` must contain valid JSON or CSON`)
       }
-    }, () => {
-      this.isLoading = false
-    })
+
+      this.config.applyUserSettings(userConfig)
+      this.configFileHasErrors = false
+    } catch (error) {
+      this.configFileHasErrors = true
+      this.settingsLoaded = true
+      this.notifyFailure(`Failed to load \`${path.basename(this.configFilePath)}\``, (error.location != null) ? error.stack : error.message)
+    }
   }
 
   save () {
+    // Debounce and retry saves to 250 ms
+    if (this.saveTimer == null) {
+      console.log('Save interval setup')
+      this.saveTimer = setInterval(() => this.startSave(), 250)
+    }
+  }
+
+  startSave () {
     if (this.isSaving || this.isLoading || this.configFileHasErrors) return
     this.isSaving = true
 
+    clearInterval(this.saveTimer)
+    this.saveTimer = null
+
     this.withinConfigFileLock(() => {
-      // Reload the user configuration file in case it changed
-      this.loadUserConfig()
-      // Take as many operations as currently in the queue and apply them
-      const pendingOperationsCount = this.pendingOperations.length
-      for (let op of this.pendingOperations.slice(0, pendingOperationsCount)) { op() }
-
-      console.log(`There are ${this.pendingOperations.length}`)
-      let allSettings = {'*': this.settings}
-      allSettings = Object.assign(allSettings, this.scopedSettingsStore.propertiesForSource(this.getUserConfigPath()))
-      allSettings = sortObject(allSettings)
-
-      try {
-        CSON.writeFileSync(this.configFilePath, allSettings)
-        // Remove the operations we successfully processed
-        this.pendingOperations = this.pendingOperations.slice(pendingOperationsCount)
-        console.log(`There are now ${this.pendingOperations.length}`)
-      } catch (error) {
-        this.notifyFailure(`Failed to save \`${path.basename(this.configFilePath)}\``, error.message)
-      }
-    }, () => {
+      this.actualLoad() // Reload the user configuration file in case it changed
+      this.actualSave()
+    }, (err) => {
+      console.log('Save complete')
       this.isSaving = false
+      if (err) {
+        this.save() // Try again
+      }
     })
+  }
+
+  actualSave () {
+    // Take as many operations as currently in the queue and apply them
+    const pendingOperationsCount = this.pendingOperations.length
+    for (let op of this.pendingOperations.slice(0, pendingOperationsCount)) {
+      this.applyOperation(op)
+    }
+
+    console.log(`There are ${this.pendingOperations.length} operations, applied ${pendingOperationsCount}`)
+    let allSettings = {'*': this.config.settings}
+    allSettings = Object.assign(allSettings, this.config.scopedSettingsStore.propertiesForSource(this.getUserConfigPath()))
+    allSettings = sortObject(allSettings)
+
+    try {
+      console.log(`Save ${JSON.stringify(allSettings)} to file`)
+      CSON.writeFileSync(this.configFilePath, allSettings)
+      // Remove the operations we successfully processed
+      this.pendingOperations = this.pendingOperations.slice(pendingOperationsCount)
+      // Schedule another save if some happened during
+      if (this.pendingOperations.length > 0) {
+        this.save()
+      }
+    } catch (error) {
+      this.notifyFailure(`Failed to save \`${path.basename(this.configFilePath)}\``, error.message)
+    }
+  }
+
+  applyOperation (op) {
+    switch(op[0]) {
+      case 'set': {
+        this.config.setActual(op[1], op[2], op[3])
+        break
+      }
+      case 'unset': {
+        this.config.unsetActual(op[1], op[2])
+        break
+      }
+    }
   }
 
   withinConfigFileLock (acquiredOperation, releaseOperation) {
     const lockFilePath = this.configFilePath + '.lock'
-    lockFile.lock(lockFilePath, {}, err => {
-      if (err) console.error(err)
-      acquiredOperation()
-      lockFile.unlock(lockFilePath, err => {
-        if (err) console.error(err)
-        releaseOperation()
-      })
+    console.log(`Lock ${lockFilePath}`)
+    lockFile.lock(lockFilePath, {}, (err) => {
+      if (err) {
+        console.log('Lock failed')
+        releaseOperation(err)
+      } else {
+        console.log('Lock acquired')
+        acquiredOperation()
+        lockFile.unlock(lockFilePath, (err) => {
+          console.log('Lock released')
+          releaseOperation()
+        })
+      }
     })
   }
 
