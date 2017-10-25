@@ -2497,7 +2497,7 @@ class TextEditor extends Model
   addSelectionForBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     unless options.preserveFolds
-      @displayLayer.destroyFoldsContainingBufferPositions([bufferRange.start, bufferRange.end])
+      @displayLayer.destroyFoldsContainingBufferPositions([bufferRange.start, bufferRange.end], true)
     @selectionsMarkerLayer.markBufferRange(bufferRange, {invalidate: 'never', reversed: options.reversed ? false})
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
@@ -3318,8 +3318,7 @@ class TextEditor extends Model
   # Essential: Unfold the most recent cursor's row by one level.
   unfoldCurrentRow: ->
     {row} = @getCursorBufferPosition()
-    position = Point(row, Infinity)
-    @displayLayer.destroyFoldsIntersectingBufferRange(Range(position, position))
+    @displayLayer.destroyFoldsContainingBufferPositions([Point(row, Infinity)], false)
 
   # Essential: Fold the given row in buffer coordinates based on its indentation
   # level.
@@ -3348,7 +3347,7 @@ class TextEditor extends Model
   # * `bufferRow` A {Number}
   unfoldBufferRow: (bufferRow) ->
     position = Point(bufferRow, Infinity)
-    @displayLayer.destroyFoldsIntersectingBufferRange(Range(position, position))
+    @displayLayer.destroyFoldsContainingBufferPositions([position])
 
   # Extended: For each selection, fold the rows it intersects.
   foldSelectedLines: ->
@@ -3447,9 +3446,9 @@ class TextEditor extends Model
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
     @displayLayer.destroyFoldsIntersectingBufferRange(bufferRange)
 
-  # Remove any {Fold}s found that intersect the given array of buffer positions.
-  destroyFoldsContainingBufferPositions: (bufferPositions) ->
-    @displayLayer.destroyFoldsContainingBufferPositions(bufferPositions)
+  # Remove any {Fold}s found that contain the given array of buffer positions.
+  destroyFoldsContainingBufferPositions: (bufferPositions, excludeEndpoints) ->
+    @displayLayer.destroyFoldsContainingBufferPositions(bufferPositions, excludeEndpoints)
 
   ###
   Section: Gutters
