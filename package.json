@@ -168,7 +168,7 @@
     "language-toml": "0.18.1",
     "language-typescript": "0.2.2",
     "language-xml": "0.35.2",
-    "language-yaml": "0.31.0"
+    "language-yaml": "0.31.1"
   },
   "private": true,
   "scripts": {
