@@ -1771,7 +1771,7 @@ class TextEditorComponent {
 
     if (target && target.matches('.fold-marker')) {
       const bufferPosition = model.bufferPositionForScreenPosition(screenPosition)
-      model.destroyFoldsIntersectingBufferRange(Range(bufferPosition, bufferPosition))
+      model.destroyFoldsContainingBufferPositions([bufferPosition], false)
       return
     }
 
