@@ -2495,8 +2495,9 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
+    bufferRange = Range.fromObject(bufferRange)
     unless options.preserveFolds
-      @destroyFoldsIntersectingBufferRange(bufferRange)
+      @displayLayer.destroyFoldsContainingBufferPositions([bufferRange.start, bufferRange.end])
     @selectionsMarkerLayer.markBufferRange(bufferRange, {invalidate: 'never', reversed: options.reversed ? false})
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
@@ -3445,6 +3446,10 @@ class TextEditor extends Model
   # Remove any {Fold}s found that intersect the given buffer range.
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
     @displayLayer.destroyFoldsIntersectingBufferRange(bufferRange)
+
+  # Remove any {Fold}s found that intersect the given array of buffer positions.
+  destroyFoldsContainingBufferPositions: (bufferPositions) ->
+    @displayLayer.destroyFoldsContainingBufferPositions(bufferPositions)
 
   ###
   Section: Gutters

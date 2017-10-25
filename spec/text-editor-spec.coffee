@@ -1871,7 +1871,7 @@ describe "TextEditor", ->
         expect(selection1.getBufferRange()).toEqual [[2, 2], [3, 3]]
 
       describe "when the 'preserveFolds' option is false (the default)", ->
-        it "removes folds that contain the selections", ->
+        it "removes folds that contain one or both of the selection's end points", ->
           editor.setSelectedBufferRange([[0, 0], [0, 0]])
           editor.foldBufferRowRange(1, 4)
           editor.foldBufferRowRange(2, 3)
@@ -1882,6 +1882,9 @@ describe "TextEditor", ->
           expect(editor.isFoldedAtScreenRow(1)).toBeFalsy()
           expect(editor.isFoldedAtScreenRow(2)).toBeFalsy()
           expect(editor.isFoldedAtScreenRow(6)).toBeFalsy()
+          expect(editor.isFoldedAtScreenRow(10)).toBeTruthy()
+
+          editor.setSelectedBufferRange([[10, 0], [12, 0]])
           expect(editor.isFoldedAtScreenRow(10)).toBeTruthy()
 
       describe "when the 'preserveFolds' option is true", ->
