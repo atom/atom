@@ -219,7 +219,7 @@ class AtomEnvironment extends Model
     if @enablePersistence
       @configStorage = new ConfigStorage({@config, @configDirPath, resourcePath, notificationManager: @notifications})
       @configStorage.start()
-    @config.initialize({configFilePath: ConfigStorage.createConfigFilePath(@configDirPath), projectHomeSchema: ConfigSchema.projectHome})      
+    @config.initialize({configFilePath: ConfigStorage.createConfigFilePath(@configDirPath), projectHomeSchema: ConfigSchema.projectHome})
 
     @menu.initialize({resourcePath})
     @contextMenu.initialize({resourcePath, devMode})

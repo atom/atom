@@ -8,7 +8,7 @@ const {watchPath} = require('./path-watcher')
 const Color = require('./color')
 
 module.exports = class ConfigStorage {
-  static createConfigFilePath(configDirPath) {
+  static createConfigFilePath (configDirPath) {
     return fs.resolve(configDirPath, 'config', ['json', 'cson']) || path.join(configDirPath, 'config.cson')
   }
 
@@ -46,7 +46,7 @@ module.exports = class ConfigStorage {
 
   capturePendingOperation (op) {
     const option = op.slice(-1)[0]
-    const userConfigSource = option == null || option.source == null || option.source == this.getUserConfigPath()
+    const userConfigSource = option == null || option.source == null || option.source === this.getUserConfigPath()
     const shouldSave = option == null || option.save
 
     if (shouldSave && userConfigSource) {
@@ -168,7 +168,7 @@ module.exports = class ConfigStorage {
   }
 
   applyOperation (op) {
-    switch(op[0]) {
+    switch (op[0]) {
       case 'set': {
         this.config.setActual(op[1], op[2], op[3])
         break
@@ -190,7 +190,7 @@ module.exports = class ConfigStorage {
       } else {
         console.log('Lock acquired')
         acquiredOperation()
-        lockFile.unlock(lockFilePath, (err) => {
+        lockFile.unlock(lockFilePath, () => {
           console.log('Lock released')
           releaseOperation()
         })
