@@ -19,6 +19,8 @@ module.exports = function parseCommandLine (processArgs) {
     will be opened in that window. Otherwise, they will be opened in a new
     window.
 
+    Paths that start with \`atom://\` will be interpreted as URLs.
+
     Environment Variables:
 
       ATOM_DEV_RESOURCE_PATH  The path from which Atom loads source code in dev mode.
@@ -56,8 +58,18 @@ module.exports = function parseCommandLine (processArgs) {
   options.string('user-data-dir')
   options.boolean('clear-window-state').describe('clear-window-state', 'Delete all Atom environment state.')
   options.boolean('enable-electron-logging').describe('enable-electron-logging', 'Enable low-level logging messages from Electron.')
+  options.boolean('uri-handler')
 
-  const args = options.argv
+  let args = options.argv
+
+  // If --uri-handler is set, then we parse NOTHING else
+  if (args.uriHandler) {
+    args = {
+      uriHandler: true,
+      'uri-handler': true,
+      _: args._.filter(str => str.startsWith('atom://')).slice(0, 1)
+    }
+  }
 
   if (args.help) {
     process.stdout.write(options.help())
@@ -76,7 +88,6 @@ module.exports = function parseCommandLine (processArgs) {
 
   const addToLastWindow = args['add']
   const safeMode = args['safe']
-  const pathsToOpen = args._
   const benchmark = args['benchmark']
   const benchmarkTest = args['benchmark-test']
   const test = args['test']
@@ -100,10 +111,19 @@ module.exports = function parseCommandLine (processArgs) {
   const userDataDir = args['user-data-dir']
   const profileStartup = args['profile-startup']
   const clearWindowState = args['clear-window-state']
-  const urlsToOpen = []
+  let pathsToOpen = []
+  let urlsToOpen = []
   let devMode = args['dev']
   let devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH || path.join(app.getPath('home'), 'github', 'atom')
   let resourcePath = null
+
+  for (const path of args._) {
+    if (path.startsWith('atom://')) {
+      urlsToOpen.push(path)
+    } else {
+      pathsToOpen.push(path)
+    }
+  }
 
   if (args['resource-path']) {
     devMode = true

@@ -117,7 +117,7 @@ class TextEditorComponent {
     this.linesToMeasure = new Map()
     this.extraRenderedScreenLines = new Map()
     this.horizontalPositionsToMeasure = new Map() // Keys are rows with positions we want to measure, values are arrays of columns to measure
-    this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horiontal pixel positions
+    this.horizontalPixelPositionsByScreenLineId = new Map() // Values are maps from column to horizontal pixel positions
     this.blockDecorationsToMeasure = new Set()
     this.blockDecorationsByElement = new WeakMap()
     this.blockDecorationSentinel = document.createElement('div')
@@ -362,7 +362,7 @@ class TextEditorComponent {
       this.requestHorizontalMeasurement(screenRange.start.row, screenRange.start.column)
       this.requestHorizontalMeasurement(screenRange.end.row, screenRange.end.column)
     }
-    this.populateVisibleRowRange()
+    this.populateVisibleRowRange(this.getRenderedStartRow())
     this.populateVisibleTiles()
     this.queryScreenLinesToRender()
     this.queryLongestLine()
@@ -804,7 +804,15 @@ class TextEditorComponent {
           key: overlayProps.element,
           overlayComponents: this.overlayComponents,
           measuredDimensions: this.overlayDimensionsByElement.get(overlayProps.element),
-          didResize: () => { this.updateSync() }
+          didResize: (overlayComponent) => {
+            this.updateOverlayToRender(overlayProps)
+            overlayComponent.update(Object.assign(
+              {
+                measuredDimensions: this.overlayDimensionsByElement.get(overlayProps.element)
+              },
+              overlayProps
+            ))
+          }
         },
         overlayProps
       ))
@@ -1153,9 +1161,11 @@ class TextEditorComponent {
   }
 
   addBlockDecorationToRender (decoration, screenRange, reversed) {
-    const screenPosition = reversed ? screenRange.start : screenRange.end
-    const tileStartRow = this.tileStartRowForRow(screenPosition.row)
-    const screenLine = this.renderedScreenLines[screenPosition.row - this.getRenderedStartRow()]
+    const {row} = reversed ? screenRange.start : screenRange.end
+    if (row < this.getRenderedStartRow() || row >= this.getRenderedEndRow()) return
+
+    const tileStartRow = this.tileStartRowForRow(row)
+    const screenLine = this.renderedScreenLines[row - this.getRenderedStartRow()]
 
     let decorationsByScreenLine = this.decorationsToRender.blocks.get(tileStartRow)
     if (!decorationsByScreenLine) {
@@ -1337,42 +1347,47 @@ class TextEditorComponent {
     })
   }
 
+  updateOverlayToRender (decoration) {
+    const windowInnerHeight = this.getWindowInnerHeight()
+    const windowInnerWidth = this.getWindowInnerWidth()
+    const contentClientRect = this.refs.content.getBoundingClientRect()
+
+    const {element, screenPosition, avoidOverflow} = decoration
+    const {row, column} = screenPosition
+    let wrapperTop = contentClientRect.top + this.pixelPositionAfterBlocksForRow(row) + this.getLineHeight()
+    let wrapperLeft = contentClientRect.left + this.pixelLeftForRowAndColumn(row, column)
+    const clientRect = element.getBoundingClientRect()
+    this.overlayDimensionsByElement.set(element, clientRect)
+
+    if (avoidOverflow !== false) {
+      const computedStyle = window.getComputedStyle(element)
+      const elementTop = wrapperTop + parseInt(computedStyle.marginTop)
+      const elementBottom = elementTop + clientRect.height
+      const flippedElementTop = wrapperTop - this.getLineHeight() - clientRect.height - parseInt(computedStyle.marginBottom)
+      const elementLeft = wrapperLeft + parseInt(computedStyle.marginLeft)
+      const elementRight = elementLeft + clientRect.width
+
+      if (elementBottom > windowInnerHeight && flippedElementTop >= 0) {
+        wrapperTop -= (elementTop - flippedElementTop)
+      }
+      if (elementLeft < 0) {
+        wrapperLeft -= elementLeft
+      } else if (elementRight > windowInnerWidth) {
+        wrapperLeft -= (elementRight - windowInnerWidth)
+      }
+    }
+
+    decoration.pixelTop = Math.round(wrapperTop)
+    decoration.pixelLeft = Math.round(wrapperLeft)
+  }
+
   updateOverlaysToRender () {
     const overlayCount = this.decorationsToRender.overlays.length
     if (overlayCount === 0) return null
 
-    const windowInnerHeight = this.getWindowInnerHeight()
-    const windowInnerWidth = this.getWindowInnerWidth()
-    const contentClientRect = this.refs.content.getBoundingClientRect()
     for (let i = 0; i < overlayCount; i++) {
       const decoration = this.decorationsToRender.overlays[i]
-      const {element, screenPosition, avoidOverflow} = decoration
-      const {row, column} = screenPosition
-      let wrapperTop = contentClientRect.top + this.pixelPositionAfterBlocksForRow(row) + this.getLineHeight()
-      let wrapperLeft = contentClientRect.left + this.pixelLeftForRowAndColumn(row, column)
-      const clientRect = element.getBoundingClientRect()
-      this.overlayDimensionsByElement.set(element, clientRect)
-
-      if (avoidOverflow !== false) {
-        const computedStyle = window.getComputedStyle(element)
-        const elementTop = wrapperTop + parseInt(computedStyle.marginTop)
-        const elementBottom = elementTop + clientRect.height
-        const flippedElementTop = wrapperTop - this.getLineHeight() - clientRect.height - parseInt(computedStyle.marginBottom)
-        const elementLeft = wrapperLeft + parseInt(computedStyle.marginLeft)
-        const elementRight = elementLeft + clientRect.width
-
-        if (elementBottom > windowInnerHeight && flippedElementTop >= 0) {
-          wrapperTop -= (elementTop - flippedElementTop)
-        }
-        if (elementLeft < 0) {
-          wrapperLeft -= elementLeft
-        } else if (elementRight > windowInnerWidth) {
-          wrapperLeft -= (elementRight - windowInnerWidth)
-        }
-      }
-
-      decoration.pixelTop = Math.round(wrapperTop)
-      decoration.pixelLeft = Math.round(wrapperLeft)
+      this.updateOverlayToRender(decoration)
     }
   }
 
@@ -1401,6 +1416,9 @@ class TextEditorComponent {
 
       if (this.isVisible()) {
         this.didShow()
+
+        if (this.refs.verticalScrollbar) this.refs.verticalScrollbar.flushScrollPosition()
+        if (this.refs.horizontalScrollbar) this.refs.horizontalScrollbar.flushScrollPosition()
       } else {
         this.didHide()
       }
@@ -1590,30 +1608,30 @@ class TextEditorComponent {
   }
 
   didTextInput (event) {
-    if (!this.isInputEnabled()) return
-
-    event.stopPropagation()
-
-    // WARNING: If we call preventDefault on the input of a space character,
-    // then the browser interprets the spacebar keypress as a page-down command,
-    // causing spaces to scroll elements containing editors. This is impossible
-    // to test.
-    if (event.data !== ' ') event.preventDefault()
-
     if (this.compositionCheckpoint) {
       this.props.model.revertToCheckpoint(this.compositionCheckpoint)
       this.compositionCheckpoint = null
     }
 
-    // If the input event is fired while the accented character menu is open it
-    // means that the user has chosen one of the accented alternatives. Thus, we
-    // will replace the original non accented character with the selected
-    // alternative.
-    if (this.accentedCharacterMenuIsOpen) {
-      this.props.model.selectLeft()
-    }
+    if (this.isInputEnabled()) {
+      event.stopPropagation()
 
-    this.props.model.insertText(event.data, {groupUndo: true})
+      // WARNING: If we call preventDefault on the input of a space character,
+      // then the browser interprets the spacebar keypress as a page-down command,
+      // causing spaces to scroll elements containing editors. This is impossible
+      // to test.
+      if (event.data !== ' ') event.preventDefault()
+
+      // If the input event is fired while the accented character menu is open it
+      // means that the user has chosen one of the accented alternatives. Thus, we
+      // will replace the original non accented character with the selected
+      // alternative.
+      if (this.accentedCharacterMenuIsOpen) {
+        this.props.model.selectLeft()
+      }
+
+      this.props.model.insertText(event.data, {groupUndo: true})
+    }
   }
 
   // We need to get clever to detect when the accented character menu is
@@ -1633,6 +1651,11 @@ class TextEditorComponent {
   // keypress, meaning we're *holding* the _same_ key we intially pressed.
   // Got that?
   didKeydown (event) {
+    // Stop dragging when user interacts with the keyboard. This prevents
+    // unwanted selections in the case edits are performed while selecting text
+    // at the same time.
+    if (this.stopDragging) this.stopDragging()
+
     if (this.lastKeydownBeforeKeypress != null) {
       if (this.lastKeydownBeforeKeypress.code === event.code) {
         this.accentedCharacterMenuIsOpen = true
@@ -1761,22 +1784,22 @@ class TextEditorComponent {
           if (existingSelection) {
             if (model.hasMultipleCursors()) existingSelection.destroy()
           } else {
-            model.addCursorAtScreenPosition(screenPosition)
+            model.addCursorAtScreenPosition(screenPosition, {autoscroll: false})
           }
         } else {
           if (shiftKey) {
-            model.selectToScreenPosition(screenPosition)
+            model.selectToScreenPosition(screenPosition, {autoscroll: false})
           } else {
-            model.setCursorScreenPosition(screenPosition)
+            model.setCursorScreenPosition(screenPosition, {autoscroll: false})
           }
         }
         break
       case 2:
-        if (addOrRemoveSelection) model.addCursorAtScreenPosition(screenPosition)
+        if (addOrRemoveSelection) model.addCursorAtScreenPosition(screenPosition, {autoscroll: false})
         model.getLastSelection().selectWord({autoscroll: false})
         break
       case 3:
-        if (addOrRemoveSelection) model.addCursorAtScreenPosition(screenPosition)
+        if (addOrRemoveSelection) model.addCursorAtScreenPosition(screenPosition, {autoscroll: false})
         model.getLastSelection().selectLine(null, {autoscroll: false})
         break
     }
@@ -1857,7 +1880,6 @@ class TextEditorComponent {
   handleMouseDragUntilMouseUp ({didDrag, didStopDragging}) {
     let dragging = false
     let lastMousemoveEvent
-    let bufferWillChangeDisposable
 
     const animationFrameLoop = () => {
       window.requestAnimationFrame(() => {
@@ -1877,9 +1899,9 @@ class TextEditorComponent {
     }
 
     function didMouseUp () {
+      this.stopDragging = null
       window.removeEventListener('mousemove', didMouseMove)
-      window.removeEventListener('mouseup', didMouseUp)
-      bufferWillChangeDisposable.dispose()
+      window.removeEventListener('mouseup', didMouseUp, {capture: true})
       if (dragging) {
         dragging = false
         didStopDragging()
@@ -1888,10 +1910,7 @@ class TextEditorComponent {
 
     window.addEventListener('mousemove', didMouseMove)
     window.addEventListener('mouseup', didMouseUp, {capture: true})
-    // Simulate a mouse-up event if the buffer is about to change. This prevents
-    // unwanted selections when users perform edits while holding the left mouse
-    // button at the same time.
-    bufferWillChangeDisposable = this.props.model.getBuffer().onWillChange(didMouseUp)
+    this.stopDragging = didMouseUp
   }
 
   autoscrollOnMouseDrag ({clientX, clientY}, verticalOnly = false) {
@@ -2091,14 +2110,30 @@ class TextEditorComponent {
     return marginInBaseCharacters * this.getBaseCharacterWidth()
   }
 
+  // This method is called at the beginning of a frame render to relay any
+  // potential changes in the editor's width into the model before proceeding.
   updateModelSoftWrapColumn () {
     const {model} = this.props
     const newEditorWidthInChars = this.getScrollContainerClientWidthInBaseCharacters()
     if (newEditorWidthInChars !== model.getEditorWidthInChars()) {
       this.suppressUpdates = true
+
+      const renderedStartRow = this.getRenderedStartRow()
       this.props.model.setEditorWidthInChars(newEditorWidthInChars)
-      // Wrapping may cause a vertical scrollbar to appear, which will change the width again.
+
+      // Relaying a change in to the editor's client width may cause the
+      // vertical scrollbar to appear or disappear, which causes the editor's
+      // client width to change *again*. Make sure the display layer is fully
+      // populated for the visible area before recalculating the editor's
+      // width in characters. Then update the display layer *again* just in
+      // case a change in scrollbar visibility causes lines to wrap
+      // differently. We capture the renderedStartRow before resetting the
+      // display layer because once it has been reset, we can't compute the
+      // rendered start row accurately. 😥
+      this.populateVisibleRowRange(renderedStartRow)
       this.props.model.setEditorWidthInChars(this.getScrollContainerClientWidthInBaseCharacters())
+      this.derivedDimensionsCache = {}
+
       this.suppressUpdates = false
     }
   }
@@ -2501,7 +2536,8 @@ class TextEditorComponent {
         didUpdateDisposable.dispose()
         didDestroyDisposable.dispose()
 
-        if (marker.isValid()) {
+        if (wasValid) {
+          wasValid = false
           this.blockDecorationsToMeasure.delete(decoration)
           this.heightsByBlockDecoration.delete(decoration)
           this.blockDecorationsByElement.delete(element)
@@ -2745,7 +2781,7 @@ class TextEditorComponent {
   // but keeping this calculation simple ensures the number of tiles remains
   // fixed for a given editor height, which eliminates situations where a
   // tile is repeatedly added and removed during scrolling in certain
-  // comibinations of editor height and line height.
+  // combinations of editor height and line height.
   getVisibleTileCount () {
     if (this.derivedDimensionsCache.visibleTileCount == null) {
       const editorHeightInTiles = this.getScrollContainerHeight() / this.getLineHeight() / this.getRowsPerTile()
@@ -2862,13 +2898,19 @@ class TextEditorComponent {
     }
   }
 
-  // Ensure the spatial index is populated with rows that are currently
-  // visible so we *at least* get the longest row in the visible range.
-  populateVisibleRowRange () {
-    const editorHeightInTiles = this.getScrollContainerHeight() / this.getLineHeight()
-    const visibleTileCount = Math.ceil(editorHeightInTiles) + 1
-    const lastRenderedRow = this.getRenderedStartRow() + (visibleTileCount * this.getRowsPerTile())
-    this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, lastRenderedRow)
+  // Ensure the spatial index is populated with rows that are currently visible
+  populateVisibleRowRange (renderedStartRow) {
+    const {model} = this.props
+    const previousScreenLineCount = model.getApproximateScreenLineCount()
+
+    const renderedEndRow = renderedStartRow + (this.getVisibleTileCount() * this.getRowsPerTile())
+    this.props.model.displayLayer.populateSpatialIndexIfNeeded(Infinity, renderedEndRow)
+
+    // If the approximate screen line count changes, previously-cached derived
+    // dimensions could now be out of date.
+    if (model.getApproximateScreenLineCount() !== previousScreenLineCount) {
+      this.derivedDimensionsCache = {}
+    }
   }
 
   populateVisibleTiles () {
@@ -4173,8 +4215,8 @@ class OverlayComponent {
       const {contentRect} = entries[0]
       if (contentRect.width !== this.props.measuredDimensions.width || contentRect.height !== this.props.measuredDimensions.height) {
         this.resizeObserver.disconnect()
-        this.props.didResize()
-        process.nextTick(() => { this.resizeObserver.observe(this.element) })
+        this.props.didResize(this)
+        process.nextTick(() => { this.resizeObserver.observe(this.props.element) })
       }
     })
     this.didAttach()
@@ -4186,19 +4228,34 @@ class OverlayComponent {
     this.didDetach()
   }
 
+  getNextUpdatePromise () {
+    if (!this.nextUpdatePromise) {
+      this.nextUpdatePromise = new Promise((resolve) => {
+        this.resolveNextUpdatePromise = () => {
+          this.nextUpdatePromise = null
+          this.resolveNextUpdatePromise = null
+          resolve()
+        }
+      })
+    }
+    return this.nextUpdatePromise
+  }
+
   update (newProps) {
     const oldProps = this.props
-    this.props = newProps
+    this.props = Object.assign({}, oldProps, newProps)
     if (this.props.pixelTop != null) this.element.style.top = this.props.pixelTop + 'px'
     if (this.props.pixelLeft != null) this.element.style.left = this.props.pixelLeft + 'px'
     if (newProps.className !== oldProps.className) {
       if (oldProps.className != null) this.element.classList.remove(oldProps.className)
       if (newProps.className != null) this.element.classList.add(newProps.className)
     }
+
+    if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
   }
 
   didAttach () {
-    this.resizeObserver.observe(this.element)
+    this.resizeObserver.observe(this.props.element)
   }
 
   didDetach () {
@@ -4307,7 +4364,7 @@ class NodePool {
     }
 
     if (element) {
-      element.className = className
+      element.className = className || ''
       element.styleMap.forEach((value, key) => {
         if (!style || style[key] == null) element.style[key] = ''
       })

@@ -1,5 +1,7 @@
 const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
 
+const Random = require('../script/node_modules/random-seed')
+const {getRandomBufferRange, buildRandomLines} = require('./helpers/random')
 const TextEditorComponent = require('../src/text-editor-component')
 const TextEditorElement = require('../src/text-editor-element')
 const TextEditor = require('../src/text-editor')
@@ -12,7 +14,6 @@ const electron = require('electron')
 const clipboard = require('../src/safe-clipboard')
 
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
-const NBSP_CHARACTER = '\u00a0'
 
 document.registerElement('text-editor-component-test-element', {
   prototype: Object.create(HTMLElement.prototype, {
@@ -286,6 +287,31 @@ describe('TextEditorComponent', () => {
       expect(lineNumberNodeForScreenRow(component, 0).querySelector('.foldable')).toBeNull()
     })
 
+    it('gracefully handles folds that change the soft-wrap boundary by causing the vertical scrollbar to disappear (regression)', async () => {
+      const text =  ('x'.repeat(100) + '\n') + 'y\n'.repeat(28) + '  z\n'.repeat(50)
+      const {component, element, editor} = buildComponent({text, height: 1000, width: 500})
+
+      element.addEventListener('scroll', (event) => {
+        event.stopPropagation()
+      }, true)
+
+      editor.setSoftWrapped(true)
+      jasmine.attachToDOM(element)
+      await component.getNextUpdatePromise()
+
+      const firstScreenLineLengthWithVerticalScrollbar = element.querySelector('.line').textContent.length
+
+      setScrollTop(component, 620)
+      await component.getNextUpdatePromise()
+
+      editor.foldBufferRow(28)
+      await component.getNextUpdatePromise()
+
+      const firstLineElement = element.querySelector('.line')
+      expect(firstLineElement.dataset.screenRow).toBe('0')
+      expect(firstLineElement.textContent.length).toBeGreaterThan(firstScreenLineLengthWithVerticalScrollbar)
+    })
+
     it('shows the foldable icon on the last screen row of a buffer row that can be folded', async () => {
       const {component, element, editor} = buildComponent({text: 'abc\n  de\nfghijklm\n  no', softWrapped: true})
       await setEditorWidthInCharacters(component, 5)
@@ -378,35 +404,50 @@ describe('TextEditorComponent', () => {
       expect(horizontalScrollbar.style.visibility).toBe('')
     })
 
-    it('updates the bottom/right of dummy scrollbars and client height/width measurements without forgetting the previous scroll top/left when scrollbar styles change', async () => {
-      const {component, element, editor} = buildComponent({height: 100, width: 100})
-      expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(10)
-      expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(10)
-      setScrollTop(component, 20)
-      setScrollLeft(component, 10)
-      await component.getNextUpdatePromise()
+    describe('when scrollbar styles change or the editor element is detached and then reattached', () => {
+      it('updates the bottom/right of dummy scrollbars and client height/width measurements', async () => {
+        const {component, element, editor} = buildComponent({height: 100, width: 100})
+        expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(10)
+        expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(10)
+        setScrollTop(component, 20)
+        setScrollLeft(component, 10)
+        await component.getNextUpdatePromise()
 
-      const style = document.createElement('style')
-      style.textContent = '::-webkit-scrollbar { height: 10px; width: 10px; }'
-      jasmine.attachToDOM(style)
+        // Updating scrollbar styles.
+        const style = document.createElement('style')
+        style.textContent = '::-webkit-scrollbar { height: 10px; width: 10px; }'
+        jasmine.attachToDOM(style)
+        TextEditor.didUpdateScrollbarStyles()
+        await component.getNextUpdatePromise()
 
-      TextEditor.didUpdateScrollbarStyles()
-      await component.getNextUpdatePromise()
+        expect(getHorizontalScrollbarHeight(component)).toBe(10)
+        expect(getVerticalScrollbarWidth(component)).toBe(10)
+        expect(component.refs.horizontalScrollbar.element.style.right).toBe('10px')
+        expect(component.refs.verticalScrollbar.element.style.bottom).toBe('10px')
+        expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(10)
+        expect(component.refs.verticalScrollbar.element.scrollTop).toBe(20)
+        expect(component.getScrollContainerClientHeight()).toBe(100 - 10)
+        expect(component.getScrollContainerClientWidth()).toBe(100 - component.getGutterContainerWidth() - 10)
 
-      expect(getHorizontalScrollbarHeight(component)).toBe(10)
-      expect(getVerticalScrollbarWidth(component)).toBe(10)
-      expect(component.refs.horizontalScrollbar.element.style.right).toBe('10px')
-      expect(component.refs.verticalScrollbar.element.style.bottom).toBe('10px')
-      expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(10)
-      expect(component.refs.verticalScrollbar.element.scrollTop).toBe(20)
-      expect(component.getScrollContainerClientHeight()).toBe(100 - 10)
-      expect(component.getScrollContainerClientWidth()).toBe(100 - component.getGutterContainerWidth() - 10)
+        // Detaching and re-attaching the editor element.
+        element.remove()
+        jasmine.attachToDOM(element)
 
-      // Ensure we don't throw an error trying to remeasure non-existent scrollbars for mini editors.
-      await editor.update({mini: true})
-      TextEditor.didUpdateScrollbarStyles()
-      component.scheduleUpdate()
-      await component.getNextUpdatePromise()
+        expect(getHorizontalScrollbarHeight(component)).toBe(10)
+        expect(getVerticalScrollbarWidth(component)).toBe(10)
+        expect(component.refs.horizontalScrollbar.element.style.right).toBe('10px')
+        expect(component.refs.verticalScrollbar.element.style.bottom).toBe('10px')
+        expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(10)
+        expect(component.refs.verticalScrollbar.element.scrollTop).toBe(20)
+        expect(component.getScrollContainerClientHeight()).toBe(100 - 10)
+        expect(component.getScrollContainerClientWidth()).toBe(100 - component.getGutterContainerWidth() - 10)
+
+        // Ensure we don't throw an error trying to remeasure non-existent scrollbars for mini editors.
+        await editor.update({mini: true})
+        TextEditor.didUpdateScrollbarStyles()
+        component.scheduleUpdate()
+        await component.getNextUpdatePromise()
+      })
     })
 
     it('renders cursors within the visible row range', async () => {
@@ -854,6 +895,97 @@ describe('TextEditorComponent', () => {
       expect(component.getGutterContainerWidth()).toBe(originalGutterContainerWidth)
       expect(component.getLineNumberGutterWidth()).toBe(originalLineNumberGutterWidth)
     })
+
+    describe('randomized tests', () => {
+      let originalTimeout
+
+      beforeEach(() => {
+        originalTimeout = jasmine.getEnv().defaultTimeoutInterval
+        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000
+      })
+
+      afterEach(() => {
+        jasmine.getEnv().defaultTimeoutInterval = originalTimeout
+      })
+
+      it('renders the visible rows correctly after randomly mutating the editor', async () => {
+        const initialSeed = Date.now()
+        for (var i = 0; i < 20; i++) {
+          let seed = initialSeed + i
+          // seed = 1507224195357
+          const failureMessage = 'Randomized test failed with seed: ' + seed
+          const random = Random(seed)
+
+          const rowsPerTile = random.intBetween(1, 6)
+          const {component, element, editor} = buildComponent({rowsPerTile, autoHeight: false})
+          editor.setSoftWrapped(Boolean(random(2)))
+          await setEditorWidthInCharacters(component, random(20))
+          await setEditorHeightInLines(component, random(10))
+          element.focus()
+
+          for (var j = 0; j < 5; j++) {
+            const k = random(100)
+            const range = getRandomBufferRange(random, editor.buffer)
+
+            if (k < 10) {
+              editor.setSoftWrapped(!editor.isSoftWrapped())
+            } else if (k < 15) {
+              if (random(2)) setEditorWidthInCharacters(component, random(20))
+              if (random(2)) setEditorHeightInLines(component, random(10))
+            } else if (k < 40) {
+              editor.setSelectedBufferRange(range)
+              editor.backspace()
+            } else if (k < 80) {
+              const linesToInsert = buildRandomLines(random, 5)
+              editor.setCursorBufferPosition(range.start)
+              editor.insertText(linesToInsert)
+            } else if (k < 90) {
+              if (random(2)) {
+                editor.foldBufferRange(range)
+              } else {
+                editor.destroyFoldsIntersectingBufferRange(range)
+              }
+            } else if (k < 95) {
+              editor.setSelectedBufferRange(range)
+            } else {
+              if (random(2)) component.setScrollTop(random(component.getScrollHeight()))
+              if (random(2)) component.setScrollLeft(random(component.getScrollWidth()))
+            }
+
+            component.scheduleUpdate()
+            await component.getNextUpdatePromise()
+
+            const renderedLines = queryOnScreenLineElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+            const renderedLineNumbers = queryOnScreenLineNumberElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+            const renderedStartRow = component.getRenderedStartRow()
+            const expectedLines = editor.displayLayer.getScreenLines(renderedStartRow, component.getRenderedEndRow())
+
+            expect(renderedLines.length).toBe(expectedLines.length, failureMessage)
+            expect(renderedLineNumbers.length).toBe(expectedLines.length, failureMessage)
+            for (let k = 0; k < renderedLines.length; k++) {
+              const expectedLine = expectedLines[k]
+              const expectedText = expectedLine.lineText || ' '
+
+              const renderedLine = renderedLines[k]
+              const renderedLineNumber = renderedLineNumbers[k]
+              let renderedText = renderedLine.textContent
+              // We append zero width NBSPs after folds at the end of the
+              // line in order to support measurement.
+              if (expectedText.endsWith(editor.displayLayer.foldCharacter)) {
+                renderedText = renderedText.substring(0, renderedText.length - 1)
+              }
+
+              expect(renderedText).toBe(expectedText, failureMessage)
+              expect(parseInt(renderedLine.dataset.screenRow)).toBe(renderedStartRow + k, failureMessage)
+              expect(parseInt(renderedLineNumber.dataset.screenRow)).toBe(renderedStartRow + k, failureMessage)
+            }
+          }
+
+          element.remove()
+          editor.destroy()
+        }
+      })
+    })
   })
 
   describe('mini editors', () => {
@@ -1142,7 +1274,7 @@ describe('TextEditorComponent', () => {
       expect(component.getScrollTopRow()).toBe(4)
       expect(component.getScrollTop()).toBe(Math.round(4 * component.getLineHeight()))
 
-      // Preserves the scrollTopRow when sdetached
+      // Preserves the scrollTopRow when detached
       element.remove()
       expect(component.getScrollTopRow()).toBe(4)
       expect(component.getScrollTop()).toBe(Math.round(4 * component.getLineHeight()))
@@ -1601,7 +1733,7 @@ describe('TextEditorComponent', () => {
       const decoration = editor.decorateMarker(marker, {type: 'highlight', class: 'a'})
       decoration.flash('b', 10)
 
-      // Flash on initial appearence of highlight
+      // Flash on initial appearance of highlight
       await component.getNextUpdatePromise()
       const highlights = element.querySelectorAll('.highlight.a')
       expect(highlights.length).toBe(1)
@@ -1764,6 +1896,8 @@ describe('TextEditorComponent', () => {
       const decoration = editor.decorateMarker(marker, {type: 'overlay', item: overlayElement, class: 'a'})
       await component.getNextUpdatePromise()
 
+      const overlayComponent = component.overlayComponents.values().next().value
+
       const overlayWrapper = overlayElement.parentElement
       expect(overlayWrapper.classList.contains('a')).toBe(true)
       expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
@@ -1794,12 +1928,12 @@ describe('TextEditorComponent', () => {
       await setScrollTop(component, 20)
       expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
       overlayElement.style.height = 60 + 'px'
-      await component.getNextUpdatePromise()
+      await overlayComponent.getNextUpdatePromise()
       expect(overlayWrapper.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 4))
 
       // Does not flip the overlay vertically if it would overflow the top of the window
       overlayElement.style.height = 80 + 'px'
-      await component.getNextUpdatePromise()
+      await overlayComponent.getNextUpdatePromise()
       expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
 
       // Can update overlay wrapper class
@@ -2284,6 +2418,27 @@ describe('TextEditorComponent', () => {
       ])
     })
 
+    it('removes block decorations whose markers have been destroyed', async () => {
+      const {editor, component, element} = buildComponent({rowsPerTile: 3})
+      const {marker} = createBlockDecorationAtScreenRow(editor, 2, {height: 5, position: 'before'})
+      await component.getNextUpdatePromise()
+      assertLinesAreAlignedWithLineNumbers(component)
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight() + 5},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()},
+        {tileStartRow: 6, height: 3 * component.getLineHeight()}
+      ])
+
+      marker.destroy()
+      await component.getNextUpdatePromise()
+      assertLinesAreAlignedWithLineNumbers(component)
+      assertTilesAreSizedAndPositionedCorrectly(component, [
+        {tileStartRow: 0, height: 3 * component.getLineHeight()},
+        {tileStartRow: 3, height: 3 * component.getLineHeight()},
+        {tileStartRow: 6, height: 3 * component.getLineHeight()}
+      ])
+    })
+
     it('removes block decorations whose markers are invalidated, and adds them back when they become valid again', async () => {
       const editor = buildEditor({rowsPerTile: 3, autoHeight: false})
       const {item, decoration, marker} = createBlockDecorationAtScreenRow(editor, 3, {height: 44, position: 'before', invalidate: 'touch'})
@@ -2386,6 +2541,49 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()},
         {tileStartRow: 6, height: 3 * component.getLineHeight()}
       ])
+    })
+
+    it('does not throw exceptions when destroying a block decoration inside a marker change event (regression)', async () => {
+      const {editor, component} = buildComponent({rowsPerTile: 3})
+
+      const marker = editor.markScreenPosition([2, 0])
+      marker.onDidChange(() => { marker.destroy() })
+      const item = document.createElement('div')
+      editor.decorateMarker(marker, {type: 'block', item})
+
+      await component.getNextUpdatePromise()
+      expect(item.nextSibling).toBe(lineNodeForScreenRow(component, 2))
+
+      marker.setBufferRange([[0, 0], [0, 0]])
+      expect(marker.isDestroyed()).toBe(true)
+
+      await component.getNextUpdatePromise()
+      expect(item.parentElement).toBeNull()
+    })
+
+    it('does not attempt to render block decorations located outside the visible range', async () => {
+      const {editor, component} = buildComponent({autoHeight: false, rowsPerTile: 2})
+      await setEditorHeightInLines(component, 2)
+      expect(component.getRenderedStartRow()).toBe(0)
+      expect(component.getRenderedEndRow()).toBe(4)
+
+      const marker1 = editor.markScreenRange([[3, 0], [5, 0]], {reversed: false})
+      const item1 = document.createElement('div')
+      editor.decorateMarker(marker1, {type: 'block', item: item1})
+
+      const marker2 = editor.markScreenRange([[3, 0], [5, 0]], {reversed: true})
+      const item2 = document.createElement('div')
+      editor.decorateMarker(marker2, {type: 'block', item: item2})
+
+      await component.getNextUpdatePromise()
+      expect(item1.parentElement).toBeNull()
+      expect(item2.nextSibling).toBe(lineNodeForScreenRow(component, 3))
+
+      await setScrollTop(component, 4 * component.getLineHeight())
+      expect(component.getRenderedStartRow()).toBe(4)
+      expect(component.getRenderedEndRow()).toBe(8)
+      expect(item1.nextSibling).toBe(lineNodeForScreenRow(component, 5))
+      expect(item2.parentElement).toBeNull()
     })
 
     it('measures block decorations correctly when they are added before the component width has been updated', async () => {
@@ -2706,6 +2904,8 @@ describe('TextEditorComponent', () => {
           clientY: clientTopForLine(component, 3) + lineHeight / 2
         })
         expect(editor.getCursorScreenPosition()).toEqual([3, 16])
+
+        expect(editor.testAutoscrollRequests).toEqual([])
       })
 
       it('selects words on double-click', () => {
@@ -2714,6 +2914,7 @@ describe('TextEditorComponent', () => {
         component.didMouseDownOnContent({detail: 1, button: 0, clientX, clientY})
         component.didMouseDownOnContent({detail: 2, button: 0, clientX, clientY})
         expect(editor.getSelectedScreenRange()).toEqual([[1, 13], [1, 21]])
+        expect(editor.testAutoscrollRequests).toEqual([])
       })
 
       it('selects lines on triple-click', () => {
@@ -2723,6 +2924,7 @@ describe('TextEditorComponent', () => {
         component.didMouseDownOnContent({detail: 2, button: 0, clientX, clientY})
         component.didMouseDownOnContent({detail: 3, button: 0, clientX, clientY})
         expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [2, 0]])
+        expect(editor.testAutoscrollRequests).toEqual([])
       })
 
       it('adds or removes cursors when holding cmd or ctrl when single-clicking', () => {
@@ -2760,7 +2962,7 @@ describe('TextEditorComponent', () => {
         expect(editor.getCursorScreenPositions()).toEqual([[1, 16]])
 
         // cmd-clicking within a selection destroys it
-        editor.addSelectionForScreenRange([[2, 10], [2, 15]])
+        editor.addSelectionForScreenRange([[2, 10], [2, 15]], {autoscroll: false})
         expect(editor.getSelectedScreenRanges()).toEqual([
           [[1, 16], [1, 16]],
           [[2, 10], [2, 15]]
@@ -2790,7 +2992,7 @@ describe('TextEditorComponent', () => {
 
         // ctrl-click adds cursors on platforms *other* than macOS
         component.props.platform = 'win32'
-        editor.setCursorScreenPosition([1, 4])
+        editor.setCursorScreenPosition([1, 4], {autoscroll: false})
         component.didMouseDownOnContent(
           Object.assign(clientPositionForCharacter(component, 1, 16), {
             detail: 1,
@@ -2799,11 +3001,13 @@ describe('TextEditorComponent', () => {
           })
         )
         expect(editor.getCursorScreenPositions()).toEqual([[1, 4], [1, 16]])
+
+        expect(editor.testAutoscrollRequests).toEqual([])
       })
 
       it('adds word selections when holding cmd or ctrl when double-clicking', () => {
         const {component, editor} = buildComponent()
-        editor.addCursorAtScreenPosition([1, 16])
+        editor.addCursorAtScreenPosition([1, 16], {autoscroll: false})
         expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]])
 
         component.didMouseDownOnContent(
@@ -2824,11 +3028,12 @@ describe('TextEditorComponent', () => {
           [[0, 0], [0, 0]],
           [[1, 13], [1, 21]]
         ])
+        expect(editor.testAutoscrollRequests).toEqual([])
       })
 
       it('adds line selections when holding cmd or ctrl when triple-clicking', () => {
         const {component, editor} = buildComponent()
-        editor.addCursorAtScreenPosition([1, 16])
+        editor.addCursorAtScreenPosition([1, 16], {autoscroll: false})
         expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]])
 
         const {clientX, clientY} = clientPositionForCharacter(component, 1, 16)
@@ -2840,12 +3045,13 @@ describe('TextEditorComponent', () => {
           [[0, 0], [0, 0]],
           [[1, 0], [2, 0]]
         ])
+        expect(editor.testAutoscrollRequests).toEqual([])
       })
 
       it('expands the last selection on shift-click', () => {
         const {component, element, editor} = buildComponent()
 
-        editor.setCursorScreenPosition([2, 18])
+        editor.setCursorScreenPosition([2, 18], {autoscroll: false})
         component.didMouseDownOnContent(Object.assign({
           detail: 1,
           button: 0,
@@ -2862,8 +3068,8 @@ describe('TextEditorComponent', () => {
 
         // reorients word-wise selections to keep the word selected regardless of
         // where the subsequent shift-click occurs
-        editor.setCursorScreenPosition([2, 18])
-        editor.getLastSelection().selectWord()
+        editor.setCursorScreenPosition([2, 18], {autoscroll: false})
+        editor.getLastSelection().selectWord({autoscroll: false})
         component.didMouseDownOnContent(Object.assign({
           detail: 1,
           button: 0,
@@ -2880,8 +3086,8 @@ describe('TextEditorComponent', () => {
 
         // reorients line-wise selections to keep the word selected regardless of
         // where the subsequent shift-click occurs
-        editor.setCursorScreenPosition([2, 18])
-        editor.getLastSelection().selectLine()
+        editor.setCursorScreenPosition([2, 18], {autoscroll: false})
+        editor.getLastSelection().selectLine(null, {autoscroll: false})
         component.didMouseDownOnContent(Object.assign({
           detail: 1,
           button: 0,
@@ -2895,6 +3101,8 @@ describe('TextEditorComponent', () => {
           shiftKey: true
         }, clientPositionForCharacter(component, 3, 11)))
         expect(editor.getSelectedScreenRange()).toEqual([[2, 0], [4, 0]])
+
+        expect(editor.testAutoscrollRequests).toEqual([])
       })
 
       it('expands the last selection on drag', () => {
@@ -3272,9 +3480,9 @@ describe('TextEditorComponent', () => {
         await component.getNextUpdatePromise()
         expect(editor.isFoldedAtScreenRow(5)).toBe(true)
 
-        target = element.querySelectorAll('.line-number')[6].querySelector('.icon-right')
-        component.didMouseDownOnLineNumberGutter({target, button: 0, clientY: clientTopForLine(component, 5)})
-        expect(editor.isFoldedAtScreenRow(5)).toBe(false)
+        target = element.querySelectorAll('.line-number')[4].querySelector('.icon-right')
+        component.didMouseDownOnLineNumberGutter({target, button: 0, clientY: clientTopForLine(component, 4)})
+        expect(editor.isFoldedAtScreenRow(4)).toBe(false)
       })
 
       it('autoscrolls when dragging near the top or bottom of the gutter', async () => {
@@ -4216,7 +4424,7 @@ describe('TextEditorComponent', () => {
       expect(dragEvents).toEqual([])
     })
 
-    it('calls `didStopDragging` if the buffer changes while dragging', async () => {
+    it('calls `didStopDragging` if the user interacts with the keyboard while dragging', async () => {
       const {component, editor} = buildComponent()
 
       let dragging = false
@@ -4229,8 +4437,14 @@ describe('TextEditorComponent', () => {
       await getNextAnimationFramePromise()
       expect(dragging).toBe(true)
 
-      editor.delete()
+      // Buffer changes don't cause dragging to be stopped.
+      editor.insertText('X')
+      expect(dragging).toBe(true)
+
+      // Keyboard interaction prevents users from dragging further.
+      component.didKeydown({code: 'KeyX'})
       expect(dragging).toBe(false)
+
       window.dispatchEvent(new MouseEvent('mousemove'))
       await getNextAnimationFramePromise()
       expect(dragging).toBe(false)
@@ -4250,7 +4464,10 @@ function buildEditor (params = {}) {
   for (const paramName of ['mini', 'autoHeight', 'autoWidth', 'lineNumberGutterVisible', 'showLineNumbers', 'placeholderText', 'softWrapped', 'scrollSensitivity']) {
     if (params[paramName] != null) editorParams[paramName] = params[paramName]
   }
-  return new TextEditor(editorParams)
+  const editor = new TextEditor(editorParams)
+  editor.testAutoscrollRequests = []
+  editor.onDidRequestAutoscroll((request) => { editor.testAutoscrollRequests.push(request) })
+  return editor
 }
 
 function buildComponent (params = {}) {

@@ -31,7 +31,8 @@ module.exports = class PackageManager {
   constructor (params) {
     ({
       config: this.config, styleManager: this.styleManager, notificationManager: this.notificationManager, keymapManager: this.keymapManager,
-      commandRegistry: this.commandRegistry, grammarRegistry: this.grammarRegistry, deserializerManager: this.deserializerManager, viewRegistry: this.viewRegistry
+      commandRegistry: this.commandRegistry, grammarRegistry: this.grammarRegistry, deserializerManager: this.deserializerManager, viewRegistry: this.viewRegistry,
+      uriHandlerRegistry: this.uriHandlerRegistry
     } = params)
 
     this.emitter = new Emitter()
@@ -77,9 +78,9 @@ module.exports = class PackageManager {
     this.themeManager = themeManager
   }
 
-  reset () {
+  async reset () {
     this.serviceHub.clear()
-    this.deactivatePackages()
+    await this.deactivatePackages()
     this.loadedPackages = {}
     this.preloadedPackages = {}
     this.packageStates = {}
@@ -647,6 +648,10 @@ module.exports = class PackageManager {
     })
   }
 
+  registerURIHandlerForPackage (packageName, handler) {
+    return this.uriHandlerRegistry.registerHostHandler(packageName, handler)
+  }
+
   // another type of package manager can handle other package types.
   // See ThemeManager
   registerPackageActivator (activator, types) {
@@ -744,21 +749,30 @@ module.exports = class PackageManager {
   }
 
   // Deactivate all packages
-  deactivatePackages () {
-    this.config.transact(() => {
-      this.getLoadedPackages().forEach(pack => this.deactivatePackage(pack.name, true))
-    })
+  async deactivatePackages () {
+    await this.config.transactAsync(() =>
+      Promise.all(this.getLoadedPackages().map(pack => this.deactivatePackage(pack.name, true)))
+    )
     this.unobserveDisabledPackages()
     this.unobservePackagesWithKeymapsDisabled()
   }
 
   // Deactivate the package with the given name
-  deactivatePackage (name, suppressSerialization) {
+  async deactivatePackage (name, suppressSerialization) {
     const pack = this.getLoadedPackage(name)
+    if (pack == null) {
+      return
+    }
+
     if (!suppressSerialization && this.isPackageActive(pack.name)) {
       this.serializePackage(pack)
     }
-    pack.deactivate()
+
+    const deactivationResult = pack.deactivate()
+    if (deactivationResult && typeof deactivationResult.then === 'function') {
+      await deactivationResult
+    }
+
     delete this.activePackages[pack.name]
     delete this.activatingPackages[pack.name]
     this.emitter.emit('did-deactivate-package', pack)
