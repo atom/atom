@@ -7,6 +7,9 @@ const CSON = require('season')
 const {watchPath} = require('./path-watcher')
 const Color = require('./color')
 
+const saveRetryTime = 250
+const saveRetryCount = 8
+
 module.exports = class ConfigStorage {
   static createConfigFilePath (configDirPath) {
     return fs.resolve(configDirPath, 'config', ['json', 'cson']) || path.join(configDirPath, 'config.cson')
@@ -28,11 +31,13 @@ module.exports = class ConfigStorage {
 
   start () {
     this.pendingOperations = []
+    this.saveLockFail = 0
     this.configListener = this.config.onDidSetOrUnset(op => this.capturePendingOperation(op))
     this.initializeConfigDirectory()
     this.initializeUserConfig()
-    this.load()
-    this.observeUserConfigFile()
+    this.load(() => {
+      this.observeUserConfigFile()
+    })
   }
 
   stop () {
@@ -40,8 +45,8 @@ module.exports = class ConfigStorage {
       this.configListener.dispose()
       this.configListener = null
     }
-    this.save()
     this.unobserveUserConfigFile()
+    this.startSave()
   }
 
   capturePendingOperation (op) {
@@ -87,32 +92,40 @@ module.exports = class ConfigStorage {
     }
   }
 
-  load () {
-    if (this.isLoading) return // Do not try and load while we are already loading
-    this.isLoading = true
-
-    try {
-      const userConfig = CSON.readFileSync(this.configFilePath) || {}
-
-      if (!isPlainObject(userConfig)) {
-        throw new Error(`\`${path.basename(this.configFilePath)}\` must contain valid JSON or CSON`)
-      }
-
-      this.config.applyUserSettings(userConfig)
-      this.configFileHasErrors = false
-    } catch (error) {
-      this.configFileHasErrors = true
-      this.settingsLoaded = true
-      this.notifyFailure(`Failed to load \`${path.basename(this.configFilePath)}\``, (error.location != null) ? error.stack : error.message)
+  load (callback) {
+    if (this.isLoading) {
+      // Do not try and load while we are already loading
+      callback(null, false)
+      return
     }
 
-    this.isLoading = false
+    const loadErrorMessage = `Failed to load \`${path.basename(this.configFilePath)}\``
+
+    this.isLoading = true
+    CSON.readFile(this.configFilePath, (err, userConfig) => {
+      this.isLoading = false
+      if (err) {
+        this.configFileHasErrors = true
+        this.notifyFailure(loadErrorMessage, err.location != null ? err.stack : err.message)
+        callback(err, false)
+      } else {
+        if (!isPlainObject(userConfig)) {
+          const error = new Error(`\`${path.basename(this.configFilePath)}\` must contain valid JSON or CSON`)
+          this.notifyFailure(loadErrorMessage, error)
+          callback(error, false)
+        } else {
+          this.config.applyUserSettings(userConfig)
+          this.configFileHasErrors = false
+          callback(null, true)
+        }
+      }
+    })
   }
 
   save () {
-    // Debounce and retry saves to 250 ms
+    // Debounce and retry saves
     if (this.saveTimer == null) {
-      this.saveTimer = setInterval(() => this.startSave(), 250)
+      this.saveTimer = setInterval(() => this.startSave(), saveRetryTime)
     }
   }
 
@@ -125,23 +138,51 @@ module.exports = class ConfigStorage {
 
     const lockFilePath = this.configFilePath + '.lock'
     lockFile.lock(lockFilePath, {}, (err) => {
-      try {
-        if (err) {
-          this.isSaving = false
-          this.save() // Try again
+      if (err) {
+        if (this.saveLockFail++ > saveRetryCount) {
+          this.saveFailureNotification = this.notifyFailure(`Failed to save \`${path.basename(this.configFilePath)}\``,
+            'File lock could not be obtained. Is this file in use by another instance of Atom?', [
+              { text: 'Retry',
+                onDidClick: () => {
+                  this.saveFailureNotification.dismiss()
+                  this.saveLockFail = 0
+                  this.save()
+                }
+              },
+              { text: 'Force',
+                onDidClick: () => {
+                  this.saveFailureNotification.dismiss()
+                  fs.unlink(lockFilePath, () => {
+                    this.saveLockFail = 0
+                    this.save()
+                  })
+                }
+              }
+            ])
         } else {
-          this.load() // Reload the user configuration file in case it changed
-          this.actualSave()
-          lockFile.unlock(lockFilePath, () => { this.isSaving = false })
+          this.save() // Try again until retry count limit reached
         }
-      } catch (err) {
         this.isSaving = false
-        this.save()
+      } else {
+        this.load((err) => {
+          if (err) {
+            lockFile.unlock(lockFilePath, () => {
+              this.isSaving = false
+            })
+          } else {
+            this.actualSave(() => {
+              lockFile.unlock(lockFilePath, () => {
+                this.isSaving = false
+                this.saveLockFail = 0
+              })
+            })
+          }
+        })
       }
     })
   }
 
-  actualSave () {
+  actualSave (callback) {
     // Take as many operations as currently in the queue and apply them
     const pendingOperationsCount = this.pendingOperations.length
     for (let op of this.pendingOperations.slice(0, pendingOperationsCount)) {
@@ -152,17 +193,20 @@ module.exports = class ConfigStorage {
     allSettings = Object.assign(allSettings, this.config.scopedSettingsStore.propertiesForSource(this.getUserConfigPath()))
     allSettings = sortObject(allSettings)
 
-    try {
-      CSON.writeFileSync(this.configFilePath, allSettings)
-      // Remove the operations we successfully processed
-      this.pendingOperations = this.pendingOperations.slice(pendingOperationsCount)
-      // Schedule another save if some happened during
-      if (this.pendingOperations.length > 0) {
-        this.save()
+    CSON.writeFile(this.configFilePath, allSettings, (error) => {
+      if (error) {
+        this.notifyFailure(`Failed to save \`${path.basename(this.configFilePath)}\``, error.message)
+        callback(error)
+      } else {
+        // Remove the operations we successfully processed
+        this.pendingOperations = this.pendingOperations.slice(pendingOperationsCount)
+        // Schedule another save if some were received during call
+        if (this.pendingOperations.length > 0) {
+          this.save()
+        }
       }
-    } catch (error) {
-      this.notifyFailure(`Failed to save \`${path.basename(this.configFilePath)}\``, error.message)
-    }
+      callback(null)
+    })
   }
 
   applyOperation (op) {
@@ -183,12 +227,14 @@ module.exports = class ConfigStorage {
       if (this.watchSubscriptionPromise == null) {
         this.watchSubscriptionPromise = watchPath(this.configFilePath, {}, events => {
           if (events.find(e => ['created', 'modified', 'renamed'].includes(e.action))) {
-            this.load()
+            this.load(() => {
+              // TODO: How to recover here? Schedule like saves?
+            })
           }
         })
       }
     } catch (error) {
-      this.notifyFailure(`\Unable to watch \`${this.configFilePath}\`.
+      this.notifyFailure(`Unable to watch \`${this.configFilePath}\`.
         Make sure you have permissions to this file.` +
         process.platform === 'linux'
           ? `On Linux there are [problems with watch sizes](https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path])`
@@ -203,9 +249,9 @@ module.exports = class ConfigStorage {
     this.watchSubscriptionPromise = null
   }
 
-  notifyFailure (errorMessage, detail) {
+  notifyFailure (errorMessage, detail, buttons) {
     if (!this.notificationManager) return
-    this.notificationManager.addError(errorMessage, {detail, dismissable: true})
+    return this.notificationManager.addError(errorMessage, {detail, dismissable: true, buttons})
   }
 }
 

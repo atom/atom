@@ -12,9 +12,7 @@ describe "Config", ->
     spyOn(console, 'warn')
     dotAtomPath = temp.path('atom-spec-config')
     atom.config.configDirPath = dotAtomPath
-    atom.config.enablePersistence = true
     atom.config.settingsLoaded = true
-    atom.config.pendingOperations = []
     atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.cson")
 
   afterEach ->
