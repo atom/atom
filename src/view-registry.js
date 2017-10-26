@@ -233,16 +233,26 @@ class ViewRegistry {
     this.nextUpdatePromise = null
     this.resolveNextUpdatePromise = null
 
-    let writer
-    while ((writer = this.documentWriters.shift())) { writer() }
+    var writer = this.documentWriters.shift()
+    while (writer) {
+      writer()
+      writer = this.documentWriters.shift()
+    }
 
-    let reader
+    var reader = this.documentReaders.shift()
     this.documentReadInProgress = true
-    while ((reader = this.documentReaders.shift())) { reader() }
+    while (reader) {
+      reader()
+      reader = this.documentReaders.shift()
+    }
     this.documentReadInProgress = false
 
     // process updates requested as a result of reads
-    while ((writer = this.documentWriters.shift())) { writer() }
+    writer = this.documentWriters.shift()
+    while (writer) {
+      writer()
+      writer = this.documentWriters.shift()
+    }
 
     if (resolveNextUpdatePromise) { resolveNextUpdatePromise() }
   }
