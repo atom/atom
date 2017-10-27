@@ -17,7 +17,7 @@ var packageTranspilationRegistry = new PackageTranspilationRegistry()
 var COMPILERS = {
   '.js': packageTranspilationRegistry.wrapTranspiler(require('./babel')),
   '.ts': packageTranspilationRegistry.wrapTranspiler(require('./typescript')),
-  '.coffee': packageTranspilationRegistry.wrapTranspiler(require('./coffee-script'))
+  '.coffee': packageTranspilationRegistry.wrapTranspiler(require('./coffeescript'))
 }
 
 exports.addTranspilerConfigForPath = function (packagePath, packageName, packageMeta, config) {

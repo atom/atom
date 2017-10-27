@@ -27,7 +27,7 @@ module.exports = function (packagedAppPath) {
         coreModules.has(modulePath) ||
         (relativePath.startsWith(path.join('..', 'src')) && relativePath.endsWith('-element.js')) ||
         relativePath.startsWith(path.join('..', 'node_modules', 'dugite')) ||
-        relativePath.endsWith(path.join('node_modules', 'coffee-script', 'lib', 'coffee-script', 'register.js')) ||
+        relativePath.endsWith(path.join('node_modules', 'coffeescript', 'lib', 'coffeescript', 'register.js')) ||
         relativePath.endsWith(path.join('node_modules', 'fs-extra', 'lib', 'index.js')) ||
         relativePath.endsWith(path.join('node_modules', 'graceful-fs', 'graceful-fs.js')) ||
         relativePath.endsWith(path.join('node_modules', 'htmlparser2', 'lib', 'index.js')) ||

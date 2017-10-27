@@ -866,7 +866,7 @@ describe('TokenizedBuffer', () => {
       `)
     })
 
-    it('works for coffee-script', async () => {
+    it('works for coffeescript', async () => {
       const editor = await atom.workspace.open('coffee.coffee')
       await atom.packages.activatePackage('language-coffee-script')
       buffer = editor.buffer
