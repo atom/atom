@@ -60,3 +60,5 @@ addons:
     - rpm
     - libx11-dev
     - libxkbfile-dev
+    
+    add a new line
