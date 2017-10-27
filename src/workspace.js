@@ -659,7 +659,7 @@ module.exports = class Workspace extends Model {
   // changing or closing tabs and ensures critical UI feedback, like changing the
   // highlighted tab, gets priority over work that can be done asynchronously.
   //
-  // * `callback` {Function} to be called when the active pane item stopts
+  // * `callback` {Function} to be called when the active pane item stops
   //   changing.
   //   * `item` The active pane item.
   //
