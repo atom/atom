@@ -7,7 +7,7 @@
 require('./bootstrap')
 
 // Needed so we can require src/module-cache.coffee during generateModuleCache
-require('coffee-script/register')
+require('coffeescript/register')
 require('colors')
 
 const path = require('path')

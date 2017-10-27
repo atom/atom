@@ -21,9 +21,9 @@ exports.getCachePath = function (sourceCode) {
 exports.compile = function (sourceCode, filePath) {
   if (!CoffeeScript) {
     var previousPrepareStackTrace = Error.prepareStackTrace
-    CoffeeScript = require('coffee-script')
+    CoffeeScript = require('coffeescript')
 
-    // When it loads, coffee-script reassigns Error.prepareStackTrace. We have
+    // When it loads, coffeescript reassigns Error.prepareStackTrace. We have
     // already reassigned it via the 'source-map-support' module, so we need
     // to set it back.
     Error.prepareStackTrace = previousPrepareStackTrace

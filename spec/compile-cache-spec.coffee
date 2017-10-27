@@ -1,7 +1,7 @@
 path = require 'path'
 temp = require('temp').track()
 Babel = require 'babel-core'
-CoffeeScript = require 'coffee-script'
+CoffeeScript = require 'coffeescript'
 {TypeScriptSimple} = require 'typescript-simple'
 CSON = require 'season'
 CompileCache = require '../src/compile-cache'
@@ -42,8 +42,8 @@ describe 'CompileCache', ->
         expect(CompileCache.getCacheStats()['.js']).toEqual {hits: 1, misses: 1}
         expect(Babel.transform.callCount).toBe 1
 
-    describe 'when the given file is coffee-script', ->
-      it 'compiles the file with coffee-script and caches it', ->
+    describe 'when the given file is coffeescript', ->
+      it 'compiles the file with coffeescript and caches it', ->
         CompileCache.addPathToCache(path.join(fixtures, 'coffee.coffee'), atomHome)
         expect(CompileCache.getCacheStats()['.coffee']).toEqual {hits: 0, misses: 1}
         expect(CoffeeScript.compile.callCount).toBe 1
