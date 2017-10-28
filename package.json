@@ -14,6 +14,7 @@
   "license": "MIT",
   "electronVersion": "1.6.15",
   "dependencies": {
+    "@atom/nsfw": "^1.0.18",
     "@atom/source-map-support": "^0.3.4",
     "async": "0.2.6",
     "atom-keymap": "8.2.8",
@@ -53,7 +54,6 @@
     "mocha-multi-reporters": "^1.1.4",
     "mock-spawn": "^0.2.6",
     "normalize-package-data": "^2.0.0",
-    "nsfw": "^1.0.15",
     "nslog": "^3",
     "oniguruma": "6.2.1",
     "pathwatcher": "8.0.1",
