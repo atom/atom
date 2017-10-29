@@ -1,3 +1,5 @@
+/* global snapshotAuxiliaryData */
+
 const path = require('path')
 const _ = require('underscore-plus')
 const {Emitter, CompositeDisposable} = require('event-kit')
