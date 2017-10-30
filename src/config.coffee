@@ -627,8 +627,9 @@ class Config
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: (keyPath, value, options) ->
-    @setActual(keyPath, value, options)
+    result = @setActual(keyPath, value, options)
     @emitter.emit 'did-set-or-unset', ['set', keyPath, value, options]
+    result
 
   setActual: (keyPath, value, options) ->
     scopeSelector = options?.scopeSelector
@@ -659,8 +660,9 @@ class Config
   #   * `scopeSelector` (optional) {String}. See {::set}
   #   * `source` (optional) {String}. See {::set}
   unset: (keyPath, options) ->
-    @unsetActual(keyPath, options)
+    result = @unsetActual(keyPath, options)
     @emitter.emit 'did-set-or-unset', ['unset', keyPath, options]
+    result
 
   unsetActual: (keyPath, options) ->
     {scopeSelector, source} = options ? {}
