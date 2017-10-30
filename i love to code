@@ -1,0 +1,39 @@
+hallo-world 
+*{
+  position:absolute;
+  left:0;
+  bottom:0;
+  right:0;
+  top:0;
+  margin-top:auto;
+  margin-bottom:auto;
+  margin-right:auto;
+  margin-left:auto;
+}
+body{
+     background-color:#000000;
+}
+div{
+    width:200px;
+    height:200px;
+    border-radius:50%;
+    border-top:50px;
+    border-top-style:solid;
+}
+
+div:nth-child(1){
+    border-top-color:#f07848;
+    transform:rotate(-30deg)
+translate(50%,0%):
+    -webkit-
+transform:rotate(30deg)
+translate(50%,0%);
+    -moz-transform:rotate(-30deg)
+translate(50%;0%):
+    -ms-transform:rotate(-30deg)
+translate(50%,0%):
+    -o-transform:rotate(-30deg)
+translate(50%,0%);
+    top:30px;
+    left:90px;
+}
