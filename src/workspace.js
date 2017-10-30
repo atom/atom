@@ -1050,10 +1050,10 @@ module.exports = class Workspace extends Model {
 
   // Essential: Search the workspace for items matching the given URI and hide them.
   //
-  // * `itemOrURI` (optional) The item to hide or a {String} containing the URI
+  // * `itemOrURI` The item to hide or a {String} containing the URI
   //   of the item to hide.
   //
-  // Returns a {boolean} indicating whether any items were found (and hidden).
+  // Returns a {Boolean} indicating whether any items were found (and hidden).
   hide (itemOrURI) {
     let foundItems = false
 
