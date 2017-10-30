@@ -1896,6 +1896,8 @@ describe('TextEditorComponent', () => {
       const decoration = editor.decorateMarker(marker, {type: 'overlay', item: overlayElement, class: 'a'})
       await component.getNextUpdatePromise()
 
+      const overlayComponent = component.overlayComponents.values().next().value
+
       const overlayWrapper = overlayElement.parentElement
       expect(overlayWrapper.classList.contains('a')).toBe(true)
       expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
@@ -1926,12 +1928,12 @@ describe('TextEditorComponent', () => {
       await setScrollTop(component, 20)
       expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
       overlayElement.style.height = 60 + 'px'
-      await component.getNextUpdatePromise()
+      await overlayComponent.getNextUpdatePromise()
       expect(overlayWrapper.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 4))
 
       // Does not flip the overlay vertically if it would overflow the top of the window
       overlayElement.style.height = 80 + 'px'
-      await component.getNextUpdatePromise()
+      await overlayComponent.getNextUpdatePromise()
       expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
 
       // Can update overlay wrapper class

@@ -103,6 +103,11 @@ describe "Selection", ->
       selection.insertText("\r\n", autoIndent: true)
       expect(buffer.lineForRow(2)).toBe "  "
 
+    it "does not adjust the indent of trailing lines if preserveTrailingLineIndentation is true", ->
+      selection.setBufferRange [[5, 0], [5, 0]]
+      selection.insertText('      foo\n    bar\n', preserveTrailingLineIndentation: true, indentBasis: 1)
+      expect(buffer.lineForRow(6)).toBe('    bar')
+
   describe ".fold()", ->
     it "folds the buffer range spanned by the selection", ->
       selection.setBufferRange([[0, 3], [1, 6]])

@@ -9,6 +9,8 @@ TokenizedBuffer = require './tokenized-buffer'
 Cursor = require './cursor'
 Model = require './model'
 Selection = require './selection'
+TextEditorUtils = require './text-editor-utils'
+
 TextMateScopeSelector = require('first-mate').ScopeSelector
 GutterContainer = require './gutter-container'
 TextEditorComponent = null
@@ -122,6 +124,8 @@ class TextEditor extends Model
   )
 
   Object.defineProperty(@prototype, 'languageMode', get: -> @tokenizedBuffer)
+
+  Object.assign(@prototype, TextEditorUtils)
 
   @deserialize: (state, atomEnvironment) ->
     # TODO: Return null on version mismatch when 1.8.0 has been out for a while
@@ -2495,8 +2499,9 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
+    bufferRange = Range.fromObject(bufferRange)
     unless options.preserveFolds
-      @destroyFoldsIntersectingBufferRange(bufferRange)
+      @displayLayer.destroyFoldsContainingBufferPositions([bufferRange.start, bufferRange.end], true)
     @selectionsMarkerLayer.markBufferRange(bufferRange, {invalidate: 'never', reversed: options.reversed ? false})
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
@@ -3247,12 +3252,13 @@ class TextEditor extends Model
   # corresponding clipboard selection text.
   #
   # * `options` (optional) See {Selection::insertText}.
-  pasteText: (options={}) ->
+  pasteText: (options) ->
+    options = Object.assign({}, options)
     {text: clipboardText, metadata} = @constructor.clipboard.readWithMetadata()
     return false unless @emitWillInsertTextEvent(clipboardText)
 
     metadata ?= {}
-    options.autoIndent = @shouldAutoIndentOnPaste()
+    options.autoIndent ?= @shouldAutoIndentOnPaste()
 
     @mutateSelectedText (selection, index) =>
       if metadata.selections?.length is @getSelections().length
@@ -3310,14 +3316,13 @@ class TextEditor extends Model
   # level.
   foldCurrentRow: ->
     {row} = @getCursorBufferPosition()
-    range = @tokenizedBuffer.getFoldableRangeContainingPoint(Point(row, Infinity))
-    @displayLayer.foldBufferRange(range)
+    if range = @tokenizedBuffer.getFoldableRangeContainingPoint(Point(row, Infinity))
+      @displayLayer.foldBufferRange(range)
 
   # Essential: Unfold the most recent cursor's row by one level.
   unfoldCurrentRow: ->
     {row} = @getCursorBufferPosition()
-    position = Point(row, Infinity)
-    @displayLayer.destroyFoldsIntersectingBufferRange(Range(position, position))
+    @displayLayer.destroyFoldsContainingBufferPositions([Point(row, Infinity)], false)
 
   # Essential: Fold the given row in buffer coordinates based on its indentation
   # level.
@@ -3346,7 +3351,7 @@ class TextEditor extends Model
   # * `bufferRow` A {Number}
   unfoldBufferRow: (bufferRow) ->
     position = Point(bufferRow, Infinity)
-    @displayLayer.destroyFoldsIntersectingBufferRange(Range(position, position))
+    @displayLayer.destroyFoldsContainingBufferPositions([position])
 
   # Extended: For each selection, fold the rows it intersects.
   foldSelectedLines: ->
@@ -3444,6 +3449,10 @@ class TextEditor extends Model
   # Remove any {Fold}s found that intersect the given buffer range.
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
     @displayLayer.destroyFoldsIntersectingBufferRange(bufferRange)
+
+  # Remove any {Fold}s found that contain the given array of buffer positions.
+  destroyFoldsContainingBufferPositions: (bufferPositions, excludeEndpoints) ->
+    @displayLayer.destroyFoldsContainingBufferPositions(bufferPositions, excludeEndpoints)
 
   ###
   Section: Gutters
@@ -3620,9 +3629,6 @@ class TextEditor extends Model
   # Returns a {String} containing the non-word characters.
   getNonWordCharacters: (scopes) ->
     @scopedSettingsDelegate?.getNonWordCharacters?(scopes) ? @nonWordCharacters
-
-  getCommentStrings: (scopes) ->
-    @scopedSettingsDelegate?.getCommentStrings?(scopes)
 
   ###
   Section: Event Handlers
@@ -3885,8 +3891,6 @@ class TextEditor extends Model
     @setIndentationForBufferRow(bufferRow, indentLevel) if indentLevel?
 
   toggleLineCommentForBufferRow: (row) -> @toggleLineCommentsForBufferRows(row, row)
-
-  toggleLineCommentsForBufferRows: (start, end) -> @tokenizedBuffer.toggleLineCommentsForBufferRows(start, end)
 
   rowRangeForParagraphAtBufferRow: (bufferRow) ->
     return unless NON_WHITESPACE_REGEXP.test(@lineTextForBufferRow(bufferRow))

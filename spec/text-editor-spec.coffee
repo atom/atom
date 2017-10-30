@@ -1871,7 +1871,7 @@ describe "TextEditor", ->
         expect(selection1.getBufferRange()).toEqual [[2, 2], [3, 3]]
 
       describe "when the 'preserveFolds' option is false (the default)", ->
-        it "removes folds that contain the selections", ->
+        it "removes folds that contain one or both of the selection's end points", ->
           editor.setSelectedBufferRange([[0, 0], [0, 0]])
           editor.foldBufferRowRange(1, 4)
           editor.foldBufferRowRange(2, 3)
@@ -1882,6 +1882,9 @@ describe "TextEditor", ->
           expect(editor.isFoldedAtScreenRow(1)).toBeFalsy()
           expect(editor.isFoldedAtScreenRow(2)).toBeFalsy()
           expect(editor.isFoldedAtScreenRow(6)).toBeFalsy()
+          expect(editor.isFoldedAtScreenRow(10)).toBeTruthy()
+
+          editor.setSelectedBufferRange([[10, 0], [12, 0]])
           expect(editor.isFoldedAtScreenRow(10)).toBeTruthy()
 
       describe "when the 'preserveFolds' option is true", ->
@@ -4222,6 +4225,19 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(3)).toBe("    if (items.length <= 1) return items;")
               expect(editor.getCursorBufferPosition()).toEqual([3, 13])
 
+        it "respects options that preserve the formatting of the pasted text", ->
+          editor.update({autoIndentOnPaste: true})
+          atom.clipboard.write("a(x);\n  b(x);\r\nc(x);\n", indentBasis: 0)
+          editor.setCursorBufferPosition([5, 0])
+          editor.insertText('  ')
+          editor.pasteText({autoIndent: false, preserveTrailingLineIndentation: true, normalizeLineEndings: false})
+
+          expect(editor.lineTextForBufferRow(5)).toBe "  a(x);"
+          expect(editor.lineTextForBufferRow(6)).toBe "  b(x);"
+          expect(editor.buffer.lineEndingForRow(6)).toBe "\r\n"
+          expect(editor.lineTextForBufferRow(7)).toBe "c(x);"
+          expect(editor.lineTextForBufferRow(8)).toBe "      current = items.shift();"
+
     describe ".indentSelectedRows()", ->
       describe "when nothing is selected", ->
         describe "when softTabs is enabled", ->
@@ -4362,108 +4378,6 @@ describe "TextEditor", ->
         expect(editor.lineTextForBufferRow(3)).toBe "      inside=true"
         expect(editor.lineTextForBufferRow(4)).toBe "    }"
         expect(editor.lineTextForBufferRow(5)).toBe "    i=1"
-
-    describe ".toggleLineCommentsInSelection()", ->
-      it "toggles comments on the selected lines", ->
-        editor.setSelectedBufferRange([[4, 5], [7, 5]])
-        editor.toggleLineCommentsInSelection()
-
-        expect(buffer.lineForRow(4)).toBe "    // while(items.length > 0) {"
-        expect(buffer.lineForRow(5)).toBe "    //   current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "    //   current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "    // }"
-        expect(editor.getSelectedBufferRange()).toEqual [[4, 8], [7, 8]]
-
-        editor.toggleLineCommentsInSelection()
-        expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
-        expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "      current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "    }"
-
-      it "does not comment the last line of a non-empty selection if it ends at column 0", ->
-        editor.setSelectedBufferRange([[4, 5], [7, 0]])
-        editor.toggleLineCommentsInSelection()
-        expect(buffer.lineForRow(4)).toBe "    // while(items.length > 0) {"
-        expect(buffer.lineForRow(5)).toBe "    //   current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "    //   current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "    }"
-
-      it "uncomments lines if all lines match the comment regex", ->
-        editor.setSelectedBufferRange([[0, 0], [0, 1]])
-        editor.toggleLineCommentsInSelection()
-        expect(buffer.lineForRow(0)).toBe "// var quicksort = function () {"
-
-        editor.setSelectedBufferRange([[0, 0], [2, Infinity]])
-        editor.toggleLineCommentsInSelection()
-        expect(buffer.lineForRow(0)).toBe "// // var quicksort = function () {"
-        expect(buffer.lineForRow(1)).toBe "//   var sort = function(items) {"
-        expect(buffer.lineForRow(2)).toBe "//     if (items.length <= 1) return items;"
-
-        editor.setSelectedBufferRange([[0, 0], [2, Infinity]])
-        editor.toggleLineCommentsInSelection()
-        expect(buffer.lineForRow(0)).toBe "// var quicksort = function () {"
-        expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
-        expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
-
-        editor.setSelectedBufferRange([[0, 0], [0, Infinity]])
-        editor.toggleLineCommentsInSelection()
-        expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
-
-      it "uncomments commented lines separated by an empty line", ->
-        editor.setSelectedBufferRange([[0, 0], [1, Infinity]])
-        editor.toggleLineCommentsInSelection()
-        expect(buffer.lineForRow(0)).toBe "// var quicksort = function () {"
-        expect(buffer.lineForRow(1)).toBe "//   var sort = function(items) {"
-
-        buffer.insert([0, Infinity], '\n')
-
-        editor.setSelectedBufferRange([[0, 0], [2, Infinity]])
-        editor.toggleLineCommentsInSelection()
-        expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
-        expect(buffer.lineForRow(1)).toBe ""
-        expect(buffer.lineForRow(2)).toBe "  var sort = function(items) {"
-
-      it "preserves selection emptiness", ->
-        editor.setCursorBufferPosition([4, 0])
-        editor.toggleLineCommentsInSelection()
-        expect(editor.getLastSelection().isEmpty()).toBeTruthy()
-
-      it "does not explode if the current language mode has no comment regex", ->
-        editor = new TextEditor(buffer: new TextBuffer(text: 'hello'))
-        editor.setSelectedBufferRange([[0, 0], [0, 5]])
-        editor.toggleLineCommentsInSelection()
-        expect(editor.lineTextForBufferRow(0)).toBe "hello"
-
-      it "does nothing for empty lines and null grammar", ->
-        runs ->
-          editor.setGrammar(atom.grammars.grammarForScopeName('text.plain.null-grammar'))
-          editor.setCursorBufferPosition([10, 0])
-          editor.toggleLineCommentsInSelection()
-          expect(editor.buffer.lineForRow(10)).toBe ""
-
-      it "uncomments when the line lacks the trailing whitespace in the comment regex", ->
-        editor.setCursorBufferPosition([10, 0])
-        editor.toggleLineCommentsInSelection()
-
-        expect(buffer.lineForRow(10)).toBe "// "
-        expect(editor.getSelectedBufferRange()).toEqual [[10, 3], [10, 3]]
-        editor.backspace()
-        expect(buffer.lineForRow(10)).toBe "//"
-
-        editor.toggleLineCommentsInSelection()
-        expect(buffer.lineForRow(10)).toBe ""
-        expect(editor.getSelectedBufferRange()).toEqual [[10, 0], [10, 0]]
-
-      it "uncomments when the line has leading whitespace", ->
-        editor.setCursorBufferPosition([10, 0])
-        editor.toggleLineCommentsInSelection()
-
-        expect(buffer.lineForRow(10)).toBe "// "
-        editor.moveToBeginningOfLine()
-        editor.insertText("  ")
-        editor.setSelectedBufferRange([[10, 0], [10, 0]])
-        editor.toggleLineCommentsInSelection()
-        expect(buffer.lineForRow(10)).toBe "  "
 
     describe ".undo() and .redo()", ->
       it "undoes/redoes the last change", ->

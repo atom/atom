@@ -174,6 +174,11 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
         'core:cut': -> @cutSelectedText()
         'core:copy': -> @copySelectedText()
         'core:paste': -> @pasteText()
+        'editor:paste-without-reformatting': -> @pasteText({
+          normalizeLineEndings: false,
+          autoIndent: false,
+          preserveTrailingLineIndentation: true
+        })
         'editor:delete-to-previous-word-boundary': -> @deleteToPreviousWordBoundary()
         'editor:delete-to-next-word-boundary': -> @deleteToNextWordBoundary()
         'editor:delete-to-beginning-of-word': -> @deleteToBeginningOfWord()

@@ -2,6 +2,8 @@ const fs = require('fs')
 const temp = require('temp').track()
 const {Point, Range} = require('text-buffer')
 const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const TextBuffer = require('text-buffer')
+const TextEditor = require('../src/text-editor')
 
 describe('TextEditor', () => {
   let editor
@@ -55,6 +57,276 @@ describe('TextEditor', () => {
     it('returns false when the window is closing and the project has no directory paths', () => {
       editor.setText('changed')
       expect(editor.shouldPromptToSave({windowCloseRequested: true, projectHasPaths: false})).toBeTruthy()
+    })
+  })
+
+  describe('.toggleLineCommentsInSelection()', () => {
+    beforeEach(async () => {
+      await atom.packages.activatePackage('language-javascript')
+      editor = await atom.workspace.open('sample.js')
+    })
+
+    it('toggles comments on the selected lines', () => {
+      editor.setSelectedBufferRange([[4, 5], [7, 5]])
+      editor.toggleLineCommentsInSelection()
+
+      expect(editor.lineTextForBufferRow(4)).toBe('    // while(items.length > 0) {')
+      expect(editor.lineTextForBufferRow(5)).toBe('    //   current = items.shift();')
+      expect(editor.lineTextForBufferRow(6)).toBe('    //   current < pivot ? left.push(current) : right.push(current);')
+      expect(editor.lineTextForBufferRow(7)).toBe('    // }')
+      expect(editor.getSelectedBufferRange()).toEqual([[4, 8], [7, 8]])
+
+      editor.toggleLineCommentsInSelection()
+      expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+      expect(editor.lineTextForBufferRow(5)).toBe('      current = items.shift();')
+      expect(editor.lineTextForBufferRow(6)).toBe('      current < pivot ? left.push(current) : right.push(current);')
+      expect(editor.lineTextForBufferRow(7)).toBe('    }')
+    })
+
+    it('does not comment the last line of a non-empty selection if it ends at column 0', () => {
+      editor.setSelectedBufferRange([[4, 5], [7, 0]])
+      editor.toggleLineCommentsInSelection()
+      expect(editor.lineTextForBufferRow(4)).toBe('    // while(items.length > 0) {')
+      expect(editor.lineTextForBufferRow(5)).toBe('    //   current = items.shift();')
+      expect(editor.lineTextForBufferRow(6)).toBe('    //   current < pivot ? left.push(current) : right.push(current);')
+      expect(editor.lineTextForBufferRow(7)).toBe('    }')
+    })
+
+    it('uncomments lines if all lines match the comment regex', () => {
+      editor.setSelectedBufferRange([[0, 0], [0, 1]])
+      editor.toggleLineCommentsInSelection()
+      expect(editor.lineTextForBufferRow(0)).toBe('// var quicksort = function () {')
+
+      editor.setSelectedBufferRange([[0, 0], [2, Infinity]])
+      editor.toggleLineCommentsInSelection()
+      expect(editor.lineTextForBufferRow(0)).toBe('// // var quicksort = function () {')
+      expect(editor.lineTextForBufferRow(1)).toBe('//   var sort = function(items) {')
+      expect(editor.lineTextForBufferRow(2)).toBe('//     if (items.length <= 1) return items;')
+
+      editor.setSelectedBufferRange([[0, 0], [2, Infinity]])
+      editor.toggleLineCommentsInSelection()
+      expect(editor.lineTextForBufferRow(0)).toBe('// var quicksort = function () {')
+      expect(editor.lineTextForBufferRow(1)).toBe('  var sort = function(items) {')
+      expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
+
+      editor.setSelectedBufferRange([[0, 0], [0, Infinity]])
+      editor.toggleLineCommentsInSelection()
+      expect(editor.lineTextForBufferRow(0)).toBe('var quicksort = function () {')
+    })
+
+    it('uncomments commented lines separated by an empty line', () => {
+      editor.setSelectedBufferRange([[0, 0], [1, Infinity]])
+      editor.toggleLineCommentsInSelection()
+      expect(editor.lineTextForBufferRow(0)).toBe('// var quicksort = function () {')
+      expect(editor.lineTextForBufferRow(1)).toBe('//   var sort = function(items) {')
+
+      editor.getBuffer().insert([0, Infinity], '\n')
+
+      editor.setSelectedBufferRange([[0, 0], [2, Infinity]])
+      editor.toggleLineCommentsInSelection()
+      expect(editor.lineTextForBufferRow(0)).toBe('var quicksort = function () {')
+      expect(editor.lineTextForBufferRow(1)).toBe('')
+      expect(editor.lineTextForBufferRow(2)).toBe('  var sort = function(items) {')
+    })
+
+    it('preserves selection emptiness', () => {
+      editor.setCursorBufferPosition([4, 0])
+      editor.toggleLineCommentsInSelection()
+      expect(editor.getLastSelection().isEmpty()).toBeTruthy()
+    })
+
+    it('does not explode if the current language mode has no comment regex', () => {
+      const editor = new TextEditor({buffer: new TextBuffer({text: 'hello'})})
+      editor.setSelectedBufferRange([[0, 0], [0, 5]])
+      editor.toggleLineCommentsInSelection()
+      expect(editor.lineTextForBufferRow(0)).toBe('hello')
+    })
+
+    it('does nothing for empty lines and null grammar', () => {
+      editor.setGrammar(atom.grammars.grammarForScopeName('text.plain.null-grammar'))
+      editor.setCursorBufferPosition([10, 0])
+      editor.toggleLineCommentsInSelection()
+      expect(editor.lineTextForBufferRow(10)).toBe('')
+    })
+
+    it('uncomments when the line lacks the trailing whitespace in the comment regex', () => {
+      editor.setCursorBufferPosition([10, 0])
+      editor.toggleLineCommentsInSelection()
+
+      expect(editor.lineTextForBufferRow(10)).toBe('// ')
+      expect(editor.getSelectedBufferRange()).toEqual([[10, 3], [10, 3]])
+      editor.backspace()
+      expect(editor.lineTextForBufferRow(10)).toBe('//')
+
+      editor.toggleLineCommentsInSelection()
+      expect(editor.lineTextForBufferRow(10)).toBe('')
+      expect(editor.getSelectedBufferRange()).toEqual([[10, 0], [10, 0]])
+    })
+
+    it('uncomments when the line has leading whitespace', () => {
+      editor.setCursorBufferPosition([10, 0])
+      editor.toggleLineCommentsInSelection()
+
+      expect(editor.lineTextForBufferRow(10)).toBe('// ')
+      editor.moveToBeginningOfLine()
+      editor.insertText('  ')
+      editor.setSelectedBufferRange([[10, 0], [10, 0]])
+      editor.toggleLineCommentsInSelection()
+      expect(editor.lineTextForBufferRow(10)).toBe('  ')
+    })
+  })
+
+  describe('.toggleLineCommentsForBufferRows', () => {
+    describe('xml', () => {
+      beforeEach(async () => {
+        await atom.packages.activatePackage('language-xml')
+        editor = await atom.workspace.open('test.xml')
+        editor.setText('<!-- test -->')
+      })
+
+      it('removes the leading whitespace from the comment end pattern match when uncommenting lines', () => {
+        editor.toggleLineCommentsForBufferRows(0, 0)
+        expect(editor.lineTextForBufferRow(0)).toBe('test')
+      })
+    })
+
+    describe('less', () => {
+      beforeEach(async () => {
+        await atom.packages.activatePackage('language-less')
+        await atom.packages.activatePackage('language-css')
+        editor = await atom.workspace.open('sample.less')
+      })
+
+      it('only uses the `commentEnd` pattern if it comes from the same grammar as the `commentStart` when commenting lines', () => {
+        editor.toggleLineCommentsForBufferRows(0, 0)
+        expect(editor.lineTextForBufferRow(0)).toBe('// @color: #4D926F;')
+      })
+    })
+
+    describe('css', () => {
+      beforeEach(async () => {
+        await atom.packages.activatePackage('language-css')
+        editor = await atom.workspace.open('css.css')
+      })
+
+      it('comments/uncomments lines in the given range', () => {
+        editor.toggleLineCommentsForBufferRows(0, 1)
+        expect(editor.lineTextForBufferRow(0)).toBe('/* body {')
+        expect(editor.lineTextForBufferRow(1)).toBe('  font-size: 1234px; */')
+        expect(editor.lineTextForBufferRow(2)).toBe('  width: 110%;')
+        expect(editor.lineTextForBufferRow(3)).toBe('  font-weight: bold !important;')
+
+        editor.toggleLineCommentsForBufferRows(2, 2)
+        expect(editor.lineTextForBufferRow(0)).toBe('/* body {')
+        expect(editor.lineTextForBufferRow(1)).toBe('  font-size: 1234px; */')
+        expect(editor.lineTextForBufferRow(2)).toBe('  /* width: 110%; */')
+        expect(editor.lineTextForBufferRow(3)).toBe('  font-weight: bold !important;')
+
+        editor.toggleLineCommentsForBufferRows(0, 1)
+        expect(editor.lineTextForBufferRow(0)).toBe('body {')
+        expect(editor.lineTextForBufferRow(1)).toBe('  font-size: 1234px;')
+        expect(editor.lineTextForBufferRow(2)).toBe('  /* width: 110%; */')
+        expect(editor.lineTextForBufferRow(3)).toBe('  font-weight: bold !important;')
+      })
+
+      it('uncomments lines with leading whitespace', () => {
+        editor.setTextInBufferRange([[2, 0], [2, Infinity]], '  /* width: 110%; */')
+        editor.toggleLineCommentsForBufferRows(2, 2)
+        expect(editor.lineTextForBufferRow(2)).toBe('  width: 110%;')
+      })
+
+      it('uncomments lines with trailing whitespace', () => {
+        editor.setTextInBufferRange([[2, 0], [2, Infinity]], '/* width: 110%; */  ')
+        editor.toggleLineCommentsForBufferRows(2, 2)
+        expect(editor.lineTextForBufferRow(2)).toBe('width: 110%;  ')
+      })
+
+      it('uncomments lines with leading and trailing whitespace', () => {
+        editor.setTextInBufferRange([[2, 0], [2, Infinity]], '   /* width: 110%; */ ')
+        editor.toggleLineCommentsForBufferRows(2, 2)
+        expect(editor.lineTextForBufferRow(2)).toBe('   width: 110%; ')
+      })
+    })
+
+    describe('coffeescript', () => {
+      beforeEach(async () => {
+        await atom.packages.activatePackage('language-coffee-script')
+        editor = await atom.workspace.open('coffee.coffee')
+      })
+
+      it('comments/uncomments lines in the given range', () => {
+        editor.toggleLineCommentsForBufferRows(4, 6)
+        expect(editor.lineTextForBufferRow(4)).toBe('    # pivot = items.shift()')
+        expect(editor.lineTextForBufferRow(5)).toBe('    # left = []')
+        expect(editor.lineTextForBufferRow(6)).toBe('    # right = []')
+
+        editor.toggleLineCommentsForBufferRows(4, 5)
+        expect(editor.lineTextForBufferRow(4)).toBe('    pivot = items.shift()')
+        expect(editor.lineTextForBufferRow(5)).toBe('    left = []')
+        expect(editor.lineTextForBufferRow(6)).toBe('    # right = []')
+      })
+
+      it('comments/uncomments empty lines', () => {
+        editor.toggleLineCommentsForBufferRows(4, 7)
+        expect(editor.lineTextForBufferRow(4)).toBe('    # pivot = items.shift()')
+        expect(editor.lineTextForBufferRow(5)).toBe('    # left = []')
+        expect(editor.lineTextForBufferRow(6)).toBe('    # right = []')
+        expect(editor.lineTextForBufferRow(7)).toBe('    # ')
+
+        editor.toggleLineCommentsForBufferRows(4, 5)
+        expect(editor.lineTextForBufferRow(4)).toBe('    pivot = items.shift()')
+        expect(editor.lineTextForBufferRow(5)).toBe('    left = []')
+        expect(editor.lineTextForBufferRow(6)).toBe('    # right = []')
+        expect(editor.lineTextForBufferRow(7)).toBe('    # ')
+      })
+    })
+
+    describe('javascript', () => {
+      beforeEach(async () => {
+        await atom.packages.activatePackage('language-javascript')
+        editor = await atom.workspace.open('sample.js')
+      })
+
+      it('comments/uncomments lines in the given range', () => {
+        editor.toggleLineCommentsForBufferRows(4, 7)
+        expect(editor.lineTextForBufferRow(4)).toBe('    // while(items.length > 0) {')
+        expect(editor.lineTextForBufferRow(5)).toBe('    //   current = items.shift();')
+        expect(editor.lineTextForBufferRow(6)).toBe('    //   current < pivot ? left.push(current) : right.push(current);')
+        expect(editor.lineTextForBufferRow(7)).toBe('    // }')
+
+        editor.toggleLineCommentsForBufferRows(4, 5)
+        expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+        expect(editor.lineTextForBufferRow(5)).toBe('      current = items.shift();')
+        expect(editor.lineTextForBufferRow(6)).toBe('    //   current < pivot ? left.push(current) : right.push(current);')
+        expect(editor.lineTextForBufferRow(7)).toBe('    // }')
+
+        editor.setText('\tvar i;')
+        editor.toggleLineCommentsForBufferRows(0, 0)
+        expect(editor.lineTextForBufferRow(0)).toBe('\t// var i;')
+
+        editor.setText('var i;')
+        editor.toggleLineCommentsForBufferRows(0, 0)
+        expect(editor.lineTextForBufferRow(0)).toBe('// var i;')
+
+        editor.setText(' var i;')
+        editor.toggleLineCommentsForBufferRows(0, 0)
+        expect(editor.lineTextForBufferRow(0)).toBe(' // var i;')
+
+        editor.setText('  ')
+        editor.toggleLineCommentsForBufferRows(0, 0)
+        expect(editor.lineTextForBufferRow(0)).toBe('  // ')
+
+        editor.setText('    a\n  \n    b')
+        editor.toggleLineCommentsForBufferRows(0, 2)
+        expect(editor.lineTextForBufferRow(0)).toBe('    // a')
+        expect(editor.lineTextForBufferRow(1)).toBe('    // ')
+        expect(editor.lineTextForBufferRow(2)).toBe('    // b')
+
+        editor.setText('    \n    // var i;')
+        editor.toggleLineCommentsForBufferRows(0, 1)
+        expect(editor.lineTextForBufferRow(0)).toBe('    ')
+        expect(editor.lineTextForBufferRow(1)).toBe('    var i;')
+      })
     })
   })
 
@@ -170,6 +442,26 @@ describe('TextEditor', () => {
           const [fold] = editor.unfoldAll()
           expect([fold.start.row, fold.end.row]).toEqual([0, 13])
         })
+      })
+    })
+
+    describe('.foldCurrentRow()', () => {
+      it('creates a fold at the location of the last cursor', async () => {
+        editor = await atom.workspace.open()
+        editor.setText('\nif (x) {\n  y()\n}')
+        editor.setCursorBufferPosition([1, 0])
+        expect(editor.getScreenLineCount()).toBe(4)
+        editor.foldCurrentRow()
+        expect(editor.getScreenLineCount()).toBe(3)
+      })
+
+      it('does nothing when the current row cannot be folded', async () => {
+        editor = await atom.workspace.open()
+        editor.setText('var x;\nx++\nx++')
+        editor.setCursorBufferPosition([0, 0])
+        expect(editor.getScreenLineCount()).toBe(3)
+        editor.foldCurrentRow()
+        expect(editor.getScreenLineCount()).toBe(3)
       })
     })
 
