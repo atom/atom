@@ -1,5 +1,5 @@
 # VERSION:        0.1
-# DESCRIPTION:    Image to build Atom and create a .rpm file
+# DESCRIPTION:    Docker Image to build Atom and create a .rpm file
 
 # Base docker image
 FROM nodesource/fedora21:4.2.6
