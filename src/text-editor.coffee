@@ -468,10 +468,10 @@ class TextEditor extends Model
 
   subscribeToDisplayLayer: ->
     @disposables.add @tokenizedBuffer.onDidChangeGrammar @handleGrammarChange.bind(this)
-    @disposables.add @displayLayer.onDidChangeSync (e) =>
+    @disposables.add @displayLayer.onDidChange (changes) =>
       @mergeIntersectingSelections()
-      @component?.didChangeDisplayLayer(e)
-      @emitter.emit 'did-change', e
+      @component?.didChangeDisplayLayer(changes)
+      @emitter.emit 'did-change', changes.map (change) -> new ChangeEvent(change)
     @disposables.add @displayLayer.onDidReset =>
       @mergeIntersectingSelections()
       @component?.didResetDisplayLayer()
@@ -3911,3 +3911,18 @@ class TextEditor extends Model
       endRow++
 
     new Range(new Point(startRow, 0), new Point(endRow, @buffer.lineLengthForRow(endRow)))
+
+class ChangeEvent
+  constructor: ({@oldRange, @newRange}) ->
+
+  Object.defineProperty @prototype, 'start', {
+    get: -> @oldRange.start
+  }
+
+  Object.defineProperty @prototype, 'oldExtent', {
+    get: -> @oldRange.getExtent()
+  }
+
+  Object.defineProperty @prototype, 'newExtent', {
+    get: -> @newRange.getExtent()
+  }
