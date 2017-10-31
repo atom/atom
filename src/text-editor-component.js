@@ -1616,11 +1616,23 @@ class TextEditorComponent {
     if (this.isInputEnabled()) {
       event.stopPropagation()
 
-      // WARNING: If we call preventDefault on the input of a space character,
-      // then the browser interprets the spacebar keypress as a page-down command,
-      // causing spaces to scroll elements containing editors. This is impossible
-      // to test.
-      if (event.data !== ' ') event.preventDefault()
+      // WARNING: If we call preventDefault on the input of a space
+      // character, then the browser interprets the spacebar keypress as a
+      // page-down command, causing spaces to scroll elements containing
+      // editors. This means typing space will actually change the contents
+      // of the hidden input, which will cause the browser to autoscroll the
+      // scroll container to reveal the input if it is off screen (See
+      // https://github.com/atom/atom/issues/16046). To correct for this
+      // situation, we automatically reset the scroll position to 0,0 after
+      // typing a space. None of this can really be tested.
+      if (event.data === ' ') {
+        window.setImmediate(() => {
+          this.refs.scrollContainer.scrollTop = 0
+          this.refs.scrollContainer.scrollLeft = 0
+        })
+      } else {
+        event.preventDefault()
+      }
 
       // If the input event is fired while the accented character menu is open it
       // means that the user has chosen one of the accented alternatives. Thus, we
