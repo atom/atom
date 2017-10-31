@@ -2456,8 +2456,12 @@ class TextEditorComponent {
 
   didChangeDisplayLayer (changes) {
     for (let i = 0; i < changes.length; i++) {
-      const {start, oldExtent, newExtent} = changes[i]
-      this.spliceLineTopIndex(start.row, oldExtent.row, newExtent.row)
+      const {oldRange, newRange} = changes[i]
+      this.spliceLineTopIndex(
+        newRange.start.row,
+        oldRange.end.row - oldRange.start.row,
+        newRange.end.row - newRange.start.row
+      )
     }
 
     this.scheduleUpdate()
