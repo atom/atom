@@ -1059,11 +1059,11 @@ class TextEditor {
       let myPathSegments
       const openEditorPathSegmentsWithSameFilename = []
       for (const textEditor of atom.workspace.getTextEditors()) {
-        const pathSegments = fs.tildify(textEditor.getDirectoryPath()).split(path.sep)
         if (textEditor.getFileName() === fileName) {
+          const pathSegments = fs.tildify(textEditor.getDirectoryPath()).split(path.sep)
           openEditorPathSegmentsWithSameFilename.push(pathSegments)
+          if (textEditor === this) myPathSegments = pathSegments
         }
-        if (textEditor === this) myPathSegments = pathSegments
       }
 
       if (openEditorPathSegmentsWithSameFilename.length === 1) return fileName
