@@ -1066,7 +1066,7 @@ class TextEditor {
         }
       }
 
-      if (openEditorPathSegmentsWithSameFilename.length === 1) return fileName
+      if (!myPathSegments || openEditorPathSegmentsWithSameFilename.length === 1) return fileName
 
       let commonPathSegmentCount
       for (let i = 0, {length} = myPathSegments; i < length; i++) {

@@ -218,6 +218,15 @@ describe('TextEditor', () => {
         expect(editor1.getLongTitle()).toBe('main.js \u2014 js')
         expect(editor2.getLongTitle()).toBe(`main.js \u2014 ${path.join('js', 'plugin')}`)
       })
+
+      it('returns the filename when the editor is not in the workspace', async () => {
+        editor.onDidDestroy(() => {
+          expect(editor.getLongTitle()).toBe('sample.js')
+        })
+
+        await atom.workspace.getActivePane().close()
+        expect(editor.isDestroyed()).toBe(true)
+      })
     })
 
     it('notifies ::onDidChangeTitle observers when the underlying buffer path changes', () => {
