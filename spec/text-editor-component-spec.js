@@ -4428,11 +4428,14 @@ describe('TextEditorComponent', () => {
       const {component, editor} = buildComponent()
 
       let dragging = false
-      component.handleMouseDragUntilMouseUp({
-        didDrag: (event) => { dragging = true },
-        didStopDragging: () => { dragging = false }
-      })
+      function startDragging () {
+        component.handleMouseDragUntilMouseUp({
+          didDrag: (event) => { dragging = true },
+          didStopDragging: () => { dragging = false }
+        })
+      }
 
+      startDragging()
       window.dispatchEvent(new MouseEvent('mousemove'))
       await getNextAnimationFramePromise()
       expect(dragging).toBe(true)
@@ -4448,6 +4451,16 @@ describe('TextEditorComponent', () => {
       window.dispatchEvent(new MouseEvent('mousemove'))
       await getNextAnimationFramePromise()
       expect(dragging).toBe(false)
+
+      // Pressing a modifier key does not terminate dragging, (to ensure we can add new selections with the mouse)
+      startDragging()
+      window.dispatchEvent(new MouseEvent('mousemove'))
+      await getNextAnimationFramePromise()
+      expect(dragging).toBe(true)
+      component.didKeydown({key: 'Control'})
+      component.didKeydown({key: 'Alt'})
+      component.didKeydown({key: 'Meta'})
+      expect(dragging).toBe(true)
     })
 
     function getNextAnimationFramePromise () {
