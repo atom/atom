@@ -335,9 +335,14 @@ describe('Project', () => {
       isRoot () { return true }
       existsSync () { return this.path.endsWith('does-exist') }
       contains (filePath) { return filePath.startsWith(this.path) }
+      onDidChangeFiles (callback) {
+        onDidChangeFilesCallback = callback
+        return {dispose: () => {}}
+      }
     }
 
     let serviceDisposable = null
+    let onDidChangeFilesCallback = null
 
     beforeEach(() => {
       serviceDisposable = atom.packages.serviceHub.provide('atom.directory-provider', '0.1.0', {
@@ -349,6 +354,7 @@ describe('Project', () => {
           }
         }
       })
+      onDidChangeFilesCallback = null
 
       waitsFor(() => atom.project.directoryProviders.length > 0)
     })
@@ -382,6 +388,28 @@ describe('Project', () => {
       serviceDisposable.dispose()
       atom.project.setPaths(['ssh://foreign-directory:8080/does-exist'])
       expect(atom.project.getDirectories().length).toBe(0)
+    })
+
+    it('uses the custom onDidChangeFiles as the watcher if available', () => {
+      // Ensure that all preexisting watchers are stopped
+      waitsForPromise(() => stopAllWatchers())
+
+      const remotePath = 'ssh://another-directory:8080/does-exist'
+      runs(() => atom.project.setPaths([remotePath]))
+      waitsForPromise(() => atom.project.getWatcherPromise(remotePath))
+
+      runs(() => {
+        expect(onDidChangeFilesCallback).not.toBeNull()
+
+        const changeSpy = jasmine.createSpy('atom.project.onDidChangeFiles')
+        const disposable = atom.project.onDidChangeFiles(changeSpy)
+
+        const events = [{action: 'created', path: remotePath + '/test.txt'}]
+        onDidChangeFilesCallback(events)
+
+        expect(changeSpy).toHaveBeenCalledWith(events)
+        disposable.dispose()
+      })
     })
   })
 
