@@ -6,6 +6,7 @@ describe "MenuManager", ->
 
   beforeEach ->
     menu = new MenuManager({keymapManager: atom.keymaps, packageManager: atom.packages})
+    spyOn(menu, 'sendToBrowserProcess') # Do not modify Atom's actual menus
     menu.initialize({resourcePath: atom.getLoadSettings().resourcePath})
 
   describe "::add(items)", ->
@@ -54,7 +55,6 @@ describe "MenuManager", ->
     afterEach -> Object.defineProperty process, 'platform', value: originalPlatform
 
     it "sends the current menu template and associated key bindings to the browser process", ->
-      spyOn(menu, 'sendToBrowserProcess')
       menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
       atom.keymaps.add 'test', 'atom-workspace': 'ctrl-b': 'b'
       menu.update()
@@ -66,7 +66,6 @@ describe "MenuManager", ->
     it "omits key bindings that are mapped to unset! in any context", ->
       # it would be nice to be smarter about omitting, but that would require a much
       # more dynamic interaction between the currently focused element and the menu
-      spyOn(menu, 'sendToBrowserProcess')
       menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
       atom.keymaps.add 'test', 'atom-workspace': 'ctrl-b': 'b'
       atom.keymaps.add 'test', 'atom-text-editor': 'ctrl-b': 'unset!'
@@ -77,7 +76,6 @@ describe "MenuManager", ->
 
     it "omits key bindings that could conflict with AltGraph characters on macOS", ->
       Object.defineProperty process, 'platform', value: 'darwin'
-      spyOn(menu, 'sendToBrowserProcess')
       menu.add [{label: "A", submenu: [
         {label: "B", command: "b"},
         {label: "C", command: "c"}
@@ -98,7 +96,6 @@ describe "MenuManager", ->
 
     it "omits key bindings that could conflict with AltGraph characters on Windows", ->
       Object.defineProperty process, 'platform', value: 'win32'
-      spyOn(menu, 'sendToBrowserProcess')
       menu.add [{label: "A", submenu: [
         {label: "B", command: "b"},
         {label: "C", command: "c"}
