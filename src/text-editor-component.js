@@ -1666,7 +1666,7 @@ class TextEditorComponent {
     // Stop dragging when user interacts with the keyboard. This prevents
     // unwanted selections in the case edits are performed while selecting text
     // at the same time.
-    if (this.stopDragging) this.stopDragging()
+    if (this.stopDragging && event.key !== 'Control' && event.key !== 'Alt' && event.key !== 'Meta') this.stopDragging()
 
     if (this.lastKeydownBeforeKeypress != null) {
       if (this.lastKeydownBeforeKeypress.code === event.code) {
