@@ -128,7 +128,7 @@ class ApplicationMenu
     ]
 
   focusedWindow: ->
-    _.find global.atomApplication.windows, (atomWindow) -> atomWindow.isFocused()
+    _.find global.atomApplication.getAllWindows(), (atomWindow) -> atomWindow.isFocused()
 
   # Combines a menu template with the appropriate keystroke.
   #

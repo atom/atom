@@ -67,7 +67,7 @@ class AtomApplication
     {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @logFile, @userDataDir} = options
     @socketPath = null if options.test or options.benchmark or options.benchmarkTest
     @pidsToOpenWindows = {}
-    @windows = new WindowStack()
+    @windowStack = new WindowStack()
 
     @config = new Config({enablePersistence: true})
     @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
@@ -162,7 +162,7 @@ class AtomApplication
 
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
-    @windows.removeWindow(window)
+    @windowStacktack.removeWindow(window)
     if @getAllWindows().length is 0
       @applicationMenu?.enableWindowSpecificItems(false)
       if process.platform in ['win32', 'linux']
@@ -172,27 +172,27 @@ class AtomApplication
 
   # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->
-    @windows.addWindow(window)
+    @windowStack.addWindow(window)
     @applicationMenu?.addWindow(window.browserWindow)
     window.once 'window:loaded', =>
       @autoUpdateManager?.emitUpdateAvailableEvent(window)
 
     unless window.isSpec
-      focusHandler = => @windows.touch(window)
+      focusHandler = => @windowStack.touch(window)
       blurHandler = => @saveState(false)
       window.browserWindow.on 'focus', focusHandler
       window.browserWindow.on 'blur', blurHandler
       window.browserWindow.once 'closed', =>
-        @windows.removeWindow(window)
+        @windowStack.removeWindow(window)
         window.browserWindow.removeListener 'focus', focusHandler
         window.browserWindow.removeListener 'blur', blurHandler
       window.browserWindow.webContents.once 'did-finish-load', => @saveState(false)
 
   getAllWindows: =>
-    @windows.all().slice()
+    @windowStack.all().slice()
 
   getLastFocusedWindow: (predicate) =>
-    @windows.getLastFocusedWindow(predicate)
+    @windowStack.getLastFocusedWindow(predicate)
 
   # Creates server to listen for additional atom application launches.
   #
@@ -589,7 +589,7 @@ class AtomApplication
       windowDimensions ?= @getDimensionsForNewWindow()
       openedWindow = new AtomWindow(this, @fileRecoveryService, {initialPaths, locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState, env})
       openedWindow.focus()
-      @windows.addWindow(openedWindow)
+      @windowStack.addWindow(openedWindow)
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -685,7 +685,7 @@ class AtomApplication
       windowInitializationScript ?= require.resolve('../initialize-application-window')
       windowDimensions = @getDimensionsForNewWindow()
       win = new AtomWindow(this, @fileRecoveryService, {resourcePath, windowInitializationScript, devMode, safeMode, windowDimensions, env})
-      @windows.addWindow(win)
+      @windowStack.addWindow(win)
       win.on 'window:loaded', ->
         win.sendURIMessage url
 
