@@ -4459,6 +4459,7 @@ describe('TextEditorComponent', () => {
       expect(dragging).toBe(true)
       component.didKeydown({key: 'Control'})
       component.didKeydown({key: 'Alt'})
+      component.didKeydown({key: 'Shift'})
       component.didKeydown({key: 'Meta'})
       expect(dragging).toBe(true)
     })
