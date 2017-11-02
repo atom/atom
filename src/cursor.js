@@ -594,7 +594,7 @@ class Cursor extends Model {
   getCurrentWordBufferRange (options = {}) {
     const position = this.getBufferPosition()
     const ranges = this.editor.buffer.findAllInRangeSync(
-      options.wordRegex || this.wordRegExp(),
+      options.wordRegex || this.wordRegExp(options),
       new Range(new Point(position.row, 0), new Point(position.row, Infinity))
     )
     const range = ranges.find(range =>

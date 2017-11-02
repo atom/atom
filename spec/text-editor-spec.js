@@ -2007,13 +2007,17 @@ describe('TextEditor', () => {
 
       describe('when the cursor is between two words', () => {
         it('selects the word the cursor is on', () => {
-          editor.setCursorScreenPosition([0, 4])
+          editor.setCursorBufferPosition([0, 4])
           editor.selectWordsContainingCursors()
           expect(editor.getSelectedText()).toBe('quicksort')
 
-          editor.setCursorScreenPosition([0, 3])
+          editor.setCursorBufferPosition([0, 3])
           editor.selectWordsContainingCursors()
           expect(editor.getSelectedText()).toBe('var')
+
+          editor.setCursorBufferPosition([1, 22])
+          editor.selectWordsContainingCursors()
+          expect(editor.getSelectedText()).toBe('items')
         })
       })
 
