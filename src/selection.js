@@ -613,7 +613,9 @@ class Selection {
       // Remove trailing whitespace from the current line
       const scanRange = this.cursor.getCurrentLineBufferRange()
       let trailingWhitespaceRange = null
-      this.editor.scanInBufferRange(/[ \t]+$/, scanRange, ({range}) => trailingWhitespaceRange = range)
+      this.editor.scanInBufferRange(/[ \t]+$/, scanRange, ({range}) => {
+        trailingWhitespaceRange = range
+      })
       if (trailingWhitespaceRange) {
         this.setBufferRange(trailingWhitespaceRange)
         this.deleteSelectedText()
@@ -886,7 +888,7 @@ class Selection {
   */
 
   setGoalScreenRange (range) {
-    return this.goalScreenRange = Range.fromObject(range)
+    this.goalScreenRange = Range.fromObject(range)
   }
 
   getGoalScreenRange () {
