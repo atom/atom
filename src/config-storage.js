@@ -6,6 +6,7 @@ const path = require('path')
 const CSON = require('season')
 const {watchPath} = require('./path-watcher')
 const Color = require('./color')
+const {Emitter} = require('event-kit')
 
 const saveRetryTime = 250
 const saveRetryCount = 8
@@ -16,6 +17,7 @@ module.exports = class ConfigStorage {
   }
 
   constructor ({config, configDirPath, resourcePath, notificationManager}) {
+    this.emitter = new Emitter
     this.config = config
     this.configDirPath = configDirPath
     this.configFilePath = ConfigStorage.createConfigFilePath(configDirPath)
@@ -30,13 +32,20 @@ module.exports = class ConfigStorage {
   }
 
   start () {
-    this.pendingOperations = []
-    this.saveLockFail = 0
-    this.configListener = this.config.onDidSetOrUnset(op => this.capturePendingOperation(op))
-    this.initializeConfigDirectory()
-    this.initializeUserConfig()
-    this.load(() => {
-      this.observeUserConfigFile()
+    return new Promise((resolve, reject) => {
+      this.pendingOperations = []
+      this.saveLockFail = 0
+      this.configListener = this.config.onDidSetOrUnset(op => this.capturePendingOperation(op))
+      this.initializeConfigDirectory()
+      this.initializeUserConfig()
+      this.load((err, loaded) => {
+        this.observeUserConfigFile()
+        if (err) {
+          reject(err)
+        } else {
+          resolve(loaded)
+        }
+      })
     })
   }
 
@@ -51,10 +60,10 @@ module.exports = class ConfigStorage {
 
   capturePendingOperation (op) {
     const option = op.slice(-1)[0]
-    const userConfigSource = option == null || option.source == null || option.source === this.getUserConfigPath()
-    const shouldSave = option == null || option.save
+    const isUserConfigSource = option == null || option.source == null || option.source === this.getUserConfigPath()
+    const saveRequested = option == null || option.save || true
 
-    if (shouldSave && userConfigSource) {
+    if (saveRequested && isUserConfigSource) {
       this.pendingOperations.push(op)
       this.save()
     }
@@ -100,8 +109,8 @@ module.exports = class ConfigStorage {
     }
 
     const loadErrorMessage = `Failed to load \`${path.basename(this.configFilePath)}\``
-
     this.isLoading = true
+
     CSON.readFile(this.configFilePath, (err, userConfig) => {
       this.isLoading = false
       if (err) {
@@ -114,6 +123,7 @@ module.exports = class ConfigStorage {
           this.notifyFailure(loadErrorMessage, error)
           callback(error, false)
         } else {
+          console.log('loaded', userConfig)
           this.config.applyUserSettings(userConfig)
           this.configFileHasErrors = false
           callback(null, true)
@@ -125,11 +135,13 @@ module.exports = class ConfigStorage {
   save () {
     // Debounce and retry saves
     if (this.saveTimer == null) {
+      console.log('save timer setup')
       this.saveTimer = setInterval(() => this.startSave(), saveRetryTime)
     }
   }
 
   startSave () {
+    console.log('saveStart', this.isSaving, this.isLoading, this.configFileHasErrors)
     if (this.isSaving || this.isLoading || this.configFileHasErrors) return
     this.isSaving = true
 
@@ -164,6 +176,7 @@ module.exports = class ConfigStorage {
         }
         this.isSaving = false
       } else {
+        debugger
         this.load((err) => {
           if (err) {
             lockFile.unlock(lockFilePath, () => {
@@ -172,6 +185,7 @@ module.exports = class ConfigStorage {
           } else {
             this.actualSave(() => {
               lockFile.unlock(lockFilePath, () => {
+                this.emitter.emit('did-save')
                 this.isSaving = false
                 this.saveLockFail = 0
               })
@@ -182,9 +196,19 @@ module.exports = class ConfigStorage {
     })
   }
 
+  onDidSave (callback) {
+    this.emitter.on('did-save', callback)
+  }
+
   actualSave (callback) {
     // Take as many operations as currently in the queue and apply them
     const pendingOperationsCount = this.pendingOperations.length
+    console.log('saving', this.pendingOperations.slice(0, pendingOperationsCount))
+    if (pendingOperationsCount === 0) {
+      callback(null)
+      return
+    }
+
     for (let op of this.pendingOperations.slice(0, pendingOperationsCount)) {
       this.applyOperation(op)
     }
@@ -198,6 +222,7 @@ module.exports = class ConfigStorage {
         this.notifyFailure(`Failed to save \`${path.basename(this.configFilePath)}\``, error.message)
         callback(error)
       } else {
+        console.log('saved', allSettings)
         // Remove the operations we successfully processed
         this.pendingOperations = this.pendingOperations.slice(pendingOperationsCount)
         // Schedule another save if some were received during call
