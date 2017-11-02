@@ -126,7 +126,6 @@ class TextEditorComponent {
     this.blockDecorationResizeObserver = new ResizeObserver(this.didResizeBlockDecorations.bind(this))
     this.lineComponentsByScreenLineId = new Map()
     this.overlayComponents = new Set()
-    this.overlayDimensionsByElement = new WeakMap()
     this.shouldRenderDummyScrollbars = true
     this.remeasureScrollbars = false
     this.pendingAutoscroll = null
@@ -803,8 +802,10 @@ class TextEditorComponent {
         {
           key: overlayProps.element,
           overlayComponents: this.overlayComponents,
-          measuredDimensions: this.overlayDimensionsByElement.get(overlayProps.element),
-          didResize: () => { this.updateSync() }
+          didResize: (overlayComponent) => {
+            this.updateOverlayToRender(overlayProps)
+            overlayComponent.update(overlayProps)
+          }
         },
         overlayProps
       ))
@@ -1339,42 +1340,46 @@ class TextEditorComponent {
     })
   }
 
+  updateOverlayToRender (decoration) {
+    const windowInnerHeight = this.getWindowInnerHeight()
+    const windowInnerWidth = this.getWindowInnerWidth()
+    const contentClientRect = this.refs.content.getBoundingClientRect()
+
+    const {element, screenPosition, avoidOverflow} = decoration
+    const {row, column} = screenPosition
+    let wrapperTop = contentClientRect.top + this.pixelPositionAfterBlocksForRow(row) + this.getLineHeight()
+    let wrapperLeft = contentClientRect.left + this.pixelLeftForRowAndColumn(row, column)
+    const clientRect = element.getBoundingClientRect()
+
+    if (avoidOverflow !== false) {
+      const computedStyle = window.getComputedStyle(element)
+      const elementTop = wrapperTop + parseInt(computedStyle.marginTop)
+      const elementBottom = elementTop + clientRect.height
+      const flippedElementTop = wrapperTop - this.getLineHeight() - clientRect.height - parseInt(computedStyle.marginBottom)
+      const elementLeft = wrapperLeft + parseInt(computedStyle.marginLeft)
+      const elementRight = elementLeft + clientRect.width
+
+      if (elementBottom > windowInnerHeight && flippedElementTop >= 0) {
+        wrapperTop -= (elementTop - flippedElementTop)
+      }
+      if (elementLeft < 0) {
+        wrapperLeft -= elementLeft
+      } else if (elementRight > windowInnerWidth) {
+        wrapperLeft -= (elementRight - windowInnerWidth)
+      }
+    }
+
+    decoration.pixelTop = Math.round(wrapperTop)
+    decoration.pixelLeft = Math.round(wrapperLeft)
+  }
+
   updateOverlaysToRender () {
     const overlayCount = this.decorationsToRender.overlays.length
     if (overlayCount === 0) return null
 
-    const windowInnerHeight = this.getWindowInnerHeight()
-    const windowInnerWidth = this.getWindowInnerWidth()
-    const contentClientRect = this.refs.content.getBoundingClientRect()
     for (let i = 0; i < overlayCount; i++) {
       const decoration = this.decorationsToRender.overlays[i]
-      const {element, screenPosition, avoidOverflow} = decoration
-      const {row, column} = screenPosition
-      let wrapperTop = contentClientRect.top + this.pixelPositionAfterBlocksForRow(row) + this.getLineHeight()
-      let wrapperLeft = contentClientRect.left + this.pixelLeftForRowAndColumn(row, column)
-      const clientRect = element.getBoundingClientRect()
-      this.overlayDimensionsByElement.set(element, clientRect)
-
-      if (avoidOverflow !== false) {
-        const computedStyle = window.getComputedStyle(element)
-        const elementTop = wrapperTop + parseInt(computedStyle.marginTop)
-        const elementBottom = elementTop + clientRect.height
-        const flippedElementTop = wrapperTop - this.getLineHeight() - clientRect.height - parseInt(computedStyle.marginBottom)
-        const elementLeft = wrapperLeft + parseInt(computedStyle.marginLeft)
-        const elementRight = elementLeft + clientRect.width
-
-        if (elementBottom > windowInnerHeight && flippedElementTop >= 0) {
-          wrapperTop -= (elementTop - flippedElementTop)
-        }
-        if (elementLeft < 0) {
-          wrapperLeft -= elementLeft
-        } else if (elementRight > windowInnerWidth) {
-          wrapperLeft -= (elementRight - windowInnerWidth)
-        }
-      }
-
-      decoration.pixelTop = Math.round(wrapperTop)
-      decoration.pixelLeft = Math.round(wrapperLeft)
+      this.updateOverlayToRender(decoration)
     }
   }
 
@@ -1603,11 +1608,23 @@ class TextEditorComponent {
     if (this.isInputEnabled()) {
       event.stopPropagation()
 
-      // WARNING: If we call preventDefault on the input of a space character,
-      // then the browser interprets the spacebar keypress as a page-down command,
-      // causing spaces to scroll elements containing editors. This is impossible
-      // to test.
-      if (event.data !== ' ') event.preventDefault()
+      // WARNING: If we call preventDefault on the input of a space
+      // character, then the browser interprets the spacebar keypress as a
+      // page-down command, causing spaces to scroll elements containing
+      // editors. This means typing space will actually change the contents
+      // of the hidden input, which will cause the browser to autoscroll the
+      // scroll container to reveal the input if it is off screen (See
+      // https://github.com/atom/atom/issues/16046). To correct for this
+      // situation, we automatically reset the scroll position to 0,0 after
+      // typing a space. None of this can really be tested.
+      if (event.data === ' ') {
+        window.setImmediate(() => {
+          this.refs.scrollContainer.scrollTop = 0
+          this.refs.scrollContainer.scrollLeft = 0
+        })
+      } else {
+        event.preventDefault()
+      }
 
       // If the input event is fired while the accented character menu is open it
       // means that the user has chosen one of the accented alternatives. Thus, we
@@ -1640,8 +1657,11 @@ class TextEditorComponent {
   didKeydown (event) {
     // Stop dragging when user interacts with the keyboard. This prevents
     // unwanted selections in the case edits are performed while selecting text
-    // at the same time.
-    if (this.stopDragging) this.stopDragging()
+    // at the same time. Modifier keys are exempt to preserve the ability to
+    // add selections, shift-scroll horizontally while selecting.
+    if (this.stopDragging && event.key !== 'Control' && event.key !== 'Alt' && event.key !== 'Meta' && event.key !== 'Shift') {
+      this.stopDragging()
+    }
 
     if (this.lastKeydownBeforeKeypress != null) {
       if (this.lastKeydownBeforeKeypress.code === event.code) {
@@ -1758,7 +1778,7 @@ class TextEditorComponent {
 
     if (target && target.matches('.fold-marker')) {
       const bufferPosition = model.bufferPositionForScreenPosition(screenPosition)
-      model.destroyFoldsIntersectingBufferRange(Range(bufferPosition, bufferPosition))
+      model.destroyFoldsContainingBufferPositions([bufferPosition], false)
       return
     }
 
@@ -2443,8 +2463,12 @@ class TextEditorComponent {
 
   didChangeDisplayLayer (changes) {
     for (let i = 0; i < changes.length; i++) {
-      const {start, oldExtent, newExtent} = changes[i]
-      this.spliceLineTopIndex(start.row, oldExtent.row, newExtent.row)
+      const {oldRange, newRange} = changes[i]
+      this.spliceLineTopIndex(
+        newRange.start.row,
+        oldRange.end.row - oldRange.start.row,
+        newRange.end.row - newRange.start.row
+      )
     }
 
     this.scheduleUpdate()
@@ -4194,17 +4218,26 @@ class OverlayComponent {
     this.element.style.zIndex = 4
     this.element.style.top = (this.props.pixelTop || 0) + 'px'
     this.element.style.left = (this.props.pixelLeft || 0) + 'px'
+    this.currentContentRect = null
 
     // Synchronous DOM updates in response to resize events might trigger a
     // "loop limit exceeded" error. We disconnect the observer before
     // potentially mutating the DOM, and then reconnect it on the next tick.
+    // Note: ResizeObserver calls its callback when .observe is called
     this.resizeObserver = new ResizeObserver((entries) => {
       const {contentRect} = entries[0]
-      if (contentRect.width !== this.props.measuredDimensions.width || contentRect.height !== this.props.measuredDimensions.height) {
+
+      if (
+        this.currentContentRect &&
+        (this.currentContentRect.width !== contentRect.width ||
+          this.currentContentRect.height !== contentRect.height)
+      ) {
         this.resizeObserver.disconnect()
-        this.props.didResize()
+        this.props.didResize(this)
         process.nextTick(() => { this.resizeObserver.observe(this.props.element) })
       }
+
+      this.currentContentRect = contentRect
     })
     this.didAttach()
     this.props.overlayComponents.add(this)
@@ -4215,15 +4248,30 @@ class OverlayComponent {
     this.didDetach()
   }
 
+  getNextUpdatePromise () {
+    if (!this.nextUpdatePromise) {
+      this.nextUpdatePromise = new Promise((resolve) => {
+        this.resolveNextUpdatePromise = () => {
+          this.nextUpdatePromise = null
+          this.resolveNextUpdatePromise = null
+          resolve()
+        }
+      })
+    }
+    return this.nextUpdatePromise
+  }
+
   update (newProps) {
     const oldProps = this.props
-    this.props = newProps
+    this.props = Object.assign({}, oldProps, newProps)
     if (this.props.pixelTop != null) this.element.style.top = this.props.pixelTop + 'px'
     if (this.props.pixelLeft != null) this.element.style.left = this.props.pixelLeft + 'px'
     if (newProps.className !== oldProps.className) {
       if (oldProps.className != null) this.element.classList.remove(oldProps.className)
       if (newProps.className != null) this.element.classList.add(newProps.className)
     }
+
+    if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
   }
 
   didAttach () {

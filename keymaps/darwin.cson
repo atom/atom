@@ -132,6 +132,7 @@
   'ctrl-shift-w': 'editor:select-word'
   'cmd-ctrl-left': 'editor:move-selection-left'
   'cmd-ctrl-right': 'editor:move-selection-right'
+  'cmd-shift-V': 'editor:paste-without-reformatting'
 
   # Emacs
   'alt-f': 'editor:move-to-end-of-word'

@@ -288,7 +288,7 @@ export default class TextEditorRegistry {
 
         let currentScore = this.editorGrammarScores.get(editor)
         if (currentScore == null || score > currentScore) {
-          editor.setGrammar(grammar, score)
+          editor.setGrammar(grammar)
           this.editorGrammarScores.set(editor, score)
         }
       }
