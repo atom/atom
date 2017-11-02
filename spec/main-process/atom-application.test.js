@@ -479,11 +479,11 @@ describe('AtomApplication', function () {
 
         atomApplication.launch(parseCommandLine(['--uri-handler', `atom://core/open/file?filename=${fileA}`]))
         await new Promise(res => setTimeout(res, 1000))
-        await conditionPromise(() => window.atomApplication.getLastFocusedWindow() === window1)
+        await conditionPromise(() => atomApplication.getLastFocusedWindow() === window1)
 
         atomApplication.launch(parseCommandLine(['--uri-handler', `atom://core/open/file?filename=${fileB}`]))
         await new Promise(res => setTimeout(res, 1000))
-        await conditionPromise(() => window.atomApplication.getLastFocusedWindow() === window2)
+        await conditionPromise(() => atomApplication.getLastFocusedWindow() === window2)
       })
     })
   })
