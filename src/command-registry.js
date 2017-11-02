@@ -107,6 +107,13 @@ module.exports = class CommandRegistry {
   //       otherwise be generated from the event name.
   //     * `description`: Used by consumers to display detailed information about
   //       the command.
+  //     * `hiddenInCommandPalette`: If `true`, this command will not appear in
+  //       the bundled command palette by default, but can still be shown with.
+  //       the `Command Palette: Show Hidden Commands` command. This is a good
+  //       option when you need to register large numbers of commands that don't
+  //       make sense to be executed from the command palette. Please use this
+  //       option conservatively, as it could reduce the discoverability of your
+  //       package's commands.
   //
   // ## Arguments: Registering Multiple Commands
   //
