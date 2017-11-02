@@ -162,7 +162,7 @@ class AtomApplication
 
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
-    @windowStacktack.removeWindow(window)
+    @windowStack.removeWindow(window)
     if @getAllWindows().length is 0
       @applicationMenu?.enableWindowSpecificItems(false)
       if process.platform in ['win32', 'linux']
