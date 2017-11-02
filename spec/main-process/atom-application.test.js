@@ -476,10 +476,10 @@ describe('AtomApplication', function () {
         const fileB = path.join(dirBPath, 'file-b')
 
         atomApplication.launch(parseCommandLine(['--uri-handler', `atom://core/open/file?filename=${fileA}`]))
-        await conditionPromise(() => atomApplication.getLastFocusedWindow() === window1, 'window1 to be focused')
+        await conditionPromise(() => atomApplication.getLastFocusedWindow() === window1, `window1 to be focused from ${fileA}`)
 
         atomApplication.launch(parseCommandLine(['--uri-handler', `atom://core/open/file?filename=${fileB}`]))
-        await conditionPromise(() => atomApplication.getLastFocusedWindow() === window2, 'window2 to be focused')
+        await conditionPromise(() => atomApplication.getLastFocusedWindow() === window2, `window2 to be focused from ${fileB}`)
       })
     })
   })
