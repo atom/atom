@@ -646,11 +646,7 @@ class Project extends Model {
   }
 
   addBuffer (buffer, options = {}) {
-    return this.addBufferAtIndex(buffer, this.buffers.length, options)
-  }
-
-  addBufferAtIndex (buffer, index, options = {}) {
-    this.buffers.splice(index, 0, buffer)
+    this.buffers.push(buffer)
     this.subscribeToBuffer(buffer)
     this.emitter.emit('did-add-buffer', buffer)
     return buffer
