@@ -53,6 +53,12 @@ describe('WindowEventHandler', () => {
     })
   )
 
+    it ('saves the window state', () => {
+      spyOn(atom, 'storeWindowDimensions')
+      window.dispatchEvent(new CustomEvent('window:close'))
+      expect(atom.storeWindowDimensions).toHaveBeenCalled()
+    })
+ )
   describe('when a link is clicked', () =>
     it('opens the http/https links in an external application', () => {
       const {shell} = require('electron')

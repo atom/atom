@@ -212,6 +212,7 @@ class WindowEventHandler {
   }
 
   handleWindowClose () {
+    this.atomEnvironment.storeWindowDimensions()
     this.atomEnvironment.close()
   }
 
