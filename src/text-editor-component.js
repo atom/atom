@@ -126,7 +126,6 @@ class TextEditorComponent {
     this.blockDecorationResizeObserver = new ResizeObserver(this.didResizeBlockDecorations.bind(this))
     this.lineComponentsByScreenLineId = new Map()
     this.overlayComponents = new Set()
-    this.overlayDimensionsByElement = new WeakMap()
     this.shouldRenderDummyScrollbars = true
     this.remeasureScrollbars = false
     this.pendingAutoscroll = null
@@ -803,7 +802,6 @@ class TextEditorComponent {
         {
           key: overlayProps.element,
           overlayComponents: this.overlayComponents,
-          measuredDimensions: this.overlayDimensionsByElement.get(overlayProps.element),
           didResize: () => { this.updateSync() }
         },
         overlayProps
@@ -1353,7 +1351,6 @@ class TextEditorComponent {
       let wrapperTop = contentClientRect.top + this.pixelPositionAfterBlocksForRow(row) + this.getLineHeight()
       let wrapperLeft = contentClientRect.left + this.pixelLeftForRowAndColumn(row, column)
       const clientRect = element.getBoundingClientRect()
-      this.overlayDimensionsByElement.set(element, clientRect)
 
       if (avoidOverflow !== false) {
         const computedStyle = window.getComputedStyle(element)
@@ -4199,11 +4196,18 @@ class OverlayComponent {
     // potentially mutating the DOM, and then reconnect it on the next tick.
     this.resizeObserver = new ResizeObserver((entries) => {
       const {contentRect} = entries[0]
-      if (contentRect.width !== this.props.measuredDimensions.width || contentRect.height !== this.props.measuredDimensions.height) {
+
+      if (
+         this.currentContentRect &&
+         (this.currentContentRect.width !== contentRect.width ||
+           this.currentContentRect.height !== contentRect.height)
+      ) {
         this.resizeObserver.disconnect()
         this.props.didResize()
         process.nextTick(() => { this.resizeObserver.observe(this.props.element) })
       }
+
+      this.currentContentRect = contentRect
     })
     this.didAttach()
     this.props.overlayComponents.add(this)
