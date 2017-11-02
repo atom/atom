@@ -735,7 +735,7 @@ class Selection extends Model
   #
   # * `otherSelection` A {Selection} to merge with.
   # * `options` (optional) {Object} options matching those found in {::setBufferRange}.
-  merge: (otherSelection, options) ->
+  merge: (otherSelection, options = {}) ->
     myGoalScreenRange = @getGoalScreenRange()
     otherGoalScreenRange = otherSelection.getGoalScreenRange()
 
