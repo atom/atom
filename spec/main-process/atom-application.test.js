@@ -472,17 +472,13 @@ describe('AtomApplication', function () {
         const window2 = atomApplication.launch(parseCommandLine([path.join(dirBPath)]))
         await focusWindow(window2)
 
-        await new Promise(res => setTimeout(res, 2000))
-
         const fileA = path.join(dirAPath, 'file-a')
         const fileB = path.join(dirBPath, 'file-b')
 
         atomApplication.launch(parseCommandLine(['--uri-handler', `atom://core/open/file?filename=${fileA}`]))
-        await new Promise(res => setTimeout(res, 1000))
         await conditionPromise(() => atomApplication.getLastFocusedWindow() === window1)
 
         atomApplication.launch(parseCommandLine(['--uri-handler', `atom://core/open/file?filename=${fileB}`]))
-        await new Promise(res => setTimeout(res, 1000))
         await conditionPromise(() => atomApplication.getLastFocusedWindow() === window2)
       })
     })
