@@ -43,7 +43,8 @@ describe('Workspace', () => {
         notificationManager: atom.notifications,
         packageManager: atom.packages,
         confirm: atom.confirm.bind(atom),
-        applicationDelegate: atom.applicationDelegate
+        applicationDelegate: atom.applicationDelegate,
+        grammarRegistry: atom.grammars
       })
       return atom.project.deserialize(projectState).then(() => {
         workspace = atom.workspace = new Workspace({

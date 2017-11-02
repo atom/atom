@@ -352,7 +352,13 @@ describe "GitRepository", ->
         atom.workspace.open('file.txt')
 
       waitsForPromise ->
-        project2 = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm, applicationDelegate: atom.applicationDelegate})
+        project2 = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          applicationDelegate: atom.applicationDelegate,
+          grammarRegistry: atom.grammars
+        })
         project2.deserialize(atom.project.serialize({isUnloading: false}))
 
       waitsFor ->

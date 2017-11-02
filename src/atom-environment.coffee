@@ -167,7 +167,10 @@ class AtomEnvironment extends Model
     @packages.setContextMenuManager(@contextMenu)
     @packages.setThemeManager(@themes)
 
-    @project = new Project({notificationManager: @notifications, packageManager: @packages, @config, @applicationDelegate})
+    @project = new Project({
+      notificationManager: @notifications, packageManager: @packages, grammarRegistry: @grammars
+      @config, @applicationDelegate
+    })
     @commandInstaller = new CommandInstaller(@applicationDelegate)
     @protocolHandlerInstaller = new ProtocolHandlerInstaller()
 

@@ -35,7 +35,12 @@ describe('Project', () => {
     })
 
     it("does not deserialize paths to directories that don't exist", () => {
-      deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+      deserializedProject = new Project({
+        notificationManager: atom.notifications,
+        packageManager: atom.packages,
+        confirm: atom.confirm,
+        grammarRegistry: atom.grammars
+      })
       const state = atom.project.serialize()
       state.paths.push('/directory/that/does/not/exist')
 
@@ -55,7 +60,12 @@ describe('Project', () => {
       const childPath = path.join(temp.mkdirSync('atom-spec-project'), 'child')
       fs.mkdirSync(childPath)
 
-      deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+      deserializedProject = new Project({
+        notificationManager: atom.notifications,
+        packageManager: atom.packages,
+        confirm: atom.confirm,
+        grammarRegistry: atom.grammars
+      })
       atom.project.setPaths([childPath])
       const state = atom.project.serialize()
 
@@ -80,7 +90,12 @@ describe('Project', () => {
       runs(() => {
         expect(atom.project.getBuffers().length).toBe(1)
 
-        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -93,7 +108,12 @@ describe('Project', () => {
 
       runs(() => {
         expect(atom.project.getBuffers().length).toBe(1)
-        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -113,7 +133,12 @@ describe('Project', () => {
       runs(() => {
         expect(atom.project.getBuffers().length).toBe(1)
         fs.mkdirSync(pathToOpen)
-        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -131,7 +156,12 @@ describe('Project', () => {
       runs(() => {
         expect(atom.project.getBuffers().length).toBe(1)
         fs.chmodSync(pathToOpen, '000')
-        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -148,7 +178,12 @@ describe('Project', () => {
       runs(() => {
         expect(atom.project.getBuffers().length).toBe(1)
         fs.unlinkSync(pathToOpen)
-        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -165,7 +200,12 @@ describe('Project', () => {
         atom.workspace.getActiveTextEditor().setText('unsaved\n')
         expect(atom.project.getBuffers().length).toBe(1)
 
-        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -189,7 +229,12 @@ describe('Project', () => {
         layerA = bufferA.addMarkerLayer({persistent: true})
         markerA = layerA.markPosition([0, 3])
         bufferA.append('!')
-        notQuittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        notQuittingProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => notQuittingProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -197,7 +242,12 @@ describe('Project', () => {
       runs(() => {
         expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id), x => x.getMarker(markerA.id)).toBeUndefined()
         expect(notQuittingProject.getBuffers()[0].undo()).toBe(false)
-        quittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        quittingProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => quittingProject.deserialize(atom.project.serialize({isUnloading: true})))

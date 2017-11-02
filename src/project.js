@@ -19,10 +19,11 @@ class Project extends Model {
   Section: Construction and Destruction
   */
 
-  constructor ({notificationManager, packageManager, config, applicationDelegate}) {
+  constructor ({notificationManager, packageManager, config, applicationDelegate, grammarRegistry}) {
     super()
     this.notificationManager = notificationManager
     this.applicationDelegate = applicationDelegate
+    this.grammarRegistry = grammarRegistry
     this.emitter = new Emitter()
     this.buffers = []
     this.rootDirectories = []
