@@ -34,7 +34,7 @@ export function afterEach (fn) {
   }
 })
 
-export async function conditionPromise (condition) {
+export async function conditionPromise (condition, description = 'anonymous condition') {
   const startTime = Date.now()
 
   while (true) {
@@ -45,7 +45,7 @@ export async function conditionPromise (condition) {
     }
 
     if (Date.now() - startTime > 5000) {
-      throw new Error('Timed out waiting on condition')
+      throw new Error('Timed out waiting on ' + description)
     }
   }
 }
