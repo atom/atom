@@ -5,6 +5,7 @@ import dedent from 'dedent'
 import electron from 'electron'
 import fs from 'fs-plus'
 import path from 'path'
+import sinon from 'sinon'
 import AtomApplication from '../../src/main-process/atom-application'
 import parseCommandLine from '../../src/main-process/parse-command-line'
 import {timeoutPromise, conditionPromise, emitterEventPromise} from '../async-spec-helpers'
@@ -473,13 +474,18 @@ describe('AtomApplication', function () {
         await focusWindow(window2)
 
         const fileA = path.join(dirAPath, 'file-a')
+        const uriA = `atom://core/open/file?filename=${fileA}`
         const fileB = path.join(dirBPath, 'file-b')
+        const uriB = `atom://core/open/file?filename=${fileB}`
 
-        atomApplication.launch(parseCommandLine(['--uri-handler', `atom://core/open/file?filename=${fileA}`]))
-        await conditionPromise(() => atomApplication.getLastFocusedWindow() === window1, `window1 to be focused from ${fileA}`)
+        sinon.spy(window1, 'sendURIMessage')
+        sinon.spy(window2, 'sendURIMessage')
 
-        atomApplication.launch(parseCommandLine(['--uri-handler', `atom://core/open/file?filename=${fileB}`]))
-        await conditionPromise(() => atomApplication.getLastFocusedWindow() === window2, `window2 to be focused from ${fileB}`)
+        atomApplication.launch(parseCommandLine(['--uri-handler', uriA]))
+        await conditionPromise(() => window1.sendURIMessage.calledWith(uriA), `window1 to be focused from ${fileA}`)
+
+        atomApplication.launch(parseCommandLine(['--uri-handler', uriB]))
+        await conditionPromise(() => window2.sendURIMessage.calledWith(uriB), `window2 to be focused from ${fileB}`)
       })
     })
   })
