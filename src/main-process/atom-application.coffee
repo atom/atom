@@ -67,7 +67,7 @@ class AtomApplication
     {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @logFile, @userDataDir} = options
     @socketPath = null if options.test or options.benchmark or options.benchmarkTest
     @pidsToOpenWindows = {}
-    @windows = []
+    @windowStack = new WindowStack()
 
     @config = new Config({enablePersistence: true})
     @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
@@ -114,7 +114,7 @@ class AtomApplication
     @launch(options)
 
   destroy: ->
-    windowsClosePromises = @windows.map (window) ->
+    windowsClosePromises = @getAllWindows().map (window) ->
       window.close()
       window.closedPromise
     Promise.all(windowsClosePromises).then(=> @disposable.dispose())
@@ -162,8 +162,8 @@ class AtomApplication
 
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
-    @windows.splice(@windows.indexOf(window), 1)
-    if @windows.length is 0
+    @windowStack.removeWindow(window)
+    if @getAllWindows().length is 0
       @applicationMenu?.enableWindowSpecificItems(false)
       if process.platform in ['win32', 'linux']
         app.quit()
@@ -172,21 +172,27 @@ class AtomApplication
 
   # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->
-    @windows.push window
+    @windowStack.addWindow(window)
     @applicationMenu?.addWindow(window.browserWindow)
     window.once 'window:loaded', =>
       @autoUpdateManager?.emitUpdateAvailableEvent(window)
 
     unless window.isSpec
-      focusHandler = => @lastFocusedWindow = window
+      focusHandler = => @windowStack.touch(window)
       blurHandler = => @saveState(false)
       window.browserWindow.on 'focus', focusHandler
       window.browserWindow.on 'blur', blurHandler
       window.browserWindow.once 'closed', =>
-        @lastFocusedWindow = null if window is @lastFocusedWindow
+        @windowStack.removeWindow(window)
         window.browserWindow.removeListener 'focus', focusHandler
         window.browserWindow.removeListener 'blur', blurHandler
       window.browserWindow.webContents.once 'did-finish-load', => @saveState(false)
+
+  getAllWindows: =>
+    @windowStack.all().slice()
+
+  getLastFocusedWindow: (predicate) =>
+    @windowStack.getLastFocusedWindow(predicate)
 
   # Creates server to listen for additional atom application launches.
   #
@@ -276,7 +282,7 @@ class AtomApplication
       else
         event.preventDefault()
         @quitting = true
-        windowUnloadPromises = @windows.map((window) -> window.prepareToUnload())
+        windowUnloadPromises = @getAllWindows().map((window) -> window.prepareToUnload())
         Promise.all(windowUnloadPromises).then((windowUnloadedResults) ->
           didUnloadAllWindows = windowUnloadedResults.every((didUnloadWindow) -> didUnloadWindow)
           app.quit() if didUnloadAllWindows
@@ -309,7 +315,7 @@ class AtomApplication
           event.sender.send('did-resolve-proxy', requestId, proxy)
 
     @disposable.add ipcHelpers.on ipcMain, 'did-change-history-manager', (event) =>
-      for atomWindow in @windows
+      for atomWindow in @getAllWindows()
         webContents = atomWindow.browserWindow.webContents
         if webContents isnt event.sender
           webContents.send('did-change-history-manager')
@@ -483,7 +489,7 @@ class AtomApplication
 
   # Returns the {AtomWindow} for the given paths.
   windowForPaths: (pathsToOpen, devMode) ->
-    _.find @windows, (atomWindow) ->
+    _.find @getAllWindows(), (atomWindow) ->
       atomWindow.devMode is devMode and atomWindow.containsPaths(pathsToOpen)
 
   # Returns the {AtomWindow} for the given ipcMain event.
@@ -491,11 +497,11 @@ class AtomApplication
     @atomWindowForBrowserWindow(BrowserWindow.fromWebContents(sender))
 
   atomWindowForBrowserWindow: (browserWindow) ->
-    @windows.find((atomWindow) -> atomWindow.browserWindow is browserWindow)
+    @getAllWindows().find((atomWindow) -> atomWindow.browserWindow is browserWindow)
 
   # Public: Returns the currently focused {AtomWindow} or undefined if none.
   focusedWindow: ->
-    _.find @windows, (atomWindow) -> atomWindow.isFocused()
+    _.find @getAllWindows(), (atomWindow) -> atomWindow.isFocused()
 
   # Get the platform-specific window offset for new windows.
   getWindowOffsetForCurrentPlatform: ->
@@ -507,8 +513,8 @@ class AtomApplication
   # Get the dimensions for opening a new window by cascading as appropriate to
   # the platform.
   getDimensionsForNewWindow: ->
-    return if (@focusedWindow() ? @lastFocusedWindow)?.isMaximized()
-    dimensions = (@focusedWindow() ? @lastFocusedWindow)?.getDimensions()
+    return if (@focusedWindow() ? @getLastFocusedWindow())?.isMaximized()
+    dimensions = (@focusedWindow() ? @getLastFocusedWindow())?.getDimensions()
     offset = @getWindowOffsetForCurrentPlatform()
     if dimensions? and offset?
       dimensions.x += offset
@@ -554,7 +560,7 @@ class AtomApplication
       existingWindow = @windowForPaths(pathsToOpen, devMode)
       stats = (fs.statSyncNoException(pathToOpen) for pathToOpen in pathsToOpen)
       unless existingWindow?
-        if currentWindow = window ? @lastFocusedWindow
+        if currentWindow = window ? @getLastFocusedWindow()
           existingWindow = currentWindow if (
             addToLastWindow or
             currentWindow.devMode is devMode and
@@ -583,7 +589,7 @@ class AtomApplication
       windowDimensions ?= @getDimensionsForNewWindow()
       openedWindow = new AtomWindow(this, @fileRecoveryService, {initialPaths, locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState, env})
       openedWindow.focus()
-      @lastFocusedWindow = openedWindow
+      @windowStack.addWindow(openedWindow)
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -617,9 +623,10 @@ class AtomApplication
   saveState: (allowEmpty=false) ->
     return if @quitting
     states = []
-    for window in @windows
+    for window in @getAllWindows()
       unless window.isSpec
         states.push({initialPaths: window.representedDirectoryPaths})
+    states.reverse()
     if states.length > 0 or allowEmpty
       @storageFolder.storeSync('application.json', states)
       @emit('application:did-save-state')
@@ -648,30 +655,39 @@ class AtomApplication
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
   openUrl: ({urlToOpen, devMode, safeMode, env}) ->
-    parsedUrl = url.parse(urlToOpen)
+    parsedUrl = url.parse(urlToOpen, true)
     return unless parsedUrl.protocol is "atom:"
 
     pack = @findPackageWithName(parsedUrl.host, devMode)
     if pack?.urlMain
       @openPackageUrlMain(parsedUrl.host, pack.urlMain, urlToOpen, devMode, safeMode, env)
     else
-      @openPackageUriHandler(urlToOpen, devMode, safeMode, env)
+      @openPackageUriHandler(urlToOpen, parsedUrl, devMode, safeMode, env)
 
-  openPackageUriHandler: (url, devMode, safeMode, env) ->
-    resourcePath = @resourcePath
-    if devMode
-      try
-        windowInitializationScript = require.resolve(path.join(@devResourcePath, 'src', 'initialize-application-window'))
-        resourcePath = @devResourcePath
+  openPackageUriHandler: (url, parsedUrl, devMode, safeMode, env) ->
+    bestWindow = null
+    if parsedUrl.host is 'core'
+      predicate = require('../core-uri-handlers').windowPredicate(parsedUrl)
+      bestWindow = @getLastFocusedWindow (win) ->
+        not win.isSpecWindow() and predicate(win)
 
-    windowInitializationScript ?= require.resolve('../initialize-application-window')
-    if @lastFocusedWindow?
-      @lastFocusedWindow.sendURIMessage url
+    bestWindow ?= @getLastFocusedWindow (win) -> not win.isSpecWindow()
+    if bestWindow?
+      bestWindow.sendURIMessage url
+      bestWindow.focus()
     else
+      resourcePath = @resourcePath
+      if devMode
+        try
+          windowInitializationScript = require.resolve(path.join(@devResourcePath, 'src', 'initialize-application-window'))
+          resourcePath = @devResourcePath
+
+      windowInitializationScript ?= require.resolve('../initialize-application-window')
       windowDimensions = @getDimensionsForNewWindow()
-      @lastFocusedWindow = new AtomWindow(this, @fileRecoveryService, {resourcePath, windowInitializationScript, devMode, safeMode, windowDimensions, env})
-      @lastFocusedWindow.on 'window:loaded', =>
-        @lastFocusedWindow.sendURIMessage url
+      win = new AtomWindow(this, @fileRecoveryService, {resourcePath, windowInitializationScript, devMode, safeMode, windowDimensions, env})
+      @windowStack.addWindow(win)
+      win.on 'window:loaded', ->
+        win.sendURIMessage url
 
   findPackageWithName: (packageName, devMode) ->
     _.find @getPackageManager(devMode).getAvailablePackageMetadata(), ({name}) -> name is packageName
@@ -867,7 +883,7 @@ class AtomApplication
 
   disableZoomOnDisplayChange: ->
     outerCallback = =>
-      for window in @windows
+      for window in @getAllWindows()
         window.disableZoom()
 
     # Set the limits every time a display is added or removed, otherwise the
@@ -878,3 +894,24 @@ class AtomApplication
     new Disposable ->
       screen.removeListener('display-added', outerCallback)
       screen.removeListener('display-removed', outerCallback)
+
+class WindowStack
+  constructor: (@windows = []) ->
+
+  addWindow: (window) =>
+    @removeWindow(window)
+    @windows.unshift(window)
+
+  touch: (window) =>
+    @addWindow(window)
+
+  removeWindow: (window) =>
+    currentIndex = @windows.indexOf(window)
+    @windows.splice(currentIndex, 1) if currentIndex > -1
+
+  getLastFocusedWindow: (predicate) =>
+    predicate ?= (win) -> true
+    @windows.find(predicate)
+
+  all: =>
+    @windows

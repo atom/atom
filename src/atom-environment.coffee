@@ -32,6 +32,7 @@ ThemeManager = require './theme-manager'
 MenuManager = require './menu-manager'
 ContextMenuManager = require './context-menu-manager'
 CommandInstaller = require './command-installer'
+CoreURIHandlers = require './core-uri-handlers'
 ProtocolHandlerInstaller = require './protocol-handler-installer'
 Project = require './project'
 TitleBar = require './title-bar'
@@ -237,6 +238,7 @@ class AtomEnvironment extends Model
 
     @commandInstaller.initialize(@getVersion())
     @protocolHandlerInstaller.initialize(@config, @notifications)
+    @uriHandlerRegistry.registerHostHandler('core', CoreURIHandlers.create(this))
     @autoUpdater.initialize()
 
     @config.load()
