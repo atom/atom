@@ -494,7 +494,6 @@ module.exports = class Workspace extends Model {
       if (item instanceof TextEditor) {
         const subscriptions = new CompositeDisposable(
           this.textEditorRegistry.add(item),
-          this.textEditorRegistry.maintainGrammar(item),
           this.textEditorRegistry.maintainConfig(item),
           item.observeGrammar(this.handleGrammarUsed.bind(this))
         )
@@ -1250,11 +1249,8 @@ module.exports = class Workspace extends Model {
   // Returns a {TextEditor}.
   buildTextEditor (params) {
     const editor = this.textEditorRegistry.build(params)
-    const subscriptions = new CompositeDisposable(
-      this.textEditorRegistry.maintainGrammar(editor),
-      this.textEditorRegistry.maintainConfig(editor)
-    )
-    editor.onDidDestroy(() => { subscriptions.dispose() })
+    const subscription = this.textEditorRegistry.maintainConfig(editor)
+    editor.onDidDestroy(() => subscription.dispose())
     return editor
   }
 

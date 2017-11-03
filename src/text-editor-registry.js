@@ -1,9 +1,9 @@
 /** @babel */
 
 import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
-import {Point, Range} from 'text-buffer'
 import TextEditor from './text-editor'
 import ScopeDescriptor from './scope-descriptor'
+import Grim from 'grim'
 
 const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['core.fileEncoding', 'encoding'],
@@ -27,8 +27,6 @@ const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['editor.scrollSensitivity', 'scrollSensitivity']
 ]
 
-const GRAMMAR_SELECTION_RANGE = Range(Point.ZERO, Point(10, 0)).freeze()
-
 // Experimental: This global registry tracks registered `TextEditors`.
 //
 // If you want to add functionality to a wider set of text editors than just
@@ -41,12 +39,9 @@ const GRAMMAR_SELECTION_RANGE = Range(Point.ZERO, Point(10, 0)).freeze()
 // done using your editor, be sure to call `dispose` on the returned disposable
 // to avoid leaking editors.
 export default class TextEditorRegistry {
-  constructor ({config, grammarRegistry, assert, packageManager}) {
+  constructor ({config, assert, packageManager}) {
     this.assert = assert
     this.config = config
-    this.grammarRegistry = grammarRegistry
-    this.scopedSettingsDelegate = new ScopedSettingsDelegate(config)
-    this.grammarAddedOrUpdated = this.grammarAddedOrUpdated.bind(this)
     this.clear()
 
     this.initialPackageActivationPromise = new Promise((resolve) => {
@@ -83,10 +78,6 @@ export default class TextEditorRegistry {
     this.editorsWithMaintainedGrammar = new Set()
     this.editorGrammarOverrides = {}
     this.editorGrammarScores = new WeakMap()
-    this.subscriptions.add(
-      this.grammarRegistry.onDidAddGrammar(this.grammarAddedOrUpdated),
-      this.grammarRegistry.onDidUpdateGrammar(this.grammarAddedOrUpdated)
-    )
   }
 
   destroy () {
@@ -114,10 +105,7 @@ export default class TextEditorRegistry {
 
     let scope = null
     if (params.buffer) {
-      const filePath = params.buffer.getPath()
-      const headContent = params.buffer.getTextInRange(GRAMMAR_SELECTION_RANGE)
-      params.grammar = this.grammarRegistry.selectGrammar(filePath, headContent)
-      scope = new ScopeDescriptor({scopes: [params.grammar.scopeName]})
+      scope = new ScopeDescriptor({scopes: [params.buffer.getLanguageMode().getGrammar().scopeName]})
     }
 
     Object.assign(params, this.textEditorParamsForScope(scope))
@@ -159,8 +147,6 @@ export default class TextEditorRegistry {
     }
     this.editorsWithMaintainedConfig.add(editor)
 
-    editor.setScopedSettingsDelegate(this.scopedSettingsDelegate)
-
     this.subscribeToSettingsForEditorScope(editor)
     const grammarChangeSubscription = editor.onDidChangeGrammar(() => {
       this.subscribeToSettingsForEditorScope(editor)
@@ -182,7 +168,6 @@ export default class TextEditorRegistry {
 
     return new Disposable(() => {
       this.editorsWithMaintainedConfig.delete(editor)
-      editor.setScopedSettingsDelegate(null)
       tokenizeSubscription.dispose()
       grammarChangeSubscription.dispose()
       this.subscriptions.remove(grammarChangeSubscription)
@@ -190,134 +175,47 @@ export default class TextEditorRegistry {
     })
   }
 
-  // Set a {TextEditor}'s grammar based on its path and content, and continue
-  // to update its grammar as grammars are added or updated, or the editor's
-  // file path changes.
+  // Deprecated: set a {TextEditor}'s grammar based on its path and content,
+  // and continue to update its grammar as grammars are added or updated, or
+  // the editor's file path changes.
   //
   // * `editor` The editor whose grammar will be maintained.
   //
   // Returns a {Disposable} that can be used to stop updating the editor's
   // grammar.
   maintainGrammar (editor) {
-    if (this.editorsWithMaintainedGrammar.has(editor)) {
-      return new Disposable(noop)
-    }
-
-    this.editorsWithMaintainedGrammar.add(editor)
-
-    const buffer = editor.getBuffer()
-    for (let existingEditor of this.editorsWithMaintainedGrammar) {
-      if (existingEditor.getBuffer() === buffer) {
-        const existingOverride = this.editorGrammarOverrides[existingEditor.id]
-        if (existingOverride) {
-          this.editorGrammarOverrides[editor.id] = existingOverride
-        }
-        break
-      }
-    }
-
-    this.selectGrammarForEditor(editor)
-
-    const pathChangeSubscription = editor.onDidChangePath(() => {
-      this.editorGrammarScores.delete(editor)
-      this.selectGrammarForEditor(editor)
-    })
-
-    this.subscriptions.add(pathChangeSubscription)
-
-    return new Disposable(() => {
-      delete this.editorGrammarOverrides[editor.id]
-      this.editorsWithMaintainedGrammar.delete(editor)
-      this.subscriptions.remove(pathChangeSubscription)
-      pathChangeSubscription.dispose()
-    })
+    Grim.deprecate('Use atom.grammars.maintainGrammar(buffer) instead.')
+    atom.grammars.maintainGrammar(editor.getBuffer())
   }
 
-  // Force a {TextEditor} to use a different grammar than the one that would
-  // otherwise be selected for it.
+  // Deprecated: Force a {TextEditor} to use a different grammar than the
+  // one that would otherwise be selected for it.
   //
   // * `editor` The editor whose gramamr will be set.
   // * `scopeName` The {String} root scope name for the desired {Grammar}.
   setGrammarOverride (editor, scopeName) {
-    this.editorGrammarOverrides[editor.id] = scopeName
-    this.editorGrammarScores.delete(editor)
-    editor.setGrammar(this.grammarRegistry.grammarForScopeName(scopeName))
+    Grim.deprecate('Use atom.grammars.setGrammarOverrideForPath(filePath) instead.')
+    atom.grammars.setGrammarOverrideForPath(editor.getPath(), scopeName)
   }
 
-  // Retrieve the grammar scope name that has been set as a grammar override
-  // for the given {TextEditor}.
+  // Deprecated: Retrieve the grammar scope name that has been set as a
+  // grammar override for the given {TextEditor}.
   //
   // * `editor` The editor.
   //
   // Returns a {String} scope name, or `null` if no override has been set
   // for the given editor.
   getGrammarOverride (editor) {
-    return this.editorGrammarOverrides[editor.id]
+    Grim.deprecate('Use atom.grammars.grammarOverrideForPath(filePath) instead.')
+    return atom.grammars.grammarOverrideForPath(editor.getPath())
   }
 
-  // Remove any grammar override that has been set for the given {TextEditor}.
+  // Deprecated: Remove any grammar override that has been set for the given {TextEditor}.
   //
   // * `editor` The editor.
   clearGrammarOverride (editor) {
-    delete this.editorGrammarOverrides[editor.id]
-    this.selectGrammarForEditor(editor)
-  }
-
-  // Private
-
-  grammarAddedOrUpdated (grammar) {
-    this.editorsWithMaintainedGrammar.forEach((editor) => {
-      if (grammar.injectionSelector) {
-        if (editor.tokenizedBuffer.hasTokenForSelector(grammar.injectionSelector)) {
-          editor.tokenizedBuffer.retokenizeLines()
-        }
-        return
-      }
-
-      const grammarOverride = this.editorGrammarOverrides[editor.id]
-      if (grammarOverride) {
-        if (grammar.scopeName === grammarOverride) {
-          editor.setGrammar(grammar)
-        }
-      } else {
-        const score = this.grammarRegistry.getGrammarScore(
-          grammar,
-          editor.getPath(),
-          editor.getTextInBufferRange(GRAMMAR_SELECTION_RANGE)
-        )
-
-        let currentScore = this.editorGrammarScores.get(editor)
-        if (currentScore == null || score > currentScore) {
-          editor.setGrammar(grammar)
-          this.editorGrammarScores.set(editor, score)
-        }
-      }
-    })
-  }
-
-  selectGrammarForEditor (editor) {
-    const grammarOverride = this.editorGrammarOverrides[editor.id]
-
-    if (grammarOverride) {
-      const grammar = this.grammarRegistry.grammarForScopeName(grammarOverride)
-      editor.setGrammar(grammar)
-      return
-    }
-
-    const {grammar, score} = this.grammarRegistry.selectGrammarWithScore(
-      editor.getPath(),
-      editor.getTextInBufferRange(GRAMMAR_SELECTION_RANGE)
-    )
-
-    if (!grammar) {
-      throw new Error(`No grammar found for path: ${editor.getPath()}`)
-    }
-
-    const currentScore = this.editorGrammarScores.get(editor)
-    if (currentScore == null || score > currentScore) {
-      editor.setGrammar(grammar)
-      this.editorGrammarScores.set(editor, score)
-    }
+    Grim.deprecate('Use atom.grammars.clearGrammarOverrideForPath(filePath) instead.')
+    atom.grammars.clearGrammarOverrideForPath(editor.getPath())
   }
 
   async subscribeToSettingsForEditorScope (editor) {
@@ -390,44 +288,3 @@ function shouldEditorUseSoftTabs (editor, tabType, softTabs) {
 }
 
 function noop () {}
-
-class ScopedSettingsDelegate {
-  constructor (config) {
-    this.config = config
-  }
-
-  getNonWordCharacters (scope) {
-    return this.config.get('editor.nonWordCharacters', {scope: scope})
-  }
-
-  getIncreaseIndentPattern (scope) {
-    return this.config.get('editor.increaseIndentPattern', {scope: scope})
-  }
-
-  getDecreaseIndentPattern (scope) {
-    return this.config.get('editor.decreaseIndentPattern', {scope: scope})
-  }
-
-  getDecreaseNextIndentPattern (scope) {
-    return this.config.get('editor.decreaseNextIndentPattern', {scope: scope})
-  }
-
-  getFoldEndPattern (scope) {
-    return this.config.get('editor.foldEndPattern', {scope: scope})
-  }
-
-  getCommentStrings (scope) {
-    const commentStartEntries = this.config.getAll('editor.commentStart', {scope})
-    const commentEndEntries = this.config.getAll('editor.commentEnd', {scope})
-    const commentStartEntry = commentStartEntries[0]
-    const commentEndEntry = commentEndEntries.find((entry) => {
-      return entry.scopeSelector === commentStartEntry.scopeSelector
-    })
-    return {
-      commentStartString: commentStartEntry && commentStartEntry.value,
-      commentEndString: commentEndEntry && commentEndEntry.value
-    }
-  }
-}
-
-TextEditorRegistry.ScopedSettingsDelegate = ScopedSettingsDelegate

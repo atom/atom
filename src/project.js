@@ -24,6 +24,7 @@ class Project extends Model {
     this.notificationManager = notificationManager
     this.applicationDelegate = applicationDelegate
     this.grammarRegistry = grammarRegistry
+
     this.emitter = new Emitter()
     this.buffers = []
     this.rootDirectories = []
@@ -105,6 +106,7 @@ class Project extends Model {
     return Promise.all(bufferPromises).then(buffers => {
       this.buffers = buffers.filter(Boolean)
       for (let buffer of this.buffers) {
+        this.grammarRegistry.maintainGrammar(buffer)
         this.subscribeToBuffer(buffer)
       }
       this.setPaths(state.paths || [], {mustExist: true, exact: true})
@@ -648,6 +650,7 @@ class Project extends Model {
 
   addBuffer (buffer, options = {}) {
     this.buffers.push(buffer)
+    this.grammarRegistry.maintainGrammar(buffer)
     this.subscribeToBuffer(buffer)
     this.emitter.emit('did-add-buffer', buffer)
     return buffer

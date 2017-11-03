@@ -16,15 +16,6 @@ const prefixedScopes = new Map()
 
 module.exports =
 class TokenizedBuffer {
-  static deserialize (state, atomEnvironment) {
-    const buffer = atomEnvironment.project.bufferForIdSync(state.bufferId)
-    if (!buffer) return null
-
-    state.buffer = buffer
-    state.assert = atomEnvironment.assert
-    return new TokenizedBuffer(state)
-  }
-
   constructor (params) {
     this.emitter = new Emitter()
     this.disposables = new CompositeDisposable()
@@ -37,11 +28,12 @@ class TokenizedBuffer {
     this.buffer = params.buffer
     this.tabLength = params.tabLength
     this.largeFileMode = params.largeFileMode
-    this.assert = params.assert
-    this.scopedSettingsDelegate = params.scopedSettingsDelegate
+    this.config = params.config
 
-    this.setGrammar(params.grammar || NullGrammar)
-    this.disposables.add(this.buffer.registerTextDecorationLayer(this))
+    this.grammar = params.grammar || NullGrammar
+    this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.scopeName]})
+    this.disposables.add(this.grammar.onDidUpdate(() => this.retokenizeLines()))
+    this.retokenizeLines()
   }
 
   destroy () {
@@ -57,6 +49,14 @@ class TokenizedBuffer {
 
   isDestroyed () {
     return !this.alive
+  }
+
+  getGrammar () {
+    return this.grammar
+  }
+
+  getNonWordCharacters (scope) {
+    return this.config.get('editor.nonWordCharacters', {scope})
   }
 
   /*
@@ -164,15 +164,24 @@ class TokenizedBuffer {
   */
 
   commentStringsForPosition (position) {
-    if (this.scopedSettingsDelegate) {
-      const scope = this.scopeDescriptorForPosition(position)
-      return this.scopedSettingsDelegate.getCommentStrings(scope)
-    } else {
-      return {}
+    const scope = this.scopeDescriptorForPosition(position)
+    const commentStartEntries = this.config.getAll('editor.commentStart', {scope})
+    const commentEndEntries = this.config.getAll('editor.commentEnd', {scope})
+    const commentStartEntry = commentStartEntries[0]
+    const commentEndEntry = commentEndEntries.find((entry) => {
+      return entry.scopeSelector === commentStartEntry.scopeSelector
+    })
+    return {
+      commentStartString: commentStartEntry && commentStartEntry.value,
+      commentEndString: commentEndEntry && commentEndEntry.value
     }
   }
 
-  buildIterator () {
+  /*
+  Section - Syntax Highlighting
+  */
+
+  buildHighlightIterator () {
     return new TokenizedBufferIterator(this)
   }
 
@@ -196,45 +205,12 @@ class TokenizedBuffer {
     return []
   }
 
-  onDidInvalidateRange (fn) {
-    return this.emitter.on('did-invalidate-range', fn)
-  }
-
-  serialize () {
-    return {
-      deserializer: 'TokenizedBuffer',
-      bufferPath: this.buffer.getPath(),
-      bufferId: this.buffer.getId(),
-      tabLength: this.tabLength,
-      largeFileMode: this.largeFileMode
-    }
-  }
-
-  observeGrammar (callback) {
-    callback(this.grammar)
-    return this.onDidChangeGrammar(callback)
-  }
-
-  onDidChangeGrammar (callback) {
-    return this.emitter.on('did-change-grammar', callback)
+  onDidChangeHighlighting (fn) {
+    return this.emitter.on('did-change-highlighting', fn)
   }
 
   onDidTokenize (callback) {
     return this.emitter.on('did-tokenize', callback)
-  }
-
-  setGrammar (grammar) {
-    if (!grammar || grammar === this.grammar) return
-
-    this.grammar = grammar
-    this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.scopeName]})
-
-    if (this.grammarUpdateDisposable) this.grammarUpdateDisposable.dispose()
-    this.grammarUpdateDisposable = this.grammar.onDidUpdate(() => this.retokenizeLines())
-    this.disposables.add(this.grammarUpdateDisposable)
-
-    this.retokenizeLines()
-    this.emitter.emit('did-change-grammar', grammar)
   }
 
   getGrammarSelectionContent () {
@@ -316,7 +292,7 @@ class TokenizedBuffer {
       this.validateRow(endRow)
       if (!filledRegion) this.invalidateRow(endRow + 1)
 
-      this.emitter.emit('did-invalidate-range', Range(Point(startRow, 0), Point(endRow + 1, 0)))
+      this.emitter.emit('did-change-highlighting', Range(Point(startRow, 0), Point(endRow + 1, 0)))
     }
 
     if (this.firstInvalidRow() != null) {
@@ -486,18 +462,6 @@ class TokenizedBuffer {
           while (true) {
             if (scopes.pop() === matchingStartTag) break
             if (scopes.length === 0) {
-              this.assert(false, 'Encountered an unmatched scope end tag.', error => {
-                error.metadata = {
-                  grammarScopeName: this.grammar.scopeName,
-                  unmatchedEndTag: this.grammar.scopeForId(tag)
-                }
-                const path = require('path')
-                error.privateMetadataDescription = `The contents of \`${path.basename(this.buffer.getPath())}\``
-                error.privateMetadata = {
-                  filePath: this.buffer.getPath(),
-                  fileContents: this.buffer.getText()
-                }
-              })
               break
             }
           }
@@ -712,28 +676,20 @@ class TokenizedBuffer {
     return foldEndRow
   }
 
-  increaseIndentRegexForScopeDescriptor (scopeDescriptor) {
-    if (this.scopedSettingsDelegate) {
-      return this.regexForPattern(this.scopedSettingsDelegate.getIncreaseIndentPattern(scopeDescriptor))
-    }
+  increaseIndentRegexForScopeDescriptor (scope) {
+    return this.regexForPattern(this.config.get('editor.increaseIndentPattern', {scope}))
   }
 
-  decreaseIndentRegexForScopeDescriptor (scopeDescriptor) {
-    if (this.scopedSettingsDelegate) {
-      return this.regexForPattern(this.scopedSettingsDelegate.getDecreaseIndentPattern(scopeDescriptor))
-    }
+  decreaseIndentRegexForScopeDescriptor (scope) {
+    return this.regexForPattern(this.config.get('editor.decreaseIndentPattern', {scope}))
   }
 
-  decreaseNextIndentRegexForScopeDescriptor (scopeDescriptor) {
-    if (this.scopedSettingsDelegate) {
-      return this.regexForPattern(this.scopedSettingsDelegate.getDecreaseNextIndentPattern(scopeDescriptor))
-    }
+  decreaseNextIndentRegexForScopeDescriptor (scope) {
+    return this.regexForPattern(this.config.get('editor.decreaseNextIndentPattern', {scope}))
   }
 
-  foldEndRegexForScopeDescriptor (scopes) {
-    if (this.scopedSettingsDelegate) {
-      return this.regexForPattern(this.scopedSettingsDelegate.getFoldEndPattern(scopes))
-    }
+  foldEndRegexForScopeDescriptor (scope) {
+    return this.regexForPattern(this.config.get('editor.foldEndPattern', {scope}))
   }
 
   regexForPattern (pattern) {
