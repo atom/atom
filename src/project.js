@@ -338,13 +338,21 @@ class Project extends Model {
     }
 
     this.rootDirectories.push(directory)
-    this.watcherPromisesByPath[directory.getPath()] = watchPath(directory.getPath(), {}, events => {
+
+    const didChangeCallback = events => {
       // Stop event delivery immediately on removal of a rootDirectory, even if its watcher
       // promise has yet to resolve at the time of removal
       if (this.rootDirectories.includes(directory)) {
         this.emitter.emit('did-change-files', events)
       }
-    })
+    }
+    // We'll use the directory's custom onDidChangeFiles callback, if available.
+    // CustomDirectory::onDidChangeFiles should match the signature of
+    // Project::onDidChangeFiles below (although it may resolve asynchronously)
+    this.watcherPromisesByPath[directory.getPath()] =
+      directory.onDidChangeFiles != null
+        ? Promise.resolve(directory.onDidChangeFiles(didChangeCallback))
+        : watchPath(directory.getPath(), {}, didChangeCallback)
 
     for (let watchedPath in this.watcherPromisesByPath) {
       if (!this.rootDirectories.find(dir => dir.getPath() === watchedPath)) {
