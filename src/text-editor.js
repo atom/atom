@@ -3545,7 +3545,8 @@ class TextEditor {
 
   // Essential: Get the current {Grammar} of this editor.
   getGrammar () {
-    return this.buffer.getLanguageMode().getGrammar() || NullGrammar
+    const languageMode = this.buffer.getLanguageMode()
+    return languageMode.getGrammar && languageMode.getGrammar() || NullGrammar
   }
 
   // Essential: Set the current {Grammar} of this editor.
