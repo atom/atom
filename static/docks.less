@@ -115,6 +115,9 @@ atom-dock {
     align-items: center;
     cursor: pointer;
 
+    // Promote to own layer, fixes rendering issue atom/atom#14915
+    will-change: transform;
+
     &.right { left: 0; }
     &.bottom { top: 0; }
     &.left { right: 0; }

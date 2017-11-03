@@ -58,7 +58,7 @@ if specPackagePath = FindParentDir.sync(testPaths[0], 'package.json')
 if specDirectory = FindParentDir.sync(testPaths[0], 'fixtures')
   specProjectPath = path.join(specDirectory, 'fixtures')
 else
-  specProjectPath = path.join(__dirname, 'fixtures')
+  specProjectPath = require('os').tmpdir()
 
 beforeEach ->
   atom.project.setPaths([specProjectPath])
@@ -108,10 +108,14 @@ beforeEach ->
 afterEach ->
   ensureNoDeprecatedFunctionCalls()
   ensureNoDeprecatedStylesheets()
-  atom.reset()
-  document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
-  warnIfLeakingPathSubscriptions()
-  waits(0) # yield to ui thread to make screen update more frequently
+
+  waitsForPromise ->
+    atom.reset()
+
+  runs ->
+    document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
+    warnIfLeakingPathSubscriptions()
+    waits(0) # yield to ui thread to make screen update more frequently
 
 warnIfLeakingPathSubscriptions = ->
   watchedPaths = pathwatcher.getWatchedPaths()

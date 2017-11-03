@@ -6,7 +6,8 @@ StorageFolder = require '../src/storage-folder'
 
 describe "AtomEnvironment", ->
   afterEach ->
-    temp.cleanupSync()
+    try
+      temp.cleanupSync()
 
   describe 'window sizing methods', ->
     describe '::getPosition and ::setPosition', ->
@@ -320,6 +321,44 @@ describe "AtomEnvironment", ->
         atom2.deserialize(atom.serialize()).then ->
           expect(atom2.textEditors.getGrammarOverride(editor)).toBe('text.plain')
           atom2.destroy()
+
+    describe "deserialization failures", ->
+
+      it "propagates project state restoration failures", ->
+        spyOn(atom.project, 'deserialize').andCallFake ->
+          err = new Error('deserialization failure')
+          err.missingProjectPaths = ['/foo']
+          Promise.reject(err)
+        spyOn(atom.notifications, 'addError')
+
+        waitsForPromise -> atom.deserialize({project: 'should work'})
+        runs ->
+          expect(atom.notifications.addError).toHaveBeenCalledWith 'Unable to open project directory',
+            {description: 'Project directory `/foo` is no longer on disk.'}
+
+      it "accumulates and reports two errors with one notification", ->
+        spyOn(atom.project, 'deserialize').andCallFake ->
+          err = new Error('deserialization failure')
+          err.missingProjectPaths = ['/foo', '/wat']
+          Promise.reject(err)
+        spyOn(atom.notifications, 'addError')
+
+        waitsForPromise -> atom.deserialize({project: 'should work'})
+        runs ->
+          expect(atom.notifications.addError).toHaveBeenCalledWith 'Unable to open 2 project directories',
+            {description: 'Project directories `/foo` and `/wat` are no longer on disk.'}
+
+      it "accumulates and reports three+ errors with one notification", ->
+        spyOn(atom.project, 'deserialize').andCallFake ->
+          err = new Error('deserialization failure')
+          err.missingProjectPaths = ['/foo', '/wat', '/stuff', '/things']
+          Promise.reject(err)
+        spyOn(atom.notifications, 'addError')
+
+        waitsForPromise -> atom.deserialize({project: 'should work'})
+        runs ->
+          expect(atom.notifications.addError).toHaveBeenCalledWith 'Unable to open 4 project directories',
+            {description: 'Project directories `/foo`, `/wat`, `/stuff`, and `/things` are no longer on disk.'}
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->

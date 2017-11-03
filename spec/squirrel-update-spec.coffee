@@ -37,7 +37,8 @@ describe "Windows Squirrel Update", ->
     WinShell.folderBackgroundContextMenu = new FakeShellOption()
 
   afterEach ->
-    temp.cleanupSync()
+    try
+      temp.cleanupSync()
 
   it "quits the app on all squirrel events", ->
     app = quit: jasmine.createSpy('quit')

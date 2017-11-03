@@ -9,7 +9,7 @@ module.exports = function () {
   const chromedriverVer = buildMetadata.dependencies['electron-chromedriver']
   const mksnapshotVer = buildMetadata.dependencies['electron-mksnapshot']
 
-  // Always use tilde on electron-chromedriver so that it can pick up the best patch vesion
+  // Always use tilde on electron-chromedriver so that it can pick up the best patch version
   if (!chromedriverVer.startsWith('~')) {
     throw new Error(`electron-chromedriver version in script/package.json should start with a tilde to match latest patch version.`)
   }

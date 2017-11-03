@@ -79,6 +79,7 @@ class PaneElement extends HTMLElement
   activeItemChanged: (item) ->
     delete @dataset.activeItemName
     delete @dataset.activeItemPath
+    @changePathDisposable?.dispose()
 
     return unless item?
 
@@ -88,6 +89,12 @@ class PaneElement extends HTMLElement
     if itemPath = item.getPath?()
       @dataset.activeItemName = path.basename(itemPath)
       @dataset.activeItemPath = itemPath
+
+      if item.onDidChangePath?
+        @changePathDisposable = item.onDidChangePath =>
+          itemPath = item.getPath()
+          @dataset.activeItemName = path.basename(itemPath)
+          @dataset.activeItemPath = itemPath
 
     unless @itemViews.contains(itemView)
       @itemViews.appendChild(itemView)
@@ -119,6 +126,7 @@ class PaneElement extends HTMLElement
 
   paneDestroyed: ->
     @subscriptions.dispose()
+    @changePathDisposable?.dispose()
 
   flexScaleChanged: (flexScale) ->
     @style.flexGrow = flexScale

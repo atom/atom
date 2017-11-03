@@ -267,7 +267,7 @@ class PaneContainer {
   }
 
   willDestroyPaneItem (event) {
-    this.emitter.emit('will-destroy-pane-item', event)
+    return this.emitter.emitAsync('will-destroy-pane-item', event)
   }
 
   didDestroyPaneItem (event) {

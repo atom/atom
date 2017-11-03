@@ -1,5 +1,3 @@
-/* global MutationObserver */
-
 'use strict'
 
 const EventKit = require('event-kit')

@@ -52,7 +52,6 @@ atom-text-editor {
   }
 
   .line-number {
-    width: min-content;
     padding-left: .5em;
     white-space: nowrap;
     opacity: 0.6;
@@ -71,10 +70,6 @@ atom-text-editor {
     }
   }
 
-  .lines {
-    background-color: inherit;
-  }
-
   .highlight {
     background: none;
     padding: 0;
@@ -87,7 +82,6 @@ atom-text-editor {
 
   .line {
     white-space: pre;
-    overflow: hidden;
     contain: layout;
 
     &.cursor-line .fold-marker::after {
