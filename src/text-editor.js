@@ -950,7 +950,7 @@ class TextEditor {
   // Controls visibility based on the given {Boolean}.
   setVisible (visible) {
     const languageMode = this.buffer.getLanguageMode()
-    languageMode.setVisible(visible)
+    languageMode.setVisible && languageMode.setVisible(visible)
   }
 
   setMini (mini) {
@@ -3749,7 +3749,11 @@ class TextEditor {
   // level.
   foldCurrentRow () {
     const {row} = this.getCursorBufferPosition()
-    const range = this.buffer.getLanguageMode().getFoldableRangeContainingPoint(Point(row, Infinity))
+    const languageMode = this.buffer.getLanguageMode()
+    const range = (
+      languageMode.getFoldableRangeContainingPoint &&
+      languageMode.getFoldableRangeContainingPoint(Point(row, Infinity))
+    )
     if (range) return this.displayLayer.foldBufferRange(range)
   }
 
@@ -3768,8 +3772,12 @@ class TextEditor {
   // * `bufferRow` A {Number}.
   foldBufferRow (bufferRow) {
     let position = Point(bufferRow, Infinity)
+    const languageMode = this.buffer.getLanguageMode()
     while (true) {
-      const foldableRange = this.buffer.getLanguageMode().getFoldableRangeContainingPoint(position, this.getTabLength())
+      const foldableRange = (
+        languageMode.getFoldableRangeContainingPoint &&
+        languageMode.getFoldableRangeContainingPoint(position, this.getTabLength())
+      )
       if (foldableRange) {
         const existingFolds = this.displayLayer.foldsIntersectingBufferRange(Range(foldableRange.start, foldableRange.start))
         if (existingFolds.length === 0) {
@@ -3803,8 +3811,13 @@ class TextEditor {
 
   // Extended: Fold all foldable lines.
   foldAll () {
+    const languageMode = this.buffer.getLanguageMode()
+    const foldableRanges = (
+      languageMode.getFoldableRanges &&
+      languageMode.getFoldableRanges(this.getTabLength())
+    )
     this.displayLayer.destroyAllFolds()
-    for (let range of this.buffer.getLanguageMode().getFoldableRanges(this.getTabLength())) {
+    for (let range of foldableRanges || []) {
       this.displayLayer.foldBufferRange(range)
     }
   }
@@ -3820,8 +3833,13 @@ class TextEditor {
   //
   // * `level` A {Number}.
   foldAllAtIndentLevel (level) {
+    const languageMode = this.buffer.getLanguageMode()
+    const foldableRanges = (
+      languageMode.getFoldableRangesAtIndentLevel &&
+      languageMode.getFoldableRangesAtIndentLevel(level, this.getTabLength())
+    )
     this.displayLayer.destroyAllFolds()
-    for (let range of this.buffer.getLanguageMode().getFoldableRangesAtIndentLevel(level, this.getTabLength())) {
+    for (let range of foldableRanges || []) {
       this.displayLayer.foldBufferRange(range)
     }
   }
@@ -3834,7 +3852,8 @@ class TextEditor {
   //
   // Returns a {Boolean}.
   isFoldableAtBufferRow (bufferRow) {
-    return this.buffer.getLanguageMode().isFoldableAtRow(bufferRow)
+    const languageMode = this.buffer.getLanguageMode()
+    return languageMode.isFoldableAtRow && languageMode.isFoldableAtRow(bufferRow)
   }
 
   // Extended: Determine whether the given row in screen coordinates is foldable.
@@ -4368,7 +4387,8 @@ class TextEditor {
   */
 
   suggestedIndentForBufferRow (bufferRow, options) {
-    return this.buffer.getLanguageMode().suggestedIndentForBufferRow(bufferRow, options)
+    const languageMode = this.buffer.getLanguageMode()
+    return languageMode.suggestedIndentForBufferRow && languageMode.suggestedIndentForBufferRow(bufferRow, options)
   }
 
   // Given a buffer row, indent it.
@@ -4393,7 +4413,11 @@ class TextEditor {
   }
 
   autoDecreaseIndentForBufferRow (bufferRow) {
-    const indentLevel = this.buffer.getLanguageMode().suggestedIndentForEditedBufferRow(bufferRow)
+    const languageMode = this.buffer.getLanguageMode()
+    const indentLevel = (
+      languageMode.suggestedIndentForEditedBufferRow &&
+      languageMode.suggestedIndentForEditedBufferRow(bufferRow)
+    )
     if (indentLevel != null) this.setIndentationForBufferRow(bufferRow, indentLevel)
   }
 
