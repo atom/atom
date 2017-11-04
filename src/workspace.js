@@ -659,7 +659,7 @@ module.exports = class Workspace extends Model {
   // changing or closing tabs and ensures critical UI feedback, like changing the
   // highlighted tab, gets priority over work that can be done asynchronously.
   //
-  // * `callback` {Function} to be called when the active pane item stopts
+  // * `callback` {Function} to be called when the active pane item stops
   //   changing.
   //   * `item` The active pane item.
   //
@@ -820,7 +820,8 @@ module.exports = class Workspace extends Model {
   // Extended: Invoke the given callback when a pane item is about to be
   // destroyed, before the user is prompted to save it.
   //
-  // * `callback` {Function} to be called before pane items are destroyed.
+  // * `callback` {Function} to be called before pane items are destroyed. If this function returns
+  //   a {Promise}, then the item will not be destroyed until the promise resolves.
   //   * `event` {Object} with the following keys:
   //     * `item` The item to be destroyed.
   //     * `pane` {Pane} containing the item to be destroyed.
@@ -1049,10 +1050,10 @@ module.exports = class Workspace extends Model {
 
   // Essential: Search the workspace for items matching the given URI and hide them.
   //
-  // * `itemOrURI` (optional) The item to hide or a {String} containing the URI
+  // * `itemOrURI` The item to hide or a {String} containing the URI
   //   of the item to hide.
   //
-  // Returns a {boolean} indicating whether any items were found (and hidden).
+  // Returns a {Boolean} indicating whether any items were found (and hidden).
   hide (itemOrURI) {
     let foundItems = false
 
@@ -1752,6 +1753,11 @@ module.exports = class Workspace extends Model {
   //     (default: true)
   //   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
   //     forced closer to the edges of the window. (default: 100)
+  //   * `autoFocus` (optional) {Boolean} true if you want modal focus managed for you by Atom.
+  //     Atom will automatically focus your modal panel's first tabbable element when the modal
+  //     opens and will restore the previously selected element when the modal closes. Atom will
+  //     also automatically restrict user tab focus within your modal while it is open.
+  //     (default: false)
   //
   // Returns a {Panel}
   addModalPanel (options = {}) {
@@ -1950,6 +1956,7 @@ module.exports = class Workspace extends Model {
 
       if (!outOfProcessFinished.length) {
         let flags = 'g'
+        if (regex.multiline) { flags += 'm' }
         if (regex.ignoreCase) { flags += 'i' }
 
         const task = Task.once(

@@ -5,6 +5,7 @@ import dedent from 'dedent'
 import electron from 'electron'
 import fs from 'fs-plus'
 import path from 'path'
+import sinon from 'sinon'
 import AtomApplication from '../../src/main-process/atom-application'
 import parseCommandLine from '../../src/main-process/parse-command-line'
 import {timeoutPromise, conditionPromise, emitterEventPromise} from '../async-spec-helpers'
@@ -14,10 +15,11 @@ const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 describe('AtomApplication', function () {
   this.timeout(60 * 1000)
 
-  let originalAppQuit, originalAtomHome, atomApplicationsToDestroy
+  let originalAppQuit, originalShowMessageBox, originalAtomHome, atomApplicationsToDestroy
 
   beforeEach(function () {
     originalAppQuit = electron.app.quit
+    originalShowMessageBox = electron.dialog.showMessageBox
     mockElectronAppQuit()
     originalAtomHome = process.env.ATOM_HOME
     process.env.ATOM_HOME = makeTempDir('atom-home')
@@ -39,6 +41,7 @@ describe('AtomApplication', function () {
     }
     await clearElectronSession()
     electron.app.quit = originalAppQuit
+    electron.dialog.showMessageBox = originalShowMessageBox
   })
 
   describe('launch', function () {
@@ -135,7 +138,7 @@ describe('AtomApplication', function () {
       // Does not change the project paths when doing so.
       const reusedWindow = atomApplication.launch(parseCommandLine([existingDirCFilePath]))
       assert.equal(reusedWindow, window1)
-      assert.deepEqual(atomApplication.windows, [window1])
+      assert.deepEqual(atomApplication.getAllWindows(), [window1])
       activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         const subscription = atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
           sendBackToMainProcess(textEditor.getPath())
@@ -175,7 +178,7 @@ describe('AtomApplication', function () {
       // parent directory to the project
       let reusedWindow = atomApplication.launch(parseCommandLine([existingDirCFilePath, '--add']))
       assert.equal(reusedWindow, window1)
-      assert.deepEqual(atomApplication.windows, [window1])
+      assert.deepEqual(atomApplication.getAllWindows(), [window1])
       activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         const subscription = atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
           sendBackToMainProcess(textEditor.getPath())
@@ -189,7 +192,7 @@ describe('AtomApplication', function () {
       // the directory to the project
       reusedWindow = atomApplication.launch(parseCommandLine([dirBPath, '-a']))
       assert.equal(reusedWindow, window1)
-      assert.deepEqual(atomApplication.windows, [window1])
+      assert.deepEqual(atomApplication.getAllWindows(), [window1])
 
       await conditionPromise(async () => (await getTreeViewRootDirectories(reusedWindow)).length === 3)
       assert.deepEqual(await getTreeViewRootDirectories(window1), [dirAPath, dirCPath, dirBPath])
@@ -274,7 +277,7 @@ describe('AtomApplication', function () {
       })
       assert.equal(window2EditorTitle, 'untitled')
 
-      assert.deepEqual(atomApplication.windows, [window1, window2])
+      assert.deepEqual(atomApplication.getAllWindows(), [window2, window1])
     })
 
     it('does not open an empty editor when opened with no path if the core.openEmptyEditorOnStart config setting is false', async function () {
@@ -459,23 +462,70 @@ describe('AtomApplication', function () {
         assert.equal(reached, true);
         windows[0].close();
       })
+
+      it('triggers /core/open/file in the correct window', async function() {
+        const dirAPath = makeTempDir('a')
+        const dirBPath = makeTempDir('b')
+
+        const atomApplication = buildAtomApplication()
+        const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath)]))
+        await focusWindow(window1)
+        const window2 = atomApplication.launch(parseCommandLine([path.join(dirBPath)]))
+        await focusWindow(window2)
+
+        const fileA = path.join(dirAPath, 'file-a')
+        const uriA = `atom://core/open/file?filename=${fileA}`
+        const fileB = path.join(dirBPath, 'file-b')
+        const uriB = `atom://core/open/file?filename=${fileB}`
+
+        sinon.spy(window1, 'sendURIMessage')
+        sinon.spy(window2, 'sendURIMessage')
+
+        atomApplication.launch(parseCommandLine(['--uri-handler', uriA]))
+        await conditionPromise(() => window1.sendURIMessage.calledWith(uriA), `window1 to be focused from ${fileA}`)
+
+        atomApplication.launch(parseCommandLine(['--uri-handler', uriB]))
+        await conditionPromise(() => window2.sendURIMessage.calledWith(uriB), `window2 to be focused from ${fileB}`)
+      })
     })
   })
 
-  describe('before quitting', function () {
-    it('waits until all the windows have saved their state and then quits', async function () {
-      const dirAPath = makeTempDir("a")
-      const dirBPath = makeTempDir("b")
-      const atomApplication = buildAtomApplication()
-      const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'file-a')]))
-      await focusWindow(window1)
-      const window2 = atomApplication.launch(parseCommandLine([path.join(dirBPath, 'file-b')]))
-      await focusWindow(window2)
-      electron.app.quit()
-      assert(!electron.app.hasQuitted())
-      await Promise.all([window1.lastPrepareToUnloadPromise, window2.lastPrepareToUnloadPromise])
-      assert(electron.app.hasQuitted())
+  it('waits until all the windows have saved their state before quitting', async function () {
+    const dirAPath = makeTempDir("a")
+    const dirBPath = makeTempDir("b")
+    const atomApplication = buildAtomApplication()
+    const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'file-a')]))
+    await focusWindow(window1)
+    const window2 = atomApplication.launch(parseCommandLine([path.join(dirBPath, 'file-b')]))
+    await focusWindow(window2)
+    electron.app.quit()
+    assert(!electron.app.hasQuitted())
+    await Promise.all([window1.lastPrepareToUnloadPromise, window2.lastPrepareToUnloadPromise])
+    assert(electron.app.hasQuitted())
+  })
+
+  it('prevents quitting if user cancels when prompted to save an item', async () => {
+    const atomApplication = buildAtomApplication()
+    const window1 = atomApplication.launch(parseCommandLine([]))
+    const window2 = atomApplication.launch(parseCommandLine([]))
+    await Promise.all([window1.loadedPromise, window2.loadedPromise])
+    await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+      atom.workspace.getActiveTextEditor().insertText('unsaved text')
+      sendBackToMainProcess()
     })
+
+    // Choosing "Cancel"
+    mockElectronShowMessageBox({choice: 1})
+    electron.app.quit()
+    await atomApplication.lastBeforeQuitPromise
+    assert(!electron.app.hasQuitted())
+    assert.equal(electron.app.quit.callCount, 1) // Ensure choosing "Cancel" doesn't try to quit the electron app more than once (regression)
+
+    // Choosing "Don't save"
+    mockElectronShowMessageBox({choice: 2})
+    electron.app.quit()
+    await atomApplication.lastBeforeQuitPromise
+    assert(electron.app.hasQuitted())
   })
 
   function buildAtomApplication () {
@@ -490,12 +540,18 @@ describe('AtomApplication', function () {
   async function focusWindow (window) {
     window.focus()
     await window.loadedPromise
-    await conditionPromise(() => window.atomApplication.lastFocusedWindow === window)
+    await conditionPromise(() => window.atomApplication.getLastFocusedWindow() === window)
   }
 
   function mockElectronAppQuit () {
     let quitted = false
     electron.app.quit = function () {
+      if (electron.app.quit.callCount) {
+        electron.app.quit.callCount++
+      } else {
+        electron.app.quit.callCount = 1
+      }
+
       let shouldQuit = true
       electron.app.emit('before-quit', {preventDefault: () => { shouldQuit = false }})
       if (shouldQuit) {
@@ -507,8 +563,15 @@ describe('AtomApplication', function () {
     }
   }
 
+  function mockElectronShowMessageBox ({choice}) {
+    electron.dialog.showMessageBox = function () {
+      return choice
+    }
+  }
+
   function makeTempDir (name) {
-    return fs.realpathSync(require('temp').mkdirSync(name))
+    const temp = require('temp').track()
+    return fs.realpathSync(temp.mkdirSync(name))
   }
 
   let channelIdCounter = 0

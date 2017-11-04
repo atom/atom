@@ -25,7 +25,13 @@ describe('Workspace', () => {
     waitsForPromise(() => atom.workspace.itemLocationStore.clear())
   })
 
-  afterEach(() => temp.cleanupSync())
+  afterEach(() => {
+    try {
+      temp.cleanupSync()
+    } catch (e) {
+      // Do nothing
+    }
+  })
 
   function simulateReload() {
     waitsForPromise(() => {
@@ -1579,15 +1585,15 @@ i = /test/; #FIXME\
       atom2.project.deserialize(atom.project.serialize())
       atom2.workspace.deserialize(atom.workspace.serialize(), atom2.deserializers)
 
-      expect(atom2.grammars.getGrammars().map(grammar => grammar.name).sort()).toEqual([
-        'CoffeeScript',
-        'CoffeeScript (Literate)',
-        'JSDoc',
-        'JavaScript',
-        'Null Grammar',
-        'Regular Expression Replacement (JavaScript)',
-        'Regular Expressions (JavaScript)',
-        'TODO'
+      expect(atom2.grammars.getGrammars().map(grammar => grammar.scopeName).sort()).toEqual([
+        'source.coffee',
+        'source.js',
+        'source.js.regexp',
+        'source.js.regexp.replacement',
+        'source.jsdoc',
+        'source.litcoffee',
+        'text.plain.null-grammar',
+        'text.todo'
       ])
 
       atom2.destroy()
@@ -2388,6 +2394,22 @@ i = /test/; #FIXME\
           expect(results[0].replacements).toBe(6)
         })
       })
+
+      it('does not discard the multiline flag', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
+
+        const results = []
+        waitsForPromise(() =>
+          atom.workspace.replace(/;$/gmi, 'items', [filePath], result => results.push(result))
+        )
+
+        runs(() => {
+          expect(results).toHaveLength(1)
+          expect(results[0].filePath).toBe(filePath)
+          expect(results[0].replacements).toBe(8)
+        })
+      })
     })
 
     describe('when a buffer is already open', () => {
@@ -2751,7 +2773,7 @@ i = /test/; #FIXME\
     })
   })
 
-  describe('when the core.allowPendingPaneItems option is falsey', () => {
+  describe('when the core.allowPendingPaneItems option is falsy', () => {
     it('does not open item with `pending: true` option as pending', () => {
       let pane = null
       atom.config.set('core.allowPendingPaneItems', false)

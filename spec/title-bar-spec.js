@@ -1,5 +1,5 @@
 const TitleBar = require('../src/title-bar')
-const temp = require('temp')
+const temp = require('temp').track()
 
 describe('TitleBar', () => {
   it('updates its title when document.title changes', () => {

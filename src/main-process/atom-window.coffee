@@ -26,6 +26,7 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
+      tabbingIdentifier: 'atom'
       webPreferences:
         # Prevent specs from throttling when the window is in the background:
         # this should result in faster CI builds, and an improvement in the
@@ -230,6 +231,9 @@ class AtomWindow
     else
       unless @atomApplication.sendCommandToFirstResponder(command)
         @sendCommandToBrowserWindow(command, args...)
+
+  sendURIMessage: (uri) ->
+    @browserWindow.webContents.send 'uri-message', uri
 
   sendCommandToBrowserWindow: (command, args...) ->
     action = if args[0]?.contextCommand then 'context-command' else 'command'
