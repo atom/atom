@@ -26,6 +26,7 @@ class Package
   mainModule: null
   mainInitialized: false
   mainActivated: false
+  deserialized: false
 
   ###
   Section: Construction
@@ -380,6 +381,7 @@ class Package
         @deserializerManager.add
           name: deserializerName,
           deserialize: (state, atomEnvironment) =>
+            @deserialized = true
             @registerViewProviders()
             @requireMainModule()
             @initializeIfNeeded()
@@ -611,7 +613,7 @@ class Package
       @mainModulePath = fs.resolveExtension(mainModulePath, ["", CompileCache.supportedExtensions...])
 
   activationShouldBeDeferred: ->
-    @hasActivationCommands() or @hasActivationHooks() or @hasDeferredURIHandler()
+    (@hasActivationCommands() or @hasActivationHooks() or @hasDeferredURIHandler()) and not @deserialized
 
   hasActivationHooks: ->
     @getActivationHooks()?.length > 0
