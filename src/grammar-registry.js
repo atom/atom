@@ -21,9 +21,15 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
   constructor ({config} = {}) {
     super({maxTokensPerLine: 100, maxLineLength: 1000})
     this.config = config
+    this.subscriptions = new CompositeDisposable()
+  }
+
+  clear () {
+    super.clear()
+    if (this.subscriptions) this.subscriptions.dispose()
+    this.subscriptions = new CompositeDisposable()
     this.languageNameOverridesByBufferId = new Map()
     this.grammarScoresByBuffer = new Map()
-    this.subscriptions = new CompositeDisposable()
 
     const grammarAddedOrUpdated = this.grammarAddedOrUpdated.bind(this)
     this.onDidAddGrammar(grammarAddedOrUpdated)

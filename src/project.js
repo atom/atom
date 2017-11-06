@@ -2,7 +2,7 @@ const path = require('path')
 
 const _ = require('underscore-plus')
 const fs = require('fs-plus')
-const {Emitter, Disposable} = require('event-kit')
+const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 const TextBuffer = require('text-buffer')
 const {watchPath} = require('./path-watcher')
 
@@ -37,6 +37,7 @@ class Project extends Model {
     this.watcherPromisesByPath = {}
     this.retiredBufferIDs = new Set()
     this.retiredBufferPaths = new Set()
+    this.subscriptions = new CompositeDisposable()
     this.consumeServices(packageManager)
   }
 
@@ -55,6 +56,9 @@ class Project extends Model {
   reset (packageManager) {
     this.emitter.dispose()
     this.emitter = new Emitter()
+
+    this.subscriptions.dispose()
+    this.subscriptions = new CompositeDisposable()
 
     for (let buffer of this.buffers) {
       if (buffer != null) buffer.destroy()
@@ -658,7 +662,7 @@ class Project extends Model {
 
   addBuffer (buffer, options = {}) {
     this.buffers.push(buffer)
-    this.grammarRegistry.maintainLanguageMode(buffer)
+    this.subscriptions.add(this.grammarRegistry.maintainLanguageMode(buffer))
     this.subscribeToBuffer(buffer)
     this.emitter.emit('did-add-buffer', buffer)
     return buffer
