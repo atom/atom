@@ -1,4 +1,5 @@
 const _ = require('underscore-plus')
+const Grim = require('grim')
 const FirstMate = require('first-mate')
 const {Disposable, CompositeDisposable} = require('event-kit')
 const TokenizedBuffer = require('./tokenized-buffer')
@@ -7,7 +8,7 @@ const fs = require('fs-plus')
 const {Point, Range} = require('text-buffer')
 
 const GRAMMAR_SELECTION_RANGE = Range(Point.ZERO, Point(10, 0)).freeze()
-const PathSplitRegex = new RegExp('[/.]')
+const PATH_SPLIT_REGEX = new RegExp('[/.]')
 
 // Extended: Syntax class holding the grammars used for tokenizing.
 //
@@ -20,7 +21,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
   constructor ({config} = {}) {
     super({maxTokensPerLine: 100, maxLineLength: 1000})
     this.config = config
-    this.grammarOverridesByPath = {}
+    this.languageNameOverridesByBufferId = new Map()
     this.grammarScoresByBuffer = new Map()
     this.subscriptions = new CompositeDisposable()
 
@@ -33,40 +34,60 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
     return new Token({value, scopes})
   }
 
-  maintainGrammar (buffer) {
-    this.assignLanguageModeToBuffer(buffer)
+  maintainLanguageMode (buffer) {
+    const languageNameOverride = this.languageNameOverridesByBufferId.get(buffer.id)
+    if (languageNameOverride) {
+      this.assignLanguageMode(buffer, languageNameOverride)
+    } else {
+      this.assignLanguageMode(buffer, null)
+    }
 
     const pathChangeSubscription = buffer.onDidChangePath(() => {
       this.grammarScoresByBuffer.delete(buffer)
-      this.assignLanguageModeToBuffer(buffer)
+      if (!this.languageNameOverridesByBufferId.has(buffer.id)) {
+        this.assignLanguageMode(buffer, null)
+      }
     })
 
     this.subscriptions.add(pathChangeSubscription)
 
     return new Disposable(() => {
       this.subscriptions.remove(pathChangeSubscription)
+      this.grammarScoresByBuffer.delete(buffer)
       pathChangeSubscription.dispose()
     })
   }
 
-  assignLanguageModeToBuffer (buffer) {
-    let grammar = null
-    const overrideScopeName = this.grammarOverridesByPath[buffer.getPath()]
-    if (overrideScopeName) {
-      grammar = this.grammarForScopeName(overrideScopeName)
-      this.grammarScoresByBuffer.set(buffer, null)
-    }
+  assignLanguageMode (buffer, languageName) {
+    if (buffer.getBuffer) buffer = buffer.getBuffer()
 
-    if (!grammar) {
+    let grammar
+    if (languageName != null) {
+      const lowercaseLanguageName = languageName.toLowerCase()
+      grammar = this.grammarForLanguageName(lowercaseLanguageName)
+      this.languageNameOverridesByBufferId.set(buffer.id, lowercaseLanguageName)
+      this.grammarScoresByBuffer.set(buffer, null)
+    } else {
       const result = this.selectGrammarWithScore(
         buffer.getPath(),
         buffer.getTextInRange(GRAMMAR_SELECTION_RANGE)
       )
-      grammar = result.grammar
-      this.grammarScoresByBuffer.set(buffer, result.score)
+      const currentScore = this.grammarScoresByBuffer.get(buffer)
+      if (currentScore == null || result.score > currentScore) {
+        grammar = result.grammar
+        this.languageNameOverridesByBufferId.delete(buffer.id)
+        this.grammarScoresByBuffer.set(buffer, result.score)
+      }
     }
 
-    buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
+    if (grammar) {
+      if (grammar.name !== buffer.getLanguageMode().getLanguageName()) {
+        buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
+      }
+      return true
+    } else {
+      return false
+    }
   }
 
   languageModeForGrammarAndBuffer (grammar, buffer) {
@@ -120,7 +141,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
     if (!filePath) { return -1 }
     if (process.platform === 'win32') { filePath = filePath.replace(/\\/g, '/') }
 
-    const pathComponents = filePath.toLowerCase().split(PathSplitRegex)
+    const pathComponents = filePath.toLowerCase().split(PATH_SPLIT_REGEX)
     let pathScore = -1
 
     let customFileTypes
@@ -135,7 +156,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
 
     for (let i = 0; i < fileTypes.length; i++) {
       const fileType = fileTypes[i]
-      const fileTypeComponents = fileType.toLowerCase().split(PathSplitRegex)
+      const fileTypeComponents = fileType.toLowerCase().split(PATH_SPLIT_REGEX)
       const pathSuffix = pathComponents.slice(-fileTypeComponents.length)
       if (_.isEqual(pathSuffix, fileTypeComponents)) {
         pathScore = Math.max(pathScore, fileType.length)
@@ -170,23 +191,30 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
     return grammar.firstLineRegex.testSync(lines.slice(0, numberOfNewlinesInRegex + 1).join('\n'))
   }
 
-  // Get the grammar override for the given file path.
+  // Deprecated: Get the grammar override for the given file path.
   //
   // * `filePath` A {String} file path.
   //
   // Returns a {String} such as `"source.js"`.
   grammarOverrideForPath (filePath) {
-    return this.grammarOverridesByPath[filePath]
+    Grim.deprecate('Use buffer.getLanguageMode().getLanguageName() instead')
+    const buffer = atom.project.findBufferForPath(filePath)
+    if (buffer) return this.languageNameOverridesByBufferId.get(buffer.id)
   }
 
-  // Set the grammar override for the given file path.
+  // Deprecated: Set the grammar override for the given file path.
   //
   // * `filePath` A non-empty {String} file path.
   // * `scopeName` A {String} such as `"source.js"`.
   //
   // Returns undefined.
   setGrammarOverrideForPath (filePath, scopeName) {
-    this.grammarOverridesByPath[filePath] = scopeName
+    Grim.deprecate('Use atom.grammars.assignLanguageMode(buffer, languageName) instead')
+    const buffer = atom.project.findBufferForPath(filePath)
+    if (buffer) {
+      const grammar = this.grammarForScopeName(scopeName)
+      if (grammar) this.languageNameOverridesByBufferId.set(buffer.id, grammar.name)
+    }
   }
 
   // Remove the grammar override for the given file path.
@@ -195,7 +223,14 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
   //
   // Returns undefined.
   clearGrammarOverrideForPath (filePath) {
-    delete this.grammarOverridesByPath[filePath]
+    Grim.deprecate('Use atom.grammars.assignLanguageMode(buffer, null) instead')
+    const buffer = atom.project.findBufferForPath(filePath)
+    if (buffer) this.languageNameOverridesByBufferId.delete(buffer.id)
+  }
+
+  grammarForLanguageName (languageName) {
+    const lowercaseLanguageName = languageName.toLowerCase()
+    return this.getGrammars().find(grammar => grammar.name.toLowerCase() === lowercaseLanguageName)
   }
 
   grammarAddedOrUpdated (grammar) {
@@ -208,19 +243,16 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
         return
       }
 
-      const grammarOverride = this.grammarOverridesByPath[buffer.getPath()]
-      if (grammarOverride) {
-        if (grammar.scopeName === grammarOverride) {
-          buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
-        }
-      } else {
+      if (grammar.name === buffer.getLanguageMode().getLanguageName()) {
+        buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
+      } else if (!this.languageNameOverridesByBufferId.has(buffer.id)) {
         const score = this.getGrammarScore(
           grammar,
           buffer.getPath(),
           buffer.getTextInRange(GRAMMAR_SELECTION_RANGE)
         )
 
-        let currentScore = this.grammarScoresByBuffer.get(buffer)
+        const currentScore = this.grammarScoresByBuffer.get(buffer)
         if (currentScore == null || score > currentScore) {
           buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
           this.grammarScoresByBuffer.set(buffer, score)

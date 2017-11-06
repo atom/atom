@@ -3556,8 +3556,8 @@ class TextEditor {
   //
   // * `grammar` {Grammar}
   setGrammar (grammar) {
-    Grim.deprecate('Use atom.grammars.setGrammarOverrideForPath(filePath) instead')
-    atom.grammars.setGrammarOverrideForPath(this.getPath(), grammar.scopeName)
+    Grim.deprecate('Use atom.grammars.assignLanguageMode(buffer, languageName) instead')
+    atom.grammars.assignLanguageMode(this.getBuffer(), grammar.name)
   }
 
   // Experimental: Get a notification when async tokenization is completed.

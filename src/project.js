@@ -106,7 +106,7 @@ class Project extends Model {
     return Promise.all(bufferPromises).then(buffers => {
       this.buffers = buffers.filter(Boolean)
       for (let buffer of this.buffers) {
-        this.grammarRegistry.maintainGrammar(buffer)
+        this.grammarRegistry.maintainLanguageMode(buffer)
         this.subscribeToBuffer(buffer)
       }
       this.setPaths(state.paths || [], {mustExist: true, exact: true})
@@ -650,7 +650,7 @@ class Project extends Model {
 
   addBuffer (buffer, options = {}) {
     this.buffers.push(buffer)
-    this.grammarRegistry.maintainGrammar(buffer)
+    this.grammarRegistry.maintainLanguageMode(buffer)
     this.subscribeToBuffer(buffer)
     this.emitter.emit('did-add-buffer', buffer)
     return buffer
