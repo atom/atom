@@ -1510,28 +1510,28 @@ class TextEditorComponent {
   didMouseWheel (event) {
     const scrollSensitivity = this.props.model.getScrollSensitivity() / 100
 
-    let {deltaX, deltaY} = event
+    let {wheelDeltaX, wheelDeltaY} = event
 
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      deltaX = (Math.sign(deltaX) === 1)
-        ? Math.max(1, deltaX * scrollSensitivity)
-        : Math.min(-1, deltaX * scrollSensitivity)
-      deltaY = 0
+    if (Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)) {
+      wheelDeltaX = (Math.sign(wheelDeltaX) === 1)
+        ? Math.max(1, wheelDeltaX * scrollSensitivity)
+        : Math.min(-1, wheelDeltaX * scrollSensitivity)
+      wheelDeltaY = 0
     } else {
-      deltaX = 0
-      deltaY = (Math.sign(deltaY) === 1)
-        ? Math.max(1, deltaY * scrollSensitivity)
-        : Math.min(-1, deltaY * scrollSensitivity)
+      wheelDeltaX = 0
+      wheelDeltaY = (Math.sign(wheelDeltaY) === 1)
+        ? Math.max(1, wheelDeltaY * scrollSensitivity)
+        : Math.min(-1, wheelDeltaY * scrollSensitivity)
     }
 
     if (this.getPlatform() !== 'darwin' && event.shiftKey) {
-      let temp = deltaX
-      deltaX = deltaY
-      deltaY = temp
+      let temp = wheelDeltaX
+      wheelDeltaX = wheelDeltaY
+      wheelDeltaY = temp
     }
 
-    const scrollLeftChanged = deltaX !== 0 && this.setScrollLeft(this.getScrollLeft() + deltaX)
-    const scrollTopChanged = deltaY !== 0 && this.setScrollTop(this.getScrollTop() + deltaY)
+    const scrollLeftChanged = wheelDeltaX !== 0 && this.setScrollLeft(this.getScrollLeft() - wheelDeltaX)
+    const scrollTopChanged = wheelDeltaY !== 0 && this.setScrollTop(this.getScrollTop() - wheelDeltaY)
 
     if (scrollLeftChanged || scrollTopChanged) this.updateSync()
   }
