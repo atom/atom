@@ -515,6 +515,7 @@ class TextEditor {
       initialScrollTopRow: this.getScrollTopRow(),
       initialScrollLeftColumn: this.getScrollLeftColumn(),
 
+      tabLength: this.displayLayer.tabLength,
       atomicSoftTabs: this.displayLayer.atomicSoftTabs,
       softWrapHangingIndentLength: this.displayLayer.softWrapHangingIndent,
 
