@@ -4387,7 +4387,10 @@ class TextEditor {
 
   suggestedIndentForBufferRow (bufferRow, options) {
     const languageMode = this.buffer.getLanguageMode()
-    return languageMode.suggestedIndentForBufferRow && languageMode.suggestedIndentForBufferRow(bufferRow, options)
+    return (
+      languageMode.suggestedIndentForBufferRow &&
+      languageMode.suggestedIndentForBufferRow(bufferRow, this.getTabLength(), options)
+    )
   }
 
   // Given a buffer row, indent it.
@@ -4415,7 +4418,7 @@ class TextEditor {
     const languageMode = this.buffer.getLanguageMode()
     const indentLevel = (
       languageMode.suggestedIndentForEditedBufferRow &&
-      languageMode.suggestedIndentForEditedBufferRow(bufferRow)
+      languageMode.suggestedIndentForEditedBufferRow(bufferRow, this.getTabLength())
     )
     if (indentLevel != null) this.setIndentationForBufferRow(bufferRow, indentLevel)
   }
