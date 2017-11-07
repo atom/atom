@@ -115,12 +115,12 @@ describe('TextEditor', () => {
       editor.update({showCursorOnSelection: false})
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
       editor.addSelectionForBufferRange([[5, 6], [7, 8]], {reversed: true})
+      editor.foldBufferRow(4)
+      expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
       editor.setScrollTopRow(3)
       expect(editor.getScrollTopRow()).toBe(3)
       editor.setScrollLeftColumn(4)
       expect(editor.getScrollLeftColumn()).toBe(4)
-      editor.foldBufferRow(4)
-      expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
       const editor2 = editor.copy()
       const element2 = editor2.getElement()
@@ -7002,15 +7002,19 @@ describe('TextEditor', () => {
     })
 
     describe('.unfoldAll()', () => {
-      it('unfolds every folded line', async () => {
+      it('unfolds every folded line and autoscrolls', async () => {
         editor = await atom.workspace.open('sample.js', {autoIndent: false})
+        const autoscrollEvents = []
+        editor.onDidRequestAutoscroll(event => autoscrollEvents.push(event))
 
         const initialScreenLineCount = editor.getScreenLineCount()
         editor.foldBufferRow(0)
         editor.foldBufferRow(1)
         expect(editor.getScreenLineCount()).toBeLessThan(initialScreenLineCount)
+        expect(autoscrollEvents.length).toBe(1)
         editor.unfoldAll()
         expect(editor.getScreenLineCount()).toBe(initialScreenLineCount)
+        expect(autoscrollEvents.length).toBe(2)
       })
 
       it('unfolds every folded line with comments', async () => {
@@ -7028,8 +7032,11 @@ describe('TextEditor', () => {
     describe('.foldAll()', () => {
       it('folds every foldable line', async () => {
         editor = await atom.workspace.open('sample.js', {autoIndent: false})
+        const autoscrollEvents = []
+        editor.onDidRequestAutoscroll(event => autoscrollEvents.push(event))
 
         editor.foldAll()
+        expect(autoscrollEvents.length).toBe(1)
         const [fold1, fold2, fold3] = editor.unfoldAll()
         expect([fold1.start.row, fold1.end.row]).toEqual([0, 12])
         expect([fold2.start.row, fold2.end.row]).toEqual([1, 9])
@@ -7060,7 +7067,11 @@ describe('TextEditor', () => {
 
       describe('when bufferRow can be folded', () => {
         it('creates a fold based on the syntactic region starting at the given row', () => {
+          const autoscrollEvents = []
+          editor.onDidRequestAutoscroll(event => autoscrollEvents.push(event))
+
           editor.foldBufferRow(1)
+          expect(autoscrollEvents.length).toBe(1)
           const [fold] = editor.unfoldAll()
           expect([fold.start.row, fold.end.row]).toEqual([1, 9])
         })
@@ -7107,10 +7118,14 @@ describe('TextEditor', () => {
     describe('.foldCurrentRow()', () => {
       it('creates a fold at the location of the last cursor', async () => {
         editor = await atom.workspace.open()
+
         editor.setText('\nif (x) {\n  y()\n}')
         editor.setCursorBufferPosition([1, 0])
         expect(editor.getScreenLineCount()).toBe(4)
+        const autoscrollEvents = []
+        editor.onDidRequestAutoscroll(event => autoscrollEvents.push(event))
         editor.foldCurrentRow()
+        expect(autoscrollEvents.length).toBe(1)
         expect(editor.getScreenLineCount()).toBe(3)
       })
 
@@ -7127,21 +7142,26 @@ describe('TextEditor', () => {
     describe('.foldAllAtIndentLevel(indentLevel)', () => {
       it('folds blocks of text at the given indentation level', async () => {
         editor = await atom.workspace.open('sample.js', {autoIndent: false})
+        const autoscrollEvents = []
+        editor.onDidRequestAutoscroll(event => autoscrollEvents.push(event))
 
         editor.foldAllAtIndentLevel(0)
         expect(editor.lineTextForScreenRow(0)).toBe(`var quicksort = function () {${editor.displayLayer.foldCharacter}`)
         expect(editor.getLastScreenRow()).toBe(0)
+        expect(autoscrollEvents.length).toBe(1)
 
         editor.foldAllAtIndentLevel(1)
         expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = function () {')
         expect(editor.lineTextForScreenRow(1)).toBe(`  var sort = function(items) {${editor.displayLayer.foldCharacter}`)
         expect(editor.getLastScreenRow()).toBe(4)
+        expect(autoscrollEvents.length).toBe(2)
 
         editor.foldAllAtIndentLevel(2)
         expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = function () {')
         expect(editor.lineTextForScreenRow(1)).toBe('  var sort = function(items) {')
         expect(editor.lineTextForScreenRow(2)).toBe('    if (items.length <= 1) return items;')
         expect(editor.getLastScreenRow()).toBe(9)
+        expect(autoscrollEvents.length).toBe(3)
       })
 
       it('folds every foldable range at a given indentLevel', async () => {
