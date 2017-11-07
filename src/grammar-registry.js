@@ -236,7 +236,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
 
   grammarForLanguageName (languageName) {
     const lowercaseLanguageName = languageName.toLowerCase()
-    return this.getGrammars().find(grammar => grammar.name.toLowerCase() === lowercaseLanguageName)
+    return this.getGrammars().find(({name}) => name && name.toLowerCase() === lowercaseLanguageName)
   }
 
   grammarAddedOrUpdated (grammar) {
