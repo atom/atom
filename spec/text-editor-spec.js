@@ -1311,7 +1311,7 @@ describe('TextEditor', () => {
       })
 
       it('will limit paragraph range to comments', () => {
-        editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+        atom.grammars.assignLanguageMode(editor.getBuffer(), 'javascript')
         editor.setText(dedent`
           var quicksort = function () {
             /* Single line comment block */
@@ -3648,7 +3648,7 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
       describe('when a newline is appended with a trailing closing tag behind the cursor (e.g. by pressing enter in the middel of a line)', () => {
         it('indents the new line to the correct level when editor.autoIndent is true and using a curly-bracket language', () => {
           editor.update({autoIndent: true})
-          editor.setGrammar(atom.grammars.selectGrammar('file.js'))
+          atom.grammars.assignLanguageMode(editor, 'javascript')
           editor.setText('var test = () => {\n  return true;};')
           editor.setCursorBufferPosition([1, 14])
           editor.insertNewline()
@@ -3657,7 +3657,7 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
         })
 
         it('indents the new line to the current level when editor.autoIndent is true and no increaseIndentPattern is specified', () => {
-          editor.setGrammar(atom.grammars.selectGrammar('file'))
+          atom.grammars.assignLanguageMode(editor, 'null grammar')
           editor.update({autoIndent: true})
           editor.setText('  if true')
           editor.setCursorBufferPosition([0, 8])
@@ -3670,7 +3670,7 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
         it('indents the new line to the correct level when editor.autoIndent is true and using an off-side rule language', async () => {
           await atom.packages.activatePackage('language-coffee-script')
           editor.update({autoIndent: true})
-          editor.setGrammar(atom.grammars.selectGrammar('file.coffee'))
+          atom.grammars.assignLanguageMode(editor, 'coffeescript')
           editor.setText('if true\n  return trueelse\n  return false')
           editor.setCursorBufferPosition([1, 13])
           editor.insertNewline()
@@ -3684,7 +3684,7 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
         it('indents the new line to the correct level when editor.autoIndent is true', async () => {
           await atom.packages.activatePackage('language-go')
           editor.update({autoIndent: true})
-          editor.setGrammar(atom.grammars.selectGrammar('file.go'))
+          atom.grammars.assignLanguageMode(editor, 'go')
           editor.setText('fmt.Printf("some%s",\n	"thing")')
           editor.setCursorBufferPosition([1, 10])
           editor.insertNewline()
@@ -6785,7 +6785,7 @@ describe('TextEditor', () => {
     })
 
     it('does nothing for empty lines and null grammar', () => {
-      editor.setGrammar(atom.grammars.grammarForScopeName('text.plain.null-grammar'))
+      atom.grammars.assignLanguageMode(editor, 'null grammar')
       editor.setCursorBufferPosition([10, 0])
       editor.toggleLineCommentsInSelection()
       expect(editor.lineTextForBufferRow(10)).toBe('')
