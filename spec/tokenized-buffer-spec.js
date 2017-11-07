@@ -33,6 +33,34 @@ describe('TokenizedBuffer', () => {
     }
   }
 
+  describe('when the editor is constructed with the largeFileMode option set to true', () => {
+    it("loads the editor but doesn't tokenize", async () => {
+      const line = 'a b c d\n'
+      buffer = new TextBuffer(line.repeat(256 * 1024))
+      expect(buffer.getText().length).toBe(2 * 1024 * 1024)
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer,
+        grammar: atom.grammars.grammarForScopeName('source.js'),
+        tabLength: 2
+      })
+      buffer.setLanguageMode(tokenizedBuffer)
+
+      expect(tokenizedBuffer.isRowCommented(0)).toBeFalsy()
+
+      // It treats the entire line as one big token
+      let iterator = tokenizedBuffer.buildHighlightIterator()
+      iterator.seek({row: 0, column: 0})
+      iterator.moveToSuccessor()
+      expect(iterator.getPosition()).toEqual({row: 0, column: 7})
+
+      buffer.insert([0, 0], 'hey"')
+      iterator = tokenizedBuffer.buildHighlightIterator()
+      iterator.seek({row: 0, column: 0})
+      iterator.moveToSuccessor()
+      expect(iterator.getPosition()).toEqual({row: 0, column: 11})
+    })
+  })
+
   describe('serialization', () => {
     describe('when the underlying buffer has a path', () => {
       beforeEach(async () => {

@@ -123,7 +123,6 @@ class TextEditor {
     this.mini = (params.mini != null) ? params.mini : false
     this.placeholderText = params.placeholderText
     this.showLineNumbers = params.showLineNumbers
-    this.largeFileMode = params.largeFileMode
     this.assert = params.assert || (condition => condition)
     this.showInvisibles = (params.showInvisibles != null) ? params.showInvisibles : true
     this.autoHeight = params.autoHeight
@@ -528,7 +527,6 @@ class TextEditor {
       mini: this.mini,
       editorWidthInChars: this.editorWidthInChars,
       width: this.width,
-      largeFileMode: this.largeFileMode,
       maxScreenLineLength: this.maxScreenLineLength,
       registered: this.registered,
       invisibles: this.invisibles,

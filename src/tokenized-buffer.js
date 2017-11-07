@@ -29,6 +29,9 @@ class TokenizedBuffer {
     this.tabLength = params.tabLength
     this.largeFileMode = params.largeFileMode
     this.config = params.config
+    this.largeFileMode = params.largeFileMode != null
+      ? params.largeFileMode
+      : this.buffer.buffer.getLength() >= 2 * 1024 * 1024
 
     this.grammar = params.grammar || NullGrammar
     this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.scopeName]})

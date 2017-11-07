@@ -85,22 +85,6 @@ describe('TextEditor', () => {
     })
   })
 
-  describe('when the editor is constructed with the largeFileMode option set to true', () => {
-    it("loads the editor but doesn't tokenize", async () => {
-      editor = await atom.workspace.openTextFile('sample.js', {largeFileMode: true})
-      buffer = editor.getBuffer()
-      expect(editor.lineTextForScreenRow(0)).toBe(buffer.lineForRow(0))
-      expect(editor.tokensForScreenRow(0).length).toBe(1)
-      expect(editor.tokensForScreenRow(1).length).toBe(2) // soft tab
-      expect(editor.lineTextForScreenRow(12)).toBe(buffer.lineForRow(12))
-      expect(editor.getCursorScreenPosition()).toEqual([0, 0])
-
-      editor.insertText('hey"')
-      expect(editor.tokensForScreenRow(0).length).toBe(1)
-      expect(editor.tokensForScreenRow(1).length).toBe(2)
-    })
-  })
-
   describe('.copy()', () => {
     it('returns a different editor with the same initial state', () => {
       expect(editor.getAutoHeight()).toBeFalsy()

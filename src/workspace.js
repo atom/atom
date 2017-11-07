@@ -1211,9 +1211,7 @@ module.exports = class Workspace extends Model {
     }
 
     const fileSize = fs.getSizeSync(filePath)
-
-    const largeFileMode = fileSize >= (2 * 1048576) // 2MB
-    if (fileSize >= (this.config.get('core.warnOnLargeFileLimit') * 1048576)) { // 20MB by default
+    if (fileSize >= (this.config.get('core.warnOnLargeFileLimit') * 1048576)) {
       const choice = this.applicationDelegate.confirm({
         message: 'Atom will be unresponsive during the loading of very large files.',
         detailedMessage: 'Do you still want to load this file?',
@@ -1228,7 +1226,7 @@ module.exports = class Workspace extends Model {
 
     return this.project.bufferForPath(filePath, options)
       .then(buffer => {
-        return this.textEditorRegistry.build(Object.assign({buffer, largeFileMode, autoHeight: false}, options))
+        return this.textEditorRegistry.build(Object.assign({buffer, autoHeight: false}, options))
       })
   }
 
