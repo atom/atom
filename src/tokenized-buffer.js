@@ -59,7 +59,8 @@ class TokenizedBuffer {
     return this.grammar.name
   }
 
-  getNonWordCharacters (scope) {
+  getNonWordCharacters (position) {
+    const scope = this.scopeDescriptorForPosition(position)
     return this.config.get('editor.nonWordCharacters', {scope})
   }
 

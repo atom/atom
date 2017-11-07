@@ -2052,14 +2052,13 @@ describe('TextEditor', () => {
         expect(scopeDescriptors[0].getScopesArray()).toEqual(['source.js'])
         expect(scopeDescriptors[1].getScopesArray()).toEqual(['source.js', 'string.quoted.single.js'])
 
-        editor.setScopedSettingsDelegate({
-          getNonWordCharacters (scopes) {
-            const result = '/\()"\':,.;<>~!@#$%^&*|+=[]{}`?'
-            if (scopes.some(scope => scope.startsWith('string'))) {
-              return result
-            } else {
-              return result + '-'
-            }
+        spyOn(editor.getBuffer().getLanguageMode(), 'getNonWordCharacters').andCallFake(function (position) {
+          const result = '/\()"\':,.;<>~!@#$%^&*|+=[]{}`?'
+          const scopes = this.scopeDescriptorForPosition(position).getScopesArray()
+          if (scopes.some(scope => scope.startsWith('string'))) {
+            return result
+          } else {
+            return result + '-'
           }
         })
 

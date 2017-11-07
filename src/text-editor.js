@@ -4106,9 +4106,9 @@ class TextEditor {
   // for the purpose of word-based cursor movements.
   //
   // Returns a {String} containing the non-word characters.
-  getNonWordCharacters (scopes) {
+  getNonWordCharacters (position) {
     const languageMode = this.buffer.getLanguageMode()
-    return (languageMode.getNonWordCharacters && languageMode.getNonWordCharacters(scopes)) ||
+    return (languageMode.getNonWordCharacters && languageMode.getNonWordCharacters(position)) ||
       this.nonWordCharacters
   }
 
