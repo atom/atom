@@ -3751,7 +3751,7 @@ class TextEditor {
     const languageMode = this.buffer.getLanguageMode()
     const range = (
       languageMode.getFoldableRangeContainingPoint &&
-      languageMode.getFoldableRangeContainingPoint(Point(row, Infinity))
+      languageMode.getFoldableRangeContainingPoint(Point(row, Infinity), this.getTabLength())
     )
     if (range) return this.displayLayer.foldBufferRange(range)
   }
