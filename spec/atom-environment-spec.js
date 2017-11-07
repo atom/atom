@@ -1,3 +1,4 @@
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 const _ = require('underscore-plus')
 const path = require('path')
 const temp = require('temp').track()
@@ -29,11 +30,11 @@ describe('AtomEnvironment', () => {
       beforeEach(() => originalSize = atom.getSize())
       afterEach(() => atom.setSize(originalSize.width, originalSize.height))
 
-      it('sets the size of the window, and can retrieve the size just set', () => {
+      it('sets the size of the window, and can retrieve the size just set', async () => {
         const newWidth = originalSize.width - 12
         const newHeight = originalSize.height - 23
-        waitsForPromise(() => atom.setSize(newWidth, newHeight))
-        runs(() => expect(atom.getSize()).toEqual({width: newWidth, height: newHeight}))
+        await atom.setSize(newWidth, newHeight)
+        expect(atom.getSize()).toEqual({width: newWidth, height: newHeight})
       })
     })
   })
@@ -64,23 +65,24 @@ describe('AtomEnvironment', () => {
       spyOn(atom, 'executeJavaScriptInDevTools')
     })
 
-    it('will open the dev tools when an error is triggered', () => {
+    it('will open the dev tools when an error is triggered', async () => {
       try {
         a + 1
       } catch (e) {
         window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
       }
 
-      waitsForPromise(() => devToolsPromise)
-      runs(() => {
-        expect(atom.openDevTools).toHaveBeenCalled()
-        expect(atom.executeJavaScriptInDevTools).toHaveBeenCalled()
-      })
+      await devToolsPromise
+      expect(atom.openDevTools).toHaveBeenCalled()
+      expect(atom.executeJavaScriptInDevTools).toHaveBeenCalled()
     })
 
     describe('::onWillThrowError', () => {
       let willThrowSpy = null
-      beforeEach(() => willThrowSpy = jasmine.createSpy())
+
+      beforeEach(() => {
+        willThrowSpy = jasmine.createSpy()
+      })
 
       it('is called when there is an error', () => {
         let error = null
@@ -197,39 +199,32 @@ describe('AtomEnvironment', () => {
 
     afterEach(() => atom.enablePersistence = false)
 
-    it('selects the state based on the current project paths', () => {
+    it('selects the state based on the current project paths', async () => {
       jasmine.useRealClock()
 
       const [dir1, dir2] = [temp.mkdirSync('dir1-'), temp.mkdirSync('dir2-')]
 
-      const loadSettings = _.extend(atom.getLoadSettings(), {
+      const loadSettings = Object.assign(atom.getLoadSettings(), {
         initialPaths: [dir1],
         windowState: null
-      }
-      )
+      })
 
       spyOn(atom, 'getLoadSettings').andCallFake(() => loadSettings)
       spyOn(atom, 'serialize').andReturn({stuff: 'cool'})
 
       atom.project.setPaths([dir1, dir2])
+
       // State persistence will fail if other Atom instances are running
-      waitsForPromise(() =>
-        atom.stateStore.connect().then(isConnected => expect(isConnected).toBe(true))
-      )
+      expect(await atom.stateStore.connect()).toBe(true)
 
-      waitsForPromise(() =>
-        atom.saveState().then(() =>
-          atom.loadState().then(state => expect(state).toBeFalsy())
-        )
-      )
+      await atom.saveState()
+      expect(await atom.loadState()).toBeFalsy()
 
-      waitsForPromise(() => {
-        loadSettings.initialPaths = [dir2, dir1]
-        return atom.loadState().then(state => expect(state).toEqual({stuff: 'cool'}))
-      })
+      loadSettings.initialPaths = [dir2, dir1]
+      expect(await atom.loadState()).toEqual({stuff: 'cool'})
     })
 
-    it("loads state from the storage folder when it can't be found in atom.stateStore", () => {
+    it("loads state from the storage folder when it can't be found in atom.stateStore", async () => {
       jasmine.useRealClock()
 
       const storageFolderState = {foo: 1, bar: 2}
@@ -240,15 +235,12 @@ describe('AtomEnvironment', () => {
       spyOn(atom, 'getStorageFolder').andReturn(new StorageFolder(temp.mkdirSync('config-directory')))
       atom.project.setPaths(atom.getLoadSettings().initialPaths)
 
-      waitsForPromise(() => atom.stateStore.connect())
+      await atom.stateStore.connect()
+      atom.getStorageFolder().storeSync(atom.getStateKey(loadSettings.initialPaths), storageFolderState)
+      expect(await atom.loadState()).toEqual(storageFolderState)
 
-      runs(() => atom.getStorageFolder().storeSync(atom.getStateKey(loadSettings.initialPaths), storageFolderState))
-
-      waitsForPromise(() => atom.loadState().then(state => expect(state).toEqual(storageFolderState)))
-
-      waitsForPromise(() => atom.saveState())
-
-      waitsForPromise(() => atom.loadState().then(state => expect(state).toEqual(serializedState)))
+      await atom.saveState()
+      expect(await atom.loadState()).toEqual(serializedState)
     })
 
     it('saves state when the CPU is idle after a keydown or mousedown event', () => {
@@ -319,45 +311,38 @@ describe('AtomEnvironment', () => {
       atomEnv.destroy()
     })
 
-    it('serializes the project state with all the options supplied in saveState', () => {
+    it('serializes the project state with all the options supplied in saveState', async () => {
       spyOn(atom.project, 'serialize').andReturn({foo: 42})
 
-      waitsForPromise(() => atom.saveState({anyOption: 'any option'}))
-      runs(() => {
-        expect(atom.project.serialize.calls.length).toBe(1)
-        expect(atom.project.serialize.mostRecentCall.args[0]).toEqual({anyOption: 'any option'})
-      })
+      await atom.saveState({anyOption: 'any option'})
+      expect(atom.project.serialize.calls.length).toBe(1)
+      expect(atom.project.serialize.mostRecentCall.args[0]).toEqual({anyOption: 'any option'})
     })
 
-    it('serializes the text editor registry', () => {
-      let editor = null
+    it('serializes the text editor registry', async () => {
+      const editor = await atom.workspace.open('sample.js')
+      atom.textEditors.setGrammarOverride(editor, 'text.plain')
 
-      waitsForPromise(() => atom.workspace.open('sample.js').then(e => editor = e))
-
-      waitsForPromise(() => {
-        atom.textEditors.setGrammarOverride(editor, 'text.plain')
-
-        const atom2 = new AtomEnvironment({
-          applicationDelegate: atom.applicationDelegate,
-          window: document.createElement('div'),
-          document: Object.assign(
-            document.createElement('div'),
-            {
-              body: document.createElement('div'),
-              head: document.createElement('div')
-            }
-          )
-        })
-        atom2.initialize({document, window})
-        return atom2.deserialize(atom.serialize()).then(() => {
-          expect(atom2.textEditors.getGrammarOverride(editor)).toBe('text.plain')
-          return atom2.destroy()
-        })
+      const atom2 = new AtomEnvironment({
+        applicationDelegate: atom.applicationDelegate,
+        window: document.createElement('div'),
+        document: Object.assign(
+          document.createElement('div'),
+          {
+            body: document.createElement('div'),
+            head: document.createElement('div')
+          }
+        )
       })
+      atom2.initialize({document, window})
+
+      await atom2.deserialize(atom.serialize())
+      expect(atom2.textEditors.getGrammarOverride(editor)).toBe('text.plain')
+      atom2.destroy()
     })
 
     describe('deserialization failures', () => {
-      it('propagates project state restoration failures', () => {
+      it('propagates project state restoration failures', async () => {
         spyOn(atom.project, 'deserialize').andCallFake(() => {
           const err = new Error('deserialization failure')
           err.missingProjectPaths = ['/foo']
@@ -365,15 +350,13 @@ describe('AtomEnvironment', () => {
         })
         spyOn(atom.notifications, 'addError')
 
-        waitsForPromise(() => atom.deserialize({project: 'should work'}))
-        runs(() => {
-          expect(atom.notifications.addError).toHaveBeenCalledWith('Unable to open project directory', {
-            description: 'Project directory `/foo` is no longer on disk.'
-          })
+        await atom.deserialize({project: 'should work'})
+        expect(atom.notifications.addError).toHaveBeenCalledWith('Unable to open project directory', {
+          description: 'Project directory `/foo` is no longer on disk.'
         })
       })
 
-      it('accumulates and reports two errors with one notification', () => {
+      it('accumulates and reports two errors with one notification', async () => {
         spyOn(atom.project, 'deserialize').andCallFake(() => {
           const err = new Error('deserialization failure')
           err.missingProjectPaths = ['/foo', '/wat']
@@ -381,15 +364,13 @@ describe('AtomEnvironment', () => {
         })
         spyOn(atom.notifications, 'addError')
 
-        waitsForPromise(() => atom.deserialize({project: 'should work'}))
-        runs(() => {
-          expect(atom.notifications.addError).toHaveBeenCalledWith('Unable to open 2 project directories', {
-            description: 'Project directories `/foo` and `/wat` are no longer on disk.'
-          })
+        await atom.deserialize({project: 'should work'})
+        expect(atom.notifications.addError).toHaveBeenCalledWith('Unable to open 2 project directories', {
+          description: 'Project directories `/foo` and `/wat` are no longer on disk.'
         })
       })
 
-      it('accumulates and reports three+ errors with one notification', () => {
+      it('accumulates and reports three+ errors with one notification', async () => {
         spyOn(atom.project, 'deserialize').andCallFake(() => {
           const err = new Error('deserialization failure')
           err.missingProjectPaths = ['/foo', '/wat', '/stuff', '/things']
@@ -397,10 +378,10 @@ describe('AtomEnvironment', () => {
         })
         spyOn(atom.notifications, 'addError')
 
-        waitsForPromise(() => atom.deserialize({project: 'should work'}))
-        runs(() =>
-          expect(atom.notifications.addError).toHaveBeenCalledWith('Unable to open 4 project directories',
-            {description: 'Project directories `/foo`, `/wat`, `/stuff`, and `/things` are no longer on disk.'}))
+        await atom.deserialize({project: 'should work'})
+        expect(atom.notifications.addError).toHaveBeenCalledWith('Unable to open 4 project directories', {
+          description: 'Project directories `/foo`, `/wat`, `/stuff`, and `/things` are no longer on disk.'
+        })
       })
     })
   })
@@ -416,7 +397,9 @@ describe('AtomEnvironment', () => {
       })
 
       describe('when there is already a buffer open', () => {
-        beforeEach(() => waitsForPromise(() => atom.workspace.open()))
+        beforeEach(async () => {
+          await atom.workspace.open()
+        })
 
         it('does not open an empty buffer', () => {
           spyOn(atom.workspace, 'open')
@@ -454,15 +437,13 @@ describe('AtomEnvironment', () => {
         spyOn(atom, 'attemptRestoreProjectStateForPaths')
       })
 
-      it('adds the selected folder to the project', () => {
+      it('adds the selected folder to the project', async () => {
         const initialPaths = atom.project.setPaths([])
         const tempDirectory = temp.mkdirSync('a-new-directory')
         spyOn(atom, 'pickFolder').andCallFake(callback => callback([tempDirectory]))
-        waitsForPromise(() => atom.addProjectFolder())
-        runs(() => {
-          expect(atom.project.getPaths()).toEqual([tempDirectory])
-          expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
-        })
+        await atom.addProjectFolder()
+        expect(atom.project.getPaths()).toEqual([tempDirectory])
+        expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
       })
     })
 
@@ -471,34 +452,29 @@ describe('AtomEnvironment', () => {
 
       beforeEach(() => {
         spyOn(atom, 'getStateKey').andCallFake(dirs => dirs.join(':'))
-        spyOn(atom, 'loadState').andCallFake(function (key) {
-          if (key === __dirname) { return Promise.resolve(state) } else { return Promise.resolve(null) }
-        })
+        spyOn(atom, 'loadState').andCallFake(async (key) => key === __dirname ? state : null)
         spyOn(atom, 'attemptRestoreProjectStateForPaths')
         spyOn(atom, 'pickFolder').andCallFake(callback => callback([__dirname]))
         atom.project.setPaths([])
       })
 
       describe('when there are no project folders', () => {
-        it('attempts to restore the project state', () => {
-          waitsForPromise(() => atom.addProjectFolder())
-          runs(() => {
-            expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [__dirname])
-            expect(atom.project.getPaths()).toEqual([])
-          })
+        it('attempts to restore the project state', async () => {
+          await atom.addProjectFolder()
+          expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [__dirname])
+          expect(atom.project.getPaths()).toEqual([])
         })
       })
 
       describe('when there are already project folders', () => {
         const openedPath = path.join(__dirname, 'fixtures')
+
         beforeEach(() => atom.project.setPaths([openedPath]))
 
-        it('does not attempt to restore the project state, instead adding the project paths', () => {
-          waitsForPromise(() => atom.addProjectFolder())
-          runs(() => {
-            expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
-            expect(atom.project.getPaths()).toEqual([openedPath, __dirname])
-          })
+        it('does not attempt to restore the project state, instead adding the project paths', async () => {
+          await atom.addProjectFolder()
+          expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
+          expect(atom.project.getPaths()).toEqual([openedPath, __dirname])
         })
       })
     })
@@ -506,10 +482,10 @@ describe('AtomEnvironment', () => {
 
   describe('attemptRestoreProjectStateForPaths(state, projectPaths, filesToOpen)', () => {
     describe('when the window is clean (empty or has only unnamed, unmodified buffers)', () => {
-      beforeEach(() =>
+      beforeEach(async () => {
         // Unnamed, unmodified buffer doesn't count toward "clean"-ness
-        waitsForPromise(() => atom.workspace.open())
-      )
+        await atom.workspace.open()
+      })
 
       it('automatically restores the saved state into the current environment', () => {
         const state = Symbol()
@@ -538,15 +514,12 @@ describe('AtomEnvironment', () => {
     })
 
     describe('when the window is dirty', () => {
-      let editor = null
+      let editor
 
-      beforeEach(() =>
-        waitsForPromise(() => atom.workspace.open().then(function (e) {
-          editor = e
-          editor.setText('new editor')
-        })
-         )
-      )
+      beforeEach(async () => {
+        editor = await atom.workspace.open()
+        editor.setText('new editor')
+      })
 
       describe('when a dock has a modified editor', () => {
         it('prompts the user to restore the state', () => {
@@ -608,7 +581,7 @@ describe('AtomEnvironment', () => {
   })
 
   describe('::destroy()', () => {
-    it('does not throw exceptions when unsubscribing from ipc events (regression)', () => {
+    it('does not throw exceptions when unsubscribing from ipc events (regression)', async () => {
       const configDirPath = temp.mkdirSync('atom-spec-environment')
       const fakeDocument = {
         addEventListener () {},
@@ -621,11 +594,9 @@ describe('AtomEnvironment', () => {
       spyOn(atomEnvironment.packages, 'loadPackages').andReturn(Promise.resolve())
       spyOn(atomEnvironment.packages, 'activate').andReturn(Promise.resolve())
       spyOn(atomEnvironment, 'displayWindow').andReturn(Promise.resolve())
-      waitsForPromise(() => atomEnvironment.startEditorWindow())
-      runs(() => {
-        atomEnvironment.unloadEditorWindow()
-        atomEnvironment.destroy()
-      })
+      await atomEnvironment.startEditorWindow()
+      atomEnvironment.unloadEditorWindow()
+      atomEnvironment.destroy()
     })
   })
 
@@ -634,10 +605,10 @@ describe('AtomEnvironment', () => {
 
     beforeEach(() => {
       let resolve = null
-      const promise = new Promise(function (r) { resolve = r })
+      const promise = new Promise((r) => { resolve = r })
       envLoaded = () => {
         resolve()
-        waitsForPromise(() => promise)
+        promise
       }
       atomEnvironment = new AtomEnvironment({
         applicationDelegate: atom.applicationDelegate,
@@ -649,20 +620,18 @@ describe('AtomEnvironment', () => {
 
     afterEach(() => atomEnvironment.destroy())
 
-    it('is triggered once the shell environment is loaded', () => {
+    it('is triggered once the shell environment is loaded', async () => {
       atomEnvironment.whenShellEnvironmentLoaded(spy)
       atomEnvironment.updateProcessEnvAndTriggerHooks()
-      envLoaded()
-      runs(() => expect(spy).toHaveBeenCalled())
+      await envLoaded()
+      expect(spy).toHaveBeenCalled()
     })
 
-    it('triggers the callback immediately if the shell environment is already loaded', () => {
+    it('triggers the callback immediately if the shell environment is already loaded', async () => {
       atomEnvironment.updateProcessEnvAndTriggerHooks()
-      envLoaded()
-      runs(() => {
-        atomEnvironment.whenShellEnvironmentLoaded(spy)
-        expect(spy).toHaveBeenCalled()
-      })
+      await envLoaded()
+      atomEnvironment.whenShellEnvironmentLoaded(spy)
+      expect(spy).toHaveBeenCalled()
     })
   })
 
@@ -673,56 +642,58 @@ describe('AtomEnvironment', () => {
     })
 
     describe('when there is no saved state', () => {
-      beforeEach(() => spyOn(atom, 'loadState').andReturn(Promise.resolve(null)))
+      beforeEach(() => {
+        spyOn(atom, 'loadState').andReturn(Promise.resolve(null))
+      })
 
       describe('when the opened path exists', () => {
-        it("adds it to the project's paths", () => {
+        it("adds it to the project's paths", async () => {
           const pathToOpen = __filename
-          waitsForPromise(() => atom.openLocations([{pathToOpen}]))
-          runs(() => expect(atom.project.getPaths()[0]).toBe(__dirname))
+          await atom.openLocations([{pathToOpen}])
+          expect(atom.project.getPaths()[0]).toBe(__dirname)
         })
 
         describe('then a second path is opened with forceAddToWindow', () => {
-          it("adds the second path to the project's paths", () => {
+          it("adds the second path to the project's paths", async () => {
             const firstPathToOpen = __dirname
             const secondPathToOpen = path.resolve(__dirname, './fixtures')
-            waitsForPromise(() => atom.openLocations([{pathToOpen: firstPathToOpen}]))
-            waitsForPromise(() => atom.openLocations([{pathToOpen: secondPathToOpen, forceAddToWindow: true}]))
-            runs(() => expect(atom.project.getPaths()).toEqual([firstPathToOpen, secondPathToOpen]))
+            await atom.openLocations([{pathToOpen: firstPathToOpen}])
+            await atom.openLocations([{pathToOpen: secondPathToOpen, forceAddToWindow: true}])
+            expect(atom.project.getPaths()).toEqual([firstPathToOpen, secondPathToOpen])
           })
         })
       })
 
       describe('when the opened path does not exist but its parent directory does', () => {
-        it('adds the parent directory to the project paths', () => {
+        it('adds the parent directory to the project paths', async () => {
           const pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
-          waitsForPromise(() => atom.openLocations([{pathToOpen}]))
-          runs(() => expect(atom.project.getPaths()[0]).toBe(__dirname))
+          await atom.openLocations([{pathToOpen}])
+          expect(atom.project.getPaths()[0]).toBe(__dirname)
         })
       })
 
       describe('when the opened path is a file', () => {
-        it('opens it in the workspace', () => {
+        it('opens it in the workspace', async () => {
           const pathToOpen = __filename
-          waitsForPromise(() => atom.openLocations([{pathToOpen}]))
-          runs(() => expect(atom.workspace.open.mostRecentCall.args[0]).toBe(__filename))
+          await atom.openLocations([{pathToOpen}])
+          expect(atom.workspace.open.mostRecentCall.args[0]).toBe(__filename)
         })
       })
 
       describe('when the opened path is a directory', () => {
-        it('does not open it in the workspace', () => {
+        it('does not open it in the workspace', async () => {
           const pathToOpen = __dirname
-          waitsForPromise(() => atom.openLocations([{pathToOpen}]))
-          runs(() => expect(atom.workspace.open.callCount).toBe(0))
+          await atom.openLocations([{pathToOpen}])
+          expect(atom.workspace.open.callCount).toBe(0)
         })
       })
 
       describe('when the opened path is a uri', () => {
-        it("adds it to the project's paths as is", () => {
+        it("adds it to the project's paths as is", async () => {
           const pathToOpen = 'remote://server:7644/some/dir/path'
           spyOn(atom.project, 'addPath')
-          waitsForPromise(() => atom.openLocations([{pathToOpen}]))
-          runs(() => expect(atom.project.addPath).toHaveBeenCalledWith(pathToOpen))
+          await atom.openLocations([{pathToOpen}])
+          expect(atom.project.addPath).toHaveBeenCalledWith(pathToOpen)
         })
       })
     })
@@ -739,44 +710,36 @@ describe('AtomEnvironment', () => {
       })
 
       describe('when there are no project folders', () => {
-        it('attempts to restore the project state', () => {
+        it('attempts to restore the project state', async () => {
           const pathToOpen = __dirname
-          waitsForPromise(() => atom.openLocations([{pathToOpen}]))
-          runs(() => {
-            expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [pathToOpen], [])
-            expect(atom.project.getPaths()).toEqual([])
-          })
+          await atom.openLocations([{pathToOpen}])
+          expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [pathToOpen], [])
+          expect(atom.project.getPaths()).toEqual([])
         })
 
-        it('opens the specified files', () => {
-          waitsForPromise(() => atom.openLocations([{pathToOpen: __dirname}, {pathToOpen: __filename}]))
-          runs(() => {
-            expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [__dirname], [__filename])
-            expect(atom.project.getPaths()).toEqual([])
-          })
+        it('opens the specified files', async () => {
+          await atom.openLocations([{pathToOpen: __dirname}, {pathToOpen: __filename}])
+          expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [__dirname], [__filename])
+          expect(atom.project.getPaths()).toEqual([])
         })
       })
 
       describe('when there are already project folders', () => {
         beforeEach(() => atom.project.setPaths([__dirname]))
 
-        it('does not attempt to restore the project state, instead adding the project paths', () => {
+        it('does not attempt to restore the project state, instead adding the project paths', async () => {
           const pathToOpen = path.join(__dirname, 'fixtures')
-          waitsForPromise(() => atom.openLocations([{pathToOpen, forceAddToWindow: true}]))
-          runs(() => {
-            expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
-            expect(atom.project.getPaths()).toEqual([__dirname, pathToOpen])
-          })
+          await atom.openLocations([{pathToOpen, forceAddToWindow: true}])
+          expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
+          expect(atom.project.getPaths()).toEqual([__dirname, pathToOpen])
         })
 
-        it('opens the specified files', () => {
+        it('opens the specified files', async () => {
           const pathToOpen = path.join(__dirname, 'fixtures')
           const fileToOpen = path.join(pathToOpen, 'michelle-is-awesome.txt')
-          waitsForPromise(() => atom.openLocations([{pathToOpen}, {pathToOpen: fileToOpen}]))
-          runs(() => {
-            expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalledWith(state, [pathToOpen], [fileToOpen])
-            expect(atom.project.getPaths()).toEqual([__dirname])
-          })
+          await atom.openLocations([{pathToOpen}, {pathToOpen: fileToOpen}])
+          expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalledWith(state, [pathToOpen], [fileToOpen])
+          expect(atom.project.getPaths()).toEqual([__dirname])
         })
       })
     })
@@ -789,23 +752,19 @@ describe('AtomEnvironment', () => {
       if (subscription) subscription.dispose()
     })
 
-    it('invokes onUpdateAvailable listeners', () => {
+    it('invokes onUpdateAvailable listeners', async () => {
       if (process.platform !== 'darwin') return // Test tied to electron autoUpdater, we use something else on Linux and Win32
 
+      const updateAvailablePromise = new Promise(resolve => {
+        subscription = atom.onUpdateAvailable(resolve)
+      })
+
       atom.listenForUpdates()
-
-      const updateAvailableHandler = jasmine.createSpy('update-available-handler')
-      subscription = atom.onUpdateAvailable(updateAvailableHandler)
-
-      const { autoUpdater } = require('electron').remote
+      const {autoUpdater} = require('electron').remote
       autoUpdater.emit('update-downloaded', null, 'notes', 'version')
 
-      waitsFor(() => updateAvailableHandler.callCount > 0)
-
-      runs(() => {
-        const {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
-        expect(releaseVersion).toBe('version')
-      })
+      const {releaseVersion} = await updateAvailablePromise
+      expect(releaseVersion).toBe('version')
     })
   })
 
