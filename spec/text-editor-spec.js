@@ -1077,6 +1077,20 @@ describe('TextEditor', () => {
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
       })
 
+      it('stops at camelCase boundaries with non-ascii characters', () => {
+        editor.setText(' gétÁrevìôüsWord\n')
+        editor.setCursorBufferPosition([0, 16])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 12])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 4])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+      })
+
       it('skips consecutive non-word characters', () => {
         editor.setText('e, => \n')
         editor.setCursorBufferPosition([0, 6])
@@ -1089,6 +1103,21 @@ describe('TextEditor', () => {
 
       it('skips consecutive uppercase characters', () => {
         editor.setText(' AAADF \n')
+        editor.setCursorBufferPosition([0, 7])
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 6])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+
+        editor.setText('ALPhA\n')
+        editor.setCursorBufferPosition([0, 4])
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 2])
+      })
+
+      it('skips consecutive uppercase non-ascii letters', () => {
+        editor.setText(' ÀÁÅDF \n')
         editor.setCursorBufferPosition([0, 7])
         editor.moveToPreviousSubwordBoundary()
         expect(editor.getCursorBufferPosition()).toEqual([0, 6])
@@ -3321,13 +3350,13 @@ describe('TextEditor', () => {
           beforeEach(() => {
             editor.setSoftWrapped(true)
             editor.setEditorWidthInChars(80)
-            editor.setText(`\
-1
-2
-Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.
-3
-4\
-`)
+            editor.setText(dedent `
+              1
+              2
+              Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.
+              3
+              4
+            `)
           })
 
           it('moves the lines past the soft wrapped line', () => {
@@ -5881,21 +5910,20 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
 
       editor.duplicateLines()
 
-      expect(editor.getTextInBufferRange([[2, 0], [13, 5]])).toBe(`\
-\    if (items.length <= 1) return items;
-    if (items.length <= 1) return items;
-    var pivot = items.shift(), current, left = [], right = [];
-    while(items.length > 0) {
-      current = items.shift();
-      current < pivot ? left.push(current) : right.push(current);
-    }
-    var pivot = items.shift(), current, left = [], right = [];
-    while(items.length > 0) {
-      current = items.shift();
-      current < pivot ? left.push(current) : right.push(current);
-    }\
-`
-      )
+      expect(editor.getTextInBufferRange([[2, 0], [13, 5]])).toBe(dedent `
+        if (items.length <= 1) return items;
+        if (items.length <= 1) return items;
+        var pivot = items.shift(), current, left = [], right = [];
+        while(items.length > 0) {
+          current = items.shift();
+          current < pivot ? left.push(current) : right.push(current);
+        }
+        var pivot = items.shift(), current, left = [], right = [];
+        while(items.length > 0) {
+          current = items.shift();
+          current < pivot ? left.push(current) : right.push(current);
+        }\
+      `.split('\n').map(l => `    ${l}`).join('\n'))
       expect(editor.getSelectedBufferRanges()).toEqual([[[3, 5], [3, 5]], [[9, 0], [14, 0]]])
 
       // folds are also duplicated
@@ -5911,42 +5939,40 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
 
       editor.duplicateLines()
 
-      expect(editor.getTextInBufferRange([[2, 0], [11, 5]])).toBe(`\
-\    if (items.length <= 1) return items;
-    var pivot = items.shift(), current, left = [], right = [];
-    while(items.length > 0) {
-      current = items.shift();
-      current < pivot ? left.push(current) : right.push(current);
-    }
-    while(items.length > 0) {
-      current = items.shift();
-      current < pivot ? left.push(current) : right.push(current);
-    }\
-`
-      )
+      expect(editor.getTextInBufferRange([[2, 0], [11, 5]])).toBe(dedent`
+        if (items.length <= 1) return items;
+        var pivot = items.shift(), current, left = [], right = [];
+        while(items.length > 0) {
+          current = items.shift();
+          current < pivot ? left.push(current) : right.push(current);
+        }
+        while(items.length > 0) {
+          current = items.shift();
+          current < pivot ? left.push(current) : right.push(current);
+        }
+      `.split('\n').map(l => `    ${l}`).join('\n'))
       expect(editor.getSelectedBufferRange()).toEqual([[8, 0], [8, 0]])
     })
 
     it('can duplicate the last line of the buffer', () => {
       editor.setSelectedBufferRange([[11, 0], [12, 2]])
       editor.duplicateLines()
-      expect(editor.getTextInBufferRange([[11, 0], [14, 2]])).toBe(`\
-\  return sort(Array.apply(this, arguments));
-};
-  return sort(Array.apply(this, arguments));
-};\
-`
-      )
+      expect(editor.getTextInBufferRange([[11, 0], [14, 2]])).toBe('  ' + dedent `
+          return sort(Array.apply(this, arguments));
+        };
+          return sort(Array.apply(this, arguments));
+        };
+      `.trim())
       expect(editor.getSelectedBufferRange()).toEqual([[13, 0], [14, 2]])
     })
 
     it('only duplicates lines containing multiple selections once', () => {
-      editor.setText(`\
-aaaaaa
-bbbbbb
-cccccc
-dddddd\
-`)
+      editor.setText(dedent `
+        aaaaaa
+        bbbbbb
+        cccccc
+        dddddd
+      `)
       editor.setSelectedBufferRanges([
         [[0, 1], [0, 2]],
         [[0, 3], [0, 4]],
@@ -5955,15 +5981,15 @@ dddddd\
         [[3, 3], [3, 4]]
       ])
       editor.duplicateLines()
-      expect(editor.getText()).toBe(`\
-aaaaaa
-aaaaaa
-bbbbbb
-cccccc
-dddddd
-cccccc
-dddddd\
-`)
+      expect(editor.getText()).toBe(dedent `
+        aaaaaa
+        aaaaaa
+        bbbbbb
+        cccccc
+        dddddd
+        cccccc
+        dddddd
+      `)
       expect(editor.getSelectedBufferRanges()).toEqual([
         [[1, 1], [1, 2]],
         [[1, 3], [1, 4]],
