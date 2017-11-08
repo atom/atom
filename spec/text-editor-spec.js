@@ -1077,6 +1077,20 @@ describe('TextEditor', () => {
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
       })
 
+      it('stops at camelCase boundaries with non-ascii characters', () => {
+        editor.setText(' gétÁrevìôüsWord\n')
+        editor.setCursorBufferPosition([0, 16])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 12])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 4])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+      })
+
       it('skips consecutive non-word characters', () => {
         editor.setText('e, => \n')
         editor.setCursorBufferPosition([0, 6])
@@ -1089,6 +1103,21 @@ describe('TextEditor', () => {
 
       it('skips consecutive uppercase characters', () => {
         editor.setText(' AAADF \n')
+        editor.setCursorBufferPosition([0, 7])
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 6])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+
+        editor.setText('ALPhA\n')
+        editor.setCursorBufferPosition([0, 4])
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 2])
+      })
+
+      it('skips consecutive uppercase non-ascii letters', () => {
+        editor.setText(' ÀÁÅDF \n')
         editor.setCursorBufferPosition([0, 7])
         editor.moveToPreviousSubwordBoundary()
         expect(editor.getCursorBufferPosition()).toEqual([0, 6])
