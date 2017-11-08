@@ -170,6 +170,7 @@ class TextEditorComponent {
     this.textDecorationBoundaries = []
     this.pendingScrollTopRow = this.props.initialScrollTopRow
     this.pendingScrollLeftColumn = this.props.initialScrollLeftColumn
+    this.tabIndex = this.props.element && this.props.element.tabIndex ? this.props.element.tabIndex : -1;
 
     this.measuredContent = false
     this.queryGuttersToRender()
@@ -477,7 +478,7 @@ class TextEditorComponent {
         style,
         attributes,
         dataset,
-        tabIndex: -1,
+        tabIndex: this.tabIndex,
         on: {mousewheel: this.didMouseWheel}
       },
       $.div(
@@ -3586,7 +3587,7 @@ class CursorsAndInputComponent {
         compositionupdate: didCompositionUpdate,
         compositionend: didCompositionEnd
       },
-      tabIndex: -1,
+      tabIndex: this.tabIndex,
       style: {
         position: 'absolute',
         width: '1px',
