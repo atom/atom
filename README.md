@@ -81,10 +81,10 @@ repeat these steps to upgrade to future releases.
 
 ## Building
 
-* [Linux](./docs/build-instructions/linux.md)
-* [macOS](./docs/build-instructions/macOS.md)
 * [FreeBSD](./docs/build-instructions/freebsd.md)
-* [Windows](./docs/build-instructions/windows.md)
+* [Linux](http://flight-manual.atom.io/hacking-atom/sections/hacking-on-atom-core/#platform-linux)
+* [macOS](http://flight-manual.atom.io/hacking-atom/sections/hacking-on-atom-core/#platform-mac)
+* [Windows](http://flight-manual.atom.io/hacking-atom/sections/hacking-on-atom-core/#platform-windows)
 
 ## License
 
