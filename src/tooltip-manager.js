@@ -114,7 +114,9 @@ class TooltipManager {
   add (target, options) {
     if (target.jquery) {
       const disposable = new CompositeDisposable()
-      for (const element of target) { disposable.add(this.add(element, options)) }
+      for (let i = 0; i < target.length; i++) {
+        disposable.add(this.add(target[i], options))
+      }
       return disposable
     }
 
