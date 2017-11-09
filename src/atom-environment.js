@@ -290,7 +290,7 @@ class AtomEnvironment {
     if (this.config.get('core.autoHideMenuBar')) this.setAutoHideMenuBar(true)
   }
 
-  reset () {
+  async reset () {
     this.deserializers.clear()
     this.registerDefaultDeserializers()
 
@@ -313,15 +313,14 @@ class AtomEnvironment {
 
     this.contextMenu.clear()
 
-    return this.packages.reset().then(() => {
-      this.workspace.reset(this.packages)
-      this.registerDefaultOpeners()
-      this.project.reset(this.packages)
-      this.workspace.subscribeToEvents()
-      this.grammars.clear()
-      this.textEditors.clear()
-      this.views.clear()
-    })
+    await this.packages.reset()
+    this.workspace.reset(this.packages)
+    this.registerDefaultOpeners()
+    this.project.reset(this.packages)
+    this.workspace.subscribeToEvents()
+    this.grammars.clear()
+    this.textEditors.clear()
+    this.views.clear()
   }
 
   destroy () {
@@ -611,21 +610,20 @@ class AtomEnvironment {
   //
   // Restores the full screen and maximized state after the window has resized to
   // prevent resize glitches.
-  displayWindow () {
-    return this.restoreWindowDimensions().then(() => {
-      const steps = [
-        this.restoreWindowBackground(),
-        this.show(),
-        this.focus()
-      ]
-      if (this.windowDimensions && this.windowDimensions.fullScreen) {
-        steps.push(this.setFullScreen(true))
-      }
-      if (this.windowDimensions && this.windowDimensions.maximized && process.platform !== 'darwin') {
-        steps.push(this.maximize())
-      }
-      return Promise.all(steps)
-    })
+  async displayWindow () {
+    await this.restoreWindowDimensions()
+    const steps = [
+      this.restoreWindowBackground(),
+      this.show(),
+      this.focus()
+    ]
+    if (this.windowDimensions && this.windowDimensions.fullScreen) {
+      steps.push(this.setFullScreen(true))
+    }
+    if (this.windowDimensions && this.windowDimensions.maximized && process.platform !== 'darwin') {
+      steps.push(this.maximize())
+    }
+    await Promise.all(steps)
   }
 
   // Get the dimensions of this window.
@@ -700,11 +698,12 @@ class AtomEnvironment {
     }
   }
 
-  restoreWindowDimensions () {
+  async restoreWindowDimensions () {
     if (!this.windowDimensions || !this.isValidDimensions(this.windowDimensions)) {
       this.windowDimensions = this.getDefaultWindowDimensions()
     }
-    return this.setWindowDimensions(this.windowDimensions).then(() => this.windowDimensions)
+    await this.setWindowDimensions(this.windowDimensions)
+    return this.windowDimensions
   }
 
   restoreWindowBackground () {
@@ -730,75 +729,70 @@ class AtomEnvironment {
 
     const updateProcessEnvPromise = this.updateProcessEnvAndTriggerHooks()
 
-    const loadStatePromise = this.loadState().then(state => {
+    const loadStatePromise = this.loadState().then(async state => {
       this.windowDimensions = state && state.windowDimensions
-      return this.displayWindow().then(() => {
-        this.commandInstaller.installAtomCommand(false, (error) => {
-          if (error) console.warn(error.message)
-        })
-        this.commandInstaller.installApmCommand(false, (error) => {
-          if (error) console.warn(error.message)
-        })
-
-        this.disposables.add(this.applicationDelegate.onDidOpenLocations(this.openLocations.bind(this)))
-        this.disposables.add(this.applicationDelegate.onApplicationMenuCommand(this.dispatchApplicationMenuCommand.bind(this)))
-        this.disposables.add(this.applicationDelegate.onContextMenuCommand(this.dispatchContextMenuCommand.bind(this)))
-        this.disposables.add(this.applicationDelegate.onURIMessage(this.dispatchURIMessage.bind(this)))
-        this.disposables.add(this.applicationDelegate.onDidRequestUnload(() => {
-          return this.saveState({isUnloading: true})
-            .catch(console.error)
-            .then(() => {
-              if (this.workspace) {
-                return this.workspace.confirmClose({
-                  windowCloseRequested: true,
-                  projectHasPaths: this.project.getPaths().length > 0
-                })
-              }
-            }).then(closing => {
-              if (closing) {
-                return this.packages.deactivatePackages().then(() => closing)
-              } else {
-                return closing
-              }
-            })
-        }))
-
-        this.listenForUpdates()
-
-        this.registerDefaultTargetForKeymaps()
-
-        this.packages.loadPackages()
-
-        const startTime = Date.now()
-        return this.deserialize(state).then(() => {
-          this.deserializeTimings.atom = Date.now() - startTime
-
-          if (process.platform === 'darwin' && this.config.get('core.titleBar') === 'custom') {
-            this.workspace.addHeaderPanel({item: new TitleBar({workspace: this.workspace, themes: this.themes, applicationDelegate: this.applicationDelegate})})
-            this.document.body.classList.add('custom-title-bar')
-          }
-          if (process.platform === 'darwin' && this.config.get('core.titleBar') === 'custom-inset') {
-            this.workspace.addHeaderPanel({item: new TitleBar({workspace: this.workspace, themes: this.themes, applicationDelegate: this.applicationDelegate})})
-            this.document.body.classList.add('custom-inset-title-bar')
-          }
-          if (process.platform === 'darwin' && this.config.get('core.titleBar') === 'hidden') {
-            this.document.body.classList.add('hidden-title-bar')
-          }
-
-          this.document.body.appendChild(this.workspace.getElement())
-          if (this.backgroundStylesheet) this.backgroundStylesheet.remove()
-
-          this.watchProjectPaths()
-
-          this.packages.activate()
-          this.keymaps.loadUserKeymap()
-          if (!this.getLoadSettings().safeMode) this.requireUserInitScript()
-
-          this.menu.update()
-
-          return this.openInitialEmptyEditorIfNecessary()
-        })
+      await this.displayWindow()
+      this.commandInstaller.installAtomCommand(false, (error) => {
+        if (error) console.warn(error.message)
       })
+      this.commandInstaller.installApmCommand(false, (error) => {
+        if (error) console.warn(error.message)
+      })
+
+      this.disposables.add(this.applicationDelegate.onDidOpenLocations(this.openLocations.bind(this)))
+      this.disposables.add(this.applicationDelegate.onApplicationMenuCommand(this.dispatchApplicationMenuCommand.bind(this)))
+      this.disposables.add(this.applicationDelegate.onContextMenuCommand(this.dispatchContextMenuCommand.bind(this)))
+      this.disposables.add(this.applicationDelegate.onURIMessage(this.dispatchURIMessage.bind(this)))
+      this.disposables.add(this.applicationDelegate.onDidRequestUnload(async () => {
+        try {
+          await this.saveState({isUnloading: true})
+        } catch (error) {
+          console.error(error)
+        }
+
+        const closing = !this.workspace || await this.workspace.confirmClose({
+          windowCloseRequested: true,
+          projectHasPaths: this.project.getPaths().length > 0
+        })
+
+        if (closing) await this.packages.deactivatePackages()
+        return closing
+      }))
+
+      this.listenForUpdates()
+
+      this.registerDefaultTargetForKeymaps()
+
+      this.packages.loadPackages()
+
+      const startTime = Date.now()
+      await this.deserialize(state)
+      this.deserializeTimings.atom = Date.now() - startTime
+
+      if (process.platform === 'darwin' && this.config.get('core.titleBar') === 'custom') {
+        this.workspace.addHeaderPanel({item: new TitleBar({workspace: this.workspace, themes: this.themes, applicationDelegate: this.applicationDelegate})})
+        this.document.body.classList.add('custom-title-bar')
+      }
+      if (process.platform === 'darwin' && this.config.get('core.titleBar') === 'custom-inset') {
+        this.workspace.addHeaderPanel({item: new TitleBar({workspace: this.workspace, themes: this.themes, applicationDelegate: this.applicationDelegate})})
+        this.document.body.classList.add('custom-inset-title-bar')
+      }
+      if (process.platform === 'darwin' && this.config.get('core.titleBar') === 'hidden') {
+        this.document.body.classList.add('hidden-title-bar')
+      }
+
+      this.document.body.appendChild(this.workspace.getElement())
+      if (this.backgroundStylesheet) this.backgroundStylesheet.remove()
+
+      this.watchProjectPaths()
+
+      this.packages.activate()
+      this.keymaps.loadUserKeymap()
+      if (!this.getLoadSettings().safeMode) this.requireUserInitScript()
+
+      this.menu.update()
+
+      await this.openInitialEmptyEditorIfNecessary()
     })
 
     const loadHistoryPromise = this.history.loadState().then(() => {
@@ -809,7 +803,7 @@ class AtomEnvironment {
         config: this.config,
         open: paths => this.open({pathsToOpen: paths})
       })
-      return this.reopenProjectMenuManager.update()
+      this.reopenProjectMenuManager.update()
     })
 
     return Promise.all([loadStatePromise, loadHistoryPromise, updateProcessEnvPromise])
@@ -852,13 +846,11 @@ class AtomEnvironment {
 
   installUncaughtErrorHandler () {
     this.previousWindowErrorHandler = this.window.onerror
-    this.window.onerror = (...args) => {
-      this.lastUncaughtError = args
-      let [message, url, line, column, originalError] = this.lastUncaughtError
-
-      let source
-      ;({line, column, source} = mapSourcePosition({source: url, line, column}))
-      if (url === '<embedded>') url = source
+    this.window.onerror = (message, url, line, column, originalError) => {
+      const mapping = mapSourcePosition({source: url, line, column})
+      line = mapping.line
+      column = mapping.column
+      if (url === '<embedded>') url = mapping.source
 
       const eventObject = {message, url, line, column, originalError}
 
@@ -868,7 +860,9 @@ class AtomEnvironment {
       this.emitter.emit('will-throw-error', eventObject)
 
       if (openDevTools) {
-        this.openDevTools().then(() => this.executeJavaScriptInDevTools('DevToolsAPI.showPanel("console")'))
+        this.openDevTools().then(() =>
+          this.executeJavaScriptInDevTools('DevToolsAPI.showPanel("console")')
+        )
       }
 
       this.emitter.emit('did-throw-error', {message, url, line, column, originalError})
@@ -898,12 +892,11 @@ class AtomEnvironment {
     }
   }
 
-  updateProcessEnvAndTriggerHooks () {
-    return this.updateProcessEnv(this.getLoadSettings().env).then(() => {
-      this.shellEnvironmentLoaded = true
-      this.emitter.emit('loaded-shell-environment')
-      this.packages.triggerActivationHook('core:loaded-shell-environment')
-    })
+  async updateProcessEnvAndTriggerHooks () {
+    await this.updateProcessEnv(this.getLoadSettings().env)
+    this.shellEnvironmentLoaded = true
+    this.emitter.emit('loaded-shell-environment')
+    this.packages.triggerActivationHook('core:loaded-shell-environment')
   }
 
   /*
@@ -1020,14 +1013,13 @@ class AtomEnvironment {
     })
   }
 
-  addToProject (projectPaths) {
-    this.loadState(this.getStateKey(projectPaths)).then(state => {
-      if (state && (this.project.getPaths().length === 0)) {
-        this.attemptRestoreProjectStateForPaths(state, projectPaths)
-      } else {
-        projectPaths.map((folder) => this.project.addPath(folder))
-      }
-    })
+  async addToProject (projectPaths) {
+    const state = await this.loadState(this.getStateKey(projectPaths))
+    if (state && (this.project.getPaths().length === 0)) {
+      this.attemptRestoreProjectStateForPaths(state, projectPaths)
+    } else {
+      projectPaths.map((folder) => this.project.addPath(folder))
+    }
   }
 
   attemptRestoreProjectStateForPaths (state, projectPaths, filesToOpen = []) {
@@ -1092,19 +1084,16 @@ class AtomEnvironment {
     this.applicationDelegate.showSaveDialog(options)
   }
 
-  saveState (options, storageKey) {
-    return new Promise((resolve, reject) => {
-      if (this.enablePersistence && this.project) {
-        const state = this.serialize(options)
-        if (!storageKey) storageKey = this.getStateKey(this.project && this.project.getPaths())
-        const savePromise = storageKey
-          ? this.stateStore.save(storageKey, state)
-          : this.applicationDelegate.setTemporaryWindowState(state)
-        return savePromise.catch(reject).then(resolve)
+  async saveState (options, storageKey) {
+    if (this.enablePersistence && this.project) {
+      const state = this.serialize(options)
+      if (!storageKey) storageKey = this.getStateKey(this.project && this.project.getPaths())
+      if (storageKey) {
+        await this.stateStore.save(storageKey, state)
       } else {
-        return resolve()
+        await this.applicationDelegate.setTemporaryWindowState(state)
       }
-    })
+    }
   }
 
   loadState (stateKey) {
@@ -1120,7 +1109,7 @@ class AtomEnvironment {
     }
   }
 
-  deserialize (state) {
+  async deserialize (state) {
     if (!state) return Promise.resolve()
 
     const grammarOverridesByPath = state.grammars && state.grammars.grammarOverridesByPath
@@ -1134,55 +1123,51 @@ class AtomEnvironment {
 
     this.packages.packageStates = state.packageStates || {}
 
-    let projectPromise
     let startTime = Date.now()
     if (state.project) {
-      projectPromise = this.project.deserialize(state.project, this.deserializers)
-        .catch(err => {
-          if (err.missingProjectPaths) {
-            missingProjectPaths.push(...err.missingProjectPaths)
-          } else {
-            this.notifications.addError('Unable to deserialize project', {
-              description: err.message,
-              stack: err.stack
-            })
-          }
-        })
-    } else {
-      projectPromise = Promise.resolve()
+      try {
+        await this.project.deserialize(state.project, this.deserializers)
+      } catch (error) {
+        if (error.missingProjectPaths) {
+          missingProjectPaths.push(...error.missingProjectPaths)
+        } else {
+          this.notifications.addError('Unable to deserialize project', {
+            description: error.message,
+            stack: error.stack
+          })
+        }
+      }
     }
 
-    return projectPromise.then(() => {
-      this.deserializeTimings.project = Date.now() - startTime
+    this.deserializeTimings.project = Date.now() - startTime
 
-      if (state.textEditors) this.textEditors.deserialize(state.textEditors)
+    if (state.textEditors) this.textEditors.deserialize(state.textEditors)
 
-      startTime = Date.now()
-      if (state.workspace) this.workspace.deserialize(state.workspace, this.deserializers)
-      this.deserializeTimings.workspace = Date.now() - startTime
+    startTime = Date.now()
+    if (state.workspace) this.workspace.deserialize(state.workspace, this.deserializers)
+    this.deserializeTimings.workspace = Date.now() - startTime
 
-      if (missingProjectPaths.length > 0) {
-        const count = missingProjectPaths.length === 1 ? '' : missingProjectPaths.length + ' '
-        const noun = missingProjectPaths.length === 1 ? 'directory' : 'directories'
-        const toBe = missingProjectPaths.length === 1 ? 'is' : 'are'
-        const escaped = missingProjectPaths.map(projectPath => `\`${projectPath}\``)
-        let group
-        switch (escaped.length) {
-          case 1:
-            group = escaped[0]
-            break
-          case 2:
-            group = `${escaped[0]} and ${escaped[1]}`
-            break
-          default:
-            group = escaped.slice(0, -1).join(', ') + `, and ${escaped[escaped.length - 1]}`
-        }
-
-        this.notifications.addError(`Unable to open ${count}project ${noun}`, {
-          description: `Project ${noun} ${group} ${toBe} no longer on disk.`
-        })
+    if (missingProjectPaths.length > 0) {
+      const count = missingProjectPaths.length === 1 ? '' : missingProjectPaths.length + ' '
+      const noun = missingProjectPaths.length === 1 ? 'directory' : 'directories'
+      const toBe = missingProjectPaths.length === 1 ? 'is' : 'are'
+      const escaped = missingProjectPaths.map(projectPath => `\`${projectPath}\``)
+      let group
+      switch (escaped.length) {
+        case 1:
+          group = escaped[0]
+          break
+        case 2:
+          group = `${escaped[0]} and ${escaped[1]}`
+          break
+        default:
+          group = escaped.slice(0, -1).join(', ') + `, and ${escaped[escaped.length - 1]}`
       }
-    })
+
+      this.notifications.addError(`Unable to open ${count}project ${noun}`, {
+        description: `Project ${noun} ${group} ${toBe} no longer on disk.`
+      })
+    }
   }
 
   getStateKey (paths) {
@@ -1270,7 +1255,7 @@ class AtomEnvironment {
     }
   }
 
-  openLocations (locations) {
+  async openLocations (locations) {
     const needsProjectPaths = this.project && this.project.getPaths().length === 0
     const foldersToAddToProject = []
     const fileLocationsToOpen = []
@@ -1297,32 +1282,31 @@ class AtomEnvironment {
       }
     }
 
-    let promise = Promise.resolve(null)
+    let restoredState = false
     if (foldersToAddToProject.length > 0) {
-      promise = this.loadState(this.getStateKey(foldersToAddToProject)).then(state => {
-        if (state && needsProjectPaths) { // only load state if this is the first path added to the project
-          const files = (fileLocationsToOpen.map((location) => location.pathToOpen))
-          return this.attemptRestoreProjectStateForPaths(state, foldersToAddToProject, files)
-        } else {
-          const promises = []
-          for (let folder of foldersToAddToProject) {
-            this.project.addPath(folder)
-          }
-          for ({pathToOpen, initialLine, initialColumn} of fileLocationsToOpen) {
-            promises.push(this.workspace && this.workspace.open(pathToOpen, {initialLine, initialColumn}))
-          }
-          return Promise.all(promises)
+      const state = await this.loadState(this.getStateKey(foldersToAddToProject))
+
+      // only restore state if this is the first path added to the project
+      if (state && needsProjectPaths) {
+        const files = fileLocationsToOpen.map((location) => location.pathToOpen)
+        await this.attemptRestoreProjectStateForPaths(state, foldersToAddToProject, files)
+        restoredState = true
+      } else {
+        for (let folder of foldersToAddToProject) {
+          this.project.addPath(folder)
         }
-      })
-    } else {
-      const promises = []
-      for ({pathToOpen, initialLine, initialColumn} of fileLocationsToOpen) {
-        promises.push(this.workspace && this.workspace.open(pathToOpen, {initialLine, initialColumn}))
       }
-      promise = Promise.all(promises)
     }
 
-    return promise.then(() => ipcRenderer.send('window-command', 'window:locations-opened'))
+    if (!restoredState) {
+      const fileOpenPromises = []
+      for ({pathToOpen, initialLine, initialColumn} of fileLocationsToOpen) {
+        fileOpenPromises.push(this.workspace && this.workspace.open(pathToOpen, {initialLine, initialColumn}))
+      }
+      await Promise.all(fileOpenPromises)
+    }
+
+    ipcRenderer.send('window-command', 'window:locations-opened')
   }
 
   resolveProxy (url) {
