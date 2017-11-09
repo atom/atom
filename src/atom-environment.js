@@ -1344,8 +1344,12 @@ AtomEnvironment.version = 1
 AtomEnvironment.prototype.saveStateDebounceInterval = 1000
 module.exports = AtomEnvironment
 
+/* eslint-disable */
+
 // Preserve this deprecation until 2.0. Sorry. Should have removed Q sooner.
 Promise.prototype.done = function (callback) {
   deprecate('Atom now uses ES6 Promises instead of Q. Call promise.then instead of promise.done')
   return this.then(callback)
 }
+
+/* eslint-enable */
