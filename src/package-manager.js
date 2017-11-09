@@ -31,7 +31,8 @@ module.exports = class PackageManager {
   constructor (params) {
     ({
       config: this.config, styleManager: this.styleManager, notificationManager: this.notificationManager, keymapManager: this.keymapManager,
-      commandRegistry: this.commandRegistry, grammarRegistry: this.grammarRegistry, deserializerManager: this.deserializerManager, viewRegistry: this.viewRegistry
+      commandRegistry: this.commandRegistry, grammarRegistry: this.grammarRegistry, deserializerManager: this.deserializerManager, viewRegistry: this.viewRegistry,
+      uriHandlerRegistry: this.uriHandlerRegistry
     } = params)
 
     this.emitter = new Emitter()
@@ -645,6 +646,10 @@ module.exports = class PackageManager {
       this.initialPackagesActivated = true
       this.emitter.emit('did-activate-initial-packages')
     })
+  }
+
+  registerURIHandlerForPackage (packageName, handler) {
+    return this.uriHandlerRegistry.registerHostHandler(packageName, handler)
   }
 
   // another type of package manager can handle other package types.

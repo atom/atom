@@ -17,7 +17,7 @@ const configSchema = {
         type: 'boolean',
         default: true,
         title: 'Exclude VCS Ignored Paths',
-        description: 'Files and directories ignored by the current project\'s VCS system will be ignored by some packages, such as the fuzzy finder and find and replace. For example, projects using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
+        description: 'Files and directories ignored by the current project\'s VCS will be ignored by some packages, such as the fuzzy finder and find and replace. For example, projects using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
       },
       followSymlinks: {
         type: 'boolean',
@@ -54,6 +54,25 @@ const configSchema = {
             type: 'string'
           }
         }
+      },
+      uriHandlerRegistration: {
+        type: 'string',
+        default: 'prompt',
+        description: 'When should Atom register itself as the default handler for atom:// URIs',
+        enum: [
+          {
+            value: 'prompt',
+            description: 'Prompt to register Atom as the default atom:// URI handler'
+          },
+          {
+            value: 'always',
+            description: 'Always become the default atom:// URI handler automatically'
+          },
+          {
+            value: 'never',
+            description: 'Never become the default atom:// URI handler'
+          }
+        ]
       },
       themes: {
         type: 'array',
