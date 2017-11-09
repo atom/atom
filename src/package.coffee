@@ -184,6 +184,7 @@ class Package
       @requireMainModule() unless @mainModule?
       @configSchemaRegisteredOnActivate = @registerConfigSchemaFromMainModule()
       @registerViewProviders()
+      @activateResources()
       @activateStylesheets()
       if @mainModule? and not @mainActivated
         @initializeIfNeeded()
@@ -382,9 +383,7 @@ class Package
           name: deserializerName,
           deserialize: (state, atomEnvironment) =>
             @deserialized = true
-            @registerViewProviders()
-            @requireMainModule()
-            @initializeIfNeeded()
+            @activateNow()
             @mainModule[methodName](state, atomEnvironment)
       return
 

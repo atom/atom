@@ -514,6 +514,10 @@ describe('PackageManager', () => {
     })
 
     describe('when the package has a main module', () => {
+      beforeEach(() => {
+        spyOn(Package.prototype, 'requireMainModule').andCallThrough()
+      })
+
       describe('when the metadata specifies a main module path˜', () => {
         it('requires the module at the specified path', async () => {
           const mainModule = require('./fixtures/packages/package-with-main/main-module')
@@ -555,10 +559,9 @@ describe('PackageManager', () => {
           mainModule = require('./fixtures/packages/package-with-activation-commands/index')
           mainModule.activationCommandCallCount = 0
           spyOn(mainModule, 'activate').andCallThrough()
-          spyOn(Package.prototype, 'requireMainModule').andCallThrough()
 
           workspaceCommandListener = jasmine.createSpy('workspaceCommandListener')
-          registration = atom.commands.add('.workspace', 'activation-command', workspaceCommandListener)
+          registration = atom.commands.add('atom-workspace', 'activation-command', workspaceCommandListener)
 
           promise = atom.packages.activatePackage('package-with-activation-commands')
         })
@@ -661,6 +664,52 @@ describe('PackageManager', () => {
           expect(notificationEvent.message).toContain('Failed to load the package-with-invalid-settings package settings')
           expect(notificationEvent.options.packageName).toEqual('package-with-invalid-settings')
         })
+
+      describe('when the package metadata includes both activation commands and deserializers', () => {
+        let mainModule, promise, workspaceCommandListener, registration
+
+        beforeEach(() => {
+          jasmine.attachToDOM(atom.workspace.getElement())
+          mainModule = require('./fixtures/packages/package-with-activation-commands-and-deserializers/index')
+          mainModule.activationCommandCallCount = 0
+          spyOn(mainModule, 'activate').andCallThrough()
+          workspaceCommandListener = jasmine.createSpy('workspaceCommandListener')
+          registration = atom.commands.add('.workspace', 'activation-command-2', workspaceCommandListener)
+
+          promise = atom.packages.activatePackage('package-with-activation-commands-and-deserializers')
+        })
+
+        afterEach(() => {
+          if (registration) {
+            registration.dispose()
+          }
+          mainModule = null
+        })
+
+        it('activates the package when a deserializer is called', async () => {
+          expect(Package.prototype.requireMainModule.callCount).toBe(0)
+
+          const state1 = {deserializer: 'Deserializer1', a: 'b'}
+          expect(atom.deserializers.deserialize(state1)).toEqual({
+            wasDeserializedBy: 'deserializeMethod1',
+            state: state1
+          })
+
+          await promise
+          expect(Package.prototype.requireMainModule.callCount).toBe(1)
+        })
+
+        it('defers requiring/activating the main module until an activation event bubbles to the root view', async () => {
+          expect(Package.prototype.requireMainModule.callCount).toBe(0)
+
+          atom.workspace.getElement().dispatchEvent(new CustomEvent('activation-command-2', {bubbles: true}))
+
+          await promise
+          expect(mainModule.activate.callCount).toBe(1)
+          expect(mainModule.activationCommandCallCount).toBe(1)
+          expect(Package.prototype.requireMainModule.callCount).toBe(1)
+        })
+      })
       })
     })
 
