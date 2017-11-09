@@ -199,7 +199,10 @@ If you want to read about using Atom or developing packages in Atom, the [Atom F
 
 #### Local development
 
-All packages can be developed locally. For instructions on how to do this, see [Contributing to Official Atom Packages][contributing-to-official-atom-packages] in the [Atom Flight Manual](http://flight-manual.atom.io).
+Atom Core and all packages can be developed locally. For instructions on how to do this, see the following sections in the [Atom Flight Manual](http://flight-manual.atom.io):
+
+* [Hacking on Atom Core][hacking-on-atom-core]
+* [Contributing to Official Atom Packages][contributing-to-official-atom-packages]
 
 ### Pull Requests
 
@@ -492,3 +495,4 @@ Please open an issue on `atom/atom` if you have suggestions for new labels, and 
 [beginner]:https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+label%3Abeginner+label%3Ahelp-wanted+user%3Aatom+sort%3Acomments-desc
 [help-wanted]:https://github.com/issues?q=is%3Aopen+is%3Aissue+label%3Ahelp-wanted+user%3Aatom+sort%3Acomments-desc+-label%3Abeginner
 [contributing-to-official-atom-packages]:http://flight-manual.atom.io/hacking-atom/sections/contributing-to-official-atom-packages/
+[hacking-on-atom-core]: http://flight-manual.atom.io/hacking-atom/sections/hacking-on-atom-core/
