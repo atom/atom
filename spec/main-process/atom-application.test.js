@@ -352,11 +352,9 @@ describe('AtomApplication', function () {
 
       const atomApplication1 = buildAtomApplication()
       const app1Window1 = atomApplication1.launch(parseCommandLine([tempDirPath1]))
+      await emitterEventPromise(app1Window1, 'window:locations-opened')
       const app1Window2 = atomApplication1.launch(parseCommandLine([tempDirPath2]))
-      await Promise.all([
-        emitterEventPromise(app1Window1, 'window:locations-opened'),
-        emitterEventPromise(app1Window2, 'window:locations-opened')
-      ])
+      await emitterEventPromise(app1Window2, 'window:locations-opened')
 
       await Promise.all([
         app1Window1.prepareToUnload(),
