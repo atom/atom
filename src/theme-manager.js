@@ -50,6 +50,8 @@ class ThemeManager {
   // updating the list of active themes have completed.
   //
   // * `callback` {Function}
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeActiveThemes (callback) {
     return this.emitter.on('did-change-active-themes', callback)
   }
