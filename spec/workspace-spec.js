@@ -1585,15 +1585,15 @@ i = /test/; #FIXME\
       atom2.project.deserialize(atom.project.serialize())
       atom2.workspace.deserialize(atom.workspace.serialize(), atom2.deserializers)
 
-      expect(atom2.grammars.getGrammars().map(grammar => grammar.name).sort()).toEqual([
-        'CoffeeScript',
-        'CoffeeScript (Literate)',
-        'JSDoc',
-        'JavaScript',
-        'Null Grammar',
-        'Regular Expression Replacement (JavaScript)',
-        'Regular Expressions (JavaScript)',
-        'TODO'
+      expect(atom2.grammars.getGrammars().map(grammar => grammar.scopeName).sort()).toEqual([
+        'source.coffee',
+        'source.js',
+        'source.js.regexp',
+        'source.js.regexp.replacement',
+        'source.jsdoc',
+        'source.litcoffee',
+        'text.plain.null-grammar',
+        'text.todo'
       ])
 
       atom2.destroy()

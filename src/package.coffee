@@ -84,6 +84,7 @@ class Package
     @loadMenus()
     @registerDeserializerMethods()
     @activateCoreStartupServices()
+    @registerURIHandler()
     @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
     @requireMainModule()
     @settingsPromise = @loadSettings()
@@ -114,6 +115,7 @@ class Package
         @loadStylesheets()
         @registerDeserializerMethods()
         @activateCoreStartupServices()
+        @registerURIHandler()
         @registerTranspilerConfig()
         @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
         @settingsPromise = @loadSettings()
@@ -318,6 +320,19 @@ class Package
           @activationDisposables.add @packageManager.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
     return
 
+  registerURIHandler: ->
+    handlerConfig = @getURIHandler()
+    if methodName = handlerConfig?.method
+      @uriHandlerSubscription = @packageManager.registerURIHandlerForPackage @name, (args...) =>
+        @handleURI(methodName, args)
+
+  unregisterURIHandler: ->
+    @uriHandlerSubscription?.dispose()
+
+  handleURI: (methodName, args) ->
+    @activate().then => @mainModule[methodName]?.apply(@mainModule, args)
+    @activateNow() unless @mainActivated
+
   registerTranspilerConfig: ->
     if @metadata.atomTranspilers
       CompileCache.addTranspilerConfigForPath(@path, @name, @metadata, @metadata.atomTranspilers)
@@ -504,6 +519,7 @@ class Package
     @activationCommandSubscriptions?.dispose()
     @activationHookSubscriptions?.dispose()
     @configSchemaRegisteredOnActivate = false
+    @unregisterURIHandler()
     @deactivateResources()
     @deactivateKeymaps()
 
@@ -595,7 +611,7 @@ class Package
       @mainModulePath = fs.resolveExtension(mainModulePath, ["", CompileCache.supportedExtensions...])
 
   activationShouldBeDeferred: ->
-    @hasActivationCommands() or @hasActivationHooks()
+    @hasActivationCommands() or @hasActivationHooks() or @hasDeferredURIHandler()
 
   hasActivationHooks: ->
     @getActivationHooks()?.length > 0
@@ -604,6 +620,9 @@ class Package
     for selector, commands of @getActivationCommands()
       return true if commands.length > 0
     false
+
+  hasDeferredURIHandler: ->
+    @getURIHandler() and @getURIHandler().deferActivation isnt false
 
   subscribeToDeferredActivation: ->
     @subscribeToActivationCommands()
@@ -672,6 +691,9 @@ class Package
         @activationHooks.push(@metadata.activationHooks)
 
     @activationHooks = _.uniq(@activationHooks)
+
+  getURIHandler: ->
+    @metadata?.uriHandler
 
   # Does the given module path contain native code?
   isNativeModule: (modulePath) ->

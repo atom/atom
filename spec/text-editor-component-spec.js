@@ -1930,6 +1930,8 @@ describe('TextEditorComponent', () => {
       const decoration = editor.decorateMarker(marker, {type: 'overlay', item: overlayElement, class: 'a'})
       await component.getNextUpdatePromise()
 
+      const overlayComponent = component.overlayComponents.values().next().value
+
       const overlayWrapper = overlayElement.parentElement
       expect(overlayWrapper.classList.contains('a')).toBe(true)
       expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
@@ -1960,12 +1962,12 @@ describe('TextEditorComponent', () => {
       await setScrollTop(component, 20)
       expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
       overlayElement.style.height = 60 + 'px'
-      await component.getNextUpdatePromise()
+      await overlayComponent.getNextUpdatePromise()
       expect(overlayWrapper.getBoundingClientRect().bottom).toBe(clientTopForLine(component, 4))
 
       // Does not flip the overlay vertically if it would overflow the top of the window
       overlayElement.style.height = 80 + 'px'
-      await component.getNextUpdatePromise()
+      await overlayComponent.getNextUpdatePromise()
       expect(overlayWrapper.getBoundingClientRect().top).toBe(clientTopForLine(component, 5))
 
       // Can update overlay wrapper class
@@ -2573,6 +2575,24 @@ describe('TextEditorComponent', () => {
         {tileStartRow: 3, height: 3 * component.getLineHeight()},
         {tileStartRow: 6, height: 3 * component.getLineHeight()}
       ])
+    })
+
+    it('does not throw exceptions when destroying a block decoration inside a marker change event (regression)', async () => {
+      const {editor, component} = buildComponent({rowsPerTile: 3})
+
+      const marker = editor.markScreenPosition([2, 0])
+      marker.onDidChange(() => { marker.destroy() })
+      const item = document.createElement('div')
+      editor.decorateMarker(marker, {type: 'block', item})
+
+      await component.getNextUpdatePromise()
+      expect(item.nextSibling).toBe(lineNodeForScreenRow(component, 2))
+
+      marker.setBufferRange([[0, 0], [0, 0]])
+      expect(marker.isDestroyed()).toBe(true)
+
+      await component.getNextUpdatePromise()
+      expect(item.parentElement).toBeNull()
     })
 
     it('does not attempt to render block decorations located outside the visible range', async () => {
@@ -4438,24 +4458,44 @@ describe('TextEditorComponent', () => {
       expect(dragEvents).toEqual([])
     })
 
-    it('calls `didStopDragging` if the buffer changes while dragging', async () => {
+    it('calls `didStopDragging` if the user interacts with the keyboard while dragging', async () => {
       const {component, editor} = buildComponent()
 
       let dragging = false
-      component.handleMouseDragUntilMouseUp({
-        didDrag: (event) => { dragging = true },
-        didStopDragging: () => { dragging = false }
-      })
+      function startDragging () {
+        component.handleMouseDragUntilMouseUp({
+          didDrag: (event) => { dragging = true },
+          didStopDragging: () => { dragging = false }
+        })
+      }
 
+      startDragging()
       window.dispatchEvent(new MouseEvent('mousemove'))
       await getNextAnimationFramePromise()
       expect(dragging).toBe(true)
 
-      editor.delete()
+      // Buffer changes don't cause dragging to be stopped.
+      editor.insertText('X')
+      expect(dragging).toBe(true)
+
+      // Keyboard interaction prevents users from dragging further.
+      component.didKeydown({code: 'KeyX'})
       expect(dragging).toBe(false)
+
       window.dispatchEvent(new MouseEvent('mousemove'))
       await getNextAnimationFramePromise()
       expect(dragging).toBe(false)
+
+      // Pressing a modifier key does not terminate dragging, (to ensure we can add new selections with the mouse)
+      startDragging()
+      window.dispatchEvent(new MouseEvent('mousemove'))
+      await getNextAnimationFramePromise()
+      expect(dragging).toBe(true)
+      component.didKeydown({key: 'Control'})
+      component.didKeydown({key: 'Alt'})
+      component.didKeydown({key: 'Shift'})
+      component.didKeydown({key: 'Meta'})
+      expect(dragging).toBe(true)
     })
 
     function getNextAnimationFramePromise () {

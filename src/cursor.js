@@ -454,23 +454,25 @@ class Cursor extends Model {
   getPreviousWordBoundaryBufferPosition (options = {}) {
     const currentBufferPosition = this.getBufferPosition()
     const previousNonBlankRow = this.editor.buffer.previousNonBlankRow(currentBufferPosition.row)
-    const scanRange = [[previousNonBlankRow || 0, 0], currentBufferPosition]
+    const scanRange = Range(Point(previousNonBlankRow || 0, 0), currentBufferPosition)
 
-    let beginningOfWordPosition
-    this.editor.backwardsScanInBufferRange(options.wordRegex || this.wordRegExp(), scanRange, ({range, stop}) => {
+    const ranges = this.editor.buffer.findAllInRangeSync(
+      options.wordRegex || this.wordRegExp(),
+      scanRange
+    )
+
+    const range = ranges[ranges.length - 1]
+    if (range) {
       if (range.start.row < currentBufferPosition.row && currentBufferPosition.column > 0) {
-        // force it to stop at the beginning of each line
-        beginningOfWordPosition = new Point(currentBufferPosition.row, 0)
-      } else if (range.end.isLessThan(currentBufferPosition)) {
-        beginningOfWordPosition = range.end
+        return Point(currentBufferPosition.row, 0)
+      } else if (currentBufferPosition.isGreaterThan(range.end)) {
+        return Point.fromObject(range.end)
       } else {
-        beginningOfWordPosition = range.start
+        return Point.fromObject(range.start)
       }
-
-      if (!beginningOfWordPosition.isEqual(currentBufferPosition)) stop()
-    })
-
-    return beginningOfWordPosition || currentBufferPosition
+    } else {
+      return currentBufferPosition
+    }
   }
 
   // Public: Returns buffer position of the next word boundary. It might be on
@@ -481,23 +483,24 @@ class Cursor extends Model {
   //      (default: {::wordRegExp})
   getNextWordBoundaryBufferPosition (options = {}) {
     const currentBufferPosition = this.getBufferPosition()
-    const scanRange = [currentBufferPosition, this.editor.getEofBufferPosition()]
+    const scanRange = Range(currentBufferPosition, this.editor.getEofBufferPosition())
 
-    let endOfWordPosition
-    this.editor.scanInBufferRange((options.wordRegex != null ? options.wordRegex : this.wordRegExp()), scanRange, function ({range, stop}) {
+    const range = this.editor.buffer.findInRangeSync(
+      options.wordRegex || this.wordRegExp(),
+      scanRange
+    )
+
+    if (range) {
       if (range.start.row > currentBufferPosition.row) {
-        // force it to stop at the beginning of each line
-        endOfWordPosition = new Point(range.start.row, 0)
-      } else if (range.start.isGreaterThan(currentBufferPosition)) {
-        endOfWordPosition = range.start
+        return Point(range.start.row, 0)
+      } else if (currentBufferPosition.isLessThan(range.start)) {
+        return Point.fromObject(range.start)
       } else {
-        endOfWordPosition = range.end
+        return Point.fromObject(range.end)
       }
-
-      if (!endOfWordPosition.isEqual(currentBufferPosition)) stop()
-    })
-
-    return endOfWordPosition || currentBufferPosition
+    } else {
+      return currentBufferPosition
+    }
   }
 
   // Public: Retrieves the buffer position of where the current word starts.
@@ -528,7 +531,7 @@ class Cursor extends Model {
     let result
     for (let range of ranges) {
       if (position.isLessThanOrEqual(range.start)) break
-      if (allowPrevious || position.isLessThanOrEqual(range.end)) result = range.start
+      if (allowPrevious || position.isLessThanOrEqual(range.end)) result = Point.fromObject(range.start)
     }
 
     return result || (allowPrevious ? new Point(0, 0) : position)
@@ -559,7 +562,7 @@ class Cursor extends Model {
 
     for (let range of ranges) {
       if (position.isLessThan(range.start) && !allowNext) break
-      if (position.isLessThan(range.end)) return range.end
+      if (position.isLessThan(range.end)) return Point.fromObject(range.end)
     }
 
     return allowNext ? this.editor.getEofBufferPosition() : position
@@ -594,12 +597,13 @@ class Cursor extends Model {
   getCurrentWordBufferRange (options = {}) {
     const position = this.getBufferPosition()
     const ranges = this.editor.buffer.findAllInRangeSync(
-      options.wordRegex || this.wordRegExp(),
+      options.wordRegex || this.wordRegExp(options),
       new Range(new Point(position.row, 0), new Point(position.row, Infinity))
     )
-    return ranges.find(range =>
+    const range = ranges.find(range =>
       range.end.column >= position.column && range.start.column <= position.column
-    ) || new Range(position, position)
+    )
+    return range ? Range.fromObject(range) : new Range(position, position)
   }
 
   // Public: Returns the buffer Range for the current line.

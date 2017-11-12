@@ -89,7 +89,7 @@ module.exports = class CommandRegistry {
   //   DOM element, the command will be associated with just that element.
   // * `commandName` A {String} containing the name of a command you want to
   //   handle such as `user:insert-date`.
-  // * `listener` A listener which handles the event.  Either A {Function} to
+  // * `listener` A listener which handles the event.  Either a {Function} to
   //   call when the given command is invoked on an element matching the
   //   selector, or an {Object} with a `didDispatch` property which is such a
   //   function.
@@ -97,7 +97,7 @@ module.exports = class CommandRegistry {
   //   The function (`listener` itself if it is a function, or the `didDispatch`
   //   method if `listener` is an object) will be called with `this` referencing
   //   the matching DOM node and the following argument:
-  //     * `event` A standard DOM event instance. Call `stopPropagation` or
+  //     * `event`: A standard DOM event instance. Call `stopPropagation` or
   //       `stopImmediatePropagation` to terminate bubbling early.
   //
   //   Additionally, `listener` may have additional properties which are returned
@@ -107,6 +107,13 @@ module.exports = class CommandRegistry {
   //       otherwise be generated from the event name.
   //     * `description`: Used by consumers to display detailed information about
   //       the command.
+  //     * `hiddenInCommandPalette`: If `true`, this command will not appear in
+  //       the bundled command palette by default, but can still be shown with.
+  //       the `Command Palette: Show Hidden Commands` command. This is a good
+  //       option when you need to register large numbers of commands that don't
+  //       make sense to be executed from the command palette. Please use this
+  //       option conservatively, as it could reduce the discoverability of your
+  //       package's commands.
   //
   // ## Arguments: Registering Multiple Commands
   //
