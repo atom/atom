@@ -88,7 +88,7 @@ export default class Color {
   toJSON () {
     return this.alpha === 1 ? this.toHexString() : this.toRGBAString()
   }
-  
+
   toString () {
     return this.toRGBAString()
   }
