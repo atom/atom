@@ -194,6 +194,7 @@ class Package
         @activateServices()
       @activationCommandSubscriptions?.dispose()
       @activationHookSubscriptions?.dispose()
+      @workspaceOpenerSubscriptions?.dispose()
     catch error
       @handleError("Failed to activate the #{@name} package", error)
 
@@ -612,15 +613,18 @@ class Package
       @mainModulePath = fs.resolveExtension(mainModulePath, ["", CompileCache.supportedExtensions...])
 
   activationShouldBeDeferred: ->
-    (@hasActivationCommands() or @hasActivationHooks() or @hasDeferredURIHandler()) and not @deserialized
-
-  hasActivationHooks: ->
-    @getActivationHooks()?.length > 0
+    (@hasActivationCommands() or @hasActivationHooks() or @hasWorkspaceOpeners() or @hasDeferredURIHandler()) and not @deserialized
 
   hasActivationCommands: ->
     for selector, commands of @getActivationCommands()
       return true if commands.length > 0
     false
+
+  hasActivationHooks: ->
+    @getActivationHooks()?.length > 0
+
+  hasWorkspaceOpeners: ->
+    @getWorkspaceOpeners()?.length > 0
 
   hasDeferredURIHandler: ->
     @getURIHandler() and @getURIHandler().deferActivation isnt false
@@ -628,6 +632,7 @@ class Package
   subscribeToDeferredActivation: ->
     @subscribeToActivationCommands()
     @subscribeToActivationHooks()
+    @subscribeToWorkspaceOpeners()
 
   subscribeToActivationCommands: ->
     @activationCommandSubscriptions = new CompositeDisposable
@@ -692,6 +697,29 @@ class Package
         @activationHooks.push(@metadata.activationHooks)
 
     @activationHooks = _.uniq(@activationHooks)
+
+  subscribeToWorkspaceOpeners: ->
+    @workspaceOpenerSubscriptions = new CompositeDisposable
+    for opener in @getWorkspaceOpeners()
+      do (opener) =>
+        @workspaceOpenerSubscriptions.add atom.workspace.addOpener (filePath) =>
+          if filePath is opener
+            @activateNow()
+            @workspaceOpenerSubscriptions.dispose()
+            atom.workspace.open(opener)
+
+  getWorkspaceOpeners: ->
+    return @workspaceOpeners if @workspaceOpeners?
+
+    @workspaceOpeners = []
+
+    if @metadata.workspaceOpeners?
+      if _.isArray(@metadata.workspaceOpeners)
+        @workspaceOpeners.push(@metadata.workspaceOpeners...)
+      else if _.isString(@metadata.workspaceOpeners)
+        @workspaceOpeners.push(@metadata.workspaceOpeners)
+
+    @workspaceOpeners = _.uniq(@workspaceOpeners)
 
   getURIHandler: ->
     @metadata?.uriHandler
