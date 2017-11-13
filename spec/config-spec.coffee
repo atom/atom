@@ -27,7 +27,7 @@ fdescribe "Config", ->
     }
     @configStorage = new ConfigStorage({@config, configDirPath: dotAtomPath, resourcePath})
     @config.initialize({configFilePath: @configStorage.getUserConfigPath(), projectHomeSchema: ConfigSchema.projectHome})
-    spyOn(@configStorage, 'startSave')
+    spyOn(@configStorage, 'lockedSave')
 
     waitsForPromise =>
       @configStorage.start()
@@ -152,18 +152,18 @@ fdescribe "Config", ->
     it "saves the user's config to disk after it stops changing", ->
       @config.set("foo.bar.baz", 42)
       advanceClock(50)
-      expect(@configStorage.startSave).not.toHaveBeenCalled()
+      expect(@configStorage.lockedSave).not.toHaveBeenCalled()
       @config.set("foo.bar.baz", 43)
       advanceClock(50)
-      expect(@configStorage.startSave).not.toHaveBeenCalled()
+      expect(@configStorage.lockedSave).not.toHaveBeenCalled()
       @config.set("foo.bar.baz", 44)
       advanceClock(250)
-      expect(@configStorage.startSave).toHaveBeenCalled()
+      expect(@configStorage.lockedSave).toHaveBeenCalled()
 
     it "does not save when a non-default 'source' is given", ->
       @config.set("foo.bar.baz", 42, source: 'some-other-source', scopeSelector: '.a')
       advanceClock(500)
-      expect(@configStorage.startSave).not.toHaveBeenCalled()
+      expect(@configStorage.lockedSave).not.toHaveBeenCalled()
 
     it "does not allow a 'source' option without a 'scopeSelector'", ->
       expect(-> @config.set("foo", 1, source: [".source.ruby"])).toThrow()
@@ -228,7 +228,7 @@ fdescribe "Config", ->
         expect(@config.set("foo.bar.baz", 100, scopeSelector: ".source.coffee .string.quoted.double.coffee")).toBe true
         expect(@config.get("foo.bar.baz", scope: [".source.coffee", ".string.quoted.double.coffee"])).toBe 100
 
-  ffdescribe ".unset(keyPath, {source, scopeSelector})", ->
+  describe ".unset(keyPath, {source, scopeSelector})", ->
     beforeEach ->
       @config.setSchema 'foo',
         type: 'object'
@@ -258,14 +258,14 @@ fdescribe "Config", ->
       @config.unset('a.c')
       expect(@config.get('a.c')).toBeUndefined()
 
-    it "triggers ConfigStorage.startSave()", ->
+    it "triggers ConfigStorage.lockedSave()", ->
       @config.setDefaults('a', b: 3)
       @config.set('a.b', 4)
-      @configStorage.startSave.reset()
+      @configStorage.lockedSave.reset()
 
       @config.unset('a.c')
       advanceClock(500)
-      expect(@configStorage.startSave.callCount).toBe 1
+      expect(@configStorage.lockedSave.callCount).toBe 1
 
     describe "when no 'scopeSelector' is given", ->
       describe "when a 'source' but no key-path is given", ->
@@ -326,14 +326,14 @@ fdescribe "Config", ->
         expect(@config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 42
         expect(@config.get('foo.bar.ok', scope: ['.source.coffee'])).toBe 100
 
-      it "triggers ConfigStorage.startSave()", ->
+      it "triggers ConfigStorage.lockedSave()", ->
         @config.setDefaults("foo", bar: baz: 10)
         @config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
-        @configStorage.startSave.reset()
+        @configStorage.lockedSave.reset()
 
         @config.unset('foo.bar.baz', scopeSelector: '.source.coffee')
         advanceClock(250)
-        expect(@configStorage.startSave.callCount).toBe 1
+        expect(@configStorage.lockedSave.callCount).toBe 1
 
       it "allows removing settings for a specific source and scope selector", ->
         @config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee', source: "source-a")
@@ -359,14 +359,14 @@ fdescribe "Config", ->
         @config.unset('foo.bar.baz', scopeSelector: '.source.coffee')
         expect(@config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
 
-        expect(@configStorage.startSave).not.toHaveBeenCalled()
+        expect(@configStorage.lockedSave).not.toHaveBeenCalled()
 
         scopedProperties = @config.scopedSettingsStore.propertiesForSource('user-config')
         expect(scopedProperties['.coffee.source']).toBeUndefined()
 
-      fffit "removes the scoped value when it was the only set value on the object", ->
+      it "removes the scoped value when it was the only set value on the object", ->
         spyOn(CSON, 'writeFile').andCallThrough()
-        @configStorage.startSave.andCallThrough()
+        @configStorage.lockedSave.andCallThrough()
         saveCount = 0
         @configStorage.onDidSave -> saveCount++
 
@@ -380,29 +380,37 @@ fdescribe "Config", ->
           saveCount is 1
 
         runs ->
-          debugger
-          expect(CSON.writeFile).toHaveBeenCalled()
-          @config.unset('foo.bar.baz', scopeSelector: '.source.coffee')
-          expect(@config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
-          expect(@config.get('foo.bar.ok', scope: ['.source.coffee'])).toBe 20
-          CSON.writeFile.reset()
-          advanceClock(250)
-
-        waitsFor ->
-          saveCount is 2
-
-        runs ->
           expect(CSON.writeFile).toHaveBeenCalled()
           properties = CSON.writeFile.mostRecentCall.args[1]
           expect(properties['.coffee.source']).toEqual
             foo:
               bar:
                 ok: 20
+                baz: 55
+
+          console.log('before unset', @config.scopedSettingsStore.propertySets)
+          @config.unset('foo.bar.baz', scopeSelector: '.source.coffee')
+          expect(@config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
+          expect(@config.get('foo.bar.ok', scope: ['.source.coffee'])).toBe 20
+          CSON.writeFile.reset()
+          console.log('after unset', @config.scopedSettingsStore.propertySets)
+          advanceClock(250)
+
+        waitsFor ->
+          saveCount is 2
+
+        runs ->
+          console.log('after save', @config.scopedSettingsStore.propertySets)
+          expect(CSON.writeFile).toHaveBeenCalled()
+          properties = CSON.writeFile.mostRecentCall.args[1]
+          expect(properties['.coffee.source']).toEqual
+            foo:
+              bar:
+                ok: 20
+          console.log(@config)
 
           console.log('block 3')
-          debugger
           @config.unset('foo.bar.ok', scopeSelector: '.source.coffee')
-          debugger
           CSON.writeFile.reset()
           advanceClock(250)
 
@@ -412,15 +420,16 @@ fdescribe "Config", ->
         runs ->
           expect(CSON.writeFile).toHaveBeenCalled()
           properties = CSON.writeFile.mostRecentCall.args[1]
+          console.log(properties)
           expect(properties['.coffee.source']).toBeUndefined()
 
       it "does not call ::save when the value is already at the default", ->
         @config.setDefaults("foo", bar: baz: 10)
         @config.set('foo.bar.baz', 55)
-        @configStorage.startSave.reset()
+        @configStorage.lockedSave.reset()
 
         @config.unset('foo.bar.ok', scopeSelector: '.source.coffee')
-        expect(@configStorage.startSave).not.toHaveBeenCalled()
+        expect(@configStorage.lockedSave).not.toHaveBeenCalled()
         expect(@config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
 
   describe ".onDidChange(keyPath, {scope})", ->
@@ -435,7 +444,7 @@ fdescribe "Config", ->
       it "does not fire the given callback with the current value at the keypath", ->
         expect(observeHandler).not.toHaveBeenCalled()
 
-      it "fires the callback every time the observed value changes", ->
+      ffit "fires the callback every time the observed value changes", ->
         @config.set('foo.bar.baz', "value 2")
         expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 2', oldValue: 'value 1'})
         observeHandler.reset()

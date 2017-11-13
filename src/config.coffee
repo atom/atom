@@ -628,7 +628,8 @@ class Config
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: (keyPath, value, options) ->
     result = @setActual(keyPath, value, options)
-    @emitter.emit 'did-set-or-unset', ['set', keyPath, value, options]
+    if (result)
+      @emitter.emit 'did-set-or-unset', ['set', keyPath, value, options]
     result
 
   setActual: (keyPath, value, options) ->
@@ -661,7 +662,8 @@ class Config
   #   * `source` (optional) {String}. See {::set}
   unset: (keyPath, options) ->
     result = @unsetActual(keyPath, options)
-    @emitter.emit 'did-set-or-unset', ['unset', keyPath, options]
+    if (result)
+      @emitter.emit 'did-set-or-unset', ['unset', keyPath, options]
     result
 
   unsetActual: (keyPath, options) ->

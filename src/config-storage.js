@@ -8,7 +8,7 @@ const {watchPath} = require('./path-watcher')
 const Color = require('./color')
 const {Emitter} = require('event-kit')
 
-const saveRetryTime = 250
+const saveDebounceTime = 250
 const saveRetryCount = 8
 
 module.exports = class ConfigStorage {
@@ -35,14 +35,14 @@ module.exports = class ConfigStorage {
     return new Promise((resolve, reject) => {
       this.pendingOperations = []
       this.saveLockFail = 0
-      this.configListener = this.config.onDidSetOrUnset(op => this.capturePendingOperation(op))
       this.initializeConfigDirectory()
       this.initializeUserConfig()
       this.load((err, loaded) => {
-        this.observeUserConfigFile()
         if (err) {
           reject(err)
         } else {
+          this.configListener = this.config.onDidSetOrUnset(op => this.capturePendingOperation(op))
+          this.observeUserConfigFile()
           resolve(loaded)
         }
       })
@@ -55,7 +55,7 @@ module.exports = class ConfigStorage {
       this.configListener = null
     }
     this.unobserveUserConfigFile()
-    this.startSave()
+    this.lockedSave()
   }
 
   capturePendingOperation (op) {
@@ -65,7 +65,7 @@ module.exports = class ConfigStorage {
 
     if (saveRequested && isUserConfigSource) {
       this.pendingOperations.push(op)
-      this.save()
+      this.scheduleSave()
     }
   }
 
@@ -87,7 +87,6 @@ module.exports = class ConfigStorage {
   }
 
   initializeUserConfig () {
-    // TODO: Make this async
     try {
       if (!fs.existsSync(this.configFilePath)) {
         fs.makeTreeSync(path.dirname(this.configFilePath))
@@ -103,94 +102,92 @@ module.exports = class ConfigStorage {
 
   load (callback) {
     if (this.isLoading) {
-      // Do not try and load while we are already loading
-      callback(null, false)
+      callback(null, false) // Do not load while we are already loading
       return
     }
 
-    const loadErrorMessage = `Failed to load \`${path.basename(this.configFilePath)}\``
     this.isLoading = true
+    console.log('will load', callback)
 
     CSON.readFile(this.configFilePath, (err, userConfig) => {
-      this.isLoading = false
+      const loadErrorMessage = `Failed to load \`${path.basename(this.configFilePath)}\``
       if (err) {
         this.configFileHasErrors = true
         this.notifyFailure(loadErrorMessage, err.location != null ? err.stack : err.message)
+        this.isLoading = false
         callback(err, false)
       } else {
         if (!isPlainObject(userConfig)) {
           const error = new Error(`\`${path.basename(this.configFilePath)}\` must contain valid JSON or CSON`)
           this.notifyFailure(loadErrorMessage, error)
+          this.isLoading = false
           callback(error, false)
         } else {
           console.log('loaded', userConfig)
           this.config.applyUserSettings(userConfig)
           this.configFileHasErrors = false
+          this.isLoading = false
           callback(null, true)
         }
       }
     })
   }
 
-  save () {
-    // Debounce and retry saves
+  scheduleSave () {
+    // Debounce saves
     if (this.saveTimer == null) {
-      console.log('save timer setup')
-      this.saveTimer = setInterval(() => this.startSave(), saveRetryTime)
+      console.log('timer setup')
+      this.saveTimer = setTimeout(() => {
+        clearTimeout(this.saveTimer)
+        this.saveTimer = null
+        this.lockedSave()
+      }, saveDebounceTime )
     }
   }
 
-  startSave () {
-    console.log('saveStart', this.isSaving, this.isLoading, this.configFileHasErrors)
+  displaySaveLockWarning () {
+    this.saveFailureNotification = this.notifyFailure(`Failed to save \`${path.basename(this.configFilePath)}\``,
+      'File lock could not be obtained. Is this file in use by another instance of Atom?', [
+        { text: 'Retry',
+          onDidClick: () => {
+            this.saveFailureNotification.dismiss()
+            this.saveLockFail = 0
+            this.scheduleSave()
+          }
+        },
+        { text: 'Force',
+          onDidClick: () => {
+            this.saveFailureNotification.dismiss()
+            fs.unlink(lockFilePath, () => {
+              this.saveLockFail = 0
+              this.scheduleSave()
+            })
+          }
+        }
+      ]
+    )
+  }
+
+  lockedSave () {
+    console.log('lockedSave', process.type, this.isSaving, this.isLoading, this.configFileHasErrors)
     if (this.isSaving || this.isLoading || this.configFileHasErrors) return
     this.isSaving = true
-
-    clearInterval(this.saveTimer)
-    this.saveTimer = null
 
     const lockFilePath = this.configFilePath + '.lock'
     lockFile.lock(lockFilePath, {}, (err) => {
       if (err) {
         if (this.saveLockFail++ > saveRetryCount) {
-          this.saveFailureNotification = this.notifyFailure(`Failed to save \`${path.basename(this.configFilePath)}\``,
-            'File lock could not be obtained. Is this file in use by another instance of Atom?', [
-              { text: 'Retry',
-                onDidClick: () => {
-                  this.saveFailureNotification.dismiss()
-                  this.saveLockFail = 0
-                  this.save()
-                }
-              },
-              { text: 'Force',
-                onDidClick: () => {
-                  this.saveFailureNotification.dismiss()
-                  fs.unlink(lockFilePath, () => {
-                    this.saveLockFail = 0
-                    this.save()
-                  })
-                }
-              }
-            ])
-        } else {
-          this.save() // Try again until retry count limit reached
+          this.displaySaveLockWarning()
         }
         this.isSaving = false
+        // We'll retry automatically when current io completes via the file observer
       } else {
-        debugger
-        this.load((err) => {
-          if (err) {
-            lockFile.unlock(lockFilePath, () => {
-              this.isSaving = false
-            })
-          } else {
-            this.actualSave(() => {
-              lockFile.unlock(lockFilePath, () => {
-                this.emitter.emit('did-save')
-                this.isSaving = false
-                this.saveLockFail = 0
-              })
-            })
-          }
+        this.actualSave(() => {
+          lockFile.unlock(lockFilePath, () => {
+            this.emitter.emit('did-save')
+            this.isSaving = false
+            this.saveLockFail = 0
+          })
         })
       }
     })
@@ -201,16 +198,11 @@ module.exports = class ConfigStorage {
   }
 
   actualSave (callback) {
-    // Take as many operations as currently in the queue and apply them
-    const pendingOperationsCount = this.pendingOperations.length
+    const pendingOperationsCount = this.applyOperations(this.pendingOperations)
     console.log('saving', this.pendingOperations.slice(0, pendingOperationsCount))
     if (pendingOperationsCount === 0) {
-      callback(null)
+      callback(null, false)
       return
-    }
-
-    for (let op of this.pendingOperations.slice(0, pendingOperationsCount)) {
-      this.applyOperation(op)
     }
 
     let allSettings = {'*': this.config.settings}
@@ -220,18 +212,26 @@ module.exports = class ConfigStorage {
     CSON.writeFile(this.configFilePath, allSettings, (error) => {
       if (error) {
         this.notifyFailure(`Failed to save \`${path.basename(this.configFilePath)}\``, error.message)
-        callback(error)
+        callback(error, false)
       } else {
-        console.log('saved', allSettings)
-        // Remove the operations we successfully processed
+        console.log('saved', process.type, allSettings)
+        // Remove operations we successfully processed
         this.pendingOperations = this.pendingOperations.slice(pendingOperationsCount)
-        // Schedule another save if some were received during call
+        // Schedule another save if operations were received during async operation
         if (this.pendingOperations.length > 0) {
-          this.save()
+          this.scheduleSave()
         }
       }
-      callback(null)
+      callback(null, true)
     })
+  }
+
+  applyOperations (operations) {
+    const operationsCount = operations.length
+    for (let operation of operations.slice(0, operationsCount)) {
+      this.applyOperation(operation)
+    }
+    return operationsCount
   }
 
   applyOperation (op) {
@@ -252,8 +252,10 @@ module.exports = class ConfigStorage {
       if (this.watchSubscriptionPromise == null) {
         this.watchSubscriptionPromise = watchPath(this.configFilePath, {}, events => {
           if (events.find(e => ['created', 'modified', 'renamed'].includes(e.action))) {
-            this.load(() => {
-              // TODO: How to recover here? Schedule like saves?
+            this.load((err) => {
+              if (err == null) {
+                this.lockedSave()
+              }
             })
           }
         })
