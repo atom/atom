@@ -664,6 +664,7 @@ describe('PackageManager', () => {
           expect(notificationEvent.message).toContain('Failed to load the package-with-invalid-settings package settings')
           expect(notificationEvent.options.packageName).toEqual('package-with-invalid-settings')
         })
+      })
 
       describe('when the package metadata includes both activation commands and deserializers', () => {
         let mainModule, promise, workspaceCommandListener, registration
@@ -709,7 +710,6 @@ describe('PackageManager', () => {
           expect(mainModule.activationCommandCallCount).toBe(1)
           expect(Package.prototype.requireMainModule.callCount).toBe(1)
         })
-      })
       })
     })
 
