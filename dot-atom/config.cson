@@ -17,4 +17,37 @@
     showOnStartup: false
   "wrap-guide":
     enabled: false
+  "context-menu-filter":
+    remove:
+      "atom-text-editor": [
+        "Split Up",
+        "Split Down",
+        "Split Left",
+        "Split Right",
+        "Close Pane",
+        "Change Encoding",
+        "Go to Declaration",
+        "Correct Spelling",
+      ]
+  "menu-filter":
+    remove:
+      "OneTwo": [
+        "Config",
+      ],
+      "File": [
+        "New Window",
+        "New File",
+        "Open",
+        "Add Project Folder",
+        "Reopen Project",
+        "Reopen Last Item",
+        "Save",
+        "Save As",
+        "Save All",
+        "Close All Tabs",
+      ],
+      "Packages": [
+      ],
+      "Find": [
+      ]
   
