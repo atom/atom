@@ -772,6 +772,35 @@ describe('PackageManager', () => {
       })
     })
 
+    describe('when the package metadata includes `workspaceOpeners`', () => {
+      let mainModule, promise
+
+      beforeEach(() => {
+        mainModule = require('./fixtures/packages/package-with-workspace-openers/index')
+        spyOn(mainModule, 'activate').andCallThrough()
+        spyOn(Package.prototype, 'requireMainModule').andCallThrough()
+      })
+
+      it('defers requiring/activating the main module until a registered opener is called', async () => {
+        promise = atom.packages.activatePackage('package-with-workspace-openers')
+        expect(Package.prototype.requireMainModule.callCount).toBe(0)
+        atom.workspace.open('atom://fictitious')
+
+        await promise
+        expect(Package.prototype.requireMainModule.callCount).toBe(1)
+        expect(mainModule.openerCount).toBe(1)
+      })
+
+      it('activates the package immediately when the events are empty', async () => {
+        mainModule = require('./fixtures/packages/package-with-empty-workspace-openers/index')
+        spyOn(mainModule, 'activate').andCallThrough()
+
+        atom.packages.activatePackage('package-with-empty-workspace-openers')
+
+        expect(mainModule.activate.callCount).toBe(1)
+      })
+    })
+
     describe('when the package has no main module', () => {
       it('does not throw an exception', () => {
         spyOn(console, 'error')
