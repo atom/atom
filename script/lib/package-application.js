@@ -32,8 +32,8 @@ module.exports = function () {
     'version': CONFIG.appMetadata.electronVersion,
     'version-string': {
       'CompanyName': 'GitHub, Inc.',
-      'FileDescription': 'Atom',
-      'ProductName': 'Atom'
+      'FileDescription': 'one two',
+      'ProductName': '一笔两划'
     }
   }).then((packagedAppPath) => {
     let bundledResourcesPath
@@ -97,9 +97,9 @@ function chmodNodeFiles (packagedAppPath) {
 
 function getAppName () {
   if (process.platform === 'darwin') {
-    return CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+    return CONFIG.channel === 'beta' ? 'Atom Beta' : '一笔两划'
   } else {
-    return 'atom'
+    return '一笔两划'
   }
 }
 
@@ -152,7 +152,7 @@ function renamePackagedAppDir (packageOutputDirPath) {
     if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(packageOutputDirPath, packagedAppPath)
   } else {
-    const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+    const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : '一笔两划'
     packagedAppPath = path.join(CONFIG.buildOutputPath, appName)
     if (process.platform === 'win32' && process.arch !== 'ia32') {
       packagedAppPath += ` ${process.arch}`
