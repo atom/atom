@@ -3,6 +3,7 @@
 'use strict'
 
 require('colors')
+const argv = require('yargs').argv
 const assert = require('assert')
 const async = require('async')
 const childProcess = require('child_process')
@@ -150,17 +151,26 @@ function runBenchmarkTests (callback) {
 let testSuitesToRun = testSuitesForPlatform(process.platform)
 
 function testSuitesForPlatform (platform) {
+  let suites = [];
   switch (platform) {
     case 'darwin':
-      return [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
+      suites = [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
+      break
     case 'win32':
-      return (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
+      suites = (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
+      break
     case 'linux':
-      return [runCoreMainProcessTests]
+      suites = [runCoreMainProcessTests]
+      break
     default:
       console.log(`Unrecognized platform: ${platform}`)
-      return []
   }
+
+  if (argv.skipMainProcessTests) {
+    suites = suites.filter(suite => suite !== runCoreMainProcessTests);
+  }
+
+  return suites;
 }
 
 async.series(testSuitesToRun, function (err, exitCodes) {

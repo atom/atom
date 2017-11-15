@@ -108,8 +108,12 @@ describe('TooltipManager', () => {
       const element2 = document.createElement('div')
       jasmine.attachToDOM(element2)
 
-      const fakeJqueryWrapper = [element, element2]
-      fakeJqueryWrapper.jquery = 'any-version'
+      const fakeJqueryWrapper = {
+        0: element,
+        1: element2,
+        length: 2,
+        jquery: 'any-version'
+      }
       const disposable = manager.add(fakeJqueryWrapper, {title: 'Title'})
 
       hover(element, () => expect(document.body.querySelector('.tooltip')).toHaveText('Title'))
