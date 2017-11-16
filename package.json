@@ -71,7 +71,7 @@
     "sinon": "1.17.4",
     "temp": "^0.8.3",
     "text-buffer": "13.8.6",
-    "typescript-simple": "1.0.0",
+    "typescript-simple": "^8.0.5",
     "underscore-plus": "^1.6.6",
     "winreg": "^1.2.1",
     "yargs": "^3.23.0"
