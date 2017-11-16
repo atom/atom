@@ -786,7 +786,7 @@ describe('TextEditorComponent', () => {
       const {editor, element, component} = buildComponent()
       expect(element.dataset.grammar).toBe('text plain null-grammar')
 
-      editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      atom.grammars.assignLanguageMode(editor.getBuffer(), 'JavaScript')
       await component.getNextUpdatePromise()
       expect(element.dataset.grammar).toBe('source js')
     })
@@ -4478,7 +4478,7 @@ function buildEditor (params = {}) {
   for (const paramName of ['mini', 'autoHeight', 'autoWidth', 'lineNumberGutterVisible', 'showLineNumbers', 'placeholderText', 'softWrapped', 'scrollSensitivity']) {
     if (params[paramName] != null) editorParams[paramName] = params[paramName]
   }
-  atom.grammars.assignLanguageModeToBuffer(buffer)
+  atom.grammars.assignLanguageMode(buffer, null)
   const editor = new TextEditor(editorParams)
   editor.testAutoscrollRequests = []
   editor.onDidRequestAutoscroll((request) => { editor.testAutoscrollRequests.push(request) })
