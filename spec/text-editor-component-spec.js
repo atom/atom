@@ -442,6 +442,18 @@ describe('TextEditorComponent', () => {
         expect(component.getScrollContainerClientHeight()).toBe(100 - 10)
         expect(component.getScrollContainerClientWidth()).toBe(100 - component.getGutterContainerWidth() - 10)
 
+        // Ensure style updates take effect after the editor is re-attached.
+        element.remove()
+        style.textContent = '::-webkit-scrollbar { height: 20px; width: 20px; }'
+        TextEditor.didUpdateScrollbarStyles()
+        jasmine.attachToDOM(element)
+        expect(component.refs.horizontalScrollbar.element.style.right).toBe('20px')
+        expect(component.refs.verticalScrollbar.element.style.bottom).toBe('20px')
+        expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(10)
+        expect(component.refs.verticalScrollbar.element.scrollTop).toBe(20)
+        expect(component.getScrollContainerClientHeight()).toBe(100 - 20)
+        expect(component.getScrollContainerClientWidth()).toBe(100 - component.getGutterContainerWidth() - 20)
+
         // Ensure we don't throw an error trying to remeasure non-existent scrollbars for mini editors.
         await editor.update({mini: true})
         TextEditor.didUpdateScrollbarStyles()
@@ -4059,6 +4071,18 @@ describe('TextEditorComponent', () => {
       expect(editor.getHalfWidthCharWidth()).toBeGreaterThan(initialHalfCharacterWidth)
       expect(editor.getKoreanCharWidth()).toBeGreaterThan(initialKoreanCharacterWidth)
       expect(queryOnScreenLineElements(element).length).toBeLessThan(initialRenderedLineCount)
+      verifyCursorPosition(component, cursorNode, 1, 29)
+
+      // Ensure style updates take effect after the editor is re-attached.
+      element.remove()
+      element.style.fontSize = initialFontSize - 5 + 'px'
+      TextEditor.didUpdateStyles()
+      jasmine.attachToDOM(element)
+      expect(editor.getDefaultCharWidth()).toBeLessThan(initialBaseCharacterWidth)
+      expect(editor.getDoubleWidthCharWidth()).toBeLessThan(initialDoubleCharacterWidth)
+      expect(editor.getHalfWidthCharWidth()).toBeLessThan(initialHalfCharacterWidth)
+      expect(editor.getKoreanCharWidth()).toBeLessThan(initialKoreanCharacterWidth)
+      expect(queryOnScreenLineElements(element).length).toBeGreaterThan(initialRenderedLineCount)
       verifyCursorPosition(component, cursorNode, 1, 29)
     })
 

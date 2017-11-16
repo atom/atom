@@ -37,6 +37,9 @@ class TextEditorComponent {
   }
 
   static didUpdateStyles () {
+    if (this.stylesUpdateCount == null) this.stylesUpdateCount = 0
+    this.stylesUpdateCount++
+
     if (this.attachedComponents) {
       this.attachedComponents.forEach((component) => {
         component.didUpdateStyles()
@@ -45,6 +48,9 @@ class TextEditorComponent {
   }
 
   static didUpdateScrollbarStyles () {
+    if (this.scrollbarStylesUpdateCount == null) this.scrollbarStylesUpdateCount = 0
+    this.scrollbarStylesUpdateCount++
+
     if (this.attachedComponents) {
       this.attachedComponents.forEach((component) => {
         component.didUpdateScrollbarStyles()
@@ -70,6 +76,8 @@ class TextEditorComponent {
     this.virtualNode = $('atom-text-editor')
     this.virtualNode.domNode = this.element
     this.refs = {}
+    this.stylesUpdateCount = this.constructor.stylesUpdateCount || 0
+    this.scrollbarStylesUpdateCount = this.constructor.scrollbarStylesUpdateCount || 0
 
     this.updateSync = this.updateSync.bind(this)
     this.didBlurHiddenInput = this.didBlurHiddenInput.bind(this)
@@ -1406,6 +1414,13 @@ class TextEditorComponent {
 
       this.overlayComponents.forEach((component) => component.didAttach())
 
+      if (this.stylesUpdateCount < this.constructor.stylesUpdateCount) {
+        this.didUpdateStyles()
+      }
+      if (this.scrollbarStylesUpdateCount < this.constructor.scrollbarStylesUpdateCount) {
+        this.didUpdateScrollbarStyles()
+      }
+
       if (this.isVisible()) {
         this.didShow()
 
@@ -1577,12 +1592,14 @@ class TextEditorComponent {
   }
 
   didUpdateStyles () {
+    this.stylesUpdateCount = this.constructor.stylesUpdateCount
     this.remeasureCharacterDimensions = true
     this.horizontalPixelPositionsByScreenLineId.clear()
     this.scheduleUpdate()
   }
 
   didUpdateScrollbarStyles () {
+    this.scrollbarStylesUpdateCount = this.constructor.scrollbarStylesUpdateCount
     if (!this.props.model.isMini()) {
       this.remeasureScrollbars = true
       this.scheduleUpdate()
