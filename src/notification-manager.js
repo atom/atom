@@ -208,7 +208,7 @@ class NotificationManager {
   /*
   Section: Managing Notifications
   */
-  
+
   // Public: Clear all the notifications.
   clear () {
     this.notifications = []
