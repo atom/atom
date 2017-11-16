@@ -107,7 +107,6 @@ module.exports = class ConfigStorage {
     }
 
     this.isLoading = true
-    console.log('will load', callback)
 
     CSON.readFile(this.configFilePath, (err, userConfig) => {
       const loadErrorMessage = `Failed to load \`${path.basename(this.configFilePath)}\``
@@ -123,7 +122,6 @@ module.exports = class ConfigStorage {
           this.isLoading = false
           callback(error, false)
         } else {
-          console.log('loaded', userConfig)
           this.config.applyUserSettings(userConfig)
           this.configFileHasErrors = false
           this.isLoading = false
@@ -198,12 +196,8 @@ module.exports = class ConfigStorage {
   }
 
   actualSave (callback) {
+    console.log('actualSave', callback)
     const pendingOperationsCount = this.applyOperations(this.pendingOperations)
-    console.log('saving', this.pendingOperations.slice(0, pendingOperationsCount))
-    if (pendingOperationsCount === 0) {
-      callback(null, false)
-      return
-    }
 
     let allSettings = {'*': this.config.settings}
     allSettings = Object.assign(allSettings, this.config.scopedSettingsStore.propertiesForSource(this.getUserConfigPath()))
@@ -211,6 +205,7 @@ module.exports = class ConfigStorage {
 
     CSON.writeFile(this.configFilePath, allSettings, (error) => {
       if (error) {
+        console.log('erroring', error)
         this.notifyFailure(`Failed to save \`${path.basename(this.configFilePath)}\``, error.message)
         callback(error, false)
       } else {

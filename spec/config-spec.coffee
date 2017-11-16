@@ -25,9 +25,10 @@ fdescribe "Config", ->
       default: path.join(fs.getHomeDirectory(), 'github'),
       description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
     }
-    @configStorage = new ConfigStorage({@config, configDirPath: dotAtomPath, resourcePath})
+    @configStorage = new ConfigStorage({@config, configDirPath: dotAtomPath, resourcePath, notificationManager: atom.notifications})
     @config.initialize({configFilePath: @configStorage.getUserConfigPath(), projectHomeSchema: ConfigSchema.projectHome})
-    spyOn(@configStorage, 'lockedSave')
+    spyOn(@configStorage, 'actualSave').andCallThrough()
+    spyOn(@configStorage, 'lockedSave').andCallThrough()
 
     waitsForPromise =>
       @configStorage.start()
@@ -376,8 +377,7 @@ fdescribe "Config", ->
         expect(@config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
         advanceClock(250)
 
-        waitsFor ->
-          saveCount is 1
+        waitsFor -> saveCount is 1
 
         runs ->
           expect(CSON.writeFile).toHaveBeenCalled()
@@ -396,8 +396,7 @@ fdescribe "Config", ->
           console.log('after unset', @config.scopedSettingsStore.propertySets)
           advanceClock(250)
 
-        waitsFor ->
-          saveCount is 2
+        waitsFor -> saveCount is 2
 
         runs ->
           console.log('after save', @config.scopedSettingsStore.propertySets)
@@ -414,10 +413,10 @@ fdescribe "Config", ->
           CSON.writeFile.reset()
           advanceClock(250)
 
-        waitsFor ->
-          saveCount is 3
+        waitsFor -> saveCount is 3
 
         runs ->
+          console.log('block 4')
           expect(CSON.writeFile).toHaveBeenCalled()
           properties = CSON.writeFile.mostRecentCall.args[1]
           console.log(properties)
@@ -429,7 +428,7 @@ fdescribe "Config", ->
         @configStorage.lockedSave.reset()
 
         @config.unset('foo.bar.ok', scopeSelector: '.source.coffee')
-        expect(@configStorage.lockedSave).not.toHaveBeenCalled()
+        expect(@configStorage.actualSave).not.toHaveBeenCalled()
         expect(@config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
 
   describe ".onDidChange(keyPath, {scope})", ->
@@ -444,7 +443,7 @@ fdescribe "Config", ->
       it "does not fire the given callback with the current value at the keypath", ->
         expect(observeHandler).not.toHaveBeenCalled()
 
-      ffit "fires the callback every time the observed value changes", ->
+      it "fires the callback every time the observed value changes", ->
         @config.set('foo.bar.baz', "value 2")
         expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 2', oldValue: 'value 1'})
         observeHandler.reset()
@@ -538,8 +537,13 @@ fdescribe "Config", ->
       advanceClock(100) # complete pending save that was requested in ::set
 
       observeHandler.reset()
-      @config.loadUserConfig()
-      expect(observeHandler).toHaveBeenCalledWith(undefined)
+
+      isLoaded = false
+      @configStorage.load(() => isLoaded = true)
+      waitsFor -> isLoaded
+
+      runs ->
+        expect(observeHandler).toHaveBeenCalledWith(undefined)
 
     it "fires the callback when the observed value is deleted", ->
       observeHandler.reset() # clear the initial call
@@ -622,7 +626,7 @@ fdescribe "Config", ->
       @config.onDidChange("foo.bar.baz", changeSpy)
 
     it "allows only one change event for the duration of the given callback", ->
-      @config.transact ->
+      @config.transact =>
         @config.set("foo.bar.baz", 1)
         @config.set("foo.bar.baz", 2)
         @config.set("foo.bar.baz", 3)
@@ -632,7 +636,7 @@ fdescribe "Config", ->
 
     it "does not emit an event if no changes occur while paused", ->
       @config.transact ->
-      expect(changeSpy).not.toHaveBeenCalled()
+        expect(changeSpy).not.toHaveBeenCalled()
 
   describe ".transactAsync(callback)", ->
     changeSpy = null
@@ -643,7 +647,7 @@ fdescribe "Config", ->
 
     it "allows only one change event for the duration of the given promise if it gets resolved", ->
       promiseResult = null
-      transactionPromise = @config.transactAsync ->
+      transactionPromise = @config.transactAsync =>
         @config.set("foo.bar.baz", 1)
         @config.set("foo.bar.baz", 2)
         @config.set("foo.bar.baz", 3)
@@ -658,7 +662,7 @@ fdescribe "Config", ->
 
     it "allows only one change event for the duration of the given promise if it gets rejected", ->
       promiseError = null
-      transactionPromise = @config.transactAsync ->
+      transactionPromise = @config.transactAsync =>
         @config.set("foo.bar.baz", 1)
         @config.set("foo.bar.baz", 2)
         @config.set("foo.bar.baz", 3)
@@ -674,7 +678,7 @@ fdescribe "Config", ->
     it "allows only one change event even when the given callback throws", ->
       error = new Error("Oops!")
       promiseError = null
-      transactionPromise = @config.transactAsync ->
+      transactionPromise = @config.transactAsync =>
         @config.set("foo.bar.baz", 1)
         @config.set("foo.bar.baz", 2)
         @config.set("foo.bar.baz", 3)
@@ -703,12 +707,12 @@ fdescribe "Config", ->
       ])
 
   describe "Internal Methods", ->
-    describe ".save()", ->
+    describe ".actualSave()", ->
       CSON = require 'season'
 
       beforeEach ->
-        spyOn(CSON, 'writeFileSync')
-        jasmine.unspy @config, 'save'
+        spyOn(CSON, 'writeFile')
+        jasmine.unspy @configStorage, 'actualSave'
 
       describe "when ~/.atom/config.json exists", ->
         it "writes any non-default properties to ~/.atom/config.json", ->
@@ -717,11 +721,11 @@ fdescribe "Config", ->
           @config.set("x.y.z", 3)
           @config.setDefaults("a.b", e: 4, f: 5)
 
-          CSON.writeFileSync.reset()
-          @config.save()
+          CSON.writeFile.reset()
+          @configStorage.actualSave()
 
-          expect(CSON.writeFileSync.argsForCall[0][0]).toBe @config.configFilePath
-          writtenConfig = CSON.writeFileSync.argsForCall[0][1]
+          expect(CSON.writeFile.argsForCall[0][0]).toBe @config.configFilePath
+          writtenConfig = CSON.writeFile.argsForCall[0][1]
           expect(writtenConfig).toEqual '*': @config.settings
 
         it 'writes properties in alphabetical order', ->
@@ -730,11 +734,11 @@ fdescribe "Config", ->
           @config.set('baz.foo', 3)
           @config.set('baz.bar', 4)
 
-          CSON.writeFileSync.reset()
-          @config.save()
+          CSON.writeFile.reset()
+          @configStorage.actualSave()
 
-          expect(CSON.writeFileSync.argsForCall[0][0]).toBe @config.configFilePath
-          writtenConfig = CSON.writeFileSync.argsForCall[0][1]
+          expect(CSON.writeFile.argsForCall[0][0]).toBe @config.configFilePath
+          writtenConfig = CSON.writeFile.argsForCall[0][1]
           expect(writtenConfig).toEqual '*': @config.settings
 
           expectedKeys = ['bar', 'baz', 'foo']
@@ -751,11 +755,11 @@ fdescribe "Config", ->
           @config.set("x.y.z", 3)
           @config.setDefaults("a.b", e: 4, f: 5)
 
-          CSON.writeFileSync.reset()
-          @config.save()
+          CSON.writeFile.reset()
+          @configStorage.actualSave()
 
-          expect(CSON.writeFileSync.argsForCall[0][0]).toBe path.join(@config.configDirPath, "@config.cson")
-          writtenConfig = CSON.writeFileSync.argsForCall[0][1]
+          expect(CSON.writeFile.argsForCall[0][0]).toBe path.join(@configStorage.configDirPath, "config.cson")
+          writtenConfig = CSON.writeFile.argsForCall[0][1]
           expect(writtenConfig).toEqual '*': @config.settings
 
       describe "when scoped settings are defined", ->
@@ -764,10 +768,10 @@ fdescribe "Config", ->
           @config.set('foo.omg', 'wow', scopeSelector: '.source.ruby')
           @config.set('foo.bar', 'coffee', scopeSelector: '.source.coffee')
 
-          CSON.writeFileSync.reset()
-          @config.save()
+          CSON.writeFile.reset()
+          @configStorage.actualSave()
 
-          writtenConfig = CSON.writeFileSync.argsForCall[0][1]
+          writtenConfig = CSON.writeFile.argsForCall[0][1]
           expect(writtenConfig).toEqualJson
             '*':
               @config.settings
@@ -782,23 +786,27 @@ fdescribe "Config", ->
       describe "when an error is thrown writing the file to disk", ->
         addErrorHandler = null
         beforeEach ->
-          atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy()
+          addErrorHandler = jasmine.createSpy()
+          atom.notifications.onDidAddNotification () => console.log('NOTIFIED')
+          atom.notifications.onDidAddNotification addErrorHandler
 
         it "creates a notification", ->
-          jasmine.unspy CSON, 'writeFileSync'
-          spyOn(CSON, 'writeFileSync').andCallFake ->
+          jasmine.unspy CSON, 'writeFile'
+          spyOn(CSON, 'writeFile').andCallFake =>
             error = new Error()
             error.code = 'EPERM'
             error.path = @config.getUserConfigPath()
-            throw error
+            Array.from(arguments).find((a) -> typeof a is 'function')(error)
 
-          save = -> @config.save()
+          isSaved = false
+          save = => @configStorage.actualSave(() => isSaved = true)
           expect(save).not.toThrow()
-          expect(addErrorHandler.callCount).toBe 1
+          waitsFor -> isSaved
+          runs ->
+            expect(addErrorHandler.callCount).toBe 1
 
-    describe ".loadUserConfig()", ->
+    describe ".load()", ->
       beforeEach ->
-        expect(fs.existsSync(@config.configDirPath)).toBeFalsy()
         @config.setSchema 'foo',
           type: 'object'
           properties:
@@ -823,7 +831,10 @@ fdescribe "Config", ->
               foo:
                 bar: 'more-specific'
           """
-          @config.loadUserConfig()
+
+          isLoaded = false
+          @configStorage.load(() => isLoaded = true)
+          waitsFor -> isLoaded
 
         it "updates the config data based on the file contents", ->
           expect(@config.get("foo.bar")).toBe 'baz'
@@ -843,27 +854,38 @@ fdescribe "Config", ->
           """
 
         it "validates and does not load the incorrect values", ->
-          @config.loadUserConfig()
-          expect(@config.get("foo.int")).toBe 12
-          expect(@config.get("foo.bar")).toBe 'omg'
-          expect(@config.get("foo.int", scope: ['.source.ruby'])).toBe 12
-          expect(@config.get("foo.bar", scope: ['.source.ruby'])).toBe 'scoped'
+          isLoaded = false
+          @configStorage.load(() => isLoaded = true)
+          waitsFor -> isLoaded
+
+          runs ->
+            expect(@config.get("foo.int")).toBe 12
+            expect(@config.get("foo.bar")).toBe 'omg'
+            expect(@config.get("foo.int", scope: ['.source.ruby'])).toBe 12
+            expect(@config.get("foo.bar", scope: ['.source.ruby'])).toBe 'scoped'
 
       describe "when the config file contains valid cson", ->
         beforeEach ->
           fs.writeFileSync(@config.configFilePath, "foo: bar: 'baz'")
 
         it "updates the config data based on the file contents", ->
-          @config.loadUserConfig()
-          expect(@config.get("foo.bar")).toBe 'baz'
+          isLoaded = false
+          @configStorage.load(() => isLoaded = true)
+          waitsFor -> isLoaded
+
+          runs ->
+            expect(@config.get("foo.bar")).toBe 'baz'
 
         it "notifies observers for updated keypaths on load", ->
           observeHandler = jasmine.createSpy("observeHandler")
           observeSubscription = @config.observe "foo.bar", observeHandler
 
-          @config.loadUserConfig()
+          isLoaded = false
+          @configStorage.load(() => isLoaded = true)
+          waitsFor -> isLoaded
 
-          expect(observeHandler).toHaveBeenCalledWith 'baz'
+          runs ->
+            expect(observeHandler).toHaveBeenCalledWith 'baz'
 
       describe "when the config file contains invalid cson", ->
         addErrorHandler = null
@@ -872,17 +894,25 @@ fdescribe "Config", ->
           fs.writeFileSync(@config.configFilePath, "{{{{{")
 
         it "logs an error to the console and does not overwrite the config file on a subsequent save", ->
-          @config.loadUserConfig()
-          expect(addErrorHandler.callCount).toBe 1
-          @config.set("hair", "blonde") # trigger a save
-          expect(@config.save).not.toHaveBeenCalled()
+          isLoaded = false
+          @configStorage.load(() => isLoaded = true)
+          waitsFor -> isLoaded
+
+          runs ->
+            expect(addErrorHandler.callCount).toBe 1
+            @config.set("hair", "blonde") # trigger a save
+            expect(@configStorage.actualSave).not.toHaveBeenCalled()
 
       describe "when the config file does not exist", ->
         it "creates it with an empty object", ->
-          fs.makeTreeSync(@config.configDirPath)
-          @config.loadUserConfig()
-          expect(fs.existsSync(@config.configFilePath)).toBe true
-          expect(CSON.readFileSync(@config.configFilePath)).toEqual {}
+          fs.makeTreeSync(@configStorage.configDirPath)
+          isLoaded = false
+          @configStorage.load(() => isLoaded = true)
+          waitsFor -> isLoaded
+
+          runs ->
+            expect(fs.existsSync(@config.configFilePath)).toBe true
+            expect(CSON.readFileSync(@config.configFilePath)).toEqual {}
 
       describe "when the config file contains values that do not adhere to the schema", ->
         beforeEach ->
@@ -891,7 +921,10 @@ fdescribe "Config", ->
               bar: 'baz'
               int: 'bad value'
           """
-          @config.loadUserConfig()
+
+          isLoaded = false
+          @configStorage.load(() => isLoaded = true)
+          waitsFor -> isLoaded
 
         it "updates the only the settings that have values matching the schema", ->
           expect(@config.get("foo.bar")).toBe 'baz'
@@ -905,15 +938,24 @@ fdescribe "Config", ->
           fs.writeFileSync @config.configFilePath, "'*': foo: bar: 'baz'"
 
           @config.set("foo.bar", "quux")
-          @config.loadUserConfig()
-          expect(@config.get("foo.bar")).toBe "quux"
+          isLoaded = false
+          @configStorage.load(() => isLoaded = true)
+          waitsFor -> isLoaded
 
-          advanceClock(100)
-          expect(@config.save.callCount).toBe 1
+          runs ->
+            expect(@config.get("foo.bar")).toBe "quux"
 
-          expect(@config.get("foo.bar")).toBe "quux"
-          @config.loadUserConfig()
-          expect(@config.get("foo.bar")).toBe "baz"
+            advanceClock(100)
+            expect(@configStorage.actualSave.callCount).toBe 1
+            expect(@config.get("foo.bar")).toBe "quux"
+
+            isLoaded = false
+            @configStorage.load(() => isLoaded = true)
+
+          waitsFor -> isLoaded
+
+          runs ->
+            expect(@config.get("foo.bar")).toBe "baz"
 
       describe "when the config file fails to load", ->
         addErrorHandler = null
@@ -932,7 +974,7 @@ fdescribe "Config", ->
 
           @config.set("foo.bar", "baz")
           advanceClock(100)
-          expect(@config.save).not.toHaveBeenCalled()
+          expect(@configStorage.actualSave).not.toHaveBeenCalled()
           expect(@config.get("foo.bar")).toBe "baz"
 
     describe ".observeUserConfig()", ->
@@ -961,7 +1003,7 @@ fdescribe "Config", ->
               type: 'integer'
               default: 12
 
-        expect(fs.existsSync(@config.configDirPath)).toBeFalsy()
+        expect(fs.existsSync(@configStorage.configDirPath)).toBeFalsy()
         writeConfigFile """
           '*':
             foo:
@@ -971,7 +1013,10 @@ fdescribe "Config", ->
             foo:
               scoped: true
         """
-        @config.loadUserConfig()
+
+        isLoaded = false
+        @configStorage.load(() => isLoaded = true)
+        waitsFor -> isLoaded
 
         waitsForPromise -> @config.observeUserConfig()
 
@@ -980,7 +1025,7 @@ fdescribe "Config", ->
           @config.onDidChange updatedHandler
 
       afterEach ->
-        @config.unobserveUserConfig()
+        #@configStorage.stop()
         fs.removeSync(dotAtomPath)
 
       describe "when the config file changes to contain valid cson", ->
@@ -1082,7 +1127,7 @@ fdescribe "Config", ->
           expect(updatedHandler.callCount).toBe 1
           expect(@config.get('foo.bar')).toBe 'def'
           @config.set("hair", "blonde") # trigger a save
-          waitsFor 'save', -> @config.save.callCount > 0
+          waitsFor 'save', -> @configStorage.actualSave.callCount > 0
 
         describe "when the config file subsequently changes again to contain configuration", ->
           beforeEach ->
@@ -1105,7 +1150,7 @@ fdescribe "Config", ->
           expect(@config.get('foo.bar')).toBe 'baz'
 
           @config.set("hair", "blonde") # trigger a save
-          expect(@config.save).not.toHaveBeenCalled()
+          expect(@configStorae.actualSave).not.toHaveBeenCalled()
 
         describe "when the config file subsequently changes again to contain valid cson", ->
           beforeEach ->
@@ -1115,14 +1160,14 @@ fdescribe "Config", ->
 
           it "updates the config data and resumes saving", ->
             @config.set("hair", "blonde")
-            waitsFor 'save', -> @config.save.callCount > 0
+            waitsFor 'save', -> @configStorage.actualSave.callCount > 0
 
     describe ".initializeConfigDirectory()", ->
       beforeEach ->
         if fs.existsSync(dotAtomPath)
           fs.removeSync(dotAtomPath)
 
-        @config.configDirPath = dotAtomPath
+        @configStorage.configDirPath = dotAtomPath
 
       afterEach ->
         fs.removeSync(dotAtomPath)
@@ -1138,11 +1183,11 @@ fdescribe "Config", ->
           waitsFor -> initializationDone
 
           runs ->
-            expect(fs.existsSync(@config.configDirPath)).toBeTruthy()
-            expect(fs.existsSync(path.join(@config.configDirPath, 'packages'))).toBeTruthy()
-            expect(fs.isFileSync(path.join(@config.configDirPath, 'snippets.cson'))).toBeTruthy()
-            expect(fs.isFileSync(path.join(@config.configDirPath, 'init.coffee'))).toBeTruthy()
-            expect(fs.isFileSync(path.join(@config.configDirPath, 'styles.less'))).toBeTruthy()
+            expect(fs.existsSync(@configStorage.configDirPath)).toBeTruthy()
+            expect(fs.existsSync(path.join(@configStorage.configDirPath, 'packages'))).toBeTruthy()
+            expect(fs.isFileSync(path.join(@configStorage.configDirPath, 'snippets.cson'))).toBeTruthy()
+            expect(fs.isFileSync(path.join(@configStorage.configDirPath, 'init.coffee'))).toBeTruthy()
+            expect(fs.isFileSync(path.join(@configStorage.configDirPath, 'styles.less'))).toBeTruthy()
 
     describe ".pushAtKeyPath(keyPath, value)", ->
       it "pushes the given value to the array at the key path and updates observers", ->
@@ -1792,7 +1837,7 @@ fdescribe "Config", ->
           expect(@config.set('foo.bar.str_options', 'One')).toBe false
           expect(@config.get('foo.bar.str_options')).toEqual 'two'
 
-  describe "when .set/.unset is called prior to .loadUserConfig", ->
+  describe "when .set/.unset is called prior to .load", ->
     beforeEach ->
       @config.settingsLoaded = false
       fs.writeFileSync @config.configFilePath, """
@@ -1812,12 +1857,14 @@ fdescribe "Config", ->
       expect(@config.get('do.ray')).toBeUndefined()
 
       advanceClock 100
-      expect(@config.save).not.toHaveBeenCalled()
+      expect(@configStorage.actualSave).not.toHaveBeenCalled()
 
-      @config.loadUserConfig()
+      isLoaded = false
+      @configStorage.load(() => isLoaded = true)
+      waitsFor -> isLoaded
 
-      advanceClock 100
-      waitsFor -> @config.save.callCount > 0
+      runs -> advanceClock 100
+      waitsFor -> @configStorage.actualSave.callCount > 0
 
       runs ->
         expect(@config.get('foo.bar')).toBeUndefined()
