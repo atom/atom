@@ -5,9 +5,10 @@ var crypto = require('crypto')
 var path = require('path')
 
 var defaultOptions = {
-  target: 1,
+  target: 1, // ES3 = 0, ES5 = 1, ES2015 = 2, ES2016 = 3, ES2017 = 4, ...
   module: 'commonjs',
-  sourceMap: true
+  sourceMap: true,
+  jsx: 2 // None = 0, Preserve = 1, React = 2, ReactNative = 3
 }
 
 var TypeScriptSimple = null
