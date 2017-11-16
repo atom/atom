@@ -10,12 +10,9 @@ const {Point, Range} = require('text-buffer')
 const GRAMMAR_SELECTION_RANGE = Range(Point.ZERO, Point(10, 0)).freeze()
 const PATH_SPLIT_REGEX = new RegExp('[/.]')
 
-// Extended: Syntax class holding the grammars used for tokenizing.
+// Extended: This class holds the grammars used for tokenizing.
 //
 // An instance of this class is always available as the `atom.grammars` global.
-//
-// The Syntax class also contains properties for things such as the
-// language-specific comment regexes. See {::getProperty} for more details.
 module.exports =
 class GrammarRegistry extends FirstMate.GrammarRegistry {
   constructor ({config} = {}) {
