@@ -1,4 +1,4 @@
-fdescribe "TypeScript transpiler support", ->
+describe "TypeScript transpiler support", ->
   describe "when there is a .ts file", ->
     it "transpiles it using typescript", ->
       transpiled = require('./fixtures/typescript/valid.ts')
