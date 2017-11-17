@@ -24,7 +24,7 @@ class CommandInstaller {
       this.applicationDelegate.confirm({
         message: 'Failed to install shell commands',
         detailedMessage: error.message
-      })
+      }, () => {})
     }
 
     this.installAtomCommand(true, error => {
@@ -34,7 +34,7 @@ class CommandInstaller {
         this.applicationDelegate.confirm({
           message: 'Commands installed.',
           detailedMessage: 'The shell commands `atom` and `apm` are installed.'
-        })
+        }, () => {})
       })
     })
   }
