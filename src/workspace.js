@@ -1990,25 +1990,22 @@ module.exports = class Workspace extends Model {
 
   checkoutHeadRevision (editor) {
     if (editor.getPath()) {
-      const checkoutHead = () => {
-        return this.project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
-          .then(repository => repository && repository.checkoutHeadForEditor(editor))
+      const checkoutHead = async () => {
+        const repository = await this.project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
+        if (repository) repository.checkoutHeadForEditor(editor)
       }
 
       if (this.config.get('editor.confirmCheckoutHeadRevision')) {
         this.applicationDelegate.confirm({
           message: 'Confirm Checkout HEAD Revision',
           detailedMessage: `Are you sure you want to discard all changes to "${editor.getFileName()}" since the last Git commit?`,
-          buttons: {
-            OK: checkoutHead,
-            Cancel: null
-          }
+          buttons: ['OK', 'Cancel']
+        }, response => {
+          if (response === 0) checkoutHead()
         })
       } else {
-        return checkoutHead()
+        checkoutHead()
       }
-    } else {
-      return Promise.resolve(false)
     }
   }
 }
