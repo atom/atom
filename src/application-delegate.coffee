@@ -130,26 +130,36 @@ class ApplicationDelegate
   getUserDefault: (key, type) ->
     remote.systemPreferences.getUserDefault(key, type)
 
-  confirm: ({message, detailedMessage, buttons}) ->
-    buttons ?= {}
-    if Array.isArray(buttons)
-      buttonLabels = buttons
+  confirm: ({message, detailedMessage, buttons}, callback) ->
+    if typeof callback is 'function'
+      # Async version: buttons is required to be an array
+      remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+        type: 'info'
+        message: message
+        detail: detailedMessage
+        buttons: buttons
+        normalizeAccessKeys: true
+      }, callback)
     else
-      buttonLabels = Object.keys(buttons)
+      buttons ?= {}
+      if Array.isArray(buttons)
+        buttonLabels = buttons
+      else
+        buttonLabels = Object.keys(buttons)
 
-    chosen = remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-      type: 'info'
-      message: message
-      detail: detailedMessage
-      buttons: buttonLabels
-      normalizeAccessKeys: true
-    })
+      chosen = remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+        type: 'info'
+        message: message
+        detail: detailedMessage
+        buttons: buttonLabels
+        normalizeAccessKeys: true
+      })
 
-    if Array.isArray(buttons)
-      chosen
-    else
-      callback = buttons[buttonLabels[chosen]]
-      callback?()
+      if Array.isArray(buttons)
+        chosen
+      else
+        callback = buttons[buttonLabels[chosen]]
+        callback?()
 
   showMessageDialog: (params) ->
 
