@@ -1756,25 +1756,20 @@ class TextEditorComponent {
       }
     }
 
-    // On Linux, position the cursor on middle mouse button click. A
-    // textInput event with the contents of the selection clipboard will be
-    // dispatched by the browser automatically on mouseup.
-    if (platform === 'linux' && button === 1) {
-      const selection = clipboard.readText('selection')
-      const screenPosition = this.screenPositionForMouseEvent(event)
+    const screenPosition = this.screenPositionForMouseEvent(event)
+
+    // All clicks should set the cursor position, but only left-clicks should
+    // have additional logic.
+    // On macOS, ctrl-click brings up the context menu so also handle that case.
+    if (button !== 0 || (platform === 'darwin' && ctrlKey)) {
       model.setCursorScreenPosition(screenPosition, {autoscroll: false})
-      model.insertText(selection)
+
+      // On Linux, pasting happens on middle click. A textInput event with the
+      // contents of the selection clipboard will be dispatched by the browser
+      // automatically on mouseup.
+      if (platform === 'linux' && button === 1) model.insertText(clipboard.readText('selection'))
       return
     }
-
-    // Only handle mousedown events for left mouse button (or the middle mouse
-    // button on Linux where it pastes the selection clipboard).
-    if (button !== 0) return
-
-    // Ctrl-click brings up the context menu on macOS
-    if (platform === 'darwin' && ctrlKey) return
-
-    const screenPosition = this.screenPositionForMouseEvent(event)
 
     if (target && target.matches('.fold-marker')) {
       const bufferPosition = model.bufferPositionForScreenPosition(screenPosition)
@@ -1782,7 +1777,7 @@ class TextEditorComponent {
       return
     }
 
-    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
+    const addOrRemoveSelection = metaKey || ctrlKey
 
     switch (detail) {
       case 1:
