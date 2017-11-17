@@ -53,7 +53,6 @@
     "mocha-junit-reporter": "^1.13.0",
     "mocha-multi-reporters": "^1.1.4",
     "mock-spawn": "^0.2.6",
-    "nan": "2.7.0",
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
     "oniguruma": "6.2.1",
