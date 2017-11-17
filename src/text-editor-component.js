@@ -170,7 +170,7 @@ class TextEditorComponent {
     this.textDecorationBoundaries = []
     this.pendingScrollTopRow = this.props.initialScrollTopRow
     this.pendingScrollLeftColumn = this.props.initialScrollLeftColumn
-    this.tabIndex = this.props.element && this.props.element.tabIndex ? this.props.element.tabIndex : -1;
+    this.tabIndex = this.props.element && this.props.element.tabIndex ? this.props.element.tabIndex : -1
 
     this.measuredContent = false
     this.queryGuttersToRender()
