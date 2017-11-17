@@ -911,29 +911,58 @@ class AtomEnvironment {
 
   // Essential: A flexible way to open a dialog akin to an alert dialog.
   //
+  // While both async and sync versions are provided, it is recommended to use the async version
+  // such that the renderer process is not blocked while the dialog box is open.
+  //
   // If the dialog is closed (via `Esc` key or `X` in the top corner) without selecting a button
   // the first button will be clicked unless a "Cancel" or "No" button is provided.
   //
   // ## Examples
   //
-  // ```coffee
-  // atom.confirm
-  //   message: 'How you feeling?'
-  //   detailedMessage: 'Be honest.'
-  //   buttons:
-  //     Good: -> window.alert('good to hear')
-  //     Bad: -> window.alert('bummer')
+  // ```js
+  // // Async version (recommended)
+  // atom.confirm({
+  //   message: 'How you feeling?',
+  //   detailedMessage: 'Be honest.',
+  //   buttons: ['Good', 'Bad']
+  // }, response => {
+  //   if (response === 0) {
+  //     window.alert('good to hear')
+  //   } else {
+  //     window.alert('bummer')
+  //   }
+  // })
+  //
+  // ```js
+  // // Sync version
+  // const chosen = atom.confirm({
+  //   message: 'How you feeling?',
+  //   detailedMessage: 'Be honest.',
+  //   buttons: {
+  //     Good: () => window.alert('good to hear'),
+  //     Bad: () => window.alert('bummer')
+  //   }
+  // })
   // ```
   //
   // * `options` An {Object} with the following keys:
   //   * `message` The {String} message to display.
   //   * `detailedMessage` (optional) The {String} detailed message to display.
-  //   * `buttons` (optional) Either an array of strings or an object where keys are
-  //     button names and the values are callbacks to invoke when clicked.
+  //   * `buttons` (optional) Either an {Array} of {String}s or an {Object} where keys are
+  //     button names and the values are callback {Function}s to invoke when clicked.
+  // * `callback` (optional) A {Function} that will be called with the index of the chosen option.
+  //   If a callback is supplied, `buttons` (if supplied) must be an {Array},
+  //   and the renderer process will not be paused while the dialog box is open.
   //
-  // Returns the chosen button index {Number} if the buttons option is an array or the return value of the callback if the buttons option is an object.
-  confirm (params = {}) {
-    return this.applicationDelegate.confirm(params)
+  // Returns the chosen button index {Number} if the buttons option is an array
+  // or the return value of the callback if the buttons option is an object.
+  confirm (params = {}, callback) {
+    if (callback) {
+      // Async: no return value
+      this.applicationDelegate.confirm(params, callback)
+    } else {
+      return this.applicationDelegate.confirm(params)
+    }
   }
 
   /*
