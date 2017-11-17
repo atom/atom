@@ -131,7 +131,7 @@ class ApplicationDelegate
     remote.systemPreferences.getUserDefault(key, type)
 
   confirm: ({message, detailedMessage, buttons}, callback) ->
-    if typeof callback is 'function'
+    if callback?
       # Async version: buttons is required to be an array
       remote.dialog.showMessageBox(remote.getCurrentWindow(), {
         type: 'info'
