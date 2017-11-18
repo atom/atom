@@ -1056,7 +1056,7 @@ class AtomEnvironment {
     }
   }
 
-  attemptRestoreProjectStateForPaths (state, projectPaths, filesToOpen = []) {
+  async attemptRestoreProjectStateForPaths (state, projectPaths, filesToOpen = []) {
     const center = this.workspace.getCenter()
     const windowIsUnused = () => {
       for (let container of this.workspace.getPaneContainers()) {
@@ -1075,30 +1075,38 @@ class AtomEnvironment {
       this.restoreStateIntoThisEnvironment(state)
       return Promise.all(filesToOpen.map(file => this.workspace.open(file)))
     } else {
+      let resolveDiscardStatePromise = null
+      const discardStatePromise = new Promise((resolve) => {
+        resolveDiscardStatePromise = resolve
+      })
       const nouns = projectPaths.length === 1 ? 'folder' : 'folders'
-      const choice = this.confirm({
+      this.confirm({
         message: 'Previous automatically-saved project state detected',
-        detailedMessage: `There is previously saved state for the selected ${nouns}. ` +
+        detail: `There is previously saved state for the selected ${nouns}. ` +
           `Would you like to add the ${nouns} to this window, permanently discarding the saved state, ` +
           `or open the ${nouns} in a new window, restoring the saved state?`,
         buttons: [
           '&Open in new window and recover state',
           '&Add to this window and discard state'
-        ]})
-      if (choice === 0) {
-        this.open({
-          pathsToOpen: projectPaths.concat(filesToOpen),
-          newWindow: true,
-          devMode: this.inDevMode(),
-          safeMode: this.inSafeMode()
-        })
-        return Promise.resolve(null)
-      } else if (choice === 1) {
-        for (let selectedPath of projectPaths) {
-          this.project.addPath(selectedPath)
+        ]}, response => {
+          if (choice === 0) {
+            this.open({
+              pathsToOpen: projectPaths.concat(filesToOpen),
+              newWindow: true,
+              devMode: this.inDevMode(),
+              safeMode: this.inSafeMode()
+            })
+            resolveDiscardStatePromise(Promise.resolve(null))
+          } else if (choice === 1) {
+            for (let selectedPath of projectPaths) {
+              this.project.addPath(selectedPath)
+            }
+            resolveDiscardStatePromise(Promise.all(filesToOpen.map(file => this.workspace.open(file))))
+          }
         }
-        return Promise.all(filesToOpen.map(file => this.workspace.open(file)))
-      }
+      )
+
+      return discardStatePromise
     }
   }
 
