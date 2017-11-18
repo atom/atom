@@ -481,16 +481,16 @@ Please open an issue on `atom/atom` if you have suggestions for new labels, and 
 [search-atom-org-label-deprecation-help]: https://github.com/search?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Adeprecation-help
 [search-atom-repo-label-electron]: https://github.com/search?q=is%3Aissue+repo%3Aatom%2Fatom+is%3Aopen+label%3Aelectron
 [search-atom-org-label-electron]: https://github.com/search?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Aelectron
-[search-atom-repo-label-work-in-progress]: https://github.com/pulls?q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+label%3Awork-in-progress
-[search-atom-org-label-work-in-progress]: https://github.com/pulls?q=is%3Aopen+is%3Apr+user%3Aatom+label%3Awork-in-progress
-[search-atom-repo-label-needs-review]: https://github.com/pulls?q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+label%3Aneeds-review
-[search-atom-org-label-needs-review]: https://github.com/pulls?q=is%3Aopen+is%3Apr+user%3Aatom+label%3Aneeds-review
-[search-atom-repo-label-under-review]: https://github.com/pulls?q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+label%3Aunder-review
-[search-atom-org-label-under-review]: https://github.com/pulls?q=is%3Aopen+is%3Apr+user%3Aatom+label%3Aunder-review
-[search-atom-repo-label-requires-changes]: https://github.com/pulls?q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+label%3Arequires-changes
-[search-atom-org-label-requires-changes]: https://github.com/pulls?q=is%3Aopen+is%3Apr+user%3Aatom+label%3Arequires-changes
-[search-atom-repo-label-needs-testing]: https://github.com/pulls?q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+label%3Aneeds-testing
-[search-atom-org-label-needs-testing]: https://github.com/pulls?q=is%3Aopen+is%3Apr+user%3Aatom+label%3Aneeds-testing
+[search-atom-repo-label-work-in-progress]: https://github.com/search?q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+label%3Awork-in-progress
+[search-atom-org-label-work-in-progress]: https://github.com/search?q=is%3Aopen+is%3Apr+user%3Aatom+label%3Awork-in-progress
+[search-atom-repo-label-needs-review]: https://github.com/search?q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+label%3Aneeds-review
+[search-atom-org-label-needs-review]: https://github.com/search?q=is%3Aopen+is%3Apr+user%3Aatom+label%3Aneeds-review
+[search-atom-repo-label-under-review]: https://github.com/search?q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+label%3Aunder-review
+[search-atom-org-label-under-review]: https://github.com/search?q=is%3Aopen+is%3Apr+user%3Aatom+label%3Aunder-review
+[search-atom-repo-label-requires-changes]: https://github.com/search?q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+label%3Arequires-changes
+[search-atom-org-label-requires-changes]: https://github.com/search?q=is%3Aopen+is%3Apr+user%3Aatom+label%3Arequires-changes
+[search-atom-repo-label-needs-testing]: https://github.com/search?q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+label%3Aneeds-testing
+[search-atom-org-label-needs-testing]: https://github.com/search?q=is%3Aopen+is%3Apr+user%3Aatom+label%3Aneeds-testing
 
 [beginner]:https://github.com/search?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+label%3Abeginner+label%3Ahelp-wanted+user%3Aatom+sort%3Acomments-desc
 [help-wanted]:https://github.com/search?q=is%3Aopen+is%3Aissue+label%3Ahelp-wanted+user%3Aatom+sort%3Acomments-desc+-label%3Abeginner
