@@ -1216,7 +1216,7 @@ module.exports = class Workspace extends Model {
 
     const largeFileMode = fileSize >= (2 * 1048576) // 2MB
 
-    let resolveConfirmFileOpenPromise, rejectConfirmFileOpenPromise = []
+    let [resolveConfirmFileOpenPromise, rejectConfirmFileOpenPromise] = []
     const confirmFileOpenPromise = new Promise((resolve, reject) => {
       resolveConfirmFileOpenPromise = resolve
       rejectConfirmFileOpenPromise = reject

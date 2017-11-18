@@ -1088,23 +1088,23 @@ class AtomEnvironment {
         buttons: [
           '&Open in new window and recover state',
           '&Add to this window and discard state'
-        ]}, response => {
-          if (choice === 0) {
-            this.open({
-              pathsToOpen: projectPaths.concat(filesToOpen),
-              newWindow: true,
-              devMode: this.inDevMode(),
-              safeMode: this.inSafeMode()
-            })
-            resolveDiscardStatePromise(Promise.resolve(null))
-          } else if (choice === 1) {
-            for (let selectedPath of projectPaths) {
-              this.project.addPath(selectedPath)
-            }
-            resolveDiscardStatePromise(Promise.all(filesToOpen.map(file => this.workspace.open(file))))
+        ]
+      }, response => {
+        if (response === 0) {
+          this.open({
+            pathsToOpen: projectPaths.concat(filesToOpen),
+            newWindow: true,
+            devMode: this.inDevMode(),
+            safeMode: this.inSafeMode()
+          })
+          resolveDiscardStatePromise(Promise.resolve(null))
+        } else if (response === 1) {
+          for (let selectedPath of projectPaths) {
+            this.project.addPath(selectedPath)
           }
+          resolveDiscardStatePromise(Promise.all(filesToOpen.map(file => this.workspace.open(file))))
         }
-      )
+      })
 
       return discardStatePromise
     }
