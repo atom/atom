@@ -809,7 +809,7 @@ class Pane {
       const saveDialog = (saveButtonText, saveFn, message) => {
         this.applicationDelegate.confirm({
           message,
-          detailedMessage: 'Your changes will be lost if you close this item without saving.',
+          detail: 'Your changes will be lost if you close this item without saving.',
           buttons: [saveButtonText, 'Cancel', "&Don't Save"]
         }, response => {
           switch (response) {

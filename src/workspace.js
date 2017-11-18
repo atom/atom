@@ -1224,7 +1224,7 @@ module.exports = class Workspace extends Model {
     if (fileSize >= (this.config.get('core.warnOnLargeFileLimit') * 1048576)) { // 40MB by default
       this.applicationDelegate.confirm({
         message: 'Atom will be unresponsive during the loading of very large files.',
-        detailedMessage: 'Do you still want to load this file?',
+        detail: 'Do you still want to load this file?',
         buttons: ['Proceed', 'Cancel']
       }, response => {
         if (response === 1) {
@@ -2013,7 +2013,7 @@ module.exports = class Workspace extends Model {
       if (this.config.get('editor.confirmCheckoutHeadRevision')) {
         this.applicationDelegate.confirm({
           message: 'Confirm Checkout HEAD Revision',
-          detailedMessage: `Are you sure you want to discard all changes to "${editor.getFileName()}" since the last Git commit?`,
+          detail: `Are you sure you want to discard all changes to "${editor.getFileName()}" since the last Git commit?`,
           buttons: ['OK', 'Cancel']
         }, response => {
           if (response === 0) checkoutHead()

@@ -23,7 +23,7 @@ class CommandInstaller {
     const showErrorDialog = (error) => {
       this.applicationDelegate.confirm({
         message: 'Failed to install shell commands',
-        detailedMessage: error.message
+        detail: error.message
       }, () => {})
     }
 
@@ -33,7 +33,7 @@ class CommandInstaller {
         if (error) return showErrorDialog(error)
         this.applicationDelegate.confirm({
           message: 'Commands installed.',
-          detailedMessage: 'The shell commands `atom` and `apm` are installed.'
+          detail: 'The shell commands `atom` and `apm` are installed.'
         }, () => {})
       })
     })
