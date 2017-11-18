@@ -130,17 +130,15 @@ class ApplicationDelegate
   getUserDefault: (key, type) ->
     remote.systemPreferences.getUserDefault(key, type)
 
-  confirm: ({message, detailedMessage, buttons}, callback) ->
+  confirm: (options, callback) ->
     if callback?
-      # Async version: buttons is required to be an array
-      remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-        type: 'info'
-        message: message
-        detail: detailedMessage
-        buttons: buttons
-        normalizeAccessKeys: true
-      }, callback)
+      # Async version: pass options directly to Electron but set sane defaults
+      options = Object.assign({type: 'info', normalizeAccessKeys: true}, options)
+      remote.dialog.showMessageBox(remote.getCurrentWindow(), options, callback)
     else
+      # Legacy sync version: options can only have `message`,
+      # `detailedMessage` (optional), and buttons array or object (optional)
+      {message, detailedMessage, buttons} = options
       buttons ?= {}
       if Array.isArray(buttons)
         buttonLabels = buttons

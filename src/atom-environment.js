@@ -914,6 +914,9 @@ class AtomEnvironment {
   // While both async and sync versions are provided, it is recommended to use the async version
   // such that the renderer process is not blocked while the dialog box is open.
   //
+  // The async version accepts the same options as Electron's `dialog.showMessageBox`.
+  // For convenience, it sets `type` to `'info'` and `normalizeAccessKeys` to `true` by default.
+  //
   // If the dialog is closed (via `Esc` key or `X` in the top corner) without selecting a button
   // the first button will be clicked unless a "Cancel" or "No" button is provided.
   //
@@ -923,7 +926,7 @@ class AtomEnvironment {
   // // Async version (recommended)
   // atom.confirm({
   //   message: 'How you feeling?',
-  //   detailedMessage: 'Be honest.',
+  //   detail: 'Be honest.',
   //   buttons: ['Good', 'Bad']
   // }, response => {
   //   if (response === 0) {
@@ -934,7 +937,7 @@ class AtomEnvironment {
   // })
   //
   // ```js
-  // // Sync version
+  // // Legacy sync version
   // const chosen = atom.confirm({
   //   message: 'How you feeling?',
   //   detailedMessage: 'Be honest.',
@@ -945,23 +948,25 @@ class AtomEnvironment {
   // })
   // ```
   //
-  // * `options` An {Object} with the following keys:
+  // * `options` An options {Object}. If the callback argument is also supplied, see the documentation at
+  // https://electronjs.org/docs/api/dialog#dialogshowmessageboxbrowserwindow-options-callback for the list of
+  // available options. Otherwise, only the following keys are accepted:
   //   * `message` The {String} message to display.
   //   * `detailedMessage` (optional) The {String} detailed message to display.
   //   * `buttons` (optional) Either an {Array} of {String}s or an {Object} where keys are
   //     button names and the values are callback {Function}s to invoke when clicked.
   // * `callback` (optional) A {Function} that will be called with the index of the chosen option.
-  //   If a callback is supplied, `buttons` (if supplied) must be an {Array},
-  //   and the renderer process will not be paused while the dialog box is open.
+  //   If a callback is supplied, the dialog will be non-blocking. This argument is recommended.
   //
   // Returns the chosen button index {Number} if the buttons option is an array
   // or the return value of the callback if the buttons option is an object.
-  confirm (params = {}, callback) {
+  // If a callback function is supplied, returns `undefined`.
+  confirm (options = {}, callback) {
     if (callback) {
       // Async: no return value
-      this.applicationDelegate.confirm(params, callback)
+      this.applicationDelegate.confirm(options, callback)
     } else {
-      return this.applicationDelegate.confirm(params)
+      return this.applicationDelegate.confirm(options)
     }
   }
 
