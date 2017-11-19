@@ -513,14 +513,14 @@ describe('AtomApplication', function () {
     })
 
     // Choosing "Cancel"
-    mockElectronShowMessageBox({choice: 1})
+    mockElectronShowMessageBox({response: 1})
     electron.app.quit()
     await atomApplication.lastBeforeQuitPromise
     assert(!electron.app.hasQuitted())
     assert.equal(electron.app.quit.callCount, 1) // Ensure choosing "Cancel" doesn't try to quit the electron app more than once (regression)
 
     // Choosing "Don't save"
-    mockElectronShowMessageBox({choice: 2})
+    mockElectronShowMessageBox({response: 2})
     electron.app.quit()
     await atomApplication.lastBeforeQuitPromise
     assert(electron.app.hasQuitted())
@@ -561,9 +561,9 @@ describe('AtomApplication', function () {
     }
   }
 
-  function mockElectronShowMessageBox ({choice}) {
-    electron.dialog.showMessageBox = function () {
-      return choice
+  function mockElectronShowMessageBox ({response}) {
+    electron.dialog.showMessageBox = function (window, options, callback) {
+      callback(response)
     }
   }
 
