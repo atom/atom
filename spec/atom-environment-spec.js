@@ -531,7 +531,7 @@ describe('AtomEnvironment', () => {
         expect(atom.workspace.open).toHaveBeenCalledWith(__filename)
       })
 
-      fit('prompts the user to restore the state in a new window, opening a new window', () => {
+      it('prompts the user to restore the state in a new window, opening a new window', async () => {
         jasmine.useRealClock()
         spyOn(atom, 'confirm').andCallFake((options, callback) => callback(0))
         spyOn(atom, 'open')
