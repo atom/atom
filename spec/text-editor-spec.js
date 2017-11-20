@@ -6811,7 +6811,7 @@ describe('TextEditor', () => {
     })
 
     it('does nothing for empty lines and null grammar', () => {
-      atom.grammars.assignLanguageMode(editor, 'null grammar')
+      atom.grammars.assignLanguageMode(editor, null)
       editor.setCursorBufferPosition([10, 0])
       editor.toggleLineCommentsInSelection()
       expect(editor.lineTextForBufferRow(10)).toBe('')

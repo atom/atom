@@ -42,13 +42,13 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
     if (languageNameOverride) {
       this.assignLanguageMode(buffer, languageNameOverride)
     } else {
-      this.assignLanguageMode(buffer, null)
+      this.autoAssignLanguageMode(buffer)
     }
 
     const pathChangeSubscription = buffer.onDidChangePath(() => {
       this.grammarScoresByBuffer.delete(buffer)
       if (!this.languageNameOverridesByBufferId.has(buffer.id)) {
-        this.assignLanguageMode(buffer, null)
+        this.autoAssignLanguageMode(buffer)
       }
     })
 
@@ -64,28 +64,34 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
   assignLanguageMode (buffer, languageName) {
     if (buffer.getBuffer) buffer = buffer.getBuffer()
 
-    let grammar
+    let grammar = null
     if (languageName != null) {
       const lowercaseLanguageName = languageName.toLowerCase()
       grammar = this.grammarForLanguageName(lowercaseLanguageName)
+      if (!grammar) return false
       this.languageNameOverridesByBufferId.set(buffer.id, lowercaseLanguageName)
       this.grammarScoresByBuffer.set(buffer, null)
-    } else {
-      const result = this.selectGrammarWithScore(
-        buffer.getPath(),
-        buffer.getTextInRange(GRAMMAR_SELECTION_RANGE)
-      )
-      const currentScore = this.grammarScoresByBuffer.get(buffer)
-      if (currentScore == null || result.score > currentScore) {
-        grammar = result.grammar
-        this.languageNameOverridesByBufferId.delete(buffer.id)
-        this.grammarScoresByBuffer.set(buffer, result.score)
-      }
-    }
-
-    if (grammar) {
       if (grammar.name !== buffer.getLanguageMode().getLanguageName()) {
         buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
+      }
+    } else {
+      buffer.setLanguageMode(null)
+    }
+
+    return true
+  }
+
+  autoAssignLanguageMode (buffer) {
+    const result = this.selectGrammarWithScore(
+      buffer.getPath(),
+      buffer.getTextInRange(GRAMMAR_SELECTION_RANGE)
+    )
+    const currentScore = this.grammarScoresByBuffer.get(buffer)
+    if (currentScore == null || result.score > currentScore) {
+      this.languageNameOverridesByBufferId.delete(buffer.id)
+      this.grammarScoresByBuffer.set(buffer, result.score)
+      if (result.grammar.name !== buffer.getLanguageMode().getLanguageName()) {
+        buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(result.grammar, buffer))
       }
       return true
     } else {
@@ -226,7 +232,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
   //
   // Returns undefined.
   clearGrammarOverrideForPath (filePath) {
-    Grim.deprecate('Use atom.grammars.assignLanguageMode(buffer, null) instead')
+    Grim.deprecate('Use atom.grammars.autoAssignLanguageMode(buffer) instead')
     const buffer = atom.project.findBufferForPath(filePath)
     if (buffer) this.languageNameOverridesByBufferId.delete(buffer.id)
   }

@@ -4482,7 +4482,7 @@ function buildEditor (params = {}) {
   for (const paramName of ['mini', 'autoHeight', 'autoWidth', 'lineNumberGutterVisible', 'showLineNumbers', 'placeholderText', 'softWrapped', 'scrollSensitivity']) {
     if (params[paramName] != null) editorParams[paramName] = params[paramName]
   }
-  atom.grammars.assignLanguageMode(buffer, null)
+  atom.grammars.autoAssignLanguageMode(buffer)
   const editor = new TextEditor(editorParams)
   editor.testAutoscrollRequests = []
   editor.onDidRequestAutoscroll((request) => { editor.testAutoscrollRequests.push(request) })

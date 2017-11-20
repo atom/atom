@@ -33,18 +33,31 @@ describe('GrammarRegistry', () => {
     })
 
     describe('when no languageName is passed', () => {
-      it('assigns to the buffer a language mode based on the best available grammar', () => {
-        grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+      it('makes the buffer use the null grammar', () => {
         grammarRegistry.loadGrammarSync(require.resolve('language-css/grammars/css.cson'))
 
         const buffer = new TextBuffer()
-        buffer.setPath('foo.js')
         expect(grammarRegistry.assignLanguageMode(buffer, 'css')).toBe(true)
         expect(buffer.getLanguageMode().getLanguageName()).toBe('CSS')
 
         expect(grammarRegistry.assignLanguageMode(buffer, null)).toBe(true)
-        expect(buffer.getLanguageMode().getLanguageName()).toBe('JavaScript')
+        expect(buffer.getLanguageMode().getLanguageName()).toBe('None')
       })
+    })
+  })
+
+  describe('.autoAssignLanguageMode(buffer)', () => {
+    it('assigns to the buffer a language mode based on the best available grammar', () => {
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+      grammarRegistry.loadGrammarSync(require.resolve('language-css/grammars/css.cson'))
+
+      const buffer = new TextBuffer()
+      buffer.setPath('foo.js')
+      expect(grammarRegistry.assignLanguageMode(buffer, 'css')).toBe(true)
+      expect(buffer.getLanguageMode().getLanguageName()).toBe('CSS')
+
+      expect(grammarRegistry.autoAssignLanguageMode(buffer)).toBe(true)
+      expect(buffer.getLanguageMode().getLanguageName()).toBe('JavaScript')
     })
   })
 

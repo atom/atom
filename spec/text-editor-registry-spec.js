@@ -1,10 +1,8 @@
-/** @babel */
-
-import TextEditorRegistry from '../src/text-editor-registry'
-import TextEditor from '../src/text-editor'
-import TextBuffer from 'text-buffer'
-import {it, fit, ffit, fffit} from './async-spec-helpers'
-import dedent from 'dedent'
+const TextEditorRegistry = require('../src/text-editor-registry')
+const TextEditor = require('../src/text-editor')
+const TextBuffer = require('text-buffer')
+const {it, fit, ffit, fffit} = require('./async-spec-helpers')
+const dedent = require('dedent')
 
 describe('TextEditorRegistry', function () {
   let registry, editor, initialPackageActivation
@@ -20,6 +18,7 @@ describe('TextEditorRegistry', function () {
     })
 
     editor = new TextEditor({autoHeight: false})
+    expect(atom.grammars.assignLanguageMode(editor, 'null grammar')).toBe(true)
   })
 
   afterEach(function () {
@@ -71,52 +70,7 @@ describe('TextEditorRegistry', function () {
       atom.config.set('editor.tabLength', 8, {scope: '.source.js'})
 
       const editor = registry.build({buffer: new TextBuffer({filePath: 'test.js'})})
-      expect(editor.getGrammar().name).toBe("JavaScript")
       expect(editor.getTabLength()).toBe(8)
-    })
-  })
-
-  describe('.setGrammarOverride', function () {
-    it('sets the editor\'s grammar and does not update it based on other criteria', async function () {
-      await atom.packages.activatePackage('language-c')
-      await atom.packages.activatePackage('language-javascript')
-
-      registry.maintainGrammar(editor)
-      editor.getBuffer().setPath('file-1.js')
-      expect(editor.getGrammar().name).toBe('JavaScript')
-
-      registry.setGrammarOverride(editor, 'source.c')
-      expect(editor.getGrammar().name).toBe('C')
-
-      editor.getBuffer().setPath('file-3.rb')
-      await atom.packages.activatePackage('language-ruby')
-      expect(editor.getGrammar().name).toBe('C')
-
-      editor.getBuffer().setPath('file-1.js')
-      expect(editor.getGrammar().name).toBe('C')
-    })
-  })
-
-  describe('.clearGrammarOverride', function () {
-    it('resumes setting the grammar based on its path and content', async function () {
-      await atom.packages.activatePackage('language-c')
-      await atom.packages.activatePackage('language-javascript')
-
-      registry.maintainGrammar(editor)
-      editor.getBuffer().setPath('file-1.js')
-      expect(editor.getGrammar().name).toBe('JavaScript')
-
-      registry.setGrammarOverride(editor, 'source.c')
-      expect(registry.getGrammarOverride(editor)).toBe('source.c')
-      expect(editor.getGrammar().name).toBe('C')
-
-      registry.clearGrammarOverride(editor)
-      expect(editor.getGrammar().name).toBe('JavaScript')
-
-      editor.getBuffer().setPath('file-3.rb')
-      await atom.packages.activatePackage('language-ruby')
-      expect(editor.getGrammar().name).toBe('Ruby')
-      expect(registry.getGrammarOverride(editor)).toBe(undefined)
     })
   })
 
@@ -126,7 +80,7 @@ describe('TextEditorRegistry', function () {
 
       const editor2 = new TextEditor()
 
-      editor2.setGrammar(atom.grammars.selectGrammar('test.js'))
+      atom.grammars.assignLanguageMode(editor2, 'javascript')
 
       registry.maintainConfig(editor)
       registry.maintainConfig(editor2)
@@ -188,14 +142,14 @@ describe('TextEditorRegistry', function () {
       atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.source.js'})
       expect(editor.getEncoding()).toBe('utf8')
 
-      editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      atom.grammars.assignLanguageMode(editor, 'javascript')
       await initialPackageActivation
       expect(editor.getEncoding()).toBe('utf16le')
 
       atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.source.js'})
       expect(editor.getEncoding()).toBe('utf16be')
 
-      editor.setGrammar(atom.grammars.selectGrammar('test.txt'))
+      atom.grammars.assignLanguageMode(editor, 'null grammar')
       await initialPackageActivation
       expect(editor.getEncoding()).toBe('utf8')
     })
@@ -265,7 +219,7 @@ describe('TextEditorRegistry', function () {
     describe('when the "tabType" config setting is "auto"', function () {
       it('enables or disables soft tabs based on the editor\'s content', async function () {
         await atom.packages.activatePackage('language-javascript')
-        editor.setGrammar(atom.grammars.selectGrammar('test.js'))
+        atom.grammars.assignLanguageMode(editor, 'javascript')
         atom.config.set('editor.tabType', 'auto')
 
         registry.maintainConfig(editor)
@@ -558,19 +512,6 @@ describe('TextEditorRegistry', function () {
       expect(editor.getUndoGroupingInterval()).toBe(300)
     })
 
-    it('sets the non-word characters based on the config', async function () {
-      editor.update({nonWordCharacters: '()'})
-      expect(editor.getNonWordCharacters()).toBe('()')
-
-      atom.config.set('editor.nonWordCharacters', '(){}')
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.getNonWordCharacters()).toBe('(){}')
-
-      atom.config.set('editor.nonWordCharacters', '(){}[]')
-      expect(editor.getNonWordCharacters()).toBe('(){}[]')
-    })
-
     it('sets the scroll sensitivity based on the config', async function () {
       editor.update({scrollSensitivity: 50})
       expect(editor.getScrollSensitivity()).toBe(50)
@@ -582,21 +523,6 @@ describe('TextEditorRegistry', function () {
 
       atom.config.set('editor.scrollSensitivity', 70)
       expect(editor.getScrollSensitivity()).toBe(70)
-    })
-
-    it('gives the editor a scoped-settings delegate based on the config', async function () {
-      atom.config.set('editor.nonWordCharacters', '()')
-      atom.config.set('editor.nonWordCharacters', '(){}', {scopeSelector: '.a.b .c.d'})
-      atom.config.set('editor.nonWordCharacters', '(){}[]', {scopeSelector: '.e.f *'})
-
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-
-      let delegate = editor.getScopedSettingsDelegate()
-
-      expect(delegate.getNonWordCharacters(['a.b', 'c.d'])).toBe('(){}')
-      expect(delegate.getNonWordCharacters(['e.f', 'g.h'])).toBe('(){}[]')
-      expect(delegate.getNonWordCharacters(['i.j'])).toBe('()')
     })
 
     describe('when called twice with a given editor', function () {
@@ -631,8 +557,8 @@ describe('TextEditorRegistry', function () {
 
       registry.maintainGrammar(editor)
       registry.maintainGrammar(editor2)
-      registry.setGrammarOverride(editor, 'source.c')
-      registry.setGrammarOverride(editor2, 'source.js')
+      atom.grammars.assignLanguageMode(editor, 'c')
+      atom.grammars.assignLanguageMode(editor2, 'javascript')
 
       await atom.packages.deactivatePackage('language-javascript')
 
