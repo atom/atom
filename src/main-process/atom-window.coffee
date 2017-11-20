@@ -294,12 +294,18 @@ class AtomWindow
       @browserWindow.reload() if result
     @loadedPromise
 
-  showSaveDialog: (params) ->
-    params = Object.assign({
+  showSaveDialog: (options, callback) ->
+    options = Object.assign({
       title: 'Save File',
       defaultPath: @representedDirectoryPaths[0]
-    }, params)
-    dialog.showSaveDialog(@browserWindow, params)
+    }, options)
+
+    if callback?
+      # Async
+      dialog.showSaveDialog(@browserWindow, options, callback)
+    else
+      # Sync
+      dialog.showSaveDialog(@browserWindow, options)
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
 

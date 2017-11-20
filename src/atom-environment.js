@@ -1076,14 +1076,6 @@ class AtomEnvironment {
     return this.deserialize(state)
   }
 
-  showSaveDialog (callback) {
-    callback(this.showSaveDialogSync())
-  }
-
-  showSaveDialogSync (options = {}) {
-    this.applicationDelegate.showSaveDialog(options)
-  }
-
   async saveState (options, storageKey) {
     if (this.enablePersistence && this.project) {
       const state = this.serialize(options)

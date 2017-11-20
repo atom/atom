@@ -153,10 +153,15 @@ class ApplicationDelegate
 
   showMessageDialog: (params) ->
 
-  showSaveDialog: (params) ->
-    if typeof params is 'string'
-      params = {defaultPath: params}
-    @getCurrentWindow().showSaveDialog(params)
+  showSaveDialog: (options, callback) ->
+    if callback?
+      # Async
+      @getCurrentWindow().showSaveDialog(options, callback)
+    else
+      # Sync
+      if typeof options is 'string'
+        options = {defaultPath: options}
+      @getCurrentWindow().showSaveDialog(options)
 
   playBeepSound: ->
     shell.beep()
