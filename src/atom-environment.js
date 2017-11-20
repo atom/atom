@@ -821,10 +821,9 @@ class AtomEnvironment {
       project: this.project.serialize(options),
       workspace: this.workspace.serialize(),
       packageStates: this.packages.serialize(),
-      grammars: {grammarOverridesByPath: this.grammars.grammarOverridesByPath},
+      grammars: this.grammars.serialize(),
       fullScreen: this.isFullScreen(),
       windowDimensions: this.windowDimensions,
-      textEditors: this.textEditors.serialize()
     }
   }
 
@@ -1147,7 +1146,7 @@ class AtomEnvironment {
 
     this.deserializeTimings.project = Date.now() - startTime
 
-    if (state.textEditors) this.textEditors.deserialize(state.textEditors)
+    if (state.grammars) this.grammars.deserialize(state.grammars)
 
     startTime = Date.now()
     if (state.workspace) this.workspace.deserialize(state.workspace, this.deserializers)

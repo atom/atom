@@ -58,7 +58,7 @@ describe('GrammarRegistry', () => {
       expect(grammarRegistry.assignLanguageMode(buffer, 'css')).toBe(true)
       expect(buffer.getLanguageMode().getLanguageName()).toBe('CSS')
 
-      expect(grammarRegistry.autoAssignLanguageMode(buffer)).toBe(true)
+      grammarRegistry.autoAssignLanguageMode(buffer)
       expect(buffer.getLanguageMode().getLanguageName()).toBe('JavaScript')
     })
   })
@@ -313,6 +313,43 @@ describe('GrammarRegistry', () => {
       const grammar = atom.grammars.selectGrammar('foo.js')
       atom.grammars.removeGrammar(grammar)
       expect(atom.grammars.selectGrammar('foo.js').name).not.toBe(grammar.name)
+    })
+  })
+
+  describe('serialization', () => {
+    it('persists editors\' grammar overrides', async () => {
+      const buffer1 = new TextBuffer()
+      const buffer2 = new TextBuffer()
+
+      grammarRegistry.loadGrammarSync(require.resolve('language-c/grammars/c.cson'))
+      grammarRegistry.loadGrammarSync(require.resolve('language-html/grammars/html.cson'))
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+
+      grammarRegistry.maintainLanguageMode(buffer1)
+      grammarRegistry.maintainLanguageMode(buffer2)
+      grammarRegistry.assignLanguageMode(buffer1, 'c')
+      grammarRegistry.assignLanguageMode(buffer2, 'javascript')
+
+      const buffer1Copy = await TextBuffer.deserialize(buffer1.serialize())
+      const buffer2Copy = await TextBuffer.deserialize(buffer2.serialize())
+
+      const grammarRegistryCopy = new GrammarRegistry({config: atom.config})
+      grammarRegistryCopy.deserialize(JSON.parse(JSON.stringify(grammarRegistry.serialize())))
+
+      grammarRegistryCopy.loadGrammarSync(require.resolve('language-c/grammars/c.cson'))
+      grammarRegistryCopy.loadGrammarSync(require.resolve('language-html/grammars/html.cson'))
+
+      expect(buffer1Copy.getLanguageMode().getLanguageName()).toBe('None')
+      expect(buffer2Copy.getLanguageMode().getLanguageName()).toBe('None')
+
+      grammarRegistryCopy.maintainLanguageMode(buffer1Copy)
+      grammarRegistryCopy.maintainLanguageMode(buffer2Copy)
+      expect(buffer1Copy.getLanguageMode().getLanguageName()).toBe('C')
+      expect(buffer2Copy.getLanguageMode().getLanguageName()).toBe('None')
+
+      grammarRegistryCopy.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+      expect(buffer1Copy.getLanguageMode().getLanguageName()).toBe('C')
+      expect(buffer2Copy.getLanguageMode().getLanguageName()).toBe('JavaScript')
     })
   })
 })

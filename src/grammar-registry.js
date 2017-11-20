@@ -33,11 +33,30 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
     this.onDidUpdateGrammar(grammarAddedOrUpdated)
   }
 
+  serialize () {
+    const languageNameOverridesByBufferId = {}
+    this.languageNameOverridesByBufferId.forEach((languageName, bufferId) => {
+      languageNameOverridesByBufferId[bufferId] = languageName
+    })
+    return {languageNameOverridesByBufferId}
+  }
+
+  deserialize (params) {
+    for (const bufferId in params.languageNameOverridesByBufferId || {}) {
+      this.languageNameOverridesByBufferId.set(
+        bufferId,
+        params.languageNameOverridesByBufferId[bufferId]
+      )
+    }
+  }
+
   createToken (value, scopes) {
     return new Token({value, scopes})
   }
 
   maintainLanguageMode (buffer) {
+    this.grammarScoresByBuffer.set(buffer, null)
+
     const languageNameOverride = this.languageNameOverridesByBufferId.get(buffer.id)
     if (languageNameOverride) {
       this.assignLanguageMode(buffer, languageNameOverride)
@@ -86,16 +105,10 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
       buffer.getPath(),
       buffer.getTextInRange(GRAMMAR_SELECTION_RANGE)
     )
-    const currentScore = this.grammarScoresByBuffer.get(buffer)
-    if (currentScore == null || result.score > currentScore) {
-      this.languageNameOverridesByBufferId.delete(buffer.id)
-      this.grammarScoresByBuffer.set(buffer, result.score)
-      if (result.grammar.name !== buffer.getLanguageMode().getLanguageName()) {
-        buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(result.grammar, buffer))
-      }
-      return true
-    } else {
-      return false
+    this.languageNameOverridesByBufferId.delete(buffer.id)
+    this.grammarScoresByBuffer.set(buffer, result.score)
+    if (result.grammar.name !== buffer.getLanguageMode().getLanguageName()) {
+      buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(result.grammar, buffer))
     }
   }
 
@@ -244,6 +257,8 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
 
   grammarAddedOrUpdated (grammar) {
     this.grammarScoresByBuffer.forEach((score, buffer) => {
+      if (global.debug) debugger
+
       const languageMode = buffer.getLanguageMode()
       if (grammar.injectionSelector) {
         if (languageMode.hasTokenForSelector(grammar.injectionSelector)) {
@@ -252,9 +267,13 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
         return
       }
 
-      if (grammar.name === buffer.getLanguageMode().getLanguageName()) {
+      const overrideName = this.languageNameOverridesByBufferId.get(buffer.id)
+
+      if (grammar.name &&
+          (grammar.name === buffer.getLanguageMode().getLanguageName() ||
+           grammar.name.toLowerCase() === overrideName)) {
         buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
-      } else if (!this.languageNameOverridesByBufferId.has(buffer.id)) {
+      } else if (!overrideName) {
         const score = this.getGrammarScore(
           grammar,
           buffer.getPath(),

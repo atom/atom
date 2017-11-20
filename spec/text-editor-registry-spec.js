@@ -546,46 +546,6 @@ describe('TextEditorRegistry', function () {
       })
     })
   })
-
-  describe('serialization', function () {
-    it('persists editors\' grammar overrides', async function () {
-      const editor2 = new TextEditor()
-
-      await atom.packages.activatePackage('language-c')
-      await atom.packages.activatePackage('language-html')
-      await atom.packages.activatePackage('language-javascript')
-
-      registry.maintainGrammar(editor)
-      registry.maintainGrammar(editor2)
-      atom.grammars.assignLanguageMode(editor, 'c')
-      atom.grammars.assignLanguageMode(editor2, 'javascript')
-
-      await atom.packages.deactivatePackage('language-javascript')
-
-      const editorCopy = TextEditor.deserialize(editor.serialize(), atom)
-      const editor2Copy = TextEditor.deserialize(editor2.serialize(), atom)
-
-      const registryCopy = new TextEditorRegistry({
-        assert: atom.assert,
-        config: atom.config,
-        grammarRegistry: atom.grammars,
-        packageManager: {deferredActivationHooks: null}
-      })
-      registryCopy.deserialize(JSON.parse(JSON.stringify(registry.serialize())))
-
-      expect(editorCopy.getGrammar().name).toBe('Null Grammar')
-      expect(editor2Copy.getGrammar().name).toBe('Null Grammar')
-
-      registryCopy.maintainGrammar(editorCopy)
-      registryCopy.maintainGrammar(editor2Copy)
-      expect(editorCopy.getGrammar().name).toBe('C')
-      expect(editor2Copy.getGrammar().name).toBe('Null Grammar')
-
-      await atom.packages.activatePackage('language-javascript')
-      expect(editorCopy.getGrammar().name).toBe('C')
-      expect(editor2Copy.getGrammar().name).toBe('JavaScript')
-    })
-  })
 })
 
 function getSubscriptionCount (editor) {
