@@ -22,6 +22,8 @@ const NON_WHITESPACE_REGEXP = /\S/
 const ZERO_WIDTH_NBSP = '\ufeff'
 let nextId = 0
 
+const DEFAULT_NON_WORD_CHARACTERS = "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
+
 // Essential: This class represents all essential editing state for a single
 // {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
 // If you're manipulating the state of an editor, use this class.
@@ -141,7 +143,6 @@ class TextEditor {
     this.autoIndent = (params.autoIndent != null) ? params.autoIndent : true
     this.autoIndentOnPaste = (params.autoIndentOnPaste != null) ? params.autoIndentOnPaste : true
     this.undoGroupingInterval = (params.undoGroupingInterval != null) ? params.undoGroupingInterval : 300
-    this.nonWordCharacters = (params.nonWordCharacters != null) ? params.nonWordCharacters : "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
     this.softWrapped = (params.softWrapped != null) ? params.softWrapped : false
     this.softWrapAtPreferredLineLength = (params.softWrapAtPreferredLineLength != null) ? params.softWrapAtPreferredLineLength : false
     this.preferredLineLength = (params.preferredLineLength != null) ? params.preferredLineLength : 80
@@ -308,10 +309,6 @@ class TextEditor {
 
         case 'undoGroupingInterval':
           this.undoGroupingInterval = value
-          break
-
-        case 'nonWordCharacters':
-          this.nonWordCharacters = value
           break
 
         case 'scrollSensitivity':
@@ -717,7 +714,7 @@ class TextEditor {
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeGrammar (callback) {
     return this.buffer.onDidChangeLanguageMode(() => {
-      callback(this.buffer.getLanguageMode().getGrammar())
+      callback(this.buffer.getLanguageMode().grammar)
     })
   }
 
@@ -3375,8 +3372,9 @@ class TextEditor {
   // whitespace.
   usesSoftTabs () {
     const languageMode = this.buffer.getLanguageMode()
+    const hasIsRowCommented = languageMode.isRowCommented
     for (let bufferRow = 0, end = Math.min(1000, this.buffer.getLastRow()); bufferRow <= end; bufferRow++) {
-      if (languageMode.isRowCommented(bufferRow)) continue
+      if (hasIsRowCommented && languageMode.isRowCommented(bufferRow)) continue
       const line = this.buffer.lineForRow(bufferRow)
       if (line[0] === ' ') return true
       if (line[0] === '\t') return false
@@ -3561,7 +3559,12 @@ class TextEditor {
 
   // Experimental: Get a notification when async tokenization is completed.
   onDidTokenize (callback) {
-    return this.buffer.getLanguageMode().onDidTokenize(callback)
+    const languageMode = this.buffer.getLanguageMode()
+    if (languageMode.onDidTokenize) {
+      return this.buffer.getLanguageMode().onDidTokenize(callback)
+    } else {
+      return new Disposable(() => {})
+    }
   }
 
   /*
@@ -4106,8 +4109,10 @@ class TextEditor {
   // Returns a {String} containing the non-word characters.
   getNonWordCharacters (position) {
     const languageMode = this.buffer.getLanguageMode()
-    return (languageMode.getNonWordCharacters && languageMode.getNonWordCharacters(position)) ||
-      this.nonWordCharacters
+    return (
+      languageMode.getNonWordCharacters &&
+      languageMode.getNonWordCharacters(position || Point(0, 0))
+    ) || DEFAULT_NON_WORD_CHARACTERS
   }
 
   /*
@@ -4116,7 +4121,7 @@ class TextEditor {
 
   handleLanguageModeChange () {
     this.unfoldAll()
-    this.emitter.emit('did-change-grammar', this.buffer.getLanguageMode().getGrammar())
+    this.emitter.emit('did-change-grammar', this.buffer.getLanguageMode().grammar)
   }
 
   /*

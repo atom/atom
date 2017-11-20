@@ -1,9 +1,7 @@
-/** @babel */
-
-import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
-import TextEditor from './text-editor'
-import ScopeDescriptor from './scope-descriptor'
-import Grim from 'grim'
+const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
+const TextEditor = require('./text-editor')
+const ScopeDescriptor = require('./scope-descriptor')
+const Grim = require('grim')
 
 const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['core.fileEncoding', 'encoding'],
@@ -23,7 +21,6 @@ const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['editor.autoIndentOnPaste', 'autoIndentOnPaste'],
   ['editor.scrollPastEnd', 'scrollPastEnd'],
   ['editor.undoGroupingInterval', 'undoGroupingInterval'],
-  ['editor.nonWordCharacters', 'nonWordCharacters'],
   ['editor.scrollSensitivity', 'scrollSensitivity']
 ]
 
@@ -38,7 +35,8 @@ const EDITOR_PARAMS_BY_SETTING_KEY = [
 // them for observation via `atom.textEditors.add`. **Important:** When you're
 // done using your editor, be sure to call `dispose` on the returned disposable
 // to avoid leaking editors.
-export default class TextEditorRegistry {
+module.exports =
+class TextEditorRegistry {
   constructor ({config, assert, packageManager}) {
     this.assert = assert
     this.config = config
@@ -105,7 +103,10 @@ export default class TextEditorRegistry {
 
     let scope = null
     if (params.buffer) {
-      scope = new ScopeDescriptor({scopes: [params.buffer.getLanguageMode().getGrammar().scopeName]})
+      const {grammar} = params.buffer.getLanguageMode()
+      if (grammar) {
+        scope = new ScopeDescriptor({scopes: [grammar.scopeName]})
+      }
     }
 
     Object.assign(params, this.textEditorParamsForScope(scope))
