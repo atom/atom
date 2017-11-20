@@ -25,6 +25,8 @@ document.registerElement('text-editor-component-test-element', {
   })
 })
 
+const editors = []
+
 describe('TextEditorComponent', () => {
   beforeEach(() => {
     jasmine.useRealClock()
@@ -33,6 +35,13 @@ describe('TextEditorComponent', () => {
     const scrollbarStyle = document.createElement('style')
     scrollbarStyle.textContent = '::-webkit-scrollbar { -webkit-appearance: none }'
     jasmine.attachToDOM(scrollbarStyle)
+  })
+
+  afterEach(() => {
+    for (const editor of editors) {
+      editor.destroy()
+    }
+    editors.length = 0
   })
 
   describe('rendering', () => {
@@ -4486,6 +4495,7 @@ function buildEditor (params = {}) {
   const editor = new TextEditor(editorParams)
   editor.testAutoscrollRequests = []
   editor.onDidRequestAutoscroll((request) => { editor.testAutoscrollRequests.push(request) })
+  editors.push(editor)
   return editor
 }
 
