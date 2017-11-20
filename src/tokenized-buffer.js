@@ -26,7 +26,6 @@ class TokenizedBuffer {
     this.visible = false
     this.id = params.id != null ? params.id : nextId++
     this.buffer = params.buffer
-    this.tabLength = params.tabLength
     this.largeFileMode = params.largeFileMode
     this.config = params.config
     this.largeFileMode = params.largeFileMode != null
@@ -261,12 +260,6 @@ class TokenizedBuffer {
     if (this.visible && this.grammar.name !== 'Null Grammar' && !this.largeFileMode) {
       this.tokenizeInBackground()
     }
-  }
-
-  getTabLength () { return this.tabLength }
-
-  setTabLength (tabLength) {
-    this.tabLength = tabLength
   }
 
   tokenizeInBackground () {
