@@ -23,19 +23,20 @@ formatStackTrace = (spec, message='', stackTrace) ->
   lines.shift() if message.trim() is errorMatch?[1]?.trim()
 
   lines = lines.map (line) ->
-    line = line.trim()
-    if line.startsWith('at ')
-      line = line
+    # Only format actual stacktrace lines
+    if /^\s*at\s/.test(line)
+      # Needs to occur before path relativization
+      if process.platform is 'win32' and /file:\/\/\//.test(line)
+        # file:///C:/some/file -> C:\some\file
+        line = line.replace('file:///', '').replace(///#{path.posix.sep}///g, path.win32.sep)
+
+      line = line.trim()
         # at jasmine.Spec.<anonymous> (path:1:2) -> at path:1:2
         .replace(/^at jasmine\.Spec\.<anonymous> \(([^)]+)\)/, 'at $1')
         # at it (path:1:2) -> at path:1:2
         .replace(/^at f*it \(([^)]+)\)/, 'at $1')
         # at spec/file-test.js -> at file-test.js
         .replace(spec.specDirectory + path.sep, '')
-
-      if process.platform is 'win32' and /file:\/\/\//.test(line)
-        # file:///C:/some/file -> C:\some\file
-        line = line.replace('file:///', '').replace(///#{path.posix.sep}///g, path.win32.sep)
 
     return line
 
