@@ -823,7 +823,7 @@ class AtomEnvironment {
       packageStates: this.packages.serialize(),
       grammars: this.grammars.serialize(),
       fullScreen: this.isFullScreen(),
-      windowDimensions: this.windowDimensions,
+      windowDimensions: this.windowDimensions
     }
   }
 

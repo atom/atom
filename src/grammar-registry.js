@@ -257,8 +257,6 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
 
   grammarAddedOrUpdated (grammar) {
     this.grammarScoresByBuffer.forEach((score, buffer) => {
-      if (global.debug) debugger
-
       const languageMode = buffer.getLanguageMode()
       if (grammar.injectionSelector) {
         if (languageMode.hasTokenForSelector(grammar.injectionSelector)) {
