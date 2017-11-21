@@ -26,12 +26,12 @@ x\
 `})
     const tokenizedBuffer = new TokenizedBuffer({
       buffer,
+      grammar,
       config: atom.config,
       grammarRegistry: atom.grammars,
       packageManager: atom.packages,
       assert: atom.assert
     })
-    tokenizedBuffer.setGrammar(grammar)
 
     const tokenIterator = tokenizedBuffer.tokenizedLines[1].getTokenIterator()
     tokenIterator.next()
