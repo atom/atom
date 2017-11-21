@@ -271,7 +271,6 @@ describe('TextEditorElement', () => {
       spyOn(window, 'requestAnimationFrame').andCallFake(fn => fn())
 
       const element = buildTextEditorElement()
-      jasmine.attachToDOM(element)
 
       expect(element.isUpdatedSynchronously()).toBe(false)
 
