@@ -23,21 +23,21 @@ formatStackTrace = (spec, message='', stackTrace) ->
   lines.shift() if message.trim() is errorMatch?[1]?.trim()
 
   lines = lines.map (line) ->
-    line = line
-      # at jasmine.Spec.<anonymous> (path:1:2) -> at path:1:2
-      .replace(/at jasmine\.Spec\.<anonymous> \(([^)]+)\)/, 'at $1')
-      # at it (path:1:2) -> at path:1:2
-      .replace(/at f*it \(([^)]+)\)/, 'at $1')
-      # at spec/file-test.js -> at file-test.js
-      .replace("at #{spec.specDirectory}#{path.sep}", 'at ')
-      # (spec/file-test.js:1:2) -> (file-test.js:1:2)
-      .replace("(#{spec.specDirectory}#{path.sep}", '(')
+    line = line.trim()
+    if line.startsWith('at ')
+      line = line
+        # at jasmine.Spec.<anonymous> (path:1:2) -> at path:1:2
+        .replace(/^at jasmine\.Spec\.<anonymous> \(([^)]+)\)/, 'at $1')
+        # at it (path:1:2) -> at path:1:2
+        .replace(/^at f*it \(([^)]+)\)/, 'at $1')
+        # at spec/file-test.js -> at file-test.js
+        .replace(spec.specDirectory + path.sep, '')
 
-    if process.platform is 'win32' and /file:\/\/\//.test(line)
-      # file:///C:/some/file -> C:\some\file
-      line = line.replace('file:///', '').replace(///#{path.posix.sep}///g, path.win32.sep)
+      if process.platform is 'win32' and /file:\/\/\//.test(line)
+        # file:///C:/some/file -> C:\some\file
+        line = line.replace('file:///', '').replace(///#{path.posix.sep}///g, path.win32.sep)
 
-    return line.trim()
+    return line
 
   lines.join('\n').trim()
 
