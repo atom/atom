@@ -89,12 +89,14 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
       grammar = this.grammarForLanguageName(lowercaseLanguageName)
       if (!grammar) return false
       this.languageNameOverridesByBufferId.set(buffer.id, lowercaseLanguageName)
-      this.grammarScoresByBuffer.set(buffer, null)
-      if (grammar.name !== buffer.getLanguageMode().getLanguageName()) {
-        buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
-      }
     } else {
-      buffer.setLanguageMode(null)
+      this.languageNameOverridesByBufferId.set(buffer.id, null)
+      grammar = this.nullGrammar
+    }
+
+    this.grammarScoresByBuffer.set(buffer, null)
+    if (grammar.name !== buffer.getLanguageMode().getLanguageName()) {
+      buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
     }
 
     return true

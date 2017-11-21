@@ -1,4 +1,4 @@
-const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
 const path = require('path')
 const fs = require('fs-plus')
@@ -43,7 +43,7 @@ describe('GrammarRegistry', () => {
         expect(buffer.getLanguageMode().getLanguageName()).toBe('CSS')
 
         expect(grammarRegistry.assignLanguageMode(buffer, null)).toBe(true)
-        expect(buffer.getLanguageMode().getLanguageName()).toBe('None')
+        expect(buffer.getLanguageMode().getLanguageName()).toBe('Null Grammar')
       })
     })
   })
