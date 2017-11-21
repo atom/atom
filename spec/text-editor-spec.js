@@ -6613,17 +6613,6 @@ describe('TextEditor', () => {
     })
   })
 
-  describe('when the editor is constructed with the grammar option set', () => {
-    beforeEach(async () => {
-      await atom.packages.activatePackage('language-coffee-script')
-    })
-
-    it('sets the grammar', () => {
-      editor = new TextEditor({grammar: atom.grammars.grammarForScopeName('source.coffee')})
-      expect(editor.getGrammar().name).toBe('CoffeeScript')
-    })
-  })
-
   describe('softWrapAtPreferredLineLength', () => {
     it('soft wraps the editor at the preferred line length unless the editor is narrower or the editor is mini', () => {
       editor.update({

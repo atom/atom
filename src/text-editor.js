@@ -4437,10 +4437,10 @@ class TextEditor {
   toggleLineCommentForBufferRow (row) { this.toggleLineCommentsForBufferRows(row, row) }
 
   toggleLineCommentsForBufferRows (start, end) {
-    let {
-      commentStartString,
-      commentEndString
-    } = this.buffer.getLanguageMode().commentStringsForPosition(Point(start, 0))
+    const languageMode = this.buffer.getLanguageMode()
+    let {commentStartString, commentEndString} =
+      languageMode.commentStringsForPosition &&
+      languageMode.commentStringsForPosition(Point(start, 0)) || {}
     if (!commentStartString) return
     commentStartString = commentStartString.trim()
 
