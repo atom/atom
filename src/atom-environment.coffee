@@ -563,6 +563,7 @@ class AtomEnvironment extends Model
   isMaximized: ->
     @applicationDelegate.isWindowMaximized()
 
+  # Extended: Maximize the current window.
   maximize: ->
     @applicationDelegate.maximizeWindow()
 
