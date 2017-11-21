@@ -71,7 +71,6 @@ class AtomEnvironment {
     this.deserializers = new DeserializerManager(this)
     this.deserializeTimings = {}
     this.views = new ViewRegistry(this)
-    TextEditor.setScheduler(this.views)
     this.notifications = new NotificationManager()
 
     this.stateStore = new StateStore('AtomEnvironments', 1)
