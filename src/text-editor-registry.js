@@ -195,8 +195,9 @@ class TextEditorRegistry {
   // * `editor` The editor whose gramamr will be set.
   // * `scopeName` The {String} root scope name for the desired {Grammar}.
   setGrammarOverride (editor, scopeName) {
-    Grim.deprecate('Use atom.grammars.setGrammarOverrideForPath(filePath) instead.')
-    atom.grammars.setGrammarOverrideForPath(editor.getPath(), scopeName)
+    Grim.deprecate('Use atom.grammars.assignLanguageMode(editor, languageName) instead.')
+    const grammar = atom.grammars.grammarForScopeName(scopeName)
+    if (grammar) atom.grammars.assignLanguageMode(editor.getBuffer(), grammar.name)
   }
 
   // Deprecated: Retrieve the grammar scope name that has been set as a
@@ -207,8 +208,8 @@ class TextEditorRegistry {
   // Returns a {String} scope name, or `null` if no override has been set
   // for the given editor.
   getGrammarOverride (editor) {
-    Grim.deprecate('Use atom.grammars.grammarOverrideForPath(filePath) instead.')
-    return atom.grammars.grammarOverrideForPath(editor.getPath())
+    Grim.deprecate('Use buffer.getLanguageMode() instead.')
+    return editor.getBuffer().getLanguageMode().grammar.scopeName
   }
 
   // Deprecated: Remove any grammar override that has been set for the given {TextEditor}.
@@ -216,7 +217,7 @@ class TextEditorRegistry {
   // * `editor` The editor.
   clearGrammarOverride (editor) {
     Grim.deprecate('Use atom.grammars.clearGrammarOverrideForPath(filePath) instead.')
-    atom.grammars.clearGrammarOverrideForPath(editor.getPath())
+    atom.grammars.autoAssignLanguageMode(editor.getBuffer())
   }
 
   async subscribeToSettingsForEditorScope (editor) {
