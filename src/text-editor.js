@@ -3554,7 +3554,7 @@ class TextEditor {
     return languageMode.getGrammar && languageMode.getGrammar() || NullGrammar
   }
 
-  // Essential: Set the current {Grammar} of this editor.
+  // Deprecated: Set the current {Grammar} of this editor.
   //
   // Assigning a grammar will cause the editor to re-tokenize based on the new
   // grammar.

@@ -1,7 +1,6 @@
 const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 const TextEditor = require('./text-editor')
 const ScopeDescriptor = require('./scope-descriptor')
-const Grim = require('grim')
 
 const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['core.fileEncoding', 'encoding'],
@@ -185,7 +184,6 @@ class TextEditorRegistry {
   // Returns a {Disposable} that can be used to stop updating the editor's
   // grammar.
   maintainGrammar (editor) {
-    Grim.deprecate('Use atom.grammars.maintainGrammar(buffer) instead.')
     atom.grammars.maintainGrammar(editor.getBuffer())
   }
 
@@ -195,7 +193,6 @@ class TextEditorRegistry {
   // * `editor` The editor whose gramamr will be set.
   // * `scopeName` The {String} root scope name for the desired {Grammar}.
   setGrammarOverride (editor, scopeName) {
-    Grim.deprecate('Use atom.grammars.assignLanguageMode(editor, languageName) instead.')
     const grammar = atom.grammars.grammarForScopeName(scopeName)
     if (grammar) atom.grammars.assignLanguageMode(editor.getBuffer(), grammar.name)
   }
@@ -208,7 +205,6 @@ class TextEditorRegistry {
   // Returns a {String} scope name, or `null` if no override has been set
   // for the given editor.
   getGrammarOverride (editor) {
-    Grim.deprecate('Use buffer.getLanguageMode() instead.')
     return editor.getBuffer().getLanguageMode().grammar.scopeName
   }
 
@@ -216,7 +212,6 @@ class TextEditorRegistry {
   //
   // * `editor` The editor.
   clearGrammarOverride (editor) {
-    Grim.deprecate('Use atom.grammars.clearGrammarOverrideForPath(filePath) instead.')
     atom.grammars.autoAssignLanguageMode(editor.getBuffer())
   }
 
