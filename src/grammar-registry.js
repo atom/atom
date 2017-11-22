@@ -54,6 +54,14 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
     return new Token({value, scopes})
   }
 
+  // Extended: set a {TextBuffer}'s language mode based on its path and content,
+  // and continue to update its language mode as grammars are added or updated, or
+  // the buffer's file path changes.
+  //
+  // * `buffer` The {TextBuffer} whose language mode will be maintained.
+  //
+  // Returns a {Disposable} that can be used to stop updating the buffer's
+  // language mode.
   maintainLanguageMode (buffer) {
     this.grammarScoresByBuffer.set(buffer, null)
 
@@ -90,6 +98,15 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
     })
   }
 
+  // Extended: Force a {TextBuffer} to use a different grammar than the
+  // one that would otherwise be selected for it.
+  //
+  // * `buffer` The {TextBuffer} whose gramamr will be set.
+  // * `languageName` The {String} name of the desired language. The
+  //    casing of the letters in the name does not matter.
+  //
+  // Returns a {Boolean} that indicates whether the language was successfully
+  // found.
   assignLanguageMode (buffer, languageName) {
     if (buffer.getBuffer) buffer = buffer.getBuffer()
 
@@ -112,6 +129,11 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
     return true
   }
 
+  // Extended: Remove any language mode override that has been set for the
+  // given {TextBuffer}. This will assign to the buffer the best language
+  // mode available.
+  //
+  // * `buffer` The {TextBuffer}.
   autoAssignLanguageMode (buffer) {
     const result = this.selectGrammarWithScore(
       buffer.getPath(),
