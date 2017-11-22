@@ -7,6 +7,7 @@ fs = require 'fs-plus'
 Grim = require 'grim'
 pathwatcher = require 'pathwatcher'
 FindParentDir = require 'find-parent-dir'
+{CompositeDisposable} = require 'event-kit'
 
 TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
@@ -101,6 +102,18 @@ beforeEach ->
   # make tokenization synchronous
   TokenizedBuffer.prototype.chunkSize = Infinity
   spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
+
+  # Without this spy, TextEditor.onDidTokenize callbacks would not be called
+  # after the buffer's language mode changed, because by the time the editor
+  # called its new language mode's onDidTokenize method, the language mode
+  # would already be fully tokenized.
+  spyOn(TextEditor.prototype, "onDidTokenize").andCallFake (callback) ->
+    new CompositeDisposable(
+      @emitter.on("did-tokenize", callback),
+      @onDidChangeGrammar =>
+        if @buffer.getLanguageMode().tokenizeInBackground.originalValue
+          callback()
+    )
 
   clipboardContent = 'initial clipboard content'
   spyOn(clipboard, 'writeText').andCallFake (text) -> clipboardContent = text
