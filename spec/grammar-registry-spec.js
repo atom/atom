@@ -63,7 +63,7 @@ describe('GrammarRegistry', () => {
     })
   })
 
-  describe('.maintainLanguageMode', () => {
+  describe('.maintainLanguageMode(buffer)', () => {
     it('assigns a grammar to the buffer based on its path', async () => {
       const buffer = new TextBuffer()
 
@@ -128,24 +128,55 @@ describe('GrammarRegistry', () => {
       expect(retainedBufferCount(grammarRegistry)).toBe(0)
     })
 
-    describe('when called twice with a given buffer', () => {
-      it('does nothing the second time', async () => {
-        const buffer = new TextBuffer()
-        grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
-        const disposable1 = grammarRegistry.maintainLanguageMode(buffer)
-        const disposable2 = grammarRegistry.maintainLanguageMode(buffer)
+    it('doesn\'t do anything when called a second time with the same buffer', async () => {
+      const buffer = new TextBuffer()
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+      const disposable1 = grammarRegistry.maintainLanguageMode(buffer)
+      const disposable2 = grammarRegistry.maintainLanguageMode(buffer)
 
-        buffer.setPath('test.js')
-        expect(buffer.getLanguageMode().getLanguageName()).toBe('JavaScript')
+      buffer.setPath('test.js')
+      expect(buffer.getLanguageMode().getLanguageName()).toBe('JavaScript')
 
-        disposable2.dispose()
-        buffer.setPath('test.txt')
-        expect(buffer.getLanguageMode().getLanguageName()).toBe('Null Grammar')
+      disposable2.dispose()
+      buffer.setPath('test.txt')
+      expect(buffer.getLanguageMode().getLanguageName()).toBe('Null Grammar')
 
-        disposable1.dispose()
-        buffer.setPath('test.js')
-        expect(buffer.getLanguageMode().getLanguageName()).toBe('Null Grammar')
-      })
+      disposable1.dispose()
+      buffer.setPath('test.js')
+      expect(buffer.getLanguageMode().getLanguageName()).toBe('Null Grammar')
+    })
+
+    it('does not retain the buffer after the buffer is destroyed', () => {
+      const buffer = new TextBuffer()
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+
+      const disposable = grammarRegistry.maintainLanguageMode(buffer)
+      expect(retainedBufferCount(grammarRegistry)).toBe(1)
+      expect(subscriptionCount(grammarRegistry)).toBe(2)
+
+      buffer.destroy()
+      expect(retainedBufferCount(grammarRegistry)).toBe(0)
+      expect(subscriptionCount(grammarRegistry)).toBe(0)
+      expect(buffer.emitter.getTotalListenerCount()).toBe(0)
+
+      disposable.dispose()
+      expect(retainedBufferCount(grammarRegistry)).toBe(0)
+      expect(subscriptionCount(grammarRegistry)).toBe(0)
+    })
+
+    it('does not retain the buffer when the grammar registry is destroyed', () => {
+      const buffer = new TextBuffer()
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+
+      const disposable = grammarRegistry.maintainLanguageMode(buffer)
+      expect(retainedBufferCount(grammarRegistry)).toBe(1)
+      expect(subscriptionCount(grammarRegistry)).toBe(2)
+
+      grammarRegistry.clear()
+
+      expect(retainedBufferCount(grammarRegistry)).toBe(0)
+      expect(subscriptionCount(grammarRegistry)).toBe(0)
+      expect(buffer.emitter.getTotalListenerCount()).toBe(0)
     })
   })
 
@@ -356,4 +387,8 @@ describe('GrammarRegistry', () => {
 
 function retainedBufferCount (grammarRegistry) {
   return grammarRegistry.grammarScoresByBuffer.size
+}
+
+function subscriptionCount (grammarRegistry) {
+  return grammarRegistry.subscriptions.disposables.size
 }

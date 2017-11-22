@@ -71,12 +71,22 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
       }
     })
 
-    this.subscriptions.add(pathChangeSubscription)
+    const destroySubscription = buffer.onDidDestroy(() => {
+      this.grammarScoresByBuffer.delete(buffer)
+      this.languageNameOverridesByBufferId.delete(buffer.id)
+      this.subscriptions.remove(destroySubscription)
+      this.subscriptions.remove(pathChangeSubscription)
+    })
+
+    this.subscriptions.add(pathChangeSubscription, destroySubscription)
 
     return new Disposable(() => {
-      this.subscriptions.remove(pathChangeSubscription)
-      this.grammarScoresByBuffer.delete(buffer)
+      destroySubscription.dispose()
       pathChangeSubscription.dispose()
+      this.subscriptions.remove(pathChangeSubscription)
+      this.subscriptions.remove(destroySubscription)
+      this.grammarScoresByBuffer.delete(buffer)
+      this.languageNameOverridesByBufferId.delete(buffer.id)
     })
   }
 
