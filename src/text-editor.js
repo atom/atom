@@ -3561,7 +3561,6 @@ class TextEditor {
   //
   // * `grammar` {Grammar}
   setGrammar (grammar) {
-    Grim.deprecate('Use atom.grammars.assignLanguageMode(buffer, languageName) instead')
     atom.grammars.assignLanguageMode(this.getBuffer(), grammar.name)
   }
 
