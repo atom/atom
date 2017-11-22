@@ -4129,6 +4129,8 @@ class TextEditor {
       this.disposables.remove(this.languageModeSubscription)
     }
     const languageMode = this.buffer.getLanguageMode()
+
+    if (languageMode.setVisible) languageMode.setVisible(this.component && this.component.visible)
     this.languageModeSubscription = languageMode.onDidTokenize && languageMode.onDidTokenize(() => {
       this.emitter.emit('did-tokenize')
     })

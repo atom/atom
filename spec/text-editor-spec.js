@@ -7,6 +7,7 @@ const dedent = require('dedent')
 const clipboard = require('../src/safe-clipboard')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
+const TokenizedBuffer = require('../src/tokenized-buffer')
 
 describe('TextEditor', () => {
   let buffer, editor, lineLengths
@@ -5605,21 +5606,30 @@ describe('TextEditor', () => {
     })
   })
 
-  describe('when a better-matched grammar is added to syntax', () => {
-    it('switches to the better-matched grammar and re-tokenizes the buffer', async () => {
-      editor.destroy()
+  describe('when the buffer\'s language mode changes', () => {
+    it('notifies onDidTokenize observers when retokenization is finished', async () => {
+      // Exercise the full `tokenizeInBackground` code path, which bails out early if
+      // `.setVisible` has not been called with `true`.
+      jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
+      jasmine.attachToDOM(editor.getElement())
 
-      const jsGrammar = atom.grammars.selectGrammar('a.js')
-      atom.grammars.removeGrammar(jsGrammar)
+      const events = []
+      editor.onDidTokenize(event => events.push(event))
 
-      editor = await atom.workspace.open('sample.js', {autoIndent: false})
+      await atom.packages.activatePackage('language-c')
+      expect(atom.grammars.assignLanguageMode(editor.getBuffer(), 'c')).toBe(true)
+      advanceClock(1)
+      expect(events.length).toBe(1)
+    })
 
-      expect(editor.getGrammar()).toBe(atom.grammars.nullGrammar)
-      expect(editor.tokensForScreenRow(0).length).toBe(1)
+    it('notifies onDidChangeGrammar observers', async () => {
+      const events = []
+      editor.onDidChangeGrammar(grammar => events.push(grammar))
 
-      atom.grammars.addGrammar(jsGrammar)
-      expect(editor.getGrammar()).toBe(jsGrammar)
-      expect(editor.tokensForScreenRow(0).length).toBeGreaterThan(1)
+      await atom.packages.activatePackage('language-c')
+      expect(atom.grammars.assignLanguageMode(editor.getBuffer(), 'c')).toBe(true)
+      expect(events.length).toBe(1)
+      expect(events[0].name).toBe('C')
     })
   })
 
