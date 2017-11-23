@@ -14,8 +14,8 @@
 #   'enter': 'editor:newline'
 #
 # 'atom-workspace':
-#   'ctrl-shift-p': 'core:move-up'
-#   'ctrl-p': 'core:move-down'
+#   'ctrl-pageup': 'pane:show-previous-item'
+#   'ctrl-pagedown': 'pane:show-next-item'
 #
 # You can find more information about keymaps in these guides:
 # * http://flight-manual.atom.io/using-atom/sections/basic-customization/#customizing-keybindings
