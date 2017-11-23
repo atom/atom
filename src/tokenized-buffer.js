@@ -40,7 +40,8 @@ class TokenizedBuffer {
     this.assert = params.assert
     this.scopedSettingsDelegate = params.scopedSettingsDelegate
 
-    this.setGrammar(params.grammar || NullGrammar)
+    this.
+(params.grammar || NullGrammar)
     this.disposables.add(this.buffer.registerTextDecorationLayer(this))
   }
 
@@ -226,6 +227,7 @@ class TokenizedBuffer {
   setGrammar (grammar) {
     if (!grammar || grammar === this.grammar) return
 
+    
     # when the new grammar equals to the grammar of md extension
     # the grammar is equal to the txt grammar
     if(grammar != atom.grammars.selectGrammar('.md'))
