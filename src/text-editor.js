@@ -3561,7 +3561,8 @@ class TextEditor {
   //
   // * `grammar` {Grammar}
   setGrammar (grammar) {
-    atom.grammars.assignLanguageMode(this.getBuffer(), grammar.name)
+    const buffer = this.getBuffer()
+    buffer.setLanguageMode(atom.grammars.languageModeForGrammarAndBuffer(grammar, buffer))
   }
 
   // Experimental: Get a notification when async tokenization is completed.
