@@ -226,7 +226,14 @@ class TokenizedBuffer {
   setGrammar (grammar) {
     if (!grammar || grammar === this.grammar) return
 
-    this.grammar = grammar
+    # when the new grammar equals to the grammar of md extension
+    # the grammar is equal to the txt grammar
+    if(grammar != atom.grammars.selectGrammar('.md'))
+        this.grammar = grammar
+
+    else
+        this.grammar = atom.grammars.selectGrammar('.txt')
+    
     this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.scopeName]})
 
     if (this.grammarUpdateDisposable) this.grammarUpdateDisposable.dispose()
