@@ -228,6 +228,7 @@ class TokenizedBuffer {
     if (!grammar || grammar === this.grammar) return
 
     
+    
     # when the new grammar equals to the grammar of md extension
     # the grammar is equal to the txt grammar
     if(grammar != atom.grammars.selectGrammar('.md'))
