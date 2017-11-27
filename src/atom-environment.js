@@ -1116,11 +1116,6 @@ class AtomEnvironment {
   async deserialize (state) {
     if (!state) return Promise.resolve()
 
-    const grammarOverridesByPath = state.grammars && state.grammars.grammarOverridesByPath
-    if (grammarOverridesByPath) {
-      this.grammars.grammarOverridesByPath = grammarOverridesByPath
-    }
-
     this.setFullScreen(state.fullScreen)
 
     const missingProjectPaths = []
