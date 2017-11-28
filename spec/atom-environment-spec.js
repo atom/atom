@@ -224,25 +224,6 @@ describe('AtomEnvironment', () => {
       expect(await atom.loadState()).toEqual({stuff: 'cool'})
     })
 
-    it("loads state from the storage folder when it can't be found in atom.stateStore", async () => {
-      jasmine.useRealClock()
-
-      const storageFolderState = {foo: 1, bar: 2}
-      const serializedState = {someState: 42}
-      const loadSettings = _.extend(atom.getLoadSettings(), {initialPaths: [temp.mkdirSync('project-directory')]})
-      spyOn(atom, 'getLoadSettings').andReturn(loadSettings)
-      spyOn(atom, 'serialize').andReturn(serializedState)
-      spyOn(atom, 'getStorageFolder').andReturn(new StorageFolder(temp.mkdirSync('config-directory')))
-      atom.project.setPaths(atom.getLoadSettings().initialPaths)
-
-      await atom.stateStore.connect()
-      atom.getStorageFolder().storeSync(atom.getStateKey(loadSettings.initialPaths), storageFolderState)
-      expect(await atom.loadState()).toEqual(storageFolderState)
-
-      await atom.saveState()
-      expect(await atom.loadState()).toEqual(serializedState)
-    })
-
     it('saves state when the CPU is idle after a keydown or mousedown event', () => {
       const atomEnv = new AtomEnvironment({
         applicationDelegate: global.atom.applicationDelegate
@@ -488,7 +469,7 @@ describe('AtomEnvironment', () => {
       })
 
       it('automatically restores the saved state into the current environment', () => {
-        const state = Symbol()
+        const state = {}
         spyOn(atom.workspace, 'open')
         spyOn(atom, 'restoreStateIntoThisEnvironment')
 
@@ -505,7 +486,7 @@ describe('AtomEnvironment', () => {
             getTitle () { return 'title' },
             element: document.createElement('div')
           })
-          const state = Symbol()
+          const state = {}
           spyOn(atom, 'confirm')
           atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
           expect(atom.confirm).not.toHaveBeenCalled()

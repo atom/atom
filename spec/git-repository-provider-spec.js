@@ -13,6 +13,14 @@ describe('GitRepositoryProvider', () => {
     provider = new GitRepositoryProvider(atom.project, atom.config, atom.confirm)
   })
 
+  afterEach(() => {
+    if (provider) {
+      Object.keys(provider.pathToRepository).forEach(key => {
+        provider.pathToRepository[key].destroy()
+      })
+    }
+  })
+
   describe('.repositoryForDirectory(directory)', () => {
     describe('when specified a Directory with a Git repository', () => {
       it('resolves with a GitRepository', async () => {
