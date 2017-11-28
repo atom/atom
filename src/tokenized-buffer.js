@@ -23,7 +23,7 @@ class TokenizedBuffer {
     this.regexesByPattern = {}
 
     this.alive = true
-    this.visible = false
+    this.tokenizationStarted = false
     this.id = params.id != null ? params.id : nextId++
     this.buffer = params.buffer
     this.largeFileMode = params.largeFileMode
@@ -255,15 +255,15 @@ class TokenizedBuffer {
     }
   }
 
-  setVisible (visible) {
-    this.visible = visible
-    if (this.visible && this.grammar.name !== 'Null Grammar' && !this.largeFileMode) {
+  startTokenizing () {
+    this.tokenizationStarted = true
+    if (this.grammar.name !== 'Null Grammar' && !this.largeFileMode) {
       this.tokenizeInBackground()
     }
   }
 
   tokenizeInBackground () {
-    if (!this.visible || this.pendingChunk || !this.alive) return
+    if (!this.tokenizationStarted || this.pendingChunk || !this.alive) return
 
     this.pendingChunk = true
     _.defer(() => {

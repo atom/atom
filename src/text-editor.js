@@ -953,8 +953,10 @@ class TextEditor {
 
   // Controls visibility based on the given {Boolean}.
   setVisible (visible) {
-    const languageMode = this.buffer.getLanguageMode()
-    languageMode.setVisible && languageMode.setVisible(visible)
+    if (visible) {
+      const languageMode = this.buffer.getLanguageMode()
+      if (languageMode.startTokenizing) languageMode.startTokenizing()
+    }
   }
 
   setMini (mini) {
@@ -4130,7 +4132,9 @@ class TextEditor {
     }
     const languageMode = this.buffer.getLanguageMode()
 
-    if (languageMode.setVisible) languageMode.setVisible(this.component && this.component.visible)
+    if (this.component && this.component.visible && languageMode.startTokenizing) {
+      languageMode.startTokenizing()
+    }
     this.languageModeSubscription = languageMode.onDidTokenize && languageMode.onDidTokenize(() => {
       this.emitter.emit('did-tokenize')
     })

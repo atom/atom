@@ -23,12 +23,8 @@ describe('TokenizedBuffer', () => {
     tokenizedBuffer && tokenizedBuffer.destroy()
   })
 
-  function startTokenizing (tokenizedBuffer) {
-    tokenizedBuffer.setVisible(true)
-  }
-
   function fullyTokenize (tokenizedBuffer) {
-    tokenizedBuffer.setVisible(true)
+    tokenizedBuffer.startTokenizing()
     while (tokenizedBuffer.firstInvalidRow() != null) {
       advanceClock()
     }
@@ -67,7 +63,7 @@ describe('TokenizedBuffer', () => {
       beforeEach(() => {
         buffer = atom.project.bufferForPathSync('sample.js')
         tokenizedBuffer = new TokenizedBuffer({buffer, config, config, grammar: atom.grammars.grammarForScopeName('source.js')})
-        startTokenizing(tokenizedBuffer)
+        tokenizedBuffer.startTokenizing()
       })
 
       it('stops tokenization', () => {
@@ -83,7 +79,7 @@ describe('TokenizedBuffer', () => {
         buffer = atom.project.bufferForPathSync('sample.js')
         tokenizedBuffer = new TokenizedBuffer({buffer, config, grammar: atom.grammars.grammarForScopeName('source.js')})
         buffer.setLanguageMode(tokenizedBuffer)
-        startTokenizing(tokenizedBuffer)
+        tokenizedBuffer.startTokenizing()
       })
 
       afterEach(() => {
@@ -298,7 +294,7 @@ describe('TokenizedBuffer', () => {
 
         buffer = atom.project.bufferForPathSync('sample-with-tabs.coffee')
         tokenizedBuffer = new TokenizedBuffer({buffer, config, grammar: atom.grammars.grammarForScopeName('source.coffee')})
-        startTokenizing(tokenizedBuffer)
+        tokenizedBuffer.startTokenizing()
       })
 
       afterEach(() => {
@@ -445,7 +441,7 @@ describe('TokenizedBuffer', () => {
 
       const jsScopeStartId = grammar.startIdForScope(grammar.scopeName)
       const jsScopeEndId = grammar.endIdForScope(grammar.scopeName)
-      startTokenizing(tokenizedBuffer)
+      tokenizedBuffer.startTokenizing()
       expect(tokenizedBuffer.tokenizedLines[0]).toBeUndefined()
       expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe(line0)
       expect(tokenizedBuffer.tokenizedLineForRow(0).tags).toEqual([jsScopeStartId, line0.length, jsScopeEndId])
