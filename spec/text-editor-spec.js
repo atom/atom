@@ -6683,6 +6683,7 @@ describe('TextEditor', () => {
     beforeEach(async () => {
       editor = await atom.workspace.open('sample.js')
       jasmine.unspy(editor, 'shouldPromptToSave')
+      spyOn(atom.stateStore, 'isConnected').andReturn(true)
     })
 
     it('returns true when buffer has unsaved changes', () => {
