@@ -18,7 +18,7 @@ describe('TextEditorRegistry', function () {
     })
 
     editor = new TextEditor({autoHeight: false})
-    expect(atom.grammars.assignLanguageMode(editor, 'null grammar')).toBe(true)
+    expect(atom.grammars.assignLanguageMode(editor, 'text.plain.null-grammar')).toBe(true)
   })
 
   afterEach(function () {
@@ -80,7 +80,7 @@ describe('TextEditorRegistry', function () {
 
       const editor2 = new TextEditor()
 
-      atom.grammars.assignLanguageMode(editor2, 'javascript')
+      atom.grammars.assignLanguageMode(editor2, 'source.js')
 
       registry.maintainConfig(editor)
       registry.maintainConfig(editor2)
@@ -142,14 +142,14 @@ describe('TextEditorRegistry', function () {
       atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.source.js'})
       expect(editor.getEncoding()).toBe('utf8')
 
-      atom.grammars.assignLanguageMode(editor, 'javascript')
+      atom.grammars.assignLanguageMode(editor, 'source.js')
       await initialPackageActivation
       expect(editor.getEncoding()).toBe('utf16le')
 
       atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.source.js'})
       expect(editor.getEncoding()).toBe('utf16be')
 
-      atom.grammars.assignLanguageMode(editor, 'null grammar')
+      atom.grammars.assignLanguageMode(editor, 'text.plain.null-grammar')
       await initialPackageActivation
       expect(editor.getEncoding()).toBe('utf8')
     })
@@ -219,7 +219,7 @@ describe('TextEditorRegistry', function () {
     describe('when the "tabType" config setting is "auto"', function () {
       it('enables or disables soft tabs based on the editor\'s content', async function () {
         await atom.packages.activatePackage('language-javascript')
-        atom.grammars.assignLanguageMode(editor, 'javascript')
+        atom.grammars.assignLanguageMode(editor, 'source.js')
         atom.config.set('editor.tabType', 'auto')
 
         registry.maintainConfig(editor)

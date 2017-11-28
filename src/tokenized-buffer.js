@@ -57,8 +57,8 @@ class TokenizedBuffer {
     return this.grammar
   }
 
-  getLanguageName () {
-    return this.grammar.name
+  getLanguageId () {
+    return this.grammar.scopeName
   }
 
   getNonWordCharacters (position) {

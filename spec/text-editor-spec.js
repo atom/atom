@@ -1341,7 +1341,7 @@ describe('TextEditor', () => {
       })
 
       it('will limit paragraph range to comments', () => {
-        atom.grammars.assignLanguageMode(editor.getBuffer(), 'javascript')
+        atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.js')
         editor.setText(dedent`
           var quicksort = function () {
             /* Single line comment block */
@@ -3678,7 +3678,7 @@ describe('TextEditor', () => {
       describe('when a newline is appended with a trailing closing tag behind the cursor (e.g. by pressing enter in the middel of a line)', () => {
         it('indents the new line to the correct level when editor.autoIndent is true and using a curly-bracket language', () => {
           editor.update({autoIndent: true})
-          atom.grammars.assignLanguageMode(editor, 'javascript')
+          atom.grammars.assignLanguageMode(editor, 'source.js')
           editor.setText('var test = () => {\n  return true;};')
           editor.setCursorBufferPosition([1, 14])
           editor.insertNewline()
@@ -3687,7 +3687,7 @@ describe('TextEditor', () => {
         })
 
         it('indents the new line to the current level when editor.autoIndent is true and no increaseIndentPattern is specified', () => {
-          atom.grammars.assignLanguageMode(editor, 'null grammar')
+          atom.grammars.assignLanguageMode(editor, null)
           editor.update({autoIndent: true})
           editor.setText('  if true')
           editor.setCursorBufferPosition([0, 8])
@@ -3700,7 +3700,7 @@ describe('TextEditor', () => {
         it('indents the new line to the correct level when editor.autoIndent is true and using an off-side rule language', async () => {
           await atom.packages.activatePackage('language-coffee-script')
           editor.update({autoIndent: true})
-          atom.grammars.assignLanguageMode(editor, 'coffeescript')
+          atom.grammars.assignLanguageMode(editor, 'source.coffee')
           editor.setText('if true\n  return trueelse\n  return false')
           editor.setCursorBufferPosition([1, 13])
           editor.insertNewline()
@@ -3714,7 +3714,7 @@ describe('TextEditor', () => {
         it('indents the new line to the correct level when editor.autoIndent is true', async () => {
           await atom.packages.activatePackage('language-go')
           editor.update({autoIndent: true})
-          atom.grammars.assignLanguageMode(editor, 'go')
+          atom.grammars.assignLanguageMode(editor, 'source.go')
           editor.setText('fmt.Printf("some%s",\n	"thing")')
           editor.setCursorBufferPosition([1, 10])
           editor.insertNewline()
@@ -5617,7 +5617,7 @@ describe('TextEditor', () => {
       editor.onDidTokenize(event => events.push(event))
 
       await atom.packages.activatePackage('language-c')
-      expect(atom.grammars.assignLanguageMode(editor.getBuffer(), 'c')).toBe(true)
+      expect(atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.c')).toBe(true)
       advanceClock(1)
       expect(events.length).toBe(1)
     })
@@ -5627,7 +5627,7 @@ describe('TextEditor', () => {
       editor.onDidChangeGrammar(grammar => events.push(grammar))
 
       await atom.packages.activatePackage('language-c')
-      expect(atom.grammars.assignLanguageMode(editor.getBuffer(), 'c')).toBe(true)
+      expect(atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.c')).toBe(true)
       expect(events.length).toBe(1)
       expect(events[0].name).toBe('C')
     })

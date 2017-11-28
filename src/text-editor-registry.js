@@ -191,10 +191,9 @@ class TextEditorRegistry {
   // one that would otherwise be selected for it.
   //
   // * `editor` The editor whose gramamr will be set.
-  // * `scopeName` The {String} root scope name for the desired {Grammar}.
-  setGrammarOverride (editor, scopeName) {
-    const grammar = atom.grammars.grammarForScopeName(scopeName)
-    if (grammar) atom.grammars.assignLanguageMode(editor.getBuffer(), grammar.name)
+  // * `languageId` The {String} language ID for the desired {Grammar}.
+  setGrammarOverride (editor, languageId) {
+    atom.grammars.assignLanguageMode(editor.getBuffer(), languageId)
   }
 
   // Deprecated: Retrieve the grammar scope name that has been set as a

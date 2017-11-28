@@ -32,7 +32,7 @@ module.exports = async ({test}) => {
     let t0 = window.performance.now()
     const buffer = new TextBuffer({text})
     const editor = new TextEditor({buffer, autoHeight: false, largeFileMode: true})
-    atom.grammars.assignLanguageMode(buffer, 'javascript')
+    atom.grammars.assignLanguageMode(buffer, 'source.js')
     atom.workspace.getActivePane().activateItem(editor)
     let t1 = window.performance.now()
 

@@ -303,7 +303,7 @@ describe('AtomEnvironment', () => {
     it('serializes the text editor registry', async () => {
       await atom.packages.activatePackage('language-text')
       const editor = await atom.workspace.open('sample.js')
-      expect(atom.grammars.assignLanguageMode(editor, 'plain text')).toBe(true)
+      expect(atom.grammars.assignLanguageMode(editor, 'text.plain')).toBe(true)
 
       const atom2 = new AtomEnvironment({
         applicationDelegate: atom.applicationDelegate,
@@ -321,7 +321,7 @@ describe('AtomEnvironment', () => {
       await atom2.deserialize(atom.serialize())
       await atom2.packages.activatePackage('language-text')
       const editor2 = atom2.workspace.getActiveTextEditor()
-      expect(editor2.getBuffer().getLanguageMode().getLanguageName()).toBe('Plain Text')
+      expect(editor2.getBuffer().getLanguageMode().getLanguageId()).toBe('text.plain')
       atom2.destroy()
     })
 

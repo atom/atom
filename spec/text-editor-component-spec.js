@@ -795,7 +795,7 @@ describe('TextEditorComponent', () => {
       const {editor, element, component} = buildComponent()
       expect(element.dataset.grammar).toBe('text plain null-grammar')
 
-      atom.grammars.assignLanguageMode(editor.getBuffer(), 'JavaScript')
+      atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.js')
       await component.getNextUpdatePromise()
       expect(element.dataset.grammar).toBe('source js')
     })

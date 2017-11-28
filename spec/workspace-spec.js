@@ -1240,7 +1240,7 @@ describe('Workspace', () => {
       await javascriptGrammarUsed
 
       await atom.packages.activatePackage('language-coffee-script')
-      atom.grammars.assignLanguageMode(editor, 'coffeescript')
+      atom.grammars.assignLanguageMode(editor, 'source.coffee')
       await coffeescriptGrammarUsed
     })
   })
@@ -1517,7 +1517,7 @@ describe('Workspace', () => {
 
       const editor = await workspace.open('a')
 
-      atom.grammars.assignLanguageMode(editor, 'javascript')
+      atom.grammars.assignLanguageMode(editor, 'source.js')
       expect(editor.getGrammar().name).toBe('JavaScript')
 
       workspace.getActivePane().splitRight({copyActiveItem: true})
@@ -2784,12 +2784,12 @@ i = /test/; #FIXME\
       expect(javascriptGrammarUsed).toHaveBeenCalled()
 
       // Hooks are triggered when changing existing editors grammars
-      atom.grammars.assignLanguageMode(atom.workspace.getActiveTextEditor(), 'c')
+      atom.grammars.assignLanguageMode(atom.workspace.getActiveTextEditor(), 'source.c')
       expect(cGrammarUsed).toHaveBeenCalled()
 
       // Hooks are triggered when editors are added in other ways.
       atom.workspace.getActivePane().splitRight({copyActiveItem: true})
-      atom.grammars.assignLanguageMode(atom.workspace.getActiveTextEditor(), 'ruby')
+      atom.grammars.assignLanguageMode(atom.workspace.getActiveTextEditor(), 'source.ruby')
       expect(rubyGrammarUsed).toHaveBeenCalled()
     })
   })

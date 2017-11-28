@@ -19,19 +19,19 @@ describe('GrammarRegistry', () => {
       grammarRegistry.loadGrammarSync(require.resolve('language-css/grammars/css.cson'))
 
       const buffer = new TextBuffer()
-      expect(grammarRegistry.assignLanguageMode(buffer, 'javascript')).toBe(true)
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('JavaScript')
+      expect(grammarRegistry.assignLanguageMode(buffer, 'source.js')).toBe(true)
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.js')
 
       // Returns true if we found the grammar, even if it didn't change
-      expect(grammarRegistry.assignLanguageMode(buffer, 'javascript')).toBe(true)
+      expect(grammarRegistry.assignLanguageMode(buffer, 'source.js')).toBe(true)
 
       // Language names are not case-sensitive
-      expect(grammarRegistry.assignLanguageMode(buffer, 'css')).toBe(true)
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('CSS')
+      expect(grammarRegistry.assignLanguageMode(buffer, 'source.css')).toBe(true)
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.css')
 
       // Returns false if no language is found
       expect(grammarRegistry.assignLanguageMode(buffer, 'blub')).toBe(false)
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('CSS')
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.css')
     })
 
     describe('when no languageName is passed', () => {
@@ -39,11 +39,11 @@ describe('GrammarRegistry', () => {
         grammarRegistry.loadGrammarSync(require.resolve('language-css/grammars/css.cson'))
 
         const buffer = new TextBuffer()
-        expect(grammarRegistry.assignLanguageMode(buffer, 'css')).toBe(true)
-        expect(buffer.getLanguageMode().getLanguageName()).toBe('CSS')
+        expect(grammarRegistry.assignLanguageMode(buffer, 'source.css')).toBe(true)
+        expect(buffer.getLanguageMode().getLanguageId()).toBe('source.css')
 
         expect(grammarRegistry.assignLanguageMode(buffer, null)).toBe(true)
-        expect(buffer.getLanguageMode().getLanguageName()).toBe('Null Grammar')
+        expect(buffer.getLanguageMode().getLanguageId()).toBe('text.plain.null-grammar')
       })
     })
   })
@@ -55,11 +55,11 @@ describe('GrammarRegistry', () => {
 
       const buffer = new TextBuffer()
       buffer.setPath('foo.js')
-      expect(grammarRegistry.assignLanguageMode(buffer, 'css')).toBe(true)
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('CSS')
+      expect(grammarRegistry.assignLanguageMode(buffer, 'source.css')).toBe(true)
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.css')
 
       grammarRegistry.autoAssignLanguageMode(buffer)
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('JavaScript')
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.js')
     })
   })
 
@@ -72,36 +72,35 @@ describe('GrammarRegistry', () => {
 
       buffer.setPath('test.js')
       grammarRegistry.maintainLanguageMode(buffer)
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('JavaScript')
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.js')
 
       buffer.setPath('test.c')
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('C')
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.c')
     })
 
     it('updates the buffer\'s grammar when a more appropriate grammar is added for its path', async () => {
       const buffer = new TextBuffer()
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('None')
+      expect(buffer.getLanguageMode().getLanguageId()).toBe(null)
 
       buffer.setPath('test.js')
       grammarRegistry.maintainLanguageMode(buffer)
 
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('JavaScript')
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.js')
     })
 
     it('can be overridden by calling .assignLanguageMode', () => {
       const buffer = new TextBuffer()
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('None')
 
       buffer.setPath('test.js')
       grammarRegistry.maintainLanguageMode(buffer)
 
       grammarRegistry.loadGrammarSync(require.resolve('language-css/grammars/css.cson'))
-      expect(grammarRegistry.assignLanguageMode(buffer, 'css')).toBe(true)
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('CSS')
+      expect(grammarRegistry.assignLanguageMode(buffer, 'source.css')).toBe(true)
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.css')
 
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('CSS')
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.css')
     })
 
     it('returns a disposable that can be used to stop the registry from updating the buffer', async () => {
@@ -114,17 +113,17 @@ describe('GrammarRegistry', () => {
       expect(retainedBufferCount(grammarRegistry)).toBe(1)
 
       buffer.setPath('test.js')
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('JavaScript')
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.js')
 
       buffer.setPath('test.txt')
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('Null Grammar')
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('text.plain.null-grammar')
 
       disposable.dispose()
       expect(buffer.emitter.getTotalListenerCount()).toBe(previousSubscriptionCount)
       expect(retainedBufferCount(grammarRegistry)).toBe(0)
 
       buffer.setPath('test.js')
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('Null Grammar')
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('text.plain.null-grammar')
       expect(retainedBufferCount(grammarRegistry)).toBe(0)
     })
 
@@ -135,15 +134,15 @@ describe('GrammarRegistry', () => {
       const disposable2 = grammarRegistry.maintainLanguageMode(buffer)
 
       buffer.setPath('test.js')
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('JavaScript')
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.js')
 
       disposable2.dispose()
       buffer.setPath('test.txt')
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('Null Grammar')
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('text.plain.null-grammar')
 
       disposable1.dispose()
       buffer.setPath('test.js')
-      expect(buffer.getLanguageMode().getLanguageName()).toBe('Null Grammar')
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('text.plain.null-grammar')
     })
 
     it('does not retain the buffer after the buffer is destroyed', () => {
@@ -358,8 +357,8 @@ describe('GrammarRegistry', () => {
 
       grammarRegistry.maintainLanguageMode(buffer1)
       grammarRegistry.maintainLanguageMode(buffer2)
-      grammarRegistry.assignLanguageMode(buffer1, 'c')
-      grammarRegistry.assignLanguageMode(buffer2, 'javascript')
+      grammarRegistry.assignLanguageMode(buffer1, 'source.c')
+      grammarRegistry.assignLanguageMode(buffer2, 'source.js')
 
       const buffer1Copy = await TextBuffer.deserialize(buffer1.serialize())
       const buffer2Copy = await TextBuffer.deserialize(buffer2.serialize())
@@ -370,17 +369,17 @@ describe('GrammarRegistry', () => {
       grammarRegistryCopy.loadGrammarSync(require.resolve('language-c/grammars/c.cson'))
       grammarRegistryCopy.loadGrammarSync(require.resolve('language-html/grammars/html.cson'))
 
-      expect(buffer1Copy.getLanguageMode().getLanguageName()).toBe('None')
-      expect(buffer2Copy.getLanguageMode().getLanguageName()).toBe('None')
+      expect(buffer1Copy.getLanguageMode().getLanguageId()).toBe(null)
+      expect(buffer2Copy.getLanguageMode().getLanguageId()).toBe(null)
 
       grammarRegistryCopy.maintainLanguageMode(buffer1Copy)
       grammarRegistryCopy.maintainLanguageMode(buffer2Copy)
-      expect(buffer1Copy.getLanguageMode().getLanguageName()).toBe('C')
-      expect(buffer2Copy.getLanguageMode().getLanguageName()).toBe('None')
+      expect(buffer1Copy.getLanguageMode().getLanguageId()).toBe('source.c')
+      expect(buffer2Copy.getLanguageMode().getLanguageId()).toBe(null)
 
       grammarRegistryCopy.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
-      expect(buffer1Copy.getLanguageMode().getLanguageName()).toBe('C')
-      expect(buffer2Copy.getLanguageMode().getLanguageName()).toBe('JavaScript')
+      expect(buffer1Copy.getLanguageMode().getLanguageId()).toBe('source.c')
+      expect(buffer2Copy.getLanguageMode().getLanguageId()).toBe('source.js')
     })
   })
 })
