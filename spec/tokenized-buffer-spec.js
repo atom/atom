@@ -8,9 +8,10 @@ const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-help
 const {ScopedSettingsDelegate} = require('../src/text-editor-registry')
 
 describe('TokenizedBuffer', () => {
-  let tokenizedBuffer, buffer
+  let tokenizedBuffer, buffer, config
 
   beforeEach(async () => {
+    config = atom.config
     // enable async tokenization
     TokenizedBuffer.prototype.chunkSize = 5
     jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
@@ -22,39 +23,38 @@ describe('TokenizedBuffer', () => {
     tokenizedBuffer && tokenizedBuffer.destroy()
   })
 
-  function startTokenizing (tokenizedBuffer) {
-    tokenizedBuffer.setVisible(true)
-  }
-
   function fullyTokenize (tokenizedBuffer) {
-    tokenizedBuffer.setVisible(true)
+    tokenizedBuffer.startTokenizing()
     while (tokenizedBuffer.firstInvalidRow() != null) {
       advanceClock()
     }
   }
 
-  describe('serialization', () => {
-    describe('when the underlying buffer has a path', () => {
-      beforeEach(async () => {
-        buffer = atom.project.bufferForPathSync('sample.js')
-        await atom.packages.activatePackage('language-coffee-script')
+  describe('when the editor is constructed with the largeFileMode option set to true', () => {
+    it("loads the editor but doesn't tokenize", async () => {
+      const line = 'a b c d\n'
+      buffer = new TextBuffer(line.repeat(256 * 1024))
+      expect(buffer.getText().length).toBe(2 * 1024 * 1024)
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer,
+        grammar: atom.grammars.grammarForScopeName('source.js'),
+        tabLength: 2
       })
+      buffer.setLanguageMode(tokenizedBuffer)
 
-      it('deserializes it searching among the buffers in the current project', () => {
-        const tokenizedBufferA = new TokenizedBuffer({buffer, tabLength: 2})
-        const tokenizedBufferB = TokenizedBuffer.deserialize(JSON.parse(JSON.stringify(tokenizedBufferA.serialize())), atom)
-        expect(tokenizedBufferB.buffer).toBe(tokenizedBufferA.buffer)
-      })
-    })
+      expect(tokenizedBuffer.isRowCommented(0)).toBeFalsy()
 
-    describe('when the underlying buffer has no path', () => {
-      beforeEach(() => buffer = atom.project.bufferForPathSync(null))
+      // It treats the entire line as one big token
+      let iterator = tokenizedBuffer.buildHighlightIterator()
+      iterator.seek({row: 0, column: 0})
+      iterator.moveToSuccessor()
+      expect(iterator.getPosition()).toEqual({row: 0, column: 7})
 
-      it('deserializes it searching among the buffers in the current project', () => {
-        const tokenizedBufferA = new TokenizedBuffer({buffer, tabLength: 2})
-        const tokenizedBufferB = TokenizedBuffer.deserialize(JSON.parse(JSON.stringify(tokenizedBufferA.serialize())), atom)
-        expect(tokenizedBufferB.buffer).toBe(tokenizedBufferA.buffer)
-      })
+      buffer.insert([0, 0], 'hey"')
+      iterator = tokenizedBuffer.buildHighlightIterator()
+      iterator.seek({row: 0, column: 0})
+      iterator.moveToSuccessor()
+      expect(iterator.getPosition()).toEqual({row: 0, column: 11})
     })
   })
 
@@ -62,8 +62,8 @@ describe('TokenizedBuffer', () => {
     describe('when the buffer is destroyed', () => {
       beforeEach(() => {
         buffer = atom.project.bufferForPathSync('sample.js')
-        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
-        startTokenizing(tokenizedBuffer)
+        tokenizedBuffer = new TokenizedBuffer({buffer, config, config, grammar: atom.grammars.grammarForScopeName('source.js')})
+        tokenizedBuffer.startTokenizing()
       })
 
       it('stops tokenization', () => {
@@ -77,8 +77,9 @@ describe('TokenizedBuffer', () => {
     describe('when the buffer contains soft-tabs', () => {
       beforeEach(() => {
         buffer = atom.project.bufferForPathSync('sample.js')
-        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
-        startTokenizing(tokenizedBuffer)
+        tokenizedBuffer = new TokenizedBuffer({buffer, config, grammar: atom.grammars.grammarForScopeName('source.js')})
+        buffer.setLanguageMode(tokenizedBuffer)
+        tokenizedBuffer.startTokenizing()
       })
 
       afterEach(() => {
@@ -271,7 +272,7 @@ describe('TokenizedBuffer', () => {
           })
         })
 
-        describe('when there is an insertion that is larger than the chunk size', () =>
+        describe('when there is an insertion that is larger than the chunk size', () => {
           it('tokenizes the initial chunk synchronously, then tokenizes the remaining lines in the background', () => {
             const commentBlock = _.multiplyString('// a comment\n', tokenizedBuffer.chunkSize + 2)
             buffer.insert([0, 0], commentBlock)
@@ -283,22 +284,6 @@ describe('TokenizedBuffer', () => {
             expect(tokenizedBuffer.tokenizedLines[5].ruleStack != null).toBeTruthy()
             expect(tokenizedBuffer.tokenizedLines[6].ruleStack != null).toBeTruthy()
           })
-        )
-
-        it('does not break out soft tabs across a scope boundary', async () => {
-          await atom.packages.activatePackage('language-gfm')
-
-          tokenizedBuffer.setTabLength(4)
-          tokenizedBuffer.setGrammar(atom.grammars.selectGrammar('.md'))
-          buffer.setText('    <![]()\n    ')
-          fullyTokenize(tokenizedBuffer)
-
-          let length = 0
-          for (let tag of tokenizedBuffer.tokenizedLines[1].tags) {
-            if (tag > 0) length += tag
-          }
-
-          expect(length).toBe(4)
         })
       })
     })
@@ -308,8 +293,8 @@ describe('TokenizedBuffer', () => {
         atom.packages.activatePackage('language-coffee-script')
 
         buffer = atom.project.bufferForPathSync('sample-with-tabs.coffee')
-        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.coffee'), tabLength: 2})
-        startTokenizing(tokenizedBuffer)
+        tokenizedBuffer = new TokenizedBuffer({buffer, config, grammar: atom.grammars.grammarForScopeName('source.coffee')})
+        tokenizedBuffer.startTokenizing()
       })
 
       afterEach(() => {
@@ -328,7 +313,7 @@ describe('TokenizedBuffer', () => {
 
         const tokenizedHandler = jasmine.createSpy('tokenized handler')
         editor.tokenizedBuffer.onDidTokenize(tokenizedHandler)
-        fullyTokenize(editor.tokenizedBuffer)
+        fullyTokenize(editor.getBuffer().getLanguageMode())
         expect(tokenizedHandler.callCount).toBe(1)
       })
 
@@ -346,16 +331,16 @@ describe('TokenizedBuffer', () => {
 
     describe('when the grammar is updated because a grammar it includes is activated', async () => {
       it('re-emits the `tokenized` event', async () => {
-        const editor = await atom.workspace.open('coffee.coffee')
+        let tokenizationCount = 0
 
-        const tokenizedHandler = jasmine.createSpy('tokenized handler')
-        editor.tokenizedBuffer.onDidTokenize(tokenizedHandler)
-        fullyTokenize(editor.tokenizedBuffer)
-        tokenizedHandler.reset()
+        const editor = await atom.workspace.open('coffee.coffee')
+        editor.onDidTokenize(() => { tokenizationCount++ })
+        fullyTokenize(editor.getBuffer().getLanguageMode())
+        tokenizationCount = 0
 
         await atom.packages.activatePackage('language-coffee-script')
-        fullyTokenize(editor.tokenizedBuffer)
-        expect(tokenizedHandler.callCount).toBe(1)
+        fullyTokenize(editor.getBuffer().getLanguageMode())
+        expect(tokenizationCount).toBe(1)
       })
 
       it('retokenizes the buffer', async () => {
@@ -365,7 +350,7 @@ describe('TokenizedBuffer', () => {
         buffer = atom.project.bufferForPathSync()
         buffer.setText("<div class='name'><%= User.find(2).full_name %></div>")
 
-        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.selectGrammar('test.erb'), tabLength: 2})
+        tokenizedBuffer = new TokenizedBuffer({buffer, config, grammar: atom.grammars.selectGrammar('test.erb')})
         fullyTokenize(tokenizedBuffer)
         expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual({
           value: "<div class='name'>",
@@ -386,7 +371,7 @@ describe('TokenizedBuffer', () => {
         spyOn(NullGrammar, 'tokenizeLine').andCallThrough()
         buffer = atom.project.bufferForPathSync('sample.will-use-the-null-grammar')
         buffer.setText('a\nb\nc')
-        tokenizedBuffer = new TokenizedBuffer({buffer, tabLength: 2})
+        tokenizedBuffer = new TokenizedBuffer({buffer, config})
         const tokenizeCallback = jasmine.createSpy('onDidTokenize')
         tokenizedBuffer.onDidTokenize(tokenizeCallback)
 
@@ -414,7 +399,7 @@ describe('TokenizedBuffer', () => {
 
     it('returns the correct token (regression)', () => {
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
+      tokenizedBuffer = new TokenizedBuffer({buffer, config, grammar: atom.grammars.grammarForScopeName('source.js')})
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([1, 0]).scopes).toEqual(['source.js'])
       expect(tokenizedBuffer.tokenForPosition([1, 1]).scopes).toEqual(['source.js'])
@@ -425,7 +410,7 @@ describe('TokenizedBuffer', () => {
   describe('.bufferRangeForScopeAtPosition(selector, position)', () => {
     beforeEach(() => {
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
+      tokenizedBuffer = new TokenizedBuffer({buffer, config, grammar: atom.grammars.grammarForScopeName('source.js')})
       fullyTokenize(tokenizedBuffer)
     })
 
@@ -451,12 +436,12 @@ describe('TokenizedBuffer', () => {
     it("returns the tokenized line for a row, or a placeholder line if it hasn't been tokenized yet", () => {
       buffer = atom.project.bufferForPathSync('sample.js')
       const grammar = atom.grammars.grammarForScopeName('source.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer, grammar, tabLength: 2})
+      tokenizedBuffer = new TokenizedBuffer({buffer, config, grammar})
       const line0 = buffer.lineForRow(0)
 
       const jsScopeStartId = grammar.startIdForScope(grammar.scopeName)
       const jsScopeEndId = grammar.endIdForScope(grammar.scopeName)
-      startTokenizing(tokenizedBuffer)
+      tokenizedBuffer.startTokenizing()
       expect(tokenizedBuffer.tokenizedLines[0]).toBeUndefined()
       expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe(line0)
       expect(tokenizedBuffer.tokenizedLineForRow(0).tags).toEqual([jsScopeStartId, line0.length, jsScopeEndId])
@@ -464,23 +449,12 @@ describe('TokenizedBuffer', () => {
       expect(tokenizedBuffer.tokenizedLines[0]).not.toBeUndefined()
       expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe(line0)
       expect(tokenizedBuffer.tokenizedLineForRow(0).tags).not.toEqual([jsScopeStartId, line0.length, jsScopeEndId])
-
-      const nullScopeStartId = NullGrammar.startIdForScope(NullGrammar.scopeName)
-      const nullScopeEndId = NullGrammar.endIdForScope(NullGrammar.scopeName)
-      tokenizedBuffer.setGrammar(NullGrammar)
-      startTokenizing(tokenizedBuffer)
-      expect(tokenizedBuffer.tokenizedLines[0]).toBeUndefined()
-      expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe(line0)
-      expect(tokenizedBuffer.tokenizedLineForRow(0).tags).toEqual([nullScopeStartId, line0.length, nullScopeEndId])
-      advanceClock(1)
-      expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe(line0)
-      expect(tokenizedBuffer.tokenizedLineForRow(0).tags).toEqual([nullScopeStartId, line0.length, nullScopeEndId])
     })
 
     it('returns undefined if the requested row is outside the buffer range', () => {
       buffer = atom.project.bufferForPathSync('sample.js')
       const grammar = atom.grammars.grammarForScopeName('source.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer, grammar, tabLength: 2})
+      tokenizedBuffer = new TokenizedBuffer({buffer, config, grammar})
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenizedLineForRow(999)).toBeUndefined()
     })
@@ -490,10 +464,10 @@ describe('TokenizedBuffer', () => {
     describe('iterator', () => {
       it('iterates over the syntactic scope boundaries', () => {
         buffer = new TextBuffer({text: 'var foo = 1 /*\nhello*/var bar = 2\n'})
-        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
+        tokenizedBuffer = new TokenizedBuffer({buffer, config, grammar: atom.grammars.grammarForScopeName('source.js')})
         fullyTokenize(tokenizedBuffer)
 
-        const iterator = tokenizedBuffer.buildIterator()
+        const iterator = tokenizedBuffer.buildHighlightIterator()
         iterator.seek(Point(0, 0))
 
         const expectedBoundaries = [
@@ -555,10 +529,10 @@ describe('TokenizedBuffer', () => {
         await atom.packages.activatePackage('language-coffee-script')
 
         buffer = new TextBuffer({text: '# hello\n# world'})
-        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.coffee'), tabLength: 2})
+        tokenizedBuffer = new TokenizedBuffer({buffer, config, grammar: atom.grammars.grammarForScopeName('source.coffee')})
         fullyTokenize(tokenizedBuffer)
 
-        const iterator = tokenizedBuffer.buildIterator()
+        const iterator = tokenizedBuffer.buildHighlightIterator()
         iterator.seek(Point(0, 0))
         iterator.moveToSuccessor()
         iterator.moveToSuccessor()
@@ -585,10 +559,10 @@ describe('TokenizedBuffer', () => {
         })
 
         buffer = new TextBuffer({text: 'start x\nend x\nx'})
-        tokenizedBuffer = new TokenizedBuffer({buffer, grammar, tabLength: 2})
+        tokenizedBuffer = new TokenizedBuffer({buffer, config, grammar})
         fullyTokenize(tokenizedBuffer)
 
-        const iterator = tokenizedBuffer.buildIterator()
+        const iterator = tokenizedBuffer.buildHighlightIterator()
         iterator.seek(Point(1, 0))
 
         expect(iterator.getPosition()).toEqual([1, 0])
@@ -648,7 +622,8 @@ describe('TokenizedBuffer', () => {
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.insert([10, 0], '  // multi-line\n  // comment\n  // block\n')
       buffer.insert([0, 0], '// multi-line\n// comment\n// block\n')
-      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
+      tokenizedBuffer = new TokenizedBuffer({buffer, config, grammar: atom.grammars.grammarForScopeName('source.js')})
+      buffer.setLanguageMode(tokenizedBuffer)
       fullyTokenize(tokenizedBuffer)
     })
 
@@ -735,7 +710,7 @@ describe('TokenizedBuffer', () => {
         }
       `)
 
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = new TokenizedBuffer({buffer, config})
 
       expect(simulateFold(tokenizedBuffer.getFoldableRangesAtIndentLevel(0, 2))).toBe(dedent `
         if (a) {⋯
@@ -797,7 +772,7 @@ describe('TokenizedBuffer', () => {
         }
       `)
 
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = new TokenizedBuffer({buffer, config})
 
       expect(tokenizedBuffer.getFoldableRanges(2).map(r => r.toString())).toEqual([
         ...tokenizedBuffer.getFoldableRangesAtIndentLevel(0, 2),
@@ -827,7 +802,7 @@ describe('TokenizedBuffer', () => {
         }
       `)
 
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = new TokenizedBuffer({buffer, config})
 
       expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(0, 5), 2)).toBeNull()
 
@@ -872,10 +847,10 @@ describe('TokenizedBuffer', () => {
       buffer = editor.buffer
       tokenizedBuffer = editor.tokenizedBuffer
 
-      expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(0, Infinity))).toEqual([[0, Infinity], [20, Infinity]])
-      expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(1, Infinity))).toEqual([[1, Infinity], [17, Infinity]])
-      expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(2, Infinity))).toEqual([[1, Infinity], [17, Infinity]])
-      expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(19, Infinity))).toEqual([[19, Infinity], [20, Infinity]])
+      expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(0, Infinity), 2)).toEqual([[0, Infinity], [20, Infinity]])
+      expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(1, Infinity), 2)).toEqual([[1, Infinity], [17, Infinity]])
+      expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(2, Infinity), 2)).toEqual([[1, Infinity], [17, Infinity]])
+      expect(tokenizedBuffer.getFoldableRangeContainingPoint(Point(19, Infinity), 2)).toEqual([[19, Infinity], [20, Infinity]])
     })
 
     it('works for javascript', async () => {
@@ -884,10 +859,10 @@ describe('TokenizedBuffer', () => {
       buffer = editor.buffer
       tokenizedBuffer = editor.tokenizedBuffer
 
-      expect(editor.tokenizedBuffer.getFoldableRangeContainingPoint(Point(0, Infinity))).toEqual([[0, Infinity], [12, Infinity]])
-      expect(editor.tokenizedBuffer.getFoldableRangeContainingPoint(Point(1, Infinity))).toEqual([[1, Infinity], [9, Infinity]])
-      expect(editor.tokenizedBuffer.getFoldableRangeContainingPoint(Point(2, Infinity))).toEqual([[1, Infinity], [9, Infinity]])
-      expect(editor.tokenizedBuffer.getFoldableRangeContainingPoint(Point(4, Infinity))).toEqual([[4, Infinity], [7, Infinity]])
+      expect(editor.tokenizedBuffer.getFoldableRangeContainingPoint(Point(0, Infinity), 2)).toEqual([[0, Infinity], [12, Infinity]])
+      expect(editor.tokenizedBuffer.getFoldableRangeContainingPoint(Point(1, Infinity), 2)).toEqual([[1, Infinity], [9, Infinity]])
+      expect(editor.tokenizedBuffer.getFoldableRangeContainingPoint(Point(2, Infinity), 2)).toEqual([[1, Infinity], [9, Infinity]])
+      expect(editor.tokenizedBuffer.getFoldableRangeContainingPoint(Point(4, Infinity), 2)).toEqual([[4, Infinity], [7, Infinity]])
     })
   })
 

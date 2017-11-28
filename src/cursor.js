@@ -705,7 +705,7 @@ class Cursor extends Model {
   */
 
   getNonWordCharacters () {
-    return this.editor.getNonWordCharacters(this.getScopeDescriptor().getScopesArray())
+    return this.editor.getNonWordCharacters(this.getBufferPosition())
   }
 
   changePosition (options, fn) {

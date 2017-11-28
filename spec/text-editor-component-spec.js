@@ -25,6 +25,8 @@ document.registerElement('text-editor-component-test-element', {
   })
 })
 
+const editors = []
+
 describe('TextEditorComponent', () => {
   beforeEach(() => {
     jasmine.useRealClock()
@@ -33,6 +35,13 @@ describe('TextEditorComponent', () => {
     const scrollbarStyle = document.createElement('style')
     scrollbarStyle.textContent = '::-webkit-scrollbar { -webkit-appearance: none }'
     jasmine.attachToDOM(scrollbarStyle)
+  })
+
+  afterEach(() => {
+    for (const editor of editors) {
+      editor.destroy()
+    }
+    editors.length = 0
   })
 
   describe('rendering', () => {
@@ -786,7 +795,7 @@ describe('TextEditorComponent', () => {
       const {editor, element, component} = buildComponent()
       expect(element.dataset.grammar).toBe('text plain null-grammar')
 
-      editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.js')
       await component.getNextUpdatePromise()
       expect(element.dataset.grammar).toBe('source js')
     })
@@ -4482,9 +4491,11 @@ function buildEditor (params = {}) {
   for (const paramName of ['mini', 'autoHeight', 'autoWidth', 'lineNumberGutterVisible', 'showLineNumbers', 'placeholderText', 'softWrapped', 'scrollSensitivity']) {
     if (params[paramName] != null) editorParams[paramName] = params[paramName]
   }
+  atom.grammars.autoAssignLanguageMode(buffer)
   const editor = new TextEditor(editorParams)
   editor.testAutoscrollRequests = []
   editor.onDidRequestAutoscroll((request) => { editor.testAutoscrollRequests.push(request) })
+  editors.push(editor)
   return editor
 }
 
