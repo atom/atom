@@ -40,8 +40,7 @@ class TokenizedBuffer {
     this.assert = params.assert
     this.scopedSettingsDelegate = params.scopedSettingsDelegate
 
-    this.
-(params.grammar || NullGrammar)
+    this.(params.grammar || NullGrammar)
     this.disposables.add(this.buffer.registerTextDecorationLayer(this))
   }
 
