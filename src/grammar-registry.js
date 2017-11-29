@@ -339,6 +339,10 @@ class GrammarRegistry {
     return this.textmateRegistry.nullGrammar
   }
 
+  get grammars () {
+    return this.textmateRegistry.grammars
+  }
+
   decodeTokens () {
     return this.textmateRegistry.decodeTokens.apply(this.textmateRegistry, arguments)
   }
