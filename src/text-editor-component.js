@@ -55,10 +55,8 @@ class TextEditorComponent {
   constructor (props) {
     this.props = props
 
-    this.setInputEnabled(!this.props.readonly)
-
     if (!props.model) {
-      props.model = new TextEditor({mini: props.mini})
+      props.model = new TextEditor({mini: props.mini, readOnly: props.readOnly})
     }
     this.props.model.component = this
 
@@ -2968,11 +2966,11 @@ class TextEditorComponent {
   }
 
   setInputEnabled (inputEnabled) {
-    this.props.inputEnabled = inputEnabled
+    this.props.model.update({readOnly: !inputEnabled})
   }
 
   isInputEnabled (inputEnabled) {
-    return this.props.inputEnabled;
+    return !this.props.model.isReadOnly();
   }
 
   getHiddenInput () {

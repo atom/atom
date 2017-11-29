@@ -121,6 +121,7 @@ class TextEditor {
     this.decorationManager = params.decorationManager
     this.selectionsMarkerLayer = params.selectionsMarkerLayer
     this.mini = (params.mini != null) ? params.mini : false
+    this.readOnly = (params.readOnly != null) ? params.readOnly : false
     this.placeholderText = params.placeholderText
     this.showLineNumbers = params.showLineNumbers
     this.largeFileMode = params.largeFileMode
@@ -404,6 +405,15 @@ class TextEditor {
           }
           break
 
+        case 'readOnly':
+          if (value !== this.readOnly) {
+            this.readOnly = value
+            if (this.component != null) {
+              this.component.scheduleUpdate()
+            }
+          }
+          break
+
         case 'placeholderText':
           if (value !== this.placeholderText) {
             this.placeholderText = value
@@ -538,6 +548,7 @@ class TextEditor {
       softWrapAtPreferredLineLength: this.softWrapAtPreferredLineLength,
       preferredLineLength: this.preferredLineLength,
       mini: this.mini,
+      readOnly: this.readOnly,
       editorWidthInChars: this.editorWidthInChars,
       width: this.width,
       largeFileMode: this.largeFileMode,
@@ -967,6 +978,12 @@ class TextEditor {
   }
 
   isMini () { return this.mini }
+
+  setReadOnly (readOnly) {
+    this.update({readOnly})
+  }
+
+  isReadOnly () { return this.readOnly }
 
   onDidChangeMini (callback) {
     return this.emitter.on('did-change-mini', callback)
