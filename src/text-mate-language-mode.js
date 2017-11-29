@@ -4,27 +4,16 @@ const {Point, Range} = require('text-buffer')
 const TokenizedLine = require('./tokenized-line')
 const TokenIterator = require('./token-iterator')
 const ScopeDescriptor = require('./scope-descriptor')
-const TokenizedBufferIterator = require('./tokenized-buffer-iterator')
 const NullGrammar = require('./null-grammar')
 const {OnigRegExp} = require('oniguruma')
-const {toFirstMateScopeId} = require('./first-mate-helpers')
+const {toFirstMateScopeId, fromFirstMateScopeId} = require('./first-mate-helpers')
 
 const NON_WHITESPACE_REGEX = /\S/
 
 let nextId = 0
 const prefixedScopes = new Map()
 
-module.exports =
-class TokenizedBuffer {
-  static deserialize (state, atomEnvironment) {
-    const buffer = atomEnvironment.project.bufferForIdSync(state.bufferId)
-    if (!buffer) return null
-
-    state.buffer = buffer
-    state.assert = atomEnvironment.assert
-    return new TokenizedBuffer(state)
-  }
-
+class TextMateLanguageMode {
   constructor (params) {
     this.emitter = new Emitter()
     this.disposables = new CompositeDisposable()
@@ -32,16 +21,19 @@ class TokenizedBuffer {
     this.regexesByPattern = {}
 
     this.alive = true
-    this.visible = false
+    this.tokenizationStarted = false
     this.id = params.id != null ? params.id : nextId++
     this.buffer = params.buffer
-    this.tabLength = params.tabLength
     this.largeFileMode = params.largeFileMode
-    this.assert = params.assert
-    this.scopedSettingsDelegate = params.scopedSettingsDelegate
+    this.config = params.config
+    this.largeFileMode = params.largeFileMode != null
+      ? params.largeFileMode
+      : this.buffer.buffer.getLength() >= 2 * 1024 * 1024
 
-    this.setGrammar(params.grammar || NullGrammar)
-    this.disposables.add(this.buffer.registerTextDecorationLayer(this))
+    this.grammar = params.grammar || NullGrammar
+    this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.scopeName]})
+    this.disposables.add(this.grammar.onDidUpdate(() => this.retokenizeLines()))
+    this.retokenizeLines()
   }
 
   destroy () {
@@ -59,6 +51,19 @@ class TokenizedBuffer {
     return !this.alive
   }
 
+  getGrammar () {
+    return this.grammar
+  }
+
+  getLanguageId () {
+    return this.grammar.scopeName
+  }
+
+  getNonWordCharacters (position) {
+    const scope = this.scopeDescriptorForPosition(position)
+    return this.config.get('editor.nonWordCharacters', {scope})
+  }
+
   /*
   Section - auto-indent
   */
@@ -68,10 +73,14 @@ class TokenizedBuffer {
   // * bufferRow - A {Number} indicating the buffer row
   //
   // Returns a {Number}.
-  suggestedIndentForBufferRow (bufferRow, options) {
-    const line = this.buffer.lineForRow(bufferRow)
-    const tokenizedLine = this.tokenizedLineForRow(bufferRow)
-    return this._suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
+  suggestedIndentForBufferRow (bufferRow, tabLength, options) {
+    return this._suggestedIndentForTokenizedLineAtBufferRow(
+      bufferRow,
+      this.buffer.lineForRow(bufferRow),
+      this.tokenizedLineForRow(bufferRow),
+      tabLength,
+      options
+    )
   }
 
   // Get the suggested indentation level for a given line of text, if it were inserted at the given
@@ -80,9 +89,13 @@ class TokenizedBuffer {
   // * bufferRow - A {Number} indicating the buffer row
   //
   // Returns a {Number}.
-  suggestedIndentForLineAtBufferRow (bufferRow, line, options) {
-    const tokenizedLine = this.buildTokenizedLineForRowWithText(bufferRow, line)
-    return this._suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
+  suggestedIndentForLineAtBufferRow (bufferRow, line, tabLength) {
+    return this._suggestedIndentForTokenizedLineAtBufferRow(
+      bufferRow,
+      line,
+      this.buildTokenizedLineForRowWithText(bufferRow, line),
+      tabLength
+    )
   }
 
   // Get the suggested indentation level for a line in the buffer on which the user is currently
@@ -93,9 +106,9 @@ class TokenizedBuffer {
   // * bufferRow - The row {Number}
   //
   // Returns a {Number}.
-  suggestedIndentForEditedBufferRow (bufferRow) {
+  suggestedIndentForEditedBufferRow (bufferRow, tabLength) {
     const line = this.buffer.lineForRow(bufferRow)
-    const currentIndentLevel = this.indentLevelForLine(line)
+    const currentIndentLevel = this.indentLevelForLine(line, tabLength)
     if (currentIndentLevel === 0) return
 
     const scopeDescriptor = this.scopeDescriptorForPosition([bufferRow, 0])
@@ -108,7 +121,7 @@ class TokenizedBuffer {
     if (precedingRow == null) return
 
     const precedingLine = this.buffer.lineForRow(precedingRow)
-    let desiredIndentLevel = this.indentLevelForLine(precedingLine)
+    let desiredIndentLevel = this.indentLevelForLine(precedingLine, tabLength)
 
     const increaseIndentRegex = this.increaseIndentRegexForScopeDescriptor(scopeDescriptor)
     if (increaseIndentRegex) {
@@ -125,7 +138,7 @@ class TokenizedBuffer {
     return desiredIndentLevel
   }
 
-  _suggestedIndentForTokenizedLineAtBufferRow (bufferRow, line, tokenizedLine, options) {
+  _suggestedIndentForTokenizedLineAtBufferRow (bufferRow, line, tokenizedLine, tabLength, options) {
     const iterator = tokenizedLine.getTokenIterator()
     iterator.next()
     const scopeDescriptor = new ScopeDescriptor({scopes: iterator.getScopes()})
@@ -144,7 +157,7 @@ class TokenizedBuffer {
     }
 
     const precedingLine = this.buffer.lineForRow(precedingRow)
-    let desiredIndentLevel = this.indentLevelForLine(precedingLine)
+    let desiredIndentLevel = this.indentLevelForLine(precedingLine, tabLength)
     if (!increaseIndentRegex) return desiredIndentLevel
 
     if (!this.isRowCommented(precedingRow)) {
@@ -164,16 +177,25 @@ class TokenizedBuffer {
   */
 
   commentStringsForPosition (position) {
-    if (this.scopedSettingsDelegate) {
-      const scope = this.scopeDescriptorForPosition(position)
-      return this.scopedSettingsDelegate.getCommentStrings(scope)
-    } else {
-      return {}
+    const scope = this.scopeDescriptorForPosition(position)
+    const commentStartEntries = this.config.getAll('editor.commentStart', {scope})
+    const commentEndEntries = this.config.getAll('editor.commentEnd', {scope})
+    const commentStartEntry = commentStartEntries[0]
+    const commentEndEntry = commentEndEntries.find((entry) => {
+      return entry.scopeSelector === commentStartEntry.scopeSelector
+    })
+    return {
+      commentStartString: commentStartEntry && commentStartEntry.value,
+      commentEndString: commentEndEntry && commentEndEntry.value
     }
   }
 
-  buildIterator () {
-    return new TokenizedBufferIterator(this)
+  /*
+  Section - Syntax Highlighting
+  */
+
+  buildHighlightIterator () {
+    return new TextMateHighlightIterator(this)
   }
 
   classNameForScopeId (id) {
@@ -196,45 +218,12 @@ class TokenizedBuffer {
     return []
   }
 
-  onDidInvalidateRange (fn) {
-    return this.emitter.on('did-invalidate-range', fn)
-  }
-
-  serialize () {
-    return {
-      deserializer: 'TokenizedBuffer',
-      bufferPath: this.buffer.getPath(),
-      bufferId: this.buffer.getId(),
-      tabLength: this.tabLength,
-      largeFileMode: this.largeFileMode
-    }
-  }
-
-  observeGrammar (callback) {
-    callback(this.grammar)
-    return this.onDidChangeGrammar(callback)
-  }
-
-  onDidChangeGrammar (callback) {
-    return this.emitter.on('did-change-grammar', callback)
+  onDidChangeHighlighting (fn) {
+    return this.emitter.on('did-change-highlighting', fn)
   }
 
   onDidTokenize (callback) {
     return this.emitter.on('did-tokenize', callback)
-  }
-
-  setGrammar (grammar) {
-    if (!grammar || grammar === this.grammar) return
-
-    this.grammar = grammar
-    this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.scopeName]})
-
-    if (this.grammarUpdateDisposable) this.grammarUpdateDisposable.dispose()
-    this.grammarUpdateDisposable = this.grammar.onDidUpdate(() => this.retokenizeLines())
-    this.disposables.add(this.grammarUpdateDisposable)
-
-    this.retokenizeLines()
-    this.emitter.emit('did-change-grammar', grammar)
   }
 
   getGrammarSelectionContent () {
@@ -264,21 +253,15 @@ class TokenizedBuffer {
     }
   }
 
-  setVisible (visible) {
-    this.visible = visible
-    if (this.visible && this.grammar.name !== 'Null Grammar' && !this.largeFileMode) {
+  startTokenizing () {
+    this.tokenizationStarted = true
+    if (this.grammar.name !== 'Null Grammar' && !this.largeFileMode) {
       this.tokenizeInBackground()
     }
   }
 
-  getTabLength () { return this.tabLength }
-
-  setTabLength (tabLength) {
-    this.tabLength = tabLength
-  }
-
   tokenizeInBackground () {
-    if (!this.visible || this.pendingChunk || !this.alive) return
+    if (!this.tokenizationStarted || this.pendingChunk || !this.alive) return
 
     this.pendingChunk = true
     _.defer(() => {
@@ -316,7 +299,7 @@ class TokenizedBuffer {
       this.validateRow(endRow)
       if (!filledRegion) this.invalidateRow(endRow + 1)
 
-      this.emitter.emit('did-invalidate-range', Range(Point(startRow, 0), Point(endRow + 1, 0)))
+      this.emitter.emit('did-change-highlighting', Range(Point(startRow, 0), Point(endRow + 1, 0)))
     }
 
     if (this.firstInvalidRow() != null) {
@@ -486,18 +469,6 @@ class TokenizedBuffer {
           while (true) {
             if (scopes.pop() === matchingStartTag) break
             if (scopes.length === 0) {
-              this.assert(false, 'Encountered an unmatched scope end tag.', error => {
-                error.metadata = {
-                  grammarScopeName: this.grammar.scopeName,
-                  unmatchedEndTag: this.grammar.scopeForId(tag)
-                }
-                const path = require('path')
-                error.privateMetadataDescription = `The contents of \`${path.basename(this.buffer.getPath())}\``
-                error.privateMetadata = {
-                  filePath: this.buffer.getPath(),
-                  fileContents: this.buffer.getText()
-                }
-              })
               break
             }
           }
@@ -507,7 +478,7 @@ class TokenizedBuffer {
     return scopes
   }
 
-  indentLevelForLine (line, tabLength = this.tabLength) {
+  indentLevelForLine (line, tabLength) {
     let indentLength = 0
     for (let i = 0, {length} = line; i < length; i++) {
       const char = line[i]
@@ -712,28 +683,20 @@ class TokenizedBuffer {
     return foldEndRow
   }
 
-  increaseIndentRegexForScopeDescriptor (scopeDescriptor) {
-    if (this.scopedSettingsDelegate) {
-      return this.regexForPattern(this.scopedSettingsDelegate.getIncreaseIndentPattern(scopeDescriptor))
-    }
+  increaseIndentRegexForScopeDescriptor (scope) {
+    return this.regexForPattern(this.config.get('editor.increaseIndentPattern', {scope}))
   }
 
-  decreaseIndentRegexForScopeDescriptor (scopeDescriptor) {
-    if (this.scopedSettingsDelegate) {
-      return this.regexForPattern(this.scopedSettingsDelegate.getDecreaseIndentPattern(scopeDescriptor))
-    }
+  decreaseIndentRegexForScopeDescriptor (scope) {
+    return this.regexForPattern(this.config.get('editor.decreaseIndentPattern', {scope}))
   }
 
-  decreaseNextIndentRegexForScopeDescriptor (scopeDescriptor) {
-    if (this.scopedSettingsDelegate) {
-      return this.regexForPattern(this.scopedSettingsDelegate.getDecreaseNextIndentPattern(scopeDescriptor))
-    }
+  decreaseNextIndentRegexForScopeDescriptor (scope) {
+    return this.regexForPattern(this.config.get('editor.decreaseNextIndentPattern', {scope}))
   }
 
-  foldEndRegexForScopeDescriptor (scopes) {
-    if (this.scopedSettingsDelegate) {
-      return this.regexForPattern(this.scopedSettingsDelegate.getFoldEndPattern(scopes))
-    }
+  foldEndRegexForScopeDescriptor (scope) {
+    return this.regexForPattern(this.config.get('editor.foldEndPattern', {scope}))
   }
 
   regexForPattern (pattern) {
@@ -753,7 +716,7 @@ class TokenizedBuffer {
   }
 }
 
-module.exports.prototype.chunkSize = 50
+TextMateLanguageMode.chunkSize = 50
 
 function selectorMatchesAnyScope (selector, scopes) {
   const targetClasses = selector.replace(/^\./, '').split('.')
@@ -762,3 +725,142 @@ function selectorMatchesAnyScope (selector, scopes) {
     return _.isSubset(targetClasses, scopeClasses)
   })
 }
+
+class TextMateHighlightIterator {
+  constructor (languageMode) {
+    this.languageMode = languageMode
+    this.openScopeIds = null
+    this.closeScopeIds = null
+  }
+
+  seek (position) {
+    this.openScopeIds = []
+    this.closeScopeIds = []
+    this.tagIndex = null
+
+    const currentLine = this.languageMode.tokenizedLineForRow(position.row)
+    this.currentLineTags = currentLine.tags
+    this.currentLineLength = currentLine.text.length
+    const containingScopeIds = currentLine.openScopes.map((id) => fromFirstMateScopeId(id))
+
+    let currentColumn = 0
+    for (let index = 0; index < this.currentLineTags.length; index++) {
+      const tag = this.currentLineTags[index]
+      if (tag >= 0) {
+        if (currentColumn >= position.column) {
+          this.tagIndex = index
+          break
+        } else {
+          currentColumn += tag
+          while (this.closeScopeIds.length > 0) {
+            this.closeScopeIds.shift()
+            containingScopeIds.pop()
+          }
+          while (this.openScopeIds.length > 0) {
+            const openTag = this.openScopeIds.shift()
+            containingScopeIds.push(openTag)
+          }
+        }
+      } else {
+        const scopeId = fromFirstMateScopeId(tag)
+        if ((tag & 1) === 0) {
+          if (this.openScopeIds.length > 0) {
+            if (currentColumn >= position.column) {
+              this.tagIndex = index
+              break
+            } else {
+              while (this.closeScopeIds.length > 0) {
+                this.closeScopeIds.shift()
+                containingScopeIds.pop()
+              }
+              while (this.openScopeIds.length > 0) {
+                const openTag = this.openScopeIds.shift()
+                containingScopeIds.push(openTag)
+              }
+            }
+          }
+          this.closeScopeIds.push(scopeId)
+        } else {
+          this.openScopeIds.push(scopeId)
+        }
+      }
+    }
+
+    if (this.tagIndex == null) {
+      this.tagIndex = this.currentLineTags.length
+    }
+    this.position = Point(position.row, Math.min(this.currentLineLength, currentColumn))
+    return containingScopeIds
+  }
+
+  moveToSuccessor () {
+    this.openScopeIds = []
+    this.closeScopeIds = []
+    while (true) {
+      if (this.tagIndex === this.currentLineTags.length) {
+        if (this.isAtTagBoundary()) {
+          break
+        } else if (!this.moveToNextLine()) {
+          return false
+        }
+      } else {
+        const tag = this.currentLineTags[this.tagIndex]
+        if (tag >= 0) {
+          if (this.isAtTagBoundary()) {
+            break
+          } else {
+            this.position = Point(this.position.row, Math.min(
+              this.currentLineLength,
+              this.position.column + this.currentLineTags[this.tagIndex]
+            ))
+          }
+        } else {
+          const scopeId = fromFirstMateScopeId(tag)
+          if ((tag & 1) === 0) {
+            if (this.openScopeIds.length > 0) {
+              break
+            } else {
+              this.closeScopeIds.push(scopeId)
+            }
+          } else {
+            this.openScopeIds.push(scopeId)
+          }
+        }
+        this.tagIndex++
+      }
+    }
+    return true
+  }
+
+  getPosition () {
+    return this.position
+  }
+
+  getCloseScopeIds () {
+    return this.closeScopeIds.slice()
+  }
+
+  getOpenScopeIds () {
+    return this.openScopeIds.slice()
+  }
+
+  moveToNextLine () {
+    this.position = Point(this.position.row + 1, 0)
+    const tokenizedLine = this.languageMode.tokenizedLineForRow(this.position.row)
+    if (tokenizedLine == null) {
+      return false
+    } else {
+      this.currentLineTags = tokenizedLine.tags
+      this.currentLineLength = tokenizedLine.text.length
+      this.tagIndex = 0
+      return true
+    }
+  }
+
+  isAtTagBoundary () {
+    return this.closeScopeIds.length > 0 || this.openScopeIds.length > 0
+  }
+}
+
+TextMateLanguageMode.TextMateHighlightIterator = TextMateHighlightIterator
+module.exports = TextMateLanguageMode

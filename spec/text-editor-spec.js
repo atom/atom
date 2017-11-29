@@ -7,6 +7,7 @@ const dedent = require('dedent')
 const clipboard = require('../src/safe-clipboard')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
+const TextMateLanguageMode = require('../src/text-mate-language-mode')
 
 describe('TextEditor', () => {
   let buffer, editor, lineLengths
@@ -85,22 +86,6 @@ describe('TextEditor', () => {
     })
   })
 
-  describe('when the editor is constructed with the largeFileMode option set to true', () => {
-    it("loads the editor but doesn't tokenize", async () => {
-      editor = await atom.workspace.openTextFile('sample.js', {largeFileMode: true})
-      buffer = editor.getBuffer()
-      expect(editor.lineTextForScreenRow(0)).toBe(buffer.lineForRow(0))
-      expect(editor.tokensForScreenRow(0).length).toBe(1)
-      expect(editor.tokensForScreenRow(1).length).toBe(2) // soft tab
-      expect(editor.lineTextForScreenRow(12)).toBe(buffer.lineForRow(12))
-      expect(editor.getCursorScreenPosition()).toEqual([0, 0])
-
-      editor.insertText('hey"')
-      expect(editor.tokensForScreenRow(0).length).toBe(1)
-      expect(editor.tokensForScreenRow(1).length).toBe(2)
-    })
-  })
-
   describe('.copy()', () => {
     it('returns a different editor with the same initial state', () => {
       expect(editor.getAutoHeight()).toBeFalsy()
@@ -115,12 +100,12 @@ describe('TextEditor', () => {
       editor.update({showCursorOnSelection: false})
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
       editor.addSelectionForBufferRange([[5, 6], [7, 8]], {reversed: true})
-      editor.foldBufferRow(4)
-      expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
       editor.setScrollTopRow(3)
       expect(editor.getScrollTopRow()).toBe(3)
       editor.setScrollLeftColumn(4)
       expect(editor.getScrollLeftColumn()).toBe(4)
+      editor.foldBufferRow(4)
+      expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
       const editor2 = editor.copy()
       const element2 = editor2.getElement()
@@ -1356,7 +1341,7 @@ describe('TextEditor', () => {
       })
 
       it('will limit paragraph range to comments', () => {
-        editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+        atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.js')
         editor.setText(dedent`
           var quicksort = function () {
             /* Single line comment block */
@@ -2081,14 +2066,13 @@ describe('TextEditor', () => {
         expect(scopeDescriptors[0].getScopesArray()).toEqual(['source.js'])
         expect(scopeDescriptors[1].getScopesArray()).toEqual(['source.js', 'string.quoted.single.js'])
 
-        editor.setScopedSettingsDelegate({
-          getNonWordCharacters (scopes) {
-            const result = '/\()"\':,.;<>~!@#$%^&*|+=[]{}`?'
-            if (scopes.some(scope => scope.startsWith('string'))) {
-              return result
-            } else {
-              return result + '-'
-            }
+        spyOn(editor.getBuffer().getLanguageMode(), 'getNonWordCharacters').andCallFake(function (position) {
+          const result = '/\()"\':,.;<>~!@#$%^&*|+=[]{}`?'
+          const scopes = this.scopeDescriptorForPosition(position).getScopesArray()
+          if (scopes.some(scope => scope.startsWith('string'))) {
+            return result
+          } else {
+            return result + '-'
           }
         })
 
@@ -3694,7 +3678,7 @@ describe('TextEditor', () => {
       describe('when a newline is appended with a trailing closing tag behind the cursor (e.g. by pressing enter in the middel of a line)', () => {
         it('indents the new line to the correct level when editor.autoIndent is true and using a curly-bracket language', () => {
           editor.update({autoIndent: true})
-          editor.setGrammar(atom.grammars.selectGrammar('file.js'))
+          atom.grammars.assignLanguageMode(editor, 'source.js')
           editor.setText('var test = () => {\n  return true;};')
           editor.setCursorBufferPosition([1, 14])
           editor.insertNewline()
@@ -3703,7 +3687,7 @@ describe('TextEditor', () => {
         })
 
         it('indents the new line to the current level when editor.autoIndent is true and no increaseIndentPattern is specified', () => {
-          editor.setGrammar(atom.grammars.selectGrammar('file'))
+          atom.grammars.assignLanguageMode(editor, null)
           editor.update({autoIndent: true})
           editor.setText('  if true')
           editor.setCursorBufferPosition([0, 8])
@@ -3716,7 +3700,7 @@ describe('TextEditor', () => {
         it('indents the new line to the correct level when editor.autoIndent is true and using an off-side rule language', async () => {
           await atom.packages.activatePackage('language-coffee-script')
           editor.update({autoIndent: true})
-          editor.setGrammar(atom.grammars.selectGrammar('file.coffee'))
+          atom.grammars.assignLanguageMode(editor, 'source.coffee')
           editor.setText('if true\n  return trueelse\n  return false')
           editor.setCursorBufferPosition([1, 13])
           editor.insertNewline()
@@ -3730,7 +3714,7 @@ describe('TextEditor', () => {
         it('indents the new line to the correct level when editor.autoIndent is true', async () => {
           await atom.packages.activatePackage('language-go')
           editor.update({autoIndent: true})
-          editor.setGrammar(atom.grammars.selectGrammar('file.go'))
+          atom.grammars.assignLanguageMode(editor, 'source.go')
           editor.setText('fmt.Printf("some%s",\n	"thing")')
           editor.setCursorBufferPosition([1, 10])
           editor.insertNewline()
@@ -5622,21 +5606,30 @@ describe('TextEditor', () => {
     })
   })
 
-  describe('when a better-matched grammar is added to syntax', () => {
-    it('switches to the better-matched grammar and re-tokenizes the buffer', async () => {
-      editor.destroy()
+  describe('when the buffer\'s language mode changes', () => {
+    it('notifies onDidTokenize observers when retokenization is finished', async () => {
+      // Exercise the full `tokenizeInBackground` code path, which bails out early if
+      // `.setVisible` has not been called with `true`.
+      jasmine.unspy(TextMateLanguageMode.prototype, 'tokenizeInBackground')
+      jasmine.attachToDOM(editor.getElement())
 
-      const jsGrammar = atom.grammars.selectGrammar('a.js')
-      atom.grammars.removeGrammar(jsGrammar)
+      const events = []
+      editor.onDidTokenize(event => events.push(event))
 
-      editor = await atom.workspace.open('sample.js', {autoIndent: false})
+      await atom.packages.activatePackage('language-c')
+      expect(atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.c')).toBe(true)
+      advanceClock(1)
+      expect(events.length).toBe(1)
+    })
 
-      expect(editor.getGrammar()).toBe(atom.grammars.nullGrammar)
-      expect(editor.tokensForScreenRow(0).length).toBe(1)
+    it('notifies onDidChangeGrammar observers', async () => {
+      const events = []
+      editor.onDidChangeGrammar(grammar => events.push(grammar))
 
-      atom.grammars.addGrammar(jsGrammar)
-      expect(editor.getGrammar()).toBe(jsGrammar)
-      expect(editor.tokensForScreenRow(0).length).toBeGreaterThan(1)
+      await atom.packages.activatePackage('language-c')
+      expect(atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.c')).toBe(true)
+      expect(events.length).toBe(1)
+      expect(events[0].name).toBe('C')
     })
   })
 
@@ -6630,17 +6623,6 @@ describe('TextEditor', () => {
     })
   })
 
-  describe('when the editor is constructed with the grammar option set', () => {
-    beforeEach(async () => {
-      await atom.packages.activatePackage('language-coffee-script')
-    })
-
-    it('sets the grammar', () => {
-      editor = new TextEditor({grammar: atom.grammars.grammarForScopeName('source.coffee')})
-      expect(editor.getGrammar().name).toBe('CoffeeScript')
-    })
-  })
-
   describe('softWrapAtPreferredLineLength', () => {
     it('soft wraps the editor at the preferred line length unless the editor is narrower or the editor is mini', () => {
       editor.update({
@@ -6701,6 +6683,7 @@ describe('TextEditor', () => {
     beforeEach(async () => {
       editor = await atom.workspace.open('sample.js')
       jasmine.unspy(editor, 'shouldPromptToSave')
+      spyOn(atom.stateStore, 'isConnected').andReturn(true)
     })
 
     it('returns true when buffer has unsaved changes', () => {
@@ -6828,7 +6811,7 @@ describe('TextEditor', () => {
     })
 
     it('does nothing for empty lines and null grammar', () => {
-      editor.setGrammar(atom.grammars.grammarForScopeName('text.plain.null-grammar'))
+      atom.grammars.assignLanguageMode(editor, null)
       editor.setCursorBufferPosition([10, 0])
       editor.toggleLineCommentsInSelection()
       expect(editor.lineTextForBufferRow(10)).toBe('')
@@ -7028,19 +7011,15 @@ describe('TextEditor', () => {
     })
 
     describe('.unfoldAll()', () => {
-      it('unfolds every folded line and autoscrolls', async () => {
+      it('unfolds every folded line', async () => {
         editor = await atom.workspace.open('sample.js', {autoIndent: false})
-        const autoscrollEvents = []
-        editor.onDidRequestAutoscroll(event => autoscrollEvents.push(event))
 
         const initialScreenLineCount = editor.getScreenLineCount()
         editor.foldBufferRow(0)
         editor.foldBufferRow(1)
         expect(editor.getScreenLineCount()).toBeLessThan(initialScreenLineCount)
-        expect(autoscrollEvents.length).toBe(1)
         editor.unfoldAll()
         expect(editor.getScreenLineCount()).toBe(initialScreenLineCount)
-        expect(autoscrollEvents.length).toBe(2)
       })
 
       it('unfolds every folded line with comments', async () => {
@@ -7058,11 +7037,8 @@ describe('TextEditor', () => {
     describe('.foldAll()', () => {
       it('folds every foldable line', async () => {
         editor = await atom.workspace.open('sample.js', {autoIndent: false})
-        const autoscrollEvents = []
-        editor.onDidRequestAutoscroll(event => autoscrollEvents.push(event))
 
         editor.foldAll()
-        expect(autoscrollEvents.length).toBe(1)
         const [fold1, fold2, fold3] = editor.unfoldAll()
         expect([fold1.start.row, fold1.end.row]).toEqual([0, 12])
         expect([fold2.start.row, fold2.end.row]).toEqual([1, 9])
@@ -7093,11 +7069,7 @@ describe('TextEditor', () => {
 
       describe('when bufferRow can be folded', () => {
         it('creates a fold based on the syntactic region starting at the given row', () => {
-          const autoscrollEvents = []
-          editor.onDidRequestAutoscroll(event => autoscrollEvents.push(event))
-
           editor.foldBufferRow(1)
-          expect(autoscrollEvents.length).toBe(1)
           const [fold] = editor.unfoldAll()
           expect([fold.start.row, fold.end.row]).toEqual([1, 9])
         })
@@ -7144,14 +7116,10 @@ describe('TextEditor', () => {
     describe('.foldCurrentRow()', () => {
       it('creates a fold at the location of the last cursor', async () => {
         editor = await atom.workspace.open()
-
         editor.setText('\nif (x) {\n  y()\n}')
         editor.setCursorBufferPosition([1, 0])
         expect(editor.getScreenLineCount()).toBe(4)
-        const autoscrollEvents = []
-        editor.onDidRequestAutoscroll(event => autoscrollEvents.push(event))
         editor.foldCurrentRow()
-        expect(autoscrollEvents.length).toBe(1)
         expect(editor.getScreenLineCount()).toBe(3)
       })
 
@@ -7168,26 +7136,21 @@ describe('TextEditor', () => {
     describe('.foldAllAtIndentLevel(indentLevel)', () => {
       it('folds blocks of text at the given indentation level', async () => {
         editor = await atom.workspace.open('sample.js', {autoIndent: false})
-        const autoscrollEvents = []
-        editor.onDidRequestAutoscroll(event => autoscrollEvents.push(event))
 
         editor.foldAllAtIndentLevel(0)
         expect(editor.lineTextForScreenRow(0)).toBe(`var quicksort = function () {${editor.displayLayer.foldCharacter}`)
         expect(editor.getLastScreenRow()).toBe(0)
-        expect(autoscrollEvents.length).toBe(1)
 
         editor.foldAllAtIndentLevel(1)
         expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = function () {')
         expect(editor.lineTextForScreenRow(1)).toBe(`  var sort = function(items) {${editor.displayLayer.foldCharacter}`)
         expect(editor.getLastScreenRow()).toBe(4)
-        expect(autoscrollEvents.length).toBe(2)
 
         editor.foldAllAtIndentLevel(2)
         expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = function () {')
         expect(editor.lineTextForScreenRow(1)).toBe('  var sort = function(items) {')
         expect(editor.lineTextForScreenRow(2)).toBe('    if (items.length <= 1) return items;')
         expect(editor.getLastScreenRow()).toBe(9)
-        expect(autoscrollEvents.length).toBe(3)
       })
 
       it('folds every foldable range at a given indentLevel', async () => {

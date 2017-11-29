@@ -494,7 +494,6 @@ module.exports = class Workspace extends Model {
       if (item instanceof TextEditor) {
         const subscriptions = new CompositeDisposable(
           this.textEditorRegistry.add(item),
-          this.textEditorRegistry.maintainGrammar(item),
           this.textEditorRegistry.maintainConfig(item),
           item.observeGrammar(this.handleGrammarUsed.bind(this))
         )
@@ -1212,9 +1211,7 @@ module.exports = class Workspace extends Model {
     }
 
     const fileSize = fs.getSizeSync(filePath)
-
-    const largeFileMode = fileSize >= (2 * 1048576) // 2MB
-    if (fileSize >= (this.config.get('core.warnOnLargeFileLimit') * 1048576)) { // 20MB by default
+    if (fileSize >= (this.config.get('core.warnOnLargeFileLimit') * 1048576)) {
       const choice = this.applicationDelegate.confirm({
         message: 'Atom will be unresponsive during the loading of very large files.',
         detailedMessage: 'Do you still want to load this file?',
@@ -1229,7 +1226,7 @@ module.exports = class Workspace extends Model {
 
     return this.project.bufferForPath(filePath, options)
       .then(buffer => {
-        return this.textEditorRegistry.build(Object.assign({buffer, largeFileMode, autoHeight: false}, options))
+        return this.textEditorRegistry.build(Object.assign({buffer, autoHeight: false}, options))
       })
   }
 
@@ -1250,11 +1247,8 @@ module.exports = class Workspace extends Model {
   // Returns a {TextEditor}.
   buildTextEditor (params) {
     const editor = this.textEditorRegistry.build(params)
-    const subscriptions = new CompositeDisposable(
-      this.textEditorRegistry.maintainGrammar(editor),
-      this.textEditorRegistry.maintainConfig(editor)
-    )
-    editor.onDidDestroy(() => { subscriptions.dispose() })
+    const subscription = this.textEditorRegistry.maintainConfig(editor)
+    editor.onDidDestroy(() => subscription.dispose())
     return editor
   }
 
