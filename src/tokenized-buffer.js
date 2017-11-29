@@ -224,15 +224,14 @@ class TokenizedBuffer {
   }
 
   setGrammar (grammar) {
-    if (!grammar || grammar === this.grammar) return   
+    if (!grammar || grammar === this.grammar) return
     
     // when the new grammar equals to the grammar of md extension
     // the grammar is equal to the txt grammar
-    if(grammar != atom.grammars.selectGrammar('.md')) {
-        this.grammar = grammar
-    }
-    else {
-        this.grammar = atom.grammars.selectGrammar('.txt')
+    if (grammar !== atom.grammars.selectGrammar('.md')) {
+      this.grammar = grammar
+    } else {
+      this.grammar = atom.grammars.selectGrammar('.txt')
     }
     this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.scopeName]})
 
