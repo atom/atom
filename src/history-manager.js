@@ -50,8 +50,8 @@ export class HistoryManager {
     return this.emitter.on('did-change-projects', callback)
   }
 
-  didChangeProjects (args) {
-    this.emitter.emit('did-change-projects', args || { reloaded: false })
+  didChangeProjects (args = {reloaded: false}) {
+    this.emitter.emit('did-change-projects', args)
   }
 
   async addProject (paths, lastOpened) {
@@ -93,7 +93,7 @@ export class HistoryManager {
   }
 
   async loadState () {
-    let history = await this.stateStore.load('history-manager')
+    const history = await this.stateStore.load('history-manager')
     if (history && history.projects) {
       this.projects = history.projects.filter(p => Array.isArray(p.paths) && p.paths.length > 0).map(p => new HistoryProject(p.paths, new Date(p.lastOpened)))
       this.didChangeProjects({reloaded: true})

@@ -71,7 +71,6 @@ class AtomEnvironment {
     this.deserializers = new DeserializerManager(this)
     this.deserializeTimings = {}
     this.views = new ViewRegistry(this)
-    TextEditor.setScheduler(this.views)
     this.notifications = new NotificationManager()
 
     this.stateStore = new StateStore('AtomEnvironments', 1)
@@ -112,7 +111,13 @@ class AtomEnvironment {
     this.packages.setContextMenuManager(this.contextMenu)
     this.packages.setThemeManager(this.themes)
 
-    this.project = new Project({notificationManager: this.notifications, packageManager: this.packages, config: this.config, applicationDelegate: this.applicationDelegate})
+    this.project = new Project({
+      notificationManager: this.notifications,
+      packageManager: this.packages,
+      grammarRegistry: this.grammars,
+      config: this.config,
+      applicationDelegate: this.applicationDelegate
+    })
     this.commandInstaller = new CommandInstaller(this.applicationDelegate)
     this.protocolHandlerInstaller = new ProtocolHandlerInstaller()
 
@@ -815,10 +820,9 @@ class AtomEnvironment {
       project: this.project.serialize(options),
       workspace: this.workspace.serialize(),
       packageStates: this.packages.serialize(),
-      grammars: {grammarOverridesByPath: this.grammars.grammarOverridesByPath},
+      grammars: this.grammars.serialize(),
       fullScreen: this.isFullScreen(),
-      windowDimensions: this.windowDimensions,
-      textEditors: this.textEditors.serialize()
+      windowDimensions: this.windowDimensions
     }
   }
 
@@ -1112,11 +1116,6 @@ class AtomEnvironment {
   async deserialize (state) {
     if (!state) return Promise.resolve()
 
-    const grammarOverridesByPath = state.grammars && state.grammars.grammarOverridesByPath
-    if (grammarOverridesByPath) {
-      this.grammars.grammarOverridesByPath = grammarOverridesByPath
-    }
-
     this.setFullScreen(state.fullScreen)
 
     const missingProjectPaths = []
@@ -1141,7 +1140,7 @@ class AtomEnvironment {
 
     this.deserializeTimings.project = Date.now() - startTime
 
-    if (state.textEditors) this.textEditors.deserialize(state.textEditors)
+    if (state.grammars) this.grammars.deserialize(state.grammars)
 
     startTime = Date.now()
     if (state.workspace) this.workspace.deserialize(state.workspace, this.deserializers)
