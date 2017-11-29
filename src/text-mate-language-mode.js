@@ -716,7 +716,7 @@ class TextMateLanguageMode {
   }
 }
 
-TextMateLanguageMode.chunkSize = 50
+TextMateLanguageMode.prototype.chunkSize = 50
 
 function selectorMatchesAnyScope (selector, scopes) {
   const targetClasses = selector.replace(/^\./, '').split('.')
