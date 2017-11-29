@@ -11,7 +11,7 @@ FindParentDir = require 'find-parent-dir'
 
 TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
-TokenizedBuffer = require '../src/tokenized-buffer'
+TextMateLanguageMode = require '../src/text-mate-language-mode'
 clipboard = require '../src/safe-clipboard'
 
 jasmineStyle = document.createElement('style')
@@ -100,8 +100,8 @@ beforeEach ->
   spyOn(TextEditor.prototype, "shouldPromptToSave").andReturn false
 
   # make tokenization synchronous
-  TokenizedBuffer.prototype.chunkSize = Infinity
-  spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
+  TextMateLanguageMode.prototype.chunkSize = Infinity
+  spyOn(TextMateLanguageMode.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
 
   # Without this spy, TextEditor.onDidTokenize callbacks would not be called
   # after the buffer's language mode changed, because by the time the editor

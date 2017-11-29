@@ -2,7 +2,7 @@ const _ = require('underscore-plus')
 const Grim = require('grim')
 const FirstMate = require('first-mate')
 const {Disposable, CompositeDisposable} = require('event-kit')
-const TokenizedBuffer = require('./tokenized-buffer')
+const TextMateLanguageMode = require('./text-mate-language-mode')
 const Token = require('./token')
 const fs = require('fs-plus')
 const {Point, Range} = require('text-buffer')
@@ -145,7 +145,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
   }
 
   languageModeForGrammarAndBuffer (grammar, buffer) {
-    return new TokenizedBuffer({grammar, buffer, config: this.config})
+    return new TextMateLanguageMode({grammar, buffer, config: this.config})
   }
 
   // Extended: Select a grammar for the given file path and file contents.
