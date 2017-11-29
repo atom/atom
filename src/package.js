@@ -1,9 +1,9 @@
 const path = require('path')
-const _ = require('underscore-plus')
 const async = require('async')
 const CSON = require('season')
 const fs = require('fs-plus')
 const {Emitter, CompositeDisposable} = require('event-kit')
+const dedent = require('dedent')
 
 const CompileCache = require('./compile-cache')
 const ModuleCache = require('./module-cache')
@@ -762,11 +762,11 @@ class Package {
     } else if (this.mainModuleRequired) {
       return this.mainModule
     } else if (!this.isCompatible()) {
-      console.warn(`
-Failed to require the main module of '${this.name}' because it requires one or more incompatible native modules (${_.pluck(this.incompatibleModules, 'name').join(', ')}).
-Run \`apm rebuild\` in the package directory and restart Atom to resolve.\
-`
-      )
+      const nativeModuleNames = this.incompatibleModules.map(m => m.name).join(', ')
+      console.warn(dedent `
+        Failed to require the main module of '${this.name}' because it requires one or more incompatible native modules (${nativeModuleNames}).
+        Run \`apm rebuild\` in the package directory and restart Atom to resolve.\
+      `)
     } else {
       const mainModulePath = this.getMainModulePath()
       if (fs.isFileSync(mainModulePath)) {
@@ -877,9 +877,9 @@ Run \`apm rebuild\` in the package directory and restart Atom to resolve.\
       for (let selector in this.metadata.activationCommands) {
         const commands = this.metadata.activationCommands[selector]
         if (!this.activationCommands[selector]) this.activationCommands[selector] = []
-        if (_.isString(commands)) {
+        if (typeof commands === 'string') {
           this.activationCommands[selector].push(commands)
-        } else if (_.isArray(commands)) {
+        } else if (Array.isArray(commands)) {
           this.activationCommands[selector].push(...commands)
         }
       }
@@ -902,17 +902,18 @@ Run \`apm rebuild\` in the package directory and restart Atom to resolve.\
   getActivationHooks () {
     if (this.metadata && this.activationHooks) return this.activationHooks
 
-    this.activationHooks = []
-
     if (this.metadata.activationHooks) {
-      if (_.isArray(this.metadata.activationHooks)) {
-        this.activationHooks.push(...this.metadata.activationHooks)
-      } else if (_.isString(this.metadata.activationHooks)) {
-        this.activationHooks.push(this.metadata.activationHooks)
+      if (Array.isArray(this.metadata.activationHooks)) {
+        this.activationHooks = Array.from(new Set(this.metadata.activationHooks))
+      } else if (typeof this.metadata.activationHooks === 'string') {
+        this.activationHooks = [this.metadata.activationHooks]
+      } else {
+        this.activationHooks = []
       }
+    } else {
+      this.activationHooks = []
     }
 
-    this.activationHooks = _.uniq(this.activationHooks)
     return this.activationHooks
   }
 
