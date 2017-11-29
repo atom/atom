@@ -10,7 +10,7 @@ const DecorationManager = require('./decoration-manager')
 const Cursor = require('./cursor')
 const Selection = require('./selection')
 const NullGrammar = require('./null-grammar')
-const TokenizedBuffer = require('./tokenized-buffer')
+const TextMateLanguageMode = require('./text-mate-language-mode')
 
 const TextMateScopeSelector = require('first-mate').ScopeSelector
 const GutterContainer = require('./gutter-container')
@@ -178,7 +178,7 @@ class TextEditor {
       this.buffer = new TextBuffer({
         shouldDestroyOnFileDelete () { return atom.config.get('core.closeDeletedFileTabs') }
       })
-      this.buffer.setLanguageMode(new TokenizedBuffer({buffer: this.buffer, config: atom.config}))
+      this.buffer.setLanguageMode(new TextMateLanguageMode({buffer: this.buffer, config: atom.config}))
     }
 
     const languageMode = this.buffer.getLanguageMode()

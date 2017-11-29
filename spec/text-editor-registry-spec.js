@@ -230,7 +230,7 @@ describe('TextEditorRegistry', function () {
             hello;
           }
         `)
-        editor.tokenizedBuffer.retokenizeLines()
+        editor.getBuffer().getLanguageMode().retokenizeLines()
         expect(editor.getSoftTabs()).toBe(true)
 
         editor.setText(dedent`
@@ -238,7 +238,7 @@ describe('TextEditorRegistry', function () {
           	hello;
           }
         `)
-        editor.tokenizedBuffer.retokenizeLines()
+        editor.getBuffer().getLanguageMode().retokenizeLines()
         expect(editor.getSoftTabs()).toBe(false)
 
         editor.setText(dedent`
@@ -249,7 +249,7 @@ describe('TextEditorRegistry', function () {
           ${'\t'}hello;
           }
         ` + editor.getText())
-        editor.tokenizedBuffer.retokenizeLines()
+        editor.getBuffer().getLanguageMode().retokenizeLines()
         expect(editor.getSoftTabs()).toBe(false)
 
         editor.setText(dedent`
@@ -262,7 +262,7 @@ describe('TextEditorRegistry', function () {
           }
         `)
 
-        editor.tokenizedBuffer.retokenizeLines()
+        editor.getBuffer().getLanguageMode().retokenizeLines()
         expect(editor.getSoftTabs()).toBe(false)
 
         editor.setText(dedent`
@@ -274,7 +274,7 @@ describe('TextEditorRegistry', function () {
             hello;
           }
         `)
-        editor.tokenizedBuffer.retokenizeLines()
+        editor.getBuffer().getLanguageMode().retokenizeLines()
         expect(editor.getSoftTabs()).toBe(true)
       })
     })

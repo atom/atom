@@ -1,7 +1,7 @@
 module.exports =
 class TokenIterator {
-  constructor (tokenizedBuffer) {
-    this.tokenizedBuffer = tokenizedBuffer
+  constructor (languageMode) {
+    this.languageMode = languageMode
   }
 
   reset (line) {
@@ -9,7 +9,7 @@ class TokenIterator {
     this.index = null
     this.startColumn = 0
     this.endColumn = 0
-    this.scopes = this.line.openScopes.map(id => this.tokenizedBuffer.grammar.scopeForId(id))
+    this.scopes = this.line.openScopes.map(id => this.languageMode.grammar.scopeForId(id))
     this.scopeStarts = this.scopes.slice()
     this.scopeEnds = []
     return this
@@ -30,7 +30,7 @@ class TokenIterator {
     while (this.index < tags.length) {
       const tag = tags[this.index]
       if (tag < 0) {
-        const scope = this.tokenizedBuffer.grammar.scopeForId(tag)
+        const scope = this.languageMode.grammar.scopeForId(tag)
         if ((tag % 2) === 0) {
           if (this.scopeStarts[this.scopeStarts.length - 1] === scope) {
             this.scopeStarts.pop()

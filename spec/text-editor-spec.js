@@ -7,7 +7,7 @@ const dedent = require('dedent')
 const clipboard = require('../src/safe-clipboard')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
-const TokenizedBuffer = require('../src/tokenized-buffer')
+const TextMateLanguageMode = require('../src/text-mate-language-mode')
 
 describe('TextEditor', () => {
   let buffer, editor, lineLengths
@@ -5610,7 +5610,7 @@ describe('TextEditor', () => {
     it('notifies onDidTokenize observers when retokenization is finished', async () => {
       // Exercise the full `tokenizeInBackground` code path, which bails out early if
       // `.setVisible` has not been called with `true`.
-      jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
+      jasmine.unspy(TextMateLanguageMode.prototype, 'tokenizeInBackground')
       jasmine.attachToDOM(editor.getElement())
 
       const events = []
