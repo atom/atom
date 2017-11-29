@@ -2970,7 +2970,7 @@ class TextEditorComponent {
   }
 
   isInputEnabled (inputEnabled) {
-    return !this.props.model.isReadOnly();
+    return !this.props.model.isReadOnly()
   }
 
   getHiddenInput () {
