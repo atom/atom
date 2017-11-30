@@ -3053,13 +3053,33 @@ class TextEditor {
     return this.expandSelectionsBackward(selection => selection.selectToBeginningOfPreviousParagraph())
   }
 
+  // Extended: For each selection, select the syntax node that contains
+  // that selection.
   selectLargerSyntaxNode () {
     const languageMode = this.buffer.getLanguageMode()
     if (!languageMode.getRangeForSyntaxNodeContainingRange) return
 
     this.expandSelectionsForward(selection => {
-      const range = languageMode.getRangeForSyntaxNodeContainingRange(selection.getBufferRange())
-      if (range) selection.setBufferRange(range)
+      const currentRange = selection.getBufferRange()
+      const newRange = languageMode.getRangeForSyntaxNodeContainingRange(currentRange)
+      if (newRange) {
+        if (!selection._rangeStack) selection._rangeStack = []
+        selection._rangeStack.push(currentRange)
+        selection.setBufferRange(newRange)
+      }
+    })
+  }
+
+  // Extended: Undo the effect a preceding call to {::selectLargerSyntaxNode}.
+  selectSmallerSyntaxNode () {
+    this.expandSelectionsForward(selection => {
+      if (selection._rangeStack) {
+        const lastRange = selection._rangeStack[selection._rangeStack.length - 1]
+        if (lastRange && selection.getBufferRange().containsRange(lastRange)) {
+          selection._rangeStack.length--
+          selection.setBufferRange(lastRange)
+        }
+      }
     })
   }
 

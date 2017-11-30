@@ -221,6 +221,20 @@ class TreeSitterLanguageMode {
   }
 
   /*
+   * Syntax Tree APIs
+   */
+
+  getRangeForSyntaxNodeContainingRange (range) {
+    const startIndex = this.buffer.characterIndexForPosition(range.start)
+    const endIndex = this.buffer.characterIndexForPosition(range.end)
+    let node = this.document.rootNode.descendantForIndex(startIndex, endIndex - 1)
+    while (node && node.startIndex === startIndex && node.endIndex === endIndex) {
+      node = node.parent
+    }
+    if (node) return new Range(node.startPosition, node.endPosition)
+  }
+
+  /*
    * Section - Backward compatibility shims
    */
 

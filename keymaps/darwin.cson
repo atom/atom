@@ -161,6 +161,8 @@
   'ctrl-alt-shift-right': 'editor:select-to-next-subword-boundary'
   'ctrl-alt-backspace': 'editor:delete-to-beginning-of-subword'
   'ctrl-alt-delete': 'editor:delete-to-end-of-subword'
+  'ctrl-alt-up': 'editor:select-larger-syntax-node'
+  'ctrl-alt-down': 'editor:select-smaller-syntax-node'
 
 'atom-workspace atom-text-editor:not([mini])':
   # Atom specific
