@@ -339,10 +339,10 @@ describe('GrammarRegistry', () => {
 
   describe('.removeGrammar(grammar)', () => {
     it("removes the grammar, so it won't be returned by selectGrammar", async () => {
-      await atom.packages.activatePackage('language-javascript')
-      const grammar = atom.grammars.selectGrammar('foo.js')
+      await atom.packages.activatePackage('language-css')
+      const grammar = atom.grammars.selectGrammar('foo.css')
       atom.grammars.removeGrammar(grammar)
-      expect(atom.grammars.selectGrammar('foo.js').name).not.toBe(grammar.name)
+      expect(atom.grammars.selectGrammar('foo.css').name).not.toBe(grammar.name)
     })
   })
 
