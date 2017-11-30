@@ -5,6 +5,8 @@ const fs = require('fs-plus')
 const temp = require('temp').track()
 const TextBuffer = require('text-buffer')
 const GrammarRegistry = require('../src/grammar-registry')
+const TreeSitterGrammar = require('../src/tree-sitter-grammar')
+const FirstMate = require('first-mate')
 
 describe('GrammarRegistry', () => {
   let grammarRegistry
@@ -48,6 +50,30 @@ describe('GrammarRegistry', () => {
     })
   })
 
+  describe('.grammarForId(languageId)', () => {
+    it('converts the language id to a text-mate language id when `core.useTreeSitterParsers` is false', () => {
+      atom.config.set('core.useTreeSitterParsers', false)
+
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+
+      const grammar = grammarRegistry.grammarForId('javascript')
+      expect(grammar instanceof FirstMate.Grammar).toBe(true)
+      expect(grammar.scopeName).toBe('source.js')
+    })
+
+    it('converts the language id to a tree-sitter language id when `core.useTreeSitterParsers` is true', () => {
+      atom.config.set('core.useTreeSitterParsers', true)
+
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+
+      const grammar = grammarRegistry.grammarForId('source.js')
+      expect(grammar instanceof TreeSitterGrammar).toBe(true)
+      expect(grammar.id).toBe('javascript')
+    })
+  })
+
   describe('.autoAssignLanguageMode(buffer)', () => {
     it('assigns to the buffer a language mode based on the best available grammar', () => {
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
@@ -78,7 +104,9 @@ describe('GrammarRegistry', () => {
       expect(buffer.getLanguageMode().getLanguageId()).toBe('source.c')
     })
 
-    it('updates the buffer\'s grammar when a more appropriate grammar is added for its path', async () => {
+    it('updates the buffer\'s grammar when a more appropriate text-mate grammar is added for its path', async () => {
+      atom.config.set('core.useTreeSitterParsers', false)
+
       const buffer = new TextBuffer()
       expect(buffer.getLanguageMode().getLanguageId()).toBe(null)
 
@@ -87,6 +115,25 @@ describe('GrammarRegistry', () => {
 
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
       expect(buffer.getLanguageMode().getLanguageId()).toBe('source.js')
+
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.js')
+    })
+
+    it('updates the buffer\'s grammar when a more appropriate tree-sitter grammar is added for its path', async () => {
+      atom.config.set('core.useTreeSitterParsers', true)
+
+      const buffer = new TextBuffer()
+      expect(buffer.getLanguageMode().getLanguageId()).toBe(null)
+
+      buffer.setPath('test.js')
+      grammarRegistry.maintainLanguageMode(buffer)
+
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('javascript')
+
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('javascript')
     })
 
     it('can be overridden by calling .assignLanguageMode', () => {
@@ -334,6 +381,30 @@ describe('GrammarRegistry', () => {
       await atom.packages.activatePackage('language-ruby')
       await atom.packages.activatePackage('language-javascript')
       expect(atom.grammars.selectGrammar('foo.rb', '#!/usr/bin/env node').scopeName).toBe('source.ruby')
+    })
+
+    describe('tree-sitter vs text-mate', () => {
+      it('favors a text-mate grammar over a tree-sitter grammar when `core.useTreeSitterParsers` is false', () => {
+        atom.config.set('core.useTreeSitterParsers', false)
+
+        grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+        grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+
+        const grammar = grammarRegistry.selectGrammar('test.js')
+        expect(grammar.scopeName).toBe('source.js')
+        expect(grammar instanceof FirstMate.Grammar).toBe(true)
+      })
+
+      it('favors a tree-sitter grammar over a text-mate grammar when `core.useTreeSitterParsers` is true', () => {
+        atom.config.set('core.useTreeSitterParsers', true)
+
+        grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+        grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+
+        const grammar = grammarRegistry.selectGrammar('test.js')
+        expect(grammar.id).toBe('javascript')
+        expect(grammar instanceof TreeSitterGrammar).toBe(true)
+      })
     })
   })
 

@@ -10,8 +10,14 @@ const Token = require('./token')
 const fs = require('fs-plus')
 const {Point, Range} = require('text-buffer')
 
+const GRAMMAR_TYPE_BONUS = 1000
 const GRAMMAR_SELECTION_RANGE = Range(Point.ZERO, Point(10, 0)).freeze()
 const PATH_SPLIT_REGEX = new RegExp('[/.]')
+
+const LANGUAGE_ID_MAP = [
+  ['source.js', 'javascript'],
+  ['source.ts', 'typescript']
+]
 
 // Extended: This class holds the grammars used for tokenizing.
 //
@@ -113,6 +119,7 @@ class GrammarRegistry {
   // found.
   assignLanguageMode (buffer, languageId) {
     if (buffer.getBuffer) buffer = buffer.getBuffer()
+    languageId = this.normalizeLanguageId(languageId)
 
     let grammar = null
     if (languageId != null) {
@@ -197,6 +204,11 @@ class GrammarRegistry {
     if (this.grammarMatchesContents(grammar, contents)) {
       score += 0.25
     }
+
+    if (score > 0 && this.isGrammarPreferredType(grammar)) {
+      score += GRAMMAR_TYPE_BONUS
+    }
+
     return score
   }
 
@@ -250,6 +262,7 @@ class GrammarRegistry {
           escaped = false
       }
     }
+
     const lines = contents.split('\n')
     return grammar.firstLineRegex.testSync(lines.slice(0, numberOfNewlinesInRegex + 1).join('\n'))
   }
@@ -262,6 +275,8 @@ class GrammarRegistry {
   }
 
   grammarForId (languageId) {
+    languageId = this.normalizeLanguageId(languageId)
+
     return (
       this.textmateRegistry.grammarForScopeName(languageId) ||
       this.treeSitterGrammarsById[languageId]
@@ -306,6 +321,8 @@ class GrammarRegistry {
   }
 
   grammarAddedOrUpdated (grammar) {
+    if (grammar.scopeName && !grammar.id) grammar.id = grammar.scopeName
+
     this.grammarScoresByBuffer.forEach((score, buffer) => {
       const languageMode = buffer.getLanguageMode()
       if (grammar.injectionSelector) {
@@ -317,8 +334,8 @@ class GrammarRegistry {
 
       const languageOverride = this.languageOverridesByBufferId.get(buffer.id)
 
-      if ((grammar.scopeName === buffer.getLanguageMode().getLanguageId() ||
-           grammar.scopeName === languageOverride)) {
+      if ((grammar.id === buffer.getLanguageMode().getLanguageId() ||
+           grammar.id === languageOverride)) {
         buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
       } else if (!languageOverride) {
         const score = this.getGrammarScore(
@@ -370,7 +387,7 @@ class GrammarRegistry {
   }
 
   grammarForScopeName (scopeName) {
-    return this.textmateRegistry.grammarForScopeName(scopeName)
+    return this.grammarForId(scopeName)
   }
 
   addGrammar (grammar) {
@@ -398,7 +415,11 @@ class GrammarRegistry {
   //   * `error` An {Error}, may be null.
   //   * `grammar` A {Grammar} or null if an error occured.
   loadGrammar (grammarPath, callback) {
-    return this.textmateRegistry.loadGrammar(grammarPath, callback)
+    this.readGrammar(grammarPath, (error, grammar) => {
+      if (error) return callback(error)
+      this.addGrammar(grammar)
+      callback(grammar)
+    })
   }
 
   // Extended: Read a grammar synchronously and add it to this registry.
@@ -407,7 +428,9 @@ class GrammarRegistry {
   //
   // Returns a {Grammar}.
   loadGrammarSync (grammarPath) {
-    return this.textmateRegistry.loadGrammarSync(grammarPath)
+    const grammar = this.readGrammarSync(grammarPath)
+    this.addGrammar(grammar)
+    return grammar
   }
 
   // Extended: Read a grammar asynchronously but don't add it to the registry.
@@ -459,5 +482,21 @@ class GrammarRegistry {
 
   scopeForId (id) {
     return this.textmateRegistry.scopeForId(id)
+  }
+
+  isGrammarPreferredType (grammar) {
+    return this.config.get('core.useTreeSitterParsers')
+      ? grammar instanceof TreeSitterGrammar
+      : grammar instanceof FirstMate.Grammar
+  }
+
+  normalizeLanguageId (languageId) {
+    if (this.config.get('core.useTreeSitterParsers')) {
+      const row = LANGUAGE_ID_MAP.find(entry => entry[0] === languageId)
+      return row ? row[1] : languageId
+    } else {
+      const row = LANGUAGE_ID_MAP.find(entry => entry[1] === languageId)
+      return row ? row[0] : languageId
+    }
   }
 }

@@ -240,6 +240,10 @@ class TreeSitterLanguageMode {
     return this.rootScopeDescriptor
   }
 
+  hasTokenForSelector (scopeSelector) {
+    return false
+  }
+
   getGrammar () {
     return this.grammar
   }

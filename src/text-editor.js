@@ -3053,6 +3053,16 @@ class TextEditor {
     return this.expandSelectionsBackward(selection => selection.selectToBeginningOfPreviousParagraph())
   }
 
+  selectLargerSyntaxNode () {
+    const languageMode = this.buffer.getLanguageMode()
+    if (!languageMode.getRangeForSyntaxNodeContainingRange) return
+
+    this.expandSelectionsForward(selection => {
+      const range = languageMode.getRangeForSyntaxNodeContainingRange(selection.getBufferRange())
+      if (range) selection.setBufferRange(range)
+    })
+  }
+
   // Extended: Select the range of the given marker if it is valid.
   //
   // * `marker` A {DisplayMarker}
