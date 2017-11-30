@@ -57,7 +57,8 @@ module.exports = function (packagedAppPath) {
         relativePath === path.join('..', 'node_modules', 'spelling-manager', 'node_modules', 'natural', 'lib', 'natural', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'tar', 'tar.js') ||
         relativePath === path.join('..', 'node_modules', 'temp', 'lib', 'temp.js') ||
-        relativePath === path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js')
+        relativePath === path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js') ||
+        relativePath === path.join('..', 'node_modules', 'tree-sitter', 'index.js')
       )
     }
   }).then((snapshotScript) => {
