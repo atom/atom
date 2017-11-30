@@ -13,8 +13,8 @@ describe('GrammarRegistry', () => {
     grammarRegistry = new GrammarRegistry({config: atom.config})
   })
 
-  describe('.assignLanguageMode(buffer, languageName)', () => {
-    it('assigns to the buffer a language mode with the given language name', async () => {
+  describe('.assignLanguageMode(buffer, languageId)', () => {
+    it('assigns to the buffer a language mode with the given language id', async () => {
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
       grammarRegistry.loadGrammarSync(require.resolve('language-css/grammars/css.cson'))
 
@@ -34,7 +34,7 @@ describe('GrammarRegistry', () => {
       expect(buffer.getLanguageMode().getLanguageId()).toBe('source.css')
     })
 
-    describe('when no languageName is passed', () => {
+    describe('when no languageId is passed', () => {
       it('makes the buffer use the null grammar', () => {
         grammarRegistry.loadGrammarSync(require.resolve('language-css/grammars/css.cson'))
 

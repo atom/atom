@@ -39,7 +39,7 @@ class TreeSitterGrammar {
     })
 
     this.languageModule = require(languageModulePath)
-    this.firstLineRegex = new OnigRegExp(params.firstLineMatch)
+    this.firstLineRegex = params.firstLineMatch && new OnigRegExp(params.firstLineMatch)
     this.scopesById = new Map()
     this.idsByScope = {}
     this.nextScopeId = 256 + 1

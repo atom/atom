@@ -111,7 +111,8 @@ beforeEach ->
     new CompositeDisposable(
       @emitter.on("did-tokenize", callback),
       @onDidChangeGrammar =>
-        if @buffer.getLanguageMode().tokenizeInBackground.originalValue
+        languageMode = @buffer.getLanguageMode()
+        if languageMode.tokenizeInBackground?.originalValue
           callback()
     )
 

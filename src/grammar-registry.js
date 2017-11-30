@@ -1,8 +1,11 @@
 const _ = require('underscore-plus')
 const Grim = require('grim')
+const CSON = require('season')
 const FirstMate = require('first-mate')
 const {Disposable, CompositeDisposable} = require('event-kit')
 const TextMateLanguageMode = require('./text-mate-language-mode')
+const TreeSitterLanguageMode = require('./tree-sitter-language-mode')
+const TreeSitterGrammar = require('./tree-sitter-grammar')
 const Token = require('./token')
 const fs = require('fs-plus')
 const {Point, Range} = require('text-buffer')
@@ -24,6 +27,7 @@ class GrammarRegistry {
 
   clear () {
     this.textmateRegistry.clear()
+    this.treeSitterGrammarsById = {}
     if (this.subscriptions) this.subscriptions.dispose()
     this.subscriptions = new CompositeDisposable()
     this.languageOverridesByBufferId = new Map()
@@ -112,7 +116,7 @@ class GrammarRegistry {
 
     let grammar = null
     if (languageId != null) {
-      grammar = this.textmateRegistry.grammarForScopeName(languageId)
+      grammar = this.grammarForId(languageId)
       if (!grammar) return false
       this.languageOverridesByBufferId.set(buffer.id, languageId)
     } else {
@@ -146,7 +150,11 @@ class GrammarRegistry {
   }
 
   languageModeForGrammarAndBuffer (grammar, buffer) {
-    return new TextMateLanguageMode({grammar, buffer, config: this.config})
+    if (grammar instanceof TreeSitterGrammar) {
+      return new TreeSitterLanguageMode({grammar, buffer, config: this.config})
+    } else {
+      return new TextMateLanguageMode({grammar, buffer, config: this.config})
+    }
   }
 
   // Extended: Select a grammar for the given file path and file contents.
@@ -165,25 +173,25 @@ class GrammarRegistry {
   selectGrammarWithScore (filePath, fileContents) {
     let bestMatch = null
     let highestScore = -Infinity
-    for (let grammar of this.textmateRegistry.grammars) {
+    this.forEachGrammar(grammar => {
       const score = this.getGrammarScore(grammar, filePath, fileContents)
-      if ((score > highestScore) || (bestMatch == null)) {
+      if (score > highestScore || bestMatch == null) {
         bestMatch = grammar
         highestScore = score
       }
-    }
+    })
     return {grammar: bestMatch, score: highestScore}
   }
 
   // Extended: Returns a {Number} representing how well the grammar matches the
   // `filePath` and `contents`.
   getGrammarScore (grammar, filePath, contents) {
-    if ((contents == null) && fs.isFileSync(filePath)) {
+    if (contents == null && fs.isFileSync(filePath)) {
       contents = fs.readFileSync(filePath, 'utf8')
     }
 
     let score = this.getGrammarPathScore(grammar, filePath)
-    if ((score > 0) && !grammar.bundledPackage) {
+    if (score > 0 && !grammar.bundledPackage) {
       score += 0.125
     }
     if (this.grammarMatchesContents(grammar, contents)) {
@@ -193,7 +201,7 @@ class GrammarRegistry {
   }
 
   getGrammarPathScore (grammar, filePath) {
-    if (!filePath) { return -1 }
+    if (!filePath) return -1
     if (process.platform === 'win32') { filePath = filePath.replace(/\\/g, '/') }
 
     const pathComponents = filePath.toLowerCase().split(PATH_SPLIT_REGEX)
@@ -225,7 +233,7 @@ class GrammarRegistry {
   }
 
   grammarMatchesContents (grammar, contents) {
-    if ((contents == null) || (grammar.firstLineRegex == null)) { return false }
+    if (contents == null || grammar.firstLineRegex == null) return false
 
     let escaped = false
     let numberOfNewlinesInRegex = 0
@@ -244,6 +252,20 @@ class GrammarRegistry {
     }
     const lines = contents.split('\n')
     return grammar.firstLineRegex.testSync(lines.slice(0, numberOfNewlinesInRegex + 1).join('\n'))
+  }
+
+  forEachGrammar (callback) {
+    this.textmateRegistry.grammars.forEach(callback)
+    for (let grammarId in this.treeSitterGrammarsById) {
+      callback(this.treeSitterGrammarsById[grammarId])
+    }
+  }
+
+  grammarForId (languageId) {
+    return (
+      this.textmateRegistry.grammarForScopeName(languageId) ||
+      this.treeSitterGrammarsById[languageId]
+    )
   }
 
   // Deprecated: Get the grammar override for the given file path.
@@ -352,7 +374,13 @@ class GrammarRegistry {
   }
 
   addGrammar (grammar) {
-    return this.textmateRegistry.addGrammar(grammar)
+    if (grammar instanceof TreeSitterGrammar) {
+      this.treeSitterGrammarsById[grammar.id] = grammar
+      this.grammarAddedOrUpdated(grammar)
+      return new Disposable(() => delete this.treeSitterGrammarsById[grammar.id])
+    } else {
+      return this.textmateRegistry.addGrammar(grammar)
+    }
   }
 
   removeGrammar (grammar) {
@@ -391,7 +419,15 @@ class GrammarRegistry {
   //
   // Returns undefined.
   readGrammar (grammarPath, callback) {
-    return this.textmateRegistry.readGrammar(grammarPath, callback)
+    if (!callback) callback = () => {}
+    CSON.readFile(grammarPath, (error, params = {}) => {
+      if (error) return callback(error)
+      try {
+        callback(null, this.createGrammar(grammarPath, params))
+      } catch (error) {
+        callback(error)
+      }
+    })
   }
 
   // Extended: Read a grammar synchronously but don't add it to the registry.
@@ -400,11 +436,18 @@ class GrammarRegistry {
   //
   // Returns a {Grammar}.
   readGrammarSync (grammarPath) {
-    return this.textmateRegistry.readGrammarSync(grammarPath)
+    return this.createGrammar(grammarPath, CSON.readFileSync(grammarPath) || {})
   }
 
   createGrammar (grammarPath, params) {
-    return this.textmateRegistry.createGrammar(grammarPath, params)
+    if (params.type === 'tree-sitter') {
+      return new TreeSitterGrammar(this, grammarPath, params)
+    } else {
+      if (typeof params.scopeName !== 'string' || params.scopeName.length === 0) {
+        throw new Error(`Grammar missing required scopeName property: ${grammarPath}`)
+      }
+      return this.textmateRegistry.createGrammar(grammarPath, params)
+    }
   }
 
   // Extended: Get all the grammars in this registry.
