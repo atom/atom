@@ -108,12 +108,13 @@ class GrammarRegistry {
   // Returns a {Boolean} that indicates whether the language was successfully
   // found.
   assignLanguageMode (buffer, languageId) {
-    if (buffer.getBuffer) buffer = buffer.getBuffer()
-
+    if (buffer.getBuffer) {
+      buffer = buffer.getBuffer()
+    }
     let grammar = null
     if (languageId != null) {
       grammar = this.textmateRegistry.grammarForScopeName(languageId)
-      if (!grammar) return false
+      if (!grammar) { return false }
       this.languageOverridesByBufferId.set(buffer.id, languageId)
     } else {
       this.languageOverridesByBufferId.set(buffer.id, null)
@@ -254,7 +255,7 @@ class GrammarRegistry {
   grammarOverrideForPath (filePath) {
     Grim.deprecate('Use buffer.getLanguageMode().getLanguageId() instead')
     const buffer = atom.project.findBufferForPath(filePath)
-    if (buffer) return this.languageOverridesByBufferId.get(buffer.id)
+    if (buffer) { return this.languageOverridesByBufferId.get(buffer.id) }
   }
 
   // Deprecated: Set the grammar override for the given file path.
@@ -268,7 +269,7 @@ class GrammarRegistry {
     const buffer = atom.project.findBufferForPath(filePath)
     if (buffer) {
       const grammar = this.grammarForScopeName(languageId)
-      if (grammar) this.languageOverridesByBufferId.set(buffer.id, grammar.name)
+      if (grammar) { this.languageOverridesByBufferId.set(buffer.id, grammar.name) }
     }
   }
 
@@ -280,7 +281,7 @@ class GrammarRegistry {
   clearGrammarOverrideForPath (filePath) {
     Grim.deprecate('Use atom.grammars.autoAssignLanguageMode(buffer) instead')
     const buffer = atom.project.findBufferForPath(filePath)
-    if (buffer) this.languageOverridesByBufferId.delete(buffer.id)
+    if (buffer) { this.languageOverridesByBufferId.delete(buffer.id) }
   }
 
   grammarAddedOrUpdated (grammar) {
