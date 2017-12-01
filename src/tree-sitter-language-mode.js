@@ -286,10 +286,12 @@ class TreeSitterHighlightIterator {
 
     let currentNode = this.layer.document.rootNode
     let currentChildIndex = null
+    let precedesCurrentNode = false
     while (currentNode) {
       this.currentNode = currentNode
       this.containingNodeTypes.push(currentNode.type)
       this.containingNodeChildIndices.push(currentChildIndex)
+      if (precedesCurrentNode) break
 
       const scopeName = this.currentScopeName()
       if (scopeName) {
@@ -308,6 +310,7 @@ class TreeSitterHighlightIterator {
         if (child.endIndex > this.currentIndex) {
           currentNode = child
           currentChildIndex = i
+          if (child.startIndex > this.currentIndex) precedesCurrentNode = true
           break
         }
       }
@@ -326,33 +329,35 @@ class TreeSitterHighlightIterator {
     }
 
     do {
-      if (this.currentIndex < this.currentNode.endIndex) {
+      if (this.currentIndex < this.currentNode.startIndex) {
+        this.currentIndex = this.currentNode.startIndex
+        this.currentPosition = this.currentNode.startPosition
+        this.pushOpenTag()
+        this.descendLeft()
+      } else if (this.currentIndex < this.currentNode.endIndex) {
         while (true) {
           this.pushCloseTag()
-          const nextSibling = this.currentNode.nextSibling
+          this.currentIndex = this.currentNode.endIndex
+          this.currentPosition = this.currentNode.endPosition
+
+          const {nextSibling} = this.currentNode
           if (nextSibling) {
-            if (this.currentNode.endIndex === nextSibling.startIndex) {
-              this.currentNode = nextSibling
-              this.currentChildIndex++
-              this.currentIndex = nextSibling.startIndex
-              this.currentPosition = nextSibling.startPosition
+            this.currentNode = nextSibling
+            this.currentChildIndex++
+            if (this.currentIndex === nextSibling.startIndex) {
               this.pushOpenTag()
               this.descendLeft()
-            } else {
-              this.currentIndex = this.currentNode.endIndex
-              this.currentPosition = this.currentNode.endPosition
             }
             break
           } else {
-            this.currentIndex = this.currentNode.endIndex
-            this.currentPosition = this.currentNode.endPosition
             this.currentNode = this.currentNode.parent
             this.currentChildIndex = last(this.containingNodeChildIndices)
             if (!this.currentNode) break
           }
         }
       } else {
-        if ((this.currentNode = this.currentNode.nextSibling)) {
+        this.currentNode = this.currentNode.nextSibling
+        if (this.currentNode) {
           this.currentChildIndex++
           this.currentPosition = this.currentNode.startPosition
           this.currentIndex = this.currentNode.startIndex
