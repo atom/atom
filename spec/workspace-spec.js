@@ -1,6 +1,7 @@
 const path = require('path')
 const temp = require('temp').track()
 const dedent = require('dedent')
+const TextBuffer = require('text-buffer')
 const TextEditor = require('../src/text-editor')
 const Workspace = require('../src/workspace')
 const Project = require('../src/project')
@@ -931,6 +932,18 @@ describe('Workspace', () => {
           expect(rightPane.getPendingItem()).toBe(editor2)
           expect(rightPane.destroy.callCount).toBe(0)
         })
+      })
+    })
+
+    describe('when opening an editor with a buffer that isn\'t part of the project', () => {
+      it('adds the buffer to the project', async () => {
+        const buffer = new TextBuffer()
+        const editor = new TextEditor({buffer})
+
+        await atom.workspace.open(editor)
+
+        expect(atom.project.getBuffers().map(buffer => buffer.id)).toContain(buffer.id)
+        expect(buffer.getLanguageMode().getLanguageId()).toBe('text.plain.null-grammar')
       })
     })
   })
