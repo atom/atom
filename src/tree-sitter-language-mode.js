@@ -266,62 +266,80 @@ class TreeSitterLanguageMode {
 class TreeSitterHighlightIterator {
   constructor (layer, document) {
     this.layer = layer
-    this.closeTags = null
-    this.openTags = null
-    this.containingNodeTypes = null
-    this.containingNodeChildIndices = null
+
+    // Conceptually, the iterator represents a single position in the text. It stores this
+    // position both as a character index and as a `Point`. This position corresponds to a
+    // leaf node of the syntax tree, which either contains or follows the iterator's
+    // textual position. The `currentNode` property represents that leaf node, and
+    // `currentChildIndex` represents the child index of that leaf node within its parent.
+    this.currentIndex = null
+    this.currentPosition = null
     this.currentNode = null
     this.currentChildIndex = null
+
+    // In order to determine which selectors match its current node, the iterator maintains
+    // a list of the current node's ancestors. Because the selectors can use the `:nth-child`
+    // pseudo-class, each node's child index is also stored.
+    this.containingNodeTypes = []
+    this.containingNodeChildIndices = []
+
+    // At any given position, the iterator exposes the list of class names that should be
+    // *ended* at its current position and the list of class names that should be *started*
+    // at its current position.
+    this.closeTags = []
+    this.openTags = []
   }
 
   seek (targetPosition) {
     const containingTags = []
 
-    this.closeTags = []
-    this.openTags = []
-    this.containingNodeTypes = []
-    this.containingNodeChildIndices = []
+    this.closeTags.length = 0
+    this.openTags.length = 0
+    this.containingNodeTypes.length = 0
+    this.containingNodeChildIndices.length = 0
     this.currentPosition = targetPosition
     this.currentIndex = this.layer.buffer.characterIndexForPosition(targetPosition)
 
-    let currentNode = this.layer.document.rootNode
-    let currentChildIndex = null
-    let precedesCurrentNode = false
-    while (currentNode) {
-      this.currentNode = currentNode
-      this.containingNodeTypes.push(currentNode.type)
-      this.containingNodeChildIndices.push(currentChildIndex)
-      if (precedesCurrentNode) break
+    var node = this.layer.document.rootNode
+    var childIndex = -1
+    var done = false
+    var nodeContainsTarget = true
+    do {
+      this.currentNode = node
+      this.currentChildIndex = childIndex
+      this.containingNodeTypes.push(node.type)
+      this.containingNodeChildIndices.push(childIndex)
+      if (!nodeContainsTarget) break
 
       const scopeName = this.currentScopeName()
       if (scopeName) {
         const id = this.layer.grammar.idForScope(scopeName)
-        if (this.currentIndex === currentNode.startIndex) {
+        if (this.currentIndex === node.startIndex) {
           this.openTags.push(id)
         } else {
           containingTags.push(id)
         }
       }
 
-      const {children} = currentNode
-      currentNode = null
-      for (let i = 0, childCount = children.length; i < childCount; i++) {
+      done = true
+      for (var i = 0, {children} = node, childCount = children.length; i < childCount; i++) {
         const child = children[i]
         if (child.endIndex > this.currentIndex) {
-          currentNode = child
-          currentChildIndex = i
-          if (child.startIndex > this.currentIndex) precedesCurrentNode = true
+          node = child
+          childIndex = i
+          done = false
+          if (child.startIndex > this.currentIndex) nodeContainsTarget = false
           break
         }
       }
-    }
+    } while (!done)
 
     return containingTags
   }
 
   moveToSuccessor () {
-    this.closeTags = []
-    this.openTags = []
+    this.closeTags.length = 0
+    this.openTags.length = 0
 
     if (!this.currentNode) {
       this.currentPosition = {row: Infinity, column: Infinity}
@@ -336,9 +354,9 @@ class TreeSitterHighlightIterator {
         this.descendLeft()
       } else if (this.currentIndex < this.currentNode.endIndex) {
         while (true) {
-          this.pushCloseTag()
           this.currentIndex = this.currentNode.endIndex
           this.currentPosition = this.currentNode.endPosition
+          this.pushCloseTag()
 
           const {nextSibling} = this.currentNode
           if (nextSibling) {
@@ -386,7 +404,7 @@ class TreeSitterHighlightIterator {
 
   descendLeft () {
     let child
-    while ((child = this.currentNode.firstChild)) {
+    while ((child = this.currentNode.firstChild) && this.currentIndex === child.startIndex) {
       this.currentNode = child
       this.currentChildIndex = 0
       this.pushOpenTag()
