@@ -80,7 +80,9 @@
     "language-onetwo":"git+https://github.com/onetwoEditor/language-onetwo.git",
     "tabs":"git+https://github.com/onetwoEditor/tabs.git",
     "tool-bar":"git+https://github.com/onetwoEditor/tool-bar.git",
-    "tool-bar-markdown-writer":"git+https://github.com/onetwoEditor/tool-bar-md-writer.git"
+    "markdown-writer":"git+https://github.com/onetwoEditor/md-writer.git",
+    "tool-bar-markdown-writer":"git+https://github.com/onetwoEditor/tool-bar-md-writer.git",
+    "atom-i18n":"git+https://github.com/onetwoEditor/atom-i18n.git"
   
   },
   "packageDependencies": {
@@ -135,6 +137,7 @@
     "language-onetwo":"0.89.0",
     "tabs":"0.107.4",
     "tool-bar":"1.1.0",
+    "markdown-writer":"2.7.3",
     "tool-bar-markdown-writer":"0.3.0"
   },
   "private": true,

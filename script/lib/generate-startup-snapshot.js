@@ -77,22 +77,22 @@ module.exports = function (packagedAppPath) {
     console.log('Verifying if snapshot can be executed via `mksnapshot`')
     vm.runInNewContext(snapshotScript, undefined, {filename: snapshotScriptPath, displayErrors: true})
 
-    const generatedStartupBlobPath = path.join(CONFIG.buildOutputPath, 'snapshot_blob.bin')
-    console.log(`Generating startup blob at "${generatedStartupBlobPath}"`)
-    childProcess.execFileSync(
-      path.join(CONFIG.repositoryRootPath, 'script', 'node_modules', 'electron-mksnapshot', 'bin', 'mksnapshot'),
-      [snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
-    )
+    // const generatedStartupBlobPath = path.join(CONFIG.buildOutputPath, 'snapshot_blob.bin')
+    // console.log(`Generating startup blob at "${generatedStartupBlobPath}"`)
+    // childProcess.execFileSync(
+    //   path.join(CONFIG.repositoryRootPath, 'script', 'node_modules', 'electron-mksnapshot', 'bin', 'mksnapshot'),
+    //   [snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
+    // )
 
-    let startupBlobDestinationPath
-    if (process.platform === 'darwin') {
-      startupBlobDestinationPath = `${packagedAppPath}/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`
-    } else {
-      startupBlobDestinationPath = path.join(packagedAppPath, 'snapshot_blob.bin')
-    }
+    // let startupBlobDestinationPath
+    // if (process.platform === 'darwin') {
+    //   startupBlobDestinationPath = `${packagedAppPath}/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`
+    // } else {
+    //   startupBlobDestinationPath = path.join(packagedAppPath, 'snapshot_blob.bin')
+    // }
 
-    console.log(`Moving generated startup blob into "${startupBlobDestinationPath}"`)
-    fs.unlinkSync(startupBlobDestinationPath)
-    fs.renameSync(generatedStartupBlobPath, startupBlobDestinationPath)
+    // console.log(`Moving generated startup blob into "${startupBlobDestinationPath}"`)
+    // fs.unlinkSync(startupBlobDestinationPath)
+    // fs.renameSync(generatedStartupBlobPath, startupBlobDestinationPath)
   })
 }
