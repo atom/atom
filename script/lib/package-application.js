@@ -31,6 +31,8 @@ module.exports = function () {
     out: CONFIG.buildOutputPath,
     overwrite: true,
     platform: process.platform,
+    // Atom doesn't have devDependencies, but if prune is true, it will delete the non-standard packageDependencies.
+    prune: false,
     win32metadata: {
       CompanyName: 'GitHub, Inc.',
       FileDescription: 'Atom',
