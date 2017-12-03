@@ -1688,6 +1688,20 @@ describe('TextEditor', () => {
       })
     })
 
+    describe('.selectCurrentParagraph()', () => {
+      it('selects from the begginning of the current paragraph to first line of the next paragraph', () => {
+        editor.setSelectedBufferRange([[3, 0], [4, 5]])
+        editor.addCursorAtScreenPosition([5, 6])
+        editor.selectToScreenPosition([6, 2])
+
+        editor.selectCurrentParagraph()
+
+        const selections = editor.getSelections()
+        expect(selections.length).toBe(1)
+        expect(selections[0].getScreenRange()).toEqual([[0, 0], [10, 0]])
+      })
+    })
+
     describe('.selectToTop()', () => {
       it('selects text from cursor position to the top of the buffer', () => {
         editor.setCursorScreenPosition([11, 2])

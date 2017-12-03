@@ -3056,6 +3056,14 @@ class TextEditor {
     return this.expandSelectionsBackward(selection => selection.selectToBeginningOfPreviousParagraph())
   }
 
+  // Extended: Expand selections to the current paragraph.
+  //
+  // Operates on all selections. Moves the cursor to the beginning of the next
+  // paragraph while setting the selection's tail in the beggining of the current paragraph.
+  selectCurrentParagraph () {
+    return this.expandSelectionsForward(selection => selection.selectCurrentParagraph())
+  }
+
   // Extended: Select the range of the given marker if it is valid.
   //
   // * `marker` A {DisplayMarker}

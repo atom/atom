@@ -357,6 +357,13 @@ class Selection {
     this.modifySelection(() => this.cursor.moveToBeginningOfPreviousParagraph())
   }
 
+  // Public: Selects all the text from the current paragraph
+  // which is pointed by the cursor.
+  selectCurrentParagraph () {
+    this.setBufferRange(this.cursor.getCurrentParagraphBufferRange())
+    this.modifySelection(() => this.cursor.moveToBeginningOfNextParagraph())
+  }
+
   // Public: Modifies the selection to encompass the current word.
   //
   // Returns a {Range}.

@@ -441,6 +441,12 @@ class Cursor extends Model {
     if (position) this.setBufferPosition(position)
   }
 
+    // Public: Moves the cursor to the beginning of the previous paragraph
+    moveToBeginningOfPreviousParagraph () {
+      const position = this.getBeginningOfPreviousParagraphBufferPosition()
+      if (position) this.setBufferPosition(position)
+    }
+
   /*
   Section: Local Positions and Ranges
   */
@@ -733,7 +739,7 @@ class Cursor extends Model {
     const scanRange = [start, eof]
 
     const {row, column} = eof
-    let position = new Point(row, column - 1)
+    let position = new Point(row, column)
 
     this.editor.scanInBufferRange(EmptyLineRegExp, scanRange, ({range, stop}) => {
       position = range.start.traverse(Point(1, 0))
