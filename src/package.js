@@ -216,7 +216,6 @@ class Package {
       if (!this.mainModule) this.requireMainModule()
       this.configSchemaRegisteredOnActivate = this.registerConfigSchemaFromMainModule()
       this.registerViewProviders()
-      this.activateResources()
       this.activateStylesheets()
       if (this.mainModule && !this.mainActivated) {
         this.initializeIfNeeded()
@@ -500,8 +499,10 @@ class Package {
         this.deserializerManager.add({
           name: deserializerName,
           deserialize: (state, atomEnvironment) => {
+            this.registerViewProviders()
+            this.requireMainModule()
+            this.initializeIfNeeded()
             this.deserialized = true
-            this.activateNow()
             return this.mainModule[methodName](state, atomEnvironment)
           }
         })
