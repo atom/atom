@@ -14,23 +14,24 @@ const PATH_SPLIT_REGEX = new RegExp('[/.]')
 //
 // An instance of this class is always available as the `atom.grammars` global.
 module.exports =
-class GrammarRegistry extends FirstMate.GrammarRegistry {
+class GrammarRegistry {
   constructor ({config} = {}) {
-    super({maxTokensPerLine: 100, maxLineLength: 1000})
     this.config = config
     this.subscriptions = new CompositeDisposable()
+    this.textmateRegistry = new FirstMate.GrammarRegistry({maxTokensPerLine: 100, maxLineLength: 1000})
+    this.clear()
   }
 
   clear () {
-    super.clear()
+    this.textmateRegistry.clear()
     if (this.subscriptions) this.subscriptions.dispose()
     this.subscriptions = new CompositeDisposable()
     this.languageOverridesByBufferId = new Map()
     this.grammarScoresByBuffer = new Map()
 
     const grammarAddedOrUpdated = this.grammarAddedOrUpdated.bind(this)
-    this.onDidAddGrammar(grammarAddedOrUpdated)
-    this.onDidUpdateGrammar(grammarAddedOrUpdated)
+    this.textmateRegistry.onDidAddGrammar(grammarAddedOrUpdated)
+    this.textmateRegistry.onDidUpdateGrammar(grammarAddedOrUpdated)
   }
 
   serialize () {
@@ -111,12 +112,12 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
 
     let grammar = null
     if (languageId != null) {
-      grammar = this.grammarForScopeName(languageId)
+      grammar = this.textmateRegistry.grammarForScopeName(languageId)
       if (!grammar) return false
       this.languageOverridesByBufferId.set(buffer.id, languageId)
     } else {
       this.languageOverridesByBufferId.set(buffer.id, null)
-      grammar = this.nullGrammar
+      grammar = this.textmateRegistry.nullGrammar
     }
 
     this.grammarScoresByBuffer.set(buffer, null)
@@ -164,7 +165,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
   selectGrammarWithScore (filePath, fileContents) {
     let bestMatch = null
     let highestScore = -Infinity
-    for (let grammar of this.grammars) {
+    for (let grammar of this.textmateRegistry.grammars) {
       const score = this.getGrammarScore(grammar, filePath, fileContents)
       if ((score > highestScore) || (bestMatch == null)) {
         bestMatch = grammar
@@ -311,5 +312,109 @@ class GrammarRegistry extends FirstMate.GrammarRegistry {
         }
       }
     })
+  }
+
+  // Extended: Invoke the given callback when a grammar is added to the registry.
+  //
+  // * `callback` {Function} to call when a grammar is added.
+  //   * `grammar` {Grammar} that was added.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidAddGrammar (callback) {
+    return this.textmateRegistry.onDidAddGrammar(callback)
+  }
+
+  // Extended: Invoke the given callback when a grammar is updated due to a grammar
+  // it depends on being added or removed from the registry.
+  //
+  // * `callback` {Function} to call when a grammar is updated.
+  //   * `grammar` {Grammar} that was updated.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidUpdateGrammar (callback) {
+    return this.textmateRegistry.onDidUpdateGrammar(callback)
+  }
+
+  get nullGrammar () {
+    return this.textmateRegistry.nullGrammar
+  }
+
+  get grammars () {
+    return this.textmateRegistry.grammars
+  }
+
+  decodeTokens () {
+    return this.textmateRegistry.decodeTokens.apply(this.textmateRegistry, arguments)
+  }
+
+  grammarForScopeName (scopeName) {
+    return this.textmateRegistry.grammarForScopeName(scopeName)
+  }
+
+  addGrammar (grammar) {
+    return this.textmateRegistry.addGrammar(grammar)
+  }
+
+  removeGrammar (grammar) {
+    return this.textmateRegistry.removeGrammar(grammar)
+  }
+
+  removeGrammarForScopeName (scopeName) {
+    return this.textmateRegistry.removeGrammarForScopeName(scopeName)
+  }
+
+  // Extended: Read a grammar asynchronously and add it to the registry.
+  //
+  // * `grammarPath` A {String} absolute file path to a grammar file.
+  // * `callback` A {Function} to call when loaded with the following arguments:
+  //   * `error` An {Error}, may be null.
+  //   * `grammar` A {Grammar} or null if an error occured.
+  loadGrammar (grammarPath, callback) {
+    return this.textmateRegistry.loadGrammar(grammarPath, callback)
+  }
+
+  // Extended: Read a grammar synchronously and add it to this registry.
+  //
+  // * `grammarPath` A {String} absolute file path to a grammar file.
+  //
+  // Returns a {Grammar}.
+  loadGrammarSync (grammarPath) {
+    return this.textmateRegistry.loadGrammarSync(grammarPath)
+  }
+
+  // Extended: Read a grammar asynchronously but don't add it to the registry.
+  //
+  // * `grammarPath` A {String} absolute file path to a grammar file.
+  // * `callback` A {Function} to call when read with the following arguments:
+  //   * `error` An {Error}, may be null.
+  //   * `grammar` A {Grammar} or null if an error occured.
+  //
+  // Returns undefined.
+  readGrammar (grammarPath, callback) {
+    return this.textmateRegistry.readGrammar(grammarPath, callback)
+  }
+
+  // Extended: Read a grammar synchronously but don't add it to the registry.
+  //
+  // * `grammarPath` A {String} absolute file path to a grammar file.
+  //
+  // Returns a {Grammar}.
+  readGrammarSync (grammarPath) {
+    return this.textmateRegistry.readGrammarSync(grammarPath)
+  }
+
+  createGrammar (grammarPath, params) {
+    return this.textmateRegistry.createGrammar(grammarPath, params)
+  }
+
+  // Extended: Get all the grammars in this registry.
+  //
+  // Returns a non-empty {Array} of {Grammar} instances.
+  getGrammars () {
+    return this.textmateRegistry.getGrammars()
+  }
+
+  scopeForId (id) {
+    return this.textmateRegistry.scopeForId(id)
   }
 }

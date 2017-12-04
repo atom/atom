@@ -1,5 +1,7 @@
 const path = require('path')
 const temp = require('temp').track()
+const dedent = require('dedent')
+const TextBuffer = require('text-buffer')
 const TextEditor = require('../src/text-editor')
 const Workspace = require('../src/workspace')
 const Project = require('../src/project')
@@ -932,6 +934,18 @@ describe('Workspace', () => {
         })
       })
     })
+
+    describe('when opening an editor with a buffer that isn\'t part of the project', () => {
+      it('adds the buffer to the project', async () => {
+        const buffer = new TextBuffer()
+        const editor = new TextEditor({buffer})
+
+        await atom.workspace.open(editor)
+
+        expect(atom.project.getBuffers().map(buffer => buffer.id)).toContain(buffer.id)
+        expect(buffer.getLanguageMode().getLanguageId()).toBe('text.plain.null-grammar')
+      })
+    })
   })
 
   describe('finding items in the workspace', () => {
@@ -1206,8 +1220,8 @@ describe('Workspace', () => {
     })
   })
 
-  describe('::onDidStopChangingActivePaneItem()', function () {
-    it('invokes observers when the active item of the active pane stops changing', function () {
+  describe('::onDidStopChangingActivePaneItem()', () => {
+    it('invokes observers when the active item of the active pane stops changing', () => {
       const pane1 = atom.workspace.getCenter().getActivePane()
       const pane2 = pane1.splitRight({items: [document.createElement('div'), document.createElement('div')]});
       atom.workspace.getLeftDock().getActivePane().addItem(document.createElement('div'))
@@ -1364,7 +1378,7 @@ describe('Workspace', () => {
 
   describe('::getActiveTextEditor()', () => {
     describe("when the workspace center's active pane item is a text editor", () => {
-      describe('when the workspace center has focus', function () {
+      describe('when the workspace center has focus', () => {
         it('returns the text editor', () => {
           const workspaceCenter = workspace.getCenter()
           const editor = new TextEditor()
@@ -1375,7 +1389,7 @@ describe('Workspace', () => {
         })
       })
 
-      describe('when a dock has focus', function () {
+      describe('when a dock has focus', () => {
         it('returns the text editor', () => {
           const workspaceCenter = workspace.getCenter()
           const editor = new TextEditor()
@@ -1536,11 +1550,10 @@ describe('Workspace', () => {
 
     waitsForPromise(() => atom.workspace.open('sample.coffee'))
 
-    runs(function () {
-      atom.workspace.getActiveTextEditor().setText(`\
-i = /test/; #FIXME\
-`
-      )
+    runs(() => {
+      atom.workspace.getActiveTextEditor().setText(dedent `
+        i = /test/; #FIXME\
+      `)
 
       const atom2 = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
       atom2.initialize({
@@ -2867,4 +2880,6 @@ i = /test/; #FIXME\
   })
 })
 
-const escapeStringRegex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+function escapeStringRegex (string) {
+  return string.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+}
