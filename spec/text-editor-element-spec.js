@@ -71,7 +71,6 @@ describe('TextEditorElement', () => {
   })
 
   it("honors the 'readonly' attribute", async function() {
-    console.log('set attribute');
     jasmineContent.innerHTML = "<atom-text-editor readonly>"
     const element = jasmineContent.firstChild
 
