@@ -671,6 +671,7 @@ describe('PackageManager', () => {
 
         beforeEach(() => {
           jasmine.attachToDOM(atom.workspace.getElement())
+          spyOn(atom.packages, 'hasActivatedInitialPackages').andReturn(true)
           mainModule = require('./fixtures/packages/package-with-activation-commands-and-deserializers/index')
           mainModule.activationCommandCallCount = 0
           spyOn(mainModule, 'activate').andCallThrough()
@@ -691,7 +692,7 @@ describe('PackageManager', () => {
           expect(Package.prototype.requireMainModule.callCount).toBe(0)
 
           const state1 = {deserializer: 'Deserializer1', a: 'b'}
-          expect(atom.deserializers.deserialize(state1)).toEqual({
+          expect(atom.deserializers.deserialize(state1, atom)).toEqual({
             wasDeserializedBy: 'deserializeMethod1',
             state: state1
           })
