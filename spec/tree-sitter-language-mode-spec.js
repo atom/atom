@@ -67,7 +67,68 @@ describe('TreeSitterLanguageMode', () => {
       ])
     })
   })
+
+  describe('folding', () => {
+    beforeEach(() => {
+      editor.displayLayer.reset({foldCharacter: '…'})
+    })
+
+    it('folds nodes that start and end with specified tokens and span multiple lines', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {'program': 'source'},
+        folds: {
+          delimiters: [
+            ['{', '}'],
+            ['(', ')']
+          ]
+        }
+      })
+
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      buffer.setText(dedent `
+        module.exports =
+        class A {
+          getB (c,
+                d,
+                e) {
+            return this.b
+          }
+        }
+      `)
+
+      editor.screenLineForScreenRow(0)
+
+      expect(editor.isFoldableAtBufferRow(0)).toBe(false)
+      expect(editor.isFoldableAtBufferRow(1)).toBe(true)
+      expect(editor.isFoldableAtBufferRow(2)).toBe(true)
+      expect(editor.isFoldableAtBufferRow(3)).toBe(false)
+      expect(editor.isFoldableAtBufferRow(4)).toBe(true)
+
+      editor.foldBufferRow(2)
+      expect(getDisplayText(editor)).toBe(dedent `
+        module.exports =
+        class A {
+          getB (…) {
+            return this.b
+          }
+        }
+      `)
+
+      editor.foldBufferRow(4)
+      expect(getDisplayText(editor)).toBe(dedent `
+        module.exports =
+        class A {
+          getB (…) {…}
+        }
+      `)
+    })
+  })
 })
+
+function getDisplayText (editor) {
+  return editor.displayLayer.getText()
+}
 
 function expectTokensToEqual (editor, expectedTokens) {
   const tokens = []

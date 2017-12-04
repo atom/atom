@@ -112,7 +112,7 @@ class TreeSitterLanguageMode {
    */
 
   isFoldableAtRow (row) {
-    return this.getFoldableRangeContainingPoint(Point(row, Infinity), false) != null
+    return this.getFoldableRangeContainingPoint(Point(row, Infinity), 0, true) != null
   }
 
   getFoldableRanges () {
@@ -161,19 +161,19 @@ class TreeSitterLanguageMode {
     return result.sort((a, b) => a.start.row - b.start.row)
   }
 
-  getFoldableRangeContainingPoint (point, allowPreviousRows = true) {
+  getFoldableRangeContainingPoint (point, tabLength, existenceOnly = false) {
     let node = this.document.rootNode.descendantForPosition(this.buffer.clipPosition(point))
     while (node) {
-      if (!allowPreviousRows && node.startPosition.row < point.row) break
+      if (existenceOnly && node.startPosition.row < point.row) break
       if (node.endPosition.row > point.row) {
-        const range = this.getFoldableRangeForNode(node)
+        const range = this.getFoldableRangeForNode(node, existenceOnly)
         if (range) return range
       }
       node = node.parent
     }
   }
 
-  getFoldableRangeForNode (node) {
+  getFoldableRangeForNode (node, existenceOnly) {
     const {firstChild} = node
     if (firstChild) {
       const {lastChild} = node
@@ -181,6 +181,7 @@ class TreeSitterLanguageMode {
       for (let i = 0, n = this.grammar.foldConfig.delimiters.length; i < n; i++) {
         const entry = this.grammar.foldConfig.delimiters[i]
         if (firstChild.type === entry[0] && lastChild.type === entry[1]) {
+          if (existenceOnly) return true
           let childPrecedingFold = firstChild
 
           const options = entry[2]
@@ -210,6 +211,7 @@ class TreeSitterLanguageMode {
       for (let i = 0, n = this.grammar.foldConfig.tokens.length; i < n; i++) {
         const foldableToken = this.grammar.foldConfig.tokens[i]
         if (node.type === foldableToken[0]) {
+          if (existenceOnly) return true
           const start = node.startPosition
           const end = node.endPosition
           start.column += foldableToken[1]
