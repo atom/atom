@@ -937,7 +937,7 @@ class Package {
         if (filePath === opener) {
           this.activateNow()
           this.workspaceOpenerSubscriptions.dispose()
-          atom.workspace.open(opener)
+          return atom.workspace.open(opener)
         }
       }))
     })
