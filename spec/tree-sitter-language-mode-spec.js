@@ -169,6 +169,48 @@ describe('TreeSitterLanguageMode', () => {
       `)
     })
   })
+
+  describe('TextEditor.selectLargerSyntaxNode and .selectSmallerSyntaxNode', () => {
+    it('expands and contract the selection based on the syntax tree', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {'program': 'source'}
+      })
+
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      buffer.setText(dedent `
+        function a (b, c, d) {
+          eee.f()
+          g()
+        }
+      `)
+
+      editor.screenLineForScreenRow(0)
+
+      editor.setCursorBufferPosition([1, 3])
+      editor.selectLargerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('eee')
+      editor.selectLargerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('eee.f')
+      editor.selectLargerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('eee.f()')
+      editor.selectLargerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('{\n  eee.f()\n  g()\n}')
+      editor.selectLargerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('function a (b, c, d) {\n  eee.f()\n  g()\n}')
+
+      editor.selectSmallerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('{\n  eee.f()\n  g()\n}')
+      editor.selectSmallerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('eee.f()')
+      editor.selectSmallerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('eee.f')
+      editor.selectSmallerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('eee')
+      editor.selectSmallerSyntaxNode()
+      expect(editor.getSelectedBufferRange()).toEqual([[1, 3], [1, 3]])
+    })
+  })
 })
 
 function getDisplayText (editor) {
