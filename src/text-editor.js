@@ -4522,8 +4522,7 @@ class TextEditor {
               ? minBlankIndentLevel
               : 0
 
-        const tabLength = this.getTabLength()
-        const indentString = ' '.repeat(tabLength * minIndentLevel)
+        const indentString = this.buildIndentString(minIndentLevel)
         for (let row = start; row <= end; row++) {
           const line = this.buffer.lineForRow(row)
           if (NON_WHITESPACE_REGEXP.test(line)) {
