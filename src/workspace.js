@@ -494,10 +494,12 @@ module.exports = class Workspace extends Model {
       if (item instanceof TextEditor) {
         const subscriptions = new CompositeDisposable(
           this.textEditorRegistry.add(item),
-          this.textEditorRegistry.maintainGrammar(item),
           this.textEditorRegistry.maintainConfig(item),
           item.observeGrammar(this.handleGrammarUsed.bind(this))
         )
+        if (!this.project.findBufferForId(item.buffer.id)) {
+          this.project.addBuffer(item.buffer)
+        }
         item.onDidDestroy(() => { subscriptions.dispose() })
         this.emitter.emit('did-add-text-editor', {textEditor: item, pane, index})
       }
@@ -1214,8 +1216,6 @@ module.exports = class Workspace extends Model {
 
     const fileSize = fs.getSizeSync(filePath)
 
-    const largeFileMode = fileSize >= (2 * 1048576) // 2MB
-
     let [resolveConfirmFileOpenPromise, rejectConfirmFileOpenPromise] = []
     const confirmFileOpenPromise = new Promise((resolve, reject) => {
       resolveConfirmFileOpenPromise = resolve
@@ -1240,7 +1240,7 @@ module.exports = class Workspace extends Model {
     try {
       await confirmFileOpenPromise
       const buffer = await this.project.bufferForPath(filePath, options)
-      return this.textEditorRegistry.build(Object.assign({buffer, largeFileMode, autoHeight: false}, options))
+      return this.textEditorRegistry.build(Object.assign({buffer, autoHeight: false}, options))
     } catch (e) {
       const error = new Error()
       error.code = 'CANCELLED'
@@ -1265,11 +1265,8 @@ module.exports = class Workspace extends Model {
   // Returns a {TextEditor}.
   buildTextEditor (params) {
     const editor = this.textEditorRegistry.build(params)
-    const subscriptions = new CompositeDisposable(
-      this.textEditorRegistry.maintainGrammar(editor),
-      this.textEditorRegistry.maintainConfig(editor)
-    )
-    editor.onDidDestroy(() => { subscriptions.dispose() })
+    const subscription = this.textEditorRegistry.maintainConfig(editor)
+    editor.onDidDestroy(() => subscription.dispose())
     return editor
   }
 

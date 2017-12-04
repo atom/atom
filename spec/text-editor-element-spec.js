@@ -77,13 +77,11 @@ describe('TextEditorElement', () => {
   })
 
   describe('when the model is assigned', () =>
-    it("adds the 'mini' attribute if .isMini() returns true on the model", function (done) {
+    it("adds the 'mini' attribute if .isMini() returns true on the model", async () => {
       const element = buildTextEditorElement()
       element.getModel().update({mini: true})
-      atom.views.getNextUpdatePromise().then(() => {
-        expect(element.hasAttribute('mini')).toBe(true)
-        done()
-      })
+      await atom.views.getNextUpdatePromise()
+      expect(element.hasAttribute('mini')).toBe(true)
     })
   )
 
@@ -268,12 +266,11 @@ describe('TextEditorElement', () => {
     })
   )
 
-  describe('::setUpdatedSynchronously', () =>
+  describe('::setUpdatedSynchronously', () => {
     it('controls whether the text editor is updated synchronously', () => {
       spyOn(window, 'requestAnimationFrame').andCallFake(fn => fn())
 
       const element = buildTextEditorElement()
-      jasmine.attachToDOM(element)
 
       expect(element.isUpdatedSynchronously()).toBe(false)
 
@@ -288,7 +285,7 @@ describe('TextEditorElement', () => {
       expect(window.requestAnimationFrame).not.toHaveBeenCalled()
       expect(element.textContent).toContain('goodbye')
     })
-  )
+  })
 
   describe('::getDefaultCharacterWidth', () => {
     it('returns 0 before the element is attached', () => {

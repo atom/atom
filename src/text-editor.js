@@ -7,9 +7,10 @@ const {CompositeDisposable, Disposable, Emitter} = require('event-kit')
 const TextBuffer = require('text-buffer')
 const {Point, Range} = TextBuffer
 const DecorationManager = require('./decoration-manager')
-const TokenizedBuffer = require('./tokenized-buffer')
 const Cursor = require('./cursor')
 const Selection = require('./selection')
+const NullGrammar = require('./null-grammar')
+const TextMateLanguageMode = require('./text-mate-language-mode')
 
 const TextMateScopeSelector = require('first-mate').ScopeSelector
 const GutterContainer = require('./gutter-container')
@@ -21,6 +22,8 @@ const SERIALIZATION_VERSION = 1
 const NON_WHITESPACE_REGEXP = /\S/
 const ZERO_WIDTH_NBSP = '\ufeff'
 let nextId = 0
+
+const DEFAULT_NON_WORD_CHARACTERS = "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
 
 // Essential: This class represents all essential editing state for a single
 // {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -86,12 +89,13 @@ class TextEditor {
   static deserialize (state, atomEnvironment) {
     if (state.version !== SERIALIZATION_VERSION) return null
 
-    try {
-      const tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
-      if (!tokenizedBuffer) return null
+    let bufferId = state.tokenizedBuffer
+      ? state.tokenizedBuffer.bufferId
+      : state.bufferId
 
-      state.tokenizedBuffer = tokenizedBuffer
-      state.tabLength = state.tokenizedBuffer.getTabLength()
+    try {
+      state.buffer = atomEnvironment.project.bufferForIdSync(bufferId)
+      if (!state.buffer) return null
     } catch (error) {
       if (error.syscall === 'read') {
         return // Error reading the file, don't deserialize an editor for it
@@ -100,7 +104,6 @@ class TextEditor {
       }
     }
 
-    state.buffer = state.tokenizedBuffer.buffer
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
     const editor = new TextEditor(state)
     if (state.registered) {
@@ -123,7 +126,6 @@ class TextEditor {
     this.mini = (params.mini != null) ? params.mini : false
     this.placeholderText = params.placeholderText
     this.showLineNumbers = params.showLineNumbers
-    this.largeFileMode = params.largeFileMode
     this.assert = params.assert || (condition => condition)
     this.showInvisibles = (params.showInvisibles != null) ? params.showInvisibles : true
     this.autoHeight = params.autoHeight
@@ -142,7 +144,6 @@ class TextEditor {
     this.autoIndent = (params.autoIndent != null) ? params.autoIndent : true
     this.autoIndentOnPaste = (params.autoIndentOnPaste != null) ? params.autoIndentOnPaste : true
     this.undoGroupingInterval = (params.undoGroupingInterval != null) ? params.undoGroupingInterval : 300
-    this.nonWordCharacters = (params.nonWordCharacters != null) ? params.nonWordCharacters : "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
     this.softWrapped = (params.softWrapped != null) ? params.softWrapped : false
     this.softWrapAtPreferredLineLength = (params.softWrapAtPreferredLineLength != null) ? params.softWrapAtPreferredLineLength : false
     this.preferredLineLength = (params.preferredLineLength != null) ? params.preferredLineLength : 80
@@ -171,17 +172,20 @@ class TextEditor {
     this.selections = []
     this.hasTerminatedPendingState = false
 
-    this.buffer = params.buffer || new TextBuffer({
-      shouldDestroyOnFileDelete () { return atom.config.get('core.closeDeletedFileTabs') }
-    })
+    if (params.buffer) {
+      this.buffer = params.buffer
+    } else {
+      this.buffer = new TextBuffer({
+        shouldDestroyOnFileDelete () { return atom.config.get('core.closeDeletedFileTabs') }
+      })
+      this.buffer.setLanguageMode(new TextMateLanguageMode({buffer: this.buffer, config: atom.config}))
+    }
 
-    this.tokenizedBuffer = params.tokenizedBuffer || new TokenizedBuffer({
-      grammar: params.grammar,
-      tabLength,
-      buffer: this.buffer,
-      largeFileMode: this.largeFileMode,
-      assert: this.assert
+    const languageMode = this.buffer.getLanguageMode()
+    this.languageModeSubscription = languageMode.onDidTokenize && languageMode.onDidTokenize(() => {
+      this.emitter.emit('did-tokenize')
     })
+    if (this.languageModeSubscription) this.disposables.add(this.languageModeSubscription)
 
     if (params.displayLayer) {
       this.displayLayer = params.displayLayer
@@ -216,8 +220,6 @@ class TextEditor {
     if (!this.selectionsMarkerLayer) {
       this.selectionsMarkerLayer = this.addMarkerLayer({maintainHistory: true, persistent: true})
     }
-
-    this.displayLayer.setTextDecorationLayer(this.tokenizedBuffer)
 
     this.decorationManager = new DecorationManager(this)
     this.decorateMarkerLayer(this.selectionsMarkerLayer, {type: 'cursor'})
@@ -271,9 +273,8 @@ class TextEditor {
     return this
   }
 
-  get languageMode () {
-    return this.tokenizedBuffer
-  }
+  get languageMode () { return this.buffer.getLanguageMode() }
+  get tokenizedBuffer () { return this.buffer.getLanguageMode() }
 
   get rowsPerPage () {
     return this.getRowsPerPage()
@@ -319,10 +320,6 @@ class TextEditor {
           this.undoGroupingInterval = value
           break
 
-        case 'nonWordCharacters':
-          this.nonWordCharacters = value
-          break
-
         case 'scrollSensitivity':
           this.scrollSensitivity = value
           break
@@ -344,8 +341,7 @@ class TextEditor {
           break
 
         case 'tabLength':
-          if (value > 0 && value !== this.tokenizedBuffer.getTabLength()) {
-            this.tokenizedBuffer.setTabLength(value)
+          if (value > 0 && value !== this.displayLayer.tabLength) {
             displayLayerParams.tabLength = value
           }
           break
@@ -513,26 +509,22 @@ class TextEditor {
   }
 
   serialize () {
-    const tokenizedBufferState = this.tokenizedBuffer.serialize()
-
     return {
       deserializer: 'TextEditor',
       version: SERIALIZATION_VERSION,
 
-      // TODO: Remove this forward-compatible fallback once 1.8 reaches stable.
-      displayBuffer: {tokenizedBuffer: tokenizedBufferState},
-
-      tokenizedBuffer: tokenizedBufferState,
       displayLayerId: this.displayLayer.id,
       selectionsMarkerLayerId: this.selectionsMarkerLayer.id,
 
       initialScrollTopRow: this.getScrollTopRow(),
       initialScrollLeftColumn: this.getScrollLeftColumn(),
 
+      tabLength: this.displayLayer.tabLength,
       atomicSoftTabs: this.displayLayer.atomicSoftTabs,
       softWrapHangingIndentLength: this.displayLayer.softWrapHangingIndent,
 
       id: this.id,
+      bufferId: this.buffer.id,
       softTabs: this.softTabs,
       softWrapped: this.softWrapped,
       softWrapAtPreferredLineLength: this.softWrapAtPreferredLineLength,
@@ -540,7 +532,6 @@ class TextEditor {
       mini: this.mini,
       editorWidthInChars: this.editorWidthInChars,
       width: this.width,
-      largeFileMode: this.largeFileMode,
       maxScreenLineLength: this.maxScreenLineLength,
       registered: this.registered,
       invisibles: this.invisibles,
@@ -553,6 +544,7 @@ class TextEditor {
 
   subscribeToBuffer () {
     this.buffer.retain()
+    this.disposables.add(this.buffer.onDidChangeLanguageMode(this.handleLanguageModeChange.bind(this)))
     this.disposables.add(this.buffer.onDidChangePath(() => {
       this.emitter.emit('did-change-title', this.getTitle())
       this.emitter.emit('did-change-path', this.getPath())
@@ -576,7 +568,6 @@ class TextEditor {
   }
 
   subscribeToDisplayLayer () {
-    this.disposables.add(this.tokenizedBuffer.onDidChangeGrammar(this.handleGrammarChange.bind(this)))
     this.disposables.add(this.displayLayer.onDidChange(changes => {
       this.mergeIntersectingSelections()
       if (this.component) this.component.didChangeDisplayLayer(changes)
@@ -596,7 +587,6 @@ class TextEditor {
     this.alive = false
     this.disposables.dispose()
     this.displayLayer.destroy()
-    this.tokenizedBuffer.destroy()
     for (let selection of this.selections.slice()) {
       selection.destroy()
     }
@@ -731,7 +721,9 @@ class TextEditor {
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeGrammar (callback) {
-    return this.emitter.on('did-change-grammar', callback)
+    return this.buffer.onDidChangeLanguageMode(() => {
+      callback(this.buffer.getLanguageMode().grammar)
+    })
   }
 
   // Extended: Calls your `callback` when the result of {::isModified} changes.
@@ -947,7 +939,7 @@ class TextEditor {
       selectionsMarkerLayer,
       softTabs,
       suppressCursorCreation: true,
-      tabLength: this.tokenizedBuffer.getTabLength(),
+      tabLength: this.getTabLength(),
       initialScrollTopRow: this.getScrollTopRow(),
       initialScrollLeftColumn: this.getScrollLeftColumn(),
       assert: this.assert,
@@ -960,7 +952,12 @@ class TextEditor {
   }
 
   // Controls visibility based on the given {Boolean}.
-  setVisible (visible) { this.tokenizedBuffer.setVisible(visible) }
+  setVisible (visible) {
+    if (visible) {
+      const languageMode = this.buffer.getLanguageMode()
+      if (languageMode.startTokenizing) languageMode.startTokenizing()
+    }
+  }
 
   setMini (mini) {
     this.update({mini})
@@ -3353,7 +3350,7 @@ class TextEditor {
   // Essential: Get the on-screen length of tab characters.
   //
   // Returns a {Number}.
-  getTabLength () { return this.tokenizedBuffer.getTabLength() }
+  getTabLength () { return this.displayLayer.tabLength }
 
   // Essential: Set the on-screen length of tab characters. Setting this to a
   // {Number} This will override the `editor.tabLength` setting.
@@ -3384,9 +3381,10 @@ class TextEditor {
   // Returns a {Boolean} or undefined if no non-comment lines had leading
   // whitespace.
   usesSoftTabs () {
+    const languageMode = this.buffer.getLanguageMode()
+    const hasIsRowCommented = languageMode.isRowCommented
     for (let bufferRow = 0, end = Math.min(1000, this.buffer.getLastRow()); bufferRow <= end; bufferRow++) {
-      const tokenizedLine = this.tokenizedBuffer.tokenizedLines[bufferRow]
-      if (tokenizedLine && tokenizedLine.isComment()) continue
+      if (hasIsRowCommented && languageMode.isRowCommented(bufferRow)) continue
       const line = this.buffer.lineForRow(bufferRow)
       if (line[0] === ' ') return true
       if (line[0] === '\t') return false
@@ -3509,7 +3507,19 @@ class TextEditor {
   //
   // Returns a {Number}.
   indentLevelForLine (line) {
-    return this.tokenizedBuffer.indentLevelForLine(line)
+    const tabLength = this.getTabLength()
+    let indentLength = 0
+    for (let i = 0, {length} = line; i < length; i++) {
+      const char = line[i]
+      if (char === '\t') {
+        indentLength += tabLength - (indentLength % tabLength)
+      } else if (char === ' ') {
+        indentLength++
+      } else {
+        break
+      }
+    }
+    return indentLength / tabLength
   }
 
   // Extended: Indent rows intersecting selections based on the grammar's suggested
@@ -3542,27 +3552,24 @@ class TextEditor {
 
   // Essential: Get the current {Grammar} of this editor.
   getGrammar () {
-    return this.tokenizedBuffer.grammar
+    const languageMode = this.buffer.getLanguageMode()
+    return languageMode.getGrammar && languageMode.getGrammar() || NullGrammar
   }
 
-  // Essential: Set the current {Grammar} of this editor.
+  // Deprecated: Set the current {Grammar} of this editor.
   //
   // Assigning a grammar will cause the editor to re-tokenize based on the new
   // grammar.
   //
   // * `grammar` {Grammar}
   setGrammar (grammar) {
-    return this.tokenizedBuffer.setGrammar(grammar)
-  }
-
-  // Reload the grammar based on the file name.
-  reloadGrammar () {
-    return this.tokenizedBuffer.reloadGrammar()
+    const buffer = this.getBuffer()
+    buffer.setLanguageMode(atom.grammars.languageModeForGrammarAndBuffer(grammar, buffer))
   }
 
   // Experimental: Get a notification when async tokenization is completed.
   onDidTokenize (callback) {
-    return this.tokenizedBuffer.onDidTokenize(callback)
+    return this.emitter.on('did-tokenize', callback)
   }
 
   /*
@@ -3573,7 +3580,7 @@ class TextEditor {
   // e.g. `['.source.ruby']`, or `['.source.coffee']`. You can use this with
   // {Config::get} to get language specific config values.
   getRootScopeDescriptor () {
-    return this.tokenizedBuffer.rootScopeDescriptor
+    return this.buffer.getLanguageMode().rootScopeDescriptor
   }
 
   // Essential: Get the syntactic scopeDescriptor for the given position in buffer
@@ -3587,7 +3594,7 @@ class TextEditor {
   //
   // Returns a {ScopeDescriptor}.
   scopeDescriptorForBufferPosition (bufferPosition) {
-    return this.tokenizedBuffer.scopeDescriptorForPosition(bufferPosition)
+    return this.buffer.getLanguageMode().scopeDescriptorForPosition(bufferPosition)
   }
 
   // Extended: Get the range in buffer coordinates of all tokens surrounding the
@@ -3604,7 +3611,7 @@ class TextEditor {
   }
 
   bufferRangeForScopeAtPosition (scopeSelector, position) {
-    return this.tokenizedBuffer.bufferRangeForScopeAtPosition(scopeSelector, position)
+    return this.buffer.getLanguageMode().bufferRangeForScopeAtPosition(scopeSelector, position)
   }
 
   // Extended: Determine if the given row is entirely a comment
@@ -3622,7 +3629,7 @@ class TextEditor {
   }
 
   tokenForBufferPosition (bufferPosition) {
-    return this.tokenizedBuffer.tokenForPosition(bufferPosition)
+    return this.buffer.getLanguageMode().tokenForPosition(bufferPosition)
   }
 
   /*
@@ -3749,7 +3756,11 @@ class TextEditor {
   // level.
   foldCurrentRow () {
     const {row} = this.getCursorBufferPosition()
-    const range = this.tokenizedBuffer.getFoldableRangeContainingPoint(Point(row, Infinity))
+    const languageMode = this.buffer.getLanguageMode()
+    const range = (
+      languageMode.getFoldableRangeContainingPoint &&
+      languageMode.getFoldableRangeContainingPoint(Point(row, Infinity), this.getTabLength())
+    )
     if (range) return this.displayLayer.foldBufferRange(range)
   }
 
@@ -3768,8 +3779,12 @@ class TextEditor {
   // * `bufferRow` A {Number}.
   foldBufferRow (bufferRow) {
     let position = Point(bufferRow, Infinity)
+    const languageMode = this.buffer.getLanguageMode()
     while (true) {
-      const foldableRange = this.tokenizedBuffer.getFoldableRangeContainingPoint(position, this.getTabLength())
+      const foldableRange = (
+        languageMode.getFoldableRangeContainingPoint &&
+        languageMode.getFoldableRangeContainingPoint(position, this.getTabLength())
+      )
       if (foldableRange) {
         const existingFolds = this.displayLayer.foldsIntersectingBufferRange(Range(foldableRange.start, foldableRange.start))
         if (existingFolds.length === 0) {
@@ -3803,8 +3818,13 @@ class TextEditor {
 
   // Extended: Fold all foldable lines.
   foldAll () {
+    const languageMode = this.buffer.getLanguageMode()
+    const foldableRanges = (
+      languageMode.getFoldableRanges &&
+      languageMode.getFoldableRanges(this.getTabLength())
+    )
     this.displayLayer.destroyAllFolds()
-    for (let range of this.tokenizedBuffer.getFoldableRanges(this.getTabLength())) {
+    for (let range of foldableRanges || []) {
       this.displayLayer.foldBufferRange(range)
     }
   }
@@ -3820,8 +3840,13 @@ class TextEditor {
   //
   // * `level` A {Number}.
   foldAllAtIndentLevel (level) {
+    const languageMode = this.buffer.getLanguageMode()
+    const foldableRanges = (
+      languageMode.getFoldableRangesAtIndentLevel &&
+      languageMode.getFoldableRangesAtIndentLevel(level, this.getTabLength())
+    )
     this.displayLayer.destroyAllFolds()
-    for (let range of this.tokenizedBuffer.getFoldableRangesAtIndentLevel(level, this.getTabLength())) {
+    for (let range of foldableRanges || []) {
       this.displayLayer.foldBufferRange(range)
     }
   }
@@ -3834,7 +3859,8 @@ class TextEditor {
   //
   // Returns a {Boolean}.
   isFoldableAtBufferRow (bufferRow) {
-    return this.tokenizedBuffer.isFoldableAtRow(bufferRow)
+    const languageMode = this.buffer.getLanguageMode()
+    return languageMode.isFoldableAtRow && languageMode.isFoldableAtRow(bufferRow)
   }
 
   // Extended: Determine whether the given row in screen coordinates is foldable.
@@ -4039,18 +4065,6 @@ class TextEditor {
   Section: Config
   */
 
-  // Experimental: Supply an object that will provide the editor with settings
-  // for specific syntactic scopes. See the `ScopedSettingsDelegate` in
-  // `text-editor-registry.js` for an example implementation.
-  setScopedSettingsDelegate (scopedSettingsDelegate) {
-    this.scopedSettingsDelegate = scopedSettingsDelegate
-    this.tokenizedBuffer.scopedSettingsDelegate = this.scopedSettingsDelegate
-  }
-
-  // Experimental: Retrieve the {Object} that provides the editor with settings
-  // for specific syntactic scopes.
-  getScopedSettingsDelegate () { return this.scopedSettingsDelegate }
-
   // Experimental: Is auto-indentation enabled for this editor?
   //
   // Returns a {Boolean}.
@@ -4098,21 +4112,34 @@ class TextEditor {
   // for the purpose of word-based cursor movements.
   //
   // Returns a {String} containing the non-word characters.
-  getNonWordCharacters (scopes) {
-    if (this.scopedSettingsDelegate && this.scopedSettingsDelegate.getNonWordCharacters) {
-      return this.scopedSettingsDelegate.getNonWordCharacters(scopes) || this.nonWordCharacters
-    } else {
-      return this.nonWordCharacters
-    }
+  getNonWordCharacters (position) {
+    const languageMode = this.buffer.getLanguageMode()
+    return (
+      languageMode.getNonWordCharacters &&
+      languageMode.getNonWordCharacters(position || Point(0, 0))
+    ) || DEFAULT_NON_WORD_CHARACTERS
   }
 
   /*
   Section: Event Handlers
   */
 
-  handleGrammarChange () {
+  handleLanguageModeChange () {
     this.unfoldAll()
-    return this.emitter.emit('did-change-grammar', this.getGrammar())
+    if (this.languageModeSubscription) {
+      this.languageModeSubscription.dispose()
+      this.disposables.remove(this.languageModeSubscription)
+    }
+    const languageMode = this.buffer.getLanguageMode()
+
+    if (this.component && this.component.visible && languageMode.startTokenizing) {
+      languageMode.startTokenizing()
+    }
+    this.languageModeSubscription = languageMode.onDidTokenize && languageMode.onDidTokenize(() => {
+      this.emitter.emit('did-tokenize')
+    })
+    if (this.languageModeSubscription) this.disposables.add(this.languageModeSubscription)
+    this.emitter.emit('did-change-grammar', languageMode.grammar)
   }
 
   /*
@@ -4382,7 +4409,11 @@ class TextEditor {
   */
 
   suggestedIndentForBufferRow (bufferRow, options) {
-    return this.tokenizedBuffer.suggestedIndentForBufferRow(bufferRow, options)
+    const languageMode = this.buffer.getLanguageMode()
+    return (
+      languageMode.suggestedIndentForBufferRow &&
+      languageMode.suggestedIndentForBufferRow(bufferRow, this.getTabLength(), options)
+    )
   }
 
   // Given a buffer row, indent it.
@@ -4407,17 +4438,21 @@ class TextEditor {
   }
 
   autoDecreaseIndentForBufferRow (bufferRow) {
-    const indentLevel = this.tokenizedBuffer.suggestedIndentForEditedBufferRow(bufferRow)
+    const languageMode = this.buffer.getLanguageMode()
+    const indentLevel = (
+      languageMode.suggestedIndentForEditedBufferRow &&
+      languageMode.suggestedIndentForEditedBufferRow(bufferRow, this.getTabLength())
+    )
     if (indentLevel != null) this.setIndentationForBufferRow(bufferRow, indentLevel)
   }
 
   toggleLineCommentForBufferRow (row) { this.toggleLineCommentsForBufferRows(row, row) }
 
   toggleLineCommentsForBufferRows (start, end) {
-    let {
-      commentStartString,
-      commentEndString
-    } = this.tokenizedBuffer.commentStringsForPosition(Point(start, 0))
+    const languageMode = this.buffer.getLanguageMode()
+    let {commentStartString, commentEndString} =
+      languageMode.commentStringsForPosition &&
+      languageMode.commentStringsForPosition(Point(start, 0)) || {}
     if (!commentStartString) return
     commentStartString = commentStartString.trim()
 
@@ -4508,12 +4543,13 @@ class TextEditor {
   rowRangeForParagraphAtBufferRow (bufferRow) {
     if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(bufferRow))) return
 
-    const isCommented = this.tokenizedBuffer.isRowCommented(bufferRow)
+    const languageMode = this.buffer.getLanguageMode()
+    const isCommented = languageMode.isRowCommented(bufferRow)
 
     let startRow = bufferRow
     while (startRow > 0) {
       if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(startRow - 1))) break
-      if (this.tokenizedBuffer.isRowCommented(startRow - 1) !== isCommented) break
+      if (languageMode.isRowCommented(startRow - 1) !== isCommented) break
       startRow--
     }
 
@@ -4521,7 +4557,7 @@ class TextEditor {
     const rowCount = this.getLineCount()
     while (endRow < rowCount) {
       if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(endRow + 1))) break
-      if (this.tokenizedBuffer.isRowCommented(endRow + 1) !== isCommented) break
+      if (languageMode.isRowCommented(endRow + 1) !== isCommented) break
       endRow++
     }
 
