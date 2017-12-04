@@ -207,18 +207,15 @@ class TreeSitterLanguageMode {
           }
         }
       }
-    } else {
-      for (let i = 0, n = this.grammar.foldConfig.tokens.length; i < n; i++) {
-        const foldableToken = this.grammar.foldConfig.tokens[i]
-        if (node.type === foldableToken[0]) {
-          if (existenceOnly) return true
-          const start = node.startPosition
-          const end = node.endPosition
-          start.column += foldableToken[1]
-          end.column -= foldableToken[2]
-          return Range(start, end)
-        }
-      }
+    }
+
+    if (this.grammar.foldConfig.nodes.has(node.type)) {
+      if (existenceOnly) return true
+      const start = node.startPosition
+      const end = node.endPosition
+      start.column = Infinity
+      end.column = 0
+      return Range(start, end)
     }
   }
 

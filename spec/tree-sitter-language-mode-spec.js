@@ -73,7 +73,7 @@ describe('TreeSitterLanguageMode', () => {
       editor.displayLayer.reset({foldCharacter: '…'})
     })
 
-    it('folds nodes that start and end with specified tokens and span multiple lines', () => {
+    it('can fold nodes that start and end with specified tokens and span multiple lines', () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
         scopes: {'program': 'source'},
@@ -121,6 +121,51 @@ describe('TreeSitterLanguageMode', () => {
         class A {
           getB (…) {…}
         }
+      `)
+    })
+
+    it('can fold specified types of multi-line nodes', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {'program': 'source'},
+        folds: {
+          nodes: [
+            'template_string',
+            'comment'
+          ]
+        }
+      })
+
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      buffer.setText(dedent `
+        /**
+         * Important
+         */
+        const x = \`one
+          two
+          three\`
+      `)
+
+      editor.screenLineForScreenRow(0)
+
+      expect(editor.isFoldableAtBufferRow(0)).toBe(true)
+      expect(editor.isFoldableAtBufferRow(1)).toBe(false)
+      expect(editor.isFoldableAtBufferRow(2)).toBe(false)
+      expect(editor.isFoldableAtBufferRow(3)).toBe(true)
+      expect(editor.isFoldableAtBufferRow(4)).toBe(false)
+
+      editor.foldBufferRow(0)
+      expect(getDisplayText(editor)).toBe(dedent `
+        /**… */
+        const x = \`one
+          two
+          three\`
+      `)
+
+      editor.foldBufferRow(3)
+      expect(getDisplayText(editor)).toBe(dedent `
+        /**… */
+        const x = \`one…  three\`
       `)
     })
   })

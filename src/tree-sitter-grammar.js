@@ -10,9 +10,10 @@ class TreeSitterGrammar {
     this.id = params.id
     this.name = params.name
 
-    this.foldConfig = params.folds || {}
-    if (!this.foldConfig.delimiters) this.foldConfig.delimiters = []
-    if (!this.foldConfig.tokens) this.foldConfig.tokens = []
+    this.foldConfig = {
+      delimiters: params.folds && params.folds.delimiters || [],
+      nodes: new Set(params.folds && params.folds.nodes || [])
+    }
 
     this.commentStrings = {
       commentStartString: params.comments && params.comments.start,
