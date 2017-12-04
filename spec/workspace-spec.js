@@ -1,5 +1,7 @@
 const path = require('path')
 const temp = require('temp').track()
+const dedent = require('dedent')
+const TextBuffer = require('text-buffer')
 const TextEditor = require('../src/text-editor')
 const Workspace = require('../src/workspace')
 const Project = require('../src/project')
@@ -43,7 +45,8 @@ describe('Workspace', () => {
         notificationManager: atom.notifications,
         packageManager: atom.packages,
         confirm: atom.confirm.bind(atom),
-        applicationDelegate: atom.applicationDelegate
+        applicationDelegate: atom.applicationDelegate,
+        grammarRegistry: atom.grammars
       })
       return atom.project.deserialize(projectState).then(() => {
         workspace = atom.workspace = new Workspace({
@@ -656,17 +659,6 @@ describe('Workspace', () => {
       })
     })
 
-    describe('when the file is over 2MB', () => {
-      it('opens the editor with largeFileMode: true', () => {
-        spyOn(fs, 'getSizeSync').andReturn(2 * 1048577) // 2MB
-
-        let editor = null
-        waitsForPromise(() => workspace.open('sample.js').then(e => { editor = e }))
-
-        runs(() => expect(editor.largeFileMode).toBe(true))
-      })
-    })
-
     describe('when the file is over user-defined limit', () => {
       const shouldPromptForFileOfSize = (size, shouldPrompt) => {
         spyOn(fs, 'getSizeSync').andReturn(size * 1048577)
@@ -689,7 +681,6 @@ describe('Workspace', () => {
 
           runs(() => {
             expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-            expect(editor.largeFileMode).toBe(true)
           })
         } else {
           runs(() => expect(editor).not.toBeUndefined())
@@ -941,6 +932,18 @@ describe('Workspace', () => {
           expect(rightPane.getPendingItem()).toBe(editor2)
           expect(rightPane.destroy.callCount).toBe(0)
         })
+      })
+    })
+
+    describe('when opening an editor with a buffer that isn\'t part of the project', () => {
+      it('adds the buffer to the project', async () => {
+        const buffer = new TextBuffer()
+        const editor = new TextEditor({buffer})
+
+        await atom.workspace.open(editor)
+
+        expect(atom.project.getBuffers().map(buffer => buffer.id)).toContain(buffer.id)
+        expect(buffer.getLanguageMode().getLanguageId()).toBe('text.plain.null-grammar')
       })
     })
   })
@@ -1217,8 +1220,8 @@ describe('Workspace', () => {
     })
   })
 
-  describe('::onDidStopChangingActivePaneItem()', function () {
-    it('invokes observers when the active item of the active pane stops changing', function () {
+  describe('::onDidStopChangingActivePaneItem()', () => {
+    it('invokes observers when the active item of the active pane stops changing', () => {
       const pane1 = atom.workspace.getCenter().getActivePane()
       const pane2 = pane1.splitRight({items: [document.createElement('div'), document.createElement('div')]});
       atom.workspace.getLeftDock().getActivePane().addItem(document.createElement('div'))
@@ -1237,29 +1240,22 @@ describe('Workspace', () => {
   })
 
   describe('the grammar-used hook', () => {
-    it('fires when opening a file or changing the grammar of an open file', () => {
-      let editor = null
-      let javascriptGrammarUsed = false
-      let coffeescriptGrammarUsed = false
+    it('fires when opening a file or changing the grammar of an open file', async () => {
+      let resolveJavascriptGrammarUsed, resolveCoffeeScriptGrammarUsed
+      const javascriptGrammarUsed = new Promise(resolve => { resolveJavascriptGrammarUsed = resolve })
+      const coffeescriptGrammarUsed = new Promise(resolve => { resolveCoffeeScriptGrammarUsed = resolve })
 
       atom.packages.triggerDeferredActivationHooks()
+      atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', resolveJavascriptGrammarUsed)
+      atom.packages.onDidTriggerActivationHook('language-coffee-script:grammar-used', resolveCoffeeScriptGrammarUsed)
 
-      runs(() => {
-        atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', () => { javascriptGrammarUsed = true })
-        atom.packages.onDidTriggerActivationHook('language-coffee-script:grammar-used', () => { coffeescriptGrammarUsed = true })
-      })
+      const editor = await atom.workspace.open('sample.js', {autoIndent: false})
+      await atom.packages.activatePackage('language-javascript')
+      await javascriptGrammarUsed
 
-      waitsForPromise(() => atom.workspace.open('sample.js', {autoIndent: false}).then(o => { editor = o }))
-
-      waitsForPromise(() => atom.packages.activatePackage('language-javascript'))
-
-      waitsFor(() => javascriptGrammarUsed)
-
-      waitsForPromise(() => atom.packages.activatePackage('language-coffee-script'))
-
-      runs(() => editor.setGrammar(atom.grammars.selectGrammar('.coffee')))
-
-      waitsFor(() => coffeescriptGrammarUsed)
+      await atom.packages.activatePackage('language-coffee-script')
+      atom.grammars.assignLanguageMode(editor, 'source.coffee')
+      await coffeescriptGrammarUsed
     })
   })
 
@@ -1382,7 +1378,7 @@ describe('Workspace', () => {
 
   describe('::getActiveTextEditor()', () => {
     describe("when the workspace center's active pane item is a text editor", () => {
-      describe('when the workspace center has focus', function () {
+      describe('when the workspace center has focus', () => {
         it('returns the text editor', () => {
           const workspaceCenter = workspace.getCenter()
           const editor = new TextEditor()
@@ -1393,7 +1389,7 @@ describe('Workspace', () => {
         })
       })
 
-      describe('when a dock has focus', function () {
+      describe('when a dock has focus', () => {
         it('returns the text editor', () => {
           const workspaceCenter = workspace.getCenter()
           const editor = new TextEditor()
@@ -1521,34 +1517,27 @@ describe('Workspace', () => {
   })
 
   describe('when an editor is destroyed', () => {
-    it('removes the editor', () => {
-      let editor = null
-
-      waitsForPromise(() => workspace.open('a').then(e => { editor = e }))
-
-      runs(() => {
-        expect(workspace.getTextEditors()).toHaveLength(1)
-        editor.destroy()
-        expect(workspace.getTextEditors()).toHaveLength(0)
-      })
+    it('removes the editor', async () => {
+      const editor = await workspace.open('a')
+      expect(workspace.getTextEditors()).toHaveLength(1)
+      editor.destroy()
+      expect(workspace.getTextEditors()).toHaveLength(0)
     })
   })
 
   describe('when an editor is copied because its pane is split', () => {
-    it('sets up the new editor to be configured by the text editor registry', () => {
-      waitsForPromise(() => atom.packages.activatePackage('language-javascript'))
+    it('sets up the new editor to be configured by the text editor registry', async () => {
+      await atom.packages.activatePackage('language-javascript')
 
-      waitsForPromise(() =>
-        workspace.open('a').then(editor => {
-          atom.textEditors.setGrammarOverride(editor, 'source.js')
-          expect(editor.getGrammar().name).toBe('JavaScript')
+      const editor = await workspace.open('a')
 
-          workspace.getActivePane().splitRight({copyActiveItem: true})
-          const newEditor = workspace.getActiveTextEditor()
-          expect(newEditor).not.toBe(editor)
-          expect(newEditor.getGrammar().name).toBe('JavaScript')
-        })
-      )
+      atom.grammars.assignLanguageMode(editor, 'source.js')
+      expect(editor.getGrammar().name).toBe('JavaScript')
+
+      workspace.getActivePane().splitRight({copyActiveItem: true})
+      const newEditor = workspace.getActiveTextEditor()
+      expect(newEditor).not.toBe(editor)
+      expect(newEditor.getGrammar().name).toBe('JavaScript')
     })
   })
 
@@ -1561,11 +1550,10 @@ describe('Workspace', () => {
 
     waitsForPromise(() => atom.workspace.open('sample.coffee'))
 
-    runs(function () {
-      atom.workspace.getActiveTextEditor().setText(`\
-i = /test/; #FIXME\
-`
-      )
+    runs(() => {
+      atom.workspace.getActiveTextEditor().setText(dedent `
+        i = /test/; #FIXME\
+      `)
 
       const atom2 = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
       atom2.initialize({
@@ -2789,7 +2777,7 @@ i = /test/; #FIXME\
   })
 
   describe('grammar activation', () => {
-    it('notifies the workspace of which grammar is used', () => {
+    it('notifies the workspace of which grammar is used', async () => {
       atom.packages.triggerDeferredActivationHooks()
 
       const javascriptGrammarUsed = jasmine.createSpy('js grammar used')
@@ -2800,24 +2788,22 @@ i = /test/; #FIXME\
       atom.packages.onDidTriggerActivationHook('language-ruby:grammar-used', rubyGrammarUsed)
       atom.packages.onDidTriggerActivationHook('language-c:grammar-used', cGrammarUsed)
 
-      waitsForPromise(() => atom.packages.activatePackage('language-ruby'))
-      waitsForPromise(() => atom.packages.activatePackage('language-javascript'))
-      waitsForPromise(() => atom.packages.activatePackage('language-c'))
-      waitsForPromise(() => atom.workspace.open('sample-with-comments.js'))
+      await atom.packages.activatePackage('language-ruby')
+      await atom.packages.activatePackage('language-javascript')
+      await atom.packages.activatePackage('language-c')
+      await atom.workspace.open('sample-with-comments.js')
 
-      runs(() => {
-        // Hooks are triggered when opening new editors
-        expect(javascriptGrammarUsed).toHaveBeenCalled()
+      // Hooks are triggered when opening new editors
+      expect(javascriptGrammarUsed).toHaveBeenCalled()
 
-        // Hooks are triggered when changing existing editors grammars
-        atom.workspace.getActiveTextEditor().setGrammar(atom.grammars.grammarForScopeName('source.c'))
-        expect(cGrammarUsed).toHaveBeenCalled()
+      // Hooks are triggered when changing existing editors grammars
+      atom.grammars.assignLanguageMode(atom.workspace.getActiveTextEditor(), 'source.c')
+      expect(cGrammarUsed).toHaveBeenCalled()
 
-        // Hooks are triggered when editors are added in other ways.
-        atom.workspace.getActivePane().splitRight({copyActiveItem: true})
-        atom.workspace.getActiveTextEditor().setGrammar(atom.grammars.grammarForScopeName('source.ruby'))
-        expect(rubyGrammarUsed).toHaveBeenCalled()
-      })
+      // Hooks are triggered when editors are added in other ways.
+      atom.workspace.getActivePane().splitRight({copyActiveItem: true})
+      atom.grammars.assignLanguageMode(atom.workspace.getActiveTextEditor(), 'source.ruby')
+      expect(rubyGrammarUsed).toHaveBeenCalled()
     })
   })
 
@@ -2894,4 +2880,6 @@ i = /test/; #FIXME\
   })
 })
 
-const escapeStringRegex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+function escapeStringRegex (string) {
+  return string.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+}
