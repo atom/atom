@@ -659,13 +659,12 @@ describe('Workspace', () => {
       })
     })
 
-    describe('when the file is over user-defined limit', () => {
+    describe('when the file size is over the limit defined in `core.warnOnLargeFileLimit`', () => {
       const shouldPromptForFileOfSize = async (size, shouldPrompt) => {
         spyOn(fs, 'getSizeSync').andReturn(size * 1048577)
 
         let selectedButtonIndex = 1 // cancel
         atom.applicationDelegate.confirm.andCallFake((options, callback) => callback(selectedButtonIndex))
-        atom.applicationDelegate.confirm()
 
         let editor = await workspace.open('sample.js')
         if (shouldPrompt) {
@@ -683,19 +682,19 @@ describe('Workspace', () => {
         }
       }
 
-      it('prompts the user to make sure they want to open a file this big', () => {
+      it('prompts before opening the file', async () => {
         atom.config.set('core.warnOnLargeFileLimit', 20)
-        shouldPromptForFileOfSize(20, true)
+        await shouldPromptForFileOfSize(20, true)
       })
 
-      it("doesn't prompt on files below the limit", () => {
+      it("doesn't prompt on files below the limit", async () => {
         atom.config.set('core.warnOnLargeFileLimit', 30)
-        shouldPromptForFileOfSize(20, false)
+        await shouldPromptForFileOfSize(20, false)
       })
 
-      it('prompts for smaller files with a lower limit', () => {
+      it('prompts for smaller files with a lower limit', async () => {
         atom.config.set('core.warnOnLargeFileLimit', 5)
-        shouldPromptForFileOfSize(10, true)
+        await shouldPromptForFileOfSize(10, true)
       })
     })
 

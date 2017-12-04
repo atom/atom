@@ -1221,6 +1221,7 @@ module.exports = class Workspace extends Model {
       resolveConfirmFileOpenPromise = resolve
       rejectConfirmFileOpenPromise = reject
     })
+
     if (fileSize >= (this.config.get('core.warnOnLargeFileLimit') * 1048576)) { // 40MB by default
       this.applicationDelegate.confirm({
         message: 'Atom will be unresponsive during the loading of very large files.',
