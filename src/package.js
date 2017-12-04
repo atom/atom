@@ -502,6 +502,18 @@ class Package {
             this.registerViewProviders()
             this.requireMainModule()
             this.initializeIfNeeded()
+            if (atomEnvironment.packages.hasActivatedInitialPackages()) {
+              // Only explicitly activate the package if initial packages
+              // have finished activating. This is because deserialization
+              // generally occurs at Atom startup, which happens before the
+              // workspace element is added to the DOM and is inconsistent with
+              // with when initial package activation occurs. Triggering activation
+              // immediately may cause problems with packages that expect to
+              // always have access to the workspace element.
+              // Otherwise, we just set the deserialized flag and package-manager
+              // will activate this package as normal during initial package activation.
+              this.activateNow()
+            }
             this.deserialized = true
             return this.mainModule[methodName](state, atomEnvironment)
           }
