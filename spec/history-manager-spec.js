@@ -1,19 +1,14 @@
-/** @babel */
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
-import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
-
-import {HistoryManager, HistoryProject} from '../src/history-manager'
-import StateStore from '../src/state-store'
+const {HistoryManager, HistoryProject} = require('../src/history-manager')
+const StateStore = require('../src/state-store')
 
 describe("HistoryManager", () => {
   let historyManager, commandRegistry, project, stateStore
   let commandDisposable, projectDisposable
 
   beforeEach(async () => {
-    // Do not clobber recent project history
-    spyOn(atom.applicationDelegate, 'didChangeHistoryManager')
-
     commandDisposable = jasmine.createSpyObj('Disposable', ['dispose'])
     commandRegistry = jasmine.createSpyObj('CommandRegistry', ['add'])
     commandRegistry.add.andReturn(commandDisposable)
@@ -185,11 +180,22 @@ describe("HistoryManager", () => {
     })
   })
 
-  describe("saveState" ,() => {
+  describe("saveState", () => {
+    let savedProjects
+    beforeEach(() => {
+      jasmine.unspy(historyManager, 'saveState')
+
+      spyOn(historyManager.stateStore, 'save').andCallFake((name, {projects}) => {
+        savedProjects = {projects}
+        return Promise.resolve()
+      })
+    })
+
     it("saves the state", async () => {
       await historyManager.addProject(["/save/state"])
       await historyManager.saveState()
       const historyManager2 = new HistoryManager({stateStore, project, commands: commandRegistry})
+      spyOn(historyManager2.stateStore, 'load').andCallFake(name => Promise.resolve(savedProjects))
       await historyManager2.loadState()
       expect(historyManager2.getProjects()[0].paths).toEqual(['/save/state'])
     })
