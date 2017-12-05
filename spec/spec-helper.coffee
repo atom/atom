@@ -9,7 +9,6 @@ pathwatcher = require 'pathwatcher'
 FindParentDir = require 'find-parent-dir'
 {CompositeDisposable} = require 'event-kit'
 
-{HistoryManager} = require '../src/history-manager'
 TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
 TextMateLanguageMode = require '../src/text-mate-language-mode'
@@ -64,7 +63,7 @@ else
 
 beforeEach ->
   # Do not clobber recent project history
-  spyOn(HistoryManager::, 'saveState').andReturn(Promise.resolve())
+  spyOn(Object.getPrototypeOf(atom.history), 'saveState').andReturn(Promise.resolve())
 
   atom.project.setPaths([specProjectPath])
 
