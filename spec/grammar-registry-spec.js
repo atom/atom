@@ -345,6 +345,13 @@ describe('GrammarRegistry', () => {
       expect(atom.grammars.selectGrammar('foo.js').name).not.toBe(grammar.name)
     })
   })
+  
+    describe('Expected grammar of .md is .txt grammar', () => {
+    it("Expected grammar of .md is .txt grammar", async () => {
+      const grammar = atom.grammars.selectGrammar('test.txt')
+      expect(atom.grammars.selectGrammar('test.md').name).toBe(grammar.name)
+    })
+  })
 
   describe('serialization', () => {
     it('persists editors\' grammar overrides', async () => {
