@@ -1759,9 +1759,10 @@ class TextEditorComponent {
     const screenPosition = this.screenPositionForMouseEvent(event)
 
     if (button !== 0 || (platform === 'darwin' && ctrlKey)) {
-      // Set cursor position only if there is one cursor with no selection
+      // Always set cursor position on middle-click
+      // Only set cursor position on right-click if there is one cursor with no selection
       const ranges = model.getSelectedBufferRanges()
-      if (ranges.length === 1 && ranges[0].isEmpty()) {
+      if (button === 1 || (ranges.length === 1 && ranges[0].isEmpty())) {
         model.setCursorScreenPosition(screenPosition, {autoscroll: false})
       }
 
