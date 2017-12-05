@@ -181,12 +181,12 @@ describe("HistoryManager", () => {
   })
 
   describe("saveState", () => {
-    let savedProjects
+    let savedHistory
     beforeEach(() => {
       jasmine.unspy(historyManager, 'saveState')
 
-      spyOn(historyManager.stateStore, 'save').andCallFake((name, {projects}) => {
-        savedProjects = {projects}
+      spyOn(historyManager.stateStore, 'save').andCallFake((name, history) => {
+        savedHistory = history
         return Promise.resolve()
       })
     })
@@ -195,7 +195,7 @@ describe("HistoryManager", () => {
       await historyManager.addProject(["/save/state"])
       await historyManager.saveState()
       const historyManager2 = new HistoryManager({stateStore, project, commands: commandRegistry})
-      spyOn(historyManager2.stateStore, 'load').andCallFake(name => Promise.resolve(savedProjects))
+      spyOn(historyManager2.stateStore, 'load').andCallFake(name => Promise.resolve(savedHistory))
       await historyManager2.loadState()
       expect(historyManager2.getProjects()[0].paths).toEqual(['/save/state'])
     })
