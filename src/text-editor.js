@@ -3059,7 +3059,7 @@ class TextEditor {
   // Extended: Expand selections to the current paragraph.
   //
   // Operates on all selections. Moves the cursor to the beginning of the next
-  // paragraph while setting the selection's tail in the beggining of the current paragraph.
+  // paragraph while selecting the whole current paragraph.
   selectCurrentParagraph () {
     return this.expandSelectionsForward(selection => selection.selectCurrentParagraph())
   }
