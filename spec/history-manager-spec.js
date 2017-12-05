@@ -183,6 +183,10 @@ describe("HistoryManager", () => {
   describe("saveState", () => {
     let savedHistory
     beforeEach(() => {
+      // historyManager.saveState is spied on globally to prevent specs from
+      // modifying the shared project history. Since these tests depend on
+      // saveState, we unspy it but in turn spy on the state store instead
+      // so that no data is actually stored to it.
       jasmine.unspy(historyManager, 'saveState')
 
       spyOn(historyManager.stateStore, 'save').andCallFake((name, history) => {
