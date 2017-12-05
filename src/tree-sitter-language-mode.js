@@ -18,6 +18,7 @@ class TreeSitterLanguageMode {
     this.document.parse()
     this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.id]})
     this.emitter = new Emitter()
+    this.isFoldableCache = []
   }
 
   getLanguageId () {
@@ -25,6 +26,7 @@ class TreeSitterLanguageMode {
   }
 
   bufferDidChange ({oldRange, newRange, oldText, newText}) {
+    this.isFoldableCache.length = 0
     this.document.edit({
       startIndex: this.buffer.characterIndexForPosition(oldRange.start),
       lengthRemoved: oldText.length,
@@ -112,7 +114,10 @@ class TreeSitterLanguageMode {
    */
 
   isFoldableAtRow (row) {
-    return this.getFoldableRangeContainingPoint(Point(row, Infinity), 0, true) != null
+    if (this.isFoldableCache[row] != null) return this.isFoldableCache[row]
+    const result = this.getFoldableRangeContainingPoint(Point(row, Infinity), 0, true) != null
+    this.isFoldableCache[row] = result
+    return result
   }
 
   getFoldableRanges () {
@@ -174,48 +179,72 @@ class TreeSitterLanguageMode {
   }
 
   getFoldableRangeForNode (node, existenceOnly) {
-    const {firstChild} = node
-    if (firstChild) {
-      const {lastChild} = node
+    const {children, type: nodeType} = node
+    const childCount = children.length
+    let childTypes
 
-      for (let i = 0, n = this.grammar.foldConfig.delimiters.length; i < n; i++) {
-        const entry = this.grammar.foldConfig.delimiters[i]
-        if (firstChild.type === entry[0] && lastChild.type === entry[1]) {
-          if (existenceOnly) return true
-          let childPrecedingFold = firstChild
+    for (var i = 0, {length} = this.grammar.folds; i < length; i++) {
+      const foldEntry = this.grammar.folds[i]
 
-          const options = entry[2]
-          if (options) {
-            const {children} = node
-            let childIndexPrecedingFold = options.afterChildCount || 0
-            if (options.afterType) {
-              for (let i = childIndexPrecedingFold, n = children.length; i < n; i++) {
-                if (children[i].type === options.afterType) {
-                  childIndexPrecedingFold = i
-                  break
-                }
-              }
-            }
-            childPrecedingFold = children[childIndexPrecedingFold]
-          }
-
-          let granchildPrecedingFold = childPrecedingFold.lastChild
-          if (granchildPrecedingFold) {
-            return Range(granchildPrecedingFold.endPosition, lastChild.startPosition)
-          } else {
-            return Range(childPrecedingFold.endPosition, lastChild.startPosition)
-          }
+      if (foldEntry.type) {
+        if (typeof foldEntry.type === 'string') {
+          if (foldEntry.type !== nodeType) continue
+        } else {
+          if (!foldEntry.type.includes(nodeType)) continue
         }
       }
-    }
 
-    if (this.grammar.foldConfig.nodes.has(node.type)) {
+      let childBeforeFold
+      const startEntry = foldEntry.start
+      if (startEntry) {
+        if (startEntry.index != null) {
+          childBeforeFold = children[startEntry.index]
+          if (!childBeforeFold) continue
+          if (startEntry.type && startEntry.type !== childBeforeFold.type) continue
+        } else {
+          if (!childTypes) childTypes = children.map(child => child.type)
+          let index = childTypes.indexOf(startEntry.type)
+          if (index === -1) continue
+          childBeforeFold = children[index]
+        }
+      }
+
+      let childAfterFold
+      const endEntry = foldEntry.end
+      if (endEntry) {
+        if (endEntry.index != null) {
+          const index = endEntry.index < 0 ? childCount + endEntry.index : endEntry.index
+          childAfterFold = children[index]
+          if (!childAfterFold) continue
+          if (endEntry.type && endEntry.type !== childAfterFold.type) continue
+        } else {
+          if (!childTypes) childTypes = children.map(child => child.type)
+          let index = childTypes.lastIndexOf(endEntry.type)
+          if (index === -1) continue
+          childAfterFold = children[index]
+        }
+      }
+
       if (existenceOnly) return true
-      const start = node.startPosition
-      const end = node.endPosition
-      start.column = Infinity
-      end.column = 0
-      return Range(start, end)
+
+      let start, end
+      if (childBeforeFold) {
+        start = childBeforeFold.endPosition
+      } else {
+        start = new Point(node.startPosition.row, Infinity)
+      }
+      if (childAfterFold) {
+        end = childAfterFold.startPosition
+      } else {
+        const {endPosition} = node
+        if (endPosition.column === 0) {
+          end = Point(endPosition.row - 1, Infinity)
+        } else {
+          end = Point(endPosition.row, 0)
+        }
+      }
+
+      return new Range(start, end)
     }
   }
 

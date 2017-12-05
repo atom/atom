@@ -76,13 +76,16 @@ describe('TreeSitterLanguageMode', () => {
     it('can fold nodes that start and end with specified tokens and span multiple lines', () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
-        scopes: {'program': 'source'},
-        folds: {
-          delimiters: [
-            ['{', '}'],
-            ['(', ')']
-          ]
-        }
+        folds: [
+          {
+            start: {type: '{', index: 0},
+            end: {type: '}', index: -1}
+          },
+          {
+            start: {type: '(', index: 0},
+            end: {type: ')', index: -1}
+          }
+        ]
       })
 
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
@@ -92,7 +95,7 @@ describe('TreeSitterLanguageMode', () => {
           getB (c,
                 d,
                 e) {
-            return this.b
+            return this.f(g)
           }
         }
       `)
@@ -110,7 +113,7 @@ describe('TreeSitterLanguageMode', () => {
         module.exports =
         class A {
           getB (…) {
-            return this.b
+            return this.f(g)
           }
         }
       `)
@@ -124,16 +127,69 @@ describe('TreeSitterLanguageMode', () => {
       `)
     })
 
+    it('can fold nodes that start and end with specified tokens and span multiple lines', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        folds: [
+          {
+            type: 'jsx_element',
+            start: {index: 0, type: 'jsx_opening_element'},
+            end: {index: -1, type: 'jsx_closing_element'}
+          },
+          {
+            type: 'jsx_self_closing_element',
+            start: {index: 1},
+            end: {type: '/', index: -2}
+          },
+        ]
+      })
+
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      buffer.setText(dedent `
+        const element1 = <Element
+          className='submit'
+          id='something' />
+
+        const element2 = <Element>
+          <span>hello</span>
+          <span>world</span>
+        </Element>
+      `)
+
+      editor.screenLineForScreenRow(0)
+
+      expect(editor.isFoldableAtBufferRow(0)).toBe(true)
+      expect(editor.isFoldableAtBufferRow(1)).toBe(false)
+      expect(editor.isFoldableAtBufferRow(2)).toBe(false)
+      expect(editor.isFoldableAtBufferRow(3)).toBe(false)
+      expect(editor.isFoldableAtBufferRow(4)).toBe(true)
+      expect(editor.isFoldableAtBufferRow(5)).toBe(false)
+
+      editor.foldBufferRow(0)
+      expect(getDisplayText(editor)).toBe(dedent `
+        const element1 = <Element…/>
+
+        const element2 = <Element>
+          <span>hello</span>
+          <span>world</span>
+        </Element>
+      `)
+
+      editor.foldBufferRow(4)
+      expect(getDisplayText(editor)).toBe(dedent `
+        const element1 = <Element…/>
+
+        const element2 = <Element>…</Element>
+      `)
+    })
+
     it('can fold specified types of multi-line nodes', () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
-        scopes: {'program': 'source'},
-        folds: {
-          nodes: [
-            'template_string',
-            'comment'
-          ]
-        }
+        folds: [
+          {type: 'template_string'},
+          {type: 'comment'}
+        ]
       })
 
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))

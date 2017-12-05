@@ -10,10 +10,7 @@ class TreeSitterGrammar {
     this.id = params.id
     this.name = params.name
 
-    this.foldConfig = {
-      delimiters: params.folds && params.folds.delimiters || [],
-      nodes: new Set(params.folds && params.folds.nodes || [])
-    }
+    this.folds = params.folds || []
 
     this.commentStrings = {
       commentStartString: params.comments && params.comments.start,
@@ -21,7 +18,7 @@ class TreeSitterGrammar {
     }
 
     const scopeSelectors = {}
-    for (const key of Object.keys(params.scopes)) {
+    for (const key in params.scopes || {}) {
       scopeSelectors[key] = params.scopes[key]
         .split('.')
         .map(s => `syntax--${s}`)
