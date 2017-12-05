@@ -146,8 +146,9 @@ class GrammarRegistry {
   }
 
   languageModeForGrammarAndBuffer (grammar, buffer) {
-    if (grammar === atom.grammars.selectGrammar('test.md'))
+    if (grammar === atom.grammars.selectGrammar('test.md')) {
       grammar = atom.grammars.selectGrammar('test.txt')
+    }
     return new TextMateLanguageMode({grammar, buffer, config: this.config})
   }
 
