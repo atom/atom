@@ -1,5 +1,6 @@
 const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
+const dedent = require('dedent')
 const path = require('path')
 const fs = require('fs-plus')
 const temp = require('temp').track()
@@ -271,6 +272,32 @@ describe('GrammarRegistry', () => {
       expect(atom.grammars.selectGrammar('Rakefile').name).toBe('Ruby') // based on the file's basename (Rakefile)
       expect(atom.grammars.selectGrammar('curb').name).toBe('Null Grammar')
       expect(atom.grammars.selectGrammar('/hu.git/config').name).toBe('Null Grammar')
+    })
+
+    describe('when the grammar has a contentRegExp field', () => {
+      it('favors grammars whose contentRegExp matches a prefix of the file\'s content', () => {
+        atom.grammars.addGrammar({
+          id: 'javascript-1',
+          fileTypes: ['js']
+        })
+        atom.grammars.addGrammar({
+          id: 'flow-javascript',
+          contentRegExp: new RegExp('//.*@flow'),
+          fileTypes: ['js']
+        })
+        atom.grammars.addGrammar({
+          id: 'javascript-2',
+          fileTypes: ['js']
+        })
+
+        const selectedGrammar = atom.grammars.selectGrammar('test.js', dedent`
+          // Copyright EvilCorp
+          // @flow
+
+          module.exports = function () { return 1 + 1 }
+        `)
+        expect(selectedGrammar.id).toBe('flow-javascript')
+      })
     })
 
     it("uses the filePath's shebang line if the grammar cannot be determined by the extension or basename", async () => {

@@ -11,7 +11,6 @@ const fs = require('fs-plus')
 const {Point, Range} = require('text-buffer')
 
 const GRAMMAR_TYPE_BONUS = 1000
-const GRAMMAR_SELECTION_RANGE = Range(Point.ZERO, Point(10, 0)).freeze()
 const PATH_SPLIT_REGEX = new RegExp('[/.]')
 
 const LANGUAGE_ID_MAP = [
@@ -147,7 +146,7 @@ class GrammarRegistry {
   autoAssignLanguageMode (buffer) {
     const result = this.selectGrammarWithScore(
       buffer.getPath(),
-      buffer.getTextInRange(GRAMMAR_SELECTION_RANGE)
+      getGrammarSelectionContent(buffer)
     )
     this.languageOverridesByBufferId.delete(buffer.id)
     this.grammarScoresByBuffer.set(buffer, result.score)
@@ -245,26 +244,32 @@ class GrammarRegistry {
   }
 
   grammarMatchesContents (grammar, contents) {
-    if (contents == null || grammar.firstLineRegex == null) return false
+    if (contents == null) return false
 
-    let escaped = false
-    let numberOfNewlinesInRegex = 0
-    for (let character of grammar.firstLineRegex.source) {
-      switch (character) {
-        case '\\':
-          escaped = !escaped
-          break
-        case 'n':
-          if (escaped) { numberOfNewlinesInRegex++ }
-          escaped = false
-          break
-        default:
-          escaped = false
+    if (grammar.contentRegExp) { // TreeSitter grammars
+      return grammar.contentRegExp.test(contents)
+    } else if (grammar.firstLineRegex) { // FirstMate grammars
+      let escaped = false
+      let numberOfNewlinesInRegex = 0
+      for (let character of grammar.firstLineRegex.source) {
+        switch (character) {
+          case '\\':
+            escaped = !escaped
+            break
+          case 'n':
+            if (escaped) { numberOfNewlinesInRegex++ }
+            escaped = false
+            break
+          default:
+            escaped = false
+        }
       }
-    }
 
-    const lines = contents.split('\n')
-    return grammar.firstLineRegex.testSync(lines.slice(0, numberOfNewlinesInRegex + 1).join('\n'))
+      const lines = contents.split('\n')
+      return grammar.firstLineRegex.testSync(lines.slice(0, numberOfNewlinesInRegex + 1).join('\n'))
+    } else {
+      return false
+    }
   }
 
   forEachGrammar (callback) {
@@ -338,12 +343,7 @@ class GrammarRegistry {
            grammar.id === languageOverride)) {
         buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
       } else if (!languageOverride) {
-        const score = this.getGrammarScore(
-          grammar,
-          buffer.getPath(),
-          buffer.getTextInRange(GRAMMAR_SELECTION_RANGE)
-        )
-
+        const score = this.getGrammarScore(grammar, buffer.getPath(), getGrammarSelectionContent(buffer))
         const currentScore = this.grammarScoresByBuffer.get(buffer)
         if (currentScore == null || score > currentScore) {
           buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
@@ -499,4 +499,11 @@ class GrammarRegistry {
       return row ? row[0] : languageId
     }
   }
+}
+
+function getGrammarSelectionContent (buffer) {
+  return buffer.getTextInRange(Range(
+    Point(0, 0),
+    buffer.positionForCharacterIndex(1024)
+  ))
 }

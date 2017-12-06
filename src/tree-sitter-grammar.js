@@ -1,7 +1,6 @@
 const path = require('path')
 const SyntaxScopeMap = require('./syntax-scope-map')
 const Module = require('module')
-const {OnigRegExp} = require('oniguruma')
 
 module.exports =
 class TreeSitterGrammar {
@@ -9,6 +8,7 @@ class TreeSitterGrammar {
     this.registry = registry
     this.id = params.id
     this.name = params.name
+    if (params.contentRegExp) this.contentRegExp = new RegExp(params.contentRegExp)
 
     this.folds = params.folds || []
 
@@ -37,7 +37,6 @@ class TreeSitterGrammar {
     })
 
     this.languageModule = require(languageModulePath)
-    this.firstLineRegex = params.firstLineMatch && new OnigRegExp(params.firstLineMatch)
     this.scopesById = new Map()
     this.idsByScope = {}
     this.nextScopeId = 256 + 1
