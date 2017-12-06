@@ -43,7 +43,6 @@ if global.isGeneratingSnapshot
   require('tabs')
   require('timecop')
   require('update-package-dependencies')
-  require('welcome')
   require('whitespace')
 
 clipboard = new Clipboard

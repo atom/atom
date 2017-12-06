@@ -47,7 +47,7 @@ const configSchema = {
       },
       themes: {
         type: 'array',
-        default: ['one-dark-ui', 'one-dark-syntax'],
+        default: ['onetwo-light-ui', 'onetwo-light-syntax'],
         items: {
           type: 'string'
         },
@@ -278,7 +278,7 @@ const configSchema = {
         description: 'Allow usage statistics and exception reports to be sent to the Atom team to help improve the product.',
         title: 'Send Telemetry to the Atom Team',
         type: 'string',
-        default: 'undecided',
+        default: 'no',
         enum: [
           {
             value: 'limited',
@@ -328,7 +328,7 @@ const configSchema = {
       },
       fontSize: {
         type: 'integer',
-        default: 14,
+        default: 43,
         minimum: 1,
         maximum: 100,
         description: 'Height in pixels of editor text.'
@@ -392,12 +392,12 @@ const configSchema = {
       },
       softWrap: {
         type: 'boolean',
-        default: false,
+        default: true,
         description: 'Wraps lines that exceed the width of the window. When `Soft Wrap At Preferred Line Length` is set, it will wrap to the number of characters defined by the `Preferred Line Length` setting.'
       },
       softTabs: {
         type: 'boolean',
-        default: true,
+        default: false,
         description: 'If the `Tab Type` config setting is set to "auto" and autodetection of tab type from buffer content fails, then this config setting determines whether a soft tab or a hard tab will be inserted when the Tab key is pressed.'
       },
       tabType: {
@@ -475,6 +475,68 @@ const configSchema = {
         type: 'boolean',
         default: process.platform !== 'darwin',
         description: 'Change the editor font size when pressing the Ctrl key and scrolling the mouse up/down.'
+      }
+    }
+  },
+  "menu-filter": {
+    type: 'object',
+    // These settings are used in scoped fashion only. No defaults.
+    properties: {
+      remove: {
+        type:  'object',
+        properties: {
+            File: {
+                type: 'array',
+                default: [
+                  "New Window",
+                  "New File",
+                  "Open",
+                  "Add Project Folder",
+                  "Reopen Project",
+                  "Reopen Last Item",
+                  "Save",
+                  "Save As",
+                  "Save All",
+                  "Close All Tabs"
+                ]
+            },
+            Find: {
+                type: 'array',
+                default: []
+            },
+            OneTwo: {
+                type: 'array',
+                default: [ "Config" ]
+            },
+            Packages: {
+                type: 'array',
+                default: []
+            }
+        }
+      }
+    }
+  },
+  "context-menu-filter": {
+    type: 'object',
+    // These settings are used in scoped fashion only. No defaults.
+    properties: {
+      remove: {
+        type:  'object',
+        properties: {
+            "atom-text-editor": {
+                type: 'array',
+                default: [
+                    "Split Up",
+                    "Split Down",
+                    "Split Left",
+                    "Split Right",
+                    "Close Pane",
+                    "Change Encoding",
+                    "Go to Declaration",
+                    "Correct Spelling"
+                ]
+            }
+        }
       }
     }
   }
