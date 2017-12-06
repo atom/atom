@@ -6,6 +6,8 @@ const TextEditor = require('../src/text-editor')
 const TreeSitterGrammar = require('../src/tree-sitter-grammar')
 const TreeSitterLanguageMode = require('../src/tree-sitter-language-mode')
 
+const cGrammarPath = require.resolve('language-c/grammars/tree-sitter-c.cson')
+const pythonGrammarPath = require.resolve('language-python/grammars/tree-sitter-python.cson')
 const jsGrammarPath = require.resolve('language-javascript/grammars/tree-sitter-javascript.cson')
 
 describe('TreeSitterLanguageMode', () => {
@@ -73,7 +75,7 @@ describe('TreeSitterLanguageMode', () => {
       editor.displayLayer.reset({foldCharacter: '…'})
     })
 
-    it('can fold nodes that start and end with specified tokens and span multiple lines', () => {
+    it('can fold nodes that start and end with specified tokens', () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
         folds: [
@@ -107,6 +109,7 @@ describe('TreeSitterLanguageMode', () => {
       expect(editor.isFoldableAtBufferRow(2)).toBe(true)
       expect(editor.isFoldableAtBufferRow(3)).toBe(false)
       expect(editor.isFoldableAtBufferRow(4)).toBe(true)
+      expect(editor.isFoldableAtBufferRow(5)).toBe(false)
 
       editor.foldBufferRow(2)
       expect(getDisplayText(editor)).toBe(dedent `
@@ -127,20 +130,24 @@ describe('TreeSitterLanguageMode', () => {
       `)
     })
 
-    it('can fold nodes that start and end with specified tokens and span multiple lines', () => {
+    it('can fold nodes of specified types', () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
         folds: [
+          // Start the fold after the first child (the opening tag) and end it at the last child
+          // (the closing tag).
           {
             type: 'jsx_element',
-            start: {index: 0, type: 'jsx_opening_element'},
-            end: {index: -1, type: 'jsx_closing_element'}
+            start: {index: 0},
+            end: {index: -1}
           },
+
+          // End the fold at the *second* to last child of the self-closing tag: the `/`.
           {
             type: 'jsx_self_closing_element',
             start: {index: 1},
-            end: {type: '/', index: -2}
-          },
+            end: {index: -2}
+          }
         ]
       })
 
@@ -183,11 +190,12 @@ describe('TreeSitterLanguageMode', () => {
       `)
     })
 
-    it('can fold specified types of multi-line nodes', () => {
+    it('can fold entire nodes when no start or end parameters are specified', () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
         folds: [
-          {type: 'template_string'},
+          // By default, for a node with no children, folds are started at the *end* of the first
+          // line of a node, and ended at the *beginning* of the last line.
           {type: 'comment'}
         ]
       })
@@ -197,9 +205,9 @@ describe('TreeSitterLanguageMode', () => {
         /**
          * Important
          */
-        const x = \`one
-          two
-          three\`
+        const x = 1 /*
+          Also important
+        */
       `)
 
       editor.screenLineForScreenRow(0)
@@ -213,16 +221,135 @@ describe('TreeSitterLanguageMode', () => {
       editor.foldBufferRow(0)
       expect(getDisplayText(editor)).toBe(dedent `
         /**… */
-        const x = \`one
-          two
-          three\`
+        const x = 1 /*
+          Also important
+        */
       `)
 
       editor.foldBufferRow(3)
       expect(getDisplayText(editor)).toBe(dedent `
         /**… */
-        const x = \`one…  three\`
+        const x = 1 /*…*/
       `)
+    })
+
+    it('tries each folding strategy for a given node in the order specified', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, cGrammarPath, {
+        parser: 'tree-sitter-c',
+        folds: [
+          // If the #ifdef has an `#else` clause, then end the fold there.
+          {
+            type: 'preproc_ifdef',
+            start: {index: 1},
+            end: {type: 'preproc_else'}
+          },
+
+          // Otherwise, end the fold at the last child - the `#endif`.
+          {
+            type: 'preproc_ifdef',
+            start: {index: 1},
+            end: {index: -1}
+          },
+
+          // When folding an `#else` clause, the fold extends to the end of the clause.
+          {
+            type: 'preproc_else',
+            start: {index: 0}
+          }
+        ]
+      })
+
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+
+      buffer.setText(dedent `
+        #ifndef FOO_H_
+        #define FOO_H_
+
+        #ifdef _WIN32
+
+        #include <windows.h>
+        const char *path_separator = "\\";
+
+        #else
+
+        #include <dirent.h>
+        const char *path_separator = "/";
+
+        #endif
+
+        #endif
+      `)
+
+      editor.screenLineForScreenRow(0)
+
+      editor.foldBufferRow(3)
+      expect(getDisplayText(editor)).toBe(dedent `
+        #ifndef FOO_H_
+        #define FOO_H_
+
+        #ifdef _WIN32…#else
+
+        #include <dirent.h>
+        const char *path_separator = "/";
+
+        #endif
+
+        #endif
+      `)
+
+      editor.foldBufferRow(8)
+      expect(getDisplayText(editor)).toBe(dedent `
+        #ifndef FOO_H_
+        #define FOO_H_
+
+        #ifdef _WIN32…#else…
+
+        #endif
+
+        #endif
+      `)
+
+      editor.foldBufferRow(0)
+      expect(getDisplayText(editor)).toBe(dedent `
+        #ifndef FOO_H_…#endif
+      `)
+    })
+
+    describe('when folding a node that ends with a line break', () => {
+      it('ends the fold at the end of the previous line', () => {
+        const grammar = new TreeSitterGrammar(atom.grammars, pythonGrammarPath, {
+          parser: 'tree-sitter-python',
+          folds: [
+            {
+              type: 'function_definition',
+              start: {type: ':'}
+            }
+          ]
+        })
+
+        buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+
+        buffer.setText(dedent `
+          def ab():
+            print 'a'
+            print 'b'
+
+          def cd():
+            print 'c'
+            print 'd'
+        `)
+
+        editor.screenLineForScreenRow(0)
+
+        editor.foldBufferRow(0)
+        expect(getDisplayText(editor)).toBe(dedent `
+          def ab():…
+
+          def cd():
+            print 'c'
+            print 'd'
+        `)
+      })
     })
   })
 

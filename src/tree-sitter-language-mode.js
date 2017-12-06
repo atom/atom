@@ -203,57 +203,55 @@ class TreeSitterLanguageMode {
         }
       }
 
-      let childBeforeFold
+      let foldStart
       const startEntry = foldEntry.start
       if (startEntry) {
         if (startEntry.index != null) {
-          childBeforeFold = children[startEntry.index]
-          if (!childBeforeFold) continue
-          if (startEntry.type && startEntry.type !== childBeforeFold.type) continue
+          const child = children[startEntry.index]
+          if (!child || (startEntry.type && startEntry.type !== child.type)) continue
+          foldStart = child.endPosition
         } else {
           if (!childTypes) childTypes = children.map(child => child.type)
-          let index = childTypes.indexOf(startEntry.type)
+          const index = childTypes.indexOf(startEntry.type)
           if (index === -1) continue
-          childBeforeFold = children[index]
+          foldStart = children[index].endPosition
         }
       }
 
-      let childAfterFold
+      let foldEnd
       const endEntry = foldEntry.end
       if (endEntry) {
         if (endEntry.index != null) {
           const index = endEntry.index < 0 ? childCount + endEntry.index : endEntry.index
-          childAfterFold = children[index]
-          if (!childAfterFold) continue
-          if (endEntry.type && endEntry.type !== childAfterFold.type) continue
+          const child = children[index]
+          if (!child || (endEntry.type && endEntry.type !== child.type)) continue
+          foldEnd = child.startPosition
         } else {
           if (!childTypes) childTypes = children.map(child => child.type)
-          let index = childTypes.lastIndexOf(endEntry.type)
+          const index = childTypes.lastIndexOf(endEntry.type)
           if (index === -1) continue
-          childAfterFold = children[index]
+          foldEnd = children[index].startPosition
         }
       }
 
       if (existenceOnly) return true
 
-      let start, end
-      if (childBeforeFold) {
-        start = childBeforeFold.endPosition
-      } else {
-        start = new Point(node.startPosition.row, Infinity)
+      if (!foldStart) {
+        foldStart = new Point(node.startPosition.row, Infinity)
       }
-      if (childAfterFold) {
-        end = childAfterFold.startPosition
-      } else {
+
+      if (!foldEnd) {
         const {endPosition} = node
         if (endPosition.column === 0) {
-          end = Point(endPosition.row - 1, Infinity)
+          foldEnd = Point(endPosition.row - 1, Infinity)
+        } else if (childCount > 0) {
+          foldEnd = endPosition
         } else {
-          end = Point(endPosition.row, 0)
+          foldEnd = Point(endPosition.row, 0)
         }
       }
 
-      return new Range(start, end)
+      return new Range(foldStart, foldEnd)
     }
   }
 
