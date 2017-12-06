@@ -70,6 +70,19 @@ describe('TextEditorElement', () => {
     expect(element.getModel().isLineNumberGutterVisible()).toBe(false)
   })
 
+  it("honors the 'readonly' attribute", async function() {
+    jasmineContent.innerHTML = "<atom-text-editor readonly>"
+    const element = jasmineContent.firstChild
+
+    expect(element.getComponent().isInputEnabled()).toBe(false)
+
+    element.removeAttribute('readonly')
+    expect(element.getComponent().isInputEnabled()).toBe(true)
+
+    element.setAttribute('readonly', true)
+    expect(element.getComponent().isInputEnabled()).toBe(false)
+  })
+
   it('honors the text content', () => {
     jasmineContent.innerHTML = '<atom-text-editor>testing</atom-text-editor>'
     const element = jasmineContent.firstChild

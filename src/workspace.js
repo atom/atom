@@ -497,6 +497,9 @@ module.exports = class Workspace extends Model {
           this.textEditorRegistry.maintainConfig(item),
           item.observeGrammar(this.handleGrammarUsed.bind(this))
         )
+        if (!this.project.findBufferForId(item.buffer.id)) {
+          this.project.addBuffer(item.buffer)
+        }
         item.onDidDestroy(() => { subscriptions.dispose() })
         this.emitter.emit('did-add-text-editor', {textEditor: item, pane, index})
       }

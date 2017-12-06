@@ -56,7 +56,7 @@ class TextEditorComponent {
     this.props = props
 
     if (!props.model) {
-      props.model = new TextEditor({mini: props.mini})
+      props.model = new TextEditor({mini: props.mini, readOnly: props.readOnly})
     }
     this.props.model.component = this
 
@@ -460,9 +460,13 @@ class TextEditorComponent {
       }
     }
 
-    let attributes = null
+    let attributes = {}
     if (model.isMini()) {
-      attributes = {mini: ''}
+      attributes.mini = ''
+    }
+
+    if (!this.isInputEnabled()) {
+      attributes.readonly = ''
     }
 
     const dataset = {encoding: model.getEncoding()}
@@ -819,7 +823,7 @@ class TextEditorComponent {
 
     const oldClassList = this.classList
     const newClassList = ['editor']
-    if (this.focused) newClassList.push('is-focused')
+    if (this.focused && this.isInputEnabled()) newClassList.push('is-focused')
     if (model.isMini()) newClassList.push('mini')
     for (var i = 0; i < model.selections.length; i++) {
       if (!model.selections[i].isEmpty()) {
@@ -2962,11 +2966,11 @@ class TextEditorComponent {
   }
 
   setInputEnabled (inputEnabled) {
-    this.props.inputEnabled = inputEnabled
+    this.props.model.update({readOnly: !inputEnabled})
   }
 
   isInputEnabled (inputEnabled) {
-    return this.props.inputEnabled != null ? this.props.inputEnabled : true
+    return !this.props.model.isReadOnly()
   }
 
   getHiddenInput () {
