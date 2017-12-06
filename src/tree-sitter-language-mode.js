@@ -26,7 +26,10 @@ class TreeSitterLanguageMode {
   }
 
   bufferDidChange ({oldRange, newRange, oldText, newText}) {
-    this.isFoldableCache.length = 0
+    const startRow = oldRange.start.row
+    const oldEndRow = oldRange.end.row
+    const newEndRow = newRange.end.row
+    this.isFoldableCache.splice(startRow, oldEndRow - startRow, ...new Array(newEndRow - startRow))
     this.document.edit({
       startIndex: this.buffer.characterIndexForPosition(oldRange.start),
       lengthRemoved: oldText.length,
@@ -44,7 +47,13 @@ class TreeSitterLanguageMode {
   buildHighlightIterator () {
     const invalidatedRanges = this.document.parse()
     for (let i = 0, n = invalidatedRanges.length; i < n; i++) {
-      this.emitter.emit('did-change-highlighting', invalidatedRanges[i])
+      const range = invalidatedRanges[i]
+      const startRow = range.start.row
+      const endRow = range.end.row
+      for (let row = startRow; row < endRow; row++) {
+        this.isFoldableCache[row] = undefined
+      }
+      this.emitter.emit('did-change-highlighting', range)
     }
     return new TreeSitterHighlightIterator(this)
   }
