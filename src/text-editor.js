@@ -124,6 +124,7 @@ class TextEditor {
     this.decorationManager = params.decorationManager
     this.selectionsMarkerLayer = params.selectionsMarkerLayer
     this.mini = (params.mini != null) ? params.mini : false
+    this.readOnly = (params.readOnly != null) ? params.readOnly : false
     this.placeholderText = params.placeholderText
     this.showLineNumbers = params.showLineNumbers
     this.assert = params.assert || (condition => condition)
@@ -400,6 +401,16 @@ class TextEditor {
           }
           break
 
+        case 'readOnly':
+          if (value !== this.readOnly) {
+            this.readOnly = value
+            if (this.component != null) {
+              this.component.scheduleUpdate()
+            }
+            this.buffer.emitModifiedStatusChanged(this.isModified())
+          }
+          break
+
         case 'placeholderText':
           if (value !== this.placeholderText) {
             this.placeholderText = value
@@ -530,6 +541,7 @@ class TextEditor {
       softWrapAtPreferredLineLength: this.softWrapAtPreferredLineLength,
       preferredLineLength: this.preferredLineLength,
       mini: this.mini,
+      readOnly: this.readOnly,
       editorWidthInChars: this.editorWidthInChars,
       width: this.width,
       maxScreenLineLength: this.maxScreenLineLength,
@@ -555,6 +567,11 @@ class TextEditor {
     this.disposables.add(this.buffer.onDidDestroy(() => this.destroy()))
     this.disposables.add(this.buffer.onDidChangeModified(() => {
       if (!this.hasTerminatedPendingState && this.buffer.isModified()) this.terminatePendingState()
+    }))
+    this.disposables.add(this.buffer.onDidSave(() => {
+      if (this.isReadOnly()) {
+        this.setReadOnly(false)
+      }
     }))
   }
 
@@ -965,6 +982,12 @@ class TextEditor {
 
   isMini () { return this.mini }
 
+  setReadOnly (readOnly) {
+    this.update({readOnly})
+  }
+
+  isReadOnly () { return this.readOnly }
+
   onDidChangeMini (callback) {
     return this.emitter.on('did-change-mini', callback)
   }
@@ -1106,7 +1129,7 @@ class TextEditor {
   setEncoding (encoding) { this.buffer.setEncoding(encoding) }
 
   // Essential: Returns {Boolean} `true` if this editor has been modified.
-  isModified () { return this.buffer.isModified() }
+  isModified () { return this.isReadOnly() ? false : this.buffer.isModified() }
 
   // Essential: Returns {Boolean} `true` if this editor has no content.
   isEmpty () { return this.buffer.isEmpty() }
