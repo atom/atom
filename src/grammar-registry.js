@@ -15,7 +15,12 @@ const PATH_SPLIT_REGEX = new RegExp('[/.]')
 
 const LANGUAGE_ID_MAP = [
   ['source.js', 'javascript'],
-  ['source.ts', 'typescript']
+  ['source.ts', 'typescript'],
+  ['source.c', 'c'],
+  ['source.cpp', 'cpp'],
+  ['source.go', 'go'],
+  ['source.python', 'python'],
+  ['source.sh', 'bash']
 ]
 
 // Extended: This class holds the grammars used for tokenizing.
