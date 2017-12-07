@@ -186,7 +186,8 @@ describe('TreeSitterLanguageMode', () => {
       expect(getDisplayText(editor)).toBe(dedent `
         const element1 = <Element…/>
 
-        const element2 = <Element>…</Element>
+        const element2 = <Element>…
+        </Element>
       `)
     })
 
@@ -239,9 +240,14 @@ describe('TreeSitterLanguageMode', () => {
         folds: [
           // If the #ifdef has an `#else` clause, then end the fold there.
           {
-            type: 'preproc_ifdef',
+            type: ['preproc_ifdef', 'preproc_elif'],
             start: {index: 1},
             end: {type: 'preproc_else'}
+          },
+          {
+            type: ['preproc_ifdef', 'preproc_elif'],
+            start: {index: 1},
+            end: {type: 'preproc_elif'}
           },
 
           // Otherwise, end the fold at the last child - the `#endif`.
@@ -270,6 +276,11 @@ describe('TreeSitterLanguageMode', () => {
         #include <windows.h>
         const char *path_separator = "\\";
 
+        #elif defined MACOS
+
+        #include <carbon.h>
+        const char *path_separator = "/";
+
         #else
 
         #include <dirent.h>
@@ -287,7 +298,13 @@ describe('TreeSitterLanguageMode', () => {
         #ifndef FOO_H_
         #define FOO_H_
 
-        #ifdef _WIN32…#else
+        #ifdef _WIN32…
+        #elif defined MACOS
+
+        #include <carbon.h>
+        const char *path_separator = "/";
+
+        #else
 
         #include <dirent.h>
         const char *path_separator = "/";
@@ -302,7 +319,12 @@ describe('TreeSitterLanguageMode', () => {
         #ifndef FOO_H_
         #define FOO_H_
 
-        #ifdef _WIN32…#else…
+        #ifdef _WIN32…
+        #elif defined MACOS…
+        #else
+
+        #include <dirent.h>
+        const char *path_separator = "/";
 
         #endif
 
@@ -311,7 +333,8 @@ describe('TreeSitterLanguageMode', () => {
 
       editor.foldBufferRow(0)
       expect(getDisplayText(editor)).toBe(dedent `
-        #ifndef FOO_H_…#endif
+        #ifndef FOO_H_…
+        #endif
       `)
     })
 

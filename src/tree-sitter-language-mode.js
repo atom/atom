@@ -221,16 +221,22 @@ class TreeSitterLanguageMode {
       let foldEnd
       const endEntry = foldEntry.end
       if (endEntry) {
+        let foldEndNode
         if (endEntry.index != null) {
           const index = endEntry.index < 0 ? childCount + endEntry.index : endEntry.index
-          const child = children[index]
-          if (!child || (endEntry.type && endEntry.type !== child.type)) continue
-          foldEnd = child.startPosition
+          foldEndNode = children[index]
+          if (!foldEndNode || (endEntry.type && endEntry.type !== foldEndNode.type)) continue
         } else {
-          if (!childTypes) childTypes = children.map(child => child.type)
+          if (!childTypes) childTypes = children.map(foldEndNode => foldEndNode.type)
           const index = childTypes.lastIndexOf(endEntry.type)
           if (index === -1) continue
-          foldEnd = children[index].startPosition
+          foldEndNode = children[index]
+        }
+
+        if (foldEndNode.endIndex - foldEndNode.startIndex > 1 && foldEndNode.startPosition.row > foldStart.row) {
+          foldEnd = new Point(foldEndNode.startPosition.row - 1, Infinity)
+        } else {
+          foldEnd = foldEndNode.startPosition
         }
       }
 
