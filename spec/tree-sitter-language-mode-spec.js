@@ -336,6 +336,20 @@ describe('TreeSitterLanguageMode', () => {
         #ifndef FOO_H_…
         #endif
       `)
+
+      editor.foldAllAtIndentLevel(1)
+      expect(getDisplayText(editor)).toBe(dedent `
+        #ifndef FOO_H_
+        #define FOO_H_
+
+        #ifdef _WIN32…
+        #elif defined MACOS…
+        #else…
+
+        #endif
+
+        #endif
+      `)
     })
 
     describe('when folding a node that ends with a line break', () => {

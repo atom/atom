@@ -138,10 +138,7 @@ class TreeSitterLanguageMode {
     let stack = [{node: this.document.rootNode, level: 0}]
     while (stack.length > 0) {
       const {node, level} = stack.pop()
-      const startRow = node.startPosition.row
-      const endRow = node.endPosition.row
 
-      let childLevel = level
       const range = this.getFoldableRangeForNode(node)
       if (range) {
         if (goalLevel == null || level === goalLevel) {
@@ -155,18 +152,23 @@ class TreeSitterLanguageMode {
           }
           if (!updatedExistingRange) result.push(range)
         }
-        childLevel++
       }
 
+      const parentStartRow = node.startPosition.row
+      const parentEndRow = node.endPosition.row
       for (let children = node.namedChildren, i = 0, {length} = children; i < length; i++) {
         const child = children[i]
-        const childStartRow = child.startPosition.row
-        const childEndRow = child.endPosition.row
-        if (childEndRow > childStartRow) {
-          if (childStartRow === startRow && childEndRow === endRow) {
+        const {startPosition: childStart, endPosition: childEnd} = child
+        if (childEnd.row > childStart.row) {
+          if (childStart.row === parentStartRow && childEnd.row === parentEndRow) {
             stack.push({node: child, level: level})
-          } else if (childLevel <= goalLevel || goalLevel == null) {
-            stack.push({node: child, level: childLevel})
+          } else {
+            const childLevel = range.containsPoint(childStart) && range.containsPoint(childEnd)
+              ? level + 1
+              : level
+            if (childLevel <= goalLevel || goalLevel == null) {
+              stack.push({node: child, level: childLevel})
+            }
           }
         }
       }

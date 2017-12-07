@@ -3891,7 +3891,7 @@ class TextEditor {
 
   // Extended: Fold all foldable lines at the given indent level.
   //
-  // * `level` A {Number}.
+  // * `level` A {Number} starting at 0.
   foldAllAtIndentLevel (level) {
     const languageMode = this.buffer.getLanguageMode()
     const foldableRanges = (
