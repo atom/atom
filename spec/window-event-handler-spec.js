@@ -59,8 +59,6 @@ describe('WindowEventHandler', () => {
     })
   )
 
-
-
   describe('when a link is clicked', () =>
     it('opens the http/https links in an external application', () => {
       const {shell} = require('electron')
