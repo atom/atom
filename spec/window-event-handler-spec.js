@@ -48,16 +48,12 @@ describe('WindowEventHandler', () => {
   describe('window:close event', () =>
     it('closes the window', () => {
       spyOn(atom, 'close')
+      spyOn(atom, 'storeWindowDimensions')
       window.dispatchEvent(new CustomEvent('window:close'))
       expect(atom.close).toHaveBeenCalled()
+      expect(atom.storeWindowDimensions).toHaveBeenCalled()
     })
-           
-// TODO: add this back, commenting out to see if build passes.
-//    it ('saves the window state', () => {
-//      spyOn(atom, 'storeWindowDimensions')
-//      window.dispatchEvent(new CustomEvent('window:close'))
-//      expect(atom.storeWindowDimensions).toHaveBeenCalled()
-//    })
+          
   )
 
   describe('when a link is clicked', () =>
