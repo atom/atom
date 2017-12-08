@@ -148,6 +148,7 @@ class TreeSitterLanguageMode {
                 result[i].end.row === range.end.row) {
               result[i] = range
               updatedExistingRange = true
+              break
             }
           }
           if (!updatedExistingRange) result.push(range)
@@ -163,7 +164,7 @@ class TreeSitterLanguageMode {
           if (childStart.row === parentStartRow && childEnd.row === parentEndRow) {
             stack.push({node: child, level: level})
           } else {
-            const childLevel = range.containsPoint(childStart) && range.containsPoint(childEnd)
+            const childLevel = range && range.containsPoint(childStart) && range.containsPoint(childEnd)
               ? level + 1
               : level
             if (childLevel <= goalLevel || goalLevel == null) {
@@ -214,7 +215,9 @@ class TreeSitterLanguageMode {
           foldStart = child.endPosition
         } else {
           if (!childTypes) childTypes = children.map(child => child.type)
-          const index = childTypes.indexOf(startEntry.type)
+          const index = typeof startEntry.type === 'string'
+            ? childTypes.indexOf(startEntry.type)
+            : childTypes.findIndex(type => startEntry.type.includes(type))
           if (index === -1) continue
           foldStart = children[index].endPosition
         }
@@ -230,7 +233,9 @@ class TreeSitterLanguageMode {
           if (!foldEndNode || (endEntry.type && endEntry.type !== foldEndNode.type)) continue
         } else {
           if (!childTypes) childTypes = children.map(foldEndNode => foldEndNode.type)
-          const index = childTypes.lastIndexOf(endEntry.type)
+          const index = typeof endEntry.type === 'string'
+            ? childTypes.indexOf(endEntry.type)
+            : childTypes.findIndex(type => endEntry.type.includes(type))
           if (index === -1) continue
           foldEndNode = children[index]
         }

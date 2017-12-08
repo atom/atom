@@ -242,12 +242,7 @@ describe('TreeSitterLanguageMode', () => {
           {
             type: ['preproc_ifdef', 'preproc_elif'],
             start: {index: 1},
-            end: {type: 'preproc_else'}
-          },
-          {
-            type: ['preproc_ifdef', 'preproc_elif'],
-            start: {index: 1},
-            end: {type: 'preproc_elif'}
+            end: {type: ['preproc_else', 'preproc_elif']}
           },
 
           // Otherwise, end the fold at the last child - the `#endif`.
