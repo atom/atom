@@ -221,6 +221,8 @@ class TreeSitterLanguageMode {
           if (index === -1) continue
           foldStart = children[index].endPosition
         }
+      } else {
+        foldStart = new Point(node.startPosition.row, Infinity)
       }
 
       let foldEnd
@@ -245,15 +247,7 @@ class TreeSitterLanguageMode {
         } else {
           foldEnd = foldEndNode.startPosition
         }
-      }
-
-      if (existenceOnly) return true
-
-      if (!foldStart) {
-        foldStart = new Point(node.startPosition.row, Infinity)
-      }
-
-      if (!foldEnd) {
+      } else {
         const {endPosition} = node
         if (endPosition.column === 0) {
           foldEnd = Point(endPosition.row - 1, Infinity)
@@ -264,7 +258,7 @@ class TreeSitterLanguageMode {
         }
       }
 
-      return new Range(foldStart, foldEnd)
+      return existenceOnly ? true : new Range(foldStart, foldEnd)
     }
   }
 
