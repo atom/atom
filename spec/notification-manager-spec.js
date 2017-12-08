@@ -67,7 +67,7 @@ describe('NotificationManager', () => {
     })
   })
 
-  describe('clearing notifications', function () {
+  describe('clearing notifications', () => {
     it('clears the notifications when ::clear has been called', () => {
       manager.addSuccess('success')
       expect(manager.getNotifications().length).toBe(1)
