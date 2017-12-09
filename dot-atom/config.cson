@@ -3,18 +3,6 @@
     locale: "zh-cn"
   autosave:
     enabled: true
-  "context-menu-filter":
-    remove:
-      "atom-text-editor": [
-        "Split Up"
-        "Split Down"
-        "Split Left"
-        "Split Right"
-        "Close Pane"
-        "Change Encoding"
-        "Go to Declaration"
-        "Correct Spelling"
-      ]
   core:
     telemetryConsent: "no"
     themes: [
@@ -26,25 +14,6 @@
     invisibles: {}
     softTabs: false
     softWrap: true
-  "menu-filter":
-    remove:
-      File: [
-        "New Window"
-        "New File"
-        "Open"
-        "Add Project Folder"
-        "Reopen Project"
-        "Reopen Last Item"
-        "Save"
-        "Save As"
-        "Save All"
-        "Close All Tabs"
-      ]
-      Find: []
-      OneTwo: [
-        "Config"
-      ]
-      Packages: []
   tabs:
     alwaysShowTabBar: false
   "tool-bar":
