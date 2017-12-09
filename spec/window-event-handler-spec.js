@@ -48,10 +48,8 @@ describe('WindowEventHandler', () => {
   describe('window:close event', () =>
     it('closes the window', () => {
       spyOn(atom, 'close')
-      spyOn(atom, 'storeWindowDimensions')
       window.dispatchEvent(new CustomEvent('window:close'))
       expect(atom.close).toHaveBeenCalled()
-      expect(atom.storeWindowDimensions).toHaveBeenCalled()
     })
           
   )
