@@ -361,8 +361,8 @@ class Selection {
   // which is pointed by the cursor.
   selectCurrentParagraph () {
     let currentParagraphRange = this.cursor.getCurrentParagraphBufferRange()
-    if(currentParagraphRange != null) { 
-      this.setBufferRange(currentParagraphRange);
+    if (currentParagraphRange != null) {
+      this.setBufferRange(currentParagraphRange)
       this.modifySelection(() => this.cursor.moveToBeginningOfNextParagraph())
     }
   }

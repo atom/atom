@@ -441,12 +441,6 @@ class Cursor extends Model {
     if (position) this.setBufferPosition(position)
   }
 
-    // Public: Moves the cursor to the beginning of the previous paragraph
-    moveToBeginningOfPreviousParagraph () {
-      const position = this.getBeginningOfPreviousParagraphBufferPosition()
-      if (position) this.setBufferPosition(position)
-    }
-
   /*
   Section: Local Positions and Ranges
   */
