@@ -1510,28 +1510,28 @@ class TextEditorComponent {
   didMouseWheel (event) {
     const scrollSensitivity = this.props.model.getScrollSensitivity() / 100
 
-    let {wheelDeltaX, wheelDeltaY} = event
+    let {deltaX, deltaY} = event
 
-    if (Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)) {
-      wheelDeltaX = (Math.sign(wheelDeltaX) === 1)
-        ? Math.max(1, wheelDeltaX * scrollSensitivity)
-        : Math.min(-1, wheelDeltaX * scrollSensitivity)
-      wheelDeltaY = 0
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      deltaX = (Math.sign(deltaX) === 1)
+        ? Math.max(1, deltaX * scrollSensitivity)
+        : Math.min(-1, deltaX * scrollSensitivity)
+      deltaY = 0
     } else {
-      wheelDeltaX = 0
-      wheelDeltaY = (Math.sign(wheelDeltaY) === 1)
-        ? Math.max(1, wheelDeltaY * scrollSensitivity)
-        : Math.min(-1, wheelDeltaY * scrollSensitivity)
+      deltaX = 0
+      deltaY = (Math.sign(deltaY) === 1)
+        ? Math.max(1, deltaY * scrollSensitivity)
+        : Math.min(-1, deltaY * scrollSensitivity)
     }
 
     if (this.getPlatform() !== 'darwin' && event.shiftKey) {
-      let temp = wheelDeltaX
-      wheelDeltaX = wheelDeltaY
-      wheelDeltaY = temp
+      let temp = deltaX
+      deltaX = deltaY
+      deltaY = temp
     }
 
-    const scrollLeftChanged = wheelDeltaX !== 0 && this.setScrollLeft(this.getScrollLeft() - wheelDeltaX)
-    const scrollTopChanged = wheelDeltaY !== 0 && this.setScrollTop(this.getScrollTop() - wheelDeltaY)
+    const scrollLeftChanged = deltaX !== 0 && this.setScrollLeft(this.getScrollLeft() + deltaX)
+    const scrollTopChanged = deltaY !== 0 && this.setScrollTop(this.getScrollTop() + deltaY)
 
     if (scrollLeftChanged || scrollTopChanged) this.updateSync()
   }
@@ -1756,20 +1756,25 @@ class TextEditorComponent {
       }
     }
 
-    const screenPosition = this.screenPositionForMouseEvent(event)
-
-    // All clicks should set the cursor position, but only left-clicks should
-    // have additional logic.
-    // On macOS, ctrl-click brings up the context menu so also handle that case.
-    if (button !== 0 || (platform === 'darwin' && ctrlKey)) {
+    // On Linux, position the cursor on middle mouse button click. A
+    // textInput event with the contents of the selection clipboard will be
+    // dispatched by the browser automatically on mouseup.
+    if (platform === 'linux' && button === 1) {
+      const selection = clipboard.readText('selection')
+      const screenPosition = this.screenPositionForMouseEvent(event)
       model.setCursorScreenPosition(screenPosition, {autoscroll: false})
-
-      // On Linux, pasting happens on middle click. A textInput event with the
-      // contents of the selection clipboard will be dispatched by the browser
-      // automatically on mouseup.
-      if (platform === 'linux' && button === 1) model.insertText(clipboard.readText('selection'))
+      model.insertText(selection)
       return
     }
+
+    // Only handle mousedown events for left mouse button (or the middle mouse
+    // button on Linux where it pastes the selection clipboard).
+    if (button !== 0) return
+
+    // Ctrl-click brings up the context menu on macOS
+    if (platform === 'darwin' && ctrlKey) return
+
+    const screenPosition = this.screenPositionForMouseEvent(event)
 
     if (target && target.matches('.fold-marker')) {
       const bufferPosition = model.bufferPositionForScreenPosition(screenPosition)
@@ -1777,7 +1782,7 @@ class TextEditorComponent {
       return
     }
 
-    const addOrRemoveSelection = metaKey || ctrlKey
+    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
 
     switch (detail) {
       case 1:

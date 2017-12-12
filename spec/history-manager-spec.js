@@ -11,9 +11,6 @@ describe("HistoryManager", () => {
   let commandDisposable, projectDisposable
 
   beforeEach(async () => {
-    // Do not clobber recent project history
-    spyOn(atom.applicationDelegate, 'didChangeHistoryManager')
-
     commandDisposable = jasmine.createSpyObj('Disposable', ['dispose'])
     commandRegistry = jasmine.createSpyObj('CommandRegistry', ['add'])
     commandRegistry.add.andReturn(commandDisposable)

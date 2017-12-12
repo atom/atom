@@ -5,7 +5,7 @@ class ContextMenu
   constructor: (template, @atomWindow) ->
     template = @createClickHandlers(template)
     menu = Menu.buildFromTemplate(template)
-    menu.popup(@atomWindow.browserWindow, {async: true})
+    menu.popup(@atomWindow.browserWindow)
 
   # It's necessary to build the event handlers in this process, otherwise
   # closures are dragged across processes and failed to be garbage collected

@@ -61,9 +61,6 @@ else
   specProjectPath = require('os').tmpdir()
 
 beforeEach ->
-  # Do not clobber recent project history
-  spyOn(atom.history, 'saveState').andReturn(Promise.resolve())
-
   atom.project.setPaths([specProjectPath])
 
   window.resetTimeouts()
