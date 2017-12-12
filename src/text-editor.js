@@ -3750,19 +3750,13 @@ class TextEditor {
   foldCurrentRow () {
     const {row} = this.getCursorBufferPosition()
     const range = this.tokenizedBuffer.getFoldableRangeContainingPoint(Point(row, Infinity))
-    if (range) {
-      const result = this.displayLayer.foldBufferRange(range)
-      this.scrollToCursorPosition()
-      return result
-    }
+    if (range) return this.displayLayer.foldBufferRange(range)
   }
 
   // Essential: Unfold the most recent cursor's row by one level.
   unfoldCurrentRow () {
     const {row} = this.getCursorBufferPosition()
-    const result = this.displayLayer.destroyFoldsContainingBufferPositions([Point(row, Infinity)], false)
-    this.scrollToCursorPosition()
-    return result
+    return this.displayLayer.destroyFoldsContainingBufferPositions([Point(row, Infinity)], false)
   }
 
   // Essential: Fold the given row in buffer coordinates based on its indentation
@@ -3780,7 +3774,6 @@ class TextEditor {
         const existingFolds = this.displayLayer.foldsIntersectingBufferRange(Range(foldableRange.start, foldableRange.start))
         if (existingFolds.length === 0) {
           this.displayLayer.foldBufferRange(foldableRange)
-          this.scrollToCursorPosition()
         } else {
           const firstExistingFoldRange = this.displayLayer.bufferRangeForFold(existingFolds[0])
           if (firstExistingFoldRange.start.isLessThan(position)) {
@@ -3798,9 +3791,7 @@ class TextEditor {
   // * `bufferRow` A {Number}
   unfoldBufferRow (bufferRow) {
     const position = Point(bufferRow, Infinity)
-    const result = this.displayLayer.destroyFoldsContainingBufferPositions([position])
-    this.scrollToCursorPosition()
-    return result
+    return this.displayLayer.destroyFoldsContainingBufferPositions([position])
   }
 
   // Extended: For each selection, fold the rows it intersects.
@@ -3816,7 +3807,6 @@ class TextEditor {
     for (let range of this.tokenizedBuffer.getFoldableRanges(this.getTabLength())) {
       this.displayLayer.foldBufferRange(range)
     }
-    this.scrollToCursorPosition()
   }
 
   // Extended: Unfold all existing folds.
@@ -3834,7 +3824,6 @@ class TextEditor {
     for (let range of this.tokenizedBuffer.getFoldableRangesAtIndentLevel(level, this.getTabLength())) {
       this.displayLayer.foldBufferRange(range)
     }
-    this.scrollToCursorPosition()
   }
 
   // Extended: Determine whether the given row in buffer coordinates is foldable.
@@ -3862,14 +3851,11 @@ class TextEditor {
   // Extended: Fold the given buffer row if it isn't currently folded, and unfold
   // it otherwise.
   toggleFoldAtBufferRow (bufferRow) {
-    let result
     if (this.isFoldedAtBufferRow(bufferRow)) {
-      result = this.unfoldBufferRow(bufferRow)
+      return this.unfoldBufferRow(bufferRow)
     } else {
-      result = this.foldBufferRow(bufferRow)
+      return this.foldBufferRow(bufferRow)
     }
-    this.scrollToCursorPosition()
-    return result
   }
 
   // Extended: Determine whether the most recently added cursor's row is folded.
@@ -3908,9 +3894,7 @@ class TextEditor {
   //
   // Returns the new {Fold}.
   foldBufferRowRange (startRow, endRow) {
-    const result = this.foldBufferRange(Range(Point(startRow, Infinity), Point(endRow, Infinity)))
-    this.scrollToCursorPosition()
-    return result
+    return this.foldBufferRange(Range(Point(startRow, Infinity), Point(endRow, Infinity)))
   }
 
   foldBufferRange (range) {
