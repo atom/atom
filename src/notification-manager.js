@@ -27,6 +27,15 @@ class NotificationManager {
     return this.emitter.on('did-add-notification', callback)
   }
 
+  // Public: Invoke the given callback after the notifications have been cleared.
+  //
+  // * `callback` {Function} to be called after the notifications are cleared.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidClearNotifications (callback) {
+    return this.emitter.on('did-clear-notifications', callback)
+  }
+
   /*
   Section: Adding Notifications
   */
@@ -200,7 +209,9 @@ class NotificationManager {
   Section: Managing Notifications
   */
 
+  // Public: Clear all the notifications.
   clear () {
     this.notifications = []
+    this.emitter.emit('did-clear-notifications')
   }
 }
