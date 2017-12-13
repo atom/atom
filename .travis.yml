@@ -57,6 +57,7 @@ addons:
     - fakeroot
     - git
     - libsecret-1-dev
+    - python
     - rpm
     - libx11-dev
     - libxkbfile-dev
