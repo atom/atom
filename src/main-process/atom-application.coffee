@@ -54,6 +54,20 @@ class AtomApplication
 
     client.on 'error', -> new AtomApplication(options).initialize(options)
 
+  @getSystemConfig: ->
+    try
+      json = fs.readFileSync('/etc/atom/config.json', {'encoding': 'utf8'})
+    catch error
+      {code} = error
+      if not code or (code isnt 'ENOENT' and error isnt 'EISDIR')
+        throw error
+
+    try
+      return JSON.parse(json)
+    catch error
+      console.error(error)
+      return null
+
   windows: null
   applicationMenu: null
   atomProtocolHandler: null
@@ -71,6 +85,12 @@ class AtomApplication
 
     @config = new Config({enablePersistence: true})
     @config.setSchema null, {type: 'object', properties: _.clone(ConfigSchema)}
+
+    # fs.appendFileSync('/tmp/hello.log', "System config! #{JSON.stringify(@config.defaultSettings, null, 2)}\n")
+    if systemConfig = @constructor.getSystemConfig()
+      Object.assign @config.defaultSettings, systemConfig
+    # fs.appendFileSync('/tmp/hello.log', "System config! #{JSON.stringify(@config.defaultSettings, null, 2)}\n")
+
     ConfigSchema.projectHome = {
       type: 'string',
       default: path.join(fs.getHomeDirectory(), 'github'),
