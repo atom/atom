@@ -1,4 +1,6 @@
-group: deprecated-2017Q4
+language: python
+
+python: "2.7.13"
 
 git:
   depth: 10
