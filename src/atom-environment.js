@@ -18,6 +18,7 @@ const DeserializerManager = require('./deserializer-manager')
 const ViewRegistry = require('./view-registry')
 const NotificationManager = require('./notification-manager')
 const Config = require('./config')
+const ConfigStorage = require('./config-storage')
 const KeymapManager = require('./keymap-extensions')
 const TooltipManager = require('./tooltip-manager')
 const CommandRegistry = require('./command-registry')
@@ -75,10 +76,7 @@ class AtomEnvironment {
 
     this.stateStore = new StateStore('AtomEnvironments', 1)
 
-    this.config = new Config({
-      notificationManager: this.notifications,
-      enablePersistence: this.enablePersistence
-    })
+    this.config = new Config()
     this.config.setSchema(null, {type: 'object', properties: _.clone(ConfigSchema)})
 
     this.keymaps = new KeymapManager({notificationManager: this.notifications})
@@ -187,7 +185,18 @@ class AtomEnvironment {
       default: path.join(fs.getHomeDirectory(), 'github'),
       description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
     }
-    this.config.initialize({configDirPath: this.configDirPath, resourcePath, projectHomeSchema: ConfigSchema.projectHome})
+    if (this.enablePersistence) {
+      this.configStorage = new ConfigStorage({
+        config: this.config,
+        configDirPath: this.configDirPath,
+        resourcePath,
+        notificationManager: this.notifications
+      })
+    }
+    this.config.initialize({
+      configFilePath: ConfigStorage.createConfigFilePath(this.configDirPath),
+      projectHomeSchema: ConfigSchema.projectHome
+    })
 
     this.menu.initialize({resourcePath})
     this.contextMenu.initialize({resourcePath, devMode})
@@ -210,7 +219,7 @@ class AtomEnvironment {
     this.uriHandlerRegistry.registerHostHandler('core', CoreURIHandlers.create(this))
     this.autoUpdater.initialize()
 
-    this.config.load()
+    if (this.configStorage) this.configStorage.start()
 
     this.themes.loadBaseStylesheets()
     this.initialStyleElements = this.styles.getSnapshot()
@@ -339,7 +348,7 @@ class AtomEnvironment {
     this.project = null
     this.commands.clear()
     this.stylesElement.remove()
-    this.config.unobserveUserConfig()
+    if (this.configStorage) this.configStorage.stop()
     this.autoUpdater.destroy()
     this.uriHandlerRegistry.destroy()
 

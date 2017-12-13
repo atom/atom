@@ -3,6 +3,8 @@ CSON = require 'season'
 module.exports =
 class ScopedProperties
   @load: (scopedPropertiesPath, config, callback) ->
+    console.log('loading', scopedPropertiesPath)
+    debugger
     CSON.readFile scopedPropertiesPath, (error, scopedProperties={}) ->
       if error?
         callback(error)
@@ -10,6 +12,7 @@ class ScopedProperties
         callback(null, new ScopedProperties(scopedPropertiesPath, scopedProperties, config))
 
   constructor: (@path, @scopedProperties, @config) ->
+    console.log('new', path, scopedProperties, config)
 
   activate: ->
     for selector, properties of @scopedProperties
