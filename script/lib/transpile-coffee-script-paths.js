@@ -7,6 +7,8 @@ const path = require('path')
 
 const CONFIG = require('../config')
 
+const minimizejs = require('./minimize-js')
+
 module.exports = function () {
   console.log(`Transpiling CoffeeScript paths in ${CONFIG.intermediateAppPath}`)
   for (let path of getPathsToTranspile()) {
@@ -29,6 +31,10 @@ function getPathsToTranspile () {
 
 function transpileCoffeeScriptPath (coffeePath) {
   const jsPath = coffeePath.replace(/coffee$/g, 'js')
-  fs.writeFileSync(jsPath, CompileCache.addPathToCache(coffeePath, CONFIG.atomHomeDirPath))
+  let source = CompileCache.addPathToCache(coffeePath, CONFIG.atomHomeDirPath)
+  if(CONFIG.appMetadata.minimize){
+    source = minimizejs(source);
+  }
+  fs.writeFileSync(jsPath, source)
   fs.unlinkSync(coffeePath)
 }

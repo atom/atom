@@ -47,20 +47,28 @@ const transpileCsonPaths = require('./lib/transpile-cson-paths')
 const transpilePegJsPaths = require('./lib/transpile-peg-js-paths')
 const transpilePackagesWithCustomTranspilerPaths = require('./lib/transpile-packages-with-custom-transpiler-paths.js')
 
+const transpileUglifyJsPaths = require('./lib/transpile-uglifyjs-paths')
+
 process.on('unhandledRejection', function (e) {
   console.error(e.stack || e)
   process.exit(1)
 })
 
+
+
+
 checkChromedriverVersion()
 cleanOutputDirectory()
 copyAssets()
+
 transpilePackagesWithCustomTranspilerPaths()
 transpileBabelPaths()
 transpileCoffeeScriptPaths()
 transpileCsonPaths()
 transpilePegJsPaths()
+
 generateModuleCache()
+
 prebuildLessCache()
 generateMetadata()
 generateAPIDocs()

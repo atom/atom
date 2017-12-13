@@ -1,26 +1,17 @@
 'use strict'
 
-const CompileCache = require('../../src/compile-cache')
 const fs = require('fs')
 const glob = require('glob')
 const path = require('path')
-const minimizejs = require('./minimize-js')
+
+const UglifyJS = require('uglify-es')
 
 const CONFIG = require('../config')
-const BABEL_OPTIONS = require('../../static/babelrc.json')
-const BABEL_PREFIXES = [
-  "'use babel'",
-  '"use babel"',
-  '/** @babel */',
-  '/* @flow */'
-]
-const PREFIX_LENGTH = Math.max.apply(null, BABEL_PREFIXES.map(prefix => prefix.length))
-const BUFFER = Buffer(PREFIX_LENGTH)
 
 module.exports = function () {
-  console.log(`Transpiling Babel paths in ${CONFIG.intermediateAppPath}`)
+  console.log(`Transpiling Uglifyjs paths in ${CONFIG.intermediateAppPath}`)
   for (let path of getPathsToTranspile()) {
-    transpileBabelPath(path)
+    transpileUglifyjsPath(path)
   }
 }
 
@@ -39,10 +30,20 @@ function getPathsToTranspile () {
   return paths
 }
 
-function transpileBabelPath (path) {
-  let source = CompileCache.addPathToCache(path, CONFIG.atomHomeDirPath);
-  if(CONFIG.appMetadata.minimize){
-    source = minimizejs(source);
+function transpileUglifyjsPath (filePath) {
+  var sourceCode = fs.readFileSync(filePath, 'utf8')
+  var compiledResult = UglifyJS.minify(sourceCode, { mangle: true,
+    compress: {
+      sequences: true,
+      dead_code: true,
+      conditionals: true,
+      booleans: true,
+      unused: true,
+      if_return: true,
+      join_vars: true,
+      drop_console: true
+    } })
+  if(compiledResult.code){
+    fs.writeFileSync(filePath, compiledResult.code)
   }
-  fs.writeFileSync(path, source)
 }
