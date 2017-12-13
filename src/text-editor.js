@@ -407,7 +407,6 @@ class TextEditor {
             if (this.component != null) {
               this.component.scheduleUpdate()
             }
-            this.buffer.emitModifiedStatusChanged(this.isModified())
           }
           break
 
@@ -567,11 +566,6 @@ class TextEditor {
     this.disposables.add(this.buffer.onDidDestroy(() => this.destroy()))
     this.disposables.add(this.buffer.onDidChangeModified(() => {
       if (!this.hasTerminatedPendingState && this.buffer.isModified()) this.terminatePendingState()
-    }))
-    this.disposables.add(this.buffer.onDidSave(() => {
-      if (this.isReadOnly()) {
-        this.setReadOnly(false)
-      }
     }))
   }
 
@@ -1129,7 +1123,7 @@ class TextEditor {
   setEncoding (encoding) { this.buffer.setEncoding(encoding) }
 
   // Essential: Returns {Boolean} `true` if this editor has been modified.
-  isModified () { return this.isReadOnly() ? false : this.buffer.isModified() }
+  isModified () { return this.buffer.isModified() }
 
   // Essential: Returns {Boolean} `true` if this editor has no content.
   isEmpty () { return this.buffer.isEmpty() }
