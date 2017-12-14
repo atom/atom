@@ -823,7 +823,7 @@ class TextEditorComponent {
 
     const oldClassList = this.classList
     const newClassList = ['editor']
-    if (this.focused && this.isInputEnabled()) newClassList.push('is-focused')
+    if (this.focused) newClassList.push('is-focused')
     if (model.isMini()) newClassList.push('mini')
     for (var i = 0; i < model.selections.length; i++) {
       if (!model.selections[i].isEmpty()) {
