@@ -86,23 +86,6 @@ describe('TextEditor', () => {
     })
   })
 
-  describe('when the editor is readonly', () => {
-    it('overrides TextBuffer.isModified to return false', async () => {
-      const editor = await atom.workspace.open(null, {readOnly: true})
-      editor.setText('I am altering the buffer, pray I do not alter it any further')
-      expect(editor.isModified()).toBe(false)
-      editor.setReadOnly(false)
-      expect(editor.isModified()).toBe(true)
-    })
-    it('clears the readonly status when saved', async () => {
-      const editor = await atom.workspace.open(null, {readOnly: true})
-      editor.setText('I am altering the buffer, pray I do not alter it any further')
-      expect(editor.isReadOnly()).toBe(true)
-      await editor.saveAs(temp.openSync('was-readonly').path)
-      expect(editor.isReadOnly()).toBe(false)
-    })
-  })
-
   describe('.copy()', () => {
     it('returns a different editor with the same initial state', () => {
       expect(editor.getAutoHeight()).toBeFalsy()
