@@ -349,9 +349,9 @@ class TreeSitterHighlightIterator {
     do {
       this.currentNode = node
       this.currentChildIndex = childIndex
+      if (!nodeContainsTarget) break
       this.containingNodeTypes.push(node.type)
       this.containingNodeChildIndices.push(childIndex)
-      if (!nodeContainsTarget) break
 
       const scopeName = this.currentScopeName()
       if (scopeName) {

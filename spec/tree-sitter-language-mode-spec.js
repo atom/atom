@@ -32,7 +32,7 @@ describe('TreeSitterLanguageMode', () => {
 
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
       buffer.setText('aa.bbb = cc(d.eee());')
-      expectTokensToEqual(editor, [
+      expectTokensToEqual(editor, [[
         {text: 'aa.', scopes: ['source']},
         {text: 'bbb', scopes: ['source', 'property']},
         {text: ' = ', scopes: ['source']},
@@ -40,7 +40,7 @@ describe('TreeSitterLanguageMode', () => {
         {text: '(d.', scopes: ['source']},
         {text: 'eee', scopes: ['source', 'method']},
         {text: '());', scopes: ['source']}
-      ])
+      ]])
     })
 
     it('can start or end multiple scopes at the same position', () => {
@@ -58,7 +58,7 @@ describe('TreeSitterLanguageMode', () => {
 
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
       buffer.setText('a = bb.ccc();')
-      expectTokensToEqual(editor, [
+      expectTokensToEqual(editor, [[
         {text: 'a', scopes: ['source', 'variable']},
         {text: ' = ', scopes: ['source']},
         {text: 'bb', scopes: ['source', 'call', 'member', 'variable']},
@@ -66,6 +66,31 @@ describe('TreeSitterLanguageMode', () => {
         {text: '(', scopes: ['source', 'call', 'open-paren']},
         {text: ')', scopes: ['source', 'call', 'close-paren']},
         {text: ';', scopes: ['source']}
+      ]])
+    })
+
+    it('can resume highlighting on a line that starts with whitespace', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          'call_expression > member_expression > property_identifier': 'function',
+          'property_identifier': 'member',
+          'identifier': 'variable'
+        }
+      })
+
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      buffer.setText('a\n  .b();')
+      expectTokensToEqual(editor, [
+        [
+          {text: 'a', scopes: ['variable']},
+        ],
+        [
+          {text: '  ', scopes: ['whitespace']},
+          {text: '.', scopes: []},
+          {text: 'b', scopes: ['function']},
+          {text: '();', scopes: []}
+        ]
       ])
     })
   })
@@ -432,22 +457,34 @@ function getDisplayText (editor) {
   return editor.displayLayer.getText()
 }
 
-function expectTokensToEqual (editor, expectedTokens) {
-  const tokens = []
-  for (let row = 0, lastRow = editor.getLastScreenRow(); row <= lastRow; row++) {
-    tokens.push(
-      ...editor.tokensForScreenRow(row).map(({text, scopes}) => ({
+function expectTokensToEqual (editor, expectedTokenLines) {
+  const lastRow = editor.getLastScreenRow()
+
+  // Assert that the correct tokens are returned regardless of which row
+  // the highlighting iterator starts on.
+  for (let startRow = 0; startRow <= lastRow; startRow++) {
+    editor.displayLayer.clearSpatialIndex()
+    editor.displayLayer.getScreenLines(startRow, Infinity)
+
+    const tokenLines = []
+    for (let row = startRow; row <= lastRow; row++) {
+      tokenLines[row] = editor.tokensForScreenRow(row).map(({text, scopes}) => ({
         text,
         scopes: scopes.map(scope => scope
           .split(' ')
           .map(className => className.slice('syntax--'.length))
           .join(' '))
       }))
-    )
-  }
+    }
 
-  expect(tokens.length).toEqual(expectedTokens.length)
-  for (let i = 0; i < tokens.length; i++) {
-    expect(tokens[i]).toEqual(expectedTokens[i], `Token ${i}`)
+    for (let row = startRow; row <= lastRow; row++) {
+      const tokenLine = tokenLines[row]
+      const expectedTokenLine = expectedTokenLines[row]
+
+      expect(tokenLine.length).toEqual(expectedTokenLine.length)
+      for (let i = 0; i < tokenLine.length; i++) {
+        expect(tokenLine[i]).toEqual(expectedTokenLine[i], `Token ${i}, startRow: ${startRow}`)
+      }
+    }
   }
 }
