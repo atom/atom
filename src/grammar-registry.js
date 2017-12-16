@@ -13,16 +13,6 @@ const {Point, Range} = require('text-buffer')
 const GRAMMAR_TYPE_BONUS = 1000
 const PATH_SPLIT_REGEX = new RegExp('[/.]')
 
-const LANGUAGE_ID_MAP = [
-  ['source.js', 'javascript'],
-  ['source.ts', 'typescript'],
-  ['source.c', 'c'],
-  ['source.cpp', 'cpp'],
-  ['source.go', 'go'],
-  ['source.python', 'python'],
-  ['source.sh', 'bash']
-]
-
 // Extended: This class holds the grammars used for tokenizing.
 //
 // An instance of this class is always available as the `atom.grammars` global.
@@ -42,6 +32,8 @@ class GrammarRegistry {
     this.subscriptions = new CompositeDisposable()
     this.languageOverridesByBufferId = new Map()
     this.grammarScoresByBuffer = new Map()
+    this.textMateScopeNamesByTreeSitterLanguageId = new Map()
+    this.treeSitterLanguageIdsByTextMateScopeName = new Map()
 
     const grammarAddedOrUpdated = this.grammarAddedOrUpdated.bind(this)
     this.textmateRegistry.onDidAddGrammar(grammarAddedOrUpdated)
@@ -116,7 +108,7 @@ class GrammarRegistry {
   // Extended: Force a {TextBuffer} to use a different grammar than the
   // one that would otherwise be selected for it.
   //
-  // * `buffer` The {TextBuffer} whose gramamr will be set.
+  // * `buffer` The {TextBuffer} whose grammar will be set.
   // * `languageId` The {String} id of the desired language.
   //
   // Returns a {Boolean} that indicates whether the language was successfully
@@ -398,15 +390,29 @@ class GrammarRegistry {
   addGrammar (grammar) {
     if (grammar instanceof TreeSitterGrammar) {
       this.treeSitterGrammarsById[grammar.id] = grammar
+      if (grammar.legacyScopeName) {
+        this.config.addLegacyScopeAlias(grammar.id, grammar.legacyScopeName)
+        this.textMateScopeNamesByTreeSitterLanguageId.set(grammar.id, grammar.legacyScopeName)
+        this.treeSitterLanguageIdsByTextMateScopeName.set(grammar.legacyScopeName, grammar.id)
+      }
       this.grammarAddedOrUpdated(grammar)
-      return new Disposable(() => delete this.treeSitterGrammarsById[grammar.id])
+      return new Disposable(() => this.removeGrammar(grammar))
     } else {
       return this.textmateRegistry.addGrammar(grammar)
     }
   }
 
   removeGrammar (grammar) {
-    return this.textmateRegistry.removeGrammar(grammar)
+    if (grammar instanceof TreeSitterGrammar) {
+      delete this.treeSitterGrammarsById[grammar.id]
+      if (grammar.legacyScopeName) {
+        this.config.removeLegacyScopeAlias(grammar.id)
+        this.textMateScopeNamesByTreeSitterLanguageId.delete(grammar.id)
+        this.treeSitterLanguageIdsByTextMateScopeName.delete(grammar.legacyScopeName)
+      }
+    } else {
+      return this.textmateRegistry.removeGrammar(grammar)
+    }
   }
 
   removeGrammarForScopeName (scopeName) {
@@ -497,11 +503,9 @@ class GrammarRegistry {
 
   normalizeLanguageId (languageId) {
     if (this.config.get('core.useTreeSitterParsers')) {
-      const row = LANGUAGE_ID_MAP.find(entry => entry[0] === languageId)
-      return row ? row[1] : languageId
+      return this.treeSitterLanguageIdsByTextMateScopeName.get(languageId) || languageId
     } else {
-      const row = LANGUAGE_ID_MAP.find(entry => entry[1] === languageId)
-      return row ? row[0] : languageId
+      return this.textMateScopeNamesByTreeSitterLanguageId.get(languageId) || languageId
     }
   }
 }

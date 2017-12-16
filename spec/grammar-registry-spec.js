@@ -61,6 +61,9 @@ describe('GrammarRegistry', () => {
       const grammar = grammarRegistry.grammarForId('javascript')
       expect(grammar instanceof FirstMate.Grammar).toBe(true)
       expect(grammar.scopeName).toBe('source.js')
+
+      grammarRegistry.removeGrammar(grammar)
+      expect(grammarRegistry.grammarForId('javascript')).toBe(undefined)
     })
 
     it('converts the language id to a tree-sitter language id when `core.useTreeSitterParsers` is true', () => {
@@ -72,6 +75,9 @@ describe('GrammarRegistry', () => {
       const grammar = grammarRegistry.grammarForId('source.js')
       expect(grammar instanceof TreeSitterGrammar).toBe(true)
       expect(grammar.id).toBe('javascript')
+
+      grammarRegistry.removeGrammar(grammar)
+      expect(grammarRegistry.grammarForId('source.js') instanceof FirstMate.Grammar).toBe(true)
     })
   })
 

@@ -8,6 +8,7 @@ class TreeSitterGrammar {
     this.registry = registry
     this.id = params.id
     this.name = params.name
+    this.legacyScopeName = params.legacyScopeName
     if (params.contentRegExp) this.contentRegExp = new RegExp(params.contentRegExp)
 
     this.folds = params.folds || []

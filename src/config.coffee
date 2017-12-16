@@ -423,6 +423,7 @@ class Config
     @configFileHasErrors = false
     @transactDepth = 0
     @pendingOperations = []
+    @legacyScopeAliases = {}
 
     @requestLoad = _.debounce =>
       @loadUserConfig()
@@ -599,11 +600,22 @@ class Config
   #  * `value` The value for the key-path
   getAll: (keyPath, options) ->
     {scope} = options if options?
-    result = []
 
     if scope?
       scopeDescriptor = ScopeDescriptor.fromObject(scope)
-      result = result.concat @scopedSettingsStore.getAll(scopeDescriptor.getScopeChain(), keyPath, options)
+      result = @scopedSettingsStore.getAll(
+        scopeDescriptor.getScopeChain(),
+        keyPath,
+        options
+      )
+      if legacyScopeDescriptor = @getLegacyScopeDescriptor(scopeDescriptor)
+        result.push(@scopedSettingsStore.getAll(
+          legacyScopeDescriptor.getScopeChain(),
+          keyPath,
+          options
+        )...)
+    else
+      result = []
 
     if globalValue = @getRawValue(keyPath, options)
       result.push(scopeSelector: '*', value: globalValue)
@@ -761,6 +773,12 @@ class Config
       callback()
     finally
       @endTransaction()
+
+  addLegacyScopeAlias: (languageId, legacyScopeName) ->
+    @legacyScopeAliases[languageId] = legacyScopeName
+
+  removeLegacyScopeAlias: (languageId) ->
+    delete @legacyScopeAliases[languageId]
 
   ###
   Section: Internal methods used by core
@@ -1145,7 +1163,20 @@ class Config
 
   getRawScopedValue: (scopeDescriptor, keyPath, options) ->
     scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
-    @scopedSettingsStore.getPropertyValue(scopeDescriptor.getScopeChain(), keyPath, options)
+    result = @scopedSettingsStore.getPropertyValue(
+      scopeDescriptor.getScopeChain(),
+      keyPath,
+      options
+    )
+
+    if result?
+      result
+    else if legacyScopeDescriptor = @getLegacyScopeDescriptor(scopeDescriptor)
+      @scopedSettingsStore.getPropertyValue(
+        legacyScopeDescriptor.getScopeChain(),
+        keyPath,
+        options
+      )
 
   observeScopedKeyPath: (scope, keyPath, callback) ->
     callback(@get(keyPath, {scope}))
@@ -1159,6 +1190,13 @@ class Config
         event = {oldValue, newValue}
         oldValue = newValue
         callback(event)
+
+  getLegacyScopeDescriptor: (scopeDescriptor) ->
+    legacyAlias = @legacyScopeAliases[scopeDescriptor.scopes[0]]
+    if legacyAlias
+      scopes = scopeDescriptor.scopes.slice()
+      scopes[0] = legacyAlias
+      new ScopeDescriptor({scopes})
 
 # Base schema enforcers. These will coerce raw input into the specified type,
 # and will throw an error when the value cannot be coerced. Throwing the error
