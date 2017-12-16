@@ -410,6 +410,31 @@ describe('TreeSitterLanguageMode', () => {
     })
   })
 
+  describe('.scopeDescriptorForPosition', () => {
+    it('returns a scope descriptor representing the given position in the syntax tree', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        id: 'javascript',
+        parser: 'tree-sitter-javascript'
+      })
+
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+
+      buffer.setText('foo({bar: baz});')
+
+      editor.screenLineForScreenRow(0)
+      expect(editor.scopeDescriptorForBufferPosition({row: 0, column: 6}).getScopesArray()).toEqual([
+        'javascript',
+        'program',
+        'expression_statement',
+        'call_expression',
+        'arguments',
+        'object',
+        'pair',
+        'property_identifier'
+      ])
+    })
+  })
+
   describe('TextEditor.selectLargerSyntaxNode and .selectSmallerSyntaxNode', () => {
     it('expands and contract the selection based on the syntax tree', () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {

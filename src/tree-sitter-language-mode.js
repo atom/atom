@@ -293,7 +293,14 @@ class TreeSitterLanguageMode {
   }
 
   scopeDescriptorForPosition (point) {
-    return this.rootScopeDescriptor
+    const result = []
+    let node = this.document.rootNode.descendantForPosition(point)
+    while (node) {
+      result.push(node.type)
+      node = node.parent
+    }
+    result.push(this.grammar.id)
+    return new ScopeDescriptor({scopes: result.reverse()})
   }
 
   hasTokenForSelector (scopeSelector) {
