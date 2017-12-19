@@ -82,6 +82,7 @@ module.exports = ({blobStore}) ->
       params.onlyLoadBaseStyleSheets = true unless params.hasOwnProperty("onlyLoadBaseStyleSheets")
       atomEnvironment = new AtomEnvironment(params)
       atomEnvironment.initialize(params)
+      TextEditor.setScheduler(atomEnvironment.views)
       atomEnvironment
 
     promise = testRunner({

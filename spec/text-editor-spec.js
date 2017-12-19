@@ -7,6 +7,7 @@ const dedent = require('dedent')
 const clipboard = require('../src/safe-clipboard')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
+const TextMateLanguageMode = require('../src/text-mate-language-mode')
 
 describe('TextEditor', () => {
   let buffer, editor, lineLengths
@@ -82,22 +83,6 @@ describe('TextEditor', () => {
       })
 
       expect(editor2).toBeNull()
-    })
-  })
-
-  describe('when the editor is constructed with the largeFileMode option set to true', () => {
-    it("loads the editor but doesn't tokenize", async () => {
-      editor = await atom.workspace.openTextFile('sample.js', {largeFileMode: true})
-      buffer = editor.getBuffer()
-      expect(editor.lineTextForScreenRow(0)).toBe(buffer.lineForRow(0))
-      expect(editor.tokensForScreenRow(0).length).toBe(1)
-      expect(editor.tokensForScreenRow(1).length).toBe(2) // soft tab
-      expect(editor.lineTextForScreenRow(12)).toBe(buffer.lineForRow(12))
-      expect(editor.getCursorScreenPosition()).toEqual([0, 0])
-
-      editor.insertText('hey"')
-      expect(editor.tokensForScreenRow(0).length).toBe(1)
-      expect(editor.tokensForScreenRow(1).length).toBe(2)
     })
   })
 
@@ -1077,6 +1062,20 @@ describe('TextEditor', () => {
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
       })
 
+      it('stops at camelCase boundaries with non-ascii characters', () => {
+        editor.setText(' gétÁrevìôüsWord\n')
+        editor.setCursorBufferPosition([0, 16])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 12])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 4])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+      })
+
       it('skips consecutive non-word characters', () => {
         editor.setText('e, => \n')
         editor.setCursorBufferPosition([0, 6])
@@ -1089,6 +1088,21 @@ describe('TextEditor', () => {
 
       it('skips consecutive uppercase characters', () => {
         editor.setText(' AAADF \n')
+        editor.setCursorBufferPosition([0, 7])
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 6])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+
+        editor.setText('ALPhA\n')
+        editor.setCursorBufferPosition([0, 4])
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 2])
+      })
+
+      it('skips consecutive uppercase non-ascii letters', () => {
+        editor.setText(' ÀÁÅDF \n')
         editor.setCursorBufferPosition([0, 7])
         editor.moveToPreviousSubwordBoundary()
         expect(editor.getCursorBufferPosition()).toEqual([0, 6])
@@ -1327,7 +1341,7 @@ describe('TextEditor', () => {
       })
 
       it('will limit paragraph range to comments', () => {
-        editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+        atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.js')
         editor.setText(dedent`
           var quicksort = function () {
             /* Single line comment block */
@@ -2052,14 +2066,13 @@ describe('TextEditor', () => {
         expect(scopeDescriptors[0].getScopesArray()).toEqual(['source.js'])
         expect(scopeDescriptors[1].getScopesArray()).toEqual(['source.js', 'string.quoted.single.js'])
 
-        editor.setScopedSettingsDelegate({
-          getNonWordCharacters (scopes) {
-            const result = '/\()"\':,.;<>~!@#$%^&*|+=[]{}`?'
-            if (scopes.some(scope => scope.startsWith('string'))) {
-              return result
-            } else {
-              return result + '-'
-            }
+        spyOn(editor.getBuffer().getLanguageMode(), 'getNonWordCharacters').andCallFake(function (position) {
+          const result = '/\()"\':,.;<>~!@#$%^&*|+=[]{}`?'
+          const scopes = this.scopeDescriptorForPosition(position).getScopesArray()
+          if (scopes.some(scope => scope.startsWith('string'))) {
+            return result
+          } else {
+            return result + '-'
           }
         })
 
@@ -3321,13 +3334,13 @@ describe('TextEditor', () => {
           beforeEach(() => {
             editor.setSoftWrapped(true)
             editor.setEditorWidthInChars(80)
-            editor.setText(`\
-1
-2
-Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.
-3
-4\
-`)
+            editor.setText(dedent `
+              1
+              2
+              Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.
+              3
+              4
+            `)
           })
 
           it('moves the lines past the soft wrapped line', () => {
@@ -3665,7 +3678,7 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
       describe('when a newline is appended with a trailing closing tag behind the cursor (e.g. by pressing enter in the middel of a line)', () => {
         it('indents the new line to the correct level when editor.autoIndent is true and using a curly-bracket language', () => {
           editor.update({autoIndent: true})
-          editor.setGrammar(atom.grammars.selectGrammar('file.js'))
+          atom.grammars.assignLanguageMode(editor, 'source.js')
           editor.setText('var test = () => {\n  return true;};')
           editor.setCursorBufferPosition([1, 14])
           editor.insertNewline()
@@ -3674,7 +3687,7 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
         })
 
         it('indents the new line to the current level when editor.autoIndent is true and no increaseIndentPattern is specified', () => {
-          editor.setGrammar(atom.grammars.selectGrammar('file'))
+          atom.grammars.assignLanguageMode(editor, null)
           editor.update({autoIndent: true})
           editor.setText('  if true')
           editor.setCursorBufferPosition([0, 8])
@@ -3687,7 +3700,7 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
         it('indents the new line to the correct level when editor.autoIndent is true and using an off-side rule language', async () => {
           await atom.packages.activatePackage('language-coffee-script')
           editor.update({autoIndent: true})
-          editor.setGrammar(atom.grammars.selectGrammar('file.coffee'))
+          atom.grammars.assignLanguageMode(editor, 'source.coffee')
           editor.setText('if true\n  return trueelse\n  return false')
           editor.setCursorBufferPosition([1, 13])
           editor.insertNewline()
@@ -3701,7 +3714,7 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
         it('indents the new line to the correct level when editor.autoIndent is true', async () => {
           await atom.packages.activatePackage('language-go')
           editor.update({autoIndent: true})
-          editor.setGrammar(atom.grammars.selectGrammar('file.go'))
+          atom.grammars.assignLanguageMode(editor, 'source.go')
           editor.setText('fmt.Printf("some%s",\n	"thing")')
           editor.setCursorBufferPosition([1, 10])
           editor.insertNewline()
@@ -5593,21 +5606,30 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
     })
   })
 
-  describe('when a better-matched grammar is added to syntax', () => {
-    it('switches to the better-matched grammar and re-tokenizes the buffer', async () => {
-      editor.destroy()
+  describe('when the buffer\'s language mode changes', () => {
+    it('notifies onDidTokenize observers when retokenization is finished', async () => {
+      // Exercise the full `tokenizeInBackground` code path, which bails out early if
+      // `.setVisible` has not been called with `true`.
+      jasmine.unspy(TextMateLanguageMode.prototype, 'tokenizeInBackground')
+      jasmine.attachToDOM(editor.getElement())
 
-      const jsGrammar = atom.grammars.selectGrammar('a.js')
-      atom.grammars.removeGrammar(jsGrammar)
+      const events = []
+      editor.onDidTokenize(event => events.push(event))
 
-      editor = await atom.workspace.open('sample.js', {autoIndent: false})
+      await atom.packages.activatePackage('language-c')
+      expect(atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.c')).toBe(true)
+      advanceClock(1)
+      expect(events.length).toBe(1)
+    })
 
-      expect(editor.getGrammar()).toBe(atom.grammars.nullGrammar)
-      expect(editor.tokensForScreenRow(0).length).toBe(1)
+    it('notifies onDidChangeGrammar observers', async () => {
+      const events = []
+      editor.onDidChangeGrammar(grammar => events.push(grammar))
 
-      atom.grammars.addGrammar(jsGrammar)
-      expect(editor.getGrammar()).toBe(jsGrammar)
-      expect(editor.tokensForScreenRow(0).length).toBeGreaterThan(1)
+      await atom.packages.activatePackage('language-c')
+      expect(atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.c')).toBe(true)
+      expect(events.length).toBe(1)
+      expect(events[0].name).toBe('C')
     })
   })
 
@@ -5881,21 +5903,20 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
 
       editor.duplicateLines()
 
-      expect(editor.getTextInBufferRange([[2, 0], [13, 5]])).toBe(`\
-\    if (items.length <= 1) return items;
-    if (items.length <= 1) return items;
-    var pivot = items.shift(), current, left = [], right = [];
-    while(items.length > 0) {
-      current = items.shift();
-      current < pivot ? left.push(current) : right.push(current);
-    }
-    var pivot = items.shift(), current, left = [], right = [];
-    while(items.length > 0) {
-      current = items.shift();
-      current < pivot ? left.push(current) : right.push(current);
-    }\
-`
-      )
+      expect(editor.getTextInBufferRange([[2, 0], [13, 5]])).toBe(dedent `
+        if (items.length <= 1) return items;
+        if (items.length <= 1) return items;
+        var pivot = items.shift(), current, left = [], right = [];
+        while(items.length > 0) {
+          current = items.shift();
+          current < pivot ? left.push(current) : right.push(current);
+        }
+        var pivot = items.shift(), current, left = [], right = [];
+        while(items.length > 0) {
+          current = items.shift();
+          current < pivot ? left.push(current) : right.push(current);
+        }\
+      `.split('\n').map(l => `    ${l}`).join('\n'))
       expect(editor.getSelectedBufferRanges()).toEqual([[[3, 5], [3, 5]], [[9, 0], [14, 0]]])
 
       // folds are also duplicated
@@ -5911,42 +5932,40 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh 
 
       editor.duplicateLines()
 
-      expect(editor.getTextInBufferRange([[2, 0], [11, 5]])).toBe(`\
-\    if (items.length <= 1) return items;
-    var pivot = items.shift(), current, left = [], right = [];
-    while(items.length > 0) {
-      current = items.shift();
-      current < pivot ? left.push(current) : right.push(current);
-    }
-    while(items.length > 0) {
-      current = items.shift();
-      current < pivot ? left.push(current) : right.push(current);
-    }\
-`
-      )
+      expect(editor.getTextInBufferRange([[2, 0], [11, 5]])).toBe(dedent`
+        if (items.length <= 1) return items;
+        var pivot = items.shift(), current, left = [], right = [];
+        while(items.length > 0) {
+          current = items.shift();
+          current < pivot ? left.push(current) : right.push(current);
+        }
+        while(items.length > 0) {
+          current = items.shift();
+          current < pivot ? left.push(current) : right.push(current);
+        }
+      `.split('\n').map(l => `    ${l}`).join('\n'))
       expect(editor.getSelectedBufferRange()).toEqual([[8, 0], [8, 0]])
     })
 
     it('can duplicate the last line of the buffer', () => {
       editor.setSelectedBufferRange([[11, 0], [12, 2]])
       editor.duplicateLines()
-      expect(editor.getTextInBufferRange([[11, 0], [14, 2]])).toBe(`\
-\  return sort(Array.apply(this, arguments));
-};
-  return sort(Array.apply(this, arguments));
-};\
-`
-      )
+      expect(editor.getTextInBufferRange([[11, 0], [14, 2]])).toBe('  ' + dedent `
+          return sort(Array.apply(this, arguments));
+        };
+          return sort(Array.apply(this, arguments));
+        };
+      `.trim())
       expect(editor.getSelectedBufferRange()).toEqual([[13, 0], [14, 2]])
     })
 
     it('only duplicates lines containing multiple selections once', () => {
-      editor.setText(`\
-aaaaaa
-bbbbbb
-cccccc
-dddddd\
-`)
+      editor.setText(dedent `
+        aaaaaa
+        bbbbbb
+        cccccc
+        dddddd
+      `)
       editor.setSelectedBufferRanges([
         [[0, 1], [0, 2]],
         [[0, 3], [0, 4]],
@@ -5955,15 +5974,15 @@ dddddd\
         [[3, 3], [3, 4]]
       ])
       editor.duplicateLines()
-      expect(editor.getText()).toBe(`\
-aaaaaa
-aaaaaa
-bbbbbb
-cccccc
-dddddd
-cccccc
-dddddd\
-`)
+      expect(editor.getText()).toBe(dedent `
+        aaaaaa
+        aaaaaa
+        bbbbbb
+        cccccc
+        dddddd
+        cccccc
+        dddddd
+      `)
       expect(editor.getSelectedBufferRanges()).toEqual([
         [[1, 1], [1, 2]],
         [[1, 3], [1, 4]],
@@ -6604,17 +6623,6 @@ dddddd\
     })
   })
 
-  describe('when the editor is constructed with the grammar option set', () => {
-    beforeEach(async () => {
-      await atom.packages.activatePackage('language-coffee-script')
-    })
-
-    it('sets the grammar', () => {
-      editor = new TextEditor({grammar: atom.grammars.grammarForScopeName('source.coffee')})
-      expect(editor.getGrammar().name).toBe('CoffeeScript')
-    })
-  })
-
   describe('softWrapAtPreferredLineLength', () => {
     it('soft wraps the editor at the preferred line length unless the editor is narrower or the editor is mini', () => {
       editor.update({
@@ -6675,6 +6683,7 @@ describe('TextEditor', () => {
     beforeEach(async () => {
       editor = await atom.workspace.open('sample.js')
       jasmine.unspy(editor, 'shouldPromptToSave')
+      spyOn(atom.stateStore, 'isConnected').andReturn(true)
     })
 
     it('returns true when buffer has unsaved changes', () => {
@@ -6802,7 +6811,7 @@ describe('TextEditor', () => {
     })
 
     it('does nothing for empty lines and null grammar', () => {
-      editor.setGrammar(atom.grammars.grammarForScopeName('text.plain.null-grammar'))
+      atom.grammars.assignLanguageMode(editor, null)
       editor.setCursorBufferPosition([10, 0])
       editor.toggleLineCommentsInSelection()
       expect(editor.lineTextForBufferRow(10)).toBe('')

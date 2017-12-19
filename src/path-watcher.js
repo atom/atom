@@ -422,7 +422,7 @@ class PathWatcher {
   // Extended: Return a {Promise} that will resolve when the underlying native watcher is ready to begin sending events.
   // When testing filesystem watchers, it's important to await this promise before making filesystem changes that you
   // intend to assert about because there will be a delay between the instantiation of the watcher and the activation
-  // of the underlying OS resources that feed it events.
+  // of the underlying OS resources that feed its events.
   //
   // PathWatchers acquired through `watchPath` are already started.
   //
@@ -533,7 +533,7 @@ class PathWatcher {
     }
   }
 
-  // Extended: Unsubscribe all subscribers from filesystem events. Native resources will be release asynchronously,
+  // Extended: Unsubscribe all subscribers from filesystem events. Native resources will be released asynchronously,
   // but this watcher will stop broadcasting events immediately.
   dispose () {
     for (const sub of this.changeCallbacks.values()) {

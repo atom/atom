@@ -1,4 +1,3 @@
-_ = require 'underscore-plus'
 {ipcRenderer, remote, shell} = require 'electron'
 ipcHelpers = require './ipc-helpers'
 {Disposable} = require 'event-kit'
@@ -133,7 +132,7 @@ class ApplicationDelegate
 
   confirm: ({message, detailedMessage, buttons}) ->
     buttons ?= {}
-    if _.isArray(buttons)
+    if Array.isArray(buttons)
       buttonLabels = buttons
     else
       buttonLabels = Object.keys(buttons)
@@ -146,7 +145,7 @@ class ApplicationDelegate
       normalizeAccessKeys: true
     })
 
-    if _.isArray(buttons)
+    if Array.isArray(buttons)
       chosen
     else
       callback = buttons[buttonLabels[chosen]]
