@@ -2840,83 +2840,149 @@ describe('TextEditorComponent', () => {
 
   describe('mouse input', () => {
     describe('on the lines', () => {
-      it('positions the cursor on single-click or when middle/right-clicking', async () => {
-        for (const button of [0, 1, 2]) {
+      describe('when there is only one cursor and no selection', () => {
+        it('positions the cursor on single-click or when middle/right-clicking', async () => {
+          for (const button of [0, 1, 2]) {
+            const {component, element, editor} = buildComponent()
+            const {lineHeight} = component.measurements
+
+            editor.setCursorScreenPosition([Infinity, Infinity], {autoscroll: false})
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: clientLeftForCharacter(component, 0, 0) - 1,
+              clientY: clientTopForLine(component, 0) - 1
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([0, 0])
+
+            const maxRow = editor.getLastScreenRow()
+            editor.setCursorScreenPosition([Infinity, Infinity], {autoscroll: false})
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: clientLeftForCharacter(component, maxRow, editor.lineLengthForScreenRow(maxRow)) + 1,
+              clientY: clientTopForLine(component, maxRow) + 1
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([maxRow, editor.lineLengthForScreenRow(maxRow)])
+
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: clientLeftForCharacter(component, 0, editor.lineLengthForScreenRow(0)) + 1,
+              clientY: clientTopForLine(component, 0) + lineHeight / 2
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([0, editor.lineLengthForScreenRow(0)])
+
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: (clientLeftForCharacter(component, 3, 0) + clientLeftForCharacter(component, 3, 1)) / 2,
+              clientY: clientTopForLine(component, 1) + lineHeight / 2
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([1, 0])
+
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2,
+              clientY: clientTopForLine(component, 3) + lineHeight / 2
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([3, 14])
+
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2 + 1,
+              clientY: clientTopForLine(component, 3) + lineHeight / 2
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([3, 15])
+
+            editor.getBuffer().setTextInRange([[3, 14], [3, 15]], '🐣')
+            await component.getNextUpdatePromise()
+
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2,
+              clientY: clientTopForLine(component, 3) + lineHeight / 2
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([3, 14])
+
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2 + 1,
+              clientY: clientTopForLine(component, 3) + lineHeight / 2
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([3, 16])
+
+            expect(editor.testAutoscrollRequests).toEqual([])
+          }
+        })
+      })
+
+      describe('when there is more than one cursor', () => {
+        it('does not move the cursor when right-clicking', async () => {
           const {component, element, editor} = buildComponent()
           const {lineHeight} = component.measurements
 
-          editor.setCursorScreenPosition([Infinity, Infinity], {autoscroll: false})
+          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
+          editor.addCursorAtScreenPosition([2, 4])
           component.didMouseDownOnContent({
             detail: 1,
-            button,
+            button: 2,
             clientX: clientLeftForCharacter(component, 0, 0) - 1,
             clientY: clientTopForLine(component, 0) - 1
           })
-          expect(editor.getCursorScreenPosition()).toEqual([0, 0])
+          expect(editor.getCursorScreenPositions()).toEqual([Point.fromObject([5, 17]), Point.fromObject([2, 4])])
+        })
 
-          const maxRow = editor.getLastScreenRow()
-          editor.setCursorScreenPosition([Infinity, Infinity], {autoscroll: false})
+        it('does move the cursor when middle-clicking', async () => {
+          const {component, element, editor} = buildComponent()
+          const {lineHeight} = component.measurements
+
+          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
+          editor.addCursorAtScreenPosition([2, 4])
           component.didMouseDownOnContent({
             detail: 1,
-            button,
-            clientX: clientLeftForCharacter(component, maxRow, editor.lineLengthForScreenRow(maxRow)) + 1,
-            clientY: clientTopForLine(component, maxRow) + 1
+            button: 1,
+            clientX: clientLeftForCharacter(component, 0, 0) - 1,
+            clientY: clientTopForLine(component, 0) - 1
           })
-          expect(editor.getCursorScreenPosition()).toEqual([maxRow, editor.lineLengthForScreenRow(maxRow)])
+          expect(editor.getCursorScreenPositions()).toEqual([Point.fromObject([0, 0])])
+        })
+      })
 
+      describe('when there are non-empty selections', () => {
+        it('does not move the cursor when right-clicking', async () => {
+          const {component, element, editor} = buildComponent()
+          const {lineHeight} = component.measurements
+
+          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
+          editor.selectRight(3)
           component.didMouseDownOnContent({
             detail: 1,
-            button,
-            clientX: clientLeftForCharacter(component, 0, editor.lineLengthForScreenRow(0)) + 1,
-            clientY: clientTopForLine(component, 0) + lineHeight / 2
+            button: 2,
+            clientX: clientLeftForCharacter(component, 0, 0) - 1,
+            clientY: clientTopForLine(component, 0) - 1
           })
-          expect(editor.getCursorScreenPosition()).toEqual([0, editor.lineLengthForScreenRow(0)])
+          expect(editor.getSelectedScreenRange()).toEqual([[5, 17], [5, 20]])
+        })
 
+        it('does move the cursor when middle-clicking', async () => {
+          const {component, element, editor} = buildComponent()
+          const {lineHeight} = component.measurements
+
+          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
+          editor.selectRight(3)
           component.didMouseDownOnContent({
             detail: 1,
-            button,
-            clientX: (clientLeftForCharacter(component, 3, 0) + clientLeftForCharacter(component, 3, 1)) / 2,
-            clientY: clientTopForLine(component, 1) + lineHeight / 2
+            button: 1,
+            clientX: clientLeftForCharacter(component, 0, 0) - 1,
+            clientY: clientTopForLine(component, 0) - 1
           })
-          expect(editor.getCursorScreenPosition()).toEqual([1, 0])
-
-          component.didMouseDownOnContent({
-            detail: 1,
-            button,
-            clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2,
-            clientY: clientTopForLine(component, 3) + lineHeight / 2
-          })
-          expect(editor.getCursorScreenPosition()).toEqual([3, 14])
-
-          component.didMouseDownOnContent({
-            detail: 1,
-            button,
-            clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2 + 1,
-            clientY: clientTopForLine(component, 3) + lineHeight / 2
-          })
-          expect(editor.getCursorScreenPosition()).toEqual([3, 15])
-
-          editor.getBuffer().setTextInRange([[3, 14], [3, 15]], '🐣')
-          await component.getNextUpdatePromise()
-
-          component.didMouseDownOnContent({
-            detail: 1,
-            button,
-            clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2,
-            clientY: clientTopForLine(component, 3) + lineHeight / 2
-          })
-          expect(editor.getCursorScreenPosition()).toEqual([3, 14])
-
-          component.didMouseDownOnContent({
-            detail: 1,
-            button,
-            clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2 + 1,
-            clientY: clientTopForLine(component, 3) + lineHeight / 2
-          })
-          expect(editor.getCursorScreenPosition()).toEqual([3, 16])
-
-          expect(editor.testAutoscrollRequests).toEqual([])
-        }
+          expect(editor.getSelectedScreenRange()).toEqual([[0, 0], [0, 0]])
+        })
       })
 
       describe('when the input is for the primary mouse button', () => {
