@@ -85,7 +85,7 @@ module.exports = function (packagedAppPath) {
     console.log(`Generating startup blob at "${generatedStartupBlobPath}"`)
     childProcess.execFileSync(
       path.join(CONFIG.repositoryRootPath, 'script', 'node_modules', 'electron-mksnapshot', 'bin', 'mksnapshot'),
-      [snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
+      ['--no-use_ic', snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
     )
 
     let startupBlobDestinationPath
