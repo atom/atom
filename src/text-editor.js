@@ -3604,7 +3604,7 @@ class TextEditor {
   // coordinates. Useful with {Config::get}.
   //
   // For example, if called with a position inside the parameter list of an
-  // anonymous CoffeeScript function, this method returns a {ScopeDescriptor} with 
+  // anonymous CoffeeScript function, this method returns a {ScopeDescriptor} with
   // the following scopes array:
   // `["source.coffee", "meta.function.inline.coffee", "meta.parameters.coffee", "variable.parameter.function.coffee"]`
   //
