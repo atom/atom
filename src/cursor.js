@@ -690,13 +690,16 @@ class Cursor extends Model {
       '\\d+'
     ]
     if (options.backwards) {
+      segments.push(`${snakeCamelSegment}\\.?`)
       segments.push(`${snakeCamelSegment}_*`)
       segments.push(`[${_.escapeRegExp(nonWordCharacters)}]+\\s*`)
     } else {
       segments.push(`_*${snakeCamelSegment}`)
+      segments.push(`\\.?${snakeCamelSegment}`)
       segments.push(`\\s*[${_.escapeRegExp(nonWordCharacters)}]+`)
     }
     segments.push('_+')
+    const testRegExp = new RegExp(segments.join('|'), 'g')
     return new RegExp(segments.join('|'), 'g')
   }
 
