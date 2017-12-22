@@ -3600,14 +3600,15 @@ class TextEditor {
     return this.buffer.getLanguageMode().rootScopeDescriptor
   }
 
-  // Essential: Get the syntactic scopeDescriptor for the given position in buffer
+  // Essential: Get the syntactic {ScopeDescriptor} for the given position in buffer
   // coordinates. Useful with {Config::get}.
   //
   // For example, if called with a position inside the parameter list of an
-  // anonymous CoffeeScript function, the method returns the following array:
-  // `["source.coffee", "meta.inline.function.coffee", "variable.parameter.function.coffee"]`
+  // anonymous CoffeeScript function, this method returns a {ScopeDescriptor} with 
+  // the following scopes array:
+  // `["source.coffee", "meta.function.inline.coffee", "meta.parameters.coffee", "variable.parameter.function.coffee"]`
   //
-  // * `bufferPosition` A {Point} or {Array} of [row, column].
+  // * `bufferPosition` A {Point} or {Array} of `[row, column]`.
   //
   // Returns a {ScopeDescriptor}.
   scopeDescriptorForBufferPosition (bufferPosition) {
