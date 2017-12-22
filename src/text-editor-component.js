@@ -56,7 +56,7 @@ class TextEditorComponent {
     this.props = props
 
     if (!props.model) {
-      props.model = new TextEditor({mini: props.mini})
+      props.model = new TextEditor({mini: props.mini, readOnly: props.readOnly})
     }
     this.props.model.component = this
 
@@ -460,9 +460,13 @@ class TextEditorComponent {
       }
     }
 
-    let attributes = null
+    let attributes = {}
     if (model.isMini()) {
-      attributes = {mini: ''}
+      attributes.mini = ''
+    }
+
+    if (!this.isInputEnabled()) {
+      attributes.readonly = ''
     }
 
     const dataset = {encoding: model.getEncoding()}
@@ -1758,11 +1762,13 @@ class TextEditorComponent {
 
     const screenPosition = this.screenPositionForMouseEvent(event)
 
-    // All clicks should set the cursor position, but only left-clicks should
-    // have additional logic.
-    // On macOS, ctrl-click brings up the context menu so also handle that case.
     if (button !== 0 || (platform === 'darwin' && ctrlKey)) {
-      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
+      // Always set cursor position on middle-click
+      // Only set cursor position on right-click if there is one cursor with no selection
+      const ranges = model.getSelectedBufferRanges()
+      if (button === 1 || (ranges.length === 1 && ranges[0].isEmpty())) {
+        model.setCursorScreenPosition(screenPosition, {autoscroll: false})
+      }
 
       // On Linux, pasting happens on middle click. A textInput event with the
       // contents of the selection clipboard will be dispatched by the browser
@@ -2962,11 +2968,11 @@ class TextEditorComponent {
   }
 
   setInputEnabled (inputEnabled) {
-    this.props.inputEnabled = inputEnabled
+    this.props.model.update({readOnly: !inputEnabled})
   }
 
   isInputEnabled (inputEnabled) {
-    return this.props.inputEnabled != null ? this.props.inputEnabled : true
+    return !this.props.model.isReadOnly()
   }
 
   getHiddenInput () {

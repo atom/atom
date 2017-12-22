@@ -448,9 +448,19 @@ class Selection {
     if (options.autoIndent && textIsAutoIndentable && !NonWhitespaceRegExp.test(precedingText) && (remainingLines.length > 0)) {
       autoIndentFirstLine = true
       const firstLine = precedingText + firstInsertedLine
-      desiredIndentLevel = this.editor.tokenizedBuffer.suggestedIndentForLineAtBufferRow(oldBufferRange.start.row, firstLine)
-      indentAdjustment = desiredIndentLevel - this.editor.indentLevelForLine(firstLine)
-      this.adjustIndent(remainingLines, indentAdjustment)
+      const languageMode = this.editor.buffer.getLanguageMode()
+      desiredIndentLevel = (
+        languageMode.suggestedIndentForLineAtBufferRow &&
+        languageMode.suggestedIndentForLineAtBufferRow(
+          oldBufferRange.start.row,
+          firstLine,
+          this.editor.getTabLength()
+        )
+      )
+      if (desiredIndentLevel != null) {
+        indentAdjustment = desiredIndentLevel - this.editor.indentLevelForLine(firstLine)
+        this.adjustIndent(remainingLines, indentAdjustment)
+      }
     }
 
     text = firstInsertedLine
