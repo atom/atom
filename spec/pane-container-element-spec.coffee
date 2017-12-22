@@ -238,7 +238,7 @@ describe "PaneContainerElement", ->
         expect(leftPane.getFlexScale()).toBe 1/1.1
         expect(rightPane.getFlexScale()).toBe 1/1.1
 
-  describe "one pane resizing", ->
+  describe "when only a single pane is present", ->
     [singlePane] = []
 
     beforeEach ->
@@ -246,7 +246,7 @@ describe "PaneContainerElement", ->
       singlePane = container.getActivePane()
 
     describe "when pane:increase-size is triggered", ->
-      it "increases the size of the pane", ->
+      it "does not increases the size of the pane", ->
         expect(singlePane.getFlexScale()).toBe 1
 
         atom.commands.dispatch(singlePane.getElement(), 'pane:increase-size')
@@ -256,7 +256,7 @@ describe "PaneContainerElement", ->
         expect(singlePane.getFlexScale()).toBe 1
 
     describe "when pane:decrease-size is triggered", ->
-      it "decreases the size of the pane", ->
+      it "does not decreases the size of the pane", ->
         expect(singlePane.getFlexScale()).toBe 1
 
         atom.commands.dispatch(singlePane.getElement(), 'pane:decrease-size')
