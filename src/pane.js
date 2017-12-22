@@ -156,13 +156,13 @@ class Pane {
   getFlexScale () { return this.flexScale }
 
   increaseSize () {
-    if (this.getContainer().getPanes().length > 1){
+    if (this.getContainer().getPanes().length > 1) {
       this.setFlexScale(this.getFlexScale() * 1.1)
     }
   }
 
   decreaseSize () {
-    if (this.getContainer().getPanes().length > 1){
+    if (this.getContainer().getPanes().length > 1) {
       this.setFlexScale(this.getFlexScale() / 1.1)
     }
   }
