@@ -4,12 +4,14 @@ const assert = require('assert')
 const childProcess = require('child_process')
 const electronPackager = require('electron-packager')
 const fs = require('fs-extra')
+const hostArch = require('electron-packager/targets').hostArch
 const includePathInPackagedApp = require('./include-path-in-packaged-app')
 const getLicenseText = require('./get-license-text')
 const path = require('path')
 const spawnSync = require('./spawn-sync')
 
 const CONFIG = require('../config')
+const HOST_ARCH = hostArch()
 
 module.exports = function () {
   const appName = getAppName()
@@ -18,7 +20,7 @@ module.exports = function () {
     appBundleId: 'com.github.atom',
     appCopyright: `Copyright © 2014-${(new Date()).getFullYear()} GitHub, Inc. All rights reserved.`,
     appVersion: CONFIG.appMetadata.version,
-    arch: process.platform === 'darwin' ? 'x64' : process.arch, // OS X is 64-bit only
+    arch: process.platform === 'darwin' ? 'x64' : HOST_ARCH, // OS X is 64-bit only
     asar: {unpack: buildAsarUnpackGlobExpression()},
     buildVersion: CONFIG.appMetadata.version,
     download: {cache: CONFIG.electronDownloadPath},
@@ -140,12 +142,12 @@ function renamePackagedAppDir (packageOutputDirPath) {
   } else if (process.platform === 'linux') {
     const appName = CONFIG.channel === 'beta' ? 'atom-beta' : 'atom'
     let architecture
-    if (process.arch === 'ia32') {
+    if (HOST_ARCH === 'ia32') {
       architecture = 'i386'
-    } else if (process.arch === 'x64') {
+    } else if (HOST_ARCH === 'x64') {
       architecture = 'amd64'
     } else {
-      architecture = process.arch
+      architecture = HOST_ARCH
     }
     packagedAppPath = path.join(CONFIG.buildOutputPath, `${appName}-${CONFIG.appMetadata.version}-${architecture}`)
     if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
@@ -153,8 +155,8 @@ function renamePackagedAppDir (packageOutputDirPath) {
   } else {
     const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
     packagedAppPath = path.join(CONFIG.buildOutputPath, appName)
-    if (process.platform === 'win32' && process.arch !== 'ia32') {
-      packagedAppPath += ` ${process.arch}`
+    if (process.platform === 'win32' && HOST_ARCH !== 'ia32') {
+      packagedAppPath += ` ${HOST_ARCH}`
     }
     if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(packageOutputDirPath, packagedAppPath)
