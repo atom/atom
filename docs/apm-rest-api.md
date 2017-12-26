@@ -83,7 +83,7 @@ Returns package details and versions for a single package
 Parameters:
 
 - **engine** (optional) - Only show packages with versions compatible with this
-  Atom version. Must be valid [SemVer](http://semver.org).
+  Atom version. Must be valid [SemVer](https://semver.org).
 
 Returns:
 
