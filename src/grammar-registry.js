@@ -213,7 +213,7 @@ class GrammarRegistry {
     if (process.platform === 'win32') { filePath = filePath.replace(/\\/g, '/') }
 
     const pathComponents = filePath.toLowerCase().split(PATH_SPLIT_REGEX)
-    let pathScore = -1
+    let pathScore = 0
 
     let customFileTypes
     if (this.config.get('core.customFileTypes')) {
