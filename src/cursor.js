@@ -690,8 +690,7 @@ class Cursor extends Model {
       '\\d+'
     ]
     if (options.backwards) {
-      segments.push(`${snakeCamelSegment}\\.?`)
-      segments.push(`${snakeCamelSegment}_*`)
+      segments.push(`${snakeCamelSegment}[\\._]*`)
       segments.push(`[${_.escapeRegExp(nonWordCharacters)}]+\\s*`)
     } else {
       segments.push(`_*${snakeCamelSegment}`)

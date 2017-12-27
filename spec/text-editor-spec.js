@@ -1048,6 +1048,24 @@ describe('TextEditor', () => {
         expect(editor.getCursorBufferPosition()).toEqual([0, 1])
       })
 
+      it('stops at word and dot boundaries', () => {
+        editor.setText('sub.word \n')
+        editor.setCursorBufferPosition([0, 9])
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 8])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 4])
+
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 0])
+
+        editor.setText(' word\n')
+        editor.setCursorBufferPosition([0, 3])
+        editor.moveToPreviousSubwordBoundary()
+        expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+      })
+
       it('stops at camelCase boundaries', () => {
         editor.setText(' getPreviousWord\n')
         editor.setCursorBufferPosition([0, 16])
