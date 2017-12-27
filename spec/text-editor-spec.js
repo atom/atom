@@ -20,6 +20,16 @@ describe('TextEditor', () => {
     await atom.packages.activatePackage('language-javascript')
   })
 
+  it('generates unique ids for each editor', () => {
+    // Deserialized editors are initialized with an id:
+    new TextEditor({id: 0})
+    new TextEditor({id: 1})
+    new TextEditor({id: 2})
+    // Initializing an editor without an id causes a new id to be generated:
+    const generatedId = new TextEditor().id
+    expect(generatedId).toBe(3)
+  })
+
   describe('when the editor is deserialized', () => {
     it('restores selections and folds based on markers in the buffer', async () => {
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
