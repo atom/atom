@@ -63,7 +63,7 @@ else
 
 beforeEach ->
   # Do not clobber recent project history
-  spyOn(atom.history, 'saveState').andReturn(Promise.resolve())
+  spyOn(Object.getPrototypeOf(atom.history), 'saveState').andReturn(Promise.resolve())
 
   atom.project.setPaths([specProjectPath])
 

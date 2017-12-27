@@ -42,27 +42,11 @@ The `.zip` version will not automatically update.
 
 Using [Chocolatey](https://chocolatey.org)? Run `cinst Atom` to install the latest version of Atom.
 
-### Debian based (Debian, Ubuntu, Linux Mint)
+### Linux
 
 Atom is only available for 64-bit Linux systems.
 
-1. Download `atom-amd64.deb` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
-2. Run `sudo dpkg --install atom-amd64.deb` on the downloaded package.
-3. Launch Atom using the installed `atom` command.
-
-The Linux version does not currently automatically update so you will need to
-repeat these steps to upgrade to future releases.
-
-### RPM based (Red Hat, openSUSE, Fedora, CentOS)
-
-Atom is only available for 64-bit Linux systems.
-
-1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
-2. Run `sudo rpm -i atom.x86_64.rpm` on the downloaded package.
-3. Launch Atom using the installed `atom` command.
-
-The Linux version does not currently automatically update so you will need to
-repeat these steps to upgrade to future releases.
+Configure your distribution's package manager to install and update Atom by following the [Linux installation instructions](http://flight-manual.atom.io/getting-started/sections/installing-atom/#platform-linux) in the Flight Manual.  You will also find instructions on how to install Atom's official Linux packages without using a package repository, though you will not get automatic updates after installing Atom this way.
 
 ### Archive extraction
 

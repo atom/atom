@@ -206,11 +206,12 @@ class AtomEnvironment {
     this.themes.initialize({configDirPath: this.configDirPath, resourcePath, safeMode, devMode})
 
     this.commandInstaller.initialize(this.getVersion())
-    this.protocolHandlerInstaller.initialize(this.config, this.notifications)
     this.uriHandlerRegistry.registerHostHandler('core', CoreURIHandlers.create(this))
     this.autoUpdater.initialize()
 
     this.config.load()
+
+    this.protocolHandlerInstaller.initialize(this.config, this.notifications)
 
     this.themes.loadBaseStylesheets()
     this.initialStyleElements = this.styles.getSnapshot()
