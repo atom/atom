@@ -664,7 +664,7 @@ class Cursor extends Model {
   // Returns a {RegExp}.
   wordRegExp (options) {
     const nonWordCharacters = _.escapeRegExp(this.getNonWordCharacters())
-    let source = `^[\t\r ]*$|[^\\s${nonWordCharacters}]+`
+    let source = `^[\t\r ]*$|[^\\s${nonWordCharacters}]+\\.?`
     if (!options || options.includeNonWordCharacters !== false) {
       source += `|${`[${nonWordCharacters}]+`}`
     }
@@ -699,7 +699,6 @@ class Cursor extends Model {
       segments.push(`\\s*[${_.escapeRegExp(nonWordCharacters)}]+`)
     }
     segments.push('_+')
-    const testRegExp = new RegExp(segments.join('|'), 'g')
     return new RegExp(segments.join('|'), 'g')
   }
 
