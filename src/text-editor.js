@@ -119,6 +119,10 @@ class TextEditor {
     }
 
     this.id = params.id != null ? params.id : nextId++
+    if (this.id >= nextId) {
+      // Ensure that new editors get unique ids:
+      nextId = this.id + 1
+    }
     this.initialScrollTopRow = params.initialScrollTopRow
     this.initialScrollLeftColumn = params.initialScrollLeftColumn
     this.decorationManager = params.decorationManager
