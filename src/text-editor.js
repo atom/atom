@@ -302,7 +302,7 @@ class TextEditor {
     }
   }
 
-  update (params) {
+  async update (params) {
     const displayLayerParams = {}
 
     for (let param of Object.keys(params)) {
@@ -326,7 +326,17 @@ class TextEditor {
           break
 
         case 'encoding':
-          this.buffer.setEncoding(value)
+          if (!atom.config.get('core.fileEncodingAutoDetect')) {
+            this.buffer.setEncoding(value)
+          }
+          break
+
+        case 'detectEncoding':
+          try {
+            this.buffer.setEncoding(await this.detectEncoding())
+          } catch (e) {
+            this.buffer.setEncoding(atom.config.get('core.fileEncoding'))
+          }
           break
 
         case 'softTabs':
@@ -1121,6 +1131,10 @@ class TextEditor {
   //
   // * `encoding` The {String} character set encoding name such as 'utf8'
   setEncoding (encoding) { this.buffer.setEncoding(encoding) }
+
+  // Extended: Returns a {Promise} that resolves to the detected character set encoding {String}
+  // of this editor's text buffer, or is rejected if the encoding was unable to be detected.
+  async detectEncoding () { return this.buffer.detectEncoding() }
 
   // Essential: Returns {Boolean} `true` if this editor has been modified.
   isModified () { return this.buffer.isModified() }
