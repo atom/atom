@@ -237,11 +237,12 @@ class AtomEnvironment extends Model
     @themes.initialize({@configDirPath, resourcePath, safeMode, devMode})
 
     @commandInstaller.initialize(@getVersion())
-    @protocolHandlerInstaller.initialize(@config, @notifications)
     @uriHandlerRegistry.registerHostHandler('core', CoreURIHandlers.create(this))
     @autoUpdater.initialize()
 
     @config.load()
+
+    @protocolHandlerInstaller.initialize(@config, @notifications)
 
     @themes.loadBaseStylesheets()
     @initialStyleElements = @styles.getSnapshot()
