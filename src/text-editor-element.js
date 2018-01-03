@@ -59,6 +59,9 @@ class TextEditorElement extends HTMLElement {
         case 'gutter-hidden':
           this.getModel().update({lineNumberGutterVisible: newValue == null})
           break
+        case 'readonly':
+          this.getModel().update({readOnly: newValue != null})
+          break
       }
     }
   }
@@ -275,7 +278,8 @@ class TextEditorElement extends HTMLElement {
       this.component = new TextEditorComponent({
         element: this,
         mini: this.hasAttribute('mini'),
-        updatedSynchronously: this.updatedSynchronously
+        updatedSynchronously: this.updatedSynchronously,
+        readOnly: this.hasAttribute('readonly')
       })
       this.updateModelFromAttributes()
     }

@@ -119,11 +119,16 @@ class TextEditor {
     }
 
     this.id = params.id != null ? params.id : nextId++
+    if (this.id >= nextId) {
+      // Ensure that new editors get unique ids:
+      nextId = this.id + 1
+    }
     this.initialScrollTopRow = params.initialScrollTopRow
     this.initialScrollLeftColumn = params.initialScrollLeftColumn
     this.decorationManager = params.decorationManager
     this.selectionsMarkerLayer = params.selectionsMarkerLayer
     this.mini = (params.mini != null) ? params.mini : false
+    this.readOnly = (params.readOnly != null) ? params.readOnly : false
     this.placeholderText = params.placeholderText
     this.showLineNumbers = params.showLineNumbers
     this.assert = params.assert || (condition => condition)
@@ -400,6 +405,15 @@ class TextEditor {
           }
           break
 
+        case 'readOnly':
+          if (value !== this.readOnly) {
+            this.readOnly = value
+            if (this.component != null) {
+              this.component.scheduleUpdate()
+            }
+          }
+          break
+
         case 'placeholderText':
           if (value !== this.placeholderText) {
             this.placeholderText = value
@@ -530,6 +544,7 @@ class TextEditor {
       softWrapAtPreferredLineLength: this.softWrapAtPreferredLineLength,
       preferredLineLength: this.preferredLineLength,
       mini: this.mini,
+      readOnly: this.readOnly,
       editorWidthInChars: this.editorWidthInChars,
       width: this.width,
       maxScreenLineLength: this.maxScreenLineLength,
@@ -964,6 +979,12 @@ class TextEditor {
   }
 
   isMini () { return this.mini }
+
+  setReadOnly (readOnly) {
+    this.update({readOnly})
+  }
+
+  isReadOnly () { return this.readOnly }
 
   onDidChangeMini (callback) {
     return this.emitter.on('did-change-mini', callback)
@@ -3583,14 +3604,15 @@ class TextEditor {
     return this.buffer.getLanguageMode().rootScopeDescriptor
   }
 
-  // Essential: Get the syntactic scopeDescriptor for the given position in buffer
+  // Essential: Get the syntactic {ScopeDescriptor} for the given position in buffer
   // coordinates. Useful with {Config::get}.
   //
   // For example, if called with a position inside the parameter list of an
-  // anonymous CoffeeScript function, the method returns the following array:
-  // `["source.coffee", "meta.inline.function.coffee", "variable.parameter.function.coffee"]`
+  // anonymous CoffeeScript function, this method returns a {ScopeDescriptor} with
+  // the following scopes array:
+  // `["source.coffee", "meta.function.inline.coffee", "meta.parameters.coffee", "variable.parameter.function.coffee"]`
   //
-  // * `bufferPosition` A {Point} or {Array} of [row, column].
+  // * `bufferPosition` A {Point} or {Array} of `[row, column]`.
   //
   // Returns a {ScopeDescriptor}.
   scopeDescriptorForBufferPosition (bufferPosition) {
@@ -4522,8 +4544,7 @@ class TextEditor {
               ? minBlankIndentLevel
               : 0
 
-        const tabLength = this.getTabLength()
-        const indentString = ' '.repeat(tabLength * minIndentLevel)
+        const indentString = this.buildIndentString(minIndentLevel)
         for (let row = start; row <= end; row++) {
           const line = this.buffer.lineForRow(row)
           if (NON_WHITESPACE_REGEXP.test(line)) {

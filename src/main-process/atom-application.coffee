@@ -8,6 +8,7 @@ FileRecoveryService = require './file-recovery-service'
 ipcHelpers = require '../ipc-helpers'
 {BrowserWindow, Menu, app, dialog, ipcMain, shell, screen} = require 'electron'
 {CompositeDisposable, Disposable} = require 'event-kit'
+crypto = require 'crypto'
 fs = require 'fs-plus'
 path = require 'path'
 os = require 'os'
@@ -33,11 +34,19 @@ class AtomApplication
   # Public: The entry point into the Atom application.
   @open: (options) ->
     unless options.socketPath?
+      username = if process.platform is 'win32' then process.env.USERNAME else process.env.USER
+      # Lowercasing the ATOM_HOME to make sure that we don't get multiple sockets
+      # on case-insensitive filesystems due to arbitrary case differences in paths.
+      atomHomeUnique = path.resolve(process.env.ATOM_HOME).toLowerCase()
+      hash = crypto.createHash('sha1').update(options.version).update('|').update(process.arch).update('|').update(username).update('|').update(atomHomeUnique)
+      # We only keep the first 12 characters of the hash as not to have excessively long
+      # socket file. Note that macOS/BSD limit the length of socket file paths (see #15081).
+      # The replace calls convert the digest into "URL and Filename Safe" encoding (see RFC 4648).
+      atomInstanceDigest = hash.digest('base64').substring(0, 12).replace(/\+/g, '-').replace(/\//g, '_')
       if process.platform is 'win32'
-        userNameSafe = new Buffer(process.env.USERNAME).toString('base64')
-        options.socketPath = "\\\\.\\pipe\\atom-#{options.version}-#{userNameSafe}-#{process.arch}-sock"
+        options.socketPath = "\\\\.\\pipe\\atom-#{atomInstanceDigest}-sock"
       else
-        options.socketPath = path.join(os.tmpdir(), "atom-#{options.version}-#{process.env.USER}.sock")
+        options.socketPath = path.join(os.tmpdir(), "atom-#{atomInstanceDigest}.sock")
 
     # FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
     # take a few seconds to trigger 'error' event, it could be a bug of node
