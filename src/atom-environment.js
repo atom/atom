@@ -1013,8 +1013,10 @@ class AtomEnvironment {
   }
 
   addProjectFolder () {
-    this.pickFolder((selectedPaths = []) => {
-      this.addToProject(selectedPaths)
+    return new Promise((resolve) => {
+      this.pickFolder((selectedPaths) => {
+        this.addToProject(selectedPaths || []).then(resolve)
+      })
     })
   }
 
