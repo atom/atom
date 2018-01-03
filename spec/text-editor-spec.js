@@ -3507,13 +3507,16 @@ describe('TextEditor', () => {
       })
 
       describe("when the undo option is set to 'skip'", () => {
-        beforeEach(() => editor.setSelectedBufferRange([[1, 2], [1, 2]]))
-
-        it('does not undo the skipped operation', () => {
-          let range = editor.insertText('x')
-          range = editor.insertText('y', {undo: 'skip'})
+        it('groups the change with the previous change for purposes of undo and redo', () => {
+          editor.setSelectedBufferRanges([
+            [[0, 0], [0, 0]],
+            [[1, 0], [1, 0]]
+          ])
+          editor.insertText('x')
+          editor.insertText('y', {undo: 'skip'})
           editor.undo()
-          expect(buffer.lineForRow(1)).toBe('  yvar sort = function(items) {')
+          expect(buffer.lineForRow(0)).toBe('var quicksort = function () {')
+          expect(buffer.lineForRow(1)).toBe('  var sort = function(items) {')
         })
       })
     })
