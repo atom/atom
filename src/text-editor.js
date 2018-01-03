@@ -1330,15 +1330,24 @@ class TextEditor {
   insertText (text, options = {}) {
     if (!this.emitWillInsertTextEvent(text)) return false
 
+    let groupLastChanges = false
+    if (options.undo === 'skip') {
+      options = Object.assign({}, options)
+      delete options.undo
+      groupLastChanges = true
+    }
+
     const groupingInterval = options.groupUndo ? this.undoGroupingInterval : 0
     if (options.autoIndentNewline == null) options.autoIndentNewline = this.shouldAutoIndent()
     if (options.autoDecreaseIndent == null) options.autoDecreaseIndent = this.shouldAutoIndent()
-    return this.mutateSelectedText(selection => {
+    const result = this.mutateSelectedText(selection => {
       const range = selection.insertText(text, options)
       const didInsertEvent = {text, range}
       this.emitter.emit('did-insert-text', didInsertEvent)
       return range
     }, groupingInterval)
+    if (groupLastChanges) this.buffer.groupLastChanges()
+    return result
   }
 
   // Essential: For each selection, replace the selected text with a newline.
