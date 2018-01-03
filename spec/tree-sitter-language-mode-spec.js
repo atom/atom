@@ -2,6 +2,7 @@ const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-help
 
 const dedent = require('dedent')
 const TextBuffer = require('text-buffer')
+const {Point} = TextBuffer
 const TextEditor = require('../src/text-editor')
 const TreeSitterGrammar = require('../src/tree-sitter-grammar')
 const TreeSitterLanguageMode = require('../src/tree-sitter-language-mode')
@@ -90,6 +91,50 @@ describe('TreeSitterLanguageMode', () => {
           {text: '.', scopes: []},
           {text: 'b', scopes: ['function']},
           {text: '();', scopes: []}
+        ]
+      ])
+    })
+
+    it('correctly skips over tokens with zero size', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-c',
+        scopes: {
+          'primitive_type': 'type',
+          'identifier': 'variable',
+        }
+      })
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      buffer.setText('int main() {\n  int a\n  int b;\n}');
+
+      editor.screenLineForScreenRow(0)
+      expect(
+        languageMode.document.rootNode.descendantForPosition(Point(1, 2), Point(1, 6)).toString()
+      ).toBe('(declaration (primitive_type) (identifier) (MISSING))')
+
+      expectTokensToEqual(editor, [
+        [
+          {text: 'int', scopes: ['type']},
+          {text: ' ', scopes: []},
+          {text: 'main', scopes: ['variable']},
+          {text: '() {', scopes: []}
+        ],
+        [
+          {text: '  ', scopes: ['whitespace']},
+          {text: 'int', scopes: ['type']},
+          {text: ' ', scopes: []},
+          {text: 'a', scopes: ['variable']}
+        ],
+        [
+          {text: '  ', scopes: ['whitespace']},
+          {text: 'int', scopes: ['type']},
+          {text: ' ', scopes: []},
+          {text: 'b', scopes: ['variable']},
+          {text: ';', scopes: []}
+        ],
+        [
+          {text: '}', scopes: []}
         ]
       ])
     })

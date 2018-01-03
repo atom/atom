@@ -422,7 +422,7 @@ class TreeSitterHighlightIterator {
             if (!this.currentNode) break
           }
         }
-      } else {
+      } else if (this.currentNode.startIndex < this.currentNode.endIndex) {
         this.currentNode = this.currentNode.nextSibling
         if (this.currentNode) {
           this.currentChildIndex++
@@ -431,6 +431,10 @@ class TreeSitterHighlightIterator {
           this.pushOpenTag()
           this.descendLeft()
         }
+      } else {
+        this.pushCloseTag()
+        this.currentNode = this.currentNode.parent
+        this.currentChildIndex = last(this.containingNodeChildIndices)
       }
     } while (this.closeTags.length === 0 && this.openTags.length === 0 && this.currentNode)
 
