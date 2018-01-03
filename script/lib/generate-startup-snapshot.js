@@ -46,6 +46,7 @@ module.exports = function (packagedAppPath) {
         relativePath === path.join('..', 'node_modules', 'less', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'less', 'lib', 'less', 'fs.js') ||
         relativePath === path.join('..', 'node_modules', 'less', 'lib', 'less-node', 'index.js') ||
+        relativePath === path.join('..', 'node_modules', 'lodash.isequal', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'node-fetch', 'lib', 'fetch-error.js') ||
         relativePath === path.join('..', 'node_modules', 'superstring', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'oniguruma', 'src', 'oniguruma.js') ||
@@ -85,7 +86,7 @@ module.exports = function (packagedAppPath) {
     console.log(`Generating startup blob at "${generatedStartupBlobPath}"`)
     childProcess.execFileSync(
       path.join(CONFIG.repositoryRootPath, 'script', 'node_modules', 'electron-mksnapshot', 'bin', 'mksnapshot'),
-      [snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
+      ['--no-use_ic', snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
     )
 
     let startupBlobDestinationPath
