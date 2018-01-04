@@ -482,7 +482,7 @@ class TextEditorComponent {
         style,
         attributes,
         dataset,
-        tabIndex: this.tabIndex,
+        tabIndex: -1,
         on: {mousewheel: this.didMouseWheel}
       },
       $.div(
@@ -682,7 +682,8 @@ class TextEditorComponent {
       scrollWidth: this.getScrollWidth(),
       decorationsToRender: this.decorationsToRender,
       cursorsBlinkedOff: this.cursorsBlinkedOff,
-      hiddenInputPosition: this.hiddenInputPosition
+      hiddenInputPosition: this.hiddenInputPosition,
+      tabIndex: this.tabIndex
     })
   }
 
@@ -3547,7 +3548,7 @@ class CursorsAndInputComponent {
     const {
       lineHeight, hiddenInputPosition, didBlurHiddenInput, didFocusHiddenInput,
       didPaste, didTextInput, didKeydown, didKeyup, didKeypress,
-      didCompositionStart, didCompositionUpdate, didCompositionEnd
+      didCompositionStart, didCompositionUpdate, didCompositionEnd, tabIndex
     } = this.props
 
     let top, left
@@ -3575,7 +3576,7 @@ class CursorsAndInputComponent {
         compositionupdate: didCompositionUpdate,
         compositionend: didCompositionEnd
       },
-      tabIndex: this.tabIndex,
+      tabIndex: tabIndex,
       style: {
         position: 'absolute',
         width: '1px',
