@@ -63,7 +63,7 @@ class ProtocolHandlerInstaller {
     notification = notifications.addInfo('Register as default atom:// URI handler?', {
       dismissable: true,
       icon: 'link',
-      description: 'Atom is not currently set as the defaut handler for atom:// URIs. Would you like Atom to handle ' +
+      description: 'Atom is not currently set as the default handler for atom:// URIs. Would you like Atom to handle ' +
         'atom:// URIs?',
       buttons: [
         {
