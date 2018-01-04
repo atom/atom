@@ -58,6 +58,7 @@ const CONFIG = require('./config')
 let binariesPromise = Promise.resolve()
 
 if (!argv.existingBinaries) {
+  cleanPackageLock()
   checkChromedriverVersion()
   cleanOutputDirectory()
   copyAssets()
