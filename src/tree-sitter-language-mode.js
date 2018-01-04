@@ -41,8 +41,8 @@ class TreeSitterLanguageMode {
   }
 
   /*
-   * Section - Highlighting
-   */
+  Section - Highlighting
+  */
 
   buildHighlightIterator () {
     const invalidatedRanges = this.document.parse()
@@ -67,8 +67,8 @@ class TreeSitterLanguageMode {
   }
 
   /*
-   * Section - Commenting
-   */
+  Section - Commenting
+  */
 
   commentStringsForPosition () {
     return this.grammar.commentStrings
@@ -79,8 +79,8 @@ class TreeSitterLanguageMode {
   }
 
   /*
-   * Section - Indentation
-   */
+  Section - Indentation
+  */
 
   suggestedIndentForLineAtBufferRow (row, line, tabLength) {
     return this.suggestedIndentForBufferRow(row, tabLength)
@@ -119,8 +119,8 @@ class TreeSitterLanguageMode {
   }
 
   /*
-   * Section - Folding
-   */
+  Section - Folding
+  */
 
   isFoldableAtRow (row) {
     if (this.isFoldableCache[row] != null) return this.isFoldableCache[row]
@@ -263,8 +263,8 @@ class TreeSitterLanguageMode {
   }
 
   /*
-   * Syntax Tree APIs
-   */
+  Syntax Tree APIs
+  */
 
   getRangeForSyntaxNodeContainingRange (range) {
     const startIndex = this.buffer.characterIndexForPosition(range.start)
@@ -277,8 +277,8 @@ class TreeSitterLanguageMode {
   }
 
   /*
-   * Section - Backward compatibility shims
-   */
+  Section - Backward compatibility shims
+  */
 
   tokenizedLineForRow (row) {
     return new TokenizedLine({
