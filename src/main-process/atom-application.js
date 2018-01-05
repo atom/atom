@@ -396,22 +396,19 @@ class AtomApplication extends EventEmitter {
     this.openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
     this.openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
-    this.disposable.add(ipcHelpers.on(app, 'before-quit', event => {
+    this.disposable.add(ipcHelpers.on(app, 'before-quit', async event => {
       let resolveBeforeQuitPromise
-      this.lastBeforeQuitPromise = new Promise(resolve => {
-        resolveBeforeQuitPromise = resolve
-      })
+      this.lastBeforeQuitPromise = new Promise(resolve => { resolveBeforeQuitPromise = resolve })
 
-      if (this.quitting) return resolveBeforeQuitPromise()
+      if (!this.quitting) {
+        this.quitting = true
+        event.preventDefault()
+        const windowUnloadPromises = this.getAllWindows().map(window => window.prepareToUnload())
+        const windowUnloadedResults = await Promise.all(windowUnloadPromises)
+        if (windowUnloadedResults.every(Boolean)) app.quit()
+      }
 
-      this.quitting = true
-      event.preventDefault()
-      const windowUnloadPromises = this.getAllWindows().map(window => window.prepareToUnload())
-      return Promise.all(windowUnloadPromises).then(windowUnloadedResults => {
-        const didUnloadAllWindows = windowUnloadedResults.every(Boolean)
-        if (didUnloadAllWindows) app.quit()
-        resolveBeforeQuitPromise()
-      })
+      resolveBeforeQuitPromise()
     }))
 
     this.disposable.add(ipcHelpers.on(app, 'will-quit', () => {
