@@ -58,7 +58,7 @@ describe('WindowEventHandler', () => {
       spyOn(atom, 'close')
       window.dispatchEvent(new CustomEvent('window:close'))
       expect(atom.close).toHaveBeenCalled()
-    })     
+    })
   )
 
   describe('when a link is clicked', () =>
