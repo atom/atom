@@ -101,6 +101,7 @@ class AtomApplication extends EventEmitter {
     this.socketPath = options.socketPath
     this.logFile = options.logFile
     this.userDataDir = options.userDataDir
+    this._killProcess = options.killProcess || process.kill.bind(process)
     if (options.test || options.benchmark || options.benchmarkTest) this.socketPath = null
 
     this.pidsToOpenWindows = {}
@@ -880,7 +881,7 @@ class AtomApplication extends EventEmitter {
   killProcess (pid) {
     try {
       const parsedPid = parseInt(pid)
-      if (isFinite(parsedPid)) process.kill(parsedPid)
+      if (isFinite(parsedPid)) this._killProcess(parsedPid)
     } catch (error) {
       if (error.code !== 'ESRCH') {
         console.log(`Killing process ${pid} failed: ${error.code != null ? error.code : error.message}`)

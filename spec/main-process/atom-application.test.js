@@ -389,6 +389,34 @@ describe('AtomApplication', function () {
       assert.deepEqual(app2Window.representedDirectoryPaths, [])
     })
 
+    describe('when the `pidToKillWhenClosed` flag is passed', () => {
+      let killedPids, atomApplication
+
+      beforeEach(() => {
+        killedPids = []
+        atomApplication = buildAtomApplication({
+          killProcess (pid) { killedPids.push(pid) }
+        })
+      })
+
+      it('kills the specified pid after a newly-opened window is closed', async () => {
+        const window1 = atomApplication.launch(parseCommandLine([makeTempDir(), '--wait', '--pid', '101']))
+        await focusWindow(window1)
+
+        const [window2] = atomApplication.launch(parseCommandLine(['--wait', '--pid', '102']))
+        await focusWindow(window2)
+        assert.deepEqual(killedPids, [])
+
+        window1.close()
+        await window1.closedPromise
+        assert.deepEqual(killedPids, [101])
+
+        window2.close()
+        await window2.closedPromise
+        assert.deepEqual(killedPids, [101, 102])
+      })
+    })
+
     describe('when closing the last window', () => {
       if (process.platform === 'linux' || process.platform === 'win32') {
         it('quits the application', async () => {
@@ -529,11 +557,11 @@ describe('AtomApplication', function () {
     assert(electron.app.didQuit())
   })
 
-  function buildAtomApplication () {
-    const atomApplication = new AtomApplication({
+  function buildAtomApplication (params = {}) {
+    const atomApplication = new AtomApplication(Object.assign({
       resourcePath: ATOM_RESOURCE_PATH,
-      atomHomeDirPath: process.env.ATOM_HOME
-    })
+      atomHomeDirPath: process.env.ATOM_HOME,
+    }, params))
     atomApplicationsToDestroy.push(atomApplication)
     return atomApplication
   }
