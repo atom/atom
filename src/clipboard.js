@@ -1,7 +1,7 @@
 /** @babel */
 
 import crypto from 'crypto'
-import clipboard from './safe-clipboard'
+import {clipboard} from 'electron'
 
 // Extended: Represents the clipboard used for copying and pasting in Atom.
 //

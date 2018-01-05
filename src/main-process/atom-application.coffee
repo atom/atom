@@ -6,7 +6,7 @@ StorageFolder = require '../storage-folder'
 Config = require '../config'
 FileRecoveryService = require './file-recovery-service'
 ipcHelpers = require '../ipc-helpers'
-{BrowserWindow, Menu, app, dialog, ipcMain, shell, screen} = require 'electron'
+{BrowserWindow, Menu, app, clipboard, dialog, ipcMain, shell, screen} = require 'electron'
 {CompositeDisposable, Disposable} = require 'event-kit'
 crypto = require 'crypto'
 fs = require 'fs-plus'
@@ -399,7 +399,6 @@ class AtomApplication
     @disposable.add ipcHelpers.respondTo 'set-temporary-window-state', (win, state) ->
       win.temporaryState = state
 
-    clipboard = require '../safe-clipboard'
     @disposable.add ipcHelpers.on ipcMain, 'write-text-to-selection-clipboard', (event, selectedText) ->
       clipboard.writeText(selectedText, 'selection')
 

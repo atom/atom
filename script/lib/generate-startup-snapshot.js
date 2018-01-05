@@ -34,7 +34,6 @@ module.exports = function (packagedAppPath) {
         relativePath.endsWith(path.join('node_modules', 'minimatch', 'minimatch.js')) ||
         relativePath === path.join('..', 'exports', 'atom.js') ||
         relativePath === path.join('..', 'src', 'electron-shims.js') ||
-        relativePath === path.join('..', 'src', 'safe-clipboard.js') ||
         relativePath === path.join('..', 'node_modules', 'atom-keymap', 'lib', 'command-event.js') ||
         relativePath === path.join('..', 'node_modules', 'babel-core', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'cached-run-in-this-context', 'lib', 'main.js') ||
