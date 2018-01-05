@@ -397,6 +397,7 @@ describe('AtomApplication', function () {
           await focusWindow(window)
           window.close()
           await window.closedPromise
+          await atomApplication.lastBeforeQuitPromise
           assert(electron.app.didQuit())
         })
       } else if (process.platform === 'darwin') {
@@ -406,6 +407,7 @@ describe('AtomApplication', function () {
           await focusWindow(window)
           window.close()
           await window.closedPromise
+          await timeoutPromise(1000)
           assert(!electron.app.didQuit())
         })
       }
@@ -495,9 +497,11 @@ describe('AtomApplication', function () {
     const window2 = atomApplication.launch(parseCommandLine([path.join(dirBPath, 'file-b')]))
     await focusWindow(window2)
     electron.app.quit()
+    await new Promise(process.nextTick)
     assert(!electron.app.didQuit())
+
     await Promise.all([window1.lastPrepareToUnloadPromise, window2.lastPrepareToUnloadPromise])
-    await new Promise(resolve => resolve())
+    await new Promise(process.nextTick)
     assert(electron.app.didQuit())
   })
 
