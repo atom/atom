@@ -130,7 +130,6 @@ class AtomWindow extends EventEmitter {
 
     const hasPathToOpen = !(locationsToOpen.length === 1 && locationsToOpen[0].pathToOpen == null)
     if (hasPathToOpen && !this.isSpecWindow()) this.openLocations(locationsToOpen)
-    this.atomApplication.addWindow(this)
   }
 
   hasProjectPath () {

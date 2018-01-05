@@ -464,7 +464,7 @@ class AtomApplication extends EventEmitter {
           options.window = window
           this.openPaths(options)
         } else {
-          new AtomWindow(this, this.fileRecoveryService, options)
+          this.addWindow(new AtomWindow(this, this.fileRecoveryService, options))
         }
       } else {
         this.promptForPathToOpen('all', {window})
@@ -850,8 +850,8 @@ class AtomApplication extends EventEmitter {
         clearWindowState,
         env
       })
+      this.addWindow(openedWindow)
       openedWindow.focus()
-      this.windowStack.addWindow(openedWindow)
     }
 
     if (pidToKillWhenClosed != null) {
@@ -994,8 +994,9 @@ class AtomApplication extends EventEmitter {
         windowDimensions,
         env
       })
-      this.windowStack.addWindow(window)
+      this.addWindow(window)
       window.on('window:loaded', () => window.sendURIMessage(url))
+      return window
     }
   }
 
@@ -1009,7 +1010,7 @@ class AtomApplication extends EventEmitter {
     const packagePath = this.getPackageManager(devMode).resolvePackagePath(packageName)
     const windowInitializationScript = path.resolve(packagePath, packageUrlMain)
     const windowDimensions = this.getDimensionsForNewWindow()
-    return new AtomWindow(this, this.fileRecoveryService, {
+    const window = new AtomWindow(this, this.fileRecoveryService, {
       windowInitializationScript,
       resourcePath: this.resourcePath,
       devMode,
@@ -1018,6 +1019,8 @@ class AtomApplication extends EventEmitter {
       windowDimensions,
       env
     })
+    this.addWindow(window)
+    return window
   }
 
   getPackageManager (devMode) {
@@ -1089,7 +1092,7 @@ class AtomApplication extends EventEmitter {
     if (safeMode == null) {
       safeMode = false
     }
-    return new AtomWindow(this, this.fileRecoveryService, {
+    const window = new AtomWindow(this, this.fileRecoveryService, {
       windowInitializationScript,
       resourcePath,
       headless,
@@ -1102,6 +1105,8 @@ class AtomApplication extends EventEmitter {
       safeMode,
       env
     })
+    this.addWindow(window)
+    return window
   }
 
   runBenchmarks ({headless, test, resourcePath, executedFrom, pathsToOpen, env}) {
@@ -1135,7 +1140,7 @@ class AtomApplication extends EventEmitter {
     const devMode = true
     const isSpec = true
     const safeMode = false
-    return new AtomWindow(this, this.fileRecoveryService, {
+    const window = new AtomWindow(this, this.fileRecoveryService, {
       windowInitializationScript,
       resourcePath,
       headless,
@@ -1146,6 +1151,8 @@ class AtomApplication extends EventEmitter {
       safeMode,
       env
     })
+    this.addWindow(window)
+    return window
   }
 
   resolveTestRunnerPath (testPath) {
