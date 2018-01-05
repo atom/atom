@@ -397,7 +397,7 @@ describe('AtomApplication', function () {
           await focusWindow(window)
           window.close()
           await window.closedPromise
-          assert(electron.app.hasQuitted())
+          assert(electron.app.didQuit())
         })
       } else if (process.platform === 'darwin') {
         it('leaves the application open', async () => {
@@ -406,7 +406,7 @@ describe('AtomApplication', function () {
           await focusWindow(window)
           window.close()
           await window.closedPromise
-          assert(!electron.app.hasQuitted())
+          assert(!electron.app.didQuit())
         })
       }
     })
@@ -495,9 +495,10 @@ describe('AtomApplication', function () {
     const window2 = atomApplication.launch(parseCommandLine([path.join(dirBPath, 'file-b')]))
     await focusWindow(window2)
     electron.app.quit()
-    assert(!electron.app.hasQuitted())
+    assert(!electron.app.didQuit())
     await Promise.all([window1.lastPrepareToUnloadPromise, window2.lastPrepareToUnloadPromise])
-    assert(electron.app.hasQuitted())
+    await new Promise(resolve => resolve())
+    assert(electron.app.didQuit())
   })
 
   it('prevents quitting if user cancels when prompted to save an item', async () => {
@@ -514,14 +515,14 @@ describe('AtomApplication', function () {
     mockElectronShowMessageBox({choice: 1})
     electron.app.quit()
     await atomApplication.lastBeforeQuitPromise
-    assert(!electron.app.hasQuitted())
+    assert(!electron.app.didQuit())
     assert.equal(electron.app.quit.callCount, 1) // Ensure choosing "Cancel" doesn't try to quit the electron app more than once (regression)
 
     // Choosing "Don't save"
     mockElectronShowMessageBox({choice: 2})
     electron.app.quit()
     await atomApplication.lastBeforeQuitPromise
-    assert(electron.app.hasQuitted())
+    assert(electron.app.didQuit())
   })
 
   function buildAtomApplication () {
@@ -540,23 +541,18 @@ describe('AtomApplication', function () {
   }
 
   function mockElectronAppQuit () {
-    let quitted = false
-    electron.app.quit = () => {
-      if (electron.app.quit.callCount) {
-        electron.app.quit.callCount++
-      } else {
-        electron.app.quit.callCount = 1
-      }
+    let didQuit = false
 
-      let shouldQuit = true
-      electron.app.emit('before-quit', {preventDefault: () => { shouldQuit = false }})
-      if (shouldQuit) {
-        quitted = true
-      }
+    electron.app.quit = function () {
+      this.quit.callCount++
+      let defaultPrevented = false
+      this.emit('before-quit', {preventDefault() { defaultPrevented = true }})
+      if (!defaultPrevented) didQuit = true
     }
-    electron.app.hasQuitted = () => {
-      return quitted
-    }
+
+    electron.app.quit.callCount = 0
+
+    electron.app.didQuit = () => didQuit
   }
 
   function mockElectronShowMessageBox ({choice}) {
