@@ -210,20 +210,6 @@ describe("CommandRegistry", () => {
       expect(sequence[0][1].constructor).toBe(CustomEvent);
       expect(sequence[0][1].target).toBe(grandchild);
     });
-
-    it("returns a promise", () => {
-      const calls = [];
-      registry.add('.grandchild', 'command', () => 'grandchild');
-      registry.add(child, 'command', () => 'child-inline');
-      registry.add('.child', 'command', () => 'child');
-      registry.add('.parent', 'command', () => 'parent');
-
-      waitsForPromise(() => grandchild.dispatchEvent(new CustomEvent('command', {bubbles: true})).then(args => { calls = args; }));
-
-      runs(() => {
-        expect(calls).toEqual(['grandchild', 'child-inline', 'child', 'parent']);
-      });
-    });
   });
 
   describe("::add(selector, commandName, callback)", () => {
@@ -371,12 +357,12 @@ describe("CommandRegistry", () => {
       expect(called).toBe(true);
     });
 
-    it("returns a boolean indicating whether any listeners matched the command", () => {
+    it("returns a promise if any listeners matched the command", () => {
       registry.add('.grandchild', 'command', () => {});
 
-      expect(registry.dispatch(grandchild, 'command')).toBe(true);
-      expect(registry.dispatch(grandchild, 'bogus')).toBe(false);
-      expect(registry.dispatch(parent, 'command')).toBe(false);
+      expect(registry.dispatch(grandchild, 'command').constructor.name).toBe("Promise");
+      expect(registry.dispatch(grandchild, 'bogus')).toBe(null);
+      expect(registry.dispatch(parent, 'command')).toBe(null);
     });
   });
 
