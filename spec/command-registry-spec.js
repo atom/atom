@@ -191,10 +191,8 @@ describe("CommandRegistry", () => {
       expect(calls).toEqual([]);
   });
 
-    it("invokes callbacks registered with ::onWillDispatch and ::onDidDispatch and ::onDidFinish", () => {
+    it("invokes callbacks registered with ::onWillDispatch and ::onDidDispatch", () => {
       const sequence = [];
-
-      registry.onDidFinish(event => sequence.push(['onDidFinish', event]));
 
       registry.onDidDispatch(event => sequence.push(['onDidDispatch', event]));
 
@@ -208,80 +206,22 @@ describe("CommandRegistry", () => {
       expect(sequence[1][0]).toBe('listener');
       expect(sequence[2][0]).toBe('onDidDispatch');
 
-      waitsFor(() => sequence.length === 4, "onDidFinish never called");
-
-      runs(() => {
-        expect(sequence[3][0]).toBe('onDidFinish');
-
-        expect(sequence[0][1] === sequence[1][1] && sequence[1][1] === sequence[2][1] && sequence[2][1] === sequence[3][1]).toBe(true);
-        expect(sequence[0][1].constructor).toBe(CustomEvent);
-        expect(sequence[0][1].target).toBe(grandchild);
-      });
+      expect(sequence[0][1] === sequence[1][1] && sequence[1][1] === sequence[2][1]).toBe(true);
+      expect(sequence[0][1].constructor).toBe(CustomEvent);
+      expect(sequence[0][1].target).toBe(grandchild);
     });
 
-    it("invokes callbacks registered with ::onDidFinish on resolve", () => {
-      const sequence = [];
+    it("returns a promise", () => {
+      const calls = [];
+      registry.add('.grandchild', 'command', () => 'grandchild');
+      registry.add(child, 'command', () => 'child-inline');
+      registry.add('.child', 'command', () => 'child');
+      registry.add('.parent', 'command', () => 'parent');
 
-      registry.onDidFinish(event => {
-        sequence.push(['onDidFinish', event]);
-      });
-
-      registry.add('.grandchild', 'command', event => {
-        sequence.push(['listener', event]);
-        return new Promise(resolve => {
-          setTimeout(() => {
-            sequence.push(['resolve', event]);
-            resolve();
-          }, 100);
-        });
-      });
-
-      grandchild.dispatchEvent(new CustomEvent('command', {bubbles: true}));
-      advanceClock(100);
-
-      waitsFor(() => sequence.length === 3, "onDidFinish never called for resolve");
+      waitsForPromise(() => grandchild.dispatchEvent(new CustomEvent('command', {bubbles: true})).then(args => { calls = args; }));
 
       runs(() => {
-        expect(sequence[0][0]).toBe('listener')
-        expect(sequence[1][0]).toBe('resolve')
-        expect(sequence[2][0]).toBe('onDidFinish')
-
-        expect(sequence[0][1] === sequence[1][1] && sequence[1][1] === sequence[2][1]).toBe(true)
-        expect(sequence[0][1].constructor).toBe(CustomEvent)
-        expect(sequence[0][1].target).toBe(grandchild)
-      });
-    });
-
-    it("invokes callbacks registered with ::onDidFinish on reject", () => {
-      const sequence = [];
-
-      registry.onDidFinish(event => {
-        sequence.push(['onDidFinish', event]);
-      });
-
-      registry.add('.grandchild', 'command', event => {
-        sequence.push(['listener', event]);
-        return new Promise((_, reject) => {
-          setTimeout(() => {
-            sequence.push(['reject', event]);
-            reject();
-          }, 100);
-        });
-      });
-
-      grandchild.dispatchEvent(new CustomEvent('command', {bubbles: true}));
-      advanceClock(100);
-
-      waitsFor(() => sequence.length === 3, "onDidFinish never called for reject");
-
-      runs(() => {
-        expect(sequence[0][0]).toBe('listener')
-        expect(sequence[1][0]).toBe('reject')
-        expect(sequence[2][0]).toBe('onDidFinish')
-
-        expect(sequence[0][1] === sequence[1][1] && sequence[1][1] === sequence[2][1]).toBe(true)
-        expect(sequence[0][1].constructor).toBe(CustomEvent)
-        expect(sequence[0][1].target).toBe(grandchild)
+        expect(calls).toEqual(['grandchild', 'child-inline', 'child', 'parent']);
       });
     });
   });

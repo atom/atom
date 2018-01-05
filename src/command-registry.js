@@ -289,14 +289,6 @@ module.exports = class CommandRegistry {
     return this.emitter.on('did-dispatch', callback)
   }
 
-  // Public: Invoke the given callback after finishing a command event.
-  //
-  // * `callback` {Function} to be called after finishing each command
-  //   * `event` The Event that was dispatched
-  onDidFinish (callback) {
-    return this.emitter.on('did-finish', callback)
-  }
-
   getSnapshot () {
     const snapshot = {}
     for (const commandName in this.selectorBasedListenersByCommandName) {
@@ -403,12 +395,7 @@ module.exports = class CommandRegistry {
 
     this.emitter.emit('did-dispatch', dispatchedEvent)
 
-    Promise.all(matched).then(
-      _ => this.emitter.emit('did-finish', dispatchedEvent),
-      _ => this.emitter.emit('did-finish', dispatchedEvent)
-    )
-
-    return matched.length > 0
+    return (matched.length > 0 ? Promise.all(matched) : null)
   }
 
   commandRegistered (commandName) {
