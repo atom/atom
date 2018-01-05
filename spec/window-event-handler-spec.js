@@ -44,14 +44,21 @@ describe('WindowEventHandler', () => {
       })
     )
   })
-
+  
+  describe('resize event', () =>
+    it('calls storeWindowDimensions', () => {
+      spyOn(atom, 'storeWindowDimensions')
+      window.dispatchEvent(new CustomEvent('resize'))
+      expect(atom.storeWindowDimensions).toHaveBeenCalled()
+    })
+  )
+  
   describe('window:close event', () =>
     it('closes the window', () => {
       spyOn(atom, 'close')
       window.dispatchEvent(new CustomEvent('window:close'))
       expect(atom.close).toHaveBeenCalled()
-    })
-          
+    })     
   )
 
   describe('when a link is clicked', () =>
