@@ -70,7 +70,7 @@ class AtomEnvironment {
     this.loadTime = null
     this.emitter = new Emitter()
     this.disposables = new CompositeDisposable()
-    this.pathsToNotifyWhenClosed = new Set()
+    this.pathsWithWaitSessions = new Set()
 
     // Public: A {DeserializerManager} instance
     this.deserializers = new DeserializerManager(this)
@@ -360,7 +360,7 @@ class AtomEnvironment {
     this.grammars.clear()
     this.textEditors.clear()
     this.views.clear()
-    this.pathsToNotifyWhenClosed.clear()
+    this.pathsWithWaitSessions.clear()
   }
 
   destroy () {
@@ -827,8 +827,8 @@ class AtomEnvironment {
       let previousProjectPaths = this.project.getPaths()
       this.disposables.add(this.project.onDidChangePaths(newPaths => {
         for (let path of previousProjectPaths) {
-          if (this.pathsToNotifyWhenClosed.has(path) && !newPaths.includes(path)) {
-            this.applicationDelegate.didCloseInitialPath(path)
+          if (this.pathsWithWaitSessions.has(path) && !newPaths.includes(path)) {
+            this.applicationDelegate.didClosePathWithWaitSession(path)
           }
         }
         previousProjectPaths = newPaths
@@ -836,8 +836,8 @@ class AtomEnvironment {
       }))
       this.disposables.add(this.workspace.onDidDestroyPaneItem(({item}) => {
         const path = item.getPath && item.getPath()
-        if (this.pathsToNotifyWhenClosed.has(path)) {
-          this.applicationDelegate.didCloseInitialPath(path)
+        if (this.pathsWithWaitSessions.has(path)) {
+          this.applicationDelegate.didClosePathWithWaitSession(path)
         }
       }))
 
@@ -1326,7 +1326,7 @@ class AtomEnvironment {
         fileLocationsToOpen.push(location)
       }
 
-      if (location.notifyWhenClosed) this.pathsToNotifyWhenClosed.add(pathToOpen)
+      if (location.hasWaitSession) this.pathsWithWaitSessions.add(pathToOpen)
     }
 
     let restoredState = false

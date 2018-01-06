@@ -793,7 +793,7 @@ class AtomApplication extends EventEmitter {
     for (let i = 0; i < pathsToOpen.length; i++) {
       const location = this.parsePathToOpen(pathsToOpen[i], executedFrom, addToLastWindow)
       location.forceAddToWindow = addToLastWindow
-      location.notifyWhenClosed = pidToKillWhenClosed != null
+      location.hasWaitSession = pidToKillWhenClosed != null
       locationsToOpen.push(location)
       pathsToOpen[i] = location.pathToOpen
     }
@@ -886,7 +886,7 @@ class AtomApplication extends EventEmitter {
     this.waitSessionsByWindow.delete(window)
   }
 
-  windowDidCloseInitialPath (window, initialPath) {
+  windowDidClosePathWithWaitSession (window, initialPath) {
     const waitSessions = this.waitSessionsByWindow.get(window)
     if (!waitSessions) return
     for (let i = waitSessions.length - 1; i >= 0; i--) {

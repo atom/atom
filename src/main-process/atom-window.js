@@ -411,8 +411,8 @@ class AtomWindow extends EventEmitter {
     return this.atomApplication.saveState()
   }
 
-  didCloseInitialPath (path) {
-    this.atomApplication.windowDidCloseInitialPath(this, path)
+  didClosePathWithWaitSession (path) {
+    this.atomApplication.windowDidClosePathWithWaitSession(this, path)
   }
 
   copy () {
