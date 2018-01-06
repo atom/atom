@@ -89,6 +89,22 @@ describe('TextEditorElement', () => {
     expect(element.getModel().getText()).toBe('testing')
   })
 
+  describe('tabIndex', () => {
+    it('uses a default value of -1', () => {
+      jasmineContent.innerHTML = '<atom-text-editor />'
+      const element = jasmineContent.firstChild
+      expect(element.tabIndex).toBe(-1)
+      expect(element.querySelector('input').tabIndex).toBe(-1)
+    })
+
+    it('uses the custom value when given', () => {
+      jasmineContent.innerHTML = '<atom-text-editor tabIndex="42" />'
+      const element = jasmineContent.firstChild
+      expect(element.tabIndex).toBe(-1)
+      expect(element.querySelector('input').tabIndex).toBe(42)
+    })
+  })
+
   describe('when the model is assigned', () =>
     it("adds the 'mini' attribute if .isMini() returns true on the model", async () => {
       const element = buildTextEditorElement()
