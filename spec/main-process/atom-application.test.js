@@ -1,3 +1,4 @@
+const temp = require('temp').track()
 const season = require('season')
 const dedent = require('dedent')
 const electron = require('electron')
@@ -389,31 +390,80 @@ describe('AtomApplication', function () {
       assert.deepEqual(app2Window.representedDirectoryPaths, [])
     })
 
-    describe('when the `pidToKillWhenClosed` flag is passed', () => {
-      let killedPids, atomApplication
+    describe('when the `--wait` flag is passed', () => {
+      let killedPids, atomApplication, onDidKillProcess
 
       beforeEach(() => {
         killedPids = []
+        onDidKillProcess = null
         atomApplication = buildAtomApplication({
-          killProcess (pid) { killedPids.push(pid) }
+          killProcess (pid) {
+            killedPids.push(pid)
+            if (onDidKillProcess) onDidKillProcess()
+          }
         })
       })
 
       it('kills the specified pid after a newly-opened window is closed', async () => {
-        const window1 = atomApplication.launch(parseCommandLine([makeTempDir(), '--wait', '--pid', '101']))
+        const window1 = atomApplication.launch(parseCommandLine(['--wait', '--pid', '101']))
         await focusWindow(window1)
 
-        const [window2] = atomApplication.launch(parseCommandLine(['--wait', '--pid', '102']))
+        const [window2] = atomApplication.launch(parseCommandLine(['--new-window', '--wait', '--pid', '102']))
         await focusWindow(window2)
         assert.deepEqual(killedPids, [])
 
+        let processKillPromise = new Promise(resolve => { onDidKillProcess = resolve })
         window1.close()
-        await window1.closedPromise
+        await processKillPromise
         assert.deepEqual(killedPids, [101])
 
+        processKillPromise = new Promise(resolve => { onDidKillProcess = resolve })
         window2.close()
-        await window2.closedPromise
+        await processKillPromise
         assert.deepEqual(killedPids, [101, 102])
+      })
+
+      it('kills the specified pid after a newly-opened file in an existing window is closed', async () => {
+        const window = atomApplication.launch(parseCommandLine(['--wait', '--pid', '101']))
+        await focusWindow(window)
+
+        const filePath1 = temp.openSync('test').path
+        const filePath2 = temp.openSync('test').path
+        fs.writeFileSync(filePath1, 'File 1')
+        fs.writeFileSync(filePath2, 'File 2')
+
+        const reusedWindow = atomApplication.launch(parseCommandLine(['--wait', '--pid', '102', filePath1, filePath2]))
+        assert.equal(reusedWindow, window)
+
+        const activeEditorPath = await evalInWebContents(window.browserWindow.webContents, send => {
+          const subscription = atom.workspace.onDidChangeActivePaneItem(editor => {
+            send(editor.getPath())
+            subscription.dispose()
+          })
+        })
+
+        assert([filePath1, filePath2].includes(activeEditorPath))
+        assert.deepEqual(killedPids, [])
+
+        await evalInWebContents(window.browserWindow.webContents, send => {
+          atom.workspace.getActivePaneItem().destroy()
+          send()
+        })
+        await timeoutPromise(100)
+        assert.deepEqual(killedPids, [])
+
+        let processKillPromise = new Promise(resolve => { onDidKillProcess = resolve })
+        await evalInWebContents(window.browserWindow.webContents, send => {
+          atom.workspace.getActivePaneItem().destroy()
+          send()
+        })
+        await processKillPromise
+        assert.deepEqual(killedPids, [102])
+
+        processKillPromise = new Promise(resolve => { onDidKillProcess = resolve })
+        window.close()
+        await processKillPromise
+        assert.deepEqual(killedPids, [102, 101])
       })
     })
 
@@ -594,7 +644,6 @@ describe('AtomApplication', function () {
   }
 
   function makeTempDir (name) {
-    const temp = require('temp').track()
     return fs.realpathSync(temp.mkdirSync(name))
   }
 
