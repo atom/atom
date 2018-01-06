@@ -2,6 +2,7 @@ const {Document} = require('tree-sitter')
 const {Point, Range, Emitter} = require('atom')
 const ScopeDescriptor = require('./scope-descriptor')
 const TokenizedLine = require('./tokenized-line')
+const TextMateLanguageMode = require('./text-mate-language-mode')
 
 let nextId = 0
 
@@ -19,6 +20,10 @@ class TreeSitterLanguageMode {
     this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.id]})
     this.emitter = new Emitter()
     this.isFoldableCache = []
+
+    // TODO: Remove this once TreeSitterLanguageMode implements its own auto-indentation system. This
+    // is temporarily needed in order to delegate to the TextMateLanguageMode's auto-indent system.
+    this.regexesByPattern = {}
   }
 
   getLanguageId () {
@@ -83,24 +88,22 @@ class TreeSitterLanguageMode {
   */
 
   suggestedIndentForLineAtBufferRow (row, line, tabLength) {
-    return this.suggestedIndentForBufferRow(row, tabLength)
+    return this._suggestedIndentForLineWithScopeAtBufferRow(
+      row,
+      line,
+      this.rootScopeDescriptor,
+      tabLength
+    )
   }
 
   suggestedIndentForBufferRow (row, tabLength, options) {
-    let precedingRow
-    if (!options || options.skipBlankLines !== false) {
-      precedingRow = this.buffer.previousNonBlankRow(row)
-      if (precedingRow == null) return 0
-    } else {
-      precedingRow = row - 1
-      if (precedingRow < 0) return 0
-    }
-
-    return this.indentLevelForLine(this.buffer.lineForRow(precedingRow), tabLength)
-  }
-
-  suggestedIndentForEditedBufferRow (row) {
-    return null
+    return this._suggestedIndentForLineWithScopeAtBufferRow(
+      row,
+      this.buffer.lineForRow(row),
+      this.rootScopeDescriptor,
+      tabLength,
+      options
+    )
   }
 
   indentLevelForLine (line, tabLength = tabLength) {
@@ -508,3 +511,15 @@ class TreeSitterTextBufferInput {
 function last (array) {
   return array[array.length - 1]
 }
+
+// TODO: Remove this once TreeSitterLanguageMode implements its own auto-indent system.
+[
+  '_suggestedIndentForLineWithScopeAtBufferRow',
+  'suggestedIndentForEditedBufferRow',
+  'increaseIndentRegexForScopeDescriptor',
+  'decreaseIndentRegexForScopeDescriptor',
+  'decreaseNextIndentRegexForScopeDescriptor',
+  'regexForPattern'
+].forEach(methodName => {
+  module.exports.prototype[methodName] = TextMateLanguageMode.prototype[methodName]
+})
