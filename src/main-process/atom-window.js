@@ -411,6 +411,10 @@ class AtomWindow extends EventEmitter {
     return this.atomApplication.saveState()
   }
 
+  didClosePathWithWaitSession (path) {
+    this.atomApplication.windowDidClosePathWithWaitSession(this, path)
+  }
+
   copy () {
     return this.browserWindow.copy()
   }

@@ -70,6 +70,7 @@ class AtomEnvironment {
     this.loadTime = null
     this.emitter = new Emitter()
     this.disposables = new CompositeDisposable()
+    this.pathsWithWaitSessions = new Set()
 
     // Public: A {DeserializerManager} instance
     this.deserializers = new DeserializerManager(this)
@@ -359,6 +360,7 @@ class AtomEnvironment {
     this.grammars.clear()
     this.textEditors.clear()
     this.views.clear()
+    this.pathsWithWaitSessions.clear()
   }
 
   destroy () {
@@ -822,7 +824,22 @@ class AtomEnvironment {
       this.document.body.appendChild(this.workspace.getElement())
       if (this.backgroundStylesheet) this.backgroundStylesheet.remove()
 
-      this.watchProjectPaths()
+      let previousProjectPaths = this.project.getPaths()
+      this.disposables.add(this.project.onDidChangePaths(newPaths => {
+        for (let path of previousProjectPaths) {
+          if (this.pathsWithWaitSessions.has(path) && !newPaths.includes(path)) {
+            this.applicationDelegate.didClosePathWithWaitSession(path)
+          }
+        }
+        previousProjectPaths = newPaths
+        this.applicationDelegate.setRepresentedDirectoryPaths(newPaths)
+      }))
+      this.disposables.add(this.workspace.onDidDestroyPaneItem(({item}) => {
+        const path = item.getPath && item.getPath()
+        if (this.pathsWithWaitSessions.has(path)) {
+          this.applicationDelegate.didClosePathWithWaitSession(path)
+        }
+      }))
 
       this.packages.activate()
       this.keymaps.loadUserKeymap()
@@ -1023,13 +1040,6 @@ class AtomEnvironment {
 
   loadThemes () {
     return this.themes.load()
-  }
-
-  // Notify the browser project of the window's current project path
-  watchProjectPaths () {
-    this.disposables.add(this.project.onDidChangePaths(() => {
-      this.applicationDelegate.setRepresentedDirectoryPaths(this.project.getPaths())
-    }))
   }
 
   setDocumentEdited (edited) {
@@ -1300,8 +1310,9 @@ class AtomEnvironment {
       }
     }
 
-    for (var {pathToOpen, initialLine, initialColumn, forceAddToWindow} of locations) {
-      if (pathToOpen && (needsProjectPaths || forceAddToWindow)) {
+    for (const location of locations) {
+      const {pathToOpen} = location
+      if (pathToOpen && (needsProjectPaths || location.forceAddToWindow)) {
         if (fs.existsSync(pathToOpen)) {
           pushFolderToOpen(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
         } else if (fs.existsSync(path.dirname(pathToOpen))) {
@@ -1312,8 +1323,10 @@ class AtomEnvironment {
       }
 
       if (!fs.isDirectorySync(pathToOpen)) {
-        fileLocationsToOpen.push({pathToOpen, initialLine, initialColumn})
+        fileLocationsToOpen.push(location)
       }
+
+      if (location.hasWaitSession) this.pathsWithWaitSessions.add(pathToOpen)
     }
 
     let restoredState = false
@@ -1334,7 +1347,7 @@ class AtomEnvironment {
 
     if (!restoredState) {
       const fileOpenPromises = []
-      for ({pathToOpen, initialLine, initialColumn} of fileLocationsToOpen) {
+      for (const {pathToOpen, initialLine, initialColumn} of fileLocationsToOpen) {
         fileOpenPromises.push(this.workspace && this.workspace.open(pathToOpen, {initialLine, initialColumn}))
       }
       await Promise.all(fileOpenPromises)

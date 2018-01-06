@@ -101,9 +101,10 @@ class AtomApplication extends EventEmitter {
     this.socketPath = options.socketPath
     this.logFile = options.logFile
     this.userDataDir = options.userDataDir
+    this._killProcess = options.killProcess || process.kill.bind(process)
     if (options.test || options.benchmark || options.benchmarkTest) this.socketPath = null
 
-    this.pidsToOpenWindows = {}
+    this.waitSessionsByWindow = new Map()
     this.windowStack = new WindowStack()
 
     this.config = new Config({enablePersistence: true})
@@ -788,13 +789,17 @@ class AtomApplication extends EventEmitter {
     safeMode = Boolean(safeMode)
     clearWindowState = Boolean(clearWindowState)
 
-    const locationsToOpen = pathsToOpen.map(pathToOpen =>
-      this.locationForPathToOpen(pathToOpen, executedFrom, addToLastWindow)
-    )
-    pathsToOpen = locationsToOpen.map(locationToOpen => locationToOpen.pathToOpen)
+    const locationsToOpen = []
+    for (let i = 0; i < pathsToOpen.length; i++) {
+      const location = this.parsePathToOpen(pathsToOpen[i], executedFrom, addToLastWindow)
+      location.forceAddToWindow = addToLastWindow
+      location.hasWaitSession = pidToKillWhenClosed != null
+      locationsToOpen.push(location)
+      pathsToOpen[i] = location.pathToOpen
+    }
 
     let existingWindow
-    if (!pidToKillWhenClosed && !newWindow) {
+    if (!newWindow) {
       existingWindow = this.windowForPaths(pathsToOpen, devMode)
       const stats = pathsToOpen.map(pathToOpen => fs.statSyncNoException(pathToOpen))
       if (!existingWindow) {
@@ -852,26 +857,44 @@ class AtomApplication extends EventEmitter {
     }
 
     if (pidToKillWhenClosed != null) {
-      this.pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
+      if (!this.waitSessionsByWindow.has(openedWindow)) {
+        this.waitSessionsByWindow.set(openedWindow, [])
+      }
+      this.waitSessionsByWindow.get(openedWindow).push({
+        pid: pidToKillWhenClosed,
+        remainingPaths: new Set(pathsToOpen)
+      })
     }
 
-    openedWindow.browserWindow.once('closed', () => this.killProcessForWindow(openedWindow))
+    openedWindow.browserWindow.once('closed', () => this.killProcessesForWindow(openedWindow))
     return openedWindow
   }
 
   // Kill all processes associated with opened windows.
   killAllProcesses () {
-    for (let pid in this.pidsToOpenWindows) {
-      this.killProcess(pid)
+    for (let window of this.waitSessionsByWindow.keys()) {
+      this.killProcessesForWindow(window)
     }
   }
 
-  // Kill process associated with the given opened window.
-  killProcessForWindow (openedWindow) {
-    for (let pid in this.pidsToOpenWindows) {
-      const trackedWindow = this.pidsToOpenWindows[pid]
-      if (trackedWindow === openedWindow) {
-        this.killProcess(pid)
+  killProcessesForWindow (window) {
+    const sessions = this.waitSessionsByWindow.get(window)
+    if (!sessions) return
+    for (const session of sessions) {
+      this.killProcess(session.pid)
+    }
+    this.waitSessionsByWindow.delete(window)
+  }
+
+  windowDidClosePathWithWaitSession (window, initialPath) {
+    const waitSessions = this.waitSessionsByWindow.get(window)
+    if (!waitSessions) return
+    for (let i = waitSessions.length - 1; i >= 0; i--) {
+      const session = waitSessions[i]
+      session.remainingPaths.delete(initialPath)
+      if (session.remainingPaths.size === 0) {
+        this.killProcess(session.pid)
+        waitSessions.splice(i, 1)
       }
     }
   }
@@ -880,13 +903,12 @@ class AtomApplication extends EventEmitter {
   killProcess (pid) {
     try {
       const parsedPid = parseInt(pid)
-      if (isFinite(parsedPid)) process.kill(parsedPid)
+      if (isFinite(parsedPid)) this._killProcess(parsedPid)
     } catch (error) {
       if (error.code !== 'ESRCH') {
         console.log(`Killing process ${pid} failed: ${error.code != null ? error.code : error.message}`)
       }
     }
-    delete this.pidsToOpenWindows[pid]
   }
 
   saveState (allowEmpty = false) {
@@ -1192,7 +1214,7 @@ class AtomApplication extends EventEmitter {
     }
   }
 
-  locationForPathToOpen (pathToOpen, executedFrom = '', forceAddToWindow) {
+  parsePathToOpen (pathToOpen, executedFrom = '') {
     let initialColumn, initialLine
     if (!pathToOpen) {
       return {pathToOpen}
@@ -1217,7 +1239,7 @@ class AtomApplication extends EventEmitter {
       pathToOpen = path.resolve(executedFrom, fs.normalize(pathToOpen))
     }
 
-    return {pathToOpen, initialLine, initialColumn, forceAddToWindow}
+    return {pathToOpen, initialLine, initialColumn}
   }
 
   // Opens a native dialog to prompt the user for a path.

@@ -139,6 +139,10 @@ class ApplicationDelegate {
     return ipcRenderer.send('execute-javascript-in-dev-tools', code)
   }
 
+  didClosePathWithWaitSession (path) {
+    return ipcHelpers.call('window-method', 'didClosePathWithWaitSession', path)
+  }
+
   setWindowDocumentEdited (edited) {
     return ipcHelpers.call('window-method', 'setDocumentEdited', edited)
   }
