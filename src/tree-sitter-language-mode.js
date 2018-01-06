@@ -298,6 +298,13 @@ class TreeSitterLanguageMode {
   scopeDescriptorForPosition (point) {
     const result = []
     let node = this.document.rootNode.descendantForPosition(point)
+
+    // Don't include anonymous token types like '(' because they prevent scope chains
+    // from being parsed as CSS selectors by the `slick` parser. Other css selector
+    // parsers like `postcss-selector-parser` do allow arbitrary quoted strings in
+    // selectors.
+    if (!node.isNamed) node = node.parent
+
     while (node) {
       result.push(node.type)
       node = node.parent
