@@ -465,6 +465,33 @@ describe('AtomApplication', function () {
         await processKillPromise
         assert.deepEqual(killedPids, [102, 101])
       })
+
+      it('kills the specified pid after a newly-opened directory in an existing window is closed', async () => {
+        const window = atomApplication.launch(parseCommandLine([]))
+        await focusWindow(window)
+
+        const dirPath1 = makeTempDir()
+        const reusedWindow = atomApplication.launch(parseCommandLine(['--wait', '--pid', '101', dirPath1]))
+        assert.equal(reusedWindow, window)
+        assert.deepEqual(await getTreeViewRootDirectories(window), [dirPath1])
+        assert.deepEqual(killedPids, [])
+
+        const dirPath2 = makeTempDir()
+        await evalInWebContents(window.browserWindow.webContents, (send, dirPath1, dirPath2) => {
+          atom.project.setPaths([dirPath1, dirPath2])
+          send()
+        }, dirPath1, dirPath2)
+        await timeoutPromise(100)
+        assert.deepEqual(killedPids, [])
+
+        let processKillPromise = new Promise(resolve => { onDidKillProcess = resolve })
+        await evalInWebContents(window.browserWindow.webContents, (send, dirPath2) => {
+          atom.project.setPaths([dirPath2])
+          send()
+        }, dirPath2)
+        await processKillPromise
+        assert.deepEqual(killedPids, [101])
+      })
     })
 
     describe('when closing the last window', () => {
@@ -662,7 +689,7 @@ describe('AtomApplication', function () {
         function sendBackToMainProcess (result) {
           require('electron').ipcRenderer.send('${channelId}', result)
         }
-        (${source})(sendBackToMainProcess)
+        (${source})(sendBackToMainProcess, ${args.map(JSON.stringify).join(', ')})
       `)
     })
   }

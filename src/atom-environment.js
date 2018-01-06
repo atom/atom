@@ -824,8 +824,15 @@ class AtomEnvironment {
       this.document.body.appendChild(this.workspace.getElement())
       if (this.backgroundStylesheet) this.backgroundStylesheet.remove()
 
-      this.disposables.add(this.project.onDidChangePaths(() => {
-        this.applicationDelegate.setRepresentedDirectoryPaths(this.project.getPaths())
+      let previousProjectPaths = this.project.getPaths()
+      this.disposables.add(this.project.onDidChangePaths(newPaths => {
+        for (let path of previousProjectPaths) {
+          if (this.pathsToNotifyWhenClosed.has(path) && !newPaths.includes(path)) {
+            this.applicationDelegate.didCloseInitialPath(path)
+          }
+        }
+        previousProjectPaths = newPaths
+        this.applicationDelegate.setRepresentedDirectoryPaths(newPaths)
       }))
       this.disposables.add(this.workspace.onDidDestroyPaneItem(({item}) => {
         const path = item.getPath && item.getPath()

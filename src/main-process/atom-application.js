@@ -888,6 +888,7 @@ class AtomApplication extends EventEmitter {
 
   windowDidCloseInitialPath (window, initialPath) {
     const waitSessions = this.waitSessionsByWindow.get(window)
+    if (!waitSessions) return
     for (let i = waitSessions.length - 1; i >= 0; i--) {
       const session = waitSessions[i]
       session.remainingPaths.delete(initialPath)
