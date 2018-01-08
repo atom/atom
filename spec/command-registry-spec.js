@@ -1,5 +1,6 @@
 const CommandRegistry = require('../src/command-registry');
 const _ = require('underscore-plus');
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers');
 
 describe("CommandRegistry", () => {
   let registry, parent, child, grandchild;
@@ -363,6 +364,33 @@ describe("CommandRegistry", () => {
       expect(registry.dispatch(grandchild, 'command').constructor.name).toBe("Promise");
       expect(registry.dispatch(grandchild, 'bogus')).toBe(null);
       expect(registry.dispatch(parent, 'command')).toBe(null);
+    });
+
+    it("returns a promise that resolves when the listeners resolve", async () => {
+      registry.add('.grandchild', 'command', () => 1);
+      registry.add('.grandchild', 'command', () => Promise.resolve(2));
+      registry.add('.grandchild', 'command', () => new Promise((resolve) => {
+        setTimeout(() => { resolve(3); }, 100);
+      }));
+
+      const values = await registry.dispatch(grandchild, 'command');
+      expect(values).toEqual([1, 2, 3]);
+    });
+
+    it("returns a promise that rejects when a listener is rejected", async () => {
+      registry.add('.grandchild', 'command', () => 1);
+      registry.add('.grandchild', 'command', () => Promise.resolve(2));
+      registry.add('.grandchild', 'command', () => new Promise((resolve, reject) => {
+        setTimeout(() => { reject(3); }, 100);
+      }));
+
+      let value;
+      try {
+        value = await registry.dispatch(grandchild, 'command');
+      } catch (err) {
+        value = err;
+      }
+      expect(value).toBe(3);
     });
   });
 
