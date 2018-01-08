@@ -28,6 +28,7 @@ const argv = yargs
 
 const checkChromedriverVersion = require('./lib/check-chromedriver-version')
 const cleanOutputDirectory = require('./lib/clean-output-directory')
+const cleanPackageLock = require('./lib/clean-package-lock')
 const codeSignOnMac = require('./lib/code-sign-on-mac')
 const codeSignOnWindows = require('./lib/code-sign-on-windows')
 const compressArtifacts = require('./lib/compress-artifacts')
@@ -58,6 +59,7 @@ const CONFIG = require('./config')
 let binariesPromise = Promise.resolve()
 
 if (!argv.existingBinaries) {
+  cleanPackageLock()
   checkChromedriverVersion()
   cleanOutputDirectory()
   copyAssets()
