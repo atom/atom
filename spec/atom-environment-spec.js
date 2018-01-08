@@ -592,7 +592,7 @@ describe('AtomEnvironment', () => {
       const promise = new Promise((r) => { resolve = r })
       envLoaded = () => {
         resolve()
-        promise
+        return promise
       }
       atomEnvironment = new AtomEnvironment({
         applicationDelegate: atom.applicationDelegate,

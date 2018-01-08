@@ -119,11 +119,16 @@ class TextEditor {
     }
 
     this.id = params.id != null ? params.id : nextId++
+    if (this.id >= nextId) {
+      // Ensure that new editors get unique ids:
+      nextId = this.id + 1
+    }
     this.initialScrollTopRow = params.initialScrollTopRow
     this.initialScrollLeftColumn = params.initialScrollLeftColumn
     this.decorationManager = params.decorationManager
     this.selectionsMarkerLayer = params.selectionsMarkerLayer
     this.mini = (params.mini != null) ? params.mini : false
+    this.readOnly = (params.readOnly != null) ? params.readOnly : false
     this.placeholderText = params.placeholderText
     this.showLineNumbers = params.showLineNumbers
     this.assert = params.assert || (condition => condition)
@@ -400,6 +405,15 @@ class TextEditor {
           }
           break
 
+        case 'readOnly':
+          if (value !== this.readOnly) {
+            this.readOnly = value
+            if (this.component != null) {
+              this.component.scheduleUpdate()
+            }
+          }
+          break
+
         case 'placeholderText':
           if (value !== this.placeholderText) {
             this.placeholderText = value
@@ -530,6 +544,7 @@ class TextEditor {
       softWrapAtPreferredLineLength: this.softWrapAtPreferredLineLength,
       preferredLineLength: this.preferredLineLength,
       mini: this.mini,
+      readOnly: this.readOnly,
       editorWidthInChars: this.editorWidthInChars,
       width: this.width,
       maxScreenLineLength: this.maxScreenLineLength,
@@ -965,6 +980,12 @@ class TextEditor {
 
   isMini () { return this.mini }
 
+  setReadOnly (readOnly) {
+    this.update({readOnly})
+  }
+
+  isReadOnly () { return this.readOnly }
+
   onDidChangeMini (callback) {
     return this.emitter.on('did-change-mini', callback)
   }
@@ -1309,15 +1330,24 @@ class TextEditor {
   insertText (text, options = {}) {
     if (!this.emitWillInsertTextEvent(text)) return false
 
+    let groupLastChanges = false
+    if (options.undo === 'skip') {
+      options = Object.assign({}, options)
+      delete options.undo
+      groupLastChanges = true
+    }
+
     const groupingInterval = options.groupUndo ? this.undoGroupingInterval : 0
     if (options.autoIndentNewline == null) options.autoIndentNewline = this.shouldAutoIndent()
     if (options.autoDecreaseIndent == null) options.autoDecreaseIndent = this.shouldAutoIndent()
-    return this.mutateSelectedText(selection => {
+    const result = this.mutateSelectedText(selection => {
       const range = selection.insertText(text, options)
       const didInsertEvent = {text, range}
       this.emitter.emit('did-insert-text', didInsertEvent)
       return range
     }, groupingInterval)
+    if (groupLastChanges) this.buffer.groupLastChanges()
+    return result
   }
 
   // Essential: For each selection, replace the selected text with a newline.
@@ -3053,6 +3083,36 @@ class TextEditor {
     return this.expandSelectionsBackward(selection => selection.selectToBeginningOfPreviousParagraph())
   }
 
+  // Extended: For each selection, select the syntax node that contains
+  // that selection.
+  selectLargerSyntaxNode () {
+    const languageMode = this.buffer.getLanguageMode()
+    if (!languageMode.getRangeForSyntaxNodeContainingRange) return
+
+    this.expandSelectionsForward(selection => {
+      const currentRange = selection.getBufferRange()
+      const newRange = languageMode.getRangeForSyntaxNodeContainingRange(currentRange)
+      if (newRange) {
+        if (!selection._rangeStack) selection._rangeStack = []
+        selection._rangeStack.push(currentRange)
+        selection.setBufferRange(newRange)
+      }
+    })
+  }
+
+  // Extended: Undo the effect a preceding call to {::selectLargerSyntaxNode}.
+  selectSmallerSyntaxNode () {
+    this.expandSelectionsForward(selection => {
+      if (selection._rangeStack) {
+        const lastRange = selection._rangeStack[selection._rangeStack.length - 1]
+        if (lastRange && selection.getBufferRange().containsRange(lastRange)) {
+          selection._rangeStack.length--
+          selection.setBufferRange(lastRange)
+        }
+      }
+    })
+  }
+
   // Extended: Select the range of the given marker if it is valid.
   //
   // * `marker` A {DisplayMarker}
@@ -3583,14 +3643,15 @@ class TextEditor {
     return this.buffer.getLanguageMode().rootScopeDescriptor
   }
 
-  // Essential: Get the syntactic scopeDescriptor for the given position in buffer
+  // Essential: Get the syntactic {ScopeDescriptor} for the given position in buffer
   // coordinates. Useful with {Config::get}.
   //
   // For example, if called with a position inside the parameter list of an
-  // anonymous CoffeeScript function, the method returns the following array:
-  // `["source.coffee", "meta.inline.function.coffee", "variable.parameter.function.coffee"]`
+  // anonymous CoffeeScript function, this method returns a {ScopeDescriptor} with
+  // the following scopes array:
+  // `["source.coffee", "meta.function.inline.coffee", "meta.parameters.coffee", "variable.parameter.function.coffee"]`
   //
-  // * `bufferPosition` A {Point} or {Array} of [row, column].
+  // * `bufferPosition` A {Point} or {Array} of `[row, column]`.
   //
   // Returns a {ScopeDescriptor}.
   scopeDescriptorForBufferPosition (bufferPosition) {
@@ -3838,7 +3899,7 @@ class TextEditor {
 
   // Extended: Fold all foldable lines at the given indent level.
   //
-  // * `level` A {Number}.
+  // * `level` A {Number} starting at 0.
   foldAllAtIndentLevel (level) {
     const languageMode = this.buffer.getLanguageMode()
     const foldableRanges = (
@@ -4522,8 +4583,7 @@ class TextEditor {
               ? minBlankIndentLevel
               : 0
 
-        const tabLength = this.getTabLength()
-        const indentString = ' '.repeat(tabLength * minIndentLevel)
+        const indentString = this.buildIndentString(minIndentLevel)
         for (let row = start; row <= end; row++) {
           const line = this.buffer.lineForRow(row)
           if (NON_WHITESPACE_REGEXP.test(line)) {

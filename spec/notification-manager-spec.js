@@ -66,4 +66,27 @@ describe('NotificationManager', () => {
       expect(notification.getType()).toBe('success')
     })
   })
+
+  describe('clearing notifications', () => {
+    it('clears the notifications when ::clear has been called', () => {
+      manager.addSuccess('success')
+      expect(manager.getNotifications().length).toBe(1)
+      manager.clear()
+      expect(manager.getNotifications().length).toBe(0)
+    })
+
+    describe('adding events', () => {
+      let clearSpy
+
+      beforeEach(() => {
+        clearSpy = jasmine.createSpy()
+        manager.onDidClearNotifications(clearSpy)
+      })
+
+      it('emits an event when the notifications have been cleared', () => {
+        manager.clear()
+        expect(clearSpy).toHaveBeenCalled()
+      })
+    })
+  })
 })

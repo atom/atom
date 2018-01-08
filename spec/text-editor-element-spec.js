@@ -70,10 +70,39 @@ describe('TextEditorElement', () => {
     expect(element.getModel().isLineNumberGutterVisible()).toBe(false)
   })
 
+  it("honors the 'readonly' attribute", async function() {
+    jasmineContent.innerHTML = "<atom-text-editor readonly>"
+    const element = jasmineContent.firstChild
+
+    expect(element.getComponent().isInputEnabled()).toBe(false)
+
+    element.removeAttribute('readonly')
+    expect(element.getComponent().isInputEnabled()).toBe(true)
+
+    element.setAttribute('readonly', true)
+    expect(element.getComponent().isInputEnabled()).toBe(false)
+  })
+
   it('honors the text content', () => {
     jasmineContent.innerHTML = '<atom-text-editor>testing</atom-text-editor>'
     const element = jasmineContent.firstChild
     expect(element.getModel().getText()).toBe('testing')
+  })
+
+  describe('tabIndex', () => {
+    it('uses a default value of -1', () => {
+      jasmineContent.innerHTML = '<atom-text-editor />'
+      const element = jasmineContent.firstChild
+      expect(element.tabIndex).toBe(-1)
+      expect(element.querySelector('input').tabIndex).toBe(-1)
+    })
+
+    it('uses the custom value when given', () => {
+      jasmineContent.innerHTML = '<atom-text-editor tabIndex="42" />'
+      const element = jasmineContent.firstChild
+      expect(element.tabIndex).toBe(-1)
+      expect(element.querySelector('input').tabIndex).toBe(42)
+    })
   })
 
   describe('when the model is assigned', () =>

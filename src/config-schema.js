@@ -342,6 +342,11 @@ const configSchema = {
             description: 'Emulated with Atom events'
           }
         ]
+      },
+      useTreeSitterParsers: {
+        type: 'boolean',
+        default: false,
+        description: 'Use the new Tree-sitter parsing system for supported languages'
       }
     }
   },
