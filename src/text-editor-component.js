@@ -56,7 +56,7 @@ class TextEditorComponent {
     this.props = props
 
     if (!props.model) {
-      props.model = new TextEditor({mini: props.mini})
+      props.model = new TextEditor({mini: props.mini, readOnly: props.readOnly})
     }
     this.props.model.component = this
 
@@ -170,6 +170,7 @@ class TextEditorComponent {
     this.textDecorationBoundaries = []
     this.pendingScrollTopRow = this.props.initialScrollTopRow
     this.pendingScrollLeftColumn = this.props.initialScrollLeftColumn
+    this.tabIndex = this.props.element && this.props.element.tabIndex ? this.props.element.tabIndex : -1
 
     this.measuredContent = false
     this.queryGuttersToRender()
@@ -460,9 +461,13 @@ class TextEditorComponent {
       }
     }
 
-    let attributes = null
+    let attributes = {}
     if (model.isMini()) {
-      attributes = {mini: ''}
+      attributes.mini = ''
+    }
+
+    if (!this.isInputEnabled()) {
+      attributes.readonly = ''
     }
 
     const dataset = {encoding: model.getEncoding()}
@@ -677,7 +682,8 @@ class TextEditorComponent {
       scrollWidth: this.getScrollWidth(),
       decorationsToRender: this.decorationsToRender,
       cursorsBlinkedOff: this.cursorsBlinkedOff,
-      hiddenInputPosition: this.hiddenInputPosition
+      hiddenInputPosition: this.hiddenInputPosition,
+      tabIndex: this.tabIndex
     })
   }
 
@@ -1712,10 +1718,6 @@ class TextEditorComponent {
       return
     }
 
-    if (this.getChromeVersion() === 56) {
-      this.getHiddenInput().value = ''
-    }
-
     this.compositionCheckpoint = this.props.model.createCheckpoint()
     if (this.accentedCharacterMenuIsOpen) {
       this.props.model.selectLeft()
@@ -1723,16 +1725,7 @@ class TextEditorComponent {
   }
 
   didCompositionUpdate (event) {
-    if (this.getChromeVersion() === 56) {
-      process.nextTick(() => {
-        if (this.compositionCheckpoint != null) {
-          const previewText = this.getHiddenInput().value
-          this.props.model.insertText(previewText, {select: true})
-        }
-      })
-    } else {
-      this.props.model.insertText(event.data, {select: true})
-    }
+    this.props.model.insertText(event.data, {select: true})
   }
 
   didCompositionEnd (event) {
@@ -1758,11 +1751,13 @@ class TextEditorComponent {
 
     const screenPosition = this.screenPositionForMouseEvent(event)
 
-    // All clicks should set the cursor position, but only left-clicks should
-    // have additional logic.
-    // On macOS, ctrl-click brings up the context menu so also handle that case.
     if (button !== 0 || (platform === 'darwin' && ctrlKey)) {
-      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
+      // Always set cursor position on middle-click
+      // Only set cursor position on right-click if there is one cursor with no selection
+      const ranges = model.getSelectedBufferRanges()
+      if (button === 1 || (ranges.length === 1 && ranges[0].isEmpty())) {
+        model.setCursorScreenPosition(screenPosition, {autoscroll: false})
+      }
 
       // On Linux, pasting happens on middle click. A textInput event with the
       // contents of the selection clipboard will be dispatched by the browser
@@ -2962,11 +2957,11 @@ class TextEditorComponent {
   }
 
   setInputEnabled (inputEnabled) {
-    this.props.inputEnabled = inputEnabled
+    this.props.model.update({readOnly: !inputEnabled})
   }
 
   isInputEnabled (inputEnabled) {
-    return this.props.inputEnabled != null ? this.props.inputEnabled : true
+    return !this.props.model.isReadOnly()
   }
 
   getHiddenInput () {
@@ -3017,7 +3012,7 @@ class DummyScrollbarComponent {
 
     const outerStyle = {
       position: 'absolute',
-      contain: 'strict',
+      contain: 'content',
       zIndex: 1,
       willChange: 'transform'
     }
@@ -3553,7 +3548,7 @@ class CursorsAndInputComponent {
     const {
       lineHeight, hiddenInputPosition, didBlurHiddenInput, didFocusHiddenInput,
       didPaste, didTextInput, didKeydown, didKeyup, didKeypress,
-      didCompositionStart, didCompositionUpdate, didCompositionEnd
+      didCompositionStart, didCompositionUpdate, didCompositionEnd, tabIndex
     } = this.props
 
     let top, left
@@ -3581,7 +3576,7 @@ class CursorsAndInputComponent {
         compositionupdate: didCompositionUpdate,
         compositionend: didCompositionEnd
       },
-      tabIndex: -1,
+      tabIndex: tabIndex,
       style: {
         position: 'absolute',
         width: '1px',

@@ -106,6 +106,15 @@ describe "Config", ->
           atom.config.set("foo.bar.baz", 1, scopeSelector: ".source.coffee", source: "some-package")
           expect(atom.config.get("foo.bar.baz", scope: [".source.coffee"])).toBe 100
 
+      describe "when the first component of the scope descriptor matches a legacy scope alias", ->
+        it "falls back to properties defined for the legacy scope if no value is found for the original scope descriptor", ->
+          atom.config.addLegacyScopeAlias('javascript', '.source.js')
+          atom.config.set('foo', 100, scopeSelector: '.source.js')
+          atom.config.set('foo', 200, scopeSelector: 'javascript for_statement')
+
+          expect(atom.config.get('foo', scope: ['javascript', 'for_statement', 'identifier'])).toBe(200)
+          expect(atom.config.get('foo', scope: ['javascript', 'function', 'identifier'])).toBe(100)
+
   describe ".getAll(keyPath, {scope, sources, excludeSources})", ->
     it "reads all of the values for a given key-path", ->
       expect(atom.config.set("foo", 41)).toBe true
@@ -129,6 +138,20 @@ describe "Config", ->
         {scopeSelector: '.a .b', value: 43}
         {scopeSelector: '*', value: 40}
       ]
+
+    describe "when the first component of the scope descriptor matches a legacy scope alias", ->
+      it "includes the values defined for the legacy scope", ->
+        atom.config.addLegacyScopeAlias('javascript', '.source.js')
+
+        expect(atom.config.set('foo', 41)).toBe true
+        expect(atom.config.set('foo', 42, scopeSelector: 'javascript')).toBe true
+        expect(atom.config.set('foo', 43, scopeSelector: '.source.js')).toBe true
+
+        expect(atom.config.getAll('foo', scope: ['javascript'])).toEqual([
+          {scopeSelector: 'javascript', value: 42},
+          {scopeSelector: '.js.source', value: 43},
+          {scopeSelector: '*', value: 41}
+        ])
 
   describe ".set(keyPath, value, {source, scopeSelector})", ->
     it "allows a key path's value to be written", ->

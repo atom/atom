@@ -2840,83 +2840,149 @@ describe('TextEditorComponent', () => {
 
   describe('mouse input', () => {
     describe('on the lines', () => {
-      it('positions the cursor on single-click or when middle/right-clicking', async () => {
-        for (const button of [0, 1, 2]) {
+      describe('when there is only one cursor and no selection', () => {
+        it('positions the cursor on single-click or when middle/right-clicking', async () => {
+          for (const button of [0, 1, 2]) {
+            const {component, element, editor} = buildComponent()
+            const {lineHeight} = component.measurements
+
+            editor.setCursorScreenPosition([Infinity, Infinity], {autoscroll: false})
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: clientLeftForCharacter(component, 0, 0) - 1,
+              clientY: clientTopForLine(component, 0) - 1
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([0, 0])
+
+            const maxRow = editor.getLastScreenRow()
+            editor.setCursorScreenPosition([Infinity, Infinity], {autoscroll: false})
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: clientLeftForCharacter(component, maxRow, editor.lineLengthForScreenRow(maxRow)) + 1,
+              clientY: clientTopForLine(component, maxRow) + 1
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([maxRow, editor.lineLengthForScreenRow(maxRow)])
+
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: clientLeftForCharacter(component, 0, editor.lineLengthForScreenRow(0)) + 1,
+              clientY: clientTopForLine(component, 0) + lineHeight / 2
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([0, editor.lineLengthForScreenRow(0)])
+
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: (clientLeftForCharacter(component, 3, 0) + clientLeftForCharacter(component, 3, 1)) / 2,
+              clientY: clientTopForLine(component, 1) + lineHeight / 2
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([1, 0])
+
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2,
+              clientY: clientTopForLine(component, 3) + lineHeight / 2
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([3, 14])
+
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2 + 1,
+              clientY: clientTopForLine(component, 3) + lineHeight / 2
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([3, 15])
+
+            editor.getBuffer().setTextInRange([[3, 14], [3, 15]], '🐣')
+            await component.getNextUpdatePromise()
+
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2,
+              clientY: clientTopForLine(component, 3) + lineHeight / 2
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([3, 14])
+
+            component.didMouseDownOnContent({
+              detail: 1,
+              button,
+              clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2 + 1,
+              clientY: clientTopForLine(component, 3) + lineHeight / 2
+            })
+            expect(editor.getCursorScreenPosition()).toEqual([3, 16])
+
+            expect(editor.testAutoscrollRequests).toEqual([])
+          }
+        })
+      })
+
+      describe('when there is more than one cursor', () => {
+        it('does not move the cursor when right-clicking', async () => {
           const {component, element, editor} = buildComponent()
           const {lineHeight} = component.measurements
 
-          editor.setCursorScreenPosition([Infinity, Infinity], {autoscroll: false})
+          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
+          editor.addCursorAtScreenPosition([2, 4])
           component.didMouseDownOnContent({
             detail: 1,
-            button,
+            button: 2,
             clientX: clientLeftForCharacter(component, 0, 0) - 1,
             clientY: clientTopForLine(component, 0) - 1
           })
-          expect(editor.getCursorScreenPosition()).toEqual([0, 0])
+          expect(editor.getCursorScreenPositions()).toEqual([Point.fromObject([5, 17]), Point.fromObject([2, 4])])
+        })
 
-          const maxRow = editor.getLastScreenRow()
-          editor.setCursorScreenPosition([Infinity, Infinity], {autoscroll: false})
+        it('does move the cursor when middle-clicking', async () => {
+          const {component, element, editor} = buildComponent()
+          const {lineHeight} = component.measurements
+
+          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
+          editor.addCursorAtScreenPosition([2, 4])
           component.didMouseDownOnContent({
             detail: 1,
-            button,
-            clientX: clientLeftForCharacter(component, maxRow, editor.lineLengthForScreenRow(maxRow)) + 1,
-            clientY: clientTopForLine(component, maxRow) + 1
+            button: 1,
+            clientX: clientLeftForCharacter(component, 0, 0) - 1,
+            clientY: clientTopForLine(component, 0) - 1
           })
-          expect(editor.getCursorScreenPosition()).toEqual([maxRow, editor.lineLengthForScreenRow(maxRow)])
+          expect(editor.getCursorScreenPositions()).toEqual([Point.fromObject([0, 0])])
+        })
+      })
 
+      describe('when there are non-empty selections', () => {
+        it('does not move the cursor when right-clicking', async () => {
+          const {component, element, editor} = buildComponent()
+          const {lineHeight} = component.measurements
+
+          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
+          editor.selectRight(3)
           component.didMouseDownOnContent({
             detail: 1,
-            button,
-            clientX: clientLeftForCharacter(component, 0, editor.lineLengthForScreenRow(0)) + 1,
-            clientY: clientTopForLine(component, 0) + lineHeight / 2
+            button: 2,
+            clientX: clientLeftForCharacter(component, 0, 0) - 1,
+            clientY: clientTopForLine(component, 0) - 1
           })
-          expect(editor.getCursorScreenPosition()).toEqual([0, editor.lineLengthForScreenRow(0)])
+          expect(editor.getSelectedScreenRange()).toEqual([[5, 17], [5, 20]])
+        })
 
+        it('does move the cursor when middle-clicking', async () => {
+          const {component, element, editor} = buildComponent()
+          const {lineHeight} = component.measurements
+
+          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
+          editor.selectRight(3)
           component.didMouseDownOnContent({
             detail: 1,
-            button,
-            clientX: (clientLeftForCharacter(component, 3, 0) + clientLeftForCharacter(component, 3, 1)) / 2,
-            clientY: clientTopForLine(component, 1) + lineHeight / 2
+            button: 1,
+            clientX: clientLeftForCharacter(component, 0, 0) - 1,
+            clientY: clientTopForLine(component, 0) - 1
           })
-          expect(editor.getCursorScreenPosition()).toEqual([1, 0])
-
-          component.didMouseDownOnContent({
-            detail: 1,
-            button,
-            clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2,
-            clientY: clientTopForLine(component, 3) + lineHeight / 2
-          })
-          expect(editor.getCursorScreenPosition()).toEqual([3, 14])
-
-          component.didMouseDownOnContent({
-            detail: 1,
-            button,
-            clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 15)) / 2 + 1,
-            clientY: clientTopForLine(component, 3) + lineHeight / 2
-          })
-          expect(editor.getCursorScreenPosition()).toEqual([3, 15])
-
-          editor.getBuffer().setTextInRange([[3, 14], [3, 15]], '🐣')
-          await component.getNextUpdatePromise()
-
-          component.didMouseDownOnContent({
-            detail: 1,
-            button,
-            clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2,
-            clientY: clientTopForLine(component, 3) + lineHeight / 2
-          })
-          expect(editor.getCursorScreenPosition()).toEqual([3, 14])
-
-          component.didMouseDownOnContent({
-            detail: 1,
-            button,
-            clientX: (clientLeftForCharacter(component, 3, 14) + clientLeftForCharacter(component, 3, 16)) / 2 + 1,
-            clientY: clientTopForLine(component, 3) + lineHeight / 2
-          })
-          expect(editor.getCursorScreenPosition()).toEqual([3, 16])
-
-          expect(editor.testAutoscrollRequests).toEqual([])
-        }
+          expect(editor.getSelectedScreenRange()).toEqual([[0, 0], [0, 0]])
+        })
       })
 
       describe('when the input is for the primary mouse button', () => {
@@ -3612,421 +3678,198 @@ describe('TextEditorComponent', () => {
   })
 
   describe('keyboard input', () => {
-    describe('on Chrome 56', () => {
-      it('handles inserted accented characters via the press-and-hold menu on macOS correctly', async () => {
-        const {editor, component, element} = buildComponent({text: '', chromeVersion: 56})
-        editor.insertText('x')
-        editor.setCursorBufferPosition([0, 1])
+    it('handles inserted accented characters via the press-and-hold menu on macOS correctly', () => {
+      const {editor, component, element} = buildComponent({text: '', chromeVersion: 57})
+      editor.insertText('x')
+      editor.setCursorBufferPosition([0, 1])
 
-        // Simulate holding the A key to open the press-and-hold menu,
-        // then closing it via ESC.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeyup({code: 'KeyA'})
-        component.didKeydown({code: 'Escape'})
-        component.didKeyup({code: 'Escape'})
-        expect(editor.getText()).toBe('xa')
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        expect(editor.getText()).toBe('xaa')
-        editor.undo()
-        expect(editor.getText()).toBe('x')
+      // Simulate holding the A key to open the press-and-hold menu,
+      // then closing it via ESC.
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeyup({code: 'KeyA'})
+      component.didKeydown({code: 'Escape'})
+      component.didKeyup({code: 'Escape'})
+      expect(editor.getText()).toBe('xa')
+      // Ensure another "a" can be typed correctly.
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeyup({code: 'KeyA'})
+      expect(editor.getText()).toBe('xaa')
+      editor.undo()
+      expect(editor.getText()).toBe('x')
 
-        // Simulate holding the A key to open the press-and-hold menu,
-        // then selecting an alternative by typing a number.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeyup({code: 'KeyA'})
-        component.didKeydown({code: 'Digit2'})
-        component.didKeyup({code: 'Digit2'})
-        component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
-        expect(editor.getText()).toBe('xá')
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        expect(editor.getText()).toBe('xáa')
-        editor.undo()
-        expect(editor.getText()).toBe('x')
+      // Simulate holding the A key to open the press-and-hold menu,
+      // then selecting an alternative by typing a number.
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeyup({code: 'KeyA'})
+      component.didKeydown({code: 'Digit2'})
+      component.didKeyup({code: 'Digit2'})
+      component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
+      expect(editor.getText()).toBe('xá')
+      // Ensure another "a" can be typed correctly.
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeyup({code: 'KeyA'})
+      expect(editor.getText()).toBe('xáa')
+      editor.undo()
+      expect(editor.getText()).toBe('x')
 
-        // Simulate holding the A key to open the press-and-hold menu,
-        // then selecting an alternative by clicking on it.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeyup({code: 'KeyA'})
-        component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
-        expect(editor.getText()).toBe('xá')
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        expect(editor.getText()).toBe('xáa')
-        editor.undo()
-        expect(editor.getText()).toBe('x')
+      // Simulate holding the A key to open the press-and-hold menu,
+      // then selecting an alternative by clicking on it.
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeyup({code: 'KeyA'})
+      component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
+      expect(editor.getText()).toBe('xá')
+      // Ensure another "a" can be typed correctly.
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeyup({code: 'KeyA'})
+      expect(editor.getText()).toBe('xáa')
+      editor.undo()
+      expect(editor.getText()).toBe('x')
 
-        // Simulate holding the A key to open the press-and-hold menu,
-        // cycling through the alternatives with the arrows, then selecting one of them with Enter.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeyup({code: 'KeyA'})
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionStart({data: ''})
-        component.didCompositionUpdate({data: 'à'})
-        component.getHiddenInput().value = 'à'
-        component.didKeyup({code: 'ArrowRight'})
-        await getNextTickPromise()
-        expect(editor.getText()).toBe('xà')
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionUpdate({data: 'á'})
-        component.getHiddenInput().value = 'á'
-        component.didKeyup({code: 'ArrowRight'})
-        await getNextTickPromise()
-        expect(editor.getText()).toBe('xá')
-        component.didKeydown({code: 'Enter'})
-        component.didCompositionUpdate({data: 'á'})
-        component.getHiddenInput().value = 'á'
-        component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didCompositionEnd({data: 'á', target: component.getHiddenInput()})
-        component.didKeyup({code: 'Enter'})
-        await getNextTickPromise()
-        expect(editor.getText()).toBe('xá')
+      // Simulate holding the A key to open the press-and-hold menu,
+      // cycling through the alternatives with the arrows, then selecting one of them with Enter.
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeyup({code: 'KeyA'})
+      component.didKeydown({code: 'ArrowRight'})
+      component.didCompositionStart({data: ''})
+      component.didCompositionUpdate({data: 'à'})
+      component.didKeyup({code: 'ArrowRight'})
+      expect(editor.getText()).toBe('xà')
+      component.didKeydown({code: 'ArrowRight'})
+      component.didCompositionUpdate({data: 'á'})
+      component.didKeyup({code: 'ArrowRight'})
+      expect(editor.getText()).toBe('xá')
+      component.didKeydown({code: 'Enter'})
+      component.didCompositionUpdate({data: 'á'})
+      component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didCompositionEnd({data: 'á', target: component.refs.cursorsAndInput.refs.hiddenInput})
+      component.didKeyup({code: 'Enter'})
+      expect(editor.getText()).toBe('xá')
+      // Ensure another "a" can be typed correctly.
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeyup({code: 'KeyA'})
+      expect(editor.getText()).toBe('xáa')
+      editor.undo()
+      expect(editor.getText()).toBe('x')
 
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        expect(editor.getText()).toBe('xáa')
-        editor.undo()
-        expect(editor.getText()).toBe('x')
+      // Simulate holding the A key to open the press-and-hold menu,
+      // cycling through the alternatives with the arrows, then closing it via ESC.
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeyup({code: 'KeyA'})
+      component.didKeydown({code: 'ArrowRight'})
+      component.didCompositionStart({data: ''})
+      component.didCompositionUpdate({data: 'à'})
+      component.didKeyup({code: 'ArrowRight'})
+      expect(editor.getText()).toBe('xà')
+      component.didKeydown({code: 'ArrowRight'})
+      component.didCompositionUpdate({data: 'á'})
+      component.didKeyup({code: 'ArrowRight'})
+      expect(editor.getText()).toBe('xá')
+      component.didKeydown({code: 'Escape'})
+      component.didCompositionUpdate({data: 'a'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didCompositionEnd({data: 'a', target: component.refs.cursorsAndInput.refs.hiddenInput})
+      component.didKeyup({code: 'Escape'})
+      expect(editor.getText()).toBe('xa')
+      // Ensure another "a" can be typed correctly.
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeyup({code: 'KeyA'})
+      expect(editor.getText()).toBe('xaa')
+      editor.undo()
+      expect(editor.getText()).toBe('x')
 
-        // Simulate holding the A key to open the press-and-hold menu,
-        // cycling through the alternatives with the arrows, then closing it via ESC.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeyup({code: 'KeyA'})
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionStart({data: ''})
-        component.didCompositionUpdate({data: 'à'})
-        component.getHiddenInput().value = 'à'
-        component.didKeyup({code: 'ArrowRight'})
-        await getNextTickPromise()
-        expect(editor.getText()).toBe('xà')
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionUpdate({data: 'á'})
-        component.getHiddenInput().value = 'á'
-        component.didKeyup({code: 'ArrowRight'})
-        await getNextTickPromise()
-        expect(editor.getText()).toBe('xá')
-        component.didKeydown({code: 'Escape'})
-        component.didCompositionUpdate({data: 'a'})
-        component.getHiddenInput().value = 'a'
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didCompositionEnd({data: 'a', target: component.refs.cursorsAndInput.refs.hiddenInput})
-        component.didKeyup({code: 'Escape'})
-        await getNextTickPromise()
-        expect(editor.getText()).toBe('xa')
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        expect(editor.getText()).toBe('xaa')
-        editor.undo()
-        expect(editor.getText()).toBe('x')
+      // Simulate pressing the O key and holding the A key to open the press-and-hold menu right before releasing the O key,
+      // cycling through the alternatives with the arrows, then closing it via ESC.
+      component.didKeydown({code: 'KeyO'})
+      component.didKeypress({code: 'KeyO'})
+      component.didTextInput({data: 'o', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeyup({code: 'KeyO'})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeydown({code: 'ArrowRight'})
+      component.didCompositionStart({data: ''})
+      component.didCompositionUpdate({data: 'à'})
+      component.didKeyup({code: 'ArrowRight'})
+      expect(editor.getText()).toBe('xoà')
+      component.didKeydown({code: 'ArrowRight'})
+      component.didCompositionUpdate({data: 'á'})
+      component.didKeyup({code: 'ArrowRight'})
+      expect(editor.getText()).toBe('xoá')
+      component.didKeydown({code: 'Escape'})
+      component.didCompositionUpdate({data: 'a'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didCompositionEnd({data: 'a', target: component.refs.cursorsAndInput.refs.hiddenInput})
+      component.didKeyup({code: 'Escape'})
+      expect(editor.getText()).toBe('xoa')
+      // Ensure another "a" can be typed correctly.
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeyup({code: 'KeyA'})
+      editor.undo()
+      expect(editor.getText()).toBe('x')
 
-        // Simulate pressing the O key and holding the A key to open the press-and-hold menu right before releasing the O key,
-        // cycling through the alternatives with the arrows, then closing it via ESC.
-        component.didKeydown({code: 'KeyO'})
-        component.didKeypress({code: 'KeyO'})
-        component.didTextInput({data: 'o', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyO'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionStart({data: ''})
-        component.didCompositionUpdate({data: 'à'})
-        component.getHiddenInput().value = 'à'
-        component.didKeyup({code: 'ArrowRight'})
-        await getNextTickPromise()
-        expect(editor.getText()).toBe('xoà')
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionUpdate({data: 'á'})
-        component.getHiddenInput().value = 'á'
-        component.didKeyup({code: 'ArrowRight'})
-        await getNextTickPromise()
-        expect(editor.getText()).toBe('xoá')
-        component.didKeydown({code: 'Escape'})
-        component.didCompositionUpdate({data: 'a'})
-        component.getHiddenInput().value = 'a'
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didCompositionEnd({data: 'a', target: component.refs.cursorsAndInput.refs.hiddenInput})
-        component.didKeyup({code: 'Escape'})
-        await getNextTickPromise()
-        expect(editor.getText()).toBe('xoa')
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        editor.undo()
-        expect(editor.getText()).toBe('x')
-
-        // Simulate holding the A key to open the press-and-hold menu,
-        // cycling through the alternatives with the arrows, then closing it by changing focus.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeyup({code: 'KeyA'})
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionStart({data: ''})
-        component.didCompositionUpdate({data: 'à'})
-        component.getHiddenInput().value = 'à'
-        component.didKeyup({code: 'ArrowRight'})
-        await getNextTickPromise()
-        expect(editor.getText()).toBe('xà')
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionUpdate({data: 'á'})
-        component.getHiddenInput().value = 'á'
-        component.didKeyup({code: 'ArrowRight'})
-        await getNextTickPromise()
-        expect(editor.getText()).toBe('xá')
-        component.didCompositionUpdate({data: 'á'})
-        component.getHiddenInput().value = 'á'
-        component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didCompositionEnd({data: 'á', target: component.refs.cursorsAndInput.refs.hiddenInput})
-        await getNextTickPromise()
-        expect(editor.getText()).toBe('xá')
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        expect(editor.getText()).toBe('xáa')
-        editor.undo()
-        expect(editor.getText()).toBe('x')
-      })
-    })
-
-    describe('on other versions of Chrome', () => {
-      it('handles inserted accented characters via the press-and-hold menu on macOS correctly', () => {
-        const {editor, component, element} = buildComponent({text: '', chromeVersion: 57})
-        editor.insertText('x')
-        editor.setCursorBufferPosition([0, 1])
-
-        // Simulate holding the A key to open the press-and-hold menu,
-        // then closing it via ESC.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeyup({code: 'KeyA'})
-        component.didKeydown({code: 'Escape'})
-        component.didKeyup({code: 'Escape'})
-        expect(editor.getText()).toBe('xa')
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        expect(editor.getText()).toBe('xaa')
-        editor.undo()
-        expect(editor.getText()).toBe('x')
-
-        // Simulate holding the A key to open the press-and-hold menu,
-        // then selecting an alternative by typing a number.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeyup({code: 'KeyA'})
-        component.didKeydown({code: 'Digit2'})
-        component.didKeyup({code: 'Digit2'})
-        component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
-        expect(editor.getText()).toBe('xá')
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        expect(editor.getText()).toBe('xáa')
-        editor.undo()
-        expect(editor.getText()).toBe('x')
-
-        // Simulate holding the A key to open the press-and-hold menu,
-        // then selecting an alternative by clicking on it.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeyup({code: 'KeyA'})
-        component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
-        expect(editor.getText()).toBe('xá')
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        expect(editor.getText()).toBe('xáa')
-        editor.undo()
-        expect(editor.getText()).toBe('x')
-
-        // Simulate holding the A key to open the press-and-hold menu,
-        // cycling through the alternatives with the arrows, then selecting one of them with Enter.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeyup({code: 'KeyA'})
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionStart({data: ''})
-        component.didCompositionUpdate({data: 'à'})
-        component.didKeyup({code: 'ArrowRight'})
-        expect(editor.getText()).toBe('xà')
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionUpdate({data: 'á'})
-        component.didKeyup({code: 'ArrowRight'})
-        expect(editor.getText()).toBe('xá')
-        component.didKeydown({code: 'Enter'})
-        component.didCompositionUpdate({data: 'á'})
-        component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didCompositionEnd({data: 'á', target: component.refs.cursorsAndInput.refs.hiddenInput})
-        component.didKeyup({code: 'Enter'})
-        expect(editor.getText()).toBe('xá')
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        expect(editor.getText()).toBe('xáa')
-        editor.undo()
-        expect(editor.getText()).toBe('x')
-
-        // Simulate holding the A key to open the press-and-hold menu,
-        // cycling through the alternatives with the arrows, then closing it via ESC.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeyup({code: 'KeyA'})
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionStart({data: ''})
-        component.didCompositionUpdate({data: 'à'})
-        component.didKeyup({code: 'ArrowRight'})
-        expect(editor.getText()).toBe('xà')
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionUpdate({data: 'á'})
-        component.didKeyup({code: 'ArrowRight'})
-        expect(editor.getText()).toBe('xá')
-        component.didKeydown({code: 'Escape'})
-        component.didCompositionUpdate({data: 'a'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didCompositionEnd({data: 'a', target: component.refs.cursorsAndInput.refs.hiddenInput})
-        component.didKeyup({code: 'Escape'})
-        expect(editor.getText()).toBe('xa')
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        expect(editor.getText()).toBe('xaa')
-        editor.undo()
-        expect(editor.getText()).toBe('x')
-
-        // Simulate pressing the O key and holding the A key to open the press-and-hold menu right before releasing the O key,
-        // cycling through the alternatives with the arrows, then closing it via ESC.
-        component.didKeydown({code: 'KeyO'})
-        component.didKeypress({code: 'KeyO'})
-        component.didTextInput({data: 'o', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyO'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionStart({data: ''})
-        component.didCompositionUpdate({data: 'à'})
-        component.didKeyup({code: 'ArrowRight'})
-        expect(editor.getText()).toBe('xoà')
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionUpdate({data: 'á'})
-        component.didKeyup({code: 'ArrowRight'})
-        expect(editor.getText()).toBe('xoá')
-        component.didKeydown({code: 'Escape'})
-        component.didCompositionUpdate({data: 'a'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didCompositionEnd({data: 'a', target: component.refs.cursorsAndInput.refs.hiddenInput})
-        component.didKeyup({code: 'Escape'})
-        expect(editor.getText()).toBe('xoa')
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        editor.undo()
-        expect(editor.getText()).toBe('x')
-
-        // Simulate holding the A key to open the press-and-hold menu,
-        // cycling through the alternatives with the arrows, then closing it by changing focus.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeydown({code: 'KeyA'})
-        component.didKeyup({code: 'KeyA'})
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionStart({data: ''})
-        component.didCompositionUpdate({data: 'à'})
-        component.didKeyup({code: 'ArrowRight'})
-        expect(editor.getText()).toBe('xà')
-        component.didKeydown({code: 'ArrowRight'})
-        component.didCompositionUpdate({data: 'á'})
-        component.didKeyup({code: 'ArrowRight'})
-        expect(editor.getText()).toBe('xá')
-        component.didCompositionUpdate({data: 'á'})
-        component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didCompositionEnd({data: 'á', target: component.refs.cursorsAndInput.refs.hiddenInput})
-        expect(editor.getText()).toBe('xá')
-        // Ensure another "a" can be typed correctly.
-        component.didKeydown({code: 'KeyA'})
-        component.didKeypress({code: 'KeyA'})
-        component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
-        component.didKeyup({code: 'KeyA'})
-        expect(editor.getText()).toBe('xáa')
-        editor.undo()
-        expect(editor.getText()).toBe('x')
-      })
+      // Simulate holding the A key to open the press-and-hold menu,
+      // cycling through the alternatives with the arrows, then closing it by changing focus.
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeydown({code: 'KeyA'})
+      component.didKeyup({code: 'KeyA'})
+      component.didKeydown({code: 'ArrowRight'})
+      component.didCompositionStart({data: ''})
+      component.didCompositionUpdate({data: 'à'})
+      component.didKeyup({code: 'ArrowRight'})
+      expect(editor.getText()).toBe('xà')
+      component.didKeydown({code: 'ArrowRight'})
+      component.didCompositionUpdate({data: 'á'})
+      component.didKeyup({code: 'ArrowRight'})
+      expect(editor.getText()).toBe('xá')
+      component.didCompositionUpdate({data: 'á'})
+      component.didTextInput({data: 'á', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didCompositionEnd({data: 'á', target: component.refs.cursorsAndInput.refs.hiddenInput})
+      expect(editor.getText()).toBe('xá')
+      // Ensure another "a" can be typed correctly.
+      component.didKeydown({code: 'KeyA'})
+      component.didKeypress({code: 'KeyA'})
+      component.didTextInput({data: 'a', stopPropagation: () => {}, preventDefault: () => {}})
+      component.didKeyup({code: 'KeyA'})
+      expect(editor.getText()).toBe('xáa')
+      editor.undo()
+      expect(editor.getText()).toBe('x')
     })
   })
 

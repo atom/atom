@@ -1,10 +1,13 @@
 const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
+const dedent = require('dedent')
 const path = require('path')
 const fs = require('fs-plus')
 const temp = require('temp').track()
 const TextBuffer = require('text-buffer')
 const GrammarRegistry = require('../src/grammar-registry')
+const TreeSitterGrammar = require('../src/tree-sitter-grammar')
+const FirstMate = require('first-mate')
 
 describe('GrammarRegistry', () => {
   let grammarRegistry
@@ -13,8 +16,8 @@ describe('GrammarRegistry', () => {
     grammarRegistry = new GrammarRegistry({config: atom.config})
   })
 
-  describe('.assignLanguageMode(buffer, languageName)', () => {
-    it('assigns to the buffer a language mode with the given language name', async () => {
+  describe('.assignLanguageMode(buffer, languageId)', () => {
+    it('assigns to the buffer a language mode with the given language id', async () => {
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
       grammarRegistry.loadGrammarSync(require.resolve('language-css/grammars/css.cson'))
 
@@ -34,7 +37,7 @@ describe('GrammarRegistry', () => {
       expect(buffer.getLanguageMode().getLanguageId()).toBe('source.css')
     })
 
-    describe('when no languageName is passed', () => {
+    describe('when no languageId is passed', () => {
       it('makes the buffer use the null grammar', () => {
         grammarRegistry.loadGrammarSync(require.resolve('language-css/grammars/css.cson'))
 
@@ -45,6 +48,36 @@ describe('GrammarRegistry', () => {
         expect(grammarRegistry.assignLanguageMode(buffer, null)).toBe(true)
         expect(buffer.getLanguageMode().getLanguageId()).toBe('text.plain.null-grammar')
       })
+    })
+  })
+
+  describe('.grammarForId(languageId)', () => {
+    it('converts the language id to a text-mate language id when `core.useTreeSitterParsers` is false', () => {
+      atom.config.set('core.useTreeSitterParsers', false)
+
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+
+      const grammar = grammarRegistry.grammarForId('javascript')
+      expect(grammar instanceof FirstMate.Grammar).toBe(true)
+      expect(grammar.scopeName).toBe('source.js')
+
+      grammarRegistry.removeGrammar(grammar)
+      expect(grammarRegistry.grammarForId('javascript')).toBe(undefined)
+    })
+
+    it('converts the language id to a tree-sitter language id when `core.useTreeSitterParsers` is true', () => {
+      atom.config.set('core.useTreeSitterParsers', true)
+
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+
+      const grammar = grammarRegistry.grammarForId('source.js')
+      expect(grammar instanceof TreeSitterGrammar).toBe(true)
+      expect(grammar.id).toBe('javascript')
+
+      grammarRegistry.removeGrammar(grammar)
+      expect(grammarRegistry.grammarForId('source.js') instanceof FirstMate.Grammar).toBe(true)
     })
   })
 
@@ -78,7 +111,9 @@ describe('GrammarRegistry', () => {
       expect(buffer.getLanguageMode().getLanguageId()).toBe('source.c')
     })
 
-    it('updates the buffer\'s grammar when a more appropriate grammar is added for its path', async () => {
+    it('updates the buffer\'s grammar when a more appropriate text-mate grammar is added for its path', async () => {
+      atom.config.set('core.useTreeSitterParsers', false)
+
       const buffer = new TextBuffer()
       expect(buffer.getLanguageMode().getLanguageId()).toBe(null)
 
@@ -87,6 +122,25 @@ describe('GrammarRegistry', () => {
 
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
       expect(buffer.getLanguageMode().getLanguageId()).toBe('source.js')
+
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.js')
+    })
+
+    it('updates the buffer\'s grammar when a more appropriate tree-sitter grammar is added for its path', async () => {
+      atom.config.set('core.useTreeSitterParsers', true)
+
+      const buffer = new TextBuffer()
+      expect(buffer.getLanguageMode().getLanguageId()).toBe(null)
+
+      buffer.setPath('test.js')
+      grammarRegistry.maintainLanguageMode(buffer)
+
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('javascript')
+
+      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+      expect(buffer.getLanguageMode().getLanguageId()).toBe('javascript')
     })
 
     it('can be overridden by calling .assignLanguageMode', () => {
@@ -226,6 +280,32 @@ describe('GrammarRegistry', () => {
       expect(atom.grammars.selectGrammar('/hu.git/config').name).toBe('Null Grammar')
     })
 
+    describe('when the grammar has a contentRegExp field', () => {
+      it('favors grammars whose contentRegExp matches a prefix of the file\'s content', () => {
+        atom.grammars.addGrammar({
+          id: 'javascript-1',
+          fileTypes: ['js']
+        })
+        atom.grammars.addGrammar({
+          id: 'flow-javascript',
+          contentRegExp: new RegExp('//.*@flow'),
+          fileTypes: ['js']
+        })
+        atom.grammars.addGrammar({
+          id: 'javascript-2',
+          fileTypes: ['js']
+        })
+
+        const selectedGrammar = atom.grammars.selectGrammar('test.js', dedent`
+          // Copyright EvilCorp
+          // @flow
+
+          module.exports = function () { return 1 + 1 }
+        `)
+        expect(selectedGrammar.id).toBe('flow-javascript')
+      })
+    })
+
     it("uses the filePath's shebang line if the grammar cannot be determined by the extension or basename", async () => {
       await atom.packages.activatePackage('language-javascript')
       await atom.packages.activatePackage('language-ruby')
@@ -335,14 +415,38 @@ describe('GrammarRegistry', () => {
       await atom.packages.activatePackage('language-javascript')
       expect(atom.grammars.selectGrammar('foo.rb', '#!/usr/bin/env node').scopeName).toBe('source.ruby')
     })
+
+    describe('tree-sitter vs text-mate', () => {
+      it('favors a text-mate grammar over a tree-sitter grammar when `core.useTreeSitterParsers` is false', () => {
+        atom.config.set('core.useTreeSitterParsers', false)
+
+        grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+        grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+
+        const grammar = grammarRegistry.selectGrammar('test.js')
+        expect(grammar.scopeName).toBe('source.js')
+        expect(grammar instanceof FirstMate.Grammar).toBe(true)
+      })
+
+      it('favors a tree-sitter grammar over a text-mate grammar when `core.useTreeSitterParsers` is true', () => {
+        atom.config.set('core.useTreeSitterParsers', true)
+
+        grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+        grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+
+        const grammar = grammarRegistry.selectGrammar('test.js')
+        expect(grammar.id).toBe('javascript')
+        expect(grammar instanceof TreeSitterGrammar).toBe(true)
+      })
+    })
   })
 
   describe('.removeGrammar(grammar)', () => {
     it("removes the grammar, so it won't be returned by selectGrammar", async () => {
-      await atom.packages.activatePackage('language-javascript')
-      const grammar = atom.grammars.selectGrammar('foo.js')
+      await atom.packages.activatePackage('language-css')
+      const grammar = atom.grammars.selectGrammar('foo.css')
       atom.grammars.removeGrammar(grammar)
-      expect(atom.grammars.selectGrammar('foo.js').name).not.toBe(grammar.name)
+      expect(atom.grammars.selectGrammar('foo.css').name).not.toBe(grammar.name)
     })
   })
 

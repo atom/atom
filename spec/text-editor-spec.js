@@ -20,6 +20,17 @@ describe('TextEditor', () => {
     await atom.packages.activatePackage('language-javascript')
   })
 
+  it('generates unique ids for each editor', async () => {
+    // Deserialized editors are initialized with the serialized id. We can
+    // initialize an editor with what we expect to be the next id:
+    const deserialized = new TextEditor({id: editor.id+1})
+    expect(deserialized.id).toEqual(editor.id+1)
+
+    // The id generator should skip the id used up by the deserialized one:
+    const fresh = new TextEditor()
+    expect(fresh.id).toNotEqual(deserialized.id)
+  })
+
   describe('when the editor is deserialized', () => {
     it('restores selections and folds based on markers in the buffer', async () => {
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
@@ -3496,13 +3507,16 @@ describe('TextEditor', () => {
       })
 
       describe("when the undo option is set to 'skip'", () => {
-        beforeEach(() => editor.setSelectedBufferRange([[1, 2], [1, 2]]))
-
-        it('does not undo the skipped operation', () => {
-          let range = editor.insertText('x')
-          range = editor.insertText('y', {undo: 'skip'})
+        it('groups the change with the previous change for purposes of undo and redo', () => {
+          editor.setSelectedBufferRanges([
+            [[0, 0], [0, 0]],
+            [[1, 0], [1, 0]]
+          ])
+          editor.insertText('x')
+          editor.insertText('y', {undo: 'skip'})
           editor.undo()
-          expect(buffer.lineForRow(1)).toBe('  yvar sort = function(items) {')
+          expect(buffer.lineForRow(0)).toBe('var quicksort = function () {')
+          expect(buffer.lineForRow(1)).toBe('  var sort = function(items) {')
         })
       })
     })

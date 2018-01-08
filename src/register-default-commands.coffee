@@ -160,6 +160,8 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
       'editor:select-to-previous-subword-boundary': -> @selectToPreviousSubwordBoundary()
       'editor:select-to-first-character-of-line': -> @selectToFirstCharacterOfLine()
       'editor:select-line': -> @selectLinesContainingCursors()
+      'editor:select-larger-syntax-node': -> @selectLargerSyntaxNode()
+      'editor:select-smaller-syntax-node': -> @selectSmallerSyntaxNode()
     }),
     false
   )

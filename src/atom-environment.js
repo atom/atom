@@ -51,13 +51,15 @@ let nextId = 0
 //
 // An instance of this class is always available as the `atom` global.
 class AtomEnvironment {
+
   /*
-  Section: Construction and Destruction
+  Section: Properties
   */
 
-  // Call .loadOrCreate instead
   constructor (params = {}) {
     this.id = (params.id != null) ? params.id : nextId++
+
+    // Public: A {Clipboard} instance
     this.clipboard = params.clipboard
     this.updateProcessEnv = params.updateProcessEnv || updateProcessEnv
     this.enablePersistence = params.enablePersistence
@@ -68,25 +70,44 @@ class AtomEnvironment {
     this.loadTime = null
     this.emitter = new Emitter()
     this.disposables = new CompositeDisposable()
+    this.pathsWithWaitSessions = new Set()
+
+    // Public: A {DeserializerManager} instance
     this.deserializers = new DeserializerManager(this)
     this.deserializeTimings = {}
+
+    // Public: A {ViewRegistry} instance
     this.views = new ViewRegistry(this)
+
+    // Public: A {NotificationManager} instance
     this.notifications = new NotificationManager()
 
     this.stateStore = new StateStore('AtomEnvironments', 1)
 
+    // Public: A {Config} instance
     this.config = new Config({
       notificationManager: this.notifications,
       enablePersistence: this.enablePersistence
     })
     this.config.setSchema(null, {type: 'object', properties: _.clone(ConfigSchema)})
 
+    // Public: A {KeymapManager} instance
     this.keymaps = new KeymapManager({notificationManager: this.notifications})
+
+    // Public: A {TooltipManager} instance
     this.tooltips = new TooltipManager({keymapManager: this.keymaps, viewRegistry: this.views})
+
+    // Public: A {CommandRegistry} instance
     this.commands = new CommandRegistry()
     this.uriHandlerRegistry = new URIHandlerRegistry()
+
+    // Public: A {GrammarRegistry} instance
     this.grammars = new GrammarRegistry({config: this.config})
+
+    // Public: A {StyleManager} instance
     this.styles = new StyleManager()
+
+    // Public: A {PackageManager} instance
     this.packages = new PackageManager({
       config: this.config,
       styleManager: this.styles,
@@ -98,6 +119,8 @@ class AtomEnvironment {
       viewRegistry: this.views,
       uriHandlerRegistry: this.uriHandlerRegistry
     })
+
+    // Public: A {ThemeManager} instance
     this.themes = new ThemeManager({
       packageManager: this.packages,
       config: this.config,
@@ -105,12 +128,18 @@ class AtomEnvironment {
       notificationManager: this.notifications,
       viewRegistry: this.views
     })
+
+    // Public: A {MenuManager} instance
     this.menu = new MenuManager({keymapManager: this.keymaps, packageManager: this.packages})
+
+    // Public: A {ContextMenuManager} instance
     this.contextMenu = new ContextMenuManager({keymapManager: this.keymaps})
+
     this.packages.setMenuManager(this.menu)
     this.packages.setContextMenuManager(this.contextMenu)
     this.packages.setThemeManager(this.themes)
 
+    // Public: A {Project} instance
     this.project = new Project({
       notificationManager: this.notifications,
       packageManager: this.packages,
@@ -121,6 +150,7 @@ class AtomEnvironment {
     this.commandInstaller = new CommandInstaller(this.applicationDelegate)
     this.protocolHandlerInstaller = new ProtocolHandlerInstaller()
 
+    // Public: A {TextEditorRegistry} instance
     this.textEditors = new TextEditorRegistry({
       config: this.config,
       grammarRegistry: this.grammars,
@@ -128,6 +158,7 @@ class AtomEnvironment {
       packageManager: this.packages
     })
 
+    // Public: A {Workspace} instance
     this.workspace = new Workspace({
       config: this.config,
       project: this.project,
@@ -157,7 +188,9 @@ class AtomEnvironment {
 
     this.windowEventHandler = new WindowEventHandler({atomEnvironment: this, applicationDelegate: this.applicationDelegate})
 
+    // Public: A {HistoryManager} instance
     this.history = new HistoryManager({project: this.project, commands: this.commands, stateStore: this.stateStore})
+
     // Keep instances of HistoryManager in sync
     this.disposables.add(this.history.onDidChangeProjects(event => {
       if (!event.reloaded) this.applicationDelegate.didChangeHistoryManager()
@@ -206,11 +239,12 @@ class AtomEnvironment {
     this.themes.initialize({configDirPath: this.configDirPath, resourcePath, safeMode, devMode})
 
     this.commandInstaller.initialize(this.getVersion())
-    this.protocolHandlerInstaller.initialize(this.config, this.notifications)
     this.uriHandlerRegistry.registerHostHandler('core', CoreURIHandlers.create(this))
     this.autoUpdater.initialize()
 
     this.config.load()
+
+    this.protocolHandlerInstaller.initialize(this.config, this.notifications)
 
     this.themes.loadBaseStylesheets()
     this.initialStyleElements = this.styles.getSnapshot()
@@ -326,6 +360,7 @@ class AtomEnvironment {
     this.grammars.clear()
     this.textEditors.clear()
     this.views.clear()
+    this.pathsWithWaitSessions.clear()
   }
 
   destroy () {
@@ -789,7 +824,22 @@ class AtomEnvironment {
       this.document.body.appendChild(this.workspace.getElement())
       if (this.backgroundStylesheet) this.backgroundStylesheet.remove()
 
-      this.watchProjectPaths()
+      let previousProjectPaths = this.project.getPaths()
+      this.disposables.add(this.project.onDidChangePaths(newPaths => {
+        for (let path of previousProjectPaths) {
+          if (this.pathsWithWaitSessions.has(path) && !newPaths.includes(path)) {
+            this.applicationDelegate.didClosePathWithWaitSession(path)
+          }
+        }
+        previousProjectPaths = newPaths
+        this.applicationDelegate.setRepresentedDirectoryPaths(newPaths)
+      }))
+      this.disposables.add(this.workspace.onDidDestroyPaneItem(({item}) => {
+        const path = item.getPath && item.getPath()
+        if (this.pathsWithWaitSessions.has(path)) {
+          this.applicationDelegate.didClosePathWithWaitSession(path)
+        }
+      }))
 
       this.packages.activate()
       this.keymaps.loadUserKeymap()
@@ -1026,13 +1076,6 @@ class AtomEnvironment {
     return this.themes.load()
   }
 
-  // Notify the browser project of the window's current project path
-  watchProjectPaths () {
-    this.disposables.add(this.project.onDidChangePaths(() => {
-      this.applicationDelegate.setRepresentedDirectoryPaths(this.project.getPaths())
-    }))
-  }
-
   setDocumentEdited (edited) {
     if (typeof this.applicationDelegate.setWindowDocumentEdited === 'function') {
       this.applicationDelegate.setWindowDocumentEdited(edited)
@@ -1046,8 +1089,10 @@ class AtomEnvironment {
   }
 
   addProjectFolder () {
-    this.pickFolder((selectedPaths = []) => {
-      this.addToProject(selectedPaths)
+    return new Promise((resolve) => {
+      this.pickFolder((selectedPaths) => {
+        this.addToProject(selectedPaths || []).then(resolve)
+      })
     })
   }
 
@@ -1307,8 +1352,9 @@ class AtomEnvironment {
       }
     }
 
-    for (var {pathToOpen, initialLine, initialColumn, forceAddToWindow} of locations) {
-      if (pathToOpen && (needsProjectPaths || forceAddToWindow)) {
+    for (const location of locations) {
+      const {pathToOpen} = location
+      if (pathToOpen && (needsProjectPaths || location.forceAddToWindow)) {
         if (fs.existsSync(pathToOpen)) {
           pushFolderToOpen(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
         } else if (fs.existsSync(path.dirname(pathToOpen))) {
@@ -1319,8 +1365,10 @@ class AtomEnvironment {
       }
 
       if (!fs.isDirectorySync(pathToOpen)) {
-        fileLocationsToOpen.push({pathToOpen, initialLine, initialColumn})
+        fileLocationsToOpen.push(location)
       }
+
+      if (location.hasWaitSession) this.pathsWithWaitSessions.add(pathToOpen)
     }
 
     let restoredState = false
@@ -1341,7 +1389,7 @@ class AtomEnvironment {
 
     if (!restoredState) {
       const fileOpenPromises = []
-      for ({pathToOpen, initialLine, initialColumn} of fileLocationsToOpen) {
+      for (const {pathToOpen, initialLine, initialColumn} of fileLocationsToOpen) {
         fileOpenPromises.push(this.workspace && this.workspace.open(pathToOpen, {initialLine, initialColumn}))
       }
       await Promise.all(fileOpenPromises)

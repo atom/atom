@@ -63,7 +63,7 @@ else
 
 beforeEach ->
   # Do not clobber recent project history
-  spyOn(atom.history, 'saveState').andReturn(Promise.resolve())
+  spyOn(Object.getPrototypeOf(atom.history), 'saveState').andReturn(Promise.resolve())
 
   atom.project.setPaths([specProjectPath])
 
@@ -111,7 +111,8 @@ beforeEach ->
     new CompositeDisposable(
       @emitter.on("did-tokenize", callback),
       @onDidChangeGrammar =>
-        if @buffer.getLanguageMode().tokenizeInBackground.originalValue
+        languageMode = @buffer.getLanguageMode()
+        if languageMode.tokenizeInBackground?.originalValue
           callback()
     )
 
