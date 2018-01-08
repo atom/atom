@@ -5401,6 +5401,34 @@ describe('TextEditor', () => {
       expect(buffer.getLineCount()).toBe(count - 2)
     })
 
+    it("restores cursor position for multiple cursors", () => {
+      const line = '0123456789'.repeat(8)
+      editor.setText((line + '\n').repeat(5))
+      editor.setCursorScreenPosition([0, 5])
+      editor.addCursorAtScreenPosition([2, 8])
+      editor.deleteLine()
+
+      const cursors = editor.getCursors()
+      expect(cursors.length).toBe(2)
+      expect(cursors[0].getScreenPosition()).toEqual([0, 5])
+      expect(cursors[1].getScreenPosition()).toEqual([1, 8])
+    })
+
+    it("restores cursor position for multiple selections", () => {
+      const line = '0123456789'.repeat(8)
+      editor.setText((line + '\n').repeat(5))
+      editor.setSelectedBufferRanges([
+       [[0, 5], [0, 8]],
+       [[2, 4], [2, 15]]
+      ])
+      editor.deleteLine()
+
+      const cursors = editor.getCursors()
+      expect(cursors.length).toBe(2)
+      expect(cursors[0].getScreenPosition()).toEqual([0, 5])
+      expect(cursors[1].getScreenPosition()).toEqual([1, 4])
+    })
+
     it('deletes a line only once when multiple selections are on the same line', () => {
       const line1 = buffer.lineForRow(1)
       const count = buffer.getLineCount()
