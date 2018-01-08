@@ -370,7 +370,7 @@ describe("CommandRegistry", () => {
       registry.add('.grandchild', 'command', () => 1);
       registry.add('.grandchild', 'command', () => Promise.resolve(2));
       registry.add('.grandchild', 'command', () => new Promise((resolve) => {
-        setTimeout(() => { resolve(3); }, 100);
+        global.setTimeout(() => { resolve(3); }, 100);
       }));
 
       const values = await registry.dispatch(grandchild, 'command');
@@ -381,7 +381,7 @@ describe("CommandRegistry", () => {
       registry.add('.grandchild', 'command', () => 1);
       registry.add('.grandchild', 'command', () => Promise.resolve(2));
       registry.add('.grandchild', 'command', () => new Promise((resolve, reject) => {
-        setTimeout(() => { reject(3); }, 100);
+        global.setTimeout(() => { reject(3); }, 100);
       }));
 
       let value;
