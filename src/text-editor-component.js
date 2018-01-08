@@ -577,7 +577,6 @@ class TextEditorComponent {
         on: {mousedown: this.didMouseDownOnContent},
         style
       },
-      this.renderHighlightDecorations(),
       this.renderLineTiles(),
       this.renderBlockDecorationMeasurementArea(),
       this.renderCharacterMeasurementLine()
@@ -654,6 +653,7 @@ class TextEditorComponent {
     }
 
     children.push(this.renderPlaceholderText())
+    children.push(this.renderHighlightDecorations())
     children.push(this.renderCursorsAndInput())
 
     return $.div(
