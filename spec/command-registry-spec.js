@@ -375,7 +375,7 @@ describe("CommandRegistry", () => {
       }));
 
       const values = await registry.dispatch(grandchild, 'command');
-      expect(values).toEqual([1, 2, 3]);
+      expect(values).toEqual([3, 2, 1]);
     });
 
     it("returns a promise that rejects when a listener is rejected", async () => {
