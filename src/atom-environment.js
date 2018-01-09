@@ -965,29 +965,63 @@ class AtomEnvironment {
 
   // Essential: A flexible way to open a dialog akin to an alert dialog.
   //
+  // While both async and sync versions are provided, it is recommended to use the async version
+  // such that the renderer process is not blocked while the dialog box is open.
+  //
+  // The async version accepts the same options as Electron's `dialog.showMessageBox`.
+  // For convenience, it sets `type` to `'info'` and `normalizeAccessKeys` to `true` by default.
+  //
   // If the dialog is closed (via `Esc` key or `X` in the top corner) without selecting a button
   // the first button will be clicked unless a "Cancel" or "No" button is provided.
   //
   // ## Examples
   //
-  // ```coffee
-  // atom.confirm
-  //   message: 'How you feeling?'
-  //   detailedMessage: 'Be honest.'
-  //   buttons:
-  //     Good: -> window.alert('good to hear')
-  //     Bad: -> window.alert('bummer')
+  // ```js
+  // // Async version (recommended)
+  // atom.confirm({
+  //   message: 'How you feeling?',
+  //   detail: 'Be honest.',
+  //   buttons: ['Good', 'Bad']
+  // }, response => {
+  //   if (response === 0) {
+  //     window.alert('good to hear')
+  //   } else {
+  //     window.alert('bummer')
+  //   }
+  // })
+  //
+  // ```js
+  // // Legacy sync version
+  // const chosen = atom.confirm({
+  //   message: 'How you feeling?',
+  //   detailedMessage: 'Be honest.',
+  //   buttons: {
+  //     Good: () => window.alert('good to hear'),
+  //     Bad: () => window.alert('bummer')
+  //   }
+  // })
   // ```
   //
-  // * `options` An {Object} with the following keys:
+  // * `options` An options {Object}. If the callback argument is also supplied, see the documentation at
+  // https://electronjs.org/docs/api/dialog#dialogshowmessageboxbrowserwindow-options-callback for the list of
+  // available options. Otherwise, only the following keys are accepted:
   //   * `message` The {String} message to display.
   //   * `detailedMessage` (optional) The {String} detailed message to display.
-  //   * `buttons` (optional) Either an array of strings or an object where keys are
-  //     button names and the values are callbacks to invoke when clicked.
+  //   * `buttons` (optional) Either an {Array} of {String}s or an {Object} where keys are
+  //     button names and the values are callback {Function}s to invoke when clicked.
+  // * `callback` (optional) A {Function} that will be called with the index of the chosen option.
+  //   If a callback is supplied, the dialog will be non-blocking. This argument is recommended.
   //
-  // Returns the chosen button index {Number} if the buttons option is an array or the return value of the callback if the buttons option is an object.
-  confirm (params = {}) {
-    return this.applicationDelegate.confirm(params)
+  // Returns the chosen button index {Number} if the buttons option is an array
+  // or the return value of the callback if the buttons option is an object.
+  // If a callback function is supplied, returns `undefined`.
+  confirm (options = {}, callback) {
+    if (callback) {
+      // Async: no return value
+      this.applicationDelegate.confirm(options, callback)
+    } else {
+      return this.applicationDelegate.confirm(options)
+    }
   }
 
   /*
@@ -1071,7 +1105,7 @@ class AtomEnvironment {
     }
   }
 
-  attemptRestoreProjectStateForPaths (state, projectPaths, filesToOpen = []) {
+  async attemptRestoreProjectStateForPaths (state, projectPaths, filesToOpen = []) {
     const center = this.workspace.getCenter()
     const windowIsUnused = () => {
       for (let container of this.workspace.getPaneContainers()) {
@@ -1090,30 +1124,38 @@ class AtomEnvironment {
       this.restoreStateIntoThisEnvironment(state)
       return Promise.all(filesToOpen.map(file => this.workspace.open(file)))
     } else {
+      let resolveDiscardStatePromise = null
+      const discardStatePromise = new Promise((resolve) => {
+        resolveDiscardStatePromise = resolve
+      })
       const nouns = projectPaths.length === 1 ? 'folder' : 'folders'
-      const choice = this.confirm({
+      this.confirm({
         message: 'Previous automatically-saved project state detected',
-        detailedMessage: `There is previously saved state for the selected ${nouns}. ` +
+        detail: `There is previously saved state for the selected ${nouns}. ` +
           `Would you like to add the ${nouns} to this window, permanently discarding the saved state, ` +
           `or open the ${nouns} in a new window, restoring the saved state?`,
         buttons: [
           '&Open in new window and recover state',
           '&Add to this window and discard state'
-        ]})
-      if (choice === 0) {
-        this.open({
-          pathsToOpen: projectPaths.concat(filesToOpen),
-          newWindow: true,
-          devMode: this.inDevMode(),
-          safeMode: this.inSafeMode()
-        })
-        return Promise.resolve(null)
-      } else if (choice === 1) {
-        for (let selectedPath of projectPaths) {
-          this.project.addPath(selectedPath)
+        ]
+      }, response => {
+        if (response === 0) {
+          this.open({
+            pathsToOpen: projectPaths.concat(filesToOpen),
+            newWindow: true,
+            devMode: this.inDevMode(),
+            safeMode: this.inSafeMode()
+          })
+          resolveDiscardStatePromise(Promise.resolve(null))
+        } else if (response === 1) {
+          for (let selectedPath of projectPaths) {
+            this.project.addPath(selectedPath)
+          }
+          resolveDiscardStatePromise(Promise.all(filesToOpen.map(file => this.workspace.open(file))))
         }
-        return Promise.all(filesToOpen.map(file => this.workspace.open(file)))
-      }
+      })
+
+      return discardStatePromise
     }
   }
 
