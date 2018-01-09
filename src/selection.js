@@ -832,8 +832,12 @@ class Selection {
         if (clippedRange.isEmpty()) continue
       }
 
-      const selection = this.editor.addSelectionForScreenRange(clippedRange)
-      selection.setGoalScreenRange(range)
+      const containingSelections = this.editor.selectionsMarkerLayer.findMarkers({containsScreenRange: clippedRange})
+      if (containingSelections.length === 0) {
+        const selection = this.editor.addSelectionForScreenRange(clippedRange)
+        selection.setGoalScreenRange(range)
+      }
+
       break
     }
   }
@@ -854,8 +858,12 @@ class Selection {
         if (clippedRange.isEmpty()) continue
       }
 
-      const selection = this.editor.addSelectionForScreenRange(clippedRange)
-      selection.setGoalScreenRange(range)
+      const containingSelections = this.editor.selectionsMarkerLayer.findMarkers({containsScreenRange: clippedRange})
+      if (containingSelections.length === 0) {
+        const selection = this.editor.addSelectionForScreenRange(clippedRange)
+        selection.setGoalScreenRange(range)
+      }
+
       break
     }
   }
