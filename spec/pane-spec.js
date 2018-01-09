@@ -3,7 +3,7 @@ const {Emitter} = require('event-kit')
 const Grim = require('grim')
 const Pane = require('../src/pane')
 const PaneContainer = require('../src/pane-container')
-const {it, fit, ffit, fffit, beforeEach, timeoutPromise} = require('./async-spec-helpers')
+const {it, fit, ffit, fffit, beforeEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
 
 describe('Pane', () => {
   let confirm, showSaveDialog, deserializerDisposable
@@ -576,13 +576,17 @@ describe('Pane', () => {
 
         describe('when the item has no uri', () => {
           it('presents a save-as dialog, then saves the item with the given uri before removing and destroying it', async () => {
+            jasmine.useRealClock()
+
             itemURI = null
 
-            showSaveDialog.andReturn('/selected/path')
+            showSaveDialog.andCallFake((options, callback) => callback('/selected/path'))
             confirm.andCallFake((options, callback) => callback(0))
 
             const success = await pane.destroyItem(item1)
-            expect(showSaveDialog).toHaveBeenCalledWith({})
+            expect(showSaveDialog.mostRecentCall.args[0]).toEqual({})
+
+            await conditionPromise(() => item1.saveAs.callCount === 1)
             expect(item1.saveAs).toHaveBeenCalledWith('/selected/path')
             expect(pane.getItems().includes(item1)).toBe(false)
             expect(item1.isDestroyed()).toBe(true)
@@ -735,7 +739,7 @@ describe('Pane', () => {
 
     beforeEach(() => {
       pane = new Pane(paneParams({items: [new Item('A')]}))
-      showSaveDialog.andReturn('/selected/path')
+      showSaveDialog.andCallFake((options, callback) => callback('/selected/path'))
     })
 
     describe('when the active item has a uri', () => {
@@ -764,7 +768,7 @@ describe('Pane', () => {
         it('opens a save dialog and saves the current item as the selected path', async () => {
           pane.getActiveItem().saveAs = jasmine.createSpy('saveAs')
           await pane.saveActiveItem()
-          expect(showSaveDialog).toHaveBeenCalledWith({})
+          expect(showSaveDialog.mostRecentCall.args[0]).toEqual({})
           expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith('/selected/path')
         })
       })
@@ -779,7 +783,7 @@ describe('Pane', () => {
 
       it('does nothing if the user cancels choosing a path', async () => {
         pane.getActiveItem().saveAs = jasmine.createSpy('saveAs')
-        showSaveDialog.andReturn(undefined)
+        showSaveDialog.andCallFake((options, callback) => callback(undefined))
         await pane.saveActiveItem()
         expect(pane.getActiveItem().saveAs).not.toHaveBeenCalled()
       })
@@ -835,15 +839,19 @@ describe('Pane', () => {
 
     beforeEach(() => {
       pane = new Pane(paneParams({items: [new Item('A')]}))
-      showSaveDialog.andReturn('/selected/path')
+      showSaveDialog.andCallFake((options, callback) => callback('/selected/path'))
     })
 
     describe('when the current item has a saveAs method', () => {
-      it('opens the save dialog and calls saveAs on the item with the selected path', () => {
+      it('opens the save dialog and calls saveAs on the item with the selected path', async () => {
+        jasmine.useRealClock()
+
         pane.getActiveItem().path = __filename
         pane.getActiveItem().saveAs = jasmine.createSpy('saveAs')
         pane.saveActiveItemAs()
-        expect(showSaveDialog).toHaveBeenCalledWith({defaultPath: __filename})
+        expect(showSaveDialog.mostRecentCall.args[0]).toEqual({defaultPath: __filename})
+
+        await conditionPromise(() => pane.getActiveItem().saveAs.callCount === 1)
         expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith('/selected/path')
       })
     })
@@ -1241,7 +1249,7 @@ describe('Pane', () => {
       item1.saveAs = jasmine.createSpy('saveAs')
 
       confirm.andCallFake((options, callback) => callback(0))
-      showSaveDialog.andReturn(undefined)
+      showSaveDialog.andCallFake((options, callback) => callback(undefined))
 
       await pane.close()
       expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
@@ -1295,12 +1303,12 @@ describe('Pane', () => {
           callback(0)
         }) // save and then save as
 
-        showSaveDialog.andReturn('new/path')
+        showSaveDialog.andCallFake((options, callback) => callback('new/path'))
 
         await pane.close()
         expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
         expect(confirmations).toBe(2)
-        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalledWith({})
+        expect(atom.applicationDelegate.showSaveDialog.mostRecentCall.args[0]).toEqual({})
         expect(item1.save).toHaveBeenCalled()
         expect(item1.saveAs).toHaveBeenCalled()
         expect(pane.isDestroyed()).toBe(true)
@@ -1324,12 +1332,12 @@ describe('Pane', () => {
           }
         })
 
-        showSaveDialog.andReturn('new/path')
+        showSaveDialog.andCallFake((options, callback) => callback('new/path'))
 
         await pane.close()
         expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
         expect(confirmations).toBe(3)
-        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalledWith({})
+        expect(atom.applicationDelegate.showSaveDialog.mostRecentCall.args[0]).toEqual({})
         expect(item1.save).toHaveBeenCalled()
         expect(item1.saveAs).toHaveBeenCalled()
         expect(pane.isDestroyed()).toBe(true)

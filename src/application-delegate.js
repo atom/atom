@@ -212,11 +212,17 @@ class ApplicationDelegate {
 
   showMessageDialog (params) {}
 
-  showSaveDialog (params) {
-    if (typeof params === 'string') {
-      params = {defaultPath: params}
+  showSaveDialog (options, callback) {
+    if (typeof callback === 'function') {
+      // Async
+      this.getCurrentWindow().showSaveDialog(options, callback)
+    } else {
+      // Sync
+      if (typeof params === 'string') {
+        options = {defaultPath: options}
+      }
+      return this.getCurrentWindow().showSaveDialog(options)
     }
-    return this.getCurrentWindow().showSaveDialog(params)
   }
 
   playBeepSound () {

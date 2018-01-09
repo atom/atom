@@ -1167,12 +1167,11 @@ class AtomEnvironment {
     return this.deserialize(state)
   }
 
-  showSaveDialog (callback) {
-    callback(this.showSaveDialogSync())
-  }
-
   showSaveDialogSync (options = {}) {
-    this.applicationDelegate.showSaveDialog(options)
+    deprecate(`atom.showSaveDialogSync is deprecated and will be removed soon.
+Please, implement ::saveAs and ::getSaveDialogOptions instead for pane items
+or use Pane::saveItemAs for programmatic saving.`)
+    return this.applicationDelegate.showSaveDialog(options)
   }
 
   async saveState (options, storageKey) {

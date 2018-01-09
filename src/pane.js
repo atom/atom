@@ -904,7 +904,7 @@ class Pane {
   //   after the item is successfully saved, or with the error if it failed.
   //   The return value will be that of `nextAction` or `undefined` if it was not
   //   provided
-  saveItemAs (item, nextAction) {
+  async saveItemAs (item, nextAction) {
     if (!item) return
     if (typeof item.saveAs !== 'function') return
 
@@ -915,22 +915,34 @@ class Pane {
     const itemPath = item.getPath()
     if (itemPath && !saveOptions.defaultPath) saveOptions.defaultPath = itemPath
 
-    const newItemPath = this.applicationDelegate.showSaveDialog(saveOptions)
-    if (newItemPath) {
-      return promisify(() => item.saveAs(newItemPath))
-        .then(() => {
-          if (nextAction) nextAction()
-        })
-        .catch(error => {
-          if (nextAction) {
-            nextAction(error)
-          } else {
-            this.handleSaveError(error, item)
-          }
-        })
-    } else if (nextAction) {
-      return nextAction(new SaveCancelledError('Save Cancelled'))
-    }
+    let resolveSaveDialogPromise = null
+    const saveDialogPromise = new Promise(resolve => { resolveSaveDialogPromise = resolve })
+    this.applicationDelegate.showSaveDialog(saveOptions, newItemPath => {
+      if (newItemPath) {
+        promisify(() => item.saveAs(newItemPath))
+          .then(() => {
+            if (nextAction) {
+              resolveSaveDialogPromise(nextAction())
+            } else {
+              resolveSaveDialogPromise()
+            }
+          })
+          .catch(error => {
+            if (nextAction) {
+              resolveSaveDialogPromise(nextAction(error))
+            } else {
+              this.handleSaveError(error, item)
+              resolveSaveDialogPromise()
+            }
+          })
+      } else if (nextAction) {
+        resolveSaveDialogPromise(nextAction(new SaveCancelledError('Save Cancelled')))
+      } else {
+        resolveSaveDialogPromise()
+      }
+    })
+
+    return await saveDialogPromise
   }
 
   // Public: Save all items.

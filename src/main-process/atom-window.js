@@ -375,12 +375,19 @@ class AtomWindow extends EventEmitter {
     return this.loadedPromise
   }
 
-  showSaveDialog (params) {
-    params = Object.assign({
+  showSaveDialog (options, callback) {
+    options = Object.assign({
       title: 'Save File',
       defaultPath: this.representedDirectoryPaths[0]
-    }, params)
-    return dialog.showSaveDialog(this.browserWindow, params)
+    }, options)
+
+    if (typeof callback === 'function') {
+      // Async
+      dialog.showSaveDialog(this.browserWindow, options, callback)
+    } else {
+      // Sync
+      return dialog.showSaveDialog(this.browserWindow, options)
+    }
   }
 
   toggleDevTools () {
