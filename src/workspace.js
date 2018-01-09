@@ -1160,16 +1160,17 @@ module.exports = class Workspace extends Model {
   // * `uri` A {String} containing a URI.
   //
   // Returns a {Promise} that resolves to the {TextEditor} (or other item) for the given URI.
-  createItemForURI (uri, options) {
+  async createItemForURI (uri, options) {
     if (uri != null) {
-      for (let opener of this.getOpeners()) {
+      for (const opener of this.getOpeners()) {
         const item = opener(uri, options)
-        if (item != null) return Promise.resolve(item)
+        if (item != null) return item
       }
     }
 
     try {
-      return this.openTextFile(uri, options)
+      const item = await this.openTextFile(uri, options)
+      return item
     } catch (error) {
       switch (error.code) {
         case 'CANCELLED':
@@ -1199,7 +1200,7 @@ module.exports = class Workspace extends Model {
     }
   }
 
-  openTextFile (uri, options) {
+  async openTextFile (uri, options) {
     const filePath = this.project.resolvePath(uri)
 
     if (filePath != null) {
@@ -1214,23 +1215,38 @@ module.exports = class Workspace extends Model {
     }
 
     const fileSize = fs.getSizeSync(filePath)
-    if (fileSize >= (this.config.get('core.warnOnLargeFileLimit') * 1048576)) {
-      const choice = this.applicationDelegate.confirm({
+
+    let [resolveConfirmFileOpenPromise, rejectConfirmFileOpenPromise] = []
+    const confirmFileOpenPromise = new Promise((resolve, reject) => {
+      resolveConfirmFileOpenPromise = resolve
+      rejectConfirmFileOpenPromise = reject
+    })
+
+    if (fileSize >= (this.config.get('core.warnOnLargeFileLimit') * 1048576)) { // 40MB by default
+      this.applicationDelegate.confirm({
         message: 'Atom will be unresponsive during the loading of very large files.',
-        detailedMessage: 'Do you still want to load this file?',
+        detail: 'Do you still want to load this file?',
         buttons: ['Proceed', 'Cancel']
+      }, response => {
+        if (response === 1) {
+          rejectConfirmFileOpenPromise()
+        } else {
+          resolveConfirmFileOpenPromise()
+        }
       })
-      if (choice === 1) {
-        const error = new Error()
-        error.code = 'CANCELLED'
-        throw error
-      }
+    } else {
+      resolveConfirmFileOpenPromise()
     }
 
-    return this.project.bufferForPath(filePath, options)
-      .then(buffer => {
-        return this.textEditorRegistry.build(Object.assign({buffer, autoHeight: false}, options))
-      })
+    try {
+      await confirmFileOpenPromise
+      const buffer = await this.project.bufferForPath(filePath, options)
+      return this.textEditorRegistry.build(Object.assign({buffer, autoHeight: false}, options))
+    } catch (e) {
+      const error = new Error()
+      error.code = 'CANCELLED'
+      throw error
+    }
   }
 
   handleGrammarUsed (grammar) {
@@ -1987,25 +2003,22 @@ module.exports = class Workspace extends Model {
 
   checkoutHeadRevision (editor) {
     if (editor.getPath()) {
-      const checkoutHead = () => {
-        return this.project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
-          .then(repository => repository && repository.checkoutHeadForEditor(editor))
+      const checkoutHead = async () => {
+        const repository = await this.project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
+        if (repository) repository.checkoutHeadForEditor(editor)
       }
 
       if (this.config.get('editor.confirmCheckoutHeadRevision')) {
         this.applicationDelegate.confirm({
           message: 'Confirm Checkout HEAD Revision',
-          detailedMessage: `Are you sure you want to discard all changes to "${editor.getFileName()}" since the last Git commit?`,
-          buttons: {
-            OK: checkoutHead,
-            Cancel: null
-          }
+          detail: `Are you sure you want to discard all changes to "${editor.getFileName()}" since the last Git commit?`,
+          buttons: ['OK', 'Cancel']
+        }, response => {
+          if (response === 0) checkoutHead()
         })
       } else {
-        return checkoutHead()
+        checkoutHead()
       }
-    } else {
-      return Promise.resolve(false)
     }
   }
 }

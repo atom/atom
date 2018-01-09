@@ -1,4 +1,4 @@
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const {it, fit, ffit, beforeEach, afterEach, conditionPromise} = require('./async-spec-helpers')
 const _ = require('underscore-plus')
 const path = require('path')
 const temp = require('temp').track()
@@ -518,27 +518,31 @@ describe('AtomEnvironment', () => {
         })
       })
 
-      it('prompts the user to restore the state in a new window, discarding it and adding folder to current window', () => {
-        spyOn(atom, 'confirm').andReturn(1)
+      it('prompts the user to restore the state in a new window, discarding it and adding folder to current window', async () => {
+        jasmine.useRealClock()
+        spyOn(atom, 'confirm').andCallFake((options, callback) => callback(1))
         spyOn(atom.project, 'addPath')
         spyOn(atom.workspace, 'open')
         const state = Symbol()
 
         atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
         expect(atom.confirm).toHaveBeenCalled()
-        expect(atom.project.addPath.callCount).toBe(1)
+        await conditionPromise(() => atom.project.addPath.callCount === 1)
+
         expect(atom.project.addPath).toHaveBeenCalledWith(__dirname)
         expect(atom.workspace.open.callCount).toBe(1)
         expect(atom.workspace.open).toHaveBeenCalledWith(__filename)
       })
 
-      it('prompts the user to restore the state in a new window, opening a new window', () => {
-        spyOn(atom, 'confirm').andReturn(0)
+      it('prompts the user to restore the state in a new window, opening a new window', async () => {
+        jasmine.useRealClock()
+        spyOn(atom, 'confirm').andCallFake((options, callback) => callback(0))
         spyOn(atom, 'open')
         const state = Symbol()
 
         atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
         expect(atom.confirm).toHaveBeenCalled()
+        await conditionPromise(() => atom.open.callCount === 1)
         expect(atom.open).toHaveBeenCalledWith({
           pathsToOpen: [__dirname, __filename],
           newWindow: true,

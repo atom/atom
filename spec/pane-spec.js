@@ -564,7 +564,7 @@ describe('Pane', () => {
         describe('when the item has a uri', () => {
           it('saves the item before destroying it', async () => {
             itemURI = 'test'
-            confirm.andReturn(0)
+            confirm.andCallFake((options, callback) => callback(0))
 
             const success = await pane.destroyItem(item1)
             expect(item1.save).toHaveBeenCalled()
@@ -579,7 +579,7 @@ describe('Pane', () => {
             itemURI = null
 
             showSaveDialog.andReturn('/selected/path')
-            confirm.andReturn(0)
+            confirm.andCallFake((options, callback) => callback(0))
 
             const success = await pane.destroyItem(item1)
             expect(showSaveDialog).toHaveBeenCalledWith({})
@@ -593,7 +593,7 @@ describe('Pane', () => {
 
       describe("if the [Don't Save] option is selected", () => {
         it('removes and destroys the item without saving it', async () => {
-          confirm.andReturn(2)
+          confirm.andCallFake((options, callback) => callback(2))
 
           const success = await pane.destroyItem(item1)
           expect(item1.save).not.toHaveBeenCalled()
@@ -605,7 +605,7 @@ describe('Pane', () => {
 
       describe('if the [Cancel] option is selected', () => {
         it('does not save, remove, or destroy the item', async () => {
-          confirm.andReturn(1)
+          confirm.andCallFake((options, callback) => callback(1))
 
           const success = await pane.destroyItem(item1)
           expect(item1.save).not.toHaveBeenCalled()
@@ -1210,7 +1210,7 @@ describe('Pane', () => {
       item1.getURI = () => '/test/path'
       item1.save = jasmine.createSpy('save')
 
-      confirm.andReturn(0)
+      confirm.andCallFake((options, callback) => callback(0))
       await pane.close()
       expect(confirm).toHaveBeenCalled()
       expect(item1.save).toHaveBeenCalled()
@@ -1225,7 +1225,7 @@ describe('Pane', () => {
       item1.getURI = () => '/test/path'
       item1.save = jasmine.createSpy('save')
 
-      confirm.andReturn(1)
+      confirm.andCallFake((options, callback) => callback(1))
 
       await pane.close()
       expect(confirm).toHaveBeenCalled()
@@ -1240,7 +1240,7 @@ describe('Pane', () => {
       item1.shouldPromptToSave = () => true
       item1.saveAs = jasmine.createSpy('saveAs')
 
-      confirm.andReturn(0)
+      confirm.andCallFake((options, callback) => callback(0))
       showSaveDialog.andReturn(undefined)
 
       await pane.close()
@@ -1270,12 +1270,12 @@ describe('Pane', () => {
 
       it('does not destroy the pane if save fails and user clicks cancel', async () => {
         let confirmations = 0
-        confirm.andCallFake(() => {
+        confirm.andCallFake((options, callback) => {
           confirmations++
           if (confirmations === 1) {
-            return 0 // click save
+            callback(0) // click save
           } else {
-            return 1
+            callback(1)
           }
         }) // click cancel
 
@@ -1290,9 +1290,9 @@ describe('Pane', () => {
         item1.saveAs = jasmine.createSpy('saveAs').andReturn(true)
 
         let confirmations = 0
-        confirm.andCallFake(() => {
+        confirm.andCallFake((options, callback) => {
           confirmations++
-          return 0
+          callback(0)
         }) // save and then save as
 
         showSaveDialog.andReturn('new/path')
@@ -1315,13 +1315,14 @@ describe('Pane', () => {
         })
 
         let confirmations = 0
-        confirm.andCallFake(() => {
+        confirm.andCallFake((options, callback) => {
           confirmations++
           if (confirmations < 3) {
-            return 0 // save, save as, save as
+            callback(0) // save, save as, save as
+          } else {
+            callback(2) // don't save
           }
-          return 2
-        }) // don't save
+        })
 
         showSaveDialog.andReturn('new/path')
 

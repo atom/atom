@@ -175,28 +175,38 @@ class ApplicationDelegate {
     return remote.systemPreferences.getUserDefault(key, type)
   }
 
-  confirm ({message, detailedMessage, buttons}) {
-    let buttonLabels
-    if (!buttons) buttons = {}
-    if (Array.isArray(buttons)) {
-      buttonLabels = buttons
+  confirm (options, callback) {
+    if (typeof callback === 'function') {
+      // Async version: pass options directly to Electron but set sane defaults
+      options = Object.assign({type: 'info', normalizeAccessKeys: true}, options)
+      remote.dialog.showMessageBox(remote.getCurrentWindow(), options, callback)
     } else {
-      buttonLabels = Object.keys(buttons)
-    }
+      // Legacy sync version: options can only have `message`,
+      // `detailedMessage` (optional), and buttons array or object (optional)
+      let {message, detailedMessage, buttons} = options
 
-    const chosen = remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-      type: 'info',
-      message,
-      detail: detailedMessage,
-      buttons: buttonLabels,
-      normalizeAccessKeys: true
-    })
+      let buttonLabels
+      if (!buttons) buttons = {}
+      if (Array.isArray(buttons)) {
+        buttonLabels = buttons
+      } else {
+        buttonLabels = Object.keys(buttons)
+      }
 
-    if (Array.isArray(buttons)) {
-      return chosen
-    } else {
-      const callback = buttons[buttonLabels[chosen]]
-      return (typeof callback === 'function' ? callback() : undefined)
+      const chosen = remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+        type: 'info',
+        message,
+        detail: detailedMessage,
+        buttons: buttonLabels,
+        normalizeAccessKeys: true
+      })
+
+      if (Array.isArray(buttons)) {
+        return chosen
+      } else {
+        const callback = buttons[buttonLabels[chosen]]
+        if (typeof callback === 'function') callback()
+      }
     }
   }
 
