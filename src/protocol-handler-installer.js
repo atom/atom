@@ -11,10 +11,6 @@ class ProtocolHandlerInstaller {
     return ['win32', 'darwin'].includes(process.platform)
   }
 
-  isOldDefaultProtocolClient () {
-    return remote.app.isDefaultProtocolClient('atom', process.execPath, ['--uri-handler'])
-  }
-
   isDefaultProtocolClient () {
     return remote.app.isDefaultProtocolClient('atom', process.execPath, ['--uri-handler', '--'])
   }
@@ -25,32 +21,33 @@ class ProtocolHandlerInstaller {
     return this.isSupported() && remote.app.setAsDefaultProtocolClient('atom', process.execPath, ['--uri-handler', '--'])
   }
 
-  shouldUpgradeProtocolClient () {
-    // macOS and Linux ignore the last argument to `app.isDefaultProtocolClient`
-    // so we only need to upgrade the handler on Windows.
-    return process.platform === 'win32' && this.isOldDefaultProtocolClient()
-  }
-
   initialize (config, notifications) {
     if (!this.isSupported()) {
       return
     }
 
-    if (this.shouldUpgradeProtocolClient()) {
-      this.setAsDefaultProtocolClient()
-    } else if (!this.isDefaultProtocolClient()) {
-      const behaviorWhenNotProtocolClient = config.get(SETTING)
-      switch (behaviorWhenNotProtocolClient) {
-        case PROMPT:
+    const behaviorWhenNotProtocolClient = config.get(SETTING)
+    switch (behaviorWhenNotProtocolClient) {
+      case PROMPT:
+        if (!this.isDefaultProtocolClient()) {
           this.promptToBecomeProtocolClient(config, notifications)
-          break
-        case ALWAYS:
+        }
+        break
+      case ALWAYS:
+        if (!this.isDefaultProtocolClient()) {
           this.setAsDefaultProtocolClient()
-          break
-        case NEVER:
-        default:
-          // Do nothing
-      }
+        }
+        break
+      case NEVER:
+        if (process.platform === 'win32') {
+          // Only win32 supports deregistration
+          const Registry = require('winreg')
+          const commandKey = new Registry({hive: 'HKCR', key: `\\atom`})
+          commandKey.destroy((_err, _val) => { /* no op */ })
+        }
+        break
+      default:
+        // Do nothing
     }
   }
 
