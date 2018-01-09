@@ -367,10 +367,11 @@ describe("CommandRegistry", () => {
     });
 
     it("returns a promise that resolves when the listeners resolve", async () => {
+      jasmine.useRealClock();
       registry.add('.grandchild', 'command', () => 1);
       registry.add('.grandchild', 'command', () => Promise.resolve(2));
       registry.add('.grandchild', 'command', () => new Promise((resolve) => {
-        global.setTimeout(() => { resolve(3); }, 100);
+        setTimeout(() => { resolve(3); }, 1);
       }));
 
       const values = await registry.dispatch(grandchild, 'command');
@@ -378,10 +379,11 @@ describe("CommandRegistry", () => {
     });
 
     it("returns a promise that rejects when a listener is rejected", async () => {
+      jasmine.useRealClock();
       registry.add('.grandchild', 'command', () => 1);
       registry.add('.grandchild', 'command', () => Promise.resolve(2));
       registry.add('.grandchild', 'command', () => new Promise((resolve, reject) => {
-        global.setTimeout(() => { reject(3); }, 100);
+        setTimeout(() => { reject(3); }, 1);
       }));
 
       let value;
