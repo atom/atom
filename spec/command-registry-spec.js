@@ -1,5 +1,6 @@
 const CommandRegistry = require('../src/command-registry');
 const _ = require('underscore-plus');
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers');
 
 describe("CommandRegistry", () => {
   let registry, parent, child, grandchild;
@@ -357,12 +358,41 @@ describe("CommandRegistry", () => {
       expect(called).toBe(true);
     });
 
-    it("returns a boolean indicating whether any listeners matched the command", () => {
+    it("returns a promise if any listeners matched the command", () => {
       registry.add('.grandchild', 'command', () => {});
 
-      expect(registry.dispatch(grandchild, 'command')).toBe(true);
-      expect(registry.dispatch(grandchild, 'bogus')).toBe(false);
-      expect(registry.dispatch(parent, 'command')).toBe(false);
+      expect(registry.dispatch(grandchild, 'command').constructor.name).toBe("Promise");
+      expect(registry.dispatch(grandchild, 'bogus')).toBe(null);
+      expect(registry.dispatch(parent, 'command')).toBe(null);
+    });
+
+    it("returns a promise that resolves when the listeners resolve", async () => {
+      jasmine.useRealClock();
+      registry.add('.grandchild', 'command', () => 1);
+      registry.add('.grandchild', 'command', () => Promise.resolve(2));
+      registry.add('.grandchild', 'command', () => new Promise((resolve) => {
+        setTimeout(() => { resolve(3); }, 1);
+      }));
+
+      const values = await registry.dispatch(grandchild, 'command');
+      expect(values).toEqual([3, 2, 1]);
+    });
+
+    it("returns a promise that rejects when a listener is rejected", async () => {
+      jasmine.useRealClock();
+      registry.add('.grandchild', 'command', () => 1);
+      registry.add('.grandchild', 'command', () => Promise.resolve(2));
+      registry.add('.grandchild', 'command', () => new Promise((resolve, reject) => {
+        setTimeout(() => { reject(3); }, 1);
+      }));
+
+      let value;
+      try {
+        value = await registry.dispatch(grandchild, 'command');
+      } catch (err) {
+        value = err;
+      }
+      expect(value).toBe(3);
     });
   });
 
