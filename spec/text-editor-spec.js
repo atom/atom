@@ -2376,6 +2376,19 @@ describe('TextEditor', () => {
           ])
         })
       })
+
+      it('does not create a new selection if it would be fully contained within another selection', () => {
+        editor.setText('abc\ndef\nghi\njkl\nmno')
+        editor.setCursorBufferPosition([0, 1])
+
+        let addedSelectionCount = 0
+        editor.onDidAddSelection(() => { addedSelectionCount++ })
+
+        editor.addSelectionBelow()
+        editor.addSelectionBelow()
+        editor.addSelectionBelow()
+        expect(addedSelectionCount).toBe(3)
+      })
     })
 
     describe('.addSelectionAbove()', () => {
@@ -2497,6 +2510,19 @@ describe('TextEditor', () => {
             [[9, 0], [9, 0]]
           ])
         })
+      })
+
+      it('does not create a new selection if it would be fully contained within another selection', () => {
+        editor.setText('abc\ndef\nghi\njkl\nmno')
+        editor.setCursorBufferPosition([4, 1])
+
+        let addedSelectionCount = 0
+        editor.onDidAddSelection(() => { addedSelectionCount++ })
+
+        editor.addSelectionAbove()
+        editor.addSelectionAbove()
+        editor.addSelectionAbove()
+        expect(addedSelectionCount).toBe(3)
       })
     })
 
