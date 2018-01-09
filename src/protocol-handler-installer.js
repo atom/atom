@@ -11,14 +11,24 @@ class ProtocolHandlerInstaller {
     return ['win32', 'darwin'].includes(process.platform)
   }
 
-  isDefaultProtocolClient () {
+  isOldDefaultProtocolClient () {
     return remote.app.isDefaultProtocolClient('atom', process.execPath, ['--uri-handler'])
+  }
+
+  isDefaultProtocolClient () {
+    return remote.app.isDefaultProtocolClient('atom', process.execPath, ['--uri-handler', '--'])
   }
 
   setAsDefaultProtocolClient () {
     // This Electron API is only available on Windows and macOS. There might be some
     // hacks to make it work on Linux; see https://github.com/electron/electron/issues/6440
-    return this.isSupported() && remote.app.setAsDefaultProtocolClient('atom', process.execPath, ['--uri-handler'])
+    return this.isSupported() && remote.app.setAsDefaultProtocolClient('atom', process.execPath, ['--uri-handler', '--'])
+  }
+
+  shouldUpgradeProtocolClient () {
+    // macOS and Linux ignore the last argument to `app.isDefaultProtocolClient`
+    // so we only need to upgrade the handler on Windows.
+    return process.platform === 'win32' && this.isOldDefaultProtocolClient()
   }
 
   initialize (config, notifications) {
@@ -26,7 +36,9 @@ class ProtocolHandlerInstaller {
       return
     }
 
-    if (!this.isDefaultProtocolClient()) {
+    if (this.shouldUpgradeProtocolClient()) {
+      this.setAsDefaultProtocolClient()
+    } else if (!this.isDefaultProtocolClient()) {
       const behaviorWhenNotProtocolClient = config.get(SETTING)
       switch (behaviorWhenNotProtocolClient) {
         case PROMPT:
