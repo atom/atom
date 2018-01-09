@@ -594,12 +594,14 @@ class TextEditorComponent {
   }
 
   renderLineTiles () {
-    const children = []
     const style = {
       position: 'absolute',
       contain: 'strict',
       overflow: 'hidden'
     }
+
+    const children = []
+    children.push(this.renderHighlightDecorations())
 
     if (this.hasInitialMeasurements) {
       const {lineComponentsByScreenLineId} = this
@@ -653,7 +655,6 @@ class TextEditorComponent {
     }
 
     children.push(this.renderPlaceholderText())
-    children.push(this.renderHighlightDecorations())
     children.push(this.renderCursorsAndInput())
 
     return $.div(
