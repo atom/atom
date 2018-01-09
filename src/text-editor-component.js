@@ -3536,7 +3536,8 @@ class CursorsAndInputComponent {
         zIndex: 1,
         width: scrollWidth + 'px',
         height: scrollHeight + 'px',
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        userSelect: 'none'
       }
     }, children)
   }
@@ -4012,6 +4013,7 @@ class HighlightsComponent {
     this.element.style.contain = 'strict'
     this.element.style.position = 'absolute'
     this.element.style.overflow = 'hidden'
+    this.element.style.userSelect = 'none'
     this.highlightComponentsByKey = new Map()
     this.update(props)
   }
