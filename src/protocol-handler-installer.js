@@ -43,8 +43,9 @@ class ProtocolHandlerInstaller {
           // Only win32 supports deregistration
           const Registry = require('winreg')
           const commandKey = new Registry({hive: 'HKCR', key: `\\atom`})
-          commandKey.destroy((err, val) => { })
+          commandKey.destroy((_err, _val) => { /* no op */ })
         }
+        break
       default:
         // Do nothing
     }
