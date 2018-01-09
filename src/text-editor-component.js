@@ -594,12 +594,14 @@ class TextEditorComponent {
   }
 
   renderLineTiles () {
-    const children = []
     const style = {
       position: 'absolute',
       contain: 'strict',
       overflow: 'hidden'
     }
+
+    const children = []
+    children.push(this.renderHighlightDecorations())
 
     if (this.hasInitialMeasurements) {
       const {lineComponentsByScreenLineId} = this
@@ -653,7 +655,6 @@ class TextEditorComponent {
     }
 
     children.push(this.renderPlaceholderText())
-    children.push(this.renderHighlightDecorations())
     children.push(this.renderCursorsAndInput())
 
     return $.div(
@@ -3535,7 +3536,8 @@ class CursorsAndInputComponent {
         zIndex: 1,
         width: scrollWidth + 'px',
         height: scrollHeight + 'px',
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        userSelect: 'none'
       }
     }, children)
   }
@@ -4011,6 +4013,7 @@ class HighlightsComponent {
     this.element.style.contain = 'strict'
     this.element.style.position = 'absolute'
     this.element.style.overflow = 'hidden'
+    this.element.style.userSelect = 'none'
     this.highlightComponentsByKey = new Map()
     this.update(props)
   }
