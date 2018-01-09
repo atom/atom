@@ -183,7 +183,7 @@ class ApplicationDelegate {
     } else {
       // Legacy sync version: options can only have `message`,
       // `detailedMessage` (optional), and buttons array or object (optional)
-      ({message, detailedMessage, buttons} = options)
+      let {message, detailedMessage, buttons} = options
 
       let buttonLabels
       if (!buttons) buttons = {}
