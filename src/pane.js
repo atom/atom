@@ -1164,7 +1164,7 @@ class Pane {
   //    `nested` means below, both can be pulled up to parent(= reparent).
   //      - `vertical` pane-axis containing same `vertical` pane-axis as immediate child
   //      - `horizontal` pane-axis containing same `horizontal` pane-axis as immediate child
-  moveToVery(direction) {
+  moveToVery (direction) {
     if (this.container && this.container.getLocation() !== "center") return
     let root = this.container.getRoot()
     if (root instanceof PaneAxis) {
