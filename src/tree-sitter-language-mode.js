@@ -361,9 +361,8 @@ class TreeSitterHighlightIterator {
 
     var node = this.layer.document.rootNode
     var childIndex = -1
-    var done = false
     var nodeContainsTarget = true
-    do {
+    for (;;) {
       this.currentNode = node
       this.currentChildIndex = childIndex
       if (!nodeContainsTarget) break
@@ -380,18 +379,14 @@ class TreeSitterHighlightIterator {
         }
       }
 
-      done = true
-      for (var i = 0, {children} = node, childCount = children.length; i < childCount; i++) {
-        const child = children[i]
-        if (child.endIndex > this.currentIndex) {
-          node = child
-          childIndex = i
-          done = false
-          if (child.startIndex > this.currentIndex) nodeContainsTarget = false
-          break
-        }
+      node = node.firstChildForIndex(this.currentIndex)
+      if (node) {
+        if (node.startIndex > this.currentIndex) nodeContainsTarget = false
+        childIndex = node.childIndex
+      } else {
+        break
       }
-    } while (!done)
+    }
 
     return containingTags
   }
