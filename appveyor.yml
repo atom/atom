@@ -46,7 +46,7 @@ build_script:
         ECHO Building on release branch - Creating production artifacts &&
         script\build.cmd --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
-        IF [%APPVEYOR_REPO_BRANCH%]==[master] (
+        IF [%APPVEYOR_REPO_BRANCH%]==[master] IF NOT DEFINED [%APPVEYOR_PULL_REQUEST_NUMBER%] (
           ECHO Building on master branch - Creating signed zips &&
           script\build.cmd --code-sign --compress-artifacts
         ) ELSE (
