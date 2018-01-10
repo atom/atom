@@ -164,6 +164,8 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
       'editor:select-to-previous-subword-boundary': -> @selectToPreviousSubwordBoundary()
       'editor:select-to-first-character-of-line': -> @selectToFirstCharacterOfLine()
       'editor:select-line': -> @selectLinesContainingCursors()
+      'editor:select-larger-syntax-node': -> @selectLargerSyntaxNode()
+      'editor:select-smaller-syntax-node': -> @selectSmallerSyntaxNode()
     }),
     false
   )
@@ -178,6 +180,11 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
         'core:cut': -> @cutSelectedText()
         'core:copy': -> @copySelectedText()
         'core:paste': -> @pasteText()
+        'editor:paste-without-reformatting': -> @pasteText({
+          normalizeLineEndings: false,
+          autoIndent: false,
+          preserveTrailingLineIndentation: true
+        })
         'editor:delete-to-previous-word-boundary': -> @deleteToPreviousWordBoundary()
         'editor:delete-to-next-word-boundary': -> @deleteToNextWordBoundary()
         'editor:delete-to-beginning-of-word': -> @deleteToBeginningOfWord()
@@ -218,18 +225,40 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
       'editor:toggle-soft-wrap': -> @toggleSoftWrapped()
       'editor:fold-all': -> @foldAll()
       'editor:unfold-all': -> @unfoldAll()
-      'editor:fold-current-row': -> @foldCurrentRow()
-      'editor:unfold-current-row': -> @unfoldCurrentRow()
+      'editor:fold-current-row': ->
+        @foldCurrentRow()
+        @scrollToCursorPosition()
+      'editor:unfold-current-row': ->
+        @unfoldCurrentRow()
+        @scrollToCursorPosition()
       'editor:fold-selection': -> @foldSelectedLines()
-      'editor:fold-at-indent-level-1': -> @foldAllAtIndentLevel(0)
-      'editor:fold-at-indent-level-2': -> @foldAllAtIndentLevel(1)
-      'editor:fold-at-indent-level-3': -> @foldAllAtIndentLevel(2)
-      'editor:fold-at-indent-level-4': -> @foldAllAtIndentLevel(3)
-      'editor:fold-at-indent-level-5': -> @foldAllAtIndentLevel(4)
-      'editor:fold-at-indent-level-6': -> @foldAllAtIndentLevel(5)
-      'editor:fold-at-indent-level-7': -> @foldAllAtIndentLevel(6)
-      'editor:fold-at-indent-level-8': -> @foldAllAtIndentLevel(7)
-      'editor:fold-at-indent-level-9': -> @foldAllAtIndentLevel(8)
+      'editor:fold-at-indent-level-1': ->
+        @foldAllAtIndentLevel(0)
+        @scrollToCursorPosition()
+      'editor:fold-at-indent-level-2': ->
+        @foldAllAtIndentLevel(1)
+        @scrollToCursorPosition()
+      'editor:fold-at-indent-level-3': ->
+        @foldAllAtIndentLevel(2)
+        @scrollToCursorPosition()
+      'editor:fold-at-indent-level-4': ->
+        @foldAllAtIndentLevel(3)
+        @scrollToCursorPosition()
+      'editor:fold-at-indent-level-5': ->
+        @foldAllAtIndentLevel(4)
+        @scrollToCursorPosition()
+      'editor:fold-at-indent-level-6': ->
+        @foldAllAtIndentLevel(5)
+        @scrollToCursorPosition()
+      'editor:fold-at-indent-level-7': ->
+        @foldAllAtIndentLevel(6)
+        @scrollToCursorPosition()
+      'editor:fold-at-indent-level-8': ->
+        @foldAllAtIndentLevel(7)
+        @scrollToCursorPosition()
+      'editor:fold-at-indent-level-9': ->
+        @foldAllAtIndentLevel(8)
+        @scrollToCursorPosition()
       'editor:log-cursor-scope': -> showCursorScope(@getCursorScope(), notificationManager)
       'editor:copy-path': -> copyPathToClipboard(this, project, clipboard, false)
       'editor:copy-project-path': -> copyPathToClipboard(this, project, clipboard, true)

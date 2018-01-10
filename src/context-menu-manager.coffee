@@ -147,8 +147,20 @@ class ContextMenuManager
       currentTarget = currentTarget.parentElement
 
     @pruneRedundantSeparators(template)
+    @addAccelerators(template)
 
     template
+
+  # Adds an `accelerator` property to items that have key bindings. Electron
+  # uses this property to surface the relevant keymaps in the context menu.
+  addAccelerators: (template) ->
+    for id, item of template
+      if item.command
+        keymaps = @keymapManager.findKeyBindings({command: item.command, target: document.activeElement})
+        accelerator = MenuHelpers.acceleratorForKeystroke(keymaps?[0]?.keystrokes)
+        item.accelerator = accelerator if accelerator
+      if Array.isArray(item.submenu)
+        @addAccelerators(item.submenu)
 
   pruneRedundantSeparators: (menu) ->
     keepNextItemIfSeparator = false
@@ -175,27 +187,6 @@ class ContextMenuManager
         .map((submenuItem) => @cloneItemForEvent(submenuItem, event))
         .filter((submenuItem) -> submenuItem isnt null)
     return item
-
-  convertLegacyItemsBySelector: (legacyItemsBySelector, devMode) ->
-    itemsBySelector = {}
-
-    for selector, commandsByLabel of legacyItemsBySelector
-      itemsBySelector[selector] = @convertLegacyItems(commandsByLabel, devMode)
-
-    itemsBySelector
-
-  convertLegacyItems: (legacyItems, devMode) ->
-    items = []
-
-    for label, commandOrSubmenu of legacyItems
-      if typeof commandOrSubmenu is 'object'
-        items.push({label, submenu: @convertLegacyItems(commandOrSubmenu, devMode), devMode})
-      else if commandOrSubmenu is '-'
-        items.push({type: 'separator'})
-      else
-        items.push({label, command: commandOrSubmenu, devMode})
-
-    items
 
   showForEvent: (event) ->
     @activeElement = event.target

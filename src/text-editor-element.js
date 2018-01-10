@@ -32,7 +32,7 @@ class TextEditorElement extends HTMLElement {
   createdCallback () {
     this.emitter = new Emitter()
     this.initialText = this.textContent
-    this.tabIndex = -1
+    if (this.tabIndex == null) this.tabIndex = -1
     this.addEventListener('focus', (event) => this.getComponent().didFocus(event))
     this.addEventListener('blur', (event) => this.getComponent().didBlur(event))
   }
@@ -58,6 +58,9 @@ class TextEditorElement extends HTMLElement {
           break
         case 'gutter-hidden':
           this.getModel().update({lineNumberGutterVisible: newValue == null})
+          break
+        case 'readonly':
+          this.getModel().update({readOnly: newValue != null})
           break
       }
     }
@@ -275,7 +278,8 @@ class TextEditorElement extends HTMLElement {
       this.component = new TextEditorComponent({
         element: this,
         mini: this.hasAttribute('mini'),
-        updatedSynchronously: this.updatedSynchronously
+        updatedSynchronously: this.updatedSynchronously,
+        readOnly: this.hasAttribute('readonly')
       })
       this.updateModelFromAttributes()
     }
