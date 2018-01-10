@@ -373,7 +373,7 @@ class AtomEnvironment {
     if (this.project) this.project.destroy()
     this.project = null
     this.commands.clear()
-    this.stylesElement.remove()
+    if (this.stylesElement) this.stylesElement.remove()
     this.config.unobserveUserConfig()
     this.autoUpdater.destroy()
     this.uriHandlerRegistry.destroy()
