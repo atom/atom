@@ -129,7 +129,13 @@ binariesPromise
     }
 
     if (argv.install != null) {
-      installApplication(packagedAppPath, argv.install)
+      if (process.platform === 'linux') {
+        // Execute the Linux install step with sudo
+        console.log('Installing Atom using sudo, please enter your password!'.yellow)
+        require('child_process').execSync("sudo node -e \"require('./script/lib/install-application')('" + packagedAppPath + "', '" + argv.install + "')\"", { stdio:[0,1,2] });
+      } else {
+        installApplication(packagedAppPath, argv.install)
+      }
     } else {
       console.log('Skipping installation. Specify the --install option to install Atom'.gray)
     }
