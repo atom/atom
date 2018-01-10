@@ -3083,6 +3083,36 @@ class TextEditor {
     return this.expandSelectionsBackward(selection => selection.selectToBeginningOfPreviousParagraph())
   }
 
+  // Extended: For each selection, select the syntax node that contains
+  // that selection.
+  selectLargerSyntaxNode () {
+    const languageMode = this.buffer.getLanguageMode()
+    if (!languageMode.getRangeForSyntaxNodeContainingRange) return
+
+    this.expandSelectionsForward(selection => {
+      const currentRange = selection.getBufferRange()
+      const newRange = languageMode.getRangeForSyntaxNodeContainingRange(currentRange)
+      if (newRange) {
+        if (!selection._rangeStack) selection._rangeStack = []
+        selection._rangeStack.push(currentRange)
+        selection.setBufferRange(newRange)
+      }
+    })
+  }
+
+  // Extended: Undo the effect a preceding call to {::selectLargerSyntaxNode}.
+  selectSmallerSyntaxNode () {
+    this.expandSelectionsForward(selection => {
+      if (selection._rangeStack) {
+        const lastRange = selection._rangeStack[selection._rangeStack.length - 1]
+        if (lastRange && selection.getBufferRange().containsRange(lastRange)) {
+          selection._rangeStack.length--
+          selection.setBufferRange(lastRange)
+        }
+      }
+    })
+  }
+
   // Extended: Select the range of the given marker if it is valid.
   //
   // * `marker` A {DisplayMarker}
@@ -3869,7 +3899,7 @@ class TextEditor {
 
   // Extended: Fold all foldable lines at the given indent level.
   //
-  // * `level` A {Number}.
+  // * `level` A {Number} starting at 0.
   foldAllAtIndentLevel (level) {
     const languageMode = this.buffer.getLanguageMode()
     const foldableRanges = (

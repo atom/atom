@@ -35,9 +35,9 @@ describe('CommandInstaller on #darwin', () => {
 
     installer.installShellCommandsInteractively()
 
-    expect(appDelegate.confirm).toHaveBeenCalledWith({
+    expect(appDelegate.confirm.mostRecentCall.args[0]).toEqual({
       message: 'Failed to install shell commands',
-      detailedMessage: 'an error'
+      detail: 'an error'
     })
 
     appDelegate.confirm.reset()
@@ -46,9 +46,9 @@ describe('CommandInstaller on #darwin', () => {
 
     installer.installShellCommandsInteractively()
 
-    expect(appDelegate.confirm).toHaveBeenCalledWith({
+    expect(appDelegate.confirm.mostRecentCall.args[0]).toEqual({
       message: 'Failed to install shell commands',
-      detailedMessage: 'another error'
+      detail: 'another error'
     })
   })
 
@@ -61,9 +61,9 @@ describe('CommandInstaller on #darwin', () => {
 
     installer.installShellCommandsInteractively()
 
-    expect(appDelegate.confirm).toHaveBeenCalledWith({
+    expect(appDelegate.confirm.mostRecentCall.args[0]).toEqual({
       message: 'Commands installed.',
-      detailedMessage: 'The shell commands `atom` and `apm` are installed.'
+      detail: 'The shell commands `atom` and `apm` are installed.'
     })
   })
 

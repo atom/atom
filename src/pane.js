@@ -790,57 +790,53 @@ class Pane {
   }
 
   promptToSaveItem (item, options = {}) {
-    if (typeof item.shouldPromptToSave !== 'function' || !item.shouldPromptToSave(options)) {
-      return Promise.resolve(true)
-    }
-
-    let uri
-    if (typeof item.getURI === 'function') {
-      uri = item.getURI()
-    } else if (typeof item.getUri === 'function') {
-      uri = item.getUri()
-    } else {
-      return Promise.resolve(true)
-    }
-
-    const title = (typeof item.getTitle === 'function' && item.getTitle()) || uri
-
-    const saveDialog = (saveButtonText, saveFn, message) => {
-      const chosen = this.applicationDelegate.confirm({
-        message,
-        detailedMessage: 'Your changes will be lost if you close this item without saving.',
-        buttons: [saveButtonText, 'Cancel', "&Don't Save"]}
-      )
-
-      switch (chosen) {
-        case 0:
-          return new Promise(resolve => {
-            return saveFn(item, error => {
-              if (error instanceof SaveCancelledError) {
-                resolve(false)
-              } else if (error) {
-                saveDialog(
-                  'Save as',
-                  this.saveItemAs,
-                  `'${title}' could not be saved.\nError: ${this.getMessageForErrorCode(error.code)}`
-                ).then(resolve)
-              } else {
-                resolve(true)
-              }
-            })
-          })
-        case 1:
-          return Promise.resolve(false)
-        case 2:
-          return Promise.resolve(true)
+    return new Promise((resolve, reject) => {
+      if (typeof item.shouldPromptToSave !== 'function' || !item.shouldPromptToSave(options)) {
+        return resolve(true)
       }
-    }
 
-    return saveDialog(
-      'Save',
-      this.saveItem,
-      `'${title}' has changes, do you want to save them?`
-    )
+      let uri
+      if (typeof item.getURI === 'function') {
+        uri = item.getURI()
+      } else if (typeof item.getUri === 'function') {
+        uri = item.getUri()
+      } else {
+        return resolve(true)
+      }
+
+      const title = (typeof item.getTitle === 'function' && item.getTitle()) || uri
+
+      const saveDialog = (saveButtonText, saveFn, message) => {
+        this.applicationDelegate.confirm({
+          message,
+          detail: 'Your changes will be lost if you close this item without saving.',
+          buttons: [saveButtonText, 'Cancel', "&Don't Save"]
+        }, response => {
+          switch (response) {
+            case 0:
+              return saveFn(item, error => {
+                if (error instanceof SaveCancelledError) {
+                  resolve(false)
+                } else if (error) {
+                  saveDialog(
+                    'Save as',
+                    this.saveItemAs,
+                    `'${title}' could not be saved.\nError: ${this.getMessageForErrorCode(error.code)}`
+                  )
+                } else {
+                  resolve(true)
+                }
+              })
+            case 1:
+              return resolve(false)
+            case 2:
+              return resolve(true)
+          }
+        })
+      }
+
+      saveDialog('Save', this.saveItem, `'${title}' has changes, do you want to save them?`)
+    })
   }
 
   // Public: Save the active item.
@@ -908,7 +904,7 @@ class Pane {
   //   after the item is successfully saved, or with the error if it failed.
   //   The return value will be that of `nextAction` or `undefined` if it was not
   //   provided
-  saveItemAs (item, nextAction) {
+  async saveItemAs (item, nextAction) {
     if (!item) return
     if (typeof item.saveAs !== 'function') return
 
@@ -919,22 +915,34 @@ class Pane {
     const itemPath = item.getPath()
     if (itemPath && !saveOptions.defaultPath) saveOptions.defaultPath = itemPath
 
-    const newItemPath = this.applicationDelegate.showSaveDialog(saveOptions)
-    if (newItemPath) {
-      return promisify(() => item.saveAs(newItemPath))
-        .then(() => {
-          if (nextAction) nextAction()
-        })
-        .catch(error => {
-          if (nextAction) {
-            nextAction(error)
-          } else {
-            this.handleSaveError(error, item)
-          }
-        })
-    } else if (nextAction) {
-      return nextAction(new SaveCancelledError('Save Cancelled'))
-    }
+    let resolveSaveDialogPromise = null
+    const saveDialogPromise = new Promise(resolve => { resolveSaveDialogPromise = resolve })
+    this.applicationDelegate.showSaveDialog(saveOptions, newItemPath => {
+      if (newItemPath) {
+        promisify(() => item.saveAs(newItemPath))
+          .then(() => {
+            if (nextAction) {
+              resolveSaveDialogPromise(nextAction())
+            } else {
+              resolveSaveDialogPromise()
+            }
+          })
+          .catch(error => {
+            if (nextAction) {
+              resolveSaveDialogPromise(nextAction(error))
+            } else {
+              this.handleSaveError(error, item)
+              resolveSaveDialogPromise()
+            }
+          })
+      } else if (nextAction) {
+        resolveSaveDialogPromise(nextAction(new SaveCancelledError('Save Cancelled')))
+      } else {
+        resolveSaveDialogPromise()
+      }
+    })
+
+    return await saveDialogPromise
   }
 
   // Public: Save all items.

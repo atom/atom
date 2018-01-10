@@ -39,11 +39,17 @@ class ScopeDescriptor
   getScopesArray: -> @scopes
 
   getScopeChain: ->
-    @scopes
-      .map (scope) ->
-        scope = ".#{scope}" unless scope[0] is '.'
-        scope
-      .join(' ')
+    # For backward compatibility, prefix TextMate-style scope names with
+    # leading dots (e.g. 'source.js' -> '.source.js').
+    if @scopes[0].includes('.')
+      result = ''
+      for scope, i in @scopes
+        result += ' ' if i > 0
+        result += '.' if scope[0] isnt '.'
+        result += scope
+      result
+    else
+      @scopes.join(' ')
 
   toString: ->
     @getScopeChain()

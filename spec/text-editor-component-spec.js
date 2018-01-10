@@ -263,13 +263,13 @@ describe('TextEditorComponent', () => {
     it('keeps the number of tiles stable when the visible line count changes during vertical scrolling', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 3, autoHeight: false})
       await setEditorHeightInLines(component, 5.5)
-      expect(component.refs.lineTiles.children.length).toBe(3 + 1) // account for cursors container
+      expect(component.refs.lineTiles.children.length).toBe(3 + 2) // account for cursors and highlights containers
 
       await setScrollTop(component, 0.5 * component.getLineHeight())
-      expect(component.refs.lineTiles.children.length).toBe(3 + 1) // account for cursors container
+      expect(component.refs.lineTiles.children.length).toBe(3 + 2) // account for cursors and highlights containers
 
       await setScrollTop(component, 1 * component.getLineHeight())
-      expect(component.refs.lineTiles.children.length).toBe(3 + 1) // account for cursors container
+      expect(component.refs.lineTiles.children.length).toBe(3 + 2) // account for cursors and highlights containers
     })
 
     it('recycles tiles on resize', async () => {

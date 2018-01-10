@@ -1030,6 +1030,13 @@ describe('PackageManager', () => {
         expect(atom.grammars.selectGrammar('a.alot').name).toBe('Alot')
         expect(atom.grammars.selectGrammar('a.alittle').name).toBe('Alittle')
       })
+
+      it('loads any tree-sitter grammars defined in the package', async () => {
+        await atom.packages.activatePackage('package-with-tree-sitter-grammar')
+        const grammar = atom.grammars.selectGrammar('test.somelang')
+        expect(grammar.name).toBe('Some Language')
+        expect(grammar.languageModule.isFakeTreeSitterParser).toBe(true)
+      })
     })
 
     describe('scoped-property loading', () => {

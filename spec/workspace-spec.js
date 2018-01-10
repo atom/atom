@@ -10,7 +10,7 @@ const _ = require('underscore-plus')
 const fstream = require('fstream')
 const fs = require('fs-plus')
 const AtomEnvironment = require('../src/atom-environment')
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise} = require('./async-spec-helpers')
 
 describe('Workspace', () => {
   let workspace
@@ -659,47 +659,42 @@ describe('Workspace', () => {
       })
     })
 
-    describe('when the file is over user-defined limit', () => {
-      const shouldPromptForFileOfSize = (size, shouldPrompt) => {
+    describe('when the file size is over the limit defined in `core.warnOnLargeFileLimit`', () => {
+      const shouldPromptForFileOfSize = async (size, shouldPrompt) => {
         spyOn(fs, 'getSizeSync').andReturn(size * 1048577)
-        atom.applicationDelegate.confirm.andCallFake(() => selectedButtonIndex)
-        atom.applicationDelegate.confirm()
-        var selectedButtonIndex = 1 // cancel
 
-        let editor = null
-        waitsForPromise(() => workspace.open('sample.js').then(e => { editor = e }))
+        let selectedButtonIndex = 1 // cancel
+        atom.applicationDelegate.confirm.andCallFake((options, callback) => callback(selectedButtonIndex))
+
+        let editor = await workspace.open('sample.js')
         if (shouldPrompt) {
-          runs(() => {
-            expect(editor).toBeUndefined()
-            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+          expect(editor).toBeUndefined()
+          expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
 
-            atom.applicationDelegate.confirm.reset()
-            selectedButtonIndex = 0
-          }) // open the file
+          atom.applicationDelegate.confirm.reset()
+          selectedButtonIndex = 0 // open the file
 
-          waitsForPromise(() => workspace.open('sample.js').then(e => { editor = e }))
+          editor = await workspace.open('sample.js')
 
-          runs(() => {
-            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-          })
+          expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
         } else {
-          runs(() => expect(editor).not.toBeUndefined())
+          expect(editor).not.toBeUndefined()
         }
       }
 
-      it('prompts the user to make sure they want to open a file this big', () => {
+      it('prompts before opening the file', async () => {
         atom.config.set('core.warnOnLargeFileLimit', 20)
-        shouldPromptForFileOfSize(20, true)
+        await shouldPromptForFileOfSize(20, true)
       })
 
-      it("doesn't prompt on files below the limit", () => {
+      it("doesn't prompt on files below the limit", async () => {
         atom.config.set('core.warnOnLargeFileLimit', 30)
-        shouldPromptForFileOfSize(20, false)
+        await shouldPromptForFileOfSize(20, false)
       })
 
-      it('prompts for smaller files with a lower limit', () => {
+      it('prompts for smaller files with a lower limit', async () => {
         atom.config.set('core.warnOnLargeFileLimit', 5)
-        shouldPromptForFileOfSize(10, true)
+        await shouldPromptForFileOfSize(10, true)
       })
     })
 
@@ -2809,29 +2804,30 @@ describe('Workspace', () => {
 
   describe('.checkoutHeadRevision()', () => {
     let editor = null
-    beforeEach(() => {
+    beforeEach(async () => {
+      jasmine.useRealClock()
       atom.config.set('editor.confirmCheckoutHeadRevision', false)
 
-      waitsForPromise(() => atom.workspace.open('sample-with-comments.js').then(o => { editor = o }))
+      editor = await atom.workspace.open('sample-with-comments.js')
     })
 
-    it('reverts to the version of its file checked into the project repository', () => {
+    it('reverts to the version of its file checked into the project repository', async () => {
       editor.setCursorBufferPosition([0, 0])
       editor.insertText('---\n')
       expect(editor.lineTextForBufferRow(0)).toBe('---')
 
-      waitsForPromise(() => atom.workspace.checkoutHeadRevision(editor))
+      atom.workspace.checkoutHeadRevision(editor)
 
-      runs(() => expect(editor.lineTextForBufferRow(0)).toBe(''))
+      await conditionPromise(() => editor.lineTextForBufferRow(0) === '')
     })
 
     describe("when there's no repository for the editor's file", () => {
-      it("doesn't do anything", () => {
+      it("doesn't do anything", async () => {
         editor = new TextEditor()
         editor.setText('stuff')
         atom.workspace.checkoutHeadRevision(editor)
 
-        waitsForPromise(() => atom.workspace.checkoutHeadRevision(editor))
+        atom.workspace.checkoutHeadRevision(editor)
       })
     })
   })
