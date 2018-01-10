@@ -373,7 +373,7 @@ class AtomEnvironment {
     if (this.project) this.project.destroy()
     this.project = null
     this.commands.clear()
-    this.stylesElement.remove()
+    if (this.stylesElement) this.stylesElement.remove()
     this.config.unobserveUserConfig()
     this.autoUpdater.destroy()
     this.uriHandlerRegistry.destroy()
@@ -1121,7 +1121,7 @@ class AtomEnvironment {
     }
 
     if (windowIsUnused()) {
-      this.restoreStateIntoThisEnvironment(state)
+      await this.restoreStateIntoThisEnvironment(state)
       return Promise.all(filesToOpen.map(file => this.workspace.open(file)))
     } else {
       let resolveDiscardStatePromise = null
