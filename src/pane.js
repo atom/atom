@@ -1136,6 +1136,64 @@ class Pane {
     }
   }
 
+  moveToVeryTop () {
+    this.moveToVery("top")
+  }
+
+  moveToVeryBottom () {
+    this.moveToVery("bottom")
+  }
+
+  moveToVeryLeft () {
+    this.moveToVery("left")
+  }
+
+  moveToVeryRight () {
+    this.moveToVery("right")
+  }
+
+  // Move pane to VERY top/bottom/left/right direction in pane-layout.
+  // The steps are here.
+  //  1. Determine final orientation of root pane-axis
+  //  2. If final orientation is not same as current one, create new pane-axis and
+  //     move current root as child of new pane-axis. Then set this new pane-axis as root.
+  //  3. Move pane(remove from current pane-axis then add to new root).
+  //     This make pane as immediate child of root pane-axis.
+  //  4. Cleanup( Reparent nested pane-axis )
+  //     Moving pane from one pane-axis to another create nested pane-axis.
+  //    `nested` means below, both can be pulled up to parent(= reparent).
+  //      - `vertical` pane-axis containing same `vertical` pane-axis as immediate child
+  //      - `horizontal` pane-axis containing same `horizontal` pane-axis as immediate child
+  moveToVery(direction) {
+    if (this.container && this.container.getLocation() !== "center") return
+    let root = this.container.getRoot()
+    if (root instanceof PaneAxis) {
+      const orientation = ["top", "bottom"].includes(direction) ? "vertical" : "horizontal"
+      if (root.getOrientation() !== orientation) {
+        root = new PaneAxis({orientation, children: [root], flexScale: this.flexScale}, this.viewRegistry)
+        this.container.setRoot(root)
+      }
+      // Remove this pane
+      const originalParent = this.parent
+      originalParent.removeChild(this, true) // avoid automatic reparenting to keep pane-layout stable.
+
+      // Then move this pane to immediate-child of root.
+      if (["top", "left"].includes(direction)) {
+        root.addChild(this, 0)
+      } else {
+        root.addChild(this)
+      }
+
+      // Now we finished moving, cleanup odd state of pane-layout from now.
+      if (originalParent.children.length === 1) {
+        originalParent.reparentLastChild()
+      }
+
+      root.reparentNestedChildPaneAxises()
+      this.activate()
+    }
+  }
+
   findRightmostSibling () {
     if (this.parent.orientation === 'horizontal') {
       const rightmostSibling = this.parent.children[this.parent.children.length - 1]
