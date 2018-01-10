@@ -45,7 +45,11 @@ build_script:
       IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
         script\build.cmd --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
-        ECHO Skipping installer and Atom build on non-release branch
+        IF [%APPVEYOR_REPO_BRANCH%]==[master] (
+          script\build.cmd --code-sign --compress-artifacts --create-windows-installer
+        ) ELSE (
+          ECHO Skipping installer and Atom build on non-release branch
+        )
       )
     ) ELSE (
       ECHO Skipping installer build on non-installer build matrix row &&
