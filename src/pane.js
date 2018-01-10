@@ -1137,19 +1137,19 @@ class Pane {
   }
 
   moveToVeryTop () {
-    this.moveToVery("top")
+    this.moveToVery('top')
   }
 
   moveToVeryBottom () {
-    this.moveToVery("bottom")
+    this.moveToVery('bottom')
   }
 
   moveToVeryLeft () {
-    this.moveToVery("left")
+    this.moveToVery('left')
   }
 
   moveToVeryRight () {
-    this.moveToVery("right")
+    this.moveToVery('right')
   }
 
   // Move pane to VERY top/bottom/left/right direction in pane-layout.
@@ -1165,10 +1165,10 @@ class Pane {
   //      - `vertical` pane-axis containing same `vertical` pane-axis as immediate child
   //      - `horizontal` pane-axis containing same `horizontal` pane-axis as immediate child
   moveToVery (direction) {
-    if (this.container && this.container.getLocation() !== "center") return
+    if (this.container && this.container.getLocation() !== 'center') return
     let root = this.container.getRoot()
     if (root instanceof PaneAxis) {
-      const orientation = ["top", "bottom"].includes(direction) ? "vertical" : "horizontal"
+      const orientation = ['top', 'bottom'].includes(direction) ? 'vertical' : 'horizontal'
       if (root.getOrientation() !== orientation) {
         root = new PaneAxis({orientation, children: [root], flexScale: this.flexScale}, this.viewRegistry)
         this.container.setRoot(root)
@@ -1178,7 +1178,7 @@ class Pane {
       originalParent.removeChild(this, true) // avoid automatic reparenting to keep pane-layout stable.
 
       // Then move this pane to immediate-child of root.
-      if (["top", "left"].includes(direction)) {
+      if (['top', 'left'].includes(direction)) {
         root.addChild(this, 0)
       } else {
         root.addChild(this)
