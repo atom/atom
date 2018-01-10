@@ -1121,7 +1121,7 @@ class AtomEnvironment {
     }
 
     if (windowIsUnused()) {
-      this.restoreStateIntoThisEnvironment(state)
+      await this.restoreStateIntoThisEnvironment(state)
       return Promise.all(filesToOpen.map(file => this.workspace.open(file)))
     } else {
       let resolveDiscardStatePromise = null
