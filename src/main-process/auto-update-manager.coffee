@@ -118,24 +118,26 @@ class AutoUpdateManager
   onUpdateNotAvailable: =>
     autoUpdater.removeListener 'error', @onUpdateError
     {dialog} = require 'electron'
-    dialog.showMessageBox
+    dialog.showMessageBox {
       type: 'info'
       buttons: ['OK']
       icon: @iconPath
       message: 'No update available.'
       title: 'No Update Available'
       detail: "Version #{@version} is the latest version."
+    }, -> # noop callback to get async behavior
 
   onUpdateError: (event, message) =>
     autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
     {dialog} = require 'electron'
-    dialog.showMessageBox
+    dialog.showMessageBox {
       type: 'warning'
       buttons: ['OK']
       icon: @iconPath
       message: 'There was an error checking for updates.'
       title: 'Update Error'
       detail: message
+    }, -> # noop callback to get async behavior
 
   getWindows: ->
     global.atomApplication.getAllWindows()
