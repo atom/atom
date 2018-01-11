@@ -50,8 +50,7 @@ build_script:
           ECHO Building on master branch - Creating signed zips &&
           script\build.cmd --code-sign --compress-artifacts
         ) ELSE (
-          ECHO Building on non-master branch - Creating unsigned zips &&
-          script\build.cmd --compress-artifacts
+          ECHO Skipping installer build for non-release/non-master branch
         )
       )
     ) ELSE (
