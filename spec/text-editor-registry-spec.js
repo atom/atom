@@ -154,6 +154,45 @@ describe('TextEditorRegistry', function () {
       expect(editor.getEncoding()).toBe('utf8')
     })
 
+    it('preserves editor settings that haven\'t changed between previous and current language modes', async function () {
+      await atom.packages.activatePackage('language-javascript')
+
+      registry.maintainConfig(editor)
+      await initialPackageActivation
+
+      expect(editor.getEncoding()).toBe('utf8')
+      editor.setEncoding('utf16le')
+      expect(editor.getEncoding()).toBe('utf16le')
+
+      expect(editor.isSoftWrapped()).toBe(false)
+      editor.setSoftWrapped(true)
+      expect(editor.isSoftWrapped()).toBe(true)
+
+      atom.grammars.assignLanguageMode(editor, 'source.js')
+      await initialPackageActivation
+      expect(editor.getEncoding()).toBe('utf16le')
+      expect(editor.isSoftWrapped()).toBe(true)
+    })
+
+    it('updates editor settings that have changed between previous and current language modes', async function () {
+      await atom.packages.activatePackage('language-javascript')
+
+      registry.maintainConfig(editor)
+      await initialPackageActivation
+
+      expect(editor.getEncoding()).toBe('utf8')
+      atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.text.plain.null-grammar'})
+      atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.source.js'})
+      expect(editor.getEncoding()).toBe('utf16be')
+
+      editor.setEncoding('utf8')
+      expect(editor.getEncoding()).toBe('utf8')
+
+      atom.grammars.assignLanguageMode(editor, 'source.js')
+      await initialPackageActivation
+      expect(editor.getEncoding()).toBe('utf16le')
+    })
+
     it('returns a disposable that can be used to stop the registry from updating the editor\'s config', async function () {
       await atom.packages.activatePackage('language-javascript')
 
