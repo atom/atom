@@ -41,6 +41,8 @@ build_script:
   - CD %APPVEYOR_BUILD_FOLDER%
   - IF NOT EXIST C:\tmp MKDIR C:\tmp
   - SET SQUIRREL_TEMP=C:\tmp
+  - ECHO APPVEYOR_REPO_BRANCH is '%APPVEYOR_REPO_BRANCH'
+  - ECHO APPVEYOR_PULL_REQUEST_NUMBER is '%APPVEYOR_PULL_REQUEST_NUMBER%'
   - IF [%TASK%]==[installer] (
       IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
         ECHO Building on release branch - Creating production artifacts &&
