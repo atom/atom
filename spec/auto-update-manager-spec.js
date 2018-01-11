@@ -2,7 +2,7 @@
 
 import AutoUpdateManager from '../src/auto-update-manager'
 import {remote} from 'electron'
-const electronAutoUpdater = remote.require('electron').autoUpdater
+const electronAutoUpdater = remote.autoUpdater
 
 describe('AutoUpdateManager (renderer)', () => {
 
@@ -68,6 +68,7 @@ describe('AutoUpdateManager (renderer)', () => {
 
   describe('::onUpdateError', () => {
     it('subscribes to "update-error" event', () => {
+      spyOn(console, 'error') // don't output the error to the console
       const spy = jasmine.createSpy('spy')
       autoUpdateManager.onUpdateError(spy)
       electronAutoUpdater.emit('error', {}, 'an error message')
