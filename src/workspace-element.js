@@ -132,6 +132,10 @@ class WorkspaceElement extends HTMLElement {
     return this
   }
 
+  destroy () {
+    this.subscriptions.dispose()
+  }
+
   getModel () { return this.model }
 
   handleDragStart (event) {
