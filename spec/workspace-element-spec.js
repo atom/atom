@@ -561,8 +561,6 @@ describe('WorkspaceElement', () => {
       expectToggleButtonHidden(rightDock)
       expectToggleButtonHidden(bottomDock)
 
-      workspaceElement.paneContainer.dispatchEvent(new MouseEvent('mouseleave'))
-
       // --- Right Dock ---
 
       // Mouse over where the toggle button would be if the dock were hovered
@@ -591,7 +589,7 @@ describe('WorkspaceElement', () => {
       // Mouse to edge of the window
       moveMouse({clientX: 575, clientY: 150})
       expectToggleButtonHidden(rightDock)
-      moveMouse({clientX: 600, clientY: 150})
+      moveMouse({clientX: 598, clientY: 150})
       expectToggleButtonVisible(rightDock, 'icon-chevron-left')
 
       // Click the toggle button again
@@ -627,7 +625,7 @@ describe('WorkspaceElement', () => {
       // Mouse to edge of the window
       moveMouse({clientX: 25, clientY: 150})
       expectToggleButtonHidden(leftDock)
-      moveMouse({clientX: 0, clientY: 150})
+      moveMouse({clientX: 2, clientY: 150})
       expectToggleButtonVisible(leftDock, 'icon-chevron-right')
 
       // Click the toggle button again
@@ -663,7 +661,7 @@ describe('WorkspaceElement', () => {
       // Mouse to edge of the window
       moveMouse({clientX: 300, clientY: 290})
       expectToggleButtonHidden(leftDock)
-      moveMouse({clientX: 300, clientY: 300})
+      moveMouse({clientX: 300, clientY: 299})
       expectToggleButtonVisible(bottomDock, 'icon-chevron-up')
 
       // Click the toggle button again
