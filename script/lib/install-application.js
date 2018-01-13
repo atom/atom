@@ -19,6 +19,13 @@ function install (installationDirPath, packagedAppFileName, packagedAppPath) {
   fs.copySync(packagedAppPath, installationDirPath)
 }
 
+/**
+ * Finds the path to the base directory of the icon default icon theme
+ * This follows the freedesktop Icon Theme Specification:
+ * https://standards.freedesktop.org/icon-theme-spec/icon-theme-spec-latest.html#install_icons
+ * and the XDG Base Directory Specification:
+ * https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html#variables
+ */
 function findBaseIconThemeDirPath () {
   const defaultBaseIconThemeDir = '/usr/share/icons/hicolor'
   const dataDirsString = process.env.XDG_DATA_DIRS
