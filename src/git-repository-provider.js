@@ -1,17 +1,35 @@
-const fs = require('fs');
-const { Directory } = require('pathwatcher');
-const GitRepository = require('./git-repository');
+const fs = require('fs')
+const { Directory } = require('pathwatcher')
+const GitRepository = require('./git-repository')
+
+const GIT_FILE_REGEX = RegExp('^gitdir: (.+)')
 
 // Returns the .gitdir path in the agnostic Git symlink .git file given, or
 // null if the path is not a valid gitfile.
 //
 // * `gitFile` {String} path of gitfile to parse
-const gitFileRegex = RegExp('^gitdir: (.+)');
-function pathFromGitFile(gitFile) {
+function pathFromGitFileSync (gitFile) {
   try {
-    const gitFileBuff = fs.readFileSync(gitFile, 'utf8');
-    return gitFileBuff != null ? gitFileBuff.match(gitFileRegex)[1] : undefined;
+    const gitFileBuff = fs.readFileSync(gitFile, 'utf8')
+    return gitFileBuff != null ? gitFileBuff.match(GIT_FILE_REGEX)[1] : null
   } catch (error) {}
+}
+
+// Returns a {Promise} that resolves to the .gitdir path in the agnostic
+// Git symlink .git file given, or null if the path is not a valid gitfile.
+//
+// * `gitFile` {String} path of gitfile to parse
+function pathFromGitFile (gitFile) {
+  return new Promise(resolve => {
+    fs.readFile(gitFile, 'utf8', (err, gitFileBuff) => {
+      if (err == null && gitFileBuff != null) {
+        const result = gitFileBuff.toString().match(GIT_FILE_REGEX)
+        resolve(result != null ? result[1] : null)
+      } else {
+        resolve(null)
+      }
+    })
+  })
 }
 
 // Checks whether a valid `.git` directory is contained within the given
@@ -19,26 +37,57 @@ function pathFromGitFile(gitFile) {
 // `.git` folder will be returned. Otherwise, returns `null`.
 //
 // * `directory` {Directory} to explore whether it is part of a Git repository.
-function findGitDirectorySync(directory) {
+function findGitDirectorySync (directory) {
   // TODO: Fix node-pathwatcher/src/directory.coffee so the following methods
   // can return cached values rather than always returning new objects:
   // getParent(), getFile(), getSubdirectory().
-  let gitDir = directory.getSubdirectory('.git');
-  const gitDirPath = pathFromGitFile(
-    typeof gitDir.getPath === 'function' ? gitDir.getPath() : undefined
-  );
-  if (gitDirPath) {
-    gitDir = new Directory(directory.resolve(gitDirPath));
+  let gitDir = directory.getSubdirectory('.git')
+  if (typeof gitDir.getPath === 'function') {
+    const gitDirPath = pathFromGitFileSync(gitDir.getPath())
+    if (gitDirPath) {
+      gitDir = new Directory(directory.resolve(gitDirPath))
+    }
   }
   if (
-    (typeof gitDir.existsSync === 'function' ? gitDir.existsSync() : undefined) &&
+    typeof gitDir.existsSync === 'function' &&
+    gitDir.existsSync() &&
     isValidGitDirectorySync(gitDir)
   ) {
-    return gitDir;
+    return gitDir
   } else if (directory.isRoot()) {
-    return null;
+    return null
   } else {
-    return findGitDirectorySync(directory.getParent());
+    return findGitDirectorySync(directory.getParent())
+  }
+}
+
+// Checks whether a valid `.git` directory is contained within the given
+// directory or one of its ancestors. If so, a Directory that corresponds to the
+// `.git` folder will be returned. Otherwise, returns `null`.
+//
+// Returns a {Promise} that resolves to
+// * `directory` {Directory} to explore whether it is part of a Git repository.
+async function findGitDirectory (directory) {
+  // TODO: Fix node-pathwatcher/src/directory.coffee so the following methods
+  // can return cached values rather than always returning new objects:
+  // getParent(), getFile(), getSubdirectory().
+  let gitDir = directory.getSubdirectory('.git')
+  if (typeof gitDir.getPath === 'function') {
+    const gitDirPath = await pathFromGitFile(gitDir.getPath())
+    if (gitDirPath) {
+      gitDir = new Directory(directory.resolve(gitDirPath))
+    }
+  }
+  if (
+    typeof gitDir.exists === 'function' &&
+    (await gitDir.exists()) &&
+    isValidGitDirectory(gitDir)
+  ) {
+    return gitDir
+  } else if (directory.isRoot()) {
+    return null
+  } else {
+    return await findGitDirectory(directory.getParent())
   }
 }
 
@@ -46,7 +95,7 @@ function findGitDirectorySync(directory) {
 // repository.
 //
 // * `directory` {Directory} whose base name is `.git`.
-function isValidGitDirectorySync(directory) {
+function isValidGitDirectorySync (directory) {
   // To decide whether a directory has a valid .git folder, we use
   // the heuristic adopted by the valid_repository_path() function defined in
   // node_modules/git-utils/deps/libgit2/src/repository.c.
@@ -54,54 +103,78 @@ function isValidGitDirectorySync(directory) {
     directory.getSubdirectory('objects').existsSync() &&
     directory.getFile('HEAD').existsSync() &&
     directory.getSubdirectory('refs').existsSync()
-  );
+  )
+}
+
+// Returns a {Promise} that resolves to a {Boolean} indicating whether the
+// specified directory represents a Git repository.
+//
+// * `directory` {Directory} whose base name is `.git`.
+async function isValidGitDirectory (directory) {
+  // To decide whether a directory has a valid .git folder, we use
+  // the heuristic adopted by the valid_repository_path() function defined in
+  // node_modules/git-utils/deps/libgit2/src/repository.c.
+  return (
+    (await directory.getSubdirectory('objects').exists()) &&
+    (await directory.getFile('HEAD').exists()) &&
+    (await directory.getSubdirectory('refs').exists())
+  )
 }
 
 // Provider that conforms to the atom.repository-provider@0.1.0 service.
 class GitRepositoryProvider {
-  constructor(project, config) {
+  constructor (project, config) {
     // Keys are real paths that end in `.git`.
     // Values are the corresponding GitRepository objects.
-    this.project = project;
-    this.config = config;
-    this.pathToRepository = {};
+    this.project = project
+    this.config = config
+    this.pathToRepository = {}
   }
 
   // Returns a {Promise} that resolves with either:
   // * {GitRepository} if the given directory has a Git repository.
   // * `null` if the given directory does not have a Git repository.
-  repositoryForDirectory(directory) {
-    // TODO: Currently, this method is designed to be async, but it relies on a
-    // synchronous API. It should be rewritten to be truly async.
-    return Promise.resolve(this.repositoryForDirectorySync(directory));
+  async repositoryForDirectory (directory) {
+    // Only one GitRepository should be created for each .git folder. Therefore,
+    // we must check directory and its parent directories to find the nearest
+    // .git folder.
+    const gitDir = await findGitDirectory(directory)
+    return this.repositoryForGitDirectory(gitDir)
   }
 
   // Returns either:
   // * {GitRepository} if the given directory has a Git repository.
   // * `null` if the given directory does not have a Git repository.
-  repositoryForDirectorySync(directory) {
+  repositoryForDirectorySync (directory) {
     // Only one GitRepository should be created for each .git folder. Therefore,
     // we must check directory and its parent directories to find the nearest
     // .git folder.
-    const gitDir = findGitDirectorySync(directory);
+    const gitDir = findGitDirectorySync(directory)
+    return this.repositoryForGitDirectory(gitDir)
+  }
+
+  // Returns either:
+  // * {GitRepository} if the given Git directory has a Git repository.
+  // * `null` if the given directory does not have a Git repository.
+  repositoryForGitDirectory (gitDir) {
     if (!gitDir) {
-      return null;
+      return null
     }
 
-    const gitDirPath = gitDir.getPath();
-    let repo = this.pathToRepository[gitDirPath];
+    const gitDirPath = gitDir.getPath()
+    let repo = this.pathToRepository[gitDirPath]
     if (!repo) {
-      repo = GitRepository.open(gitDirPath, { project: this.project, config: this.config });
+      repo = GitRepository.open(gitDirPath, { project: this.project, config: this.config })
       if (!repo) {
-        return null;
+        return null
       }
-      repo.onDidDestroy(() => delete this.pathToRepository[gitDirPath]);
-      this.pathToRepository[gitDirPath] = repo;
-      repo.refreshIndex();
-      repo.refreshStatus();
+      repo.onDidDestroy(() => delete this.pathToRepository[gitDirPath])
+      this.pathToRepository[gitDirPath] = repo
+      repo.refreshIndex()
+      repo.refreshStatus()
     }
-    return repo;
+    return repo
   }
 }
 
-module.exports = GitRepositoryProvider;
+module.exports = GitRepositoryProvider
