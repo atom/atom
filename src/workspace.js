@@ -310,7 +310,10 @@ module.exports = class Workspace extends Model {
     this.originalFontSize = null
     this.openers = []
     this.destroyedItemURIs = []
-    this.element = null
+    if (this.element) {
+      this.element.destroy()
+      this.element = null
+    }
     this.consumeServices(this.packageManager)
   }
 
@@ -1570,6 +1573,7 @@ module.exports = class Workspace extends Model {
     if (this.activeItemSubscriptions != null) {
       this.activeItemSubscriptions.dispose()
     }
+    if (this.element) this.element.destroy()
   }
 
   /*
