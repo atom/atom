@@ -41,7 +41,7 @@ class ScopeDescriptor
   getScopeChain: ->
     # For backward compatibility, prefix TextMate-style scope names with
     # leading dots (e.g. 'source.js' -> '.source.js').
-    if @scopes[0].includes('.')
+    if @scopes[0]?.includes('.')
       result = ''
       for scope, i in @scopes
         result += ' ' if i > 0
