@@ -218,7 +218,7 @@ class Project extends Model {
   //
   // This method will be removed in 2.0 because it does synchronous I/O.
   // Prefer the following, which evaluates to a {Promise} that resolves to an
-  // {Array} of {Repository} objects:
+  // {Array} of {GitRepository} objects:
   // ```
   // Promise.all(atom.project.getDirectories().map(
   //     atom.project.repositoryForDirectory.bind(atom.project)))
@@ -229,10 +229,10 @@ class Project extends Model {
 
   // Public: Get the repository for a given directory asynchronously.
   //
-  // * `directory` {Directory} for which to get a {Repository}.
+  // * `directory` {Directory} for which to get a {GitRepository}.
   //
   // Returns a {Promise} that resolves with either:
-  // * {Repository} if a repository can be created for the given directory
+  // * {GitRepository} if a repository can be created for the given directory
   // * `null` if no repository can be created for the given directory.
   repositoryForDirectory (directory) {
     const pathForDirectory = directory.getRealPathSync()
