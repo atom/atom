@@ -3,6 +3,8 @@ let ipcRenderer = null
 let ipcMain = null
 let BrowserWindow = null
 
+let nextResponseChannelId = 0
+
 exports.on = function (emitter, eventName, callback) {
   emitter.on(eventName, callback)
   return new Disposable(() => emitter.removeListener(eventName, callback))
@@ -14,7 +16,7 @@ exports.call = function (channel, ...args) {
     ipcRenderer.setMaxListeners(20)
   }
 
-  const responseChannel = getResponseChannel(channel)
+  const responseChannel = `ipc-helpers-response-${nextResponseChannelId++}`
 
   return new Promise(resolve => {
     ipcRenderer.on(responseChannel, (event, result) => {
@@ -22,7 +24,7 @@ exports.call = function (channel, ...args) {
       resolve(result)
     })
 
-    ipcRenderer.send(channel, ...args)
+    ipcRenderer.send(channel, responseChannel, ...args)
   })
 }
 
@@ -33,15 +35,9 @@ exports.respondTo = function (channel, callback) {
     BrowserWindow = electron.BrowserWindow
   }
 
-  const responseChannel = getResponseChannel(channel)
-
-  return exports.on(ipcMain, channel, async (event, ...args) => {
+  return exports.on(ipcMain, channel, async (event, responseChannel, ...args) => {
     const browserWindow = BrowserWindow.fromWebContents(event.sender)
     const result = await callback(browserWindow, ...args)
     event.sender.send(responseChannel, result)
   })
-}
-
-function getResponseChannel (channel) {
-  return 'ipc-helpers-' + channel + '-response'
 }
