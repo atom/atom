@@ -33,7 +33,7 @@ Atom will automatically update when a new release is available.
 
 ### Windows
 
-Download the latest [Atom installer](https://github.com/atom/atom/releases/latest).  AtomSetup.exe is 32-bit, AtomSetup-x64.exe for 64-bit systems.
+Download the latest [Atom installer](https://github.com/atom/atom/releases/latest). `AtomSetup.exe` is 32-bit. For 64-bit systems, download `AtomSetup-x64.exe`.
 
 Atom will automatically update when a new release is available.
 
