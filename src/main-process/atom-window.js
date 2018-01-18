@@ -186,14 +186,14 @@ class AtomWindow extends EventEmitter {
       if (chosen === 0) this.browserWindow.destroy()
     })
 
-    this.browserWindow.webContents.on('crashed', () => {
+    this.browserWindow.webContents.on('crashed', async () => {
       if (this.headless) {
         console.log('Renderer process crashed, exiting')
         this.atomApplication.exit(100)
         return
       }
 
-      this.fileRecoveryService.didCrashWindow(this)
+      await this.fileRecoveryService.didCrashWindow(this)
       const chosen = dialog.showMessageBox(this.browserWindow, {
         type: 'warning',
         buttons: ['Close Window', 'Reload', 'Keep It Open'],

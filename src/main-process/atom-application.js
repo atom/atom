@@ -569,15 +569,13 @@ class AtomApplication extends EventEmitter {
       event.returnValue = this.autoUpdateManager.getErrorMessage()
     }))
 
-    this.disposable.add(ipcHelpers.on(ipcMain, 'will-save-path', (event, path) => {
-      this.fileRecoveryService.willSavePath(this.atomWindowForEvent(event), path)
-      event.returnValue = true
-    }))
+    this.disposable.add(ipcHelpers.respondTo('will-save-path', (window, path) =>
+      this.fileRecoveryService.willSavePath(window, path)
+    ))
 
-    this.disposable.add(ipcHelpers.on(ipcMain, 'did-save-path', (event, path) => {
-      this.fileRecoveryService.didSavePath(this.atomWindowForEvent(event), path)
-      event.returnValue = true
-    }))
+    this.disposable.add(ipcHelpers.respondTo('did-save-path', (window, path) =>
+      this.fileRecoveryService.didSavePath(window, path)
+    ))
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'did-change-paths', () =>
       this.saveState(false)

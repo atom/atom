@@ -1,5 +1,3 @@
-'use strict'
-
 const Disposable = require('event-kit').Disposable
 let ipcRenderer = null
 let ipcMain = null
@@ -7,9 +5,7 @@ let BrowserWindow = null
 
 exports.on = function (emitter, eventName, callback) {
   emitter.on(eventName, callback)
-  return new Disposable(function () {
-    emitter.removeListener(eventName, callback)
-  })
+  return new Disposable(() => emitter.removeListener(eventName, callback))
 }
 
 exports.call = function (channel, ...args) {
@@ -18,10 +14,10 @@ exports.call = function (channel, ...args) {
     ipcRenderer.setMaxListeners(20)
   }
 
-  var responseChannel = getResponseChannel(channel)
+  const responseChannel = getResponseChannel(channel)
 
-  return new Promise(function (resolve) {
-    ipcRenderer.on(responseChannel, function (event, result) {
+  return new Promise(resolve => {
+    ipcRenderer.on(responseChannel, (event, result) => {
       ipcRenderer.removeAllListeners(responseChannel)
       resolve(result)
     })
@@ -32,16 +28,16 @@ exports.call = function (channel, ...args) {
 
 exports.respondTo = function (channel, callback) {
   if (!ipcMain) {
-    var electron = require('electron')
+    const electron = require('electron')
     ipcMain = electron.ipcMain
     BrowserWindow = electron.BrowserWindow
   }
 
-  var responseChannel = getResponseChannel(channel)
+  const responseChannel = getResponseChannel(channel)
 
-  return exports.on(ipcMain, channel, function (event, ...args) {
-    var browserWindow = BrowserWindow.fromWebContents(event.sender)
-    var result = callback(browserWindow, ...args)
+  return exports.on(ipcMain, channel, async (event, ...args) => {
+    const browserWindow = BrowserWindow.fromWebContents(event.sender)
+    const result = await callback(browserWindow, ...args)
     event.sender.send(responseChannel, result)
   })
 }
