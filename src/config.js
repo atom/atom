@@ -1110,12 +1110,16 @@ sizes. See [this document][watches] for more info.
     })
   }
 
-  getRawValue (keyPath, options) {
+  getRawValue (keyPath, options = {}) {
     let defaultValue, value
-    if (!(__guard__(options != null ? options.excludeSources : undefined, x => x.indexOf(this.getUserConfigPath())) >= 0)) {
+
+    const configIndex = (options.excludeSources || []).indexOf(this.getUserConfigPath())
+    if (configIndex < 0) {
       value = getValueAtKeyPath(this.settings, keyPath)
     }
-    if (!(__guard__(options != null ? options.sources : undefined, x1 => x1.length) > 0)) {
+
+    const optionSources = (options.sources || []).length
+    if (optionSources <= 0) {
       defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath)
     }
 
@@ -1582,7 +1586,7 @@ let sortObject = function (value) {
   return result
 }
 
-let withoutEmptyObjects = function (object) {
+var withoutEmptyObjects = function (object) {
   let resultObject
   if (isPlainObject(object)) {
     for (let key in object) {
