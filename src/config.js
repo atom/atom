@@ -884,7 +884,7 @@ export default class Config {
         return fn(...Array.from(args || []))
       }
       const result = callback()
-      return new Promise(function (resolve, reject) {
+      return new Promise((resolve, reject) => {
         return result.then(endTransaction(resolve)).catch(endTransaction(reject))
       })
     } catch (error) {
@@ -978,7 +978,7 @@ export default class Config {
       const destinationPath = path.join(this.configDirPath, relativePath)
       return queue.push({sourcePath, destinationPath})
     }
-    return fs.traverseTree(templateConfigDirPath, onConfigDirFile, path => true, function () {})
+    return fs.traverseTree(templateConfigDirPath, onConfigDirFile, path => true, () => {})
   }
 
   loadUserConfig () {
@@ -1557,7 +1557,7 @@ Config.addSchemaEnforcers({
       let possibleValues = schema.enum
 
       if (Array.isArray(possibleValues)) {
-        possibleValues = possibleValues.map(function (value) {
+        possibleValues = possibleValues.map(value => {
           if (value.hasOwnProperty('value')) { return value.value } else { return value }
         })
       }
@@ -1576,7 +1576,7 @@ Config.addSchemaEnforcers({
 
 let isPlainObject = value => _.isObject(value) && !_.isArray(value) && !_.isFunction(value) && !_.isString(value) && !(value instanceof Color)
 
-let sortObject = function (value) {
+let sortObject = value => {
   if (!isPlainObject(value)) { return value }
   const result = {}
   for (let key of Array.from(Object.keys(value).sort())) {
@@ -1585,7 +1585,7 @@ let sortObject = function (value) {
   return result
 }
 
-var withoutEmptyObjects = function (object) {
+const withoutEmptyObjects = (object) => {
   let resultObject
   if (isPlainObject(object)) {
     for (let key in object) {
