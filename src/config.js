@@ -453,13 +453,13 @@ export default class Config {
     this.legacyScopeAliases = {}
 
     this.requestLoad = _.debounce(() => {
-      return this.loadUserConfig()
+      this.loadUserConfig()
     }
       , 100)
 
     const debouncedSave = _.debounce(() => {
       this.savePending = false
-      return this.save()
+      this.save()
     }
       , 100)
     this.requestSave = () => {
@@ -857,7 +857,7 @@ export default class Config {
   }
 
   removeLegacyScopeAlias (languageId) {
-    return delete this.legacyScopeAliases[languageId]
+    delete this.legacyScopeAliases[languageId]
   }
 
     /*
@@ -894,12 +894,12 @@ export default class Config {
   }
 
   beginTransaction () {
-    return this.transactDepth++
+    this.transactDepth++
   }
 
   endTransaction () {
     this.transactDepth--
-    return this.emitChangeEvent()
+    this.emitChangeEvent()
   }
 
   pushAtKeyPath (keyPath, value) {
