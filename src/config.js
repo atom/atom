@@ -858,7 +858,7 @@ export default class Config {
   }
 
   addLegacyScopeAlias (languageId, legacyScopeName) {
-    return this.legacyScopeAliases[languageId] = legacyScopeName
+    this.legacyScopeAliases[languageId] = legacyScopeName
   }
 
   removeLegacyScopeAlias (languageId) {
@@ -936,7 +936,7 @@ export default class Config {
       throw new Error(`Error loading schema for ${keyPath}: schemas can only be objects!`)
     }
 
-    if (!typeof (schema.type != null)) {
+    if (schema.type == null) {
       throw new Error(`Error loading schema for ${keyPath}: schema objects must have a type attribute`)
     }
 
@@ -1014,19 +1014,16 @@ export default class Config {
       }
 
       this.resetUserSettings(userConfig)
-      return this.configFileHasErrors = false
+      this.configFileHasErrors = false
     } catch (error2) {
       error = error2
       this.configFileHasErrors = true
       const message = `Failed to load \`${path.basename(this.configFilePath)}\``
 
-      const detail = (error.location != null)
-          // stack is the output from CSON in this case
-          ? error.stack
-        :
-          // message will be EACCES permission denied, et al
-          error.message
+      // stack is the output from CSON in this case
+      // message will be EACCES permission denied, et al
 
+      const detail = (error.location != null) ? error.stack : error.message
       return this.notifyFailure(message, detail)
     }
   }
@@ -1067,7 +1064,7 @@ sizes. See [this document][watches] for more info.
     if (this.watchSubscriptionPromise != null) {
       this.watchSubscriptionPromise.then(watcher => watcher != null ? watcher.dispose() : undefined)
     }
-    return this.watchSubscriptionPromise = null
+    this.watchSubscriptionPromise = null
   }
 
   notifyFailure (errorMessage, detail) {
@@ -1112,7 +1109,7 @@ sizes. See [this document][watches] for more info.
       for (let key in newSettings) { const value = newSettings[key]; this.set(key, value, {save: false}) }
       if (this.pendingOperations.length) {
         for (let op of Array.from(this.pendingOperations)) { op() }
-        return this.pendingOperations = []
+        this.pendingOperations = []
       }
     })
   }
@@ -1365,9 +1362,10 @@ sizes. See [this document][watches] for more info.
         options
       )
 
+    legacyScopeDescriptor = this.getLegacyScopeDescriptor(scopeDescriptor)
     if (result != null) {
       return result
-    } else if (legacyScopeDescriptor = this.getLegacyScopeDescriptor(scopeDescriptor)) {
+    } else if (legacyScopeDescriptor) {
       return this.scopedSettingsStore.getPropertyValue(
           legacyScopeDescriptor.getScopeChain(),
           keyPath,
