@@ -3,11 +3,7 @@
 /*
  * decaffeinate suggestions:
  * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
  * DS103: Rewrite code to no longer use __guard__
- * DS104: Avoid inline assignments
- * DS205: Consider reworking code to avoid use of IIFEs
- * DS206: Consider reworking classes to avoid initClass
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
@@ -401,7 +397,7 @@ export default class Config {
     let error = null
     let types = schema.type
     if (!Array.isArray(types)) { types = [types] }
-    for (let type of Array.from(types)) {
+    for (let type of types) {
       try {
         const enforcerFunctions = schemaEnforcers[type].concat(schemaEnforcers['*'])
         for (let enforcer of Array.from(enforcerFunctions)) {
@@ -726,7 +722,7 @@ export default class Config {
     let [keyPath, value, options] = Array.from(arguments)
 
     if (!this.settingsLoaded) {
-      this.pendingOperations.push(() => this.set.call(this, keyPath, value, options))
+      this.pendingOperations.push(() => this.set(keyPath, value, options))
     }
 
     const scopeSelector = options != null ? options.scopeSelector : undefined
@@ -767,7 +763,7 @@ export default class Config {
     //   * `source` (optional) {String}. See {::set}
   unset (keyPath, options) {
     if (!this.settingsLoaded) {
-      this.pendingOperations.push(() => this.unset.call(this, keyPath, options))
+      this.pendingOperations.push(() => this.unset(keyPath, options))
     }
 
     let {scopeSelector, source} = options != null ? options : {}
@@ -818,7 +814,7 @@ export default class Config {
     const keys = splitKeyPath(keyPath)
     let { schema } = this
     for (let key of Array.from(keys)) {
-      var childSchema
+      let childSchema
       if (schema.type === 'object') {
         childSchema = schema.properties != null ? schema.properties[key] : undefined
         if (childSchema == null) {
@@ -1575,9 +1571,9 @@ Config.addSchemaEnforcers({
   }
 })
 
-var isPlainObject = value => _.isObject(value) && !_.isArray(value) && !_.isFunction(value) && !_.isString(value) && !(value instanceof Color)
+let isPlainObject = value => _.isObject(value) && !_.isArray(value) && !_.isFunction(value) && !_.isString(value) && !(value instanceof Color)
 
-var sortObject = function (value) {
+let sortObject = function (value) {
   if (!isPlainObject(value)) { return value }
   const result = {}
   for (let key of Array.from(Object.keys(value).sort())) {
@@ -1586,7 +1582,7 @@ var sortObject = function (value) {
   return result
 }
 
-var withoutEmptyObjects = function (object) {
+let withoutEmptyObjects = function (object) {
   let resultObject
   if (isPlainObject(object)) {
     for (let key in object) {
