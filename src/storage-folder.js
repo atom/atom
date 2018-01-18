@@ -10,13 +10,13 @@ class StorageFolder {
   }
 
   clear () {
-    if (!this.path) return
-
-    try {
-      fs.removeSync(this.path)
-    } catch (error) {
-      console.warn(`Error deleting ${this.path}`, error.stack, error)
-    }
+    return new Promise(resolve => {
+      if (!this.path) return
+      fs.remove(this.path, error => {
+        if (error) console.warn(`Error deleting ${this.path}`, error.stack, error)
+        reolve()
+      })
+    })
   }
 
   storeSync (name, object) {

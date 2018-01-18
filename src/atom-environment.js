@@ -208,12 +208,7 @@ class AtomEnvironment {
     this.blobStore = params.blobStore
     this.configDirPath = params.configDirPath
 
-    const {devMode, safeMode, resourcePath, clearWindowState} = this.getLoadSettings()
-
-    if (clearWindowState) {
-      this.getStorageFolder().clear()
-      this.stateStore.clear()
-    }
+    const {devMode, safeMode, resourcePath} = this.getLoadSettings()
 
     ConfigSchema.projectHome = {
       type: 'string',
@@ -764,7 +759,14 @@ class AtomEnvironment {
   }
 
   // Call this method when establishing a real application window.
-  startEditorWindow () {
+  async startEditorWindow () {
+    if (this.getLoadSettings().clearWindowState) {
+      await Promise.all([
+        this.getStorageFolder().clear(),
+        this.stateStore.clear()
+      ])
+    }
+
     this.unloaded = false
 
     const updateProcessEnvPromise = this.updateProcessEnvAndTriggerHooks()
