@@ -9,16 +9,6 @@ class StorageFolder {
     }
   }
 
-  clear () {
-    return new Promise(resolve => {
-      if (!this.path) return
-      fs.remove(this.path, error => {
-        if (error) console.warn(`Error deleting ${this.path}`, error.stack, error)
-        resolve()
-      })
-    })
-  }
-
   store (name, object) {
     return new Promise((resolve, reject) => {
       if (!this.path) return resolve()

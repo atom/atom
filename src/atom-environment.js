@@ -9,7 +9,6 @@ const fs = require('fs-plus')
 const {mapSourcePosition} = require('@atom/source-map-support')
 const WindowEventHandler = require('./window-event-handler')
 const StateStore = require('./state-store')
-const StorageFolder = require('./storage-folder')
 const registerDefaultCommands = require('./register-default-commands')
 const {updateProcessEnv} = require('./update-process-env')
 const ConfigSchema = require('./config-schema')
@@ -761,10 +760,7 @@ class AtomEnvironment {
   // Call this method when establishing a real application window.
   async startEditorWindow () {
     if (this.getLoadSettings().clearWindowState) {
-      await Promise.all([
-        this.getStorageFolder().clear(),
-        this.stateStore.clear()
-      ])
+      await this.stateStore.clear()
     }
 
     this.unloaded = false
@@ -1264,11 +1260,6 @@ or use Pane::saveItemAs for programmatic saving.`)
     } else {
       return null
     }
-  }
-
-  getStorageFolder () {
-    if (!this.storageFolder) this.storageFolder = new StorageFolder(this.getConfigDirPath())
-    return this.storageFolder
   }
 
   getConfigDirPath () {
