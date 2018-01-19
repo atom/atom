@@ -398,8 +398,8 @@ class Config {
     for (let type of types) {
       try {
         const enforcerFunctions = schemaEnforcers[type].concat(schemaEnforcers['*'])
-        for (let enforcer of Array.from(enforcerFunctions)) {
-            // At some point in one's life, one must call upon an enforcer.
+        for (let enforcer of enforcerFunctions) {
+          // At some point in one's life, one must call upon an enforcer.
           value = enforcer.call(this, keyPath, value, schema)
         }
         error = null
@@ -451,15 +451,16 @@ class Config {
     this.legacyScopeAliases = {}
 
     this.requestLoad = _.debounce(() => {
-      this.loadUserConfig()
-    }
-      , 100)
+      this.loadUserConfig() },
+      100
+    )
 
     const debouncedSave = _.debounce(() => {
       this.savePending = false
-      this.save()
-    }
-      , 100)
+      this.save() },
+      100
+    )
+
     this.requestSave = () => {
       this.savePending = true
       debouncedSave()
@@ -498,12 +499,12 @@ class Config {
   //
   // Returns a {Disposable} with the following keys on which you can call
   // `.dispose()` to unsubscribe.
-  observe () {
+  observe (...args) {
     let callback, keyPath, options, scopeDescriptor
-    if (arguments.length === 2) {
-      [keyPath, callback] = Array.from(arguments)
-    } else if ((arguments.length === 3) && (_.isString(arguments[0]) && _.isObject(arguments[1]))) {
-      [keyPath, options, callback] = Array.from(arguments)
+    if (args.length === 2) {
+      [keyPath, callback] = args
+    } else if ((args.length === 3) && (_.isString(args[0]) && _.isObject(args[1]))) {
+      [keyPath, options, callback] = args
       scopeDescriptor = options.scope
     } else {
       console.error('An unsupported form of Config::observe is being used. See https://atom.io/docs/api/latest/Config for details')
@@ -535,15 +536,15 @@ class Config {
   //
   // Returns a {Disposable} with the following keys on which you can call
   // `.dispose()` to unsubscribe.
-  onDidChange () {
+  onDidChange (...args) {
     let callback, keyPath, scopeDescriptor
-    if (arguments.length === 1) {
-      [callback] = Array.from(arguments)
-    } else if (arguments.length === 2) {
-      [keyPath, callback] = Array.from(arguments)
+    if (args.length === 1) {
+      [callback] = args
+    } else if (args.length === 2) {
+      [keyPath, callback] = args
     } else {
       let options;
-      [keyPath, options, callback] = Array.from(arguments)
+      [keyPath, options, callback] = args
       scopeDescriptor = options.scope
     }
 
@@ -613,15 +614,15 @@ class Config {
   //
   // Returns the value from Atom's default settings, the user's configuration
   // file in the type specified by the configuration schema.
-  get () {
+  get (...args) {
     let keyPath, options, scope
-    if (arguments.length > 1) {
-      if ((typeof arguments[0] === 'string') || (arguments[0] == null)) {
-        [keyPath, options] = Array.from(arguments);
+    if (args.length > 1) {
+      if ((typeof args[0] === 'string') || (args[0] == null)) {
+        [keyPath, options] = args;
         ({scope} = options)
       }
     } else {
-      [keyPath] = Array.from(arguments)
+      [keyPath] = args
     }
 
     if (scope != null) {
@@ -715,8 +716,8 @@ class Config {
   // Returns a {Boolean}
   // * `true` if the value was set.
   // * `false` if the value was not able to be coerced to the type specified in the setting's schema.
-  set () {
-    let [keyPath, value, options = {}] = Array.from(arguments)
+  set (...args) {
+    let [keyPath, value, options = {}] = args
 
     if (!this.settingsLoaded) {
       this.pendingOperations.push(() => this.set(keyPath, value, options))
