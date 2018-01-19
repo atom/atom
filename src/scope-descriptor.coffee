@@ -2,7 +2,7 @@
 # root of the syntax tree to a token including _all_ scope names for the entire
 # path.
 #
-# Methods that take a `ScopeDescriptor` will also accept an {Array} of {Strings}
+# Methods that take a `ScopeDescriptor` will also accept an {Array} of {String}
 # scope names e.g. `['.source.js']`.
 #
 # You can use `ScopeDescriptor`s to get language-specific config settings via
@@ -39,11 +39,17 @@ class ScopeDescriptor
   getScopesArray: -> @scopes
 
   getScopeChain: ->
-    @scopes
-      .map (scope) ->
-        scope = ".#{scope}" unless scope[0] is '.'
-        scope
-      .join(' ')
+    # For backward compatibility, prefix TextMate-style scope names with
+    # leading dots (e.g. 'source.js' -> '.source.js').
+    if @scopes[0]?.includes('.')
+      result = ''
+      for scope, i in @scopes
+        result += ' ' if i > 0
+        result += '.' if scope[0] isnt '.'
+        result += scope
+      result
+    else
+      @scopes.join(' ')
 
   toString: ->
     @getScopeChain()

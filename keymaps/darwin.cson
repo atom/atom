@@ -133,6 +133,8 @@
   'cmd-ctrl-left': 'editor:move-selection-left'
   'cmd-ctrl-right': 'editor:move-selection-right'
   'cmd-shift-V': 'editor:paste-without-reformatting'
+  'alt-up': 'editor:select-larger-syntax-node'
+  'alt-down': 'editor:select-smaller-syntax-node'
 
   # Emacs
   'alt-f': 'editor:move-to-end-of-word'

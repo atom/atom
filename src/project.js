@@ -2,7 +2,7 @@ const path = require('path')
 
 const _ = require('underscore-plus')
 const fs = require('fs-plus')
-const {Emitter, Disposable} = require('event-kit')
+const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 const TextBuffer = require('text-buffer')
 const {watchPath} = require('./path-watcher')
 
@@ -19,10 +19,12 @@ class Project extends Model {
   Section: Construction and Destruction
   */
 
-  constructor ({notificationManager, packageManager, config, applicationDelegate}) {
+  constructor ({notificationManager, packageManager, config, applicationDelegate, grammarRegistry}) {
     super()
     this.notificationManager = notificationManager
     this.applicationDelegate = applicationDelegate
+    this.grammarRegistry = grammarRegistry
+
     this.emitter = new Emitter()
     this.buffers = []
     this.rootDirectories = []
@@ -35,6 +37,7 @@ class Project extends Model {
     this.watcherPromisesByPath = {}
     this.retiredBufferIDs = new Set()
     this.retiredBufferPaths = new Set()
+    this.subscriptions = new CompositeDisposable()
     this.consumeServices(packageManager)
   }
 
@@ -53,6 +56,9 @@ class Project extends Model {
   reset (packageManager) {
     this.emitter.dispose()
     this.emitter = new Emitter()
+
+    this.subscriptions.dispose()
+    this.subscriptions = new CompositeDisposable()
 
     for (let buffer of this.buffers) {
       if (buffer != null) buffer.destroy()
@@ -104,6 +110,7 @@ class Project extends Model {
     return Promise.all(bufferPromises).then(buffers => {
       this.buffers = buffers.filter(Boolean)
       for (let buffer of this.buffers) {
+        this.grammarRegistry.maintainLanguageMode(buffer)
         this.subscribeToBuffer(buffer)
       }
       this.setPaths(state.paths || [], {mustExist: true, exact: true})
@@ -211,7 +218,7 @@ class Project extends Model {
   //
   // This method will be removed in 2.0 because it does synchronous I/O.
   // Prefer the following, which evaluates to a {Promise} that resolves to an
-  // {Array} of {Repository} objects:
+  // {Array} of {GitRepository} objects:
   // ```
   // Promise.all(atom.project.getDirectories().map(
   //     atom.project.repositoryForDirectory.bind(atom.project)))
@@ -222,10 +229,10 @@ class Project extends Model {
 
   // Public: Get the repository for a given directory asynchronously.
   //
-  // * `directory` {Directory} for which to get a {Repository}.
+  // * `directory` {Directory} for which to get a {GitRepository}.
   //
   // Returns a {Promise} that resolves with either:
-  // * {Repository} if a repository can be created for the given directory
+  // * {GitRepository} if a repository can be created for the given directory
   // * `null` if no repository can be created for the given directory.
   repositoryForDirectory (directory) {
     const pathForDirectory = directory.getRealPathSync()
@@ -654,11 +661,8 @@ class Project extends Model {
   }
 
   addBuffer (buffer, options = {}) {
-    return this.addBufferAtIndex(buffer, this.buffers.length, options)
-  }
-
-  addBufferAtIndex (buffer, index, options = {}) {
-    this.buffers.splice(index, 0, buffer)
+    this.buffers.push(buffer)
+    this.subscriptions.add(this.grammarRegistry.maintainLanguageMode(buffer))
     this.subscribeToBuffer(buffer)
     this.emitter.emit('did-add-buffer', buffer)
     return buffer

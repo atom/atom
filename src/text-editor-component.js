@@ -56,7 +56,7 @@ class TextEditorComponent {
     this.props = props
 
     if (!props.model) {
-      props.model = new TextEditor({mini: props.mini})
+      props.model = new TextEditor({mini: props.mini, readOnly: props.readOnly})
     }
     this.props.model.component = this
 
@@ -170,6 +170,7 @@ class TextEditorComponent {
     this.textDecorationBoundaries = []
     this.pendingScrollTopRow = this.props.initialScrollTopRow
     this.pendingScrollLeftColumn = this.props.initialScrollLeftColumn
+    this.tabIndex = this.props.element && this.props.element.tabIndex ? this.props.element.tabIndex : -1
 
     this.measuredContent = false
     this.queryGuttersToRender()
@@ -467,9 +468,13 @@ class TextEditorComponent {
       }
     }
 
-    let attributes = null
+    let attributes = {}
     if (model.isMini()) {
-      attributes = {mini: ''}
+      attributes.mini = ''
+    }
+
+    if (!this.isInputEnabled()) {
+      attributes.readonly = ''
     }
 
     const dataset = {encoding: model.getEncoding()}
@@ -579,7 +584,6 @@ class TextEditorComponent {
         on: {mousedown: this.didMouseDownOnContent},
         style
       },
-      this.renderHighlightDecorations(),
       this.renderLineTiles(),
       this.renderBlockDecorationMeasurementArea(),
       this.renderCharacterMeasurementLine()
@@ -597,12 +601,14 @@ class TextEditorComponent {
   }
 
   renderLineTiles () {
-    const children = []
     const style = {
       position: 'absolute',
       contain: 'strict',
       overflow: 'hidden'
     }
+
+    const children = []
+    children.push(this.renderHighlightDecorations())
 
     if (this.hasInitialMeasurements) {
       const {lineComponentsByScreenLineId} = this
@@ -684,7 +690,8 @@ class TextEditorComponent {
       scrollWidth: this.getScrollWidth(),
       decorationsToRender: this.decorationsToRender,
       cursorsBlinkedOff: this.cursorsBlinkedOff,
-      hiddenInputPosition: this.hiddenInputPosition
+      hiddenInputPosition: this.hiddenInputPosition,
+      tabIndex: this.tabIndex
     })
   }
 
@@ -1517,28 +1524,28 @@ class TextEditorComponent {
   didMouseWheel (event) {
     const scrollSensitivity = this.props.model.getScrollSensitivity() / 100
 
-    let {deltaX, deltaY} = event
+    let {wheelDeltaX, wheelDeltaY} = event
 
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      deltaX = (Math.sign(deltaX) === 1)
-        ? Math.max(1, deltaX * scrollSensitivity)
-        : Math.min(-1, deltaX * scrollSensitivity)
-      deltaY = 0
+    if (Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)) {
+      wheelDeltaX = (Math.sign(wheelDeltaX) === 1)
+        ? Math.max(1, wheelDeltaX * scrollSensitivity)
+        : Math.min(-1, wheelDeltaX * scrollSensitivity)
+      wheelDeltaY = 0
     } else {
-      deltaX = 0
-      deltaY = (Math.sign(deltaY) === 1)
-        ? Math.max(1, deltaY * scrollSensitivity)
-        : Math.min(-1, deltaY * scrollSensitivity)
+      wheelDeltaX = 0
+      wheelDeltaY = (Math.sign(wheelDeltaY) === 1)
+        ? Math.max(1, wheelDeltaY * scrollSensitivity)
+        : Math.min(-1, wheelDeltaY * scrollSensitivity)
     }
 
     if (this.getPlatform() !== 'darwin' && event.shiftKey) {
-      let temp = deltaX
-      deltaX = deltaY
-      deltaY = temp
+      let temp = wheelDeltaX
+      wheelDeltaX = wheelDeltaY
+      wheelDeltaY = temp
     }
 
-    const scrollLeftChanged = deltaX !== 0 && this.setScrollLeft(this.getScrollLeft() + deltaX)
-    const scrollTopChanged = deltaY !== 0 && this.setScrollTop(this.getScrollTop() + deltaY)
+    const scrollLeftChanged = wheelDeltaX !== 0 && this.setScrollLeft(this.getScrollLeft() - wheelDeltaX)
+    const scrollTopChanged = wheelDeltaY !== 0 && this.setScrollTop(this.getScrollTop() - wheelDeltaY)
 
     if (scrollLeftChanged || scrollTopChanged) this.updateSync()
   }
@@ -1719,10 +1726,6 @@ class TextEditorComponent {
       return
     }
 
-    if (this.getChromeVersion() === 56) {
-      this.getHiddenInput().value = ''
-    }
-
     this.compositionCheckpoint = this.props.model.createCheckpoint()
     if (this.accentedCharacterMenuIsOpen) {
       this.props.model.selectLeft()
@@ -1730,16 +1733,7 @@ class TextEditorComponent {
   }
 
   didCompositionUpdate (event) {
-    if (this.getChromeVersion() === 56) {
-      process.nextTick(() => {
-        if (this.compositionCheckpoint != null) {
-          const previewText = this.getHiddenInput().value
-          this.props.model.insertText(previewText, {select: true})
-        }
-      })
-    } else {
-      this.props.model.insertText(event.data, {select: true})
-    }
+    this.props.model.insertText(event.data, {select: true})
   }
 
   didCompositionEnd (event) {
@@ -1763,25 +1757,22 @@ class TextEditorComponent {
       }
     }
 
-    // On Linux, position the cursor on middle mouse button click. A
-    // textInput event with the contents of the selection clipboard will be
-    // dispatched by the browser automatically on mouseup.
-    if (platform === 'linux' && button === 1) {
-      const selection = clipboard.readText('selection')
-      const screenPosition = this.screenPositionForMouseEvent(event)
-      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
-      model.insertText(selection)
+    const screenPosition = this.screenPositionForMouseEvent(event)
+
+    if (button !== 0 || (platform === 'darwin' && ctrlKey)) {
+      // Always set cursor position on middle-click
+      // Only set cursor position on right-click if there is one cursor with no selection
+      const ranges = model.getSelectedBufferRanges()
+      if (button === 1 || (ranges.length === 1 && ranges[0].isEmpty())) {
+        model.setCursorScreenPosition(screenPosition, {autoscroll: false})
+      }
+
+      // On Linux, pasting happens on middle click. A textInput event with the
+      // contents of the selection clipboard will be dispatched by the browser
+      // automatically on mouseup.
+      if (platform === 'linux' && button === 1) model.insertText(clipboard.readText('selection'))
       return
     }
-
-    // Only handle mousedown events for left mouse button (or the middle mouse
-    // button on Linux where it pastes the selection clipboard).
-    if (button !== 0) return
-
-    // Ctrl-click brings up the context menu on macOS
-    if (platform === 'darwin' && ctrlKey) return
-
-    const screenPosition = this.screenPositionForMouseEvent(event)
 
     if (target && target.matches('.fold-marker')) {
       const bufferPosition = model.bufferPositionForScreenPosition(screenPosition)
@@ -1789,7 +1780,7 @@ class TextEditorComponent {
       return
     }
 
-    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
+    const addOrRemoveSelection = metaKey || ctrlKey
 
     switch (detail) {
       case 1:
@@ -2974,11 +2965,11 @@ class TextEditorComponent {
   }
 
   setInputEnabled (inputEnabled) {
-    this.props.inputEnabled = inputEnabled
+    this.props.model.update({readOnly: !inputEnabled})
   }
 
   isInputEnabled (inputEnabled) {
-    return this.props.inputEnabled != null ? this.props.inputEnabled : true
+    return !this.props.model.isReadOnly()
   }
 
   getHiddenInput () {
@@ -3029,7 +3020,7 @@ class DummyScrollbarComponent {
 
     const outerStyle = {
       position: 'absolute',
-      contain: 'strict',
+      contain: 'content',
       zIndex: 1,
       willChange: 'transform'
     }
@@ -3552,7 +3543,8 @@ class CursorsAndInputComponent {
         zIndex: 1,
         width: scrollWidth + 'px',
         height: scrollHeight + 'px',
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        userSelect: 'none'
       }
     }, children)
   }
@@ -3565,7 +3557,7 @@ class CursorsAndInputComponent {
     const {
       lineHeight, hiddenInputPosition, didBlurHiddenInput, didFocusHiddenInput,
       didPaste, didTextInput, didKeydown, didKeyup, didKeypress,
-      didCompositionStart, didCompositionUpdate, didCompositionEnd
+      didCompositionStart, didCompositionUpdate, didCompositionEnd, tabIndex
     } = this.props
 
     let top, left
@@ -3593,7 +3585,7 @@ class CursorsAndInputComponent {
         compositionupdate: didCompositionUpdate,
         compositionend: didCompositionEnd
       },
-      tabIndex: -1,
+      tabIndex: tabIndex,
       style: {
         position: 'absolute',
         width: '1px',
@@ -4028,6 +4020,7 @@ class HighlightsComponent {
     this.element.style.contain = 'strict'
     this.element.style.position = 'absolute'
     this.element.style.overflow = 'hidden'
+    this.element.style.userSelect = 'none'
     this.highlightComponentsByKey = new Map()
     this.update(props)
   }

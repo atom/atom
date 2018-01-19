@@ -43,13 +43,19 @@ build_script:
   - SET SQUIRREL_TEMP=C:\tmp
   - IF [%TASK%]==[installer] (
       IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
+        ECHO Building on release branch - Creating production artifacts &&
         script\build.cmd --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
-        ECHO Skipping installer and Atom build on non-release branch
+        IF [%APPVEYOR_REPO_BRANCH%]==[master] IF NOT DEFINED APPVEYOR_PULL_REQUEST_NUMBER (
+          ECHO Building on master branch - Creating signed zips &&
+          script\build.cmd --code-sign --compress-artifacts
+        ) ELSE (
+          ECHO Skipping installer build for non-release/non-master branch
+        )
       )
     ) ELSE (
-      ECHO Skipping installer build on non-installer build matrix row &&
-      script\build.cmd --code-sign --compress-artifacts
+      ECHO Test build only - Not creating artifacts &&
+      script\build.cmd
     )
 
 test_script:

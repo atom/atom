@@ -50,6 +50,8 @@ class ThemeManager {
   // updating the list of active themes have completed.
   //
   // * `callback` {Function}
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeActiveThemes (callback) {
     return this.emitter.on('did-change-active-themes', callback)
   }
@@ -134,12 +136,12 @@ class ThemeManager {
       ]
       themeNames = _.intersection(themeNames, builtInThemeNames)
       if (themeNames.length === 0) {
-        themeNames = ['atom-dark-syntax', 'atom-dark-ui']
+        themeNames = ['one-dark-syntax', 'one-dark-ui']
       } else if (themeNames.length === 1) {
         if (_.endsWith(themeNames[0], '-ui')) {
-          themeNames.unshift('atom-dark-syntax')
+          themeNames.unshift('one-dark-syntax')
         } else {
-          themeNames.push('atom-dark-ui')
+          themeNames.push('one-dark-ui')
         }
       }
     }

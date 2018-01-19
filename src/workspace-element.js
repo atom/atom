@@ -104,6 +104,7 @@ class WorkspaceElement extends HTMLElement {
 
     this.addEventListener('mousewheel', this.handleMousewheel.bind(this), true)
     window.addEventListener('dragstart', this.handleDragStart)
+    window.addEventListener('mousemove', this.handleEdgesMouseMove)
 
     this.panelContainers = {
       top: this.model.panelContainers.top.getElement(),
@@ -130,6 +131,10 @@ class WorkspaceElement extends HTMLElement {
     this.paneContainer.addEventListener('mouseleave', this.handleCenterLeave)
 
     return this
+  }
+
+  destroy () {
+    this.subscriptions.dispose()
   }
 
   getModel () { return this.model }
@@ -169,7 +174,6 @@ class WorkspaceElement extends HTMLElement {
     // being hovered.
     this.cursorInCenter = false
     this.updateHoveredDock({x: event.pageX, y: event.pageY})
-    window.addEventListener('mousemove', this.handleEdgesMouseMove)
     window.addEventListener('dragend', this.handleDockDragEnd)
   }
 
@@ -199,7 +203,6 @@ class WorkspaceElement extends HTMLElement {
 
   checkCleanupDockHoverEvents () {
     if (this.cursorInCenter && !this.hoveredDock) {
-      window.removeEventListener('mousemove', this.handleEdgesMouseMove)
       window.removeEventListener('dragend', this.handleDockDragEnd)
     }
   }

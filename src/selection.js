@@ -448,9 +448,19 @@ class Selection {
     if (options.autoIndent && textIsAutoIndentable && !NonWhitespaceRegExp.test(precedingText) && (remainingLines.length > 0)) {
       autoIndentFirstLine = true
       const firstLine = precedingText + firstInsertedLine
-      desiredIndentLevel = this.editor.tokenizedBuffer.suggestedIndentForLineAtBufferRow(oldBufferRange.start.row, firstLine)
-      indentAdjustment = desiredIndentLevel - this.editor.indentLevelForLine(firstLine)
-      this.adjustIndent(remainingLines, indentAdjustment)
+      const languageMode = this.editor.buffer.getLanguageMode()
+      desiredIndentLevel = (
+        languageMode.suggestedIndentForLineAtBufferRow &&
+        languageMode.suggestedIndentForLineAtBufferRow(
+          oldBufferRange.start.row,
+          firstLine,
+          this.editor.getTabLength()
+        )
+      )
+      if (desiredIndentLevel != null) {
+        indentAdjustment = desiredIndentLevel - this.editor.indentLevelForLine(firstLine)
+        this.adjustIndent(remainingLines, indentAdjustment)
+      }
     }
 
     text = firstInsertedLine
@@ -575,7 +585,8 @@ class Selection {
   // is empty unless the selection spans multiple lines in which case all lines
   // are removed.
   deleteLine () {
-    if (this.isEmpty()) {
+    const range = this.getBufferRange()
+    if (range.isEmpty()) {
       const start = this.cursor.getScreenRow()
       const range = this.editor.bufferRowsForScreenRows(start, start + 1)
       if (range[1] > range[0]) {
@@ -584,12 +595,12 @@ class Selection {
         this.editor.buffer.deleteRow(range[0])
       }
     } else {
-      const range = this.getBufferRange()
       const start = range.start.row
       let end = range.end.row
       if (end !== this.editor.buffer.getLastRow() && range.end.column === 0) end--
       this.editor.buffer.deleteRows(start, end)
     }
+    this.cursor.setBufferPosition({row: this.cursor.getBufferRow(), column: range.start.column})
   }
 
   // Public: Joins the current line with the one below it. Lines will
@@ -821,8 +832,12 @@ class Selection {
         if (clippedRange.isEmpty()) continue
       }
 
-      const selection = this.editor.addSelectionForScreenRange(clippedRange)
-      selection.setGoalScreenRange(range)
+      const containingSelections = this.editor.selectionsMarkerLayer.findMarkers({containsScreenRange: clippedRange})
+      if (containingSelections.length === 0) {
+        const selection = this.editor.addSelectionForScreenRange(clippedRange)
+        selection.setGoalScreenRange(range)
+      }
+
       break
     }
   }
@@ -843,8 +858,12 @@ class Selection {
         if (clippedRange.isEmpty()) continue
       }
 
-      const selection = this.editor.addSelectionForScreenRange(clippedRange)
-      selection.setGoalScreenRange(range)
+      const containingSelections = this.editor.selectionsMarkerLayer.findMarkers({containsScreenRange: clippedRange})
+      if (containingSelections.length === 0) {
+        const selection = this.editor.addSelectionForScreenRange(clippedRange)
+        selection.setGoalScreenRange(range)
+      }
+
       break
     }
   }

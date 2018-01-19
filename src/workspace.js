@@ -310,7 +310,10 @@ module.exports = class Workspace extends Model {
     this.originalFontSize = null
     this.openers = []
     this.destroyedItemURIs = []
-    this.element = null
+    if (this.element) {
+      this.element.destroy()
+      this.element = null
+    }
     this.consumeServices(this.packageManager)
   }
 
@@ -494,10 +497,12 @@ module.exports = class Workspace extends Model {
       if (item instanceof TextEditor) {
         const subscriptions = new CompositeDisposable(
           this.textEditorRegistry.add(item),
-          this.textEditorRegistry.maintainGrammar(item),
           this.textEditorRegistry.maintainConfig(item),
           item.observeGrammar(this.handleGrammarUsed.bind(this))
         )
+        if (!this.project.findBufferForId(item.buffer.id)) {
+          this.project.addBuffer(item.buffer)
+        }
         item.onDidDestroy(() => { subscriptions.dispose() })
         this.emitter.emit('did-add-text-editor', {textEditor: item, pane, index})
       }
@@ -1158,16 +1163,17 @@ module.exports = class Workspace extends Model {
   // * `uri` A {String} containing a URI.
   //
   // Returns a {Promise} that resolves to the {TextEditor} (or other item) for the given URI.
-  createItemForURI (uri, options) {
+  async createItemForURI (uri, options) {
     if (uri != null) {
-      for (let opener of this.getOpeners()) {
+      for (const opener of this.getOpeners()) {
         const item = opener(uri, options)
-        if (item != null) return Promise.resolve(item)
+        if (item != null) return item
       }
     }
 
     try {
-      return this.openTextFile(uri, options)
+      const item = await this.openTextFile(uri, options)
+      return item
     } catch (error) {
       switch (error.code) {
         case 'CANCELLED':
@@ -1197,7 +1203,7 @@ module.exports = class Workspace extends Model {
     }
   }
 
-  openTextFile (uri, options) {
+  async openTextFile (uri, options) {
     const filePath = this.project.resolvePath(uri)
 
     if (filePath != null) {
@@ -1213,24 +1219,37 @@ module.exports = class Workspace extends Model {
 
     const fileSize = fs.getSizeSync(filePath)
 
-    const largeFileMode = fileSize >= (2 * 1048576) // 2MB
-    if (fileSize >= (this.config.get('core.warnOnLargeFileLimit') * 1048576)) { // 20MB by default
-      const choice = this.applicationDelegate.confirm({
+    let [resolveConfirmFileOpenPromise, rejectConfirmFileOpenPromise] = []
+    const confirmFileOpenPromise = new Promise((resolve, reject) => {
+      resolveConfirmFileOpenPromise = resolve
+      rejectConfirmFileOpenPromise = reject
+    })
+
+    if (fileSize >= (this.config.get('core.warnOnLargeFileLimit') * 1048576)) { // 40MB by default
+      this.applicationDelegate.confirm({
         message: 'Atom will be unresponsive during the loading of very large files.',
-        detailedMessage: 'Do you still want to load this file?',
+        detail: 'Do you still want to load this file?',
         buttons: ['Proceed', 'Cancel']
+      }, response => {
+        if (response === 1) {
+          rejectConfirmFileOpenPromise()
+        } else {
+          resolveConfirmFileOpenPromise()
+        }
       })
-      if (choice === 1) {
-        const error = new Error()
-        error.code = 'CANCELLED'
-        throw error
-      }
+    } else {
+      resolveConfirmFileOpenPromise()
     }
 
-    return this.project.bufferForPath(filePath, options)
-      .then(buffer => {
-        return this.textEditorRegistry.build(Object.assign({buffer, largeFileMode, autoHeight: false}, options))
-      })
+    try {
+      await confirmFileOpenPromise
+      const buffer = await this.project.bufferForPath(filePath, options)
+      return this.textEditorRegistry.build(Object.assign({buffer, autoHeight: false}, options))
+    } catch (e) {
+      const error = new Error()
+      error.code = 'CANCELLED'
+      throw error
+    }
   }
 
   handleGrammarUsed (grammar) {
@@ -1250,11 +1269,8 @@ module.exports = class Workspace extends Model {
   // Returns a {TextEditor}.
   buildTextEditor (params) {
     const editor = this.textEditorRegistry.build(params)
-    const subscriptions = new CompositeDisposable(
-      this.textEditorRegistry.maintainGrammar(editor),
-      this.textEditorRegistry.maintainConfig(editor)
-    )
-    editor.onDidDestroy(() => { subscriptions.dispose() })
+    const subscription = this.textEditorRegistry.maintainConfig(editor)
+    editor.onDidDestroy(() => subscription.dispose())
     return editor
   }
 
@@ -1557,6 +1573,7 @@ module.exports = class Workspace extends Model {
     if (this.activeItemSubscriptions != null) {
       this.activeItemSubscriptions.dispose()
     }
+    if (this.element) this.element.destroy()
   }
 
   /*
@@ -1990,25 +2007,22 @@ module.exports = class Workspace extends Model {
 
   checkoutHeadRevision (editor) {
     if (editor.getPath()) {
-      const checkoutHead = () => {
-        return this.project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
-          .then(repository => repository && repository.checkoutHeadForEditor(editor))
+      const checkoutHead = async () => {
+        const repository = await this.project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
+        if (repository) repository.checkoutHeadForEditor(editor)
       }
 
       if (this.config.get('editor.confirmCheckoutHeadRevision')) {
         this.applicationDelegate.confirm({
           message: 'Confirm Checkout HEAD Revision',
-          detailedMessage: `Are you sure you want to discard all changes to "${editor.getFileName()}" since the last Git commit?`,
-          buttons: {
-            OK: checkoutHead,
-            Cancel: null
-          }
+          detail: `Are you sure you want to discard all changes to "${editor.getFileName()}" since the last Git commit?`,
+          buttons: ['OK', 'Cancel']
+        }, response => {
+          if (response === 0) checkoutHead()
         })
       } else {
-        return checkoutHead()
+        checkoutHead()
       }
-    } else {
-      return Promise.resolve(false)
     }
   }
 }

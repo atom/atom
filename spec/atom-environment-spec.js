@@ -1,5 +1,6 @@
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const {it, fit, ffit, beforeEach, afterEach, conditionPromise} = require('./async-spec-helpers')
 const _ = require('underscore-plus')
+const fs = require('fs')
 const path = require('path')
 const temp = require('temp').track()
 const AtomEnvironment = require('../src/atom-environment')
@@ -301,8 +302,9 @@ describe('AtomEnvironment', () => {
     })
 
     it('serializes the text editor registry', async () => {
+      await atom.packages.activatePackage('language-text')
       const editor = await atom.workspace.open('sample.js')
-      atom.textEditors.setGrammarOverride(editor, 'text.plain')
+      expect(atom.grammars.assignLanguageMode(editor, 'text.plain')).toBe(true)
 
       const atom2 = new AtomEnvironment({
         applicationDelegate: atom.applicationDelegate,
@@ -318,7 +320,9 @@ describe('AtomEnvironment', () => {
       atom2.initialize({document, window})
 
       await atom2.deserialize(atom.serialize())
-      expect(atom2.textEditors.getGrammarOverride(editor)).toBe('text.plain')
+      await atom2.packages.activatePackage('language-text')
+      const editor2 = atom2.workspace.getActiveTextEditor()
+      expect(editor2.getBuffer().getLanguageMode().getLanguageId()).toBe('text.plain')
       atom2.destroy()
     })
 
@@ -468,15 +472,28 @@ describe('AtomEnvironment', () => {
         await atom.workspace.open()
       })
 
-      it('automatically restores the saved state into the current environment', () => {
-        const state = {}
-        spyOn(atom.workspace, 'open')
-        spyOn(atom, 'restoreStateIntoThisEnvironment')
+      it('automatically restores the saved state into the current environment', async () => {
+        const projectPath = temp.mkdirSync()
+        const filePath1 = path.join(projectPath, 'file-1')
+        const filePath2 = path.join(projectPath, 'file-2')
+        const filePath3 = path.join(projectPath, 'file-3')
+        fs.writeFileSync(filePath1, 'abc')
+        fs.writeFileSync(filePath2, 'def')
+        fs.writeFileSync(filePath3, 'ghi')
 
-        atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
-        expect(atom.restoreStateIntoThisEnvironment).toHaveBeenCalledWith(state)
-        expect(atom.workspace.open.callCount).toBe(1)
-        expect(atom.workspace.open).toHaveBeenCalledWith(__filename)
+        const env1 = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
+        env1.project.setPaths([projectPath])
+        await env1.workspace.open(filePath1)
+        await env1.workspace.open(filePath2)
+        await env1.workspace.open(filePath3)
+        const env1State = env1.serialize()
+        env1.destroy()
+
+        const env2 = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
+        await env2.attemptRestoreProjectStateForPaths(env1State, [projectPath], [filePath2])
+        const restoredURIs = env2.workspace.getPaneItems().map(p => p.getURI())
+        expect(restoredURIs).toEqual([filePath1, filePath2, filePath3])
+        env2.destroy()
       })
 
       describe('when a dock has a non-text editor', () => {
@@ -515,27 +532,31 @@ describe('AtomEnvironment', () => {
         })
       })
 
-      it('prompts the user to restore the state in a new window, discarding it and adding folder to current window', () => {
-        spyOn(atom, 'confirm').andReturn(1)
+      it('prompts the user to restore the state in a new window, discarding it and adding folder to current window', async () => {
+        jasmine.useRealClock()
+        spyOn(atom, 'confirm').andCallFake((options, callback) => callback(1))
         spyOn(atom.project, 'addPath')
         spyOn(atom.workspace, 'open')
         const state = Symbol()
 
         atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
         expect(atom.confirm).toHaveBeenCalled()
-        expect(atom.project.addPath.callCount).toBe(1)
+        await conditionPromise(() => atom.project.addPath.callCount === 1)
+
         expect(atom.project.addPath).toHaveBeenCalledWith(__dirname)
         expect(atom.workspace.open.callCount).toBe(1)
         expect(atom.workspace.open).toHaveBeenCalledWith(__filename)
       })
 
-      it('prompts the user to restore the state in a new window, opening a new window', () => {
-        spyOn(atom, 'confirm').andReturn(0)
+      it('prompts the user to restore the state in a new window, opening a new window', async () => {
+        jasmine.useRealClock()
+        spyOn(atom, 'confirm').andCallFake((options, callback) => callback(0))
         spyOn(atom, 'open')
         const state = Symbol()
 
         atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
         expect(atom.confirm).toHaveBeenCalled()
+        await conditionPromise(() => atom.open.callCount === 1)
         expect(atom.open).toHaveBeenCalledWith({
           pathsToOpen: [__dirname, __filename],
           newWindow: true,
@@ -589,7 +610,7 @@ describe('AtomEnvironment', () => {
       const promise = new Promise((r) => { resolve = r })
       envLoaded = () => {
         resolve()
-        promise
+        return promise
       }
       atomEnvironment = new AtomEnvironment({
         applicationDelegate: atom.applicationDelegate,
