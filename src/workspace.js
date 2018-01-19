@@ -1,5 +1,3 @@
-'use babel'
-
 const _ = require('underscore-plus')
 const url = require('url')
 const path = require('path')

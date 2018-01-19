@@ -1,11 +1,10 @@
-'use babel'
+const {dialog} = require('electron')
+const crypto = require('crypto')
+const Path = require('path')
+const fs = require('fs-plus')
 
-import {dialog} from 'electron'
-import crypto from 'crypto'
-import Path from 'path'
-import fs from 'fs-plus'
-
-export default class FileRecoveryService {
+module.exports =
+class FileRecoveryService {
   constructor (recoveryDirectory) {
     this.recoveryDirectory = recoveryDirectory
     this.recoveryFilesByFilePath = new Map()

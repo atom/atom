@@ -1,7 +1,5 @@
-/** @babel */
-
-import crypto from 'crypto'
-import clipboard from './safe-clipboard'
+const crypto = require('crypto')
+const clipboard = require('./safe-clipboard')
 
 // Extended: Represents the clipboard used for copying and pasting in Atom.
 //
@@ -14,7 +12,8 @@ import clipboard from './safe-clipboard'
 //
 // console.log(atom.clipboard.read()) # 'hello'
 // ```
-export default class Clipboard {
+module.exports =
+class Clipboard {
   constructor () {
     this.reset()
   }
