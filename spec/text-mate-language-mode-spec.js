@@ -912,6 +912,20 @@ describe('TextMateLanguageMode', () => {
         }
       `)
 
+      range = languageMode.getFoldableRangeContainingPoint(Point(7, 0), 2)
+      expect(simulateFold([range])).toBe(dedent `
+        if (a) {
+          b();
+          if (c) {⋯
+          }
+          h()
+        }
+        i()
+        if (j) {
+          k()
+        }
+      `)
+
       range = languageMode.getFoldableRangeContainingPoint(Point(1, Infinity), 2)
       expect(simulateFold([range])).toBe(dedent `
         if (a) {⋯

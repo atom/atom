@@ -605,7 +605,7 @@ class TextMateLanguageMode {
 
     for (let row = point.row - 1; row >= 0; row--) {
       const endRow = this.endRowForFoldAtRow(row, tabLength)
-      if (endRow != null && endRow > point.row) {
+      if (endRow != null && endRow >= point.row) {
         return Range(Point(row, Infinity), Point(endRow, Infinity))
       }
     }
