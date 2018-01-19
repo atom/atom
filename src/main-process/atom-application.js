@@ -169,17 +169,17 @@ class AtomApplication extends EventEmitter {
     this.disposable.dispose()
   }
 
-  launch (options) {
+  async launch (options) {
     if (options.test || options.benchmark || options.benchmarkTest) {
       return this.openWithOptions(options)
     } else if ((options.pathsToOpen && options.pathsToOpen.length > 0) ||
                (options.urlsToOpen && options.urlsToOpen.length > 0)) {
       if (this.config.get('core.restorePreviousWindowsOnStart') === 'always') {
-        this.loadState(_.deepClone(options))
+        await this.loadState(_.deepClone(options))
       }
       return this.openWithOptions(options)
     } else {
-      return this.loadState(options) || this.openPath(options)
+      return (await this.loadState(options)) || this.openPath(options)
     }
   }
 
@@ -924,8 +924,8 @@ class AtomApplication extends EventEmitter {
     }
   }
 
-  loadState (options) {
-    const states = this.storageFolder.load('application.json')
+  async loadState (options) {
+    const states = await this.storageFolder.load('application.json')
     if (
       ['yes', 'always'].includes(this.config.get('core.restorePreviousWindowsOnStart')) &&
       states && states.length > 0

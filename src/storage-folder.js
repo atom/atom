@@ -29,25 +29,24 @@ class StorageFolder {
   }
 
   load (name) {
-    if (!this.path) return
+    return new Promise(resolve => {
+      if (!this.path) return resolve(null)
+      const statePath = this.pathForKey(name)
+      fs.readFile(statePath, 'utf8', (error, stateString) => {
+        if (error && error.code !== 'ENOENT') {
+          console.warn(`Error reading state file: ${statePath}`, error.stack, error)
+        }
 
-    const statePath = this.pathForKey(name)
+        if (!stateString) return resolve(null)
 
-    let stateString
-    try {
-      stateString = fs.readFileSync(statePath, 'utf8')
-    } catch (error) {
-      if (error.code !== 'ENOENT') {
-        console.warn(`Error reading state file: ${statePath}`, error.stack, error)
-      }
-      return null
-    }
-
-    try {
-      return JSON.parse(stateString)
-    } catch (error) {
-      console.warn(`Error parsing state file: ${statePath}`, error.stack, error)
-    }
+        try {
+          resolve(JSON.parse(stateString))
+        } catch (error) {
+          console.warn(`Error parsing state file: ${statePath}`, error.stack, error)
+          resolve(null)
+        }
+      })
+    })
   }
 
   pathForKey (name) {
