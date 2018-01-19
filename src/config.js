@@ -716,15 +716,15 @@ class Config {
   // * `true` if the value was set.
   // * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set () {
-    let [keyPath, value, options] = Array.from(arguments)
+    let [keyPath, value, options = {}] = Array.from(arguments)
 
     if (!this.settingsLoaded) {
       this.pendingOperations.push(() => this.set(keyPath, value, options))
     }
 
-    const scopeSelector = options != null ? options.scopeSelector : undefined
-    let source = options != null ? options.source : undefined
-    const shouldSave = (options != null ? options.save : undefined) != null ? (options != null ? options.save : undefined) : true
+    const scopeSelector = options.scopeSelector
+    let source = options.source
+    const shouldSave = options.save != null ? options.save : true
 
     if (source && !scopeSelector) {
       throw new Error("::set with a 'source' and no 'sourceSelector' is not yet implemented!")
