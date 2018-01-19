@@ -1,11 +1,3 @@
-
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-
 const _ = require('underscore-plus')
 const fs = require('fs-plus')
 const {Emitter} = require('event-kit')
@@ -451,15 +443,13 @@ class Config {
     this.legacyScopeAliases = {}
 
     this.requestLoad = _.debounce(() => {
-      this.loadUserConfig() },
-      100
-    )
+      this.loadUserConfig()
+    }, 100)
 
     const debouncedSave = _.debounce(() => {
       this.savePending = false
-      this.save() },
-      100
-    )
+      this.save()
+    }, 100)
 
     this.requestSave = () => {
       this.savePending = true
@@ -618,7 +608,7 @@ class Config {
     let keyPath, options, scope
     if (args.length > 1) {
       if ((typeof args[0] === 'string') || (args[0] == null)) {
-        [keyPath, options] = Array.from(args);
+        [keyPath, options] = args;
         ({scope} = options)
       }
     } else {
@@ -1310,7 +1300,7 @@ sizes. See [this document][watches] for more info.
   */
 
   priorityForSource (source) {
-    return (source === this.getUserConfigPath()) ? 1000 : 0;
+    return (source === this.getUserConfigPath()) ? 1000 : 0
   }
 
   emitChangeEvent () {
