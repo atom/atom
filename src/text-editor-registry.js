@@ -1,3 +1,4 @@
+const _ = require('underscore-plus')
 const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 const TextEditor = require('./text-editor')
 const ScopeDescriptor = require('./scope-descriptor')
@@ -147,11 +148,11 @@ class TextEditorRegistry {
     }
     this.editorsWithMaintainedConfig.add(editor)
 
-    this.subscribeToSettingsForEditorScope(editor)
-    const grammarChangeSubscription = editor.onDidChangeGrammar(() => {
-      this.subscribeToSettingsForEditorScope(editor)
+    this.updateAndMonitorEditorSettings(editor)
+    const languageChangeSubscription = editor.buffer.onDidChangeLanguageMode((newLanguageMode, oldLanguageMode) => {
+      this.updateAndMonitorEditorSettings(editor, oldLanguageMode)
     })
-    this.subscriptions.add(grammarChangeSubscription)
+    this.subscriptions.add(languageChangeSubscription)
 
     const updateTabTypes = () => {
       const configOptions = {scope: editor.getRootScopeDescriptor()}
@@ -169,8 +170,8 @@ class TextEditorRegistry {
     return new Disposable(() => {
       this.editorsWithMaintainedConfig.delete(editor)
       tokenizeSubscription.dispose()
-      grammarChangeSubscription.dispose()
-      this.subscriptions.remove(grammarChangeSubscription)
+      languageChangeSubscription.dispose()
+      this.subscriptions.remove(languageChangeSubscription)
       this.subscriptions.remove(tokenizeSubscription)
     })
   }
@@ -214,13 +215,40 @@ class TextEditorRegistry {
     atom.grammars.autoAssignLanguageMode(editor.getBuffer())
   }
 
-  async subscribeToSettingsForEditorScope (editor) {
+  async updateAndMonitorEditorSettings (editor, oldLanguageMode) {
     await this.initialPackageActivationPromise
+    this.updateEditorSettingsForLanguageMode(editor, oldLanguageMode)
+    await this.subscribeToSettingsForEditorScope(editor)
+  }
 
+  updateEditorSettingsForLanguageMode (editor, oldLanguageMode) {
+    const newLanguageMode = editor.buffer.getLanguageMode()
+
+    if (oldLanguageMode) {
+      const newSettings = this.textEditorParamsForScope(newLanguageMode.rootScopeDescriptor)
+      const oldSettings = this.textEditorParamsForScope(oldLanguageMode.rootScopeDescriptor)
+
+      const updatedSettings = {}
+      for (const [, paramName] of EDITOR_PARAMS_BY_SETTING_KEY) {
+        // Update the setting only if it has changed between the two language
+        // modes.  This prevents user-modified settings in an editor (like
+        // 'softWrapped') from being reset when the language mode changes.
+        if (!_.isEqual(newSettings[paramName], oldSettings[paramName])) {
+          updatedSettings[paramName] = newSettings[paramName]
+        }
+      }
+
+      if (_.size(updatedSettings) > 0) {
+        editor.update(updatedSettings)
+      }
+    } else {
+      editor.update(this.textEditorParamsForScope(newLanguageMode.rootScopeDescriptor))
+    }
+  }
+
+  async subscribeToSettingsForEditorScope (editor) {
     const scopeDescriptor = editor.getRootScopeDescriptor()
     const scopeChain = scopeDescriptor.getScopeChain()
-
-    editor.update(this.textEditorParamsForScope(scopeDescriptor))
 
     if (!this.scopesWithConfigSubscriptions.has(scopeChain)) {
       this.scopesWithConfigSubscriptions.add(scopeChain)

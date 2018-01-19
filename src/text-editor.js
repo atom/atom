@@ -2673,7 +2673,7 @@ class TextEditor {
     return this.cursors.slice()
   }
 
-  // Extended: Get all {Cursors}s, ordered by their position in the buffer
+  // Extended: Get all {Cursor}s, ordered by their position in the buffer
   // instead of the order in which they were added.
   //
   // Returns an {Array} of {Selection}s.

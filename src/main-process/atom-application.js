@@ -169,17 +169,17 @@ class AtomApplication extends EventEmitter {
     this.disposable.dispose()
   }
 
-  launch (options) {
+  async launch (options) {
     if (options.test || options.benchmark || options.benchmarkTest) {
       return this.openWithOptions(options)
     } else if ((options.pathsToOpen && options.pathsToOpen.length > 0) ||
                (options.urlsToOpen && options.urlsToOpen.length > 0)) {
       if (this.config.get('core.restorePreviousWindowsOnStart') === 'always') {
-        this.loadState(_.deepClone(options))
+        await this.loadState(_.deepClone(options))
       }
       return this.openWithOptions(options)
     } else {
-      return this.loadState(options) || this.openPath(options)
+      return (await this.loadState(options)) || this.openPath(options)
     }
   }
 
@@ -569,15 +569,13 @@ class AtomApplication extends EventEmitter {
       event.returnValue = this.autoUpdateManager.getErrorMessage()
     }))
 
-    this.disposable.add(ipcHelpers.on(ipcMain, 'will-save-path', (event, path) => {
-      this.fileRecoveryService.willSavePath(this.atomWindowForEvent(event), path)
-      event.returnValue = true
-    }))
+    this.disposable.add(ipcHelpers.respondTo('will-save-path', (window, path) =>
+      this.fileRecoveryService.willSavePath(window, path)
+    ))
 
-    this.disposable.add(ipcHelpers.on(ipcMain, 'did-save-path', (event, path) => {
-      this.fileRecoveryService.didSavePath(this.atomWindowForEvent(event), path)
-      event.returnValue = true
-    }))
+    this.disposable.add(ipcHelpers.respondTo('did-save-path', (window, path) =>
+      this.fileRecoveryService.didSavePath(window, path)
+    ))
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'did-change-paths', () =>
       this.saveState(false)
@@ -911,7 +909,7 @@ class AtomApplication extends EventEmitter {
     }
   }
 
-  saveState (allowEmpty = false) {
+  async saveState (allowEmpty = false) {
     if (this.quitting) return
 
     const states = []
@@ -921,13 +919,13 @@ class AtomApplication extends EventEmitter {
     states.reverse()
 
     if (states.length > 0 || allowEmpty) {
-      this.storageFolder.storeSync('application.json', states)
+      await this.storageFolder.store('application.json', states)
       this.emit('application:did-save-state')
     }
   }
 
-  loadState (options) {
-    const states = this.storageFolder.load('application.json')
+  async loadState (options) {
+    const states = await this.storageFolder.load('application.json')
     if (
       ['yes', 'always'].includes(this.config.get('core.restorePreviousWindowsOnStart')) &&
       states && states.length > 0
