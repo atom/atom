@@ -194,12 +194,7 @@ class AtomApplication extends EventEmitter {
       optionsForWindowsToOpen.push(options)
     }
 
-    const result = optionsForWindowsToOpen.map(options => this.openWithOptions(options))
-    if (result.length === 1) {
-      return result[0]
-    } else {
-      return result
-    }
+    return optionsForWindowsToOpen.map(options => this.openWithOptions(options))
   }
 
   openWithOptions (options) {
