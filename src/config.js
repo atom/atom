@@ -1,4 +1,3 @@
-/** @babel */
 
 /*
  * decaffeinate suggestions:
@@ -376,7 +375,7 @@ const ScopeDescriptor = require('./scope-descriptor')
 //
 const schemaEnforcers = {}
 
-export default class Config {
+class Config {
   static addSchemaEnforcer (typeName, enforcerFunction) {
     if (schemaEnforcers[typeName] == null) { schemaEnforcers[typeName] = [] }
     return schemaEnforcers[typeName].push(enforcerFunction)
@@ -414,9 +413,8 @@ export default class Config {
     return value
   }
 
-    // Created during initialization, available as `atom.config`
-  constructor (param) {
-    if (param == null) { param = {} }
+  // Created during initialization, available as `atom.config`
+  constructor (param = {}) {
     const {notificationManager, enablePersistence} = param
     this.notificationManager = notificationManager
     this.enablePersistence = enablePersistence
@@ -470,36 +468,36 @@ export default class Config {
 
   shouldNotAccessFileSystem () { return !this.enablePersistence }
 
-    /*
-    Section: Config Subscription
-    */
+  /*
+  Section: Config Subscription
+  */
 
-    // Essential: Add a listener for changes to a given key path. This is different
-    // than {::onDidChange} in that it will immediately call your callback with the
-    // current value of the config entry.
-    //
-    // ### Examples
-    //
-    // You might want to be notified when the themes change. We'll watch
-    // `core.themes` for changes
-    //
-    // ```coffee
-    // atom.config.observe 'core.themes', (value) ->
-    //   # do stuff with value
-    // ```
-    //
-    // * `keyPath` {String} name of the key to observe
-    // * `options` (optional) {Object}
-    //   * `scope` (optional) {ScopeDescriptor} describing a path from
-    //     the root of the syntax tree to a token. Get one by calling
-    //     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-    //     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
-    //     for more information.
-    // * `callback` {Function} to call when the value of the key changes.
-    //   * `value` the new value of the key
-    //
-    // Returns a {Disposable} with the following keys on which you can call
-    // `.dispose()` to unsubscribe.
+  // Essential: Add a listener for changes to a given key path. This is different
+  // than {::onDidChange} in that it will immediately call your callback with the
+  // current value of the config entry.
+  //
+  // ### Examples
+  //
+  // You might want to be notified when the themes change. We'll watch
+  // `core.themes` for changes
+  //
+  // ```coffee
+  // atom.config.observe 'core.themes', (value) ->
+  //   # do stuff with value
+  // ```
+  //
+  // * `keyPath` {String} name of the key to observe
+  // * `options` (optional) {Object}
+  //   * `scope` (optional) {ScopeDescriptor} describing a path from
+  //     the root of the syntax tree to a token. Get one by calling
+  //     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
+  //     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
+  //     for more information.
+  // * `callback` {Function} to call when the value of the key changes.
+  //   * `value` the new value of the key
+  //
+  // Returns a {Disposable} with the following keys on which you can call
+  // `.dispose()` to unsubscribe.
   observe () {
     let callback, keyPath, options, scopeDescriptor
     if (arguments.length === 2) {
@@ -519,24 +517,24 @@ export default class Config {
     }
   }
 
-    // Essential: Add a listener for changes to a given key path. If `keyPath` is
-    // not specified, your callback will be called on changes to any key.
-    //
-    // * `keyPath` (optional) {String} name of the key to observe. Must be
-    //   specified if `scopeDescriptor` is specified.
-    // * `options` (optional) {Object}
-    //   * `scope` (optional) {ScopeDescriptor} describing a path from
-    //     the root of the syntax tree to a token. Get one by calling
-    //     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-    //     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
-    //     for more information.
-    // * `callback` {Function} to call when the value of the key changes.
-    //   * `event` {Object}
-    //     * `newValue` the new value of the key
-    //     * `oldValue` the prior value of the key.
-    //
-    // Returns a {Disposable} with the following keys on which you can call
-    // `.dispose()` to unsubscribe.
+  // Essential: Add a listener for changes to a given key path. If `keyPath` is
+  // not specified, your callback will be called on changes to any key.
+  //
+  // * `keyPath` (optional) {String} name of the key to observe. Must be
+  //   specified if `scopeDescriptor` is specified.
+  // * `options` (optional) {Object}
+  //   * `scope` (optional) {ScopeDescriptor} describing a path from
+  //     the root of the syntax tree to a token. Get one by calling
+  //     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
+  //     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
+  //     for more information.
+  // * `callback` {Function} to call when the value of the key changes.
+  //   * `event` {Object}
+  //     * `newValue` the new value of the key
+  //     * `oldValue` the prior value of the key.
+  //
+  // Returns a {Disposable} with the following keys on which you can call
+  // `.dispose()` to unsubscribe.
   onDidChange () {
     let callback, keyPath, scopeDescriptor
     if (arguments.length === 1) {
@@ -556,65 +554,65 @@ export default class Config {
     }
   }
 
-    /*
-    Section: Managing Settings
-    */
+  /*
+  Section: Managing Settings
+  */
 
-    // Essential: Retrieves the setting for the given key.
-    //
-    // ### Examples
-    //
-    // You might want to know what themes are enabled, so check `core.themes`
-    //
-    // ```coffee
-    // atom.config.get('core.themes')
-    // ```
-    //
-    // With scope descriptors you can get settings within a specific editor
-    // scope. For example, you might want to know `editor.tabLength` for ruby
-    // files.
-    //
-    // ```coffee
-    // atom.config.get('editor.tabLength', scope: ['source.ruby']) # => 2
-    // ```
-    //
-    // This setting in ruby files might be different than the global tabLength setting
-    //
-    // ```coffee
-    // atom.config.get('editor.tabLength') # => 4
-    // atom.config.get('editor.tabLength', scope: ['source.ruby']) # => 2
-    // ```
-    //
-    // You can get the language scope descriptor via
-    // {TextEditor::getRootScopeDescriptor}. This will get the setting specifically
-    // for the editor's language.
-    //
-    // ```coffee
-    // atom.config.get('editor.tabLength', scope: @editor.getRootScopeDescriptor()) # => 2
-    // ```
-    //
-    // Additionally, you can get the setting at the specific cursor position.
-    //
-    // ```coffee
-    // scopeDescriptor = @editor.getLastCursor().getScopeDescriptor()
-    // atom.config.get('editor.tabLength', scope: scopeDescriptor) # => 2
-    // ```
-    //
-    // * `keyPath` The {String} name of the key to retrieve.
-    // * `options` (optional) {Object}
-    //   * `sources` (optional) {Array} of {String} source names. If provided, only
-    //     values that were associated with these sources during {::set} will be used.
-    //   * `excludeSources` (optional) {Array} of {String} source names. If provided,
-    //     values that  were associated with these sources during {::set} will not
-    //     be used.
-    //   * `scope` (optional) {ScopeDescriptor} describing a path from
-    //     the root of the syntax tree to a token. Get one by calling
-    //     {editor.getLastCursor().getScopeDescriptor()}
-    //     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
-    //     for more information.
-    //
-    // Returns the value from Atom's default settings, the user's configuration
-    // file in the type specified by the configuration schema.
+  // Essential: Retrieves the setting for the given key.
+  //
+  // ### Examples
+  //
+  // You might want to know what themes are enabled, so check `core.themes`
+  //
+  // ```coffee
+  // atom.config.get('core.themes')
+  // ```
+  //
+  // With scope descriptors you can get settings within a specific editor
+  // scope. For example, you might want to know `editor.tabLength` for ruby
+  // files.
+  //
+  // ```coffee
+  // atom.config.get('editor.tabLength', scope: ['source.ruby']) # => 2
+  // ```
+  //
+  // This setting in ruby files might be different than the global tabLength setting
+  //
+  // ```coffee
+  // atom.config.get('editor.tabLength') # => 4
+  // atom.config.get('editor.tabLength', scope: ['source.ruby']) # => 2
+  // ```
+  //
+  // You can get the language scope descriptor via
+  // {TextEditor::getRootScopeDescriptor}. This will get the setting specifically
+  // for the editor's language.
+  //
+  // ```coffee
+  // atom.config.get('editor.tabLength', scope: @editor.getRootScopeDescriptor()) # => 2
+  // ```
+  //
+  // Additionally, you can get the setting at the specific cursor position.
+  //
+  // ```coffee
+  // scopeDescriptor = @editor.getLastCursor().getScopeDescriptor()
+  // atom.config.get('editor.tabLength', scope: scopeDescriptor) # => 2
+  // ```
+  //
+  // * `keyPath` The {String} name of the key to retrieve.
+  // * `options` (optional) {Object}
+  //   * `sources` (optional) {Array} of {String} source names. If provided, only
+  //     values that were associated with these sources during {::set} will be used.
+  //   * `excludeSources` (optional) {Array} of {String} source names. If provided,
+  //     values that  were associated with these sources during {::set} will not
+  //     be used.
+  //   * `scope` (optional) {ScopeDescriptor} describing a path from
+  //     the root of the syntax tree to a token. Get one by calling
+  //     {editor.getLastCursor().getScopeDescriptor()}
+  //     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
+  //     for more information.
+  //
+  // Returns the value from Atom's default settings, the user's configuration
+  // file in the type specified by the configuration schema.
   get () {
     let keyPath, options, scope
     if (arguments.length > 1) {
@@ -634,15 +632,15 @@ export default class Config {
     }
   }
 
-    // Extended: Get all of the values for the given key-path, along with their
-    // associated scope selector.
-    //
-    // * `keyPath` The {String} name of the key to retrieve
-    // * `options` (optional) {Object} see the `options` argument to {::get}
-    //
-    // Returns an {Array} of {Object}s with the following keys:
-    //  * `scopeDescriptor` The {ScopeDescriptor} with which the value is associated
-    //  * `value` The value for the key-path
+  // Extended: Get all of the values for the given key-path, along with their
+  // associated scope selector.
+  //
+  // * `keyPath` The {String} name of the key to retrieve
+  // * `options` (optional) {Object} see the `options` argument to {::get}
+  //
+  // Returns an {Array} of {Object}s with the following keys:
+  //  * `scopeDescriptor` The {ScopeDescriptor} with which the value is associated
+  //  * `value` The value for the key-path
   getAll (keyPath, options) {
     let globalValue, result, scope
     if (options != null) { ({scope} = options) }
@@ -675,48 +673,48 @@ export default class Config {
     return result
   }
 
-    // Essential: Sets the value for a configuration setting.
-    //
-    // This value is stored in Atom's internal configuration file.
-    //
-    // ### Examples
-    //
-    // You might want to change the themes programmatically:
-    //
-    // ```coffee
-    // atom.config.set('core.themes', ['atom-light-ui', 'atom-light-syntax'])
-    // ```
-    //
-    // You can also set scoped settings. For example, you might want change the
-    // `editor.tabLength` only for ruby files.
-    //
-    // ```coffee
-    // atom.config.get('editor.tabLength') # => 4
-    // atom.config.get('editor.tabLength', scope: ['source.ruby']) # => 4
-    // atom.config.get('editor.tabLength', scope: ['source.js']) # => 4
-    //
-    // # Set ruby to 2
-    // atom.config.set('editor.tabLength', 2, scopeSelector: '.source.ruby') # => true
-    //
-    // # Notice it's only set to 2 in the case of ruby
-    // atom.config.get('editor.tabLength') # => 4
-    // atom.config.get('editor.tabLength', scope: ['source.ruby']) # => 2
-    // atom.config.get('editor.tabLength', scope: ['source.js']) # => 4
-    // ```
-    //
-    // * `keyPath` The {String} name of the key.
-    // * `value` The value of the setting. Passing `undefined` will revert the
-    //   setting to the default value.
-    // * `options` (optional) {Object}
-    //   * `scopeSelector` (optional) {String}. eg. '.source.ruby'
-    //     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
-    //     for more information.
-    //   * `source` (optional) {String} The name of a file with which the setting
-    //     is associated. Defaults to the user's config file.
-    //
-    // Returns a {Boolean}
-    // * `true` if the value was set.
-    // * `false` if the value was not able to be coerced to the type specified in the setting's schema.
+  // Essential: Sets the value for a configuration setting.
+  //
+  // This value is stored in Atom's internal configuration file.
+  //
+  // ### Examples
+  //
+  // You might want to change the themes programmatically:
+  //
+  // ```coffee
+  // atom.config.set('core.themes', ['atom-light-ui', 'atom-light-syntax'])
+  // ```
+  //
+  // You can also set scoped settings. For example, you might want change the
+  // `editor.tabLength` only for ruby files.
+  //
+  // ```coffee
+  // atom.config.get('editor.tabLength') # => 4
+  // atom.config.get('editor.tabLength', scope: ['source.ruby']) # => 4
+  // atom.config.get('editor.tabLength', scope: ['source.js']) # => 4
+  //
+  // # Set ruby to 2
+  // atom.config.set('editor.tabLength', 2, scopeSelector: '.source.ruby') # => true
+  //
+  // # Notice it's only set to 2 in the case of ruby
+  // atom.config.get('editor.tabLength') # => 4
+  // atom.config.get('editor.tabLength', scope: ['source.ruby']) # => 2
+  // atom.config.get('editor.tabLength', scope: ['source.js']) # => 4
+  // ```
+  //
+  // * `keyPath` The {String} name of the key.
+  // * `value` The value of the setting. Passing `undefined` will revert the
+  //   setting to the default value.
+  // * `options` (optional) {Object}
+  //   * `scopeSelector` (optional) {String}. eg. '.source.ruby'
+  //     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
+  //     for more information.
+  //   * `source` (optional) {String} The name of a file with which the setting
+  //     is associated. Defaults to the user's config file.
+  //
+  // Returns a {Boolean}
+  // * `true` if the value was set.
+  // * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set () {
     let [keyPath, value, options] = Array.from(arguments)
 
@@ -754,12 +752,12 @@ export default class Config {
     return true
   }
 
-    // Essential: Restore the setting at `keyPath` to its default value.
-    //
-    // * `keyPath` The {String} name of the key.
-    // * `options` (optional) {Object}
-    //   * `scopeSelector` (optional) {String}. See {::set}
-    //   * `source` (optional) {String}. See {::set}
+  // Essential: Restore the setting at `keyPath` to its default value.
+  //
+  // * `keyPath` The {String} name of the key.
+  // * `options` (optional) {Object}
+  //   * `scopeSelector` (optional) {String}. See {::set}
+  //   * `source` (optional) {String}. See {::set}
   unset (keyPath, options) {
     if (!this.settingsLoaded) {
       this.pendingOperations.push(() => this.unset(keyPath, options))
@@ -794,21 +792,21 @@ export default class Config {
     }
   }
 
-    // Extended: Get an {Array} of all of the `source` {String}s with which
-    // settings have been added via {::set}.
+  // Extended: Get an {Array} of all of the `source` {String}s with which
+  // settings have been added via {::set}.
   getSources () {
     return _.uniq(_.pluck(this.scopedSettingsStore.propertySets, 'source')).sort()
   }
 
-    // Extended: Retrieve the schema for a specific key path. The schema will tell
-    // you what type the keyPath expects, and other metadata about the config
-    // option.
-    //
-    // * `keyPath` The {String} name of the key.
-    //
-    // Returns an {Object} eg. `{type: 'integer', default: 23, minimum: 1}`.
-    // Returns `null` when the keyPath has no schema specified, but is accessible
-    // from the root schema.
+  // Extended: Retrieve the schema for a specific key path. The schema will tell
+  // you what type the keyPath expects, and other metadata about the config
+  // option.
+  //
+  // * `keyPath` The {String} name of the key.
+  //
+  // Returns an {Object} eg. `{type: 'integer', default: 23, minimum: 1}`.
+  // Returns `null` when the keyPath has no schema specified, but is accessible
+  // from the root schema.
   getSchema (keyPath) {
     const keys = splitKeyPath(keyPath)
     let { schema } = this
@@ -833,16 +831,16 @@ export default class Config {
     return schema
   }
 
-    // Extended: Get the {String} path to the config file being used.
+  // Extended: Get the {String} path to the config file being used.
   getUserConfigPath () {
     return this.configFilePath
   }
 
-    // Extended: Suppress calls to handler functions registered with {::onDidChange}
-    // and {::observe} for the duration of `callback`. After `callback` executes,
-    // handlers will be called once if the value for their key-path has changed.
-    //
-    // * `callback` {Function} to execute while suppressing calls to handlers.
+  // Extended: Suppress calls to handler functions registered with {::onDidChange}
+  // and {::observe} for the duration of `callback`. After `callback` executes,
+  // handlers will be called once if the value for their key-path has changed.
+  //
+  // * `callback` {Function} to execute while suppressing calls to handlers.
   transact (callback) {
     this.beginTransaction()
     try {
@@ -860,21 +858,21 @@ export default class Config {
     delete this.legacyScopeAliases[languageId]
   }
 
-    /*
-    Section: Internal methods used by core
-    */
+  /*
+  Section: Internal methods used by core
+  */
 
-    // Private: Suppress calls to handler functions registered with {::onDidChange}
-    // and {::observe} for the duration of the {Promise} returned by `callback`.
-    // After the {Promise} is either resolved or rejected, handlers will be called
-    // once if the value for their key-path has changed.
-    //
-    // * `callback` {Function} that returns a {Promise}, which will be executed
-    //   while suppressing calls to handlers.
-    //
-    // Returns a {Promise} that is either resolved or rejected according to the
-    // `{Promise}` returned by `callback`. If `callback` throws an error, a
-    // rejected {Promise} will be returned instead.
+  // Private: Suppress calls to handler functions registered with {::onDidChange}
+  // and {::observe} for the duration of the {Promise} returned by `callback`.
+  // After the {Promise} is either resolved or rejected, handlers will be called
+  // once if the value for their key-path has changed.
+  //
+  // * `callback` {Function} that returns a {Promise}, which will be executed
+  //   while suppressing calls to handlers.
+  //
+  // Returns a {Promise} that is either resolved or rejected according to the
+  // `{Promise}` returned by `callback`. If `callback` throws an error, a
+  // rejected {Promise} will be returned instead.
   transactAsync (callback) {
     let endTransaction
     this.beginTransaction()
@@ -960,10 +958,9 @@ export default class Config {
     return this.observeUserConfig()
   }
 
-    /*
-    Section: Private methods managing the user's config file
-    */
-
+  /*
+  Section: Private methods managing the user's config file
+  */
   initializeConfigDirectory (done) {
     if (fs.existsSync(this.configDirPath) || this.shouldNotAccessFileSystem()) { return }
 
@@ -1081,9 +1078,9 @@ sizes. See [this document][watches] for more info.
     }
   }
 
-    /*
-    Section: Private methods managing global settings
-    */
+  /*
+  Section: Private methods managing global settings
+  */
 
   resetUserSettings (newSettings) {
     if (newSettings.global != null) {
@@ -1233,15 +1230,15 @@ sizes. See [this document][watches] for more info.
     return result
   }
 
-    // `schema` will look something like this
-    //
-    // ```coffee
-    // type: 'string'
-    // default: 'ok'
-    // scopes:
-    //   '.source.js':
-    //     default: 'omg'
-    // ```
+  // `schema` will look something like this
+  //
+  // ```coffee
+  // type: 'string'
+  // default: 'ok'
+  // scopes:
+  //   '.source.js':
+  //     default: 'omg'
+  // ```
   setScopedDefaultsFromSchema (keyPath, schema) {
     if ((schema.scopes != null) && isPlainObject(schema.scopes)) {
       const scopedDefaults = {}
@@ -1291,8 +1288,8 @@ sizes. See [this document][watches] for more info.
     }
   }
 
-    // When the schema is changed / added, there may be values set in the config
-    // that do not conform to the schema. This will reset make them conform.
+  // When the schema is changed / added, there may be values set in the config
+  // that do not conform to the schema. This will reset make them conform.
   resetSettingsForSchemaChange (source) {
     if (source == null) { source = this.getUserConfigPath() }
     return this.transact(() => {
@@ -1307,9 +1304,9 @@ sizes. See [this document][watches] for more info.
     })
   }
 
-    /*
-    Section: Private Scoped Settings
-    */
+  /*
+  Section: Private Scoped Settings
+  */
 
   priorityForSource (source) {
     if (source === this.getUserConfigPath()) {
@@ -1601,3 +1598,5 @@ const withoutEmptyObjects = (object) => {
   }
   return resultObject
 }
+
+module.exports = Config
