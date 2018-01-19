@@ -14,7 +14,7 @@ class StorageFolder {
       if (!this.path) return
       fs.remove(this.path, error => {
         if (error) console.warn(`Error deleting ${this.path}`, error.stack, error)
-        reolve()
+        resolve()
       })
     })
   }
