@@ -6,7 +6,7 @@ const TextEditorComponent = require('../src/text-editor-component')
 const TextEditorElement = require('../src/text-editor-element')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
-const {Point, Range} = TextBuffer
+const {Point} = TextBuffer
 const fs = require('fs')
 const path = require('path')
 const Grim = require('grim')
@@ -918,7 +918,7 @@ describe('TextEditorComponent', () => {
       component.scheduleUpdate()
       await component.getNextUpdatePromise()
 
-      editor.setSelectedBufferRange(new Range(Point(0,1),Point(12,2)))
+      editor.setSelectedBufferRange([[0, 1], [12, 2]])
       editor.backspace()
 
       // component.scheduleUpdate()
