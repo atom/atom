@@ -774,8 +774,12 @@ class Config {
           this.scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
           setValueAtKeyPath(settings, keyPath, undefined)
           settings = withoutEmptyObjects(settings)
-          if (settings != null) { this.set(null, settings, {scopeSelector, source, priority: this.priorityForSource(source)}) }
-          if ((source === this.getUserConfigPath()) && !this.configFileHasErrors && this.settingsLoaded) {
+          if (settings != null) {
+            this.set(null, settings, {scopeSelector, source, priority: this.priorityForSource(source)})
+          }
+
+          const configIsReady = (source === this.getUserConfigPath()) && !this.configFileHasErrors && this.settingsLoaded
+          if (configIsReady) {
             return this.requestSave()
           }
         }
@@ -1343,7 +1347,6 @@ sizes. See [this document][watches] for more info.
   }
 
   getRawScopedValue (scopeDescriptor, keyPath, options) {
-    let legacyScopeDescriptor
     scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
     const result = this.scopedSettingsStore.getPropertyValue(
         scopeDescriptor.getScopeChain(),
@@ -1351,7 +1354,7 @@ sizes. See [this document][watches] for more info.
         options
       )
 
-    legacyScopeDescriptor = this.getLegacyScopeDescriptor(scopeDescriptor)
+    const legacyScopeDescriptor = this.getLegacyScopeDescriptor(scopeDescriptor)
     if (result != null) {
       return result
     } else if (legacyScopeDescriptor) {
@@ -1375,7 +1378,7 @@ sizes. See [this document][watches] for more info.
       if (!_.isEqual(oldValue, newValue)) {
         const event = {oldValue, newValue}
         oldValue = newValue
-        return callback(event)
+        callback(event)
       }
     })
   }
@@ -1388,7 +1391,7 @@ sizes. See [this document][watches] for more info.
       return new ScopeDescriptor({scopes})
     }
   }
-  };
+};
 
 // Base schema enforcers. These will coerce raw input into the specified type,
 // and will throw an error when the value cannot be coerced. Throwing the error
@@ -1507,7 +1510,7 @@ Config.addSchemaEnforcers({
       const itemSchema = schema.items
       if (itemSchema != null) {
         const newValue = []
-        for (let item of Array.from(value)) {
+        for (let item of value) {
           try {
             newValue.push(this.executeSchemaEnforcers(keyPath, item, itemSchema))
           } catch (error) {
@@ -1554,7 +1557,7 @@ Config.addSchemaEnforcers({
 
       if ((possibleValues == null) || !Array.isArray(possibleValues) || !possibleValues.length) { return value }
 
-      for (let possibleValue of Array.from(possibleValues)) {
+      for (let possibleValue of possibleValues) {
         // Using `isEqual` for possibility of placing enums on array and object schemas
         if (_.isEqual(possibleValue, value)) { return value }
       }
@@ -1569,7 +1572,7 @@ let isPlainObject = value => _.isObject(value) && !_.isArray(value) && !_.isFunc
 let sortObject = value => {
   if (!isPlainObject(value)) { return value }
   const result = {}
-  for (let key of Array.from(Object.keys(value).sort())) {
+  for (let key of Object.keys(value).sort()) {
     result[key] = sortObject(value[key])
   }
   return result
