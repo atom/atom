@@ -163,7 +163,7 @@ class AtomWindow extends EventEmitter {
       if (!this.atomApplication.quitting && !this.unloading) {
         event.preventDefault()
         this.unloading = true
-        this.atomApplication.saveState(false)
+        this.atomApplication.saveCurrentWindowOptions(false)
         if (await this.prepareToUnload()) this.close()
       }
     })
@@ -415,7 +415,7 @@ class AtomWindow extends EventEmitter {
     this.representedDirectoryPaths.sort()
     this.loadSettings.initialPaths = this.representedDirectoryPaths
     this.browserWindow.loadSettingsJSON = JSON.stringify(this.loadSettings)
-    return this.atomApplication.saveState()
+    return this.atomApplication.saveCurrentWindowOptions()
   }
 
   didClosePathWithWaitSession (path) {

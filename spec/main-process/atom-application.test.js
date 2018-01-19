@@ -408,7 +408,7 @@ describe('AtomApplication', function () {
         const window1 = await atomApplication.launch(parseCommandLine(['--wait', '--pid', '101']))
         await focusWindow(window1)
 
-        const [window2] = await atomApplication.launch(parseCommandLine(['--new-window', '--wait', '--pid', '102']))
+        const window2 = await atomApplication.launch(parseCommandLine(['--new-window', '--wait', '--pid', '102']))
         await focusWindow(window2)
         assert.deepEqual(killedPids, [])
 
@@ -539,7 +539,7 @@ describe('AtomApplication', function () {
 
         // Window state should be saved when the project folder is removed
         const atomApplication2 = buildAtomApplication()
-        const [window2] = await atomApplication2.launch(parseCommandLine([]))
+        const window2 = await atomApplication2.launch(parseCommandLine([]))
         await emitterEventPromise(window2, 'window:locations-opened')
         await focusWindow(window2)
         assert.deepEqual(await getTreeViewRootDirectories(window2), [dirB])
