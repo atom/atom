@@ -276,8 +276,12 @@ class TextEditorComponent {
         })
       })
     } else {
-      this.measureContentDuringUpdateSync()
-      this.updateSyncAfterMeasuringContent()
+      const restartFrame = this.measureContentDuringUpdateSync()
+      if (restartFrame) {
+        this.updateSync(false)
+      } else {
+        this.updateSyncAfterMeasuringContent()
+      }
     }
 
     this.updateScheduled = false
