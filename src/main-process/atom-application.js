@@ -909,7 +909,7 @@ class AtomApplication extends EventEmitter {
     }
   }
 
-  saveState (allowEmpty = false) {
+  async saveState (allowEmpty = false) {
     if (this.quitting) return
 
     const states = []
@@ -919,7 +919,7 @@ class AtomApplication extends EventEmitter {
     states.reverse()
 
     if (states.length > 0 || allowEmpty) {
-      this.storageFolder.storeSync('application.json', states)
+      await this.storageFolder.store('application.json', states)
       this.emit('application:did-save-state')
     }
   }

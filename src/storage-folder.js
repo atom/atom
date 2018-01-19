@@ -19,10 +19,13 @@ class StorageFolder {
     })
   }
 
-  storeSync (name, object) {
-    if (!this.path) return
-
-    fs.writeFileSync(this.pathForKey(name), JSON.stringify(object), 'utf8')
+  store (name, object) {
+    return new Promise((resolve, reject) => {
+      if (!this.path) return resolve()
+      fs.writeFile(this.pathForKey(name), JSON.stringify(object), 'utf8', error =>
+        error ? reject(error) : resolve()
+      )
+    })
   }
 
   load (name) {
