@@ -354,11 +354,11 @@ class ApplicationDelegate {
   }
 
   emitWillSavePath (path) {
-    return ipcRenderer.sendSync('will-save-path', path)
+    return ipcHelpers.call('will-save-path', path)
   }
 
   emitDidSavePath (path) {
-    return ipcRenderer.sendSync('did-save-path', path)
+    return ipcHelpers.call('did-save-path', path)
   }
 
   resolveProxy (requestId, url) {

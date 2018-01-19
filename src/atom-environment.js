@@ -9,7 +9,6 @@ const fs = require('fs-plus')
 const {mapSourcePosition} = require('@atom/source-map-support')
 const WindowEventHandler = require('./window-event-handler')
 const StateStore = require('./state-store')
-const StorageFolder = require('./storage-folder')
 const registerDefaultCommands = require('./register-default-commands')
 const {updateProcessEnv} = require('./update-process-env')
 const ConfigSchema = require('./config-schema')
@@ -208,12 +207,7 @@ class AtomEnvironment {
     this.blobStore = params.blobStore
     this.configDirPath = params.configDirPath
 
-    const {devMode, safeMode, resourcePath, clearWindowState} = this.getLoadSettings()
-
-    if (clearWindowState) {
-      this.getStorageFolder().clear()
-      this.stateStore.clear()
-    }
+    const {devMode, safeMode, resourcePath} = this.getLoadSettings()
 
     ConfigSchema.projectHome = {
       type: 'string',
@@ -764,7 +758,11 @@ class AtomEnvironment {
   }
 
   // Call this method when establishing a real application window.
-  startEditorWindow () {
+  async startEditorWindow () {
+    if (this.getLoadSettings().clearWindowState) {
+      await this.stateStore.clear()
+    }
+
     this.unloaded = false
 
     const updateProcessEnvPromise = this.updateProcessEnvAndTriggerHooks()
@@ -1262,11 +1260,6 @@ or use Pane::saveItemAs for programmatic saving.`)
     } else {
       return null
     }
-  }
-
-  getStorageFolder () {
-    if (!this.storageFolder) this.storageFolder = new StorageFolder(this.getConfigDirPath())
-    return this.storageFolder
   }
 
   getConfigDirPath () {
