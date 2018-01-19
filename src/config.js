@@ -811,7 +811,7 @@ class Config {
   getSchema (keyPath) {
     const keys = splitKeyPath(keyPath)
     let { schema } = this
-    for (let key of Array.from(keys)) {
+    for (let key of keys) {
       let childSchema
       if (schema.type === 'object') {
         childSchema = schema.properties != null ? schema.properties[key] : undefined
@@ -880,7 +880,7 @@ class Config {
     try {
       endTransaction = fn => (...args) => {
         this.endTransaction()
-        return fn(...Array.from(args || []))
+        return fn(...args)
       }
       const result = callback()
       return new Promise((resolve, reject) => {
@@ -902,24 +902,24 @@ class Config {
   }
 
   pushAtKeyPath (keyPath, value) {
-    let left
-    const arrayValue = (left = this.get(keyPath)) != null ? left : []
+    const left = this.get(keyPath)
+    const arrayValue = (left == null ? [] : left)
     const result = arrayValue.push(value)
     this.set(keyPath, arrayValue)
     return result
   }
 
   unshiftAtKeyPath (keyPath, value) {
-    let left
-    const arrayValue = (left = this.get(keyPath)) != null ? left : []
+    const left = this.get(keyPath)
+    const arrayValue = (left == null ? [] : left)
     const result = arrayValue.unshift(value)
     this.set(keyPath, arrayValue)
     return result
   }
 
   removeAtKeyPath (keyPath, value) {
-    let left
-    const arrayValue = (left = this.get(keyPath)) != null ? left : []
+    const left = this.get(keyPath)
+    const arrayValue = (left == null ? [] : left)
     const result = _.remove(arrayValue, value)
     this.set(keyPath, arrayValue)
     return result
@@ -936,7 +936,7 @@ class Config {
 
     let rootSchema = this.schema
     if (keyPath) {
-      for (let key of Array.from(splitKeyPath(keyPath))) {
+      for (let key of splitKeyPath(keyPath)) {
         rootSchema.type = 'object'
         if (rootSchema.properties == null) { rootSchema.properties = {} }
         const { properties } = rootSchema
@@ -980,7 +980,6 @@ class Config {
   }
 
   loadUserConfig () {
-    let error
     if (this.shouldNotAccessFileSystem()) { return }
     if (this.savePending) { return }
 
@@ -989,8 +988,7 @@ class Config {
         fs.makeTreeSync(path.dirname(this.configFilePath))
         CSON.writeFileSync(this.configFilePath, {}, {flag: 'wx'}) // fails if file exists
       }
-    } catch (error1) {
-      error = error1
+    } catch (error) {
       if (error.code !== 'EEXIST') {
         this.configFileHasErrors = true
         this.notifyFailure(`Failed to initialize \`${path.basename(this.configFilePath)}\``, error.stack)
@@ -1008,8 +1006,7 @@ class Config {
 
       this.resetUserSettings(userConfig)
       this.configFileHasErrors = false
-    } catch (error2) {
-      error = error2
+    } catch (error) {
       this.configFileHasErrors = true
       const message = `Failed to load \`${path.basename(this.configFilePath)}\``
 
@@ -1029,7 +1026,7 @@ class Config {
         this.watchSubscriptionPromise = watchPath(this.configFilePath, {}, events => {
           return (() => {
             const result = []
-            for (let {action} of Array.from(events)) {
+            for (let {action} of events) {
               if (['created', 'modified', 'renamed'].includes(action) && (this.watchSubscriptionPromise != null)) {
                 result.push(this.requestLoad())
               } else {
@@ -1061,7 +1058,8 @@ sizes. See [this document][watches] for more info.
   }
 
   notifyFailure (errorMessage, detail) {
-    return (this.notificationManager != null ? this.notificationManager.addError(errorMessage, {detail, dismissable: true}) : undefined)
+    if (this.notificationManager == null) { return }
+    this.notificationManager.addError(errorMessage, {detail, dismissable: true})
   }
 
   save () {
@@ -1101,7 +1099,7 @@ sizes. See [this document][watches] for more info.
       this.settingsLoaded = true
       for (let key in newSettings) { const value = newSettings[key]; this.set(key, value, {save: false}) }
       if (this.pendingOperations.length) {
-        for (let op of Array.from(this.pendingOperations)) { op() }
+        for (let op of this.pendingOperations) { op() }
         this.pendingOperations = []
       }
     })
@@ -1181,15 +1179,13 @@ sizes. See [this document][watches] for more info.
     if ((defaults != null) && isPlainObject(defaults)) {
       const keys = splitKeyPath(keyPath)
       this.transact(() => {
-        return (() => {
-          const result = []
-          for (let key in defaults) {
-            const childValue = defaults[key]
-            if (!defaults.hasOwnProperty(key)) { continue }
-            result.push(this.setDefaults(keys.concat([key]).join('.'), childValue))
-          }
-          return result
-        })()
+        const result = []
+        for (let key in defaults) {
+          const childValue = defaults[key]
+          if (!defaults.hasOwnProperty(key)) { continue }
+          result.push(this.setDefaults(keys.concat([key]).join('.'), childValue))
+        }
+        return result
       })
     } else {
       try {
@@ -1219,7 +1215,7 @@ sizes. See [this document][watches] for more info.
     while (++i < arguments.length) {
       const object = arguments[i]
       if (isPlainObject(result) && isPlainObject(object)) {
-        for (let key of Array.from(Object.keys(object))) {
+        for (let key of Object.keys(object)) {
           result[key] = this.deepDefaults(result[key], object[key])
         }
       } else {
@@ -1310,15 +1306,11 @@ sizes. See [this document][watches] for more info.
   */
 
   priorityForSource (source) {
-    if (source === this.getUserConfigPath()) {
-      return 1000
-    } else {
-      return 0
-    }
+    return (source === this.getUserConfigPath()) ? 1000 : 0;
   }
 
   emitChangeEvent () {
-    if (!(this.transactDepth > 0)) { return this.emitter.emit('did-change') }
+    if (this.transactDepth <= 0) { return this.emitter.emit('did-change') }
   }
 
   resetUserScopedSettings (newScopedSettings) {
