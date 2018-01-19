@@ -618,7 +618,7 @@ class Config {
     let keyPath, options, scope
     if (args.length > 1) {
       if ((typeof args[0] === 'string') || (args[0] == null)) {
-        [keyPath, options] = args;
+        [keyPath, options] = Array.from(args);
         ({scope} = options)
       }
     } else {
