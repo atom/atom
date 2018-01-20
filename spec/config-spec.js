@@ -26,19 +26,19 @@ describe('Config', () => {
     atom.config.configFilePath = path.join(atom.config.configDirPath, 'atom.config.cson')
   })
 
-  afterEach(function () {
+  afterEach(() => {
     atom.config.enablePersistence = false
     fs.removeSync(dotAtomPath)
   })
 
-  describe('.get(keyPath, {scope, sources, excludeSources})', function () {
-    it("allows a key path's value to be read", function () {
+  describe('.get(keyPath, {scope, sources, excludeSources})', () => {
+    it("allows a key path's value to be read", () => {
       expect(atom.config.set('foo.bar.baz', 42)).toBe(true)
       expect(atom.config.get('foo.bar.baz')).toBe(42)
       expect(atom.config.get('foo.quux')).toBeUndefined()
     })
 
-    it("returns a deep clone of the key path's value", function () {
+    it("returns a deep clone of the key path's value", () => {
       atom.config.set('value', {array: [1, {b: 2}, 3]})
       const retrievedValue = atom.config.get('value')
       retrievedValue.array[0] = 4
@@ -46,7 +46,7 @@ describe('Config', () => {
       expect(atom.config.get('value')).toEqual({array: [1, {b: 2}, 3]})
     })
 
-    it('merges defaults into the returned value if both the assigned value and the default value are objects', function () {
+    it('merges defaults into the returned value if both the assigned value and the default value are objects', () => {
       atom.config.setDefaults('foo.bar', {baz: 1, ok: 2})
       atom.config.set('foo.bar', {baz: 3})
       expect(atom.config.get('foo.bar')).toEqual({baz: 3, ok: 2})
@@ -61,7 +61,7 @@ describe('Config', () => {
     })
 
     describe("when a 'sources' option is specified", () =>
-      it('only retrieves values from the specified sources', function () {
+      it('only retrieves values from the specified sources', () => {
         atom.config.set('x.y', 1, {scopeSelector: '.foo', source: 'a'})
         atom.config.set('x.y', 2, {scopeSelector: '.foo', source: 'b'})
         atom.config.set('x.y', 3, {scopeSelector: '.foo', source: 'c'})
@@ -95,7 +95,7 @@ describe('Config', () => {
     )
 
     describe("when a 'scope' option is given", () => {
-      it('returns the property with the most specific scope selector', function () {
+      it('returns the property with the most specific scope selector', () => {
         atom.config.set('foo.bar.baz', 42, {scopeSelector: '.source.coffee .string.quoted.double.coffee'})
         atom.config.set('foo.bar.baz', 22, {scopeSelector: '.source .string.quoted.double'})
         atom.config.set('foo.bar.baz', 11, {scopeSelector: '.source'})
@@ -106,7 +106,7 @@ describe('Config', () => {
         expect(atom.config.get('foo.bar.baz', {scope: ['.text']})).toBeUndefined()
       })
 
-      it('favors the most recently added properties in the event of a specificity tie', function () {
+      it('favors the most recently added properties in the event of a specificity tie', () => {
         atom.config.set('foo.bar.baz', 42, {scopeSelector: '.source.coffee .string.quoted.single'})
         atom.config.set('foo.bar.baz', 22, {scopeSelector: '.source.coffee .string.quoted.double'})
 
@@ -115,14 +115,14 @@ describe('Config', () => {
       })
 
       describe('when there are global defaults', () =>
-        it('falls back to the global when there is no scoped property specified', function () {
+        it('falls back to the global when there is no scoped property specified', () => {
           atom.config.setDefaults('foo', {hasDefault: 'ok'})
           expect(atom.config.get('foo.hasDefault', {scope: ['.source.coffee', '.string.quoted.single']})).toBe('ok')
         })
       )
 
       describe('when package settings are added after user settings', () =>
-        it("returns the user's setting because the user's setting has higher priority", function () {
+        it("returns the user's setting because the user's setting has higher priority", () => {
           atom.config.set('foo.bar.baz', 100, {scopeSelector: '.source.coffee'})
           atom.config.set('foo.bar.baz', 1, {scopeSelector: '.source.coffee', source: 'some-package'})
           expect(atom.config.get('foo.bar.baz', {scope: ['.source.coffee']})).toBe(100)
@@ -130,7 +130,7 @@ describe('Config', () => {
       )
 
       describe('when the first component of the scope descriptor matches a legacy scope alias', () =>
-        it('falls back to properties defined for the legacy scope if no value is found for the original scope descriptor', function () {
+        it('falls back to properties defined for the legacy scope if no value is found for the original scope descriptor', () => {
           atom.config.addLegacyScopeAlias('javascript', '.source.js')
           atom.config.set('foo', 100, {scopeSelector: '.source.js'})
           atom.config.set('foo', 200, {scopeSelector: 'javascript for_statement'})
@@ -644,7 +644,7 @@ describe('Config', () => {
       expect(bazCatHandler).not.toHaveBeenCalled()
     })
 
-    return describe("when a 'scope' is given", () => {
+    describe("when a 'scope' is given", () => {
       let otherHandler = null
 
       beforeEach(() => {
@@ -702,7 +702,7 @@ describe('Config', () => {
       atom.config.onDidChange('foo.bar.baz', changeSpy)
     })
 
-    it('allows only one change event for the duration of the given callback', function () {
+    it('allows only one change event for the duration of the given callback', () => {
       atom.config.transact(() => {
         atom.config.set('foo.bar.baz', 1)
         atom.config.set('foo.bar.baz', 2)
@@ -745,9 +745,9 @@ describe('Config', () => {
       })
     })
 
-    it('allows only one change event for the duration of the given promise if it gets rejected', function () {
+    it('allows only one change event for the duration of the given promise if it gets rejected', () => {
       let promiseError = null
-      const transactionPromise = atom.config.transactAsync(function () {
+      const transactionPromise = atom.config.transactAsync(() => {
         atom.config.set('foo.bar.baz', 1)
         atom.config.set('foo.bar.baz', 2)
         atom.config.set('foo.bar.baz', 3)
@@ -756,7 +756,7 @@ describe('Config', () => {
 
       waitsForPromise(() => transactionPromise.catch(e => promiseError = e))
 
-      runs(function () {
+      runs(() => {
         expect(promiseError).toBe('an error')
         expect(changeSpy.callCount).toBe(1)
         expect(changeSpy.argsForCall[0][0]).toEqual({newValue: 3, oldValue: undefined})
@@ -1015,7 +1015,7 @@ describe('Config', () => {
           fs.writeFileSync(atom.config.configFilePath, '{{{{{')
         })
 
-        it('logs an error to the console and does not overwrite the config file on a subsequent save', function () {
+        it('logs an error to the console and does not overwrite the config file on a subsequent save', () => {
           atom.config.loadUserConfig()
           expect(addErrorHandler.callCount).toBe(1)
           atom.config.set('hair', 'blonde') // trigger a save
@@ -1083,7 +1083,7 @@ describe('Config', () => {
           })
         })
 
-        return it('creates a notification and does not try to save later changes to disk', function () {
+        it('creates a notification and does not try to save later changes to disk', () => {
           const load = () => atom.config.loadUserConfig()
           expect(load).not.toThrow()
           expect(addErrorHandler.callCount).toBe(1)
@@ -1091,7 +1091,7 @@ describe('Config', () => {
           atom.config.set('foo.bar', 'baz')
           advanceClock(100)
           expect(atom.config.save).not.toHaveBeenCalled()
-          return expect(atom.config.get('foo.bar')).toBe('baz')
+          expect(atom.config.get('foo.bar')).toBe('baz')
         })
       })
     })
@@ -1104,7 +1104,7 @@ describe('Config', () => {
         fs.writeFileSync(atom.config.configFilePath, data)
 
         const future = (Date.now() / 1000) + secondsInFuture
-        return fs.utimesSync(atom.config.configFilePath, future, future)
+        fs.utimesSync(atom.config.configFilePath, future, future)
       }
 
       beforeEach(() => {
@@ -1312,7 +1312,7 @@ describe('Config', () => {
           expect(atom.config.save).not.toHaveBeenCalled()
         })
 
-        describe('when the config file subsequently changes again to contain valid cson', function () {
+        describe('when the config file subsequently changes again to contain valid cson', () => {
           beforeEach(() => {
             updatedHandler.reset()
             writeConfigFile("foo: bar: 'newVal'", 6)
@@ -1359,7 +1359,7 @@ describe('Config', () => {
     })
 
     describe('.pushAtKeyPath(keyPath, value)', () =>
-      it('pushes the given value to the array at the key path and updates observers', function () {
+      it('pushes the given value to the array at the key path and updates observers', () => {
         atom.config.set('foo.bar.baz', ['a'])
         const observeHandler = jasmine.createSpy('observeHandler')
         atom.config.observe('foo.bar.baz', observeHandler)
@@ -1398,7 +1398,7 @@ describe('Config', () => {
     )
 
     describe('.setDefaults(keyPath, defaults)', () => {
-      it('assigns any previously-unassigned keys to the object at the key path', function () {
+      it('assigns any previously-unassigned keys to the object at the key path', () => {
         atom.config.set('foo.bar.baz', {a: 1})
         atom.config.setDefaults('foo.bar.baz', {a: 2, b: 3, c: 4})
         expect(atom.config.get('foo.bar.baz.a')).toBe(1)
@@ -1802,7 +1802,7 @@ describe('Config', () => {
           expect(atom.config.get('foo.bar.aBool')).toBe(false)
         })
 
-        it('reverts back to the default value when undefined is passed to set', function () {
+        it('reverts back to the default value when undefined is passed to set', () => {
           atom.config.set('foo.bar.aBool', 'false')
           expect(atom.config.get('foo.bar.aBool')).toBe(false)
 
@@ -2126,7 +2126,7 @@ describe('Config', () => {
           atom.config.setSchema('foo.bar', schema)
         })
 
-        it('will only set a string when the string is in the enum values', function () {
+        it('will only set a string when the string is in the enum values', () => {
           expect(atom.config.set('foo.bar.str', 'nope')).toBe(false)
           expect(atom.config.get('foo.bar.str')).toBe('ok')
 
@@ -2134,7 +2134,7 @@ describe('Config', () => {
           expect(atom.config.get('foo.bar.str')).toBe('one')
         })
 
-        it('will only set an integer when the integer is in the enum values', function () {
+        it('will only set an integer when the integer is in the enum values', () => {
           expect(atom.config.set('foo.bar.int', '400')).toBe(false)
           expect(atom.config.get('foo.bar.int')).toBe(2)
 
@@ -2142,7 +2142,7 @@ describe('Config', () => {
           expect(atom.config.get('foo.bar.int')).toBe(3)
         })
 
-        it('will only set an array when the array values are in the enum values', function () {
+        it('will only set an array when the array values are in the enum values', () => {
           expect(atom.config.set('foo.bar.arr', ['one', 'five'])).toBe(true)
           expect(atom.config.get('foo.bar.arr')).toEqual(['one'])
 
@@ -2164,7 +2164,7 @@ describe('Config', () => {
     })
   })
 
-  return describe('when .set/.unset is called prior to .loadUserConfig', () => {
+  describe('when .set/.unset is called prior to .loadUserConfig', () => {
     beforeEach(() => {
       atom.config.settingsLoaded = false
       fs.writeFileSync(atom.config.configFilePath,
@@ -2178,7 +2178,7 @@ describe('Config', () => {
       )
     })
 
-    it('ensures that early set and unset calls are replayed after the config is loaded from disk', function () {
+    it('ensures that early set and unset calls are replayed after the config is loaded from disk', () => {
       atom.config.unset('foo.bar')
       atom.config.set('foo.qux', 'boo')
 
