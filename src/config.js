@@ -1339,20 +1339,20 @@ sizes. See [this document][watches] for more info.
   getRawScopedValue (scopeDescriptor, keyPath, options) {
     scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
     const result = this.scopedSettingsStore.getPropertyValue(
-        scopeDescriptor.getScopeChain(),
-        keyPath,
-        options
-      )
+      scopeDescriptor.getScopeChain(),
+      keyPath,
+      options
+    )
 
     const legacyScopeDescriptor = this.getLegacyScopeDescriptor(scopeDescriptor)
     if (result != null) {
       return result
     } else if (legacyScopeDescriptor) {
       return this.scopedSettingsStore.getPropertyValue(
-          legacyScopeDescriptor.getScopeChain(),
-          keyPath,
-          options
-        )
+        legacyScopeDescriptor.getScopeChain(),
+        keyPath,
+        options
+      )
     }
   }
 
