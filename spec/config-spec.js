@@ -1,11 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS205: Consider reworking code to avoid use of IIFEs
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const path = require('path')
 const temp = require('temp').track()
 let CSON = require('season')
@@ -496,13 +488,13 @@ describe('Config', () => {
   })
 
   describe('.onDidChange(keyPath, {scope})', () => {
-    let [observeHandler, observeSubscription] = Array.from([])
+    let observeHandler = []
 
     describe('when a keyPath is specified', () => {
       beforeEach(() => {
         observeHandler = jasmine.createSpy('observeHandler')
         atom.config.set('foo.bar.baz', 'value 1')
-        observeSubscription = atom.config.onDidChange('foo.bar.baz', observeHandler)
+        atom.config.onDidChange('foo.bar.baz', observeHandler)
       })
 
       it('does not fire the given callback with the current value at the keypath', () => expect(observeHandler).not.toHaveBeenCalled())
@@ -528,7 +520,7 @@ describe('Config', () => {
       beforeEach(() => {
         observeHandler = jasmine.createSpy('observeHandler')
         atom.config.set('foo.bar.baz', 'value 1')
-        observeSubscription = atom.config.onDidChange(observeHandler)
+        atom.config.onDidChange(observeHandler)
       })
 
       it('does not fire the given callback initially', () => expect(observeHandler).not.toHaveBeenCalled())
@@ -587,7 +579,7 @@ describe('Config', () => {
   })
 
   describe('.observe(keyPath, {scope})', () => {
-    let [observeHandler, observeSubscription] = Array.from([])
+    let [observeHandler, observeSubscription] = []
 
     beforeEach(() => {
       observeHandler = jasmine.createSpy('observeHandler')
@@ -736,7 +728,9 @@ describe('Config', () => {
         return Promise.resolve('a result')
       })
 
-      waitsForPromise(() => transactionPromise.then(r => promiseResult = r))
+      waitsForPromise(() => transactionPromise.then(result => {
+        promiseResult = result
+      }))
 
       runs(() => {
         expect(promiseResult).toBe('a result')
@@ -751,13 +745,15 @@ describe('Config', () => {
         atom.config.set('foo.bar.baz', 1)
         atom.config.set('foo.bar.baz', 2)
         atom.config.set('foo.bar.baz', 3)
-        return Promise.reject('an error')
+        return Promise.reject(new Error('an error'))
       })
 
-      waitsForPromise(() => transactionPromise.catch(e => promiseError = e))
+      waitsForPromise(() => transactionPromise.catch(error => {
+        promiseError = error
+      }))
 
       runs(() => {
-        expect(promiseError).toBe('an error')
+        expect(promiseError.message).toBe('an error')
         expect(changeSpy.callCount).toBe(1)
         expect(changeSpy.argsForCall[0][0]).toEqual({newValue: 3, oldValue: undefined})
       })
@@ -773,7 +769,9 @@ describe('Config', () => {
         throw error
       })
 
-      waitsForPromise(() => transactionPromise.catch(e => promiseError = e))
+      waitsForPromise(() => transactionPromise.catch(e => {
+        promiseError = e
+      }))
 
       runs(() => {
         expect(promiseError).toBe(error)
@@ -841,7 +839,7 @@ describe('Config', () => {
           let expectedKeys = ['bar', 'baz', 'foo']
           let foundKeys = []
           for (key in writtenConfig['*']) {
-            if (Array.from(expectedKeys).includes(key)) {
+            if ((expectedKeys).includes(key)) {
               foundKeys.push(key)
             }
           }
@@ -849,7 +847,7 @@ describe('Config', () => {
           expectedKeys = ['bar', 'foo']
           foundKeys = []
           for (key in writtenConfig['*']['baz']) {
-            if (Array.from(expectedKeys).includes(key)) {
+            if ((expectedKeys).includes(key)) {
               foundKeys.push(key)
             }
           }
@@ -999,7 +997,7 @@ describe('Config', () => {
 
         it('notifies observers for updated keypaths on load', () => {
           const observeHandler = jasmine.createSpy('observeHandler')
-          const observeSubscription = atom.config.observe('foo.bar', observeHandler)
+          atom.config.observe('foo.bar', observeHandler)
 
           atom.config.loadUserConfig()
 
@@ -1343,7 +1341,9 @@ describe('Config', () => {
           if (process.platform === 'win32') { return } // Flakey test on Win32
           let initializationDone = false
           jasmine.unspy(window, 'setTimeout')
-          atom.config.initializeConfigDirectory(() => initializationDone = true)
+          atom.config.initializeConfigDirectory(() => {
+            initializationDone = true
+          })
 
           waitsFor(() => initializationDone)
 
@@ -1577,7 +1577,7 @@ describe('Config', () => {
 
       describe('when a schema is added after config values have been set', () => {
         let schema = null
-        beforeEach(() =>
+        beforeEach(() => {
           schema = {
             type: 'object',
             properties: {
@@ -1591,7 +1591,7 @@ describe('Config', () => {
               }
             }
           }
-        )
+        })
 
         it('respects the new schema when values are set', () => {
           expect(atom.config.set('foo.bar.str', 'global')).toBe(true)
