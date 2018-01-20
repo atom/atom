@@ -1,6 +1,4 @@
-/** @babel */
-
-import {Disposable} from 'event-kit'
+const {Disposable} = require('event-kit')
 
 // Extended: Manages the deserializers used for serialized state
 //
@@ -21,7 +19,8 @@ import {Disposable} from 'event-kit'
 //   serialize: ->
 //     @state
 // ```
-export default class DeserializerManager {
+module.exports =
+class DeserializerManager {
   constructor (atomEnvironment) {
     this.atomEnvironment = atomEnvironment
     this.deserializers = {}

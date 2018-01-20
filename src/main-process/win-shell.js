@@ -1,7 +1,5 @@
-'use babel'
-
-import Registry from 'winreg'
-import Path from 'path'
+const Registry = require('winreg')
+const Path = require('path')
 
 let exeName = Path.basename(process.execPath)
 let appPath = `\"${process.execPath}\"`
