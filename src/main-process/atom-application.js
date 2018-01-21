@@ -1300,17 +1300,16 @@ class AtomApplication extends EventEmitter {
 
     // File dialog defaults to project directory of currently active editor
     if (path) openOptions.defaultPath = path
-    return dialog.showOpenDialog(parentWindow, openOptions, callback)
+    dialog.showOpenDialog(parentWindow, openOptions, callback)
   }
 
   promptForRestart () {
-    const chosen = dialog.showMessageBox(BrowserWindow.getFocusedWindow(), {
+    dialog.showMessageBox(BrowserWindow.getFocusedWindow(), {
       type: 'warning',
       title: 'Restart required',
       message: 'You will need to restart Atom for this change to take effect.',
       buttons: ['Restart Atom', 'Cancel']
-    })
-    if (chosen === 0) return this.restart()
+    }, response => { if (response === 0) this.restart() })
   }
 
   restart () {

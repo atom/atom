@@ -65,7 +65,7 @@ class FileRecoveryService {
             `Error ${error.code}. There was a crash while saving "${recoveryFile.originalPath}", so this file might be blank or corrupted.\n` +
             `Atom couldn't recover it automatically, but a recovery file has been saved at: "${recoveryFile.recoveryPath}".`
           console.log(detail)
-          dialog.showMessageBox(window, {type: 'info', buttons: ['OK'], message, detail})
+          dialog.showMessageBox(window, {type: 'info', buttons: ['OK'], message, detail}, () => { /* noop callback to get async behavior */ })
         })
         .then(() => {
           for (let window of this.windowsByRecoveryFile.get(recoveryFile)) {

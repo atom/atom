@@ -176,14 +176,13 @@ class AtomWindow extends EventEmitter {
 
     this.browserWindow.on('unresponsive', () => {
       if (this.isSpec) return
-      const chosen = dialog.showMessageBox(this.browserWindow, {
+      dialog.showMessageBox(this.browserWindow, {
         type: 'warning',
         buttons: ['Force Close', 'Keep Waiting'],
         message: 'Editor is not responding',
         detail:
           'The editor is not responding. Would you like to force close it or just keep waiting?'
-      })
-      if (chosen === 0) this.browserWindow.destroy()
+      }, response => { if (response === 0) this.browserWindow.destroy() })
     })
 
     this.browserWindow.webContents.on('crashed', async () => {
@@ -194,16 +193,17 @@ class AtomWindow extends EventEmitter {
       }
 
       await this.fileRecoveryService.didCrashWindow(this)
-      const chosen = dialog.showMessageBox(this.browserWindow, {
+      dialog.showMessageBox(this.browserWindow, {
         type: 'warning',
         buttons: ['Close Window', 'Reload', 'Keep It Open'],
         message: 'The editor has crashed',
         detail: 'Please report this issue to https://github.com/atom/atom'
+      }, response => {
+        switch (response) {
+          case 0: return this.browserWindow.destroy()
+          case 1: return this.browserWindow.reload()
+        }
       })
-      switch (chosen) {
-        case 0: return this.browserWindow.destroy()
-        case 1: return this.browserWindow.reload()
-      }
     })
 
     this.browserWindow.webContents.on('will-navigate', (event, url) => {
