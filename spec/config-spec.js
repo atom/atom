@@ -1169,8 +1169,8 @@ describe('Config', () => {
         })
 
         it('does not fire a change event for paths that did not change', () => {
-          let noChangeSpy
-          atom.config.onDidChange('foo.bar', (noChangeSpy = jasmine.createSpy('unchanged')))
+          const noChangeSpy = jasmine.createSpy('unchanged')
+          atom.config.onDidChange('foo.bar', (noChangeSpy))
 
           writeConfigFile("foo: { bar: 'baz', baz: 'ok'}", 2)
           waitsFor('update event', () => updatedHandler.callCount > 0)
@@ -1297,7 +1297,8 @@ describe('Config', () => {
       describe('when the config file changes to contain invalid cson', () => {
         let addErrorHandler = null
         beforeEach(() => {
-          atom.notifications.onDidAddNotification(addErrorHandler = jasmine.createSpy('error handler'))
+          addErrorHandler = jasmine.createSpy('error handler')
+          atom.notifications.onDidAddNotification(addErrorHandler)
           writeConfigFile('}}}', 4)
           waitsFor('error to be logged', () => addErrorHandler.callCount > 0)
         })
