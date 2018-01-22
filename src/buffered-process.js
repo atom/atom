@@ -1,9 +1,7 @@
-/** @babel */
-
-import _ from 'underscore-plus'
-import ChildProcess from 'child_process'
-import {Emitter} from 'event-kit'
-import path from 'path'
+const _ = require('underscore-plus')
+const ChildProcess = require('child_process')
+const {Emitter} = require('event-kit')
+const path = require('path')
 
 // Extended: A wrapper which provides standard error/output line buffering for
 // Node's ChildProcess.
@@ -19,7 +17,8 @@ import path from 'path'
 // const exit = (code) => console.log("ps -ef exited with #{code}")
 // const process = new BufferedProcess({command, args, stdout, exit})
 // ```
-export default class BufferedProcess {
+module.exports =
+class BufferedProcess {
   /*
   Section: Construction
   */

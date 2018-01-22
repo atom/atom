@@ -104,7 +104,7 @@ describe('TextEditorComponent', () => {
 
       {
         expect(editor.getApproximateLongestScreenRow()).toBe(3)
-        const expectedWidth = Math.round(
+        const expectedWidth = Math.ceil(
           component.pixelPositionForScreenPosition(Point(3, Infinity)).left +
           component.getBaseCharacterWidth()
         )
@@ -121,7 +121,7 @@ describe('TextEditorComponent', () => {
         // Capture the width of the lines before requesting the width of
         // longest line, because making that request forces a DOM update
         const actualWidth = element.querySelector('.lines').style.width
-        const expectedWidth = Math.round(
+        const expectedWidth = Math.ceil(
           component.pixelPositionForScreenPosition(Point(6, Infinity)).left +
           component.getBaseCharacterWidth()
         )
@@ -3980,7 +3980,7 @@ describe('TextEditorComponent', () => {
       // Capture the width of the lines before requesting the width of
       // longest line, because making that request forces a DOM update
       const actualWidth = element.querySelector('.lines').style.width
-      const expectedWidth = Math.round(
+      const expectedWidth = Math.ceil(
         component.pixelPositionForScreenPosition(Point(3, Infinity)).left +
         component.getBaseCharacterWidth()
       )

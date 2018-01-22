@@ -4,7 +4,6 @@ const fs = require('fs')
 const path = require('path')
 const temp = require('temp').track()
 const AtomEnvironment = require('../src/atom-environment')
-const StorageFolder = require('../src/storage-folder')
 
 describe('AtomEnvironment', () => {
   afterEach(() => {

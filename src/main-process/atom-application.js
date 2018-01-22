@@ -169,18 +169,32 @@ class AtomApplication extends EventEmitter {
     this.disposable.dispose()
   }
 
-  launch (options) {
+  async launch (options) {
+    const optionsForWindowsToOpen = []
+
+    let shouldReopenPreviousWindows = false
+
     if (options.test || options.benchmark || options.benchmarkTest) {
-      return this.openWithOptions(options)
+      optionsForWindowsToOpen.push(options)
     } else if ((options.pathsToOpen && options.pathsToOpen.length > 0) ||
                (options.urlsToOpen && options.urlsToOpen.length > 0)) {
-      if (this.config.get('core.restorePreviousWindowsOnStart') === 'always') {
-        this.loadState(_.deepClone(options))
-      }
-      return this.openWithOptions(options)
+      optionsForWindowsToOpen.push(options)
+      shouldReopenPreviousWindows = this.config.get('core.restorePreviousWindowsOnStart') === 'always'
     } else {
-      return this.loadState(options) || this.openPath(options)
+      shouldReopenPreviousWindows = this.config.get('core.restorePreviousWindowsOnStart') !== 'no'
     }
+
+    if (shouldReopenPreviousWindows) {
+      for (const previousOptions of await this.loadPreviousWindowOptions()) {
+        optionsForWindowsToOpen.push(Object.assign({}, options, previousOptions))
+      }
+    }
+
+    if (optionsForWindowsToOpen.length === 0) {
+      optionsForWindowsToOpen.push(options)
+    }
+
+    return optionsForWindowsToOpen.map(options => this.openWithOptions(options))
   }
 
   openWithOptions (options) {
@@ -271,7 +285,7 @@ class AtomApplication extends EventEmitter {
         return
       }
     }
-    if (!window.isSpec) this.saveState(true)
+    if (!window.isSpec) this.saveCurrentWindowOptions(true)
   }
 
   // Public: Adds the {AtomWindow} to the global window list.
@@ -285,7 +299,7 @@ class AtomApplication extends EventEmitter {
 
     if (!window.isSpec) {
       const focusHandler = () => this.windowStack.touch(window)
-      const blurHandler = () => this.saveState(false)
+      const blurHandler = () => this.saveCurrentWindowOptions(false)
       window.browserWindow.on('focus', focusHandler)
       window.browserWindow.on('blur', blurHandler)
       window.browserWindow.once('closed', () => {
@@ -569,18 +583,16 @@ class AtomApplication extends EventEmitter {
       event.returnValue = this.autoUpdateManager.getErrorMessage()
     }))
 
-    this.disposable.add(ipcHelpers.on(ipcMain, 'will-save-path', (event, path) => {
-      this.fileRecoveryService.willSavePath(this.atomWindowForEvent(event), path)
-      event.returnValue = true
-    }))
+    this.disposable.add(ipcHelpers.respondTo('will-save-path', (window, path) =>
+      this.fileRecoveryService.willSavePath(window, path)
+    ))
 
-    this.disposable.add(ipcHelpers.on(ipcMain, 'did-save-path', (event, path) => {
-      this.fileRecoveryService.didSavePath(this.atomWindowForEvent(event), path)
-      event.returnValue = true
-    }))
+    this.disposable.add(ipcHelpers.respondTo('did-save-path', (window, path) =>
+      this.fileRecoveryService.didSavePath(window, path)
+    ))
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'did-change-paths', () =>
-      this.saveState(false)
+      this.saveCurrentWindowOptions(false)
     ))
 
     this.disposable.add(this.disableZoomOnDisplayChange())
@@ -911,7 +923,7 @@ class AtomApplication extends EventEmitter {
     }
   }
 
-  saveState (allowEmpty = false) {
+  async saveCurrentWindowOptions (allowEmpty = false) {
     if (this.quitting) return
 
     const states = []
@@ -921,28 +933,23 @@ class AtomApplication extends EventEmitter {
     states.reverse()
 
     if (states.length > 0 || allowEmpty) {
-      this.storageFolder.storeSync('application.json', states)
+      await this.storageFolder.store('application.json', states)
       this.emit('application:did-save-state')
     }
   }
 
-  loadState (options) {
-    const states = this.storageFolder.load('application.json')
-    if (
-      ['yes', 'always'].includes(this.config.get('core.restorePreviousWindowsOnStart')) &&
-      states && states.length > 0
-    ) {
-      return states.map(state =>
-        this.openWithOptions(Object.assign(options, {
-          initialPaths: state.initialPaths,
-          pathsToOpen: state.initialPaths.filter(p => fs.isDirectorySync(p)),
-          urlsToOpen: [],
-          devMode: this.devMode,
-          safeMode: this.safeMode
-        }))
-      )
+  async loadPreviousWindowOptions () {
+    const states = await this.storageFolder.load('application.json')
+    if (states) {
+      return states.map(state => ({
+        initialPaths: state.initialPaths,
+        pathsToOpen: state.initialPaths.filter(p => fs.isDirectorySync(p)),
+        urlsToOpen: [],
+        devMode: this.devMode,
+        safeMode: this.safeMode
+      }))
     } else {
-      return null
+      return []
     }
   }
 
@@ -1293,17 +1300,16 @@ class AtomApplication extends EventEmitter {
 
     // File dialog defaults to project directory of currently active editor
     if (path) openOptions.defaultPath = path
-    return dialog.showOpenDialog(parentWindow, openOptions, callback)
+    dialog.showOpenDialog(parentWindow, openOptions, callback)
   }
 
   promptForRestart () {
-    const chosen = dialog.showMessageBox(BrowserWindow.getFocusedWindow(), {
+    dialog.showMessageBox(BrowserWindow.getFocusedWindow(), {
       type: 'warning',
       title: 'Restart required',
       message: 'You will need to restart Atom for this change to take effect.',
       buttons: ['Restart Atom', 'Cancel']
-    })
-    if (chosen === 0) return this.restart()
+    }, response => { if (response === 0) this.restart() })
   }
 
   restart () {
