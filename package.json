@@ -17,7 +17,7 @@
     "@atom/nsfw": "^1.0.18",
     "@atom/source-map-support": "^0.3.4",
     "async": "0.2.6",
-    "atom-keymap": "8.2.8",
+    "atom-keymap": "8.2.9",
     "atom-select-list": "^0.7.0",
     "atom-ui": "0.4.1",
     "babel-core": "5.8.38",
