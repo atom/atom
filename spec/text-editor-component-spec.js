@@ -3374,6 +3374,31 @@ describe('TextEditorComponent', () => {
         })
         expect(editor.lineTextForBufferRow(10)).toBe('var')
       })
+
+      it('does not paste into a read only editor when clicking the middle mouse button on Linux', async () => {
+        spyOn(electron.ipcRenderer, 'send').andCallFake(function (eventName, selectedText) {
+          if (eventName === 'write-text-to-selection-clipboard') {
+            clipboard.writeText(selectedText, 'selection')
+          }
+        })
+
+        const {component, editor} = buildComponent({platform: 'linux', readOnly: true})
+
+        // Select the word 'sort' on line 2 and copy to clipboard
+        editor.setSelectedBufferRange([[1, 6], [1, 10]])
+        await conditionPromise(() => TextEditor.clipboard.read() === 'sort')
+
+        // Middle-click in the buffer at line 11, column 1
+        component.didMouseDownOnContent({
+          button: 1,
+          clientX: clientLeftForCharacter(component, 10, 0),
+          clientY: clientTopForLine(component, 10)
+        })
+
+        // Ensure that the correct text was copied but not pasted
+        expect(TextEditor.clipboard.read()).toBe('sort')
+        expect(editor.lineTextForBufferRow(10)).toBe('')
+      })
     })
 
     describe('on the line number gutter', () => {
@@ -4329,7 +4354,7 @@ describe('TextEditorComponent', () => {
 function buildEditor (params = {}) {
   const text = params.text != null ? params.text : SAMPLE_TEXT
   const buffer = new TextBuffer({text})
-  const editorParams = {buffer}
+  const editorParams = {buffer, readOnly: params.readOnly}
   if (params.height != null) params.autoHeight = false
   for (const paramName of ['mini', 'autoHeight', 'autoWidth', 'lineNumberGutterVisible', 'showLineNumbers', 'placeholderText', 'softWrapped', 'scrollSensitivity']) {
     if (params[paramName] != null) editorParams[paramName] = params[paramName]

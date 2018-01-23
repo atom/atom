@@ -1763,7 +1763,7 @@ class TextEditorComponent {
       // On Linux, pasting happens on middle click. A textInput event with the
       // contents of the selection clipboard will be dispatched by the browser
       // automatically on mouseup.
-      if (platform === 'linux' && button === 1) model.insertText(clipboard.readText('selection'))
+      if (platform === 'linux' && button === 1 && this.isInputEnabled()) model.insertText(clipboard.readText('selection'))
       return
     }
 
