@@ -47,7 +47,7 @@
     "key-path-helpers": "^0.4.0",
     "less-cache": "1.1.0",
     "line-top-index": "0.3.1",
-    "marked": "^0.3.6",
+    "marked": "^0.3.12",
     "minimatch": "^3.0.3",
     "mocha": "2.5.1",
     "mocha-junit-reporter": "^1.13.0",
