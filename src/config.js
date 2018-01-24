@@ -940,10 +940,10 @@ class Config {
     }
 
     Object.assign(rootSchema, schema)
-    return this.transact(() => {
+    this.transact(() => {
       this.setDefaults(keyPath, this.extractDefaultsFromSchema(schema))
       this.setScopedDefaultsFromSchema(keyPath, schema)
-      return this.resetSettingsForSchemaChange()
+      this.resetSettingsForSchemaChange()
     })
   }
 
@@ -1100,26 +1100,25 @@ sizes. See [this document][watches] for more info.
   }
 
   getRawValue (keyPath, options = {}) {
-    let defaultValue, value
-
-    const configIndex = (options.excludeSources || []).indexOf(this.getUserConfigPath())
-    if (configIndex < 0) {
+    let value
+    if (!options.excludeSources || !options.excludeSources.includes(this.getUserConfigPath())) {
       value = getValueAtKeyPath(this.settings, keyPath)
     }
 
-    const optionSources = (options.sources || []).length
-    if (optionSources <= 0) {
+    let defaultValue
+    if (!options.sources || options.sources.length === 0) {
       defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath)
     }
 
     if (value != null) {
       value = this.deepClone(value)
-      if (isPlainObject(value) && isPlainObject(defaultValue)) { this.deepDefaults(value, defaultValue) }
+      if (isPlainObject(value) && isPlainObject(defaultValue)) {
+        this.deepDefaults(value, defaultValue)
+      }
+      return value
     } else {
-      value = this.deepClone(defaultValue)
+      return this.deepClone(defaultValue)
     }
-
-    return value
   }
 
   setRawValue (keyPath, value) {
