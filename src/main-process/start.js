@@ -19,6 +19,16 @@ module.exports = function start (resourcePath, startTime) {
     }
   })
 
+  process.on('unhandledRejection', function (error = {}) {
+    if (error.message != null) {
+      console.log(error.message)
+    }
+
+    if (error.stack != null) {
+      console.log(error.stack)
+    }
+  })
+
   const previousConsoleLog = console.log
   console.log = nslog
 

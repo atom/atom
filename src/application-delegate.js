@@ -175,6 +175,26 @@ class ApplicationDelegate {
     return remote.systemPreferences.getUserDefault(key, type)
   }
 
+  setUserSettings (config) {
+    return ipcHelpers.call('set-user-settings', config)
+  }
+
+  onDidChangeUserSettings (callback) {
+    const outerCallback = (event, message, detail) => {
+      if (message === 'did-change-user-settings') callback(detail)
+    }
+    ipcRenderer.on('message', outerCallback)
+    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+  }
+
+  onDidFailToReadUserSettings (callback) {
+    const outerCallback = (event, message, detail) => {
+      if (message === 'did-fail-to-read-user-settings') callback(detail)
+    }
+    ipcRenderer.on('message', outerCallback)
+    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+  }
+
   confirm (options, callback) {
     if (typeof callback === 'function') {
       // Async version: pass options directly to Electron but set sane defaults

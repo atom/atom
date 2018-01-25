@@ -1,15 +1,9 @@
 const _ = require('underscore-plus')
-const fs = require('fs-plus')
 const {Emitter} = require('event-kit')
-const CSON = require('season')
-const path = require('path')
-const async = require('async')
-const {watchPath} = require('./path-watcher')
 const {
   getValueAtKeyPath, setValueAtKeyPath, deleteValueAtKeyPath,
   pushKeyPath, splitKeyPath
 } = require('key-path-helpers')
-
 const Color = require('./color')
 const ScopedPropertyStore = require('scoped-property-store')
 const ScopeDescriptor = require('./scope-descriptor')
@@ -406,23 +400,20 @@ class Config {
   }
 
   // Created during initialization, available as `atom.config`
-  constructor (param = {}) {
-    const {notificationManager, enablePersistence} = param
-    this.notificationManager = notificationManager
-    this.enablePersistence = enablePersistence
+  constructor (params = {}) {
     this.clear()
+    this.initialize(params)
   }
 
-  initialize ({configDirPath, resourcePath, projectHomeSchema}) {
-    this.configDirPath = configDirPath
-    this.resourcePath = resourcePath
-    if (this.enablePersistence != null) {
-      this.configFilePath = fs.resolve(this.configDirPath, 'config', ['json', 'cson'])
-      if (this.configFilePath == null) { this.configFilePath = path.join(this.configDirPath, 'config.cson') }
+  initialize ({saveCallback, mainSource, projectHomeSchema}) {
+    if (saveCallback) {
+      this.saveCallback = saveCallback
     }
-
-    this.schema.properties.core.properties.projectHome = projectHomeSchema
-    this.defaultSettings.core.projectHome = projectHomeSchema.default
+    if (mainSource) this.mainSource = mainSource
+    if (projectHomeSchema) {
+      this.schema.properties.core.properties.projectHome = projectHomeSchema
+      this.defaultSettings.core.projectHome = projectHomeSchema.default
+    }
   }
 
   clear () {
@@ -436,28 +427,11 @@ class Config {
     this.scopedSettingsStore = new ScopedPropertyStore()
 
     this.settingsLoaded = false
-    this.savePending = false
-    this.configFileHasErrors = false
     this.transactDepth = 0
     this.pendingOperations = []
     this.legacyScopeAliases = {}
-
-    this.requestLoad = _.debounce(() => {
-      this.loadUserConfig()
-    }, 100)
-
-    const debouncedSave = _.debounce(() => {
-      this.savePending = false
-      this.save()
-    }, 100)
-
-    this.requestSave = () => {
-      this.savePending = true
-      debouncedSave()
-    }
+    this.requestSave = _.debounce(() => this.save(), 100)
   }
-
-  shouldNotAccessFileSystem () { return !this.enablePersistence }
 
   /*
   Section: Config Subscription
@@ -721,7 +695,7 @@ class Config {
       throw new Error("::set with a 'source' and no 'sourceSelector' is not yet implemented!")
     }
 
-    if (source == null) { source = this.getUserConfigPath() }
+    if (!source) source = this.mainSource
 
     if (value !== undefined) {
       try {
@@ -737,7 +711,7 @@ class Config {
       this.setRawValue(keyPath, value)
     }
 
-    if ((source === this.getUserConfigPath()) && shouldSave && !this.configFileHasErrors && this.settingsLoaded) {
+    if (source === this.mainSource && shouldSave && this.settingsLoaded) {
       this.requestSave()
     }
     return true
@@ -755,7 +729,7 @@ class Config {
     }
 
     let {scopeSelector, source} = options != null ? options : {}
-    if (source == null) { source = this.getUserConfigPath() }
+    if (source == null) { source = this.mainSource }
 
     if (scopeSelector != null) {
       if (keyPath != null) {
@@ -768,7 +742,7 @@ class Config {
             this.set(null, settings, {scopeSelector, source, priority: this.priorityForSource(source)})
           }
 
-          const configIsReady = (source === this.getUserConfigPath()) && !this.configFileHasErrors && this.settingsLoaded
+          const configIsReady = (source === this.mainSource) && this.settingsLoaded
           if (configIsReady) {
             return this.requestSave()
           }
@@ -781,7 +755,7 @@ class Config {
       for (scopeSelector in this.scopedSettingsStore.propertiesForSource(source)) {
         this.unset(keyPath, {scopeSelector, source})
       }
-      if ((keyPath != null) && (source === this.getUserConfigPath())) {
+      if ((keyPath != null) && (source === this.mainSource)) {
         return this.set(keyPath, getValueAtKeyPath(this.defaultSettings, keyPath))
       }
     }
@@ -826,9 +800,8 @@ class Config {
     return schema
   }
 
-  // Extended: Get the {String} path to the config file being used.
   getUserConfigPath () {
-    return this.configFilePath
+    return this.mainSource
   }
 
   // Extended: Suppress calls to handler functions registered with {::onDidChange}
@@ -947,127 +920,12 @@ class Config {
     })
   }
 
-  load () {
-    this.initializeConfigDirectory()
-    this.loadUserConfig()
-    return this.observeUserConfig()
-  }
-
-  /*
-  Section: Private methods managing the user's config file
-  */
-  initializeConfigDirectory (done) {
-    if (fs.existsSync(this.configDirPath) || this.shouldNotAccessFileSystem()) { return }
-
-    fs.makeTreeSync(this.configDirPath)
-
-    const queue = async.queue(({sourcePath, destinationPath}, callback) => fs.copy(sourcePath, destinationPath, callback))
-    queue.drain = done
-
-    const templateConfigDirPath = fs.resolve(this.resourcePath, 'dot-atom')
-    const onConfigDirFile = sourcePath => {
-      const relativePath = sourcePath.substring(templateConfigDirPath.length + 1)
-      const destinationPath = path.join(this.configDirPath, relativePath)
-      return queue.push({sourcePath, destinationPath})
-    }
-    return fs.traverseTree(templateConfigDirPath, onConfigDirFile, path => true, () => {})
-  }
-
-  loadUserConfig () {
-    if (this.shouldNotAccessFileSystem()) { return }
-    if (this.savePending) { return }
-
-    try {
-      if (!fs.existsSync(this.configFilePath)) {
-        fs.makeTreeSync(path.dirname(this.configFilePath))
-        CSON.writeFileSync(this.configFilePath, {}, {flag: 'wx'}) // fails if file exists
-      }
-    } catch (error) {
-      if (error.code !== 'EEXIST') {
-        this.configFileHasErrors = true
-        this.notifyFailure(`Failed to initialize \`${path.basename(this.configFilePath)}\``, error.stack)
-        return
-      }
-    }
-
-    try {
-      let userConfig = CSON.readFileSync(this.configFilePath)
-      if (userConfig === null) { userConfig = {} }
-
-      if (!isPlainObject(userConfig)) {
-        throw new Error(`\`${path.basename(this.configFilePath)}\` must contain valid JSON or CSON`)
-      }
-
-      this.resetUserSettings(userConfig)
-      this.configFileHasErrors = false
-    } catch (error) {
-      this.configFileHasErrors = true
-      const message = `Failed to load \`${path.basename(this.configFilePath)}\``
-
-      // stack is the output from CSON in this case
-      // message will be EACCES permission denied, et al
-
-      const detail = (error.location != null) ? error.stack : error.message
-      return this.notifyFailure(message, detail)
-    }
-  }
-
-  observeUserConfig () {
-    if (this.shouldNotAccessFileSystem()) { return }
-
-    try {
-      if (this.watchSubscriptionPromise == null) {
-        this.watchSubscriptionPromise = watchPath(this.configFilePath, {}, events => {
-          return (() => {
-            const result = []
-            for (let {action} of events) {
-              if (['created', 'modified', 'renamed'].includes(action) && (this.watchSubscriptionPromise != null)) {
-                result.push(this.requestLoad())
-              } else {
-                result.push(undefined)
-              }
-            }
-            return result
-          })()
-        })
-      }
-    } catch (error) {
-      this.notifyFailure(`\
-Unable to watch path: \`${path.basename(this.configFilePath)}\`. Make sure you have permissions to
-\`${this.configFilePath}\`. On linux there are currently problems with watch
-sizes. See [this document][watches] for more info.
-[watches]:https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path\
-`
-        )
-    }
-
-    return this.watchSubscriptionPromise
-  }
-
-  unobserveUserConfig () {
-    if (this.watchSubscriptionPromise != null) {
-      this.watchSubscriptionPromise.then(watcher => watcher != null ? watcher.dispose() : undefined)
-    }
-    this.watchSubscriptionPromise = null
-  }
-
-  notifyFailure (errorMessage, detail) {
-    if (this.notificationManager == null) { return }
-    this.notificationManager.addError(errorMessage, {detail, dismissable: true})
-  }
-
   save () {
-    if (this.shouldNotAccessFileSystem()) { return }
-
-    let allSettings = {'*': this.settings}
-    allSettings = Object.assign(allSettings, this.scopedSettingsStore.propertiesForSource(this.getUserConfigPath()))
-    allSettings = sortObject(allSettings)
-    try {
-      return CSON.writeFileSync(this.configFilePath, allSettings)
-    } catch (error) {
-      const message = `Failed to save \`${path.basename(this.configFilePath)}\``
-      const detail = error.message
-      return this.notifyFailure(message, detail)
+    if (this.saveCallback) {
+      let allSettings = {'*': this.settings}
+      allSettings = Object.assign(allSettings, this.scopedSettingsStore.propertiesForSource(this.mainSource))
+      allSettings = sortObject(allSettings)
+      this.saveCallback(allSettings)
     }
   }
 
@@ -1076,6 +934,7 @@ sizes. See [this document][watches] for more info.
   */
 
   resetUserSettings (newSettings) {
+    newSettings = Object.assign({}, newSettings)
     if (newSettings.global != null) {
       newSettings['*'] = newSettings.global
       delete newSettings.global
@@ -1101,7 +960,7 @@ sizes. See [this document][watches] for more info.
 
   getRawValue (keyPath, options = {}) {
     let value
-    if (!options.excludeSources || !options.excludeSources.includes(this.getUserConfigPath())) {
+    if (!options.excludeSources || !options.excludeSources.includes(this.mainSource)) {
       value = getValueAtKeyPath(this.settings, keyPath)
     }
 
@@ -1281,7 +1140,7 @@ sizes. See [this document][watches] for more info.
   // When the schema is changed / added, there may be values set in the config
   // that do not conform to the schema. This will reset make them conform.
   resetSettingsForSchemaChange (source) {
-    if (source == null) { source = this.getUserConfigPath() }
+    if (source == null) { source = this.mainSource }
     return this.transact(() => {
       this.settings = this.makeValueConformToSchema(null, this.settings, {suppressException: true})
       const selectorsAndSettings = this.scopedSettingsStore.propertiesForSource(source)
@@ -1299,7 +1158,7 @@ sizes. See [this document][watches] for more info.
   */
 
   priorityForSource (source) {
-    return (source === this.getUserConfigPath()) ? 1000 : 0
+    return (source === this.mainSource) ? 1000 : 0
   }
 
   emitChangeEvent () {
@@ -1307,7 +1166,7 @@ sizes. See [this document][watches] for more info.
   }
 
   resetUserScopedSettings (newScopedSettings) {
-    const source = this.getUserConfigPath()
+    const source = this.mainSource
     const priority = this.priorityForSource(source)
     this.scopedSettingsStore.removePropertiesForSource(source)
 
