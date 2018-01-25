@@ -64,7 +64,7 @@ class TreeSitterLanguageMode {
   }
 
   onDidChangeHighlighting (callback) {
-    return this.emitter.on('did-change-hightlighting', callback)
+    return this.emitter.on('did-change-highlighting', callback)
   }
 
   classNameForScopeId (scopeId) {
