@@ -138,6 +138,38 @@ describe('TreeSitterLanguageMode', () => {
         ]
       ])
     })
+
+    it('updates lines\' highlighting when they are affected by distant changes', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          'call_expression > identifier': 'function',
+          'property_identifier': 'member'
+        }
+      })
+
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+
+      // missing closing paren
+      buffer.setText('a(\nb,\nc\n')
+      expectTokensToEqual(editor, [
+        [{text: 'a(', scopes: []}],
+        [{text: 'b,', scopes: []}],
+        [{text: 'c', scopes: []}],
+        [{text: '', scopes: []}]
+      ])
+
+      buffer.append(')')
+      expectTokensToEqual(editor, [
+        [
+          {text: 'a', scopes: ['function']},
+          {text: '(', scopes: []}
+        ],
+        [{text: 'b,', scopes: []}],
+        [{text: 'c', scopes: []}],
+        [{text: ')', scopes: []}]
+      ])
+    })
   })
 
   describe('folding', () => {
@@ -533,7 +565,14 @@ function expectTokensToEqual (editor, expectedTokenLines) {
   // Assert that the correct tokens are returned regardless of which row
   // the highlighting iterator starts on.
   for (let startRow = 0; startRow <= lastRow; startRow++) {
-    editor.displayLayer.clearSpatialIndex()
+
+    // Clear the screen line cache between iterations, but not on the first
+    // iteration, so that the first iteration tests that the cache has been
+    // correctly invalidated by any changes.
+    if (startRow > 0) {
+      editor.displayLayer.clearSpatialIndex()
+    }
+
     editor.displayLayer.getScreenLines(startRow, Infinity)
 
     const tokenLines = []
@@ -557,4 +596,8 @@ function expectTokensToEqual (editor, expectedTokenLines) {
       }
     }
   }
+
+  // Fully populate the screen line cache again so that cache invalidation
+  // due to subsequent edits can be tested.
+  editor.displayLayer.getScreenLines(0, Infinity)
 }
