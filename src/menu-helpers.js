@@ -26,7 +26,7 @@ function merge (menu, item, itemSpecificity = Infinity) {
     for (let submenuItem of item.submenu) {
       merge(matchingItem.submenu, submenuItem, itemSpecificity)
     }
-  } else if (itemSpecificity >= ItemSpecificities.get(matchingItem)) {
+  } else if (itemSpecificity && itemSpecificity >= ItemSpecificities.get(matchingItem)) {
     menu[matchingItemIndex] = item
   }
 }
