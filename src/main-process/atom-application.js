@@ -4,6 +4,7 @@ const AtomProtocolHandler = require('./atom-protocol-handler')
 const AutoUpdateManager = require('./auto-update-manager')
 const StorageFolder = require('../storage-folder')
 const Config = require('../config')
+const ConfigFile = require('../config-file')
 const FileRecoveryService = require('./file-recovery-service')
 const ipcHelpers = require('../ipc-helpers')
 const {BrowserWindow, Menu, app, dialog, ipcMain, shell, screen} = require('electron')
@@ -107,20 +108,17 @@ class AtomApplication extends EventEmitter {
     this.waitSessionsByWindow = new Map()
     this.windowStack = new WindowStack()
 
-    this.config = new Config({enablePersistence: true})
-    this.config.setSchema(null, {type: 'object', properties: _.clone(ConfigSchema)})
-    ConfigSchema.projectHome = {
-      type: 'string',
-      default: path.join(fs.getHomeDirectory(), 'github'),
-      description:
-        'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
-    }
-    this.config.initialize({
-      configDirPath: process.env.ATOM_HOME,
-      resourcePath: this.resourcePath,
-      projectHomeSchema: ConfigSchema.projectHome
+    this.initializeAtomHome(process.env.ATOM_HOME)
+
+    const configFilePath = fs.existsSync(path.join(process.env.ATOM_HOME, 'config.json'))
+      ? path.join(process.env.ATOM_HOME, 'config.json')
+      : path.join(process.env.ATOM_HOME, 'config.cson')
+
+    this.configFile = new ConfigFile(configFilePath)
+    this.config = new Config({
+      saveCallback: settings => this.configFile.update(settings)
     })
-    this.config.load()
+    this.config.setSchema(null, {type: 'object', properties: _.clone(ConfigSchema)})
 
     this.fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, 'recovery'))
     this.storageFolder = new StorageFolder(process.env.ATOM_HOME)
@@ -170,6 +168,11 @@ class AtomApplication extends EventEmitter {
   }
 
   async launch (options) {
+    if (!this.configFilePromise) {
+      this.configFilePromise = this.configFile.watch()
+      this.disposable.add(await this.configFilePromise)
+    }
+
     const optionsForWindowsToOpen = []
 
     let shouldReopenPreviousWindows = false
@@ -411,6 +414,18 @@ class AtomApplication extends EventEmitter {
     this.openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
     this.openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
+    this.configFile.onDidChange(settings => {
+      for (let window of this.getAllWindows()) {
+        window.didChangeUserSettings(settings)
+      }
+      this.config.resetUserSettings(settings)
+    })
+
+    this.configFile.onDidError(message => {
+      const window = this.focusedWindow() || this.getLastFocusedWindow()
+      if (window) window.didFailToReadUserSettings(message)
+    })
+
     this.disposable.add(ipcHelpers.on(app, 'before-quit', async event => {
       let resolveBeforeQuitPromise
       this.lastBeforeQuitPromise = new Promise(resolve => { resolveBeforeQuitPromise = resolve })
@@ -544,6 +559,10 @@ class AtomApplication extends EventEmitter {
       window.setPosition(x, y)
     }))
 
+    this.disposable.add(ipcHelpers.respondTo('set-user-settings', (window, settings) =>
+      this.configFile.update(settings)
+    ))
+
     this.disposable.add(ipcHelpers.respondTo('center-window', window => window.center()))
     this.disposable.add(ipcHelpers.respondTo('focus-window', window => window.focus()))
     this.disposable.add(ipcHelpers.respondTo('show-window', window => window.show()))
@@ -603,6 +622,13 @@ class AtomApplication extends EventEmitter {
       return app.dock.setMenu(Menu.buildFromTemplate([
         {label: 'New Window', click: () => this.emit('application:new-window')}
       ]))
+    }
+  }
+
+  initializeAtomHome (configDirPath) {
+    if (!fs.existsSync(configDirPath)) {
+      const templateConfigDirPath = fs.resolve(this.resourcePath, 'dot-atom')
+      fs.copySync(templateConfigDirPath, configDirPath)
     }
   }
 

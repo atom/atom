@@ -55,6 +55,12 @@ class AtomWindow extends EventEmitter {
     if (this.shouldHideTitleBar()) options.frame = false
     this.browserWindow = new BrowserWindow(options)
 
+    Object.defineProperty(this.browserWindow, 'loadSettingsJSON', {
+      get: () => JSON.stringify(Object.assign({
+        userSettings: this.atomApplication.configFile.get()
+      }, this.loadSettings))
+    })
+
     this.handleEvents()
 
     this.loadSettings = Object.assign({}, settings)
@@ -95,8 +101,6 @@ class AtomWindow extends EventEmitter {
 
     this.representedDirectoryPaths = this.loadSettings.initialPaths
     if (!this.loadSettings.env) this.env = this.loadSettings.env
-
-    this.browserWindow.loadSettingsJSON = JSON.stringify(this.loadSettings)
 
     this.browserWindow.on('window:loaded', () => {
       this.disableZoom()
@@ -244,6 +248,14 @@ class AtomWindow extends EventEmitter {
   async openLocations (locationsToOpen) {
     await this.loadedPromise
     this.sendMessage('open-locations', locationsToOpen)
+  }
+
+  didChangeUserSettings (settings) {
+    this.sendMessage('did-change-user-settings', settings)
+  }
+
+  didFailToReadUserSettings (message) {
+    this.sendMessage('did-fail-to-read-user-settings', message)
   }
 
   replaceEnvironment (env) {
@@ -414,7 +426,6 @@ class AtomWindow extends EventEmitter {
     this.representedDirectoryPaths = representedDirectoryPaths
     this.representedDirectoryPaths.sort()
     this.loadSettings.initialPaths = this.representedDirectoryPaths
-    this.browserWindow.loadSettingsJSON = JSON.stringify(this.loadSettings)
     return this.atomApplication.saveCurrentWindowOptions()
   }
 
