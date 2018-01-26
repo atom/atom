@@ -166,7 +166,7 @@
     "language-sql": "0.25.9",
     "language-text": "0.7.3",
     "language-todo": "0.29.3",
-    "language-toml": "0.18.1",
+    "language-toml": "0.18.2",
     "language-typescript": "0.3.0",
     "language-xml": "0.35.2",
     "language-yaml": "0.31.1"
