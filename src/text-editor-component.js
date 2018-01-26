@@ -1762,13 +1762,18 @@ class TextEditorComponent {
       return
     }
 
+    if (button !== 0) return
+
+    // Ctrl-click brings up the context menu on macOS
+    if (platform === 'darwin' && ctrlKey) return
+
     if (target && target.matches('.fold-marker')) {
       const bufferPosition = model.bufferPositionForScreenPosition(screenPosition)
       model.destroyFoldsContainingBufferPositions([bufferPosition], false)
       return
     }
 
-    const addOrRemoveSelection = metaKey || ctrlKey
+    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
 
     switch (detail) {
       case 1:

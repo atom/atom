@@ -2992,7 +2992,7 @@ describe('TextEditorComponent', () => {
             [[1, 16], [1, 16]]
           ])
 
-          // ctrl-click does not add cursors on macOS, but it *does* move the cursor
+          // ctrl-click does not add cursors on macOS, nor does it move the cursor
           component.didMouseDownOnContent(
             Object.assign(clientPositionForCharacter(component, 1, 4), {
               detail: 1,
@@ -3001,7 +3001,7 @@ describe('TextEditorComponent', () => {
             })
           )
           expect(editor.getSelectedScreenRanges()).toEqual([
-            [[1, 4], [1, 4]]
+            [[1, 16], [1, 16]]
           ])
 
           // ctrl-click adds cursors on platforms *other* than macOS
