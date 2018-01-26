@@ -91,15 +91,6 @@ describe('ConfigFile', () => {
       })
     })
   })
-
-  describe('updating the config', () => {
-    it('persists the data to the file', async () => {
-      configFile = new ConfigFile(filePath)
-      subscription = await configFile.watch()
-      await configFile.update({foo: 'bar'})
-      expect(fs.readFileSync(filePath, 'utf8')).toBe('foo: "bar"\n')
-    })
-  })
 })
 
 function writeFileSync (filePath, content, seconds = 2) {
