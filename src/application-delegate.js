@@ -5,6 +5,10 @@ const getWindowLoadSettings = require('./get-window-load-settings')
 
 module.exports =
 class ApplicationDelegate {
+  constructor () {
+    this.pendingSettingsUpdateCount = 0
+  }
+
   getWindowLoadSettings () { return getWindowLoadSettings() }
 
   open (params) {
@@ -175,13 +179,20 @@ class ApplicationDelegate {
     return remote.systemPreferences.getUserDefault(key, type)
   }
 
-  setUserSettings (config) {
-    return ipcHelpers.call('set-user-settings', config)
+  async setUserSettings (config) {
+    this.pendingSettingsUpdateCount++
+    try {
+      await ipcHelpers.call('set-user-settings', config)
+    } finally {
+      this.pendingSettingsUpdateCount--
+    }
   }
 
   onDidChangeUserSettings (callback) {
     const outerCallback = (event, message, detail) => {
-      if (message === 'did-change-user-settings') callback(detail)
+      if (message === 'did-change-user-settings') {
+        if (this.pendingSettingsUpdateCount === 0) callback(detail)
+      }
     }
     ipcRenderer.on('message', outerCallback)
     return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))

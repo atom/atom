@@ -430,7 +430,7 @@ class Config {
     this.transactDepth = 0
     this.pendingOperations = []
     this.legacyScopeAliases = {}
-    this.requestSave = _.debounce(() => this.save(), 100)
+    this.requestSave = _.debounce(() => this.save(), 1)
   }
 
   /*

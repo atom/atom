@@ -5,6 +5,7 @@ const {Emitter} = require('event-kit')
 const {watchPath} = require('./path-watcher')
 const CSON = require('season')
 const Path = require('path')
+const async = require('async')
 
 const EVENT_TYPES = new Set([
   'created',
@@ -16,9 +17,26 @@ module.exports =
 class ConfigFile {
   constructor (path) {
     this.path = path
-    this.requestLoad = _.debounce(() => this.reload(), 100)
     this.emitter = new Emitter()
     this.value = {}
+    this.reloadCallbacks = []
+
+    // Use a queue to prevent multiple concurrent write to the same file.
+    const writeQueue = async.queue((data, callback) =>
+      CSON.writeFile(this.path, data, error => {
+        if (error) {
+          this.emitter.emit('did-error', dedent `
+            Failed to write \`${Path.basename(this.path)}\`.
+
+            ${error.message}
+          `)
+        }
+        callback()
+      })
+    )
+
+    this.requestLoad = _.debounce(() => this.reload(), 200)
+    this.requestSave = _.debounce((data) => writeQueue.push(data), 200)
   }
 
   get () {
@@ -26,16 +44,10 @@ class ConfigFile {
   }
 
   update (value) {
-    return new Promise((resolve, reject) =>
-      CSON.writeFile(this.path, value, error => {
-        if (error) {
-          reject(error)
-        } else {
-          this.value = value
-          resolve()
-        }
-      })
-    )
+    return new Promise(resolve => {
+      this.requestSave(value)
+      this.reloadCallbacks.push(resolve)
+    })
   }
 
   async watch (callback) {
@@ -80,6 +92,9 @@ class ConfigFile {
         } else {
           this.value = data || {}
           this.emitter.emit('did-change', this.value)
+
+          for (const callback of this.reloadCallbacks) callback()
+          this.reloadCallbacks.length = 0
         }
         resolve()
       })

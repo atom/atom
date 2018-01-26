@@ -177,13 +177,11 @@ describe('Config', () => {
 
     it("saves the user's config to disk after it stops changing", () => {
       atom.config.set('foo.bar.baz', 42)
-      advanceClock(50)
       expect(savedSettings.length).toBe(0)
       atom.config.set('foo.bar.baz', 43)
-      advanceClock(50)
       expect(savedSettings.length).toBe(0)
       atom.config.set('foo.bar.baz', 44)
-      advanceClock(150)
+      advanceClock(10)
       expect(savedSettings.length).toBe(1)
     })
 
