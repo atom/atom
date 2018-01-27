@@ -2840,9 +2840,9 @@ describe('TextEditorComponent', () => {
 
   describe('mouse input', () => {
     describe('on the lines', () => {
-      describe('when there is only one cursor and no selection', () => {
-        it('positions the cursor on single-click or when middle/right-clicking', async () => {
-          for (const button of [0, 1, 2]) {
+      describe('when there is only one cursor', () => {
+        it('positions the cursor on single-click or when middle-clicking', async () => {
+          for (const button of [0, 1]) {
             const {component, element, editor} = buildComponent()
             const {lineHeight} = component.measurements
 
@@ -2921,70 +2921,6 @@ describe('TextEditorComponent', () => {
         })
       })
 
-      describe('when there is more than one cursor', () => {
-        it('does not move the cursor when right-clicking', async () => {
-          const {component, element, editor} = buildComponent()
-          const {lineHeight} = component.measurements
-
-          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
-          editor.addCursorAtScreenPosition([2, 4])
-          component.didMouseDownOnContent({
-            detail: 1,
-            button: 2,
-            clientX: clientLeftForCharacter(component, 0, 0) - 1,
-            clientY: clientTopForLine(component, 0) - 1
-          })
-          expect(editor.getCursorScreenPositions()).toEqual([Point.fromObject([5, 17]), Point.fromObject([2, 4])])
-        })
-
-        it('does move the cursor when middle-clicking', async () => {
-          const {component, element, editor} = buildComponent()
-          const {lineHeight} = component.measurements
-
-          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
-          editor.addCursorAtScreenPosition([2, 4])
-          component.didMouseDownOnContent({
-            detail: 1,
-            button: 1,
-            clientX: clientLeftForCharacter(component, 0, 0) - 1,
-            clientY: clientTopForLine(component, 0) - 1
-          })
-          expect(editor.getCursorScreenPositions()).toEqual([Point.fromObject([0, 0])])
-        })
-      })
-
-      describe('when there are non-empty selections', () => {
-        it('does not move the cursor when right-clicking', async () => {
-          const {component, element, editor} = buildComponent()
-          const {lineHeight} = component.measurements
-
-          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
-          editor.selectRight(3)
-          component.didMouseDownOnContent({
-            detail: 1,
-            button: 2,
-            clientX: clientLeftForCharacter(component, 0, 0) - 1,
-            clientY: clientTopForLine(component, 0) - 1
-          })
-          expect(editor.getSelectedScreenRange()).toEqual([[5, 17], [5, 20]])
-        })
-
-        it('does move the cursor when middle-clicking', async () => {
-          const {component, element, editor} = buildComponent()
-          const {lineHeight} = component.measurements
-
-          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
-          editor.selectRight(3)
-          component.didMouseDownOnContent({
-            detail: 1,
-            button: 1,
-            clientX: clientLeftForCharacter(component, 0, 0) - 1,
-            clientY: clientTopForLine(component, 0) - 1
-          })
-          expect(editor.getSelectedScreenRange()).toEqual([[0, 0], [0, 0]])
-        })
-      })
-
       describe('when the input is for the primary mouse button', () => {
         it('selects words on double-click', () => {
           const {component, editor} = buildComponent()
@@ -3056,7 +2992,7 @@ describe('TextEditorComponent', () => {
             [[1, 16], [1, 16]]
           ])
 
-          // ctrl-click does not add cursors on macOS, but it *does* move the cursor
+          // ctrl-click does not add cursors on macOS, nor does it move the cursor
           component.didMouseDownOnContent(
             Object.assign(clientPositionForCharacter(component, 1, 4), {
               detail: 1,
@@ -3065,7 +3001,7 @@ describe('TextEditorComponent', () => {
             })
           )
           expect(editor.getSelectedScreenRanges()).toEqual([
-            [[1, 4], [1, 4]]
+            [[1, 16], [1, 16]]
           ])
 
           // ctrl-click adds cursors on platforms *other* than macOS
