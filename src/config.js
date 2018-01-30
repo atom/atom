@@ -714,7 +714,7 @@ class Config {
     }
 
     // Set both the global and the dirty settings.
-    return this.setOn(this.globalSettings, ...args) && this.setOn(this.dirtySettings, ...args)
+    return this.setOn(this.globalSettings, ...args)
   }
 
   setOn(settings, ...args) {
@@ -741,8 +741,10 @@ class Config {
 
     if (scopeSelector != null) {
       this.setRawScopedValueOn(settings, keyPath, value, source, scopeSelector)
+      if (settings.isGlobalSettings) { this.setRawScopedValueOn(this.dirtySettings, keyPath, value, source, scopeSelector) }
     } else {
       this.setRawValueOn(settings, keyPath, value)
+      if (settings.isGlobalSettings) { this.setRawValueOn(this.dirtySettings, keyPath, value, source, scopeSelector) }
     }
 
     if ((settings.shouldSave && source === this.getUserConfigPath()) && shouldSave && !settings.configFilesHaveErrors && settings.settingsLoaded) {
@@ -752,6 +754,7 @@ class Config {
     return true
   }
 
+
   // Essential: Restore the setting at `keyPath` to its default value.
   //
   // * `keyPath` The {String} name of the key.
@@ -759,7 +762,6 @@ class Config {
   //   * `scopeSelector` (optional) {String}. See {::set}
   //   * `source` (optional) {String}. See {::set}
   unset (keyPath, options) {
-
     if (!this.globalSettings.settingsLoaded) {
       this.pendingOperations.push(() => this.unset(keyPath, options))
     }
@@ -1580,13 +1582,14 @@ const withoutEmptyObjects = (object) => {
 }
 
 class SettingsContext {
-  constructor(shouldSave = false) {
+  constructor(isGlobalSettings = false) {
     this.unscopedSettings = {}
     this.scopedSettings = new ScopedPropertyStore()
     this.settingsLoaded = false
     this.configFilePath = null
     this.configFilesHaveErrors = false
-    this.shouldSave = shouldSave
+    this.shouldSave = isGlobalSettings
+    this.shouldUpdateDirtySettings = isGlobalSettings
   }
 }
 
