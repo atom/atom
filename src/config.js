@@ -605,7 +605,7 @@ class Config {
     // 2. rootSettings (mounted roots should take precedence over personal settings)
     // 3. globalSettings
     let getVal = null
-    const settings = [this.projectSettings, this.rootSettings, this.globalSettings]
+    const settings = [this.dirtySettings, this.projectSettings, this.rootSettings, this.globalSettings]
     for (let setting of settings) {
       if (scope != null) {
         const value = this.getRawScopedValueFrom(setting, scope, keyPath, options)
@@ -759,38 +759,53 @@ class Config {
   //   * `scopeSelector` (optional) {String}. See {::set}
   //   * `source` (optional) {String}. See {::set}
   unset (keyPath, options) {
+
     if (!this.globalSettings.settingsLoaded) {
       this.pendingOperations.push(() => this.unset(keyPath, options))
     }
 
     let {scopeSelector, source} = options != null ? options : {}
-    if (source == null) { source = this.mainSource }
+    if (source == null) { source = this.getUserConfigPath() }
 
     if (scopeSelector != null) {
       if (keyPath != null) {
-        let settings = this.globalSettings.scopedSettings.propertiesForSourceAndSelector(source, scopeSelector)
-        if (getValueAtKeyPath(settings, keyPath) != null) {
+
+
+        let globalSettings = this.globalSettings.scopedSettings.propertiesForSourceAndSelector(source, scopeSelector)
+        let dirtySettings = this.dirtySettings.scopedSettings.propertiesForSourceAndSelector(source, scopeSelector)
+
+        const valueExists = (getValueAtKeyPath(globalSettings, keyPath) != null) && (getValueAtKeyPath(dirtySettings, keyPath) != null)
+        if (valueExists) {
           this.globalSettings.scopedSettings.removePropertiesForSourceAndSelector(source, scopeSelector)
-          setValueAtKeyPath(settings, keyPath, undefined)
-          settings = withoutEmptyObjects(settings)
-          if (settings != null) {
-            this.set(null, settings, {scopeSelector, source, priority: this.priorityForSource(source)})
+          this.dirtySettings.scopedSettings.removePropertiesForSourceAndSelector(source, scopeSelector)
+
+          setValueAtKeyPath(globalSettings, keyPath, undefined)
+          setValueAtKeyPath(dirtySettings, keyPath, undefined)
+
+          globalSettings = withoutEmptyObjects(globalSettings)
+          dirtySettings = withoutEmptyObjects(dirtySettings)
+
+          if (globalSettings != null && dirtySettings != null) {
+            this.set(null, globalSettings, {scopeSelector, source, priority: this.priorityForSource(source)})
           }
 
-          const configIsReady = (source === this.mainSource) && this.globalSettings.settingsLoaded
+          const configIsReady = (source === this.getUserConfigPath()) && !this.globalSettings.configFilesHaveErrors && this.globalSettings.settingsLoaded
           if (configIsReady) {
             return this.requestSave()
           }
         }
       } else {
         this.globalSettings.scopedSettings.removePropertiesForSourceAndSelector(source, scopeSelector)
-        return this.emitChangeEvent()
+        this.dirtySettings.scopedSettings.removePropertiesForSourceAndSelector(source, scopeSelector)
+
+        this.emitChangeEvent()
       }
     } else {
       for (scopeSelector in this.globalSettings.scopedSettings.propertiesForSource(source)) {
         this.unset(keyPath, {scopeSelector, source})
       }
-      if ((keyPath != null) && (source === this.mainSource)) {
+
+      if ((keyPath != null) && (source === this.getUserConfigPath())) {
         return this.set(keyPath, getValueAtKeyPath(this.defaultSettings, keyPath))
       }
     }
