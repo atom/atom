@@ -817,7 +817,11 @@ class Config {
   // Extended: Get an {Array} of all of the `source` {String}s with which
   // settings have been added via {::set}.
   getSources () {
-    return _.uniq(_.pluck(this.globalSettings.scopedSettings.propertySets, 'source')).sort()
+    const globalSources = _.uniq(_.pluck(this.globalSettings.scopedSettings.propertySets, 'source'))
+    const rootSources = _.uniq(_.pluck(this.rootSettings.scopedSettings.propertySets, 'source'))
+    const projectSources = _.uniq(_.pluck(this.projectSettings.scopedSettings.propertySets, 'source'))
+    return _.uniq([].concat(globalSources, rootSources, projectSources)).sort()
+
   }
 
   // Extended: Retrieve the schema for a specific key path. The schema will tell
