@@ -609,19 +609,23 @@ class Config {
     for (let setting of settings) {
       if (scope != null) {
         const value = this.getRawScopedValueFrom(setting, scope, keyPath, options)
+        console.log(value)
 
         // Do not need to replace scoped value with default.
         if (value != null) {
           return value
         }
       }
+    }
 
+    for (let setting of settings) {
       getVal = this.getRawValueFrom(setting, keyPath, options)
 
       if (getVal != null && !(isPlainObject(getVal) && _.isEmpty(getVal))) {
         return this.replaceWithDefaultValue(getVal, keyPath, options)
       }
     }
+
     return this.replaceWithDefaultValue(getVal, keyPath, options)
   }
 
@@ -715,11 +719,12 @@ class Config {
     if (!this.globalSettings.settingsLoaded) {
       this.pendingOperations.push(() => this.set(...args))
     }
-
-    // Set both the global and the dirty settings.
     return this.setOn(this.globalSettings, keyPath, value, globalOptions) && this.setOn(this.dirtySettings, keyPath, value, options)
   }
 
+  // Users should NOT use setOn, especially on globalSettings.
+  // In general, the state of dirtySettings should match the state of globalSettings,
+  // meaning that one should not be set without the other.
   setOn(settings, ...args) {
 
     let [keyPath, value, options = {}] = args
@@ -744,12 +749,9 @@ class Config {
     }
 
     if (scopeSelector != null) {
-
       this.setRawScopedValueOn(settings, keyPath, value, source, scopeSelector, {emitChange})
     } else {
       this.setRawValueOn(settings, keyPath, value, {emitChange})
-
-      // if (settings.isGlobalSettings) { this.setRawValueOn(this.dirtySettings, keyPath, value, source, scopeSelector) }
     }
 
     if ((settings.shouldSave && source === this.getUserConfigPath()) && shouldSave && !settings.configFilesHaveErrors && settings.settingsLoaded) {
@@ -979,10 +981,10 @@ class Config {
 
   save () {
     if (this.saveCallback) {
-      let allSettings = {'*': this.globalSettings.unscopedSettings}
-      allSettings = Object.assign(allSettings, this.globalSettings.scopedSettings.propertiesForSource(this.mainSource))
-      allSettings = sortObject(allSettings)
-      this.saveCallback(allSettings)
+      let globalSettings = {'*': this.globalSettings.unscopedSettings}
+      globalSettings = Object.assign(globalSettings, this.globalSettings.scopedSettings.propertiesForSource(this.mainSource))
+      globalSettings = sortObject(globalSettings)
+      this.saveCallback(globalSettings)
     }
   }
 

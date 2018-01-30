@@ -1840,4 +1840,88 @@ describe('Config', () => {
       expect(atom.config.get('do.ray')).toBe('me')
     })
   })
+
+  describe("project/root specific configs", () => {
+    describe("config.setConfigForRoot", () => {
+      it("should not write to the global configuration file")
+      it("should be able to set multiple root configs")
+      it("should not be able to have multiple root configs with same path")
+      it("should trigger onChange for config object")
+      it("ignores roots it can't resolve (such as Nuclide remote URIs)")
+    })
+
+    describe("config.resetProjectSettings", () => {
+
+      beforeEach(() => {
+        spyOn(atom.config, 'save')
+      })
+
+      it("gracefully handles invalid config objects", () => {
+        atom.config.resetProjectSettings({})
+        expect(atom.config.get('foo.bar')).toBeUndefined()
+      })
+      // it("should not write to the global configuration file", () => {
+      //   atom.config.resetProjectSettings({'foo': 'bar'})
+      //   expect(atom.config.save).not.toHaveBeenCalled()
+      // })
+      // it("should not be able to have multiple working configs", () => {
+      //   atom.config.resetProjectSettings({"foo" : {"bar" : "baz"}})
+      //   atom.config.resetProjectSettings({"goo" : {"gar" : "gaz"}})
+      //   expect(atom.config.get('goo.gar')).toBe('gaz')
+      // })
+      //
+      // it("should trigger onChange for config object", () => {
+      //   expect(atom.config.save).not.toHaveBeenCalled()
+      //   atom.config.resetProjectSettings({"foo" : {"bar" : "baz"}})
+      //   advanceClock(50)
+      //   expect(atom.config.save).not.toHaveBeenCalled()
+      // })
+    })
+
+    describe("config.get", () => {
+      describe("getting root configs", () => {
+
+        it('should properly get root configs', () => {
+          atom.config.setOn(atom.config.rootSettings, "foo", "baz")
+          expect(atom.config.get("foo")).toBe("baz")
+          atom.config.setOn(atom.config.rootSettings, "roo.bar", "qux")
+          expect(atom.config.get("roo.bar")).toBe("qux")
+          atom.config.setOn(atom.config.rootSettings, 'x.y', 1, {scopeSelector: '.foo', source: 'a'})
+          console.log(atom.config.get(null, {sources: ['a'], scope: ['.foo']}))
+          expect(atom.config.get(null, {sources: ['a'], scope: ['.foo']}).x.y).toBe(1)
+        })
+
+        it('should get root configs for multiple roots')
+        it('should get root configs for most recently set root if path is same')
+
+        it("should get root config settings with higher priority than global settings", () => {
+          atom.config.globalSettings.shouldSave = false
+          atom.config.setOn(atom.config.globalSettings, "foo", "bar")
+          expect(atom.config.get("foo")).toBe("bar")
+          atom.config.setOn(atom.config.globalSettings, "foo", "bux")
+          expect(atom.config.get("foo")).toBe("bux")
+        })
+
+        it("should get all configs at lower priority than dirty settings", () => {
+
+        })
+        it("correctly gets nested properties for root configs")
+        it("successfully gets configurations with scope params")
+        it("returns a deep clone of the property value")
+      })
+
+      describe("project configs", () => {
+        it('should properly get project configs')
+        it("should get project settings with higher priority than global settings")
+        it("should get project settings with higher priority than root config settings")
+        it("correctly gets nested properties for project configs")
+        it("successfully gets configurations with scope params")
+        it("returns a deep clone of the property value")
+      })
+    })
+
+    describe("config.getAll", () => {
+
+    })
+  })
 })
