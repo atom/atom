@@ -1,7 +1,3 @@
-const path = require('path')
-const temp = require('temp').track()
-const fs = require('fs-plus')
-
 describe('Config', () => {
   let savedSettings
 
@@ -1840,22 +1836,21 @@ describe('Config', () => {
     })
   })
 
-  describe("project/root specific configs", () => {
-    describe("config.setConfigForRoot", () => {
-      it("should not write to the global configuration file")
-      it("should be able to set multiple root configs")
-      it("should not be able to have multiple root configs with same path")
-      it("should trigger onChange for config object")
+  describe('project/root specific configs', () => {
+    describe('config.setConfigForRoot', () => {
+      it('should not write to the global configuration file')
+      it('should be able to set multiple root configs')
+      it('should not be able to have multiple root configs with same path')
+      it('should trigger onChange for config object')
       it("ignores roots it can't resolve (such as Nuclide remote URIs)")
     })
 
-    describe("config.resetProjectSettings", () => {
-
+    describe('config.resetProjectSettings', () => {
       beforeEach(() => {
         spyOn(atom.config, 'save')
       })
 
-      it("gracefully handles invalid config objects", () => {
+      it('gracefully handles invalid config objects', () => {
         atom.config.resetProjectSettings({})
         expect(atom.config.get('foo.bar')).toBeUndefined()
       })
@@ -1877,14 +1872,13 @@ describe('Config', () => {
       // })
     })
 
-    describe("config.get", () => {
-      describe("getting root configs", () => {
-
+    describe('config.get', () => {
+      describe('getting root configs', () => {
         it('should properly get root configs', () => {
-          atom.config.setOn(atom.config.rootSettings, "foo", "baz")
-          expect(atom.config.get("foo")).toBe("baz")
-          atom.config.setOn(atom.config.rootSettings, "roo.bar", "qux")
-          expect(atom.config.get("roo.bar")).toBe("qux")
+          atom.config.setOn(atom.config.rootSettings, 'foo', 'baz')
+          expect(atom.config.get('foo')).toBe('baz')
+          atom.config.setOn(atom.config.rootSettings, 'roo.bar', 'qux')
+          expect(atom.config.get('roo.bar')).toBe('qux')
           atom.config.setOn(atom.config.rootSettings, 'x.y', 1, {scopeSelector: '.foo', source: 'a'})
           expect(atom.config.get(null, {sources: ['a'], scope: ['.foo']}).x.y).toBe(1)
         })
@@ -1892,28 +1886,28 @@ describe('Config', () => {
         it('should get root configs for multiple roots')
         it('should get root configs for most recently set root if path is same')
 
-        it("should get root config settings with higher priority than global settings", () => {
+        it('should get root config settings with higher priority than global settings', () => {
           atom.config.globalSettings.shouldSave = false
-          atom.config.setOn(atom.config.globalSettings, "foo", "bar")
-          expect(atom.config.get("foo")).toBe("bar")
-          atom.config.setOn(atom.config.globalSettings, "foo", "bux")
-          expect(atom.config.get("foo")).toBe("bux")
+          atom.config.setOn(atom.config.globalSettings, 'foo', 'bar')
+          expect(atom.config.get('foo')).toBe('bar')
+          atom.config.setOn(atom.config.globalSettings, 'foo', 'bux')
+          expect(atom.config.get('foo')).toBe('bux')
         })
 
-        it("should get all configs at lower priority than dirty settings", () => {
+        it('should get all configs at lower priority than dirty settings', () => {
           atom.config.set('foo', 'bar')
           atom.config.setOn(atom.config.rootSettings, 'foo', 'a')
           atom.config.setOn(atom.config.projectSettings, 'foo', 'a')
           expect(atom.config.get('foo')).toBe('bar')
         })
 
-        it("correctly gets nested properties for root configs", () => {
-          atom.config.setOn(atom.config.rootSettings, 'foo.bar.baz.qux', "phil")
+        it('correctly gets nested properties for root configs', () => {
+          atom.config.setOn(atom.config.rootSettings, 'foo.bar.baz.qux', 'phil')
           atom.config.resetProjectSettings({'foo': 'wei'})
           expect(atom.config.get('foo.bar.baz.qux')).toBe('phil')
         })
 
-        it("returns a deep clone of the property value", () => {
+        it('returns a deep clone of the property value', () => {
           atom.config.setOn(atom.config.rootSettings, 'value', {array: [1, {b: 2}, 3]})
           const retrievedValue = atom.config.get('value')
           retrievedValue.array[0] = 4
@@ -1922,19 +1916,19 @@ describe('Config', () => {
         })
       })
 
-      describe("project configs", () => {
+      describe('project configs', () => {
         // it('should properly get project configs', () => {
         //   atom.config.resetProjectSettings({'foo', 'wei'})
         // })
-        it("should get project settings with higher priority than global settings")
-        it("should get project settings with higher priority than root config settings")
-        it("correctly gets nested properties for project configs")
-        it("successfully gets configurations with scope params")
-        it("returns a deep clone of the property value")
+        it('should get project settings with higher priority than global settings')
+        it('should get project settings with higher priority than root config settings')
+        it('correctly gets nested properties for project configs')
+        it('successfully gets configurations with scope params')
+        it('returns a deep clone of the property value')
       })
     })
 
-    describe("config.getAll", () => {
+    describe('config.getAll', () => {
 
     })
   })

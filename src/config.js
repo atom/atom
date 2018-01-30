@@ -609,8 +609,6 @@ class Config {
     for (let setting of settings) {
       if (scope != null) {
         const value = this.getRawScopedValueFrom(setting, scope, keyPath, options)
-        console.log(value)
-
         // Do not need to replace scoped value with default.
         if (value != null) {
           return value
@@ -725,12 +723,11 @@ class Config {
   // Users should NOT use setOn, especially on globalSettings.
   // In general, the state of dirtySettings should match the state of globalSettings,
   // meaning that one should not be set without the other.
-  setOn(settings, ...args) {
-
+  setOn (settings, ...args) {
     let [keyPath, value, options = {}] = args
 
     const scopeSelector = options.scopeSelector
-    let {source, emitChange, shouldUpdateDirtyState} = options
+    let {source, emitChange} = options
 
     const shouldSave = options.save != null ? options.save : true
 
@@ -761,7 +758,6 @@ class Config {
     return true
   }
 
-
   // Essential: Restore the setting at `keyPath` to its default value.
   //
   // * `keyPath` The {String} name of the key.
@@ -778,8 +774,6 @@ class Config {
 
     if (scopeSelector != null) {
       if (keyPath != null) {
-
-
         let globalSettings = this.globalSettings.scopedSettings.propertiesForSourceAndSelector(source, scopeSelector)
         let dirtySettings = this.dirtySettings.scopedSettings.propertiesForSourceAndSelector(source, scopeSelector)
 
@@ -1000,7 +994,7 @@ class Config {
     this.resetSettingsFor(newSettings, this.projectSettings)
   }
 
-  resetSettingsFor(newSettings, settings, updateDirty = false) {
+  resetSettingsFor (newSettings, settings, updateDirty = false) {
     newSettings = Object.assign({}, newSettings)
     if (newSettings.global != null) {
       newSettings['*'] = newSettings.global
@@ -1023,16 +1017,16 @@ class Config {
       settings.unscopedSettings = {}
       settings.settingsLoaded = true
       for (let key in newSettings) {
-         const value = newSettings[key]
+        const value = newSettings[key]
 
          // BUG: This should update dirty settings too.
          // but should all resets update the dirty settings?
-         if (updateDirty) {
-           this.setOn(settings, key, value, {save: false, emitChange: false})
-           this.setOn(this.dirtySettings, key, value, {save: false})
-         } else {
-           this.setOn(settings, key, value, {save: false})
-         }
+        if (updateDirty) {
+          this.setOn(settings, key, value, {save: false, emitChange: false})
+          this.setOn(this.dirtySettings, key, value, {save: false})
+        } else {
+          this.setOn(settings, key, value, {save: false})
+        }
       }
 
       if (this.pendingOperations.length) {
@@ -1054,7 +1048,7 @@ class Config {
     }
   }
 
-  replaceWithDefaultValue(value, keyPath, options = {}) {
+  replaceWithDefaultValue (value, keyPath, options = {}) {
     let defaultValue
     const optionSources = (options.sources || []).length
     if (optionSources <= 0) {
@@ -1064,11 +1058,10 @@ class Config {
     if (value != null) {
       value = this.deepClone(value)
       if (isPlainObject(value) && isPlainObject(defaultValue)) { this.deepDefaults(value, defaultValue) }
+      return value
     } else {
-      value = this.deepClone(defaultValue)
+      return this.deepClone(defaultValue)
     }
-
-    return value
   }
 
   setRawValue (keyPath, value) {
@@ -1076,7 +1069,6 @@ class Config {
   }
 
   setRawValueOn (settings, keyPath, value, options = {}) {
-
     const emitChange = options.emitChange == null ? true : options.emitChange
 
     const defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath)
@@ -1277,8 +1269,7 @@ class Config {
     this.resetUserScopedSettingsOn(newScopedSettings, this.globalSettings)
   }
 
-  resetUserScopedSettingsOn(newScopedSettings, settings, options = {}) {
-
+  resetUserScopedSettingsOn (newScopedSettings, settings, options = {}) {
     const emitChange = options.emitChange == null ? true : options.emitChange
 
     const source = this.getUserConfigPath()
@@ -1304,7 +1295,6 @@ class Config {
 
   setRawScopedValueOn (settings, keyPath, value, source, selector, options = {}) {
     const emitChange = options.emitChange == null ? true : options.emitChange
-
 
     if (keyPath != null) {
       const newValue = {}
@@ -1373,48 +1363,47 @@ class Config {
 
   // Legacy getters, in case a package in the past directly accessed
   // settings before it was refactored to settingsManager.
-  get settings() {
+  get settings () {
     return this.globalSettings.unscopedSettings
   }
 
-  get scopedSettingsStore() {
+  get scopedSettingsStore () {
     return this.globalSettings.scopedSettings
   }
 
-  get settingsLoaded() {
+  get settingsLoaded () {
     return this.globalSettings.settingsLoaded
   }
 
-  get configFilePath() {
+  get configFilePath () {
     return this.globalSettings.configFilePath
   }
 
-  get configFileHasErrors() {
+  get configFileHasErrors () {
     return this.globalSettings.configFilesHaveErrors
   }
 
   // Legacy setters, in case a package in the past directly mutated
   // settings before it was refactored to settingsManager.
-  set settings(newUnscopedSettings) {
-    return this.globalSettings.unscopedSettings = newUnscopedSettings
+  set settings (newUnscopedSettings) {
+    this.globalSettings.unscopedSettings = newUnscopedSettings
   }
 
-  set scopedSettingsStore(newScopedSettings) {
+  set scopedSettingsStore (newScopedSettings) {
     this.globalSettings.scopedSettings = newScopedSettings
   }
 
-  set settingsLoaded(areSettingsLoaded) {
+  set settingsLoaded (areSettingsLoaded) {
     this.globalSettings.settingsLoaded = areSettingsLoaded
   }
 
-  set configFilePath(newConfigFilePath) {
+  set configFilePath (newConfigFilePath) {
     this.globalSettings.configFilePath = newConfigFilePath
   }
 
-  set configFileHasErrors(hasErrors) {
+  set configFileHasErrors (hasErrors) {
     this.globalSettings.configFilesHaveErrors = hasErrors
   }
-
 };
 
 // Base schema enforcers. These will coerce raw input into the specified type,
@@ -1620,7 +1609,7 @@ const withoutEmptyObjects = (object) => {
 }
 
 class SettingsContext {
-  constructor(isGlobalSettings = false) {
+  constructor (isGlobalSettings = false) {
     this.unscopedSettings = {}
     this.scopedSettings = new ScopedPropertyStore()
     this.settingsLoaded = false
