@@ -725,7 +725,7 @@ class Config {
     let [keyPath, value, options = {}] = args
 
     const scopeSelector = options.scopeSelector
-    let {source, emitChange} = options
+    let {source, emitChange, shouldUpdateDirtyState} = options
 
     const shouldSave = options.save != null ? options.save : true
 
@@ -746,9 +746,7 @@ class Config {
     if (scopeSelector != null) {
 
       this.setRawScopedValueOn(settings, keyPath, value, source, scopeSelector, {emitChange})
-      // if (settings.isGlobalSettings) { this.setRawScopedValueOn(this.dirtySettings, keyPath, value, source, scopeSelector) }
     } else {
-
       this.setRawValueOn(settings, keyPath, value, {emitChange})
 
       // if (settings.isGlobalSettings) { this.setRawValueOn(this.dirtySettings, keyPath, value, source, scopeSelector) }
@@ -1198,6 +1196,7 @@ class Config {
         setValueAtKeyPath(scopedDefaults[scope], keyPath, scopeSchema.default)
       }
       this.globalSettings.scopedSettings.addProperties('schema-default', scopedDefaults)
+      this.dirtySettings.scopedSettings.addProperties('schema-default', scopedDefaults)
     }
 
     if ((schema.type === 'object') && (schema.properties != null) && isPlainObject(schema.properties)) {
@@ -1243,12 +1242,17 @@ class Config {
     if (source == null) { source = this.mainSource }
     return this.transact(() => {
       this.globalSettings.unscopedSettings = this.makeValueConformToSchema(null, this.globalSettings.unscopedSettings, {suppressException: true})
+      this.dirtySettings.unscopedSettings = this.makeValueConformToSchema(null, this.dirtySettings.unscopedSettings, {suppressException: true})
+
       const selectorsAndSettings = this.globalSettings.scopedSettings.propertiesForSource(source)
       this.globalSettings.scopedSettings.removePropertiesForSource(source)
+      this.dirtySettings.scopedSettings.removePropertiesForSource(source)
+
       for (let scopeSelector in selectorsAndSettings) {
         let settings = selectorsAndSettings[scopeSelector]
         settings = this.makeValueConformToSchema(null, settings, {suppressException: true})
-        this.setRawScopedValue(null, settings, source, scopeSelector)
+        this.setRawScopedValueOn(this.globalSettings, null, settings, source, scopeSelector, {emitChange: false})
+        this.setRawScopedValueOn(this.dirtySettings, null, settings, source, scopeSelector)
       }
     })
   }
