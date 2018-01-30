@@ -994,16 +994,12 @@ class Config {
   }
 
   resetSettingsFor(newSettings, settings) {
-
-    if (newSettings === null) { newSettings = {} }
-    if (!isPlainObject(newSettings)) {
-      throw new Error(`Config object must be valid (could be because of invalid config file.)`)
-    }
-
+    newSettings = Object.assign({}, newSettings)
     if (newSettings.global != null) {
       newSettings['*'] = newSettings.global
       delete newSettings.global
     }
+
     if (newSettings['*'] != null) {
       const scopedSettings = newSettings
       newSettings = newSettings['*']
@@ -1011,14 +1007,10 @@ class Config {
       this.resetUserScopedSettingsOn(scopedSettings, settings)
     }
 
-    this.transact(() => {
+    return this.transact(() => {
       settings.unscopedSettings = {}
       settings.settingsLoaded = true
-      for (let key in newSettings) {
-         const value = newSettings[key]
-         this.setOn(settings, key, value, {save: false})
-      }
-
+      for (let key in newSettings) { const value = newSettings[key]; this.setOn(settings, key, value, {save: false}) }
       if (this.pendingOperations.length) {
         for (let op of this.pendingOperations) { op() }
         this.pendingOperations = []
