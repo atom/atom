@@ -490,7 +490,6 @@ describe('Config', () => {
         atom.config.set('foo.bar.baz', 'value 2')
         expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 2', oldValue: 'value 1'})
         observeHandler.reset()
-        //
         observeHandler.andCallFake(() => { throw new Error('oops') })
         expect(() => atom.config.set('foo.bar.baz', 'value 1')).toThrow('oops')
         expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 1', oldValue: 'value 2'})
@@ -1887,7 +1886,6 @@ describe('Config', () => {
           atom.config.setOn(atom.config.rootSettings, "roo.bar", "qux")
           expect(atom.config.get("roo.bar")).toBe("qux")
           atom.config.setOn(atom.config.rootSettings, 'x.y', 1, {scopeSelector: '.foo', source: 'a'})
-          console.log(atom.config.get(null, {sources: ['a'], scope: ['.foo']}))
           expect(atom.config.get(null, {sources: ['a'], scope: ['.foo']}).x.y).toBe(1)
         })
 
@@ -1903,15 +1901,31 @@ describe('Config', () => {
         })
 
         it("should get all configs at lower priority than dirty settings", () => {
-
+          atom.config.set('foo', 'bar')
+          atom.config.setOn(atom.config.rootSettings, 'foo', 'a')
+          atom.config.setOn(atom.config.projectSettings, 'foo', 'a')
+          expect(atom.config.get('foo')).toBe('bar')
         })
-        it("correctly gets nested properties for root configs")
-        it("successfully gets configurations with scope params")
-        it("returns a deep clone of the property value")
+
+        it("correctly gets nested properties for root configs", () => {
+          atom.config.setOn(atom.config.rootSettings, 'foo.bar.baz.qux', "phil")
+          atom.config.resetProjectSettings({'foo': 'wei'})
+          expect(atom.config.get('foo.bar.baz.qux')).toBe('phil')
+        })
+
+        it("returns a deep clone of the property value", () => {
+          atom.config.setOn(atom.config.rootSettings, 'value', {array: [1, {b: 2}, 3]})
+          const retrievedValue = atom.config.get('value')
+          retrievedValue.array[0] = 4
+          retrievedValue.array[1].b = 2.1
+          expect(atom.config.get('value')).toEqual({array: [1, {b: 2}, 3]})
+        })
       })
 
       describe("project configs", () => {
-        it('should properly get project configs')
+        // it('should properly get project configs', () => {
+        //   atom.config.resetProjectSettings({'foo', 'wei'})
+        // })
         it("should get project settings with higher priority than global settings")
         it("should get project settings with higher priority than root config settings")
         it("correctly gets nested properties for project configs")
