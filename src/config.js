@@ -1011,7 +1011,12 @@ class Config {
       const scopedSettings = newSettings
       newSettings = newSettings['*']
       delete scopedSettings['*']
-      this.resetUserScopedSettingsOn(scopedSettings, settings)
+      if (updateDirty) {
+        this.resetUserScopedSettingsOn(scopedSettings, settings, {emitChange: false})
+        this.resetUserScopedSettingsOn(scopedSettings, this.dirtySettings)
+      } else {
+        this.resetUserScopedSettingsOn(scopedSettings, settings)
+      }
     }
 
     return this.transact(() => {
@@ -1266,7 +1271,10 @@ class Config {
     this.resetUserScopedSettingsOn(newScopedSettings, this.globalSettings)
   }
 
-  resetUserScopedSettingsOn(newScopedSettings, settings) {
+  resetUserScopedSettingsOn(newScopedSettings, settings, options = {}) {
+
+    const emitChange = options.emitChange == null ? true : options.emitChange
+
     const source = this.getUserConfigPath()
     const priority = this.priorityForSource(source)
     settings.scopedSettings.removePropertiesForSource(source)
@@ -1279,8 +1287,9 @@ class Config {
         settings.scopedSettings.addProperties(source, validatedSettings, {priority})
       }
     }
-
-    this.emitChangeEvent()
+    if (emitChange) {
+      this.emitChangeEvent()
+    }
   }
 
   setRawScopedValue (keyPath, value, source, selector, options) {
