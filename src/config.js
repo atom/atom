@@ -976,25 +976,32 @@ class Config {
   }
 
   getRawValue (keyPath, options = {}) {
-    let value
-    if (!options.excludeSources || !options.excludeSources.includes(this.mainSource)) {
-      value = getValueAtKeyPath(this.globalSettings.unscopedSettings, keyPath)
-    }
+    const value = this.getRawValueFrom(this.globalSettings, keyPath, options)
+    return this.replaceWithDefaultValue(value, keyPath, options)
+  }
 
+  getRawValueFrom (settings, keyPath, options = {}) {
+    const configIndex = (options.excludeSources || []).indexOf(this.getUserConfigPath())
+    if (configIndex < 0) {
+      return getValueAtKeyPath(settings.unscopedSettings, keyPath)
+    }
+  }
+
+  replaceWithDefaultValue(value, keyPath, options = {}) {
     let defaultValue
-    if (!options.sources || options.sources.length === 0) {
+    const optionSources = (options.sources || []).length
+    if (optionSources <= 0) {
       defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath)
     }
 
     if (value != null) {
       value = this.deepClone(value)
-      if (isPlainObject(value) && isPlainObject(defaultValue)) {
-        this.deepDefaults(value, defaultValue)
-      }
-      return value
+      if (isPlainObject(value) && isPlainObject(defaultValue)) { this.deepDefaults(value, defaultValue) }
     } else {
-      return this.deepClone(defaultValue)
+      value = this.deepClone(defaultValue)
     }
+
+    return value
   }
 
   setRawValue (keyPath, value) {
@@ -1221,8 +1228,12 @@ class Config {
   }
 
   getRawScopedValue (scopeDescriptor, keyPath, options) {
+    return this.getRawScopedValueFrom(this.globalSettings, scopeDescriptor, keyPath, options)
+  }
+
+  getRawScopedValueFrom (settings, scopeDescriptor, keyPath, options) {
     scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
-    const result = this.globalSettings.scopedSettings.getPropertyValue(
+    const result = settings.scopedSettings.getPropertyValue(
       scopeDescriptor.getScopeChain(),
       keyPath,
       options
@@ -1232,7 +1243,7 @@ class Config {
     if (result != null) {
       return result
     } else if (legacyScopeDescriptor) {
-      return this.globalSettings.scopedSettings.getPropertyValue(
+      return settings.scopedSettings.getPropertyValue(
         legacyScopeDescriptor.getScopeChain(),
         keyPath,
         options
