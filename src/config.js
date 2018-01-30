@@ -721,6 +721,7 @@ class Config {
   }
 
   setOn(settings, ...args) {
+
     let [keyPath, value, options = {}] = args
 
     const scopeSelector = options.scopeSelector
@@ -747,6 +748,7 @@ class Config {
       this.setRawScopedValueOn(settings, keyPath, value, source, scopeSelector, {emitChange})
       // if (settings.isGlobalSettings) { this.setRawScopedValueOn(this.dirtySettings, keyPath, value, source, scopeSelector) }
     } else {
+
       this.setRawValueOn(settings, keyPath, value, {emitChange})
 
       // if (settings.isGlobalSettings) { this.setRawValueOn(this.dirtySettings, keyPath, value, source, scopeSelector) }
@@ -991,14 +993,14 @@ class Config {
   */
 
   resetUserSettings (newSettings) {
-    this.resetSettingsFor(newSettings, this.globalSettings)
+    this.resetSettingsFor(newSettings, this.globalSettings, true)
   }
 
   resetProjectSettings (newSettings) {
     this.resetSettingsFor(newSettings, this.projectSettings)
   }
 
-  resetSettingsFor(newSettings, settings) {
+  resetSettingsFor(newSettings, settings, updateDirty = false) {
     newSettings = Object.assign({}, newSettings)
     if (newSettings.global != null) {
       newSettings['*'] = newSettings.global
@@ -1015,7 +1017,19 @@ class Config {
     return this.transact(() => {
       settings.unscopedSettings = {}
       settings.settingsLoaded = true
-      for (let key in newSettings) { const value = newSettings[key]; this.setOn(settings, key, value, {save: false}) }
+      for (let key in newSettings) {
+         const value = newSettings[key]
+
+         // BUG: This should update dirty settings too.
+         // but should all resets update the dirty settings?
+         if (updateDirty) {
+           this.setOn(settings, key, value, {save: false, emitChange: false})
+           this.setOn(this.dirtySettings, key, value, {save: false})
+         } else {
+           this.setOn(settings, key, value, {save: false})
+         }
+      }
+
       if (this.pendingOperations.length) {
         for (let op of this.pendingOperations) { op() }
         this.pendingOperations = []
@@ -1057,6 +1071,7 @@ class Config {
   }
 
   setRawValueOn (settings, keyPath, value, options = {}) {
+
     const emitChange = options.emitChange == null ? true : options.emitChange
 
     const defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath)

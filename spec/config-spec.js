@@ -491,15 +491,15 @@ describe('Config', () => {
         expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 2', oldValue: 'value 1'})
         observeHandler.reset()
         //
-        // observeHandler.andCallFake(() => { throw new Error('oops') })
-        // expect(() => atom.config.set('foo.bar.baz', 'value 1')).toThrow('oops')
-        // expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 1', oldValue: 'value 2'})
-        // observeHandler.reset()
-        //
-        // // Regression: exception in earlier handler shouldn't put observer
-        // // into a bad state.
-        // atom.config.set('something.else', 'new value')
-        // expect(observeHandler).not.toHaveBeenCalled()
+        observeHandler.andCallFake(() => { throw new Error('oops') })
+        expect(() => atom.config.set('foo.bar.baz', 'value 1')).toThrow('oops')
+        expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 1', oldValue: 'value 2'})
+        observeHandler.reset()
+
+        // Regression: exception in earlier handler shouldn't put observer
+        // into a bad state.
+        atom.config.set('something.else', 'new value')
+        expect(observeHandler).not.toHaveBeenCalled()
       })
     })
 
@@ -577,14 +577,14 @@ describe('Config', () => {
     it('fires the given callback with the current value at the keypath', () => expect(observeHandler).toHaveBeenCalledWith('value 1'))
 
     it('fires the callback every time the observed value changes', () => {
-      // observeHandler.reset() // clear the initial call
-      // atom.config.set('foo.bar.baz', 'value 2')
-      // expect(observeHandler).toHaveBeenCalledWith('value 2')
-      //
-      // observeHandler.reset()
-      // atom.config.set('foo.bar.baz', 'value 1')
-      // expect(observeHandler).toHaveBeenCalledWith('value 1')
-      // advanceClock(100) // complete pending save that was requested in ::set
+      observeHandler.reset() // clear the initial call
+      atom.config.set('foo.bar.baz', 'value 2')
+      expect(observeHandler).toHaveBeenCalledWith('value 2')
+
+      observeHandler.reset()
+      atom.config.set('foo.bar.baz', 'value 1')
+      expect(observeHandler).toHaveBeenCalledWith('value 1')
+      advanceClock(100) // complete pending save that was requested in ::set
 
       observeHandler.reset()
       atom.config.resetUserSettings({foo: {}})
