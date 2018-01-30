@@ -709,19 +709,22 @@ class Config {
   // * `true` if the value was set.
   // * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set (...args) {
+    let [keyPath, value, options = {}] = args
+
+    const globalOptions = Object.assign({emitChange: false}, options)
     if (!this.globalSettings.settingsLoaded) {
       this.pendingOperations.push(() => this.set(...args))
     }
 
     // Set both the global and the dirty settings.
-    return this.setOn(this.globalSettings, ...args)
+    return this.setOn(this.globalSettings, keyPath, value, globalOptions) && this.setOn(this.dirtySettings, keyPath, value, options)
   }
 
   setOn(settings, ...args) {
     let [keyPath, value, options = {}] = args
 
     const scopeSelector = options.scopeSelector
-    let {source, shouldUpdateDirtyState} = options
+    let {source, emitChange} = options
 
     const shouldSave = options.save != null ? options.save : true
 
@@ -740,11 +743,13 @@ class Config {
     }
 
     if (scopeSelector != null) {
-      this.setRawScopedValueOn(settings, keyPath, value, source, scopeSelector)
-      if (settings.isGlobalSettings) { this.setRawScopedValueOn(this.dirtySettings, keyPath, value, source, scopeSelector) }
+
+      this.setRawScopedValueOn(settings, keyPath, value, source, scopeSelector, {emitChange})
+      // if (settings.isGlobalSettings) { this.setRawScopedValueOn(this.dirtySettings, keyPath, value, source, scopeSelector) }
     } else {
-      this.setRawValueOn(settings, keyPath, value)
-      if (settings.isGlobalSettings) { this.setRawValueOn(this.dirtySettings, keyPath, value, source, scopeSelector) }
+      this.setRawValueOn(settings, keyPath, value, {emitChange})
+
+      // if (settings.isGlobalSettings) { this.setRawValueOn(this.dirtySettings, keyPath, value, source, scopeSelector) }
     }
 
     if ((settings.shouldSave && source === this.getUserConfigPath()) && shouldSave && !settings.configFilesHaveErrors && settings.settingsLoaded) {
@@ -1051,7 +1056,9 @@ class Config {
     this.setRawValueOn(this.globalSettings, keyPath, value)
   }
 
-  setRawValueOn (settings, keyPath, value) {
+  setRawValueOn (settings, keyPath, value, options = {}) {
+    const emitChange = options.emitChange == null ? true : options.emitChange
+
     const defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath)
     if (_.isEqual(defaultValue, value)) {
       if (keyPath != null) {
@@ -1066,7 +1073,9 @@ class Config {
         settings.unscopedSettings = value
       }
     }
-   this.emitChangeEvent()
+    if (emitChange) {
+      this.emitChangeEvent()
+    }
   }
 
   observeKeyPath (keyPath, options, callback) {
@@ -1233,7 +1242,9 @@ class Config {
   }
 
   emitChangeEvent () {
-    if (this.transactDepth <= 0) { return this.emitter.emit('did-change') }
+    if (this.transactDepth <= 0) {
+      this.emitter.emit('did-change')
+    }
   }
 
   resetUserScopedSettings (newScopedSettings) {
@@ -1261,18 +1272,23 @@ class Config {
     this.setRawScopedValueOn(this.globalSettings, keyPath, value, source, selector, options)
   }
 
-  setRawScopedValueOn (settings, keyPath, value, source, selector, options) {
+  setRawScopedValueOn (settings, keyPath, value, source, selector, options = {}) {
+    const emitChange = options.emitChange == null ? true : options.emitChange
+
+
     if (keyPath != null) {
       const newValue = {}
       setValueAtKeyPath(newValue, keyPath, value)
       value = newValue
     }
 
-
     const settingsBySelector = {}
     settingsBySelector[selector] = value
     settings.scopedSettings.addProperties(source, settingsBySelector, {priority: this.priorityForSource(source)})
-    this.emitChangeEvent()
+
+    if (emitChange) {
+      this.emitChangeEvent()
+    }
   }
 
   getRawScopedValue (scopeDescriptor, keyPath, options) {
@@ -1306,7 +1322,7 @@ class Config {
 
   onDidChangeScopedKeyPath (scope, keyPath, callback) {
     let oldValue = this.get(keyPath, {scope})
-    return this.emitter.on('did-change', () => {
+    this.emitter.on('did-change', () => {
       const newValue = this.get(keyPath, {scope})
       if (!_.isEqual(oldValue, newValue)) {
         const event = {oldValue, newValue}
