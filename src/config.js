@@ -1100,6 +1100,7 @@ class Config {
   }
 
   onDidChangeKeyPath (keyPath, callback) {
+
     let oldValue = this.get(keyPath)
     return this.emitter.on('did-change', () => {
       const newValue = this.get(keyPath)
@@ -1346,7 +1347,7 @@ class Config {
 
   onDidChangeScopedKeyPath (scope, keyPath, callback) {
     let oldValue = this.get(keyPath, {scope})
-    this.emitter.on('did-change', () => {
+    return this.emitter.on('did-change', () => {
       const newValue = this.get(keyPath, {scope})
       if (!_.isEqual(oldValue, newValue)) {
         const event = {oldValue, newValue}

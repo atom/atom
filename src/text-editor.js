@@ -3391,7 +3391,9 @@ class TextEditor {
 
   // Essential: Returns a {Boolean} indicating whether softTabs are enabled for this
   // editor.
-  getSoftTabs () { return this.softTabs }
+  getSoftTabs () {
+    return this.softTabs
+  }
 
   // Essential: Enable or disable soft tabs for this editor.
   //
