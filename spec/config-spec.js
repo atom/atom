@@ -1963,7 +1963,7 @@ describe('Config', () => {
         atom.config.setOn(atom.config.globalSettings, 'a', 'b')
         atom.config.setOn(atom.config.rootSettings, 'a', 'd')
         atom.config.setOn(atom.config.projectSettings, 'a', 'f')
-        expect(atom.config.getAll('a')).toBe([{
+        expect(atom.config.getAll('a')).toEqual([{
           scopeSelector: '*',
           value: 'f'
         }])

@@ -636,7 +636,7 @@ class Config {
   // Returns an {Array} of {Object}s with the following keys:
   //  * `scopeDescriptor` The {ScopeDescriptor} with which the value is associated
   //  * `value` The value for the key-path
-  getAll (keyPath, options) {
+  getAll (keyPath, options = {}) {
     let globalValue, result, scope
     if (options != null) {
       ({scope} = options)
@@ -669,7 +669,8 @@ class Config {
 
     const reducedResults = this.reduceAllResults(allResults)
 
-    globalValue = this.getRawValue(keyPath, options)
+    delete options.scope
+    globalValue = this.get(keyPath, options)
     if (globalValue) {
       reducedResults.push({scopeSelector: '*', value: globalValue})
     }
