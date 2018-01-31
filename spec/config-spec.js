@@ -122,7 +122,7 @@ describe('Config', () => {
     })
   })
 
-  describe('.getAll(keyPath, {scope, sources, excludeSources})', () => {
+  fdescribe('.getAll(keyPath, {scope, sources, excludeSources})', () => {
     it('reads all of the values for a given key-path', () => {
       expect(atom.config.set('foo', 41)).toBe(true)
       expect(atom.config.set('foo', 43, {scopeSelector: '.a .b'})).toBe(true)

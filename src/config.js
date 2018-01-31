@@ -638,34 +638,53 @@ class Config {
   //  * `value` The value for the key-path
   getAll (keyPath, options) {
     let globalValue, result, scope
-    if (options != null) { ({scope} = options) }
+    if (options != null) {
+      ({scope} = options)
+    }
 
-    if (scope != null) {
-      let legacyScopeDescriptor
-      const scopeDescriptor = ScopeDescriptor.fromObject(scope)
-      result = this.globalSettings.scopedSettings.getAll(
-          scopeDescriptor.getScopeChain(),
-          keyPath,
-          options
-        )
-      legacyScopeDescriptor = this.getLegacyScopeDescriptor(scopeDescriptor)
-      if (legacyScopeDescriptor) {
-        result.push(...Array.from(this.globalSettings.scopedSettings.getAll(
-            legacyScopeDescriptor.getScopeChain(),
+    const allResults = []
+    const settings = [this.dirtySettings, this.rootSettings, this.projectSettings, this.globalSettings]
+
+    for (let setting of settings) {
+      result = []
+      if (scope != null) {
+        let legacyScopeDescriptor
+        const scopeDescriptor = ScopeDescriptor.fromObject(scope)
+        result = result.concat(setting.scopedSettings.getAll(
+            scopeDescriptor.getScopeChain(),
             keyPath,
             options
-          ) || []))
+          ))
+        legacyScopeDescriptor = this.getLegacyScopeDescriptor(scopeDescriptor)
+        if (legacyScopeDescriptor) {
+          result.push(...Array.from(setting.scopedSettings.getAll(
+              legacyScopeDescriptor.getScopeChain(),
+              keyPath,
+              options
+            ) || []))
+        }
       }
-    } else {
-      result = []
+      allResults.push(result)
     }
+
+    const reducedResults = this.reduceAllResults(allResults)
 
     globalValue = this.getRawValue(keyPath, options)
     if (globalValue) {
-      result.push({scopeSelector: '*', value: globalValue})
+      reducedResults.push({scopeSelector: '*', value: globalValue})
     }
+    return reducedResults
+  }
 
-    return result
+  reduceAllResults(allResults) {
+    const reducer = (accumulator, currentArr) => {
+      for (let item of currentArr) {
+        const shouldAdd = accumulator.every((el) => el.scopeSelector !== item.scopeSelector)
+        if (shouldAdd) { accumulator.push(item) }
+      }
+      return accumulator
+    }
+    return allResults.reduce(reducer, [])
   }
 
   // Essential: Sets the value for a configuration setting.
