@@ -146,8 +146,6 @@ class AtomApplication extends EventEmitter {
       this.config.set('core.titleBar', 'custom')
     }
 
-    this.config.onDidChange('core.titleBar', this.promptForRestart.bind(this))
-
     process.nextTick(() => this.autoUpdateManager.initialize())
     this.applicationMenu = new ApplicationMenu(this.version, this.autoUpdateManager)
     this.atomProtocolHandler = new AtomProtocolHandler(this.resourcePath, this.safeMode)
@@ -171,6 +169,7 @@ class AtomApplication extends EventEmitter {
     if (!this.configFilePromise) {
       this.configFilePromise = this.configFile.watch()
       this.disposable.add(await this.configFilePromise)
+      this.config.onDidChange('core.titleBar', this.promptForRestart.bind(this))
     }
 
     const optionsForWindowsToOpen = []
