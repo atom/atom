@@ -1846,20 +1846,10 @@ describe('Config', () => {
     })
 
     describe('config.resetProjectSettings', () => {
-      beforeEach(() => {
-        spyOn(atom.config, 'requestSave')
-      })
-
-      it("should not write to the global configuration file", () => {
-        atom.config.resetProjectSettings({'foo': 'bar'})
-        expect(atom.config.requestSave).not.toHaveBeenCalled()
-      })
-
       it('gracefully handles invalid config objects', () => {
         atom.config.resetProjectSettings({})
         expect(atom.config.get('foo.bar')).toBeUndefined()
       })
-
     })
 
     describe('config.get', () => {
