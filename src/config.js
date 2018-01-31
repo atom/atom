@@ -821,7 +821,6 @@ class Config {
     const rootSources = _.uniq(_.pluck(this.rootSettings.scopedSettings.propertySets, 'source'))
     const projectSources = _.uniq(_.pluck(this.projectSettings.scopedSettings.propertySets, 'source'))
     return _.uniq([].concat(globalSources, rootSources, projectSources)).sort()
-
   }
 
   // Extended: Retrieve the schema for a specific key path. The schema will tell
@@ -1100,7 +1099,6 @@ class Config {
   }
 
   onDidChangeKeyPath (keyPath, callback) {
-
     let oldValue = this.get(keyPath)
     return this.emitter.on('did-change', () => {
       const newValue = this.get(keyPath)
