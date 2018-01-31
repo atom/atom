@@ -423,8 +423,11 @@ class Config {
       properties: {}
     }
 
+    const shouldSave = true
+    const shouldUpdateDirtySettings = true
+
     // Global settings from user's ~/.atom.
-    this.globalSettings = new SettingsContext(true)
+    this.globalSettings = new SettingsContext({shouldSave, shouldUpdateDirtySettings})
 
     // Settings for the current active project.
     this.projectSettings = new SettingsContext()
@@ -744,7 +747,9 @@ class Config {
   // In general, the state of dirtySettings should match the state of globalSettings,
   // meaning that one should not be set without the other.
   setOn (settings, ...args) {
+
     let [keyPath, value, options = {}] = args
+
 
     const scopeSelector = options.scopeSelector
     let {source, emitChange} = options
@@ -1025,9 +1030,11 @@ class Config {
     }
 
     if (newSettings['*'] != null) {
+
       const scopedSettings = newSettings
       newSettings = newSettings['*']
       delete scopedSettings['*']
+
       if (updateDirty) {
         this.resetUserScopedSettingsOn(scopedSettings, settings, {emitChange: false})
         this.resetUserScopedSettingsOn(scopedSettings, this.dirtySettings)
@@ -1042,8 +1049,6 @@ class Config {
       for (let key in newSettings) {
         const value = newSettings[key]
 
-         // BUG: This should update dirty settings too.
-         // but should all resets update the dirty settings?
         if (updateDirty) {
           this.setOn(settings, key, value, {save: false, emitChange: false})
           this.setOn(this.dirtySettings, key, value, {save: false})
@@ -1632,14 +1637,15 @@ const withoutEmptyObjects = (object) => {
 }
 
 class SettingsContext {
-  constructor (isGlobalSettings = false) {
+  constructor (options = {}) {
+    const {shouldSave, shouldUpdateDirtySettings} = options
     this.unscopedSettings = {}
     this.scopedSettings = new ScopedPropertyStore()
     this.settingsLoaded = false
     this.configFilePath = null
     this.configFilesHaveErrors = false
-    this.shouldSave = isGlobalSettings
-    this.shouldUpdateDirtySettings = isGlobalSettings
+    this.shouldSave = !!shouldSave
+    this.shouldUpdateDirtySettings = !!shouldUpdateDirtySettings
   }
 }
 
