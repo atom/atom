@@ -1958,7 +1958,7 @@ describe('Config', () => {
       })
     })
 
-    fdescribe('config.getAll', () => {
+    describe('config.getAll', () => {
       it ('should get settings in the same way .get would return them', () => {
         atom.config.setOn(atom.config.globalSettings, 'a', 'b')
         atom.config.setOn(atom.config.rootSettings, 'a', 'd')
