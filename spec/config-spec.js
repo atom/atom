@@ -122,7 +122,7 @@ describe('Config', () => {
     })
   })
 
-  fdescribe('.getAll(keyPath, {scope, sources, excludeSources})', () => {
+  describe('.getAll(keyPath, {scope, sources, excludeSources})', () => {
     it('reads all of the values for a given key-path', () => {
       expect(atom.config.set('foo', 41)).toBe(true)
       expect(atom.config.set('foo', 43, {scopeSelector: '.a .b'})).toBe(true)
@@ -1916,20 +1916,60 @@ describe('Config', () => {
         })
       })
 
-      describe('project configs', () => {
-        // it('should properly get project configs', () => {
-        //   atom.config.resetProjectSettings({'foo', 'wei'})
-        // })
-        it('should get project settings with higher priority than global settings')
-        it('should get project settings with higher priority than root config settings')
-        it('correctly gets nested properties for project configs')
-        it('successfully gets configurations with scope params')
-        it('returns a deep clone of the property value')
+    describe('project configs', () => {
+        it('should properly get project configs', () => {
+          atom.config.resetProjectSettings({'foo': 'wei'})
+          expect(atom.config.get('foo')).toBe('wei')
+          atom.config.resetProjectSettings({'foo': {'bar' : 'baz'}})
+          expect(atom.config.get('foo.bar')).toBe('baz')
+        })
+
+        it('should get project settings with higher priority than global settings', () => {
+          atom.config.setOn(atom.config.globalSettings, 'foo', 'bar') // Avoiding touching the dirty state.
+          atom.config.resetProjectSettings({'foo': 'baz'})
+          expect(atom.config.get('foo')).toBe('baz')
+        })
+        it('should get project settings with higher priority than root config settings', () => {
+          atom.config.setOn(atom.config.rootSettings, 'foo', 'bar')
+          atom.config.resetProjectSettings({'foo': 'baz'})
+          expect(atom.config.get('foo')).toBe('baz')
+        })
+
+        it('should get project settings with low priority than dirty config settings', () => {
+          atom.config.set('foo', 'bar')
+          atom.config.resetProjectSettings({'foo': 'baz'})
+          expect(atom.config.get('foo')).toBe('bar')
+        })
+
+        it('correctly gets nested and scoped properties for project configs', () => {
+          expect(atom.config.setOn(atom.config.projectSettings, 'foo.bar.str', 'global')).toBe(true)
+          expect(atom.config.setOn(atom.config.projectSettings, 'foo.bar.str', 'scoped', {scopeSelector: '.source.js'})).toBe(true)
+          expect(atom.config.get('foo.bar.str')).toBe('global')
+          expect(atom.config.get('foo.bar.str', {scope: ['.source.js']})).toBe('scoped')
+        })
+
+        it('returns a deep clone of the property value', () => {
+          atom.config.setOn(atom.config.projectSettings, 'value', {array: [1, {b: 2}, 3]})
+          const retrievedValue = atom.config.get('value')
+          retrievedValue.array[0] = 4
+          retrievedValue.array[1].b = 2.1
+          expect(atom.config.get('value')).toEqual({array: [1, {b: 2}, 3]})
+        })
       })
     })
 
-    describe('config.getAll', () => {
+    fdescribe('config.getAll', () => {
+      it ('should get settings in the same way .get would return them', () => {
+        atom.config.setOn(atom.config.globalSettings, 'a', 'b')
+        atom.config.setOn(atom.config.rootSettings, 'a', 'd')
+        atom.config.setOn(atom.config.projectSettings, 'a', 'f')
+        expect(atom.config.getAll('a')).toBe([{
+          scopeSelector: '*',
+          value: 'f'
+        }])
+      })
 
+      it ('should correctly deal with scoped values of different priorities')
     })
   })
 })
