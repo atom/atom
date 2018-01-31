@@ -680,7 +680,7 @@ class Config {
     return reducedResults
   }
 
-  reduceAllResults(allResults) {
+  reduceAllResults (allResults) {
     const reducer = (accumulator, currentArr) => {
       for (let item of currentArr) {
         const shouldAdd = accumulator.every((el) => el.scopeSelector !== item.scopeSelector)
@@ -747,9 +747,7 @@ class Config {
   // In general, the state of dirtySettings should match the state of globalSettings,
   // meaning that one should not be set without the other.
   setOn (settings, ...args) {
-
     let [keyPath, value, options = {}] = args
-
 
     const scopeSelector = options.scopeSelector
     let {source, emitChange} = options
@@ -1030,7 +1028,6 @@ class Config {
     }
 
     if (newSettings['*'] != null) {
-
       const scopedSettings = newSettings
       newSettings = newSettings['*']
       delete scopedSettings['*']
