@@ -435,9 +435,9 @@ class Config {
     // Settings that have changed during the current session.
     this.dirtySettings = new SettingsContext()
 
-    // Settings for the project roots.
+    // Settings for the project paths.
     // This will be a map of String -> SettingsContext
-    this.rootSettingsMap = new Map()
+    this.pathSettingsMap = new Map()
 
     this.defaultSettings = {}
 
@@ -609,7 +609,7 @@ class Config {
     // 2. rootSettings (mounted roots should take precedence over personal settings)
     // 3. globalSettings
     let getVal = null
-    const settings = [this.dirtySettings, this.projectSettings, ...this.rootSettingsMap.values(), this.globalSettings]
+    const settings = [this.dirtySettings, this.projectSettings, ...this.pathSettingsMap.values(), this.globalSettings]
     for (let setting of settings) {
       if (scope != null) {
         const value = this.getRawScopedValueFrom(setting, scope, keyPath, options)
@@ -621,6 +621,9 @@ class Config {
     }
 
     for (let setting of settings) {
+      if (keyPath === "foo") {
+        console.log(setting.unscopedSettings)
+      }
       getVal = this.getRawValueFrom(setting, keyPath, options)
 
       if (getVal != null && !(isPlainObject(getVal) && _.isEmpty(getVal))) {
@@ -647,7 +650,7 @@ class Config {
     }
 
     const allResults = []
-    const settings = [this.dirtySettings, ...this.rootSettingsMap.values(), this.projectSettings, this.globalSettings]
+    const settings = [this.dirtySettings, ...this.pathSettingsMap.values(), this.projectSettings, this.globalSettings]
 
     for (let setting of settings) {
       result = []
@@ -844,10 +847,9 @@ class Config {
     const arrs = []
     arrs.push(_.uniq(_.pluck(this.globalSettings.scopedSettings.propertySets, 'source')))
     arrs.push(_.uniq(_.pluck(this.projectSettings.scopedSettings.propertySets, 'source')))
-    for (let settingsContext of this.rootSettingsMap.values()) {
+    for (let settingsContext of this.pathSettingsMap.values()) {
       arrs.push(_.uniq(_.pluck(settingsContext.scopedSettings.propertySets, 'source')))
     }
-    // const rootSources = _.uniq(_.pluck(this.rootSettings.scopedSettings.propertySets, 'source'))
     return (_.uniq(_.flatten(arrs))).sort()
   }
 
@@ -1021,6 +1023,15 @@ class Config {
     this.resetSettingsFor(newSettings, this.globalSettings, true)
   }
 
+  resetPathSettings (path, newSettings) {
+    this.pathSettingsMap.set(path, new SettingsContext())
+    this.resetSettingsFor(newSettings, this.pathSettingsMap.get(path))
+  }
+
+  clearPathSettings (path) {
+    this.pathSettingsMap.delete(path)
+  }
+
   resetProjectSettings (newSettings) {
     this.resetSettingsFor(newSettings, this.projectSettings)
   }
@@ -1064,6 +1075,10 @@ class Config {
         this.pendingOperations = []
       }
     })
+  }
+
+  clearPathSettings(path) {
+
   }
 
   getRawValue (keyPath, options = {}) {
