@@ -432,11 +432,12 @@ class Config {
     // Settings for the current active project.
     this.projectSettings = new SettingsContext()
 
-    // Settings for the project roots.
-    this.rootSettings = new SettingsContext()
-
     // Settings that have changed during the current session.
     this.dirtySettings = new SettingsContext()
+
+    // Settings for the project roots.
+    // This will be a map of String -> SettingsContext
+    this.rootSettingsMap = new Map()
 
     this.defaultSettings = {}
 
@@ -608,7 +609,7 @@ class Config {
     // 2. rootSettings (mounted roots should take precedence over personal settings)
     // 3. globalSettings
     let getVal = null
-    const settings = [this.dirtySettings, this.projectSettings, this.rootSettings, this.globalSettings]
+    const settings = [this.dirtySettings, this.projectSettings, ...this.rootSettingsMap.values(), this.globalSettings]
     for (let setting of settings) {
       if (scope != null) {
         const value = this.getRawScopedValueFrom(setting, scope, keyPath, options)
@@ -646,7 +647,7 @@ class Config {
     }
 
     const allResults = []
-    const settings = [this.dirtySettings, this.rootSettings, this.projectSettings, this.globalSettings]
+    const settings = [this.dirtySettings, ...this.rootSettingsMap.values(), this.projectSettings, this.globalSettings]
 
     for (let setting of settings) {
       result = []
@@ -840,10 +841,14 @@ class Config {
   // Extended: Get an {Array} of all of the `source` {String}s with which
   // settings have been added via {::set}.
   getSources () {
-    const globalSources = _.uniq(_.pluck(this.globalSettings.scopedSettings.propertySets, 'source'))
-    const rootSources = _.uniq(_.pluck(this.rootSettings.scopedSettings.propertySets, 'source'))
-    const projectSources = _.uniq(_.pluck(this.projectSettings.scopedSettings.propertySets, 'source'))
-    return _.uniq([].concat(globalSources, rootSources, projectSources)).sort()
+    const arrs = []
+    arrs.push(_.uniq(_.pluck(this.globalSettings.scopedSettings.propertySets, 'source')))
+    arrs.push(_.uniq(_.pluck(this.projectSettings.scopedSettings.propertySets, 'source')))
+    for (let settingsContext of this.rootSettingsMap.values()) {
+      arrs.push(_.uniq(_.pluck(settingsContext.scopedSettings.propertySets, 'source')))
+    }
+    // const rootSources = _.uniq(_.pluck(this.rootSettings.scopedSettings.propertySets, 'source'))
+    return (_.uniq(_.flatten(arrs))).sort()
   }
 
   // Extended: Retrieve the schema for a specific key path. The schema will tell
