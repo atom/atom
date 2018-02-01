@@ -1837,7 +1837,7 @@ describe('Config', () => {
   })
 
   describe('project/path specific configs', () => {
-    describe('config.setConfigForRoot', () => {
+    describe('config.resetPathSettings', () => {
       it('should not write to the global configuration file')
       it('should be able to set multiple path configs')
       it('should not be able to have multiple path configs with same path')
@@ -1854,19 +1854,7 @@ describe('Config', () => {
 
     describe('config.get', () => {
       describe('getting path configs', () => {
-        it('should properly get path configs', () => {
-          // atom.config.setOn(atom.config.rootSettings, 'foo', 'baz')
-          // expect(atom.config.get('foo')).toBe('baz')
-          // atom.config.setOn(atom.config.rootSettings, 'roo.bar', 'qux')
-          // expect(atom.config.get('roo.bar')).toBe('qux')
-          // atom.config.setOn(atom.config.rootSettings, 'x.y', 1, {scopeSelector: '.foo', source: 'a'})
-          // expect(atom.config.get(null, {sources: ['a'], scope: ['.foo']}).x.y).toBe(1)
-        })
-
-        it('should get root configs for multiple roots')
-        it('should get root configs for most recently set root if path is same')
-
-        it('should get root config settings with higher priority than global settings', () => {
+        it('should get path config settings with higher priority than global settings', () => {
           atom.config.globalSettings.shouldSave = false
           atom.config.setOn(atom.config.globalSettings, 'foo', 'bar')
           expect(atom.config.get('foo')).toBe('bar')
@@ -1883,14 +1871,27 @@ describe('Config', () => {
           expect(atom.config.get('foo')).toBe('bar')
         })
 
-        it('correctly gets nested properties for root configs', () => {
-          atom.config.setOn(atom.config.rootSettings, 'foo.bar.baz.qux', 'phil')
-          atom.config.resetProjectSettings({'foo': 'wei'})
-          expect(atom.config.get('foo.bar.baz.qux')).toBe('phil')
+        it('can handle multiple path configs at once', () => {
+          atom.config.resetPathSettings("~/path", {foo: 'bar'})
+          atom.config.resetPathSettings("~/math", {goo: 'gar'})
+          expect(atom.config.get('foo')).toBe('bar')
+          expect(atom.config.get('goo')).toBe('gar')
+        })
+
+        it('clears path settings', () => {
+          atom.config.resetPathSettings("~/path", {foo: 'bar'})
+          expect(atom.config.get('foo')).toBe('bar')
+          atom.config.clearPathSettings("~/path")
+          expect(atom.config.get('foo')).toBeUndefined()
+        })
+
+        it('correctly gets nested properties for path configs', () => {
+          atom.config.resetPathSettings("~/path", {'foo': {'bar': {'baz' : 'phil'}}})
+          expect(atom.config.get('foo.bar.baz')).toBe('phil')
         })
 
         it('returns a deep clone of the property value', () => {
-          atom.config.setOn(atom.config.rootSettings, 'value', {array: [1, {b: 2}, 3]})
+          atom.config.resetPathSettings("~/bath", {'value': {array: [1, {b: 2}, 3]}})
           const retrievedValue = atom.config.get('value')
           retrievedValue.array[0] = 4
           retrievedValue.array[1].b = 2.1
@@ -1911,8 +1912,8 @@ describe('Config', () => {
           atom.config.resetProjectSettings({'foo': 'baz'})
           expect(atom.config.get('foo')).toBe('baz')
         })
-        it('should get project settings with higher priority than root config settings', () => {
-          atom.config.setOn(atom.config.rootSettings, 'foo', 'bar')
+        it('should get project settings with higher priority than path config settings', () => {
+          atom.config.resetPathSettings('~/myPath', {foo: 'bar'})
           atom.config.resetProjectSettings({'foo': 'baz'})
           expect(atom.config.get('foo')).toBe('baz')
         })
@@ -1943,7 +1944,7 @@ describe('Config', () => {
     describe('config.getAll', () => {
       it ('should get settings in the same way .get would return them', () => {
         atom.config.setOn(atom.config.globalSettings, 'a', 'b')
-        atom.config.setOn(atom.config.rootSettings, 'a', 'd')
+        atom.config.resetPathSettings('~/myPath', {'a': 'b'})
         atom.config.setOn(atom.config.projectSettings, 'a', 'f')
         expect(atom.config.getAll('a')).toEqual([{
           scopeSelector: '*',

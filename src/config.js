@@ -621,9 +621,6 @@ class Config {
     }
 
     for (let setting of settings) {
-      if (keyPath === "foo") {
-        console.log(setting.unscopedSettings)
-      }
       getVal = this.getRawValueFrom(setting, keyPath, options)
 
       if (getVal != null && !(isPlainObject(getVal) && _.isEmpty(getVal))) {
@@ -1029,7 +1026,9 @@ class Config {
   }
 
   clearPathSettings (path) {
+    console.log('what?')
     this.pathSettingsMap.delete(path)
+    console.log(this.pathSettingsMap)
   }
 
   resetProjectSettings (newSettings) {
@@ -1075,10 +1074,6 @@ class Config {
         this.pendingOperations = []
       }
     })
-  }
-
-  clearPathSettings(path) {
-
   }
 
   getRawValue (keyPath, options = {}) {
