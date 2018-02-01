@@ -1401,6 +1401,15 @@ class Config {
     }
   }
 
+  loadProjectConfigs(configPaths) {
+    // For each path in configPaths, try to resolve it.
+    // If it resolves, call this.loadConfigAtPath
+  }
+
+  loadConfigAtPath(path) {
+    // Try to load the file at path/.atom/config.cson
+  }
+
   // Legacy getters, in case a package in the past directly accessed
   // settings before it was refactored to settingsManager.
   get settings () {

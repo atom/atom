@@ -1951,8 +1951,13 @@ describe('Config', () => {
           value: 'f'
         }])
       })
-
       it ('should correctly deal with scoped values of different priorities')
+    })
+
+    describe('dirty state', () => {
+      it('should have no dirty state when config is initially loaded')
+      it('should update the dirty state whenever set is called')
+      it('should update the dirty state whenever unset is called')
     })
   })
 })

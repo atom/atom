@@ -29,6 +29,7 @@ const PackageManager = require('./package-manager')
 const ThemeManager = require('./theme-manager')
 const MenuManager = require('./menu-manager')
 const ContextMenuManager = require('./context-menu-manager')
+const PathConfigManager = require('./path-config-manager')
 const CommandInstaller = require('./command-installer')
 const CoreURIHandlers = require('./core-uri-handlers')
 const ProtocolHandlerInstaller = require('./protocol-handler-installer')
@@ -149,6 +150,7 @@ class AtomEnvironment {
       config: this.config,
       applicationDelegate: this.applicationDelegate
     })
+
     this.commandInstaller = new CommandInstaller(this.applicationDelegate)
     this.protocolHandlerInstaller = new ProtocolHandlerInstaller()
 

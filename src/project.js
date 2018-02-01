@@ -53,6 +53,8 @@ class Project extends Model {
     this.repositories = []
   }
 
+
+
   reset (packageManager) {
     this.emitter.dispose()
     this.emitter = new Emitter()
