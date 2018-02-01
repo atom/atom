@@ -5,6 +5,7 @@ const {
   pushKeyPath, splitKeyPath
 } = require('key-path-helpers')
 const Color = require('./color')
+// const ConfigFile = require('./config-file')
 const ScopedPropertyStore = require('scoped-property-store')
 const ScopeDescriptor = require('./scope-descriptor')
 
@@ -1409,6 +1410,7 @@ class Config {
   loadConfigAtPath(path) {
     // Try to load the file at path/.atom/config.cson
   }
+
 
   // Legacy getters, in case a package in the past directly accessed
   // settings before it was refactored to settingsManager.
