@@ -1,11 +1,15 @@
 const _ = require('underscore-plus')
+const fs = require('fs-plus')
+const path = require('path')
+const os = require('os')
+
 const {Emitter} = require('event-kit')
 const {
   getValueAtKeyPath, setValueAtKeyPath, deleteValueAtKeyPath,
   pushKeyPath, splitKeyPath
 } = require('key-path-helpers')
 const Color = require('./color')
-// const ConfigFile = require('./config-file')
+const ConfigFile = require('./config-file')
 const ScopedPropertyStore = require('scoped-property-store')
 const ScopeDescriptor = require('./scope-descriptor')
 
@@ -1027,9 +1031,11 @@ class Config {
   }
 
   clearPathSettings (path) {
-    console.log('what?')
     this.pathSettingsMap.delete(path)
-    console.log(this.pathSettingsMap)
+  }
+
+  clearAllPathSettings () {
+    this.pathSettingsMap.clear()
   }
 
   resetProjectSettings (newSettings) {
@@ -1402,15 +1408,47 @@ class Config {
     }
   }
 
-  loadProjectConfigs(configPaths) {
-    // For each path in configPaths, try to resolve it.
-    // If it resolves, call this.loadConfigAtPath
+  async collectFilePromises(configPaths) {
+    return configPaths.map((curPath) => {
+      const jsonPath = path.join(curPath, '.atom', 'config.json')
+      return new Promise((resolve, reject) => {
+        fs.access(jsonPath, fs.constants.R_OK, (err) => {
+          if (err) {
+            resolve(jsonPath)
+          } else {
+            const csonPath = path.join(curPath, '.atom', 'config.cson')
+            resolve(csonPath)
+          }
+        })
+      })
+    })
   }
 
-  loadConfigAtPath(path) {
-    // Try to load the file at path/.atom/config.cson
-  }
+  async resetPathConfigsFromFiles(configPaths) {
+    const filePromises = this.collectFilePromises(configFilePaths)
+    await Promise.all(filePromises)
 
+    const files = filePromises.map((promise) => {
+      return promise.then((fileName) => {
+        const configFile = new ConfigFile(fileName)
+        return {
+          fileName,
+          configFile,
+          configFilePromise: configFile.reload()
+        }
+      })
+    })
+
+    await Promise.all(files.map((file) => file.configFilePromise))
+
+    // We now have an array of config files:
+    this.transact(() => {
+      this.clearAllPathSettings()
+      files.forEach((file) => {
+        this.resetPathSettings(file.fileName, file.configFile.get())
+      })
+    })
+  }
 
   // Legacy getters, in case a package in the past directly accessed
   // settings before it was refactored to settingsManager.

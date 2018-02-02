@@ -1,3 +1,8 @@
+const fs = require('fs-plus')
+const path = require('path')
+const os = require('os')
+const ConfigFile = require('../src/config-file')
+
 describe('Config', () => {
   let savedSettings
 
@@ -1958,6 +1963,20 @@ describe('Config', () => {
       it('should have no dirty state when config is initially loaded')
       it('should update the dirty state whenever set is called')
       it('should update the dirty state whenever unset is called')
+    })
+
+    describe('loading project configs', () => {
+      it('successfully loads config file from path', () => {
+        const filepath = fs.existsSync(path.join(process.env.ATOM_HOME, 'config.json'))
+          ? path.join(process.env.ATOM_HOME, 'config.json')
+          : path.join(process.env.ATOM_HOME, 'config.cson')
+
+        const configFile = new ConfigFile(filepath)
+
+        configFile.reload().then(() => {
+          console.log(configFile.get())
+        })
+      })
     })
   })
 })
