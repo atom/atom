@@ -1426,21 +1426,20 @@ class Config {
   }
 
   async resetPathConfigsFromFiles(configPaths) {
-    const filePromises = this.collectFilePromises(configFilePaths)
-    await Promise.all(filePromises)
-
-    const files = filePromises.map((promise) => {
-      return promise.then((fileName) => {
-        const configFile = new ConfigFile(fileName)
-        return {
-          fileName,
-          configFile,
-          configFilePromise: configFile.reload()
-        }
-      })
+    const filePromises = this.collectFilePromises(configPaths)
+    const resolvedValues = await Promise.all(filePromises)
+    const files = resolvedValues.map((file) => {
+      const configFile = new ConfigFile(fileName)
+      return {
+        fileName,
+        configFile,
+        configFilePromise: configFile.reload()
+      }
     })
 
     await Promise.all(files.map((file) => file.configFilePromise))
+
+    console.log(files[0].configFile.get())
 
     this.transact(() => {
       files.forEach((file) => {

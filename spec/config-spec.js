@@ -2,6 +2,10 @@ const fs = require('fs-plus')
 const path = require('path')
 const os = require('os')
 const ConfigFile = require('../src/config-file')
+const temp = require('temp').track()
+
+
+
 
 describe('Config', () => {
   let savedSettings
@@ -1965,18 +1969,27 @@ describe('Config', () => {
       it('should update the dirty state whenever unset is called')
     })
 
-    describe('loading project configs', () => {
-      it('successfully loads config file from path', () => {
-        const filepath = fs.existsSync(path.join(process.env.ATOM_HOME, 'config.json'))
-          ? path.join(process.env.ATOM_HOME, 'config.json')
-          : path.join(process.env.ATOM_HOME, 'config.cson')
+    fdescribe('loading project configs', () => {
+      let filePath, csonPath, jsonPath
 
-        const configFile = new ConfigFile(filepath)
+      beforeEach(async () => {
+        jasmine.useRealClock()
+        const tempDir = fs.realpathSync(temp.mkdirSync())
+        jsonPath = path.join(tempDir, 'the-config.cson')
+        csonPath = path.join(tempDir, 'the-config.json')
 
-        configFile.reload().then(() => {
-          console.log(configFile.get())
-        })
       })
+
+      it('turns an empty config file into null settings.')
+      it('reads from multiple files and resolves them to different settingsContexts')
+      it('can read and apply settings from files')
+      it('does not apply invalid settings')
     })
   })
 })
+
+function writeFileSync (filePath, content, seconds = 2) {
+  const utime = (Date.now() / 1000) + seconds
+  fs.writeFileSync(filePath, content)
+  fs.utimesSync(filePath, utime, utime)
+}
