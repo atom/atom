@@ -1411,12 +1411,13 @@ class Config {
   async collectFilePromises(configPaths) {
     return configPaths.map((curPath) => {
       const jsonPath = path.join(curPath, '.atom', 'config.json')
+      const csonPath = path.join(curPath, '.atom', 'config.cson')
+
       return new Promise((resolve, reject) => {
         fs.access(jsonPath, fs.constants.R_OK, (err) => {
           if (err) {
             resolve(jsonPath)
           } else {
-            const csonPath = path.join(curPath, '.atom', 'config.cson')
             resolve(csonPath)
           }
         })
