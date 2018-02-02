@@ -1408,7 +1408,7 @@ class Config {
     }
   }
 
-  async collectFilePromises(configPaths) {
+  collectFilePromises(configPaths) {
     return configPaths.map((curPath) => {
       const jsonPath = path.join(curPath, '.atom', 'config.json')
       const csonPath = path.join(curPath, '.atom', 'config.cson')
@@ -1442,9 +1442,7 @@ class Config {
 
     await Promise.all(files.map((file) => file.configFilePromise))
 
-    // We now have an array of config files:
     this.transact(() => {
-      this.clearAllPathSettings()
       files.forEach((file) => {
         this.resetPathSettings(file.fileName, file.configFile.get())
       })
