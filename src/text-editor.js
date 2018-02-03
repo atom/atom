@@ -3668,11 +3668,21 @@ class TextEditor {
   //
   // Returns a {Range}.
   bufferRangeForScopeAtCursor (scopeSelector) {
-    return this.bufferRangeForScopeAtPosition(scopeSelector, this.getCursorBufferPosition())
+    return this.bufferRangeForScopeAtBufferPosition(scopeSelector, this.getCursorBufferPosition())
   }
-
-  bufferRangeForScopeAtPosition (scopeSelector, position) {
-    return this.buffer.getLanguageMode().bufferRangeForScopeAtPosition(scopeSelector, position)
+  
+  // Extended: Get the range in buffer coordinates of all tokens surrounding the
+  // given position in buffer coordinates that match the given scope selector.
+  //
+  // For example, if you wanted to find the string surrounding the cursor, you
+  // could call `editor.bufferRangeForScopeAtBufferPosition(".string.quoted", this.getCursorBufferPosition())`.
+  //
+  // * `scopeSelector` {String} selector. e.g. `'.source.ruby'`
+  // * `bufferPosition` A {Point} or {Array} of [row, column]
+  //
+  // Returns a {Range}.
+  bufferRangeForScopeAtBufferPosition (scopeSelector, bufferPosition) {
+    return this.buffer.getLanguageMode().bufferRangeForScopeAtPosition(scopeSelector, bufferPosition)
   }
 
   // Extended: Determine if the given row is entirely a comment
