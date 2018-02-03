@@ -1,11 +1,10 @@
+const CSON = require('season')
+const dedent = require('dedent')
 const fs = require('fs-plus')
 const path = require('path')
 const os = require('os')
 const ConfigFile = require('../src/config-file')
 const temp = require('temp').track()
-
-
-
 
 describe('Config', () => {
   let savedSettings
@@ -1970,20 +1969,76 @@ describe('Config', () => {
     })
 
     fdescribe('loading project configs', () => {
-      let filePath, csonPath, jsonPath
+      let filePath, csonPath, jsonPath, tempDir, csonContent, jsonContent
 
-      beforeEach(async () => {
+      beforeEach(() => {
         jasmine.useRealClock()
-        const tempDir = fs.realpathSync(temp.mkdirSync())
-        jsonPath = path.join(tempDir, 'the-config.cson')
-        csonPath = path.join(tempDir, 'the-config.json')
+        tempDir = fs.realpathSync(temp.mkdirSync())
+        tempDir2 = fs.realpathSync(temp.mkdirSync())
 
+        jsonPath = path.join(tempDir, '.atom', 'config.json')
+        jsonPath2 = path.join(tempDir2, '.atom', 'config.json')
+        csonPath = path.join(tempDir, '.atom', 'config.cson')
+        csonContent = dedent `
+          '*':
+            foo: 'bar'
+
+          'javascript':
+            boo: 'baz'
+        `
+
+        jsonContent = dedent `
+        {
+          "*": {
+            "moo": "mar"
+          },
+
+          "javascript": {
+            "goo": "gaz"
+          }
+        }
+        `
       })
 
-      it('turns an empty config file into null settings.')
+      it('it can read and act upon a cson file.', async () => {
+        writeFileSync(csonPath, csonContent)
+        await atom.config.resetPathConfigsFromFiles([tempDir])
+        expect(atom.config.get('foo')).toBe('bar')
+        expect(atom.config.get('boo', {scope: ['javascript']})).toBe('baz')
+      })
+
+      it('it can read and act upon a json file', async () => {
+        writeFileSync(jsonPath, jsonContent)
+        console.log(CSON.readFileSync(jsonPath))
+        await atom.config.resetPathConfigsFromFiles([tempDir])
+        expect(atom.config.get('moo')).toBe('mar')
+        expect(atom.config.get('goo', {scope: ['javascript']})).toBe('gaz')
+      })
+
+      it('it can read and act upon a cson file.', async () => {
+        writeFileSync(csonPath, csonContent)
+        await atom.config.resetPathConfigsFromFiles([tempDir])
+        expect(atom.config.get('foo')).toBe('bar')
+        expect(atom.config.get('boo', {scope: ['javascript']})).toBe('baz')
+      })
+
+      it('it can read and act upon a json file', async () => {
+        writeFileSync(jsonPath, jsonContent)
+        console.log(CSON.readFileSync(jsonPath))
+        await atom.config.resetPathConfigsFromFiles([tempDir])
+        expect(atom.config.get('moo')).toBe('mar')
+        expect(atom.config.get('goo', {scope: ['javascript']})).toBe('gaz')
+      })
+
+      it('will do nothing if the file does not exist.', () => {
+        await.config.resetPathConfigsFromFiles(["foobar"])
+        expect(Array.from(atom.config.pathSettingsMap.value).length).toBe(0)
+      })
+
       it('reads from multiple files and resolves them to different settingsContexts')
       it('can read and apply settings from files')
       it('does not apply invalid settings')
+      it('works its way up the file tree to find a .atom file')
     })
   })
 })

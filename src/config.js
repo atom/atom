@@ -614,7 +614,8 @@ class Config {
     // 2. rootSettings (mounted roots should take precedence over personal settings)
     // 3. globalSettings
     let getVal = null
-    const settings = [this.dirtySettings, this.projectSettings, ...this.pathSettingsMap.values(), this.globalSettings]
+    const settings = _.flatten([this.dirtySettings, this.projectSettings, Array.from(this.pathSettingsMap.values()), this.globalSettings])
+
     for (let setting of settings) {
       if (scope != null) {
         const value = this.getRawScopedValueFrom(setting, scope, keyPath, options)
@@ -1416,9 +1417,9 @@ class Config {
       return new Promise((resolve, reject) => {
         fs.access(jsonPath, fs.constants.R_OK, (err) => {
           if (err) {
-            resolve(jsonPath)
-          } else {
             resolve(csonPath)
+          } else {
+            resolve(jsonPath)
           }
         })
       })
@@ -1428,7 +1429,7 @@ class Config {
   async resetPathConfigsFromFiles(configPaths) {
     const filePromises = this.collectFilePromises(configPaths)
     const resolvedValues = await Promise.all(filePromises)
-    const files = resolvedValues.map((file) => {
+    const files = resolvedValues.map((fileName) => {
       const configFile = new ConfigFile(fileName)
       return {
         fileName,
@@ -1438,9 +1439,6 @@ class Config {
     })
 
     await Promise.all(files.map((file) => file.configFilePromise))
-
-    console.log(files[0].configFile.get())
-
     this.transact(() => {
       files.forEach((file) => {
         this.resetPathSettings(file.fileName, file.configFile.get())
