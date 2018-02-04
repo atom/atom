@@ -4577,7 +4577,7 @@ module.exports = class TextEditor {
       this.getCursorBufferPosition()
     );
   }
-  
+
   // Extended: Get the range in buffer coordinates of all tokens surrounding the
   // given position in buffer coordinates that match the given scope selector.
   //
