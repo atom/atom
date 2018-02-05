@@ -1968,7 +1968,7 @@ describe('Config', () => {
       it('should update the dirty state whenever unset is called')
     })
 
-    fdescribe('loading project configs', () => {
+    describe('loading project configs', () => {
       let filePath, csonPath, jsonPath, tempDir, csonContent, jsonContent
 
       beforeEach(() => {
