@@ -64,13 +64,7 @@ function sortTopologically (originalOrder, edgesById) {
     sorted.push(id)
   }
 
-  while (true) {
-    const unmarkedId = originalOrder.find(id => !marked.has(id))
-    if (unmarkedId == null) {
-      break
-    }
-    visit(unmarkedId)
-  }
+  originalOrder.forEach(visit)
   return sorted
 }
 
