@@ -2009,7 +2009,6 @@ describe('Config', () => {
 
       it('it can read and act upon a json file', async () => {
         writeFileSync(jsonPath, jsonContent)
-        console.log(CSON.readFileSync(jsonPath))
         await atom.config.resetPathConfigsFromFiles([tempDir])
         expect(atom.config.get('moo')).toBe('mar')
         expect(atom.config.get('goo', {scope: ['javascript']})).toBe('gaz')
@@ -2024,7 +2023,6 @@ describe('Config', () => {
 
       it('it can read and act upon a json file', async () => {
         writeFileSync(jsonPath, jsonContent)
-        console.log(CSON.readFileSync(jsonPath))
         await atom.config.resetPathConfigsFromFiles([tempDir])
         expect(atom.config.get('moo')).toBe('mar')
         expect(atom.config.get('goo', {scope: ['javascript']})).toBe('gaz')
