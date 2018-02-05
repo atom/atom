@@ -616,7 +616,7 @@ class Config {
     let getVal = null
     const settings = _.flatten([this.dirtySettings, this.projectSettings, Array.from(this.pathSettingsMap.values()), this.globalSettings])
 
-    for (let setting of settings) {
+    for (const setting of settings) {
       if (scope != null) {
         const value = this.getRawScopedValueFrom(setting, scope, keyPath, options)
         // Do not need to replace scoped value with default.
@@ -647,16 +647,21 @@ class Config {
   //  * `scopeDescriptor` The {ScopeDescriptor} with which the value is associated
   //  * `value` The value for the key-path
   getAll (keyPath, options = {}) {
-    let globalValue, result, scope
+    let scope
     if (options != null) {
       ({scope} = options)
     }
 
     const allResults = []
-    const settings = [this.dirtySettings, ...this.pathSettingsMap.values(), this.projectSettings, this.globalSettings]
+    const settings = [
+      this.dirtySettings,
+       ...this.pathSettingsMap.values(),
+      this.projectSettings,
+      this.globalSettings
+    ]
 
     for (let setting of settings) {
-      result = []
+      let result = []
       if (scope != null) {
         let legacyScopeDescriptor
         const scopeDescriptor = ScopeDescriptor.fromObject(scope)
@@ -677,17 +682,17 @@ class Config {
       allResults.push(result)
     }
 
-    const reducedResults = this.reduceAllResults(allResults)
+    const reducedResults = this.getUniqueScopeSelectors(allResults)
 
     delete options.scope
-    globalValue = this.get(keyPath, options)
+    const globalValue = this.get(keyPath, options)
     if (globalValue) {
       reducedResults.push({scopeSelector: '*', value: globalValue})
     }
     return reducedResults
   }
 
-  reduceAllResults (allResults) {
+  getUniqueScopeSelectors (allResults) {
     const reducer = (accumulator, currentArr) => {
       for (let item of currentArr) {
         const shouldAdd = accumulator.every((el) => el.scopeSelector !== item.scopeSelector)

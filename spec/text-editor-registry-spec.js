@@ -329,6 +329,7 @@ describe('TextEditorRegistry', function () {
         expect(editor.getSoftTabs()).toBe(true)
         atom.config.set('editor.softTabs', false)
         expect(editor.getSoftTabs()).toBe(false)
+        
       })
     })
 
