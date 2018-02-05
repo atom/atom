@@ -1,8 +1,6 @@
 const _ = require('underscore-plus')
 const fs = require('fs-plus')
 const path = require('path')
-const os = require('os')
-
 const {Emitter} = require('event-kit')
 const {
   getValueAtKeyPath, setValueAtKeyPath, deleteValueAtKeyPath,
