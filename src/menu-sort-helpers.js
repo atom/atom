@@ -45,7 +45,7 @@ function indexOfGroupContainingCommand (groups, command, ignoreGroup) {
 }
 
 // Sort nodes topologically using a depth-first approach. Encountered cycles
-// and broken.
+// are broken.
 function sortTopologically (originalOrder, edgesById) {
   const sorted = []
   const marked = new Set()
