@@ -682,17 +682,7 @@ class Config {
       allResults.push(result)
     }
 
-    const reducedResults = this.getUniqueScopeSelectors(allResults)
-
-    delete options.scope
-    const globalValue = this.get(keyPath, options)
-    if (globalValue) {
-      reducedResults.push({scopeSelector: '*', value: globalValue})
-    }
-    return reducedResults
-  }
-
-  getUniqueScopeSelectors (allResults) {
+    // Get items with unique scope selectors.
     const reducer = (accumulator, currentArr) => {
       for (let item of currentArr) {
         const shouldAdd = accumulator.every((el) => el.scopeSelector !== item.scopeSelector)
@@ -700,7 +690,14 @@ class Config {
       }
       return accumulator
     }
-    return allResults.reduce(reducer, [])
+    const itemsWithUniqueScopeSelectors = allResults.reduce(reducer, [])
+
+    // Get the global value for the keypath.
+    const globalValue = this.get(keyPath, _.without(options, 'scope'))
+    if (globalValue) {
+      itemsWithUniqueScopeSelectors.push({scopeSelector: '*', value: globalValue})
+    }
+    return itemsWithUniqueScopeSelectors
   }
 
   // Essential: Sets the value for a configuration setting.
@@ -852,13 +849,13 @@ class Config {
   // Extended: Get an {Array} of all of the `source` {String}s with which
   // settings have been added via {::set}.
   getSources () {
-    const arrs = []
-    arrs.push(_.uniq(_.pluck(this.globalSettings.scopedSettings.propertySets, 'source')))
-    arrs.push(_.uniq(_.pluck(this.projectSettings.scopedSettings.propertySets, 'source')))
+    const sources = []
+    sources.push(_.pluck(this.globalSettings.scopedSettings.propertySets, 'source'))
+    sources.push(_.pluck(this.projectSettings.scopedSettings.propertySets, 'source'))
     for (let settingsContext of this.pathSettingsMap.values()) {
-      arrs.push(_.uniq(_.pluck(settingsContext.scopedSettings.propertySets, 'source')))
+      sources.push(_.pluck(settingsContext.scopedSettings.propertySets, 'source'))
     }
-    return (_.uniq(_.flatten(arrs))).sort()
+    return (_.uniq(_.flatten(sources))).sort()
   }
 
   // Extended: Retrieve the schema for a specific key path. The schema will tell
@@ -1095,8 +1092,8 @@ class Config {
   }
 
   getRawValueFrom (settings, keyPath, options = {}) {
-    const configIndex = (options.excludeSources || []).indexOf(this.getUserConfigPath())
-    if (configIndex < 0) {
+    const configBlackListed = !(options.excludeSources || []).includes(this.getUserConfigPath())
+    if (configBlackListed) {
       return getValueAtKeyPath(settings.unscopedSettings, keyPath)
     }
   }
@@ -1329,8 +1326,11 @@ class Config {
     const priority = this.priorityForSource(source)
     settings.scopedSettings.removePropertiesForSource(source)
     for (let scopeSelector in newScopedSettings) {
-      let curSettings = newScopedSettings[scopeSelector]
-      curSettings = this.makeValueConformToSchema(null, curSettings, {suppressException: true})
+      let curSettings = this.makeValueConformToSchema(
+        null,
+        newScopedSettings[scopeSelector],
+        {suppressException: true}
+      )
       const validatedSettings = {}
       validatedSettings[scopeSelector] = withoutEmptyObjects(curSettings)
       if (validatedSettings[scopeSelector] != null) {
