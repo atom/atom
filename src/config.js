@@ -653,7 +653,7 @@ class Config {
     const allResults = []
     const settings = [
       this.dirtySettings,
-       ...this.pathSettingsMap.values(),
+      ...this.pathSettingsMap.values(),
       this.projectSettings,
       this.globalSettings
     ]
@@ -1412,7 +1412,7 @@ class Config {
     }
   }
 
-  collectFilePromises(configPaths) {
+  collectFilePromises (configPaths) {
     return configPaths.map((curPath) => {
       const jsonPath = path.join(curPath, '.atom', 'config.json')
       const csonPath = path.join(curPath, '.atom', 'config.cson')
@@ -1429,7 +1429,7 @@ class Config {
     })
   }
 
-  async resetPathConfigsFromFiles(configPaths) {
+  async resetPathConfigsFromFiles (configPaths) {
     const filePromises = this.collectFilePromises(configPaths)
     const resolvedValues = await Promise.all(filePromises)
     const files = resolvedValues.map((fileName) => {

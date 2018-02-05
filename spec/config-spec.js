@@ -1973,6 +1973,7 @@ describe('Config', () => {
 
       beforeEach(() => {
         jasmine.useRealClock()
+        atom.config.clearAllPathSettings()
         tempDir = fs.realpathSync(temp.mkdirSync())
         tempDir2 = fs.realpathSync(temp.mkdirSync())
 
@@ -2002,6 +2003,8 @@ describe('Config', () => {
 
       it('it can read and act upon a cson file.', async () => {
         writeFileSync(csonPath, csonContent)
+        expect(atom.config.get('foo')).not.toBe('bar')
+        expect(atom.config.get('boo', {scope: ['javascript']})).not.toBe('baz')
         await atom.config.resetPathConfigsFromFiles([tempDir])
         expect(atom.config.get('foo')).toBe('bar')
         expect(atom.config.get('boo', {scope: ['javascript']})).toBe('baz')
@@ -2009,6 +2012,8 @@ describe('Config', () => {
 
       it('it can read and act upon a json file', async () => {
         writeFileSync(jsonPath, jsonContent)
+        expect(atom.config.get('moo')).not.toBe('mar')
+        expect(atom.config.get('goo', {scope: ['javascript']})).not.toBe('gaz')
         await atom.config.resetPathConfigsFromFiles([tempDir])
         expect(atom.config.get('moo')).toBe('mar')
         expect(atom.config.get('goo', {scope: ['javascript']})).toBe('gaz')
@@ -2016,6 +2021,8 @@ describe('Config', () => {
 
       it('it can read and act upon a cson file.', async () => {
         writeFileSync(csonPath, csonContent)
+        expect(atom.config.get('foo')).not.toBe('bar')
+        expect(atom.config.get('boo', {scope: ['javascript']})).not.toBe('baz')
         await atom.config.resetPathConfigsFromFiles([tempDir])
         expect(atom.config.get('foo')).toBe('bar')
         expect(atom.config.get('boo', {scope: ['javascript']})).toBe('baz')
@@ -2023,6 +2030,8 @@ describe('Config', () => {
 
       it('it can read and act upon a json file', async () => {
         writeFileSync(jsonPath, jsonContent)
+        expect(atom.config.get('moo')).not.toBe('mar')
+        expect(atom.config.get('goo', {scope: ['javascript']})).not.toBe('gaz')
         await atom.config.resetPathConfigsFromFiles([tempDir])
         expect(atom.config.get('moo')).toBe('mar')
         expect(atom.config.get('goo', {scope: ['javascript']})).toBe('gaz')
@@ -2033,9 +2042,21 @@ describe('Config', () => {
         expect(Array.from(atom.config.pathSettingsMap.value).length).toBe(0)
       })
 
-      it('reads from multiple files and resolves them to different settingsContexts')
-      it('can read and apply settings from files')
-      it('does not apply invalid settings')
+      it('reads from multiple files and resolves them to different settingsContexts', async () => {
+        expect(atom.config.get('foo')).not.toBe('bar')
+        expect(atom.config.get('moo')).not.toBe('mar')
+        await atom.config.resetPathConfigFromFiles([tempDir, tempDir2])
+        expect(Array.from(atom.config.pathSettingsMap.value).length).toBe(2)
+        expect(atom.config.get('foo')).toBe('bar')
+        expect(atom.config.get('moo')).toBe('mar')
+      })
+
+      it('does not apply invalid settings', async () => {
+        jsonContent[0] = "?"
+        await atom.config.resetPathConfigsFromFiles([tempDir])
+        expect(Array.from(atom.config.pathSettingsMap.value).length).toBe(0)
+
+      })
       it('works its way up the file tree to find a .atom file')
     })
   })
