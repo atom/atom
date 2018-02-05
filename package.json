@@ -155,9 +155,9 @@
     "language-mustache": "0.14.4",
     "language-objective-c": "0.15.1",
     "language-perl": "0.38.1",
-    "language-php": "0.43.0",
+    "language-php": "0.43.1",
     "language-property-list": "0.9.1",
-    "language-python": "0.48.0",
+    "language-python": "0.49.0",
     "language-ruby": "0.71.4",
     "language-ruby-on-rails": "0.25.3",
     "language-sass": "0.61.4",
@@ -169,7 +169,7 @@
     "language-toml": "0.18.2",
     "language-typescript": "0.3.0",
     "language-xml": "0.35.2",
-    "language-yaml": "0.31.1"
+    "language-yaml": "0.31.2"
   },
   "private": true,
   "scripts": {
