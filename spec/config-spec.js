@@ -2037,7 +2037,7 @@ describe('Config', () => {
         expect(atom.config.get('goo', {scope: ['javascript']})).toBe('gaz')
       })
 
-      it('will do nothing if the file does not exist.', async () => {
+      it('will do nothing if the file does not exist', async () => {
         await atom.config.resetPathConfigsFromFiles(["foobar"])
         expect(Array.from(atom.config.pathSettingsMap.value).length).toBe(0)
       })
@@ -2055,7 +2055,6 @@ describe('Config', () => {
         jsonContent[0] = "?"
         await atom.config.resetPathConfigsFromFiles([tempDir])
         expect(Array.from(atom.config.pathSettingsMap.value).length).toBe(0)
-
       })
       it('works its way up the file tree to find a .atom file')
     })
