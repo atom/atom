@@ -1439,7 +1439,6 @@ class Config {
     oldPaths.filter(path => !newPaths.includes(path))
       .forEach(path => this.clearPathSettings(path))
 
-    console.log(oldPaths)
     // If an item is in newPaths, but it is not in oldpaths, add it.
     await this.resetPathConfigsFromFiles(
       newPaths.filter(path => !oldPaths.includes(path))

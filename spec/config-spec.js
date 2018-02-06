@@ -2058,6 +2058,13 @@ describe('Config', () => {
       })
       it('works its way up the file tree to find a .atom file')
     })
+
+    describe("atom.config.diffResetPathConfigs", () => {
+      it("correctly diffResets when (1)")
+      it("correctly diffResets when (2)")
+      it("correctly diffResets when (3)")
+      it("correctly diffResets when (4)")
+    })
   })
 })
 
