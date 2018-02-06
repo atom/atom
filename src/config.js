@@ -1435,14 +1435,14 @@ class Config {
   async diffResetPathConfigs (newPaths) {
     const oldPaths = Array.from(this.pathSettingsMap.keys())
 
-    // If an item is in oldpaths, but it is not in newpaths, clear it.
-    oldPaths.filter(path => !newPaths.includes(path))
-      .forEach(path => this.clearPathSettings(path))
+      // If an item is in oldpaths, but it is not in newpaths, clear it.
+      oldPaths.filter(path => !newPaths.includes(path))
+        .forEach(path => this.clearPathSettings(path))
 
-    // If an item is in newPaths, but it is not in oldpaths, add it.
-    await this.resetPathConfigsFromFiles(
-      newPaths.filter(path => !oldPaths.includes(path))
-    )
+      // If an item is in newPaths, but it is not in oldpaths, add it.
+      await this.resetPathConfigsFromFiles(
+        newPaths.filter(path => !oldPaths.includes(path))
+      )
   }
 
   async resetPathConfigsFromFiles (configPaths) {

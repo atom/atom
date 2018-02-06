@@ -2057,14 +2057,16 @@ describe('Config', () => {
         expect(Array.from(atom.config.pathSettingsMap.value).length).toBe(0)
       })
       it('works its way up the file tree to find a .atom file')
+      fit("correctly diffResets when a new path is added", async () => {
+        await atom.config.diffResetPathConfigs([tempDir])
+        expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+
+      })
+      it("correctly diffResets when (b)")
+      it("correctly diffResets when (c)")
+      it("correctly diffResets when (d)")
     })
 
-    describe("atom.config.diffResetPathConfigs", () => {
-      it("correctly diffResets when (1)")
-      it("correctly diffResets when (2)")
-      it("correctly diffResets when (3)")
-      it("correctly diffResets when (4)")
-    })
   })
 })
 
