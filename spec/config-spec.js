@@ -2081,14 +2081,14 @@ describe('Config', () => {
 
 
       describe("diffReset", () => {
-        it("correctly diffResets when a new path is added", () => {
+        it("correctly diffResets when a new path is mounted", () => {
           waitsForPromise( async () => {
             expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(0)
             await atom.config.diffResetPathConfigs([tempDir])
             expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
           })
         })
-        it("correctly diffResets when a root is unmounted", () => {
+        it("correctly diffResets when a path is unmounted", () => {
           waitsForPromise( async () => {
             await atom.config.resetPathConfigsFromFiles([tempDir])
             expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
@@ -2097,11 +2097,26 @@ describe('Config', () => {
           })
         })
 
-        it("correctly diffResets when (c)")
-        it("correctly diffResets when (d)")
+        it("correctly diffResets when path is mounted and unmounted", () => {
+          waitsForPromise( async () => {
+            await atom.config.resetPathConfigsFromFiles([tempDir])
+            expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+            await atom.config.diffResetPathConfigs([tempDir2])
+            expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+          })
+        })
+        it("diffResets only the second call when called quickly in succession", () => {
+          waitsForPromise( async () => {
+            atom.config.diffResetPathConfigs(["foo"])
+            await atom.config.diffResetPathConfigs(["bar", "baz"])
+            const keys = Array.from(atom.config.pathSettingsMap.keys())
+            expect(keys.includes("bar/.atom/config.cson") && keys.includes("baz/.atom/config.cson")).toBe(true)
+            expect(keys.includes("foo/.atom/config.cson")).toBe(false)
+            expect(keys.length).toBe(2)
+          })
+        })
       })
     })
-
   })
 })
 
