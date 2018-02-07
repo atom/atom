@@ -426,6 +426,8 @@ class Config {
       properties: {}
     }
 
+    this.cancelToken = null
+
     const shouldSave = true
     const shouldUpdateDirtySettings = true
 
@@ -1429,9 +1431,8 @@ class Config {
     })
   }
 
-  // Takes in an array of project paths. Diffs
-  // this against the paths current in pathSettingsMap
-  // and only resets the ones that are different.
+  // Takes in an array of project paths. Then, diffs
+  // this array against the paths currently in pathSettingsMap.
   async diffResetPathConfigs (newPaths) {
     const oldPaths = Array.from(this.pathSettingsMap.keys())
 
@@ -1446,23 +1447,25 @@ class Config {
   }
 
   async resetPathConfigsFromFiles (configPaths) {
+    const cancelToken = {}
+    this.cancelToken = cancelToken
     const filePromises = this.collectFilePromises(configPaths)
     const resolvedValues = await Promise.all(filePromises)
     const files = resolvedValues.map((fileName) => {
       const configFile = new ConfigFile(fileName)
-      return {
-        fileName,
-        configFile,
-        configFilePromise: configFile.reload()
-      }
+      const configFilePromise = configFile.reload()
+      return { fileName, configFile, configFilePromise }
     })
 
     await Promise.all(files.map((file) => file.configFilePromise))
-    this.transact(() => {
-      files.forEach((file) => {
-        this.resetPathSettings(file.fileName, file.configFile.get())
+
+    // If this func. called multiple times quickly,
+    // this is a mechanism to cancel all but the last call.
+    if (cancelToken === this.cancelToken) {
+      this.transact(() => {
+        files.forEach(file => this.resetPathSettings(file.fileName, file.configFile.get()))
       })
-    })
+    }
   }
 
   // Legacy getters, in case a package in the past directly accessed

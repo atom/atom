@@ -2001,70 +2001,105 @@ describe('Config', () => {
         `
       })
 
-      it('it can read and act upon a cson file.', async () => {
-        writeFileSync(csonPath, csonContent)
-        expect(atom.config.get('foo')).not.toBe('bar')
-        expect(atom.config.get('boo', {scope: ['javascript']})).not.toBe('baz')
-        await atom.config.resetPathConfigsFromFiles([tempDir])
-        expect(atom.config.get('foo')).toBe('bar')
-        expect(atom.config.get('boo', {scope: ['javascript']})).toBe('baz')
+      it('it can read and act upon a cson file.', () => {
+        waitsForPromise( async () => {
+          writeFileSync(csonPath, csonContent)
+          expect(atom.config.get('foo')).not.toBe('bar')
+          expect(atom.config.get('boo', {scope: ['javascript']})).not.toBe('baz')
+          await atom.config.resetPathConfigsFromFiles([tempDir])
+          expect(atom.config.get('foo')).toBe('bar')
+          expect(atom.config.get('boo', {scope: ['javascript']})).toBe('baz')
+        })
       })
 
-      it('it can read and act upon a json file', async () => {
-        writeFileSync(jsonPath, jsonContent)
-        expect(atom.config.get('moo')).not.toBe('mar')
-        expect(atom.config.get('goo', {scope: ['javascript']})).not.toBe('gaz')
-        await atom.config.resetPathConfigsFromFiles([tempDir])
-        expect(atom.config.get('moo')).toBe('mar')
-        expect(atom.config.get('goo', {scope: ['javascript']})).toBe('gaz')
+      it('it can read and act upon a json file', () => {
+        waitsForPromise( async () => {
+          writeFileSync(csonPath, csonContent)
+          expect(atom.config.get('foo')).not.toBe('bar')
+          expect(atom.config.get('boo', {scope: ['javascript']})).not.toBe('baz')
+          await atom.config.resetPathConfigsFromFiles([tempDir])
+          expect(atom.config.get('foo')).toBe('bar')
+        })
       })
 
-      it('it can read and act upon a cson file.', async () => {
-        writeFileSync(csonPath, csonContent)
-        expect(atom.config.get('foo')).not.toBe('bar')
-        expect(atom.config.get('boo', {scope: ['javascript']})).not.toBe('baz')
-        await atom.config.resetPathConfigsFromFiles([tempDir])
-        expect(atom.config.get('foo')).toBe('bar')
-        expect(atom.config.get('boo', {scope: ['javascript']})).toBe('baz')
+      it('it can read and act upon a cson file.', () => {
+        waitsForPromise( async () => {
+          writeFileSync(csonPath, csonContent)
+          expect(atom.config.get('foo')).not.toBe('bar')
+          expect(atom.config.get('boo', {scope: ['javascript']})).not.toBe('baz')
+          await atom.config.resetPathConfigsFromFiles([tempDir])
+          expect(atom.config.get('foo')).toBe('bar')
+          expect(atom.config.get('boo', {scope: ['javascript']})).toBe('baz')
+        })
       })
 
-      it('it can read and act upon a json file', async () => {
-        writeFileSync(jsonPath, jsonContent)
-        expect(atom.config.get('moo')).not.toBe('mar')
-        expect(atom.config.get('goo', {scope: ['javascript']})).not.toBe('gaz')
-        await atom.config.resetPathConfigsFromFiles([tempDir])
-        expect(atom.config.get('moo')).toBe('mar')
-        expect(atom.config.get('goo', {scope: ['javascript']})).toBe('gaz')
+      it('it can read and act upon a json file', () => {
+        waitsForPromise( async () => {
+          writeFileSync(jsonPath, jsonContent)
+          expect(atom.config.get('moo')).not.toBe('mar')
+          expect(atom.config.get('goo', {scope: ['javascript']})).not.toBe('gaz')
+          await atom.config.resetPathConfigsFromFiles([tempDir])
+          expect(atom.config.get('moo')).toBe('mar')
+          expect(atom.config.get('goo', {scope: ['javascript']})).toBe('gaz')
+        })
       })
 
-      it('will do nothing if the file does not exist', async () => {
-        await atom.config.resetPathConfigsFromFiles(["foobar"])
-        expect(Array.from(atom.config.pathSettingsMap.value).length).toBe(0)
+      // Currently problems with two functions calling resetPathConfigsfromfiles, any way to prevent multiple simultaneous calls?
+      it('will add empty object if the file does not exist', () => {
+        waitsForPromise( async () => {
+          expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(0)
+          await atom.config.resetPathConfigsFromFiles(["nuclide://host/bbb/ccc/ddd"])
+          expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+        })
       })
 
-      it('reads from multiple files and resolves them to different settingsContexts', async () => {
-        expect(atom.config.get('foo')).not.toBe('bar')
-        expect(atom.config.get('moo')).not.toBe('mar')
-        await atom.config.resetPathConfigFromFiles([tempDir, tempDir2])
-        expect(Array.from(atom.config.pathSettingsMap.value).length).toBe(2)
-        expect(atom.config.get('foo')).toBe('bar')
-        expect(atom.config.get('moo')).toBe('mar')
+      it('reads from multiple files and resolves them to different settingsContexts', () => {
+        waitsForPromise( async () => {
+          writeFileSync(csonPath, csonContent)
+          writeFileSync(jsonPath2, jsonContent)
+
+          expect(atom.config.get('foo')).not.toBe('bar')
+          expect(atom.config.get('moo')).not.toBe('mar')
+          await atom.config.resetPathConfigsFromFiles([tempDir, tempDir2])
+          expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(2)
+          expect(atom.config.get('foo')).toBe('bar')
+          expect(atom.config.get('moo')).toBe('mar')
+        })
       })
 
-      it('does not apply invalid settings', async () => {
-        jsonContent[0] = "?"
-        await atom.config.resetPathConfigsFromFiles([tempDir])
-        expect(Array.from(atom.config.pathSettingsMap.value).length).toBe(0)
+      it('maps invalid settings to empty settings', () => {
+        waitsForPromise( async () => {
+          jsonContent += "XXXXX"
+          writeFileSync(jsonPath, jsonContent)
+          await atom.config.resetPathConfigsFromFiles([tempDir])
+          expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+          expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+        })
       })
+
       it('works its way up the file tree to find a .atom file')
-      fit("correctly diffResets when a new path is added", async () => {
-        await atom.config.diffResetPathConfigs([tempDir])
-        expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
 
+
+      describe("diffReset", () => {
+        it("correctly diffResets when a new path is added", () => {
+          waitsForPromise( async () => {
+            expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(0)
+            await atom.config.diffResetPathConfigs([tempDir])
+            expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+          })
+        })
+        it("correctly diffResets when a root is unmounted", () => {
+          waitsForPromise( async () => {
+            await atom.config.resetPathConfigsFromFiles([tempDir])
+            expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+            await atom.config.diffResetPathConfigs([])
+            expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(0)
+          })
+        })
+
+        it("correctly diffResets when (c)")
+        it("correctly diffResets when (d)")
       })
-      it("correctly diffResets when (b)")
-      it("correctly diffResets when (c)")
-      it("correctly diffResets when (d)")
     })
 
   })
