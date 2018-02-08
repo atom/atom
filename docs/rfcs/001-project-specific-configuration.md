@@ -114,7 +114,7 @@ atom.config.set('editor.fontSize', 16)
 
 ## Drawbacks
 
-It introduces complexity and some non-determinism into the Atom configuration system.
+It introduces complexity and some non-determinism into the Atom configuration system. This will cause an increased support burden from people who don't notice or don't understand the new system.
 
 ## Rationale and alternatives
 
