@@ -106,6 +106,7 @@ console.log(`fontSize = ${fontSize}`)
 // "fontSize = 16" is output
 
 atom.config.observe('editor.fontSize', (value) => { console.log(`fontSize = ${value}`) })
+// "fontSize = 16" is output because observe calls the handler with the initial value
 
 atom.config.set('editor.fontSize', 16)
 // "fontSize = 16" is output even though the value that would be returned at this point is still `16`
