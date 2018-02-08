@@ -122,3 +122,5 @@ The impact of not doing this is continued fragmentation and patchwork solutions 
     * Should the value be set in the project settings file in **all** project roots?
     * Should the value be set in the project settings file in only the first project root?
 * Is there a simple and performant way to implement `observe` so that the event is only raised when the merged value changes?
+* Will we present a UI for setting project-specific configuration values in the Settings View? If so, how?
+    * Does not need to be answered at this point, there was no UI for language-specific settings for a long time without problem
