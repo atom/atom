@@ -127,6 +127,7 @@ The impact of not doing this is continued fragmentation and patchwork solutions 
 * What should happen when there are multiple project roots and `atom.config.set('foo', 'bar', {project: true})` is called?
     * Should the value be set in the project settings file in **all** project roots?
     * Should the value be set in the project settings file in only the first project root?
+* What should happen when a project root that contains project settings is added or removed?
 * Is there a simple and performant way to implement `observe` so that the event is only raised when the merged value changes?
 * Will we present a UI for setting project-specific configuration values in the Settings View? If so, how?
     * Does not need to be answered at this point, there was no UI for language-specific settings for a long time without problem
