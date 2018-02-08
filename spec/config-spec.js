@@ -701,6 +701,19 @@ describe('Config', () => {
     })
   })
 
+  describe('resetting user settings', () => {
+    it('does reset the dirty state with resetUserSettings', () => {
+      atom.config.resetUserSettings({foo: "bar"})
+      expect(atom.config.globalSettings.unscopedSettings.foo).toBe("bar")
+      expect(atom.config.dirtySettings.unscopedSettings.foo).toBe("bar")
+    })
+    it('does not reset the dirty state with initializeUserSettings', () => {
+      atom.config.initializeUserSettings({foo: "bar"})
+      expect(atom.config.globalSettings.unscopedSettings.foo).toBe("bar")
+      expect(atom.config.dirtySettings.unscopedSettings.foo).not.toBe("bar")
+    })
+  })
+
   describe('.transactAsync(callback)', () => {
     let changeSpy = null
 

@@ -1024,8 +1024,18 @@ class Config {
   Section: Private methods managing global settings
   */
 
-  resetUserSettings (newSettings) {
-    this.resetSettingsFor(newSettings, this.globalSettings, true)
+  resetUserSettings (newSettings, options = {}) {
+
+    // Sets dirty state.
+    options.updateDirty = true
+    this.resetSettingsFor(newSettings, this.globalSettings, options)
+  }
+
+  initializeUserSettings(newSettings, options = {}) {
+    // Initial load of user settings should not set the dirty state.
+    // Conceptually, dirty state is all state that is set with .set during
+    // Lifetime of an atom instance - but not including startup.
+    this.resetSettingsFor(newSettings, this.globalSettings, options)
   }
 
   resetPathSettings (path, newSettings) {
@@ -1045,7 +1055,8 @@ class Config {
     this.resetSettingsFor(newSettings, this.projectSettings)
   }
 
-  resetSettingsFor (newSettings, settings, updateDirty = false) {
+  resetSettingsFor (newSettings, settings, options = {}) {
+    const updateDirty = options.updateDirty ? options.updateDirty : false
     newSettings = Object.assign({}, newSettings)
     if (newSettings.global != null) {
       newSettings['*'] = newSettings.global
