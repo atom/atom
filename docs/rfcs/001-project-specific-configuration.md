@@ -21,6 +21,7 @@ When reading from the configuration using `atom.config.get()`, the contents of t
 ```coffee
 # Global settings contents
 editor:
+  fontFamily: "Helvetica"
   fontSize: 14
 ```
 
@@ -31,6 +32,10 @@ editor:
 ```
 
 ```javascript
+let fontFamily = atom.config.get('editor.fontFamily')
+console.log(`fontFamily = ${fontFamily}`)
+// Outputs "fontFamily = Helvetica"
+
 let fontSize = atom.config.get('editor.fontSize')
 console.log(`fontSize = ${fontSize}`)
 // Outputs "fontSize = 16"
