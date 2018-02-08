@@ -223,7 +223,7 @@ class AtomEnvironment {
       mainSource: this.enablePersistence && path.join(this.configDirPath, 'config.cson'),
       projectHomeSchema: ConfigSchema.projectHome
     })
-    this.config.resetUserSettings(userSettings)
+    this.config.initializeUserSettings(userSettings)
 
     this.menu.initialize({resourcePath})
     this.contextMenu.initialize({resourcePath, devMode})

@@ -418,7 +418,7 @@ class AtomApplication extends EventEmitter {
       for (let window of this.getAllWindows()) {
         window.didChangeUserSettings(settings)
       }
-      this.config.resetUserSettings(settings)
+      this.config.initializeUserSettings(settings)
     })
 
     this.configFile.onDidError(message => {

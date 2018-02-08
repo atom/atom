@@ -1025,13 +1025,12 @@ class Config {
   */
 
   resetUserSettings (newSettings, options = {}) {
-
     // Sets dirty state.
     options.updateDirty = true
     this.resetSettingsFor(newSettings, this.globalSettings, options)
   }
 
-  initializeUserSettings(newSettings, options = {}) {
+  initializeUserSettings (newSettings, options = {}) {
     // Initial load of user settings should not set the dirty state.
     // Conceptually, dirty state is all state that is set with .set during
     // Lifetime of an atom instance - but not including startup.
@@ -1448,11 +1447,11 @@ class Config {
     const oldPaths = Array.from(this.pathSettingsMap.keys())
 
       // If an item is in oldpaths, but it is not in newpaths, clear it.
-      oldPaths.filter(path => !newPaths.includes(path))
+    oldPaths.filter(path => !newPaths.includes(path))
         .forEach(path => this.clearPathSettings(path))
 
       // If an item is in newPaths, but it is not in oldpaths, add it.
-      await this.resetPathConfigsFromFiles(
+    await this.resetPathConfigsFromFiles(
         newPaths.filter(path => !oldPaths.includes(path))
       )
   }
