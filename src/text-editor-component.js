@@ -734,6 +734,8 @@ class TextEditorComponent {
       let canScrollHorizontally, canScrollVertically
 
       if (this.hasInitialMeasurements) {
+        if (this.refs.verticalScrollbar) this.refs.verticalScrollbar.flushScrollPosition()
+        if (this.refs.horizontalScrollbar) this.refs.horizontalScrollbar.flushScrollPosition()
         scrollHeight = this.getScrollHeight()
         scrollWidth = this.getScrollWidth()
         scrollTop = this.getScrollTop()
@@ -1415,9 +1417,6 @@ class TextEditorComponent {
 
       if (this.isVisible()) {
         this.didShow()
-
-        if (this.refs.verticalScrollbar) this.refs.verticalScrollbar.flushScrollPosition()
-        if (this.refs.horizontalScrollbar) this.refs.horizontalScrollbar.flushScrollPosition()
       } else {
         this.didHide()
       }
