@@ -240,6 +240,22 @@ describe "PaneElement", ->
       itemChild.focus()
       expect(activationCount).toBe(0)
 
+  describe "when the pane element is focused but the activeItem does not change" ->
+    it "refocuses activeItem when pane element becomes focused"
+      item = document.createElement('div')
+      item.tabIndex = -1
+      pane.activateItem(item)
+      jasmine.attachToDOM(paneElement)
+
+      expect(document.activeElement).toBe document.body
+      paneElement.focus()
+      expect(document.activeElement).toBe item
+      paneElement.blur()
+      expect(document.activeElement).toBe document.body
+      paneElement.focus()
+      expect(document.activeElement).toBe item
+
+
   describe "when the pane element is attached", ->
     it "focuses the pane element if isFocused() returns true on its model", ->
       pane.focus()
