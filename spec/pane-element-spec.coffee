@@ -240,8 +240,8 @@ describe "PaneElement", ->
       itemChild.focus()
       expect(activationCount).toBe(0)
 
-  describe "when the pane element is focused but the activeItem does not change" ->
-    it "refocuses activeItem when pane element becomes focused"
+  describe "when the pane element is focused but the activeItem does not change", ->
+    it "refocuses activeItem when pane element becomes focused", ->
       item = document.createElement('div')
       item.tabIndex = -1
       pane.activateItem(item)
