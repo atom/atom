@@ -495,16 +495,22 @@ class TreeSitterHighlightIterator {
 class TreeSitterTextBufferInput {
   constructor (buffer) {
     this.buffer = buffer
-    this.seek(0)
+    this.position = {row: 0, column: 0}
+    this.isBetweenCRLF = false
   }
 
-  seek (characterIndex) {
-    this.position = this.buffer.positionForCharacterIndex(characterIndex)
+  seek (offset, position) {
+    this.position = position
+    this.isBetweenCRLF = this.position.column > this.buffer.lineLengthForRow(this.position.row)
   }
 
   read () {
-    const endPosition = this.buffer.clipPosition(this.position.traverse({row: 1000, column: 0}))
-    const text = this.buffer.getTextInRange([this.position, endPosition])
+    const endPosition = this.buffer.clipPosition(new Point(this.position.row + 1000, 0))
+    let text = this.buffer.getTextInRange([this.position, endPosition])
+    if (this.isBetweenCRLF) {
+      text = text.slice(1)
+      this.isBetweenCRLF = false
+    }
     this.position = endPosition
     return text
   }
