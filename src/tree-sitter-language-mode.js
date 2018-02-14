@@ -1,5 +1,6 @@
 const {Document} = require('tree-sitter')
-const {Point, Range, Emitter} = require('atom')
+const {Point, Range} = require('text-buffer')
+const {Emitter, Disposable} = require('event-kit')
 const ScopeDescriptor = require('./scope-descriptor')
 const TokenizedLine = require('./tokenized-line')
 const TextMateLanguageMode = require('./text-mate-language-mode')
@@ -279,9 +280,15 @@ class TreeSitterLanguageMode {
     if (node) return new Range(node.startPosition, node.endPosition)
   }
 
+  bufferRangeForScopeAtPosition (position) {
+    return this.getRangeForSyntaxNodeContainingRange(new Range(position, position))
+  }
+
   /*
   Section - Backward compatibility shims
   */
+
+  onDidTokenize (callback) { return new Disposable(() => {}) }
 
   tokenizedLineForRow (row) {
     return new TokenizedLine({
