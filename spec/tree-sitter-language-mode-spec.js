@@ -170,6 +170,49 @@ describe('TreeSitterLanguageMode', () => {
         [{text: ')', scopes: []}]
       ])
     })
+
+    it('handles edits after tokens that end between CR and LF characters (regression)', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          'comment': 'comment',
+          'string': 'string',
+          'property_identifier': 'property',
+        }
+      })
+
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+
+      buffer.setText([
+        '// abc',
+        '',
+        'a("b").c'
+      ].join('\r\n'))
+
+      expectTokensToEqual(editor, [
+        [{text: '// abc', scopes: ['comment']}],
+        [{text: '', scopes: []}],
+        [
+          {text: 'a(', scopes: []},
+          {text: '"b"', scopes: ['string']},
+          {text: ').', scopes: []},
+          {text: 'c', scopes: ['property']}
+        ]
+      ])
+
+      buffer.insert([2, 0], '  ')
+      expectTokensToEqual(editor, [
+        [{text: '// abc', scopes: ['comment']}],
+        [{text: '', scopes: []}],
+        [
+          {text: '  ', scopes: ['whitespace']},
+          {text: 'a(', scopes: []},
+          {text: '"b"', scopes: ['string']},
+          {text: ').', scopes: []},
+          {text: 'c', scopes: ['property']}
+        ]
+      ])
+    })
   })
 
   describe('folding', () => {
