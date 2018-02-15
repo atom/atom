@@ -135,6 +135,14 @@ class GrammarRegistry {
     return true
   }
 
+  // Extended: Get the `languageId` that has been explicitly assigned to
+  // to the given buffer, if any.
+  //
+  // Returns a {String} id of the language
+  getAssignedLanguageId (buffer) {
+    return this.languageOverridesByBufferId.get(buffer.id)
+  }
+
   // Extended: Remove any language mode override that has been set for the
   // given {TextBuffer}. This will assign to the buffer the best language
   // mode available.
@@ -293,7 +301,7 @@ class GrammarRegistry {
   grammarOverrideForPath (filePath) {
     Grim.deprecate('Use buffer.getLanguageMode().getLanguageId() instead')
     const buffer = atom.project.findBufferForPath(filePath)
-    if (buffer) return this.languageOverridesByBufferId.get(buffer.id)
+    if (buffer) return this.getAssignedLanguageId(buffer)
   }
 
   // Deprecated: Set the grammar override for the given file path.
