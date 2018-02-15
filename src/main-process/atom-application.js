@@ -1268,7 +1268,7 @@ class AtomApplication extends EventEmitter {
 
     const normalizedPath = path.normalize(path.resolve(executedFrom, fs.normalize(pathToOpen)))
     const stat = fs.statSyncNoException(normalizedPath)
-    if (stat) pathToOpen = normalizedPath
+    if (stat || !url.parse(pathToOpen).protocol) pathToOpen = normalizedPath
 
     return {pathToOpen, stat, initialLine, initialColumn}
   }
