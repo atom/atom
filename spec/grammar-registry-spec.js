@@ -24,6 +24,7 @@ describe('GrammarRegistry', () => {
       const buffer = new TextBuffer()
       expect(grammarRegistry.assignLanguageMode(buffer, 'source.js')).toBe(true)
       expect(buffer.getLanguageMode().getLanguageId()).toBe('source.js')
+      expect(grammarRegistry.getAssignedLanguageId(buffer)).toBe('source.js')
 
       // Returns true if we found the grammar, even if it didn't change
       expect(grammarRegistry.assignLanguageMode(buffer, 'source.js')).toBe(true)
@@ -47,6 +48,7 @@ describe('GrammarRegistry', () => {
 
         expect(grammarRegistry.assignLanguageMode(buffer, null)).toBe(true)
         expect(buffer.getLanguageMode().getLanguageId()).toBe('text.plain.null-grammar')
+        expect(grammarRegistry.getAssignedLanguageId(buffer)).toBe(null)
       })
     })
   })
