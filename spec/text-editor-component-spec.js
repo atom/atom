@@ -905,7 +905,7 @@ describe('TextEditorComponent', () => {
       expect(component.getLineNumberGutterWidth()).toBe(originalLineNumberGutterWidth)
     })
 
-    fit('gracefully handles edits that change the maxScrollTop by causing the horizontal scrollbar to disappear', async () => {
+    it('gracefully handles edits that change the maxScrollTop by causing the horizontal scrollbar to disappear', async () => {
       const rowsPerTile = 1
       const {component, element, editor} = buildComponent({rowsPerTile, autoHeight: false})
 
