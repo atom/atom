@@ -9,7 +9,6 @@ const fs = require('fs-plus')
 const {mapSourcePosition} = require('@atom/source-map-support')
 const WindowEventHandler = require('./window-event-handler')
 const StateStore = require('./state-store')
-const StorageFolder = require('./storage-folder')
 const registerDefaultCommands = require('./register-default-commands')
 const {updateProcessEnv} = require('./update-process-env')
 const ConfigSchema = require('./config-schema')
@@ -86,8 +85,11 @@ class AtomEnvironment {
 
     // Public: A {Config} instance
     this.config = new Config({
-      notificationManager: this.notifications,
-      enablePersistence: this.enablePersistence
+      saveCallback: settings => {
+        if (this.enablePersistence) {
+          this.applicationDelegate.setUserSettings(settings)
+        }
+      }
     })
     this.config.setSchema(null, {type: 'object', properties: _.clone(ConfigSchema)})
 
@@ -208,19 +210,19 @@ class AtomEnvironment {
     this.blobStore = params.blobStore
     this.configDirPath = params.configDirPath
 
-    const {devMode, safeMode, resourcePath, clearWindowState} = this.getLoadSettings()
-
-    if (clearWindowState) {
-      this.getStorageFolder().clear()
-      this.stateStore.clear()
-    }
+    const {devMode, safeMode, resourcePath, userSettings} = this.getLoadSettings()
 
     ConfigSchema.projectHome = {
       type: 'string',
       default: path.join(fs.getHomeDirectory(), 'github'),
       description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
     }
-    this.config.initialize({configDirPath: this.configDirPath, resourcePath, projectHomeSchema: ConfigSchema.projectHome})
+
+    this.config.initialize({
+      mainSource: this.enablePersistence && path.join(this.configDirPath, 'config.cson'),
+      projectHomeSchema: ConfigSchema.projectHome
+    })
+    this.config.resetUserSettings(userSettings)
 
     this.menu.initialize({resourcePath})
     this.contextMenu.initialize({resourcePath, devMode})
@@ -241,8 +243,6 @@ class AtomEnvironment {
     this.commandInstaller.initialize(this.getVersion())
     this.uriHandlerRegistry.registerHostHandler('core', CoreURIHandlers.create(this))
     this.autoUpdater.initialize()
-
-    this.config.load()
 
     this.protocolHandlerInstaller.initialize(this.config, this.notifications)
 
@@ -374,7 +374,6 @@ class AtomEnvironment {
     this.project = null
     this.commands.clear()
     if (this.stylesElement) this.stylesElement.remove()
-    this.config.unobserveUserConfig()
     this.autoUpdater.destroy()
     this.uriHandlerRegistry.destroy()
 
@@ -764,7 +763,11 @@ class AtomEnvironment {
   }
 
   // Call this method when establishing a real application window.
-  startEditorWindow () {
+  async startEditorWindow () {
+    if (this.getLoadSettings().clearWindowState) {
+      await this.stateStore.clear()
+    }
+
     this.unloaded = false
 
     const updateProcessEnvPromise = this.updateProcessEnvAndTriggerHooks()
@@ -779,6 +782,12 @@ class AtomEnvironment {
         if (error) console.warn(error.message)
       })
 
+      this.disposables.add(this.applicationDelegate.onDidChangeUserSettings(settings =>
+        this.config.resetUserSettings(settings)
+      ))
+      this.disposables.add(this.applicationDelegate.onDidFailToReadUserSettings(message =>
+        this.notifications.addError(message)
+      ))
       this.disposables.add(this.applicationDelegate.onDidOpenLocations(this.openLocations.bind(this)))
       this.disposables.add(this.applicationDelegate.onApplicationMenuCommand(this.dispatchApplicationMenuCommand.bind(this)))
       this.disposables.add(this.applicationDelegate.onContextMenuCommand(this.dispatchContextMenuCommand.bind(this)))
@@ -1262,11 +1271,6 @@ or use Pane::saveItemAs for programmatic saving.`)
     } else {
       return null
     }
-  }
-
-  getStorageFolder () {
-    if (!this.storageFolder) this.storageFolder = new StorageFolder(this.getConfigDirPath())
-    return this.storageFolder
   }
 
   getConfigDirPath () {

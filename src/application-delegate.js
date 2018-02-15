@@ -5,6 +5,10 @@ const getWindowLoadSettings = require('./get-window-load-settings')
 
 module.exports =
 class ApplicationDelegate {
+  constructor () {
+    this.pendingSettingsUpdateCount = 0
+  }
+
   getWindowLoadSettings () { return getWindowLoadSettings() }
 
   open (params) {
@@ -173,6 +177,33 @@ class ApplicationDelegate {
 
   getUserDefault (key, type) {
     return remote.systemPreferences.getUserDefault(key, type)
+  }
+
+  async setUserSettings (config) {
+    this.pendingSettingsUpdateCount++
+    try {
+      await ipcHelpers.call('set-user-settings', config)
+    } finally {
+      this.pendingSettingsUpdateCount--
+    }
+  }
+
+  onDidChangeUserSettings (callback) {
+    const outerCallback = (event, message, detail) => {
+      if (message === 'did-change-user-settings') {
+        if (this.pendingSettingsUpdateCount === 0) callback(detail)
+      }
+    }
+    ipcRenderer.on('message', outerCallback)
+    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+  }
+
+  onDidFailToReadUserSettings (callback) {
+    const outerCallback = (event, message, detail) => {
+      if (message === 'did-fail-to-read-user-settings') callback(detail)
+    }
+    ipcRenderer.on('message', outerCallback)
+    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
   }
 
   confirm (options, callback) {
@@ -354,11 +385,11 @@ class ApplicationDelegate {
   }
 
   emitWillSavePath (path) {
-    return ipcRenderer.sendSync('will-save-path', path)
+    return ipcHelpers.call('will-save-path', path)
   }
 
   emitDidSavePath (path) {
-    return ipcRenderer.sendSync('did-save-path', path)
+    return ipcHelpers.call('did-save-path', path)
   }
 
   resolveProxy (requestId, url) {

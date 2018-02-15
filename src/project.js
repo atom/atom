@@ -695,7 +695,7 @@ class Project extends Model {
   }
 
   subscribeToBuffer (buffer) {
-    buffer.onWillSave(({path}) => this.applicationDelegate.emitWillSavePath(path))
+    buffer.onWillSave(async ({path}) => this.applicationDelegate.emitWillSavePath(path))
     buffer.onDidSave(({path}) => this.applicationDelegate.emitDidSavePath(path))
     buffer.onDidDestroy(() => this.removeBuffer(buffer))
     buffer.onDidChangePath(() => {

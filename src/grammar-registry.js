@@ -429,7 +429,7 @@ class GrammarRegistry {
     this.readGrammar(grammarPath, (error, grammar) => {
       if (error) return callback(error)
       this.addGrammar(grammar)
-      callback(grammar)
+      callback(null, grammar)
     })
   }
 

@@ -104,7 +104,7 @@ describe('TextEditorComponent', () => {
 
       {
         expect(editor.getApproximateLongestScreenRow()).toBe(3)
-        const expectedWidth = Math.round(
+        const expectedWidth = Math.ceil(
           component.pixelPositionForScreenPosition(Point(3, Infinity)).left +
           component.getBaseCharacterWidth()
         )
@@ -121,7 +121,7 @@ describe('TextEditorComponent', () => {
         // Capture the width of the lines before requesting the width of
         // longest line, because making that request forces a DOM update
         const actualWidth = element.querySelector('.lines').style.width
-        const expectedWidth = Math.round(
+        const expectedWidth = Math.ceil(
           component.pixelPositionForScreenPosition(Point(6, Infinity)).left +
           component.getBaseCharacterWidth()
         )
@@ -2874,9 +2874,9 @@ describe('TextEditorComponent', () => {
 
   describe('mouse input', () => {
     describe('on the lines', () => {
-      describe('when there is only one cursor and no selection', () => {
-        it('positions the cursor on single-click or when middle/right-clicking', async () => {
-          for (const button of [0, 1, 2]) {
+      describe('when there is only one cursor', () => {
+        it('positions the cursor on single-click or when middle-clicking', async () => {
+          for (const button of [0, 1]) {
             const {component, element, editor} = buildComponent()
             const {lineHeight} = component.measurements
 
@@ -2955,70 +2955,6 @@ describe('TextEditorComponent', () => {
         })
       })
 
-      describe('when there is more than one cursor', () => {
-        it('does not move the cursor when right-clicking', async () => {
-          const {component, element, editor} = buildComponent()
-          const {lineHeight} = component.measurements
-
-          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
-          editor.addCursorAtScreenPosition([2, 4])
-          component.didMouseDownOnContent({
-            detail: 1,
-            button: 2,
-            clientX: clientLeftForCharacter(component, 0, 0) - 1,
-            clientY: clientTopForLine(component, 0) - 1
-          })
-          expect(editor.getCursorScreenPositions()).toEqual([Point.fromObject([5, 17]), Point.fromObject([2, 4])])
-        })
-
-        it('does move the cursor when middle-clicking', async () => {
-          const {component, element, editor} = buildComponent()
-          const {lineHeight} = component.measurements
-
-          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
-          editor.addCursorAtScreenPosition([2, 4])
-          component.didMouseDownOnContent({
-            detail: 1,
-            button: 1,
-            clientX: clientLeftForCharacter(component, 0, 0) - 1,
-            clientY: clientTopForLine(component, 0) - 1
-          })
-          expect(editor.getCursorScreenPositions()).toEqual([Point.fromObject([0, 0])])
-        })
-      })
-
-      describe('when there are non-empty selections', () => {
-        it('does not move the cursor when right-clicking', async () => {
-          const {component, element, editor} = buildComponent()
-          const {lineHeight} = component.measurements
-
-          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
-          editor.selectRight(3)
-          component.didMouseDownOnContent({
-            detail: 1,
-            button: 2,
-            clientX: clientLeftForCharacter(component, 0, 0) - 1,
-            clientY: clientTopForLine(component, 0) - 1
-          })
-          expect(editor.getSelectedScreenRange()).toEqual([[5, 17], [5, 20]])
-        })
-
-        it('does move the cursor when middle-clicking', async () => {
-          const {component, element, editor} = buildComponent()
-          const {lineHeight} = component.measurements
-
-          editor.setCursorScreenPosition([5, 17], {autoscroll: false})
-          editor.selectRight(3)
-          component.didMouseDownOnContent({
-            detail: 1,
-            button: 1,
-            clientX: clientLeftForCharacter(component, 0, 0) - 1,
-            clientY: clientTopForLine(component, 0) - 1
-          })
-          expect(editor.getSelectedScreenRange()).toEqual([[0, 0], [0, 0]])
-        })
-      })
-
       describe('when the input is for the primary mouse button', () => {
         it('selects words on double-click', () => {
           const {component, editor} = buildComponent()
@@ -3090,7 +3026,7 @@ describe('TextEditorComponent', () => {
             [[1, 16], [1, 16]]
           ])
 
-          // ctrl-click does not add cursors on macOS, but it *does* move the cursor
+          // ctrl-click does not add cursors on macOS, nor does it move the cursor
           component.didMouseDownOnContent(
             Object.assign(clientPositionForCharacter(component, 1, 4), {
               detail: 1,
@@ -3099,7 +3035,7 @@ describe('TextEditorComponent', () => {
             })
           )
           expect(editor.getSelectedScreenRanges()).toEqual([
-            [[1, 4], [1, 4]]
+            [[1, 16], [1, 16]]
           ])
 
           // ctrl-click adds cursors on platforms *other* than macOS
@@ -3407,6 +3343,31 @@ describe('TextEditorComponent', () => {
           clientY: clientTopForLine(component, 10)
         })
         expect(editor.lineTextForBufferRow(10)).toBe('var')
+      })
+
+      it('does not paste into a read only editor when clicking the middle mouse button on Linux', async () => {
+        spyOn(electron.ipcRenderer, 'send').andCallFake(function (eventName, selectedText) {
+          if (eventName === 'write-text-to-selection-clipboard') {
+            clipboard.writeText(selectedText, 'selection')
+          }
+        })
+
+        const {component, editor} = buildComponent({platform: 'linux', readOnly: true})
+
+        // Select the word 'sort' on line 2 and copy to clipboard
+        editor.setSelectedBufferRange([[1, 6], [1, 10]])
+        await conditionPromise(() => TextEditor.clipboard.read() === 'sort')
+
+        // Middle-click in the buffer at line 11, column 1
+        component.didMouseDownOnContent({
+          button: 1,
+          clientX: clientLeftForCharacter(component, 10, 0),
+          clientY: clientTopForLine(component, 10)
+        })
+
+        // Ensure that the correct text was copied but not pasted
+        expect(TextEditor.clipboard.read()).toBe('sort')
+        expect(editor.lineTextForBufferRow(10)).toBe('')
       })
     })
 
@@ -4014,7 +3975,7 @@ describe('TextEditorComponent', () => {
       // Capture the width of the lines before requesting the width of
       // longest line, because making that request forces a DOM update
       const actualWidth = element.querySelector('.lines').style.width
-      const expectedWidth = Math.round(
+      const expectedWidth = Math.ceil(
         component.pixelPositionForScreenPosition(Point(3, Infinity)).left +
         component.getBaseCharacterWidth()
       )
@@ -4363,7 +4324,7 @@ describe('TextEditorComponent', () => {
 function buildEditor (params = {}) {
   const text = params.text != null ? params.text : SAMPLE_TEXT
   const buffer = new TextBuffer({text})
-  const editorParams = {buffer}
+  const editorParams = {buffer, readOnly: params.readOnly}
   if (params.height != null) params.autoHeight = false
   for (const paramName of ['mini', 'autoHeight', 'autoWidth', 'lineNumberGutterVisible', 'showLineNumbers', 'placeholderText', 'softWrapped', 'scrollSensitivity']) {
     if (params[paramName] != null) editorParams[paramName] = params[paramName]

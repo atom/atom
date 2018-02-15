@@ -338,6 +338,14 @@ const configSchema = {
             description: 'Native operating system APIs'
           },
           {
+            value: 'experimental',
+            description: 'Experimental filesystem watching library'
+          },
+          {
+            value: 'poll',
+            description: 'Polling'
+          },
+          {
             value: 'atom',
             description: 'Emulated with Atom events'
           }
@@ -346,7 +354,7 @@ const configSchema = {
       useTreeSitterParsers: {
         type: 'boolean',
         default: false,
-        description: 'Use the new Tree-sitter parsing system for supported languages'
+        description: 'Experimental: Use the new Tree-sitter parsing system for supported languages.'
       }
     }
   },

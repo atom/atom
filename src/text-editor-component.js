@@ -1763,20 +1763,20 @@ class TextEditorComponent {
 
     const screenPosition = this.screenPositionForMouseEvent(event)
 
-    if (button !== 0 || (platform === 'darwin' && ctrlKey)) {
-      // Always set cursor position on middle-click
-      // Only set cursor position on right-click if there is one cursor with no selection
-      const ranges = model.getSelectedBufferRanges()
-      if (button === 1 || (ranges.length === 1 && ranges[0].isEmpty())) {
-        model.setCursorScreenPosition(screenPosition, {autoscroll: false})
-      }
+    if (button === 1) {
+      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
 
       // On Linux, pasting happens on middle click. A textInput event with the
       // contents of the selection clipboard will be dispatched by the browser
       // automatically on mouseup.
-      if (platform === 'linux' && button === 1) model.insertText(clipboard.readText('selection'))
+      if (platform === 'linux' && this.isInputEnabled()) model.insertText(clipboard.readText('selection'))
       return
     }
+
+    if (button !== 0) return
+
+    // Ctrl-click brings up the context menu on macOS
+    if (platform === 'darwin' && ctrlKey) return
 
     if (target && target.matches('.fold-marker')) {
       const bufferPosition = model.bufferPositionForScreenPosition(screenPosition)
@@ -1784,7 +1784,7 @@ class TextEditorComponent {
       return
     }
 
-    const addOrRemoveSelection = metaKey || ctrlKey
+    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
 
     switch (detail) {
       case 1:
@@ -2705,7 +2705,7 @@ class TextEditorComponent {
   }
 
   getContentWidth () {
-    return Math.round(this.getLongestLineWidth() + this.getBaseCharacterWidth())
+    return Math.ceil(this.getLongestLineWidth() + this.getBaseCharacterWidth())
   }
 
   getScrollContainerClientWidthInBaseCharacters () {
