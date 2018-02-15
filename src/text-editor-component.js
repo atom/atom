@@ -418,8 +418,7 @@ class TextEditorComponent {
     this.linesToMeasure.clear()
     this.measuredContent = true
 
-    return false
-    // return wasHorizontalScrollbarVisible !== isHorizontalScrollbarVisible
+    return wasHorizontalScrollbarVisible !== isHorizontalScrollbarVisible
   }
 
   updateSyncAfterMeasuringContent () {
