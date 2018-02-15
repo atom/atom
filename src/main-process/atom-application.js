@@ -838,13 +838,12 @@ class AtomApplication extends EventEmitter {
     let existingWindow
     if (!newWindow) {
       existingWindow = this.windowForPaths(pathsToOpen, devMode)
-      const stats = pathsToOpen.map(pathToOpen => fs.statSyncNoException(pathToOpen))
       if (!existingWindow) {
         let lastWindow = window || this.getLastFocusedWindow()
         if (lastWindow && lastWindow.devMode === devMode) {
           if (addToLastWindow || (
-              stats.every(s => s.isFile && s.isFile()) ||
-              (stats.some(s => s.isDirectory && s.isDirectory()) && !lastWindow.hasProjectPath()))) {
+              locationsToOpen.every(({stat}) => stat && stat.isFile()) ||
+              (locationsToOpen.some(({stat}) => stat && stat.isDirectory()) && !lastWindow.hasProjectPath()))) {
             existingWindow = lastWindow
           }
         }
@@ -1267,11 +1266,11 @@ class AtomApplication extends EventEmitter {
       initialLine = initialColumn = null
     }
 
-    if (url.parse(pathToOpen).protocol == null) {
-      pathToOpen = path.resolve(executedFrom, fs.normalize(pathToOpen))
-    }
+    const normalizedPath = path.normalize(path.resolve(executedFrom, fs.normalize(pathToOpen)))
+    const stat = fs.statSyncNoException(normalizedPath)
+    if (stat) pathToOpen = normalizedPath
 
-    return {pathToOpen, initialLine, initialColumn}
+    return {pathToOpen, stat, initialLine, initialColumn}
   }
 
   // Opens a native dialog to prompt the user for a path.
