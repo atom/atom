@@ -1044,10 +1044,12 @@ class Config {
 
   clearPathSettings (path) {
     this.pathSettingsMap.delete(path)
+    this.emitChangeEvent()
   }
 
   clearAllPathSettings () {
     this.pathSettingsMap.clear()
+    this.emitChangeEvent()
   }
 
   resetProjectSettings (newSettings) {
@@ -1475,6 +1477,7 @@ class Config {
       this.transact(() => {
         files.forEach(file => this.resetPathSettings(file.fileName, file.configFile.get()))
       })
+      this.emitChangeEvent()
     }
   }
 
