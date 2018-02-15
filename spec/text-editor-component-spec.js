@@ -905,12 +905,19 @@ describe('TextEditorComponent', () => {
       expect(component.getLineNumberGutterWidth()).toBe(originalLineNumberGutterWidth)
     })
 
-    it('gracefully handles edits that change the maxScrollTop by causing the horizontal scrollbar to disappear', async () => {
+    fit('gracefully handles edits that change the maxScrollTop by causing the horizontal scrollbar to disappear', async () => {
       const rowsPerTile = 1
       const {component, element, editor} = buildComponent({rowsPerTile, autoHeight: false})
 
       await setEditorHeightInLines(component, 1)
       await setEditorWidthInCharacters(component, 7)
+
+      // Updating scrollbar styles.
+      const style = document.createElement('style')
+      style.textContent = '::-webkit-scrollbar { height: 17px; width: 10px; }'
+      jasmine.attachToDOM(style)
+      TextEditor.didUpdateScrollbarStyles()
+      await component.getNextUpdatePromise()
 
       element.focus()
       component.setScrollTop(component.measurements.lineHeight)
