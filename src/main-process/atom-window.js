@@ -74,14 +74,13 @@ class AtomWindow extends EventEmitter {
 
     if (!this.loadSettings.initialPaths) {
       this.loadSettings.initialPaths = []
-      for (const {pathToOpen} of locationsToOpen) {
+      for (const {pathToOpen, stat} of locationsToOpen) {
         if (!pathToOpen) continue
-        const stat = fs.statSyncNoException(pathToOpen) || null
         if (stat && stat.isDirectory()) {
           this.loadSettings.initialPaths.push(pathToOpen)
         } else {
           const parentDirectory = path.dirname(pathToOpen)
-          if ((stat && stat.isFile()) || fs.existsSync(parentDirectory)) {
+          if (stat && stat.isFile() || fs.existsSync(parentDirectory)) {
             this.loadSettings.initialPaths.push(parentDirectory)
           } else {
             this.loadSettings.initialPaths.push(pathToOpen)
