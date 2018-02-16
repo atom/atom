@@ -236,7 +236,7 @@ class ApplicationDelegate {
         return chosen
       } else {
         const callback = buttons[buttonLabels[chosen]]
-        if (typeof callback === 'function') callback()
+        if (typeof callback === 'function') return callback()
       }
     }
   }
