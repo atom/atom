@@ -58,14 +58,8 @@ class WorkspaceElement extends HTMLElement {
   updateGlobalTextEditorStyleSheet () {
     const styleSheetSource = `atom-workspace {
   --editor-font-size: ${this.config.get('editor.fontSize')}px;
-  --editor-font-family: ${this.config.get('editor.fontFamily')};
+  --editor-font-family: ${this.config.get('editor.fontFamily')}, monospace;
   --editor-line-height: ${this.config.get('editor.lineHeight')};
-}
-
-atom-text-editor {
-  font-family: var(--editor-font-family);
-  font-size: var(--editor-font-size);
-  line-height: var(--editor-line-height);
 }`
     this.styleManager.addStyleSheet(styleSheetSource, {sourcePath: 'global-text-editor-styles', priority: -1})
   }
