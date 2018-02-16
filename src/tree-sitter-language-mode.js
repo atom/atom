@@ -420,7 +420,7 @@ class TreeSitterHighlightIterator {
           this.pushCloseTag()
 
           const {nextSibling} = this.currentNode
-          if (nextSibling) {
+          if (nextSibling && nextSibling.endIndex > this.currentIndex) {
             this.currentNode = nextSibling
             this.currentChildIndex++
             if (this.currentIndex === nextSibling.startIndex) {
@@ -434,19 +434,8 @@ class TreeSitterHighlightIterator {
             if (!this.currentNode) break
           }
         }
-      } else if (this.currentNode.startIndex < this.currentNode.endIndex) {
-        this.currentNode = this.currentNode.nextSibling
-        if (this.currentNode) {
-          this.currentChildIndex++
-          this.currentPosition = this.currentNode.startPosition
-          this.currentIndex = this.currentNode.startIndex
-          this.pushOpenTag()
-          this.descendLeft()
-        }
       } else {
-        this.pushCloseTag()
-        this.currentNode = this.currentNode.parent
-        this.currentChildIndex = last(this.containingNodeChildIndices)
+        this.currentNode = this.currentNode.nextSibling
       }
     } while (this.closeTags.length === 0 && this.openTags.length === 0 && this.currentNode)
 
