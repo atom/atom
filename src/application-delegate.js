@@ -249,7 +249,7 @@ class ApplicationDelegate {
       this.getCurrentWindow().showSaveDialog(options, callback)
     } else {
       // Sync
-      if (typeof params === 'string') {
+      if (typeof options === 'string') {
         options = {defaultPath: options}
       }
       return this.getCurrentWindow().showSaveDialog(options)
