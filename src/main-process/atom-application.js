@@ -115,6 +115,7 @@ class AtomApplication extends EventEmitter {
       : path.join(process.env.ATOM_HOME, 'config.cson')
 
     this.configFile = new ConfigFile(configFilePath)
+
     this.config = new Config({
       saveCallback: settings => this.configFile.update(settings)
     })
@@ -172,6 +173,9 @@ class AtomApplication extends EventEmitter {
       this.config.onDidChange('core.titleBar', this.promptForRestart.bind(this))
     }
 
+    // Find the paths initially added to the atom window
+    // Load those files, and pass them to the renderer process.
+    // We also don't know how the renderer process knows of the changes from configFile
     const optionsForWindowsToOpen = []
 
     let shouldReopenPreviousWindows = false
@@ -417,7 +421,7 @@ class AtomApplication extends EventEmitter {
       for (let window of this.getAllWindows()) {
         window.didChangeUserSettings(settings)
       }
-      this.config.resetUserSettings(settings)
+      this.config.initializeUserSettings(settings)
     })
 
     this.configFile.onDidError(message => {

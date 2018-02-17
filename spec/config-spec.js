@@ -1,6 +1,10 @@
-const path = require('path')
-const temp = require('temp').track()
+const CSON = require('season')
+const dedent = require('dedent')
 const fs = require('fs-plus')
+const path = require('path')
+const os = require('os')
+const ConfigFile = require('../src/config-file')
+const temp = require('temp').track()
 
 describe('Config', () => {
   let savedSettings
@@ -490,7 +494,6 @@ describe('Config', () => {
         atom.config.set('foo.bar.baz', 'value 2')
         expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 2', oldValue: 'value 1'})
         observeHandler.reset()
-
         observeHandler.andCallFake(() => { throw new Error('oops') })
         expect(() => atom.config.set('foo.bar.baz', 'value 1')).toThrow('oops')
         expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 1', oldValue: 'value 2'})
@@ -695,6 +698,19 @@ describe('Config', () => {
     it('does not emit an event if no changes occur while paused', () => {
       atom.config.transact(() => {})
       expect(changeSpy).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('resetting user settings', () => {
+    it('does reset the dirty state with resetUserSettings', () => {
+      atom.config.resetUserSettings({foo: "bar"})
+      expect(atom.config.globalSettings.unscopedSettings.foo).toBe("bar")
+      expect(atom.config.dirtySettings.unscopedSettings.foo).toBe("bar")
+    })
+    it('does not reset the dirty state with initializeUserSettings', () => {
+      atom.config.initializeUserSettings({foo: "bar"})
+      expect(atom.config.globalSettings.unscopedSettings.foo).toBe("bar")
+      expect(atom.config.dirtySettings.unscopedSettings.foo).not.toBe("bar")
     })
   })
 
@@ -1840,4 +1856,285 @@ describe('Config', () => {
       expect(atom.config.get('do.ray')).toBe('me')
     })
   })
+
+  describe('project/path specific configs', () => {
+    describe('config.resetPathSettings', () => {
+      it('should not write to the global configuration file')
+      it('should be able to set multiple path configs')
+      it('should not be able to have multiple path configs with same path')
+      it('should trigger onChange for config object')
+      it("ignores paths it can't resolve (such as Nuclide remote URIs)")
+    })
+
+    describe('config.resetProjectSettings', () => {
+      it('gracefully handles invalid config objects', () => {
+        atom.config.resetProjectSettings({})
+        expect(atom.config.get('foo.bar')).toBeUndefined()
+      })
+    })
+
+    describe('config.get', () => {
+      describe('getting path configs', () => {
+        it('should get path config settings with higher priority than global settings', () => {
+          atom.config.globalSettings.shouldSave = false
+          atom.config.setOn(atom.config.globalSettings, 'foo', 'bar')
+          expect(atom.config.get('foo')).toBe('bar')
+          atom.config.setOn(atom.config.globalSettings, 'foo', 'bux')
+          expect(atom.config.get('foo')).toBe('bux')
+          atom.config.resetPathSettings("~/myPath", {'foo': 1})
+          expect(atom.config.get('foo')).toBe(1)
+        })
+
+        it('should get all configs at lower priority than dirty settings', () => {
+          atom.config.set('foo', 'bar')
+          atom.config.resetPathSettings("~/myPath", {foo: 1})
+          atom.config.setOn(atom.config.projectSettings, 'foo', 'a')
+          expect(atom.config.get('foo')).toBe('bar')
+        })
+
+        it('can handle multiple path configs at once', () => {
+          atom.config.resetPathSettings("~/path", {foo: 'bar'})
+          atom.config.resetPathSettings("~/math", {goo: 'gar'})
+          expect(atom.config.get('foo')).toBe('bar')
+          expect(atom.config.get('goo')).toBe('gar')
+        })
+
+        it('clears path settings', () => {
+          atom.config.resetPathSettings("~/path", {foo: 'bar'})
+          expect(atom.config.get('foo')).toBe('bar')
+          atom.config.clearPathSettings("~/path")
+          expect(atom.config.get('foo')).toBeUndefined()
+        })
+
+        it('correctly gets nested properties for path configs', () => {
+          atom.config.resetPathSettings("~/path", {'foo': {'bar': {'baz' : 'phil'}}})
+          expect(atom.config.get('foo.bar.baz')).toBe('phil')
+        })
+
+        it('returns a deep clone of the property value', () => {
+          atom.config.resetPathSettings("~/bath", {'value': {array: [1, {b: 2}, 3]}})
+          const retrievedValue = atom.config.get('value')
+          retrievedValue.array[0] = 4
+          retrievedValue.array[1].b = 2.1
+          expect(atom.config.get('value')).toEqual({array: [1, {b: 2}, 3]})
+        })
+      })
+
+    describe('project configs', () => {
+        it('should properly get project configs', () => {
+          atom.config.resetProjectSettings({'foo': 'wei'})
+          expect(atom.config.get('foo')).toBe('wei')
+          atom.config.resetProjectSettings({'foo': {'bar' : 'baz'}})
+          expect(atom.config.get('foo.bar')).toBe('baz')
+        })
+
+        it('should get project settings with higher priority than global settings', () => {
+          atom.config.setOn(atom.config.globalSettings, 'foo', 'bar') // Avoiding touching the dirty state.
+          atom.config.resetProjectSettings({'foo': 'baz'})
+          expect(atom.config.get('foo')).toBe('baz')
+        })
+        it('should get project settings with higher priority than path config settings', () => {
+          atom.config.resetPathSettings('~/myPath', {foo: 'bar'})
+          atom.config.resetProjectSettings({'foo': 'baz'})
+          expect(atom.config.get('foo')).toBe('baz')
+        })
+
+        it('should get project settings with low priority than dirty config settings', () => {
+          atom.config.set('foo', 'bar')
+          atom.config.resetProjectSettings({'foo': 'baz'})
+          expect(atom.config.get('foo')).toBe('bar')
+        })
+
+        it('correctly gets nested and scoped properties for project configs', () => {
+          expect(atom.config.setOn(atom.config.projectSettings, 'foo.bar.str', 'global')).toBe(true)
+          expect(atom.config.setOn(atom.config.projectSettings, 'foo.bar.str', 'scoped', {scopeSelector: '.source.js'})).toBe(true)
+          expect(atom.config.get('foo.bar.str')).toBe('global')
+          expect(atom.config.get('foo.bar.str', {scope: ['.source.js']})).toBe('scoped')
+        })
+
+        it('returns a deep clone of the property value', () => {
+          atom.config.setOn(atom.config.projectSettings, 'value', {array: [1, {b: 2}, 3]})
+          const retrievedValue = atom.config.get('value')
+          retrievedValue.array[0] = 4
+          retrievedValue.array[1].b = 2.1
+          expect(atom.config.get('value')).toEqual({array: [1, {b: 2}, 3]})
+        })
+      })
+    })
+
+    describe('config.getAll', () => {
+      it ('should get settings in the same way .get would return them', () => {
+        atom.config.setOn(atom.config.globalSettings, 'a', 'b')
+        atom.config.resetPathSettings('~/myPath', {'a': 'b'})
+        atom.config.setOn(atom.config.projectSettings, 'a', 'f')
+        expect(atom.config.getAll('a')).toEqual([{
+          scopeSelector: '*',
+          value: 'f'
+        }])
+      })
+      it ('should correctly deal with scoped values of different priorities')
+    })
+
+    describe('dirty state', () => {
+      it('should have no dirty state when config is initially loaded')
+      it('should update the dirty state whenever set is called')
+      it('should update the dirty state whenever unset is called')
+    })
+
+    describe('loading project configs', () => {
+      let filePath, csonPath, jsonPath, tempDir, csonContent, jsonContent
+
+      beforeEach(() => {
+        jasmine.useRealClock()
+        atom.config.clearAllPathSettings()
+        tempDir = fs.realpathSync(temp.mkdirSync())
+        tempDir2 = fs.realpathSync(temp.mkdirSync())
+
+        jsonPath = path.join(tempDir, '.atom', 'config.json')
+        jsonPath2 = path.join(tempDir2, '.atom', 'config.json')
+        csonPath = path.join(tempDir, '.atom', 'config.cson')
+        csonContent = dedent `
+          '*':
+            foo: 'bar'
+
+          'javascript':
+            boo: 'baz'
+        `
+
+        jsonContent = dedent `
+        {
+          "*": {
+            "moo": "mar"
+          },
+
+          "javascript": {
+            "goo": "gaz"
+          }
+        }
+        `
+      })
+
+      it('it can read and act upon a cson file.', () => {
+        waitsForPromise( async () => {
+          writeFileSync(csonPath, csonContent)
+          expect(atom.config.get('foo')).not.toBe('bar')
+          expect(atom.config.get('boo', {scope: ['javascript']})).not.toBe('baz')
+          await atom.config.resetPathConfigsFromFiles([tempDir])
+          expect(atom.config.get('foo')).toBe('bar')
+          expect(atom.config.get('boo', {scope: ['javascript']})).toBe('baz')
+        })
+      })
+
+      it('it can read and act upon a json file', () => {
+        waitsForPromise( async () => {
+          writeFileSync(csonPath, csonContent)
+          expect(atom.config.get('foo')).not.toBe('bar')
+          expect(atom.config.get('boo', {scope: ['javascript']})).not.toBe('baz')
+          await atom.config.resetPathConfigsFromFiles([tempDir])
+          expect(atom.config.get('foo')).toBe('bar')
+        })
+      })
+
+      it('it can read and act upon a cson file.', () => {
+        waitsForPromise( async () => {
+          writeFileSync(csonPath, csonContent)
+          expect(atom.config.get('foo')).not.toBe('bar')
+          expect(atom.config.get('boo', {scope: ['javascript']})).not.toBe('baz')
+          await atom.config.resetPathConfigsFromFiles([tempDir])
+          expect(atom.config.get('foo')).toBe('bar')
+          expect(atom.config.get('boo', {scope: ['javascript']})).toBe('baz')
+        })
+      })
+
+      it('it can read and act upon a json file', () => {
+        waitsForPromise( async () => {
+          writeFileSync(jsonPath, jsonContent)
+          expect(atom.config.get('moo')).not.toBe('mar')
+          expect(atom.config.get('goo', {scope: ['javascript']})).not.toBe('gaz')
+          await atom.config.resetPathConfigsFromFiles([tempDir])
+          expect(atom.config.get('moo')).toBe('mar')
+          expect(atom.config.get('goo', {scope: ['javascript']})).toBe('gaz')
+        })
+      })
+
+      // Currently problems with two functions calling resetPathConfigsfromfiles, any way to prevent multiple simultaneous calls?
+      it('will add empty object if the file does not exist', () => {
+        waitsForPromise( async () => {
+          expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(0)
+          await atom.config.resetPathConfigsFromFiles(["nuclide://host/bbb/ccc/ddd"])
+          expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+        })
+      })
+
+      it('reads from multiple files and resolves them to different settingsContexts', () => {
+        waitsForPromise( async () => {
+          writeFileSync(csonPath, csonContent)
+          writeFileSync(jsonPath2, jsonContent)
+
+          expect(atom.config.get('foo')).not.toBe('bar')
+          expect(atom.config.get('moo')).not.toBe('mar')
+          await atom.config.resetPathConfigsFromFiles([tempDir, tempDir2])
+          expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(2)
+          expect(atom.config.get('foo')).toBe('bar')
+          expect(atom.config.get('moo')).toBe('mar')
+        })
+      })
+
+      it('maps invalid settings to empty settings', () => {
+        waitsForPromise( async () => {
+          jsonContent += "XXXXX"
+          writeFileSync(jsonPath, jsonContent)
+          await atom.config.resetPathConfigsFromFiles([tempDir])
+          expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+          expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+        })
+      })
+
+      it('works its way up the file tree to find a .atom file')
+
+
+      describe("diffReset", () => {
+        it("correctly diffResets when a new path is mounted", () => {
+          waitsForPromise( async () => {
+            expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(0)
+            await atom.config.diffResetPathConfigs([tempDir])
+            expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+          })
+        })
+        it("correctly diffResets when a path is unmounted", () => {
+          waitsForPromise( async () => {
+            await atom.config.resetPathConfigsFromFiles([tempDir])
+            expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+            await atom.config.diffResetPathConfigs([])
+            expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(0)
+          })
+        })
+
+        it("correctly diffResets when path is mounted and unmounted", () => {
+          waitsForPromise( async () => {
+            await atom.config.resetPathConfigsFromFiles([tempDir])
+            expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+            await atom.config.diffResetPathConfigs([tempDir2])
+            expect(Array.from(atom.config.pathSettingsMap.values()).length).toBe(1)
+          })
+        })
+        it("diffResets only the second call when called quickly in succession", () => {
+          waitsForPromise( async () => {
+            atom.config.diffResetPathConfigs(["foo"])
+            await atom.config.diffResetPathConfigs(["bar", "baz"])
+            const keys = Array.from(atom.config.pathSettingsMap.keys())
+            expect(keys.includes("bar/.atom/config.cson") && keys.includes("baz/.atom/config.cson")).toBe(true)
+            expect(keys.includes("foo/.atom/config.cson")).toBe(false)
+            expect(keys.length).toBe(2)
+          })
+        })
+      })
+    })
+  })
 })
+
+function writeFileSync (filePath, content, seconds = 2) {
+  const utime = (Date.now() / 1000) + seconds
+  fs.writeFileSync(filePath, content)
+  fs.utimesSync(filePath, utime, utime)
+}

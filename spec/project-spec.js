@@ -7,14 +7,23 @@ const {Directory} = require('pathwatcher')
 const {stopAllWatchers} = require('../src/path-watcher')
 const GitRepository = require('../src/git-repository')
 
+
 describe('Project', () => {
+  let spy
   beforeEach(() => {
+    spy = spyOn(atom.config, 'diffResetPathConfigs')
     const directory = atom.project.getDirectories()[0]
     const paths = directory ? [directory.resolve('dir')] : [null]
     atom.project.setPaths(paths)
 
     // Wait for project's service consumers to be asynchronously added
     waits(1)
+  })
+
+  describe('watchForPathSettings', () => {
+    it('calls atom.config.diffResetPathConfigs', async () => {
+      expect(atom.project.pathSettingsWatcher).not.toBeUndefined()
+    })
   })
 
   describe('serialization', () => {

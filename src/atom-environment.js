@@ -149,6 +149,7 @@ class AtomEnvironment {
       config: this.config,
       applicationDelegate: this.applicationDelegate
     })
+
     this.commandInstaller = new CommandInstaller(this.applicationDelegate)
     this.protocolHandlerInstaller = new ProtocolHandlerInstaller()
 
@@ -212,6 +213,7 @@ class AtomEnvironment {
 
     const {devMode, safeMode, resourcePath, userSettings} = this.getLoadSettings()
 
+
     ConfigSchema.projectHome = {
       type: 'string',
       default: path.join(fs.getHomeDirectory(), 'github'),
@@ -222,7 +224,7 @@ class AtomEnvironment {
       mainSource: this.enablePersistence && path.join(this.configDirPath, 'config.cson'),
       projectHomeSchema: ConfigSchema.projectHome
     })
-    this.config.resetUserSettings(userSettings)
+    this.config.initializeUserSettings(userSettings)
 
     this.menu.initialize({resourcePath})
     this.contextMenu.initialize({resourcePath, devMode})
@@ -783,7 +785,7 @@ class AtomEnvironment {
       })
 
       this.disposables.add(this.applicationDelegate.onDidChangeUserSettings(settings =>
-        this.config.resetUserSettings(settings)
+        this.config.initializeUserSettings(settings)
       ))
       this.disposables.add(this.applicationDelegate.onDidFailToReadUserSettings(message =>
         this.notifications.addError(message)

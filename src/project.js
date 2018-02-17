@@ -39,6 +39,7 @@ class Project extends Model {
     this.retiredBufferPaths = new Set()
     this.subscriptions = new CompositeDisposable()
     this.consumeServices(packageManager)
+    this.pathSettingsWatcher = this.watchForPathSettings()
   }
 
   destroyed () {
@@ -59,6 +60,8 @@ class Project extends Model {
 
     this.subscriptions.dispose()
     this.subscriptions = new CompositeDisposable()
+
+    this.pathSettingsWatcher.dispose()
 
     for (let buffer of this.buffers) {
       if (buffer != null) buffer.destroy()
@@ -692,6 +695,12 @@ class Project extends Model {
     } else {
       return this.on('buffer-created', buffer => callback(buffer))
     }
+  }
+
+  watchForPathSettings () {
+    return this.onDidChangePaths((newPaths) => {
+      atom.config.diffResetPathConfigs(newPaths)
+    })
   }
 
   subscribeToBuffer (buffer) {
