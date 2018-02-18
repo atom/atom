@@ -55,10 +55,17 @@ class AtomWindow extends EventEmitter {
     if (this.shouldHideTitleBar()) options.frame = false
     this.browserWindow = new BrowserWindow(options)
 
+    let projectSettings
+    if (this.atomApplication.projectSettings != null) {
+      projectSettings = this.atomApplication.projectSettings
+    }
+
     Object.defineProperty(this.browserWindow, 'loadSettingsJSON', {
       get: () => JSON.stringify(Object.assign({
-        userSettings: this.atomApplication.configFile.get()
-      }, this.loadSettings))
+        userSettings: this.atomApplication.configFile.get(),
+        projectSettings
+      }, this.loadSettings)),
+      configurable: true
     })
 
     this.handleEvents()

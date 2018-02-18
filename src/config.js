@@ -360,6 +360,7 @@ const ScopeDescriptor = require('./scope-descriptor')
 // * Don't depend on (or write to) configuration keys outside of your keypath.
 //
 const schemaEnforcers = {}
+const PROJECT = '__project'
 
 class Config {
   static addSchemaEnforcer (typeName, enforcerFunction) {
@@ -422,6 +423,8 @@ class Config {
       type: 'object',
       properties: {}
     }
+
+    this.hasCurrentProject = false
     this.defaultSettings = {}
     this.settings = {}
     this.scopedSettingsStore = new ScopedPropertyStore()
@@ -579,7 +582,9 @@ class Config {
   // Returns the value from Atom's default settings, the user's configuration
   // file in the type specified by the configuration schema.
   get (...args) {
-    let keyPath, options, scope
+    let keyPath, scope, value
+    let options = {}
+
     if (args.length > 1) {
       if ((typeof args[0] === 'string') || (args[0] == null)) {
         [keyPath, options] = args;
@@ -589,8 +594,18 @@ class Config {
       [keyPath] = args
     }
 
+    const noSources = !options.sources || (Array.isArray(options.sources) && options.sources.length === 0)
+    if (this.hasCurrentProject && noSources) {
+      const projectScope = Array.isArray(scope) ? scope.push(PROJECT) : [PROJECT]
+      const projectOptions = Object.assign({sources: [PROJECT]}, options)
+      value = this.getRawScopedValue(projectScope, keyPath, projectOptions)
+      if (value != null) {
+        return value
+      }
+    }
+
     if (scope != null) {
-      const value = this.getRawScopedValue(scope, keyPath, options)
+      value = this.getRawScopedValue(scope, keyPath, options)
       return value != null ? value : this.getRawValue(keyPath, options)
     } else {
       return this.getRawValue(keyPath, options)
@@ -606,9 +621,36 @@ class Config {
   // Returns an {Array} of {Object}s with the following keys:
   //  * `scopeDescriptor` The {ScopeDescriptor} with which the value is associated
   //  * `value` The value for the key-path
-  getAll (keyPath, options) {
-    let globalValue, result, scope
+  getAll (keyPath, options = {}) {
+    let result, scope
     if (options != null) { ({scope} = options) }
+
+    const priorities = []
+
+    // Priority level for atom project settings.
+    if (this.hasCurrentProject) {
+      options.scope = (scope == null) ? [PROJECT] : scope.push(PROJECT)
+      options.sources = (options.sources == null ? [PROJECT] : options.sources.push(PROJECT))
+      priorities.push({ options, source: PROJECT })
+    }
+
+    // Priority level for atom global settings.
+    priorities.push({options})
+
+    for (let priority of priorities) {
+      result = this.getAllForPriority(keyPath, priority)
+      if (result.length > 0) {
+        return result
+      }
+    }
+    return result
+  }
+
+  // Gets all values for a particular priority. IE: Project settings,
+  // then global settings.
+  getAllForPriority (keyPath, priority) {
+    let globalValue, result, scope
+    if (priority.options != null) { ({scope} = priority.options) }
 
     if (scope != null) {
       let legacyScopeDescriptor
@@ -616,21 +658,31 @@ class Config {
       result = this.scopedSettingsStore.getAll(
           scopeDescriptor.getScopeChain(),
           keyPath,
-          options
+          priority.options
         )
       legacyScopeDescriptor = this.getLegacyScopeDescriptor(scopeDescriptor)
       if (legacyScopeDescriptor) {
         result.push(...Array.from(this.scopedSettingsStore.getAll(
             legacyScopeDescriptor.getScopeChain(),
             keyPath,
-            options
+            priority.options
           ) || []))
       }
     } else {
       result = []
     }
 
-    globalValue = this.getRawValue(keyPath, options)
+    if (priority.source == null) {
+      globalValue = this.getRawValue(keyPath, priority.options)
+    } else {
+      result = result.map((obj) => {
+        if (obj.scopeSelector === priority.source) {
+          obj.scopeSelector = '*'
+        }
+        return obj
+      })
+    }
+
     if (globalValue) {
       result.push({scopeSelector: '*', value: globalValue})
     }
@@ -958,6 +1010,18 @@ class Config {
     })
   }
 
+  resetProjectSettings (newSettings, options = {}) {
+    // Sets the scope and source of all project settings to `path`.
+    this.hasCurrentProject = !options.removeProject
+    const pathScopedSettings = {}
+    pathScopedSettings[PROJECT] = newSettings
+    this.resetUserScopedSettings(pathScopedSettings, {source: PROJECT})
+  }
+
+  removeProjectSettings () {
+    this.resetProjectSettings({}, {removeProject: true})
+  }
+
   getRawValue (keyPath, options = {}) {
     let value
     if (!options.excludeSources || !options.excludeSources.includes(this.mainSource)) {
@@ -1165,8 +1229,8 @@ class Config {
     if (this.transactDepth <= 0) { return this.emitter.emit('did-change') }
   }
 
-  resetUserScopedSettings (newScopedSettings) {
-    const source = this.mainSource
+  resetUserScopedSettings (newScopedSettings, options = {}) {
+    const source = options.source == null ? this.mainSource : options.source
     const priority = this.priorityForSource(source)
     this.scopedSettingsStore.removePropertiesForSource(source)
 

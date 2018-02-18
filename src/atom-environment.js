@@ -50,7 +50,6 @@ let nextId = 0
 //
 // An instance of this class is always available as the `atom` global.
 class AtomEnvironment {
-
   /*
   Section: Properties
   */
@@ -210,7 +209,7 @@ class AtomEnvironment {
     this.blobStore = params.blobStore
     this.configDirPath = params.configDirPath
 
-    const {devMode, safeMode, resourcePath, userSettings} = this.getLoadSettings()
+    const {devMode, safeMode, resourcePath, userSettings, projectSettings} = this.getLoadSettings()
 
     ConfigSchema.projectHome = {
       type: 'string',
@@ -223,6 +222,10 @@ class AtomEnvironment {
       projectHomeSchema: ConfigSchema.projectHome
     })
     this.config.resetUserSettings(userSettings)
+
+    if (projectSettings != null) {
+      this.project.resetProjectSettings(projectSettings)
+    }
 
     this.menu.initialize({resourcePath})
     this.contextMenu.initialize({resourcePath, devMode})

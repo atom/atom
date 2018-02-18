@@ -93,7 +93,6 @@ class AtomApplication extends EventEmitter {
     this.quitting = false
     this.getAllWindows = this.getAllWindows.bind(this)
     this.getLastFocusedWindow = this.getLastFocusedWindow.bind(this)
-
     this.resourcePath = options.resourcePath
     this.devResourcePath = options.devResourcePath
     this.version = options.version
@@ -101,6 +100,7 @@ class AtomApplication extends EventEmitter {
     this.safeMode = options.safeMode
     this.socketPath = options.socketPath
     this.logFile = options.logFile
+    this.projectSettings = options.projectSettings
     this.userDataDir = options.userDataDir
     this._killProcess = options.killProcess || process.kill.bind(process)
     if (options.test || options.benchmark || options.benchmarkTest) this.socketPath = null

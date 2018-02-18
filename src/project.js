@@ -77,6 +77,14 @@ class Project extends Model {
     }
   }
 
+  resetProjectSettings (newSettings) {
+    atom.config.resetProjectSettings(newSettings)
+  }
+
+  clearProjectSettings () {
+    atom.config.clearProjectSettings()
+  }
+
   /*
   Section: Serialization
   */
