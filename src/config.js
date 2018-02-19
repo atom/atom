@@ -7,6 +7,7 @@ const {
 const Color = require('./color')
 const ScopedPropertyStore = require('scoped-property-store')
 const ScopeDescriptor = require('./scope-descriptor')
+const crypto = require('crypto')
 
 // Essential: Used to access all of Atom's configuration details.
 //
@@ -360,7 +361,7 @@ const ScopeDescriptor = require('./scope-descriptor')
 // * Don't depend on (or write to) configuration keys outside of your keypath.
 //
 const schemaEnforcers = {}
-const PROJECT = '__project'
+const PROJECT = '__project' + crypto.randomBytes(20).toString('hex')
 
 class Config {
   static addSchemaEnforcer (typeName, enforcerFunction) {
