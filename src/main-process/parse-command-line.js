@@ -129,7 +129,6 @@ module.exports = function parseCommandLine (processArgs) {
   }
 
   // Check to see if atom-project flag is set, then add all paths from the .atom-project.
-
   if (args['resource-path']) {
     devMode = true
     devResourcePath = args['resource-path']
