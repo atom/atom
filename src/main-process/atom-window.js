@@ -154,12 +154,13 @@ class AtomWindow extends EventEmitter {
 
   containsPath (pathToCheck) {
     if (!pathToCheck) return false
-    const stat = fs.statSyncNoException(pathToCheck)
-    if (stat && stat.isDirectory()) return false
-
-    return this.representedDirectoryPaths.some(projectPath =>
-      pathToCheck === projectPath || pathToCheck.startsWith(path.join(projectPath, path.sep))
-    )
+    let stat
+    return this.representedDirectoryPaths.some(projectPath => {
+      if (pathToCheck === projectPath) return true
+      if (!pathToCheck.startsWith(path.join(projectPath, path.sep))) return false
+      if (stat === undefined) stat = fs.statSyncNoException(pathToCheck)
+      return !stat || !stat.isDirectory()
+    })
   }
 
   handleEvents () {
