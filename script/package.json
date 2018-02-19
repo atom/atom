@@ -31,7 +31,7 @@
     "semver": "5.3.0",
     "standard": "8.4.0",
     "sync-request": "3.0.1",
-    "tello": "1.0.5",
+    "tello": "1.0.7",
     "webdriverio": "2.4.5",
     "yargs": "4.8.1"
   }
