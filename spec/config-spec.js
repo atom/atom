@@ -115,7 +115,7 @@ describe('Config', () => {
 
       describe('when the first component of the scope descriptor matches a legacy scope alias', () =>
         it('falls back to properties defined for the legacy scope if no value is found for the original scope descriptor', () => {
-          atom.config.addLegacyScopeAlias('javascript', '.source.js')
+          atom.config.setLegacyScopeAliasForNewScope('javascript', '.source.js')
           atom.config.set('foo', 100, {scopeSelector: '.source.js'})
           atom.config.set('foo', 200, {scopeSelector: 'javascript for_statement'})
 
@@ -154,7 +154,7 @@ describe('Config', () => {
 
     describe('when the first component of the scope descriptor matches a legacy scope alias', () =>
       it('includes the values defined for the legacy scope', () => {
-        atom.config.addLegacyScopeAlias('javascript', '.source.js')
+        atom.config.setLegacyScopeAliasForNewScope('javascript', '.source.js')
 
         expect(atom.config.set('foo', 41)).toBe(true)
         expect(atom.config.set('foo', 42, {scopeSelector: 'javascript'})).toBe(true)
