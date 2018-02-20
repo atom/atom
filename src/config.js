@@ -429,7 +429,7 @@ class Config {
     this.settingsLoaded = false
     this.transactDepth = 0
     this.pendingOperations = []
-    this.legacyScopeAliases = {}
+    this.legacyScopeAliases = new Map()
     this.requestSave = _.debounce(() => this.save(), 1)
   }
 
@@ -618,7 +618,7 @@ class Config {
           keyPath,
           options
         )
-      legacyScopeDescriptor = this.getLegacyScopeDescriptor(scopeDescriptor)
+      legacyScopeDescriptor = this.getLegacyScopeDescriptorForNewScopeDescriptor(scopeDescriptor)
       if (legacyScopeDescriptor) {
         result.push(...Array.from(this.scopedSettingsStore.getAll(
             legacyScopeDescriptor.getScopeChain(),
@@ -818,12 +818,22 @@ class Config {
     }
   }
 
-  addLegacyScopeAlias (languageId, legacyScopeName) {
-    this.legacyScopeAliases[languageId] = legacyScopeName
+  getLegacyScopeDescriptorForNewScopeDescriptor (scopeDescriptor) {
+    scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
+    const legacyAlias = this.legacyScopeAliases.get(scopeDescriptor.scopes[0])
+    if (legacyAlias) {
+      const scopes = scopeDescriptor.scopes.slice()
+      scopes[0] = legacyAlias
+      return new ScopeDescriptor({scopes})
+    }
   }
 
-  removeLegacyScopeAlias (languageId) {
-    delete this.legacyScopeAliases[languageId]
+  setLegacyScopeAliasForNewScope (languageId, legacyScopeName) {
+    this.legacyScopeAliases.set(languageId, legacyScopeName)
+  }
+
+  removeLegacyScopeAliasForNewScope (languageId) {
+    this.legacyScopeAliases.delete(languageId)
   }
 
   /*
@@ -1202,7 +1212,7 @@ class Config {
       options
     )
 
-    const legacyScopeDescriptor = this.getLegacyScopeDescriptor(scopeDescriptor)
+    const legacyScopeDescriptor = this.getLegacyScopeDescriptorForNewScopeDescriptor(scopeDescriptor)
     if (result != null) {
       return result
     } else if (legacyScopeDescriptor) {
@@ -1229,15 +1239,6 @@ class Config {
         callback(event)
       }
     })
-  }
-
-  getLegacyScopeDescriptor (scopeDescriptor) {
-    const legacyAlias = this.legacyScopeAliases[scopeDescriptor.scopes[0]]
-    if (legacyAlias) {
-      const scopes = scopeDescriptor.scopes.slice()
-      scopes[0] = legacyAlias
-      return new ScopeDescriptor({scopes})
-    }
   }
 };
 
