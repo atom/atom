@@ -8,3 +8,4 @@ Type=Application
 StartupNotify=true
 Categories=GNOME;GTK;Utility;TextEditor;Development;
 MimeType=text/plain;
+StartupWMClass=Atom
