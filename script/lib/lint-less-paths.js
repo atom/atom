@@ -2,7 +2,6 @@
 
 const stylelint = require('stylelint')
 const path = require('path')
-const {flatten} = require('underscore-plus')
 
 const CONFIG = require('../config')
 
@@ -14,17 +13,48 @@ module.exports = function () {
       configFile: path.resolve(__dirname, '..', '..', 'stylelint.config.js')
     })
     .then(({results}) => {
-      return flatten(
-        results.filter(_ => _.errored).map(result => {
-          const errors = result.warnings.filter(_ => _.severity === 'error')
-          return errors.map(e => ({
-            path: result.source,
-            lineNumber: e.line,
-            message: e.text,
-            rule: e.rule
-          }))
-        })
-      )
+      const errors = []
+
+      for (const result of results) {
+        for (const deprecation of result.deprecations) {
+          console.log('stylelint encountered deprecation:', deprecation.text)
+          if (deprecation.reference != null) {
+            console.log('more information at', deprecation.reference)
+          }
+        }
+
+        for (const invalidOptionWarning of result.invalidOptionWarnings) {
+          console.warn(
+            'stylelint encountered invalid option:',
+            invalidOptionWarning.text
+          )
+        }
+
+        if (result.errored) {
+          for (const warning of result.warnings) {
+            if (warning.severity === 'error') {
+              errors.push({
+                path: result.source,
+                lineNumber: warning.line,
+                message: warning.text,
+                rule: warning.rule
+              })
+            } else {
+              console.warn(
+                'stylelint encountered non-critical warning in file',
+                result.source,
+                'at line',
+                warning.line,
+                'for rule',
+                warning.rule + ':',
+                warning.text
+              )
+            }
+          }
+        }
+      }
+
+      return errors
     })
     .catch(err => {
       console.error('There was a problem linting LESS:')
