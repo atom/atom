@@ -303,6 +303,7 @@ class TreeSitterLanguageMode {
   }
 
   scopeDescriptorForPosition (point) {
+    point = Point.fromObject(point)
     const result = []
     let node = this.document.rootNode.descendantForPosition(point)
 
