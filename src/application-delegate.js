@@ -182,7 +182,7 @@ class ApplicationDelegate {
   async setUserSettings (config) {
     this.pendingSettingsUpdateCount++
     try {
-      await ipcHelpers.call('set-user-settings', config)
+      await ipcHelpers.call('set-user-settings', JSON.stringify(config))
     } finally {
       this.pendingSettingsUpdateCount--
     }

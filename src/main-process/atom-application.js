@@ -559,7 +559,7 @@ class AtomApplication extends EventEmitter {
     }))
 
     this.disposable.add(ipcHelpers.respondTo('set-user-settings', (window, settings) =>
-      this.configFile.update(settings)
+      this.configFile.update(JSON.parse(settings))
     ))
 
     this.disposable.add(ipcHelpers.respondTo('center-window', window => window.center()))
