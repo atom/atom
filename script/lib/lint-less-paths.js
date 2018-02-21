@@ -26,7 +26,7 @@ module.exports = function() {
             message: e.text,
             rule: e.rule,
           }))
-        }),
+        })
       )
     })
     .catch(err => {
