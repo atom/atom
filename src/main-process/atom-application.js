@@ -116,7 +116,9 @@ class AtomApplication extends EventEmitter {
 
     this.configFile = new ConfigFile(configFilePath)
     this.config = new Config({
-      saveCallback: settings => this.configFile.update(settings)
+      saveCallback: settings => {
+        if (!this.quitting) return this.configFile.update(settings)
+      }
     })
     this.config.setSchema(null, {type: 'object', properties: _.clone(ConfigSchema)})
 
