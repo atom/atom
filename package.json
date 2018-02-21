@@ -172,6 +172,11 @@
     "language-xml": "0.35.2",
     "language-yaml": "0.31.2"
   },
+  "devDependencies": {
+    "coffeelint": "1.15.7",
+    "csslint": "1.0.2",
+    "standard": "8.4.0"
+  },
   "private": true,
   "scripts": {
     "preinstall": "node -e 'process.exit(0)'",
