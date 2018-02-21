@@ -7,12 +7,14 @@ describe('contextMenu', () => {
       expect(sortMenuItems(items)).toEqual(items)
     })
   })
+
   describe('dedupes separators', () => {
     it('trims leading separators', () => {
       const items = [{ type: 'separator' }, { command: 'core:one' }]
       const expected = [{ command: 'core:one' }]
       expect(sortMenuItems(items)).toEqual(expected)
     })
+
     it('preserves separators at the begining of set two', () => {
       const items = [
         { command: 'core:one' },
@@ -25,11 +27,13 @@ describe('contextMenu', () => {
       ]
       expect(sortMenuItems(items)).toEqual(expected)
     })
+
     it('trims trailing separators', () => {
       const items = [{ command: 'core:one' }, { type: 'separator' }]
       const expected = [{ command: 'core:one' }]
       expect(sortMenuItems(items)).toEqual(expected)
     })
+
     it('removes duplicate separators across sets', () => {
       const items = [
         { command: 'core:one' }, { type: 'separator' },
@@ -43,6 +47,7 @@ describe('contextMenu', () => {
       expect(sortMenuItems(items)).toEqual(expected)
     })
   })
+
   describe('can move an item to a different group by merging groups', () => {
     it('can move a group of one item', () => {
       const items = [
@@ -61,6 +66,7 @@ describe('contextMenu', () => {
       ]
       expect(sortMenuItems(items)).toEqual(expected)
     })
+
     it("moves all items in the moving item's group", () => {
       const items = [
         { command: 'core:one' },
@@ -80,6 +86,7 @@ describe('contextMenu', () => {
       ]
       expect(sortMenuItems(items)).toEqual(expected)
     })
+
     it("ignores positions relative to commands that don't exist", () => {
       const items = [
         { command: 'core:one' },
@@ -99,6 +106,7 @@ describe('contextMenu', () => {
       ]
       expect(sortMenuItems(items)).toEqual(expected)
     })
+
     it('can handle recursive group merging', () => {
       const items = [
         { command: 'core:one', after: ['core:three'] },
@@ -112,6 +120,7 @@ describe('contextMenu', () => {
       ]
       expect(sortMenuItems(items)).toEqual(expected)
     })
+
     it('can merge multiple groups when given a list of before/after commands', () => {
       const items = [
         { command: 'core:one' },
@@ -127,6 +136,7 @@ describe('contextMenu', () => {
       ]
       expect(sortMenuItems(items)).toEqual(expected)
     })
+
     it('can merge multiple groups based on both before/after commands', () => {
       const items = [
         { command: 'core:one' },
@@ -143,6 +153,7 @@ describe('contextMenu', () => {
       expect(sortMenuItems(items)).toEqual(expected)
     })
   })
+
   describe('sorts items within their ultimate group', () => {
     it('does a simple sort', () => {
       const items = [
@@ -154,6 +165,7 @@ describe('contextMenu', () => {
         { command: 'core:two', after: ['core:one'] }
       ])
     })
+
     it('resolves cycles by ignoring things that conflict', () => {
       const items = [
         { command: 'core:two', after: ['core:one'] },
@@ -165,6 +177,7 @@ describe('contextMenu', () => {
       ])
     })
   })
+
   describe('sorts groups', () => {
     it('does a simple sort', () => {
       const items = [
@@ -178,6 +191,7 @@ describe('contextMenu', () => {
         { command: 'core:two', afterGroupContaining: ['core:one'] }
       ])
     })
+
     it('resolves cycles by ignoring things that conflict', () => {
       const items = [
         { command: 'core:two', afterGroupContaining: ['core:one'] },
@@ -190,6 +204,7 @@ describe('contextMenu', () => {
         { command: 'core:two', afterGroupContaining: ['core:one'] }
       ])
     })
+
     it('ignores references to commands that do not exist', () => {
       const items = [
         { command: 'core:one' },
@@ -205,6 +220,7 @@ describe('contextMenu', () => {
         { command: 'core:two', afterGroupContaining: ['core:does-not-exist'] }
       ])
     })
+
     it('only respects the first matching [before|after]GroupContaining rule in a given group', () => {
       const items = [
         { command: 'core:one' },
