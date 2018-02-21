@@ -1118,7 +1118,7 @@ class AtomEnvironment {
   }
 
   showSaveDialogSync (options = {}) {
-    this.applicationDelegate.showSaveDialog(options)
+    return this.applicationDelegate.showSaveDialog(options)
   }
 
   async saveState (options, storageKey) {
