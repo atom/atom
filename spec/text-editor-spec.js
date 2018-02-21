@@ -6747,6 +6747,14 @@ describe('TextEditor', () => {
     editor.destroy()
   })
 
+  describe('.scopeDescriptorForBufferPosition(position)', () => {
+    it('returns a default scope descriptor when no language mode is assigned', () => {
+      editor = new TextEditor({buffer: new TextBuffer()})
+      const scopeDescriptor = editor.scopeDescriptorForBufferPosition([0, 0])
+      expect(scopeDescriptor.getScopesArray()).toEqual(['text'])
+    })
+  })
+
   describe('.shouldPromptToSave()', () => {
     beforeEach(async () => {
       editor = await atom.workspace.open('sample.js')
