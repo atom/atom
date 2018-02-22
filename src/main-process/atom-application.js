@@ -33,7 +33,7 @@ class AtomApplication extends EventEmitter {
   // Public: The entry point into the Atom application.
   static open (options) {
     if (!options.socketPath) {
-      const username = process.platform === 'win32' ? process.env.USERNAME : process.env.USER
+      const {username} = os.userInfo()
 
       // Lowercasing the ATOM_HOME to make sure that we don't get multiple sockets
       // on case-insensitive filesystems due to arbitrary case differences in paths.
@@ -44,7 +44,7 @@ class AtomApplication extends EventEmitter {
         .update('|')
         .update(process.arch)
         .update('|')
-        .update(username)
+        .update(username || '')
         .update('|')
         .update(atomHomeUnique)
 
