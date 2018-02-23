@@ -131,8 +131,7 @@ class PaneElement extends HTMLElement
   flexScaleChanged: (flexScale) ->
     @style.flexGrow = flexScale
 
-  getActiveView: -> @views.getView(@model.getActiveItem())
-
+  getActiveView: -> @views.getView(@model.getActiveItem()).focus()
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
 
