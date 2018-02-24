@@ -22,6 +22,7 @@ class AtomWindow extends EventEmitter {
     this.safeMode = settings.safeMode
     this.devMode = settings.devMode
     this.resourcePath = settings.resourcePath
+    this.projectSettings = settings.projectSettings
 
     let {pathToOpen, locationsToOpen} = settings
     if (!locationsToOpen && pathToOpen) locationsToOpen = [{pathToOpen}]
@@ -55,18 +56,12 @@ class AtomWindow extends EventEmitter {
     if (this.shouldHideTitleBar()) options.frame = false
     this.browserWindow = new BrowserWindow(options)
 
-    let projectSettings
+
     if (this.atomApplication.projectSettings != null) {
-      projectSettings = this.atomApplication.projectSettings
+      this.projectSettings = this.atomApplication.projectSettings
     }
 
-    Object.defineProperty(this.browserWindow, 'loadSettingsJSON', {
-      get: () => JSON.stringify(Object.assign({
-        userSettings: this.atomApplication.configFile.get(),
-        projectSettings
-      }, this.loadSettings)),
-      configurable: true
-    })
+    this.loadDataOverProcessBoundary()
 
     this.handleEvents()
 
@@ -157,6 +152,16 @@ class AtomWindow extends EventEmitter {
 
   containsPaths (paths) {
     return paths.every(p => this.containsPath(p))
+  }
+
+  loadDataOverProcessBoundary() {
+    Object.defineProperty(this.browserWindow, 'loadSettingsJSON', {
+      get: () => JSON.stringify(Object.assign({
+        userSettings: this.atomApplication.configFile.get(),
+        projectSettings: this.getProjectSettings()
+      }, this.loadSettings)),
+      configurable: true
+    })
   }
 
   containsPath (pathToCheck) {

@@ -791,6 +791,7 @@ class AtomEnvironment {
       this.disposables.add(this.applicationDelegate.onDidFailToReadUserSettings(message =>
         this.notifications.addError(message)
       ))
+
       this.disposables.add(this.applicationDelegate.onDidOpenLocations(this.openLocations.bind(this)))
       this.disposables.add(this.applicationDelegate.onApplicationMenuCommand(this.dispatchApplicationMenuCommand.bind(this)))
       this.disposables.add(this.applicationDelegate.onContextMenuCommand(this.dispatchContextMenuCommand.bind(this)))

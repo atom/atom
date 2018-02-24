@@ -630,7 +630,7 @@ class Config {
 
     // Priority level for atom project settings.
     if (this.hasCurrentProject) {
-      options.scope = (scope == null) ? [PROJECT] : scope.push(PROJECT)
+      options.scope = (!Array.isArray(scope)) ? [PROJECT] : scope.push(PROJECT)
       options.sources = (options.sources == null ? [PROJECT] : options.sources.push(PROJECT))
       priorities.push({ options, source: PROJECT })
     }

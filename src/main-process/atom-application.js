@@ -202,6 +202,7 @@ class AtomApplication extends EventEmitter {
 
   openWithOptions (options) {
     const {
+      projectSettings,
       initialPaths,
       pathsToOpen,
       executedFrom,
@@ -256,6 +257,7 @@ class AtomApplication extends EventEmitter {
         profileStartup,
         clearWindowState,
         addToLastWindow,
+        projectSettings,
         env
       })
     } else if (urlsToOpen.length > 0) {
@@ -819,6 +821,7 @@ class AtomApplication extends EventEmitter {
     window,
     clearWindowState,
     addToLastWindow,
+    projectSettings,
     env
   } = {}) {
     if (!pathsToOpen || pathsToOpen.length === 0) return
@@ -853,7 +856,7 @@ class AtomApplication extends EventEmitter {
     }
 
     let openedWindow
-    if (existingWindow) {
+    if (existingWindow && projectSettings == null) {
       openedWindow = existingWindow
       openedWindow.openLocations(locationsToOpen)
       if (openedWindow.isMinimized()) {
@@ -878,6 +881,7 @@ class AtomApplication extends EventEmitter {
       }
       if (!resourcePath) resourcePath = this.resourcePath
       if (!windowDimensions) windowDimensions = this.getDimensionsForNewWindow()
+
       openedWindow = new AtomWindow(this, this.fileRecoveryService, {
         initialPaths,
         locationsToOpen,
@@ -888,6 +892,7 @@ class AtomApplication extends EventEmitter {
         windowDimensions,
         profileStartup,
         clearWindowState,
+        projectSettings,
         env
       })
       this.addWindow(openedWindow)
