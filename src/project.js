@@ -85,7 +85,7 @@ class Project extends Model {
     this.projectFilePath = newSettings.originPath
   }
 
-  clearProjectSettings () {
+  clearAtomProject () {
     atom.config.clearProjectSettings()
   }
 
