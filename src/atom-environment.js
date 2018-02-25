@@ -223,7 +223,7 @@ class AtomEnvironment {
     })
     this.config.resetUserSettings(userSettings)
 
-    if (projectSettings != null && projectSettings.paths != null || projectSettings.config != null) {
+    if (projectSettings != null && projectSettings.config != null) {
       this.project.replaceAtomProject(projectSettings)
     }
 

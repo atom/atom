@@ -140,7 +140,7 @@ module.exports = function parseCommandLine (processArgs) {
 
   let projectSettings = {}
   if (atomProject) {
-    const contents = readProjectSettingsSync(atomProject, executedFrom)
+    const contents = Object.assign({}, readProjectSettingsSync(atomProject, executedFrom))
     const paths = contents.paths
     const config = contents.config
     const originPath = atomProject
