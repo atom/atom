@@ -628,15 +628,17 @@ class Config {
 
     const priorities = []
 
-    // Priority level for atom project settings.
+    // getAll returns all values that would normally be returned
+    // through get for the given keypath. Since project settings layers
+    // on top of the normal config, if there is a conflict, the one
+    // with higher priority (ie: project settings) should be returned first.
+
+    priorities.unshift({options})
     if (this.hasCurrentProject) {
       options.scope = (!Array.isArray(scope)) ? [PROJECT] : scope.push(PROJECT)
       options.sources = (options.sources == null ? [PROJECT] : options.sources.push(PROJECT))
-      priorities.push({ options, source: PROJECT })
+      priorities.unshift({ options, source: PROJECT })
     }
-
-    // Priority level for atom global settings.
-    priorities.push({options})
 
     for (let priority of priorities) {
       result = this.getAllForPriority(keyPath, priority)
