@@ -138,14 +138,17 @@ module.exports = function parseCommandLine (processArgs) {
     devMode = true
   }
 
-  let projectSettings
+  let projectSettings = {}
   if (atomProject) {
-    const config = readProjectSettingsSync(atomProject, executedFrom)
-    const paths = config.paths
-    projectSettings = config.config
+    const contents = readProjectSettingsSync(atomProject, executedFrom)
+    const paths = contents.paths
+    const config = contents.config
+    const originPath = atomProject
     if (paths != null) {
       pathsToOpen = pathsToOpen.concat(paths)
     }
+    projectSettings = { originPath, paths, config }
+
   }
 
   if (devMode) {
@@ -198,7 +201,7 @@ const readProjectSettingsSync = (filepath, executedFrom) => {
   try {
     const readPath = path.isAbsolute(filepath) ? filepath : path.join(executedFrom, filepath)
     const contents = CSON.readFileSync(readPath)
-    if (contents.paths || content.config) {
+    if (contents.paths || contents.config) {
       return contents
     }
 

@@ -223,8 +223,8 @@ class AtomEnvironment {
     })
     this.config.resetUserSettings(userSettings)
 
-    if (projectSettings != null) {
-      this.project.resetProjectSettings(projectSettings)
+    if (projectSettings != null && projectSettings.paths != null || projectSettings.config != null) {
+      this.project.replaceAtomProject(projectSettings)
     }
 
     this.menu.initialize({resourcePath})

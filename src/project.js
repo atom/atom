@@ -38,6 +38,7 @@ class Project extends Model {
     this.retiredBufferIDs = new Set()
     this.retiredBufferPaths = new Set()
     this.subscriptions = new CompositeDisposable()
+    this.projectFilePath = null
     this.consumeServices(packageManager)
   }
 
@@ -77,12 +78,19 @@ class Project extends Model {
     }
   }
 
-  resetProjectSettings (newSettings) {
-    atom.config.resetProjectSettings(newSettings)
+  // Layers the contents of an atomProject file's config
+  // on top of the current global config. 
+  replaceAtomProject (newSettings) {
+    atom.config.resetProjectSettings(newSettings.config)
+    this.projectFilePath = newSettings.originPath
   }
 
   clearProjectSettings () {
     atom.config.clearProjectSettings()
+  }
+
+  getProjectFilePath () {
+    return this.projectFilePath
   }
 
   /*

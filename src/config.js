@@ -1013,6 +1013,7 @@ class Config {
 
   resetProjectSettings (newSettings, options = {}) {
     // Sets the scope and source of all project settings to `path`.
+    newSettings = Object.assign({}, newSettings)
     this.hasCurrentProject = !options.removeProject
     const pathScopedSettings = {}
     pathScopedSettings[PROJECT] = newSettings
