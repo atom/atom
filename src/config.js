@@ -361,7 +361,7 @@ const crypto = require('crypto')
 // * Don't depend on (or write to) configuration keys outside of your keypath.
 //
 const schemaEnforcers = {}
-const PROJECT = '__project' + crypto.randomBytes(20).toString('hex')
+const PROJECT = '__atomproject__'
 
 class Config {
   static addSchemaEnforcer (typeName, enforcerFunction) {
