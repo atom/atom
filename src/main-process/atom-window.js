@@ -56,7 +56,6 @@ class AtomWindow extends EventEmitter {
     if (this.shouldHideTitleBar()) options.frame = false
     this.browserWindow = new BrowserWindow(options)
 
-
     if (this.atomApplication.projectSettings != null) {
       this.projectSettings = this.atomApplication.projectSettings
     }
@@ -154,7 +153,7 @@ class AtomWindow extends EventEmitter {
     return paths.every(p => this.containsPath(p))
   }
 
-  loadDataOverProcessBoundary() {
+  loadDataOverProcessBoundary () {
     Object.defineProperty(this.browserWindow, 'loadSettingsJSON', {
       get: () => JSON.stringify(Object.assign({
         userSettings: this.atomApplication.configFile.get(),

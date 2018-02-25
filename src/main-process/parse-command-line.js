@@ -148,7 +148,6 @@ module.exports = function parseCommandLine (processArgs) {
       pathsToOpen = pathsToOpen.concat(paths)
     }
     projectSettings = { originPath, paths, config }
-
   }
 
   if (devMode) {
@@ -204,7 +203,6 @@ const readProjectSettingsSync = (filepath, executedFrom) => {
     if (contents.paths || contents.config) {
       return contents
     }
-
   } catch (e) {
     throw new Error('Unable to read supplied config file.')
   }
