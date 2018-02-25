@@ -53,7 +53,7 @@ module.exports = function parseCommandLine (processArgs) {
     'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).'
   )
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version information.')
-  options.alias('p', 'atom-project').describe('p', 'Start atom with an atom-project file.')
+  options.alias('p', 'atomproject').describe('p', 'Start atom with an atomproject file.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.alias('a', 'add').boolean('a').describe('add', 'Open path as a new project in last used window.')
   options.string('socket-path')
@@ -93,7 +93,7 @@ module.exports = function parseCommandLine (processArgs) {
   const benchmark = args['benchmark']
   const benchmarkTest = args['benchmark-test']
   const test = args['test']
-  const atomProject = args['atom-project']
+  const atomProject = args['atomproject']
   const mainProcess = args['main-process']
   const timeout = args['timeout']
   const newWindow = args['new-window']
@@ -128,7 +128,7 @@ module.exports = function parseCommandLine (processArgs) {
     }
   }
 
-  // Check to see if atom-project flag is set, then add all paths from the .atom-project.
+  // Check to see if atomproject flag is set, then add all paths from the .atom-project.
   if (args['resource-path']) {
     devMode = true
     devResourcePath = args['resource-path']
@@ -195,7 +195,7 @@ module.exports = function parseCommandLine (processArgs) {
 
 const readProjectSettingsSync = (filepath, executedFrom) => {
   if (!hasAtomProjectFormat(path.basename(filepath))) {
-    throw new Error('File must match format: *.atom-project.{json, cson}')
+    throw new Error('File must match format: *.atomproject.{json, cson}')
   }
   try {
     const readPath = path.isAbsolute(filepath) ? filepath : path.join(executedFrom, filepath)
@@ -209,7 +209,7 @@ const readProjectSettingsSync = (filepath, executedFrom) => {
 }
 
 const hasAtomProjectFormat = (atomProject) => {
-  const projectFileFormat = /.*\.atomProject\.(json|cson)/
+  const projectFileFormat = /.*\.atomproject\.(json|cson)/
   return projectFileFormat.test(atomProject)
 }
 
