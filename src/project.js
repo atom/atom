@@ -79,7 +79,7 @@ class Project extends Model {
   }
 
   // Layers the contents of an atomProject file's config
-  // on top of the current global config. 
+  // on top of the current global config.
   replaceAtomProject (newSettings) {
     atom.config.resetProjectSettings(newSettings.config)
     this.projectFilePath = newSettings.originPath

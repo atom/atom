@@ -7,7 +7,6 @@ const {
 const Color = require('./color')
 const ScopedPropertyStore = require('scoped-property-store')
 const ScopeDescriptor = require('./scope-descriptor')
-const crypto = require('crypto')
 
 // Essential: Used to access all of Atom's configuration details.
 //
