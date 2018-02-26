@@ -141,16 +141,12 @@ module.exports = function parseCommandLine (processArgs) {
   let projectSettings = {}
   if (atomProject) {
     const contents = Object.assign({}, readProjectSettingsSync(atomProject, executedFrom))
-    const paths = contents.paths
     const config = contents.config
     const originPath = atomProject
-    if (paths != null) {
-      const relativizedPaths = paths.map((curPath) =>
-        relativizeToAtomProject(curPath, atomProject, executedFrom)
-      )
-      pathsToOpen = pathsToOpen.concat(relativizedPaths)
-    }
-    console.log(pathsToOpen)
+    const paths = contents.paths.map((curPath) =>
+      relativizeToAtomProject(curPath, atomProject, executedFrom)
+    )
+    pathsToOpen.push(path.dirname(atomProject))
     projectSettings = { originPath, paths, config }
   }
 
@@ -204,11 +200,13 @@ const readProjectSettingsSync = (filepath, executedFrom) => {
   try {
     const readPath = path.isAbsolute(filepath) ? filepath : path.join(executedFrom, filepath)
     const contents = CSON.readFileSync(readPath)
-    if (contents.paths || contents.config) {
+    if (contents.paths && contents.config) {
       return contents
     }
+    throw new Error()
   } catch (e) {
-    throw new Error('Unable to read supplied config file.')
+    const errorMessage = `Unable to read supplied atomproject file. This file must have a valid array of paths, as well as a valid config object.`
+    throw new Error(errorMessage)
   }
 }
 

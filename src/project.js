@@ -83,6 +83,7 @@ class Project extends Model {
   replaceAtomProject (newSettings) {
     atom.config.resetProjectSettings(newSettings.config)
     this.projectFilePath = newSettings.originPath
+    this.setPaths(newSettings.paths)
     this.emitter.emit('replaced-atom-project', newSettings)
   }
 
