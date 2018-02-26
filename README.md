@@ -70,6 +70,10 @@ repeat these steps to upgrade to future releases.
 * [macOS](https://flight-manual.atom.io/hacking-atom/sections/hacking-on-atom-core/#platform-mac)
 * [Windows](https://flight-manual.atom.io/hacking-atom/sections/hacking-on-atom-core/#platform-windows)
 
+# discussion
+* Post questions and get answers on our [Fourms](https://discuss.atom.io/)
+* Real time text, video and voice chat to ask, answer and share your workspace on [Slack](https://atomio.slack.com/)
+
 ## License
 
 [MIT](https://github.com/atom/atom/blob/master/LICENSE.md)
