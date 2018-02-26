@@ -346,17 +346,12 @@ class Project extends Model {
   //   * `exact` If `true`, only add `projectPath` if it names an existing directory. If `false`, if `projectPath` is a
   //     a file or does not exist, its parent directory will be added instead.
   addPath (projectPath, options = {}) {
-
     const directory = this.getDirectoryForProjectPath(projectPath)
-    if (projectPath === "/Users/foo/baz") {
-      console.log("ree", directory)
-    }
     let ok = true
     if (options.exact === true) {
       ok = (directory.getPath() === projectPath)
     }
     ok = ok && directory.existsSync()
-
 
     if (!ok) {
       if (options.mustExist === true) {
@@ -372,7 +367,6 @@ class Project extends Model {
       if (existingDirectory.getPath() === directory.getPath()) { return }
     }
 
-
     this.rootDirectories.push(directory)
 
     const didChangeCallback = events => {
@@ -382,6 +376,7 @@ class Project extends Model {
         this.emitter.emit('did-change-files', events)
       }
     }
+
     // We'll use the directory's custom onDidChangeFiles callback, if available.
     // CustomDirectory::onDidChangeFiles should match the signature of
     // Project::onDidChangeFiles below (although it may resolve asynchronously)
