@@ -84,21 +84,21 @@ class Project extends Model {
     atom.config.resetProjectSettings(newSettings.config)
     this.projectFilePath = newSettings.originPath
     this.setPaths(newSettings.paths)
-    this.emitter.emit('replaced-atom-project', newSettings)
+    this.emitter.emit('replace-atom-project', newSettings)
   }
 
   onDidReplaceAtomProject (callback) {
-    return this.emitter.on('replaced-atom-project', callback)
+    return this.emitter.on('replace-atom-project', callback)
   }
 
   clearAtomProject () {
     atom.config.clearProjectSettings()
     this.setPaths([])
     this.projectFilePath = null
-    this.emitter.emit('replaced-atom-project', {})
+    this.emitter.emit('replace-atom-project', {})
   }
 
-  getProjectFilePath () {
+  getAtomProjectFilePath () {
     return this.projectFilePath
   }
 
@@ -347,13 +347,17 @@ class Project extends Model {
   //   * `exact` If `true`, only add `projectPath` if it names an existing directory. If `false`, if `projectPath` is a
   //     a file or does not exist, its parent directory will be added instead.
   addPath (projectPath, options = {}) {
-    const directory = this.getDirectoryForProjectPath(projectPath)
 
+    const directory = this.getDirectoryForProjectPath(projectPath)
+    if (projectPath === "/Users/foo/baz") {
+      console.log("ree", directory)
+    }
     let ok = true
     if (options.exact === true) {
       ok = (directory.getPath() === projectPath)
     }
     ok = ok && directory.existsSync()
+
 
     if (!ok) {
       if (options.mustExist === true) {
@@ -368,6 +372,7 @@ class Project extends Model {
     for (let existingDirectory of this.getDirectories()) {
       if (existingDirectory.getPath() === directory.getPath()) { return }
     }
+
 
     this.rootDirectories.push(directory)
 

@@ -1888,7 +1888,7 @@ describe('Config', () => {
           atom.config.resetProjectSettings({'foo': 'baz'})
           expect(atom.config.get('foo')).toBe('baz')
           expect(atom.config.getSources().length).toBe(1)
-          atom.config.removeProjectSettings()
+          atom.config.clearProjectSettings()
           expect(atom.config.get('foo')).toBe('bar')
           expect(atom.config.getSources().length).toBe(0)
         })

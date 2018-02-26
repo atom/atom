@@ -274,6 +274,56 @@ describe('Project', () => {
     })
   })
 
+  fdescribe('atomProject', () => {
+    let newSettings, projectPath1, projectPath2
+    beforeEach(() => {
+      atom.project.clearAtomProject()
+      projectPath1 = temp.mkdirSync('project-path1')
+      projectPath2 = temp.mkdirSync('project-path2')
+      newSettings = {
+        paths: [projectPath1, projectPath2],
+        originPath: "originPath",
+        config: {
+          "baz": "buzz"
+        }
+      }
+    })
+    it('sets an atomproject', () => {
+      expect(atom.project.getAtomProjectFilePath()).toBeNull()
+      expect(atom.config.get('baz')).toBeUndefined()
+      atom.project.replaceAtomProject(newSettings)
+      expect(atom.project.getAtomProjectFilePath()).toBe("originPath")
+      expect(atom.project.getPaths()).toEqual([projectPath1, projectPath2])
+      expect(atom.config.get('baz')).toBe("buzz")
+    })
+
+    it('clears an atom project', () => {
+      expect(atom.project.getAtomProjectFilePath()).toBeNull()
+      expect(atom.config.get('baz')).toBeUndefined()
+      atom.project.replaceAtomProject(newSettings)
+      expect(atom.config.get('baz')).toBe("buzz")
+      expect(atom.project.getPaths()).toEqual([projectPath1, projectPath2])
+      expect(atom.project.getAtomProjectFilePath()).toBe("originPath")
+      atom.project.clearAtomProject()
+      expect(atom.project.getAtomProjectFilePath()).toBeNull()
+      expect(atom.config.get('baz')).toBeUndefined()
+      expect(atom.project.getPaths()).toEqual([])
+    })
+
+    it('responds to change of atom project', () => {
+      let wasCalled = false
+      const callback = () => {
+        wasCalled = true
+      }
+      atom.project.onDidReplaceAtomProject(callback)
+      atom.project.replaceAtomProject(newSettings)
+      expect(wasCalled).toBe(true)
+      wasCalled = false
+      atom.project.clearAtomProject()
+      expect(wasCalled).toBe(true)
+    })
+  })
+
   describe('before and after saving a buffer', () => {
     let buffer
     beforeEach(() =>

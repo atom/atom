@@ -1021,7 +1021,7 @@ class Config {
     this.resetUserScopedSettings(pathScopedSettings, {source: PROJECT})
   }
 
-  removeProjectSettings () {
+  clearProjectSettings () {
     this.resetProjectSettings({}, {removeProject: true})
   }
 
