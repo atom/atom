@@ -145,8 +145,12 @@ module.exports = function parseCommandLine (processArgs) {
     const config = contents.config
     const originPath = atomProject
     if (paths != null) {
-      pathsToOpen = pathsToOpen.concat(paths)
+      const relativizedPaths = paths.map((curPath) =>
+        relativizeToAtomProject(curPath, atomProject, executedFrom)
+      )
+      pathsToOpen = pathsToOpen.concat(relativizedPaths)
     }
+    console.log(pathsToOpen)
     projectSettings = { originPath, paths, config }
   }
 
@@ -211,6 +215,11 @@ const readProjectSettingsSync = (filepath, executedFrom) => {
 const hasAtomProjectFormat = (atomProject) => {
   const projectFileFormat = /.*\.atomproject\.(json|cson)/
   return projectFileFormat.test(atomProject)
+}
+
+const relativizeToAtomProject = (curPath, atomProject, executedFrom) => {
+  const projectPath = path.isAbsolute(atomProject) ? atomProject : path.join(executedFrom, atomProject)
+  return path.join(path.dirname(projectPath), curPath)
 }
 
 const normalizeDriveLetterName = (filePath) => {
