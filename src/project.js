@@ -87,8 +87,8 @@ class Project extends Model {
     this.emitter.emit('replaced-atom-project', newSettings)
   }
 
-  onDidReplaceAtomProject () {
-    return this.emitter.on('replaced-atom-project')
+  onDidReplaceAtomProject (callback) {
+    return this.emitter.on('replaced-atom-project', callback)
   }
 
   clearAtomProject () {
