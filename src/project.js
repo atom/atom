@@ -93,6 +93,8 @@ class Project extends Model {
 
   clearAtomProject () {
     atom.config.clearProjectSettings()
+    this.setPaths([])
+    this.projectFilePath = null
     this.emitter.emit('replaced-atom-project', {})
   }
 
