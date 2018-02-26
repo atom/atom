@@ -80,25 +80,24 @@ class Project extends Model {
 
   // Layers the contents of an atomProject file's config
   // on top of the current global config.
-  replaceAtomProject (newSettings) {
-    atom.config.resetProjectSettings(newSettings.config)
-    this.projectFilePath = newSettings.originPath
-    this.setPaths(newSettings.paths)
-    this.emitter.emit('replace-atom-project', newSettings)
+  replace (newSettings) {
+    if (newSettings == null) {
+      atom.config.clearProjectSettings()
+      this.setPaths([])
+      this.projectFilePath = null
+    } else {
+      atom.config.resetProjectSettings(newSettings.config)
+      this.projectFilePath = newSettings.originPath
+      this.setPaths(newSettings.paths)
+    }
+    this.emitter.emit('replace', newSettings)
   }
 
-  onDidReplaceAtomProject (callback) {
-    return this.emitter.on('replace-atom-project', callback)
+  onDidReplace (callback) {
+    return this.emitter.on('replace', callback)
   }
 
-  clearAtomProject () {
-    atom.config.clearProjectSettings()
-    this.setPaths([])
-    this.projectFilePath = null
-    this.emitter.emit('replace-atom-project', {})
-  }
-
-  getAtomProjectFilePath () {
+  getProjectFilePath () {
     return this.projectFilePath
   }
 

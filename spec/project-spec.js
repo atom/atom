@@ -274,10 +274,10 @@ describe('Project', () => {
     })
   })
 
-  fdescribe('atomProject', () => {
+  describe('atomProject', () => {
     let newSettings, projectPath1, projectPath2
     beforeEach(() => {
-      atom.project.clearAtomProject()
+      atom.project.replace(null)
       projectPath1 = temp.mkdirSync('project-path1')
       projectPath2 = temp.mkdirSync('project-path2')
       newSettings = {
@@ -289,23 +289,23 @@ describe('Project', () => {
       }
     })
     it('sets an atomproject', () => {
-      expect(atom.project.getAtomProjectFilePath()).toBeNull()
+      expect(atom.project.getProjectFilePath()).toBeNull()
       expect(atom.config.get('baz')).toBeUndefined()
-      atom.project.replaceAtomProject(newSettings)
-      expect(atom.project.getAtomProjectFilePath()).toBe("originPath")
+      atom.project.replace(newSettings)
+      expect(atom.project.getProjectFilePath()).toBe("originPath")
       expect(atom.project.getPaths()).toEqual([projectPath1, projectPath2])
       expect(atom.config.get('baz')).toBe("buzz")
     })
 
-    it('clears an atom project', () => {
-      expect(atom.project.getAtomProjectFilePath()).toBeNull()
+    it('clears an atom project through replace with no params', () => {
+      expect(atom.project.getProjectFilePath()).toBeNull()
       expect(atom.config.get('baz')).toBeUndefined()
-      atom.project.replaceAtomProject(newSettings)
+      atom.project.replace(newSettings)
       expect(atom.config.get('baz')).toBe("buzz")
       expect(atom.project.getPaths()).toEqual([projectPath1, projectPath2])
-      expect(atom.project.getAtomProjectFilePath()).toBe("originPath")
-      atom.project.clearAtomProject()
-      expect(atom.project.getAtomProjectFilePath()).toBeNull()
+      expect(atom.project.getProjectFilePath()).toBe("originPath")
+      atom.project.replace()
+      expect(atom.project.getProjectFilePath()).toBeNull()
       expect(atom.config.get('baz')).toBeUndefined()
       expect(atom.project.getPaths()).toEqual([])
     })
@@ -315,11 +315,11 @@ describe('Project', () => {
       const callback = () => {
         wasCalled = true
       }
-      atom.project.onDidReplaceAtomProject(callback)
-      atom.project.replaceAtomProject(newSettings)
+      atom.project.onDidReplace(callback)
+      atom.project.replace(newSettings)
       expect(wasCalled).toBe(true)
       wasCalled = false
-      atom.project.clearAtomProject()
+      atom.project.replace()
       expect(wasCalled).toBe(true)
     })
   })
