@@ -492,6 +492,30 @@ class PathWatcher {
   // events may include events for paths above this watcher's root path, so filter them to only include the relevant
   // ones, then re-broadcast them to our subscribers.
   onNativeEvents (events, callback) {
+    const isWatched = eventPath => eventPath.startsWith(this.normalizedPath)
+
+    const filtered = []
+    for (let i = 0; i < events.length; i++) {
+      const event = events[i]
+
+      if (event.action === 'renamed') {
+        const srcWatched = isWatchedPath(event.oldPath)
+        const destWatched = isWatchedPath(event.path)
+
+        if (srcWatched && destWatched) {
+          filtered.push(modifyEvent(event))
+        } else if (srcWatched && !destWatched) {
+          filtered.push({action: 'deleted', kind: event.kind, path: modifyPath(event.oldPath)})
+        } else if (!srcWatched && destWatched) {
+          filtered.push({action: 'created', kind: event.kind, path: modifyPath(event.path)})
+        }
+      } else {
+        if (isWatched(event.path)) {
+          filtered.push(event)
+        }
+      }
+    }
+
     const filtered = events.filter(event => event.path.startsWith(this.normalizedPath))
 
     if (filtered.length > 0) {
