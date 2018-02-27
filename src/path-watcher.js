@@ -171,6 +171,10 @@ class NativeWatcher {
 class AtomNativeWatcher extends NativeWatcher {
   async doStart () {
     const getRealPath = givenPath => {
+      if (!givenPath) {
+        return Promise.resolve(null)
+      }
+
       return new Promise(resolve => {
         fs.realpath(givenPath, (err, resolvedPath) => {
           err ? resolve(null) : resolve(resolvedPath)
