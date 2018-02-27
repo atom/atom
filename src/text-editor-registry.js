@@ -205,7 +205,7 @@ class TextEditorRegistry {
   // Returns a {String} scope name, or `null` if no override has been set
   // for the given editor.
   getGrammarOverride (editor) {
-    return editor.getBuffer().getLanguageMode().grammar.scopeName
+    return atom.grammars.getAssignedLanguageId(editor.getBuffer())
   }
 
   // Deprecated: Remove any grammar override that has been set for the given {TextEditor}.

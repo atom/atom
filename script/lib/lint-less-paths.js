@@ -1,64 +1,63 @@
 'use strict'
 
-const csslint = require('csslint').CSSLint
-const expandGlobPaths = require('./expand-glob-paths')
-const LessCache = require('less-cache')
+const stylelint = require('stylelint')
 const path = require('path')
-const readFiles = require('./read-files')
 
 const CONFIG = require('../config')
-const LESS_CACHE_VERSION = require('less-cache/package.json').version
 
 module.exports = function () {
-  const globPathsToLint = [
-    path.join(CONFIG.repositoryRootPath, 'static/**/*.less')
-  ]
-  const lintOptions = {
-    'adjoining-classes': false,
-    'duplicate-background-images': false,
-    'box-model': false,
-    'box-sizing': false,
-    'bulletproof-font-face': false,
-    'compatible-vendor-prefixes': false,
-    'display-property-grouping': false,
-    'duplicate-properties': false,
-    'fallback-colors': false,
-    'font-sizes': false,
-    'gradients': false,
-    'ids': false,
-    'important': false,
-    'known-properties': false,
-    'order-alphabetical': false,
-    'outline-none': false,
-    'overqualified-elements': false,
-    'regex-selectors': false,
-    'qualified-headings': false,
-    'unique-headings': false,
-    'universal-selector': false,
-    'vendor-prefix': false
-  }
-  for (let rule of csslint.getRules()) {
-    if (!lintOptions.hasOwnProperty(rule.id)) lintOptions[rule.id] = true
-  }
-  const lessCache = new LessCache({
-    cacheDir: path.join(CONFIG.intermediateAppPath, 'less-compile-cache'),
-    fallbackDir: path.join(CONFIG.atomHomeDirPath, 'compile-cache', 'prebuild-less', LESS_CACHE_VERSION),
-    syncCaches: true,
-    resourcePath: CONFIG.repositoryRootPath,
-    importPaths: [
-      path.join(CONFIG.intermediateAppPath, 'static', 'variables'),
-      path.join(CONFIG.intermediateAppPath, 'static')
-    ]
-  })
-  return expandGlobPaths(globPathsToLint).then(readFiles).then((files) => {
-    const errors = []
-    for (let file of files) {
-      const css = lessCache.cssForFile(file.path, file.content)
-      const result = csslint.verify(css, lintOptions)
-      for (let message of result.messages) {
-        errors.push({path: file.path.replace(/\.less$/, '.css'), lineNumber: message.line, message: message.message, rule: message.rule.id})
+  return stylelint
+    .lint({
+      files: path.join(CONFIG.repositoryRootPath, 'static/**/*.less'),
+      configBasedir: __dirname,
+      configFile: path.resolve(__dirname, '..', '..', 'stylelint.config.js')
+    })
+    .then(({results}) => {
+      const errors = []
+
+      for (const result of results) {
+        for (const deprecation of result.deprecations) {
+          console.log('stylelint encountered deprecation:', deprecation.text)
+          if (deprecation.reference != null) {
+            console.log('more information at', deprecation.reference)
+          }
+        }
+
+        for (const invalidOptionWarning of result.invalidOptionWarnings) {
+          console.warn(
+            'stylelint encountered invalid option:',
+            invalidOptionWarning.text
+          )
+        }
+
+        if (result.errored) {
+          for (const warning of result.warnings) {
+            if (warning.severity === 'error') {
+              errors.push({
+                path: result.source,
+                lineNumber: warning.line,
+                message: warning.text,
+                rule: warning.rule
+              })
+            } else {
+              console.warn(
+                'stylelint encountered non-critical warning in file',
+                result.source,
+                'at line',
+                warning.line,
+                'for rule',
+                warning.rule + ':',
+                warning.text
+              )
+            }
+          }
+        }
       }
-    }
-    return errors
-  })
+
+      return errors
+    })
+    .catch(err => {
+      console.error('There was a problem linting LESS:')
+      throw err
+    })
 }

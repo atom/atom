@@ -905,6 +905,46 @@ describe('TextEditorComponent', () => {
       expect(component.getLineNumberGutterWidth()).toBe(originalLineNumberGutterWidth)
     })
 
+    it('gracefully handles edits that change the maxScrollTop by causing the horizontal scrollbar to disappear', async () => {
+      const rowsPerTile = 1
+      const {component, element, editor} = buildComponent({rowsPerTile, autoHeight: false})
+
+      await setEditorHeightInLines(component, 1)
+      await setEditorWidthInCharacters(component, 7)
+
+      // Updating scrollbar styles.
+      const style = document.createElement('style')
+      style.textContent = '::-webkit-scrollbar { height: 17px; width: 10px; }'
+      jasmine.attachToDOM(style)
+      TextEditor.didUpdateScrollbarStyles()
+      await component.getNextUpdatePromise()
+
+      element.focus()
+      component.setScrollTop(component.measurements.lineHeight)
+
+      component.scheduleUpdate()
+      await component.getNextUpdatePromise()
+
+      editor.setSelectedBufferRange([[0, 1], [12, 2]])
+      editor.backspace()
+
+      // component.scheduleUpdate()
+      await component.getNextUpdatePromise()
+
+      expect(component.getScrollTop()).toBe(0)
+
+      const renderedLines = queryOnScreenLineElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+      const renderedLineNumbers = queryOnScreenLineNumberElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
+      const renderedStartRow = component.getRenderedStartRow()
+      const expectedLines = editor.displayLayer.getScreenLines(renderedStartRow, component.getRenderedEndRow())
+
+      expect(renderedLines.length).toBe(expectedLines.length)
+      expect(renderedLineNumbers.length).toBe(expectedLines.length)
+
+      element.remove()
+      editor.destroy()
+    })
+
     describe('randomized tests', () => {
       let originalTimeout
 
@@ -921,7 +961,7 @@ describe('TextEditorComponent', () => {
         const initialSeed = Date.now()
         for (var i = 0; i < 20; i++) {
           let seed = initialSeed + i
-          // seed = 1507224195357
+          // seed = 1507231571985
           const failureMessage = 'Randomized test failed with seed: ' + seed
           const random = Random(seed)
 
@@ -930,6 +970,7 @@ describe('TextEditorComponent', () => {
           editor.setSoftWrapped(Boolean(random(2)))
           await setEditorWidthInCharacters(component, random(20))
           await setEditorHeightInLines(component, random(10))
+
           element.focus()
 
           for (var j = 0; j < 5; j++) {
@@ -1365,40 +1406,6 @@ describe('TextEditorComponent', () => {
         expect(component.getScrollTop()).toBe(expectedScrollTop)
         expect(component.getScrollLeft()).toBe(expectedScrollLeft)
         expect(component.refs.content.style.transform).toBe(`translate(${-expectedScrollLeft}px, ${-expectedScrollTop}px)`)
-      }
-    })
-
-    it('always scrolls by a minimum of 1, even when the delta is small or the scroll sensitivity is low', () => {
-      const scrollSensitivity = 10
-      const {component, editor} = buildComponent({height: 50, width: 50, scrollSensitivity})
-
-      {
-        component.didMouseWheel({wheelDeltaX: 0, wheelDeltaY: -3})
-        expect(component.getScrollTop()).toBe(1)
-        expect(component.getScrollLeft()).toBe(0)
-        expect(component.refs.content.style.transform).toBe(`translate(0px, -1px)`)
-      }
-
-      {
-        component.didMouseWheel({wheelDeltaX: -4, wheelDeltaY: 0})
-        expect(component.getScrollTop()).toBe(1)
-        expect(component.getScrollLeft()).toBe(1)
-        expect(component.refs.content.style.transform).toBe(`translate(-1px, -1px)`)
-      }
-
-      editor.update({scrollSensitivity: 100})
-      {
-        component.didMouseWheel({wheelDeltaX: 0, wheelDeltaY: 0.3})
-        expect(component.getScrollTop()).toBe(0)
-        expect(component.getScrollLeft()).toBe(1)
-        expect(component.refs.content.style.transform).toBe(`translate(-1px, 0px)`)
-      }
-
-      {
-        component.didMouseWheel({wheelDeltaX: 0.1, wheelDeltaY: 0})
-        expect(component.getScrollTop()).toBe(0)
-        expect(component.getScrollLeft()).toBe(0)
-        expect(component.refs.content.style.transform).toBe(`translate(0px, 0px)`)
       }
     })
 

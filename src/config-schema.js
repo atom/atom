@@ -338,6 +338,14 @@ const configSchema = {
             description: 'Native operating system APIs'
           },
           {
+            value: 'experimental',
+            description: 'Experimental filesystem watching library'
+          },
+          {
+            value: 'poll',
+            description: 'Polling'
+          },
+          {
             value: 'atom',
             description: 'Emulated with Atom events'
           }
@@ -372,7 +380,7 @@ const configSchema = {
       // These can be used as globals or scoped, thus defaults.
       fontFamily: {
         type: 'string',
-        default: '',
+        default: 'Menlo, Consolas, DejaVu Sans Mono, monospace',
         description: 'The name of the font family used for editor text.'
       },
       fontSize: {

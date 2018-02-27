@@ -2,10 +2,17 @@
 @import "octicon-utf-codes";
 @import "octicon-mixins";
 
+:root {
+  // Fixes specs
+  --editor-font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+}
+
 atom-text-editor {
   display: flex;
-  font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   cursor: text;
+  font-family: var(--editor-font-family);
+  font-size: var(--editor-font-size);
+  line-height: var(--editor-line-height);
 
   .gutter-container {
     width: min-content;
