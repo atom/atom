@@ -90,11 +90,11 @@ class Project extends Model {
       this.projectFilePath = newSettings.originPath
       this.setPaths(newSettings.paths)
     }
-    this.emitter.emit('replace', newSettings)
+    this.emitter.emit('did-replace', newSettings)
   }
 
   onDidReplace (callback) {
-    return this.emitter.on('replace', callback)
+    return this.emitter.on('did-replace', callback)
   }
 
   getProjectFilePath () {
