@@ -505,9 +505,9 @@ class PathWatcher {
         if (srcWatched && destWatched) {
           filtered.push(modifyEvent(event))
         } else if (srcWatched && !destWatched) {
-          filtered.push({action: 'deleted', kind: event.kind, path: modifyPath(event.oldPath)})
+          filtered.push({action: 'deleted', kind: event.kind, path: event.oldPath})
         } else if (!srcWatched && destWatched) {
-          filtered.push({action: 'created', kind: event.kind, path: modifyPath(event.path)})
+          filtered.push({action: 'created', kind: event.kind, path: event.path})
         }
       } else {
         if (isWatched(event.path)) {
