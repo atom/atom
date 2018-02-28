@@ -243,7 +243,7 @@ class AtomNativeWatcher extends NativeWatcher {
 
     this.subs.add(treeView.onEntryDeleted(async event => {
       const realPath = await getRealPath(event.path)
-      if (!realPath || isOpenInEditor(realPath)) return
+      if (!realPath || await isOpenInEditor(realPath)) return
 
       this.onEvents([{action: 'deleted', path: realPath}])
     }))
@@ -253,7 +253,7 @@ class AtomNativeWatcher extends NativeWatcher {
         getRealPath(event.newPath),
         getRealPath(event.initialPath)
       ])
-      if (!realNewPath || !realOldPath || isOpenInEditor(realNewPath) || isOpenInEditor(realOldPath)) return
+      if (!realNewPath || !realOldPath || await isOpenInEditor(realNewPath) || await isOpenInEditor(realOldPath)) return
 
       this.onEvents([{action: 'renamed', path: realNewPath, oldPath: realOldPath}])
     }))
