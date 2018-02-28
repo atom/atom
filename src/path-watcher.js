@@ -516,8 +516,6 @@ class PathWatcher {
       }
     }
 
-    const filtered = events.filter(event => event.path.startsWith(this.normalizedPath))
-
     if (filtered.length > 0) {
       callback(filtered)
     }
