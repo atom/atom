@@ -113,10 +113,16 @@ atom-dock {
     // Promote to own layer, fixes rendering issue atom/atom#14915
     will-change: transform;
 
-    &.right { left: 0; }
-    &.bottom { top: 0; }
-    &.left { right: 0; }
- }
+    &.right {
+      left: 0;
+    }
+    &.bottom {
+      top: 0;
+    }
+    &.left {
+      right: 0;
+    }
+  }
 
   // Hide the button.
   &:not(.atom-dock-toggle-button-visible) {

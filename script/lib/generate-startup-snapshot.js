@@ -32,6 +32,8 @@ module.exports = function (packagedAppPath) {
         relativePath.endsWith(path.join('node_modules', 'graceful-fs', 'graceful-fs.js')) ||
         relativePath.endsWith(path.join('node_modules', 'htmlparser2', 'lib', 'index.js')) ||
         relativePath.endsWith(path.join('node_modules', 'minimatch', 'minimatch.js')) ||
+        relativePath.endsWith(path.join('node_modules', 'request', 'index.js')) ||
+        relativePath.endsWith(path.join('node_modules', 'request', 'request.js')) ||
         relativePath === path.join('..', 'exports', 'atom.js') ||
         relativePath === path.join('..', 'src', 'electron-shims.js') ||
         relativePath === path.join('..', 'src', 'safe-clipboard.js') ||
@@ -50,7 +52,6 @@ module.exports = function (packagedAppPath) {
         relativePath === path.join('..', 'node_modules', 'node-fetch', 'lib', 'fetch-error.js') ||
         relativePath === path.join('..', 'node_modules', 'superstring', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'oniguruma', 'src', 'oniguruma.js') ||
-        relativePath === path.join('..', 'node_modules', 'request', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'resolve', 'index.js') ||
         relativePath === path.join('..', 'node_modules', 'resolve', 'lib', 'core.js') ||
         relativePath === path.join('..', 'node_modules', 'settings-view', 'node_modules', 'glob', 'glob.js') ||

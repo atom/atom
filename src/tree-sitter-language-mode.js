@@ -1,5 +1,6 @@
 const {Document} = require('tree-sitter')
-const {Point, Range, Emitter} = require('atom')
+const {Point, Range} = require('text-buffer')
+const {Emitter, Disposable} = require('event-kit')
 const ScopeDescriptor = require('./scope-descriptor')
 const TokenizedLine = require('./tokenized-line')
 const TextMateLanguageMode = require('./text-mate-language-mode')
@@ -279,9 +280,15 @@ class TreeSitterLanguageMode {
     if (node) return new Range(node.startPosition, node.endPosition)
   }
 
+  bufferRangeForScopeAtPosition (position) {
+    return this.getRangeForSyntaxNodeContainingRange(new Range(position, position))
+  }
+
   /*
   Section - Backward compatibility shims
   */
+
+  onDidTokenize (callback) { return new Disposable(() => {}) }
 
   tokenizedLineForRow (row) {
     return new TokenizedLine({
@@ -296,6 +303,7 @@ class TreeSitterLanguageMode {
   }
 
   scopeDescriptorForPosition (point) {
+    point = Point.fromObject(point)
     const result = []
     let node = this.document.rootNode.descendantForPosition(point)
 
@@ -413,7 +421,7 @@ class TreeSitterHighlightIterator {
           this.pushCloseTag()
 
           const {nextSibling} = this.currentNode
-          if (nextSibling) {
+          if (nextSibling && nextSibling.endIndex > this.currentIndex) {
             this.currentNode = nextSibling
             this.currentChildIndex++
             if (this.currentIndex === nextSibling.startIndex) {
@@ -427,19 +435,8 @@ class TreeSitterHighlightIterator {
             if (!this.currentNode) break
           }
         }
-      } else if (this.currentNode.startIndex < this.currentNode.endIndex) {
-        this.currentNode = this.currentNode.nextSibling
-        if (this.currentNode) {
-          this.currentChildIndex++
-          this.currentPosition = this.currentNode.startPosition
-          this.currentIndex = this.currentNode.startIndex
-          this.pushOpenTag()
-          this.descendLeft()
-        }
       } else {
-        this.pushCloseTag()
-        this.currentNode = this.currentNode.parent
-        this.currentChildIndex = last(this.containingNodeChildIndices)
+        this.currentNode = this.currentNode.nextSibling
       }
     } while (this.closeTags.length === 0 && this.openTags.length === 0 && this.currentNode)
 
@@ -495,16 +492,22 @@ class TreeSitterHighlightIterator {
 class TreeSitterTextBufferInput {
   constructor (buffer) {
     this.buffer = buffer
-    this.seek(0)
+    this.position = {row: 0, column: 0}
+    this.isBetweenCRLF = false
   }
 
-  seek (characterIndex) {
-    this.position = this.buffer.positionForCharacterIndex(characterIndex)
+  seek (offset, position) {
+    this.position = position
+    this.isBetweenCRLF = this.position.column > this.buffer.lineLengthForRow(this.position.row)
   }
 
   read () {
-    const endPosition = this.buffer.clipPosition(this.position.traverse({row: 1000, column: 0}))
-    const text = this.buffer.getTextInRange([this.position, endPosition])
+    const endPosition = this.buffer.clipPosition(new Point(this.position.row + 1000, 0))
+    let text = this.buffer.getTextInRange([this.position, endPosition])
+    if (this.isBetweenCRLF) {
+      text = text.slice(1)
+      this.isBetweenCRLF = false
+    }
     this.position = endPosition
     return text
   }

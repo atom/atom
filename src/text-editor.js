@@ -11,6 +11,7 @@ const Cursor = require('./cursor')
 const Selection = require('./selection')
 const NullGrammar = require('./null-grammar')
 const TextMateLanguageMode = require('./text-mate-language-mode')
+const ScopeDescriptor = require('./scope-descriptor')
 
 const TextMateScopeSelector = require('first-mate').ScopeSelector
 const GutterContainer = require('./gutter-container')
@@ -3655,7 +3656,10 @@ class TextEditor {
   //
   // Returns a {ScopeDescriptor}.
   scopeDescriptorForBufferPosition (bufferPosition) {
-    return this.buffer.getLanguageMode().scopeDescriptorForPosition(bufferPosition)
+    const languageMode = this.buffer.getLanguageMode()
+    return languageMode.scopeDescriptorForPosition
+      ? languageMode.scopeDescriptorForPosition(bufferPosition)
+      : new ScopeDescriptor({scopes: ['text']})
   }
 
   // Extended: Get the range in buffer coordinates of all tokens surrounding the
