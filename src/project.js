@@ -38,7 +38,7 @@ class Project extends Model {
     this.retiredBufferIDs = new Set()
     this.retiredBufferPaths = new Set()
     this.subscriptions = new CompositeDisposable()
-    this.projectFilePath = null
+    this.projectSettings = null
     this.consumeServices(packageManager)
   }
 
@@ -84,10 +84,10 @@ class Project extends Model {
     if (newSettings == null) {
       atom.config.clearProjectSettings()
       this.setPaths([])
-      this.projectFilePath = null
+      this.projectSettings = null
     } else {
       atom.config.resetProjectSettings(newSettings.config)
-      this.projectFilePath = newSettings.originPath
+      this.projectSettings = newSettings
       this.setPaths(newSettings.paths)
     }
     this.emitter.emit('did-replace', newSettings)
@@ -97,8 +97,8 @@ class Project extends Model {
     return this.emitter.on('did-replace', callback)
   }
 
-  getProjectFilePath () {
-    return this.projectFilePath
+  getProjectSettings () {
+    return this.projectSettings
   }
 
   /*
