@@ -92,7 +92,13 @@ class WorkspaceElement extends HTMLElement {
         window.removeEventListener('dragstart', this.handleDragStart)
         window.removeEventListener('dragend', this.handleDragEnd, true)
         window.removeEventListener('drop', this.handleDrop, true)
-      })
+      }),
+      ...[this.model.getLeftDock(), this.model.getRightDock(), this.model.getBottomDock()]
+        .map(dock => dock.onDidChangeHovered(hovered => {
+          if (hovered) this.hoveredDock = dock
+          else if (dock === this.hoveredDock) this.hoveredDock = null
+          this.checkCleanupDockHoverEvents()
+        }))
     )
     this.initializeContent()
     this.observeScrollbarStyle()
@@ -190,10 +196,9 @@ class WorkspaceElement extends HTMLElement {
     if (this.hoveredDock && this.hoveredDock.pointWithinHoverArea(mousePosition, true)) return
 
     const docks = [this.model.getLeftDock(), this.model.getRightDock(), this.model.getBottomDock()]
-    this.hoveredDock =
+    const nextHoveredDock =
       docks.find(dock => dock !== this.hoveredDock && dock.pointWithinHoverArea(mousePosition))
-    docks.forEach(dock => { dock.setHovered(dock === this.hoveredDock) })
-    this.checkCleanupDockHoverEvents()
+    docks.forEach(dock => { dock.setHovered(dock === nextHoveredDock) })
   }
 
   checkCleanupDockHoverEvents () {

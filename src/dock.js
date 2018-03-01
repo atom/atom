@@ -153,7 +153,10 @@ module.exports = class Dock {
     this.state = nextState
     this.render(this.state)
 
-    const {visible} = this.state
+    const {hovered, visible} = this.state
+    if (hovered !== prevState.hovered) {
+      this.emitter.emit('did-change-hovered', hovered)
+    }
     if (visible !== prevState.visible) {
       this.emitter.emit('did-change-visible', visible)
     }
@@ -607,6 +610,16 @@ module.exports = class Dock {
   // Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
   onDidDestroyPaneItem (callback) {
     return this.paneContainer.onDidDestroyPaneItem(callback)
+  }
+
+  // Extended: Invoke the given callback when the hovered state of the dock changes.
+  //
+  // * `callback` {Function} to be called when the hovered state changes.
+  //   * `hovered` {Boolean} Is the dock now hovered?
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeHovered (callback) {
+    return this.emitter.on('did-change-hovered', callback)
   }
 
   /*
