@@ -296,7 +296,7 @@ module.exports = class Dock {
   }
 
   handleDrag (event) {
-    if (!this.pointWithinHoverArea({x: event.pageX, y: event.pageY}, false)) {
+    if (!this.pointWithinHoverArea({x: event.pageX, y: event.pageY}, true)) {
       this.draggedOut()
     }
   }
@@ -313,9 +313,13 @@ module.exports = class Dock {
 
   // Determine whether the cursor is within the dock hover area. This isn't as simple as just using
   // mouseenter/leave because we want to be a little more forgiving. For example, if the cursor is
-  // over the footer, we want to show the bottom dock's toggle button.
-  pointWithinHoverArea (point, includeButtonWidth = this.state.hovered) {
+  // over the footer, we want to show the bottom dock's toggle button. Also note that our criteria
+  // for detecting entry are different than detecting exit but, in order for us to avoid jitter, the
+  // area considered when detecting exit MUST fully encompass the area considered when detecting
+  // entry.
+  pointWithinHoverArea (point, detectingExit) {
     const dockBounds = this.innerElement.getBoundingClientRect()
+
     // Copy the bounds object since we can't mutate it.
     const bounds = {
       top: dockBounds.top,
@@ -324,39 +328,67 @@ module.exports = class Dock {
       left: dockBounds.left
     }
 
-    // Include all panels that are closer to the edge than the dock in our calculations.
+    // To provide a minimum target, expand the area toward the center a bit.
     switch (this.location) {
       case 'right':
-        if (!this.isVisible()) bounds.left = bounds.right - 2
+        bounds.left = Math.min(bounds.left, bounds.right - 2)
+        break
+      case 'bottom':
+        bounds.top = Math.min(bounds.top, bounds.bottom - 1)
+        break
+      case 'left':
+        bounds.right = Math.max(bounds.right, bounds.left + 2)
+        break
+    }
+
+    // Further expand the area to include all panels that are closer to the edge than the dock.
+    switch (this.location) {
+      case 'right':
         bounds.right = Number.POSITIVE_INFINITY
         break
       case 'bottom':
-        if (!this.isVisible()) bounds.top = bounds.bottom - 1
         bounds.bottom = Number.POSITIVE_INFINITY
         break
       case 'left':
-        if (!this.isVisible()) bounds.right = bounds.left + 2
         bounds.left = Number.NEGATIVE_INFINITY
         break
     }
 
-    // The area used when detecting "leave" events is actually larger than when detecting entrances.
-    if (includeButtonWidth) {
+    // If we're in this area, we know we're within the hover area without having to take further
+    // measurements.
+    if (rectContainsPoint(bounds, point)) return true
+
+    // If we're within the toggle button, we're definitely in the hover area. Unfortunately, we
+    // can't do this measurement conditionally (e.g. only if the toggle button is visible) because
+    // our knowledge of the toggle's button is incomplete due to CSS animations. (We may think the
+    // toggle button isn't visible when in actuality it is, but is animating to its hidden state.)
+    //
+    // Since `point` is always the current mouse position, one possible optimization would be to
+    // remove it as an argument and determine whether we're inside the toggle button using
+    // mouseenter/leave events on it. This class would still need to keep track of the mouse
+    // position (via a mousemove listener) for the other measurements, though.
+    const toggleButtonBounds = this.toggleButton.getBounds()
+    if (rectContainsPoint(toggleButtonBounds, point)) return true
+
+    // The area used when detecting exit is actually larger than when detecting entrances. Expand
+    // our bounds and recheck them.
+    if (detectingExit) {
       const hoverMargin = 20
-      const {width, height} = this.toggleButton.getBounds()
       switch (this.location) {
         case 'right':
-          bounds.left -= width + hoverMargin
+          bounds.left = Math.min(bounds.left, toggleButtonBounds.left) - hoverMargin
           break
         case 'bottom':
-          bounds.top -= height + hoverMargin
+          bounds.top = Math.min(bounds.top, toggleButtonBounds.top) - hoverMargin
           break
         case 'left':
-          bounds.right += width + hoverMargin
+          bounds.right = Math.max(bounds.right, toggleButtonBounds.right) + hoverMargin
           break
       }
+      if (rectContainsPoint(bounds, point)) return true
     }
-    return rectContainsPoint(bounds, point)
+
+    return false
   }
 
   getInitialSize () {
@@ -726,10 +758,7 @@ class DockToggleButton {
   }
 
   getBounds () {
-    if (this.bounds == null) {
-      this.bounds = this.element.getBoundingClientRect()
-    }
-    return this.bounds
+    return this.innerElement.getBoundingClientRect()
   }
 
   update (newProps) {

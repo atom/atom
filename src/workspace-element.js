@@ -186,18 +186,13 @@ class WorkspaceElement extends HTMLElement {
   }
 
   updateHoveredDock (mousePosition) {
-    this.hoveredDock = null
-    for (let location in this.model.paneContainers) {
-      if (location !== 'center') {
-        const dock = this.model.paneContainers[location]
-        if (!this.hoveredDock && dock.pointWithinHoverArea(mousePosition)) {
-          this.hoveredDock = dock
-          dock.setHovered(true)
-        } else {
-          dock.setHovered(false)
-        }
-      }
-    }
+    // If we haven't left the currently hovered dock, don't change anything.
+    if (this.hoveredDock && this.hoveredDock.pointWithinHoverArea(mousePosition, true)) return
+
+    const docks = [this.model.getLeftDock(), this.model.getRightDock(), this.model.getBottomDock()]
+    this.hoveredDock =
+      docks.find(dock => dock !== this.hoveredDock && dock.pointWithinHoverArea(mousePosition))
+    docks.forEach(dock => { dock.setHovered(dock === this.hoveredDock) })
     this.checkCleanupDockHoverEvents()
   }
 
