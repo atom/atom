@@ -146,7 +146,6 @@ module.exports = function parseCommandLine (processArgs) {
     const paths = contents.paths.map((curPath) =>
       relativizeToAtomProject(curPath, path.dirname(path.join(executedFrom, atomProject))
     ))
-    console.log(paths)
     pathsToOpen.push(path.dirname(atomProject))
     projectSettings = { originPath, paths, config }
   }
