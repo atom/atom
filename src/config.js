@@ -428,7 +428,6 @@ class Config {
     this.projectSettings = {}
     this.projectFile = null
 
-
     this.scopedSettingsStore = new ScopedPropertyStore()
 
     this.settingsLoaded = false
