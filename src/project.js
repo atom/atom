@@ -86,7 +86,7 @@ class Project extends Model {
       this.setPaths([])
       this.projectSettings = null
     } else {
-      atom.config.resetProjectSettings(newSettings.config)
+      atom.config.resetProjectSettings(newSettings.config, newSettings.originPath)
       this.projectSettings = newSettings
       this.setPaths(newSettings.paths)
     }

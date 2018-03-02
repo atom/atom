@@ -360,7 +360,6 @@ const ScopeDescriptor = require('./scope-descriptor')
 // * Don't depend on (or write to) configuration keys outside of your keypath.
 //
 const schemaEnforcers = {}
-const PROJECT = '__atomproject__'
 
 class Config {
   static addSchemaEnforcer (typeName, enforcerFunction) {
@@ -424,9 +423,12 @@ class Config {
       properties: {}
     }
 
-    this.hasCurrentProject = false
     this.defaultSettings = {}
     this.settings = {}
+    this.projectSettings = {}
+    this.projectFile = null
+
+
     this.scopedSettingsStore = new ScopedPropertyStore()
 
     this.settingsLoaded = false
@@ -582,9 +584,7 @@ class Config {
   // Returns the value from Atom's default settings, the user's configuration
   // file in the type specified by the configuration schema.
   get (...args) {
-    let keyPath, scope, value
-    let options = {}
-
+    let keyPath, options, scope
     if (args.length > 1) {
       if ((typeof args[0] === 'string') || (args[0] == null)) {
         [keyPath, options] = args;
@@ -594,18 +594,8 @@ class Config {
       [keyPath] = args
     }
 
-    const noSources = !options.sources || (Array.isArray(options.sources) && options.sources.length === 0)
-    if (this.hasCurrentProject && noSources) {
-      const projectScope = Array.isArray(scope) ? scope.push(PROJECT) : [PROJECT]
-      const projectOptions = Object.assign({sources: [PROJECT]}, options)
-      value = this.getRawScopedValue(projectScope, keyPath, projectOptions)
-      if (value != null) {
-        return value
-      }
-    }
-
     if (scope != null) {
-      value = this.getRawScopedValue(scope, keyPath, options)
+      const value = this.getRawScopedValue(scope, keyPath, options)
       return value != null ? value : this.getRawValue(keyPath, options)
     } else {
       return this.getRawValue(keyPath, options)
@@ -621,30 +611,35 @@ class Config {
   // Returns an {Array} of {Object}s with the following keys:
   //  * `scopeDescriptor` The {ScopeDescriptor} with which the value is associated
   //  * `value` The value for the key-path
-  getAll (keyPath, options = {}) {
-    let result, scope
+  getAll (keyPath, options) {
+    let globalValue, result, scope
     if (options != null) { ({scope} = options) }
 
-    const priorities = []
-
-    // getAll returns all values that would normally be returned
-    // through get for the given keypath. Since project settings layers
-    // on top of the normal config, if there is a conflict, the one
-    // with higher priority (ie: project settings) should be returned first.
-
-    priorities.unshift({options})
-    if (this.hasCurrentProject) {
-      options.scope = (!Array.isArray(scope)) ? [PROJECT] : scope.push(PROJECT)
-      options.sources = (options.sources == null ? [PROJECT] : options.sources.push(PROJECT))
-      priorities.unshift({ options, source: PROJECT })
-    }
-
-    for (let priority of priorities) {
-      result = this.getAllForPriority(keyPath, priority)
-      if (result.length > 0) {
-        return result
+    if (scope != null) {
+      let legacyScopeDescriptor
+      const scopeDescriptor = ScopeDescriptor.fromObject(scope)
+      result = this.scopedSettingsStore.getAll(
+          scopeDescriptor.getScopeChain(),
+          keyPath,
+          options
+        )
+      legacyScopeDescriptor = this.getLegacyScopeDescriptorForNewScopeDescriptor(scopeDescriptor)
+      if (legacyScopeDescriptor) {
+        result.push(...Array.from(this.scopedSettingsStore.getAll(
+           legacyScopeDescriptor.getScopeChain(),
+           keyPath,
+           options
+         ) || []))
       }
+    } else {
+      result = []
     }
+
+    globalValue = this.getRawValue(keyPath, options)
+    if (globalValue) {
+      result.push({scopeSelector: '*', value: globalValue})
+    }
+
     return result
   }
 
@@ -745,7 +740,7 @@ class Config {
     let source = options.source
     const shouldSave = options.save != null ? options.save : true
 
-    if (source && !scopeSelector) {
+    if (source && !scopeSelector && source !== this.projectFile) {
       throw new Error("::set with a 'source' and no 'sourceSelector' is not yet implemented!")
     }
 
@@ -762,7 +757,7 @@ class Config {
     if (scopeSelector != null) {
       this.setRawScopedValue(keyPath, value, source, scopeSelector)
     } else {
-      this.setRawValue(keyPath, value)
+      this.setRawValue(keyPath, value, {source})
     }
 
     if (source === this.mainSource && shouldSave && this.settingsLoaded) {
@@ -997,7 +992,7 @@ class Config {
   Section: Private methods managing global settings
   */
 
-  resetUserSettings (newSettings) {
+  resetUserSettings (newSettings, options = {}) {
     newSettings = Object.assign({}, newSettings)
     if (newSettings.global != null) {
       newSettings['*'] = newSettings.global
@@ -1008,13 +1003,28 @@ class Config {
       const scopedSettings = newSettings
       newSettings = newSettings['*']
       delete scopedSettings['*']
-      this.resetUserScopedSettings(scopedSettings)
+      if (options.resetProject) {
+        this.resetUserScopedSettings(scopedSettings, {source: this.projectFile})
+      } else {
+        this.resetUserScopedSettings(scopedSettings)
+      }
     }
 
     return this.transact(() => {
-      this.settings = {}
+      if (options.resetProject) {
+        this.projectSettings = {}
+      } else {
+        this.settings = {}
+      }
       this.settingsLoaded = true
-      for (let key in newSettings) { const value = newSettings[key]; this.set(key, value, {save: false}) }
+      for (let key in newSettings) {
+        const value = newSettings[key]
+        if (options.resetProject) {
+          this.set(key, value, {save: false, source: this.projectFile})
+        } else {
+          this.set(key, value, {save: false})
+        }
+      }
       if (this.pendingOperations.length) {
         for (let op of this.pendingOperations) { op() }
         this.pendingOperations = []
@@ -1022,23 +1032,31 @@ class Config {
     })
   }
 
-  resetProjectSettings (newSettings, options = {}) {
+  resetProjectSettings (newSettings, projectFile) {
     // Sets the scope and source of all project settings to `path`.
     newSettings = Object.assign({}, newSettings)
-    this.hasCurrentProject = !options.removeProject
-    const pathScopedSettings = {}
-    pathScopedSettings[PROJECT] = newSettings
-    this.resetUserScopedSettings(pathScopedSettings, {source: PROJECT})
+    const oldProjectFile = this.projectFile
+    this.projectFile = projectFile
+    if (this.projectFile != null) {
+      this.resetUserSettings(newSettings, {resetProject: true})
+    } else {
+      this.scopedSettingsStore.removePropertiesForSource(oldProjectFile)
+      this.projectSettings = {}
+    }
   }
 
   clearProjectSettings () {
-    this.resetProjectSettings({}, {removeProject: true})
+    this.resetProjectSettings({}, null)
   }
 
   getRawValue (keyPath, options = {}) {
     let value
     if (!options.excludeSources || !options.excludeSources.includes(this.mainSource)) {
       value = getValueAtKeyPath(this.settings, keyPath)
+      if (this.projectFile != null) {
+        const projectValue = getValueAtKeyPath(this.projectSettings, keyPath)
+        value = projectValue || value
+      }
     }
 
     let defaultValue
@@ -1057,19 +1075,22 @@ class Config {
     }
   }
 
-  setRawValue (keyPath, value) {
+  setRawValue (keyPath, value, options = {}) {
+    const source = options.source ? options.source : undefined
+    const settingsToChange = source === this.projectFile ? 'projectSettings' : 'settings'
     const defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath)
+
     if (_.isEqual(defaultValue, value)) {
       if (keyPath != null) {
-        deleteValueAtKeyPath(this.settings, keyPath)
+        deleteValueAtKeyPath(this[settingsToChange], keyPath)
       } else {
-        this.settings = null
+        this[settingsToChange] = null
       }
     } else {
       if (keyPath != null) {
-        setValueAtKeyPath(this.settings, keyPath, value)
+        setValueAtKeyPath(this[settingsToChange], keyPath, value)
       } else {
-        this.settings = value
+        this[settingsToChange] = value
       }
     }
     return this.emitChangeEvent()
@@ -1235,7 +1256,14 @@ class Config {
   */
 
   priorityForSource (source) {
-    return (source === this.mainSource) ? 1000 : 0
+    switch (source) {
+      case this.mainSource:
+        return 1000
+      case this.projectFile:
+        return 2000
+      default:
+        return 0
+    }
   }
 
   emitChangeEvent () {

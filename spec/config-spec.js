@@ -1845,9 +1845,10 @@ describe('Config', () => {
     })
 
     describe('config.get', () => {
+      const dummyPath = '/Users/dummy/path.json'
       describe('project configs', () => {
         it('returns a deep clone of the property value', () => {
-          atom.config.resetProjectSettings({'value': {array: [1, {b: 2}, 3]}})
+          atom.config.resetProjectSettings({'*': {'value': {array: [1, {b: 2}, 3]}}}, dummyPath)
           const retrievedValue = atom.config.get('value')
           retrievedValue.array[0] = 4
           retrievedValue.array[1].b = 2.1
@@ -1855,15 +1856,15 @@ describe('Config', () => {
         })
 
         it('should properly get project configs', () => {
-          atom.config.resetProjectSettings({'foo': 'wei'})
+          atom.config.resetProjectSettings({'*': {'foo': 'wei'}}, dummyPath)
           expect(atom.config.get('foo')).toBe('wei')
-          atom.config.resetProjectSettings({'foo': {'bar': 'baz'}})
+          atom.config.resetProjectSettings({'*': {'foo': {'bar': 'baz'}}}, dummyPath)
           expect(atom.config.get('foo.bar')).toBe('baz')
         })
 
         it('should get project settings with higher priority than regular settings', () => {
           atom.config.set('foo', 'bar')
-          atom.config.resetProjectSettings({'foo': 'baz'})
+          atom.config.resetProjectSettings({'*': {'foo': 'baz'}}, dummyPath)
           expect(atom.config.get('foo')).toBe('baz')
         })
 
@@ -1885,7 +1886,8 @@ describe('Config', () => {
         it('clears project settings correctly', () => {
           atom.config.set('foo', 'bar')
           expect(atom.config.get('foo')).toBe('bar')
-          atom.config.resetProjectSettings({'foo': 'baz'})
+          atom.config.resetProjectSettings({'*': {'foo': 'baz'}, 'second': {'foo': 'bar'}}, dummyPath)
+
           expect(atom.config.get('foo')).toBe('baz')
           expect(atom.config.getSources().length).toBe(1)
           atom.config.clearProjectSettings()
@@ -1896,8 +1898,9 @@ describe('Config', () => {
     })
 
     describe('config.getAll', () => {
+      const dummyPath = '/Users/dummy/path.json'
       it('should get settings in the same way .get would return them', () => {
-        atom.config.resetProjectSettings({'a': 'b'})
+        atom.config.resetProjectSettings({'*': {'a': 'b'}}, dummyPath)
         atom.config.set('a', 'f')
         expect(atom.config.getAll('a')).toEqual([{
           scopeSelector: '*',
