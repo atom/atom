@@ -224,7 +224,6 @@ class AtomEnvironment {
     this.config.resetUserSettings(userSettings)
 
     if (projectSettings != null && projectSettings.config != null) {
-      console.log(projectSettings)
       this.project.replace(projectSettings)
     }
 
