@@ -53,7 +53,7 @@ module.exports = function parseCommandLine (processArgs) {
     'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).'
   )
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version information.')
-  options.alias('p', 'atomproject').describe('p', 'Start atom with an atomproject file.')
+  options.alias('p', 'project').describe('p', 'Start atom with an atomproject file.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.alias('a', 'add').boolean('a').describe('add', 'Open path as a new project in last used window.')
   options.string('socket-path')
@@ -93,7 +93,7 @@ module.exports = function parseCommandLine (processArgs) {
   const benchmark = args['benchmark']
   const benchmarkTest = args['benchmark-test']
   const test = args['test']
-  const atomProject = args['atomproject']
+  const atomProject = args['project']
   const mainProcess = args['main-process']
   const timeout = args['timeout']
   const newWindow = args['new-window']
@@ -144,8 +144,9 @@ module.exports = function parseCommandLine (processArgs) {
     const config = contents.config
     const originPath = atomProject
     const paths = contents.paths.map((curPath) =>
-      relativizeToAtomProject(curPath, atomProject, executedFrom)
-    )
+      relativizeToAtomProject(curPath, path.dirname(path.join(executedFrom, atomProject))
+    ))
+    console.log(paths)
     pathsToOpen.push(path.dirname(atomProject))
     projectSettings = { originPath, paths, config }
   }
@@ -194,9 +195,6 @@ module.exports = function parseCommandLine (processArgs) {
 }
 
 const readProjectSettingsSync = (filepath, executedFrom) => {
-  if (!hasAtomProjectFormat(path.basename(filepath))) {
-    throw new Error('File must match format: *.atomproject.{json, cson}')
-  }
   try {
     const readPath = path.isAbsolute(filepath) ? filepath : path.join(executedFrom, filepath)
     const contents = CSON.readFileSync(readPath)
@@ -210,14 +208,8 @@ const readProjectSettingsSync = (filepath, executedFrom) => {
   }
 }
 
-const hasAtomProjectFormat = (atomProject) => {
-  const projectFileFormat = /.*\.atomproject\.(json|cson)/
-  return projectFileFormat.test(atomProject)
-}
-
-const relativizeToAtomProject = (curPath, atomProject, executedFrom) => {
-  const projectPath = path.isAbsolute(atomProject) ? atomProject : path.join(executedFrom, atomProject)
-  return path.join(path.dirname(projectPath), curPath)
+const relativizeToAtomProject = (curPath, atomProject) => {
+  return path.isAbsolute(curPath) ? curPath : path.join(atomProject, curPath)
 }
 
 const normalizeDriveLetterName = (filePath) => {

@@ -100,7 +100,6 @@ class AtomApplication extends EventEmitter {
     this.safeMode = options.safeMode
     this.socketPath = options.socketPath
     this.logFile = options.logFile
-    this.projectSettings = options.projectSettings
     this.userDataDir = options.userDataDir
     this._killProcess = options.killProcess || process.kill.bind(process)
     if (options.test || options.benchmark || options.benchmarkTest) this.socketPath = null
