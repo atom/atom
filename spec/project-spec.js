@@ -289,23 +289,18 @@ describe('Project', () => {
       }
     })
     it('sets an atomproject', () => {
-      expect(atom.project.getProjectSettings()).toBeNull()
       expect(atom.config.get('baz')).toBeUndefined()
       atom.project.replace(newSettings)
-      expect(atom.project.getProjectSettings().originPath).toBe("originPath")
       expect(atom.project.getPaths()).toEqual([projectPath1, projectPath2])
-      expect(atom.config.get('baz')).toBe("buzz")
+      expect(atom.config.get('baz')).toBe('buzz')
     })
 
     it('clears an atom project through replace with no params', () => {
-      expect(atom.project.getProjectSettings()).toBeNull()
       expect(atom.config.get('baz')).toBeUndefined()
       atom.project.replace(newSettings)
       expect(atom.config.get('baz')).toBe("buzz")
       expect(atom.project.getPaths()).toEqual([projectPath1, projectPath2])
-      expect(atom.project.getProjectSettings().originPath).toBe("originPath")
       atom.project.replace()
-      expect(atom.project.getProjectSettings()).toBeNull()
       expect(atom.config.get('baz')).toBeUndefined()
       expect(atom.project.getPaths()).toEqual([])
     })
