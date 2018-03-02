@@ -1883,11 +1883,19 @@ describe('Config', () => {
           expect(atom.config.get('value')).toEqual({array: [1, {b: 2}, 3]})
         })
 
+        it('gets scoped values correctly', () => {
+          atom.config.set('foo', 'bam', {scope: ['second']})
+          expect(atom.config.get('foo', {'scopeSelector': 'second'})).toBe('bam')
+          atom.config.resetProjectSettings({'*': {'foo': 'baz'}, 'second': {'foo': 'bar'}}, dummyPath)
+          expect(atom.config.get('foo', {'scopeSelector': 'second'})).toBe('baz')
+          atom.config.clearProjectSettings()
+          expect(atom.config.get('foo', {'scopeSelector': 'second'})).toBe('bam')
+        })
+
         it('clears project settings correctly', () => {
           atom.config.set('foo', 'bar')
           expect(atom.config.get('foo')).toBe('bar')
           atom.config.resetProjectSettings({'*': {'foo': 'baz'}, 'second': {'foo': 'bar'}}, dummyPath)
-
           expect(atom.config.get('foo')).toBe('baz')
           expect(atom.config.getSources().length).toBe(1)
           atom.config.clearProjectSettings()
