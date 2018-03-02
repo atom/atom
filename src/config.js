@@ -643,50 +643,6 @@ class Config {
     return result
   }
 
-  // Gets all values for a particular priority. IE: Project settings,
-  // then global settings.
-  getAllForPriority (keyPath, priority) {
-    let globalValue, result, scope
-    if (priority.options != null) { ({scope} = priority.options) }
-
-    if (scope != null) {
-      let legacyScopeDescriptor
-      const scopeDescriptor = ScopeDescriptor.fromObject(scope)
-      result = this.scopedSettingsStore.getAll(
-          scopeDescriptor.getScopeChain(),
-          keyPath,
-          priority.options
-        )
-      legacyScopeDescriptor = this.getLegacyScopeDescriptorForNewScopeDescriptor(scopeDescriptor)
-      if (legacyScopeDescriptor) {
-        result.push(...Array.from(this.scopedSettingsStore.getAll(
-            legacyScopeDescriptor.getScopeChain(),
-            keyPath,
-            priority.options
-          ) || []))
-      }
-    } else {
-      result = []
-    }
-
-    if (priority.source == null) {
-      globalValue = this.getRawValue(keyPath, priority.options)
-    } else {
-      result = result.map((obj) => {
-        if (obj.scopeSelector === priority.source) {
-          obj.scopeSelector = '*'
-        }
-        return obj
-      })
-    }
-
-    if (globalValue) {
-      result.push({scopeSelector: '*', value: globalValue})
-    }
-
-    return result
-  }
-
   // Essential: Sets the value for a configuration setting.
   //
   // This value is stored in Atom's internal configuration file.
