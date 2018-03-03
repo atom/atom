@@ -21,7 +21,7 @@ class Notification {
       throw new Error(`Notification must be created with string message: ${this.message}`)
     }
 
-    if (!_.isObject(this.options) || _.isArray(this.options)) {
+    if (!_.isObject(this.options) || Array.isArray(this.options)) {
       throw new Error(`Notification must be created with an options object: ${this.options}`)
     }
   }
