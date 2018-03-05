@@ -3,6 +3,8 @@
 'use strict'
 
 const childProcess = require('child_process')
+const path = require('path')
+const dowsingRod = require('@atom/dowsing-rod')
 const CONFIG = require('./config')
 const cleanDependencies = require('./lib/clean-dependencies')
 const deleteMsbuildFromPath = require('./lib/delete-msbuild-from-path')
@@ -16,6 +18,11 @@ process.on('unhandledRejection', function (e) {
   console.error(e.stack || e)
   process.exit(1)
 })
+
+dowsingRod.setPythonEnvSync({
+  npmBin: CONFIG.getNpmBinPath(),
+  pythonBinFile: path.join(CONFIG.atomHomeDirPath, 'python2bin'),
+}, process.env)
 
 verifyMachineRequirements()
 
