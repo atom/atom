@@ -4,7 +4,6 @@
 
 const childProcess = require('child_process')
 const path = require('path')
-const dowsingRod = require('@atom/dowsing-rod')
 const CONFIG = require('./config')
 const cleanDependencies = require('./lib/clean-dependencies')
 const deleteMsbuildFromPath = require('./lib/delete-msbuild-from-path')
@@ -19,11 +18,6 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
-dowsingRod.setPythonEnvSync({
-  npmBin: CONFIG.getNpmBinPath(),
-  pythonBinFile: path.join(CONFIG.atomHomeDirPath, 'python2bin'),
-}, process.env)
-
 verifyMachineRequirements()
 
 if (dependenciesFingerprint.isOutdated()) {
@@ -33,6 +27,13 @@ if (dependenciesFingerprint.isOutdated()) {
 if (process.platform === 'win32') deleteMsbuildFromPath()
 
 installScriptDependencies()
+
+const dowsingRod = require('@atom/dowsing-rod')
+dowsingRod.setPythonEnvSync({
+  npmBin: CONFIG.getNpmBinPath(),
+  pythonBinFile: path.join(CONFIG.atomHomeDirPath, 'python2bin'),
+}, process.env)
+
 installApm()
 childProcess.execFileSync(
   CONFIG.getApmBinPath(),
