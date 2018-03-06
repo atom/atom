@@ -195,10 +195,6 @@ module.exports = function parseCommandLine (processArgs) {
 
 function readProjectSpecificationSync (filepath, executedFrom) {
   try {
-    if (!hasAtomProjectFormat(filepath)) {
-      throw new Error('File must match format: *.atomproject.{json, cson}')
-    }
-
     const readPath = path.isAbsolute(filepath) ? filepath : path.join(executedFrom, filepath)
     const contents = CSON.readFileSync(readPath)
 
@@ -211,13 +207,6 @@ function readProjectSpecificationSync (filepath, executedFrom) {
   } catch (e) {}
   const errorMessage = `Unable to read supplied project specification file. This file must have a valid array of paths, as well as a valid config object.`
   throw new Error(errorMessage)
-}
-
-function hasAtomProjectFormat (filepath) {
-  const projectFileFormat = /.*\.atomproject\.(json|cson)/
-  const parsedPath = path.parse(filepath)
-  const filename = parsedPath.name + parsedPath.ext
-  return projectFileFormat.test(filename)
 }
 
 function normalizeDriveLetterName (filePath) {
