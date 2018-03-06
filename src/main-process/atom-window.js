@@ -442,7 +442,4 @@ class AtomWindow extends EventEmitter {
   disableZoom () {
     return this.browserWindow.webContents.setVisualZoomLevelLimits(1, 1)
   }
-
-  get loadSettingsJSON () {}
-
 }

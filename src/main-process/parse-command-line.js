@@ -53,7 +53,7 @@ module.exports = function parseCommandLine (processArgs) {
     'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).'
   )
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version information.')
-  options.alias('p', 'project').describe('p', 'Start atom with an project specification file.')
+  options.alias('p', 'project').describe('p', 'Start Atom with a project specification file.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.alias('a', 'add').boolean('a').describe('add', 'Open path as a new project in last used window.')
   options.string('socket-path')
@@ -205,7 +205,7 @@ function readProjectSpecificationSync (filepath, executedFrom) {
       return contents
     }
   } catch (e) {}
-  const errorMessage = `Unable to read supplied project specification file. This file must have a valid array of paths, as well as a valid config object.`
+  const errorMessage = 'Unable to read supplied project specification file. This file must have a valid array of paths, as well as a valid config object.'
   throw new Error(errorMessage)
 }
 
