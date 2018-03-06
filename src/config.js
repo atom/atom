@@ -980,7 +980,7 @@ class Config {
     })
   }
 
-  _clearUnscopedSettingsForSource(source) {
+  _clearUnscopedSettingsForSource (source) {
     switch (source) {
       case (this.projectFile):
         this.projectSettings = {}
