@@ -282,9 +282,9 @@ describe('Project', () => {
       projectPath2 = temp.mkdirSync('project-path2')
       projectSpecification = {
         paths: [projectPath1, projectPath2],
-        originPath: "originPath",
+        originPath: 'originPath',
         config: {
-          "baz": "buzz"
+          'baz': 'buzz'
         }
       }
     })
@@ -298,7 +298,7 @@ describe('Project', () => {
     it('clears a project through replace with no params', () => {
       expect(atom.config.get('baz')).toBeUndefined()
       atom.project.replace(projectSpecification)
-      expect(atom.config.get('baz')).toBe("buzz")
+      expect(atom.config.get('baz')).toBe('buzz')
       expect(atom.project.getPaths()).toEqual([projectPath1, projectPath2])
       atom.project.replace()
       expect(atom.config.get('baz')).toBeUndefined()
