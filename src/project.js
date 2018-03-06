@@ -77,17 +77,17 @@ class Project extends Model {
     }
   }
 
-  // Layers the contents of an atomProject file's config
+  // Layers the contents of a project's file's config
   // on top of the current global config.
-  replace (newSettings) {
-    if (newSettings == null) {
+  replace (projectSpecification) {
+    if (projectSpecification == null) {
       atom.config.clearProjectSettings()
       this.setPaths([])
     } else {
-      atom.config.resetProjectSettings(newSettings.config, newSettings.originPath)
-      this.setPaths(newSettings.paths)
+      atom.config.resetProjectSettings(projectSpecification.config, projectSpecification.originPath)
+      this.setPaths(projectSpecification.paths)
     }
-    this.emitter.emit('did-replace', newSettings)
+    this.emitter.emit('did-replace', projectSpecification)
   }
 
   onDidReplace (callback) {

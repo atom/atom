@@ -53,7 +53,7 @@ module.exports = function parseCommandLine (processArgs) {
     'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).'
   )
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version information.')
-  options.alias('p', 'project').describe('p', 'Start atom with an atomproject file.')
+  options.alias('p', 'project').describe('p', 'Start atom with an project specification file.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.alias('a', 'add').boolean('a').describe('add', 'Open path as a new project in last used window.')
   options.string('socket-path')
@@ -93,7 +93,7 @@ module.exports = function parseCommandLine (processArgs) {
   const benchmark = args['benchmark']
   const benchmarkTest = args['benchmark-test']
   const test = args['test']
-  const atomProject = args['project']
+  const projectSpecificationFile = args['project']
   const mainProcess = args['main-process']
   const timeout = args['timeout']
   const newWindow = args['new-window']
@@ -128,7 +128,7 @@ module.exports = function parseCommandLine (processArgs) {
     }
   }
 
-  // Check to see if atomproject flag is set, then add all paths from the .atom-project.
+  // Check to see if project flag is set, then add all paths from the .atomproject.
   if (args['resource-path']) {
     devMode = true
     devResourcePath = args['resource-path']
@@ -138,16 +138,16 @@ module.exports = function parseCommandLine (processArgs) {
     devMode = true
   }
 
-  let projectSettings = {}
-  if (atomProject) {
-    const contents = Object.assign({}, readProjectSettingsSync(atomProject, executedFrom))
+  let projectSpecification = {}
+  if (projectSpecificationFile) {
+    const contents = Object.assign({}, readProjectSpecificationSync(projectSpecificationFile, executedFrom))
     const config = contents.config
-    const originPath = atomProject
-    const paths = contents.paths.map((curPath) =>
-      relativizeToAtomProject(curPath, path.dirname(path.join(executedFrom, atomProject))
-    ))
-    pathsToOpen.push(path.dirname(atomProject))
-    projectSettings = { originPath, paths, config }
+    const originPath = projectSpecificationFile
+    const pathToProjectFile = path.join(executedFrom, projectSpecificationFile)
+    const base = path.dirname(pathToProjectFile)
+    const paths = contents.paths.map(curPath => path.resolve(base, curPath))
+    pathsToOpen.push(path.dirname(projectSpecificationFile))
+    projectSpecification = { originPath, paths, config }
   }
 
   if (devMode) {
@@ -167,7 +167,7 @@ module.exports = function parseCommandLine (processArgs) {
   resourcePath = normalizeDriveLetterName(resourcePath)
   devResourcePath = normalizeDriveLetterName(devResourcePath)
   return {
-    projectSettings,
+    projectSpecification,
     resourcePath,
     devResourcePath,
     pathsToOpen,
@@ -193,25 +193,34 @@ module.exports = function parseCommandLine (processArgs) {
   }
 }
 
-const readProjectSettingsSync = (filepath, executedFrom) => {
+function readProjectSpecificationSync (filepath, executedFrom) {
   try {
+    if (!hasAtomProjectFormat(filepath)) {
+      throw new Error('File must match format: *.atomproject.{json, cson}')
+    }
+
     const readPath = path.isAbsolute(filepath) ? filepath : path.join(executedFrom, filepath)
     const contents = CSON.readFileSync(readPath)
-    if (contents.paths && contents.config) {
+
+    if (contents.paths == null) {
+      contents.paths = [path.dirname(readPath)]
+    }
+    if (contents.config) {
       return contents
     }
-    throw new Error()
-  } catch (e) {
-    const errorMessage = `Unable to read supplied atomproject file. This file must have a valid array of paths, as well as a valid config object.`
-    throw new Error(errorMessage)
-  }
+  } catch (e) {}
+  const errorMessage = `Unable to read supplied project specification file. This file must have a valid array of paths, as well as a valid config object.`
+  throw new Error(errorMessage)
 }
 
-const relativizeToAtomProject = (curPath, atomProject) => {
-  return path.isAbsolute(curPath) ? curPath : path.join(atomProject, curPath)
+function hasAtomProjectFormat (filepath) {
+  const projectFileFormat = /.*\.atomproject\.(json|cson)/
+  const parsedPath = path.parse(filepath)
+  const filename = parsedPath.name + parsedPath.ext
+  return projectFileFormat.test(filename)
 }
 
-const normalizeDriveLetterName = (filePath) => {
+function normalizeDriveLetterName (filePath) {
   if (process.platform === 'win32') {
     return filePath.replace(/^([a-z]):/, ([driveLetter]) => driveLetter.toUpperCase() + ':')
   } else {

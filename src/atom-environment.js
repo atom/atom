@@ -209,7 +209,7 @@ class AtomEnvironment {
     this.blobStore = params.blobStore
     this.configDirPath = params.configDirPath
 
-    const {devMode, safeMode, resourcePath, userSettings, projectSettings} = this.getLoadSettings()
+    const {devMode, safeMode, resourcePath, userSettings, projectSpecification} = this.getLoadSettings()
 
     ConfigSchema.projectHome = {
       type: 'string',
@@ -223,8 +223,8 @@ class AtomEnvironment {
     })
     this.config.resetUserSettings(userSettings)
 
-    if (projectSettings != null && projectSettings.config != null) {
-      this.project.replace(projectSettings)
+    if (projectSpecification != null && projectSpecification.config != null) {
+      this.project.replace(projectSpecification)
     }
 
     this.menu.initialize({resourcePath})

@@ -1836,7 +1836,7 @@ describe('Config', () => {
     })
   })
 
-  describe('project specific configs', () => {
+  describe('project specific settings', () => {
     describe('config.resetProjectSettings', () => {
       it('gracefully handles invalid config objects', () => {
         atom.config.resetProjectSettings({})
@@ -1846,7 +1846,7 @@ describe('Config', () => {
 
     describe('config.get', () => {
       const dummyPath = '/Users/dummy/path.json'
-      describe('project configs', () => {
+      describe('project settings', () => {
         it('returns a deep clone of the property value', () => {
           atom.config.resetProjectSettings({'*': {'value': {array: [1, {b: 2}, 3]}}}, dummyPath)
           const retrievedValue = atom.config.get('value')
@@ -1855,20 +1855,20 @@ describe('Config', () => {
           expect(atom.config.get('value')).toEqual({array: [1, {b: 2}, 3]})
         })
 
-        it('should properly get project configs', () => {
+        it('properly gets project settings', () => {
           atom.config.resetProjectSettings({'*': {'foo': 'wei'}}, dummyPath)
           expect(atom.config.get('foo')).toBe('wei')
           atom.config.resetProjectSettings({'*': {'foo': {'bar': 'baz'}}}, dummyPath)
           expect(atom.config.get('foo.bar')).toBe('baz')
         })
 
-        it('should get project settings with higher priority than regular settings', () => {
+        it('gets project settings with higher priority than regular settings', () => {
           atom.config.set('foo', 'bar')
           atom.config.resetProjectSettings({'*': {'foo': 'baz'}}, dummyPath)
           expect(atom.config.get('foo')).toBe('baz')
         })
 
-        it('correctly gets nested and scoped properties for project configs', () => {
+        it('correctly gets nested and scoped properties for project settings', () => {
           expect(atom.config.set('foo.bar.str', 'global')).toBe(true)
           expect(atom.config.set('foo.bar.str', 'scoped', {scopeSelector: '.source.js'})).toBe(true)
           expect(atom.config.get('foo.bar.str')).toBe('global')
@@ -1907,7 +1907,7 @@ describe('Config', () => {
 
     describe('config.getAll', () => {
       const dummyPath = '/Users/dummy/path.json'
-      it('should get settings in the same way .get would return them', () => {
+      it('gets settings in the same way .get would return them', () => {
         atom.config.resetProjectSettings({'*': {'a': 'b'}}, dummyPath)
         atom.config.set('a', 'f')
         expect(atom.config.getAll('a')).toEqual([{

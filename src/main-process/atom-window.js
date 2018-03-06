@@ -22,7 +22,7 @@ class AtomWindow extends EventEmitter {
     this.safeMode = settings.safeMode
     this.devMode = settings.devMode
     this.resourcePath = settings.resourcePath
-    this.projectSettings = settings.projectSettings
+    this.projectSpecification = settings.projectSpecification
 
     let {pathToOpen, locationsToOpen} = settings
     if (!locationsToOpen && pathToOpen) locationsToOpen = [{pathToOpen}]
@@ -59,7 +59,7 @@ class AtomWindow extends EventEmitter {
     Object.defineProperty(this.browserWindow, 'loadSettingsJSON', {
       get: () => JSON.stringify(Object.assign({
         userSettings: this.atomApplication.configFile.get(),
-        projectSettings: this.projectSettings
+        projectSpecification: this.projectSpecification
       }, this.loadSettings))
     })
 
@@ -442,4 +442,7 @@ class AtomWindow extends EventEmitter {
   disableZoom () {
     return this.browserWindow.webContents.setVisualZoomLevelLimits(1, 1)
   }
+
+  get loadSettingsJSON () {}
+
 }

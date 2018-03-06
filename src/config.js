@@ -948,6 +948,11 @@ class Config {
   */
 
   resetUserSettings (newSettings, options = {}) {
+    this._resetSettings(newSettings, options)
+  }
+
+  _resetSettings (newSettings, options = {}) {
+    const source = options.source
     newSettings = Object.assign({}, newSettings)
     if (newSettings.global != null) {
       newSettings['*'] = newSettings.global
@@ -958,27 +963,15 @@ class Config {
       const scopedSettings = newSettings
       newSettings = newSettings['*']
       delete scopedSettings['*']
-      if (options.resetProject) {
-        this.resetUserScopedSettings(scopedSettings, {source: this.projectFile})
-      } else {
-        this.resetUserScopedSettings(scopedSettings)
-      }
+      this.resetScopedSettings(scopedSettings, {source})
     }
 
     return this.transact(() => {
-      if (options.resetProject) {
-        this.projectSettings = {}
-      } else {
-        this.settings = {}
-      }
+      this._clearUnscopedSettingsForSource(source)
       this.settingsLoaded = true
       for (let key in newSettings) {
         const value = newSettings[key]
-        if (options.resetProject) {
-          this.set(key, value, {save: false, source: this.projectFile})
-        } else {
-          this.set(key, value, {save: false})
-        }
+        this.set(key, value, {save: false, source})
       }
       if (this.pendingOperations.length) {
         for (let op of this.pendingOperations) { op() }
@@ -987,13 +980,23 @@ class Config {
     })
   }
 
+  _clearUnscopedSettingsForSource(source) {
+    switch (source) {
+      case (this.projectFile):
+        this.projectSettings = {}
+        return
+      default:
+        this.settings = {}
+    }
+  }
+
   resetProjectSettings (newSettings, projectFile) {
     // Sets the scope and source of all project settings to `path`.
     newSettings = Object.assign({}, newSettings)
     const oldProjectFile = this.projectFile
     this.projectFile = projectFile
     if (this.projectFile != null) {
-      this.resetUserSettings(newSettings, {resetProject: true})
+      this._resetSettings(newSettings, {source: this.projectFile})
     } else {
       this.scopedSettingsStore.removePropertiesForSource(oldProjectFile)
       this.projectSettings = {}
@@ -1225,7 +1228,7 @@ class Config {
     if (this.transactDepth <= 0) { return this.emitter.emit('did-change') }
   }
 
-  resetUserScopedSettings (newScopedSettings, options = {}) {
+  resetScopedSettings (newScopedSettings, options = {}) {
     const source = options.source == null ? this.mainSource : options.source
     const priority = this.priorityForSource(source)
     this.scopedSettingsStore.removePropertiesForSource(source)
