@@ -1,6 +1,3 @@
-/** @babel */
-/** @jsx etch.dom */
-
 const etch = require('etch')
 const _ = require('underscore-plus')
 const {CompositeDisposable, Emitter} = require('event-kit')
@@ -8,6 +5,7 @@ const PaneContainer = require('./pane-container')
 const TextEditor = require('./text-editor')
 const Grim = require('grim')
 
+const $ = etch.dom
 const MINIMUM_SIZE = 100
 const DEFAULT_INITIAL_SIZE = 300
 const SHOULD_ANIMATE_CLASS = 'atom-dock-should-animate'
@@ -194,46 +192,48 @@ module.exports = class Dock {
     // ...but the content needs to maintain a constant size.
     const wrapperStyle = {[this.widthOrHeight]: `${size}px`}
 
-    return (
-      <atom-dock className={this.location}>
-        <div ref='innerElement' className={innerElementClassList.join(' ')}>
-          <div
-            className={maskElementClassList.join(' ')}
-            style={maskStyle}>
-            <div
-              ref='wrapperElement'
-              className={`atom-dock-content-wrapper ${this.location}`}
-              style={wrapperStyle}>
-              <DockResizeHandle
-                location={this.location}
-                onResizeStart={this.handleResizeHandleDragStart}
-                onResizeToFit={this.handleResizeToFit}
-                dockIsVisible={this.state.visible}
-              />
-              <ElementComponent element={this.paneContainer.getElement()} />
-              <div className={cursorOverlayElementClassList.join(' ')} />
-            </div>
-          </div>
-          {/*
-            The toggle button must be rendered outside the mask because (1) it shouldn't be masked
-            and (2) if we made the mask larger to avoid masking it, the mask would block mouse
-            events.
-          */}
-          <DockToggleButton
-            ref='toggleButton'
-            onDragEnter={this.handleToggleButtonDragEnter}
-            location={this.location}
-            toggle={this.toggle}
-            dockIsVisible={shouldBeVisible}
-            visible={
-              // Don't show the toggle button if the dock is closed and empty...
-              (this.state.hovered && (this.state.visible || this.getPaneItems().length > 0)) ||
-              // ...or if the item can't be dropped in that dock.
-              (!shouldBeVisible && this.state.draggingItem && isItemAllowed(this.state.draggingItem, this.location))
-            }
-          />
-        </div>
-      </atom-dock>
+    return $(
+      'atom-dock',
+      {className: this.location},
+      $.div(
+        {ref: 'innerElement', className: innerElementClassList.join(' ')},
+        $.div(
+          {
+            className: maskElementClassList.join(' '),
+            style: maskStyle
+          },
+          $.div(
+            {
+              ref: 'wrapperElement',
+              className: `atom-dock-content-wrapper ${this.location}`,
+              style: wrapperStyle
+            },
+            $(DockResizeHandle, {
+              location: this.location,
+              onResizeStart: this.handleResizeHandleDragStart,
+              onResizeToFit: this.handleResizeToFit,
+              dockIsVisible: this.state.visible
+            }),
+            $(ElementComponent, {element: this.paneContainer.getElement()}),
+            $.div({className: cursorOverlayElementClassList.join(' ')})
+          )
+        ),
+        $(DockToggleButton, {
+          ref: 'toggleButton',
+          onDragEnter: this.handleToggleButtonDragEnter,
+          location: this.location,
+          toggle: this.toggle,
+          dockIsVisible: shouldBeVisible,
+          visible:
+            // Don't show the toggle button if the dock is closed and empty...
+            (this.state.hovered &&
+              (this.state.visible || this.getPaneItems().length > 0)) ||
+            // ...or if the item can't be dropped in that dock.
+            (!shouldBeVisible &&
+              this.state.draggingItem &&
+              isItemAllowed(this.state.draggingItem, this.location))
+        })
+      )
     )
   }
 
@@ -719,12 +719,10 @@ class DockResizeHandle {
     const classList = ['atom-dock-resize-handle', this.props.location]
     if (this.props.dockIsVisible) classList.push(RESIZE_HANDLE_RESIZABLE_CLASS)
 
-    return (
-      <div
-        className={classList.join(' ')}
-        on={{mousedown: this.handleMouseDown}}
-      />
-    )
+    return $.div({
+      className: classList.join(' '),
+      on: {mousedown: this.handleMouseDown}
+    })
   }
 
   getElement () {
@@ -762,17 +760,22 @@ class DockToggleButton {
     const classList = ['atom-dock-toggle-button', this.props.location]
     if (this.props.visible) classList.push(TOGGLE_BUTTON_VISIBLE_CLASS)
 
-    return (
-      <div className={classList.join(' ')}>
-        <div
-          ref='innerElement'
-          className={`atom-dock-toggle-button-inner ${this.props.location}`}
-          on={{click: this.handleClick, dragenter: this.handleDragEnter}}>
-          <span
-            ref='iconElement'
-            className={`icon ${getIconName(this.props.location, this.props.dockIsVisible)}`} />
-        </div>
-      </div>
+    return $.div(
+      {className: classList.join(' ')},
+      $.div(
+        {
+          ref: 'innerElement',
+          className: `atom-dock-toggle-button-inner ${this.props.location}`,
+          on: {click: this.handleClick, dragenter: this.handleDragEnter}
+        },
+        $.span({
+          ref: 'iconElement',
+          className: `icon ${getIconName(
+            this.props.location,
+            this.props.dockIsVisible
+          )}`
+        })
+      )
     )
   }
 
