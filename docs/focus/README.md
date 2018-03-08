@@ -1,36 +1,44 @@
-# Git and GitHub integration
+# Near-term plans
 
-## Docs
+In this directory, you'll find weekly progress and plans from the core Atom team at GitHub. In addition, this document summarizes the work we're intending to prioritize within the next several months.
 
-## Repositories
+* [Atom IDE](#atom-ide)
+* [GitHub package](#github-package)
+* [Teletype](#teletype)
+* [Tree-sitter](#tree-sitter)
+* [Xray](#xray)
+
+---
+
+# Atom IDE
+
+## Roadmap
+
+## Looking ahead
+
+---
+
+# GitHub package
 
 - [atom/github](http://github.com/atom/github) (Atom package)
 
 ## Roadmap
 
-### Q1 FY19 (Feb 2018 - Apr 2018)
+Watch our progress on the [short-term roadmap project](https://github.com/atom/github/projects/8).
 
-#### Staffing: 24 person-weeks
-
-- @kuychaco - 9 person-weeks (12 weeks - 2 weeks of reactor duty - 1 week travel)
-- @smashwilson - 9 person-weeks (12 weeks - 2 weeks of reactor duty - 1 week @atom/watcher)
-- ??? - approx. 6 person-weeks
-
-#### Goals
-
-##### * Recent commit history
+##### Recent commit history
 
 _Near-term goal:_ An informational view that displays the most recent 1-3 commits beneath the mini commit message editor. Design and discussion in: [#554](https://github.com/atom/github/issues/554), [#86](https://github.com/atom/github/issues/86).
 
 _Longer-term goals:_ Introduce interactivity to the commits shown in the recent history list. Right-click on the top click to amend it, or on prior commits to reset. Overhaul the "amend button" functionality and implementation.
 
-##### * Commit co-authoring
+##### Commit co-authoring
 
 _Near-term goal:_ Allow users to specify co-authors when committing. Draw inspiration from [Desktop's implementation](https://github.com/desktop/desktop/pull/3879) for UI. Tracking issue: [#1309](https://github.com/atom/github/issues/1309).
 
 _Longer-term goals:_ Expose an API so that packages like teletype can add portal participants to commits automatically. Tangentially related to [#1089](https://github.com/atom/github/issues/1089).
 
-##### * Pull request workflow - Create Pull Request
+##### Pull request workflow - Create Pull Request
 
 _Near-term goal:_ Add buttons in the GitHub panel to allow users to push any unpushed changes and open new pull requests. The "Open new pull request" button will link to the github.com compare view in browser. Open pull request: [#1138](https://github.com/atom/github/pull/1138).
 
@@ -44,11 +52,11 @@ UI/UX considerations include:
 * Allow the user to specify the merge target.
 * Show a preview of the list of commits that would be introduced by PR.
 
-##### * Build stability
+##### Build stability
 
 _Near-term goal:_ Fix that damn Travis hang documented in [#1119](https://github.com/atom/github/issues/1119). Resume the diagnosis work in [#1289](https://github.com/atom/github/pull/1289) and find a way to bring our build success rate back under control.
 
-##### * GPG and credential handler overhaul
+##### GPG and credential handler overhaul
 
 _Near-term goals:_ Passphrase prompting from git credential helpers and GPG has been a significant pain point since public release; unsurprisingly, because those are the areas where we need to leverage binaries and configuration from the users' system if present.
 
@@ -58,7 +66,7 @@ _Longer-term goals:_ Finish the credential handler refactor begun in [#846](http
 
 * Improve our handling of 2FA credentials. Ideally we could detect when a user has 2FA enabled and prompt for a one-time code. [#844](https://github.com/atom/github/issues/844)
 
-### Looking ahead to future quarters
+## Looking ahead
 
 In no particular order:
 
@@ -69,3 +77,27 @@ In no particular order:
 - `git log` pane.
 - Merge or close pull requests.
 - Browse and check out pull requests.
+
+---
+
+# Teletype
+
+## Roadmap
+
+## Looking ahead
+
+---
+
+# Tree-sitter
+
+## Roadmap
+
+## Looking ahead
+
+---
+
+# Xray
+
+## Roadmap
+
+## Looking ahead
