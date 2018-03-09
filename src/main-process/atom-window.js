@@ -58,7 +58,9 @@ class AtomWindow extends EventEmitter {
 
     Object.defineProperty(this.browserWindow, 'loadSettingsJSON', {
       get: () => JSON.stringify(Object.assign({
-        userSettings: this.atomApplication.configFile.get(),
+        userSettings: !this.isSpec
+          ? this.atomApplication.configFile.get()
+          : null,
         projectSpecification: this.projectSpecification
       }, this.loadSettings))
     })

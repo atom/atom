@@ -2811,7 +2811,7 @@ class TextEditorComponent {
   setScrollTop (scrollTop) {
     if (Number.isNaN(scrollTop) || scrollTop == null) return false
 
-    scrollTop = Math.round(Math.max(0, Math.min(this.getMaxScrollTop(), scrollTop)))
+    scrollTop = roundToPhysicalPixelBoundary(Math.max(0, Math.min(this.getMaxScrollTop(), scrollTop)))
     if (scrollTop !== this.scrollTop) {
       this.derivedDimensionsCache = {}
       this.scrollTopPending = true
@@ -2842,7 +2842,7 @@ class TextEditorComponent {
   setScrollLeft (scrollLeft) {
     if (Number.isNaN(scrollLeft) || scrollLeft == null) return false
 
-    scrollLeft = Math.round(Math.max(0, Math.min(this.getMaxScrollLeft(), scrollLeft)))
+    scrollLeft = roundToPhysicalPixelBoundary(Math.max(0, Math.min(this.getMaxScrollLeft(), scrollLeft)))
     if (scrollLeft !== this.scrollLeft) {
       this.scrollLeftPending = true
       this.scrollLeft = scrollLeft

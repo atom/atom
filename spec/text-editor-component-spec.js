@@ -905,46 +905,6 @@ describe('TextEditorComponent', () => {
       expect(component.getLineNumberGutterWidth()).toBe(originalLineNumberGutterWidth)
     })
 
-    it('gracefully handles edits that change the maxScrollTop by causing the horizontal scrollbar to disappear', async () => {
-      const rowsPerTile = 1
-      const {component, element, editor} = buildComponent({rowsPerTile, autoHeight: false})
-
-      await setEditorHeightInLines(component, 1)
-      await setEditorWidthInCharacters(component, 7)
-
-      // Updating scrollbar styles.
-      const style = document.createElement('style')
-      style.textContent = '::-webkit-scrollbar { height: 17px; width: 10px; }'
-      jasmine.attachToDOM(style)
-      TextEditor.didUpdateScrollbarStyles()
-      await component.getNextUpdatePromise()
-
-      element.focus()
-      component.setScrollTop(component.measurements.lineHeight)
-
-      component.scheduleUpdate()
-      await component.getNextUpdatePromise()
-
-      editor.setSelectedBufferRange([[0, 1], [12, 2]])
-      editor.backspace()
-
-      // component.scheduleUpdate()
-      await component.getNextUpdatePromise()
-
-      expect(component.getScrollTop()).toBe(0)
-
-      const renderedLines = queryOnScreenLineElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
-      const renderedLineNumbers = queryOnScreenLineNumberElements(element).sort((a, b) => a.dataset.screenRow - b.dataset.screenRow)
-      const renderedStartRow = component.getRenderedStartRow()
-      const expectedLines = editor.displayLayer.getScreenLines(renderedStartRow, component.getRenderedEndRow())
-
-      expect(renderedLines.length).toBe(expectedLines.length)
-      expect(renderedLineNumbers.length).toBe(expectedLines.length)
-
-      element.remove()
-      editor.destroy()
-    })
-
     describe('randomized tests', () => {
       let originalTimeout
 
@@ -961,7 +921,7 @@ describe('TextEditorComponent', () => {
         const initialSeed = Date.now()
         for (var i = 0; i < 20; i++) {
           let seed = initialSeed + i
-          // seed = 1507231571985
+          // seed = 1520247533732
           const failureMessage = 'Randomized test failed with seed: ' + seed
           const random = Random(seed)
 
@@ -970,6 +930,11 @@ describe('TextEditorComponent', () => {
           editor.setSoftWrapped(Boolean(random(2)))
           await setEditorWidthInCharacters(component, random(20))
           await setEditorHeightInLines(component, random(10))
+
+          element.style.fontSize = random(20) + 'px'
+          element.style.lineHeight = random.floatBetween(0.1, 2.0)
+          TextEditor.didUpdateStyles()
+          await component.getNextUpdatePromise()
 
           element.focus()
 

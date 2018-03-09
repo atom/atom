@@ -1106,7 +1106,7 @@ class Config {
   deepClone (object) {
     if (object instanceof Color) {
       return object.clone()
-    } else if (_.isArray(object)) {
+    } else if (Array.isArray(object)) {
       return object.map(value => this.deepClone(value))
     } else if (isPlainObject(object)) {
       return _.mapObject(object, (key, value) => [key, this.deepClone(value)])
@@ -1467,7 +1467,7 @@ Config.addSchemaEnforcers({
   }
 })
 
-let isPlainObject = value => _.isObject(value) && !_.isArray(value) && !_.isFunction(value) && !_.isString(value) && !(value instanceof Color)
+let isPlainObject = value => _.isObject(value) && !Array.isArray(value) && !_.isFunction(value) && !_.isString(value) && !(value instanceof Color)
 
 let sortObject = value => {
   if (!isPlainObject(value)) { return value }
