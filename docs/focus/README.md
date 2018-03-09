@@ -1,12 +1,16 @@
 # Near-term plans
 
-In this directory, you'll find weekly progress and plans from the core Atom team at GitHub. In addition, this document summarizes the work we're intending to prioritize within the next several months.
+Want to know what the Atom team is working on and what has our focus over the next few months? You've come to the right place. 🎯
+
+In this directory, you'll find **weekly progress and planning updates** from the core Atom team at GitHub (e.g., [`2018-02-12.md`](2018-02-12.md)), and the sections below represent our **near-term roadmap**:
 
 * [Atom IDE](#atom-ide)
 * [GitHub package](#github-package)
 * [Teletype](#teletype)
 * [Tree-sitter](#tree-sitter)
 * [Xray](#xray)
+
+This roadmap is a [living document](https://en.wikipedia.org/wiki/Living_document): it represents our current plans, but we expect these plans to change from time to time.
 
 ---
 
