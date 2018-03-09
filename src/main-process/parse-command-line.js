@@ -140,14 +140,19 @@ module.exports = function parseCommandLine (processArgs) {
 
   let projectSpecification = {}
   if (projectSpecificationFile) {
-    const contents = Object.assign({}, readProjectSpecificationSync(projectSpecificationFile, executedFrom))
-    const config = contents.config
-    const originPath = projectSpecificationFile
+    const readPath = path.isAbsolute(projectSpecificationFile)
+      ? projectSpecificationFile
+      : path.join(executedFrom, projectSpecificationFile)
+
+    const contents = Object.assign({}, readProjectSpecificationSync(readPath, executedFrom))
     const pathToProjectFile = path.join(executedFrom, projectSpecificationFile)
     const base = path.dirname(pathToProjectFile)
-    const paths = contents.paths.map(curPath => path.resolve(base, curPath))
     pathsToOpen.push(path.dirname(projectSpecificationFile))
-    projectSpecification = { originPath, paths, config }
+    projectSpecification = {
+       originPath: projectSpecificationFile,
+       paths: contents.paths.map(curPath => path.resolve(base, curPath)),
+       config: contents.config
+    }
   }
 
   if (devMode) {
@@ -195,18 +200,15 @@ module.exports = function parseCommandLine (processArgs) {
 
 function readProjectSpecificationSync (filepath, executedFrom) {
   try {
-    const readPath = path.isAbsolute(filepath) ? filepath : path.join(executedFrom, filepath)
     const contents = CSON.readFileSync(readPath)
+  } catch (e) {
+    throw new Error('Unable to read supplied project specification file.')
+  }
 
-    if (contents.paths == null) {
-      contents.paths = [path.dirname(readPath)]
-    }
-    if (contents.config) {
-      return contents
-    }
-  } catch (e) {}
-  const errorMessage = 'Unable to read supplied project specification file. This file must have a valid array of paths, as well as a valid config object.'
-  throw new Error(errorMessage)
+  if (contents.paths == null) {
+    contents.paths = [path.dirname(readPath)]
+  }
+  return (contents.config == null) ? {} : contents
 }
 
 function normalizeDriveLetterName (filePath) {

@@ -981,12 +981,10 @@ class Config {
   }
 
   _clearUnscopedSettingsForSource (source) {
-    switch (source) {
-      case (this.projectFile):
-        this.projectSettings = {}
-        return
-      default:
-        this.settings = {}
+    if (source === this.projectFile) {
+      this.projectSettings = {}
+    } else {
+      this.settings = {}
     }
   }
 
@@ -1013,7 +1011,7 @@ class Config {
       value = getValueAtKeyPath(this.settings, keyPath)
       if (this.projectFile != null) {
         const projectValue = getValueAtKeyPath(this.projectSettings, keyPath)
-        value = projectValue || value
+        value = (projectValue === undefined) ? value : projectValue
       }
     }
 
