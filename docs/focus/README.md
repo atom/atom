@@ -20,7 +20,7 @@ In this directory, you'll find weekly progress and plans from the core Atom team
 
 # GitHub package
 
-- [atom/github](http://github.com/atom/github) (Atom package)
+Main repository: [atom/github](http://github.com/atom/github) (Atom package)
 
 ## Roadmap
 
