@@ -149,9 +149,9 @@ module.exports = function parseCommandLine (processArgs) {
     const base = path.dirname(pathToProjectFile)
     pathsToOpen.push(path.dirname(projectSpecificationFile))
     projectSpecification = {
-       originPath: projectSpecificationFile,
-       paths: contents.paths.map(curPath => path.resolve(base, curPath)),
-       config: contents.config
+      originPath: projectSpecificationFile,
+      paths: contents.paths.map(curPath => path.resolve(base, curPath)),
+      config: contents.config
     }
   }
 
@@ -199,14 +199,15 @@ module.exports = function parseCommandLine (processArgs) {
 }
 
 function readProjectSpecificationSync (filepath, executedFrom) {
+  let contents
   try {
-    const contents = CSON.readFileSync(readPath)
+    contents = CSON.readFileSync(filepath)
   } catch (e) {
     throw new Error('Unable to read supplied project specification file.')
   }
 
   if (contents.paths == null) {
-    contents.paths = [path.dirname(readPath)]
+    contents.paths = [path.dirname(filepath)]
   }
   return (contents.config == null) ? {} : contents
 }
