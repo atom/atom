@@ -209,7 +209,8 @@ function readProjectSpecificationSync (filepath, executedFrom) {
   if (contents.paths == null) {
     contents.paths = [path.dirname(filepath)]
   }
-  return (contents.config == null) ? {} : contents
+  contents.config = (contents.config == null) ? {} : contents.config
+  return contents
 }
 
 function normalizeDriveLetterName (filePath) {
