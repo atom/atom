@@ -146,11 +146,16 @@ module.exports = function parseCommandLine (processArgs) {
 
     const contents = Object.assign({}, readProjectSpecificationSync(readPath, executedFrom))
     const pathToProjectFile = path.join(executedFrom, projectSpecificationFile)
+
     const base = path.dirname(pathToProjectFile)
     pathsToOpen.push(path.dirname(projectSpecificationFile))
+    const paths = (contents.paths == null)
+      ? undefined
+      : contents.paths.map(curPath => path.resolve(base, curPath))
+
     projectSpecification = {
-      originPath: projectSpecificationFile,
-      paths: contents.paths.map(curPath => path.resolve(base, curPath)),
+      originPath: pathToProjectFile,
+      paths,
       config: contents.config
     }
   }
@@ -171,6 +176,7 @@ module.exports = function parseCommandLine (processArgs) {
 
   resourcePath = normalizeDriveLetterName(resourcePath)
   devResourcePath = normalizeDriveLetterName(devResourcePath)
+
   return {
     projectSpecification,
     resourcePath,
@@ -206,9 +212,6 @@ function readProjectSpecificationSync (filepath, executedFrom) {
     throw new Error('Unable to read supplied project specification file.')
   }
 
-  if (contents.paths == null) {
-    contents.paths = [path.dirname(filepath)]
-  }
   contents.config = (contents.config == null) ? {} : contents.config
   return contents
 }

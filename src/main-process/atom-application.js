@@ -855,7 +855,7 @@ class AtomApplication extends EventEmitter {
     }
 
     let openedWindow
-    if (existingWindow && projectSpecification.paths == null && projectSpecification.config == null) {
+    if (existingWindow && (projectSpecification == null || projectSpecification.config == null)) {
       openedWindow = existingWindow
       openedWindow.openLocations(locationsToOpen)
       if (openedWindow.isMinimized()) {

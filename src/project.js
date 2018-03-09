@@ -84,6 +84,14 @@ class Project extends Model {
       atom.config.clearProjectSettings()
       this.setPaths([])
     } else {
+      if (projectSpecification.originPath == null) {
+        return
+      }
+
+      // If no path is specified, set to directory of originPath.
+      if (!Array.isArray(projectSpecification.paths)) {
+        projectSpecification.paths = [path.dirname(projectSpecification.originPath)]
+      }
       atom.config.resetProjectSettings(projectSpecification.config, projectSpecification.originPath)
       this.setPaths(projectSpecification.paths)
     }
