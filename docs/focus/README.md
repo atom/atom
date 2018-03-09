@@ -82,6 +82,8 @@ In no particular order:
 
 # Teletype
 
+Main repository: [atom/teletype](http://github.com/atom/teletype) (Atom package)
+
 ## Roadmap
 
 ##### 1. Deliver a multi-file collaboration experience that meets 80% of the needs with 20% of the effort
