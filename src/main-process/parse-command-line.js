@@ -44,7 +44,7 @@ module.exports = function parseCommandLine (processArgs) {
     'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.'
   )
   options.boolean('benchmark').describe('benchmark', 'Open a new window that runs the specified benchmarks.')
-  options.boolean('benchmark-test').describe('benchmark--test', 'Run a faster version of the benchmarks in headless mode.')
+  options.boolean('benchmark-test').describe('benchmark-test', 'Run a faster version of the benchmarks in headless mode.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
   options.alias('m', 'main-process').boolean('m').describe('m', 'Run the specified specs in the main process.')
   options.string('timeout').describe(
