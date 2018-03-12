@@ -1,6 +1,8 @@
 # Near-term plans
 
-In this directory, you'll find weekly progress and plans from the core Atom team at GitHub. In addition, this document summarizes the work we're intending to prioritize within the next several months.
+Want to know what the Atom team is working on and what has our focus over the next few months? You've come to the right place. 🎯
+
+In this directory, you'll find **weekly progress and planning updates** from the core Atom team at GitHub (e.g., [`2018-02-12.md`](2018-02-12.md)), and the sections below represent our **near-term roadmap**:
 
 * [Atom IDE](#atom-ide)
 * [GitHub package](#github-package)
@@ -8,19 +10,25 @@ In this directory, you'll find weekly progress and plans from the core Atom team
 * [Tree-sitter](#tree-sitter)
 * [Xray](#xray)
 
+This roadmap is a [living document](https://en.wikipedia.org/wiki/Living_document): it represents our current plans, but we expect these plans to change from time to time.
+
 ---
 
 # Atom IDE
 
 ## Roadmap
 
-## Looking ahead
+TODO
+
+## Looking farther ahead
+
+TODO
 
 ---
 
 # GitHub package
 
-- [atom/github](http://github.com/atom/github) (Atom package)
+Main repository: [atom/github](http://github.com/atom/github) (Atom package)
 
 ## Roadmap
 
@@ -66,7 +74,7 @@ _Longer-term goals:_ Finish the credential handler refactor begun in [#846](http
 
 * Improve our handling of 2FA credentials. Ideally we could detect when a user has 2FA enabled and prompt for a one-time code. [#844](https://github.com/atom/github/issues/844)
 
-## Looking ahead
+## Looking farther ahead
 
 In no particular order:
 
@@ -82,9 +90,45 @@ In no particular order:
 
 # Teletype
 
+Main repository: [atom/teletype](http://github.com/atom/teletype) (Atom package)
+
 ## Roadmap
 
-## Looking ahead
+##### 1. Deliver a multi-file collaboration experience that meets 80% of the needs with 20% of the effort
+
+- Ship RFC-001 (https://github.com/atom/teletype/issues/268)
+
+##### 2. Streamline collaboration set-up
+
+Near-term goal: Encourage more collaboration by reducing barriers to entry.
+
+Longer-term goal: Provide the world's fastest transition from "I want to collaborate" to "I am collaborating." 🚀
+
+- Publish RFC (including a request for review from GitHub's Community and Safety team)
+- Host can share a URL for the portal, and guests can follow the URL to instantly join the portal (https://github.com/atom/teletype/issues/109)
+- Quickly collaborate with coworkers and friends (https://github.com/atom/teletype/issues/213, https://github.com/atom/teletype/issues/284)
+    - You can view a list of past collaborators (i.e., a ["buddy list"](https://github.com/atom/teletype/issues/22) of sorts).
+    - You can choose any online person in the buddy list and invite them to join your portal. They get a notification (or similar) informing them of the invitation, and they can choose to join the portal or not.
+    - To prevent abuse/harassment, each time you join a portal via a URL or portal ID, Teletype adds the collaborators to your buddy list. You can directly invite anyone in your buddy list to join your portal, and anyone in your buddy list can invite you to a portal. You can remove anyone from your buddy list, at which point they can no longer _directly_ invite you to a portal.
+
+##### 3. Nice bang-for-the-buck refinements
+
+- Add a colored border around avatars that matches the cursor when that participant's tether is not retracted (https://github.com/atom/teletype/issues/338)
+
+##### 4. Prioritized bugs
+
+- Uncaught TypeError: Cannot match against 'undefined' or 'null' (https://github.com/atom/teletype/issues/233)
+
+## Looking farther ahead
+
+In no particular order:
+
+- 🐛 Resolve or reduce impact of package initialization errors (https://github.com/atom/teletype/issues/266)
+- 🐛 Surface uncaught errors in promises (https://github.com/atom/teletype/issues/298#issuecomment-355369327)
+- ✨ Ensure remote buffers are updated when host renames files (https://github.com/atom/teletype/issues/147)
+- 💖 In the buddy list, you can see which people are currently online (i.e., presence)
+- 💖 Screen-sharing -- (We should prioritize screen-sharing above audio. We can keep using Slack/Skype/Zoom/Whatever for audio and use Atom for screen-sharing, whereas the opposite is not true; disabling audio on a Slack call would feel unintuitive.)
+- 💖 Audio
 
 ---
 
@@ -92,7 +136,11 @@ In no particular order:
 
 ## Roadmap
 
-## Looking ahead
+TODO
+
+## Looking farther ahead
+
+TODO
 
 ---
 
@@ -100,4 +148,8 @@ In no particular order:
 
 ## Roadmap
 
-## Looking ahead
+TODO
+
+## Looking farther ahead
+
+TODO
