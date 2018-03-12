@@ -94,9 +94,9 @@ Main repository: [atom/teletype](http://github.com/atom/teletype) (Atom package)
 
 ## Roadmap
 
-##### 1. Deliver a multi-file collaboration experience that meets 80% of the needs with 20% of the effort
+##### 1. ✅ Deliver a multi-file collaboration experience that meets 80% of the needs with 20% of the effort
 
-- [ ] Ship RFC-001 (https://github.com/atom/teletype/issues/268)
+- [x] Ship RFC-001 (https://github.com/atom/teletype/issues/268)
 
 ##### 2. Streamline collaboration set-up
 
