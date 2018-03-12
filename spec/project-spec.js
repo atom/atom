@@ -274,6 +274,51 @@ describe('Project', () => {
     })
   })
 
+  describe('.replace', () => {
+    let projectSpecification, projectPath1, projectPath2
+    beforeEach(() => {
+      atom.project.replace(null)
+      projectPath1 = temp.mkdirSync('project-path1')
+      projectPath2 = temp.mkdirSync('project-path2')
+      projectSpecification = {
+        paths: [projectPath1, projectPath2],
+        originPath: 'originPath',
+        config: {
+          'baz': 'buzz'
+        }
+      }
+    })
+    it('sets a project specification', () => {
+      expect(atom.config.get('baz')).toBeUndefined()
+      atom.project.replace(projectSpecification)
+      expect(atom.project.getPaths()).toEqual([projectPath1, projectPath2])
+      expect(atom.config.get('baz')).toBe('buzz')
+    })
+
+    it('clears a project through replace with no params', () => {
+      expect(atom.config.get('baz')).toBeUndefined()
+      atom.project.replace(projectSpecification)
+      expect(atom.config.get('baz')).toBe('buzz')
+      expect(atom.project.getPaths()).toEqual([projectPath1, projectPath2])
+      atom.project.replace()
+      expect(atom.config.get('baz')).toBeUndefined()
+      expect(atom.project.getPaths()).toEqual([])
+    })
+
+    it('responds to change of project specification', () => {
+      let wasCalled = false
+      const callback = () => {
+        wasCalled = true
+      }
+      atom.project.onDidReplace(callback)
+      atom.project.replace(projectSpecification)
+      expect(wasCalled).toBe(true)
+      wasCalled = false
+      atom.project.replace()
+      expect(wasCalled).toBe(true)
+    })
+  })
+
   describe('before and after saving a buffer', () => {
     let buffer
     beforeEach(() =>
