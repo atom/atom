@@ -422,8 +422,12 @@ class Config {
       type: 'object',
       properties: {}
     }
+
     this.defaultSettings = {}
     this.settings = {}
+    this.projectSettings = {}
+    this.projectFile = null
+
     this.scopedSettingsStore = new ScopedPropertyStore()
 
     this.settingsLoaded = false
@@ -621,10 +625,10 @@ class Config {
       legacyScopeDescriptor = this.getLegacyScopeDescriptorForNewScopeDescriptor(scopeDescriptor)
       if (legacyScopeDescriptor) {
         result.push(...Array.from(this.scopedSettingsStore.getAll(
-            legacyScopeDescriptor.getScopeChain(),
-            keyPath,
-            options
-          ) || []))
+           legacyScopeDescriptor.getScopeChain(),
+           keyPath,
+           options
+         ) || []))
       }
     } else {
       result = []
@@ -691,7 +695,7 @@ class Config {
     let source = options.source
     const shouldSave = options.save != null ? options.save : true
 
-    if (source && !scopeSelector) {
+    if (source && !scopeSelector && source !== this.projectFile) {
       throw new Error("::set with a 'source' and no 'sourceSelector' is not yet implemented!")
     }
 
@@ -708,7 +712,7 @@ class Config {
     if (scopeSelector != null) {
       this.setRawScopedValue(keyPath, value, source, scopeSelector)
     } else {
-      this.setRawValue(keyPath, value)
+      this.setRawValue(keyPath, value, {source})
     }
 
     if (source === this.mainSource && shouldSave && this.settingsLoaded) {
@@ -943,7 +947,12 @@ class Config {
   Section: Private methods managing global settings
   */
 
-  resetUserSettings (newSettings) {
+  resetUserSettings (newSettings, options = {}) {
+    this._resetSettings(newSettings, options)
+  }
+
+  _resetSettings (newSettings, options = {}) {
+    const source = options.source
     newSettings = Object.assign({}, newSettings)
     if (newSettings.global != null) {
       newSettings['*'] = newSettings.global
@@ -954,13 +963,16 @@ class Config {
       const scopedSettings = newSettings
       newSettings = newSettings['*']
       delete scopedSettings['*']
-      this.resetUserScopedSettings(scopedSettings)
+      this.resetScopedSettings(scopedSettings, {source})
     }
 
     return this.transact(() => {
-      this.settings = {}
+      this._clearUnscopedSettingsForSource(source)
       this.settingsLoaded = true
-      for (let key in newSettings) { const value = newSettings[key]; this.set(key, value, {save: false}) }
+      for (let key in newSettings) {
+        const value = newSettings[key]
+        this.set(key, value, {save: false, source})
+      }
       if (this.pendingOperations.length) {
         for (let op of this.pendingOperations) { op() }
         this.pendingOperations = []
@@ -968,10 +980,39 @@ class Config {
     })
   }
 
+  _clearUnscopedSettingsForSource (source) {
+    if (source === this.projectFile) {
+      this.projectSettings = {}
+    } else {
+      this.settings = {}
+    }
+  }
+
+  resetProjectSettings (newSettings, projectFile) {
+    // Sets the scope and source of all project settings to `path`.
+    newSettings = Object.assign({}, newSettings)
+    const oldProjectFile = this.projectFile
+    this.projectFile = projectFile
+    if (this.projectFile != null) {
+      this._resetSettings(newSettings, {source: this.projectFile})
+    } else {
+      this.scopedSettingsStore.removePropertiesForSource(oldProjectFile)
+      this.projectSettings = {}
+    }
+  }
+
+  clearProjectSettings () {
+    this.resetProjectSettings({}, null)
+  }
+
   getRawValue (keyPath, options = {}) {
     let value
     if (!options.excludeSources || !options.excludeSources.includes(this.mainSource)) {
       value = getValueAtKeyPath(this.settings, keyPath)
+      if (this.projectFile != null) {
+        const projectValue = getValueAtKeyPath(this.projectSettings, keyPath)
+        value = (projectValue === undefined) ? value : projectValue
+      }
     }
 
     let defaultValue
@@ -990,19 +1031,22 @@ class Config {
     }
   }
 
-  setRawValue (keyPath, value) {
+  setRawValue (keyPath, value, options = {}) {
+    const source = options.source ? options.source : undefined
+    const settingsToChange = source === this.projectFile ? 'projectSettings' : 'settings'
     const defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath)
+
     if (_.isEqual(defaultValue, value)) {
       if (keyPath != null) {
-        deleteValueAtKeyPath(this.settings, keyPath)
+        deleteValueAtKeyPath(this[settingsToChange], keyPath)
       } else {
-        this.settings = null
+        this[settingsToChange] = null
       }
     } else {
       if (keyPath != null) {
-        setValueAtKeyPath(this.settings, keyPath, value)
+        setValueAtKeyPath(this[settingsToChange], keyPath, value)
       } else {
-        this.settings = value
+        this[settingsToChange] = value
       }
     }
     return this.emitChangeEvent()
@@ -1168,15 +1212,22 @@ class Config {
   */
 
   priorityForSource (source) {
-    return (source === this.mainSource) ? 1000 : 0
+    switch (source) {
+      case this.mainSource:
+        return 1000
+      case this.projectFile:
+        return 2000
+      default:
+        return 0
+    }
   }
 
   emitChangeEvent () {
     if (this.transactDepth <= 0) { return this.emitter.emit('did-change') }
   }
 
-  resetUserScopedSettings (newScopedSettings) {
-    const source = this.mainSource
+  resetScopedSettings (newScopedSettings, options = {}) {
+    const source = options.source == null ? this.mainSource : options.source
     const priority = this.priorityForSource(source)
     this.scopedSettingsStore.removePropertiesForSource(source)
 
