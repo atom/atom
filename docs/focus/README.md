@@ -18,7 +18,11 @@ This roadmap is a [living document](https://en.wikipedia.org/wiki/Living_documen
 
 ## Roadmap
 
+TODO
+
 ## Looking farther ahead
+
+TODO
 
 ---
 
@@ -132,7 +136,11 @@ In no particular order:
 
 ## Roadmap
 
+TODO
+
 ## Looking farther ahead
+
+TODO
 
 ---
 
@@ -140,4 +148,8 @@ In no particular order:
 
 ## Roadmap
 
+TODO
+
 ## Looking farther ahead
+
+TODO
