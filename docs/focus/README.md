@@ -18,7 +18,7 @@ This roadmap is a [living document](https://en.wikipedia.org/wiki/Living_documen
 
 ## Roadmap
 
-## Looking ahead
+## Looking farther ahead
 
 ---
 
@@ -70,7 +70,7 @@ _Longer-term goals:_ Finish the credential handler refactor begun in [#846](http
 
 * Improve our handling of 2FA credentials. Ideally we could detect when a user has 2FA enabled and prompt for a one-time code. [#844](https://github.com/atom/github/issues/844)
 
-## Looking ahead
+## Looking farther ahead
 
 In no particular order:
 
@@ -115,7 +115,7 @@ Longer-term goal: Provide the world's fastest transition from "I want to collabo
 
 - Uncaught TypeError: Cannot match against 'undefined' or 'null' (https://github.com/atom/teletype/issues/233)
 
-## Looking ahead
+## Looking farther ahead
 
 In no particular order:
 
@@ -132,7 +132,7 @@ In no particular order:
 
 ## Roadmap
 
-## Looking ahead
+## Looking farther ahead
 
 ---
 
@@ -140,4 +140,4 @@ In no particular order:
 
 ## Roadmap
 
-## Looking ahead
+## Looking farther ahead
