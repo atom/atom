@@ -8,7 +8,7 @@
     "colors": "1.1.2",
     "donna": "1.0.16",
     "electron-chromedriver": "~1.7",
-    "electron-link": "0.1.2",
+    "electron-link": "0.2.0",
     "electron-mksnapshot": "~1.7",
     "electron-packager": "7.3.0",
     "electron-winstaller": "2.6.4",
