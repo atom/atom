@@ -94,9 +94,9 @@ Main repository: [atom/teletype](http://github.com/atom/teletype) (Atom package)
 
 ## Roadmap
 
-##### 1. Deliver a multi-file collaboration experience that meets 80% of the needs with 20% of the effort
+##### 1. ✅ Deliver a multi-file collaboration experience that meets 80% of the needs with 20% of the effort
 
-- Ship RFC-001 (https://github.com/atom/teletype/issues/268)
+- [x] Ship RFC-001 (https://github.com/atom/teletype/issues/268)
 
 ##### 2. Streamline collaboration set-up
 
@@ -104,20 +104,20 @@ Near-term goal: Encourage more collaboration by reducing barriers to entry.
 
 Longer-term goal: Provide the world's fastest transition from "I want to collaborate" to "I am collaborating." 🚀
 
-- Publish RFC (including a request for review from GitHub's Community and Safety team)
-- Host can share a URL for the portal, and guests can follow the URL to instantly join the portal (https://github.com/atom/teletype/issues/109)
-- Quickly collaborate with coworkers and friends (https://github.com/atom/teletype/issues/213, https://github.com/atom/teletype/issues/284)
+- [ ] Publish RFC (including a request for review from GitHub's Community and Safety team)
+- [ ] Host can share a URL for the portal, and guests can follow the URL to instantly join the portal (https://github.com/atom/teletype/issues/109)
+- [ ] Quickly collaborate with coworkers and friends (https://github.com/atom/teletype/issues/213, https://github.com/atom/teletype/issues/284)
     - You can view a list of past collaborators (i.e., a ["buddy list"](https://github.com/atom/teletype/issues/22) of sorts).
     - You can choose any online person in the buddy list and invite them to join your portal. They get a notification (or similar) informing them of the invitation, and they can choose to join the portal or not.
     - To prevent abuse/harassment, each time you join a portal via a URL or portal ID, Teletype adds the collaborators to your buddy list. You can directly invite anyone in your buddy list to join your portal, and anyone in your buddy list can invite you to a portal. You can remove anyone from your buddy list, at which point they can no longer _directly_ invite you to a portal.
 
 ##### 3. Nice bang-for-the-buck refinements
 
-- Add a colored border around avatars that matches the cursor when that participant's tether is not retracted (https://github.com/atom/teletype/issues/338)
+- [ ] Add a colored border around avatars that matches the cursor when that participant's tether is not retracted (https://github.com/atom/teletype/issues/338)
 
 ##### 4. Prioritized bugs
 
-- Uncaught TypeError: Cannot match against 'undefined' or 'null' (https://github.com/atom/teletype/issues/233)
+- [ ] Uncaught TypeError: Cannot match against 'undefined' or 'null' (https://github.com/atom/teletype/issues/233)
 
 ## Looking farther ahead
 
