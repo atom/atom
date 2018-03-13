@@ -21,10 +21,12 @@ module.exports = function (packagedAppPath) {
       }
       process.stdout.write(`Generating snapshot script at "${snapshotScriptPath}" (${++processedFiles})`)
 
+      const requiringModuleRelativePath = path.relative(baseDirPath, requiringModulePath)
       const requiredModuleRelativePath = path.relative(baseDirPath, requiredModulePath)
       return (
         requiredModulePath.endsWith('.node') ||
         coreModules.has(requiredModulePath) ||
+        requiringModuleRelativePath.endsWith(path.join('node_modules/xregexp/xregexp-all.js')) ||
         (requiredModuleRelativePath.startsWith(path.join('..', 'src')) && requiredModuleRelativePath.endsWith('-element.js')) ||
         requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'dugite')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'coffee-script', 'lib', 'coffee-script', 'register.js')) ||
