@@ -564,9 +564,20 @@ describe('TextEditorComponent', () => {
 
     it('gives cursors at the end of lines the width of an "x" character', async () => {
       const {component, element, editor} = buildComponent()
+      editor.setText('abcde')
+      await setEditorWidthInCharacters(component, 5.5)
+
       editor.setCursorScreenPosition([0, Infinity])
       await component.getNextUpdatePromise()
       expect(element.querySelector('.cursor').offsetWidth).toBe(Math.round(component.getBaseCharacterWidth()))
+
+      // Clip cursor width when soft-wrap is on and the cursor is at the end of
+      // the line. This prevents the parent tile from disabling sub-pixel
+      // anti-aliasing. For some reason, adding overflow: hidden to the cursor
+      // container doesn't solve this issue so we're adding this workaround instead.
+      editor.setSoftWrapped(true)
+      await component.getNextUpdatePromise()
+      expect(element.querySelector('.cursor').offsetWidth).toBeLessThan(Math.round(component.getBaseCharacterWidth()))
     })
 
     it('positions and sizes cursors correctly when they are located next to a fold marker', async () => {
