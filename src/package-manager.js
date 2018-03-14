@@ -18,7 +18,7 @@ const dedent = require('dedent')
 // blacklisted yet) from permanently modifying the env when they are installed.
 // This adds some friction to the development process but guarantees that Atom
 // will always hit the right endpoint.
-const BLACKLIST_API_URL = 'https://atom.io/api/blacklist'
+const BLACKLIST_API_URL = 'https://atom.io/api/packages/blacklisted'
 
 // Extended: Package manager for coordinating the lifecycle of Atom packages.
 //
