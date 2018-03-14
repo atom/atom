@@ -6,6 +6,7 @@ describe('atom.themes', function () {
   beforeEach(function () {
     spyOn(atom, 'inSpecMode').andReturn(false)
     spyOn(console, 'warn')
+    spyOn(atom.packages, 'fetchBlacklist').andCallFake(async () => new Set())
   })
 
   afterEach(function () {
@@ -20,7 +21,7 @@ describe('atom.themes', function () {
   describe('theme getters and setters', function () {
     beforeEach(function () {
       jasmine.snapshotDeprecations()
-      atom.packages.loadPackages()
+      waitsForPromise(() => atom.packages.loadPackages())
     })
 
     afterEach(() => jasmine.restoreDeprecationsSnapshot())

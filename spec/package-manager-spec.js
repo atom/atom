@@ -19,6 +19,7 @@ describe('PackageManager', () => {
 
   beforeEach(() => {
     spyOn(ModuleCache, 'add')
+    spyOn(atom.packages, 'fetchBlacklist').andCallFake(async () => new Set())
   })
 
   describe('initialize', () => {
@@ -59,17 +60,67 @@ describe('PackageManager', () => {
   })
 
   describe('::loadPackages()', () => {
-    beforeEach(() => spyOn(atom.packages, 'loadAvailablePackage'))
-
     afterEach(async () => {
       await atom.packages.deactivatePackages()
       atom.packages.unloadPackages()
     })
 
-    it('sets hasLoadedInitialPackages', () => {
+    it('sets hasLoadedInitialPackages', async () => {
+      spyOn(atom.packages, 'loadAvailablePackage').andCallFake(() => {})
       expect(atom.packages.hasLoadedInitialPackages()).toBe(false)
-      atom.packages.loadPackages()
+      await atom.packages.loadPackages()
       expect(atom.packages.hasLoadedInitialPackages()).toBe(true)
+    })
+
+    it('excludes packages in the blacklist', async () => {
+      const loadedPackages = []
+      spyOn(atom.packages, 'loadAvailablePackage').andCallFake((pack) => loadedPackages.push(pack.name))
+      spyOn(atom.packages, 'getAvailablePackages').andCallFake(() => [
+        {name: 'pack-1', path: 'path-1'},
+        {name: 'pack-2', path: 'path-2'},
+        {name: 'pack-3', path: 'path-3'},
+        {name: 'pack-4', path: 'path-4'}
+      ])
+
+      {
+        const deletedPaths = []
+        atom.packages.fetchBlacklist.andCallFake(async () => new Set(['pack-2', 'pack-4']))
+        spyOn(fs, 'removeSync').andCallFake((p) => {
+          deletedPaths.push(p)
+          // Prevent pack-4 from being deleted automatically.
+          if (p === 'path-4') throw new Error('some-error')
+        })
+
+        await atom.packages.loadPackages()
+        expect(loadedPackages).toEqual(['pack-1', 'pack-3'])
+        expect(deletedPaths).toEqual(['path-2', 'path-4'])
+        expect(atom.notifications.getNotifications().length).toBe(2)
+
+        // Shows a notification listing the installed packages that are malicious.
+        const notification1 = atom.notifications.getNotifications()[0]
+        expect(notification1.options.description.includes('pack-1')).toBe(false)
+        expect(notification1.options.description.includes('pack-2')).toBe(true)
+        expect(notification1.options.description.includes('pack-3')).toBe(false)
+        expect(notification1.options.description.includes('pack-4')).toBe(true)
+
+        // Shows a notification listing the packages that could not be uninstalled automatically.
+        const notification2 = atom.notifications.getNotifications()[1]
+        expect(notification2.options.description.includes('path-1')).toBe(false)
+        expect(notification2.options.description.includes('path-2')).toBe(false)
+        expect(notification2.options.description.includes('path-3')).toBe(false)
+        expect(notification2.options.description.includes('path-4')).toBe(true)
+      }
+
+      {
+        // Ensure notifications are not shown when there's no malicious package.
+        atom.notifications.clear()
+        loadedPackages.length = 0
+        atom.packages.fetchBlacklist.andCallFake(async () => new Set())
+
+        await atom.packages.loadPackages()
+        expect(loadedPackages).toEqual(['pack-1', 'pack-2', 'pack-3', 'pack-4'])
+        expect(atom.notifications.getNotifications().length).toBe(0)
+      }
     })
   })
 
@@ -1223,11 +1274,11 @@ describe('PackageManager', () => {
   })
 
   describe('::activate()', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       spyOn(atom, 'inSpecMode').andReturn(false)
       jasmine.snapshotDeprecations()
       spyOn(console, 'warn')
-      atom.packages.loadPackages()
+      await atom.packages.loadPackages()
 
       const loadedPackages = atom.packages.getLoadedPackages()
       expect(loadedPackages.length).toBeGreaterThan(0)

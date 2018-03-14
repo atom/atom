@@ -816,7 +816,7 @@ class AtomEnvironment {
 
       this.registerDefaultTargetForKeymaps()
 
-      this.packages.loadPackages()
+      await this.packages.loadPackages()
 
       const startTime = Date.now()
       await this.deserialize(state)
