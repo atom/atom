@@ -931,6 +931,10 @@ module.exports = class PackageManager {
           It is strongly recommended that you delete the above folders manually.
         `
       })
+    } else {
+      this.notificationManager.addSuccess('Successfully uninstalled malicious packages', {
+        dismissable: true
+      })
     }
   }
 }
