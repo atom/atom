@@ -1,6 +1,6 @@
 'menu': [
   {
-    label: '&File'
+    label: '&Test'
     submenu: [
       { label: 'New &Window', command: 'application:new-window' }
       { label: '&New File', command: 'application:new-file' }
