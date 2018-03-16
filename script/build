@@ -6,11 +6,7 @@
 // are installed.
 require('./bootstrap')
 
-// Needed so we can require src/module-cache.coffee during generateModuleCache
-require('coffee-script/register')
 require('colors')
-
-const path = require('path')
 const yargs = require('yargs')
 const argv = yargs
   .usage('Usage: $0 [options]')
@@ -21,10 +17,15 @@ const argv = yargs
   .describe('create-debian-package', 'Create .deb package (Linux only)')
   .describe('create-rpm-package', 'Create .rpm package (Linux only)')
   .describe('compress-artifacts', 'Compress Atom binaries (and symbols on macOS)')
+  .describe('generate-api-docs', 'Only build the API documentation')
   .describe('install', 'Install Atom')
   .string('install')
   .wrap(yargs.terminalWidth())
   .argv
+
+// Needed so we can require src/module-cache.coffee during generateModuleCache
+require('coffee-script/register')
+const path = require('path')
 
 const checkChromedriverVersion = require('./lib/check-chromedriver-version')
 const cleanOutputDirectory = require('./lib/clean-output-directory')
@@ -72,7 +73,13 @@ if (!argv.existingBinaries) {
   prebuildLessCache()
   generateMetadata()
   generateAPIDocs()
-  binariesPromise = dumpSymbols()
+  if (!argv.generateApiDocs) {
+    binariesPromise = dumpSymbols()
+  }
+}
+
+if (argv.generateApiDocs) {
+  process.exit()
 }
 
 binariesPromise
@@ -86,6 +93,7 @@ binariesPromise
         } else {
           console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
         }
+        break
       }
       case 'win32': {
         if (argv.codeSign) {
@@ -104,6 +112,7 @@ binariesPromise
         } else {
           console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer.'.gray)
         }
+        break
       }
       case 'linux': {
         if (argv.createDebianPackage) {
@@ -117,6 +126,7 @@ binariesPromise
         } else {
           console.log('Skipping creating rpm package. Specify the --create-rpm-package option to create it.'.gray)
         }
+        break
       }
     }
 
