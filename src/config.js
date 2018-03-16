@@ -8,6 +8,8 @@ const Color = require('./color')
 const ScopedPropertyStore = require('scoped-property-store')
 const ScopeDescriptor = require('./scope-descriptor')
 
+const schemaEnforcers = {}
+
 // Essential: Used to access all of Atom's configuration details.
 //
 // An instance of this class is always available as the `atom.config` global.
@@ -359,8 +361,6 @@ const ScopeDescriptor = require('./scope-descriptor')
 //
 // * Don't depend on (or write to) configuration keys outside of your keypath.
 //
-const schemaEnforcers = {}
-
 class Config {
   static addSchemaEnforcer (typeName, enforcerFunction) {
     if (schemaEnforcers[typeName] == null) { schemaEnforcers[typeName] = [] }
