@@ -18,7 +18,12 @@ This roadmap is a [living document](https://en.wikipedia.org/wiki/Living_documen
 
 ## Roadmap
 
-TODO
+1. A great TypeScript and JavaScript experience
+2. Address missing LSP features (rename, ~~logging~~)
+3. New workspace symbol level navigation
+4. Project level configuration
+5. Debugger
+6. A great Rust experience
 
 ## Looking farther ahead
 
