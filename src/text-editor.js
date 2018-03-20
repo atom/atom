@@ -42,9 +42,10 @@ const DEFAULT_NON_WORD_CHARACTERS = "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
 // then be called with all current editor instances and also when any editor is
 // created in the future.
 //
-// ```coffee
-// atom.workspace.observeTextEditors (editor) ->
+// ```js
+// atom.workspace.observeTextEditors(editor => {
 //   editor.insertText('Hello World')
+// })
 // ```
 //
 // ## Buffer vs. Screen Coordinates
@@ -1957,11 +1958,11 @@ class TextEditor {
   //
   // ## Examples
   //
-  // ```coffee
-  // editor.clipBufferPosition([-1, -1]) # -> `[0, 0]`
+  // ```js
+  // editor.clipBufferPosition([-1, -1]) // -> `[0, 0]`
   //
-  // # When the line at buffer row 2 is 10 characters long
-  // editor.clipBufferPosition([2, Infinity]) # -> `[2, 10]`
+  // // When the line at buffer row 2 is 10 characters long
+  // editor.clipBufferPosition([2, Infinity]) // -> `[2, 10]`
   // ```
   //
   // * `bufferPosition` The {Point} representing the position to clip.
@@ -1986,11 +1987,11 @@ class TextEditor {
   //
   // ## Examples
   //
-  // ```coffee
-  // editor.clipScreenPosition([-1, -1]) # -> `[0, 0]`
+  // ```js
+  // editor.clipScreenPosition([-1, -1]) // -> `[0, 0]`
   //
-  // # When the line at screen row 2 is 10 characters long
-  // editor.clipScreenPosition([2, Infinity]) # -> `[2, 10]`
+  // // When the line at screen row 2 is 10 characters long
+  // editor.clipScreenPosition([2, Infinity]) // -> `[2, 10]`
   // ```
   //
   // * `screenPosition` The {Point} representing the position to clip.
