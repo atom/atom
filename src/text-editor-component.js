@@ -3522,7 +3522,7 @@ class CursorsAndInputComponent {
 
       const cursorStyle = {
         height: cursorHeight,
-        width: pixelWidth + 'px',
+        width: Math.min(pixelWidth, scrollWidth - pixelLeft) + 'px',
         transform: `translate(${pixelLeft}px, ${pixelTop}px)`
       }
       if (extraCursorStyle) Object.assign(cursorStyle, extraCursorStyle)
