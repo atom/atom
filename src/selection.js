@@ -411,13 +411,19 @@ class Selection {
   // the editor is read-only, require an explicit opt-in option to proceed (`bypassReadOnly`) or throw an Error.
   ensureWritable (methodName, opts) {
     if (!opts.bypassReadOnly && this.editor.isReadOnly()) {
-      const e = new Error('Attempt to mutate a read-only TextEditor through a Selection')
-      e.detail =
-        `Your package is attempting to call ${methodName} on a selection within an editor that has been marked ` +
-        ' read-only. Pass {bypassReadOnly: true} to modify it anyway, or test editors with .isReadOnly() before ' +
-        ' attempting modifications.'
-      throw e
+      if (atom.inDevMode() || atom.inSpecMode()) {
+        const e = new Error('Attempt to mutate a read-only TextEditor through a Selection')
+        e.detail =
+          `Your package is attempting to call ${methodName} on a selection within an editor that has been marked ` +
+          ' read-only. Pass {bypassReadOnly: true} to modify it anyway, or test editors with .isReadOnly() before ' +
+          ' attempting modifications.'
+        throw e
+      }
+
+      return false
     }
+
+    return true
   }
 
   /*
@@ -443,7 +449,7 @@ class Selection {
   //   * `undo` If `skip`, skips the undo stack for this operation.
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
   insertText (text, options = {}) {
-    this.ensureWritable('insertText', options)
+    if (!this.ensureWritable('insertText', options)) return
 
     let desiredIndentLevel, indentAdjustment
     const oldBufferRange = this.getBufferRange()
@@ -512,7 +518,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   backspace (options = {}) {
-    this.ensureWritable('backspace', options)
+    if (!this.ensureWritable('backspace', options)) return
     if (this.isEmpty()) this.selectLeft()
     this.deleteSelectedText(options)
   }
@@ -524,7 +530,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   deleteToPreviousWordBoundary (options = {}) {
-    this.ensureWritable('deleteToPreviousWordBoundary', options)
+    if (!this.ensureWritable('deleteToPreviousWordBoundary', options)) return
     if (this.isEmpty()) this.selectToPreviousWordBoundary()
     this.deleteSelectedText(options)
   }
@@ -536,7 +542,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   deleteToNextWordBoundary (options = {}) {
-    this.ensureWritable('deleteToNextWordBoundary', options)
+    if (!this.ensureWritable('deleteToNextWordBoundary', options)) return
     if (this.isEmpty()) this.selectToNextWordBoundary()
     this.deleteSelectedText(options)
   }
@@ -547,7 +553,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   deleteToBeginningOfWord (options = {}) {
-    this.ensureWritable('deleteToBeginningOfWord', options)
+    if (!this.ensureWritable('deleteToBeginningOfWord', options)) return
     if (this.isEmpty()) this.selectToBeginningOfWord()
     this.deleteSelectedText(options)
   }
@@ -558,7 +564,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   deleteToBeginningOfLine (options = {}) {
-    this.ensureWritable('deleteToBeginningOfLine', options)
+    if (!this.ensureWritable('deleteToBeginningOfLine', options)) return
     if (this.isEmpty() && this.cursor.isAtBeginningOfLine()) {
       this.selectLeft()
     } else {
@@ -573,7 +579,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   delete (options = {}) {
-    this.ensureWritable('delete', options)
+    if (!this.ensureWritable('delete', options)) return
     if (this.isEmpty()) this.selectRight()
     this.deleteSelectedText(options)
   }
@@ -586,7 +592,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   deleteToEndOfLine (options = {}) {
-    this.ensureWritable('deleteToEndOfLine', options)
+    if (!this.ensureWritable('deleteToEndOfLine', options)) return
     if (this.isEmpty()) {
       if (this.cursor.isAtEndOfLine()) {
         this.delete(options)
@@ -603,7 +609,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   deleteToEndOfWord (options = {}) {
-    this.ensureWritable('deleteToEndOfWord', options)
+    if (!this.ensureWritable('deleteToEndOfWord', options)) return
     if (this.isEmpty()) this.selectToEndOfWord()
     this.deleteSelectedText(options)
   }
@@ -614,7 +620,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   deleteToBeginningOfSubword (options = {}) {
-    this.ensureWritable('deleteToBeginningOfSubword', options)
+    if (!this.ensureWritable('deleteToBeginningOfSubword', options)) return
     if (this.isEmpty()) this.selectToPreviousSubwordBoundary()
     this.deleteSelectedText(options)
   }
@@ -625,7 +631,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   deleteToEndOfSubword (options = {}) {
-    this.ensureWritable('deleteToEndOfSubword', options)
+    if (!this.ensureWritable('deleteToEndOfSubword', options)) return
     if (this.isEmpty()) this.selectToNextSubwordBoundary()
     this.deleteSelectedText(options)
   }
@@ -635,7 +641,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   deleteSelectedText (options = {}) {
-    this.ensureWritable('deleteSelectedText', options)
+    if (!this.ensureWritable('deleteSelectedText', options)) return
     const bufferRange = this.getBufferRange()
     if (!bufferRange.isEmpty()) this.editor.buffer.delete(bufferRange)
     if (this.cursor) this.cursor.setBufferPosition(bufferRange.start)
@@ -648,7 +654,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   deleteLine (options = {}) {
-    this.ensureWritable('deleteLine', options)
+    if (!this.ensureWritable('deleteLine', options)) return
     const range = this.getBufferRange()
     if (range.isEmpty()) {
       const start = this.cursor.getScreenRow()
@@ -675,7 +681,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   joinLines (options = {}) {
-    this.ensureWritable('joinLines', options)
+    if (!this.ensureWritable('joinLines', options)) return
     let joinMarker
     const selectedRange = this.getBufferRange()
     if (selectedRange.isEmpty()) {
@@ -732,7 +738,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   outdentSelectedRows (options = {}) {
-    this.ensureWritable('outdentSelectedRows', options)
+    if (!this.ensureWritable('outdentSelectedRows', options)) return
     const [start, end] = this.getBufferRowRange()
     const {buffer} = this.editor
     const leadingTabRegex = new RegExp(`^( {1,${this.editor.getTabLength()}}|\t)`)
@@ -750,7 +756,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   autoIndentSelectedRows (options = {}) {
-    this.ensureWritable('autoIndentSelectedRows', options)
+    if (!this.ensureWritable('autoIndentSelectedRows', options)) return
     const [start, end] = this.getBufferRowRange()
     return this.editor.autoIndentBufferRows(start, end)
   }
@@ -763,7 +769,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   toggleLineComments (options = {}) {
-    this.ensureWritable('toggleLineComments', options)
+    if (!this.ensureWritable('toggleLineComments', options)) return
     this.editor.toggleLineCommentsForBufferRows(...(this.getBufferRowRange() || []))
   }
 
@@ -773,7 +779,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   cutToEndOfLine (maintainClipboard, options = {}) {
-    this.ensureWritable('cutToEndOfLine', options)
+    if (!this.ensureWritable('cutToEndOfLine', options)) return
     if (this.isEmpty()) this.selectToEndOfLine()
     return this.cut(maintainClipboard, false, options.bypassReadOnly)
   }
@@ -784,7 +790,7 @@ class Selection {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   cutToEndOfBufferLine (maintainClipboard, options = {}) {
-    this.ensureWritable('cutToEndOfBufferLine', options)
+    if (!this.ensureWritable('cutToEndOfBufferLine', options)) return
     if (this.isEmpty()) this.selectToEndOfBufferLine()
     this.cut(maintainClipboard, false, options.bypassReadOnly)
   }
@@ -795,7 +801,7 @@ class Selection {
   // * `fullLine` {Boolean} (default: false) See {::copy}
   // * `bypassReadOnly` {Boolean} (default: false) Must be `true` to modify text within a read-only editor.
   cut (maintainClipboard = false, fullLine = false, bypassReadOnly = false) {
-    this.ensureWritable('cut', {bypassReadOnly})
+    if (!this.ensureWritable('cut', {bypassReadOnly})) return
     this.copy(maintainClipboard, fullLine)
     this.delete({bypassReadOnly})
   }
@@ -877,7 +883,7 @@ class Selection {
   //     level. Otherwise, {TextEditor::getTabText} is inserted.
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   indent ({autoIndent, bypassReadOnly} = {}) {
-    this.ensureWritable('indent', {bypassReadOnly})
+    if (!this.ensureWritable('indent', {bypassReadOnly})) return
     const {row} = this.cursor.getBufferPosition()
 
     if (this.isEmpty()) {
@@ -901,7 +907,7 @@ class Selection {
   // * `options` (optional) {Object} with the keys:
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   indentSelectedRows (options = {}) {
-    this.ensureWritable('indentSelectedRows', options)
+    if (!this.ensureWritable('indentSelectedRows', options)) return
     const [start, end] = this.getBufferRowRange()
     for (let row = start; row <= end; row++) {
       if (this.editor.buffer.lineLengthForRow(row) !== 0) {
