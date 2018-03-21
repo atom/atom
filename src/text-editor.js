@@ -225,7 +225,7 @@ class TextEditor {
 
     this.defaultMarkerLayer = this.displayLayer.addMarkerLayer()
     if (!this.selectionsMarkerLayer) {
-      this.selectionsMarkerLayer = this.addMarkerLayer({maintainHistory: true, persistent: true})
+      this.selectionsMarkerLayer = this.addMarkerLayer({maintainHistory: true, persistent: true, role: 'selections'})
     }
 
     this.decorationManager = new DecorationManager(this)
@@ -1931,7 +1931,7 @@ class TextEditor {
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
   undo (options = {}) {
     this.ensureWritable('undo', options)
-    this.avoidMergingSelections(() => this.buffer.undo())
+    this.avoidMergingSelections(() => this.buffer.undo({selectionsMarkerLayer: this.selectionsMarkerLayer}))
     this.getLastSelection().autoscroll()
   }
 
@@ -1941,7 +1941,7 @@ class TextEditor {
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
   redo (options = {}) {
     this.ensureWritable('redo', options)
-    this.avoidMergingSelections(() => this.buffer.redo())
+    this.avoidMergingSelections(() => this.buffer.redo({selectionsMarkerLayer: this.selectionsMarkerLayer}))
     this.getLastSelection().autoscroll()
   }
 
@@ -1958,7 +1958,13 @@ class TextEditor {
   //   still 'groupable', the two transactions are merged with respect to undo and redo.
   // * `fn` A {Function} to call inside the transaction.
   transact (groupingInterval, fn) {
-    return this.buffer.transact(groupingInterval, fn)
+    const options = {selectionsMarkerLayer: this.selectionsMarkerLayer}
+    if (typeof groupingInterval === 'function') {
+      fn = groupingInterval
+    } else {
+      options.groupingInterval = groupingInterval
+    }
+    return this.buffer.transact(options, fn)
   }
 
   // Extended: Abort an open transaction, undoing any operations performed so far
@@ -1969,7 +1975,9 @@ class TextEditor {
   // with {::revertToCheckpoint} and {::groupChangesSinceCheckpoint}.
   //
   // Returns a checkpoint value.
-  createCheckpoint () { return this.buffer.createCheckpoint() }
+  createCheckpoint () {
+    return this.buffer.createCheckpoint({selectionsMarkerLayer: this.selectionsMarkerLayer})
+  }
 
   // Extended: Revert the buffer to the state it was in when the given
   // checkpoint was created.
@@ -1993,7 +2001,9 @@ class TextEditor {
   // * `checkpoint` The checkpoint from which to group changes.
   //
   // Returns a {Boolean} indicating whether the operation succeeded.
-  groupChangesSinceCheckpoint (checkpoint) { return this.buffer.groupChangesSinceCheckpoint(checkpoint) }
+  groupChangesSinceCheckpoint (checkpoint) {
+    return this.buffer.groupChangesSinceCheckpoint(checkpoint, {selectionsMarkerLayer: this.selectionsMarkerLayer})
+  }
 
   /*
   Section: TextEditor Coordinates

@@ -5193,6 +5193,111 @@ describe('TextEditor', () => {
       })
     })
 
+    describe('undo/redo restore selections of editor which initiated original change', () => {
+      let editor1, editor2
+
+      beforeEach(async () => {
+        editor1 = editor
+        editor2 = new TextEditor({buffer: editor1.buffer})
+
+        editor1.setText(dedent `
+          aaaaaa
+          bbbbbb
+          cccccc
+          dddddd
+          eeeeee
+        `)
+      })
+
+      it('[editor.transact] restore selection of change-initiated-editor', () => {
+        editor1.setCursorBufferPosition([0, 0]); editor1.transact(() => editor1.insertText('1'))
+        editor2.setCursorBufferPosition([1, 0]); editor2.transact(() => editor2.insertText('2'))
+        editor1.setCursorBufferPosition([2, 0]); editor1.transact(() => editor1.insertText('3'))
+        editor2.setCursorBufferPosition([3, 0]); editor2.transact(() => editor2.insertText('4'))
+
+        expect(editor1.getText()).toBe(dedent `
+          1aaaaaa
+          2bbbbbb
+          3cccccc
+          4dddddd
+          eeeeee
+        `)
+
+        editor2.setCursorBufferPosition([4, 0])
+        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([3, 0])
+        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([2, 0])
+        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([1, 0])
+        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([0, 0])
+        expect(editor2.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
+
+        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([0, 1])
+        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([1, 1])
+        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([2, 1])
+        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([3, 1])
+        expect(editor2.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
+
+        editor1.setCursorBufferPosition([4, 0])
+        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([3, 0])
+        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([2, 0])
+        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([1, 0])
+        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([0, 0])
+        expect(editor1.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
+
+        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([0, 1])
+        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([1, 1])
+        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([2, 1])
+        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([3, 1])
+        expect(editor1.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
+      })
+
+      it('[manually group checkpoint] restore selection of change-initiated-editor', () => {
+        const transact = (editor, fn) => {
+          const checkpoint = editor.createCheckpoint()
+          fn()
+          editor.groupChangesSinceCheckpoint(checkpoint)
+        }
+
+        editor1.setCursorBufferPosition([0, 0]); transact(editor1, () => editor1.insertText('1'))
+        editor2.setCursorBufferPosition([1, 0]); transact(editor2, () => editor2.insertText('2'))
+        editor1.setCursorBufferPosition([2, 0]); transact(editor1, () => editor1.insertText('3'))
+        editor2.setCursorBufferPosition([3, 0]); transact(editor2, () => editor2.insertText('4'))
+
+        expect(editor1.getText()).toBe(dedent `
+          1aaaaaa
+          2bbbbbb
+          3cccccc
+          4dddddd
+          eeeeee
+        `)
+
+        editor2.setCursorBufferPosition([4, 0])
+        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([3, 0])
+        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([2, 0])
+        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([1, 0])
+        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([0, 0])
+        expect(editor2.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
+
+        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([0, 1])
+        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([1, 1])
+        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([2, 1])
+        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([3, 1])
+        expect(editor2.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
+
+        editor1.setCursorBufferPosition([4, 0])
+        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([3, 0])
+        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([2, 0])
+        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([1, 0])
+        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([0, 0])
+        expect(editor1.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
+
+        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([0, 1])
+        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([1, 1])
+        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([2, 1])
+        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([3, 1])
+        expect(editor1.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
+      })
+    })
+
     describe('when the buffer is changed (via its direct api, rather than via than edit session)', () => {
       it('moves the cursor so it is in the same relative position of the buffer', () => {
         expect(editor.getCursorScreenPosition()).toEqual([0, 0])
