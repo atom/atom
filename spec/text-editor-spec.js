@@ -5488,6 +5488,195 @@ describe('TextEditor', () => {
         })
       })
     })
+
+    describe('when readonly', () => {
+      beforeEach(() => {
+        editor.setReadOnly(true)
+      })
+
+      const modifications = [
+        {
+          name: 'moveLineUp',
+          op: (opts = {}) => {
+            editor.setCursorBufferPosition([1, 0])
+            editor.moveLineUp(opts)
+          }
+        },
+        {
+          name: 'moveLineDown',
+          op: (opts = {}) => {
+            editor.setCursorBufferPosition([0, 0])
+            editor.moveLineDown(opts)
+          }
+        },
+        {
+          name: 'insertText',
+          op: (opts = {}) => {
+            editor.setSelectedBufferRange([[1, 0], [1, 2]])
+            editor.insertText('xxx', opts)
+          }
+        },
+        {
+          name: 'insertNewline',
+          op: (opts = {}) => {
+            editor.setCursorScreenPosition({row: 1, column: 0})
+            editor.insertNewline(opts)
+          }
+        },
+        {
+          name: 'insertNewlineBelow',
+          op: (opts = {}) => {
+            editor.setCursorBufferPosition([0, 2])
+            editor.insertNewlineBelow(opts)
+          }
+        },
+        {
+          name: 'insertNewlineAbove',
+          op: (opts = {}) => {
+            editor.setCursorBufferPosition([0])
+            editor.insertNewlineAbove(opts)
+          }
+        },
+        {
+          name: 'backspace',
+          op: (opts = {}) => {
+            editor.setCursorScreenPosition({row: 1, column: 7})
+            editor.backspace(opts)
+          }
+        },
+        {
+          name: 'deleteToPreviousWordBoundary',
+          op: (opts = {}) => {
+            editor.setCursorBufferPosition([0, 16])
+            editor.deleteToPreviousWordBoundary(opts)
+          }
+        },
+        {
+          name: 'deleteToNextWordBoundary',
+          op: (opts = {}) => {
+            editor.setCursorBufferPosition([0, 15])
+            editor.deleteToNextWordBoundary(opts)
+          }
+        },
+        {
+          name: 'deleteToBeginningOfWord',
+          op: (opts = {}) => {
+            editor.setCursorBufferPosition([1, 24])
+            editor.deleteToBeginningOfWord(opts)
+          }
+        },
+        {
+          name: 'deleteToEndOfLine',
+          op: (opts = {}) => {
+            editor.setCursorBufferPosition([1, 24])
+            editor.deleteToEndOfLine(opts)
+          }
+        },
+        {
+          name: 'deleteToBeginningOfLine',
+          op: (opts = {}) => {
+            editor.setCursorBufferPosition([1, 24])
+            editor.deleteToBeginningOfLine(opts)
+          }
+        },
+        {
+          name: 'delete',
+          op: (opts = {}) => {
+            editor.setCursorScreenPosition([1, 6])
+            editor.delete(opts)
+          }
+        },
+        {
+          name: 'deleteToEndOfWord',
+          op: (opts = {}) => {
+            editor.setCursorBufferPosition([1, 24])
+            editor.deleteToEndOfWord(opts)
+          }
+        },
+        {
+          name: 'indent',
+          op: (opts = {}) => {
+            editor.indent(opts)
+          }
+        },
+        {
+          name: 'cutSelectedText',
+          op: (opts = {}) => {
+            editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
+            editor.cutSelectedText(opts)
+          }
+        },
+        {
+          name: 'cutToEndOfLine',
+          op: (opts = {}) => {
+            editor.setCursorBufferPosition([2, 20])
+            editor.cutToEndOfLine(opts)
+          }
+        },
+        {
+          name: 'cutToEndOfBufferLine',
+          op: (opts = {}) => {
+            editor.setCursorBufferPosition([2, 20])
+            editor.cutToEndOfBufferLine(opts)
+          }
+        },
+        {
+          name: 'pasteText',
+          op: (opts = {}) => {
+            editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
+            atom.clipboard.write('first')
+            editor.pasteText(opts)
+          }
+        },
+        {
+          name: 'indentSelectedRows',
+          op: (opts = {}) => {
+            editor.setSelectedBufferRange([[0, 3], [0, 3]])
+            editor.indentSelectedRows(opts)
+          }
+        },
+        {
+          name: 'outdentSelectedRows',
+          op: (opts = {}) => {
+            editor.setSelectedBufferRange([[1, 3], [1, 3]])
+            editor.outdentSelectedRows(opts)
+          }
+        },
+        {
+          name: 'autoIndentSelectedRows',
+          op: (opts = {}) => {
+            editor.setCursorBufferPosition([2, 0])
+            editor.insertText('function() {\ninside=true\n}\n  i=1\n', opts)
+            editor.getLastSelection().setBufferRange([[2, 0], [6, 0]])
+            editor.autoIndentSelectedRows(opts)
+          }
+        },
+        {
+          name: 'undo/redo',
+          op: (opts = {}) => {
+            editor.insertText('foo', opts)
+            editor.undo(opts)
+            editor.redo(opts)
+          }
+        }
+      ]
+
+      describe('without bypassReadOnly', () => {
+        for (const {name, op} of modifications) {
+          it(`throws an error on ${name}`, () => {
+            expect(op).toThrow()
+          })
+        }
+      })
+
+      describe('with bypassReadOnly', () => {
+        for (const {name, op} of modifications) {
+          it(`permits ${name}`, () => {
+            op({bypassReadOnly: true})
+          })
+        }
+      })
+    })
   })
 
   describe('reading text', () => {

@@ -42,9 +42,10 @@ const DEFAULT_NON_WORD_CHARACTERS = "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
 // then be called with all current editor instances and also when any editor is
 // created in the future.
 //
-// ```coffee
-// atom.workspace.observeTextEditors (editor) ->
+// ```js
+// atom.workspace.observeTextEditors(editor => {
 //   editor.insertText('Hello World')
+// })
 // ```
 //
 // ## Buffer vs. Screen Coordinates
@@ -1306,7 +1307,12 @@ class TextEditor {
   // Essential: Replaces the entire contents of the buffer with the given {String}.
   //
   // * `text` A {String} to replace with
-  setText (text) { return this.buffer.setText(text) }
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  setText (text, options = {}) {
+    if (!this.ensureWritable('setText', options)) return
+    return this.buffer.setText(text)
+  }
 
   // Essential: Set the text in the given {Range} in buffer coordinates.
   //
@@ -1315,9 +1321,11 @@ class TextEditor {
   // * `options` (optional) {Object}
   //   * `normalizeLineEndings` (optional) {Boolean} (default: true)
   //   * `undo` (optional) {String} 'skip' will skip the undo system
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
   //
   // Returns the {Range} of the newly-inserted text.
-  setTextInBufferRange (range, text, options) {
+  setTextInBufferRange (range, text, options = {}) {
+    if (!this.ensureWritable('setTextInBufferRange', options)) return
     return this.getBuffer().setTextInRange(range, text, options)
   }
 
@@ -1326,9 +1334,9 @@ class TextEditor {
   // * `text` A {String} representing the text to insert.
   // * `options` (optional) See {Selection::insertText}.
   //
-  // Returns a {Range} when the text has been inserted
-  // Returns a {Boolean} false when the text has not been inserted
+  // Returns a {Range} when the text has been inserted. Returns a {Boolean} `false` when the text has not been inserted.
   insertText (text, options = {}) {
+    if (!this.ensureWritable('insertText', options)) return
     if (!this.emitWillInsertTextEvent(text)) return false
 
     let groupLastChanges = false
@@ -1352,20 +1360,31 @@ class TextEditor {
   }
 
   // Essential: For each selection, replace the selected text with a newline.
-  insertNewline (options) {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  insertNewline (options = {}) {
     return this.insertText('\n', options)
   }
 
   // Essential: For each selection, if the selection is empty, delete the character
   // following the cursor. Otherwise delete the selected text.
-  delete () {
-    return this.mutateSelectedText(selection => selection.delete())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  delete (options = {}) {
+    if (!this.ensureWritable('delete', options)) return
+    return this.mutateSelectedText(selection => selection.delete(options))
   }
 
   // Essential: For each selection, if the selection is empty, delete the character
   // preceding the cursor. Otherwise delete the selected text.
-  backspace () {
-    return this.mutateSelectedText(selection => selection.backspace())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  backspace (options = {}) {
+    if (!this.ensureWritable('backspace', options)) return
+    return this.mutateSelectedText(selection => selection.backspace(options))
   }
 
   // Extended: Mutate the text of all the selections in a single transaction.
@@ -1386,7 +1405,12 @@ class TextEditor {
 
   // Move lines intersecting the most recent selection or multiple selections
   // up by one row in screen coordinates.
-  moveLineUp () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  moveLineUp (options = {}) {
+    if (!this.ensureWritable('moveLineUp', options)) return
+
     const selections = this.getSelectedBufferRanges().sort((a, b) => a.compare(b))
 
     if (selections[0].start.row === 0) return
@@ -1454,7 +1478,12 @@ class TextEditor {
 
   // Move lines intersecting the most recent selection or multiple selections
   // down by one row in screen coordinates.
-  moveLineDown () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  moveLineDown (options = {}) {
+    if (!this.ensureWritable('moveLineDown', options)) return
+
     const selections = this.getSelectedBufferRanges()
     selections.sort((a, b) => b.compare(a))
 
@@ -1526,7 +1555,11 @@ class TextEditor {
   }
 
   // Move any active selections one column to the left.
-  moveSelectionLeft () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  moveSelectionLeft (options = {}) {
+    if (!this.ensureWritable('moveSelectionLeft', options)) return
     const selections = this.getSelectedBufferRanges()
     const noSelectionAtStartOfLine = selections.every(selection => selection.start.column !== 0)
 
@@ -1550,7 +1583,11 @@ class TextEditor {
   }
 
   // Move any active selections one column to the right.
-  moveSelectionRight () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  moveSelectionRight (options = {}) {
+    if (!this.ensureWritable('moveSelectionRight', options)) return
     const selections = this.getSelectedBufferRanges()
     const noSelectionAtEndOfLine = selections.every(selection => {
       return selection.end.column !== this.buffer.lineLengthForRow(selection.end.row)
@@ -1575,7 +1612,12 @@ class TextEditor {
     }
   }
 
-  duplicateLines () {
+  // Duplicate all lines containing active selections.
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  duplicateLines (options = {}) {
+    if (!this.ensureWritable('duplicateLines', options)) return
     this.transact(() => {
       const selections = this.getSelectionsOrderedByBufferPosition()
       const previousSelectionRanges = []
@@ -1662,7 +1704,11 @@ class TextEditor {
   //
   // If the selection is empty, the characters preceding and following the cursor
   // are swapped. Otherwise, the selected characters are reversed.
-  transpose () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  transpose (options = {}) {
+    if (!this.ensureWritable('transpose', options)) return
     this.mutateSelectedText(selection => {
       if (selection.isEmpty()) {
         selection.selectRight()
@@ -1680,23 +1726,35 @@ class TextEditor {
   //
   // For each selection, if the selection is empty, converts the containing word
   // to upper case. Otherwise convert the selected text to upper case.
-  upperCase () {
-    this.replaceSelectedText({selectWordIfEmpty: true}, text => text.toUpperCase())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  upperCase (options = {}) {
+    if (!this.ensureWritable('upperCase', options)) return
+    this.replaceSelectedText({selectWordIfEmpty: true}, text => text.toUpperCase(options))
   }
 
   // Extended: Convert the selected text to lower case.
   //
   // For each selection, if the selection is empty, converts the containing word
   // to upper case. Otherwise convert the selected text to upper case.
-  lowerCase () {
-    this.replaceSelectedText({selectWordIfEmpty: true}, text => text.toLowerCase())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  lowerCase (options = {}) {
+    if (!this.ensureWritable('lowerCase', options)) return
+    this.replaceSelectedText({selectWordIfEmpty: true}, text => text.toLowerCase(options))
   }
 
   // Extended: Toggle line comments for rows intersecting selections.
   //
   // If the current grammar doesn't support comments, does nothing.
-  toggleLineCommentsInSelection () {
-    this.mutateSelectedText(selection => selection.toggleLineComments())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  toggleLineCommentsInSelection (options = {}) {
+    if (!this.ensureWritable('toggleLineCommentsInSelection', options)) return
+    this.mutateSelectedText(selection => selection.toggleLineComments(options))
   }
 
   // Convert multiple lines to a single line.
@@ -1707,20 +1765,32 @@ class TextEditor {
   //
   // Joining a line means that multiple lines are converted to a single line with
   // the contents of each of the original non-empty lines separated by a space.
-  joinLines () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  joinLines (options = {}) {
+    if (!this.ensureWritable('joinLines', options)) return
     this.mutateSelectedText(selection => selection.joinLines())
   }
 
   // Extended: For each cursor, insert a newline at beginning the following line.
-  insertNewlineBelow () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  insertNewlineBelow (options = {}) {
+    if (!this.ensureWritable('insertNewlineBelow', options)) return
     this.transact(() => {
       this.moveToEndOfLine()
-      this.insertNewline()
+      this.insertNewline(options)
     })
   }
 
   // Extended: For each cursor, insert a newline at the end of the preceding line.
-  insertNewlineAbove () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  insertNewlineAbove (options = {}) {
+    if (!this.ensureWritable('insertNewlineAbove', options)) return
     this.transact(() => {
       const bufferRow = this.getCursorBufferPosition().row
       const indentLevel = this.indentationForBufferRow(bufferRow)
@@ -1728,7 +1798,7 @@ class TextEditor {
 
       this.moveToBeginningOfLine()
       this.moveLeft()
-      this.insertNewline()
+      this.insertNewline(options)
 
       if (this.shouldAutoIndent() && (this.indentationForBufferRow(bufferRow) < indentLevel)) {
         this.setIndentationForBufferRow(bufferRow, indentLevel)
@@ -1744,62 +1814,117 @@ class TextEditor {
   // Extended: For each selection, if the selection is empty, delete all characters
   // of the containing word that precede the cursor. Otherwise delete the
   // selected text.
-  deleteToBeginningOfWord () {
-    this.mutateSelectedText(selection => selection.deleteToBeginningOfWord())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToBeginningOfWord (options = {}) {
+    if (!this.ensureWritable('deleteToBeginningOfWord', options)) return
+    this.mutateSelectedText(selection => selection.deleteToBeginningOfWord(options))
   }
 
   // Extended: Similar to {::deleteToBeginningOfWord}, but deletes only back to the
   // previous word boundary.
-  deleteToPreviousWordBoundary () {
-    this.mutateSelectedText(selection => selection.deleteToPreviousWordBoundary())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToPreviousWordBoundary (options = {}) {
+    if (!this.ensureWritable('deleteToPreviousWordBoundary', options)) return
+    this.mutateSelectedText(selection => selection.deleteToPreviousWordBoundary(options))
   }
 
   // Extended: Similar to {::deleteToEndOfWord}, but deletes only up to the
   // next word boundary.
-  deleteToNextWordBoundary () {
-    this.mutateSelectedText(selection => selection.deleteToNextWordBoundary())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToNextWordBoundary (options = {}) {
+    if (!this.ensureWritable('deleteToNextWordBoundary', options)) return
+    this.mutateSelectedText(selection => selection.deleteToNextWordBoundary(options))
   }
 
   // Extended: For each selection, if the selection is empty, delete all characters
   // of the containing subword following the cursor. Otherwise delete the selected
   // text.
-  deleteToBeginningOfSubword () {
-    this.mutateSelectedText(selection => selection.deleteToBeginningOfSubword())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToBeginningOfSubword (options = {}) {
+    if (!this.ensureWritable('deleteToBeginningOfSubword', options)) return
+    this.mutateSelectedText(selection => selection.deleteToBeginningOfSubword(options))
   }
 
   // Extended: For each selection, if the selection is empty, delete all characters
   // of the containing subword following the cursor. Otherwise delete the selected
   // text.
-  deleteToEndOfSubword () {
-    this.mutateSelectedText(selection => selection.deleteToEndOfSubword())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToEndOfSubword (options = {}) {
+    if (!this.ensureWritable('deleteToEndOfSubword', options)) return
+    this.mutateSelectedText(selection => selection.deleteToEndOfSubword(options))
   }
 
   // Extended: For each selection, if the selection is empty, delete all characters
   // of the containing line that precede the cursor. Otherwise delete the
   // selected text.
-  deleteToBeginningOfLine () {
-    this.mutateSelectedText(selection => selection.deleteToBeginningOfLine())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToBeginningOfLine (options = {}) {
+    if (!this.ensureWritable('deleteToBeginningOfLine', options)) return
+    this.mutateSelectedText(selection => selection.deleteToBeginningOfLine(options))
   }
 
   // Extended: For each selection, if the selection is not empty, deletes the
   // selection; otherwise, deletes all characters of the containing line
   // following the cursor. If the cursor is already at the end of the line,
   // deletes the following newline.
-  deleteToEndOfLine () {
-    this.mutateSelectedText(selection => selection.deleteToEndOfLine())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToEndOfLine (options = {}) {
+    if (!this.ensureWritable('deleteToEndOfLine', options)) return
+    this.mutateSelectedText(selection => selection.deleteToEndOfLine(options))
   }
 
   // Extended: For each selection, if the selection is empty, delete all characters
   // of the containing word following the cursor. Otherwise delete the selected
   // text.
-  deleteToEndOfWord () {
-    this.mutateSelectedText(selection => selection.deleteToEndOfWord())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToEndOfWord (options = {}) {
+    if (!this.ensureWritable('deleteToEndOfWord', options)) return
+    this.mutateSelectedText(selection => selection.deleteToEndOfWord(options))
   }
 
   // Extended: Delete all lines intersecting selections.
-  deleteLine () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteLine (options = {}) {
+    if (!this.ensureWritable('deleteLine', options)) return
     this.mergeSelectionsOnSameRows()
-    this.mutateSelectedText(selection => selection.deleteLine())
+    this.mutateSelectedText(selection => selection.deleteLine(options))
+  }
+
+  // Private: Ensure that this editor is not marked read-only before allowing a buffer modification to occur. If
+  // the editor is read-only, require an explicit opt-in option to proceed (`bypassReadOnly`) or throw an Error.
+  ensureWritable (methodName, opts) {
+    if (!opts.bypassReadOnly && this.isReadOnly()) {
+      if (atom.inDevMode() || atom.inSpecMode()) {
+        const e = new Error('Attempt to mutate a read-only TextEditor')
+        e.detail =
+          `Your package is attempting to call ${methodName} on an editor that has been marked read-only. ` +
+          'Pass {bypassReadOnly: true} to modify it anyway, or test editors with .isReadOnly() before attempting ' +
+          'modifications.'
+        throw e
+      }
+
+      return false
+    }
+
+    return true
   }
 
   /*
@@ -1807,13 +1932,21 @@ class TextEditor {
   */
 
   // Essential: Undo the last change.
-  undo () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  undo (options = {}) {
+    if (!this.ensureWritable('undo', options)) return
     this.avoidMergingSelections(() => this.buffer.undo({selectionsMarkerLayer: this.selectionsMarkerLayer}))
     this.getLastSelection().autoscroll()
   }
 
   // Essential: Redo the last change.
-  redo () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  redo (options = {}) {
+    if (!this.ensureWritable('redo', options)) return
     this.avoidMergingSelections(() => this.buffer.redo({selectionsMarkerLayer: this.selectionsMarkerLayer}))
     this.getLastSelection().autoscroll()
   }
@@ -1967,11 +2100,11 @@ class TextEditor {
   //
   // ## Examples
   //
-  // ```coffee
-  // editor.clipBufferPosition([-1, -1]) # -> `[0, 0]`
+  // ```js
+  // editor.clipBufferPosition([-1, -1]) // -> `[0, 0]`
   //
-  // # When the line at buffer row 2 is 10 characters long
-  // editor.clipBufferPosition([2, Infinity]) # -> `[2, 10]`
+  // // When the line at buffer row 2 is 10 characters long
+  // editor.clipBufferPosition([2, Infinity]) // -> `[2, 10]`
   // ```
   //
   // * `bufferPosition` The {Point} representing the position to clip.
@@ -1996,11 +2129,11 @@ class TextEditor {
   //
   // ## Examples
   //
-  // ```coffee
-  // editor.clipScreenPosition([-1, -1]) # -> `[0, 0]`
+  // ```js
+  // editor.clipScreenPosition([-1, -1]) // -> `[0, 0]`
   //
-  // # When the line at screen row 2 is 10 characters long
-  // editor.clipScreenPosition([2, Infinity]) # -> `[2, 10]`
+  // // When the line at screen row 2 is 10 characters long
+  // editor.clipScreenPosition([2, Infinity]) // -> `[2, 10]`
   // ```
   //
   // * `screenPosition` The {Point} representing the position to clip.
@@ -3558,13 +3691,21 @@ class TextEditor {
   }
 
   // Extended: Indent rows intersecting selections by one level.
-  indentSelectedRows () {
-    return this.mutateSelectedText(selection => selection.indentSelectedRows())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  indentSelectedRows (options = {}) {
+    if (!this.ensureWritable('indentSelectedRows', options)) return
+    return this.mutateSelectedText(selection => selection.indentSelectedRows(options))
   }
 
   // Extended: Outdent rows intersecting selections by one level.
-  outdentSelectedRows () {
-    return this.mutateSelectedText(selection => selection.outdentSelectedRows())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  outdentSelectedRows (options = {}) {
+    if (!this.ensureWritable('outdentSelectedRows', options)) return
+    return this.mutateSelectedText(selection => selection.outdentSelectedRows(options))
   }
 
   // Extended: Get the indentation level of the given line of text.
@@ -3595,13 +3736,21 @@ class TextEditor {
 
   // Extended: Indent rows intersecting selections based on the grammar's suggested
   // indent level.
-  autoIndentSelectedRows () {
-    return this.mutateSelectedText(selection => selection.autoIndentSelectedRows())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  autoIndentSelectedRows (options = {}) {
+    if (!this.ensureWritable('autoIndentSelectedRows', options)) return
+    return this.mutateSelectedText(selection => selection.autoIndentSelectedRows(options))
   }
 
   // Indent all lines intersecting selections. See {Selection::indent} for more
   // information.
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
   indent (options = {}) {
+    if (!this.ensureWritable('indent', options)) return
     if (options.autoIndent == null) options.autoIndent = this.shouldAutoIndent()
     this.mutateSelectedText(selection => selection.indent(options))
   }
@@ -3739,14 +3888,18 @@ class TextEditor {
   }
 
   // Essential: For each selection, cut the selected text.
-  cutSelectedText () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  cutSelectedText (options = {}) {
+    if (!this.ensureWritable('cutSelectedText', options)) return
     let maintainClipboard = false
     this.mutateSelectedText(selection => {
       if (selection.isEmpty()) {
         selection.selectLine()
-        selection.cut(maintainClipboard, true)
+        selection.cut(maintainClipboard, true, options.bypassReadOnly)
       } else {
-        selection.cut(maintainClipboard, false)
+        selection.cut(maintainClipboard, false, options.bypassReadOnly)
       }
       maintainClipboard = true
     })
@@ -3760,7 +3913,8 @@ class TextEditor {
   // corresponding clipboard selection text.
   //
   // * `options` (optional) See {Selection::insertText}.
-  pasteText (options) {
+  pasteText (options = {}) {
+    if (!this.ensureWritable('parseText', options)) return
     options = Object.assign({}, options)
     let {text: clipboardText, metadata} = this.constructor.clipboard.readWithMetadata()
     if (!this.emitWillInsertTextEvent(clipboardText)) return false
@@ -3801,10 +3955,14 @@ class TextEditor {
   // Essential: For each selection, if the selection is empty, cut all characters
   // of the containing screen line following the cursor. Otherwise cut the selected
   // text.
-  cutToEndOfLine () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  cutToEndOfLine (options = {}) {
+    if (!this.ensureWritable('cutToEndOfLine', options)) return
     let maintainClipboard = false
     this.mutateSelectedText(selection => {
-      selection.cutToEndOfLine(maintainClipboard)
+      selection.cutToEndOfLine(maintainClipboard, options)
       maintainClipboard = true
     })
   }
@@ -3812,10 +3970,14 @@ class TextEditor {
   // Essential: For each selection, if the selection is empty, cut all characters
   // of the containing buffer line following the cursor. Otherwise cut the
   // selected text.
-  cutToEndOfBufferLine () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  cutToEndOfBufferLine (options = {}) {
+    if (!this.ensureWritable('cutToEndOfBufferLine', options)) return
     let maintainClipboard = false
     this.mutateSelectedText(selection => {
-      selection.cutToEndOfBufferLine(maintainClipboard)
+      selection.cutToEndOfBufferLine(maintainClipboard, options)
       maintainClipboard = true
     })
   }
