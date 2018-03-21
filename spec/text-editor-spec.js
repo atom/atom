@@ -5512,7 +5512,7 @@ describe('TextEditor', () => {
           name: 'cutToEndOfBufferLine',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([2, 20])
-            editor.cutToEndOfBufferLine()
+            editor.cutToEndOfBufferLine(opts)
           }
         },
         {
@@ -5534,14 +5534,14 @@ describe('TextEditor', () => {
           name: 'outdentSelectedRows',
           op: (opts = {}) => {
             editor.setSelectedBufferRange([[1, 3], [1, 3]])
-            editor.outdentSelectedRows()
+            editor.outdentSelectedRows(opts)
           }
         },
         {
           name: 'autoIndentSelectedRows',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([2, 0])
-            editor.insertText('function() {\ninside=true\n}\n  i=1\n')
+            editor.insertText('function() {\ninside=true\n}\n  i=1\n', opts)
             editor.getLastSelection().setBufferRange([[2, 0], [6, 0]])
             editor.autoIndentSelectedRows(opts)
           }
@@ -5549,7 +5549,7 @@ describe('TextEditor', () => {
         {
           name: 'undo/redo',
           op: (opts = {}) => {
-            editor.insertText('foo')
+            editor.insertText('foo', opts)
             editor.undo(opts)
             editor.redo(opts)
           }
@@ -5567,7 +5567,7 @@ describe('TextEditor', () => {
       describe('with bypassReadOnly', () => {
         for (const {name, op} of modifications) {
           it(`permits ${name}`, () => {
-            expect(() => op({bypassReadOnly: true})).not.toThrow()
+            op({bypassReadOnly: true})
           })
         }
       })

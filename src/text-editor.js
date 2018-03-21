@@ -3724,12 +3724,17 @@ class TextEditor {
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
   autoIndentSelectedRows (options = {}) {
+    this.ensureWritable('autoIndentSelectedRows', options)
     return this.mutateSelectedText(selection => selection.autoIndentSelectedRows(options))
   }
 
   // Indent all lines intersecting selections. See {Selection::indent} for more
   // information.
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
   indent (options = {}) {
+    this.ensureWritable('indent', options)
     if (options.autoIndent == null) options.autoIndent = this.shouldAutoIndent()
     this.mutateSelectedText(selection => selection.indent(options))
   }
@@ -3941,7 +3946,7 @@ class TextEditor {
     this.ensureWritable('cutToEndOfLine', options)
     let maintainClipboard = false
     this.mutateSelectedText(selection => {
-      selection.cutToEndOfLine(maintainClipboard)
+      selection.cutToEndOfLine(maintainClipboard, options)
       maintainClipboard = true
     })
   }
@@ -3956,7 +3961,7 @@ class TextEditor {
     this.ensureWritable('cutToEndOfBufferLine', options)
     let maintainClipboard = false
     this.mutateSelectedText(selection => {
-      selection.cutToEndOfBufferLine(maintainClipboard)
+      selection.cutToEndOfBufferLine(maintainClipboard, options)
       maintainClipboard = true
     })
   }
