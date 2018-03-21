@@ -3881,9 +3881,9 @@ class TextEditor {
     this.mutateSelectedText(selection => {
       if (selection.isEmpty()) {
         selection.selectLine()
-        selection.cut(maintainClipboard, true)
+        selection.cut(maintainClipboard, true, options.bypassReadOnly)
       } else {
-        selection.cut(maintainClipboard, false)
+        selection.cut(maintainClipboard, false, options.bypassReadOnly)
       }
       maintainClipboard = true
     })
