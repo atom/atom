@@ -5209,7 +5209,7 @@ describe('TextEditor', () => {
         `)
       })
 
-      it('[editor.transact] restore selection of change-initiated-editor', async () => {
+      it('[editor.transact] restore selection of change-initiated-editor', () => {
         editor1.setCursorBufferPosition([0, 0]); editor1.transact(() => editor1.insertText('1'))
         editor2.setCursorBufferPosition([1, 0]); editor2.transact(() => editor2.insertText('2'))
         editor1.setCursorBufferPosition([2, 0]); editor1.transact(() => editor1.insertText('3'))
@@ -5250,7 +5250,7 @@ describe('TextEditor', () => {
         expect(editor1.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
       })
 
-      it('[manually group checkpoint] restore selection of change-initiated-editor', async () => {
+      it('[manually group checkpoint] restore selection of change-initiated-editor', () => {
         const transact = (editor, fn) => {
           const checkpoint = editor.createCheckpoint()
           fn()
