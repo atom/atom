@@ -414,7 +414,7 @@ class Selection {
       const e = new Error('Attempt to mutate a read-only TextEditor through a Selection')
       e.detail =
         `Your package is attempting to call ${methodName} on a selection within an editor that has been marked ` +
-        ' read-only. Pass {bypassReadOnly: true} to modify it anyway, or test editors with .isReadOnly() before '
+        ' read-only. Pass {bypassReadOnly: true} to modify it anyway, or test editors with .isReadOnly() before ' +
         ' attempting modifications.'
       throw e
     }
