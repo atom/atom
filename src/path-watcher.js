@@ -171,6 +171,10 @@ class NativeWatcher {
 class AtomNativeWatcher extends NativeWatcher {
   async doStart () {
     const getRealPath = givenPath => {
+      if (!givenPath) {
+        return Promise.resolve(null)
+      }
+
       return new Promise(resolve => {
         fs.realpath(givenPath, (err, resolvedPath) => {
           err ? resolve(null) : resolve(resolvedPath)
@@ -239,7 +243,7 @@ class AtomNativeWatcher extends NativeWatcher {
 
     this.subs.add(treeView.onEntryDeleted(async event => {
       const realPath = await getRealPath(event.path)
-      if (!realPath || isOpenInEditor(realPath)) return
+      if (!realPath || await isOpenInEditor(realPath)) return
 
       this.onEvents([{action: 'deleted', path: realPath}])
     }))
@@ -249,7 +253,7 @@ class AtomNativeWatcher extends NativeWatcher {
         getRealPath(event.newPath),
         getRealPath(event.initialPath)
       ])
-      if (!realNewPath || !realOldPath || isOpenInEditor(realNewPath) || isOpenInEditor(realOldPath)) return
+      if (!realNewPath || !realOldPath || await isOpenInEditor(realNewPath) || await isOpenInEditor(realOldPath)) return
 
       this.onEvents([{action: 'renamed', path: realNewPath, oldPath: realOldPath}])
     }))
@@ -492,7 +496,29 @@ class PathWatcher {
   // events may include events for paths above this watcher's root path, so filter them to only include the relevant
   // ones, then re-broadcast them to our subscribers.
   onNativeEvents (events, callback) {
-    const filtered = events.filter(event => event.path.startsWith(this.normalizedPath))
+    const isWatchedPath = eventPath => eventPath.startsWith(this.normalizedPath)
+
+    const filtered = []
+    for (let i = 0; i < events.length; i++) {
+      const event = events[i]
+
+      if (event.action === 'renamed') {
+        const srcWatched = isWatchedPath(event.oldPath)
+        const destWatched = isWatchedPath(event.path)
+
+        if (srcWatched && destWatched) {
+          filtered.push(event)
+        } else if (srcWatched && !destWatched) {
+          filtered.push({action: 'deleted', kind: event.kind, path: event.oldPath})
+        } else if (!srcWatched && destWatched) {
+          filtered.push({action: 'created', kind: event.kind, path: event.path})
+        }
+      } else {
+        if (isWatchedPath(event.path)) {
+          filtered.push(event)
+        }
+      }
+    }
 
     if (filtered.length > 0) {
       callback(filtered)

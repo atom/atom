@@ -564,9 +564,20 @@ describe('TextEditorComponent', () => {
 
     it('gives cursors at the end of lines the width of an "x" character', async () => {
       const {component, element, editor} = buildComponent()
+      editor.setText('abcde')
+      await setEditorWidthInCharacters(component, 5.5)
+
       editor.setCursorScreenPosition([0, Infinity])
       await component.getNextUpdatePromise()
       expect(element.querySelector('.cursor').offsetWidth).toBe(Math.round(component.getBaseCharacterWidth()))
+
+      // Clip cursor width when soft-wrap is on and the cursor is at the end of
+      // the line. This prevents the parent tile from disabling sub-pixel
+      // anti-aliasing. For some reason, adding overflow: hidden to the cursor
+      // container doesn't solve this issue so we're adding this workaround instead.
+      editor.setSoftWrapped(true)
+      await component.getNextUpdatePromise()
+      expect(element.querySelector('.cursor').offsetWidth).toBeLessThan(Math.round(component.getBaseCharacterWidth()))
     })
 
     it('positions and sizes cursors correctly when they are located next to a fold marker', async () => {
@@ -921,7 +932,7 @@ describe('TextEditorComponent', () => {
         const initialSeed = Date.now()
         for (var i = 0; i < 20; i++) {
           let seed = initialSeed + i
-          // seed = 1507224195357
+          // seed = 1520247533732
           const failureMessage = 'Randomized test failed with seed: ' + seed
           const random = Random(seed)
 
@@ -930,6 +941,12 @@ describe('TextEditorComponent', () => {
           editor.setSoftWrapped(Boolean(random(2)))
           await setEditorWidthInCharacters(component, random(20))
           await setEditorHeightInLines(component, random(10))
+
+          element.style.fontSize = random(20) + 'px'
+          element.style.lineHeight = random.floatBetween(0.1, 2.0)
+          TextEditor.didUpdateStyles()
+          await component.getNextUpdatePromise()
+
           element.focus()
 
           for (var j = 0; j < 5; j++) {
@@ -1365,40 +1382,6 @@ describe('TextEditorComponent', () => {
         expect(component.getScrollTop()).toBe(expectedScrollTop)
         expect(component.getScrollLeft()).toBe(expectedScrollLeft)
         expect(component.refs.content.style.transform).toBe(`translate(${-expectedScrollLeft}px, ${-expectedScrollTop}px)`)
-      }
-    })
-
-    it('always scrolls by a minimum of 1, even when the delta is small or the scroll sensitivity is low', () => {
-      const scrollSensitivity = 10
-      const {component, editor} = buildComponent({height: 50, width: 50, scrollSensitivity})
-
-      {
-        component.didMouseWheel({wheelDeltaX: 0, wheelDeltaY: -3})
-        expect(component.getScrollTop()).toBe(1)
-        expect(component.getScrollLeft()).toBe(0)
-        expect(component.refs.content.style.transform).toBe(`translate(0px, -1px)`)
-      }
-
-      {
-        component.didMouseWheel({wheelDeltaX: -4, wheelDeltaY: 0})
-        expect(component.getScrollTop()).toBe(1)
-        expect(component.getScrollLeft()).toBe(1)
-        expect(component.refs.content.style.transform).toBe(`translate(-1px, -1px)`)
-      }
-
-      editor.update({scrollSensitivity: 100})
-      {
-        component.didMouseWheel({wheelDeltaX: 0, wheelDeltaY: 0.3})
-        expect(component.getScrollTop()).toBe(0)
-        expect(component.getScrollLeft()).toBe(1)
-        expect(component.refs.content.style.transform).toBe(`translate(-1px, 0px)`)
-      }
-
-      {
-        component.didMouseWheel({wheelDeltaX: 0.1, wheelDeltaY: 0})
-        expect(component.getScrollTop()).toBe(0)
-        expect(component.getScrollLeft()).toBe(0)
-        expect(component.refs.content.style.transform).toBe(`translate(0px, 0px)`)
       }
     })
 

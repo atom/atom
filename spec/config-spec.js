@@ -1,7 +1,3 @@
-const path = require('path')
-const temp = require('temp').track()
-const fs = require('fs-plus')
-
 describe('Config', () => {
   let savedSettings
 
@@ -115,7 +111,7 @@ describe('Config', () => {
 
       describe('when the first component of the scope descriptor matches a legacy scope alias', () =>
         it('falls back to properties defined for the legacy scope if no value is found for the original scope descriptor', () => {
-          atom.config.addLegacyScopeAlias('javascript', '.source.js')
+          atom.config.setLegacyScopeAliasForNewScope('javascript', '.source.js')
           atom.config.set('foo', 100, {scopeSelector: '.source.js'})
           atom.config.set('foo', 200, {scopeSelector: 'javascript for_statement'})
 
@@ -154,7 +150,7 @@ describe('Config', () => {
 
     describe('when the first component of the scope descriptor matches a legacy scope alias', () =>
       it('includes the values defined for the legacy scope', () => {
-        atom.config.addLegacyScopeAlias('javascript', '.source.js')
+        atom.config.setLegacyScopeAliasForNewScope('javascript', '.source.js')
 
         expect(atom.config.set('foo', 41)).toBe(true)
         expect(atom.config.set('foo', 42, {scopeSelector: 'javascript'})).toBe(true)
@@ -490,7 +486,6 @@ describe('Config', () => {
         atom.config.set('foo.bar.baz', 'value 2')
         expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 2', oldValue: 'value 1'})
         observeHandler.reset()
-
         observeHandler.andCallFake(() => { throw new Error('oops') })
         expect(() => atom.config.set('foo.bar.baz', 'value 1')).toThrow('oops')
         expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 1', oldValue: 'value 2'})
@@ -1838,6 +1833,88 @@ describe('Config', () => {
       expect(atom.config.get('foo.bar')).toBeUndefined()
       expect(atom.config.get('foo.qux')).toBe('boo')
       expect(atom.config.get('do.ray')).toBe('me')
+    })
+  })
+
+  describe('project specific settings', () => {
+    describe('config.resetProjectSettings', () => {
+      it('gracefully handles invalid config objects', () => {
+        atom.config.resetProjectSettings({})
+        expect(atom.config.get('foo.bar')).toBeUndefined()
+      })
+    })
+
+    describe('config.get', () => {
+      const dummyPath = '/Users/dummy/path.json'
+      describe('project settings', () => {
+        it('returns a deep clone of the property value', () => {
+          atom.config.resetProjectSettings({'*': {'value': {array: [1, {b: 2}, 3]}}}, dummyPath)
+          const retrievedValue = atom.config.get('value')
+          retrievedValue.array[0] = 4
+          retrievedValue.array[1].b = 2.1
+          expect(atom.config.get('value')).toEqual({array: [1, {b: 2}, 3]})
+        })
+
+        it('properly gets project settings', () => {
+          atom.config.resetProjectSettings({'*': {'foo': 'wei'}}, dummyPath)
+          expect(atom.config.get('foo')).toBe('wei')
+          atom.config.resetProjectSettings({'*': {'foo': {'bar': 'baz'}}}, dummyPath)
+          expect(atom.config.get('foo.bar')).toBe('baz')
+        })
+
+        it('gets project settings with higher priority than regular settings', () => {
+          atom.config.set('foo', 'bar')
+          atom.config.resetProjectSettings({'*': {'foo': 'baz'}}, dummyPath)
+          expect(atom.config.get('foo')).toBe('baz')
+        })
+
+        it('correctly gets nested and scoped properties for project settings', () => {
+          expect(atom.config.set('foo.bar.str', 'global')).toBe(true)
+          expect(atom.config.set('foo.bar.str', 'scoped', {scopeSelector: '.source.js'})).toBe(true)
+          expect(atom.config.get('foo.bar.str')).toBe('global')
+          expect(atom.config.get('foo.bar.str', {scope: ['.source.js']})).toBe('scoped')
+        })
+
+        it('returns a deep clone of the property value', () => {
+          atom.config.set('value', {array: [1, {b: 2}, 3]})
+          const retrievedValue = atom.config.get('value')
+          retrievedValue.array[0] = 4
+          retrievedValue.array[1].b = 2.1
+          expect(atom.config.get('value')).toEqual({array: [1, {b: 2}, 3]})
+        })
+
+        it('gets scoped values correctly', () => {
+          atom.config.set('foo', 'bam', {scope: ['second']})
+          expect(atom.config.get('foo', {'scopeSelector': 'second'})).toBe('bam')
+          atom.config.resetProjectSettings({'*': {'foo': 'baz'}, 'second': {'foo': 'bar'}}, dummyPath)
+          expect(atom.config.get('foo', {'scopeSelector': 'second'})).toBe('baz')
+          atom.config.clearProjectSettings()
+          expect(atom.config.get('foo', {'scopeSelector': 'second'})).toBe('bam')
+        })
+
+        it('clears project settings correctly', () => {
+          atom.config.set('foo', 'bar')
+          expect(atom.config.get('foo')).toBe('bar')
+          atom.config.resetProjectSettings({'*': {'foo': 'baz'}, 'second': {'foo': 'bar'}}, dummyPath)
+          expect(atom.config.get('foo')).toBe('baz')
+          expect(atom.config.getSources().length).toBe(1)
+          atom.config.clearProjectSettings()
+          expect(atom.config.get('foo')).toBe('bar')
+          expect(atom.config.getSources().length).toBe(0)
+        })
+      })
+    })
+
+    describe('config.getAll', () => {
+      const dummyPath = '/Users/dummy/path.json'
+      it('gets settings in the same way .get would return them', () => {
+        atom.config.resetProjectSettings({'*': {'a': 'b'}}, dummyPath)
+        atom.config.set('a', 'f')
+        expect(atom.config.getAll('a')).toEqual([{
+          scopeSelector: '*',
+          value: 'b'
+        }])
+      })
     })
   })
 })

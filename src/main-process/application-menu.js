@@ -201,7 +201,7 @@ class ApplicationMenu {
       if (item.command) {
         item.accelerator = this.acceleratorForCommand(item.command, keystrokesByCommand)
         item.click = () => global.atomApplication.sendCommand(item.command, item.commandDetail)
-        if (!/^application:/.test(item.command, item.commandDetail)) {
+        if (!/^application:/.test(item.command)) {
           item.metadata.windowSpecific = true
         }
       }

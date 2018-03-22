@@ -399,7 +399,7 @@ class GrammarRegistry {
     if (grammar instanceof TreeSitterGrammar) {
       this.treeSitterGrammarsById[grammar.id] = grammar
       if (grammar.legacyScopeName) {
-        this.config.addLegacyScopeAlias(grammar.id, grammar.legacyScopeName)
+        this.config.setLegacyScopeAliasForNewScope(grammar.id, grammar.legacyScopeName)
         this.textMateScopeNamesByTreeSitterLanguageId.set(grammar.id, grammar.legacyScopeName)
         this.treeSitterLanguageIdsByTextMateScopeName.set(grammar.legacyScopeName, grammar.id)
       }
@@ -414,7 +414,7 @@ class GrammarRegistry {
     if (grammar instanceof TreeSitterGrammar) {
       delete this.treeSitterGrammarsById[grammar.id]
       if (grammar.legacyScopeName) {
-        this.config.removeLegacyScopeAlias(grammar.id)
+        this.config.removeLegacyScopeAliasForNewScope(grammar.id)
         this.textMateScopeNamesByTreeSitterLanguageId.delete(grammar.id)
         this.treeSitterLanguageIdsByTextMateScopeName.delete(grammar.legacyScopeName)
       }

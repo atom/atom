@@ -542,7 +542,7 @@ describe('TreeSitterLanguageMode', () => {
       buffer.setText('foo({bar: baz});')
 
       editor.screenLineForScreenRow(0)
-      expect(editor.scopeDescriptorForBufferPosition({row: 0, column: 6}).getScopesArray()).toEqual([
+      expect(editor.scopeDescriptorForBufferPosition([0, 6]).getScopesArray()).toEqual([
         'javascript',
         'program',
         'expression_statement',

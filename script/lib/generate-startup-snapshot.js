@@ -15,55 +15,58 @@ module.exports = function (packagedAppPath) {
     mainPath: path.resolve(baseDirPath, '..', 'src', 'initialize-application-window.js'),
     cachePath: path.join(CONFIG.atomHomeDirPath, 'snapshot-cache'),
     auxiliaryData: CONFIG.snapshotAuxiliaryData,
-    shouldExcludeModule: (modulePath) => {
+    shouldExcludeModule: ({requiringModulePath, requiredModulePath}) => {
       if (processedFiles > 0) {
         process.stdout.write('\r')
       }
       process.stdout.write(`Generating snapshot script at "${snapshotScriptPath}" (${++processedFiles})`)
 
-      const relativePath = path.relative(baseDirPath, modulePath)
+      const requiringModuleRelativePath = path.relative(baseDirPath, requiringModulePath)
+      const requiredModuleRelativePath = path.relative(baseDirPath, requiredModulePath)
       return (
-        modulePath.endsWith('.node') ||
-        coreModules.has(modulePath) ||
-        (relativePath.startsWith(path.join('..', 'src')) && relativePath.endsWith('-element.js')) ||
-        relativePath.startsWith(path.join('..', 'node_modules', 'dugite')) ||
-        relativePath.endsWith(path.join('node_modules', 'coffee-script', 'lib', 'coffee-script', 'register.js')) ||
-        relativePath.endsWith(path.join('node_modules', 'fs-extra', 'lib', 'index.js')) ||
-        relativePath.endsWith(path.join('node_modules', 'graceful-fs', 'graceful-fs.js')) ||
-        relativePath.endsWith(path.join('node_modules', 'htmlparser2', 'lib', 'index.js')) ||
-        relativePath.endsWith(path.join('node_modules', 'minimatch', 'minimatch.js')) ||
-        relativePath === path.join('..', 'exports', 'atom.js') ||
-        relativePath === path.join('..', 'src', 'electron-shims.js') ||
-        relativePath === path.join('..', 'src', 'safe-clipboard.js') ||
-        relativePath === path.join('..', 'node_modules', 'atom-keymap', 'lib', 'command-event.js') ||
-        relativePath === path.join('..', 'node_modules', 'babel-core', 'index.js') ||
-        relativePath === path.join('..', 'node_modules', 'cached-run-in-this-context', 'lib', 'main.js') ||
-        relativePath === path.join('..', 'node_modules', 'decompress-zip', 'lib', 'decompress-zip.js') ||
-        relativePath === path.join('..', 'node_modules', 'debug', 'node.js') ||
-        relativePath === path.join('..', 'node_modules', 'git-utils', 'src', 'git.js') ||
-        relativePath === path.join('..', 'node_modules', 'glob', 'glob.js') ||
-        relativePath === path.join('..', 'node_modules', 'iconv-lite', 'lib', 'index.js') ||
-        relativePath === path.join('..', 'node_modules', 'less', 'index.js') ||
-        relativePath === path.join('..', 'node_modules', 'less', 'lib', 'less', 'fs.js') ||
-        relativePath === path.join('..', 'node_modules', 'less', 'lib', 'less-node', 'index.js') ||
-        relativePath === path.join('..', 'node_modules', 'lodash.isequal', 'index.js') ||
-        relativePath === path.join('..', 'node_modules', 'node-fetch', 'lib', 'fetch-error.js') ||
-        relativePath === path.join('..', 'node_modules', 'superstring', 'index.js') ||
-        relativePath === path.join('..', 'node_modules', 'oniguruma', 'src', 'oniguruma.js') ||
-        relativePath === path.join('..', 'node_modules', 'request', 'index.js') ||
-        relativePath === path.join('..', 'node_modules', 'resolve', 'index.js') ||
-        relativePath === path.join('..', 'node_modules', 'resolve', 'lib', 'core.js') ||
-        relativePath === path.join('..', 'node_modules', 'settings-view', 'node_modules', 'glob', 'glob.js') ||
-        relativePath === path.join('..', 'node_modules', 'spellchecker', 'lib', 'spellchecker.js') ||
-        relativePath === path.join('..', 'node_modules', 'spelling-manager', 'node_modules', 'natural', 'lib', 'natural', 'index.js') ||
-        relativePath === path.join('..', 'node_modules', 'tar', 'tar.js') ||
-        relativePath === path.join('..', 'node_modules', 'temp', 'lib', 'temp.js') ||
-        relativePath === path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js') ||
-        relativePath === path.join('..', 'node_modules', 'tree-sitter', 'index.js') ||
-        relativePath === path.join('..', 'node_modules', 'winreg', 'lib', 'registry.js')
+        requiredModulePath.endsWith('.node') ||
+        coreModules.has(requiredModulePath) ||
+        requiringModuleRelativePath.endsWith(path.join('node_modules/xregexp/xregexp-all.js')) ||
+        (requiredModuleRelativePath.startsWith(path.join('..', 'src')) && requiredModuleRelativePath.endsWith('-element.js')) ||
+        requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'dugite')) ||
+        requiredModuleRelativePath.endsWith(path.join('node_modules', 'coffee-script', 'lib', 'coffee-script', 'register.js')) ||
+        requiredModuleRelativePath.endsWith(path.join('node_modules', 'fs-extra', 'lib', 'index.js')) ||
+        requiredModuleRelativePath.endsWith(path.join('node_modules', 'graceful-fs', 'graceful-fs.js')) ||
+        requiredModuleRelativePath.endsWith(path.join('node_modules', 'htmlparser2', 'lib', 'index.js')) ||
+        requiredModuleRelativePath.endsWith(path.join('node_modules', 'minimatch', 'minimatch.js')) ||
+        requiredModuleRelativePath.endsWith(path.join('node_modules', 'request', 'index.js')) ||
+        requiredModuleRelativePath.endsWith(path.join('node_modules', 'request', 'request.js')) ||
+        requiredModuleRelativePath === path.join('..', 'exports', 'atom.js') ||
+        requiredModuleRelativePath === path.join('..', 'src', 'electron-shims.js') ||
+        requiredModuleRelativePath === path.join('..', 'src', 'safe-clipboard.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'atom-keymap', 'lib', 'command-event.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'babel-core', 'index.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'cached-run-in-this-context', 'lib', 'main.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'decompress-zip', 'lib', 'decompress-zip.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'debug', 'node.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'git-utils', 'src', 'git.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'glob', 'glob.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'iconv-lite', 'lib', 'index.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'less', 'index.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'less', 'lib', 'less', 'fs.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'less', 'lib', 'less-node', 'index.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'lodash.isequal', 'index.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'node-fetch', 'lib', 'fetch-error.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'superstring', 'index.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'oniguruma', 'src', 'oniguruma.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'resolve', 'index.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'resolve', 'lib', 'core.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'settings-view', 'node_modules', 'glob', 'glob.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'spellchecker', 'lib', 'spellchecker.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'spelling-manager', 'node_modules', 'natural', 'lib', 'natural', 'index.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'tar', 'tar.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'temp', 'lib', 'temp.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'tree-sitter', 'index.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'winreg', 'lib', 'registry.js')
       )
     }
-  }).then((snapshotScript) => {
+  }).then(({snapshotScript}) => {
     fs.writeFileSync(snapshotScriptPath, snapshotScript)
     process.stdout.write('\n')
 

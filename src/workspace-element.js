@@ -56,10 +56,10 @@ class WorkspaceElement extends HTMLElement {
   }
 
   updateGlobalTextEditorStyleSheet () {
-    const styleSheetSource = `atom-text-editor {
-  font-size: ${this.config.get('editor.fontSize')}px;
-  font-family: ${this.config.get('editor.fontFamily')};
-  line-height: ${this.config.get('editor.lineHeight')};
+    const styleSheetSource = `atom-workspace {
+  --editor-font-size: ${this.config.get('editor.fontSize')}px;
+  --editor-font-family: ${this.config.get('editor.fontFamily')};
+  --editor-line-height: ${this.config.get('editor.lineHeight')};
 }`
     this.styleManager.addStyleSheet(styleSheetSource, {sourcePath: 'global-text-editor-styles', priority: -1})
   }
@@ -92,7 +92,13 @@ class WorkspaceElement extends HTMLElement {
         window.removeEventListener('dragstart', this.handleDragStart)
         window.removeEventListener('dragend', this.handleDragEnd, true)
         window.removeEventListener('drop', this.handleDrop, true)
-      })
+      }),
+      ...[this.model.getLeftDock(), this.model.getRightDock(), this.model.getBottomDock()]
+        .map(dock => dock.onDidChangeHovered(hovered => {
+          if (hovered) this.hoveredDock = dock
+          else if (dock === this.hoveredDock) this.hoveredDock = null
+          this.checkCleanupDockHoverEvents()
+        }))
     )
     this.initializeContent()
     this.observeScrollbarStyle()
@@ -186,19 +192,13 @@ class WorkspaceElement extends HTMLElement {
   }
 
   updateHoveredDock (mousePosition) {
-    this.hoveredDock = null
-    for (let location in this.model.paneContainers) {
-      if (location !== 'center') {
-        const dock = this.model.paneContainers[location]
-        if (!this.hoveredDock && dock.pointWithinHoverArea(mousePosition)) {
-          this.hoveredDock = dock
-          dock.setHovered(true)
-        } else {
-          dock.setHovered(false)
-        }
-      }
-    }
-    this.checkCleanupDockHoverEvents()
+    // If we haven't left the currently hovered dock, don't change anything.
+    if (this.hoveredDock && this.hoveredDock.pointWithinHoverArea(mousePosition, true)) return
+
+    const docks = [this.model.getLeftDock(), this.model.getRightDock(), this.model.getBottomDock()]
+    const nextHoveredDock =
+      docks.find(dock => dock !== this.hoveredDock && dock.pointWithinHoverArea(mousePosition))
+    docks.forEach(dock => { dock.setHovered(dock === nextHoveredDock) })
   }
 
   checkCleanupDockHoverEvents () {

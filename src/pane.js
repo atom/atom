@@ -155,9 +155,17 @@ class Pane {
 
   getFlexScale () { return this.flexScale }
 
-  increaseSize () { this.setFlexScale(this.getFlexScale() * 1.1) }
+  increaseSize () {
+    if (this.getContainer().getPanes().length > 1) {
+      this.setFlexScale(this.getFlexScale() * 1.1)
+    }
+  }
 
-  decreaseSize () { this.setFlexScale(this.getFlexScale() / 1.1) }
+  decreaseSize () {
+    if (this.getContainer().getPanes().length > 1) {
+      this.setFlexScale(this.getFlexScale() / 1.1)
+    }
+  }
 
   /*
   Section: Event Subscription

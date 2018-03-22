@@ -77,6 +77,31 @@ class Project extends Model {
     }
   }
 
+  // Layers the contents of a project's file's config
+  // on top of the current global config.
+  replace (projectSpecification) {
+    if (projectSpecification == null) {
+      atom.config.clearProjectSettings()
+      this.setPaths([])
+    } else {
+      if (projectSpecification.originPath == null) {
+        return
+      }
+
+      // If no path is specified, set to directory of originPath.
+      if (!Array.isArray(projectSpecification.paths)) {
+        projectSpecification.paths = [path.dirname(projectSpecification.originPath)]
+      }
+      atom.config.resetProjectSettings(projectSpecification.config, projectSpecification.originPath)
+      this.setPaths(projectSpecification.paths)
+    }
+    this.emitter.emit('did-replace', projectSpecification)
+  }
+
+  onDidReplace (callback) {
+    return this.emitter.on('did-replace', callback)
+  }
+
   /*
   Section: Serialization
   */
@@ -191,7 +216,7 @@ class Project extends Model {
   // To watch paths outside of open projects, use the `watchPaths` function instead; see {PathWatcher}.
   //
   // When writing tests against functionality that uses this method, be sure to wait for the
-  // {Promise} returned by {getWatcherPromise()} before manipulating the filesystem to ensure that
+  // {Promise} returned by {::getWatcherPromise} before manipulating the filesystem to ensure that
   // the watcher is receiving events.
   //
   // * `callback` {Function} to be called with batches of filesystem events reported by
@@ -323,7 +348,6 @@ class Project extends Model {
   //     a file or does not exist, its parent directory will be added instead.
   addPath (projectPath, options = {}) {
     const directory = this.getDirectoryForProjectPath(projectPath)
-
     let ok = true
     if (options.exact === true) {
       ok = (directory.getPath() === projectPath)
@@ -353,6 +377,7 @@ class Project extends Model {
         this.emitter.emit('did-change-files', events)
       }
     }
+
     // We'll use the directory's custom onDidChangeFiles callback, if available.
     // CustomDirectory::onDidChangeFiles should match the signature of
     // Project::onDidChangeFiles below (although it may resolve asynchronously)

@@ -266,14 +266,22 @@ class TextEditorComponent {
     if (useScheduler === true) {
       const scheduler = etch.getScheduler()
       scheduler.readDocument(() => {
-        this.measureContentDuringUpdateSync()
+        const restartFrame = this.measureContentDuringUpdateSync()
         scheduler.updateDocument(() => {
-          this.updateSyncAfterMeasuringContent()
+          if (restartFrame) {
+            this.updateSync(true)
+          } else {
+            this.updateSyncAfterMeasuringContent()
+          }
         })
       })
     } else {
-      this.measureContentDuringUpdateSync()
-      this.updateSyncAfterMeasuringContent()
+      const restartFrame = this.measureContentDuringUpdateSync()
+      if (restartFrame) {
+        this.updateSync(false)
+      } else {
+        this.updateSyncAfterMeasuringContent()
+      }
     }
 
     this.updateScheduled = false
@@ -391,15 +399,16 @@ class TextEditorComponent {
     this.measureHorizontalPositions()
     this.updateAbsolutePositionedDecorations()
 
+    const isHorizontalScrollbarVisible = (
+      this.canScrollHorizontally() &&
+      this.getHorizontalScrollbarHeight() > 0
+    )
+
     if (this.pendingAutoscroll) {
       this.derivedDimensionsCache = {}
       const {screenRange, options} = this.pendingAutoscroll
       this.autoscrollHorizontally(screenRange, options)
 
-      const isHorizontalScrollbarVisible = (
-        this.canScrollHorizontally() &&
-        this.getHorizontalScrollbarHeight() > 0
-      )
       if (!wasHorizontalScrollbarVisible && isHorizontalScrollbarVisible) {
         this.autoscrollVertically(screenRange, options)
       }
@@ -408,6 +417,8 @@ class TextEditorComponent {
 
     this.linesToMeasure.clear()
     this.measuredContent = true
+
+    return wasHorizontalScrollbarVisible !== isHorizontalScrollbarVisible
   }
 
   updateSyncAfterMeasuringContent () {
@@ -1520,15 +1531,11 @@ class TextEditorComponent {
     let {wheelDeltaX, wheelDeltaY} = event
 
     if (Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)) {
-      wheelDeltaX = (Math.sign(wheelDeltaX) === 1)
-        ? Math.max(1, wheelDeltaX * scrollSensitivity)
-        : Math.min(-1, wheelDeltaX * scrollSensitivity)
+      wheelDeltaX = wheelDeltaX * scrollSensitivity
       wheelDeltaY = 0
     } else {
       wheelDeltaX = 0
-      wheelDeltaY = (Math.sign(wheelDeltaY) === 1)
-        ? Math.max(1, wheelDeltaY * scrollSensitivity)
-        : Math.min(-1, wheelDeltaY * scrollSensitivity)
+      wheelDeltaY = wheelDeltaY * scrollSensitivity
     }
 
     if (this.getPlatform() !== 'darwin' && event.shiftKey) {
@@ -2804,7 +2811,7 @@ class TextEditorComponent {
   setScrollTop (scrollTop) {
     if (Number.isNaN(scrollTop) || scrollTop == null) return false
 
-    scrollTop = Math.round(Math.max(0, Math.min(this.getMaxScrollTop(), scrollTop)))
+    scrollTop = roundToPhysicalPixelBoundary(Math.max(0, Math.min(this.getMaxScrollTop(), scrollTop)))
     if (scrollTop !== this.scrollTop) {
       this.derivedDimensionsCache = {}
       this.scrollTopPending = true
@@ -2835,7 +2842,7 @@ class TextEditorComponent {
   setScrollLeft (scrollLeft) {
     if (Number.isNaN(scrollLeft) || scrollLeft == null) return false
 
-    scrollLeft = Math.round(Math.max(0, Math.min(this.getMaxScrollLeft(), scrollLeft)))
+    scrollLeft = roundToPhysicalPixelBoundary(Math.max(0, Math.min(this.getMaxScrollLeft(), scrollLeft)))
     if (scrollLeft !== this.scrollLeft) {
       this.scrollLeftPending = true
       this.scrollLeft = scrollLeft
@@ -3515,7 +3522,7 @@ class CursorsAndInputComponent {
 
       const cursorStyle = {
         height: cursorHeight,
-        width: pixelWidth + 'px',
+        width: Math.min(pixelWidth, scrollWidth - pixelLeft) + 'px',
         transform: `translate(${pixelLeft}px, ${pixelTop}px)`
       }
       if (extraCursorStyle) Object.assign(cursorStyle, extraCursorStyle)

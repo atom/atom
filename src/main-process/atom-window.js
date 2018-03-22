@@ -22,6 +22,7 @@ class AtomWindow extends EventEmitter {
     this.safeMode = settings.safeMode
     this.devMode = settings.devMode
     this.resourcePath = settings.resourcePath
+    this.projectSpecification = settings.projectSpecification
 
     let {pathToOpen, locationsToOpen} = settings
     if (!locationsToOpen && pathToOpen) locationsToOpen = [{pathToOpen}]
@@ -57,9 +58,11 @@ class AtomWindow extends EventEmitter {
 
     Object.defineProperty(this.browserWindow, 'loadSettingsJSON', {
       get: () => JSON.stringify(Object.assign({
-        userSettings: this.atomApplication.configFile.get()
-      }, this.loadSettings)),
-      configurable: true
+        userSettings: !this.isSpec
+          ? this.atomApplication.configFile.get()
+          : null,
+        projectSpecification: this.projectSpecification
+      }, this.loadSettings))
     })
 
     this.handleEvents()
@@ -154,12 +157,13 @@ class AtomWindow extends EventEmitter {
 
   containsPath (pathToCheck) {
     if (!pathToCheck) return false
-    const stat = fs.statSyncNoException(pathToCheck)
-    if (stat && stat.isDirectory()) return false
-
-    return this.representedDirectoryPaths.some(projectPath =>
-      pathToCheck === projectPath || pathToCheck.startsWith(path.join(projectPath, path.sep))
-    )
+    let stat
+    return this.representedDirectoryPaths.some(projectPath => {
+      if (pathToCheck === projectPath) return true
+      if (!pathToCheck.startsWith(path.join(projectPath, path.sep))) return false
+      if (stat === undefined) stat = fs.statSyncNoException(pathToCheck)
+      return !stat || !stat.isDirectory()
+    })
   }
 
   handleEvents () {
