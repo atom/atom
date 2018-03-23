@@ -225,6 +225,8 @@ module.exports = class Workspace extends Model {
       modal: new PanelContainer({viewRegistry: this.viewRegistry, location: 'modal'})
     }
 
+    this.incoming = new Map()
+
     this.subscribeToEvents()
   }
 
@@ -921,6 +923,16 @@ module.exports = class Workspace extends Model {
       if (typeof item.getURI === 'function') uri = item.getURI()
     }
 
+    let resolveItem = () => {}
+    if (uri) {
+      const incomingItem = this.incoming.get(uri)
+      if (!incomingItem) {
+        this.incoming.set(uri, new Promise(resolve => { resolveItem = resolve }))
+      } else {
+        await incomingItem
+      }
+    }
+
     if (!atom.config.get('core.allowPendingPaneItems')) {
       options.pending = false
     }
@@ -1048,6 +1060,10 @@ module.exports = class Workspace extends Model {
 
     const index = pane.getActiveItemIndex()
     this.emitter.emit('did-open', {uri, pane, item, index})
+    if (uri) {
+      this.incoming.delete(uri)
+    }
+    resolveItem()
     return item
   }
 
