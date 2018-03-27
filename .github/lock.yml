@@ -4,10 +4,10 @@
 daysUntilLock: 180
 # Comment to post before locking. Set to `false` to disable
 lockComment: >
-  Locking this issue since it is closed and has had enough time for people
-  to give further feedback on. If you believe that you are encountering
-  the same problem described here, please open a new issue and fill out
-  [the entire template](https://github.com/atom/atom/blob/master/ISSUE_TEMPLATE.md)
-  to ensure that we have enough information to get this fixed. Thanks!
+  This issue is now locked since it had enough time for everyone to give
+  further feedback on after it was closed. If you can still reproduce this
+  issue in safe mode `atom --safe` then please open a new issue and fill out
+  [the entire issue template](https://github.com/atom/atom/blob/master/ISSUE_TEMPLATE.md)
+  to ensure that we have enough information to address your issue. Thanks!
 # Limit to only `issues` or `pulls`
 # only: issues
