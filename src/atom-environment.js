@@ -86,7 +86,7 @@ class AtomEnvironment {
     this.config = new Config({
       saveCallback: settings => {
         if (this.enablePersistence) {
-          this.applicationDelegate.setUserSettings(settings)
+          this.applicationDelegate.setUserSettings(settings, this.config.getUserConfigPath())
         }
       }
     })

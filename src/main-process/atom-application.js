@@ -113,10 +113,12 @@ class AtomApplication extends EventEmitter {
       ? path.join(process.env.ATOM_HOME, 'config.json')
       : path.join(process.env.ATOM_HOME, 'config.cson')
 
-    this.configFile = new ConfigFile(configFilePath)
+    this.configFile = ConfigFile.at(configFilePath)
     this.config = new Config({
       saveCallback: settings => {
-        if (!this.quitting) return this.configFile.update(settings)
+        if (!this.quitting) {
+          return this.configFile.update(settings)
+        }
       }
     })
     this.config.setSchema(null, {type: 'object', properties: _.clone(ConfigSchema)})
@@ -561,8 +563,8 @@ class AtomApplication extends EventEmitter {
       window.setPosition(x, y)
     }))
 
-    this.disposable.add(ipcHelpers.respondTo('set-user-settings', (window, settings) =>
-      this.configFile.update(JSON.parse(settings))
+    this.disposable.add(ipcHelpers.respondTo('set-user-settings', (window, settings, filePath) =>
+      ConfigFile.at(filePath || this.configFilePath).update(JSON.parse(settings))
     ))
 
     this.disposable.add(ipcHelpers.respondTo('center-window', window => window.center()))
