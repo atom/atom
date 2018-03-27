@@ -91,6 +91,27 @@ describe('ConfigFile', () => {
       })
     })
   })
+
+  describe('ConfigFile.at()', () => {
+    let path0, path1
+
+    beforeEach(() => {
+      path0 = filePath
+      path1 = path.join(fs.realpathSync(temp.mkdirSync()), 'the-config.cson')
+
+      configFile = ConfigFile.at(path0)
+    })
+
+    it('returns an existing ConfigFile', () => {
+      const cf = ConfigFile.at(path0)
+      expect(cf).toEqual(configFile)
+    })
+
+    it('creates a new ConfigFile for unrecognized paths', () => {
+      const cf = ConfigFile.at(path1)
+      expect(cf).not.toEqual(configFile)
+    })
+  })
 })
 
 function writeFileSync (filePath, content, seconds = 2) {
