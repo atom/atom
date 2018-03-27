@@ -62,7 +62,7 @@ describe('ConfigFile', () => {
     })
   })
 
-  describe('when the file is  updated with invalid CSON', () => {
+  describe('when the file is updated with invalid CSON', () => {
     it('notifies onDidError observers', async () => {
       configFile = new ConfigFile(filePath)
       subscription = await configFile.watch()
