@@ -6,7 +6,7 @@ daysUntilLock: 180
 lockComment: >
   This issue has been automatically locked since there has not been
   any recent activity after it was closed. If you can still reproduce this issue in
-  [safe mode](https://flight-manual.atom.io/hacking-atom/sections/debugging/#using-safe-mode)
+  [Safe Mode](https://flight-manual.atom.io/hacking-atom/sections/debugging/#using-safe-mode)
   then please open a new issue and fill out
   [the entire issue template](https://github.com/atom/atom/blob/master/ISSUE_TEMPLATE.md)
   to ensure that we have enough information to address your issue. Thanks!
