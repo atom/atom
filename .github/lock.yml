@@ -4,10 +4,11 @@
 daysUntilLock: 180
 # Comment to post before locking. Set to `false` to disable
 lockComment: >
-  This issue is now locked since it had enough time for everyone to give further
-  feedback on after it was closed. If you can still reproduce this issue in
+  This issue has been automatically locked since there has not been
+  any recent activity after it was closed. If you can still reproduce this issue in
   [safe mode](https://flight-manual.atom.io/hacking-atom/sections/debugging/#using-safe-mode)
-  then please open a new issue and fill out [the entire issue template](https://github.com/atom/atom/blob/master/ISSUE_TEMPLATE.md)
+  then please open a new issue and fill out
+  [the entire issue template](https://github.com/atom/atom/blob/master/ISSUE_TEMPLATE.md)
   to ensure that we have enough information to address your issue. Thanks!
 # Limit to only `issues` or `pulls`
 # only: issues
