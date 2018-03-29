@@ -10,5 +10,8 @@ lockComment: >
   then please open a new issue and fill out
   [the entire issue template](https://github.com/atom/atom/blob/master/ISSUE_TEMPLATE.md)
   to ensure that we have enough information to address your issue. Thanks!
+# Issues or pull requests with these labels will not be locked
+exemptLabels:
+  - help-wanted
 # Limit to only `issues` or `pulls`
 # only: issues
