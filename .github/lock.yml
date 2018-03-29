@@ -14,4 +14,4 @@ lockComment: >
 exemptLabels:
   - help-wanted
 # Limit to only `issues` or `pulls`
-# only: issues
+only: issues
