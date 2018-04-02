@@ -110,7 +110,7 @@
     "encoding-selector": "0.23.8",
     "exception-reporting": "0.43.1",
     "find-and-replace": "0.215.7",
-    "fuzzy-finder": "1.8.0",
+    "fuzzy-finder": "1.8.1",
     "github": "0.12.0",
     "git-diff": "1.3.9",
     "go-to-line": "0.33.0",
