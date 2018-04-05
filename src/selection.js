@@ -446,7 +446,7 @@ class Selection {
   //   behavior is suppressed.
   //     level between the first lines and the trailing lines.
   //   * `normalizeLineEndings` (optional) {Boolean} (default: true)
-  //   * `undo` If `skip`, skips the undo stack for this operation.
+  //   * `undo` *Deprecated* If `skip`, skips the undo stack for this operation. This property is deprecated. Call groupLastChanges() on the {TextBuffer} afterward instead.
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
   insertText (text, options = {}) {
     if (!this.ensureWritable('insertText', options)) return

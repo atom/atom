@@ -1320,7 +1320,7 @@ class TextEditor {
   // * `text` A {String}
   // * `options` (optional) {Object}
   //   * `normalizeLineEndings` (optional) {Boolean} (default: true)
-  //   * `undo` (optional) {String} 'skip' will skip the undo system
+  //   * `undo` (optional) *Deprecated* {String} 'skip' will skip the undo system. This property is deprecated. Call groupLastChanges() on the {TextBuffer} afterward instead.
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
   //
   // Returns the {Range} of the newly-inserted text.
