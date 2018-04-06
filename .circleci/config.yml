@@ -1,0 +1,48 @@
+version: 2
+jobs:
+  build:
+    macos:
+      xcode: 9.2.0
+    environment:
+      TEST_JUNIT_XML_ROOT: /tmp/test_xml
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - node-modules-v1-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "script/package.json"}}-{{ checksum "apm/package.json" }}
+            - node-modules-v1-{{ arch }}-
+      - restore_cache:
+          keys:
+            - build-cache-v1-{{ arch }}
+      - run: mkdir -p $TEST_JUNIT_XML_ROOT
+      - run: script/build --code-sign --compress-artifacts
+      - save_cache:
+          key: node-modules-v1-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "script/package.json"}}-{{ checksum "apm/package.json" }}
+          paths:
+            - node_modules
+            - apm/node_modules
+            - script/node_modules
+      - run: script/lint
+      - run: script/test
+      - store_artifacts:
+          path: out/atom-mac.zip
+      - store_artifacts:
+          path: out/atom-mac-symbols.zip
+      - store_artifacts:
+          path: docs/output/atom-api.json
+      - store_test_results:
+          path: /tmp/test_xml
+      - store_artifacts:
+          path: /tmp/test_xml
+      - save_cache:
+          key: build-cache-v1-{{ arch }}-{{ epoch }}
+          paths:
+            - electron
+            - ~/.atom/compile-cache
+            - ~/.atom/snapshot-cache
+
+experimental:
+  notify:
+    branches:
+      only:
+        - master
