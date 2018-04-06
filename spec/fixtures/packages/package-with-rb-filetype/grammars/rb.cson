@@ -1,5 +1,6 @@
 'name': 'Test Ruby'
 'scopeName': 'test.rb'
+'firstLineMatch': '^\\#!.*(?:\\s|\\/)(?:testruby)(?:$|\\s)'
 'fileTypes': [
   'rb'
 ]

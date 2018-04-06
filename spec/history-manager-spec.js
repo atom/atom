@@ -1,10 +1,8 @@
-/** @babel */
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
-import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
-
-import {HistoryManager, HistoryProject} from '../src/history-manager'
-import StateStore from '../src/state-store'
+const {HistoryManager, HistoryProject} = require('../src/history-manager')
+const StateStore = require('../src/state-store')
 
 describe("HistoryManager", () => {
   let historyManager, commandRegistry, project, stateStore
@@ -182,11 +180,26 @@ describe("HistoryManager", () => {
     })
   })
 
-  describe("saveState" ,() => {
+  describe("saveState", () => {
+    let savedHistory
+    beforeEach(() => {
+      // historyManager.saveState is spied on globally to prevent specs from
+      // modifying the shared project history. Since these tests depend on
+      // saveState, we unspy it but in turn spy on the state store instead
+      // so that no data is actually stored to it.
+      jasmine.unspy(historyManager, 'saveState')
+
+      spyOn(historyManager.stateStore, 'save').andCallFake((name, history) => {
+        savedHistory = history
+        return Promise.resolve()
+      })
+    })
+
     it("saves the state", async () => {
       await historyManager.addProject(["/save/state"])
       await historyManager.saveState()
       const historyManager2 = new HistoryManager({stateStore, project, commands: commandRegistry})
+      spyOn(historyManager2.stateStore, 'load').andCallFake(name => Promise.resolve(savedHistory))
       await historyManager2.loadState()
       expect(historyManager2.getProjects()[0].paths).toEqual(['/save/state'])
     })

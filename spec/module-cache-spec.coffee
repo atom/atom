@@ -9,7 +9,8 @@ describe 'ModuleCache', ->
     spyOn(Module, '_findPath').andCallThrough()
 
   afterEach ->
-    temp.cleanupSync()
+    try
+      temp.cleanupSync()
 
   it 'resolves Electron module paths without hitting the filesystem', ->
     builtins = ModuleCache.cache.builtins

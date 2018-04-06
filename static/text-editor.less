@@ -2,10 +2,17 @@
 @import "octicon-utf-codes";
 @import "octicon-mixins";
 
+:root {
+  // Fixes specs
+  --editor-font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+}
+
 atom-text-editor {
   display: flex;
-  font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   cursor: text;
+  font-family: var(--editor-font-family);
+  font-size: var(--editor-font-size);
+  line-height: var(--editor-line-height);
 
   .gutter-container {
     width: min-content;
@@ -20,6 +27,7 @@ atom-text-editor {
     min-width: 1em;
     box-sizing: border-box;
     background-color: inherit;
+    position: relative;
   }
 
   .gutter:hover {
@@ -51,7 +59,6 @@ atom-text-editor {
   }
 
   .line-number {
-    width: min-content;
     padding-left: .5em;
     white-space: nowrap;
     opacity: 0.6;
@@ -70,10 +77,6 @@ atom-text-editor {
     }
   }
 
-  .lines {
-    background-color: inherit;
-  }
-
   .highlight {
     background: none;
     padding: 0;
@@ -86,7 +89,6 @@ atom-text-editor {
 
   .line {
     white-space: pre;
-    overflow: hidden;
     contain: layout;
 
     &.cursor-line .fold-marker::after {

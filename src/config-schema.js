@@ -17,7 +17,7 @@ const configSchema = {
         type: 'boolean',
         default: true,
         title: 'Exclude VCS Ignored Paths',
-        description: 'Files and directories ignored by the current project\'s VCS system will be ignored by some packages, such as the fuzzy finder and find and replace. For example, projects using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
+        description: 'Files and directories ignored by the current project\'s VCS will be ignored by some packages, such as the fuzzy finder and find and replace. For example, projects using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
       },
       followSymlinks: {
         type: 'boolean',
@@ -54,6 +54,25 @@ const configSchema = {
             type: 'string'
           }
         }
+      },
+      uriHandlerRegistration: {
+        type: 'string',
+        default: 'prompt',
+        description: 'When should Atom register itself as the default handler for atom:// URIs',
+        enum: [
+          {
+            value: 'prompt',
+            description: 'Prompt to register Atom as the default atom:// URI handler'
+          },
+          {
+            value: 'always',
+            description: 'Always become the default atom:// URI handler automatically'
+          },
+          {
+            value: 'never',
+            description: 'Never become the default atom:// URI handler'
+          }
+        ]
       },
       themes: {
         type: 'array',
@@ -308,6 +327,34 @@ const configSchema = {
         description: 'Warn before opening files larger than this number of megabytes.',
         type: 'number',
         default: 40
+      },
+      fileSystemWatcher: {
+        description: 'Choose the underlying implementation used to watch for filesystem changes. Emulating changes will miss any events caused by applications other than Atom, but may help prevent crashes or freezes.',
+        type: 'string',
+        default: 'native',
+        enum: [
+          {
+            value: 'native',
+            description: 'Native operating system APIs'
+          },
+          {
+            value: 'experimental',
+            description: 'Experimental filesystem watching library'
+          },
+          {
+            value: 'poll',
+            description: 'Polling'
+          },
+          {
+            value: 'atom',
+            description: 'Emulated with Atom events'
+          }
+        ]
+      },
+      useTreeSitterParsers: {
+        type: 'boolean',
+        default: false,
+        description: 'Experimental: Use the new Tree-sitter parsing system for supported languages.'
       }
     }
   },
@@ -333,7 +380,7 @@ const configSchema = {
       // These can be used as globals or scoped, thus defaults.
       fontFamily: {
         type: 'string',
-        default: '',
+        default: 'Menlo, Consolas, DejaVu Sans Mono, monospace',
         description: 'The name of the font family used for editor text.'
       },
       fontSize: {
@@ -393,6 +440,12 @@ const configSchema = {
         default: 80,
         minimum: 1,
         description: 'Identifies the length of a line which is used when wrapping text with the `Soft Wrap At Preferred Line Length` setting enabled, in number of characters.'
+      },
+      maxScreenLineLength: {
+        type: 'integer',
+        default: 500,
+        minimum: 500,
+        description: 'Defines the maximum width of the editor window before soft wrapping is enforced, in number of characters.'
       },
       tabLength: {
         type: 'integer',

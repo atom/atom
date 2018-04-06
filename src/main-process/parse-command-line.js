@@ -5,6 +5,7 @@ const yargs = require('yargs')
 const {app} = require('electron')
 const path = require('path')
 const fs = require('fs-plus')
+const CSON = require('season')
 
 module.exports = function parseCommandLine (processArgs) {
   const options = yargs(processArgs).wrap(yargs.terminalWidth())
@@ -18,6 +19,8 @@ module.exports = function parseCommandLine (processArgs) {
     existing Atom window that contains all of the given folders, the paths
     will be opened in that window. Otherwise, they will be opened in a new
     window.
+
+    Paths that start with \`atom://\` will be interpreted as URLs.
 
     Environment Variables:
 
@@ -42,7 +45,7 @@ module.exports = function parseCommandLine (processArgs) {
     'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.'
   )
   options.boolean('benchmark').describe('benchmark', 'Open a new window that runs the specified benchmarks.')
-  options.boolean('benchmark-test').describe('benchmark--test', 'Run a faster version of the benchmarks in headless mode.')
+  options.boolean('benchmark-test').describe('benchmark-test', 'Run a faster version of the benchmarks in headless mode.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
   options.alias('m', 'main-process').boolean('m').describe('m', 'Run the specified specs in the main process.')
   options.string('timeout').describe(
@@ -50,13 +53,25 @@ module.exports = function parseCommandLine (processArgs) {
     'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).'
   )
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version information.')
+  options.alias('p', 'project').describe('p', 'Start Atom with a project specification file.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.alias('a', 'add').boolean('a').describe('add', 'Open path as a new project in last used window.')
   options.string('socket-path')
   options.string('user-data-dir')
   options.boolean('clear-window-state').describe('clear-window-state', 'Delete all Atom environment state.')
+  options.boolean('enable-electron-logging').describe('enable-electron-logging', 'Enable low-level logging messages from Electron.')
+  options.boolean('uri-handler')
 
-  const args = options.argv
+  let args = options.argv
+
+  // If --uri-handler is set, then we parse NOTHING else
+  if (args.uriHandler) {
+    args = {
+      uriHandler: true,
+      'uri-handler': true,
+      _: args._.filter(str => str.startsWith('atom://')).slice(0, 1)
+    }
+  }
 
   if (args.help) {
     process.stdout.write(options.help())
@@ -75,10 +90,10 @@ module.exports = function parseCommandLine (processArgs) {
 
   const addToLastWindow = args['add']
   const safeMode = args['safe']
-  const pathsToOpen = args._
   const benchmark = args['benchmark']
   const benchmarkTest = args['benchmark-test']
   const test = args['test']
+  const projectSpecificationFile = args['project']
   const mainProcess = args['main-process']
   const timeout = args['timeout']
   const newWindow = args['new-window']
@@ -99,11 +114,21 @@ module.exports = function parseCommandLine (processArgs) {
   const userDataDir = args['user-data-dir']
   const profileStartup = args['profile-startup']
   const clearWindowState = args['clear-window-state']
-  const urlsToOpen = []
+  let pathsToOpen = []
+  let urlsToOpen = []
   let devMode = args['dev']
   let devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH || path.join(app.getPath('home'), 'github', 'atom')
   let resourcePath = null
 
+  for (const path of args._) {
+    if (path.startsWith('atom://')) {
+      urlsToOpen.push(path)
+    } else {
+      pathsToOpen.push(path)
+    }
+  }
+
+  // Check to see if project flag is set, then add all paths from the .atomproject.
   if (args['resource-path']) {
     devMode = true
     devResourcePath = args['resource-path']
@@ -111,6 +136,28 @@ module.exports = function parseCommandLine (processArgs) {
 
   if (test) {
     devMode = true
+  }
+
+  let projectSpecification = {}
+  if (projectSpecificationFile) {
+    const readPath = path.isAbsolute(projectSpecificationFile)
+      ? projectSpecificationFile
+      : path.join(executedFrom, projectSpecificationFile)
+
+    const contents = Object.assign({}, readProjectSpecificationSync(readPath, executedFrom))
+    const pathToProjectFile = path.join(executedFrom, projectSpecificationFile)
+
+    const base = path.dirname(pathToProjectFile)
+    pathsToOpen.push(path.dirname(projectSpecificationFile))
+    const paths = (contents.paths == null)
+      ? undefined
+      : contents.paths.map(curPath => path.resolve(base, curPath))
+
+    projectSpecification = {
+      originPath: pathToProjectFile,
+      paths,
+      config: contents.config
+    }
   }
 
   if (devMode) {
@@ -131,6 +178,7 @@ module.exports = function parseCommandLine (processArgs) {
   devResourcePath = normalizeDriveLetterName(devResourcePath)
 
   return {
+    projectSpecification,
     resourcePath,
     devResourcePath,
     pathsToOpen,
@@ -154,6 +202,18 @@ module.exports = function parseCommandLine (processArgs) {
     benchmarkTest,
     env: process.env
   }
+}
+
+function readProjectSpecificationSync (filepath, executedFrom) {
+  let contents
+  try {
+    contents = CSON.readFileSync(filepath)
+  } catch (e) {
+    throw new Error('Unable to read supplied project specification file.')
+  }
+
+  contents.config = (contents.config == null) ? {} : contents.config
+  return contents
 }
 
 function normalizeDriveLetterName (filePath) {

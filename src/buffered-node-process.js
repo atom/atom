@@ -1,6 +1,4 @@
-/** @babel */
-
-import BufferedProcess from './buffered-process'
+const BufferedProcess = require('./buffered-process')
 
 // Extended: Like {BufferedProcess}, but accepts a Node script as the command
 // to run.
@@ -12,7 +10,8 @@ import BufferedProcess from './buffered-process'
 // ```js
 //   const {BufferedNodeProcess} = require('atom')
 // ```
-export default class BufferedNodeProcess extends BufferedProcess {
+module.exports =
+class BufferedNodeProcess extends BufferedProcess {
 
   // Public: Runs the given Node script by spawning a new child process.
   //

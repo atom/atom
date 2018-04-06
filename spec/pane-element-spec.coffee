@@ -113,6 +113,53 @@ describe "PaneElement", ->
         expect(paneElement.dataset.activeItemPath).toBeUndefined()
         expect(paneElement.dataset.activeItemName).toBeUndefined()
 
+      describe "when the path of the item changes", ->
+        [item1, item2] = []
+
+        beforeEach ->
+          item1 = document.createElement('div')
+          item1.path = '/foo/bar.txt'
+          item1.changePathCallbacks = []
+          item1.setPath = (path) ->
+            @path = path
+            callback() for callback in @changePathCallbacks
+            return
+          item1.getPath = -> @path
+          item1.onDidChangePath = (callback) ->
+            @changePathCallbacks.push callback
+            return dispose: =>
+              @changePathCallbacks = @changePathCallbacks.filter (f) -> f isnt callback
+
+          item2 = document.createElement('div')
+
+          pane.addItem(item1)
+          pane.addItem(item2)
+
+        it "changes the file path and file name data attributes on the pane if the active item path is changed", ->
+
+          expect(paneElement.dataset.activeItemPath).toBe '/foo/bar.txt'
+          expect(paneElement.dataset.activeItemName).toBe 'bar.txt'
+
+          item1.setPath "/foo/bar1.txt"
+
+          expect(paneElement.dataset.activeItemPath).toBe '/foo/bar1.txt'
+          expect(paneElement.dataset.activeItemName).toBe 'bar1.txt'
+
+          pane.activateItem(item2)
+
+          expect(paneElement.dataset.activeItemPath).toBeUndefined()
+          expect(paneElement.dataset.activeItemName).toBeUndefined()
+
+          item1.setPath "/foo/bar2.txt"
+
+          expect(paneElement.dataset.activeItemPath).toBeUndefined()
+          expect(paneElement.dataset.activeItemName).toBeUndefined()
+
+          pane.activateItem(item1)
+
+          expect(paneElement.dataset.activeItemPath).toBe '/foo/bar2.txt'
+          expect(paneElement.dataset.activeItemName).toBe 'bar2.txt'
+
   describe "when an item is removed from the pane", ->
     describe "when the destroyed item is an element", ->
       it "removes the item from the itemViews div", ->

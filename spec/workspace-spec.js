@@ -1,9 +1,7 @@
-/** @babel */
-
-/* global advanceClock, HTMLElement, waits */
-
 const path = require('path')
 const temp = require('temp').track()
+const dedent = require('dedent')
+const TextBuffer = require('text-buffer')
 const TextEditor = require('../src/text-editor')
 const Workspace = require('../src/workspace')
 const Project = require('../src/project')
@@ -12,7 +10,7 @@ const _ = require('underscore-plus')
 const fstream = require('fstream')
 const fs = require('fs-plus')
 const AtomEnvironment = require('../src/atom-environment')
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise} = require('./async-spec-helpers')
 
 describe('Workspace', () => {
   let workspace
@@ -29,34 +27,44 @@ describe('Workspace', () => {
     waitsForPromise(() => atom.workspace.itemLocationStore.clear())
   })
 
-  afterEach(() => temp.cleanupSync())
+  afterEach(() => {
+    try {
+      temp.cleanupSync()
+    } catch (e) {
+      // Do nothing
+    }
+  })
 
-  const simulateReload = () => {
-    const workspaceState = workspace.serialize()
-    const projectState = atom.project.serialize({isUnloading: true})
-    workspace.destroy()
-    atom.project.destroy()
-    atom.project = new Project({
-      notificationManager: atom.notifications,
-      packageManager: atom.packages,
-      confirm: atom.confirm.bind(atom),
-      applicationDelegate: atom.applicationDelegate
+  function simulateReload() {
+    waitsForPromise(() => {
+      const workspaceState = workspace.serialize()
+      const projectState = atom.project.serialize({isUnloading: true})
+      workspace.destroy()
+      atom.project.destroy()
+      atom.project = new Project({
+        notificationManager: atom.notifications,
+        packageManager: atom.packages,
+        confirm: atom.confirm.bind(atom),
+        applicationDelegate: atom.applicationDelegate,
+        grammarRegistry: atom.grammars
+      })
+      return atom.project.deserialize(projectState).then(() => {
+        workspace = atom.workspace = new Workspace({
+          config: atom.config,
+          project: atom.project,
+          packageManager: atom.packages,
+          grammarRegistry: atom.grammars,
+          styleManager: atom.styles,
+          deserializerManager: atom.deserializers,
+          notificationManager: atom.notifications,
+          applicationDelegate: atom.applicationDelegate,
+          viewRegistry: atom.views,
+          assert: atom.assert.bind(atom),
+          textEditorRegistry: atom.textEditors
+        })
+        workspace.deserialize(workspaceState, atom.deserializers)
+      })
     })
-    atom.project.deserialize(projectState)
-    workspace = atom.workspace = new Workspace({
-      config: atom.config,
-      project: atom.project,
-      packageManager: atom.packages,
-      grammarRegistry: atom.grammars,
-      styleManager: atom.styles,
-      deserializerManager: atom.deserializers,
-      notificationManager: atom.notifications,
-      applicationDelegate: atom.applicationDelegate,
-      viewRegistry: atom.views,
-      assert: atom.assert.bind(atom),
-      textEditorRegistry: atom.textEditors
-    })
-    return workspace.deserialize(workspaceState, atom.deserializers)
   }
 
   describe('serialization', () => {
@@ -89,9 +97,11 @@ describe('Workspace', () => {
         runs(() => {
           pane4.getActiveItem().setCursorScreenPosition([0, 2])
           pane2.activate()
+        })
 
-          simulateReload()
+        simulateReload()
 
+        runs(() => {
           expect(atom.workspace.getTextEditors().length).toBe(5)
           const [editor1, editor2, untitledEditor, editor3, editor4] = atom.workspace.getTextEditors()
           const firstDirectory = atom.project.getDirectories()[0]
@@ -117,7 +127,10 @@ describe('Workspace', () => {
         atom.workspace.getActivePane().destroy()
         expect(atom.workspace.getTextEditors().length).toBe(0)
         simulateReload()
-        expect(atom.workspace.getTextEditors().length).toBe(0)
+
+        runs(() => {
+          expect(atom.workspace.getTextEditors().length).toBe(0)
+        })
       })
     })
   })
@@ -261,6 +274,21 @@ describe('Workspace', () => {
             })
           })
 
+          it('discovers existing editors that are still opening', () => {
+            let editor0 = null
+            let editor1 = null
+
+            waitsForPromise(() => Promise.all([
+              workspace.open('spartacus.txt').then(o0 => { editor0 = o0 }),
+              workspace.open('spartacus.txt').then(o1 => { editor1 = o1 }),
+            ]))
+
+            runs(() => {
+              expect(editor0).toEqual(editor1)
+              expect(workspace.getActivePane().items).toEqual([editor0])
+            })
+          })
+
           it("uses the location specified by the model's `getDefaultLocation()` method", () => {
             const item = {
               getDefaultLocation: jasmine.createSpy().andReturn('right'),
@@ -345,6 +373,28 @@ describe('Workspace', () => {
           runs(() => {
             expect(workspace.getActivePane()).toBe(pane1)
             expect(workspace.getActivePaneItem()).toBe(editor1)
+          })
+        })
+
+        it('discovers existing editors that are still opening in an inactive pane', () => {
+          let editor0 = null
+          let editor1 = null
+          const pane0 = workspace.getActivePane()
+          const pane1 = workspace.getActivePane().splitRight()
+
+          pane0.activate()
+          const promise0 = workspace.open('spartacus.txt', {searchAllPanes: true}).then(o0 => { editor0 = o0 })
+          pane1.activate()
+          const promise1 = workspace.open('spartacus.txt', {searchAllPanes: true}).then(o1 => { editor1 = o1 })
+
+          waitsForPromise(() => Promise.all([promise0, promise1]))
+
+          runs(() => {
+            expect(editor0).toBeDefined()
+            expect(editor1).toBeDefined()
+
+            expect(editor0).toEqual(editor1)
+            expect(workspace.getActivePane().items).toEqual([editor0])
           })
         })
 
@@ -646,59 +696,42 @@ describe('Workspace', () => {
       })
     })
 
-    describe('when the file is over 2MB', () => {
-      it('opens the editor with largeFileMode: true', () => {
-        spyOn(fs, 'getSizeSync').andReturn(2 * 1048577) // 2MB
-
-        let editor = null
-        waitsForPromise(() => workspace.open('sample.js').then(e => { editor = e }))
-
-        runs(() => expect(editor.largeFileMode).toBe(true))
-      })
-    })
-
-    describe('when the file is over user-defined limit', () => {
-      const shouldPromptForFileOfSize = (size, shouldPrompt) => {
+    describe('when the file size is over the limit defined in `core.warnOnLargeFileLimit`', () => {
+      const shouldPromptForFileOfSize = async (size, shouldPrompt) => {
         spyOn(fs, 'getSizeSync').andReturn(size * 1048577)
-        atom.applicationDelegate.confirm.andCallFake(() => selectedButtonIndex)
-        atom.applicationDelegate.confirm()
-        var selectedButtonIndex = 1 // cancel
 
-        let editor = null
-        waitsForPromise(() => workspace.open('sample.js').then(e => { editor = e }))
+        let selectedButtonIndex = 1 // cancel
+        atom.applicationDelegate.confirm.andCallFake((options, callback) => callback(selectedButtonIndex))
+
+        let editor = await workspace.open('sample.js')
         if (shouldPrompt) {
-          runs(() => {
-            expect(editor).toBeUndefined()
-            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+          expect(editor).toBeUndefined()
+          expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
 
-            atom.applicationDelegate.confirm.reset()
-            selectedButtonIndex = 0
-          }) // open the file
+          atom.applicationDelegate.confirm.reset()
+          selectedButtonIndex = 0 // open the file
 
-          waitsForPromise(() => workspace.open('sample.js').then(e => { editor = e }))
+          editor = await workspace.open('sample.js')
 
-          runs(() => {
-            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-            expect(editor.largeFileMode).toBe(true)
-          })
+          expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
         } else {
-          runs(() => expect(editor).not.toBeUndefined())
+          expect(editor).not.toBeUndefined()
         }
       }
 
-      it('prompts the user to make sure they want to open a file this big', () => {
+      it('prompts before opening the file', async () => {
         atom.config.set('core.warnOnLargeFileLimit', 20)
-        shouldPromptForFileOfSize(20, true)
+        await shouldPromptForFileOfSize(20, true)
       })
 
-      it("doesn't prompt on files below the limit", () => {
+      it("doesn't prompt on files below the limit", async () => {
         atom.config.set('core.warnOnLargeFileLimit', 30)
-        shouldPromptForFileOfSize(20, false)
+        await shouldPromptForFileOfSize(20, false)
       })
 
-      it('prompts for smaller files with a lower limit', () => {
+      it('prompts for smaller files with a lower limit', async () => {
         atom.config.set('core.warnOnLargeFileLimit', 5)
-        shouldPromptForFileOfSize(10, true)
+        await shouldPromptForFileOfSize(10, true)
       })
     })
 
@@ -931,6 +964,18 @@ describe('Workspace', () => {
           expect(rightPane.getPendingItem()).toBe(editor2)
           expect(rightPane.destroy.callCount).toBe(0)
         })
+      })
+    })
+
+    describe('when opening an editor with a buffer that isn\'t part of the project', () => {
+      it('adds the buffer to the project', async () => {
+        const buffer = new TextBuffer()
+        const editor = new TextEditor({buffer})
+
+        await atom.workspace.open(editor)
+
+        expect(atom.project.getBuffers().map(buffer => buffer.id)).toContain(buffer.id)
+        expect(buffer.getLanguageMode().getLanguageId()).toBe('text.plain.null-grammar')
       })
     })
   })
@@ -1207,8 +1252,8 @@ describe('Workspace', () => {
     })
   })
 
-  describe('::onDidStopChangingActivePaneItem()', function () {
-    it('invokes observers when the active item of the active pane stops changing', function () {
+  describe('::onDidStopChangingActivePaneItem()', () => {
+    it('invokes observers when the active item of the active pane stops changing', () => {
       const pane1 = atom.workspace.getCenter().getActivePane()
       const pane2 = pane1.splitRight({items: [document.createElement('div'), document.createElement('div')]});
       atom.workspace.getLeftDock().getActivePane().addItem(document.createElement('div'))
@@ -1227,29 +1272,22 @@ describe('Workspace', () => {
   })
 
   describe('the grammar-used hook', () => {
-    it('fires when opening a file or changing the grammar of an open file', () => {
-      let editor = null
-      let javascriptGrammarUsed = false
-      let coffeescriptGrammarUsed = false
+    it('fires when opening a file or changing the grammar of an open file', async () => {
+      let resolveJavascriptGrammarUsed, resolveCoffeeScriptGrammarUsed
+      const javascriptGrammarUsed = new Promise(resolve => { resolveJavascriptGrammarUsed = resolve })
+      const coffeescriptGrammarUsed = new Promise(resolve => { resolveCoffeeScriptGrammarUsed = resolve })
 
       atom.packages.triggerDeferredActivationHooks()
+      atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', resolveJavascriptGrammarUsed)
+      atom.packages.onDidTriggerActivationHook('language-coffee-script:grammar-used', resolveCoffeeScriptGrammarUsed)
 
-      runs(() => {
-        atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', () => { javascriptGrammarUsed = true })
-        atom.packages.onDidTriggerActivationHook('language-coffee-script:grammar-used', () => { coffeescriptGrammarUsed = true })
-      })
+      const editor = await atom.workspace.open('sample.js', {autoIndent: false})
+      await atom.packages.activatePackage('language-javascript')
+      await javascriptGrammarUsed
 
-      waitsForPromise(() => atom.workspace.open('sample.js', {autoIndent: false}).then(o => { editor = o }))
-
-      waitsForPromise(() => atom.packages.activatePackage('language-javascript'))
-
-      waitsFor(() => javascriptGrammarUsed)
-
-      waitsForPromise(() => atom.packages.activatePackage('language-coffee-script'))
-
-      runs(() => editor.setGrammar(atom.grammars.selectGrammar('.coffee')))
-
-      waitsFor(() => coffeescriptGrammarUsed)
+      await atom.packages.activatePackage('language-coffee-script')
+      atom.grammars.assignLanguageMode(editor, 'source.coffee')
+      await coffeescriptGrammarUsed
     })
   })
 
@@ -1372,7 +1410,7 @@ describe('Workspace', () => {
 
   describe('::getActiveTextEditor()', () => {
     describe("when the workspace center's active pane item is a text editor", () => {
-      describe('when the workspace center has focus', function () {
+      describe('when the workspace center has focus', () => {
         it('returns the text editor', () => {
           const workspaceCenter = workspace.getCenter()
           const editor = new TextEditor()
@@ -1383,7 +1421,7 @@ describe('Workspace', () => {
         })
       })
 
-      describe('when a dock has focus', function () {
+      describe('when a dock has focus', () => {
         it('returns the text editor', () => {
           const workspaceCenter = workspace.getCenter()
           const editor = new TextEditor()
@@ -1502,41 +1540,36 @@ describe('Workspace', () => {
 
       simulateReload()
 
-      workspace.onDidChangeActiveTextEditor(editor => observed.push(editor))
-      workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      expect(observed).toEqual([undefined])
-    })
-  })
-
-  describe('when an editor is destroyed', () => {
-    it('removes the editor', () => {
-      let editor = null
-
-      waitsForPromise(() => workspace.open('a').then(e => { editor = e }))
-
       runs(() => {
-        expect(workspace.getTextEditors()).toHaveLength(1)
-        editor.destroy()
-        expect(workspace.getTextEditors()).toHaveLength(0)
+        workspace.onDidChangeActiveTextEditor(editor => observed.push(editor))
+        workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+        expect(observed).toEqual([undefined])
       })
     })
   })
 
+  describe('when an editor is destroyed', () => {
+    it('removes the editor', async () => {
+      const editor = await workspace.open('a')
+      expect(workspace.getTextEditors()).toHaveLength(1)
+      editor.destroy()
+      expect(workspace.getTextEditors()).toHaveLength(0)
+    })
+  })
+
   describe('when an editor is copied because its pane is split', () => {
-    it('sets up the new editor to be configured by the text editor registry', () => {
-      waitsForPromise(() => atom.packages.activatePackage('language-javascript'))
+    it('sets up the new editor to be configured by the text editor registry', async () => {
+      await atom.packages.activatePackage('language-javascript')
 
-      waitsForPromise(() =>
-        workspace.open('a').then(editor => {
-          atom.textEditors.setGrammarOverride(editor, 'source.js')
-          expect(editor.getGrammar().name).toBe('JavaScript')
+      const editor = await workspace.open('a')
 
-          workspace.getActivePane().splitRight({copyActiveItem: true})
-          const newEditor = workspace.getActiveTextEditor()
-          expect(newEditor).not.toBe(editor)
-          expect(newEditor.getGrammar().name).toBe('JavaScript')
-        })
-      )
+      atom.grammars.assignLanguageMode(editor, 'source.js')
+      expect(editor.getGrammar().name).toBe('JavaScript')
+
+      workspace.getActivePane().splitRight({copyActiveItem: true})
+      const newEditor = workspace.getActiveTextEditor()
+      expect(newEditor).not.toBe(editor)
+      expect(newEditor.getGrammar().name).toBe('JavaScript')
     })
   })
 
@@ -1549,11 +1582,10 @@ describe('Workspace', () => {
 
     waitsForPromise(() => atom.workspace.open('sample.coffee'))
 
-    runs(function () {
-      atom.workspace.getActiveTextEditor().setText(`\
-i = /test/; #FIXME\
-`
-      )
+    runs(() => {
+      atom.workspace.getActiveTextEditor().setText(dedent `
+        i = /test/; #FIXME\
+      `)
 
       const atom2 = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
       atom2.initialize({
@@ -1573,14 +1605,15 @@ i = /test/; #FIXME\
       atom2.project.deserialize(atom.project.serialize())
       atom2.workspace.deserialize(atom.workspace.serialize(), atom2.deserializers)
 
-      expect(atom2.grammars.getGrammars().map(grammar => grammar.name).sort()).toEqual([
-        'CoffeeScript',
-        'CoffeeScript (Literate)',
-        'JavaScript',
-        'Null Grammar',
-        'Regular Expression Replacement (JavaScript)',
-        'Regular Expressions (JavaScript)',
-        'TODO'
+      expect(atom2.grammars.getGrammars().map(grammar => grammar.scopeName).sort()).toEqual([
+        'source.coffee',
+        'source.js',
+        'source.js.regexp',
+        'source.js.regexp.replacement',
+        'source.jsdoc',
+        'source.litcoffee',
+        'text.plain.null-grammar',
+        'text.todo'
       ])
 
       atom2.destroy()
@@ -1707,13 +1740,16 @@ i = /test/; #FIXME\
           )
         })
 
-        atom2.project.deserialize(atom.project.serialize())
-        atom2.workspace.deserialize(atom.workspace.serialize(), atom2.deserializers)
-        const item = atom2.workspace.getActivePaneItem()
-        const pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
-        expect(document.title).toMatch(new RegExp(`^${item.getLongTitle()} \\u2014 ${pathEscaped}`))
+        waitsForPromise(() => atom2.project.deserialize(atom.project.serialize()))
 
-        atom2.destroy()
+        runs(() => {
+          atom2.workspace.deserialize(atom.workspace.serialize(), atom2.deserializers)
+          const item = atom2.workspace.getActivePaneItem()
+          const pathEscaped = fs.tildify(escapeStringRegex(atom.project.getPaths()[0]))
+          expect(document.title).toMatch(new RegExp(`^${item.getLongTitle()} \\u2014 ${pathEscaped}`))
+
+          atom2.destroy()
+        })
       })
     })
   })
@@ -2337,23 +2373,12 @@ i = /test/; #FIXME\
   }) // Cancels other ongoing searches
 
   describe('::replace(regex, replacementText, paths, iterator)', () => {
-    let filePath
-    let commentFilePath
-    let sampleContent
-    let sampleCommentContent
+    let fixturesDir, projectDir
 
     beforeEach(() => {
-      atom.project.setPaths([atom.project.getDirectories()[0].resolve('../')])
-
-      filePath = atom.project.getDirectories()[0].resolve('sample.js')
-      commentFilePath = atom.project.getDirectories()[0].resolve('sample-with-comments.js')
-      sampleContent = fs.readFileSync(filePath).toString()
-      sampleCommentContent = fs.readFileSync(commentFilePath).toString()
-    })
-
-    afterEach(() => {
-      fs.writeFileSync(filePath, sampleContent)
-      fs.writeFileSync(commentFilePath, sampleCommentContent)
+      fixturesDir = path.dirname(atom.project.getPaths()[0])
+      projectDir = temp.mkdirSync('atom')
+      atom.project.setPaths([projectDir])
     })
 
     describe("when a file doesn't exist", () => {
@@ -2375,6 +2400,9 @@ i = /test/; #FIXME\
 
     describe('when called with unopened files', () => {
       it('replaces properly', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
+
         const results = []
         waitsForPromise(() =>
           atom.workspace.replace(/items/gi, 'items', [filePath], result => results.push(result))
@@ -2386,10 +2414,29 @@ i = /test/; #FIXME\
           expect(results[0].replacements).toBe(6)
         })
       })
+
+      it('does not discard the multiline flag', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
+
+        const results = []
+        waitsForPromise(() =>
+          atom.workspace.replace(/;$/gmi, 'items', [filePath], result => results.push(result))
+        )
+
+        runs(() => {
+          expect(results).toHaveLength(1)
+          expect(results[0].filePath).toBe(filePath)
+          expect(results[0].replacements).toBe(8)
+        })
+      })
     })
 
     describe('when a buffer is already open', () => {
       it('replaces properly and saves when not modified', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), path.join(projectDir, 'sample.js'))
+
         let editor = null
         const results = []
 
@@ -2411,6 +2458,10 @@ i = /test/; #FIXME\
       })
 
       it('does not replace when the path is not specified', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        const commentFilePath = path.join(projectDir, 'sample-with-comments.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
+        fs.copyFileSync(path.join(fixturesDir, 'sample-with-comments.js'), path.join(projectDir, 'sample-with-comments.js'))
         const results = []
 
         waitsForPromise(() => atom.workspace.open('sample-with-comments.js'))
@@ -2426,6 +2477,9 @@ i = /test/; #FIXME\
       })
 
       it('does NOT save when modified', () => {
+        const filePath = path.join(projectDir, 'sample.js')
+        fs.copyFileSync(path.join(fixturesDir, 'sample.js'), filePath)
+
         let editor = null
         const results = []
 
@@ -2452,38 +2506,47 @@ i = /test/; #FIXME\
   })
 
   describe('::saveActivePaneItem()', () => {
-    let editor = null
-    beforeEach(() =>
-      waitsForPromise(() => atom.workspace.open('sample.js').then(o => { editor = o }))
-    )
+    let editor, notificationSpy
+
+    beforeEach(() => {
+      waitsForPromise(() => atom.workspace.open('sample.js').then(o => {
+        editor = o
+      }))
+
+      notificationSpy = jasmine.createSpy('did-add-notification')
+      atom.notifications.onDidAddNotification(notificationSpy)
+    })
 
     describe('when there is an error', () => {
       it('emits a warning notification when the file cannot be saved', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           throw new Error("'/some/file' is a directory")
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-        expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the directory cannot be written to', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           throw new Error("ENOTDIR, not a directory '/Some/dir/and-a-file.js'")
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-        expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the user does not have permission', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           const error = new Error("EACCES, permission denied '/Some/dir/and-a-file.js'")
           error.code = 'EACCES'
@@ -2491,10 +2554,13 @@ i = /test/; #FIXME\
           throw error
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-        expect(addedSpy.mostRecentCall.args[0].getType()).toBe('warning')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the operation is not permitted', () => {
@@ -2504,10 +2570,17 @@ i = /test/; #FIXME\
           error.path = '/Some/dir/and-a-file.js'
           throw error
         })
+
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the file is already open by another app', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           const error = new Error("EBUSY, resource busy or locked '/Some/dir/and-a-file.js'")
           error.code = 'EBUSY'
@@ -2515,17 +2588,16 @@ i = /test/; #FIXME\
           throw error
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-
-        const notificaiton = addedSpy.mostRecentCall.args[0]
-        expect(notificaiton.getType()).toBe('warning')
-        expect(notificaiton.getMessage()).toContain('Unable to save')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the file system is read-only', () => {
-        let addedSpy
         spyOn(editor, 'save').andCallFake(() => {
           const error = new Error("EROFS, read-only file system '/Some/dir/and-a-file.js'")
           error.code = 'EROFS'
@@ -2533,13 +2605,13 @@ i = /test/; #FIXME\
           throw error
         })
 
-        atom.notifications.onDidAddNotification(addedSpy = jasmine.createSpy())
-        atom.workspace.saveActivePaneItem()
-        expect(addedSpy).toHaveBeenCalled()
-
-        const notification = addedSpy.mostRecentCall.args[0]
-        expect(notification.getType()).toBe('warning')
-        expect(notification.getMessage()).toContain('Unable to save')
+        waitsForPromise(() =>
+          atom.workspace.saveActivePaneItem().then(() => {
+            expect(notificationSpy).toHaveBeenCalled()
+            expect(notificationSpy.mostRecentCall.args[0].getType()).toBe('warning')
+            expect(notificationSpy.mostRecentCall.args[0].getMessage()).toContain('Unable to save')
+          })
+        )
       })
 
       it('emits a warning notification when the file cannot be saved', () => {
@@ -2547,8 +2619,9 @@ i = /test/; #FIXME\
           throw new Error('no one knows')
         })
 
-        const save = () => atom.workspace.saveActivePaneItem()
-        expect(save).toThrow()
+        waitsForPromise({shouldReject: true}, () =>
+          atom.workspace.saveActivePaneItem()
+        )
       })
     })
   })
@@ -2657,7 +2730,70 @@ i = /test/; #FIXME\
     })
   })
 
-  describe('when the core.allowPendingPaneItems option is falsey', () => {
+  describe('::getVisiblePanes', () => {
+    it('returns all panes in visible pane containers', () => {
+      const center = workspace.getCenter()
+      const leftDock = workspace.getLeftDock()
+      const rightDock = workspace.getRightDock()
+      const bottomDock = workspace.getBottomDock()
+
+      const centerPane = center.getPanes()[0]
+      const leftDockPane = leftDock.getPanes()[0]
+      const rightDockPane = rightDock.getPanes()[0]
+      const bottomDockPane = bottomDock.getPanes()[0]
+
+      leftDock.hide()
+      rightDock.hide()
+      bottomDock.hide()
+      expect(workspace.getVisiblePanes()).toContain(centerPane)
+      expect(workspace.getVisiblePanes()).not.toContain(leftDockPane)
+      expect(workspace.getVisiblePanes()).not.toContain(rightDockPane)
+      expect(workspace.getVisiblePanes()).not.toContain(bottomDockPane)
+
+      leftDock.show()
+      expect(workspace.getVisiblePanes()).toContain(centerPane)
+      expect(workspace.getVisiblePanes()).toContain(leftDockPane)
+      expect(workspace.getVisiblePanes()).not.toContain(rightDockPane)
+      expect(workspace.getVisiblePanes()).not.toContain(bottomDockPane)
+
+      rightDock.show()
+      expect(workspace.getVisiblePanes()).toContain(centerPane)
+      expect(workspace.getVisiblePanes()).toContain(leftDockPane)
+      expect(workspace.getVisiblePanes()).toContain(rightDockPane)
+      expect(workspace.getVisiblePanes()).not.toContain(bottomDockPane)
+
+      bottomDock.show()
+      expect(workspace.getVisiblePanes()).toContain(centerPane)
+      expect(workspace.getVisiblePanes()).toContain(leftDockPane)
+      expect(workspace.getVisiblePanes()).toContain(rightDockPane)
+      expect(workspace.getVisiblePanes()).toContain(bottomDockPane)
+    })
+  })
+
+  describe('::getVisiblePaneContainers', () => {
+    it('returns all visible pane containers', () => {
+      const center = workspace.getCenter()
+      const leftDock = workspace.getLeftDock()
+      const rightDock = workspace.getRightDock()
+      const bottomDock = workspace.getBottomDock()
+
+      leftDock.hide()
+      rightDock.hide()
+      bottomDock.hide()
+      expect(workspace.getVisiblePaneContainers()).toEqual([center])
+
+      leftDock.show()
+      expect(workspace.getVisiblePaneContainers().sort()).toEqual([center, leftDock])
+
+      rightDock.show()
+      expect(workspace.getVisiblePaneContainers().sort()).toEqual([center, leftDock, rightDock])
+
+      bottomDock.show()
+      expect(workspace.getVisiblePaneContainers().sort()).toEqual([center, leftDock, rightDock, bottomDock])
+    })
+  })
+
+  describe('when the core.allowPendingPaneItems option is falsy', () => {
     it('does not open item with `pending: true` option as pending', () => {
       let pane = null
       atom.config.set('core.allowPendingPaneItems', false)
@@ -2673,7 +2809,7 @@ i = /test/; #FIXME\
   })
 
   describe('grammar activation', () => {
-    it('notifies the workspace of which grammar is used', () => {
+    it('notifies the workspace of which grammar is used', async () => {
       atom.packages.triggerDeferredActivationHooks()
 
       const javascriptGrammarUsed = jasmine.createSpy('js grammar used')
@@ -2684,52 +2820,51 @@ i = /test/; #FIXME\
       atom.packages.onDidTriggerActivationHook('language-ruby:grammar-used', rubyGrammarUsed)
       atom.packages.onDidTriggerActivationHook('language-c:grammar-used', cGrammarUsed)
 
-      waitsForPromise(() => atom.packages.activatePackage('language-ruby'))
-      waitsForPromise(() => atom.packages.activatePackage('language-javascript'))
-      waitsForPromise(() => atom.packages.activatePackage('language-c'))
-      waitsForPromise(() => atom.workspace.open('sample-with-comments.js'))
+      await atom.packages.activatePackage('language-ruby')
+      await atom.packages.activatePackage('language-javascript')
+      await atom.packages.activatePackage('language-c')
+      await atom.workspace.open('sample-with-comments.js')
 
-      runs(() => {
-        // Hooks are triggered when opening new editors
-        expect(javascriptGrammarUsed).toHaveBeenCalled()
+      // Hooks are triggered when opening new editors
+      expect(javascriptGrammarUsed).toHaveBeenCalled()
 
-        // Hooks are triggered when changing existing editors grammars
-        atom.workspace.getActiveTextEditor().setGrammar(atom.grammars.grammarForScopeName('source.c'))
-        expect(cGrammarUsed).toHaveBeenCalled()
+      // Hooks are triggered when changing existing editors grammars
+      atom.grammars.assignLanguageMode(atom.workspace.getActiveTextEditor(), 'source.c')
+      expect(cGrammarUsed).toHaveBeenCalled()
 
-        // Hooks are triggered when editors are added in other ways.
-        atom.workspace.getActivePane().splitRight({copyActiveItem: true})
-        atom.workspace.getActiveTextEditor().setGrammar(atom.grammars.grammarForScopeName('source.ruby'))
-        expect(rubyGrammarUsed).toHaveBeenCalled()
-      })
+      // Hooks are triggered when editors are added in other ways.
+      atom.workspace.getActivePane().splitRight({copyActiveItem: true})
+      atom.grammars.assignLanguageMode(atom.workspace.getActiveTextEditor(), 'source.ruby')
+      expect(rubyGrammarUsed).toHaveBeenCalled()
     })
   })
 
   describe('.checkoutHeadRevision()', () => {
     let editor = null
-    beforeEach(() => {
+    beforeEach(async () => {
+      jasmine.useRealClock()
       atom.config.set('editor.confirmCheckoutHeadRevision', false)
 
-      waitsForPromise(() => atom.workspace.open('sample-with-comments.js').then(o => { editor = o }))
+      editor = await atom.workspace.open('sample-with-comments.js')
     })
 
-    it('reverts to the version of its file checked into the project repository', () => {
+    it('reverts to the version of its file checked into the project repository', async () => {
       editor.setCursorBufferPosition([0, 0])
       editor.insertText('---\n')
       expect(editor.lineTextForBufferRow(0)).toBe('---')
 
-      waitsForPromise(() => atom.workspace.checkoutHeadRevision(editor))
+      atom.workspace.checkoutHeadRevision(editor)
 
-      runs(() => expect(editor.lineTextForBufferRow(0)).toBe(''))
+      await conditionPromise(() => editor.lineTextForBufferRow(0) === '')
     })
 
     describe("when there's no repository for the editor's file", () => {
-      it("doesn't do anything", () => {
+      it("doesn't do anything", async () => {
         editor = new TextEditor()
         editor.setText('stuff')
         atom.workspace.checkoutHeadRevision(editor)
 
-        waitsForPromise(() => atom.workspace.checkoutHeadRevision(editor))
+        atom.workspace.checkoutHeadRevision(editor)
       })
     })
   })
@@ -2778,4 +2913,6 @@ i = /test/; #FIXME\
   })
 })
 
-const escapeStringRegex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+function escapeStringRegex (string) {
+  return string.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+}

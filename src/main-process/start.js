@@ -1,7 +1,7 @@
 const {app} = require('electron')
 const nslog = require('nslog')
 const path = require('path')
-const temp = require('temp')
+const temp = require('temp').track()
 const parseCommandLine = require('./parse-command-line')
 const startCrashReporter = require('../crash-reporter-start')
 const atomPaths = require('../atom-paths')
@@ -10,6 +10,16 @@ module.exports = function start (resourcePath, startTime) {
   global.shellStartTime = startTime
 
   process.on('uncaughtException', function (error = {}) {
+    if (error.message != null) {
+      console.log(error.message)
+    }
+
+    if (error.stack != null) {
+      console.log(error.stack)
+    }
+  })
+
+  process.on('unhandledRejection', function (error = {}) {
     if (error.message != null) {
       console.log(error.message)
     }

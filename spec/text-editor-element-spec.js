@@ -1,5 +1,3 @@
-/* global HTMLDivElement */
-
 const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
 const TextEditor = require('../src/text-editor')
 const TextEditorElement = require('../src/text-editor-element')
@@ -9,6 +7,10 @@ describe('TextEditorElement', () => {
 
   beforeEach(() => {
     jasmineContent = document.body.querySelector('#jasmine-content')
+    // Force scrollbars to be visible regardless of local system configuration
+    const scrollbarStyle = document.createElement('style')
+    scrollbarStyle.textContent = '::-webkit-scrollbar { -webkit-appearance: none }'
+    jasmine.attachToDOM(scrollbarStyle)
   })
 
   function buildTextEditorElement (options = {}) {
@@ -68,20 +70,47 @@ describe('TextEditorElement', () => {
     expect(element.getModel().isLineNumberGutterVisible()).toBe(false)
   })
 
+  it("honors the 'readonly' attribute", async function() {
+    jasmineContent.innerHTML = "<atom-text-editor readonly>"
+    const element = jasmineContent.firstChild
+
+    expect(element.getComponent().isInputEnabled()).toBe(false)
+
+    element.removeAttribute('readonly')
+    expect(element.getComponent().isInputEnabled()).toBe(true)
+
+    element.setAttribute('readonly', true)
+    expect(element.getComponent().isInputEnabled()).toBe(false)
+  })
+
   it('honors the text content', () => {
     jasmineContent.innerHTML = '<atom-text-editor>testing</atom-text-editor>'
     const element = jasmineContent.firstChild
     expect(element.getModel().getText()).toBe('testing')
   })
 
+  describe('tabIndex', () => {
+    it('uses a default value of -1', () => {
+      jasmineContent.innerHTML = '<atom-text-editor />'
+      const element = jasmineContent.firstChild
+      expect(element.tabIndex).toBe(-1)
+      expect(element.querySelector('input').tabIndex).toBe(-1)
+    })
+
+    it('uses the custom value when given', () => {
+      jasmineContent.innerHTML = '<atom-text-editor tabIndex="42" />'
+      const element = jasmineContent.firstChild
+      expect(element.tabIndex).toBe(-1)
+      expect(element.querySelector('input').tabIndex).toBe(42)
+    })
+  })
+
   describe('when the model is assigned', () =>
-    it("adds the 'mini' attribute if .isMini() returns true on the model", function (done) {
+    it("adds the 'mini' attribute if .isMini() returns true on the model", async () => {
       const element = buildTextEditorElement()
       element.getModel().update({mini: true})
-      atom.views.getNextUpdatePromise().then(() => {
-        expect(element.hasAttribute('mini')).toBe(true)
-        done()
-      })
+      await atom.views.getNextUpdatePromise()
+      expect(element.hasAttribute('mini')).toBe(true)
     })
   )
 
@@ -199,6 +228,49 @@ describe('TextEditorElement', () => {
         expect(document.activeElement).toBe(element.querySelector('input'))
       })
     })
+
+    describe('if focused when invisible due to a zero height and width', () => {
+      it('focuses the hidden input and does not throw an exception', () => {
+        const parentElement = document.createElement('div')
+        parentElement.style.position = 'absolute'
+        parentElement.style.width = '0px'
+        parentElement.style.height = '0px'
+
+        const element = buildTextEditorElement({attach: false})
+        parentElement.appendChild(element)
+        jasmineContent.appendChild(parentElement)
+
+        element.focus()
+        expect(document.activeElement).toBe(element.component.getHiddenInput())
+      })
+    })
+  })
+
+  describe('::setModel', () => {
+    describe('when the element does not have an editor yet', () => {
+      it('uses the supplied one', () => {
+        const element = buildTextEditorElement({attach: false})
+        const editor = new TextEditor()
+        element.setModel(editor)
+        jasmine.attachToDOM(element)
+        expect(editor.element).toBe(element)
+        expect(element.getModel()).toBe(editor)
+      })
+    })
+
+    describe('when the element already has an editor', () => {
+      it('unbinds it and then swaps it with the supplied one', async () => {
+        const element = buildTextEditorElement({attach: true})
+        const previousEditor = element.getModel()
+        expect(previousEditor.element).toBe(element)
+
+        const newEditor = new TextEditor()
+        element.setModel(newEditor)
+        expect(previousEditor.element).not.toBe(element)
+        expect(newEditor.element).toBe(element)
+        expect(element.getModel()).toBe(newEditor)
+      })
+    })
   })
 
   describe('::onDidAttach and ::onDidDetach', () =>
@@ -223,12 +295,11 @@ describe('TextEditorElement', () => {
     })
   )
 
-  describe('::setUpdatedSynchronously', () =>
+  describe('::setUpdatedSynchronously', () => {
     it('controls whether the text editor is updated synchronously', () => {
       spyOn(window, 'requestAnimationFrame').andCallFake(fn => fn())
 
       const element = buildTextEditorElement()
-      jasmine.attachToDOM(element)
 
       expect(element.isUpdatedSynchronously()).toBe(false)
 
@@ -243,7 +314,7 @@ describe('TextEditorElement', () => {
       expect(window.requestAnimationFrame).not.toHaveBeenCalled()
       expect(element.textContent).toContain('goodbye')
     })
-  )
+  })
 
   describe('::getDefaultCharacterWidth', () => {
     it('returns 0 before the element is attached', () => {

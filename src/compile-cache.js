@@ -17,6 +17,7 @@ var packageTranspilationRegistry = new PackageTranspilationRegistry()
 var COMPILERS = {
   '.js': packageTranspilationRegistry.wrapTranspiler(require('./babel')),
   '.ts': packageTranspilationRegistry.wrapTranspiler(require('./typescript')),
+  '.tsx': packageTranspilationRegistry.wrapTranspiler(require('./typescript')),
   '.coffee': packageTranspilationRegistry.wrapTranspiler(require('./coffee-script'))
 }
 
@@ -84,20 +85,20 @@ function compileFileAtPath (compiler, filePath, extension) {
   var sourceCode = fs.readFileSync(filePath, 'utf8')
   if (compiler.shouldCompile(sourceCode, filePath)) {
     var cachePath = compiler.getCachePath(sourceCode, filePath)
-    var compiledCode = readCachedJavascript(cachePath)
+    var compiledCode = readCachedJavaScript(cachePath)
     if (compiledCode != null) {
       cacheStats[extension].hits++
     } else {
       cacheStats[extension].misses++
       compiledCode = compiler.compile(sourceCode, filePath)
-      writeCachedJavascript(cachePath, compiledCode)
+      writeCachedJavaScript(cachePath, compiledCode)
     }
     return compiledCode
   }
   return sourceCode
 }
 
-function readCachedJavascript (relativeCachePath) {
+function readCachedJavaScript (relativeCachePath) {
   var cachePath = path.join(cacheDirectory, relativeCachePath)
   if (fs.isFileSync(cachePath)) {
     try {
@@ -107,7 +108,7 @@ function readCachedJavascript (relativeCachePath) {
   return null
 }
 
-function writeCachedJavascript (relativeCachePath, code) {
+function writeCachedJavaScript (relativeCachePath, code) {
   var cachePath = path.join(cacheDirectory, relativeCachePath)
   fs.writeFileSync(cachePath, code, 'utf8')
 }
@@ -153,7 +154,7 @@ exports.install = function (resourcesPath, nodeRequire) {
       if (!compiler) compiler = COMPILERS['.js']
 
       try {
-        var fileData = readCachedJavascript(compiler.getCachePath(sourceCode, filePath))
+        var fileData = readCachedJavaScript(compiler.getCachePath(sourceCode, filePath))
       } catch (error) {
         console.warn('Error reading compiled file', error.stack)
         return null

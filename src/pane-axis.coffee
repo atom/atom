@@ -69,7 +69,7 @@ class PaneAxis extends Model
     @emitter.on 'did-replace-child', fn
 
   onDidDestroy: (fn) ->
-    @emitter.on 'did-destroy', fn
+    @emitter.once 'did-destroy', fn
 
   onDidChangeFlexScale: (fn) ->
     @emitter.on 'did-change-flex-scale', fn

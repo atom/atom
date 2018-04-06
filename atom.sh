@@ -9,11 +9,17 @@ else
   exit 1
 fi
 
-if [ "$(basename $0)" == 'atom-beta' ]; then
-  BETA_VERSION=true
-else
-  BETA_VERSION=
-fi
+case $(basename $0) in
+  atom-beta)
+    CHANNEL=beta
+    ;;
+  atom-dev)
+    CHANNEL=dev
+    ;;
+  *)
+    CHANNEL=stable
+    ;;
+esac
 
 export ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT=true
 
@@ -30,6 +36,9 @@ while getopts ":wtfvh-:" opt; do
           ;;
         foreground|benchmark|benchmark-test|test)
           EXPECT_OUTPUT=1
+          ;;
+        enable-electron-logging)
+          export ELECTRON_ENABLE_LOGGING=1
           ;;
       esac
       ;;
@@ -50,10 +59,6 @@ if [ $REDIRECT_STDERR ]; then
   exec 2> /dev/null
 fi
 
-if [ $EXPECT_OUTPUT ]; then
-  export ELECTRON_ENABLE_LOGGING=1
-fi
-
 if [ $OS == 'Mac' ]; then
   if [ -L "$0" ]; then
     SCRIPT="$(readlink "$0")"
@@ -68,7 +73,7 @@ if [ $OS == 'Mac' ]; then
     ATOM_APP_NAME="$(basename "$ATOM_APP")"
   fi
 
-  if [ -n "$BETA_VERSION" ]; then
+  if [ "$CHANNEL" == 'beta' ]; then
     ATOM_EXECUTABLE_NAME="Atom Beta"
   else
     ATOM_EXECUTABLE_NAME="Atom"
@@ -102,11 +107,17 @@ elif [ $OS == 'Linux' ]; then
   SCRIPT=$(readlink -f "$0")
   USR_DIRECTORY=$(readlink -f $(dirname $SCRIPT)/..)
 
-  if [ -n "$BETA_VERSION" ]; then
-    ATOM_PATH="$USR_DIRECTORY/share/atom-beta/atom"
-  else
-    ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
-  fi
+  case $CHANNEL in
+    beta)
+      ATOM_PATH="$USR_DIRECTORY/share/atom-beta/atom"
+      ;;
+    dev)
+      ATOM_PATH="$USR_DIRECTORY/share/atom-dev/atom"
+      ;;
+    *)
+      ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
+      ;;
+  esac
 
   ATOM_HOME="${ATOM_HOME:-$HOME/.atom}"
   mkdir -p "$ATOM_HOME"
