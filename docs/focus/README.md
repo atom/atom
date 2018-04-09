@@ -122,7 +122,7 @@ Longer-term goal: Provide the world's fastest transition from "I want to collabo
 
 ##### 4. Prioritized bugs
 
-- [ ] Uncaught TypeError: Cannot match against 'undefined' or 'null' (https://github.com/atom/teletype/issues/233)
+- [x] Uncaught TypeError: Cannot match against 'undefined' or 'null' (https://github.com/atom/teletype/issues/233)
 
 ## Looking farther ahead
 
