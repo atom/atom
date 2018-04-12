@@ -107,6 +107,13 @@ class TextEditor {
     }
 
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
+
+    // Semantics of the readOnly flag have changed since its introduction.
+    // Only respect readOnly2, which has been set with the current readOnly semantics.
+    delete state.readOnly
+    state.readOnly = state.readOnly2
+    delete state.readOnly2
+
     const editor = new TextEditor(state)
     if (state.registered) {
       const disposable = atomEnvironment.textEditors.add(editor)
@@ -555,7 +562,7 @@ class TextEditor {
       softWrapAtPreferredLineLength: this.softWrapAtPreferredLineLength,
       preferredLineLength: this.preferredLineLength,
       mini: this.mini,
-      readOnly: this.readOnly,
+      readOnly2: this.readOnly, // readOnly encompassed both readOnly and keyboardInputEnabled
       keyboardInputEnabled: this.keyboardInputEnabled,
       editorWidthInChars: this.editorWidthInChars,
       width: this.width,
