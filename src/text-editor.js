@@ -431,6 +431,7 @@ class TextEditor {
               this.component.scheduleUpdate()
             }
           }
+          break
 
         case 'placeholderText':
           if (value !== this.placeholderText) {
