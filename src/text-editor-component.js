@@ -477,7 +477,7 @@ class TextEditorComponent {
       attributes.mini = ''
     }
 
-    if (!model.isReadOnly()) {
+    if (model.isReadOnly()) {
       attributes.readonly = ''
     }
 
