@@ -111,6 +111,7 @@ class TextEditorComponent {
     }
     this.derivedDimensionsCache = {}
     this.visible = false
+    this.ignoreTextInput = false
     this.cursorsBlinking = false
     this.cursorsBlinkedOff = false
     this.nextUpdateOnlyBlinksCursors = null
@@ -1619,7 +1620,7 @@ class TextEditorComponent {
       this.compositionCheckpoint = null
     }
 
-    if (this.isInputEnabled()) {
+    if (this.isInputEnabled() && !this.isTextInputIgnored()) {
       event.stopPropagation()
 
       // WARNING: If we call preventDefault on the input of a space
@@ -2962,6 +2963,14 @@ class TextEditorComponent {
       })
     }
     return this.nextUpdatePromise
+  }
+
+  setIgnoreTextInput (ignoreTextInput) {
+    this.ignoreTextInput = ignoreTextInput
+  }
+
+  isTextInputIgnored () {
+    return this.ignoreTextInput
   }
 
   setInputEnabled (inputEnabled) {
