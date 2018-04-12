@@ -130,7 +130,7 @@ class TextEditor {
     this.decorationManager = params.decorationManager
     this.selectionsMarkerLayer = params.selectionsMarkerLayer
     this.mini = (params.mini != null) ? params.mini : false
-    this.enableKeyboardInput = (params.enableKeyboardInput != null) ? params.enableKeyboardInput : true
+    this.keyboardInputEnabled = (params.keyboardInputEnabled != null) ? params.keyboardInputEnabled : true
     this.readOnly = (params.readOnly != null) ? params.readOnly : false
     this.placeholderText = params.placeholderText
     this.showLineNumbers = params.showLineNumbers
@@ -417,9 +417,9 @@ class TextEditor {
           }
           break
 
-        case 'enableKeyboardInput':
-          if (value !== this.enableKeyboardInput) {
-            this.enableKeyboardInput = value
+        case 'keyboardInputEnabled':
+          if (value !== this.keyboardInputEnabled) {
+            this.keyboardInputEnabled = value
             if (this.component != null) {
               this.component.scheduleUpdate()
             }
@@ -556,7 +556,7 @@ class TextEditor {
       preferredLineLength: this.preferredLineLength,
       mini: this.mini,
       readOnly: this.readOnly,
-      enableKeyboardInput: this.enableKeyboardInput,
+      keyboardInputEnabled: this.keyboardInputEnabled,
       editorWidthInChars: this.editorWidthInChars,
       width: this.width,
       maxScreenLineLength: this.maxScreenLineLength,
@@ -999,10 +999,10 @@ class TextEditor {
   isReadOnly () { return this.readOnly }
 
   enableKeyboardInput (enabled) {
-    this.update({enableKeyboardInput: enabled})
+    this.update({keyboardInputEnabled: enabled})
   }
 
-  isKeyboardInputEnabled () { return this.enableKeyboardInput }
+  isKeyboardInputEnabled () { return this.keyboardInputEnabled }
 
   onDidChangeMini (callback) {
     return this.emitter.on('did-change-mini', callback)

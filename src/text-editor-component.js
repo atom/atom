@@ -2965,7 +2965,7 @@ class TextEditorComponent {
   }
 
   setInputEnabled (inputEnabled) {
-    this.props.model.update({enableKeyboardInput: inputEnabled})
+    this.props.model.update({keyboardInputEnabled: inputEnabled})
   }
 
   isInputEnabled () {
