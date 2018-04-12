@@ -1002,7 +1002,7 @@ class TextEditor {
     this.update({enableKeyboardInput: enabled})
   }
 
-  isKeyboardInputEnabled () { return this.keyboardInputEnabled }
+  isKeyboardInputEnabled () { return this.enableKeyboardInput }
 
   onDidChangeMini (callback) {
     return this.emitter.on('did-change-mini', callback)
