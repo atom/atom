@@ -65,7 +65,7 @@ class Pane {
       this.id = nextInstanceId++
     }
     this.id = parseInt(this.id.toString().concat(Date.now().toString()))
-
+    
     this.activeItem = params.activeItem
     this.focused = params.focused != null ? params.focused : false
     this.applicationDelegate = params.applicationDelegate
