@@ -226,7 +226,7 @@ module.exports = class Dock {
         ),
         $(DockToggleButton, {
           ref: 'toggleButton',
-          onDragEnter: this.state.draggingItem ? this.handleToggleButtonDragEnter : null,
+          onDragEnter: this.handleToggleButtonDragEnter,
           location: this.location,
           toggle: this.toggle,
           dockIsVisible: shouldBeVisible,
@@ -772,10 +772,7 @@ class DockToggleButton {
         {
           ref: 'innerElement',
           className: `atom-dock-toggle-button-inner ${this.props.location}`,
-          on: {
-            click: this.handleClick,
-            dragenter: this.props.onDragEnter
-          }
+          on: {click: this.handleClick, dragenter: this.handleDragEnter}
         },
         $.span({
           ref: 'iconElement',
@@ -803,6 +800,10 @@ class DockToggleButton {
 
   handleClick () {
     this.props.toggle()
+  }
+
+  handleDragEnter () {
+    this.props.onDragEnter()
   }
 }
 
