@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 const Grim = require('grim')
 const {CompositeDisposable, Emitter} = require('event-kit')
 const PaneAxis = require('./pane-axis')
@@ -65,6 +64,7 @@ class Pane {
     } else {
       this.id = nextInstanceId++
     }
+    this.id = parseInt(this.id.toString().concat(Date.now().toString()))
 
     this.activeItem = params.activeItem
     this.focused = params.focused != null ? params.focused : false
