@@ -16,4 +16,3 @@ docs/includes
 spec/fixtures/evil-files/
 out/
 /electron/
-grep_*
