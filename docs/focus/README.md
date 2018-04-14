@@ -110,7 +110,7 @@ Near-term goal: Encourage more collaboration by reducing barriers to entry.
 Longer-term goal: Provide the world's fastest transition from "I want to collaborate" to "I am collaborating." 🚀
 
 - [ ] Publish RFC (including a request for review from GitHub's Community and Safety team)
-- [ ] Host can share a URL for the portal, and guests can follow the URL to instantly join the portal (https://github.com/atom/teletype/issues/109)
+- [x] Host can share a URL for the portal, and guests can follow the URL to instantly join the portal (https://github.com/atom/teletype/issues/109)
 - [ ] Quickly collaborate with coworkers and friends (https://github.com/atom/teletype/issues/213, https://github.com/atom/teletype/issues/284)
     - You can view a list of past collaborators (i.e., a ["buddy list"](https://github.com/atom/teletype/issues/22) of sorts).
     - You can choose any online person in the buddy list and invite them to join your portal. They get a notification (or similar) informing them of the invitation, and they can choose to join the portal or not.
@@ -122,7 +122,7 @@ Longer-term goal: Provide the world's fastest transition from "I want to collabo
 
 ##### 4. Prioritized bugs
 
-- [ ] Uncaught TypeError: Cannot match against 'undefined' or 'null' (https://github.com/atom/teletype/issues/233)
+- [x] Uncaught TypeError: Cannot match against 'undefined' or 'null' (https://github.com/atom/teletype/issues/233)
 
 ## Looking farther ahead
 
