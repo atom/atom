@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const Grim = require('grim')
 const {CompositeDisposable, Emitter} = require('event-kit')
 const PaneAxis = require('./pane-axis')
