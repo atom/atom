@@ -104,7 +104,7 @@ const isWordStart = (previousCharacter, character) =>
 
 const isWrapBoundary = (previousCharacter, character) =>
   isWordStart(previousCharacter, character) || isCJKCharacter(character) ||
-    character === '-' || character === '/'  || character === ' '
+    character === '-' || character === '/' || character === ' '
 
 // Does the given string contain at least surrogate pair, variation sequence,
 // or combined character?
