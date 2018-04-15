@@ -60,7 +60,7 @@ class Pane {
 
     this.id = params.id
     if (this.id != null) {
-      nextInstanceId = Math.max(nextInstanceId, this.id + 1)
+      nextInstanceId = nextInstanceId ? nextInstanceId++ : 0
     } else {
       this.id = nextInstanceId++
     }
