@@ -3640,7 +3640,6 @@ describe('TextEditor', () => {
       })
 
       it("inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", () => {
-        editor.update({autoIndent: true})
         editor.insertNewlineBelow()
         expect(buffer.lineForRow(0)).toBe('var quicksort = function () {')
         expect(buffer.lineForRow(1)).toBe('  ')

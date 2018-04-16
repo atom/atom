@@ -1495,7 +1495,7 @@ class TextEditor {
       }
 
       this.setSelectedBufferRanges(newSelectionRanges, {autoscroll: false, preserveFolds: true})
-      if (this.shouldAutoIndent()) this.autoIndentSelectedRows()
+      // if (this.shouldAutoIndent()) this.autoIndentSelectedRows()
       this.scrollToBufferPosition([newSelectionRanges[0].start.row, 0])
     })
   }
@@ -1573,7 +1573,7 @@ class TextEditor {
       }
 
       this.setSelectedBufferRanges(newSelectionRanges, {autoscroll: false, preserveFolds: true})
-      if (this.shouldAutoIndent()) this.autoIndentSelectedRows()
+      // if (this.shouldAutoIndent()) this.autoIndentSelectedRows()
       this.scrollToBufferPosition([newSelectionRanges[0].start.row - 1, 0])
     })
   }
