@@ -2706,6 +2706,7 @@ describe('TextEditor', () => {
 
         describe('when the selection spans multiple lines', () => {
           it('moves the lines spanned by the selection to the preceding row', () => {
+            editor.update({autoIndent: false})
             expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
             expect(editor.lineTextForBufferRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
             expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
@@ -2717,6 +2718,8 @@ describe('TextEditor', () => {
             expect(editor.lineTextForBufferRow(2)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
             expect(editor.lineTextForBufferRow(3)).toBe('    while(items.length > 0) {')
             expect(editor.lineTextForBufferRow(4)).toBe('    if (items.length <= 1) return items;')
+            editor.update({autoIndent: true})
+
           })
 
           describe("when the selection's end intersects a fold", () =>
