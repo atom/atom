@@ -2705,7 +2705,6 @@ describe('TextEditor', () => {
         })
 
         describe('when the selection spans multiple lines', () => {
-          editor.update({autoIndent: false})
           it('moves the lines spanned by the selection to the preceding row', () => {
             expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
             expect(editor.lineTextForBufferRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
@@ -2779,7 +2778,6 @@ describe('TextEditor', () => {
               expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
             })
           )
-          editor.update({autoIndent: true})
         })
 
         describe('when the selection spans multiple lines, but ends at column 0', () => {
@@ -3071,7 +3069,6 @@ describe('TextEditor', () => {
         })
 
         describe('when the selection spans multiple lines', () => {
-          editor.update({autoIndent: false})
           it('moves the lines spanned by the selection to the following row', () => {
             expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
             expect(editor.lineTextForBufferRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
@@ -3085,7 +3082,6 @@ describe('TextEditor', () => {
             expect(editor.lineTextForBufferRow(3)).toBe('    if (items.length <= 1) return items;')
             expect(editor.lineTextForBufferRow(4)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
           })
-          editor.update({autoIndent: true})
         })
 
         describe('when the selection spans multiple lines, but ends at column 0', () => {
@@ -3644,7 +3640,6 @@ describe('TextEditor', () => {
       })
 
       it("inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", () => {
-        editor.update({autoIndent: true})
         editor.insertNewlineBelow()
         expect(buffer.lineForRow(0)).toBe('var quicksort = function () {')
         expect(buffer.lineForRow(1)).toBe('  ')
