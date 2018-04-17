@@ -11,7 +11,7 @@ module.exports = async ({test}) => {
 
   document.body.appendChild(atom.workspace.getElement())
 
-  atom.packages.loadPackages()
+  await atom.packages.loadPackages()
   await atom.packages.activate()
 
   for (let pane of atom.workspace.getPanes()) {

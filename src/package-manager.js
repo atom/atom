@@ -11,6 +11,14 @@ const Package = require('./package')
 const ThemePackage = require('./theme-package')
 const {isDeprecatedPackage, getDeprecatedPackageMetadata} = require('./deprecated-packages')
 const packageJSON = require('../package.json')
+const dedent = require('dedent')
+
+// Note that we are hardcoding the URL into the source code as opposed to using
+// an environment variable here to prevent malicious packages (that haven't been
+// blacklisted yet) from permanently modifying the env when they are installed.
+// This adds some friction to the development process but guarantees that Atom
+// will always hit the right endpoint.
+const BLACKLIST_API_URL = 'https://atom.io/api/packages/blacklisted'
 
 // Extended: Package manager for coordinating the lifecycle of Atom packages.
 //
@@ -515,19 +523,29 @@ module.exports = class PackageManager {
     return pack
   }
 
-  loadPackages () {
+  async loadPackages () {
     // Ensure atom exports is already in the require cache so the load time
     // of the first package isn't skewed by being the first to require atom
     require('../exports/atom')
 
+    const blacklistedPackageNames = await this.fetchBlacklist()
     const disabledPackageNames = new Set(this.config.get('core.disabledPackages'))
+    const installedBlacklistedPackages = []
+
     this.config.transact(() => {
       for (const pack of this.getAvailablePackages()) {
-        this.loadAvailablePackage(pack, disabledPackageNames)
+        if (blacklistedPackageNames.has(pack.name)) {
+          installedBlacklistedPackages.push(pack)
+        } else {
+          this.loadAvailablePackage(pack, disabledPackageNames)
+        }
       }
     })
     this.initialPackagesLoaded = true
     this.emitter.emit('did-load-initial-packages')
+    if (installedBlacklistedPackages.length > 0) {
+      this.uninstallBlacklistedPackages(installedBlacklistedPackages)
+    }
   }
 
   loadPackage (nameOrPath) {
@@ -867,6 +885,56 @@ module.exports = class PackageManager {
     if (metadata != null) {
       normalizePackageData = normalizePackageData || require('normalize-package-data')
       normalizePackageData(metadata)
+    }
+  }
+
+  async fetchBlacklist () {
+    try {
+      const response = await window.fetch(BLACKLIST_API_URL)
+      const blacklist = await response.json()
+      return new Set(blacklist)
+    } catch (e) {
+      return new Set()
+    }
+  }
+
+  uninstallBlacklistedPackages (packages) {
+    this.notificationManager.addWarning('Malicious packages detected', {
+      dismissable: true,
+      description: dedent`
+        Atom has detected the following malicious package on your system:
+
+        ${packages.map(p => '* ' + p.name).join('\n')}
+
+        For your own safety these packages will be deleted from your system.
+      `
+    })
+
+    const packagesToUninstallManually = []
+    for (let i = 0; i < packages.length; i++) {
+      const pack = packages[i]
+      try {
+        fs.removeSync(pack.path)
+      } catch (error) {
+        packagesToUninstallManually.push(pack)
+      }
+    }
+
+    if (packagesToUninstallManually.length > 0) {
+      this.notificationManager.addError('Unable to uninstall malicious packages', {
+        dismissable: true,
+        description: dedent`
+          The following malicious packages could not be uninstalled automatically:
+
+          ${packagesToUninstallManually.map(p => `* ${p.name}: \`${p.path}\``).join('\n')}
+
+          It is strongly recommended that you delete the above folders manually.
+        `
+      })
+    } else {
+      this.notificationManager.addSuccess('Successfully uninstalled malicious packages', {
+        dismissable: true
+      })
     }
   }
 }

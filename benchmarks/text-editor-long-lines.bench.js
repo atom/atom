@@ -16,7 +16,7 @@ module.exports = async ({test}) => {
   const workspaceElement = atom.workspace.getElement()
   document.body.appendChild(workspaceElement)
 
-  atom.packages.loadPackages()
+  await atom.packages.loadPackages()
   await atom.packages.activate()
 
   console.log(atom.getLoadSettings().resourcePath);
