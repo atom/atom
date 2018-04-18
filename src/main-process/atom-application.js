@@ -435,7 +435,11 @@ class AtomApplication extends EventEmitter {
         event.preventDefault()
         const windowUnloadPromises = this.getAllWindows().map(window => window.prepareToUnload())
         const windowUnloadedResults = await Promise.all(windowUnloadPromises)
-        if (windowUnloadedResults.every(Boolean)) app.quit()
+        if (windowUnloadedResults.every(Boolean)) {
+          app.quit()
+        } else {
+          this.quitting = false
+        }
       }
 
       resolveBeforeQuitPromise()
@@ -559,9 +563,11 @@ class AtomApplication extends EventEmitter {
       window.setPosition(x, y)
     }))
 
-    this.disposable.add(ipcHelpers.respondTo('set-user-settings', (window, settings) =>
-      this.configFile.update(JSON.parse(settings))
-    ))
+    this.disposable.add(ipcHelpers.respondTo('set-user-settings', (window, settings) => {
+      if (!this.quitting) {
+        this.configFile.update(JSON.parse(settings))
+      }
+    }))
 
     this.disposable.add(ipcHelpers.respondTo('center-window', window => window.center()))
     this.disposable.add(ipcHelpers.respondTo('focus-window', window => window.focus()))
