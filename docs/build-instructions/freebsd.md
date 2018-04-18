@@ -1,19 +1,8 @@
 # FreeBSD
 
-FreeBSD -RELEASE 64-bit is the recommended platform.
+FreeBSD is currently not supported due to the lack of official support for FreeBSD from Electron.
 
-## Requirements
+The community has been actively attempting to bring Atom back on FreeBSD. Ongoing work and discussions can be found on the following tracking issues:
 
-* FreeBSD
-* `pkg install node`
-* `pkg install npm`
-* `pkg install libgnome-keyring`
-* `npm config set python /usr/local/bin/python2 -g` to ensure that gyp uses Python 2
-
-## Instructions
-
-```sh
-git clone https://github.com/atom/atom
-cd atom
-script/build
-```
+https://github.com/electron/electron/issues/3797  
+https://github.com/atom/atom/issues/6035
