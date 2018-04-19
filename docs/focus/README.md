@@ -128,9 +128,9 @@ Longer-term goal: Provide the world's fastest transition from "I want to collabo
 
 In no particular order:
 
-- [ ] 🐛 Resolve or reduce impact of package initialization errors (https://github.com/atom/teletype/issues/266)
+- [x] 🐛 Resolve or reduce impact of package initialization errors (https://github.com/atom/teletype/issues/266)
+- [x] ✨ Ensure remote buffers are updated when host renames files (https://github.com/atom/teletype/issues/147)
 - [ ] 🐛 Surface uncaught errors in promises (https://github.com/atom/teletype/issues/298#issuecomment-355369327)
-- [ ] ✨ Ensure remote buffers are updated when host renames files (https://github.com/atom/teletype/issues/147)
 - [ ] 💖 In the buddy list, you can see which people are currently online (i.e., presence)
 - [ ] 💖 Screen-sharing -- (We should prioritize screen-sharing above audio. We can keep using Slack/Skype/Zoom/Whatever for audio and use Atom for screen-sharing, whereas the opposite is not tr[ ] ue; disabling audio on a Slack call would feel unintuitive.)
 - [ ] 💖 Audio
