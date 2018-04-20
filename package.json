@@ -107,7 +107,7 @@
     "dalek": "0.2.2",
     "deprecation-cop": "0.56.9",
     "dev-live-reload": "0.48.1",
-    "encoding-selector": "0.23.8",
+    "encoding-selector": "0.23.9",
     "exception-reporting": "0.43.1",
     "find-and-replace": "0.215.9",
     "fuzzy-finder": "1.8.1",
