@@ -1,0 +1,4 @@
+# Configuration for move-issues - https://github.com/dessant/move-issues
+
+# Mention issue, comment and command authors
+mentionAuthors: false
