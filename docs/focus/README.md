@@ -109,18 +109,18 @@ Near-term goal: Encourage more collaboration by reducing barriers to entry.
 
 Longer-term goal: Provide the world's fastest transition from "I want to collaborate" to "I am collaborating." 🚀
 
-- [ ] Publish RFC (including a request for review from GitHub's Community and Safety team)
+- [x] Publish RFC (including a request for review from GitHub's Community and Safety team) ([RFC-003](https://github.com/atom/teletype/blob/v0.13.0/doc/rfcs/003-share-and-join-a-portal-via-url.md), [RFC-004](https://github.com/atom/teletype/blob/v0.13.0/doc/rfcs/004-quickly-collaborate-with-coworkers-and-friends.md))
 - [x] Host can share a URL for the portal, and guests can follow the URL to instantly join the portal (https://github.com/atom/teletype/issues/109)
 - [ ] Quickly collaborate with coworkers and friends (https://github.com/atom/teletype/issues/213, https://github.com/atom/teletype/issues/284)
     - You can view a list of past collaborators (i.e., a ["buddy list"](https://github.com/atom/teletype/issues/22) of sorts).
     - You can choose any online person in the buddy list and invite them to join your portal. They get a notification (or similar) informing them of the invitation, and they can choose to join the portal or not.
     - To prevent abuse/harassment, each time you join a portal via a URL or portal ID, Teletype adds the collaborators to your buddy list. You can directly invite anyone in your buddy list to join your portal, and anyone in your buddy list can invite you to a portal. You can remove anyone from your buddy list, at which point they can no longer _directly_ invite you to a portal.
 
-##### 3. Nice bang-for-the-buck refinements
+##### 3. ✅ Nice bang-for-the-buck refinements
 
-- [ ] Add a colored border around avatars that matches the cursor when that participant's tether is not retracted (https://github.com/atom/teletype/issues/338)
+- [x] Add a colored border around avatars that matches the cursor when that participant's tether is not retracted (https://github.com/atom/teletype/issues/338)
 
-##### 4. Prioritized bugs
+##### 4. ✅ Prioritized bugs
 
 - [x] Uncaught TypeError: Cannot match against 'undefined' or 'null' (https://github.com/atom/teletype/issues/233)
 
@@ -128,12 +128,12 @@ Longer-term goal: Provide the world's fastest transition from "I want to collabo
 
 In no particular order:
 
-- 🐛 Resolve or reduce impact of package initialization errors (https://github.com/atom/teletype/issues/266)
-- 🐛 Surface uncaught errors in promises (https://github.com/atom/teletype/issues/298#issuecomment-355369327)
-- ✨ Ensure remote buffers are updated when host renames files (https://github.com/atom/teletype/issues/147)
-- 💖 In the buddy list, you can see which people are currently online (i.e., presence)
-- 💖 Screen-sharing -- (We should prioritize screen-sharing above audio. We can keep using Slack/Skype/Zoom/Whatever for audio and use Atom for screen-sharing, whereas the opposite is not true; disabling audio on a Slack call would feel unintuitive.)
-- 💖 Audio
+- [x] 🐛 Resolve or reduce impact of package initialization errors (https://github.com/atom/teletype/issues/266)
+- [x] ✨ Ensure remote buffers are updated when host renames files (https://github.com/atom/teletype/issues/147)
+- [ ] 🐛 Surface uncaught errors in promises (https://github.com/atom/teletype/issues/298#issuecomment-355369327)
+- [ ] 💖 In the buddy list, you can see which people are currently online (i.e., presence)
+- [ ] 💖 Screen-sharing -- (We should prioritize screen-sharing above audio. We can keep using Slack/Skype/Zoom/Whatever for audio and use Atom for screen-sharing, whereas the opposite is not tr[ ] ue; disabling audio on a Slack call would feel unintuitive.)
+- [ ] 💖 Audio
 
 ---
 
