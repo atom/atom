@@ -19,5 +19,6 @@ module.exports = {
     "rule-empty-line-before": null, // TODO: enable?
     "at-rule-empty-line-before": null, // TODO: enable?
     "font-family-no-duplicate-names": null, // TODO: enable?
+    "unit-no-unknown": [true, {"ignoreUnits": [ "x" ]}], // Needed for -webkit-image-set 1x/2x units
   }
 }
