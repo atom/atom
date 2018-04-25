@@ -204,7 +204,6 @@ class AtomApplication extends EventEmitter {
 
   openWithOptions (options) {
     const {
-      projectSpecification,
       initialPaths,
       pathsToOpen,
       executedFrom,
@@ -259,7 +258,6 @@ class AtomApplication extends EventEmitter {
         profileStartup,
         clearWindowState,
         addToLastWindow,
-        projectSpecification,
         env
       })
     } else if (urlsToOpen.length > 0) {
@@ -829,7 +827,6 @@ class AtomApplication extends EventEmitter {
     window,
     clearWindowState,
     addToLastWindow,
-    projectSpecification,
     env
   } = {}) {
     if (!pathsToOpen || pathsToOpen.length === 0) return
@@ -863,7 +860,7 @@ class AtomApplication extends EventEmitter {
     }
 
     let openedWindow
-    if (existingWindow && (projectSpecification == null || projectSpecification.config == null)) {
+    if (existingWindow) {
       openedWindow = existingWindow
       openedWindow.openLocations(locationsToOpen)
       if (openedWindow.isMinimized()) {
@@ -899,7 +896,6 @@ class AtomApplication extends EventEmitter {
         windowDimensions,
         profileStartup,
         clearWindowState,
-        projectSpecification,
         env
       })
       this.addWindow(openedWindow)
