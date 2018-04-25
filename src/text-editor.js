@@ -4093,7 +4093,7 @@ class TextEditor {
   // Extended: Unfold all existing folds.
   unfoldAll () {
     const result = this.displayLayer.destroyAllFolds()
-    this.scrollToCursorPosition()
+    if (result.length > 0) this.scrollToCursorPosition()
     return result
   }
 

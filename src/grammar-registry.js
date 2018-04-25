@@ -38,6 +38,14 @@ class GrammarRegistry {
     const grammarAddedOrUpdated = this.grammarAddedOrUpdated.bind(this)
     this.textmateRegistry.onDidAddGrammar(grammarAddedOrUpdated)
     this.textmateRegistry.onDidUpdateGrammar(grammarAddedOrUpdated)
+
+    this.subscriptions.add(this.config.onDidChange('core.useTreeSitterParsers', () => {
+      this.grammarScoresByBuffer.forEach((score, buffer) => {
+        if (!this.languageOverridesByBufferId.has(buffer.id)) {
+          this.autoAssignLanguageMode(buffer)
+        }
+      })
+    }))
   }
 
   serialize () {
