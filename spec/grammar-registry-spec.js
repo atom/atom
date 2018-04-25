@@ -14,6 +14,7 @@ describe('GrammarRegistry', () => {
 
   beforeEach(() => {
     grammarRegistry = new GrammarRegistry({config: atom.config})
+    expect(subscriptionCount(grammarRegistry)).toBe(1)
   })
 
   describe('.assignLanguageMode(buffer, languageId)', () => {
@@ -207,16 +208,16 @@ describe('GrammarRegistry', () => {
 
       const disposable = grammarRegistry.maintainLanguageMode(buffer)
       expect(retainedBufferCount(grammarRegistry)).toBe(1)
-      expect(subscriptionCount(grammarRegistry)).toBe(2)
+      expect(subscriptionCount(grammarRegistry)).toBe(3)
 
       buffer.destroy()
       expect(retainedBufferCount(grammarRegistry)).toBe(0)
-      expect(subscriptionCount(grammarRegistry)).toBe(0)
+      expect(subscriptionCount(grammarRegistry)).toBe(1)
       expect(buffer.emitter.getTotalListenerCount()).toBe(0)
 
       disposable.dispose()
       expect(retainedBufferCount(grammarRegistry)).toBe(0)
-      expect(subscriptionCount(grammarRegistry)).toBe(0)
+      expect(subscriptionCount(grammarRegistry)).toBe(1)
     })
 
     it('does not retain the buffer when the grammar registry is destroyed', () => {
@@ -225,12 +226,12 @@ describe('GrammarRegistry', () => {
 
       const disposable = grammarRegistry.maintainLanguageMode(buffer)
       expect(retainedBufferCount(grammarRegistry)).toBe(1)
-      expect(subscriptionCount(grammarRegistry)).toBe(2)
+      expect(subscriptionCount(grammarRegistry)).toBe(3)
 
       grammarRegistry.clear()
 
       expect(retainedBufferCount(grammarRegistry)).toBe(0)
-      expect(subscriptionCount(grammarRegistry)).toBe(0)
+      expect(subscriptionCount(grammarRegistry)).toBe(1)
       expect(buffer.emitter.getTotalListenerCount()).toBe(0)
     })
   })
