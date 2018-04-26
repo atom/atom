@@ -246,7 +246,7 @@ class WindowEventHandler {
       if (/^https?:\/\//.test(uri)) {
         this.applicationDelegate.openExternal(uri)
       } else if (uri.startsWith('atom://')) {
-        this.atomEnvironment.uriHandlerRegistry.handleURI(uri);
+        this.atomEnvironment.uriHandlerRegistry.handleURI(uri)
       }
     }
   }
