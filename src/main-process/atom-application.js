@@ -58,9 +58,9 @@ class AtomApplication extends EventEmitter {
         .replace(/\//g, '_')
 
       if (process.platform === 'win32') {
-        options.socketPath = `\\\\.\\pipe\\atom-${atomInstanceDigest}-sock`
+        options.socketPath = `\\\\.\\pipe\\pros-editor-${atomInstanceDigest}-sock`
       } else {
-        options.socketPath = path.join(os.tmpdir(), `atom-${atomInstanceDigest}.sock`)
+        options.socketPath = path.join(os.tmpdir(), `pros-editor-${atomInstanceDigest}.sock`)
       }
     }
 

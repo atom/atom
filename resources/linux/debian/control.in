@@ -7,6 +7,6 @@ Section: devel
 Priority: optional
 Architecture: <%= arch %>
 Installed-Size: <%= installedSize %>
-Maintainer: GitHub <atom@github.com>
+Maintainer: Purdue ACM SIGBots <pros_development@cs.purdue.edu>
 Description: <%= description %>
  Atom is a free and open source text editor that is modern, approachable, and hackable to the core.

@@ -15,8 +15,8 @@ module.exports = function () {
   const appName = getAppName()
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath} with app name "${appName}"`)
   return runPackager({
-    'app-bundle-id': 'com.github.atom',
-    'app-copyright': `Copyright © 2014-${(new Date()).getFullYear()} GitHub, Inc. All rights reserved.`,
+    'app-bundle-id': 'edu.purdue.cs.pros.ide',
+    'app-copyright': `Copyright © 2014-${(new Date()).getFullYear()} GitHub, Inc. All rights reserved. Repackaged by Purdue ACM SIGBots`,
     'app-version': CONFIG.appMetadata.version,
     'arch': process.platform === 'darwin' ? 'x64' : process.arch, // OS X is 64-bit only
     'asar': {unpack: buildAsarUnpackGlobExpression()},
@@ -24,7 +24,7 @@ module.exports = function () {
     'download': {cache: CONFIG.electronDownloadPath},
     'dir': CONFIG.intermediateAppPath,
     'extend-info': path.join(CONFIG.repositoryRootPath, 'resources', 'mac', 'atom-Info.plist'),
-    'helper-bundle-id': 'com.github.atom.helper',
+    'helper-bundle-id': 'edu.purdue.cs.pros.ide.helper',
     'icon': getIcon(),
     'name': appName,
     'out': CONFIG.buildOutputPath,
@@ -32,9 +32,9 @@ module.exports = function () {
     'platform': process.platform,
     'version': CONFIG.appMetadata.electronVersion,
     'version-string': {
-      'CompanyName': 'GitHub, Inc.',
-      'FileDescription': 'Atom',
-      'ProductName': 'Atom'
+      'CompanyName': 'GitHub, Inc.; Repackaged by Purdue ACM SIGBots',
+      'FileDescription': 'PROS Editor',
+      'ProductName': 'PROS Editor'
     }
   }).then((packagedAppPath) => {
     let bundledResourcesPath
@@ -114,16 +114,16 @@ function buildAsarUnpackGlobExpression () {
 
 function getAppName () {
   if (process.platform === 'darwin') {
-    return CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+    return CONFIG.channel === 'beta' ? 'PROS Editor Beta' : 'PROS Editor'
   } else {
-    return 'atom'
+    return 'pros-editor'
   }
 }
 
 function getIcon () {
   switch (process.platform) {
     case 'darwin':
-      return path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.icns')
+      return path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'proseditor.icns')
     case 'linux':
       // Don't pass an icon, as the dock/window list icon is set via the icon
       // option in the BrowserWindow constructor in atom-window.coffee.
@@ -156,7 +156,7 @@ function renamePackagedAppDir (packageOutputDirPath) {
     if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(path.join(packageOutputDirPath, appBundleName), packagedAppPath)
   } else if (process.platform === 'linux') {
-    const appName = CONFIG.channel === 'beta' ? 'atom-beta' : 'atom'
+    const appName = CONFIG.channel === 'beta' ? 'pros-editor-beta' : 'pros-editor'
     let architecture
     if (process.arch === 'ia32') {
       architecture = 'i386'
@@ -169,7 +169,7 @@ function renamePackagedAppDir (packageOutputDirPath) {
     if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(packageOutputDirPath, packagedAppPath)
   } else {
-    const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+    const appName = CONFIG.channel === 'beta' ? 'PROS Editor Beta' : 'PROS Editor'
     packagedAppPath = path.join(CONFIG.buildOutputPath, appName)
     if (process.platform === 'win32' && process.arch !== 'ia32') {
       packagedAppPath += ` ${process.arch}`

@@ -41,7 +41,7 @@ module.exports = {
     }
 
     // Fall back to default .atom folder in users home folder
-    process.env.ATOM_HOME = path.join(homePath, '.atom')
+    process.env.ATOM_HOME = path.join(homePath, '.pros-atom')
   },
 
   setUserData: (app) => {

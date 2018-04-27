@@ -83,7 +83,7 @@ module.exports = function (packagedAppPath) {
     const generatedPackageFileNames = fs.readdirSync(generatedArchDirPath)
     assert(generatedPackageFileNames.length === 1, 'Generated more than one rpm package')
     const generatedPackageFilePath = path.join(generatedArchDirPath, generatedPackageFileNames[0])
-    const outputRpmPackageFilePath = path.join(CONFIG.buildOutputPath, `atom.${generatedArch}.rpm`)
+    const outputRpmPackageFilePath = path.join(CONFIG.buildOutputPath, `pros.editor.${generatedArch}.rpm`)
     console.log(`Copying "${generatedPackageFilePath}" into "${outputRpmPackageFilePath}"`)
     fs.copySync(generatedPackageFilePath, outputRpmPackageFilePath)
   }

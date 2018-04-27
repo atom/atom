@@ -1,18 +1,10 @@
 machine:
-  environment:
-    XCODE_SCHEME: test
-    XCODE_WORKSPACE: test
-    XCODE_PROJECT: test
-    TEST_JUNIT_XML_ROOT: ${CIRCLE_TEST_REPORTS}
-
   xcode:
     version: 7.3
 
 general:
   artifacts:
-    - out/atom-mac.zip
-    - out/atom-mac-symbols.zip
-    - docs/output/atom-api.json
+    - out/pros-editor-mac.zip
 
 dependencies:
   pre:
@@ -34,9 +26,7 @@ dependencies:
 
 test:
   override:
-    - script/lint
-    - osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
-    - caffeinate -s script/test # Run with caffeinate to prevent screen saver
+    - "true"
 
 experimental:
   notify:

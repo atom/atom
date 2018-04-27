@@ -4,11 +4,26 @@ const path = require('path')
 const electronLink = require('electron-link')
 const CONFIG = require('../config')
 
+const snapshotExcludes = require('./snapshot-exclude-modules')()
+
 module.exports = function (packagedAppPath) {
   const snapshotScriptPath = path.join(CONFIG.buildOutputPath, 'startup.js')
   const coreModules = new Set(['electron', 'atom', 'shell', 'WNdb', 'lapack', 'remote'])
   const baseDirPath = path.join(CONFIG.intermediateAppPath, 'static')
   let processedFiles = 0
+
+  const excludeFiles = new Set(snapshotExcludes.files.map((p) => {
+    if(p instanceof String || typeof p === 'string') return p;
+    else return path.join(...p);
+  } ))
+  const excludeModules = new Set(snapshotExcludes.modules.map((p) => {
+    if(p instanceof String || typeof p === 'string') return p;
+    else return path.join(...p);
+  } ))
+  const excludeDirs = snapshotExcludes.directories.map((p) => {
+    if(p instanceof String || typeof p === 'string') return p;
+    else return path.join(...p);
+  } )
 
   return electronLink({
     baseDirPath,
@@ -19,13 +34,16 @@ module.exports = function (packagedAppPath) {
       if (processedFiles > 0) {
         process.stdout.write('\r')
       }
-      process.stdout.write(`Generating snapshot script at "${snapshotScriptPath}" (${++processedFiles})`)
+      // process.stdout.write(`Generating snapshot script at "${snapshotScriptPath}" (${++processedFiles})`)
 
       const requiringModuleRelativePath = path.relative(baseDirPath, requiringModulePath)
       const requiredModuleRelativePath = path.relative(baseDirPath, requiredModulePath)
       return (
         requiredModulePath.endsWith('.node') ||
         coreModules.has(requiredModulePath) ||
+        excludeFiles.has(requiredModuleRelativePath) ||
+        excludeModules.has(requiredModulePath) ||
+        excludeDirs.some((p) => requiredModuleRelativePath.startsWith(p)) ||
         requiringModuleRelativePath.endsWith(path.join('node_modules/xregexp/xregexp-all.js')) ||
         (requiredModuleRelativePath.startsWith(path.join('..', 'src')) && requiredModuleRelativePath.endsWith('-element.js')) ||
         requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'dugite')) ||
@@ -74,12 +92,12 @@ module.exports = function (packagedAppPath) {
     const verifySnapshotScriptPath = path.join(CONFIG.repositoryRootPath, 'script', 'verify-snapshot-script')
     let nodeBundledInElectronPath
     if (process.platform === 'darwin') {
-      const executableName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+      const executableName = CONFIG.channel === 'beta' ? 'PROS Editor Beta' : 'PROS Editor'
       nodeBundledInElectronPath = path.join(packagedAppPath, 'Contents', 'MacOS', executableName)
     } else if (process.platform === 'win32') {
-      nodeBundledInElectronPath = path.join(packagedAppPath, 'atom.exe')
+      nodeBundledInElectronPath = path.join(packagedAppPath, 'pros-editor.exe')
     } else {
-      nodeBundledInElectronPath = path.join(packagedAppPath, 'atom')
+      nodeBundledInElectronPath = path.join(packagedAppPath, 'pros-editor')
     }
     childProcess.execFileSync(
       nodeBundledInElectronPath,

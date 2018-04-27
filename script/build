@@ -71,7 +71,7 @@ if (!argv.existingBinaries) {
   generateModuleCache()
   prebuildLessCache()
   generateMetadata()
-  generateAPIDocs()
+  // generateAPIDocs()
   binariesPromise = dumpSymbols()
 }
 

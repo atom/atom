@@ -5,7 +5,7 @@ let exeName = Path.basename(process.execPath)
 let appPath = `\"${process.execPath}\"`
 let fileIconPath = `\"${Path.join(process.execPath, '..', 'resources', 'cli', 'file.ico')}\"`
 let isBeta = appPath.includes(' Beta')
-let appName = exeName.replace('atom', isBeta ? 'Atom Beta' : 'Atom').replace('.exe', '')
+let appName = exeName.replace('pros-editor', isBeta ? 'PROS Editor Beta' : 'PROS').replace('.exe', '')
 
 class ShellOption {
   constructor (key, parts) {

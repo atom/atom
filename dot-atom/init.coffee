@@ -9,3 +9,10 @@
 # atom.workspace.observeTextEditors (editor) ->
 #   editor.onDidSave ->
 #     console.log "Saved! #{editor.getPath()}"
+
+atom.config.set 'atom-ide-ui.use.atom-ide-debugger', 'never'
+atom.config.set 'atom-ide-ui.use.atom-ide-terminal', 'never'
+
+path = require 'path'
+cqueryExecutable = 'cquery' + (if navigator.platform == 'Win32' then '.exe' else '')
+atom.config.set 'ide-cquery.cqueryPath', path.join(process.execPath, '..', '..', 'cquery', cqueryExecutable)

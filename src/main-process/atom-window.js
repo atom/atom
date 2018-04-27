@@ -32,8 +32,8 @@ class AtomWindow extends EventEmitter {
 
     const options = {
       show: false,
-      title: 'Atom',
-      tabbingIdentifier: 'atom',
+      title: 'PROS Editor',
+      tabbingIdentifier: 'pros',
       webPreferences: {
         // Prevent specs from throttling when the window is in the background:
         // this should result in faster CI builds, and an improvement in the

@@ -74,9 +74,9 @@ if [ $OS == 'Mac' ]; then
   fi
 
   if [ "$CHANNEL" == 'beta' ]; then
-    ATOM_EXECUTABLE_NAME="Atom Beta"
+    ATOM_EXECUTABLE_NAME="PROS Editor Beta"
   else
-    ATOM_EXECUTABLE_NAME="Atom"
+    ATOM_EXECUTABLE_NAME="PROS Editor"
   fi
 
   if [ -z "${ATOM_PATH}" ]; then
@@ -87,7 +87,7 @@ if [ $OS == 'Mac' ]; then
       ATOM_PATH="$HOME/Applications"
     else
       # We haven't found an Atom.app, use spotlight to search for Atom
-      ATOM_PATH="$(mdfind "kMDItemCFBundleIdentifier == 'com.github.atom'" | grep -v ShipIt | head -1 | xargs -0 dirname)"
+      ATOM_PATH="$(mdfind "kMDItemCFBundleIdentifier == 'edu.purdue.cs.pros.ide'" | grep -v ShipIt | head -1 | xargs -0 dirname)"
 
       # Exit if Atom can't be found
       if [ ! -x "$ATOM_PATH/$ATOM_APP_NAME" ]; then
@@ -109,22 +109,22 @@ elif [ $OS == 'Linux' ]; then
 
   case $CHANNEL in
     beta)
-      ATOM_PATH="$USR_DIRECTORY/share/atom-beta/atom"
+      ATOM_PATH="$USR_DIRECTORY/share/pros-editor-beta/pros-editor"
       ;;
     dev)
-      ATOM_PATH="$USR_DIRECTORY/share/atom-dev/atom"
+      ATOM_PATH="$USR_DIRECTORY/share/pros-editor-dev/pros-editor"
       ;;
     *)
-      ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
+      ATOM_PATH="$USR_DIRECTORY/share/pros-editor/pros-editor"
       ;;
   esac
 
-  ATOM_HOME="${ATOM_HOME:-$HOME/.atom}"
+  ATOM_HOME="${ATOM_HOME:-$HOME/.pros-atom}"
   mkdir -p "$ATOM_HOME"
 
   : ${TMPDIR:=/tmp}
 
-  [ -x "$ATOM_PATH" ] || ATOM_PATH="$TMPDIR/atom-build/Atom/atom"
+  [ -x "$ATOM_PATH" ] || ATOM_PATH="$TMPDIR/atom-build/PROS\ Editor/pros-editor"
 
   if [ $EXPECT_OUTPUT ]; then
     "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@"
