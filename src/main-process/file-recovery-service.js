@@ -147,7 +147,7 @@ async function tryStatFile (path) {
 }
 
 async function copyFile (source, destination, mode) {
-  mkdirp.sync(path.dirname(destination));
+  mkdirp.sync(Path.dirname(destination))
   return new Promise((resolve, reject) => {
     const readStream = fs.createReadStream(source)
     readStream
