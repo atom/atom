@@ -199,7 +199,7 @@ class Project extends Model {
   // const disposable = atom.project.onDidChangeFiles(events => {
   //   for (const event of events) {
   //     // "created", "modified", "deleted", or "renamed"
-  //     console.log(`Event action: ${event.type}`)
+  //     console.log(`Event action: ${event.action}`)
   //
   //     // absolute path to the filesystem entry that was touched
   //     console.log(`Event path: ${event.path}`)

@@ -122,8 +122,6 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
   commandRegistry.add(
     'atom-text-editor',
     stopEventPropagation({
-      'core:undo': -> @undo()
-      'core:redo': -> @redo()
       'core:move-left': -> @moveLeft()
       'core:move-right': -> @moveRight()
       'core:select-left': -> @selectLeft()

@@ -179,10 +179,10 @@ class ApplicationDelegate {
     return remote.systemPreferences.getUserDefault(key, type)
   }
 
-  async setUserSettings (config) {
+  async setUserSettings (config, configFilePath) {
     this.pendingSettingsUpdateCount++
     try {
-      await ipcHelpers.call('set-user-settings', JSON.stringify(config))
+      await ipcHelpers.call('set-user-settings', JSON.stringify(config), configFilePath)
     } finally {
       this.pendingSettingsUpdateCount--
     }

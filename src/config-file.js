@@ -15,6 +15,21 @@ const EVENT_TYPES = new Set([
 
 module.exports =
 class ConfigFile {
+  static at (path) {
+    if (!this._known) {
+      this._known = new Map()
+    }
+
+    const existing = this._known.get(path)
+    if (existing) {
+      return existing
+    }
+
+    const created = new ConfigFile(path)
+    this._known.set(path, created)
+    return created
+  }
+
   constructor (path) {
     this.path = path
     this.emitter = new Emitter()
