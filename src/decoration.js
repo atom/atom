@@ -157,7 +157,7 @@ class Decoration {
   // ## Examples
   //
   // ```coffee
-  // decoration.update({type: 'line-number', class: 'my-new-class'})
+  // decoration.setProperties({type: 'line-number', class: 'my-new-class'})
   // ```
   //
   // * `newProperties` {Object} eg. `{type: 'line-number', class: 'my-new-class'}`
