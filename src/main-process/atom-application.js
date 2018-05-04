@@ -139,7 +139,7 @@ class AtomApplication extends EventEmitter {
   // for testing purposes without booting up the world. As you add tests, feel free to move instantiation
   // of these various sub-objects into the constructor, but you'll need to remove the side-effects they
   // perform during their construction, adding an initialize method that you call here.
-  initialize (options) {
+  async initialize (options) {
     global.atomApplication = this
 
     // DEPRECATED: This can be removed at some point (added in 1.13)
@@ -155,7 +155,9 @@ class AtomApplication extends EventEmitter {
     this.listenForArgumentsFromNewProcess()
     this.setupDockMenu()
 
-    return this.launch(options)
+    const result = await this.launch(options)
+    this.autoUpdateManager.initialize()
+    return result
   }
 
   async destroy () {
@@ -171,7 +173,6 @@ class AtomApplication extends EventEmitter {
     if (!this.configFilePromise) {
       this.configFilePromise = this.configFile.watch()
       this.disposable.add(await this.configFilePromise)
-      this.autoUpdateManager.initialize()
       this.config.onDidChange('core.titleBar', this.promptForRestart.bind(this))
     }
 
