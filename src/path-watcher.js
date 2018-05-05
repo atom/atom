@@ -544,10 +544,26 @@ class PathWatcherManager {
   // Private: Access the currently active manager instance, creating one if necessary.
   static active () {
     if (!this.activeManager) {
-      this.activeManager = new PathWatcherManager(atom.config.get('core.fileSystemWatcher'))
-      this.sub = atom.config.onDidChange('core.fileSystemWatcher', ({newValue}) => { this.transitionTo(newValue) })
+      const config = this.findConfig()
+
+      this.activeManager = new PathWatcherManager(config.get('core.fileSystemWatcher'))
+      this.sub = config.onDidChange('core.fileSystemWatcher', ({newValue}) => {
+        this.transitionTo(newValue)
+      })
     }
     return this.activeManager
+  }
+
+  static findConfig() {
+    if (global.atomApplication) {
+      return global.atomApplication.config
+    }
+
+    if (global.atom) {
+      return global.atom.config
+    }
+
+    throw new Error('Unable to find Atom configuration')
   }
 
   // Private: Replace the active {PathWatcherManager} with a new one that creates [NativeWatchers]{NativeWatcher}
