@@ -414,6 +414,7 @@ class Config {
       this.schema.properties.core.properties.projectHome = projectHomeSchema
       this.defaultSettings.core.projectHome = projectHomeSchema.default
     }
+    this.indicator = []
   }
 
   clear () {
@@ -435,6 +436,7 @@ class Config {
     this.pendingOperations = []
     this.legacyScopeAliases = new Map()
     this.requestSave = _.debounce(() => this.save(), 1)
+
   }
 
   /*
@@ -483,6 +485,51 @@ class Config {
       return this.observeScopedKeyPath(scopeDescriptor, keyPath, callback)
     } else {
       return this.observeKeyPath(keyPath, options != null ? options : {}, callback)
+    }
+  }
+
+  // Essential: Add a listener for updates to a given key path. This is different
+  // than {::onDidChange} in that it will always be called, regardless whether
+  // the new value is different than the old
+  //
+  // ### Examples
+  //
+  // You might want to be notified when the global font size change. We'll watch
+  // `editor.fontSize` for changes. This will still get called even if
+  // font size is being overwritten in a local project configuration
+  //
+  // ```coffee
+  // atom.config.observe 'editor.fontSize', (value) ->
+  //   # do stuff with value
+  // ```
+  //
+  // * `keyPath` {String} name of the key to observe
+  // * `options` (optional) {Object}
+  //   * `scope` (optional) {ScopeDescriptor} describing a path from
+  //     the root of the syntax tree to a token. Get one by calling
+  //     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
+  //     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
+  //     for more information.
+  // * `callback` {Function} to call when the value of the key changes.
+  //   * `value` the new value of the key
+  //
+  // Returns a {Disposable} with the following keys on which you can call
+  // `.dispose()` to unsubscribe.
+  listen (...args) {
+    let callback, keyPath, options, scopeDescriptor
+    if (args.length === 2) {
+      [keyPath, callback] = args
+    } else if ((args.length === 3) && (_.isString(args[0]) && _.isObject(args[1]))) {
+      [keyPath, options, callback] = args
+      scopeDescriptor = options.scope
+    } else {
+      console.error('An unsupported form of Config::listen is being used. See https://atom.io/docs/api/latest/Config for details')
+      return
+    }
+    if (scopeDescriptor != null) {
+      return this.listenScopedKeyPath(scopeDescriptor, keyPath, callback)
+    } else {
+      return this.listenKeyPath(keyPath, options != null ? options : {}, callback)
     }
   }
 
@@ -686,7 +733,6 @@ class Config {
   // * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set (...args) {
     let [keyPath, value, options = {}] = args
-
     if (!this.settingsLoaded) {
       this.pendingOperations.push(() => this.set(keyPath, value, options))
     }
@@ -700,6 +746,7 @@ class Config {
     }
 
     if (!source) source = this.mainSource
+
 
     if (value !== undefined) {
       try {
@@ -753,7 +800,7 @@ class Config {
         }
       } else {
         this.scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
-        return this.emitChangeEvent()
+        return this.emitChangeEvent() && this.emitUpdateEvent()
       }
     } else {
       for (scopeSelector in this.scopedSettingsStore.propertiesForSource(source)) {
@@ -879,7 +926,7 @@ class Config {
 
   endTransaction () {
     this.transactDepth--
-    this.emitChangeEvent()
+    this.emitChangeEvent() && this.emitUpdateEvent()
   }
 
   pushAtKeyPath (keyPath, value) {
@@ -1035,7 +1082,6 @@ class Config {
     const source = options.source ? options.source : undefined
     const settingsToChange = source === this.projectFile ? 'projectSettings' : 'settings'
     const defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath)
-
     if (_.isEqual(defaultValue, value)) {
       if (keyPath != null) {
         deleteValueAtKeyPath(this[settingsToChange], keyPath)
@@ -1049,7 +1095,7 @@ class Config {
         this[settingsToChange] = value
       }
     }
-    return this.emitChangeEvent()
+    return this.emitChangeEvent() && this.emitUpdateEvent(value)
   }
 
   observeKeyPath (keyPath, options, callback) {
@@ -1057,8 +1103,12 @@ class Config {
     return this.onDidChangeKeyPath(keyPath, event => callback(event.newValue))
   }
 
+  listenKeyPath (keyPath, options, callback) {
+    return this.onDidUpdateKeyPath(keyPath, event => callback(event.newValue))
+  }
+
   onDidChangeKeyPath (keyPath, callback) {
-    let oldValue = this.get(keyPath)
+    let oldValue = this.get(keyPath);
     return this.emitter.on('did-change', () => {
       const newValue = this.get(keyPath)
       if (!_.isEqual(oldValue, newValue)) {
@@ -1066,6 +1116,17 @@ class Config {
         oldValue = newValue
         return callback(event)
       }
+    })
+  }
+
+  onDidUpdateKeyPath (keyPath, callback) {
+    const oldValue = this.get(keyPath)
+    this.indicator.push(0)
+    return this.emitter.on('did-update', (newValue) => {
+      this.indicator.push(1)
+      const event = {oldValue, newValue}
+      oldValue = newValue
+      return callback(event)
     })
   }
 
@@ -1078,7 +1139,7 @@ class Config {
 
   setRawDefault (keyPath, value) {
     setValueAtKeyPath(this.defaultSettings, keyPath, value)
-    return this.emitChangeEvent()
+    return this.emitChangeEvent() && this.emitUpdateEvent(value)
   }
 
   setDefaults (keyPath, defaults) {
@@ -1223,7 +1284,15 @@ class Config {
   }
 
   emitChangeEvent () {
-    if (this.transactDepth <= 0) { return this.emitter.emit('did-change') }
+    if (this.transactDepth <= 0) {
+      return this.emitter.emit('did-change') && this.emitter.emit('did-update')
+    }
+  }
+
+  emitUpdateEvent (keypath='', newValue={}) {
+    if (this.transactDepth <= 0) {
+      return this.emitter.emit('did-update', newValue)
+    }
   }
 
   resetScopedSettings (newScopedSettings, options = {}) {
@@ -1238,8 +1307,8 @@ class Config {
       validatedSettings[scopeSelector] = withoutEmptyObjects(settings)
       if (validatedSettings[scopeSelector] != null) { this.scopedSettingsStore.addProperties(source, validatedSettings, {priority}) }
     }
-
-    return this.emitChangeEvent()
+    this.indicator.push(2)
+    return this.emitChangeEvent() && this.emitUpdateEvent()
   }
 
   setRawScopedValue (keyPath, value, source, selector, options) {
@@ -1280,6 +1349,10 @@ class Config {
     return this.onDidChangeScopedKeyPath(scope, keyPath, event => callback(event.newValue))
   }
 
+  listenScopedKeyPath (scope, keyPath, callback) {
+    return this.onDidUpdateScopedKeyPath(scope, keyPath, event => callback(event.newValue))
+  }
+
   onDidChangeScopedKeyPath (scope, keyPath, callback) {
     let oldValue = this.get(keyPath, {scope})
     return this.emitter.on('did-change', () => {
@@ -1291,6 +1364,16 @@ class Config {
       }
     })
   }
+
+  onDidUpdateScopedKeyPath (scope, keyPath, callback) {
+    const oldValue = this.get(keyPath, {scope})
+    return this.emitter.on('did-update', (newValue) => {
+      const event = {oldValue, newValue}
+      oldValue = newValue
+      return callback(event)
+    })
+  }
+
 };
 
 // Base schema enforcers. These will coerce raw input into the specified type,
