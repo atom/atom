@@ -1273,21 +1273,29 @@ describe('Workspace', () => {
 
   describe('the grammar-used hook', () => {
     it('fires when opening a file or changing the grammar of an open file', async () => {
-      let resolveJavascriptGrammarUsed, resolveCoffeeScriptGrammarUsed
-      const javascriptGrammarUsed = new Promise(resolve => { resolveJavascriptGrammarUsed = resolve })
-      const coffeescriptGrammarUsed = new Promise(resolve => { resolveCoffeeScriptGrammarUsed = resolve })
+      await atom.packages.activatePackage('language-javascript')
+      await atom.packages.activatePackage('language-coffee-script')
+
+      const observeTextEditorsSpy = jasmine.createSpy('observeTextEditors')
+      const javascriptGrammarUsed = jasmine.createSpy('javascript')
+      const coffeeScriptGrammarUsed = jasmine.createSpy('coffeescript')
 
       atom.packages.triggerDeferredActivationHooks()
-      atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', resolveJavascriptGrammarUsed)
-      atom.packages.onDidTriggerActivationHook('language-coffee-script:grammar-used', resolveCoffeeScriptGrammarUsed)
+      atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', () => {
+        atom.workspace.observeTextEditors(observeTextEditorsSpy)
+        javascriptGrammarUsed()
+      })
+      atom.packages.onDidTriggerActivationHook('language-coffee-script:grammar-used', coffeeScriptGrammarUsed)
 
+      expect(javascriptGrammarUsed).not.toHaveBeenCalled()
+      expect(observeTextEditorsSpy).not.toHaveBeenCalled()
       const editor = await atom.workspace.open('sample.js', {autoIndent: false})
-      await atom.packages.activatePackage('language-javascript')
-      await javascriptGrammarUsed
+      expect(javascriptGrammarUsed).toHaveBeenCalled()
+      expect(observeTextEditorsSpy.callCount).toBe(1)
 
-      await atom.packages.activatePackage('language-coffee-script')
+      expect(coffeeScriptGrammarUsed).not.toHaveBeenCalled()
       atom.grammars.assignLanguageMode(editor, 'source.coffee')
-      await coffeescriptGrammarUsed
+      expect(coffeeScriptGrammarUsed).toHaveBeenCalled()
     })
   })
 

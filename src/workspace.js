@@ -497,14 +497,19 @@ module.exports = class Workspace extends Model {
       if (item instanceof TextEditor) {
         const subscriptions = new CompositeDisposable(
           this.textEditorRegistry.add(item),
-          this.textEditorRegistry.maintainConfig(item),
-          item.observeGrammar(this.handleGrammarUsed.bind(this))
+          this.textEditorRegistry.maintainConfig(item)
         )
         if (!this.project.findBufferForId(item.buffer.id)) {
           this.project.addBuffer(item.buffer)
         }
         item.onDidDestroy(() => { subscriptions.dispose() })
         this.emitter.emit('did-add-text-editor', {textEditor: item, pane, index})
+        // It's important to call handleGrammarUsed after emitting the did-add event:
+        // if we activate a package between adding the editor to the registry and emitting
+        // the package may receive the editor twice from `observeTextEditors`.
+        subscriptions.add(
+          item.observeGrammar(this.handleGrammarUsed.bind(this))
+        )
       }
     })
   }
