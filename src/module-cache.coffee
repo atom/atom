@@ -189,7 +189,7 @@ resolveModulePath = (relativePath, parentModule) ->
   return unless candidates?
 
   for version, resolvedPath of candidates
-    if Module._cache.hasOwnProperty(resolvedPath) or isCorePath(resolvedPath)
+    if Module._cache[resolvedPath] or isCorePath(resolvedPath)
       return resolvedPath if satisfies(version, range)
 
   return

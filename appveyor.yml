@@ -10,6 +10,7 @@ branches:
   only:
   - master
   - /^[0-9.]+-releases$/
+  - /^electron-[0-9.]+$/
 
 platform:
   - x64
@@ -41,13 +42,16 @@ build_script:
   - CD %APPVEYOR_BUILD_FOLDER%
   - IF NOT EXIST C:\tmp MKDIR C:\tmp
   - SET SQUIRREL_TEMP=C:\tmp
+  - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] SET IS_RELEASE_BRANCH=true
+  - IF [%APPVEYOR_REPO_BRANCH%]==[master] IF NOT DEFINED APPVEYOR_PULL_REQUEST_NUMBER SET IS_SIGNED_ZIP_BRANCH=true
+  - IF [%APPVEYOR_REPO_BRANCH:~0,9%]==[electron-] SET IS_SIGNED_ZIP_BRANCH=true
   - IF [%TASK%]==[installer] (
-      IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
+      IF [%IS_RELEASE_BRANCH%]==[true] (
         ECHO Building on release branch - Creating production artifacts &&
         script\build.cmd --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
-        IF [%APPVEYOR_REPO_BRANCH%]==[master] IF NOT DEFINED APPVEYOR_PULL_REQUEST_NUMBER (
-          ECHO Building on master branch - Creating signed zips &&
+        IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
+          ECHO Building on %APPVEYOR_REPO_BRANCH% branch - Creating signed zips &&
           script\build.cmd --code-sign --compress-artifacts
         ) ELSE (
           ECHO Skipping installer build for non-release/non-master branch
