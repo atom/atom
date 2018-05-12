@@ -1,5 +1,5 @@
 # Specs depend on character counts, if we don't specify the line endings the
-# fixtures will vary depending on platform
+# fixtures will vary depending on platform (windows, UNIX etc.)
 spec/fixtures/**/*.js text eol=lf
 spec/fixtures/**/*.coffee text eol=lf
 spec/fixtures/**/*.less text eol=lf
