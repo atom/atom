@@ -9,6 +9,8 @@ The sections below represent our **near-term roadmap**:
 
 This roadmap is a [living document](https://en.wikipedia.org/wiki/Living_document): it represents our current plans, but we expect these plans to change from time to time.  Follow [this link](https://github.com/atom/atom/blob/4fbad81a7cd2f2e3925d7e920086bc1ebf2fe210/docs/focus/README.md) to see the previous major version of this roadmap.
 
+You can find our bi-weekly iteration plans by searching for issues with the [`iteration-plan`](https://github.com/atom/atom/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3Aiteration-plan) label.
+
 ---
 
 ## Atom Core
