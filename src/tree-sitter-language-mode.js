@@ -1,4 +1,4 @@
-const {Document} = require('tree-sitter')
+const Parser = require('tree-sitter')
 const {Point, Range} = require('text-buffer')
 const {Emitter, Disposable} = require('event-kit')
 const ScopeDescriptor = require('./scope-descriptor')
@@ -14,13 +14,20 @@ class TreeSitterLanguageMode {
     this.buffer = buffer
     this.grammar = grammar
     this.config = config
-    this.document = new Document()
-    this.document.setInput(new TreeSitterTextBufferInput(buffer))
-    this.document.setLanguage(grammar.languageModule)
-    this.document.parse()
+    this.parser = new Parser()
+    this.parser.setLanguage(grammar.languageModule)
+    this.tree = this.parser.parseTextBufferSync(this.buffer.buffer)
     this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.id]})
     this.emitter = new Emitter()
     this.isFoldableCache = []
+    this.hasQueuedParse = false
+    this.buffer.onDidChangeText(async () => {
+      if (!this.reparsePromise) {
+        this.reparsePromise = this.reparse().then(() => {
+          this.reparsePromise = null
+        })
+      }
+    })
 
     // TODO: Remove this once TreeSitterLanguageMode implements its own auto-indentation system. This
     // is temporarily needed in order to delegate to the TextMateLanguageMode's auto-indent system.
@@ -36,7 +43,7 @@ class TreeSitterLanguageMode {
     const oldEndRow = oldRange.end.row
     const newEndRow = newRange.end.row
     this.isFoldableCache.splice(startRow, oldEndRow - startRow, ...new Array(newEndRow - startRow))
-    this.document.edit({
+    this.tree.edit({
       startIndex: this.buffer.characterIndexForPosition(oldRange.start),
       lengthRemoved: oldText.length,
       lengthAdded: newText.length,
@@ -50,8 +57,10 @@ class TreeSitterLanguageMode {
   Section - Highlighting
   */
 
-  buildHighlightIterator () {
-    const invalidatedRanges = this.document.parse()
+  async reparse () {
+    const tree = await this.parser.parseTextBuffer(this.buffer.buffer, this.tree)
+    const invalidatedRanges = tree.getChangedRanges(this.tree)
+    this.tree = tree
     for (let i = 0, n = invalidatedRanges.length; i < n; i++) {
       const range = invalidatedRanges[i]
       const startRow = range.start.row
@@ -61,6 +70,9 @@ class TreeSitterLanguageMode {
       }
       this.emitter.emit('did-change-highlighting', range)
     }
+  }
+
+  buildHighlightIterator () {
     return new TreeSitterHighlightIterator(this)
   }
 
@@ -139,7 +151,7 @@ class TreeSitterLanguageMode {
 
   getFoldableRangesAtIndentLevel (goalLevel) {
     let result = []
-    let stack = [{node: this.document.rootNode, level: 0}]
+    let stack = [{node: this.tree.rootNode, level: 0}]
     while (stack.length > 0) {
       const {node, level} = stack.pop()
 
@@ -183,7 +195,7 @@ class TreeSitterLanguageMode {
   }
 
   getFoldableRangeContainingPoint (point, tabLength, existenceOnly = false) {
-    let node = this.document.rootNode.descendantForPosition(this.buffer.clipPosition(point))
+    let node = this.tree.rootNode.descendantForPosition(this.buffer.clipPosition(point))
     while (node) {
       if (existenceOnly && node.startPosition.row < point.row) break
       if (node.endPosition.row > point.row) {
@@ -273,7 +285,7 @@ class TreeSitterLanguageMode {
   getRangeForSyntaxNodeContainingRange (range) {
     const startIndex = this.buffer.characterIndexForPosition(range.start)
     const endIndex = this.buffer.characterIndexForPosition(range.end)
-    let node = this.document.rootNode.descendantForIndex(startIndex, endIndex - 1)
+    let node = this.tree.rootNode.descendantForIndex(startIndex, endIndex - 1)
     while (node && node.startIndex === startIndex && node.endIndex === endIndex) {
       node = node.parent
     }
@@ -305,7 +317,7 @@ class TreeSitterLanguageMode {
   scopeDescriptorForPosition (point) {
     point = Point.fromObject(point)
     const result = []
-    let node = this.document.rootNode.descendantForPosition(point)
+    let node = this.tree.rootNode.descendantForPosition(point)
 
     // Don't include anonymous token types like '(' because they prevent scope chains
     // from being parsed as CSS selectors by the `slick` parser. Other css selector
@@ -331,17 +343,17 @@ class TreeSitterLanguageMode {
 }
 
 class TreeSitterHighlightIterator {
-  constructor (layer, document) {
+  constructor (layer) {
     this.layer = layer
+    this.treeCursor = this.layer.tree.walk()
 
     // Conceptually, the iterator represents a single position in the text. It stores this
     // position both as a character index and as a `Point`. This position corresponds to a
     // leaf node of the syntax tree, which either contains or follows the iterator's
-    // textual position. The `currentNode` property represents that leaf node, and
+    // textual position. The `treeCursor` property points at that leaf node, and
     // `currentChildIndex` represents the child index of that leaf node within its parent.
     this.currentIndex = null
     this.currentPosition = null
-    this.currentNode = null
     this.currentChildIndex = null
 
     // In order to determine which selectors match its current node, the iterator maintains
@@ -358,6 +370,8 @@ class TreeSitterHighlightIterator {
   }
 
   seek (targetPosition) {
+    while (this.treeCursor.gotoParent()) {}
+
     const containingTags = []
 
     this.closeTags.length = 0
@@ -367,33 +381,28 @@ class TreeSitterHighlightIterator {
     this.currentPosition = targetPosition
     this.currentIndex = this.layer.buffer.characterIndexForPosition(targetPosition)
 
-    var node = this.layer.document.rootNode
     var childIndex = -1
     var nodeContainsTarget = true
     for (;;) {
-      this.currentNode = node
       this.currentChildIndex = childIndex
       if (!nodeContainsTarget) break
-      this.containingNodeTypes.push(node.type)
+      this.containingNodeTypes.push(this.treeCursor.nodeType)
       this.containingNodeChildIndices.push(childIndex)
 
       const scopeName = this.currentScopeName()
       if (scopeName) {
         const id = this.layer.grammar.idForScope(scopeName)
-        if (this.currentIndex === node.startIndex) {
+        if (this.currentIndex === this.treeCursor.startIndex) {
           this.openTags.push(id)
         } else {
           containingTags.push(id)
         }
       }
 
-      node = node.firstChildForIndex(this.currentIndex)
-      if (node) {
-        if (node.startIndex > this.currentIndex) nodeContainsTarget = false
-        childIndex = node.childIndex
-      } else {
-        break
-      }
+      const nextChildIndex = this.treeCursor.gotoFirstChildForIndex(this.currentIndex)
+      if (nextChildIndex == null) break
+      if (this.treeCursor.startIndex > this.currentIndex) nodeContainsTarget = false
+      childIndex = nextChildIndex
     }
 
     return containingTags
@@ -403,42 +412,35 @@ class TreeSitterHighlightIterator {
     this.closeTags.length = 0
     this.openTags.length = 0
 
-    if (!this.currentNode) {
-      this.currentPosition = {row: Infinity, column: Infinity}
-      return false
-    }
-
     do {
-      if (this.currentIndex < this.currentNode.startIndex) {
-        this.currentIndex = this.currentNode.startIndex
-        this.currentPosition = this.currentNode.startPosition
+      if (this.currentIndex < this.treeCursor.startIndex) {
+        this.currentIndex = this.treeCursor.startIndex
+        this.currentPosition = this.treeCursor.startPosition
         this.pushOpenTag()
         this.descendLeft()
-      } else if (this.currentIndex < this.currentNode.endIndex) {
+      } else if (this.currentIndex < this.treeCursor.endIndex) {
         while (true) {
-          this.currentIndex = this.currentNode.endIndex
-          this.currentPosition = this.currentNode.endPosition
+          this.currentIndex = this.treeCursor.endIndex
+          this.currentPosition = this.treeCursor.endPosition
           this.pushCloseTag()
 
-          const {nextSibling} = this.currentNode
-          if (nextSibling && nextSibling.endIndex > this.currentIndex) {
-            this.currentNode = nextSibling
+          if (this.treeCursor.gotoNextSibling()) {
             this.currentChildIndex++
-            if (this.currentIndex === nextSibling.startIndex) {
+            if (this.currentIndex === this.treeCursor.startIndex) {
               this.pushOpenTag()
               this.descendLeft()
             }
             break
           } else {
-            this.currentNode = this.currentNode.parent
             this.currentChildIndex = last(this.containingNodeChildIndices)
-            if (!this.currentNode) break
+            if (!this.treeCursor.gotoParent()) break
           }
         }
-      } else {
-        this.currentNode = this.currentNode.nextSibling
+      } else if (!this.treeCursor.gotoNextSibling()) {
+        this.currentPosition = {row: Infinity, column: Infinity}
+        break
       }
-    } while (this.closeTags.length === 0 && this.openTags.length === 0 && this.currentNode)
+    } while (this.closeTags.length === 0 && this.openTags.length === 0)
 
     return true
   }
@@ -458,9 +460,7 @@ class TreeSitterHighlightIterator {
   // Private methods
 
   descendLeft () {
-    let child
-    while ((child = this.currentNode.firstChild) && this.currentIndex === child.startIndex) {
-      this.currentNode = child
+    while (this.treeCursor.gotoFirstChild()) {
       this.currentChildIndex = 0
       this.pushOpenTag()
     }
@@ -470,7 +470,7 @@ class TreeSitterHighlightIterator {
     return this.layer.grammar.scopeMap.get(
       this.containingNodeTypes,
       this.containingNodeChildIndices,
-      this.currentNode.isNamed
+      this.treeCursor.nodeIsNamed
     )
   }
 
@@ -482,34 +482,10 @@ class TreeSitterHighlightIterator {
   }
 
   pushOpenTag () {
-    this.containingNodeTypes.push(this.currentNode.type)
+    this.containingNodeTypes.push(this.treeCursor.nodeType)
     this.containingNodeChildIndices.push(this.currentChildIndex)
     const scopeName = this.currentScopeName()
     if (scopeName) this.openTags.push(this.layer.grammar.idForScope(scopeName))
-  }
-}
-
-class TreeSitterTextBufferInput {
-  constructor (buffer) {
-    this.buffer = buffer
-    this.position = {row: 0, column: 0}
-    this.isBetweenCRLF = false
-  }
-
-  seek (offset, position) {
-    this.position = position
-    this.isBetweenCRLF = this.position.column > this.buffer.lineLengthForRow(this.position.row)
-  }
-
-  read () {
-    const endPosition = this.buffer.clipPosition(new Point(this.position.row + 1000, 0))
-    let text = this.buffer.getTextInRange([this.position, endPosition])
-    if (this.isBetweenCRLF) {
-      text = text.slice(1)
-      this.isBetweenCRLF = false
-    }
-    this.position = endPosition
-    return text
   }
 }
 
