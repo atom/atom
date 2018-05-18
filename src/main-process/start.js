@@ -33,6 +33,7 @@ module.exports = function start (resourcePath, startTime) {
   console.log = nslog
 
   app.commandLine.appendSwitch('enable-experimental-web-platform-features')
+  app.commandLine.appendSwitch('force-color-profile', 'srgb')
 
   const args = parseCommandLine(process.argv.slice(1))
   atomPaths.setAtomHome(app.getPath('home'))
