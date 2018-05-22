@@ -367,6 +367,12 @@ class TreeSitterHighlightIterator {
     this.layer = layer
     this.treeCursor = this.layer.tree.walk()
 
+    // In order to determine which selectors match its current node, the iterator maintains
+    // a list of the current node's ancestors. Because the selectors can use the `:nth-child`
+    // pseudo-class, each node's child index is also stored.
+    this.containingNodeTypes = []
+    this.containingNodeChildIndices = []
+
     // Conceptually, the iterator represents a single position in the text. It stores this
     // position both as a character index and as a `Point`. This position corresponds to a
     // leaf node of the syntax tree, which either contains or follows the iterator's
@@ -375,12 +381,6 @@ class TreeSitterHighlightIterator {
     this.currentIndex = null
     this.currentPosition = null
     this.currentChildIndex = null
-
-    // In order to determine which selectors match its current node, the iterator maintains
-    // a list of the current node's ancestors. Because the selectors can use the `:nth-child`
-    // pseudo-class, each node's child index is also stored.
-    this.containingNodeTypes = []
-    this.containingNodeChildIndices = []
 
     // At any given position, the iterator exposes the list of class names that should be
     // *ended* at its current position and the list of class names that should be *started*
@@ -401,6 +401,9 @@ class TreeSitterHighlightIterator {
     this.currentPosition = targetPosition
     this.currentIndex = this.layer.buffer.characterIndexForPosition(targetPosition)
 
+    // Descend from the root of the tree to the smallest node that spans the given position.
+    // Keep track of any nodes along the way that are associated with syntax highlighting
+    // tags. These tags must be returned.
     var childIndex = -1
     var nodeContainsTarget = true
     for (;;) {
@@ -432,30 +435,56 @@ class TreeSitterHighlightIterator {
     this.closeTags.length = 0
     this.openTags.length = 0
 
+    // Step forward through the leaves of the tree to find the next place where one or more
+    // syntax highlighting tags begin, end, or both.
     do {
+      // If the iterator is before the beginning of the current node, advance it to the
+      // beginning of then node and then walk down into the node's children, marking
+      // open tags as needed.
       if (this.currentIndex < this.treeCursor.startIndex) {
         this.currentIndex = this.treeCursor.startIndex
         this.currentPosition = this.treeCursor.startPosition
         this.pushOpenTag()
         this.descendLeft()
+
+      // If the iterator is within the current node, advance it to the end of the node
+      // and then walk up the tree until the next sibling is found, marking close tags
+      // as needed.
+      //
       } else if (this.currentIndex < this.treeCursor.endIndex) {
-        while (true) {
+        /* eslint-disable no-labels */
+        ascendingLoop:
+        do {
           this.currentIndex = this.treeCursor.endIndex
           this.currentPosition = this.treeCursor.endPosition
           this.pushCloseTag()
 
-          if (this.treeCursor.gotoNextSibling()) {
+          // Stop walking upward when we reach a node with a next sibling.
+          while (this.treeCursor.gotoNextSibling()) {
             this.currentChildIndex++
-            if (this.currentIndex === this.treeCursor.startIndex) {
+
+            // If the next sibling has a size of zero (e.g. something like an `automatic_semicolon`,
+            // an `indent`, or a `MISSING` node inserted by the parser during error recovery),
+            // then skip it. These nodes play no role in syntax highlighting.
+            if (this.treeCursor.endIndex === this.currentIndex) continue
+
+            // If the next sibling starts right at the end of the current node (i.e. there is
+            // no whitespace in between), then before returning, also mark any open tags associated
+            // with this point in the tree.
+            if (this.treeCursor.startIndex === this.currentIndex) {
               this.pushOpenTag()
               this.descendLeft()
             }
-            break
-          } else {
-            this.currentChildIndex = last(this.containingNodeChildIndices)
-            if (!this.treeCursor.gotoParent()) break
+
+            break ascendingLoop
           }
-        }
+
+          this.currentChildIndex = last(this.containingNodeChildIndices)
+        } while (this.treeCursor.gotoParent())
+        /* eslint-disable no-labels */
+
+      // If the iterator is at the end of a node, advance to the node's next sibling. If
+      // it has no next sibing, then the iterator has reached the end of the tree.
       } else if (!this.treeCursor.gotoNextSibling()) {
         this.currentPosition = {row: Infinity, column: Infinity}
         break
