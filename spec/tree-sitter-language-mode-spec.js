@@ -228,6 +228,67 @@ describe('TreeSitterLanguageMode', () => {
         ]
       ])
     })
+
+    describe('when the buffer changes during a parse', () => {
+      it('immediately parses again when the current parse completes', async () => {
+        const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+          parser: 'tree-sitter-javascript',
+          scopes: {
+            'identifier': 'variable',
+            'call_expression > identifier': 'function',
+            'new_expression > call_expression > identifier': 'constructor'
+          }
+        })
+        const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+        buffer.setLanguageMode(languageMode)
+
+        buffer.setText('abc;');
+        await languageMode.reparsePromise
+        expectTokensToEqual(editor, [
+          [
+            {text: 'abc', scopes: ['variable']},
+            {text: ';', scopes: []}
+          ],
+        ])
+
+        buffer.setTextInRange([[0, 3], [0, 3]], '()');
+        expectTokensToEqual(editor, [
+          [
+            {text: 'abc()', scopes: ['variable']},
+            {text: ';', scopes: []}
+          ],
+        ])
+
+        buffer.setTextInRange([[0, 0], [0, 0]], 'new ');
+        expectTokensToEqual(editor, [
+          [
+            {text: 'new ', scopes: []},
+            {text: 'abc()', scopes: ['variable']},
+            {text: ';', scopes: []}
+          ],
+        ])
+
+        await languageMode.reparsePromise
+        expect(languageMode.reparsePromise).not.toBeNull()
+        expectTokensToEqual(editor, [
+          [
+            {text: 'new ', scopes: []},
+            {text: 'abc', scopes: ['function']},
+            {text: '();', scopes: []}
+          ],
+        ])
+
+        await languageMode.reparsePromise
+        expect(languageMode.reparsePromise).toBeNull()
+        expectTokensToEqual(editor, [
+          [
+            {text: 'new ', scopes: []},
+            {text: 'abc', scopes: ['constructor']},
+            {text: '();', scopes: []}
+          ],
+        ])
+      })
+    })
   })
 
   describe('folding', () => {

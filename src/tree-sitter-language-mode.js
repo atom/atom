@@ -21,11 +21,12 @@ class TreeSitterLanguageMode {
     this.emitter = new Emitter()
     this.isFoldableCache = []
     this.hasQueuedParse = false
-    this.buffer.onDidChangeText(async () => {
-      if (!this.reparsePromise) {
-        this.reparsePromise = this.reparse().then(() => {
-          this.reparsePromise = null
-        })
+    this.changeListsSinceCurrentParse = []
+    this.buffer.onDidChangeText(async ({changes}) => {
+      if (this.reparsePromise) {
+        this.changeListsSinceCurrentParse.push(changes)
+      } else {
+        this.reparsePromise = this.reparse()
       }
     })
 
@@ -38,29 +39,35 @@ class TreeSitterLanguageMode {
     return this.grammar.id
   }
 
-  bufferDidChange ({oldRange, newRange, oldText, newText}) {
+  bufferDidChange (change) {
+    const {oldRange, newRange} = change
     const startRow = oldRange.start.row
     const oldEndRow = oldRange.end.row
     const newEndRow = newRange.end.row
     this.isFoldableCache.splice(startRow, oldEndRow - startRow, ...new Array(newEndRow - startRow))
-    this.tree.edit({
-      startIndex: this.buffer.characterIndexForPosition(oldRange.start),
-      lengthRemoved: oldText.length,
-      lengthAdded: newText.length,
-      startPosition: oldRange.start,
-      extentRemoved: oldRange.getExtent(),
-      extentAdded: newRange.getExtent()
-    })
+    this.tree.edit(this.treeEditForBufferChange(change))
   }
 
   /*
   Section - Highlighting
   */
 
+  treeEditForBufferChange ({oldRange, newRange, oldText, newText}) {
+    const startIndex = this.buffer.characterIndexForPosition(oldRange.start)
+    return {
+      startIndex,
+      oldEndIndex: startIndex + oldText.length,
+      newEndIndex: startIndex + newText.length,
+      startPosition: oldRange.start,
+      oldEndPosition: oldRange.end,
+      newEndPosition: newRange.end
+    }
+  }
+
   async reparse () {
     const tree = await this.parser.parseTextBuffer(this.buffer.buffer, this.tree)
-    const invalidatedRanges = tree.getChangedRanges(this.tree)
-    this.tree = tree
+    const invalidatedRanges = this.tree.getChangedRanges(tree)
+
     for (let i = 0, n = invalidatedRanges.length; i < n; i++) {
       const range = invalidatedRanges[i]
       const startRow = range.start.row
@@ -69,6 +76,19 @@ class TreeSitterLanguageMode {
         this.isFoldableCache[row] = undefined
       }
       this.emitter.emit('did-change-highlighting', range)
+    }
+
+    this.tree = tree
+    if (this.changeListsSinceCurrentParse.length > 0) {
+      for (const changeList of this.changeListsSinceCurrentParse) {
+        for (let i = changeList.length - 1; i >= 0; i--) {
+          this.tree.edit(this.treeEditForBufferChange(changeList[i]))
+        }
+      }
+      this.changeListsSinceCurrentParse.length = 0
+      this.reparsePromise = this.reparse()
+    } else {
+      this.reparsePromise = null
     }
   }
 
