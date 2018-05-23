@@ -16,7 +16,7 @@ class TreeSitterLanguageMode {
     this.config = config
     this.parser = new Parser()
     this.parser.setLanguage(grammar.languageModule)
-    this.tree = this.parser.parseTextBufferSync(this.buffer.buffer)
+    this.tree = null
     this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.id]})
     this.emitter = new Emitter()
     this.isFoldableCache = []
@@ -35,11 +35,22 @@ class TreeSitterLanguageMode {
     this.regexesByPattern = {}
   }
 
+  async initialize () {
+    this.tree = await this.parser.parseTextBuffer(this.buffer.buffer)
+  }
+
+  ensureParseTree () {
+    if (!this.tree) {
+      this.tree = this.parser.parseTextBufferSync(this.buffer.buffer)
+    }
+  }
+
   getLanguageId () {
     return this.grammar.id
   }
 
   bufferDidChange (change) {
+    this.ensureParseTree()
     const {oldRange, newRange} = change
     const startRow = oldRange.start.row
     const oldEndRow = oldRange.end.row
@@ -93,7 +104,8 @@ class TreeSitterLanguageMode {
   }
 
   buildHighlightIterator () {
-    return new TreeSitterHighlightIterator(this)
+    this.ensureParseTree()
+    return new TreeSitterHighlightIterator(this, this.tree.walk())
   }
 
   onDidChangeHighlighting (callback) {
@@ -170,6 +182,7 @@ class TreeSitterLanguageMode {
   }
 
   getFoldableRangesAtIndentLevel (goalLevel) {
+    this.ensureParseTree()
     let result = []
     let stack = [{node: this.tree.rootNode, level: 0}]
     while (stack.length > 0) {
@@ -215,6 +228,7 @@ class TreeSitterLanguageMode {
   }
 
   getFoldableRangeContainingPoint (point, tabLength, existenceOnly = false) {
+    this.ensureParseTree()
     let node = this.tree.rootNode.descendantForPosition(this.buffer.clipPosition(point))
     while (node) {
       if (existenceOnly && node.startPosition.row < point.row) break
@@ -335,8 +349,8 @@ class TreeSitterLanguageMode {
   }
 
   scopeDescriptorForPosition (point) {
+    this.ensureParseTree()
     point = Point.fromObject(point)
-    const result = []
     let node = this.tree.rootNode.descendantForPosition(point)
 
     // Don't include anonymous token types like '(' because they prevent scope chains
@@ -345,6 +359,7 @@ class TreeSitterLanguageMode {
     // selectors.
     if (!node.isNamed) node = node.parent
 
+    const result = []
     while (node) {
       result.push(node.type)
       node = node.parent
@@ -363,9 +378,9 @@ class TreeSitterLanguageMode {
 }
 
 class TreeSitterHighlightIterator {
-  constructor (layer) {
+  constructor (layer, treeCursor) {
     this.layer = layer
-    this.treeCursor = this.layer.tree.walk()
+    this.treeCursor = treeCursor
 
     // In order to determine which selectors match its current node, the iterator maintains
     // a list of the current node's ancestors. Because the selectors can use the `:nth-child`
