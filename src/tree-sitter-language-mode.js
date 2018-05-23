@@ -378,8 +378,8 @@ class TreeSitterLanguageMode {
 }
 
 class TreeSitterHighlightIterator {
-  constructor (layer, treeCursor) {
-    this.layer = layer
+  constructor (languageMode, treeCursor) {
+    this.languageMode = languageMode
     this.treeCursor = treeCursor
 
     // In order to determine which selectors match its current node, the iterator maintains
@@ -414,7 +414,7 @@ class TreeSitterHighlightIterator {
     this.containingNodeTypes.length = 0
     this.containingNodeChildIndices.length = 0
     this.currentPosition = targetPosition
-    this.currentIndex = this.layer.buffer.characterIndexForPosition(targetPosition)
+    this.currentIndex = this.languageMode.buffer.characterIndexForPosition(targetPosition)
 
     // Descend from the root of the tree to the smallest node that spans the given position.
     // Keep track of any nodes along the way that are associated with syntax highlighting
@@ -429,7 +429,7 @@ class TreeSitterHighlightIterator {
 
       const scopeName = this.currentScopeName()
       if (scopeName) {
-        const id = this.layer.grammar.idForScope(scopeName)
+        const id = this.languageMode.grammar.idForScope(scopeName)
         if (this.currentIndex === this.treeCursor.startIndex) {
           this.openTags.push(id)
         } else {
@@ -531,7 +531,7 @@ class TreeSitterHighlightIterator {
   }
 
   currentScopeName () {
-    return this.layer.grammar.scopeMap.get(
+    return this.languageMode.grammar.scopeMap.get(
       this.containingNodeTypes,
       this.containingNodeChildIndices,
       this.treeCursor.nodeIsNamed
@@ -540,7 +540,7 @@ class TreeSitterHighlightIterator {
 
   pushCloseTag () {
     const scopeName = this.currentScopeName()
-    if (scopeName) this.closeTags.push(this.layer.grammar.idForScope(scopeName))
+    if (scopeName) this.closeTags.push(this.languageMode.grammar.idForScope(scopeName))
     this.containingNodeTypes.pop()
     this.containingNodeChildIndices.pop()
   }
@@ -549,7 +549,7 @@ class TreeSitterHighlightIterator {
     this.containingNodeTypes.push(this.treeCursor.nodeType)
     this.containingNodeChildIndices.push(this.currentChildIndex)
     const scopeName = this.currentScopeName()
-    if (scopeName) this.openTags.push(this.layer.grammar.idForScope(scopeName))
+    if (scopeName) this.openTags.push(this.languageMode.grammar.idForScope(scopeName))
   }
 }
 
