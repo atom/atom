@@ -662,27 +662,35 @@ class Project extends Model {
   // * `text` The {String} text to use as a buffer.
   //
   // Returns a {Promise} that resolves to the {TextBuffer}.
-  buildBuffer (absoluteFilePath) {
+  async buildBuffer (absoluteFilePath) {
     const params = {shouldDestroyOnFileDelete: this.shouldDestroyBufferOnFileDelete}
 
-    let promise
+    let buffer
     if (absoluteFilePath != null) {
       if (this.loadPromisesByPath[absoluteFilePath] == null) {
         this.loadPromisesByPath[absoluteFilePath] =
-          TextBuffer.load(absoluteFilePath, params).catch(error => {
-            delete this.loadPromisesByPath[absoluteFilePath]
-            throw error
-          })
+          TextBuffer.load(absoluteFilePath, params)
+            .then(result => {
+              delete this.loadPromisesByPath[absoluteFilePath]
+              return result
+            })
+            .catch(error => {
+              delete this.loadPromisesByPath[absoluteFilePath]
+              throw error
+            })
       }
-      promise = this.loadPromisesByPath[absoluteFilePath]
+      buffer = await this.loadPromisesByPath[absoluteFilePath]
     } else {
-      promise = Promise.resolve(new TextBuffer(params))
+      buffer = new TextBuffer(params)
     }
-    return promise.then(buffer => {
-      delete this.loadPromisesByPath[absoluteFilePath]
-      this.addBuffer(buffer)
-      return buffer
-    })
+
+    this.grammarRegistry.autoAssignLanguageMode(buffer)
+    if (buffer.languageMode.initialize) {
+      await buffer.languageMode.initialize()
+    }
+
+    this.addBuffer(buffer)
+    return buffer
   }
 
   addBuffer (buffer, options = {}) {
