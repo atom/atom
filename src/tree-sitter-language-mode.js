@@ -76,7 +76,9 @@ class TreeSitterLanguageMode {
   }
 
   async reparse () {
-    const tree = await this.parser.parseTextBuffer(this.buffer.buffer, this.tree)
+    const tree = await this.parser.parseTextBuffer(this.buffer.buffer, this.tree, {
+      syncOperationLimit: 1000
+    })
     const invalidatedRanges = this.tree.getChangedRanges(tree)
 
     for (let i = 0, n = invalidatedRanges.length; i < n; i++) {
