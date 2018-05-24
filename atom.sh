@@ -149,6 +149,7 @@ trap 'on_die' SIGQUIT SIGTERM
 # If the wait flag is set, don't exit this process until Atom tells it to.
 if [ $WAIT ]; then
   while true; do
+    read
     sleep 1
   done
 fi
