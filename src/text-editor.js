@@ -12,6 +12,8 @@ const Selection = require('./selection')
 const NullGrammar = require('./null-grammar')
 const TextMateLanguageMode = require('./text-mate-language-mode')
 const ScopeDescriptor = require('./scope-descriptor')
+const os = require('os')
+const slash = require('slash')
 
 const TextMateScopeSelector = require('first-mate').ScopeSelector
 const GutterContainer = require('./gutter-container')
@@ -1172,7 +1174,33 @@ class TextEditor {
   // See {TextBuffer::saveAs} for more details.
   //
   // * `filePath` A {String} path.
-  saveAs (filePath) { return this.buffer.saveAs(filePath) }
+  saveAs (filePath) {
+    if (os.platform() == 'win32') {
+      // Filenames reserved in windows
+      const winReservedNames = [
+        'CON', 'PRN', 'AUX', 'NUL',
+
+        'COM0', 'COM1', 'COM2', 'COM3', 'COM4',
+        'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
+
+        'LPT0', 'LPT1', 'LPT2', 'LPT3', 'LPT4',
+        'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9',
+      ];
+      // Convert file such that the slashes are always the same
+      let convertedFilePath = slash(filePath);
+
+      // Get the filename e.g. 'CON.txt'
+      let filename = convertedFilePath.substring(convertedFilePath.lastIndexOf("/") + 1, convertedFilePath.length);
+
+      // Check if filename 'CON' is restricted
+      if ( winReservedNames.indexOf(filename.split('.')[0]) != -1 ) {
+        // Throw error
+        throw new Error('Attempt to save file with a restricted filename in windows');
+      }
+    }
+
+    return this.buffer.saveAs(filePath)
+  }
 
   // Determine whether the user should be prompted to save before closing
   // this editor.
