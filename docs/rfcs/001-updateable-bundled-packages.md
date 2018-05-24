@@ -51,7 +51,7 @@ Any package that opts into this behavior must adhere to two rules:
 
 1. **Each release must ensure that its `engines` field in `package.json` reflects the necessary Atom version for the Atom, Electron, and Node.js APIs used in the package**.  This field defines the range of Atom versions in which the package is expected to work.  The field should always be set to the lowest possible Atom version that the package supports.
 
-2. **Any new update to a bundled package *must* support current Stable *and* Beta releases**.  This enables user to upgrade the package and continue to use it in side-by-side Stable and Beta installs on their machine.  If a package wants to use API features of a newer version of Atom while still supporting older Atom versions, it must do so in a way that is aware of the user's version and adjust itself accordingly.
+2. **Any new update to a bundled package *must* support current Stable *and* Beta releases**.  This enables the user to upgrade the package and continue to use it in side-by-side Stable and Beta installs on their machine.  If a package wants to use API features of a newer version of Atom while still supporting older Atom versions, it must do so in a way that is aware of the user's version and adjust itself accordingly.
 
 ## Drawbacks
 
