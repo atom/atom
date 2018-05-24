@@ -55,7 +55,7 @@ Any package that opts into this behavior must adhere to two rules:
 
 ## Drawbacks
 
-The primary drawback of this approach is that updateable bundled packages might exhibit problems on older Atom versions due to missing or changed APIs in Atom, Electron, or Node.js.  The solution for these packages is to keep their `engines` field updated appropriately, but there's still a chance that some updates will slip through without the necessary engine version changes.  If this does occur and users are affected by it, the solution is to publish a new update which rolls back the package to the functionality of its previous release and then publish another new update with the new functionality restored and the proper `engine` version in place.
+The primary drawback of this approach is that updateable bundled packages might exhibit problems on older Atom versions due to missing or changed APIs in Atom, Electron, or Node.js.  The solution for these packages is to keep their `engines` field updated appropriately, but there's still a chance that some updates will slip through without the necessary engine version changes.  If this does occur and users are affected by it, the solution is to publish a new update which rolls back the package to the functionality of its previous release and then publish another new update with the new functionality restored and the proper `engines` version in place.
 
 Another major drawback is that the snapshotted code for the bundled package will no longer be used since a newer version has been installed.  This updated version of the package cannot be easily added back into Atom's snapshot so it could cause a noticable drag on Atom's startup time.
 
