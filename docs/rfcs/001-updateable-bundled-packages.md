@@ -33,7 +33,7 @@ The primary use case for this improvement is enabling the GitHub package to ship
 
 Any bundled Atom package can opt in to new updates released via `apm` by adding `"coreUpdateable": true` to its `package.json` file.  This causes `apm` to consider it as part of the list of packages it checks for updates.  If a community (non-bundled) package sets this field to `true` or `false` it will be ignored as it's only relevant to bundled packages.
 
-`apm` includes each updatable bundled package in its list of.  The user is notified of new updates to the package so long as the update supports the engine version of their current Atom build.
+Atom shows update notifications for updateable bundled packages whenever they are available so long as those updates support the engine version of the current Atom build.  Bundled package updates can also be found and installed in the Settings view's *Updates* tab.
 
 The `dalek` package is aware of the new "updateable" metadata and excludes updated bundled packages from its deprecation warnings.
 
@@ -47,19 +47,27 @@ The `dalek` package is aware of the new "updateable" metadata and excludes updat
 
 ### Rules for Updateable Bundled Packages
 
-Any package that opts into this behavior must adhere to two rules:
+Any package that opts into this behavior must adhere to these rules:
 
 1. **Each release must ensure that its `engines` field in `package.json` reflects the necessary Atom version for the Atom, Electron, and Node.js APIs used in the package**.  This field defines the range of Atom versions in which the package is expected to work.  The field should always be set to the lowest possible Atom version that the package supports.
 
 2. **Any new update to a bundled package *must* support current Stable *and* Beta releases**.  This enables the user to upgrade the package and continue to use it in side-by-side Stable and Beta installs on their machine.  If a package wants to use API features of a newer version of Atom while still supporting older Atom versions, it must do so in a way that is aware of the user's version and adjust itself accordingly.
 
+3. **Atom's `package.json` *must* stay up to date with the latest supported version of the package** in the `master` and Beta release branches.  This ensures that the user always gets the latest version of the package in a new release and also benefits from its inclusion in Atom's snapshot.
+
 ## Drawbacks
 
 The primary drawback of this approach is that updateable bundled packages might exhibit problems on older Atom versions due to missing or changed APIs in Atom, Electron, or Node.js.  The solution for these packages is to keep their `engines` field updated appropriately, but there's still a chance that some updates will slip through without the necessary engine version changes.  If this does occur and users are affected by it, the solution is to publish a new update which rolls back the package to the functionality of its previous release and then publish another new update with the new functionality restored and the proper `engines` version in place.
 
-Another major drawback is that the snapshotted code for the bundled package will no longer be used since a newer version has been installed.  This updated version of the package cannot be easily added back into Atom's snapshot so it could cause a noticable drag on Atom's startup time.
+Another major drawback is that the snapshotted code for the bundled package will no longer be used since a newer version has been installed.  This updated version of the package cannot be easily added back into Atom's snapshot so it could cause a noticable drag on Atom's startup time.  Some quick measurements with Timecop show a 10x increase in GitHub package load time for bundled (snapshot) vs updated (non-snapshot) package code:
 
-**TODO: Add some startup time information about running Atom with a non-snapshotted GitHub package**
+| GitHub Package Code              | Load Time |
+|----------------------------------|-----------|
+| **Bundled**                      | 52 ms     |
+| **Updated (first load)**         | 5026 ms   |
+| **Updated (subsequent loads)**   | 591 ms    |
+
+There was no measurable effect on shell or window startup time, only package load time.  It seems that the transpilation phase of the first load of the package incurs a 100x increase in load time.  Pre-transpilation of the package code (either when shipped or when installed using `apm`) will be useful in mitigating this cost.  Further investigation into snapshotting package code will be needed to understand if the load time increase can be mitigated.
 
 One other possible drawback is that an updated version of a bundled package might not be compatible across two different Atom channels.  For example, if the user installs a new update to a bundled package that only supports the current Atom Beta release or higher, the user will no longer have access to that package if they open Atom Stable.  However, this drawback is no different than what the user would face today installing a community package under the same circumstances, so this could be considered a general problem in the Atom package ecosystem.
 
