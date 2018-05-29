@@ -148,6 +148,15 @@ trap 'on_die' SIGQUIT SIGTERM
 
 # If the wait flag is set, don't exit this process until Atom tells it to.
 if [ $WAIT ]; then
+  WAIT_FIFO="$ATOM_HOME/.wait_fifo"
+  while true; do
+    [ -f "$WAIT_FIFO" ] && rm "$WAIT_FIFO"
+    [ ! -p "$WAIT_FIFO" ] && mkfifo "$WAIT_FIFO"
+    read < "$WAIT_FIFO" || break
+    sleep 1 # prevent a tight loop
+  done
+  
+  # fall back to sleep
   while true; do
     sleep 1
   done
