@@ -1244,37 +1244,26 @@ module.exports = class Workspace extends Model {
 
     const fileSize = fs.getSizeSync(filePath)
 
-    let [resolveConfirmFileOpenPromise, rejectConfirmFileOpenPromise] = []
-    const confirmFileOpenPromise = new Promise((resolve, reject) => {
-      resolveConfirmFileOpenPromise = resolve
-      rejectConfirmFileOpenPromise = reject
-    })
-
     if (fileSize >= (this.config.get('core.warnOnLargeFileLimit') * 1048576)) { // 40MB by default
-      this.applicationDelegate.confirm({
-        message: 'Atom will be unresponsive during the loading of very large files.',
-        detail: 'Do you still want to load this file?',
-        buttons: ['Proceed', 'Cancel']
-      }, response => {
-        if (response === 1) {
-          rejectConfirmFileOpenPromise()
-        } else {
-          resolveConfirmFileOpenPromise()
-        }
+      await new Promise((resolve, reject) => {
+        this.applicationDelegate.confirm({
+          message: 'Atom will be unresponsive during the loading of very large files.',
+          detail: 'Do you still want to load this file?',
+          buttons: ['Proceed', 'Cancel']
+        }, response => {
+          if (response === 1) {
+            const error = new Error()
+            error.code = 'CANCELLED'
+            reject(error)
+          } else {
+            resolve()
+          }
+        })
       })
-    } else {
-      resolveConfirmFileOpenPromise()
     }
 
-    try {
-      await confirmFileOpenPromise
-      const buffer = await this.project.bufferForPath(filePath, options)
-      return this.textEditorRegistry.build(Object.assign({buffer, autoHeight: false}, options))
-    } catch (e) {
-      const error = new Error()
-      error.code = 'CANCELLED'
-      throw error
-    }
+    const buffer = await this.project.bufferForPath(filePath, options)
+    return this.textEditorRegistry.build(Object.assign({buffer, autoHeight: false}, options))
   }
 
   handleGrammarUsed (grammar) {
