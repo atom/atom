@@ -133,8 +133,8 @@
 
   'ctrl-alt-[': 'editor:fold-current-row'
   'ctrl-alt-]': 'editor:unfold-current-row'
-  'ctrl-alt-{': 'editor:fold-all' # Atom Specific
-  'ctrl-alt-}': 'editor:unfold-all' # Atom Specific
+  'ctrl-alt-f': 'editor:fold-all' # Atom Specific
+  'ctrl-alt-u': 'editor:unfold-all' # Atom Specific
   'ctrl-k ctrl-0': 'editor:unfold-all'
   'ctrl-k ctrl-1': 'editor:fold-at-indent-level-1'
   'ctrl-k ctrl-2': 'editor:fold-at-indent-level-2'

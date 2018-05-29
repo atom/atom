@@ -188,8 +188,8 @@
 
   'cmd-alt-[': 'editor:fold-current-row'
   'cmd-alt-]': 'editor:unfold-current-row'
-  'cmd-alt-{': 'editor:fold-all' # Atom Specific
-  'cmd-alt-}': 'editor:unfold-all' # Atom Specific
+  'cmd-alt-f': 'editor:fold-all' # Atom Specific
+  'cmd-alt-u': 'editor:unfold-all' # Atom Specific
   'cmd-k cmd-0': 'editor:unfold-all'
   'cmd-k cmd-1': 'editor:fold-at-indent-level-1'
   'cmd-k cmd-2': 'editor:fold-at-indent-level-2'
