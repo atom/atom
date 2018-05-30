@@ -15,7 +15,7 @@
   "electronVersion": "2.0.1",
   "dependencies": {
     "@atom/nsfw": "^1.0.18",
-    "@atom/watcher": "1.0.3",
+    "@atom/watcher": "1.0.8",
     "@atom/source-map-support": "^0.3.4",
     "async": "0.2.6",
     "atom-keymap": "8.2.10",
