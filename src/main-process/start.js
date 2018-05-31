@@ -5,6 +5,7 @@ const temp = require('temp').track()
 const parseCommandLine = require('./parse-command-line')
 const startCrashReporter = require('../crash-reporter-start')
 const atomPaths = require('../atom-paths')
+const ElectronSwitchStore = require('./electron-switch-store')
 
 module.exports = function start (resourcePath, startTime) {
   global.shellStartTime = startTime
@@ -33,12 +34,18 @@ module.exports = function start (resourcePath, startTime) {
   console.log = nslog
 
   app.commandLine.appendSwitch('enable-experimental-web-platform-features')
-  app.commandLine.appendSwitch('force-color-profile', 'srgb')
 
   const args = parseCommandLine(process.argv.slice(1))
   atomPaths.setAtomHome(app.getPath('home'))
   atomPaths.setUserData(app)
   setupCompileCache()
+
+  const electronSwitchStore = new ElectronSwitchStore({
+    filePath: path.join(app.getPath('userData'), '.electron-switches')
+  })
+  for (const [name, value] of electronSwitchStore.entries()) {
+    app.commandLine.appendSwitch(name, value)
+  }
 
   if (handleStartupEventWithSquirrel()) {
     return
