@@ -45,7 +45,7 @@ module.exports = function start (resourcePath, startTime) {
   const config = getConfig()
   const colorProfile = config.get('core.forceColorProfile')
   if (colorProfile) {
-     app.commandLine.appendSwitch('force-color-profile', colorProfile)
+    app.commandLine.appendSwitch('force-color-profile', colorProfile)
   }
 
   if (handleStartupEventWithSquirrel()) {
