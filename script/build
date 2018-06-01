@@ -6,7 +6,11 @@
 // are installed.
 require('./bootstrap')
 
+// Needed so we can require src/module-cache.coffee during generateModuleCache
+require('coffee-script/register')
 require('colors')
+
+const path = require('path')
 const yargs = require('yargs')
 const argv = yargs
   .usage('Usage: $0 [options]')
@@ -22,10 +26,6 @@ const argv = yargs
   .string('install')
   .wrap(yargs.terminalWidth())
   .argv
-
-// Needed so we can require src/module-cache.coffee during generateModuleCache
-require('coffee-script/register')
-const path = require('path')
 
 const checkChromedriverVersion = require('./lib/check-chromedriver-version')
 const cleanOutputDirectory = require('./lib/clean-output-directory')
