@@ -41,7 +41,7 @@ module.exports = function start (resourcePath, startTime) {
   setupCompileCache()
 
   const electronSwitchStore = new ElectronSwitchStore({
-    filePath: path.join(app.getPath('userData'), '.electron-switches')
+    filePath: path.join(process.env.ATOM_HOME, '.electron-switches')
   })
   for (const [name, value] of electronSwitchStore.entries()) {
     app.commandLine.appendSwitch(name, value)
