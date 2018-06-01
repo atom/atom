@@ -5,7 +5,9 @@ const temp = require('temp').track()
 const parseCommandLine = require('./parse-command-line')
 const startCrashReporter = require('../crash-reporter-start')
 const atomPaths = require('../atom-paths')
-const ElectronSwitchStore = require('./electron-switch-store')
+const fs = require('fs')
+const CSON = require('season')
+const Config = require('../config')
 
 module.exports = function start (resourcePath, startTime) {
   global.shellStartTime = startTime
@@ -40,11 +42,10 @@ module.exports = function start (resourcePath, startTime) {
   atomPaths.setUserData(app)
   setupCompileCache()
 
-  const electronSwitchStore = new ElectronSwitchStore({
-    filePath: path.join(process.env.ATOM_HOME, '.electron-switches')
-  })
-  for (const [name, value] of electronSwitchStore.entries()) {
-    app.commandLine.appendSwitch(name, value)
+  const config = getConfig()
+  const colorProfile = config.get('core.forceColorProfile')
+  if (colorProfile) {
+     app.commandLine.appendSwitch('force-color-profile', colorProfile)
   }
 
   if (handleStartupEventWithSquirrel()) {
@@ -104,4 +105,15 @@ function setupCompileCache () {
   const CompileCache = require('../compile-cache')
   CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
   CompileCache.install(process.resourcesPath, require)
+}
+
+function getConfig () {
+  const configFilePath = fs.existsSync(path.join(process.env.ATOM_HOME, 'config.json'))
+    ? path.join(process.env.ATOM_HOME, 'config.json')
+    : path.join(process.env.ATOM_HOME, 'config.cson')
+
+  const configFileData = CSON.readFileSync(configFilePath)
+  const config = new Config()
+  config.resetUserSettings(configFileData)
+  return config
 }
