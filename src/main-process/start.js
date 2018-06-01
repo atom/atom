@@ -43,8 +43,8 @@ module.exports = function start (resourcePath, startTime) {
   setupCompileCache()
 
   const config = getConfig()
-  const colorProfile = config.get('core.forceColorProfile')
-  if (colorProfile) {
+  const colorProfile = config.get('core.colorProfile')
+  if (colorProfile && colorProfile !== 'default') {
     app.commandLine.appendSwitch('force-color-profile', colorProfile)
   }
 
