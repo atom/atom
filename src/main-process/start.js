@@ -108,12 +108,19 @@ function setupCompileCache () {
 }
 
 function getConfig () {
-  const configFilePath = fs.existsSync(path.join(process.env.ATOM_HOME, 'config.json'))
-    ? path.join(process.env.ATOM_HOME, 'config.json')
-    : path.join(process.env.ATOM_HOME, 'config.cson')
-
-  const configFileData = CSON.readFileSync(configFilePath)
   const config = new Config()
-  config.resetUserSettings(configFileData)
+
+  let configFilePath
+  if (fs.existsSync(path.join(process.env.ATOM_HOME, 'config.json'))) {
+    configFilePath = path.join(process.env.ATOM_HOME, 'config.json')
+  } else if (fs.existsSync(path.join(process.env.ATOM_HOME, 'config.cson'))) {
+    configFilePath = path.join(process.env.ATOM_HOME, 'config.cson')
+  }
+
+  if (configFilePath) {
+    const configFileData = CSON.readFileSync(configFilePath)
+    config.resetUserSettings(configFileData)
+  }
+
   return config
 }
