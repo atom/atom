@@ -173,7 +173,8 @@ class AtomApplication extends EventEmitter {
     if (!this.configFilePromise) {
       this.configFilePromise = this.configFile.watch()
       this.disposable.add(await this.configFilePromise)
-      this.config.onDidChange('core.titleBar', this.promptForRestart.bind(this))
+      this.config.onDidChange('core.titleBar', () => this.promptForRestart())
+      this.config.onDidChange('core.colorProfile', () => this.promptForRestart())
     }
 
     const optionsForWindowsToOpen = []
