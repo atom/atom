@@ -283,32 +283,6 @@ describe('GrammarRegistry', () => {
       expect(atom.grammars.selectGrammar('/hu.git/config').name).toBe('Null Grammar')
     })
 
-    describe('when the grammar has a contentRegExp field', () => {
-      it('favors grammars whose contentRegExp matches a prefix of the file\'s content', () => {
-        atom.grammars.addGrammar({
-          id: 'javascript-1',
-          fileTypes: ['js']
-        })
-        atom.grammars.addGrammar({
-          id: 'flow-javascript',
-          contentRegExp: new RegExp('//.*@flow'),
-          fileTypes: ['js']
-        })
-        atom.grammars.addGrammar({
-          id: 'javascript-2',
-          fileTypes: ['js']
-        })
-
-        const selectedGrammar = atom.grammars.selectGrammar('test.js', dedent`
-          // Copyright EvilCorp
-          // @flow
-
-          module.exports = function () { return 1 + 1 }
-        `)
-        expect(selectedGrammar.id).toBe('flow-javascript')
-      })
-    })
-
     it("uses the filePath's shebang line if the grammar cannot be determined by the extension or basename", async () => {
       await atom.packages.activatePackage('language-javascript')
       await atom.packages.activatePackage('language-ruby')
@@ -440,6 +414,84 @@ describe('GrammarRegistry', () => {
         const grammar = grammarRegistry.selectGrammar('test.js')
         expect(grammar.id).toBe('javascript')
         expect(grammar instanceof TreeSitterGrammar).toBe(true)
+      })
+    })
+
+    describe('tree-sitter grammars with content regexes', () => {
+      it('recognizes C++ header files', () => {
+        atom.config.set('core.useTreeSitterParsers', true)
+        grammarRegistry.loadGrammarSync(require.resolve('language-c/grammars/tree-sitter-c.cson'))
+        grammarRegistry.loadGrammarSync(require.resolve('language-c/grammars/tree-sitter-cpp.cson'))
+        grammarRegistry.loadGrammarSync(require.resolve('language-coffee-script/grammars/coffeescript.cson'))
+
+        let grammar = grammarRegistry.selectGrammar('test.h', dedent `
+          #include <string.h>
+
+          typedef struct {
+            void verb();
+          } Noun;
+        `)
+        expect(grammar.name).toBe('C')
+
+        grammar = grammarRegistry.selectGrammar('test.h', dedent `
+          #include <string>
+
+          class Noun {
+           public:
+            void verb();
+          };
+        `)
+        expect(grammar.name).toBe('C++')
+
+        // The word `class` only indicates C++ in `.h` files, not in all files.
+        grammar = grammarRegistry.selectGrammar('test.coffee', dedent `
+          module.exports =
+          class Noun
+            verb: -> true
+        `)
+        expect(grammar.name).toBe('CoffeeScript')
+      })
+
+      it('recognizes shell scripts with shebang lines', () => {
+        atom.config.set('core.useTreeSitterParsers', true)
+        grammarRegistry.loadGrammarSync(require.resolve('language-shellscript/grammars/shell-unix-bash.cson'))
+        grammarRegistry.loadGrammarSync(require.resolve('language-shellscript/grammars/tree-sitter-bash.cson'))
+
+        let grammar = grammarRegistry.selectGrammar('test.h', dedent `
+          #!/bin/bash
+
+          echo "hi"
+        `)
+        expect(grammar.name).toBe('Shell Script')
+        expect(grammar instanceof TreeSitterGrammar).toBeTruthy()
+
+        atom.config.set('core.useTreeSitterParsers', false)
+        grammar = grammarRegistry.selectGrammar('test.h', dedent `
+          #!/bin/bash
+
+          echo "hi"
+        `)
+        expect(grammar.name).toBe('Shell Script')
+        expect(grammar instanceof TreeSitterGrammar).toBeFalsy()
+      })
+
+      it('recognizes JavaScript files that use Flow', () => {
+        atom.config.set('core.useTreeSitterParsers', true)
+        grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+        grammarRegistry.loadGrammarSync(require.resolve('language-typescript/grammars/tree-sitter-flow.cson'))
+
+        let grammar = grammarRegistry.selectGrammar('test.js', dedent`
+          // Copyright something
+          // @flow
+
+          module.exports = function () { return 1 + 1 }
+        `)
+        expect(grammar.name).toBe('Flow JavaScript')
+
+        grammar = grammarRegistry.selectGrammar('test.js', dedent`
+          module.exports = function () { return 1 + 1 }
+        `)
+        expect(grammar.name).toBe('JavaScript')
       })
     })
   })

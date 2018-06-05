@@ -10,7 +10,6 @@ const Token = require('./token')
 const fs = require('fs-plus')
 const {Point, Range} = require('text-buffer')
 
-const GRAMMAR_TYPE_BONUS = 1000
 const PATH_SPLIT_REGEX = new RegExp('[/.]')
 
 // Extended: This class holds the grammars used for tokenizing.
@@ -213,12 +212,23 @@ class GrammarRegistry {
     if (score > 0 && !grammar.bundledPackage) {
       score += 0.125
     }
-    if (this.grammarMatchesContents(grammar, contents)) {
-      score += 0.25
-    }
 
-    if (score > 0 && this.isGrammarPreferredType(grammar)) {
-      score += GRAMMAR_TYPE_BONUS
+    if (grammar instanceof TreeSitterGrammar) {
+      if (this.config.get('core.useTreeSitterParsers')) {
+        score += 0.05
+      } else {
+        score = -Infinity
+      }
+
+      if (grammar.contentRegExp) {
+        if (grammar.contentRegExp.test(contents)) {
+          score += 0.25
+        } else {
+          score -= 0.25
+        }
+      }
+    } else if (this.grammarMatchesPrefix(grammar, contents)) {
+      score += 0.25
     }
 
     return score
@@ -256,12 +266,8 @@ class GrammarRegistry {
     return pathScore
   }
 
-  grammarMatchesContents (grammar, contents) {
-    if (contents == null) return false
-
-    if (grammar.contentRegExp) { // TreeSitter grammars
-      return grammar.contentRegExp.test(contents)
-    } else if (grammar.firstLineRegex) { // FirstMate grammars
+  grammarMatchesPrefix (grammar, contents) {
+    if (contents && grammar.firstLineRegex) {
       let escaped = false
       let numberOfNewlinesInRegex = 0
       for (let character of grammar.firstLineRegex.source) {
@@ -509,12 +515,6 @@ class GrammarRegistry {
 
   scopeForId (id) {
     return this.textmateRegistry.scopeForId(id)
-  }
-
-  isGrammarPreferredType (grammar) {
-    return this.config.get('core.useTreeSitterParsers')
-      ? grammar instanceof TreeSitterGrammar
-      : grammar instanceof FirstMate.Grammar
   }
 
   normalizeLanguageId (languageId) {
