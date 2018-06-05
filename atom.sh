@@ -59,6 +59,9 @@ if [ $REDIRECT_STDERR ]; then
   exec 2> /dev/null
 fi
 
+ATOM_HOME="${ATOM_HOME:-$HOME/.atom}"
+mkdir -p "$ATOM_HOME"
+
 if [ $OS == 'Mac' ]; then
   if [ -L "$0" ]; then
     SCRIPT="$(readlink "$0")"
@@ -119,9 +122,6 @@ elif [ $OS == 'Linux' ]; then
       ;;
   esac
 
-  ATOM_HOME="${ATOM_HOME:-$HOME/.atom}"
-  mkdir -p "$ATOM_HOME"
-
   : ${TMPDIR:=/tmp}
 
   [ -x "$ATOM_PATH" ] || ATOM_PATH="$TMPDIR/atom-build/Atom/atom"
@@ -155,7 +155,7 @@ if [ $WAIT ]; then
     read < "$WAIT_FIFO" || break
     sleep 1 # prevent a tight loop
   done
-  
+
   # fall back to sleep
   while true; do
     sleep 1
