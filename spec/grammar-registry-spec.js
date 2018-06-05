@@ -415,6 +415,14 @@ describe('GrammarRegistry', () => {
         expect(grammar.id).toBe('javascript')
         expect(grammar instanceof TreeSitterGrammar).toBe(true)
       })
+
+      it('only favors a tree-sitter grammar if it actually matches in some way (regression)', () => {
+        atom.config.set('core.useTreeSitterParsers', true)
+        grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+
+        const grammar = grammarRegistry.selectGrammar('test', '')
+        expect(grammar.name).toBe('Null Grammar')
+      })
     })
 
     describe('tree-sitter grammars with content regexes', () => {
