@@ -1188,8 +1188,8 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise()
 
       const actualScrollCenter = (component.getScrollTop() + component.getScrollBottom()) / 2
-      const expectedScrollCenter = Math.round((4 + 7) / 2 * component.getLineHeight())
-      expect(actualScrollCenter).toBe(expectedScrollCenter)
+      const expectedScrollCenter = (4 + 7) / 2 * component.getLineHeight()
+      expect(actualScrollCenter).toBeCloseTo(expectedScrollCenter, 0)
     })
 
     it('automatically scrolls horizontally when the requested range is within the horizontal scroll margin of the right edge of the gutter or right edge of the scroll container', async () => {
@@ -1202,23 +1202,21 @@ describe('TextEditorComponent', () => {
 
       editor.scrollToScreenRange([[1, 12], [2, 28]])
       await component.getNextUpdatePromise()
-      let expectedScrollLeft = Math.round(
+      let expectedScrollLeft =
         clientLeftForCharacter(component, 1, 12) -
         lineNodeForScreenRow(component, 1).getBoundingClientRect().left -
         (editor.horizontalScrollMargin * component.measurements.baseCharacterWidth)
-      )
-      expect(component.getScrollLeft()).toBe(expectedScrollLeft)
+      expect(component.getScrollLeft()).toBeCloseTo(expectedScrollLeft, 0)
 
       editor.scrollToScreenRange([[1, 12], [2, 28]], {reversed: false})
       await component.getNextUpdatePromise()
-      expectedScrollLeft = Math.round(
+      expectedScrollLeft =
         component.getGutterContainerWidth() +
         clientLeftForCharacter(component, 2, 28) -
         lineNodeForScreenRow(component, 2).getBoundingClientRect().left +
         (editor.horizontalScrollMargin * component.measurements.baseCharacterWidth) -
         component.getScrollContainerClientWidth()
-      )
-      expect(component.getScrollLeft()).toBe(expectedScrollLeft)
+      expect(component.getScrollLeft()).toBeCloseTo(expectedScrollLeft, 0)
     })
 
     it('does not horizontally autoscroll by more than half of the visible "base-width" characters if the editor is narrower than twice the scroll margin', async () => {
@@ -1324,22 +1322,22 @@ describe('TextEditorComponent', () => {
 
       // Assigns the scrollTop based on the logical position when attached
       jasmine.attachToDOM(element)
-      expect(component.getScrollLeft()).toBe(Math.round(2 * component.getBaseCharacterWidth()))
+      expect(component.getScrollLeft()).toBeCloseTo(2 * component.getBaseCharacterWidth(), 0)
 
       // Allows the scrollTopRow to be updated while attached
       component.setScrollLeftColumn(4)
-      expect(component.getScrollLeft()).toBe(Math.round(4 * component.getBaseCharacterWidth()))
+      expect(component.getScrollLeft()).toBeCloseTo(4 * component.getBaseCharacterWidth(), 0)
 
       // Preserves the scrollTopRow when detached
       element.remove()
-      expect(component.getScrollLeft()).toBe(Math.round(4 * component.getBaseCharacterWidth()))
+      expect(component.getScrollLeft()).toBeCloseTo(4 * component.getBaseCharacterWidth(), 0)
 
       component.setScrollLeftColumn(6)
-      expect(component.getScrollLeft()).toBe(Math.round(6 * component.getBaseCharacterWidth()))
+      expect(component.getScrollLeft()).toBeCloseTo(6 * component.getBaseCharacterWidth(), 0)
 
       jasmine.attachToDOM(element)
       element.style.width = '60px'
-      expect(component.getScrollLeft()).toBe(Math.round(6 * component.getBaseCharacterWidth()))
+      expect(component.getScrollLeft()).toBeCloseTo(6 * component.getBaseCharacterWidth(), 0)
     })
   })
 
@@ -4162,17 +4160,17 @@ describe('TextEditorComponent', () => {
       element.style.width = 30 * component.getBaseCharacterWidth() + 'px'
       await component.getNextUpdatePromise()
       expect(editor.getFirstVisibleScreenColumn()).toBe(0)
-      expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(0 * component.getBaseCharacterWidth())
+      expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(0)
 
       setScrollLeft(component, 5.5 * component.getBaseCharacterWidth())
       expect(editor.getFirstVisibleScreenColumn()).toBe(5)
       await component.getNextUpdatePromise()
-      expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(Math.round(5.5 * component.getBaseCharacterWidth()))
+      expect(component.refs.horizontalScrollbar.element.scrollLeft).toBeCloseTo(5.5 * component.getBaseCharacterWidth(), -1)
 
       editor.setFirstVisibleScreenColumn(12)
-      expect(component.getScrollLeft()).toBe(Math.round(12 * component.getBaseCharacterWidth()))
+      expect(component.getScrollLeft()).toBeCloseTo(12 * component.getBaseCharacterWidth(), -1)
       await component.getNextUpdatePromise()
-      expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(Math.round(12 * component.getBaseCharacterWidth()))
+      expect(component.refs.horizontalScrollbar.element.scrollLeft).toBeCloseTo(12 * component.getBaseCharacterWidth(), -1)
     })
   })
 
