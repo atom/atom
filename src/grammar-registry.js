@@ -214,11 +214,7 @@ class GrammarRegistry {
     }
 
     if (grammar instanceof TreeSitterGrammar) {
-      if (this.config.get('core.useTreeSitterParsers')) {
-        score += 0.05
-      } else {
-        score = -Infinity
-      }
+      if (!this.config.get('core.useTreeSitterParsers')) return -Infinity
 
       if (grammar.contentRegExp) {
         if (grammar.contentRegExp.test(contents)) {
@@ -227,6 +223,8 @@ class GrammarRegistry {
           score -= 0.25
         }
       }
+
+      if (score > 0) score += 0.05
     } else if (this.grammarMatchesPrefix(grammar, contents)) {
       score += 0.25
     }
