@@ -224,7 +224,7 @@ class GrammarRegistry {
         }
       }
 
-      if (score > 0) score += 0.05
+      if (score > 0) score += 0.5
     } else if (this.grammarMatchesPrefix(grammar, contents)) {
       score += 0.25
     }

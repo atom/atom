@@ -460,6 +460,18 @@ describe('GrammarRegistry', () => {
         expect(grammar.name).toBe('CoffeeScript')
       })
 
+      it('recognizes C++ files that do not match the content regex (regression)', () => {
+        atom.config.set('core.useTreeSitterParsers', true)
+        grammarRegistry.loadGrammarSync(require.resolve('language-c/grammars/tree-sitter-c.cson'))
+        grammarRegistry.loadGrammarSync(require.resolve('language-c/grammars/c++.cson'))
+        grammarRegistry.loadGrammarSync(require.resolve('language-c/grammars/tree-sitter-cpp.cson'))
+
+        let grammar = grammarRegistry.selectGrammar('test.cc', dedent `
+          int a();
+        `)
+        expect(grammar.name).toBe('C++')
+      })
+
       it('recognizes shell scripts with shebang lines', () => {
         atom.config.set('core.useTreeSitterParsers', true)
         grammarRegistry.loadGrammarSync(require.resolve('language-shellscript/grammars/shell-unix-bash.cson'))
