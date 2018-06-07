@@ -458,15 +458,18 @@ class TextEditorComponent {
     let clientContainerWidth = '100%'
     if (this.hasInitialMeasurements) {
       if (model.getAutoHeight()) {
-        clientContainerHeight = this.getContentHeight()
-        if (this.canScrollHorizontally()) clientContainerHeight += this.getHorizontalScrollbarHeight()
-        clientContainerHeight += 'px'
+        clientContainerHeight =
+          this.getContentHeight() +
+          this.getHorizontalScrollbarHeight() +
+          'px'
       }
       if (model.getAutoWidth()) {
         style.width = 'min-content'
-        clientContainerWidth = this.getGutterContainerWidth() + this.getContentWidth()
-        if (this.canScrollVertically()) clientContainerWidth += this.getVerticalScrollbarWidth()
-        clientContainerWidth += 'px'
+        clientContainerWidth =
+          this.getGutterContainerWidth() +
+          this.getContentWidth() +
+          this.getVerticalScrollbarWidth() +
+          'px'
       } else {
         style.width = this.element.style.width
       }
@@ -751,20 +754,14 @@ class TextEditorComponent {
         scrollLeft = this.getScrollLeft()
         canScrollHorizontally = this.canScrollHorizontally()
         canScrollVertically = this.canScrollVertically()
-        horizontalScrollbarHeight =
-          canScrollHorizontally
-          ? this.getHorizontalScrollbarHeight()
-          : 0
-        verticalScrollbarWidth =
-          canScrollVertically
-          ? this.getVerticalScrollbarWidth()
-          : 0
+        horizontalScrollbarHeight = this.getHorizontalScrollbarHeight()
+        verticalScrollbarWidth = this.getVerticalScrollbarWidth()
         forceScrollbarVisible = this.remeasureScrollbars
       } else {
         forceScrollbarVisible = true
       }
 
-      const dummyScrollbarVnodes = [
+      return [
         $(DummyScrollbarComponent, {
           ref: 'verticalScrollbar',
           orientation: 'vertical',
@@ -786,13 +783,10 @@ class TextEditorComponent {
           scrollLeft,
           verticalScrollbarWidth,
           forceScrollbarVisible
-        })
-      ]
+        }),
 
-      // If both scrollbars are visible, push a dummy element to force a "corner"
-      // to render where the two scrollbars meet at the lower right
-      if (verticalScrollbarWidth > 0 && horizontalScrollbarHeight > 0) {
-        dummyScrollbarVnodes.push($.div(
+        // Force a "corner" to render where the two scrollbars meet at the lower right
+        $.div(
           {
             ref: 'scrollbarCorner',
             className: 'scrollbar-corner',
@@ -805,10 +799,8 @@ class TextEditorComponent {
               overflow: 'scroll'
             }
           }
-        ))
-      }
-
-      return dummyScrollbarVnodes
+        )
+      ]
     } else {
       return null
     }
@@ -2626,37 +2618,25 @@ class TextEditorComponent {
 
   getScrollContainerHeight () {
     if (this.props.model.getAutoHeight()) {
-      return this.getScrollHeight()
+      return this.getScrollHeight() + this.getHorizontalScrollbarHeight()
     } else {
       return this.getClientContainerHeight()
     }
   }
 
   getScrollContainerClientWidth () {
-    if (this.canScrollVertically()) {
-      return this.getScrollContainerWidth() - this.getVerticalScrollbarWidth()
-    } else {
-      return this.getScrollContainerWidth()
-    }
+    return this.getScrollContainerWidth() - this.getVerticalScrollbarWidth()
   }
 
   getScrollContainerClientHeight () {
-    if (this.canScrollHorizontally()) {
-      return this.getScrollContainerHeight() - this.getHorizontalScrollbarHeight()
-    } else {
-      return this.getScrollContainerHeight()
-    }
+    return this.getScrollContainerHeight() - this.getHorizontalScrollbarHeight()
   }
 
   canScrollVertically () {
     const {model} = this.props
     if (model.isMini()) return false
     if (model.getAutoHeight()) return false
-    if (this.getContentHeight() > this.getScrollContainerHeight()) return true
-    return (
-      this.getContentWidth() > this.getScrollContainerWidth() &&
-      this.getContentHeight() > (this.getScrollContainerHeight() - this.getHorizontalScrollbarHeight())
-    )
+    return this.getContentHeight() > this.getScrollContainerClientHeight()
   }
 
   canScrollHorizontally () {
@@ -2664,11 +2644,7 @@ class TextEditorComponent {
     if (model.isMini()) return false
     if (model.getAutoWidth()) return false
     if (model.isSoftWrapped()) return false
-    if (this.getContentWidth() > this.getScrollContainerWidth()) return true
-    return (
-      this.getContentHeight() > this.getScrollContainerHeight() &&
-      this.getContentWidth() > (this.getScrollContainerWidth() - this.getVerticalScrollbarWidth())
-    )
+    return this.getContentWidth() > this.getScrollContainerClientWidth()
   }
 
   getScrollHeight () {
