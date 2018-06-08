@@ -22,7 +22,7 @@ class TreeSitterLanguageMode {
     this.isFoldableCache = []
     this.hasQueuedParse = false
     this.changeListsSinceCurrentParse = []
-    this.buffer.onDidChangeText(async ({changes}) => {
+    this.subscription = this.buffer.onDidChangeText(async ({changes}) => {
       if (this.reparsePromise) {
         this.changeListsSinceCurrentParse.push(changes)
       } else {
@@ -33,6 +33,12 @@ class TreeSitterLanguageMode {
     // TODO: Remove this once TreeSitterLanguageMode implements its own auto-indentation system. This
     // is temporarily needed in order to delegate to the TextMateLanguageMode's auto-indent system.
     this.regexesByPattern = {}
+  }
+
+  destroy () {
+    this.subscription.dispose()
+    this.tree = null
+    this.parser = null
   }
 
   async initialize () {
