@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     macos:
-      xcode: 9.2.0
+      xcode: 9.4.0
     environment:
       TEST_JUNIT_XML_ROOT: /tmp/test_xml
     steps:
