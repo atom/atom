@@ -50,6 +50,8 @@ Any package that opts into this behavior must adhere to these rules:
 
 3. **Atom's `package.json` *must* stay up to date with the latest supported version of the package** in the `master` and Beta release branches.  This ensures that the user always gets the latest version of the package in a new release and also benefits from its inclusion in Atom's snapshot.
 
+For rule #3, it will be important to have automation to ensure that current Beta release and `master` are kept up to date with the latest compatible version of any updatable bundled package as it will be difficult for maintainers to do that manually.  This could be accomplished by a nightly CI run which is focused explicitly on bumping package dependencies in this manner.
+
 ## Drawbacks
 
 ### Possible API incompatibility
