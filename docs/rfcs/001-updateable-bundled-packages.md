@@ -70,6 +70,8 @@ Another major drawback is that the snapshotted code for the bundled package will
 
 There was no measurable effect on shell or window startup time, only package load time.  It seems that the transpilation phase of the first load of the package incurs a 100x increase in load time.  Pre-transpilation of the package code (either when shipped or when installed using `apm`) will be useful in mitigating this cost.  Further investigation into snapshotting package code will be needed to understand if the load time increase can be mitigated.
 
+There is a possibility that the GitHub package could load parts of its codebase on demand to mitigate the increased startup time when not loaded as part of Atom's snapshot.  This approach is discussed in more detail at [atom/github#1522](https://github.com/atom/github/issues/1522).
+
 ### Incompatibility across Atom release channels
 
 One other possible drawback is that an updated version of a bundled package might not be compatible across two different Atom channels.  For example, if the user installs a new update to a bundled package that only supports the current Atom Beta release or higher, the user will no longer have access to that package if they open Atom Stable.  However, this drawback is no different than what the user would face today installing a community package under the same circumstances, so this could be considered a general problem in the Atom package ecosystem.
