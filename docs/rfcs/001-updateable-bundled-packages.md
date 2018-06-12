@@ -26,11 +26,6 @@ The primary use case for this improvement is enabling the GitHub package to ship
 
 ## Explanation
 
-> Explain the proposal as if it was already implemented in Atom and you were describing it to an Atom user. That generally means:
-> - Introducing new named concepts.
-> - Explaining the feature largely in terms of examples.
-> - Explaining any changes to existing workflows.
-
 Any bundled Atom package can opt in to new updates released via `apm` by adding `"coreUpdateable": true` to its `package.json` file.  This causes `apm` to consider it as part of the list of packages it checks for updates.  If a community (non-bundled) package sets this field to `true` or `false` it will be ignored as it's only relevant to bundled packages.
 
 Atom shows update notifications for updateable bundled packages whenever they are available so long as those updates support the engine version of the current Atom build.  Bundled package updates can also be found and installed in the Settings view's *Updates* tab.
