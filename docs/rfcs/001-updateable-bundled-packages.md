@@ -1,4 +1,4 @@
-# Updateable Bundled Packages
+# Updatable Bundled Packages
 
 ## Status
 
@@ -26,11 +26,11 @@ The primary use case for this improvement is enabling the GitHub package to ship
 
 ## Explanation
 
-Any bundled Atom package can opt in to new updates released via `apm` by adding `"coreUpdateable": true` to its `package.json` file.  This causes `apm` to consider it as part of the list of packages it checks for updates.  If a community (non-bundled) package sets this field to `true` or `false` it will be ignored as it's only relevant to bundled packages.
+Any bundled Atom package can opt in to new updates released via `apm` by adding `"coreUpdatable": true` to its `package.json` file.  This causes `apm` to consider it as part of the list of packages it checks for updates.  If a community (non-bundled) package sets this field to `true` or `false` it will be ignored as it's only relevant to bundled packages.
 
-Atom shows update notifications for updateable bundled packages whenever they are available so long as those updates support the engine version of the current Atom build.  Bundled package updates can also be found and installed in the Settings view's *Updates* tab.
+Atom shows update notifications for Updatable bundled packages whenever they are available so long as those updates support the engine version of the current Atom build.  Bundled package updates can also be found and installed in the Settings view's *Updates* tab.
 
-The `dalek` package is aware of the new "updateable" metadata and excludes updated bundled packages from its deprecation warnings.
+The `dalek` package is aware of the new "Updatable" metadata and excludes updated bundled packages from its deprecation warnings.
 
 ### User Experience Examples
 
@@ -40,7 +40,7 @@ The `dalek` package is aware of the new "updateable" metadata and excludes updat
 
 3. In the future, a user has an old install of Atom 1.28.0 and waits a long time between installing Atom updates.  The GitHub package releases version 0.25.0 but the user is not prompted to install it because the GitHub package has set `engines` in `package.json` to restrict to Atom 1.32.0 and above.
 
-### Rules for Updateable Bundled Packages
+### Rules for Updatable Bundled Packages
 
 Any package that opts into this behavior must adhere to these rules:
 
@@ -56,7 +56,7 @@ For rule #3, it will be important to have automation to ensure that current Beta
 
 ### Possible API incompatibility
 
-The primary drawback of this approach is that updateable bundled packages might exhibit problems on older Atom versions due to missing or changed APIs in Atom, Electron, or Node.js.  The solution for these packages is to keep their `engines` field updated appropriately, but there's still a chance that some updates will slip through without the necessary engine version changes.  If this does occur and users are affected by it, the solution is to publish a new update which rolls back the package to the functionality of its previous release and then publish another new update with the new functionality restored and the proper `engines` version in place.
+The primary drawback of this approach is that Updatable bundled packages might exhibit problems on older Atom versions due to missing or changed APIs in Atom, Electron, or Node.js.  The solution for these packages is to keep their `engines` field updated appropriately, but there's still a chance that some updates will slip through without the necessary engine version changes.  If this does occur and users are affected by it, the solution is to publish a new update which rolls back the package to the functionality of its previous release and then publish another new update with the new functionality restored and the proper `engines` version in place.
 
 ### Increased Atom startup time
 
@@ -82,7 +82,7 @@ Finally, one risk of this approach is that the Atom team forgets to update a bun
 
 This is the best approach for updating bundled packages because it allows those packages to take control of their own release cycle so long as they manage their Atom engine version correctly.  It also does so in a way that allows us to decide which packages can be updated independently, reducing the likelihood of problems for users.
 
-The primary alternative to this approach is to speed up the Atom release cycle so that bundled Atom package updates will reach users more frequently.  This approach will be investigated independently of this RFC as it may still be valuable even with updateable bundled packages.
+The primary alternative to this approach is to speed up the Atom release cycle so that bundled Atom package updates will reach users more frequently.  This approach will be investigated independently of this RFC as it may still be valuable even with Updatable bundled packages.
 
 ## Unresolved questions
 
