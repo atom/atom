@@ -48,7 +48,7 @@ The impact of not taking this approach is that we continue to have to wait 1-2 m
   - Atom Reactor
   - Atom Dev - Currently the name of dev builds but it might make sense to leave that for "normal" builds from `master`
 
-According to a [Twitter poll](https://twitter.com/daviwil/status/1006545552987701248) with about 1,600 responses, 50% of the voters chose "Atom Nightly".  The final name will be determined before launch.
+  According to a [Twitter poll](https://twitter.com/daviwil/status/1006545552987701248) with about 1,600 responses, 50% of the voters chose "Atom Nightly".  The final name will be determined before launch.
 
 - **Will Electron's new autoUpdate service work for all Atom releases?**
 
