@@ -20,11 +20,11 @@ Today, a bleeding-edge user must manually pull Atom's `master` branch and compil
 
 A user who wants to use the latest improvements to Atom each day can go to atom.io, download the Atom Nightly release, and install it on their machine.  This release can be installed alongside Atom Stable and Atom Beta.
 
-Each night when there are new commits to Atom's `master` branch, a scheduled CI build creates a new Atom Nightly release with packages for Windows, macOS, and Linux.  These packages are automatically uploaded to a new GitHub release on the `atom/atom-nightly` repository using a nightly version based off of the current `dev` version in `master` (e.g. v1.29.0-dev.1 or v1.29.0-dev.20180601).
+Each night when there are new commits to Atom's `master` branch, a scheduled CI build creates a new Atom Nightly release with packages for Windows, macOS, and Linux.  These packages are automatically uploaded to a new GitHub release on the `atom/atom-nightly-releases` repository using a monotonically-increasing nightly version based off of the version in `master` (e.g. `v1.29.0-nightly1`).
 
-Every 6 hours, an Atom Nightly release installed on Windows or macOS checks for a new update by consulting Electron's [update.electronjs.org](update-electron) service.  If a new update is available, it is downloaded in the background and the user is notified to restart Atom once it's complete.  This update flow is the same as what users experience in Atom Stable or Beta releases but occurs more frequently.
+Every 4 hours, an Atom Nightly release installed on Windows or macOS checks for a new update by consulting Electron's [update.electronjs.org](update-electron) service.  If a new update is available, it is downloaded in the background and the user is notified to restart Atom once it's complete.  This update flow is the same as what users experience in Atom Stable or Beta releases but updates occur more frequently.
 
-Linux users must manually download nightly releases for now as there isn't an easy way to automatically install new updates across the various Linux distrubutions.  We may consider providing updatable [AppImage](http://appimage.org/) packages in the future; this will be proposed in a separate RFC.
+Linux users must manually download nightly releases for now as there isn't an easy way to automatically install new updates across the various Linux distributions.  We may consider providing updatable [AppImage](http://appimage.org/) packages in the future; this will be proposed in a separate RFC.
 
 ## Drawbacks
 
@@ -48,8 +48,10 @@ The impact of not taking this approach is that we continue to have to wait 1-2 m
   - Atom Reactor
   - Atom Dev - Currently the name of dev builds but it might make sense to leave that for "normal" builds from `master`
 
+According to a [Twitter poll](https://twitter.com/daviwil/status/1006545552987701248) with about 1,600 responses, 50% of the voters chose "Atom Nightly".  The final name will be determined before launch.
+
 - **Will Electron's new autoUpdate service work for all Atom releases?**
 
   One outcome of this effort is to use the new [update.electronjs.org](update-electron) service for Atom's update checks so that we can deprecate on our own custom update service.  Building the Nightly channel on this service will allow us to evaluate it to see if it meets the needs of the Stable and Beta channels.
 
-[update-elctron]: https://github.com/electron/update.electronjs.org
+[update-electron]: https://github.com/electron/update.electronjs.org
