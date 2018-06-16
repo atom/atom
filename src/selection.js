@@ -770,7 +770,10 @@ class Selection {
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   toggleLineComments (options = {}) {
     if (!this.ensureWritable('toggleLineComments', options)) return
-    this.editor.toggleLineCommentsForBufferRows(...(this.getBufferRowRange() || []))
+    let bufferRowRange = this.getBufferRowRange() || []
+    let cursor = this.cursor
+    let setCursor = this.isEmpty() && this.cursor.isAtEndOfLine()
+    this.editor.toggleLineCommentsForBufferRows(...bufferRowRange, { setCursor, cursor })
   }
 
   // Public: Cuts the selection until the end of the screen line.

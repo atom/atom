@@ -4709,14 +4709,13 @@ class TextEditor {
 
   toggleLineCommentForBufferRow (row) { this.toggleLineCommentsForBufferRows(row, row) }
 
-  toggleLineCommentsForBufferRows (start, end) {
+  toggleLineCommentsForBufferRows (start, end, { setCursor=false, cursor }) {
     const languageMode = this.buffer.getLanguageMode()
     let {commentStartString, commentEndString} =
       languageMode.commentStringsForPosition &&
       languageMode.commentStringsForPosition(Point(start, 0)) || {}
     if (!commentStartString) return
     commentStartString = commentStartString.trim()
-
     if (commentEndString) {
       commentEndString = commentEndString.trim()
       const startDelimiterColumnRange = columnRangeForStartDelimiter(
@@ -4739,6 +4738,10 @@ class TextEditor {
           const indentLength = this.buffer.lineForRow(start).match(/^\s*/)[0].length
           this.buffer.insert([start, indentLength], commentStartString + ' ')
           this.buffer.insert([end, this.buffer.lineLengthForRow(end)], ' ' + commentEndString)
+          if (setCursor) {
+            let newPosition = [cursor.getBufferRow(), cursor.getBufferColumn() - commentEndString.length - 1]
+            cursor.setBufferPosition(newPosition, { autoscroll: false })
+          }
         })
       }
     } else {
