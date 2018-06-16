@@ -771,9 +771,7 @@ class Selection {
   toggleLineComments (options = {}) {
     if (!this.ensureWritable('toggleLineComments', options)) return
     let bufferRowRange = this.getBufferRowRange() || [null, null]
-    let cursor = this.cursor
-    let setCursor = this.isEmpty() && this.cursor.isAtEndOfLine()
-    this.editor.toggleLineCommentsForBufferRows(...bufferRowRange, { setCursor, cursor })
+    this.editor.toggleLineCommentsForBufferRows(...bufferRowRange, {correctSelection: true, selection: this})
   }
 
   // Public: Cuts the selection until the end of the screen line.
