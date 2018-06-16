@@ -4739,11 +4739,23 @@ class TextEditor {
           this.buffer.insert([start, indentLength], commentStartString + ' ')
           this.buffer.insert([end, this.buffer.lineLengthForRow(end)], ' ' + commentEndString)
           if (options.correctSelection && options.selection) {
-            let oldRange = options.selection.getBufferRange()
             let endLineLength = this.buffer.lineLengthForRow(end)
-            let startDelta = oldRange.start.column === 0 ? [0, commentStartString.length + 1] : [0, 0]
-            let endDelta = oldRange.end.column === endLineLength ? [0, - commentEndString.length - 1] : [0, 0]
-            options.selection.setBufferRange(oldRange.translate(startDelta, endDelta), { autoscroll: false })
+            let startDelta, endDelta
+            let oldRange = options.selection.getBufferRange()
+            if (oldRange.isEmpty()) {
+              if (oldRange.start.column === 0) {
+                startDelta = [0, commentStartString.length + 1]
+              } else if (oldRange.start.column === endLineLength) {
+                startDelta = [0, -commentEndString.length - 1]
+              } else {
+                startDelta = [0, 0]
+              }
+              options.selection.setBufferRange(oldRange.translate(startDelta), { autoscroll: false })
+            } else {
+              startDelta = oldRange.start.column === 0 ? [0, commentStartString.length + 1] : [0, 0]
+              endDelta = oldRange.end.column === endLineLength ? [0, -commentEndString.length - 1] : [0, 0]
+              options.selection.setBufferRange(oldRange.translate(startDelta, endDelta), { autoscroll: false })
+            }
           }
         })
       }
