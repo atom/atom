@@ -23,6 +23,20 @@ const ConfigSchema = require('../config-schema')
 
 const LocationSuffixRegExp = /(:\d+)(:\d+)?$/
 
+const getDefaultPath = () => {
+  const editor = atom.workspace.getActiveTextEditor()
+  if (!editor) {
+    return undefined
+  }
+  if (!editor.getPath()) {
+    return undefined
+  }
+  const paths = atom.project.getPaths()
+  if (paths) {
+    return paths[0]
+  }
+}
+
 // The application's singleton class.
 //
 // It's the entry point into the Atom application and maintains the global state
@@ -371,6 +385,9 @@ class AtomApplication extends EventEmitter {
     this.on('application:new-file', () => (this.focusedWindow() || this).openPath())
     this.on('application:open-dev', () => this.promptForPathToOpen('all', {devMode: true}))
     this.on('application:open-safe', () => this.promptForPathToOpen('all', {safeMode: true}))
+    this.on('application:open', () => this.promptForPathToOpen('all', getLoadSettings(), getDefaultPath()))
+    this.on('application:open-file', () => this.promptForPathToOpen('file', getLoadSettings(), getDefaultPath()))
+    this.on('application:open-folder', () => this.promptForPathToOpen('file', getLoadSettings(), getDefaultPath()))
     this.on('application:inspect', ({x, y, atomWindow}) => {
       if (!atomWindow) atomWindow = this.focusedWindow()
       if (atomWindow) atomWindow.browserWindow.inspectElement(x, y)
