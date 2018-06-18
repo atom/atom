@@ -25,11 +25,8 @@ const LocationSuffixRegExp = /(:\d+)(:\d+)?$/
 
 const getDefaultPath = () => {
   const editor = atom.workspace.getActiveTextEditor()
-  if (!editor) {
-    return undefined
-  }
-  if (!editor.getPath()) {
-    return undefined
+  if (!editor || !editor.getPath()) {
+    return
   }
   const paths = atom.project.getPaths()
   if (paths) {
