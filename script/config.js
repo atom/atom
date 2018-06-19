@@ -5,6 +5,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const spawnSync = require('./lib/spawn-sync')
 
 const repositoryRootPath = path.resolve(__dirname, '..')
 const apmRootPath = path.join(repositoryRootPath, 'apm')
@@ -20,11 +21,13 @@ const atomHomeDirPath = process.env.ATOM_HOME || path.join(homeDirPath, '.atom')
 const appMetadata = require(path.join(repositoryRootPath, 'package.json'))
 const apmMetadata = require(path.join(apmRootPath, 'package.json'))
 const channel = getChannel()
+const computedAppVersion = computeAppVersion(appMetadata.version, channel)
 
 module.exports = {
   appMetadata,
   apmMetadata,
   channel,
+  computedAppVersion,
   repositoryRootPath,
   apmRootPath,
   scriptRootPath,
@@ -41,13 +44,26 @@ module.exports = {
 }
 
 function getChannel () {
-  if (appMetadata.version.match(/dev/)) {
+  if (process.env.BUILD_DEFINITIONNAME === 'Atom Nightly') {
+    return 'nightly'
+  } else if (appMetadata.version.match(/dev/)) {
     return 'dev'
   } else if (appMetadata.version.match(/beta/)) {
     return 'beta'
   } else {
     return 'stable'
   }
+}
+
+function computeAppVersion (version, channel) {
+  if (channel === 'dev') {
+    const result = spawnSync('git', ['rev-parse', '--short', 'HEAD'], {cwd: repositoryRootPath})
+    const commitHash = result.stdout.toString().trim()
+    version += '-' + commitHash
+  } else if (channel === 'nightly') {
+    version = process.env.BUILD_BUILDNUMBER
+  }
+  return version
 }
 
 function getApmBinPath () {

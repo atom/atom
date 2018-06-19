@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+
+'use strict'
+
+const path = require('path')
+const glob = require('glob')
+const publishRelease = require('publish-release')
+const CONFIG = require('./config')
+
+console.log(`Publishing GitHub release ${CONFIG.computedAppVersion}`)
+
+const yargs = require('yargs')
+const argv = yargs
+  .usage('Usage: $0 [options]')
+  .help('help')
+  .describe('assets-path', 'Path to the folder where all release assets are stored')
+  .wrap(yargs.terminalWidth())
+  .argv
+
+let assetsPath = argv.assetsPath || path.join(CONFIG.repositoryRootPath, 'out')
+let assets = glob.sync(path.join(assetsPath, '*(*.exe|*.zip|*.nupkg|*.tar.gz|*.rpm|*.deb|RELEASES*)'))
+
+publishRelease({
+  token: process.env.GITHUB_TOKEN,
+  owner: 'atom',
+  repo: CONFIG.channel !== 'nightly' ? 'atom' : 'atom-nightly-releases',
+  name: CONFIG.computedAppVersion,
+  tag: CONFIG.computedAppVersion,
+  draft: false,
+  prerelease: CONFIG.channel !== 'stable',
+  reuseRelease: true,
+  skipIfPublished: true,
+  assets
+}, function (err, release) {
+  if (err) {
+    console.log("An error occurred while publishing the release:\n\n", err)
+  } else {
+    console.log("Release published successfully: ", release.html_url)
+  }
+})
