@@ -26,13 +26,13 @@ phases:
   - script: script/lint
     displayName: Run linter
 
-  - script: |
-      osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
-      caffeinate -s script/test # Run with caffeinate to prevent screen saver
-    env:
-      CI: true
-      ATOM_GITHUB_DISABLE_KEYTAR: 1
-    displayName: Run tests
+  # - script: |
+  #     osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
+  #     caffeinate -s script/test # Run with caffeinate to prevent screen saver
+  #   env:
+  #     CI: true
+  #     ATOM_GITHUB_DISABLE_KEYTAR: 1
+  #   displayName: Run tests
 
   # This step is necessary in the short term due to a bug in the *NIX
   # implementation of the CopyFiles task which scans the entire file
