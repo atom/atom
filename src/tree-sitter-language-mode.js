@@ -7,16 +7,29 @@ const TextMateLanguageMode = require('./text-mate-language-mode')
 
 let nextId = 0
 
+class Layer {
+  constructor (grammar, ranges) {
+    this.tree = null
+    this.grammar = grammar
+    this.ranges = ranges
+    this.injections = []
+  }
+
+  update(parser) {}
+}
+
 module.exports =
 class TreeSitterLanguageMode {
-  constructor ({buffer, grammar, config}) {
+  constructor ({buffer, grammar, config, grammarRegistry}) {
     this.id = nextId++
     this.buffer = buffer
     this.grammar = grammar
     this.config = config
+    this.grammarRegistry = grammarRegistry
     this.parser = new Parser()
     this.parser.setLanguage(grammar.languageModule)
-    this.tree = null
+    this.rootLayer = new Layer(grammar)
+
     this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.id]})
     this.emitter = new Emitter()
     this.isFoldableCache = []
@@ -82,6 +95,7 @@ class TreeSitterLanguageMode {
   }
 
   async reparse () {
+    this.rootLayer.update(this.parser)
     const tree = await this.parser.parseTextBuffer(this.buffer.buffer, this.tree, {
       syncOperationLimit: 1000
     })

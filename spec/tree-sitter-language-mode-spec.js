@@ -290,6 +290,63 @@ describe('TreeSitterLanguageMode', () => {
         ])
       })
     })
+
+    describe('injections', () => {
+      fit('works', async () => {
+        const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+          parser: 'tree-sitter-javascript',
+          scopes: {
+            'property_identifier': 'property',
+            'call_expression > identifier': 'function',
+            'template_string': 'string'
+          },
+          injectionPoints: {
+            taggedTemplateLiterals: {
+              type: 'call_expression',
+              language: node => {
+                getTemplateTag(node)
+              },
+              content: node => node.child('template_string')
+            }
+          }
+        })
+
+        const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
+          parser: 'tree-sitter-html',
+          scopes: {
+            tag_name: 'tag',
+            attribute_name: 'attr'
+          },
+          injections: [
+            name => name.toLowerCase().includes('html')
+          ]
+        })
+
+        atom.grammars.addGrammar(htmlGrammar)
+
+        const languageMode = new TreeSitterLanguageMode({buffer, grammar: jsGrammar, grammars: atom.grammars})
+        buffer.setLanguageMode(languageMode)
+        buffer.setText('node.innerHTML = html `<img src="x">`;')
+
+        await languageMode.reparsePromise
+
+        expectTokensToEqual(editor, [
+          [
+            {text: 'node.', scopes: []},
+            {text: 'innerHTML', scopes: ['property']},
+            {text: ' = ', scopes: []},
+            {text: 'html', scopes: ['function']},
+            {text: ' ', scopes: []},
+            {text: '`<', scopes: ['string']},
+            {text: 'img', scopes: ['string', 'tag']},
+            {text: ' ', scopes: ['string']},
+            {text: 'src', scopes: ['string', 'attr']},
+            {text: '="x">`', scopes: ['string']},
+            {text: ';', scopes: []},
+          ],
+        ])
+      })
+    })
   })
 
   describe('folding', () => {
