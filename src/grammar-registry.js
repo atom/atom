@@ -515,6 +515,19 @@ class GrammarRegistry {
     return this.textmateRegistry.scopeForId(id)
   }
 
+  treeSitterGrammarForLanguageString (languageString) {
+    for (const id in this.treeSitterGrammarsById) {
+      const grammar = this.treeSitterGrammarsById[id];
+      if (grammar.injections) {
+        for (const injection of grammar.injections) {
+          if (injection(languageString)) {
+            return grammar
+          }
+        }
+      }
+    }
+  }
+
   normalizeLanguageId (languageId) {
     if (this.config.get('core.useTreeSitterParsers')) {
       return this.treeSitterLanguageIdsByTextMateScopeName.get(languageId) || languageId

@@ -290,6 +290,65 @@ describe('TreeSitterLanguageMode', () => {
         ])
       })
     })
+
+    describe('injections', () => {
+      it('works', async () => {
+        const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+          parser: 'tree-sitter-javascript',
+          scopes: {
+            'property_identifier': 'property',
+            'call_expression > identifier': 'function',
+            'template_string': 'string'
+          },
+          injectionPoints: {
+            taggedTemplateLiterals: {
+              type: 'call_expression',
+              language: (node, getText) => {
+                if (node.lastChild.type === 'template_string' && node.firstChild.type === 'identifier') {
+                  return getText(node.firstChild)
+                }
+              },
+              content: node => node.lastChild
+            }
+          }
+        })
+
+        const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
+          parser: 'tree-sitter-html',
+          scopes: {
+            tag_name: 'tag',
+            attribute_name: 'attr'
+          },
+          injections: [
+            name => name.toLowerCase().includes('html')
+          ]
+        })
+
+        atom.grammars.addGrammar(htmlGrammar)
+
+        const languageMode = new TreeSitterLanguageMode({buffer, grammar: jsGrammar, grammars: atom.grammars})
+        buffer.setLanguageMode(languageMode)
+        buffer.setText('node.innerHTML = html `<img src="x">`;')
+
+        await languageMode.reparsePromise
+
+        expectTokensToEqual(editor, [
+          [
+            {text: 'node.', scopes: []},
+            {text: 'innerHTML', scopes: ['property']},
+            {text: ' = ', scopes: []},
+            {text: 'html', scopes: ['function']},
+            {text: ' ', scopes: []},
+            {text: '`<', scopes: ['string']},
+            {text: 'img', scopes: ['string', 'tag']},
+            {text: ' ', scopes: ['string']},
+            {text: 'src', scopes: ['string', 'attr']},
+            {text: '="x">`', scopes: ['string']},
+            {text: ';', scopes: []},
+          ],
+        ])
+      })
+    })
   })
 
   describe('folding', () => {
@@ -611,7 +670,7 @@ describe('TreeSitterLanguageMode', () => {
     })
 
     describe('when folding a node that ends with a line break', () => {
-      it('ends the fold at the end of the previous line', () => {
+      it('ends the fold at the end of the previous line', async () => {
         const grammar = new TreeSitterGrammar(atom.grammars, pythonGrammarPath, {
           parser: 'tree-sitter-python',
           folds: [
@@ -632,6 +691,7 @@ describe('TreeSitterLanguageMode', () => {
             print 'd'
         `)
         buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+        await buffer.getLanguageMode().initialize()
 
         editor.screenLineForScreenRow(0)
 
@@ -648,7 +708,7 @@ describe('TreeSitterLanguageMode', () => {
   })
 
   describe('.scopeDescriptorForPosition', () => {
-    it('returns a scope descriptor representing the given position in the syntax tree', () => {
+    it('returns a scope descriptor representing the given position in the syntax tree', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         id: 'javascript',
         parser: 'tree-sitter-javascript'
@@ -656,6 +716,7 @@ describe('TreeSitterLanguageMode', () => {
 
       buffer.setText('foo({bar: baz});')
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      await buffer.getLanguageMode().initialize()
 
       editor.screenLineForScreenRow(0)
       expect(editor.scopeDescriptorForBufferPosition([0, 6]).getScopesArray()).toEqual([
@@ -672,7 +733,7 @@ describe('TreeSitterLanguageMode', () => {
   })
 
   describe('TextEditor.selectLargerSyntaxNode and .selectSmallerSyntaxNode', () => {
-    it('expands and contract the selection based on the syntax tree', () => {
+    it('expands and contract the selection based on the syntax tree', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
         scopes: {'program': 'source'}
@@ -685,6 +746,7 @@ describe('TreeSitterLanguageMode', () => {
         }
       `)
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      await buffer.getLanguageMode().initialize()
 
       editor.screenLineForScreenRow(0)
 
