@@ -20,8 +20,8 @@ const atomHomeDirPath = process.env.ATOM_HOME || path.join(homeDirPath, '.atom')
 
 const appMetadata = require(path.join(repositoryRootPath, 'package.json'))
 const apmMetadata = require(path.join(apmRootPath, 'package.json'))
-const channel = getChannel()
-const computedAppVersion = computeAppVersion(appMetadata.version, channel)
+const computedAppVersion = computeAppVersion(process.env.BUILD_BUILDNUMBER || appMetadata.version)
+const channel = getChannel(computedAppVersion)
 
 module.exports = {
   appMetadata,
@@ -43,25 +43,22 @@ module.exports = {
   snapshotAuxiliaryData: {}
 }
 
-function getChannel () {
-  if (process.env.BUILD_DEFINITIONNAME === 'Atom Nightly') {
-    return 'nightly'
-  } else if (appMetadata.version.match(/dev/)) {
-    return 'dev'
-  } else if (appMetadata.version.match(/beta/)) {
-    return 'beta'
-  } else {
-    return 'stable'
+function getChannel (version) {
+  const match = version.match(/\d+\.\d+\.\d+(-([a-z]+)(\d+|-\w{4,})?)?$/)
+  if (!match) {
+    throw new Error(`Found incorrectly formatted Atom version ${version}`)
+  } else if (match[2]) {
+    return match[2]
   }
+
+  return 'stable'
 }
 
-function computeAppVersion (version, channel) {
-  if (channel === 'dev') {
+function computeAppVersion (version) {
+  if (version.match(/-dev$/)) {
     const result = spawnSync('git', ['rev-parse', '--short', 'HEAD'], {cwd: repositoryRootPath})
     const commitHash = result.stdout.toString().trim()
     version += '-' + commitHash
-  } else if (channel === 'nightly') {
-    version = process.env.BUILD_BUILDNUMBER
   }
   return version
 }
