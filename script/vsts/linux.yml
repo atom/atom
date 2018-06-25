@@ -10,8 +10,8 @@ phases:
   steps:
   - task: NodeTool@0
     inputs:
-      versionSpec: 8.11.3
-    displayName: Install Node.js 8.11.3
+      versionSpec: 8.9.3
+    displayName: Install Node.js 8.9.3
 
   - script: |
       apt-get update
