@@ -599,14 +599,7 @@ class HighlightIterator {
 
   moveToSuccessor () {
     this.leader.moveToSuccessor()
-    const oldLeader = this.leader
     this._findLeader()
-    if (
-      this.leader !== oldLeader &&
-      pointIsLess(this.leader.getPosition(), this.leader.treeCursor.startPosition)
-    ) {
-      this.leader.moveToSuccessor()
-    }
   }
 
   getPosition () {
@@ -622,13 +615,12 @@ class HighlightIterator {
   }
 
   _findLeader () {
-    let minIndex = Infinity
+    let minPosition = Point.INFINITY
     for (const it of this.iterators) {
-      if (!Number.isFinite(it.getPosition().row)) continue
-      const {startIndex} = it.treeCursor
-      if (startIndex < minIndex) {
+      const position = it.getPosition()
+      if (pointIsLess(position, minPosition)) {
         this.leader = it
-        minIndex = startIndex
+        minPosition = position
       }
     }
   }
@@ -673,14 +665,15 @@ class LayerHighlightIterator {
     this.currentPosition = targetPosition
     this.currentIndex = this.languageLayer.languageMode.buffer.characterIndexForPosition(targetPosition)
 
+    if (this.treeCursor.endIndex <= this.currentIndex) return containingTags
+
     // Descend from the root of the tree to the smallest node that spans the given position.
     // Keep track of any nodes along the way that are associated with syntax highlighting
     // tags. These tags must be returned.
     var childIndex = -1
-    var nodeContainsTarget = true
     for (;;) {
       this.currentChildIndex = childIndex
-      if (!nodeContainsTarget) break
+      if (this.treeCursor.startIndex > this.currentIndex) break
       this.containingNodeTypes.push(this.treeCursor.nodeType)
       this.containingNodeChildIndices.push(childIndex)
 
@@ -696,7 +689,6 @@ class LayerHighlightIterator {
 
       const nextChildIndex = this.treeCursor.gotoFirstChildForIndex(this.currentIndex)
       if (nextChildIndex == null) break
-      if (this.treeCursor.startIndex > this.currentIndex) nodeContainsTarget = false
       childIndex = nextChildIndex
     }
 
@@ -757,7 +749,10 @@ class LayerHighlightIterator {
       // If the iterator is at the end of a node, advance to the node's next sibling. If
       // it has no next sibing, then the iterator has reached the end of the tree.
       } else if (!this.treeCursor.gotoNextSibling()) {
-        this.currentPosition = {row: Infinity, column: Infinity}
+        if (this.atEnd) {
+          this.currentPosition = {row: Infinity, column: Infinity}
+        }
+        this.atEnd = true
         break
       }
     } while (this.closeTags.length === 0 && this.openTags.length === 0)

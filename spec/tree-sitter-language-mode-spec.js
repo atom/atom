@@ -292,13 +292,18 @@ describe('TreeSitterLanguageMode', () => {
     })
 
     describe('injections', () => {
-      it('highlights code inside of injection points', async () => {
-        const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+      let jsGrammar, htmlGrammar
+
+      beforeEach(() => {
+        jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+          id: 'javascript',
           parser: 'tree-sitter-javascript',
           scopes: {
             'property_identifier': 'property',
             'call_expression > identifier': 'function',
-            'template_string': 'string'
+            'template_string': 'string',
+            'template_substitution > "${"': 'interpolation',
+            'template_substitution > "}"': 'interpolation'
           },
           injectionPoints: [{
             type: 'call_expression',
@@ -311,9 +316,11 @@ describe('TreeSitterLanguageMode', () => {
           }]
         })
 
-        const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
+        htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
+          id: 'html',
           parser: 'tree-sitter-html',
           scopes: {
+            fragment: 'html',
             tag_name: 'tag',
             attribute_name: 'attr'
           },
@@ -322,12 +329,14 @@ describe('TreeSitterLanguageMode', () => {
           ]
         })
 
+        atom.grammars.addGrammar(jsGrammar)
         atom.grammars.addGrammar(htmlGrammar)
+      })
 
+      it('highlights code inside of injection points', async () => {
         const languageMode = new TreeSitterLanguageMode({buffer, grammar: jsGrammar, grammars: atom.grammars})
         buffer.setLanguageMode(languageMode)
-        buffer.setText('node.innerHTML = html `<img src="x">`;')
-
+        buffer.setText('node.innerHTML = html `a ${b}<img src="d">\n`;')
         await languageMode.reparsePromise
 
         expectTokensToEqual(editor, [
@@ -337,11 +346,18 @@ describe('TreeSitterLanguageMode', () => {
             {text: ' = ', scopes: []},
             {text: 'html', scopes: ['function']},
             {text: ' ', scopes: []},
-            {text: '`<', scopes: ['string']},
-            {text: 'img', scopes: ['string', 'tag']},
-            {text: ' ', scopes: ['string']},
-            {text: 'src', scopes: ['string', 'attr']},
-            {text: '="x">`', scopes: ['string']},
+            {text: '`', scopes: ['string']},
+            {text: 'a ', scopes: ['string', 'html']},
+            {text: '${', scopes: ['string', 'html', 'interpolation']},
+            {text: 'b', scopes: ['string', 'html']},
+            {text: '}', scopes: ['string', 'html', 'interpolation']},
+            {text: '<', scopes: ['string', 'html']},
+            {text: 'img', scopes: ['string', 'html', 'tag']},
+            {text: ' ', scopes: ['string', 'html']},
+            {text: 'src', scopes: ['string', 'html', 'attr']},
+            {text: '="d">', scopes: ['string', 'html']},
+          ], [
+            {text: '`', scopes: ['string']},
             {text: ';', scopes: []},
           ],
         ])
