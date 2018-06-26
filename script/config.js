@@ -22,11 +22,13 @@ const appMetadata = require(path.join(repositoryRootPath, 'package.json'))
 const apmMetadata = require(path.join(apmRootPath, 'package.json'))
 const computedAppVersion = computeAppVersion(process.env.ATOM_RELEASE_VERSION || appMetadata.version)
 const channel = getChannel(computedAppVersion)
+const channelDisplayName = getChannelDisplayName(channel)
 
 module.exports = {
   appMetadata,
   apmMetadata,
   channel,
+  channelDisplayName,
   computedAppVersion,
   repositoryRootPath,
   apmRootPath,
@@ -52,6 +54,11 @@ function getChannel (version) {
   }
 
   return 'stable'
+}
+
+function getChannelDisplayName (channel) {
+  if (channel === 'stable') return null
+  return process.env.ATOM_CHANNEL_DISPLAY_NAME || channel.charAt(0).toUpperCase() + channel.slice(1)
 }
 
 function computeAppVersion (version) {
