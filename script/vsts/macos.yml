@@ -1,5 +1,8 @@
 phases:
 - phase: macOS
+  dependsOn: GetReleaseVersion
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
   queue:
     name: Hosted macOS Preview
     timeoutInMinutes: 180
@@ -14,6 +17,7 @@ phases:
       script/build --code-sign --compress-artifacts
     displayName: Build Atom
     env:
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
       ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL)
       ATOM_MAC_CODE_SIGNING_CERT_PASSWORD: $(ATOM_MAC_CODE_SIGNING_CERT_PASSWORD)
       ATOM_MAC_CODE_SIGNING_KEYCHAIN: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN)

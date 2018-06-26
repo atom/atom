@@ -1,5 +1,8 @@
 phases:
 - phase: Windows
+  dependsOn: GetReleaseVersion
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
   queue:
     name: Hosted
     timeoutInMinutes: 180
@@ -22,6 +25,7 @@ phases:
       SET SQUIRREL_TEMP=C:\tmp
       script\build.cmd --create-windows-installer --code-sign --compress-artifacts
     env:
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
       ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL)
       ATOM_WIN_CODE_SIGNING_CERT_PASSWORD: $(ATOM_WIN_CODE_SIGNING_CERT_PASSWORD)
     displayName: Build Atom

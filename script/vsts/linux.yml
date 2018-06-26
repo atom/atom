@@ -1,5 +1,8 @@
 phases:
 - phase: Linux
+  dependsOn: GetReleaseVersion
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
   queue:
     name: Hosted Linux Preview
     timeoutInMinutes: 180
@@ -17,6 +20,8 @@ phases:
 
   - script: |
       script/build --create-debian-package --create-rpm-package --compress-artifacts
+    env:
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
     displayName: Build Atom
 
   - script: script/lint

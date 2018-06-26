@@ -20,7 +20,7 @@ const atomHomeDirPath = process.env.ATOM_HOME || path.join(homeDirPath, '.atom')
 
 const appMetadata = require(path.join(repositoryRootPath, 'package.json'))
 const apmMetadata = require(path.join(apmRootPath, 'package.json'))
-const computedAppVersion = computeAppVersion(process.env.BUILD_BUILDNUMBER || appMetadata.version)
+const computedAppVersion = computeAppVersion(process.env.ATOM_RELEASE_VERSION || appMetadata.version)
 const channel = getChannel(computedAppVersion)
 
 module.exports = {
