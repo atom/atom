@@ -292,7 +292,7 @@ describe('TreeSitterLanguageMode', () => {
     })
 
     describe('injections', () => {
-      it('works', async () => {
+      it('highlights code inside of injection points', async () => {
         const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
           parser: 'tree-sitter-javascript',
           scopes: {
@@ -300,17 +300,15 @@ describe('TreeSitterLanguageMode', () => {
             'call_expression > identifier': 'function',
             'template_string': 'string'
           },
-          injectionPoints: {
-            taggedTemplateLiterals: {
-              type: 'call_expression',
-              language: (node, getText) => {
-                if (node.lastChild.type === 'template_string' && node.firstChild.type === 'identifier') {
-                  return getText(node.firstChild)
-                }
-              },
-              content: node => node.lastChild
-            }
-          }
+          injectionPoints: [{
+            type: 'call_expression',
+            language: (node, getText) => {
+              if (node.lastChild.type === 'template_string' && node.firstChild.type === 'identifier') {
+                return getText(node.firstChild)
+              }
+            },
+            content: node => node.lastChild
+          }]
         })
 
         const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {

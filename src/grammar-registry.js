@@ -169,7 +169,7 @@ class GrammarRegistry {
 
   languageModeForGrammarAndBuffer (grammar, buffer) {
     if (grammar instanceof TreeSitterGrammar) {
-      return new TreeSitterLanguageMode({grammar, buffer, config: this.config})
+      return new TreeSitterLanguageMode({grammar, buffer, config: this.config, grammars: this})
     } else {
       return new TextMateLanguageMode({grammar, buffer, config: this.config})
     }

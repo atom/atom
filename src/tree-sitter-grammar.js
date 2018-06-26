@@ -28,7 +28,7 @@ class TreeSitterGrammar {
 
     this.scopeMap = new SyntaxScopeMap(scopeSelectors)
     this.fileTypes = params.fileTypes
-    this.injectionPoints = Object.entries(params.injectionPoints || {})
+    this.injectionPoints = params.injectionPoints || []
     this.injections = params.injections || []
 
     // TODO - When we upgrade to a new enough version of node, use `require.resolve`
