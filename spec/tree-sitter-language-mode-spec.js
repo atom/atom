@@ -342,7 +342,7 @@ describe('TreeSitterLanguageMode', () => {
       })
 
       it('highlights code inside of injection points', async () => {
-        buffer.setText('node.innerHTML = html `a ${b}<img src="d">\n`;')
+        buffer.setText('node.innerHTML = html `\na ${b}<img src="d">\n`;')
 
         const languageMode = new TreeSitterLanguageMode({buffer, grammar: jsGrammar, grammars: atom.grammars})
         buffer.setLanguageMode(languageMode)
@@ -356,6 +356,8 @@ describe('TreeSitterLanguageMode', () => {
             {text: 'html', scopes: ['function']},
             {text: ' ', scopes: []},
             {text: '`', scopes: ['string']},
+            {text: '', scopes: ['string', 'html']}
+          ], [
             {text: 'a ', scopes: ['string', 'html']},
             {text: '${', scopes: ['string', 'html', 'interpolation']},
             {text: 'b', scopes: ['string', 'html']},
@@ -364,7 +366,31 @@ describe('TreeSitterLanguageMode', () => {
             {text: 'img', scopes: ['string', 'html', 'tag']},
             {text: ' ', scopes: ['string', 'html']},
             {text: 'src', scopes: ['string', 'html', 'attr']},
-            {text: '="d">', scopes: ['string', 'html']},
+            {text: '="d">', scopes: ['string', 'html']}
+          ], [
+            {text: '`', scopes: ['string']},
+            {text: ';', scopes: []},
+          ],
+        ])
+
+        const range = buffer.findSync('html')
+        buffer.setTextInRange(range, 'xml')
+        await languageMode.reparsePromise
+
+        expectTokensToEqual(editor, [
+          [
+            {text: 'node.', scopes: []},
+            {text: 'innerHTML', scopes: ['property']},
+            {text: ' = ', scopes: []},
+            {text: 'xml', scopes: ['function']},
+            {text: ' ', scopes: []},
+            {text: '`', scopes: ['string']}
+          ], [
+            {text: 'a ', scopes: ['string']},
+            {text: '${', scopes: ['string', 'interpolation']},
+            {text: 'b', scopes: ['string']},
+            {text: '}', scopes: ['string', 'interpolation']},
+            {text: '<img src="d">', scopes: ['string']},
           ], [
             {text: '`', scopes: ['string']},
             {text: ';', scopes: []},

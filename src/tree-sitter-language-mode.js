@@ -522,9 +522,12 @@ class LanguageLayer {
         const injectionNode = injectionPoint.content(node)
         if (!injectionNode) continue
 
-        const injectionRange = new Range(injectionNode.startPosition, injectionNode.endPosition)
-        let marker = existingInjectionMarkers.find(m => m.getRange().isEqual(injectionRange))
-        if (!marker || marker.languageLayer.grammar !== grammar) {
+        const injectionRange = new Range(node.startPosition, node.endPosition)
+        let marker = existingInjectionMarkers.find(m =>
+          m.getRange().isEqual(injectionRange) &&
+          m.languageLayer.grammar === grammar
+        )
+        if (!marker) {
           marker = injectionsMarkerLayer.markRange(injectionRange)
           marker.languageLayer = new LanguageLayer(this.languageMode, grammar)
           marker.parentLanguageLayer = this
@@ -537,6 +540,7 @@ class LanguageLayer {
     for (const marker of existingInjectionMarkers) {
       if (!markersToUpdate.has(marker)) {
         marker.languageLayer.destroy()
+        emitRangeUpdate(marker.getRange())
         marker.destroy()
       }
     }
