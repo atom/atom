@@ -474,12 +474,13 @@ class LanguageLayer {
     let affectedRange
     let existingInjectionMarkers
     if (this.tree) {
+      const changedTokenRange = this.tree.getEditedRange()
+      affectedRange = new Range(changedTokenRange.startPosition, changedTokenRange.endPosition)
+
       const rangesWithSyntaxChanges = this.tree.getChangedRanges(tree)
       for (const range of rangesWithSyntaxChanges) {
         emitRangeUpdate(new Range(range.startPosition, range.endPosition))
       }
-
-      affectedRange = new Range(Point.ZERO, Point.INFINITY)
 
       if (rangesWithSyntaxChanges.length > 0) {
         affectedRange = affectedRange.union(new Range(
@@ -515,6 +516,7 @@ class LanguageLayer {
         if (!grammar) continue
 
         const injectionNode = injectionPoint.content(node)
+        if (!injectionNode) continue
 
         const injectionRange = new Range(injectionNode.startPosition, injectionNode.endPosition)
         let marker = existingInjectionMarkers.find(m => m.getRange().isEqual(injectionRange))
