@@ -30,7 +30,7 @@ class TreeSitterLanguageMode {
     this.emitRangeUpdate = this.emitRangeUpdate.bind(this)
 
     this.subscription = this.buffer.onDidChangeText(({changes}) => {
-      for (let i = changes.length; i --> 0;) {
+      for (let i = changes.length - 1; i >= 0; i--) {
         const {oldRange, newRange} = changes[i]
         const startRow = oldRange.start.row
         const oldEndRow = oldRange.end.row
@@ -421,7 +421,7 @@ class LanguageLayer {
     }
   }
 
-  destroy() {
+  destroy () {
     for (const marker of this.languageMode.injectionsMarkerLayer.getMarkers()) {
       if (marker.parentLanguageLayer === this) {
         marker.languageLayer.destroy()
@@ -439,7 +439,7 @@ class LanguageLayer {
 
     if (this.patchSinceCurrentParseStarted) {
       const changes = this.patchSinceCurrentParseStarted.getChanges()
-      for (let i = changes.length; i --> 0;) {
+      for (let i = changes.length - 1; i >= 0; i--) {
         const {oldStart, oldEnd, newEnd, oldText, newText} = changes[i]
         this.tree.edit(this._treeEditForBufferChange(
           oldStart, oldEnd, newEnd, oldText, newText
@@ -474,8 +474,8 @@ class LanguageLayer {
     let affectedRange
     let existingInjectionMarkers
     if (this.tree) {
-      const changedTokenRange = this.tree.getEditedRange()
-      affectedRange = new Range(changedTokenRange.startPosition, changedTokenRange.endPosition)
+      const editedRange = this.tree.getEditedRange()
+      affectedRange = new Range(editedRange.startPosition, editedRange.endPosition)
 
       const rangesWithSyntaxChanges = this.tree.getChangedRanges(tree)
       for (const range of rangesWithSyntaxChanges) {
@@ -506,7 +506,7 @@ class LanguageLayer {
         injectionPoint.type,
         affectedRange.start,
         affectedRange.end
-      );
+      )
 
       for (const node of nodes) {
         const languageName = injectionPoint.language(node, getNodeText)

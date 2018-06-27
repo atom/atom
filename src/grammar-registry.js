@@ -391,6 +391,32 @@ class GrammarRegistry {
     return this.textmateRegistry.onDidUpdateGrammar(callback)
   }
 
+  // Experimental: Specify a type of syntax node that may embed other languages.
+  //
+  // * `grammarId` The {String} id of the parent language
+  // * `injectionPoint` An {Object} with the following keys:
+  //   * `type` The {String} type of syntax node that may embed other languages
+  //   * `language` A {Function} that is called with syntax nodes of the specified `type` and
+  //     returns a {String} that will be tested against other grammars' `injectionRegExp` in
+  //     order to determine what language should be embedded.
+  //   * `content` A {Function} that is called with syntax nodes of the specified `type` and
+  //     returns another syntax node that contains the embedded source code.
+  addInjectionPoint (grammarId, injectionPoint) {
+    const grammar = this.treeSitterGrammarsById[grammarId]
+    if (grammar) {
+      grammar.injectionPoints.push(injectionPoint)
+    } else {
+      this.treeSitterGrammarsById[grammarId] = {
+        injectionPoints: [injectionPoint]
+      }
+    }
+    return new Disposable(() => {
+      const grammar = this.treeSitterGrammarsById[grammarId]
+      const index = grammar.injectionPoints.indexOf(injectionPoint)
+      if (index !== -1) grammar.injectionPoints.splice(index, 1)
+    })
+  }
+
   get nullGrammar () {
     return this.textmateRegistry.nullGrammar
   }
@@ -409,12 +435,14 @@ class GrammarRegistry {
 
   addGrammar (grammar) {
     if (grammar instanceof TreeSitterGrammar) {
+      const existingParams = this.treeSitterGrammarsById[grammar.id] || {}
       this.treeSitterGrammarsById[grammar.id] = grammar
       if (grammar.legacyScopeName) {
         this.config.setLegacyScopeAliasForNewScope(grammar.id, grammar.legacyScopeName)
         this.textMateScopeNamesByTreeSitterLanguageId.set(grammar.id, grammar.legacyScopeName)
         this.treeSitterLanguageIdsByTextMateScopeName.set(grammar.legacyScopeName, grammar.id)
       }
+      if (existingParams.injectionPoints) grammar.injectionPoints.push(...existingParams.injectionPoints)
       this.grammarAddedOrUpdated(grammar)
       return new Disposable(() => this.removeGrammar(grammar))
     } else {
@@ -517,13 +545,9 @@ class GrammarRegistry {
 
   treeSitterGrammarForLanguageString (languageString) {
     for (const id in this.treeSitterGrammarsById) {
-      const grammar = this.treeSitterGrammarsById[id];
-      if (grammar.injections) {
-        for (const injection of grammar.injections) {
-          if (injection(languageString)) {
-            return grammar
-          }
-        }
+      const grammar = this.treeSitterGrammarsById[id]
+      if (grammar.injectionRegExp && grammar.injectionRegExp.test(languageString)) {
+        return grammar
       }
     }
   }

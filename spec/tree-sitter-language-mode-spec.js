@@ -324,9 +324,7 @@ describe('TreeSitterLanguageMode', () => {
             tag_name: 'tag',
             attribute_name: 'attr'
           },
-          injections: [
-            name => name.toLowerCase().includes('html')
-          ]
+          injectionRegExp: 'html'
         })
 
         atom.grammars.addGrammar(jsGrammar)

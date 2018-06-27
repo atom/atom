@@ -10,6 +10,7 @@ class TreeSitterGrammar {
     this.name = params.name
     this.legacyScopeName = params.legacyScopeName
     if (params.contentRegExp) this.contentRegExp = new RegExp(params.contentRegExp)
+    if (params.injectionRegExp) this.injectionRegExp = new RegExp(params.injectionRegExp)
 
     this.folds = params.folds || []
 
@@ -29,7 +30,6 @@ class TreeSitterGrammar {
     this.scopeMap = new SyntaxScopeMap(scopeSelectors)
     this.fileTypes = params.fileTypes
     this.injectionPoints = params.injectionPoints || []
-    this.injections = params.injections || []
 
     // TODO - When we upgrade to a new enough version of node, use `require.resolve`
     // with the new `paths` option instead of this private API.
