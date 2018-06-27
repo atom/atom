@@ -32,9 +32,10 @@ describe('TreeSitterLanguageMode', () => {
         }
       })
 
+      buffer.setText('aa.bbb = cc(d.eee());')
+
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      buffer.setText('aa.bbb = cc(d.eee());')
       await languageMode.reparsePromise
 
       expectTokensToEqual(editor, [[
@@ -61,9 +62,10 @@ describe('TreeSitterLanguageMode', () => {
         }
       })
 
+      buffer.setText('a = bb.ccc();')
+
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      buffer.setText('a = bb.ccc();')
       await languageMode.reparsePromise
 
       expectTokensToEqual(editor, [[
@@ -87,9 +89,10 @@ describe('TreeSitterLanguageMode', () => {
         }
       })
 
+      buffer.setText('a\n  .b();')
+
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      buffer.setText('a\n  .b();')
       await languageMode.reparsePromise
 
       expectTokensToEqual(editor, [
@@ -114,9 +117,10 @@ describe('TreeSitterLanguageMode', () => {
         }
       })
 
+      buffer.setText('int main() {\n  int a\n  int b;\n}');
+
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      buffer.setText('int main() {\n  int a\n  int b;\n}');
       await languageMode.reparsePromise
 
       editor.screenLineForScreenRow(0)
@@ -159,9 +163,10 @@ describe('TreeSitterLanguageMode', () => {
         }
       })
 
+      buffer.setText('a(\nb,\nc\n')
+
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      buffer.setText('a(\nb,\nc\n')
       await languageMode.reparsePromise
 
       // missing closing paren
@@ -195,13 +200,14 @@ describe('TreeSitterLanguageMode', () => {
         }
       })
 
-      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-      buffer.setLanguageMode(languageMode)
       buffer.setText([
         '// abc',
         '',
         'a("b").c'
       ].join('\r\n'))
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
       await languageMode.reparsePromise
 
       expectTokensToEqual(editor, [
@@ -240,11 +246,13 @@ describe('TreeSitterLanguageMode', () => {
             'new_expression > call_expression > identifier': 'constructor'
           }
         })
-        const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-        buffer.setLanguageMode(languageMode)
 
         buffer.setText('abc;');
+
+        const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+        buffer.setLanguageMode(languageMode)
         await languageMode.reparsePromise
+
         expectTokensToEqual(editor, [
           [
             {text: 'abc', scopes: ['variable']},
@@ -291,7 +299,7 @@ describe('TreeSitterLanguageMode', () => {
       })
     })
 
-    describe('injections', () => {
+    describe('injectionPoints and injectionPatterns', () => {
       let jsGrammar, htmlGrammar
 
       beforeEach(() => {
@@ -334,9 +342,10 @@ describe('TreeSitterLanguageMode', () => {
       })
 
       it('highlights code inside of injection points', async () => {
+        buffer.setText('node.innerHTML = html `a ${b}<img src="d">\n`;')
+
         const languageMode = new TreeSitterLanguageMode({buffer, grammar: jsGrammar, grammars: atom.grammars})
         buffer.setLanguageMode(languageMode)
-        buffer.setText('node.innerHTML = html `a ${b}<img src="d">\n`;')
         await languageMode.reparsePromise
 
         expectTokensToEqual(editor, [
@@ -385,8 +394,6 @@ describe('TreeSitterLanguageMode', () => {
         ]
       })
 
-      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-      buffer.setLanguageMode(languageMode)
       buffer.setText(dedent `
         module.exports =
         class A {
@@ -397,6 +404,9 @@ describe('TreeSitterLanguageMode', () => {
           }
         }
       `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
       await languageMode.reparsePromise
 
       editor.screenLineForScreenRow(0)
@@ -448,8 +458,6 @@ describe('TreeSitterLanguageMode', () => {
         ]
       })
 
-      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-      buffer.setLanguageMode(languageMode)
       buffer.setText(dedent `
         const element1 = <Element
           className='submit'
@@ -460,6 +468,9 @@ describe('TreeSitterLanguageMode', () => {
           <span>world</span>
         </Element>
       `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
       await languageMode.reparsePromise
 
       editor.screenLineForScreenRow(0)
@@ -500,8 +511,6 @@ describe('TreeSitterLanguageMode', () => {
         ]
       })
 
-      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-      buffer.setLanguageMode(languageMode)
       buffer.setText(dedent `
         /**
          * Important
@@ -510,6 +519,9 @@ describe('TreeSitterLanguageMode', () => {
           Also important
         */
       `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
       await languageMode.reparsePromise
 
       editor.screenLineForScreenRow(0)
@@ -561,8 +573,6 @@ describe('TreeSitterLanguageMode', () => {
         ]
       })
 
-      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-      buffer.setLanguageMode(languageMode)
       buffer.setText(dedent `
         #ifndef FOO_H_
         #define FOO_H_
@@ -586,6 +596,9 @@ describe('TreeSitterLanguageMode', () => {
 
         #endif
       `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
       await languageMode.reparsePromise
 
       editor.screenLineForScreenRow(0)
@@ -661,8 +674,6 @@ describe('TreeSitterLanguageMode', () => {
         ]
       })
 
-      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-      buffer.setLanguageMode(languageMode)
       buffer.setText(dedent `
         <head>
         <meta name='key-1', content='value-1'>
@@ -670,6 +681,8 @@ describe('TreeSitterLanguageMode', () => {
         </head>
       `)
 
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
       await languageMode.reparsePromise
 
       // Void elements have only one child
@@ -704,8 +717,9 @@ describe('TreeSitterLanguageMode', () => {
             print 'c'
             print 'd'
         `)
+
         buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
-        await buffer.getLanguageMode().initialize()
+        await buffer.getLanguageMode().reparsePromise
 
         editor.screenLineForScreenRow(0)
 
@@ -729,8 +743,9 @@ describe('TreeSitterLanguageMode', () => {
       })
 
       buffer.setText('foo({bar: baz});')
+
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
-      await buffer.getLanguageMode().initialize()
+      await buffer.getLanguageMode().reparsePromise
 
       editor.screenLineForScreenRow(0)
       expect(editor.scopeDescriptorForBufferPosition([0, 6]).getScopesArray()).toEqual([
@@ -759,8 +774,9 @@ describe('TreeSitterLanguageMode', () => {
           g()
         }
       `)
+
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
-      await buffer.getLanguageMode().initialize()
+      await buffer.getLanguageMode().reparsePromise
 
       editor.screenLineForScreenRow(0)
 

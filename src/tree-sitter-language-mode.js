@@ -10,7 +10,7 @@ let nextId = 0
 const MAX_RANGE = new Range(Point.ZERO, Point.INFINITY).freeze()
 
 class TreeSitterLanguageMode {
-  static _patchSyntaxNode() {
+  static _patchSyntaxNode () {
     if (!Parser.SyntaxNode.prototype.hasOwnProperty('text')) {
       Object.defineProperty(Parser.SyntaxNode.prototype, 'text', {
         get () {
@@ -55,6 +55,8 @@ class TreeSitterLanguageMode {
       this.rootLanguageLayer.update()
     })
 
+    this.rootLanguageLayer.update()
+
     // TODO: Remove this once TreeSitterLanguageMode implements its own auto-indentation system. This
     // is temporarily needed in order to delegate to the TextMateLanguageMode's auto-indent system.
     this.regexesByPattern = {}
@@ -65,10 +67,6 @@ class TreeSitterLanguageMode {
     this.subscription.dispose()
     this.rootLanguageLayer = null
     this.parser = null
-  }
-
-  async initialize () {
-    await this.rootLanguageLayer.update()
   }
 
   getLanguageId () {
@@ -461,7 +459,7 @@ class LanguageLayer {
       parser,
       injectionsMarkerLayer,
       grammarForLanguageString,
-      emitRangeUpdate,
+      emitRangeUpdate
     } = this.languageMode
 
     let includedRanges
