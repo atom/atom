@@ -10,7 +10,18 @@ let nextId = 0
 const MAX_RANGE = new Range(Point.ZERO, Point.INFINITY).freeze()
 
 class TreeSitterLanguageMode {
+  static _patchSyntaxNode() {
+    if (!Parser.SyntaxNode.prototype.hasOwnProperty('text')) {
+      Object.defineProperty(Parser.SyntaxNode.prototype, 'text', {
+        get () {
+          return this.tree.buffer.getTextInRange(new Range(this.startPosition, this.endPosition))
+        }
+      })
+    }
+  }
+
   constructor ({buffer, grammar, config, grammars}) {
+    TreeSitterLanguageMode._patchSyntaxNode()
     this.id = nextId++
     this.buffer = buffer
     this.grammar = grammar
@@ -25,7 +36,6 @@ class TreeSitterLanguageMode {
     this.isFoldableCache = []
     this.hasQueuedParse = false
 
-    this.getNodeText = this.getNodeText.bind(this)
     this.grammarForLanguageString = this.grammarForLanguageString.bind(this)
     this.emitRangeUpdate = this.emitRangeUpdate.bind(this)
 
@@ -314,10 +324,6 @@ class TreeSitterLanguageMode {
     return this.getRangeForSyntaxNodeContainingRange(new Range(position, position))
   }
 
-  getNodeText (node) {
-    return this.buffer.getTextInRange(new Range(node.startPosition, node.endPosition))
-  }
-
   /*
   Section - Backward compatibility shims
   */
@@ -456,7 +462,6 @@ class LanguageLayer {
       injectionsMarkerLayer,
       grammarForLanguageString,
       emitRangeUpdate,
-      getNodeText
     } = this.languageMode
 
     let includedRanges
@@ -470,6 +475,7 @@ class LanguageLayer {
       syncOperationLimit: 1000,
       includedRanges
     })
+    tree.buffer = this.languageMode.buffer
 
     let affectedRange
     let existingInjectionMarkers
@@ -509,7 +515,7 @@ class LanguageLayer {
       )
 
       for (const node of nodes) {
-        const languageName = injectionPoint.language(node, getNodeText)
+        const languageName = injectionPoint.language(node)
         if (!languageName) continue
 
         const grammar = grammarForLanguageString(languageName)

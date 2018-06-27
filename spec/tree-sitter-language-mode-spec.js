@@ -307,12 +307,14 @@ describe('TreeSitterLanguageMode', () => {
           },
           injectionPoints: [{
             type: 'call_expression',
-            language: (node, getText) => {
+            language (node) {
               if (node.lastChild.type === 'template_string' && node.firstChild.type === 'identifier') {
-                return getText(node.firstChild)
+                return node.firstChild.text
               }
             },
-            content: node => node.lastChild
+            content (node) {
+              return node.lastChild
+            }
           }]
         })
 
