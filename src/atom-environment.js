@@ -494,7 +494,9 @@ class AtomEnvironment {
     // This matches stable, dev (with or without commit hash) and any other
     // release channel following the pattern '1.00.0-channel0'
     const match = this.getVersion().match(/\d+\.\d+\.\d+(-([a-z]+)(\d+|-\w{4,})?)?$/)
-    if (match && match[2]) {
+    if (!match) {
+      return 'unrecognized'
+    } else if (match[2]) {
       return match[2]
     }
 
@@ -503,7 +505,7 @@ class AtomEnvironment {
 
   // Public: Returns a {Boolean} that is `true` if the current version is an official release.
   isReleasedVersion () {
-    return this.getVersion().match(/stable|beta|nightly/)
+    return this.getReleaseChannel().match(/stable|beta|nightly/) != null
   }
 
   // Public: Get the time taken to completely load the current window.
