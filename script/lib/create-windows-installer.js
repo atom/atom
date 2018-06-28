@@ -8,7 +8,7 @@ const path = require('path')
 const CONFIG = require('../config')
 
 module.exports = (packagedAppPath) => {
-  // const archSuffix = process.arch === 'ia32' ? '' : '-' + process.arch
+  const archSuffix = process.arch === 'ia32' ? '' : '-' + process.arch
   const options = {
     appDirectory: packagedAppPath,
     authors: 'GitHub Inc.',
@@ -16,7 +16,7 @@ module.exports = (packagedAppPath) => {
     loadingGif: path.join(CONFIG.repositoryRootPath, 'resources', 'win', 'loading.gif'),
     outputDirectory: CONFIG.buildOutputPath,
     noMsi: true,
-    // remoteReleases: `https://atom.io/api/updates${archSuffix}?version=${CONFIG.appMetadata.version}`,
+    remoteReleases: `https://atom.io/api/updates${archSuffix}?version=${CONFIG.computedAppVersion}`,
     setupExe: `AtomSetup${process.arch === 'x64' ? '-x64' : ''}.exe`,
     setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
   }
