@@ -479,6 +479,7 @@ class LanguageLayer {
     let existingInjectionMarkers
     if (this.tree) {
       const editedRange = this.tree.getEditedRange()
+      if (!editedRange) return
       affectedRange = new Range(editedRange.startPosition, editedRange.endPosition)
 
       const rangesWithSyntaxChanges = this.tree.getChangedRanges(tree)
@@ -640,21 +641,14 @@ class LayerHighlightIterator {
   constructor (languageLayer, treeCursor) {
     this.languageLayer = languageLayer
     this.treeCursor = treeCursor
+    this.atEnd = false
 
     // In order to determine which selectors match its current node, the iterator maintains
     // a list of the current node's ancestors. Because the selectors can use the `:nth-child`
     // pseudo-class, each node's child index is also stored.
     this.containingNodeTypes = []
     this.containingNodeChildIndices = []
-
-    // Conceptually, the iterator represents a single position in the text. It stores this
-    // position both as a character index and as a `Point`. This position corresponds to a
-    // leaf node of the syntax tree, which either contains or follows the iterator's
-    // textual position. The `treeCursor` property points at that leaf node, and
-    // `currentChildIndex` represents the child index of that leaf node within its parent.
-    this.currentIndex = null
-    this.currentPosition = null
-    this.currentChildIndex = null
+    this.containingNodeEndIndices = []
 
     // At any given position, the iterator exposes the list of class names that should be
     // *ended* at its current position and the list of class names that should be *started*
@@ -667,111 +661,134 @@ class LayerHighlightIterator {
     while (this.treeCursor.gotoParent()) {}
 
     const containingTags = []
+    const targetIndex = this.languageLayer.languageMode.buffer.characterIndexForPosition(
+      targetPosition
+    )
 
+    this.done = false
+    this.atEnd = true
     this.closeTags.length = 0
     this.openTags.length = 0
     this.containingNodeTypes.length = 0
     this.containingNodeChildIndices.length = 0
-    this.currentPosition = targetPosition
-    this.currentIndex = this.languageLayer.languageMode.buffer.characterIndexForPosition(targetPosition)
+    this.containingNodeEndIndices.length = 0
 
-    if (this.treeCursor.endIndex <= this.currentIndex) return containingTags
+    if (targetIndex >= this.treeCursor.endIndex) return containingTags
 
-    // Descend from the root of the tree to the smallest node that spans the given position.
-    // Keep track of any nodes along the way that are associated with syntax highlighting
-    // tags. These tags must be returned.
-    var childIndex = -1
+    let childIndex = -1
     for (;;) {
-      this.currentChildIndex = childIndex
-      if (this.treeCursor.startIndex > this.currentIndex) break
       this.containingNodeTypes.push(this.treeCursor.nodeType)
       this.containingNodeChildIndices.push(childIndex)
+      this.containingNodeEndIndices.push(this.treeCursor.endIndex)
 
       const scopeName = this.currentScopeName()
       if (scopeName) {
         const id = this.idForScope(scopeName)
-        if (this.currentIndex === this.treeCursor.startIndex) {
-          this.openTags.push(id)
-        } else {
+        if (this.treeCursor.startIndex < targetIndex) {
           containingTags.push(id)
+        } else {
+          this.atEnd = false
+          this.openTags.push(id)
+          while (this.treeCursor.gotoFirstChild()) {
+            this.containingNodeTypes.push(this.treeCursor.nodeType)
+            this.containingNodeChildIndices.push(0)
+            const scopeName = this.currentScopeName()
+            if (scopeName) {
+              this.openTags.push(this.idForScope(scopeName))
+            }
+          }
+          break
         }
       }
 
-      const nextChildIndex = this.treeCursor.gotoFirstChildForIndex(this.currentIndex)
-      if (nextChildIndex == null) break
-      childIndex = nextChildIndex
+      childIndex = this.treeCursor.gotoFirstChildForIndex(targetIndex)
+      if (childIndex === null) break
+      if (this.treeCursor.startIndex >= targetIndex) this.atEnd = false
     }
 
     return containingTags
   }
 
   moveToSuccessor () {
+    let didMove = false
     this.closeTags.length = 0
     this.openTags.length = 0
 
-    // Step forward through the leaves of the tree to find the next place where one or more
-    // syntax highlighting tags begin, end, or both.
-    do {
-      // If the iterator is before the beginning of the current node, advance it to the
-      // beginning of then node and then walk down into the node's children, marking
-      // open tags as needed.
-      if (this.currentIndex < this.treeCursor.startIndex) {
-        this.currentIndex = this.treeCursor.startIndex
-        this.currentPosition = this.treeCursor.startPosition
-        this.pushOpenTag()
-        this.descendLeft()
+    if (this.done) return
 
-      // If the iterator is within the current node, advance it to the end of the node
-      // and then walk up the tree until the next sibling is found, marking close tags
-      // as needed.
-      } else if (this.currentIndex < this.treeCursor.endIndex) {
-        /* eslint-disable no-labels */
-        ascendingLoop:
-        do {
-          this.currentIndex = this.treeCursor.endIndex
-          this.currentPosition = this.treeCursor.endPosition
-          this.pushCloseTag()
+    while (true) {
+      if (this.atEnd) {
+        if (this.treeCursor.gotoNextSibling()) {
+          didMove = true
+          this.atEnd = false
+          const depth = this.containingNodeTypes.length
+          this.containingNodeTypes[depth - 1] = this.treeCursor.nodeType
+          this.containingNodeChildIndices[depth - 1]++
+          this.containingNodeEndIndices[depth - 1] = this.treeCursor.endIndex
 
-          // Stop walking upward when we reach a node with a next sibling.
-          while (this.treeCursor.gotoNextSibling()) {
-            this.currentChildIndex++
-
-            // If the next sibling has a size of zero (e.g. something like an `automatic_semicolon`,
-            // an `indent`, or a `MISSING` node inserted by the parser during error recovery),
-            // then skip it. These nodes play no role in syntax highlighting.
-            if (this.treeCursor.endIndex === this.currentIndex) continue
-
-            // If the next sibling starts right at the end of the current node (i.e. there is
-            // no whitespace in between), then before returning, also mark any open tags associated
-            // with this point in the tree.
-            if (this.treeCursor.startIndex === this.currentIndex) {
-              this.pushOpenTag()
-              this.descendLeft()
+          while (true) {
+            const {endIndex} = this.treeCursor
+            const scopeName = this.currentScopeName()
+            if (scopeName) {
+              this.openTags.push(this.idForScope(scopeName))
             }
 
-            break ascendingLoop
+            if (this.treeCursor.gotoFirstChild()) {
+              if ((this.closeTags.length || this.openTags.length) && this.treeCursor.endIndex > endIndex) {
+                this.treeCursor.gotoParent()
+                break
+              }
+
+              this.containingNodeTypes.push(this.treeCursor.nodeType)
+              this.containingNodeChildIndices.push(0)
+              this.containingNodeEndIndices.push(this.treeCursor.endIndex)
+            } else {
+              break
+            }
           }
-
-          this.currentChildIndex = last(this.containingNodeChildIndices)
-        } while (this.treeCursor.gotoParent())
-        /* eslint-disable no-labels */
-
-      // If the iterator is at the end of a node, advance to the node's next sibling. If
-      // it has no next sibing, then the iterator has reached the end of the tree.
-      } else if (!this.treeCursor.gotoNextSibling()) {
-        if (this.atEnd) {
-          this.currentPosition = {row: Infinity, column: Infinity}
+        } else if (this.treeCursor.gotoParent()) {
+          this.atEnd = false
+          this.containingNodeTypes.pop()
+          this.containingNodeChildIndices.pop()
+          this.containingNodeEndIndices.pop()
+        } else {
+          this.done = true
+          break
         }
+      } else {
         this.atEnd = true
-        break
-      }
-    } while (this.closeTags.length === 0 && this.openTags.length === 0)
+        didMove = true
 
-    return true
+        const scopeName = this.currentScopeName()
+        if (scopeName) {
+          this.closeTags.push(this.idForScope(scopeName))
+        }
+
+        const endIndex = this.treeCursor.endIndex
+        let depth = this.containingNodeEndIndices.length
+        while (depth > 1 && this.containingNodeEndIndices[depth - 2] === endIndex) {
+          this.treeCursor.gotoParent()
+          this.containingNodeTypes.pop()
+          this.containingNodeChildIndices.pop()
+          this.containingNodeEndIndices.pop()
+          --depth
+          const scopeName = this.currentScopeName()
+          if (scopeName) this.closeTags.push(this.idForScope(scopeName))
+        }
+      }
+
+      if (didMove && (this.closeTags.length || this.openTags.length)) break
+    }
   }
 
   getPosition () {
-    return this.currentPosition
+    if (this.done) {
+      return Point.INFINITY
+    } else if (this.atEnd) {
+      return this.treeCursor.endPosition
+    } else {
+      return this.treeCursor.startPosition
+    }
   }
 
   getCloseScopeIds () {
@@ -784,13 +801,6 @@ class LayerHighlightIterator {
 
   // Private methods
 
-  descendLeft () {
-    while (this.treeCursor.gotoFirstChild()) {
-      this.currentChildIndex = 0
-      this.pushOpenTag()
-    }
-  }
-
   currentScopeName () {
     return this.languageLayer.grammar.scopeMap.get(
       this.containingNodeTypes,
@@ -801,20 +811,6 @@ class LayerHighlightIterator {
 
   idForScope (scopeName) {
     return this.languageLayer.languageMode.grammar.idForScope(scopeName)
-  }
-
-  pushCloseTag () {
-    const scopeName = this.currentScopeName()
-    if (scopeName) this.closeTags.push(this.idForScope(scopeName))
-    this.containingNodeTypes.pop()
-    this.containingNodeChildIndices.pop()
-  }
-
-  pushOpenTag () {
-    this.containingNodeTypes.push(this.treeCursor.nodeType)
-    this.containingNodeChildIndices.push(this.currentChildIndex)
-    const scopeName = this.currentScopeName()
-    if (scopeName) this.openTags.push(this.idForScope(scopeName))
   }
 }
 

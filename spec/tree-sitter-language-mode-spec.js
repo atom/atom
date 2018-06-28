@@ -236,6 +236,42 @@ describe('TreeSitterLanguageMode', () => {
       ])
     })
 
+    it('handles multi-line nodes with children on different lines (regression)', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          'template_string': 'string',
+          '"${"': 'interpolation',
+          '"}"': 'interpolation'
+        }
+      });
+
+      buffer.setText('`\na${1}\nb${2}\n`;')
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      await languageMode.reparsePromise
+
+      expectTokensToEqual(editor, [
+        [
+          {text: '`', scopes: ['string']}
+        ], [
+          {text: 'a', scopes: ['string']},
+          {text: '${', scopes: ['string', 'interpolation']},
+          {text: '1', scopes: ['string']},
+          {text: '}', scopes: ['string', 'interpolation']}
+        ], [
+          {text: 'b', scopes: ['string']},
+          {text: '${', scopes: ['string', 'interpolation']},
+          {text: '2', scopes: ['string']},
+          {text: '}', scopes: ['string', 'interpolation']}
+        ],
+        [
+          {text: '`', scopes: ['string']},
+          {text: ';', scopes: []}
+        ]
+      ])
+    })
+
     describe('when the buffer changes during a parse', () => {
       it('immediately parses again when the current parse completes', async () => {
         const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
