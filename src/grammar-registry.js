@@ -347,26 +347,23 @@ class GrammarRegistry {
 
     this.grammarScoresByBuffer.forEach((score, buffer) => {
       const languageMode = buffer.getLanguageMode()
-      if (grammar.injectionSelector) {
-        if (languageMode.hasTokenForSelector(grammar.injectionSelector)) {
-          languageMode.retokenizeLines()
-        }
-        return
-      }
-
       const languageOverride = this.languageOverridesByBufferId.get(buffer.id)
 
       if ((grammar.id === buffer.getLanguageMode().getLanguageId() ||
            grammar.id === languageOverride)) {
         buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
+        return
       } else if (!languageOverride) {
         const score = this.getGrammarScore(grammar, buffer.getPath(), getGrammarSelectionContent(buffer))
         const currentScore = this.grammarScoresByBuffer.get(buffer)
         if (currentScore == null || score > currentScore) {
           buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
           this.grammarScoresByBuffer.set(buffer, score)
+          return
         }
       }
+
+      languageMode.updateForInjection(grammar)
     })
   }
 

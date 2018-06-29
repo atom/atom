@@ -88,6 +88,10 @@ class TreeSitterLanguageMode {
     return this.rootLanguageLayer.currentParsePromise
   }
 
+  updateForInjection (grammar) {
+    this.rootLanguageLayer.updateInjections(grammar)
+  }
+
   /*
   Section - Highlighting
   */
@@ -361,10 +365,6 @@ class TreeSitterLanguageMode {
     return new ScopeDescriptor({scopes: result.reverse()})
   }
 
-  hasTokenForSelector (scopeSelector) {
-    return false
-  }
-
   getGrammar () {
     return this.grammar
   }
@@ -454,73 +454,82 @@ class LanguageLayer {
     }
   }
 
-  async _performUpdate (containingNode) {
-    const {
-      parser,
-      injectionsMarkerLayer,
-      grammarForLanguageString,
-      emitRangeUpdate
-    } = this.languageMode
+  updateInjections (grammar) {
+    if (!grammar.injectionRegExp) return
+    if (!this.currentParsePromise) this.currentParsePromise = Promise.resolve()
+    this.currentParsePromise = this.currentParsePromise.then(async () => {
+      await this._populateInjections(MAX_RANGE, grammar)
+      const markers = this.languageMode.injectionsMarkerLayer.getMarkers().filter(marker =>
+        marker.parentLanguageLayer === this
+      )
+      for (const marker of markers) {
+        await marker.languageLayer._populateInjections(MAX_RANGE, grammar)
+      }
+      this.currentParsePromise = null
+    })
+  }
 
+  async _performUpdate (containingNode) {
     let includedRanges
     if (containingNode) {
       includedRanges = this._rangesForInjectionNode(containingNode)
       if (includedRanges.length === 0) return
     }
 
-    parser.setLanguage(this.grammar.languageModule)
-    const tree = await parser.parseTextBuffer(this.languageMode.buffer.buffer, this.tree, {
-      syncOperationLimit: 1000,
-      includedRanges
-    })
+    this.languageMode.parser.setLanguage(this.grammar.languageModule)
+    const tree = await this.languageMode.parser.parseTextBuffer(
+      this.languageMode.buffer.buffer,
+      this.tree,
+      {syncOperationLimit: 1000, includedRanges}
+    )
     tree.buffer = this.languageMode.buffer
 
     let affectedRange
-    let existingInjectionMarkers
     if (this.tree) {
       const editedRange = this.tree.getEditedRange()
       if (!editedRange) return
-      affectedRange = new Range(editedRange.startPosition, editedRange.endPosition)
+      affectedRange = this._rangeForNode(editedRange)
 
       const rangesWithSyntaxChanges = this.tree.getChangedRanges(tree)
-      for (const range of rangesWithSyntaxChanges) {
-        emitRangeUpdate(new Range(range.startPosition, range.endPosition))
-      }
-
       if (rangesWithSyntaxChanges.length > 0) {
+        for (const range of rangesWithSyntaxChanges) {
+          this.languageMode.emitRangeUpdate(this._rangeForNode(range))
+        }
+
         affectedRange = affectedRange.union(new Range(
           rangesWithSyntaxChanges[0].startPosition,
           last(rangesWithSyntaxChanges).endPosition
         ))
       }
-
-      existingInjectionMarkers = injectionsMarkerLayer
-        .findMarkers({intersectsRange: affectedRange})
-        .filter(marker => marker.parentLanguageLayer === this)
     } else {
-      emitRangeUpdate(new Range(tree.rootNode.startPosition, tree.rootNode.endPosition))
+      this.languageMode.emitRangeUpdate(this._rangeForNode(tree.rootNode))
       affectedRange = MAX_RANGE
-      existingInjectionMarkers = []
     }
 
     this.tree = tree
+    await this._populateInjections(affectedRange)
+  }
+
+  async _populateInjections (range, newGrammar = null) {
+    const {injectionsMarkerLayer, grammarForLanguageString} = this.languageMode
+
+    const existingInjectionMarkers = injectionsMarkerLayer
+      .findMarkers({intersectsRange: range})
+      .filter(marker => marker.parentLanguageLayer === this)
+
     if (existingInjectionMarkers.length > 0) {
-      affectedRange.start = Point.min(
-        affectedRange.start,
-        existingInjectionMarkers[0].getRange().start
-      )
-      affectedRange.end = Point.max(
-        affectedRange.end,
+      range = range.union(new Range(
+        existingInjectionMarkers[0].getRange().start,
         last(existingInjectionMarkers).getRange().end
-      )
+      ))
     }
 
     const markersToUpdate = new Map()
     for (const injectionPoint of this.grammar.injectionPoints) {
-      const nodes = tree.rootNode.descendantsOfType(
+      const nodes = this.tree.rootNode.descendantsOfType(
         injectionPoint.type,
-        affectedRange.start,
-        affectedRange.end
+        range.start,
+        range.end
       )
 
       for (const node of nodes) {
@@ -529,11 +538,12 @@ class LanguageLayer {
 
         const grammar = grammarForLanguageString(languageName)
         if (!grammar) continue
+        if (newGrammar && grammar !== newGrammar) continue
 
         const injectionNode = injectionPoint.content(node)
         if (!injectionNode) continue
 
-        const injectionRange = new Range(node.startPosition, node.endPosition)
+        const injectionRange = this._rangeForNode(node)
         let marker = existingInjectionMarkers.find(m =>
           m.getRange().isEqual(injectionRange) &&
           m.languageLayer.grammar === grammar
@@ -551,7 +561,7 @@ class LanguageLayer {
     for (const marker of existingInjectionMarkers) {
       if (!markersToUpdate.has(marker)) {
         marker.languageLayer.destroy()
-        emitRangeUpdate(marker.getRange())
+        this.languageMode.emitRangeUpdate(marker.getRange())
         marker.destroy()
       }
     }
@@ -591,6 +601,10 @@ class LanguageLayer {
     }
 
     return result
+  }
+
+  _rangeForNode (node) {
+    return new Range(node.startPosition, node.endPosition)
   }
 
   _treeEditForBufferChange (start, oldEnd, newEnd, oldText, newText) {
@@ -740,14 +754,15 @@ class LayerHighlightIterator {
           this.containingNodeEndIndices[depth - 1] = this.treeCursor.endIndex
 
           while (true) {
-            const {endIndex} = this.treeCursor
+            const {startIndex} = this.treeCursor
             const scopeName = this.currentScopeName()
             if (scopeName) {
               this.openTags.push(this.idForScope(scopeName))
             }
 
             if (this.treeCursor.gotoFirstChild()) {
-              if ((this.closeTags.length || this.openTags.length) && this.treeCursor.endIndex > endIndex) {
+              if ((this.closeTags.length || this.openTags.length) &&
+                  this.treeCursor.startIndex > startIndex) {
                 this.treeCursor.gotoParent()
                 break
               }

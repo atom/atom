@@ -378,12 +378,11 @@ describe('TreeSitterLanguageMode', () => {
             content (node) { return node.child(1) }
           }]
         })
-
-        atom.grammars.addGrammar(jsGrammar)
-        atom.grammars.addGrammar(htmlGrammar)
       })
 
       it('highlights code inside of injection points', async () => {
+        atom.grammars.addGrammar(jsGrammar)
+        atom.grammars.addGrammar(htmlGrammar)
         buffer.setText('node.innerHTML = html `\na ${b}<img src="d">\n`;')
 
         const languageMode = new TreeSitterLanguageMode({buffer, grammar: jsGrammar, grammars: atom.grammars})
@@ -441,6 +440,8 @@ describe('TreeSitterLanguageMode', () => {
       })
 
       it('highlights the content after injections', async () => {
+        atom.grammars.addGrammar(jsGrammar)
+        atom.grammars.addGrammar(htmlGrammar)
         buffer.setText('<script>\nhello();\n</script>\n<div>\n</div>')
 
         const languageMode = new TreeSitterLanguageMode({buffer, grammar: htmlGrammar, grammars: atom.grammars})
@@ -472,6 +473,61 @@ describe('TreeSitterLanguageMode', () => {
             {text: 'div', scopes: ['html', 'tag']},
             {text: '>', scopes: ['html']},
           ]
+        ])
+      })
+
+      it('updates buffers highlighting when a grammar with injectionRegExp is added', async () => {
+        atom.grammars.addGrammar(jsGrammar)
+
+        buffer.setText('node.innerHTML = html `\na ${b}<img src="d">\n`;')
+        const languageMode = new TreeSitterLanguageMode({buffer, grammar: jsGrammar, grammars: atom.grammars})
+        buffer.setLanguageMode(languageMode)
+        await languageMode.reparsePromise
+          expectTokensToEqual(editor, [
+          [
+            {text: 'node.', scopes: []},
+            {text: 'innerHTML', scopes: ['property']},
+            {text: ' = ', scopes: []},
+            {text: 'html', scopes: ['function']},
+            {text: ' ', scopes: []},
+            {text: '`', scopes: ['string']}
+          ], [
+            {text: 'a ', scopes: ['string']},
+            {text: '${', scopes: ['string', 'interpolation']},
+            {text: 'b', scopes: ['string']},
+            {text: '}', scopes: ['string', 'interpolation']},
+            {text: '<img src="d">', scopes: ['string']},
+          ], [
+            {text: '`', scopes: ['string']},
+            {text: ';', scopes: []},
+          ],
+        ])
+
+        atom.grammars.addGrammar(htmlGrammar)
+        await languageMode.reparsePromise
+        expectTokensToEqual(editor, [
+          [
+            {text: 'node.', scopes: []},
+            {text: 'innerHTML', scopes: ['property']},
+            {text: ' = ', scopes: []},
+            {text: 'html', scopes: ['function']},
+            {text: ' ', scopes: []},
+            {text: '`', scopes: ['string']},
+            {text: '', scopes: ['string', 'html']}
+          ], [
+            {text: 'a ', scopes: ['string', 'html']},
+            {text: '${', scopes: ['string', 'html', 'interpolation']},
+            {text: 'b', scopes: ['string', 'html']},
+            {text: '}', scopes: ['string', 'html', 'interpolation']},
+            {text: '<', scopes: ['string', 'html']},
+            {text: 'img', scopes: ['string', 'html', 'tag']},
+            {text: ' ', scopes: ['string', 'html']},
+            {text: 'src', scopes: ['string', 'html', 'attr']},
+            {text: '="d">', scopes: ['string', 'html']}
+          ], [
+            {text: '`', scopes: ['string']},
+            {text: ';', scopes: []},
+          ],
         ])
       })
     })
