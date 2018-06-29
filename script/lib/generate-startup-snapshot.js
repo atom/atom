@@ -74,7 +74,7 @@ module.exports = function (packagedAppPath) {
     const verifySnapshotScriptPath = path.join(CONFIG.repositoryRootPath, 'script', 'verify-snapshot-script')
     let nodeBundledInElectronPath
     if (process.platform === 'darwin') {
-      const executableName = CONFIG.channel === 'stable' ? 'Atom' : `Atom ${CONFIG.channelDisplayName}`
+      const executableName = CONFIG.channelDisplayName ? `Atom ${CONFIG.channelDisplayName}` : 'Atom'
       nodeBundledInElectronPath = path.join(packagedAppPath, 'Contents', 'MacOS', executableName)
     } else if (process.platform === 'win32') {
       nodeBundledInElectronPath = path.join(packagedAppPath, 'atom.exe')

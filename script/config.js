@@ -57,7 +57,7 @@ function getChannel (version) {
 }
 
 function getChannelDisplayName (channel) {
-  if (channel === 'stable') return null
+  if (channel === 'stable' || channel === 'dev') return null
   return process.env.ATOM_CHANNEL_DISPLAY_NAME || channel.charAt(0).toUpperCase() + channel.slice(1)
 }
 

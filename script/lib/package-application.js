@@ -114,7 +114,7 @@ function buildAsarUnpackGlobExpression () {
 
 function getAppName () {
   if (process.platform === 'darwin') {
-    return CONFIG.channel !== 'stable' ? `Atom ${CONFIG.channelDisplayName}` : 'Atom'
+    return CONFIG.channelDisplayName ? `Atom ${CONFIG.channelDisplayName}` : 'Atom'
   } else {
     return 'atom'
   }
