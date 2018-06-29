@@ -504,6 +504,16 @@ class LanguageLayer {
     }
 
     this.tree = tree
+    if (existingInjectionMarkers.length > 0) {
+      affectedRange.start = Point.min(
+        affectedRange.start,
+        existingInjectionMarkers[0].getRange().start
+      )
+      affectedRange.end = Point.max(
+        affectedRange.end,
+        last(existingInjectionMarkers).getRange().end
+      )
+    }
 
     const markersToUpdate = new Map()
     for (const injectionPoint of this.grammar.injectionPoints) {
