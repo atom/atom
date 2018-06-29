@@ -5,6 +5,7 @@ const {Emitter, Disposable} = require('event-kit')
 const ScopeDescriptor = require('./scope-descriptor')
 const TokenizedLine = require('./tokenized-line')
 const TextMateLanguageMode = require('./text-mate-language-mode')
+const async = require('async')
 
 let nextId = 0
 const MAX_RANGE = new Range(Point.ZERO, Point.INFINITY).freeze()
@@ -30,6 +31,19 @@ class TreeSitterLanguageMode {
     this.parser = new Parser()
     this.rootLanguageLayer = new LanguageLayer(this, grammar)
     this.injectionsMarkerLayer = buffer.addMarkerLayer()
+    this.updatedGrammars = []
+
+    this.parsers = []
+    this.parseQueue = async.queue(async ({language, oldTree, ranges}, done) => {
+      const parser = this.parsers.pop() || new Parser()
+      parser.setLanguage(language)
+      const newTree = await parser.parseTextBuffer(this.buffer.buffer, oldTree, {
+        syncOperationLimit: 1000,
+        includedRanges: ranges
+      })
+      this.parsers.push(parser)
+      done(null, newTree)
+    }, 2)
 
     this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.id]})
     this.emitter = new Emitter()
@@ -78,6 +92,14 @@ class TreeSitterLanguageMode {
     for (const marker of this.injectionsMarkerLayer.getMarkers()) {
       marker.languageLayer.handleTextChange(change)
     }
+  }
+
+  parse (language, oldTree, ranges) {
+    return new Promise(resolve =>
+      this.parseQueue.push({language, oldTree, ranges}, (error, tree) =>
+        resolve(tree)
+      )
+    )
   }
 
   get tree () {
@@ -476,11 +498,10 @@ class LanguageLayer {
       if (includedRanges.length === 0) return
     }
 
-    this.languageMode.parser.setLanguage(this.grammar.languageModule)
-    const tree = await this.languageMode.parser.parseTextBuffer(
-      this.languageMode.buffer.buffer,
+    const tree = await this.languageMode.parse(
+      this.grammar.languageModule,
       this.tree,
-      {syncOperationLimit: 1000, includedRanges}
+      includedRanges
     )
     tree.buffer = this.languageMode.buffer
 
@@ -566,9 +587,11 @@ class LanguageLayer {
       }
     }
 
+    const promises = []
     for (const [marker, injectionNode] of markersToUpdate) {
-      await marker.languageLayer.update(injectionNode)
+      promises.push(marker.languageLayer.update(injectionNode))
     }
+    return Promise.all(promises)
   }
 
   _rangesForInjectionNode (node) {
