@@ -349,6 +349,7 @@ describe('TreeSitterLanguageMode', () => {
             'template_substitution > "${"': 'interpolation',
             'template_substitution > "}"': 'interpolation'
           },
+          injectionRegExp: 'javascript',
           injectionPoints: [{
             type: 'call_expression',
             language (node) {
@@ -370,7 +371,12 @@ describe('TreeSitterLanguageMode', () => {
             tag_name: 'tag',
             attribute_name: 'attr'
           },
-          injectionRegExp: 'html'
+          injectionRegExp: 'html',
+          injectionPoints: [{
+            type: 'raw_element',
+            language () { return 'javascript' },
+            content (node) { return node.child(1) }
+          }]
         })
 
         atom.grammars.addGrammar(jsGrammar)
@@ -431,6 +437,41 @@ describe('TreeSitterLanguageMode', () => {
             {text: '`', scopes: ['string']},
             {text: ';', scopes: []},
           ],
+        ])
+      })
+
+      it('highlights the content after injections', async () => {
+        buffer.setText('<script>\nhello();\n</script>\n<div>\n</div>')
+
+        const languageMode = new TreeSitterLanguageMode({buffer, grammar: htmlGrammar, grammars: atom.grammars})
+        buffer.setLanguageMode(languageMode)
+        await languageMode.reparsePromise
+
+        expectTokensToEqual(editor, [
+          [
+            {text: '<', scopes: ['html']},
+            {text: 'script', scopes: ['html', 'tag']},
+            {text: '>', scopes: ['html']},
+          ],
+          [
+            {text: 'hello', scopes: ['html', 'function']},
+            {text: '();', scopes: ['html']},
+          ],
+          [
+            {text: '</', scopes: ['html']},
+            {text: 'script', scopes: ['html', 'tag']},
+            {text: '>', scopes: ['html']},
+          ],
+          [
+            {text: '<', scopes: ['html']},
+            {text: 'div', scopes: ['html', 'tag']},
+            {text: '>', scopes: ['html']},
+          ],
+          [
+            {text: '</', scopes: ['html']},
+            {text: 'div', scopes: ['html', 'tag']},
+            {text: '>', scopes: ['html']},
+          ]
         ])
       })
     })

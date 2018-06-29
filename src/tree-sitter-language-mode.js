@@ -673,7 +673,10 @@ class LayerHighlightIterator {
     this.containingNodeChildIndices.length = 0
     this.containingNodeEndIndices.length = 0
 
-    if (targetIndex >= this.treeCursor.endIndex) return containingTags
+    if (targetIndex >= this.treeCursor.endIndex) {
+      this.done = true
+      return containingTags
+    }
 
     let childIndex = -1
     for (;;) {
