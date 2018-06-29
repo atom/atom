@@ -33,20 +33,21 @@ class CommandInstaller {
         if (error) return showErrorDialog(error)
         this.applicationDelegate.confirm({
           message: 'Commands installed.',
-          detail: `The shell commands '${atomCommandName}' and '${apmCommandName}' are installed.`
+          detail: `The shell commands \`${atomCommandName}\` and \`${apmCommandName}\` are installed.`
         }, () => {})
       })
     })
   }
 
   getCommandNameForChannel (commandName) {
-    switch (atom.getReleaseChannel()) {
+    let channelMatch = this.appVersion.match(/beta|nightly/)
+    let channel = channelMatch ? channelMatch[0] : ''
+
+    switch (channel) {
       case 'beta':
         return `${commandName}-beta`
       case 'nightly':
         return `${commandName}-nightly`
-      case 'dev':
-        return `${commandName}-dev`
       default:
         return commandName
     }
