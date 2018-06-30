@@ -115,8 +115,7 @@ describe("FileRecoveryService", () => {
     it("emits a warning when a file can't be recovered", async () => {
       const mockWindow = {}
       const filePath = temp.path()
-      fs.writeFileSync(filePath, "content")
-      fs.chmodSync(filePath, 0444)
+      fs.writeFileSync(filePath, "content", { mode: 0o444 })
 
       let logs = []
       spies.stub(console, 'log', (message) => logs.push(message))
