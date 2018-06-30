@@ -50,6 +50,9 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath === path.join('..', 'node_modules', 'less', 'lib', 'less', 'fs.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'less', 'lib', 'less-node', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'lodash.isequal', 'index.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'metrics', 'store.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'metrics', 'metrics.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'metrics', 'reporter.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'node-fetch', 'lib', 'fetch-error.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'superstring', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'oniguruma', 'src', 'oniguruma.js') ||
