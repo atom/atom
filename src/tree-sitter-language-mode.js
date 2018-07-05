@@ -410,12 +410,13 @@ class TreeSitterLanguageMode {
 }
 
 class LanguageLayer {
-  constructor (languageMode, grammar) {
+  constructor (languageMode, grammar, contentChildTypes) {
     this.languageMode = languageMode
     this.grammar = grammar
     this.tree = null
     this.currentParsePromise = null
     this.patchSinceCurrentParseStarted = null
+    this.contentChildTypes = contentChildTypes
   }
 
   buildHighlightIterator () {
@@ -456,10 +457,10 @@ class LanguageLayer {
     }
   }
 
-  async update (containingNode) {
+  async update (containingNodes) {
     if (this.currentParsePromise) return this.currentParsePromise
 
-    this.currentParsePromise = this._performUpdate(containingNode)
+    this.currentParsePromise = this._performUpdate(containingNodes)
     await this.currentParsePromise
     this.currentParsePromise = null
 
@@ -472,29 +473,30 @@ class LanguageLayer {
         ))
       }
       this.patchSinceCurrentParseStarted = null
-      this.update(containingNode)
+      this.update(containingNodes)
     }
   }
 
   updateInjections (grammar) {
-    if (!grammar.injectionRegExp) return
-    if (!this.currentParsePromise) this.currentParsePromise = Promise.resolve()
-    this.currentParsePromise = this.currentParsePromise.then(async () => {
-      await this._populateInjections(MAX_RANGE, grammar)
-      const markers = this.languageMode.injectionsMarkerLayer.getMarkers().filter(marker =>
-        marker.parentLanguageLayer === this
-      )
-      for (const marker of markers) {
-        await marker.languageLayer._populateInjections(MAX_RANGE, grammar)
-      }
-      this.currentParsePromise = null
-    })
+  //   if (!grammar.injectionRegExp) return
+  //   if (!this.currentParsePromise) this.currentParsePromise = Promise.resolve()
+  //   this.currentParsePromise = this.currentParsePromise.then(async () => {
+  //     await this._populateInjections(MAX_RANGE, grammar)
+  //     const markers = this.languageMode.injectionsMarkerLayer.getMarkers().filter(marker =>
+  //       marker.parentLanguageLayer === this
+  //     )
+  //     for (const marker of markers) {
+  //       await marker.languageLayer._populateInjections(MAX_RANGE, grammar)
+  //     }
+  //     this.currentParsePromise = null
+  //   })
   }
 
-  async _performUpdate (containingNode) {
-    let includedRanges
-    if (containingNode) {
-      includedRanges = this._rangesForInjectionNode(containingNode)
+  async _performUpdate (containingNodes) {
+    let includedRanges = []
+    if (containingNodes) {
+      for (const node of containingNodes)
+        includedRanges.push(...this._rangesForInjectionNode(node))
       if (includedRanges.length === 0) return
     }
 
@@ -561,9 +563,12 @@ class LanguageLayer {
         if (!grammar) continue
         if (newGrammar && grammar !== newGrammar) continue
 
-        const injectionNode = injectionPoint.content(node)
-        if (!injectionNode) continue
+        const contentNodes = injectionPoint.content(node)
+        if (!contentNodes) continue
 
+        const injectionNodes = [].concat(contentNodes)
+        if (!injectionNodes.length) continue
+        
         const injectionRange = this._rangeForNode(node)
         let marker = existingInjectionMarkers.find(m =>
           m.getRange().isEqual(injectionRange) &&
@@ -571,11 +576,11 @@ class LanguageLayer {
         )
         if (!marker) {
           marker = injectionsMarkerLayer.markRange(injectionRange)
-          marker.languageLayer = new LanguageLayer(this.languageMode, grammar)
+          marker.languageLayer = new LanguageLayer(this.languageMode, grammar, injectionPoint.contentChildTypes)
           marker.parentLanguageLayer = this
         }
 
-        markersToUpdate.set(marker, injectionNode)
+        markersToUpdate.set(marker, injectionNodes)
       }
     }
 
@@ -588,31 +593,16 @@ class LanguageLayer {
     }
 
     const promises = []
-    for (const [marker, injectionNode] of markersToUpdate) {
-      promises.push(marker.languageLayer.update(injectionNode))
+    for (const [marker, injectionNodes] of markersToUpdate) {
+      promises.push(marker.languageLayer.update(injectionNodes))
     }
     return Promise.all(promises)
   }
 
   /**
    * @param node {Parser.SyntaxNode}
-   * @param fromChildrenOfType {Object}
    */
-  _rangesForInjectionNode (node, fromChildrenOfType) {
-    if (!fromChildrenOfType)
-      return this._textRangesForInjectionNode(node)
-    const ranges = []
-    for (const child of node.namedChildren) {
-      if (fromChildrenOfType[child.type])
-        ranges.push(...this._textRangesForInjectionNode(child))
-    }
-    return ranges
-  }
-
-  /**
-   * @param node {Parser.SyntaxNode}
-   */
-  _textRangesForInjectionNode (node) {
+  _rangesForInjectionNode (node) {
     const result = []
     let position = node.startPosition
     let index = node.startIndex

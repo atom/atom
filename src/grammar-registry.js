@@ -249,6 +249,8 @@ class GrammarRegistry {
       fileTypes = fileTypes.concat(customFileTypes)
     }
 
+    if (!Array.isArray(fileTypes)) debugger
+
     for (let i = 0; i < fileTypes.length; i++) {
       const fileType = fileTypes[i]
       const fileTypeComponents = fileType.toLowerCase().split(PATH_SPLIT_REGEX)
@@ -397,7 +399,7 @@ class GrammarRegistry {
   //     returns a {String} that will be tested against other grammars' `injectionRegExp` in
   //     order to determine what language should be embedded.
   //   * `content` A {Function} that is called with syntax nodes of the specified `type` and
-  //     returns another syntax node that contains the embedded source code.
+  //     returns another syntax node or array of syntax nodes that contain the embedded source code.
   addInjectionPoint (grammarId, injectionPoint) {
     const grammar = this.treeSitterGrammarsById[grammarId]
     if (grammar) {
