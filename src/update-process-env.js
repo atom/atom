@@ -13,7 +13,7 @@ const PLATFORMS_KNOWN_TO_WORK = new Set([
   'linux'
 ])
 
-// Shell command that returns env var=value lines separated by \0s so that 
+// Shell command that returns env var=value lines separated by \0s so that
 // newlines are handled properly
 const ENV_COMMAND = 'command awk \'BEGIN{for(v in ENVIRON) printf("%s=%s\\0",v,ENVIRON[v])}\''
 
