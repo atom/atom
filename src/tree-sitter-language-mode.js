@@ -571,7 +571,25 @@ class LanguageLayer {
     }
   }
 
-  _rangesForInjectionNode (node) {
+  /**
+   * @param node {Parser.SyntaxNode}
+   * @param fromChildrenOfType {Object}
+   */
+  _rangesForInjectionNode (node, fromChildrenOfType) {
+    if (!fromChildrenOfType)
+      return this._textRangesForInjectionNode(node)
+    const ranges = []
+    for (const child of node.namedChildren) {
+      if (fromChildrenOfType[child.type])
+        ranges.push(...this._textRangesForInjectionNode(child))
+    }
+    return ranges
+  }
+
+  /**
+   * @param node {Parser.SyntaxNode}
+   */
+  _textRangesForInjectionNode (node) {
     const result = []
     let position = node.startPosition
     let index = node.startIndex
