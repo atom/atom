@@ -220,17 +220,14 @@ describe('updateProcessEnv(launchEnv)', function () {
 
         process.platform = 'darwin'
         process.env.SHELL = '/my/custom/bash'
-        spawn.setDefault(spawn.simple(0, dedent`
-          FOO=BAR=BAZ=QUUX
-          TERM=xterm-something
-          PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path
-        `))
+        spawn.setDefault(spawn.simple(0, 'FOO=BAR=BAZ=QUUX\0MULTILINE\nNAME=multiline\nvalue\0TERM=xterm-something\0PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path'))
         await updateProcessEnv(process.env)
         expect(spawn.calls.length).toBe(1)
         expect(spawn.calls[0].command).toBe('/my/custom/bash')
-        expect(spawn.calls[0].args).toEqual(['-ilc', 'command env'])
+        expect(spawn.calls[0].args).toEqual(['-ilc', 'command awk \'BEGIN{for(v in ENVIRON) printf("%s=%s\\0",v,ENVIRON[v])}\''])
         expect(process.env).toEqual({
           FOO: 'BAR=BAZ=QUUX',
+          'MULTILINE\nNAME': 'multiline\nvalue',
           TERM: 'xterm-something',
           PATH: '/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path'
         })
@@ -246,17 +243,14 @@ describe('updateProcessEnv(launchEnv)', function () {
 
         process.platform = 'linux'
         process.env.SHELL = '/my/custom/bash'
-        spawn.setDefault(spawn.simple(0, dedent`
-          FOO=BAR=BAZ=QUUX
-          TERM=xterm-something
-          PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path
-        `))
+        spawn.setDefault(spawn.simple(0, 'FOO=BAR=BAZ=QUUX\0MULTILINE\nNAME=multiline\nvalue\0TERM=xterm-something\0PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path'))
         await updateProcessEnv(process.env)
         expect(spawn.calls.length).toBe(1)
         expect(spawn.calls[0].command).toBe('/my/custom/bash')
-        expect(spawn.calls[0].args).toEqual(['-ilc', 'command env'])
+        expect(spawn.calls[0].args).toEqual(['-ilc', 'command awk \'BEGIN{for(v in ENVIRON) printf("%s=%s\\0",v,ENVIRON[v])}\''])
         expect(process.env).toEqual({
           FOO: 'BAR=BAZ=QUUX',
+          'MULTILINE\nNAME': 'multiline\nvalue',
           TERM: 'xterm-something',
           PATH: '/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path'
         })

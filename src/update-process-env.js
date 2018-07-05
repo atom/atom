@@ -13,6 +13,10 @@ const PLATFORMS_KNOWN_TO_WORK = new Set([
   'linux'
 ])
 
+// Shell command that returns env var=value lines separated by \0s so that 
+// newlines are handled properly
+const ENV_COMMAND = 'command awk \'BEGIN{for(v in ENVIRON) printf("%s=%s\\0",v,ENVIRON[v])}\''
+
 async function updateProcessEnv (launchEnv) {
   let envToAssign
   if (launchEnv) {
@@ -74,7 +78,7 @@ async function getEnvFromShell (env) {
     setTimeout(() => {
       cleanup()
     }, 5000)
-    child = childProcess.spawn(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8', detached: true, stdio: ['ignore', 'pipe', process.stderr]})
+    child = childProcess.spawn(env.SHELL, ['-ilc', ENV_COMMAND], {encoding: 'utf8', detached: true, stdio: ['ignore', 'pipe', process.stderr]})
     const buffers = []
     child.on('error', (e) => {
       done = true
@@ -98,7 +102,7 @@ async function getEnvFromShell (env) {
     if (error.handle) {
       error.handle()
     }
-    console.log('warning: ' + env.SHELL + ' -ilc "command env" failed with signal (' + error.signal + ')')
+    console.log('warning: ' + env.SHELL + ' -ilc "' + ENV_COMMAND + '" failed with signal (' + error.signal + ')')
     console.log(error)
   }
 
@@ -107,7 +111,7 @@ async function getEnvFromShell (env) {
   }
 
   let result = {}
-  for (let line of stdout.split('\n')) {
+  for (let line of stdout.split('\0')) {
     if (line.includes('=')) {
       let components = line.split('=')
       let key = components.shift()
