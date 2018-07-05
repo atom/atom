@@ -14,8 +14,9 @@ const PLATFORMS_KNOWN_TO_WORK = new Set([
 ])
 
 // Shell command that returns env var=value lines separated by \0s so that
-// newlines are handled properly
-const ENV_COMMAND = 'command awk \'BEGIN{for(v in ENVIRON) printf("%s=%s\\0",v,ENVIRON[v])}\''
+// newlines are handled properly. Note: need to use %c to inject the \0s
+// to work with some non GNU awks.
+const ENV_COMMAND = 'command awk \'BEGIN{for(v in ENVIRON) printf("%s=%s%c", v, ENVIRON[v], 0)}\''
 
 async function updateProcessEnv (launchEnv) {
   let envToAssign

@@ -224,7 +224,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         await updateProcessEnv(process.env)
         expect(spawn.calls.length).toBe(1)
         expect(spawn.calls[0].command).toBe('/my/custom/bash')
-        expect(spawn.calls[0].args).toEqual(['-ilc', 'command awk \'BEGIN{for(v in ENVIRON) printf("%s=%s\\0",v,ENVIRON[v])}\''])
+        expect(spawn.calls[0].args).toEqual(['-ilc', 'command awk \'BEGIN{for(v in ENVIRON) printf("%s=%s%c", v, ENVIRON[v], 0)}\''])
         expect(process.env).toEqual({
           FOO: 'BAR=BAZ=QUUX',
           'MULTILINE\nNAME': 'multiline\nvalue',
@@ -247,7 +247,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         await updateProcessEnv(process.env)
         expect(spawn.calls.length).toBe(1)
         expect(spawn.calls[0].command).toBe('/my/custom/bash')
-        expect(spawn.calls[0].args).toEqual(['-ilc', 'command awk \'BEGIN{for(v in ENVIRON) printf("%s=%s\\0",v,ENVIRON[v])}\''])
+        expect(spawn.calls[0].args).toEqual(['-ilc', 'command awk \'BEGIN{for(v in ENVIRON) printf("%s=%s%c", v, ENVIRON[v], 0)}\''])
         expect(process.env).toEqual({
           FOO: 'BAR=BAZ=QUUX',
           'MULTILINE\nNAME': 'multiline\nvalue',
