@@ -235,15 +235,18 @@ class TextMateLanguageMode {
     return this.buffer.getTextInRange([[0, 0], [10, 0]])
   }
 
-  hasTokenForSelector (selector) {
+  updateForInjection (grammar) {
+    if (!grammar.injectionSelector) return
     for (const tokenizedLine of this.tokenizedLines) {
       if (tokenizedLine) {
         for (let token of tokenizedLine.tokens) {
-          if (selector.matches(token.scopes)) return true
+          if (grammar.injectionSelector.matches(token.scopes)) {
+            this.retokenizeLines()
+            return
+          }
         }
       }
     }
-    return false
   }
 
   retokenizeLines () {

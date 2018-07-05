@@ -1,47 +1,61 @@
 const Parser = require('tree-sitter')
 const {Point, Range} = require('text-buffer')
+const {Patch} = require('superstring')
 const {Emitter, Disposable} = require('event-kit')
 const ScopeDescriptor = require('./scope-descriptor')
 const TokenizedLine = require('./tokenized-line')
 const TextMateLanguageMode = require('./text-mate-language-mode')
 
 let nextId = 0
+const MAX_RANGE = new Range(Point.ZERO, Point.INFINITY).freeze()
 
-class Layer {
-  constructor (grammar, ranges) {
-    this.tree = null
-    this.grammar = grammar
-    this.ranges = ranges
-    this.injections = []
+class TreeSitterLanguageMode {
+  static _patchSyntaxNode () {
+    if (!Parser.SyntaxNode.prototype.hasOwnProperty('text')) {
+      Object.defineProperty(Parser.SyntaxNode.prototype, 'text', {
+        get () {
+          return this.tree.buffer.getTextInRange(new Range(this.startPosition, this.endPosition))
+        }
+      })
+    }
   }
 
-  update(parser) {}
-}
-
-module.exports =
-class TreeSitterLanguageMode {
-  constructor ({buffer, grammar, config, grammarRegistry}) {
+  constructor ({buffer, grammar, config, grammars}) {
+    TreeSitterLanguageMode._patchSyntaxNode()
     this.id = nextId++
     this.buffer = buffer
     this.grammar = grammar
     this.config = config
-    this.grammarRegistry = grammarRegistry
+    this.grammarRegistry = grammars
     this.parser = new Parser()
-    this.parser.setLanguage(grammar.languageModule)
-    this.rootLayer = new Layer(grammar)
+    this.rootLanguageLayer = new LanguageLayer(this, grammar)
+    this.injectionsMarkerLayer = buffer.addMarkerLayer()
 
     this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.id]})
     this.emitter = new Emitter()
     this.isFoldableCache = []
     this.hasQueuedParse = false
-    this.changeListsSinceCurrentParse = []
-    this.subscription = this.buffer.onDidChangeText(async ({changes}) => {
-      if (this.reparsePromise) {
-        this.changeListsSinceCurrentParse.push(changes)
-      } else {
-        this.reparsePromise = this.reparse()
+
+    this.grammarForLanguageString = this.grammarForLanguageString.bind(this)
+    this.emitRangeUpdate = this.emitRangeUpdate.bind(this)
+
+    this.subscription = this.buffer.onDidChangeText(({changes}) => {
+      for (let i = changes.length - 1; i >= 0; i--) {
+        const {oldRange, newRange} = changes[i]
+        const startRow = oldRange.start.row
+        const oldEndRow = oldRange.end.row
+        const newEndRow = newRange.end.row
+        this.isFoldableCache.splice(
+          startRow,
+          oldEndRow - startRow,
+          ...new Array(newEndRow - startRow)
+        )
       }
+
+      this.rootLanguageLayer.update()
     })
+
+    this.rootLanguageLayer.update()
 
     // TODO: Remove this once TreeSitterLanguageMode implements its own auto-indentation system. This
     // is temporarily needed in order to delegate to the TextMateLanguageMode's auto-indent system.
@@ -49,19 +63,10 @@ class TreeSitterLanguageMode {
   }
 
   destroy () {
+    this.injectionsMarkerLayer.destroy()
     this.subscription.dispose()
-    this.tree = null
+    this.rootLanguageLayer = null
     this.parser = null
-  }
-
-  async initialize () {
-    this.tree = await this.parser.parseTextBuffer(this.buffer.buffer)
-  }
-
-  ensureParseTree () {
-    if (!this.tree) {
-      this.tree = this.parser.parseTextBufferSync(this.buffer.buffer)
-    }
   }
 
   getLanguageId () {
@@ -69,65 +74,34 @@ class TreeSitterLanguageMode {
   }
 
   bufferDidChange (change) {
-    this.ensureParseTree()
-    const {oldRange, newRange} = change
-    const startRow = oldRange.start.row
-    const oldEndRow = oldRange.end.row
-    const newEndRow = newRange.end.row
-    this.isFoldableCache.splice(startRow, oldEndRow - startRow, ...new Array(newEndRow - startRow))
-    this.tree.edit(this.treeEditForBufferChange(change))
+    this.rootLanguageLayer.handleTextChange(change)
+    for (const marker of this.injectionsMarkerLayer.getMarkers()) {
+      marker.languageLayer.handleTextChange(change)
+    }
+  }
+
+  get tree () {
+    return this.rootLanguageLayer.tree
+  }
+
+  get reparsePromise () {
+    return this.rootLanguageLayer.currentParsePromise
+  }
+
+  updateForInjection (grammar) {
+    this.rootLanguageLayer.updateInjections(grammar)
   }
 
   /*
   Section - Highlighting
   */
 
-  treeEditForBufferChange ({oldRange, newRange, oldText, newText}) {
-    const startIndex = this.buffer.characterIndexForPosition(oldRange.start)
-    return {
-      startIndex,
-      oldEndIndex: startIndex + oldText.length,
-      newEndIndex: startIndex + newText.length,
-      startPosition: oldRange.start,
-      oldEndPosition: oldRange.end,
-      newEndPosition: newRange.end
-    }
-  }
-
-  async reparse () {
-    this.rootLayer.update(this.parser)
-    const tree = await this.parser.parseTextBuffer(this.buffer.buffer, this.tree, {
-      syncOperationLimit: 1000
-    })
-    const invalidatedRanges = this.tree.getChangedRanges(tree)
-
-    for (let i = 0, n = invalidatedRanges.length; i < n; i++) {
-      const range = invalidatedRanges[i]
-      const startRow = range.start.row
-      const endRow = range.end.row
-      for (let row = startRow; row < endRow; row++) {
-        this.isFoldableCache[row] = undefined
-      }
-      this.emitter.emit('did-change-highlighting', range)
-    }
-
-    this.tree = tree
-    if (this.changeListsSinceCurrentParse.length > 0) {
-      for (const changeList of this.changeListsSinceCurrentParse) {
-        for (let i = changeList.length - 1; i >= 0; i--) {
-          this.tree.edit(this.treeEditForBufferChange(changeList[i]))
-        }
-      }
-      this.changeListsSinceCurrentParse.length = 0
-      this.reparsePromise = this.reparse()
-    } else {
-      this.reparsePromise = null
-    }
-  }
-
   buildHighlightIterator () {
-    this.ensureParseTree()
-    return new TreeSitterHighlightIterator(this, this.tree.walk())
+    const layerIterators = [
+      this.rootLanguageLayer.buildHighlightIterator(),
+      ...this.injectionsMarkerLayer.getMarkers().map(m => m.languageLayer.buildHighlightIterator())
+    ]
+    return new HighlightIterator(layerIterators)
   }
 
   onDidChangeHighlighting (callback) {
@@ -204,7 +178,6 @@ class TreeSitterLanguageMode {
   }
 
   getFoldableRangesAtIndentLevel (goalLevel) {
-    this.ensureParseTree()
     let result = []
     let stack = [{node: this.tree.rootNode, level: 0}]
     while (stack.length > 0) {
@@ -250,7 +223,7 @@ class TreeSitterLanguageMode {
   }
 
   getFoldableRangeContainingPoint (point, tabLength, existenceOnly = false) {
-    this.ensureParseTree()
+    if (!this.tree) return null
     let node = this.tree.rootNode.descendantForPosition(this.buffer.clipPosition(point))
     while (node) {
       if (existenceOnly && node.startPosition.row < point.row) break
@@ -336,7 +309,7 @@ class TreeSitterLanguageMode {
   }
 
   /*
-  Syntax Tree APIs
+  Section - Syntax Tree APIs
   */
 
   getRangeForSyntaxNodeContainingRange (range) {
@@ -372,7 +345,8 @@ class TreeSitterLanguageMode {
   }
 
   scopeDescriptorForPosition (point) {
-    this.ensureParseTree()
+    if (!this.tree) return this.rootScopeDescriptor
+
     point = Point.fromObject(point)
     let node = this.tree.rootNode.descendantForPosition(point)
 
@@ -391,34 +365,314 @@ class TreeSitterLanguageMode {
     return new ScopeDescriptor({scopes: result.reverse()})
   }
 
-  hasTokenForSelector (scopeSelector) {
-    return false
-  }
-
   getGrammar () {
     return this.grammar
   }
+
+  /*
+  Section - Private
+  */
+
+  grammarForLanguageString (languageString) {
+    return this.grammarRegistry.treeSitterGrammarForLanguageString(languageString)
+  }
+
+  emitRangeUpdate (range) {
+    const startRow = range.start.row
+    const endRow = range.end.row
+    for (let row = startRow; row < endRow; row++) {
+      this.isFoldableCache[row] = undefined
+    }
+    this.emitter.emit('did-change-highlighting', range)
+  }
 }
 
-class TreeSitterHighlightIterator {
-  constructor (languageMode, treeCursor) {
+class LanguageLayer {
+  constructor (languageMode, grammar) {
     this.languageMode = languageMode
+    this.grammar = grammar
+    this.tree = null
+    this.currentParsePromise = null
+    this.patchSinceCurrentParseStarted = null
+  }
+
+  buildHighlightIterator () {
+    if (this.tree) {
+      return new LayerHighlightIterator(this, this.tree.walk())
+    } else {
+      return new NullHighlightIterator()
+    }
+  }
+
+  handleTextChange ({oldRange, newRange, oldText, newText}) {
+    if (this.tree) {
+      this.tree.edit(this._treeEditForBufferChange(
+        oldRange.start, oldRange.end, newRange.end, oldText, newText
+      ))
+    }
+
+    if (this.currentParsePromise) {
+      if (!this.patchSinceCurrentParseStarted) {
+        this.patchSinceCurrentParseStarted = new Patch()
+      }
+      this.patchSinceCurrentParseStarted.splice(
+        oldRange.start,
+        oldRange.end,
+        newRange.end,
+        oldText,
+        newText
+      )
+    }
+  }
+
+  destroy () {
+    for (const marker of this.languageMode.injectionsMarkerLayer.getMarkers()) {
+      if (marker.parentLanguageLayer === this) {
+        marker.languageLayer.destroy()
+        marker.destroy()
+      }
+    }
+  }
+
+  async update (containingNode) {
+    if (this.currentParsePromise) return this.currentParsePromise
+
+    this.currentParsePromise = this._performUpdate(containingNode)
+    await this.currentParsePromise
+    this.currentParsePromise = null
+
+    if (this.patchSinceCurrentParseStarted) {
+      const changes = this.patchSinceCurrentParseStarted.getChanges()
+      for (let i = changes.length - 1; i >= 0; i--) {
+        const {oldStart, oldEnd, newEnd, oldText, newText} = changes[i]
+        this.tree.edit(this._treeEditForBufferChange(
+          oldStart, oldEnd, newEnd, oldText, newText
+        ))
+      }
+      this.patchSinceCurrentParseStarted = null
+      this.update(containingNode)
+    }
+  }
+
+  updateInjections (grammar) {
+    if (!grammar.injectionRegExp) return
+    if (!this.currentParsePromise) this.currentParsePromise = Promise.resolve()
+    this.currentParsePromise = this.currentParsePromise.then(async () => {
+      await this._populateInjections(MAX_RANGE, grammar)
+      const markers = this.languageMode.injectionsMarkerLayer.getMarkers().filter(marker =>
+        marker.parentLanguageLayer === this
+      )
+      for (const marker of markers) {
+        await marker.languageLayer._populateInjections(MAX_RANGE, grammar)
+      }
+      this.currentParsePromise = null
+    })
+  }
+
+  async _performUpdate (containingNode) {
+    let includedRanges
+    if (containingNode) {
+      includedRanges = this._rangesForInjectionNode(containingNode)
+      if (includedRanges.length === 0) return
+    }
+
+    this.languageMode.parser.setLanguage(this.grammar.languageModule)
+    const tree = await this.languageMode.parser.parseTextBuffer(
+      this.languageMode.buffer.buffer,
+      this.tree,
+      {syncOperationLimit: 1000, includedRanges}
+    )
+    tree.buffer = this.languageMode.buffer
+
+    let affectedRange
+    if (this.tree) {
+      const editedRange = this.tree.getEditedRange()
+      if (!editedRange) return
+      affectedRange = this._rangeForNode(editedRange)
+
+      const rangesWithSyntaxChanges = this.tree.getChangedRanges(tree)
+      if (rangesWithSyntaxChanges.length > 0) {
+        for (const range of rangesWithSyntaxChanges) {
+          this.languageMode.emitRangeUpdate(this._rangeForNode(range))
+        }
+
+        affectedRange = affectedRange.union(new Range(
+          rangesWithSyntaxChanges[0].startPosition,
+          last(rangesWithSyntaxChanges).endPosition
+        ))
+      }
+    } else {
+      this.languageMode.emitRangeUpdate(this._rangeForNode(tree.rootNode))
+      affectedRange = MAX_RANGE
+    }
+
+    this.tree = tree
+    await this._populateInjections(affectedRange)
+  }
+
+  async _populateInjections (range, newGrammar = null) {
+    const {injectionsMarkerLayer, grammarForLanguageString} = this.languageMode
+
+    const existingInjectionMarkers = injectionsMarkerLayer
+      .findMarkers({intersectsRange: range})
+      .filter(marker => marker.parentLanguageLayer === this)
+
+    if (existingInjectionMarkers.length > 0) {
+      range = range.union(new Range(
+        existingInjectionMarkers[0].getRange().start,
+        last(existingInjectionMarkers).getRange().end
+      ))
+    }
+
+    const markersToUpdate = new Map()
+    for (const injectionPoint of this.grammar.injectionPoints) {
+      const nodes = this.tree.rootNode.descendantsOfType(
+        injectionPoint.type,
+        range.start,
+        range.end
+      )
+
+      for (const node of nodes) {
+        const languageName = injectionPoint.language(node)
+        if (!languageName) continue
+
+        const grammar = grammarForLanguageString(languageName)
+        if (!grammar) continue
+        if (newGrammar && grammar !== newGrammar) continue
+
+        const injectionNode = injectionPoint.content(node)
+        if (!injectionNode) continue
+
+        const injectionRange = this._rangeForNode(node)
+        let marker = existingInjectionMarkers.find(m =>
+          m.getRange().isEqual(injectionRange) &&
+          m.languageLayer.grammar === grammar
+        )
+        if (!marker) {
+          marker = injectionsMarkerLayer.markRange(injectionRange)
+          marker.languageLayer = new LanguageLayer(this.languageMode, grammar)
+          marker.parentLanguageLayer = this
+        }
+
+        markersToUpdate.set(marker, injectionNode)
+      }
+    }
+
+    for (const marker of existingInjectionMarkers) {
+      if (!markersToUpdate.has(marker)) {
+        marker.languageLayer.destroy()
+        this.languageMode.emitRangeUpdate(marker.getRange())
+        marker.destroy()
+      }
+    }
+
+    for (const [marker, injectionNode] of markersToUpdate) {
+      await marker.languageLayer.update(injectionNode)
+    }
+  }
+
+  _rangesForInjectionNode (node) {
+    const result = []
+    let position = node.startPosition
+    let index = node.startIndex
+
+    for (const child of node.children) {
+      const nextPosition = child.startPosition
+      const nextIndex = child.startIndex
+      if (nextIndex > index) {
+        result.push({
+          startIndex: index,
+          endIndex: nextIndex,
+          startPosition: position,
+          endPosition: nextPosition
+        })
+      }
+      position = child.endPosition
+      index = child.endIndex
+    }
+
+    if (node.endIndex > index) {
+      result.push({
+        startIndex: index,
+        endIndex: node.endIndex,
+        startPosition: position,
+        endPosition: node.endPosition
+      })
+    }
+
+    return result
+  }
+
+  _rangeForNode (node) {
+    return new Range(node.startPosition, node.endPosition)
+  }
+
+  _treeEditForBufferChange (start, oldEnd, newEnd, oldText, newText) {
+    const startIndex = this.languageMode.buffer.characterIndexForPosition(start)
+    return {
+      startIndex,
+      oldEndIndex: startIndex + oldText.length,
+      newEndIndex: startIndex + newText.length,
+      startPosition: start,
+      oldEndPosition: oldEnd,
+      newEndPosition: newEnd
+    }
+  }
+}
+
+class HighlightIterator {
+  constructor (iterators) {
+    this.iterators = iterators
+    this.leader = iterators[0]
+  }
+
+  seek (targetPosition) {
+    const openScopes = [].concat(...this.iterators.map(it => it.seek(targetPosition)))
+    this._findLeader()
+    return openScopes
+  }
+
+  moveToSuccessor () {
+    this.leader.moveToSuccessor()
+    this._findLeader()
+  }
+
+  getPosition () {
+    return this.leader.getPosition()
+  }
+
+  getCloseScopeIds () {
+    return this.leader.getCloseScopeIds()
+  }
+
+  getOpenScopeIds () {
+    return this.leader.getOpenScopeIds()
+  }
+
+  _findLeader () {
+    let minPosition = Point.INFINITY
+    for (const it of this.iterators) {
+      const position = it.getPosition()
+      if (pointIsLess(position, minPosition)) {
+        this.leader = it
+        minPosition = position
+      }
+    }
+  }
+}
+
+class LayerHighlightIterator {
+  constructor (languageLayer, treeCursor) {
+    this.languageLayer = languageLayer
     this.treeCursor = treeCursor
+    this.atEnd = false
 
     // In order to determine which selectors match its current node, the iterator maintains
     // a list of the current node's ancestors. Because the selectors can use the `:nth-child`
     // pseudo-class, each node's child index is also stored.
     this.containingNodeTypes = []
     this.containingNodeChildIndices = []
-
-    // Conceptually, the iterator represents a single position in the text. It stores this
-    // position both as a character index and as a `Point`. This position corresponds to a
-    // leaf node of the syntax tree, which either contains or follows the iterator's
-    // textual position. The `treeCursor` property points at that leaf node, and
-    // `currentChildIndex` represents the child index of that leaf node within its parent.
-    this.currentIndex = null
-    this.currentPosition = null
-    this.currentChildIndex = null
+    this.containingNodeEndIndices = []
 
     // At any given position, the iterator exposes the list of class names that should be
     // *ended* at its current position and the list of class names that should be *started*
@@ -431,109 +685,138 @@ class TreeSitterHighlightIterator {
     while (this.treeCursor.gotoParent()) {}
 
     const containingTags = []
+    const targetIndex = this.languageLayer.languageMode.buffer.characterIndexForPosition(
+      targetPosition
+    )
 
+    this.done = false
+    this.atEnd = true
     this.closeTags.length = 0
     this.openTags.length = 0
     this.containingNodeTypes.length = 0
     this.containingNodeChildIndices.length = 0
-    this.currentPosition = targetPosition
-    this.currentIndex = this.languageMode.buffer.characterIndexForPosition(targetPosition)
+    this.containingNodeEndIndices.length = 0
 
-    // Descend from the root of the tree to the smallest node that spans the given position.
-    // Keep track of any nodes along the way that are associated with syntax highlighting
-    // tags. These tags must be returned.
-    var childIndex = -1
-    var nodeContainsTarget = true
+    if (targetIndex >= this.treeCursor.endIndex) {
+      this.done = true
+      return containingTags
+    }
+
+    let childIndex = -1
     for (;;) {
-      this.currentChildIndex = childIndex
-      if (!nodeContainsTarget) break
       this.containingNodeTypes.push(this.treeCursor.nodeType)
       this.containingNodeChildIndices.push(childIndex)
+      this.containingNodeEndIndices.push(this.treeCursor.endIndex)
 
       const scopeName = this.currentScopeName()
       if (scopeName) {
-        const id = this.languageMode.grammar.idForScope(scopeName)
-        if (this.currentIndex === this.treeCursor.startIndex) {
-          this.openTags.push(id)
-        } else {
+        const id = this.idForScope(scopeName)
+        if (this.treeCursor.startIndex < targetIndex) {
           containingTags.push(id)
+        } else {
+          this.atEnd = false
+          this.openTags.push(id)
+          while (this.treeCursor.gotoFirstChild()) {
+            this.containingNodeTypes.push(this.treeCursor.nodeType)
+            this.containingNodeChildIndices.push(0)
+            const scopeName = this.currentScopeName()
+            if (scopeName) {
+              this.openTags.push(this.idForScope(scopeName))
+            }
+          }
+          break
         }
       }
 
-      const nextChildIndex = this.treeCursor.gotoFirstChildForIndex(this.currentIndex)
-      if (nextChildIndex == null) break
-      if (this.treeCursor.startIndex > this.currentIndex) nodeContainsTarget = false
-      childIndex = nextChildIndex
+      childIndex = this.treeCursor.gotoFirstChildForIndex(targetIndex)
+      if (childIndex === null) break
+      if (this.treeCursor.startIndex >= targetIndex) this.atEnd = false
     }
 
     return containingTags
   }
 
   moveToSuccessor () {
+    let didMove = false
     this.closeTags.length = 0
     this.openTags.length = 0
 
-    // Step forward through the leaves of the tree to find the next place where one or more
-    // syntax highlighting tags begin, end, or both.
-    do {
-      // If the iterator is before the beginning of the current node, advance it to the
-      // beginning of then node and then walk down into the node's children, marking
-      // open tags as needed.
-      if (this.currentIndex < this.treeCursor.startIndex) {
-        this.currentIndex = this.treeCursor.startIndex
-        this.currentPosition = this.treeCursor.startPosition
-        this.pushOpenTag()
-        this.descendLeft()
+    if (this.done) return
 
-      // If the iterator is within the current node, advance it to the end of the node
-      // and then walk up the tree until the next sibling is found, marking close tags
-      // as needed.
-      //
-      } else if (this.currentIndex < this.treeCursor.endIndex) {
-        /* eslint-disable no-labels */
-        ascendingLoop:
-        do {
-          this.currentIndex = this.treeCursor.endIndex
-          this.currentPosition = this.treeCursor.endPosition
-          this.pushCloseTag()
+    while (true) {
+      if (this.atEnd) {
+        if (this.treeCursor.gotoNextSibling()) {
+          didMove = true
+          this.atEnd = false
+          const depth = this.containingNodeTypes.length
+          this.containingNodeTypes[depth - 1] = this.treeCursor.nodeType
+          this.containingNodeChildIndices[depth - 1]++
+          this.containingNodeEndIndices[depth - 1] = this.treeCursor.endIndex
 
-          // Stop walking upward when we reach a node with a next sibling.
-          while (this.treeCursor.gotoNextSibling()) {
-            this.currentChildIndex++
-
-            // If the next sibling has a size of zero (e.g. something like an `automatic_semicolon`,
-            // an `indent`, or a `MISSING` node inserted by the parser during error recovery),
-            // then skip it. These nodes play no role in syntax highlighting.
-            if (this.treeCursor.endIndex === this.currentIndex) continue
-
-            // If the next sibling starts right at the end of the current node (i.e. there is
-            // no whitespace in between), then before returning, also mark any open tags associated
-            // with this point in the tree.
-            if (this.treeCursor.startIndex === this.currentIndex) {
-              this.pushOpenTag()
-              this.descendLeft()
+          while (true) {
+            const {startIndex} = this.treeCursor
+            const scopeName = this.currentScopeName()
+            if (scopeName) {
+              this.openTags.push(this.idForScope(scopeName))
             }
 
-            break ascendingLoop
+            if (this.treeCursor.gotoFirstChild()) {
+              if ((this.closeTags.length || this.openTags.length) &&
+                  this.treeCursor.startIndex > startIndex) {
+                this.treeCursor.gotoParent()
+                break
+              }
+
+              this.containingNodeTypes.push(this.treeCursor.nodeType)
+              this.containingNodeChildIndices.push(0)
+              this.containingNodeEndIndices.push(this.treeCursor.endIndex)
+            } else {
+              break
+            }
           }
+        } else if (this.treeCursor.gotoParent()) {
+          this.atEnd = false
+          this.containingNodeTypes.pop()
+          this.containingNodeChildIndices.pop()
+          this.containingNodeEndIndices.pop()
+        } else {
+          this.done = true
+          break
+        }
+      } else {
+        this.atEnd = true
+        didMove = true
 
-          this.currentChildIndex = last(this.containingNodeChildIndices)
-        } while (this.treeCursor.gotoParent())
-        /* eslint-disable no-labels */
+        const scopeName = this.currentScopeName()
+        if (scopeName) {
+          this.closeTags.push(this.idForScope(scopeName))
+        }
 
-      // If the iterator is at the end of a node, advance to the node's next sibling. If
-      // it has no next sibing, then the iterator has reached the end of the tree.
-      } else if (!this.treeCursor.gotoNextSibling()) {
-        this.currentPosition = {row: Infinity, column: Infinity}
-        break
+        const endIndex = this.treeCursor.endIndex
+        let depth = this.containingNodeEndIndices.length
+        while (depth > 1 && this.containingNodeEndIndices[depth - 2] === endIndex) {
+          this.treeCursor.gotoParent()
+          this.containingNodeTypes.pop()
+          this.containingNodeChildIndices.pop()
+          this.containingNodeEndIndices.pop()
+          --depth
+          const scopeName = this.currentScopeName()
+          if (scopeName) this.closeTags.push(this.idForScope(scopeName))
+        }
       }
-    } while (this.closeTags.length === 0 && this.openTags.length === 0)
 
-    return true
+      if (didMove && (this.closeTags.length || this.openTags.length)) break
+    }
   }
 
   getPosition () {
-    return this.currentPosition
+    if (this.done) {
+      return Point.INFINITY
+    } else if (this.atEnd) {
+      return this.treeCursor.endPosition
+    } else {
+      return this.treeCursor.startPosition
+    }
   }
 
   getCloseScopeIds () {
@@ -546,34 +829,29 @@ class TreeSitterHighlightIterator {
 
   // Private methods
 
-  descendLeft () {
-    while (this.treeCursor.gotoFirstChild()) {
-      this.currentChildIndex = 0
-      this.pushOpenTag()
-    }
-  }
-
   currentScopeName () {
-    return this.languageMode.grammar.scopeMap.get(
+    return this.languageLayer.grammar.scopeMap.get(
       this.containingNodeTypes,
       this.containingNodeChildIndices,
       this.treeCursor.nodeIsNamed
     )
   }
 
-  pushCloseTag () {
-    const scopeName = this.currentScopeName()
-    if (scopeName) this.closeTags.push(this.languageMode.grammar.idForScope(scopeName))
-    this.containingNodeTypes.pop()
-    this.containingNodeChildIndices.pop()
+  idForScope (scopeName) {
+    return this.languageLayer.languageMode.grammar.idForScope(scopeName)
   }
+}
 
-  pushOpenTag () {
-    this.containingNodeTypes.push(this.treeCursor.nodeType)
-    this.containingNodeChildIndices.push(this.currentChildIndex)
-    const scopeName = this.currentScopeName()
-    if (scopeName) this.openTags.push(this.languageMode.grammar.idForScope(scopeName))
-  }
+class NullHighlightIterator {
+  seek () {}
+  moveToSuccessor () {}
+  getPosition () { return Point.INFINITY }
+  getOpenScopeIds () { return [] }
+  getCloseScopeIds () { return [] }
+}
+
+function pointIsLess (left, right) {
+  return left.row < right.row || left.row === right.row && left.column < right.column
 }
 
 function pointIsGreater (left, right) {
@@ -593,5 +871,9 @@ function last (array) {
   'decreaseNextIndentRegexForScopeDescriptor',
   'regexForPattern'
 ].forEach(methodName => {
-  module.exports.prototype[methodName] = TextMateLanguageMode.prototype[methodName]
+  TreeSitterLanguageMode.prototype[methodName] = TextMateLanguageMode.prototype[methodName]
 })
+
+TreeSitterLanguageMode.LanguageLayer = LanguageLayer
+
+module.exports = TreeSitterLanguageMode

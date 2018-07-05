@@ -32,9 +32,10 @@ describe('TreeSitterLanguageMode', () => {
         }
       })
 
+      buffer.setText('aa.bbb = cc(d.eee());')
+
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      buffer.setText('aa.bbb = cc(d.eee());')
       await languageMode.reparsePromise
 
       expectTokensToEqual(editor, [[
@@ -61,9 +62,10 @@ describe('TreeSitterLanguageMode', () => {
         }
       })
 
+      buffer.setText('a = bb.ccc();')
+
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      buffer.setText('a = bb.ccc();')
       await languageMode.reparsePromise
 
       expectTokensToEqual(editor, [[
@@ -87,9 +89,10 @@ describe('TreeSitterLanguageMode', () => {
         }
       })
 
+      buffer.setText('a\n  .b();')
+
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      buffer.setText('a\n  .b();')
       await languageMode.reparsePromise
 
       expectTokensToEqual(editor, [
@@ -114,9 +117,10 @@ describe('TreeSitterLanguageMode', () => {
         }
       })
 
+      buffer.setText('int main() {\n  int a\n  int b;\n}');
+
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      buffer.setText('int main() {\n  int a\n  int b;\n}');
       await languageMode.reparsePromise
 
       editor.screenLineForScreenRow(0)
@@ -159,9 +163,10 @@ describe('TreeSitterLanguageMode', () => {
         }
       })
 
+      buffer.setText('a(\nb,\nc\n')
+
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      buffer.setText('a(\nb,\nc\n')
       await languageMode.reparsePromise
 
       // missing closing paren
@@ -195,13 +200,14 @@ describe('TreeSitterLanguageMode', () => {
         }
       })
 
-      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-      buffer.setLanguageMode(languageMode)
       buffer.setText([
         '// abc',
         '',
         'a("b").c'
       ].join('\r\n'))
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
       await languageMode.reparsePromise
 
       expectTokensToEqual(editor, [
@@ -230,6 +236,42 @@ describe('TreeSitterLanguageMode', () => {
       ])
     })
 
+    it('handles multi-line nodes with children on different lines (regression)', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          'template_string': 'string',
+          '"${"': 'interpolation',
+          '"}"': 'interpolation'
+        }
+      });
+
+      buffer.setText('`\na${1}\nb${2}\n`;')
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      await languageMode.reparsePromise
+
+      expectTokensToEqual(editor, [
+        [
+          {text: '`', scopes: ['string']}
+        ], [
+          {text: 'a', scopes: ['string']},
+          {text: '${', scopes: ['string', 'interpolation']},
+          {text: '1', scopes: ['string']},
+          {text: '}', scopes: ['string', 'interpolation']}
+        ], [
+          {text: 'b', scopes: ['string']},
+          {text: '${', scopes: ['string', 'interpolation']},
+          {text: '2', scopes: ['string']},
+          {text: '}', scopes: ['string', 'interpolation']}
+        ],
+        [
+          {text: '`', scopes: ['string']},
+          {text: ';', scopes: []}
+        ]
+      ])
+    })
+
     describe('when the buffer changes during a parse', () => {
       it('immediately parses again when the current parse completes', async () => {
         const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
@@ -240,11 +282,13 @@ describe('TreeSitterLanguageMode', () => {
             'new_expression > call_expression > identifier': 'constructor'
           }
         })
-        const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-        buffer.setLanguageMode(languageMode)
 
         buffer.setText('abc;');
+
+        const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+        buffer.setLanguageMode(languageMode)
         await languageMode.reparsePromise
+
         expectTokensToEqual(editor, [
           [
             {text: 'abc', scopes: ['variable']},
@@ -291,43 +335,58 @@ describe('TreeSitterLanguageMode', () => {
       })
     })
 
-    describe('injections', () => {
-      fit('works', async () => {
-        const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+    describe('injectionPoints and injectionPatterns', () => {
+      let jsGrammar, htmlGrammar
+
+      beforeEach(() => {
+        jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+          id: 'javascript',
           parser: 'tree-sitter-javascript',
           scopes: {
             'property_identifier': 'property',
             'call_expression > identifier': 'function',
-            'template_string': 'string'
+            'template_string': 'string',
+            'template_substitution > "${"': 'interpolation',
+            'template_substitution > "}"': 'interpolation'
           },
-          injectionPoints: {
-            taggedTemplateLiterals: {
-              type: 'call_expression',
-              language: node => {
-                getTemplateTag(node)
-              },
-              content: node => node.child('template_string')
+          injectionRegExp: 'javascript',
+          injectionPoints: [{
+            type: 'call_expression',
+            language (node) {
+              if (node.lastChild.type === 'template_string' && node.firstChild.type === 'identifier') {
+                return node.firstChild.text
+              }
+            },
+            content (node) {
+              return node.lastChild
             }
-          }
+          }]
         })
 
-        const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
+        htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
+          id: 'html',
           parser: 'tree-sitter-html',
           scopes: {
+            fragment: 'html',
             tag_name: 'tag',
             attribute_name: 'attr'
           },
-          injections: [
-            name => name.toLowerCase().includes('html')
-          ]
+          injectionRegExp: 'html',
+          injectionPoints: [{
+            type: 'raw_element',
+            language () { return 'javascript' },
+            content (node) { return node.child(1) }
+          }]
         })
+      })
 
+      it('highlights code inside of injection points', async () => {
+        atom.grammars.addGrammar(jsGrammar)
         atom.grammars.addGrammar(htmlGrammar)
+        buffer.setText('node.innerHTML = html `\na ${b}<img src="d">\n`;')
 
         const languageMode = new TreeSitterLanguageMode({buffer, grammar: jsGrammar, grammars: atom.grammars})
         buffer.setLanguageMode(languageMode)
-        buffer.setText('node.innerHTML = html `<img src="x">`;')
-
         await languageMode.reparsePromise
 
         expectTokensToEqual(editor, [
@@ -337,11 +396,136 @@ describe('TreeSitterLanguageMode', () => {
             {text: ' = ', scopes: []},
             {text: 'html', scopes: ['function']},
             {text: ' ', scopes: []},
-            {text: '`<', scopes: ['string']},
-            {text: 'img', scopes: ['string', 'tag']},
-            {text: ' ', scopes: ['string']},
-            {text: 'src', scopes: ['string', 'attr']},
-            {text: '="x">`', scopes: ['string']},
+            {text: '`', scopes: ['string']},
+            {text: '', scopes: ['string', 'html']}
+          ], [
+            {text: 'a ', scopes: ['string', 'html']},
+            {text: '${', scopes: ['string', 'html', 'interpolation']},
+            {text: 'b', scopes: ['string', 'html']},
+            {text: '}', scopes: ['string', 'html', 'interpolation']},
+            {text: '<', scopes: ['string', 'html']},
+            {text: 'img', scopes: ['string', 'html', 'tag']},
+            {text: ' ', scopes: ['string', 'html']},
+            {text: 'src', scopes: ['string', 'html', 'attr']},
+            {text: '="d">', scopes: ['string', 'html']}
+          ], [
+            {text: '`', scopes: ['string']},
+            {text: ';', scopes: []},
+          ],
+        ])
+
+        const range = buffer.findSync('html')
+        buffer.setTextInRange(range, 'xml')
+        await languageMode.reparsePromise
+
+        expectTokensToEqual(editor, [
+          [
+            {text: 'node.', scopes: []},
+            {text: 'innerHTML', scopes: ['property']},
+            {text: ' = ', scopes: []},
+            {text: 'xml', scopes: ['function']},
+            {text: ' ', scopes: []},
+            {text: '`', scopes: ['string']}
+          ], [
+            {text: 'a ', scopes: ['string']},
+            {text: '${', scopes: ['string', 'interpolation']},
+            {text: 'b', scopes: ['string']},
+            {text: '}', scopes: ['string', 'interpolation']},
+            {text: '<img src="d">', scopes: ['string']},
+          ], [
+            {text: '`', scopes: ['string']},
+            {text: ';', scopes: []},
+          ],
+        ])
+      })
+
+      it('highlights the content after injections', async () => {
+        atom.grammars.addGrammar(jsGrammar)
+        atom.grammars.addGrammar(htmlGrammar)
+        buffer.setText('<script>\nhello();\n</script>\n<div>\n</div>')
+
+        const languageMode = new TreeSitterLanguageMode({buffer, grammar: htmlGrammar, grammars: atom.grammars})
+        buffer.setLanguageMode(languageMode)
+        await languageMode.reparsePromise
+
+        expectTokensToEqual(editor, [
+          [
+            {text: '<', scopes: ['html']},
+            {text: 'script', scopes: ['html', 'tag']},
+            {text: '>', scopes: ['html']},
+          ],
+          [
+            {text: 'hello', scopes: ['html', 'function']},
+            {text: '();', scopes: ['html']},
+          ],
+          [
+            {text: '</', scopes: ['html']},
+            {text: 'script', scopes: ['html', 'tag']},
+            {text: '>', scopes: ['html']},
+          ],
+          [
+            {text: '<', scopes: ['html']},
+            {text: 'div', scopes: ['html', 'tag']},
+            {text: '>', scopes: ['html']},
+          ],
+          [
+            {text: '</', scopes: ['html']},
+            {text: 'div', scopes: ['html', 'tag']},
+            {text: '>', scopes: ['html']},
+          ]
+        ])
+      })
+
+      it('updates buffers highlighting when a grammar with injectionRegExp is added', async () => {
+        atom.grammars.addGrammar(jsGrammar)
+
+        buffer.setText('node.innerHTML = html `\na ${b}<img src="d">\n`;')
+        const languageMode = new TreeSitterLanguageMode({buffer, grammar: jsGrammar, grammars: atom.grammars})
+        buffer.setLanguageMode(languageMode)
+        await languageMode.reparsePromise
+          expectTokensToEqual(editor, [
+          [
+            {text: 'node.', scopes: []},
+            {text: 'innerHTML', scopes: ['property']},
+            {text: ' = ', scopes: []},
+            {text: 'html', scopes: ['function']},
+            {text: ' ', scopes: []},
+            {text: '`', scopes: ['string']}
+          ], [
+            {text: 'a ', scopes: ['string']},
+            {text: '${', scopes: ['string', 'interpolation']},
+            {text: 'b', scopes: ['string']},
+            {text: '}', scopes: ['string', 'interpolation']},
+            {text: '<img src="d">', scopes: ['string']},
+          ], [
+            {text: '`', scopes: ['string']},
+            {text: ';', scopes: []},
+          ],
+        ])
+
+        atom.grammars.addGrammar(htmlGrammar)
+        await languageMode.reparsePromise
+        expectTokensToEqual(editor, [
+          [
+            {text: 'node.', scopes: []},
+            {text: 'innerHTML', scopes: ['property']},
+            {text: ' = ', scopes: []},
+            {text: 'html', scopes: ['function']},
+            {text: ' ', scopes: []},
+            {text: '`', scopes: ['string']},
+            {text: '', scopes: ['string', 'html']}
+          ], [
+            {text: 'a ', scopes: ['string', 'html']},
+            {text: '${', scopes: ['string', 'html', 'interpolation']},
+            {text: 'b', scopes: ['string', 'html']},
+            {text: '}', scopes: ['string', 'html', 'interpolation']},
+            {text: '<', scopes: ['string', 'html']},
+            {text: 'img', scopes: ['string', 'html', 'tag']},
+            {text: ' ', scopes: ['string', 'html']},
+            {text: 'src', scopes: ['string', 'html', 'attr']},
+            {text: '="d">', scopes: ['string', 'html']}
+          ], [
+            {text: '`', scopes: ['string']},
             {text: ';', scopes: []},
           ],
         ])
@@ -369,8 +553,6 @@ describe('TreeSitterLanguageMode', () => {
         ]
       })
 
-      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-      buffer.setLanguageMode(languageMode)
       buffer.setText(dedent `
         module.exports =
         class A {
@@ -381,6 +563,9 @@ describe('TreeSitterLanguageMode', () => {
           }
         }
       `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
       await languageMode.reparsePromise
 
       editor.screenLineForScreenRow(0)
@@ -432,8 +617,6 @@ describe('TreeSitterLanguageMode', () => {
         ]
       })
 
-      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-      buffer.setLanguageMode(languageMode)
       buffer.setText(dedent `
         const element1 = <Element
           className='submit'
@@ -444,6 +627,9 @@ describe('TreeSitterLanguageMode', () => {
           <span>world</span>
         </Element>
       `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
       await languageMode.reparsePromise
 
       editor.screenLineForScreenRow(0)
@@ -484,8 +670,6 @@ describe('TreeSitterLanguageMode', () => {
         ]
       })
 
-      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-      buffer.setLanguageMode(languageMode)
       buffer.setText(dedent `
         /**
          * Important
@@ -494,6 +678,9 @@ describe('TreeSitterLanguageMode', () => {
           Also important
         */
       `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
       await languageMode.reparsePromise
 
       editor.screenLineForScreenRow(0)
@@ -545,8 +732,6 @@ describe('TreeSitterLanguageMode', () => {
         ]
       })
 
-      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-      buffer.setLanguageMode(languageMode)
       buffer.setText(dedent `
         #ifndef FOO_H_
         #define FOO_H_
@@ -570,6 +755,9 @@ describe('TreeSitterLanguageMode', () => {
 
         #endif
       `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
       await languageMode.reparsePromise
 
       editor.screenLineForScreenRow(0)
@@ -645,8 +833,6 @@ describe('TreeSitterLanguageMode', () => {
         ]
       })
 
-      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
-      buffer.setLanguageMode(languageMode)
       buffer.setText(dedent `
         <head>
         <meta name='key-1', content='value-1'>
@@ -654,6 +840,8 @@ describe('TreeSitterLanguageMode', () => {
         </head>
       `)
 
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
       await languageMode.reparsePromise
 
       // Void elements have only one child
@@ -668,7 +856,7 @@ describe('TreeSitterLanguageMode', () => {
     })
 
     describe('when folding a node that ends with a line break', () => {
-      it('ends the fold at the end of the previous line', () => {
+      it('ends the fold at the end of the previous line', async () => {
         const grammar = new TreeSitterGrammar(atom.grammars, pythonGrammarPath, {
           parser: 'tree-sitter-python',
           folds: [
@@ -688,7 +876,9 @@ describe('TreeSitterLanguageMode', () => {
             print 'c'
             print 'd'
         `)
+
         buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+        await buffer.getLanguageMode().reparsePromise
 
         editor.screenLineForScreenRow(0)
 
@@ -705,14 +895,16 @@ describe('TreeSitterLanguageMode', () => {
   })
 
   describe('.scopeDescriptorForPosition', () => {
-    it('returns a scope descriptor representing the given position in the syntax tree', () => {
+    it('returns a scope descriptor representing the given position in the syntax tree', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         id: 'javascript',
         parser: 'tree-sitter-javascript'
       })
 
       buffer.setText('foo({bar: baz});')
+
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      await buffer.getLanguageMode().reparsePromise
 
       editor.screenLineForScreenRow(0)
       expect(editor.scopeDescriptorForBufferPosition([0, 6]).getScopesArray()).toEqual([
@@ -729,7 +921,7 @@ describe('TreeSitterLanguageMode', () => {
   })
 
   describe('TextEditor.selectLargerSyntaxNode and .selectSmallerSyntaxNode', () => {
-    it('expands and contract the selection based on the syntax tree', () => {
+    it('expands and contract the selection based on the syntax tree', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
         scopes: {'program': 'source'}
@@ -741,7 +933,9 @@ describe('TreeSitterLanguageMode', () => {
           g()
         }
       `)
+
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      await buffer.getLanguageMode().reparsePromise
 
       editor.screenLineForScreenRow(0)
 

@@ -525,6 +525,34 @@ describe('GrammarRegistry', () => {
     })
   })
 
+  describe('.addInjectionPoint(languageId, {type, language, content})', () => {
+    const injectionPoint = {
+      type: 'some_node_type',
+      language() { return 'some_language_name' },
+      content(node) { return node }
+    }
+
+    beforeEach(() => {
+      atom.config.set('core.useTreeSitterParsers', true)
+    })
+
+    it('adds an injection point to the grammar with the given id', async () => {
+      await atom.packages.activatePackage('language-javascript')
+      atom.grammars.addInjectionPoint('javascript', injectionPoint)
+      const grammar = atom.grammars.grammarForId('javascript')
+      expect(grammar.injectionPoints).toContain(injectionPoint)
+    })
+
+    describe('when called before a grammar with the given id is loaded', () => {
+      it('adds the injection point once the grammar is loaded', async () => {
+        atom.grammars.addInjectionPoint('javascript', injectionPoint)
+        await atom.packages.activatePackage('language-javascript')
+        const grammar = atom.grammars.grammarForId('javascript')
+        expect(grammar.injectionPoints).toContain(injectionPoint)
+      })
+    })
+  })
+
   describe('serialization', () => {
     it('persists editors\' grammar overrides', async () => {
       const buffer1 = new TextBuffer()
