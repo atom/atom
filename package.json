@@ -12,7 +12,7 @@
     "url": "https://github.com/atom/atom/issues"
   },
   "license": "MIT",
-  "electronVersion": "2.0.2",
+  "electronVersion": "2.0.4",
   "dependencies": {
     "@atom/nsfw": "^1.0.18",
     "@atom/watcher": "1.0.3",
@@ -92,7 +92,7 @@
     "solarized-dark-syntax": "1.1.5",
     "solarized-light-syntax": "1.1.5",
     "about": "1.9.1",
-    "archive-view": "0.65.0",
+    "archive-view": "0.65.1",
     "autocomplete-atom-api": "0.10.7",
     "autocomplete-css": "0.17.5",
     "autocomplete-html": "0.8.4",
@@ -121,7 +121,7 @@
     "line-ending-selector": "0.7.7",
     "link": "0.31.4",
     "markdown-preview": "0.159.20",
-    "metrics": "1.3.0",
+    "metrics": "1.4.3",
     "notifications": "0.70.5",
     "open-on-github": "1.3.1",
     "package-generator": "1.3.0",

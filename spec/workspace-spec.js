@@ -1299,6 +1299,34 @@ describe('Workspace', () => {
     })
   })
 
+  describe('the root-scope-used hook', () => {
+    it('fires when opening a file or changing the grammar of an open file', async () => {
+      await atom.packages.activatePackage('language-javascript')
+      await atom.packages.activatePackage('language-coffee-script')
+
+      const observeTextEditorsSpy = jasmine.createSpy('observeTextEditors')
+      const javascriptGrammarUsed = jasmine.createSpy('javascript')
+      const coffeeScriptGrammarUsed = jasmine.createSpy('coffeescript')
+
+      atom.packages.triggerDeferredActivationHooks()
+      atom.packages.onDidTriggerActivationHook('source.js:root-scope-used', () => {
+        atom.workspace.observeTextEditors(observeTextEditorsSpy)
+        javascriptGrammarUsed()
+      })
+      atom.packages.onDidTriggerActivationHook('source.coffee:root-scope-used', coffeeScriptGrammarUsed)
+
+      expect(javascriptGrammarUsed).not.toHaveBeenCalled()
+      expect(observeTextEditorsSpy).not.toHaveBeenCalled()
+      const editor = await atom.workspace.open('sample.js', {autoIndent: false})
+      expect(javascriptGrammarUsed).toHaveBeenCalled()
+      expect(observeTextEditorsSpy.callCount).toBe(1)
+
+      expect(coffeeScriptGrammarUsed).not.toHaveBeenCalled()
+      atom.grammars.assignLanguageMode(editor, 'source.coffee')
+      expect(coffeeScriptGrammarUsed).toHaveBeenCalled()
+    })
+  })
+
   describe('::reopenItem()', () => {
     it("opens the uri associated with the last closed pane that isn't currently open", () => {
       const pane = workspace.getActivePane()
