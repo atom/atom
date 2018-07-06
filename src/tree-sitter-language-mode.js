@@ -304,6 +304,7 @@ class TreeSitterLanguageMode {
           foldEnd = new Point(foldEndNode.startPosition.row - 1, Infinity)
         } else {
           foldEnd = foldEndNode.startPosition
+          if (!pointIsGreater(foldEnd, foldStart)) continue
         }
       } else {
         const {endPosition} = node
@@ -559,6 +560,10 @@ class TreeSitterHighlightIterator {
     const scopeName = this.currentScopeName()
     if (scopeName) this.openTags.push(this.languageMode.grammar.idForScope(scopeName))
   }
+}
+
+function pointIsGreater (left, right) {
+  return left.row > right.row || left.row === right.row && left.column > right.column
 }
 
 function last (array) {

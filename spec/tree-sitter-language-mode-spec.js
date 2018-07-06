@@ -10,6 +10,7 @@ const TreeSitterLanguageMode = require('../src/tree-sitter-language-mode')
 const cGrammarPath = require.resolve('language-c/grammars/tree-sitter-c.cson')
 const pythonGrammarPath = require.resolve('language-python/grammars/tree-sitter-python.cson')
 const jsGrammarPath = require.resolve('language-javascript/grammars/tree-sitter-javascript.cson')
+const htmlGrammarPath = require.resolve('language-html/grammars/tree-sitter-html.cson')
 
 describe('TreeSitterLanguageMode', () => {
   let editor, buffer
@@ -572,6 +573,40 @@ describe('TreeSitterLanguageMode', () => {
         #endif
 
         #endif
+      `)
+    })
+
+    it('does not fold when the start and end parameters match the same child', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
+        parser: 'tree-sitter-html',
+        folds: [
+          {
+            type: 'element',
+            start: {index: 0},
+            end: {index: -1}
+          }
+        ]
+      })
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      buffer.setText(dedent `
+        <head>
+        <meta name='key-1', content='value-1'>
+        <meta name='key-2', content='value-2'>
+        </head>
+      `)
+
+      await languageMode.reparsePromise
+
+      // Void elements have only one child
+      expect(editor.isFoldableAtBufferRow(1)).toBe(false)
+      expect(editor.isFoldableAtBufferRow(2)).toBe(false)
+
+      editor.foldBufferRow(0)
+      expect(getDisplayText(editor)).toBe(dedent `
+        <head>…
+        </head>
       `)
     })
 
