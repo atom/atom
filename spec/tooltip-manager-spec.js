@@ -213,6 +213,18 @@ describe('TooltipManager', () => {
       })
     )
 
+    describe('when a user types', () =>
+      it('hides the tooltips', () => {
+        const disposable = manager.add(element, { title: 'Title' })
+        hover(element, function () {
+          expect(document.body.querySelector('.tooltip')).not.toBeNull()
+          window.dispatchEvent(new CustomEvent('keydown'))
+          expect(document.body.querySelector('.tooltip')).toBeNull()
+          disposable.dispose()
+        })
+      })
+    )
+
     describe('findTooltips', () => {
       it('adds and remove tooltips correctly', () => {
         expect(manager.findTooltips(element).length).toBe(0)
