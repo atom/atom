@@ -249,8 +249,6 @@ class GrammarRegistry {
       fileTypes = fileTypes.concat(customFileTypes)
     }
 
-    if (!Array.isArray(fileTypes)) debugger
-
     for (let i = 0; i < fileTypes.length; i++) {
       const fileType = fileTypes[i]
       const fileTypeComponents = fileType.toLowerCase().split(PATH_SPLIT_REGEX)

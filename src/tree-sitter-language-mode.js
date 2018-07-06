@@ -473,8 +473,9 @@ class LanguageLayer {
   async _performUpdate (containingNodes) {
     let includedRanges = []
     if (containingNodes) {
-      for (const node of containingNodes)
+      for (const node of containingNodes) {
         includedRanges.push(...this._rangesForInjectionNode(node))
+      }
       if (includedRanges.length === 0) return
     }
 
