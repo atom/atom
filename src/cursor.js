@@ -326,7 +326,9 @@ class Cursor extends Model {
 
   // Public: Moves the cursor to the bottom of the buffer.
   moveToBottom () {
+    const column = this.goalColumn
     this.setBufferPosition(this.editor.getEofBufferPosition())
+    this.goalColumn = column
   }
 
   // Public: Moves the cursor to the beginning of the line.
@@ -711,6 +713,7 @@ class Cursor extends Model {
   changePosition (options, fn) {
     this.clearSelection({autoscroll: false})
     fn()
+    this.goalColumn = null
     const autoscroll = (options && options.autoscroll != null)
       ? options.autoscroll
       : this.isLastCursor()
