@@ -291,8 +291,9 @@ class GrammarRegistry {
 
   forEachGrammar (callback) {
     this.textmateRegistry.grammars.forEach(callback)
-    for (let grammarId in this.treeSitterGrammarsById) {
-      callback(this.treeSitterGrammarsById[grammarId])
+    for (const grammarId in this.treeSitterGrammarsById) {
+      const grammar = this.treeSitterGrammarsById[grammarId]
+      if (grammar.id) callback(grammar)
     }
   }
 
