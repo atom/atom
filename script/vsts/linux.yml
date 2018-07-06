@@ -34,6 +34,7 @@ phases:
       script/test
     env:
       CI: true
+      CI_PROVIDER: VSTS
     displayName: Run tests
 
   # This step is necessary in the short term due to a bug in the *NIX
