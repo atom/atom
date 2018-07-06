@@ -11,6 +11,7 @@ const cGrammarPath = require.resolve('language-c/grammars/tree-sitter-c.cson')
 const pythonGrammarPath = require.resolve('language-python/grammars/tree-sitter-python.cson')
 const jsGrammarPath = require.resolve('language-javascript/grammars/tree-sitter-javascript.cson')
 const htmlGrammarPath = require.resolve('language-html/grammars/tree-sitter-html.cson')
+const ejsGrammarPath = require.resolve('language-html/grammars/tree-sitter-ejs.cson')
 
 describe('TreeSitterLanguageMode', () => {
   let editor, buffer
@@ -530,6 +531,75 @@ describe('TreeSitterLanguageMode', () => {
           ],
         ])
       })
+
+      it('handles injections that intersect', async () => {
+        const ejsGrammar = new TreeSitterGrammar(atom.grammars, ejsGrammarPath, {
+          id: 'ejs',
+          parser: 'tree-sitter-embedded-template',
+          scopes: {
+            '"<%="': 'directive',
+            '"%>"': 'directive',
+          },
+          injectionPoints: [
+            {
+              type: 'template',
+              language (node) { return 'javascript' },
+              content (node) { return node.descendantsOfType('code') }
+            },
+            {
+              type: 'template',
+              language (node) { return 'html' },
+              content (node) { return node.descendantsOfType('content') }
+            }
+          ]
+        })
+
+        atom.grammars.addGrammar(jsGrammar)
+        atom.grammars.addGrammar(htmlGrammar)
+
+        buffer.setText('<body>\n<script>\nb(<%= c.d %>)\n</script>\n</body>')
+        const languageMode = new TreeSitterLanguageMode({buffer, grammar: ejsGrammar, grammars: atom.grammars})
+        buffer.setLanguageMode(languageMode)
+
+        // 4 parses: EJS, HTML, template JS, script tag JS
+        await nextHighlightingUpdate(languageMode)
+        await nextHighlightingUpdate(languageMode)
+        await nextHighlightingUpdate(languageMode)
+        await nextHighlightingUpdate(languageMode)
+
+        expectTokensToEqual(editor, [
+          [
+            {text: '<', scopes: ['html']},
+            {text: 'body', scopes: ['html', 'tag']},
+            {text: '>', scopes: ['html']}
+          ],
+          [
+            {text: '<', scopes: ['html']},
+            {text: 'script', scopes: ['html', 'tag']},
+            {text: '>', scopes: ['html']}
+          ],
+          [
+            {text: 'b', scopes: ['html', 'function']},
+            {text: '(', scopes: ['html']},
+            {text: '<%=', scopes: ['html', 'directive']},
+            {text: ' c.', scopes: ['html']},
+            {text: 'd', scopes: ['html', 'property']},
+            {text: ' ', scopes: ['html']},
+            {text: '%>', scopes: ['html', 'directive']},
+            {text: ')', scopes: ['html']},
+          ],
+          [
+            {text: '</', scopes: ['html']},
+            {text: 'script', scopes: ['html', 'tag']},
+            {text: '>', scopes: ['html']}
+          ],
+          [
+            {text: '</', scopes: ['html']},
+            {text: 'body', scopes: ['html', 'tag']},
+            {text: '>', scopes: ['html']}
+          ],
+        ])
+      })
     })
   })
 
@@ -964,6 +1034,15 @@ describe('TreeSitterLanguageMode', () => {
     })
   })
 })
+
+function nextHighlightingUpdate (languageMode) {
+  return new Promise(resolve => {
+    const subscription = languageMode.onDidChangeHighlighting(() => {
+      subscription.dispose()
+      resolve()
+    })
+  })
+}
 
 function getDisplayText (editor) {
   return editor.displayLayer.getText()

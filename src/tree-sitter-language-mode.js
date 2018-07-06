@@ -52,10 +52,10 @@ class TreeSitterLanguageMode {
         )
       }
 
-      this.rootLanguageLayer.update()
+      this.rootLanguageLayer.update(NodeRangeSet.FULL)
     })
 
-    this.rootLanguageLayer.update()
+    this.rootLanguageLayer.update(NodeRangeSet.FULL)
 
     // TODO: Remove this once TreeSitterLanguageMode implements its own auto-indentation system. This
     // is temporarily needed in order to delegate to the TextMateLanguageMode's auto-indent system.
@@ -435,10 +435,10 @@ class LanguageLayer {
     }
   }
 
-  async update (containingNodes) {
+  async update (nodeRangeSet) {
     if (this.currentParsePromise) return this.currentParsePromise
 
-    this.currentParsePromise = this._performUpdate(containingNodes)
+    this.currentParsePromise = this._performUpdate(nodeRangeSet)
     await this.currentParsePromise
     this.currentParsePromise = null
 
@@ -451,7 +451,7 @@ class LanguageLayer {
         ))
       }
       this.patchSinceCurrentParseStarted = null
-      this.update(containingNodes)
+      this.update(nodeRangeSet)
     }
   }
 
@@ -459,23 +459,17 @@ class LanguageLayer {
     if (!grammar.injectionRegExp) return
     if (!this.currentParsePromise) this.currentParsePromise = Promise.resolve()
     this.currentParsePromise = this.currentParsePromise.then(async () => {
-      await this._populateInjections(MAX_RANGE)
-      const markers = this.languageMode.injectionsMarkerLayer.getMarkers().filter(marker =>
-        marker.parentLanguageLayer === this
-      )
-      for (const marker of markers) {
-        await marker.languageLayer._populateInjections(MAX_RANGE)
-      }
+      await this._populateInjections(MAX_RANGE, NodeRangeSet.FULL)
       this.currentParsePromise = null
     })
   }
 
-  async _performUpdate (containingNodes) {
-    let includedRanges = []
-    if (containingNodes) {
-      for (const node of containingNodes) {
-        includedRanges.push(...this._rangesForInjectionNode(node))
-      }
+  async _performUpdate (nodeRangeSet) {
+    let includedRanges
+    if (nodeRangeSet === NodeRangeSet.FULL) {
+      includedRanges = null
+    } else {
+      includedRanges = nodeRangeSet.getRanges()
       if (includedRanges.length === 0) return
     }
 
@@ -494,6 +488,7 @@ class LanguageLayer {
       affectedRange = this._rangeForNode(editedRange)
 
       const rangesWithSyntaxChanges = this.tree.getChangedRanges(tree)
+      this.tree = tree
       if (rangesWithSyntaxChanges.length > 0) {
         for (const range of rangesWithSyntaxChanges) {
           this.languageMode.emitRangeUpdate(this._rangeForNode(range))
@@ -505,15 +500,15 @@ class LanguageLayer {
         ))
       }
     } else {
+      this.tree = tree
       this.languageMode.emitRangeUpdate(this._rangeForNode(tree.rootNode))
       affectedRange = MAX_RANGE
     }
 
-    this.tree = tree
-    await this._populateInjections(affectedRange)
+    await this._populateInjections(affectedRange, nodeRangeSet)
   }
 
-  async _populateInjections (range) {
+  async _populateInjections (range, nodeRangeSet) {
     const {injectionsMarkerLayer, grammarForLanguageString} = this.languageMode
 
     const existingInjectionMarkers = injectionsMarkerLayer
@@ -559,7 +554,7 @@ class LanguageLayer {
           marker.parentLanguageLayer = this
         }
 
-        markersToUpdate.set(marker, injectionNodes)
+        markersToUpdate.set(marker, nodeRangeSet.intersect(injectionNodes))
       }
     }
 
@@ -571,44 +566,9 @@ class LanguageLayer {
       }
     }
 
-    for (const [marker, injectionNodes] of markersToUpdate) {
-      await marker.languageLayer.update(injectionNodes)
+    for (const [marker, nodeRangeSet] of markersToUpdate) {
+      await marker.languageLayer.update(nodeRangeSet)
     }
-  }
-
-  /**
-   * @param node {Parser.SyntaxNode}
-   */
-  _rangesForInjectionNode (node) {
-    const result = []
-    let position = node.startPosition
-    let index = node.startIndex
-
-    for (const child of node.children) {
-      const nextPosition = child.startPosition
-      const nextIndex = child.startIndex
-      if (nextIndex > index) {
-        result.push({
-          startIndex: index,
-          endIndex: nextIndex,
-          startPosition: position,
-          endPosition: nextPosition
-        })
-      }
-      position = child.endPosition
-      index = child.endIndex
-    }
-
-    if (node.endIndex > index) {
-      result.push({
-        startIndex: index,
-        endIndex: node.endIndex,
-        startPosition: position,
-        endPosition: node.endPosition
-      })
-    }
-
-    return result
   }
 
   _rangeForNode (node) {
@@ -857,6 +817,74 @@ class NullHighlightIterator {
   getOpenScopeIds () { return [] }
   getCloseScopeIds () { return [] }
 }
+
+class NodeRangeSet {
+  constructor (previous, nodes) {
+    this.previous = previous
+    this.nodes = nodes
+  }
+
+  intersect (nodes) {
+    return new NodeRangeSet(this, nodes)
+  }
+
+  getRanges () {
+    const previousRanges = this.previous.getRanges()
+    const result = []
+
+    for (const node of this.nodes) {
+      let position = node.startPosition
+      let index = node.startIndex
+
+      for (const child of node.children) {
+        const nextPosition = child.startPosition
+        const nextIndex = child.startIndex
+        if (nextIndex > index) {
+          this._pushRange(previousRanges, result, {
+            startIndex: index,
+            endIndex: nextIndex,
+            startPosition: position,
+            endPosition: nextPosition
+          })
+        }
+        position = child.endPosition
+        index = child.endIndex
+      }
+
+      if (node.endIndex > index) {
+        this._pushRange(previousRanges, result, {
+          startIndex: index,
+          endIndex: node.endIndex,
+          startPosition: position,
+          endPosition: node.endPosition
+        })
+      }
+    }
+
+    return result
+  }
+
+  _pushRange (previousRanges, newRanges, newRange) {
+    for (const previousRange of previousRanges) {
+      if (previousRange.endIndex <= newRange.startIndex) continue
+      if (previousRange.startIndex >= newRange.endIndex) break
+      newRanges.push({
+        startIndex: Math.max(previousRange.startIndex, newRange.startIndex),
+        endIndex: Math.min(previousRange.endIndex, newRange.endIndex),
+        startPosition: Point.max(previousRange.startPosition, newRange.startPosition),
+        endPosition: Point.min(previousRange.endPosition, newRange.endPosition)
+      })
+    }
+  }
+}
+
+class FullRangeSet extends NodeRangeSet {
+  getRanges () {
+    return [{startPosition: Point.ZERO, endPosition: Point.INFINITY, startIndex: 0, endIndex: Infinity}]
+  }
+}
+
+NodeRangeSet.FULL = new FullRangeSet()
 
 function pointIsLess (left, right) {
   return left.row < right.row || left.row === right.row && left.column < right.column
