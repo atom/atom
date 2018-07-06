@@ -459,12 +459,12 @@ class LanguageLayer {
     if (!grammar.injectionRegExp) return
     if (!this.currentParsePromise) this.currentParsePromise = Promise.resolve()
     this.currentParsePromise = this.currentParsePromise.then(async () => {
-      await this._populateInjections(MAX_RANGE, grammar)
+      await this._populateInjections(MAX_RANGE)
       const markers = this.languageMode.injectionsMarkerLayer.getMarkers().filter(marker =>
         marker.parentLanguageLayer === this
       )
       for (const marker of markers) {
-        await marker.languageLayer._populateInjections(MAX_RANGE, grammar)
+        await marker.languageLayer._populateInjections(MAX_RANGE)
       }
       this.currentParsePromise = null
     })
@@ -512,7 +512,7 @@ class LanguageLayer {
     await this._populateInjections(affectedRange)
   }
 
-  async _populateInjections (range, newGrammar = null) {
+  async _populateInjections (range) {
     const {injectionsMarkerLayer, grammarForLanguageString} = this.languageMode
 
     const existingInjectionMarkers = injectionsMarkerLayer
@@ -540,7 +540,6 @@ class LanguageLayer {
 
         const grammar = grammarForLanguageString(languageName)
         if (!grammar) continue
-        if (newGrammar && grammar !== newGrammar) continue
 
         const contentNodes = injectionPoint.content(node)
         if (!contentNodes) continue
