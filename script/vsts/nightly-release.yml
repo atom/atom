@@ -1,3 +1,7 @@
+queue:
+  name: Hosted VS2017
+  timeoutInMinutes: 180
+
 phases:
 
 - phase: GetReleaseVersion
