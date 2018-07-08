@@ -63,7 +63,7 @@ Tooltip.prototype.init = function (element, options) {
 
   var triggers = this.options.trigger.split(' ')
 
-  this.hideOrClickOutsideOfTooltip = (event) => {
+  this.hideOnClickOrTypeOutsideOfTooltip = (event) => {
     if (trigger === 'hover' || trigger === 'click' && event != undefined) {
       const tooltipElement = this.getTooltipElement();
       if (tooltipElement === event.target) return;
@@ -219,9 +219,9 @@ Tooltip.prototype.leave = function (event) {
 
 Tooltip.prototype.show = function () {
   if (this.hasContent() && this.enabled) {
-    if (this.hideOrClickOutsideOfTooltip) {
-      window.addEventListener('click', this.hideOrClickOutsideOfTooltip, true)
-      window.addEventListener('keydown', this.hideOrClickOutsideOfTooltip, true)
+    if (this.hideOnClickOrTypeOutsideOfTooltip) {
+      window.addEventListener('click', this.hideOnClickOrTypeOutsideOfTooltip, true)
+      window.addEventListener('keydown', this.hideOnClickOrTypeOutsideOfTooltip, true)
     }
 
     var tip = this.getTooltipElement()
@@ -358,9 +358,9 @@ Tooltip.prototype.setContent = function () {
 
 Tooltip.prototype.hide = function (callback) {
   this.inState = {}
-  if (this.hideOrClickOutsideOfTooltip) {
-    window.removeEventListener('click', this.hideOrClickOutsideOfTooltip, true)
-    window.removeEventListener('keydown', this.hideOrClickOutsideOfTooltip, true)
+  if (this.hideOnClickOrTypeOutsideOfTooltip) {
+    window.removeEventListener('click', this.hideOnClickOrTypeOutsideOfTooltip, true)
+    window.removeEventListener('keydown', this.hideOnClickOrTypeOutsideOfTooltip, true)
   }
 
   this.tip && this.tip.classList.remove('in')
