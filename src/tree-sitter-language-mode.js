@@ -315,11 +315,28 @@ class TreeSitterLanguageMode {
   getRangeForSyntaxNodeContainingRange (range) {
     const startIndex = this.buffer.characterIndexForPosition(range.start)
     const endIndex = this.buffer.characterIndexForPosition(range.end)
-    let node = this.tree.rootNode.descendantForIndex(startIndex, endIndex - 1)
-    while (node && node.startIndex === startIndex && node.endIndex === endIndex) {
+    const searchEndIndex = Math.max(0, endIndex - 1)
+
+    let node = this.tree.rootNode.descendantForIndex(startIndex, searchEndIndex)
+    while (node && !nodeContainsIndices(node, startIndex, endIndex)) {
       node = node.parent
     }
-    if (node) return new Range(node.startPosition, node.endPosition)
+
+    const injectionMarkers = this.injectionsMarkerLayer.findMarkers({
+      intersectsRange: range
+    })
+
+    let smallestNode = node
+    for (const injectionMarker of injectionMarkers) {
+      const {tree} = injectionMarker.languageLayer
+      let node = tree.rootNode.descendantForIndex(startIndex, searchEndIndex)
+      while (node && !nodeContainsIndices(node, startIndex, endIndex)) {
+        node = node.parent
+      }
+      if (nodeIsSmaller(node, smallestNode)) smallestNode = node
+    }
+
+    if (smallestNode) return rangeForNode(smallestNode)
   }
 
   bufferRangeForScopeAtPosition (position) {
@@ -485,13 +502,13 @@ class LanguageLayer {
     if (this.tree) {
       const editedRange = this.tree.getEditedRange()
       if (!editedRange) return
-      affectedRange = this._rangeForNode(editedRange)
+      affectedRange = rangeForNode(editedRange)
 
       const rangesWithSyntaxChanges = this.tree.getChangedRanges(tree)
       this.tree = tree
       if (rangesWithSyntaxChanges.length > 0) {
         for (const range of rangesWithSyntaxChanges) {
-          this.languageMode.emitRangeUpdate(this._rangeForNode(range))
+          this.languageMode.emitRangeUpdate(rangeForNode(range))
         }
 
         affectedRange = affectedRange.union(new Range(
@@ -501,7 +518,7 @@ class LanguageLayer {
       }
     } else {
       this.tree = tree
-      this.languageMode.emitRangeUpdate(this._rangeForNode(tree.rootNode))
+      this.languageMode.emitRangeUpdate(rangeForNode(tree.rootNode))
       affectedRange = MAX_RANGE
     }
 
@@ -543,7 +560,7 @@ class LanguageLayer {
         const injectionNodes = [].concat(contentNodes)
         if (!injectionNodes.length) continue
 
-        const injectionRange = this._rangeForNode(node)
+        const injectionRange = rangeForNode(node)
         let marker = existingInjectionMarkers.find(m =>
           m.getRange().isEqual(injectionRange) &&
           m.languageLayer.grammar === grammar
@@ -569,10 +586,6 @@ class LanguageLayer {
     for (const [marker, nodeRangeSet] of markersToUpdate) {
       await marker.languageLayer.update(nodeRangeSet)
     }
-  }
-
-  _rangeForNode (node) {
-    return new Range(node.startPosition, node.endPosition)
   }
 
   _treeEditForBufferChange (start, oldEnd, newEnd, oldText, newText) {
@@ -885,6 +898,22 @@ class FullRangeSet extends NodeRangeSet {
 }
 
 NodeRangeSet.FULL = new FullRangeSet()
+
+function rangeForNode (node) {
+  return new Range(node.startPosition, node.endPosition)
+}
+
+function nodeContainsIndices (node, start, end) {
+  if (node.startIndex < start) return node.endIndex >= end
+  if (node.startIndex === start) return node.endIndex > end
+  return false
+}
+
+function nodeIsSmaller (left, right) {
+  if (!left) return false
+  if (!right) return true
+  return left.endIndex - left.startIndex < right.endIndex - right.startIndex
+}
 
 function pointIsLess (left, right) {
   return left.row < right.row || left.row === right.row && left.column < right.column

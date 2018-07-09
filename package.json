@@ -72,7 +72,7 @@
     "sinon": "1.17.4",
     "temp": "^0.8.3",
     "text-buffer": "13.14.4",
-    "tree-sitter": "0.12.18",
+    "tree-sitter": "0.12.19",
     "typescript-simple": "1.0.0",
     "underscore-plus": "^1.6.8",
     "winreg": "^1.2.1",

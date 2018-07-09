@@ -351,17 +351,7 @@ describe('TreeSitterLanguageMode', () => {
             'template_substitution > "}"': 'interpolation'
           },
           injectionRegExp: 'javascript',
-          injectionPoints: [{
-            type: 'call_expression',
-            language (node) {
-              if (node.lastChild.type === 'template_string' && node.firstChild.type === 'identifier') {
-                return node.firstChild.text
-              }
-            },
-            content (node) {
-              return node.lastChild
-            }
-          }]
+          injectionPoints: [HTML_TEMPLATE_LITERAL_INJECTION_POINT]
         })
 
         htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
@@ -991,7 +981,7 @@ describe('TreeSitterLanguageMode', () => {
   })
 
   describe('TextEditor.selectLargerSyntaxNode and .selectSmallerSyntaxNode', () => {
-    it('expands and contract the selection based on the syntax tree', async () => {
+    it('expands and contracts the selection based on the syntax tree', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
         scopes: {'program': 'source'}
@@ -1031,6 +1021,60 @@ describe('TreeSitterLanguageMode', () => {
       expect(editor.getSelectedText()).toBe('eee')
       editor.selectSmallerSyntaxNode()
       expect(editor.getSelectedBufferRange()).toEqual([[1, 3], [1, 3]])
+    })
+
+    it('handles injected languages', async () => {
+      const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        id: 'javascript',
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          'property_identifier': 'property',
+          'call_expression > identifier': 'function',
+          'template_string': 'string',
+          'template_substitution > "${"': 'interpolation',
+          'template_substitution > "}"': 'interpolation'
+        },
+        injectionRegExp: 'javascript',
+        injectionPoints: [HTML_TEMPLATE_LITERAL_INJECTION_POINT]
+      })
+
+      const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
+        id: 'html',
+        parser: 'tree-sitter-html',
+        scopes: {
+          fragment: 'html',
+          tag_name: 'tag',
+          attribute_name: 'attr'
+        },
+        injectionRegExp: 'html'
+      })
+
+      atom.grammars.addGrammar(htmlGrammar)
+
+      buffer.setText('a = html ` <b>c${def()}e${f}g</b> `')
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar: jsGrammar, grammars: atom.grammars})
+      buffer.setLanguageMode(languageMode)
+
+      await nextHighlightingUpdate(languageMode)
+      await nextHighlightingUpdate(languageMode)
+
+      editor.setCursorBufferPosition({row: 0, column: buffer.getText().indexOf('ef()')})
+      editor.selectLargerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('def')
+      editor.selectLargerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('def()')
+      editor.selectLargerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('${def()}')
+      editor.selectLargerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('c${def()}e${f}g')
+      editor.selectLargerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('<b>c${def()}e${f}g</b>')
+      editor.selectLargerSyntaxNode()
+      expect(editor.getSelectedText()).toBe(' <b>c${def()}e${f}g</b> ')
+      editor.selectLargerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('` <b>c${def()}e${f}g</b> `')
+      editor.selectLargerSyntaxNode()
+      expect(editor.getSelectedText()).toBe('html ` <b>c${def()}e${f}g</b> `')
     })
   })
 })
@@ -1089,4 +1133,16 @@ function expectTokensToEqual (editor, expectedTokenLines) {
   // Fully populate the screen line cache again so that cache invalidation
   // due to subsequent edits can be tested.
   editor.displayLayer.getScreenLines(0, Infinity)
+}
+
+const HTML_TEMPLATE_LITERAL_INJECTION_POINT = {
+  type: 'call_expression',
+  language (node) {
+    if (node.lastChild.type === 'template_string' && node.firstChild.type === 'identifier') {
+      return node.firstChild.text
+    }
+  },
+  content (node) {
+    return node.lastChild
+  }
 }
