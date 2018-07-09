@@ -33,7 +33,8 @@ module.exports = (packagedAppPath) => {
         fs.unlinkSync(nupkgPath)
       } else {
         if (process.arch === 'x64') {
-          const newNupkgPath = `${CONFIG.buildOutputPath}/atom-x64${path.basename(nupkgPath).slice(4)}`
+          // Use the original .nupkg filename to generate the `atom-x64` name by inserting `-x64` after `atom`
+          const newNupkgPath = nupkgPath.replace('atom-', 'atom-x64-')
           fs.renameSync(nupkgPath, newNupkgPath)
         }
       }
