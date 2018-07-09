@@ -65,14 +65,14 @@ Tooltip.prototype.init = function (element, options) {
 
   this.hideOnClickOrTypeOutsideOfTooltip = (event) => {
     if (trigger === 'hover' || trigger === 'click' && event) {
-      const tooltipElement = this.getTooltipElement();
-      if (tooltipElement === event.target) return;
-      if (tooltipElement.contains(event.target)) return;
-      if (this.element === event.target) return;
-      if (this.element.contains(event.target)) return;
+      const tooltipElement = this.getTooltipElement()
+      if (tooltipElement === event.target) return
+      if (tooltipElement.contains(event.target)) return
+      if (this.element === event.target) return
+      if (this.element.contains(event.target)) return
       this.hide()
     } else {
-      return;
+      return
     }
   }
   for (var i = triggers.length; i--;) {
@@ -184,7 +184,6 @@ Tooltip.prototype.enter = function (event) {
     if (this.hoverState === 'in') this.show()
   }.bind(this), this.options.delay.show)
 }
-
 
 Tooltip.prototype.isInStateTrue = function () {
   for (var key in this.inState) {
