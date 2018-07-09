@@ -64,7 +64,7 @@ Tooltip.prototype.init = function (element, options) {
   var triggers = this.options.trigger.split(' ')
 
   this.hideOnClickOrTypeOutsideOfTooltip = (event) => {
-    if (trigger === 'hover' || trigger === 'click' && event != undefined) {
+    if (trigger === 'hover' || trigger === 'click' && event) {
       const tooltipElement = this.getTooltipElement();
       if (tooltipElement === event.target) return;
       if (tooltipElement.contains(event.target)) return;
