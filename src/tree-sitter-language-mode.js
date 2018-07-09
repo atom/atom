@@ -247,16 +247,13 @@ class TreeSitterLanguageMode {
 
     let smallestRange
     this._forEachTreeWithRange(new Range(point, point), (tree, grammar) => {
-      console.log('--- tree', tree.rootNode.type)
       let node = tree.rootNode.descendantForPosition(this.buffer.clipPosition(point))
       while (node) {
         if (existenceOnly && node.startPosition.row < point.row) return
         if (node.endPosition.row > point.row) {
           const range = this.getFoldableRangeForNode(node, grammar)
-          console.log('examining', node, range)
           if (range && rangeIsSmaller(range, smallestRange)) {
             smallestRange = range
-            console.log('  is new smallest')
             return
           }
         }

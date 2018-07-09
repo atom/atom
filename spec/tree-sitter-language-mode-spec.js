@@ -952,6 +952,82 @@ describe('TreeSitterLanguageMode', () => {
         `)
       })
     })
+
+    it('folds code in injected languages', async () => {
+      const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
+        id: 'html',
+        parser: 'tree-sitter-html',
+        scopes: {},
+        folds: [{
+          type: ['element', 'raw_element'],
+          start: {index: 0},
+          end: {index: -1}
+        }],
+        injectionRegExp: 'html'
+      })
+
+      const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        id: 'javascript',
+        parser: 'tree-sitter-javascript',
+        scopes: {},
+        folds: [{
+          type: ['template_string'],
+          start: {index: 0},
+          end: {index: -1},
+        },
+        {
+          start: {index: 0, type: '('},
+          end: {index: -1, type: ')'}
+        }],
+        injectionRegExp: 'javascript',
+        injectionPoints: [HTML_TEMPLATE_LITERAL_INJECTION_POINT]
+      })
+
+      atom.grammars.addGrammar(htmlGrammar)
+
+      buffer.setText(
+        `a = html \`
+            <div>
+              c\${def(
+                1,
+                2,
+                3,
+              )}e\${f}g
+            </div>
+          \`
+        `
+      )
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar: jsGrammar, grammars: atom.grammars})
+      buffer.setLanguageMode(languageMode)
+
+      await nextHighlightingUpdate(languageMode)
+      await nextHighlightingUpdate(languageMode)
+
+      editor.foldBufferRow(2)
+      expect(getDisplayText(editor)).toBe(
+        `a = html \`
+            <div>
+              c\${def(…)}e\${f}g
+            </div>
+          \`
+        `
+      )
+
+      editor.foldBufferRow(1)
+      expect(getDisplayText(editor)).toBe(
+        `a = html \`
+            <div>…
+            </div>
+          \`
+        `
+      )
+
+      editor.foldBufferRow(0)
+      expect(getDisplayText(editor)).toBe(
+        `a = html \`…\`
+        `
+      )
+    })
   })
 
   describe('.scopeDescriptorForPosition', () => {
@@ -980,7 +1056,7 @@ describe('TreeSitterLanguageMode', () => {
     })
   })
 
-  fdescribe('TextEditor.selectLargerSyntaxNode and .selectSmallerSyntaxNode', () => {
+  describe('TextEditor.selectLargerSyntaxNode and .selectSmallerSyntaxNode', () => {
     it('expands and contracts the selection based on the syntax tree', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
