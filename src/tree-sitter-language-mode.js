@@ -553,7 +553,11 @@ class LanguageLayer {
     } else {
       this.tree = tree
       this.languageMode.emitRangeUpdate(rangeForNode(tree.rootNode))
-      affectedRange = MAX_RANGE
+      if (includedRanges) {
+        affectedRange = new Range(includedRanges[0].startPosition, last(includedRanges).endPosition)
+      } else {
+        affectedRange = MAX_RANGE
+      }
     }
 
     await this._populateInjections(affectedRange, nodeRangeSet)
