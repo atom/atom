@@ -9,6 +9,22 @@ const TextMateLanguageMode = require('./text-mate-language-mode')
 let nextId = 0
 const MAX_RANGE = new Range(Point.ZERO, Point.INFINITY).freeze()
 
+/**
+ * Return true iff `mouse` is smaller than `house`. Only correct if
+ * mouse and house overlap.
+ *
+ * @param mouse {Range}
+ * @param house {Range}
+ */
+const rangeIsSmaller = (mouse, house) => {
+  if (!house) return true
+  const mvec = vecFromRange(mouse)
+  const hvec = vecFromRange(house)
+  return Point.min(mvec, hvec) === mvec
+}
+
+const vecFromRange = ({start, end}) => end.translate(start.negate())
+
 class TreeSitterLanguageMode {
   static _patchSyntaxNode () {
     if (!Parser.SyntaxNode.prototype.hasOwnProperty('text')) {
@@ -177,13 +193,17 @@ class TreeSitterLanguageMode {
     return this.getFoldableRangesAtIndentLevel(null)
   }
 
+  /**
+   * TODO: Make this method generate folds for nested languages (currently,
+   * folds are only generated for the root language layer).
+   */
   getFoldableRangesAtIndentLevel (goalLevel) {
     let result = []
     let stack = [{node: this.tree.rootNode, level: 0}]
     while (stack.length > 0) {
       const {node, level} = stack.pop()
 
-      const range = this.getFoldableRangeForNode(node)
+      const range = this.getFoldableRangeForNode(node, this.grammar)
       if (range) {
         if (goalLevel == null || level === goalLevel) {
           let updatedExistingRange = false
@@ -224,24 +244,51 @@ class TreeSitterLanguageMode {
 
   getFoldableRangeContainingPoint (point, tabLength, existenceOnly = false) {
     if (!this.tree) return null
-    let node = this.tree.rootNode.descendantForPosition(this.buffer.clipPosition(point))
-    while (node) {
-      if (existenceOnly && node.startPosition.row < point.row) break
-      if (node.endPosition.row > point.row) {
-        const range = this.getFoldableRangeForNode(node, existenceOnly)
-        if (range) return range
+
+    let smallestRange
+    this._forEachTreeWithRange(new Range(point, point), (tree, grammar) => {
+      console.log('--- tree', tree.rootNode.type)
+      let node = tree.rootNode.descendantForPosition(this.buffer.clipPosition(point))
+      while (node) {
+        if (existenceOnly && node.startPosition.row < point.row) return
+        if (node.endPosition.row > point.row) {
+          const range = this.getFoldableRangeForNode(node, grammar)
+          console.log('examining', node, range)
+          if (range && rangeIsSmaller(range, smallestRange)) {
+            smallestRange = range
+            console.log('  is new smallest')
+            return
+          }
+        }
+        node = node.parent
       }
-      node = node.parent
+    })
+
+    return existenceOnly
+      ? smallestRange && smallestRange.start.row === point.row
+      : smallestRange
+  }
+
+  _forEachTreeWithRange (range, callback) {
+    callback(this.rootLanguageLayer.tree, this.rootLanguageLayer.grammar)
+
+    const injectionMarkers = this.injectionsMarkerLayer.findMarkers({
+      intersectsRange: range
+    })
+
+    for (const injectionMarker of injectionMarkers) {
+      const {tree, grammar} = injectionMarker.languageLayer
+      callback(tree, grammar)
     }
   }
 
-  getFoldableRangeForNode (node, existenceOnly) {
+  getFoldableRangeForNode (node, grammar, existenceOnly) {
     const {children, type: nodeType} = node
     const childCount = children.length
     let childTypes
 
-    for (var i = 0, {length} = this.grammar.folds; i < length; i++) {
-      const foldEntry = this.grammar.folds[i]
+    for (var i = 0, {length} = grammar.folds; i < length; i++) {
+      const foldEntry = grammar.folds[i]
 
       if (foldEntry.type) {
         if (typeof foldEntry.type === 'string') {
@@ -317,24 +364,14 @@ class TreeSitterLanguageMode {
     const endIndex = this.buffer.characterIndexForPosition(range.end)
     const searchEndIndex = Math.max(0, endIndex - 1)
 
-    let node = this.tree.rootNode.descendantForIndex(startIndex, searchEndIndex)
-    while (node && !nodeContainsIndices(node, startIndex, endIndex)) {
-      node = node.parent
-    }
-
-    const injectionMarkers = this.injectionsMarkerLayer.findMarkers({
-      intersectsRange: range
-    })
-
-    let smallestNode = node
-    for (const injectionMarker of injectionMarkers) {
-      const {tree} = injectionMarker.languageLayer
+    let smallestNode
+    this._forEachTreeWithRange(range, tree => {
       let node = tree.rootNode.descendantForIndex(startIndex, searchEndIndex)
       while (node && !nodeContainsIndices(node, startIndex, endIndex)) {
         node = node.parent
       }
       if (nodeIsSmaller(node, smallestNode)) smallestNode = node
-    }
+    })
 
     if (smallestNode) return rangeForNode(smallestNode)
   }

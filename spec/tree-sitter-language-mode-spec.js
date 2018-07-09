@@ -980,7 +980,7 @@ describe('TreeSitterLanguageMode', () => {
     })
   })
 
-  describe('TextEditor.selectLargerSyntaxNode and .selectSmallerSyntaxNode', () => {
+  fdescribe('TextEditor.selectLargerSyntaxNode and .selectSmallerSyntaxNode', () => {
     it('expands and contracts the selection based on the syntax tree', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
