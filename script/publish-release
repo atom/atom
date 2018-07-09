@@ -42,7 +42,7 @@ uploadToS3(
         assets
       }, function (err, release) {
         if (err) {
-          console.log("An error occurred while publishing the release:\n\n", err)
+          console.error("An error occurred while publishing the release:\n\n", err)
         } else {
           console.log("Release published successfully: ", release.html_url)
         }
