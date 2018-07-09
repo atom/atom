@@ -4,15 +4,14 @@
 
 This folder contains build configuration and scripts for automating Atom's
 release pipeline using [Visual Studio Team Services](https://azure.microsoft.com/en-us/services/visual-studio-team-services/).
-VSTS allows us to leverage mutli-phase builds to generate Atom installation packages
+VSTS allows us to leverage [multi-phase jobs](https://github.com/Microsoft/vsts-agent/blob/master/docs/preview/yamlgettingstarted-jobs.md) to generate Atom installation packages
 on Windows, macOS, and Linux and then publish a new release automatically once
 the build completes successfully.
 
 ## Nightly Release Build
 
-Our scheduled nightly release uses a [multi-phase job](https://github.com/Microsoft/vsts-agent/blob/master/docs/preview/yamlgettingstarted-jobs.md)
-to automatically generate Atom Nightly installation packages and then publish them
-to GitHub and atom.io.
+Our scheduled nightly release uses a mutli-phase job to automatically generate Atom
+Nightly installation packages and then publish them to GitHub and atom.io.
 
 The [Atom Nightly build definition](https://github.visualstudio.com/Atom/_build/index?context=mine&path=%5C&definitionId=1&_a=completed)
 is configured with the [`nightly-release.yml`](nightly-release.yml) file.  More
@@ -51,13 +50,13 @@ Atom simultaneously across those platforms and then run the Atom test suite to
 verify the builds.  If build, test, and linting come back clean, we take the build
 assets generated in the `out` folder on each OS and then stage them as build artifacts.
 
-For each OS build, we refer to the `ReleaseVersion` variable, which is set in the
-prior step, to set the `ATOM_RELEASE_VERSION` environment variable to override
+For each OS build, we refer to the `ReleaseVersion` variable, set in the previous
+phase, to configure the `ATOM_RELEASE_VERSION` environment variable to override
 the version contained in Atom's `package.json`.
 
 ### Publish Phase
 
-If all three OS builds completed successfully, the publish phase will launch the
+If all three OS builds have completed successfully, the publish phase will launch the
 [`script/publish-release`](../publish-release) script to collect the release
 artifacts created from those builds and then upload them to the S3 bucket from
 which Atom release assets are served.  If the upload process is successful, a new
