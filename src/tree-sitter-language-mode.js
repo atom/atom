@@ -110,8 +110,10 @@ class TreeSitterLanguageMode {
   }
 
   parse (language, oldTree, ranges) {
-    return new Promise(resolve =>
-      this.parseQueue.push({language, oldTree, ranges}, (error, tree) => resolve(tree))
+    return new Promise((resolve, reject) =>
+      this.parseQueue.push({language, oldTree, ranges}, (error, tree) =>
+        error ? reject(error) : resolve(tree)
+      )
     )
   }
 
@@ -676,7 +678,7 @@ class HighlightIterator {
   }
 
   moveToSuccessor () {
-    const lastIndex = this.iterators.length - 1;
+    const lastIndex = this.iterators.length - 1
     const leader = this.iterators[lastIndex]
     leader.moveToSuccessor()
     const leaderCharIndex = leader.getIndex()
@@ -977,10 +979,6 @@ function nodeIsSmaller (left, right) {
   if (!left) return false
   if (!right) return true
   return left.endIndex - left.startIndex < right.endIndex - right.startIndex
-}
-
-function pointIsLess (left, right) {
-  return left.row < right.row || left.row === right.row && left.column < right.column
 }
 
 function pointIsGreater (left, right) {
