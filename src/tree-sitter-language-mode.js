@@ -136,7 +136,7 @@ class TreeSitterLanguageMode {
       this.rootLanguageLayer.buildHighlightIterator(),
       ...this.injectionsMarkerLayer.getMarkers().map(m => m.languageLayer.buildHighlightIterator())
     ]
-    return new HighlightIterator(layerIterators)
+    return new HighlightIterator(this, layerIterators)
   }
 
   onDidChangeHighlighting (callback) {
@@ -660,15 +660,16 @@ class LanguageLayer {
 }
 
 class HighlightIterator {
-  constructor (iterators) {
-    this.iterators = iterators
-    this.iterators.sort((a, b) => b.getIndex() - a.getIndex())
+  constructor (languageMode, iterators) {
+    this.languageMode = languageMode
+    this.iterators = iterators.sort((a, b) => b.getIndex() - a.getIndex())
   }
 
   seek (targetPosition) {
     const openScopes = []
+    const targetIndex = this.languageMode.buffer.characterIndexForPosition(targetPosition)
     for (let i = this.iterators.length - 1; i >= 0; i--) {
-      openScopes.push(...this.iterators[i].seek(targetPosition))
+      openScopes.push(...this.iterators[i].seek(targetIndex))
     }
     this.iterators.sort((a, b) => b.getIndex() - a.getIndex())
     return openScopes
@@ -717,13 +718,10 @@ class LayerHighlightIterator {
     this.openTags = []
   }
 
-  seek (targetPosition) {
+  seek (targetIndex) {
     while (this.treeCursor.gotoParent()) {}
 
     const containingTags = []
-    const targetIndex = this.languageLayer.languageMode.buffer.characterIndexForPosition(
-      targetPosition
-    )
 
     this.done = false
     this.atEnd = true
