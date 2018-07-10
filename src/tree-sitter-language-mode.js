@@ -662,41 +662,38 @@ class LanguageLayer {
 class HighlightIterator {
   constructor (iterators) {
     this.iterators = iterators
-    this.leader = iterators[0]
+    this.iterators.sort((a, b) => b.getIndex() - a.getIndex())
   }
 
   seek (targetPosition) {
-    const openScopes = [].concat(...this.iterators.map(it => it.seek(targetPosition)))
-    this._findLeader()
+    const openScopes = []
+    for (let i = this.iterators.length - 1; i >= 0; i--) {
+      openScopes.push(...this.iterators[i].seek(targetPosition))
+    }
+    this.iterators.sort((a, b) => b.getIndex() - a.getIndex())
     return openScopes
   }
 
   moveToSuccessor () {
-    this.leader.moveToSuccessor()
-    this._findLeader()
+    const lastIndex = this.iterators.length - 1;
+    const leader = this.iterators[lastIndex]
+    leader.moveToSuccessor()
+    const leaderCharIndex = leader.getIndex()
+    let i = lastIndex
+    while (i > 0 && this.iterators[i - 1].getIndex() < leaderCharIndex) i--
+    if (i < lastIndex) this.iterators.splice(i, 0, this.iterators.pop())
   }
 
   getPosition () {
-    return this.leader.getPosition()
+    return last(this.iterators).getPosition()
   }
 
   getCloseScopeIds () {
-    return this.leader.getCloseScopeIds()
+    return last(this.iterators).getCloseScopeIds()
   }
 
   getOpenScopeIds () {
-    return this.leader.getOpenScopeIds()
-  }
-
-  _findLeader () {
-    let minPosition = Point.INFINITY
-    for (const it of this.iterators) {
-      const position = it.getPosition()
-      if (pointIsLess(position, minPosition)) {
-        this.leader = it
-        minPosition = position
-      }
-    }
+    return last(this.iterators).getOpenScopeIds()
   }
 }
 
@@ -858,6 +855,16 @@ class LayerHighlightIterator {
     }
   }
 
+  getIndex () {
+    if (this.done) {
+      return Infinity
+    } else if (this.atEnd) {
+      return this.treeCursor.endIndex
+    } else {
+      return this.treeCursor.startIndex
+    }
+  }
+
   getCloseScopeIds () {
     return this.closeTags.slice()
   }
@@ -882,8 +889,9 @@ class LayerHighlightIterator {
 }
 
 class NullHighlightIterator {
-  seek () {}
+  seek () { return [] }
   moveToSuccessor () {}
+  getIndex () { return Infinity }
   getPosition () { return Point.INFINITY }
   getOpenScopeIds () { return [] }
   getCloseScopeIds () { return [] }
