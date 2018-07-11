@@ -16,6 +16,36 @@ module.exports = function (packagedAppPath) {
     downloadFileFromGithub(process.env.ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
   }
   try {
+    console.log(`Ensuring keychain ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN} exists`)
+    try {
+      spawnSync('security', [
+        'show-keychain-info',
+        process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN
+      ], {stdio: 'inherit'})
+    } catch (err) {
+      console.log(`Creating keychain ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN}`)
+      // The keychain doesn't exist, try to create it
+      spawnSync('security', [
+        'create-keychain',
+        '-p', process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD,
+        process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN
+      ], {stdio: 'inherit'})
+
+      // List the keychain to "activate" it.  Somehow this seems
+      // to be needed otherwise the signing operation fails
+      spawnSync('security', [
+        'list-keychains',
+        '-s', process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN
+      ], {stdio: 'inherit'})
+
+      // Make sure it doesn't time out before we use it
+      spawnSync('security', [
+        'set-keychain-settings',
+        '-t', '3600',
+        '-u', process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN
+      ], {stdio: 'inherit'})
+    }
+
     console.log(`Unlocking keychain ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN}`)
     const unlockArgs = ['unlock-keychain']
     // For signing on local workstations, password could be entered interactively

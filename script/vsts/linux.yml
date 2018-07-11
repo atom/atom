@@ -1,0 +1,58 @@
+phases:
+- phase: Linux
+  dependsOn: GetReleaseVersion
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+  queue:
+    name: Hosted Linux Preview
+    timeoutInMinutes: 180
+
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 8.9.3
+    displayName: Install Node.js 8.9.3
+
+  - script: |
+      apt-get update
+      apt-get install -y --no-install-recommends build-essential xvfb clang-3.5 fakeroot git libsecret-1-dev rpm libx11-dev libxkbfile-dev xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0
+    displayName: Install apt dependencies
+
+  - script: |
+      script/build --create-debian-package --create-rpm-package --compress-artifacts
+    env:
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
+    displayName: Build Atom
+
+  - script: script/lint
+    displayName: Run linter
+
+  - script: |
+      /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
+      export DISPLAY=':99.0'
+      Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      script/test
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+    displayName: Run tests
+
+  # This step is necessary in the short term due to a bug in the *NIX
+  # implementation of the CopyFiles task which scans the entire file
+  # system structure just to resolve the glob pattern.
+  - script: rm -rf $(Build.SourcesDirectory)/out/*/
+    displayName: Delete Intermediate Output
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: $(Build.SourcesDirectory)/out
+      contents: '?(*.deb|*.rpm|*.tar.gz)'
+      targetFolder: $(Build.ArtifactStagingDirectory)
+    displayName: Stage Artifacts
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)
+      ArtifactName: Binaries
+      ArtifactType: Container
+    displayName: Upload Artifacts
