@@ -56,7 +56,7 @@ function getChannel (version) {
   return 'stable'
 }
 
-function getAppName(channel) {
+function getAppName (channel) {
   return channel === 'stable'
     ? 'Atom'
     : `Atom ${process.env.ATOM_CHANNEL_DISPLAY_NAME || channel.charAt(0).toUpperCase() + channel.slice(1)}`
