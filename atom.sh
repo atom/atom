@@ -83,6 +83,8 @@ if [ $OS == 'Mac' ]; then
     ATOM_EXECUTABLE_NAME="Atom Beta"
   elif [ "$CHANNEL" == 'nightly' ]; then
     ATOM_EXECUTABLE_NAME="Atom Nightly"
+  elif [ "$CHANNEL" == 'dev' ]; then
+    ATOM_EXECUTABLE_NAME="Atom Dev"
   else
     ATOM_EXECUTABLE_NAME="Atom"
   fi

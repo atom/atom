@@ -12,7 +12,7 @@ module.exports = function (packagedAppPath) {
   console.log(`Creating rpm package for "${packagedAppPath}"`)
   const atomExecutableName = CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`
   const apmExecutableName = CONFIG.channel === 'stable' ? 'apm' : `apm-${CONFIG.channel}`
-  const appName = CONFIG.channel === 'stable' ? 'Atom' : `Atom ${CONFIG.channelDisplayName}`
+  const appName = CONFIG.appName
   const appDescription = CONFIG.appMetadata.description
   // RPM versions can't have dashes or tildes in them.
   // (Ref.: https://twiki.cern.ch/twiki/bin/view/Main/RPMAndDebVersioning)
