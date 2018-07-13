@@ -113,10 +113,6 @@ class TreeSitterLanguageMode {
     return this.rootLanguageLayer.tree
   }
 
-  get reparsePromise () {
-    return this.rootLanguageLayer.currentParsePromise
-  }
-
   updateForInjection (grammar) {
     this.rootLanguageLayer.updateInjections(grammar)
   }
@@ -474,12 +470,22 @@ class LanguageLayer {
       this.tree.edit(this._treeEditForBufferChange(
         oldRange.start, oldRange.end, newRange.end, oldText, newText
       ))
+
+      if (this.editedRange) {
+        if (newRange.start.isLessThan(this.editedRange.start)) {
+          this.editedRange.start = newRange.start
+        }
+        if (oldRange.end.isLessThan(this.editedRange.end)) {
+          this.editedRange.end = newRange.end.traverse(this.editedRange.end.traversalFrom(oldRange.end))
+        } else {
+          this.editedRange.end = newRange.end
+        }
+      } else {
+        this.editedRange = newRange.copy()
+      }
     }
 
-    if (this.currentParsePromise) {
-      if (!this.patchSinceCurrentParseStarted) {
-        this.patchSinceCurrentParseStarted = new Patch()
-      }
+    if (this.patchSinceCurrentParseStarted) {
       this.patchSinceCurrentParseStarted.splice(
         oldRange.start,
         oldRange.end,
@@ -500,22 +506,12 @@ class LanguageLayer {
   }
 
   async update (nodeRangeSet) {
-    if (this.currentParsePromise) return this.currentParsePromise
-
-    this.currentParsePromise = this._performUpdate(nodeRangeSet)
-    await this.currentParsePromise
-    this.currentParsePromise = null
-
-    if (this.patchSinceCurrentParseStarted) {
-      const changes = this.patchSinceCurrentParseStarted.getChanges()
-      for (let i = changes.length - 1; i >= 0; i--) {
-        const {oldStart, oldEnd, newEnd, oldText, newText} = changes[i]
-        this.tree.edit(this._treeEditForBufferChange(
-          oldStart, oldEnd, newEnd, oldText, newText
-        ))
-      }
-      this.patchSinceCurrentParseStarted = null
-      this.update(nodeRangeSet)
+    if (!this.currentParsePromise) {
+      do {
+        this.currentParsePromise = this._performUpdate(nodeRangeSet)
+        await this.currentParsePromise
+      } while (this.tree && this.tree.rootNode.hasChanges())
+      this.currentParsePromise = null
     }
   }
 
@@ -536,6 +532,10 @@ class LanguageLayer {
       if (includedRanges.length === 0) return
     }
 
+    let affectedRange = this.editedRange
+    this.editedRange = null
+
+    this.patchSinceCurrentParseStarted = new Patch()
     const tree = await this.languageMode.parse(
       this.grammar.languageModule,
       this.tree,
@@ -543,14 +543,20 @@ class LanguageLayer {
     )
     tree.buffer = this.languageMode.buffer
 
-    let affectedRange
-    if (this.tree) {
-      const editedRange = this.tree.getEditedRange()
-      if (!editedRange) return
-      affectedRange = rangeForNode(editedRange)
+    const changes = this.patchSinceCurrentParseStarted.getChanges()
+    this.patchSinceCurrentParseStarted = null
+    for (let i = changes.length - 1; i >= 0; i--) {
+      const {oldStart, oldEnd, newEnd, oldText, newText} = changes[i]
+      tree.edit(this._treeEditForBufferChange(
+        oldStart, oldEnd, newEnd, oldText, newText
+      ))
+    }
 
+    if (this.tree) {
       const rangesWithSyntaxChanges = this.tree.getChangedRanges(tree)
       this.tree = tree
+
+      if (!affectedRange) return
       if (rangesWithSyntaxChanges.length > 0) {
         for (const range of rangesWithSyntaxChanges) {
           this.languageMode.emitRangeUpdate(rangeForNode(range))
@@ -560,6 +566,8 @@ class LanguageLayer {
           rangesWithSyntaxChanges[0].startPosition,
           last(rangesWithSyntaxChanges).endPosition
         ))
+      } else {
+        this.languageMode.emitRangeUpdate(affectedRange)
       }
     } else {
       this.tree = tree

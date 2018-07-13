@@ -37,7 +37,7 @@ describe('TreeSitterLanguageMode', () => {
 
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      await languageMode.reparsePromise
+      await nextHighlightingUpdate(languageMode)
 
       expectTokensToEqual(editor, [[
         {text: 'aa.', scopes: ['source']},
@@ -67,7 +67,7 @@ describe('TreeSitterLanguageMode', () => {
 
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      await languageMode.reparsePromise
+      await nextHighlightingUpdate(languageMode)
 
       expectTokensToEqual(editor, [[
         {text: 'a', scopes: ['source', 'variable']},
@@ -94,7 +94,7 @@ describe('TreeSitterLanguageMode', () => {
 
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      await languageMode.reparsePromise
+      await nextHighlightingUpdate(languageMode)
 
       expectTokensToEqual(editor, [
         [
@@ -122,9 +122,8 @@ describe('TreeSitterLanguageMode', () => {
 
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      await languageMode.reparsePromise
+      await nextHighlightingUpdate(languageMode)
 
-      editor.screenLineForScreenRow(0)
       expect(
         languageMode.tree.rootNode.descendantForPosition(Point(1, 2), Point(1, 6)).toString()
       ).toBe('(declaration (primitive_type) (identifier) (MISSING))')
@@ -168,7 +167,7 @@ describe('TreeSitterLanguageMode', () => {
 
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      await languageMode.reparsePromise
+      await nextHighlightingUpdate(languageMode)
 
       // missing closing paren
       expectTokensToEqual(editor, [
@@ -179,7 +178,7 @@ describe('TreeSitterLanguageMode', () => {
       ])
 
       buffer.append(')')
-      await languageMode.reparsePromise
+      await nextHighlightingUpdate(languageMode)
       expectTokensToEqual(editor, [
         [
           {text: 'a', scopes: ['function']},
@@ -209,8 +208,8 @@ describe('TreeSitterLanguageMode', () => {
 
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      await languageMode.reparsePromise
 
+      await nextHighlightingUpdate(languageMode)
       expectTokensToEqual(editor, [
         [{text: '// abc', scopes: ['comment']}],
         [{text: '', scopes: []}],
@@ -223,7 +222,7 @@ describe('TreeSitterLanguageMode', () => {
       ])
 
       buffer.insert([2, 0], '  ')
-      await languageMode.reparsePromise
+      await nextHighlightingUpdate(languageMode)
       expectTokensToEqual(editor, [
         [{text: '// abc', scopes: ['comment']}],
         [{text: '', scopes: []}],
@@ -248,9 +247,10 @@ describe('TreeSitterLanguageMode', () => {
       });
 
       buffer.setText('`\na${1}\nb${2}\n`;')
+
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      await languageMode.reparsePromise
+      await nextHighlightingUpdate(languageMode)
 
       expectTokensToEqual(editor, [
         [
@@ -288,7 +288,8 @@ describe('TreeSitterLanguageMode', () => {
 
         const languageMode = new TreeSitterLanguageMode({buffer, grammar})
         buffer.setLanguageMode(languageMode)
-        await languageMode.reparsePromise
+        await nextHighlightingUpdate(languageMode)
+        await new Promise(process.nextTick)
 
         expectTokensToEqual(editor, [
           [
@@ -314,8 +315,7 @@ describe('TreeSitterLanguageMode', () => {
           ],
         ])
 
-        await languageMode.reparsePromise
-        expect(languageMode.reparsePromise).not.toBeNull()
+        await nextHighlightingUpdate(languageMode)
         expectTokensToEqual(editor, [
           [
             {text: 'new ', scopes: []},
@@ -324,8 +324,7 @@ describe('TreeSitterLanguageMode', () => {
           ],
         ])
 
-        await languageMode.reparsePromise
-        expect(languageMode.reparsePromise).toBeNull()
+        await nextHighlightingUpdate(languageMode)
         expectTokensToEqual(editor, [
           [
             {text: 'new ', scopes: []},
@@ -378,7 +377,8 @@ describe('TreeSitterLanguageMode', () => {
 
         const languageMode = new TreeSitterLanguageMode({buffer, grammar: jsGrammar, grammars: atom.grammars})
         buffer.setLanguageMode(languageMode)
-        await languageMode.reparsePromise
+        await nextHighlightingUpdate(languageMode)
+        await nextHighlightingUpdate(languageMode)
 
         expectTokensToEqual(editor, [
           [
@@ -407,7 +407,8 @@ describe('TreeSitterLanguageMode', () => {
 
         const range = buffer.findSync('html')
         buffer.setTextInRange(range, 'xml')
-        await languageMode.reparsePromise
+        await nextHighlightingUpdate(languageMode)
+        await nextHighlightingUpdate(languageMode)
 
         expectTokensToEqual(editor, [
           [
@@ -437,7 +438,8 @@ describe('TreeSitterLanguageMode', () => {
 
         const languageMode = new TreeSitterLanguageMode({buffer, grammar: htmlGrammar, grammars: atom.grammars})
         buffer.setLanguageMode(languageMode)
-        await languageMode.reparsePromise
+        await nextHighlightingUpdate(languageMode)
+        await nextHighlightingUpdate(languageMode)
 
         expectTokensToEqual(editor, [
           [
@@ -473,8 +475,9 @@ describe('TreeSitterLanguageMode', () => {
         buffer.setText('node.innerHTML = html `\na ${b}<img src="d">\n`;')
         const languageMode = new TreeSitterLanguageMode({buffer, grammar: jsGrammar, grammars: atom.grammars})
         buffer.setLanguageMode(languageMode)
-        await languageMode.reparsePromise
-          expectTokensToEqual(editor, [
+
+        await nextHighlightingUpdate(languageMode)
+        expectTokensToEqual(editor, [
           [
             {text: 'node.', scopes: []},
             {text: 'innerHTML', scopes: ['property']},
@@ -495,7 +498,7 @@ describe('TreeSitterLanguageMode', () => {
         ])
 
         atom.grammars.addGrammar(htmlGrammar)
-        await languageMode.reparsePromise
+        await nextHighlightingUpdate(languageMode)
         expectTokensToEqual(editor, [
           [
             {text: 'node.', scopes: []},
@@ -626,9 +629,7 @@ describe('TreeSitterLanguageMode', () => {
 
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      await languageMode.reparsePromise
-
-      editor.screenLineForScreenRow(0)
+      await nextHighlightingUpdate(languageMode)
 
       expect(editor.isFoldableAtBufferRow(0)).toBe(false)
       expect(editor.isFoldableAtBufferRow(1)).toBe(true)
@@ -690,9 +691,7 @@ describe('TreeSitterLanguageMode', () => {
 
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      await languageMode.reparsePromise
-
-      editor.screenLineForScreenRow(0)
+      await nextHighlightingUpdate(languageMode)
 
       expect(editor.isFoldableAtBufferRow(0)).toBe(true)
       expect(editor.isFoldableAtBufferRow(1)).toBe(false)
@@ -741,9 +740,7 @@ describe('TreeSitterLanguageMode', () => {
 
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      await languageMode.reparsePromise
-
-      editor.screenLineForScreenRow(0)
+      await nextHighlightingUpdate(languageMode)
 
       expect(editor.isFoldableAtBufferRow(0)).toBe(true)
       expect(editor.isFoldableAtBufferRow(1)).toBe(false)
@@ -818,9 +815,7 @@ describe('TreeSitterLanguageMode', () => {
 
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      await languageMode.reparsePromise
-
-      editor.screenLineForScreenRow(0)
+      await nextHighlightingUpdate(languageMode)
 
       editor.foldBufferRow(3)
       expect(getDisplayText(editor)).toBe(dedent `
@@ -902,7 +897,7 @@ describe('TreeSitterLanguageMode', () => {
 
       const languageMode = new TreeSitterLanguageMode({buffer, grammar})
       buffer.setLanguageMode(languageMode)
-      await languageMode.reparsePromise
+      await nextHighlightingUpdate(languageMode)
 
       // Void elements have only one child
       expect(editor.isFoldableAtBufferRow(1)).toBe(false)
@@ -938,9 +933,7 @@ describe('TreeSitterLanguageMode', () => {
         `)
 
         buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
-        await buffer.getLanguageMode().reparsePromise
-
-        editor.screenLineForScreenRow(0)
+        await nextHighlightingUpdate(buffer.getLanguageMode())
 
         editor.foldBufferRow(0)
         expect(getDisplayText(editor)).toBe(dedent `
@@ -1040,9 +1033,7 @@ describe('TreeSitterLanguageMode', () => {
       buffer.setText('foo({bar: baz});')
 
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
-      await buffer.getLanguageMode().reparsePromise
-
-      editor.screenLineForScreenRow(0)
+      await nextHighlightingUpdate(buffer.getLanguageMode())
       expect(editor.scopeDescriptorForBufferPosition([0, 6]).getScopesArray()).toEqual([
         'javascript',
         'program',
@@ -1071,9 +1062,7 @@ describe('TreeSitterLanguageMode', () => {
       `)
 
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
-      await buffer.getLanguageMode().reparsePromise
-
-      editor.screenLineForScreenRow(0)
+      await nextHighlightingUpdate(buffer.getLanguageMode())
 
       editor.setCursorBufferPosition([1, 3])
       editor.selectLargerSyntaxNode()
