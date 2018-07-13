@@ -848,10 +848,7 @@ class TextEditorComponent {
     }
 
     for (let i = 0; i < newClassList.length; i++) {
-      const className = newClassList[i]
-      if (!oldClassList || !oldClassList.includes(className)) {
-        this.element.classList.add(className)
-      }
+      this.element.classList.add(newClassList[i])
     }
 
     this.classList = newClassList
