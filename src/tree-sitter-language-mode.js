@@ -8,23 +8,6 @@ const TextMateLanguageMode = require('./text-mate-language-mode')
 
 let nextId = 0
 const MAX_RANGE = new Range(Point.ZERO, Point.INFINITY).freeze()
-
-/**
- * Return true iff `mouse` is smaller than `house`. Only correct if
- * mouse and house overlap.
- *
- * @param mouse {Range}
- * @param house {Range}
- */
-const rangeIsSmaller = (mouse, house) => {
-  if (!house) return true
-  const mvec = vecFromRange(mouse)
-  const hvec = vecFromRange(house)
-  return Point.min(mvec, hvec) === mvec
-}
-
-const vecFromRange = ({start, end}) => end.translate(start.negate())
-
 const PARSER_POOL = []
 
 class TreeSitterLanguageMode {
@@ -955,6 +938,22 @@ class NodeRangeSet {
       })
     }
   }
+}
+
+// Return true iff `mouse` is smaller than `house`. Only correct if
+// mouse and house overlap.
+//
+// * `mouse` {Range}
+// * `house` {Range}
+function rangeIsSmaller (mouse, house) {
+  if (!house) return true
+  const mvec = vecFromRange(mouse)
+  const hvec = vecFromRange(house)
+  return Point.min(mvec, hvec) === mvec
+}
+
+function vecFromRange ({start, end}) {
+  return end.translate(start.negate())
 }
 
 function rangeForNode (node) {
