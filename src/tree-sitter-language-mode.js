@@ -5,7 +5,6 @@ const {Emitter, Disposable} = require('event-kit')
 const ScopeDescriptor = require('./scope-descriptor')
 const TokenizedLine = require('./tokenized-line')
 const TextMateLanguageMode = require('./text-mate-language-mode')
-const async = require('async')
 
 let nextId = 0
 const MAX_RANGE = new Range(Point.ZERO, Point.INFINITY).freeze()
@@ -25,6 +24,8 @@ const rangeIsSmaller = (mouse, house) => {
 }
 
 const vecFromRange = ({start, end}) => end.translate(start.negate())
+
+const PARSER_POOL = []
 
 class TreeSitterLanguageMode {
   static _patchSyntaxNode () {
@@ -55,18 +56,6 @@ class TreeSitterLanguageMode {
 
     this.grammarForLanguageString = this.grammarForLanguageString.bind(this)
     this.emitRangeUpdate = this.emitRangeUpdate.bind(this)
-
-    this.parsers = []
-    this.parseQueue = async.queue(async ({language, oldTree, ranges}, done) => {
-      const parser = this.parsers.pop() || new Parser()
-      parser.setLanguage(language)
-      const newTree = await parser.parseTextBuffer(this.buffer.buffer, oldTree, {
-        syncOperationLimit: 1000,
-        includedRanges: ranges
-      })
-      this.parsers.push(parser)
-      done(null, newTree)
-    }, 2)
 
     this.subscription = this.buffer.onDidChangeText(({changes}) => {
       for (let i = changes.length - 1; i >= 0; i--) {
@@ -109,12 +98,15 @@ class TreeSitterLanguageMode {
     }
   }
 
-  parse (language, oldTree, ranges) {
-    return new Promise((resolve, reject) =>
-      this.parseQueue.push({language, oldTree, ranges}, (error, tree) =>
-        error ? reject(error) : resolve(tree)
-      )
-    )
+  async parse (language, oldTree, ranges) {
+    const parser = PARSER_POOL.pop() || new Parser()
+    parser.setLanguage(language)
+    const newTree = await parser.parseTextBuffer(this.buffer.buffer, oldTree, {
+      syncOperationLimit: 1000,
+      includedRanges: ranges
+    })
+    PARSER_POOL.push(parser)
+    return newTree
   }
 
   get tree () {
