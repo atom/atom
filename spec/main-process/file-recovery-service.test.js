@@ -1,6 +1,8 @@
 const {dialog} = require('electron')
 const FileRecoveryService = require('../../src/main-process/file-recovery-service')
 const fs = require('fs-plus')
+const fsreal = require('fs')
+const EventEmitter = require('events').EventEmitter
 const sinon = require('sinon')
 const {escapeRegExp} = require('underscore-plus')
 const temp = require('temp').track()
@@ -116,13 +118,22 @@ describe("FileRecoveryService", () => {
       const mockWindow = {}
       const filePath = temp.path()
       fs.writeFileSync(filePath, "content")
-      fs.chmodSync(filePath, 0444)
 
       let logs = []
       spies.stub(console, 'log', (message) => logs.push(message))
       spies.stub(dialog, 'showMessageBox')
 
+      // Copy files to be recovered before mocking fs.createWriteStream
       await recoveryService.willSavePath(mockWindow, filePath)
+
+      // Stub out fs.createWriteStream so that we can return a fake error when
+      // attempting to copy the recovered file to its original location
+      var fakeEmitter = new EventEmitter()
+      var onStub = spies.stub(fakeEmitter, 'on')
+      onStub.withArgs('error').yields(new Error('Nope')).returns(fakeEmitter)
+      onStub.withArgs('open').returns(fakeEmitter)
+      spies.stub(fsreal, 'createWriteStream').withArgs(filePath).returns(fakeEmitter)
+
       await recoveryService.didCrashWindow(mockWindow)
       let recoveryFiles = fs.listTreeSync(recoveryDirectory)
       assert.equal(recoveryFiles.length, 1)

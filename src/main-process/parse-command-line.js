@@ -12,12 +12,17 @@ module.exports = function parseCommandLine (processArgs) {
   options.usage(
     dedent`Atom Editor v${version}
 
-    Usage: atom [options] [path ...]
+    Usage:
+      atom [options] [path ...]
+      atom file[:line[:column]]
 
     One or more paths to files or folders may be specified. If there is an
     existing Atom window that contains all of the given folders, the paths
     will be opened in that window. Otherwise, they will be opened in a new
     window.
+
+    A file may be opened at the desired line (and optionally column) by
+    appending the numbers right after the file name, e.g. \`atom file:5:8\`.
 
     Paths that start with \`atom://\` will be interpreted as URLs.
 

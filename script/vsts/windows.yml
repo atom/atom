@@ -1,0 +1,54 @@
+phases:
+- phase: Windows
+  dependsOn: GetReleaseVersion
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+  queue:
+    name: Hosted
+    timeoutInMinutes: 180
+    parallel: 2
+    matrix:
+      x64:
+        buildArch: x64
+      # TODO: x86 is currently not supported on VSTS
+      # x86:
+      #   buildArch: x86
+
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 8.9.3
+    displayName: Install Node.js 8.9.3
+
+  - script: |
+      IF NOT EXIST C:\tmp MKDIR C:\tmp
+      SET SQUIRREL_TEMP=C:\tmp
+      script\build.cmd --create-windows-installer --code-sign --compress-artifacts
+    env:
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
+      ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL)
+      ATOM_WIN_CODE_SIGNING_CERT_PASSWORD: $(ATOM_WIN_CODE_SIGNING_CERT_PASSWORD)
+    displayName: Build Atom
+
+  - script: script\lint.cmd
+    displayName: Run linter
+
+  - script: script\test.cmd
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+    displayName: Run tests
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: $(Build.SourcesDirectory)/out
+      contents: '?(*.exe|*.zip|*.nupkg|RELEASES*)'
+      targetFolder: $(Build.ArtifactStagingDirectory)
+    displayName: Stage Artifacts
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)
+      ArtifactName: Binaries
+      ArtifactType: Container
+    displayName: Upload Artifacts

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Implemented in PR [#17538](https://github.com/atom/atom/pull/17538)
 
 ## Summary
 

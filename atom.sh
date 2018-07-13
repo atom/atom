@@ -13,6 +13,9 @@ case $(basename $0) in
   atom-beta)
     CHANNEL=beta
     ;;
+  atom-nightly)
+    CHANNEL=nightly
+    ;;
   atom-dev)
     CHANNEL=dev
     ;;
@@ -78,6 +81,10 @@ if [ $OS == 'Mac' ]; then
 
   if [ "$CHANNEL" == 'beta' ]; then
     ATOM_EXECUTABLE_NAME="Atom Beta"
+  elif [ "$CHANNEL" == 'nightly' ]; then
+    ATOM_EXECUTABLE_NAME="Atom Nightly"
+  elif [ "$CHANNEL" == 'dev' ]; then
+    ATOM_EXECUTABLE_NAME="Atom Dev"
   else
     ATOM_EXECUTABLE_NAME="Atom"
   fi
@@ -113,6 +120,9 @@ elif [ $OS == 'Linux' ]; then
   case $CHANNEL in
     beta)
       ATOM_PATH="$USR_DIRECTORY/share/atom-beta/atom"
+      ;;
+    nightly)
+      ATOM_PATH="$USR_DIRECTORY/share/atom-nightly/atom"
       ;;
     dev)
       ATOM_PATH="$USR_DIRECTORY/share/atom-dev/atom"
