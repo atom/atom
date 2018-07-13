@@ -70,10 +70,10 @@ class TreeSitterLanguageMode {
         )
       }
 
-      this.rootLanguageLayer.update(NodeRangeSet.FULL)
+      this.rootLanguageLayer.update(null)
     })
 
-    this.rootLanguageLayer.update(NodeRangeSet.FULL)
+    this.rootLanguageLayer.update(null)
 
     // TODO: Remove this once TreeSitterLanguageMode implements its own auto-indentation system. This
     // is temporarily needed in order to delegate to the TextMateLanguageMode's auto-indent system.
@@ -520,19 +520,18 @@ class LanguageLayer {
   }
 
   updateInjections (grammar) {
-    if (!grammar.injectionRegExp) return
-    if (!this.currentParsePromise) this.currentParsePromise = Promise.resolve()
-    this.currentParsePromise = this.currentParsePromise.then(async () => {
-      await this._populateInjections(MAX_RANGE, NodeRangeSet.FULL)
-      this.currentParsePromise = null
-    })
+    if (grammar.injectionRegExp) {
+      if (!this.currentParsePromise) this.currentParsePromise = Promise.resolve()
+      this.currentParsePromise = this.currentParsePromise.then(async () => {
+        await this._populateInjections(MAX_RANGE, null)
+        this.currentParsePromise = null
+      })
+    }
   }
 
   async _performUpdate (nodeRangeSet) {
-    let includedRanges
-    if (nodeRangeSet === NodeRangeSet.FULL) {
-      includedRanges = null
-    } else {
+    let includedRanges = null
+    if (nodeRangeSet) {
       includedRanges = nodeRangeSet.getRanges()
       if (includedRanges.length === 0) return
     }
@@ -621,7 +620,7 @@ class LanguageLayer {
           marker.parentLanguageLayer = this
         }
 
-        markersToUpdate.set(marker, nodeRangeSet.intersect(injectionNodes))
+        markersToUpdate.set(marker, new NodeRangeSet(nodeRangeSet, injectionNodes))
       }
     }
 
@@ -895,12 +894,8 @@ class NodeRangeSet {
     this.nodes = nodes
   }
 
-  intersect (nodes) {
-    return new NodeRangeSet(this, nodes)
-  }
-
   getRanges () {
-    const previousRanges = this.previous.getRanges()
+    const previousRanges = this.previous && this.previous.getRanges()
     const result = []
 
     for (const node of this.nodes) {
@@ -936,6 +931,11 @@ class NodeRangeSet {
   }
 
   _pushRange (previousRanges, newRanges, newRange) {
+    if (!previousRanges) {
+      newRanges.push(newRange)
+      return
+    }
+
     for (const previousRange of previousRanges) {
       if (previousRange.endIndex <= newRange.startIndex) continue
       if (previousRange.startIndex >= newRange.endIndex) break
@@ -948,14 +948,6 @@ class NodeRangeSet {
     }
   }
 }
-
-class FullRangeSet extends NodeRangeSet {
-  getRanges () {
-    return [{startPosition: Point.ZERO, endPosition: Point.INFINITY, startIndex: 0, endIndex: Infinity}]
-  }
-}
-
-NodeRangeSet.FULL = new FullRangeSet()
 
 function rangeForNode (node) {
   return new Range(node.startPosition, node.endPosition)
