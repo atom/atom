@@ -22,7 +22,7 @@ class AtomProtocolHandler {
       this.loadPaths.push(path.join(process.env.ATOM_HOME, 'dev', 'packages'))
       if (process.env.ATOM_DEV_RESOURCE_PATH) {
         this.loadPaths.push(path.join(process.env.ATOM_DEV_RESOURCE_PATH, 'packages'))
-      }      
+      }
     }
 
     this.loadPaths.push(path.join(process.env.ATOM_HOME, 'packages'))

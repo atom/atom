@@ -63,7 +63,7 @@ module.exports = class PackageManager {
         this.packageDirPaths.push(path.join(params.configDirPath, 'dev', 'packages'))
         if (process.env.ATOM_DEV_RESOURCE_PATH) {
           this.packageDirPaths.push(path.join(process.env.ATOM_DEV_RESOURCE_PATH, 'packages'))
-        }        
+        }
       }
       this.packageDirPaths.push(path.join(params.configDirPath, 'packages'))
     }
