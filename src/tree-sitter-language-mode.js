@@ -512,7 +512,10 @@ class LanguageLayer {
     let includedRanges = null
     if (nodeRangeSet) {
       includedRanges = nodeRangeSet.getRanges()
-      if (includedRanges.length === 0) return
+      if (includedRanges.length === 0) {
+        this.tree = null
+        return
+      }
     }
 
     let affectedRange = this.editedRange
@@ -650,13 +653,13 @@ class HighlightIterator {
   }
 
   seek (targetPosition) {
-    const openScopes = []
+    const containingTags = [], containingTagStartIndices = []
     const targetIndex = this.languageMode.buffer.characterIndexForPosition(targetPosition)
     for (let i = this.iterators.length - 1; i >= 0; i--) {
-      openScopes.push(...this.iterators[i].seek(targetIndex))
+      this.iterators[i].seek(targetIndex, containingTags, containingTagStartIndices)
     }
     this.iterators.sort((a, b) => b.getIndex() - a.getIndex())
-    return openScopes
+    return containingTags
   }
 
   moveToSuccessor () {
@@ -702,10 +705,8 @@ class LayerHighlightIterator {
     this.openTags = []
   }
 
-  seek (targetIndex) {
+  seek (targetIndex, containingTags, containingTagStartIndices) {
     while (this.treeCursor.gotoParent()) {}
-
-    const containingTags = []
 
     this.done = false
     this.atEnd = true
@@ -717,7 +718,7 @@ class LayerHighlightIterator {
 
     if (targetIndex >= this.treeCursor.endIndex) {
       this.done = true
-      return containingTags
+      return
     }
 
     let childIndex = -1
@@ -730,7 +731,7 @@ class LayerHighlightIterator {
       if (scopeName) {
         const id = this.idForScope(scopeName)
         if (this.treeCursor.startIndex < targetIndex) {
-          containingTags.push(id)
+          insertContainingTag(id, this.treeCursor.startIndex, containingTags, containingTagStartIndices)
         } else {
           this.atEnd = false
           this.openTags.push(id)
@@ -937,6 +938,17 @@ class NodeRangeSet {
         endPosition: Point.min(previousRange.endPosition, newRange.endPosition)
       })
     }
+  }
+}
+
+function insertContainingTag (tag, index, tags, indices) {
+  const i = indices.findIndex(existingIndex => existingIndex > index)
+  if (i === -1) {
+    tags.push(tag)
+    indices.push(index)
+  } else {
+    tags.splice(i, 0, tag)
+    indices.splice(i, 0, index)
   }
 }
 
