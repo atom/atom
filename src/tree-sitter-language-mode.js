@@ -653,7 +653,8 @@ class HighlightIterator {
   }
 
   seek (targetPosition) {
-    const containingTags = [], containingTagStartIndices = []
+    const containingTags = []
+    const containingTagStartIndices = []
     const targetIndex = this.languageMode.buffer.characterIndexForPosition(targetPosition)
     for (let i = this.iterators.length - 1; i >= 0; i--) {
       this.iterators[i].seek(targetIndex, containingTags, containingTagStartIndices)
