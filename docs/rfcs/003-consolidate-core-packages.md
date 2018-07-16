@@ -6,7 +6,7 @@ Proposed
 
 ## Summary
 
-Atom's official distribution is comprised of 91 core packages which provide its built-in functionality.  These packages currently live in their own independent repositories in the Atom organization, all with their own separate issues, PRs, releases, and CI configurations.  This RFC proposes that by consolidating most, if not all, of these core packages back into the `atom/atom` repo, we will see the following benefits:
+Atom's official distribution is comprised of 92 core packages which provide its built-in functionality.  These packages currently live in their own independent repositories in the Atom organization, all with their own separate issues, PRs, releases, and CI configurations.  This RFC proposes that by consolidating most, if not all, of these core packages back into the `atom/atom` repo, we will see the following benefits:
 
 - Less confusion for new contributors
 - Simpler core package contribution experience
@@ -18,18 +18,18 @@ Let's cover each of the bullet points mentioned above:
 
 ### Less confusion for contributors
 
-Imagine that a new contributor wants to add a small new feature to the `tree-view` package.  The first place they are likely to look is the `atom/atom` repository.  Scanning through the folders will lead to a dead end, nothing that looks like `tree-view` code can be found.  They might take one of the following steps next:
+Imagine that a new contributor wants to add a small new feature to the `tree-view` package.  The first place they are likely to look is the `atom/atom` repository.  Scanning through the folders will lead to a dead end as nothing that looks like `tree-view` code can be found.  They might take one of the following steps next:
 
-- By reading README.md, maybe they will decide to click the link to the Atom Flight Manual and _maybe_ find the [Contributing to Official Atom Packages](https://flight-manual.atom.io/hacking-atom/sections/contributing-to-official-atom-packages/) page there.
+- By reading README.md, maybe they will decide to click the link to the Atom Flight Manual and _maybe_ find the [Contributing to Official Atom Packages](https://flight-manual.atom.io/hacking-atom/sections/contributing-to-official-atom-packages/) page there
 - They could read the CONTRIBUTING.md file which [has a section](https://github.com/atom/atom/blob/master/CONTRIBUTING.md#atom-and-packages) that explains where to find the repos for core packages and how to contribute, but we don't really have a clear pointer to that in our README.md
 - If they don't happen to find that page, they might use Google to search for "atom tree view" and find the atom/tree-view repo and _maybe_ read the CONTRIBUTING.md file which sends them to Atom's overall contribution documentation
-- They might go to the Atom Forum or Slack community to ask how to contribute to
+- They might go to the Atom Forum or Slack community to ask how to contribute to a particular part of Atom and *hopefully* get a helpful response that points them in the right direction
 
-Having all of the core Atom packages represented in a top-level `packages` folder, even if they don't actually live in the repo, will go a long way to making the core package code more discoverable.
+Having all of the core Atom packages represented in a top-level `packages` folder, even if they all don't actually live in the repo, will go a long way to making the core package code more discoverable.
 
 ### Simpler core package contribution experience
 
-Separating core Atom features out into separate repositories and delivered via `apm` is a great idea in theory because it validates the Atom package ecosystem and gives developers many examples of how to develop an Atom package.  It also gives Atom developers real-world experience working with Atom's APIs so that we ensure community package authors have the same hackability that the Atom developers enjoy.
+Separating core Atom features out into individual repositories and delivering them to Atom builds via `apm` is a great idea in theory because it validates the Atom package ecosystem and gives developers many examples of how to develop an Atom package.  It also gives Atom developers real-world experience working with Atom's APIs so that we ensure community package authors have the same hackability that Atom developers enjoy.
 
 On the other hand, having these packages live in separate repositories and released "independently" introduces a great deal of overhead when adding new features.  Here is a comparison of the current package development workflow contrasted to what we could achieve with consolidated packages:
 
@@ -43,14 +43,12 @@ For example, to add a single feature to the `tree-view` package, one must:
 1. Open a PR to the `tree-view` repo and wait for CI to pass and a maintainer to review it
 1. Work with maintainers to get the PR approved and merged
 
-After this is finished, an Atom maintainer must take the following steps
+After this is finished, an Atom maintainer must take the following steps:
 
 1. Clone the `tree-view` repo
 2. Run `apm publish` to publish a new release of the package
 3. Edit `package.json` in the Atom repo to reflect the new version of `tree-view`
 4. Commit and push the changes to the relevant branch where the change belongs (`master` or `1.nn-releases`)
-
-If `tree-view` was moved into the `atom/atom` repository
 
 #### Simplified Package Development
 
@@ -66,7 +64,7 @@ At this point, the change is merged into Atom and ready for inclusion in the nex
 
 ### Greatly reduced burden for maintainers
 
-Since packages all have their own repositories, this means that we have to watch 91 different repos for issues and pull requests.  This also means that we have to redirect issues filed on `atom/atom` to the appropriate repository when a user doesn't know where it belongs.  Even more importantly, there's not an easy way to prioritize and track issues across the Atom organization without using GitHub projects.
+Since packages all have their own repositories, this means that we have to watch 91 different repos for issues and pull requests.  This also means that we have to redirect issues filed on `atom/atom` to the appropriate repository when a user doesn't know where it belongs.  Even more importantly, there's not an easy way to prioritize and track issues across the Atom organization without using GitHub Projects.
 
 Also, as mentioned above, there's the added duty of doing the package "version dance" when we merge any new PRs to a package repository: publish the package update, update `package.json` in Atom.  It's very easy to forget to do this and not have community contributions included in the next Atom release!
 
@@ -74,13 +72,15 @@ The more core packages live in `atom/atom`, the less work Atom maintainers have 
 
 ## Explanation
 
-Many of Atom's core packages now live in the core `atom/atom` repository.  To the Atom user, this change will be imperceptible as these packages still show up in the list of Core Packages in the Settings View.  For maintainers and contributors, there will be less juggling of repositories and no more publishing of updates to these packages with `apm`.
+Many of Atom's core packages now live in the core `atom/atom` repository.  To the Atom user, this change will be imperceptible as these packages still show up in the list of Core Packages in the Settings View.  Users can still disable these packages if they want to replace their behavior with other packages.
 
-Contributors now clone and build `atom/atom` to work on improvements to core packages.  They will no longer have to use `apm link` in dev mode to test changes they make to packages in the repo's `packages` folder.
+For maintainers and contributors, there will be less juggling of repositories and no more publishing of updates to these packages with `apm`:
+
+Contributors now clone and build `atom/atom` to work on improvements to core packages.  They will no longer have to use `apm link` in dev mode to test changes they make to packages in the repo's `packages` folder.  Core packages that aren't consolidated still have folders under `packages` with README.md files that point to the home repository for that package.
 
 When a contributor sends a PR to `atom/atom` that only affects files in a folder under `packages`, only the specs for the relevant package folders will be executed using Atom's CI scripts.  This means that a full Atom build will not be required when no Atom Core code is changed in a PR.  Package specs are also now run against all 3 OSes on Atom `master` and release builds.
 
-Core packages that aren't consolidated still have folders under `packages` with README.md files that point to the home repository for that package.
+Atom maintainers no longer have to publish new versions to consolidated core packages and then edit `package.json` to bump the package version in a particular Atom release branch (Stable, Beta, or `master`).  When a PR against a consolidated core package in `atom/atom` is merged, no version number change is required and the changes will immediately be a part of the next release from that branch.
 
 ## Drawbacks
 
@@ -180,7 +180,7 @@ Using this criteria, all 91 packages have been evaluated and categorized to dete
 | **[whitespace]** | 31 | 6 | 0 | 5/30/18 |
 | **[wrap-guide]** | 3 | 4 | 0 | 11/27/17 |
 
-#### Packages Consolidated Later
+#### Packages to be Consolidated Later
 
 The following packages will not be consolidated until the stated reasons can be resolved or we decide on a consolidation strategy for them:
 
@@ -220,15 +220,21 @@ These packages will not be consolidated for the following reasons:
 To consolidate a single core package repository back into `atom/atom`, the following steps will be taken:
 
 1. All open pull requests on the package's repository must either be closed or merged before consolidation can proceed
-1. The package repository's code in `master` will be copied over to a subfolder in Atom's `packages` folder with a subfolder bearing that package's name.
-1. A test CI build will be run to ensure that the package loads and works correctly at first glance
-1. The package's original repository will have all of its existing issues moved over to `atom/atom` using a bulk issue mover tool
-1. The package's original repository will have its README.md to point contributors to the code's new home in `atom/atom`
-1. The package's original repository will now be archived
+1. The package repository's code in `master` will be copied over to Atom's `packages` folder in a subfolder bearing that package's name.
+1. Atom's `package.json` file will be updated to change the package's `packageDependencies` entry to reference its local path with the following syntax: `"tree-view": "file:./packages/tree-view"`
+1. A test build will be created to manually verify the package loads and works correctly at first glance and also that package specs pass
+1. A PR will be sent to `atom/atom` to verify that CI passes with the introduction of the consolidated package
+1. Once CI is clean and the PR is approved, the PR will be merged
+1. The package's original repository will have all of its existing issues moved over to `atom/atom` using a bulk issue mover tool, assigning a label to those issues relative to the package name, like `packages/tree-view`
+1. The package's original repository will have its README.md updated to point contributors to the code's new home in `atom/atom`
+1. The package's original repository will now be archived on GitHub
 
 ### Alternative Approaches
 
-We haven't yet identified another approach which allows us to achieve the goals set forth in this RFC without consolidating these packages into `atom/atom`.
+One alternative approach would be to break this core Atom functionality out of packages and put it directly in the Atom codebase without treating them as packages.  This would simplify the development process even further but with the following drawbacks:
+
+- The Atom team would have less regular exposure to Atom package development
+- Users would no longer be able to disable core packages to replace their behavior with other packages (different tree views, etc)
 
 ## Unresolved questions
 
