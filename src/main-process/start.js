@@ -47,6 +47,10 @@ module.exports = function start (resourcePath, startTime) {
   if (colorProfile && colorProfile !== 'default') {
     app.commandLine.appendSwitch('force-color-profile', colorProfile)
   }
+  const disableHardwareAcceleration = config.get('core.disableHardwareAcceleration')
+  if (disableHardwareAcceleration) {
+    app.disableHardwareAcceleration()
+  }
 
   if (handleStartupEventWithSquirrel()) {
     return
