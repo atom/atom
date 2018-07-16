@@ -114,7 +114,7 @@ function buildAsarUnpackGlobExpression () {
 
 function getAppName () {
   if (process.platform === 'darwin') {
-    return CONFIG.channelDisplayName ? `Atom ${CONFIG.channelDisplayName}` : 'Atom'
+    return CONFIG.appName
   } else {
     return 'atom'
   }
@@ -169,8 +169,7 @@ function renamePackagedAppDir (packageOutputDirPath) {
     if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(packageOutputDirPath, packagedAppPath)
   } else {
-    const appName = CONFIG.channel !== 'stable' ? `Atom ${CONFIG.channelDisplayName}` : 'Atom'
-    packagedAppPath = path.join(CONFIG.buildOutputPath, appName)
+    packagedAppPath = path.join(CONFIG.buildOutputPath, CONFIG.appName)
     if (process.platform === 'win32' && process.arch !== 'ia32') {
       packagedAppPath += ` ${process.arch}`
     }
