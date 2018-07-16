@@ -370,6 +370,11 @@ const configSchema = {
             description: 'Use sRGB color profile'
           }
         ]
+      },
+      disableHardwareAcceleration: {
+        type: 'boolean',
+        default: false,
+        description: 'Disabling hardware acceleration may preserve battery life.<br>This setting will require a relaunch of Atom to take effect.'
       }
     }
   },
