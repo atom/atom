@@ -684,6 +684,20 @@ class HighlightIterator {
   getOpenScopeIds () {
     return last(this.iterators).getOpenScopeIds()
   }
+
+  logState () {
+    const iterator = last(this.iterators)
+    if (iterator.treeCursor) {
+      console.log(
+        iterator.getPosition(),
+        iterator.treeCursor.nodeType,
+        new Range(
+          iterator.languageLayer.tree.rootNode.startPosition,
+          iterator.languageLayer.tree.rootNode.endPosition
+        ).toString()
+      )
+    }
+  }
 }
 
 class LayerHighlightIterator {
@@ -717,6 +731,8 @@ class LayerHighlightIterator {
     this.containingNodeChildIndices.length = 0
     this.containingNodeEndIndices.length = 0
 
+    const containingTagEndIndices = []
+
     if (targetIndex >= this.treeCursor.endIndex) {
       this.done = true
       return
@@ -733,6 +749,7 @@ class LayerHighlightIterator {
         const id = this.idForScope(scopeName)
         if (this.treeCursor.startIndex < targetIndex) {
           insertContainingTag(id, this.treeCursor.startIndex, containingTags, containingTagStartIndices)
+          containingTagEndIndices.push(this.treeCursor.endIndex)
         } else {
           this.atEnd = false
           this.openTags.push(id)
@@ -751,6 +768,15 @@ class LayerHighlightIterator {
       childIndex = this.treeCursor.gotoFirstChildForIndex(targetIndex)
       if (childIndex === null) break
       if (this.treeCursor.startIndex >= targetIndex) this.atEnd = false
+    }
+
+    if (this.atEnd) {
+      const currentIndex = this.treeCursor.endIndex
+      for (let i = 0, {length} = containingTags; i < length; i++) {
+        if (containingTagEndIndices[i] === currentIndex) {
+          this.closeTags.push(containingTags[i])
+        }
+      }
     }
 
     return containingTags
