@@ -402,11 +402,7 @@ describe('TreeSitterLanguageMode', () => {
             attribute_name: 'attr'
           },
           injectionRegExp: 'html',
-          injectionPoints: [{
-            type: 'raw_element',
-            language () { return 'javascript' },
-            content (node) { return node.child(1) }
-          }]
+          injectionPoints: [SCRIPT_TAG_INJECTION_POINT]
         })
       })
 
@@ -1081,6 +1077,61 @@ describe('TreeSitterLanguageMode', () => {
         'property_identifier'
       ])
     })
+
+    it('includes nodes in injected syntax trees', async () => {
+      const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        id: 'javascript',
+        parser: 'tree-sitter-javascript',
+        scopes: {},
+        injectionRegExp: 'javascript',
+        injectionPoints: [HTML_TEMPLATE_LITERAL_INJECTION_POINT]
+      })
+
+      const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
+        id: 'html',
+        parser: 'tree-sitter-html',
+        scopes: {},
+        injectionRegExp: 'html',
+        injectionPoints: [SCRIPT_TAG_INJECTION_POINT]
+      })
+
+      atom.grammars.addGrammar(jsGrammar)
+      atom.grammars.addGrammar(htmlGrammar)
+
+      buffer.setText(`
+        <div>
+          <script>
+            html \`
+              <span>\${person.name}</span>
+            \`
+          </script>
+        </div>
+      `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar: htmlGrammar, grammars: atom.grammars})
+      buffer.setLanguageMode(languageMode)
+      await nextHighlightingUpdate(languageMode)
+      await nextHighlightingUpdate(languageMode)
+      await nextHighlightingUpdate(languageMode)
+
+      const position = buffer.findSync('name').start
+      expect(languageMode.scopeDescriptorForPosition(position).getScopesArray()).toEqual([
+        'html',
+        'fragment',
+        'element',
+        'raw_element',
+        'raw_text',
+        'program',
+        'expression_statement',
+        'call_expression',
+        'template_string',
+        'fragment',
+        'element',
+        'template_substitution',
+        'member_expression',
+        'property_identifier'
+      ])
+    })
   })
 
   describe('TextEditor.selectLargerSyntaxNode and .selectSmallerSyntaxNode', () => {
@@ -1246,4 +1297,10 @@ const HTML_TEMPLATE_LITERAL_INJECTION_POINT = {
   content (node) {
     return node.lastChild
   }
+}
+
+const SCRIPT_TAG_INJECTION_POINT = {
+  type: 'raw_element',
+  language () { return 'javascript' },
+  content (node) { return node.child(1) }
 }
