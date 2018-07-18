@@ -36,6 +36,8 @@ if global.isGeneratingSnapshot
   require('image-view')
   require('incompatible-packages')
   require('keybinding-resolver')
+  require('language-html')
+  require('language-javascript')
   require('line-ending-selector')
   require('link')
   require('markdown-preview')

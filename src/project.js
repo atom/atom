@@ -685,9 +685,6 @@ class Project extends Model {
     }
 
     this.grammarRegistry.autoAssignLanguageMode(buffer)
-    if (buffer.languageMode.initialize) {
-      await buffer.languageMode.initialize()
-    }
 
     this.addBuffer(buffer)
     return buffer
