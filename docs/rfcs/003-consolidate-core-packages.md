@@ -72,7 +72,7 @@ The more core packages live in `atom/atom`, the less work Atom maintainers have 
 
 ## Explanation
 
-Many of Atom's core packages now live in the core `atom/atom` repository.  To the Atom user, this change will be imperceptible as these packages still show up in the list of Core Packages in the Settings View.  Users can still disable these packages if they want to replace their behavior with other packages.
+Many of Atom's core packages now live in the core `atom/atom` repository.  To the Atom user, this change will be imperceptible as these packages still show up in the list of Core Packages in the Settings View.  Users can still optionally disable these packages.
 
 For maintainers and contributors, there will be less juggling of repositories and no more publishing of updates to these packages with `apm`:
 
@@ -86,7 +86,7 @@ Atom maintainers no longer have to publish new versions to consolidated core pac
 
 One possible drawback of this approach is that there might be some initial confusion where core Atom packages live, especially if some are consolidated into `atom/atom` and others still live in their own repositories.  We will manage this confusion by doing the following:
 
-- Include folders for _all_ core packages in the `packages` folder of the Atom repo and add README.md files to folders of those packages that still live in separate repos.  This will allow us to direct users to the proper home for packages that are not yet consolidated.
+- Include a `README.md` file in the `packages` folder which lists core packages that are not consolidated in the Atom repo.  This will enable users to find the home repositories of those packages.
 
 - Archive the repositories for consolidated core packages, but only after migrating existing issues, merging or closing existing PRs, and updating the README.md to point to the new home of the package code.
 
@@ -188,6 +188,7 @@ The following packages will not be consolidated until the stated reasons can be 
 |---------|-------------|----------|---------------------|--------------|-------|
 | **[find-and-replace]** | 219 | 17 | 0 | 6/4/18 | Too many open PRs |
 | **[fuzzy-finder]** | 89 | 22 | 0 | 5/17/18 | Too many open PRs |
+| **[github]** |  |  |  |  | Independent project |
 | **[language-c]** | 53 | 15 | 0 | 7/10/18 | Too many open PRs |
 | **[language-go]** | 12 | 2 | **1** | 6/18/18 | Package maintainer, possibly inactive? |
 | **[language-java]** | 8 | 2 | **1** | 6/11/18 | Package maintainer |
@@ -204,16 +205,13 @@ The following packages will not be consolidated until the stated reasons can be 
 
 #### Packages to Never Consolidate
 
-These packages will not be consolidated for the following reasons:
+These packages will not be consolidated because they would inhibit contributions from our friends in the Nuclide team at Facebook:
 
-| Package | Open Issues | Open PRs | Outside Maintainers | Last Updated | Reason |
-|---------|-------------|----------|---------------------|--------------|-------|
-| **[autocomplete-atom-api]** |  |  |  |  | Blocks contribution from Facebook |
-| **[autocomplete-css]** |  |  |  |  | Same as above |
-| **[autocomplete-html]** |  |  |  |  | Same as above |
-| **[autocomplete-plus]** |  |  |  |  | Same as above |
-| **[autocomplete-snippets]** |  |  |  |  | Same as above |
-| **[github]** |  |  |  |  | Independent project |
+- **[autocomplete-atom-api]**
+- **[autocomplete-css]**
+- **[autocomplete-html]**
+- **[autocomplete-plus]**
+- **[autocomplete-snippets]**
 
 ### Consolidation Process
 
@@ -222,7 +220,8 @@ To consolidate a single core package repository back into `atom/atom`, the follo
 1. All open pull requests on the package's repository must either be closed or merged before consolidation can proceed
 1. The package repository's code in `master` will be copied over to Atom's `packages` folder in a subfolder bearing that package's name.
 1. Atom's `package.json` file will be updated to change the package's `packageDependencies` entry to reference its local path with the following syntax: `"tree-view": "file:./packages/tree-view"`
-1. A test build will be created to manually verify the package loads and works correctly at first glance and also that package specs pass
+1. A test build will be created locally to manually verify that the package loads and works correctly at first glance
+1. The package specs for the newly-consolidated package will be run against the local Atom build
 1. A PR will be sent to `atom/atom` to verify that CI passes with the introduction of the consolidated package
 1. Once CI is clean and the PR is approved, the PR will be merged
 1. The package's original repository will have all of its existing issues moved over to `atom/atom` using a bulk issue mover tool, assigning a label to those issues relative to the package name, like `packages/tree-view`
@@ -238,11 +237,17 @@ One alternative approach would be to break this core Atom functionality out of p
 
 ## Unresolved questions
 
-- What are the criteria we might use to eventually decide to move larger packages like `tree-view`, `settings-view`, and `find-and-replace` back into `atom/atom`?
-
 - Is there a good reason to not move the `language-*` packages into `atom/atom`?
 
+  One concern here is that there exist projects which depend directly on these repositories for the TextMate syntax grammars they contain.  Moving the code into `atom/atom` would require that we notify the consumers of the grammars so that they can redirect their requests to the `atom/atom` repo.
+
+- What are the criteria we might use to eventually decide to move larger packages like `tree-view`, `settings-view`, and `find-and-replace` back into `atom/atom`?
+
 - Will we be losing any useful data about these packages if we don't have standalone repositories anymore?
+
+- Should we use `git subtree` to migrate the entire commit history of these packages over or just depend on the history from a package's original repository?
+
+- Should we use this as an opportunity to remove any unnecessary packages from the core Atom distribution?
 
 [about]: https://github.com/atom/about
 [archive-view]: https://github.com/atom/archive-view
