@@ -79,14 +79,20 @@ if [ $OS == 'Mac' ]; then
     ATOM_APP_NAME="$(basename "$ATOM_APP")"
   fi
 
-  if [ "$CHANNEL" == 'beta' ]; then
-    ATOM_EXECUTABLE_NAME="Atom Beta"
-  elif [ "$CHANNEL" == 'nightly' ]; then
-    ATOM_EXECUTABLE_NAME="Atom Nightly"
-  elif [ "$CHANNEL" == 'dev' ]; then
-    ATOM_EXECUTABLE_NAME="Atom Dev"
+  if [ ! -z "${ATOM_APP_NAME}" ]; then
+    # If ATOM_APP_NAME is known, use it as the executable name
+    ATOM_EXECUTABLE_NAME="${ATOM_APP_NAME%.*}"
   else
-    ATOM_EXECUTABLE_NAME="Atom"
+    # Else choose it from the inferred channel name
+    if [ "$CHANNEL" == 'beta' ]; then
+      ATOM_EXECUTABLE_NAME="Atom Beta"
+    elif [ "$CHANNEL" == 'nightly' ]; then
+      ATOM_EXECUTABLE_NAME="Atom Nightly"
+    elif [ "$CHANNEL" == 'dev' ]; then
+      ATOM_EXECUTABLE_NAME="Atom Dev"
+    else
+      ATOM_EXECUTABLE_NAME="Atom"
+    fi
   fi
 
   if [ -z "${ATOM_PATH}" ]; then
