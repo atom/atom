@@ -41,15 +41,12 @@ class TreeSitterLanguageMode {
     this.emitRangeUpdate = this.emitRangeUpdate.bind(this)
 
     this.subscription = this.buffer.onDidChangeText(({changes}) => {
-      for (let i = changes.length - 1; i >= 0; i--) {
+      for (let i = 0, {length} = changes; i < length; i++) {
         const {oldRange, newRange} = changes[i]
-        const startRow = oldRange.start.row
-        const oldEndRow = oldRange.end.row
-        const newEndRow = newRange.end.row
         this.isFoldableCache.splice(
-          startRow,
-          oldEndRow - startRow,
-          ...new Array(newEndRow - startRow)
+          newRange.start.row,
+          oldRange.end.row - oldRange.start.row,
+          ...new Array(newRange.end.row - newRange.start.row)
         )
       }
 
