@@ -241,11 +241,13 @@ One alternative approach would be to break this core Atom functionality out of p
 
   One concern here is that there exist projects which depend directly on these repositories for the TextMate syntax grammars they contain.  Moving the code into `atom/atom` would require that we notify the consumers of the grammars so that they can redirect their requests to the `atom/atom` repo.
 
+- Should we use `git subtree` to migrate the entire commit history of these packages over or just depend on the history from a package's original repository?
+
+  For now, we won't use `git subtree` due to the possibility that bringing over thousands of commits could cause unknown problems in the Atom repo.  We may try this for newly consolidated packages in the future if we decide that not having the package commit history is a sufficient impediment to problem investigations.
+
 - What are the criteria we might use to eventually decide to move larger packages like `tree-view`, `settings-view`, and `find-and-replace` back into `atom/atom`?
 
 - Will we be losing any useful data about these packages if we don't have standalone repositories anymore?
-
-- Should we use `git subtree` to migrate the entire commit history of these packages over or just depend on the history from a package's original repository?
 
 - Should we use this as an opportunity to remove any unnecessary packages from the core Atom distribution?
 
