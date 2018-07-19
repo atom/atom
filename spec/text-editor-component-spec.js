@@ -818,6 +818,18 @@ describe('TextEditorComponent', () => {
       expect(element.className).toBe('editor a b')
     })
 
+    it('does not blow away class names managed by the component when packages change the element class name', async () => {
+      assertDocumentFocused()
+      const {component, element, editor} = buildComponent({mini: true})
+      element.classList.add('a', 'b')
+      element.focus()
+      await component.getNextUpdatePromise()
+      expect(element.className).toBe('editor mini a b is-focused')
+      element.className = 'a c d';
+      await component.getNextUpdatePromise()
+      expect(element.className).toBe('a c d editor is-focused mini')
+    })
+
     it('ignores resize events when the editor is hidden', async () => {
       const {component, element, editor} = buildComponent({autoHeight: false})
       element.style.height = 5 * component.getLineHeight() + 'px'
