@@ -355,7 +355,7 @@ class TreeSitterLanguageMode {
     const searchEndIndex = Math.max(0, endIndex - 1)
 
     const matches = matcherForSelector(selector)
-    
+
     let smallestNode
     this._forEachTreeWithRange(range, tree => {
       let node = tree.rootNode.descendantForIndex(startIndex, searchEndIndex)
