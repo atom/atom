@@ -29,7 +29,7 @@ module.exports = (packagedAppPath) => {
     }
 
     for (let nupkgPath of glob.sync(`${CONFIG.buildOutputPath}/atom-*.nupkg`)) {
-      if (!nupkgPath.includes(CONFIG.appMetadata.version)) {
+      if (!nupkgPath.includes(CONFIG.computedAppVersion)) {
         console.log(`Deleting downloaded nupkg for previous version at ${nupkgPath} to prevent it from being stored as an artifact`)
         fs.unlinkSync(nupkgPath)
       } else {
