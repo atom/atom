@@ -20,11 +20,11 @@ Transpiling packages on _publish_ rather than _load_ will have great benefits fo
 
 ### Package publishing
 
-During the `apm publish` call, apm will invoke [`npm pack`](https://docs.npmjs.com/cli/pack) to run all standard npm lifecycle hooks and prepare a `.tar.gz` file. apm then creates a release associated with the created tag and uploads the `.tar.gz` file as an attachment called `package.tar.gz`.
+During the `apm publish` call, apm will invoke [`npm pack`](https://docs.npmjs.com/cli/pack) to run all standard npm lifecycle hooks and prepare a `.tar.gz` file. apm then uploads the `.tar.gz` file to atom.io, which uploads it to an S3 bucket.
 
 ### Package installation
 
-When a user installs a package from atom.io, atom.io first checks to see if its GitHub repository has a release corresponding to that tag with an artifact named `package.tar.gz`. If one is found, the artifact's URL is returned as the `dist` field in the [API response](https://flight-manual.atom.io/atom-server-side-apis/sections/atom-package-server-api/#get-apipackagespackage_nameversionsversion_name). Otherwise, the existing logic is used to return the GitHub tag tarball URL that's returned now.
+When a user installs a package from atom.io, atom.io first checks to see if it has a precompiled tarball in its S3 bucket. If one is found, the artifact's public URL is returned as the `dist` field in the [API response](https://flight-manual.atom.io/atom-server-side-apis/sections/atom-package-server-api/#get-apipackagespackage_nameversionsversion_name). Otherwise, the existing logic is used to return the GitHub tag tarball URL that's returned now.
 
 ## Drawbacks
 
