@@ -14,7 +14,7 @@ Transpiling packages on _publish_ rather than _load_ will have great benefits fo
 
 * Standard `npm` tooling like `prepare` scripts will work for apm packages exactly as they work for npm packages. This will remove the need for custom transpiler pipeline modules like [atom-babel6-transpiler](https://github.com/atom/atom-babel6-transpiler) or [atom-typescript-transpiler](https://github.com/smhxx/atom-ts-transpiler) with their own, independent documentation, configuration and setup.
 * Packages can move transpiler-related dependencies to `devDependencies` and trim installation bloat substantially. (as a data point, the TypeScript compiler is 30MB.)
-* First-time package load will no longer take a hit from transpiling all of the source into the cache. All package loads will benefit from no longer needing to check and side-load from the compiler cache.
+* First-time package load will no longer take a hit from transpiling all of the source into the cache.
 
 ## Explanation
 
