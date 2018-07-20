@@ -806,8 +806,7 @@ class LayerHighlightIterator {
         } else {
           this.done = true
         }
-      } else if (this._moveDown()) {
-      } else {
+      } else if (!this._moveDown()) {
         const scopeId = this._currentScopeId()
         if (scopeId) this.closeTags.push(scopeId)
         this.atEnd = true
