@@ -355,15 +355,17 @@ class TreeSitterLanguageMode {
     const searchEndIndex = Math.max(0, endIndex - 1)
 
     const matches = matcherForSelector(selector)
-
+    
     let smallestNode
     this._forEachTreeWithRange(range, tree => {
       let node = tree.rootNode.descendantForIndex(startIndex, searchEndIndex)
-      while (node && !nodeContainsIndices(node, startIndex, endIndex)) {
-        node = node.parent
-        console.log(node)
+      while (node) {
+        if (nodeContainsIndices(node, startIndex, endIndex) && matches(node.type)) {
+          if (nodeIsSmaller(node, smallestNode)) smallestNode = node
+          break
+        }
+        node = node.parent        
       }
-      if (matches(node.type) && nodeIsSmaller(node, smallestNode)) smallestNode = node
     })
 
     if (smallestNode) return rangeForNode(smallestNode)
