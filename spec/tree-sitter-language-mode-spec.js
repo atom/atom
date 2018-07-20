@@ -314,6 +314,38 @@ describe('TreeSitterLanguageMode', () => {
       ])
     })
 
+    it('handles nodes that start before their first child and end after their last child', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, rubyGrammarPath, {
+        parser: 'tree-sitter-ruby',
+        scopes: {
+          'bare_string': 'string',
+          'interpolation': 'embedded',
+          '"#{"': 'punctuation',
+          '"}"': 'punctuation',
+        }
+      })
+
+      // The bare string node `bc#{d}ef` has one child: the interpolation, and that child
+      // starts later and ends earlier than the bare string.
+      buffer.setText('a = %W( bc#{d}ef )')
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      await nextHighlightingUpdate(languageMode)
+
+      expectTokensToEqual(editor, [
+        [
+          {text: 'a = %W( ', scopes: []},
+          {text: 'bc', scopes: ['string']},
+          {text: '#{', scopes: ['string', 'embedded', 'punctuation']},
+          {text: 'd', scopes: ['string', 'embedded']},
+          {text: '}', scopes: ['string', 'embedded', 'punctuation']},
+          {text: 'ef', scopes: ['string']},
+          {text: ' )', scopes: []},
+        ]
+      ])
+    })
+
     describe('when the buffer changes during a parse', () => {
       it('immediately parses again when the current parse completes', async () => {
         const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {

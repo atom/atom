@@ -697,7 +697,13 @@ class HighlightIterator {
           iterator.languageLayer.tree.rootNode.endPosition
         ).toString()
       )
+      console.log('close', iterator.closeTags.map(id => this.shortClassNameForScopeId(id)))
+      console.log('open', iterator.openTags.map(id => this.shortClassNameForScopeId(id)))
     }
+  }
+
+  shortClassNameForScopeId (id) {
+    return this.languageMode.classNameForScopeId(id).replace(/syntax--/g, '')
   }
 }
 
@@ -745,28 +751,15 @@ class LayerHighlightIterator {
       this.containingNodeChildIndices.push(childIndex)
       this.containingNodeEndIndices.push(this.treeCursor.endIndex)
 
-      const scopeName = this.currentScopeName()
-      if (scopeName) {
-        const id = this.idForScope(scopeName)
+      const scopeId = this._currentScopeId()
+      if (scopeId) {
         if (this.treeCursor.startIndex < targetIndex) {
-          insertContainingTag(id, this.treeCursor.startIndex, containingTags, containingTagStartIndices)
+          insertContainingTag(scopeId, this.treeCursor.startIndex, containingTags, containingTagStartIndices)
           containingTagEndIndices.push(this.treeCursor.endIndex)
         } else {
           this.atEnd = false
-          this.openTags.push(id)
-          const {startIndex} = this.treeCursor
-          while (this.treeCursor.gotoFirstChild()) {
-            if (this.treeCursor.startIndex > startIndex) {
-              this.treeCursor.gotoParent()
-              break
-            }
-            this.containingNodeTypes.push(this.treeCursor.nodeType)
-            this.containingNodeChildIndices.push(0)
-            const scopeName = this.currentScopeName()
-            if (scopeName) {
-              this.openTags.push(this.idForScope(scopeName))
-            }
-          }
+          this.openTags.push(scopeId)
+          this._moveDown()
           break
         }
       }
@@ -793,71 +786,31 @@ class LayerHighlightIterator {
     this.closeTags.length = 0
     this.openTags.length = 0
 
-    if (this.done) return
-
-    while (true) {
+    while (!(this.done || (didMove && (this.closeTags.length || this.openTags.length)))) {
       if (this.atEnd) {
-        if (this.treeCursor.gotoNextSibling()) {
+        if (this._moveRight()) {
+          const scopeId = this._currentScopeId()
+          if (scopeId) this.openTags.push(scopeId)
+
           didMove = true
           this.atEnd = false
-          const depth = this.containingNodeTypes.length
-          this.containingNodeTypes[depth - 1] = this.treeCursor.nodeType
-          this.containingNodeChildIndices[depth - 1]++
-          this.containingNodeEndIndices[depth - 1] = this.treeCursor.endIndex
-
-          while (true) {
-            const {startIndex} = this.treeCursor
-            const scopeName = this.currentScopeName()
-            if (scopeName) {
-              this.openTags.push(this.idForScope(scopeName))
-            }
-
-            if (this.treeCursor.gotoFirstChild()) {
-              if ((this.closeTags.length || this.openTags.length) &&
-                  this.treeCursor.startIndex > startIndex) {
-                this.treeCursor.gotoParent()
-                break
-              }
-
-              this.containingNodeTypes.push(this.treeCursor.nodeType)
-              this.containingNodeChildIndices.push(0)
-              this.containingNodeEndIndices.push(this.treeCursor.endIndex)
-            } else {
-              break
-            }
-          }
-        } else if (this.treeCursor.gotoParent()) {
-          this.atEnd = false
-          this.containingNodeTypes.pop()
-          this.containingNodeChildIndices.pop()
-          this.containingNodeEndIndices.pop()
+          this._moveDown()
+        } else if (this._moveUp(true)) {
+          didMove = true
+          this.atEnd = true
         } else {
           this.done = true
-          break
         }
-      } else {
-        this.atEnd = true
+      } else if (this._moveDown()) {
         didMove = true
+      } else {
+        const scopeId = this._currentScopeId()
+        if (scopeId) this.closeTags.push(scopeId)
 
-        const scopeName = this.currentScopeName()
-        if (scopeName) {
-          this.closeTags.push(this.idForScope(scopeName))
-        }
-
-        const endIndex = this.treeCursor.endIndex
-        let depth = this.containingNodeEndIndices.length
-        while (depth > 1 && this.containingNodeEndIndices[depth - 2] === endIndex) {
-          this.treeCursor.gotoParent()
-          this.containingNodeTypes.pop()
-          this.containingNodeChildIndices.pop()
-          this.containingNodeEndIndices.pop()
-          --depth
-          const scopeName = this.currentScopeName()
-          if (scopeName) this.closeTags.push(this.idForScope(scopeName))
-        }
+        didMove = true
+        this.atEnd = true
+        this._moveUp(false)
       }
-
-      if (didMove && (this.closeTags.length || this.openTags.length)) break
     }
   }
 
@@ -891,16 +844,75 @@ class LayerHighlightIterator {
 
   // Private methods
 
-  currentScopeName () {
-    return this.languageLayer.grammar.scopeMap.get(
+  _moveUp (atLastChild) {
+    let result = false
+    const {endIndex} = this.treeCursor
+    let depth = this.containingNodeEndIndices.length
+    while (depth > 1) {
+      // Once the iterator has found a scope boundary, it needs to stay at the same
+      // position, so it should not move up if the parent node ends later than the
+      // current node.
+      if ((!atLastChild || this.openTags.length || this.closeTags.length) &&
+          this.containingNodeEndIndices[depth - 2] > endIndex) {
+        break
+      }
+
+      result = true
+      this.treeCursor.gotoParent()
+      this.containingNodeTypes.pop()
+      this.containingNodeChildIndices.pop()
+      this.containingNodeEndIndices.pop()
+      --depth
+      const scopeId = this._currentScopeId()
+      if (scopeId) this.closeTags.push(scopeId)
+    }
+    return result
+  }
+
+  _moveDown () {
+    let result = false
+    const {startIndex} = this.treeCursor
+    while (this.treeCursor.gotoFirstChild()) {
+      // Once the iterator has found a scope boundary, it needs to stay at the same
+      // position, so it should not move down if the first child node starts later than the
+      // current node.
+      if ((this.closeTags.length || this.openTags.length) &&
+          this.treeCursor.startIndex > startIndex) {
+        this.treeCursor.gotoParent()
+        break
+      }
+
+      result = true
+      this.containingNodeTypes.push(this.treeCursor.nodeType)
+      this.containingNodeChildIndices.push(0)
+      this.containingNodeEndIndices.push(this.treeCursor.endIndex)
+
+      const scopeId = this._currentScopeId()
+      if (scopeId) this.openTags.push(scopeId)
+    }
+
+    return result
+  }
+
+  _moveRight () {
+    if (this.treeCursor.gotoNextSibling()) {
+      const depth = this.containingNodeTypes.length
+      this.containingNodeTypes[depth - 1] = this.treeCursor.nodeType
+      this.containingNodeChildIndices[depth - 1]++
+      this.containingNodeEndIndices[depth - 1] = this.treeCursor.endIndex
+      return true
+    }
+  }
+
+  _currentScopeId () {
+    const name = this.languageLayer.grammar.scopeMap.get(
       this.containingNodeTypes,
       this.containingNodeChildIndices,
       this.treeCursor.nodeIsNamed
     )
-  }
-
-  idForScope (scopeName) {
-    return this.languageLayer.languageMode.grammar.idForScope(scopeName)
+    if (name) {
+      return this.languageLayer.languageMode.grammar.idForScope(name)
+    }
   }
 }
 
