@@ -269,42 +269,32 @@ class TreeSitterLanguageMode {
   }
 
   getFoldableRangeForNode (node, grammar, existenceOnly) {
-    const {children, type: nodeType} = node
+    const {children} = node
     const childCount = children.length
-    let childTypes
 
     for (var i = 0, {length} = grammar.folds; i < length; i++) {
-      const foldEntry = grammar.folds[i]
+      const foldSpec = grammar.folds[i]
 
-      if (foldEntry.type) {
-        if (typeof foldEntry.type === 'string') {
-          if (foldEntry.type !== nodeType) continue
-        } else {
-          if (!foldEntry.type.includes(nodeType)) continue
-        }
-      }
+      if (foldSpec.matchers && !hasMatchingFoldSpec(foldSpec.matchers, node)) continue
 
       let foldStart
-      const startEntry = foldEntry.start
+      const startEntry = foldSpec.start
       if (startEntry) {
+        let foldStartNode
         if (startEntry.index != null) {
-          const child = children[startEntry.index]
-          if (!child || (startEntry.type && startEntry.type !== child.type)) continue
-          foldStart = child.endPosition
+          foldStartNode = children[startEntry.index]
+          if (!foldStartNode || startEntry.matchers && !hasMatchingFoldSpec(startEntry.matchers, foldStartNode)) continue
         } else {
-          if (!childTypes) childTypes = children.map(child => child.type)
-          const index = typeof startEntry.type === 'string'
-            ? childTypes.indexOf(startEntry.type)
-            : childTypes.findIndex(type => startEntry.type.includes(type))
-          if (index === -1) continue
-          foldStart = children[index].endPosition
+          foldStartNode = children.find(child => hasMatchingFoldSpec(startEntry.matchers, child))
+          if (!foldStartNode) continue
         }
+        foldStart = new Point(foldStartNode.endPosition.row, Infinity)
       } else {
         foldStart = new Point(node.startPosition.row, Infinity)
       }
 
       let foldEnd
-      const endEntry = foldEntry.end
+      const endEntry = foldSpec.end
       if (endEntry) {
         let foldEndNode
         if (endEntry.index != null) {
@@ -312,12 +302,8 @@ class TreeSitterLanguageMode {
           foldEndNode = children[index]
           if (!foldEndNode || (endEntry.type && endEntry.type !== foldEndNode.type)) continue
         } else {
-          if (!childTypes) childTypes = children.map(foldEndNode => foldEndNode.type)
-          const index = typeof endEntry.type === 'string'
-            ? childTypes.indexOf(endEntry.type)
-            : childTypes.findIndex(type => endEntry.type.includes(type))
-          if (index === -1) continue
-          foldEndNode = children[index]
+          foldEndNode = children.find(child => hasMatchingFoldSpec(endEntry.matchers, child))
+          if (!foldEndNode) continue
         }
 
         if (foldEndNode.endIndex - foldEndNode.startIndex > 1 && foldEndNode.startPosition.row > foldStart.row) {
@@ -768,7 +754,12 @@ class LayerHighlightIterator {
         } else {
           this.atEnd = false
           this.openTags.push(id)
+          const {startIndex} = this.treeCursor
           while (this.treeCursor.gotoFirstChild()) {
+            if (this.treeCursor.startIndex > startIndex) {
+              this.treeCursor.gotoParent()
+              break
+            }
             this.containingNodeTypes.push(this.treeCursor.nodeType)
             this.containingNodeChildIndices.push(0)
             const scopeName = this.currentScopeName()
@@ -1039,6 +1030,10 @@ function pointIsGreater (left, right) {
 
 function last (array) {
   return array[array.length - 1]
+}
+
+function hasMatchingFoldSpec (specs, node) {
+  return specs.some(({type, named}) => type === node.type && named === node.isNamed)
 }
 
 // TODO: Remove this once TreeSitterLanguageMode implements its own auto-indent system.

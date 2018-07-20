@@ -12,6 +12,7 @@ const pythonGrammarPath = require.resolve('language-python/grammars/tree-sitter-
 const jsGrammarPath = require.resolve('language-javascript/grammars/tree-sitter-javascript.cson')
 const htmlGrammarPath = require.resolve('language-html/grammars/tree-sitter-html.cson')
 const ejsGrammarPath = require.resolve('language-html/grammars/tree-sitter-ejs.cson')
+const rubyGrammarPath = require.resolve('language-ruby/grammars/tree-sitter-ruby.cson')
 
 describe('TreeSitterLanguageMode', () => {
   let editor, buffer
@@ -674,7 +675,7 @@ describe('TreeSitterLanguageMode', () => {
       expect(getDisplayText(editor)).toBe(dedent `
         module.exports =
         class A {
-          getB (…) {
+          getB (c,…) {
             return this.f(g)
           }
         }
@@ -684,7 +685,7 @@ describe('TreeSitterLanguageMode', () => {
       expect(getDisplayText(editor)).toBe(dedent `
         module.exports =
         class A {
-          getB (…) {…}
+          getB (c,…) {…}
         }
       `)
     })
@@ -939,6 +940,93 @@ describe('TreeSitterLanguageMode', () => {
       expect(getDisplayText(editor)).toBe(dedent `
         <head>…
         </head>
+      `)
+    })
+
+    it('can target named vs anonymous nodes as fold boundaries', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, rubyGrammarPath, {
+        parser: 'tree-sitter-ruby',
+        folds: [
+          {
+            type: 'elsif',
+            start: {index: 1},
+
+            // There are no double quotes around the `elsif` type. This indicates
+            // that we're targeting a *named* node in the syntax tree. The fold
+            // should end at the nested `elsif` node, not at the token that represents
+            // the literal string "elsif".
+            end: {type: ['else', 'elsif']}
+          },
+          {
+            type: 'else',
+
+            // There are double quotes around the `else` type. This indicates that
+            // we're targetting an *anonymous* node in the syntax tree. The fold
+            // should start at the token representing the literal string "else",
+            // not at an `else` node.
+            start: {type: '"else"'}
+          }
+        ]
+      })
+
+      buffer.setText(dedent `
+        if a
+          b
+        elsif c
+          d
+        elsif e
+          f
+        else
+          g
+        end
+      `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      await nextHighlightingUpdate(languageMode)
+
+      expect(languageMode.tree.rootNode.toString()).toBe(
+        "(program (if (identifier) " +
+          "(identifier) " +
+          "(elsif (identifier) " +
+            "(identifier) " +
+            "(elsif (identifier) " +
+              "(identifier) " +
+              "(else " +
+                "(identifier))))))"
+      )
+
+      editor.foldBufferRow(2)
+      expect(getDisplayText(editor)).toBe(dedent `
+        if a
+          b
+        elsif c…
+        elsif e
+          f
+        else
+          g
+        end
+      `)
+
+      editor.foldBufferRow(4)
+      expect(getDisplayText(editor)).toBe(dedent `
+        if a
+          b
+        elsif c…
+        elsif e…
+        else
+          g
+        end
+      `)
+
+      editor.foldBufferRow(6)
+      expect(getDisplayText(editor)).toBe(dedent `
+        if a
+          b
+        elsif c…
+        elsif e…
+        else…
+        end
       `)
     })
 
