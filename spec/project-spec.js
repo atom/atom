@@ -969,6 +969,32 @@ describe('Project', () => {
     })
   })
 
+  describe('.observeRepositories()', () => {
+    it('invokes the observer with current and future repositories', () => {
+      const observed = []
+
+      const directory1 = temp.mkdirSync('git-repo1')
+      const gitDirPath1 = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      fs.copySync(gitDirPath1, path.join(directory1, '.git'))
+
+      const directory2 = temp.mkdirSync('git-repo2')
+      const gitDirPath2 = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'repo-with-submodules', 'git.git'))
+      fs.copySync(gitDirPath2, path.join(directory2, '.git'))
+
+      atom.project.setPaths([directory1])
+
+      const disposable = atom.project.observeRepositories((repo) => observed.push(repo))
+      expect(observed.length).toBe(1)
+      expect(observed[0].getReferenceTarget('refs/heads/master')).toBe('ef046e9eecaa5255ea5e9817132d4001724d6ae1')
+
+      atom.project.addPath(directory2)
+      expect(observed.length).toBe(2)
+      expect(observed[1].getReferenceTarget('refs/heads/master')).toBe('d2b0ad9cbc6f6c4372e8956e5cc5af771b2342e5')
+
+      disposable.dispose()
+    })
+  })
+
   describe('.onDidAddRepository()', () => {
     it('invokes callback when a path is added and the path is the root of a repository', () => {
       const observed = []

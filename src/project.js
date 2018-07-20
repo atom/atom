@@ -234,6 +234,26 @@ class Project extends Model {
     return this.emitter.on('did-change-files', callback)
   }
 
+  // Public: Invoke the given callback with all current and future
+  // repositories in the project.
+  //
+  // * `callback` {Function} to be called with current and future
+  //    repositories.
+  //   * `repository` A {GitRepository} that is present at the time of
+  //     subscription or that is added at some later time.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to
+  // unsubscribe.
+  observeRepositories (callback) {
+    for (const repo of this.repositories) {
+      if (repo != null) {
+        callback(repo)
+      }
+    }
+
+    return this.onDidAddRepository(callback)
+  }
+
   // Public: Invoke the given callback when a repository is added to the
   // project.
   //
