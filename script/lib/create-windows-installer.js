@@ -16,6 +16,7 @@ module.exports = (packagedAppPath) => {
     loadingGif: path.join(CONFIG.repositoryRootPath, 'resources', 'win', 'loading.gif'),
     outputDirectory: CONFIG.buildOutputPath,
     noMsi: true,
+    noDelta: CONFIG.channel === 'nightly', // Delta packages are broken for nightly versions past nightly9 due to Squirrel/NuGet limitations
     remoteReleases: `https://atom.io/api/updates${archSuffix}?version=${CONFIG.computedAppVersion}`,
     setupExe: `AtomSetup${process.arch === 'x64' ? '-x64' : ''}.exe`,
     setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
