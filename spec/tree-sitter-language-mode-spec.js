@@ -12,6 +12,7 @@ const pythonGrammarPath = require.resolve('language-python/grammars/tree-sitter-
 const jsGrammarPath = require.resolve('language-javascript/grammars/tree-sitter-javascript.cson')
 const htmlGrammarPath = require.resolve('language-html/grammars/tree-sitter-html.cson')
 const ejsGrammarPath = require.resolve('language-html/grammars/tree-sitter-ejs.cson')
+const rubyGrammarPath = require.resolve('language-ruby/grammars/tree-sitter-ruby.cson')
 
 describe('TreeSitterLanguageMode', () => {
   let editor, buffer
@@ -309,6 +310,38 @@ describe('TreeSitterLanguageMode', () => {
         [
           {text: 'hello', scopes: ['function']},
           {text: '();', scopes: []},
+        ]
+      ])
+    })
+
+    it('handles nodes that start before their first child and end after their last child', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, rubyGrammarPath, {
+        parser: 'tree-sitter-ruby',
+        scopes: {
+          'bare_string': 'string',
+          'interpolation': 'embedded',
+          '"#{"': 'punctuation',
+          '"}"': 'punctuation',
+        }
+      })
+
+      // The bare string node `bc#{d}ef` has one child: the interpolation, and that child
+      // starts later and ends earlier than the bare string.
+      buffer.setText('a = %W( bc#{d}ef )')
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      await nextHighlightingUpdate(languageMode)
+
+      expectTokensToEqual(editor, [
+        [
+          {text: 'a = %W( ', scopes: []},
+          {text: 'bc', scopes: ['string']},
+          {text: '#{', scopes: ['string', 'embedded', 'punctuation']},
+          {text: 'd', scopes: ['string', 'embedded']},
+          {text: '}', scopes: ['string', 'embedded', 'punctuation']},
+          {text: 'ef', scopes: ['string']},
+          {text: ' )', scopes: []},
         ]
       ])
     })
@@ -674,7 +707,7 @@ describe('TreeSitterLanguageMode', () => {
       expect(getDisplayText(editor)).toBe(dedent `
         module.exports =
         class A {
-          getB (…) {
+          getB (c,…) {
             return this.f(g)
           }
         }
@@ -684,8 +717,57 @@ describe('TreeSitterLanguageMode', () => {
       expect(getDisplayText(editor)).toBe(dedent `
         module.exports =
         class A {
-          getB (…) {…}
+          getB (c,…) {…}
         }
+      `)
+    })
+
+    it('folds entire buffer rows when necessary to keep words on separate lines', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        folds: [
+          {
+            start: {type: '{', index: 0},
+            end: {type: '}', index: -1}
+          },
+          {
+            start: {type: '(', index: 0},
+            end: {type: ')', index: -1}
+          }
+        ]
+      })
+
+      buffer.setText(dedent `
+        if (a) {
+          b
+        } else if (c) {
+          d
+        } else {
+          e
+        }
+      `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      await nextHighlightingUpdate(languageMode)
+
+      // Avoid bringing the `else if...` up onto the same screen line as the preceding `if`.
+      editor.foldBufferRow(1)
+      editor.foldBufferRow(3)
+      expect(getDisplayText(editor)).toBe(dedent `
+        if (a) {…
+        } else if (c) {…
+        } else {
+          e
+        }
+      `)
+
+      // It's ok to bring the final `}` onto the same screen line as the preceding `else`.
+      editor.foldBufferRow(5)
+      expect(getDisplayText(editor)).toBe(dedent `
+        if (a) {…
+        } else if (c) {…
+        } else {…}
       `)
     })
 
@@ -942,6 +1024,93 @@ describe('TreeSitterLanguageMode', () => {
       `)
     })
 
+    it('can target named vs anonymous nodes as fold boundaries', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, rubyGrammarPath, {
+        parser: 'tree-sitter-ruby',
+        folds: [
+          {
+            type: 'elsif',
+            start: {index: 1},
+
+            // There are no double quotes around the `elsif` type. This indicates
+            // that we're targeting a *named* node in the syntax tree. The fold
+            // should end at the nested `elsif` node, not at the token that represents
+            // the literal string "elsif".
+            end: {type: ['else', 'elsif']}
+          },
+          {
+            type: 'else',
+
+            // There are double quotes around the `else` type. This indicates that
+            // we're targetting an *anonymous* node in the syntax tree. The fold
+            // should start at the token representing the literal string "else",
+            // not at an `else` node.
+            start: {type: '"else"'}
+          }
+        ]
+      })
+
+      buffer.setText(dedent `
+        if a
+          b
+        elsif c
+          d
+        elsif e
+          f
+        else
+          g
+        end
+      `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      await nextHighlightingUpdate(languageMode)
+
+      expect(languageMode.tree.rootNode.toString()).toBe(
+        "(program (if (identifier) " +
+          "(identifier) " +
+          "(elsif (identifier) " +
+            "(identifier) " +
+            "(elsif (identifier) " +
+              "(identifier) " +
+              "(else " +
+                "(identifier))))))"
+      )
+
+      editor.foldBufferRow(2)
+      expect(getDisplayText(editor)).toBe(dedent `
+        if a
+          b
+        elsif c…
+        elsif e
+          f
+        else
+          g
+        end
+      `)
+
+      editor.foldBufferRow(4)
+      expect(getDisplayText(editor)).toBe(dedent `
+        if a
+          b
+        elsif c…
+        elsif e…
+        else
+          g
+        end
+      `)
+
+      editor.foldBufferRow(6)
+      expect(getDisplayText(editor)).toBe(dedent `
+        if a
+          b
+        elsif c…
+        elsif e…
+        else…
+        end
+      `)
+    })
+
     describe('when folding a node that ends with a line break', () => {
       it('ends the fold at the end of the previous line', async () => {
         const grammar = new TreeSitterGrammar(atom.grammars, pythonGrammarPath, {
@@ -1032,7 +1201,8 @@ describe('TreeSitterLanguageMode', () => {
       expect(getDisplayText(editor)).toBe(
         `a = html \`
             <div>
-              c\${def(…)}e\${f}g
+              c\${def(…
+              )}e\${f}g
             </div>
           \`
         `

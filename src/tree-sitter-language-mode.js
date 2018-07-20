@@ -9,6 +9,7 @@ const TextMateLanguageMode = require('./text-mate-language-mode')
 let nextId = 0
 const MAX_RANGE = new Range(Point.ZERO, Point.INFINITY).freeze()
 const PARSER_POOL = []
+const WORD_REGEX = /\w/
 
 class TreeSitterLanguageMode {
   static _patchSyntaxNode () {
@@ -41,15 +42,12 @@ class TreeSitterLanguageMode {
     this.emitRangeUpdate = this.emitRangeUpdate.bind(this)
 
     this.subscription = this.buffer.onDidChangeText(({changes}) => {
-      for (let i = changes.length - 1; i >= 0; i--) {
+      for (let i = 0, {length} = changes; i < length; i++) {
         const {oldRange, newRange} = changes[i]
-        const startRow = oldRange.start.row
-        const oldEndRow = oldRange.end.row
-        const newEndRow = newRange.end.row
         this.isFoldableCache.splice(
-          startRow,
-          oldEndRow - startRow,
-          ...new Array(newEndRow - startRow)
+          newRange.start.row,
+          oldRange.end.row - oldRange.start.row,
+          ...new Array(newRange.end.row - newRange.start.row)
         )
       }
 
@@ -272,42 +270,32 @@ class TreeSitterLanguageMode {
   }
 
   getFoldableRangeForNode (node, grammar, existenceOnly) {
-    const {children, type: nodeType} = node
+    const {children} = node
     const childCount = children.length
-    let childTypes
 
     for (var i = 0, {length} = grammar.folds; i < length; i++) {
-      const foldEntry = grammar.folds[i]
+      const foldSpec = grammar.folds[i]
 
-      if (foldEntry.type) {
-        if (typeof foldEntry.type === 'string') {
-          if (foldEntry.type !== nodeType) continue
-        } else {
-          if (!foldEntry.type.includes(nodeType)) continue
-        }
-      }
+      if (foldSpec.matchers && !hasMatchingFoldSpec(foldSpec.matchers, node)) continue
 
       let foldStart
-      const startEntry = foldEntry.start
+      const startEntry = foldSpec.start
       if (startEntry) {
+        let foldStartNode
         if (startEntry.index != null) {
-          const child = children[startEntry.index]
-          if (!child || (startEntry.type && startEntry.type !== child.type)) continue
-          foldStart = child.endPosition
+          foldStartNode = children[startEntry.index]
+          if (!foldStartNode || startEntry.matchers && !hasMatchingFoldSpec(startEntry.matchers, foldStartNode)) continue
         } else {
-          if (!childTypes) childTypes = children.map(child => child.type)
-          const index = typeof startEntry.type === 'string'
-            ? childTypes.indexOf(startEntry.type)
-            : childTypes.findIndex(type => startEntry.type.includes(type))
-          if (index === -1) continue
-          foldStart = children[index].endPosition
+          foldStartNode = children.find(child => hasMatchingFoldSpec(startEntry.matchers, child))
+          if (!foldStartNode) continue
         }
+        foldStart = new Point(foldStartNode.endPosition.row, Infinity)
       } else {
         foldStart = new Point(node.startPosition.row, Infinity)
       }
 
       let foldEnd
-      const endEntry = foldEntry.end
+      const endEntry = foldSpec.end
       if (endEntry) {
         let foldEndNode
         if (endEntry.index != null) {
@@ -315,19 +303,17 @@ class TreeSitterLanguageMode {
           foldEndNode = children[index]
           if (!foldEndNode || (endEntry.type && endEntry.type !== foldEndNode.type)) continue
         } else {
-          if (!childTypes) childTypes = children.map(foldEndNode => foldEndNode.type)
-          const index = typeof endEntry.type === 'string'
-            ? childTypes.indexOf(endEntry.type)
-            : childTypes.findIndex(type => endEntry.type.includes(type))
-          if (index === -1) continue
-          foldEndNode = children[index]
+          foldEndNode = children.find(child => hasMatchingFoldSpec(endEntry.matchers, child))
+          if (!foldEndNode) continue
         }
 
-        if (foldEndNode.endIndex - foldEndNode.startIndex > 1 && foldEndNode.startPosition.row > foldStart.row) {
-          foldEnd = new Point(foldEndNode.startPosition.row - 1, Infinity)
-        } else {
-          foldEnd = foldEndNode.startPosition
-          if (!pointIsGreater(foldEnd, foldStart)) continue
+        if (foldEndNode.startPosition.row <= foldStart.row) continue
+
+        foldEnd = foldEndNode.startPosition
+        if (this.buffer.findInRangeSync(
+          WORD_REGEX, new Range(foldEnd, new Point(foldEnd.row, Infinity))
+        )) {
+          foldEnd = new Point(foldEnd.row - 1, Infinity)
         }
       } else {
         const {endPosition} = node
@@ -714,15 +700,24 @@ class HighlightIterator {
           iterator.languageLayer.tree.rootNode.endPosition
         ).toString()
       )
+      console.log('close', iterator.closeTags.map(id => this.shortClassNameForScopeId(id)))
+      console.log('open', iterator.openTags.map(id => this.shortClassNameForScopeId(id)))
     }
+  }
+
+  shortClassNameForScopeId (id) {
+    return this.languageMode.classNameForScopeId(id).replace(/syntax--/g, '')
   }
 }
 
 class LayerHighlightIterator {
   constructor (languageLayer, treeCursor) {
     this.languageLayer = languageLayer
-    this.treeCursor = treeCursor
+
+    // The iterator is always positioned at either the start or the end of some node
+    // in the syntax tree.
     this.atEnd = false
+    this.treeCursor = treeCursor
 
     // In order to determine which selectors match its current node, the iterator maintains
     // a list of the current node's ancestors. Because the selectors can use the `:nth-child`
@@ -762,23 +757,18 @@ class LayerHighlightIterator {
       this.containingNodeChildIndices.push(childIndex)
       this.containingNodeEndIndices.push(this.treeCursor.endIndex)
 
-      const scopeName = this.currentScopeName()
-      if (scopeName) {
-        const id = this.idForScope(scopeName)
+      const scopeId = this._currentScopeId()
+      if (scopeId) {
         if (this.treeCursor.startIndex < targetIndex) {
-          insertContainingTag(id, this.treeCursor.startIndex, containingTags, containingTagStartIndices)
+          insertContainingTag(
+            scopeId, this.treeCursor.startIndex,
+            containingTags, containingTagStartIndices
+          )
           containingTagEndIndices.push(this.treeCursor.endIndex)
         } else {
           this.atEnd = false
-          this.openTags.push(id)
-          while (this.treeCursor.gotoFirstChild()) {
-            this.containingNodeTypes.push(this.treeCursor.nodeType)
-            this.containingNodeChildIndices.push(0)
-            const scopeName = this.currentScopeName()
-            if (scopeName) {
-              this.openTags.push(this.idForScope(scopeName))
-            }
-          }
+          this.openTags.push(scopeId)
+          this._moveDown()
           break
         }
       }
@@ -801,75 +791,28 @@ class LayerHighlightIterator {
   }
 
   moveToSuccessor () {
-    let didMove = false
     this.closeTags.length = 0
     this.openTags.length = 0
 
-    if (this.done) return
-
-    while (true) {
+    while (!this.done && !this.closeTags.length && !this.openTags.length) {
       if (this.atEnd) {
-        if (this.treeCursor.gotoNextSibling()) {
-          didMove = true
+        if (this._moveRight()) {
+          const scopeId = this._currentScopeId()
+          if (scopeId) this.openTags.push(scopeId)
           this.atEnd = false
-          const depth = this.containingNodeTypes.length
-          this.containingNodeTypes[depth - 1] = this.treeCursor.nodeType
-          this.containingNodeChildIndices[depth - 1]++
-          this.containingNodeEndIndices[depth - 1] = this.treeCursor.endIndex
-
-          while (true) {
-            const {startIndex} = this.treeCursor
-            const scopeName = this.currentScopeName()
-            if (scopeName) {
-              this.openTags.push(this.idForScope(scopeName))
-            }
-
-            if (this.treeCursor.gotoFirstChild()) {
-              if ((this.closeTags.length || this.openTags.length) &&
-                  this.treeCursor.startIndex > startIndex) {
-                this.treeCursor.gotoParent()
-                break
-              }
-
-              this.containingNodeTypes.push(this.treeCursor.nodeType)
-              this.containingNodeChildIndices.push(0)
-              this.containingNodeEndIndices.push(this.treeCursor.endIndex)
-            } else {
-              break
-            }
-          }
-        } else if (this.treeCursor.gotoParent()) {
-          this.atEnd = false
-          this.containingNodeTypes.pop()
-          this.containingNodeChildIndices.pop()
-          this.containingNodeEndIndices.pop()
+          this._moveDown()
+        } else if (this._moveUp(true)) {
+          this.atEnd = true
         } else {
           this.done = true
-          break
         }
+      } else if (this._moveDown()) {
       } else {
+        const scopeId = this._currentScopeId()
+        if (scopeId) this.closeTags.push(scopeId)
         this.atEnd = true
-        didMove = true
-
-        const scopeName = this.currentScopeName()
-        if (scopeName) {
-          this.closeTags.push(this.idForScope(scopeName))
-        }
-
-        const endIndex = this.treeCursor.endIndex
-        let depth = this.containingNodeEndIndices.length
-        while (depth > 1 && this.containingNodeEndIndices[depth - 2] === endIndex) {
-          this.treeCursor.gotoParent()
-          this.containingNodeTypes.pop()
-          this.containingNodeChildIndices.pop()
-          this.containingNodeEndIndices.pop()
-          --depth
-          const scopeName = this.currentScopeName()
-          if (scopeName) this.closeTags.push(this.idForScope(scopeName))
-        }
+        this._moveUp(false)
       }
-
-      if (didMove && (this.closeTags.length || this.openTags.length)) break
     }
   }
 
@@ -903,16 +846,75 @@ class LayerHighlightIterator {
 
   // Private methods
 
-  currentScopeName () {
-    return this.languageLayer.grammar.scopeMap.get(
+  _moveUp (atLastChild) {
+    let result = false
+    const {endIndex} = this.treeCursor
+    let depth = this.containingNodeEndIndices.length
+    while (depth > 1) {
+      // Once the iterator has found a scope boundary, it needs to stay at the same
+      // position, so it should not move up if the parent node ends later than the
+      // current node.
+      if ((!atLastChild || this.openTags.length || this.closeTags.length) &&
+          this.containingNodeEndIndices[depth - 2] > endIndex) {
+        break
+      }
+
+      result = true
+      this.treeCursor.gotoParent()
+      this.containingNodeTypes.pop()
+      this.containingNodeChildIndices.pop()
+      this.containingNodeEndIndices.pop()
+      --depth
+      const scopeId = this._currentScopeId()
+      if (scopeId) this.closeTags.push(scopeId)
+    }
+    return result
+  }
+
+  _moveDown () {
+    let result = false
+    const {startIndex} = this.treeCursor
+    while (this.treeCursor.gotoFirstChild()) {
+      // Once the iterator has found a scope boundary, it needs to stay at the same
+      // position, so it should not move down if the first child node starts later than the
+      // current node.
+      if ((this.closeTags.length || this.openTags.length) &&
+          this.treeCursor.startIndex > startIndex) {
+        this.treeCursor.gotoParent()
+        break
+      }
+
+      result = true
+      this.containingNodeTypes.push(this.treeCursor.nodeType)
+      this.containingNodeChildIndices.push(0)
+      this.containingNodeEndIndices.push(this.treeCursor.endIndex)
+
+      const scopeId = this._currentScopeId()
+      if (scopeId) this.openTags.push(scopeId)
+    }
+
+    return result
+  }
+
+  _moveRight () {
+    if (this.treeCursor.gotoNextSibling()) {
+      const depth = this.containingNodeTypes.length
+      this.containingNodeTypes[depth - 1] = this.treeCursor.nodeType
+      this.containingNodeChildIndices[depth - 1]++
+      this.containingNodeEndIndices[depth - 1] = this.treeCursor.endIndex
+      return true
+    }
+  }
+
+  _currentScopeId () {
+    const name = this.languageLayer.grammar.scopeMap.get(
       this.containingNodeTypes,
       this.containingNodeChildIndices,
       this.treeCursor.nodeIsNamed
     )
-  }
-
-  idForScope (scopeName) {
-    return this.languageLayer.languageMode.grammar.idForScope(scopeName)
+    if (name) {
+      return this.languageLayer.languageMode.grammar.idForScope(name)
+    }
   }
 }
 
@@ -1036,12 +1038,12 @@ function compareScopeDescriptorIterators (a, b) {
   )
 }
 
-function pointIsGreater (left, right) {
-  return left.row > right.row || left.row === right.row && left.column > right.column
-}
-
 function last (array) {
   return array[array.length - 1]
+}
+
+function hasMatchingFoldSpec (specs, node) {
+  return specs.some(({type, named}) => type === node.type && named === node.isNamed)
 }
 
 // TODO: Remove this once TreeSitterLanguageMode implements its own auto-indent system.
