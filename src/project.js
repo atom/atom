@@ -234,6 +234,18 @@ class Project extends Model {
     return this.emitter.on('did-change-files', callback)
   }
 
+  // Public: Invoke the given callback when a repository is added to the
+  // project.
+  //
+  // * `callback` {Function} to be called when a repository is added.
+  //   * `repository` A {GitRepository}.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to
+  // unsubscribe.
+  onDidAddRepository (callback) {
+    return this.emitter.on('did-add-repository', callback)
+  }
+
   /*
   Section: Accessing the git repository
   */
@@ -400,6 +412,9 @@ class Project extends Model {
       if (repo) { break }
     }
     this.repositories.push(repo != null ? repo : null)
+    if (repo != null) {
+      this.emitter.emit('did-add-repository', repo)
+    }
 
     if (options.emitEvent !== false) {
       this.emitter.emit('did-change-paths', this.getPaths())

@@ -969,6 +969,41 @@ describe('Project', () => {
     })
   })
 
+  describe('.onDidAddRepository()', () => {
+    it('invokes callback when a path is added and the path is the root of a repository', () => {
+      const observed = []
+      const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
+
+      const repositoryPath = path.join(__dirname, '..')
+      atom.project.addPath(repositoryPath)
+      expect(observed.length).toBe(1)
+      expect(observed[0].getOriginURL()).toContain('github.com/atom/atom')
+
+      disposable.dispose()
+    })
+
+    it('invokes callback when a path is added and the path is subdirectory of a repository', () => {
+      const observed = []
+      const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
+
+      atom.project.addPath(__dirname)
+      expect(observed.length).toBe(1)
+      expect(observed[0].getOriginURL()).toContain('github.com/atom/atom')
+
+      disposable.dispose()
+    })
+
+    it('does not invoke callback when a path is added and the path is not part of a repository', () => {
+      const observed = []
+      const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
+
+      atom.project.addPath(temp.mkdirSync('not-a-repository'))
+      expect(observed.length).toBe(0)
+
+      disposable.dispose()
+    })
+  })
+
   describe('.relativize(path)', () => {
     it('returns the path, relative to whichever root directory it is inside of', () => {
       atom.project.addPath(temp.mkdirSync('another-path'))
