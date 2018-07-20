@@ -1003,7 +1003,7 @@ describe('Project', () => {
       const repositoryPath = path.join(__dirname, '..')
       atom.project.addPath(repositoryPath)
       expect(observed.length).toBe(1)
-      expect(observed[0].getOriginURL()).toContain('github.com/atom/atom')
+      expect(observed[0].getOriginURL()).toContain('atom/atom')
 
       disposable.dispose()
     })
@@ -1014,7 +1014,7 @@ describe('Project', () => {
 
       atom.project.addPath(__dirname)
       expect(observed.length).toBe(1)
-      expect(observed[0].getOriginURL()).toContain('github.com/atom/atom')
+      expect(observed[0].getOriginURL()).toContain('atom/atom')
 
       disposable.dispose()
     })
