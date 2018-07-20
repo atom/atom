@@ -9,6 +9,7 @@ const TextMateLanguageMode = require('./text-mate-language-mode')
 let nextId = 0
 const MAX_RANGE = new Range(Point.ZERO, Point.INFINITY).freeze()
 const PARSER_POOL = []
+const WORD_REGEX = /\w/
 
 class TreeSitterLanguageMode {
   static _patchSyntaxNode () {
@@ -306,11 +307,13 @@ class TreeSitterLanguageMode {
           if (!foldEndNode) continue
         }
 
-        if (foldEndNode.endIndex - foldEndNode.startIndex > 1 && foldEndNode.startPosition.row > foldStart.row) {
-          foldEnd = new Point(foldEndNode.startPosition.row - 1, Infinity)
-        } else {
-          foldEnd = foldEndNode.startPosition
-          if (!pointIsGreater(foldEnd, foldStart)) continue
+        if (foldEndNode.startPosition.row <= foldStart.row) continue
+
+        foldEnd = foldEndNode.startPosition
+        if (this.buffer.findInRangeSync(
+          WORD_REGEX, new Range(foldEnd, new Point(foldEnd.row, Infinity))
+        )) {
+          foldEnd = new Point(foldEnd.row - 1, Infinity)
         }
       } else {
         const {endPosition} = node
@@ -1034,10 +1037,6 @@ function compareScopeDescriptorIterators (a, b) {
     a.node.startIndex - b.node.startIndex ||
     a.rootStartIndex - b.rootStartIndex
   )
-}
-
-function pointIsGreater (left, right) {
-  return left.row > right.row || left.row === right.row && left.column > right.column
 }
 
 function last (array) {

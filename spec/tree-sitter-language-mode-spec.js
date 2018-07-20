@@ -722,6 +722,55 @@ describe('TreeSitterLanguageMode', () => {
       `)
     })
 
+    it('folds entire buffer rows when necessary to keep words on separate lines', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        folds: [
+          {
+            start: {type: '{', index: 0},
+            end: {type: '}', index: -1}
+          },
+          {
+            start: {type: '(', index: 0},
+            end: {type: ')', index: -1}
+          }
+        ]
+      })
+
+      buffer.setText(dedent `
+        if (a) {
+          b
+        } else if (c) {
+          d
+        } else {
+          e
+        }
+      `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      await nextHighlightingUpdate(languageMode)
+
+      // Avoid bringing the `else if...` up onto the same screen line as the preceding `if`.
+      editor.foldBufferRow(1)
+      editor.foldBufferRow(3)
+      expect(getDisplayText(editor)).toBe(dedent `
+        if (a) {…
+        } else if (c) {…
+        } else {
+          e
+        }
+      `)
+
+      // It's ok to bring the final `}` onto the same screen line as the preceding `else`.
+      editor.foldBufferRow(5)
+      expect(getDisplayText(editor)).toBe(dedent `
+        if (a) {…
+        } else if (c) {…
+        } else {…}
+      `)
+    })
+
     it('can fold nodes of specified types', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
@@ -1152,7 +1201,8 @@ describe('TreeSitterLanguageMode', () => {
       expect(getDisplayText(editor)).toBe(
         `a = html \`
             <div>
-              c\${def(…)}e\${f}g
+              c\${def(…
+              )}e\${f}g
             </div>
           \`
         `
