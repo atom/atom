@@ -5,6 +5,7 @@ const {Emitter, Disposable} = require('event-kit')
 const ScopeDescriptor = require('./scope-descriptor')
 const TokenizedLine = require('./tokenized-line')
 const TextMateLanguageMode = require('./text-mate-language-mode')
+const {matcherForSelector} = require('./selectors')
 
 let nextId = 0
 const MAX_RANGE = new Range(Point.ZERO, Point.INFINITY).freeze()
@@ -348,25 +349,28 @@ class TreeSitterLanguageMode {
   Section - Syntax Tree APIs
   */
 
-  getRangeForSyntaxNodeContainingRange (range) {
+  getRangeForSyntaxNodeContainingRange (range, selector) {
     const startIndex = this.buffer.characterIndexForPosition(range.start)
     const endIndex = this.buffer.characterIndexForPosition(range.end)
     const searchEndIndex = Math.max(0, endIndex - 1)
+
+    const matches = matcherForSelector(selector)
 
     let smallestNode
     this._forEachTreeWithRange(range, tree => {
       let node = tree.rootNode.descendantForIndex(startIndex, searchEndIndex)
       while (node && !nodeContainsIndices(node, startIndex, endIndex)) {
         node = node.parent
+        console.log(node)
       }
-      if (nodeIsSmaller(node, smallestNode)) smallestNode = node
+      if (matches(node.type) && nodeIsSmaller(node, smallestNode)) smallestNode = node
     })
 
     if (smallestNode) return rangeForNode(smallestNode)
   }
 
-  bufferRangeForScopeAtPosition (position) {
-    return this.getRangeForSyntaxNodeContainingRange(new Range(position, position))
+  bufferRangeForScopeAtPosition (selector, position) {
+    return this.getRangeForSyntaxNodeContainingRange(new Range(position, position), selector)
   }
 
   /*
