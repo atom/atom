@@ -713,8 +713,11 @@ class HighlightIterator {
 class LayerHighlightIterator {
   constructor (languageLayer, treeCursor) {
     this.languageLayer = languageLayer
-    this.treeCursor = treeCursor
+
+    // The iterator is always positioned at either the start or the end of some node
+    // in the syntax tree.
     this.atEnd = false
+    this.treeCursor = treeCursor
 
     // In order to determine which selectors match its current node, the iterator maintains
     // a list of the current node's ancestors. Because the selectors can use the `:nth-child`
@@ -757,7 +760,10 @@ class LayerHighlightIterator {
       const scopeId = this._currentScopeId()
       if (scopeId) {
         if (this.treeCursor.startIndex < targetIndex) {
-          insertContainingTag(scopeId, this.treeCursor.startIndex, containingTags, containingTagStartIndices)
+          insertContainingTag(
+            scopeId, this.treeCursor.startIndex,
+            containingTags, containingTagStartIndices
+          )
           containingTagEndIndices.push(this.treeCursor.endIndex)
         } else {
           this.atEnd = false
@@ -785,32 +791,25 @@ class LayerHighlightIterator {
   }
 
   moveToSuccessor () {
-    let didMove = false
     this.closeTags.length = 0
     this.openTags.length = 0
 
-    while (!(this.done || (didMove && (this.closeTags.length || this.openTags.length)))) {
+    while (!this.done && !this.closeTags.length && !this.openTags.length) {
       if (this.atEnd) {
         if (this._moveRight()) {
           const scopeId = this._currentScopeId()
           if (scopeId) this.openTags.push(scopeId)
-
-          didMove = true
           this.atEnd = false
           this._moveDown()
         } else if (this._moveUp(true)) {
-          didMove = true
           this.atEnd = true
         } else {
           this.done = true
         }
       } else if (this._moveDown()) {
-        didMove = true
       } else {
         const scopeId = this._currentScopeId()
         if (scopeId) this.closeTags.push(scopeId)
-
-        didMove = true
         this.atEnd = true
         this._moveUp(false)
       }
