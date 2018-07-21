@@ -349,18 +349,18 @@ class TreeSitterLanguageMode {
   Section - Syntax Tree APIs
   */
 
-  getRangeForSyntaxNodeContainingRange (range, selector) {
+  getRangeForSyntaxNodeContainingRange (range, where = _ => true) {
     const startIndex = this.buffer.characterIndexForPosition(range.start)
     const endIndex = this.buffer.characterIndexForPosition(range.end)
     const searchEndIndex = Math.max(0, endIndex - 1)
 
-    const matches = matcherForSelector(selector)
 
     let smallestNode
     this._forEachTreeWithRange(range, tree => {
+      if (typeof selector === 'function') debugger
       let node = tree.rootNode.descendantForIndex(startIndex, searchEndIndex)
       while (node) {
-        if (nodeContainsIndices(node, startIndex, endIndex) && matches(node.type)) {
+        if (nodeContainsIndices(node, startIndex, endIndex) && where(node)) {
           if (nodeIsSmaller(node, smallestNode)) smallestNode = node
           break
         }
@@ -372,6 +372,11 @@ class TreeSitterLanguageMode {
   }
 
   bufferRangeForScopeAtPosition (selector, position) {
+    if (typeof selector === 'string') {
+      const match = matcherForSelector(selector)
+      selector = ({type}) => match(type)
+    }
+    if (selector === null) selector = undefined
     return this.getRangeForSyntaxNodeContainingRange(new Range(position, position), selector)
   }
 
