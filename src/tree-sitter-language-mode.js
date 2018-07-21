@@ -20,6 +20,13 @@ class TreeSitterLanguageMode {
         }
       })
     }
+    if (!Parser.SyntaxNode.prototype.hasOwnProperty('range')) {
+      Object.defineProperty(Parser.SyntaxNode.prototype, 'range', {
+        get () {
+          return rangeForNode(this)
+        }
+      })
+    }
   }
 
   constructor ({buffer, grammar, config, grammars}) {
@@ -349,11 +356,10 @@ class TreeSitterLanguageMode {
   Section - Syntax Tree APIs
   */
 
-  getRangeForSyntaxNodeContainingRange (range, where = _ => true) {
+  getSyntaxNodeContainingRange (range, where = _ => true) {
     const startIndex = this.buffer.characterIndexForPosition(range.start)
     const endIndex = this.buffer.characterIndexForPosition(range.end)
     const searchEndIndex = Math.max(0, endIndex - 1)
-
 
     let smallestNode
     this._forEachTreeWithRange(range, tree => {
@@ -368,7 +374,11 @@ class TreeSitterLanguageMode {
       }
     })
 
-    if (smallestNode) return rangeForNode(smallestNode)
+    return smallestNode
+  }
+
+  getSyntaxNodeAtPosition (position, where) {
+    return this.getSyntaxNodeContainingRange(new Range(position, position), where)
   }
 
   bufferRangeForScopeAtPosition (selector, position) {
@@ -377,7 +387,8 @@ class TreeSitterLanguageMode {
       selector = ({type}) => match(type)
     }
     if (selector === null) selector = undefined
-    return this.getRangeForSyntaxNodeContainingRange(new Range(position, position), selector)
+    const node = this.getSyntaxNodeAtPosition(position, selector)
+    return node && node.range
   }
 
   /*
