@@ -16,6 +16,7 @@ module.exports = (packagedAppPath) => {
     loadingGif: path.join(CONFIG.repositoryRootPath, 'resources', 'win', 'loading.gif'),
     outputDirectory: CONFIG.buildOutputPath,
     noMsi: true,
+    noDelta: CONFIG.channel === 'nightly', // Delta packages are broken for nightly versions past nightly9 due to Squirrel/NuGet limitations
     remoteReleases: `https://atom.io/api/updates${archSuffix}?version=${CONFIG.computedAppVersion}`,
     setupExe: `AtomSetup${process.arch === 'x64' ? '-x64' : ''}.exe`,
     setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
@@ -28,7 +29,7 @@ module.exports = (packagedAppPath) => {
     }
 
     for (let nupkgPath of glob.sync(`${CONFIG.buildOutputPath}/atom-*.nupkg`)) {
-      if (!nupkgPath.includes(CONFIG.appMetadata.version)) {
+      if (!nupkgPath.includes(CONFIG.computedAppVersion)) {
         console.log(`Deleting downloaded nupkg for previous version at ${nupkgPath} to prevent it from being stored as an artifact`)
         fs.unlinkSync(nupkgPath)
       } else {

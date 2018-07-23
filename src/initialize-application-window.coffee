@@ -38,6 +38,7 @@ if global.isGeneratingSnapshot
   require('keybinding-resolver')
   require('language-html')
   require('language-javascript')
+  require('language-ruby')
   require('line-ending-selector')
   require('link')
   require('markdown-preview')
