@@ -4,7 +4,7 @@ const {isSubset} = require('underscore-plus')
 
 // Private: Parse a selector into parts.
 //          If already parsed, returns the selector unmodified.
-// 
+//
 // * `selector` a {String|Array<String>} specifying what to match
 // Returns selector parts, an {Array<String>}.
 function parse (selector) {

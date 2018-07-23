@@ -363,14 +363,13 @@ class TreeSitterLanguageMode {
 
     let smallestNode
     this._forEachTreeWithRange(range, tree => {
-      if (typeof selector === 'function') debugger
       let node = tree.rootNode.descendantForIndex(startIndex, searchEndIndex)
       while (node) {
         if (nodeContainsIndices(node, startIndex, endIndex) && where(node)) {
           if (nodeIsSmaller(node, smallestNode)) smallestNode = node
           break
         }
-        node = node.parent        
+        node = node.parent
       }
     })
 

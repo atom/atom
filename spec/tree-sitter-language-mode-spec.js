@@ -1313,7 +1313,7 @@ describe('TreeSitterLanguageMode', () => {
   })
 
   describe('.getSyntaxNodeAtPosition(position, where?)', () => {
-    fit('returns the range of the smallest matching node at position', async () => {
+    it('returns the range of the smallest matching node at position', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         id: 'javascript',
         parser: 'tree-sitter-javascript'
