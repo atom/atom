@@ -914,7 +914,7 @@ class LayerHighlightIterator {
     if (scopes) {
       return this.languageLayer.languageMode.grammar.idForScope(scopes)
     }
-  }  
+  }
 }
 
 const applyLeafRules = (rules, cursor) => {
