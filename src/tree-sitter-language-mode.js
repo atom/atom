@@ -919,7 +919,7 @@ class LayerHighlightIterator {
 const applyLeafRules = (rules, cursor) => {
   if (!rules || typeof rules === 'string') return rules
   if (Array.isArray(rules)) {
-    for (let i = 0, {length} = rules; i != length; ++i) {
+    for (let i = 0, {length} = rules; i !== length; ++i) {
       const result = applyLeafRules(rules[i], cursor)
       if (result) return result
     }

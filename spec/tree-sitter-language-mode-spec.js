@@ -313,6 +313,39 @@ describe('TreeSitterLanguageMode', () => {
       ])
     })
 
+    it('applies rules when specified', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          'identifier': [
+            {match: '^(exports|document|window|global)$', scopes: 'global'},
+            {match: '^[A-Z_]+$', scopes: 'constant'},
+            {match: '^[A-Z]', scopes: 'constructor'},
+            'variable'
+          ],
+        }
+      })
+
+      buffer.setText(`exports.object = Class(SOME_CONSTANT, x)`)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      await nextHighlightingUpdate(languageMode)
+
+      expectTokensToEqual(editor, [
+        [
+          {text: 'exports', scopes: ['global']},
+          {text: '.object = ', scopes: []},
+          {text: 'Class', scopes: ['constructor']},
+          {text: '(', scopes: []},
+          {text: 'SOME_CONSTANT', scopes: ['constant']},
+          {text: ', ', scopes: []},
+          {text: 'x', scopes: ['variable']},
+          {text: ')', scopes: []},
+        ]
+      ])
+    })
+
     describe('when the buffer changes during a parse', () => {
       it('immediately parses again when the current parse completes', async () => {
         const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
