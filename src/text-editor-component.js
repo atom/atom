@@ -148,6 +148,7 @@ class TextEditorComponent {
     this.lineNumbersToRender = {
       maxDigits: 2,
       bufferRows: [],
+      screenRows: [],
       keys: [],
       softWrappedFlags: [],
       foldableFlags: []
