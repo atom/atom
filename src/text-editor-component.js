@@ -3135,6 +3135,7 @@ class GutterContainerComponent {
       return $(LineNumberGutterComponent, {
         ref,
         element: gutter.getElement(),
+        name: gutter.name,
         labelFn: gutter.labelFn,
         rootComponent: rootComponent,
         startRow: renderedStartRow,
@@ -3158,6 +3159,7 @@ class GutterContainerComponent {
       return $(LineNumberGutterComponent, {
         ref,
         element: gutter.getElement(),
+        name: gutter.name,
         maxDigits: lineNumbersToRender.maxDigits,
         showLineNumbers
       })
@@ -3263,7 +3265,7 @@ class LineNumberGutterComponent {
     return $.div(
       {
         className: 'gutter line-numbers',
-        attributes: {'gutter-name': 'line-number'},
+        attributes: {'gutter-name': this.props.name},
         style: {position: 'relative', height: ceilToPhysicalPixelBoundary(height) + 'px'},
         on: {
           mousedown: this.didMouseDown
