@@ -886,7 +886,7 @@ class TextEditorComponent {
 
   queryLineNumbersToRender () {
     const {model} = this.props
-    if (!model.isLineNumberGutterVisible()) return
+    if (!model.anyLineNumberGutterVisible()) return
     if (this.showLineNumbers !== model.doesShowLineNumbers()) {
       this.remeasureGutterDimensions = true
       this.showLineNumbers = model.doesShowLineNumbers()
@@ -942,7 +942,7 @@ class TextEditorComponent {
 
   queryMaxLineNumberDigits () {
     const {model} = this.props
-    if (model.isLineNumberGutterVisible()) {
+    if (model.anyLineNumberGutterVisible()) {
       const maxDigits = Math.max(2, model.getLineCount().toString().length)
       if (maxDigits !== this.lineNumbersToRender.maxDigits) {
         this.remeasureGutterDimensions = true
@@ -3099,7 +3099,7 @@ class GutterContainerComponent {
       },
       $.div({style: innerStyle},
         guttersToRender.map((gutter) => {
-          if (gutter.name === 'line-number') {
+          if (gutter.kind === 'line-number') {
             return this.renderLineNumberGutter(gutter)
           } else {
             return $(CustomGutterComponent, {
@@ -3118,18 +3118,23 @@ class GutterContainerComponent {
 
   renderLineNumberGutter (gutter) {
     const {
-      rootComponent, isLineNumberGutterVisible, showLineNumbers, hasInitialMeasurements, lineNumbersToRender,
+      rootComponent, showLineNumbers, hasInitialMeasurements, lineNumbersToRender,
       renderedStartRow, renderedEndRow, rowsPerTile, decorationsToRender, didMeasureVisibleBlockDecoration,
       scrollHeight, lineNumberGutterWidth, lineHeight
     } = this.props
 
-    if (!isLineNumberGutterVisible) return null
+    if (!gutter.isVisible()) {
+      return null;
+    }
+
+    const ref = gutter.name === 'line-number' ? 'lineNumberGutter' : undefined;
 
     if (hasInitialMeasurements) {
       const {maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags} = lineNumbersToRender
       return $(LineNumberGutterComponent, {
-        ref: 'lineNumberGutter',
+        ref,
         element: gutter.getElement(),
+        labelFn: gutter.labelFn,
         rootComponent: rootComponent,
         startRow: renderedStartRow,
         endRow: renderedEndRow,
@@ -3150,7 +3155,7 @@ class GutterContainerComponent {
       })
     } else {
       return $(LineNumberGutterComponent, {
-        ref: 'lineNumberGutter',
+        ref,
         element: gutter.getElement(),
         maxDigits: lineNumbersToRender.maxDigits,
         showLineNumbers
