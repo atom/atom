@@ -843,7 +843,7 @@ class LayerHighlightIterator {
     return this.openTags.slice()
   }
 
-  // Private methods  
+  // Private methods
   _moveUp (atLastChild) {
     let result = false
     const {endIndex} = this.treeCursor
@@ -914,11 +914,7 @@ class LayerHighlightIterator {
     if (scopes) {
       return this.languageLayer.languageMode.grammar.idForScope(scopes)
     }
-  }
-
-  idForScope (scopeName) {
-    return this.languageLayer.languageMode.grammar.idForScope(scopeName)
-  }
+  }  
 }
 
 const applyLeafRules = (rules, cursor) => {
