@@ -15,6 +15,9 @@ module.exports = class Gutter {
     this.labelFn = options && options.labelFn
     this.className = options && options.class
 
+    this.onMouseDown = options && options.onMouseDown
+    this.onMouseMove = options && options.onMouseMove
+
     this.emitter = new Emitter()
   }
 

@@ -3148,6 +3148,8 @@ class GutterContainerComponent {
         name: gutter.name,
         className: gutter.className,
         labelFn: gutter.labelFn,
+        onMouseDown: gutter.onMouseDown,
+        onMouseMove: gutter.onMouseMove,
         rootComponent: rootComponent,
         startRow: renderedStartRow,
         endRow: renderedEndRow,
@@ -3172,6 +3174,8 @@ class GutterContainerComponent {
         element: gutter.getElement(),
         name: gutter.name,
         className: gutter.className,
+        onMouseDown: gutter.onMouseDown,
+        onMouseMove: gutter.onMouseMove,
         maxDigits: lineNumbersToRender.maxDigits,
         showLineNumbers
       })
@@ -3286,7 +3290,8 @@ class LineNumberGutterComponent {
         attributes: {'gutter-name': this.props.name},
         style: {position: 'relative', height: ceilToPhysicalPixelBoundary(height) + 'px'},
         on: {
-          mousedown: this.didMouseDown
+          mousedown: this.didMouseDown,
+          mousemove: this.didMouseMove
         }
       },
       $.div({key: 'placeholder', className: 'line-number dummy', style: {visibility: 'hidden'}},
@@ -3356,7 +3361,19 @@ class LineNumberGutterComponent {
   }
 
   didMouseDown (event) {
-    this.props.rootComponent.didMouseDownOnLineNumberGutter(event)
+    if (this.props.onMouseDown == null) {
+      this.props.rootComponent.didMouseDownOnLineNumberGutter(event)
+    } else {
+      const {bufferRow, screenRow} = event.target.dataset
+      this.props.onMouseDown({bufferRow, screenRow})
+    }
+  }
+
+  didMouseMove (event) {
+    if (this.props.onMouseMove != null) {
+      const {bufferRow, screenRow} = event.target.dataset
+      this.props.onMouseMove({bufferRow, screenRow})
+    }
   }
 }
 

@@ -4218,7 +4218,8 @@ class TextEditor {
   //       initially after being created. (default: true)
   //   * `type` (optional) {String} specifying the type of gutter to create. `'decorated'`
   //       gutters are useful as a destination for decorations created with {Gutter::decorateMarker}.
-  //       `'line-number'` gutters
+  //       `'line-number'` gutters.
+  //   * `class` (optional) {String} added to the CSS classnames of the gutter's root DOM element.
   //   * `labelFn` (optional) {Function} called by a `'line-number'` gutter to generate the label for each line number
   //       element. Should return a {String} that will be used to label the corresponding line.
   //     * `lineData` an {Object} containing information about each line to label.
@@ -4226,7 +4227,17 @@ class TextEditor {
   //       * `screenRow` {Number} indicating the zero-indexed screen index.
   //       * `foldable` {Boolean} that is `true` if a fold may be created here.
   //       * `softWrapped` {Boolean} if this screen row is the soft-wrapped continuation of the same buffer row.
-  //   * `class` (optional) {String} added to the CSS classnames of the gutter's root DOM element.
+  //   * `onMouseDown` (optional) {Function} to be called when a mousedown event is received by a line-number
+  //        element within this `type: 'line-number'` {Gutter}. If unspecified, the default behavior is to select the
+  //        clicked buffer row.
+  //     * `lineData` an {Object} containing information about the line that's being clicked.
+  //       * `bufferRow` {Number} of the originating line element
+  //       * `screenRow` {Number}
+  //   * `onMouseMove` (optional) {Function} to be called when a mousemove event occurs on a line-number element within
+  //        within this `type: 'line-number'` {Gutter}.
+  //     * `lineData` an {Object} containing information about the line that's being clicked.
+  //       * `bufferRow` {Number} of the originating line element
+  //       * `screenRow` {Number}
   //
   // Returns the newly-created {Gutter}.
   addGutter (options) {
