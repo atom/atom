@@ -13,6 +13,7 @@ module.exports = class Gutter {
     this.visible = (options && options.visible != null) ? options.visible : true
     this.type = (options && options.type != null) ? options.type : 'decorated'
     this.labelFn = options && options.labelFn
+    this.className = options && options.class
 
     this.emitter = new Emitter()
   }

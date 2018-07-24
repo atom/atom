@@ -3146,6 +3146,7 @@ class GutterContainerComponent {
         ref,
         element: gutter.getElement(),
         name: gutter.name,
+        className: gutter.className,
         labelFn: gutter.labelFn,
         rootComponent: rootComponent,
         startRow: renderedStartRow,
@@ -3170,6 +3171,7 @@ class GutterContainerComponent {
         ref,
         element: gutter.getElement(),
         name: gutter.name,
+        className: gutter.className,
         maxDigits: lineNumbersToRender.maxDigits,
         showLineNumbers
       })
@@ -3197,7 +3199,8 @@ class LineNumberGutterComponent {
   render () {
     const {
       rootComponent, showLineNumbers, height, width, startRow, endRow, rowsPerTile,
-      maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags, decorations
+      maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags, decorations,
+      className
     } = this.props
 
     let children = null
@@ -3272,9 +3275,14 @@ class LineNumberGutterComponent {
       }
     }
 
+    let rootClassName = 'gutter line-numbers'
+    if (className) {
+      rootClassName += ' ' + className
+    }
+
     return $.div(
       {
-        className: 'gutter line-numbers',
+        className: rootClassName,
         attributes: {'gutter-name': this.props.name},
         style: {position: 'relative', height: ceilToPhysicalPixelBoundary(height) + 'px'},
         on: {
@@ -3301,6 +3309,7 @@ class LineNumberGutterComponent {
     if (oldProps.rowsPerTile !== newProps.rowsPerTile) return true
     if (oldProps.maxDigits !== newProps.maxDigits) return true
     if (oldProps.labelFn !== newProps.labelFn) return true
+    if (oldProps.className !== newProps.className) return true
     if (newProps.didMeasureVisibleBlockDecoration) return true
     if (!arraysEqual(oldProps.keys, newProps.keys)) return true
     if (!arraysEqual(oldProps.bufferRows, newProps.bufferRows)) return true
@@ -3416,9 +3425,13 @@ class CustomGutterComponent {
   }
 
   render () {
+    let className = 'gutter'
+    if (this.props.className) {
+      className += ' ' + this.props.className
+    }
     return $.div(
       {
-        className: 'gutter',
+        className,
         attributes: {'gutter-name': this.props.name},
         style: {
           display: this.props.visible ? '' : 'none'

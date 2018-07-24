@@ -4226,6 +4226,7 @@ class TextEditor {
   //       * `screenRow` {Number} indicating the zero-indexed screen index.
   //       * `foldable` {Boolean} that is `true` if a fold may be created here.
   //       * `softWrapped` {Boolean} if this screen row is the soft-wrapped continuation of the same buffer row.
+  //   * `class` (optional) {String} added to the CSS classnames of the gutter's root DOM element.
   //
   // Returns the newly-created {Gutter}.
   addGutter (options) {
