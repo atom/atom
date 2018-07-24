@@ -376,7 +376,7 @@ class TreeSitterLanguageMode {
     return smallestNode
   }
 
-  getRangeForSyntaxNodeContainingRange (range, where = _ => true) {
+  getRangeForSyntaxNodeContainingRange (range, where) {
     const node = this.getSyntaxNodeContainingRange(range, where)
     return node && node.range
   }
