@@ -258,6 +258,7 @@ class TextEditor {
     this.gutterContainer = new GutterContainer(this)
     this.lineNumberGutter = this.gutterContainer.addGutter({
       name: 'line-number',
+      kind: 'line-number',
       priority: 0,
       visible: params.lineNumberGutterVisible
     })
@@ -4211,6 +4212,16 @@ class TextEditor {
   //       window. (default: -100)
   //   * `visible` (optional) {Boolean} specifying whether the gutter is visible
   //       initially after being created. (default: true)
+  //   * `type` (optional) {String} specifying the type of gutter to create. `'decorated'`
+  //       gutters are useful as a destination for decorations created with {Gutter::decorateMarker}.
+  //       `'line-number'` gutters
+  //   * `labelFn` (optional) {Function} called by a `'line-number'` gutter to generate the label for each line number
+  //       element. Should return a {String} that will be used to label the corresponding line.
+  //     * `lineData` an {Object} containing information about each line to label.
+  //       * `bufferRow` {Number} indicating the zero-indexed buffer index of this line.
+  //       * `screenRow` {Number} indicating the zero-indexed screen index.
+  //       * `foldable` {Boolean} that is `true` if a fold may be created here.
+  //       * `softWrapped` {Boolean} if this screen row is the soft-wrapped continuation of the same buffer row.
   //
   // Returns the newly-created {Gutter}.
   addGutter (options) {

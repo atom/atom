@@ -11,6 +11,8 @@ module.exports = class Gutter {
     this.name = options && options.name
     this.priority = (options && options.priority != null) ? options.priority : DefaultPriority
     this.visible = (options && options.visible != null) ? options.visible : true
+    this.kind = (options && options.kind != null) ? options.kind : 'decorated'
+    this.labelFn = options && options.labelFn
 
     this.emitter = new Emitter()
   }

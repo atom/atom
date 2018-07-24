@@ -6716,6 +6716,20 @@ describe('TextEditor', () => {
         const gutter = editor.addGutter(options)
         expect(editor.getGutters().length).toBe(2)
         expect(editor.getGutters()[1]).toBe(gutter)
+        expect(gutter.kind).toBe('decorated')
+      })
+
+      it('can add a custom line-number gutter', () => {
+        expect(editor.getGutters().length).toBe(1)
+        const options = {
+          name: 'another-gutter',
+          priority: 2,
+          kind: 'line-number'
+        }
+        const gutter = editor.addGutter(options)
+        expect(editor.getGutters().length).toBe(2)
+        expect(editor.getGutters()[1]).toBe(gutter)
+        expect(gutter.kind).toBe('line-number')
       })
 
       it("does not allow a custom gutter with the 'line-number' name.", () => expect(editor.addGutter.bind(editor, {name: 'line-number'})).toThrow())
