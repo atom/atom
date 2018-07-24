@@ -3125,10 +3125,10 @@ class GutterContainerComponent {
     } = this.props
 
     if (!gutter.isVisible()) {
-      return null;
+      return null
     }
 
-    const ref = gutter.name === 'line-number' ? 'lineNumberGutter' : undefined;
+    const ref = gutter.name === 'line-number' ? 'lineNumberGutter' : undefined
 
     if (hasInitialMeasurements) {
       const {maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags} = lineNumbersToRender
