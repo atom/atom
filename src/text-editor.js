@@ -1022,7 +1022,7 @@ class TextEditor {
   isLineNumberGutterVisible () { return this.lineNumberGutter.isVisible() }
 
   anyLineNumberGutterVisible () {
-    return this.getGutters().some(gutter => gutter.kind === 'line-number' && gutter.visible)
+    return this.getGutters().some(gutter => gutter.type === 'line-number' && gutter.visible)
   }
 
   onDidChangeLineNumberGutterVisible (callback) {
