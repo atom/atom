@@ -3212,8 +3212,12 @@ class LineNumberGutterComponent {
 
           let number = null
           if (showLineNumbers) {
-            number = softWrapped ? '•' : bufferRow + 1
-            number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
+            if (this.props.labelFn == null) {
+              number = softWrapped ? '•' : bufferRow + 1
+              number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
+            } else {
+              number = this.props.labelFn({bufferRow, screenRow, foldable, softWrapped})
+            }
           }
 
           // We need to adjust the line number position to account for block
@@ -3283,6 +3287,7 @@ class LineNumberGutterComponent {
     if (oldProps.endRow !== newProps.endRow) return true
     if (oldProps.rowsPerTile !== newProps.rowsPerTile) return true
     if (oldProps.maxDigits !== newProps.maxDigits) return true
+    if (oldProps.labelFn !== newProps.labelFn) return true
     if (newProps.didMeasureVisibleBlockDecoration) return true
     if (!arraysEqual(oldProps.keys, newProps.keys)) return true
     if (!arraysEqual(oldProps.bufferRows, newProps.bufferRows)) return true
