@@ -154,7 +154,7 @@ class TextEditorComponent {
       foldableFlags: []
     }
     this.decorationsToRender = {
-      lineNumbers: null,
+      lineNumbers: new Map(),
       lines: null,
       highlights: [],
       cursors: [],
@@ -978,7 +978,7 @@ class TextEditorComponent {
   }
 
   queryDecorationsToRender () {
-    this.decorationsToRender.lineNumbers = []
+    this.decorationsToRender.lineNumbers.clear()
     this.decorationsToRender.lines = []
     this.decorationsToRender.overlays.length = 0
     this.decorationsToRender.customGutter.clear()
@@ -1041,7 +1041,17 @@ class TextEditorComponent {
   }
 
   addLineDecorationToRender (type, decoration, screenRange, reversed) {
-    const decorationsToRender = (type === 'line') ? this.decorationsToRender.lines : this.decorationsToRender.lineNumbers
+    let decorationsToRender
+    if (type === 'line') {
+      decorationsToRender = this.decorationsToRender.lines
+    } else {
+      const gutterName = decoration.gutterName || 'line-number'
+      decorationsToRender = this.decorationsToRender.lineNumbers.get(gutterName)
+      if (!decorationsToRender) {
+        decorationsToRender = []
+        this.decorationsToRender.lineNumbers.set(gutterName, decorationsToRender)
+      }
+    }
 
     let omitLastRow = false
     if (screenRange.isEmpty()) {
@@ -3147,7 +3157,7 @@ class GutterContainerComponent {
         screenRows: screenRows,
         softWrappedFlags: softWrappedFlags,
         foldableFlags: foldableFlags,
-        decorations: decorationsToRender.lineNumbers,
+        decorations: decorationsToRender.lineNumbers.get(gutter.name) || [],
         blockDecorations: decorationsToRender.blocks,
         didMeasureVisibleBlockDecoration: didMeasureVisibleBlockDecoration,
         height: scrollHeight,
