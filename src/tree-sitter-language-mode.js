@@ -904,15 +904,38 @@ class LayerHighlightIterator {
   // Private methods
 
   currentScopeName () {
-    return this.languageLayer.grammar.scopeMap.get(
+    return applyLeafRules(this.languageLayer.grammar.scopeMap.get(
       this.containingNodeTypes,
       this.containingNodeChildIndices,
       this.treeCursor.nodeIsNamed
-    )
+    ), this.treeCursor)
   }
 
   idForScope (scopeName) {
     return this.languageLayer.languageMode.grammar.idForScope(scopeName)
+  }
+}
+
+const applyLeafRules = (rules, cursor) => {
+  if (!rules || typeof rules === 'string') return rules
+  if (Array.isArray(rules)) {
+    let i = rules.length; while (i --> 0) {
+      const result = applyLeafRules(rules[i], cursor)
+      if (result) return result
+    }
+    return undefined
+  }
+  if (typeof rules === 'object') {
+    if (rules.exact) {
+      return cursor.nodeText === rules.exact
+        ? applyLeafRules(rules.scopes, cursor)
+        : undefined
+    }
+    if (rules.match) {
+      return rules.match.test(cursor.nodeText)
+        ? applyLeafRules(rules.scopes, cursor)
+        : undefined
+    }
   }
 }
 

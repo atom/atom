@@ -2,6 +2,23 @@ const path = require('path')
 const SyntaxScopeMap = require('./syntax-scope-map')
 const Module = require('module')
 
+tap = x => (console.log(x), x)
+
+const toSyntaxClasses = scopes =>
+  typeof scopes == 'string'
+    ? scopes
+      .split('.')
+      .map(s => `syntax--${s}`)
+      .join(' ')
+    :
+  Array.isArray(scopes)
+    ? scopes.map(toSyntaxClasses)
+    :
+  scopes.match
+    ? tap({match: new RegExp(scopes.match), scopes: toSyntaxClasses(scopes.scopes)})
+    :
+  Object.assign({}, scopes, {scopes: toSyntaxClasses(scopes.scopes)})
+
 module.exports =
 class TreeSitterGrammar {
   constructor (registry, filePath, params) {
@@ -21,10 +38,7 @@ class TreeSitterGrammar {
 
     const scopeSelectors = {}
     for (const key in params.scopes || {}) {
-      scopeSelectors[key] = params.scopes[key]
-        .split('.')
-        .map(s => `syntax--${s}`)
-        .join(' ')
+      scopeSelectors[key] = toSyntaxClasses(params.scopes[key])
     }
 
     this.scopeMap = new SyntaxScopeMap(scopeSelectors)
