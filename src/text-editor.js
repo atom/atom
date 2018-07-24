@@ -258,7 +258,7 @@ class TextEditor {
     this.gutterContainer = new GutterContainer(this)
     this.lineNumberGutter = this.gutterContainer.addGutter({
       name: 'line-number',
-      kind: 'line-number',
+      type: 'line-number',
       priority: 0,
       visible: params.lineNumberGutterVisible
     })

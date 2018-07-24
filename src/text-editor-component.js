@@ -3099,7 +3099,7 @@ class GutterContainerComponent {
       },
       $.div({style: innerStyle},
         guttersToRender.map((gutter) => {
-          if (gutter.kind === 'line-number') {
+          if (gutter.type === 'line-number') {
             return this.renderLineNumberGutter(gutter)
           } else {
             return $(CustomGutterComponent, {
