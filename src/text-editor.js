@@ -4227,6 +4227,7 @@ class TextEditor {
   //       * `screenRow` {Number} indicating the zero-indexed screen index.
   //       * `foldable` {Boolean} that is `true` if a fold may be created here.
   //       * `softWrapped` {Boolean} if this screen row is the soft-wrapped continuation of the same buffer row.
+  //       * `maxDigits` {Number} the maximum number of digits necessary to represent any known screen row.
   //   * `onMouseDown` (optional) {Function} to be called when a mousedown event is received by a line-number
   //        element within this `type: 'line-number'` {Gutter}. If unspecified, the default behavior is to select the
   //        clicked buffer row.

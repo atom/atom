@@ -3236,7 +3236,7 @@ class LineNumberGutterComponent {
               number = softWrapped ? '•' : bufferRow + 1
               number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
             } else {
-              number = this.props.labelFn({bufferRow, screenRow, foldable, softWrapped})
+              number = this.props.labelFn({bufferRow, screenRow, foldable, softWrapped, maxDigits})
             }
           }
 
