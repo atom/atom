@@ -13,6 +13,7 @@ class TreeSitterGrammar {
     if (params.injectionRegExp) this.injectionRegExp = new RegExp(params.injectionRegExp)
 
     this.folds = params.folds || []
+    this.folds.forEach(normalizeFoldSpecification)
 
     this.commentStrings = {
       commentStartString: params.comments && params.comments.start,
@@ -81,3 +82,36 @@ const toSyntaxClasses = scopes =>
     : scopes.match
     ? {match: new RegExp(scopes.match), scopes: toSyntaxClasses(scopes.scopes)}
     : Object.assign({}, scopes, {scopes: toSyntaxClasses(scopes.scopes)})
+
+const NODE_NAME_REGEX = /[\w_]+/
+
+function matcherForSpec (spec) {
+  if (typeof spec === 'string') {
+    if (spec[0] === '"' && spec[spec.length - 1] === '"') {
+      return {
+        type: spec.substr(1, spec.length - 2),
+        named: false
+      }
+    }
+
+    if (!NODE_NAME_REGEX.test(spec)) {
+      return {type: spec, named: false}
+    }
+
+    return {type: spec, named: true}
+  }
+  return spec
+}
+
+function normalizeFoldSpecification (spec) {
+  if (spec.type) {
+    if (Array.isArray(spec.type)) {
+      spec.matchers = spec.type.map(matcherForSpec)
+    } else {
+      spec.matchers = [matcherForSpec(spec.type)]
+    }
+  }
+
+  if (spec.start) normalizeFoldSpecification(spec.start)
+  if (spec.end) normalizeFoldSpecification(spec.end)
+}
