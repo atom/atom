@@ -3376,7 +3376,7 @@ class LineNumberGutterComponent {
   didMouseMove (event) {
     if (this.props.onMouseMove != null) {
       const {bufferRowStr, screenRowStr} = event.target.dataset
-      this.props.onMouseDown({
+      this.props.onMouseMove({
         bufferRow: parseInt(bufferRowStr, 10),
         screenRow: parseInt(screenRowStr, 10),
         domEvent: event
