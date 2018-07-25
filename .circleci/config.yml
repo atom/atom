@@ -4,6 +4,9 @@ jobs:
     macos:
       xcode: 9.1.0
     environment:
+      XCODE_SCHEME: test
+      XCODE_WORKSPACE: test
+      XCODE_PROJECT: test
       TEST_JUNIT_XML_ROOT: /tmp/test_xml
     steps:
       - checkout
