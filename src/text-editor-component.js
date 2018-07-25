@@ -3364,10 +3364,10 @@ class LineNumberGutterComponent {
     if (this.props.onMouseDown == null) {
       this.props.rootComponent.didMouseDownOnLineNumberGutter(event)
     } else {
-      const {bufferRowStr, screenRowStr} = event.target.dataset
+      const {bufferRow, screenRow} = event.target.dataset
       this.props.onMouseDown({
-        bufferRow: parseInt(bufferRowStr, 10),
-        screenRow: parseInt(screenRowStr, 10),
+        bufferRow: parseInt(bufferRow, 10),
+        screenRow: parseInt(screenRow, 10),
         domEvent: event
       })
     }
@@ -3375,10 +3375,10 @@ class LineNumberGutterComponent {
 
   didMouseMove (event) {
     if (this.props.onMouseMove != null) {
-      const {bufferRowStr, screenRowStr} = event.target.dataset
+      const {bufferRow, screenRow} = event.target.dataset
       this.props.onMouseMove({
-        bufferRow: parseInt(bufferRowStr, 10),
-        screenRow: parseInt(screenRowStr, 10),
+        bufferRow: parseInt(bufferRow, 10),
+        screenRow: parseInt(screenRow, 10),
         domEvent: event
       })
     }
