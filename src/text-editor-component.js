@@ -3138,7 +3138,9 @@ class GutterContainerComponent {
       return null
     }
 
-    const ref = gutter.name === 'line-number' ? 'lineNumberGutter' : undefined
+    const oneTrueLineNumberGutter = gutter.name === 'line-number'
+    const ref = oneTrueLineNumberGutter ? 'lineNumberGutter' : undefined
+    const width = oneTrueLineNumberGutter ? lineNumberGutterWidth : undefined
 
     if (hasInitialMeasurements) {
       const {maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags} = lineNumbersToRender
@@ -3164,7 +3166,7 @@ class GutterContainerComponent {
         blockDecorations: decorationsToRender.blocks,
         didMeasureVisibleBlockDecoration: didMeasureVisibleBlockDecoration,
         height: scrollHeight,
-        width: lineNumberGutterWidth,
+        width,
         lineHeight: lineHeight,
         showLineNumbers
       })
@@ -3264,6 +3266,7 @@ class LineNumberGutterComponent {
         const tileTop = rootComponent.pixelPositionBeforeBlocksForRow(tileStartRow)
         const tileBottom = rootComponent.pixelPositionBeforeBlocksForRow(tileEndRow)
         const tileHeight = tileBottom - tileTop
+        const tileWidth = width != null && width > 0 ? width + 'px' : ''
 
         children[i] = $.div({
           key: rootComponent.idsByTileStartRow.get(tileStartRow),
@@ -3272,7 +3275,7 @@ class LineNumberGutterComponent {
             position: 'absolute',
             top: 0,
             height: tileHeight + 'px',
-            width: width + 'px',
+            width: tileWidth,
             transform: `translateY(${tileTop}px)`
           }
         }, ...tileChildren)
@@ -3389,7 +3392,8 @@ class LineNumberComponent {
   constructor (props) {
     const {className, width, marginTop, bufferRow, screenRow, number, nodePool} = props
     this.props = props
-    const style = {width: width + 'px'}
+    const style = {}
+    if (width != null && width > 0) style.width = width + 'px'
     if (marginTop != null && marginTop > 0) style.marginTop = marginTop + 'px'
     this.element = nodePool.getElement('DIV', className, style)
     this.element.dataset.bufferRow = bufferRow
@@ -3409,9 +3413,15 @@ class LineNumberComponent {
     if (this.props.bufferRow !== bufferRow) this.element.dataset.bufferRow = bufferRow
     if (this.props.screenRow !== screenRow) this.element.dataset.screenRow = screenRow
     if (this.props.className !== className) this.element.className = className
-    if (this.props.width !== width) this.element.style.width = width + 'px'
+    if (this.props.width !== width) {
+      if (width != null && width > 0) {
+        this.element.style.width = width + 'px'
+      } else {
+        this.element.style.width = ''
+      }
+    }
     if (this.props.marginTop !== marginTop) {
-      if (marginTop != null) {
+      if (marginTop != null && marginTop > 0) {
         this.element.style.marginTop = marginTop + 'px'
       } else {
         this.element.style.marginTop = ''
