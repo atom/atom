@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     macos:
-      xcode: 9.4.0
+      xcode: 9.1.0
     environment:
       TEST_JUNIT_XML_ROOT: /tmp/test_xml
     steps:
@@ -15,6 +15,7 @@ jobs:
           keys:
             - build-cache-v1-{{ arch }}
       - run: mkdir -p $TEST_JUNIT_XML_ROOT
+
       - run: script/build --code-sign --compress-artifacts
       - save_cache:
           key: node-modules-v1-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "script/package.json"}}-{{ checksum "apm/package.json" }}
@@ -22,9 +23,14 @@ jobs:
             - node_modules
             - apm/node_modules
             - script/node_modules
+
+      # Lint the code
       - run: script/lint
+
+      # Run Atom tests
       - run: osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
       - run: caffeinate -s script/test
+
       - store_artifacts:
           path: out/atom-mac.zip
       - store_artifacts:
