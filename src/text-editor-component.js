@@ -3364,15 +3364,23 @@ class LineNumberGutterComponent {
     if (this.props.onMouseDown == null) {
       this.props.rootComponent.didMouseDownOnLineNumberGutter(event)
     } else {
-      const {bufferRow, screenRow} = event.target.dataset
-      this.props.onMouseDown({bufferRow, screenRow})
+      const {bufferRowStr, screenRowStr} = event.target.dataset
+      this.props.onMouseDown({
+        bufferRow: parseInt(bufferRowStr, 10),
+        screenRow: parseInt(screenRowStr, 10),
+        domEvent: event
+      })
     }
   }
 
   didMouseMove (event) {
     if (this.props.onMouseMove != null) {
-      const {bufferRow, screenRow} = event.target.dataset
-      this.props.onMouseMove({bufferRow, screenRow})
+      const {bufferRowStr, screenRowStr} = event.target.dataset
+      this.props.onMouseDown({
+        bufferRow: parseInt(bufferRowStr, 10),
+        screenRow: parseInt(screenRowStr, 10),
+        domEvent: event
+      })
     }
   }
 }
