@@ -48,7 +48,28 @@ phases:
 
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)
-      ArtifactName: Windows
+      PathtoPublish: $(Build.SourcesDirectory)/out/AtomSetup-x64.exe
+      ArtifactName: AtomSetup-x64.exe
       ArtifactType: Container
-    displayName: Upload Artifacts
+    displayName: Upload AtomSetup-x64.exe
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-windows.zip
+      ArtifactName: atom-x64-windows.zip
+      ArtifactType: Container
+    displayName: Upload atom-x64-windows.zip
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-$(ReleaseVersion)-full.nupkg
+      ArtifactName: atom-x64-$(ReleaseVersion)-full.nupkg
+      ArtifactType: Container
+    displayName: Upload atom-x64-$(ReleaseVersion)-full.nupkg
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/RELEASES-x64
+      ArtifactName: RELEASES-x64
+      ArtifactType: Container
+    displayName: Upload RELEASES-x64

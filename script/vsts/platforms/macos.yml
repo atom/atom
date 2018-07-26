@@ -34,22 +34,16 @@ phases:
       CI_PROVIDER: VSTS
     displayName: Run tests
 
-  # This step is necessary in the short term due to a bug in the *NIX
-  # implementation of the CopyFiles task which scans the entire file
-  # system structure just to resolve the glob pattern.
-  - script: rm -rf $(Build.SourcesDirectory)/out/*/
-    displayName: Delete Intermediate Output
-
-  - task: CopyFiles@2
+  - task: PublishBuildArtifacts@1
     inputs:
-      sourceFolder: $(Build.SourcesDirectory)/out
-      contents: '*.zip'
-      targetFolder: $(Build.ArtifactStagingDirectory)
-    displayName: Stage Artifacts
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-mac.zip
+      ArtifactName: atom-mac.zip
+      ArtifactType: Container
+    displayName: Upload atom-mac.zip
 
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)
-      ArtifactName: macOS
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-mac-symbols.zip
+      ArtifactName: atom-mac-symbols.zip
       ArtifactType: Container
-    displayName: Upload Artifacts
+    displayName: Upload atom-mac-symbols.zip
