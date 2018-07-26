@@ -2,18 +2,27 @@ version: 2
 jobs:
   build:
     macos:
-      xcode: 9.1.0
+      xcode: 8.3.3
     environment:
       XCODE_SCHEME: test
       XCODE_WORKSPACE: test
       XCODE_PROJECT: test
       TEST_JUNIT_XML_ROOT: /tmp/test_xml
+    shell: /bin/bash --login -o pipefail
     steps:
       - checkout
+      - run:
+          name: Install NVM
+          command: curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.3/install.sh | PROFILE=~/.bash_profile bash
+      - run:
+          name: Install Node
+          command: |
+            nvm install 8.9.3
+            nvm use 8.9.3
       - restore_cache:
           keys:
-            - node-modules-v1-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "script/package.json"}}-{{ checksum "apm/package.json" }}
-            - node-modules-v1-{{ arch }}-
+            - node-modules-v2-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "script/package.json"}}-{{ checksum "apm/package.json" }}
+            - node-modules-v2-{{ arch }}-
       - restore_cache:
           keys:
             - build-cache-v1-{{ arch }}
@@ -21,7 +30,7 @@ jobs:
 
       - run: script/build --code-sign --compress-artifacts
       - save_cache:
-          key: node-modules-v1-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "script/package.json"}}-{{ checksum "apm/package.json" }}
+          key: node-modules-v2-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "script/package.json"}}-{{ checksum "apm/package.json" }}
           paths:
             - node_modules
             - apm/node_modules
