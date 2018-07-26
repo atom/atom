@@ -1,5 +1,5 @@
 trigger:
-- 1.*-release
+- 1.*-releases
 
 phases:
 
