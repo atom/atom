@@ -3,15 +3,18 @@ trigger:
 
 phases:
 
+- phase: GetReleaseVersion
+  steps:
+  # This has to be done separately because VSTS inexplicably
+  # exits the script block after `npm install` completes.
+  - script: |
+      cd script\vsts
+      npm install
+    displayName: npm install
+  - script: node script\vsts\get-version.js
+    name: Version
+
 # Import OS-specific build definitions
 - template: windows.yml
 - template: macos.yml
 - template: linux.yml
-
-- phase: Release
-  queue: Hosted  # Need this for Python 2.7
-
-  dependsOn:
-  - Windows
-  - Linux
-  - macOS
