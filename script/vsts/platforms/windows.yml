@@ -7,9 +7,9 @@ jobs:
     matrix:
       x64:
         buildArch: x64
-      # TODO: x86 is currently not supported on VSTS
-      # x86:
-      #   buildArch: x86
+      x86:
+        buildArch: x86
+
   pool:
     vmImage: vs2015-win2012r2 # needed for python 2.7 and gyp
 
@@ -29,23 +29,30 @@ jobs:
       npm install --global --production npm-windows-upgrade
       ECHO Upgrading npm
       npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.2.0
+    displayName: Install npm 6.2.0
+
+  - script: |
+      cd script\vsts
+      npm install
+    displayName: Install Windows build dependencies
 
   - script: |
       IF NOT EXIST C:\tmp MKDIR C:\tmp
       SET SQUIRREL_TEMP=C:\tmp
       IF [%IS_RELEASE_BRANCH%]==[true] (
         ECHO Creating production artifacts for release branch %BUILD_SOURCEBRANCHNAME%
-        script\build.cmd --code-sign --compress-artifacts --create-windows-installer
+        node script\vsts\windows-run.js script\build.cmd --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
         IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
           ECHO Creating signed CI artifacts for branch %BUILD_SOURCEBRANCHNAME%
-          script\build.cmd --code-sign --compress-artifacts
+          node script\vsts\windows-run.js script\build.cmd --code-sign --compress-artifacts
         ) ELSE (
           ECHO Pull request build, no code signing will be performed
-          script\build.cmd --compress-artifacts
+          node script\vsts\windows-run.js script\build.cmd --compress-artifacts
         )
       )
     env:
+      BUILD_ARCH: $(buildArch)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
       ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL)
       ATOM_WIN_CODE_SIGNING_CERT_PASSWORD: $(ATOM_WIN_CODE_SIGNING_CERT_PASSWORD)
@@ -53,13 +60,16 @@ jobs:
       IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
     displayName: Build Atom
 
-  - script: script\lint.cmd
+  - script: node script\vsts\windows-run.js script\lint.cmd
+    env:
+      BUILD_ARCH: $(buildArch)
     displayName: Run linter
 
-  - script: script\test.cmd
+  - script: node script\vsts\windows-run.js script\test.cmd
     env:
       CI: true
       CI_PROVIDER: VSTS
+      BUILD_ARCH: $(buildArch)
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
