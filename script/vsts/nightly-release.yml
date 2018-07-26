@@ -8,7 +8,7 @@ phases:
       cd script\vsts
       npm install
     displayName: npm install
-  - script: node script\vsts\generate-version.js
+  - script: node script\vsts\generate-version.js --nightly
     name: Version
 
 # Import OS-specific build definitions
