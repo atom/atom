@@ -12,9 +12,9 @@ phases:
     name: Version
 
 # Import OS-specific build definitions
-- template: windows.yml
-- template: macos.yml
-- template: linux.yml
+- template: platforms/windows.yml
+- template: platforms/macos.yml
+- template: platforms/linux.yml
 
 - phase: Release
   queue: Hosted  # Need this for Python 2.7
