@@ -1,0 +1,17 @@
+trigger:
+- 1.*-release
+
+phases:
+
+# Import OS-specific build definitions
+- template: windows.yml
+- template: macos.yml
+- template: linux.yml
+
+- phase: Release
+  queue: Hosted  # Need this for Python 2.7
+
+  dependsOn:
+  - Windows
+  - Linux
+  - macOS
