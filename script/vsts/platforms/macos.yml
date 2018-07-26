@@ -36,14 +36,14 @@ phases:
 
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: $(Build.SourcesDirectory)/out/atom-mac.zip
+      PathtoPublish: $(Build.SourcesDirectory)/out/*.app
       ArtifactName: atom-mac.zip
       ArtifactType: Container
     displayName: Upload atom-mac.zip
 
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: $(Build.SourcesDirectory)/out/atom-mac-symbols.zip
+      PathtoPublish: $(Build.SourcesDirectory)/out/symbols/*
       ArtifactName: atom-mac-symbols.zip
       ArtifactType: Container
     displayName: Upload atom-mac-symbols.zip
