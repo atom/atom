@@ -34,16 +34,23 @@ phases:
   #     CI_PROVIDER: VSTS
   #   displayName: Run tests
 
+ - task: CopyFiles@2
+   inputs:
+     sourceFolder: $(Build.SourcesDirectory)/out
+     contents: '*.app'
+     targetFolder: $(Build.ArtifactStagingDirectory)
+   displayName: Stage Artifacts
+
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: $(Build.SourcesDirectory)/out/*.app
+      PathtoPublish: $(Build.ArtifactStagingDirectory)
       ArtifactName: atom-mac.zip
       ArtifactType: Container
     displayName: Upload atom-mac.zip
 
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: $(Build.SourcesDirectory)/out/symbols/*
+      PathtoPublish: $(Build.SourcesDirectory)/out/symbols
       ArtifactName: atom-mac-symbols.zip
       ArtifactType: Container
     displayName: Upload atom-mac-symbols.zip
