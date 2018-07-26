@@ -34,13 +34,19 @@ phases:
   #     CI_PROVIDER: VSTS
   #   displayName: Run tests
 
+  # This step is necessary in the short term due to a bug in the *NIX
+  # implementation of the CopyFiles task which scans the entire file
+  # system structure just to resolve the glob pattern.
+  - script: rm -rf $(Build.SourcesDirectory)/out/*/
+    displayName: Delete Intermediate Output
+
   - task: CopyFiles@2
     inputs:
       sourceFolder: $(Build.SourcesDirectory)/out
       contents: '*.app'
       targetFolder: $(Build.ArtifactStagingDirectory)
     displayName: Stage Artifacts
-    
+
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)
