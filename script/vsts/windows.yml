@@ -49,6 +49,6 @@ phases:
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)
-      ArtifactName: Binaries
+      ArtifactName: Windows
       ArtifactType: Container
     displayName: Upload Artifacts

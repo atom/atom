@@ -53,6 +53,6 @@ phases:
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)
-      ArtifactName: Binaries
+      ArtifactName: Linux
       ArtifactType: Container
     displayName: Upload Artifacts
