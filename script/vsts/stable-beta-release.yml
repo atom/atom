@@ -11,7 +11,7 @@ phases:
       cd script\vsts
       npm install
     displayName: npm install
-  - script: node script\vsts\get-version.js
+  - script: node script\vsts\get-release-version.js
     name: Version
 
 # Import OS-specific build definitions
