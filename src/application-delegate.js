@@ -7,10 +7,17 @@ module.exports =
 class ApplicationDelegate {
   constructor () {
     this.pendingSettingsUpdateCount = 0
-    this.ipcMessageEmitter = new Emitter()
-    ipcRenderer.on('message', (event, message, detail) => {
-      this.ipcMessageEmitter.emit(message, detail)
-    })
+    this._ipcMessageEmitter = null
+  }
+
+  ipcMessageEmitter () {
+    if (!this._ipcMessageEmitter) {
+      this._ipcMessageEmitter = new Emitter()
+      ipcRenderer.on('message', (event, message, detail) => {
+        this._ipcMessageEmitter.emit(message, detail)
+      })
+    }
+    return this._ipcMessageEmitter
   }
 
   getWindowLoadSettings () { return getWindowLoadSettings() }
@@ -193,13 +200,13 @@ class ApplicationDelegate {
   }
 
   onDidChangeUserSettings (callback) {
-    return this.ipcMessageEmitter.on('did-change-user-settings', detail => {
+    return this.ipcMessageEmitter().on('did-change-user-settings', detail => {
       if (this.pendingSettingsUpdateCount === 0) callback(detail)
     })
   }
 
   onDidFailToReadUserSettings (callback) {
-    return this.ipcMessageEmitter.on('did-fail-to-read-user-setting', callback)
+    return this.ipcMessageEmitter().on('did-fail-to-read-user-setting', callback)
   }
 
   confirm (options, callback) {
@@ -257,14 +264,14 @@ class ApplicationDelegate {
   }
 
   onDidOpenLocations (callback) {
-    return this.ipcMessageEmitter.on('open-locations', callback)
+    return this.ipcMessageEmitter().on('open-locations', callback)
   }
 
   onUpdateAvailable (callback) {
     // TODO: Yes, this is strange that `onUpdateAvailable` is listening for
     // `did-begin-downloading-update`. We currently have no mechanism to know
     // if there is an update, so begin of downloading is a good proxy.
-    return this.ipcMessageEmitter.on('did-begin-downloading-update', callback)
+    return this.ipcMessageEmitter().on('did-begin-downloading-update', callback)
   }
 
   onDidBeginDownloadingUpdate (callback) {
@@ -272,19 +279,19 @@ class ApplicationDelegate {
   }
 
   onDidBeginCheckingForUpdate (callback) {
-    return this.ipcMessageEmitter.on('checking-for-update', callback)
+    return this.ipcMessageEmitter().on('checking-for-update', callback)
   }
 
   onDidCompleteDownloadingUpdate (callback) {
-    return this.ipcMessageEmitter.on('update-available', callback)
+    return this.ipcMessageEmitter().on('update-available', callback)
   }
 
   onUpdateNotAvailable (callback) {
-    return this.ipcMessageEmitter.on('update-not-available', callback)
+    return this.ipcMessageEmitter().on('update-not-available', callback)
   }
 
   onUpdateError (callback) {
-    return this.ipcMessageEmitter.on('update-error', callback)
+    return this.ipcMessageEmitter().on('update-error', callback)
   }
 
   onApplicationMenuCommand (handler) {
