@@ -1,5 +1,5 @@
 trigger:
-- "*-releases"
+- 1.* # VSTS only supports wildcards at the end
 
 phases:
 
