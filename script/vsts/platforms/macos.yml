@@ -34,13 +34,13 @@ phases:
   #     CI_PROVIDER: VSTS
   #   displayName: Run tests
 
- - task: CopyFiles@2
-   inputs:
-     sourceFolder: $(Build.SourcesDirectory)/out
-     contents: '*.app'
-     targetFolder: $(Build.ArtifactStagingDirectory)
-   displayName: Stage Artifacts
-
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: $(Build.SourcesDirectory)/out
+      contents: '*.app'
+      targetFolder: $(Build.ArtifactStagingDirectory)
+    displayName: Stage Artifacts
+    
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)
