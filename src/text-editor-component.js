@@ -3436,7 +3436,7 @@ class LineNumberComponent {
       }
 
       if (number != null) {
-        this.element.insertBefore(nodePool.getTextNode(number), this.element.firstChild);
+        this.element.insertBefore(nodePool.getTextNode(number), this.element.firstChild)
       }
     }
 
