@@ -3427,13 +3427,16 @@ class LineNumberComponent {
         this.element.style.marginTop = ''
       }
     }
+
     if (this.props.number !== number) {
-      if (number) {
-        this.element.insertBefore(nodePool.getTextNode(number), this.element.firstChild)
-      } else {
+      if (this.props.number != null) {
         const numberNode = this.element.firstChild
         numberNode.remove()
         nodePool.release(numberNode)
+      }
+
+      if (number != null) {
+        this.element.insertBefore(nodePool.getTextNode(number), this.element.firstChild);
       }
     }
 
