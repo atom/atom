@@ -1000,10 +1000,13 @@ describe('Project', () => {
       const observed = []
       const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
 
-      const repositoryPath = path.join(__dirname, '..')
-      atom.project.addPath(repositoryPath)
+      const projectRootPath = temp.mkdirSync()
+      const fixtureRepoPath = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      fs.copySync(fixtureRepoPath, path.join(projectRootPath, '.git'))
+
+      atom.project.addPath(projectRootPath)
       expect(observed.length).toBe(1)
-      expect(observed[0].getOriginURL()).toContain('atom/atom')
+      expect(observed[0].getOriginURL()).toEqual('https://github.com/example-user/example-repo.git')
 
       disposable.dispose()
     })
@@ -1012,9 +1015,16 @@ describe('Project', () => {
       const observed = []
       const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
 
-      atom.project.addPath(__dirname)
+      const projectRootPath = temp.mkdirSync()
+      const fixtureRepoPath = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      fs.copySync(fixtureRepoPath, path.join(projectRootPath, '.git'))
+
+      const projectSubDirPath = path.join(projectRootPath, 'sub-dir')
+      fs.mkdirSync(projectSubDirPath)
+
+      atom.project.addPath(projectSubDirPath)
       expect(observed.length).toBe(1)
-      expect(observed[0].getOriginURL()).toContain('atom/atom')
+      expect(observed[0].getOriginURL()).toEqual('https://github.com/example-user/example-repo.git')
 
       disposable.dispose()
     })
