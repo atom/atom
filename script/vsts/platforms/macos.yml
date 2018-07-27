@@ -35,19 +35,19 @@ phases:
   #   displayName: Run tests
 
   - script: |
-      cp -R $(Build.SourcesDirectory)/out/*.app $(Build.ArtifactStagingDirectory)
+      cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
     displayName: Stage Artifacts
 
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac.zip
       ArtifactName: atom-mac.zip
       ArtifactType: Container
     displayName: Upload atom-mac.zip
 
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: $(Build.SourcesDirectory)/out/symbols
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac-symbols.zip
       ArtifactName: atom-mac-symbols.zip
       ArtifactType: Container
     displayName: Upload atom-mac-symbols.zip
