@@ -77,6 +77,12 @@ artifacts:
     name: atom-windows.zip
   - path: out\RELEASES
     name: RELEASES
+  - path: out\AtomSetup-x64.exe
+    name: AtomSetup-x64.exe
+  - path: out\atom-x64-windows.zip
+    name: atom-x64-windows.zip
+  - path: out\RELEASES-x64
+    name: RELEASES-x64
   - path: out\atom-*-delta.nupkg
     name: atom-delta.nupkg
   - path: out\atom-*-full.nupkg
