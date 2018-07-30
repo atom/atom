@@ -104,8 +104,10 @@ if (!argv.generateApiDocs) {
           }
           if (argv.createWindowsInstaller) {
             return createWindowsInstaller(packagedAppPath)
-              .then(() => argv.codeSign && codeSignOnWindows([ path.join(CONFIG.buildOutputPath, 'AtomSetup.exe') ]))
-              .then(() => packagedAppPath)
+              .then((installerPath) => {
+                argv.codeSign && codeSignOnWindows([installerPath])
+                return packagedAppPath
+              })
           } else {
             console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer.'.gray)
           }
