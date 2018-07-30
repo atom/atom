@@ -51,3 +51,10 @@ phases:
       ArtifactName: atom-mac-symbols.zip
       ArtifactType: Container
     displayName: Upload atom-mac-symbols.zip
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/docs/output/atom-api.json
+      ArtifactName: atom-api.json
+      ArtifactType: Container
+    displayName: Upload atom-api.json
