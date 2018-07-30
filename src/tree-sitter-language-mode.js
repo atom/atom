@@ -5,6 +5,7 @@ const {Emitter, Disposable} = require('event-kit')
 const ScopeDescriptor = require('./scope-descriptor')
 const TokenizedLine = require('./tokenized-line')
 const TextMateLanguageMode = require('./text-mate-language-mode')
+const {matcherForSelector} = require('./selectors')
 
 let nextId = 0
 const MAX_RANGE = new Range(Point.ZERO, Point.INFINITY).freeze()
@@ -17,6 +18,13 @@ class TreeSitterLanguageMode {
       Object.defineProperty(Parser.SyntaxNode.prototype, 'text', {
         get () {
           return this.tree.buffer.getTextInRange(new Range(this.startPosition, this.endPosition))
+        }
+      })
+    }
+    if (!Parser.SyntaxNode.prototype.hasOwnProperty('range')) {
+      Object.defineProperty(Parser.SyntaxNode.prototype, 'range', {
+        get () {
+          return rangeForNode(this)
         }
       })
     }
@@ -334,7 +342,7 @@ class TreeSitterLanguageMode {
   Section - Syntax Tree APIs
   */
 
-  getRangeForSyntaxNodeContainingRange (range) {
+  getSyntaxNodeContainingRange (range, where = _ => true) {
     const startIndex = this.buffer.characterIndexForPosition(range.start)
     const endIndex = this.buffer.characterIndexForPosition(range.end)
     const searchEndIndex = Math.max(0, endIndex - 1)
@@ -342,17 +350,35 @@ class TreeSitterLanguageMode {
     let smallestNode
     this._forEachTreeWithRange(range, tree => {
       let node = tree.rootNode.descendantForIndex(startIndex, searchEndIndex)
-      while (node && !nodeContainsIndices(node, startIndex, endIndex)) {
+      while (node) {
+        if (nodeContainsIndices(node, startIndex, endIndex) && where(node)) {
+          if (nodeIsSmaller(node, smallestNode)) smallestNode = node
+          break
+        }
         node = node.parent
       }
-      if (nodeIsSmaller(node, smallestNode)) smallestNode = node
     })
 
-    if (smallestNode) return rangeForNode(smallestNode)
+    return smallestNode
   }
 
-  bufferRangeForScopeAtPosition (position) {
-    return this.getRangeForSyntaxNodeContainingRange(new Range(position, position))
+  getRangeForSyntaxNodeContainingRange (range, where) {
+    const node = this.getSyntaxNodeContainingRange(range, where)
+    return node && node.range
+  }
+
+  getSyntaxNodeAtPosition (position, where) {
+    return this.getSyntaxNodeContainingRange(new Range(position, position), where)
+  }
+
+  bufferRangeForScopeAtPosition (selector, position) {
+    if (typeof selector === 'string') {
+      const match = matcherForSelector(selector)
+      selector = ({type}) => match(type)
+    }
+    if (selector === null) selector = undefined
+    const node = this.getSyntaxNodeAtPosition(position, selector)
+    return node && node.range
   }
 
   /*
@@ -848,15 +874,10 @@ class LayerHighlightIterator {
     let result = false
     const {endIndex} = this.treeCursor
     let depth = this.containingNodeEndIndices.length
-    while (depth > 1) {
-      // Once the iterator has found a scope boundary, it needs to stay at the same
-      // position, so it should not move up if the parent node ends later than the
-      // current node.
-      if ((!atLastChild || this.openTags.length || this.closeTags.length) &&
-          this.containingNodeEndIndices[depth - 2] > endIndex) {
-        break
-      }
 
+    // The iterator should not move up until it has visited all of the children of this node.
+    while (depth > 1 && (atLastChild || this.containingNodeEndIndices[depth - 2] === endIndex)) {
+      atLastChild = false
       result = true
       this.treeCursor.gotoParent()
       this.containingNodeTypes.pop()
@@ -872,10 +893,11 @@ class LayerHighlightIterator {
   _moveDown () {
     let result = false
     const {startIndex} = this.treeCursor
+
+    // Once the iterator has found a scope boundary, it needs to stay at the same
+    // position, so it should not move down if the first child node starts later than the
+    // current node.
     while (this.treeCursor.gotoFirstChild()) {
-      // Once the iterator has found a scope boundary, it needs to stay at the same
-      // position, so it should not move down if the first child node starts later than the
-      // current node.
       if ((this.closeTags.length || this.openTags.length) &&
           this.treeCursor.startIndex > startIndex) {
         this.treeCursor.gotoParent()

@@ -4,3 +4,6 @@
 	bare = false
 	logallrefupdates = true
 	ignorecase = true
+[remote "origin"]
+	url = https://github.com/example-user/example-repo.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
