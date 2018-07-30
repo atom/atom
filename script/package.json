@@ -25,7 +25,7 @@
     "minidump": "0.9.0",
     "mkdirp": "0.5.1",
     "normalize-package-data": "2.3.5",
-    "npm": "5.3.0",
+    "npm": "6.1.0",
     "passwd-user": "2.1.0",
     "pegjs": "0.9.0",
     "publish-release": "^1.6.0",

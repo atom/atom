@@ -212,7 +212,7 @@ describe('TooltipManager', () => {
         })
       })
     )
-    
+
     describe('when a user types', () =>
       it('hides the tooltips', () => {
         const disposable = manager.add(element, { title: 'Title' })

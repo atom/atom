@@ -16,7 +16,7 @@
   "dependencies": {
     "@atom/nsfw": "^1.0.18",
     "@atom/source-map-support": "^0.3.4",
-    "@atom/watcher": "1.0.3",
+    "@atom/watcher": "1.0.8",
     "about": "https://www.atom.io/api/packages/about/versions/1.10.0/tarball",
     "archive-view": "https://www.atom.io/api/packages/archive-view/versions/0.65.1/tarball",
     "async": "0.2.6",
