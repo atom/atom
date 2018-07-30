@@ -487,21 +487,25 @@ class AtomEnvironment {
 
   // Public: Gets the release channel of the Atom application.
   //
-  // Returns the release channel as a {String}. Will return one of `dev`, `beta`, or `stable`.
+  // Returns the release channel as a {String}. Will return a specific release channel
+  // name like 'beta' or 'nightly' if one is found in the Atom version or 'stable'
+  // otherwise.
   getReleaseChannel () {
-    const version = this.getVersion()
-    if (version.includes('beta')) {
-      return 'beta'
-    } else if (version.includes('dev')) {
-      return 'dev'
-    } else {
-      return 'stable'
+    // This matches stable, dev (with or without commit hash) and any other
+    // release channel following the pattern '1.00.0-channel0'
+    const match = this.getVersion().match(/\d+\.\d+\.\d+(-([a-z]+)(\d+|-\w{4,})?)?$/)
+    if (!match) {
+      return 'unrecognized'
+    } else if (match[2]) {
+      return match[2]
     }
+
+    return 'stable'
   }
 
   // Public: Returns a {Boolean} that is `true` if the current version is an official release.
   isReleasedVersion () {
-    return !/\w{7}/.test(this.getVersion()) // Check if the release is a 7-character SHA prefix
+    return this.getReleaseChannel().match(/stable|beta|nightly/) != null
   }
 
   // Public: Get the time taken to completely load the current window.

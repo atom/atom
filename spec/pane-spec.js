@@ -219,6 +219,34 @@ describe('Pane', () => {
       runs(() => expect(eventOrder).toEqual(['add', 'remove']))
     })
 
+    it('subscribes to be notified when item terminates its pending state', () => {
+      const fakeDisposable = { dispose: () => {} }
+      const spy = jasmine.createSpy('onDidTerminatePendingState').andReturn((fakeDisposable))
+
+      const pane = new Pane(paneParams({items: []}))
+      const item = {
+        getTitle: () => '',
+        onDidTerminatePendingState: spy
+      }
+      pane.addItem(item)
+
+      expect(spy).toHaveBeenCalled()
+    })
+
+    it('subscribes to be notified when item is destroyed', () => {
+      const fakeDisposable = { dispose: () => {} }
+      const spy = jasmine.createSpy('onDidDestroy').andReturn((fakeDisposable))
+
+      const pane = new Pane(paneParams({items: []}))
+      const item = {
+        getTitle: () => '',
+        onDidDestroy: spy
+      }
+      pane.addItem(item)
+
+      expect(spy).toHaveBeenCalled()
+    })
+
     describe('when using the old API of ::addItem(item, index)', () => {
       beforeEach(() => spyOn(Grim, 'deprecate'))
 

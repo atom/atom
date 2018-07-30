@@ -1268,7 +1268,8 @@ module.exports = class Workspace extends Model {
 
   handleGrammarUsed (grammar) {
     if (grammar == null) { return }
-    return this.packageManager.triggerActivationHook(`${grammar.packageName}:grammar-used`)
+    this.packageManager.triggerActivationHook(`${grammar.scopeName}:root-scope-used`)
+    this.packageManager.triggerActivationHook(`${grammar.packageName}:grammar-used`)
   }
 
   // Public: Returns a {Boolean} that is `true` if `object` is a `TextEditor`.

@@ -5,6 +5,9 @@ const temp = require('temp').track()
 const parseCommandLine = require('./parse-command-line')
 const startCrashReporter = require('../crash-reporter-start')
 const atomPaths = require('../atom-paths')
+const fs = require('fs')
+const CSON = require('season')
+const Config = require('../config')
 
 module.exports = function start (resourcePath, startTime) {
   global.shellStartTime = startTime
@@ -38,6 +41,12 @@ module.exports = function start (resourcePath, startTime) {
   atomPaths.setAtomHome(app.getPath('home'))
   atomPaths.setUserData(app)
   setupCompileCache()
+
+  const config = getConfig()
+  const colorProfile = config.get('core.colorProfile')
+  if (colorProfile && colorProfile !== 'default') {
+    app.commandLine.appendSwitch('force-color-profile', colorProfile)
+  }
 
   if (handleStartupEventWithSquirrel()) {
     return
@@ -96,4 +105,22 @@ function setupCompileCache () {
   const CompileCache = require('../compile-cache')
   CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
   CompileCache.install(process.resourcesPath, require)
+}
+
+function getConfig () {
+  const config = new Config()
+
+  let configFilePath
+  if (fs.existsSync(path.join(process.env.ATOM_HOME, 'config.json'))) {
+    configFilePath = path.join(process.env.ATOM_HOME, 'config.json')
+  } else if (fs.existsSync(path.join(process.env.ATOM_HOME, 'config.cson'))) {
+    configFilePath = path.join(process.env.ATOM_HOME, 'config.cson')
+  }
+
+  if (configFilePath) {
+    const configFileData = CSON.readFileSync(configFilePath)
+    config.resetUserSettings(configFileData)
+  }
+
+  return config
 }

@@ -355,6 +355,21 @@ const configSchema = {
         type: 'boolean',
         default: false,
         description: 'Experimental: Use the new Tree-sitter parsing system for supported languages.'
+      },
+      colorProfile: {
+        description: "Specify whether Atom should use the operating system's color profile (recommended) or an alternative color profile.<br>Changing this setting will require a relaunch of Atom to take effect.",
+        type: 'string',
+        default: 'default',
+        enum: [
+          {
+            value: 'default',
+            description: 'Use color profile configured in the operating system'
+          },
+          {
+            value: 'srgb',
+            description: 'Use sRGB color profile'
+          }
+        ]
       }
     }
   },

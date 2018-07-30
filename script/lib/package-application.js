@@ -114,7 +114,7 @@ function buildAsarUnpackGlobExpression () {
 
 function getAppName () {
   if (process.platform === 'darwin') {
-    return CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+    return CONFIG.appName
   } else {
     return 'atom'
   }
@@ -156,7 +156,7 @@ function renamePackagedAppDir (packageOutputDirPath) {
     if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(path.join(packageOutputDirPath, appBundleName), packagedAppPath)
   } else if (process.platform === 'linux') {
-    const appName = CONFIG.channel === 'beta' ? 'atom-beta' : 'atom'
+    const appName = CONFIG.channel !== 'stable' ? `atom-${CONFIG.channel}` : 'atom'
     let architecture
     if (process.arch === 'ia32') {
       architecture = 'i386'
@@ -169,8 +169,7 @@ function renamePackagedAppDir (packageOutputDirPath) {
     if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(packageOutputDirPath, packagedAppPath)
   } else {
-    const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
-    packagedAppPath = path.join(CONFIG.buildOutputPath, appName)
+    packagedAppPath = path.join(CONFIG.buildOutputPath, CONFIG.appName)
     if (process.platform === 'win32' && process.arch !== 'ia32') {
       packagedAppPath += ` ${process.arch}`
     }

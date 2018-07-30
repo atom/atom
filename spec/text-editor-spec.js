@@ -861,6 +861,15 @@ describe('TextEditor', () => {
           })
         })
       })
+
+      it("clears the goal column", () => {
+        editor.setText('first\n\nthird')
+        editor.setCursorScreenPosition([0, 3])
+        editor.moveDown()
+        editor.moveToFirstCharacterOfLine()
+        editor.moveDown()
+        expect(editor.getCursorBufferPosition()).toEqual([2, 0])
+      })
     })
 
     describe('.moveToBeginningOfWord()', () => {

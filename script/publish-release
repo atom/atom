@@ -1,0 +1,52 @@
+#!/usr/bin/env node
+
+'use strict'
+
+const path = require('path')
+const glob = require('glob')
+const publishRelease = require('publish-release')
+const uploadToS3 = require('./lib/upload-to-s3')
+const CONFIG = require('./config')
+
+const yargs = require('yargs')
+const argv = yargs
+  .usage('Usage: $0 [options]')
+  .help('help')
+  .describe('assets-path', 'Path to the folder where all release assets are stored')
+  .wrap(yargs.terminalWidth())
+  .argv
+
+let assetsPath = argv.assetsPath || path.join(CONFIG.repositoryRootPath, 'out')
+let assets = glob.sync(path.join(assetsPath, '*(*.exe|*.zip|*.nupkg|*.tar.gz|*.rpm|*.deb|RELEASES*)'))
+
+console.log(`Uploading release assets for ${CONFIG.computedAppVersion} to S3`)
+
+uploadToS3(
+  process.env.ATOM_RELEASES_S3_KEY,
+  process.env.ATOM_RELEASES_S3_SECRET,
+  process.env.ATOM_RELEASES_S3_BUCKET,
+  `releases/v${CONFIG.computedAppVersion}/`,
+  assets).then(
+    () => {
+      console.log(`Publishing GitHub release ${CONFIG.computedAppVersion}`)
+      publishRelease({
+        token: process.env.GITHUB_TOKEN,
+        owner: 'atom',
+        repo: CONFIG.channel !== 'nightly' ? 'atom' : 'atom-nightly-releases',
+        name: CONFIG.computedAppVersion,
+        tag: `v${CONFIG.computedAppVersion}`,
+        draft: false,
+        prerelease: CONFIG.channel !== 'stable',
+        reuseRelease: true,
+        skipIfPublished: true,
+        assets
+      }, function (err, release) {
+        if (err) {
+          console.error("An error occurred while publishing the release:\n\n", err)
+        } else {
+          console.log("Release published successfully: ", release.html_url)
+        }
+      })
+    }).catch((err) => {
+      console.error('An error occurred while uploading the release:', err)
+    })

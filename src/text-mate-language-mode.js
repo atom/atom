@@ -7,6 +7,7 @@ const ScopeDescriptor = require('./scope-descriptor')
 const NullGrammar = require('./null-grammar')
 const {OnigRegExp} = require('oniguruma')
 const {toFirstMateScopeId, fromFirstMateScopeId} = require('./first-mate-helpers')
+const {selectorMatchesAnyScope} = require('./selectors')
 
 const NON_WHITESPACE_REGEX = /\S/
 
@@ -235,15 +236,18 @@ class TextMateLanguageMode {
     return this.buffer.getTextInRange([[0, 0], [10, 0]])
   }
 
-  hasTokenForSelector (selector) {
+  updateForInjection (grammar) {
+    if (!grammar.injectionSelector) return
     for (const tokenizedLine of this.tokenizedLines) {
       if (tokenizedLine) {
         for (let token of tokenizedLine.tokens) {
-          if (selector.matches(token.scopes)) return true
+          if (grammar.injectionSelector.matches(token.scopes)) {
+            this.retokenizeLines()
+            return
+          }
         }
       }
     }
-    return false
   }
 
   retokenizeLines () {
@@ -722,14 +726,6 @@ class TextMateLanguageMode {
 }
 
 TextMateLanguageMode.prototype.chunkSize = 50
-
-function selectorMatchesAnyScope (selector, scopes) {
-  const targetClasses = selector.replace(/^\./, '').split('.')
-  return scopes.some((scope) => {
-    const scopeClasses = scope.split('.')
-    return _.isSubset(targetClasses, scopeClasses)
-  })
-}
 
 class TextMateHighlightIterator {
   constructor (languageMode) {
