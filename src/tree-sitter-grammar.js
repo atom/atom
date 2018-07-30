@@ -22,10 +22,7 @@ class TreeSitterGrammar {
 
     const scopeSelectors = {}
     for (const key in params.scopes || {}) {
-      scopeSelectors[key] = params.scopes[key]
-        .split('.')
-        .map(s => `syntax--${s}`)
-        .join(' ')
+      scopeSelectors[key] = toSyntaxClasses(params.scopes[key])
     }
 
     this.scopeMap = new SyntaxScopeMap(scopeSelectors)
@@ -73,6 +70,18 @@ class TreeSitterGrammar {
     if (this.registration) this.registration.dispose()
   }
 }
+
+const toSyntaxClasses = scopes =>
+  typeof scopes === 'string'
+    ? scopes
+      .split('.')
+      .map(s => `syntax--${s}`)
+      .join(' ')
+    : Array.isArray(scopes)
+    ? scopes.map(toSyntaxClasses)
+    : scopes.match
+    ? {match: new RegExp(scopes.match), scopes: toSyntaxClasses(scopes.scopes)}
+    : Object.assign({}, scopes, {scopes: toSyntaxClasses(scopes.scopes)})
 
 const NODE_NAME_REGEX = /[\w_]+/
 

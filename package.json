@@ -159,7 +159,7 @@
     "temp": "^0.8.3",
     "text-buffer": "13.14.5",
     "timecop": "https://www.atom.io/api/packages/timecop/versions/0.36.2/tarball",
-    "tree-sitter": "0.13.0",
+    "tree-sitter": "0.13.2",
     "tree-view": "https://www.atom.io/api/packages/tree-view/versions/0.222.0/tarball",
     "typescript-simple": "1.0.0",
     "underscore-plus": "^1.6.8",

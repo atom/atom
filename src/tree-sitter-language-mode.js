@@ -870,7 +870,6 @@ class LayerHighlightIterator {
   }
 
   // Private methods
-
   _moveUp (atLastChild) {
     let result = false
     const {endIndex} = this.treeCursor
@@ -928,13 +927,37 @@ class LayerHighlightIterator {
   }
 
   _currentScopeId () {
-    const name = this.languageLayer.grammar.scopeMap.get(
+    const rules = this.languageLayer.grammar.scopeMap.get(
       this.containingNodeTypes,
       this.containingNodeChildIndices,
       this.treeCursor.nodeIsNamed
     )
-    if (name) {
-      return this.languageLayer.languageMode.grammar.idForScope(name)
+    const scopes = applyLeafRules(rules, this.treeCursor)
+    if (scopes) {
+      return this.languageLayer.languageMode.grammar.idForScope(scopes)
+    }
+  }
+}
+
+const applyLeafRules = (rules, cursor) => {
+  if (!rules || typeof rules === 'string') return rules
+  if (Array.isArray(rules)) {
+    for (let i = 0, {length} = rules; i !== length; ++i) {
+      const result = applyLeafRules(rules[i], cursor)
+      if (result) return result
+    }
+    return undefined
+  }
+  if (typeof rules === 'object') {
+    if (rules.exact) {
+      return cursor.nodeText === rules.exact
+        ? applyLeafRules(rules.scopes, cursor)
+        : undefined
+    }
+    if (rules.match) {
+      return rules.match.test(cursor.nodeText)
+        ? applyLeafRules(rules.scopes, cursor)
+        : undefined
     }
   }
 }
