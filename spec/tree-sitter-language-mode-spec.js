@@ -314,6 +314,39 @@ describe('TreeSitterLanguageMode', () => {
       ])
     })
 
+    it('applies rules when specified', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          'identifier': [
+            {match: '^(exports|document|window|global)$', scopes: 'global'},
+            {match: '^[A-Z_]+$', scopes: 'constant'},
+            {match: '^[A-Z]', scopes: 'constructor'},
+            'variable'
+          ],
+        }
+      })
+
+      buffer.setText(`exports.object = Class(SOME_CONSTANT, x)`)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      await nextHighlightingUpdate(languageMode)
+
+      expectTokensToEqual(editor, [
+        [
+          {text: 'exports', scopes: ['global']},
+          {text: '.object = ', scopes: []},
+          {text: 'Class', scopes: ['constructor']},
+          {text: '(', scopes: []},
+          {text: 'SOME_CONSTANT', scopes: ['constant']},
+          {text: ', ', scopes: []},
+          {text: 'x', scopes: ['variable']},
+          {text: ')', scopes: []},
+        ]
+      ])
+    })
+
     it('handles nodes that start before their first child and end after their last child', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, rubyGrammarPath, {
         parser: 'tree-sitter-ruby',
