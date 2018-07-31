@@ -26,13 +26,13 @@ phases:
   - script: script/lint
     displayName: Run linter
 
-  # - script: |
-  #     osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
-  #     caffeinate -s script/test # Run with caffeinate to prevent screen saver
-  #   env:
-  #     CI: true
-  #     CI_PROVIDER: VSTS
-  #   displayName: Run tests
+  - script: |
+      osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
+      caffeinate -s script/test # Run with caffeinate to prevent screen saver
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+    displayName: Run tests
 
   - script: |
       cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)

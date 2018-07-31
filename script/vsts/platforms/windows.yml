@@ -33,11 +33,11 @@ phases:
   - script: script\lint.cmd
     displayName: Run linter
 
-  # - script: script\test.cmd
-  #   env:
-  #     CI: true
-  #     CI_PROVIDER: VSTS
-  #   displayName: Run tests
+  - script: script\test.cmd
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+    displayName: Run tests
 
   - task: CopyFiles@2
     inputs:
