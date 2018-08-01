@@ -1,0 +1,68 @@
+phases:
+- phase: Windows
+  dependsOn: GetReleaseVersion
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+  queue:
+    name: Hosted
+    timeoutInMinutes: 180
+    parallel: 2
+    matrix:
+      x64:
+        buildArch: x64
+      # TODO: x86 is currently not supported on VSTS
+      # x86:
+      #   buildArch: x86
+
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 8.9.3
+    displayName: Install Node.js 8.9.3
+
+  - script: |
+      IF NOT EXIST C:\tmp MKDIR C:\tmp
+      SET SQUIRREL_TEMP=C:\tmp
+      script\build.cmd --create-windows-installer --code-sign --compress-artifacts
+    env:
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
+      ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL)
+      ATOM_WIN_CODE_SIGNING_CERT_PASSWORD: $(ATOM_WIN_CODE_SIGNING_CERT_PASSWORD)
+    displayName: Build Atom
+
+  - script: script\lint.cmd
+    displayName: Run linter
+
+  - script: script\test.cmd
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+    displayName: Run tests
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/AtomSetup-x64.exe
+      ArtifactName: AtomSetup-x64.exe
+      ArtifactType: Container
+    displayName: Upload AtomSetup-x64.exe
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-windows.zip
+      ArtifactName: atom-x64-windows.zip
+      ArtifactType: Container
+    displayName: Upload atom-x64-windows.zip
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-$(ReleaseVersion)-full.nupkg
+      ArtifactName: atom-x64-$(ReleaseVersion)-full.nupkg
+      ArtifactType: Container
+    displayName: Upload atom-x64-$(ReleaseVersion)-full.nupkg
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/RELEASES-x64
+      ArtifactName: RELEASES-x64
+      ArtifactType: Container
+    displayName: Upload RELEASES-x64

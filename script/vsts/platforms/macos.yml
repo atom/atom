@@ -1,0 +1,60 @@
+phases:
+- phase: macOS
+  dependsOn: GetReleaseVersion
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+  queue:
+    name: Hosted macOS Preview
+    timeoutInMinutes: 180
+
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 8.9.3
+    displayName: Install Node.js 8.9.3
+
+  - script: |
+      script/build --code-sign --compress-artifacts
+    displayName: Build Atom
+    env:
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
+      ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL)
+      ATOM_MAC_CODE_SIGNING_CERT_PASSWORD: $(ATOM_MAC_CODE_SIGNING_CERT_PASSWORD)
+      ATOM_MAC_CODE_SIGNING_KEYCHAIN: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN)
+      ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
+
+  - script: script/lint
+    displayName: Run linter
+
+  - script: |
+      osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
+      caffeinate -s script/test # Run with caffeinate to prevent screen saver
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+    displayName: Run tests
+
+  - script: |
+      cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
+    displayName: Stage Artifacts
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac.zip
+      ArtifactName: atom-mac.zip
+      ArtifactType: Container
+    displayName: Upload atom-mac.zip
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac-symbols.zip
+      ArtifactName: atom-mac-symbols.zip
+      ArtifactType: Container
+    displayName: Upload atom-mac-symbols.zip
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/docs/output/atom-api.json
+      ArtifactName: atom-api.json
+      ArtifactType: Container
+    displayName: Upload atom-api.json
