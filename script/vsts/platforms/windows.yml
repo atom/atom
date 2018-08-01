@@ -39,16 +39,30 @@ phases:
       CI_PROVIDER: VSTS
     displayName: Run tests
 
-  - task: CopyFiles@2
+  - task: PublishBuildArtifacts@1
     inputs:
-      sourceFolder: $(Build.SourcesDirectory)/out
-      contents: '?(*.exe|*.zip|*.nupkg|RELEASES*)'
-      targetFolder: $(Build.ArtifactStagingDirectory)
-    displayName: Stage Artifacts
+      PathtoPublish: $(Build.SourcesDirectory)/out/AtomSetup-x64.exe
+      ArtifactName: AtomSetup-x64.exe
+      ArtifactType: Container
+    displayName: Upload AtomSetup-x64.exe
 
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)
-      ArtifactName: Binaries
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-windows.zip
+      ArtifactName: atom-x64-windows.zip
       ArtifactType: Container
-    displayName: Upload Artifacts
+    displayName: Upload atom-x64-windows.zip
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-$(ReleaseVersion)-full.nupkg
+      ArtifactName: atom-x64-$(ReleaseVersion)-full.nupkg
+      ArtifactType: Container
+    displayName: Upload atom-x64-$(ReleaseVersion)-full.nupkg
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/RELEASES-x64
+      ArtifactName: RELEASES-x64
+      ArtifactType: Container
+    displayName: Upload RELEASES-x64
