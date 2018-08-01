@@ -23,18 +23,18 @@ phases:
   - script: |
       IF NOT EXIST C:\tmp MKDIR C:\tmp
       SET SQUIRREL_TEMP=C:\tmp
-      IF [%BUILD_SOURCEBRANCHNAME%:~-9%]==[-releases] SET IS_RELEASE_BRANCH=true
+      IF [%BUILD_SOURCEBRANCHNAME:~-9%]==[-releases] SET IS_RELEASE_BRANCH=true
       IF [%BUILD_SOURCEBRANCHNAME%]==[master] IF NOT DEFINED SYSTEM_PULLREQUEST_PULLREQUESTNUMBER SET IS_SIGNED_ZIP_BRANCH=true
-      IF [%BUILD_SOURCEBRANCHNAME%:~0,9%]==[electron-] SET IS_SIGNED_ZIP_BRANCH=true
+      IF [%BUILD_SOURCEBRANCHNAME:~0,9%]==[electron-] SET IS_SIGNED_ZIP_BRANCH=true
       IF [%IS_RELEASE_BRANCH%]==[true] (
-        ECHO Building on release branch - Creating production artifacts &&
+        ECHO Building on release branch - Creating production artifacts
         script\build.cmd --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
         IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
-          ECHO Building on %BUILD_SOURCEBRANCHNAME% branch - Creating signed zips &&
+          ECHO Building on %BUILD_SOURCEBRANCHNAME% branch - Creating signed zips
           script\build.cmd --code-sign --compress-artifacts
         ) ELSE (
-          ECHO Test build only - Not creating artifacts &&
+          ECHO Test build only - Not creating artifacts
           script\build.cmd
         )
       )
