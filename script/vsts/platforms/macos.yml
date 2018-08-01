@@ -14,7 +14,11 @@ phases:
     displayName: Install Node.js 8.9.3
 
   - script: |
-      script/build --code-sign --compress-artifacts
+      if [ ! -z $ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL ] && [ $ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL != "null" ]; then
+        script/build --code-sign --compress-artifacts
+      else
+        script/build --compress-artifacts
+      fi
     displayName: Build Atom
     env:
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
