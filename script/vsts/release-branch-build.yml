@@ -16,6 +16,6 @@ phases:
     name: Version
 
 # Import OS-specific build definitions
-- template: platforms/windows.yml
+#- template: platforms/windows.yml
 - template: platforms/macos.yml
 - template: platforms/linux.yml
