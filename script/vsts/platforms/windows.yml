@@ -25,11 +25,11 @@ phases:
   - script: |
       IF NOT EXIST C:\tmp MKDIR C:\tmp
       SET SQUIRREL_TEMP=C:\tmp
-      IF [%IS_RELEASE_BRANCH%]==[true] (
+      IF [%IS_RELEASE_BRANCH%]==["true"] (
         ECHO Creating production artifacts for release branch %BUILD_SOURCEBRANCHNAME%
         script\build.cmd --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
-        IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
+        IF [%IS_SIGNED_ZIP_BRANCH%]==["true"] (
           ECHO Creating signed CI artifacts for branch %BUILD_SOURCEBRANCHNAME%
           script\build.cmd --code-sign --compress-artifacts
         ) ELSE (
