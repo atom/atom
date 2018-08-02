@@ -43,8 +43,9 @@ async function getReleaseVersion () {
 
   // Write out some variables that indicate whether artifacts should be uploaded
   const buildBranch = process.env.BUILD_SOURCEBRANCHNAME
-  const isReleaseBranch = buildBranch.match(/\d\.\d+-releases/) !== null
+  const isReleaseBranch = process.env.IS_RELEASE_BRANCH || buildBranch.match(/\d\.\d+-releases/) !== null
   const isSignedZipBranch =
+    process.env.IS_SIGNED_ZIP_BRANCH ||
     buildBranch.startsWith('electron-') ||
     buildBranch === 'master' && !process.env.SYSTEM_PULLREQUEST_PULLREQUESTNUMBER
   console.log(`##vso[task.setvariable variable=IsReleaseBranch;isOutput=true]${isReleaseBranch}`)
