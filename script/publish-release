@@ -19,7 +19,7 @@ const argv = yargs
   .argv
 
 const assetsPath = argv.assetsPath || path.join(CONFIG.repositoryRootPath, 'out')
-const assetsPattern = '/**/*(*.exe|*.zip|*.nupkg|*.tar.gz|*.rpm|*.deb|RELEASES*|atom-api.json)',
+const assetsPattern = '/**/*(*.exe|*.zip|*.nupkg|*.tar.gz|*.rpm|*.deb|RELEASES*|atom-api.json)'
 const assets = glob.sync(assetsPattern, { root: assetsPath, nodir: true })
 const bucketPath = argv.s3Path || `releases/v${CONFIG.computedAppVersion}/`
 
