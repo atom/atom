@@ -33,8 +33,8 @@ phases:
           ECHO Creating signed CI artifacts for branch %BUILD_SOURCEBRANCHNAME%
           script\build.cmd --code-sign --compress-artifacts
         ) ELSE (
-          ECHO Pull request build, no artifacts created
-          script\build.cmd
+          ECHO Pull request build, no code signing will be performed
+          script\build.cmd --compress-artifacts
         )
       )
     env:
