@@ -22,7 +22,6 @@ phases:
 
 - phase: UploadArtifacts
   queue: Hosted  # Need this for Python 2.7
-  condition: and(succeeded(), eq(variables['IsSignedZipBranch'], 'true'))
 
   dependsOn:
   - GetReleaseVersion
@@ -61,3 +60,4 @@ phases:
       ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
       ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
     displayName: Upload CI Artifacts to S3
+    condition: and(succeeded(), eq(variables['IsSignedZipBranch'], 'true'))
