@@ -47,7 +47,7 @@ phases:
       artifactName: Binaries
 
   - script: |
-      $(Build.SourcesDirectory)\script\publish-release.cmd --assets-path "$(System.ArtifactsDirectory)/Binaries"
+      $(Build.SourcesDirectory)\script\publish-release.cmd --create-github-release --assets-path "$(System.ArtifactsDirectory)/Binaries"
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)

@@ -40,6 +40,15 @@ async function getReleaseVersion () {
   // the associated variables.
   console.log(`##vso[task.setvariable variable=ReleaseVersion;isOutput=true]${releaseVersion}`)
   console.log(`##vso[build.updatebuildnumber]${releaseVersion}+${process.env.BUILD_BUILDNUMBER}`)
+
+  // Write out some variables that indicate whether artifacts should be uploaded
+  const buildBranch = process.env.BUILD_SOURCEBRANCHNAME
+  const isReleaseBranch = buildBranch.match(/\d\.\d+-releases/) !== null
+  const isSignedZipBranch =
+    buildBranch.startsWith('electron-') ||
+    buildBranch === 'master' && !process.env.SYSTEM_PULLREQUEST_PULLREQUESTNUMBER
+  console.log(`##vso[task.setvariable variable=IsReleaseBranch;isOutput=true]${isReleaseBranch}`)
+  console.log(`##vso[task.setvariable variable=IsSignedZipBranch;isOutput=true]${isSignedZipBranch}`)
 }
 
 getReleaseVersion()
