@@ -1,8 +1,4 @@
-trigger:
-  branches:
-    exclude:
-      - master
-      - 1.* # VSTS only supports wildcards at the end
+trigger: none  # No CI builds, only PR builds
 
 phases:
 
