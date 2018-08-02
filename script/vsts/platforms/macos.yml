@@ -41,6 +41,7 @@ phases:
       CI: true
       CI_PROVIDER: VSTS
     displayName: Run tests
+    condition: and(succeeded(), eq(variables['Atom.RunTests'], 'true'))
 
   - script: |
       cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)

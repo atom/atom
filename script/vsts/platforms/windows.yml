@@ -53,6 +53,7 @@ phases:
       CI: true
       CI_PROVIDER: VSTS
     displayName: Run tests
+    condition: and(succeeded(), eq(variables['Atom.RunTests'], 'true'))
 
   - task: PublishBuildArtifacts@1
     inputs:
