@@ -3,6 +3,8 @@ phases:
   dependsOn: GetReleaseVersion
   variables:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+    IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+    IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
   queue:
     name: Hosted
     timeoutInMinutes: 180
@@ -23,18 +25,15 @@ phases:
   - script: |
       IF NOT EXIST C:\tmp MKDIR C:\tmp
       SET SQUIRREL_TEMP=C:\tmp
-      IF [%BUILD_SOURCEBRANCHNAME:~-9%]==[-releases] SET IS_RELEASE_BRANCH=true
-      IF [%BUILD_SOURCEBRANCHNAME%]==[master] IF NOT DEFINED SYSTEM_PULLREQUEST_PULLREQUESTNUMBER SET IS_SIGNED_ZIP_BRANCH=true
-      IF [%BUILD_SOURCEBRANCHNAME:~0,9%]==[electron-] SET IS_SIGNED_ZIP_BRANCH=true
       IF [%IS_RELEASE_BRANCH%]==[true] (
-        ECHO Building on release branch - Creating production artifacts
+        ECHO Creating production artifacts for release branch %BUILD_SOURCEBRANCHNAME%
         script\build.cmd --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
         IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
-          ECHO Building on %BUILD_SOURCEBRANCHNAME% branch - Creating signed zips
+          ECHO Creating signed CI artifacts for branch %BUILD_SOURCEBRANCHNAME%
           script\build.cmd --code-sign --compress-artifacts
         ) ELSE (
-          ECHO Test build only - Not creating artifacts
+          ECHO Pull request build, no artifacts created
           script\build.cmd
         )
       )
@@ -42,6 +41,8 @@ phases:
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
       ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL)
       ATOM_WIN_CODE_SIGNING_CERT_PASSWORD: $(ATOM_WIN_CODE_SIGNING_CERT_PASSWORD)
+      IS_RELEASE_BRANCH: $(IsReleaseBranch)
+      IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
     displayName: Build Atom
 
   - script: script\lint.cmd
@@ -55,13 +56,6 @@ phases:
 
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: $(Build.SourcesDirectory)/out/AtomSetup-x64.exe
-      ArtifactName: AtomSetup-x64.exe
-      ArtifactType: Container
-    displayName: Upload AtomSetup-x64.exe
-
-  - task: PublishBuildArtifacts@1
-    inputs:
       PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-windows.zip
       ArtifactName: atom-x64-windows.zip
       ArtifactType: Container
@@ -69,10 +63,19 @@ phases:
 
   - task: PublishBuildArtifacts@1
     inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/AtomSetup-x64.exe
+      ArtifactName: AtomSetup-x64.exe
+      ArtifactType: Container
+    displayName: Upload AtomSetup-x64.exe
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
       PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-$(ReleaseVersion)-full.nupkg
       ArtifactName: atom-x64-$(ReleaseVersion)-full.nupkg
       ArtifactType: Container
     displayName: Upload atom-x64-$(ReleaseVersion)-full.nupkg
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -80,3 +83,4 @@ phases:
       ArtifactName: RELEASES-x64
       ArtifactType: Container
     displayName: Upload RELEASES-x64
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
