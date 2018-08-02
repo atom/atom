@@ -3,6 +3,8 @@ phases:
   dependsOn: GetReleaseVersion
   variables:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+    IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+    IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
   queue:
     name: Hosted macOS Preview
     timeoutInMinutes: 180
@@ -14,13 +16,15 @@ phases:
     displayName: Install Node.js 8.9.3
 
   - script: |
-      if [ ! -z $ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL ] && [ $ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL != "null" ]; then
+      if [ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]; then
         script/build --code-sign --compress-artifacts
       else
         script/build --compress-artifacts
       fi
     displayName: Build Atom
     env:
+      IS_RELEASE_BRANCH: $(IsReleaseBranch)
+      IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
       ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL)
       ATOM_MAC_CODE_SIGNING_CERT_PASSWORD: $(ATOM_MAC_CODE_SIGNING_CERT_PASSWORD)
