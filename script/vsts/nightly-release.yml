@@ -43,11 +43,9 @@ phases:
 
   - task: DownloadBuildArtifacts@0
     displayName: Download Release Artifacts
-    inputs:
-      artifactName: Binaries
 
   - script: |
-      $(Build.SourcesDirectory)\script\publish-release.cmd --create-github-release --assets-path "$(System.ArtifactsDirectory)/Binaries"
+      $(Build.SourcesDirectory)\script\publish-release.cmd --create-github-release --assets-path "$(System.ArtifactsDirectory)"
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)

@@ -19,7 +19,7 @@ const argv = yargs
   .argv
 
 const assetsPath = argv.assetsPath || path.join(CONFIG.repositoryRootPath, 'out')
-const assets = glob.sync(path.join(assetsPath, '*(*.exe|*.zip|*.nupkg|*.tar.gz|*.rpm|*.deb|RELEASES*)'))
+const assets = glob.sync(path.join(assetsPath, '**/(*.exe|*.zip|*.nupkg|*.tar.gz|*.rpm|*.deb|RELEASES*|atom-api.json)'))
 const bucketPath = argv.s3Path || `releases/v${CONFIG.computedAppVersion}/`
 
 console.log(`Uploading release assets for ${CONFIG.computedAppVersion} to S3 under '${bucketPath}'`)

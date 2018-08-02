@@ -49,11 +49,9 @@ phases:
 
   - task: DownloadBuildArtifacts@0
     displayName: Download Release Artifacts
-    inputs:
-      artifactName: Binaries
 
   - script: |
-      $(Build.SourcesDirectory)\script\publish-release.cmd --assets-path "$(System.ArtifactsDirectory)/Binaries" --s3-path "vsts-artifacts/$(Build.BuildId)"
+      $(Build.SourcesDirectory)\script\publish-release.cmd --assets-path "$(System.ArtifactsDirectory)" --s3-path "vsts-artifacts/$(Build.BuildId)/"
     env:
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
       ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
