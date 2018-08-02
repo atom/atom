@@ -48,6 +48,9 @@ phases:
     displayName: npm install
 
   - task: DownloadBuildArtifacts@0
+    inputs:
+      itemPattern: '**'
+      downloadType: 'specific'
     displayName: Download Release Artifacts
 
   - script: |
