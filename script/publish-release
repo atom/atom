@@ -19,10 +19,16 @@ const argv = yargs
   .argv
 
 const assetsPath = argv.assetsPath || path.join(CONFIG.repositoryRootPath, 'out')
-const assets = glob.sync(path.join(assetsPath, '**/(*.exe|*.zip|*.nupkg|*.tar.gz|*.rpm|*.deb|RELEASES*|atom-api.json)'))
+const assetsPattern = '/**/*(*.exe|*.zip|*.nupkg|*.tar.gz|*.rpm|*.deb|RELEASES*|atom-api.json)',
+const assets = glob.sync(assetsPattern, { root: assetsPath, nodir: true })
 const bucketPath = argv.s3Path || `releases/v${CONFIG.computedAppVersion}/`
 
-console.log(`Uploading release assets for ${CONFIG.computedAppVersion} to S3 under '${bucketPath}'`)
+if (!assets || assets.length === 0) {
+  console.error(`No assets found under specified path: ${assetsPath}`)
+  process.exit(1)
+}
+
+console.log(`Uploading ${assets.length} release assets for ${CONFIG.computedAppVersion} to S3 under '${bucketPath}'`)
 
 uploadToS3(
   process.env.ATOM_RELEASES_S3_KEY,
