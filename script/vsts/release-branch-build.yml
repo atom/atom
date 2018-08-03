@@ -52,8 +52,6 @@ phases:
       itemPattern: '**'
       downloadType: 'specific'
     displayName: Download Release Artifacts
-    inputs:
-      artifactName: Binaries
 
   - script: |
       $(Build.SourcesDirectory)\script\publish-release.cmd --assets-path "$(System.ArtifactsDirectory)/Binaries" --s3-path "vsts-artifacts/$(Build.BuildId)"
