@@ -22,7 +22,17 @@ class TreeSitterGrammar {
 
     const scopeSelectors = {}
     for (const key in params.scopes || {}) {
-      scopeSelectors[key] = toSyntaxClasses(params.scopes[key])
+      const classes = toSyntaxClasses(params.scopes[key])
+      const selectors = key.split(/,\s+/)
+      for (let selector of selectors) {
+        selector = selector.trim()
+        if (!selector) continue
+        if (scopeSelectors[selector]) {
+          scopeSelectors[selector] = [].concat(scopeSelectors[selector], classes)
+        } else {
+          scopeSelectors[selector] = classes
+        }
+      }
     }
 
     this.scopeMap = new SyntaxScopeMap(scopeSelectors)

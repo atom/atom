@@ -192,6 +192,39 @@ describe('TreeSitterLanguageMode', () => {
       ])
     })
 
+    it('allows comma-separated selectors as scope mapping keys', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          'identifier, call_expression > identifier': [
+            {match: '^[A-Z]', scopes: 'constructor'}
+          ],
+
+          'call_expression > identifier': 'function'
+        }
+      })
+
+      buffer.setText(`a(B(new C))`)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      await nextHighlightingUpdate(languageMode)
+
+      console.log(languageMode.tree.rootNode.toString());
+      console.log(languageMode.grammar.scopeMap);
+
+      expectTokensToEqual(editor, [
+        [
+          {text: 'a', scopes: ['function']},
+          {text: '(', scopes: []},
+          {text: 'B', scopes: ['constructor']},
+          {text: '(new ', scopes: []},
+          {text: 'C', scopes: ['constructor']},
+          {text: '))', scopes: []},
+        ]
+      ])
+    })
+
     it('handles edits after tokens that end between CR and LF characters (regression)', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
@@ -314,7 +347,7 @@ describe('TreeSitterLanguageMode', () => {
       ])
     })
 
-    it('applies rules when specified', async () => {
+    it('applies regex match rules when specified', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
         scopes: {
