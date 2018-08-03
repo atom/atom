@@ -43,7 +43,7 @@ module.exports = function (packagedAppPath) {
         '-u', process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN
       ], {stdio: 'inherit'})
     }
-    
+
     console.log(`Unlocking keychain ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN}`)
     const unlockArgs = ['unlock-keychain']
     // For signing on local workstations, password could be entered interactively
