@@ -43,7 +43,7 @@ async function getReleaseVersion () {
 
   // Write out some variables that indicate whether artifacts should be uploaded
   const buildBranch = process.env.BUILD_SOURCEBRANCHNAME
-  const isReleaseBranch = process.env.IS_RELEASE_BRANCH || buildBranch.match(/\d\.\d+-releases/) !== null
+  const isReleaseBranch = process.env.IS_RELEASE_BRANCH || argv.nightly || buildBranch.match(/\d\.\d+-releases/) !== null
   const isSignedZipBranch =
     process.env.IS_SIGNED_ZIP_BRANCH ||
     buildBranch.startsWith('electron-') ||
