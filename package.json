@@ -207,7 +207,7 @@
     "git-diff": "1.3.9",
     "go-to-line": "0.33.0",
     "grammar-selector": "0.50.1",
-    "image-view": "0.63.0",
+    "image-view": "0.63.1",
     "incompatible-packages": "0.27.3",
     "keybinding-resolver": "0.38.2",
     "line-ending-selector": "0.7.7",
