@@ -1,5 +1,5 @@
 const Parser = require('tree-sitter')
-const {Point, Range} = require('text-buffer')
+const {Point, Range, spliceArray} = require('text-buffer')
 const {Patch} = require('superstring')
 const {Emitter, Disposable} = require('event-kit')
 const ScopeDescriptor = require('./scope-descriptor')
@@ -52,10 +52,11 @@ class TreeSitterLanguageMode {
     this.subscription = this.buffer.onDidChangeText(({changes}) => {
       for (let i = 0, {length} = changes; i < length; i++) {
         const {oldRange, newRange} = changes[i]
-        this.isFoldableCache.splice(
+        spliceArray(
+          this.isFoldableCache,
           newRange.start.row,
           oldRange.end.row - oldRange.start.row,
-          ...new Array(newRange.end.row - newRange.start.row)
+          {length: newRange.end.row - newRange.start.row}
         )
       }
 
