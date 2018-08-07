@@ -3,8 +3,6 @@
 'use strict'
 
 const path = require('path')
-const glob = require('glob')
-const colors = require('colors')
 const CONFIG = require('./config')
 const childProcess = require('child_process')
 const cleanDependencies = require('./lib/clean-dependencies')
@@ -38,6 +36,9 @@ childProcess.execFileSync(
 runApmInstall(CONFIG.repositoryRootPath)
 
 if (!process.env.CI) {
+  const glob = require('glob')
+  const colors = require('colors')
+
   var files = glob.sync(path.join(CONFIG.repositoryRootPath, 'packages/*/package.json'))
   if (files.length > 0) {
     console.log('Installing core packages for use in dev mode...')
