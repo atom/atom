@@ -14,6 +14,6 @@ module.exports = function (packagePath, stderrOnly) {
   childProcess.execFileSync(
     CONFIG.getApmBinPath(),
     ['--loglevel=error', 'install'],
-    {env: installEnv, cwd: packagePath, stdio: ['inherit', stderrOnly ? 'pipe' : 'inherit', 'inherit'] }
+    {env: installEnv, cwd: packagePath, stdio: ['inherit', stderrOnly ? 'pipe' : 'inherit', 'inherit']}
   )
 }
