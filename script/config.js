@@ -76,8 +76,8 @@ function getApmBinPath () {
   return path.join(apmRootPath, 'node_modules', 'atom-package-manager', 'bin', apmBinName)
 }
 
-function getNpmBinPath () {
+function getNpmBinPath (external = false) {
   const npmBinName = process.platform === 'win32' ? 'npm.cmd' : 'npm'
   const localNpmBinPath = path.resolve(repositoryRootPath, 'script', 'node_modules', '.bin', npmBinName)
-  return fs.existsSync(localNpmBinPath) ? localNpmBinPath : npmBinName
+  return !external && fs.existsSync(localNpmBinPath) ? localNpmBinPath : npmBinName
 }
