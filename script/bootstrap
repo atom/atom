@@ -17,6 +17,9 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
+// We can't use yargs until installScriptDependencies() is executed, so...
+const ci = process.argv.indexOf('--ci') !== -1
+
 verifyMachineRequirements()
 
 if (dependenciesFingerprint.isOutdated()) {
@@ -25,13 +28,13 @@ if (dependenciesFingerprint.isOutdated()) {
 
 if (process.platform === 'win32') deleteMsbuildFromPath()
 
-installScriptDependencies()
-installApm()
+installScriptDependencies(ci)
+installApm(ci)
 childProcess.execFileSync(
   CONFIG.getApmBinPath(),
   ['--version'],
   {stdio: 'inherit'}
 )
-runApmInstall(CONFIG.repositoryRootPath)
+runApmInstall(CONFIG.repositoryRootPath, ci)
 
 dependenciesFingerprint.write()
