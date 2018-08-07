@@ -56,7 +56,7 @@
     "etch": "^0.12.6",
     "event-kit": "^2.5.0",
     "exception-reporting": "https://www.atom.io/api/packages/exception-reporting/versions/0.43.1/tarball",
-    "find-and-replace": "https://www.atom.io/api/packages/find-and-replace/versions/0.215.12/tarball",
+    "find-and-replace": "https://www.atom.io/api/packages/find-and-replace/versions/0.215.13/tarball",
     "find-parent-dir": "^0.3.0",
     "first-mate": "7.1.1",
     "focus-trap": "2.4.5",
