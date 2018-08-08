@@ -39,7 +39,11 @@ async function getReleaseVersion () {
   // include the version.  Writing these strings to stdout causes VSTS to set
   // the associated variables.
   console.log(`##vso[task.setvariable variable=ReleaseVersion;isOutput=true]${releaseVersion}`)
-  console.log(`##vso[build.updatebuildnumber]${releaseVersion}+${process.env.BUILD_BUILDNUMBER}`)
+  if (!process.env.SYSTEM_PULLREQUEST_PULLREQUESTNUMBER) {
+    // Only set the build number on non-PR builds as it causes build errors when
+    // non-admins send PRs to the repo
+    console.log(`##vso[build.updatebuildnumber]${releaseVersion}+${process.env.BUILD_BUILDNUMBER}`)
+  }
 
   // Write out some variables that indicate whether artifacts should be uploaded
   const buildBranch = process.env.BUILD_SOURCEBRANCHNAME
