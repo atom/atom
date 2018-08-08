@@ -28,7 +28,7 @@ install:
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
   - npm install -g npm@6.1.0
-  - script/build --create-debian-package --create-rpm-package --compress-artifacts
+  - script/build --ci --create-debian-package --create-rpm-package --compress-artifacts
 
 script:
   - script/lint

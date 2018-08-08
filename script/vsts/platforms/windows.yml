@@ -27,14 +27,14 @@ phases:
       SET SQUIRREL_TEMP=C:\tmp
       IF [%IS_RELEASE_BRANCH%]==[true] (
         ECHO Creating production artifacts for release branch %BUILD_SOURCEBRANCHNAME%
-        script\build.cmd --code-sign --compress-artifacts --create-windows-installer
+        script\build.cmd --ci --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
         IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
           ECHO Creating signed CI artifacts for branch %BUILD_SOURCEBRANCHNAME%
-          script\build.cmd --code-sign --compress-artifacts
+          script\build.cmd --ci --code-sign --compress-artifacts
         ) ELSE (
           ECHO Pull request build, no code signing will be performed
-          script\build.cmd --compress-artifacts
+          script\build.cmd --ci --compress-artifacts
         )
       )
     env:
