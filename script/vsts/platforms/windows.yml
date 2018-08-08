@@ -23,6 +23,12 @@ phases:
     displayName: Install Node.js 8.9.3
 
   - script: |
+      ECHO Installing npm-windows-upgrade
+      npm install --global --production npm-windows-upgrade
+      ECHO Upgrading npm
+      npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.2.0
+
+  - script: |
       IF NOT EXIST C:\tmp MKDIR C:\tmp
       SET SQUIRREL_TEMP=C:\tmp
       IF [%IS_RELEASE_BRANCH%]==[true] (
