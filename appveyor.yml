@@ -36,6 +36,7 @@ install:
   - IF NOT EXIST %TEST_JUNIT_XML_ROOT% MKDIR %TEST_JUNIT_XML_ROOT%
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
+  - npm install --global npm@6.2.0
 
 build_script:
   - CD %APPVEYOR_BUILD_FOLDER%

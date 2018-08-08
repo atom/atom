@@ -15,6 +15,9 @@ phases:
       versionSpec: 8.9.3
     displayName: Install Node.js 8.9.3
 
+  - script: npm install --global npm@6.2.0
+    displayName: Update npm
+
   - script: |
       if [ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]; then
         script/build --code-sign --compress-artifacts

@@ -17,6 +17,14 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
+// We can't use yargs until installScriptDependencies() is executed, so...
+let ci = process.argv.indexOf('--ci') !== -1
+
+if (!ci && process.env.CI === 'true' && process.argv.indexOf('--no-ci') === -1) {
+  console.log('Automatically enabling --ci because CI is set in the environment')
+  ci = true
+}
+
 verifyMachineRequirements()
 
 if (dependenciesFingerprint.isOutdated()) {
@@ -25,13 +33,13 @@ if (dependenciesFingerprint.isOutdated()) {
 
 if (process.platform === 'win32') deleteMsbuildFromPath()
 
-installScriptDependencies()
-installApm()
+installScriptDependencies(ci)
+installApm(ci)
 childProcess.execFileSync(
   CONFIG.getApmBinPath(),
   ['--version'],
   {stdio: 'inherit'}
 )
-runApmInstall(CONFIG.repositoryRootPath)
+runApmInstall(CONFIG.repositoryRootPath, ci)
 
 dependenciesFingerprint.write()

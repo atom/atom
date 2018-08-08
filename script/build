@@ -24,6 +24,7 @@ const argv = yargs
   .describe('generate-api-docs', 'Only build the API documentation')
   .describe('install', 'Install Atom')
   .string('install')
+  .describe('ci', 'Install dependencies quickly (package-lock.json files must be up to date)')
   .wrap(yargs.terminalWidth())
   .argv
 
