@@ -27,7 +27,7 @@ install:
   - source /tmp/.nvm/nvm.sh
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
-  - npm install -g npm@6.1.0
+  - npm install --global npm@6.2.0
   - script/build --create-debian-package --create-rpm-package --compress-artifacts
 
 script:

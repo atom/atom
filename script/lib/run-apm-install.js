@@ -4,7 +4,7 @@ const childProcess = require('child_process')
 
 const CONFIG = require('../config')
 
-module.exports = function (packagePath, stderrOnly) {
+module.exports = function (packagePath, ci, stderrOnly) {
   const installEnv = Object.assign({}, process.env)
   // Set resource path so that apm can load metadata related to Atom.
   installEnv.ATOM_RESOURCE_PATH = CONFIG.repositoryRootPath
@@ -13,7 +13,7 @@ module.exports = function (packagePath, stderrOnly) {
   installEnv.npm_config_target = CONFIG.appMetadata.electronVersion
   childProcess.execFileSync(
     CONFIG.getApmBinPath(),
-    ['--loglevel=error', 'install'],
+    ['--loglevel=error', ci ? 'ci' : 'install'],
     {env: installEnv, cwd: packagePath, stdio: ['inherit', stderrOnly ? 'pipe' : 'inherit', 'inherit']}
   )
 }

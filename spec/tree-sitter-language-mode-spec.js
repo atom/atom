@@ -210,9 +210,6 @@ describe('TreeSitterLanguageMode', () => {
       buffer.setLanguageMode(languageMode)
       await nextHighlightingUpdate(languageMode)
 
-      console.log(languageMode.tree.rootNode.toString());
-      console.log(languageMode.grammar.scopeMap);
-
       expectTokensToEqual(editor, [
         [
           {text: 'a', scopes: ['function']},
@@ -727,6 +724,39 @@ describe('TreeSitterLanguageMode', () => {
             {text: '>', scopes: ['html']}
           ],
         ])
+      })
+
+      it('notifies onDidTokenize listeners the first time all syntax highlighting is done', async () => {
+        const promise = new Promise(resolve => {
+          editor.onDidTokenize(event => {
+            expectTokensToEqual(editor, [
+              [
+                {text: '<', scopes: ['html']},
+                {text: 'script', scopes: ['html', 'tag']},
+                {text: '>', scopes: ['html']},
+              ],
+              [
+                {text: 'hello', scopes: ['html', 'function']},
+                {text: '();', scopes: ['html']},
+              ],
+              [
+                {text: '</', scopes: ['html']},
+                {text: 'script', scopes: ['html', 'tag']},
+                {text: '>', scopes: ['html']},
+              ]
+            ])
+            resolve()
+          })
+        })
+
+        atom.grammars.addGrammar(jsGrammar)
+        atom.grammars.addGrammar(htmlGrammar)
+        buffer.setText('<script>\nhello();\n</script>')
+
+        const languageMode = new TreeSitterLanguageMode({buffer, grammar: htmlGrammar, grammars: atom.grammars})
+        buffer.setLanguageMode(languageMode)
+
+        await promise
       })
     })
   })
