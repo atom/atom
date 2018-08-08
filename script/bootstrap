@@ -18,7 +18,12 @@ process.on('unhandledRejection', function (e) {
 })
 
 // We can't use yargs until installScriptDependencies() is executed, so...
-const ci = process.argv.indexOf('--ci') !== -1
+let ci = process.argv.indexOf('--ci') !== -1
+
+if (!ci && process.env.CI === 'true' && process.argv.indexOf('--no-ci') === -1) {
+  console.log('Automatically enabling --ci because CI is set in the environment')
+  ci = true
+}
 
 verifyMachineRequirements()
 
