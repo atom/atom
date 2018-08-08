@@ -1,7 +1,7 @@
 const Parser = require('tree-sitter')
 const {Point, Range, spliceArray} = require('text-buffer')
 const {Patch} = require('superstring')
-const {Emitter, Disposable} = require('event-kit')
+const {Emitter} = require('event-kit')
 const ScopeDescriptor = require('./scope-descriptor')
 const TokenizedLine = require('./tokenized-line')
 const TextMateLanguageMode = require('./text-mate-language-mode')
@@ -63,7 +63,9 @@ class TreeSitterLanguageMode {
       this.rootLanguageLayer.update(null)
     })
 
-    this.rootLanguageLayer.update(null)
+    this.rootLanguageLayer.update(null).then(() =>
+      this.emitter.emit('did-tokenize')
+    )
 
     // TODO: Remove this once TreeSitterLanguageMode implements its own auto-indentation system. This
     // is temporarily needed in order to delegate to the TextMateLanguageMode's auto-indent system.
@@ -117,6 +119,10 @@ class TreeSitterLanguageMode {
       ...this.injectionsMarkerLayer.getMarkers().map(m => m.languageLayer.buildHighlightIterator())
     ]
     return new HighlightIterator(this, layerIterators)
+  }
+
+  onDidTokenize (callback) {
+    return this.emitter.on('did-tokenize', callback)
   }
 
   onDidChangeHighlighting (callback) {
@@ -385,8 +391,6 @@ class TreeSitterLanguageMode {
   /*
   Section - Backward compatibility shims
   */
-
-  onDidTokenize (callback) { return new Disposable(() => {}) }
 
   tokenizedLineForRow (row) {
     return new TokenizedLine({
