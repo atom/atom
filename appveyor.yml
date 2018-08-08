@@ -48,18 +48,18 @@ build_script:
   - IF [%TASK%]==[installer] (
       IF [%IS_RELEASE_BRANCH%]==[true] (
         ECHO Building on release branch - Creating production artifacts &&
-        script\build.cmd --ci --code-sign --compress-artifacts --create-windows-installer
+        script\build.cmd --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
         IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
           ECHO Building on %APPVEYOR_REPO_BRANCH% branch - Creating signed zips &&
-          script\build.cmd --ci --code-sign --compress-artifacts
+          script\build.cmd --code-sign --compress-artifacts
         ) ELSE (
           ECHO Skipping installer build for non-release/non-master branch
         )
       )
     ) ELSE (
       ECHO Test build only - Not creating artifacts &&
-      script\build.cmd --ci
+      script\build.cmd
     )
 
 test_script:

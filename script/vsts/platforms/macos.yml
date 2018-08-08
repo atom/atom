@@ -20,9 +20,9 @@ phases:
 
   - script: |
       if [ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]; then
-        script/build --ci --code-sign --compress-artifacts
+        script/build --code-sign --compress-artifacts
       else
-        script/build --ci --compress-artifacts
+        script/build --compress-artifacts
       fi
     displayName: Build Atom
     env:

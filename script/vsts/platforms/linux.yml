@@ -22,7 +22,7 @@ phases:
     displayName: Install apt dependencies
 
   - script: |
-      script/build --ci --create-debian-package --create-rpm-package --compress-artifacts
+      script/build --create-debian-package --create-rpm-package --compress-artifacts
     env:
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
     displayName: Build Atom
