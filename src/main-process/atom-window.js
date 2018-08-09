@@ -32,7 +32,7 @@ class AtomWindow extends EventEmitter {
 
     const options = {
       show: false,
-      title: 'Atom',
+      title: app.getName(),
       tabbingIdentifier: 'atom',
       webPreferences: {
         // Prevent specs from throttling when the window is in the background:
@@ -67,6 +67,7 @@ class AtomWindow extends EventEmitter {
 
     this.loadSettings = Object.assign({}, settings)
     this.loadSettings.appVersion = app.getVersion()
+    this.loadSettings.appName = app.getName()
     this.loadSettings.resourcePath = this.resourcePath
     this.loadSettings.atomHome = process.env.ATOM_HOME
     if (this.loadSettings.devMode == null) this.loadSettings.devMode = false
