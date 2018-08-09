@@ -201,8 +201,11 @@ class TextEditorComponent {
   }
 
   scheduleUpdate (nextUpdateOnlyBlinksCursors = false) {
-    if (!this.visible) return
-    if (this.suppressUpdates) return
+    if (
+      this.suppressUpdates ||
+      !this.attached ||
+      (!this.visible && !this.updatedSynchronously)
+    ) return
 
     this.nextUpdateOnlyBlinksCursors =
       this.nextUpdateOnlyBlinksCursors !== false && nextUpdateOnlyBlinksCursors === true
@@ -219,14 +222,15 @@ class TextEditorComponent {
 
   updateSync (useScheduler = false) {
     // Don't proceed if we know we are not visible
-    if (!this.visible) {
+    if (!this.attached || !(this.updatedSynchronously || this.visible)) {
       this.updateScheduled = false
       return
     }
 
     // Don't proceed if we have to pay for a measurement anyway and detect
     // that we are no longer visible.
-    if ((this.remeasureCharacterDimensions || this.remeasureAllBlockDecorations) && !this.isVisible()) {
+    if ((this.remeasureCharacterDimensions || this.remeasureAllBlockDecorations) &&
+        !(this.updatedSynchronously || this.isVisible())) {
       if (this.resolveNextUpdatePromise) this.resolveNextUpdatePromise()
       this.updateScheduled = false
       return
