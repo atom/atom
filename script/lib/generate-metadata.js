@@ -10,11 +10,10 @@ const semver = require('semver')
 const CONFIG = require('../config')
 
 let appName = CONFIG.appMetadata.name
-let appProductName = CONFIG.appMetadata.productName
-
 if (process.platform === 'win32') {
+  // Use the channel name in the app name on Windows so that the installer will
+  // place it in a different folder in AppData\Local
   appName = CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`
-  appProductName = CONFIG.appName
 }
 
 module.exports = function () {
@@ -25,7 +24,7 @@ module.exports = function () {
   CONFIG.appMetadata._deprecatedPackages = deprecatedPackagesMetadata
   CONFIG.appMetadata.version = CONFIG.computedAppVersion
   CONFIG.appMetadata.name = appName
-  CONFIG.appMetadata.productName = appProductName
+  CONFIG.appMetadata.productName = CONFIG.appName
   checkDeprecatedPackagesMetadata()
   fs.writeFileSync(path.join(CONFIG.intermediateAppPath, 'package.json'), JSON.stringify(CONFIG.appMetadata))
 }
