@@ -32,7 +32,10 @@ if (files.length > 0) {
 }
 
 // Launch Atom in dev mode
-let atomToLaunch = (process.argv.length > 2 && process.argv[2]) || 'atom'
+let atomToLaunch =
+  (process.argv.length > 2 && process.argv[2]) ||
+  process.platform === 'win32' ? 'atom.cmd' : 'atom'
+  
 console.log(`\nLaunching ${atomToLaunch}!\n`.green)
 
 const atomProcess = spawn(atomToLaunch, ['--dev', CONFIG.repositoryRootPath], {
