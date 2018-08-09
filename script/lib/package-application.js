@@ -34,7 +34,7 @@ module.exports = function () {
     'version-string': {
       'CompanyName': 'GitHub, Inc.',
       'FileDescription': 'Atom',
-      'ProductName': 'Atom'
+      'ProductName': CONFIG.appName
     }
   }).then((packagedAppPath) => {
     let bundledResourcesPath

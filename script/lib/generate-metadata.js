@@ -9,6 +9,14 @@ const semver = require('semver')
 
 const CONFIG = require('../config')
 
+let appName = CONFIG.appMetadata.name
+let appProductName = CONFIG.appMetadata.productName
+
+if (process.platform === 'win32') {
+  appName = CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`
+  appProductName = CONFIG.appName
+}
+
 module.exports = function () {
   console.log(`Generating metadata for ${path.join(CONFIG.intermediateAppPath, 'package.json')}`)
   CONFIG.appMetadata._atomPackages = buildBundledPackagesMetadata()
@@ -16,6 +24,8 @@ module.exports = function () {
   CONFIG.appMetadata._atomKeymaps = buildPlatformKeymapsMetadata()
   CONFIG.appMetadata._deprecatedPackages = deprecatedPackagesMetadata
   CONFIG.appMetadata.version = CONFIG.computedAppVersion
+  CONFIG.appMetadata.name = appName
+  CONFIG.appMetadata.productName = appProductName
   checkDeprecatedPackagesMetadata()
   fs.writeFileSync(path.join(CONFIG.intermediateAppPath, 'package.json'), JSON.stringify(CONFIG.appMetadata))
 }
