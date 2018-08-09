@@ -1,0 +1,52 @@
+#!/usr/bin/env node
+
+'use strict'
+
+// Run bootstrap first to ensure all the dependencies used later in this script
+// are installed.
+require('./bootstrap')
+
+const path = require('path')
+const glob = require('glob')
+const colors = require('colors')
+const CONFIG = require('./config')
+const {spawn} = require('child_process')
+const runApmInstall = require('./lib/run-apm-install')
+
+// Install the local core packages in-place so they can be used in dev mode
+var files = glob.sync(path.join(CONFIG.repositoryRootPath, 'packages/*/package.json'))
+if (files.length > 0) {
+  console.log('\nInstalling core packages for use in dev mode...')
+
+  files.forEach(file => {
+    const packageDir = path.dirname(file)
+    process.stdout.write(`Installing packages/${path.basename(packageDir)} `)
+    runApmInstall(path.dirname(file), false, true)
+
+    if (process.platform === 'win32') {
+      return process.stdout.write('done\n'.green);
+    } else {
+      return process.stdout.write('\u2713\n'.green);
+    }
+  })
+}
+
+// Launch Atom in dev mode
+let atomToLaunch = (process.argv.length > 2 && process.argv[2]) || 'atom'
+console.log(`\nLaunching ${atomToLaunch}!\n`.green)
+
+const atomProcess = spawn(atomToLaunch, ['--dev', CONFIG.repositoryRootPath], {
+  detached: true,
+  stdio: 'ignore',
+  windowsHide: true,
+  env: Object.assign(process.env, { ATOM_DEV_RESOURCE_PATH: CONFIG.repositoryRootPath })
+})
+
+atomProcess.on('error', e => {
+  if (e.code === 'ENOENT') {
+    console.error(`The executable '${atomToLaunch}' could not be found!\n`.red)
+  } else {
+    console.error(`An error occurred when attempting to launch '${atomToLaunch}'\n`.red, e)
+  }
+})
+atomProcess.unref()
