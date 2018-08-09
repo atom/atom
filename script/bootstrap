@@ -54,7 +54,7 @@ if (!process.env.CI) {
     files.forEach(file => {
       const packageDir = path.dirname(file)
       process.stdout.write(`Installing packages/${path.basename(packageDir)} `)
-      runApmInstall(path.dirname(file), true)
+      runApmInstall(path.dirname(file), false, true)
 
       if (process.platform === 'win32') {
         return process.stdout.write('done\n'.green);
