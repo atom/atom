@@ -5,7 +5,6 @@ about: Suggest an idea for this project
 ---
 
 <!--
-
 Have you read Atom's Code of Conduct? By filing an Issue, you are expected to comply with it, including treating everyone with respect: https://github.com/atom/atom/blob/master/CODE_OF_CONDUCT.md
 
 Do you want to ask a question? Are you looking for support? The Atom message board is the best place for getting support: https://discuss.atom.io
@@ -21,21 +20,20 @@ Keep in mind that Atom is highly customizable in a number of ways and we strongl
 If you're convinced that none of these options are appropriate for the feature you want, please explain why that's the case by completely filling out the issue template below.
 
 Also note that the Atom team has finite resources so it's unlikely that we'll work on feature requests. If we're interested in a particular feature however, we'll follow up and ask you to submit an RFC to talk about it in more detail.
-
 -->
 
 ## Summary
+<!-- Add one paragraph explanation of the feature. -->
 
-One paragraph explanation of the feature.
 
 ## Motivation
+<!-- Why are you/we doing this? What use cases does it support? What is the expected outcome? -->
 
-Why are we doing this? What use cases does it support? What is the expected outcome?
 
 ## Describe alternatives you've considered
+<!-- Add a clear and concise description of the alternative solutions you've considered. Be sure to explain why Atom's existing customizability isn't suitable for this feature. -->
 
-A clear and concise description of the alternative solutions you've considered. Be sure to explain why Atom's existing customizability isn't suitable for this feature.
 
 ## Additional context
+<!-- Add any other context or screenshots about the feature request here. -->
 
-Add any other context or screenshots about the feature request here.
