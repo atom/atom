@@ -480,7 +480,7 @@ class AtomEnvironment {
   // Public: Get the full name of this Atom release (e.g. "Atom", "Atom Beta")
   //
   // Returns the app name {String}.
-  getAppName() {
+  getAppName () {
     if (this.appName == null) this.appName = this.getLoadSettings().appName
     return this.appName
   }
