@@ -534,7 +534,7 @@ class LanguageLayer {
   }
 
   updateInjections (grammar) {
-    if (grammar.injectionRegExp) {
+    if (grammar.injectionRegex) {
       if (!this.currentParsePromise) this.currentParsePromise = Promise.resolve()
       this.currentParsePromise = this.currentParsePromise.then(async () => {
         await this._populateInjections(MAX_RANGE, null)
