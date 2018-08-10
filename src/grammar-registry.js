@@ -215,7 +215,6 @@ class GrammarRegistry {
 
     // If multiple grammars match by one of the above criteria, break ties.
     if (score > 0) {
-
       // Prefer either TextMate or Tree-sitter grammars based on the user's settings.
       if (grammar instanceof TreeSitterGrammar) {
         if (this.config.get('core.useTreeSitterParsers')) {
@@ -296,7 +295,6 @@ class GrammarRegistry {
       if (grammar.firstLineRegex.testSync) {
         return grammar.firstLineRegex.testSync(prefix)
       } else {
-
         return grammar.firstLineRegex.test(prefix)
       }
     } else {
