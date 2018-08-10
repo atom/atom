@@ -66,5 +66,6 @@ jobs:
       ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
       ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
       ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
+      PACKAGE_CLOUD_API_KEY: $(PACKAGE_CLOUD_API_KEY)
     displayName: Upload CI Artifacts to S3
     condition: and(succeeded(), eq(variables['IsSignedZipBranch'], 'true'))
