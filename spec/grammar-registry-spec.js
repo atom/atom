@@ -472,6 +472,19 @@ describe('GrammarRegistry', () => {
         expect(grammar.name).toBe('C++')
       })
 
+      it('does not apply content regexes from grammars without filetype or first line matches', () => {
+        atom.config.set('core.useTreeSitterParsers', true)
+        grammarRegistry.loadGrammarSync(require.resolve('language-c/grammars/tree-sitter-cpp.cson'))
+
+        let grammar = grammarRegistry.selectGrammar('', dedent `
+          class Foo
+            # this is ruby, not C++
+          end
+        `)
+
+        expect(grammar.name).toBe('Null Grammar')
+      })
+
       it('recognizes shell scripts with shebang lines', () => {
         atom.config.set('core.useTreeSitterParsers', true)
         grammarRegistry.loadGrammarSync(require.resolve('language-shellscript/grammars/shell-unix-bash.cson'))
@@ -479,6 +492,14 @@ describe('GrammarRegistry', () => {
 
         let grammar = grammarRegistry.selectGrammar('test.h', dedent `
           #!/bin/bash
+
+          echo "hi"
+        `)
+        expect(grammar.name).toBe('Shell Script')
+        expect(grammar instanceof TreeSitterGrammar).toBeTruthy()
+
+        grammar = grammarRegistry.selectGrammar('test.h', dedent `
+          # vim: set ft=bash
 
           echo "hi"
         `)
