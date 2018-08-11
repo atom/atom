@@ -43,7 +43,7 @@ const schemaEnforcers = {}
 // ### Value Coercion
 //
 // Config settings each have a type specified by way of a
-// [schema](json-schema.org). For example we might an integer setting that only
+// [schema](json-schema.org). For example we might want an integer setting that only
 // allows integers greater than `0`:
 //
 // ```coffee
