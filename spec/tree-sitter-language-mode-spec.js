@@ -686,8 +686,7 @@ describe('TreeSitterLanguageMode', () => {
         const languageMode = new TreeSitterLanguageMode({buffer, grammar: ejsGrammar, grammars: atom.grammars})
         buffer.setLanguageMode(languageMode)
 
-        // 4 parses: EJS, HTML, template JS, script tag JS
-        await nextHighlightingUpdate(languageMode)
+        // Parse EJS, then HTML and template JS in parallel, then script tag JS
         await nextHighlightingUpdate(languageMode)
         await nextHighlightingUpdate(languageMode)
         await nextHighlightingUpdate(languageMode)
