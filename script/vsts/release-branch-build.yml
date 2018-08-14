@@ -60,7 +60,17 @@ jobs:
     displayName: Download Release Artifacts
 
   - script: |
-      $(Build.SourcesDirectory)\script\publish-release.cmd --assets-path "$(System.ArtifactsDirectory)" --s3-path "vsts-artifacts/$(Build.BuildId)/"
+      node $(Build.SourcesDirectory)\script\vsts\upload-artifacts.js --create-github-release --assets-path "$(System.ArtifactsDirectory)"
+    env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
+      ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
+      ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
+      ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
+    displayName: Create Draft Release
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
+
+  - script: |
       node $(Build.SourcesDirectory)\script\vsts\upload-artifacts.js --assets-path "$(System.ArtifactsDirectory)" --s3-path "vsts-artifacts/$(Build.BuildId)/"
     env:
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
