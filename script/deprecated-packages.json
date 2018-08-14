@@ -1561,6 +1561,11 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
+  "todo-list": {
+    "hasAlternative": true,
+    "message": "This package is no longer maintained.",
+    "alternative": "todo-show"
+  },
   "toggle-tabs": {
     "version": "<=0.1.8",
     "hasDeprecations": true,
