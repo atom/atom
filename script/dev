@@ -6,15 +6,15 @@
 // are installed.
 require('./bootstrap')
 
+require('colors')
 const path = require('path')
 const glob = require('glob')
-const colors = require('colors')
 const CONFIG = require('./config')
 const {spawn} = require('child_process')
 const runApmInstall = require('./lib/run-apm-install')
 
 // Install the local core packages in-place so they can be used in dev mode
-var files = glob.sync(path.join(CONFIG.repositoryRootPath, 'packages/*/package.json'))
+const files = glob.sync(path.join(CONFIG.repositoryRootPath, 'packages/*/package.json'))
 if (files.length > 0) {
   console.log('\nInstalling core packages for use in dev mode...')
 
@@ -24,9 +24,9 @@ if (files.length > 0) {
     runApmInstall(path.dirname(file), false, true)
 
     if (process.platform === 'win32') {
-      return process.stdout.write('done\n'.green);
+      return process.stdout.write('done\n'.green)
     } else {
-      return process.stdout.write('\u2713\n'.green);
+      return process.stdout.write('\u2713\n'.green)
     }
   })
 }
