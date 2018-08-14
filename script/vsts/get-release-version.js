@@ -13,7 +13,7 @@ const argv = yargs
   .argv
 
 async function getReleaseVersion () {
-  let releaseVersion = appMetadata.version
+  let releaseVersion = process.env.ATOM_RELEASE_VERSION || appMetadata.version
   if (argv.nightly) {
     const releases = await request({
       url: 'https://api.github.com/repos/atom/atom-nightly-releases/releases',
