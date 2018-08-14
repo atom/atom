@@ -3,6 +3,9 @@
   "description": "Atom release scripts",
   "dependencies": {
     "download": "^7.1.0",
+    "aws-sdk": "^2.5.2",
+    "glob": "7.0.3",
+    "publish-release": "^1.6.0",
     "request": "^2.87.0",
     "request-promise-native": "^1.0.5",
     "yargs": "4.8.1"

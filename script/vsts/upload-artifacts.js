@@ -8,7 +8,7 @@ const publishRelease = require('publish-release')
 const uploadToS3 = require('./lib/upload-to-s3')
 const uploadLinuxPackages = require('./lib/upload-linux-packages')
 
-const CONFIG = require('./config')
+const CONFIG = require('../config')
 
 const yargs = require('yargs')
 const argv = yargs
