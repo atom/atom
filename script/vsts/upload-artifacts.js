@@ -21,6 +21,7 @@ const argv = yargs
   .wrap(yargs.terminalWidth())
   .argv
 
+const isNightlyRelease = CONFIG.channel === 'nightly'
 const assetsPath = argv.assetsPath || path.join(CONFIG.repositoryRootPath, 'out')
 const assetsPattern = '/**/*(*.exe|*.zip|*.nupkg|*.tar.gz|*.rpm|*.deb|RELEASES*|atom-api.json)'
 const assets = glob.sync(assetsPattern, { root: assetsPath, nodir: true })
@@ -31,7 +32,7 @@ if (!assets || assets.length === 0) {
   process.exit(1)
 }
 
-async function uploadRelease() {
+async function uploadArtifacts() {
   console.log(`Uploading ${assets.length} release assets for ${CONFIG.computedAppVersion} to S3 under '${bucketPath}'`)
 
   await uploadToS3(
@@ -61,6 +62,17 @@ async function uploadRelease() {
         name: CONFIG.computedAppVersion,
         tag: `v${CONFIG.computedAppVersion}`,
         draft: CONFIG.channel !== 'nightly',
+
+  if (argv.createGithubRelease) {
+    console.log(`Creating GitHub release v${CONFIG.computedAppVersion}`)
+    const release =
+      await publishReleaseAsync({
+        token: process.env.GITHUB_TOKEN,
+        owner: 'atom',
+        repo: !isNightlyRelease ? 'atom' : 'atom-nightly-releases',
+        name: CONFIG.computedAppVersion,
+        tag: `v${CONFIG.computedAppVersion}`,
+        draft: !isNightlyRelease,
         prerelease: CONFIG.channel !== 'stable',
         reuseRelease: true,
         skipIfPublished: true,
@@ -85,7 +97,10 @@ async function publishReleaseAsync(options) {
   })
 }
 
-uploadRelease().catch((err) => {
+
+// Wrap the call the async function and catch errors from its promise because
+// Node.js doesn't yet allow use of await at the script scope
+uploadArtifacts().catch(err => {
   console.error('An error occurred while uploading the release:\n\n', err)
   process.exit(1)
 })
