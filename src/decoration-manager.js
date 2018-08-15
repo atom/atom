@@ -2,6 +2,17 @@ const {Emitter} = require('event-kit')
 const Decoration = require('./decoration')
 const LayerDecoration = require('./layer-decoration')
 
+function isMatchFilterProperty (properties, propertyFilter) {
+  for (let key in propertyFilter) {
+    const value = propertyFilter[key]
+    if (properties[key] !== value) {
+      return false
+    }
+  }
+
+  return true
+}
+
 module.exports =
 class DecorationManager {
   constructor (editor) {
@@ -37,49 +48,38 @@ class DecorationManager {
     return this.emitter.on('did-update-decorations', callback)
   }
 
-  getDecorations (propertyFilter) {
-    let allDecorations = []
+  getDecorations (propertyFilter, filterType = '') {
+    const allDecorations = []
 
     this.decorationsByMarker.forEach((decorations) => {
-      decorations.forEach((decoration) => allDecorations.push(decoration))
-    })
-    if (propertyFilter != null) {
-      allDecorations = allDecorations.filter(function (decoration) {
-        for (let key in propertyFilter) {
-          const value = propertyFilter[key]
-          if (decoration.properties[key] !== value) return false
-        }
-        return true
+      decorations.forEach((decoration) => {
+        if (filterType && !decoration.isType(filterType)) return
+        if (propertyFilter && !isMatchFilterProperty(decoration.properties, propertyFilter)) return
+
+        allDecorations.push(decoration)
       })
-    }
+    })
+
     return allDecorations
   }
 
   getLineDecorations (propertyFilter) {
-    return this.getDecorations(propertyFilter).filter(decoration => decoration.isType('line'))
+    return this.getDecorations(propertyFilter, 'line')
   }
 
   getLineNumberDecorations (propertyFilter) {
-    return this.getDecorations(propertyFilter).filter(decoration => decoration.isType('line-number'))
+    return this.getDecorations(propertyFilter, 'line-number')
   }
 
   getHighlightDecorations (propertyFilter) {
-    return this.getDecorations(propertyFilter).filter(decoration => decoration.isType('highlight'))
+    return this.getDecorations(propertyFilter, 'highlight')
   }
 
   getOverlayDecorations (propertyFilter) {
     const result = []
     result.push(...Array.from(this.overlayDecorations))
-    if (propertyFilter != null) {
-      return result.filter(function (decoration) {
-        for (let key in propertyFilter) {
-          const value = propertyFilter[key]
-          if (decoration.properties[key] !== value) {
-            return false
-          }
-        }
-        return true
-      })
+    if (propertyFilter) {
+      return result.filter((decoration) => isMatchFilterProperty(decoration.properties, propertyFilter))
     } else {
       return result
     }
