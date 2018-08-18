@@ -14,13 +14,6 @@ const WORD_REGEX = /\w/
 
 class TreeSitterLanguageMode {
   static _patchSyntaxNode () {
-    if (!Parser.SyntaxNode.prototype.hasOwnProperty('text')) {
-      Object.defineProperty(Parser.SyntaxNode.prototype, 'text', {
-        get () {
-          return this.tree.buffer.getTextInRange(new Range(this.startPosition, this.endPosition))
-        }
-      })
-    }
     if (!Parser.SyntaxNode.prototype.hasOwnProperty('range')) {
       Object.defineProperty(Parser.SyntaxNode.prototype, 'range', {
         get () {
@@ -41,7 +34,7 @@ class TreeSitterLanguageMode {
     this.rootLanguageLayer = new LanguageLayer(this, grammar)
     this.injectionsMarkerLayer = buffer.addMarkerLayer()
 
-    this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.id]})
+    this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.scopeName]})
     this.emitter = new Emitter()
     this.isFoldableCache = []
     this.hasQueuedParse = false
@@ -80,7 +73,7 @@ class TreeSitterLanguageMode {
   }
 
   getLanguageId () {
-    return this.grammar.id
+    return this.grammar.scopeName
   }
 
   bufferDidChange (change) {
@@ -439,7 +432,7 @@ class TreeSitterLanguageMode {
       }
     }
 
-    scopes.push(this.grammar.id)
+    scopes.push(this.grammar.scopeName)
     return new ScopeDescriptor({scopes: scopes.reverse()})
   }
 
