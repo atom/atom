@@ -6,9 +6,8 @@ module.exports =
 class TreeSitterGrammar {
   constructor (registry, filePath, params) {
     this.registry = registry
-    this.id = params.id
     this.name = params.name
-    this.legacyScopeName = params.legacyScopeName
+    this.scopeName = params.scopeName
 
     // TODO - Remove the `RegExp` spelling and only support `Regex`, once all of the existing
     // Tree-sitter grammars are updated to spell it `Regex`.
@@ -53,9 +52,14 @@ class TreeSitterGrammar {
 
     this.languageModule = require(languageModulePath)
     this.scopesById = new Map()
+    this.conciseScopesById = new Map()
     this.idsByScope = {}
     this.nextScopeId = 256 + 1
     this.registration = null
+  }
+
+  inspect () {
+    return `TreeSitterGrammar {scopeName: ${this.scopeName}}`
   }
 
   idForScope (scope) {
@@ -72,8 +76,15 @@ class TreeSitterGrammar {
     return this.scopesById.get(id)
   }
 
-  get scopeName () {
-    return this.id
+  scopeNameForScopeId (id) {
+    let result = this.conciseScopesById.get(id)
+    if (!result) {
+      result = this.scopesById.get(id)
+        .slice('syntax--'.length)
+        .replace(/ syntax--/g, '.')
+      this.conciseScopesById.set(id, result)
+    }
+    return result
   }
 
   activate () {
