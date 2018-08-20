@@ -25,7 +25,7 @@
     "atom-keymap": "8.2.10",
     "atom-light-syntax": "https://www.atom.io/api/packages/atom-light-syntax/versions/0.29.0/tarball",
     "atom-light-ui": "https://www.atom.io/api/packages/atom-light-ui/versions/0.46.2/tarball",
-    "atom-select-list": "^0.7.0",
+    "atom-select-list": "^0.7.2",
     "atom-ui": "0.4.1",
     "autocomplete-atom-api": "https://www.atom.io/api/packages/autocomplete-atom-api/versions/0.10.7/tarball",
     "autocomplete-css": "https://www.atom.io/api/packages/autocomplete-css/versions/0.17.5/tarball",
