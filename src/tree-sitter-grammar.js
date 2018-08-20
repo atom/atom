@@ -52,6 +52,7 @@ class TreeSitterGrammar {
 
     this.languageModule = require(languageModulePath)
     this.scopesById = new Map()
+    this.conciseScopesById = new Map()
     this.idsByScope = {}
     this.nextScopeId = 256 + 1
     this.registration = null
@@ -73,6 +74,17 @@ class TreeSitterGrammar {
 
   classNameForScopeId (id) {
     return this.scopesById.get(id)
+  }
+
+  scopeNameForScopeId (id) {
+    let result = this.conciseScopesById.get(id)
+    if (!result) {
+      result = this.scopesById.get(id)
+        .slice('syntax--'.length)
+        .replace(/ syntax--/g, '.')
+      this.conciseScopesById.set(id, result)
+    }
+    return result
   }
 
   activate () {

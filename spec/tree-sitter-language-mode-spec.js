@@ -1323,39 +1323,49 @@ describe('TreeSitterLanguageMode', () => {
   describe('.scopeDescriptorForPosition', () => {
     it('returns a scope descriptor representing the given position in the syntax tree', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
-        scopeName: 'javascript',
-        parser: 'tree-sitter-javascript'
+        scopeName: 'source.js',
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          program: 'source.js',
+          property_identifier: 'property.name'
+        }
       })
 
       buffer.setText('foo({bar: baz});')
 
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
       await nextHighlightingUpdate(buffer.getLanguageMode())
-      expect(editor.scopeDescriptorForBufferPosition([0, 6]).getScopesArray()).toEqual([
-        'javascript',
-        'program',
-        'expression_statement',
-        'call_expression',
-        'arguments',
-        'object',
-        'pair',
-        'property_identifier'
+      expect(editor.scopeDescriptorForBufferPosition([0, 'foo({b'.length]).getScopesArray()).toEqual([
+        'source.js',
+        'property.name'
+      ])
+      expect(editor.scopeDescriptorForBufferPosition([0, 'foo({'.length]).getScopesArray()).toEqual([
+        'source.js',
+        'property.name'
       ])
     })
 
     it('includes nodes in injected syntax trees', async () => {
       const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
-        scopeName: 'javascript',
+        scopeName: 'source.js',
         parser: 'tree-sitter-javascript',
-        scopes: {},
+        scopes: {
+          program: 'source.js',
+          template_string: 'string.quoted',
+          interpolation: 'meta.embedded',
+          property_identifier: 'property.name'
+        },
         injectionRegExp: 'javascript',
         injectionPoints: [HTML_TEMPLATE_LITERAL_INJECTION_POINT]
       })
 
       const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
-        scopeName: 'html',
+        scopeName: 'text.html',
         parser: 'tree-sitter-html',
-        scopes: {},
+        scopes: {
+          fragment: 'text.html',
+          raw_element: 'script.tag'
+        },
         injectionRegExp: 'html',
         injectionPoints: [SCRIPT_TAG_INJECTION_POINT]
       })
@@ -1381,20 +1391,12 @@ describe('TreeSitterLanguageMode', () => {
 
       const position = buffer.findSync('name').start
       expect(languageMode.scopeDescriptorForPosition(position).getScopesArray()).toEqual([
-        'html',
-        'fragment',
-        'element',
-        'raw_element',
-        'raw_text',
-        'program',
-        'expression_statement',
-        'call_expression',
-        'template_string',
-        'fragment',
-        'element',
-        'template_substitution',
-        'member_expression',
-        'property_identifier'
+        'text.html',
+        'script.tag',
+        'source.js',
+        'string.quoted',
+        'text.html',
+        'property.name'
       ])
     })
   })
