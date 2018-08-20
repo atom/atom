@@ -109,7 +109,7 @@
     "language-text": "https://www.atom.io/api/packages/language-text/versions/0.7.4/tarball",
     "language-todo": "https://www.atom.io/api/packages/language-todo/versions/0.29.4/tarball",
     "language-toml": "https://www.atom.io/api/packages/language-toml/versions/0.18.2/tarball",
-    "language-typescript": "https://www.atom.io/api/packages/language-typescript/versions/0.4.5/tarball",
+    "language-typescript": "https://www.atom.io/api/packages/language-typescript/versions/0.4.6/tarball",
     "language-xml": "https://www.atom.io/api/packages/language-xml/versions/0.35.2/tarball",
     "language-yaml": "https://www.atom.io/api/packages/language-yaml/versions/0.32.0/tarball",
     "less-cache": "1.1.0",
@@ -260,7 +260,7 @@
     "language-text": "0.7.4",
     "language-todo": "0.29.4",
     "language-toml": "0.18.2",
-    "language-typescript": "0.4.5",
+    "language-typescript": "0.4.6",
     "language-xml": "0.35.2",
     "language-yaml": "0.32.0"
   },
