@@ -5,6 +5,7 @@ const yargs = require('yargs')
 const {app} = require('electron')
 const path = require('path')
 const fs = require('fs-plus')
+const getDevResourcePath = require('./get-dev-resource-path')
 
 module.exports = function parseCommandLine (processArgs) {
   const options = yargs(processArgs).wrap(yargs.terminalWidth())
@@ -119,7 +120,7 @@ module.exports = function parseCommandLine (processArgs) {
   let pathsToOpen = []
   let urlsToOpen = []
   let devMode = args['dev']
-  let devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH || path.join(app.getPath('home'), 'github', 'atom')
+  let devResourcePath = getDevResourcePath()
   let resourcePath = null
 
   for (const path of args._) {

@@ -30,13 +30,15 @@ describe('PackageManager', () => {
       expect(packageManger.packageDirPaths[0]).toBe(path.join(configDirPath, 'packages'))
     })
 
-    it('adds regular package path and dev package path in dev mode', () => {
+    it('adds regular package path, dev package path, and Atom repo package path in dev mode and dev resource path is set', () => {
       const packageManger = new PackageManager({})
       const configDirPath = path.join('~', 'someConfig')
-      packageManger.initialize({configDirPath, devMode: true})
-      expect(packageManger.packageDirPaths.length).toBe(2)
+      const resourcePath = path.join('~', '/atom')
+      packageManger.initialize({configDirPath, resourcePath, devMode: true})
+      expect(packageManger.packageDirPaths.length).toBe(3)
       expect(packageManger.packageDirPaths).toContain(path.join(configDirPath, 'packages'))
       expect(packageManger.packageDirPaths).toContain(path.join(configDirPath, 'dev', 'packages'))
+      expect(packageManger.packageDirPaths).toContain(path.join(resourcePath, 'packages'))
     })
   })
 
