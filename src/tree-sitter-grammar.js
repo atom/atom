@@ -6,11 +6,14 @@ module.exports =
 class TreeSitterGrammar {
   constructor (registry, filePath, params) {
     this.registry = registry
-    this.id = params.id
     this.name = params.name
-    this.legacyScopeName = params.legacyScopeName
-    if (params.contentRegExp) this.contentRegExp = new RegExp(params.contentRegExp)
-    if (params.injectionRegExp) this.injectionRegExp = new RegExp(params.injectionRegExp)
+    this.scopeName = params.scopeName
+
+    // TODO - Remove the `RegExp` spelling and only support `Regex`, once all of the existing
+    // Tree-sitter grammars are updated to spell it `Regex`.
+    this.contentRegex = buildRegex(params.contentRegex || params.contentRegExp)
+    this.injectionRegex = buildRegex(params.injectionRegex || params.injectionRegExp)
+    this.firstLineRegex = buildRegex(params.firstLineRegex)
 
     this.folds = params.folds || []
     this.folds.forEach(normalizeFoldSpecification)
@@ -22,11 +25,21 @@ class TreeSitterGrammar {
 
     const scopeSelectors = {}
     for (const key in params.scopes || {}) {
-      scopeSelectors[key] = toSyntaxClasses(params.scopes[key])
+      const classes = toSyntaxClasses(params.scopes[key])
+      const selectors = key.split(/,\s+/)
+      for (let selector of selectors) {
+        selector = selector.trim()
+        if (!selector) continue
+        if (scopeSelectors[selector]) {
+          scopeSelectors[selector] = [].concat(scopeSelectors[selector], classes)
+        } else {
+          scopeSelectors[selector] = classes
+        }
+      }
     }
 
     this.scopeMap = new SyntaxScopeMap(scopeSelectors)
-    this.fileTypes = params.fileTypes
+    this.fileTypes = params.fileTypes || []
     this.injectionPoints = params.injectionPoints || []
 
     // TODO - When we upgrade to a new enough version of node, use `require.resolve`
@@ -39,9 +52,14 @@ class TreeSitterGrammar {
 
     this.languageModule = require(languageModulePath)
     this.scopesById = new Map()
+    this.conciseScopesById = new Map()
     this.idsByScope = {}
     this.nextScopeId = 256 + 1
     this.registration = null
+  }
+
+  inspect () {
+    return `TreeSitterGrammar {scopeName: ${this.scopeName}}`
   }
 
   idForScope (scope) {
@@ -58,8 +76,15 @@ class TreeSitterGrammar {
     return this.scopesById.get(id)
   }
 
-  get scopeName () {
-    return this.id
+  scopeNameForScopeId (id) {
+    let result = this.conciseScopesById.get(id)
+    if (!result) {
+      result = this.scopesById.get(id)
+        .slice('syntax--'.length)
+        .replace(/ syntax--/g, '.')
+      this.conciseScopesById.set(id, result)
+    }
+    return result
   }
 
   activate () {
@@ -114,4 +139,12 @@ function normalizeFoldSpecification (spec) {
 
   if (spec.start) normalizeFoldSpecification(spec.start)
   if (spec.end) normalizeFoldSpecification(spec.end)
+}
+
+function buildRegex (value) {
+  // Allow multiple alternatives to be specified via an array, for
+  // readability of the grammar file
+  if (Array.isArray(value)) value = value.map(_ => `(${_})`).join('|')
+  if (typeof value === 'string') return new RegExp(value)
+  return null
 }

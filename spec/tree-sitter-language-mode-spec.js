@@ -112,7 +112,7 @@ describe('TreeSitterLanguageMode', () => {
     })
 
     it('correctly skips over tokens with zero size', async () => {
-      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+      const grammar = new TreeSitterGrammar(atom.grammars, cGrammarPath, {
         parser: 'tree-sitter-c',
         scopes: {
           'primitive_type': 'type',
@@ -189,6 +189,36 @@ describe('TreeSitterLanguageMode', () => {
         [{text: 'b,', scopes: []}],
         [{text: 'c', scopes: []}],
         [{text: ')', scopes: []}]
+      ])
+    })
+
+    it('allows comma-separated selectors as scope mapping keys', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          'identifier, call_expression > identifier': [
+            {match: '^[A-Z]', scopes: 'constructor'}
+          ],
+
+          'call_expression > identifier': 'function'
+        }
+      })
+
+      buffer.setText(`a(B(new C))`)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      await nextHighlightingUpdate(languageMode)
+
+      expectTokensToEqual(editor, [
+        [
+          {text: 'a', scopes: ['function']},
+          {text: '(', scopes: []},
+          {text: 'B', scopes: ['constructor']},
+          {text: '(new ', scopes: []},
+          {text: 'C', scopes: ['constructor']},
+          {text: '))', scopes: []},
+        ]
       ])
     })
 
@@ -314,7 +344,7 @@ describe('TreeSitterLanguageMode', () => {
       ])
     })
 
-    it('applies rules when specified', async () => {
+    it('applies regex match rules when specified', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
         scopes: {
@@ -446,7 +476,7 @@ describe('TreeSitterLanguageMode', () => {
 
       beforeEach(() => {
         jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
-          id: 'javascript',
+          scopeName: 'javascript',
           parser: 'tree-sitter-javascript',
           scopes: {
             'property_identifier': 'property',
@@ -460,7 +490,7 @@ describe('TreeSitterLanguageMode', () => {
         })
 
         htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
-          id: 'html',
+          scopeName: 'html',
           parser: 'tree-sitter-html',
           scopes: {
             fragment: 'html',
@@ -656,8 +686,7 @@ describe('TreeSitterLanguageMode', () => {
         const languageMode = new TreeSitterLanguageMode({buffer, grammar: ejsGrammar, grammars: atom.grammars})
         buffer.setLanguageMode(languageMode)
 
-        // 4 parses: EJS, HTML, template JS, script tag JS
-        await nextHighlightingUpdate(languageMode)
+        // Parse EJS, then HTML and template JS in parallel, then script tag JS
         await nextHighlightingUpdate(languageMode)
         await nextHighlightingUpdate(languageMode)
         await nextHighlightingUpdate(languageMode)
@@ -694,6 +723,39 @@ describe('TreeSitterLanguageMode', () => {
             {text: '>', scopes: ['html']}
           ],
         ])
+      })
+
+      it('notifies onDidTokenize listeners the first time all syntax highlighting is done', async () => {
+        const promise = new Promise(resolve => {
+          editor.onDidTokenize(event => {
+            expectTokensToEqual(editor, [
+              [
+                {text: '<', scopes: ['html']},
+                {text: 'script', scopes: ['html', 'tag']},
+                {text: '>', scopes: ['html']},
+              ],
+              [
+                {text: 'hello', scopes: ['html', 'function']},
+                {text: '();', scopes: ['html']},
+              ],
+              [
+                {text: '</', scopes: ['html']},
+                {text: 'script', scopes: ['html', 'tag']},
+                {text: '>', scopes: ['html']},
+              ]
+            ])
+            resolve()
+          })
+        })
+
+        atom.grammars.addGrammar(jsGrammar)
+        atom.grammars.addGrammar(htmlGrammar)
+        buffer.setText('<script>\nhello();\n</script>')
+
+        const languageMode = new TreeSitterLanguageMode({buffer, grammar: htmlGrammar, grammars: atom.grammars})
+        buffer.setLanguageMode(languageMode)
+
+        await promise
       })
     })
   })
@@ -1182,7 +1244,7 @@ describe('TreeSitterLanguageMode', () => {
 
     it('folds code in injected languages', async () => {
       const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
-        id: 'html',
+        scopeName: 'html',
         parser: 'tree-sitter-html',
         scopes: {},
         folds: [{
@@ -1194,7 +1256,7 @@ describe('TreeSitterLanguageMode', () => {
       })
 
       const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
-        id: 'javascript',
+        scopeName: 'javascript',
         parser: 'tree-sitter-javascript',
         scopes: {},
         folds: [{
@@ -1261,39 +1323,49 @@ describe('TreeSitterLanguageMode', () => {
   describe('.scopeDescriptorForPosition', () => {
     it('returns a scope descriptor representing the given position in the syntax tree', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
-        id: 'javascript',
-        parser: 'tree-sitter-javascript'
+        scopeName: 'source.js',
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          program: 'source.js',
+          property_identifier: 'property.name'
+        }
       })
 
       buffer.setText('foo({bar: baz});')
 
       buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
       await nextHighlightingUpdate(buffer.getLanguageMode())
-      expect(editor.scopeDescriptorForBufferPosition([0, 6]).getScopesArray()).toEqual([
-        'javascript',
-        'program',
-        'expression_statement',
-        'call_expression',
-        'arguments',
-        'object',
-        'pair',
-        'property_identifier'
+      expect(editor.scopeDescriptorForBufferPosition([0, 'foo({b'.length]).getScopesArray()).toEqual([
+        'source.js',
+        'property.name'
+      ])
+      expect(editor.scopeDescriptorForBufferPosition([0, 'foo({'.length]).getScopesArray()).toEqual([
+        'source.js',
+        'property.name'
       ])
     })
 
     it('includes nodes in injected syntax trees', async () => {
       const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
-        id: 'javascript',
+        scopeName: 'source.js',
         parser: 'tree-sitter-javascript',
-        scopes: {},
+        scopes: {
+          program: 'source.js',
+          template_string: 'string.quoted',
+          interpolation: 'meta.embedded',
+          property_identifier: 'property.name'
+        },
         injectionRegExp: 'javascript',
         injectionPoints: [HTML_TEMPLATE_LITERAL_INJECTION_POINT]
       })
 
       const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
-        id: 'html',
+        scopeName: 'text.html',
         parser: 'tree-sitter-html',
-        scopes: {},
+        scopes: {
+          fragment: 'text.html',
+          raw_element: 'script.tag'
+        },
         injectionRegExp: 'html',
         injectionPoints: [SCRIPT_TAG_INJECTION_POINT]
       })
@@ -1319,20 +1391,12 @@ describe('TreeSitterLanguageMode', () => {
 
       const position = buffer.findSync('name').start
       expect(languageMode.scopeDescriptorForPosition(position).getScopesArray()).toEqual([
-        'html',
-        'fragment',
-        'element',
-        'raw_element',
-        'raw_text',
-        'program',
-        'expression_statement',
-        'call_expression',
-        'template_string',
-        'fragment',
-        'element',
-        'template_substitution',
-        'member_expression',
-        'property_identifier'
+        'text.html',
+        'script.tag',
+        'source.js',
+        'string.quoted',
+        'text.html',
+        'property.name'
       ])
     })
   })
@@ -1341,7 +1405,7 @@ describe('TreeSitterLanguageMode', () => {
     describe('when selector = null', () => {
       it('returns the range of the smallest node at position', async () => {
         const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
-          id: 'javascript',
+          scopeName: 'javascript',
           parser: 'tree-sitter-javascript'
         })
 
@@ -1359,7 +1423,7 @@ describe('TreeSitterLanguageMode', () => {
 
       it('includes nodes in injected syntax trees', async () => {
         const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
-          id: 'javascript',
+          scopeName: 'javascript',
           parser: 'tree-sitter-javascript',
           scopes: {},
           injectionRegExp: 'javascript',
@@ -1367,7 +1431,7 @@ describe('TreeSitterLanguageMode', () => {
         })
 
         const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
-          id: 'html',
+          scopeName: 'html',
           parser: 'tree-sitter-html',
           scopes: {},
           injectionRegExp: 'html',
@@ -1404,7 +1468,7 @@ describe('TreeSitterLanguageMode', () => {
     describe('with a selector', () => {
       it('returns the range of the smallest matching node at position', async () => {
         const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
-          id: 'javascript',
+          scopeName: 'javascript',
           parser: 'tree-sitter-javascript'
         })
 
@@ -1425,7 +1489,7 @@ describe('TreeSitterLanguageMode', () => {
 
       it('includes nodes in injected syntax trees', async () => {
         const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
-          id: 'javascript',
+          scopeName: 'javascript',
           parser: 'tree-sitter-javascript',
           scopes: {},
           injectionRegExp: 'javascript',
@@ -1433,7 +1497,7 @@ describe('TreeSitterLanguageMode', () => {
         })
 
         const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
-          id: 'html',
+          scopeName: 'html',
           parser: 'tree-sitter-html',
           scopes: {},
           injectionRegExp: 'html',
@@ -1470,7 +1534,7 @@ describe('TreeSitterLanguageMode', () => {
 
       it('accepts node-matching functions as selectors', async () => {
         const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
-          id: 'javascript',
+          scopeName: 'javascript',
           parser: 'tree-sitter-javascript',
           scopes: {},
           injectionRegExp: 'javascript',
@@ -1478,7 +1542,7 @@ describe('TreeSitterLanguageMode', () => {
         })
 
         const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
-          id: 'html',
+          scopeName: 'html',
           parser: 'tree-sitter-html',
           scopes: {},
           injectionRegExp: 'html',
@@ -1518,7 +1582,7 @@ describe('TreeSitterLanguageMode', () => {
   describe('.getSyntaxNodeAtPosition(position, where?)', () => {
     it('returns the range of the smallest matching node at position', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
-        id: 'javascript',
+        scopeName: 'javascript',
         parser: 'tree-sitter-javascript'
       })
 
@@ -1580,7 +1644,7 @@ describe('TreeSitterLanguageMode', () => {
 
     it('handles injected languages', async () => {
       const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
-        id: 'javascript',
+        scopeName: 'javascript',
         parser: 'tree-sitter-javascript',
         scopes: {
           'property_identifier': 'property',
@@ -1594,7 +1658,7 @@ describe('TreeSitterLanguageMode', () => {
       })
 
       const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
-        id: 'html',
+        scopeName: 'html',
         parser: 'tree-sitter-html',
         scopes: {
           fragment: 'html',

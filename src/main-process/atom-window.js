@@ -185,6 +185,7 @@ class AtomWindow extends EventEmitter {
       dialog.showMessageBox(this.browserWindow, {
         type: 'warning',
         buttons: ['Force Close', 'Keep Waiting'],
+        cancelId: 1, // Canceling should be the least destructive action
         message: 'Editor is not responding',
         detail:
           'The editor is not responding. Would you like to force close it or just keep waiting?'
@@ -202,6 +203,7 @@ class AtomWindow extends EventEmitter {
       dialog.showMessageBox(this.browserWindow, {
         type: 'warning',
         buttons: ['Close Window', 'Reload', 'Keep It Open'],
+        cancelId: 2, // Canceling should be the least destructive action
         message: 'The editor has crashed',
         detail: 'Please report this issue to https://github.com/atom/atom'
       }, response => {

@@ -94,7 +94,7 @@ class AutoUpdateManager
   scheduleUpdateCheck: ->
     # Only schedule update check periodically if running in release version and
     # and there is no existing scheduled update check.
-    unless /\w{7}/.test(@version) or @checkForUpdatesIntervalID
+    unless /-dev/.test(@version) or @checkForUpdatesIntervalID
       checkForUpdates = => @check(hidePopups: true)
       fourHours = 1000 * 60 * 60 * 4
       @checkForUpdatesIntervalID = setInterval(checkForUpdates, fourHours)

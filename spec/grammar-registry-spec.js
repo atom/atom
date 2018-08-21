@@ -55,13 +55,13 @@ describe('GrammarRegistry', () => {
   })
 
   describe('.grammarForId(languageId)', () => {
-    it('converts the language id to a text-mate language id when `core.useTreeSitterParsers` is false', () => {
+    it('returns a text-mate grammar when `core.useTreeSitterParsers` is false', () => {
       atom.config.set('core.useTreeSitterParsers', false)
 
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
 
-      const grammar = grammarRegistry.grammarForId('javascript')
+      const grammar = grammarRegistry.grammarForId('source.js')
       expect(grammar instanceof FirstMate.Grammar).toBe(true)
       expect(grammar.scopeName).toBe('source.js')
 
@@ -69,7 +69,7 @@ describe('GrammarRegistry', () => {
       expect(grammarRegistry.grammarForId('javascript')).toBe(undefined)
     })
 
-    it('converts the language id to a tree-sitter language id when `core.useTreeSitterParsers` is true', () => {
+    it('returns a tree-sitter grammar when `core.useTreeSitterParsers` is true', () => {
       atom.config.set('core.useTreeSitterParsers', true)
 
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
@@ -77,7 +77,7 @@ describe('GrammarRegistry', () => {
 
       const grammar = grammarRegistry.grammarForId('source.js')
       expect(grammar instanceof TreeSitterGrammar).toBe(true)
-      expect(grammar.id).toBe('javascript')
+      expect(grammar.scopeName).toBe('source.js')
 
       grammarRegistry.removeGrammar(grammar)
       expect(grammarRegistry.grammarForId('source.js') instanceof FirstMate.Grammar).toBe(true)
@@ -123,11 +123,11 @@ describe('GrammarRegistry', () => {
       buffer.setPath('test.js')
       grammarRegistry.maintainLanguageMode(buffer)
 
-      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
-      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.js')
+      const textMateGrammar = grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
+      expect(buffer.getLanguageMode().grammar).toBe(textMateGrammar)
 
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
-      expect(buffer.getLanguageMode().getLanguageId()).toBe('source.js')
+      expect(buffer.getLanguageMode().grammar).toBe(textMateGrammar)
     })
 
     it('updates the buffer\'s grammar when a more appropriate tree-sitter grammar is added for its path', async () => {
@@ -139,11 +139,11 @@ describe('GrammarRegistry', () => {
       buffer.setPath('test.js')
       grammarRegistry.maintainLanguageMode(buffer)
 
-      grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
-      expect(buffer.getLanguageMode().getLanguageId()).toBe('javascript')
+      const treeSitterGrammar = grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
+      expect(buffer.getLanguageMode().grammar).toBe(treeSitterGrammar)
 
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
-      expect(buffer.getLanguageMode().getLanguageId()).toBe('javascript')
+      expect(buffer.getLanguageMode().grammar).toBe(treeSitterGrammar)
     })
 
     it('can be overridden by calling .assignLanguageMode', () => {
@@ -412,7 +412,6 @@ describe('GrammarRegistry', () => {
         grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
 
         const grammar = grammarRegistry.selectGrammar('test.js')
-        expect(grammar.id).toBe('javascript')
         expect(grammar instanceof TreeSitterGrammar).toBe(true)
       })
 
@@ -472,6 +471,19 @@ describe('GrammarRegistry', () => {
         expect(grammar.name).toBe('C++')
       })
 
+      it('does not apply content regexes from grammars without filetype or first line matches', () => {
+        atom.config.set('core.useTreeSitterParsers', true)
+        grammarRegistry.loadGrammarSync(require.resolve('language-c/grammars/tree-sitter-cpp.cson'))
+
+        let grammar = grammarRegistry.selectGrammar('', dedent `
+          class Foo
+            # this is ruby, not C++
+          end
+        `)
+
+        expect(grammar.name).toBe('Null Grammar')
+      })
+
       it('recognizes shell scripts with shebang lines', () => {
         atom.config.set('core.useTreeSitterParsers', true)
         grammarRegistry.loadGrammarSync(require.resolve('language-shellscript/grammars/shell-unix-bash.cson'))
@@ -479,6 +491,14 @@ describe('GrammarRegistry', () => {
 
         let grammar = grammarRegistry.selectGrammar('test.h', dedent `
           #!/bin/bash
+
+          echo "hi"
+        `)
+        expect(grammar.name).toBe('Shell Script')
+        expect(grammar instanceof TreeSitterGrammar).toBeTruthy()
+
+        grammar = grammarRegistry.selectGrammar('test.h', dedent `
+          # vim: set ft=bash
 
           echo "hi"
         `)

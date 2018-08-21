@@ -122,7 +122,6 @@ class GrammarRegistry {
   // found.
   assignLanguageMode (buffer, languageId) {
     if (buffer.getBuffer) buffer = buffer.getBuffer()
-    languageId = this.normalizeLanguageId(languageId)
 
     let grammar = null
     if (languageId != null) {
@@ -208,25 +207,34 @@ class GrammarRegistry {
       contents = fs.readFileSync(filePath, 'utf8')
     }
 
+    // Initially identify matching grammars based on the filename and the first
+    // line of the file.
     let score = this.getGrammarPathScore(grammar, filePath)
-    if (score > 0 && !grammar.bundledPackage) {
-      score += 0.125
-    }
+    if (this.grammarMatchesPrefix(grammar, contents)) score += 0.5
 
-    if (grammar instanceof TreeSitterGrammar) {
-      if (!this.config.get('core.useTreeSitterParsers')) return -Infinity
-
-      if (grammar.contentRegExp) {
-        if (grammar.contentRegExp.test(contents)) {
-          score += 0.25
+    // If multiple grammars match by one of the above criteria, break ties.
+    if (score > 0) {
+      // Prefer either TextMate or Tree-sitter grammars based on the user's settings.
+      if (grammar instanceof TreeSitterGrammar) {
+        if (this.config.get('core.useTreeSitterParsers')) {
+          score += 0.1
         } else {
-          score -= 0.25
+          return -Infinity
         }
       }
 
-      if (score > 0) score += 0.5
-    } else if (this.grammarMatchesPrefix(grammar, contents)) {
-      score += 0.25
+      // Prefer grammars with matching content regexes. Prefer a grammar with no content regex
+      // over one with a non-matching content regex.
+      if (grammar.contentRegex) {
+        if (grammar.contentRegex.test(contents)) {
+          score += 0.05
+        } else {
+          score -= 0.05
+        }
+      }
+
+      // Prefer grammars that the user has manually installed over bundled grammars.
+      if (!grammar.bundledPackage) score += 0.01
     }
 
     return score
@@ -282,8 +290,12 @@ class GrammarRegistry {
         }
       }
 
-      const lines = contents.split('\n')
-      return grammar.firstLineRegex.testSync(lines.slice(0, numberOfNewlinesInRegex + 1).join('\n'))
+      const prefix = contents.split('\n').slice(0, numberOfNewlinesInRegex + 1).join('\n')
+      if (grammar.firstLineRegex.testSync) {
+        return grammar.firstLineRegex.testSync(prefix)
+      } else {
+        return grammar.firstLineRegex.test(prefix)
+      }
     } else {
       return false
     }
@@ -293,17 +305,23 @@ class GrammarRegistry {
     this.textmateRegistry.grammars.forEach(callback)
     for (const grammarId in this.treeSitterGrammarsById) {
       const grammar = this.treeSitterGrammarsById[grammarId]
-      if (grammar.id) callback(grammar)
+      if (grammar.scopeName) callback(grammar)
     }
   }
 
   grammarForId (languageId) {
-    languageId = this.normalizeLanguageId(languageId)
-
-    return (
-      this.textmateRegistry.grammarForScopeName(languageId) ||
-      this.treeSitterGrammarsById[languageId]
-    )
+    if (!languageId) return null
+    if (this.config.get('core.useTreeSitterParsers')) {
+      return (
+        this.treeSitterGrammarsById[languageId] ||
+        this.textmateRegistry.grammarForScopeName(languageId)
+      )
+    } else {
+      return (
+        this.textmateRegistry.grammarForScopeName(languageId) ||
+        this.treeSitterGrammarsById[languageId]
+      )
+    }
   }
 
   // Deprecated: Get the grammar override for the given file path.
@@ -350,8 +368,8 @@ class GrammarRegistry {
       const languageMode = buffer.getLanguageMode()
       const languageOverride = this.languageOverridesByBufferId.get(buffer.id)
 
-      if ((grammar.id === buffer.getLanguageMode().getLanguageId() ||
-           grammar.id === languageOverride)) {
+      if (grammar === buffer.getLanguageMode().grammar ||
+          grammar === this.grammarForId(languageOverride)) {
         buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
         return
       } else if (!languageOverride) {
@@ -395,7 +413,7 @@ class GrammarRegistry {
   // * `injectionPoint` An {Object} with the following keys:
   //   * `type` The {String} type of syntax node that may embed other languages
   //   * `language` A {Function} that is called with syntax nodes of the specified `type` and
-  //     returns a {String} that will be tested against other grammars' `injectionRegExp` in
+  //     returns a {String} that will be tested against other grammars' `injectionRegex` in
   //     order to determine what language should be embedded.
   //   * `content` A {Function} that is called with syntax nodes of the specified `type` and
   //     returns another syntax node or array of syntax nodes that contain the embedded source code.
@@ -433,13 +451,8 @@ class GrammarRegistry {
 
   addGrammar (grammar) {
     if (grammar instanceof TreeSitterGrammar) {
-      const existingParams = this.treeSitterGrammarsById[grammar.id] || {}
-      this.treeSitterGrammarsById[grammar.id] = grammar
-      if (grammar.legacyScopeName) {
-        this.config.setLegacyScopeAliasForNewScope(grammar.id, grammar.legacyScopeName)
-        this.textMateScopeNamesByTreeSitterLanguageId.set(grammar.id, grammar.legacyScopeName)
-        this.treeSitterLanguageIdsByTextMateScopeName.set(grammar.legacyScopeName, grammar.id)
-      }
+      const existingParams = this.treeSitterGrammarsById[grammar.scopeName] || {}
+      if (grammar.scopeName) this.treeSitterGrammarsById[grammar.scopeName] = grammar
       if (existingParams.injectionPoints) grammar.injectionPoints.push(...existingParams.injectionPoints)
       this.grammarAddedOrUpdated(grammar)
       return new Disposable(() => this.removeGrammar(grammar))
@@ -450,12 +463,7 @@ class GrammarRegistry {
 
   removeGrammar (grammar) {
     if (grammar instanceof TreeSitterGrammar) {
-      delete this.treeSitterGrammarsById[grammar.id]
-      if (grammar.legacyScopeName) {
-        this.config.removeLegacyScopeAliasForNewScope(grammar.id)
-        this.textMateScopeNamesByTreeSitterLanguageId.delete(grammar.id)
-        this.treeSitterLanguageIdsByTextMateScopeName.delete(grammar.legacyScopeName)
-      }
+      delete this.treeSitterGrammarsById[grammar.scopeName]
     } else {
       return this.textmateRegistry.removeGrammar(grammar)
     }
@@ -542,12 +550,22 @@ class GrammarRegistry {
   }
 
   treeSitterGrammarForLanguageString (languageString) {
+    let longestMatchLength = 0
+    let grammarWithLongestMatch = null
     for (const id in this.treeSitterGrammarsById) {
       const grammar = this.treeSitterGrammarsById[id]
-      if (grammar.injectionRegExp && grammar.injectionRegExp.test(languageString)) {
-        return grammar
+      if (grammar.injectionRegex) {
+        const match = languageString.match(grammar.injectionRegex)
+        if (match) {
+          const {length} = match[0]
+          if (length > longestMatchLength) {
+            grammarWithLongestMatch = grammar
+            longestMatchLength = length
+          }
+        }
       }
     }
+    return grammarWithLongestMatch
   }
 
   normalizeLanguageId (languageId) {
