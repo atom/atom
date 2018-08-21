@@ -2,11 +2,8 @@
 
 'use strict'
 
-require('colors')
 const path = require('path')
-const glob = require('glob')
 const CONFIG = require('./config')
-const {spawn} = require('child_process')
 const childProcess = require('child_process')
 const cleanDependencies = require('./lib/clean-dependencies')
 const deleteMsbuildFromPath = require('./lib/delete-msbuild-from-path')
@@ -47,6 +44,10 @@ childProcess.execFileSync(
 runApmInstall(CONFIG.repositoryRootPath, ci)
 
 if (!process.env.CI) {
+  require('colors')
+  const glob = require('glob')
+  const {spawn} = require('child_process')
+
   // Install the local core packages in-place so they can be used in dev mode
   const files = glob.sync(path.join(CONFIG.repositoryRootPath, 'packages/*/package.json'))
   if (files.length > 0) {
