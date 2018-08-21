@@ -1,6 +1,7 @@
 const TextEditorRegistry = require('../src/text-editor-registry')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
+const {Point, Range} = TextBuffer
 const {it, fit, ffit, fffit} = require('./async-spec-helpers')
 const dedent = require('dedent')
 
@@ -256,20 +257,29 @@ describe('TextEditorRegistry', function () {
     })
 
     describe('when the "tabType" config setting is "auto"', function () {
+      function nextHighlightUpdatePromise (languageMode) {
+        return new Promise(resolve => {
+          const subscription = languageMode.onDidChangeHighlighting(() => {
+            subscription.dispose()
+            resolve()
+          })
+        })
+      }
+
       it('enables or disables soft tabs based on the editor\'s content', async function () {
         await atom.packages.activatePackage('language-javascript')
         atom.grammars.assignLanguageMode(editor, 'source.js')
         atom.config.set('editor.tabType', 'auto')
-
-        registry.maintainConfig(editor)
         await initialPackageActivation
+        const languageMode = editor.getBuffer().getLanguageMode()
 
         editor.setText(dedent`
           {
             hello;
           }
         `)
-        editor.getBuffer().getLanguageMode().retokenizeLines()
+        await nextHighlightUpdatePromise(languageMode)
+        let disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(true)
 
         editor.setText(dedent`
@@ -277,18 +287,19 @@ describe('TextEditorRegistry', function () {
           	hello;
           }
         `)
-        editor.getBuffer().getLanguageMode().retokenizeLines()
+        await nextHighlightUpdatePromise(languageMode)
+        disposable.dispose()
+        disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(false)
 
-        editor.setText(dedent`
+        editor.setTextInBufferRange(new Range(Point.ZERO, Point.ZERO), dedent`
           /*
            * Comment with a leading space.
            */
-          {
-          ${'\t'}hello;
-          }
-        ` + editor.getText())
-        editor.getBuffer().getLanguageMode().retokenizeLines()
+        ` + '\n')
+        await nextHighlightUpdatePromise(languageMode)
+        disposable.dispose()
+        disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(false)
 
         editor.setText(dedent`
@@ -300,8 +311,9 @@ describe('TextEditorRegistry', function () {
           	hello;
           }
         `)
-
-        editor.getBuffer().getLanguageMode().retokenizeLines()
+        await nextHighlightUpdatePromise(languageMode)
+        disposable.dispose()
+        disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(false)
 
         editor.setText(dedent`
@@ -313,7 +325,9 @@ describe('TextEditorRegistry', function () {
             hello;
           }
         `)
-        editor.getBuffer().getLanguageMode().retokenizeLines()
+        await nextHighlightUpdatePromise(languageMode)
+        disposable.dispose()
+        disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(true)
       })
     })

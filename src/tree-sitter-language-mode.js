@@ -134,7 +134,15 @@ class TreeSitterLanguageMode {
     return this.grammar.commentStrings
   }
 
-  isRowCommented () {
+  isRowCommented (row) {
+    const firstNonWhitespaceRange = this.buffer.findInRangeSync(
+      /\S/,
+      new Range(new Point(row, 0), new Point(row, Infinity))
+    )
+    if (firstNonWhitespaceRange) {
+      const firstNode = this.getSyntaxNodeContainingRange(firstNonWhitespaceRange)
+      if (firstNode) return firstNode.type.includes('comment')
+    }
     return false
   }
 
@@ -265,7 +273,9 @@ class TreeSitterLanguageMode {
   }
 
   _forEachTreeWithRange (range, callback) {
-    callback(this.rootLanguageLayer.tree, this.rootLanguageLayer.grammar)
+    if (this.rootLanguageLayer.tree) {
+      callback(this.rootLanguageLayer.tree, this.rootLanguageLayer.grammar)
+    }
 
     const injectionMarkers = this.injectionsMarkerLayer.findMarkers({
       intersectsRange: range
