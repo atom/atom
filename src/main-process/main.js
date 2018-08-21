@@ -8,6 +8,7 @@ const electron = require('electron')
 const fs = require('fs')
 const path = require('path')
 const yargs = require('yargs')
+const getDevResourcePath = require('./get-dev-resource-path')
 
 const args =
   yargs(process.argv)
@@ -24,13 +25,7 @@ if (args.resourcePath) {
   const defaultRepositoryPath = path.join(electron.app.getPath('home'), 'github', 'atom')
 
   if (args.dev || args.test || args.benchmark || args.benchmarkTest) {
-    if (process.env.ATOM_DEV_RESOURCE_PATH) {
-      resourcePath = process.env.ATOM_DEV_RESOURCE_PATH
-    } else if (fs.statSyncNoException(defaultRepositoryPath)) {
-      resourcePath = defaultRepositoryPath
-    } else {
-      resourcePath = stableResourcePath
-    }
+    resourcePath = getDevResourcePath() || stableResourcePath
   } else {
     resourcePath = stableResourcePath
   }
