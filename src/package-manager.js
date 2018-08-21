@@ -61,6 +61,7 @@ module.exports = class PackageManager {
     if (params.configDirPath != null && !params.safeMode) {
       if (this.devMode) {
         this.packageDirPaths.push(path.join(params.configDirPath, 'dev', 'packages'))
+        this.packageDirPaths.push(path.join(this.resourcePath, 'packages'))
       }
       this.packageDirPaths.push(path.join(params.configDirPath, 'packages'))
     }
