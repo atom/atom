@@ -5,9 +5,8 @@ const yargs = require('yargs')
 const {app} = require('electron')
 const path = require('path')
 const fs = require('fs-plus')
-const getDevResourcePath = require('./get-dev-resource-path')
 
-module.exports = function parseCommandLine (processArgs) {
+module.exports = function parseCommandLine (processArgs, initialResourcePath) {
   const options = yargs(processArgs).wrap(yargs.terminalWidth())
   const version = app.getVersion()
   options.usage(
@@ -120,7 +119,7 @@ module.exports = function parseCommandLine (processArgs) {
   let pathsToOpen = []
   let urlsToOpen = []
   let devMode = args['dev']
-  let devResourcePath = getDevResourcePath()
+  let devResourcePath = initialResourcePath
   let resourcePath = null
 
   for (const path of args._) {
@@ -184,7 +183,7 @@ module.exports = function parseCommandLine (processArgs) {
 }
 
 function normalizeDriveLetterName (filePath) {
-  if (process.platform === 'win32') {
+  if (process.platform === 'win32' && filePath) {
     return filePath.replace(/^([a-z]):/, ([driveLetter]) => driveLetter.toUpperCase() + ':')
   } else {
     return filePath
