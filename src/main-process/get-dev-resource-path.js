@@ -20,7 +20,7 @@ module.exports = function () {
   return appResourcePath
 }
 
-function isAtomRepoPath(repoPath) {
+function isAtomRepoPath (repoPath) {
   let packageJsonPath = path.join(repoPath, 'package.json')
   if (fs.statSyncNoException(packageJsonPath)) {
     let packageJson = CSON.readFileSync(packageJsonPath)

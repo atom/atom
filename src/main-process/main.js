@@ -4,8 +4,6 @@ if (typeof snapshotResult !== 'undefined') {
 
 const startTime = Date.now()
 
-const electron = require('electron')
-const fs = require('fs')
 const path = require('path')
 const yargs = require('yargs')
 const getDevResourcePath = require('./get-dev-resource-path')
@@ -22,8 +20,6 @@ if (args.resourcePath) {
   resourcePath = args.resourcePath
 } else {
   const stableResourcePath = path.dirname(path.dirname(__dirname))
-  const defaultRepositoryPath = path.join(electron.app.getPath('home'), 'github', 'atom')
-
   if (args.dev || args.test || args.benchmark || args.benchmarkTest) {
     resourcePath = getDevResourcePath() || stableResourcePath
   } else {
