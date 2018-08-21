@@ -2,8 +2,12 @@
 
 'use strict'
 
-const childProcess = require('child_process')
+require('colors')
+const path = require('path')
+const glob = require('glob')
 const CONFIG = require('./config')
+const {spawn} = require('child_process')
+const childProcess = require('child_process')
 const cleanDependencies = require('./lib/clean-dependencies')
 const deleteMsbuildFromPath = require('./lib/delete-msbuild-from-path')
 const dependenciesFingerprint = require('./lib/dependencies-fingerprint')
@@ -41,5 +45,25 @@ childProcess.execFileSync(
   {stdio: 'inherit'}
 )
 runApmInstall(CONFIG.repositoryRootPath, ci)
+
+if (!process.env.CI) {
+  // Install the local core packages in-place so they can be used in dev mode
+  const files = glob.sync(path.join(CONFIG.repositoryRootPath, 'packages/*/package.json'))
+  if (files.length > 0) {
+    console.log('Installing core packages for use in dev mode...')
+
+    files.forEach(file => {
+      const packageDir = path.dirname(file)
+      process.stdout.write(`Installing packages/${path.basename(packageDir)} `)
+      runApmInstall(path.dirname(file), false, true)
+
+      if (process.platform === 'win32') {
+        return process.stdout.write('done\n'.green)
+      } else {
+        return process.stdout.write('\u2713\n'.green)
+      }
+    })
+  }
+}
 
 dependenciesFingerprint.write()
