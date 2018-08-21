@@ -4843,7 +4843,7 @@ class TextEditor {
 
     let endRow = bufferRow
     const rowCount = this.getLineCount()
-    while (endRow < rowCount) {
+    while (endRow + 1 < rowCount) {
       if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(endRow + 1))) break
       if (languageMode.isRowCommented(endRow + 1) !== isCommented) break
       endRow++
