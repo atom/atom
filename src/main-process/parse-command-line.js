@@ -120,7 +120,7 @@ module.exports = function parseCommandLine (processArgs) {
   let pathsToOpen = []
   let urlsToOpen = []
   let devMode = args['dev']
-  let devResourcePath = getDevResourcePath
+  let devResourcePath = getDevResourcePath()
   let resourcePath = null
 
   for (const path of args._) {
