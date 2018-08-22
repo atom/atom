@@ -310,7 +310,7 @@ class WorkspaceElement extends HTMLElement {
     }
   }
 
-  runPackageSpecs () {
+  runPackageSpecs (options = {}) {
     const activePaneItem = this.model.getActivePaneItem()
     const activePath = activePaneItem && typeof activePaneItem.getPath === 'function' ? activePaneItem.getPath() : null
     let projectPath
@@ -326,7 +326,7 @@ class WorkspaceElement extends HTMLElement {
         specPath = testPath
       }
 
-      ipcRenderer.send('run-package-specs', specPath)
+      ipcRenderer.send('run-package-specs', specPath, options)
     }
   }
 

@@ -511,12 +511,12 @@ class AtomApplication extends EventEmitter {
       if (this.applicationMenu) this.applicationMenu.update(window, template, menu)
     }))
 
-    this.disposable.add(ipcHelpers.on(ipcMain, 'run-package-specs', (event, packageSpecPath) => {
-      this.runTests({
+    this.disposable.add(ipcHelpers.on(ipcMain, 'run-package-specs', (event, packageSpecPath, options = {}) => {
+      this.runTests(Object.assign({
         resourcePath: this.devResourcePath,
         pathsToOpen: [packageSpecPath],
         headless: false
-      })
+      }, options))
     }))
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'run-benchmarks', (event, benchmarksPath) => {
@@ -1168,6 +1168,7 @@ class AtomApplication extends EventEmitter {
       env
     })
     this.addWindow(window)
+    if (env) window.replaceEnvironment(env)
     return window
   }
 
