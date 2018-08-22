@@ -1071,7 +1071,8 @@ function hasMatchingFoldSpec (specs, node) {
   'increaseIndentRegexForScopeDescriptor',
   'decreaseIndentRegexForScopeDescriptor',
   'decreaseNextIndentRegexForScopeDescriptor',
-  'regexForPattern'
+  'regexForPattern',
+  'getNonWordCharacters'
 ].forEach(methodName => {
   TreeSitterLanguageMode.prototype[methodName] = TextMateLanguageMode.prototype[methodName]
 })
