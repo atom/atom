@@ -14,6 +14,7 @@ const args =
   yargs(process.argv)
     .alias('d', 'dev')
     .alias('t', 'test')
+    .alias('r', 'resource-path')
     .argv
 
 function isAtomRepoPath (repoPath) {
@@ -27,27 +28,31 @@ function isAtomRepoPath (repoPath) {
 }
 
 let resourcePath
+let devResourcePath
 
 if (args.resourcePath) {
   resourcePath = args.resourcePath
+  devResourcePath = resourcePath
 } else {
   const stableResourcePath = path.dirname(path.dirname(__dirname))
   const defaultRepositoryPath = path.join(electron.app.getPath('home'), 'github', 'atom')
 
+  if (process.env.ATOM_DEV_RESOURCE_PATH) {
+    devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH
+  } else if (isAtomRepoPath(process.cwd())) {
+    devResourcePath = process.cwd()
+  } else if (fs.statSyncNoException(defaultRepositoryPath)) {
+    devResourcePath = defaultRepositoryPath
+  } else {
+    devResourcePath = stableResourcePath
+  }
+
   if (args.dev || args.test || args.benchmark || args.benchmarkTest) {
-    if (process.env.ATOM_DEV_RESOURCE_PATH) {
-      resourcePath = process.env.ATOM_DEV_RESOURCE_PATH
-    } else if (isAtomRepoPath(process.cwd())) {
-      resourcePath = process.cwd()
-    } else if (fs.statSyncNoException(defaultRepositoryPath)) {
-      resourcePath = defaultRepositoryPath
-    } else {
-      resourcePath = stableResourcePath
-    }
+    resourcePath = devResourcePath
   } else {
     resourcePath = stableResourcePath
   }
 }
 
 const start = require(path.join(resourcePath, 'src', 'main-process', 'start'))
-start(resourcePath, startTime)
+start(resourcePath, devResourcePath, startTime)
