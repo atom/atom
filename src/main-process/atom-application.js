@@ -511,11 +511,12 @@ class AtomApplication extends EventEmitter {
       if (this.applicationMenu) this.applicationMenu.update(window, template, menu)
     }))
 
-    this.disposable.add(ipcHelpers.on(ipcMain, 'run-package-specs', (event, packageSpecPath) => {
+    this.disposable.add(ipcHelpers.on(ipcMain, 'run-package-specs', (event, packageSpecPath, options = {}) => {
       this.runTests({
         resourcePath: this.devResourcePath,
         pathsToOpen: [packageSpecPath],
-        headless: false
+        headless: false,
+        ...options
       })
     }))
 
