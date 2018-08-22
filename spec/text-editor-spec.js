@@ -2084,7 +2084,7 @@ describe('TextEditor', () => {
 
         const scopeDescriptors = editor.getCursors().map(c => c.getScopeDescriptor())
         expect(scopeDescriptors[0].getScopesArray()).toEqual(['source.js'])
-        expect(scopeDescriptors[1].getScopesArray()).toEqual(['source.js', 'string.quoted.single.js'])
+        expect(scopeDescriptors[1].getScopesArray()).toEqual(['source.js', 'string.quoted'])
 
         spyOn(editor.getBuffer().getLanguageMode(), 'getNonWordCharacters').andCallFake(function (position) {
           const result = '/\()"\':,.;<>~!@#$%^&*|+=[]{}`?'
@@ -5978,6 +5978,10 @@ describe('TextEditor', () => {
   })
 
   describe('when the buffer\'s language mode changes', () => {
+    beforeEach(() => {
+      atom.config.set('core.useTreeSitterParsers', false)
+    })
+
     it('notifies onDidTokenize observers when retokenization is finished', async () => {
       // Exercise the full `tokenizeInBackground` code path, which bails out early if
       // `.setVisible` has not been called with `true`.
@@ -6293,7 +6297,7 @@ describe('TextEditor', () => {
       // folds are also duplicated
       expect(editor.isFoldedAtScreenRow(5)).toBe(true)
       expect(editor.isFoldedAtScreenRow(7)).toBe(true)
-      expect(editor.lineTextForScreenRow(7)).toBe(`    while(items.length > 0) {${editor.displayLayer.foldCharacter}`)
+      expect(editor.lineTextForScreenRow(7)).toBe(`    while(items.length > 0) {${editor.displayLayer.foldCharacter}}`)
       expect(editor.lineTextForScreenRow(8)).toBe('    return sort(left).concat(pivot).concat(sort(right));')
     })
 
@@ -6478,6 +6482,7 @@ describe('TextEditor', () => {
 
   describe("when the editor's grammar has an injection selector", () => {
     beforeEach(async () => {
+      atom.config.set('core.useTreeSitterParsers', false)
       await atom.packages.activatePackage('language-text')
       await atom.packages.activatePackage('language-javascript')
     })
@@ -6985,25 +6990,25 @@ describe('TextEditor', () => {
 
   describe('indent guides', () => {
     it('shows indent guides when `editor.showIndentGuide` is set to true and the editor is not mini', () => {
-      editor.setText('  foo')
-      editor.setTabLength(2)
-
       editor.update({showIndentGuide: false})
-      expect(editor.tokensForScreenRow(0)).toEqual([
+      expect(editor.tokensForScreenRow(1).slice(0, 3)).toEqual([
         {text: '  ', scopes: ['syntax--source syntax--js', 'leading-whitespace']},
-        {text: 'foo', scopes: ['syntax--source syntax--js']}
+        {text: 'var', scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type']},
+        {text: ' sort ', scopes: ['syntax--source syntax--js']}
       ])
 
       editor.update({showIndentGuide: true})
-      expect(editor.tokensForScreenRow(0)).toEqual([
+      expect(editor.tokensForScreenRow(1).slice(0, 3)).toEqual([
         {text: '  ', scopes: ['syntax--source syntax--js', 'leading-whitespace indent-guide']},
-        {text: 'foo', scopes: ['syntax--source syntax--js']}
+        {text: 'var', scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type']},
+        {text: ' sort ', scopes: ['syntax--source syntax--js']}
       ])
 
       editor.setMini(true)
-      expect(editor.tokensForScreenRow(0)).toEqual([
+      expect(editor.tokensForScreenRow(1).slice(0, 3)).toEqual([
         {text: '  ', scopes: ['syntax--source syntax--js', 'leading-whitespace']},
-        {text: 'foo', scopes: ['syntax--source syntax--js']}
+        {text: 'var', scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type']},
+        {text: ' sort ', scopes: ['syntax--source syntax--js']}
       ])
     })
   })
@@ -7437,22 +7442,6 @@ describe('TextEditor', () => {
         expect([fold2.start.row, fold2.end.row]).toEqual([1, 9])
         expect([fold3.start.row, fold3.end.row]).toEqual([4, 7])
       })
-
-      it('works with multi-line comments', async () => {
-        editor = await atom.workspace.open('sample-with-comments.js', {autoIndent: false})
-
-        editor.foldAll()
-        const folds = editor.unfoldAll()
-        expect(folds.length).toBe(8)
-        expect([folds[0].start.row, folds[0].end.row]).toEqual([0, 30])
-        expect([folds[1].start.row, folds[1].end.row]).toEqual([1, 4])
-        expect([folds[2].start.row, folds[2].end.row]).toEqual([5, 27])
-        expect([folds[3].start.row, folds[3].end.row]).toEqual([6, 8])
-        expect([folds[4].start.row, folds[4].end.row]).toEqual([11, 16])
-        expect([folds[5].start.row, folds[5].end.row]).toEqual([17, 20])
-        expect([folds[6].start.row, folds[6].end.row]).toEqual([21, 22])
-        expect([folds[7].start.row, folds[7].end.row]).toEqual([24, 25])
-      })
     })
 
     describe('.foldBufferRow(bufferRow)', () => {
@@ -7484,15 +7473,6 @@ describe('TextEditor', () => {
 
           editor.foldBufferRow(1)
           expect(editor.isFoldedAtBufferRow(0)).toBe(true)
-        })
-      })
-
-      describe('when the bufferRow is in a multi-line comment', () => {
-        it('searches upward and downward for surrounding comment lines and folds them as a single fold', () => {
-          editor.buffer.insert([1, 0], '  //this is a comment\n  // and\n  //more docs\n\n//second comment')
-          editor.foldBufferRow(1)
-          const [fold] = editor.unfoldAll()
-          expect([fold.start.row, fold.end.row]).toEqual([1, 3])
         })
       })
 

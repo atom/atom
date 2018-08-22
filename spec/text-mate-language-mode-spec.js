@@ -11,7 +11,7 @@ describe('TextMateLanguageMode', () => {
 
   beforeEach(async () => {
     config = atom.config
-    config.settings.core.useTreeSitterParsers = false
+    config.set('core.useTreeSitterParsers', false)
     // enable async tokenization
     TextMateLanguageMode.prototype.chunkSize = 5
     jasmine.unspy(TextMateLanguageMode.prototype, 'tokenizeInBackground')
@@ -21,7 +21,7 @@ describe('TextMateLanguageMode', () => {
   afterEach(() => {
     buffer && buffer.destroy()
     languageMode && languageMode.destroy()
-    config.settings.core.useTreeSitterParsers = true
+    config.unset('core.useTreeSitterParsers')
   })
 
   describe('when the editor is constructed with the largeFileMode option set to true', () => {
@@ -878,6 +878,24 @@ describe('TextMateLanguageMode', () => {
         ...languageMode.getFoldableRangesAtIndentLevel(2, 2),
       ].sort((a, b) => (a.start.row - b.start.row) || (a.end.row - b.end.row)).map(r => r.toString()))
     })
+
+    it('works with multi-line comments', async () => {
+      await atom.packages.activatePackage('language-javascript')
+      editor = await atom.workspace.open('sample-with-comments.js', {autoIndent: false})
+      fullyTokenize(editor.getBuffer().getLanguageMode())
+
+      editor.foldAll()
+      const folds = editor.unfoldAll()
+      expect(folds.length).toBe(8)
+      expect([folds[0].start.row, folds[0].end.row]).toEqual([0, 30])
+      expect([folds[1].start.row, folds[1].end.row]).toEqual([1, 4])
+      expect([folds[2].start.row, folds[2].end.row]).toEqual([5, 27])
+      expect([folds[3].start.row, folds[3].end.row]).toEqual([6, 8])
+      expect([folds[4].start.row, folds[4].end.row]).toEqual([11, 16])
+      expect([folds[5].start.row, folds[5].end.row]).toEqual([17, 20])
+      expect([folds[6].start.row, folds[6].end.row]).toEqual([21, 22])
+      expect([folds[7].start.row, folds[7].end.row]).toEqual([24, 25])
+    })
   })
 
   describe('.getFoldableRangeContainingPoint', () => {
@@ -975,6 +993,16 @@ describe('TextMateLanguageMode', () => {
       expect(editor.languageMode.getFoldableRangeContainingPoint(Point(1, Infinity), 2)).toEqual([[1, Infinity], [9, Infinity]])
       expect(editor.languageMode.getFoldableRangeContainingPoint(Point(2, Infinity), 2)).toEqual([[1, Infinity], [9, Infinity]])
       expect(editor.languageMode.getFoldableRangeContainingPoint(Point(4, Infinity), 2)).toEqual([[4, Infinity], [7, Infinity]])
+    })
+
+    it('searches upward and downward for surrounding comment lines and folds them as a single fold', async () => {
+      await atom.packages.activatePackage('language-javascript')
+      editor = await atom.workspace.open('sample-with-comments.js')
+      editor.buffer.insert([1, 0], '  //this is a comment\n  // and\n  //more docs\n\n//second comment')
+      fullyTokenize(editor.getBuffer().getLanguageMode())
+      editor.foldBufferRow(1)
+      const [fold] = editor.unfoldAll()
+      expect([fold.start.row, fold.end.row]).toEqual([1, 3])
     })
   })
 
