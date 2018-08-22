@@ -5,6 +5,7 @@ const yargs = require('yargs')
 const {app} = require('electron')
 const path = require('path')
 const fs = require('fs-plus')
+const getDevResourcePath = require('./get-dev-resource-path')
 
 module.exports = function parseCommandLine (processArgs, initialResourcePath) {
   const options = yargs(processArgs).wrap(yargs.terminalWidth())
@@ -119,7 +120,7 @@ module.exports = function parseCommandLine (processArgs, initialResourcePath) {
   let pathsToOpen = []
   let urlsToOpen = []
   let devMode = args['dev']
-  let devResourcePath = initialResourcePath
+  let devResourcePath = initialResourcePath || getDevResourcePath()
   let resourcePath = null
 
   for (const path of args._) {
