@@ -6,7 +6,7 @@ const {app} = require('electron')
 const path = require('path')
 const fs = require('fs-plus')
 
-module.exports = function parseCommandLine (processArgs, initialResourcePath) {
+module.exports = function parseCommandLine (processArgs, resourcePath, devResourcePath) {
   const options = yargs(processArgs).wrap(yargs.terminalWidth())
   const version = app.getVersion()
   options.usage(
@@ -119,8 +119,6 @@ module.exports = function parseCommandLine (processArgs, initialResourcePath) {
   let pathsToOpen = []
   let urlsToOpen = []
   let devMode = args['dev']
-  let devResourcePath = initialResourcePath
-  let resourcePath = null
 
   for (const path of args._) {
     if (path.startsWith('atom://')) {
@@ -130,21 +128,8 @@ module.exports = function parseCommandLine (processArgs, initialResourcePath) {
     }
   }
 
-  if (args['resource-path']) {
+  if (args['resource-path'] || test) {
     devMode = true
-    devResourcePath = args['resource-path']
-  }
-
-  if (test) {
-    devMode = true
-  }
-
-  if (devMode) {
-    resourcePath = devResourcePath
-  }
-
-  if (!fs.statSyncNoException(resourcePath)) {
-    resourcePath = path.dirname(path.dirname(__dirname))
   }
 
   if (args['path-environment']) {

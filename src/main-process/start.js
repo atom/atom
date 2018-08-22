@@ -9,7 +9,7 @@ const fs = require('fs')
 const CSON = require('season')
 const Config = require('../config')
 
-module.exports = function start (initialResourcePath, startTime) {
+module.exports = function start (resourcePath, devResourcePath, startTime) {
   global.shellStartTime = startTime
 
   process.on('uncaughtException', function (error = {}) {
@@ -37,7 +37,7 @@ module.exports = function start (initialResourcePath, startTime) {
 
   app.commandLine.appendSwitch('enable-experimental-web-platform-features')
 
-  const args = parseCommandLine(process.argv.slice(1), initialResourcePath)
+  const args = parseCommandLine(process.argv.slice(1), resourcePath, devResourcePath)
   atomPaths.setAtomHome(app.getPath('home'))
   atomPaths.setUserData(app)
   setupCompileCache()
