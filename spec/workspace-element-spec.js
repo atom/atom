@@ -895,27 +895,39 @@ describe('WorkspaceElement', () => {
 
       // No active item. Use first project directory.
       atom.commands.dispatch(workspaceElement, 'window:run-package-specs')
-      expect(ipcRenderer.send).toHaveBeenCalledWith('run-package-specs', path.join(projectPaths[0], 'spec'))
+      expect(ipcRenderer.send).toHaveBeenCalledWith('run-package-specs', path.join(projectPaths[0], 'spec'), {})
       ipcRenderer.send.reset()
 
       // Active item doesn't implement ::getPath(). Use first project directory.
       const item = document.createElement('div')
       atom.workspace.getActivePane().activateItem(item)
       atom.commands.dispatch(workspaceElement, 'window:run-package-specs')
-      expect(ipcRenderer.send).toHaveBeenCalledWith('run-package-specs', path.join(projectPaths[0], 'spec'))
+      expect(ipcRenderer.send).toHaveBeenCalledWith('run-package-specs', path.join(projectPaths[0], 'spec'), {})
       ipcRenderer.send.reset()
 
       // Active item has no path. Use first project directory.
       item.getPath = () => null
       atom.commands.dispatch(workspaceElement, 'window:run-package-specs')
-      expect(ipcRenderer.send).toHaveBeenCalledWith('run-package-specs', path.join(projectPaths[0], 'spec'))
+      expect(ipcRenderer.send).toHaveBeenCalledWith('run-package-specs', path.join(projectPaths[0], 'spec'), {})
       ipcRenderer.send.reset()
 
       // Active item has path. Use project path for item path.
       item.getPath = () => path.join(projectPaths[1], 'a-file.txt')
       atom.commands.dispatch(workspaceElement, 'window:run-package-specs')
-      expect(ipcRenderer.send).toHaveBeenCalledWith('run-package-specs', path.join(projectPaths[1], 'spec'))
+      expect(ipcRenderer.send).toHaveBeenCalledWith('run-package-specs', path.join(projectPaths[1], 'spec'), {})
       ipcRenderer.send.reset()
+    })
+
+    it("passes additional options to the spec window", () => {
+      const workspaceElement = atom.workspace.getElement()
+      spyOn(ipcRenderer, 'send')
+
+      const projectPath = temp.mkdirSync('dir1-')
+      atom.project.setPaths([projectPath])
+      workspaceElement.runPackageSpecs({env: {ATOM_GITHUB_BABEL_ENV: 'coverage'}})
+
+      expect(ipcRenderer.send).toHaveBeenCalledWith(
+        'run-package-specs', path.join(projectPath, 'spec'), {env: {ATOM_GITHUB_BABEL_ENV: 'coverage'}})
     })
   })
 })
