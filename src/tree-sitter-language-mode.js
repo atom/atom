@@ -107,6 +107,7 @@ class TreeSitterLanguageMode {
   */
 
   buildHighlightIterator () {
+    if (!this.rootLanguageLayer) return new NullHighlightIterator()
     const layerIterators = [
       this.rootLanguageLayer.buildHighlightIterator(),
       ...this.injectionsMarkerLayer.getMarkers().map(m => m.languageLayer.buildHighlightIterator())
