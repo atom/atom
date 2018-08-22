@@ -7,7 +7,7 @@ const path = require('path')
 const fs = require('fs-plus')
 const getDevResourcePath = require('./get-dev-resource-path')
 
-module.exports = function parseCommandLine (processArgs) {
+module.exports = function parseCommandLine (processArgs, initialResourcePath) {
   const options = yargs(processArgs).wrap(yargs.terminalWidth())
   const version = app.getVersion()
   options.usage(
@@ -120,7 +120,7 @@ module.exports = function parseCommandLine (processArgs) {
   let pathsToOpen = []
   let urlsToOpen = []
   let devMode = args['dev']
-  let devResourcePath = getDevResourcePath()
+  let devResourcePath = initialResourcePath || getDevResourcePath()
   let resourcePath = null
 
   for (const path of args._) {
