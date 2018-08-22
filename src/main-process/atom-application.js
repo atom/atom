@@ -1168,6 +1168,7 @@ class AtomApplication extends EventEmitter {
       env
     })
     this.addWindow(window)
+    if (env) window.replaceEnvironment(env)
     return window
   }
 
