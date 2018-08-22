@@ -14,6 +14,7 @@ const args =
   yargs(process.argv)
     .alias('d', 'dev')
     .alias('t', 'test')
+    .alias('r', 'resource-path')
     .argv
 
 function isAtomRepoPath (repoPath) {
