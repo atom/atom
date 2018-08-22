@@ -512,12 +512,11 @@ class AtomApplication extends EventEmitter {
     }))
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'run-package-specs', (event, packageSpecPath, options = {}) => {
-      this.runTests({
+      this.runTests(Object.assign({
         resourcePath: this.devResourcePath,
         pathsToOpen: [packageSpecPath],
-        headless: false,
-        ...options
-      })
+        headless: false
+      }, options))
     }))
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'run-benchmarks', (event, benchmarksPath) => {
