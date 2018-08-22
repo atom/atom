@@ -37,7 +37,10 @@ module.exports = function start (resourcePath, devResourcePath, startTime) {
 
   app.commandLine.appendSwitch('enable-experimental-web-platform-features')
 
-  const args = parseCommandLine(process.argv.slice(1), resourcePath, devResourcePath)
+  const args = parseCommandLine(process.argv.slice(1))
+  args.resourcePath = normalizeDriveLetterName(resourcePath)
+  args.devResourcePath = normalizeDriveLetterName(devResourcePath)
+
   atomPaths.setAtomHome(app.getPath('home'))
   atomPaths.setUserData(app)
   setupCompileCache()
@@ -123,4 +126,12 @@ function getConfig () {
   }
 
   return config
+}
+
+function normalizeDriveLetterName (filePath) {
+  if (process.platform === 'win32' && filePath) {
+    return filePath.replace(/^([a-z]):/, ([driveLetter]) => driveLetter.toUpperCase() + ':')
+  } else {
+    return filePath
+  }
 }

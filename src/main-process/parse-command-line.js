@@ -3,10 +3,8 @@
 const dedent = require('dedent')
 const yargs = require('yargs')
 const {app} = require('electron')
-const path = require('path')
-const fs = require('fs-plus')
 
-module.exports = function parseCommandLine (processArgs, resourcePath, devResourcePath) {
+module.exports = function parseCommandLine (processArgs) {
   const options = yargs(processArgs).wrap(yargs.terminalWidth())
   const version = app.getVersion()
   options.usage(
@@ -128,7 +126,7 @@ module.exports = function parseCommandLine (processArgs, resourcePath, devResour
     }
   }
 
-  if (args['resource-path'] || test) {
+  if (args.resourcePath || test) {
     devMode = true
   }
 
@@ -138,12 +136,7 @@ module.exports = function parseCommandLine (processArgs, resourcePath, devResour
     process.env.PATH = args['path-environment']
   }
 
-  resourcePath = normalizeDriveLetterName(resourcePath)
-  devResourcePath = normalizeDriveLetterName(devResourcePath)
-
   return {
-    resourcePath,
-    devResourcePath,
     pathsToOpen,
     urlsToOpen,
     executedFrom,
@@ -164,13 +157,5 @@ module.exports = function parseCommandLine (processArgs, resourcePath, devResour
     benchmark,
     benchmarkTest,
     env: process.env
-  }
-}
-
-function normalizeDriveLetterName (filePath) {
-  if (process.platform === 'win32' && filePath) {
-    return filePath.replace(/^([a-z]):/, ([driveLetter]) => driveLetter.toUpperCase() + ':')
-  } else {
-    return filePath
   }
 }
