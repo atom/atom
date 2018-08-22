@@ -786,6 +786,36 @@ describe('TextMateLanguageMode', () => {
       expect(languageMode.isFoldableAtRow(7)).toBe(false)
       expect(languageMode.isFoldableAtRow(8)).toBe(false)
     })
+
+    it('returns true if the line starts a multi-line comment', async () => {
+      editor = await atom.workspace.open('sample-with-comments.js')
+      fullyTokenize(editor.getBuffer().getLanguageMode())
+
+      expect(editor.isFoldableAtBufferRow(1)).toBe(true)
+      expect(editor.isFoldableAtBufferRow(6)).toBe(true)
+      expect(editor.isFoldableAtBufferRow(8)).toBe(false)
+      expect(editor.isFoldableAtBufferRow(11)).toBe(true)
+      expect(editor.isFoldableAtBufferRow(15)).toBe(false)
+      expect(editor.isFoldableAtBufferRow(17)).toBe(true)
+      expect(editor.isFoldableAtBufferRow(21)).toBe(true)
+      expect(editor.isFoldableAtBufferRow(24)).toBe(true)
+      expect(editor.isFoldableAtBufferRow(28)).toBe(false)
+    })
+
+    it('returns true for lines that end with a comment and are followed by an indented line', async () => {
+      editor = await atom.workspace.open('sample-with-comments.js')
+
+      expect(editor.isFoldableAtBufferRow(5)).toBe(true)
+    })
+
+    it("does not return true for a line in the middle of a comment that's followed by an indented line", async () => {
+      editor = await atom.workspace.open('sample-with-comments.js')
+      fullyTokenize(editor.getBuffer().getLanguageMode())
+
+      expect(editor.isFoldableAtBufferRow(7)).toBe(false)
+      editor.buffer.insert([8, 0], '  ')
+      expect(editor.isFoldableAtBufferRow(7)).toBe(false)
+    })
   })
 
   describe('.getFoldableRangesAtIndentLevel', () => {
@@ -847,6 +877,20 @@ describe('TextMateLanguageMode', () => {
           k()
         }
       `)
+    })
+
+    it('folds every foldable range at a given indentLevel', async () => {
+      editor = await atom.workspace.open('sample-with-comments.js')
+      fullyTokenize(editor.getBuffer().getLanguageMode())
+
+      editor.foldAllAtIndentLevel(2)
+      const folds = editor.unfoldAll()
+      expect(folds.length).toBe(5)
+      expect([folds[0].start.row, folds[0].end.row]).toEqual([6, 8])
+      expect([folds[1].start.row, folds[1].end.row]).toEqual([11, 16])
+      expect([folds[2].start.row, folds[2].end.row]).toEqual([17, 20])
+      expect([folds[3].start.row, folds[3].end.row]).toEqual([21, 22])
+      expect([folds[4].start.row, folds[4].end.row]).toEqual([24, 25])
     })
   })
 
