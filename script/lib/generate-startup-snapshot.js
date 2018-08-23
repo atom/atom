@@ -59,6 +59,7 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath === path.join('..', 'node_modules', 'spellchecker', 'lib', 'spellchecker.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'spelling-manager', 'node_modules', 'natural', 'lib', 'natural', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'tar', 'tar.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'ls-archive', 'node_modules', 'tar', 'tar.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'temp', 'lib', 'temp.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'tree-sitter', 'index.js') ||
