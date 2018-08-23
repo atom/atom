@@ -64,7 +64,7 @@ class AtomEnvironment {
     this.applicationDelegate = params.applicationDelegate
 
     this.nextProxyRequestId = 0
-    this.unloaded = false
+    this.unloading = false
     this.loadTime = null
     this.emitter = new Emitter()
     this.disposables = new CompositeDisposable()
@@ -280,7 +280,7 @@ class AtomEnvironment {
   attachSaveStateListeners () {
     const saveState = _.debounce(() => {
       this.window.requestIdleCallback(() => {
-        if (!this.unloaded) this.saveState({isUnloading: false})
+        if (!this.unloading) this.saveState({isUnloading: false})
       })
     }, this.saveStateDebounceInterval)
     this.document.addEventListener('mousedown', saveState, true)
@@ -775,7 +775,7 @@ class AtomEnvironment {
       await this.stateStore.clear()
     }
 
-    this.unloaded = false
+    this.unloading = false
 
     const updateProcessEnvPromise = this.updateProcessEnvAndTriggerHooks()
 
@@ -812,9 +812,15 @@ class AtomEnvironment {
           projectHasPaths: this.project.getPaths().length > 0
         })
 
-        if (closing) await this.packages.deactivatePackages()
+        if (closing) {
+          this.unloading = true;
+          await this.packages.deactivatePackages()
+        }
         return closing
       }))
+      this.disposables.add(this.applicationDelegate.onUnloadAborted(() => {
+        this.unloading = false
+      }));
 
       this.listenForUpdates()
 
@@ -898,7 +904,6 @@ class AtomEnvironment {
 
     this.storeWindowBackground()
     this.saveBlobStoreSync()
-    this.unloaded = true
   }
 
   saveBlobStoreSync () {

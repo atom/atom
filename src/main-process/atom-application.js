@@ -442,6 +442,7 @@ class AtomApplication extends EventEmitter {
         if (windowUnloadedResults.every(Boolean)) {
           app.quit()
         } else {
+          this.getAllWindows().forEach(window => window.unloadAborted())
           this.quitting = false
         }
       }

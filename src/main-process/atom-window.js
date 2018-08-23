@@ -245,6 +245,10 @@ class AtomWindow extends EventEmitter {
     return this.lastPrepareToUnloadPromise
   }
 
+  unloadAborted () {
+    this.browserWindow.webContents.send('unload-aborted')
+  }
+
   openPath (pathToOpen, initialLine, initialColumn) {
     return this.openLocations([{pathToOpen, initialLine, initialColumn}])
   }
