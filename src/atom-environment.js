@@ -818,9 +818,6 @@ class AtomEnvironment {
         }
         return closing
       }))
-      this.disposables.add(this.applicationDelegate.onUnloadAborted(() => {
-        this.unloading = false
-      }));
 
       this.listenForUpdates()
 

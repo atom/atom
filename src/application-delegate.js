@@ -325,13 +325,6 @@ class ApplicationDelegate {
     return new Disposable(() => ipcRenderer.removeListener('prepare-to-unload', outerCallback))
   }
 
-  onUnloadAborted (callback) {
-    const outerCallback = (event, message) => callback(event)
-
-    ipcRenderer.on('unload-aborted', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('unload-aborted', outerCallback))
-  }
-
   onDidChangeHistoryManager (callback) {
     const outerCallback = (event, message) => callback(event)
 
