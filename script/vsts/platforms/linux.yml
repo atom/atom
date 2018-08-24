@@ -4,7 +4,7 @@ phases:
   variables:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
   queue:
-    name: Hosted Linux Preview
+    name: Hosted Ubuntu 1604
     timeoutInMinutes: 180
 
   steps:
