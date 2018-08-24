@@ -1,0 +1,231 @@
+// Overrides packages
+
+// find-and-replace + project-find ---------------------------
+
+.find-and-replace,
+.project-find {
+  padding: @ui-padding/4;
+  .input-block-item {
+    padding: @ui-padding/4;
+  }
+}
+
+// find-and-replace
+.find-and-replace {
+  .header,
+  .input-block {
+    min-width: @ui-size*22;
+  }
+
+  .input-block-item {
+    flex: 1 1 @ui-size*22;
+  }
+  .input-block-item--flex {
+    flex: 100 1 @ui-size*22;
+  }
+
+  .btn,
+  .btn-group-options .btn {
+    font-size: @ui-size*1.1;
+    padding: 0;
+  }
+
+  .btn-group-options .btn,
+  .btn-group-options .btn.option-selection,
+  .btn-group-options .btn.option-whole-word {
+    padding: 0;
+    font-size: @ui-input-size; // keep same as text input
+  }
+
+  .find-container atom-text-editor {
+    padding-right: @ui-size*5; // leave some room for the results count
+  }
+  .find-meta-container {
+    top: 0;
+    font-size: @ui-size;
+    line-height: @ui-size*2.5;
+  }
+}
+
+// project-find
+.project-find {
+  .header,
+  .input-block {
+    min-width: @ui-size*15;
+  }
+
+  .input-block-item {
+    flex: 1 1 @ui-size*14;
+  }
+  .input-block-item--flex {
+    flex: 100 1 @ui-size*20;
+  }
+
+  .btn {
+    font-size: @ui-size*1.1;
+    padding: 0;
+  }
+  .btn-group-options .btn {
+    padding: 0;
+    font-size: @ui-input-size; // keep same as text input
+  }
+}
+
+// Colorize find-and-replace based on results
+& when (@ui-hue >= 190) and (@ui-hue <= 340) {
+  .find-and-replace {
+    &.has-no-results .find-container atom-text-editor[mini].is-focused {
+      .invalid();
+      .selection .region {
+        background-color: mix(@text-color-error, @input-background-color, 50%);
+      }
+      .cursor {
+        border-color: @text-color-error;
+      }
+    }
+
+    &.has-results .find-container atom-text-editor[mini].is-focused {
+      .valid();
+      .selection .region {
+        background-color: mix(@text-color-success, @input-background-color, 50%);
+      }
+      .cursor {
+        border-color: @text-color-success;
+      }
+    }
+
+    &.has-results    .find-container .result-counter { color: @text-color-success; }
+    &.has-no-results .find-container .result-counter { color: @text-color-error; }
+  }
+}
+
+
+
+
+// Timecop ---------------------------
+
+.timecop {
+  .timecop-panel {
+    padding: @component-padding/2;
+    background-color: @level-2-color;
+  }
+
+  .tool-panel {
+    padding: @component-padding/2;
+    background-color: @level-2-color;
+  }
+
+  .inset-panel {
+    border: 1px solid @base-border-color;
+  }
+
+  .panel-heading {
+    .text(highlight);
+    border-color: @base-border-color;
+    background-color: @level-1-color;
+  }
+
+  .list-item .inline-block {
+    line-height: 1.5;
+  }
+}
+
+
+// Command Palette + Fuzzy Finder ---------------------------
+
+.command-palette .list-group .character-match,
+.fuzzy-finder .list-group .character-match {
+  color: @accent-only-text-color;
+}
+
+
+// Deprecation Cop ---------------------------
+
+.deprecation-cop {
+  .deprecation-overview {
+    background-color: @level-2-color;
+    border-bottom: 1px solid @base-border-color;
+  }
+}
+
+
+// Tool Bar ---------------------------
+
+.tool-bar {
+  // Make it look the same as other panels
+  background-color: @level-3-color;
+  border: none;
+
+  // just a single border + more spacing
+  &.tool-bar-horizontal .tool-bar-spacer {
+    border-left: 0 none;
+    margin-left: .5em;
+    margin-right: .5em;
+  }
+  &.tool-bar-vertical .tool-bar-spacer {
+    border-bottom: 0 none;
+    margin-top: .5em;
+    margin-bottom: .5em;
+  }
+
+  // only show button styles on hover
+  button.tool-bar-btn {
+    background-color: @level-3-color;
+    background-image: none;
+    border-color: @level-3-color;
+  }
+}
+
+
+
+// GitHub package ---------------------------------------------------
+
+.github {
+
+  // Fix focus styles
+  // Since it's not possible to add a padding to <atom-text-editor>
+  // a pseudo element is used to add the border when focused.
+  &-CommitView-editor atom-text-editor.is-focused {
+    box-shadow: none;
+    &:before {
+      content: "";
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      border: 2px solid;
+      border-color: inherit;
+      border-radius: @component-border-radius;
+    }
+  }
+
+  // Add focus styles since :focus doesn't work
+  &-CommitView-coAuthorEditor {
+    &.is-focused {
+      .focus();
+    }
+    &.is-open {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+
+    .Select-option {
+      &.is-focused {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        color: @accent-text-color;
+        background-color: @accent-color;
+      }
+    }
+    .Select-menu-outer {
+      left: -2px;
+      right: -2px;
+      bottom: 100%;
+      border: 2px solid @accent-color;
+      background-color: @overlay-background-color;
+    }
+  }
+
+}
