@@ -1,0 +1,175 @@
+@import "ui-variables";
+@import "variables";
+
+.about {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  -webkit-user-select: none;
+  cursor: default;
+  overflow: auto;
+  text-align: center;
+  font-size: 1.25em;
+  line-height: 1.4;
+  padding: 4em;
+  color: @text-color;
+  background-color: @base-background-color;
+
+  button {
+    cursor: default;
+  }
+
+  a:focus {
+    // Don't use Bootstrap default here
+    color: inherit;
+  }
+
+  img, a {
+    -webkit-user-drag: none;
+  }
+
+  .input-checkbox {
+    margin-top: -.2em;
+  }
+
+  // used to group different elements
+  .group-start {
+    margin-top: 4em;
+  }
+  .group-item {
+    margin-top: 1.5em;
+  }
+}
+
+.about-container {
+  width: 100%;
+  max-width: 500px;
+}
+
+// Header --------------------------------
+
+.about-atom-io:hover {
+  .about-logo {
+    color: @atom-green;
+  }
+}
+
+.about-logo {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto 1em auto;
+  color: @text-color-highlight;
+  transition: color 0.2s;
+}
+
+.about-version-container {
+  &:hover {
+    color: lighten(@text-color, 15%);
+  }
+  &:active {
+    color: lighten(@text-color, 30%);
+  }
+}
+
+.about-version {
+  margin-right: .5em;
+  font-size: 1.25em;
+  vertical-align: middle;
+}
+
+.about-more-version {
+  color: @text-color-subtle;
+  font-size: .9em;
+}
+
+.about-header-release-notes {
+  vertical-align: middle;
+  margin-left: 1em;
+}
+
+
+// Updates --------------------------------
+
+.about-updates {
+  width: 100%;
+  max-width: 500px;
+}
+
+.about-updates-box {
+  display: flex;
+  align-items: center;
+  padding: @component-padding;
+  border: 1px solid @base-border-color;
+  border-radius: @component-border-radius * 2;
+  background-color: @background-color-highlight;
+}
+
+.about-updates-status {
+  flex: 1;
+  margin-left: .5em;
+  text-align: left;
+}
+
+.about-updates-item,
+.about-default-update-message .about-updates-label {
+  display: block;
+}
+
+.about-updates-label {
+  color: @text-color-subtle;
+  &.is-strong {
+    color: @text-color;
+  }
+}
+
+.about-updates-version {
+  margin: 0 .4em;
+}
+
+.about-updates-release-notes,
+.about-updates-instructions {
+  margin: 0 1em 0 1.5em;
+}
+
+.about-auto-updates {
+  margin-top: 1em;
+  input {
+    margin-right: .5em;
+  }
+}
+
+
+// Love --------------------------------
+
+.about-love {
+  .icon::before {
+    // Make these octicons look good inlined with text
+    position: relative;
+    width: auto;
+    height: auto;
+    margin-right: 0;
+    font-size: 1.5em;
+    vertical-align: text-top;
+  }
+
+  .icon-logo-github::before {
+    font-size: 3.6em;
+    height: .36em;
+  }
+}
+
+.about-credits {
+  color: @text-color-subtle;
+}
+
+
+// the blue squirrel --------------------------------
+
+.about-release-notes {
+  color: @background-color-info;
+  &:hover {
+    color: lighten(@background-color-info, 15%);
+  }
+}

@@ -9,7 +9,6 @@ const fs = require('fs-plus')
 const {mapSourcePosition} = require('@atom/source-map-support')
 const WindowEventHandler = require('./window-event-handler')
 const StateStore = require('./state-store')
-const StorageFolder = require('./storage-folder')
 const registerDefaultCommands = require('./register-default-commands')
 const {updateProcessEnv} = require('./update-process-env')
 const ConfigSchema = require('./config-schema')
@@ -51,7 +50,6 @@ let nextId = 0
 //
 // An instance of this class is always available as the `atom` global.
 class AtomEnvironment {
-
   /*
   Section: Properties
   */
@@ -86,8 +84,11 @@ class AtomEnvironment {
 
     // Public: A {Config} instance
     this.config = new Config({
-      notificationManager: this.notifications,
-      enablePersistence: this.enablePersistence
+      saveCallback: settings => {
+        if (this.enablePersistence) {
+          this.applicationDelegate.setUserSettings(settings, this.config.getUserConfigPath())
+        }
+      }
     })
     this.config.setSchema(null, {type: 'object', properties: _.clone(ConfigSchema)})
 
@@ -208,19 +209,23 @@ class AtomEnvironment {
     this.blobStore = params.blobStore
     this.configDirPath = params.configDirPath
 
-    const {devMode, safeMode, resourcePath, clearWindowState} = this.getLoadSettings()
-
-    if (clearWindowState) {
-      this.getStorageFolder().clear()
-      this.stateStore.clear()
-    }
+    const {devMode, safeMode, resourcePath, userSettings, projectSpecification} = this.getLoadSettings()
 
     ConfigSchema.projectHome = {
       type: 'string',
       default: path.join(fs.getHomeDirectory(), 'github'),
       description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
     }
-    this.config.initialize({configDirPath: this.configDirPath, resourcePath, projectHomeSchema: ConfigSchema.projectHome})
+
+    this.config.initialize({
+      mainSource: this.enablePersistence && path.join(this.configDirPath, 'config.cson'),
+      projectHomeSchema: ConfigSchema.projectHome
+    })
+    this.config.resetUserSettings(userSettings)
+
+    if (projectSpecification != null && projectSpecification.config != null) {
+      this.project.replace(projectSpecification)
+    }
 
     this.menu.initialize({resourcePath})
     this.contextMenu.initialize({resourcePath, devMode})
@@ -241,8 +246,6 @@ class AtomEnvironment {
     this.commandInstaller.initialize(this.getVersion())
     this.uriHandlerRegistry.registerHostHandler('core', CoreURIHandlers.create(this))
     this.autoUpdater.initialize()
-
-    this.config.load()
 
     this.protocolHandlerInstaller.initialize(this.config, this.notifications)
 
@@ -373,8 +376,7 @@ class AtomEnvironment {
     if (this.project) this.project.destroy()
     this.project = null
     this.commands.clear()
-    this.stylesElement.remove()
-    this.config.unobserveUserConfig()
+    if (this.stylesElement) this.stylesElement.remove()
     this.autoUpdater.destroy()
     this.uriHandlerRegistry.destroy()
 
@@ -485,21 +487,25 @@ class AtomEnvironment {
 
   // Public: Gets the release channel of the Atom application.
   //
-  // Returns the release channel as a {String}. Will return one of `dev`, `beta`, or `stable`.
+  // Returns the release channel as a {String}. Will return a specific release channel
+  // name like 'beta' or 'nightly' if one is found in the Atom version or 'stable'
+  // otherwise.
   getReleaseChannel () {
-    const version = this.getVersion()
-    if (version.includes('beta')) {
-      return 'beta'
-    } else if (version.includes('dev')) {
-      return 'dev'
-    } else {
-      return 'stable'
+    // This matches stable, dev (with or without commit hash) and any other
+    // release channel following the pattern '1.00.0-channel0'
+    const match = this.getVersion().match(/\d+\.\d+\.\d+(-([a-z]+)(\d+|-\w{4,})?)?$/)
+    if (!match) {
+      return 'unrecognized'
+    } else if (match[2]) {
+      return match[2]
     }
+
+    return 'stable'
   }
 
   // Public: Returns a {Boolean} that is `true` if the current version is an official release.
   isReleasedVersion () {
-    return !/\w{7}/.test(this.getVersion()) // Check if the release is a 7-character SHA prefix
+    return this.getReleaseChannel().match(/stable|beta|nightly/) != null
   }
 
   // Public: Get the time taken to completely load the current window.
@@ -764,7 +770,11 @@ class AtomEnvironment {
   }
 
   // Call this method when establishing a real application window.
-  startEditorWindow () {
+  async startEditorWindow () {
+    if (this.getLoadSettings().clearWindowState) {
+      await this.stateStore.clear()
+    }
+
     this.unloaded = false
 
     const updateProcessEnvPromise = this.updateProcessEnvAndTriggerHooks()
@@ -778,6 +788,13 @@ class AtomEnvironment {
       this.commandInstaller.installApmCommand(false, (error) => {
         if (error) console.warn(error.message)
       })
+
+      this.disposables.add(this.applicationDelegate.onDidChangeUserSettings(settings =>
+        this.config.resetUserSettings(settings)
+      ))
+      this.disposables.add(this.applicationDelegate.onDidFailToReadUserSettings(message =>
+        this.notifications.addError(message)
+      ))
 
       this.disposables.add(this.applicationDelegate.onDidOpenLocations(this.openLocations.bind(this)))
       this.disposables.add(this.applicationDelegate.onApplicationMenuCommand(this.dispatchApplicationMenuCommand.bind(this)))
@@ -1121,7 +1138,7 @@ class AtomEnvironment {
     }
 
     if (windowIsUnused()) {
-      this.restoreStateIntoThisEnvironment(state)
+      await this.restoreStateIntoThisEnvironment(state)
       return Promise.all(filesToOpen.map(file => this.workspace.open(file)))
     } else {
       let resolveDiscardStatePromise = null
@@ -1262,11 +1279,6 @@ or use Pane::saveItemAs for programmatic saving.`)
     } else {
       return null
     }
-  }
-
-  getStorageFolder () {
-    if (!this.storageFolder) this.storageFolder = new StorageFolder(this.getConfigDirPath())
-    return this.storageFolder
   }
 
   getConfigDirPath () {

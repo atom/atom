@@ -155,9 +155,17 @@ class Pane {
 
   getFlexScale () { return this.flexScale }
 
-  increaseSize () { this.setFlexScale(this.getFlexScale() * 1.1) }
+  increaseSize () {
+    if (this.getContainer().getPanes().length > 1) {
+      this.setFlexScale(this.getFlexScale() * 1.1)
+    }
+  }
 
-  decreaseSize () { this.setFlexScale(this.getFlexScale() / 1.1) }
+  decreaseSize () {
+    if (this.getContainer().getPanes().length > 1) {
+      this.setFlexScale(this.getFlexScale() / 1.1)
+    }
+  }
 
   /*
   Section: Event Subscription
@@ -606,15 +614,15 @@ class Pane {
 
     if (this.items.includes(item)) return
 
+    const itemSubscriptions = new CompositeDisposable()
+    this.subscriptionsPerItem.set(item, itemSubscriptions)
     if (typeof item.onDidDestroy === 'function') {
-      const itemSubscriptions = new CompositeDisposable()
       itemSubscriptions.add(item.onDidDestroy(() => this.removeItem(item, false)))
-      if (typeof item.onDidTerminatePendingState === 'function') {
-        itemSubscriptions.add(item.onDidTerminatePendingState(() => {
-          if (this.getPendingItem() === item) this.clearPendingItem()
-        }))
-      }
-      this.subscriptionsPerItem.set(item, itemSubscriptions)
+    }
+    if (typeof item.onDidTerminatePendingState === 'function') {
+      itemSubscriptions.add(item.onDidTerminatePendingState(() => {
+        if (this.getPendingItem() === item) this.clearPendingItem()
+      }))
     }
 
     this.items.splice(index, 0, item)

@@ -1,0 +1,58 @@
+phases:
+
+- phase: GetReleaseVersion
+  steps:
+  # This has to be done separately because VSTS inexplicably
+  # exits the script block after `npm install` completes.
+  - script: |
+      cd script\vsts
+      npm install
+    displayName: npm install
+  - script: node script\vsts\get-release-version.js --nightly
+    name: Version
+
+# Import OS-specific build definitions
+- template: platforms/windows.yml
+- template: platforms/macos.yml
+- template: platforms/linux.yml
+
+- phase: Release
+  queue: Hosted  # Need this for Python 2.7
+
+  dependsOn:
+  - GetReleaseVersion
+  - Windows
+  - Linux
+  - macOS
+
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 8.9.3
+    displayName: Install Node.js 8.9.3
+
+  # This has to be done separately because VSTS inexplicably
+  # exits the script block after `npm install` completes.
+  - script: |
+      cd script
+      npm install
+    displayName: npm install
+
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      itemPattern: '**'
+      downloadType: 'specific'
+    displayName: Download Release Artifacts
+
+  - script: |
+      $(Build.SourcesDirectory)\script\publish-release.cmd --create-github-release --assets-path "$(System.ArtifactsDirectory)"
+    env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
+      ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
+      ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
+      ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
+    displayName: Create Nightly Release

@@ -1,9 +1,9 @@
 const {it, fit, ffit, beforeEach, afterEach, conditionPromise} = require('./async-spec-helpers')
 const _ = require('underscore-plus')
+const fs = require('fs')
 const path = require('path')
 const temp = require('temp').track()
 const AtomEnvironment = require('../src/atom-environment')
-const StorageFolder = require('../src/storage-folder')
 
 describe('AtomEnvironment', () => {
   afterEach(() => {
@@ -471,15 +471,28 @@ describe('AtomEnvironment', () => {
         await atom.workspace.open()
       })
 
-      it('automatically restores the saved state into the current environment', () => {
-        const state = {}
-        spyOn(atom.workspace, 'open')
-        spyOn(atom, 'restoreStateIntoThisEnvironment')
+      it('automatically restores the saved state into the current environment', async () => {
+        const projectPath = temp.mkdirSync()
+        const filePath1 = path.join(projectPath, 'file-1')
+        const filePath2 = path.join(projectPath, 'file-2')
+        const filePath3 = path.join(projectPath, 'file-3')
+        fs.writeFileSync(filePath1, 'abc')
+        fs.writeFileSync(filePath2, 'def')
+        fs.writeFileSync(filePath3, 'ghi')
 
-        atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
-        expect(atom.restoreStateIntoThisEnvironment).toHaveBeenCalledWith(state)
-        expect(atom.workspace.open.callCount).toBe(1)
-        expect(atom.workspace.open).toHaveBeenCalledWith(__filename)
+        const env1 = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
+        env1.project.setPaths([projectPath])
+        await env1.workspace.open(filePath1)
+        await env1.workspace.open(filePath2)
+        await env1.workspace.open(filePath3)
+        const env1State = env1.serialize()
+        env1.destroy()
+
+        const env2 = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
+        await env2.attemptRestoreProjectStateForPaths(env1State, [projectPath], [filePath2])
+        const restoredURIs = env2.workspace.getPaneItems().map(p => p.getURI())
+        expect(restoredURIs).toEqual([filePath1, filePath2, filePath3])
+        env2.destroy()
       })
 
       describe('when a dock has a non-text editor', () => {
@@ -730,29 +743,6 @@ describe('AtomEnvironment', () => {
           expect(atom.project.getPaths()).toEqual([__dirname])
         })
       })
-    })
-  })
-
-  describe('::updateAvailable(info) (called via IPC from browser process)', () => {
-    let subscription
-
-    afterEach(() => {
-      if (subscription) subscription.dispose()
-    })
-
-    it('invokes onUpdateAvailable listeners', async () => {
-      if (process.platform !== 'darwin') return // Test tied to electron autoUpdater, we use something else on Linux and Win32
-
-      const updateAvailablePromise = new Promise(resolve => {
-        subscription = atom.onUpdateAvailable(resolve)
-      })
-
-      atom.listenForUpdates()
-      const {autoUpdater} = require('electron').remote
-      autoUpdater.emit('update-downloaded', null, 'notes', 'version')
-
-      const {releaseVersion} = await updateAvailablePromise
-      expect(releaseVersion).toBe('version')
     })
   })
 

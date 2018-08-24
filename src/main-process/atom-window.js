@@ -51,9 +51,17 @@ class AtomWindow extends EventEmitter {
     // taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
     if (process.platform === 'linux') options.icon = ICON_PATH
     if (this.shouldAddCustomTitleBar()) options.titleBarStyle = 'hidden'
-    if (this.shouldAddCustomInsetTitleBar()) options.titleBarStyle = 'hidden-inset'
+    if (this.shouldAddCustomInsetTitleBar()) options.titleBarStyle = 'hiddenInset'
     if (this.shouldHideTitleBar()) options.frame = false
     this.browserWindow = new BrowserWindow(options)
+
+    Object.defineProperty(this.browserWindow, 'loadSettingsJSON', {
+      get: () => JSON.stringify(Object.assign({
+        userSettings: !this.isSpec
+          ? this.atomApplication.configFile.get()
+          : null
+      }, this.loadSettings))
+    })
 
     this.handleEvents()
 
@@ -67,14 +75,13 @@ class AtomWindow extends EventEmitter {
 
     if (!this.loadSettings.initialPaths) {
       this.loadSettings.initialPaths = []
-      for (const {pathToOpen} of locationsToOpen) {
+      for (const {pathToOpen, stat} of locationsToOpen) {
         if (!pathToOpen) continue
-        const stat = fs.statSyncNoException(pathToOpen) || null
         if (stat && stat.isDirectory()) {
           this.loadSettings.initialPaths.push(pathToOpen)
         } else {
           const parentDirectory = path.dirname(pathToOpen)
-          if ((stat && stat.isFile()) || fs.existsSync(parentDirectory)) {
+          if (stat && stat.isFile() || fs.existsSync(parentDirectory)) {
             this.loadSettings.initialPaths.push(parentDirectory)
           } else {
             this.loadSettings.initialPaths.push(pathToOpen)
@@ -95,8 +102,6 @@ class AtomWindow extends EventEmitter {
 
     this.representedDirectoryPaths = this.loadSettings.initialPaths
     if (!this.loadSettings.env) this.env = this.loadSettings.env
-
-    this.browserWindow.loadSettingsJSON = JSON.stringify(this.loadSettings)
 
     this.browserWindow.on('window:loaded', () => {
       this.disableZoom()
@@ -150,12 +155,13 @@ class AtomWindow extends EventEmitter {
 
   containsPath (pathToCheck) {
     if (!pathToCheck) return false
-    const stat = fs.statSyncNoException(pathToCheck)
-    if (stat && stat.isDirectory()) return false
-
-    return this.representedDirectoryPaths.some(projectPath =>
-      pathToCheck === projectPath || pathToCheck.startsWith(path.join(projectPath, path.sep))
-    )
+    let stat
+    return this.representedDirectoryPaths.some(projectPath => {
+      if (pathToCheck === projectPath) return true
+      if (!pathToCheck.startsWith(path.join(projectPath, path.sep))) return false
+      if (stat === undefined) stat = fs.statSyncNoException(pathToCheck)
+      return !stat || !stat.isDirectory()
+    })
   }
 
   handleEvents () {
@@ -163,7 +169,7 @@ class AtomWindow extends EventEmitter {
       if (!this.atomApplication.quitting && !this.unloading) {
         event.preventDefault()
         this.unloading = true
-        this.atomApplication.saveState(false)
+        this.atomApplication.saveCurrentWindowOptions(false)
         if (await this.prepareToUnload()) this.close()
       }
     })
@@ -176,34 +182,36 @@ class AtomWindow extends EventEmitter {
 
     this.browserWindow.on('unresponsive', () => {
       if (this.isSpec) return
-      const chosen = dialog.showMessageBox(this.browserWindow, {
+      dialog.showMessageBox(this.browserWindow, {
         type: 'warning',
         buttons: ['Force Close', 'Keep Waiting'],
+        cancelId: 1, // Canceling should be the least destructive action
         message: 'Editor is not responding',
         detail:
           'The editor is not responding. Would you like to force close it or just keep waiting?'
-      })
-      if (chosen === 0) this.browserWindow.destroy()
+      }, response => { if (response === 0) this.browserWindow.destroy() })
     })
 
-    this.browserWindow.webContents.on('crashed', () => {
+    this.browserWindow.webContents.on('crashed', async () => {
       if (this.headless) {
         console.log('Renderer process crashed, exiting')
         this.atomApplication.exit(100)
         return
       }
 
-      this.fileRecoveryService.didCrashWindow(this)
-      const chosen = dialog.showMessageBox(this.browserWindow, {
+      await this.fileRecoveryService.didCrashWindow(this)
+      dialog.showMessageBox(this.browserWindow, {
         type: 'warning',
         buttons: ['Close Window', 'Reload', 'Keep It Open'],
+        cancelId: 2, // Canceling should be the least destructive action
         message: 'The editor has crashed',
         detail: 'Please report this issue to https://github.com/atom/atom'
+      }, response => {
+        switch (response) {
+          case 0: return this.browserWindow.destroy()
+          case 1: return this.browserWindow.reload()
+        }
       })
-      switch (chosen) {
-        case 0: return this.browserWindow.destroy()
-        case 1: return this.browserWindow.reload()
-      }
     })
 
     this.browserWindow.webContents.on('will-navigate', (event, url) => {
@@ -244,6 +252,14 @@ class AtomWindow extends EventEmitter {
   async openLocations (locationsToOpen) {
     await this.loadedPromise
     this.sendMessage('open-locations', locationsToOpen)
+  }
+
+  didChangeUserSettings (settings) {
+    this.sendMessage('did-change-user-settings', settings)
+  }
+
+  didFailToReadUserSettings (message) {
+    this.sendMessage('did-fail-to-read-user-settings', message)
   }
 
   replaceEnvironment (env) {
@@ -414,8 +430,7 @@ class AtomWindow extends EventEmitter {
     this.representedDirectoryPaths = representedDirectoryPaths
     this.representedDirectoryPaths.sort()
     this.loadSettings.initialPaths = this.representedDirectoryPaths
-    this.browserWindow.loadSettingsJSON = JSON.stringify(this.loadSettings)
-    return this.atomApplication.saveState()
+    return this.atomApplication.saveCurrentWindowOptions()
   }
 
   didClosePathWithWaitSession (path) {

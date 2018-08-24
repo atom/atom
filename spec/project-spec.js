@@ -274,6 +274,51 @@ describe('Project', () => {
     })
   })
 
+  describe('.replace', () => {
+    let projectSpecification, projectPath1, projectPath2
+    beforeEach(() => {
+      atom.project.replace(null)
+      projectPath1 = temp.mkdirSync('project-path1')
+      projectPath2 = temp.mkdirSync('project-path2')
+      projectSpecification = {
+        paths: [projectPath1, projectPath2],
+        originPath: 'originPath',
+        config: {
+          'baz': 'buzz'
+        }
+      }
+    })
+    it('sets a project specification', () => {
+      expect(atom.config.get('baz')).toBeUndefined()
+      atom.project.replace(projectSpecification)
+      expect(atom.project.getPaths()).toEqual([projectPath1, projectPath2])
+      expect(atom.config.get('baz')).toBe('buzz')
+    })
+
+    it('clears a project through replace with no params', () => {
+      expect(atom.config.get('baz')).toBeUndefined()
+      atom.project.replace(projectSpecification)
+      expect(atom.config.get('baz')).toBe('buzz')
+      expect(atom.project.getPaths()).toEqual([projectPath1, projectPath2])
+      atom.project.replace()
+      expect(atom.config.get('baz')).toBeUndefined()
+      expect(atom.project.getPaths()).toEqual([])
+    })
+
+    it('responds to change of project specification', () => {
+      let wasCalled = false
+      const callback = () => {
+        wasCalled = true
+      }
+      atom.project.onDidReplace(callback)
+      atom.project.replace(projectSpecification)
+      expect(wasCalled).toBe(true)
+      wasCalled = false
+      atom.project.replace()
+      expect(wasCalled).toBe(true)
+    })
+  })
+
   describe('before and after saving a buffer', () => {
     let buffer
     beforeEach(() =>
@@ -921,6 +966,77 @@ describe('Project', () => {
         expect(buffers.length).toBe(3)
         expect(observed).toEqual(buffers)
       })
+    })
+  })
+
+  describe('.observeRepositories()', () => {
+    it('invokes the observer with current and future repositories', () => {
+      const observed = []
+
+      const directory1 = temp.mkdirSync('git-repo1')
+      const gitDirPath1 = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      fs.copySync(gitDirPath1, path.join(directory1, '.git'))
+
+      const directory2 = temp.mkdirSync('git-repo2')
+      const gitDirPath2 = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'repo-with-submodules', 'git.git'))
+      fs.copySync(gitDirPath2, path.join(directory2, '.git'))
+
+      atom.project.setPaths([directory1])
+
+      const disposable = atom.project.observeRepositories((repo) => observed.push(repo))
+      expect(observed.length).toBe(1)
+      expect(observed[0].getReferenceTarget('refs/heads/master')).toBe('ef046e9eecaa5255ea5e9817132d4001724d6ae1')
+
+      atom.project.addPath(directory2)
+      expect(observed.length).toBe(2)
+      expect(observed[1].getReferenceTarget('refs/heads/master')).toBe('d2b0ad9cbc6f6c4372e8956e5cc5af771b2342e5')
+
+      disposable.dispose()
+    })
+  })
+
+  describe('.onDidAddRepository()', () => {
+    it('invokes callback when a path is added and the path is the root of a repository', () => {
+      const observed = []
+      const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
+
+      const projectRootPath = temp.mkdirSync()
+      const fixtureRepoPath = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      fs.copySync(fixtureRepoPath, path.join(projectRootPath, '.git'))
+
+      atom.project.addPath(projectRootPath)
+      expect(observed.length).toBe(1)
+      expect(observed[0].getOriginURL()).toEqual('https://github.com/example-user/example-repo.git')
+
+      disposable.dispose()
+    })
+
+    it('invokes callback when a path is added and the path is subdirectory of a repository', () => {
+      const observed = []
+      const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
+
+      const projectRootPath = temp.mkdirSync()
+      const fixtureRepoPath = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      fs.copySync(fixtureRepoPath, path.join(projectRootPath, '.git'))
+
+      const projectSubDirPath = path.join(projectRootPath, 'sub-dir')
+      fs.mkdirSync(projectSubDirPath)
+
+      atom.project.addPath(projectSubDirPath)
+      expect(observed.length).toBe(1)
+      expect(observed[0].getOriginURL()).toEqual('https://github.com/example-user/example-repo.git')
+
+      disposable.dispose()
+    })
+
+    it('does not invoke callback when a path is added and the path is not part of a repository', () => {
+      const observed = []
+      const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
+
+      atom.project.addPath(temp.mkdirSync('not-a-repository'))
+      expect(observed.length).toBe(0)
+
+      disposable.dispose()
     })
   })
 

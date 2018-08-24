@@ -1,0 +1,43 @@
+
+// Docks ------------------------------
+
+// Make handles not take up any space when dock is open
+.atom-dock-resize-handle {
+  position: absolute;
+  z-index: 11; // same as toggle buttons
+
+  &.left {
+    top: 0;
+    right: 0;
+    bottom: 0;
+  }
+  &.right {
+    top: 0;
+    left: 0;
+    bottom: 0;
+  }
+  &.bottom {
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+}
+
+// Add borders
+.atom-dock-inner.atom-dock-open.left {
+  border-right: 1px solid @base-border-color;
+}
+.atom-dock-inner.atom-dock-open.right {
+  border-left: 1px solid @base-border-color;
+}
+
+// Make toggle buttons cover ^ border
+.atom-dock-toggle-button.left {
+  margin-left: -2px;
+}
+.atom-dock-toggle-button.right {
+  margin-right: -2px;
+}
+.atom-dock-inner:not(.atom-dock-open) .atom-dock-toggle-button.bottom {
+  margin-bottom: -1px;
+}

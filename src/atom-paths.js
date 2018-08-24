@@ -1,5 +1,3 @@
-/** @babel */
-
 const fs = require('fs-plus')
 const path = require('path')
 

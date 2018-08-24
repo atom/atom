@@ -15,11 +15,6 @@ describe('GitRepository', () => {
 
   afterEach(() => {
     if (repo && !repo.isDestroyed()) repo.destroy()
-
-    // These tests sometimes lag at shutting down resources
-    try {
-      temp.cleanupSync()
-    } catch (error) {}
   })
 
   describe('@open(path)', () => {

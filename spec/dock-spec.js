@@ -3,6 +3,9 @@
 const Grim = require('grim')
 
 import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+import etch from 'etch'
+
+const getNextUpdatePromise = () => etch.getScheduler().nextUpdatePromise
 
 describe('Dock', () => {
   describe('when a dock is activated', () => {
@@ -157,8 +160,10 @@ describe('Dock', () => {
         const dockElement = dock.getElement()
 
         dock.setState({size: 300})
+        await getNextUpdatePromise()
         expect(dockElement.offsetWidth).toBe(300)
         dockElement.querySelector('.atom-dock-resize-handle').dispatchEvent(new MouseEvent('mousedown', {detail: 2}))
+        await getNextUpdatePromise()
 
         expect(dockElement.offsetWidth).toBe(item.getPreferredWidth())
       })
@@ -178,8 +183,10 @@ describe('Dock', () => {
         const dockElement = dock.getElement()
 
         dock.setState({size: 300})
+        await getNextUpdatePromise()
         expect(dockElement.offsetHeight).toBe(300)
         dockElement.querySelector('.atom-dock-resize-handle').dispatchEvent(new MouseEvent('mousedown', {detail: 2}))
+        await getNextUpdatePromise()
 
         expect(dockElement.offsetHeight).toBe(item.getPreferredHeight())
       })
@@ -201,11 +208,7 @@ describe('Dock', () => {
         const dockElement = atom.workspace.getBottomDock().getElement()
         dockElement.querySelector('.atom-dock-resize-handle').dispatchEvent(new MouseEvent('mousedown', {detail: 2}))
         expect(dockElement.offsetHeight).toBe(0)
-
-        // There should still be a hoverable, absolutely-positioned element so users can reveal the
-        // toggle affordance even when fullscreened.
-        expect(dockElement.querySelector('.atom-dock-inner').offsetHeight).toBe(1)
-
+        expect(dockElement.querySelector('.atom-dock-inner').offsetHeight).toBe(0)
         // The content should be masked away.
         expect(dockElement.querySelector('.atom-dock-mask').offsetHeight).toBe(0)
       })
@@ -314,7 +317,7 @@ describe('Dock', () => {
   })
 
   describe('drag handling', () => {
-    it('expands docks to match the preferred size of the dragged item', () => {
+    it('expands docks to match the preferred size of the dragged item', async () => {
       jasmine.attachToDOM(atom.workspace.getElement())
 
       const element = document.createElement('div')
@@ -329,7 +332,8 @@ describe('Dock', () => {
       Object.defineProperty(dragEvent, 'target', {value: element})
 
       atom.workspace.getElement().handleDragStart(dragEvent)
-      expect(atom.workspace.getLeftDock().wrapperElement.offsetWidth).toBe(144)
+      await getNextUpdatePromise()
+      expect(atom.workspace.getLeftDock().refs.wrapperElement.offsetWidth).toBe(144)
     })
 
     it('does nothing when text nodes are dragged', () => {

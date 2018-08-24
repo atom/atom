@@ -5,6 +5,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const spawnSync = require('./lib/spawn-sync')
 
 const repositoryRootPath = path.resolve(__dirname, '..')
 const apmRootPath = path.join(repositoryRootPath, 'apm')
@@ -19,12 +20,16 @@ const atomHomeDirPath = process.env.ATOM_HOME || path.join(homeDirPath, '.atom')
 
 const appMetadata = require(path.join(repositoryRootPath, 'package.json'))
 const apmMetadata = require(path.join(apmRootPath, 'package.json'))
-const channel = getChannel()
+const computedAppVersion = computeAppVersion(process.env.ATOM_RELEASE_VERSION || appMetadata.version)
+const channel = getChannel(computedAppVersion)
+const appName = getAppName(channel)
 
 module.exports = {
   appMetadata,
   apmMetadata,
   channel,
+  appName,
+  computedAppVersion,
   repositoryRootPath,
   apmRootPath,
   scriptRootPath,
@@ -40,14 +45,30 @@ module.exports = {
   snapshotAuxiliaryData: {}
 }
 
-function getChannel () {
-  if (appMetadata.version.match(/dev/)) {
-    return 'dev'
-  } else if (appMetadata.version.match(/beta/)) {
-    return 'beta'
-  } else {
-    return 'stable'
+function getChannel (version) {
+  const match = version.match(/\d+\.\d+\.\d+(-([a-z]+)(\d+|-\w{4,})?)?$/)
+  if (!match) {
+    throw new Error(`Found incorrectly formatted Atom version ${version}`)
+  } else if (match[2]) {
+    return match[2]
   }
+
+  return 'stable'
+}
+
+function getAppName (channel) {
+  return channel === 'stable'
+    ? 'Atom'
+    : `Atom ${process.env.ATOM_CHANNEL_DISPLAY_NAME || channel.charAt(0).toUpperCase() + channel.slice(1)}`
+}
+
+function computeAppVersion (version) {
+  if (version.match(/-dev$/)) {
+    const result = spawnSync('git', ['rev-parse', '--short', 'HEAD'], {cwd: repositoryRootPath})
+    const commitHash = result.stdout.toString().trim()
+    version += '-' + commitHash
+  }
+  return version
 }
 
 function getApmBinPath () {
@@ -55,8 +76,8 @@ function getApmBinPath () {
   return path.join(apmRootPath, 'node_modules', 'atom-package-manager', 'bin', apmBinName)
 }
 
-function getNpmBinPath () {
+function getNpmBinPath (external = false) {
   const npmBinName = process.platform === 'win32' ? 'npm.cmd' : 'npm'
   const localNpmBinPath = path.resolve(repositoryRootPath, 'script', 'node_modules', '.bin', npmBinName)
-  return fs.existsSync(localNpmBinPath) ? localNpmBinPath : npmBinName
+  return !external && fs.existsSync(localNpmBinPath) ? localNpmBinPath : npmBinName
 }

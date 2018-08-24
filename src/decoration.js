@@ -1,4 +1,3 @@
-const _ = require('underscore-plus')
 const {Emitter} = require('event-kit')
 
 let idCounter = 0
@@ -49,7 +48,7 @@ class Decoration {
   // 'line-number' is a 'gutter', but a 'gutter' is not a 'line-number'.
   static isType (decorationProperties, type) {
     // 'line-number' is a special case of 'gutter'.
-    if (_.isArray(decorationProperties.type)) {
+    if (Array.isArray(decorationProperties.type)) {
       if (decorationProperties.type.includes(type)) {
         return true
       }
@@ -158,7 +157,7 @@ class Decoration {
   // ## Examples
   //
   // ```coffee
-  // decoration.update({type: 'line-number', class: 'my-new-class'})
+  // decoration.setProperties({type: 'line-number', class: 'my-new-class'})
   // ```
   //
   // * `newProperties` {Object} eg. `{type: 'line-number', class: 'my-new-class'}`

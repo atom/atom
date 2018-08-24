@@ -43,8 +43,8 @@ class Package {
       ? params.bundledPackage
       : this.packageManager.isBundledPackagePath(this.path)
     this.name =
-      params.name ||
       (this.metadata && this.metadata.name) ||
+      params.name ||
       path.basename(this.path)
     this.reset()
   }

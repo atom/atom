@@ -4,6 +4,7 @@ const AtomProtocolHandler = require('./atom-protocol-handler')
 const AutoUpdateManager = require('./auto-update-manager')
 const StorageFolder = require('../storage-folder')
 const Config = require('../config')
+const ConfigFile = require('../config-file')
 const FileRecoveryService = require('./file-recovery-service')
 const ipcHelpers = require('../ipc-helpers')
 const {BrowserWindow, Menu, app, clipboard, dialog, ipcMain, shell, screen} = require('electron')
@@ -32,7 +33,7 @@ class AtomApplication extends EventEmitter {
   // Public: The entry point into the Atom application.
   static open (options) {
     if (!options.socketPath) {
-      const username = process.platform === 'win32' ? process.env.USERNAME : process.env.USER
+      const {username} = os.userInfo()
 
       // Lowercasing the ATOM_HOME to make sure that we don't get multiple sockets
       // on case-insensitive filesystems due to arbitrary case differences in paths.
@@ -43,7 +44,7 @@ class AtomApplication extends EventEmitter {
         .update('|')
         .update(process.arch)
         .update('|')
-        .update(username)
+        .update(username || '')
         .update('|')
         .update(atomHomeUnique)
 
@@ -92,7 +93,6 @@ class AtomApplication extends EventEmitter {
     this.quitting = false
     this.getAllWindows = this.getAllWindows.bind(this)
     this.getLastFocusedWindow = this.getLastFocusedWindow.bind(this)
-
     this.resourcePath = options.resourcePath
     this.devResourcePath = options.devResourcePath
     this.version = options.version
@@ -107,20 +107,21 @@ class AtomApplication extends EventEmitter {
     this.waitSessionsByWindow = new Map()
     this.windowStack = new WindowStack()
 
-    this.config = new Config({enablePersistence: true})
-    this.config.setSchema(null, {type: 'object', properties: _.clone(ConfigSchema)})
-    ConfigSchema.projectHome = {
-      type: 'string',
-      default: path.join(fs.getHomeDirectory(), 'github'),
-      description:
-        'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
-    }
-    this.config.initialize({
-      configDirPath: process.env.ATOM_HOME,
-      resourcePath: this.resourcePath,
-      projectHomeSchema: ConfigSchema.projectHome
+    this.initializeAtomHome(process.env.ATOM_HOME)
+
+    const configFilePath = fs.existsSync(path.join(process.env.ATOM_HOME, 'config.json'))
+      ? path.join(process.env.ATOM_HOME, 'config.json')
+      : path.join(process.env.ATOM_HOME, 'config.cson')
+
+    this.configFile = ConfigFile.at(configFilePath)
+    this.config = new Config({
+      saveCallback: settings => {
+        if (!this.quitting) {
+          return this.configFile.update(settings)
+        }
+      }
     })
-    this.config.load()
+    this.config.setSchema(null, {type: 'object', properties: _.clone(ConfigSchema)})
 
     this.fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, 'recovery'))
     this.storageFolder = new StorageFolder(process.env.ATOM_HOME)
@@ -138,7 +139,7 @@ class AtomApplication extends EventEmitter {
   // for testing purposes without booting up the world. As you add tests, feel free to move instantiation
   // of these various sub-objects into the constructor, but you'll need to remove the side-effects they
   // perform during their construction, adding an initialize method that you call here.
-  initialize (options) {
+  async initialize (options) {
     global.atomApplication = this
 
     // DEPRECATED: This can be removed at some point (added in 1.13)
@@ -148,16 +149,15 @@ class AtomApplication extends EventEmitter {
       this.config.set('core.titleBar', 'custom')
     }
 
-    this.config.onDidChange('core.titleBar', this.promptForRestart.bind(this))
-
-    process.nextTick(() => this.autoUpdateManager.initialize())
     this.applicationMenu = new ApplicationMenu(this.version, this.autoUpdateManager)
     this.atomProtocolHandler = new AtomProtocolHandler(this.resourcePath, this.safeMode)
 
     this.listenForArgumentsFromNewProcess()
     this.setupDockMenu()
 
-    return this.launch(options)
+    const result = await this.launch(options)
+    this.autoUpdateManager.initialize()
+    return result
   }
 
   async destroy () {
@@ -169,18 +169,39 @@ class AtomApplication extends EventEmitter {
     this.disposable.dispose()
   }
 
-  launch (options) {
+  async launch (options) {
+    if (!this.configFilePromise) {
+      this.configFilePromise = this.configFile.watch()
+      this.disposable.add(await this.configFilePromise)
+      this.config.onDidChange('core.titleBar', () => this.promptForRestart())
+      this.config.onDidChange('core.colorProfile', () => this.promptForRestart())
+    }
+
+    const optionsForWindowsToOpen = []
+
+    let shouldReopenPreviousWindows = false
+
     if (options.test || options.benchmark || options.benchmarkTest) {
-      return this.openWithOptions(options)
+      optionsForWindowsToOpen.push(options)
     } else if ((options.pathsToOpen && options.pathsToOpen.length > 0) ||
                (options.urlsToOpen && options.urlsToOpen.length > 0)) {
-      if (this.config.get('core.restorePreviousWindowsOnStart') === 'always') {
-        this.loadState(_.deepClone(options))
-      }
-      return this.openWithOptions(options)
+      optionsForWindowsToOpen.push(options)
+      shouldReopenPreviousWindows = this.config.get('core.restorePreviousWindowsOnStart') === 'always'
     } else {
-      return this.loadState(options) || this.openPath(options)
+      shouldReopenPreviousWindows = this.config.get('core.restorePreviousWindowsOnStart') !== 'no'
     }
+
+    if (shouldReopenPreviousWindows) {
+      for (const previousOptions of await this.loadPreviousWindowOptions()) {
+        optionsForWindowsToOpen.push(Object.assign({}, options, previousOptions))
+      }
+    }
+
+    if (optionsForWindowsToOpen.length === 0) {
+      optionsForWindowsToOpen.push(options)
+    }
+
+    return optionsForWindowsToOpen.map(options => this.openWithOptions(options))
   }
 
   openWithOptions (options) {
@@ -271,7 +292,7 @@ class AtomApplication extends EventEmitter {
         return
       }
     }
-    if (!window.isSpec) this.saveState(true)
+    if (!window.isSpec) this.saveCurrentWindowOptions(true)
   }
 
   // Public: Adds the {AtomWindow} to the global window list.
@@ -285,7 +306,7 @@ class AtomApplication extends EventEmitter {
 
     if (!window.isSpec) {
       const focusHandler = () => this.windowStack.touch(window)
-      const blurHandler = () => this.saveState(false)
+      const blurHandler = () => this.saveCurrentWindowOptions(false)
       window.browserWindow.on('focus', focusHandler)
       window.browserWindow.on('blur', blurHandler)
       window.browserWindow.once('closed', () => {
@@ -397,6 +418,18 @@ class AtomApplication extends EventEmitter {
     this.openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
     this.openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
+    this.configFile.onDidChange(settings => {
+      for (let window of this.getAllWindows()) {
+        window.didChangeUserSettings(settings)
+      }
+      this.config.resetUserSettings(settings)
+    })
+
+    this.configFile.onDidError(message => {
+      const window = this.focusedWindow() || this.getLastFocusedWindow()
+      if (window) window.didFailToReadUserSettings(message)
+    })
+
     this.disposable.add(ipcHelpers.on(app, 'before-quit', async event => {
       let resolveBeforeQuitPromise
       this.lastBeforeQuitPromise = new Promise(resolve => { resolveBeforeQuitPromise = resolve })
@@ -406,7 +439,11 @@ class AtomApplication extends EventEmitter {
         event.preventDefault()
         const windowUnloadPromises = this.getAllWindows().map(window => window.prepareToUnload())
         const windowUnloadedResults = await Promise.all(windowUnloadPromises)
-        if (windowUnloadedResults.every(Boolean)) app.quit()
+        if (windowUnloadedResults.every(Boolean)) {
+          app.quit()
+        } else {
+          this.quitting = false
+        }
       }
 
       resolveBeforeQuitPromise()
@@ -474,12 +511,12 @@ class AtomApplication extends EventEmitter {
       if (this.applicationMenu) this.applicationMenu.update(window, template, menu)
     }))
 
-    this.disposable.add(ipcHelpers.on(ipcMain, 'run-package-specs', (event, packageSpecPath) => {
-      this.runTests({
+    this.disposable.add(ipcHelpers.on(ipcMain, 'run-package-specs', (event, packageSpecPath, options = {}) => {
+      this.runTests(Object.assign({
         resourcePath: this.devResourcePath,
         pathsToOpen: [packageSpecPath],
         headless: false
-      })
+      }, options))
     }))
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'run-benchmarks', (event, benchmarksPath) => {
@@ -530,6 +567,12 @@ class AtomApplication extends EventEmitter {
       window.setPosition(x, y)
     }))
 
+    this.disposable.add(ipcHelpers.respondTo('set-user-settings', (window, settings, filePath) => {
+      if (!this.quitting) {
+        ConfigFile.at(filePath || this.configFilePath).update(JSON.parse(settings))
+      }
+    }))
+
     this.disposable.add(ipcHelpers.respondTo('center-window', window => window.center()))
     this.disposable.add(ipcHelpers.respondTo('focus-window', window => window.focus()))
     this.disposable.add(ipcHelpers.respondTo('show-window', window => window.show()))
@@ -568,18 +611,16 @@ class AtomApplication extends EventEmitter {
       event.returnValue = this.autoUpdateManager.getErrorMessage()
     }))
 
-    this.disposable.add(ipcHelpers.on(ipcMain, 'will-save-path', (event, path) => {
-      this.fileRecoveryService.willSavePath(this.atomWindowForEvent(event), path)
-      event.returnValue = true
-    }))
+    this.disposable.add(ipcHelpers.respondTo('will-save-path', (window, path) =>
+      this.fileRecoveryService.willSavePath(window, path)
+    ))
 
-    this.disposable.add(ipcHelpers.on(ipcMain, 'did-save-path', (event, path) => {
-      this.fileRecoveryService.didSavePath(this.atomWindowForEvent(event), path)
-      event.returnValue = true
-    }))
+    this.disposable.add(ipcHelpers.respondTo('did-save-path', (window, path) =>
+      this.fileRecoveryService.didSavePath(window, path)
+    ))
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'did-change-paths', () =>
-      this.saveState(false)
+      this.saveCurrentWindowOptions(false)
     ))
 
     this.disposable.add(this.disableZoomOnDisplayChange())
@@ -590,6 +631,13 @@ class AtomApplication extends EventEmitter {
       return app.dock.setMenu(Menu.buildFromTemplate([
         {label: 'New Window', click: () => this.emit('application:new-window')}
       ]))
+    }
+  }
+
+  initializeAtomHome (configDirPath) {
+    if (!fs.existsSync(configDirPath)) {
+      const templateConfigDirPath = fs.resolve(this.resourcePath, 'dot-atom')
+      fs.copySync(templateConfigDirPath, configDirPath)
     }
   }
 
@@ -800,13 +848,12 @@ class AtomApplication extends EventEmitter {
     let existingWindow
     if (!newWindow) {
       existingWindow = this.windowForPaths(pathsToOpen, devMode)
-      const stats = pathsToOpen.map(pathToOpen => fs.statSyncNoException(pathToOpen))
       if (!existingWindow) {
         let lastWindow = window || this.getLastFocusedWindow()
         if (lastWindow && lastWindow.devMode === devMode) {
           if (addToLastWindow || (
-              stats.every(s => s.isFile && s.isFile()) ||
-              (stats.some(s => s.isDirectory && s.isDirectory()) && !lastWindow.hasProjectPath()))) {
+              locationsToOpen.every(({stat}) => stat && stat.isFile()) ||
+              (locationsToOpen.some(({stat}) => stat && stat.isDirectory()) && !lastWindow.hasProjectPath()))) {
             existingWindow = lastWindow
           }
         }
@@ -839,6 +886,7 @@ class AtomApplication extends EventEmitter {
       }
       if (!resourcePath) resourcePath = this.resourcePath
       if (!windowDimensions) windowDimensions = this.getDimensionsForNewWindow()
+
       openedWindow = new AtomWindow(this, this.fileRecoveryService, {
         initialPaths,
         locationsToOpen,
@@ -910,7 +958,7 @@ class AtomApplication extends EventEmitter {
     }
   }
 
-  saveState (allowEmpty = false) {
+  async saveCurrentWindowOptions (allowEmpty = false) {
     if (this.quitting) return
 
     const states = []
@@ -920,28 +968,23 @@ class AtomApplication extends EventEmitter {
     states.reverse()
 
     if (states.length > 0 || allowEmpty) {
-      this.storageFolder.storeSync('application.json', states)
+      await this.storageFolder.store('application.json', states)
       this.emit('application:did-save-state')
     }
   }
 
-  loadState (options) {
-    const states = this.storageFolder.load('application.json')
-    if (
-      ['yes', 'always'].includes(this.config.get('core.restorePreviousWindowsOnStart')) &&
-      states && states.length > 0
-    ) {
-      return states.map(state =>
-        this.openWithOptions(Object.assign(options, {
-          initialPaths: state.initialPaths,
-          pathsToOpen: state.initialPaths.filter(p => fs.isDirectorySync(p)),
-          urlsToOpen: [],
-          devMode: this.devMode,
-          safeMode: this.safeMode
-        }))
-      )
+  async loadPreviousWindowOptions () {
+    const states = await this.storageFolder.load('application.json')
+    if (states) {
+      return states.map(state => ({
+        initialPaths: state.initialPaths,
+        pathsToOpen: state.initialPaths.filter(p => fs.isDirectorySync(p)),
+        urlsToOpen: [],
+        devMode: this.devMode,
+        safeMode: this.safeMode
+      }))
     } else {
-      return null
+      return []
     }
   }
 
@@ -1124,6 +1167,7 @@ class AtomApplication extends EventEmitter {
       env
     })
     this.addWindow(window)
+    if (env) window.replaceEnvironment(env)
     return window
   }
 
@@ -1234,11 +1278,11 @@ class AtomApplication extends EventEmitter {
       initialLine = initialColumn = null
     }
 
-    if (url.parse(pathToOpen).protocol == null) {
-      pathToOpen = path.resolve(executedFrom, fs.normalize(pathToOpen))
-    }
+    const normalizedPath = path.normalize(path.resolve(executedFrom, fs.normalize(pathToOpen)))
+    const stat = fs.statSyncNoException(normalizedPath)
+    if (stat || !url.parse(pathToOpen).protocol) pathToOpen = normalizedPath
 
-    return {pathToOpen, initialLine, initialColumn}
+    return {pathToOpen, stat, initialLine, initialColumn}
   }
 
   // Opens a native dialog to prompt the user for a path.
@@ -1292,17 +1336,16 @@ class AtomApplication extends EventEmitter {
 
     // File dialog defaults to project directory of currently active editor
     if (path) openOptions.defaultPath = path
-    return dialog.showOpenDialog(parentWindow, openOptions, callback)
+    dialog.showOpenDialog(parentWindow, openOptions, callback)
   }
 
   promptForRestart () {
-    const chosen = dialog.showMessageBox(BrowserWindow.getFocusedWindow(), {
+    dialog.showMessageBox(BrowserWindow.getFocusedWindow(), {
       type: 'warning',
       title: 'Restart required',
       message: 'You will need to restart Atom for this change to take effect.',
       buttons: ['Restart Atom', 'Cancel']
-    })
-    if (chosen === 0) return this.restart()
+    }, response => { if (response === 0) this.restart() })
   }
 
   restart () {

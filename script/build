@@ -21,14 +21,15 @@ const argv = yargs
   .describe('create-debian-package', 'Create .deb package (Linux only)')
   .describe('create-rpm-package', 'Create .rpm package (Linux only)')
   .describe('compress-artifacts', 'Compress Atom binaries (and symbols on macOS)')
+  .describe('generate-api-docs', 'Only build the API documentation')
   .describe('install', 'Install Atom')
   .string('install')
+  .describe('ci', 'Install dependencies quickly (package-lock.json files must be up to date)')
   .wrap(yargs.terminalWidth())
   .argv
 
 const checkChromedriverVersion = require('./lib/check-chromedriver-version')
 const cleanOutputDirectory = require('./lib/clean-output-directory')
-const cleanPackageLock = require('./lib/clean-package-lock')
 const codeSignOnMac = require('./lib/code-sign-on-mac')
 const codeSignOnWindows = require('./lib/code-sign-on-windows')
 const compressArtifacts = require('./lib/compress-artifacts')
@@ -59,7 +60,6 @@ const CONFIG = require('./config')
 let binariesPromise = Promise.resolve()
 
 if (!argv.existingBinaries) {
-  cleanPackageLock()
   checkChromedriverVersion()
   cleanOutputDirectory()
   copyAssets()
@@ -72,65 +72,74 @@ if (!argv.existingBinaries) {
   prebuildLessCache()
   generateMetadata()
   generateAPIDocs()
-  binariesPromise = dumpSymbols()
+  if (!argv.generateApiDocs) {
+    binariesPromise = dumpSymbols()
+  }
 }
 
-binariesPromise
-  .then(packageApplication)
-  .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
-  .then(packagedAppPath => {
-    switch (process.platform) {
-      case 'darwin': {
-        if (argv.codeSign) {
-          codeSignOnMac(packagedAppPath)
-        } else {
-          console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
-        }
-      }
-      case 'win32': {
-        if (argv.codeSign) {
-          const executablesToSign = [ path.join(packagedAppPath, 'Atom.exe') ]
-          if (argv.createWindowsInstaller) {
-            executablesToSign.push(path.join(__dirname, 'node_modules', 'electron-winstaller', 'vendor', 'Update.exe'))
+if (!argv.generateApiDocs) {
+  binariesPromise
+    .then(packageApplication)
+    .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
+    .then(packagedAppPath => {
+      switch (process.platform) {
+        case 'darwin': {
+          if (argv.codeSign) {
+            codeSignOnMac(packagedAppPath)
+          } else {
+            console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
           }
-          codeSignOnWindows(executablesToSign)
-        } else {
-          console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
+          break
         }
-        if (argv.createWindowsInstaller) {
-          return createWindowsInstaller(packagedAppPath)
-            .then(() => argv.codeSign && codeSignOnWindows([ path.join(CONFIG.buildOutputPath, 'AtomSetup.exe') ]))
-            .then(() => packagedAppPath)
-        } else {
-          console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer.'.gray)
+        case 'win32': {
+          if (argv.codeSign) {
+            const executablesToSign = [ path.join(packagedAppPath, 'Atom.exe') ]
+            if (argv.createWindowsInstaller) {
+              executablesToSign.push(path.join(__dirname, 'node_modules', 'electron-winstaller', 'vendor', 'Update.exe'))
+            }
+            codeSignOnWindows(executablesToSign)
+          } else {
+            console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
+          }
+          if (argv.createWindowsInstaller) {
+            return createWindowsInstaller(packagedAppPath)
+              .then((installerPath) => {
+                argv.codeSign && codeSignOnWindows([installerPath])
+                return packagedAppPath
+              })
+          } else {
+            console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer.'.gray)
+          }
+          break
+        }
+        case 'linux': {
+          if (argv.createDebianPackage) {
+            createDebianPackage(packagedAppPath)
+          } else {
+            console.log('Skipping creating debian package. Specify the --create-debian-package option to create it.'.gray)
+          }
+
+          if (argv.createRpmPackage) {
+            createRpmPackage(packagedAppPath)
+          } else {
+            console.log('Skipping creating rpm package. Specify the --create-rpm-package option to create it.'.gray)
+          }
+          break
         }
       }
-      case 'linux': {
-        if (argv.createDebianPackage) {
-          createDebianPackage(packagedAppPath)
-        } else {
-          console.log('Skipping creating debian package. Specify the --create-debian-package option to create it.'.gray)
-        }
 
-        if (argv.createRpmPackage) {
-          createRpmPackage(packagedAppPath)
-        } else {
-          console.log('Skipping creating rpm package. Specify the --create-rpm-package option to create it.'.gray)
-        }
+      return Promise.resolve(packagedAppPath)
+    }).then(packagedAppPath => {
+      if (argv.compressArtifacts) {
+        compressArtifacts(packagedAppPath)
+      } else {
+        console.log('Skipping artifacts compression. Specify the --compress-artifacts option to compress Atom binaries (and symbols on macOS)'.gray)
       }
-    }
 
-    return Promise.resolve(packagedAppPath)
-  }).then(packagedAppPath => {
-    if (argv.compressArtifacts) {
-      compressArtifacts(packagedAppPath)
-    } else {
-      console.log('Skipping artifacts compression. Specify the --compress-artifacts option to compress Atom binaries (and symbols on macOS)'.gray)
-    }
-
-    if (argv.install != null) {
-      installApplication(packagedAppPath, argv.install)
-    } else {
-      console.log('Skipping installation. Specify the --install option to install Atom'.gray)
-    }
-  })
+      if (argv.install != null) {
+        installApplication(packagedAppPath, argv.install)
+      } else {
+        console.log('Skipping installation. Specify the --install option to install Atom'.gray)
+      }
+    })
+}

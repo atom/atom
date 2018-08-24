@@ -36,7 +36,7 @@ describe('updateProcessEnv(launchEnv)', function () {
   })
 
   describe('when the launch environment appears to come from a shell', function () {
-    it('updates process.env to match the launch environment', async function () {
+    it('updates process.env to match the launch environment because PWD is set', async function () {
       process.env = {
         WILL_BE_DELETED: 'hi',
         NODE_ENV: 'the-node-env',
@@ -51,6 +51,65 @@ describe('updateProcessEnv(launchEnv)', function () {
         ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
         TERM: 'xterm-something',
+        KEY1: 'value1',
+        KEY2: 'value2',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      })
+
+      // See #11302. On Windows, `process.env` is a magic object that offers
+      // case-insensitive environment variable matching, so we cannot replace it
+      // with another object.
+      expect(process.env).toBe(initialProcessEnv)
+    })
+
+    it('updates process.env to match the launch environment because PROMPT is set', async function () {
+      process.env = {
+        WILL_BE_DELETED: 'hi',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      }
+
+      const initialProcessEnv = process.env
+
+      await updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PROMPT: '$P$G', KEY1: 'value1', KEY2: 'value2'})
+      expect(process.env).toEqual({
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
+        PROMPT: '$P$G',
+        KEY1: 'value1',
+        KEY2: 'value2',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      })
+
+      // See #11302. On Windows, `process.env` is a magic object that offers
+      // case-insensitive environment variable matching, so we cannot replace it
+      // with another object.
+      expect(process.env).toBe(initialProcessEnv)
+    })
+
+    it('updates process.env to match the launch environment because PSModulePath is set', async function () {
+      process.env = {
+        WILL_BE_DELETED: 'hi',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      }
+
+      const initialProcessEnv = process.env
+
+      await updateProcessEnv({
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
+        PSModulePath: 'C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules\\',
+        KEY1: 'value1',
+        KEY2: 'value2'
+      })
+      expect(process.env).toEqual({
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
+        PSModulePath: 'C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules\\',
         KEY1: 'value1',
         KEY2: 'value2',
         NODE_ENV: 'the-node-env',

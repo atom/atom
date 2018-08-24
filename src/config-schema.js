@@ -338,6 +338,14 @@ const configSchema = {
             description: 'Native operating system APIs'
           },
           {
+            value: 'experimental',
+            description: 'Experimental filesystem watching library'
+          },
+          {
+            value: 'poll',
+            description: 'Polling'
+          },
+          {
             value: 'atom',
             description: 'Emulated with Atom events'
           }
@@ -346,7 +354,22 @@ const configSchema = {
       useTreeSitterParsers: {
         type: 'boolean',
         default: false,
-        description: 'Use the new Tree-sitter parsing system for supported languages'
+        description: 'Experimental: Use the new Tree-sitter parsing system for supported languages.'
+      },
+      colorProfile: {
+        description: "Specify whether Atom should use the operating system's color profile (recommended) or an alternative color profile.<br>Changing this setting will require a relaunch of Atom to take effect.",
+        type: 'string',
+        default: 'default',
+        enum: [
+          {
+            value: 'default',
+            description: 'Use color profile configured in the operating system'
+          },
+          {
+            value: 'srgb',
+            description: 'Use sRGB color profile'
+          }
+        ]
       }
     }
   },
@@ -372,7 +395,7 @@ const configSchema = {
       // These can be used as globals or scoped, thus defaults.
       fontFamily: {
         type: 'string',
-        default: '',
+        default: 'Menlo, Consolas, DejaVu Sans Mono, monospace',
         description: 'The name of the font family used for editor text.'
       },
       fontSize: {

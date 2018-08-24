@@ -1,0 +1,97 @@
+
+@import "ui-variables-custom.less"; // import colors and custom variables
+
+// ONE light UI variables
+// ----------------------------------------------
+
+// Official variables
+// These variables must be defined in every theme
+// Source: https://github.com/atom/atom/blob/master/static/variables/ui-variables.less
+// ----------------------------------------------
+
+
+// Text -----------------
+@text-color:            @ui-fg;
+@text-color-subtle:     lighten(@text-color, 30%);
+@text-color-highlight:  darken(@text-color, 12%);
+@text-color-selected:   darken(@text-color-highlight, 12%);
+
+@text-color-info:    hsl(208, 100%, 54%);
+@text-color-success: hsl(132,  60%, 44%);
+@text-color-warning: hsl( 37,  90%, 44%);
+@text-color-error:   hsl(  0,  90%, 56%);
+
+
+// Background -----------------
+@background-color-info:    hsl(208, 100%, 56%);
+@background-color-success: hsl(132,  52%, 48%);
+@background-color-warning: hsl( 40,  60%, 48%);
+@background-color-error:   hsl(  5,  72%, 56%);
+
+@background-color-highlight: darken(@level-3-color, 2%);
+@background-color-selected:  darken(@level-3-color, 6%);
+
+@app-background-color: @level-3-color;
+
+
+// Base -----------------
+@base-background-color: @ui-bg;
+@base-border-color:     @ui-border;
+
+
+// Components -----------------
+@pane-item-background-color:       @base-background-color;
+@pane-item-border-color:           @base-border-color;
+
+@input-background-color:           @level-1-color;
+@input-border-color:               @base-border-color;
+
+@tool-panel-background-color:      @level-3-color;
+@tool-panel-border-color:          @base-border-color;
+
+@inset-panel-background-color:     lighten(@level-2-color, 4%);
+@inset-panel-border-color:         fadeout(@base-border-color, 15%);
+
+@panel-heading-background-color:   @level-2-color;
+@panel-heading-border-color:       @base-border-color;
+
+@overlay-background-color:         mix(@level-2-color, @level-3-color);
+@overlay-border-color:             @base-border-color;
+
+@button-background-color:          @level-1-color;
+@button-background-color-hover:    darken(@button-background-color, 4%);
+@button-background-color-selected: @accent-bg-color;
+@button-border-color:              @base-border-color;
+
+@tab-bar-background-color:         @level-3-color;
+@tab-bar-border-color:             @base-border-color;
+@tab-background-color:             @level-3-color;
+@tab-background-color-active:      @level-2-color;
+@tab-border-color:                 @base-border-color;
+
+@tree-view-background-color:       @level-3-color;
+@tree-view-border-color:           @base-border-color;
+
+@ui-site-color-1: hsl(208, 100%, 56%); // blue
+@ui-site-color-2: hsl(132,  48%, 48%); // green
+@ui-site-color-3: hsl( 40,  60%, 52%); // orange
+@ui-site-color-4: #D831B0;             // pink
+@ui-site-color-5: #EBDD5B;             // yellow
+
+
+// Sizes -----------------
+@font-size:               12px;
+@input-font-size:         14px;
+@disclosure-arrow-size:   12px;
+
+@component-padding:       10px;
+@component-icon-padding:  5px;
+@component-icon-size:     16px; // needs to stay 16px to look sharpest
+@component-line-height:   25px;
+@component-border-radius: 3px;
+
+@tab-height:              30px;
+
+
+// Font -----------------
+@font-family: system-ui;
