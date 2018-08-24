@@ -11,7 +11,7 @@ const fs = require('fs')
 const path = require('path')
 const Grim = require('grim')
 const electron = require('electron')
-const clipboard = require('../src/safe-clipboard')
+const clipboard = electron.clipboard
 
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
 

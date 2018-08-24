@@ -7,7 +7,7 @@ const Config = require('../config')
 const ConfigFile = require('../config-file')
 const FileRecoveryService = require('./file-recovery-service')
 const ipcHelpers = require('../ipc-helpers')
-const {BrowserWindow, Menu, app, dialog, ipcMain, shell, screen} = require('electron')
+const {BrowserWindow, Menu, app, clipboard, dialog, ipcMain, shell, screen} = require('electron')
 const {CompositeDisposable, Disposable} = require('event-kit')
 const crypto = require('crypto')
 const fs = require('fs-plus')
@@ -583,7 +583,6 @@ class AtomApplication extends EventEmitter {
       win.temporaryState = state
     }))
 
-    const clipboard = require('../safe-clipboard')
     this.disposable.add(ipcHelpers.on(ipcMain, 'write-text-to-selection-clipboard', (event, text) =>
       clipboard.writeText(text, 'selection')
     ))
