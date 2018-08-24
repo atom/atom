@@ -4,7 +4,7 @@ phases:
   variables:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
   queue:
-    name: Hosted Linux Preview
+    name: Hosted Ubuntu 1604
     timeoutInMinutes: 180
 
   steps:
@@ -17,8 +17,8 @@ phases:
     displayName: Update npm
 
   - script: |
-      apt-get update
-      apt-get install -y --no-install-recommends build-essential xvfb clang-3.5 fakeroot git libsecret-1-dev rpm libx11-dev libxkbfile-dev xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0
+      sudo apt-get update
+      sudo apt-get install -y --no-install-recommends build-essential xvfb clang-3.5 fakeroot git libsecret-1-dev rpm libx11-dev libxkbfile-dev xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0
     displayName: Install apt dependencies
 
   - script: |
@@ -31,7 +31,7 @@ phases:
     displayName: Run linter
 
   - script: |
-      /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
+      sudo /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
       export DISPLAY=':99.0'
       Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
       script/test
