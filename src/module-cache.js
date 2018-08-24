@@ -335,3 +335,5 @@ exports.add = function (directoryPath, metadata) {
 }
 
 exports.cache = cache
+
+exports.Range = Range
