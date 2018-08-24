@@ -134,7 +134,7 @@ class GrammarRegistry {
     }
 
     this.grammarScoresByBuffer.set(buffer, null)
-    if (grammar.scopeName !== buffer.getLanguageMode().getLanguageId()) {
+    if (grammar !== buffer.getLanguageMode().grammar) {
       buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
     }
 
@@ -161,7 +161,7 @@ class GrammarRegistry {
     )
     this.languageOverridesByBufferId.delete(buffer.id)
     this.grammarScoresByBuffer.set(buffer, result.score)
-    if (result.grammar.scopeName !== buffer.getLanguageMode().getLanguageId()) {
+    if (result.grammar !== buffer.getLanguageMode().grammar) {
       buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(result.grammar, buffer))
     }
   }
