@@ -257,16 +257,8 @@ describe('TextEditorRegistry', function () {
     })
 
     describe('when the "tabType" config setting is "auto"', function () {
-      function nextHighlightUpdatePromise (languageMode) {
-        return new Promise(resolve => {
-          const subscription = languageMode.onDidChangeHighlighting(() => {
-            subscription.dispose()
-            resolve()
-          })
-        })
-      }
-
       it('enables or disables soft tabs based on the editor\'s content', async function () {
+        await initialPackageActivation
         await atom.packages.activatePackage('language-javascript')
         atom.grammars.assignLanguageMode(editor, 'source.js')
         atom.config.set('editor.tabType', 'auto')
@@ -278,7 +270,6 @@ describe('TextEditorRegistry', function () {
             hello;
           }
         `)
-        await nextHighlightUpdatePromise(languageMode)
         let disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(true)
 
@@ -287,7 +278,6 @@ describe('TextEditorRegistry', function () {
           	hello;
           }
         `)
-        await nextHighlightUpdatePromise(languageMode)
         disposable.dispose()
         disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(false)
@@ -297,7 +287,6 @@ describe('TextEditorRegistry', function () {
            * Comment with a leading space.
            */
         ` + '\n')
-        await nextHighlightUpdatePromise(languageMode)
         disposable.dispose()
         disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(false)
@@ -311,7 +300,6 @@ describe('TextEditorRegistry', function () {
           	hello;
           }
         `)
-        await nextHighlightUpdatePromise(languageMode)
         disposable.dispose()
         disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(false)
@@ -325,7 +313,6 @@ describe('TextEditorRegistry', function () {
             hello;
           }
         `)
-        await nextHighlightUpdatePromise(languageMode)
         disposable.dispose()
         disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(true)
