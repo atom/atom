@@ -555,7 +555,7 @@ module.exports = class Workspace extends Model {
     const appName = 'Atom'
     const left = this.project.getPaths()
     const projectPaths = left != null ? left : []
-    const item = this.getActivePaneItem()
+    const item = this.getCenter().getActivePaneItem()
     if (item) {
       itemPath = typeof item.getPath === 'function' ? item.getPath() : undefined
       const longTitle = typeof item.getLongTitle === 'function' ? item.getLongTitle() : undefined
