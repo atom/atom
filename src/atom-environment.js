@@ -64,7 +64,7 @@ class AtomEnvironment {
     this.applicationDelegate = params.applicationDelegate
 
     this.nextProxyRequestId = 0
-    this.unloaded = false
+    this.unloading = false
     this.loadTime = null
     this.emitter = new Emitter()
     this.disposables = new CompositeDisposable()
@@ -280,7 +280,7 @@ class AtomEnvironment {
   attachSaveStateListeners () {
     const saveState = _.debounce(() => {
       this.window.requestIdleCallback(() => {
-        if (!this.unloaded) this.saveState({isUnloading: false})
+        if (!this.unloading) this.saveState({isUnloading: false})
       })
     }, this.saveStateDebounceInterval)
     this.document.addEventListener('mousedown', saveState, true)
@@ -775,7 +775,7 @@ class AtomEnvironment {
       await this.stateStore.clear()
     }
 
-    this.unloaded = false
+    this.unloading = false
 
     const updateProcessEnvPromise = this.updateProcessEnvAndTriggerHooks()
 
@@ -800,21 +800,7 @@ class AtomEnvironment {
       this.disposables.add(this.applicationDelegate.onApplicationMenuCommand(this.dispatchApplicationMenuCommand.bind(this)))
       this.disposables.add(this.applicationDelegate.onContextMenuCommand(this.dispatchContextMenuCommand.bind(this)))
       this.disposables.add(this.applicationDelegate.onURIMessage(this.dispatchURIMessage.bind(this)))
-      this.disposables.add(this.applicationDelegate.onDidRequestUnload(async () => {
-        try {
-          await this.saveState({isUnloading: true})
-        } catch (error) {
-          console.error(error)
-        }
-
-        const closing = !this.workspace || await this.workspace.confirmClose({
-          windowCloseRequested: true,
-          projectHasPaths: this.project.getPaths().length > 0
-        })
-
-        if (closing) await this.packages.deactivatePackages()
-        return closing
-      }))
+      this.disposables.add(this.applicationDelegate.onDidRequestUnload(this.prepareToUnloadEditorWindow.bind(this)))
 
       this.listenForUpdates()
 
@@ -893,12 +879,30 @@ class AtomEnvironment {
     }
   }
 
+  async prepareToUnloadEditorWindow () {
+    try {
+      await this.saveState({isUnloading: true})
+    } catch (error) {
+      console.error(error)
+    }
+
+    const closing = !this.workspace || await this.workspace.confirmClose({
+      windowCloseRequested: true,
+      projectHasPaths: this.project.getPaths().length > 0
+    })
+
+    if (closing) {
+      this.unloading = true
+      await this.packages.deactivatePackages()
+    }
+    return closing
+  }
+
   unloadEditorWindow () {
     if (!this.project) return
 
     this.storeWindowBackground()
     this.saveBlobStoreSync()
-    this.unloaded = true
   }
 
   saveBlobStoreSync () {
