@@ -813,7 +813,7 @@ class AtomEnvironment {
         })
 
         if (closing) {
-          this.unloading = true;
+          this.unloading = true
           await this.packages.deactivatePackages()
         }
         return closing
