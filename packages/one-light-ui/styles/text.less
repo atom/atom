@@ -1,0 +1,84 @@
+h1,
+h2,
+h3 {
+  line-height: 1em;
+  margin-bottom: 15px
+}
+h1 { font-size: 2em; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.2em; }
+
+p {
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+label {
+  font-weight: normal;
+}
+
+pre {
+  box-shadow: none;
+  color: @text-color;
+  background: @inset-panel-background-color;
+  border-radius: @component-border-radius;
+  border: none;
+  margin: 0;
+}
+
+code {
+  .text(highlight);
+  background: @background-color-highlight;
+  border-radius: @component-border-radius;
+}
+
+.selected { .text(highlight); }
+
+.text-smaller { font-size: 0.9em; }
+
+.text-subtle { .text(subtle); }
+.text-highlight { .text(highlight); }
+
+.text-error { .text(error); }
+.text-info {
+  .text(info);
+  &:hover { color: @text-color-info; }
+}
+.text-warning {
+  .text(warning);
+  &:hover { color: @text-color-warning; }
+}
+.text-success {
+  .text(success);
+  &:hover { color: @text-color-success; }
+}
+
+.highlight-mixin {
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.highlight {
+  .highlight-mixin();
+  font-weight: 700;
+  color: @text-color-highlight;
+  background-color: @background-color-highlight;
+}
+
+.highlight-color(@name, @background-color) {
+  .highlight-@{name} {
+    .highlight-mixin();
+    font-weight: 500;
+    color: white;
+    text-shadow: 0 1px 0px hsla(0,0%,0%,.2);
+    background-color: @background-color;
+  }
+}
+.highlight-color(   info, @background-color-info);
+.highlight-color(warning, @background-color-warning);
+.highlight-color(  error, @background-color-error);
+.highlight-color(success, @background-color-success);
+
+.results-view .path-details.list-item {
+  color: darken(@text-color-highlight, 18%);
+}

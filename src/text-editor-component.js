@@ -5,8 +5,8 @@ const {Point, Range} = require('text-buffer')
 const LineTopIndex = require('line-top-index')
 const TextEditor = require('./text-editor')
 const {isPairedCharacter} = require('./text-utils')
-const clipboard = require('./safe-clipboard')
 const electron = require('electron')
+const clipboard = electron.clipboard
 const $ = etch.dom
 
 let TextEditorElement

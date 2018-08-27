@@ -43,7 +43,6 @@ module.exports = function start (resourcePath, devResourcePath, startTime) {
 
   atomPaths.setAtomHome(app.getPath('home'))
   atomPaths.setUserData(app)
-  setupCompileCache()
 
   const config = getConfig()
   const colorProfile = config.get('core.colorProfile')
@@ -102,12 +101,6 @@ function handleStartupEventWithSquirrel () {
   const SquirrelUpdate = require('./squirrel-update')
   const squirrelCommand = process.argv[1]
   return SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
-}
-
-function setupCompileCache () {
-  const CompileCache = require('../compile-cache')
-  CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
-  CompileCache.install(process.resourcesPath, require)
 }
 
 function getConfig () {

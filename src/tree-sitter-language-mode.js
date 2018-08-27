@@ -23,7 +23,7 @@ class TreeSitterLanguageMode {
     }
   }
 
-  constructor ({buffer, grammar, config, grammars}) {
+  constructor ({buffer, grammar, config, grammars, syncOperationLimit}) {
     TreeSitterLanguageMode._patchSyntaxNode()
     this.id = nextId++
     this.buffer = buffer
@@ -33,6 +33,10 @@ class TreeSitterLanguageMode {
     this.parser = new Parser()
     this.rootLanguageLayer = new LanguageLayer(this, grammar)
     this.injectionsMarkerLayer = buffer.addMarkerLayer()
+
+    if (syncOperationLimit != null) {
+      this.syncOperationLimit = syncOperationLimit
+    }
 
     this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.scopeName]})
     this.emitter = new Emitter()
@@ -83,15 +87,23 @@ class TreeSitterLanguageMode {
     }
   }
 
-  async parse (language, oldTree, ranges) {
+  parse (language, oldTree, ranges) {
     const parser = PARSER_POOL.pop() || new Parser()
     parser.setLanguage(language)
-    const newTree = await parser.parseTextBuffer(this.buffer.buffer, oldTree, {
-      syncOperationLimit: 1000,
+    const result = parser.parseTextBuffer(this.buffer.buffer, oldTree, {
+      syncOperationLimit: this.syncOperationLimit,
       includedRanges: ranges
     })
-    PARSER_POOL.push(parser)
-    return newTree
+
+    if (result.then) {
+      return result.then(tree => {
+        PARSER_POOL.push(parser)
+        return tree
+      })
+    } else {
+      PARSER_POOL.push(parser)
+      return result
+    }
   }
 
   get tree () {
@@ -107,6 +119,7 @@ class TreeSitterLanguageMode {
   */
 
   buildHighlightIterator () {
+    if (!this.rootLanguageLayer) return new NullHighlightIterator()
     const layerIterators = [
       this.rootLanguageLayer.buildHighlightIterator(),
       ...this.injectionsMarkerLayer.getMarkers().map(m => m.languageLayer.buildHighlightIterator())
@@ -134,7 +147,15 @@ class TreeSitterLanguageMode {
     return this.grammar.commentStrings
   }
 
-  isRowCommented () {
+  isRowCommented (row) {
+    const firstNonWhitespaceRange = this.buffer.findInRangeSync(
+      /\S/,
+      new Range(new Point(row, 0), new Point(row, Infinity))
+    )
+    if (firstNonWhitespaceRange) {
+      const firstNode = this.getSyntaxNodeContainingRange(firstNonWhitespaceRange)
+      if (firstNode) return firstNode.type.includes('comment')
+    }
     return false
   }
 
@@ -265,7 +286,9 @@ class TreeSitterLanguageMode {
   }
 
   _forEachTreeWithRange (range, callback) {
-    callback(this.rootLanguageLayer.tree, this.rootLanguageLayer.grammar)
+    if (this.rootLanguageLayer.tree) {
+      callback(this.rootLanguageLayer.tree, this.rootLanguageLayer.grammar)
+    }
 
     const injectionMarkers = this.injectionsMarkerLayer.findMarkers({
       intersectsRange: range
@@ -523,11 +546,12 @@ class LanguageLayer {
     this.editedRange = null
 
     this.patchSinceCurrentParseStarted = new Patch()
-    const tree = await this.languageMode.parse(
+    let tree = this.languageMode.parse(
       this.grammar.languageModule,
       this.tree,
       includedRanges
     )
+    if (tree.then) tree = await tree
     tree.buffer = this.languageMode.buffer
 
     const changes = this.patchSinceCurrentParseStarted.getChanges()
@@ -1061,11 +1085,13 @@ function hasMatchingFoldSpec (specs, node) {
   'increaseIndentRegexForScopeDescriptor',
   'decreaseIndentRegexForScopeDescriptor',
   'decreaseNextIndentRegexForScopeDescriptor',
-  'regexForPattern'
+  'regexForPattern',
+  'getNonWordCharacters'
 ].forEach(methodName => {
   TreeSitterLanguageMode.prototype[methodName] = TextMateLanguageMode.prototype[methodName]
 })
 
 TreeSitterLanguageMode.LanguageLayer = LanguageLayer
+TreeSitterLanguageMode.prototype.syncOperationLimit = 1000
 
 module.exports = TreeSitterLanguageMode
