@@ -515,7 +515,9 @@ class LanguageLayer {
   async update (nodeRangeSet) {
     if (!this.currentParsePromise) {
       do {
-        this.currentParsePromise = this._performUpdate(nodeRangeSet)
+        const params = {async: false}
+        this.currentParsePromise = this._performUpdate(nodeRangeSet, params)
+        if (!params.async) break
         await this.currentParsePromise
       } while (this.tree && this.tree.rootNode.hasChanges())
       this.currentParsePromise = null
@@ -532,7 +534,7 @@ class LanguageLayer {
     }
   }
 
-  async _performUpdate (nodeRangeSet) {
+  async _performUpdate (nodeRangeSet, params) {
     let includedRanges = null
     if (nodeRangeSet) {
       includedRanges = nodeRangeSet.getRanges()
@@ -551,7 +553,10 @@ class LanguageLayer {
       this.tree,
       includedRanges
     )
-    if (tree.then) tree = await tree
+    if (tree.then) {
+      params.async = true
+      tree = await tree
+    }
     tree.buffer = this.languageMode.buffer
 
     const changes = this.patchSinceCurrentParseStarted.getChanges()
@@ -590,7 +595,11 @@ class LanguageLayer {
       }
     }
 
-    await this._populateInjections(affectedRange, nodeRangeSet)
+    const injectionPromise = this._populateInjections(affectedRange, nodeRangeSet)
+    if (injectionPromise) {
+      params.async = true
+      return injectionPromise
+    }
   }
 
   _populateInjections (range, nodeRangeSet) {
@@ -651,11 +660,14 @@ class LanguageLayer {
       }
     }
 
-    const promises = []
-    for (const [marker, nodeRangeSet] of markersToUpdate) {
-      promises.push(marker.languageLayer.update(nodeRangeSet))
+    if (markersToUpdate.size > 0) {
+      this.lastUpdateWasAsync = true
+      const promises = []
+      for (const [marker, nodeRangeSet] of markersToUpdate) {
+        promises.push(marker.languageLayer.update(nodeRangeSet))
+      }
+      return Promise.all(promises)
     }
-    return Promise.all(promises)
   }
 
   _treeEditForBufferChange (start, oldEnd, newEnd, oldText, newText) {

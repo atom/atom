@@ -175,7 +175,6 @@ describe('TreeSitterLanguageMode', () => {
       ])
 
       buffer.append(')')
-      await nextHighlightingUpdate(languageMode)
       expectTokensToEqual(editor, [
         [
           {text: 'a', scopes: ['function']},
@@ -459,6 +458,50 @@ describe('TreeSitterLanguageMode', () => {
       })
     })
 
+    describe('when changes are small enough to be re-parsed synchronously', () => {
+      it('can incorporate multiple consecutive synchronous updates', () => {
+        const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+          parser: 'tree-sitter-javascript',
+          scopes: {
+            'property_identifier': 'property',
+            'call_expression > identifier': 'function',
+            'call_expression > member_expression > property_identifier': 'method',
+          }
+        })
+
+        const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+        buffer.setLanguageMode(languageMode)
+        buffer.setText('a');
+        expectTokensToEqual(editor, [[
+          {text: 'a', scopes: []},
+        ]])
+
+        buffer.append('.')
+        expectTokensToEqual(editor, [[
+          {text: 'a.', scopes: []},
+        ]])
+
+        buffer.append('b')
+        expectTokensToEqual(editor, [[
+          {text: 'a.', scopes: []},
+          {text: 'b', scopes: ['property']},
+        ]])
+
+        buffer.append('()')
+        expectTokensToEqual(editor, [[
+          {text: 'a.', scopes: []},
+          {text: 'b', scopes: ['method']},
+          {text: '()', scopes: []},
+        ]])
+
+        buffer.delete([[0, 1], [0, 2]])
+        expectTokensToEqual(editor, [[
+          {text: 'ab', scopes: ['function']},
+          {text: '()', scopes: []},
+        ]])
+      })
+    })
+
     describe('injectionPoints and injectionPatterns', () => {
       let jsGrammar, htmlGrammar
 
@@ -525,7 +568,6 @@ describe('TreeSitterLanguageMode', () => {
 
         const range = buffer.findSync('html')
         buffer.setTextInRange(range, 'xml')
-        await nextHighlightingUpdate(languageMode)
         await nextHighlightingUpdate(languageMode)
 
         expectTokensToEqual(editor, [
