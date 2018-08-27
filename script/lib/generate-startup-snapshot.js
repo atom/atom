@@ -2,6 +2,7 @@ const childProcess = require('child_process')
 const fs = require('fs')
 const path = require('path')
 const electronLink = require('electron-link')
+const terser = require('terser')
 const CONFIG = require('../config')
 
 module.exports = function (packagedAppPath) {
@@ -67,8 +68,16 @@ module.exports = function (packagedAppPath) {
       )
     }
   }).then(({snapshotScript}) => {
-    fs.writeFileSync(snapshotScriptPath, snapshotScript)
     process.stdout.write('\n')
+
+    process.stdout.write('Minifying startup script')
+    const minification = terser.minify(snapshotScript, {
+      keep_classnames: true,
+      compress: {keep_fargs: true, keep_infinity: true}
+    })
+    if (minification.error) throw minification.error
+    process.stdout.write('\n')
+    fs.writeFileSync(snapshotScriptPath, minification.code)
 
     console.log('Verifying if snapshot can be executed via `mksnapshot`')
     const verifySnapshotScriptPath = path.join(CONFIG.repositoryRootPath, 'script', 'verify-snapshot-script')
