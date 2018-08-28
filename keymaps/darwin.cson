@@ -95,6 +95,12 @@
   'cmd-k cmd-down': 'window:focus-pane-below'
   'cmd-k cmd-left': 'window:focus-pane-on-left'
   'cmd-k cmd-right': 'window:focus-pane-on-right'
+
+  'cmd-k cmd-shift-up': 'pane:move-to-very-top' # Atom Specific
+  'cmd-k cmd-shift-down': 'pane:move-to-very-bottom' # Atom Specific
+  'cmd-k cmd-shift-left': 'pane:move-to-very-left' # Atom Specific
+  'cmd-k cmd-shift-right': 'pane:move-to-very-right' # Atom Specific
+
   'cmd-1': 'pane:show-item-1'
   'cmd-2': 'pane:show-item-2'
   'cmd-3': 'pane:show-item-3'
