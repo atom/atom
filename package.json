@@ -157,7 +157,7 @@
     "symbols-view": "https://www.atom.io/api/packages/symbols-view/versions/0.118.2/tarball",
     "tabs": "https://www.atom.io/api/packages/tabs/versions/0.109.2/tarball",
     "temp": "^0.8.3",
-    "text-buffer": "13.14.7",
+    "text-buffer": "13.14.8",
     "timecop": "https://www.atom.io/api/packages/timecop/versions/0.36.2/tarball",
     "tree-sitter": "0.13.8",
     "tree-view": "https://www.atom.io/api/packages/tree-view/versions/0.224.2/tarball",
