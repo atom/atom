@@ -1413,6 +1413,23 @@ describe('TreeSitterLanguageMode', () => {
         'property.name'
       ])
     })
+
+    it('includes the root scope name even when the given position is in trailing whitespace at EOF', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        scopeName: 'source.js',
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          program: 'source.js',
+          property_identifier: 'property.name'
+        }
+      })
+
+      buffer.setText('a; ')
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      expect(editor.scopeDescriptorForBufferPosition([0, 3]).getScopesArray()).toEqual([
+        'source.js'
+      ])
+    })
   })
 
   describe('.bufferRangeForScopeAtPosition(selector?, position)', () => {

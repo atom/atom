@@ -429,6 +429,9 @@ class TreeSitterLanguageMode {
     for (const scope of iterator.getOpenScopeIds()) {
       scopes.push(this.grammar.scopeNameForScopeId(scope, false))
     }
+    if (scopes.length === 0 || scopes[0] !== this.grammar.scopeName) {
+      scopes.unshift(this.grammar.scopeName)
+    }
     return new ScopeDescriptor({scopes})
   }
 
