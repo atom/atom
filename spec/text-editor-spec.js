@@ -560,7 +560,7 @@ describe('TextEditor', () => {
           it('wraps to the end of the previous line', () => {
             editor.setCursorScreenPosition([4, 4])
             editor.moveLeft()
-            expect(editor.getCursorScreenPosition()).toEqual([3, 46])
+            expect(editor.getCursorScreenPosition()).toEqual([3, 49])
           })
         })
 
@@ -790,7 +790,7 @@ describe('TextEditor', () => {
         editor.setCursorScreenPosition([0, 2])
         editor.moveToEndOfLine()
         const cursor = editor.getLastCursor()
-        expect(cursor.getScreenPosition()).toEqual([4, 4])
+        expect(cursor.getScreenPosition()).toEqual([3, 5])
       })
     })
 
