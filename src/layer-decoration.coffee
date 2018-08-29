@@ -1,5 +1,3 @@
-_ = require 'underscore-plus'
-
 idCounter = 0
 nextId = -> idCounter++
 
@@ -7,11 +5,11 @@ nextId = -> idCounter++
 # layer. Created via {TextEditor::decorateMarkerLayer}.
 module.exports =
 class LayerDecoration
-  constructor: (@markerLayer, @displayBuffer, @properties) ->
+  constructor: (@markerLayer, @decorationManager, @properties) ->
     @id = nextId()
     @destroyed = false
     @markerLayerDestroyedDisposable = @markerLayer.onDidDestroy => @destroy()
-    @overridePropertiesByMarkerId = {}
+    @overridePropertiesByMarker = null
 
   # Essential: Destroys the decoration.
   destroy: ->
@@ -19,7 +17,7 @@ class LayerDecoration
     @markerLayerDestroyedDisposable.dispose()
     @markerLayerDestroyedDisposable = null
     @destroyed = true
-    @displayBuffer.didDestroyLayerDecoration(this)
+    @decorationManager.didDestroyLayerDecoration(this)
 
   # Essential: Determine whether this decoration is destroyed.
   #
@@ -44,18 +42,23 @@ class LayerDecoration
   setProperties: (newProperties) ->
     return if @destroyed
     @properties = newProperties
-    @displayBuffer.scheduleUpdateDecorationsEvent()
+    @decorationManager.emitDidUpdateDecorations()
 
   # Essential: Override the decoration properties for a specific marker.
   #
-  # * `marker` The {TextEditorMarker} or {Marker} for which to override
+  # * `marker` The {DisplayMarker} or {Marker} for which to override
   #   properties.
   # * `properties` An {Object} containing properties to apply to this marker.
   #   Pass `null` to clear the override.
   setPropertiesForMarker: (marker, properties) ->
     return if @destroyed
+    @overridePropertiesByMarker ?= new Map()
+    marker = @markerLayer.getMarker(marker.id)
     if properties?
-      @overridePropertiesByMarkerId[marker.id] = properties
+      @overridePropertiesByMarker.set(marker, properties)
     else
-      delete @overridePropertiesByMarkerId[marker.id]
-    @displayBuffer.scheduleUpdateDecorationsEvent()
+      @overridePropertiesByMarker.delete(marker)
+    @decorationManager.emitDidUpdateDecorations()
+
+  getPropertiesForMarker: (marker) ->
+    @overridePropertiesByMarker?.get(marker)

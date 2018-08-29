@@ -1,16 +1,15 @@
-'use babel'
-
-import AutoUpdateManager from '../src/auto-update-manager'
-import {remote} from 'electron'
+const AutoUpdateManager = require('../src/auto-update-manager')
+const {remote} = require('electron')
 const electronAutoUpdater = remote.require('electron').autoUpdater
 
 describe('AutoUpdateManager (renderer)', () => {
+  if (process.platform !== 'darwin') return // Tests are tied to electron autoUpdater, we use something else on Linux and Win32
+
   let autoUpdateManager
 
   beforeEach(() => {
-    autoUpdateManager = new AutoUpdateManager({
-      applicationDelegate: atom.applicationDelegate
-    })
+    autoUpdateManager = new AutoUpdateManager({applicationDelegate: atom.applicationDelegate})
+    autoUpdateManager.initialize()
   })
 
   afterEach(() => {
@@ -64,9 +63,19 @@ describe('AutoUpdateManager (renderer)', () => {
     })
   })
 
+  describe('::onUpdateError', () => {
+    it('subscribes to "update-error" event', () => {
+      const spy = jasmine.createSpy('spy')
+      autoUpdateManager.onUpdateError(spy)
+      electronAutoUpdater.emit('error', {}, 'an error message')
+      waitsFor(() => spy.callCount === 1)
+      runs(() => expect(autoUpdateManager.getErrorMessage()).toBe('an error message'))
+    })
+  })
+
   describe('::platformSupportsUpdates', () => {
     let state, releaseChannel
-    it('returns true on OS X and Windows when in stable', () => {
+    it('returns true on macOS and Windows when in stable', () => {
       spyOn(autoUpdateManager, 'getState').andCallFake(() =>  state)
       spyOn(atom, 'getReleaseChannel').andCallFake(() => releaseChannel)
 

@@ -1,4 +1,4 @@
-_ = require 'underscore-plus'
+Grim = require 'grim'
 fs = require 'fs-plus'
 path = require 'path'
 {ipcRenderer} = require 'electron'
@@ -6,6 +6,10 @@ path = require 'path'
 module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   window[key] = value for key, value of require '../vendor/jasmine'
   require 'jasmine-tagged'
+
+  if process.env.TEST_JUNIT_XML_PATH
+    require 'jasmine-reporters'
+    jasmine.getEnv().addReporter new jasmine.JUnitXmlReporter(process.env.TEST_JUNIT_XML_PATH, true, true)
 
   # Allow document.title to be assigned in specs without screwing up spec window title
   documentTitle = null
@@ -96,13 +100,10 @@ buildTerminalReporter = (logFile, resolveWithExitCode) ->
       log(str)
     onComplete: (runner) ->
       fs.closeSync(logStream) if logStream?
-      if process.env.JANKY_SHA1 or process.env.CI
-        grim = require 'grim'
-
-        if grim.getDeprecationsLength() > 0
-          grim.logDeprecations()
-          resolveWithExitCode(1)
-          return
+      if Grim.getDeprecationsLength() > 0
+        Grim.logDeprecations()
+        resolveWithExitCode(1)
+        return
 
       if runner.results().failedCount > 0
         resolveWithExitCode(1)

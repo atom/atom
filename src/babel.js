@@ -11,7 +11,8 @@ var PREFIXES = [
   '/** @babel */',
   '"use babel"',
   '\'use babel\'',
-  '/* @flow */'
+  '/* @flow */',
+  '// @flow'
 ]
 
 var PREFIX_LENGTH = Math.max.apply(Math, PREFIXES.map(function (prefix) {
@@ -47,6 +48,10 @@ exports.compile = function (sourceCode, filePath) {
     var noop = function () {}
     Logger.prototype.debug = noop
     Logger.prototype.verbose = noop
+  }
+
+  if (process.platform === 'win32') {
+    filePath = 'file:///' + path.resolve(filePath).replace(/\\/g, '/')
   }
 
   var options = {filename: filePath}

@@ -7,6 +7,13 @@
       { label: '&Open File…', command: 'application:open-file' }
       { label: 'Open Folder…', command: 'application:open-folder' }
       { label: 'Add Project Folder…', command: 'application:add-project-folder' }
+      {
+        label: 'Reopen Project',
+        submenu: [
+          { label: 'Clear Project History', command: 'application:clear-project-history' }
+          { type: 'separator' }
+        ]
+      }
       { label: 'Reopen Last &Item', command: 'pane:reopen-closed-item' }
       { type: 'separator' }
       { label: 'Se&ttings', command: 'application:show-settings' }
@@ -39,6 +46,7 @@
       { label: '&Copy', command: 'core:copy' }
       { label: 'Copy Pat&h', command: 'editor:copy-path' }
       { label: '&Paste', command: 'core:paste' }
+      { label: 'Paste Without Reformatting', command: 'editor:paste-without-reformatting' }
       { label: 'Select &All', command: 'core:select-all' }
       { type: 'separator' }
       { label: '&Toggle Comments', command: 'editor:toggle-line-comments' }
@@ -54,6 +62,13 @@
           { label: 'Du&plicate Lines', command: 'editor:duplicate-lines' }
           { label: 'D&elete Line', command: 'editor:delete-line' }
           { label: '&Join Lines', command: 'editor:join-lines' }
+        ]
+      }
+      {
+        label: 'Columns',
+        submenu: [
+          { label: 'Move Selection &Left', command: 'editor:move-selection-left' }
+          { label: 'Move Selection &Right', command: 'editor:move-selection-right' }
         ]
       }
       {
@@ -75,9 +90,9 @@
         submenu: [
           { label: '&Fold', command: 'editor:fold-current-row' }
           { label: '&Unfold', command: 'editor:unfold-current-row' }
+          { label: 'Fol&d All', command: 'editor:fold-all' }
           { label: 'Unfold &All', command: 'editor:unfold-all' }
           { type: 'separator' }
-          { label: 'Fol&d All', command: 'editor:fold-all' }
           { label: 'Fold Level 1', command: 'editor:fold-at-indent-level-1' }
           { label: 'Fold Level 2', command: 'editor:fold-at-indent-level-2' }
           { label: 'Fold Level 3', command: 'editor:fold-at-indent-level-3' }
@@ -100,10 +115,10 @@
       {
         label: 'Panes'
         submenu: [
-          { label: 'Split Up', command: 'pane:split-up' }
-          { label: 'Split Down', command: 'pane:split-down' }
-          { label: 'Split Left', command: 'pane:split-left' }
-          { label: 'Split Right', command: 'pane:split-right' }
+          { label: 'Split Up', command: 'pane:split-up-and-copy-active-item' }
+          { label: 'Split Down', command: 'pane:split-down-and-copy-active-item' }
+          { label: 'Split Left', command: 'pane:split-left-and-copy-active-item' }
+          { label: 'Split Right', command: 'pane:split-right-and-copy-active-item' }
           { type: 'separator' }
           { label: 'Focus Next Pane', command: 'window:focus-next-pane' }
           { label: 'Focus Previous Pane', command: 'window:focus-previous-pane' }
@@ -122,6 +137,7 @@
           { label: 'Open In &Dev Mode…', command: 'application:open-dev' }
           { label: '&Reload Window', command: 'window:reload' }
           { label: 'Run Package &Specs', command: 'window:run-package-specs' }
+          { label: 'Run &Benchmarks', command: 'window:run-benchmarks' }
           { label: 'Toggle Developer &Tools', command: 'window:toggle-dev-tools' }
         ]
       }
@@ -200,19 +216,19 @@
     {label: 'Delete', command: 'core:delete'}
     {label: 'Select All', command: 'core:select-all'}
     {type: 'separator'}
-    {label: 'Split Up', command: 'pane:split-up'}
-    {label: 'Split Down', command: 'pane:split-down'}
-    {label: 'Split Left', command: 'pane:split-left'}
-    {label: 'Split Right', command: 'pane:split-right'}
+    {label: 'Split Up', command: 'pane:split-up-and-copy-active-item'}
+    {label: 'Split Down', command: 'pane:split-down-and-copy-active-item'}
+    {label: 'Split Left', command: 'pane:split-left-and-copy-active-item'}
+    {label: 'Split Right', command: 'pane:split-right-and-copy-active-item'}
     {label: 'Close Pane', command: 'pane:close'}
     {type: 'separator'}
   ]
   'atom-pane': [
     {type: 'separator'}
-    {label: 'Split Up', command: 'pane:split-up'}
-    {label: 'Split Down', command: 'pane:split-down'}
-    {label: 'Split Left', command: 'pane:split-left'}
-    {label: 'Split Right', command: 'pane:split-right'}
+    {label: 'Split Up', command: 'pane:split-up-and-copy-active-item'}
+    {label: 'Split Down', command: 'pane:split-down-and-copy-active-item'}
+    {label: 'Split Left', command: 'pane:split-left-and-copy-active-item'}
+    {label: 'Split Right', command: 'pane:split-right-and-copy-active-item'}
     {label: 'Close Pane', command: 'pane:close'}
     {type: 'separator'}
   ]

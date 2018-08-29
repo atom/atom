@@ -8,7 +8,6 @@ describe "Task", ->
       task = Task.once require.resolve('./fixtures/task-spec-handler'), (result) ->
         handlerResult = result
 
-      processClosed = false
       processErrored = false
       childProcess = task.childProcess
       spyOn(childProcess, 'kill').andCallThrough()

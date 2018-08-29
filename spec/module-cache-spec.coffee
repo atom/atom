@@ -1,20 +1,24 @@
 path = require 'path'
 Module = require 'module'
 fs = require 'fs-plus'
-temp = require 'temp'
+temp = require('temp').track()
 ModuleCache = require '../src/module-cache'
 
 describe 'ModuleCache', ->
   beforeEach ->
     spyOn(Module, '_findPath').andCallThrough()
 
-  it 'resolves atom shell module paths without hitting the filesystem', ->
+  afterEach ->
+    try
+      temp.cleanupSync()
+
+  it 'resolves Electron module paths without hitting the filesystem', ->
     builtins = ModuleCache.cache.builtins
     expect(Object.keys(builtins).length).toBeGreaterThan 0
 
     for builtinName, builtinPath of builtins
       expect(require.resolve(builtinName)).toBe builtinPath
-      expect(fs.isFileSync(require.resolve(builtinName)))
+      expect(fs.isFileSync(require.resolve(builtinName))).toBeTruthy()
 
     expect(Module._findPath.callCount).toBe 0
 

@@ -6,26 +6,24 @@
 @import "./variables/ui-variables";
 @import "ui-variables";
 
+// Octicons
 @import "octicon-utf-codes";
 @import "octicon-mixins";
-
-@import "workspace-view";
-@import "bootstrap-overrides";
-@import "badges";
-@import "buttons";
-@import "icons";
-@import "links";
-@import "panes";
-@import "panels";
-@import "sections";
-@import "lists";
-@import "popover-list";
-@import "messages";
-@import "markdown";
-@import "text-editor-light";
-@import "select-list";
-@import "syntax";
-@import "text";
-@import "utilities";
 @import "octicons";
+
+// Normalize + scaffolding
+@import "normalize";
+@import "scaffolding";
+
+// Core components
 @import "cursors";
+@import "panels";
+@import "docks";
+@import "panes";
+@import "syntax";
+@import "text-editor";
+@import "title-bar";
+@import "workspace-view";
+
+// Atom UI library
+@import "../node_modules/atom-ui/atom-ui.less";

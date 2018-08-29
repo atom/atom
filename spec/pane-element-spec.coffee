@@ -1,14 +1,20 @@
 PaneContainer = require '../src/pane-container'
 
 describe "PaneElement", ->
-  [paneElement, container, pane] = []
+  [paneElement, container, containerElement, pane] = []
 
   beforeEach ->
     spyOn(atom.applicationDelegate, "open")
 
-    container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+    container = new PaneContainer
+      location: 'center'
+      config: atom.config
+      confirm: atom.confirm.bind(atom)
+      viewRegistry: atom.views
+      applicationDelegate: atom.applicationDelegate
+    containerElement = container.getElement()
     pane = container.getActivePane()
-    paneElement = atom.views.getView(pane)
+    paneElement = pane.getElement()
 
   describe "when the pane's active status changes", ->
     it "adds or removes the .active class as appropriate", ->
@@ -107,6 +113,53 @@ describe "PaneElement", ->
         expect(paneElement.dataset.activeItemPath).toBeUndefined()
         expect(paneElement.dataset.activeItemName).toBeUndefined()
 
+      describe "when the path of the item changes", ->
+        [item1, item2] = []
+
+        beforeEach ->
+          item1 = document.createElement('div')
+          item1.path = '/foo/bar.txt'
+          item1.changePathCallbacks = []
+          item1.setPath = (path) ->
+            @path = path
+            callback() for callback in @changePathCallbacks
+            return
+          item1.getPath = -> @path
+          item1.onDidChangePath = (callback) ->
+            @changePathCallbacks.push callback
+            return dispose: =>
+              @changePathCallbacks = @changePathCallbacks.filter (f) -> f isnt callback
+
+          item2 = document.createElement('div')
+
+          pane.addItem(item1)
+          pane.addItem(item2)
+
+        it "changes the file path and file name data attributes on the pane if the active item path is changed", ->
+
+          expect(paneElement.dataset.activeItemPath).toBe '/foo/bar.txt'
+          expect(paneElement.dataset.activeItemName).toBe 'bar.txt'
+
+          item1.setPath "/foo/bar1.txt"
+
+          expect(paneElement.dataset.activeItemPath).toBe '/foo/bar1.txt'
+          expect(paneElement.dataset.activeItemName).toBe 'bar1.txt'
+
+          pane.activateItem(item2)
+
+          expect(paneElement.dataset.activeItemPath).toBeUndefined()
+          expect(paneElement.dataset.activeItemName).toBeUndefined()
+
+          item1.setPath "/foo/bar2.txt"
+
+          expect(paneElement.dataset.activeItemPath).toBeUndefined()
+          expect(paneElement.dataset.activeItemName).toBeUndefined()
+
+          pane.activateItem(item1)
+
+          expect(paneElement.dataset.activeItemPath).toBe '/foo/bar2.txt'
+          expect(paneElement.dataset.activeItemName).toBe 'bar2.txt'
+
   describe "when an item is removed from the pane", ->
     describe "when the destroyed item is an element", ->
       it "removes the item from the itemViews div", ->
@@ -114,7 +167,7 @@ describe "PaneElement", ->
         item2 = document.createElement('div')
         pane.addItem(item1)
         pane.addItem(item2)
-        paneElement = atom.views.getView(pane)
+        paneElement = pane.getElement()
 
         expect(item1.parentElement).toBe paneElement.itemViews
         pane.destroyItem(item1)
@@ -156,6 +209,10 @@ describe "PaneElement", ->
       paneElement.focus()
       expect(document.activeElement).toBe item
 
+      document.body.focus()
+      pane.activate()
+      expect(document.activeElement).toBe item
+
     it "makes the pane active", ->
       pane.splitRight()
       expect(pane.isActive()).toBe false
@@ -164,6 +221,24 @@ describe "PaneElement", ->
       paneElement.focus()
 
       expect(pane.isActive()).toBe true
+
+    it "does not re-activate the pane when focus changes within the pane", ->
+      item = document.createElement('div')
+      itemChild = document.createElement('div')
+      item.tabIndex = -1
+      itemChild.tabIndex = -1
+      item.appendChild(itemChild)
+      jasmine.attachToDOM(paneElement)
+
+      pane.activateItem(item)
+      pane.activate()
+
+      activationCount = 0
+      pane.onDidActivate ->
+        activationCount++
+
+      itemChild.focus()
+      expect(activationCount).toBe(0)
 
   describe "when the pane element is attached", ->
     it "focuses the pane element if isFocused() returns true on its model", ->
@@ -195,3 +270,18 @@ describe "PaneElement", ->
         event = buildDragEvent("drop", [])
         paneElement.dispatchEvent(event)
         expect(atom.applicationDelegate.open).not.toHaveBeenCalled()
+
+  describe "resize", ->
+    it "shrinks independently of its contents' width", ->
+      jasmine.attachToDOM(containerElement)
+      item = document.createElement('div')
+      item.style.width = "2000px"
+      item.style.height = "30px"
+      paneElement.insertBefore(item, paneElement.children[0])
+
+      paneElement.style.flexGrow = 0.1
+      expect(paneElement.getBoundingClientRect().width).toBeGreaterThan(0)
+      expect(paneElement.getBoundingClientRect().width).toBeLessThan(item.getBoundingClientRect().width)
+
+      paneElement.style.flexGrow = 0
+      expect(paneElement.getBoundingClientRect().width).toBe(0)

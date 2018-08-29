@@ -9,11 +9,22 @@ else
   exit 1
 fi
 
-if [ "$(basename $0)" == 'atom-beta' ]; then
-  BETA_VERSION=true
-else
-  BETA_VERSION=
-fi
+case $(basename $0) in
+  atom-beta)
+    CHANNEL=beta
+    ;;
+  atom-nightly)
+    CHANNEL=nightly
+    ;;
+  atom-dev)
+    CHANNEL=dev
+    ;;
+  *)
+    CHANNEL=stable
+    ;;
+esac
+
+export ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT=true
 
 while getopts ":wtfvh-:" opt; do
   case "$opt" in
@@ -26,8 +37,11 @@ while getopts ":wtfvh-:" opt; do
           REDIRECT_STDERR=1
           EXPECT_OUTPUT=1
           ;;
-        foreground|test)
+        foreground|benchmark|benchmark-test|test)
           EXPECT_OUTPUT=1
+          ;;
+        enable-electron-logging)
+          export ELECTRON_ENABLE_LOGGING=1
           ;;
       esac
       ;;
@@ -48,37 +62,59 @@ if [ $REDIRECT_STDERR ]; then
   exec 2> /dev/null
 fi
 
-if [ $EXPECT_OUTPUT ]; then
-  export ELECTRON_ENABLE_LOGGING=1
-fi
+ATOM_HOME="${ATOM_HOME:-$HOME/.atom}"
+mkdir -p "$ATOM_HOME"
 
 if [ $OS == 'Mac' ]; then
-  if [ -n "$BETA_VERSION" ]; then
-    ATOM_APP_NAME="Atom Beta.app"
+  if [ -L "$0" ]; then
+    SCRIPT="$(readlink "$0")"
   else
-    ATOM_APP_NAME="Atom.app"
+    SCRIPT="$0"
+  fi
+  ATOM_APP="$(dirname "$(dirname "$(dirname "$(dirname "$SCRIPT")")")")"
+  if [ "$ATOM_APP" == . ]; then
+    unset ATOM_APP
+  else
+    ATOM_PATH="$(dirname "$ATOM_APP")"
+    ATOM_APP_NAME="$(basename "$ATOM_APP")"
+  fi
+
+  if [ ! -z "${ATOM_APP_NAME}" ]; then
+    # If ATOM_APP_NAME is known, use it as the executable name
+    ATOM_EXECUTABLE_NAME="${ATOM_APP_NAME%.*}"
+  else
+    # Else choose it from the inferred channel name
+    if [ "$CHANNEL" == 'beta' ]; then
+      ATOM_EXECUTABLE_NAME="Atom Beta"
+    elif [ "$CHANNEL" == 'nightly' ]; then
+      ATOM_EXECUTABLE_NAME="Atom Nightly"
+    elif [ "$CHANNEL" == 'dev' ]; then
+      ATOM_EXECUTABLE_NAME="Atom Dev"
+    else
+      ATOM_EXECUTABLE_NAME="Atom"
+    fi
   fi
 
   if [ -z "${ATOM_PATH}" ]; then
-    # If ATOM_PATH isnt set, check /Applications and then ~/Applications for Atom.app
+    # If ATOM_PATH isn't set, check /Applications and then ~/Applications for Atom.app
     if [ -x "/Applications/$ATOM_APP_NAME" ]; then
       ATOM_PATH="/Applications"
     elif [ -x "$HOME/Applications/$ATOM_APP_NAME" ]; then
       ATOM_PATH="$HOME/Applications"
     else
-      # We havent found an Atom.app, use spotlight to search for Atom
+      # We haven't found an Atom.app, use spotlight to search for Atom
       ATOM_PATH="$(mdfind "kMDItemCFBundleIdentifier == 'com.github.atom'" | grep -v ShipIt | head -1 | xargs -0 dirname)"
 
       # Exit if Atom can't be found
       if [ ! -x "$ATOM_PATH/$ATOM_APP_NAME" ]; then
-        echo "Cannot locate Atom.app, it is usually located in /Applications. Set the ATOM_PATH environment variable to the directory containing Atom.app."
+        echo "Cannot locate ${ATOM_APP_NAME}, it is usually located in /Applications. Set the ATOM_PATH environment variable to the directory containing ${ATOM_APP_NAME}."
         exit 1
       fi
     fi
   fi
 
   if [ $EXPECT_OUTPUT ]; then
-    "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/Atom" --executed-from="$(pwd)" --pid=$$ "$@"
+    "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/$ATOM_EXECUTABLE_NAME" --executed-from="$(pwd)" --pid=$$ "$@"
     exit $?
   else
     open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ --path-environment="$PATH" "$@"
@@ -87,14 +123,20 @@ elif [ $OS == 'Linux' ]; then
   SCRIPT=$(readlink -f "$0")
   USR_DIRECTORY=$(readlink -f $(dirname $SCRIPT)/..)
 
-  if [ -n "$BETA_VERSION" ]; then
-    ATOM_PATH="$USR_DIRECTORY/share/atom-beta/atom"
-  else
-    ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
-  fi
-
-  ATOM_HOME="${ATOM_HOME:-$HOME/.atom}"
-  mkdir -p "$ATOM_HOME"
+  case $CHANNEL in
+    beta)
+      ATOM_PATH="$USR_DIRECTORY/share/atom-beta/atom"
+      ;;
+    nightly)
+      ATOM_PATH="$USR_DIRECTORY/share/atom-nightly/atom"
+      ;;
+    dev)
+      ATOM_PATH="$USR_DIRECTORY/share/atom-dev/atom"
+      ;;
+    *)
+      ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
+      ;;
+  esac
 
   : ${TMPDIR:=/tmp}
 
@@ -120,8 +162,20 @@ on_die() {
 }
 trap 'on_die' SIGQUIT SIGTERM
 
-# If the wait flag is set, don't exit this process until Atom tells it to.
+# If the wait flag is set, don't exit this process until Atom kills it.
 if [ $WAIT ]; then
+  WAIT_FIFO="$ATOM_HOME/.wait_fifo"
+
+  if [ ! -p "$WAIT_FIFO" ]; then
+    rm -f "$WAIT_FIFO"
+    mkfifo "$WAIT_FIFO"
+  fi
+
+  # Block endlessly by reading from a named pipe.
+  exec 2>/dev/null
+  read < "$WAIT_FIFO"
+
+  # If the read completes for some reason, fall back to sleeping in a loop.
   while true; do
     sleep 1
   done

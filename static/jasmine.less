@@ -1,19 +1,40 @@
+@import "ui-variables";
 @import "octicon-mixins";
 
-#jasmine_content {
-  position: fixed;
-  right: 100%;
+html {
+  background-color: @base-background-color;
 }
 
 body {
-  background-color: #fff;
   padding: 0;
+  background-color: transparent;
+}
+
+.spec-reporter-container {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  z-index: 99999;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 .spec-reporter {
+  flex: 1 1 0;
+  overflow-y: auto;
   font-size: 11px;
   line-height: 1.6em;
   color: #333;
+  background-color: hsl(0, 0%, 98%);
+
+  // 578px initial window height, resize to see underlying editor
+  @media (min-height: 578px) {
+    flex: 0 1 75%;
+    min-height: 578px;
+  }
 
   .list-unstyled {
     list-style: none;
@@ -144,6 +165,7 @@ body {
     font-weight: bold;
     color: #d9534f;
     padding: 5px 0 5px 0;
+    white-space: pre-wrap;
   }
 
   .result-message.deprecation-message {
@@ -166,7 +188,7 @@ body {
     margin: 5px 0 0 0;
     border-radius: 2px;
     line-height: 18px;
-    color: #666;
+    color: #ccc;
     border: 1px solid #ddd;
     overflow: auto;
   }

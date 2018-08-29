@@ -9,16 +9,18 @@ describe "NativeCompileCache", ->
   beforeEach ->
     cachedFiles = []
     fakeCacheStore = jasmine.createSpyObj("cache store", ["set", "get", "has", "delete"])
-    fakeCacheStore.has.andCallFake (cacheKey, invalidationKey) ->
-      fakeCacheStore.get(cacheKey, invalidationKey)?
-    fakeCacheStore.get.andCallFake (cacheKey, invalidationKey) ->
+
+    fakeCacheStore.has.andCallFake (cacheKey) ->
+      fakeCacheStore.get(cacheKey)?
+
+    fakeCacheStore.get.andCallFake (cacheKey) ->
       for entry in cachedFiles by -1
         continue if entry.cacheKey isnt cacheKey
-        continue if entry.invalidationKey isnt invalidationKey
         return entry.cacheBuffer
       return
-    fakeCacheStore.set.andCallFake (cacheKey, invalidationKey, cacheBuffer) ->
-      cachedFiles.push({cacheKey, invalidationKey, cacheBuffer})
+
+    fakeCacheStore.set.andCallFake (cacheKey, cacheBuffer) ->
+      cachedFiles.push({cacheKey, cacheBuffer})
 
     nativeCompileCache.setCacheStore(fakeCacheStore)
     nativeCompileCache.setV8Version("a-v8-version")
@@ -29,13 +31,10 @@ describe "NativeCompileCache", ->
     fn2 = require('./fixtures/native-cache/file-2')
 
     expect(cachedFiles.length).toBe(2)
-
-    expect(cachedFiles[0].cacheKey).toBe(require.resolve('./fixtures/native-cache/file-1'))
     expect(cachedFiles[0].cacheBuffer).toBeInstanceOf(Uint8Array)
     expect(cachedFiles[0].cacheBuffer.length).toBeGreaterThan(0)
     expect(fn1()).toBe(1)
 
-    expect(cachedFiles[1].cacheKey).toBe(require.resolve('./fixtures/native-cache/file-2'))
     expect(cachedFiles[1].cacheBuffer).toBeInstanceOf(Uint8Array)
     expect(cachedFiles[1].cacheBuffer.length).toBeGreaterThan(0)
     expect(fn2()).toBe(2)
@@ -51,7 +50,6 @@ describe "NativeCompileCache", ->
       fn4 = require('./fixtures/native-cache/file-4')
 
       expect(cachedFiles.length).toBe(1)
-      expect(cachedFiles[0].cacheKey).toBe(require.resolve('./fixtures/native-cache/file-4'))
       expect(cachedFiles[0].cacheBuffer).toBeInstanceOf(Uint8Array)
       expect(cachedFiles[0].cacheBuffer.length).toBeGreaterThan(0)
       expect(fn4()).toBe("file-4")
@@ -61,8 +59,6 @@ describe "NativeCompileCache", ->
       fn4 = require('./fixtures/native-cache/file-4')
 
       expect(cachedFiles.length).toBe(2)
-      expect(cachedFiles[1].cacheKey).toBe(require.resolve('./fixtures/native-cache/file-4'))
-      expect(cachedFiles[1].invalidationKey).not.toBe(cachedFiles[0].invalidationKey)
       expect(cachedFiles[1].cacheBuffer).toBeInstanceOf(Uint8Array)
       expect(cachedFiles[1].cacheBuffer.length).toBeGreaterThan(0)
 
@@ -79,7 +75,6 @@ describe "NativeCompileCache", ->
       fn5 = require('./fixtures/native-cache/file-5')
 
       expect(cachedFiles.length).toBe(1)
-      expect(cachedFiles[0].cacheKey).toBe(require.resolve('./fixtures/native-cache/file-5'))
       expect(cachedFiles[0].cacheBuffer).toBeInstanceOf(Uint8Array)
       expect(cachedFiles[0].cacheBuffer.length).toBeGreaterThan(0)
       expect(fn5()).toBe("file-5")
@@ -89,8 +84,6 @@ describe "NativeCompileCache", ->
       fn5 = require('./fixtures/native-cache/file-5')
 
       expect(cachedFiles.length).toBe(2)
-      expect(cachedFiles[1].cacheKey).toBe(require.resolve('./fixtures/native-cache/file-5'))
-      expect(cachedFiles[1].invalidationKey).not.toBe(cachedFiles[0].invalidationKey)
       expect(cachedFiles[1].cacheBuffer).toBeInstanceOf(Uint8Array)
       expect(cachedFiles[1].cacheBuffer.length).toBeGreaterThan(0)
 
@@ -100,5 +93,5 @@ describe "NativeCompileCache", ->
 
     fn3 = require('./fixtures/native-cache/file-3')
 
-    expect(fakeCacheStore.delete).toHaveBeenCalledWith(require.resolve('./fixtures/native-cache/file-3'))
+    expect(fakeCacheStore.delete).toHaveBeenCalled()
     expect(fn3()).toBe(3)

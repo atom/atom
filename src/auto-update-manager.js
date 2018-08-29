@@ -1,25 +1,29 @@
-'use babel'
+const {Emitter, CompositeDisposable} = require('event-kit')
 
-import {Emitter, CompositeDisposable} from 'event-kit'
-
-export default class AutoUpdateManager {
+module.exports =
+class AutoUpdateManager {
   constructor ({applicationDelegate}) {
     this.applicationDelegate = applicationDelegate
     this.subscriptions = new CompositeDisposable()
     this.emitter = new Emitter()
+  }
 
+  initialize () {
     this.subscriptions.add(
-      applicationDelegate.onDidBeginCheckingForUpdate(() => {
+      this.applicationDelegate.onDidBeginCheckingForUpdate(() => {
         this.emitter.emit('did-begin-checking-for-update')
       }),
-      applicationDelegate.onDidBeginDownloadingUpdate(() => {
+      this.applicationDelegate.onDidBeginDownloadingUpdate(() => {
         this.emitter.emit('did-begin-downloading-update')
       }),
-      applicationDelegate.onDidCompleteDownloadingUpdate((details) => {
+      this.applicationDelegate.onDidCompleteDownloadingUpdate((details) => {
         this.emitter.emit('did-complete-downloading-update', details)
       }),
-      applicationDelegate.onUpdateNotAvailable(() => {
+      this.applicationDelegate.onUpdateNotAvailable(() => {
         this.emitter.emit('update-not-available')
+      }),
+      this.applicationDelegate.onUpdateError(() => {
+        this.emitter.emit('update-error')
       })
     )
   }
@@ -39,6 +43,10 @@ export default class AutoUpdateManager {
 
   getState () {
     return this.applicationDelegate.getAutoUpdateManagerState()
+  }
+
+  getErrorMessage () {
+    return this.applicationDelegate.getAutoUpdateManagerErrorMessage()
   }
 
   platformSupportsUpdates () {
@@ -65,6 +73,10 @@ export default class AutoUpdateManager {
 
   onUpdateNotAvailable (callback) {
     return this.emitter.on('update-not-available', callback)
+  }
+
+  onUpdateError (callback) {
+    return this.emitter.on('update-error', callback)
   }
 
   getPlatform () {
