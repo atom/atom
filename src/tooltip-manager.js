@@ -153,11 +153,11 @@ class TooltipManager {
     }
 
     window.addEventListener('resize', hideTooltip)
-    window.addEventListener('keydown', hideTooltip)
+    window.addEventListener('keydown', hideTooltip, { capture: true })
 
     const disposable = new Disposable(() => {
       window.removeEventListener('resize', hideTooltip)
-      window.removeEventListener('keydown', hideTooltip)
+      window.removeEventListener('keydown', hideTooltip, { capture: true })
       hideTooltip()
       tooltip.destroy()
 
