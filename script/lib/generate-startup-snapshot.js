@@ -72,6 +72,7 @@ module.exports = function (packagedAppPath) {
 
     process.stdout.write('Minifying startup script')
     const minification = terser.minify(snapshotScript, {
+      keep_fnames: true,
       keep_classnames: true,
       compress: {keep_fargs: true, keep_infinity: true}
     })
