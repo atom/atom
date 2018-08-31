@@ -2,9 +2,9 @@ trigger:
 - master
 - 1.* # VSTS only supports wildcards at the end
 
-phases:
+jobs:
 
-- phase: GetReleaseVersion
+- job: GetReleaseVersion
   steps:
   # This has to be done separately because VSTS inexplicably
   # exits the script block after `npm install` completes.
@@ -20,9 +20,10 @@ phases:
 - template: platforms/macos.yml
 - template: platforms/linux.yml
 
-- phase: UploadArtifacts
-  queue: Hosted  # Need this for Python 2.7
-
+- job: UploadArtifacts
+  pool: 
+    vmImage: vs2017-win2016  
+    
   dependsOn:
   - GetReleaseVersion
   - Windows
@@ -34,7 +35,12 @@ phases:
     IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
     IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
-  steps:
+  steps:  
+  - task: UsePythonVersion@0
+    displayName: 'Use Python 2.7.x'
+    inputs:
+      versionSpec: 2.7.x
+
   - task: NodeTool@0
     inputs:
       versionSpec: 8.9.3

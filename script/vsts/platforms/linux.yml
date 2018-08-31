@@ -1,11 +1,12 @@
 jobs:
 - job: Linux
   dependsOn: GetReleaseVersion
+  timeoutInMinutes: 180
+  
   variables:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
   pool:
     vmImage: ubuntu-16.04
-    timeoutInMinutes: 180
 
   steps:
   - task: NodeTool@0

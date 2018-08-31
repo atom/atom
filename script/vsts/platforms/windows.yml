@@ -1,21 +1,23 @@
 jobs:
 - job: Windows
   dependsOn: GetReleaseVersion
-  variables:
-    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
-    IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
-    IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
-  pool:
-    vmImage: vs2017-win2016
-    timeoutInMinutes: 180
-    parallel: 2
+  timeoutInMinutes: 180
+  strategy:
+    maxParallel: 2
     matrix:
       x64:
         buildArch: x64
       # TODO: x86 is currently not supported on VSTS
       # x86:
       #   buildArch: x86
-
+  pool:
+    vmImage: vs2017-win2016
+    
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+    IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+    IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
+  
   steps:
   - task: NodeTool@0
     inputs:

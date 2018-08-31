@@ -1,14 +1,15 @@
 jobs:
 - job: macOS
   dependsOn: GetReleaseVersion
+  timeoutInMinutes: 180
+
   variables:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
     IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
     IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
   pool:
     vmImage: macos-10.13
-    timeoutInMinutes: 180
-
+    
   steps:
   - task: NodeTool@0
     inputs:

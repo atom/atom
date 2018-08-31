@@ -1,8 +1,8 @@
 trigger: none  # No CI builds, only PR builds
 
-phases:
+jobs:
 
-- phase: GetReleaseVersion
+- job: GetReleaseVersion
   steps:
   # This has to be done separately because VSTS inexplicably
   # exits the script block after `npm install` completes.
