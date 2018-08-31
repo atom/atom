@@ -22,8 +22,8 @@ jobs:
 
 - job: UploadArtifacts
   pool: 
-    vmImage: vs2017-win2016  
-    
+    vmImage: vs2015-server2012r2 # needed for python 2.7 and gyp
+
   dependsOn:
   - GetReleaseVersion
   - Windows
@@ -36,11 +36,6 @@ jobs:
     IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
   steps:  
-  - task: UsePythonVersion@0
-    displayName: 'Use Python 2.7.x'
-    inputs:
-      versionSpec: 2.7.x
-
   - task: NodeTool@0
     inputs:
       versionSpec: 8.9.3

@@ -18,7 +18,7 @@ jobs:
 
 - job: Release
   pool: 
-    vmImage: vs2017-win2016  
+    vmImage: vs2015-server2012r2 # needed for Python 2.7 and gyp
 
   dependsOn:
   - GetReleaseVersion
@@ -30,12 +30,6 @@ jobs:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
 
   steps:
-  # Need this for Python 2.7
-  - task: UsePythonVersion@0
-    displayName: 'Use Python 2.7.x'
-    inputs:
-      versionSpec: 2.7.x
-
   - task: NodeTool@0
     inputs:
       versionSpec: 8.9.3
