@@ -11,7 +11,7 @@ jobs:
       # x86:
       #   buildArch: x86
   pool:
-    vmImage: vs2015-server2012r2 # needed for python 2.7 and gyp
+    vmImage: vs2015-win2012r2 # needed for python 2.7 and gyp
 
   variables:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
