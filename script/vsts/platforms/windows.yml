@@ -12,13 +12,18 @@ jobs:
       #   buildArch: x86
   pool:
     vmImage: vs2017-win2016
-    
+
   variables:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
     IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
     IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
   
   steps:
+  - task: UsePythonVersion@0
+    displayName: 'Use Python 2.7.x'
+    inputs:
+      versionSpec: 2.7.x
+      
   - task: NodeTool@0
     inputs:
       versionSpec: 8.9.3
