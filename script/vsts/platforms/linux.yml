@@ -1,10 +1,10 @@
-phases:
-- phase: Linux
+jobs:
+- job: Linux
   dependsOn: GetReleaseVersion
   variables:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
-  queue:
-    name: Hosted Ubuntu 1604
+  pool:
+    vmImage: ubuntu-16.04
     timeoutInMinutes: 180
 
   steps:

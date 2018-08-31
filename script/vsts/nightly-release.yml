@@ -1,6 +1,6 @@
-phases:
+jobs:
 
-- phase: GetReleaseVersion
+- job: GetReleaseVersion
   steps:
   # This has to be done separately because VSTS inexplicably
   # exits the script block after `npm install` completes.
@@ -16,8 +16,9 @@ phases:
 - template: platforms/macos.yml
 - template: platforms/linux.yml
 
-- phase: Release
-  queue: Hosted  # Need this for Python 2.7
+- job: Release
+  pool: 
+    vmImage: vs2017-win2016  
 
   dependsOn:
   - GetReleaseVersion
@@ -29,6 +30,12 @@ phases:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
 
   steps:
+  # Need this for Python 2.7
+  - task: UsePythonVersion@0
+    displayName: 'Use Python 2.7.x'
+    inputs:
+      versionSpec: 2.7.x
+
   - task: NodeTool@0
     inputs:
       versionSpec: 8.9.3

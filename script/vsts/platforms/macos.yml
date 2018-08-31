@@ -1,12 +1,12 @@
-phases:
-- phase: macOS
+jobs:
+- job: macOS
   dependsOn: GetReleaseVersion
   variables:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
     IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
     IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
-  queue:
-    name: Hosted macOS Preview
+  pool:
+    vmImage: macos-10.13
     timeoutInMinutes: 180
 
   steps:

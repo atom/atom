@@ -1,12 +1,12 @@
-phases:
-- phase: Windows
+jobs:
+- job: Windows
   dependsOn: GetReleaseVersion
   variables:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
     IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
     IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
-  queue:
-    name: Hosted
+  pool:
+    vmImage: vs2017-win2016
     timeoutInMinutes: 180
     parallel: 2
     matrix:
