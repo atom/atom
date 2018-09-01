@@ -1,10 +1,9 @@
-"use babel"
+const Mocha = require('mocha')
+const fs = require('fs-plus')
+const {assert} = require('chai')
 
-import Mocha from 'mocha'
-import fs from 'fs-plus'
-import {assert} from 'chai'
-
-export default function (testPaths) {
+module.exports =
+function (testPaths) {
   global.assert = assert
 
   let reporterOptions = {
@@ -24,6 +23,7 @@ export default function (testPaths) {
     reporter: 'mocha-multi-reporters',
     reporterOptions
   })
+
   for (let testPath of testPaths) {
     if (fs.isDirectorySync(testPath)) {
       for (let testFilePath of fs.listTreeSync(testPath)) {
@@ -36,7 +36,7 @@ export default function (testPaths) {
     }
   }
 
-  mocha.run(function (failures) {
+  mocha.run(failures => {
     if (failures === 0) {
       process.exit(0)
     } else {

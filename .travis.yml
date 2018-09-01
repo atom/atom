@@ -1,3 +1,8 @@
+language: python
+
+python:
+  - "2.7.13"
+
 git:
   depth: 10
 
@@ -10,7 +15,7 @@ matrix:
   include:
     - os: linux
       dist: trusty
-      env: NODE_VERSION=6.9.4 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
+      env: NODE_VERSION=8.9.3 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
 
 sudo: required
 
@@ -22,7 +27,7 @@ install:
   - source /tmp/.nvm/nvm.sh
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
-  - npm install -g npm@5.3.0
+  - npm install --global npm@6.2.0
   - script/build --create-debian-package --create-rpm-package --compress-artifacts
 
 script:

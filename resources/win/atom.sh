@@ -7,6 +7,10 @@ else
   pushd "$(dirname "$0")" > /dev/null
   if [[ $(uname -r) == *-Microsoft ]]; then
     # We are in Windows Subsystem for Linux, map /mnt/drive
+    root="/mnt/"
+    # If different root mount point defined in /etc/wsl.conf, use that instead
+    eval $(grep "^root" /etc/wsl.conf | sed -e "s/ //g")
+    root="$(echo $root | sed 's|/|\\/|g')"
     ATOMCMD="$(echo $PWD | sed 's/\/mnt\/\([a-z]*\)\(.*\)/\1:\2/')/atom.cmd"
     ATOMCMD="${ATOMCMD////\\}"
   else

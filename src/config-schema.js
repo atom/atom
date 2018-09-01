@@ -17,7 +17,7 @@ const configSchema = {
         type: 'boolean',
         default: true,
         title: 'Exclude VCS Ignored Paths',
-        description: 'Files and directories ignored by the current project\'s VCS system will be ignored by some packages, such as the fuzzy finder and find and replace. For example, projects using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
+        description: 'Files and directories ignored by the current project\'s VCS will be ignored by some packages, such as the fuzzy finder and find and replace. For example, projects using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
       },
       followSymlinks: {
         type: 'boolean',
@@ -54,6 +54,25 @@ const configSchema = {
             type: 'string'
           }
         }
+      },
+      uriHandlerRegistration: {
+        type: 'string',
+        default: 'prompt',
+        description: 'When should Atom register itself as the default handler for atom:// URIs',
+        enum: [
+          {
+            value: 'prompt',
+            description: 'Prompt to register Atom as the default atom:// URI handler'
+          },
+          {
+            value: 'always',
+            description: 'Always become the default atom:// URI handler automatically'
+          },
+          {
+            value: 'never',
+            description: 'Never become the default atom:// URI handler'
+          }
+        ]
       },
       themes: {
         type: 'array',
@@ -319,8 +338,36 @@ const configSchema = {
             description: 'Native operating system APIs'
           },
           {
+            value: 'experimental',
+            description: 'Experimental filesystem watching library'
+          },
+          {
+            value: 'poll',
+            description: 'Polling'
+          },
+          {
             value: 'atom',
             description: 'Emulated with Atom events'
+          }
+        ]
+      },
+      useTreeSitterParsers: {
+        type: 'boolean',
+        default: false,
+        description: 'Experimental: Use the new Tree-sitter parsing system for supported languages.'
+      },
+      colorProfile: {
+        description: "Specify whether Atom should use the operating system's color profile (recommended) or an alternative color profile.<br>Changing this setting will require a relaunch of Atom to take effect.",
+        type: 'string',
+        default: 'default',
+        enum: [
+          {
+            value: 'default',
+            description: 'Use color profile configured in the operating system'
+          },
+          {
+            value: 'srgb',
+            description: 'Use sRGB color profile'
           }
         ]
       }
@@ -348,7 +395,7 @@ const configSchema = {
       // These can be used as globals or scoped, thus defaults.
       fontFamily: {
         type: 'string',
-        default: '',
+        default: 'Menlo, Consolas, DejaVu Sans Mono, monospace',
         description: 'The name of the font family used for editor text.'
       },
       fontSize: {

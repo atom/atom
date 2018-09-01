@@ -110,6 +110,7 @@
   'alt-shift-right': 'editor:select-to-next-subword-boundary'
   'alt-backspace': 'editor:delete-to-beginning-of-subword'
   'alt-delete': 'editor:delete-to-end-of-subword'
+  'ctrl-shift-V': 'editor:paste-without-reformatting'
 
   # Sublime Parity
   'ctrl-a': 'core:select-all'

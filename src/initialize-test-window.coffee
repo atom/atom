@@ -24,9 +24,13 @@ module.exports = ({blobStore}) ->
     ApplicationDelegate = require '../src/application-delegate'
     Clipboard = require '../src/clipboard'
     TextEditor = require '../src/text-editor'
+    {updateProcessEnv} = require('./update-process-env')
     require './electron-shims'
 
-    {testRunnerPath, legacyTestRunnerPath, headless, logFile, testPaths} = getWindowLoadSettings()
+    ipcRenderer.on 'environment', (event, env) ->
+      updateProcessEnv(env)
+
+    {testRunnerPath, legacyTestRunnerPath, headless, logFile, testPaths, env} = getWindowLoadSettings()
 
     unless headless
       # Show window synchronously so a focusout doesn't fire on input elements
@@ -59,6 +63,8 @@ module.exports = ({blobStore}) ->
     require('module').globalPaths.push(exportsPath)
     process.env.NODE_PATH = exportsPath # Set NODE_PATH env variable since tasks may need it.
 
+    updateProcessEnv(env)
+
     # Set up optional transpilation for packages under test if any
     FindParentDir = require 'find-parent-dir'
     if packageRoot = FindParentDir.sync(testPaths[0], 'package.json')
@@ -82,6 +88,7 @@ module.exports = ({blobStore}) ->
       params.onlyLoadBaseStyleSheets = true unless params.hasOwnProperty("onlyLoadBaseStyleSheets")
       atomEnvironment = new AtomEnvironment(params)
       atomEnvironment.initialize(params)
+      TextEditor.setScheduler(atomEnvironment.views)
       atomEnvironment
 
     promise = testRunner({

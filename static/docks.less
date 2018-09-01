@@ -16,11 +16,6 @@ atom-dock {
 .atom-dock-inner {
   display: flex;
 
-  // Keep the area at least a pixel wide so that you have something to hover
-  // over to trigger the toggle button affordance even when fullscreen.
-  &.left, &.right { min-width: 1px; }
-  &.bottom { min-height: 1px; }
-
   &.bottom { width: 100%; }
   &.left, &.right { height: 100%; }
 
@@ -118,10 +113,16 @@ atom-dock {
     // Promote to own layer, fixes rendering issue atom/atom#14915
     will-change: transform;
 
-    &.right { left: 0; }
-    &.bottom { top: 0; }
-    &.left { right: 0; }
- }
+    &.right {
+      left: 0;
+    }
+    &.bottom {
+      top: 0;
+    }
+    &.left {
+      right: 0;
+    }
+  }
 
   // Hide the button.
   &:not(.atom-dock-toggle-button-visible) {

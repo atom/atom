@@ -1,0 +1,63 @@
+phases:
+- phase: Linux
+  dependsOn: GetReleaseVersion
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+  queue:
+    name: Hosted Ubuntu 1604
+    timeoutInMinutes: 180
+
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 8.9.3
+    displayName: Install Node.js 8.9.3
+
+  - script: npm install --global npm@6.2.0
+    displayName: Update npm
+
+  - script: |
+      sudo apt-get update
+      sudo apt-get install -y --no-install-recommends build-essential xvfb clang-3.5 fakeroot git libsecret-1-dev rpm libx11-dev libxkbfile-dev xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0
+    displayName: Install apt dependencies
+
+  - script: |
+      script/build --create-debian-package --create-rpm-package --compress-artifacts
+    env:
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
+    displayName: Build Atom
+
+  - script: script/lint
+    displayName: Run linter
+
+  - script: |
+      sudo /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
+      export DISPLAY=':99.0'
+      Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      script/test
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+    displayName: Run tests
+    condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom.x86_64.rpm
+      ArtifactName: atom.x86_64.rpm
+      ArtifactType: Container
+    displayName: Upload atom.x84_64.rpm
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-amd64.deb
+      ArtifactName: atom-amd64.deb
+      ArtifactType: Container
+    displayName: Upload atom-amd64.deb
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-amd64.tar.gz
+      ArtifactName: atom-amd64.tar.gz
+      ArtifactType: Container
+    displayName: Upload atom-amd64.tar.gz
