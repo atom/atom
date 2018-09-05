@@ -199,7 +199,7 @@ class Project extends Model {
   // const disposable = atom.project.onDidChangeFiles(events => {
   //   for (const event of events) {
   //     // "created", "modified", "deleted", or "renamed"
-  //     console.log(`Event action: ${event.type}`)
+  //     console.log(`Event action: ${event.action}`)
   //
   //     // absolute path to the filesystem entry that was touched
   //     console.log(`Event path: ${event.path}`)
@@ -232,6 +232,38 @@ class Project extends Model {
   // Returns a {Disposable} to manage this event subscription.
   onDidChangeFiles (callback) {
     return this.emitter.on('did-change-files', callback)
+  }
+
+  // Public: Invoke the given callback with all current and future
+  // repositories in the project.
+  //
+  // * `callback` {Function} to be called with current and future
+  //    repositories.
+  //   * `repository` A {GitRepository} that is present at the time of
+  //     subscription or that is added at some later time.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to
+  // unsubscribe.
+  observeRepositories (callback) {
+    for (const repo of this.repositories) {
+      if (repo != null) {
+        callback(repo)
+      }
+    }
+
+    return this.onDidAddRepository(callback)
+  }
+
+  // Public: Invoke the given callback when a repository is added to the
+  // project.
+  //
+  // * `callback` {Function} to be called when a repository is added.
+  //   * `repository` A {GitRepository}.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to
+  // unsubscribe.
+  onDidAddRepository (callback) {
+    return this.emitter.on('did-add-repository', callback)
   }
 
   /*
@@ -400,6 +432,9 @@ class Project extends Model {
       if (repo) { break }
     }
     this.repositories.push(repo != null ? repo : null)
+    if (repo != null) {
+      this.emitter.emit('did-add-repository', repo)
+    }
 
     if (options.emitEvent !== false) {
       this.emitter.emit('did-change-paths', this.getPaths())
@@ -662,27 +697,32 @@ class Project extends Model {
   // * `text` The {String} text to use as a buffer.
   //
   // Returns a {Promise} that resolves to the {TextBuffer}.
-  buildBuffer (absoluteFilePath) {
+  async buildBuffer (absoluteFilePath) {
     const params = {shouldDestroyOnFileDelete: this.shouldDestroyBufferOnFileDelete}
 
-    let promise
+    let buffer
     if (absoluteFilePath != null) {
       if (this.loadPromisesByPath[absoluteFilePath] == null) {
         this.loadPromisesByPath[absoluteFilePath] =
-          TextBuffer.load(absoluteFilePath, params).catch(error => {
-            delete this.loadPromisesByPath[absoluteFilePath]
-            throw error
-          })
+          TextBuffer.load(absoluteFilePath, params)
+            .then(result => {
+              delete this.loadPromisesByPath[absoluteFilePath]
+              return result
+            })
+            .catch(error => {
+              delete this.loadPromisesByPath[absoluteFilePath]
+              throw error
+            })
       }
-      promise = this.loadPromisesByPath[absoluteFilePath]
+      buffer = await this.loadPromisesByPath[absoluteFilePath]
     } else {
-      promise = Promise.resolve(new TextBuffer(params))
+      buffer = new TextBuffer(params)
     }
-    return promise.then(buffer => {
-      delete this.loadPromisesByPath[absoluteFilePath]
-      this.addBuffer(buffer)
-      return buffer
-    })
+
+    this.grammarRegistry.autoAssignLanguageMode(buffer)
+
+    this.addBuffer(buffer)
+    return buffer
   }
 
   addBuffer (buffer, options = {}) {

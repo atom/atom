@@ -10,6 +10,7 @@ branches:
   only:
   - master
   - /^[0-9.]+-releases$/
+  - /^electron-[0-9.]+$/
 
 platform:
   - x64
@@ -19,7 +20,7 @@ environment:
   global:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
     TEST_JUNIT_XML_ROOT: c:\projects\junit-test-results
-    NODE_VERSION: 6.9.4
+    NODE_VERSION: 8.9.3
 
   matrix:
   - TASK: test
@@ -35,19 +36,22 @@ install:
   - IF NOT EXIST %TEST_JUNIT_XML_ROOT% MKDIR %TEST_JUNIT_XML_ROOT%
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
-  - npm install -g npm@5.3.0
+  - npm install --global npm@6.2.0
 
 build_script:
   - CD %APPVEYOR_BUILD_FOLDER%
   - IF NOT EXIST C:\tmp MKDIR C:\tmp
   - SET SQUIRREL_TEMP=C:\tmp
+  - IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] SET IS_RELEASE_BRANCH=true
+  - IF [%APPVEYOR_REPO_BRANCH%]==[master] IF NOT DEFINED APPVEYOR_PULL_REQUEST_NUMBER SET IS_SIGNED_ZIP_BRANCH=true
+  - IF [%APPVEYOR_REPO_BRANCH:~0,9%]==[electron-] SET IS_SIGNED_ZIP_BRANCH=true
   - IF [%TASK%]==[installer] (
-      IF [%APPVEYOR_REPO_BRANCH:~-9%]==[-releases] (
+      IF [%IS_RELEASE_BRANCH%]==[true] (
         ECHO Building on release branch - Creating production artifacts &&
         script\build.cmd --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
-        IF [%APPVEYOR_REPO_BRANCH%]==[master] IF NOT DEFINED APPVEYOR_PULL_REQUEST_NUMBER (
-          ECHO Building on master branch - Creating signed zips &&
+        IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
+          ECHO Building on %APPVEYOR_REPO_BRANCH% branch - Creating signed zips &&
           script\build.cmd --code-sign --compress-artifacts
         ) ELSE (
           ECHO Skipping installer build for non-release/non-master branch
@@ -74,6 +78,12 @@ artifacts:
     name: atom-windows.zip
   - path: out\RELEASES
     name: RELEASES
+  - path: out\AtomSetup-x64.exe
+    name: AtomSetup-x64.exe
+  - path: out\atom-x64-windows.zip
+    name: atom-x64-windows.zip
+  - path: out\RELEASES-x64
+    name: RELEASES-x64
   - path: out\atom-*-delta.nupkg
     name: atom-delta.nupkg
   - path: out\atom-*-full.nupkg

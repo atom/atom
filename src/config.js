@@ -8,6 +8,8 @@ const Color = require('./color')
 const ScopedPropertyStore = require('scoped-property-store')
 const ScopeDescriptor = require('./scope-descriptor')
 
+const schemaEnforcers = {}
+
 // Essential: Used to access all of Atom's configuration details.
 //
 // An instance of this class is always available as the `atom.config` global.
@@ -41,7 +43,7 @@ const ScopeDescriptor = require('./scope-descriptor')
 // ### Value Coercion
 //
 // Config settings each have a type specified by way of a
-// [schema](json-schema.org). For example we might an integer setting that only
+// [schema](json-schema.org). For example we might want an integer setting that only
 // allows integers greater than `0`:
 //
 // ```coffee
@@ -359,8 +361,6 @@ const ScopeDescriptor = require('./scope-descriptor')
 //
 // * Don't depend on (or write to) configuration keys outside of your keypath.
 //
-const schemaEnforcers = {}
-
 class Config {
   static addSchemaEnforcer (typeName, enforcerFunction) {
     if (schemaEnforcers[typeName] == null) { schemaEnforcers[typeName] = [] }
@@ -823,21 +823,7 @@ class Config {
   }
 
   getLegacyScopeDescriptorForNewScopeDescriptor (scopeDescriptor) {
-    scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
-    const legacyAlias = this.legacyScopeAliases.get(scopeDescriptor.scopes[0])
-    if (legacyAlias) {
-      const scopes = scopeDescriptor.scopes.slice()
-      scopes[0] = legacyAlias
-      return new ScopeDescriptor({scopes})
-    }
-  }
-
-  setLegacyScopeAliasForNewScope (languageId, legacyScopeName) {
-    this.legacyScopeAliases.set(languageId, legacyScopeName)
-  }
-
-  removeLegacyScopeAliasForNewScope (languageId) {
-    this.legacyScopeAliases.delete(languageId)
+    return null
   }
 
   /*

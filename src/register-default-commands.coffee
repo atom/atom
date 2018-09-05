@@ -122,8 +122,6 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
   commandRegistry.add(
     'atom-text-editor',
     stopEventPropagation({
-      'core:undo': -> @undo()
-      'core:redo': -> @redo()
       'core:move-left': -> @moveLeft()
       'core:move-right': -> @moveRight()
       'core:select-left': -> @selectLeft()
@@ -167,14 +165,34 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
   )
 
   commandRegistry.add(
+    'atom-text-editor:not([readonly])',
+    stopEventPropagation({
+      'core:undo': -> @undo()
+      'core:redo': -> @redo()
+    }),
+    false
+  )
+
+  commandRegistry.add(
     'atom-text-editor',
+    stopEventPropagationAndGroupUndo(
+      config,
+      {
+        'core:copy': -> @copySelectedText()
+        'editor:copy-selection': -> @copyOnlySelectedText()
+      }
+    ),
+    false
+  )
+
+  commandRegistry.add(
+    'atom-text-editor:not([readonly])',
     stopEventPropagationAndGroupUndo(
       config,
       {
         'core:backspace': -> @backspace()
         'core:delete': -> @delete()
         'core:cut': -> @cutSelectedText()
-        'core:copy': -> @copySelectedText()
         'core:paste': -> @pasteText()
         'editor:paste-without-reformatting': -> @pasteText({
           normalizeLineEndings: false,
@@ -195,7 +213,6 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
         'editor:transpose': -> @transpose()
         'editor:upper-case': -> @upperCase()
         'editor:lower-case': -> @lowerCase()
-        'editor:copy-selection': -> @copyOnlySelectedText()
       }
     ),
     false
@@ -266,7 +283,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
   )
 
   commandRegistry.add(
-    'atom-text-editor:not([mini])',
+    'atom-text-editor:not([mini]):not([readonly])',
     stopEventPropagationAndGroupUndo(
       config,
       {

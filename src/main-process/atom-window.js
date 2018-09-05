@@ -22,7 +22,6 @@ class AtomWindow extends EventEmitter {
     this.safeMode = settings.safeMode
     this.devMode = settings.devMode
     this.resourcePath = settings.resourcePath
-    this.projectSpecification = settings.projectSpecification
 
     let {pathToOpen, locationsToOpen} = settings
     if (!locationsToOpen && pathToOpen) locationsToOpen = [{pathToOpen}]
@@ -52,7 +51,7 @@ class AtomWindow extends EventEmitter {
     // taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
     if (process.platform === 'linux') options.icon = ICON_PATH
     if (this.shouldAddCustomTitleBar()) options.titleBarStyle = 'hidden'
-    if (this.shouldAddCustomInsetTitleBar()) options.titleBarStyle = 'hidden-inset'
+    if (this.shouldAddCustomInsetTitleBar()) options.titleBarStyle = 'hiddenInset'
     if (this.shouldHideTitleBar()) options.frame = false
     this.browserWindow = new BrowserWindow(options)
 
@@ -60,8 +59,7 @@ class AtomWindow extends EventEmitter {
       get: () => JSON.stringify(Object.assign({
         userSettings: !this.isSpec
           ? this.atomApplication.configFile.get()
-          : null,
-        projectSpecification: this.projectSpecification
+          : null
       }, this.loadSettings))
     })
 
@@ -187,6 +185,7 @@ class AtomWindow extends EventEmitter {
       dialog.showMessageBox(this.browserWindow, {
         type: 'warning',
         buttons: ['Force Close', 'Keep Waiting'],
+        cancelId: 1, // Canceling should be the least destructive action
         message: 'Editor is not responding',
         detail:
           'The editor is not responding. Would you like to force close it or just keep waiting?'
@@ -204,6 +203,7 @@ class AtomWindow extends EventEmitter {
       dialog.showMessageBox(this.browserWindow, {
         type: 'warning',
         buttons: ['Close Window', 'Reload', 'Keep It Open'],
+        cancelId: 2, // Canceling should be the least destructive action
         message: 'The editor has crashed',
         detail: 'Please report this issue to https://github.com/atom/atom'
       }, response => {

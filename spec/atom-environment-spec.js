@@ -258,7 +258,7 @@ describe('AtomEnvironment', () => {
       atomEnv.destroy()
     })
 
-    it('ignores mousedown/keydown events happening after calling unloadEditorWindow', () => {
+    it('ignores mousedown/keydown events happening after calling prepareToUnloadEditorWindow', async () => {
       const atomEnv = new AtomEnvironment({
         applicationDelegate: global.atom.applicationDelegate
       })
@@ -276,18 +276,19 @@ describe('AtomEnvironment', () => {
 
       let mousedown = new MouseEvent('mousedown')
       atomEnv.document.dispatchEvent(mousedown)
-      atomEnv.unloadEditorWindow()
       expect(atomEnv.saveState).not.toHaveBeenCalled()
+      await atomEnv.prepareToUnloadEditorWindow()
+      expect(atomEnv.saveState).toHaveBeenCalledWith({isUnloading: true})
 
       advanceClock(atomEnv.saveStateDebounceInterval)
       idleCallbacks.shift()()
-      expect(atomEnv.saveState).not.toHaveBeenCalled()
+      expect(atomEnv.saveState.calls.length).toBe(1)
 
       mousedown = new MouseEvent('mousedown')
       atomEnv.document.dispatchEvent(mousedown)
       advanceClock(atomEnv.saveStateDebounceInterval)
       idleCallbacks.shift()()
-      expect(atomEnv.saveState).not.toHaveBeenCalled()
+      expect(atomEnv.saveState.calls.length).toBe(1)
 
       atomEnv.destroy()
     })
@@ -743,29 +744,6 @@ describe('AtomEnvironment', () => {
           expect(atom.project.getPaths()).toEqual([__dirname])
         })
       })
-    })
-  })
-
-  describe('::updateAvailable(info) (called via IPC from browser process)', () => {
-    let subscription
-
-    afterEach(() => {
-      if (subscription) subscription.dispose()
-    })
-
-    it('invokes onUpdateAvailable listeners', async () => {
-      if (process.platform !== 'darwin') return // Test tied to electron autoUpdater, we use something else on Linux and Win32
-
-      const updateAvailablePromise = new Promise(resolve => {
-        subscription = atom.onUpdateAvailable(resolve)
-      })
-
-      atom.listenForUpdates()
-      const {autoUpdater} = require('electron').remote
-      autoUpdater.emit('update-downloaded', null, 'notes', 'version')
-
-      const {releaseVersion} = await updateAvailablePromise
-      expect(releaseVersion).toBe('version')
     })
   })
 

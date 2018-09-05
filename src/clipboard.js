@@ -1,5 +1,5 @@
 const crypto = require('crypto')
-const clipboard = require('./safe-clipboard')
+const {clipboard} = require('electron')
 
 // Extended: Represents the clipboard used for copying and pasting in Atom.
 //
@@ -7,10 +7,10 @@ const clipboard = require('./safe-clipboard')
 //
 // ## Examples
 //
-// ```coffee
+// ```js
 // atom.clipboard.write('hello')
 //
-// console.log(atom.clipboard.read()) # 'hello'
+// console.log(atom.clipboard.read()) // 'hello'
 // ```
 module.exports =
 class Clipboard {
@@ -59,7 +59,7 @@ class Clipboard {
   // * `text` The {String} clipboard text.
   // * `metadata` The metadata stored by an earlier call to {::write}.
   readWithMetadata () {
-    let text = this.read()
+    const text = this.read()
     if (this.signatureForMetadata === this.md5(text)) {
       return {text, metadata: this.metadata}
     } else {

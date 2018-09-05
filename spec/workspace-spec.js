@@ -274,6 +274,21 @@ describe('Workspace', () => {
             })
           })
 
+          it('discovers existing editors that are still opening', () => {
+            let editor0 = null
+            let editor1 = null
+
+            waitsForPromise(() => Promise.all([
+              workspace.open('spartacus.txt').then(o0 => { editor0 = o0 }),
+              workspace.open('spartacus.txt').then(o1 => { editor1 = o1 }),
+            ]))
+
+            runs(() => {
+              expect(editor0).toEqual(editor1)
+              expect(workspace.getActivePane().items).toEqual([editor0])
+            })
+          })
+
           it("uses the location specified by the model's `getDefaultLocation()` method", () => {
             const item = {
               getDefaultLocation: jasmine.createSpy().andReturn('right'),
@@ -358,6 +373,28 @@ describe('Workspace', () => {
           runs(() => {
             expect(workspace.getActivePane()).toBe(pane1)
             expect(workspace.getActivePaneItem()).toBe(editor1)
+          })
+        })
+
+        it('discovers existing editors that are still opening in an inactive pane', () => {
+          let editor0 = null
+          let editor1 = null
+          const pane0 = workspace.getActivePane()
+          const pane1 = workspace.getActivePane().splitRight()
+
+          pane0.activate()
+          const promise0 = workspace.open('spartacus.txt', {searchAllPanes: true}).then(o0 => { editor0 = o0 })
+          pane1.activate()
+          const promise1 = workspace.open('spartacus.txt', {searchAllPanes: true}).then(o1 => { editor1 = o1 })
+
+          waitsForPromise(() => Promise.all([promise0, promise1]))
+
+          runs(() => {
+            expect(editor0).toBeDefined()
+            expect(editor1).toBeDefined()
+
+            expect(editor0).toEqual(editor1)
+            expect(workspace.getActivePane().items).toEqual([editor0])
           })
         })
 
@@ -1236,21 +1273,57 @@ describe('Workspace', () => {
 
   describe('the grammar-used hook', () => {
     it('fires when opening a file or changing the grammar of an open file', async () => {
-      let resolveJavascriptGrammarUsed, resolveCoffeeScriptGrammarUsed
-      const javascriptGrammarUsed = new Promise(resolve => { resolveJavascriptGrammarUsed = resolve })
-      const coffeescriptGrammarUsed = new Promise(resolve => { resolveCoffeeScriptGrammarUsed = resolve })
+      await atom.packages.activatePackage('language-javascript')
+      await atom.packages.activatePackage('language-coffee-script')
+
+      const observeTextEditorsSpy = jasmine.createSpy('observeTextEditors')
+      const javascriptGrammarUsed = jasmine.createSpy('javascript')
+      const coffeeScriptGrammarUsed = jasmine.createSpy('coffeescript')
 
       atom.packages.triggerDeferredActivationHooks()
-      atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', resolveJavascriptGrammarUsed)
-      atom.packages.onDidTriggerActivationHook('language-coffee-script:grammar-used', resolveCoffeeScriptGrammarUsed)
+      atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', () => {
+        atom.workspace.observeTextEditors(observeTextEditorsSpy)
+        javascriptGrammarUsed()
+      })
+      atom.packages.onDidTriggerActivationHook('language-coffee-script:grammar-used', coffeeScriptGrammarUsed)
 
+      expect(javascriptGrammarUsed).not.toHaveBeenCalled()
+      expect(observeTextEditorsSpy).not.toHaveBeenCalled()
       const editor = await atom.workspace.open('sample.js', {autoIndent: false})
-      await atom.packages.activatePackage('language-javascript')
-      await javascriptGrammarUsed
+      expect(javascriptGrammarUsed).toHaveBeenCalled()
+      expect(observeTextEditorsSpy.callCount).toBe(1)
 
-      await atom.packages.activatePackage('language-coffee-script')
+      expect(coffeeScriptGrammarUsed).not.toHaveBeenCalled()
       atom.grammars.assignLanguageMode(editor, 'source.coffee')
-      await coffeescriptGrammarUsed
+      expect(coffeeScriptGrammarUsed).toHaveBeenCalled()
+    })
+  })
+
+  describe('the root-scope-used hook', () => {
+    it('fires when opening a file or changing the grammar of an open file', async () => {
+      await atom.packages.activatePackage('language-javascript')
+      await atom.packages.activatePackage('language-coffee-script')
+
+      const observeTextEditorsSpy = jasmine.createSpy('observeTextEditors')
+      const javascriptGrammarUsed = jasmine.createSpy('javascript')
+      const coffeeScriptGrammarUsed = jasmine.createSpy('coffeescript')
+
+      atom.packages.triggerDeferredActivationHooks()
+      atom.packages.onDidTriggerActivationHook('source.js:root-scope-used', () => {
+        atom.workspace.observeTextEditors(observeTextEditorsSpy)
+        javascriptGrammarUsed()
+      })
+      atom.packages.onDidTriggerActivationHook('source.coffee:root-scope-used', coffeeScriptGrammarUsed)
+
+      expect(javascriptGrammarUsed).not.toHaveBeenCalled()
+      expect(observeTextEditorsSpy).not.toHaveBeenCalled()
+      const editor = await atom.workspace.open('sample.js', {autoIndent: false})
+      expect(javascriptGrammarUsed).toHaveBeenCalled()
+      expect(observeTextEditorsSpy.callCount).toBe(1)
+
+      expect(coffeeScriptGrammarUsed).not.toHaveBeenCalled()
+      atom.grammars.assignLanguageMode(editor, 'source.coffee')
+      expect(coffeeScriptGrammarUsed).toHaveBeenCalled()
     })
   })
 

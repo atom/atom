@@ -14,7 +14,6 @@ const EXCLUDE_REGEXPS_SOURCES = [
   escapeRegExp('.pairs'),
   escapeRegExp('.travis.yml'),
   escapeRegExp('appveyor.yml'),
-  escapeRegExp('circle.yml'),
   escapeRegExp('.idea'),
   escapeRegExp('.editorconfig'),
   escapeRegExp('.lint'),
@@ -69,7 +68,6 @@ const EXCLUDE_REGEXPS_SOURCES = [
   // Ignore node_module files we won't need at runtime
   'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + '_*te?sts?_*' + escapeRegExp(path.sep),
   'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'examples?' + escapeRegExp(path.sep),
-  'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.md$',
   'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.d\\.ts$',
   'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.js\\.map$',
   '.*' + escapeRegExp(path.sep) + 'test.*\\.html$'

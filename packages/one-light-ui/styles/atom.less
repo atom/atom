@@ -1,0 +1,67 @@
+* {
+	box-sizing: border-box;
+}
+
+html {
+	font-size: @font-size;
+}
+
+atom-workspace {
+	background-color: @app-background-color;
+}
+
+
+// Scrollbars ------------------------------------
+
+.scrollbars-visible-always {
+	::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+
+	::-webkit-scrollbar-track {
+		background: @scrollbar-background-color;
+	}
+
+	::-webkit-scrollbar-thumb {
+		border-radius: 5px;
+		border: 3px solid @scrollbar-background-color;
+		background: @scrollbar-color;
+		background-clip: content-box;
+	}
+
+	::-webkit-scrollbar-corner {
+		background: @scrollbar-background-color;
+	}
+
+	::-webkit-scrollbar-thumb:vertical:active {
+		border-radius: 0;
+		border-left-width: 0;
+		border-right-width: 0;
+	}
+
+	::-webkit-scrollbar-thumb:horizontal:active {
+		border-radius: 0;
+		border-top-width: 0;
+		border-bottom-width: 0;
+	}
+
+	atom-text-editor {
+		::-webkit-scrollbar-track {
+			background: @scrollbar-background-color-editor;
+		}
+		::-webkit-scrollbar-corner {
+			background: @scrollbar-background-color-editor;
+		}
+		::-webkit-scrollbar-thumb {
+			border-color: @scrollbar-background-color-editor;
+			background: @scrollbar-color-editor;
+		}
+	}
+}
+
+// TODO: Move to a better place, not sure where it gets used
+.caret {
+  border-top: 5px solid #fff;
+  margin-top: -1px;
+}

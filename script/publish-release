@@ -1,0 +1,65 @@
+#!/usr/bin/env node
+
+'use strict'
+
+const path = require('path')
+const glob = require('glob')
+const publishRelease = require('publish-release')
+const uploadToS3 = require('./lib/upload-to-s3')
+const CONFIG = require('./config')
+
+const yargs = require('yargs')
+const argv = yargs
+  .usage('Usage: $0 [options]')
+  .help('help')
+  .describe('assets-path', 'Path to the folder where all release assets are stored')
+  .describe('s3-path', 'Indicates the S3 path in which the assets should be uploaded')
+  .describe('create-github-release', 'Creates a GitHub release for this build, draft if release branch or public if Nightly')
+  .wrap(yargs.terminalWidth())
+  .argv
+
+const assetsPath = argv.assetsPath || path.join(CONFIG.repositoryRootPath, 'out')
+const assetsPattern = '/**/*(*.exe|*.zip|*.nupkg|*.tar.gz|*.rpm|*.deb|RELEASES*|atom-api.json)'
+const assets = glob.sync(assetsPattern, { root: assetsPath, nodir: true })
+const bucketPath = argv.s3Path || `releases/v${CONFIG.computedAppVersion}/`
+
+if (!assets || assets.length === 0) {
+  console.error(`No assets found under specified path: ${assetsPath}`)
+  process.exit(1)
+}
+
+console.log(`Uploading ${assets.length} release assets for ${CONFIG.computedAppVersion} to S3 under '${bucketPath}'`)
+
+uploadToS3(
+  process.env.ATOM_RELEASES_S3_KEY,
+  process.env.ATOM_RELEASES_S3_SECRET,
+  process.env.ATOM_RELEASES_S3_BUCKET,
+  bucketPath,
+  assets).then(
+    () => {
+      if (argv.createGithubRelease) {
+        console.log(`Creating GitHub release v${CONFIG.computedAppVersion}`)
+        publishRelease({
+          token: process.env.GITHUB_TOKEN,
+          owner: 'atom',
+          repo: CONFIG.channel !== 'nightly' ? 'atom' : 'atom-nightly-releases',
+          name: CONFIG.computedAppVersion,
+          tag: `v${CONFIG.computedAppVersion}`,
+          draft: false,
+          prerelease: CONFIG.channel !== 'stable',
+          reuseRelease: true,
+          skipIfPublished: true,
+          assets
+        }, function (err, release) {
+          if (err) {
+            console.error("An error occurred while publishing the release:\n\n", err)
+          } else {
+            console.log("Release published successfully: ", release.html_url)
+          }
+        })
+      } else {
+        console.log("Skipping GitHub release creation")
+      }
+    }).catch((err) => {
+      console.error('An error occurred while uploading the release:', err)
+    })

@@ -6,6 +6,7 @@ const {watchPath} = require('./path-watcher')
 const CSON = require('season')
 const Path = require('path')
 const async = require('async')
+const temp = require('temp')
 
 const EVENT_TYPES = new Set([
   'created',
@@ -15,6 +16,21 @@ const EVENT_TYPES = new Set([
 
 module.exports =
 class ConfigFile {
+  static at (path) {
+    if (!this._known) {
+      this._known = new Map()
+    }
+
+    const existing = this._known.get(path)
+    if (existing) {
+      return existing
+    }
+
+    const created = new ConfigFile(path)
+    this._known.set(path, created)
+    return created
+  }
+
   constructor (path) {
     this.path = path
     this.emitter = new Emitter()
@@ -22,9 +38,11 @@ class ConfigFile {
     this.reloadCallbacks = []
 
     // Use a queue to prevent multiple concurrent write to the same file.
-    const writeQueue = async.queue((data, callback) =>
-      CSON.writeFile(this.path, data, error => {
-        if (error) {
+    const writeQueue = async.queue((data, callback) => {
+      (async () => {
+        try {
+          await writeCSONFileAtomically(this.path, data)
+        } catch (error) {
           this.emitter.emit('did-error', dedent `
             Failed to write \`${Path.basename(this.path)}\`.
 
@@ -32,8 +50,8 @@ class ConfigFile {
           `)
         }
         callback()
-      })
-    )
+      })()
+    })
 
     this.requestLoad = _.debounce(() => this.reload(), 200)
     this.requestSave = _.debounce((data) => writeQueue.push(data), 200)
@@ -100,4 +118,28 @@ class ConfigFile {
       })
     })
   }
+}
+
+function writeCSONFile (path, data) {
+  return new Promise((resolve, reject) => {
+    CSON.writeFile(path, data, error => {
+      if (error) reject(error)
+      else resolve()
+    })
+  })
+}
+
+async function writeCSONFileAtomically (path, data) {
+  const tempPath = temp.path()
+  await writeCSONFile(tempPath, data)
+  await rename(tempPath, path)
+}
+
+function rename (oldPath, newPath) {
+  return new Promise((resolve, reject) => {
+    fs.rename(oldPath, newPath, error => {
+      if (error) reject(error)
+      else resolve()
+    })
+  })
 }

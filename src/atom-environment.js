@@ -64,7 +64,7 @@ class AtomEnvironment {
     this.applicationDelegate = params.applicationDelegate
 
     this.nextProxyRequestId = 0
-    this.unloaded = false
+    this.unloading = false
     this.loadTime = null
     this.emitter = new Emitter()
     this.disposables = new CompositeDisposable()
@@ -86,7 +86,7 @@ class AtomEnvironment {
     this.config = new Config({
       saveCallback: settings => {
         if (this.enablePersistence) {
-          this.applicationDelegate.setUserSettings(settings)
+          this.applicationDelegate.setUserSettings(settings, this.config.getUserConfigPath())
         }
       }
     })
@@ -280,7 +280,7 @@ class AtomEnvironment {
   attachSaveStateListeners () {
     const saveState = _.debounce(() => {
       this.window.requestIdleCallback(() => {
-        if (!this.unloaded) this.saveState({isUnloading: false})
+        if (!this.unloading) this.saveState({isUnloading: false})
       })
     }, this.saveStateDebounceInterval)
     this.document.addEventListener('mousedown', saveState, true)
@@ -487,21 +487,25 @@ class AtomEnvironment {
 
   // Public: Gets the release channel of the Atom application.
   //
-  // Returns the release channel as a {String}. Will return one of `dev`, `beta`, or `stable`.
+  // Returns the release channel as a {String}. Will return a specific release channel
+  // name like 'beta' or 'nightly' if one is found in the Atom version or 'stable'
+  // otherwise.
   getReleaseChannel () {
-    const version = this.getVersion()
-    if (version.includes('beta')) {
-      return 'beta'
-    } else if (version.includes('dev')) {
-      return 'dev'
-    } else {
-      return 'stable'
+    // This matches stable, dev (with or without commit hash) and any other
+    // release channel following the pattern '1.00.0-channel0'
+    const match = this.getVersion().match(/\d+\.\d+\.\d+(-([a-z]+)(\d+|-\w{4,})?)?$/)
+    if (!match) {
+      return 'unrecognized'
+    } else if (match[2]) {
+      return match[2]
     }
+
+    return 'stable'
   }
 
   // Public: Returns a {Boolean} that is `true` if the current version is an official release.
   isReleasedVersion () {
-    return !/\w{7}/.test(this.getVersion()) // Check if the release is a 7-character SHA prefix
+    return this.getReleaseChannel().match(/stable|beta|nightly/) != null
   }
 
   // Public: Get the time taken to completely load the current window.
@@ -771,7 +775,7 @@ class AtomEnvironment {
       await this.stateStore.clear()
     }
 
-    this.unloaded = false
+    this.unloading = false
 
     const updateProcessEnvPromise = this.updateProcessEnvAndTriggerHooks()
 
@@ -796,21 +800,7 @@ class AtomEnvironment {
       this.disposables.add(this.applicationDelegate.onApplicationMenuCommand(this.dispatchApplicationMenuCommand.bind(this)))
       this.disposables.add(this.applicationDelegate.onContextMenuCommand(this.dispatchContextMenuCommand.bind(this)))
       this.disposables.add(this.applicationDelegate.onURIMessage(this.dispatchURIMessage.bind(this)))
-      this.disposables.add(this.applicationDelegate.onDidRequestUnload(async () => {
-        try {
-          await this.saveState({isUnloading: true})
-        } catch (error) {
-          console.error(error)
-        }
-
-        const closing = !this.workspace || await this.workspace.confirmClose({
-          windowCloseRequested: true,
-          projectHasPaths: this.project.getPaths().length > 0
-        })
-
-        if (closing) await this.packages.deactivatePackages()
-        return closing
-      }))
+      this.disposables.add(this.applicationDelegate.onDidRequestUnload(this.prepareToUnloadEditorWindow.bind(this)))
 
       this.listenForUpdates()
 
@@ -889,12 +879,30 @@ class AtomEnvironment {
     }
   }
 
+  async prepareToUnloadEditorWindow () {
+    try {
+      await this.saveState({isUnloading: true})
+    } catch (error) {
+      console.error(error)
+    }
+
+    const closing = !this.workspace || await this.workspace.confirmClose({
+      windowCloseRequested: true,
+      projectHasPaths: this.project.getPaths().length > 0
+    })
+
+    if (closing) {
+      this.unloading = true
+      await this.packages.deactivatePackages()
+    }
+    return closing
+  }
+
   unloadEditorWindow () {
     if (!this.project) return
 
     this.storeWindowBackground()
     this.saveBlobStoreSync()
-    this.unloaded = true
   }
 
   saveBlobStoreSync () {
