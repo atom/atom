@@ -3,6 +3,7 @@ const {Point, Range, spliceArray} = require('text-buffer')
 const {Patch} = require('superstring')
 const {Emitter} = require('event-kit')
 const ScopeDescriptor = require('./scope-descriptor')
+const Token = require('./token')
 const TokenizedLine = require('./tokenized-line')
 const TextMateLanguageMode = require('./text-mate-language-mode')
 const {matcherForSelector} = require('./selectors')
@@ -433,6 +434,12 @@ class TreeSitterLanguageMode {
       scopes.unshift(this.grammar.scopeName)
     }
     return new ScopeDescriptor({scopes})
+  }
+
+  tokenForPosition (point) {
+    const node = this.getSyntaxNodeAtPosition(point)
+    const scopes = this.scopeDescriptorForPosition(point).getScopesArray()
+    return new Token({value: node.text, scopes})
   }
 
   getGrammar () {
