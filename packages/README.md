@@ -34,7 +34,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **find-and-replace** | [`atom/find-and-replace`][find-and-replace] |  |
 | **fuzzy-finder** | [`atom/fuzzy-finder`][fuzzy-finder] |  |
 | **github** | [`atom/github`][github] |  |
-| **git-diff** | [`atom/git-diff`][git-diff] | [#17843](https://github.com/atom/atom/issues/17843) |
+| **git-diff** | [`./packages/git-diff`](./git-diff) | [#17843](https://github.com/atom/atom/issues/17843) |
 | **go-to-line** | [`atom/go-to-line`][go-to-line] | [#17844](https://github.com/atom/atom/issues/17844) |
 | **grammar-selector** | [`atom/grammar-selector`][grammar-selector] | [#17845](https://github.com/atom/atom/issues/17845) |
 | **image-view** | [`atom/image-view`][image-view] |  |
@@ -126,7 +126,6 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 [exception-reporting]: https://github.com/atom/exception-reporting
 [find-and-replace]: https://github.com/atom/find-and-replace
 [fuzzy-finder]: https://github.com/atom/fuzzy-finder
-[git-diff]: https://github.com/atom/git-diff
 [github]: https://github.com/atom/github
 [go-to-line]: https://github.com/atom/go-to-line
 [grammar-selector]: https://github.com/atom/grammar-selector
@@ -171,10 +170,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 [markdown-preview]: https://github.com/atom/markdown-preview
 [metrics]: https://github.com/atom/metrics
 [notifications]: https://github.com/atom/notifications
-[one-dark-syntax]: https://github.com/atom/one-dark-syntax
-[one-dark-ui]: https://github.com/atom/one-dark-ui
 [one-light-syntax]: https://github.com/atom/one-light-syntax
-[one-light-ui]: https://github.com/atom/one-light-ui
 [open-on-github]: https://github.com/atom/open-on-github
 [package-generator]: https://github.com/atom/package-generator
 [settings-view]: https://github.com/atom/settings-view
