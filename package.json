@@ -22,7 +22,7 @@
     "async": "0.2.6",
     "atom-dark-syntax": "https://www.atom.io/api/packages/atom-dark-syntax/versions/0.29.1/tarball",
     "atom-dark-ui": "https://www.atom.io/api/packages/atom-dark-ui/versions/0.53.3/tarball",
-    "atom-keymap": "8.2.10",
+    "atom-keymap": "8.2.11",
     "atom-light-syntax": "https://www.atom.io/api/packages/atom-light-syntax/versions/0.29.1/tarball",
     "atom-light-ui": "https://www.atom.io/api/packages/atom-light-ui/versions/0.46.3/tarball",
     "atom-select-list": "^0.7.2",
