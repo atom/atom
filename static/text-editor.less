@@ -138,6 +138,10 @@ atom-text-editor {
   .cursors.blink-off .cursor {
     opacity: 0;
   }
+
+  // Atom manages the selection independent of Blink / the OS. We never want a
+  // native selection.
+  user-select: none;
 }
 
 atom-text-editor[mini] {
