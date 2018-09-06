@@ -1,15 +1,15 @@
 {
-  "name": "one-light-ui",
+  "name": "one-dark-ui",
   "theme": "ui",
   "version": "1.12.5",
-  "description": "Atom One light UI theme",
+  "description": "Atom One dark UI theme",
   "keywords": [
-    "light",
+    "dark",
     "adaptive",
     "ui"
   ],
   "license": "MIT",
-  "repository": "https://github.com/atom/one-light-ui",
+  "repository": "https://github.com/atom/one-dark-ui",
   "main": "lib/main",
   "engines": {
     "atom": ">0.40.0"
