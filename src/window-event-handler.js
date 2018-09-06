@@ -242,8 +242,12 @@ class WindowEventHandler {
   handleLinkClick (event) {
     event.preventDefault()
     const uri = event.currentTarget && event.currentTarget.getAttribute('href')
-    if (uri && (uri[0] !== '#') && /^https?:\/\//.test(uri)) {
-      this.applicationDelegate.openExternal(uri)
+    if (uri && uri[0] !== '#') {
+      if (/^https?:\/\//.test(uri)) {
+        this.applicationDelegate.openExternal(uri)
+      } else if (uri.startsWith('atom://')) {
+        this.atomEnvironment.uriHandlerRegistry.handleURI(uri)
+      }
     }
   }
 

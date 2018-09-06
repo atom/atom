@@ -78,8 +78,8 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **markdown-preview** | [`atom/markdown-preview`][markdown-preview] |  |
 | **metrics** | [`atom/metrics`][metrics] |  |
 | **notifications** | [`atom/notifications`][notifications] |  |
-| **one-dark-syntax** | [`atom/one-dark-syntax`][one-dark-syntax] | [#17853](https://github.com/atom/atom/issues/17853) |
-| **one-dark-ui** | [`atom/one-dark-ui`][one-dark-ui] | [#17854](https://github.com/atom/atom/issues/17854) |
+| **one-dark-syntax** | [`./packages/one-dark-syntax`](./one-dark-syntax) | [#17853](https://github.com/atom/atom/issues/17853) |
+| **one-dark-ui** | [`./packages/one-dark-ui`](./one-dark-ui) | [#17854](https://github.com/atom/atom/issues/17854) |
 | **one-light-syntax** | [`./packages/one-light-syntax`](./one-light-syntax) | [#17855](https://github.com/atom/atom/issues/17855) |
 | **one-light-ui** | [`./packages/one-light-ui`](./one-light-ui) | [#17856](https://github.com/atom/atom/issues/17856) |
 | **open-on-github** | [`atom/open-on-github`][open-on-github] |  |

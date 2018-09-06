@@ -1,13 +1,14 @@
-phases:
-- phase: macOS
+jobs:
+- job: macOS
   dependsOn: GetReleaseVersion
+  timeoutInMinutes: 180
+
   variables:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
     IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
     IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
-  queue:
-    name: Hosted macOS Preview
-    timeoutInMinutes: 180
+  pool:
+    vmImage: macos-10.13
 
   steps:
   - task: NodeTool@0
@@ -56,6 +57,7 @@ phases:
       ArtifactName: atom-mac.zip
       ArtifactType: Container
     displayName: Upload atom-mac.zip
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -63,6 +65,7 @@ phases:
       ArtifactName: atom-mac-symbols.zip
       ArtifactType: Container
     displayName: Upload atom-mac-symbols.zip
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -70,3 +73,4 @@ phases:
       ArtifactName: atom-api.json
       ArtifactType: Container
     displayName: Upload atom-api.json
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))

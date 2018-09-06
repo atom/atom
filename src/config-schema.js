@@ -353,8 +353,8 @@ const configSchema = {
       },
       useTreeSitterParsers: {
         type: 'boolean',
-        default: false,
-        description: 'Experimental: Use the new Tree-sitter parsing system for supported languages.'
+        default: true,
+        description: 'Use Tree-sitter parsers for supported languages.'
       },
       colorProfile: {
         description: "Specify whether Atom should use the operating system's color profile (recommended) or an alternative color profile.<br>Changing this setting will require a relaunch of Atom to take effect.",

@@ -1360,6 +1360,14 @@ describe('TreeSitterLanguageMode', () => {
         'source.js',
         'property.name'
       ])
+
+      // Drive-by test for .tokenForPosition()
+      const token = editor.tokenForBufferPosition([0, 'foo({b'.length])
+      expect(token.value).toBe('bar')
+      expect(token.scopes).toEqual([
+        'source.js',
+        'property.name'
+      ])
     })
 
     it('includes nodes in injected syntax trees', async () => {
