@@ -9,7 +9,7 @@ jobs:
     IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
   pool:
     vmImage: macos-10.13
-    
+
   steps:
   - task: NodeTool@0
     inputs:
@@ -57,6 +57,7 @@ jobs:
       ArtifactName: atom-mac.zip
       ArtifactType: Container
     displayName: Upload atom-mac.zip
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -64,6 +65,7 @@ jobs:
       ArtifactName: atom-mac-symbols.zip
       ArtifactType: Container
     displayName: Upload atom-mac-symbols.zip
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -71,3 +73,4 @@ jobs:
       ArtifactName: atom-api.json
       ArtifactType: Container
     displayName: Upload atom-api.json
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))

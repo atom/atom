@@ -2,7 +2,7 @@ jobs:
 - job: Linux
   dependsOn: GetReleaseVersion
   timeoutInMinutes: 180
-  
+
   variables:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
   pool:
@@ -48,6 +48,7 @@ jobs:
       ArtifactName: atom.x86_64.rpm
       ArtifactType: Container
     displayName: Upload atom.x84_64.rpm
+    condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -55,6 +56,7 @@ jobs:
       ArtifactName: atom-amd64.deb
       ArtifactType: Container
     displayName: Upload atom-amd64.deb
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -62,3 +64,4 @@ jobs:
       ArtifactName: atom-amd64.tar.gz
       ArtifactType: Container
     displayName: Upload atom-amd64.tar.gz
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))

@@ -17,7 +17,7 @@ jobs:
     ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
     IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
     IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
-  
+
   steps:
   - task: NodeTool@0
     inputs:
@@ -69,6 +69,7 @@ jobs:
       ArtifactName: atom-x64-windows.zip
       ArtifactType: Container
     displayName: Upload atom-x64-windows.zip
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
   - task: PublishBuildArtifacts@1
     inputs:
