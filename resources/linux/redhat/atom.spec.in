@@ -8,10 +8,10 @@ AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 Prefix:         <%= installDir %>
 
 %ifarch i386 i486 i586 i686
-Requires: libXss.so.1 libsecret-1.so.0 lib
+Requires: libgconf-2.so.4 libXss.so.1 libsecret-1.so.0 lib
 Recommends: lsb-core-noarch
 %else
-Requires: libXss.so.1()(64bit) libsecret-1.so.0()(64bit)
+Requires: libgconf-2.so.4()(64bit) libXss.so.1()(64bit) libsecret-1.so.0()(64bit)
 Recommends: lsb-core-noarch
 %endif
 
