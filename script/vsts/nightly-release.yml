@@ -1,6 +1,6 @@
-phases:
+jobs:
 
-- phase: GetReleaseVersion
+- job: GetReleaseVersion
   steps:
   # This has to be done separately because VSTS inexplicably
   # exits the script block after `npm install` completes.
@@ -16,8 +16,9 @@ phases:
 - template: platforms/macos.yml
 - template: platforms/linux.yml
 
-- phase: Release
-  queue: Hosted  # Need this for Python 2.7
+- job: Release
+  pool: 
+    vmImage: vs2015-win2012r2 # needed for Python 2.7 and gyp
 
   dependsOn:
   - GetReleaseVersion

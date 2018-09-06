@@ -1,20 +1,22 @@
-phases:
-- phase: Windows
+jobs:
+- job: Windows
   dependsOn: GetReleaseVersion
-  variables:
-    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
-    IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
-    IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
-  queue:
-    name: Hosted
-    timeoutInMinutes: 180
-    parallel: 2
+  timeoutInMinutes: 180
+  strategy:
+    maxParallel: 2
     matrix:
       x64:
         buildArch: x64
       # TODO: x86 is currently not supported on VSTS
       # x86:
       #   buildArch: x86
+  pool:
+    vmImage: vs2015-win2012r2 # needed for python 2.7 and gyp
+
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+    IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+    IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
   steps:
   - task: NodeTool@0
@@ -67,6 +69,7 @@ phases:
       ArtifactName: atom-x64-windows.zip
       ArtifactType: Container
     displayName: Upload atom-x64-windows.zip
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
   - task: PublishBuildArtifacts@1
     inputs:
