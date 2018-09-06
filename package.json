@@ -40,7 +40,7 @@
     "base16-tomorrow-light-theme": "https://www.atom.io/api/packages/base16-tomorrow-light-theme/versions/1.6.0/tarball",
     "bookmarks": "https://www.atom.io/api/packages/bookmarks/versions/0.45.1/tarball",
     "bracket-matcher": "https://www.atom.io/api/packages/bracket-matcher/versions/0.89.3/tarball",
-    "cached-run-in-this-context": "0.4.1",
+    "cached-run-in-this-context": "0.5.0",
     "chai": "3.5.0",
     "chart.js": "^2.3.0",
     "clear-cut": "^2.0.2",
