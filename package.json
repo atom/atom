@@ -165,7 +165,7 @@
     "underscore-plus": "^1.6.8",
     "update-package-dependencies": "https://www.atom.io/api/packages/update-package-dependencies/versions/0.13.1/tarball",
     "welcome": "https://www.atom.io/api/packages/welcome/versions/0.36.7/tarball",
-    "whitespace": "https://www.atom.io/api/packages/whitespace/versions/0.37.6/tarball",
+    "whitespace": "https://www.atom.io/api/packages/whitespace/versions/0.37.7/tarball",
     "winreg": "^1.2.1",
     "wrap-guide": "https://www.atom.io/api/packages/wrap-guide/versions/0.40.3/tarball",
     "yargs": "^3.23.0"
@@ -228,7 +228,7 @@
     "tree-view": "0.224.2",
     "update-package-dependencies": "0.13.1",
     "welcome": "0.36.7",
-    "whitespace": "0.37.6",
+    "whitespace": "0.37.7",
     "wrap-guide": "0.40.3",
     "language-c": "0.60.5",
     "language-clojure": "0.22.7",
