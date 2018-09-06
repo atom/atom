@@ -218,7 +218,9 @@ describe('TooltipManager', () => {
         const disposable = manager.add(element, { title: 'Title' })
         hover(element, function () {
           expect(document.body.querySelector('.tooltip')).not.toBeNull()
-          window.dispatchEvent(new CustomEvent('keydown'))
+          window.dispatchEvent(new CustomEvent('keydown', {
+            bubbles: true
+          }))
           expect(document.body.querySelector('.tooltip')).toBeNull()
           disposable.dispose()
         })
