@@ -1,6 +1,7 @@
 const path = require('path')
 const fs = require('fs-plus')
 const temp = require('temp').track()
+const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers');
 const CommandInstaller = require('../src/command-installer')
 
 describe('CommandInstaller on #darwin', () => {
@@ -56,8 +57,8 @@ describe('CommandInstaller on #darwin', () => {
     const appDelegate = jasmine.createSpyObj('appDelegate', ['confirm'])
     installer = new CommandInstaller(appDelegate)
     installer.initialize('2.0.2')
-    spyOn(installer, 'installAtomCommand').andCallFake((__, callback) => callback())
-    spyOn(installer, 'installApmCommand').andCallFake((__, callback) => callback())
+    spyOn(installer, 'installAtomCommand').andCallFake((__, callback) => callback(undefined, 'atom'))
+    spyOn(installer, 'installApmCommand').andCallFake((__, callback) => callback(undefined, 'apm'))
 
     installer.installShellCommandsInteractively()
 
@@ -135,6 +136,43 @@ describe('CommandInstaller on #darwin', () => {
           expect(fs.realpathSync(installedApmPath)).toBe(fs.realpathSync(apmBinPath))
           expect(fs.isExecutableSync(installedApmPath)).toBeTruthy()
           expect(fs.isFileSync(path.join(installationPath, 'apm'))).toBe(false)
+          done()
+        })
+      })
+    })
+  })
+
+  describe('when using a nightly version of atom', () => {
+    beforeEach(() => {
+      installer = new CommandInstaller()
+      installer.initialize('2.2.0-nightly0')
+    })
+
+    it("symlinks the atom command as 'atom-nightly'", () => {
+      const installedAtomPath = path.join(installationPath, 'atom-nightly')
+      expect(fs.isFileSync(installedAtomPath)).toBeFalsy()
+
+      waitsFor(done => {
+        installer.installAtomCommand(false, error => {
+          expect(error).toBeNull()
+          expect(fs.realpathSync(installedAtomPath)).toBe(fs.realpathSync(atomBinPath))
+          expect(fs.isExecutableSync(installedAtomPath)).toBe(true)
+          expect(fs.isFileSync(path.join(installationPath, 'atom'))).toBe(false)
+          done()
+        })
+      })
+    })
+
+    it("symlinks the apm command as 'apm-nightly'", () => {
+      const installedApmPath = path.join(installationPath, 'apm-nightly')
+      expect(fs.isFileSync(installedApmPath)).toBeFalsy()
+
+      waitsFor(done => {
+        installer.installApmCommand(false, error => {
+          expect(error).toBeNull()
+          expect(fs.realpathSync(installedApmPath)).toBe(fs.realpathSync(apmBinPath))
+          expect(fs.isExecutableSync(installedApmPath)).toBeTruthy()
+          expect(fs.isFileSync(path.join(installationPath, 'nightly'))).toBe(false)
           done()
         })
       })

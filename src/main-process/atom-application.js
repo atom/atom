@@ -7,7 +7,7 @@ const Config = require('../config')
 const ConfigFile = require('../config-file')
 const FileRecoveryService = require('./file-recovery-service')
 const ipcHelpers = require('../ipc-helpers')
-const {BrowserWindow, Menu, app, dialog, ipcMain, shell, screen} = require('electron')
+const {BrowserWindow, Menu, app, clipboard, dialog, ipcMain, shell, screen} = require('electron')
 const {CompositeDisposable, Disposable} = require('event-kit')
 const crypto = require('crypto')
 const fs = require('fs-plus')
@@ -437,7 +437,14 @@ class AtomApplication extends EventEmitter {
       if (!this.quitting) {
         this.quitting = true
         event.preventDefault()
-        const windowUnloadPromises = this.getAllWindows().map(window => window.prepareToUnload())
+        const windowUnloadPromises = this.getAllWindows().map(async window => {
+          const unloaded = await window.prepareToUnload()
+          if (unloaded) {
+            window.close()
+            await window.closedPromise
+          }
+          return unloaded
+        })
         const windowUnloadedResults = await Promise.all(windowUnloadPromises)
         if (windowUnloadedResults.every(Boolean)) {
           app.quit()
@@ -511,12 +518,12 @@ class AtomApplication extends EventEmitter {
       if (this.applicationMenu) this.applicationMenu.update(window, template, menu)
     }))
 
-    this.disposable.add(ipcHelpers.on(ipcMain, 'run-package-specs', (event, packageSpecPath) => {
-      this.runTests({
+    this.disposable.add(ipcHelpers.on(ipcMain, 'run-package-specs', (event, packageSpecPath, options = {}) => {
+      this.runTests(Object.assign({
         resourcePath: this.devResourcePath,
         pathsToOpen: [packageSpecPath],
         headless: false
-      })
+      }, options))
     }))
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'run-benchmarks', (event, benchmarksPath) => {
@@ -583,7 +590,6 @@ class AtomApplication extends EventEmitter {
       win.temporaryState = state
     }))
 
-    const clipboard = require('../safe-clipboard')
     this.disposable.add(ipcHelpers.on(ipcMain, 'write-text-to-selection-clipboard', (event, text) =>
       clipboard.writeText(text, 'selection')
     ))
@@ -1168,6 +1174,7 @@ class AtomApplication extends EventEmitter {
       env
     })
     this.addWindow(window)
+    if (env) window.replaceEnvironment(env)
     return window
   }
 

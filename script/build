@@ -24,12 +24,12 @@ const argv = yargs
   .describe('generate-api-docs', 'Only build the API documentation')
   .describe('install', 'Install Atom')
   .string('install')
+  .describe('ci', 'Install dependencies quickly (package-lock.json files must be up to date)')
   .wrap(yargs.terminalWidth())
   .argv
 
 const checkChromedriverVersion = require('./lib/check-chromedriver-version')
 const cleanOutputDirectory = require('./lib/clean-output-directory')
-const cleanPackageLock = require('./lib/clean-package-lock')
 const codeSignOnMac = require('./lib/code-sign-on-mac')
 const codeSignOnWindows = require('./lib/code-sign-on-windows')
 const compressArtifacts = require('./lib/compress-artifacts')
@@ -60,7 +60,6 @@ const CONFIG = require('./config')
 let binariesPromise = Promise.resolve()
 
 if (!argv.existingBinaries) {
-  cleanPackageLock()
   checkChromedriverVersion()
   cleanOutputDirectory()
   copyAssets()
@@ -104,8 +103,10 @@ if (!argv.generateApiDocs) {
           }
           if (argv.createWindowsInstaller) {
             return createWindowsInstaller(packagedAppPath)
-              .then(() => argv.codeSign && codeSignOnWindows([ path.join(CONFIG.buildOutputPath, 'AtomSetup.exe') ]))
-              .then(() => packagedAppPath)
+              .then((installerPath) => {
+                argv.codeSign && codeSignOnWindows([installerPath])
+                return packagedAppPath
+              })
           } else {
             console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer.'.gray)
           }

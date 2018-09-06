@@ -97,7 +97,7 @@ module.exports = class GutterContainer {
 
   // The public interface is Gutter::decorateMarker or TextEditor::decorateMarker.
   addGutterDecoration (gutter, marker, options) {
-    if (gutter.name === 'line-number') {
+    if (gutter.type === 'line-number') {
       options.type = 'line-number'
     } else {
       options.type = 'gutter'

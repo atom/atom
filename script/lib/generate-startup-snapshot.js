@@ -2,6 +2,7 @@ const childProcess = require('child_process')
 const fs = require('fs')
 const path = require('path')
 const electronLink = require('electron-link')
+const terser = require('terser')
 const CONFIG = require('../config')
 
 module.exports = function (packagedAppPath) {
@@ -38,7 +39,6 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'request', 'request.js')) ||
         requiredModuleRelativePath === path.join('..', 'exports', 'atom.js') ||
         requiredModuleRelativePath === path.join('..', 'src', 'electron-shims.js') ||
-        requiredModuleRelativePath === path.join('..', 'src', 'safe-clipboard.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'atom-keymap', 'lib', 'command-event.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'babel-core', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'cached-run-in-this-context', 'lib', 'main.js') ||
@@ -59,6 +59,7 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath === path.join('..', 'node_modules', 'spellchecker', 'lib', 'spellchecker.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'spelling-manager', 'node_modules', 'natural', 'lib', 'natural', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'tar', 'tar.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'ls-archive', 'node_modules', 'tar', 'tar.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'temp', 'lib', 'temp.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'tree-sitter', 'index.js') ||
@@ -67,14 +68,23 @@ module.exports = function (packagedAppPath) {
       )
     }
   }).then(({snapshotScript}) => {
-    fs.writeFileSync(snapshotScriptPath, snapshotScript)
     process.stdout.write('\n')
+
+    process.stdout.write('Minifying startup script')
+    const minification = terser.minify(snapshotScript, {
+      keep_fnames: true,
+      keep_classnames: true,
+      compress: {keep_fargs: true, keep_infinity: true}
+    })
+    if (minification.error) throw minification.error
+    process.stdout.write('\n')
+    fs.writeFileSync(snapshotScriptPath, minification.code)
 
     console.log('Verifying if snapshot can be executed via `mksnapshot`')
     const verifySnapshotScriptPath = path.join(CONFIG.repositoryRootPath, 'script', 'verify-snapshot-script')
     let nodeBundledInElectronPath
     if (process.platform === 'darwin') {
-      const executableName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+      const executableName = CONFIG.appName
       nodeBundledInElectronPath = path.join(packagedAppPath, 'Contents', 'MacOS', executableName)
     } else if (process.platform === 'win32') {
       nodeBundledInElectronPath = path.join(packagedAppPath, 'atom.exe')

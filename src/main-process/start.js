@@ -9,7 +9,7 @@ const fs = require('fs')
 const CSON = require('season')
 const Config = require('../config')
 
-module.exports = function start (resourcePath, startTime) {
+module.exports = function start (resourcePath, devResourcePath, startTime) {
   global.shellStartTime = startTime
 
   process.on('uncaughtException', function (error = {}) {
@@ -38,9 +38,11 @@ module.exports = function start (resourcePath, startTime) {
   app.commandLine.appendSwitch('enable-experimental-web-platform-features')
 
   const args = parseCommandLine(process.argv.slice(1))
+  args.resourcePath = normalizeDriveLetterName(resourcePath)
+  args.devResourcePath = normalizeDriveLetterName(devResourcePath)
+
   atomPaths.setAtomHome(app.getPath('home'))
   atomPaths.setUserData(app)
-  setupCompileCache()
 
   const config = getConfig()
   const colorProfile = config.get('core.colorProfile')
@@ -101,12 +103,6 @@ function handleStartupEventWithSquirrel () {
   return SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
 }
 
-function setupCompileCache () {
-  const CompileCache = require('../compile-cache')
-  CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
-  CompileCache.install(process.resourcesPath, require)
-}
-
 function getConfig () {
   const config = new Config()
 
@@ -123,4 +119,12 @@ function getConfig () {
   }
 
   return config
+}
+
+function normalizeDriveLetterName (filePath) {
+  if (process.platform === 'win32' && filePath) {
+    return filePath.replace(/^([a-z]):/, ([driveLetter]) => driveLetter.toUpperCase() + ':')
+  } else {
+    return filePath
+  }
 }

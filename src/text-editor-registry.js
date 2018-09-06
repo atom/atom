@@ -218,7 +218,7 @@ class TextEditorRegistry {
   async updateAndMonitorEditorSettings (editor, oldLanguageMode) {
     await this.initialPackageActivationPromise
     this.updateEditorSettingsForLanguageMode(editor, oldLanguageMode)
-    await this.subscribeToSettingsForEditorScope(editor)
+    this.subscribeToSettingsForEditorScope(editor)
   }
 
   updateEditorSettingsForLanguageMode (editor, oldLanguageMode) {
@@ -246,7 +246,9 @@ class TextEditorRegistry {
     }
   }
 
-  async subscribeToSettingsForEditorScope (editor) {
+  subscribeToSettingsForEditorScope (editor) {
+    if (!this.editorsWithMaintainedConfig) return
+
     const scopeDescriptor = editor.getRootScopeDescriptor()
     const scopeChain = scopeDescriptor.getScopeChain()
 

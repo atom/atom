@@ -258,6 +258,7 @@ class TextEditor {
     this.gutterContainer = new GutterContainer(this)
     this.lineNumberGutter = this.gutterContainer.addGutter({
       name: 'line-number',
+      type: 'line-number',
       priority: 0,
       visible: params.lineNumberGutterVisible
     })
@@ -1019,6 +1020,10 @@ class TextEditor {
   setLineNumberGutterVisible (lineNumberGutterVisible) { this.update({lineNumberGutterVisible}) }
 
   isLineNumberGutterVisible () { return this.lineNumberGutter.isVisible() }
+
+  anyLineNumberGutterVisible () {
+    return this.getGutters().some(gutter => gutter.type === 'line-number' && gutter.visible)
+  }
 
   onDidChangeLineNumberGutterVisible (callback) {
     return this.emitter.on('did-change-line-number-gutter-visible', callback)
@@ -4211,6 +4216,29 @@ class TextEditor {
   //       window. (default: -100)
   //   * `visible` (optional) {Boolean} specifying whether the gutter is visible
   //       initially after being created. (default: true)
+  //   * `type` (optional) {String} specifying the type of gutter to create. `'decorated'`
+  //       gutters are useful as a destination for decorations created with {Gutter::decorateMarker}.
+  //       `'line-number'` gutters.
+  //   * `class` (optional) {String} added to the CSS classnames of the gutter's root DOM element.
+  //   * `labelFn` (optional) {Function} called by a `'line-number'` gutter to generate the label for each line number
+  //       element. Should return a {String} that will be used to label the corresponding line.
+  //     * `lineData` an {Object} containing information about each line to label.
+  //       * `bufferRow` {Number} indicating the zero-indexed buffer index of this line.
+  //       * `screenRow` {Number} indicating the zero-indexed screen index.
+  //       * `foldable` {Boolean} that is `true` if a fold may be created here.
+  //       * `softWrapped` {Boolean} if this screen row is the soft-wrapped continuation of the same buffer row.
+  //       * `maxDigits` {Number} the maximum number of digits necessary to represent any known screen row.
+  //   * `onMouseDown` (optional) {Function} to be called when a mousedown event is received by a line-number
+  //        element within this `type: 'line-number'` {Gutter}. If unspecified, the default behavior is to select the
+  //        clicked buffer row.
+  //     * `lineData` an {Object} containing information about the line that's being clicked.
+  //       * `bufferRow` {Number} of the originating line element
+  //       * `screenRow` {Number}
+  //   * `onMouseMove` (optional) {Function} to be called when a mousemove event occurs on a line-number element within
+  //        within this `type: 'line-number'` {Gutter}.
+  //     * `lineData` an {Object} containing information about the line that's being clicked.
+  //       * `bufferRow` {Number} of the originating line element
+  //       * `screenRow` {Number}
   //
   // Returns the newly-created {Gutter}.
   addGutter (options) {
@@ -4815,7 +4843,7 @@ class TextEditor {
 
     let endRow = bufferRow
     const rowCount = this.getLineCount()
-    while (endRow < rowCount) {
+    while (endRow + 1 < rowCount) {
       if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(endRow + 1))) break
       if (languageMode.isRowCommented(endRow + 1) !== isCommented) break
       endRow++

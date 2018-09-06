@@ -11,7 +11,7 @@ const fs = require('fs')
 const path = require('path')
 const Grim = require('grim')
 const electron = require('electron')
-const clipboard = require('../src/safe-clipboard')
+const clipboard = electron.clipboard
 
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
 
@@ -816,6 +816,18 @@ describe('TextEditorComponent', () => {
       document.body.focus()
       await component.getNextUpdatePromise()
       expect(element.className).toBe('editor a b')
+    })
+
+    it('does not blow away class names managed by the component when packages change the element class name', async () => {
+      assertDocumentFocused()
+      const {component, element, editor} = buildComponent({mini: true})
+      element.classList.add('a', 'b')
+      element.focus()
+      await component.getNextUpdatePromise()
+      expect(element.className).toBe('editor mini a b is-focused')
+      element.className = 'a c d';
+      await component.getNextUpdatePromise()
+      expect(element.className).toBe('a c d editor is-focused mini')
     })
 
     it('ignores resize events when the editor is hidden', async () => {
@@ -2041,6 +2053,37 @@ describe('TextEditorComponent', () => {
       expect(decorationNode2.className).toBe('decoration')
       expect(decorationNode2.firstChild).toBeNull()
       expect(gutterB.getElement().firstChild.children.length).toBe(0)
+    })
+
+    it('renders custom line number gutters', async () => {
+      const {component, editor} = buildComponent()
+      const gutterA = editor.addGutter({
+        name: 'a',
+        priority: 1,
+        type: 'line-number',
+        class: 'a-number',
+        labelFn: ({bufferRow}) => `a - ${bufferRow}`
+      })
+      const gutterB = editor.addGutter({
+        name: 'b',
+        priority: 1,
+        type: 'line-number',
+        class: 'b-number',
+        labelFn: ({bufferRow}) => `b - ${bufferRow}`
+      })
+      editor.setText('0000\n0001\n0002\n0003\n0004\n')
+
+      await component.getNextUpdatePromise()
+
+      const gutterAElement = gutterA.getElement()
+      const aNumbers = gutterAElement.querySelectorAll('div.line-number[data-buffer-row]')
+      const aLabels = Array.from(aNumbers, e => e.textContent)
+      expect(aLabels).toEqual(['a - 0', 'a - 1', 'a - 2', 'a - 3', 'a - 4', 'a - 5'])
+
+      const gutterBElement = gutterB.getElement()
+      const bNumbers = gutterBElement.querySelectorAll('div.line-number[data-buffer-row]')
+      const bLabels = Array.from(bNumbers, e => e.textContent)
+      expect(bLabels).toEqual(['b - 0', 'b - 1', 'b - 2', 'b - 3', 'b - 4', 'b - 5'])
     })
   })
 

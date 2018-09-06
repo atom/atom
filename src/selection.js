@@ -1037,14 +1037,15 @@ class Selection {
       this.editor.cursorMoved(cursorMovedEvent)
     }
 
-    this.emitter.emit('did-change-range')
-    this.editor.selectionRangeChanged({
+    const rangeChangedEvent = {
       oldBufferRange: new Range(oldHeadBufferPosition, oldTailBufferPosition),
       oldScreenRange: new Range(oldHeadScreenPosition, oldTailScreenPosition),
       newBufferRange: this.getBufferRange(),
       newScreenRange: this.getScreenRange(),
       selection: this
-    })
+    }
+    this.emitter.emit('did-change-range', rangeChangedEvent)
+    this.editor.selectionRangeChanged(rangeChangedEvent)
   }
 
   markerDidDestroy () {
