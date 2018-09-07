@@ -1130,8 +1130,15 @@ describe('TextEditorComponent', () => {
       editor.scrollToScreenRange([[4, 0], [6, 0]], {center: true})
       await component.getNextUpdatePromise()
 
-      const actualScrollCenter = (component.getScrollTop() + component.getScrollBottom()) / 2
-      const expectedScrollCenter = (4 + 7) / 2 * component.getLineHeight()
+      let actualScrollCenter = (component.getScrollTop() + component.getScrollBottom()) / 2
+      let expectedScrollCenter = (4 + 7) / 2 * component.getLineHeight()
+      expect(actualScrollCenter).toBeCloseTo(expectedScrollCenter, 0)
+
+      editor.scrollToScreenRange([[6, 0], [6, 0]], {center: true})
+      await component.getNextUpdatePromise()
+
+      actualScrollCenter = (component.getScrollTop() + component.getScrollBottom()) / 2
+      expectedScrollCenter = (5 + 8) / 2 * component.getLineHeight()
       expect(actualScrollCenter).toBeCloseTo(expectedScrollCenter, 0)
     })
 

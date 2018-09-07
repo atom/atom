@@ -2039,10 +2039,8 @@ class TextEditorComponent {
     let desiredScrollTop, desiredScrollBottom
     if (options && options.center) {
       const desiredScrollCenter = (screenRangeTop + screenRangeBottom) / 2
-      if (desiredScrollCenter < this.getScrollTop() || desiredScrollCenter > this.getScrollBottom()) {
-        desiredScrollTop = desiredScrollCenter - this.getScrollContainerClientHeight() / 2
-        desiredScrollBottom = desiredScrollCenter + this.getScrollContainerClientHeight() / 2
-      }
+      desiredScrollTop = desiredScrollCenter - this.getScrollContainerClientHeight() / 2
+      desiredScrollBottom = desiredScrollCenter + this.getScrollContainerClientHeight() / 2
     } else {
       desiredScrollTop = screenRangeTop - verticalScrollMargin
       desiredScrollBottom = screenRangeBottom + verticalScrollMargin
