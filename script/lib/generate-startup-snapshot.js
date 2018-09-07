@@ -97,7 +97,7 @@ module.exports = function (packagedAppPath) {
       {env: Object.assign({}, process.env, {ELECTRON_RUN_AS_NODE: 1})}
     )
 
-    const generatedStartupBlobPath = path.join(CONFIG.buildOutputPath, 'snapshot_blob.bin')
+    const generatedStartupBlobPath = path.join(CONFIG.buildOutputPath, 'v8_context_snapshot.bin')
     console.log(`Generating startup blob at "${generatedStartupBlobPath}"`)
     childProcess.execFileSync(
       path.join(CONFIG.repositoryRootPath, 'script', 'node_modules', 'electron-mksnapshot', 'bin', 'mksnapshot'),
@@ -106,9 +106,9 @@ module.exports = function (packagedAppPath) {
 
     let startupBlobDestinationPath
     if (process.platform === 'darwin') {
-      startupBlobDestinationPath = `${packagedAppPath}/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`
+      startupBlobDestinationPath = `${packagedAppPath}/Contents/Frameworks/Electron Framework.framework/Resources/v8_context_snapshot.bin`
     } else {
-      startupBlobDestinationPath = path.join(packagedAppPath, 'snapshot_blob.bin')
+      startupBlobDestinationPath = path.join(packagedAppPath, 'v8_context_snapshot.bin')
     }
 
     console.log(`Moving generated startup blob into "${startupBlobDestinationPath}"`)
