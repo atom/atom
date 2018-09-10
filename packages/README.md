@@ -18,7 +18,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **autocomplete-html** | [`atom/autocomplete-html`][autocomplete-html] |  |
 | **autocomplete-plus** | [`atom/autocomplete-plus`][autocomplete-plus] |  |
 | **autocomplete-snippets** | [`atom/autocomplete-snippets`][autocomplete-snippets] |  |
-| **autoflow** | [`atom/autoflow`][autoflow] | [#17833](https://github.com/atom/atom/issues/17833) |
+| **autoflow** | [`atom/autoflow`][./autoflow] | [#17833](https://github.com/atom/atom/issues/17833) |
 | **autosave** | [`atom/autosave`][autosave] | [#17834](https://github.com/atom/atom/issues/17834) |
 | **background-tips** | [`atom/background-tips`][background-tips] | [#17835](https://github.com/atom/atom/issues/17835) |
 | **base16-tomorrow-dark-theme** | [`atom/base16-tomorrow-dark-theme`][base16-tomorrow-dark-theme] | [#17836](https://github.com/atom/atom/issues/17836) |
@@ -100,7 +100,6 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **whitespace** | [`atom/whitespace`][whitespace] |  |
 | **wrap-guide** | [`atom/wrap-guide`][wrap-guide] |  |
 
-[about]: https://github.com/atom/about
 [archive-view]: https://github.com/atom/archive-view
 [atom-dark-syntax]: https://github.com/atom/atom-dark-syntax
 [atom-dark-ui]: https://github.com/atom/atom-dark-ui
@@ -111,7 +110,6 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 [autocomplete-html]: https://github.com/atom/autocomplete-html
 [autocomplete-plus]: https://github.com/atom/autocomplete-plus
 [autocomplete-snippets]: https://github.com/atom/autocomplete-snippets
-[autoflow]: https://github.com/atom/autoflow
 [autosave]: https://github.com/atom/autosave
 [background-tips]: https://github.com/atom/background-tips
 [base16-tomorrow-dark-theme]: https://github.com/atom/base16-tomorrow-dark-theme
@@ -170,7 +168,6 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 [markdown-preview]: https://github.com/atom/markdown-preview
 [metrics]: https://github.com/atom/metrics
 [notifications]: https://github.com/atom/notifications
-[one-light-syntax]: https://github.com/atom/one-light-syntax
 [open-on-github]: https://github.com/atom/open-on-github
 [package-generator]: https://github.com/atom/package-generator
 [settings-view]: https://github.com/atom/settings-view
