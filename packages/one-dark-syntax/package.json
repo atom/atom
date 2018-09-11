@@ -8,7 +8,7 @@
     "blue",
     "syntax"
   ],
-  "repository": "https://github.com/atom/one-dark-syntax",
+  "repository": "https://github.com/atom/atom",
   "license": "MIT",
   "engines": {
     "atom": ">0.50.0"

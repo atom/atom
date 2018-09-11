@@ -8,7 +8,7 @@
       "autoflow:reflow-selection"
     ]
   },
-  "repository": "https://github.com/atom/autoflow",
+  "repository": "https://github.com/atom/atom",
   "license": "MIT",
   "engines": {
     "atom": "*"

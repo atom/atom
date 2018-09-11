@@ -7,7 +7,7 @@
     "light",
     "syntax"
   ],
-  "repository": "https://github.com/atom/one-light-syntax",
+  "repository": "https://github.com/atom/atom",
   "license": "MIT",
   "engines": {
     "atom": ">0.40.0"
