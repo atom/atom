@@ -372,10 +372,10 @@ class TreeSitterLanguageMode {
     const searchEndIndex = Math.max(0, endIndex - 1)
 
     let smallestNode
-    this._forEachTreeWithRange(range, tree => {
+    this._forEachTreeWithRange(range, (tree, grammar) => {
       let node = tree.rootNode.descendantForIndex(startIndex, searchEndIndex)
       while (node) {
-        if (nodeContainsIndices(node, startIndex, endIndex) && where(node)) {
+        if (nodeContainsIndices(node, startIndex, endIndex) && where(node, grammar)) {
           if (nodeIsSmaller(node, smallestNode)) smallestNode = node
           break
         }
@@ -396,9 +396,17 @@ class TreeSitterLanguageMode {
   }
 
   bufferRangeForScopeAtPosition (selector, position) {
+    const nodeCursorAdapter = new NodeCursorAdaptor()
     if (typeof selector === 'string') {
       const match = matcherForSelector(selector)
-      selector = ({type}) => match(type)
+      selector = (node, grammar) => {
+        const rules = grammar.scopeMap.get([node.type], [0], node.named)
+        nodeCursorAdapter.node = node
+        const scopeName = applyLeafRules(rules, nodeCursorAdapter)
+        if (scopeName != null) {
+          return match(scopeName)
+        }
+      }
     }
     if (selector === null) selector = undefined
     const node = this.getSyntaxNodeAtPosition(position, selector)
@@ -425,10 +433,10 @@ class TreeSitterLanguageMode {
     const iterator = this.buildHighlightIterator()
     const scopes = []
     for (const scope of iterator.seek(point)) {
-      scopes.push(this.grammar.scopeNameForScopeId(scope, false))
+      scopes.push(this.grammar.scopeNameForScopeId(scope))
     }
     for (const scope of iterator.getOpenScopeIds()) {
-      scopes.push(this.grammar.scopeNameForScopeId(scope, false))
+      scopes.push(this.grammar.scopeNameForScopeId(scope))
     }
     if (scopes.length === 0 || scopes[0] !== this.grammar.scopeName) {
       scopes.unshift(this.grammar.scopeName)
@@ -743,13 +751,9 @@ class HighlightIterator {
           iterator.languageLayer.tree.rootNode.endPosition
         ).toString()
       )
-      console.log('close', iterator.closeTags.map(id => this.shortClassNameForScopeId(id)))
-      console.log('open', iterator.openTags.map(id => this.shortClassNameForScopeId(id)))
+      console.log('close', iterator.closeTags.map(id => this.languageMode.grammar.scopeNameForScopeId(id)))
+      console.log('open', iterator.openTags.map(id => this.languageMode.grammar.scopeNameForScopeId(id)))
     }
-  }
-
-  shortClassNameForScopeId (id) {
-    return this.languageMode.classNameForScopeId(id).replace(/syntax--/g, '')
   }
 }
 
@@ -944,14 +948,14 @@ class LayerHighlightIterator {
   }
 
   _currentScopeId () {
-    const rules = this.languageLayer.grammar.scopeMap.get(
+    const value = this.languageLayer.grammar.scopeMap.get(
       this.containingNodeTypes,
       this.containingNodeChildIndices,
       this.treeCursor.nodeIsNamed
     )
-    const scopes = applyLeafRules(rules, this.treeCursor)
-    if (scopes) {
-      return this.languageLayer.languageMode.grammar.idForScope(scopes)
+    const scopeName = applyLeafRules(value, this.treeCursor)
+    if (scopeName) {
+      return this.languageLayer.languageMode.grammar.idForScope(scopeName)
     }
   }
 }
@@ -976,6 +980,12 @@ const applyLeafRules = (rules, cursor) => {
         ? applyLeafRules(rules.scopes, cursor)
         : undefined
     }
+  }
+}
+
+class NodeCursorAdaptor {
+  get nodeText () {
+    return this.node.text
   }
 }
 
