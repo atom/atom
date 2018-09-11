@@ -5,7 +5,7 @@
   "version": "1.9.1",
   "description": "View useful information about your Atom installation.",
   "keywords": [],
-  "repository": "https://github.com/atom/about",
+  "repository": "https://github.com/atom/atom",
   "license": "MIT",
   "scripts": {
     "lint": "standard"
