@@ -1504,20 +1504,21 @@ describe('TreeSitterLanguageMode', () => {
       it('returns the range of the smallest matching node at position', async () => {
         const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
           scopeName: 'javascript',
-          parser: 'tree-sitter-javascript'
+          parser: 'tree-sitter-javascript',
+          scopes: {
+            'property_identifier': 'variable.other.object.property',
+            'template_string': 'string.quoted.template'
+          }
         })
 
-        buffer.setText('foo({bar: baz});')
+        buffer.setText('a(`${b({ccc: ddd})} eee`);')
 
         buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
-        expect(editor.bufferRangeForScopeAtPosition('.property_identifier', [0, 6])).toEqual(
-          buffer.findSync('bar')
+        expect(editor.bufferRangeForScopeAtPosition('.variable.property', [0, 9])).toEqual(
+          [[0, 8], [0, 11]]
         )
-        expect(editor.bufferRangeForScopeAtPosition('.call_expression', [0, 6])).toEqual(
-          [[0, 0], [0, buffer.getText().length - 1]]
-        )
-        expect(editor.bufferRangeForScopeAtPosition('.object', [0, 9])).toEqual(
-          buffer.findSync('{bar: baz}')
+        expect(editor.bufferRangeForScopeAtPosition('.string.quoted', [0, 6])).toEqual(
+          [[0, 2], [0, 24]]
         )
       })
 
@@ -1525,7 +1526,9 @@ describe('TreeSitterLanguageMode', () => {
         const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
           scopeName: 'javascript',
           parser: 'tree-sitter-javascript',
-          scopes: {},
+          scopes: {
+            'property_identifier': 'variable.other.object.property',
+          },
           injectionRegExp: 'javascript',
           injectionPoints: [HTML_TEMPLATE_LITERAL_INJECTION_POINT]
         })
@@ -1533,7 +1536,9 @@ describe('TreeSitterLanguageMode', () => {
         const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
           scopeName: 'html',
           parser: 'tree-sitter-html',
-          scopes: {},
+          scopes: {
+            'element': 'meta.element.html'
+          },
           injectionRegExp: 'html',
           injectionPoints: [SCRIPT_TAG_INJECTION_POINT]
         })
@@ -1557,9 +1562,9 @@ describe('TreeSitterLanguageMode', () => {
         const nameProperty = buffer.findSync('name')
         const {start} = nameProperty
         const position = Object.assign({}, start, {column: start.column + 2})
-        expect(languageMode.bufferRangeForScopeAtPosition('.property_identifier', position))
+        expect(languageMode.bufferRangeForScopeAtPosition('.object.property', position))
           .toEqual(nameProperty)
-        expect(languageMode.bufferRangeForScopeAtPosition('.element', position))
+        expect(languageMode.bufferRangeForScopeAtPosition('.meta.element.html', position))
           .toEqual(buffer.findSync('<span>\\${person\\.name}</span>'))
       })
 

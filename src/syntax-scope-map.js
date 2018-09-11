@@ -2,17 +2,17 @@ const parser = require('postcss-selector-parser')
 
 module.exports =
 class SyntaxScopeMap {
-  constructor (scopeNamesBySelector) {
+  constructor (resultsBySelector) {
     this.namedScopeTable = {}
     this.anonymousScopeTable = {}
-    for (let selector in scopeNamesBySelector) {
-      this.addSelector(selector, scopeNamesBySelector[selector])
+    for (let selector in resultsBySelector) {
+      this.addSelector(selector, resultsBySelector[selector])
     }
     setTableDefaults(this.namedScopeTable)
     setTableDefaults(this.anonymousScopeTable)
   }
 
-  addSelector (selector, scopeName) {
+  addSelector (selector, result) {
     parser((parseResult) => {
       for (let selectorNode of parseResult.nodes) {
         let currentTable = null
@@ -91,7 +91,7 @@ class SyntaxScopeMap {
           }
         }
 
-        currentTable.scopeName = scopeName
+        currentTable.result = result
       }
     }).process(selector)
   }
@@ -110,8 +110,8 @@ class SyntaxScopeMap {
         currentTable = currentTable.indices[childIndices[i]]
       }
 
-      if (currentTable.scopeName) {
-        result = currentTable.scopeName
+      if (currentTable.result != null) {
+        result = currentTable.result
       }
 
       if (i === 0) break
@@ -168,8 +168,8 @@ function mergeTable (table, defaultTable, mergeIndices = true) {
     }
   }
 
-  if (defaultTable.scopeName && !table.scopeName) {
-    table.scopeName = defaultTable.scopeName
+  if (defaultTable.result != null && table.result == null) {
+    table.result = defaultTable.result
   }
 }
 
