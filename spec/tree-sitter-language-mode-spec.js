@@ -1146,6 +1146,8 @@ describe('TreeSitterLanguageMode', () => {
       const grammar = new TreeSitterGrammar(atom.grammars, rubyGrammarPath, {
         parser: 'tree-sitter-ruby',
         folds: [
+          // Note that this isn't how folds actually work in language-ruby. It's
+          // just to demonstrate the targeting of named vs anonymous nodes.
           {
             type: 'elsif',
             start: {index: 1},
@@ -1173,10 +1175,8 @@ describe('TreeSitterLanguageMode', () => {
           b
         elsif c
           d
-        elsif e
-          f
         else
-          g
+          e
         end
       `)
 
@@ -1184,14 +1184,12 @@ describe('TreeSitterLanguageMode', () => {
       buffer.setLanguageMode(languageMode)
 
       expect(languageMode.tree.rootNode.toString()).toBe(
-        "(program (if (identifier) " +
-          "(identifier) " +
-          "(elsif (identifier) " +
-            "(identifier) " +
-            "(elsif (identifier) " +
-              "(identifier) " +
-              "(else " +
-                "(identifier))))))"
+        "(program (if (identifier) (then " +
+          "(identifier)) " +
+          "(elsif (identifier) (then " +
+            "(identifier)) " +
+            "(else " +
+              "(identifier)))))"
       )
 
       editor.foldBufferRow(2)
@@ -1199,10 +1197,8 @@ describe('TreeSitterLanguageMode', () => {
         if a
           b
         elsif c…
-        elsif e
-          f
         else
-          g
+          e
         end
       `)
 
@@ -1211,18 +1207,6 @@ describe('TreeSitterLanguageMode', () => {
         if a
           b
         elsif c…
-        elsif e…
-        else
-          g
-        end
-      `)
-
-      editor.foldBufferRow(6)
-      expect(getDisplayText(editor)).toBe(dedent `
-        if a
-          b
-        elsif c…
-        elsif e…
         else…
         end
       `)
