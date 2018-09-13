@@ -311,7 +311,7 @@ const schemaEnforcers = {}
 // * **bold** - `**bold**`
 // * *italics* - `*italics*`
 // * [links](https://atom.io) - `[links](https://atom.io)`
-// * `code spans` - `\`code spans\``
+// * `code spans` - `` `code spans` ``
 // * line breaks - `line breaks<br/>`
 // * ~~strikethrough~~ - `~~strikethrough~~`
 //
