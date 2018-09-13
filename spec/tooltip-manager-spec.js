@@ -113,6 +113,9 @@ describe('TooltipManager', () => {
         bubbles: true
       }))
       expect(document.body.querySelector('.tooltip')).not.toBeNull()
+      // click again to hide the tooltip because otherwise state leaks
+      // into other tests.
+      element.click()
     })
 
     it('allows a custom item to be specified for the content of the tooltip', () => {
