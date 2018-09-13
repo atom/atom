@@ -55,6 +55,18 @@ describe('TooltipManager', () => {
 
         disposables.dispose()
       })
+
+      it('hides the tooltip on keydown events', () => {
+        const disposable = manager.add(element, { title: 'Title', trigger: 'hover' })
+        hover(element, function () {
+          expect(document.body.querySelector('.tooltip')).not.toBeNull()
+          window.dispatchEvent(new CustomEvent('keydown', {
+            bubbles: true
+          }))
+          expect(document.body.querySelector('.tooltip')).toBeNull()
+          disposable.dispose()
+        })
+      })
     })
 
     describe("when the trigger is 'manual'", () =>
@@ -92,6 +104,16 @@ describe('TooltipManager', () => {
         expect(document.body.querySelector('.tooltip')).toBeNull()
       })
     )
+
+    it('does not hide the tooltip on keyboard input', () => {
+      manager.add(element, {title: 'Title', trigger: 'click'})
+      element.click()
+      expect(document.body.querySelector('.tooltip')).not.toBeNull()
+      window.dispatchEvent(new CustomEvent('keydown', {
+        bubbles: true
+      }))
+      expect(document.body.querySelector('.tooltip')).not.toBeNull()
+    })
 
     it('allows a custom item to be specified for the content of the tooltip', () => {
       const tooltipElement = document.createElement('div')
@@ -207,20 +229,6 @@ describe('TooltipManager', () => {
         hover(element, function () {
           expect(document.body.querySelector('.tooltip')).not.toBeNull()
           window.dispatchEvent(new CustomEvent('resize'))
-          expect(document.body.querySelector('.tooltip')).toBeNull()
-          disposable.dispose()
-        })
-      })
-    )
-
-    describe('when a user types', () =>
-      it('hides the tooltips', () => {
-        const disposable = manager.add(element, { title: 'Title' })
-        hover(element, function () {
-          expect(document.body.querySelector('.tooltip')).not.toBeNull()
-          window.dispatchEvent(new CustomEvent('keydown', {
-            bubbles: true
-          }))
           expect(document.body.querySelector('.tooltip')).toBeNull()
           disposable.dispose()
         })
