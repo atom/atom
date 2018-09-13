@@ -2,6 +2,11 @@ trigger:
 - master
 - 1.* # VSTS only supports wildcards at the end
 
+resources:
+  containers:
+  - container: atom-linux-ci
+    image: daviwil/atom-linux-ci:latest
+
 jobs:
 
 - job: GetReleaseVersion
@@ -21,7 +26,7 @@ jobs:
 - template: platforms/linux.yml
 
 - job: UploadArtifacts
-  pool: 
+  pool:
     vmImage: vs2015-win2012r2 # needed for python 2.7 and gyp
 
   dependsOn:
@@ -35,7 +40,7 @@ jobs:
     IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
     IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
-  steps:  
+  steps:
   - task: NodeTool@0
     inputs:
       versionSpec: 8.9.3
