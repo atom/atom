@@ -152,7 +152,7 @@ class TooltipManager {
       tooltip.hide()
     }
 
-    // note: adding a listener here adds a new listener for every tooltip element that's registered.  Adding unnecessary listeners is bad for performance.  It would be better to add/remove listeners when tooltips are actually created in the dom. 
+    // note: adding a listener here adds a new listener for every tooltip element that's registered.  Adding unnecessary listeners is bad for performance.  It would be better to add/remove listeners when tooltips are actually created in the dom.
     window.addEventListener('resize', hideTooltip)
 
     const disposable = new Disposable(() => {
