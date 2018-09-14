@@ -210,14 +210,12 @@ class TextMateLanguageMode {
       let prefixedScope = prefixedScopes.get(scope)
       if (prefixedScope) {
         return prefixedScope
-      } else {
-        prefixedScope = `syntax--${scope.replace(/\./g, ' syntax--')}`
-        prefixedScopes.set(scope, prefixedScope)
-        return prefixedScope
       }
-    } else {
-      return null
+      prefixedScope = `syntax--${scope.replace(/\./g, ' syntax--')}`
+      prefixedScopes.set(scope, prefixedScope)
+      return prefixedScope
     }
+    return null
   }
 
   getInvalidatedRanges () {
@@ -462,9 +460,8 @@ class TextMateLanguageMode {
     const precedingLine = this.tokenizedLines[bufferRow - 1]
     if (precedingLine) {
       return this.scopesFromTags(precedingLine.openScopes, precedingLine.tags)
-    } else {
-      return []
     }
+    return []
   }
 
   scopesFromTags (startingScopes, tags) {
@@ -651,9 +648,8 @@ class TextMateLanguageMode {
   endRowForFoldAtRow (row, tabLength, existenceOnly = false) {
     if (this.isRowCommented(row)) {
       return this.endRowForCommentFoldAtRow(row, existenceOnly)
-    } else {
-      return this.endRowForCodeFoldAtRow(row, tabLength, existenceOnly)
     }
+    return this.endRowForCodeFoldAtRow(row, tabLength, existenceOnly)
   }
 
   endRowForCommentFoldAtRow (row, existenceOnly) {

@@ -62,8 +62,7 @@ class Clipboard {
     const text = this.read()
     if (this.signatureForMetadata === this.md5(text)) {
       return {text, metadata: this.metadata}
-    } else {
-      return {text}
     }
+    return {text}
   }
 }

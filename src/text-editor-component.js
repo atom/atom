@@ -2202,9 +2202,8 @@ class TextEditorComponent {
     if (clientContainerHeight !== this.measurements.clientContainerHeight) {
       this.measurements.clientContainerHeight = clientContainerHeight
       return true
-    } else {
-      return false
     }
+    return false
   }
 
   measureClientContainerWidth () {
@@ -2212,9 +2211,8 @@ class TextEditorComponent {
     if (clientContainerWidth !== this.measurements.clientContainerWidth) {
       this.measurements.clientContainerWidth = clientContainerWidth
       return true
-    } else {
-      return false
     }
+    return false
   }
 
   measureScrollbarDimensions () {
@@ -2865,9 +2863,8 @@ class TextEditorComponent {
   getScrollTopRow () {
     if (this.hasInitialMeasurements) {
       return this.rowForPixelPosition(this.getScrollTop())
-    } else {
-      return this.pendingScrollTopRow || 0
     }
+    return this.pendingScrollTopRow || 0
   }
 
   setScrollLeftColumn (scrollLeftColumn, scheduleUpdate = true) {
@@ -2877,10 +2874,9 @@ class TextEditorComponent {
         this.scheduleUpdate()
       }
       return didScroll
-    } else {
-      this.pendingScrollLeftColumn = scrollLeftColumn
-      return false
     }
+    this.pendingScrollLeftColumn = scrollLeftColumn
+    return false
   }
 
   getScrollLeftColumn () {

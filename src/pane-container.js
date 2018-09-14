@@ -146,9 +146,8 @@ class PaneContainer {
   getPanes () {
     if (this.alive) {
       return this.getRoot().getPanes()
-    } else {
-      return []
     }
+    return []
   }
 
   getPaneItems () {
@@ -192,9 +191,8 @@ class PaneContainer {
       const nextIndex = (currentIndex + 1) % panes.length
       panes[nextIndex].activate()
       return true
-    } else {
-      return false
     }
+    return false
   }
 
   activatePreviousPane () {
@@ -205,9 +203,8 @@ class PaneContainer {
       if (previousIndex < 0) { previousIndex = panes.length - 1 }
       panes[previousIndex].activate()
       return true
-    } else {
-      return false
     }
+    return false
   }
 
   moveActiveItemToPane (destPane) {

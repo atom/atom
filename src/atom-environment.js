@@ -443,9 +443,8 @@ class AtomEnvironment {
     if (this.shellEnvironmentLoaded) {
       callback()
       return new Disposable()
-    } else {
-      return this.emitter.once('loaded-shell-environment', callback)
     }
+    return this.emitter.once('loaded-shell-environment', callback)
   }
 
   /*
@@ -1212,9 +1211,8 @@ or use Pane::saveItemAs for programmatic saving.`)
       if (!stateKey) stateKey = this.getStateKey(this.getLoadSettings().initialPaths)
       if (stateKey) {
         return this.stateStore.load(stateKey)
-      } else {
-        return this.applicationDelegate.getTemporaryWindowState()
       }
+      return this.applicationDelegate.getTemporaryWindowState()
     } else {
       return Promise.resolve(null)
     }
