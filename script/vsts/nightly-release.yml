@@ -1,3 +1,8 @@
+resources:
+  containers:
+  - container: atom-linux-ci
+    image: daviwil/atom-linux-ci:latest
+
 jobs:
 
 - job: GetReleaseVersion
@@ -17,7 +22,7 @@ jobs:
 - template: platforms/linux.yml
 
 - job: Release
-  pool: 
+  pool:
     vmImage: vs2015-win2012r2 # needed for Python 2.7 and gyp
 
   dependsOn:
