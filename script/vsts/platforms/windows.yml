@@ -79,7 +79,7 @@ jobs:
       ArtifactName: atom-x64-windows.zip
       ArtifactType: Container
     displayName: Upload atom-x64-windows.zip
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['buildArch'], 'x64'))
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -87,7 +87,7 @@ jobs:
       ArtifactName: AtomSetup-x64.exe
       ArtifactType: Container
     displayName: Upload AtomSetup-x64.exe
-    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -95,7 +95,7 @@ jobs:
       ArtifactName: atom-x64-$(ReleaseVersion)-full.nupkg
       ArtifactType: Container
     displayName: Upload atom-x64-$(ReleaseVersion)-full.nupkg
-    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -103,4 +103,36 @@ jobs:
       ArtifactName: RELEASES-x64
       ArtifactType: Container
     displayName: Upload RELEASES-x64
-    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-windows.zip
+      ArtifactName: atom-windows.zip
+      ArtifactType: Container
+    displayName: Upload atom-windows.zip
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['buildArch'], 'x86'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/AtomSetup.exe
+      ArtifactName: AtomSetup.exe
+      ArtifactType: Container
+    displayName: Upload AtomSetup.exe
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-$(ReleaseVersion)-full.nupkg
+      ArtifactName: atom-$(ReleaseVersion)-full.nupkg
+      ArtifactType: Container
+    displayName: Upload atom-$(ReleaseVersion)-full.nupkg
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/RELEASES
+      ArtifactName: RELEASES
+      ArtifactType: Container
+    displayName: Upload RELEASES
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
