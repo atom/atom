@@ -17,7 +17,7 @@ module.exports = (packagedAppPath) => {
     outputDirectory: CONFIG.buildOutputPath,
     noMsi: true,
     noDelta: CONFIG.channel === 'nightly', // Delta packages are broken for nightly versions past nightly9 due to Squirrel/NuGet limitations
-    remoteReleases: (!(CONFIG.channel === 'nightly' && process.arch === 'ia32')) ? `https://atom.io/api/updates${archSuffix}?version=${CONFIG.computedAppVersion}` : undefined
+    remoteReleases: (!(CONFIG.channel === 'nightly' && process.arch === 'ia32')) ? `https://atom.io/api/updates${archSuffix}?version=${CONFIG.computedAppVersion}` : undefined,
     setupExe: `AtomSetup${process.arch === 'x64' ? '-x64' : ''}.exe`,
     setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
   }
