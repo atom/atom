@@ -18,10 +18,15 @@ const args =
     .argv
 
 function isAtomRepoPath (repoPath) {
-  let packageJsonPath = path.join(repoPath, 'package.json')
+  const packageJsonPath = path.join(repoPath, 'package.json')
   if (fs.statSyncNoException(packageJsonPath)) {
-    let packageJson = CSON.readFileSync(packageJsonPath)
-    return packageJson.name === 'atom'
+    try {
+      const packageJson = CSON.readFileSync(packageJsonPath)
+      return packageJson.name === 'atom'
+    } catch (e) {
+      // If any errors are encountered in parsing assume this isn't a valid path
+      return false
+    }
   }
 
   return false
