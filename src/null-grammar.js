@@ -6,23 +6,20 @@ module.exports = {
   scopeForId (id) {
     if (id === -1 || id === -2) {
       return this.scopeName
-    } else {
-      return null
     }
+    return null
   },
   startIdForScope (scopeName) {
     if (scopeName === this.scopeName) {
       return -1
-    } else {
-      return null
     }
+    return null
   },
   endIdForScope (scopeName) {
     if (scopeName === this.scopeName) {
       return -2
-    } else {
-      return null
     }
+    return null
   },
   tokenizeLine (text) {
     return {

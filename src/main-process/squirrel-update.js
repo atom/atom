@@ -89,9 +89,8 @@ const removeCommandsFromPath = callback =>
 
     if (pathEnv !== newPathEnv) {
       return spawnSetx(['Path', newPathEnv], callback)
-    } else {
-      return callback()
     }
+    return callback()
   })
 
 // Create a desktop and start menu shortcut by using the command line API

@@ -233,17 +233,15 @@ On linux there are currently problems with watch sizes. See
   resolveStylesheet (stylesheetPath) {
     if (path.extname(stylesheetPath).length > 0) {
       return fs.resolveOnLoadPath(stylesheetPath)
-    } else {
-      return fs.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
     }
+    return fs.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
   }
 
   loadStylesheet (stylesheetPath, importFallbackVariables) {
     if (path.extname(stylesheetPath) === '.less') {
       return this.loadLessStylesheet(stylesheetPath, importFallbackVariables)
-    } else {
-      return fs.readFileSync(stylesheetPath, 'utf8')
     }
+    return fs.readFileSync(stylesheetPath, 'utf8')
   }
 
   loadLessStylesheet (lessStylesheetPath, importFallbackVariables = false) {

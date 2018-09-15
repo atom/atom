@@ -58,13 +58,11 @@ class Decoration {
       }
 
       return false
-    } else {
-      if (type === 'gutter') {
-        return ['gutter', 'line-number'].includes(decorationProperties.type)
-      } else {
-        return type === decorationProperties.type
-      }
     }
+    if (type === 'gutter') {
+      return ['gutter', 'line-number'].includes(decorationProperties.type)
+    }
+    return type === decorationProperties.type
   }
 
   /*
