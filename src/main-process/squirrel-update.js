@@ -100,10 +100,10 @@ const createShortcuts = (locations, callback) => spawnUpdate(['--createShortcut'
 
 // Update the desktop and start menu shortcuts by using the command line API
 // provided by Squirrel's Update.exe
-const updateShortcuts = (callback) => {
+const updateShortcuts = (app, callback) => {
   const homeDirectory = fs.getHomeDirectory()
   if (homeDirectory) {
-    const desktopShortcutPath = path.join(homeDirectory, 'Desktop', 'Atom.lnk')
+    const desktopShortcutPath = path.join(homeDirectory, 'Desktop', `${app.getName()}.lnk`)
     // Check if the desktop shortcut has been previously deleted and
     // and keep it deleted if it was
     fs.exists(desktopShortcutPath, (desktopShortcutExists) => {
@@ -157,7 +157,7 @@ exports.handleStartupEvent = (app, squirrelCommand) => {
       )
       return true
     case '--squirrel-updated':
-      updateShortcuts(() =>
+      updateShortcuts(app, () =>
         addCommandsToPath(() =>
           WinShell.fileHandler.update(() =>
             updateContextMenus(() => app.quit())
