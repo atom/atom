@@ -39,5 +39,8 @@ async function runScriptForBuildArch () {
 }
 
 runScriptForBuildArch().catch(
-  err => console.error(`\nScript failed due to error: ${err.message}`)
+  err => {
+    console.error(`\nScript failed due to error: ${err.message}`)
+    process.exit(1)
+  }
 )
