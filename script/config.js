@@ -23,12 +23,14 @@ const apmMetadata = require(path.join(apmRootPath, 'package.json'))
 const computedAppVersion = computeAppVersion(process.env.ATOM_RELEASE_VERSION || appMetadata.version)
 const channel = getChannel(computedAppVersion)
 const appName = getAppName(channel)
+const executableName = getExecutableName(channel, appName)
 
 module.exports = {
   appMetadata,
   apmMetadata,
   channel,
   appName,
+  executableName,
   computedAppVersion,
   repositoryRootPath,
   apmRootPath,
@@ -60,6 +62,16 @@ function getAppName (channel) {
   return channel === 'stable'
     ? 'Atom'
     : `Atom ${process.env.ATOM_CHANNEL_DISPLAY_NAME || channel.charAt(0).toUpperCase() + channel.slice(1)}`
+}
+
+function getExecutableName (channel, appName) {
+  if (process.platform === 'darwin') {
+    return appName
+  } else if (process.platform === 'win32') {
+    return channel === 'stable' ? 'atom.exe' : `atom-${channel}.exe`
+  } else {
+    return 'atom'
+  }
 }
 
 function computeAppVersion (version) {

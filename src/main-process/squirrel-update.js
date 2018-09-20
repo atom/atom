@@ -9,7 +9,6 @@ const appFolder = path.resolve(process.execPath, '..')
 const rootAtomFolder = path.resolve(appFolder, '..')
 const binFolder = path.join(rootAtomFolder, 'bin')
 const updateDotExe = path.join(rootAtomFolder, 'Update.exe')
-const exeName = path.basename(process.execPath)
 
 if (process.env.SystemRoot) {
   const system32Path = path.join(process.env.SystemRoot, 'System32')
@@ -30,9 +29,12 @@ const spawnUpdate = (args, callback) => Spawner.spawn(updateDotExe, args, callba
 // This is done by adding .cmd shims to the root bin folder in the Atom
 // install directory that point to the newly installed versions inside
 // the versioned app directories.
-const addCommandsToPath = callback => {
+const addCommandsToPath = (exeName, callback) => {
+  const atomCmdName = exeName.replace('.exe', '.cmd')
+  const apmCmdName = atomCmdName.replace('atom', 'apm')
+
   const installCommands = callback => {
-    const atomCommandPath = path.join(binFolder, 'atom.cmd')
+    const atomCommandPath = path.join(binFolder, atomCmdName)
     const relativeAtomPath = path.relative(binFolder, path.join(appFolder, 'resources', 'cli', 'atom.cmd'))
     const atomCommand = `@echo off\r\n\"%~dp0\\${relativeAtomPath}\" %*`
 
@@ -40,7 +42,7 @@ const addCommandsToPath = callback => {
     const relativeAtomShPath = path.relative(binFolder, path.join(appFolder, 'resources', 'cli', 'atom.sh'))
     const atomShCommand = `#!/bin/sh\r\n\"$(dirname \"$0\")/${relativeAtomShPath.replace(/\\/g, '/')}\" \"$@\"\r\necho`
 
-    const apmCommandPath = path.join(binFolder, 'apm.cmd')
+    const apmCommandPath = path.join(binFolder, apmCmdName)
     const relativeApmPath = path.relative(binFolder, path.join(process.resourcesPath, 'app', 'apm', 'bin', 'apm.cmd'))
     const apmCommand = `@echo off\r\n\"%~dp0\\${relativeApmPath}\" %*`
 
@@ -94,32 +96,35 @@ const removeCommandsFromPath = callback =>
     }
   })
 
+const getExeName = (app) => path.basename(app.getPath('exe'))
+
 // Create a desktop and start menu shortcut by using the command line API
 // provided by Squirrel's Update.exe
-const createShortcuts = (locations, callback) => spawnUpdate(['--createShortcut', exeName, '-l', locations.join(',')], callback)
+const createShortcuts = (exeName, locations, callback) =>
+  spawnUpdate(['--createShortcut', exeName, '-l', locations.join(',')], callback)
 
 // Update the desktop and start menu shortcuts by using the command line API
 // provided by Squirrel's Update.exe
-const updateShortcuts = (app, callback) => {
+const updateShortcuts = (appName, exeName, callback) => {
   const homeDirectory = fs.getHomeDirectory()
   if (homeDirectory) {
-    const desktopShortcutPath = path.join(homeDirectory, 'Desktop', `${app.getName()}.lnk`)
+    const desktopShortcutPath = path.join(homeDirectory, 'Desktop', `${appName}.lnk`)
     // Check if the desktop shortcut has been previously deleted and
     // and keep it deleted if it was
     fs.exists(desktopShortcutPath, (desktopShortcutExists) => {
       const locations = ['StartMenu']
       if (desktopShortcutExists) { locations.push('Desktop') }
 
-      createShortcuts(locations, callback)
+      createShortcuts(exeName, locations, callback)
     })
   } else {
-    createShortcuts(['Desktop', 'StartMenu'], callback)
+    createShortcuts(exeName, ['Desktop', 'StartMenu'], callback)
   }
 }
 
 // Remove the desktop and start menu shortcuts by using the command line API
 // provided by Squirrel's Update.exe
-const removeShortcuts = callback => spawnUpdate(['--removeShortcut', exeName], callback)
+const removeShortcuts = (exeName, callback) => spawnUpdate(['--removeShortcut', exeName], callback)
 
 exports.spawn = spawnUpdate
 
@@ -129,52 +134,38 @@ exports.existsSync = () => fs.existsSync(updateDotExe)
 // Restart Atom using the version pointed to by the atom.cmd shim
 exports.restartAtom = (app) => {
   let args
+  const exeName = getExeName(app) 
+  const atomCmdName = exeName.replace('.exe', '.cmd')
   if (global.atomApplication && global.atomApplication.lastFocusedWindow) {
     const {projectPath} = global.atomApplication.lastFocusedWindow
     if (projectPath) args = [projectPath]
   }
-  app.once('will-quit', () => Spawner.spawn(path.join(binFolder, 'atom.cmd'), args))
+  app.once('will-quit', () => Spawner.spawn(path.join(binFolder, atomCmdName), args))
   app.quit()
 }
 
-const updateContextMenus = callback =>
-  WinShell.fileContextMenu.update(() =>
-    WinShell.folderContextMenu.update(() =>
-      WinShell.folderBackgroundContextMenu.update(() => callback())
-    )
-  )
-
 // Handle squirrel events denoted by --squirrel-* command line arguments.
 exports.handleStartupEvent = (app, squirrelCommand) => {
+  const exeName = getExeName(app)
   switch (squirrelCommand) {
     case '--squirrel-install':
-      createShortcuts(['Desktop', 'StartMenu'], () =>
-        addCommandsToPath(() =>
-          WinShell.fileHandler.register(() =>
-            updateContextMenus(() => app.quit())
-          )
+      createShortcuts(exeName, ['Desktop', 'StartMenu'], () =>
+        addCommandsToPath(exeName, () =>
+          WinShell.registerShellIntegration(app.getName(), () => app.quit())
         )
       )
       return true
     case '--squirrel-updated':
-      updateShortcuts(app, () =>
-        addCommandsToPath(() =>
-          WinShell.fileHandler.update(() =>
-            updateContextMenus(() => app.quit())
-          )
+      updateShortcuts(app.getName(), exeName, () =>
+        addCommandsToPath(exeName, () =>
+          WinShell.updateShellIntegration(app.getName(), () => app.quit())
         )
       )
       return true
     case '--squirrel-uninstall':
-      removeShortcuts(() =>
+      removeShortcuts(exeName, () =>
         removeCommandsFromPath(() =>
-          WinShell.fileHandler.deregister(() =>
-            WinShell.fileContextMenu.deregister(() =>
-              WinShell.folderContextMenu.deregister(() =>
-                WinShell.folderBackgroundContextMenu.deregister(() => app.quit())
-              )
-            )
-          )
+          WinShell.deregisterShellIntegration(app.getName(), () => app.quit())
         )
       )
       return true

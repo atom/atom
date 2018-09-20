@@ -10,7 +10,6 @@ const CONFIG = require('../config')
 module.exports = (packagedAppPath) => {
   const archSuffix = process.arch === 'ia32' ? '' : '-' + process.arch
   const options = {
-    exe: 'atom.exe',
     title: CONFIG.appName,
     appDirectory: packagedAppPath,
     authors: 'GitHub Inc.',

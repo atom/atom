@@ -13,9 +13,17 @@ const invokeCallback = function(callback) {
   return (typeof callback === 'function' ? callback(error, stdout) : undefined);
 };
 
+const createFakeApp = function() {
+  return {
+    quit: jasmine.createSpy('quit'),
+    getName: () => AtomTestAppName,
+    getPath: () => 'atom-test.exe'
+  };
+}
+
 const AtomTestAppName = 'Atom Testing'
 
-describe("Windows Squirrel Update", function() {
+fdescribe("Windows Squirrel Update", function() {
   let tempHomeDirectory = null;
 
   beforeEach(function() {
@@ -30,16 +38,9 @@ describe("Windows Squirrel Update", function() {
     );
 
     // Prevent any actual change to Windows Shell
-    class FakeShellOption {
-      isRegistered(callback) { return callback(true); }
-      register(callback) { return callback(null); }
-      deregister(callback) { return callback(null, true); }
-      update(callback) { return callback(null); }
-    }
-    WinShell.fileHandler = new FakeShellOption();
-    WinShell.fileContextMenu = new FakeShellOption();
-    WinShell.folderContextMenu = new FakeShellOption();
-    return WinShell.folderBackgroundContextMenu = new FakeShellOption();
+    spyOn(WinShell, 'registerShellIntegration').andCallFake((appName, callback) => callback())
+    spyOn(WinShell, 'updateShellIntegration').andCallFake((appName, callback) => callback())
+    spyOn(WinShell, 'deregisterShellIntegration').andCallFake((appName, callback) => callback())
   });
 
   afterEach(function() {
@@ -49,10 +50,7 @@ describe("Windows Squirrel Update", function() {
   });
 
   it("quits the app on all squirrel events", function() {
-    const app = {
-      quit: jasmine.createSpy('quit'),
-      getName: () => AtomTestAppName
-    };
+    const app = createFakeApp()
 
     expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')).toBe(true);
 
@@ -104,7 +102,7 @@ describe("Windows Squirrel Update", function() {
 
     return describe("on install", function() {
       beforeEach(function() {
-        const app = {quit: jasmine.createSpy('quit')};
+        const app = createFakeApp()
         SquirrelUpdate.handleStartupEvent(app, '--squirrel-install');
         return waitsFor(() => app.quit.callCount === 1);
       });
@@ -116,10 +114,7 @@ describe("Windows Squirrel Update", function() {
           fs.removeSync(desktopShortcutPath);
           expect(fs.existsSync(desktopShortcutPath)).toBe(false);
 
-          const app = {
-            quit: jasmine.createSpy('quit'),
-            getName: () => AtomTestAppName
-          };
+          const app = createFakeApp()
           SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated');
           return waitsFor(() => app.quit.callCount === 1);
         });
@@ -129,10 +124,7 @@ describe("Windows Squirrel Update", function() {
 
       return describe("when shortcut is kept and app is updated", function() {
         beforeEach(function() {
-          const app = {
-            quit: jasmine.createSpy('quit'),
-            getName: () => AtomTestAppName
-          };
+          const app = createFakeApp()
           SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated');
           return waitsFor(() => app.quit.callCount === 1);
         });
@@ -146,6 +138,7 @@ describe("Windows Squirrel Update", function() {
     it("quits the app and spawns a new one", function() {
       const app = new EventEmitter();
       app.quit = jasmine.createSpy('quit');
+      app.getPath = () => 'atom-test.exe'
 
       SquirrelUpdate.restartAtom(app);
       expect(app.quit.callCount).toBe(1);
@@ -153,7 +146,7 @@ describe("Windows Squirrel Update", function() {
       expect(Spawner.spawn.callCount).toBe(0);
       app.emit('will-quit');
       expect(Spawner.spawn.callCount).toBe(1);
-      return expect(path.basename(Spawner.spawn.argsForCall[0][0])).toBe('atom.cmd');
+      return expect(path.basename(Spawner.spawn.argsForCall[0][0])).toBe('atom-test.cmd');
     })
   );
 });

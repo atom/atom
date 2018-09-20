@@ -115,6 +115,8 @@ function buildAsarUnpackGlobExpression () {
 function getAppName () {
   if (process.platform === 'darwin') {
     return CONFIG.appName
+  } else if (process.platform === 'win32') {
+    return CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`
   } else {
     return 'atom'
   }
