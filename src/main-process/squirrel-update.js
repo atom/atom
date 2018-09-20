@@ -134,7 +134,7 @@ exports.existsSync = () => fs.existsSync(updateDotExe)
 // Restart Atom using the version pointed to by the atom.cmd shim
 exports.restartAtom = (app) => {
   let args
-  const exeName = getExeName(app) 
+  const exeName = getExeName(app)
   const atomCmdName = exeName.replace('.exe', '.cmd')
   if (global.atomApplication && global.atomApplication.lastFocusedWindow) {
     const {projectPath} = global.atomApplication.lastFocusedWindow

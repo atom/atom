@@ -50,7 +50,7 @@ class ShellOption {
   }
 }
 
-function getShellOptions(appName) {
+function getShellOptions (appName) {
   const contextParts = [
       {key: 'command', name: '', value: `${appPath} \"%1\"`},
       {name: '', value: `Open with ${appName}`},
@@ -73,7 +73,7 @@ function getShellOptions(appName) {
   }
 }
 
-function registerShellIntegration(appName, callback) {
+function registerShellIntegration (appName, callback) {
   const shellOptions = getShellOptions(appName)
   shellOptions.fileHandler.register(() =>
     shellOptions.fileContextMenu.update(() =>
@@ -84,7 +84,7 @@ function registerShellIntegration(appName, callback) {
   )
 }
 
-function updateShellIntegration(appName, callback) {
+function updateShellIntegration (appName, callback) {
   const shellOptions = getShellOptions(appName)
   shellOptions.fileHandler.update(() =>
     shellOptions.fileContextMenu.update(() =>
@@ -95,7 +95,7 @@ function updateShellIntegration(appName, callback) {
   )
 }
 
-function deregisterShellIntegration(appName, callback) {
+function deregisterShellIntegration (appName, callback) {
   const shellOptions = getShellOptions(appName)
   shellOptions.fileHandler.deregister(() =>
     shellOptions.fileContextMenu.deregister(() =>
@@ -109,5 +109,5 @@ function deregisterShellIntegration(appName, callback) {
 module.exports = {
   registerShellIntegration,
   updateShellIntegration,
-  deregisterShellIntegration,
+  deregisterShellIntegration
 }
