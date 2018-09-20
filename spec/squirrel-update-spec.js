@@ -23,7 +23,7 @@ const createFakeApp = function() {
 
 const AtomTestAppName = 'Atom Testing'
 
-fdescribe("Windows Squirrel Update", function() {
+describe("Windows Squirrel Update", function() {
   let tempHomeDirectory = null;
 
   beforeEach(function() {
