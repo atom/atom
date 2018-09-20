@@ -29,11 +29,11 @@ FOR %%a IN (%*) DO (
 
 IF "%EXPECT_OUTPUT%"=="YES" (
   IF "%WAIT%"=="YES" (
-    powershell -noexit "Start-Process -FilePath \"%~dp0\..\..\atom.exe\" -ArgumentList \"--pid=$pid $env:PSARGS\" ; wait-event"
+    powershell -noexit "Start-Process -FilePath \"%~dp0\..\..\<%= atomExeName %>\" -ArgumentList \"--pid=$pid $env:PSARGS\" ; wait-event"
     exit 0
   ) ELSE (
-    "%~dp0\..\..\atom.exe" %*
+    "%~dp0\..\..\<%= atomExeName %>" %*
   )
 ) ELSE (
-  "%~dp0\..\app\apm\bin\node.exe" "%~dp0\atom.js" %*
+  "%~dp0\..\app\apm\bin\node.exe" "%~dp0\atom.js" "<%= atomExeName %>" %*
 )
