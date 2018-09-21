@@ -2099,7 +2099,11 @@ describe('TextEditorComponent', () => {
       jasmine.attachToDOM(element)
 
       expect(component.getGutterContainerWidth()).toBe(100)
-      expect(editor.getSoftWrapColumn()).toBe(39);
+
+      // Component client width - gutter container width - vertical scrollbar width
+      const softWrapColumn = Math.floor(
+        (400 - 100 - component.getVerticalScrollbarWidth()) / component.getBaseCharacterWidth())
+      expect(editor.getSoftWrapColumn()).toBe(softWrapColumn)
     })
   })
 
