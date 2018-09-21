@@ -2085,6 +2085,26 @@ describe('TextEditorComponent', () => {
       const bLabels = Array.from(bNumbers, e => e.textContent)
       expect(bLabels).toEqual(['b - 0', 'b - 1', 'b - 2', 'b - 3', 'b - 4', 'b - 5'])
     })
+
+    it("updates the editor's soft wrap width when a custom gutter's measurement is available", () => {
+      const {component, element, editor} = buildComponent({
+        lineNumberGutterVisible: false,
+        width: 400,
+        softWrapped: true,
+        attach: false,
+      })
+      const gutter = editor.addGutter({name: 'a', priority: 10})
+      gutter.getElement().style.width = '100px'
+
+      jasmine.attachToDOM(element)
+
+      expect(component.getGutterContainerWidth()).toBe(100)
+
+      // Component client width - gutter container width - vertical scrollbar width
+      const softWrapColumn = Math.floor(
+        (400 - 100 - component.getVerticalScrollbarWidth()) / component.getBaseCharacterWidth())
+      expect(editor.getSoftWrapColumn()).toBe(softWrapColumn)
+    })
   })
 
   describe('block decorations', () => {

@@ -387,8 +387,9 @@ class TextEditorComponent {
   }
 
   measureContentDuringUpdateSync () {
+    let gutterDimensionsChanged = false
     if (this.remeasureGutterDimensions) {
-      this.measureGutterDimensions()
+      gutterDimensionsChanged = this.measureGutterDimensions()
       this.remeasureGutterDimensions = false
     }
     const wasHorizontalScrollbarVisible = (
@@ -419,7 +420,7 @@ class TextEditorComponent {
     this.linesToMeasure.clear()
     this.measuredContent = true
 
-    return wasHorizontalScrollbarVisible !== isHorizontalScrollbarVisible
+    return gutterDimensionsChanged || wasHorizontalScrollbarVisible !== isHorizontalScrollbarVisible
   }
 
   updateSyncAfterMeasuringContent () {
