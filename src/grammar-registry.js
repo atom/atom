@@ -6,6 +6,7 @@ const {Disposable, CompositeDisposable} = require('event-kit')
 const TextMateLanguageMode = require('./text-mate-language-mode')
 const TreeSitterLanguageMode = require('./tree-sitter-language-mode')
 const TreeSitterGrammar = require('./tree-sitter-grammar')
+const ScopeDescriptor = require('./scope-descriptor')
 const Token = require('./token')
 const fs = require('fs-plus')
 const {Point, Range} = require('text-buffer')
@@ -216,7 +217,7 @@ class GrammarRegistry {
     if (score > 0) {
       // Prefer either TextMate or Tree-sitter grammars based on the user's settings.
       if (grammar instanceof TreeSitterGrammar) {
-        if (this.config.get('core.useTreeSitterParsers')) {
+        if (this.shouldUseTreeSitterParser(grammar.scopeName)) {
           score += 0.1
         } else {
           return -Infinity
@@ -311,7 +312,7 @@ class GrammarRegistry {
 
   grammarForId (languageId) {
     if (!languageId) return null
-    if (this.config.get('core.useTreeSitterParsers')) {
+    if (this.shouldUseTreeSitterParser(languageId)) {
       return (
         this.treeSitterGrammarsById[languageId] ||
         this.textmateRegistry.grammarForScopeName(languageId)
@@ -568,12 +569,11 @@ class GrammarRegistry {
     return grammarWithLongestMatch
   }
 
-  normalizeLanguageId (languageId) {
-    if (this.config.get('core.useTreeSitterParsers')) {
-      return this.treeSitterLanguageIdsByTextMateScopeName.get(languageId) || languageId
-    } else {
-      return this.textMateScopeNamesByTreeSitterLanguageId.get(languageId) || languageId
-    }
+  shouldUseTreeSitterParser (languageId) {
+    return this.config.get(
+      'core.useTreeSitterParsers',
+      {scope: new ScopeDescriptor({scopes: [languageId]})}
+    )
   }
 }
 

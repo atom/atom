@@ -56,7 +56,7 @@ describe('GrammarRegistry', () => {
 
   describe('.grammarForId(languageId)', () => {
     it('returns a text-mate grammar when `core.useTreeSitterParsers` is false', () => {
-      atom.config.set('core.useTreeSitterParsers', false)
+      atom.config.set('core.useTreeSitterParsers', false, {scopeSelector: '.source.js'})
 
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
       grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
@@ -395,7 +395,7 @@ describe('GrammarRegistry', () => {
 
     describe('tree-sitter vs text-mate', () => {
       it('favors a text-mate grammar over a tree-sitter grammar when `core.useTreeSitterParsers` is false', () => {
-        atom.config.set('core.useTreeSitterParsers', false)
+        atom.config.set('core.useTreeSitterParsers', false, {scopeSelector: '.source.js'})
 
         grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/javascript.cson'))
         grammarRegistry.loadGrammarSync(require.resolve('language-javascript/grammars/tree-sitter-javascript.cson'))
