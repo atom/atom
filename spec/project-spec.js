@@ -882,10 +882,10 @@ describe('Project', () => {
     }
 
     it('reports filesystem changes within project paths', () => {
-      const dirOne = temp.mkdirSync('atom-spec-project-one')
+      const dirOne = fs.realpathSync(temp.mkdirSync('atom-spec-project-one'))
       const fileOne = path.join(dirOne, 'file-one.txt')
       const fileTwo = path.join(dirOne, 'file-two.txt')
-      const dirTwo = temp.mkdirSync('atom-spec-project-two')
+      const dirTwo = fs.realpathSync(temp.mkdirSync('atom-spec-project-two'))
       const fileThree = path.join(dirTwo, 'file-three.txt')
 
       // Ensure that all preexisting watchers are stopped
