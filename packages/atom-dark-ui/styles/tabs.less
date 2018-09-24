@@ -1,0 +1,157 @@
+@tab-radius: 3px;
+@modified-icon-width: 8px;
+@tab-skew: 30deg;
+@tab-top-padding: 5px;
+@tab-bottom-border-height: 5px;
+@tab-border: 1px solid @tab-border-color;
+@tab-bar-bottom-border-color: #111;
+@tab-max-width: 160px;
+
+.tab-bar {
+  height: @tab-height + @tab-top-padding + @tab-bottom-border-height;
+  background: @tab-bar-background-color;
+  box-shadow: inset 0 -8px 8px -4px rgba(0,0,0, .15);
+  padding: 0 10px 0 25px;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    position: relative;
+    top: @tab-top-padding;
+    max-width: @tab-max-width;
+    height: @tab-height;
+    line-height: @tab-height;
+    padding: 0;
+    margin: 0 20px 0 5px;
+    color: @text-color;
+
+    transition: color .1s ease-in;
+    border: none;
+
+    &, &:before, &:after {
+      background-image: -webkit-linear-gradient(top, lighten(#333, 7%), #333);
+      height: @tab-height;
+    }
+
+    &:before, &:after {
+      content: '';
+      position: absolute;
+      top: 0px;
+      width: 25px;
+      height: @tab-height;
+    }
+
+    // left angled edge
+    &:before {
+      left: -14px;
+      border-top-left-radius: @tab-radius;
+      box-shadow: inset 1px 1px 0 @tab-border-color, -4px 0px 4px rgba(0,0,0,.1);
+      -webkit-transform: skewX(-@tab-skew);
+    }
+
+    // right angled edge
+    &:after {
+      right: -14px;
+      border-top-right-radius: @tab-radius;
+      box-shadow: inset -1px 1px 0 @tab-border-color, 4px 0px 4px rgba(0,0,0,.1);
+      -webkit-transform: skewX(@tab-skew);
+    }
+
+    .close-icon {
+      right: 0;
+      z-index: 3;
+      text-align: right;
+      line-height: @tab-height;
+      color: @text-color;
+
+      &:hover {
+        color: inherit;
+      }
+    }
+
+    &.modified:not(:hover) .close-icon {
+      right: 0;
+      top: @tab-height/2 - @modified-icon-width/2 + 1px;
+      width: @modified-icon-width;
+      height: @modified-icon-width;
+    }
+
+    &.modified:hover .close-icon:hover {
+      color: @text-color-highlight;
+    }
+
+    .title {
+      position: relative;
+      z-index: 1;
+      margin-top: -@tab-top-padding;
+      padding-top: @tab-top-padding;
+      padding-right: 10px;
+    }
+  }
+
+  .tab.active {
+    z-index: 1;
+    color: @text-color-highlight;
+    box-shadow: inset -1px 1px 0 @tab-border-color, 4px -4px 4px rgba(0,0,0,.1);
+
+    .close-icon {
+      line-height: @tab-height - 1px;
+      color: @text-color;
+    }
+
+    &, &:before, &:after {
+      background-image: -webkit-linear-gradient(top, lighten(@tab-background-color-active, 7%), @tab-background-color-active);
+      height: @tab-height + 1px;
+    }
+
+    &:before {
+      box-shadow: inset 1px 1px 0 @tab-border-color, -4px -4px 4px rgba(0,0,0,.1);
+    }
+
+    &:after {
+      box-shadow: inset -1px 1px 0 @tab-border-color, 4px -4px 4px rgba(0,0,0,.1);
+    }
+  }
+
+  .tab:hover {
+    color: @text-color-highlight;
+  }
+
+  .tab.active:hover .close-icon {
+    color: @text-color;
+
+    &:hover {
+      color: inherit;
+    }
+  }
+
+  .placeholder {
+    height: @tab-height + @tab-top-padding + @tab-bottom-border-height;
+    pointer-events: none;
+    &:before {
+      margin-left: -9px; // center between tabs
+    }
+    &:after {
+      top: @tab-height + @tab-top-padding + @tab-bottom-border-height - 2px;
+      margin-left: -10px; // center between tabs
+    }
+  }
+}
+
+// border
+.tab-bar + .item-views::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  height: @tab-bottom-border-height;
+  left: 0;
+  right: 0;
+  background-color: @tab-background-color-active;
+  border-top: 1px solid @tab-border-color;
+  border-bottom: 1px solid @tab-bar-bottom-border-color;
+  pointer-events: none;
+}

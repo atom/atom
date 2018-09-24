@@ -21,7 +21,7 @@
     "archive-view": "https://www.atom.io/api/packages/archive-view/versions/0.65.1/tarball",
     "async": "0.2.6",
     "atom-dark-syntax": "https://www.atom.io/api/packages/atom-dark-syntax/versions/0.29.1/tarball",
-    "atom-dark-ui": "https://www.atom.io/api/packages/atom-dark-ui/versions/0.53.3/tarball",
+    "atom-dark-ui": "file:packages/atom-dark-ui",
     "atom-keymap": "8.2.11",
     "atom-light-syntax": "https://www.atom.io/api/packages/atom-light-syntax/versions/0.29.1/tarball",
     "atom-light-ui": "https://www.atom.io/api/packages/atom-light-ui/versions/0.46.3/tarball",
@@ -171,7 +171,7 @@
   },
   "packageDependencies": {
     "atom-dark-syntax": "0.29.1",
-    "atom-dark-ui": "0.53.3",
+    "atom-dark-ui": "file:./packages/atom-dark-ui",
     "atom-light-syntax": "0.29.1",
     "atom-light-ui": "0.46.3",
     "base16-tomorrow-dark-theme": "1.6.0",
