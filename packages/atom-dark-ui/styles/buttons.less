@@ -1,0 +1,53 @@
+.btn-background (@color, @hover-color, @selected-color, @text-color) {
+  color: @text-color;
+  background-color: transparent;
+  background-image: -webkit-linear-gradient(@color, darken(@color, 5%));
+
+  &:focus {
+    color: @text-color;
+  }
+  &:hover {
+    color: @text-color-highlight;
+    background-image: -webkit-linear-gradient(@hover-color, darken(@hover-color, 5%));
+  }
+  &.selected,
+  &.selected:hover {
+    color: @text-color-highlight;
+    background-image: -webkit-linear-gradient(darken(@selected-color, 5%), @selected-color);
+    &:hover {
+      background-image: -webkit-linear-gradient(@selected-color, darken(@selected-color, 5%));
+    }
+  }
+}
+
+.btn-variant (@color) {
+  @bg: darken(@color, 10%);
+  @hover: @color;
+  @selected: @color;
+  .btn-background(@bg, @hover, @selected, @text-color-highlight);
+}
+
+.btn {
+  .btn-background(@button-background-color, @button-background-color-hover, @button-background-color-selected, @text-color);
+}
+
+.btn.btn-primary {
+  .btn-variant(@background-color-info);
+}
+.btn.btn-info {
+  .btn-variant(@background-color-info);
+}
+.btn.btn-success {
+  .btn-variant(@background-color-success);
+}
+.btn.btn-warning {
+  .btn-variant(@background-color-warning);
+}
+.btn.btn-error {
+  .btn-variant(@background-color-error);
+}
+
+.caret {
+  border-top: 5px solid #fff;
+  margin-top: -1px;
+}
