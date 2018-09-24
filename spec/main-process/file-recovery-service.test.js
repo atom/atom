@@ -26,23 +26,28 @@ describe("FileRecoveryService", () => {
   })
 
   describe("when no crash happens during a save", () => {
-    it("creates a recovery file and deletes it after saving", async () => {
+    it("creates a recovery file and renames it after saving", async () => {
       const mockWindow = {}
       const filePath = temp.path()
 
       fs.writeFileSync(filePath, "some content")
       await recoveryService.willSavePath(mockWindow, filePath)
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 1)
+      let entries = fs.listTreeSync(recoveryDirectory)
+      assert.equal(entries.length, 1)
+      const [recoveryFilename] = entries
 
       fs.writeFileSync(filePath, "changed")
       await recoveryService.didSavePath(mockWindow, filePath)
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 0)
+      entries = fs.listTreeSync(recoveryDirectory)
+      assert.equal(entries.length, 1)
+      const [renamedFilename] = entries
+      assert.equal(renamedFilename, recoveryFilename + '~')
       assert.equal(fs.readFileSync(filePath, 'utf8'), "changed")
 
       fs.removeSync(filePath)
     })
 
-    it("creates only one recovery file when many windows attempt to save the same file, deleting it when the last one finishes saving it", async () => {
+    it("creates only one recovery file when many windows attempt to save the same file, renaming it when the last one finishes saving it", async () => {
       const mockWindow = {}
       const anotherMockWindow = {}
       const filePath = temp.path()
@@ -50,7 +55,9 @@ describe("FileRecoveryService", () => {
       fs.writeFileSync(filePath, "some content")
       await recoveryService.willSavePath(mockWindow, filePath)
       await recoveryService.willSavePath(anotherMockWindow, filePath)
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 1)
+      let entries = fs.listTreeSync(recoveryDirectory)
+      assert.equal(entries.length, 1)
+      const [recoveryFilename] = entries
 
       fs.writeFileSync(filePath, "changed")
       await recoveryService.didSavePath(mockWindow, filePath)
@@ -58,7 +65,10 @@ describe("FileRecoveryService", () => {
       assert.equal(fs.readFileSync(filePath, 'utf8'), "changed")
 
       await recoveryService.didSavePath(anotherMockWindow, filePath)
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 0)
+      entries = fs.listTreeSync(recoveryDirectory)
+      assert.equal(entries.length, 1)
+      const [renamedFilename] = entries
+      assert.equal(renamedFilename, recoveryFilename + '~')
       assert.equal(fs.readFileSync(filePath, 'utf8'), "changed")
 
       fs.removeSync(filePath)
@@ -66,17 +76,22 @@ describe("FileRecoveryService", () => {
   })
 
   describe("when a crash happens during a save", () => {
-    it("restores the created recovery file and deletes it", async () => {
+    it("restores the created recovery file and renames it", async () => {
       const mockWindow = {}
       const filePath = temp.path()
 
       fs.writeFileSync(filePath, "some content")
       await recoveryService.willSavePath(mockWindow, filePath)
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 1)
+      let entries = fs.listTreeSync(recoveryDirectory)      
+      assert.equal(entries.length, 1)
+      const [recoveryFilename] = entries
 
       fs.writeFileSync(filePath, "changed")
       await recoveryService.didCrashWindow(mockWindow)
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 0)
+      entries = fs.listTreeSync(recoveryDirectory)
+      assert.equal(entries.length, 1)
+      const [renamedFilename] = entries
+      assert.equal(renamedFilename, recoveryFilename + '~')
       assert.equal(fs.readFileSync(filePath, 'utf8'), "some content")
 
       fs.removeSync(filePath)
@@ -91,25 +106,33 @@ describe("FileRecoveryService", () => {
       await recoveryService.willSavePath(mockWindow, filePath)
       fs.writeFileSync(filePath, "B")
       await recoveryService.willSavePath(anotherMockWindow, filePath)
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 1)
+      let entries = fs.listTreeSync(recoveryDirectory)
+      assert.equal(entries.length, 1)
+      const [recoveryFilename] = entries
 
       fs.writeFileSync(filePath, "C")
 
       await recoveryService.didCrashWindow(mockWindow)
       assert.equal(fs.readFileSync(filePath, 'utf8'), "A")
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 0)
+
+      entries = fs.listTreeSync(recoveryDirectory)
+      assert.equal(entries.length, 1)
 
       fs.writeFileSync(filePath, "D")
       await recoveryService.willSavePath(mockWindow, filePath)
       fs.writeFileSync(filePath, "E")
       await recoveryService.willSavePath(anotherMockWindow, filePath)
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 1)
+      entries = fs.listTreeSync(recoveryDirectory)
+      assert.equal(entries.length, 2)
 
       fs.writeFileSync(filePath, "F")
 
       await recoveryService.didCrashWindow(anotherMockWindow)
       assert.equal(fs.readFileSync(filePath, 'utf8'), "D")
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 0)
+      entries = fs.listTreeSync(recoveryDirectory)
+      assert.equal(entries.length, 2)
+      assert(entries[0].endsWith('~'))
+      assert(entries[1].endsWith('~'))
 
       fs.removeSync(filePath)
     })
@@ -153,5 +176,26 @@ describe("FileRecoveryService", () => {
 
     await recoveryService.didSavePath(mockWindow, "a-file-that-doesnt-exist")
     assert.equal(fs.listTreeSync(recoveryDirectory).length, 0)
+  })
+
+  describe("sweep", () => { 
+    it("deletes only files ending in ~ older than maxAge", async () => {
+      const now = Date.now()
+      const ls = sinon.spy((_dir, pred) => {
+        return [
+          {path: 'dead~', stat: {mtimeMs: now - 2000}},
+          {path: 'not-yet-recovered', stat: {mtimeMs: now - 100000}},
+          {path: 'too-young-to-die~', stat: {mtimeMs: now - 100}},
+          {path: 'AlsoDead~', stat: {mtimeMs: now - 2000}},          
+        ].filter(({path}) => pred(path))
+      })
+      const unlink = sinon.spy(path => path)
+      const garbage = await recoveryService.sweep(1000, {ls, unlink})
+      
+      assert.equal(unlink.callCount, 2)
+      assert(unlink.getCall(0).calledWith('dead~'))
+      assert(unlink.getCall(1).calledWith('AlsoDead~'))
+      assert.deepEqual(garbage, unlink.getCalls().map(call => call.args[0]))
+    })
   })
 })

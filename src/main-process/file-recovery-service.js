@@ -3,6 +3,8 @@ const crypto = require('crypto')
 const Path = require('path')
 const fs = require('fs-plus')
 const mkdirp = require('mkdirp')
+const {promisify} = require('util')
+const unlink = promisify(fs.unlink)
 
 module.exports =
 class FileRecoveryService {
@@ -89,6 +91,13 @@ class FileRecoveryService {
     }
     this.recoveryFilesByWindow.delete(window)
   }
+
+  async sweep(maxAge=24 * 60 * 60 * 1000 /* 1 day */, {ls=ls, unlink=unlink}={}) {
+    const minMTime = Date.now() - maxAge
+    const pathStats = await ls(this.recoveryPath, name => name.endsWith('~'))
+    const garbage = pathStats.filter(({stat: {mtimeMs}}) => mtimeMs < minMTime)
+    return Promise.all(garbage.map(({path}) => unlink(path)))
+  }
 }
 
 class RecoveryFile {
@@ -117,7 +126,7 @@ class RecoveryFile {
 
   async remove () {
     return new Promise((resolve, reject) =>
-      fs.unlink(this.recoveryPath, error =>
+      fs.move(this.recoveryPath, this.recoveryPath + '~', error =>
         error && error.code !== 'ENOENT' ? reject(error) : resolve()
       )
     )
@@ -162,4 +171,16 @@ async function copyFile (source, destination, mode) {
         })
     })
   })
+}
+
+const stat = promisify(fs.stat)
+const readdir = promisify(fs.readdir)
+
+async function ls (dir, pathPredicate=name => true) {
+  const entries = await readdir(dir)
+  return Promise.all(entries.map(ent => {
+    const path = Path.join(dir, ent)
+    if (!pathPredicate(path)) return
+    return stat(path).then(stat => ({path, stat}))
+  }).filter(x => x))
 }
