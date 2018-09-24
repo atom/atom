@@ -6,11 +6,11 @@ const mkdirp = require('mkdirp')
 const {promisify} = require('util')
 const unlink = promisify(fs.unlink)
 
-const DAY_MS = 24 * 60 * 60 * 1000
+const HOUR_MS = 60 * 60 * 1000
 
 module.exports =
 class FileRecoveryService {
-  constructor (recoveryDirectory, gcInterval=DAY_MS / 2) {
+  constructor (recoveryDirectory, gcInterval=HOUR_MS) {
     this.recoveryDirectory = recoveryDirectory
     this.recoveryFilesByFilePath = new Map()
     this.recoveryFilesByWindow = new WeakMap()
@@ -95,7 +95,7 @@ class FileRecoveryService {
     this.recoveryFilesByWindow.delete(window)
   }
 
-  async sweep(maxAge=DAY_MS, {ls=ls, unlink=unlink}={}) {
+  async sweep(maxAge=HOUR_MS, {ls=ls, unlink=unlink}={}) {
     const minMTime = Date.now() - maxAge
     const pathStats = await ls(this.recoveryPath, name => name.endsWith('~'))
     const garbage = pathStats.filter(({stat: {mtimeMs}}) => mtimeMs < minMTime)
