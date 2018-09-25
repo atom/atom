@@ -12,7 +12,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **atom-dark-syntax** | [`./packages/atom-dark-syntax`][./atom-dark-syntax] | [#17849](https://github.com/atom/atom/issues/17849) |
 | **atom-dark-ui** | [`./packages/atom-dark-ui`][./atom-dark-ui] | [#17850](https://github.com/atom/atom/issues/17850) |
 | **atom-light-syntax** | [`./packages/atom-light-syntax`][./atom-light-syntax] | [#17851](https://github.com/atom/atom/issues/17851) |
-| **atom-light-ui** | [`atom/atom-light-ui`][atom-light-ui] | [#17852](https://github.com/atom/atom/issues/17852) |
+| **atom-light-ui** | [`./packages/atom-light-ui`][./atom-light-ui] | [#17852](https://github.com/atom/atom/issues/17852) |
 | **autocomplete-atom-api** | [`atom/autocomplete-atom-api`][autocomplete-atom-api] |  |
 | **autocomplete-css** | [`atom/autocomplete-css`][autocomplete-css] |  |
 | **autocomplete-html** | [`atom/autocomplete-html`][autocomplete-html] |  |
