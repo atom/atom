@@ -1,0 +1,56 @@
+atom-text-editor {
+  background-color: @syntax-background-color;
+  color: @syntax-text-color;
+
+  .invisible-character {
+    color: @syntax-invisible-character-color;
+  }
+
+  .indent-guide {
+    color: @syntax-indent-guide-color;
+  }
+
+  .wrap-guide {
+    background-color: @syntax-wrap-guide-color;
+  }
+
+  .gutter {
+    color: @syntax-gutter-text-color;
+    background: @syntax-gutter-background-color;
+  }
+
+  .gutter .line-number.folded,
+  .gutter .line-number:after,
+  .fold-marker:after {
+    color: #e87b00;
+  }
+
+  .invisible {
+    color: #555;
+  }
+
+  .selection .region {
+    background-color: #e1e1e1;
+  }
+
+  .bracket-matcher .region {
+    background-color: #C9C9C9;
+    opacity: .7;
+    border-bottom: 0 none;
+  }
+
+  &.is-focused {
+    .cursor {
+      border-color: @syntax-cursor-color;
+    }
+
+    .selection .region {
+      background-color: @syntax-selection-color;
+    }
+
+    .line-number.cursor-line-no-selection,
+    .line.cursor-line {
+      background-color: @syntax-gutter-background-color-selected;
+    }
+  }
+}
