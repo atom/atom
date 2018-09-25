@@ -24,7 +24,7 @@
     "atom-dark-ui": "file:packages/atom-dark-ui",
     "atom-keymap": "8.2.11",
     "atom-light-syntax": "file:packages/atom-light-syntax",
-    "atom-light-ui": "file:packages/atom-light-ui",    
+    "atom-light-ui": "file:packages/atom-light-ui",
     "atom-select-list": "^0.7.2",
     "atom-ui": "0.4.1",
     "autocomplete-atom-api": "https://www.atom.io/api/packages/autocomplete-atom-api/versions/0.10.7/tarball",
@@ -172,7 +172,7 @@
   "packageDependencies": {
     "atom-dark-syntax": "file:./packages/atom-dark-syntax",
     "atom-dark-ui": "file:./packages/atom-dark-ui",
-    "atom-light-syntax": "file:./packages/atom-light-syntax",    
+    "atom-light-syntax": "file:./packages/atom-light-syntax",
     "atom-light-ui": "file:./packages/atom-light-ui",
     "base16-tomorrow-dark-theme": "1.6.0",
     "base16-tomorrow-light-theme": "1.6.0",
