@@ -1,0 +1,24 @@
+{
+  "name": "incompatible-packages",
+  "main": "./lib/main",
+  "version": "0.27.3",
+  "description": "Show incompatible packages",
+  "repository": "https://github.com/atom/atom",
+  "license": "MIT",
+  "engines": {
+    "atom": ">0.50.0"
+  },
+  "dependencies": {
+    "etch": "^0.12.2"
+  },
+  "consumedServices": {
+    "status-bar": {
+      "versions": {
+        "^1.0.0": "consumeStatusBar"
+      }
+    }
+  },
+  "deserializers": {
+    "IncompatiblePackagesComponent": "deserializeIncompatiblePackagesComponent"
+  }
+}
