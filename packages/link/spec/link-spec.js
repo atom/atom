@@ -44,10 +44,11 @@ describe('link package', () => {
       expect(shell.openExternal.argsForCall[0][0]).toBe('http://github.com')
     })
 
-    // only works in Atom >= 1.32.0
+    // only works in Atom >= 1.33.0
     // https://github.com/atom/link/pull/33#issuecomment-419643655
     const atomVersion = atom.getVersion().split('.')
-    if (+atomVersion[0] > 1 || +atomVersion[1] >= 32) {
+    console.error("atomVersion", atomVersion)
+    if (+atomVersion[0] > 1 || +atomVersion[1] >= 33) {
       it("opens an 'atom:' link", async () => {
         await atom.workspace.open('sample.md')
 
