@@ -13,7 +13,7 @@ const packageJsonPath = path.join(buildPath, 'app', 'package.json')
 if (!fs.existsSync(buildPath) || !fs.existsSync(packageJsonPath)) {
   console.log(`This script requires a full Atom build with release packages for the current platform in the following path:\n    ${buildPath}\n`)
   if (process.platform === 'darwin') {
-    console.log(`Run this command before trying again:\n    script/build --compress-artifacts\n\n`)
+    console.log(`Run this command before trying again:\n    script/build --compress-artifacts --test-sign\n\n`)
   } else if (process.platform === 'win32') {
     console.log(`Run this command before trying again:\n    script/build --create-windows-installer\n\n`)
   }
@@ -27,17 +27,25 @@ const releaseChannel = versionMatch ? versionMatch[1] : 'stable'
 console.log(`Serving ${appMetadata.productName} release assets (channel = ${releaseChannel})\n`.green)
 
 function getMacZip (req, res) {
+  console.log(`Received request for atom-mac.zip, sending it`)
   res.sendFile(path.join(buildPath, 'atom-mac.zip'))
 }
 
 function getMacUpdates (req, res) {
-  res.json({
-    name: appMetadata.version,
-    pub_date: new Date().toISOString(),
-    url: `http://localhost:${port}/mac/atom-mac.zip`,
-    notes: '<p>No Details</p>'
-  })
-  res.send('macOS updates!')
+  if (req.query.version !== appMetadata.version) {
+    const updateInfo = {
+      name: appMetadata.version,
+      pub_date: new Date().toISOString(),
+      url: `http://localhost:${port}/mac/atom-mac.zip`,
+      notes: '<p>No Details</p>'
+    }
+
+    console.log(`Received request for macOS updates (version = ${req.query.version}), sending\n`, updateInfo)
+    res.json(updateInfo)
+  } else {
+    console.log(`Received request for macOS updates, sending 204 as Atom is up to date (version = ${req.query.version})`)
+    res.sendStatus(204)
+  }
 }
 
 function getReleasesFile (fileName) {
