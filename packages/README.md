@@ -74,7 +74,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **language-xml** | [`atom/language-xml`][language-xml] |  |
 | **language-yaml** | [`atom/language-yaml`][language-yaml] |  |
 | **line-ending-selector** | [`atom/line-ending-selector`][line-ending-selector] | [#17847](https://github.com/atom/atom/issues/17847) |
-| **link** | [`atom/link`][link] | [#17848](https://github.com/atom/atom/issues/17848) |
+| **link** | [`./packages/link`][./link] | [#17848](https://github.com/atom/atom/issues/17848) |
 | **markdown-preview** | [`atom/markdown-preview`][markdown-preview] |  |
 | **metrics** | [`atom/metrics`][metrics] |  |
 | **notifications** | [`atom/notifications`][notifications] |  |

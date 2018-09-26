@@ -1,0 +1,2 @@
+'.platform-darwin atom-text-editor':
+  'ctrl-shift-o': 'link:open'
