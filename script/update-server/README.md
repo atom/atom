@@ -25,7 +25,7 @@ This folder contains a simple implementation of Atom's update server to be used 
 
    **macOS**
    ```
-   script/build --compress-artifacts
+   script/build --compress-artifacts --test-sign
    ```
 
 3. Start up the server in this folder:
