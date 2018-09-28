@@ -1,0 +1,4 @@
+{
+  "theme": "ui",
+  "styleSheets": ["editor.less"]
+}
