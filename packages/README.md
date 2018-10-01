@@ -27,7 +27,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **bracket-matcher** | [`atom/bracket-matcher`][bracket-matcher] |  |
 | **command-palette** | [`atom/command-palette`][command-palette] |  |
 | **dalek** | [`atom/dalek`][dalek] | [#17838](https://github.com/atom/atom/issues/17838) |
-| **deprecation-cop** | [`atom/deprecation-cop`][deprecation-cop] | [#17839](https://github.com/atom/atom/issues/17839) |
+| **deprecation-cop** | [`./deprecation-cop`](./deprecation-cop) | [#17839](https://github.com/atom/atom/issues/17839) |
 | **dev-live-reload** | [`./dev-live-reload`](dev-live-reload) | [#17840](https://github.com/atom/atom/issues/17840) |
 | **encoding-selector** | [`atom/encoding-selector`][encoding-selector] | [#17841](https://github.com/atom/atom/issues/17841) |
 | **exception-reporting** | [`./exception-reporting`](./exception-reporting) | [#17842](https://github.com/atom/atom/issues/17842) |
@@ -114,7 +114,6 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 [bracket-matcher]: https://github.com/atom/bracket-matcher
 [command-palette]: https://github.com/atom/command-palette
 [dalek]: https://github.com/atom/dalek
-[deprecation-cop]: https://github.com/atom/deprecation-cop
 [encoding-selector]: https://github.com/atom/encoding-selector
 [find-and-replace]: https://github.com/atom/find-and-replace
 [fuzzy-finder]: https://github.com/atom/fuzzy-finder
