@@ -70,8 +70,15 @@ jobs:
       CI: true
       CI_PROVIDER: VSTS
       BUILD_ARCH: $(buildArch)
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '$(Common.TestResultsDirectory)/**/*.xml'
+    condition: ne(variables['Atom.SkipTests'], 'true')
 
   - task: PublishBuildArtifacts@1
     inputs:
