@@ -33,7 +33,6 @@ jobs:
       testRunTitle: Linux
       testResultsFormat: 'JUnit'
       testResultsFiles: '$(Common.TestResultsDirectory)/**/*.xml'
-      mergeTestResults: true
     displayName: Publish test results
     condition: ne(variables['Atom.SkipTests'], 'true')
 
