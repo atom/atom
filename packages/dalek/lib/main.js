@@ -10,7 +10,7 @@ module.exports = {
       for (let i = 0; i < duplicates.length; i++) {
         const duplicate = duplicates[i]
         Grim.deprecate(
-          `You have the core package "${duplicate}" installed as a community package. See https://github.com/atom/dalek for how this causes problems and instructions on how to correct the situation.`,
+          `You have the core package "${duplicate}" installed as a community package. See https://github.com/atom/atom/blob/master/packages/dalek/README.md for how this causes problems and instructions on how to correct the situation.`,
           { packageName: duplicate }
         )
       }
