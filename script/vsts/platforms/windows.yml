@@ -76,7 +76,7 @@ jobs:
 
   - task: PublishTestResults@2
     inputs:
-      testRunTitle: Windows
+      testRunTitle: Windows $(buildArch)
       testResultsFormat: 'JUnit'
       testResultsFiles: '$(Common.TestResultsDirectory)/**/*.xml'
       mergeTestResults: true
