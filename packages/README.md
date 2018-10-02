@@ -22,7 +22,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **autosave** | [`atom/autosave`][autosave] | [#17834](https://github.com/atom/atom/issues/17834) |
 | **background-tips** | [`atom/background-tips`][background-tips] | [#17835](https://github.com/atom/atom/issues/17835) |
 | **base16-tomorrow-dark-theme** | [`./base16-tomorrow-dark-theme`](./base16-tomorrow-dark-theme) | [#17836](https://github.com/atom/atom/issues/17836) |
-| **base16-tomorrow-light-theme** | [`atom/base16-tomorrow-light-theme`][base16-tomorrow-light-theme] | [#17837](https://github.com/atom/atom/issues/17837) |
+| **base16-tomorrow-light-theme** | [`./base16-tomorrow-light-theme`](./base16-tomorrow-light-theme) | [#17837](https://github.com/atom/atom/issues/17837) |
 | **bookmarks** | [`atom/bookmarks`][bookmarks] |  |
 | **bracket-matcher** | [`atom/bracket-matcher`][bracket-matcher] |  |
 | **command-palette** | [`atom/command-palette`][command-palette] |  |
@@ -108,7 +108,6 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 [autocomplete-snippets]: https://github.com/atom/autocomplete-snippets
 [autosave]: https://github.com/atom/autosave
 [background-tips]: https://github.com/atom/background-tips
-[base16-tomorrow-light-theme]: https://github.com/atom/base16-tomorrow-light-theme
 [bookmarks]: https://github.com/atom/bookmarks
 [bracket-matcher]: https://github.com/atom/bracket-matcher
 [command-palette]: https://github.com/atom/command-palette
