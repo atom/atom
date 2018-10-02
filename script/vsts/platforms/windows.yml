@@ -76,8 +76,12 @@ jobs:
 
   - task: PublishTestResults@2
     inputs:
+      testRunTitle: Windows
       testResultsFormat: 'JUnit'
       testResultsFiles: '$(Common.TestResultsDirectory)/**/*.xml'
+      mergeTestResults: true
+      buildPlatform: $(buildArch)
+    displayName: Publish test results
     condition: ne(variables['Atom.SkipTests'], 'true')
 
   - task: PublishBuildArtifacts@1
