@@ -78,7 +78,8 @@ jobs:
     inputs:
       testRunTitle: Windows $(buildArch)
       testResultsFormat: 'JUnit'
-      testResultsFiles: '$(Common.TestResultsDirectory)/**/*.xml'
+      testResultsFiles: '**/TEST-*.xml'
+      searchFolder: '$(Common.TestResultsDirectory)'
       buildPlatform: $(buildArch)
     displayName: Publish test results
     condition: ne(variables['Atom.SkipTests'], 'true')

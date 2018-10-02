@@ -52,7 +52,8 @@ jobs:
     inputs:
       testRunTitle: macOS
       testResultsFormat: 'JUnit'
-      testResultsFiles: '$(Common.TestResultsDirectory)/**/*.xml'
+      testResultsFiles: '**/TEST-*.xml'
+      searchFolder: '$(Common.TestResultsDirectory)'
     displayName: Publish test results
     condition: ne(variables['Atom.SkipTests'], 'true')
 
