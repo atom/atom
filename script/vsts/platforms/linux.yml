@@ -12,13 +12,15 @@ jobs:
   container: atom-linux-ci
 
   steps:
-  - script:
+  - script: |
       if [ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]; then
         script/build --create-debian-package --create-rpm-package --compress-artifacts
       else
         script/build --compress-artifacts
       fi
     env:
+      IS_RELEASE_BRANCH: $(IsReleaseBranch)
+      IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
     displayName: Build Atom
 
