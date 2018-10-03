@@ -37,8 +37,7 @@ jobs:
     inputs:
       testRunTitle: Linux
       testResultsFormat: 'JUnit'
-      testResultsFiles: '**/TEST-*.xml'
-      searchFolder: '$(Common.TestResultsDirectory)'
+      testResultsFiles: '$(Common.TestResultsDirectory)/**/TEST-*.xml'
     displayName: Publish test results
     condition: ne(variables['Atom.SkipTests'], 'true')
 
