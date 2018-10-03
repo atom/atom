@@ -29,6 +29,7 @@ jobs:
 
   - script: |
       script/test
+      ls -alR $(Common.TestResultsDirectory)
       ls -al $(Common.TestResultsDirectory)/**/TEST-*.xml
     env:
       CI: true
