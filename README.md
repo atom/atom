@@ -63,6 +63,8 @@ but should be compatible with other Linux distributions.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
+Alternatively you can use `sudo apt-get update` and then `sudo apt-get upgrade` to upgrade the dependencies in a debian based system or `sudo yum update` in a Red Hat based linux distro.
+
 ## Building
 
 * [Linux](https://flight-manual.atom.io/hacking-atom/sections/hacking-on-atom-core/#platform-linux)
