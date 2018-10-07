@@ -1,8 +1,20 @@
-![Atom](https://cloud.githubusercontent.com/assets/72919/2874231/3af1db48-d3dd-11e3-98dc-6066f8bc766f.png)
+<p align="center">
+  <a href="https://atom.io/">
+    <img
+      alt="Atom"
+      src="https://cloud.githubusercontent.com/assets/72919/2874231/3af1db48-d3dd-11e3-98dc-6066f8bc766f.png"
+    />
+  </a>
+  <br> 
+</p>
 
-[![Build status](https://dev.azure.com/github/Atom/_apis/build/status/Atom%20Production%20Branches?branchName=master)](https://dev.azure.com/github/Atom/_build/latest?definitionId=32&branchName=master) [![Linux Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/1tkktwh654w07eim?svg=true)](https://ci.appveyor.com/project/Atom/atom)
-[![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom)
-[![Join the Atom Community on Slack](https://atom-slack.herokuapp.com/badge.svg)](https://atom-slack.herokuapp.com)
+<p align="center">
+  <a href="https://dev.azure.com/github/Atom/_build/latest?definitionId=32&branchName=master"><img alt="Build Status" src="https://dev.azure.com/github/Atom/_apis/build/status/Atom%20Production%20Branches?branchName=master"/></a>
+  <a href="https://travis-ci.org/atom/atom"><img alt="Linux Build Status" src="https://travis-ci.org/atom/atom.svg?branch=master" /></a>
+  <a href="https://ci.appveyor.com/project/Atom/atom"><img alt="Windows Build Status" src="https://ci.appveyor.com/api/projects/status/1tkktwh654w07eim?svg=true" /></a>
+  <a href="https://david-dm.org/atom/atom"><img alt="Dependency Status" src="https://david-dm.org/atom/atom.svg" /></a>
+  <a href="https://atom-slack.herokuapp.com"><img alt="Join the Atom Community on Slack]" src="https://atom-slack.herokuapp.com/badge.svg" /></a>
+</p>
 
 Atom is a hackable text editor for the 21st century, built on [Electron](https://github.com/atom/electron), and based on everything we love about our favorite editors. We designed it to be deeply customizable, but still approachable using the default configuration.
 
