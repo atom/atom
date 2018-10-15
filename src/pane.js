@@ -41,13 +41,13 @@ class Pane {
       )
     }
 
-    return new Pane(Object.assign(state, {
+    return new Pane(Object.assign({
       deserializerManager: deserializers,
       notificationManager: notifications,
       viewRegistry: views,
       config,
       applicationDelegate
-    }))
+    }, state))
   }
 
   constructor (params = {}) {
