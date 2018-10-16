@@ -73,7 +73,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **language-typescript** | [`atom/language-typescript`][language-typescript] |  |
 | **language-xml** | [`atom/language-xml`][language-xml] |  |
 | **language-yaml** | [`atom/language-yaml`][language-yaml] |  |
-| **line-ending-selector** | [`atom/line-ending-selector`][line-ending-selector] | [#17847](https://github.com/atom/atom/issues/17847) |
+| **line-ending-selector** | [`./packages/line-ending-selector`](./line-ending-selector) | [#17847](https://github.com/atom/atom/issues/17847) |
 | **link** | [`./link`](./link) | [#17848](https://github.com/atom/atom/issues/17848) |
 | **markdown-preview** | [`atom/markdown-preview`][markdown-preview] |  |
 | **metrics** | [`atom/metrics`][metrics] |  |
@@ -151,7 +151,6 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 [language-typescript]: https://github.com/atom/language-typescript
 [language-xml]: https://github.com/atom/language-xml
 [language-yaml]: https://github.com/atom/language-yaml
-[line-ending-selector]: https://github.com/atom/line-ending-selector
 [markdown-preview]: https://github.com/atom/markdown-preview
 [metrics]: https://github.com/atom/metrics
 [notifications]: https://github.com/atom/notifications
