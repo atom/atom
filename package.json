@@ -113,6 +113,7 @@
     "language-xml": "https://www.atom.io/api/packages/language-xml/versions/0.35.2/tarball",
     "language-yaml": "https://www.atom.io/api/packages/language-yaml/versions/0.32.0/tarball",
     "less-cache": "1.1.0",
+    "line-ending-selector": "file:packages/line-ending-selector",
     "line-top-index": "0.3.1",
     "link": "file:packages/link",
     "markdown-preview": "https://www.atom.io/api/packages/markdown-preview/versions/0.159.25/tarball",
