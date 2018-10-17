@@ -3850,6 +3850,28 @@ class TextEditor {
       : new ScopeDescriptor({scopes: ['text']})
   }
 
+  // Essential: Get the syntactic tree {ScopeDescriptor} for the given position in buffer
+  // coordinates or the syntactic {ScopeDescriptor} for TextMate language mode
+  //
+  // For example, if called with a position inside the parameter list of a
+  // JavaScript class function, this method returns a {ScopeDescriptor} with
+  // the following syntax nodes array:
+  // `["source.js", "program", "expression_statement", "assignment_expression", "class", "class_body", "method_definition", "formal_parameters", "identifier"]`
+  // if tree-sitter is used
+  // and the following scopes array:
+  // `["source.js"]`
+  // if textmate is used
+  //
+  // * `bufferPosition` A {Point} or {Array} of `[row, column]`.
+  //
+  // Returns a {ScopeDescriptor}.
+  syntaxTreeForBufferPosition (bufferPosition) {
+    const languageMode = this.buffer.getLanguageMode()
+    return languageMode.syntaxTreeForPosition
+      ? languageMode.syntaxTreeForPosition(bufferPosition)
+      : this.scopeDescriptorForBufferPosition(bufferPosition)
+  }
+
   // Extended: Get the range in buffer coordinates of all tokens surrounding the
   // cursor that match the given scope selector.
   //
@@ -3879,6 +3901,11 @@ class TextEditor {
   // Get the scope descriptor at the cursor.
   getCursorScope () {
     return this.getLastCursor().getScopeDescriptor()
+  }
+
+  // Get the syntax nodes at the cursor.
+  getSyntaxTree () {
+    return this.getLastCursor().getSyntaxTree()
   }
 
   tokenForBufferPosition (bufferPosition) {

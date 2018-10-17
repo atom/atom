@@ -198,6 +198,13 @@ class Cursor extends Model {
     return this.editor.scopeDescriptorForBufferPosition(this.getBufferPosition())
   }
 
+  // Public: Retrieves the syntax tree descriptor for the cursor's current position.
+  //
+  // Returns a {ScopeDescriptor}
+  getSyntaxTree () {
+    return this.editor.syntaxTreeForBufferPosition(this.getBufferPosition())
+  }
+
   // Public: Returns true if this cursor has no non-whitespace characters before
   // its current position.
   hasPrecedingCharactersOnLine () {

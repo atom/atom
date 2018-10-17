@@ -273,6 +273,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
         @foldAllAtIndentLevel(8)
         @scrollToCursorPosition()
       'editor:log-cursor-scope': -> showCursorScope(@getCursorScope(), notificationManager)
+      'editor:log-cursor-syntax-tree': -> showSyntaxTree(@getSyntaxTree(), notificationManager)
       'editor:copy-path': -> copyPathToClipboard(this, project, clipboard, false)
       'editor:copy-project-path': -> copyPathToClipboard(this, project, clipboard, true)
       'editor:toggle-indent-guide': -> config.set('editor.showIndentGuide', not config.get('editor.showIndentGuide'))
@@ -331,6 +332,13 @@ showCursorScope = (descriptor, notificationManager) ->
   list = descriptor.scopes.toString().split(',')
   list = list.map (item) -> "* #{item}"
   content = "Scopes at Cursor\n#{list.join('\n')}"
+
+  notificationManager.addInfo(content, dismissable: true)
+
+showSyntaxTree = (descriptor, notificationManager) ->
+  list = descriptor.scopes.toString().split(',')
+  list = list.map (item) -> "* #{item}"
+  content = "Syntax tree at Cursor\n#{list.join('\n')}"
 
   notificationManager.addInfo(content, dismissable: true)
 

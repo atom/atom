@@ -429,6 +429,45 @@ class TreeSitterLanguageMode {
     })
   }
 
+  syntaxTreeForPosition (point) {
+    if (!this.tree) return this.rootScopeDescriptor
+    point = Point.fromObject(point)
+
+    const iterators = []
+    this._forEachTreeWithRange(new Range(point, point), tree => {
+      const rootStartIndex = tree.rootNode.startIndex
+      let node = tree.rootNode.descendantForPosition(point)
+
+      // Don't include anonymous token types like '(' because they prevent scope chains
+      // from being parsed as CSS selectors by the `slick` parser. Other css selector
+      // parsers like `postcss-selector-parser` do allow arbitrary quoted strings in
+      // selectors.
+      if (!node.isNamed) node = node.parent
+      iterators.push({node, rootStartIndex})
+    })
+
+    iterators.sort(compareScopeDescriptorIterators)
+    const scopes = []
+
+    for (;;) {
+      const {length} = iterators
+      if (!length) break
+      const iterator = iterators[length - 1]
+      scopes.push(iterator.node.type)
+      iterator.node = iterator.node.parent
+      if (iterator.node) {
+        let i = length - 1
+        while (i > 0 && compareScopeDescriptorIterators(iterator, iterators[i - 1]) < 0) i--
+        if (i < length - 1) iterators.splice(i, 0, iterators.pop())
+      } else {
+        iterators.pop()
+      }
+    }
+
+    scopes.push(this.grammar.scopeName)
+    return new ScopeDescriptor({scopes: scopes.reverse()})
+  }
+
   scopeDescriptorForPosition (point) {
     const iterator = this.buildHighlightIterator()
     const scopes = []
@@ -1100,6 +1139,13 @@ function nodeIsSmaller (left, right) {
   if (!left) return false
   if (!right) return true
   return left.endIndex - left.startIndex < right.endIndex - right.startIndex
+}
+
+function compareScopeDescriptorIterators (a, b) {
+  return (
+    a.node.startIndex - b.node.startIndex ||
+    a.rootStartIndex - b.rootStartIndex
+  )
 }
 
 function last (array) {
