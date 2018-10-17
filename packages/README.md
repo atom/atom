@@ -18,7 +18,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **autocomplete-html** | [`atom/autocomplete-html`][autocomplete-html] |  |
 | **autocomplete-plus** | [`atom/autocomplete-plus`][autocomplete-plus] |  |
 | **autocomplete-snippets** | [`atom/autocomplete-snippets`][autocomplete-snippets] |  |
-| **autoflow** | [`atom/autoflow`](./autoflow) | [#17833](https://github.com/atom/atom/issues/17833) |
+| **autoflow** | [`./autoflow`](./autoflow) | [#17833](https://github.com/atom/atom/issues/17833) |
 | **autosave** | [`atom/autosave`][autosave] | [#17834](https://github.com/atom/atom/issues/17834) |
 | **background-tips** | [`atom/background-tips`][background-tips] | [#17835](https://github.com/atom/atom/issues/17835) |
 | **base16-tomorrow-dark-theme** | [`./base16-tomorrow-dark-theme`](./base16-tomorrow-dark-theme) | [#17836](https://github.com/atom/atom/issues/17836) |
