@@ -36,7 +36,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **github** | [`atom/github`][github] |  |
 | **git-diff** | [`./git-diff`](./git-diff) | [#17843](https://github.com/atom/atom/issues/17843) |
 | **go-to-line** | [`./go-to-line`](./go-to-line) | [#17844](https://github.com/atom/atom/issues/17844) |
-| **grammar-selector** | [`./packages/grammar-selector`](./grammar-selector) | [#17845](https://github.com/atom/atom/issues/17845) |
+| **grammar-selector** | [`./grammar-selector`](./grammar-selector) | [#17845](https://github.com/atom/atom/issues/17845) |
 | **image-view** | [`atom/image-view`][image-view] |  |
 | **incompatible-packages** | [`./incompatible-packages`](./incompatible-packages) | [#17846](https://github.com/atom/atom/issues/17846) |
 | **keybinding-resolver** | [`atom/keybinding-resolver`][keybinding-resolver] |  |
