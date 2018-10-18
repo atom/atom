@@ -1,0 +1,18 @@
+{
+  "name": "language-rust-bundled",
+  "version": "0.1.0",
+  "description": "Rust support for Atom",
+  "keywords": [
+    "language",
+    "grammar",
+    "rust"
+  ],
+  "repository": "https://github.com/atom/atom",
+  "license": "MIT",
+  "dependencies": {
+    "tree-sitter-rust": "^0.13.4"
+  },
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  }
+}
