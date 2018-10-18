@@ -429,7 +429,7 @@ class TreeSitterLanguageMode {
     })
   }
 
-  syntaxTreeForPosition (point) {
+  syntaxTreeScopeDescriptorForPosition (point) {
     if (!this.tree) return this.rootScopeDescriptor
     point = Point.fromObject(point)
 

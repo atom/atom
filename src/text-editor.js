@@ -3865,10 +3865,10 @@ class TextEditor {
   // * `bufferPosition` A {Point} or {Array} of `[row, column]`.
   //
   // Returns a {ScopeDescriptor}.
-  syntaxTreeForBufferPosition (bufferPosition) {
+  syntaxTreeScopeDescriptorForBufferPosition (bufferPosition) {
     const languageMode = this.buffer.getLanguageMode()
-    return languageMode.syntaxTreeForPosition
-      ? languageMode.syntaxTreeForPosition(bufferPosition)
+    return languageMode.syntaxTreeScopeDescriptorForPosition
+      ? languageMode.syntaxTreeScopeDescriptorForPosition(bufferPosition)
       : this.scopeDescriptorForBufferPosition(bufferPosition)
   }
 
@@ -3904,8 +3904,8 @@ class TextEditor {
   }
 
   // Get the syntax nodes at the cursor.
-  getSyntaxTree () {
-    return this.getLastCursor().getSyntaxTree()
+  getCursorSyntaxTreeScope () {
+    return this.getLastCursor().getSyntaxTreeScopeDescriptor()
   }
 
   tokenForBufferPosition (bufferPosition) {
