@@ -36,7 +36,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **github** | [`atom/github`][github] |  |
 | **git-diff** | [`./git-diff`](./git-diff) | [#17843](https://github.com/atom/atom/issues/17843) |
 | **go-to-line** | [`./go-to-line`](./go-to-line) | [#17844](https://github.com/atom/atom/issues/17844) |
-| **grammar-selector** | [`atom/grammar-selector`][grammar-selector] | [#17845](https://github.com/atom/atom/issues/17845) |
+| **grammar-selector** | [`./grammar-selector`](./grammar-selector) | [#17845](https://github.com/atom/atom/issues/17845) |
 | **image-view** | [`atom/image-view`][image-view] |  |
 | **incompatible-packages** | [`./incompatible-packages`](./incompatible-packages) | [#17846](https://github.com/atom/atom/issues/17846) |
 | **keybinding-resolver** | [`atom/keybinding-resolver`][keybinding-resolver] |  |
@@ -115,7 +115,6 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 [find-and-replace]: https://github.com/atom/find-and-replace
 [fuzzy-finder]: https://github.com/atom/fuzzy-finder
 [github]: https://github.com/atom/github
-[grammar-selector]: https://github.com/atom/grammar-selector
 [image-view]: https://github.com/atom/image-view
 [keybinding-resolver]: https://github.com/atom/keybinding-resolver
 [language-c]: https://github.com/atom/language-c
