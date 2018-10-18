@@ -429,6 +429,30 @@ class TreeSitterLanguageMode {
     })
   }
 
+  syntaxTreeScopeDescriptorForPosition (point) {
+    const nodes = []
+    point = Point.fromObject(point)
+    this._forEachTreeWithRange(new Range(point, point), tree => {
+      let node = tree.rootNode.descendantForPosition(point)
+      while (node) {
+        nodes.push(node)
+        node = node.parent
+      }
+    })
+
+    // The nodes are mostly already sorted from smallest to largest,
+    // but for files with multiple syntax trees (e.g. ERB), each tree's
+    // nodes are separate. Sort the nodes from largest to smallest.
+    nodes.reverse()
+    nodes.sort((a, b) =>
+      a.startIndex - b.startIndex || b.endIndex - a.endIndex
+    )
+
+    const nodeTypes = nodes.map(node => node.type)
+    nodeTypes.unshift(this.grammar.scopeName)
+    return new ScopeDescriptor({scopes: nodeTypes})
+  }
+
   scopeDescriptorForPosition (point) {
     const iterator = this.buildHighlightIterator()
     const scopes = []

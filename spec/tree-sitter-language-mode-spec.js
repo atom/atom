@@ -1424,6 +1424,81 @@ describe('TreeSitterLanguageMode', () => {
     })
   })
 
+  describe('.syntaxTreeScopeDescriptorForPosition', () => {
+    it('returns a scope descriptor representing the given position in the syntax tree', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        scopeName: 'source.js',
+        parser: 'tree-sitter-javascript'
+      })
+
+      buffer.setText('foo({bar: baz});')
+
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      expect(editor.syntaxTreeScopeDescriptorForBufferPosition([0, 6]).getScopesArray()).toEqual([
+        'source.js',
+        'program',
+        'expression_statement',
+        'call_expression',
+        'arguments',
+        'object',
+        'pair',
+        'property_identifier'
+      ])
+    })
+
+    it('includes nodes in injected syntax trees', async () => {
+      const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        scopeName: 'source.js',
+        parser: 'tree-sitter-javascript',
+        scopes: {},
+        injectionRegExp: 'javascript',
+        injectionPoints: [HTML_TEMPLATE_LITERAL_INJECTION_POINT]
+      })
+
+      const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
+        scopeName: 'text.html',
+        parser: 'tree-sitter-html',
+        scopes: {},
+        injectionRegExp: 'html',
+        injectionPoints: [SCRIPT_TAG_INJECTION_POINT]
+      })
+
+      atom.grammars.addGrammar(jsGrammar)
+      atom.grammars.addGrammar(htmlGrammar)
+
+      buffer.setText(`
+        <div>
+          <script>
+            html \`
+              <span>\${person.name}</span>
+            \`
+          </script>
+        </div>
+      `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar: htmlGrammar, grammars: atom.grammars})
+      buffer.setLanguageMode(languageMode)
+
+      const position = buffer.findSync('name').start
+      expect(editor.syntaxTreeScopeDescriptorForBufferPosition(position).getScopesArray()).toEqual([
+        'text.html',
+        'fragment',
+        'element',
+        'raw_element',
+        'raw_text',
+        'program',
+        'expression_statement',
+        'call_expression',
+        'template_string',
+        'fragment',
+        'element',
+        'template_substitution',
+        'member_expression',
+        'property_identifier'
+      ])
+    })
+  })
+
   describe('.bufferRangeForScopeAtPosition(selector?, position)', () => {
     describe('when selector = null', () => {
       it('returns the range of the smallest node at position', async () => {
