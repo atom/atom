@@ -8,6 +8,7 @@ const {clipboard} = require('electron')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
 const TextMateLanguageMode = require('../src/text-mate-language-mode')
+const TreeSitterLanguageMode = require('../src/tree-sitter-language-mode')
 
 describe('TextEditor', () => {
   let buffer, editor, lineLengths
@@ -7074,6 +7075,65 @@ describe('TextEditor', () => {
       editor = new TextEditor({buffer: new TextBuffer()})
       const scopeDescriptor = editor.scopeDescriptorForBufferPosition([0, 0])
       expect(scopeDescriptor.getScopesArray()).toEqual(['text'])
+    })
+  })
+
+  describe('.syntaxTreeScopeDescriptorForBufferPosition(position)', () => {
+    it('returns the result of scopeDescriptorForBufferPosition() when textmate language mode is used', async () => {
+      atom.config.set('core.useTreeSitterParsers', false)
+      editor = await atom.workspace.open('sample.js', {autoIndent: false})
+      await atom.packages.activatePackage('language-javascript')
+
+      let buffer = editor.getBuffer()
+
+      let languageMode = new TextMateLanguageMode({
+        buffer,
+        grammar: atom.grammars.grammarForScopeName('source.js')
+      })
+
+      buffer.setLanguageMode(languageMode)
+
+      languageMode.startTokenizing()
+      while (languageMode.firstInvalidRow() != null) {
+        advanceClock()
+      }
+
+      const syntaxTreeeScopeDescriptor = editor.syntaxTreeScopeDescriptorForBufferPosition([4, 17])
+      expect(syntaxTreeeScopeDescriptor.getScopesArray()).toEqual([
+        'source.js',
+        'support.variable.property.js'
+      ])
+    })
+
+    it('returns the result of syntaxTreeScopeDescriptorForBufferPosition() when tree-sitter language mode is used', async () => {
+      editor = await atom.workspace.open('sample.js', {autoIndent: false})
+      await atom.packages.activatePackage('language-javascript')
+
+      let buffer = editor.getBuffer()
+
+      buffer.setLanguageMode(new TreeSitterLanguageMode({
+        buffer,
+        grammar: atom.grammars.grammarForScopeName('source.js')
+      }))
+
+      const syntaxTreeeScopeDescriptor = editor.syntaxTreeScopeDescriptorForBufferPosition([4, 17])
+      expect(syntaxTreeeScopeDescriptor.getScopesArray()).toEqual([
+        'source.js',
+        'program',
+        'variable_declaration',
+        'variable_declarator',
+        'function',
+        'statement_block',
+        'variable_declaration',
+        'variable_declarator',
+        'function',
+        'statement_block',
+        'while_statement',
+        'parenthesized_expression',
+        'binary_expression',
+        'member_expression',
+        'property_identifier'
+      ])
     })
   })
 
