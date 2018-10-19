@@ -23,7 +23,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **background-tips** | [`atom/background-tips`][background-tips] | [#17835](https://github.com/atom/atom/issues/17835) |
 | **base16-tomorrow-dark-theme** | [`./base16-tomorrow-dark-theme`](./base16-tomorrow-dark-theme) | [#17836](https://github.com/atom/atom/issues/17836) |
 | **base16-tomorrow-light-theme** | [`./base16-tomorrow-light-theme`](./base16-tomorrow-light-theme) | [#17837](https://github.com/atom/atom/issues/17837) |
-| **bookmarks** | [`atom/bookmarks`][bookmarks] |  |
+| **bookmarks** | [`atom/bookmarks`][bookmarks] | [#18273](https://github.com/atom/atom/issues/18273) |
 | **bracket-matcher** | [`atom/bracket-matcher`][bracket-matcher] |  |
 | **command-palette** | [`atom/command-palette`][command-palette] |  |
 | **dalek** | [`./dalek`](./dalek) | [#17838](https://github.com/atom/atom/issues/17838) |
@@ -37,9 +37,9 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **git-diff** | [`./git-diff`](./git-diff) | [#17843](https://github.com/atom/atom/issues/17843) |
 | **go-to-line** | [`./go-to-line`](./go-to-line) | [#17844](https://github.com/atom/atom/issues/17844) |
 | **grammar-selector** | [`./grammar-selector`](./grammar-selector) | [#17845](https://github.com/atom/atom/issues/17845) |
-| **image-view** | [`atom/image-view`][image-view] |  |
+| **image-view** | [`atom/image-view`][image-view] | [#18274](https://github.com/atom/atom/issues/18274) |
 | **incompatible-packages** | [`./incompatible-packages`](./incompatible-packages) | [#17846](https://github.com/atom/atom/issues/17846) |
-| **keybinding-resolver** | [`atom/keybinding-resolver`][keybinding-resolver] |  |
+| **keybinding-resolver** | [`atom/keybinding-resolver`][keybinding-resolver] | [#18275](https://github.com/atom/atom/issues/18275) |
 | **language-c** | [`atom/language-c`][language-c] |  |
 | **language-clojure** | [`atom/language-clojure`][language-clojure] |  |
 | **language-coffee-script** | [`atom/language-coffee-script`][language-coffee-script] |  |
@@ -77,29 +77,29 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **line-ending-selector** | [`./packages/line-ending-selector`](./line-ending-selector) | [#17847](https://github.com/atom/atom/issues/17847) |
 | **link** | [`./link`](./link) | [#17848](https://github.com/atom/atom/issues/17848) |
 | **markdown-preview** | [`atom/markdown-preview`][markdown-preview] |  |
-| **metrics** | [`atom/metrics`][metrics] |  |
-| **notifications** | [`atom/notifications`][notifications] |  |
+| **metrics** | [`atom/metrics`][metrics] | [#18276](https://github.com/atom/atom/issues/18276) |
+| **notifications** | [`atom/notifications`][notifications] | [#18277](https://github.com/atom/atom/issues/18277) |
 | **one-dark-syntax** | [`./one-dark-syntax`](./one-dark-syntax) | [#17853](https://github.com/atom/atom/issues/17853) |
 | **one-dark-ui** | [`./one-dark-ui`](./one-dark-ui) | [#17854](https://github.com/atom/atom/issues/17854) |
 | **one-light-syntax** | [`./one-light-syntax`](./one-light-syntax) | [#17855](https://github.com/atom/atom/issues/17855) |
 | **one-light-ui** | [`./one-light-ui`](./one-light-ui) | [#17856](https://github.com/atom/atom/issues/17856) |
-| **open-on-github** | [`atom/open-on-github`][open-on-github] |  |
-| **package-generator** | [`atom/package-generator`][package-generator] |  |
+| **open-on-github** | [`atom/open-on-github`][open-on-github] | [#18278](https://github.com/atom/atom/issues/18278) |
+| **package-generator** | [`atom/package-generator`][package-generator] | [#18279](https://github.com/atom/atom/issues/18279) |
 | **settings-view** | [`atom/settings-view`][settings-view] |  |
 | **snippets** | [`atom/snippets`][snippets] |  |
-| **solarized-dark-syntax** | [`atom/solarized-dark-syntax`][solarized-dark-syntax] |  |
-| **solarized-light-syntax** | [`atom/solarized-light-syntax`][solarized-light-syntax] |  |
+| **solarized-dark-syntax** | [`atom/solarized-dark-syntax`][solarized-dark-syntax] | [#18280](https://github.com/atom/atom/issues/18280) |
+| **solarized-light-syntax** | [`atom/solarized-light-syntax`][solarized-light-syntax] | [#18281](https://github.com/atom/atom/issues/18281) |
 | **spell-check** | [`atom/spell-check`][spell-check] |  |
-| **status-bar** | [`atom/status-bar`][status-bar] |  |
-| **styleguide** | [`atom/styleguide`][styleguide] |  |
+| **status-bar** | [`atom/status-bar`][status-bar] | [#18282](https://github.com/atom/atom/issues/18282) |
+| **styleguide** | [`atom/styleguide`][styleguide] | [#18283](https://github.com/atom/atom/issues/18283) |
 | **symbols-view** | [`atom/symbols-view`][symbols-view] |  |
 | **tabs** | [`atom/tabs`][tabs] |  |
-| **timecop** | [`atom/timecop`][timecop] |  |
+| **timecop** | [`atom/timecop`][timecop] | [#18272](https://github.com/atom/atom/issues/18272) |
 | **tree-view** | [`atom/tree-view`][tree-view] |  |
-| **update-package-dependencies** | [`atom/update-package-dependencies`][update-package-dependencies] |  |
-| **welcome** | [`atom/welcome`][welcome] |  |
+| **update-package-dependencies** | [`atom/update-package-dependencies`][update-package-dependencies] | [#18284](https://github.com/atom/atom/issues/18284) |
+| **welcome** | [`atom/welcome`][welcome] | [#18285](https://github.com/atom/atom/issues/18285) |
 | **whitespace** | [`atom/whitespace`][whitespace] |  |
-| **wrap-guide** | [`atom/wrap-guide`][wrap-guide] |  |
+| **wrap-guide** | [`atom/wrap-guide`][wrap-guide] | [#18286](https://github.com/atom/atom/issues/18286) |
 
 [archive-view]: https://github.com/atom/archive-view
 [autocomplete-atom-api]: https://github.com/atom/autocomplete-atom-api
