@@ -160,7 +160,7 @@ function testSuitesForPlatform (platform) {
       suites = (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
       break
     case 'linux':
-      suites = [runCoreMainProcessTests]
+      suites = [runCoreMainProcessTests, runCoreRenderProcessTests]
       break
     default:
       console.log(`Unrecognized platform: ${platform}`)
