@@ -55,6 +55,7 @@ scopes:
 
   '''
   macro_invocation > identifier,
+  macro_invocation > "!",
   macro_definition > identifier,
   call_expression > identifier,
   call_expression > field_expression > field_identifier,
@@ -69,13 +70,9 @@ scopes:
   '''
   use_list > self,
   scoped_use_list > self,
-  scoped_identifier> self,
-  use_list > crate,
-  scoped_use_list > crate,
-  scoped_identifier> crate,
-  use_list > super,
-  scoped_use_list > super,
-  scoped_identifier> super
+  scoped_identifier > self,
+  crate,
+  super
   ''': 'keyword.control'
 
   '''
