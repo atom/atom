@@ -63,6 +63,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **language-python** | [`atom/language-python`][language-python] |  |
 | **language-ruby** | [`atom/language-ruby`][language-ruby] |  |
 | **language-ruby-on-rails** | [`atom/language-ruby-on-rails`][language-ruby-on-rails] |  |
+| **language-rust-bundled** | [`./language-rust-bundled`](./language-rust-bundled) |  |
 | **language-sass** | [`atom/language-sass`][language-sass] |  |
 | **language-shellscript** | [`atom/language-shellscript`][language-shellscript] |  |
 | **language-source** | [`atom/language-source`][language-source] |  |
