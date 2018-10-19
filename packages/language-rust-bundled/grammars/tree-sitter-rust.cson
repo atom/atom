@@ -75,6 +75,8 @@ scopes:
   super
   ''': 'keyword.control'
 
+  'self': 'variable.self'
+
   '''
   use_wildcard > identifier:nth-child(0),
   scoped_type_identifier > identifier:nth-child(0),
