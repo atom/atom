@@ -108,7 +108,7 @@ const isWordStart = (previousCharacter, character) =>
   (
     character !== ' ' &&
     character !== '\t'
-  )  
+  )
 
 const isWrapBoundary = (previousCharacter, character) =>
   isWordStart(previousCharacter, character) || isCJKCharacter(character)
