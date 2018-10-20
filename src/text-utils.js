@@ -99,12 +99,19 @@ const isCJKCharacter = (character) =>
   isKoreanCharacter(character)
 
 const isWordStart = (previousCharacter, character) =>
-  ((previousCharacter === ' ') || (previousCharacter === '\t')) &&
-  ((character !== ' ') && (character !== '\t'))
+  (
+    previousCharacter === ' ' ||
+    previousCharacter === '\t' ||
+    previousCharacter === '-' ||
+    previousCharacter === '/'
+  ) &&
+  (
+    character !== ' ' &&
+    character !== '\t'
+  )
 
 const isWrapBoundary = (previousCharacter, character) =>
-  isWordStart(previousCharacter, character) || isCJKCharacter(character) ||
-  previousCharacter === '-' || character === '/' || character === ' '
+  isWordStart(previousCharacter, character) || isCJKCharacter(character)
 
 // Does the given string contain at least surrogate pair, variation sequence,
 // or combined character?
