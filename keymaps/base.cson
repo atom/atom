@@ -8,6 +8,8 @@
 'atom-text-editor:not([mini])':
   # Atom Specific
   'ctrl-shift-c': 'editor:copy-path'
+  'alt-up': 'editor:select-larger-syntax-node'
+  'alt-down': 'editor:select-smaller-syntax-node'
 
   # Sublime Parity
   'tab': 'editor:indent'
