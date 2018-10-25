@@ -144,17 +144,16 @@ class TreeSitterLanguageMode {
   Section - Commenting
   */
 
-  commentStringsForPosition () {
-    return this.grammar.commentStrings
+  commentStringsForPosition (position) {
+    const range = this.firstNonWhitespaceRange(position.row) || new Range(position, position)
+    const {grammar} = this.getSyntaxNodeAndGrammarContainingRange(range)
+    return grammar.commentStrings
   }
 
   isRowCommented (row) {
-    const firstNonWhitespaceRange = this.buffer.findInRangeSync(
-      /\S/,
-      new Range(new Point(row, 0), new Point(row, Infinity))
-    )
-    if (firstNonWhitespaceRange) {
-      const firstNode = this.getSyntaxNodeContainingRange(firstNonWhitespaceRange)
+    const range = this.firstNonWhitespaceRange(row)
+    if (range) {
+      const firstNode = this.getSyntaxNodeContainingRange(range)
       if (firstNode) return firstNode.type.includes('comment')
     }
     return false
@@ -367,23 +366,31 @@ class TreeSitterLanguageMode {
   */
 
   getSyntaxNodeContainingRange (range, where = _ => true) {
+    return this.getSyntaxNodeAndGrammarContainingRange(range, where).node
+  }
+
+  getSyntaxNodeAndGrammarContainingRange (range, where = _ => true) {
     const startIndex = this.buffer.characterIndexForPosition(range.start)
     const endIndex = this.buffer.characterIndexForPosition(range.end)
     const searchEndIndex = Math.max(0, endIndex - 1)
 
-    let smallestNode
+    let smallestNode = null
+    let smallestNodeGrammar = this.grammar
     this._forEachTreeWithRange(range, (tree, grammar) => {
       let node = tree.rootNode.descendantForIndex(startIndex, searchEndIndex)
       while (node) {
         if (nodeContainsIndices(node, startIndex, endIndex) && where(node, grammar)) {
-          if (nodeIsSmaller(node, smallestNode)) smallestNode = node
+          if (nodeIsSmaller(node, smallestNode)) {
+            smallestNode = node
+            smallestNodeGrammar = grammar
+          }
           break
         }
         node = node.parent
       }
     })
 
-    return smallestNode
+    return {node: smallestNode, grammar: smallestNodeGrammar}
   }
 
   getRangeForSyntaxNodeContainingRange (range, where) {
@@ -481,6 +488,10 @@ class TreeSitterLanguageMode {
   /*
   Section - Private
   */
+
+  firstNonWhitespaceRange (row) {
+    return this.buffer.findInRangeSync(/\S/, new Range(new Point(row, 0), new Point(row, Infinity)))
+  }
 
   grammarForLanguageString (languageString) {
     return this.grammarRegistry.treeSitterGrammarForLanguageString(languageString)
@@ -599,7 +610,6 @@ class LanguageLayer {
       params.async = true
       tree = await tree
     }
-    tree.buffer = this.languageMode.buffer
 
     const changes = this.patchSinceCurrentParseStarted.getChanges()
     this.patchSinceCurrentParseStarted = null
