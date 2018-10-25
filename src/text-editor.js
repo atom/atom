@@ -4768,7 +4768,7 @@ class TextEditor {
     const languageMode = this.buffer.getLanguageMode()
     let {commentStartString, commentEndString} =
       languageMode.commentStringsForPosition &&
-      languageMode.commentStringsForPosition(Point(start, 0)) || {}
+      languageMode.commentStringsForPosition(new Point(start, 0)) || {}
     if (!commentStartString) return
     commentStartString = commentStartString.trim()
 

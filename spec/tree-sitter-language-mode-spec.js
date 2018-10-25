@@ -1692,6 +1692,54 @@ describe('TreeSitterLanguageMode', () => {
     })
   })
 
+  describe('.commentStringsForPosition(position)', () => {
+    it('returns the correct comment strings for nested languages', () => {
+      const jsGrammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        scopeName: 'javascript',
+        parser: 'tree-sitter-javascript',
+        comments: {start: '//'},
+        injectionRegExp: 'javascript',
+        injectionPoints: [HTML_TEMPLATE_LITERAL_INJECTION_POINT]
+      })
+
+      const htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
+        scopeName: 'html',
+        parser: 'tree-sitter-html',
+        scopes: {},
+        comments: {start: '<!--', end: '-->'},
+        injectionRegExp: 'html',
+        injectionPoints: [SCRIPT_TAG_INJECTION_POINT]
+      })
+
+      atom.grammars.addGrammar(jsGrammar)
+      atom.grammars.addGrammar(htmlGrammar)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar: htmlGrammar, grammars: atom.grammars})
+      buffer.setLanguageMode(languageMode)
+      buffer.setText(`
+        <div>hi</div>
+        <script>
+          const node = document.getElementById('some-id');
+          node.innerHTML = html \`
+            <span>bye</span>
+          \`
+        </script>
+      `.trim())
+
+
+      const htmlCommentStrings = {commentStartString: '<!--', commentEndString: '-->'}
+      const jsCommentStrings = {commentStartString: '//', commentEndString: undefined}
+
+      expect(languageMode.commentStringsForPosition(new Point(0, 0))).toEqual(htmlCommentStrings)
+      expect(languageMode.commentStringsForPosition(new Point(1, 0))).toEqual(htmlCommentStrings)
+      expect(languageMode.commentStringsForPosition(new Point(2, 0))).toEqual(jsCommentStrings)
+      expect(languageMode.commentStringsForPosition(new Point(3, 0))).toEqual(jsCommentStrings)
+      expect(languageMode.commentStringsForPosition(new Point(4, 0))).toEqual(htmlCommentStrings)
+      expect(languageMode.commentStringsForPosition(new Point(5, 0))).toEqual(jsCommentStrings)
+      expect(languageMode.commentStringsForPosition(new Point(6, 0))).toEqual(htmlCommentStrings)
+    })
+  })
+
   describe('TextEditor.selectLargerSyntaxNode and .selectSmallerSyntaxNode', () => {
     it('expands and contracts the selection based on the syntax tree', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
