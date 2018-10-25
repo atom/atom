@@ -23,7 +23,7 @@ jobs:
     displayName: Install apt dependencies
 
   - script: |
-      script/build --create-debian-package --create-rpm-package --compress-artifacts
+      CC=clang-3.5 CXX=clang++-3.5 npm_config_clang=1 script/build --create-debian-package --create-rpm-package --compress-artifacts
     env:
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
     displayName: Build Atom
