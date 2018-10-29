@@ -2816,7 +2816,7 @@ describe('TextEditorComponent', () => {
 
   describe('mouse input', () => {
     describe('on the lines', () => {
-      describe('when there is only one cursor', () => {
+      describe('when there is only one cursor on #darwin and #windows', () => {
         it('positions the cursor on single-click or when middle-clicking', async () => {
           for (const button of [0, 1]) {
             const {component, element, editor} = buildComponent()
@@ -3810,7 +3810,7 @@ describe('TextEditorComponent', () => {
     })
   })
 
-  describe('styling changes', () => {
+  describe('styling changes on #darwin and #windows', () => {
     it('updates the rendered content based on new measurements when the font dimensions change', async () => {
       const {component, element, editor} = buildComponent({rowsPerTile: 1, autoHeight: false})
       await setEditorHeightInLines(component, 3)
