@@ -93,7 +93,8 @@ module.exports = async function (packageRepoName, apiToken, version, artifacts) 
       const existingPackageDetails =
         await request({
           uri: `https://${apiToken}:@packagecloud.io/api/v1/repos/AtomEditor/${packageRepoName}/package/${type}/${distroName}/${distroVersion}/atom${releaseSuffix || ''}/${arch}/${versionJsonPath}.json`,
-          method: 'get'
+          method: 'get',
+          json: true
         })
 
       if (existingPackageDetails && existingPackageDetails.destroy_url) {
