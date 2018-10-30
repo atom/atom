@@ -58,17 +58,6 @@ async function uploadArtifacts() {
       await publishReleaseAsync({
         token: process.env.GITHUB_TOKEN,
         owner: 'atom',
-        repo: CONFIG.channel !== 'nightly' ? 'atom' : 'atom-nightly-releases',
-        name: CONFIG.computedAppVersion,
-        tag: `v${CONFIG.computedAppVersion}`,
-        draft: CONFIG.channel !== 'nightly',
-
-  if (argv.createGithubRelease) {
-    console.log(`Creating GitHub release v${CONFIG.computedAppVersion}`)
-    const release =
-      await publishReleaseAsync({
-        token: process.env.GITHUB_TOKEN,
-        owner: 'atom',
         repo: !isNightlyRelease ? 'atom' : 'atom-nightly-releases',
         name: CONFIG.computedAppVersion,
         tag: `v${CONFIG.computedAppVersion}`,
@@ -96,7 +85,6 @@ async function publishReleaseAsync(options) {
     })
   })
 }
-
 
 // Wrap the call the async function and catch errors from its promise because
 // Node.js doesn't yet allow use of await at the script scope
