@@ -6,6 +6,8 @@ const path = require('path')
 const glob = require('glob')
 const publishRelease = require('publish-release')
 const uploadToS3 = require('./lib/upload-to-s3')
+const uploadLinuxPackages = require('./lib/upload-linux-packages')
+
 const CONFIG = require('./config')
 
 const yargs = require('yargs')
@@ -15,6 +17,7 @@ const argv = yargs
   .describe('assets-path', 'Path to the folder where all release assets are stored')
   .describe('s3-path', 'Indicates the S3 path in which the assets should be uploaded')
   .describe('create-github-release', 'Creates a GitHub release for this build, draft if release branch or public if Nightly')
+  .describe('linux-repo-name', 'If specified, uploads Linux packages to the given repo name on packagecloud')
   .wrap(yargs.terminalWidth())
   .argv
 
@@ -28,38 +31,61 @@ if (!assets || assets.length === 0) {
   process.exit(1)
 }
 
-console.log(`Uploading ${assets.length} release assets for ${CONFIG.computedAppVersion} to S3 under '${bucketPath}'`)
+async function uploadRelease() {
+  console.log(`Uploading ${assets.length} release assets for ${CONFIG.computedAppVersion} to S3 under '${bucketPath}'`)
 
-uploadToS3(
-  process.env.ATOM_RELEASES_S3_KEY,
-  process.env.ATOM_RELEASES_S3_SECRET,
-  process.env.ATOM_RELEASES_S3_BUCKET,
-  bucketPath,
-  assets).then(
-    () => {
-      if (argv.createGithubRelease) {
-        console.log(`Creating GitHub release v${CONFIG.computedAppVersion}`)
-        publishRelease({
-          token: process.env.GITHUB_TOKEN,
-          owner: 'atom',
-          repo: CONFIG.channel !== 'nightly' ? 'atom' : 'atom-nightly-releases',
-          name: CONFIG.computedAppVersion,
-          tag: `v${CONFIG.computedAppVersion}`,
-          draft: false,
-          prerelease: CONFIG.channel !== 'stable',
-          reuseRelease: true,
-          skipIfPublished: true,
-          assets
-        }, function (err, release) {
-          if (err) {
-            console.error("An error occurred while publishing the release:\n\n", err)
-          } else {
-            console.log("Release published successfully: ", release.html_url)
-          }
-        })
+  await uploadToS3(
+    process.env.ATOM_RELEASES_S3_KEY,
+    process.env.ATOM_RELEASES_S3_SECRET,
+    process.env.ATOM_RELEASES_S3_BUCKET,
+    bucketPath,
+    assets)
+
+  if (argv.linuxRepoName) {
+    await uploadLinuxPackages(
+      argv.linuxRepoName,
+      process.env.PACKAGE_CLOUD_API_KEY,
+      CONFIG.computedAppVersion,
+      assets)
+  } else {
+      console.log("Skipping upload of Linux packages")
+  }
+
+  if (argv.createGithubRelease) {
+    console.log(`Creating GitHub release v${CONFIG.computedAppVersion}`)
+    const release =
+      await publishReleaseAsync({
+        token: process.env.GITHUB_TOKEN,
+        owner: 'atom',
+        repo: CONFIG.channel !== 'nightly' ? 'atom' : 'atom-nightly-releases',
+        name: CONFIG.computedAppVersion,
+        tag: `v${CONFIG.computedAppVersion}`,
+        draft: false,
+        prerelease: CONFIG.channel !== 'stable',
+        reuseRelease: true,
+        skipIfPublished: true,
+        assets
+      })
+
+    console.log("Release published successfully: ", release.html_url)
+  } else {
+    console.log("Skipping GitHub release creation")
+  }
+}
+
+async function publishReleaseAsync(options) {
+  return new Promise((resolve, reject) => {
+    publishRelease(options, (err, release) => {
+      if (err) {
+        reject(err)
       } else {
-        console.log("Skipping GitHub release creation")
+        resolve(release)
       }
-    }).catch((err) => {
-      console.error('An error occurred while uploading the release:', err)
     })
+  })
+}
+
+uploadRelease().catch((err) => {
+  console.error('An error occurred while uploading the release:\n\n', err)
+  process.exit(1)
+})
