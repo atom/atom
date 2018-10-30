@@ -17,4 +17,4 @@ Instructions for building Atom on various platforms from source.
 
 [Native Profiling on macOS](./native-profiling.md)
 
-The other documentation that was listed here previously has been moved to [the Flight Manual](https://flight-manual.atom.io).
+The other documentation that was listed here previously has now been moved to following [the Flight Manual](https://flight-manual.atom.io).
