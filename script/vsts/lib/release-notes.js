@@ -72,7 +72,7 @@ ${allChangesText}
 `
 }
 
-module.exports.generateForNightly = async function(releaseVersion, githubToken) {
+module.exports.generateForNightly = async function (releaseVersion, githubToken) {
   const releases = await octokit.repos.getReleases({owner: 'atom', repo: 'atom-nightly-releases'})
   const previousRelease = getPreviousRelease(releaseVersion, releases.data)
   const oldReleaseNotes = previousRelease ? previousRelease.body : undefined

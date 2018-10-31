@@ -33,7 +33,7 @@ if (!assets || assets.length === 0) {
   process.exit(1)
 }
 
-async function uploadArtifacts() {
+async function uploadArtifacts () {
   console.log(`Uploading ${assets.length} release assets for ${releaseVersion} to S3 under '${bucketPath}'`)
 
   await uploadToS3(
@@ -50,7 +50,7 @@ async function uploadArtifacts() {
       releaseVersion,
       assets)
   } else {
-    console.log("Skipping upload of Linux packages")
+    console.log('Skipping upload of Linux packages')
   }
 
   const oldReleaseNotes =
@@ -59,7 +59,7 @@ async function uploadArtifacts() {
       process.env.GITHUB_TOKEN)
 
   if (oldReleaseNotes) {
-    const oldReleaseNotesPath = path.resolve(CONFIG.buildOutputPath, "OLD_RELEASE_NOTES.md")
+    const oldReleaseNotesPath = path.resolve(CONFIG.buildOutputPath, 'OLD_RELEASE_NOTES.md')
     console.log(`Saving existing ${releaseVersion} release notes to ${oldReleaseNotesPath}`)
     fs.writeFileSync(oldReleaseNotesPath, oldReleaseNotes, 'utf8')
   }
@@ -99,13 +99,13 @@ async function uploadArtifacts() {
         assets
       })
 
-    console.log("Release published successfully: ", release.html_url)
+    console.log('Release published successfully: ', release.html_url)
   } else {
-    console.log("Skipping GitHub release creation")
+    console.log('Skipping GitHub release creation')
   }
 }
 
-async function publishReleaseAsync(options) {
+async function publishReleaseAsync (options) {
   return new Promise((resolve, reject) => {
     publishRelease(options, (err, release) => {
       if (err) {
