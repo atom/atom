@@ -1,8 +1,9 @@
 const semver = require('semver')
-const changelog = require('pr-changelog')
 const octokit = require('@octokit/rest')()
+const changelog = require('pr-changelog')
+const childProcess = require('child_process')
 
-module.exports.get = async function(releaseVersion, githubToken) {
+module.exports.get = async function (releaseVersion, githubToken) {
   if (githubToken) {
     octokit.authenticate({
       type: 'oauth',
@@ -10,12 +11,12 @@ module.exports.get = async function(releaseVersion, githubToken) {
     })
   }
 
-  let releases = await octokit.repos.getReleases({owner: 'atom', repo: 'atom'})
-  let release = releases.data.find(r => semver.eq(r.name, releaseVersion))
+  const releases = await octokit.repos.getReleases({owner: 'atom', repo: 'atom'})
+  const release = releases.data.find(r => semver.eq(r.name, releaseVersion))
   return release ? release.body : undefined
 }
 
-module.exports.generate = async function(releaseVersion, githubToken) {
+module.exports.generateForVersion = async function (releaseVersion, githubToken, oldReleaseNotes) {
   let oldVersion = null
   let oldVersionName = null
   const parsedVersion = semver.parse(releaseVersion)
@@ -36,8 +37,7 @@ module.exports.generate = async function(releaseVersion, githubToken) {
     oldVersionName = `v${parsedVersion.major}.${parsedVersion.minor - 1}.0`
   } else {
     let releases = await octokit.repos.getReleases({owner: 'atom', repo: 'atom'})
-    let versions = releases.data.map(r => r.name)
-    oldVersion = 'v' + getPreviousVersion(releaseVersion, versions)
+    oldVersion = 'v' + getPreviousRelease(releaseVersion, releases.data).name
     oldVersionName = oldVersion
   }
 
@@ -59,28 +59,61 @@ module.exports.generate = async function(releaseVersion, githubToken) {
     }
   })
 
-  return `## Notable Changes\n\n\
-**TODO**: Pull relevant changes here!\n\n\
+  const writtenReleaseNotes =
+    extractWrittenReleaseNotes(oldReleaseNotes) ||
+    '**TODO**: Pull relevant changes here!'
+
+  return `## Notable Changes\n
+${writtenReleaseNotes}\n
 <details>
-<summary>All Changes</summary>\n\n
-${allChangesText}\n\n
+<summary>All Changes</summary>\n
+${allChangesText}
 </details>
 `
 }
 
-function getPreviousVersion (version, allVersions) {
+module.exports.generateForNightly = async function(releaseVersion, githubToken) {
+  const releases = await octokit.repos.getReleases({owner: 'atom', repo: 'atom-nightly-releases'})
+  const previousRelease = getPreviousRelease(releaseVersion, releases.data)
+  const oldReleaseNotes = previousRelease ? previousRelease.body : undefined
+
+  const latestCommitResult = childProcess.spawnSync('git', ['rev-parse', '--short', 'HEAD'])
+
+  if (latestCommitResult && oldReleaseNotes) {
+    const latestCommit = latestCommitResult.stdout.toString().trim()
+    const extractMatch = oldReleaseNotes.match(/atom\/atom\/compare\/([0-9a-f]{5,40})\.\.\.([0-9a-f]{5,40})/)
+    if (extractMatch) {
+      return `### Click [here](https://github.com/atom/atom/compare/${extractMatch[2]}...${latestCommit}) to see the changes included with this release! :atom: :night_with_stars:`
+    }
+  }
+
+  return undefined
+}
+
+function extractWrittenReleaseNotes (oldReleaseNotes) {
+  if (oldReleaseNotes) {
+    const extractMatch = oldReleaseNotes.match(/^## Notable Changes\r\n([\s\S]*)<details>/)
+    if (extractMatch && extractMatch[1]) {
+      return extractMatch[1].trim()
+    }
+  }
+
+  return undefined
+}
+
+function getPreviousRelease (version, allReleases) {
   const versionIsStable = semver.prerelease(version) === null
 
   // Make sure versions are sorted before using them
-  allVersions.sort(semver.rcompare)
+  allReleases.sort((v1, v2) => semver.rcompare(v1.name, v2.name))
 
-  for (let otherVersion of allVersions) {
-    if (versionIsStable && semver.prerelease(otherVersion)) {
+  for (let release of allReleases) {
+    if (versionIsStable && semver.prerelease(release.name)) {
       continue
     }
 
-    if (semver.lt(otherVersion, version)) {
-      return otherVersion
+    if (semver.lt(release.name, version)) {
+      return release
     }
   }
 

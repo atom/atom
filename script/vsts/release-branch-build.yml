@@ -80,3 +80,12 @@ jobs:
       ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
     displayName: Upload CI Artifacts to S3
     condition: and(succeeded(), eq(variables['IsSignedZipBranch'], 'true'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/OLD_RELEASE_NOTES.md
+      ArtifactName: OLD_RELEASE_NOTES.md
+      ArtifactType: Container
+    displayName: Upload OLD_RELEASE_NOTES.md
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+    continueOnError: true
