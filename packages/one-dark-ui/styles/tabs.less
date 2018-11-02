@@ -213,7 +213,7 @@
 }
 
 
-// Active pane marker --------------
+// Active/focused pane marker --------------
 
 atom-pane-axis > atom-pane.active,
 atom-pane-container > atom-pane.pane {
@@ -226,6 +226,11 @@ atom-pane-container > atom-pane.pane {
     left: -1px; // cover left border
     bottom: 0;
     width: 2px;
+    background: mix(@text-color, @tab-background-color-editor, 33%);
+  }
+}
+.pane:focus-within {
+  .tab.active:before {
     background: @accent-color;
   }
 }
