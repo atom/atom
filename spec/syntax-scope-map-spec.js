@@ -74,4 +74,14 @@ describe('SyntaxScopeMap', () => {
     expect(map.get(['a', 'c', 'b'], [0, 1, 1])).toBe('z')
     expect(map.get(['a', 'c', 'b'], [0, 2, 1])).toBe('w')
   })
+
+  it('distinguishes between an anonymous * token and the wildcard selector', () => {
+    const map = new SyntaxScopeMap({
+      '"*"': 'x',
+      'a > "b"': 'y'
+    })
+
+    expect(map.get(['b'], [0], false)).toBe(undefined)
+    expect(map.get(['*'], [0], false)).toBe('x')
+  })
 })
