@@ -1,11 +1,15 @@
 const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
+const fs = require('fs')
+const path = require('path')
 const dedent = require('dedent')
 const TextBuffer = require('text-buffer')
 const {Point} = TextBuffer
 const TextEditor = require('../src/text-editor')
 const TreeSitterGrammar = require('../src/tree-sitter-grammar')
 const TreeSitterLanguageMode = require('../src/tree-sitter-language-mode')
+const Random = require('../script/node_modules/random-seed')
+const {getRandomBufferRange, buildRandomLines} = require('./helpers/random')
 
 const cGrammarPath = require.resolve('language-c/grammars/tree-sitter-c.cson')
 const pythonGrammarPath = require.resolve('language-python/grammars/tree-sitter-python.cson')
@@ -786,6 +790,97 @@ describe('TreeSitterLanguageMode', () => {
 
         await promise
       })
+    })
+  })
+
+  describe('highlighting after random changes', () => {
+    let originalTimeout
+
+    beforeEach(() => {
+      originalTimeout = jasmine.getEnv().defaultTimeoutInterval
+      jasmine.getEnv().defaultTimeoutInterval = 60 * 1000
+    })
+
+    afterEach(() => {
+      jasmine.getEnv().defaultTimeoutInterval = originalTimeout
+    })
+
+    it('matches the highlighting of a freshly-opened editor', async () => {
+      jasmine.useRealClock()
+
+      const text = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
+      atom.grammars.loadGrammarSync(jsGrammarPath)
+      atom.grammars.assignLanguageMode(buffer, 'source.js')
+      buffer.getLanguageMode().syncOperationLimit = 0
+
+      const initialSeed = Date.now()
+      for (let i = 0, trial_count = 10; i < trial_count; i++) {
+        let seed = initialSeed + i
+        // seed = 1541201470759
+        const random = Random(seed)
+
+        // Parse the initial content and render all of the screen lines.
+        buffer.setText(text)
+        buffer.clearUndoStack()
+        await buffer.getLanguageMode().parseCompletePromise()
+        editor.displayLayer.getScreenLines()
+
+        // Make several random edits.
+        for (let j = 0, edit_count = 1 + random(4); j < edit_count; j++) {
+          const editRoll = random(10)
+          const range = getRandomBufferRange(random, buffer)
+
+          if (editRoll < 2) {
+            const linesToInsert = buildRandomLines(random, range.getExtent().row + 1)
+            // console.log('replace', range.toString(), JSON.stringify(linesToInsert))
+            buffer.setTextInRange(range, linesToInsert)
+          } else if (editRoll < 5) {
+            // console.log('delete', range.toString())
+            buffer.delete(range)
+          } else {
+            const linesToInsert = buildRandomLines(random, 3)
+            // console.log('insert', range.start.toString(), JSON.stringify(linesToInsert))
+            buffer.insert(range.start, linesToInsert)
+          }
+
+          // console.log(buffer.getText())
+
+          // Sometimes, let the parse complete before re-rendering.
+          // Sometimes re-render and move on before the parse completes.
+          if (random(2)) await buffer.getLanguageMode().parseCompletePromise()
+          editor.displayLayer.getScreenLines()
+        }
+
+        // Revert the edits, because Tree-sitter's error recovery is somewhat path-dependent,
+        // and we want a state where the tree parse result is guaranteed.
+        while (buffer.undo()) {}
+
+        // Create a fresh buffer and editor with the same text.
+        const buffer2 = new TextBuffer(buffer.getText())
+        const editor2 = new TextEditor({buffer: buffer2})
+        atom.grammars.assignLanguageMode(buffer2, 'source.js')
+
+        // Verify that the the two buffers have the same syntax highlighting.
+        await buffer.getLanguageMode().parseCompletePromise()
+        await buffer2.getLanguageMode().parseCompletePromise()
+        expect(buffer.getLanguageMode().tree.rootNode.toString()).toEqual(
+          buffer2.getLanguageMode().tree.rootNode.toString(), `Seed: ${seed}`
+        )
+
+        for (let j = 0, n = editor.getScreenLineCount(); j < n; j++) {
+          const tokens1 = editor.tokensForScreenRow(j)
+          const tokens2 = editor2.tokensForScreenRow(j)
+          expect(tokens1).toEqual(tokens2, `Seed: ${seed}, screen line: ${j}`)
+          if (jasmine.getEnv().currentSpec.results().failedCount > 0) {
+            console.log(tokens1)
+            console.log(tokens2)
+            debugger
+            break
+          }
+        }
+
+        if (jasmine.getEnv().currentSpec.results().failedCount > 0) break
+      }
     })
   })
 
