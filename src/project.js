@@ -208,7 +208,7 @@ class Project extends Model {
   //       console.log(`.. renamed from: ${event.oldPath}`)
   //     }
   //   }
-  // }
+  // })
   //
   // disposable.dispose()
   // ```
