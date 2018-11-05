@@ -1067,14 +1067,13 @@ class NodeRangeSet {
       let index = node.startIndex
 
       for (const child of node.children) {
-        const nextPosition = child.startPosition
         const nextIndex = child.startIndex
         if (nextIndex > index) {
           this._pushRange(previousRanges, result, {
             startIndex: index,
             endIndex: nextIndex,
             startPosition: position,
-            endPosition: nextPosition
+            endPosition: child.startPosition
           })
         }
         position = child.endPosition
