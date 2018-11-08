@@ -646,18 +646,22 @@ class LanguageLayer {
       const rangesWithSyntaxChanges = this.tree.getChangedRanges(tree)
       this.tree = tree
 
-      if (!affectedRange) return
       if (rangesWithSyntaxChanges.length > 0) {
         for (const range of rangesWithSyntaxChanges) {
           this.languageMode.emitRangeUpdate(rangeForNode(range))
         }
 
-        affectedRange = affectedRange.union(new Range(
+        const combinedRangeWithSyntaxChange = new Range(
           rangesWithSyntaxChanges[0].startPosition,
           last(rangesWithSyntaxChanges).endPosition
-        ))
-      } else {
-        this.languageMode.emitRangeUpdate(affectedRange)
+        )
+
+        if (affectedRange) {
+          this.languageMode.emitRangeUpdate(affectedRange)
+          affectedRange = affectedRange.union(combinedRangeWithSyntaxChange)
+        } else {
+          affectedRange = combinedRangeWithSyntaxChange
+        }
       }
     } else {
       this.tree = tree
@@ -669,10 +673,12 @@ class LanguageLayer {
       }
     }
 
-    const injectionPromise = this._populateInjections(affectedRange, nodeRangeSet)
-    if (injectionPromise) {
-      params.async = true
-      return injectionPromise
+    if (affectedRange) {
+      const injectionPromise = this._populateInjections(affectedRange, nodeRangeSet)
+      if (injectionPromise) {
+        params.async = true
+        return injectionPromise
+      }
     }
   }
 
