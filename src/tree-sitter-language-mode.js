@@ -479,13 +479,16 @@ class TreeSitterLanguageMode {
   }
 
   scopeDescriptorForPosition (point) {
+    point = Point.fromObject(point)
     const iterator = this.buildHighlightIterator()
     const scopes = []
     for (const scope of iterator.seek(point)) {
       scopes.push(this.grammar.scopeNameForScopeId(scope))
     }
-    for (const scope of iterator.getOpenScopeIds()) {
-      scopes.push(this.grammar.scopeNameForScopeId(scope))
+    if (point.isEqual(iterator.getPosition())) {
+      for (const scope of iterator.getOpenScopeIds()) {
+        scopes.push(this.grammar.scopeNameForScopeId(scope))
+      }
     }
     if (scopes.length === 0 || scopes[0] !== this.grammar.scopeName) {
       scopes.unshift(this.grammar.scopeName)
