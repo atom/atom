@@ -1517,6 +1517,27 @@ describe('TreeSitterLanguageMode', () => {
         'source.js'
       ])
     })
+
+    it('works when the given position is between tokens', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        scopeName: 'source.js',
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          program: 'source.js',
+          comment: 'comment.block',
+        }
+      })
+
+      buffer.setText('a  // b')
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      expect(editor.scopeDescriptorForBufferPosition([0, 2]).getScopesArray()).toEqual([
+        'source.js'
+      ])
+      expect(editor.scopeDescriptorForBufferPosition([0, 3]).getScopesArray()).toEqual([
+        'source.js',
+        'comment.block'
+      ])
+    })
   })
 
   describe('.syntaxTreeScopeDescriptorForPosition', () => {
