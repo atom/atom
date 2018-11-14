@@ -139,11 +139,7 @@ class TreeSitterLanguageMode {
 
   buildHighlightIterator () {
     if (!this.rootLanguageLayer) return new NullHighlightIterator()
-    const layerIterators = [
-      this.rootLanguageLayer.buildHighlightIterator(),
-      ...this.injectionsMarkerLayer.getMarkers().map(m => m.languageLayer.buildHighlightIterator())
-    ]
-    return new HighlightIterator(this, layerIterators)
+    return new HighlightIterator(this)
   }
 
   onDidTokenize (callback) {
@@ -482,7 +478,7 @@ class TreeSitterLanguageMode {
     point = Point.fromObject(point)
     const iterator = this.buildHighlightIterator()
     const scopes = []
-    for (const scope of iterator.seek(point)) {
+    for (const scope of iterator.seek(point, point.row + 1)) {
       scopes.push(this.grammar.scopeNameForScopeId(scope))
     }
     if (point.isEqual(iterator.getPosition())) {
@@ -765,12 +761,22 @@ class LanguageLayer {
 }
 
 class HighlightIterator {
-  constructor (languageMode, iterators) {
+  constructor (languageMode) {
     this.languageMode = languageMode
-    this.iterators = iterators.sort((a, b) => b.getIndex() - a.getIndex())
+    this.iterators = null
   }
 
-  seek (targetPosition) {
+  seek (targetPosition, endRow) {
+    const injectionMarkers = this.languageMode.injectionsMarkerLayer.findMarkers({
+      intersectsRange: new Range(targetPosition, new Point(endRow + 1, 0))
+    })
+
+    this.iterators = [this.languageMode.rootLanguageLayer.buildHighlightIterator()]
+    for (const marker of injectionMarkers) {
+      this.iterators.push(marker.languageLayer.buildHighlightIterator())
+    }
+    this.iterators.sort((a, b) => b.getIndex() - a.getIndex())
+
     const containingTags = []
     const containingTagStartIndices = []
     const targetIndex = this.languageMode.buffer.characterIndexForPosition(targetPosition)
