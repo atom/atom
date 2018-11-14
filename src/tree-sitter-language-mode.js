@@ -584,12 +584,12 @@ class LanguageLayer {
 
   async update (nodeRangeSet) {
     if (!this.currentParsePromise) {
-      do {
+      while (!this.destroyed && (!this.tree || this.tree.rootNode.hasChanges())) {
         const params = {async: false}
         this.currentParsePromise = this._performUpdate(nodeRangeSet, params)
         if (!params.async) break
         await this.currentParsePromise
-      } while (this.tree && this.tree.rootNode.hasChanges())
+      }
       this.currentParsePromise = null
     }
   }
@@ -610,6 +610,7 @@ class LanguageLayer {
       includedRanges = nodeRangeSet.getRanges()
       if (includedRanges.length === 0) {
         this.tree = null
+        this.destroyed = true
         return
       }
     }
@@ -694,14 +695,15 @@ class LanguageLayer {
     }
 
     const markersToUpdate = new Map()
-    for (const injectionPoint of this.grammar.injectionPoints) {
-      const nodes = this.tree.rootNode.descendantsOfType(
-        injectionPoint.type,
-        range.start,
-        range.end
-      )
+    const nodes = this.tree.rootNode.descendantsOfType(
+      Object.keys(this.grammar.injectionPointsByType),
+      range.start,
+      range.end
+    )
 
-      for (const node of nodes) {
+    let existingInjectionMarkerIndex = 0
+    for (const node of nodes) {
+      for (const injectionPoint of this.grammar.injectionPointsByType[node.type]) {
         const languageName = injectionPoint.language(node)
         if (!languageName) continue
 
@@ -715,10 +717,25 @@ class LanguageLayer {
         if (!injectionNodes.length) continue
 
         const injectionRange = rangeForNode(node)
-        let marker = existingInjectionMarkers.find(m =>
-          m.getRange().isEqual(injectionRange) &&
-          m.languageLayer.grammar === grammar
-        )
+
+        let marker
+        for (let i = existingInjectionMarkerIndex, n = existingInjectionMarkers.length; i < n; i++) {
+          const existingMarker = existingInjectionMarkers[i]
+          const comparison = existingMarker.getRange().compare(injectionRange)
+          if (comparison > 0) {
+            break
+          } else if (comparison === 0) {
+            existingInjectionMarkerIndex = i
+            if (existingMarker.languageLayer.grammar === grammar) {
+              marker = existingMarker
+              marker.id === node.id
+              break
+            }
+          } else {
+            existingInjectionMarkerIndex = i
+          }
+        }
+
         if (!marker) {
           marker = this.languageMode.injectionsMarkerLayer.markRange(injectionRange)
           marker.languageLayer = new LanguageLayer(this.languageMode, grammar, injectionPoint.contentChildTypes)
