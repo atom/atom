@@ -421,7 +421,11 @@ class GrammarRegistry {
   addInjectionPoint (grammarId, injectionPoint) {
     const grammar = this.treeSitterGrammarsById[grammarId]
     if (grammar) {
-      grammar.injectionPoints.push(injectionPoint)
+      if (grammar.addInjectionPoint) {
+        grammar.addInjectionPoint(injectionPoint)
+      } else {
+        grammar.injectionPoints.push(injectionPoint)
+      }
     } else {
       this.treeSitterGrammarsById[grammarId] = {
         injectionPoints: [injectionPoint]
@@ -429,8 +433,7 @@ class GrammarRegistry {
     }
     return new Disposable(() => {
       const grammar = this.treeSitterGrammarsById[grammarId]
-      const index = grammar.injectionPoints.indexOf(injectionPoint)
-      if (index !== -1) grammar.injectionPoints.splice(index, 1)
+      grammar.removeInjectionPoint(injectionPoint)
     })
   }
 
@@ -454,7 +457,11 @@ class GrammarRegistry {
     if (grammar instanceof TreeSitterGrammar) {
       const existingParams = this.treeSitterGrammarsById[grammar.scopeName] || {}
       if (grammar.scopeName) this.treeSitterGrammarsById[grammar.scopeName] = grammar
-      if (existingParams.injectionPoints) grammar.injectionPoints.push(...existingParams.injectionPoints)
+      if (existingParams.injectionPoints) {
+        for (const injectionPoint of existingParams.injectionPoints) {
+          grammar.addInjectionPoint(injectionPoint)
+        }
+      }
       this.grammarAddedOrUpdated(grammar)
       return new Disposable(() => this.removeGrammar(grammar))
     } else {
