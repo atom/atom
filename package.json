@@ -189,7 +189,7 @@
     "autocomplete-atom-api": "0.10.7",
     "autocomplete-css": "0.17.5",
     "autocomplete-html": "0.8.7",
-    "autocomplete-plus": "2.41.0",
+    "autocomplete-plus": "2.42.0",
     "autocomplete-snippets": "1.12.0",
     "autoflow": "file:./packages/autoflow",
     "autosave": "0.24.6",
