@@ -99,10 +99,13 @@ class TreeSitterLanguageMode {
     return this.grammar.scopeName
   }
 
-  bufferDidChange (change) {
-    this.rootLanguageLayer.handleTextChange(change)
+  bufferDidChange ({oldRange, newRange, oldText, newText}) {
+    const edit = this.rootLanguageLayer._treeEditForBufferChange(
+      oldRange.start, oldRange.end, newRange.end, oldText, newText
+    )
+    this.rootLanguageLayer.handleTextChange(edit, oldText, newText)
     for (const marker of this.injectionsMarkerLayer.getMarkers()) {
-      marker.languageLayer.handleTextChange(change)
+      marker.languageLayer.handleTextChange(edit, oldText, newText)
     }
   }
 
@@ -542,31 +545,30 @@ class LanguageLayer {
     }
   }
 
-  handleTextChange ({oldRange, newRange, oldText, newText}) {
-    if (this.tree) {
-      this.tree.edit(this._treeEditForBufferChange(
-        oldRange.start, oldRange.end, newRange.end, oldText, newText
-      ))
+  handleTextChange (edit, oldText, newText) {
+    const {startPosition, oldEndPosition, newEndPosition} = edit
 
+    if (this.tree) {
+      this.tree.edit(edit)
       if (this.editedRange) {
-        if (newRange.start.isLessThan(this.editedRange.start)) {
-          this.editedRange.start = newRange.start
+        if (startPosition.isLessThan(this.editedRange.start)) {
+          this.editedRange.start = startPosition
         }
-        if (oldRange.end.isLessThan(this.editedRange.end)) {
-          this.editedRange.end = newRange.end.traverse(this.editedRange.end.traversalFrom(oldRange.end))
+        if (oldEndPosition.isLessThan(this.editedRange.end)) {
+          this.editedRange.end = newEndPosition.traverse(this.editedRange.end.traversalFrom(oldEndPosition))
         } else {
-          this.editedRange.end = newRange.end
+          this.editedRange.end = newEndPosition
         }
       } else {
-        this.editedRange = newRange.copy()
+        this.editedRange = new Range(startPosition, newEndPosition)
       }
     }
 
     if (this.patchSinceCurrentParseStarted) {
       this.patchSinceCurrentParseStarted.splice(
-        oldRange.start,
-        oldRange.getExtent(),
-        newRange.getExtent(),
+        startPosition,
+        oldEndPosition.traversalFrom(startPosition),
+        newEndPosition.traversalFrom(startPosition),
         oldText,
         newText
       )
