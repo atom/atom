@@ -46,20 +46,6 @@ class TreeSitterLanguageMode {
 
     this.grammarForLanguageString = this.grammarForLanguageString.bind(this)
 
-    this.subscription = this.buffer.onDidChangeText(({changes}) => {
-      for (let i = 0, {length} = changes; i < length; i++) {
-        const {oldRange, newRange} = changes[i]
-        spliceArray(
-          this.isFoldableCache,
-          newRange.start.row,
-          oldRange.end.row - oldRange.start.row,
-          {length: newRange.end.row - newRange.start.row}
-        )
-      }
-
-      this.rootLanguageLayer.update(null)
-    })
-
     this.rootLanguageLayer.update(null).then(() =>
       this.emitter.emit('did-tokenize')
     )
@@ -90,7 +76,6 @@ class TreeSitterLanguageMode {
 
   destroy () {
     this.injectionsMarkerLayer.destroy()
-    this.subscription.dispose()
     this.rootLanguageLayer = null
     this.parser = null
   }
@@ -107,6 +92,19 @@ class TreeSitterLanguageMode {
     for (const marker of this.injectionsMarkerLayer.getMarkers()) {
       marker.languageLayer.handleTextChange(edit, oldText, newText)
     }
+  }
+
+  bufferDidFinishTransaction (changes) {
+    for (let i = 0, {length} = changes; i < length; i++) {
+      const {oldRange, newRange} = changes[i]
+      spliceArray(
+        this.isFoldableCache,
+        newRange.start.row,
+        oldRange.end.row - oldRange.start.row,
+        {length: newRange.end.row - newRange.start.row}
+      )
+    }
+    this.rootLanguageLayer.update(null)
   }
 
   parse (language, oldTree, ranges) {
