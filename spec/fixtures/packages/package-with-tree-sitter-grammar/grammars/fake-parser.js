@@ -1,1 +1,0 @@
-exports.isFakeTreeSitterParser = true

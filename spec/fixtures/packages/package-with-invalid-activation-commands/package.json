@@ -1,9 +1,0 @@
-{
-  "name": "package-with-invalid-activation-commands",
-  "version": "1.0.0",
-  "activationCommands": {
-    "<>": [
-      "foo:bar"
-    ]
-  }
-}

@@ -1,0 +1,19 @@
+{
+	"name": "theme-quietlight",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"version": "1.0.0",
+	"publisher": "vscode",
+	"engines": {
+		"vscode": "*"
+	},
+	"contributes": {
+		"themes": [
+			{
+				"label": "Quiet Light",
+				"uiTheme": "vs",
+				"path": "./themes/quietlight-color-theme.json"
+			}
+		]
+	}
+}

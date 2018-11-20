@@ -1,3 +1,0 @@
-Hello
-Goodbye
-Windows

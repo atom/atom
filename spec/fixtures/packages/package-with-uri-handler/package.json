@@ -1,6 +1,0 @@
-{
-  "name": "package-with-uri-handler",
-  "uriHandler": {
-    "method": "handleURI"
-  }
-}
