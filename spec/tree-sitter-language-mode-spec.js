@@ -1424,7 +1424,8 @@ describe('TreeSitterLanguageMode', () => {
         parser: 'tree-sitter-javascript',
         scopes: {
           program: 'source.js',
-          property_identifier: 'property.name'
+          property_identifier: 'property.name',
+          comment: 'comment.block'
         }
       })
 
@@ -1438,6 +1439,16 @@ describe('TreeSitterLanguageMode', () => {
       expect(editor.scopeDescriptorForBufferPosition([0, 'foo({'.length]).getScopesArray()).toEqual([
         'source.js',
         'property.name'
+      ])
+
+
+      buffer.setText('// baz\n')
+
+      // Adjust position when at end of line
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      expect(editor.scopeDescriptorForBufferPosition([0, '// baz'.length]).getScopesArray()).toEqual([
+        'source.js',
+        'comment.block'
       ])
 
       // Drive-by test for .tokenForPosition()
@@ -1559,6 +1570,15 @@ describe('TreeSitterLanguageMode', () => {
         'object',
         'pair',
         'property_identifier'
+      ])
+
+      buffer.setText('//bar\n')
+
+      buffer.setLanguageMode(new TreeSitterLanguageMode({buffer, grammar}))
+      expect(editor.syntaxTreeScopeDescriptorForBufferPosition([0, 5]).getScopesArray()).toEqual([
+        'source.js',
+        'program',
+        'comment'
       ])
     })
 
