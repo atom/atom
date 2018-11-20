@@ -3843,10 +3843,10 @@ class TextEditor {
   // * `bufferPosition` A {Point} or {Array} of `[row, column]`.
   //
   // Returns a {ScopeDescriptor}.
-  scopeDescriptorForBufferPosition (bufferPosition, options) {
+  scopeDescriptorForBufferPosition (bufferPosition) {
     const languageMode = this.buffer.getLanguageMode()
     return languageMode.scopeDescriptorForPosition
-      ? languageMode.scopeDescriptorForPosition(bufferPosition, options)
+      ? languageMode.scopeDescriptorForPosition(bufferPosition)
       : new ScopeDescriptor({scopes: ['text']})
   }
 
