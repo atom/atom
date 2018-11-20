@@ -457,7 +457,7 @@ class TreeSitterLanguageMode {
     const nodes = []
     point = Point.fromObject(point)
 
-    if (point.column > 0 && point.column == this.buffer.lineLengthForRow(point.row)) {
+    if (point.column > 0 && point.column === this.buffer.lineLengthForRow(point.row)) {
       point.column--
     }
 
@@ -485,7 +485,7 @@ class TreeSitterLanguageMode {
   scopeDescriptorForPosition (point) {
     point = Point.fromObject(point)
 
-    if (point.column > 0 && point.column == this.buffer.lineLengthForRow(point.row)) {
+    if (point.column > 0 && point.column === this.buffer.lineLengthForRow(point.row)) {
       point.column--
     }
 
