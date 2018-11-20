@@ -1441,6 +1441,13 @@ describe('TreeSitterLanguageMode', () => {
         'property.name'
       ])
 
+      // Drive-by test for .tokenForPosition()
+      const token = editor.tokenForBufferPosition([0, 'foo({b'.length])
+      expect(token.value).toBe('bar')
+      expect(token.scopes).toEqual([
+        'source.js',
+        'property.name'
+      ])
 
       buffer.setText('// baz\n')
 
@@ -1449,14 +1456,6 @@ describe('TreeSitterLanguageMode', () => {
       expect(editor.scopeDescriptorForBufferPosition([0, '// baz'.length]).getScopesArray()).toEqual([
         'source.js',
         'comment.block'
-      ])
-
-      // Drive-by test for .tokenForPosition()
-      const token = editor.tokenForBufferPosition([0, 'foo({b'.length])
-      expect(token.value).toBe('bar')
-      expect(token.scopes).toEqual([
-        'source.js',
-        'property.name'
       ])
     })
 
