@@ -3843,10 +3843,10 @@ class TextEditor {
   // * `bufferPosition` A {Point} or {Array} of `[row, column]`.
   //
   // Returns a {ScopeDescriptor}.
-  scopeDescriptorForBufferPosition (bufferPosition) {
+  scopeDescriptorForBufferPosition (bufferPosition, options) {
     const languageMode = this.buffer.getLanguageMode()
     return languageMode.scopeDescriptorForPosition
-      ? languageMode.scopeDescriptorForPosition(bufferPosition)
+      ? languageMode.scopeDescriptorForPosition(bufferPosition, options)
       : new ScopeDescriptor({scopes: ['text']})
   }
 
@@ -3865,11 +3865,11 @@ class TextEditor {
   // * `bufferPosition` A {Point} or {Array} of `[row, column]`.
   //
   // Returns a {ScopeDescriptor}.
-  syntaxTreeScopeDescriptorForBufferPosition (bufferPosition) {
+  syntaxTreeScopeDescriptorForBufferPosition (bufferPosition, options) {
     const languageMode = this.buffer.getLanguageMode()
     return languageMode.syntaxTreeScopeDescriptorForPosition
-      ? languageMode.syntaxTreeScopeDescriptorForPosition(bufferPosition)
-      : this.scopeDescriptorForBufferPosition(bufferPosition)
+      ? languageMode.syntaxTreeScopeDescriptorForPosition(bufferPosition, options)
+      : this.scopeDescriptorForBufferPosition(bufferPosition, options)
   }
 
   // Extended: Get the range in buffer coordinates of all tokens surrounding the
