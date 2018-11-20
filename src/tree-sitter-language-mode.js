@@ -457,8 +457,9 @@ class TreeSitterLanguageMode {
     const nodes = []
     point = Point.fromObject(point)
 
-    if (point.column > 0)
+    if (point.column > 0) {
       point.column = Math.min(point.column, this.buffer.lineLengthForRow(point.row) - 1)
+    }
 
     this._forEachTreeWithRange(new Range(point, point), tree => {
       let node = tree.rootNode.descendantForPosition(point)
@@ -484,8 +485,9 @@ class TreeSitterLanguageMode {
   scopeDescriptorForPosition (point) {
     point = Point.fromObject(point)
 
-    if (point.column > 0)
+    if (point.column > 0) {
       point.column = Math.min(point.column, this.buffer.lineLengthForRow(point.row) - 1)
+    }
 
     const iterator = this.buildHighlightIterator()
     const scopes = []
