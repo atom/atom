@@ -479,6 +479,10 @@ class TreeSitterLanguageMode {
 
   scopeDescriptorForPosition (point) {
     point = Point.fromObject(point)
+
+    if (point.column > 0)
+      point.column = Math.min(point.column, this.buffer.lineLengthForRow(point.row) - 1)
+
     const iterator = this.buildHighlightIterator()
     const scopes = []
     for (const scope of iterator.seek(point, point.row + 1)) {
