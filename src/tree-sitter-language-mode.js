@@ -46,20 +46,6 @@ class TreeSitterLanguageMode {
 
     this.grammarForLanguageString = this.grammarForLanguageString.bind(this)
 
-    this.subscription = this.buffer.onDidChangeText(({changes}) => {
-      for (let i = 0, {length} = changes; i < length; i++) {
-        const {oldRange, newRange} = changes[i]
-        spliceArray(
-          this.isFoldableCache,
-          newRange.start.row,
-          oldRange.end.row - oldRange.start.row,
-          {length: newRange.end.row - newRange.start.row}
-        )
-      }
-
-      this.rootLanguageLayer.update(null)
-    })
-
     this.rootLanguageLayer.update(null).then(() =>
       this.emitter.emit('did-tokenize')
     )
@@ -90,7 +76,6 @@ class TreeSitterLanguageMode {
 
   destroy () {
     this.injectionsMarkerLayer.destroy()
-    this.subscription.dispose()
     this.rootLanguageLayer = null
     this.parser = null
   }
@@ -107,6 +92,19 @@ class TreeSitterLanguageMode {
     for (const marker of this.injectionsMarkerLayer.getMarkers()) {
       marker.languageLayer.handleTextChange(edit, oldText, newText)
     }
+  }
+
+  bufferDidFinishTransaction (changes) {
+    for (let i = 0, {length} = changes; i < length; i++) {
+      const {oldRange, newRange} = changes[i]
+      spliceArray(
+        this.isFoldableCache,
+        newRange.start.row,
+        oldRange.end.row - oldRange.start.row,
+        {length: newRange.end.row - newRange.start.row}
+      )
+    }
+    this.rootLanguageLayer.update(null)
   }
 
   parse (language, oldTree, ranges) {
@@ -455,7 +453,15 @@ class TreeSitterLanguageMode {
 
   syntaxTreeScopeDescriptorForPosition (point) {
     const nodes = []
-    point = Point.fromObject(point)
+    point = this.buffer.clipPosition(Point.fromObject(point))
+
+    // If the position is the end of a line, get node of left character instead of newline
+    // This is to match TextMate behaviour, see https://github.com/atom/atom/issues/18463
+    if (point.column > 0 && point.column === this.buffer.lineLengthForRow(point.row)) {
+      point = point.copy()
+      point.column--
+    }
+
     this._forEachTreeWithRange(new Range(point, point), tree => {
       let node = tree.rootNode.descendantForPosition(point)
       while (node) {
@@ -478,7 +484,15 @@ class TreeSitterLanguageMode {
   }
 
   scopeDescriptorForPosition (point) {
-    point = Point.fromObject(point)
+    point = this.buffer.clipPosition(Point.fromObject(point))
+
+    // If the position is the end of a line, get scope of left character instead of newline
+    // This is to match TextMate behaviour, see https://github.com/atom/atom/issues/18463
+    if (point.column > 0 && point.column === this.buffer.lineLengthForRow(point.row)) {
+      point = point.copy()
+      point.column--
+    }
+
     const iterator = this.buildHighlightIterator()
     const scopes = []
     for (const scope of iterator.seek(point, point.row + 1)) {

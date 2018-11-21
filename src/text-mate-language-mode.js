@@ -375,6 +375,8 @@ class TextMateLanguageMode {
     }
   }
 
+  bufferDidFinishTransaction () {}
+
   isFoldableAtRow (row) {
     return this.endRowForFoldAtRow(row, 1, true) != null
   }
