@@ -4798,17 +4798,16 @@ class TextEditor {
           // Prevent the cursor from selecting / passing the delimiters
           // See https://github.com/atom/atom/pull/17519
           if (options.correctSelection && options.selection) {
-            let endLineLength = this.buffer.lineLengthForRow(end)
-            let oldRange = options.selection.getBufferRange()
+            const endLineLength = this.buffer.lineLengthForRow(end)
+            const oldRange = options.selection.getBufferRange()
             if (oldRange.isEmpty()) {
               if (oldRange.start.column === endLineLength) {
-                let endCol = endLineLength - commentEndString.length - 1
+                const endCol = endLineLength - commentEndString.length - 1
                 options.selection.setBufferRange([[end, endCol], [end, endCol]], {autoscroll: false})
-                return
               }
             } else {
-              let startDelta = oldRange.start.column === indentLength ? [0, commentStartString.length + 1] : [0, 0]
-              let endDelta = oldRange.end.column === endLineLength ? [0, -commentEndString.length - 1] : [0, 0]
+              const startDelta = oldRange.start.column === indentLength ? [0, commentStartString.length + 1] : [0, 0]
+              const endDelta = oldRange.end.column === endLineLength ? [0, -commentEndString.length - 1] : [0, 0]
               options.selection.setBufferRange(oldRange.translate(startDelta, endDelta), {autoscroll: false})
             }
           }
