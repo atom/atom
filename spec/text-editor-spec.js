@@ -7318,16 +7318,29 @@ describe('TextEditor', () => {
       it('does not select the new delimiters when the option is set'), () => {
         let delimLength = '<!--'.length
         let selection = editor.addCursorAtBufferPosition([0, delimLength])
+
+        editor.setText('<!-- test -->')
+
         selection.toggleLineComments()
         expect(selection.isEmpty() && selection.getBufferRange().start.column === 0).toBe(true)
 
         selection.toggleLineComments()
         expect(selection.isEmpty() && selection.getBufferRange().start.column === delimLength).toBe(true)
 
-        selection.setBufferRange([[0, delimLength], [0, '<!-- test'.length]])
+        selection.setBufferRange([[0, delimLength], [0, delimLength + 1 + 'test'.length]])
         selection.toggleLineComments()
-        let range = selection.getBufferRange;
+        let range = selection.getBufferRange()
         expect(range.start.column === 0 && range.end.column === 'test'.length).toBe(true)
+
+        selection.toggleLineComments()
+        range = selection.getBufferRange()
+        expect(range.start.column === delimLength + 1 && range.end.column === delimLength + 1 + 'test'.length).toBe(true)
+
+
+        editor.setText('    test')
+        selection.setBufferRange([[0, 4], [0,4]])
+        selection.toggleLineComments()
+        expect(selection.isEmpty() && selection.start.column === 4 + delimLength + 1)
       }
     })
 
