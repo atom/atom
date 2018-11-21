@@ -455,10 +455,12 @@ class TreeSitterLanguageMode {
 
   syntaxTreeScopeDescriptorForPosition (point) {
     const nodes = []
-    point = this.buffer.clipPosition(Point.fromObject(point, true))
+    point = this.buffer.clipPosition(Point.fromObject(point))
 
-    // If the position is the end of a line, get scope of left character instead of newline
+    // If the position is the end of a line, get node of left character instead of newline
+    // This is to match TextMate behaviour, see https://github.com/atom/atom/issues/18463
     if (point.column > 0 && point.column === this.buffer.lineLengthForRow(point.row)) {
+      point = point.copy()
       point.column--
     }
 
@@ -484,10 +486,12 @@ class TreeSitterLanguageMode {
   }
 
   scopeDescriptorForPosition (point) {
-    point = this.buffer.clipPosition(Point.fromObject(point, true))
+    point = this.buffer.clipPosition(Point.fromObject(point))
 
     // If the position is the end of a line, get scope of left character instead of newline
+    // This is to match TextMate behaviour, see https://github.com/atom/atom/issues/18463
     if (point.column > 0 && point.column === this.buffer.lineLengthForRow(point.row)) {
+      point = point.copy()
       point.column--
     }
 
