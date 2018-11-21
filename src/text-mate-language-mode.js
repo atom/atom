@@ -152,8 +152,6 @@ class TextMateLanguageMode {
     if (currentRow === 0) return null
 
     let activeRow = currentRow - 1
-
-    let seenNonBlankRow = false;
     let firstNonBlankRow = currentRow
 
     const lowerBound = Math.max(0, currentRow - 1000)
