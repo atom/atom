@@ -127,10 +127,10 @@ class TextMateLanguageMode {
 
     if (!decreaseIndentRegex.testSync(line)) return
 
-    const precedingRow = this.buffer.previousNonBlankRow(bufferRow)
+    let precedingRow = this.getPrecedingIndentRow(bufferRow)
     if (precedingRow == null) return
+    let precedingLine = this.buffer.lineForRow(precedingRow)
 
-    const precedingLine = this.buffer.lineForRow(precedingRow)
     let desiredIndentLevel = this.indentLevelForLine(precedingLine, tabLength)
 
     const increaseIndentRegex = this.increaseIndentRegexForScopeDescriptor(scopeDescriptor)
@@ -148,6 +148,17 @@ class TextMateLanguageMode {
     return desiredIndentLevel
   }
 
+  getPrecedingIndentRow (currentRow) {
+    let activeRow = currentRow
+    while (activeRow > 0) {
+      activeRow -= 1
+      if (!this.isRowCommented(activeRow) && !this.buffer.isRowBlank(activeRow)) {
+        return activeRow
+      }
+    }
+    return null
+  }
+
   _suggestedIndentForLineWithScopeAtBufferRow (bufferRow, line, scopeDescriptor, tabLength, options) {
     const increaseIndentRegex = this.increaseIndentRegexForScopeDescriptor(scopeDescriptor)
     const decreaseIndentRegex = this.decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
@@ -155,7 +166,7 @@ class TextMateLanguageMode {
 
     let precedingRow
     if (!options || options.skipBlankLines !== false) {
-      precedingRow = this.buffer.previousNonBlankRow(bufferRow)
+      precedingRow = this.getPrecedingIndentRow(bufferRow)
       if (precedingRow == null) return 0
     } else {
       precedingRow = bufferRow - 1
