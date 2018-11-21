@@ -2692,7 +2692,7 @@ class TextEditor {
   //
   // Returns a {Cursor}.
   addCursorAtBufferPosition (bufferPosition, options) {
-    this.selectionsMarkerLayer.markBufferPosition(bufferPosition, {invalidate: 'never'})
+    this.selectionsMarkerLayer.markBufferPosition(bufferPosition, {invalidate: 'never', exclusive: true})
     if (!options || options.autoscroll !== false) this.getLastSelection().cursor.autoscroll()
     return this.getLastSelection().cursor
   }
@@ -2703,7 +2703,7 @@ class TextEditor {
   //
   // Returns a {Cursor}.
   addCursorAtScreenPosition (screenPosition, options) {
-    this.selectionsMarkerLayer.markScreenPosition(screenPosition, {invalidate: 'never'})
+    this.selectionsMarkerLayer.markScreenPosition(screenPosition, {invalidate: 'never', exclusive: true})
     if (!options || options.autoscroll !== false) this.getLastSelection().cursor.autoscroll()
     return this.getLastSelection().cursor
   }
@@ -4796,23 +4796,20 @@ class TextEditor {
           this.buffer.insert([end, this.buffer.lineLengthForRow(end)], ' ' + commentEndString)
 
           // Prevent the cursor from selecting / passing the delimiters
+          // See https://github.com/atom/atom/pull/17519
           if (options.correctSelection && options.selection) {
             let endLineLength = this.buffer.lineLengthForRow(end)
-            let startDelta, endDelta
             let oldRange = options.selection.getBufferRange()
             if (oldRange.isEmpty()) {
-              if (oldRange.start.column === indentLength) {
-                startDelta = [0, commentStartString.length + 1]
-              } else if (oldRange.start.column === endLineLength) {
-                startDelta = [0, -commentEndString.length - 1]
-              } else {
-                startDelta = [0, 0]
+              if (oldRange.start.column === endLineLength) {
+                let endCol = endLineLength - commentEndString.length - 1
+                options.selection.setBufferRange([[end, endCol], [end, endCol]], {autoscroll: false})
+                return
               }
-              options.selection.setBufferRange(oldRange.translate(startDelta), { autoscroll: false })
             } else {
-              startDelta = oldRange.start.column === indentLength ? [0, commentStartString.length + 1] : [0, 0]
-              endDelta = oldRange.end.column === endLineLength ? [0, -commentEndString.length - 1] : [0, 0]
-              options.selection.setBufferRange(oldRange.translate(startDelta, endDelta), { autoscroll: false })
+              let startDelta = oldRange.start.column === indentLength ? [0, commentStartString.length + 1] : [0, 0]
+              let endDelta = oldRange.end.column === endLineLength ? [0, -commentEndString.length - 1] : [0, 0]
+              options.selection.setBufferRange(oldRange.translate(startDelta, endDelta), {autoscroll: false})
             }
           }
         })
