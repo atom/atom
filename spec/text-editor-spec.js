@@ -7336,7 +7336,6 @@ describe('TextEditor', () => {
         range = selection.getBufferRange()
         expect(range.start.column === delimLength + 1 && range.end.column === delimLength + 1 + 'test'.length).toBe(true)
 
-
         editor.setText('    test')
         selection.setBufferRange([[0, 4], [0,4]])
         selection.toggleLineComments()
