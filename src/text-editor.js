@@ -4764,7 +4764,7 @@ class TextEditor {
 
   toggleLineCommentForBufferRow (row) { this.toggleLineCommentsForBufferRows(row, row) }
 
-  toggleLineCommentsForBufferRows (start, end) {
+  toggleLineCommentsForBufferRows (start, end, options={}) {
     const languageMode = this.buffer.getLanguageMode()
     let {commentStartString, commentEndString} =
       languageMode.commentStringsForPosition &&
@@ -4794,6 +4794,27 @@ class TextEditor {
           const indentLength = this.buffer.lineForRow(start).match(/^\s*/)[0].length
           this.buffer.insert([start, indentLength], commentStartString + ' ')
           this.buffer.insert([end, this.buffer.lineLengthForRow(end)], ' ' + commentEndString)
+
+          // Prevent the cursor from selecting / passing the delimiters
+          if (options.correctSelection && options.selection) {
+            let endLineLength = this.buffer.lineLengthForRow(end)
+            let startDelta, endDelta
+            let oldRange = options.selection.getBufferRange()
+            if (oldRange.isEmpty()) {
+              if (oldRange.start.column === indentLength) {
+                startDelta = [0, commentStartString.length + 1]
+              } else if (oldRange.start.column === endLineLength) {
+                startDelta = [0, -commentEndString.length - 1]
+              } else {
+                startDelta = [0, 0]
+              }
+              options.selection.setBufferRange(oldRange.translate(startDelta), { autoscroll: false })
+            } else {
+              startDelta = oldRange.start.column === indentLength ? [0, commentStartString.length + 1] : [0, 0]
+              endDelta = oldRange.end.column === endLineLength ? [0, -commentEndString.length - 1] : [0, 0]
+              options.selection.setBufferRange(oldRange.translate(startDelta, endDelta), { autoscroll: false })
+            }
+          }
         })
       }
     } else {
