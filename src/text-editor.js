@@ -2692,7 +2692,7 @@ class TextEditor {
   //
   // Returns a {Cursor}.
   addCursorAtBufferPosition (bufferPosition, options) {
-    this.selectionsMarkerLayer.markBufferPosition(bufferPosition, {invalidate: 'never', exclusive: true})
+    this.selectionsMarkerLayer.markBufferPosition(bufferPosition, {invalidate: 'never'})
     if (!options || options.autoscroll !== false) this.getLastSelection().cursor.autoscroll()
     return this.getLastSelection().cursor
   }
@@ -2703,7 +2703,7 @@ class TextEditor {
   //
   // Returns a {Cursor}.
   addCursorAtScreenPosition (screenPosition, options) {
-    this.selectionsMarkerLayer.markScreenPosition(screenPosition, {invalidate: 'never', exclusive: true})
+    this.selectionsMarkerLayer.markScreenPosition(screenPosition, {invalidate: 'never'})
     if (!options || options.autoscroll !== false) this.getLastSelection().cursor.autoscroll()
     return this.getLastSelection().cursor
   }
