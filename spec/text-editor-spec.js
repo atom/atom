@@ -7314,6 +7314,21 @@ describe('TextEditor', () => {
         editor.toggleLineCommentsForBufferRows(0, 0)
         expect(editor.lineTextForBufferRow(0)).toBe('test')
       })
+
+      it('does not select the new delimiters when the option is set'), () => {
+        let delimLength = '<!--'.length
+        let selection = editor.addCursorAtBufferPosition([0, delimLength])
+        selection.toggleLineComments()
+        expect(selection.isEmpty() && selection.getBufferRange().start.column === 0).toBe(true)
+
+        selection.toggleLineComments()
+        expect(selection.isEmpty() && selection.getBufferRange().start.column === delimLength).toBe(true)
+
+        selection.setBufferRange([[0, delimLength], [0, '<!-- test'.length]])
+        selection.toggleLineComments()
+        let range = selection.getBufferRange;
+        expect(range.start.column === 0 && range.end.column === 'test'.length).toBe(true)
+      }
     })
 
     describe('less', () => {
