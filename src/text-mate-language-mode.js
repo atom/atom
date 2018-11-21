@@ -149,14 +149,31 @@ class TextMateLanguageMode {
   }
 
   getPrecedingIndentRow (currentRow) {
-    let activeRow = currentRow
-    while (activeRow > 0) {
-      activeRow -= 1
+    if (currentRow === 0) return null
+
+    let activeRow = currentRow - 1
+
+    let seenNonBlankRow = false;
+    let firstNonBlankRow = currentRow
+
+    const lowerBound = Math.max(0, currentRow - 1000)
+    for (; activeRow >= lowerBound; activeRow--) {
+      if (!this.buffer.isRowBlank(activeRow)) {
+        if (!this.isRowCommented(activeRow)) {
+          return activeRow
+        }
+        firstNonBlankRow = activeRow
+        break
+      }
+    }
+
+    for (; activeRow >= lowerBound; activeRow--) {
       if (!this.isRowCommented(activeRow) && !this.buffer.isRowBlank(activeRow)) {
         return activeRow
       }
     }
-    return null
+
+    return firstNonBlankRow === currentRow ? this.buffer.previousNonBlankRow(activeRow) : firstNonBlankRow
   }
 
   _suggestedIndentForLineWithScopeAtBufferRow (bufferRow, line, scopeDescriptor, tabLength, options) {
