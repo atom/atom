@@ -455,8 +455,9 @@ class TreeSitterLanguageMode {
 
   syntaxTreeScopeDescriptorForPosition (point) {
     const nodes = []
-    point = Point.fromObject(point)
+    point = this.buffer.clipPosition(Point.fromObject(point, true))
 
+    // If the position is the end of a line, get scope of left character instead of newline
     if (point.column > 0 && point.column === this.buffer.lineLengthForRow(point.row)) {
       point.column--
     }
@@ -483,8 +484,9 @@ class TreeSitterLanguageMode {
   }
 
   scopeDescriptorForPosition (point) {
-    point = Point.fromObject(point)
+    point = this.buffer.clipPosition(Point.fromObject(point, true))
 
+    // If the position is the end of a line, get scope of left character instead of newline
     if (point.column > 0 && point.column === this.buffer.lineLengthForRow(point.row)) {
       point.column--
     }
