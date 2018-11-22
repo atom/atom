@@ -7328,6 +7328,7 @@ describe('TextEditor', () => {
         expect(selection.isEmpty() && selection.getBufferRange().start.column === delimLength).toBe(true)
 
         selection.setBufferRange([[0, delimLength], [0, delimLength + 1 + 'test'.length]])
+        
         selection.toggleLineComments()
         let range = selection.getBufferRange()
         expect(range.start.column === 0 && range.end.column === 'test'.length).toBe(true)
