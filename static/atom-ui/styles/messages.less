@@ -1,0 +1,41 @@
+@import "ui-variables";
+
+.info-messages,
+.error-messages {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.error-messages {
+  color: @text-color-error;
+}
+
+ul.background-message {
+  font-size: @font-size * 3;
+
+  margin: 0;
+  padding: 0;
+
+  li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &.centered {
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    align-items: center;
+    text-align: center;
+
+    li {
+      width: 100%;
+    }
+  }
+}
