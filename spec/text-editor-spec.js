@@ -4743,6 +4743,18 @@ describe('TextEditor', () => {
           )
         })
 
+        describe('when pasting in a file with only comments above', () => {
+          it('auto-indents to 0', () => {
+            editor.setText('/**\n *\n */\n')
+            atom.clipboard.write('function foo() {\n\n}')
+
+            editor.setCursorBufferPosition([3, 0])
+            editor.pasteText()
+            expect(editor.lineTextForBufferRow(3)).toBe('function foo() {')
+            expect(editor.lineTextForBufferRow(5)).toBe('}')
+          })
+        })
+
         describe('when `autoIndentOnPaste` is false', () => {
           beforeEach(() => editor.update({autoIndentOnPaste: false}))
 
