@@ -171,7 +171,7 @@ class TextMateLanguageMode {
       }
     }
 
-    if (activeRow === -1) return 0
+    if (activeRow === -1) return 0 
 
     return firstNonBlankRow === currentRow ? this.buffer.previousNonBlankRow(activeRow) : firstNonBlankRow
   }
