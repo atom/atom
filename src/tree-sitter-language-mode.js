@@ -91,7 +91,7 @@ class TreeSitterLanguageMode {
     }
   }
 
-  bufferDidFinishTransaction (changes) {
+  bufferDidFinishTransaction ({changes}) {
     for (let i = 0, {length} = changes; i < length; i++) {
       const {oldRange, newRange} = changes[i]
       spliceArray(
