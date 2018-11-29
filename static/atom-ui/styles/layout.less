@@ -1,0 +1,85 @@
+@import "ui-variables";
+@import "mixins/mixins";
+
+.padded {
+  padding: @component-padding;
+}
+
+// Blocks
+
+.center-block {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// Must be div.block so as not to affect syntax highlighting.
+ul.block,
+div.block {
+  margin-bottom: @component-padding;
+}
+div > ul.block:last-child,
+div > div.block:last-child {
+  margin-bottom: 0;
+}
+
+// Inline Blocks
+
+.inline-block,
+.inline-block-tight {
+  display: inline-block;
+  vertical-align: middle;
+}
+.inline-block {
+  margin-right: @component-padding;
+}
+.inline-block-tight {
+  margin-right: @component-padding/2;
+}
+div > .inline-block:last-child,
+div > .inline-block-tight:last-child {
+  margin-right: 0;
+}
+
+.inline-block .inline-block {
+  vertical-align: top;
+}
+
+// Centering
+// -------------------------
+
+.pull-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// Floats
+// -------------------------
+
+// Use left margin when it's in a float: right element.
+// Sets the margin correctly when inline blocks are hidden and shown.
+.pull-right {
+  float: right !important;
+
+  .inline-block {
+    margin-right: 0;
+    margin-left: @component-padding;
+  }
+  .inline-block-tight {
+    margin-right: 0;
+    margin-left: @component-padding/2;
+  }
+
+  > .inline-block:first-child,
+  > .inline-block-tight:first-child {
+    margin-left: 0;
+  }
+}
+
+.pull-left {
+  float: left !important;
+}
+
+.clearfix {
+  .clearfix();
+}

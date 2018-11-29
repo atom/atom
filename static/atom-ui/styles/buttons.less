@@ -1,0 +1,274 @@
+@import "variables/variables";
+@import "ui-variables";
+@import "mixins/mixins";
+
+//
+// Buttons
+// --------------------------------------------------
+
+
+// Base styles
+// --------------------------------------------------
+
+.btn {
+  display: inline-block;
+  margin-bottom: 0; // For input.btn
+  height: @component-line-height + 2px;
+  padding: 0 @component-padding;
+  font-size: @font-size;
+  font-weight: normal;
+  line-height: @component-line-height;
+  text-align: center;
+  vertical-align: middle;
+  border: none;
+  border-radius: @component-border-radius;
+  background-color: @btn-default-bg;
+  white-space: nowrap;
+  cursor: pointer;
+  z-index: 0;
+  -webkit-user-select: none;
+
+  &,
+  &:active,
+  &.active {
+    &:focus,
+    &.focus {
+      .tab-focus();
+    }
+  }
+
+  &:hover,
+  &:focus,
+  &.focus {
+    color: @btn-default-color;
+    text-decoration: none;
+    background-color: @button-background-color-hover;
+  }
+
+  &:active,
+  &.active {
+    outline: 0;
+    background-image: none;
+    box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+  }
+
+  &.selected,
+  &.selected:hover {
+    // we want the selected button to behave like the :hover button; it's on top of the other buttons.
+    z-index: 1;
+    color: @text-color-selected;
+    background-color: @button-background-color-selected;
+  }
+
+  &.disabled,
+  &[disabled],
+  fieldset[disabled] & {
+    cursor: @cursor-disabled;
+    opacity: .65;
+    box-shadow: none;
+  }
+
+  a& {
+    &.disabled,
+    fieldset[disabled] & {
+      pointer-events: none; // Future-proof disabling of clicks on `<a>` elements
+    }
+  }
+}
+
+
+// Button variants
+// --------------------------------------------------
+
+.button-variant(@color; @background;) {
+  color: @color;
+  background-color: @background;
+
+  &:focus,
+  &.focus {
+    color: @color;
+    background-color: darken(@background, 10%);
+  }
+  &:hover {
+    color: @color;
+    background-color: darken(@background, 10%);
+  }
+  &:active,
+  &.active {
+    color: @color;
+    background-color: darken(@background, 10%);
+
+    &:hover,
+    &:focus,
+    &.focus {
+      color: @color;
+      background-color: darken(@background, 17%);
+    }
+  }
+  &.selected,
+  &.selected:hover {
+    // we want the selected button to behave like the :hover button; it's on top of the other buttons.
+    z-index: 1;
+    background-color: darken(@background, 10%);
+  }
+
+  &.disabled,
+  &[disabled],
+  fieldset[disabled] & {
+    &:hover,
+    &:focus,
+    &.focus {
+      background-color: @background;
+    }
+  }
+
+  .badge {
+    color: @background;
+    background-color: @color;
+  }
+}
+
+.btn-primary {
+  .button-variant(@btn-primary-color; @btn-primary-bg;);
+}
+// Success appears as green
+.btn-success {
+  .button-variant(@btn-success-color; @btn-success-bg;);
+}
+// Info appears as blue-green
+.btn-info {
+  .button-variant(@btn-info-color; @btn-info-bg;);
+}
+// Warning appears as orange
+.btn-warning {
+  .button-variant(@btn-warning-color; @btn-warning-bg;);
+}
+// Danger and error appear as red
+.btn-error {
+  .button-variant(@btn-error-color; @btn-error-bg;);
+}
+
+
+// Button Sizes
+// --------------------------------------------------
+
+.btn-xs,
+.btn-group-xs > .btn {
+  padding: @component-padding/4 @component-padding/2;
+  font-size: @font-size - 2px;
+  height: auto;
+  line-height: 1.3em;
+  &.icon:before {
+    font-size: @font-size - 2px;
+  }
+}
+.btn-sm,
+.btn-group-sm > .btn {
+  padding: @component-padding/4 @component-padding/2;
+  height: auto;
+  line-height: 1.3em;
+  &.icon:before {
+    font-size: @font-size + 1px;
+  }
+}
+.btn-lg,
+.btn-group-lg > .btn {
+  font-size: @font-size + 2px;
+  padding: @component-padding - 2px  @component-padding + 2px;
+  height: auto;
+  line-height: 1.3em;
+  &.icon:before {
+    font-size: @font-size + 6px;
+  }
+}
+
+
+// Link button
+// -------------------------
+
+// Make a button look and behave like a link
+.btn-link {
+  color: @link-color;
+  font-weight: normal;
+  border-radius: 0;
+  &,
+  &:active,
+  &.active,
+  &[disabled],
+  fieldset[disabled] & {
+    background-color: transparent;
+    box-shadow: none;
+  }
+  &:hover,
+  &:focus {
+    color: @link-hover-color;
+    text-decoration: @link-hover-decoration;
+    background-color: transparent;
+  }
+  &[disabled],
+  fieldset[disabled] & {
+    &:hover,
+    &:focus {
+      color: @btn-link-disabled-color;
+      text-decoration: none;
+    }
+  }
+}
+
+
+// Block button
+// --------------------------------------------------
+
+.btn-block {
+  display: block;
+  width: 100%;
+}
+
+// Vertically space out multiple block buttons
+.btn-block + .btn-block {
+  margin-top: 5px;
+}
+
+// Specificity overrides
+input[type="submit"],
+input[type="reset"],
+input[type="button"] {
+  &.btn-block {
+    width: 100%;
+  }
+}
+
+
+// Icon buttons
+// --------------------------------------------------
+
+.btn.icon {
+  &:before {
+    width: initial;
+    height: initial;
+    margin-right: .3125em;
+  }
+  &:empty:before {
+    margin-right: 0;
+  }
+}
+
+
+// Button Toolbar
+// --------------------------------------------------
+
+.btn-toolbar {
+  > .btn-group + .btn-group,
+  > .btn-group + .btn,
+  > .btn + .btn {
+    float: none;
+    display: inline-block;
+    margin-left: 0;
+  }
+  > * {
+    margin-right: @component-padding / 2;
+  }
+  > *:last-child {
+    margin-right: 0;
+  }
+}

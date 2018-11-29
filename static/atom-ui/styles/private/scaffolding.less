@@ -1,0 +1,55 @@
+@import "../variables/variables";
+@import "ui-variables";
+@import "../mixins/mixins";
+
+//
+// Scaffolding
+// --------------------------------------------------
+
+// Remove focus style, be sure to add them back where useful
+:focus {
+  outline: none;
+}
+
+// Reset fonts for relevant elements
+input,
+button,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+
+// Figures
+//
+// We reset this here because previously Normalize had no `figure` margins. This
+// ensures we don't break anyone's use of the element.
+
+figure {
+  margin: 0;
+}
+
+
+// Images
+
+img {
+  vertical-align: middle;
+}
+
+// Responsive images (ensure images don't scale beyond their parents)
+.img-responsive {
+  display: block;
+  max-width: 100%; // Set a maximum relative to the parent
+}
+
+
+// Horizontal rules
+
+hr {
+  margin-top:    @line-height-computed;
+  margin-bottom: @line-height-computed;
+  border: 0;
+  border-top: 1px solid @hr-border;
+}
