@@ -1,0 +1,22 @@
+// JSON ---------------------
+
+.syntax--source.syntax--json {
+  .syntax--key {
+    color: #000080;
+  }
+  .syntax--link {
+    color: #d14;
+  }
+}
+
+// TextMate (deprecated)
+.syntax--source.syntax--json {
+  .syntax--meta.syntax--structure.syntax--dictionary.syntax--json > .syntax--string.syntax--quoted.syntax--double.syntax--json,
+  .syntax--meta.syntax--structure.syntax--dictionary.syntax--json > .syntax--string.syntax--quoted.syntax--double.syntax--json .syntax--punctuation.syntax--string {
+    color: #000080;
+  }
+
+  .syntax--meta.syntax--structure.syntax--dictionary.syntax--value.syntax--json > .syntax--string.syntax--quoted.syntax--double.syntax--json {
+    color: #d14;
+  }
+}
