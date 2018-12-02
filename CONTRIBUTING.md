@@ -169,7 +169,7 @@ This section guides you through submitting an enhancement suggestion for Atom, i
 
 Before creating enhancement suggestions, please check [this list](#before-submitting-an-enhancement-suggestion) as you might find out that you don't need to create one. When you are creating an enhancement suggestion, please [include as many details as possible](#how-do-i-submit-a-good-enhancement-suggestion). If you'd like, you can use [this template](#template-for-submitting-enhancement-suggestions) to structure the information.
 
-#### Before Submitting An Enhancement Suggestion
+#### Before Submitting an Enhancement Suggestion
 
 * **Check the [debugging guide](http://flight-manual.atom.io/hacking-atom/sections/debugging/)** for tips — you might discover that the enhancement is already available. Most importantly, check if you're using [the latest version of Atom](http://flight-manual.atom.io/hacking-atom/sections/debugging/#update-to-the-latest-version) and if you can get the desired behavior by changing [Atom's or packages' config settings](http://flight-manual.atom.io/hacking-atom/sections/debugging/#check-atom-and-package-settings).
 * **Check if there's already [a package](https://atom.io/packages) which provides that enhancement.**
