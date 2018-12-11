@@ -28,7 +28,7 @@ module.exports = function () {
 
   // Run a second copy pass for symlinked directories under node_modules.
   // We do this to ensure that symlinked repo-local bundled packages get
-  // copied to the output folder correctly.  We also copy only the top-level
+  // copied to the output folder correctly.  We dereference only the top-level
   // symlinks and not nested symlinks to avoid issues where symlinked binaries
   // are duplicated in Atom's installation packages (see atom/atom#18490).
   const nodeModulesPath = path.join(CONFIG.repositoryRootPath, 'node_modules')
@@ -36,9 +36,8 @@ module.exports = function () {
     .map(p => path.join(nodeModulesPath, p))
     .filter(p => fs.lstatSync(p).isSymbolicLink())
     .forEach(modulePath => {
+      // Replace the symlink that was copied already
       const destPath = path.join(CONFIG.intermediateAppPath, 'node_modules', path.basename(modulePath))
-
-      // Remove the symlink that was copied already
       fs.unlinkSync(destPath)
       fs.copySync(modulePath, destPath, { filter: includePathInPackagedApp, clobber: true })
     })
