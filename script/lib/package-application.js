@@ -29,6 +29,7 @@ module.exports = function () {
     'name': appName,
     'out': CONFIG.buildOutputPath,
     'overwrite': true,
+    'deref-symlinks': false,
     'platform': process.platform,
     'version': CONFIG.appMetadata.electronVersion,
     'version-string': {
