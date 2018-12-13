@@ -32,7 +32,7 @@ module.exports = function () {
   // are duplicated in Atom's installation packages (see atom/atom#18490).
   const nodeModulesPath = path.join(CONFIG.repositoryRootPath, 'node_modules')
   glob.sync(path.join(nodeModulesPath, '*'))
-      .map(p => fs.lstatSync(p).isSymbolicLink() ? fs.readlinkSync(p) : p)
+      .map(p => fs.lstatSync(p).isSymbolicLink() ? path.resolve(nodeModulesPath, fs.readlinkSync(p)) : p)
       .forEach(modulePath => {
         const destPath = path.join(CONFIG.intermediateAppPath, 'node_modules', path.basename(modulePath))
         fs.copySync(modulePath, destPath, { filter: includePathInPackagedApp })
