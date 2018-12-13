@@ -4446,7 +4446,7 @@ class NodePool {
 
     if (element) {
       element.className = className || ''
-      element.styleMap.forEach((value, key) => {
+      element.attributeStyleMap.forEach((value, key) => {
         if (!style || style[key] == null) element.style[key] = ''
       })
       if (style) Object.assign(element.style, style)
