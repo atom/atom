@@ -407,7 +407,7 @@ describe('TreeSitterLanguageMode', () => {
           scopes: {
             'identifier': 'variable',
             'call_expression > identifier': 'function',
-            'new_expression > call_expression > identifier': 'constructor'
+            'new_expression > identifier': 'constructor'
           }
         })
 
