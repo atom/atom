@@ -1,5 +1,6 @@
 const crypto = require('crypto')
 const path = require('path')
+const util = require('util')
 const {ipcRenderer} = require('electron')
 
 const _ = require('underscore-plus')
@@ -43,6 +44,8 @@ const TextEditor = require('./text-editor')
 const TextBuffer = require('text-buffer')
 const TextEditorRegistry = require('./text-editor-registry')
 const AutoUpdateManager = require('./auto-update-manager')
+
+const stat = util.promisify(fs.stat);
 
 let nextId = 0
 
@@ -1358,42 +1361,61 @@ or use Pane::saveItemAs for programmatic saving.`)
 
   async openLocations (locations) {
     const needsProjectPaths = this.project && this.project.getPaths().length === 0
-    const foldersToAddToProject = []
+    const foldersToAddToProject = new Set()
     const fileLocationsToOpen = []
 
-    function pushFolderToOpen (folder) {
-      if (!foldersToAddToProject.includes(folder)) {
-        foldersToAddToProject.push(folder)
-      }
-    }
+    // Asynchronously fetch stat information about each requested path to open. If the path does not
+    // exist, fetch stat information about its parent directory, too.
+    const locationStats = await Promise.all(
+      locations.map(async location => {
+        const payload = {location, stats: null, parentStats: null}
 
-    for (const location of locations) {
-      const {pathToOpen} = location
-      if (pathToOpen && (needsProjectPaths || location.forceAddToWindow)) {
-        if (fs.existsSync(pathToOpen)) {
-          pushFolderToOpen(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
-        } else if (fs.existsSync(path.dirname(pathToOpen))) {
-          pushFolderToOpen(this.project.getDirectoryForProjectPath(path.dirname(pathToOpen)).getPath())
-        } else {
-          pushFolderToOpen(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
+        if (!location.pathToOpen) {
+          return payload
         }
-      }
 
-      if (!fs.isDirectorySync(pathToOpen)) {
-        fileLocationsToOpen.push(location)
+        payload.stats = await stat(location.pathToOpen).catch(() => null)
+        if (!payload.stats) {
+          payload.parentStats = await stat(path.dirname(location.pathToOpen)).catch(() => null)
+        }
+
+        return payload;
+      }),
+    );
+
+    for (const {location, stats, parentStats} of locationStats) {
+      const {pathToOpen} = location
+
+      if (pathToOpen && (needsProjectPaths || location.forceAddToWindow)) {
+        if (stats !== null) {
+          // Path exists
+          if (stats.isDirectory()) {
+            // Directory: add as a project folder
+            foldersToAddToProject.add(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
+          } else if (stats.isFile()) {
+            // File: add as a file location
+            fileLocationsToOpen.push(location)
+          }
+        } else if (parentStats !== null && parentStats.isDirectory()) {
+          // Parent directory exists
+          foldersToAddToProject.add(this.project.getDirectoryForProjectPath(path.dirname(pathToOpen)).getPath())
+        } else {
+          // Attempt to interpret as a URI from a different directory provider
+          foldersToAddToProject.add(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
+        }
       }
 
       if (location.hasWaitSession) this.pathsWithWaitSessions.add(pathToOpen)
     }
 
     let restoredState = false
-    if (foldersToAddToProject.length > 0) {
-      const state = await this.loadState(this.getStateKey(foldersToAddToProject))
+    if (foldersToAddToProject.size > 0) {
+      const state = await this.loadState(this.getStateKey(Array.from(foldersToAddToProject)))
 
       // only restore state if this is the first path added to the project
       if (state && needsProjectPaths) {
         const files = fileLocationsToOpen.map((location) => location.pathToOpen)
-        await this.attemptRestoreProjectStateForPaths(state, foldersToAddToProject, files)
+        await this.attemptRestoreProjectStateForPaths(state, Array.from(foldersToAddToProject), files)
         restoredState = true
       } else {
         for (let folder of foldersToAddToProject) {

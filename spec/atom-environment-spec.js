@@ -652,7 +652,7 @@ describe('AtomEnvironment', () => {
         it("adds it to the project's paths", async () => {
           const pathToOpen = __filename
           await atom.openLocations([{pathToOpen}])
-          expect(atom.project.getPaths()[0]).toBe(__dirname)
+          expect(atom.project.getPaths()).toEqual([])
         })
 
         describe('then a second path is opened with forceAddToWindow', () => {
