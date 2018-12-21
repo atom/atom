@@ -45,7 +45,7 @@ const TextBuffer = require('text-buffer')
 const TextEditorRegistry = require('./text-editor-registry')
 const AutoUpdateManager = require('./auto-update-manager')
 
-const stat = util.promisify(fs.stat);
+const stat = util.promisify(fs.stat)
 
 let nextId = 0
 
@@ -1379,9 +1379,9 @@ or use Pane::saveItemAs for programmatic saving.`)
           payload.parentStats = await stat(path.dirname(location.pathToOpen)).catch(() => null)
         }
 
-        return payload;
+        return payload
       }),
-    );
+    )
 
     for (const {location, stats, parentStats} of locationStats) {
       const {pathToOpen} = location
