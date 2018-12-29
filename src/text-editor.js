@@ -959,9 +959,6 @@ class TextEditor {
     return this.decorationManager.onDidUpdateDecorations(callback)
   }
 
-  // Essential: Retrieves the current {TextBuffer}.
-  getBuffer () { return this.buffer }
-
   // Retrieves the current buffer's URI.
   getURI () { return this.buffer.getUri() }
 
@@ -1074,6 +1071,15 @@ class TextEditor {
     } else {
       return this.editorWidthInChars
     }
+  }
+  
+  /*
+  Section: Buffer
+  */
+
+  // Essential: Retrieves the current {TextBuffer}.
+  getBuffer () {
+    return this.buffer
   }
 
   /*
