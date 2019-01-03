@@ -1364,44 +1364,39 @@ or use Pane::saveItemAs for programmatic saving.`)
     const foldersToAddToProject = new Set()
     const fileLocationsToOpen = []
 
-    // Asynchronously fetch stat information about each requested path to open. If the path does not
-    // exist, fetch stat information about its parent directory, too.
+    // Asynchronously fetch stat information about each requested path to open.
     const locationStats = await Promise.all(
       locations.map(async location => {
-        const payload = {location, stats: null, parentStats: null}
-
-        if (!location.pathToOpen) {
-          return payload
-        }
-
-        payload.stats = await stat(location.pathToOpen).catch(() => null)
-        if (!payload.stats) {
-          payload.parentStats = await stat(path.dirname(location.pathToOpen)).catch(() => null)
-        }
-
-        return payload
+        const stats = location.pathToOpen ? await stat(location.pathToOpen).catch(() => null) : null
+        return {location, stats}
       }),
     )
 
-    for (const {location, stats, parentStats} of locationStats) {
+    for (const {location, stats} of locationStats) {
       const {pathToOpen} = location
+      if (!pathToOpen) {
+        continue;
+      }
 
-      if (pathToOpen && (needsProjectPaths || location.forceAddToWindow)) {
-        if (stats !== null) {
-          // Path exists
-          if (stats.isDirectory()) {
-            // Directory: add as a project folder
-            foldersToAddToProject.add(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
-          } else if (stats.isFile()) {
-            // File: add as a file location
-            fileLocationsToOpen.push(location)
-          }
-        } else if (parentStats !== null && parentStats.isDirectory()) {
-          // Parent directory exists
-          foldersToAddToProject.add(this.project.getDirectoryForProjectPath(path.dirname(pathToOpen)).getPath())
-        } else {
-          // Attempt to interpret as a URI from a different directory provider
+      if (stats !== null) {
+        // Path exists
+        if (stats.isDirectory()) {
+          // Directory: add as a project folder
           foldersToAddToProject.add(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
+        } else if (stats.isFile()) {
+          // File: add as a file location
+          fileLocationsToOpen.push(location)
+        }
+      } else {
+        // Path does not exist
+        // Attempt to interpret as a URI from a non-default directory provider
+        const directory = this.project.getProvidedDirectoryForProjectPath(pathToOpen)
+        if (directory) {
+          // Found: add as a project folder
+          foldersToAddToProject.add(directory.getPath())
+        } else {
+          // Not found: open as a new file
+          fileLocationsToOpen.push(location)
         }
       }
 
