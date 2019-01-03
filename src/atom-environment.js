@@ -1010,6 +1010,7 @@ class AtomEnvironment {
   //     window.alert('bummer')
   //   }
   // })
+  // ```
   //
   // ```js
   // // Legacy sync version

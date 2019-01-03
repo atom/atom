@@ -576,7 +576,7 @@ class AtomApplication extends EventEmitter {
 
     this.disposable.add(ipcHelpers.respondTo('set-user-settings', (window, settings, filePath) => {
       if (!this.quitting) {
-        ConfigFile.at(filePath || this.configFilePath).update(JSON.parse(settings))
+        return ConfigFile.at(filePath || this.configFilePath).update(JSON.parse(settings))
       }
     }))
 
