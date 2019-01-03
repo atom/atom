@@ -87,7 +87,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **package-generator** | [`atom/package-generator`][package-generator] | [#18279](https://github.com/atom/atom/issues/18279) |
 | **settings-view** | [`atom/settings-view`][settings-view] |  |
 | **snippets** | [`atom/snippets`][snippets] |  |
-| **solarized-dark-syntax** | [`atom/solarized-dark-syntax`][solarized-dark-syntax] | [#18280](https://github.com/atom/atom/issues/18280) |
+| **solarized-dark-syntax** | [`./solarized-dark-syntax`](./solarized-dark-syntax) | [#18280](https://github.com/atom/atom/issues/18280) |
 | **solarized-light-syntax** | [`./solarized-light-syntax`](./solarized-light-syntax) | [#18281](https://github.com/atom/atom/issues/18281) |
 | **spell-check** | [`atom/spell-check`][spell-check] |  |
 | **status-bar** | [`atom/status-bar`][status-bar] | [#18282](https://github.com/atom/atom/issues/18282) |
@@ -158,7 +158,6 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 [package-generator]: https://github.com/atom/package-generator
 [settings-view]: https://github.com/atom/settings-view
 [snippets]: https://github.com/atom/snippets
-[solarized-dark-syntax]: https://github.com/atom/solarized-dark-syntax
 [spell-check]: https://github.com/atom/spell-check
 [status-bar]: https://github.com/atom/status-bar
 [styleguide]: https://github.com/atom/styleguide
