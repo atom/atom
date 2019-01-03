@@ -206,7 +206,6 @@ class AtomApplication extends EventEmitter {
 
   openWithOptions (options) {
     const {
-      initialPaths,
       pathsToOpen,
       executedFrom,
       urlsToOpen,
@@ -250,7 +249,6 @@ class AtomApplication extends EventEmitter {
       })
     } else if (pathsToOpen.length > 0) {
       return this.openPaths({
-        initialPaths,
         pathsToOpen,
         executedFrom,
         pidToKillWhenClosed,
@@ -267,7 +265,6 @@ class AtomApplication extends EventEmitter {
     } else {
       // Always open a editor window if this is the first instance of Atom.
       return this.openPath({
-        initialPaths,
         pidToKillWhenClosed,
         newWindow,
         devMode,
@@ -784,7 +781,6 @@ class AtomApplication extends EventEmitter {
   //   :window - {AtomWindow} to open file paths in.
   //   :addToLastWindow - Boolean of whether this should be opened in last focused window.
   openPath ({
-    initialPaths,
     pathToOpen,
     pidToKillWhenClosed,
     newWindow,
@@ -797,7 +793,6 @@ class AtomApplication extends EventEmitter {
     env
   } = {}) {
     return this.openPaths({
-      initialPaths,
       pathsToOpen: [pathToOpen],
       pidToKillWhenClosed,
       newWindow,
@@ -823,7 +818,6 @@ class AtomApplication extends EventEmitter {
   //   :window - {AtomWindow} to open file paths in.
   //   :addToLastWindow - Boolean of whether this should be opened in last focused window.
   openPaths ({
-    initialPaths,
     pathsToOpen,
     executedFrom,
     pidToKillWhenClosed,
@@ -895,7 +889,6 @@ class AtomApplication extends EventEmitter {
       if (!windowDimensions) windowDimensions = this.getDimensionsForNewWindow()
 
       openedWindow = new AtomWindow(this, this.fileRecoveryService, {
-        initialPaths,
         locationsToOpen,
         windowInitializationScript,
         resourcePath,
@@ -984,8 +977,7 @@ class AtomApplication extends EventEmitter {
     const states = await this.storageFolder.load('application.json')
     if (states) {
       return states.map(state => ({
-        initialPaths: state.initialPaths,
-        pathsToOpen: state.initialPaths.filter(p => fs.isDirectorySync(p)),
+        pathsToOpen: state.initialPaths,
         urlsToOpen: [],
         devMode: this.devMode,
         safeMode: this.safeMode
