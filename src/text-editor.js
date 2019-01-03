@@ -1072,7 +1072,7 @@ class TextEditor {
       return this.editorWidthInChars
     }
   }
-  
+
   /*
   Section: Buffer
   */
