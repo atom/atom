@@ -837,26 +837,21 @@ class AtomApplication extends EventEmitter {
     safeMode = Boolean(safeMode)
     clearWindowState = Boolean(clearWindowState)
 
-    const locationsToOpen = []
-    for (let i = 0; i < pathsToOpen.length; i++) {
-      const location = this.parsePathToOpen(pathsToOpen[i], executedFrom, addToLastWindow)
-      location.forceAddToWindow = addToLastWindow
-      location.hasWaitSession = pidToKillWhenClosed != null
-      locationsToOpen.push(location)
-      pathsToOpen[i] = location.pathToOpen
-    }
+    const locationsToOpen = pathsToOpen.map(pathToOpen => {
+      return this.parsePathToOpen(pathToOpen, executedFrom, {
+        forceAddToWindow: addToLastWindow,
+        hasWaitSession: pidToKillWhenClosed != null
+      })
+    })
+    const normalizedPathsToOpen = locationsToOpen.map(location => location.pathToOpen).filter(Boolean)
 
     let existingWindow
-    if (!newWindow) {
-      existingWindow = this.windowForPaths(pathsToOpen, devMode)
-      if (!existingWindow) {
+    if (!newWindow && normalizedPathsToOpen.length > 0) {
+      existingWindow = this.windowForPaths(normalizedPathsToOpen, devMode)
+      if (!existingWindow && addToLastWindow) {
         let lastWindow = window || this.getLastFocusedWindow()
         if (lastWindow && lastWindow.devMode === devMode) {
-          if (addToLastWindow || (
-              locationsToOpen.every(({stat}) => stat && stat.isFile()) ||
-              (locationsToOpen.some(({stat}) => stat && stat.isDirectory()) && !lastWindow.hasProjectPath()))) {
-            existingWindow = lastWindow
-          }
+          existingWindow = lastWindow
         }
       }
     }
@@ -909,7 +904,7 @@ class AtomApplication extends EventEmitter {
       }
       this.waitSessionsByWindow.get(openedWindow).push({
         pid: pidToKillWhenClosed,
-        remainingPaths: new Set(pathsToOpen)
+        remainingPaths: new Set(normalizedPathsToOpen)
       })
     }
 
@@ -1256,7 +1251,7 @@ class AtomApplication extends EventEmitter {
     }
   }
 
-  parsePathToOpen (pathToOpen, executedFrom = '') {
+  parsePathToOpen (pathToOpen, executedFrom, extra) {
     let initialColumn, initialLine
     if (!pathToOpen) {
       return {pathToOpen}
@@ -1278,10 +1273,9 @@ class AtomApplication extends EventEmitter {
     }
 
     const normalizedPath = path.normalize(path.resolve(executedFrom, fs.normalize(pathToOpen)))
-    const stat = fs.statSyncNoException(normalizedPath)
-    if (stat || !url.parse(pathToOpen).protocol) pathToOpen = normalizedPath
+    if (!url.parse(pathToOpen).protocol) pathToOpen = normalizedPath
 
-    return {pathToOpen, stat, initialLine, initialColumn}
+    return {pathToOpen, initialLine, initialColumn, ...extra}
   }
 
   // Opens a native dialog to prompt the user for a path.
