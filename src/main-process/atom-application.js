@@ -1275,7 +1275,7 @@ class AtomApplication extends EventEmitter {
     const normalizedPath = path.normalize(path.resolve(executedFrom, fs.normalize(pathToOpen)))
     if (!url.parse(pathToOpen).protocol) pathToOpen = normalizedPath
 
-    return {pathToOpen, initialLine, initialColumn, ...extra}
+    return Object.assign({pathToOpen, initialLine, initialColumn}, extra)
   }
 
   // Opens a native dialog to prompt the user for a path.
