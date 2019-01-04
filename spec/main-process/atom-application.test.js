@@ -1,3 +1,5 @@
+/* globals assert */
+
 const temp = require('temp').track()
 const season = require('season')
 const dedent = require('dedent')
@@ -115,9 +117,9 @@ describe('AtomApplication', function () {
     }
 
     it('adds folders to existing windows when the --add option is used', async () => {
-      const dirAPath = makeTempDir("a")
-      const dirBPath = makeTempDir("b")
-      const dirCPath = makeTempDir("c")
+      const dirAPath = makeTempDir('a')
+      const dirBPath = makeTempDir('b')
+      const dirCPath = makeTempDir('c')
       const existingDirCFilePath = path.join(dirCPath, 'existing-file')
       fs.writeFileSync(existingDirCFilePath, 'this is an existing file')
 
@@ -169,7 +171,7 @@ describe('AtomApplication', function () {
       window1.close()
       await window1.closedPromise
 
-      // Restore unsaved state when opening the directory itself
+      // Restore unsaved state when opening the same project directory
       const [window2] = await atomApplication.launch(parseCommandLine([tempDirPath]))
       await window2.loadedPromise
       const window2Text = await evalInWebContents(window2.browserWindow.webContents, sendBackToMainProcess => {
@@ -182,8 +184,8 @@ describe('AtomApplication', function () {
     })
 
     it('shows all directories in the tree view when multiple directory paths are passed to Atom', async () => {
-      const dirAPath = makeTempDir("a")
-      const dirBPath = makeTempDir("b")
+      const dirAPath = makeTempDir('a')
+      const dirBPath = makeTempDir('b')
       const dirBSubdirPath = path.join(dirBPath, 'c')
       fs.mkdirSync(dirBSubdirPath)
 
@@ -282,7 +284,7 @@ describe('AtomApplication', function () {
     })
 
     it('reopens any previously opened windows when launched with no path', async () => {
-      if (process.platform === 'win32') return; // Test is too flakey on Windows
+      if (process.platform === 'win32') return // Test is too flakey on Windows
 
       const tempDirPath1 = makeTempDir()
       const tempDirPath2 = makeTempDir()
@@ -440,7 +442,7 @@ describe('AtomApplication', function () {
       if (process.platform === 'linux' || process.platform === 'win32') {
         it('quits the application', async () => {
           const atomApplication = buildAtomApplication()
-          const [window] = await atomApplication.launch(parseCommandLine([path.join(makeTempDir("a"), 'file-a')]))
+          const [window] = await atomApplication.launch(parseCommandLine([path.join(makeTempDir('a'), 'file-a')]))
           await focusWindow(window)
           window.close()
           await window.closedPromise
@@ -450,7 +452,7 @@ describe('AtomApplication', function () {
       } else if (process.platform === 'darwin') {
         it('leaves the application open', async () => {
           const atomApplication = buildAtomApplication()
-          const [window] = await atomApplication.launch(parseCommandLine([path.join(makeTempDir("a"), 'file-a')]))
+          const [window] = await atomApplication.launch(parseCommandLine([path.join(makeTempDir('a'), 'file-a')]))
           await focusWindow(window)
           window.close()
           await window.closedPromise
@@ -504,11 +506,11 @@ describe('AtomApplication', function () {
         let reached = await evalInWebContents(windows[0].browserWindow.webContents, sendBackToMainProcess => {
           sendBackToMainProcess(global.reachedUrlMain)
         })
-        assert.equal(reached, true);
-        windows[0].close();
+        assert.isTrue(reached)
+        windows[0].close()
       })
 
-      it('triggers /core/open/file in the correct window', async function() {
+      it('triggers /core/open/file in the correct window', async function () {
         const dirAPath = makeTempDir('a')
         const dirBPath = makeTempDir('b')
 
@@ -536,8 +538,8 @@ describe('AtomApplication', function () {
   })
 
   it('waits until all the windows have saved their state before quitting', async () => {
-    const dirAPath = makeTempDir("a")
-    const dirBPath = makeTempDir("b")
+    const dirAPath = makeTempDir('a')
+    const dirBPath = makeTempDir('b')
     const atomApplication = buildAtomApplication()
     const [window1] = await atomApplication.launch(parseCommandLine([dirAPath]))
     await focusWindow(window1)
@@ -604,7 +606,7 @@ describe('AtomApplication', function () {
   function buildAtomApplication (params = {}) {
     const atomApplication = new AtomApplication(Object.assign({
       resourcePath: ATOM_RESOURCE_PATH,
-      atomHomeDirPath: process.env.ATOM_HOME,
+      atomHomeDirPath: process.env.ATOM_HOME
     }, params))
     atomApplicationsToDestroy.push(atomApplication)
     return atomApplication
@@ -622,7 +624,7 @@ describe('AtomApplication', function () {
     electron.app.quit = function () {
       this.quit.callCount++
       let defaultPrevented = false
-      this.emit('before-quit', {preventDefault() { defaultPrevented = true }})
+      this.emit('before-quit', {preventDefault () { defaultPrevented = true }})
       if (!defaultPrevented) didQuit = true
     }
 
