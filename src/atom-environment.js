@@ -1375,7 +1375,7 @@ or use Pane::saveItemAs for programmatic saving.`)
     for (const {location, stats} of locationStats) {
       const {pathToOpen} = location
       if (!pathToOpen) {
-        continue;
+        continue
       }
 
       if (stats !== null) {
