@@ -375,7 +375,7 @@ describe('AtomApplication', function () {
         const [window] = await atomApplication.launch(parseCommandLine(['--wait', '--pid', '101', projectDir]))
         await focusWindow(window)
 
-        const [reusedWindow] = await atomApplication.launch(parseCommandLine(['--wait', '--pid', '102', filePath1, filePath2]))
+        const [reusedWindow] = await atomApplication.launch(parseCommandLine(['--add', '--wait', '--pid', '102', filePath1, filePath2]))
         assert.equal(reusedWindow, window)
 
         const activeEditorPath = await evalInWebContents(window.browserWindow.webContents, send => {
