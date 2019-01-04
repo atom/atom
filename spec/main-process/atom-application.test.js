@@ -468,24 +468,24 @@ describe('AtomApplication', function () {
         const dirB = makeTempDir()
 
         const atomApplication = buildAtomApplication()
-        const [window] = await atomApplication.launch(parseCommandLine([dirA, dirB]))
-        await emitterEventPromise(window, 'window:locations-opened')
-        await focusWindow(window)
-        assert.deepEqual(await getTreeViewRootDirectories(window), [dirA, dirB])
+        const [window0] = await atomApplication.launch(parseCommandLine([dirA, dirB]))
+        await focusWindow(window0)
+        await conditionPromise(async () => (await getTreeViewRootDirectories(window0)).length === 2)
+        assert.deepEqual(await getTreeViewRootDirectories(window0), [dirA, dirB])
 
         const saveStatePromise = emitterEventPromise(atomApplication, 'application:did-save-state')
-        await evalInWebContents(window.browserWindow.webContents, (sendBackToMainProcess) => {
+        await evalInWebContents(window0.browserWindow.webContents, (sendBackToMainProcess) => {
           atom.project.removePath(atom.project.getPaths()[0])
           sendBackToMainProcess(null)
         })
-        assert.deepEqual(await getTreeViewRootDirectories(window), [dirB])
+        assert.deepEqual(await getTreeViewRootDirectories(window0), [dirB])
         await saveStatePromise
 
         // Window state should be saved when the project folder is removed
         const atomApplication2 = buildAtomApplication()
         const [window2] = await atomApplication2.launch(parseCommandLine([]))
-        await emitterEventPromise(window2, 'window:locations-opened')
         await focusWindow(window2)
+        await conditionPromise(async () => (await getTreeViewRootDirectories(window2)).length === 1)
         assert.deepEqual(await getTreeViewRootDirectories(window2), [dirB])
       })
     })
