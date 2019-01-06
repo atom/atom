@@ -7,7 +7,7 @@ const {Directory} = require('pathwatcher')
 const {stopAllWatchers} = require('../src/path-watcher')
 const GitRepository = require('../src/git-repository')
 
-describe('Project', () => {
+fdescribe('Project', () => {
   beforeEach(() => {
     const directory = atom.project.getDirectories()[0]
     const paths = directory ? [directory.resolve('dir')] : [null]
@@ -855,6 +855,10 @@ describe('Project', () => {
 
     beforeEach(() => {
       sub = atom.project.onDidChangeFiles((incoming) => {
+        process.stderr.write('.. received filesystem events:\n')
+        for (const e of incoming) {
+          process.stderr.write('  ' + require('util').inspect(e) + '\n')
+        }
         events.push(...incoming)
         checkCallback()
       })
@@ -867,6 +871,7 @@ describe('Project', () => {
       return new Promise((resolve, reject) => {
         checkCallback = () => {
           for (let event of events) { remaining.delete(event.path) }
+          process.stderr.write(`  (still waiting for: ${Array.from(remaining).join(', ')})\n`)
           if (remaining.size === 0) { resolve() }
         }
 
@@ -881,33 +886,48 @@ describe('Project', () => {
       })
     }
 
-    for (let i = 0; i < 20; i++) {
-      fit(`reports filesystem changes within project paths: #${i}`, () => {
-        const dirOne = fs.realpathSync(temp.mkdirSync('atom-spec-project-one'))
-        const fileOne = path.join(dirOne, 'file-one.txt')
-        const fileTwo = path.join(dirOne, 'file-two.txt')
-        const dirTwo = fs.realpathSync(temp.mkdirSync('atom-spec-project-two'))
-        const fileThree = path.join(dirTwo, 'file-three.txt')
+    ffit('reports filesystem changes within project paths', () => {
+      process.stderr.write('\n\n----- start -----\n')
+      const dirOne = fs.realpathSync(temp.mkdirSync('atom-spec-project-one'))
+      const fileOne = path.join(dirOne, 'file-one.txt')
+      const fileTwo = path.join(dirOne, 'file-two.txt')
+      const dirTwo = fs.realpathSync(temp.mkdirSync('atom-spec-project-two'))
+      const fileThree = path.join(dirTwo, 'file-three.txt')
+      process.stderr.write(`0: created files and directories: ${dirOne} ${dirTwo}\n`)
 
-        // Ensure that all preexisting watchers are stopped
-        waitsForPromise(() => stopAllWatchers())
+      // Ensure that all preexisting watchers are stopped
+      process.stderr.write('1: about to stop preexisting watchers\n')
+      waitsForPromise(() => stopAllWatchers())
 
-        runs(() => atom.project.setPaths([dirOne]))
-        waitsForPromise(() => atom.project.getWatcherPromise(dirOne))
-
-        runs(() => {
-          expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual(undefined)
-
-          fs.writeFileSync(fileThree, 'three\n')
-          fs.writeFileSync(fileTwo, 'two\n')
-          fs.writeFileSync(fileOne, 'one\n')
-        })
-
-        waitsForPromise(() => waitForEvents([fileOne, fileTwo]))
-
-        runs(() => expect(events.some(event => event.path === fileThree)).toBeFalsy())
+      runs(() => {
+        process.stderr.write(`2: about to setPaths('${dirOne}')\n`)
+        atom.project.setPaths([dirOne])
       })
-    }
+      waitsForPromise(() => {
+        process.stderr.write(`3: about to wait on watcher promise\n`)
+        return atom.project.getWatcherPromise(dirOne)
+      })
+
+      runs(() => {
+        process.stderr.write(`4: about to generate filesystem events\n`)
+        expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual(undefined)
+
+        fs.writeFileSync(fileThree, 'three\n')
+        fs.writeFileSync(fileTwo, 'two\n')
+        fs.writeFileSync(fileOne, 'one\n')
+      })
+
+      waitsForPromise(() => {
+        process.stderr.write(`5: about to wait for events '${fileOne}', '${fileTwo}'\n`)
+        return waitForEvents([fileOne, fileTwo])
+      })
+
+      runs(() => {
+        process.stderr.write('6: all events received\n')
+        expect(events.some(event => event.path === fileThree)).toBeFalsy()
+        process.stderr.write('-----  done -----\n')
+      })
+    })
   })
 
   describe('.onDidAddBuffer()', () => {
