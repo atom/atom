@@ -7,7 +7,7 @@ const {Directory} = require('pathwatcher')
 const {stopAllWatchers} = require('../src/path-watcher')
 const GitRepository = require('../src/git-repository')
 
-fdescribe('Project', () => {
+describe('Project', () => {
   beforeEach(() => {
     const directory = atom.project.getDirectories()[0]
     const paths = directory ? [directory.resolve('dir')] : [null]
@@ -886,7 +886,7 @@ fdescribe('Project', () => {
       })
     }
 
-    ffit('reports filesystem changes within project paths', () => {
+    it('reports filesystem changes within project paths', () => {
       process.stdout.write('\n\n----- start -----\n')
       const dirOne = fs.realpathSync(temp.mkdirSync('atom-spec-project-one'))
       const fileOne = path.join(dirOne, 'file-one.txt')
