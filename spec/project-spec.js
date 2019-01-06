@@ -881,31 +881,33 @@ describe('Project', () => {
       })
     }
 
-    it('reports filesystem changes within project paths', () => {
-      const dirOne = fs.realpathSync(temp.mkdirSync('atom-spec-project-one'))
-      const fileOne = path.join(dirOne, 'file-one.txt')
-      const fileTwo = path.join(dirOne, 'file-two.txt')
-      const dirTwo = fs.realpathSync(temp.mkdirSync('atom-spec-project-two'))
-      const fileThree = path.join(dirTwo, 'file-three.txt')
+    for (let i = 0; i < 20; i++) {
+      fit(`reports filesystem changes within project paths: #${i}`, () => {
+        const dirOne = fs.realpathSync(temp.mkdirSync('atom-spec-project-one'))
+        const fileOne = path.join(dirOne, 'file-one.txt')
+        const fileTwo = path.join(dirOne, 'file-two.txt')
+        const dirTwo = fs.realpathSync(temp.mkdirSync('atom-spec-project-two'))
+        const fileThree = path.join(dirTwo, 'file-three.txt')
 
-      // Ensure that all preexisting watchers are stopped
-      waitsForPromise(() => stopAllWatchers())
+        // Ensure that all preexisting watchers are stopped
+        waitsForPromise(() => stopAllWatchers())
 
-      runs(() => atom.project.setPaths([dirOne]))
-      waitsForPromise(() => atom.project.getWatcherPromise(dirOne))
+        runs(() => atom.project.setPaths([dirOne]))
+        waitsForPromise(() => atom.project.getWatcherPromise(dirOne))
 
-      runs(() => {
-        expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual(undefined)
+        runs(() => {
+          expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual(undefined)
 
-        fs.writeFileSync(fileThree, 'three\n')
-        fs.writeFileSync(fileTwo, 'two\n')
-        fs.writeFileSync(fileOne, 'one\n')
+          fs.writeFileSync(fileThree, 'three\n')
+          fs.writeFileSync(fileTwo, 'two\n')
+          fs.writeFileSync(fileOne, 'one\n')
+        })
+
+        waitsForPromise(() => waitForEvents([fileOne, fileTwo]))
+
+        runs(() => expect(events.some(event => event.path === fileThree)).toBeFalsy())
       })
-
-      waitsForPromise(() => waitForEvents([fileOne, fileTwo]))
-
-      runs(() => expect(events.some(event => event.path === fileThree)).toBeFalsy())
-    })
+    }
   })
 
   describe('.onDidAddBuffer()', () => {
