@@ -855,9 +855,9 @@ fdescribe('Project', () => {
 
     beforeEach(() => {
       sub = atom.project.onDidChangeFiles((incoming) => {
-        process.stderr.write('.. received filesystem events:\n')
+        process.stdout.write('.. received filesystem events:\n')
         for (const e of incoming) {
-          process.stderr.write('  ' + require('util').inspect(e) + '\n')
+          process.stdout.write('  ' + require('util').inspect(e) + '\n')
         }
         events.push(...incoming)
         checkCallback()
@@ -871,7 +871,7 @@ fdescribe('Project', () => {
       return new Promise((resolve, reject) => {
         checkCallback = () => {
           for (let event of events) { remaining.delete(event.path) }
-          process.stderr.write(`  (still waiting for: ${Array.from(remaining).join(', ')})\n`)
+          process.stdout.write(`  (still waiting for: ${Array.from(remaining).join(', ')})\n`)
           if (remaining.size === 0) { resolve() }
         }
 
@@ -887,29 +887,29 @@ fdescribe('Project', () => {
     }
 
     ffit('reports filesystem changes within project paths', () => {
-      process.stderr.write('\n\n----- start -----\n')
+      process.stdout.write('\n\n----- start -----\n')
       const dirOne = fs.realpathSync(temp.mkdirSync('atom-spec-project-one'))
       const fileOne = path.join(dirOne, 'file-one.txt')
       const fileTwo = path.join(dirOne, 'file-two.txt')
       const dirTwo = fs.realpathSync(temp.mkdirSync('atom-spec-project-two'))
       const fileThree = path.join(dirTwo, 'file-three.txt')
-      process.stderr.write(`0: created files and directories: ${dirOne} ${dirTwo}\n`)
+      process.stdout.write(`0: created files and directories: ${dirOne} ${dirTwo}\n`)
 
       // Ensure that all preexisting watchers are stopped
-      process.stderr.write('1: about to stop preexisting watchers\n')
+      process.stdout.write('1: about to stop preexisting watchers\n')
       waitsForPromise(() => stopAllWatchers())
 
       runs(() => {
-        process.stderr.write(`2: about to setPaths('${dirOne}')\n`)
+        process.stdout.write(`2: about to setPaths('${dirOne}')\n`)
         atom.project.setPaths([dirOne])
       })
       waitsForPromise(() => {
-        process.stderr.write(`3: about to wait on watcher promise\n`)
+        process.stdout.write(`3: about to wait on watcher promise\n`)
         return atom.project.getWatcherPromise(dirOne)
       })
 
       runs(() => {
-        process.stderr.write(`4: about to generate filesystem events\n`)
+        process.stdout.write(`4: about to generate filesystem events\n`)
         expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual(undefined)
 
         fs.writeFileSync(fileThree, 'three\n')
@@ -918,14 +918,14 @@ fdescribe('Project', () => {
       })
 
       waitsForPromise(() => {
-        process.stderr.write(`5: about to wait for events '${fileOne}', '${fileTwo}'\n`)
+        process.stdout.write(`5: about to wait for events '${fileOne}', '${fileTwo}'\n`)
         return waitForEvents([fileOne, fileTwo])
       })
 
       runs(() => {
-        process.stderr.write('6: all events received\n')
+        process.stdout.write('6: all events received\n')
         expect(events.some(event => event.path === fileThree)).toBeFalsy()
-        process.stderr.write('-----  done -----\n')
+        process.stdout.write('-----  done -----\n')
       })
     })
   })
