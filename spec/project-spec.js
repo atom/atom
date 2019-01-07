@@ -486,11 +486,9 @@ describe('Project', () => {
     })
 
     it('uses the custom onDidChangeFiles as the watcher if available', () => {
-      // Ensure that all preexisting watchers are stopped
-      waitsForPromise(() => stopAllWatchers())
-
       const remotePath = 'ssh://another-directory:8080/does-exist'
-      runs(() => atom.project.setPaths([remotePath]))
+      atom.project.setPaths([remotePath])
+
       waitsForPromise(() => atom.project.getWatcherPromise(remotePath))
 
       runs(() => {
@@ -855,10 +853,6 @@ describe('Project', () => {
 
     beforeEach(() => {
       sub = atom.project.onDidChangeFiles((incoming) => {
-        process.stdout.write('.. received filesystem events:\n')
-        for (const e of incoming) {
-          process.stdout.write('  ' + require('util').inspect(e) + '\n')
-        }
         events.push(...incoming)
         checkCallback()
       })
@@ -871,7 +865,6 @@ describe('Project', () => {
       return new Promise((resolve, reject) => {
         checkCallback = () => {
           for (let event of events) { remaining.delete(event.path) }
-          process.stdout.write(`  (still waiting for: ${Array.from(remaining).join(', ')})\n`)
           if (remaining.size === 0) { resolve() }
         }
 
@@ -887,29 +880,17 @@ describe('Project', () => {
     }
 
     it('reports filesystem changes within project paths', () => {
-      process.stdout.write('\n\n----- start -----\n')
       const dirOne = fs.realpathSync(temp.mkdirSync('atom-spec-project-one'))
       const fileOne = path.join(dirOne, 'file-one.txt')
       const fileTwo = path.join(dirOne, 'file-two.txt')
       const dirTwo = fs.realpathSync(temp.mkdirSync('atom-spec-project-two'))
       const fileThree = path.join(dirTwo, 'file-three.txt')
-      process.stdout.write(`0: created files and directories: ${dirOne} ${dirTwo}\n`)
 
-      // Ensure that all preexisting watchers are stopped
-      process.stdout.write('1: about to stop preexisting watchers\n')
-      waitsForPromise(() => stopAllWatchers())
+      atom.project.setPaths([dirOne])
 
-      runs(() => {
-        process.stdout.write(`2: about to setPaths('${dirOne}')\n`)
-        atom.project.setPaths([dirOne])
-      })
-      waitsForPromise(() => {
-        process.stdout.write(`3: about to wait on watcher promise\n`)
-        return atom.project.getWatcherPromise(dirOne)
-      })
+      waitsForPromise(() => atom.project.getWatcherPromise(dirOne))
 
       runs(() => {
-        process.stdout.write(`4: about to generate filesystem events\n`)
         expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual(undefined)
 
         fs.writeFileSync(fileThree, 'three\n')
@@ -917,15 +898,10 @@ describe('Project', () => {
         fs.writeFileSync(fileOne, 'one\n')
       })
 
-      waitsForPromise(() => {
-        process.stdout.write(`5: about to wait for events '${fileOne}', '${fileTwo}'\n`)
-        return waitForEvents([fileOne, fileTwo])
-      })
+      waitsForPromise(() => waitForEvents([fileOne, fileTwo]))
 
       runs(() => {
-        process.stdout.write('6: all events received\n')
         expect(events.some(event => event.path === fileThree)).toBeFalsy()
-        process.stdout.write('-----  done -----\n')
       })
     })
   })
