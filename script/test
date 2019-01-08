@@ -157,7 +157,7 @@ function testSuitesForPlatform (platform) {
       suites = [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
       break
     case 'win32':
-      suites = (process.arch === 'x64') ? [runCoreRenderProcessTests] : [runCoreMainProcessTests]
+      suites = (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
       break
     case 'linux':
       suites = [runCoreMainProcessTests]
