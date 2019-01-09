@@ -70,8 +70,16 @@ jobs:
       CI: true
       CI_PROVIDER: VSTS
       BUILD_ARCH: $(buildArch)
+      WATCHER_LOG_MAIN: $(Build.SourcesDirectory)/watcher.main.log
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/watcher.main.log
+      ArtifactName: watcher.main.log
+    displayName: Upload watcher.main.log
+    condition: succeededOrFailed()
 
   - task: PublishBuildArtifacts@1
     inputs:

@@ -21,6 +21,7 @@ environment:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
     TEST_JUNIT_XML_ROOT: c:\projects\junit-test-results
     NODE_VERSION: 8.9.3
+    WATCHER_LOG_MAIN: watcher.main.log
 
   matrix:
   - TASK: test
@@ -88,6 +89,8 @@ artifacts:
     name: atom-delta.nupkg
   - path: out\atom-*-full.nupkg
     name: atom-full.nupkg
+  - path: watcher.main.log
+    name: watcher.main.log
 
 cache:
   - '%APPVEYOR_BUILD_FOLDER%\electron'
