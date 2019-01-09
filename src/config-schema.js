@@ -468,6 +468,33 @@ const configSchema = {
         minimum: 1,
         description: 'Number of spaces used to represent a tab.'
       },
+      softWrapper: {
+        type: 'string',
+        default: 'disabled',
+        enum: [
+          {
+            value: 'disabled',
+            description: 'Disabled'
+          },
+          {
+            value: 'window',
+            description: 'Window\'s Width'
+          }, 
+          {
+            value: 'preferredLineLength',
+            description: 'Preferred line length'
+          },
+          {
+            value: 'minWindowOrPll',
+            description: 'Shorter between window\'s width or preferred line length'
+          },
+          {
+            value: 'maxWindowOrPll',
+            description: 'Longer between window\'s width or preferred line length'
+          }
+        ],
+        description: 'Wraps lines that exceed certain width depending on selected behaviour.'
+      },
       softWrap: {
         type: 'boolean',
         default: false,
