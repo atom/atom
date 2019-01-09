@@ -150,8 +150,6 @@ class TextEditor {
     this.editorWidthInChars = params.editorWidthInChars
     this.invisibles = params.invisibles
     this.showIndentGuide = params.showIndentGuide
-    this.softWrapped = params.softWrapped
-    this.softWrapAtPreferredLineLength = params.softWrapAtPreferredLineLength
     this.preferredLineLength = params.preferredLineLength
     this.showCursorOnSelection = (params.showCursorOnSelection != null) ? params.showCursorOnSelection : true
     this.maxScreenLineLength = params.maxScreenLineLength
@@ -159,8 +157,7 @@ class TextEditor {
     this.autoIndent = (params.autoIndent != null) ? params.autoIndent : true
     this.autoIndentOnPaste = (params.autoIndentOnPaste != null) ? params.autoIndentOnPaste : true
     this.undoGroupingInterval = (params.undoGroupingInterval != null) ? params.undoGroupingInterval : 300
-    this.softWrapped = (params.softWrapped != null) ? params.softWrapped : false
-    this.softWrapAtPreferredLineLength = (params.softWrapAtPreferredLineLength != null) ? params.softWrapAtPreferredLineLength : false
+    this.softWrapped = (params.softWrapper != null) ? params.softWrapper : 'disabled'
     this.preferredLineLength = (params.preferredLineLength != null) ? params.preferredLineLength : 80
     this.maxScreenLineLength = (params.maxScreenLineLength != null) ? params.maxScreenLineLength : 500
     this.showLineNumbers = (params.showLineNumbers != null) ? params.showLineNumbers : true
@@ -376,13 +373,6 @@ class TextEditor {
           }
           break
 
-        case 'softWrapAtPreferredLineLength':
-          if (value !== this.softWrapAtPreferredLineLength) {
-            this.softWrapAtPreferredLineLength = value
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn()
-          }
-          break
-
         case 'preferredLineLength':
           if (value !== this.preferredLineLength) {
             this.preferredLineLength = value
@@ -561,7 +551,6 @@ class TextEditor {
       bufferId: this.buffer.id,
       softTabs: this.softTabs,
       softWrapped: this.softWrapped,
-      softWrapAtPreferredLineLength: this.softWrapAtPreferredLineLength,
       preferredLineLength: this.preferredLineLength,
       mini: this.mini,
       readOnly2: this.readOnly, // readOnly encompassed both readOnly and keyboardInputEnabled
@@ -3652,7 +3641,7 @@ class TextEditor {
   // Essential: Determine whether lines in this editor are soft-wrapped.
   //
   // Returns a {Boolean}.
-  isSoftWrapped () { return this.softWrapped }
+  isSoftWrapped () { return this.softWrapped !== 'disabled' }
 
   // Essential: Enable or disable soft wrapping for this editor.
   //
@@ -3669,15 +3658,22 @@ class TextEditor {
   // Essential: Toggle soft wrapping for this editor
   //
   // Returns a {Boolean}.
-  toggleSoftWrapped () { return this.setSoftWrapped(!this.isSoftWrapped()) }
+  disableSoftWrapped () { return this.setSoftWrapped('disabled') }
 
   // Essential: Gets the column at which column will soft wrap
   getSoftWrapColumn () {
     if (this.isSoftWrapped() && !this.mini) {
-      if (this.softWrapAtPreferredLineLength) {
-        return Math.min(this.getEditorWidthInChars(), this.preferredLineLength)
-      } else {
-        return this.getEditorWidthInChars()
+      switch (this.softWrapped) {
+        case 'window':
+          return this.getEditorWidthInChars()
+        case 'preferredLineLength':
+          return this.preferredLineLength
+        case 'minWindowOrPll':
+          return Math.min(this.getEditorWidthInChars(), this.preferredLineLength)
+        case 'maxWindowOrPll':
+          return Math.max(this.getEditorWidthInChars(), this.preferredLineLength)
+        default:
+          return this.maxScreenLineLength
       }
     } else {
       return this.maxScreenLineLength

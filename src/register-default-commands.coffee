@@ -235,7 +235,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
       'editor:add-selection-above': -> @addSelectionAbove()
       'editor:split-selections-into-lines': -> @splitSelectionsIntoLines()
       'editor:toggle-soft-tabs': -> @toggleSoftTabs()
-      'editor:toggle-soft-wrap': -> @toggleSoftWrapped()
+      'editor:disable-soft-wrap': -> @disableSoftWrapped()
       'editor:fold-all': -> @foldAll()
       'editor:unfold-all': -> @unfoldAll()
       'editor:fold-current-row': ->

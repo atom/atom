@@ -14,7 +14,6 @@ const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['editor.showLineNumbers', 'showLineNumbers'],
   ['editor.softWrap', 'softWrapped'],
   ['editor.softWrapHangingIndent', 'softWrapHangingIndentLength'],
-  ['editor.softWrapAtPreferredLineLength', 'softWrapAtPreferredLineLength'],
   ['editor.preferredLineLength', 'preferredLineLength'],
   ['editor.maxScreenLineLength', 'maxScreenLineLength'],
   ['editor.autoIndent', 'autoIndent'],
