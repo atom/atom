@@ -468,7 +468,7 @@ const configSchema = {
         minimum: 1,
         description: 'Number of spaces used to represent a tab.'
       },
-      softWrapper: {
+      softWrap: {
         type: 'string',
         default: 'disabled',
         enum: [
@@ -495,11 +495,6 @@ const configSchema = {
         ],
         description: 'Wraps lines that exceed certain width depending on selected behaviour.'
       },
-      softWrap: {
-        type: 'boolean',
-        default: false,
-        description: 'Wraps lines that exceed the width of the window. When `Soft Wrap At Preferred Line Length` is set, it will wrap to the number of characters defined by the `Preferred Line Length` setting.'
-      },
       softTabs: {
         type: 'boolean',
         default: true,
@@ -510,11 +505,6 @@ const configSchema = {
         default: 'auto',
         enum: ['auto', 'soft', 'hard'],
         description: 'Determine character inserted when Tab key is pressed. Possible values: "auto", "soft" and "hard". When set to "soft" or "hard", soft tabs (spaces) or hard tabs (tab characters) are used. When set to "auto", the editor auto-detects the tab type based on the contents of the buffer (it uses the first leading whitespace on a non-comment line), or uses the value of the Soft Tabs config setting if auto-detection fails.'
-      },
-      softWrapAtPreferredLineLength: {
-        type: 'boolean',
-        default: false,
-        description: 'Instead of wrapping lines to the window\'s width, wrap lines to the number of characters defined by the `Preferred Line Length` setting. This will only take effect when the soft wrap config setting is enabled globally or for the current language. **Note:** If you want to hide the wrap guide (the vertical line) you can disable the `wrap-guide` package.'
       },
       softWrapHangingIndent: {
         type: 'integer',
