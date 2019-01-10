@@ -16,11 +16,11 @@ Follow [@AtomEditor](https://twitter.com/atomeditor) on Twitter for important
 announcements.
 
 This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDUCT.md).
-By participating, you are expected to uphold this code. Please report unacceptable behavior to atom@github.com.
+By participating, you are expected to adhere to this code of conduct. Please report unacceptable behavior to atom@github.com.
 
 ## Documentation
 
-If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://flight-manual.atom.io) is free and available online. You can find the source to the manual in [atom/flight-manual.atom.io](https://github.com/atom/flight-manual.atom.io).
+If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://flight-manual.atom.io) is freely available online. You can find the source to the manual in [atom/flight-manual.atom.io](https://github.com/atom/flight-manual.atom.io).
 
 The [API reference](https://atom.io/docs/api) for developing packages is also documented on Atom.io.
 
@@ -39,10 +39,9 @@ Atom will automatically update when a new release is available.
 
 Download the latest [Atom installer](https://github.com/atom/atom/releases/latest). `AtomSetup.exe` is 32-bit. For 64-bit systems, download `AtomSetup-x64.exe`.
 
-Atom will automatically update when a new release is available.
-
 You can also download `atom-windows.zip` (32-bit) or `atom-x64-windows.zip` (64-bit) from the [releases page](https://github.com/atom/atom/releases/latest).
-The `.zip` version will not automatically update.
+
+When installed using the `.exe` installer, Atom will automatically update if a new release is available. The `.zip` version will not automatically update. 
 
 Using [Chocolatey](https://chocolatey.org)? Run `cinst Atom` to install the latest version of Atom.
 
@@ -50,14 +49,14 @@ Using [Chocolatey](https://chocolatey.org)? Run `cinst Atom` to install the late
 
 Atom is only available for 64-bit Linux systems.
 
-Configure your distribution's package manager to install and update Atom by following the [Linux installation instructions](https://flight-manual.atom.io/getting-started/sections/installing-atom/#platform-linux) in the Flight Manual.  You will also find instructions on how to install Atom's official Linux packages without using a package repository, though you will not get automatic updates after installing Atom this way.
+Configure your distribution's package manager to install and update Atom by following the [Linux installation instructions](https://flight-manual.atom.io/getting-started/sections/installing-atom/#platform-linux) in the Flight Manual. You will also find instructions on how to install Atom's official Linux packages without using a package repository, though you will not get automatic updates after installing Atom this way.
 
 ### Archive extraction
 
 An archive is available for people who don't want to install `atom` as root.
 
 This version enables you to install multiple Atom versions in parallel. It has been built on Ubuntu 64-bit,
-but should be compatible with other Linux distributions.
+but it should be compatible with other Linux distributions.
 
 1. Install dependencies (on Ubuntu): `sudo apt install git gconf2 gconf-service libgtk2.0-0 libudev1 libgcrypt20 libnotify4 libxtst6 libnss3 python gvfs-bin xdg-utils libcap2`
 2. Download `atom-amd64.tar.gz` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
