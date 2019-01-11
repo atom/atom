@@ -1,7 +1,7 @@
 const Module = require('module')
 const path = require('path')
-const cachedVm = require('cached-run-in-this-context')
 const crypto = require('crypto')
+const vm = require('vm')
 
 function computeHash (contents) {
   return crypto.createHash('sha1').update(contents, 'utf8').digest('hex')
@@ -34,6 +34,24 @@ class NativeCompileCache {
     this.previousModuleCompile = Module.prototype._compile
   }
 
+  runInThisContext (code, filename) {
+    // produceCachedData is deprecated after Node 10.6, will need to update
+    // this for Electron 4.0 to use script.createCachedData()
+    const script = new vm.Script(code, {filename, produceCachedData: true})
+    return {
+      result: script.runInThisContext(),
+      cacheBuffer: script.cachedData
+    }
+  }
+
+  runInThisContextCached (code, filename, cachedData) {
+    const script = new vm.Script(code, {filename, cachedData})
+    return {
+      result: script.runInThisContext(),
+      wasRejected: script.cachedDataRejected
+    }
+  }
+
   overrideModuleCompile () {
     let self = this
     // Here we override Node's module.js
@@ -64,7 +82,7 @@ class NativeCompileCache {
       let compiledWrapper = null
       if (self.cacheStore.has(cacheKey)) {
         let buffer = self.cacheStore.get(cacheKey)
-        let compilationResult = cachedVm.runInThisContextCached(wrapper, filename, buffer)
+        let compilationResult = self.runInThisContextCached(wrapper, filename, buffer)
         compiledWrapper = compilationResult.result
         if (compilationResult.wasRejected) {
           self.cacheStore.delete(cacheKey)
@@ -72,12 +90,12 @@ class NativeCompileCache {
       } else {
         let compilationResult
         try {
-          compilationResult = cachedVm.runInThisContext(wrapper, filename)
+          compilationResult = self.runInThisContext(wrapper, filename)
         } catch (err) {
           console.error(`Error running script ${filename}`)
           throw err
         }
-        if (compilationResult.cacheBuffer) {
+        if (compilationResult.cacheBuffer !== null) {
           self.cacheStore.set(cacheKey, compilationResult.cacheBuffer)
         }
         compiledWrapper = compilationResult.result
