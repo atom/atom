@@ -187,6 +187,8 @@ class AtomApplication extends EventEmitter {
                (options.urlsToOpen && options.urlsToOpen.length > 0)) {
       optionsForWindowsToOpen.push(options)
       shouldReopenPreviousWindows = this.config.get('core.restorePreviousWindowsOnStart') === 'always'
+    } else if (options.newWindow) {
+      shouldReopenPreviousWindows = false
     } else {
       shouldReopenPreviousWindows = this.config.get('core.restorePreviousWindowsOnStart') !== 'no'
     }
@@ -215,7 +217,6 @@ class AtomApplication extends EventEmitter {
       pidToKillWhenClosed,
       devMode,
       safeMode,
-      newWindow,
       logFile,
       profileStartup,
       timeout,
@@ -252,7 +253,6 @@ class AtomApplication extends EventEmitter {
         pathsToOpen,
         executedFrom,
         pidToKillWhenClosed,
-        newWindow,
         devMode,
         safeMode,
         profileStartup,
@@ -266,7 +266,6 @@ class AtomApplication extends EventEmitter {
       // Always open a editor window if this is the first instance of Atom.
       return this.openPath({
         pidToKillWhenClosed,
-        newWindow,
         devMode,
         safeMode,
         profileStartup,
@@ -774,7 +773,6 @@ class AtomApplication extends EventEmitter {
   // options -
   //   :pathToOpen - The file path to open
   //   :pidToKillWhenClosed - The integer of the pid to kill
-  //   :newWindow - Boolean of whether this should be opened in a new window.
   //   :devMode - Boolean to control the opened window's dev mode.
   //   :safeMode - Boolean to control the opened window's safe mode.
   //   :profileStartup - Boolean to control creating a profile of the startup time.
@@ -783,7 +781,6 @@ class AtomApplication extends EventEmitter {
   openPath ({
     pathToOpen,
     pidToKillWhenClosed,
-    newWindow,
     devMode,
     safeMode,
     profileStartup,
@@ -795,7 +792,6 @@ class AtomApplication extends EventEmitter {
     return this.openPaths({
       pathsToOpen: [pathToOpen],
       pidToKillWhenClosed,
-      newWindow,
       devMode,
       safeMode,
       profileStartup,
@@ -811,7 +807,6 @@ class AtomApplication extends EventEmitter {
   // options -
   //   :pathsToOpen - The array of file paths to open
   //   :pidToKillWhenClosed - The integer of the pid to kill
-  //   :newWindow - Boolean of whether this should be opened in a new window.
   //   :devMode - Boolean to control the opened window's dev mode.
   //   :safeMode - Boolean to control the opened window's safe mode.
   //   :windowDimensions - Object with height and width keys.
@@ -821,7 +816,6 @@ class AtomApplication extends EventEmitter {
     pathsToOpen,
     executedFrom,
     pidToKillWhenClosed,
-    newWindow,
     devMode,
     safeMode,
     windowDimensions,
