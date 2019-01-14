@@ -282,7 +282,7 @@ class PaneContainer {
 
       this.cancelStoppedChangingActivePaneItemTimeout()
       // `setTimeout()` isn't available during the snapshotting phase, but that's okay.
-      if (typeof setTimeout === 'function') {
+      if (!global.isGeneratingSnapshot) {
         this.stoppedChangingActivePaneItemTimeout = setTimeout(() => {
           this.stoppedChangingActivePaneItemTimeout = null
           this.emitter.emit('did-stop-changing-active-pane-item', activeItem)
