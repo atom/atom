@@ -167,7 +167,7 @@
     "welcome": "https://www.atom.io/api/packages/welcome/versions/0.36.7/tarball",
     "whitespace": "https://www.atom.io/api/packages/whitespace/versions/0.37.7/tarball",
     "winreg": "^1.2.1",
-    "wrap-guide": "https://www.atom.io/api/packages/wrap-guide/versions/0.40.3/tarball",
+    "wrap-guide": "https://www.atom.io/api/packages/wrap-guide/versions/0.41.0/tarball",
     "yargs": "^3.23.0"
   },
   "packageDependencies": {
@@ -229,7 +229,7 @@
     "update-package-dependencies": "0.13.1",
     "welcome": "0.36.7",
     "whitespace": "0.37.7",
-    "wrap-guide": "0.40.3",
+    "wrap-guide": "0.41.0",
     "language-c": "0.60.14",
     "language-clojure": "0.22.7",
     "language-coffee-script": "0.49.3",
