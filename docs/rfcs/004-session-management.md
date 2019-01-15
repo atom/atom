@@ -28,12 +28,13 @@ Problems to address:
 
 A _Project_ is the unit of persistent window state in Atom related to a coherent development effort. It includes:
 
-* The number of windows open;
 * The set of root folders;
 * Pane and dock configuration;
 * Open pane and dock items;
 * Cursor position, fold state, and other TextEditor characteristics;
 * Per-package [serialized state](https://flight-manual.atom.io/behind-atom/sections/serialization-in-atom/).
+
+Each Atom window is associated with one Project, and each Project is associated with at most one Atom window.
 
 Each Project has a unique, user-customizable name.
 
