@@ -204,7 +204,7 @@ class Project extends Model {
   //     // absolute path to the filesystem entry that was touched
   //     console.log(`Event path: ${event.path}`)
   //
-  //     if (event.type === 'renamed') {
+  //     if (event.action === 'renamed') {
   //       console.log(`.. renamed from: ${event.oldPath}`)
   //     }
   //   }
