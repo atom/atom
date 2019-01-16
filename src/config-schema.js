@@ -479,7 +479,7 @@ const configSchema = {
           {
             value: 'window',
             description: 'Window\'s Width'
-          }, 
+          },
           {
             value: 'preferredLineLength',
             description: 'Preferred line length'
