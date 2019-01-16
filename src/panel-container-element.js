@@ -54,7 +54,7 @@ class PanelContainerElement extends HTMLElement {
         if (visible) { this.hideAllPanelsExcept(panel) }
       }))
 
-      if (panel.autoFocus !== false) {
+      if (panel.autoFocus) {
         const focusOptions = {
           // focus-trap will attempt to give focus to the first tabbable element
           // on activation. If there aren't any tabbable elements,
