@@ -167,12 +167,12 @@ describe('TextEditorRegistry', function () {
 
       expect(editor.isSoftWrapped()).toBe(false)
       editor.setSoftWrapped('window')
-      expect(editor.isSoftWrapped()).toBe('window')
+      expect(editor.isSoftWrapped()).toBe(true)
 
       atom.grammars.assignLanguageMode(editor, 'source.js')
       await initialPackageActivation
       expect(editor.getEncoding()).toBe('utf16le')
-      expect(editor.isSoftWrapped()).toBe('window')
+      expect(editor.isSoftWrapped()).toBe(true)
     })
 
     it('updates editor settings that have changed between previous and current language modes', async function () {
@@ -428,7 +428,7 @@ describe('TextEditorRegistry', function () {
 
     it('enables or disables soft wrap based on the config', async function () {
       editor.update({softWrapped: 'window'})
-      expect(editor.isSoftWrapped()).toBe('window')
+      expect(editor.isSoftWrapped()).toBe(true)
 
       atom.config.set('editor.softWrap', 'disabled')
       registry.maintainConfig(editor)
@@ -436,7 +436,7 @@ describe('TextEditorRegistry', function () {
       expect(editor.isSoftWrapped()).toBe(false)
 
       atom.config.set('editor.softWrap', 'window')
-      expect(editor.isSoftWrapped()).toBe('window')
+      expect(editor.isSoftWrapped()).toBe(true)
     })
 
     it('sets the soft wrap indent length based on the config', async function () {

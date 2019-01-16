@@ -166,7 +166,7 @@ describe('TextEditor', () => {
       expect(changeSpy.callCount).toBe(1)
       expect(editor.getTabLength()).toBe(6)
       expect(editor.getSoftTabs()).toBe(false)
-      expect(editor.isSoftWrapped()).toBe('window')
+      expect(editor.isSoftWrapped()).toBe(true)
       expect(editor.getEditorWidthInChars()).toBe(40)
       expect(editor.getInvisibles()).toEqual({})
       expect(editor.isMini()).toBe(false)
