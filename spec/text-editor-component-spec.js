@@ -523,7 +523,7 @@ describe('TextEditorComponent', () => {
       // the line. This prevents the parent tile from disabling sub-pixel
       // anti-aliasing. For some reason, adding overflow: hidden to the cursor
       // container doesn't solve this issue so we're adding this workaround instead.
-      editor.setSoftWrapped(true)
+      editor.setSoftWrapped('window')
       await component.getNextUpdatePromise()
       expect(element.querySelector('.cursor').offsetWidth).toBeLessThan(Math.round(component.getBaseCharacterWidth()))
     })
@@ -608,7 +608,7 @@ describe('TextEditorComponent', () => {
         width: gutterContainerWidth + (baseCharacterWidth * 55),
         attach: false
       })
-      editor.setSoftWrapped(true)
+      editor.setSoftWrapped('window')
       jasmine.attachToDOM(element)
 
       expect(getEditorWidthInBaseCharacters(component)).toBe(55)
@@ -634,7 +634,7 @@ describe('TextEditorComponent', () => {
     it('correctly forces the display layer to index visible rows when resizing (regression)', async () => {
       const text = 'a'.repeat(30) + '\n' + 'b'.repeat(1000)
       const {component, element, editor} = buildComponent({height: 300, width: 800, attach: false, text})
-      editor.setSoftWrapped(true)
+      editor.setSoftWrapped('window')
       jasmine.attachToDOM(element)
 
       element.style.width = 200 + 'px'
@@ -773,7 +773,7 @@ describe('TextEditorComponent', () => {
 
     it('assigns buffer-row and screen-row to each line number as data fields', async () => {
       const {editor, element, component} = buildComponent()
-      editor.setSoftWrapped(true)
+      editor.setSoftWrapped('window')
       await component.getNextUpdatePromise()
       await setEditorWidthInCharacters(component, 40)
       {
@@ -3317,7 +3317,7 @@ describe('TextEditorComponent', () => {
       it('selects all buffer rows intersecting the clicked screen row when a line number is clicked', async () => {
         const {component, editor} = buildComponent()
         spyOn(component, 'handleMouseDragUntilMouseUp')
-        editor.setSoftWrapped(true)
+        editor.setSoftWrapped('window')
         await component.getNextUpdatePromise()
 
         await setEditorWidthInCharacters(component, 50)
@@ -3344,7 +3344,7 @@ describe('TextEditorComponent', () => {
 
       it('adds new selections when a line number is meta-clicked', async () => {
         const {component, editor} = buildComponent()
-        editor.setSoftWrapped(true)
+        editor.setSoftWrapped('window')
         await component.getNextUpdatePromise()
 
         await setEditorWidthInCharacters(component, 50)
@@ -3388,7 +3388,7 @@ describe('TextEditorComponent', () => {
       it('expands the last selection when a line number is shift-clicked', async () => {
         const {component, editor} = buildComponent()
         spyOn(component, 'handleMouseDragUntilMouseUp')
-        editor.setSoftWrapped(true)
+        editor.setSoftWrapped('window')
         await component.getNextUpdatePromise()
 
         await setEditorWidthInCharacters(component, 50)
@@ -3431,7 +3431,7 @@ describe('TextEditorComponent', () => {
       it('expands the selection when dragging', async () => {
         const {component, editor} = buildComponent()
         spyOn(component, 'handleMouseDragUntilMouseUp')
-        editor.setSoftWrapped(true)
+        editor.setSoftWrapped('window')
         await component.getNextUpdatePromise()
 
         await setEditorWidthInCharacters(component, 50)
@@ -3890,7 +3890,7 @@ describe('TextEditorComponent', () => {
         'eiusmod tempor incididunt ut labore et dolore magna' +
         'aliqua. Ut enim ad minim veniam, quis nostrud exercitation'
       )
-      editor.setSoftWrapped(true)
+      editor.setSoftWrapped('window')
       await setEditorHeightInLines(component, 2)
       await setEditorWidthInCharacters(component, 56)
       await setScrollTop(component, 3 * component.getLineHeight())
@@ -3949,7 +3949,7 @@ describe('TextEditorComponent', () => {
 
     it('does not throw an exception on attachment when setting the soft-wrap column', () => {
       const {component, element, editor} = buildComponent({width: 435, attach: false, updatedSynchronously: true})
-      editor.setSoftWrapped(true)
+      editor.setSoftWrapped('window')
       spyOn(window, 'onerror').andCallThrough()
       jasmine.attachToDOM(element) // should not throw an exception
       expect(window.onerror).not.toHaveBeenCalled()
