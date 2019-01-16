@@ -305,7 +305,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('shows the foldable icon on the last screen row of a buffer row that can be folded', async () => {
-      const {component, element, editor} = buildComponent({text: 'abc\n  de\nfghijklm\n  no', softWrapped: true})
+      const {component, element, editor} = buildComponent({text: 'abc\n  de\nfghijklm\n  no', softWrapped: 'window'})
       await setEditorWidthInCharacters(component, 5)
       expect(lineNumberNodeForScreenRow(component, 0).classList.contains('foldable')).toBe(true)
       expect(lineNumberNodeForScreenRow(component, 1).classList.contains('foldable')).toBe(false)
@@ -1441,7 +1441,7 @@ describe('TextEditorComponent', () => {
 
   describe('line and line number decorations', () => {
     it('adds decoration classes on screen lines spanned by decorated markers', async () => {
-      const {component, element, editor} = buildComponent({softWrapped: true})
+      const {component, element, editor} = buildComponent({softWrapped: 'window'})
       await setEditorWidthInCharacters(component, 55)
       expect(lineNodeForScreenRow(component, 3).textContent).toBe(
         '    var pivot = items.shift(), current, left = [], '
@@ -2090,7 +2090,7 @@ describe('TextEditorComponent', () => {
       const {component, element, editor} = buildComponent({
         lineNumberGutterVisible: false,
         width: 400,
-        softWrapped: true,
+        softWrapped: 'window',
         attach: false,
       })
       const gutter = editor.addGutter({name: 'a', priority: 10})

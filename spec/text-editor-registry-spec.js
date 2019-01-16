@@ -166,13 +166,13 @@ describe('TextEditorRegistry', function () {
       expect(editor.getEncoding()).toBe('utf16le')
 
       expect(editor.isSoftWrapped()).toBe(false)
-      editor.setSoftWrapped(true)
-      expect(editor.isSoftWrapped()).toBe(true)
+      editor.setSoftWrapped('window')
+      expect(editor.isSoftWrapped()).toBe('window')
 
       atom.grammars.assignLanguageMode(editor, 'source.js')
       await initialPackageActivation
       expect(editor.getEncoding()).toBe('utf16le')
-      expect(editor.isSoftWrapped()).toBe(true)
+      expect(editor.isSoftWrapped()).toBe('window')
     })
 
     it('updates editor settings that have changed between previous and current language modes', async function () {
@@ -427,16 +427,16 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables soft wrap based on the config', async function () {
-      editor.update({softWrapped: true})
-      expect(editor.isSoftWrapped()).toBe(true)
+      editor.update({softWrapped: 'window'})
+      expect(editor.isSoftWrapped()).toBe('window')
 
-      atom.config.set('editor.softWrap', false)
+      atom.config.set('editor.softWrap', 'disabled')
       registry.maintainConfig(editor)
       await initialPackageActivation
       expect(editor.isSoftWrapped()).toBe(false)
 
-      atom.config.set('editor.softWrap', true)
-      expect(editor.isSoftWrapped()).toBe(true)
+      atom.config.set('editor.softWrap', 'window')
+      expect(editor.isSoftWrapped()).toBe('window')
     })
 
     it('sets the soft wrap indent length based on the config', async function () {
@@ -452,35 +452,15 @@ describe('TextEditorRegistry', function () {
       expect(editor.getSoftWrapHangingIndentLength()).toBe(4)
     })
 
-    it('enables or disables preferred line length-based soft wrap based on the config', async function () {
-      editor.update({
-        softWrapped: true,
-        preferredLineLength: 80,
-        editorWidthInChars: 120,
-        softWrapAtPreferredLineLength: true,
-      })
-
-      expect(editor.getSoftWrapColumn()).toBe(80)
-
-      atom.config.set('editor.softWrap', true)
-      atom.config.set('editor.softWrapAtPreferredLineLength', false)
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.getSoftWrapColumn()).toBe(120)
-
-      atom.config.set('editor.softWrapAtPreferredLineLength', true)
-      expect(editor.getSoftWrapColumn()).toBe(80)
-    })
-
     it('allows for custom definition of maximum soft wrap based on config', async function () {
       editor.update({
-        softWrapped: false,
+        softWrapped: 'disabled',
         maxScreenLineLength: 1500,
       })
 
       expect(editor.getSoftWrapColumn()).toBe(1500)
 
-      atom.config.set('editor.softWrap', false)
+      atom.config.set('editor.softWrap', 'disabled')
       atom.config.set('editor.maxScreenLineLength', 500)
       registry.maintainConfig(editor)
       await initialPackageActivation
