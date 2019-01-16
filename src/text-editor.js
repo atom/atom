@@ -157,7 +157,7 @@ class TextEditor {
     this.autoIndent = (params.autoIndent != null) ? params.autoIndent : true
     this.autoIndentOnPaste = (params.autoIndentOnPaste != null) ? params.autoIndentOnPaste : true
     this.undoGroupingInterval = (params.undoGroupingInterval != null) ? params.undoGroupingInterval : 300
-    this.softWrapped = (params.softWrapper != null) ? params.softWrapper : 'disabled'
+    this.softWrapped = (params.softWrapped != null) ? params.softWrapped : 'disabled'
     this.preferredLineLength = (params.preferredLineLength != null) ? params.preferredLineLength : 80
     this.maxScreenLineLength = (params.maxScreenLineLength != null) ? params.maxScreenLineLength : 500
     this.showLineNumbers = (params.showLineNumbers != null) ? params.showLineNumbers : true
