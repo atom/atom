@@ -1,0 +1,138 @@
+jobs:
+- job: Windows
+  dependsOn: GetReleaseVersion
+  timeoutInMinutes: 180
+  strategy:
+    maxParallel: 2
+    matrix:
+      x64:
+        buildArch: x64
+      x86:
+        buildArch: x86
+
+  pool:
+    vmImage: vs2015-win2012r2 # needed for python 2.7 and gyp
+
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+    IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+    IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
+
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 8.9.3
+    displayName: Install Node.js 8.9.3
+
+  - script: |
+      ECHO Installing npm-windows-upgrade
+      npm install --global --production npm-windows-upgrade
+      ECHO Upgrading npm
+      npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.2.0
+    displayName: Install npm 6.2.0
+
+  - script: |
+      cd script\vsts
+      npm install
+    displayName: Install Windows build dependencies
+
+  - script: |
+      IF NOT EXIST C:\tmp MKDIR C:\tmp
+      SET SQUIRREL_TEMP=C:\tmp
+      IF [%IS_RELEASE_BRANCH%]==[true] (
+        ECHO Creating production artifacts for release branch %BUILD_SOURCEBRANCHNAME%
+        node script\vsts\windows-run.js script\build.cmd --code-sign --compress-artifacts --create-windows-installer
+      ) ELSE (
+        IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
+          ECHO Creating signed CI artifacts for branch %BUILD_SOURCEBRANCHNAME%
+          node script\vsts\windows-run.js script\build.cmd --code-sign --compress-artifacts
+        ) ELSE (
+          ECHO Pull request build, no code signing will be performed
+          node script\vsts\windows-run.js script\build.cmd --compress-artifacts
+        )
+      )
+    env:
+      BUILD_ARCH: $(buildArch)
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
+      ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL)
+      ATOM_WIN_CODE_SIGNING_CERT_PASSWORD: $(ATOM_WIN_CODE_SIGNING_CERT_PASSWORD)
+      IS_RELEASE_BRANCH: $(IsReleaseBranch)
+      IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
+    displayName: Build Atom
+
+  - script: node script\vsts\windows-run.js script\lint.cmd
+    env:
+      BUILD_ARCH: $(buildArch)
+    displayName: Run linter
+
+  - script: node script\vsts\windows-run.js script\test.cmd
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+      BUILD_ARCH: $(buildArch)
+    displayName: Run tests
+    condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-windows.zip
+      ArtifactName: atom-x64-windows.zip
+      ArtifactType: Container
+    displayName: Upload atom-x64-windows.zip
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['buildArch'], 'x64'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/AtomSetup-x64.exe
+      ArtifactName: AtomSetup-x64.exe
+      ArtifactType: Container
+    displayName: Upload AtomSetup-x64.exe
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-$(ReleaseVersion)-full.nupkg
+      ArtifactName: atom-x64-$(ReleaseVersion)-full.nupkg
+      ArtifactType: Container
+    displayName: Upload atom-x64-$(ReleaseVersion)-full.nupkg
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/RELEASES-x64
+      ArtifactName: RELEASES-x64
+      ArtifactType: Container
+    displayName: Upload RELEASES-x64
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-windows.zip
+      ArtifactName: atom-windows.zip
+      ArtifactType: Container
+    displayName: Upload atom-windows.zip
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['buildArch'], 'x86'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/AtomSetup.exe
+      ArtifactName: AtomSetup.exe
+      ArtifactType: Container
+    displayName: Upload AtomSetup.exe
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-$(ReleaseVersion)-full.nupkg
+      ArtifactName: atom-$(ReleaseVersion)-full.nupkg
+      ArtifactType: Container
+    displayName: Upload atom-$(ReleaseVersion)-full.nupkg
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/RELEASES
+      ArtifactName: RELEASES
+      ArtifactType: Container
+    displayName: Upload RELEASES
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))

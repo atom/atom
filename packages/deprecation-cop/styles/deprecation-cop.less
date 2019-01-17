@@ -1,0 +1,72 @@
+// The ui-variables file is provided by base themes provided by Atom.
+//
+// See https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
+// for a full listing of what's available.
+@import "ui-variables";
+
+.deprecation-cop-status {
+  .icon.icon-alert:before {
+    // It's a really big icon...
+    width: 17px;
+  }
+}
+.deprecation-cop {
+  overflow: auto;
+  -webkit-flex: 1;
+  background-color: @app-background-color;
+
+  .deprecation-overview {    
+    &:after {
+      content: '';
+      clear: both;
+      display: block;
+    }
+  }
+
+  .deprecation-info {
+    padding: 0 @component-padding;
+  }
+
+  .deprecation-info:hover {
+    background-color: @background-color-selected;
+  }
+
+  .deprecation-detail.list-item {
+    white-space: normal;
+    clear: both;
+
+    .deprecation-message {
+      padding: 5px 0 5px 28px;
+      line-height: 1.4;
+      font-size: @font-size;
+
+      p:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    .icon-alert {
+      margin-top: 5px;
+      float: left;
+    }
+  }
+
+  .collapsed > ul {
+    display: none;
+  }
+
+  .list {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  .stack-trace {
+    background-color: @tool-panel-background-color;
+    padding: @component-padding;
+    margin-bottom: @component-padding;
+  }
+
+  a {
+    color: @text-color-highlight;
+  }
+}

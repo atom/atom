@@ -9,7 +9,7 @@ describe('TextEditorElement', () => {
     jasmineContent = document.body.querySelector('#jasmine-content')
     // Force scrollbars to be visible regardless of local system configuration
     const scrollbarStyle = document.createElement('style')
-    scrollbarStyle.textContent = '::-webkit-scrollbar { -webkit-appearance: none }'
+    scrollbarStyle.textContent = 'atom-text-editor ::-webkit-scrollbar { -webkit-appearance: none }'
     jasmine.attachToDOM(scrollbarStyle)
   })
 
@@ -87,6 +87,22 @@ describe('TextEditorElement', () => {
     jasmineContent.innerHTML = '<atom-text-editor>testing</atom-text-editor>'
     const element = jasmineContent.firstChild
     expect(element.getModel().getText()).toBe('testing')
+  })
+
+  describe('tabIndex', () => {
+    it('uses a default value of -1', () => {
+      jasmineContent.innerHTML = '<atom-text-editor />'
+      const element = jasmineContent.firstChild
+      expect(element.tabIndex).toBe(-1)
+      expect(element.querySelector('input').tabIndex).toBe(-1)
+    })
+
+    it('uses the custom value when given', () => {
+      jasmineContent.innerHTML = '<atom-text-editor tabIndex="42" />'
+      const element = jasmineContent.firstChild
+      expect(element.tabIndex).toBe(-1)
+      expect(element.querySelector('input').tabIndex).toBe(42)
+    })
   })
 
   describe('when the model is assigned', () =>
@@ -322,18 +338,20 @@ describe('TextEditorElement', () => {
       element.style.width = '200px'
       jasmine.attachToDOM(element)
 
+      const horizontalScrollbarHeight = element.component.getHorizontalScrollbarHeight()
+
       expect(element.getMaxScrollTop()).toBe(0)
       await editor.update({autoHeight: false})
 
-      element.style.height = '100px'
+      element.style.height = 100 + horizontalScrollbarHeight + 'px'
       await element.getNextUpdatePromise()
       expect(element.getMaxScrollTop()).toBe(60)
 
-      element.style.height = '120px'
+      element.style.height = 120 + horizontalScrollbarHeight + 'px'
       await element.getNextUpdatePromise()
       expect(element.getMaxScrollTop()).toBe(40)
 
-      element.style.height = '200px'
+      element.style.height = 200 + horizontalScrollbarHeight + 'px'
       await element.getNextUpdatePromise()
       expect(element.getMaxScrollTop()).toBe(0)
     })
@@ -376,10 +394,13 @@ describe('TextEditorElement', () => {
     it('returns true if the given row range intersects the visible row range', async () => {
       const element = buildTextEditorElement()
       const editor = element.getModel()
+      const horizontalScrollbarHeight = element.component.getHorizontalScrollbarHeight()
+
       editor.update({autoHeight: false})
       element.getModel().setText('x\n'.repeat(20))
-      element.style.height = '120px'
+      element.style.height = 120 + horizontalScrollbarHeight + 'px'
       await element.getNextUpdatePromise()
+
       element.setScrollTop(80)
       await element.getNextUpdatePromise()
       expect(element.getVisibleRowRange()).toEqual([4, 11])
@@ -396,9 +417,11 @@ describe('TextEditorElement', () => {
     it('returns a {top/left/width/height} object describing the rectangle between two screen positions, even if they are not on screen', async () => {
       const element = buildTextEditorElement()
       const editor = element.getModel()
+      const horizontalScrollbarHeight = element.component.getHorizontalScrollbarHeight()
+
       editor.update({autoHeight: false})
       element.getModel().setText('xxxxxxxxxxxxxxxxxxxxxx\n'.repeat(20))
-      element.style.height = '120px'
+      element.style.height = 120 + horizontalScrollbarHeight + 'px'
       await element.getNextUpdatePromise()
       element.setScrollTop(80)
       await element.getNextUpdatePromise()

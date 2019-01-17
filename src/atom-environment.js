@@ -1,5 +1,6 @@
 const crypto = require('crypto')
 const path = require('path')
+const util = require('util')
 const {ipcRenderer} = require('electron')
 
 const _ = require('underscore-plus')
@@ -9,7 +10,6 @@ const fs = require('fs-plus')
 const {mapSourcePosition} = require('@atom/source-map-support')
 const WindowEventHandler = require('./window-event-handler')
 const StateStore = require('./state-store')
-const StorageFolder = require('./storage-folder')
 const registerDefaultCommands = require('./register-default-commands')
 const {updateProcessEnv} = require('./update-process-env')
 const ConfigSchema = require('./config-schema')
@@ -45,6 +45,8 @@ const TextBuffer = require('text-buffer')
 const TextEditorRegistry = require('./text-editor-registry')
 const AutoUpdateManager = require('./auto-update-manager')
 
+const stat = util.promisify(fs.stat)
+
 let nextId = 0
 
 // Essential: Atom global for dealing with packages, themes, menus, and the window.
@@ -52,41 +54,64 @@ let nextId = 0
 // An instance of this class is always available as the `atom` global.
 class AtomEnvironment {
   /*
-  Section: Construction and Destruction
+  Section: Properties
   */
 
-  // Call .loadOrCreate instead
   constructor (params = {}) {
     this.id = (params.id != null) ? params.id : nextId++
+
+    // Public: A {Clipboard} instance
     this.clipboard = params.clipboard
     this.updateProcessEnv = params.updateProcessEnv || updateProcessEnv
     this.enablePersistence = params.enablePersistence
     this.applicationDelegate = params.applicationDelegate
 
     this.nextProxyRequestId = 0
-    this.unloaded = false
+    this.unloading = false
     this.loadTime = null
     this.emitter = new Emitter()
     this.disposables = new CompositeDisposable()
+    this.pathsWithWaitSessions = new Set()
+
+    // Public: A {DeserializerManager} instance
     this.deserializers = new DeserializerManager(this)
     this.deserializeTimings = {}
+
+    // Public: A {ViewRegistry} instance
     this.views = new ViewRegistry(this)
+
+    // Public: A {NotificationManager} instance
     this.notifications = new NotificationManager()
 
     this.stateStore = new StateStore('AtomEnvironments', 1)
 
+    // Public: A {Config} instance
     this.config = new Config({
-      notificationManager: this.notifications,
-      enablePersistence: this.enablePersistence
+      saveCallback: settings => {
+        if (this.enablePersistence) {
+          this.applicationDelegate.setUserSettings(settings, this.config.getUserConfigPath())
+        }
+      }
     })
     this.config.setSchema(null, {type: 'object', properties: _.clone(ConfigSchema)})
 
+    // Public: A {KeymapManager} instance
     this.keymaps = new KeymapManager({notificationManager: this.notifications})
+
+    // Public: A {TooltipManager} instance
     this.tooltips = new TooltipManager({keymapManager: this.keymaps, viewRegistry: this.views})
+
+    // Public: A {CommandRegistry} instance
     this.commands = new CommandRegistry()
     this.uriHandlerRegistry = new URIHandlerRegistry()
+
+    // Public: A {GrammarRegistry} instance
     this.grammars = new GrammarRegistry({config: this.config})
+
+    // Public: A {StyleManager} instance
     this.styles = new StyleManager()
+
+    // Public: A {PackageManager} instance
     this.packages = new PackageManager({
       config: this.config,
       styleManager: this.styles,
@@ -98,6 +123,8 @@ class AtomEnvironment {
       viewRegistry: this.views,
       uriHandlerRegistry: this.uriHandlerRegistry
     })
+
+    // Public: A {ThemeManager} instance
     this.themes = new ThemeManager({
       packageManager: this.packages,
       config: this.config,
@@ -105,12 +132,18 @@ class AtomEnvironment {
       notificationManager: this.notifications,
       viewRegistry: this.views
     })
+
+    // Public: A {MenuManager} instance
     this.menu = new MenuManager({keymapManager: this.keymaps, packageManager: this.packages})
+
+    // Public: A {ContextMenuManager} instance
     this.contextMenu = new ContextMenuManager({keymapManager: this.keymaps})
+
     this.packages.setMenuManager(this.menu)
     this.packages.setContextMenuManager(this.contextMenu)
     this.packages.setThemeManager(this.themes)
 
+    // Public: A {Project} instance
     this.project = new Project({
       notificationManager: this.notifications,
       packageManager: this.packages,
@@ -121,6 +154,7 @@ class AtomEnvironment {
     this.commandInstaller = new CommandInstaller(this.applicationDelegate)
     this.protocolHandlerInstaller = new ProtocolHandlerInstaller()
 
+    // Public: A {TextEditorRegistry} instance
     this.textEditors = new TextEditorRegistry({
       config: this.config,
       grammarRegistry: this.grammars,
@@ -128,6 +162,7 @@ class AtomEnvironment {
       packageManager: this.packages
     })
 
+    // Public: A {Workspace} instance
     this.workspace = new Workspace({
       config: this.config,
       project: this.project,
@@ -157,7 +192,9 @@ class AtomEnvironment {
 
     this.windowEventHandler = new WindowEventHandler({atomEnvironment: this, applicationDelegate: this.applicationDelegate})
 
+    // Public: A {HistoryManager} instance
     this.history = new HistoryManager({project: this.project, commands: this.commands, stateStore: this.stateStore})
+
     // Keep instances of HistoryManager in sync
     this.disposables.add(this.history.onDidChangeProjects(event => {
       if (!event.reloaded) this.applicationDelegate.didChangeHistoryManager()
@@ -175,19 +212,23 @@ class AtomEnvironment {
     this.blobStore = params.blobStore
     this.configDirPath = params.configDirPath
 
-    const {devMode, safeMode, resourcePath, clearWindowState} = this.getLoadSettings()
-
-    if (clearWindowState) {
-      this.getStorageFolder().clear()
-      this.stateStore.clear()
-    }
+    const {devMode, safeMode, resourcePath, userSettings, projectSpecification} = this.getLoadSettings()
 
     ConfigSchema.projectHome = {
       type: 'string',
       default: path.join(fs.getHomeDirectory(), 'github'),
       description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
     }
-    this.config.initialize({configDirPath: this.configDirPath, resourcePath, projectHomeSchema: ConfigSchema.projectHome})
+
+    this.config.initialize({
+      mainSource: this.enablePersistence && path.join(this.configDirPath, 'config.cson'),
+      projectHomeSchema: ConfigSchema.projectHome
+    })
+    this.config.resetUserSettings(userSettings)
+
+    if (projectSpecification != null && projectSpecification.config != null) {
+      this.project.replace(projectSpecification)
+    }
 
     this.menu.initialize({resourcePath})
     this.contextMenu.initialize({resourcePath, devMode})
@@ -208,8 +249,6 @@ class AtomEnvironment {
     this.commandInstaller.initialize(this.getVersion())
     this.uriHandlerRegistry.registerHostHandler('core', CoreURIHandlers.create(this))
     this.autoUpdater.initialize()
-
-    this.config.load()
 
     this.protocolHandlerInstaller.initialize(this.config, this.notifications)
 
@@ -244,7 +283,7 @@ class AtomEnvironment {
   attachSaveStateListeners () {
     const saveState = _.debounce(() => {
       this.window.requestIdleCallback(() => {
-        if (!this.unloaded) this.saveState({isUnloading: false})
+        if (!this.unloading) this.saveState({isUnloading: false})
       })
     }, this.saveStateDebounceInterval)
     this.document.addEventListener('mousedown', saveState, true)
@@ -327,6 +366,7 @@ class AtomEnvironment {
     this.grammars.clear()
     this.textEditors.clear()
     this.views.clear()
+    this.pathsWithWaitSessions.clear()
   }
 
   destroy () {
@@ -339,8 +379,7 @@ class AtomEnvironment {
     if (this.project) this.project.destroy()
     this.project = null
     this.commands.clear()
-    this.stylesElement.remove()
-    this.config.unobserveUserConfig()
+    if (this.stylesElement) this.stylesElement.remove()
     this.autoUpdater.destroy()
     this.uriHandlerRegistry.destroy()
 
@@ -451,21 +490,25 @@ class AtomEnvironment {
 
   // Public: Gets the release channel of the Atom application.
   //
-  // Returns the release channel as a {String}. Will return one of `dev`, `beta`, or `stable`.
+  // Returns the release channel as a {String}. Will return a specific release channel
+  // name like 'beta' or 'nightly' if one is found in the Atom version or 'stable'
+  // otherwise.
   getReleaseChannel () {
-    const version = this.getVersion()
-    if (version.includes('beta')) {
-      return 'beta'
-    } else if (version.includes('dev')) {
-      return 'dev'
-    } else {
-      return 'stable'
+    // This matches stable, dev (with or without commit hash) and any other
+    // release channel following the pattern '1.00.0-channel0'
+    const match = this.getVersion().match(/\d+\.\d+\.\d+(-([a-z]+)(\d+|-\w{4,})?)?$/)
+    if (!match) {
+      return 'unrecognized'
+    } else if (match[2]) {
+      return match[2]
     }
+
+    return 'stable'
   }
 
   // Public: Returns a {Boolean} that is `true` if the current version is an official release.
   isReleasedVersion () {
-    return !/\w{7}/.test(this.getVersion()) // Check if the release is a 7-character SHA prefix
+    return this.getReleaseChannel().match(/stable|beta|nightly/) != null
   }
 
   // Public: Get the time taken to completely load the current window.
@@ -730,8 +773,12 @@ class AtomEnvironment {
   }
 
   // Call this method when establishing a real application window.
-  startEditorWindow () {
-    this.unloaded = false
+  async startEditorWindow () {
+    if (this.getLoadSettings().clearWindowState) {
+      await this.stateStore.clear()
+    }
+
+    this.unloading = false
 
     const updateProcessEnvPromise = this.updateProcessEnvAndTriggerHooks()
 
@@ -745,25 +792,18 @@ class AtomEnvironment {
         if (error) console.warn(error.message)
       })
 
+      this.disposables.add(this.applicationDelegate.onDidChangeUserSettings(settings =>
+        this.config.resetUserSettings(settings)
+      ))
+      this.disposables.add(this.applicationDelegate.onDidFailToReadUserSettings(message =>
+        this.notifications.addError(message)
+      ))
+
       this.disposables.add(this.applicationDelegate.onDidOpenLocations(this.openLocations.bind(this)))
       this.disposables.add(this.applicationDelegate.onApplicationMenuCommand(this.dispatchApplicationMenuCommand.bind(this)))
       this.disposables.add(this.applicationDelegate.onContextMenuCommand(this.dispatchContextMenuCommand.bind(this)))
       this.disposables.add(this.applicationDelegate.onURIMessage(this.dispatchURIMessage.bind(this)))
-      this.disposables.add(this.applicationDelegate.onDidRequestUnload(async () => {
-        try {
-          await this.saveState({isUnloading: true})
-        } catch (error) {
-          console.error(error)
-        }
-
-        const closing = !this.workspace || await this.workspace.confirmClose({
-          windowCloseRequested: true,
-          projectHasPaths: this.project.getPaths().length > 0
-        })
-
-        if (closing) await this.packages.deactivatePackages()
-        return closing
-      }))
+      this.disposables.add(this.applicationDelegate.onDidRequestUnload(this.prepareToUnloadEditorWindow.bind(this)))
 
       this.listenForUpdates()
 
@@ -790,7 +830,22 @@ class AtomEnvironment {
       this.document.body.appendChild(this.workspace.getElement())
       if (this.backgroundStylesheet) this.backgroundStylesheet.remove()
 
-      this.watchProjectPaths()
+      let previousProjectPaths = this.project.getPaths()
+      this.disposables.add(this.project.onDidChangePaths(newPaths => {
+        for (let path of previousProjectPaths) {
+          if (this.pathsWithWaitSessions.has(path) && !newPaths.includes(path)) {
+            this.applicationDelegate.didClosePathWithWaitSession(path)
+          }
+        }
+        previousProjectPaths = newPaths
+        this.applicationDelegate.setRepresentedDirectoryPaths(newPaths)
+      }))
+      this.disposables.add(this.workspace.onDidDestroyPaneItem(({item}) => {
+        const path = item.getPath && item.getPath()
+        if (this.pathsWithWaitSessions.has(path)) {
+          this.applicationDelegate.didClosePathWithWaitSession(path)
+        }
+      }))
 
       this.packages.activate()
       this.keymaps.loadUserKeymap()
@@ -827,12 +882,30 @@ class AtomEnvironment {
     }
   }
 
+  async prepareToUnloadEditorWindow () {
+    try {
+      await this.saveState({isUnloading: true})
+    } catch (error) {
+      console.error(error)
+    }
+
+    const closing = !this.workspace || await this.workspace.confirmClose({
+      windowCloseRequested: true,
+      projectHasPaths: this.project.getPaths().length > 0
+    })
+
+    if (closing) {
+      this.unloading = true
+      await this.packages.deactivatePackages()
+    }
+    return closing
+  }
+
   unloadEditorWindow () {
     if (!this.project) return
 
     this.storeWindowBackground()
     this.saveBlobStoreSync()
-    this.unloaded = true
   }
 
   saveBlobStoreSync () {
@@ -916,29 +989,64 @@ class AtomEnvironment {
 
   // Essential: A flexible way to open a dialog akin to an alert dialog.
   //
+  // While both async and sync versions are provided, it is recommended to use the async version
+  // such that the renderer process is not blocked while the dialog box is open.
+  //
+  // The async version accepts the same options as Electron's `dialog.showMessageBox`.
+  // For convenience, it sets `type` to `'info'` and `normalizeAccessKeys` to `true` by default.
+  //
   // If the dialog is closed (via `Esc` key or `X` in the top corner) without selecting a button
   // the first button will be clicked unless a "Cancel" or "No" button is provided.
   //
   // ## Examples
   //
-  // ```coffee
-  // atom.confirm
-  //   message: 'How you feeling?'
-  //   detailedMessage: 'Be honest.'
-  //   buttons:
-  //     Good: -> window.alert('good to hear')
-  //     Bad: -> window.alert('bummer')
+  // ```js
+  // // Async version (recommended)
+  // atom.confirm({
+  //   message: 'How you feeling?',
+  //   detail: 'Be honest.',
+  //   buttons: ['Good', 'Bad']
+  // }, response => {
+  //   if (response === 0) {
+  //     window.alert('good to hear')
+  //   } else {
+  //     window.alert('bummer')
+  //   }
+  // })
   // ```
   //
-  // * `options` An {Object} with the following keys:
+  // ```js
+  // // Legacy sync version
+  // const chosen = atom.confirm({
+  //   message: 'How you feeling?',
+  //   detailedMessage: 'Be honest.',
+  //   buttons: {
+  //     Good: () => window.alert('good to hear'),
+  //     Bad: () => window.alert('bummer')
+  //   }
+  // })
+  // ```
+  //
+  // * `options` An options {Object}. If the callback argument is also supplied, see the documentation at
+  // https://electronjs.org/docs/api/dialog#dialogshowmessageboxbrowserwindow-options-callback for the list of
+  // available options. Otherwise, only the following keys are accepted:
   //   * `message` The {String} message to display.
   //   * `detailedMessage` (optional) The {String} detailed message to display.
-  //   * `buttons` (optional) Either an array of strings or an object where keys are
-  //     button names and the values are callbacks to invoke when clicked.
+  //   * `buttons` (optional) Either an {Array} of {String}s or an {Object} where keys are
+  //     button names and the values are callback {Function}s to invoke when clicked.
+  // * `callback` (optional) A {Function} that will be called with the index of the chosen option.
+  //   If a callback is supplied, the dialog will be non-blocking. This argument is recommended.
   //
-  // Returns the chosen button index {Number} if the buttons option is an array or the return value of the callback if the buttons option is an object.
-  confirm (params = {}) {
-    return this.applicationDelegate.confirm(params)
+  // Returns the chosen button index {Number} if the buttons option is an array
+  // or the return value of the callback if the buttons option is an object.
+  // If a callback function is supplied, returns `undefined`.
+  confirm (options = {}, callback) {
+    if (callback) {
+      // Async: no return value
+      this.applicationDelegate.confirm(options, callback)
+    } else {
+      return this.applicationDelegate.confirm(options)
+    }
   }
 
   /*
@@ -993,13 +1101,6 @@ class AtomEnvironment {
     return this.themes.load()
   }
 
-  // Notify the browser project of the window's current project path
-  watchProjectPaths () {
-    this.disposables.add(this.project.onDidChangePaths(() => {
-      this.applicationDelegate.setRepresentedDirectoryPaths(this.project.getPaths())
-    }))
-  }
-
   setDocumentEdited (edited) {
     if (typeof this.applicationDelegate.setWindowDocumentEdited === 'function') {
       this.applicationDelegate.setWindowDocumentEdited(edited)
@@ -1013,8 +1114,10 @@ class AtomEnvironment {
   }
 
   addProjectFolder () {
-    this.pickFolder((selectedPaths = []) => {
-      this.addToProject(selectedPaths)
+    return new Promise((resolve) => {
+      this.pickFolder((selectedPaths) => {
+        this.addToProject(selectedPaths || []).then(resolve)
+      })
     })
   }
 
@@ -1027,7 +1130,7 @@ class AtomEnvironment {
     }
   }
 
-  attemptRestoreProjectStateForPaths (state, projectPaths, filesToOpen = []) {
+  async attemptRestoreProjectStateForPaths (state, projectPaths, filesToOpen = []) {
     const center = this.workspace.getCenter()
     const windowIsUnused = () => {
       for (let container of this.workspace.getPaneContainers()) {
@@ -1043,33 +1146,41 @@ class AtomEnvironment {
     }
 
     if (windowIsUnused()) {
-      this.restoreStateIntoThisEnvironment(state)
+      await this.restoreStateIntoThisEnvironment(state)
       return Promise.all(filesToOpen.map(file => this.workspace.open(file)))
     } else {
+      let resolveDiscardStatePromise = null
+      const discardStatePromise = new Promise((resolve) => {
+        resolveDiscardStatePromise = resolve
+      })
       const nouns = projectPaths.length === 1 ? 'folder' : 'folders'
-      const choice = this.confirm({
+      this.confirm({
         message: 'Previous automatically-saved project state detected',
-        detailedMessage: `There is previously saved state for the selected ${nouns}. ` +
+        detail: `There is previously saved state for the selected ${nouns}. ` +
           `Would you like to add the ${nouns} to this window, permanently discarding the saved state, ` +
           `or open the ${nouns} in a new window, restoring the saved state?`,
         buttons: [
           '&Open in new window and recover state',
           '&Add to this window and discard state'
-        ]})
-      if (choice === 0) {
-        this.open({
-          pathsToOpen: projectPaths.concat(filesToOpen),
-          newWindow: true,
-          devMode: this.inDevMode(),
-          safeMode: this.inSafeMode()
-        })
-        return Promise.resolve(null)
-      } else if (choice === 1) {
-        for (let selectedPath of projectPaths) {
-          this.project.addPath(selectedPath)
+        ]
+      }, response => {
+        if (response === 0) {
+          this.open({
+            pathsToOpen: projectPaths.concat(filesToOpen),
+            newWindow: true,
+            devMode: this.inDevMode(),
+            safeMode: this.inSafeMode()
+          })
+          resolveDiscardStatePromise(Promise.resolve(null))
+        } else if (response === 1) {
+          for (let selectedPath of projectPaths) {
+            this.project.addPath(selectedPath)
+          }
+          resolveDiscardStatePromise(Promise.all(filesToOpen.map(file => this.workspace.open(file))))
         }
-        return Promise.all(filesToOpen.map(file => this.workspace.open(file)))
-      }
+      })
+
+      return discardStatePromise
     }
   }
 
@@ -1081,12 +1192,11 @@ class AtomEnvironment {
     return this.deserialize(state)
   }
 
-  showSaveDialog (callback) {
-    callback(this.showSaveDialogSync())
-  }
-
   showSaveDialogSync (options = {}) {
-    this.applicationDelegate.showSaveDialog(options)
+    deprecate(`atom.showSaveDialogSync is deprecated and will be removed soon.
+Please, implement ::saveAs and ::getSaveDialogOptions instead for pane items
+or use Pane::saveItemAs for programmatic saving.`)
+    return this.applicationDelegate.showSaveDialog(options)
   }
 
   async saveState (options, storageKey) {
@@ -1179,11 +1289,6 @@ class AtomEnvironment {
     }
   }
 
-  getStorageFolder () {
-    if (!this.storageFolder) this.storageFolder = new StorageFolder(this.getConfigDirPath())
-    return this.storageFolder
-  }
-
   getConfigDirPath () {
     if (!this.configDirPath) this.configDirPath = process.env.ATOM_HOME
     return this.configDirPath
@@ -1257,39 +1362,56 @@ class AtomEnvironment {
 
   async openLocations (locations) {
     const needsProjectPaths = this.project && this.project.getPaths().length === 0
-    const foldersToAddToProject = []
+    const foldersToAddToProject = new Set()
     const fileLocationsToOpen = []
 
-    function pushFolderToOpen (folder) {
-      if (!foldersToAddToProject.includes(folder)) {
-        foldersToAddToProject.push(folder)
-      }
-    }
+    // Asynchronously fetch stat information about each requested path to open.
+    const locationStats = await Promise.all(
+      locations.map(async location => {
+        const stats = location.pathToOpen ? await stat(location.pathToOpen).catch(() => null) : null
+        return {location, stats}
+      }),
+    )
 
-    for (var {pathToOpen, initialLine, initialColumn, forceAddToWindow} of locations) {
-      if (pathToOpen && (needsProjectPaths || forceAddToWindow)) {
-        if (fs.existsSync(pathToOpen)) {
-          pushFolderToOpen(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
-        } else if (fs.existsSync(path.dirname(pathToOpen))) {
-          pushFolderToOpen(this.project.getDirectoryForProjectPath(path.dirname(pathToOpen)).getPath())
+    for (const {location, stats} of locationStats) {
+      const {pathToOpen} = location
+      if (!pathToOpen) {
+        continue
+      }
+
+      if (stats !== null) {
+        // Path exists
+        if (stats.isDirectory()) {
+          // Directory: add as a project folder
+          foldersToAddToProject.add(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
+        } else if (stats.isFile()) {
+          // File: add as a file location
+          fileLocationsToOpen.push(location)
+        }
+      } else {
+        // Path does not exist
+        // Attempt to interpret as a URI from a non-default directory provider
+        const directory = this.project.getProvidedDirectoryForProjectPath(pathToOpen)
+        if (directory) {
+          // Found: add as a project folder
+          foldersToAddToProject.add(directory.getPath())
         } else {
-          pushFolderToOpen(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
+          // Not found: open as a new file
+          fileLocationsToOpen.push(location)
         }
       }
 
-      if (!fs.isDirectorySync(pathToOpen)) {
-        fileLocationsToOpen.push({pathToOpen, initialLine, initialColumn})
-      }
+      if (location.hasWaitSession) this.pathsWithWaitSessions.add(pathToOpen)
     }
 
     let restoredState = false
-    if (foldersToAddToProject.length > 0) {
-      const state = await this.loadState(this.getStateKey(foldersToAddToProject))
+    if (foldersToAddToProject.size > 0) {
+      const state = await this.loadState(this.getStateKey(Array.from(foldersToAddToProject)))
 
       // only restore state if this is the first path added to the project
       if (state && needsProjectPaths) {
         const files = fileLocationsToOpen.map((location) => location.pathToOpen)
-        await this.attemptRestoreProjectStateForPaths(state, foldersToAddToProject, files)
+        await this.attemptRestoreProjectStateForPaths(state, Array.from(foldersToAddToProject), files)
         restoredState = true
       } else {
         for (let folder of foldersToAddToProject) {
@@ -1300,7 +1422,7 @@ class AtomEnvironment {
 
     if (!restoredState) {
       const fileOpenPromises = []
-      for ({pathToOpen, initialLine, initialColumn} of fileLocationsToOpen) {
+      for (const {pathToOpen, initialLine, initialColumn} of fileLocationsToOpen) {
         fileOpenPromises.push(this.workspace && this.workspace.open(pathToOpen, {initialLine, initialColumn}))
       }
       await Promise.all(fileOpenPromises)

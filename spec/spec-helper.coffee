@@ -12,7 +12,7 @@ FindParentDir = require 'find-parent-dir'
 TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
 TextMateLanguageMode = require '../src/text-mate-language-mode'
-clipboard = require '../src/safe-clipboard'
+{clipboard} = require 'electron'
 
 jasmineStyle = document.createElement('style')
 jasmineStyle.textContent = atom.themes.loadStylesheet(atom.themes.resolveStylesheet('../static/jasmine'))
@@ -111,7 +111,8 @@ beforeEach ->
     new CompositeDisposable(
       @emitter.on("did-tokenize", callback),
       @onDidChangeGrammar =>
-        if @buffer.getLanguageMode().tokenizeInBackground.originalValue
+        languageMode = @buffer.getLanguageMode()
+        if languageMode.tokenizeInBackground?.originalValue
           callback()
     )
 

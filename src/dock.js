@@ -1,11 +1,11 @@
-'use strict'
-
+const etch = require('etch')
 const _ = require('underscore-plus')
 const {CompositeDisposable, Emitter} = require('event-kit')
 const PaneContainer = require('./pane-container')
 const TextEditor = require('./text-editor')
 const Grim = require('grim')
 
+const $ = etch.dom
 const MINIMUM_SIZE = 100
 const DEFAULT_INITIAL_SIZE = 300
 const SHOULD_ANIMATE_CLASS = 'atom-dock-should-animate'
@@ -26,6 +26,8 @@ module.exports = class Dock {
     this.handleMouseUp = this.handleMouseUp.bind(this)
     this.handleDrag = _.throttle(this.handleDrag.bind(this), 30)
     this.handleDragEnd = this.handleDragEnd.bind(this)
+    this.handleToggleButtonDragEnter = this.handleToggleButtonDragEnter.bind(this)
+    this.toggle = this.toggle.bind(this)
 
     this.location = params.location
     this.widthOrHeight = getWidthOrHeight(this.location)
@@ -72,11 +74,16 @@ module.exports = class Dock {
   // This method is called explicitly by the object which adds the Dock to the document.
   elementAttached () {
     // Re-render when the dock is attached to make sure we remeasure sizes defined in CSS.
-    this.render(this.state)
+    etch.updateSync(this)
   }
 
   getElement () {
-    if (!this.element) this.render(this.state)
+    // Because this code is included in the snapshot, we have to make sure we don't touch the DOM
+    // during initialization. Therefore, we defer initialization of the component (which creates a
+    // DOM element) until somebody asks for the element.
+    if (this.element == null) {
+      etch.initialize(this)
+    }
     return this.element
   }
 
@@ -151,88 +158,94 @@ module.exports = class Dock {
     }
 
     this.state = nextState
-    this.render(this.state)
 
-    const {visible} = this.state
+    const {hovered, visible} = this.state
+
+    // Render immediately if the dock becomes visible or the size changes in case people are
+    // measuring after opening, for example.
+    if (this.element != null) {
+      if ((visible && !prevState.visible) || (this.state.size !== prevState.size)) etch.updateSync(this)
+      else etch.update(this)
+    }
+
+    if (hovered !== prevState.hovered) {
+      this.emitter.emit('did-change-hovered', hovered)
+    }
     if (visible !== prevState.visible) {
       this.emitter.emit('did-change-visible', visible)
     }
   }
 
-  render (state) {
-    if (this.element == null) {
-      this.element = document.createElement('atom-dock')
-      this.element.classList.add(this.location)
-      this.innerElement = document.createElement('div')
-      this.innerElement.classList.add('atom-dock-inner', this.location)
-      this.maskElement = document.createElement('div')
-      this.maskElement.classList.add('atom-dock-mask')
-      this.wrapperElement = document.createElement('div')
-      this.wrapperElement.classList.add('atom-dock-content-wrapper', this.location)
-      this.resizeHandle = new DockResizeHandle({
-        location: this.location,
-        onResizeStart: this.handleResizeHandleDragStart,
-        onResizeToFit: this.handleResizeToFit
-      })
-      this.toggleButton = new DockToggleButton({
-        onDragEnter: this.handleToggleButtonDragEnter.bind(this),
-        location: this.location,
-        toggle: this.toggle.bind(this)
-      })
-      this.cursorOverlayElement = document.createElement('div')
-      this.cursorOverlayElement.classList.add('atom-dock-cursor-overlay', this.location)
+  render () {
+    const innerElementClassList = ['atom-dock-inner', this.location]
+    if (this.state.visible) innerElementClassList.push(VISIBLE_CLASS)
 
-      // Add the children to the DOM tree
-      this.element.appendChild(this.innerElement)
-      this.innerElement.appendChild(this.maskElement)
-      this.maskElement.appendChild(this.wrapperElement)
-      this.wrapperElement.appendChild(this.resizeHandle.getElement())
-      this.wrapperElement.appendChild(this.paneContainer.getElement())
-      this.wrapperElement.appendChild(this.cursorOverlayElement)
-      // The toggle button must be rendered outside the mask because (1) it shouldn't be masked and
-      // (2) if we made the mask larger to avoid masking it, the mask would block mouse events.
-      this.innerElement.appendChild(this.toggleButton.getElement())
-    }
+    const maskElementClassList = ['atom-dock-mask']
+    if (this.state.shouldAnimate) maskElementClassList.push(SHOULD_ANIMATE_CLASS)
 
-    if (state.visible) {
-      this.innerElement.classList.add(VISIBLE_CLASS)
-    } else {
-      this.innerElement.classList.remove(VISIBLE_CLASS)
-    }
+    const cursorOverlayElementClassList = ['atom-dock-cursor-overlay', this.location]
+    if (this.state.resizing) cursorOverlayElementClassList.push(CURSOR_OVERLAY_VISIBLE_CLASS)
 
-    if (state.shouldAnimate) {
-      this.maskElement.classList.add(SHOULD_ANIMATE_CLASS)
-    } else {
-      this.maskElement.classList.remove(SHOULD_ANIMATE_CLASS)
-    }
-
-    if (state.resizing) {
-      this.cursorOverlayElement.classList.add(CURSOR_OVERLAY_VISIBLE_CLASS)
-    } else {
-      this.cursorOverlayElement.classList.remove(CURSOR_OVERLAY_VISIBLE_CLASS)
-    }
-
-    const shouldBeVisible = state.visible || state.showDropTarget
+    const shouldBeVisible = this.state.visible || this.state.showDropTarget
     const size = Math.max(MINIMUM_SIZE,
-      state.size ||
-      (state.draggingItem && getPreferredSize(state.draggingItem, this.location)) ||
+      this.state.size ||
+      (this.state.draggingItem && getPreferredSize(this.state.draggingItem, this.location)) ||
       DEFAULT_INITIAL_SIZE
     )
 
     // We need to change the size of the mask...
-    this.maskElement.style[this.widthOrHeight] = `${shouldBeVisible ? size : 0}px`
+    const maskStyle = {[this.widthOrHeight]: `${shouldBeVisible ? size : 0}px`}
     // ...but the content needs to maintain a constant size.
-    this.wrapperElement.style[this.widthOrHeight] = `${size}px`
+    const wrapperStyle = {[this.widthOrHeight]: `${size}px`}
 
-    this.resizeHandle.update({dockIsVisible: this.state.visible})
-    this.toggleButton.update({
-      dockIsVisible: shouldBeVisible,
-      visible:
-        // Don't show the toggle button if the dock is closed and empty...
-        (state.hovered && (this.state.visible || this.getPaneItems().length > 0)) ||
-        // ...or if the item can't be dropped in that dock.
-        (!shouldBeVisible && state.draggingItem && isItemAllowed(state.draggingItem, this.location))
-    })
+    return $(
+      'atom-dock',
+      {className: this.location},
+      $.div(
+        {ref: 'innerElement', className: innerElementClassList.join(' ')},
+        $.div(
+          {
+            className: maskElementClassList.join(' '),
+            style: maskStyle
+          },
+          $.div(
+            {
+              ref: 'wrapperElement',
+              className: `atom-dock-content-wrapper ${this.location}`,
+              style: wrapperStyle
+            },
+            $(DockResizeHandle, {
+              location: this.location,
+              onResizeStart: this.handleResizeHandleDragStart,
+              onResizeToFit: this.handleResizeToFit,
+              dockIsVisible: this.state.visible
+            }),
+            $(ElementComponent, {element: this.paneContainer.getElement()}),
+            $.div({className: cursorOverlayElementClassList.join(' ')})
+          )
+        ),
+        $(DockToggleButton, {
+          ref: 'toggleButton',
+          onDragEnter: this.state.draggingItem ? this.handleToggleButtonDragEnter : null,
+          location: this.location,
+          toggle: this.toggle,
+          dockIsVisible: shouldBeVisible,
+          visible:
+            // Don't show the toggle button if the dock is closed and empty...
+            (this.state.hovered &&
+              (this.state.visible || this.getPaneItems().length > 0)) ||
+            // ...or if the item can't be dropped in that dock.
+            (!shouldBeVisible &&
+              this.state.draggingItem &&
+              isItemAllowed(this.state.draggingItem, this.location))
+        })
+      )
+    )
+  }
+
+  update (props) {
+    // Since we're interopping with non-etch stuff, this method's actually never called.
+    return etch.update(this)
   }
 
   handleDidAddPaneItem () {
@@ -296,7 +309,7 @@ module.exports = class Dock {
   }
 
   handleDrag (event) {
-    if (!this.pointWithinHoverArea({x: event.pageX, y: event.pageY}, false)) {
+    if (!this.pointWithinHoverArea({x: event.pageX, y: event.pageY}, true)) {
       this.draggedOut()
     }
   }
@@ -313,9 +326,13 @@ module.exports = class Dock {
 
   // Determine whether the cursor is within the dock hover area. This isn't as simple as just using
   // mouseenter/leave because we want to be a little more forgiving. For example, if the cursor is
-  // over the footer, we want to show the bottom dock's toggle button.
-  pointWithinHoverArea (point, includeButtonWidth = this.state.hovered) {
-    const dockBounds = this.innerElement.getBoundingClientRect()
+  // over the footer, we want to show the bottom dock's toggle button. Also note that our criteria
+  // for detecting entry are different than detecting exit but, in order for us to avoid jitter, the
+  // area considered when detecting exit MUST fully encompass the area considered when detecting
+  // entry.
+  pointWithinHoverArea (point, detectingExit) {
+    const dockBounds = this.refs.innerElement.getBoundingClientRect()
+
     // Copy the bounds object since we can't mutate it.
     const bounds = {
       top: dockBounds.top,
@@ -324,7 +341,20 @@ module.exports = class Dock {
       left: dockBounds.left
     }
 
-    // Include all panels that are closer to the edge than the dock in our calculations.
+    // To provide a minimum target, expand the area toward the center a bit.
+    switch (this.location) {
+      case 'right':
+        bounds.left = Math.min(bounds.left, bounds.right - 2)
+        break
+      case 'bottom':
+        bounds.top = Math.min(bounds.top, bounds.bottom - 1)
+        break
+      case 'left':
+        bounds.right = Math.max(bounds.right, bounds.left + 2)
+        break
+    }
+
+    // Further expand the area to include all panels that are closer to the edge than the dock.
     switch (this.location) {
       case 'right':
         bounds.right = Number.POSITIVE_INFINITY
@@ -337,23 +367,41 @@ module.exports = class Dock {
         break
     }
 
-    // The area used when detecting "leave" events is actually larger than when detecting entrances.
-    if (includeButtonWidth) {
+    // If we're in this area, we know we're within the hover area without having to take further
+    // measurements.
+    if (rectContainsPoint(bounds, point)) return true
+
+    // If we're within the toggle button, we're definitely in the hover area. Unfortunately, we
+    // can't do this measurement conditionally (e.g. only if the toggle button is visible) because
+    // our knowledge of the toggle's button is incomplete due to CSS animations. (We may think the
+    // toggle button isn't visible when in actuality it is, but is animating to its hidden state.)
+    //
+    // Since `point` is always the current mouse position, one possible optimization would be to
+    // remove it as an argument and determine whether we're inside the toggle button using
+    // mouseenter/leave events on it. This class would still need to keep track of the mouse
+    // position (via a mousemove listener) for the other measurements, though.
+    const toggleButtonBounds = this.refs.toggleButton.getBounds()
+    if (rectContainsPoint(toggleButtonBounds, point)) return true
+
+    // The area used when detecting exit is actually larger than when detecting entrances. Expand
+    // our bounds and recheck them.
+    if (detectingExit) {
       const hoverMargin = 20
-      const {width, height} = this.toggleButton.getBounds()
       switch (this.location) {
         case 'right':
-          bounds.left -= width + hoverMargin
+          bounds.left = Math.min(bounds.left, toggleButtonBounds.left) - hoverMargin
           break
         case 'bottom':
-          bounds.top -= height + hoverMargin
+          bounds.top = Math.min(bounds.top, toggleButtonBounds.top) - hoverMargin
           break
         case 'left':
-          bounds.right += width + hoverMargin
+          bounds.right = Math.max(bounds.right, toggleButtonBounds.right) + hoverMargin
           break
       }
+      if (rectContainsPoint(bounds, point)) return true
     }
-    return rectContainsPoint(bounds, point)
+
+    return false
   }
 
   getInitialSize () {
@@ -574,6 +622,16 @@ module.exports = class Dock {
     return this.paneContainer.onDidDestroyPaneItem(callback)
   }
 
+  // Extended: Invoke the given callback when the hovered state of the dock changes.
+  //
+  // * `callback` {Function} to be called when the hovered state changes.
+  //   * `hovered` {Boolean} Is the dock now hovered?
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeHovered (callback) {
+    return this.emitter.on('did-change-hovered', callback)
+  }
+
   /*
   Section: Pane Items
   */
@@ -659,13 +717,18 @@ module.exports = class Dock {
 
 class DockResizeHandle {
   constructor (props) {
-    this.handleMouseDown = this.handleMouseDown.bind(this)
-
-    this.element = document.createElement('div')
-    this.element.classList.add('atom-dock-resize-handle', props.location)
-    this.element.addEventListener('mousedown', this.handleMouseDown)
     this.props = props
-    this.update(props)
+    etch.initialize(this)
+  }
+
+  render () {
+    const classList = ['atom-dock-resize-handle', this.props.location]
+    if (this.props.dockIsVisible) classList.push(RESIZE_HANDLE_RESIZABLE_CLASS)
+
+    return $.div({
+      className: classList.join(' '),
+      on: {mousedown: this.handleMouseDown}
+    })
   }
 
   getElement () {
@@ -681,12 +744,7 @@ class DockResizeHandle {
 
   update (newProps) {
     this.props = Object.assign({}, this.props, newProps)
-
-    if (this.props.dockIsVisible) {
-      this.element.classList.add(RESIZE_HANDLE_RESIZABLE_CLASS)
-    } else {
-      this.element.classList.remove(RESIZE_HANDLE_RESIZABLE_CLASS)
-    }
+    return etch.update(this)
   }
 
   handleMouseDown (event) {
@@ -700,22 +758,34 @@ class DockResizeHandle {
 
 class DockToggleButton {
   constructor (props) {
-    this.handleClick = this.handleClick.bind(this)
-    this.handleDragEnter = this.handleDragEnter.bind(this)
-
-    this.element = document.createElement('div')
-    this.element.classList.add('atom-dock-toggle-button', props.location)
-    this.element.classList.add(props.location)
-    this.innerElement = document.createElement('div')
-    this.innerElement.classList.add('atom-dock-toggle-button-inner', props.location)
-    this.innerElement.addEventListener('click', this.handleClick)
-    this.innerElement.addEventListener('dragenter', this.handleDragEnter)
-    this.iconElement = document.createElement('span')
-    this.innerElement.appendChild(this.iconElement)
-    this.element.appendChild(this.innerElement)
-
     this.props = props
-    this.update(props)
+    etch.initialize(this)
+  }
+
+  render () {
+    const classList = ['atom-dock-toggle-button', this.props.location]
+    if (this.props.visible) classList.push(TOGGLE_BUTTON_VISIBLE_CLASS)
+
+    return $.div(
+      {className: classList.join(' ')},
+      $.div(
+        {
+          ref: 'innerElement',
+          className: `atom-dock-toggle-button-inner ${this.props.location}`,
+          on: {
+            click: this.handleClick,
+            dragenter: this.props.onDragEnter
+          }
+        },
+        $.span({
+          ref: 'iconElement',
+          className: `icon ${getIconName(
+            this.props.location,
+            this.props.dockIsVisible
+          )}`
+        })
+      )
+    )
   }
 
   getElement () {
@@ -723,30 +793,28 @@ class DockToggleButton {
   }
 
   getBounds () {
-    if (this.bounds == null) {
-      this.bounds = this.element.getBoundingClientRect()
-    }
-    return this.bounds
+    return this.refs.innerElement.getBoundingClientRect()
   }
 
   update (newProps) {
     this.props = Object.assign({}, this.props, newProps)
-
-    if (this.props.visible) {
-      this.element.classList.add(TOGGLE_BUTTON_VISIBLE_CLASS)
-    } else {
-      this.element.classList.remove(TOGGLE_BUTTON_VISIBLE_CLASS)
-    }
-
-    this.iconElement.className = 'icon ' + getIconName(this.props.location, this.props.dockIsVisible)
+    return etch.update(this)
   }
 
   handleClick () {
     this.props.toggle()
   }
+}
 
-  handleDragEnter () {
-    this.props.onDragEnter()
+// An etch component that doesn't use etch, this component provides a gateway from JSX back into
+// the mutable DOM world.
+class ElementComponent {
+  constructor (props) {
+    this.element = props.element
+  }
+
+  update (props) {
+    this.element = props.element
   }
 }
 

@@ -5,6 +5,7 @@ fs = require 'fs-plus'
 {Disposable} = require 'event-kit'
 {remote} = require 'electron'
 MenuHelpers = require './menu-helpers'
+{sortMenuItems} = require './menu-sort-helpers'
 
 platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
 
@@ -149,7 +150,7 @@ class ContextMenuManager
     @pruneRedundantSeparators(template)
     @addAccelerators(template)
 
-    template
+    return @sortTemplate(template)
 
   # Adds an `accelerator` property to items that have key bindings. Electron
   # uses this property to surface the relevant keymaps in the context menu.
@@ -174,6 +175,13 @@ class ContextMenuManager
       else
         keepNextItemIfSeparator = true
         index++
+
+  sortTemplate: (template) ->
+    template = sortMenuItems(template)
+    for id, item of template
+      if Array.isArray(item.submenu)
+        item.submenu = @sortTemplate(item.submenu)
+    return template
 
   # Returns an object compatible with `::add()` or `null`.
   cloneItemForEvent: (item, event) ->

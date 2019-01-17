@@ -44,7 +44,15 @@ describe('WindowEventHandler', () => {
       })
     )
   })
-
+  
+  describe('resize event', () =>
+    it('calls storeWindowDimensions', () => {
+      spyOn(atom, 'storeWindowDimensions')
+      window.dispatchEvent(new CustomEvent('resize'))
+      expect(atom.storeWindowDimensions).toHaveBeenCalled()
+    })
+  )
+  
   describe('window:close event', () =>
     it('closes the window', () => {
       spyOn(atom, 'close')
@@ -53,7 +61,7 @@ describe('WindowEventHandler', () => {
     })
   )
 
-  describe('when a link is clicked', () =>
+  describe('when a link is clicked', () => {
     it('opens the http/https links in an external application', () => {
       const {shell} = require('electron')
       spyOn(shell, 'openExternal')
@@ -85,7 +93,24 @@ describe('WindowEventHandler', () => {
       windowEventHandler.handleLinkClick(fakeEvent)
       expect(shell.openExternal).not.toHaveBeenCalled()
     })
-  )
+
+    it('opens the "atom://" links with URL handler', () => {
+      const uriHandler = windowEventHandler.atomEnvironment.uriHandlerRegistry
+      expect(uriHandler).toBeDefined()
+      spyOn(uriHandler, 'handleURI')
+
+      const link = document.createElement('a')
+      const linkChild = document.createElement('span')
+      link.appendChild(linkChild)
+      link.href = 'atom://github.com'
+      jasmine.attachToDOM(link)
+      const fakeEvent = {target: linkChild, currentTarget: link, preventDefault: () => {}}
+
+      windowEventHandler.handleLinkClick(fakeEvent)
+      expect(uriHandler.handleURI).toHaveBeenCalled()
+      expect(uriHandler.handleURI.argsForCall[0][0]).toBe('atom://github.com')
+    })
+  })
 
   describe('when a form is submitted', () =>
     it("prevents the default so that the window's URL isn't changed", () => {

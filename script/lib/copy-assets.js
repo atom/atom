@@ -15,7 +15,6 @@ module.exports = function () {
     path.join(CONFIG.repositoryRootPath, 'benchmarks', 'benchmark-runner.js'),
     path.join(CONFIG.repositoryRootPath, 'dot-atom'),
     path.join(CONFIG.repositoryRootPath, 'exports'),
-    path.join(CONFIG.repositoryRootPath, 'node_modules'),
     path.join(CONFIG.repositoryRootPath, 'package.json'),
     path.join(CONFIG.repositoryRootPath, 'static'),
     path.join(CONFIG.repositoryRootPath, 'src'),
@@ -25,6 +24,19 @@ module.exports = function () {
   for (let srcPath of srcPaths) {
     fs.copySync(srcPath, computeDestinationPath(srcPath), {filter: includePathInPackagedApp})
   }
+
+  // Run a copy pass to dereference symlinked directories under node_modules.
+  // We do this to ensure that symlinked repo-local bundled packages get
+  // copied to the output folder correctly.  We dereference only the top-level
+  // symlinks and not nested symlinks to avoid issues where symlinked binaries
+  // are duplicated in Atom's installation packages (see atom/atom#18490).
+  const nodeModulesPath = path.join(CONFIG.repositoryRootPath, 'node_modules')
+  glob.sync(path.join(nodeModulesPath, '*'))
+      .map(p => fs.lstatSync(p).isSymbolicLink() ? path.resolve(nodeModulesPath, fs.readlinkSync(p)) : p)
+      .forEach(modulePath => {
+        const destPath = path.join(CONFIG.intermediateAppPath, 'node_modules', path.basename(modulePath))
+        fs.copySync(modulePath, destPath, { filter: includePathInPackagedApp })
+      })
 
   fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'png', '1024.png'),

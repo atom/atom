@@ -26,7 +26,7 @@
       { label: 'Hide Others', command: 'application:hide-other-applications' }
       { label: 'Show All', command: 'application:unhide-all-applications' }
       { type: 'separator' }
-      { label: 'Quit', command: 'application:quit' }
+      { label: 'Quit Atom', command: 'application:quit' }
     ]
   }
   {

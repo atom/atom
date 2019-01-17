@@ -85,6 +85,17 @@ describe('Selection', () => {
     })
   })
 
+  describe("when the selection's range is moved", () => {
+    it('notifies ::onDidChangeRange observers', () => {
+      selection.setBufferRange([[2, 0], [2, 10]])
+      const changeScreenRangeHandler = jasmine.createSpy('changeScreenRangeHandler')
+      selection.onDidChangeRange(changeScreenRangeHandler)
+      buffer.insert([2, 5], 'abc')
+      expect(changeScreenRangeHandler).toHaveBeenCalled()
+      expect(changeScreenRangeHandler.mostRecentCall.args[0]).not.toBeUndefined()
+    });
+  });
+
   describe("when only the selection's tail is moved (regression)", () => {
     it('notifies ::onDidChangeRange observers', () => {
       selection.setBufferRange([[2, 0], [2, 10]], {reversed: true})
@@ -93,6 +104,7 @@ describe('Selection', () => {
 
       buffer.insert([2, 5], 'abc')
       expect(changeScreenRangeHandler).toHaveBeenCalled()
+      expect(changeScreenRangeHandler.mostRecentCall.args[0]).not.toBeUndefined()
     })
   })
 
@@ -152,6 +164,120 @@ describe('Selection', () => {
       expect(selection.getBufferRange()).toEqual([[0, 3], [0, 3]])
       expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = function () {')
       expect(editor.isFoldedAtBufferRow(0)).toBe(false)
+    })
+  })
+
+  describe('within a read-only editor', () => {
+    beforeEach(() => {
+      editor.setReadOnly(true)
+      selection.setBufferRange([[0, 0], [0, 13]])
+    })
+
+    const modifications = [
+      {
+        name: 'insertText',
+        op: opts => selection.insertText('yes', opts)
+      },
+      {
+        name: 'backspace',
+        op: opts => selection.backspace(opts)
+      },
+      {
+        name: 'deleteToPreviousWordBoundary',
+        op: opts => selection.deleteToPreviousWordBoundary(opts)
+      },
+      {
+        name: 'deleteToNextWordBoundary',
+        op: opts => selection.deleteToNextWordBoundary(opts)
+      },
+      {
+        name: 'deleteToBeginningOfWord',
+        op: opts => selection.deleteToBeginningOfWord(opts)
+      },
+      {
+        name: 'deleteToBeginningOfLine',
+        op: opts => selection.deleteToBeginningOfLine(opts)
+      },
+      {
+        name: 'delete',
+        op: opts => selection.delete(opts)
+      },
+      {
+        name: 'deleteToEndOfLine',
+        op: opts => selection.deleteToEndOfLine(opts)
+      },
+      {
+        name: 'deleteToEndOfWord',
+        op: opts => selection.deleteToEndOfWord(opts)
+      },
+      {
+        name: 'deleteToBeginningOfSubword',
+        op: opts => selection.deleteToBeginningOfSubword(opts)
+      },
+      {
+        name: 'deleteToEndOfSubword',
+        op: opts => selection.deleteToEndOfSubword(opts)
+      },
+      {
+        name: 'deleteSelectedText',
+        op: opts => selection.deleteSelectedText(opts)
+      },
+      {
+        name: 'deleteLine',
+        op: opts => selection.deleteLine(opts)
+      },
+      {
+        name: 'joinLines',
+        op: opts => selection.joinLines(opts)
+      },
+      {
+        name: 'outdentSelectedRows',
+        op: opts => selection.outdentSelectedRows(opts)
+      },
+      {
+        name: 'autoIndentSelectedRows',
+        op: opts => selection.autoIndentSelectedRows(opts)
+      },
+      {
+        name: 'toggleLineComments',
+        op: opts => selection.toggleLineComments(opts)
+      },
+      {
+        name: 'cutToEndOfLine',
+        op: opts => selection.cutToEndOfLine(false, opts)
+      },
+      {
+        name: 'cutToEndOfBufferLine',
+        op: opts => selection.cutToEndOfBufferLine(false, opts)
+      },
+      {
+        name: 'cut',
+        op: opts => selection.cut(false, false, opts.bypassReadOnly)
+      },
+      {
+        name: 'indent',
+        op: opts => selection.indent(opts)
+      },
+      {
+        name: 'indentSelectedRows',
+        op: opts => selection.indentSelectedRows(opts)
+      },
+    ]
+
+    describe('without bypassReadOnly', () => {
+      for (const {name, op} of modifications) {
+        it(`throws an error on ${name}`, () => {
+          expect(op).toThrow()
+        })
+      }
+    })
+
+    describe('with bypassReadOnly', () => {
+      for (const {name, op} of modifications) {
+        it(`permits ${name}`, () => {
+          op({bypassReadOnly: true})
+        })
+      }
     })
   })
 })

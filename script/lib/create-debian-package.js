@@ -10,9 +10,8 @@ const CONFIG = require('../config')
 
 module.exports = function (packagedAppPath) {
   console.log(`Creating Debian package for "${packagedAppPath}"`)
-  const atomExecutableName = CONFIG.channel === 'beta' ? 'atom-beta' : 'atom'
-  const apmExecutableName = CONFIG.channel === 'beta' ? 'apm-beta' : 'apm'
-  const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+  const atomExecutableName = CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`
+  const apmExecutableName = CONFIG.channel === 'stable' ? 'apm' : `apm-${CONFIG.channel}`
   const appDescription = CONFIG.appMetadata.description
   const appVersion = CONFIG.appMetadata.version
   let arch
@@ -88,7 +87,7 @@ module.exports = function (packagedAppPath) {
   console.log(`Writing desktop entry file into "${debianPackageApplicationsDirPath}"`)
   const desktopEntryTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.desktop.in'))
   const desktopEntryContents = template(desktopEntryTemplate)({
-    appName: appName,
+    appName: CONFIG.appName,
     appFileName: atomExecutableName,
     description: appDescription,
     installDir: '/usr',

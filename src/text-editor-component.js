@@ -5,8 +5,8 @@ const {Point, Range} = require('text-buffer')
 const LineTopIndex = require('line-top-index')
 const TextEditor = require('./text-editor')
 const {isPairedCharacter} = require('./text-utils')
-const clipboard = require('./safe-clipboard')
 const electron = require('electron')
+const clipboard = electron.clipboard
 const $ = etch.dom
 
 let TextEditorElement
@@ -148,12 +148,13 @@ class TextEditorComponent {
     this.lineNumbersToRender = {
       maxDigits: 2,
       bufferRows: [],
+      screenRows: [],
       keys: [],
       softWrappedFlags: [],
       foldableFlags: []
     }
     this.decorationsToRender = {
-      lineNumbers: null,
+      lineNumbers: new Map(),
       lines: null,
       highlights: [],
       cursors: [],
@@ -170,6 +171,7 @@ class TextEditorComponent {
     this.textDecorationBoundaries = []
     this.pendingScrollTopRow = this.props.initialScrollTopRow
     this.pendingScrollLeftColumn = this.props.initialScrollLeftColumn
+    this.tabIndex = this.props.element && this.props.element.tabIndex ? this.props.element.tabIndex : -1
 
     this.measuredContent = false
     this.queryGuttersToRender()
@@ -265,14 +267,22 @@ class TextEditorComponent {
     if (useScheduler === true) {
       const scheduler = etch.getScheduler()
       scheduler.readDocument(() => {
-        this.measureContentDuringUpdateSync()
+        const restartFrame = this.measureContentDuringUpdateSync()
         scheduler.updateDocument(() => {
-          this.updateSyncAfterMeasuringContent()
+          if (restartFrame) {
+            this.updateSync(true)
+          } else {
+            this.updateSyncAfterMeasuringContent()
+          }
         })
       })
     } else {
-      this.measureContentDuringUpdateSync()
-      this.updateSyncAfterMeasuringContent()
+      const restartFrame = this.measureContentDuringUpdateSync()
+      if (restartFrame) {
+        this.updateSync(false)
+      } else {
+        this.updateSyncAfterMeasuringContent()
+      }
     }
 
     this.updateScheduled = false
@@ -377,8 +387,9 @@ class TextEditorComponent {
   }
 
   measureContentDuringUpdateSync () {
+    let gutterDimensionsChanged = false
     if (this.remeasureGutterDimensions) {
-      this.measureGutterDimensions()
+      gutterDimensionsChanged = this.measureGutterDimensions()
       this.remeasureGutterDimensions = false
     }
     const wasHorizontalScrollbarVisible = (
@@ -390,15 +401,16 @@ class TextEditorComponent {
     this.measureHorizontalPositions()
     this.updateAbsolutePositionedDecorations()
 
+    const isHorizontalScrollbarVisible = (
+      this.canScrollHorizontally() &&
+      this.getHorizontalScrollbarHeight() > 0
+    )
+
     if (this.pendingAutoscroll) {
       this.derivedDimensionsCache = {}
       const {screenRange, options} = this.pendingAutoscroll
       this.autoscrollHorizontally(screenRange, options)
 
-      const isHorizontalScrollbarVisible = (
-        this.canScrollHorizontally() &&
-        this.getHorizontalScrollbarHeight() > 0
-      )
       if (!wasHorizontalScrollbarVisible && isHorizontalScrollbarVisible) {
         this.autoscrollVertically(screenRange, options)
       }
@@ -407,6 +419,8 @@ class TextEditorComponent {
 
     this.linesToMeasure.clear()
     this.measuredContent = true
+
+    return gutterDimensionsChanged || wasHorizontalScrollbarVisible !== isHorizontalScrollbarVisible
   }
 
   updateSyncAfterMeasuringContent () {
@@ -446,15 +460,18 @@ class TextEditorComponent {
     let clientContainerWidth = '100%'
     if (this.hasInitialMeasurements) {
       if (model.getAutoHeight()) {
-        clientContainerHeight = this.getContentHeight()
-        if (this.canScrollHorizontally()) clientContainerHeight += this.getHorizontalScrollbarHeight()
-        clientContainerHeight += 'px'
+        clientContainerHeight =
+          this.getContentHeight() +
+          this.getHorizontalScrollbarHeight() +
+          'px'
       }
       if (model.getAutoWidth()) {
         style.width = 'min-content'
-        clientContainerWidth = this.getGutterContainerWidth() + this.getContentWidth()
-        if (this.canScrollVertically()) clientContainerWidth += this.getVerticalScrollbarWidth()
-        clientContainerWidth += 'px'
+        clientContainerWidth =
+          this.getGutterContainerWidth() +
+          this.getContentWidth() +
+          this.getVerticalScrollbarWidth() +
+          'px'
       } else {
         style.width = this.element.style.width
       }
@@ -465,7 +482,7 @@ class TextEditorComponent {
       attributes.mini = ''
     }
 
-    if (!this.isInputEnabled()) {
+    if (model.isReadOnly()) {
       attributes.readonly = ''
     }
 
@@ -576,7 +593,6 @@ class TextEditorComponent {
         on: {mousedown: this.didMouseDownOnContent},
         style
       },
-      this.renderHighlightDecorations(),
       this.renderLineTiles(),
       this.renderBlockDecorationMeasurementArea(),
       this.renderCharacterMeasurementLine()
@@ -594,12 +610,14 @@ class TextEditorComponent {
   }
 
   renderLineTiles () {
-    const children = []
     const style = {
       position: 'absolute',
       contain: 'strict',
       overflow: 'hidden'
     }
+
+    const children = []
+    children.push(this.renderHighlightDecorations())
 
     if (this.hasInitialMeasurements) {
       const {lineComponentsByScreenLineId} = this
@@ -681,7 +699,8 @@ class TextEditorComponent {
       scrollWidth: this.getScrollWidth(),
       decorationsToRender: this.decorationsToRender,
       cursorsBlinkedOff: this.cursorsBlinkedOff,
-      hiddenInputPosition: this.hiddenInputPosition
+      hiddenInputPosition: this.hiddenInputPosition,
+      tabIndex: this.tabIndex
     })
   }
 
@@ -737,20 +756,14 @@ class TextEditorComponent {
         scrollLeft = this.getScrollLeft()
         canScrollHorizontally = this.canScrollHorizontally()
         canScrollVertically = this.canScrollVertically()
-        horizontalScrollbarHeight =
-          canScrollHorizontally
-          ? this.getHorizontalScrollbarHeight()
-          : 0
-        verticalScrollbarWidth =
-          canScrollVertically
-          ? this.getVerticalScrollbarWidth()
-          : 0
+        horizontalScrollbarHeight = this.getHorizontalScrollbarHeight()
+        verticalScrollbarWidth = this.getVerticalScrollbarWidth()
         forceScrollbarVisible = this.remeasureScrollbars
       } else {
         forceScrollbarVisible = true
       }
 
-      const dummyScrollbarVnodes = [
+      return [
         $(DummyScrollbarComponent, {
           ref: 'verticalScrollbar',
           orientation: 'vertical',
@@ -772,13 +785,10 @@ class TextEditorComponent {
           scrollLeft,
           verticalScrollbarWidth,
           forceScrollbarVisible
-        })
-      ]
+        }),
 
-      // If both scrollbars are visible, push a dummy element to force a "corner"
-      // to render where the two scrollbars meet at the lower right
-      if (verticalScrollbarWidth > 0 && horizontalScrollbarHeight > 0) {
-        dummyScrollbarVnodes.push($.div(
+        // Force a "corner" to render where the two scrollbars meet at the lower right
+        $.div(
           {
             ref: 'scrollbarCorner',
             className: 'scrollbar-corner',
@@ -791,10 +801,8 @@ class TextEditorComponent {
               overflow: 'scroll'
             }
           }
-        ))
-      }
-
-      return dummyScrollbarVnodes
+        )
+      ]
     } else {
       return null
     }
@@ -842,10 +850,7 @@ class TextEditorComponent {
     }
 
     for (let i = 0; i < newClassList.length; i++) {
-      const className = newClassList[i]
-      if (!oldClassList || !oldClassList.includes(className)) {
-        this.element.classList.add(className)
-      }
+      this.element.classList.add(newClassList[i])
     }
 
     this.classList = newClassList
@@ -883,7 +888,7 @@ class TextEditorComponent {
 
   queryLineNumbersToRender () {
     const {model} = this.props
-    if (!model.isLineNumberGutterVisible()) return
+    if (!model.anyLineNumberGutterVisible()) return
     if (this.showLineNumbers !== model.doesShowLineNumbers()) {
       this.remeasureGutterDimensions = true
       this.showLineNumbers = model.doesShowLineNumbers()
@@ -939,7 +944,7 @@ class TextEditorComponent {
 
   queryMaxLineNumberDigits () {
     const {model} = this.props
-    if (model.isLineNumberGutterVisible()) {
+    if (model.anyLineNumberGutterVisible()) {
       const maxDigits = Math.max(2, model.getLineCount().toString().length)
       if (maxDigits !== this.lineNumbersToRender.maxDigits) {
         this.remeasureGutterDimensions = true
@@ -974,7 +979,7 @@ class TextEditorComponent {
   }
 
   queryDecorationsToRender () {
-    this.decorationsToRender.lineNumbers = []
+    this.decorationsToRender.lineNumbers.clear()
     this.decorationsToRender.lines = []
     this.decorationsToRender.overlays.length = 0
     this.decorationsToRender.customGutter.clear()
@@ -1037,7 +1042,17 @@ class TextEditorComponent {
   }
 
   addLineDecorationToRender (type, decoration, screenRange, reversed) {
-    const decorationsToRender = (type === 'line') ? this.decorationsToRender.lines : this.decorationsToRender.lineNumbers
+    let decorationsToRender
+    if (type === 'line') {
+      decorationsToRender = this.decorationsToRender.lines
+    } else {
+      const gutterName = decoration.gutterName || 'line-number'
+      decorationsToRender = this.decorationsToRender.lineNumbers.get(gutterName)
+      if (!decorationsToRender) {
+        decorationsToRender = []
+        this.decorationsToRender.lineNumbers.set(gutterName, decorationsToRender)
+      }
+    }
 
     let omitLastRow = false
     if (screenRange.isEmpty()) {
@@ -1517,15 +1532,11 @@ class TextEditorComponent {
     let {wheelDeltaX, wheelDeltaY} = event
 
     if (Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)) {
-      wheelDeltaX = (Math.sign(wheelDeltaX) === 1)
-        ? Math.max(1, wheelDeltaX * scrollSensitivity)
-        : Math.min(-1, wheelDeltaX * scrollSensitivity)
+      wheelDeltaX = wheelDeltaX * scrollSensitivity
       wheelDeltaY = 0
     } else {
       wheelDeltaX = 0
-      wheelDeltaY = (Math.sign(wheelDeltaY) === 1)
-        ? Math.max(1, wheelDeltaY * scrollSensitivity)
-        : Math.min(-1, wheelDeltaY * scrollSensitivity)
+      wheelDeltaY = wheelDeltaY * scrollSensitivity
     }
 
     if (this.getPlatform() !== 'darwin' && event.shiftKey) {
@@ -1716,10 +1727,6 @@ class TextEditorComponent {
       return
     }
 
-    if (this.getChromeVersion() === 56) {
-      this.getHiddenInput().value = ''
-    }
-
     this.compositionCheckpoint = this.props.model.createCheckpoint()
     if (this.accentedCharacterMenuIsOpen) {
       this.props.model.selectLeft()
@@ -1727,16 +1734,7 @@ class TextEditorComponent {
   }
 
   didCompositionUpdate (event) {
-    if (this.getChromeVersion() === 56) {
-      process.nextTick(() => {
-        if (this.compositionCheckpoint != null) {
-          const previewText = this.getHiddenInput().value
-          this.props.model.insertText(previewText, {select: true})
-        }
-      })
-    } else {
-      this.props.model.insertText(event.data, {select: true})
-    }
+    this.props.model.insertText(event.data, {select: true})
   }
 
   didCompositionEnd (event) {
@@ -1762,20 +1760,20 @@ class TextEditorComponent {
 
     const screenPosition = this.screenPositionForMouseEvent(event)
 
-    if (button !== 0 || (platform === 'darwin' && ctrlKey)) {
-      // Always set cursor position on middle-click
-      // Only set cursor position on right-click if there is one cursor with no selection
-      const ranges = model.getSelectedBufferRanges()
-      if (button === 1 || (ranges.length === 1 && ranges[0].isEmpty())) {
-        model.setCursorScreenPosition(screenPosition, {autoscroll: false})
-      }
+    if (button === 1) {
+      model.setCursorScreenPosition(screenPosition, {autoscroll: false})
 
       // On Linux, pasting happens on middle click. A textInput event with the
       // contents of the selection clipboard will be dispatched by the browser
       // automatically on mouseup.
-      if (platform === 'linux' && button === 1) model.insertText(clipboard.readText('selection'))
+      if (platform === 'linux' && this.isInputEnabled()) model.insertText(clipboard.readText('selection'))
       return
     }
+
+    if (button !== 0) return
+
+    // Ctrl-click brings up the context menu on macOS
+    if (platform === 'darwin' && ctrlKey) return
 
     if (target && target.matches('.fold-marker')) {
       const bufferPosition = model.bufferPositionForScreenPosition(screenPosition)
@@ -1783,7 +1781,7 @@ class TextEditorComponent {
       return
     }
 
-    const addOrRemoveSelection = metaKey || ctrlKey
+    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin')
 
     switch (detail) {
       case 1:
@@ -2629,37 +2627,25 @@ class TextEditorComponent {
 
   getScrollContainerHeight () {
     if (this.props.model.getAutoHeight()) {
-      return this.getScrollHeight()
+      return this.getScrollHeight() + this.getHorizontalScrollbarHeight()
     } else {
       return this.getClientContainerHeight()
     }
   }
 
   getScrollContainerClientWidth () {
-    if (this.canScrollVertically()) {
-      return this.getScrollContainerWidth() - this.getVerticalScrollbarWidth()
-    } else {
-      return this.getScrollContainerWidth()
-    }
+    return this.getScrollContainerWidth() - this.getVerticalScrollbarWidth()
   }
 
   getScrollContainerClientHeight () {
-    if (this.canScrollHorizontally()) {
-      return this.getScrollContainerHeight() - this.getHorizontalScrollbarHeight()
-    } else {
-      return this.getScrollContainerHeight()
-    }
+    return this.getScrollContainerHeight() - this.getHorizontalScrollbarHeight()
   }
 
   canScrollVertically () {
     const {model} = this.props
     if (model.isMini()) return false
     if (model.getAutoHeight()) return false
-    if (this.getContentHeight() > this.getScrollContainerHeight()) return true
-    return (
-      this.getContentWidth() > this.getScrollContainerWidth() &&
-      this.getContentHeight() > (this.getScrollContainerHeight() - this.getHorizontalScrollbarHeight())
-    )
+    return this.getContentHeight() > this.getScrollContainerClientHeight()
   }
 
   canScrollHorizontally () {
@@ -2667,11 +2653,7 @@ class TextEditorComponent {
     if (model.isMini()) return false
     if (model.getAutoWidth()) return false
     if (model.isSoftWrapped()) return false
-    if (this.getContentWidth() > this.getScrollContainerWidth()) return true
-    return (
-      this.getContentHeight() > this.getScrollContainerHeight() &&
-      this.getContentWidth() > (this.getScrollContainerWidth() - this.getVerticalScrollbarWidth())
-    )
+    return this.getContentWidth() > this.getScrollContainerClientWidth()
   }
 
   getScrollHeight () {
@@ -2704,7 +2686,7 @@ class TextEditorComponent {
   }
 
   getContentWidth () {
-    return Math.round(this.getLongestLineWidth() + this.getBaseCharacterWidth())
+    return Math.ceil(this.getLongestLineWidth() + this.getBaseCharacterWidth())
   }
 
   getScrollContainerClientWidthInBaseCharacters () {
@@ -2814,7 +2796,7 @@ class TextEditorComponent {
   setScrollTop (scrollTop) {
     if (Number.isNaN(scrollTop) || scrollTop == null) return false
 
-    scrollTop = Math.round(Math.max(0, Math.min(this.getMaxScrollTop(), scrollTop)))
+    scrollTop = roundToPhysicalPixelBoundary(Math.max(0, Math.min(this.getMaxScrollTop(), scrollTop)))
     if (scrollTop !== this.scrollTop) {
       this.derivedDimensionsCache = {}
       this.scrollTopPending = true
@@ -2845,7 +2827,7 @@ class TextEditorComponent {
   setScrollLeft (scrollLeft) {
     if (Number.isNaN(scrollLeft) || scrollLeft == null) return false
 
-    scrollLeft = Math.round(Math.max(0, Math.min(this.getMaxScrollLeft(), scrollLeft)))
+    scrollLeft = roundToPhysicalPixelBoundary(Math.max(0, Math.min(this.getMaxScrollLeft(), scrollLeft)))
     if (scrollLeft !== this.scrollLeft) {
       this.scrollLeftPending = true
       this.scrollLeft = scrollLeft
@@ -2968,11 +2950,11 @@ class TextEditorComponent {
   }
 
   setInputEnabled (inputEnabled) {
-    this.props.model.update({readOnly: !inputEnabled})
+    this.props.model.update({keyboardInputEnabled: inputEnabled})
   }
 
-  isInputEnabled (inputEnabled) {
-    return !this.props.model.isReadOnly()
+  isInputEnabled () {
+    return !this.props.model.isReadOnly() && this.props.model.isKeyboardInputEnabled()
   }
 
   getHiddenInput () {
@@ -3023,7 +3005,7 @@ class DummyScrollbarComponent {
 
     const outerStyle = {
       position: 'absolute',
-      contain: 'strict',
+      contain: 'content',
       zIndex: 1,
       willChange: 'transform'
     }
@@ -3129,7 +3111,7 @@ class GutterContainerComponent {
       },
       $.div({style: innerStyle},
         guttersToRender.map((gutter) => {
-          if (gutter.name === 'line-number') {
+          if (gutter.type === 'line-number') {
             return this.renderLineNumberGutter(gutter)
           } else {
             return $(CustomGutterComponent, {
@@ -3148,18 +3130,29 @@ class GutterContainerComponent {
 
   renderLineNumberGutter (gutter) {
     const {
-      rootComponent, isLineNumberGutterVisible, showLineNumbers, hasInitialMeasurements, lineNumbersToRender,
+      rootComponent, showLineNumbers, hasInitialMeasurements, lineNumbersToRender,
       renderedStartRow, renderedEndRow, rowsPerTile, decorationsToRender, didMeasureVisibleBlockDecoration,
       scrollHeight, lineNumberGutterWidth, lineHeight
     } = this.props
 
-    if (!isLineNumberGutterVisible) return null
+    if (!gutter.isVisible()) {
+      return null
+    }
+
+    const oneTrueLineNumberGutter = gutter.name === 'line-number'
+    const ref = oneTrueLineNumberGutter ? 'lineNumberGutter' : undefined
+    const width = oneTrueLineNumberGutter ? lineNumberGutterWidth : undefined
 
     if (hasInitialMeasurements) {
       const {maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags} = lineNumbersToRender
       return $(LineNumberGutterComponent, {
-        ref: 'lineNumberGutter',
+        ref,
         element: gutter.getElement(),
+        name: gutter.name,
+        className: gutter.className,
+        labelFn: gutter.labelFn,
+        onMouseDown: gutter.onMouseDown,
+        onMouseMove: gutter.onMouseMove,
         rootComponent: rootComponent,
         startRow: renderedStartRow,
         endRow: renderedEndRow,
@@ -3170,18 +3163,22 @@ class GutterContainerComponent {
         screenRows: screenRows,
         softWrappedFlags: softWrappedFlags,
         foldableFlags: foldableFlags,
-        decorations: decorationsToRender.lineNumbers,
+        decorations: decorationsToRender.lineNumbers.get(gutter.name) || [],
         blockDecorations: decorationsToRender.blocks,
         didMeasureVisibleBlockDecoration: didMeasureVisibleBlockDecoration,
         height: scrollHeight,
-        width: lineNumberGutterWidth,
+        width,
         lineHeight: lineHeight,
         showLineNumbers
       })
     } else {
       return $(LineNumberGutterComponent, {
-        ref: 'lineNumberGutter',
+        ref,
         element: gutter.getElement(),
+        name: gutter.name,
+        className: gutter.className,
+        onMouseDown: gutter.onMouseDown,
+        onMouseMove: gutter.onMouseMove,
         maxDigits: lineNumbersToRender.maxDigits,
         showLineNumbers
       })
@@ -3209,7 +3206,8 @@ class LineNumberGutterComponent {
   render () {
     const {
       rootComponent, showLineNumbers, height, width, startRow, endRow, rowsPerTile,
-      maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags, decorations
+      maxDigits, keys, bufferRows, screenRows, softWrappedFlags, foldableFlags, decorations,
+      className
     } = this.props
 
     let children = null
@@ -3237,8 +3235,12 @@ class LineNumberGutterComponent {
 
           let number = null
           if (showLineNumbers) {
-            number = softWrapped ? '•' : bufferRow + 1
-            number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
+            if (this.props.labelFn == null) {
+              number = softWrapped ? '•' : bufferRow + 1
+              number = NBSP_CHARACTER.repeat(maxDigits - number.length) + number
+            } else {
+              number = this.props.labelFn({bufferRow, screenRow, foldable, softWrapped, maxDigits})
+            }
           }
 
           // We need to adjust the line number position to account for block
@@ -3265,6 +3267,7 @@ class LineNumberGutterComponent {
         const tileTop = rootComponent.pixelPositionBeforeBlocksForRow(tileStartRow)
         const tileBottom = rootComponent.pixelPositionBeforeBlocksForRow(tileEndRow)
         const tileHeight = tileBottom - tileTop
+        const tileWidth = width != null && width > 0 ? width + 'px' : ''
 
         children[i] = $.div({
           key: rootComponent.idsByTileStartRow.get(tileStartRow),
@@ -3273,20 +3276,26 @@ class LineNumberGutterComponent {
             position: 'absolute',
             top: 0,
             height: tileHeight + 'px',
-            width: width + 'px',
+            width: tileWidth,
             transform: `translateY(${tileTop}px)`
           }
         }, ...tileChildren)
       }
     }
 
+    let rootClassName = 'gutter line-numbers'
+    if (className) {
+      rootClassName += ' ' + className
+    }
+
     return $.div(
       {
-        className: 'gutter line-numbers',
-        attributes: {'gutter-name': 'line-number'},
+        className: rootClassName,
+        attributes: {'gutter-name': this.props.name},
         style: {position: 'relative', height: ceilToPhysicalPixelBoundary(height) + 'px'},
         on: {
-          mousedown: this.didMouseDown
+          mousedown: this.didMouseDown,
+          mousemove: this.didMouseMove
         }
       },
       $.div({key: 'placeholder', className: 'line-number dummy', style: {visibility: 'hidden'}},
@@ -3308,6 +3317,8 @@ class LineNumberGutterComponent {
     if (oldProps.endRow !== newProps.endRow) return true
     if (oldProps.rowsPerTile !== newProps.rowsPerTile) return true
     if (oldProps.maxDigits !== newProps.maxDigits) return true
+    if (oldProps.labelFn !== newProps.labelFn) return true
+    if (oldProps.className !== newProps.className) return true
     if (newProps.didMeasureVisibleBlockDecoration) return true
     if (!arraysEqual(oldProps.keys, newProps.keys)) return true
     if (!arraysEqual(oldProps.bufferRows, newProps.bufferRows)) return true
@@ -3354,7 +3365,27 @@ class LineNumberGutterComponent {
   }
 
   didMouseDown (event) {
-    this.props.rootComponent.didMouseDownOnLineNumberGutter(event)
+    if (this.props.onMouseDown == null) {
+      this.props.rootComponent.didMouseDownOnLineNumberGutter(event)
+    } else {
+      const {bufferRow, screenRow} = event.target.dataset
+      this.props.onMouseDown({
+        bufferRow: parseInt(bufferRow, 10),
+        screenRow: parseInt(screenRow, 10),
+        domEvent: event
+      })
+    }
+  }
+
+  didMouseMove (event) {
+    if (this.props.onMouseMove != null) {
+      const {bufferRow, screenRow} = event.target.dataset
+      this.props.onMouseMove({
+        bufferRow: parseInt(bufferRow, 10),
+        screenRow: parseInt(screenRow, 10),
+        domEvent: event
+      })
+    }
   }
 }
 
@@ -3362,7 +3393,8 @@ class LineNumberComponent {
   constructor (props) {
     const {className, width, marginTop, bufferRow, screenRow, number, nodePool} = props
     this.props = props
-    const style = {width: width + 'px'}
+    const style = {}
+    if (width != null && width > 0) style.width = width + 'px'
     if (marginTop != null && marginTop > 0) style.marginTop = marginTop + 'px'
     this.element = nodePool.getElement('DIV', className, style)
     this.element.dataset.bufferRow = bufferRow
@@ -3382,21 +3414,30 @@ class LineNumberComponent {
     if (this.props.bufferRow !== bufferRow) this.element.dataset.bufferRow = bufferRow
     if (this.props.screenRow !== screenRow) this.element.dataset.screenRow = screenRow
     if (this.props.className !== className) this.element.className = className
-    if (this.props.width !== width) this.element.style.width = width + 'px'
+    if (this.props.width !== width) {
+      if (width != null && width > 0) {
+        this.element.style.width = width + 'px'
+      } else {
+        this.element.style.width = ''
+      }
+    }
     if (this.props.marginTop !== marginTop) {
-      if (marginTop != null) {
+      if (marginTop != null && marginTop > 0) {
         this.element.style.marginTop = marginTop + 'px'
       } else {
         this.element.style.marginTop = ''
       }
     }
+
     if (this.props.number !== number) {
-      if (number) {
-        this.element.insertBefore(nodePool.getTextNode(number), this.element.firstChild)
-      } else {
+      if (this.props.number != null) {
         const numberNode = this.element.firstChild
         numberNode.remove()
         nodePool.release(numberNode)
+      }
+
+      if (number != null) {
+        this.element.insertBefore(nodePool.getTextNode(number), this.element.firstChild)
       }
     }
 
@@ -3423,9 +3464,13 @@ class CustomGutterComponent {
   }
 
   render () {
+    let className = 'gutter'
+    if (this.props.className) {
+      className += ' ' + this.props.className
+    }
     return $.div(
       {
-        className: 'gutter',
+        className,
         attributes: {'gutter-name': this.props.name},
         style: {
           display: this.props.visible ? '' : 'none'
@@ -3525,7 +3570,7 @@ class CursorsAndInputComponent {
 
       const cursorStyle = {
         height: cursorHeight,
-        width: pixelWidth + 'px',
+        width: Math.min(pixelWidth, scrollWidth - pixelLeft) + 'px',
         transform: `translate(${pixelLeft}px, ${pixelTop}px)`
       }
       if (extraCursorStyle) Object.assign(cursorStyle, extraCursorStyle)
@@ -3546,7 +3591,8 @@ class CursorsAndInputComponent {
         zIndex: 1,
         width: scrollWidth + 'px',
         height: scrollHeight + 'px',
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        userSelect: 'none'
       }
     }, children)
   }
@@ -3559,7 +3605,7 @@ class CursorsAndInputComponent {
     const {
       lineHeight, hiddenInputPosition, didBlurHiddenInput, didFocusHiddenInput,
       didPaste, didTextInput, didKeydown, didKeyup, didKeypress,
-      didCompositionStart, didCompositionUpdate, didCompositionEnd
+      didCompositionStart, didCompositionUpdate, didCompositionEnd, tabIndex
     } = this.props
 
     let top, left
@@ -3587,7 +3633,7 @@ class CursorsAndInputComponent {
         compositionupdate: didCompositionUpdate,
         compositionend: didCompositionEnd
       },
-      tabIndex: -1,
+      tabIndex: tabIndex,
       style: {
         position: 'absolute',
         width: '1px',
@@ -4022,6 +4068,7 @@ class HighlightsComponent {
     this.element.style.contain = 'strict'
     this.element.style.position = 'absolute'
     this.element.style.overflow = 'hidden'
+    this.element.style.userSelect = 'none'
     this.highlightComponentsByKey = new Map()
     this.update(props)
   }

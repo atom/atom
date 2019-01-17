@@ -7,7 +7,6 @@ const dedent = require('dedent')
 
 const CompileCache = require('./compile-cache')
 const ModuleCache = require('./module-cache')
-const ScopedProperties = require('./scoped-properties')
 const BufferedProcess = require('./buffered-process')
 
 // Extended: Loads and activates a package's main module and resources such as
@@ -43,8 +42,8 @@ class Package {
       ? params.bundledPackage
       : this.packageManager.isBundledPackagePath(this.path)
     this.name =
-      params.name ||
       (this.metadata && this.metadata.name) ||
+      params.name ||
       path.basename(this.path)
     this.reset()
   }
@@ -103,7 +102,7 @@ class Package {
     this.activateKeymaps()
     this.activateMenus()
     for (let settings of this.settings) {
-      settings.activate()
+      settings.activate(this.config)
     }
     this.settingsActivated = true
   }
@@ -320,7 +319,7 @@ class Package {
 
     if (!this.settingsActivated) {
       for (let settings of this.settings) {
-        settings.activate()
+        settings.activate(this.config)
       }
       this.settingsActivated = true
     }
@@ -651,14 +650,14 @@ class Package {
     this.settings = []
 
     const loadSettingsFile = (settingsPath, callback) => {
-      return ScopedProperties.load(settingsPath, this.config, (error, settings) => {
+      return SettingsFile.load(settingsPath, (error, settingsFile) => {
         if (error) {
           const detail = `${error.message} in ${settingsPath}`
           const stack = `${error.stack}\n  at ${settingsPath}:1:1`
           this.notificationManager.addFatalError(`Failed to load the ${this.name} package settings`, {stack, detail, packageName: this.name, dismissable: true})
         } else {
-          this.settings.push(settings)
-          if (this.settingsActivated) { settings.activate() }
+          this.settings.push(settingsFile)
+          if (this.settingsActivated) settingsFile.activate(this.config)
         }
         return callback()
       })
@@ -667,10 +666,10 @@ class Package {
     return new Promise(resolve => {
       if (this.preloadedPackage && this.packageManager.packagesCache[this.name]) {
         for (let settingsPath in this.packageManager.packagesCache[this.name].settings) {
-          const scopedProperties = this.packageManager.packagesCache[this.name].settings[settingsPath]
-          const settings = new ScopedProperties(`core:${settingsPath}`, scopedProperties || {}, this.config)
-          this.settings.push(settings)
-          if (this.settingsActivated) { settings.activate() }
+          const properties = this.packageManager.packagesCache[this.name].settings[settingsPath]
+          const settingsFile = new SettingsFile(`core:${settingsPath}`, properties || {})
+          this.settings.push(settingsFile)
+          if (this.settingsActivated) settingsFile.activate(this.config)
         }
         return resolve()
       } else {
@@ -742,7 +741,7 @@ class Package {
       grammar.deactivate()
     }
     for (let settings of this.settings) {
-      settings.deactivate()
+      settings.deactivate(this.config)
     }
 
     if (this.stylesheetDisposables) this.stylesheetDisposables.dispose()
@@ -1160,5 +1159,34 @@ class Package {
     this.notificationManager.addFatalError(message, {
       stack, detail, packageName: this.name, dismissable: true
     })
+  }
+}
+
+class SettingsFile {
+  static load (path, callback) {
+    CSON.readFile(path, (error, properties = {}) => {
+      if (error) {
+        callback(error)
+      } else {
+        callback(null, new SettingsFile(path, properties))
+      }
+    })
+  }
+
+  constructor (path, properties) {
+    this.path = path
+    this.properties = properties
+  }
+
+  activate (config) {
+    for (let selector in this.properties) {
+      config.set(null, this.properties[selector], {scopeSelector: selector, source: this.path})
+    }
+  }
+
+  deactivate (config) {
+    for (let selector in this.properties) {
+      config.unset(null, {scopeSelector: selector, source: this.path})
+    }
   }
 }

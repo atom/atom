@@ -1,6 +1,7 @@
 const TextEditorRegistry = require('../src/text-editor-registry')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
+const {Point, Range} = TextBuffer
 const {it, fit, ffit, fffit} = require('./async-spec-helpers')
 const dedent = require('dedent')
 
@@ -154,6 +155,45 @@ describe('TextEditorRegistry', function () {
       expect(editor.getEncoding()).toBe('utf8')
     })
 
+    it('preserves editor settings that haven\'t changed between previous and current language modes', async function () {
+      await atom.packages.activatePackage('language-javascript')
+
+      registry.maintainConfig(editor)
+      await initialPackageActivation
+
+      expect(editor.getEncoding()).toBe('utf8')
+      editor.setEncoding('utf16le')
+      expect(editor.getEncoding()).toBe('utf16le')
+
+      expect(editor.isSoftWrapped()).toBe(false)
+      editor.setSoftWrapped(true)
+      expect(editor.isSoftWrapped()).toBe(true)
+
+      atom.grammars.assignLanguageMode(editor, 'source.js')
+      await initialPackageActivation
+      expect(editor.getEncoding()).toBe('utf16le')
+      expect(editor.isSoftWrapped()).toBe(true)
+    })
+
+    it('updates editor settings that have changed between previous and current language modes', async function () {
+      await atom.packages.activatePackage('language-javascript')
+
+      registry.maintainConfig(editor)
+      await initialPackageActivation
+
+      expect(editor.getEncoding()).toBe('utf8')
+      atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.text.plain.null-grammar'})
+      atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.source.js'})
+      expect(editor.getEncoding()).toBe('utf16be')
+
+      editor.setEncoding('utf8')
+      expect(editor.getEncoding()).toBe('utf8')
+
+      atom.grammars.assignLanguageMode(editor, 'source.js')
+      await initialPackageActivation
+      expect(editor.getEncoding()).toBe('utf16le')
+    })
+
     it('returns a disposable that can be used to stop the registry from updating the editor\'s config', async function () {
       await atom.packages.activatePackage('language-javascript')
 
@@ -218,19 +258,19 @@ describe('TextEditorRegistry', function () {
 
     describe('when the "tabType" config setting is "auto"', function () {
       it('enables or disables soft tabs based on the editor\'s content', async function () {
+        await initialPackageActivation
         await atom.packages.activatePackage('language-javascript')
         atom.grammars.assignLanguageMode(editor, 'source.js')
         atom.config.set('editor.tabType', 'auto')
-
-        registry.maintainConfig(editor)
         await initialPackageActivation
+        const languageMode = editor.getBuffer().getLanguageMode()
 
         editor.setText(dedent`
           {
             hello;
           }
         `)
-        editor.getBuffer().getLanguageMode().retokenizeLines()
+        let disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(true)
 
         editor.setText(dedent`
@@ -238,18 +278,17 @@ describe('TextEditorRegistry', function () {
           	hello;
           }
         `)
-        editor.getBuffer().getLanguageMode().retokenizeLines()
+        disposable.dispose()
+        disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(false)
 
-        editor.setText(dedent`
+        editor.setTextInBufferRange(new Range(Point.ZERO, Point.ZERO), dedent`
           /*
            * Comment with a leading space.
            */
-          {
-          ${'\t'}hello;
-          }
-        ` + editor.getText())
-        editor.getBuffer().getLanguageMode().retokenizeLines()
+        ` + '\n')
+        disposable.dispose()
+        disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(false)
 
         editor.setText(dedent`
@@ -261,8 +300,8 @@ describe('TextEditorRegistry', function () {
           	hello;
           }
         `)
-
-        editor.getBuffer().getLanguageMode().retokenizeLines()
+        disposable.dispose()
+        disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(false)
 
         editor.setText(dedent`
@@ -274,7 +313,8 @@ describe('TextEditorRegistry', function () {
             hello;
           }
         `)
-        editor.getBuffer().getLanguageMode().retokenizeLines()
+        disposable.dispose()
+        disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(true)
       })
     })

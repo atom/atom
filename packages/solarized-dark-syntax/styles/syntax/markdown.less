@@ -1,0 +1,26 @@
+.syntax--md,
+.syntax--gfm {
+  .syntax--link .syntax--entity {
+    color: @violet;
+  }
+
+  .syntax--list {
+    &.syntax--ordered {
+      color: @green;
+    }
+    &.syntax--unordered {
+      color: @yellow;
+    }
+  }
+
+  .syntax--raw {
+    font-style: italic;
+  }
+
+  &.syntax--support {
+    color:@syntax-comment-color;
+    &.syntax--quote {
+      color: @violet;
+    }
+  }
+}

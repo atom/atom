@@ -1,9 +1,9 @@
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const {it, fit, ffit, beforeEach, afterEach, conditionPromise} = require('./async-spec-helpers')
 const _ = require('underscore-plus')
+const fs = require('fs')
 const path = require('path')
 const temp = require('temp').track()
 const AtomEnvironment = require('../src/atom-environment')
-const StorageFolder = require('../src/storage-folder')
 
 describe('AtomEnvironment', () => {
   afterEach(() => {
@@ -258,7 +258,7 @@ describe('AtomEnvironment', () => {
       atomEnv.destroy()
     })
 
-    it('ignores mousedown/keydown events happening after calling unloadEditorWindow', () => {
+    it('ignores mousedown/keydown events happening after calling prepareToUnloadEditorWindow', async () => {
       const atomEnv = new AtomEnvironment({
         applicationDelegate: global.atom.applicationDelegate
       })
@@ -276,18 +276,19 @@ describe('AtomEnvironment', () => {
 
       let mousedown = new MouseEvent('mousedown')
       atomEnv.document.dispatchEvent(mousedown)
-      atomEnv.unloadEditorWindow()
       expect(atomEnv.saveState).not.toHaveBeenCalled()
+      await atomEnv.prepareToUnloadEditorWindow()
+      expect(atomEnv.saveState).toHaveBeenCalledWith({isUnloading: true})
 
       advanceClock(atomEnv.saveStateDebounceInterval)
       idleCallbacks.shift()()
-      expect(atomEnv.saveState).not.toHaveBeenCalled()
+      expect(atomEnv.saveState.calls.length).toBe(1)
 
       mousedown = new MouseEvent('mousedown')
       atomEnv.document.dispatchEvent(mousedown)
       advanceClock(atomEnv.saveStateDebounceInterval)
       idleCallbacks.shift()()
-      expect(atomEnv.saveState).not.toHaveBeenCalled()
+      expect(atomEnv.saveState.calls.length).toBe(1)
 
       atomEnv.destroy()
     })
@@ -471,15 +472,28 @@ describe('AtomEnvironment', () => {
         await atom.workspace.open()
       })
 
-      it('automatically restores the saved state into the current environment', () => {
-        const state = {}
-        spyOn(atom.workspace, 'open')
-        spyOn(atom, 'restoreStateIntoThisEnvironment')
+      it('automatically restores the saved state into the current environment', async () => {
+        const projectPath = temp.mkdirSync()
+        const filePath1 = path.join(projectPath, 'file-1')
+        const filePath2 = path.join(projectPath, 'file-2')
+        const filePath3 = path.join(projectPath, 'file-3')
+        fs.writeFileSync(filePath1, 'abc')
+        fs.writeFileSync(filePath2, 'def')
+        fs.writeFileSync(filePath3, 'ghi')
 
-        atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
-        expect(atom.restoreStateIntoThisEnvironment).toHaveBeenCalledWith(state)
-        expect(atom.workspace.open.callCount).toBe(1)
-        expect(atom.workspace.open).toHaveBeenCalledWith(__filename)
+        const env1 = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
+        env1.project.setPaths([projectPath])
+        await env1.workspace.open(filePath1)
+        await env1.workspace.open(filePath2)
+        await env1.workspace.open(filePath3)
+        const env1State = env1.serialize()
+        env1.destroy()
+
+        const env2 = new AtomEnvironment({applicationDelegate: atom.applicationDelegate})
+        await env2.attemptRestoreProjectStateForPaths(env1State, [projectPath], [filePath2])
+        const restoredURIs = env2.workspace.getPaneItems().map(p => p.getURI())
+        expect(restoredURIs).toEqual([filePath1, filePath2, filePath3])
+        env2.destroy()
       })
 
       describe('when a dock has a non-text editor', () => {
@@ -518,27 +532,31 @@ describe('AtomEnvironment', () => {
         })
       })
 
-      it('prompts the user to restore the state in a new window, discarding it and adding folder to current window', () => {
-        spyOn(atom, 'confirm').andReturn(1)
+      it('prompts the user to restore the state in a new window, discarding it and adding folder to current window', async () => {
+        jasmine.useRealClock()
+        spyOn(atom, 'confirm').andCallFake((options, callback) => callback(1))
         spyOn(atom.project, 'addPath')
         spyOn(atom.workspace, 'open')
         const state = Symbol()
 
         atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
         expect(atom.confirm).toHaveBeenCalled()
-        expect(atom.project.addPath.callCount).toBe(1)
+        await conditionPromise(() => atom.project.addPath.callCount === 1)
+
         expect(atom.project.addPath).toHaveBeenCalledWith(__dirname)
         expect(atom.workspace.open.callCount).toBe(1)
         expect(atom.workspace.open).toHaveBeenCalledWith(__filename)
       })
 
-      it('prompts the user to restore the state in a new window, opening a new window', () => {
-        spyOn(atom, 'confirm').andReturn(0)
+      it('prompts the user to restore the state in a new window, opening a new window', async () => {
+        jasmine.useRealClock()
+        spyOn(atom, 'confirm').andCallFake((options, callback) => callback(0))
         spyOn(atom, 'open')
         const state = Symbol()
 
         atom.attemptRestoreProjectStateForPaths(state, [__dirname], [__filename])
         expect(atom.confirm).toHaveBeenCalled()
+        await conditionPromise(() => atom.open.callCount === 1)
         expect(atom.open).toHaveBeenCalledWith({
           pathsToOpen: [__dirname, __filename],
           newWindow: true,
@@ -592,7 +610,7 @@ describe('AtomEnvironment', () => {
       const promise = new Promise((r) => { resolve = r })
       envLoaded = () => {
         resolve()
-        promise
+        return promise
       }
       atomEnvironment = new AtomEnvironment({
         applicationDelegate: atom.applicationDelegate,
@@ -621,7 +639,6 @@ describe('AtomEnvironment', () => {
 
   describe('::openLocations(locations) (called via IPC from browser process)', () => {
     beforeEach(() => {
-      spyOn(atom.workspace, 'open')
       atom.project.setPaths([])
     })
 
@@ -631,48 +648,50 @@ describe('AtomEnvironment', () => {
       })
 
       describe('when the opened path exists', () => {
-        it("adds it to the project's paths", async () => {
+        it('opens a file', async () => {
           const pathToOpen = __filename
           await atom.openLocations([{pathToOpen}])
-          expect(atom.project.getPaths()[0]).toBe(__dirname)
+          expect(atom.project.getPaths()).toEqual([])
         })
 
-        describe('then a second path is opened with forceAddToWindow', () => {
-          it("adds the second path to the project's paths", async () => {
-            const firstPathToOpen = __dirname
-            const secondPathToOpen = path.resolve(__dirname, './fixtures')
-            await atom.openLocations([{pathToOpen: firstPathToOpen}])
-            await atom.openLocations([{pathToOpen: secondPathToOpen, forceAddToWindow: true}])
-            expect(atom.project.getPaths()).toEqual([firstPathToOpen, secondPathToOpen])
-          })
-        })
-      })
-
-      describe('when the opened path does not exist but its parent directory does', () => {
-        it('adds the parent directory to the project paths', async () => {
-          const pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
-          await atom.openLocations([{pathToOpen}])
-          expect(atom.project.getPaths()[0]).toBe(__dirname)
-        })
-      })
-
-      describe('when the opened path is a file', () => {
-        it('opens it in the workspace', async () => {
-          const pathToOpen = __filename
-          await atom.openLocations([{pathToOpen}])
-          expect(atom.workspace.open.mostRecentCall.args[0]).toBe(__filename)
-        })
-      })
-
-      describe('when the opened path is a directory', () => {
-        it('does not open it in the workspace', async () => {
+        it('opens a directory as a project folder', async () => {
           const pathToOpen = __dirname
           await atom.openLocations([{pathToOpen}])
-          expect(atom.workspace.open.callCount).toBe(0)
+          expect(atom.workspace.getTextEditors().map(e => e.getPath())).toEqual([])
+          expect(atom.project.getPaths()).toEqual([pathToOpen])
         })
       })
 
-      describe('when the opened path is a uri', () => {
+      describe('when the opened path does not exist', () => {
+        it('opens it as a new file', async () => {
+          const pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
+          await atom.openLocations([{pathToOpen}])
+          expect(atom.workspace.getTextEditors().map(e => e.getPath())).toEqual([pathToOpen])
+          expect(atom.project.getPaths()).toEqual([])
+        })
+      })
+
+      describe('when the opened path is handled by a registered directory provider', () => {
+        let serviceDisposable
+
+        beforeEach(() => {
+          serviceDisposable = atom.packages.serviceHub.provide('atom.directory-provider', '0.1.0', {
+            directoryForURISync (uri) {
+              if (uri.startsWith('remote://')) {
+                return { getPath() { return uri } }
+              } else {
+                return null
+              }
+            }
+          })
+
+          waitsFor(() => atom.project.directoryProviders.length > 0)
+        })
+
+        afterEach(() => {
+          serviceDisposable.dispose()
+        })
+
         it("adds it to the project's paths as is", async () => {
           const pathToOpen = 'remote://server:7644/some/dir/path'
           spyOn(atom.project, 'addPath')
@@ -723,32 +742,9 @@ describe('AtomEnvironment', () => {
           const fileToOpen = path.join(pathToOpen, 'michelle-is-awesome.txt')
           await atom.openLocations([{pathToOpen}, {pathToOpen: fileToOpen}])
           expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalledWith(state, [pathToOpen], [fileToOpen])
-          expect(atom.project.getPaths()).toEqual([__dirname])
+          expect(atom.project.getPaths()).toEqual([__dirname, pathToOpen])
         })
       })
-    })
-  })
-
-  describe('::updateAvailable(info) (called via IPC from browser process)', () => {
-    let subscription
-
-    afterEach(() => {
-      if (subscription) subscription.dispose()
-    })
-
-    it('invokes onUpdateAvailable listeners', async () => {
-      if (process.platform !== 'darwin') return // Test tied to electron autoUpdater, we use something else on Linux and Win32
-
-      const updateAvailablePromise = new Promise(resolve => {
-        subscription = atom.onUpdateAvailable(resolve)
-      })
-
-      atom.listenForUpdates()
-      const {autoUpdater} = require('electron').remote
-      autoUpdater.emit('update-downloaded', null, 'notes', 'version')
-
-      const {releaseVersion} = await updateAvailablePromise
-      expect(releaseVersion).toBe('version')
     })
   })
 
