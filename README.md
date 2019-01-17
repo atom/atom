@@ -52,7 +52,7 @@ Atom is only available for 64-bit Linux systems.
 
 Configure your distribution's package manager to install and update Atom by following the [Linux installation instructions](https://flight-manual.atom.io/getting-started/sections/installing-atom/#platform-linux) in the Flight Manual.  You will also find instructions on how to install Atom's official Linux packages without using a package repository, though you will not get automatic updates after installing Atom this way.
 
-### Archive extraction
+#### Archive extraction
 
 An archive is available for people who don't want to install `atom` as root.
 
