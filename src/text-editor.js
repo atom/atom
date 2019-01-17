@@ -3640,14 +3640,14 @@ class TextEditor {
 
   // Essential: Determine whether lines in this editor are soft-wrapped.
   //
-  // Returns a {String}.
+  // Returns a {Boolean}.
   isSoftWrapped () { return this.softWrapped !== 'disabled' }
 
   // Essential: Enable or disable soft wrapping for this editor.
   //
   // * `softWrapped` A {String}
   //
-  // Returns a {String}.
+  // Returns a {Boolean}.
   setSoftWrapped (softWrapped) {
     this.update({softWrapped})
     return this.isSoftWrapped()
@@ -3657,7 +3657,7 @@ class TextEditor {
 
   // Essential: Disables soft wrapping for this editor
   //
-  // Returns a {String}.
+  // Returns a {Boolean}.
   disableSoftWrapped () { return this.setSoftWrapped('disabled') }
 
   // Essential: Gets the column at which column will soft wrap
