@@ -1376,6 +1376,8 @@ or use Pane::saveItemAs for programmatic saving.`)
     for (const {location, stats} of locationStats) {
       const {pathToOpen} = location
       if (!pathToOpen) {
+        // Untitled buffer
+        fileLocationsToOpen.push(location)
         continue
       }
 
