@@ -944,15 +944,15 @@ class Package {
 
   subscribeToWorkspaceOpeners () {
     this.workspaceOpenerSubscriptions = new CompositeDisposable()
-    this.getWorkspaceOpeners().forEach(opener => {
+    for (let opener of this.getWorkspaceOpeners()) {
       this.workspaceOpenerSubscriptions.add(atom.workspace.addOpener(filePath => {
         if (filePath === opener) {
           this.activateNow()
           this.workspaceOpenerSubscriptions.dispose()
-          return atom.workspace.open(opener)
+          return atom.workspace.createItemForURI(opener)
         }
       }))
-    })
+    }
   }
 
   getWorkspaceOpeners () {
