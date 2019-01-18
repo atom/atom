@@ -1,0 +1,10 @@
+{
+  "name": "atom-release-scripts",
+  "description": "Atom release scripts",
+  "dependencies": {
+    "download": "^7.1.0",
+    "request": "^2.87.0",
+    "request-promise-native": "^1.0.5",
+    "yargs": "4.8.1"
+  }
+}

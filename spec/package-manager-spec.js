@@ -30,13 +30,15 @@ describe('PackageManager', () => {
       expect(packageManger.packageDirPaths[0]).toBe(path.join(configDirPath, 'packages'))
     })
 
-    it('adds regular package path and dev package path in dev mode', () => {
+    it('adds regular package path, dev package path, and Atom repo package path in dev mode and dev resource path is set', () => {
       const packageManger = new PackageManager({})
       const configDirPath = path.join('~', 'someConfig')
-      packageManger.initialize({configDirPath, devMode: true})
-      expect(packageManger.packageDirPaths.length).toBe(2)
+      const resourcePath = path.join('~', '/atom')
+      packageManger.initialize({configDirPath, resourcePath, devMode: true})
+      expect(packageManger.packageDirPaths.length).toBe(3)
       expect(packageManger.packageDirPaths).toContain(path.join(configDirPath, 'packages'))
       expect(packageManger.packageDirPaths).toContain(path.join(configDirPath, 'dev', 'packages'))
+      expect(packageManger.packageDirPaths).toContain(path.join(resourcePath, 'packages'))
     })
   })
 
@@ -1029,6 +1031,14 @@ describe('PackageManager', () => {
         await atom.packages.activatePackage('package-with-grammars')
         expect(atom.grammars.selectGrammar('a.alot').name).toBe('Alot')
         expect(atom.grammars.selectGrammar('a.alittle').name).toBe('Alittle')
+      })
+
+      it('loads any tree-sitter grammars defined in the package', async () => {
+        atom.config.set('core.useTreeSitterParsers', true)
+        await atom.packages.activatePackage('package-with-tree-sitter-grammar')
+        const grammar = atom.grammars.selectGrammar('test.somelang')
+        expect(grammar.name).toBe('Some Language')
+        expect(grammar.languageModule.isFakeTreeSitterParser).toBe(true)
       })
     })
 

@@ -1,0 +1,8 @@
+'.platform-darwin atom-text-editor':
+  'ctrl-L': 'grammar-selector:show'
+
+'.platform-win32 atom-text-editor':
+  'ctrl-L': 'grammar-selector:show'
+
+'.platform-linux atom-text-editor':
+  'ctrl-L': 'grammar-selector:show'

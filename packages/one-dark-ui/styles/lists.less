@@ -1,0 +1,156 @@
+.list-group,
+.list-tree {
+  li:not(.list-nested-item),
+  li.list-nested-item > .list-item {
+    .text(normal);
+  }
+
+  .generate-list-item-text-color(@class) {
+    li:not(.list-nested-item).text-@{class},
+    li.list-nested-item.text-@{class} > .list-item {
+      .text(@class);
+    }
+  }
+  .generate-list-item-text-color(subtle);
+  .generate-list-item-text-color(info);
+  .generate-list-item-text-color(success);
+  .generate-list-item-text-color(warning);
+  .generate-list-item-text-color(error);
+  .generate-list-item-text-color(selected);
+
+  .generate-list-item-status-color(@color, @status) {
+    li:not(.list-nested-item).status-@{status},
+    li.list-nested-item.status-@{status} > .list-item {
+      color: @color;
+    }
+
+    li:not(.list-nested-item).selected.status-@{status},
+    li.list-nested-item.selected.status-@{status} > .list-item {
+      color: @color;
+    }
+
+  }
+
+  .generate-list-item-status-color(@text-color-added, added);
+  .generate-list-item-status-color(@text-color-ignored, ignored);
+  .generate-list-item-status-color(@text-color-modified, modified);
+  .generate-list-item-status-color(@text-color-removed, removed);
+  .generate-list-item-status-color(@text-color-renamed, renamed);
+
+  li:not(.list-nested-item).selected,
+  li.list-nested-item.selected > .list-item {
+    .text(selected);
+  }
+
+  .no-icon {
+    padding-left: calc(@ui-padding-icon ~"+" @component-icon-size);
+  }
+}
+
+.list-tree.has-collapsable-children .list-nested-item > .list-item::before {
+  text-align: center;
+}
+
+.select-list ol.list-group,
+&.select-list ol.list-group {
+  li.two-lines {
+    .secondary-line {
+      color: @text-color-subtle;
+    }
+    &.selected .secondary-line {
+      color: fade(@text-color-highlight, 50%);
+      text-shadow: none;
+    }
+  }
+
+  // Reset icon to allow nesting
+  .icon {
+    display: initial;
+    height: initial;
+  }
+
+  // We want to highlight the background of the list items because we dont
+  // know their size.
+  li.selected {
+    background-color: @background-color-selected;
+    &:before{ display: none; }
+  }
+
+  &.mark-active {
+    @active-icon-size: 14px;
+
+    // pad in front of the text where the icon would be We'll pad the non-
+    // active items with a 'fake' icon so other classes can pad the item
+    // without worrying about the icon padding.
+    li:before {
+      content: '';
+      background-color: transparent;
+      position: static;
+      display: inline-block;
+      left: auto; right: auto;
+      height: @active-icon-size;
+      width: @active-icon-size;
+      font-size: @active-icon-size;
+    }
+    > li:not(.active):before {
+      margin-right: @ui-padding-icon;
+    }
+    li.active {
+      .octicon(check, @active-icon-size);
+      &:before {
+        margin-right: @ui-padding-icon;
+        color: @text-color-success;
+      }
+    }
+  }
+}
+
+.select-list.popover-list {
+  @popover-list-padding: @ui-padding/4;
+  background-color: @overlay-background-color;
+  box-shadow: 0 2px 8px 1px rgba(0, 0, 0, 0.3);
+  padding: @popover-list-padding;
+  border-radius: @component-border-radius;
+
+  atom-text-editor[mini] {
+    margin-bottom: @popover-list-padding;
+  }
+
+  ol.list-group {
+    margin-top: @popover-list-padding;
+  }
+
+  .list-group li {
+    padding-left: @popover-list-padding;
+  }
+
+  // Un-reset icon in popover lists
+  .icon.icon {
+    display: inline-block;
+    height: inherit;
+  }
+}
+
+.ui-sortable {
+  li {
+    line-height: 2.5;
+  }
+
+  // For sortable lists in the settings view
+  li.ui-sortable-placeholder {
+    visibility: visible !important;
+    background-color: darken(@pane-item-background-color, 10%);
+  }
+}
+
+li.ui-draggable-dragging,
+li.ui-sortable-helper {
+  line-height: @ui-line-height;
+  height: @ui-line-height;
+  border: 0;
+  border-radius: 0;
+  list-style: none;
+  padding: 0 @ui-padding;
+  background: @background-color-highlight;
+  box-shadow: 0 0 1px @base-border-color;
+}

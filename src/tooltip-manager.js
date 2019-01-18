@@ -10,7 +10,7 @@ let Tooltip = null
 //
 // The essence of displaying a tooltip
 //
-// ```javascript
+// ```js
 // // display it
 // const disposable = atom.tooltips.add(div, {title: 'This is a tooltip'})
 //
@@ -21,7 +21,7 @@ let Tooltip = null
 // In practice there are usually multiple tooltips. So we add them to a
 // CompositeDisposable
 //
-// ```javascript
+// ```js
 // const {CompositeDisposable} = require('atom')
 // const subscriptions = new CompositeDisposable()
 //
@@ -37,7 +37,7 @@ let Tooltip = null
 // You can display a key binding in the tooltip as well with the
 // `keyBindingCommand` option.
 //
-// ```javascript
+// ```js
 // disposable = atom.tooltips.add(this.caseOptionButton, {
 //   title: 'Match Case',
 //   keyBindingCommand: 'find-and-replace:toggle-case-option',
@@ -114,7 +114,9 @@ class TooltipManager {
   add (target, options) {
     if (target.jquery) {
       const disposable = new CompositeDisposable()
-      for (const element of target) { disposable.add(this.add(element, options)) }
+      for (let i = 0; i < target.length; i++) {
+        disposable.add(this.add(target[i], options))
+      }
       return disposable
     }
 
@@ -150,10 +152,12 @@ class TooltipManager {
       tooltip.hide()
     }
 
+    // note: adding a listener here adds a new listener for every tooltip element that's registered.  Adding unnecessary listeners is bad for performance.  It would be better to add/remove listeners when tooltips are actually created in the dom.
     window.addEventListener('resize', hideTooltip)
 
     const disposable = new Disposable(() => {
       window.removeEventListener('resize', hideTooltip)
+
       hideTooltip()
       tooltip.destroy()
 

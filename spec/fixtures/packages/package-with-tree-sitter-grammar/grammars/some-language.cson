@@ -1,0 +1,14 @@
+name: 'Some Language'
+
+scopeName: 'some-language'
+
+type: 'tree-sitter'
+
+parser: './fake-parser'
+
+fileTypes: [
+  'somelang'
+]
+
+scopes:
+  'class > identifier': 'entity.name.type.class'

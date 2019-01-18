@@ -1,0 +1,76 @@
+jobs:
+- job: macOS
+  dependsOn: GetReleaseVersion
+  timeoutInMinutes: 180
+
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+    IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+    IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
+  pool:
+    vmImage: macos-10.13
+
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 8.9.3
+    displayName: Install Node.js 8.9.3
+
+  - script: npm install --global npm@6.2.0
+    displayName: Update npm
+
+  - script: |
+      if [ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]; then
+        script/build --code-sign --compress-artifacts
+      else
+        script/build --compress-artifacts
+      fi
+    displayName: Build Atom
+    env:
+      IS_RELEASE_BRANCH: $(IsReleaseBranch)
+      IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
+      ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL)
+      ATOM_MAC_CODE_SIGNING_CERT_PASSWORD: $(ATOM_MAC_CODE_SIGNING_CERT_PASSWORD)
+      ATOM_MAC_CODE_SIGNING_KEYCHAIN: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN)
+      ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
+
+  - script: script/lint
+    displayName: Run linter
+
+  - script: |
+      osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
+      caffeinate -s script/test # Run with caffeinate to prevent screen saver
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+    displayName: Run tests
+    condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+  - script: |
+      cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
+    displayName: Stage Artifacts
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac.zip
+      ArtifactName: atom-mac.zip
+      ArtifactType: Container
+    displayName: Upload atom-mac.zip
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac-symbols.zip
+      ArtifactName: atom-mac-symbols.zip
+      ArtifactType: Container
+    displayName: Upload atom-mac-symbols.zip
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/docs/output/atom-api.json
+      ArtifactName: atom-api.json
+      ArtifactType: Container
+    displayName: Upload atom-api.json
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))

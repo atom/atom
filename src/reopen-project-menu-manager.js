@@ -1,9 +1,8 @@
-/** @babel */
+const {CompositeDisposable} = require('event-kit')
+const path = require('path')
 
-import {CompositeDisposable} from 'event-kit'
-import path from 'path'
-
-export default class ReopenProjectMenuManager {
+module.exports =
+class ReopenProjectMenuManager {
   constructor ({menu, commands, history, config, open}) {
     this.menuManager = menu
     this.historyManager = history

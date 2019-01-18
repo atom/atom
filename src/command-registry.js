@@ -107,6 +107,13 @@ module.exports = class CommandRegistry {
   //       otherwise be generated from the event name.
   //     * `description`: Used by consumers to display detailed information about
   //       the command.
+  //     * `hiddenInCommandPalette`: If `true`, this command will not appear in
+  //       the bundled command palette by default, but can still be shown with.
+  //       the `Command Palette: Show Hidden Commands` command. This is a good
+  //       option when you need to register large numbers of commands that don't
+  //       make sense to be executed from the command palette. Please use this
+  //       option conservatively, as it could reduce the discoverability of your
+  //       package's commands.
   //
   // ## Arguments: Registering Multiple Commands
   //
@@ -302,7 +309,7 @@ module.exports = class CommandRegistry {
   handleCommandEvent (event) {
     let propagationStopped = false
     let immediatePropagationStopped = false
-    let matched = false
+    let matched = []
     let currentTarget = event.target
 
     const dispatchedEvent = new CustomEvent(event.type, {
@@ -366,10 +373,6 @@ module.exports = class CommandRegistry {
         listeners = selectorBasedListeners.concat(listeners)
       }
 
-      if (listeners.length > 0) {
-        matched = true
-      }
-
       // Call inline listeners first in reverse registration order,
       // and selector-based listeners by specificity and reverse
       // registration order.
@@ -378,7 +381,7 @@ module.exports = class CommandRegistry {
         if (immediatePropagationStopped) {
           break
         }
-        listener.didDispatch.call(currentTarget, dispatchedEvent)
+        matched.push(listener.didDispatch.call(currentTarget, dispatchedEvent))
       }
 
       if (currentTarget === window) {
@@ -392,7 +395,7 @@ module.exports = class CommandRegistry {
 
     this.emitter.emit('did-dispatch', dispatchedEvent)
 
-    return matched
+    return (matched.length > 0 ? Promise.all(matched) : null)
   }
 
   commandRegistered (commandName) {

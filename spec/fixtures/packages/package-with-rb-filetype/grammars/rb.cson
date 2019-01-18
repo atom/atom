@@ -1,12 +1,10 @@
 'name': 'Test Ruby'
+'type': 'tree-sitter'
 'scopeName': 'test.rb'
-'firstLineMatch': '^\\#!.*(?:\\s|\\/)(?:testruby)(?:$|\\s)'
+'parser': 'tree-sitter-ruby'
+
+'firstLineRegex': '^\\#!.*(?:\\s|\\/)(?:testruby)(?:$|\\s)'
+
 'fileTypes': [
   'rb'
-]
-'patterns': [
-  {
-    'match': 'ruby'
-    'name': 'meta.class.ruby'
-  }
 ]

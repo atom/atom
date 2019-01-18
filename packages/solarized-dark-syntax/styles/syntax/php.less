@@ -1,0 +1,67 @@
+.syntax--source.syntax--php {
+  .syntax--storage {
+    &.syntax--type {
+      &.syntax--class {
+        color: @yellow;
+      }
+      &.syntax--function {
+        color: @orange;
+      }
+    }
+    &.syntax--modifier {
+      color: @yellow;
+    }
+  }
+  .syntax--entity {
+    &.syntax--name {
+      &.syntax--type.syntax--class {
+        color: @syntax-text-color;
+      }
+      &.syntax--function {
+        color: @syntax-text-color;
+      }
+    }
+    &.syntax--other {
+      color: @syntax-text-color;
+    }
+  }
+  .syntax--variable {
+    color: @blue;
+  }
+  .syntax--punctuation.syntax--definition {
+    color: @syntax-text-color;
+    &.syntax--comment {
+      color: @syntax-comment-color;
+    }
+    &.syntax--array {
+      color: @red;
+    }
+    &.syntax--string {
+      color: @syntax-text-color;
+    }
+    &.syntax--variable {
+      color: @green;
+    }
+  }
+  .syntax--support.syntax--function {
+    &.syntax--construct {
+      color: @yellow;
+    }
+    &.syntax--array {
+      color: @green;
+    }
+  }
+  .syntax--keyword {
+    &.syntax--operator {
+      &.syntax--class {
+        color: @yellow;
+      }
+      &.syntax--assignment {
+        color: @green;
+      }
+    }
+    &.syntax--other {
+      color: @red;
+    }
+  }
+}

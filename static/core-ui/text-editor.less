@@ -1,0 +1,158 @@
+@import "ui-variables";
+@import "octicon-utf-codes";
+@import "octicon-mixins";
+
+:root {
+  // Fixes specs
+  --editor-font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+}
+
+atom-text-editor {
+  display: flex;
+  cursor: text;
+  font-family: var(--editor-font-family);
+  font-size: var(--editor-font-size);
+  line-height: var(--editor-line-height);
+
+  .gutter-container {
+    width: min-content;
+    background-color: inherit;
+    cursor: default;
+  }
+
+  .gutter {
+    overflow: hidden;
+    z-index: 0;
+    text-align: right;
+    min-width: 1em;
+    box-sizing: border-box;
+    background-color: inherit;
+    position: relative;
+  }
+
+  .gutter:hover {
+    .line-number.foldable .icon-right {
+      visibility: visible;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  .gutter, .gutter:hover {
+    .line-number.folded .icon-right {
+      .octicon(chevron-right, 0.8em);
+
+      visibility: visible;
+
+      &::before {
+        position: relative;
+        left: -.1em;
+      }
+    }
+  }
+
+  .line-numbers {
+    width: max-content;
+    background-color: inherit;
+  }
+
+  .line-number {
+    padding-left: .5em;
+    white-space: nowrap;
+    opacity: 0.6;
+    position: relative;
+
+    .icon-right {
+      .octicon(chevron-down, 0.8em);
+      display: inline-block;
+      visibility: hidden;
+      opacity: .6;
+      padding: 0 .4em;
+
+      &::before {
+        text-align: center;
+      }
+    }
+  }
+
+  .highlight {
+    background: none;
+    padding: 0;
+  }
+
+  .highlight .region {
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .line {
+    white-space: pre;
+    contain: layout;
+
+    &.cursor-line .fold-marker::after {
+      opacity: 1;
+    }
+  }
+
+  .fold-marker {
+    cursor: default;
+
+    &::after {
+      .icon(0.8em, inline);
+
+      content: @ellipsis;
+      padding-left: 0.2em;
+    }
+  }
+
+  .placeholder-text {
+    position: absolute;
+    color: @text-color-subtle;
+  }
+
+  .invisible-character {
+    font-weight: normal !important;
+    font-style: normal !important;
+  }
+
+  .indent-guide {
+    display: inline-block;
+    box-shadow: inset 1px 0;
+  }
+
+  .cursor {
+    z-index: 4;
+    pointer-events: none;
+    box-sizing: border-box;
+    position: absolute;
+    border-left: 1px solid;
+    opacity: 0;
+  }
+
+  &.is-focused .cursor {
+    opacity: 1;
+  }
+
+  .cursors.blink-off .cursor {
+    opacity: 0;
+  }
+
+  // Atom manages the selection independent of Blink / the OS. We never want a
+  // native selection.
+  user-select: none;
+}
+
+atom-text-editor[mini] {
+  font-size: @input-font-size;
+  line-height: @component-line-height;
+  max-height: @component-line-height + 2; // +2 for borders
+  overflow: auto;
+}
+
+atom-overlay {
+  position: fixed;
+  display: block;
+  z-index: 4;
+}

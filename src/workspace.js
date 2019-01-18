@@ -1,5 +1,3 @@
-'use babel'
-
 const _ = require('underscore-plus')
 const url = require('url')
 const path = require('path')
@@ -227,6 +225,8 @@ module.exports = class Workspace extends Model {
       modal: new PanelContainer({viewRegistry: this.viewRegistry, location: 'modal'})
     }
 
+    this.incoming = new Map()
+
     this.subscribeToEvents()
   }
 
@@ -310,7 +310,10 @@ module.exports = class Workspace extends Model {
     this.originalFontSize = null
     this.openers = []
     this.destroyedItemURIs = []
-    this.element = null
+    if (this.element) {
+      this.element.destroy()
+      this.element = null
+    }
     this.consumeServices(this.packageManager)
   }
 
@@ -494,12 +497,22 @@ module.exports = class Workspace extends Model {
       if (item instanceof TextEditor) {
         const subscriptions = new CompositeDisposable(
           this.textEditorRegistry.add(item),
-          this.textEditorRegistry.maintainGrammar(item),
-          this.textEditorRegistry.maintainConfig(item),
-          item.observeGrammar(this.handleGrammarUsed.bind(this))
+          this.textEditorRegistry.maintainConfig(item)
         )
+        if (!this.project.findBufferForId(item.buffer.id)) {
+          this.project.addBuffer(item.buffer)
+        }
         item.onDidDestroy(() => { subscriptions.dispose() })
         this.emitter.emit('did-add-text-editor', {textEditor: item, pane, index})
+        // It's important to call handleGrammarUsed after emitting the did-add event:
+        // if we activate a package between adding the editor to the registry and emitting
+        // the package may receive the editor twice from `observeTextEditors`.
+        // (Note that the item can be destroyed by an `observeTextEditors` handler.)
+        if (!item.isDestroyed()) {
+          subscriptions.add(
+            item.observeGrammar(this.handleGrammarUsed.bind(this))
+          )
+        }
       }
     })
   }
@@ -918,133 +931,150 @@ module.exports = class Workspace extends Model {
       if (typeof item.getURI === 'function') uri = item.getURI()
     }
 
-    if (!atom.config.get('core.allowPendingPaneItems')) {
-      options.pending = false
-    }
-
-    // Avoid adding URLs as recent documents to work-around this Spotlight crash:
-    // https://github.com/atom/atom/issues/10071
-    if (uri && (!url.parse(uri).protocol || process.platform === 'win32')) {
-      this.applicationDelegate.addRecentDocument(uri)
-    }
-
-    let pane, itemExistsInWorkspace
-
-    // Try to find an existing item in the workspace.
-    if (item || uri) {
-      if (options.pane) {
-        pane = options.pane
-      } else if (options.searchAllPanes) {
-        pane = item ? this.paneForItem(item) : this.paneForURI(uri)
+    let resolveItem = () => {}
+    if (uri) {
+      const incomingItem = this.incoming.get(uri)
+      if (!incomingItem) {
+        this.incoming.set(uri, new Promise(resolve => { resolveItem = resolve }))
       } else {
-        // If an item with the given URI is already in the workspace, assume
-        // that item's pane container is the preferred location for that URI.
-        let container
-        if (uri) container = this.paneContainerForURI(uri)
-        if (!container) container = this.getActivePaneContainer()
+        await incomingItem
+      }
+    }
 
-        // The `split` option affects where we search for the item.
-        pane = container.getActivePane()
-        switch (options.split) {
-          case 'left':
-            pane = pane.findLeftmostSibling()
-            break
-          case 'right':
-            pane = pane.findRightmostSibling()
-            break
-          case 'up':
-            pane = pane.findTopmostSibling()
-            break
-          case 'down':
-            pane = pane.findBottommostSibling()
-            break
-        }
+    try {
+      if (!atom.config.get('core.allowPendingPaneItems')) {
+        options.pending = false
       }
 
-      if (pane) {
-        if (item) {
-          itemExistsInWorkspace = pane.getItems().includes(item)
+      // Avoid adding URLs as recent documents to work-around this Spotlight crash:
+      // https://github.com/atom/atom/issues/10071
+      if (uri && (!url.parse(uri).protocol || process.platform === 'win32')) {
+        this.applicationDelegate.addRecentDocument(uri)
+      }
+
+      let pane, itemExistsInWorkspace
+
+      // Try to find an existing item in the workspace.
+      if (item || uri) {
+        if (options.pane) {
+          pane = options.pane
+        } else if (options.searchAllPanes) {
+          pane = item ? this.paneForItem(item) : this.paneForURI(uri)
         } else {
-          item = pane.itemForURI(uri)
-          itemExistsInWorkspace = item != null
+          // If an item with the given URI is already in the workspace, assume
+          // that item's pane container is the preferred location for that URI.
+          let container
+          if (uri) container = this.paneContainerForURI(uri)
+          if (!container) container = this.getActivePaneContainer()
+
+          // The `split` option affects where we search for the item.
+          pane = container.getActivePane()
+          switch (options.split) {
+            case 'left':
+              pane = pane.findLeftmostSibling()
+              break
+            case 'right':
+              pane = pane.findRightmostSibling()
+              break
+            case 'up':
+              pane = pane.findTopmostSibling()
+              break
+            case 'down':
+              pane = pane.findBottommostSibling()
+              break
+          }
+        }
+
+        if (pane) {
+          if (item) {
+            itemExistsInWorkspace = pane.getItems().includes(item)
+          } else {
+            item = pane.itemForURI(uri)
+            itemExistsInWorkspace = item != null
+          }
         }
       }
-    }
 
-    // If we already have an item at this stage, we won't need to do an async
-    // lookup of the URI, so we yield the event loop to ensure this method
-    // is consistently asynchronous.
-    if (item) await Promise.resolve()
+      // If we already have an item at this stage, we won't need to do an async
+      // lookup of the URI, so we yield the event loop to ensure this method
+      // is consistently asynchronous.
+      if (item) await Promise.resolve()
 
-    if (!itemExistsInWorkspace) {
-      item = item || await this.createItemForURI(uri, options)
-      if (!item) return
+      if (!itemExistsInWorkspace) {
+        item = item || await this.createItemForURI(uri, options)
+        if (!item) return
 
-      if (options.pane) {
-        pane = options.pane
+        if (options.pane) {
+          pane = options.pane
+        } else {
+          let location = options.location
+          if (!location && !options.split && uri && this.enablePersistence) {
+            location = await this.itemLocationStore.load(uri)
+          }
+          if (!location && typeof item.getDefaultLocation === 'function') {
+            location = item.getDefaultLocation()
+          }
+
+          const allowedLocations = typeof item.getAllowedLocations === 'function' ? item.getAllowedLocations() : ALL_LOCATIONS
+          location = allowedLocations.includes(location) ? location : allowedLocations[0]
+
+          const container = this.paneContainers[location] || this.getCenter()
+          pane = container.getActivePane()
+          switch (options.split) {
+            case 'left':
+              pane = pane.findLeftmostSibling()
+              break
+            case 'right':
+              pane = pane.findOrCreateRightmostSibling()
+              break
+            case 'up':
+              pane = pane.findTopmostSibling()
+              break
+            case 'down':
+              pane = pane.findOrCreateBottommostSibling()
+              break
+          }
+        }
+      }
+
+      if (!options.pending && (pane.getPendingItem() === item)) {
+        pane.clearPendingItem()
+      }
+
+      this.itemOpened(item)
+
+      if (options.activateItem === false) {
+        pane.addItem(item, {pending: options.pending})
       } else {
-        let location = options.location
-        if (!location && !options.split && uri && this.enablePersistence) {
-          location = await this.itemLocationStore.load(uri)
-        }
-        if (!location && typeof item.getDefaultLocation === 'function') {
-          location = item.getDefaultLocation()
-        }
+        pane.activateItem(item, {pending: options.pending})
+      }
 
-        const allowedLocations = typeof item.getAllowedLocations === 'function' ? item.getAllowedLocations() : ALL_LOCATIONS
-        location = allowedLocations.includes(location) ? location : allowedLocations[0]
+      if (options.activatePane !== false) {
+        pane.activate()
+      }
 
-        const container = this.paneContainers[location] || this.getCenter()
-        pane = container.getActivePane()
-        switch (options.split) {
-          case 'left':
-            pane = pane.findLeftmostSibling()
-            break
-          case 'right':
-            pane = pane.findOrCreateRightmostSibling()
-            break
-          case 'up':
-            pane = pane.findTopmostSibling()
-            break
-          case 'down':
-            pane = pane.findOrCreateBottommostSibling()
-            break
+      let initialColumn = 0
+      let initialLine = 0
+      if (!Number.isNaN(options.initialLine)) {
+        initialLine = options.initialLine
+      }
+      if (!Number.isNaN(options.initialColumn)) {
+        initialColumn = options.initialColumn
+      }
+      if (initialLine >= 0 || initialColumn >= 0) {
+        if (typeof item.setCursorBufferPosition === 'function') {
+          item.setCursorBufferPosition([initialLine, initialColumn])
         }
       }
-    }
 
-    if (!options.pending && (pane.getPendingItem() === item)) {
-      pane.clearPendingItem()
-    }
-
-    this.itemOpened(item)
-
-    if (options.activateItem === false) {
-      pane.addItem(item, {pending: options.pending})
-    } else {
-      pane.activateItem(item, {pending: options.pending})
-    }
-
-    if (options.activatePane !== false) {
-      pane.activate()
-    }
-
-    let initialColumn = 0
-    let initialLine = 0
-    if (!Number.isNaN(options.initialLine)) {
-      initialLine = options.initialLine
-    }
-    if (!Number.isNaN(options.initialColumn)) {
-      initialColumn = options.initialColumn
-    }
-    if (initialLine >= 0 || initialColumn >= 0) {
-      if (typeof item.setCursorBufferPosition === 'function') {
-        item.setCursorBufferPosition([initialLine, initialColumn])
+      const index = pane.getActiveItemIndex()
+      this.emitter.emit('did-open', {uri, pane, item, index})
+      if (uri) {
+        this.incoming.delete(uri)
       }
+    } finally {
+      resolveItem()
     }
-
-    const index = pane.getActiveItemIndex()
-    this.emitter.emit('did-open', {uri, pane, item, index})
     return item
   }
 
@@ -1158,16 +1188,17 @@ module.exports = class Workspace extends Model {
   // * `uri` A {String} containing a URI.
   //
   // Returns a {Promise} that resolves to the {TextEditor} (or other item) for the given URI.
-  createItemForURI (uri, options) {
+  async createItemForURI (uri, options) {
     if (uri != null) {
-      for (let opener of this.getOpeners()) {
+      for (const opener of this.getOpeners()) {
         const item = opener(uri, options)
-        if (item != null) return Promise.resolve(item)
+        if (item != null) return item
       }
     }
 
     try {
-      return this.openTextFile(uri, options)
+      const item = await this.openTextFile(uri, options)
+      return item
     } catch (error) {
       switch (error.code) {
         case 'CANCELLED':
@@ -1197,7 +1228,7 @@ module.exports = class Workspace extends Model {
     }
   }
 
-  openTextFile (uri, options) {
+  async openTextFile (uri, options) {
     const filePath = this.project.resolvePath(uri)
 
     if (filePath != null) {
@@ -1213,29 +1244,32 @@ module.exports = class Workspace extends Model {
 
     const fileSize = fs.getSizeSync(filePath)
 
-    const largeFileMode = fileSize >= (2 * 1048576) // 2MB
-    if (fileSize >= (this.config.get('core.warnOnLargeFileLimit') * 1048576)) { // 20MB by default
-      const choice = this.applicationDelegate.confirm({
-        message: 'Atom will be unresponsive during the loading of very large files.',
-        detailedMessage: 'Do you still want to load this file?',
-        buttons: ['Proceed', 'Cancel']
+    if (fileSize >= (this.config.get('core.warnOnLargeFileLimit') * 1048576)) { // 40MB by default
+      await new Promise((resolve, reject) => {
+        this.applicationDelegate.confirm({
+          message: 'Atom will be unresponsive during the loading of very large files.',
+          detail: 'Do you still want to load this file?',
+          buttons: ['Proceed', 'Cancel']
+        }, response => {
+          if (response === 1) {
+            const error = new Error()
+            error.code = 'CANCELLED'
+            reject(error)
+          } else {
+            resolve()
+          }
+        })
       })
-      if (choice === 1) {
-        const error = new Error()
-        error.code = 'CANCELLED'
-        throw error
-      }
     }
 
-    return this.project.bufferForPath(filePath, options)
-      .then(buffer => {
-        return this.textEditorRegistry.build(Object.assign({buffer, largeFileMode, autoHeight: false}, options))
-      })
+    const buffer = await this.project.bufferForPath(filePath, options)
+    return this.textEditorRegistry.build(Object.assign({buffer, autoHeight: false}, options))
   }
 
   handleGrammarUsed (grammar) {
     if (grammar == null) { return }
-    return this.packageManager.triggerActivationHook(`${grammar.packageName}:grammar-used`)
+    this.packageManager.triggerActivationHook(`${grammar.scopeName}:root-scope-used`)
+    this.packageManager.triggerActivationHook(`${grammar.packageName}:grammar-used`)
   }
 
   // Public: Returns a {Boolean} that is `true` if `object` is a `TextEditor`.
@@ -1250,11 +1284,8 @@ module.exports = class Workspace extends Model {
   // Returns a {TextEditor}.
   buildTextEditor (params) {
     const editor = this.textEditorRegistry.build(params)
-    const subscriptions = new CompositeDisposable(
-      this.textEditorRegistry.maintainGrammar(editor),
-      this.textEditorRegistry.maintainConfig(editor)
-    )
-    editor.onDidDestroy(() => { subscriptions.dispose() })
+    const subscription = this.textEditorRegistry.maintainConfig(editor)
+    editor.onDidDestroy(() => subscription.dispose())
     return editor
   }
 
@@ -1557,6 +1588,7 @@ module.exports = class Workspace extends Model {
     if (this.activeItemSubscriptions != null) {
       this.activeItemSubscriptions.dispose()
     }
+    if (this.element) this.element.destroy()
   }
 
   /*
@@ -1990,25 +2022,22 @@ module.exports = class Workspace extends Model {
 
   checkoutHeadRevision (editor) {
     if (editor.getPath()) {
-      const checkoutHead = () => {
-        return this.project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
-          .then(repository => repository && repository.checkoutHeadForEditor(editor))
+      const checkoutHead = async () => {
+        const repository = await this.project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
+        if (repository) repository.checkoutHeadForEditor(editor)
       }
 
       if (this.config.get('editor.confirmCheckoutHeadRevision')) {
         this.applicationDelegate.confirm({
           message: 'Confirm Checkout HEAD Revision',
-          detailedMessage: `Are you sure you want to discard all changes to "${editor.getFileName()}" since the last Git commit?`,
-          buttons: {
-            OK: checkoutHead,
-            Cancel: null
-          }
+          detail: `Are you sure you want to discard all changes to "${editor.getFileName()}" since the last Git commit?`,
+          buttons: ['OK', 'Cancel']
+        }, response => {
+          if (response === 0) checkoutHead()
         })
       } else {
-        return checkoutHead()
+        checkoutHead()
       }
-    } else {
-      return Promise.resolve(false)
     }
   }
 }

@@ -55,6 +55,18 @@ describe('TooltipManager', () => {
 
         disposables.dispose()
       })
+
+      it('hides the tooltip on keydown events', () => {
+        const disposable = manager.add(element, { title: 'Title', trigger: 'hover' })
+        hover(element, function () {
+          expect(document.body.querySelector('.tooltip')).not.toBeNull()
+          window.dispatchEvent(new CustomEvent('keydown', {
+            bubbles: true
+          }))
+          expect(document.body.querySelector('.tooltip')).toBeNull()
+          disposable.dispose()
+        })
+      })
     })
 
     describe("when the trigger is 'manual'", () =>
@@ -93,6 +105,19 @@ describe('TooltipManager', () => {
       })
     )
 
+    it('does not hide the tooltip on keyboard input', () => {
+      manager.add(element, {title: 'Title', trigger: 'click'})
+      element.click()
+      expect(document.body.querySelector('.tooltip')).not.toBeNull()
+      window.dispatchEvent(new CustomEvent('keydown', {
+        bubbles: true
+      }))
+      expect(document.body.querySelector('.tooltip')).not.toBeNull()
+      // click again to hide the tooltip because otherwise state leaks
+      // into other tests.
+      element.click()
+    })
+
     it('allows a custom item to be specified for the content of the tooltip', () => {
       const tooltipElement = document.createElement('div')
       manager.add(element, {item: {element: tooltipElement}})
@@ -108,8 +133,12 @@ describe('TooltipManager', () => {
       const element2 = document.createElement('div')
       jasmine.attachToDOM(element2)
 
-      const fakeJqueryWrapper = [element, element2]
-      fakeJqueryWrapper.jquery = 'any-version'
+      const fakeJqueryWrapper = {
+        0: element,
+        1: element2,
+        length: 2,
+        jquery: 'any-version'
+      }
       const disposable = manager.add(fakeJqueryWrapper, {title: 'Title'})
 
       hover(element, () => expect(document.body.querySelector('.tooltip')).toHaveText('Title'))

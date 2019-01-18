@@ -12,13 +12,13 @@ class ProtocolHandlerInstaller {
   }
 
   isDefaultProtocolClient () {
-    return remote.app.isDefaultProtocolClient('atom', process.execPath, ['--uri-handler'])
+    return remote.app.isDefaultProtocolClient('atom', process.execPath, ['--uri-handler', '--'])
   }
 
   setAsDefaultProtocolClient () {
     // This Electron API is only available on Windows and macOS. There might be some
     // hacks to make it work on Linux; see https://github.com/electron/electron/issues/6440
-    return this.isSupported() && remote.app.setAsDefaultProtocolClient('atom', process.execPath, ['--uri-handler'])
+    return this.isSupported() && remote.app.setAsDefaultProtocolClient('atom', process.execPath, ['--uri-handler', '--'])
   }
 
   initialize (config, notifications) {
@@ -26,19 +26,28 @@ class ProtocolHandlerInstaller {
       return
     }
 
-    if (!this.isDefaultProtocolClient()) {
-      const behaviorWhenNotProtocolClient = config.get(SETTING)
-      switch (behaviorWhenNotProtocolClient) {
-        case PROMPT:
+    const behaviorWhenNotProtocolClient = config.get(SETTING)
+    switch (behaviorWhenNotProtocolClient) {
+      case PROMPT:
+        if (!this.isDefaultProtocolClient()) {
           this.promptToBecomeProtocolClient(config, notifications)
-          break
-        case ALWAYS:
+        }
+        break
+      case ALWAYS:
+        if (!this.isDefaultProtocolClient()) {
           this.setAsDefaultProtocolClient()
-          break
-        case NEVER:
-        default:
-          // Do nothing
-      }
+        }
+        break
+      case NEVER:
+        if (process.platform === 'win32') {
+          // Only win32 supports deregistration
+          const Registry = require('winreg')
+          const commandKey = new Registry({hive: 'HKCR', key: `\\atom`})
+          commandKey.destroy((_err, _val) => { /* no op */ })
+        }
+        break
+      default:
+        // Do nothing
     }
   }
 
@@ -63,7 +72,7 @@ class ProtocolHandlerInstaller {
     notification = notifications.addInfo('Register as default atom:// URI handler?', {
       dismissable: true,
       icon: 'link',
-      description: 'Atom is not currently set as the defaut handler for atom:// URIs. Would you like Atom to handle ' +
+      description: 'Atom is not currently set as the default handler for atom:// URIs. Would you like Atom to handle ' +
         'atom:// URIs?',
       buttons: [
         {

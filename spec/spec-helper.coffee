@@ -7,11 +7,12 @@ fs = require 'fs-plus'
 Grim = require 'grim'
 pathwatcher = require 'pathwatcher'
 FindParentDir = require 'find-parent-dir'
+{CompositeDisposable} = require 'event-kit'
 
 TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
-TokenizedBuffer = require '../src/tokenized-buffer'
-clipboard = require '../src/safe-clipboard'
+TextMateLanguageMode = require '../src/text-mate-language-mode'
+{clipboard} = require 'electron'
 
 jasmineStyle = document.createElement('style')
 jasmineStyle.textContent = atom.themes.loadStylesheet(atom.themes.resolveStylesheet('../static/jasmine'))
@@ -61,6 +62,9 @@ else
   specProjectPath = require('os').tmpdir()
 
 beforeEach ->
+  # Do not clobber recent project history
+  spyOn(Object.getPrototypeOf(atom.history), 'saveState').andReturn(Promise.resolve())
+
   atom.project.setPaths([specProjectPath])
 
   window.resetTimeouts()
@@ -96,8 +100,21 @@ beforeEach ->
   spyOn(TextEditor.prototype, "shouldPromptToSave").andReturn false
 
   # make tokenization synchronous
-  TokenizedBuffer.prototype.chunkSize = Infinity
-  spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
+  TextMateLanguageMode.prototype.chunkSize = Infinity
+  spyOn(TextMateLanguageMode.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
+
+  # Without this spy, TextEditor.onDidTokenize callbacks would not be called
+  # after the buffer's language mode changed, because by the time the editor
+  # called its new language mode's onDidTokenize method, the language mode
+  # would already be fully tokenized.
+  spyOn(TextEditor.prototype, "onDidTokenize").andCallFake (callback) ->
+    new CompositeDisposable(
+      @emitter.on("did-tokenize", callback),
+      @onDidChangeGrammar =>
+        languageMode = @buffer.getLanguageMode()
+        if languageMode.tokenizeInBackground?.originalValue
+          callback()
+    )
 
   clipboardContent = 'initial clipboard content'
   spyOn(clipboard, 'writeText').andCallFake (text) -> clipboardContent = text

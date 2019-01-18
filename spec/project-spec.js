@@ -35,7 +35,12 @@ describe('Project', () => {
     })
 
     it("does not deserialize paths to directories that don't exist", () => {
-      deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+      deserializedProject = new Project({
+        notificationManager: atom.notifications,
+        packageManager: atom.packages,
+        confirm: atom.confirm,
+        grammarRegistry: atom.grammars
+      })
       const state = atom.project.serialize()
       state.paths.push('/directory/that/does/not/exist')
 
@@ -55,7 +60,12 @@ describe('Project', () => {
       const childPath = path.join(temp.mkdirSync('atom-spec-project'), 'child')
       fs.mkdirSync(childPath)
 
-      deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+      deserializedProject = new Project({
+        notificationManager: atom.notifications,
+        packageManager: atom.packages,
+        confirm: atom.confirm,
+        grammarRegistry: atom.grammars
+      })
       atom.project.setPaths([childPath])
       const state = atom.project.serialize()
 
@@ -80,7 +90,12 @@ describe('Project', () => {
       runs(() => {
         expect(atom.project.getBuffers().length).toBe(1)
 
-        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -93,7 +108,12 @@ describe('Project', () => {
 
       runs(() => {
         expect(atom.project.getBuffers().length).toBe(1)
-        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -113,7 +133,12 @@ describe('Project', () => {
       runs(() => {
         expect(atom.project.getBuffers().length).toBe(1)
         fs.mkdirSync(pathToOpen)
-        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -131,7 +156,12 @@ describe('Project', () => {
       runs(() => {
         expect(atom.project.getBuffers().length).toBe(1)
         fs.chmodSync(pathToOpen, '000')
-        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -148,7 +178,12 @@ describe('Project', () => {
       runs(() => {
         expect(atom.project.getBuffers().length).toBe(1)
         fs.unlinkSync(pathToOpen)
-        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -165,7 +200,12 @@ describe('Project', () => {
         atom.workspace.getActiveTextEditor().setText('unsaved\n')
         expect(atom.project.getBuffers().length).toBe(1)
 
-        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -189,7 +229,12 @@ describe('Project', () => {
         layerA = bufferA.addMarkerLayer({persistent: true})
         markerA = layerA.markPosition([0, 3])
         bufferA.append('!')
-        notQuittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        notQuittingProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => notQuittingProject.deserialize(atom.project.serialize({isUnloading: false})))
@@ -197,7 +242,12 @@ describe('Project', () => {
       runs(() => {
         expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id), x => x.getMarker(markerA.id)).toBeUndefined()
         expect(notQuittingProject.getBuffers()[0].undo()).toBe(false)
-        quittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        quittingProject = new Project({
+          notificationManager: atom.notifications,
+          packageManager: atom.packages,
+          confirm: atom.confirm,
+          grammarRegistry: atom.grammars
+        })
       })
 
       waitsForPromise(() => quittingProject.deserialize(atom.project.serialize({isUnloading: true})))
@@ -209,7 +259,7 @@ describe('Project', () => {
     })
   })
 
-  describe('when an editor is saved and the project has no path', () =>
+  describe('when an editor is saved and the project has no path', () => {
     it("sets the project's path to the saved file's parent directory", () => {
       const tempFile = temp.openSync().path
       atom.project.setPaths([])
@@ -222,7 +272,52 @@ describe('Project', () => {
 
       runs(() => expect(atom.project.getPaths()[0]).toBe(path.dirname(tempFile)))
     })
-  )
+  })
+
+  describe('.replace', () => {
+    let projectSpecification, projectPath1, projectPath2
+    beforeEach(() => {
+      atom.project.replace(null)
+      projectPath1 = temp.mkdirSync('project-path1')
+      projectPath2 = temp.mkdirSync('project-path2')
+      projectSpecification = {
+        paths: [projectPath1, projectPath2],
+        originPath: 'originPath',
+        config: {
+          'baz': 'buzz'
+        }
+      }
+    })
+    it('sets a project specification', () => {
+      expect(atom.config.get('baz')).toBeUndefined()
+      atom.project.replace(projectSpecification)
+      expect(atom.project.getPaths()).toEqual([projectPath1, projectPath2])
+      expect(atom.config.get('baz')).toBe('buzz')
+    })
+
+    it('clears a project through replace with no params', () => {
+      expect(atom.config.get('baz')).toBeUndefined()
+      atom.project.replace(projectSpecification)
+      expect(atom.config.get('baz')).toBe('buzz')
+      expect(atom.project.getPaths()).toEqual([projectPath1, projectPath2])
+      atom.project.replace()
+      expect(atom.config.get('baz')).toBeUndefined()
+      expect(atom.project.getPaths()).toEqual([])
+    })
+
+    it('responds to change of project specification', () => {
+      let wasCalled = false
+      const callback = () => {
+        wasCalled = true
+      }
+      atom.project.onDidReplace(callback)
+      atom.project.replace(projectSpecification)
+      expect(wasCalled).toBe(true)
+      wasCalled = false
+      atom.project.replace()
+      expect(wasCalled).toBe(true)
+    })
+  })
 
   describe('before and after saving a buffer', () => {
     let buffer
@@ -335,9 +430,14 @@ describe('Project', () => {
       isRoot () { return true }
       existsSync () { return this.path.endsWith('does-exist') }
       contains (filePath) { return filePath.startsWith(this.path) }
+      onDidChangeFiles (callback) {
+        onDidChangeFilesCallback = callback
+        return {dispose: () => {}}
+      }
     }
 
     let serviceDisposable = null
+    let onDidChangeFilesCallback = null
 
     beforeEach(() => {
       serviceDisposable = atom.packages.serviceHub.provide('atom.directory-provider', '0.1.0', {
@@ -349,6 +449,7 @@ describe('Project', () => {
           }
         }
       })
+      onDidChangeFilesCallback = null
 
       waitsFor(() => atom.project.directoryProviders.length > 0)
     })
@@ -383,6 +484,28 @@ describe('Project', () => {
       atom.project.setPaths(['ssh://foreign-directory:8080/does-exist'])
       expect(atom.project.getDirectories().length).toBe(0)
     })
+
+    it('uses the custom onDidChangeFiles as the watcher if available', () => {
+      // Ensure that all preexisting watchers are stopped
+      waitsForPromise(() => stopAllWatchers())
+
+      const remotePath = 'ssh://another-directory:8080/does-exist'
+      runs(() => atom.project.setPaths([remotePath]))
+      waitsForPromise(() => atom.project.getWatcherPromise(remotePath))
+
+      runs(() => {
+        expect(onDidChangeFilesCallback).not.toBeNull()
+
+        const changeSpy = jasmine.createSpy('atom.project.onDidChangeFiles')
+        const disposable = atom.project.onDidChangeFiles(changeSpy)
+
+        const events = [{action: 'created', path: remotePath + '/test.txt'}]
+        onDidChangeFilesCallback(events)
+
+        expect(changeSpy).toHaveBeenCalledWith(events)
+        disposable.dispose()
+      })
+    })
   })
 
   describe('.open(path)', () => {
@@ -394,7 +517,7 @@ describe('Project', () => {
       atom.project.onDidAddBuffer(newBufferHandler)
     })
 
-    describe("when given an absolute path that isn't currently open", () =>
+    describe("when given an absolute path that isn't currently open", () => {
       it("returns a new edit session for the given path and emits 'buffer-created'", () => {
         let editor = null
         waitsForPromise(() => atom.workspace.open(absolutePath).then(o => { editor = o }))
@@ -404,9 +527,9 @@ describe('Project', () => {
           expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
         })
       })
-    )
+    })
 
-    describe("when given a relative path that isn't currently opened", () =>
+    describe("when given a relative path that isn't currently opened", () => {
       it("returns a new edit session for the given path (relative to the project root) and emits 'buffer-created'", () => {
         let editor = null
         waitsForPromise(() => atom.workspace.open(absolutePath).then(o => { editor = o }))
@@ -416,9 +539,9 @@ describe('Project', () => {
           expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
         })
       })
-    )
+    })
 
-    describe('when passed the path to a buffer that is currently opened', () =>
+    describe('when passed the path to a buffer that is currently opened', () => {
       it('returns a new edit session containing currently opened buffer', () => {
         let editor = null
 
@@ -437,9 +560,9 @@ describe('Project', () => {
           })
         )
       })
-    )
+    })
 
-    describe('when not passed a path', () =>
+    describe('when not passed a path', () => {
       it("returns a new edit session and emits 'buffer-created'", () => {
         let editor = null
         waitsForPromise(() => atom.workspace.open().then(o => { editor = o }))
@@ -449,7 +572,7 @@ describe('Project', () => {
           expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
         })
       })
-    )
+    })
   })
 
   describe('.bufferForPath(path)', () => {
@@ -509,7 +632,7 @@ describe('Project', () => {
   })
 
   describe('.repositoryForDirectory(directory)', () => {
-    it('resolves to null when the directory does not have a repository', () =>
+    it('resolves to null when the directory does not have a repository', () => {
       waitsForPromise(() => {
         const directory = new Directory('/tmp')
         return atom.project.repositoryForDirectory(directory).then((result) => {
@@ -518,9 +641,9 @@ describe('Project', () => {
           expect(atom.project.repositoryPromisesByPath.size).toBe(0)
         })
       })
-    )
+    })
 
-    it('resolves to a GitRepository and is cached when the given directory is a Git repo', () =>
+    it('resolves to a GitRepository and is cached when the given directory is a Git repo', () => {
       waitsForPromise(() => {
         const directory = new Directory(path.join(__dirname, '..'))
         const promise = atom.project.repositoryForDirectory(directory)
@@ -533,7 +656,7 @@ describe('Project', () => {
           expect(atom.project.repositoryForDirectory(directory)).toBe(promise)
         })
       })
-    )
+    })
 
     it('creates a new repository if a previous one with the same directory had been destroyed', () => {
       let repository = null
@@ -554,14 +677,14 @@ describe('Project', () => {
   })
 
   describe('.setPaths(paths, options)', () => {
-    describe('when path is a file', () =>
+    describe('when path is a file', () => {
       it("sets its path to the file's parent directory and updates the root directory", () => {
         const filePath = require.resolve('./fixtures/dir/a')
         atom.project.setPaths([filePath])
         expect(atom.project.getPaths()[0]).toEqual(path.dirname(filePath))
         expect(atom.project.getDirectories()[0].path).toEqual(path.dirname(filePath))
       })
-    )
+    })
 
     describe('when path is a directory', () => {
       it('assigns the directories and repositories', () => {
@@ -608,13 +731,13 @@ describe('Project', () => {
       })
     })
 
-    describe('when no paths are given', () =>
+    describe('when no paths are given', () => {
       it('clears its path', () => {
         atom.project.setPaths([])
         expect(atom.project.getPaths()).toEqual([])
         expect(atom.project.getDirectories()).toEqual([])
       })
-  )
+    })
 
     it('normalizes the path to remove consecutive slashes, ., and .. segments', () => {
       atom.project.setPaths([`${require.resolve('./fixtures/dir/a')}${path.sep}b${path.sep}${path.sep}..`])
@@ -665,9 +788,9 @@ describe('Project', () => {
       expect(atom.project.getPaths()).toEqual(previousPaths)
     })
 
-    it('optionally throws on non-existent directories', () =>
+    it('optionally throws on non-existent directories', () => {
       expect(() => atom.project.addPath('/this-definitely/does-not-exist', {mustExist: true})).toThrow()
-    )
+    })
   })
 
   describe('.removePath(path)', () => {
@@ -785,7 +908,7 @@ describe('Project', () => {
     })
   })
 
-  describe('.onDidAddBuffer()', () =>
+  describe('.onDidAddBuffer()', () => {
     it('invokes the callback with added text buffers', () => {
       const buffers = []
       const added = []
@@ -810,9 +933,9 @@ describe('Project', () => {
         expect(added).toEqual([buffers[1]])
       })
     })
-)
+  })
 
-  describe('.observeBuffers()', () =>
+  describe('.observeBuffers()', () => {
     it('invokes the observer with current and future text buffers', () => {
       const buffers = []
       const observed = []
@@ -844,7 +967,78 @@ describe('Project', () => {
         expect(observed).toEqual(buffers)
       })
     })
-  )
+  })
+
+  describe('.observeRepositories()', () => {
+    it('invokes the observer with current and future repositories', () => {
+      const observed = []
+
+      const directory1 = temp.mkdirSync('git-repo1')
+      const gitDirPath1 = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      fs.copySync(gitDirPath1, path.join(directory1, '.git'))
+
+      const directory2 = temp.mkdirSync('git-repo2')
+      const gitDirPath2 = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'repo-with-submodules', 'git.git'))
+      fs.copySync(gitDirPath2, path.join(directory2, '.git'))
+
+      atom.project.setPaths([directory1])
+
+      const disposable = atom.project.observeRepositories((repo) => observed.push(repo))
+      expect(observed.length).toBe(1)
+      expect(observed[0].getReferenceTarget('refs/heads/master')).toBe('ef046e9eecaa5255ea5e9817132d4001724d6ae1')
+
+      atom.project.addPath(directory2)
+      expect(observed.length).toBe(2)
+      expect(observed[1].getReferenceTarget('refs/heads/master')).toBe('d2b0ad9cbc6f6c4372e8956e5cc5af771b2342e5')
+
+      disposable.dispose()
+    })
+  })
+
+  describe('.onDidAddRepository()', () => {
+    it('invokes callback when a path is added and the path is the root of a repository', () => {
+      const observed = []
+      const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
+
+      const projectRootPath = temp.mkdirSync()
+      const fixtureRepoPath = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      fs.copySync(fixtureRepoPath, path.join(projectRootPath, '.git'))
+
+      atom.project.addPath(projectRootPath)
+      expect(observed.length).toBe(1)
+      expect(observed[0].getOriginURL()).toEqual('https://github.com/example-user/example-repo.git')
+
+      disposable.dispose()
+    })
+
+    it('invokes callback when a path is added and the path is subdirectory of a repository', () => {
+      const observed = []
+      const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
+
+      const projectRootPath = temp.mkdirSync()
+      const fixtureRepoPath = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      fs.copySync(fixtureRepoPath, path.join(projectRootPath, '.git'))
+
+      const projectSubDirPath = path.join(projectRootPath, 'sub-dir')
+      fs.mkdirSync(projectSubDirPath)
+
+      atom.project.addPath(projectSubDirPath)
+      expect(observed.length).toBe(1)
+      expect(observed[0].getOriginURL()).toEqual('https://github.com/example-user/example-repo.git')
+
+      disposable.dispose()
+    })
+
+    it('does not invoke callback when a path is added and the path is not part of a repository', () => {
+      const observed = []
+      const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
+
+      atom.project.addPath(temp.mkdirSync('not-a-repository'))
+      expect(observed.length).toBe(0)
+
+      disposable.dispose()
+    })
+  })
 
   describe('.relativize(path)', () => {
     it('returns the path, relative to whichever root directory it is inside of', () => {
@@ -878,21 +1072,21 @@ describe('Project', () => {
       expect(atom.project.relativizePath(childPath)).toEqual([rootPath, path.join('some', 'child', 'directory')])
     })
 
-    describe("when the given path isn't inside of any of the project's path", () =>
+    describe("when the given path isn't inside of any of the project's path", () => {
       it('returns null for the root path, and the given path unchanged', () => {
         const randomPath = path.join('some', 'random', 'path')
         expect(atom.project.relativizePath(randomPath)).toEqual([null, randomPath])
       })
-  )
+    })
 
-    describe('when the given path is a URL', () =>
+    describe('when the given path is a URL', () => {
       it('returns null for the root path, and the given path unchanged', () => {
         const url = 'http://the-path'
         expect(atom.project.relativizePath(url)).toEqual([null, url])
       })
-  )
+    })
 
-    describe('when the given path is inside more than one root folder', () =>
+    describe('when the given path is inside more than one root folder', () => {
       it('uses the root folder that is closest to the given path', () => {
         atom.project.addPath(path.join(atom.project.getPaths()[0], 'a-dir'))
 
@@ -905,10 +1099,10 @@ describe('Project', () => {
           path.join('somewhere', 'something.txt')
         ])
       })
-  )
+    })
   })
 
-  describe('.contains(path)', () =>
+  describe('.contains(path)', () => {
     it('returns whether or not the given path is in one of the root directories', () => {
       const rootPath = atom.project.getPaths()[0]
       const childPath = path.join(rootPath, 'some', 'child', 'directory')
@@ -917,11 +1111,11 @@ describe('Project', () => {
       const randomPath = path.join('some', 'random', 'path')
       expect(atom.project.contains(randomPath)).toBe(false)
     })
-  )
+  })
 
-  describe('.resolvePath(uri)', () =>
+  describe('.resolvePath(uri)', () => {
     it('normalizes disk drive letter in passed path on #win32', () => {
       expect(atom.project.resolvePath('d:\\file.txt')).toEqual('D:\\file.txt')
     })
-  )
+  })
 })

@@ -1,15 +1,7 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS104: Avoid inline assignments
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-const {join} = require('path')
+const path = require('path')
+const fs = require('fs-plus')
 const _ = require('underscore-plus')
 const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
-const fs = require('fs-plus')
-const path = require('path')
 const GitUtils = require('git-utils')
 
 let nextId = 0
@@ -171,7 +163,7 @@ class GitRepository {
   // Public: Invoke the given callback when a multiple files' statuses have
   // changed. For example, on window focus, the status of all the paths in the
   // repo is checked. If any of them have changed, this will be fired. Call
-  // {::getPathStatus(path)} to get the status for your path of choice.
+  // {::getPathStatus} to get the status for your path of choice.
   //
   // * `callback` {Function}
   //
@@ -241,15 +233,15 @@ class GitRepository {
   // * `path` The {String} path to check.
   //
   // Returns a {Boolean}.
-  isSubmodule (path) {
-    if (!path) return false
+  isSubmodule (filePath) {
+    if (!filePath) return false
 
-    const repo = this.getRepo(path)
-    if (repo.isSubmodule(repo.relativize(path))) {
+    const repo = this.getRepo(filePath)
+    if (repo.isSubmodule(repo.relativize(filePath))) {
       return true
     } else {
-      // Check if the path is a working directory in a repo that isn't the root.
-      return repo !== this.getRepo() && repo.relativize(join(path, 'dir')) === 'dir'
+      // Check if the filePath is a working directory in a repo that isn't the root.
+      return repo !== this.getRepo() && repo.relativize(path.join(filePath, 'dir')) === 'dir'
     }
   }
 

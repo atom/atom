@@ -1,0 +1,48 @@
+.tooltip {
+  @tip-background-color: #fff;
+  @tip-text-color: #333;
+  white-space: nowrap;
+
+  .keystroke {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    color: #777;
+    padding-left: 2px;
+  }
+
+  &.in { opacity: 1; }
+
+  .tooltip-inner {
+    line-height: 19px;
+    border-radius: @component-border-radius;
+    background-color: @tip-background-color;
+    color: @tip-text-color;
+    white-space: nowrap;
+    max-width: none;
+  }
+
+  &.top .tooltip-arrow {
+    border-top-color: @tip-background-color;
+  }
+  &.top-left .tooltip-arrow {
+    border-top-color: @tip-background-color;
+  }
+  &.top-right .tooltip-arrow {
+    border-top-color: @tip-background-color;
+  }
+  &.right .tooltip-arrow {
+    border-right-color: @tip-background-color;
+  }
+  &.left .tooltip-arrow {
+    border-left-color: @tip-background-color;
+  }
+  &.bottom .tooltip-arrow {
+    border-bottom-color: @tip-background-color;
+  }
+  &.bottom-left .tooltip-arrow {
+    border-bottom-color: @tip-background-color;
+  }
+  &.bottom-right .tooltip-arrow {
+    border-bottom-color: @tip-background-color;
+  }
+}

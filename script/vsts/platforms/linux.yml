@@ -1,0 +1,52 @@
+jobs:
+- job: Linux
+  dependsOn: GetReleaseVersion
+  timeoutInMinutes: 180
+
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+  pool:
+    # This image is used to host the Docker container that runs the build
+    vmImage: ubuntu-16.04
+
+  container: atom-linux-ci
+
+  steps:
+  - script: script/build --create-debian-package --create-rpm-package --compress-artifacts
+    env:
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
+    displayName: Build Atom
+
+  - script: script/lint
+    displayName: Run linter
+
+  - script: script/test
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+    displayName: Run tests
+    condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom.x86_64.rpm
+      ArtifactName: atom.x86_64.rpm
+      ArtifactType: Container
+    displayName: Upload atom.x84_64.rpm
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-amd64.deb
+      ArtifactName: atom-amd64.deb
+      ArtifactType: Container
+    displayName: Upload atom-amd64.deb
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-amd64.tar.gz
+      ArtifactName: atom-amd64.tar.gz
+      ArtifactType: Container
+    displayName: Upload atom-amd64.tar.gz
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))

@@ -9,8 +9,12 @@ class PaneResizeHandleElement extends HTMLElement
     @addEventListener 'mousedown', @resizeStarted.bind(this)
 
   attachedCallback: ->
-    @isHorizontal = @parentElement.classList.contains("horizontal")
-    @classList.add if @isHorizontal then 'horizontal' else 'vertical'
+    # For some reason Chromium 58 is firing the attached callback after the
+    # element has been detached, so we ignore the callback when a parent element
+    # can't be found.
+    if @parentElement
+      @isHorizontal = @parentElement.classList.contains("horizontal")
+      @classList.add if @isHorizontal then 'horizontal' else 'vertical'
 
   detachedCallback: ->
     @resizeStopped()

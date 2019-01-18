@@ -9,6 +9,7 @@ class WindowEventHandler {
     this.handleFocusNext = this.handleFocusNext.bind(this)
     this.handleFocusPrevious = this.handleFocusPrevious.bind(this)
     this.handleWindowBlur = this.handleWindowBlur.bind(this)
+    this.handleWindowResize = this.handleWindowResize.bind(this)
     this.handleEnterFullScreen = this.handleEnterFullScreen.bind(this)
     this.handleLeaveFullScreen = this.handleLeaveFullScreen.bind(this)
     this.handleWindowBeforeunload = this.handleWindowBeforeunload.bind(this)
@@ -51,6 +52,7 @@ class WindowEventHandler {
     this.addEventListener(this.window, 'beforeunload', this.handleWindowBeforeunload)
     this.addEventListener(this.window, 'focus', this.handleWindowFocus)
     this.addEventListener(this.window, 'blur', this.handleWindowBlur)
+    this.addEventListener(this.window, 'resize', this.handleWindowResize)
 
     this.addEventListener(this.document, 'keyup', this.handleDocumentKeyEvent)
     this.addEventListener(this.document, 'keydown', this.handleDocumentKeyEvent)
@@ -189,6 +191,10 @@ class WindowEventHandler {
     this.atomEnvironment.storeWindowDimensions()
   }
 
+  handleWindowResize () {
+    this.atomEnvironment.storeWindowDimensions()
+  }
+
   handleEnterFullScreen () {
     this.document.body.classList.add('fullscreen')
   }
@@ -236,8 +242,12 @@ class WindowEventHandler {
   handleLinkClick (event) {
     event.preventDefault()
     const uri = event.currentTarget && event.currentTarget.getAttribute('href')
-    if (uri && (uri[0] !== '#') && /^https?:\/\//.test(uri)) {
-      this.applicationDelegate.openExternal(uri)
+    if (uri && uri[0] !== '#') {
+      if (/^https?:\/\//.test(uri)) {
+        this.applicationDelegate.openExternal(uri)
+      } else if (uri.startsWith('atom://')) {
+        this.atomEnvironment.uriHandlerRegistry.handleURI(uri)
+      }
     }
   }
 

@@ -1,13 +1,11 @@
-/** @babel */
-
-import {Emitter, CompositeDisposable} from 'event-kit'
+const {Emitter, CompositeDisposable} = require('event-kit')
 
 // Extended: History manager for remembering which projects have been opened.
 //
 // An instance of this class is always available as the `atom.history` global.
 //
 // The project history is used to enable the 'Reopen Project' menu.
-export class HistoryManager {
+class HistoryManager {
   constructor ({project, commands, stateStore}) {
     this.stateStore = stateStore
     this.emitter = new Emitter()
@@ -50,8 +48,8 @@ export class HistoryManager {
     return this.emitter.on('did-change-projects', callback)
   }
 
-  didChangeProjects (args) {
-    this.emitter.emit('did-change-projects', args || { reloaded: false })
+  didChangeProjects (args = {reloaded: false}) {
+    this.emitter.emit('did-change-projects', args)
   }
 
   async addProject (paths, lastOpened) {
@@ -93,7 +91,7 @@ export class HistoryManager {
   }
 
   async loadState () {
-    let history = await this.stateStore.load('history-manager')
+    const history = await this.stateStore.load('history-manager')
     if (history && history.projects) {
       this.projects = history.projects.filter(p => Array.isArray(p.paths) && p.paths.length > 0).map(p => new HistoryProject(p.paths, new Date(p.lastOpened)))
       this.didChangeProjects({reloaded: true})
@@ -116,7 +114,7 @@ function arrayEquivalent (a, b) {
   return true
 }
 
-export class HistoryProject {
+class HistoryProject {
   constructor (paths, lastOpened) {
     this.paths = paths
     this.lastOpened = lastOpened || new Date()
@@ -128,3 +126,5 @@ export class HistoryProject {
   set lastOpened (lastOpened) { this._lastOpened = lastOpened }
   get lastOpened () { return this._lastOpened }
 }
+
+module.exports = {HistoryManager, HistoryProject}

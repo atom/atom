@@ -36,6 +36,11 @@ if global.isGeneratingSnapshot
   require('image-view')
   require('incompatible-packages')
   require('keybinding-resolver')
+  require('language-c')
+  require('language-html')
+  require('language-javascript')
+  require('language-ruby')
+  require('language-typescript')
   require('line-ending-selector')
   require('link')
   require('markdown-preview')
@@ -67,6 +72,7 @@ global.atom = new AtomEnvironment({
   enablePersistence: true
 })
 
+TextEditor.setScheduler(global.atom.views)
 global.atom.preloadPackages()
 
 # Like sands through the hourglass, so are the days of our lives.

@@ -1,0 +1,71 @@
+trigger:
+- master
+- 1.* # VSTS only supports wildcards at the end
+
+resources:
+  containers:
+  - container: atom-linux-ci
+    image: daviwil/atom-linux-ci:latest
+
+jobs:
+
+- job: GetReleaseVersion
+  steps:
+  # This has to be done separately because VSTS inexplicably
+  # exits the script block after `npm install` completes.
+  - script: |
+      cd script\vsts
+      npm install
+    displayName: npm install
+  - script: node script\vsts\get-release-version.js
+    name: Version
+
+# Import OS-specific build definitions
+- template: platforms/windows.yml
+- template: platforms/macos.yml
+- template: platforms/linux.yml
+
+- job: UploadArtifacts
+  pool:
+    vmImage: vs2015-win2012r2 # needed for python 2.7 and gyp
+
+  dependsOn:
+  - GetReleaseVersion
+  - Windows
+  - Linux
+  - macOS
+
+  variables:
+    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+    IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+    IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
+
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 8.9.3
+    displayName: Install Node.js 8.9.3
+
+  # This has to be done separately because VSTS inexplicably
+  # exits the script block after `npm install` completes.
+  - script: |
+      cd script
+      npm install
+    displayName: npm install
+
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      itemPattern: '**'
+      downloadType: 'specific'
+    displayName: Download Release Artifacts
+
+  - script: |
+      $(Build.SourcesDirectory)\script\publish-release.cmd --assets-path "$(System.ArtifactsDirectory)" --s3-path "vsts-artifacts/$(Build.BuildId)/"
+    env:
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
+      ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
+      ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
+      ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
+      PACKAGE_CLOUD_API_KEY: $(PACKAGE_CLOUD_API_KEY)
+    displayName: Upload CI Artifacts to S3
+    condition: and(succeeded(), eq(variables['IsSignedZipBranch'], 'true'))
