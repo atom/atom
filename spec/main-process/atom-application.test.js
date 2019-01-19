@@ -83,22 +83,22 @@ describe('AtomApplication', function () {
         const window1EditorTitle = await evalInWebContents(window1.browserWindow.webContents, sendBackToMainProcess => {
           sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
         })
-				const window1EditorPending = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+  const window1EditorPending = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         	sendBackToMainProcess(atom.workspace.getActivePane().getPendingItem().getTitle())
       	})
         assert.equal(window1EditorTitle, 'untitled')
-				assert.equal(window1EditorPending, 'untitled')
+  assert.equal(window1EditorPending, 'untitled')
 
         const window2 = atomApplication.openWithOptions(parseCommandLine([]))
         await window2.loadedPromise
         const window2EditorTitle = await evalInWebContents(window2.browserWindow.webContents, sendBackToMainProcess => {
           sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
         })
-				const window2EditorPending = await evalInWebContents(window2.browserWindow.webContents, function (sendBackToMainProcess) {
+  const window2EditorPending = await evalInWebContents(window2.browserWindow.webContents, function (sendBackToMainProcess) {
         	sendBackToMainProcess(atom.workspace.getActivePane().getPendingItem().getTitle())
       	})
         assert.equal(window2EditorTitle, 'untitled')
-				assert.equal(window2EditorPending, 'untitled')
+  assert.equal(window2EditorPending, 'untitled')
 
         assert.deepEqual(atomApplication.getAllWindows(), [window2, window1])
       })
@@ -126,14 +126,14 @@ describe('AtomApplication', function () {
         assert.lengthOf(appWindows2, 1)
         const [appWindow2] = appWindows2
         await appWindow2.loadedPromise
-				const window2EditorTitle = await evalInWebContents(appWindow2.browserWindow.webContents, sendBackToMainProcess => {
+  const window2EditorTitle = await evalInWebContents(appWindow2.browserWindow.webContents, sendBackToMainProcess => {
           sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
         })
-				const window2EditorPending = await evalInWebContents(appWindow2.browserWindow.webContents, function (sendBackToMainProcess) {
+  const window2EditorPending = await evalInWebContents(appWindow2.browserWindow.webContents, function (sendBackToMainProcess) {
         	sendBackToMainProcess(atom.workspace.getActivePane().getPendingItem().getTitle())
       	})
         assert.equal(window2EditorTitle, 'untitled')
-				assert.equal(window2EditorPending, 'untitled')
+  assert.equal(window2EditorPending, 'untitled')
       })
 
       it('does not open an empty editor if core.openEmptyEditorOnStart is false', async () => {
