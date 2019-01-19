@@ -84,7 +84,7 @@ describe('AtomApplication', function () {
           sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
         })
         const window1EditorPending = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        	sendBackToMainProcess(atom.workspace.getActivePane().getPendingItem().getTitle())
+          sendBackToMainProcess(atom.workspace.getActivePane().getPendingItem().getTitle())
       	})
         assert.equal(window1EditorTitle, 'untitled')
         assert.equal(window1EditorPending, 'untitled')
