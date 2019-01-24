@@ -671,6 +671,8 @@ describe('AtomEnvironment', () => {
         })
 
         it('may be required to be an existing directory', async () => {
+          spyOn(atom.notifications, 'addWarning')
+
           const nonExistent = path.join(__dirname, 'no')
           const existingFile = __filename
           const existingDir = path.join(__dirname, 'fixtures')
@@ -683,6 +685,11 @@ describe('AtomEnvironment', () => {
 
           expect(atom.workspace.getTextEditors()).toEqual([])
           expect(atom.project.getPaths()).toEqual([existingDir])
+
+          expect(atom.notifications.addWarning).toHaveBeenCalledWith(
+            'Unable to open project folders',
+            {description: `The directories \`${nonExistent}\` and \`${existingFile}\` do not exist.`}
+          )
         })
       })
 
