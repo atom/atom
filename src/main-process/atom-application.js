@@ -249,7 +249,7 @@ class AtomApplication extends EventEmitter {
         timeout,
         env
       })
-    } else if (pathsToOpen.length > 0 || foldersToOpen.length > 0) {
+    } else if ((pathsToOpen && pathsToOpen.length > 0) || (foldersToOpen && foldersToOpen.length > 0)) {
       return this.openPaths({
         pathsToOpen,
         foldersToOpen,
