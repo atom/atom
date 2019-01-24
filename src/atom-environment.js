@@ -1404,7 +1404,7 @@ or use Pane::saveItemAs for programmatic saving.`)
           // Found: add as a project folder
           foldersToAddToProject.add(directory.getPath())
         } else if (location.mustBeDirectory) {
-          // Not found and must be a directory: add to missing list
+          // Not found and must be a directory: add to missing list and use to derive state key
           missingFolders.push(location)
         } else {
           // Not found: open as a new file
@@ -1416,8 +1416,12 @@ or use Pane::saveItemAs for programmatic saving.`)
     }
 
     let restoredState = false
-    if (foldersToAddToProject.size > 0) {
-      const state = await this.loadState(this.getStateKey(Array.from(foldersToAddToProject)))
+    if (foldersToAddToProject.size > 0 || missingFolders.length > 0) {
+      // Include missing folders in the state key so that sessions restored with no-longer-present project root folders
+      // don't lose data.
+      const foldersForStateKey = Array.from(foldersToAddToProject)
+        .concat(missingFolders.map(location => location.pathToOpen))
+      const state = await this.loadState(this.getStateKey(Array.from(foldersForStateKey)))
 
       // only restore state if this is the first path added to the project
       if (state && needsProjectPaths) {

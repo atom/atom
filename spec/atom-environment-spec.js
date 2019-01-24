@@ -742,6 +742,27 @@ describe('AtomEnvironment', () => {
           expect(atom.project.getPaths()).toEqual([])
         })
 
+        it('includes missing mandatory project folders in computation of initial state key', async () => {
+          const existingDir = path.join(__dirname, 'fixtures')
+          const missingDir = path.join(__dirname, 'no')
+
+          atom.loadState.andCallFake(function (key) {
+            if (key === `${existingDir}:${missingDir}`) {
+              return Promise.resolve(state)
+            } else {
+              return Promise.resolve(null)
+            }
+          })
+
+          await atom.openLocations([
+            {pathToOpen: existingDir},
+            {pathToOpen: missingDir, mustBeDirectory: true}
+          ])
+
+          expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [existingDir], [])
+          expect(atom.project.getPaths(), [existingDir])
+        })
+
         it('opens the specified files', async () => {
           await atom.openLocations([{pathToOpen: __dirname}, {pathToOpen: __filename}])
           expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [__dirname], [__filename])
