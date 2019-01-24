@@ -550,7 +550,7 @@ class GrammarRegistry {
   //
   // Returns a non-empty {Array} of {Grammar} instances.
   getGrammars () {
-    return this.textmateRegistry.getGrammars()
+    return [...this.textmateRegistry.getGrammars(), ...Object.values(this.treeSitterGrammarsById)]
   }
 
   scopeForId (id) {
