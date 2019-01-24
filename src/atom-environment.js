@@ -1388,11 +1388,12 @@ or use Pane::saveItemAs for programmatic saving.`)
           // Directory: add as a project folder
           foldersToAddToProject.add(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
         } else if (stats.isFile()) {
-          if (!location.mustBeDirectory) {
+          if (location.mustBeDirectory) {
+            // File: no longer a directory
+            missingFolders.push(location)
+          } else {
             // File: add as a file location
             fileLocationsToOpen.push(location)
-          } else {
-            missingFolders.push(location)
           }
         }
       } else {
