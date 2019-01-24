@@ -549,8 +549,10 @@ class GrammarRegistry {
   // Extended: Get all the grammars in this registry.
   //
   // Returns a non-empty {Array} of {Grammar} instances.
-  getGrammars () {
-    return [...this.textmateRegistry.getGrammars(), ...Object.values(this.treeSitterGrammarsById)]
+  getGrammars (includeTreesitter = false) {
+    let grammars = this.textmateRegistry.getGrammars()
+    if (includeTreesitter) grammars = grammars.concat(Object.values(this.treeSitterGrammarsById))
+    return grammars
   }
 
   scopeForId (id) {

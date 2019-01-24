@@ -19,6 +19,12 @@ class GrammarListView {
 
         const div = document.createElement('div')
         div.classList.add('pull-right')
+
+        if (grammar.constructor.name === "TreeSitterGrammar") {
+          console.log("TS", grammar)
+          // style here
+        }
+
         if (grammar.scopeName) {
           const scopeName = document.createElement('scopeName')
           scopeName.classList.add('key-binding') // It will be styled the same as the keybindings in the command palette
@@ -80,7 +86,7 @@ class GrammarListView {
         this.currentGrammar = this.autoDetect
       }
 
-      const grammars = atom.grammars.getGrammars().filter((grammar) => {
+      const grammars = atom.grammars.getGrammars(true).filter((grammar) => {
         return grammar !== atom.grammars.nullGrammar && grammar.name
       })
       grammars.sort((a, b) => {
