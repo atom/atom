@@ -669,6 +669,28 @@ describe('AtomEnvironment', () => {
           expect(atom.workspace.getTextEditors().map(e => e.getPath())).toEqual([pathToOpen])
           expect(atom.project.getPaths()).toEqual([])
         })
+
+        it('may be required to be an existing directory', async () => {
+          spyOn(atom.notifications, 'addWarning')
+
+          const nonExistent = path.join(__dirname, 'no')
+          const existingFile = __filename
+          const existingDir = path.join(__dirname, 'fixtures')
+
+          await atom.openLocations([
+            {pathToOpen: nonExistent, mustBeDirectory: true},
+            {pathToOpen: existingFile, mustBeDirectory: true},
+            {pathToOpen: existingDir, mustBeDirectory: true}
+          ])
+
+          expect(atom.workspace.getTextEditors()).toEqual([])
+          expect(atom.project.getPaths()).toEqual([existingDir])
+
+          expect(atom.notifications.addWarning).toHaveBeenCalledWith(
+            'Unable to open project folders',
+            {description: `The directories \`${nonExistent}\` and \`${existingFile}\` do not exist.`}
+          )
+        })
       })
 
       describe('when the opened path is handled by a registered directory provider', () => {
@@ -718,6 +740,27 @@ describe('AtomEnvironment', () => {
           await atom.openLocations([{pathToOpen}])
           expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [pathToOpen], [])
           expect(atom.project.getPaths()).toEqual([])
+        })
+
+        it('includes missing mandatory project folders in computation of initial state key', async () => {
+          const existingDir = path.join(__dirname, 'fixtures')
+          const missingDir = path.join(__dirname, 'no')
+
+          atom.loadState.andCallFake(function (key) {
+            if (key === `${existingDir}:${missingDir}`) {
+              return Promise.resolve(state)
+            } else {
+              return Promise.resolve(null)
+            }
+          })
+
+          await atom.openLocations([
+            {pathToOpen: existingDir},
+            {pathToOpen: missingDir, mustBeDirectory: true}
+          ])
+
+          expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(state, [existingDir], [])
+          expect(atom.project.getPaths(), [existingDir])
         })
 
         it('opens the specified files', async () => {
