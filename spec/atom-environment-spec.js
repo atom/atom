@@ -669,6 +669,21 @@ describe('AtomEnvironment', () => {
           expect(atom.workspace.getTextEditors().map(e => e.getPath())).toEqual([pathToOpen])
           expect(atom.project.getPaths()).toEqual([])
         })
+
+        it('may be required to be an existing directory', async () => {
+          const nonExistent = path.join(__dirname, 'no')
+          const existingFile = __filename
+          const existingDir = path.join(__dirname, 'fixtures')
+
+          await atom.openLocations([
+            {pathToOpen: nonExistent, mustBeDirectory: true},
+            {pathToOpen: existingFile, mustBeDirectory: true},
+            {pathToOpen: existingDir, mustBeDirectory: true}
+          ])
+
+          expect(atom.workspace.getTextEditors()).toEqual([])
+          expect(atom.project.getPaths()).toEqual([existingDir])
+        })
       })
 
       describe('when the opened path is handled by a registered directory provider', () => {

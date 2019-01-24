@@ -1386,7 +1386,7 @@ or use Pane::saveItemAs for programmatic saving.`)
         if (stats.isDirectory()) {
           // Directory: add as a project folder
           foldersToAddToProject.add(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
-        } else if (stats.isFile()) {
+        } else if (stats.isFile() && !location.mustBeDirectory) {
           // File: add as a file location
           fileLocationsToOpen.push(location)
         }
@@ -1397,7 +1397,7 @@ or use Pane::saveItemAs for programmatic saving.`)
         if (directory) {
           // Found: add as a project folder
           foldersToAddToProject.add(directory.getPath())
-        } else {
+        } else if (!location.mustBeDirectory) {
           // Not found: open as a new file
           fileLocationsToOpen.push(location)
         }
