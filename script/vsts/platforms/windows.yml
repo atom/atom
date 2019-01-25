@@ -70,15 +70,19 @@ jobs:
       CI: true
       CI_PROVIDER: VSTS
       BUILD_ARCH: $(buildArch)
-      WATCHER_LOG_MAIN: $(Build.SourcesDirectory)/watcher.main.log
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
+  - task: CopyFiles@2
+    inputs:
+      contents: $(Build.SourcesDirectory)/*.log
+      targetFolder: $(Build.ArtifactStagingDirectory)
+
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: $(Build.SourcesDirectory)/watcher.main.log
-      ArtifactName: watcher.main.log
-    displayName: Upload watcher.main.log
+      PathtoPublish: $(Build.ArtifactStagingDirectory)
+      ArtifactName: watcher-logs
+    displayName: Upload @atom/watcher logs
     condition: succeededOrFailed()
 
   - task: PublishBuildArtifacts@1
