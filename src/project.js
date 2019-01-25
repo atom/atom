@@ -204,11 +204,11 @@ class Project extends Model {
   //     // absolute path to the filesystem entry that was touched
   //     console.log(`Event path: ${event.path}`)
   //
-  //     if (event.type === 'renamed') {
+  //     if (event.action === 'renamed') {
   //       console.log(`.. renamed from: ${event.oldPath}`)
   //     }
   //   }
-  // }
+  // })
   //
   // disposable.dispose()
   // ```
@@ -441,14 +441,20 @@ class Project extends Model {
     }
   }
 
-  getDirectoryForProjectPath (projectPath) {
-    let directory = null
+  getProvidedDirectoryForProjectPath (projectPath) {
     for (let provider of this.directoryProviders) {
       if (typeof provider.directoryForURISync === 'function') {
-        directory = provider.directoryForURISync(projectPath)
-        if (directory) break
+        const directory = provider.directoryForURISync(projectPath)
+        if (directory) {
+          return directory
+        }
       }
     }
+    return null
+  }
+
+  getDirectoryForProjectPath (projectPath) {
+    let directory = this.getProvidedDirectoryForProjectPath(projectPath)
     if (directory == null) {
       directory = this.defaultDirectoryProvider.directoryForURISync(projectPath)
     }
