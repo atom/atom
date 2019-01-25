@@ -5,6 +5,8 @@ const temp = require('temp').track()
 const dedent = require('dedent')
 const ConfigFile = require('../src/config-file')
 
+const watcher = require('@atom/watcher')
+
 describe('ConfigFile', () => {
   let filePath, configFile, subscription
 
@@ -36,6 +38,24 @@ describe('ConfigFile', () => {
   })
 
   describe('when the file is updated with valid CSON', () => {
+    beforeEach(async () => {
+      await watcher.configure({
+        jsLog: 'config-file-0.js.log',
+        mainLog: 'config-file-0.main.log',
+        workerLog: 'config-file-0.worker.log',
+        pollingLog: 'config-file-0.poll.log'
+      })
+    })
+
+    afterEach(async () => {
+      await watcher.configure({
+        jsLog: watcher.DISABLE,
+        mainLog: watcher.DISABLE,
+        workerLog: watcher.DISABLE,
+        pollingLog: watcher.DISABLE
+      })
+    })
+
     it('notifies onDidChange observers with the data', async () => {
       configFile = new ConfigFile(filePath)
       subscription = await configFile.watch()
@@ -63,6 +83,24 @@ describe('ConfigFile', () => {
   })
 
   describe('when the file is updated with invalid CSON', () => {
+    beforeEach(async () => {
+      await watcher.configure({
+        jsLog: 'config-file-0.js.log',
+        mainLog: 'config-file-0.main.log',
+        workerLog: 'config-file-0.worker.log',
+        pollingLog: 'config-file-0.poll.log'
+      })
+    })
+
+    afterEach(async () => {
+      await watcher.configure({
+        jsLog: watcher.DISABLE,
+        mainLog: watcher.DISABLE,
+        workerLog: watcher.DISABLE,
+        pollingLog: watcher.DISABLE
+      })
+    })
+
     it('notifies onDidError observers', async () => {
       configFile = new ConfigFile(filePath)
       subscription = await configFile.watch()

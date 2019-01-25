@@ -8,6 +8,8 @@ import path from 'path'
 import {CompositeDisposable} from 'event-kit'
 import {watchPath, stopAllWatchers} from '../src/path-watcher'
 
+import watcher from '@atom/watcher'
+
 tempCb.track()
 
 const fs = promisifySome(fsCb, ['writeFile', 'mkdir', 'symlink', 'appendFile', 'realpath'])
@@ -48,6 +50,15 @@ describe('watchPath', function () {
   }
 
   describe('watchPath()', function () {
+    afterEach(async () => {
+      await watcher.configure({
+        jsLog: watcher.DISABLE,
+        mainLog: watcher.DISABLE,
+        workerLog: watcher.DISABLE,
+        pollingLog: watcher.DISABLE
+      })
+    })
+
     it('resolves the returned promise when the watcher begins listening', async function () {
       const rootDir = await temp.mkdir('atom-fsmanager-test-')
 
@@ -87,6 +98,13 @@ describe('watchPath', function () {
     })
 
     it('reuses an existing native watcher on a parent directory and filters events', async function () {
+      await watcher.configure({
+        jsLog: 'path-watcher-0.js.log',
+        mainLog: 'path-watcher-0.main.log',
+        workerLog: 'path-watcher-0.worker.log',
+        pollingLog: 'path-watcher-0.poll.log'
+      })
+
       const rootDir = await temp.mkdir('atom-fsmanager-test-').then(fs.realpath)
       const rootFile = path.join(rootDir, 'rootfile.txt')
       const subDir = path.join(rootDir, 'subdir')
@@ -114,6 +132,13 @@ describe('watchPath', function () {
     })
 
     it('adopts existing child watchers and filters events appropriately to them', async function () {
+      await watcher.configure({
+        jsLog: 'path-watcher-1.js.log',
+        mainLog: 'path-watcher-1.main.log',
+        workerLog: 'path-watcher-1.worker.log',
+        pollingLog: 'path-watcher-1.poll.log'
+      })
+
       const parentDir = await temp.mkdir('atom-fsmanager-test-').then(fs.realpath)
 
       // Create the directory tree

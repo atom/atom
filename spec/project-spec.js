@@ -4,8 +4,9 @@ const Project = require('../src/project')
 const fs = require('fs-plus')
 const path = require('path')
 const {Directory} = require('pathwatcher')
-const {stopAllWatchers} = require('../src/path-watcher')
 const GitRepository = require('../src/git-repository')
+
+const watcher = require('@atom/watcher')
 
 describe('Project', () => {
   beforeEach(() => {
@@ -860,6 +861,15 @@ describe('Project', () => {
 
     afterEach(() => sub.dispose())
 
+    afterEach(async () => {
+      await watcher.configure({
+        jsLog: watcher.DISABLE,
+        mainLog: watcher.DISABLE,
+        workerLog: watcher.DISABLE,
+        pollingLog: watcher.DISABLE
+      })
+    })
+
     const waitForEvents = (paths) => {
       const remaining = new Set(paths.map((p) => fs.realpathSync(p)))
       return new Promise((resolve, reject) => {
@@ -879,7 +889,14 @@ describe('Project', () => {
       })
     }
 
-    it('reports filesystem changes within project paths', () => {
+    it('reports filesystem changes within project paths', async () => {
+      await watcher.configure({
+        jsLog: 'project-0.js.log',
+        mainLog: 'project-0.main.log',
+        workerLog: 'project-0.worker.log',
+        pollingLog: 'project-0.poll.log'
+      })
+
       const dirOne = fs.realpathSync(temp.mkdirSync('atom-spec-project-one'))
       const fileOne = path.join(dirOne, 'file-one.txt')
       const fileTwo = path.join(dirOne, 'file-two.txt')
