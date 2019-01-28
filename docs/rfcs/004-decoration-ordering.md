@@ -39,3 +39,4 @@ The alternative to having an explicit API for this is at all is to create and de
 ## Unresolved questions
 
 - Should overlay decorations respect an `order` parameter in a similar fashion?
+- Should screen column effect decoration ordering at all?
