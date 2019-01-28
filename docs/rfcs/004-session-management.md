@@ -26,7 +26,7 @@ Problems to address:
 
 ## Explanation
 
-A _Project_ is the unit of persistent window state in Atom related to a coherent development effort. It includes:
+A _Session_ is the unit of persistent window state in Atom related to a coherent development effort. It includes:
 
 * The set of root folders;
 * Pane and dock configuration;
@@ -34,61 +34,73 @@ A _Project_ is the unit of persistent window state in Atom related to a coherent
 * Cursor position, fold state, and other TextEditor characteristics;
 * Per-package [serialized state](https://flight-manual.atom.io/behind-atom/sections/serialization-in-atom/).
 
-Each Atom window is associated with one Project, and each Project is associated with at most one Atom window.
+Each Atom window is associated with one Session, and each Session is associated with at most one Atom window at a time.
 
-Each Project has a unique, user-customizable name.
+Each Session has a unique, user-customizable name.
 
 Other persistent state is tracked _per-file_, based on its inode or fileID to work through filesystem softlinks or hardlinks. This includes:
 
 * Unsaved buffer changes;
 * Per-file manually changed indentation, line ending, and encoding settings.
 
-### Add an explicit indication of the current Project to the tree-view
+### Add an explicit indication of the current Session to the tree-view
 
 At the top of the tree-view, display the current Project's name. Clicking it opens the project management UI described below.
 
 > TODO: graphic
 
-### Add a command-line argument to explicitly choose the Project
+### Add a command-line argument to explicitly choose the Session
 
-The `--project` or `-p` flags to the `atom` command-line script explicitly designate the name of a Project to which the newly opened paths should belong. If no Project with that name exists, a new one is created. If a window is already open on the named Project, the provided paths are added to the existing window.
+When opening Atom from the command line with one or more locations specified:
+
+1. If exactly one non-open Session matches those paths, that Session is loaded into the newly opened Atom window.
+2. If no non-open Sessions match, a new Session is created for that Atom window.
+3. If multiple Sessions match, a new Session is created for that Atom window, and a notification is displayed allowing the user to switch to any of the matching Sessions and destroy the just-created one.
+
+In this context, "matches" means _every path in the set, normalized through realpath and case sensitivity, begins with the path of at least one project folder in the Session under consideration_, and, as a special case, _a Session containing zero project folders matches everything_.
+
+The `--session` or `-s` flags to the `atom` command-line script explicitly designate the name of a Session which the newly opened window should open. If no Session with that name exists, a new one is created. If a window is already open on the named Session, the provided paths are added to the existing window and it is brought to the foreground.
 
 ```sh
 # Open a new Atom window containing:
 # * the root folder "src/project-one"
 # * TextEditor on "${HOME}/writing/tps-report.txt"
-$ atom --project work src/project-one ~/writing/tps-report.txt
+$ atom --session work src/project-one ~/writing/tps-report.txt
 
 # Open a new Atom window containing:
 # * the root folder "src/game"
-$ atom -p fun src/game
+$ atom -s fun src/game
 
 # Add the root folder "src/project-three" to the existing "work" window
-$ atom -p work src/project-three
+$ atom -s work src/project-three
 
 # (close the "work" window)
 
 # Re-open a new Atom window with:
 # * root folders "src/project-one" and "src/project-three"
 # * TextEditor on "${HOME}/writing/tps-report.txt"
-$ atom -p work
+$ atom -s work
 ```
 
-It's mutually exclusive with the `--add` option (it is an error to provide both).
+`--session` is mutually exclusive with the `--add` option, which always adds the associated paths to the matching or last-opened window's Session.
 
 ### Create a new bundled package to list and manage serialized state
 
-Clicking the "project" tile in the tree-view opens a UI for listing, creating, loading, modifying, and deleting known projects. This is where projects can be renamed and managed.
+Clicking the "Session" tile in the tree-view opens a workspace item for listing, creating, loading, modifying, and deleting known Sessions. This is where Sessions can be renamed and managed.
 
 > TODO: graphic
 
-Loading a different Project immediately serializes the window's state into the previously active project and deserializes the window state from the chosen one into this window.
+Loading a different Session immediately serializes the window's state into the previously active project and deserializes the window state from the chosen one into this window.
 
-### Create a new bundled package to list and manage unsaved buffers
+A separate tab within the Session management shows known unsaved buffers. This acts as a kind of "dead letter office" to track down and recover lost changes.
 
 > TODO: graphic
 
 ### When opening a buffer, restore its per-file state
+
+Each time a new buffer is opened, restore its per-file state if any has been persisted, regardless of the window's active session. If the file on disk has been modified externally since the unsaved changes were created, display a banner in the TextEditor to give the user a notice.
+
+> TODO: graphic
 
 ## Drawbacks
 
