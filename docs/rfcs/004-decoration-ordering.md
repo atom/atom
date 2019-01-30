@@ -16,7 +16,9 @@ We hit the need for this in [atom/github#1913](https://github.com/atom/github/pu
 
 ## Explanation
 
-[TextEditor::decorateMarker()](https://atom.io/docs/api/v1.34.0/TextEditor#instance-decorateMarker) accepts an additional `order` parameter in its `decorationParams` argument when `type` is "block". When multiple block or overlay decorations occur at the same screen line, they are ordered within the DOM in increasing "order" value. Block decorations with no `order` property are rendered after those with one, in the order in which they were created, oldest to newest.
+[TextEditor::decorateMarker()](https://atom.io/docs/api/v1.34.0/TextEditor#instance-decorateMarker) accepts an additional `order` parameter in its `decorationParams` argument when `type` is "block". When multiple block or overlay decorations occur at the same screen line, they are ordered within the DOM in increasing "order" value.
+
+Block decorations with the same `order` property are rendered in the order they were created, oldest to newest. Block decorations with no `order` property are rendered after those with one, in the order in which they were created, oldest to newest.
 
 ## Drawbacks
 
