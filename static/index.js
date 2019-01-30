@@ -1,8 +1,4 @@
 (function () {
-  // Eagerly require cached-run-in-this-context to prevent a circular require
-  // when using `NativeCompileCache` for the first time.
-  require('cached-run-in-this-context')
-
   // Define the window start time before the requires so we get a more accurate
   // window:start marker.
   const startWindowTime = Date.now()
