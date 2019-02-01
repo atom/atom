@@ -3866,15 +3866,24 @@ class LinesTileComponent {
 
     if (blockDecorations) {
       blockDecorations.forEach((newDecorations, screenLineId) => {
-        var oldDecorations = oldProps.blockDecorations ? oldProps.blockDecorations.get(screenLineId) : null
-        for (var i = 0; i < newDecorations.length; i++) {
-          var newDecoration = newDecorations[i]
-          if (oldDecorations && oldDecorations.includes(newDecoration)) continue
+        const oldDecorations = oldProps.blockDecorations ? oldProps.blockDecorations.get(screenLineId) : null
+        const lineNode = lineComponentsByScreenLineId.get(screenLineId).element
+        let lastAfter = lineNode
 
-          var element = TextEditor.viewForItem(newDecoration.item)
-          var lineNode = lineComponentsByScreenLineId.get(screenLineId).element
+        for (let i = 0; i < newDecorations.length; i++) {
+          const newDecoration = newDecorations[i]
+          const element = TextEditor.viewForItem(newDecoration.item)
+
+          if (oldDecorations && oldDecorations.includes(newDecoration)) {
+            if (newDecoration.position === 'after') {
+              lastAfter = element
+            }
+            continue
+          }
+
           if (newDecoration.position === 'after') {
-            this.element.insertBefore(element, lineNode.nextSibling)
+            this.element.insertBefore(element, lastAfter.nextSibling)
+            lastAfter = element
           } else {
             this.element.insertBefore(element, lineNode)
           }
