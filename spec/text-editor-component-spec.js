@@ -2638,7 +2638,7 @@ describe('TextEditorComponent', () => {
       expect(editor.getCursorScreenPosition()).toEqual([0, 0])
     })
 
-    function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, marginTop, marginBottom, position, invalidate}) {
+    function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, marginTop, marginBottom, position, order, invalidate}) {
       const marker = editor.markScreenPosition([screenRow, 0], {invalidate: invalidate || 'never'})
       const item = document.createElement('div')
       item.style.height = height + 'px'
@@ -2646,7 +2646,7 @@ describe('TextEditorComponent', () => {
       if (marginTop != null) item.style.marginTop = marginTop + 'px'
       if (marginBottom != null) item.style.marginBottom = marginBottom + 'px'
       item.style.width = 30 + 'px'
-      const decoration = editor.decorateMarker(marker, {type: 'block', item, position})
+      const decoration = editor.decorateMarker(marker, {type: 'block', item, position, order})
       return {item, decoration, marker}
     }
 
