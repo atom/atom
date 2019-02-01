@@ -1191,6 +1191,10 @@ class TextEditorComponent {
       decorationsByScreenLine.set(screenLine.id, decorations)
     }
     decorations.push(decoration)
+
+    // Order block decorations by increasing values of their "order" property. Break ties with "id", which mirrors
+    // their creation sequence.
+    decorations.sort((a, b) => a.order !== b.order ? a.order - b.order : a.id - b.id)
   }
 
   addTextDecorationToRender (decoration, screenRange, marker) {
