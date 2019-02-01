@@ -177,7 +177,7 @@ exports.install = function (resourcesPath, nodeRequire) {
       var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1)
 
       try {
-        var sourceMap = JSON.parse(new Buffer(rawData, 'base64'))
+        var sourceMap = JSON.parse(Buffer.from(rawData, 'base64'))
       } catch (error) {
         console.warn('Error parsing source map', error.stack)
         return null
