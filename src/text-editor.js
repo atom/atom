@@ -2300,6 +2300,9 @@ class TextEditor {
   //     Controls where the view is positioned relative to the `TextEditorMarker`.
   //     Values can be `'head'` (the default) or `'tail'` for overlay decorations, and
   //     `'before'` (the default) or `'after'` for block decorations.
+  //   * `order` (optional) Only applicable to decorations of type `block`. Controls
+  //      where the view is positioned relative to other block decorations at the
+  //      same screen row. If unspecified, block decorations render oldest to newest.
   //   * `avoidOverflow` (optional) Only applicable to decorations of type
   //      `overlay`. Determines whether the decoration adjusts its horizontal or
   //      vertical position to remain fully visible when it would otherwise
