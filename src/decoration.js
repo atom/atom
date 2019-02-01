@@ -3,12 +3,17 @@ const {Emitter} = require('event-kit')
 let idCounter = 0
 const nextId = () => idCounter++
 
-// Applies changes to a decorationsParam {Object} to make it possible to
-// differentiate decorations on custom gutters versus the line-number gutter.
-const translateDecorationParamsOldToNew = function (decorationParams) {
-  if (decorationParams.type === 'line-number') {
+const normalizeDecorationProperties = function (decoration, decorationParams) {
+  decorationParams.id = decoration.id
+
+  if (decorationParams.type === 'line-number' && decorationParams.gutterName == null) {
     decorationParams.gutterName = 'line-number'
   }
+
+  if (decorationParams.order == null) {
+    decorationParams.order = Infinity
+  }
+
   return decorationParams
 }
 
@@ -164,7 +169,7 @@ class Decoration {
   setProperties (newProperties) {
     if (this.destroyed) { return }
     const oldProperties = this.properties
-    this.properties = translateDecorationParamsOldToNew(newProperties)
+    this.properties = normalizeDecorationProperties(this, newProperties)
     if (newProperties.type != null) {
       this.decorationManager.decorationDidChangeType(this)
     }
