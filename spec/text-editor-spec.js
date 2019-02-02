@@ -6861,7 +6861,7 @@ describe('TextEditor', () => {
         const marker = editor.markBufferRange([[2, 4], [6, 8]])
         const decoration = editor.decorateMarker(marker, {type: 'highlight', class: 'foo'})
         expect(editor.decorationsStateForScreenRowRange(0, 5)[decoration.id]).toEqual({
-          properties: {type: 'highlight', class: 'foo'},
+          properties: {id: decoration.id, order: Infinity, type: 'highlight', class: 'foo'},
           screenRange: marker.getScreenRange(),
           bufferRange: marker.getBufferRange(),
           rangeIsReversed: false
