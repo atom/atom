@@ -215,10 +215,10 @@ class GrammarRegistry {
 
     // If multiple grammars match by one of the above criteria, break ties.
     if (score > 0) {
-      const isTSgrammar = grammar instanceof TreeSitterGrammar
+      const isTreeSitter = grammar instanceof TreeSitterGrammar
 
       // Prefer either TextMate or Tree-sitter grammars based on the user's settings.
-      if (isTSgrammar) {
+      if (isTreeSitter) {
         if (this.shouldUseTreeSitterParser(grammar.scopeName)) {
           score += 0.1
         } else {
@@ -229,7 +229,7 @@ class GrammarRegistry {
       // Prefer grammars with matching content regexes. Prefer a grammar with no content regex
       // over one with a non-matching content regex.
       if (grammar.contentRegex) {
-        const contentMatch = isTSgrammar ? grammar.contentRegex.test(contents) : grammar.contentRegex.testSync(contents)
+        const contentMatch = isTreeSitter ? grammar.contentRegex.test(contents) : grammar.contentRegex.testSync(contents)
         if (contentMatch) {
           score += 0.05
         } else {
