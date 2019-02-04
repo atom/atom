@@ -94,8 +94,8 @@ buildTerminalReporter = (logFile, resolveWithExitCode) ->
     else
       ipcRenderer.send 'write-to-stderr', str
 
-  {TerminalReporter} = require 'jasmine-tagged'
-  new TerminalReporter
+  {JasmineTerminalReporter} = require './jasmine-terminal-reporter'
+  new JasmineTerminalReporter
     print: (str) ->
       log(str)
     onComplete: (runner) ->
