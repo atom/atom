@@ -91,6 +91,7 @@ class AtomApplication extends EventEmitter {
   constructor (options) {
     super()
     this.quitting = false
+    this.quittingForUpdate = false
     this.getAllWindows = this.getAllWindows.bind(this)
     this.getLastFocusedWindow = this.getLastFocusedWindow.bind(this)
     this.resourcePath = options.resourcePath
@@ -384,6 +385,7 @@ class AtomApplication extends EventEmitter {
 
     this.on('application:install-update', () => {
       this.quitting = true
+      this.quittingForUpdate = true
       this.autoUpdateManager.install()
     })
 
