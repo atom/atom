@@ -55,9 +55,6 @@
 	.section-container {
 		max-width: @ui-size*60;
 	}
-	.sub-section {
-		margin: @ui-padding*3 0;
-	}
 
 	.section,
 	.section:first-child,
@@ -84,6 +81,10 @@
 
 
 	// Cards ------------------------------
+
+	.sub-section:not(.collapsed) .package-container {
+		padding-bottom: @component-padding*3;
+	}
 
 	.package-card {
 		padding: @ui-padding;
