@@ -407,7 +407,7 @@ describe('TreeSitterLanguageMode', () => {
           scopes: {
             'identifier': 'variable',
             'call_expression > identifier': 'function',
-            'new_expression > call_expression > identifier': 'constructor'
+            'new_expression > identifier': 'constructor'
           }
         })
 
@@ -1305,6 +1305,42 @@ describe('TreeSitterLanguageMode', () => {
         else…
         end
       `)
+    })
+
+    it('updates fold locations when the buffer changes', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        folds: [
+          {
+            start: {type: '{', index: 0},
+            end: {type: '}', index: -1}
+          }
+        ]
+      })
+
+      buffer.setText(dedent `
+        class A {
+          // a
+          constructor (b) {
+            this.b = b
+          }
+        }
+      `)
+
+      const languageMode = new TreeSitterLanguageMode({buffer, grammar})
+      buffer.setLanguageMode(languageMode)
+      expect(languageMode.isFoldableAtRow(0)).toBe(true)
+      expect(languageMode.isFoldableAtRow(1)).toBe(false)
+      expect(languageMode.isFoldableAtRow(2)).toBe(true)
+      expect(languageMode.isFoldableAtRow(3)).toBe(false)
+      expect(languageMode.isFoldableAtRow(4)).toBe(false)
+
+      buffer.insert([0, 0], '\n')
+      expect(languageMode.isFoldableAtRow(0)).toBe(false)
+      expect(languageMode.isFoldableAtRow(1)).toBe(true)
+      expect(languageMode.isFoldableAtRow(2)).toBe(false)
+      expect(languageMode.isFoldableAtRow(3)).toBe(true)
+      expect(languageMode.isFoldableAtRow(4)).toBe(false)
     })
 
     describe('when folding a node that ends with a line break', () => {

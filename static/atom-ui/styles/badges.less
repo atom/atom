@@ -1,0 +1,64 @@
+@import "ui-variables";
+
+.badge {
+  display: inline-block;
+  line-height: 1;
+  vertical-align: middle;
+  font-weight: normal;
+  text-align: center;
+  white-space: nowrap;
+  border-radius: 1em;
+
+  &:empty {
+    display: none; // Hide when un-used
+  }
+
+
+  // Color ----------------------
+
+  .badge-color( @fg: @text-color-selected; @bg: @background-color-selected; ) {
+    color: @fg;
+    background-color: @bg;
+  }
+  .badge-color();
+  &.badge-info    { .badge-color(white, @background-color-info); }
+  &.badge-success { .badge-color(white, @background-color-success); }
+  &.badge-warning { .badge-color(white, @background-color-warning); }
+  &.badge-error   { .badge-color(white, @background-color-error); }
+
+
+  // Size ----------------------
+
+  .badge-size( @size: @font-size; ) {
+    @padding: round(@size/4);
+    font-size: @size;
+    min-width: @size + @padding*2;
+    padding: @padding round(@padding*1.5);
+  }
+  .badge-size(); // default
+
+  // Fixed size
+  &.badge-large  { .badge-size(18px); }
+  &.badge-medium { .badge-size(14px); }
+  &.badge-small  { .badge-size(10px); }
+
+  // Flexible size
+  // The size changes depending on the parent element
+  // Best used for larger sizes, since em's can cause rounding errors
+  &.badge-flexible {
+    @size: .8em;
+    @padding: @size/2;
+    font-size: @size;
+    min-width: @size + @padding*2;
+    padding: @padding @padding*1.5;
+  }
+
+
+  // Icon ----------------------
+
+  &.icon {
+    font-size: round(@component-icon-size*0.8);
+    padding: @component-icon-padding @component-icon-padding*2;
+  }
+
+}

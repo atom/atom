@@ -187,6 +187,8 @@ class AtomApplication extends EventEmitter {
                (options.urlsToOpen && options.urlsToOpen.length > 0)) {
       optionsForWindowsToOpen.push(options)
       shouldReopenPreviousWindows = this.config.get('core.restorePreviousWindowsOnStart') === 'always'
+    } else if (options.newWindow) {
+      shouldReopenPreviousWindows = false
     } else {
       shouldReopenPreviousWindows = this.config.get('core.restorePreviousWindowsOnStart') !== 'no'
     }
@@ -206,9 +208,9 @@ class AtomApplication extends EventEmitter {
 
   openWithOptions (options) {
     const {
-      initialPaths,
       pathsToOpen,
       executedFrom,
+      foldersToOpen,
       urlsToOpen,
       benchmark,
       benchmarkTest,
@@ -216,7 +218,6 @@ class AtomApplication extends EventEmitter {
       pidToKillWhenClosed,
       devMode,
       safeMode,
-      newWindow,
       logFile,
       profileStartup,
       timeout,
@@ -248,13 +249,12 @@ class AtomApplication extends EventEmitter {
         timeout,
         env
       })
-    } else if (pathsToOpen.length > 0) {
+    } else if ((pathsToOpen && pathsToOpen.length > 0) || (foldersToOpen && foldersToOpen.length > 0)) {
       return this.openPaths({
-        initialPaths,
         pathsToOpen,
+        foldersToOpen,
         executedFrom,
         pidToKillWhenClosed,
-        newWindow,
         devMode,
         safeMode,
         profileStartup,
@@ -267,9 +267,7 @@ class AtomApplication extends EventEmitter {
     } else {
       // Always open a editor window if this is the first instance of Atom.
       return this.openPath({
-        initialPaths,
         pidToKillWhenClosed,
-        newWindow,
         devMode,
         safeMode,
         profileStartup,
@@ -576,7 +574,7 @@ class AtomApplication extends EventEmitter {
 
     this.disposable.add(ipcHelpers.respondTo('set-user-settings', (window, settings, filePath) => {
       if (!this.quitting) {
-        ConfigFile.at(filePath || this.configFilePath).update(JSON.parse(settings))
+        return ConfigFile.at(filePath || this.configFilePath).update(JSON.parse(settings))
       }
     }))
 
@@ -777,17 +775,14 @@ class AtomApplication extends EventEmitter {
   // options -
   //   :pathToOpen - The file path to open
   //   :pidToKillWhenClosed - The integer of the pid to kill
-  //   :newWindow - Boolean of whether this should be opened in a new window.
   //   :devMode - Boolean to control the opened window's dev mode.
   //   :safeMode - Boolean to control the opened window's safe mode.
   //   :profileStartup - Boolean to control creating a profile of the startup time.
   //   :window - {AtomWindow} to open file paths in.
   //   :addToLastWindow - Boolean of whether this should be opened in last focused window.
   openPath ({
-    initialPaths,
     pathToOpen,
     pidToKillWhenClosed,
-    newWindow,
     devMode,
     safeMode,
     profileStartup,
@@ -797,10 +792,8 @@ class AtomApplication extends EventEmitter {
     env
   } = {}) {
     return this.openPaths({
-      initialPaths,
       pathsToOpen: [pathToOpen],
       pidToKillWhenClosed,
-      newWindow,
       devMode,
       safeMode,
       profileStartup,
@@ -815,19 +808,18 @@ class AtomApplication extends EventEmitter {
   //
   // options -
   //   :pathsToOpen - The array of file paths to open
+  //   :foldersToOpen - An array of additional paths to open that must be existing directories
   //   :pidToKillWhenClosed - The integer of the pid to kill
-  //   :newWindow - Boolean of whether this should be opened in a new window.
   //   :devMode - Boolean to control the opened window's dev mode.
   //   :safeMode - Boolean to control the opened window's safe mode.
   //   :windowDimensions - Object with height and width keys.
   //   :window - {AtomWindow} to open file paths in.
   //   :addToLastWindow - Boolean of whether this should be opened in last focused window.
   openPaths ({
-    initialPaths,
     pathsToOpen,
+    foldersToOpen,
     executedFrom,
     pidToKillWhenClosed,
-    newWindow,
     devMode,
     safeMode,
     windowDimensions,
@@ -837,32 +829,45 @@ class AtomApplication extends EventEmitter {
     addToLastWindow,
     env
   } = {}) {
-    if (!pathsToOpen || pathsToOpen.length === 0) return
     if (!env) env = process.env
+    if (!pathsToOpen) pathsToOpen = []
+    if (!foldersToOpen) foldersToOpen = []
+
     devMode = Boolean(devMode)
     safeMode = Boolean(safeMode)
     clearWindowState = Boolean(clearWindowState)
 
-    const locationsToOpen = []
-    for (let i = 0; i < pathsToOpen.length; i++) {
-      const location = this.parsePathToOpen(pathsToOpen[i], executedFrom, addToLastWindow)
-      location.forceAddToWindow = addToLastWindow
-      location.hasWaitSession = pidToKillWhenClosed != null
-      locationsToOpen.push(location)
-      pathsToOpen[i] = location.pathToOpen
+    const locationsToOpen = pathsToOpen.map(pathToOpen => {
+      return this.parsePathToOpen(pathToOpen, executedFrom, {
+        forceAddToWindow: addToLastWindow,
+        hasWaitSession: pidToKillWhenClosed != null
+      })
+    })
+
+    for (const folderToOpen of foldersToOpen) {
+      locationsToOpen.push({
+        pathToOpen: folderToOpen,
+        initialLine: null,
+        initialColumn: null,
+        mustBeDirectory: true,
+        forceAddToWindow: addToLastWindow,
+        hasWaitSession: pidToKillWhenClosed != null
+      })
     }
 
+    if (locationsToOpen.length === 0) {
+      return
+    }
+
+    const normalizedPathsToOpen = locationsToOpen.map(location => location.pathToOpen).filter(Boolean)
+
     let existingWindow
-    if (!newWindow) {
-      existingWindow = this.windowForPaths(pathsToOpen, devMode)
+    if (addToLastWindow && normalizedPathsToOpen.length > 0) {
+      existingWindow = this.windowForPaths(normalizedPathsToOpen, devMode)
       if (!existingWindow) {
         let lastWindow = window || this.getLastFocusedWindow()
         if (lastWindow && lastWindow.devMode === devMode) {
-          if (addToLastWindow || (
-              locationsToOpen.every(({stat}) => stat && stat.isFile()) ||
-              (locationsToOpen.some(({stat}) => stat && stat.isDirectory()) && !lastWindow.hasProjectPath()))) {
-            existingWindow = lastWindow
-          }
+          existingWindow = lastWindow
         }
       }
     }
@@ -895,7 +900,6 @@ class AtomApplication extends EventEmitter {
       if (!windowDimensions) windowDimensions = this.getDimensionsForNewWindow()
 
       openedWindow = new AtomWindow(this, this.fileRecoveryService, {
-        initialPaths,
         locationsToOpen,
         windowInitializationScript,
         resourcePath,
@@ -916,7 +920,7 @@ class AtomApplication extends EventEmitter {
       }
       this.waitSessionsByWindow.get(openedWindow).push({
         pid: pidToKillWhenClosed,
-        remainingPaths: new Set(pathsToOpen)
+        remainingPaths: new Set(normalizedPathsToOpen)
       })
     }
 
@@ -984,8 +988,7 @@ class AtomApplication extends EventEmitter {
     const states = await this.storageFolder.load('application.json')
     if (states) {
       return states.map(state => ({
-        initialPaths: state.initialPaths,
-        pathsToOpen: state.initialPaths.filter(p => fs.isDirectorySync(p)),
+        foldersToOpen: state.initialPaths,
         urlsToOpen: [],
         devMode: this.devMode,
         safeMode: this.safeMode
@@ -1264,7 +1267,7 @@ class AtomApplication extends EventEmitter {
     }
   }
 
-  parsePathToOpen (pathToOpen, executedFrom = '') {
+  parsePathToOpen (pathToOpen, executedFrom, extra) {
     let initialColumn, initialLine
     if (!pathToOpen) {
       return {pathToOpen}
@@ -1286,10 +1289,9 @@ class AtomApplication extends EventEmitter {
     }
 
     const normalizedPath = path.normalize(path.resolve(executedFrom, fs.normalize(pathToOpen)))
-    const stat = fs.statSyncNoException(normalizedPath)
-    if (stat || !url.parse(pathToOpen).protocol) pathToOpen = normalizedPath
+    if (!url.parse(pathToOpen).protocol) pathToOpen = normalizedPath
 
-    return {pathToOpen, stat, initialLine, initialColumn}
+    return Object.assign({pathToOpen, initialLine, initialColumn}, extra)
   }
 
   // Opens a native dialog to prompt the user for a path.

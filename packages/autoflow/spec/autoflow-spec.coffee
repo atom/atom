@@ -560,3 +560,71 @@ describe "Autoflow package", ->
         '''
 
       expect(autoflow.reflow(test, wrapColumn: 80)).toEqual res
+
+    it 'properly reflows text around LaTeX tags', ->
+      text =
+        '''
+        \\begin{verbatim}
+            Lorem ipsum dolor sit amet, nisl odio amet, et tempor netus neque at at blandit, vel vestibulum libero dolor, semper lobortis ligula praesent. Eget condimentum integer, porta sagittis nam, fusce vitae a vitae augue. Nec semper quis sed ut, est porttitor praesent. Nisl velit quam dolore velit quam, elementum neque pellentesque pulvinar et vestibulum.
+        \\end{verbatim}
+        '''
+
+      res =
+        '''
+        \\begin{verbatim}
+            Lorem ipsum dolor sit amet, nisl odio amet, et tempor netus neque at at
+            blandit, vel vestibulum libero dolor, semper lobortis ligula praesent. Eget
+            condimentum integer, porta sagittis nam, fusce vitae a vitae augue. Nec
+            semper quis sed ut, est porttitor praesent. Nisl velit quam dolore velit
+            quam, elementum neque pellentesque pulvinar et vestibulum.
+        \\end{verbatim}
+        '''
+
+      expect(autoflow.reflow(text, wrapColumn: 80)).toEqual res
+
+    it 'properly reflows text inside LaTeX tags', ->
+      text =
+        '''
+        \\item{
+            Lorem ipsum dolor sit amet, nisl odio amet, et tempor netus neque at at blandit, vel vestibulum libero dolor, semper lobortis ligula praesent. Eget condimentum integer, porta sagittis nam, fusce vitae a vitae augue. Nec semper quis sed ut, est porttitor praesent. Nisl velit quam dolore velit quam, elementum neque pellentesque pulvinar et vestibulum.
+        }
+        '''
+
+      res =
+        '''
+        \\item{
+            Lorem ipsum dolor sit amet, nisl odio amet, et tempor netus neque at at
+            blandit, vel vestibulum libero dolor, semper lobortis ligula praesent. Eget
+            condimentum integer, porta sagittis nam, fusce vitae a vitae augue. Nec
+            semper quis sed ut, est porttitor praesent. Nisl velit quam dolore velit
+            quam, elementum neque pellentesque pulvinar et vestibulum.
+        }
+        '''
+
+      expect(autoflow.reflow(text, wrapColumn: 80)).toEqual res
+
+    it 'properly reflows text inside nested LaTeX tags', ->
+      text =
+        '''
+        \\begin{enumerate}[label=(\\alph*)]
+            \\item{
+                Lorem ipsum dolor sit amet, nisl odio amet, et tempor netus neque at at blandit, vel vestibulum libero dolor, semper lobortis ligula praesent. Eget condimentum integer, porta sagittis nam, fusce vitae a vitae augue. Nec semper quis sed ut, est porttitor praesent. Nisl velit quam dolore velit quam, elementum neque pellentesque pulvinar et vestibulum.
+            }
+        \\end{enumerate}
+        '''
+
+      res =
+        '''
+        \\begin{enumerate}[label=(\\alph*)]
+            \\item{
+                Lorem ipsum dolor sit amet, nisl odio amet, et tempor netus neque at at
+                blandit, vel vestibulum libero dolor, semper lobortis ligula praesent.
+                Eget condimentum integer, porta sagittis nam, fusce vitae a vitae augue.
+                Nec semper quis sed ut, est porttitor praesent. Nisl velit quam dolore
+                velit quam, elementum neque pellentesque pulvinar et vestibulum.
+            }
+        \\end{enumerate}
+        '''
+
+      expect(autoflow.reflow(text, wrapColumn: 80)).toEqual res
+

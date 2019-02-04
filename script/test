@@ -3,7 +3,36 @@
 'use strict'
 
 require('colors')
-const argv = require('yargs').argv
+const argv = require('yargs')
+  .option('core-main', {
+    describe: 'Run core main process tests',
+    boolean: true,
+    default: false
+  })
+  .option('skip-main', {
+    describe: 'Skip main process tests if they would otherwise run on your platform',
+    boolean: true,
+    default: false,
+    conflicts: 'core-main'
+  })
+  .option('core-renderer', {
+    describe: 'Run core renderer process tests',
+    boolean: true,
+    default: false
+  })
+  .option('core-benchmark', {
+    describe: 'Run core benchmarks',
+    boolean: true,
+    default: false
+  })
+  .option('package', {
+    describe: 'Run bundled package specs',
+    boolean: true,
+    default: false
+  })
+  .help()
+  .argv
+
 const assert = require('assert')
 const async = require('async')
 const childProcess = require('child_process')
@@ -148,10 +177,27 @@ function runBenchmarkTests (callback) {
   cp.on('close', exitCode => { callback(null, exitCode) })
 }
 
-let testSuitesToRun = testSuitesForPlatform(process.platform)
+let testSuitesToRun = requestedTestSuites() || testSuitesForPlatform(process.platform)
+
+function requestedTestSuites () {
+  const suites = []
+  if (argv.coreMain) {
+    suites.push(runCoreMainProcessTests)
+  }
+  if (argv.coreRenderer) {
+    suites.push(runCoreRenderProcessTests)
+  }
+  if (argv.coreBenchmark) {
+    suites.push(runBenchmarkTests)
+  }
+  if (argv.package) {
+    suites.push(...packageTestSuites)
+  }
+  return suites.length > 0 ? suites : null
+}
 
 function testSuitesForPlatform (platform) {
-  let suites = [];
+  let suites = []
   switch (platform) {
     case 'darwin':
       suites = [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
@@ -167,10 +213,10 @@ function testSuitesForPlatform (platform) {
   }
 
   if (argv.skipMainProcessTests) {
-    suites = suites.filter(suite => suite !== runCoreMainProcessTests);
+    suites = suites.filter(suite => suite !== runCoreMainProcessTests)
   }
 
-  return suites;
+  return suites
 }
 
 async.series(testSuitesToRun, function (err, exitCodes) {

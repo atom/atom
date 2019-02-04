@@ -1,0 +1,129 @@
+.syntax--source.syntax--ruby {
+
+  .syntax--meta.syntax--embedded {
+    .syntax--punctuation.syntax--section {
+      color: @red;
+    }
+  }
+  .syntax--punctuation.syntax--definition {
+    color: @syntax-text-color;
+    &.syntax--string {
+      color: @red;
+    }
+  }
+  .syntax--punctuation.syntax--definition.syntax--comment {
+    color: @syntax-comment-color;
+  }
+  .syntax--entity.syntax--inherited-class {
+    color: @yellow;
+  }
+  .syntax--variable {
+    &.syntax--parameter {
+      color: @syntax-text-color;
+    }
+  }
+  .syntax--variable.syntax--constant {
+    color: @yellow;
+  }
+  .syntax--constant.syntax--boolean {
+    color: @cyan;
+  }
+  .syntax--instance {
+    .syntax--punctuation.syntax--definition {
+      color: @blue;
+    }
+  }
+  .syntax--class {
+    color: @yellow;
+    &.syntax--control {
+      color: @syntax-text-color;
+    }
+  }
+  .syntax--module {
+    color: @yellow;
+  }
+  .syntax--require {
+    .syntax--keyword.syntax--other.syntax--special-method {
+      color: @orange;
+    }
+  }
+  .syntax--keyword.syntax--other.syntax--special-method {
+    color: @orange;
+  }
+  .syntax--keyword.syntax--other {
+    color: @green;
+  }
+  .syntax--keyword.syntax--control {
+    color: @green;
+  }
+  .syntax--keyword.syntax--operator {
+    color: @syntax-text-color;
+  }
+  .syntax--special-method {
+    color: @blue;
+  }
+  .syntax--symbol {
+    color: @cyan;
+    .syntax--punctuation.syntax--definition {
+      color: @cyan;
+    }
+  }
+  .syntax--hashkey {
+    color: @red;
+    .syntax--punctuation.syntax--definition {
+      color: @red;
+    }
+  }
+  .syntax--string.syntax--regexp {
+    color: @red;
+  }
+  .syntax--todo {
+    color: @magenta;
+  }
+  .syntax--variable.syntax--ruby.syntax--global {
+    color: @blue;
+    .syntax--punctuation {
+      color: @blue;
+    }
+  }
+  .syntax--variable.syntax--block {
+    color: @blue;
+  }
+  .syntax--variable.syntax--self {
+    color: @cyan;
+  }
+  .syntax--punctuation.syntax--separator {
+    color: @syntax-text-color;
+  }
+  .syntax--numeric {
+    color: @cyan;
+  }
+  .syntax--punctuation.syntax--section.syntax--regexp {
+    color: @red;
+  }
+  .syntax--string.syntax--interpolated {
+    color: @cyan;
+  }
+  .syntax--string.syntax--interpolated {
+    .syntax--embedded.syntax--line.syntax--ruby {
+      .syntax--punctuation {
+        .syntax--source.syntax--ruby {
+          color: @red;
+        }
+      }
+      .syntax--source.syntax--ruby {
+        .syntax--punctuation.syntax--array,
+        .syntax--punctuation.syntax--function {
+          color: @syntax-text-color;
+        }
+        color: @syntax-text-color;
+      }
+    }
+  }
+  .syntax--support.syntax--function {
+    color: @syntax-text-color;
+  }
+  .syntax--support.syntax--function.syntax--kernel {
+    color: @green;
+  }
+}
