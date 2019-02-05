@@ -1,6 +1,6 @@
 const {TerminalReporter} = require('jasmine-tagged')
 
-class JasmineTerminalReporter extends TerminalReporter {
+class JasmineListReporter extends TerminalReporter {
   fullDescription (spec) {
     let fullDescription = spec.description
     let currentSuite = spec.suite
@@ -30,4 +30,4 @@ class JasmineTerminalReporter extends TerminalReporter {
   }
 }
 
-module.exports = { JasmineTerminalReporter }
+module.exports = { JasmineListReporter }
