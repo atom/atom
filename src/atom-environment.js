@@ -1364,6 +1364,7 @@ or use Pane::saveItemAs for programmatic saving.`)
     const needsProjectPaths = this.project && this.project.getPaths().length === 0
     const foldersToAddToProject = new Set()
     const fileLocationsToOpen = []
+    const missingFolders = []
 
     // Asynchronously fetch stat information about each requested path to open.
     const locationStats = await Promise.all(
@@ -1387,8 +1388,13 @@ or use Pane::saveItemAs for programmatic saving.`)
           // Directory: add as a project folder
           foldersToAddToProject.add(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
         } else if (stats.isFile()) {
-          // File: add as a file location
-          fileLocationsToOpen.push(location)
+          if (location.mustBeDirectory) {
+            // File: no longer a directory
+            missingFolders.push(location)
+          } else {
+            // File: add as a file location
+            fileLocationsToOpen.push(location)
+          }
         }
       } else {
         // Path does not exist
@@ -1397,6 +1403,9 @@ or use Pane::saveItemAs for programmatic saving.`)
         if (directory) {
           // Found: add as a project folder
           foldersToAddToProject.add(directory.getPath())
+        } else if (location.mustBeDirectory) {
+          // Not found and must be a directory: add to missing list and use to derive state key
+          missingFolders.push(location)
         } else {
           // Not found: open as a new file
           fileLocationsToOpen.push(location)
@@ -1407,8 +1416,12 @@ or use Pane::saveItemAs for programmatic saving.`)
     }
 
     let restoredState = false
-    if (foldersToAddToProject.size > 0) {
-      const state = await this.loadState(this.getStateKey(Array.from(foldersToAddToProject)))
+    if (foldersToAddToProject.size > 0 || missingFolders.length > 0) {
+      // Include missing folders in the state key so that sessions restored with no-longer-present project root folders
+      // don't lose data.
+      const foldersForStateKey = Array.from(foldersToAddToProject)
+        .concat(missingFolders.map(location => location.pathToOpen))
+      const state = await this.loadState(this.getStateKey(Array.from(foldersForStateKey)))
 
       // only restore state if this is the first path added to the project
       if (state && needsProjectPaths) {
@@ -1428,6 +1441,33 @@ or use Pane::saveItemAs for programmatic saving.`)
         fileOpenPromises.push(this.workspace && this.workspace.open(pathToOpen, {initialLine, initialColumn}))
       }
       await Promise.all(fileOpenPromises)
+    }
+
+    if (missingFolders.length > 0) {
+      let message = 'Unable to open project folder'
+      if (missingFolders.length > 1) {
+        message += 's'
+      }
+
+      let description = 'The '
+      if (missingFolders.length === 1) {
+        description += 'directory `'
+        description += missingFolders[0].pathToOpen
+        description += '` does not exist.'
+      } else if (missingFolders.length === 2) {
+        description += `directories \`${missingFolders[0].pathToOpen}\` `
+        description += `and \`${missingFolders[1].pathToOpen}\` do not exist.`
+      } else {
+        description += 'directories '
+        description += (missingFolders
+          .slice(0, -1)
+          .map(location => location.pathToOpen)
+          .map(pathToOpen => '`' + pathToOpen + '`, ')
+          .join(''))
+        description += 'and `' + missingFolders[missingFolders.length - 1].pathToOpen + '` do not exist.'
+      }
+
+      this.notifications.addWarning(message, {description})
     }
 
     ipcRenderer.send('window-command', 'window:locations-opened')

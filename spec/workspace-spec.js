@@ -2086,7 +2086,7 @@ describe('Workspace', () => {
           })
 
           runs(() => {
-            fs.rename(path.join(projectPath, 'git.git'), path.join(projectPath, '.git'))
+            fs.renameSync(path.join(projectPath, 'git.git'), path.join(projectPath, '.git'))
             ignoredPath = path.join(projectPath, 'ignored.txt')
             fs.writeFileSync(ignoredPath, 'this match should not be included')
           })

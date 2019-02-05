@@ -91,6 +91,7 @@ class AtomApplication extends EventEmitter {
   constructor (options) {
     super()
     this.quitting = false
+    this.quittingForUpdate = false
     this.getAllWindows = this.getAllWindows.bind(this)
     this.getLastFocusedWindow = this.getLastFocusedWindow.bind(this)
     this.resourcePath = options.resourcePath
@@ -210,6 +211,7 @@ class AtomApplication extends EventEmitter {
     const {
       pathsToOpen,
       executedFrom,
+      foldersToOpen,
       urlsToOpen,
       benchmark,
       benchmarkTest,
@@ -248,9 +250,10 @@ class AtomApplication extends EventEmitter {
         timeout,
         env
       })
-    } else if (pathsToOpen.length > 0) {
+    } else if ((pathsToOpen && pathsToOpen.length > 0) || (foldersToOpen && foldersToOpen.length > 0)) {
       return this.openPaths({
         pathsToOpen,
+        foldersToOpen,
         executedFrom,
         pidToKillWhenClosed,
         devMode,
@@ -382,6 +385,7 @@ class AtomApplication extends EventEmitter {
 
     this.on('application:install-update', () => {
       this.quitting = true
+      this.quittingForUpdate = true
       this.autoUpdateManager.install()
     })
 
@@ -806,6 +810,7 @@ class AtomApplication extends EventEmitter {
   //
   // options -
   //   :pathsToOpen - The array of file paths to open
+  //   :foldersToOpen - An array of additional paths to open that must be existing directories
   //   :pidToKillWhenClosed - The integer of the pid to kill
   //   :devMode - Boolean to control the opened window's dev mode.
   //   :safeMode - Boolean to control the opened window's safe mode.
@@ -814,6 +819,7 @@ class AtomApplication extends EventEmitter {
   //   :addToLastWindow - Boolean of whether this should be opened in last focused window.
   openPaths ({
     pathsToOpen,
+    foldersToOpen,
     executedFrom,
     pidToKillWhenClosed,
     devMode,
@@ -825,8 +831,10 @@ class AtomApplication extends EventEmitter {
     addToLastWindow,
     env
   } = {}) {
-    if (!pathsToOpen || pathsToOpen.length === 0) return
     if (!env) env = process.env
+    if (!pathsToOpen) pathsToOpen = []
+    if (!foldersToOpen) foldersToOpen = []
+
     devMode = Boolean(devMode)
     safeMode = Boolean(safeMode)
     clearWindowState = Boolean(clearWindowState)
@@ -837,6 +845,22 @@ class AtomApplication extends EventEmitter {
         hasWaitSession: pidToKillWhenClosed != null
       })
     })
+
+    for (const folderToOpen of foldersToOpen) {
+      locationsToOpen.push({
+        pathToOpen: folderToOpen,
+        initialLine: null,
+        initialColumn: null,
+        mustBeDirectory: true,
+        forceAddToWindow: addToLastWindow,
+        hasWaitSession: pidToKillWhenClosed != null
+      })
+    }
+
+    if (locationsToOpen.length === 0) {
+      return
+    }
+
     const normalizedPathsToOpen = locationsToOpen.map(location => location.pathToOpen).filter(Boolean)
 
     let existingWindow
@@ -966,7 +990,7 @@ class AtomApplication extends EventEmitter {
     const states = await this.storageFolder.load('application.json')
     if (states) {
       return states.map(state => ({
-        pathsToOpen: state.initialPaths,
+        foldersToOpen: state.initialPaths,
         urlsToOpen: [],
         devMode: this.devMode,
         safeMode: this.safeMode

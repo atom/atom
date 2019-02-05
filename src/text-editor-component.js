@@ -1191,6 +1191,10 @@ class TextEditorComponent {
       decorationsByScreenLine.set(screenLine.id, decorations)
     }
     decorations.push(decoration)
+
+    // Order block decorations by increasing values of their "order" property. Break ties with "id", which mirrors
+    // their creation sequence.
+    decorations.sort((a, b) => a.order !== b.order ? a.order - b.order : a.id - b.id)
   }
 
   addTextDecorationToRender (decoration, screenRange, marker) {
@@ -3862,15 +3866,24 @@ class LinesTileComponent {
 
     if (blockDecorations) {
       blockDecorations.forEach((newDecorations, screenLineId) => {
-        var oldDecorations = oldProps.blockDecorations ? oldProps.blockDecorations.get(screenLineId) : null
-        for (var i = 0; i < newDecorations.length; i++) {
-          var newDecoration = newDecorations[i]
-          if (oldDecorations && oldDecorations.includes(newDecoration)) continue
+        const oldDecorations = oldProps.blockDecorations ? oldProps.blockDecorations.get(screenLineId) : null
+        const lineNode = lineComponentsByScreenLineId.get(screenLineId).element
+        let lastAfter = lineNode
 
-          var element = TextEditor.viewForItem(newDecoration.item)
-          var lineNode = lineComponentsByScreenLineId.get(screenLineId).element
+        for (let i = 0; i < newDecorations.length; i++) {
+          const newDecoration = newDecorations[i]
+          const element = TextEditor.viewForItem(newDecoration.item)
+
+          if (oldDecorations && oldDecorations.includes(newDecoration)) {
+            if (newDecoration.position === 'after') {
+              lastAfter = element
+            }
+            continue
+          }
+
           if (newDecoration.position === 'after') {
-            this.element.insertBefore(element, lineNode.nextSibling)
+            this.element.insertBefore(element, lastAfter.nextSibling)
+            lastAfter = element
           } else {
             this.element.insertBefore(element, lineNode)
           }
@@ -4433,7 +4446,7 @@ class NodePool {
 
     if (element) {
       element.className = className || ''
-      element.styleMap.forEach((value, key) => {
+      element.attributeStyleMap.forEach((value, key) => {
         if (!style || style[key] == null) element.style[key] = ''
       })
       if (style) Object.assign(element.style, style)
