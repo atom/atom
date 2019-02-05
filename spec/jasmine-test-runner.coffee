@@ -1,7 +1,10 @@
 Grim = require 'grim'
 fs = require 'fs-plus'
+temp = require 'temp'
 path = require 'path'
 {ipcRenderer} = require 'electron'
+
+temp.track()
 
 module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   window[key] = value for key, value of require '../vendor/jasmine'
@@ -17,13 +20,15 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
     get: -> documentTitle
     set: (title) -> documentTitle = title
 
+  atomHome = temp.mkdirSync prefix: 'atom-test-home-'
+
   ApplicationDelegate = require '../src/application-delegate'
   applicationDelegate = new ApplicationDelegate()
   applicationDelegate.setRepresentedFilename = ->
   applicationDelegate.setWindowDocumentEdited = ->
   window.atom = buildAtomEnvironment({
     applicationDelegate, window, document,
-    configDirPath: process.env.ATOM_HOME
+    configDirPath: atomHome
     enablePersistence: false
   })
 
