@@ -94,8 +94,7 @@ buildTerminalReporter = (logFile, resolveWithExitCode) ->
     else
       ipcRenderer.send 'write-to-stderr', str
 
-  {TerminalReporter} = require 'jasmine-tagged'
-  new TerminalReporter
+  options =
     print: (str) ->
       log(str)
     onComplete: (runner) ->
@@ -109,3 +108,10 @@ buildTerminalReporter = (logFile, resolveWithExitCode) ->
         resolveWithExitCode(1)
       else
         resolveWithExitCode(0)
+
+  if process.env.ATOM_JASMINE_REPORTER is 'list'
+    {JasmineListReporter} = require './jasmine-list-reporter'
+    new JasmineListReporter(options)
+  else
+    {TerminalReporter} = require 'jasmine-tagged'
+    new TerminalReporter(options)

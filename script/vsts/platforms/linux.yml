@@ -24,6 +24,7 @@ jobs:
     env:
       CI: true
       CI_PROVIDER: VSTS
+      ATOM_JASMINE_REPORTER: list
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 

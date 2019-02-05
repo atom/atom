@@ -69,6 +69,7 @@ jobs:
     env:
       CI: true
       CI_PROVIDER: VSTS
+      ATOM_JASMINE_REPORTER: list
       BUILD_ARCH: $(buildArch)
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
