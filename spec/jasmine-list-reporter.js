@@ -17,10 +17,12 @@ class JasmineListReporter extends TerminalReporter {
 
   reportSpecResults (spec) {
     const result = spec.results()
-    let msg = ''
     if (result.skipped) {
-      msg = this.stringWithColor_(this.fullDescription(spec) + ' [skip]', this.color_.ignore())
-    } else if (result.passed()) {
+      return
+    }
+
+    let msg = ''
+    if (result.passed()) {
       msg = this.stringWithColor_('[pass]', this.color_.pass())
     } else {
       msg = this.stringWithColor_('[FAIL]', this.color_.fail())
