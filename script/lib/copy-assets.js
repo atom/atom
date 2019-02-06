@@ -9,7 +9,7 @@ const CONFIG = require('../config')
 const glob = require('glob')
 const includePathInPackagedApp = require('./include-path-in-packaged-app')
 
-module.exports = function () {
+module.exports = async function () {
   console.log(`Copying assets to ${CONFIG.intermediateAppPath}`)
   let srcPaths = [
     path.join(CONFIG.repositoryRootPath, 'benchmarks', 'benchmark-runner.js'),
@@ -21,9 +21,10 @@ module.exports = function () {
     path.join(CONFIG.repositoryRootPath, 'vendor')
   ]
   srcPaths = srcPaths.concat(glob.sync(path.join(CONFIG.repositoryRootPath, 'spec', '*.*'), {ignore: path.join('**', '*-spec.*')}))
-  for (let srcPath of srcPaths) {
-    fs.copySync(srcPath, computeDestinationPath(srcPath), {filter: includePathInPackagedApp})
-  }
+
+  await Promise.all(
+    srcPaths.map(srcPath => fs.copy(srcPath, computeDestinationPath(srcPath), {filter: includePathInPackagedApp}))
+  )
 
   // Run a copy pass to dereference symlinked directories under node_modules.
   // We do this to ensure that symlinked repo-local bundled packages get
@@ -31,14 +32,17 @@ module.exports = function () {
   // symlinks and not nested symlinks to avoid issues where symlinked binaries
   // are duplicated in Atom's installation packages (see atom/atom#18490).
   const nodeModulesPath = path.join(CONFIG.repositoryRootPath, 'node_modules')
-  glob.sync(path.join(nodeModulesPath, '*'))
-      .map(p => fs.lstatSync(p).isSymbolicLink() ? path.resolve(nodeModulesPath, fs.readlinkSync(p)) : p)
-      .forEach(modulePath => {
-        const destPath = path.join(CONFIG.intermediateAppPath, 'node_modules', path.basename(modulePath))
-        fs.copySync(modulePath, destPath, { filter: includePathInPackagedApp })
-      })
+  await Promise.all(
+    glob.sync(path.join(nodeModulesPath, '*')).map(async p => {
+      const stat = await fs.lstat(p)
+      if (!stat) { console.log(p) }
+      const modulePath = stat.isSymbolicLink() ? path.resolve(nodeModulesPath, await fs.readlink(p)) : p
+      const destPath = path.join(CONFIG.intermediateAppPath, 'node_modules', path.basename(modulePath))
+      await fs.copy(modulePath, destPath, { filter: includePathInPackagedApp })
+    })
+  )
 
-  fs.copySync(
+  await fs.copy(
     path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'png', '1024.png'),
     path.join(CONFIG.intermediateAppPath, 'resources', 'atom.png')
   )
