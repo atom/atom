@@ -14,6 +14,7 @@ jobs:
   steps:
   - script: script/build --create-debian-package --create-rpm-package --compress-artifacts
     env:
+      CI: true
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
     displayName: Build Atom
 

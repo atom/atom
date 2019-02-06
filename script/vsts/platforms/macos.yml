@@ -27,6 +27,7 @@ jobs:
       fi
     displayName: Build Atom
     env:
+      CI: true
       IS_RELEASE_BRANCH: $(IsReleaseBranch)
       IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
