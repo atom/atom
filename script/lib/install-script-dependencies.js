@@ -9,6 +9,6 @@ module.exports = function (ci) {
   childProcess.execFileSync(
     CONFIG.getNpmBinPath(ci),
     ['--loglevel=error', ci ? 'ci' : 'install'],
-    {env: process.env, cwd: CONFIG.scriptRootPath}
+    {env: process.env, cwd: CONFIG.scriptRootPath, stdio: 'inherit'}
   )
 }
