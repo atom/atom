@@ -75,7 +75,7 @@ jobs:
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
-  - ps: Get-ChildItem -Recurse %TEST_JUNIT_XML_PATH%
+  - powershell: Get-ChildItem -Recurse %TEST_JUNIT_XML_PATH%
     env:
       TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)\test-results
     displayName: Dump test results
