@@ -78,7 +78,8 @@ jobs:
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: JUnit
-      testResultsFiles: $(Agent.HomeDirectory)/test-results/TEST-*.xml
+      searchFolder: $(Agent.HomeDirectory)\test-results
+      mergeTestResults: true
       testRunTitle: Windows $(buildArch)
     condition: succeededOrFailed()
 
