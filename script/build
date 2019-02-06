@@ -30,13 +30,9 @@ const argv = yargs
 
 const checkChromedriverVersion = require('./lib/check-chromedriver-version')
 const cleanOutputDirectory = require('./lib/clean-output-directory')
-const codeSignOnMac = require('./lib/code-sign-on-mac')
-const codeSignOnWindows = require('./lib/code-sign-on-windows')
+const codeSign = require('./lib/code-sign')
 const compressArtifacts = require('./lib/compress-artifacts')
 const copyAssets = require('./lib/copy-assets')
-const createDebianPackage = require('./lib/create-debian-package')
-const createRpmPackage = require('./lib/create-rpm-package')
-const createWindowsInstaller = require('./lib/create-windows-installer')
 const dumpSymbols = require('./lib/dump-symbols')
 const generateAPIDocs = require('./lib/generate-api-docs')
 const generateMetadata = require('./lib/generate-metadata')
@@ -57,89 +53,43 @@ process.on('unhandledRejection', function (e) {
 })
 
 const CONFIG = require('./config')
-let binariesPromise = Promise.resolve()
 
-if (!argv.existingBinaries) {
-  checkChromedriverVersion()
-  cleanOutputDirectory()
-  copyAssets()
-  transpilePackagesWithCustomTranspilerPaths()
-  transpileBabelPaths()
-  transpileCoffeeScriptPaths()
-  transpileCsonPaths()
-  transpilePegJsPaths()
-  generateModuleCache()
-  prebuildLessCache()
-  generateMetadata()
-  generateAPIDocs()
-  if (!argv.generateApiDocs) {
-    binariesPromise = dumpSymbols()
+;(async function() {
+  if (!argv.existingBinaries) {
+    checkChromedriverVersion()
+    await cleanOutputDirectory()
+    await copyAssets()
+    transpilePackagesWithCustomTranspilerPaths()
+    transpileBabelPaths()
+    transpileCoffeeScriptPaths()
+    transpileCsonPaths()
+    transpilePegJsPaths()
+    generateModuleCache()
+    prebuildLessCache()
+    generateMetadata()
+    generateAPIDocs()
+    await dumpSymbols()
   }
-}
 
-if (!argv.generateApiDocs) {
-  binariesPromise
-    .then(packageApplication)
-    .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
-    .then(packagedAppPath => {
-      switch (process.platform) {
-        case 'darwin': {
-          if (argv.codeSign) {
-            codeSignOnMac(packagedAppPath)
-          } else {
-            console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
-          }
-          break
-        }
-        case 'win32': {
-          if (argv.codeSign) {
-            const executablesToSign = [ path.join(packagedAppPath, 'Atom.exe') ]
-            if (argv.createWindowsInstaller) {
-              executablesToSign.push(path.join(__dirname, 'node_modules', 'electron-winstaller', 'vendor', 'Update.exe'))
-            }
-            codeSignOnWindows(executablesToSign)
-          } else {
-            console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
-          }
-          if (argv.createWindowsInstaller) {
-            return createWindowsInstaller(packagedAppPath)
-              .then((installerPath) => {
-                argv.codeSign && codeSignOnWindows([installerPath])
-                return packagedAppPath
-              })
-          } else {
-            console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer.'.gray)
-          }
-          break
-        }
-        case 'linux': {
-          if (argv.createDebianPackage) {
-            createDebianPackage(packagedAppPath)
-          } else {
-            console.log('Skipping creating debian package. Specify the --create-debian-package option to create it.'.gray)
-          }
+  const packagedAppPath = await packageApplication()
+  await generateStartupSnapshot(packagedAppPath)
+  await codeSign(packageAppPath, argv)
 
-          if (argv.createRpmPackage) {
-            createRpmPackage(packagedAppPath)
-          } else {
-            console.log('Skipping creating rpm package. Specify the --create-rpm-package option to create it.'.gray)
-          }
-          break
-        }
-      }
+  if (argv.compressArtifacts) {
+    compressArtifacts(packagedAppPath)
+  } else {
+    console.log('Skipping artifacts compression. Specify the --compress-artifacts option to compress Atom binaries (and symbols on macOS)'.gray)
+  }
 
-      return Promise.resolve(packagedAppPath)
-    }).then(packagedAppPath => {
-      if (argv.compressArtifacts) {
-        compressArtifacts(packagedAppPath)
-      } else {
-        console.log('Skipping artifacts compression. Specify the --compress-artifacts option to compress Atom binaries (and symbols on macOS)'.gray)
-      }
-
-      if (argv.install != null) {
-        installApplication(packagedAppPath, argv.install)
-      } else {
-        console.log('Skipping installation. Specify the --install option to install Atom'.gray)
-      }
-    })
-}
+  if (argv.install != null) {
+    installApplication(packagedAppPath, argv.install)
+  } else {
+    console.log('Skipping installation. Specify the --install option to install Atom'.gray)
+  }
+})().then(
+  () => process.exit(0),
+  err => {
+    console.error(err.stack)
+    process.exit(1)
+  }
+)
