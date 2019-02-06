@@ -14,7 +14,7 @@
   "license": "MIT",
   "electronVersion": "3.0.14",
   "dependencies": {
-    "@atom/nsfw": "^1.0.20",
+    "@atom/nsfw": "1.0.21",
     "@atom/source-map-support": "^0.3.4",
     "@atom/watcher": "1.0.8",
     "about": "file:packages/about",
