@@ -41,7 +41,7 @@ jobs:
       searchFolder: $(Common.TestResultsDirectory)
       mergeTestResults: true
       testRunTitle: Linux
-    condition: succeededOrFailed()
+    condition: ne(variables['Atom.SkipTests'], 'true')
 
   - task: PublishBuildArtifacts@1
     inputs:

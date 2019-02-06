@@ -86,7 +86,7 @@ jobs:
       searchFolder: $(Agent.HomeDirectory)\test-results
       mergeTestResults: true
       testRunTitle: Windows $(buildArch)
-    condition: succeededOrFailed()
+    condition: ne(variables['Atom.SkipTests'], 'true')
 
   - task: PublishBuildArtifacts@1
     inputs:

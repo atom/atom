@@ -61,7 +61,7 @@ jobs:
       searchFolder: $(Common.TestResultsDirectory)
       mergeTestResults: true
       testRunTitle: MacOS
-    condition: succeededOrFailed()
+    condition: ne(variables['Atom.SkipTests'], 'true')
 
   - script: |
       cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
