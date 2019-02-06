@@ -15,7 +15,7 @@
     "electron-packager": "7.3.0",
     "electron-winstaller": "2.6.4",
     "fs-admin": "^0.1.5",
-    "fs-extra": "0.30.0",
+    "fs-extra": "7.0.1",
     "glob": "7.0.3",
     "joanna": "0.0.10",
     "klaw-sync": "^1.1.2",
