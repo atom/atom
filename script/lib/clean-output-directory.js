@@ -1,9 +1,9 @@
 const fs = require('fs-extra')
 const CONFIG = require('../config')
 
-module.exports = function () {
-  if (fs.existsSync(CONFIG.buildOutputPath)) {
+module.exports = async function () {
+  if (await fs.exists(CONFIG.buildOutputPath)) {
     console.log(`Cleaning ${CONFIG.buildOutputPath}`)
-    fs.removeSync(CONFIG.buildOutputPath)
+    await fs.remove(CONFIG.buildOutputPath)
   }
 }
