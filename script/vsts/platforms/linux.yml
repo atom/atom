@@ -29,6 +29,12 @@ jobs:
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
+  - script: ls -R "${TEST_JUNIT_XML_PATH}"
+    env:
+      TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results
+    displayName: Dump test results
+    condition: succeededOrFailed()
+
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: JUnit
