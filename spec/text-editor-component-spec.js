@@ -2638,7 +2638,71 @@ describe('TextEditorComponent', () => {
       expect(editor.getCursorScreenPosition()).toEqual([0, 0])
     })
 
-    function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, marginTop, marginBottom, position, invalidate}) {
+    it('uses the order property to control the order of block decorations at the same screen row', async () => {
+      const editor = buildEditor({autoHeight: false})
+      const {component, element} = buildComponent({editor})
+      element.style.height = 10 * component.getLineHeight() + horizontalScrollbarHeight + 'px'
+      await component.getNextUpdatePromise()
+
+      // Order parameters that differ from creation order; that collide; and that are not provided.
+      const [beforeItems, beforeDecorations] = [30, 20, undefined, 20, 10, undefined].map(order => {
+        return createBlockDecorationAtScreenRow(editor, 2, {height: 10, position: 'before', order})
+      }).reduce((lists, result) => {
+        lists[0].push(result.item)
+        lists[1].push(result.decoration)
+        return lists
+      }, [[], []])
+
+      const [afterItems, afterDecorations] = [undefined, 1, 6, undefined, 6, 2].map(order => {
+        return createBlockDecorationAtScreenRow(editor, 2, {height: 10, position: 'after', order})
+      }).reduce((lists, result) => {
+        lists[0].push(result.item)
+        lists[1].push(result.decoration)
+        return lists
+      }, [[], []])
+
+      await component.getNextUpdatePromise()
+
+      expect(beforeItems[4].previousSibling).toBe(lineNodeForScreenRow(component, 1))
+      expect(beforeItems[4].nextSibling).toBe(beforeItems[1])
+      expect(beforeItems[1].nextSibling).toBe(beforeItems[3])
+      expect(beforeItems[3].nextSibling).toBe(beforeItems[0])
+      expect(beforeItems[0].nextSibling).toBe(beforeItems[2])
+      expect(beforeItems[2].nextSibling).toBe(beforeItems[5])
+      expect(beforeItems[5].nextSibling).toBe(lineNodeForScreenRow(component, 2))
+      expect(afterItems[1].previousSibling).toBe(lineNodeForScreenRow(component, 2))
+      expect(afterItems[1].nextSibling).toBe(afterItems[5])
+      expect(afterItems[5].nextSibling).toBe(afterItems[2])
+      expect(afterItems[2].nextSibling).toBe(afterItems[4])
+      expect(afterItems[4].nextSibling).toBe(afterItems[0])
+      expect(afterItems[0].nextSibling).toBe(afterItems[3])
+
+      // Create a decoration somewhere else and move it to the same screen row as the existing decorations
+      const {item: later, decoration} = createBlockDecorationAtScreenRow(editor, 4, {height: 20, position: 'after', order: 3})
+      await component.getNextUpdatePromise()
+      expect(later.previousSibling).toBe(lineNodeForScreenRow(component, 4))
+      expect(later.nextSibling).toBe(lineNodeForScreenRow(component, 5))
+
+      decoration.getMarker().setHeadScreenPosition([2, 0])
+      await component.getNextUpdatePromise()
+      expect(later.previousSibling).toBe(afterItems[5])
+      expect(later.nextSibling).toBe(afterItems[2])
+
+      // Move a decoration away from its screen row and ensure the rest maintain their order
+      beforeDecorations[3].getMarker().setHeadScreenPosition([5, 0])
+      await component.getNextUpdatePromise()
+      expect(beforeItems[3].previousSibling).toBe(lineNodeForScreenRow(component, 4))
+      expect(beforeItems[3].nextSibling).toBe(lineNodeForScreenRow(component, 5))
+
+      expect(beforeItems[4].previousSibling).toBe(lineNodeForScreenRow(component, 1))
+      expect(beforeItems[4].nextSibling).toBe(beforeItems[1])
+      expect(beforeItems[1].nextSibling).toBe(beforeItems[0])
+      expect(beforeItems[0].nextSibling).toBe(beforeItems[2])
+      expect(beforeItems[2].nextSibling).toBe(beforeItems[5])
+      expect(beforeItems[5].nextSibling).toBe(lineNodeForScreenRow(component, 2))
+    });
+
+    function createBlockDecorationAtScreenRow(editor, screenRow, {height, margin, marginTop, marginBottom, position, order, invalidate}) {
       const marker = editor.markScreenPosition([screenRow, 0], {invalidate: invalidate || 'never'})
       const item = document.createElement('div')
       item.style.height = height + 'px'
@@ -2646,7 +2710,7 @@ describe('TextEditorComponent', () => {
       if (marginTop != null) item.style.marginTop = marginTop + 'px'
       if (marginBottom != null) item.style.marginBottom = marginBottom + 'px'
       item.style.width = 30 + 'px'
-      const decoration = editor.decorateMarker(marker, {type: 'block', item, position})
+      const decoration = editor.decorateMarker(marker, {type: 'block', item, position, order})
       return {item, decoration, marker}
     }
 

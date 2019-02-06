@@ -47,7 +47,6 @@ describe('StyleManager', () => {
           atom-text-editor::shadow .class-1, atom-text-editor::shadow .class-2 { color: red }
           atom-text-editor::shadow > .class-3 { color: yellow }
           atom-text-editor .class-4 { color: blue }
-          another-element::shadow .class-5 { color: white }
           atom-text-editor[data-grammar*=\"js\"]::shadow .class-6 { color: green; }
           atom-text-editor[mini].is-focused::shadow .class-7 { color: green; }
         `)
@@ -55,7 +54,6 @@ describe('StyleManager', () => {
           'atom-text-editor.editor .class-1, atom-text-editor.editor .class-2',
           'atom-text-editor.editor > .class-3',
           'atom-text-editor .class-4',
-          'another-element::shadow .class-5',
           'atom-text-editor[data-grammar*=\"js\"].editor .class-6',
           'atom-text-editor[mini].is-focused.editor .class-7'
         ])
@@ -99,13 +97,6 @@ describe('StyleManager', () => {
         styleManager.addStyleSheet(':host .class-1, :host .class-2 { color: red; }', {context: 'atom-text-editor'})
         expect(Array.from(styleManager.getStyleElements()[1].sheet.cssRules).map((r) => r.selectorText)).toEqual([
           'atom-text-editor .class-1, atom-text-editor .class-2'
-        ])
-      })
-
-      it('does not transform CSS rules with invalid syntax', () => {
-        styleManager.addStyleSheet("atom-text-editor::shadow .class-1 { font-family: inval'id }")
-        expect(Array.from(styleManager.getStyleElements()[0].sheet.cssRules).map((r) => r.selectorText)).toEqual([
-          'atom-text-editor::shadow .class-1'
         ])
       })
 

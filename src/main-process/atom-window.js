@@ -148,7 +148,7 @@ class AtomWindow extends EventEmitter {
 
   handleEvents () {
     this.browserWindow.on('close', async event => {
-      if (!this.atomApplication.quitting && !this.unloading) {
+      if ((!this.atomApplication.quitting || this.atomApplication.quittingForUpdate) && !this.unloading) {
         event.preventDefault()
         this.unloading = true
         this.atomApplication.saveCurrentWindowOptions(false)

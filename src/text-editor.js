@@ -2221,14 +2221,17 @@ class TextEditor {
   //
   // The following are the supported decorations types:
   //
-  // * __line__: Adds your CSS `class` to the line nodes within the range
-  //     marked by the marker
-  // * __line-number__: Adds your CSS `class` to the line number nodes within the
-  //     range marked by the marker
-  // * __highlight__: Adds a new highlight div to the editor surrounding the
-  //     range marked by the marker. When the user selects text, the selection is
-  //     visualized with a highlight decoration internally. The structure of this
-  //     highlight will be
+  // * __line__: Adds the given CSS `class` to the lines overlapping the rows
+  //     spanned by the marker.
+  // * __line-number__: Adds the given CSS `class` to the line numbers overlapping
+  //     the rows spanned by the marker
+  // * __text__: Injects spans into all text overlapping the marked range, then adds
+  //     the given `class` or `style` to these spans. Use this to manipulate the foreground
+  //     color or styling of text in a range.
+  // * __highlight__: Creates an absolutely-positioned `.highlight` div to the editor
+  //     containing nested divs that cover the marked region. For example, when the user
+  //     selects text, the selection is implemented with a highlight decoration. The structure
+  //     of this highlight will be:
   //     ```html
   //     <div class="highlight <your-class>">
   //       <!-- Will be one region for each row in the range. Spans 2 lines? There will be 2 regions. -->
@@ -2236,45 +2239,25 @@ class TextEditor {
   //     </div>
   //     ```
   // * __overlay__: Positions the view associated with the given item at the head
-  //     or tail of the given `DisplayMarker`.
-  // * __gutter__: A decoration that tracks a {DisplayMarker} in a {Gutter}. Gutter
-  //     decorations are created by calling {Gutter::decorateMarker} on the
-  //     desired `Gutter` instance.
+  //     or tail of the given `DisplayMarker`, depending on the `position` property.
+  // * __gutter__: Tracks a {DisplayMarker} in a {Gutter}. Gutter decorations are created
+  //     by calling {Gutter::decorateMarker} on the desired `Gutter` instance.
   // * __block__: Positions the view associated with the given item before or
-  //     after the row of the given `TextEditorMarker`.
+  //     after the row of the given {DisplayMarker}, depending on the `position` property.
+  //     Block decorations at the same screen row are ordered by their `order` property.
+  // * __cursor__: Render a cursor at the head of the {DisplayMarker}. If multiple cursor decorations
+  //     are created for the same marker, their class strings and style objects are combined
+  //     into a single cursor. This decoration type may be used to style existing cursors
+  //     by passing in their markers or to render artificial cursors that don't actaully
+  //     exist in the model by passing a marker that isn't associated with a real cursor.
   //
   // ## Arguments
   //
   // * `marker` A {DisplayMarker} you want this decoration to follow.
   // * `decorationParams` An {Object} representing the decoration e.g.
   //   `{type: 'line-number', class: 'linter-error'}`
-  //   * `type` There are several supported decoration types. The behavior of the
-  //     types are as follows:
-  //     * `line` Adds the given `class` to the lines overlapping the rows
-  //        spanned by the `DisplayMarker`.
-  //     * `line-number` Adds the given `class` to the line numbers overlapping
-  //       the rows spanned by the `DisplayMarker`.
-  //     * `text` Injects spans into all text overlapping the marked range,
-  //       then adds the given `class` or `style` properties to these spans.
-  //       Use this to manipulate the foreground color or styling of text in
-  //       a given range.
-  //     * `highlight` Creates an absolutely-positioned `.highlight` div
-  //       containing nested divs to cover the marked region. For example, this
-  //       is used to implement selections.
-  //     * `overlay` Positions the view associated with the given item at the
-  //       head or tail of the given `DisplayMarker`, depending on the `position`
-  //       property.
-  //     * `gutter` Tracks a {DisplayMarker} in a {Gutter}. Created by calling
-  //       {Gutter::decorateMarker} on the desired `Gutter` instance.
-  //     * `block` Positions the view associated with the given item before or
-  //       after the row of the given `TextEditorMarker`, depending on the `position`
-  //       property.
-  //     * `cursor` Renders a cursor at the head of the given marker. If multiple
-  //       decorations are created for the same marker, their class strings and
-  //       style objects are combined into a single cursor. You can use this
-  //       decoration type to style existing cursors by passing in their markers
-  //       or render artificial cursors that don't actually exist in the model
-  //       by passing a marker that isn't actually associated with a cursor.
+  //   * `type` Determines the behavior and appearance of this {Decoration}. Supported decoration types
+  //     and their uses are listed above.
   //   * `class` This CSS class will be applied to the decorated line number,
   //     line, text spans, highlight regions, cursors, or overlay.
   //   * `style` An {Object} containing CSS style properties to apply to the
@@ -2300,12 +2283,15 @@ class TextEditor {
   //     Controls where the view is positioned relative to the `TextEditorMarker`.
   //     Values can be `'head'` (the default) or `'tail'` for overlay decorations, and
   //     `'before'` (the default) or `'after'` for block decorations.
+  //   * `order` (optional) Only applicable to decorations of type `block`. Controls
+  //      where the view is positioned relative to other block decorations at the
+  //      same screen row. If unspecified, block decorations render oldest to newest.
   //   * `avoidOverflow` (optional) Only applicable to decorations of type
   //      `overlay`. Determines whether the decoration adjusts its horizontal or
   //      vertical position to remain fully visible when it would otherwise
   //      overflow the editor. Defaults to `true`.
   //
-  // Returns a {Decoration} object
+  // Returns the created {Decoration} object.
   decorateMarker (marker, decorationParams) {
     return this.decorationManager.decorateMarker(marker, decorationParams)
   }

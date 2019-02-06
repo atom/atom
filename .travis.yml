@@ -15,7 +15,7 @@ matrix:
   include:
     - os: linux
       dist: trusty
-      env: NODE_VERSION=8.9.3 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
+      env: NODE_VERSION=8.9.3 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1 ATOM_JASMINE_REPORTER=list
 
 sudo: required
 
