@@ -25,7 +25,7 @@ jobs:
       CI: true
       CI_PROVIDER: VSTS
       ATOM_JASMINE_REPORTER: list
-      TEST_JUNIT_XML_PATH: $(Common.TestResultsDirectory)
+      TEST_JUNIT_XML_PATH: $(Common.TestResultsDirectory)/junit
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
@@ -38,7 +38,7 @@ jobs:
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: JUnit
-      searchFolder: $(Common.TestResultsDirectory)
+      searchFolder: $(Common.TestResultsDirectory)/junit
       mergeTestResults: true
       testRunTitle: Linux
     condition: ne(variables['Atom.SkipTests'], 'true')
