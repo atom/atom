@@ -45,20 +45,20 @@ jobs:
       CI: true
       CI_PROVIDER: VSTS
       ATOM_JASMINE_REPORTER: list
-      TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results
+      TEST_JUNIT_XML_PATH: $(Common.TestResultsDirectory)
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
   - script: find "${TEST_JUNIT_XML_PATH}"
     env:
-      TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results
+      TEST_JUNIT_XML_PATH: $(Common.TestResultsDirectory)
     displayName: Dump test results
     condition: succeededOrFailed()
 
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: JUnit
-      searchFolder: $(Agent.HomeDirectory)/test-results
+      searchFolder: $(Common.TestResultsDirectory)
       mergeTestResults: true
       testRunTitle: MacOS
     condition: succeededOrFailed()

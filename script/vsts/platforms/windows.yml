@@ -70,14 +70,14 @@ jobs:
       CI: true
       CI_PROVIDER: VSTS
       ATOM_JASMINE_REPORTER: list
-      TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)\test-results
+      TEST_JUNIT_XML_PATH: $(Common.TestResultsDirectory)
       BUILD_ARCH: $(buildArch)
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
   - powershell: Get-ChildItem -Recurse %TEST_JUNIT_XML_PATH%
     env:
-      TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)\test-results
+      TEST_JUNIT_XML_PATH: $(Common.TestResultsDirectory)
     displayName: Dump test results
 
   - task: PublishTestResults@2
