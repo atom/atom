@@ -5,17 +5,17 @@ const CONFIG = require('../config')
 const semver = require('semver')
 
 module.exports = function () {
-  // Chromedriver should be specified as ~x.y where x and y match Electron major/minor
+  // Chromedriver should be specified as ^n.x where n matches the Electron major version
   const chromedriverVer = buildMetadata.dependencies['electron-chromedriver']
   const mksnapshotVer = buildMetadata.dependencies['electron-mksnapshot']
 
-  // Always use tilde on electron-chromedriver so that it can pick up the best patch version
-  if (!chromedriverVer.startsWith('~')) {
-    throw new Error(`electron-chromedriver version in script/package.json should start with a tilde to match latest patch version.`)
+  // Always use caret on electron-chromedriver so that it can pick up the best minor/patch versions
+  if (!chromedriverVer.startsWith('^')) {
+    throw new Error(`electron-chromedriver version in script/package.json should start with a caret to match latest patch version.`)
   }
 
-  if (!mksnapshotVer.startsWith('~')) {
-    throw new Error(`electron-mksnapshot version in script/package.json should start with a tilde to match latest patch version.`)
+  if (!mksnapshotVer.startsWith('^')) {
+    throw new Error(`electron-mksnapshot version in script/package.json should start with a caret to match latest patch version.`)
   }
 
   const electronVer = CONFIG.appMetadata.electronVersion
