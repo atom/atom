@@ -1,6 +1,6 @@
 require('jasmine-reporters')
 
-class JasmineJUnitReporter extends jasmine.JUnitReporter {
+class JasmineJUnitReporter extends jasmine.JUnitXmlReporter {
   fullDescription (spec) {
     let fullDescription = spec.description
     let currentSuite = spec.suite
