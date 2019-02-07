@@ -215,7 +215,7 @@ class GrammarRegistry {
 
     // If multiple grammars match by one of the above criteria, break ties.
     if (score > 0) {
-      const isTreeSitter = grammar instanceof TreeSitterGrammar 
+      const isTreeSitter = grammar instanceof TreeSitterGrammar
 
       // Prefer either TextMate or Tree-sitter grammars based on the user's settings.
       if (isTreeSitter) {
