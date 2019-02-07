@@ -216,7 +216,7 @@ function testSuitesForPlatform (platform) {
     suites = suites.filter(suite => suite !== runCoreMainProcessTests)
   }
 
-  return [runCoreMainProcessTests, runCoreRenderProcessTests]
+  return [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
 }
 
 async.series(testSuitesToRun, function (err, exitCodes) {
