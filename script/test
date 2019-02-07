@@ -216,7 +216,7 @@ function testSuitesForPlatform (platform) {
     suites = suites.filter(suite => suite !== runCoreMainProcessTests)
   }
 
-  return suites
+  return [runCoreMainProcessTests, runCoreRenderProcessTests]
 }
 
 async.series(testSuitesToRun, function (err, exitCodes) {
