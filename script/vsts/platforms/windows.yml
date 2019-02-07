@@ -86,7 +86,7 @@ jobs:
     inputs:
       testResultsFormat: JUnit
       searchFolder: $(Common.TestResultsDirectory)\junit
-      testResultsFiles: "**\test-results.xml"
+      testResultsFiles: "**/test-results.xml"
       mergeTestResults: true
       testRunTitle: Windows $(buildArch)
     condition: ne(variables['Atom.SkipTests'], 'true')
