@@ -42,12 +42,12 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   jasmineEnv.addReporter(new TimeReporter())
 
   if process.env.TEST_JUNIT_XML_PATH
-    require 'jasmine-reporters'
+    {JasmineJUnitReporter} = require './jasmine-junit-reporter'
     process.stdout.write "Outputting JUnit XML to <#{process.env.TEST_JUNIT_XML_PATH}>\n"
     outputDir = path.dirname(process.env.TEST_JUNIT_XML_PATH)
     fileBase = path.basename(process.env.TEST_JUNIT_XML_PATH, '.xml')
 
-    jasmineEnv.addReporter new jasmine.JUnitXmlReporter(outputDir, true, false, fileBase, true)
+    jasmineEnv.addReporter new JasmineJUnitReporter(outputDir, true, false, fileBase, true)
   else
     process.stdout.write "No JUnit XML\n"
 
