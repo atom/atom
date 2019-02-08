@@ -87,5 +87,5 @@ jobs:
       ArtifactName: OLD_RELEASE_NOTES.md
       ArtifactType: Container
     displayName: Upload OLD_RELEASE_NOTES.md
-    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
     continueOnError: true
