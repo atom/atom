@@ -13,7 +13,7 @@ const argv = yargs
   .argv
 
 async function getReleaseVersion () {
-  let releaseVersion = appMetadata.version
+  let releaseVersion = process.env.ATOM_RELEASE_VERSION || appMetadata.version
   if (argv.nightly) {
     const releases = await request({
       url: 'https://api.github.com/repos/atom/atom-nightly-releases/releases',
@@ -42,16 +42,17 @@ async function getReleaseVersion () {
   if (!process.env.SYSTEM_PULLREQUEST_PULLREQUESTNUMBER) {
     // Only set the build number on non-PR builds as it causes build errors when
     // non-admins send PRs to the repo
-    console.log(`##vso[build.updatebuildnumber]${releaseVersion}+${process.env.BUILD_BUILDNUMBER}`)
+    console.log(`##vso[build.updatebuildnumber]${releaseVersion}+${process.env.BUILD_BUILDID}`)
   }
 
   // Write out some variables that indicate whether artifacts should be uploaded
   const buildBranch = process.env.BUILD_SOURCEBRANCHNAME
   const isReleaseBranch = process.env.IS_RELEASE_BRANCH || argv.nightly || buildBranch.match(/\d\.\d+-releases/) !== null
   const isSignedZipBranch =
-    process.env.IS_SIGNED_ZIP_BRANCH ||
-    buildBranch.startsWith('electron-') ||
-    buildBranch === 'master' && !process.env.SYSTEM_PULLREQUEST_PULLREQUESTNUMBER
+    !isReleaseBranch &&
+    (process.env.IS_SIGNED_ZIP_BRANCH ||
+     buildBranch.startsWith('electron-') ||
+     buildBranch === 'master' && !process.env.SYSTEM_PULLREQUEST_PULLREQUESTNUMBER)
   console.log(`##vso[task.setvariable variable=IsReleaseBranch;isOutput=true]${isReleaseBranch}`)
   console.log(`##vso[task.setvariable variable=IsSignedZipBranch;isOutput=true]${isSignedZipBranch}`)
 }
