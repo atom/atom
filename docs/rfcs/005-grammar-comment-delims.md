@@ -1,6 +1,4 @@
-# Feature title
-
-Add comment delims to grammar declaration
+# Add comment delims to grammar declaration
 
 ## Status
 
