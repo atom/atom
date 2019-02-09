@@ -35,9 +35,9 @@ if (!assets || assets.length === 0) {
 
 async function uploadArtifacts () {
   let releaseForVersion =
-    await releaseNotes.getRelease()
+    await releaseNotes.getRelease(
       releaseVersion,
-      process.env.GITHUB_TOKEN
+      process.env.GITHUB_TOKEN)
 
   if (releaseForVersion.exists && !releaseForVersion.isDraft) {
     console.log(`Published release already exists for ${releaseVersion}, skipping upload.`)
@@ -100,6 +100,7 @@ async function uploadArtifacts () {
         tag: `v${CONFIG.computedAppVersion}`,
         draft: !isNightlyRelease,
         prerelease: CONFIG.channel !== 'stable',
+        editRelease: true,
         reuseRelease: true,
         skipIfPublished: true,
         assets
