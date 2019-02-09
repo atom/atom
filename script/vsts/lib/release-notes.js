@@ -3,7 +3,7 @@ const octokit = require('@octokit/rest')()
 const changelog = require('pr-changelog')
 const childProcess = require('child_process')
 
-module.exports.get = async function (releaseVersion, githubToken) {
+module.exports.getRelease = async function (releaseVersion, githubToken) {
   if (githubToken) {
     octokit.authenticate({
       type: 'oauth',
@@ -13,7 +13,12 @@ module.exports.get = async function (releaseVersion, githubToken) {
 
   const releases = await octokit.repos.getReleases({owner: 'atom', repo: 'atom'})
   const release = releases.data.find(r => semver.eq(r.name, releaseVersion))
-  return release ? release.body : undefined
+
+  return {
+    exists: release !== undefined,
+    isDraft: release && release.draft,
+    releaseNotes: release ? release.body : undefined
+  }
 }
 
 module.exports.generateForVersion = async function (releaseVersion, githubToken, oldReleaseNotes) {
