@@ -60,7 +60,7 @@ jobs:
     displayName: Download Release Artifacts
 
   - script: |
-      node $(Build.SourcesDirectory)\script\vsts\upload-artifacts.js --create-github-release --assets-path "$(System.ArtifactsDirectory)"
+      node $(Build.SourcesDirectory)\script\vsts\upload-artifacts.js --create-github-release --assets-path "$(System.ArtifactsDirectory)" --linux-repo-name "atom-staging"
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)

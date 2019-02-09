@@ -34,6 +34,16 @@ if (!assets || assets.length === 0) {
 }
 
 async function uploadArtifacts () {
+  let releaseForVersion =
+    await releaseNotes.getRelease()
+      releaseVersion,
+      process.env.GITHUB_TOKEN
+
+  if (releaseForVersion.exists && !releaseForVersion.isDraft) {
+    console.log(`Published release already exists for ${releaseVersion}, skipping upload.`)
+    return
+  }
+
   console.log(`Uploading ${assets.length} release assets for ${releaseVersion} to S3 under '${bucketPath}'`)
 
   await uploadToS3(
@@ -50,14 +60,10 @@ async function uploadArtifacts () {
       releaseVersion,
       assets)
   } else {
-    console.log('Skipping upload of Linux packages')
+    console.log('\nNo Linux package repo name specified, skipping Linux package upload.')
   }
 
-  const oldReleaseNotes =
-    await releaseNotes.get(
-      releaseVersion,
-      process.env.GITHUB_TOKEN)
-
+  const oldReleaseNotes = releaseForVersion.releaseNotes
   if (oldReleaseNotes) {
     const oldReleaseNotesPath = path.resolve(CONFIG.buildOutputPath, 'OLD_RELEASE_NOTES.md')
     console.log(`Saving existing ${releaseVersion} release notes to ${oldReleaseNotesPath}`)
@@ -90,7 +96,7 @@ async function uploadArtifacts () {
         owner: 'atom',
         repo: !isNightlyRelease ? 'atom' : 'atom-nightly-releases',
         name: CONFIG.computedAppVersion,
-        body: newReleaseNotes,
+        notes: newReleaseNotes,
         tag: `v${CONFIG.computedAppVersion}`,
         draft: !isNightlyRelease,
         prerelease: CONFIG.channel !== 'stable',
