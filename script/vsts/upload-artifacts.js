@@ -1,6 +1,7 @@
 'use strict'
 
 const fs = require('fs')
+const os = require('os')
 const path = require('path')
 const glob = require('glob')
 const publishRelease = require('publish-release')
@@ -65,9 +66,12 @@ async function uploadArtifacts () {
 
   const oldReleaseNotes = releaseForVersion.releaseNotes
   if (oldReleaseNotes) {
-    const oldReleaseNotesPath = path.resolve(CONFIG.buildOutputPath, 'OLD_RELEASE_NOTES.md')
+    const oldReleaseNotesPath = path.resolve(os.tmpdir(), 'OLD_RELEASE_NOTES.md')
     console.log(`Saving existing ${releaseVersion} release notes to ${oldReleaseNotesPath}`)
     fs.writeFileSync(oldReleaseNotesPath, oldReleaseNotes, 'utf8')
+
+    // This line instructs VSTS to upload the file as an artifact
+    console.log(`##vso[artifact.upload containerfolder=OldReleaseNotes;artifactname=OldReleaseNotes;]${oldReleaseNotesPath}`)
   }
 
   if (argv.createGithubRelease) {
