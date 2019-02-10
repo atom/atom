@@ -382,9 +382,6 @@ class AtomApplication extends EventEmitter {
     this.on('application:new-file', () => (this.focusedWindow() || this).openPath())
     this.on('application:open-dev', () => this.promptForPathToOpen('all', {devMode: true}))
     this.on('application:open-safe', () => this.promptForPathToOpen('all', {safeMode: true}))
-    this.on('application:open', () => this.promptForPathToOpen('all', getLoadSettings(), getDefaultPath()))
-    this.on('application:open-file', () => this.promptForPathToOpen('file', getLoadSettings(), getDefaultPath()))
-    this.on('application:open-folder', () => this.promptForPathToOpen('file', getLoadSettings(), getDefaultPath()))
     this.on('application:inspect', ({x, y, atomWindow}) => {
       if (!atomWindow) atomWindow = this.focusedWindow()
       if (atomWindow) atomWindow.browserWindow.inspectElement(x, y)
@@ -406,6 +403,9 @@ class AtomApplication extends EventEmitter {
     this.on('application:check-for-update', () => this.autoUpdateManager.check())
 
     if (process.platform === 'darwin') {
+      this.on('application:open', () => this.promptForPathToOpen('all', getLoadSettings(), getDefaultPath()))
+      this.on('application:open-file', () => this.promptForPathToOpen('file', getLoadSettings(), getDefaultPath()))
+      this.on('application:open-folder', () => this.promptForPathToOpen('folder', getLoadSettings(), getDefaultPath()))
       this.on('application:bring-all-windows-to-front', () => Menu.sendActionToFirstResponder('arrangeInFront:'))
       this.on('application:hide', () => Menu.sendActionToFirstResponder('hide:'))
       this.on('application:hide-other-applications', () => Menu.sendActionToFirstResponder('hideOtherApplications:'))
