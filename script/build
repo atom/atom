@@ -68,7 +68,7 @@ const CONFIG = require('./config')
 
   const packagedAppPath = await packageApplication()
   await generateStartupSnapshot(packagedAppPath)
-  await codeSign(packageAppPath, argv)
+  await codeSign(packagedAppPath, argv)
 
   if (argv.compressArtifacts) {
     compressArtifacts(packagedAppPath)
