@@ -8,6 +8,7 @@ const path = require('path')
 const spawnSync = require('./lib/spawn-sync')
 
 const repositoryRootPath = path.resolve(__dirname, '..')
+const srcPath = path.join(repositoryRootPath, 'src')
 const apmRootPath = path.join(repositoryRootPath, 'apm')
 const scriptRootPath = path.join(repositoryRootPath, 'script')
 const buildOutputPath = path.join(repositoryRootPath, 'out')
@@ -31,6 +32,7 @@ module.exports = {
   appName,
   computedAppVersion,
   repositoryRootPath,
+  srcPath,
   apmRootPath,
   scriptRootPath,
   buildOutputPath,
