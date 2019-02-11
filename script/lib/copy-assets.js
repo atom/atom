@@ -16,7 +16,8 @@ module.exports = async function () {
     path.join(CONFIG.repositoryRootPath, 'dot-atom'),
     path.join(CONFIG.repositoryRootPath, 'exports'),
     path.join(CONFIG.repositoryRootPath, 'package.json'),
-    path.join(CONFIG.repositoryRootPath, 'static')
+    path.join(CONFIG.repositoryRootPath, 'static'),
+    path.join(CONFIG.repositoryRootPath, 'src/main-process'),
   ]
 
   await Promise.all(
