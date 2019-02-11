@@ -23,7 +23,7 @@ module.exports = function () {
 function buildBundledPackagesMetadata () {
   const packages = {}
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
-    const packagePath = path.join(CONFIG.intermediateAppPath, 'node_modules', packageName)
+    const packagePath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName)
     const packageMetadataPath = path.join(packagePath, 'package.json')
     const packageMetadata = JSON.parse(fs.readFileSync(packageMetadataPath, 'utf8'))
     normalizePackageData(packageMetadata, (msg) => {
@@ -55,7 +55,7 @@ function buildBundledPackagesMetadata () {
 
     if (packageMetadata.main) {
       const mainPath = require.resolve(path.resolve(packagePath, packageMetadata.main))
-      packageNewMetadata.main = path.relative(path.join(CONFIG.intermediateAppPath, 'static'), mainPath)
+      packageNewMetadata.main = path.relative(path.join(CONFIG.srcPath, 'static'), mainPath)
       // Convert backward slashes to forward slashes in order to allow package
       // main modules to be required from the snapshot. This is because we use
       // forward slashes to cache the sources in the snapshot, so we need to use
@@ -68,7 +68,7 @@ function buildBundledPackagesMetadata () {
       for (let packageKeymapName of fs.readdirSync(packageKeymapsPath)) {
         const packageKeymapPath = path.join(packageKeymapsPath, packageKeymapName)
         if (packageKeymapPath.endsWith('.cson') || packageKeymapPath.endsWith('.json')) {
-          const relativePath = path.relative(CONFIG.intermediateAppPath, packageKeymapPath)
+          const relativePath = path.relative(CONFIG.srcPath, packageKeymapPath)
           packageNewMetadata.keymaps[relativePath] = CSON.readFileSync(packageKeymapPath)
         }
       }
@@ -79,7 +79,7 @@ function buildBundledPackagesMetadata () {
       for (let packageMenuName of fs.readdirSync(packageMenusPath)) {
         const packageMenuPath = path.join(packageMenusPath, packageMenuName)
         if (packageMenuPath.endsWith('.cson') || packageMenuPath.endsWith('.json')) {
-          const relativePath = path.relative(CONFIG.intermediateAppPath, packageMenuPath)
+          const relativePath = path.relative(CONFIG.srcPath, packageMenuPath)
           packageNewMetadata.menus[relativePath] = CSON.readFileSync(packageMenuPath)
         }
       }
@@ -87,13 +87,13 @@ function buildBundledPackagesMetadata () {
 
     const packageGrammarsPath = path.join(packagePath, 'grammars')
     for (let packageGrammarPath of fs.listSync(packageGrammarsPath, ['json', 'cson'])) {
-      const relativePath = path.relative(CONFIG.intermediateAppPath, packageGrammarPath)
+      const relativePath = path.relative(CONFIG.srcPath, packageGrammarPath)
       packageNewMetadata.grammarPaths.push(relativePath)
     }
 
     const packageSettingsPath = path.join(packagePath, 'settings')
     for (let packageSettingPath of fs.listSync(packageSettingsPath, ['json', 'cson'])) {
-      const relativePath = path.relative(CONFIG.intermediateAppPath, packageSettingPath)
+      const relativePath = path.relative(CONFIG.srcPath, packageSettingPath)
       packageNewMetadata.settings[relativePath] = CSON.readFileSync(packageSettingPath)
     }
 
