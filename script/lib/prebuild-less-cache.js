@@ -19,7 +19,7 @@ module.exports = function () {
   const syntaxThemes = []
   const nonThemePackages = []
   for (let packageName in CONFIG.appMetadata.packageDependencies) {
-    const packageMetadata = require(path.join(CONFIG.intermediateAppPath, 'node_modules', packageName, 'package.json'))
+    const packageMetadata = require(path.join(CONFIG.repositoryRootPath, 'node_modules', packageName, 'package.json'))
     if (packageMetadata.theme === 'ui') {
       uiThemes.push(packageName)
     } else if (packageMetadata.theme === 'syntax') {
@@ -31,7 +31,7 @@ module.exports = function () {
 
   CONFIG.snapshotAuxiliaryData.lessSourcesByRelativeFilePath = {}
   function saveIntoSnapshotAuxiliaryData (absoluteFilePath, content) {
-    const relativeFilePath = path.relative(CONFIG.intermediateAppPath, absoluteFilePath)
+    const relativeFilePath = path.relative(CONFIG.srcPath, absoluteFilePath)
     if (!CONFIG.snapshotAuxiliaryData.lessSourcesByRelativeFilePath.hasOwnProperty(relativeFilePath)) {
       CONFIG.snapshotAuxiliaryData.lessSourcesByRelativeFilePath[relativeFilePath] = {
         content: content,
@@ -62,11 +62,12 @@ module.exports = function () {
       // Store file paths located at the import paths so that we can avoid scanning them at runtime.
       for (const absoluteImportPath of lessCache.getImportPaths()) {
         const relativeImportPath = path.relative(CONFIG.intermediateAppPath, absoluteImportPath)
+        const srcImportPath = path.resolve(CONFIG.repositoryRootPath, relativeImportPath)
         if (!CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath.hasOwnProperty(relativeImportPath)) {
           CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath[relativeImportPath] = []
-          for (const importedFile of klawSync(absoluteImportPath, {nodir: true})) {
+          for (const importedFile of klawSync(srcImportPath, {nodir: true})) {
             CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath[relativeImportPath].push(
-              path.relative(CONFIG.intermediateAppPath, importedFile.path)
+              path.relative(CONFIG.srcPath, importedFile.path)
             )
           }
         }
@@ -79,24 +80,24 @@ module.exports = function () {
 
       // Cache styles for all bundled non-theme packages
       for (let nonThemePackage of nonThemePackages) {
-        for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', nonThemePackage, '**', '*.less'))) {
+        for (let lessFilePath of glob.sync(path.join(CONFIG.srcPath, 'node_modules', nonThemePackage, '**', '*.less'))) {
           cacheCompiledCSS(lessCache, lessFilePath, true)
         }
       }
 
       // Cache styles for this UI theme
-      const uiThemeMainPath = path.join(CONFIG.intermediateAppPath, 'node_modules', uiTheme, 'index.less')
+      const uiThemeMainPath = path.join(CONFIG.repositoryRootPath, 'node_modules', uiTheme, 'index.less')
       cacheCompiledCSS(lessCache, uiThemeMainPath, true)
-      for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', uiTheme, '**', '*.less'))) {
+      for (let lessFilePath of glob.sync(path.join(CONFIG.repositoryRootPath, 'node_modules', uiTheme, '**', '*.less'))) {
         if (lessFilePath !== uiThemeMainPath) {
           saveIntoSnapshotAuxiliaryData(lessFilePath, fs.readFileSync(lessFilePath, 'utf8'))
         }
       }
 
       // Cache styles for this syntax theme
-      const syntaxThemeMainPath = path.join(CONFIG.intermediateAppPath, 'node_modules', syntaxTheme, 'index.less')
+      const syntaxThemeMainPath = path.join(CONFIG.repositoryRootPath, 'node_modules', syntaxTheme, 'index.less')
       cacheCompiledCSS(lessCache, syntaxThemeMainPath, true)
-      for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', syntaxTheme, '**', '*.less'))) {
+      for (let lessFilePath of glob.sync(path.join(CONFIG.repositoryRootPath, 'node_modules', syntaxTheme, '**', '*.less'))) {
         if (lessFilePath !== syntaxThemeMainPath) {
           saveIntoSnapshotAuxiliaryData(lessFilePath, fs.readFileSync(lessFilePath, 'utf8'))
         }
@@ -104,7 +105,7 @@ module.exports = function () {
     }
   }
 
-  for (let lessFilePath of glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', 'atom-ui', '**', '*.less'))) {
+  for (let lessFilePath of glob.sync(path.join(CONFIG.repositoryRootPath, 'node_modules', 'atom-ui', '**', '*.less'))) {
     saveIntoSnapshotAuxiliaryData(lessFilePath, fs.readFileSync(lessFilePath, 'utf8'))
   }
 
