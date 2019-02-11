@@ -82,6 +82,7 @@ jobs:
     env:
       TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)
     displayName: Dump test results
+    condition: succeededOrFailed()
 
   - task: PublishTestResults@2
     inputs:
