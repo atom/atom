@@ -46,7 +46,6 @@ jobs:
       CI_PROVIDER: VSTS
       ATOM_JASMINE_REPORTER: list
       TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
-      TEST_JUNIT_XML_RUN: MacOS
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
@@ -61,6 +60,8 @@ jobs:
       testResultsFormat: JUnit
       searchFolder: $(Common.TestResultsDirectory)/junit
       testResultsFiles: "**/*.xml"
+      mergeTestResults: true
+      testRunTitle: MacOS
     condition: ne(variables['Atom.SkipTests'], 'true')
 
   - script: |
