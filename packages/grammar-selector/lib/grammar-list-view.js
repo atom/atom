@@ -21,8 +21,6 @@ class GrammarListView {
         div.classList.add('pull-right')
 
         if (grammar.constructor.name === "TreeSitterGrammar") {
-          console.log("TS", grammar)
-
           const parser = document.createElement('span')
           parser.classList.add('grammar-selector-parser', 'badge', 'badge-success')
           parser.textContent = 'Tree-sitter'
