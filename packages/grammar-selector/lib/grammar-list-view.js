@@ -26,6 +26,7 @@ class GrammarListView {
           const parser = document.createElement('span')
           parser.classList.add('grammar-selector-parser', 'badge', 'badge-success')
           parser.textContent = 'Tree-sitter'
+          parser.setAttribute('title', '(Recommended) A faster parser with improved syntax highlighting & code navigation support.')
           div.appendChild(parser)
         }
 
