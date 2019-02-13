@@ -22,12 +22,16 @@ class GrammarListView {
 
         if (grammar.constructor.name === "TreeSitterGrammar") {
           console.log("TS", grammar)
-          // style here
+
+          const parser = document.createElement('span')
+          parser.classList.add('grammar-selector-parser', 'badge', 'badge-success')
+          parser.textContent = 'Tree-sitter'
+          div.appendChild(parser)
         }
 
         if (grammar.scopeName) {
           const scopeName = document.createElement('scopeName')
-          scopeName.classList.add('key-binding') // It will be styled the same as the keybindings in the command palette
+          scopeName.classList.add('badge', 'badge-info')
           scopeName.textContent = grammar.scopeName
           div.appendChild(scopeName)
           element.appendChild(div)
