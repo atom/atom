@@ -21,7 +21,7 @@ atom-text-editor {
       left: 0;
       height: 0;
       width: 0;
-      content: " ";
+      content: "";
       border: solid transparent;
       border-left-color: @syntax-color-removed;
       border-width: @size;
@@ -41,18 +41,15 @@ atom-text-editor {
     padding-left: 1.4em; // space for diff icon
 
     &:before {
-     .octicon-font();
+      .octicon-font();
+      content: "";
       display: inline-block;
       position: absolute;
-      top: -.05em;
+      top: .2em;
       left: .4em;
-
-      // make sure it doesnt affect the gutter line height.
-      height: 0px;
+      height: 0px; // make sure it doesnt affect the gutter line height.
       width: 1em;
-      content: " ";
-      padding-right: 0.4em;
-      font-size: .95em;
+      font-size: .75em;
     }
 
     &.git-line-modified:before {
