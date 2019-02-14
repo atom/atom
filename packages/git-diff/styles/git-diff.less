@@ -37,15 +37,15 @@ atom-text-editor {
   }
 
   .gutter.git-diff-icon .line-number {
-    width: 100%;
-    border-left: none;
-    padding-left: 0.4em;
+    border-left-width: 0;
+    padding-left: 1.4em; // space for diff icon
 
     &:before {
      .octicon-font();
       display: inline-block;
-      position: relative;
+      position: absolute;
       top: -.05em;
+      left: .4em;
 
       // make sure it doesnt affect the gutter line height.
       height: 0px;
@@ -70,13 +70,12 @@ atom-text-editor {
       border: none; // reset triangle
       content: @dash;
       color: @syntax-color-removed;
-      position: relative;
     }
     &.git-line-removed:before {
-      top: .6em;
+      top: 1em;
     }
     &.git-previous-line-removed:before {
-      top: -.6em;
+      top: 0;
     }
   }
 }
