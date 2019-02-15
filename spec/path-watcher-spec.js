@@ -16,6 +16,7 @@ const temp = promisifySome(tempCb, ['mkdir'])
 class ScopedLogger {
   constructor () {
     this.messages = []
+    this.iteration = null
   }
 
   enable (iteration) {
@@ -23,19 +24,20 @@ class ScopedLogger {
   }
 
   log (message) {
-    if (!this.iteration) {
+    if (this.iteration === null) {
       return
     }
     this.messages.push(message)
   }
 
   async dump () {
-    if (!this.iteration) {
+    if (this.iteration === null) {
       return
     }
     const baseName = `${process.platform}-path-watcher-spec.${this.iteration}.log`
     const fileName = path.resolve('logs', baseName)
     const content = this.messages.map(line => line + '\n').join('')
+    this.iteration = null
     await fs.writeFile(fileName, content, {encoding: 'utf8'})
   }
 }
