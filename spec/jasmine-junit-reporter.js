@@ -9,10 +9,6 @@ class JasmineJUnitReporter extends jasmine.JUnitXmlReporter {
       currentSuite = currentSuite.parentSuite
     }
 
-    if (process.env.TEST_JUNIT_RUN) {
-      fullDescription = `[${process.env.TEST_JUNIT_RUN}] ` + fullDescription
-    }
-
     return fullDescription
   }
 
