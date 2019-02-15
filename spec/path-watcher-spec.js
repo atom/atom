@@ -86,31 +86,35 @@ describe('watchPath', function () {
       expect(watcher1.native).not.toBe(native0)
     })
 
-    it('reuses an existing native watcher on a parent directory and filters events', async function () {
-      const rootDir = await temp.mkdir('atom-fsmanager-test-').then(fs.realpath)
-      const rootFile = path.join(rootDir, 'rootfile.txt')
-      const subDir = path.join(rootDir, 'subdir')
-      const subFile = path.join(subDir, 'subfile.txt')
+    fdescribe('the flaking test', function() {
+      for (let i = 0; i < 100; i++) {
+        it(`reuses an existing native watcher on a parent directory and filters events: ${i}`, async function () {
+          const rootDir = await temp.mkdir('atom-fsmanager-test-').then(fs.realpath)
+          const rootFile = path.join(rootDir, 'rootfile.txt')
+          const subDir = path.join(rootDir, 'subdir')
+          const subFile = path.join(subDir, 'subfile.txt')
 
-      await fs.mkdir(subDir)
+          await fs.mkdir(subDir)
 
-      // Keep the watchers alive with an undisposed subscription
-      const rootWatcher = await watchPath(rootDir, {}, () => {})
-      const childWatcher = await watchPath(subDir, {}, () => {})
+          // Keep the watchers alive with an undisposed subscription
+          const rootWatcher = await watchPath(rootDir, {}, () => {})
+          const childWatcher = await watchPath(subDir, {}, () => {})
 
-      expect(rootWatcher.native).toBe(childWatcher.native)
-      expect(rootWatcher.native.isRunning()).toBe(true)
+          expect(rootWatcher.native).toBe(childWatcher.native)
+          expect(rootWatcher.native.isRunning()).toBe(true)
 
-      const firstChanges = Promise.all([
-        waitForChanges(rootWatcher, subFile),
-        waitForChanges(childWatcher, subFile)
-      ])
-      await fs.writeFile(subFile, 'subfile\n', {encoding: 'utf8'})
-      await firstChanges
+          const firstChanges = Promise.all([
+            waitForChanges(rootWatcher, subFile),
+            waitForChanges(childWatcher, subFile)
+          ])
+          await fs.writeFile(subFile, 'subfile\n', {encoding: 'utf8'})
+          await firstChanges
 
-      const nextRootEvent = waitForChanges(rootWatcher, rootFile)
-      await fs.writeFile(rootFile, 'rootfile\n', {encoding: 'utf8'})
-      await nextRootEvent
+          const nextRootEvent = waitForChanges(rootWatcher, rootFile)
+          await fs.writeFile(rootFile, 'rootfile\n', {encoding: 'utf8'})
+          await nextRootEvent
+        })
+      }
     })
 
     it('adopts existing child watchers and filters events appropriately to them', async function () {
