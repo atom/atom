@@ -68,8 +68,7 @@ function prepareEnv (suiteName) {
   if (process.env.TEST_JUNIT_XML_ROOT) {
     // Tell Jasmine to output this suite's results as a JUnit XML file to a subdirectory of the root, so that a
     // CI system can interpret it.
-    env.TEST_JUNIT_RUN = suiteName
-    const fileName = suiteName.replace(/\W+/g, '-') + '.xml'
+    const fileName = suiteName + '.xml'
     const outputPath = path.join(process.env.TEST_JUNIT_XML_ROOT, fileName)
     env.TEST_JUNIT_XML_PATH = outputPath
   }
@@ -83,7 +82,7 @@ function runCoreMainProcessTests (callback) {
     '--resource-path', resourcePath,
     '--test', '--main-process', testPath
   ]
-  const testEnv = Object.assign({}, prepareEnv('core main process'), {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
+  const testEnv = Object.assign({}, prepareEnv('core-main-process'), {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
 
   console.log('Executing core main process tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
@@ -97,7 +96,7 @@ function runCoreRenderProcessTests (callback) {
     '--resource-path', resourcePath,
     '--test', testPath
   ]
-  const testEnv = prepareEnv('core render process')
+  const testEnv = prepareEnv('core-render-process')
 
   console.log('Executing core render process tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
@@ -131,7 +130,7 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
       '--resource-path', resourcePath,
       '--test', testFolder
     ]
-    const testEnv = prepareEnv(`bundled package ${packageName}`)
+    const testEnv = prepareEnv(`bundled-package-${packageName}`)
 
     const pkgJsonPath = path.join(repositoryPackagePath, 'package.json')
     const nodeModulesPath = path.join(repositoryPackagePath, 'node_modules')
@@ -218,7 +217,7 @@ function testSuitesForPlatform (platform) {
     suites = suites.filter(suite => suite !== runCoreMainProcessTests)
   }
 
-  return [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
+  return suites
 }
 
 async.series(testSuitesToRun, function (err, exitCodes) {
