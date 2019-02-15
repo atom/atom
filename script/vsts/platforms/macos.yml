@@ -53,7 +53,7 @@ jobs:
     env:
       TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
     displayName: Post-process test results
-    condition: succeededOrFailed()
+    condition: ne(variables['Atom.SkipTests'], 'true')
 
   - task: PublishTestResults@2
     inputs:
