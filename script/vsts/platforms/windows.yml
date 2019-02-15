@@ -77,7 +77,7 @@ jobs:
 
   - script: >
       node script\vsts\windows-run.js script\postprocess-junit-results.cmd
-      --search-folder "${TEST_JUNIT_XML_ROOT}" --test-results-files "*.xml"
+      --search-folder %TEST_JUNIT_XML_ROOT% --test-results-files "**/*.xml"
     env:
       TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)\junit
     displayName: Post-process test results
