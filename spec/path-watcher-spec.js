@@ -50,10 +50,11 @@ describe('watchPath', function () {
     subs = new CompositeDisposable()
   })
 
-  afterEach(async function () {
+  afterEach(function () {
     subs.dispose()
-    await stopAllWatchers()
-    await logger.dump()
+
+    waitsForPromise(logger.dump())
+    waitsForPromise(stopAllWatchers())
   })
 
   function waitForChanges (watcher, ...fileNames) {
