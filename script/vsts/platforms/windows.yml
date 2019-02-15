@@ -75,12 +75,12 @@ jobs:
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
-  - powershell: Get-ChildItem -Recurse $env:TEST_JUNIT_XML_ROOT
-    failOnStderr: false
-    ignoreLASTEXITCODE: true
+  - script: >
+      node script\vsts\windows-run.js script\postprocess-junit-results.cmd
+      --search-folder "${TEST_JUNIT_XML_ROOT}" --test-results-files "**/*.xml"
     env:
-      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)
-    displayName: Dump test results
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
+    displayName: Post-process test results
     condition: succeededOrFailed()
 
   - task: PublishTestResults@2
