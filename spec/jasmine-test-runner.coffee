@@ -48,8 +48,6 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
     fileBase = path.basename(process.env.TEST_JUNIT_XML_PATH, '.xml')
 
     jasmineEnv.addReporter new JasmineJUnitReporter(outputDir, true, false, fileBase, true)
-  else
-    process.stdout.write "No JUnit XML\n"
 
   jasmineEnv.setIncludedTags([process.platform])
 
