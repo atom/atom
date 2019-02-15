@@ -76,6 +76,14 @@ jobs:
 
   - task: PublishBuildArtifacts@1
     inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/logs
+      ArtifactName: windows$(buildArch)-path-watcher-logs.zip
+      ArtifactType: Container
+    displayName: Upload path-watcher spec logs
+    condition: ne(variables['Atom.SkipTests'], 'true')
+
+  - task: PublishBuildArtifacts@1
+    inputs:
       PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-windows.zip
       ArtifactName: atom-x64-windows.zip
       ArtifactType: Container

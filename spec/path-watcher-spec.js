@@ -33,11 +33,10 @@ class ScopedLogger {
     if (!this.iteration) {
       return
     }
-    const baseName = `path-watcher-spec.${this.iteration}.log`
-    const fileName = path.resolve(baseName)
+    const baseName = `${process.platform}-path-watcher-spec.${this.iteration}.log`
+    const fileName = path.resolve('logs', baseName)
     const content = this.messages.map(line => line + '\n').join('')
     await fs.writeFile(fileName, content, {encoding: 'utf8'})
-    process.stdout.write(`\n##vso[artifact.upload containerfolder=path-watcher-spec-logs;artifactname=${baseName};]${fileName}\n`)
   }
 }
 

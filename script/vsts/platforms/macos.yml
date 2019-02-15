@@ -48,6 +48,14 @@ jobs:
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/logs
+      ArtifactName: macos-path-watcher-logs.zip
+      ArtifactType: Container
+    displayName: Upload path-watcher spec logs
+    condition: ne(variables['Atom.SkipTests'], 'true')
+
   - script: |
       cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
     displayName: Stage Artifacts
