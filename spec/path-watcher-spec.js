@@ -53,8 +53,8 @@ describe('watchPath', function() {
   afterEach(function() {
     subs.dispose()
 
-    waitsForPromise(logger.dump())
-    waitsForPromise(stopAllWatchers())
+    waitsForPromise(() => logger.dump())
+    waitsForPromise(() => stopAllWatchers())
   })
 
   function waitForChanges(watcher, ...fileNames) {
