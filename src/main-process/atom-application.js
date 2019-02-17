@@ -23,6 +23,17 @@ const ConfigSchema = require('../config-schema')
 
 const LocationSuffixRegExp = /(:\d+)(:\d+)?$/
 
+const getDefaultPath = () => {
+  const editor = atom.workspace.getActiveTextEditor()
+  if (!editor || !editor.getPath()) {
+    return
+  }
+  const paths = atom.project.getPaths()
+  if (paths) {
+    return paths[0]
+  }
+}
+
 // The application's singleton class.
 //
 // It's the entry point into the Atom application and maintains the global state
@@ -392,6 +403,9 @@ class AtomApplication extends EventEmitter {
     this.on('application:check-for-update', () => this.autoUpdateManager.check())
 
     if (process.platform === 'darwin') {
+      this.on('application:open', () => this.promptForPathToOpen('all', getLoadSettings(), getDefaultPath()))
+      this.on('application:open-file', () => this.promptForPathToOpen('file', getLoadSettings(), getDefaultPath()))
+      this.on('application:open-folder', () => this.promptForPathToOpen('folder', getLoadSettings(), getDefaultPath()))
       this.on('application:bring-all-windows-to-front', () => Menu.sendActionToFirstResponder('arrangeInFront:'))
       this.on('application:hide', () => Menu.sendActionToFirstResponder('hide:'))
       this.on('application:hide-other-applications', () => Menu.sendActionToFirstResponder('hideOtherApplications:'))

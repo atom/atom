@@ -69,9 +69,28 @@ jobs:
     env:
       CI: true
       CI_PROVIDER: VSTS
+      ATOM_JASMINE_REPORTER: list
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)\junit
       BUILD_ARCH: $(buildArch)
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+  - script: >
+      node script\vsts\windows-run.js script\postprocess-junit-results.cmd
+      --search-folder %TEST_JUNIT_XML_ROOT% --test-results-files "**/*.xml"
+    env:
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)\junit
+    displayName: Post-process test results
+    condition: ne(variables['Atom.SkipTests'], 'true')
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: JUnit
+      searchFolder: $(Common.TestResultsDirectory)\junit
+      testResultsFiles: "**/*.xml"
+      mergeTestResults: true
+      testRunTitle: Windows $(buildArch)
+    condition: ne(variables['Atom.SkipTests'], 'true')
 
   - task: PublishBuildArtifacts@1
     inputs:

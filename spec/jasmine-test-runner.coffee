@@ -1,15 +1,14 @@
 Grim = require 'grim'
 fs = require 'fs-plus'
+temp = require 'temp'
 path = require 'path'
 {ipcRenderer} = require 'electron'
+
+temp.track()
 
 module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   window[key] = value for key, value of require '../vendor/jasmine'
   require 'jasmine-tagged'
-
-  if process.env.TEST_JUNIT_XML_PATH
-    require 'jasmine-reporters'
-    jasmine.getEnv().addReporter new jasmine.JUnitXmlReporter(process.env.TEST_JUNIT_XML_PATH, true, true)
 
   # Allow document.title to be assigned in specs without screwing up spec window title
   documentTitle = null
@@ -17,13 +16,15 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
     get: -> documentTitle
     set: (title) -> documentTitle = title
 
+  atomHome = temp.mkdirSync prefix: 'atom-test-home-'
+
   ApplicationDelegate = require '../src/application-delegate'
   applicationDelegate = new ApplicationDelegate()
   applicationDelegate.setRepresentedFilename = ->
   applicationDelegate.setWindowDocumentEdited = ->
   window.atom = buildAtomEnvironment({
     applicationDelegate, window, document,
-    configDirPath: process.env.ATOM_HOME
+    configDirPath: atomHome
     enablePersistence: false
   })
 
@@ -39,6 +40,15 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   jasmineEnv.addReporter(buildReporter({logFile, headless, resolveWithExitCode}))
   TimeReporter = require './time-reporter'
   jasmineEnv.addReporter(new TimeReporter())
+
+  if process.env.TEST_JUNIT_XML_PATH
+    {JasmineJUnitReporter} = require './jasmine-junit-reporter'
+    process.stdout.write "Outputting JUnit XML to <#{process.env.TEST_JUNIT_XML_PATH}>\n"
+    outputDir = path.dirname(process.env.TEST_JUNIT_XML_PATH)
+    fileBase = path.basename(process.env.TEST_JUNIT_XML_PATH, '.xml')
+
+    jasmineEnv.addReporter new JasmineJUnitReporter(outputDir, true, false, fileBase, true)
+
   jasmineEnv.setIncludedTags([process.platform])
 
   jasmineContent = document.createElement('div')
@@ -94,8 +104,7 @@ buildTerminalReporter = (logFile, resolveWithExitCode) ->
     else
       ipcRenderer.send 'write-to-stderr', str
 
-  {TerminalReporter} = require 'jasmine-tagged'
-  new TerminalReporter
+  options =
     print: (str) ->
       log(str)
     onComplete: (runner) ->
@@ -109,3 +118,10 @@ buildTerminalReporter = (logFile, resolveWithExitCode) ->
         resolveWithExitCode(1)
       else
         resolveWithExitCode(0)
+
+  if process.env.ATOM_JASMINE_REPORTER is 'list'
+    {JasmineListReporter} = require './jasmine-list-reporter'
+    new JasmineListReporter(options)
+  else
+    {TerminalReporter} = require 'jasmine-tagged'
+    new TerminalReporter(options)

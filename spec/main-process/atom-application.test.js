@@ -638,6 +638,31 @@ describe('AtomApplication', function () {
     assert(atomApplication.getAllWindows().length === 0)
   })
 
+  if (process.platform === 'darwin') {
+    it('allows opening a new folder after all windows are closed', async () => {
+      const atomApplication = buildAtomApplication()
+      sinon.stub(atomApplication, 'promptForPathToOpen')
+
+      // Open a window and then close it, leaving the app running
+      const [window] = await atomApplication.launch(parseCommandLine([]))
+      await focusWindow(window)
+      window.close()
+      await window.closedPromise
+
+      atomApplication.emit('application:open')
+      await conditionPromise(() => atomApplication.promptForPathToOpen.calledWith('all'))
+      atomApplication.promptForPathToOpen.reset()
+
+      atomApplication.emit('application:open-file')
+      await conditionPromise(() => atomApplication.promptForPathToOpen.calledWith('file'))
+      atomApplication.promptForPathToOpen.reset()
+
+      atomApplication.emit('application:open-folder')
+      await conditionPromise(() => atomApplication.promptForPathToOpen.calledWith('folder'))
+      atomApplication.promptForPathToOpen.reset()
+    })
+  }
+
   function buildAtomApplication (params = {}) {
     const atomApplication = new AtomApplication(Object.assign({
       resourcePath: ATOM_RESOURCE_PATH,
