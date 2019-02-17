@@ -37,6 +37,11 @@
       "type": "boolean",
       "default": true,
       "description": "Show the active pane item's language on the right side of Atom's status bar, instead of the left."
+    },
+    "hideDuplicateTextMateGrammars": {
+      "type": "boolean",
+      "default": true,
+      "description": "Hides the TextMate grammar when there is an existing Tree-sitter grammar"
     }
   }
 }
