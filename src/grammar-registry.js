@@ -142,6 +142,22 @@ class GrammarRegistry {
     return true
   }
 
+  // Extended: Force a {TextBuffer} to use a different grammar than the
+  // one that would otherwise be selected for it.
+  //
+  // * `buffer` The {TextBuffer} whose grammar will be set.
+  // * `grammar` The {Grammar} of the desired languageMode.
+  //
+  // Returns a {Boolean} that indicates whether the assignment was sucessful
+  assignGrammar (buffer, grammar) {
+    if (buffer.getBuffer) buffer = buffer.getBuffer()
+    if (!grammar) return false
+    this.languageOverridesByBufferId.set(buffer.id, grammar.scopeName || null)
+    this.grammarScoresByBuffer.set(buffer, null)
+    buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
+    return true
+  }
+
   // Extended: Get the `languageId` that has been explicitly assigned to
   // to the given buffer, if any.
   //

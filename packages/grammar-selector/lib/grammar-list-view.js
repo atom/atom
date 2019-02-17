@@ -43,7 +43,7 @@ class GrammarListView {
         if (grammar === this.autoDetect) {
           atom.textEditors.clearGrammarOverride(this.editor)
         } else {
-          atom.textEditors.setGrammarOverride(this.editor, grammar.scopeName)
+          atom.grammars.assignGrammar(this.editor, grammar)
         }
       },
       didCancelSelection: () => {
