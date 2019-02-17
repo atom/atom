@@ -138,6 +138,12 @@ describe('watchPath', function() {
       for (let i = 0; i < 100; i++) {
         it(`reuses an existing native watcher on a parent directory and filters events: ${i}`, async function() {
           logger.enable(i)
+
+          console.log('console.log')
+          console.error('console.error')
+          process.stdout.write('process.stdout.write\n')
+          process.stderr.write('process.stderr.write\n')
+
           logger.log('start')
 
           logger.log('creating fixture paths: start')
