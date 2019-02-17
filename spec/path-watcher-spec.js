@@ -23,7 +23,7 @@ class ScopedLogger {
     const baseName = `${process.platform}-path-watcher-spec.${iteration}.log`
     const fileName = path.resolve('logs', baseName)
 
-    this.stream = fsCb.createWriteStream(fileName, {encoding: 'utf8'})
+    this.stream = fsCb.createWriteStream(fileName, { encoding: 'utf8' })
   }
 
   log(message) {
@@ -39,6 +39,7 @@ class ScopedLogger {
       return
     }
     await new Promise(resolve => this.stream.end(resolve))
+    this.stream = null
   }
 }
 
