@@ -10,10 +10,6 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   window[key] = value for key, value of require '../vendor/jasmine'
   require 'jasmine-tagged'
 
-  if process.env.TEST_JUNIT_XML_PATH
-    require 'jasmine-reporters'
-    jasmine.getEnv().addReporter new jasmine.JUnitXmlReporter(process.env.TEST_JUNIT_XML_PATH, true, true)
-
   # Allow document.title to be assigned in specs without screwing up spec window title
   documentTitle = null
   Object.defineProperty document, 'title',
@@ -44,6 +40,15 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   jasmineEnv.addReporter(buildReporter({logFile, headless, resolveWithExitCode}))
   TimeReporter = require './time-reporter'
   jasmineEnv.addReporter(new TimeReporter())
+
+  if process.env.TEST_JUNIT_XML_PATH
+    {JasmineJUnitReporter} = require './jasmine-junit-reporter'
+    process.stdout.write "Outputting JUnit XML to <#{process.env.TEST_JUNIT_XML_PATH}>\n"
+    outputDir = path.dirname(process.env.TEST_JUNIT_XML_PATH)
+    fileBase = path.basename(process.env.TEST_JUNIT_XML_PATH, '.xml')
+
+    jasmineEnv.addReporter new JasmineJUnitReporter(outputDir, true, false, fileBase, true)
+
   jasmineEnv.setIncludedTags([process.platform])
 
   jasmineContent = document.createElement('div')

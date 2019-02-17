@@ -658,7 +658,7 @@ describe('AtomApplication', function () {
       atomApplication.promptForPathToOpen.reset()
 
       atomApplication.emit('application:open-folder')
-      await conditionPromise(() => atomApplication.promptForPathToOpen.calledWith('file'))
+      await conditionPromise(() => atomApplication.promptForPathToOpen.calledWith('folder'))
       atomApplication.promptForPathToOpen.reset()
     })
   }
