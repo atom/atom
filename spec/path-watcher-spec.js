@@ -10,44 +10,49 @@ import { watchPath, stopAllWatchers } from '../src/path-watcher'
 
 tempCb.track()
 
-const fs = promisifySome(fsCb, ['writeFile', 'mkdir', 'symlink', 'appendFile', 'realpath'])
+const fs = promisifySome(fsCb, ['writeFile', 'mkdir', 'makeTree', 'symlink', 'appendFile', 'realpath'])
 const temp = promisifySome(tempCb, ['mkdir'])
 
 class ScopedLogger {
   constructor() {
     this.messages = []
-    this.iteration = null
+    this.stream = null
   }
 
   enable(iteration) {
-    this.iteration = iteration
+    const baseName = `${process.platform}-path-watcher-spec.${iteration}.log`
+    const fileName = path.resolve('logs', baseName)
+
+    this.stream = fsCb.createWriteStream(fileName, {encoding: 'utf8'})
   }
 
   log(message) {
-    if (this.iteration === null) {
+    if (this.stream === null) {
       return
     }
-    this.messages.push(message)
+
+    this.stream.write(message + '\n')
   }
 
   async dump() {
-    if (this.iteration === null) {
+    if (this.stream === null) {
       return
     }
-    const baseName = `${process.platform}-path-watcher-spec.${this.iteration}.log`
-    const fileName = path.resolve('logs', baseName)
-    const content = this.messages.map(line => line + '\n').join('')
-    this.iteration = null
-    await fs.writeFile(fileName, content, { encoding: 'utf8' })
+    await new Promise(resolve => this.stream.end(resolve))
   }
 }
 
 describe('watchPath', function() {
   let subs, logger
 
-  beforeEach(function() {
+  beforeEach(async function() {
+    if (logger) {
+      await logger.dump()
+    }
     logger = new ScopedLogger()
     subs = new CompositeDisposable()
+
+    await fs.makeTree(path.resolve('logs'))
   })
 
   afterEach(function() {
