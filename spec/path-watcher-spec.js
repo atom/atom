@@ -10,56 +10,19 @@ import { watchPath, stopAllWatchers } from '../src/path-watcher'
 
 tempCb.track()
 
-const fs = promisifySome(fsCb, ['writeFile', 'mkdir', 'makeTree', 'symlink', 'appendFile', 'realpath'])
+const fs = promisifySome(fsCb, ['writeFile', 'mkdir', 'symlink', 'appendFile', 'realpath'])
 const temp = promisifySome(tempCb, ['mkdir'])
 
-class ScopedLogger {
-  constructor() {
-    this.messages = []
-    this.stream = null
-  }
-
-  enable(iteration) {
-    const baseName = `${process.platform}-path-watcher-spec.${iteration}.log`
-    const fileName = path.resolve('logs', baseName)
-
-    this.stream = fsCb.createWriteStream(fileName, { encoding: 'utf8' })
-  }
-
-  log(message) {
-    if (this.stream === null) {
-      return
-    }
-
-    this.stream.write(message + '\n')
-  }
-
-  async dump() {
-    if (this.stream === null) {
-      return
-    }
-    await new Promise(resolve => this.stream.end(resolve))
-    this.stream = null
-  }
-}
-
 describe('watchPath', function() {
-  let subs, logger
+  let subs
 
-  beforeEach(async function() {
-    if (logger) {
-      await logger.dump()
-    }
-    logger = new ScopedLogger()
+  beforeEach(function() {
     subs = new CompositeDisposable()
-
-    await fs.makeTree(path.resolve('logs'))
   })
 
   afterEach(function() {
     subs.dispose()
 
-    waitsForPromise(() => logger.dump())
     waitsForPromise(() => stopAllWatchers())
   })
 
@@ -67,29 +30,29 @@ describe('watchPath', function() {
     const waiting = new Set(fileNames)
     let fired = false
     const relevantEvents = []
-    logger.log(`waitForChanges: waiting for filenames - [${fileNames.join(', ')}]`)
+    console.log(`waitForChanges: waiting for filenames - [${fileNames.join(', ')}]`)
 
     return new Promise(resolve => {
       const sub = watcher.onDidChange(events => {
-        logger.log(`waitForChanges: received ${events.length} events`)
+        console.log(`waitForChanges: received ${events.length} events`)
         for (const event of events) {
           if (waiting.delete(event.path)) {
-            logger.log(`waitForChanges: matched [${event.path}]`)
+            console.log(`waitForChanges: matched [${event.path}]`)
             relevantEvents.push(event)
           } else {
-            logger.log(`waitForChanges: ignoring unexpected event [${event.path}]`)
+            console.log(`waitForChanges: ignoring unexpected event [${event.path}]`)
           }
         }
 
         if (!fired && waiting.size === 0) {
-          logger.log(`waitForChanges: all expected events received, resolving`)
+          console.log(`waitForChanges: all expected events received, resolving`)
           fired = true
           resolve(relevantEvents)
           sub.dispose()
         } else if (!fired) {
-          logger.log(`waitForChanges: ${waiting.size} events still to come`)
+          console.log(`waitForChanges: ${waiting.size} events still to come`)
         } else {
-          logger.log(`waitForChanges: already fired`)
+          console.log(`waitForChanges: already fired`)
         }
       })
     })
@@ -135,63 +98,56 @@ describe('watchPath', function() {
     })
 
     fdescribe('the flaking test', function() {
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 1; i++) {
         it(`reuses an existing native watcher on a parent directory and filters events: ${i}`, async function() {
-          logger.enable(i)
+          console.log('start')
 
-          console.log('console.log')
-          console.error('console.error')
-          process.stdout.write('process.stdout.write\n')
-          process.stderr.write('process.stderr.write\n')
-
-          logger.log('start')
-
-          logger.log('creating fixture paths: start')
+          console.log('creating fixture paths: start')
           const rootDir = await temp.mkdir('atom-fsmanager-test-').then(fs.realpath)
           const rootFile = path.join(rootDir, 'rootfile.txt')
           const subDir = path.join(rootDir, 'subdir')
           const subFile = path.join(subDir, 'subfile.txt')
 
           await fs.mkdir(subDir)
-          logger.log(`rootDir=[${rootDir}] rootFile=[${rootFile} subDir=[${subDir}] subFile=[${subFile}]]`)
-          logger.log('creating fixture paths: done')
+          console.log(`rootDir=[${rootDir}] rootFile=[${rootFile} subDir=[${subDir}] subFile=[${subFile}]]`)
+          console.log('creating fixture paths: done')
 
           // Keep the watchers alive with an undisposed subscription
-          logger.log('creating watchers: start')
-          logger.log(`watching: [${rootDir}]`)
+          console.log('creating watchers: start')
+          console.log(`watching: [${rootDir}]`)
           const rootWatcher = await watchPath(rootDir, {}, () => { })
-          logger.log(`watching: [${subDir}]`)
+          console.log(`watching: [${subDir}]`)
           const childWatcher = await watchPath(subDir, {}, () => { })
-          logger.log('creating watchers: done')
+          console.log('creating watchers: done')
 
           expect(rootWatcher.native).toBe(childWatcher.native)
           expect(rootWatcher.native.isRunning()).toBe(true)
 
-          logger.log('creating promise for first changes: start')
+          console.log('creating promise for first changes: start')
           const firstChanges = Promise.all([
             waitForChanges(rootWatcher, subFile),
             waitForChanges(childWatcher, subFile)
           ])
-          logger.log('creating promise for first changes: done')
+          console.log('creating promise for first changes: done')
 
-          logger.log(`writing to ${subFile}: start`)
+          console.log(`writing to ${subFile}: start`)
           await fs.writeFile(subFile, 'subfile\n', { encoding: 'utf8' })
-          logger.log(`writing to ${subFile}: done`)
-          logger.log(`await promise for first changes: start`)
+          console.log(`writing to ${subFile}: done`)
+          console.log(`await promise for first changes: start`)
           await firstChanges
-          logger.log(`await promise for first changes: done`)
+          console.log(`await promise for first changes: done`)
 
-          logger.log('creating promise for root changes: start')
+          console.log('creating promise for root changes: start')
           const nextRootEvent = waitForChanges(rootWatcher, rootFile)
-          logger.log('creating promise for root changes: done')
-          logger.log(`writing to ${rootFile}: start`)
+          console.log('creating promise for root changes: done')
+          console.log(`writing to ${rootFile}: start`)
           await fs.writeFile(rootFile, 'rootfile\n', { encoding: 'utf8' })
-          logger.log(`writing to ${rootFile}: done`)
-          logger.log('await promise for root changes: start')
+          console.log(`writing to ${rootFile}: done`)
+          console.log('await promise for root changes: start')
           await nextRootEvent
-          logger.log('await promise for root changes: done')
+          console.log('await promise for root changes: done')
 
-          logger.log('done')
+          console.log('done')
         })
       }
     })
