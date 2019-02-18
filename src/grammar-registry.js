@@ -458,7 +458,7 @@ class GrammarRegistry {
   }
 
   get grammars () {
-    return this.textmateRegistry.grammars
+    return this.getGrammars({includeTreeSitter: true})
   }
 
   decodeTokens () {

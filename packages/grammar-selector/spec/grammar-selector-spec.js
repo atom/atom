@@ -8,6 +8,7 @@ describe('GrammarSelector', () => {
   beforeEach(async () => {
     jasmine.attachToDOM(atom.views.getView(atom.workspace))
     atom.config.set('grammar-selector.showOnRightSideOfStatusBar', false)
+    atom.config.set('grammar-selector.hideDuplicateTextMateGrammars', false)
 
     await atom.packages.activatePackage('status-bar')
     await atom.packages.activatePackage('grammar-selector')
@@ -30,13 +31,9 @@ describe('GrammarSelector', () => {
       await SelectListView.getScheduler().getNextUpdatePromise()
 
       const grammarView = atom.workspace.getModalPanels()[0].getItem().element
-      // TODO: Remove once Atom 1.23 reaches stable
-      if (parseFloat(atom.getVersion()) >= 1.23) {
-        // Do not take into account the two JS regex grammars or language-with-no-name
-        expect(grammarView.querySelectorAll('li').length).toBe(atom.grammars.grammars.length - 3)
-      } else {
-        expect(grammarView.querySelectorAll('li').length).toBe(atom.grammars.grammars.length - 1)
-      }
+
+      // -1 for removing nullGrammar, +1 for adding "Auto Detect"
+      expect(grammarView.querySelectorAll('li').length).toBe(atom.grammars.grammars.filter(g => g.name).length)
       expect(grammarView.querySelectorAll('li')[0].textContent).toBe('Auto Detect')
       expect(grammarView.textContent.includes('source.a')).toBe(false)
       grammarView.querySelectorAll('li').forEach(li => expect(li.textContent).not.toBe(atom.grammars.nullGrammar.name))
