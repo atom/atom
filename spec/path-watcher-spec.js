@@ -98,7 +98,7 @@ describe('watchPath', function() {
     })
 
     fdescribe('the flaking test', function() {
-      for (let i = 0; i < 1; i++) {
+      for (let i = 0; i < 100; i++) {
         it(`reuses an existing native watcher on a parent directory and filters events: ${i}`, async function() {
           console.log('start')
 
