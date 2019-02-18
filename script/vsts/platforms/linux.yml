@@ -46,14 +46,6 @@ jobs:
 
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: $(Build.SourcesDirectory)/logs
-      ArtifactName: linux-path-watcher-logs.zip
-      ArtifactType: Container
-    displayName: Upload path-watcher spec logs
-    condition: ne(variables['Atom.SkipTests'], 'true')
-
-  - task: PublishBuildArtifacts@1
-    inputs:
       PathtoPublish: $(Build.SourcesDirectory)/out/atom.x86_64.rpm
       ArtifactName: atom.x86_64.rpm
       ArtifactType: Container
