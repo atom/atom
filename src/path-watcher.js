@@ -1,10 +1,10 @@
 const fs = require('fs')
 const path = require('path')
 
-const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
+const { Emitter, Disposable, CompositeDisposable } = require('event-kit')
 const nsfw = require('@atom/nsfw')
 const watcher = require('@atom/watcher')
-const {NativeWatcherRegistry} = require('./native-watcher-registry')
+const { NativeWatcherRegistry } = require('./native-watcher-registry')
 
 // Private: Associate native watcher action flags with descriptive String equivalents.
 const ACTION_MAP = new Map([
@@ -28,7 +28,7 @@ class NativeWatcher {
   // Private: Initialize a native watcher on a path.
   //
   // Events will not be produced until {start()} is called.
-  constructor (normalizedPath) {
+  constructor(normalizedPath) {
     this.normalizedPath = normalizedPath
     this.emitter = new Emitter()
     this.subs = new CompositeDisposable()
@@ -42,7 +42,7 @@ class NativeWatcher {
   // Private: Begin watching for filesystem events.
   //
   // Has no effect if the watcher has already been started.
-  async start () {
+  async start() {
     if (this.state !== WATCHER_STATE.STOPPED) {
       return
     }
@@ -54,19 +54,19 @@ class NativeWatcher {
     this.emitter.emit('did-start')
   }
 
-  doStart () {
+  doStart() {
     return Promise.reject('doStart() not overridden')
   }
 
   // Private: Return true if the underlying watcher is actively listening for filesystem events.
-  isRunning () {
+  isRunning() {
     return this.state === WATCHER_STATE.RUNNING
   }
 
   // Private: Register a callback to be invoked when the filesystem watcher has been initialized.
   //
   // Returns: A {Disposable} to revoke the subscription.
-  onDidStart (callback) {
+  onDidStart(callback) {
     return this.emitter.on('did-start', callback)
   }
 
@@ -75,7 +75,7 @@ class NativeWatcher {
   // dispose their subscriptions.
   //
   // Returns: A {Disposable} to revoke the subscription.
-  onDidChange (callback) {
+  onDidChange(callback) {
     this.start()
 
     const sub = this.emitter.on('did-change', callback)
@@ -90,28 +90,28 @@ class NativeWatcher {
   // Private: Register a callback to be invoked when a {Watcher} should attach to a different {NativeWatcher}.
   //
   // Returns: A {Disposable} to revoke the subscription.
-  onShouldDetach (callback) {
+  onShouldDetach(callback) {
     return this.emitter.on('should-detach', callback)
   }
 
   // Private: Register a callback to be invoked when a {NativeWatcher} is about to be stopped.
   //
   // Returns: A {Disposable} to revoke the subscription.
-  onWillStop (callback) {
+  onWillStop(callback) {
     return this.emitter.on('will-stop', callback)
   }
 
   // Private: Register a callback to be invoked when the filesystem watcher has been stopped.
   //
   // Returns: A {Disposable} to revoke the subscription.
-  onDidStop (callback) {
+  onDidStop(callback) {
     return this.emitter.on('did-stop', callback)
   }
 
   // Private: Register a callback to be invoked with any errors reported from the watcher.
   //
   // Returns: A {Disposable} to revoke the subscription.
-  onDidError (callback) {
+  onDidError(callback) {
     return this.emitter.on('did-error', callback)
   }
 
@@ -120,14 +120,14 @@ class NativeWatcher {
   //
   // * `replacement` the new {NativeWatcher} instance that a live {Watcher} instance should reattach to instead.
   // * `watchedPath` absolute path watched by the new {NativeWatcher}.
-  reattachTo (replacement, watchedPath, options) {
-    this.emitter.emit('should-detach', {replacement, watchedPath, options})
+  reattachTo(replacement, watchedPath, options) {
+    this.emitter.emit('should-detach', { replacement, watchedPath, options })
   }
 
   // Private: Stop the native watcher and release any operating system resources associated with it.
   //
   // Has no effect if the watcher is not running.
-  async stop () {
+  async stop() {
     if (this.state !== WATCHER_STATE.RUNNING) {
       return
     }
@@ -141,12 +141,12 @@ class NativeWatcher {
     this.emitter.emit('did-stop')
   }
 
-  doStop () {
+  doStop() {
     return Promise.resolve()
   }
 
   // Private: Detach any event subscribers.
-  dispose () {
+  dispose() {
     this.emitter.dispose()
   }
 
@@ -154,14 +154,14 @@ class NativeWatcher {
   // Normalize and re-broadcast them to any subscribers.
   //
   // * `events` An Array of filesystem events.
-  onEvents (events) {
+  onEvents(events) {
     this.emitter.emit('did-change', events)
   }
 
   // Private: Callback function invoked by the native watcher when an error occurs.
   //
   // * `err` The native filesystem error.
-  onError (err) {
+  onError(err) {
     this.emitter.emit('did-error', err)
   }
 }
@@ -169,7 +169,7 @@ class NativeWatcher {
 // Private: Emulate a "filesystem watcher" by subscribing to Atom events like buffers being saved. This will miss
 // any changes made to files outside of Atom, but it also has no overhead.
 class AtomNativeWatcher extends NativeWatcher {
-  async doStart () {
+  async doStart() {
     const getRealPath = givenPath => {
       if (!givenPath) {
         return Promise.resolve(null)
@@ -189,7 +189,7 @@ class AtomNativeWatcher extends NativeWatcher {
       }
 
       const announce = (action, oldPath) => {
-        const payload = {action, path: realPath}
+        const payload = { action, path: realPath }
         if (oldPath) payload.oldPath = oldPath
         this.onEvents([payload])
       }
@@ -238,14 +238,14 @@ class AtomNativeWatcher extends NativeWatcher {
       const realPath = await getRealPath(event.path)
       if (!realPath) return
 
-      this.onEvents([{action: 'added', path: realPath}])
+      this.onEvents([{ action: 'added', path: realPath }])
     }))
 
     this.subs.add(treeView.onEntryDeleted(async event => {
       const realPath = await getRealPath(event.path)
       if (!realPath || await isOpenInEditor(realPath)) return
 
-      this.onEvents([{action: 'deleted', path: realPath}])
+      this.onEvents([{ action: 'deleted', path: realPath }])
     }))
 
     this.subs.add(treeView.onEntryMoved(async event => {
@@ -255,18 +255,18 @@ class AtomNativeWatcher extends NativeWatcher {
       ])
       if (!realNewPath || !realOldPath || await isOpenInEditor(realNewPath) || await isOpenInEditor(realOldPath)) return
 
-      this.onEvents([{action: 'renamed', path: realNewPath, oldPath: realOldPath}])
+      this.onEvents([{ action: 'renamed', path: realNewPath, oldPath: realOldPath }])
     }))
   }
 }
 
 // Private: Implement a native watcher by translating events from an NSFW watcher.
 class NSFWNativeWatcher extends NativeWatcher {
-  async doStart (rootPath, eventCallback, errorCallback) {
+  async doStart(rootPath, eventCallback, errorCallback) {
     const handler = events => {
       this.onEvents(events.map(event => {
         const action = ACTION_MAP.get(event.action) || `unexpected (${event.action})`
-        const payload = {action}
+        const payload = { action }
 
         if (event.file) {
           payload.path = path.join(event.directory, event.file)
@@ -282,13 +282,13 @@ class NSFWNativeWatcher extends NativeWatcher {
     this.watcher = await nsfw(
       this.normalizedPath,
       handler,
-      {debounceMS: 100, errorCallback: this.onError}
+      { debounceMS: 100, errorCallback: this.onError }
     )
 
     await this.watcher.start()
   }
 
-  doStop () {
+  doStop() {
     return this.watcher.stop()
   }
 }
@@ -345,7 +345,7 @@ class PathWatcher {
   // * `watchedPath` {String} containing the absolute path to the root of the watched filesystem tree.
   // * `options` See {watchPath} for options.
   //
-  constructor (nativeWatcherRegistry, watchedPath, options) {
+  constructor(nativeWatcherRegistry, watchedPath, options) {
     this.watchedPath = watchedPath
     this.nativeWatcherRegistry = nativeWatcherRegistry
 
@@ -380,12 +380,12 @@ class PathWatcher {
   }
 
   // Private: Return a {Promise} that will resolve with the normalized root path.
-  getNormalizedPathPromise () {
+  getNormalizedPathPromise() {
     return this.normalizedPathPromise
   }
 
   // Private: Return a {Promise} that will resolve the first time that this watcher is attached to a native watcher.
-  getAttachedPromise () {
+  getAttachedPromise() {
     return this.attachedPromise
   }
 
@@ -412,7 +412,7 @@ class PathWatcher {
   //   })
   // })
   // ```
-  getStartPromise () {
+  getStartPromise() {
     return this.startPromise
   }
 
@@ -422,7 +422,7 @@ class PathWatcher {
   // * `callback` {Function} to be called with each batch of filesystem events.
   //
   // Returns a {Disposable} that will stop the underlying watcher when all callbacks mapped to it have been disposed.
-  onDidChange (callback) {
+  onDidChange(callback) {
     if (this.native) {
       const sub = this.native.onDidChange(events => this.onNativeEvents(events, callback))
       this.changeCallbacks.set(callback, sub)
@@ -448,12 +448,12 @@ class PathWatcher {
   //   * `err` An {Error} describing the failure condition.
   //
   // Returns a {Disposable}.
-  onDidError (callback) {
+  onDidError(callback) {
     return this.emitter.on('did-error', callback)
   }
 
   // Private: Wire this watcher to an operating system-level native watcher implementation.
-  attachToNative (native) {
+  attachToNative(native) {
     this.subs.dispose()
     this.native = native
 
@@ -473,10 +473,13 @@ class PathWatcher {
     }
 
     this.subs.add(native.onDidError(err => {
+      if (this.emitter.listenerCountForEventName('did-error') === 0) {
+        console.error(`Unhandled error from PathWatcher on [${this.watchedPath}]`, err.stack || err)
+      }
       this.emitter.emit('did-error', err)
     }))
 
-    this.subs.add(native.onShouldDetach(({replacement, watchedPath}) => {
+    this.subs.add(native.onShouldDetach(({ replacement, watchedPath }) => {
       if (this.native === native && replacement !== native && this.normalizedPath.startsWith(watchedPath)) {
         this.attachToNative(replacement)
       }
@@ -495,7 +498,7 @@ class PathWatcher {
   // Private: Invoked when the attached native watcher creates a batch of native filesystem events. The native watcher's
   // events may include events for paths above this watcher's root path, so filter them to only include the relevant
   // ones, then re-broadcast them to our subscribers.
-  onNativeEvents (events, callback) {
+  onNativeEvents(events, callback) {
     const isWatchedPath = eventPath => eventPath.startsWith(this.normalizedPath)
 
     const filtered = []
@@ -509,9 +512,9 @@ class PathWatcher {
         if (srcWatched && destWatched) {
           filtered.push(event)
         } else if (srcWatched && !destWatched) {
-          filtered.push({action: 'deleted', kind: event.kind, path: event.oldPath})
+          filtered.push({ action: 'deleted', kind: event.kind, path: event.oldPath })
         } else if (!srcWatched && destWatched) {
-          filtered.push({action: 'created', kind: event.kind, path: event.path})
+          filtered.push({ action: 'created', kind: event.kind, path: event.path })
         }
       } else {
         if (isWatchedPath(event.path)) {
@@ -527,7 +530,7 @@ class PathWatcher {
 
   // Extended: Unsubscribe all subscribers from filesystem events. Native resources will be released asynchronously,
   // but this watcher will stop broadcasting events immediately.
-  dispose () {
+  dispose() {
     for (const sub of this.changeCallbacks.values()) {
       sub.dispose()
     }
@@ -542,17 +545,17 @@ class PathWatcher {
 class PathWatcherManager {
 
   // Private: Access the currently active manager instance, creating one if necessary.
-  static active () {
+  static active() {
     if (!this.activeManager) {
       this.activeManager = new PathWatcherManager(atom.config.get('core.fileSystemWatcher'))
-      this.sub = atom.config.onDidChange('core.fileSystemWatcher', ({newValue}) => { this.transitionTo(newValue) })
+      this.sub = atom.config.onDidChange('core.fileSystemWatcher', ({ newValue }) => { this.transitionTo(newValue) })
     }
     return this.activeManager
   }
 
   // Private: Replace the active {PathWatcherManager} with a new one that creates [NativeWatchers]{NativeWatcher}
   // based on the value of `setting`.
-  static async transitionTo (setting) {
+  static async transitionTo(setting) {
     const current = this.active()
 
     if (this.transitionPromise) {
@@ -564,7 +567,7 @@ class PathWatcherManager {
     }
     current.isShuttingDown = true
 
-    let resolveTransitionPromise = () => {}
+    let resolveTransitionPromise = () => { }
     this.transitionPromise = new Promise(resolve => {
       resolveTransitionPromise = resolve
     })
@@ -574,7 +577,7 @@ class PathWatcherManager {
 
     await Promise.all(
       Array.from(current.live, async ([root, native]) => {
-        const w = await replacement.createWatcher(root, {}, () => {})
+        const w = await replacement.createWatcher(root, {}, () => { })
         native.reattachTo(w.native, root, w.native.options || {})
       })
     )
@@ -586,7 +589,7 @@ class PathWatcherManager {
   }
 
   // Private: Initialize global {PathWatcher} state.
-  constructor (setting) {
+  constructor(setting) {
     this.setting = setting
     this.live = new Map()
 
@@ -619,12 +622,12 @@ class PathWatcherManager {
     this.isShuttingDown = false
   }
 
-  useExperimentalWatcher () {
+  useExperimentalWatcher() {
     return this.setting === 'experimental' || this.setting === 'poll'
   }
 
   // Private: Create a {PathWatcher} tied to this global state. See {watchPath} for detailed arguments.
-  async createWatcher (rootPath, options, eventCallback) {
+  async createWatcher(rootPath, options, eventCallback) {
     if (this.isShuttingDown) {
       await this.constructor.transitionPromise
       return PathWatcherManager.active().createWatcher(rootPath, options, eventCallback)
@@ -647,7 +650,7 @@ class PathWatcherManager {
   }
 
   // Private: Directly access the {NativeWatcherRegistry}.
-  getRegistry () {
+  getRegistry() {
     if (this.useExperimentalWatcher()) {
       return watcher.getRegistry()
     }
@@ -656,7 +659,7 @@ class PathWatcherManager {
   }
 
   // Private: Sample watcher usage statistics. Only available for experimental watchers.
-  status () {
+  status() {
     if (this.useExperimentalWatcher()) {
       return watcher.status()
     }
@@ -665,7 +668,7 @@ class PathWatcherManager {
   }
 
   // Private: Return a {String} depicting the currently active native watchers.
-  print () {
+  print() {
     if (this.useExperimentalWatcher()) {
       return watcher.printWatchers()
     }
@@ -676,7 +679,7 @@ class PathWatcherManager {
   // Private: Stop all living watchers.
   //
   // Returns a {Promise} that resolves when all native watcher resources are disposed.
-  stopAllWatchers () {
+  stopAllWatchers() {
     if (this.useExperimentalWatcher()) {
       return watcher.stopAllWatchers()
     }
@@ -726,34 +729,34 @@ class PathWatcherManager {
 //  disposable.dispose()
 // ```
 //
-function watchPath (rootPath, options, eventCallback) {
+function watchPath(rootPath, options, eventCallback) {
   return PathWatcherManager.active().createWatcher(rootPath, options, eventCallback)
 }
 
 // Private: Return a Promise that resolves when all {NativeWatcher} instances associated with a FileSystemManager
 // have stopped listening. This is useful for `afterEach()` blocks in unit tests.
-function stopAllWatchers () {
+function stopAllWatchers() {
   return PathWatcherManager.active().stopAllWatchers()
 }
 
 // Private: Show the currently active native watchers in a formatted {String}.
-watchPath.printWatchers = function () {
+watchPath.printWatchers = function() {
   return PathWatcherManager.active().print()
 }
 
 // Private: Access the active {NativeWatcherRegistry}.
-watchPath.getRegistry = function () {
+watchPath.getRegistry = function() {
   return PathWatcherManager.active().getRegistry()
 }
 
 // Private: Sample usage statistics for the active watcher.
-watchPath.status = function () {
+watchPath.status = function() {
   return PathWatcherManager.active().status()
 }
 
 // Private: Configure @atom/watcher ("experimental") directly.
-watchPath.configure = function (...args) {
+watchPath.configure = function(...args) {
   return watcher.configure(...args)
 }
 
-module.exports = {watchPath, stopAllWatchers}
+module.exports = { watchPath, stopAllWatchers }
