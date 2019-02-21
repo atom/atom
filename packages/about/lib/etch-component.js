@@ -4,8 +4,7 @@ const etch = require('etch')
   Public: Abstract class for handling the initialization
   boilerplate of an Etch component.
 */
-module.exports =
-class EtchComponent {
+module.exports = class EtchComponent {
   constructor (props) {
     this.props = props
 

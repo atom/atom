@@ -8,7 +8,10 @@ describe('git-diff:toggle-diff-list', () => {
   beforeEach(() => {
     const projectPath = temp.mkdirSync('git-diff-spec-')
     fs.copySync(path.join(__dirname, 'fixtures', 'working-dir'), projectPath)
-    fs.moveSync(path.join(projectPath, 'git.git'), path.join(projectPath, '.git'))
+    fs.moveSync(
+      path.join(projectPath, 'git.git'),
+      path.join(projectPath, '.git')
+    )
     atom.project.setPaths([projectPath])
 
     jasmine.attachToDOM(atom.workspace.getElement())
@@ -37,7 +40,10 @@ describe('git-diff:toggle-diff-list', () => {
 
   it('moves the cursor to the selected hunk', () => {
     editor.setCursorBufferPosition([0, 0])
-    atom.commands.dispatch(document.querySelector('.diff-list-view'), 'core:confirm')
+    atom.commands.dispatch(
+      document.querySelector('.diff-list-view'),
+      'core:confirm'
+    )
     expect(editor.getCursorBufferPosition()).toEqual([4, 4])
   })
 })

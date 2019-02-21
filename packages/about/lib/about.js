@@ -1,4 +1,4 @@
-const {CompositeDisposable, Emitter} = require('atom')
+const { CompositeDisposable, Emitter } = require('atom')
 const AboutView = require('./components/about-view')
 
 // Deferred requires
@@ -14,16 +14,22 @@ module.exports = class About {
       aboutView: null
     }
 
-    this.subscriptions.add(atom.workspace.addOpener((uriToOpen) => {
-      if (uriToOpen === this.state.uri) {
-        return this.deserialize()
-      }
-    }))
+    this.subscriptions.add(
+      atom.workspace.addOpener(uriToOpen => {
+        if (uriToOpen === this.state.uri) {
+          return this.deserialize()
+        }
+      })
+    )
 
-    this.subscriptions.add(atom.commands.add('atom-workspace', 'about:view-release-notes', () => {
-      shell = shell || require('electron').shell
-      shell.openExternal(this.state.updateManager.getReleaseNotesURLForCurrentVersion())
-    }))
+    this.subscriptions.add(
+      atom.commands.add('atom-workspace', 'about:view-release-notes', () => {
+        shell = shell || require('electron').shell
+        shell.openExternal(
+          this.state.updateManager.getReleaseNotesURLForCurrentVersion()
+        )
+      })
+    )
   }
 
   destroy () {
@@ -31,14 +37,14 @@ module.exports = class About {
     this.views.aboutView = null
 
     if (this.state.updateManager) this.state.updateManager.dispose()
-    this.setState({updateManager: null})
+    this.setState({ updateManager: null })
 
     this.subscriptions.dispose()
   }
 
   setState (newState) {
     if (newState && typeof newState === 'object') {
-      let {state} = this
+      let { state } = this
       this.state = Object.assign({}, state, newState)
 
       this.didChange()

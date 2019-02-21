@@ -2,25 +2,38 @@ const path = require('path')
 
 const UIWatcher = require('../lib/ui-watcher')
 
-const {it, fit, ffit, afterEach, beforeEach, conditionPromise} = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
+const {
+  it,
+  fit,
+  ffit,
+  afterEach,
+  beforeEach,
+  conditionPromise
+} = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
 
 describe('UIWatcher', () => {
   let uiWatcher = null
 
-  beforeEach(() => atom.packages.packageDirPaths.push(path.join(__dirname, 'fixtures')))
+  beforeEach(() =>
+    atom.packages.packageDirPaths.push(path.join(__dirname, 'fixtures'))
+  )
 
   afterEach(() => uiWatcher && uiWatcher.destroy())
 
   describe("when a base theme's file changes", () => {
     beforeEach(() => {
-      spyOn(atom.themes, 'resolveStylesheet').andReturn(path.join(__dirname, 'fixtures', 'static', 'atom.less'))
+      spyOn(atom.themes, 'resolveStylesheet').andReturn(
+        path.join(__dirname, 'fixtures', 'static', 'atom.less')
+      )
       uiWatcher = new UIWatcher()
     })
 
     it('reloads all the base styles', () => {
       spyOn(atom.themes, 'reloadBaseStylesheets')
 
-      expect(uiWatcher.baseTheme.entities[0].getPath()).toContain(`${path.sep}static${path.sep}`)
+      expect(uiWatcher.baseTheme.entities[0].getPath()).toContain(
+        `${path.sep}static${path.sep}`
+      )
 
       uiWatcher.baseTheme.entities[0].emitter.emit('did-change')
       expect(atom.themes.reloadBaseStylesheets).toHaveBeenCalled()
@@ -28,7 +41,11 @@ describe('UIWatcher', () => {
   })
 
   it("watches all the style sheets in the theme's styles folder", async () => {
-    const packagePath = path.join(__dirname, 'fixtures', 'package-with-styles-folder')
+    const packagePath = path.join(
+      __dirname,
+      'fixtures',
+      'package-with-styles-folder'
+    )
 
     await atom.packages.activatePackage(packagePath)
     uiWatcher = new UIWatcher()
@@ -36,15 +53,25 @@ describe('UIWatcher', () => {
     const lastWatcher = uiWatcher.watchers[uiWatcher.watchers.length - 1]
 
     expect(lastWatcher.entities.length).toBe(4)
-    expect(lastWatcher.entities[0].getPath()).toBe(path.join(packagePath, 'styles'))
-    expect(lastWatcher.entities[1].getPath()).toBe(path.join(packagePath, 'styles', '3.css'))
-    expect(lastWatcher.entities[2].getPath()).toBe(path.join(packagePath, 'styles', 'sub', '1.css'))
-    expect(lastWatcher.entities[3].getPath()).toBe(path.join(packagePath, 'styles', 'sub', '2.less'))
+    expect(lastWatcher.entities[0].getPath()).toBe(
+      path.join(packagePath, 'styles')
+    )
+    expect(lastWatcher.entities[1].getPath()).toBe(
+      path.join(packagePath, 'styles', '3.css')
+    )
+    expect(lastWatcher.entities[2].getPath()).toBe(
+      path.join(packagePath, 'styles', 'sub', '1.css')
+    )
+    expect(lastWatcher.entities[3].getPath()).toBe(
+      path.join(packagePath, 'styles', 'sub', '2.less')
+    )
   })
 
   describe('when a package stylesheet file changes', async () => {
     beforeEach(async () => {
-      await atom.packages.activatePackage(path.join(__dirname, 'fixtures', 'package-with-styles-manifest'))
+      await atom.packages.activatePackage(
+        path.join(__dirname, 'fixtures', 'package-with-styles-manifest')
+      )
       uiWatcher = new UIWatcher()
     })
 
@@ -52,7 +79,9 @@ describe('UIWatcher', () => {
       const pack = atom.packages.getActivePackages()[0]
       spyOn(pack, 'reloadStylesheets')
 
-      uiWatcher.watchers[uiWatcher.watchers.length - 1].entities[1].emitter.emit('did-change')
+      uiWatcher.watchers[
+        uiWatcher.watchers.length - 1
+      ].entities[1].emitter.emit('did-change')
 
       expect(pack.reloadStylesheets).toHaveBeenCalled()
     })
@@ -71,7 +100,10 @@ describe('UIWatcher', () => {
 
   describe('when a package global file changes', () => {
     beforeEach(async () => {
-      atom.config.set('core.themes', ['theme-with-ui-variables', 'theme-with-multiple-imported-files'])
+      atom.config.set('core.themes', [
+        'theme-with-ui-variables',
+        'theme-with-multiple-imported-files'
+      ])
 
       await atom.themes.activateThemes()
       uiWatcher = new UIWatcher()
@@ -85,7 +117,9 @@ describe('UIWatcher', () => {
         spyOn(theme, 'reloadStylesheets')
       }
 
-      for (const entity of uiWatcher.watchedThemes.get('theme-with-multiple-imported-files').entities) {
+      for (const entity of uiWatcher.watchedThemes.get(
+        'theme-with-multiple-imported-files'
+      ).entities) {
         if (entity.getPath().indexOf('variables') > -1) varEntity = entity
       }
       varEntity.emitter.emit('did-change')
@@ -101,21 +135,31 @@ describe('UIWatcher', () => {
       uiWatcher = new UIWatcher()
       expect(uiWatcher.watchedPackages.size).toBe(0)
 
-      await atom.packages.activatePackage(path.join(__dirname, 'fixtures', 'package-with-styles-folder'))
-      expect(uiWatcher.watchedPackages.get('package-with-styles-folder')).not.toBeUndefined()
+      await atom.packages.activatePackage(
+        path.join(__dirname, 'fixtures', 'package-with-styles-folder')
+      )
+      expect(
+        uiWatcher.watchedPackages.get('package-with-styles-folder')
+      ).not.toBeUndefined()
     })
 
     it('unwatches a package after it is deactivated', async () => {
-      await atom.packages.activatePackage(path.join(__dirname, 'fixtures', 'package-with-styles-folder'))
+      await atom.packages.activatePackage(
+        path.join(__dirname, 'fixtures', 'package-with-styles-folder')
+      )
       uiWatcher = new UIWatcher()
-      const watcher = uiWatcher.watchedPackages.get('package-with-styles-folder')
+      const watcher = uiWatcher.watchedPackages.get(
+        'package-with-styles-folder'
+      )
       expect(watcher).not.toBeUndefined()
 
       const watcherDestructionSpy = jasmine.createSpy('watcher-on-did-destroy')
       watcher.onDidDestroy(watcherDestructionSpy)
 
       await atom.packages.deactivatePackage('package-with-styles-folder')
-      expect(uiWatcher.watchedPackages.get('package-with-styles-folder')).toBeUndefined()
+      expect(
+        uiWatcher.watchedPackages.get('package-with-styles-folder')
+      ).toBeUndefined()
       expect(uiWatcher.watchedPackages.size).toBe(0)
       expect(watcherDestructionSpy).toHaveBeenCalled()
     })
@@ -124,7 +168,9 @@ describe('UIWatcher', () => {
       uiWatcher = new UIWatcher()
       uiWatcher.destroy()
 
-      await atom.packages.activatePackage(path.join(__dirname, 'fixtures', 'package-with-styles-folder'))
+      await atom.packages.activatePackage(
+        path.join(__dirname, 'fixtures', 'package-with-styles-folder')
+      )
       expect(uiWatcher.watchedPackages.size).toBe(0)
     })
   })
@@ -132,7 +178,10 @@ describe('UIWatcher', () => {
   describe('minimal theme packages', () => {
     let pack = null
     beforeEach(async () => {
-      atom.config.set('core.themes', ['theme-with-syntax-variables', 'theme-with-index-less'])
+      atom.config.set('core.themes', [
+        'theme-with-syntax-variables',
+        'theme-with-index-less'
+      ])
       await atom.themes.activateThemes()
       uiWatcher = new UIWatcher()
       pack = atom.themes.getActiveThemes()[0]
@@ -157,7 +206,10 @@ describe('UIWatcher', () => {
   describe('theme packages', () => {
     let pack = null
     beforeEach(async () => {
-      atom.config.set('core.themes', ['theme-with-syntax-variables', 'theme-with-multiple-imported-files'])
+      atom.config.set('core.themes', [
+        'theme-with-syntax-variables',
+        'theme-with-multiple-imported-files'
+      ])
 
       await atom.themes.activateThemes()
       uiWatcher = new UIWatcher()
@@ -170,7 +222,9 @@ describe('UIWatcher', () => {
       spyOn(pack, 'reloadStylesheets')
       spyOn(atom.themes, 'reloadBaseStylesheets')
 
-      const watcher = uiWatcher.watchedThemes.get('theme-with-multiple-imported-files')
+      const watcher = uiWatcher.watchedThemes.get(
+        'theme-with-multiple-imported-files'
+      )
 
       expect(watcher.entities.length).toBe(6)
 
@@ -186,14 +240,21 @@ describe('UIWatcher', () => {
       jasmine.useRealClock()
 
       atom.config.set('core.themes', [])
-      await conditionPromise(() => !uiWatcher.watchedThemes['theme-with-multiple-imported-files'])
+      await conditionPromise(
+        () => !uiWatcher.watchedThemes['theme-with-multiple-imported-files']
+      )
     })
 
     it('watches a new theme when it is deactivated', async () => {
       jasmine.useRealClock()
 
-      atom.config.set('core.themes', ['theme-with-syntax-variables', 'theme-with-package-file'])
-      await conditionPromise(() => uiWatcher.watchedThemes.get('theme-with-package-file'))
+      atom.config.set('core.themes', [
+        'theme-with-syntax-variables',
+        'theme-with-package-file'
+      ])
+      await conditionPromise(() =>
+        uiWatcher.watchedThemes.get('theme-with-package-file')
+      )
 
       pack = atom.themes.getActiveThemes()[0]
       spyOn(pack, 'reloadStylesheets')

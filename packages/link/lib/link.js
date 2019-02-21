@@ -1,12 +1,16 @@
 const url = require('url')
-const {shell} = require('electron')
+const { shell } = require('electron')
 const _ = require('underscore-plus')
 
 const LINK_SCOPE_REGEX = /markup\.underline\.link/
 
 module.exports = {
   activate () {
-    this.commandDisposable = atom.commands.add('atom-text-editor', 'link:open', () => this.openLink())
+    this.commandDisposable = atom.commands.add(
+      'atom-text-editor',
+      'link:open',
+      () => this.openLink()
+    )
   },
 
   deactivate () {
@@ -24,8 +28,9 @@ module.exports = {
       link = this.linkForName(editor, link)
     }
 
-    const {protocol} = url.parse(link)
-    if (protocol === 'http:' || protocol === 'https:' || protocol === 'atom:') shell.openExternal(link)
+    const { protocol } = url.parse(link)
+    if (protocol === 'http:' || protocol === 'https:' || protocol === 'atom:')
+      shell.openExternal(link)
   },
 
   // Get the link under the cursor in the editor
@@ -47,7 +52,11 @@ module.exports = {
   // Returns a {String} link or undefined if no link found.
   linkAtPosition (editor, bufferPosition) {
     const token = editor.tokenForBufferPosition(bufferPosition)
-    if (token && token.value && token.scopes.some(scope => LINK_SCOPE_REGEX.test(scope))) {
+    if (
+      token &&
+      token.value &&
+      token.scopes.some(scope => LINK_SCOPE_REGEX.test(scope))
+    ) {
       return token.value
     }
   },
@@ -65,11 +74,18 @@ module.exports = {
   // Returns a {String} link
   linkForName (editor, linkName) {
     let link = linkName
-    const regex = new RegExp(`^\\s*\\[${_.escapeRegExp(linkName)}\\]\\s*:\\s*(.+)$`, 'g')
-    editor.backwardsScanInBufferRange(regex, [[0, 0], [Infinity, Infinity]], ({match, stop}) => {
-      link = match[1]
-      stop()
-    })
+    const regex = new RegExp(
+      `^\\s*\\[${_.escapeRegExp(linkName)}\\]\\s*:\\s*(.+)$`,
+      'g'
+    )
+    editor.backwardsScanInBufferRange(
+      regex,
+      [[0, 0], [Infinity, Infinity]],
+      ({ match, stop }) => {
+        link = match[1]
+        stop()
+      }
+    )
     return link
   }
 }

@@ -18,7 +18,7 @@ export function afterEach (fn) {
   })
 }
 
-['it', 'fit', 'ffit', 'fffit'].forEach(function (name) {
+;['it', 'fit', 'ffit', 'fffit'].forEach(function (name) {
   module.exports[name] = function (description, fn) {
     if (fn === undefined) {
       global[name](description)
@@ -34,7 +34,10 @@ export function afterEach (fn) {
   }
 })
 
-export async function conditionPromise (condition, description = 'anonymous condition') {
+export async function conditionPromise (
+  condition,
+  description = 'anonymous condition'
+) {
   const startTime = Date.now()
 
   while (true) {

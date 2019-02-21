@@ -1,4 +1,11 @@
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./helpers/async-spec-helpers') // eslint-disable-line no-unused-vars
+const {
+  it,
+  fit,
+  ffit,
+  fffit,
+  beforeEach,
+  afterEach
+} = require('./helpers/async-spec-helpers') // eslint-disable-line no-unused-vars
 
 describe('About', () => {
   let workspaceElement
@@ -9,7 +16,7 @@ describe('About', () => {
     spyOn(window.localStorage, 'setItem').andCallFake((key, value) => {
       storage[key] = value
     })
-    spyOn(window.localStorage, 'getItem').andCallFake((key) => {
+    spyOn(window.localStorage, 'getItem').andCallFake(key => {
       return storage[key]
     })
 
