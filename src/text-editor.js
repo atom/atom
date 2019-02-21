@@ -4447,6 +4447,9 @@ class TextEditor {
       this.emitter.emit('did-tokenize')
     })
     if (this.languageModeSubscription) this.disposables.add(this.languageModeSubscription)
+
+    if (this.component) this.component.didUpdateStyles()
+
     this.emitter.emit('did-change-grammar', languageMode.grammar)
   }
 
