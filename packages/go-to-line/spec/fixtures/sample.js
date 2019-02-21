@@ -14,7 +14,7 @@ var quicksort = function () {
 
 // adapted from:
 // https://github.com/nzakas/computer-science-in-javascript/tree/master/algorithms/sorting/merge-sort-recursive
-var mergeSort function (items){
+var mergeSort = function (items){
   var merge = function (left, right){
     var result  = [];
     var il = 0;
