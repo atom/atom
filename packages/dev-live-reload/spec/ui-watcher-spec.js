@@ -77,9 +77,7 @@ describe('UIWatcher', () => {
       const pack = atom.packages.getActivePackages()[0]
       spyOn(pack, 'reloadStylesheets')
 
-      uiWatcher.watchers[
-        uiWatcher.watchers.length - 1
-      ].entities[1].emitter.emit('did-change')
+      uiWatcher.watchers[uiWatcher.watchers.length - 1].entities[1].emitter.emit('did-change')
 
       expect(pack.reloadStylesheets).toHaveBeenCalled()
     })

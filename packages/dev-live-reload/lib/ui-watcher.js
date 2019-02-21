@@ -57,19 +57,21 @@ module.exports = class UIWatcher {
   }
 
   watchTheme (theme) {
-    if (PackageWatcher.supportsPackage(theme, 'theme'))
+    if (PackageWatcher.supportsPackage(theme, 'theme')) {
       this.watchedThemes.set(
         theme.name,
         this.createWatcher(new PackageWatcher(theme))
       )
+    }
   }
 
   watchPackage (pack) {
-    if (PackageWatcher.supportsPackage(pack, 'atom'))
+    if (PackageWatcher.supportsPackage(pack, 'atom')) {
       this.watchedPackages.set(
         pack.name,
         this.createWatcher(new PackageWatcher(pack))
       )
+    }
   }
 
   createWatcher (watcher) {
@@ -87,12 +89,15 @@ module.exports = class UIWatcher {
   reloadAll () {
     this.baseTheme.loadAllStylesheets()
     for (const pack of atom.packages.getActivePackages()) {
-      if (PackageWatcher.supportsPackage(pack, 'atom')) pack.reloadStylesheets()
+      if (PackageWatcher.supportsPackage(pack, 'atom')) {
+        pack.reloadStylesheets()
+      }
     }
 
     for (const theme of atom.themes.getActiveThemes()) {
-      if (PackageWatcher.supportsPackage(theme, 'theme'))
+      if (PackageWatcher.supportsPackage(theme, 'theme')) {
         theme.reloadStylesheets()
+      }
     }
   }
 

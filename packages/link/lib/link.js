@@ -29,8 +29,9 @@ module.exports = {
     }
 
     const { protocol } = url.parse(link)
-    if (protocol === 'http:' || protocol === 'https:' || protocol === 'atom:')
+    if (protocol === 'http:' || protocol === 'https:' || protocol === 'atom:') {
       shell.openExternal(link)
+    }
   },
 
   // Get the link under the cursor in the editor

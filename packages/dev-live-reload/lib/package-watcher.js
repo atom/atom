@@ -23,8 +23,9 @@ module.exports = class PackageWatcher extends Watcher {
 
     const stylesheetsPath = this.pack.getStylesheetsPath()
 
-    if (fs.isDirectorySync(stylesheetsPath))
+    if (fs.isDirectorySync(stylesheetsPath)) {
       this.watchDirectory(stylesheetsPath)
+    }
 
     const stylesheetPaths = new Set(this.pack.getStylesheetPaths())
     const onFile = stylesheetPath => stylesheetPaths.add(stylesheetPath)
