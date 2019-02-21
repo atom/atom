@@ -1,12 +1,9 @@
 const {
   it,
-  fit,
-  ffit,
-  fffit,
   beforeEach,
   afterEach,
   conditionPromise
-} = require('./helpers/async-spec-helpers') // eslint-disable-line no-unused-vars
+} = require('./helpers/async-spec-helpers')
 const MockUpdater = require('./mocks/updater')
 
 describe('the status bar', () => {

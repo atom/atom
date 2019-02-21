@@ -4,12 +4,10 @@ const UIWatcher = require('../lib/ui-watcher')
 
 const {
   it,
-  fit,
-  ffit,
   afterEach,
   beforeEach,
   conditionPromise
-} = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
+} = require('./async-spec-helpers')
 
 describe('UIWatcher', () => {
   let uiWatcher = null
