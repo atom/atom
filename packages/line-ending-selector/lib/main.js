@@ -7,6 +7,11 @@ import StatusBarItem from './status-bar-item'
 import helpers from './helpers'
 
 const LineEndingRegExp = /\r\n|\n/g
+
+// the following regular expression is executed natively via the `substring` package,
+// where `\A` corresponds to the beginning of the string.
+// More info: https://github.com/atom/line-ending-selector/pull/56
+// eslint-disable-next-line no-useless-escape
 const LFRegExp = /(\A|[^\r])\n/g
 const CRLFRegExp = /\r\n/g
 
