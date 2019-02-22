@@ -4272,7 +4272,7 @@ describe('TextEditor', () => {
           await atom.packages.activatePackage('language-go')
           editor.update({ autoIndent: true })
           atom.grammars.assignLanguageMode(editor, 'source.go')
-          editor.setText('fmt.Printf("some%s",\n	"thing")')
+          editor.setText('fmt.Printf("some%s",\n	"thing")') // eslint-disable-line no-tabs
           editor.setCursorBufferPosition([1, 10])
           editor.insertNewline()
           expect(editor.indentationForBufferRow(1)).toBe(1)

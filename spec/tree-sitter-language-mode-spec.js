@@ -1,3 +1,5 @@
+/* eslint-disable no-template-curly-in-string */
+
 const { it, beforeEach, afterEach } = require('./async-spec-helpers')
 
 const fs = require('fs')
@@ -830,7 +832,7 @@ describe('TreeSitterLanguageMode', () => {
       buffer.getLanguageMode().syncOperationLimit = 0
 
       const initialSeed = Date.now()
-      for (let i = 0, trial_count = 10; i < trial_count; i++) {
+      for (let i = 0, trialCount = 10; i < trialCount; i++) {
         let seed = initialSeed + i
         // seed = 1541201470759
         const random = Random(seed)
@@ -842,7 +844,7 @@ describe('TreeSitterLanguageMode', () => {
         editor.displayLayer.getScreenLines()
 
         // Make several random edits.
-        for (let j = 0, edit_count = 1 + random(4); j < edit_count; j++) {
+        for (let j = 0, editCount = 1 + random(4); j < editCount; j++) {
           const editRoll = random(10)
           const range = getRandomBufferRange(random, buffer)
 
@@ -894,7 +896,7 @@ describe('TreeSitterLanguageMode', () => {
           if (jasmine.getEnv().currentSpec.results().failedCount > 0) {
             console.log(tokens1)
             console.log(tokens2)
-            debugger
+            debugger // eslint-disable-line no-debugger
             break
           }
         }

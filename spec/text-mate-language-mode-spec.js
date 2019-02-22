@@ -59,7 +59,6 @@ describe('TextMateLanguageMode', () => {
         languageMode = new TextMateLanguageMode({
           buffer,
           config,
-          config,
           grammar: atom.grammars.grammarForScopeName('source.js')
         })
         languageMode.startTokenizing()

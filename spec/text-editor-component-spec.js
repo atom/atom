@@ -173,21 +173,19 @@ describe('TextEditorComponent', () => {
         expect(actualWidth).toBe(expectedWidth + 'px')
       }
 
-      {
-        // Make sure we do not throw an error if a synchronous update is
-        // triggered before measuring the longest line from a
-        // previously-scheduled update.
-        editor.getBuffer().insert(Point(12, Infinity), 'x'.repeat(100))
-        expect(editor.getLongestScreenRow()).toBe(12)
+      // Make sure we do not throw an error if a synchronous update is
+      // triggered before measuring the longest line from a
+      // previously-scheduled update.
+      editor.getBuffer().insert(Point(12, Infinity), 'x'.repeat(100))
+      expect(editor.getLongestScreenRow()).toBe(12)
 
-        TextEditorComponent.getScheduler().readDocument(() => {
-          // This will happen before the measurement phase of the update
-          // triggered above.
-          component.pixelPositionForScreenPosition(Point(11, Infinity))
-        })
+      TextEditorComponent.getScheduler().readDocument(() => {
+        // This will happen before the measurement phase of the update
+        // triggered above.
+        component.pixelPositionForScreenPosition(Point(11, Infinity))
+      })
 
-        await component.getNextUpdatePromise()
-      }
+      await component.getNextUpdatePromise()
     })
 
     it('re-renders lines when their height changes', async () => {
@@ -1186,10 +1184,12 @@ describe('TextEditorComponent', () => {
             } else if (k < 95) {
               editor.setSelectedBufferRange(range)
             } else {
-              if (random(2))
+              if (random(2)) {
                 component.setScrollTop(random(component.getScrollHeight()))
-              if (random(2))
+              }
+              if (random(2)) {
                 component.setScrollLeft(random(component.getScrollWidth()))
+              }
             }
 
             component.scheduleUpdate()

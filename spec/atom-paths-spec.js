@@ -22,8 +22,9 @@ describe('AtomPaths', () => {
     describe('when a portable .atom folder exists', () => {
       beforeEach(() => {
         delete process.env.ATOM_HOME
-        if (!fs.existsSync(portableAtomHomePath))
+        if (!fs.existsSync(portableAtomHomePath)) {
           fs.mkdirSync(portableAtomHomePath)
+        }
       })
 
       afterEach(() => {

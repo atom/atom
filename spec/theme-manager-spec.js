@@ -498,9 +498,7 @@ h2 {
         expect(note.getType()).toBe('error')
         expect(note.getMessage()).toContain('Error loading')
         expect(
-          atom.styles.styleElementsBySourcePath[
-            atom.styles.getUserStyleSheetPath()
-          ]
+          atom.styles.styleElementsBySourcePath[atom.styles.getUserStyleSheetPath()]
         ).toBeUndefined()
       })
     })

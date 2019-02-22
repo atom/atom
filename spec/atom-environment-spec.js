@@ -95,7 +95,7 @@ describe('AtomEnvironment', () => {
           a + 1 // eslint-disable-line no-undef
         } catch (e) {
           error = e
-          window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
+          window.onerror(e.toString(), 'abc', 2, 3, e)
         }
 
         delete willThrowSpy.mostRecentCall.args[0].preventDefault
@@ -115,7 +115,7 @@ describe('AtomEnvironment', () => {
         try {
           a + 1 // eslint-disable-line no-undef
         } catch (e) {
-          window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
+          window.onerror(e.toString(), 'abc', 2, 3, e)
         }
 
         expect(willThrowSpy).toHaveBeenCalled()
@@ -135,7 +135,7 @@ describe('AtomEnvironment', () => {
           a + 1 // eslint-disable-line no-undef
         } catch (e) {
           error = e
-          window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
+          window.onerror(e.toString(), 'abc', 2, 3, e)
         }
         expect(didThrowSpy).toHaveBeenCalledWith({
           message: error.toString(),
@@ -678,12 +678,12 @@ describe('AtomEnvironment', () => {
     let atomEnvironment, envLoaded, spy
 
     beforeEach(() => {
-      let resolve = null
-      const promise = new Promise(r => {
-        resolve = r
+      let resolvePromise = null
+      const promise = new Promise(resolve => {
+        resolvePromise = resolve
       })
       envLoaded = () => {
-        resolve()
+        resolvePromise()
         return promise
       }
       atomEnvironment = new AtomEnvironment({
