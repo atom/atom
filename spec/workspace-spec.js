@@ -1548,7 +1548,7 @@ describe('Workspace', () => {
         .getActivePane()
         .addItem(document.createElement('div'))
 
-      emittedItems = []
+      const emittedItems = []
       atom.workspace.onDidStopChangingActivePaneItem(item =>
         emittedItems.push(item)
       )
@@ -1831,7 +1831,7 @@ describe('Workspace', () => {
   describe('::observeActiveTextEditor()', () => {
     it('invokes the observer with current active text editor and each time a different text editor becomes active', () => {
       const pane = workspace.getCenter().getActivePane()
-      observed = []
+      const observed = []
 
       const inactiveEditorBeforeRegisteringObserver = new TextEditor()
       const activeEditorBeforeRegisteringObserver = new TextEditor()

@@ -71,9 +71,9 @@ describe('AtomEnvironment', () => {
 
     it('will open the dev tools when an error is triggered', async () => {
       try {
-        a + 1 // eslint-ignore-line no-unused-vars
+        a + 1 // eslint-disable-line no-undef
       } catch (e) {
-        window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
+        window.onerror(e.toString(), 'abc', 2, 3, e)
       }
 
       await devToolsPromise
@@ -92,7 +92,7 @@ describe('AtomEnvironment', () => {
         let error = null
         atom.onWillThrowError(willThrowSpy)
         try {
-          a + 1
+          a + 1 // eslint-disable-line no-undef
         } catch (e) {
           error = e
           window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
@@ -113,7 +113,7 @@ describe('AtomEnvironment', () => {
         atom.onWillThrowError(willThrowSpy)
 
         try {
-          a + 1
+          a + 1 // eslint-disable-line no-undef
         } catch (e) {
           window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
         }
@@ -132,7 +132,7 @@ describe('AtomEnvironment', () => {
         let error = null
         atom.onDidThrowError(didThrowSpy)
         try {
-          a + 1
+          a + 1 // eslint-disable-line no-undef
         } catch (e) {
           error = e
           window.onerror.call(window, e.toString(), 'abc', 2, 3, e)

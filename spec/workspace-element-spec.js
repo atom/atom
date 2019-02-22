@@ -47,7 +47,8 @@ describe('WorkspaceElement', () => {
   })
 
   describe('finding the nearest visible pane in a specific direction', () => {
-    let pane1,
+    let nearestPaneElement,
+      pane1,
       pane2,
       pane3,
       pane4,

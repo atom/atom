@@ -370,7 +370,7 @@ describe('TextEditorElement', () => {
 
   describe('::setScrollTop and ::setScrollLeft', () => {
     it('changes the scroll position', async () => {
-      element = buildTextEditorElement()
+      const element = buildTextEditorElement()
       element.getModel().update({ autoHeight: false })
       element.getModel().setText('lorem\nipsum\ndolor\nsit\namet')
       element.setHeight(20)

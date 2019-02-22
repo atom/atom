@@ -5,7 +5,7 @@ import { Disposable } from 'event-kit'
 
 const ReopenProjectMenuManager = require('../src/reopen-project-menu-manager')
 
-numberRange = (low, high) => {
+function numberRange (low, high) {
   const size = high - low
   const result = new Array(size)
   for (var i = 0; i < size; i++) result[i] = low + i
@@ -15,6 +15,7 @@ numberRange = (low, high) => {
 describe('ReopenProjectMenuManager', () => {
   let menuManager, commandRegistry, config, historyManager, reopenProjects
   let commandDisposable, configDisposable, historyDisposable
+  let openFunction
 
   beforeEach(() => {
     menuManager = jasmine.createSpyObj('MenuManager', ['add'])
@@ -92,7 +93,7 @@ describe('ReopenProjectMenuManager', () => {
       ])
       reopenProjects.update()
 
-      reopenProjectCommand =
+      const reopenProjectCommand =
         commandRegistry.add.calls[0].args[1]['application:reopen-project']
       reopenProjectCommand({ detail: { index: 1 } })
 
@@ -101,7 +102,7 @@ describe('ReopenProjectMenuManager', () => {
     })
 
     it('does not call open when no command detail is supplied', () => {
-      reopenProjectCommand =
+      const reopenProjectCommand =
         commandRegistry.add.calls[0].args[1]['application:reopen-project']
       reopenProjectCommand({})
 
@@ -109,7 +110,7 @@ describe('ReopenProjectMenuManager', () => {
     })
 
     it('does not call open when no command detail index is supplied', () => {
-      reopenProjectCommand =
+      const reopenProjectCommand =
         commandRegistry.add.calls[0].args[1]['application:reopen-project']
       reopenProjectCommand({ detail: { anything: 'here' } })
 

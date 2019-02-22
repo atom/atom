@@ -73,6 +73,7 @@ describe('AtomPaths', () => {
   })
 
   describe('setUserData', () => {
+    let tempAtomConfigPath = null
     let tempAtomHomePath = null
     let electronUserDataPath = null
     let defaultElectronUserDataPath = null

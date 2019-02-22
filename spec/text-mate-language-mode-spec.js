@@ -1038,6 +1038,8 @@ describe('TextMateLanguageMode', () => {
   })
 
   describe('.isFoldableAtRow(row)', () => {
+    let editor
+
     beforeEach(() => {
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.insert([10, 0], '  // multi-line\n  // comment\n  // block\n')
@@ -1145,6 +1147,8 @@ describe('TextMateLanguageMode', () => {
   })
 
   describe('.getFoldableRangesAtIndentLevel', () => {
+    let editor
+
     it('returns the ranges that can be folded at the given indent level', () => {
       buffer = new TextBuffer(dedent`
         if (a) {
@@ -1258,7 +1262,7 @@ describe('TextMateLanguageMode', () => {
 
     it('works with multi-line comments', async () => {
       await atom.packages.activatePackage('language-javascript')
-      editor = await atom.workspace.open('sample-with-comments.js', {
+      const editor = await atom.workspace.open('sample-with-comments.js', {
         autoIndent: false
       })
       fullyTokenize(editor.getBuffer().getLanguageMode())
@@ -1409,7 +1413,7 @@ describe('TextMateLanguageMode', () => {
 
     it('searches upward and downward for surrounding comment lines and folds them as a single fold', async () => {
       await atom.packages.activatePackage('language-javascript')
-      editor = await atom.workspace.open('sample-with-comments.js')
+      const editor = await atom.workspace.open('sample-with-comments.js')
       editor.buffer.insert(
         [1, 0],
         '  //this is a comment\n  // and\n  //more docs\n\n//second comment'
