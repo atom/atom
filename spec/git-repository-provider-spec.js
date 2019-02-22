@@ -158,7 +158,7 @@ describe('GitRepositoryProvider', () => {
         fs.writeFileSync(path.join(dirPath, '.git', 'refs'), '')
 
         const directory = new Directory(dirPath)
-        const repo =  provider.repositoryForDirectorySync(directory)
+        const repo = provider.repositoryForDirectorySync(directory)
         expect(repo).toBe(null)
       })
     })
