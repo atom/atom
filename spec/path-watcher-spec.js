@@ -1,16 +1,22 @@
 /** @babel */
 
-import {it, beforeEach, afterEach, promisifySome} from './async-spec-helpers'
+import { it, beforeEach, afterEach, promisifySome } from './async-spec-helpers'
 import tempCb from 'temp'
 import fsCb from 'fs-plus'
 import path from 'path'
 
-import {CompositeDisposable} from 'event-kit'
-import {watchPath, stopAllWatchers} from '../src/path-watcher'
+import { CompositeDisposable } from 'event-kit'
+import { watchPath, stopAllWatchers } from '../src/path-watcher'
 
 tempCb.track()
 
-const fs = promisifySome(fsCb, ['writeFile', 'mkdir', 'symlink', 'appendFile', 'realpath'])
+const fs = promisifySome(fsCb, [
+  'writeFile',
+  'mkdir',
+  'symlink',
+  'appendFile',
+  'realpath'
+])
 const temp = promisifySome(tempCb, ['mkdir'])
 
 describe('watchPath', function () {
@@ -105,16 +111,18 @@ describe('watchPath', function () {
         waitForChanges(rootWatcher, subFile),
         waitForChanges(childWatcher, subFile)
       ])
-      await fs.writeFile(subFile, 'subfile\n', {encoding: 'utf8'})
+      await fs.writeFile(subFile, 'subfile\n', { encoding: 'utf8' })
       await firstChanges
 
       const nextRootEvent = waitForChanges(rootWatcher, rootFile)
-      await fs.writeFile(rootFile, 'rootfile\n', {encoding: 'utf8'})
+      await fs.writeFile(rootFile, 'rootfile\n', { encoding: 'utf8' })
       await nextRootEvent
     })
 
     it('adopts existing child watchers and filters events appropriately to them', async function () {
-      const parentDir = await temp.mkdir('atom-fsmanager-test-').then(fs.realpath)
+      const parentDir = await temp
+        .mkdir('atom-fsmanager-test-')
+        .then(fs.realpath)
 
       // Create the directory tree
       const rootFile = path.join(parentDir, 'rootfile.txt')
@@ -126,9 +134,9 @@ describe('watchPath', function () {
       await fs.mkdir(subDir0)
       await fs.mkdir(subDir1)
       await Promise.all([
-        fs.writeFile(rootFile, 'rootfile\n', {encoding: 'utf8'}),
-        fs.writeFile(subFile0, 'subfile 0\n', {encoding: 'utf8'}),
-        fs.writeFile(subFile1, 'subfile 1\n', {encoding: 'utf8'})
+        fs.writeFile(rootFile, 'rootfile\n', { encoding: 'utf8' }),
+        fs.writeFile(subFile0, 'subfile 0\n', { encoding: 'utf8' }),
+        fs.writeFile(subFile1, 'subfile 1\n', { encoding: 'utf8' })
       ])
 
       // Begin the child watchers and keep them alive
@@ -142,16 +150,21 @@ describe('watchPath', function () {
 
       // Create the parent watcher
       const parentWatcher = await watchPath(parentDir, {}, () => {})
-      const parentWatcherChanges = waitForChanges(parentWatcher, rootFile, subFile0, subFile1)
+      const parentWatcherChanges = waitForChanges(
+        parentWatcher,
+        rootFile,
+        subFile0,
+        subFile1
+      )
 
       expect(subWatcher0.native).toBe(parentWatcher.native)
       expect(subWatcher1.native).toBe(parentWatcher.native)
 
       // Ensure events are filtered correctly
       await Promise.all([
-        fs.appendFile(rootFile, 'change\n', {encoding: 'utf8'}),
-        fs.appendFile(subFile0, 'change\n', {encoding: 'utf8'}),
-        fs.appendFile(subFile1, 'change\n', {encoding: 'utf8'})
+        fs.appendFile(rootFile, 'change\n', { encoding: 'utf8' }),
+        fs.appendFile(subFile0, 'change\n', { encoding: 'utf8' }),
+        fs.appendFile(subFile1, 'change\n', { encoding: 'utf8' })
       ])
 
       await Promise.all([

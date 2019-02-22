@@ -1,14 +1,25 @@
 /** @babel */
 
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
-import {app} from 'remote'
+import {
+  it,
+  fit,
+  ffit,
+  fffit,
+  beforeEach,
+  afterEach
+} from './async-spec-helpers'
+import { app } from 'remote'
 import atomPaths from '../src/atom-paths'
 import fs from 'fs-plus'
 import path from 'path'
 const temp = require('temp').track()
 
-describe("AtomPaths", () => {
-  const portableAtomHomePath = path.join(atomPaths.getAppDirectory(), '..', '.atom')
+describe('AtomPaths', () => {
+  const portableAtomHomePath = path.join(
+    atomPaths.getAppDirectory(),
+    '..',
+    '.atom'
+  )
 
   afterEach(() => {
     atomPaths.setAtomHome(app.getPath('home'))

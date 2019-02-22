@@ -2,7 +2,14 @@
 
 const TextEditor = require('../src/text-editor')
 
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+import {
+  it,
+  fit,
+  ffit,
+  fffit,
+  beforeEach,
+  afterEach
+} from './async-spec-helpers'
 
 describe('WorkspaceCenter', () => {
   describe('.observeTextEditors()', () => {
@@ -12,20 +19,25 @@ describe('WorkspaceCenter', () => {
       const observed = []
 
       const editorAddedBeforeRegisteringObserver = new TextEditor()
-      const nonEditorItemAddedBeforeRegisteringObserver = document.createElement('div')
+      const nonEditorItemAddedBeforeRegisteringObserver = document.createElement(
+        'div'
+      )
       pane.activateItem(editorAddedBeforeRegisteringObserver)
       pane.activateItem(nonEditorItemAddedBeforeRegisteringObserver)
 
       workspaceCenter.observeTextEditors(editor => observed.push(editor))
 
       const editorAddedAfterRegisteringObserver = new TextEditor()
-      const nonEditorItemAddedAfterRegisteringObserver = document.createElement('div')
+      const nonEditorItemAddedAfterRegisteringObserver = document.createElement(
+        'div'
+      )
       pane.activateItem(editorAddedAfterRegisteringObserver)
       pane.activateItem(nonEditorItemAddedAfterRegisteringObserver)
 
-      expect(observed).toEqual(
-        [editorAddedBeforeRegisteringObserver, editorAddedAfterRegisteringObserver]
-      )
+      expect(observed).toEqual([
+        editorAddedBeforeRegisteringObserver,
+        editorAddedAfterRegisteringObserver
+      ])
     })
   })
 })
