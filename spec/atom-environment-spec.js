@@ -1,12 +1,9 @@
 const {
   it,
-  fit,
-  ffit,
   beforeEach,
   afterEach,
   conditionPromise
 } = require('./async-spec-helpers')
-const _ = require('underscore-plus')
 const fs = require('fs')
 const path = require('path')
 const temp = require('temp').track()
@@ -74,7 +71,7 @@ describe('AtomEnvironment', () => {
 
     it('will open the dev tools when an error is triggered', async () => {
       try {
-        a + 1
+        a + 1 // eslint-ignore-line no-unused-vars
       } catch (e) {
         window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
       }
@@ -442,7 +439,6 @@ describe('AtomEnvironment', () => {
   describe('adding a project folder', () => {
     it('does nothing if the user dismisses the file picker', () => {
       const initialPaths = atom.project.getPaths()
-      const tempDirectory = temp.mkdirSync('a-new-directory')
       spyOn(atom, 'pickFolder').andCallFake(callback => callback(null))
       atom.addProjectFolder()
       expect(atom.project.getPaths()).toEqual(initialPaths)
@@ -455,7 +451,7 @@ describe('AtomEnvironment', () => {
       })
 
       it('adds the selected folder to the project', async () => {
-        const initialPaths = atom.project.setPaths([])
+        atom.project.setPaths([])
         const tempDirectory = temp.mkdirSync('a-new-directory')
         spyOn(atom, 'pickFolder').andCallFake(callback =>
           callback([tempDirectory])
@@ -657,7 +653,6 @@ describe('AtomEnvironment', () => {
 
   describe('::destroy()', () => {
     it('does not throw exceptions when unsubscribing from ipc events (regression)', async () => {
-      const configDirPath = temp.mkdirSync('atom-spec-environment')
       const fakeDocument = {
         addEventListener () {},
         removeEventListener () {},

@@ -3,9 +3,6 @@ const fs = require('fs-plus')
 const temp = require('temp').track()
 const {
   it,
-  fit,
-  ffit,
-  fffit,
   beforeEach,
   afterEach
 } = require('./async-spec-helpers')

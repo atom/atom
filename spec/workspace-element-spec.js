@@ -5,14 +5,7 @@ const etch = require('etch')
 const path = require('path')
 const temp = require('temp').track()
 const { Disposable } = require('event-kit')
-const {
-  it,
-  fit,
-  ffit,
-  fffit,
-  beforeEach,
-  afterEach
-} = require('./async-spec-helpers')
+const { it, beforeEach, afterEach } = require('./async-spec-helpers')
 
 const getNextUpdatePromise = () => etch.getScheduler().nextUpdatePromise
 
@@ -62,7 +55,6 @@ describe('WorkspaceElement', () => {
       pane6,
       pane7,
       pane8,
-      pane9,
       leftDockPane,
       rightDockPane,
       bottomDockPane,
@@ -104,7 +96,7 @@ describe('WorkspaceElement', () => {
       pane6 = pane5.splitRight()
 
       pane8 = pane7.splitRight()
-      pane9 = pane8.splitRight()
+      pane8.splitRight()
 
       const leftDock = workspace.getLeftDock()
       const rightDock = workspace.getRightDock()

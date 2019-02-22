@@ -8,7 +8,7 @@ const { Disposable } = require('atom')
 const { buildKeydownEvent } = require('../src/keymap-extensions')
 const { mockLocalStorage } = require('./spec-helper')
 const ModuleCache = require('../src/module-cache')
-const { it, fit, ffit, beforeEach, afterEach } = require('./async-spec-helpers')
+const { it, beforeEach, afterEach } = require('./async-spec-helpers')
 
 describe('PackageManager', () => {
   function createTestElement (className) {

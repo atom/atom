@@ -1,15 +1,7 @@
 /** @babel */
-import fs from 'fs'
 import path from 'path'
 
-import {
-  it,
-  fit,
-  ffit,
-  fffit,
-  beforeEach,
-  afterEach
-} from './async-spec-helpers'
+import { it, beforeEach } from './async-spec-helpers'
 
 import PackageTranspilationRegistry from '../src/package-transpilation-registry'
 

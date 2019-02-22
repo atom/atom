@@ -12,9 +12,6 @@ const fs = require('fs-plus')
 const AtomEnvironment = require('../src/atom-environment')
 const {
   it,
-  fit,
-  ffit,
-  fffit,
   beforeEach,
   afterEach,
   conditionPromise
@@ -1844,9 +1841,6 @@ describe('Workspace', () => {
       workspace.observeActiveTextEditor(editor => observed.push(editor))
 
       const editorAddedAfterRegisteringObserver = new TextEditor()
-      const nonEditorItemAddedAfterRegisteringObserver = document.createElement(
-        'div'
-      )
       pane.activateItem(editorAddedAfterRegisteringObserver)
 
       expect(observed).toEqual([
@@ -1904,7 +1898,7 @@ describe('Workspace', () => {
       const nonEditorItem1 = document.createElement('div')
       const nonEditorItem2 = document.createElement('div')
       pane.activateItem(nonEditorItem1)
-      pane.activateItem(nonEditorItem1)
+      pane.activateItem(nonEditorItem2)
 
       expect(observed).toEqual([])
     })

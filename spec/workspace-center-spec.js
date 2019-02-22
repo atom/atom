@@ -2,14 +2,7 @@
 
 const TextEditor = require('../src/text-editor')
 
-import {
-  it,
-  fit,
-  ffit,
-  fffit,
-  beforeEach,
-  afterEach
-} from './async-spec-helpers'
+import { it } from './async-spec-helpers'
 
 describe('WorkspaceCenter', () => {
   describe('.observeTextEditors()', () => {

@@ -1,13 +1,6 @@
 const CommandRegistry = require('../src/command-registry')
 const _ = require('underscore-plus')
-const {
-  it,
-  fit,
-  ffit,
-  fffit,
-  beforeEach,
-  afterEach
-} = require('./async-spec-helpers')
+const { it, beforeEach, afterEach } = require('./async-spec-helpers')
 
 describe('CommandRegistry', () => {
   let registry, parent, child, grandchild

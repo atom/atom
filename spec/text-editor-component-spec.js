@@ -1,12 +1,9 @@
 const {
   it,
-  fit,
-  ffit,
-  fffit,
+
   beforeEach,
   afterEach,
-  conditionPromise,
-  timeoutPromise
+  conditionPromise
 } = require('./async-spec-helpers')
 
 const Random = require('../script/node_modules/random-seed')
@@ -194,7 +191,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('re-renders lines when their height changes', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, element } = buildComponent({
         rowsPerTile: 3,
         autoHeight: false
       })
@@ -235,7 +232,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('makes the content at least as tall as the scroll container client height', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, editor } = buildComponent({
         text: 'a'.repeat(100),
         width: 50,
         height: 100
@@ -253,11 +250,10 @@ describe('TextEditorComponent', () => {
     })
 
     it('honors the scrollPastEnd option by adding empty space equivalent to the clientHeight to the end of the content area', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, editor } = buildComponent({
         autoHeight: false,
         autoWidth: false
       })
-      const { scrollContainer } = component.refs
 
       await editor.update({ scrollPastEnd: true })
       await setEditorHeightInLines(component, 6)
@@ -307,7 +303,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('gives the line number tiles an explicit width and height so their layout can be strictly contained', async () => {
-      const { component, element, editor } = buildComponent({ rowsPerTile: 3 })
+      const { component, editor } = buildComponent({ rowsPerTile: 3 })
 
       const lineNumberGutterElement =
         component.refs.gutterContainer.refs.lineNumberGutter.element
@@ -344,7 +340,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('keeps the number of tiles stable when the visible line count changes during vertical scrolling', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component } = buildComponent({
         rowsPerTile: 3,
         autoHeight: false
       })
@@ -359,7 +355,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('recycles tiles on resize', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component } = buildComponent({
         rowsPerTile: 2,
         autoHeight: false
       })
@@ -371,7 +367,7 @@ describe('TextEditorComponent', () => {
     })
 
     it("updates lines numbers when a row's foldability changes (regression)", async () => {
-      const { component, element, editor } = buildComponent({ text: 'abc\n' })
+      const { component, editor } = buildComponent({ text: 'abc\n' })
       editor.setCursorBufferPosition([1, 0])
       await component.getNextUpdatePromise()
       expect(
@@ -392,7 +388,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('shows the foldable icon on the last screen row of a buffer row that can be folded', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component } = buildComponent({
         text: 'abc\n  de\nfghijklm\n  no',
         softWrapped: true
       })
@@ -415,7 +411,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('renders dummy vertical and horizontal scrollbars when content overflows', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, editor } = buildComponent({
         height: 100,
         width: 100
       })
@@ -708,7 +704,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('places the hidden input element at the location of the last cursor if it is visible', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, editor } = buildComponent({
         height: 60,
         width: 120,
         rowsPerTile: 2
@@ -789,7 +785,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('decorates the line numbers of folded lines', async () => {
-      const { component, element, editor } = buildComponent()
+      const { component, editor } = buildComponent()
       editor.foldBufferRow(1)
       await component.getNextUpdatePromise()
       expect(
@@ -799,7 +795,7 @@ describe('TextEditorComponent', () => {
 
     it('makes lines at least as wide as the scrollContainer', async () => {
       const { component, element, editor } = buildComponent()
-      const { scrollContainer, gutterContainer } = component.refs
+      const { scrollContainer } = component.refs
       editor.setText('a')
       await component.getNextUpdatePromise()
 
@@ -815,7 +811,6 @@ describe('TextEditorComponent', () => {
       })
       const editorPadding = 3
       element.style.padding = editorPadding + 'px'
-      const { gutterContainer, scrollContainer } = component.refs
       const initialWidth = element.offsetWidth
       const initialHeight = element.offsetHeight
       expect(initialWidth).toBe(
@@ -854,7 +849,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('does not render the line number gutter at all if the isLineNumberGutterVisible parameter is false', () => {
-      const { component, element, editor } = buildComponent({
+      const { element } = buildComponent({
         lineNumberGutterVisible: false
       })
       expect(element.querySelector('.line-number')).toBe(null)
@@ -1063,7 +1058,7 @@ describe('TextEditorComponent', () => {
 
     it('does not blow away class names added to the element by packages when changing the class name', async () => {
       assertDocumentFocused()
-      const { component, element, editor } = buildComponent()
+      const { component, element } = buildComponent()
       element.classList.add('a', 'b')
       expect(element.className).toBe('editor a b')
       element.focus()
@@ -1076,7 +1071,7 @@ describe('TextEditorComponent', () => {
 
     it('does not blow away class names managed by the component when packages change the element class name', async () => {
       assertDocumentFocused()
-      const { component, element, editor } = buildComponent({ mini: true })
+      const { component, element } = buildComponent({ mini: true })
       element.classList.add('a', 'b')
       element.focus()
       await component.getNextUpdatePromise()
@@ -1087,7 +1082,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('ignores resize events when the editor is hidden', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, element } = buildComponent({
         autoHeight: false
       })
       element.style.height = 5 * component.getLineHeight() + 'px'
@@ -1258,13 +1253,13 @@ describe('TextEditorComponent', () => {
   describe('mini editors', () => {
     it('adds the mini attribute and class even when the element is not attached', () => {
       {
-        const { element, editor } = buildComponent({ mini: true })
+        const { element } = buildComponent({ mini: true })
         expect(element.hasAttribute('mini')).toBe(true)
         expect(element.classList.contains('mini')).toBe(true)
       }
 
       {
-        const { element, editor } = buildComponent({
+        const { element } = buildComponent({
           mini: true,
           attach: false
         })
@@ -1274,7 +1269,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('does not render the gutter container', () => {
-      const { component, element, editor } = buildComponent({ mini: true })
+      const { component, element } = buildComponent({ mini: true })
       expect(component.refs.gutterContainer).toBeUndefined()
       expect(element.querySelector('gutter-container')).toBeNull()
     })
@@ -1299,7 +1294,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('does not render scrollbars', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, editor } = buildComponent({
         mini: true,
         autoHeight: false
       })
@@ -1321,7 +1316,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('focuses the hidden input element and adds the is-focused class when focused', async () => {
-      const { component, element, editor } = buildComponent()
+      const { component, element } = buildComponent()
       const { hiddenInput } = component.refs.cursorsAndInput.refs
 
       expect(document.activeElement).not.toBe(hiddenInput)
@@ -1341,7 +1336,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('updates the component when the hidden input is focused directly', async () => {
-      const { component, element, editor } = buildComponent()
+      const { component, element } = buildComponent()
       const { hiddenInput } = component.refs.cursorsAndInput.refs
       expect(element.classList.contains('is-focused')).toBe(false)
       expect(document.activeElement).not.toBe(hiddenInput)
@@ -1352,7 +1347,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('gracefully handles a focus event that occurs prior to the attachedCallback of the element', () => {
-      const { component, element, editor } = buildComponent({ attach: false })
+      const { component, element } = buildComponent({ attach: false })
       const parent = document.createElement(
         'text-editor-component-test-element'
       )
@@ -1365,7 +1360,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('gracefully handles a focus event that occurs prior to detecting the element has become visible', async () => {
-      const { component, element, editor } = buildComponent({ attach: false })
+      const { component, element } = buildComponent({ attach: false })
       element.style.display = 'none'
       jasmine.attachToDOM(element)
       element.style.display = 'block'
@@ -1475,7 +1470,6 @@ describe('TextEditorComponent', () => {
 
     it('automatically scrolls horizontally when the requested range is within the horizontal scroll margin of the right edge of the gutter or right edge of the scroll container', async () => {
       const { component, element, editor } = buildComponent()
-      const { scrollContainer } = component.refs
       element.style.width =
         component.getGutterContainerWidth() +
         3 *
@@ -1560,7 +1554,6 @@ describe('TextEditorComponent', () => {
       const { component, element, editor } = buildComponent({
         autoHeight: false
       })
-      const { scrollContainer } = component.refs
       element.style.height = component.getContentHeight() / 2 + 'px'
       element.style.width = component.getScrollWidth() + 'px'
       await component.getNextUpdatePromise()
@@ -1587,7 +1580,7 @@ describe('TextEditorComponent', () => {
 
   describe('logical scroll positions', () => {
     it('allows the scrollTop to be changed and queried in terms of rows via setScrollTopRow and getScrollTopRow', () => {
-      const { component, element, editor } = buildComponent({
+      const { component, element } = buildComponent({
         attach: false,
         height: 80
       })
@@ -1682,7 +1675,7 @@ describe('TextEditorComponent', () => {
   describe('scrolling via the mouse wheel', () => {
     it('scrolls vertically or horizontally depending on whether deltaX or deltaY is larger', () => {
       const scrollSensitivity = 30
-      const { component, editor } = buildComponent({
+      const { component } = buildComponent({
         height: 50,
         width: 50,
         scrollSensitivity
@@ -1737,7 +1730,7 @@ describe('TextEditorComponent', () => {
 
     it('inverts deltaX and deltaY when holding shift on Windows and Linux', async () => {
       const scrollSensitivity = 50
-      const { component, editor } = buildComponent({
+      const { component } = buildComponent({
         height: 50,
         width: 50,
         scrollSensitivity
@@ -1864,7 +1857,7 @@ describe('TextEditorComponent', () => {
 
   describe('scrolling via the API', () => {
     it('ignores scroll requests to NaN, null or undefined positions', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component } = buildComponent({
         rowsPerTile: 2,
         autoHeight: false
       })
@@ -1901,7 +1894,7 @@ describe('TextEditorComponent', () => {
 
   describe('line and line number decorations', () => {
     it('adds decoration classes on screen lines spanned by decorated markers', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, editor } = buildComponent({
         softWrapped: true
       })
       await setEditorWidthInCharacters(component, 55)
@@ -1914,10 +1907,10 @@ describe('TextEditorComponent', () => {
 
       const marker1 = editor.markScreenRange([[1, 10], [3, 10]])
       const layer = editor.addMarkerLayer()
-      const marker2 = layer.markScreenPosition([5, 0])
-      const marker3 = layer.markScreenPosition([8, 0])
+      layer.markScreenPosition([5, 0])
+      layer.markScreenPosition([8, 0])
       const marker4 = layer.markScreenPosition([10, 0])
-      const markerDecoration = editor.decorateMarker(marker1, {
+      editor.decorateMarker(marker1, {
         type: ['line', 'line-number'],
         class: 'a'
       })
@@ -2048,7 +2041,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('honors the onlyEmpty and onlyNonEmpty decoration options', async () => {
-      const { component, element, editor } = buildComponent()
+      const { component, editor } = buildComponent()
       const marker = editor.markScreenPosition([1, 0])
       editor.decorateMarker(marker, {
         type: ['line', 'line-number'],
@@ -2121,7 +2114,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('honors the onlyHead option', async () => {
-      const { component, element, editor } = buildComponent()
+      const { component, editor } = buildComponent()
       const marker = editor.markScreenRange([[1, 4], [3, 4]])
       editor.decorateMarker(marker, {
         type: ['line', 'line-number'],
@@ -2145,7 +2138,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('only decorates the last row of non-empty ranges that end at column 0 if omitEmptyLastRow is false', async () => {
-      const { component, element, editor } = buildComponent()
+      const { component, editor } = buildComponent()
       const marker = editor.markScreenRange([[1, 0], [3, 0]])
       editor.decorateMarker(marker, {
         type: ['line', 'line-number'],
@@ -2180,7 +2173,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('does not decorate invalidated markers', async () => {
-      const { component, element, editor } = buildComponent()
+      const { component, editor } = buildComponent()
       const marker = editor.markScreenRange([[1, 0], [3, 0]], {
         invalidate: 'touch'
       })
@@ -2533,7 +2526,7 @@ describe('TextEditorComponent', () => {
     }
 
     it('renders overlay elements at the specified screen position unless it would overflow the window', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, editor } = buildComponent({
         width: 200,
         height: 100,
         attach: false
@@ -2634,7 +2627,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('does not attempt to avoid overflowing the window if `avoidOverflow` is false on the decoration', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, editor } = buildComponent({
         width: 200,
         height: 100,
         attach: false
@@ -2646,7 +2639,7 @@ describe('TextEditorComponent', () => {
       overlayElement.style.margin = '3px'
       overlayElement.style.backgroundColor = 'red'
       const marker = editor.markScreenPosition([4, 25])
-      const decoration = editor.decorateMarker(marker, {
+      editor.decorateMarker(marker, {
         type: 'overlay',
         item: overlayElement,
         avoidOverflow: false
@@ -2666,7 +2659,7 @@ describe('TextEditorComponent', () => {
 
   describe('custom gutter decorations', () => {
     it('arranges custom gutters based on their priority', async () => {
-      const { component, element, editor } = buildComponent()
+      const { component, editor } = buildComponent()
       editor.addGutter({ name: 'e', priority: 2 })
       editor.addGutter({ name: 'a', priority: -2 })
       editor.addGutter({ name: 'd', priority: 1 })
@@ -2683,7 +2676,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('adjusts the left edge of the scroll container based on changes to the gutter container width', async () => {
-      const { component, element, editor } = buildComponent()
+      const { component, editor } = buildComponent()
       const { scrollContainer, gutterContainer } = component.refs
 
       function checkScrollContainerLeft () {
@@ -2740,7 +2733,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('can show and hide custom gutters', async () => {
-      const { component, element, editor } = buildComponent()
+      const { component, editor } = buildComponent()
       const gutterA = editor.addGutter({ name: 'a', priority: -1 })
       const gutterB = editor.addGutter({ name: 'b', priority: 1 })
       const gutterAElement = gutterA.getElement()
@@ -2978,25 +2971,16 @@ describe('TextEditorComponent', () => {
         height: 33,
         position: 'before'
       })
-      const {
-        item: item4,
-        decoration: decoration4
-      } = createBlockDecorationAtScreenRow(editor, 7, {
+      const { item: item4 } = createBlockDecorationAtScreenRow(editor, 7, {
         height: 44,
         position: 'before'
       })
-      const {
-        item: item5,
-        decoration: decoration5
-      } = createBlockDecorationAtScreenRow(editor, 7, {
+      const { item: item5 } = createBlockDecorationAtScreenRow(editor, 7, {
         height: 50,
         marginBottom: 5,
         position: 'after'
       })
-      const {
-        item: item6,
-        decoration: decoration6
-      } = createBlockDecorationAtScreenRow(editor, 12, {
+      const { item: item6 } = createBlockDecorationAtScreenRow(editor, 12, {
         height: 60,
         marginTop: 6,
         position: 'after'
@@ -3343,7 +3327,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('correctly positions line numbers when block decorations are located at tile boundaries', async () => {
-      const { editor, component, element } = buildComponent({ rowsPerTile: 3 })
+      const { editor, component } = buildComponent({ rowsPerTile: 3 })
       createBlockDecorationAtScreenRow(editor, 0, {
         height: 5,
         position: 'before'
@@ -3378,7 +3362,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('removes block decorations whose markers have been destroyed', async () => {
-      const { editor, component, element } = buildComponent({ rowsPerTile: 3 })
+      const { editor, component } = buildComponent({ rowsPerTile: 3 })
       const { marker } = createBlockDecorationAtScreenRow(editor, 2, {
         height: 5,
         position: 'before'
@@ -3408,7 +3392,7 @@ describe('TextEditorComponent', () => {
         3,
         { height: 44, position: 'before', invalidate: 'touch' }
       )
-      const { component, element } = buildComponent({ editor, rowsPerTile: 3 })
+      const { component } = buildComponent({ editor, rowsPerTile: 3 })
 
       // Invalidating the marker removes the block decoration.
       editor.getBuffer().deleteRows(2, 3)
@@ -3460,7 +3444,7 @@ describe('TextEditorComponent', () => {
 
     it('does not render block decorations when decorating invalid markers', async () => {
       const editor = buildEditor({ rowsPerTile: 3, autoHeight: false })
-      const { component, element } = buildComponent({ editor, rowsPerTile: 3 })
+      const { component } = buildComponent({ editor, rowsPerTile: 3 })
 
       const marker = editor.markScreenPosition([3, 0], { invalidate: 'touch' })
       const item = document.createElement('div')
@@ -3468,7 +3452,7 @@ describe('TextEditorComponent', () => {
       item.style.width = 30 + 'px'
       editor.getBuffer().deleteRows(1, 4)
 
-      const decoration = editor.decorateMarker(marker, {
+      editor.decorateMarker(marker, {
         type: 'block',
         item,
         position: 'before'
@@ -3498,12 +3482,11 @@ describe('TextEditorComponent', () => {
 
     it('does not try to remeasure block decorations whose markers are invalid (regression)', async () => {
       const editor = buildEditor({ rowsPerTile: 3, autoHeight: false })
-      const { component, element } = buildComponent({ editor, rowsPerTile: 3 })
-      const { decoration, marker } = createBlockDecorationAtScreenRow(
-        editor,
-        2,
-        { height: '12px', invalidate: 'touch' }
-      )
+      const { component } = buildComponent({ editor, rowsPerTile: 3 })
+      createBlockDecorationAtScreenRow(editor, 2, {
+        height: '12px',
+        invalidate: 'touch'
+      })
       editor.getBuffer().deleteRows(0, 3)
       await component.getNextUpdatePromise()
 
@@ -3579,7 +3562,7 @@ describe('TextEditorComponent', () => {
         const marker = editor.markScreenPosition([0, 0])
         const item = document.createElement('div')
         item.textContent = 'block decoration'
-        const decoration = editor.decorateMarker(marker, {
+        editor.decorateMarker(marker, {
           type: 'block',
           item
         })
@@ -3596,7 +3579,7 @@ describe('TextEditorComponent', () => {
         const marker = editor.markScreenPosition([0, 0])
         const item = document.createElement('div')
         item.textContent = 'block decoration that could wrap many times'
-        const decoration = editor.decorateMarker(marker, {
+        editor.decorateMarker(marker, {
           type: 'block',
           item
         })
@@ -3685,7 +3668,7 @@ describe('TextEditorComponent', () => {
           return lists
         }, [[], []])
 
-      const [afterItems, afterDecorations] = [undefined, 1, 6, undefined, 6, 2]
+      const [afterItems] = [undefined, 1, 6, undefined, 6, 2]
         .map(order => {
           return createBlockDecorationAtScreenRow(editor, 2, {
             height: 10,
@@ -3986,7 +3969,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('does not create empty text nodes when a text decoration ends right after a text tag', async () => {
-      const { component, element, editor } = buildComponent()
+      const { component, editor } = buildComponent()
       const marker = editor.markBufferRange([[0, 8], [0, 29]])
       editor.decorateMarker(marker, { type: 'text', class: 'a' })
       await component.getNextUpdatePromise()
@@ -4009,7 +3992,7 @@ describe('TextEditorComponent', () => {
       describe('when there is only one cursor', () => {
         it('positions the cursor on single-click or when middle-clicking', async () => {
           for (const button of [0, 1]) {
-            const { component, element, editor } = buildComponent()
+            const { component, editor } = buildComponent()
             const { lineHeight } = component.measurements
 
             editor.setCursorScreenPosition([Infinity, Infinity], {
@@ -4319,7 +4302,7 @@ describe('TextEditorComponent', () => {
         })
 
         it('expands the last selection on shift-click', () => {
-          const { component, element, editor } = buildComponent()
+          const { component, editor } = buildComponent()
 
           editor.setCursorScreenPosition([2, 18], { autoscroll: false })
           component.didMouseDownOnContent(
@@ -4493,8 +4476,7 @@ describe('TextEditorComponent', () => {
           )
 
           const {
-            didDrag,
-            didStopDragging
+            didDrag
           } = component.handleMouseDragUntilMouseUp.argsForCall[1][0]
           didDrag(clientPositionForCharacter(component, 0, 8))
           expect(editor.getSelectedScreenRange()).toEqual([[0, 4], [1, 5]])
@@ -4522,8 +4504,7 @@ describe('TextEditorComponent', () => {
           )
 
           const {
-            didDrag,
-            didStopDragging
+            didDrag
           } = component.handleMouseDragUntilMouseUp.argsForCall[2][0]
           didDrag(clientPositionForCharacter(component, 1, 8))
           expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [3, 0]])
@@ -4554,7 +4535,7 @@ describe('TextEditorComponent', () => {
         })
 
         it('autoscrolls the content when dragging near the edge of the scroll container', async () => {
-          const { component, element, editor } = buildComponent({
+          const { component } = buildComponent({
             width: 200,
             height: 200
           })
@@ -4585,8 +4566,7 @@ describe('TextEditorComponent', () => {
             clientY: 100
           })
           const {
-            didDrag,
-            didStopDragging
+            didDrag
           } = component.handleMouseDragUntilMouseUp.argsForCall[0][0]
 
           didDrag({ clientX: 199, clientY: 199 })
@@ -4914,11 +4894,10 @@ describe('TextEditorComponent', () => {
       })
 
       it('autoscrolls when dragging near the top or bottom of the gutter', async () => {
-        const { component, editor } = buildComponent({
+        const { component } = buildComponent({
           width: 200,
           height: 200
         })
-        const { scrollContainer } = component.refs
         spyOn(component, 'handleMouseDragUntilMouseUp')
 
         let previousScrollTop = 0
@@ -4944,8 +4923,7 @@ describe('TextEditorComponent', () => {
           clientY: 100
         })
         const {
-          didDrag,
-          didStopDragging
+          didDrag
         } = component.handleMouseDragUntilMouseUp.argsForCall[0][0]
         didDrag({ clientX: 199, clientY: 199 })
         assertScrolledDown()
@@ -4995,7 +4973,7 @@ describe('TextEditorComponent', () => {
 
     describe('on the scrollbars', () => {
       it('delegates the mousedown events to the parent component unless the mousedown was on the actual scrollbar', async () => {
-        const { component, element, editor } = buildComponent({ height: 100 })
+        const { component, editor } = buildComponent({ height: 100 })
         await setEditorWidthInCharacters(component, 6)
 
         const verticalScrollbar = component.refs.verticalScrollbar
@@ -5055,7 +5033,7 @@ describe('TextEditorComponent', () => {
 
   describe('keyboard input', () => {
     it('handles inserted accented characters via the press-and-hold menu on macOS correctly', () => {
-      const { editor, component, element } = buildComponent({
+      const { editor, component } = buildComponent({
         text: '',
         chromeVersion: 57
       })
@@ -5417,7 +5395,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('maintains the scrollTopRow and scrollLeftColumn when the font size changes', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, element } = buildComponent({
         rowsPerTile: 1,
         autoHeight: false
       })
@@ -5440,7 +5418,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('gracefully handles the editor being hidden after a styling change', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, element } = buildComponent({
         autoHeight: false
       })
       element.style.fontSize =
@@ -5527,7 +5505,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('does not throw an exception on attachment when setting the soft-wrap column', () => {
-      const { component, element, editor } = buildComponent({
+      const { element, editor } = buildComponent({
         width: 435,
         attach: false,
         updatedSynchronously: true
@@ -5565,7 +5543,7 @@ describe('TextEditorComponent', () => {
 
   describe('pixelPositionForScreenPosition(point)', () => {
     it('returns the pixel position for the given point, regardless of whether or not it is currently on screen', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, editor } = buildComponent({
         rowsPerTile: 2,
         autoHeight: false
       })
@@ -5636,7 +5614,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('does not get the component into an inconsistent state when the model has unflushed changes (regression)', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, editor } = buildComponent({
         rowsPerTile: 2,
         autoHeight: false,
         text: ''
@@ -5649,12 +5627,12 @@ describe('TextEditorComponent', () => {
     })
 
     it('does not shift cursors downward or render off-screen content when measuring off-screen lines (regression)', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, element } = buildComponent({
         rowsPerTile: 2,
         autoHeight: false
       })
       await setEditorHeightInLines(component, 3)
-      const { top, left } = component.pixelPositionForScreenPosition({
+      component.pixelPositionForScreenPosition({
         row: 12,
         column: 1
       })
@@ -5679,7 +5657,7 @@ describe('TextEditorComponent', () => {
 
   describe('screenPositionForPixelPosition', () => {
     it('returns the screen position for the given pixel position, regardless of whether or not it is currently on screen', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, editor } = buildComponent({
         rowsPerTile: 2,
         autoHeight: false
       })
@@ -5749,7 +5727,7 @@ describe('TextEditorComponent', () => {
 
   describe('model methods that delegate to the component / element', () => {
     it('delegates setHeight and getHeight to the component', async () => {
-      const { component, element, editor } = buildComponent({
+      const { component, editor } = buildComponent({
         autoHeight: false
       })
       spyOn(Grim, 'deprecate')
@@ -5763,7 +5741,7 @@ describe('TextEditorComponent', () => {
     })
 
     it('delegates setWidth and getWidth to the component', async () => {
-      const { component, element, editor } = buildComponent()
+      const { component, editor } = buildComponent()
       spyOn(Grim, 'deprecate')
       expect(editor.getWidth()).toBe(component.getScrollContainerWidth())
       expect(Grim.deprecate.callCount).toBe(1)
@@ -6136,10 +6114,6 @@ function getElementHeight (element) {
   topRuler.remove()
   bottomRuler.remove()
   return height
-}
-
-function getNextTickPromise () {
-  return new Promise(resolve => process.nextTick(resolve))
 }
 
 function queryOnScreenLineNumberElements (element) {

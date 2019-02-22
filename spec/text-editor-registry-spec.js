@@ -2,7 +2,7 @@ const TextEditorRegistry = require('../src/text-editor-registry')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
 const { Point, Range } = TextBuffer
-const { it, fit, ffit, fffit } = require('./async-spec-helpers')
+const { it } = require('./async-spec-helpers')
 const dedent = require('dedent')
 
 describe('TextEditorRegistry', function () {
@@ -287,7 +287,6 @@ describe('TextEditorRegistry', function () {
         atom.grammars.assignLanguageMode(editor, 'source.js')
         atom.config.set('editor.tabType', 'auto')
         await initialPackageActivation
-        const languageMode = editor.getBuffer().getLanguageMode()
 
         editor.setText(dedent`
           {

@@ -1,11 +1,4 @@
-const {
-  it,
-  fit,
-  ffit,
-  fffit,
-  beforeEach,
-  afterEach
-} = require('./async-spec-helpers')
+const { it, beforeEach, afterEach } = require('./async-spec-helpers')
 
 const dedent = require('dedent')
 const path = require('path')
@@ -307,7 +300,7 @@ describe('GrammarRegistry', () => {
         require.resolve('language-javascript/grammars/javascript.cson')
       )
 
-      const disposable = grammarRegistry.maintainLanguageMode(buffer)
+      grammarRegistry.maintainLanguageMode(buffer)
       expect(retainedBufferCount(grammarRegistry)).toBe(1)
       expect(subscriptionCount(grammarRegistry)).toBe(3)
 

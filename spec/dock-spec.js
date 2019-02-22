@@ -2,14 +2,7 @@
 
 const Grim = require('grim')
 
-import {
-  it,
-  fit,
-  ffit,
-  fffit,
-  beforeEach,
-  afterEach
-} from './async-spec-helpers'
+import { it } from './async-spec-helpers'
 import etch from 'etch'
 
 const getNextUpdatePromise = () => etch.getScheduler().nextUpdatePromise
@@ -344,7 +337,7 @@ describe('Dock', () => {
         },
         serialize: () => ({ deserializer: 'DockTestItem' })
       }
-      const itemDeserializer = atom.deserializers.add({
+      atom.deserializers.add({
         name: 'DockTestItem',
         deserialize: () => item
       })

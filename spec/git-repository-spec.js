@@ -1,11 +1,4 @@
-const {
-  it,
-  fit,
-  ffit,
-  fffit,
-  beforeEach,
-  afterEach
-} = require('./async-spec-helpers')
+const { it, beforeEach, afterEach } = require('./async-spec-helpers')
 const path = require('path')
 const fs = require('fs-plus')
 const temp = require('temp').track()
@@ -424,8 +417,6 @@ describe('GitRepository', () => {
       await project2.deserialize(atom.project.serialize({ isUnloading: false }))
 
       buffer = project2.getBuffers()[0]
-
-      const originalContent = buffer.getText()
       buffer.append('changes')
 
       statusHandler = jasmine.createSpy('statusHandler')

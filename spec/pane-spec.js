@@ -5,9 +5,6 @@ const Pane = require('../src/pane')
 const PaneContainer = require('../src/pane-container')
 const {
   it,
-  fit,
-  ffit,
-  fffit,
   beforeEach,
   conditionPromise,
   timeoutPromise

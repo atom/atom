@@ -1,17 +1,10 @@
 const NullGrammar = require('../src/null-grammar')
 const TextMateLanguageMode = require('../src/text-mate-language-mode')
 const TextBuffer = require('text-buffer')
-const { Point, Range } = TextBuffer
+const { Point } = TextBuffer
 const _ = require('underscore-plus')
 const dedent = require('dedent')
-const {
-  it,
-  fit,
-  ffit,
-  fffit,
-  beforeEach,
-  afterEach
-} = require('./async-spec-helpers')
+const { it, beforeEach, afterEach } = require('./async-spec-helpers')
 
 describe('TextMateLanguageMode', () => {
   let languageMode, buffer, config

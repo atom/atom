@@ -4,7 +4,7 @@ const temp = require('temp').track()
 const { Directory } = require('pathwatcher')
 const GitRepository = require('../src/git-repository')
 const GitRepositoryProvider = require('../src/git-repository-provider')
-const { it, fit, ffit, fffit, beforeEach } = require('./async-spec-helpers')
+const { it, beforeEach } = require('./async-spec-helpers')
 
 describe('GitRepositoryProvider', () => {
   let provider

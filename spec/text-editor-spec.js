@@ -1,12 +1,8 @@
 const {
   it,
-  fit,
-  ffit,
-  fffit,
+
   beforeEach,
-  afterEach,
-  conditionPromise,
-  timeoutPromise
+  afterEach
 } = require('./async-spec-helpers')
 
 const fs = require('fs')
@@ -384,7 +380,7 @@ describe('TextEditor', () => {
       it('merges multiple cursors', () => {
         editor.setCursorScreenPosition([0, 0])
         editor.addCursorAtScreenPosition([0, 1])
-        const [cursor1, cursor2] = editor.getCursors()
+        const [cursor1] = editor.getCursors()
         editor.setCursorScreenPosition([4, 7])
         expect(editor.getCursors().length).toBe(1)
         expect(editor.getCursors()).toEqual([cursor1])
@@ -450,7 +446,7 @@ describe('TextEditor', () => {
 
       it('merges cursors when they overlap', () => {
         editor.addCursorAtScreenPosition([1, 0])
-        const [cursor1, cursor2] = editor.getCursors()
+        const [cursor1] = editor.getCursors()
 
         editor.moveUp()
         expect(editor.getCursors()).toEqual([cursor1])
@@ -551,7 +547,7 @@ describe('TextEditor', () => {
       it('merges cursors when they overlap', () => {
         editor.setCursorScreenPosition([12, 2])
         editor.addCursorAtScreenPosition([11, 2])
-        const [cursor1, cursor2] = editor.getCursors()
+        const [cursor1] = editor.getCursors()
 
         editor.moveDown()
         expect(editor.getCursors()).toEqual([cursor1])
@@ -668,7 +664,7 @@ describe('TextEditor', () => {
         editor.setCursorScreenPosition([0, 0])
         editor.addCursorAtScreenPosition([0, 1])
 
-        const [cursor1, cursor2] = editor.getCursors()
+        const [cursor1] = editor.getCursors()
         editor.moveLeft()
         expect(editor.getCursors()).toEqual([cursor1])
         expect(cursor1.getBufferPosition()).toEqual([0, 0])
@@ -754,7 +750,7 @@ describe('TextEditor', () => {
       it('merges cursors when they overlap', () => {
         editor.setCursorScreenPosition([12, 2])
         editor.addCursorAtScreenPosition([12, 1])
-        const [cursor1, cursor2] = editor.getCursors()
+        const [cursor1] = editor.getCursors()
 
         editor.moveRight()
         expect(editor.getCursors()).toEqual([cursor1])
@@ -1501,8 +1497,9 @@ describe('TextEditor', () => {
     describe('::getCursorScreenPositions()', () => {
       it('returns the cursor positions in the order they were added', () => {
         editor.foldBufferRow(4)
-        const cursor1 = editor.addCursorAtBufferPosition([8, 5])
-        const cursor2 = editor.addCursorAtBufferPosition([3, 5])
+        editor.addCursorAtBufferPosition([8, 5])
+        editor.addCursorAtBufferPosition([3, 5])
+
         expect(editor.getCursorScreenPositions()).toEqual([
           [0, 0],
           [5, 5],
@@ -1643,7 +1640,7 @@ describe('TextEditor', () => {
           [[1, 10], [1, 20]],
           [[2, 15], [3, 25]]
         ])
-        const [selection1, selection2, selection3] = editor.getSelections()
+        const [selection1] = editor.getSelections()
 
         editor.selectDown()
         expect(editor.getSelections()).toEqual([selection1])
@@ -1656,7 +1653,7 @@ describe('TextEditor', () => {
           [[[0, 9], [0, 13]], [[1, 10], [1, 20]]],
           { reversed: true }
         )
-        const [selection1, selection2] = editor.getSelections()
+        const [selection1] = editor.getSelections()
 
         editor.selectUp()
         expect(editor.getSelections().length).toBe(1)
@@ -1670,7 +1667,7 @@ describe('TextEditor', () => {
           [[[0, 9], [0, 13]], [[0, 13], [1, 20]]],
           { reversed: true }
         )
-        const [selection1, selection2] = editor.getSelections()
+        const [selection1] = editor.getSelections()
 
         editor.selectLeft()
         expect(editor.getSelections()).toEqual([selection1])
@@ -1680,7 +1677,7 @@ describe('TextEditor', () => {
 
       it('merges selections when they intersect when moving right', () => {
         editor.setSelectedBufferRanges([[[0, 9], [0, 14]], [[0, 14], [1, 20]]])
-        const [selection1, selection2] = editor.getSelections()
+        const [selection1] = editor.getSelections()
 
         editor.selectRight()
         expect(editor.getSelections()).toEqual([selection1])
@@ -2310,7 +2307,7 @@ describe('TextEditor', () => {
         selection = editor.getLastSelection()
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
 
-        const [selection1, selection2] = editor.getSelections()
+        const [selection1] = editor.getSelections()
         expect(selection1).toBe(selection)
         expect(selection1.getBufferRange()).toEqual([[2, 2], [3, 3]])
       })
@@ -2374,7 +2371,7 @@ describe('TextEditor', () => {
         selection = editor.getLastSelection()
         editor.setSelectedScreenRanges([[[2, 2], [3, 4]], [[4, 4], [5, 5]]])
 
-        const [selection1, selection2] = editor.getSelections()
+        const [selection1] = editor.getSelections()
         expect(selection1).toBe(selection)
         expect(selection1.getScreenRange()).toEqual([[2, 2], [3, 4]])
       })
@@ -4724,8 +4721,6 @@ describe('TextEditor', () => {
           it('deletes as normal', () => {
             editor.foldBufferRow(4)
             editor.setCursorScreenPosition([3, 4])
-            const cursorPositionBefore = editor.getCursorScreenPosition()
-
             editor.delete()
 
             expect(buffer.lineForRow(3)).toBe(
@@ -5236,19 +5231,6 @@ describe('TextEditor', () => {
       })
 
       describe('.pasteText()', () => {
-        const copyText = function (text, { startColumn, textEditor } = {}) {
-          if (startColumn == null) startColumn = 0
-          if (textEditor == null) textEditor = editor
-          textEditor.setCursorBufferPosition([0, 0])
-          textEditor.insertText(text)
-          const numberOfNewlines = text.match(/\n/g).length
-          const endColumn = text.match(/[^\n]*$/)[0].length
-          textEditor
-            .getLastSelection()
-            .setBufferRange([[0, startColumn], [numberOfNewlines, endColumn]])
-          return textEditor.cutSelectedText()
-        }
-
         it('pastes text into the buffer', () => {
           editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
           atom.clipboard.write('first')
@@ -5854,7 +5836,6 @@ describe('TextEditor', () => {
         editor.delete()
         editor.delete()
 
-        const selections = editor.getSelections()
         expect(buffer.lineForRow(1)).toBe('  var = function( {')
 
         expect(editor.getSelectedBufferRanges()).toEqual([
@@ -6108,7 +6089,7 @@ describe('TextEditor', () => {
         editor.addCursorAtScreenPosition([0, 2])
         editor.addCursorAtScreenPosition([1, 2])
 
-        const [cursor1, cursor2, cursor3] = editor.getCursors()
+        const [cursor1, , cursor3] = editor.getCursors()
         expect(editor.getCursors().length).toBe(3)
 
         buffer.delete([[0, 0], [0, 2]])
@@ -7874,11 +7855,8 @@ describe('TextEditor', () => {
 
       it("does not throw errors after the marker's containing layer is destroyed", () => {
         const layer = editor.addMarkerLayer()
-        const marker = layer.markBufferRange([[2, 4], [6, 8]])
-        const decoration = editor.decorateMarker(marker, {
-          type: 'highlight',
-          class: 'foo'
-        })
+        layer.markBufferRange([[2, 4], [6, 8]])
+
         layer.destroy()
         editor.decorationsStateForScreenRowRange(0, 5)
       })

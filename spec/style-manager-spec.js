@@ -152,7 +152,7 @@ describe('StyleManager', () => {
 
     describe('when a sourcePath parameter is specified', () => {
       it('ensures a maximum of one style element for the given source path, updating a previous if it exists', () => {
-        const disposable1 = styleManager.addStyleSheet('a {color: red}', {
+        styleManager.addStyleSheet('a {color: red}', {
           sourcePath: '/foo/bar'
         })
         expect(addEvents.length).toBe(1)

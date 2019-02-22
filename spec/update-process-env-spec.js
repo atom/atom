@@ -1,14 +1,7 @@
 /** @babel */
 /* eslint-env jasmine */
 
-import {
-  it,
-  fit,
-  ffit,
-  fffit,
-  beforeEach,
-  afterEach
-} from './async-spec-helpers'
+import { it, beforeEach, afterEach } from './async-spec-helpers'
 import path from 'path'
 import childProcess from 'child_process'
 import {
@@ -16,7 +9,6 @@ import {
   shouldGetEnvFromShell
 } from '../src/update-process-env'
 import dedent from 'dedent'
-import { EventEmitter } from 'events'
 import mockSpawn from 'mock-spawn'
 const temp = require('temp').track()
 

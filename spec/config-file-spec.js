@@ -1,10 +1,8 @@
 const {
   it,
-  fit,
-  ffit,
+
   beforeEach,
-  afterEach,
-  conditionPromise
+  afterEach
 } = require('./async-spec-helpers')
 const fs = require('fs-plus')
 const path = require('path')
