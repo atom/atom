@@ -38,6 +38,7 @@
       { label: 'C&opy', command: 'core:copy' }
       { label: 'Copy Pat&h', command: 'editor:copy-path' }
       { label: '&Paste', command: 'core:paste' }
+      { label: 'Paste Without Reformatting', command: 'editor:paste-without-reformatting' }
       { label: 'Select &All', command: 'core:select-all' }
       { type: 'separator' }
       { label: '&Toggle Comments', command: 'editor:toggle-line-comments' }
@@ -137,6 +138,7 @@
           { label: 'Open In &Dev Mode…', command: 'application:open-dev' }
           { label: '&Reload Window', command: 'window:reload' }
           { label: 'Run Package &Specs', command: 'window:run-package-specs' }
+          { label: 'Run &Benchmarks', command: 'window:run-benchmarks' }
           { label: 'Toggle Developer &Tools', command: 'window:toggle-dev-tools' }
         ]
       }

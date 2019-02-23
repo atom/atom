@@ -1,10 +1,9 @@
-/** @babel */
-
 let ParsedColor = null
 
 // Essential: A simple color class returned from {Config::get} when the value
 // at the key path is of type 'color'.
-export default class Color {
+module.exports =
+class Color {
   // Essential: Parse a {String} or {Object} into a {Color}.
   //
   // * `value` A {String} such as `'white'`, `#ff00ff`, or
@@ -89,6 +88,10 @@ export default class Color {
     return this.alpha === 1 ? this.toHexString() : this.toRGBAString()
   }
 
+  toString () {
+    return this.toRGBAString()
+  }
+
   isEqual (color) {
     if (this === color) {
       return true
@@ -112,27 +115,15 @@ export default class Color {
 
 function parseColor (colorString) {
   const color = parseInt(colorString, 10)
-  if (isNaN(color)) {
-    return 0
-  } else {
-    return Math.min(Math.max(color, 0), 255)
-  }
+  return isNaN(color) ? 0 : Math.min(Math.max(color, 0), 255)
 }
 
 function parseAlpha (alphaString) {
   const alpha = parseFloat(alphaString)
-  if (isNaN(alpha)) {
-    return 1
-  } else {
-    return Math.min(Math.max(alpha, 0), 1)
-  }
+  return isNaN(alpha) ? 1 : Math.min(Math.max(alpha, 0), 1)
 }
 
 function numberToHexString (number) {
   const hex = number.toString(16)
-  if (number < 16) {
-    return `0${hex}`
-  } else {
-    return hex
-  }
+  return number < 16 ? `0${hex}` : hex
 }

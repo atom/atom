@@ -4,22 +4,31 @@ module.exports =
 class StateStore {
   constructor (databaseName, version) {
     this.connected = false
-    this.dbPromise = new Promise((resolve) => {
-      let dbOpenRequest = indexedDB.open(databaseName, version)
-      dbOpenRequest.onupgradeneeded = (event) => {
-        let db = event.target.result
-        db.createObjectStore('states')
-      }
-      dbOpenRequest.onsuccess = () => {
-        this.connected = true
-        resolve(dbOpenRequest.result)
-      }
-      dbOpenRequest.onerror = (error) => {
-        console.error('Could not connect to indexedDB', error)
-        this.connected = false
-        resolve(null)
-      }
-    })
+    this.databaseName = databaseName
+    this.version = version
+  }
+
+  get dbPromise () {
+    if (!this._dbPromise) {
+      this._dbPromise = new Promise((resolve) => {
+        const dbOpenRequest = indexedDB.open(this.databaseName, this.version)
+        dbOpenRequest.onupgradeneeded = (event) => {
+          let db = event.target.result
+          db.createObjectStore('states')
+        }
+        dbOpenRequest.onsuccess = () => {
+          this.connected = true
+          resolve(dbOpenRequest.result)
+        }
+        dbOpenRequest.onerror = (error) => {
+          console.error('Could not connect to indexedDB', error)
+          this.connected = false
+          resolve(null)
+        }
+      })
+    }
+
+    return this._dbPromise
   }
 
   isConnected () {
@@ -64,6 +73,21 @@ class StateStore {
         }
 
         request.onerror = (event) => reject(event)
+      })
+    })
+  }
+
+  delete (key) {
+    return new Promise((resolve, reject) => {
+      this.dbPromise.then((db) => {
+        if (db == null) return resolve()
+
+        var request = db.transaction(['states'], 'readwrite')
+          .objectStore('states')
+          .delete(key)
+
+        request.onsuccess = resolve
+        request.onerror = reject
       })
     })
   }

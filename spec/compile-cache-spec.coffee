@@ -23,7 +23,8 @@ describe 'CompileCache', ->
   afterEach ->
     CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
     CSON.setCacheDir(CompileCache.getCacheDirectory())
-    temp.cleanupSync()
+    try
+      temp.cleanupSync()
 
   describe 'addPathToCache(filePath, atomHome)', ->
     describe 'when the given file is plain javascript', ->

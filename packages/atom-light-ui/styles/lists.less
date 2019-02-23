@@ -1,0 +1,127 @@
+@import "octicon-mixins.less"; // https://github.com/atom/atom/blob/master/static/variables/octicon-mixins.less
+
+.list-group, .list-tree {
+  li:not(.list-nested-item),
+  li.list-nested-item > .list-item {
+    .text(normal);
+  }
+
+  .generate-list-item-text-color(@class) {
+    li:not(.list-nested-item).text-@{class},
+    li.list-nested-item.text-@{class} > .list-item {
+      .text(@class);
+    }
+  }
+  .generate-list-item-text-color(subtle);
+  .generate-list-item-text-color(info);
+  .generate-list-item-text-color(success);
+  .generate-list-item-text-color(warning);
+  .generate-list-item-text-color(error);
+  .generate-list-item-text-color(selected);
+
+  .generate-list-item-status-color(@color, @status) {
+    li:not(.list-nested-item).status-@{status},
+    li.list-nested-item.status-@{status} > .list-item {
+      color: @color;
+    }
+
+    li:not(.list-nested-item).selected.status-@{status},
+    li.list-nested-item.selected.status-@{status} > .list-item {
+      color: darken(@color, 7%);
+    }
+  }
+  .generate-list-item-status-color(@text-color-subtle, ignored);
+  .generate-list-item-status-color(@text-color-added, added);
+  .generate-list-item-status-color(@text-color-renamed, renamed);
+  .generate-list-item-status-color(@text-color-modified, modified);
+  .generate-list-item-status-color(@text-color-removed, removed);
+
+  li:not(.list-nested-item).selected,
+  li.list-nested-item.selected > .list-item {
+    .text(selected);
+  }
+}
+
+.select-list ol.list-group,
+&.select-list ol.list-group {
+  li.two-lines {
+    .secondary-line { color: @text-color-subtle; }
+    &.selected .secondary-line {
+      color: lighten(@text-color-subtle, 10%);
+      text-shadow: none;
+    }
+  }
+
+  // We want to highlight the background of the list items because we dont
+  // know their size.
+  li.selected {
+    background-color: @background-color-selected;
+    &:before{ display: none; }
+  }
+
+  &.mark-active{
+    @active-icon-size: 14px;
+
+    // pad in front of the text where the icon would be We'll pad the non-
+    // active items with a 'fake' icon so other classes can pad the item
+    // without worrying about the icon padding.
+    li:before {
+      content: '';
+      background-color: transparent;
+      position: static;
+      display: inline-block;
+      left: auto; right: auto;
+      height: @active-icon-size;
+      width: @active-icon-size;
+    }
+    > li:not(.active):before {
+      margin-right: @component-icon-padding;
+    }
+    li.active {
+      .octicon(check, @active-icon-size);
+      &:before {
+        margin-right: @component-icon-padding;
+        color: @text-color-success;
+      }
+    }
+  }
+}
+
+.select-list.popover-list {
+  background-color: @overlay-background-color;
+  box-shadow: 0 0 10px @base-border-color;
+  padding: @component-padding/2;
+  border-radius: @component-border-radius;
+  border: 1px solid @overlay-border-color;
+
+  atom-text-editor {
+    margin-bottom: @component-padding/2;
+  }
+
+  .list-group li {
+    padding-left: @component-padding/2;
+  }
+}
+
+.ui-sortable {
+  li {
+    line-height: 2.5;
+  }
+
+  // For sortable lists in the settings view
+  li.ui-sortable-placeholder {
+    visibility: visible !important;
+    background-color: darken(@pane-item-background-color, 10%);
+  }
+}
+
+li.ui-draggable-dragging, li.ui-sortable-helper {
+  line-height: @component-line-height;
+  height: @component-line-height;
+  border: 0;
+  border-radius: 0;
+  list-style: none;
+  padding: 0 @component-padding;
+  background: @background-color-highlight;
+  box-shadow: 0 0 1px @base-border-color;
+}

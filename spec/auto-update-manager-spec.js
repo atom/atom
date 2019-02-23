@@ -1,19 +1,15 @@
-'use babel'
-
-import AutoUpdateManager from '../src/auto-update-manager'
-import {remote} from 'electron'
+const AutoUpdateManager = require('../src/auto-update-manager')
+const {remote} = require('electron')
 const electronAutoUpdater = remote.require('electron').autoUpdater
 
 describe('AutoUpdateManager (renderer)', () => {
-
   if (process.platform !== 'darwin') return // Tests are tied to electron autoUpdater, we use something else on Linux and Win32
 
   let autoUpdateManager
 
   beforeEach(() => {
-    autoUpdateManager = new AutoUpdateManager({
-      applicationDelegate: atom.applicationDelegate
-    })
+    autoUpdateManager = new AutoUpdateManager({applicationDelegate: atom.applicationDelegate})
+    autoUpdateManager.initialize()
   })
 
   afterEach(() => {

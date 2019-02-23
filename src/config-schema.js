@@ -1,8 +1,3 @@
-/** @babel */
-
-import path from 'path'
-import fs from 'fs-plus'
-
 // This is loaded by atom-environment.coffee. See
 // https://atom.io/docs/api/latest/Config for more information about config
 // schemas.
@@ -22,7 +17,7 @@ const configSchema = {
         type: 'boolean',
         default: true,
         title: 'Exclude VCS Ignored Paths',
-        description: 'Files and directories ignored by the current project\'s VCS system will be ignored by some packages, such as the fuzzy finder and find and replace. For example, projects using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
+        description: 'Files and directories ignored by the current project\'s VCS will be ignored by some packages, such as the fuzzy finder and find and replace. For example, projects using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
       },
       followSymlinks: {
         type: 'boolean',
@@ -39,6 +34,16 @@ const configSchema = {
 
         description: 'List of names of installed packages which are not loaded at startup.'
       },
+      versionPinnedPackages: {
+        type: 'array',
+        default: [],
+
+        items: {
+          type: 'string'
+        },
+
+        description: 'List of names of installed packages which are not automatically updated.'
+      },
       customFileTypes: {
         type: 'object',
         default: {},
@@ -50,6 +55,25 @@ const configSchema = {
           }
         }
       },
+      uriHandlerRegistration: {
+        type: 'string',
+        default: 'prompt',
+        description: 'When should Atom register itself as the default handler for atom:// URIs',
+        enum: [
+          {
+            value: 'prompt',
+            description: 'Prompt to register Atom as the default atom:// URI handler'
+          },
+          {
+            value: 'always',
+            description: 'Always become the default atom:// URI handler automatically'
+          },
+          {
+            value: 'never',
+            description: 'Never become the default atom:// URI handler'
+          }
+        ]
+      },
       themes: {
         type: 'array',
         default: ['one-dark-ui', 'one-dark-syntax'],
@@ -58,15 +82,16 @@ const configSchema = {
         },
         description: 'Names of UI and syntax themes which will be used when Atom starts.'
       },
-      projectHome: {
-        type: 'string',
-        default: path.join(fs.getHomeDirectory(), 'github'),
-        description: 'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
-      },
       audioBeep: {
         type: 'boolean',
         default: true,
         description: 'Trigger the system\'s beep sound when certain actions cannot be executed or there are no results.'
+      },
+      closeDeletedFileTabs: {
+        type: 'boolean',
+        default: false,
+        title: 'Close Deleted File Tabs',
+        description: 'Close corresponding editors when a file is deleted outside Atom.'
       },
       destroyEmptyPanes: {
         type: 'boolean',
@@ -84,42 +109,166 @@ const configSchema = {
         type: 'string',
         default: 'utf8',
         enum: [
-          'cp437',
-          'cp850',
-          'cp866',
-          'eucjp',
-          'euckr',
-          'gbk',
-          'iso88591',
-          'iso885910',
-          'iso885913',
-          'iso885914',
-          'iso885915',
-          'iso885916',
-          'iso88592',
-          'iso88593',
-          'iso88594',
-          'iso88595',
-          'iso88596',
-          'iso88597',
-          'iso88597',
-          'iso88598',
-          'koi8r',
-          'koi8u',
-          'macroman',
-          'shiftjis',
-          'utf16be',
-          'utf16le',
-          'utf8',
-          'windows1250',
-          'windows1251',
-          'windows1252',
-          'windows1253',
-          'windows1254',
-          'windows1255',
-          'windows1256',
-          'windows1257',
-          'windows1258'
+          {
+            value: 'iso88596',
+            description: 'Arabic (ISO 8859-6)'
+          },
+          {
+            value: 'windows1256',
+            description: 'Arabic (Windows 1256)'
+          },
+          {
+            value: 'iso88594',
+            description: 'Baltic (ISO 8859-4)'
+          },
+          {
+            value: 'windows1257',
+            description: 'Baltic (Windows 1257)'
+          },
+          {
+            value: 'iso885914',
+            description: 'Celtic (ISO 8859-14)'
+          },
+          {
+            value: 'iso88592',
+            description: 'Central European (ISO 8859-2)'
+          },
+          {
+            value: 'windows1250',
+            description: 'Central European (Windows 1250)'
+          },
+          {
+            value: 'gb18030',
+            description: 'Chinese (GB18030)'
+          },
+          {
+            value: 'gbk',
+            description: 'Chinese (GBK)'
+          },
+          {
+            value: 'cp950',
+            description: 'Traditional Chinese (Big5)'
+          },
+          {
+            value: 'big5hkscs',
+            description: 'Traditional Chinese (Big5-HKSCS)'
+          },
+          {
+            value: 'cp866',
+            description: 'Cyrillic (CP 866)'
+          },
+          {
+            value: 'iso88595',
+            description: 'Cyrillic (ISO 8859-5)'
+          },
+          {
+            value: 'koi8r',
+            description: 'Cyrillic (KOI8-R)'
+          },
+          {
+            value: 'koi8u',
+            description: 'Cyrillic (KOI8-U)'
+          },
+          {
+            value: 'windows1251',
+            description: 'Cyrillic (Windows 1251)'
+          },
+          {
+            value: 'cp437',
+            description: 'DOS (CP 437)'
+          },
+          {
+            value: 'cp850',
+            description: 'DOS (CP 850)'
+          },
+          {
+            value: 'iso885913',
+            description: 'Estonian (ISO 8859-13)'
+          },
+          {
+            value: 'iso88597',
+            description: 'Greek (ISO 8859-7)'
+          },
+          {
+            value: 'windows1253',
+            description: 'Greek (Windows 1253)'
+          },
+          {
+            value: 'iso88598',
+            description: 'Hebrew (ISO 8859-8)'
+          },
+          {
+            value: 'windows1255',
+            description: 'Hebrew (Windows 1255)'
+          },
+          {
+            value: 'cp932',
+            description: 'Japanese (CP 932)'
+          },
+          {
+            value: 'eucjp',
+            description: 'Japanese (EUC-JP)'
+          },
+          {
+            value: 'shiftjis',
+            description: 'Japanese (Shift JIS)'
+          },
+          {
+            value: 'euckr',
+            description: 'Korean (EUC-KR)'
+          },
+          {
+            value: 'iso885910',
+            description: 'Nordic (ISO 8859-10)'
+          },
+          {
+            value: 'iso885916',
+            description: 'Romanian (ISO 8859-16)'
+          },
+          {
+            value: 'iso88599',
+            description: 'Turkish (ISO 8859-9)'
+          },
+          {
+            value: 'windows1254',
+            description: 'Turkish (Windows 1254)'
+          },
+          {
+            value: 'utf8',
+            description: 'Unicode (UTF-8)'
+          },
+          {
+            value: 'utf16le',
+            description: 'Unicode (UTF-16 LE)'
+          },
+          {
+            value: 'utf16be',
+            description: 'Unicode (UTF-16 BE)'
+          },
+          {
+            value: 'windows1258',
+            description: 'Vietnamese (Windows 1258)'
+          },
+          {
+            value: 'iso88591',
+            description: 'Western (ISO 8859-1)'
+          },
+          {
+            value: 'iso88593',
+            description: 'Western (ISO 8859-3)'
+          },
+          {
+            value: 'iso885915',
+            description: 'Western (ISO 8859-15)'
+          },
+          {
+            value: 'macroman',
+            description: 'Western (Mac Roman)'
+          },
+          {
+            value: 'windows1252',
+            description: 'Western (Windows 1252)'
+          }
         ]
       },
       openEmptyEditorOnStart: {
@@ -128,9 +277,10 @@ const configSchema = {
         default: true
       },
       restorePreviousWindowsOnStart: {
-        description: 'When checked restores the last state of all Atom windows when started from the icon or `atom` by itself from the command line; otherwise a blank environment is loaded.',
-        type: 'boolean',
-        default: true
+        type: 'string',
+        enum: ['no', 'yes', 'always'],
+        default: 'yes',
+        description: "When selected 'no', a blank environment is loaded. When selected 'yes' and Atom is started from the icon or `atom` by itself from the command line, restores the last state of all Atom windows; otherwise a blank environment is loaded. When selected 'always', restores the last state of all Atom windows always, no matter how Atom is started."
       },
       reopenProjectMenuCount: {
         description: 'How many recent projects to show in the Reopen Project menu.',
@@ -177,6 +327,49 @@ const configSchema = {
         description: 'Warn before opening files larger than this number of megabytes.',
         type: 'number',
         default: 40
+      },
+      fileSystemWatcher: {
+        description: 'Choose the underlying implementation used to watch for filesystem changes. Emulating changes will miss any events caused by applications other than Atom, but may help prevent crashes or freezes.',
+        type: 'string',
+        default: 'native',
+        enum: [
+          {
+            value: 'native',
+            description: 'Native operating system APIs'
+          },
+          {
+            value: 'experimental',
+            description: 'Experimental filesystem watching library'
+          },
+          {
+            value: 'poll',
+            description: 'Polling'
+          },
+          {
+            value: 'atom',
+            description: 'Emulated with Atom events'
+          }
+        ]
+      },
+      useTreeSitterParsers: {
+        type: 'boolean',
+        default: true,
+        description: 'Use Tree-sitter parsers for supported languages.'
+      },
+      colorProfile: {
+        description: "Specify whether Atom should use the operating system's color profile (recommended) or an alternative color profile.<br>Changing this setting will require a relaunch of Atom to take effect.",
+        type: 'string',
+        default: 'default',
+        enum: [
+          {
+            value: 'default',
+            description: 'Use color profile configured in the operating system'
+          },
+          {
+            value: 'srgb',
+            description: 'Use sRGB color profile'
+          }
+        ]
       }
     }
   },
@@ -202,7 +395,7 @@ const configSchema = {
       // These can be used as globals or scoped, thus defaults.
       fontFamily: {
         type: 'string',
-        default: '',
+        default: 'Menlo, Consolas, DejaVu Sans Mono, monospace',
         description: 'The name of the font family used for editor text.'
       },
       fontSize: {
@@ -262,6 +455,12 @@ const configSchema = {
         default: 80,
         minimum: 1,
         description: 'Identifies the length of a line which is used when wrapping text with the `Soft Wrap At Preferred Line Length` setting enabled, in number of characters.'
+      },
+      maxScreenLineLength: {
+        type: 'integer',
+        default: 500,
+        minimum: 500,
+        description: 'Defines the maximum width of the editor window before soft wrapping is enforced, in number of characters.'
       },
       tabLength: {
         type: 'integer',
@@ -368,11 +567,12 @@ if (['win32', 'linux'].includes(process.platform)) {
 }
 
 if (process.platform === 'darwin') {
-  configSchema.core.properties.useCustomTitleBar = {
-    type: 'boolean',
-    default: false,
-    description: 'Use custom, theme-aware title bar.<br>Note: This currently does not include a proxy icon.<br>This setting will require a relaunch of Atom to take effect.'
+  configSchema.core.properties.titleBar = {
+    type: 'string',
+    default: 'native',
+    enum: ['native', 'custom', 'custom-inset', 'hidden'],
+    description: 'Experimental: A `custom` title bar adapts to theme colors. Choosing `custom-inset` adds a bit more padding. The title bar can also be completely `hidden`.<br>Note: Switching to a custom or hidden title bar will compromise some functionality.<br>This setting will require a relaunch of Atom to take effect.'
   }
 }
 
-export default configSchema
+module.exports = configSchema

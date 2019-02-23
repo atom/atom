@@ -1,3 +1,3 @@
 #!/bin/sh
 
-"$(dirname "$0")/../app/apm/apm.sh" "$@"
+"$(dirname "$0")/../app/apm/bin/apm" "$@"

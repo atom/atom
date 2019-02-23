@@ -15,7 +15,11 @@ describe('StyleManager', () => {
   })
 
   afterEach(() => {
-    temp.cleanupSync()
+    try {
+      temp.cleanupSync()
+    } catch (e) {
+      // Do nothing
+    }
   })
 
   describe('::addStyleSheet(source, params)', () => {
@@ -43,7 +47,6 @@ describe('StyleManager', () => {
           atom-text-editor::shadow .class-1, atom-text-editor::shadow .class-2 { color: red }
           atom-text-editor::shadow > .class-3 { color: yellow }
           atom-text-editor .class-4 { color: blue }
-          another-element::shadow .class-5 { color: white }
           atom-text-editor[data-grammar*=\"js\"]::shadow .class-6 { color: green; }
           atom-text-editor[mini].is-focused::shadow .class-7 { color: green; }
         `)
@@ -51,7 +54,6 @@ describe('StyleManager', () => {
           'atom-text-editor.editor .class-1, atom-text-editor.editor .class-2',
           'atom-text-editor.editor > .class-3',
           'atom-text-editor .class-4',
-          'another-element::shadow .class-5',
           'atom-text-editor[data-grammar*=\"js\"].editor .class-6',
           'atom-text-editor[mini].is-focused.editor .class-7'
         ])

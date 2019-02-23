@@ -2,7 +2,6 @@
 
 const assert = require('assert')
 const fs = require('fs-extra')
-const os = require('os')
 const path = require('path')
 const spawnSync = require('./spawn-sync')
 const template = require('lodash.template')
@@ -11,9 +10,9 @@ const CONFIG = require('../config')
 
 module.exports = function (packagedAppPath) {
   console.log(`Creating rpm package for "${packagedAppPath}"`)
-  const atomExecutableName = CONFIG.channel === 'beta' ? 'atom-beta' : 'atom'
-  const apmExecutableName = CONFIG.channel === 'beta' ? 'apm-beta' : 'apm'
-  const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+  const atomExecutableName = CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`
+  const apmExecutableName = CONFIG.channel === 'stable' ? 'apm' : `apm-${CONFIG.channel}`
+  const appName = CONFIG.appName
   const appDescription = CONFIG.appMetadata.description
   // RPM versions can't have dashes or tildes in them.
   // (Ref.: https://twiki.cern.ch/twiki/bin/view/Main/RPMAndDebVersioning)
@@ -51,16 +50,23 @@ module.exports = function (packagedAppPath) {
   const rpmPackageSpecFilePath = path.join(rpmPackageSpecsDirPath, 'atom.spec')
   const rpmPackageSpecsTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'redhat', 'atom.spec.in'))
   const rpmPackageSpecsContents = template(rpmPackageSpecsTemplate)({
-    appName: appName, appFileName: atomExecutableName, apmFileName: apmExecutableName,
-    description: appDescription, installDir: '/usr', version: appVersion
+    appName: appName,
+    appFileName: atomExecutableName,
+    apmFileName: apmExecutableName,
+    description: appDescription,
+    installDir: '/usr',
+    version: appVersion
   })
   fs.writeFileSync(rpmPackageSpecFilePath, rpmPackageSpecsContents)
 
   console.log(`Writing desktop entry file into "${rpmPackageBuildDirPath}"`)
   const desktopEntryTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.desktop.in'))
   const desktopEntryContents = template(desktopEntryTemplate)({
-    appName: appName, appFileName: atomExecutableName, description: appDescription,
-    installDir: '/usr', iconPath: atomExecutableName
+    appName: appName,
+    appFileName: atomExecutableName,
+    description: appDescription,
+    installDir: '/usr',
+    iconPath: atomExecutableName
   })
   fs.writeFileSync(path.join(rpmPackageBuildDirPath, `${atomExecutableName}.desktop`), desktopEntryContents)
 

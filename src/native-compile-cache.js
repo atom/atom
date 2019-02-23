@@ -1,9 +1,7 @@
-'use strict'
-
 const Module = require('module')
 const path = require('path')
-const cachedVm = require('cached-run-in-this-context')
 const crypto = require('crypto')
+const vm = require('vm')
 
 function computeHash (contents) {
   return crypto.createHash('sha1').update(contents, 'utf8').digest('hex')
@@ -36,9 +34,26 @@ class NativeCompileCache {
     this.previousModuleCompile = Module.prototype._compile
   }
 
+  runInThisContext (code, filename) {
+    // produceCachedData is deprecated after Node 10.6, will need to update
+    // this for Electron 4.0 to use script.createCachedData()
+    const script = new vm.Script(code, {filename, produceCachedData: true})
+    return {
+      result: script.runInThisContext(),
+      cacheBuffer: script.cachedData
+    }
+  }
+
+  runInThisContextCached (code, filename, cachedData) {
+    const script = new vm.Script(code, {filename, cachedData})
+    return {
+      result: script.runInThisContext(),
+      wasRejected: script.cachedDataRejected
+    }
+  }
+
   overrideModuleCompile () {
     let self = this
-    let resolvedArgv = null
     // Here we override Node's module.js
     // (https://github.com/atom/node/blob/atom/lib/module.js#L378), changing
     // only the bits that affect compilation in order to use the cached one.
@@ -63,12 +78,11 @@ class NativeCompileCache {
       // create wrapper function
       let wrapper = Module.wrap(content)
 
-      let cacheKey = filename
-      let invalidationKey = computeHash(wrapper + self.v8Version)
+      let cacheKey = computeHash(wrapper + self.v8Version)
       let compiledWrapper = null
-      if (self.cacheStore.has(cacheKey, invalidationKey)) {
-        let buffer = self.cacheStore.get(cacheKey, invalidationKey)
-        let compilationResult = cachedVm.runInThisContextCached(wrapper, filename, buffer)
+      if (self.cacheStore.has(cacheKey)) {
+        let buffer = self.cacheStore.get(cacheKey)
+        let compilationResult = self.runInThisContextCached(wrapper, filename, buffer)
         compiledWrapper = compilationResult.result
         if (compilationResult.wasRejected) {
           self.cacheStore.delete(cacheKey)
@@ -76,36 +90,18 @@ class NativeCompileCache {
       } else {
         let compilationResult
         try {
-          compilationResult = cachedVm.runInThisContext(wrapper, filename)
+          compilationResult = self.runInThisContext(wrapper, filename)
         } catch (err) {
           console.error(`Error running script ${filename}`)
           throw err
         }
-        if (compilationResult.cacheBuffer) {
-          self.cacheStore.set(cacheKey, invalidationKey, compilationResult.cacheBuffer)
+        if (compilationResult.cacheBuffer !== null) {
+          self.cacheStore.set(cacheKey, compilationResult.cacheBuffer)
         }
         compiledWrapper = compilationResult.result
       }
-      if (global.v8debug) {
-        if (!resolvedArgv) {
-          // we enter the repl if we're not given a filename argument.
-          if (process.argv[1]) {
-            resolvedArgv = Module._resolveFilename(process.argv[1], null)
-          } else {
-            resolvedArgv = 'repl'
-          }
-        }
 
-        // Set breakpoint on module start
-        if (filename === resolvedArgv) {
-          // Installing this dummy debug event listener tells V8 to start
-          // the debugger.  Without it, the setBreakPoint() fails with an
-          // 'illegal access' error.
-          global.v8debug.Debug.setListener(function () {})
-          global.v8debug.Debug.setBreakPoint(compiledWrapper, 0, 0)
-        }
-      }
-      let args = [moduleSelf.exports, require, moduleSelf, filename, dirname, process, global]
+      let args = [moduleSelf.exports, require, moduleSelf, filename, dirname, process, global, Buffer]
       return compiledWrapper.apply(moduleSelf.exports, args)
     }
   }

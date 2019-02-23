@@ -20,7 +20,7 @@ module.exports = function () {
           'with the following licenses:\n\n'
         for (let packageName of Object.keys(packagesLicenses).sort()) {
           const packageLicense = packagesLicenses[packageName]
-          text += "-------------------------------------------------------------------------\n\n"
+          text += '-------------------------------------------------------------------------\n\n'
           text += `Package: ${packageName}\n`
           text += `License: ${packageLicense.license}\n`
           if (packageLicense.source) {

@@ -1,0 +1,22 @@
+
+atom-pane-container {
+
+  atom-pane {
+    position: relative;
+    border-right: 1px solid @base-border-color;
+    border-bottom: 1px solid @base-border-color;
+
+    .item-views {
+      // prevent atom-text-editor from leaking ouside might improve performance
+      overflow: hidden;
+    }
+  }
+
+}
+
+// Hide right-most border
+atom-pane:only-child,
+atom-pane-axis.pane-row > atom-pane:last-child,
+atom-pane-axis.pane-column:last-child > atom-pane {
+  border-right: none;
+}

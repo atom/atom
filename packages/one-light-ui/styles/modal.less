@@ -1,0 +1,125 @@
+
+@modal-padding: @ui-padding/2 @ui-padding/1.5;
+@modal-width: @ui-size * 50;
+
+atom-panel-container.modal {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+}
+
+atom-panel.modal {
+  position: relative;
+  width: 100%;
+  max-width: @modal-width;
+  margin: 0 auto;
+  left: initial;
+  color: @text-color;
+  background-color: transparent;
+  padding: @ui-padding/2;
+
+  &.from-top {
+    top: @component-padding * 5;
+  }
+
+  atom-text-editor[mini] {
+    margin-bottom: @ui-padding/2;
+  }
+
+  .select-list ol.list-group,
+  &.select-list ol.list-group {
+    border: 1px solid @overlay-border-color;
+    background-color: lighten(@overlay-background-color, 2%);
+
+    &:empty {
+      border: none;
+      margin-top: 0;
+    }
+
+    li {
+      padding: @modal-padding;
+      line-height: @ui-line-height;
+      border-bottom: 1px solid @overlay-border-color;
+
+      &:last-of-type {
+        border-bottom: none;
+      }
+
+      .icon::before {
+        margin-left: 1px;
+      }
+
+      .icon.status {
+        float: right;
+        margin-left: @ui-padding-icon;
+        &:before {
+          margin-left: 0;
+          margin-right: 0;
+        }
+      }
+
+      &.selected {
+        .status.icon {
+          color: @text-color-selected;
+        }
+      }
+    }
+
+  }
+
+  .select-list .key-binding {
+    margin-top: -1px;
+    margin-left: @ui-padding/2;
+    margin-right: calc( -@ui-padding/3 ~"+" 1px);
+  }
+
+  .select-list .primary-line {
+    display: block;
+  }
+
+  & > * {
+    position: relative; // fixes stacking order
+  }
+
+  .command-palette {
+    padding: 1px; // prevents the box-shadow of the input from being cut off
+    background-color: @overlay-background-color;
+  }
+
+
+  // Container
+  &:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    background-color: @overlay-background-color;
+    border-radius: @component-border-radius*2;
+    box-shadow: 0 6px 12px -2px hsla(0,0%,0%,.4);
+  }
+
+  // Backdrop
+  // TODO: Add extra wrapper to translate individually or easier positioning
+
+  &:after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background: @overlay-backdrop-color;
+    opacity: @overlay-backdrop-opacity;
+    backface-visibility: hidden; // fixes scrollbar on retina screens
+    -webkit-animation: overlay-fade .24s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+
+  @-webkit-keyframes overlay-fade {
+    0% { opacity: 0; }
+    100% { opacity: @overlay-backdrop-opacity; }
+  }
+
+}

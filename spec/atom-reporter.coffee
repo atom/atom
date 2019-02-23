@@ -1,4 +1,5 @@
 path = require 'path'
+process = require 'process'
 _ = require 'underscore-plus'
 grim = require 'grim'
 marked = require 'marked'
@@ -8,31 +9,43 @@ ipcHelpers = require '../src/ipc-helpers'
 formatStackTrace = (spec, message='', stackTrace) ->
   return stackTrace unless stackTrace
 
+  # at ... (.../jasmine.js:1:2)
   jasminePattern = /^\s*at\s+.*\(?.*[/\\]jasmine(-[^/\\]*)?\.js:\d+:\d+\)?\s*$/
-  firstJasmineLinePattern = /^\s*at [/\\].*[/\\]jasmine(-[^/\\]*)?\.js:\d+:\d+\)?\s*$/
+  # at jasmine.Something... (.../jasmine.js:1:2)
+  firstJasmineLinePattern = /^\s*at\s+jasmine\.[A-Z][^\s]*\s+\(?.*[/\\]jasmine(-[^/\\]*)?\.js:\d+:\d+\)?\s*$/
   lines = []
   for line in stackTrace.split('\n')
-    lines.push(line) unless jasminePattern.test(line)
     break if firstJasmineLinePattern.test(line)
+    lines.push(line) unless jasminePattern.test(line)
 
   # Remove first line of stack when it is the same as the error message
   errorMatch = lines[0]?.match(/^Error: (.*)/)
   lines.shift() if message.trim() is errorMatch?[1]?.trim()
 
-  for line, index in lines
-    # Remove prefix of lines matching: at [object Object].<anonymous> (path:1:2)
-    prefixMatch = line.match(/at \[object Object\]\.<anonymous> \(([^)]+)\)/)
-    line = "at #{prefixMatch[1]}" if prefixMatch
+  lines = lines.map (line) ->
+    # Only format actual stacktrace lines
+    if /^\s*at\s/.test(line)
+      # Needs to occur before path relativization
+      if process.platform is 'win32' and /file:\/\/\//.test(line)
+        # file:///C:/some/file -> C:\some\file
+        line = line.replace('file:///', '').replace(///#{path.posix.sep}///g, path.win32.sep)
 
-    # Relativize locations to spec directory
-    lines[index] = line.replace("at #{spec.specDirectory}#{path.sep}", 'at ')
+      line = line.trim()
+        # at jasmine.Spec.<anonymous> (path:1:2) -> at path:1:2
+        .replace(/^at jasmine\.Spec\.<anonymous> \(([^)]+)\)/, 'at $1')
+        # at jasmine.Spec.it (path:1:2) -> at path:1:2
+        .replace(/^at jasmine\.Spec\.f*it \(([^)]+)\)/, 'at $1')
+        # at it (path:1:2) -> at path:1:2
+        .replace(/^at f*it \(([^)]+)\)/, 'at $1')
+        # at spec/file-test.js -> at file-test.js
+        .replace(spec.specDirectory + path.sep, '')
 
-  lines = lines.map (line) -> line.trim()
+    return line
+
   lines.join('\n').trim()
 
 module.exports =
 class AtomReporter
-
   constructor: ->
     @element = document.createElement('div')
     @element.classList.add('spec-reporter-container')

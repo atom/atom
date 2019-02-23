@@ -1,12 +1,15 @@
 const {app} = require('electron')
 const nslog = require('nslog')
 const path = require('path')
-const temp = require('temp')
+const temp = require('temp').track()
 const parseCommandLine = require('./parse-command-line')
 const startCrashReporter = require('../crash-reporter-start')
 const atomPaths = require('../atom-paths')
+const fs = require('fs')
+const CSON = require('season')
+const Config = require('../config')
 
-module.exports = function start (resourcePath, startTime) {
+module.exports = function start (resourcePath, devResourcePath, startTime) {
   global.shellStartTime = startTime
 
   process.on('uncaughtException', function (error = {}) {
@@ -19,13 +22,33 @@ module.exports = function start (resourcePath, startTime) {
     }
   })
 
+  process.on('unhandledRejection', function (error = {}) {
+    if (error.message != null) {
+      console.log(error.message)
+    }
+
+    if (error.stack != null) {
+      console.log(error.stack)
+    }
+  })
+
   const previousConsoleLog = console.log
   console.log = nslog
 
+  app.commandLine.appendSwitch('enable-experimental-web-platform-features')
+
   const args = parseCommandLine(process.argv.slice(1))
+  args.resourcePath = normalizeDriveLetterName(resourcePath)
+  args.devResourcePath = normalizeDriveLetterName(devResourcePath)
+
   atomPaths.setAtomHome(app.getPath('home'))
-  atomPaths.setUserData()
-  setupCompileCache()
+  atomPaths.setUserData(app)
+
+  const config = getConfig()
+  const colorProfile = config.get('core.colorProfile')
+  if (colorProfile && colorProfile !== 'default') {
+    app.commandLine.appendSwitch('force-color-profile', colorProfile)
+  }
 
   if (handleStartupEventWithSquirrel()) {
     return
@@ -80,7 +103,28 @@ function handleStartupEventWithSquirrel () {
   return SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
 }
 
-function setupCompileCache () {
-  const CompileCache = require('../compile-cache')
-  CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
+function getConfig () {
+  const config = new Config()
+
+  let configFilePath
+  if (fs.existsSync(path.join(process.env.ATOM_HOME, 'config.json'))) {
+    configFilePath = path.join(process.env.ATOM_HOME, 'config.json')
+  } else if (fs.existsSync(path.join(process.env.ATOM_HOME, 'config.cson'))) {
+    configFilePath = path.join(process.env.ATOM_HOME, 'config.cson')
+  }
+
+  if (configFilePath) {
+    const configFileData = CSON.readFileSync(configFilePath)
+    config.resetUserSettings(configFileData)
+  }
+
+  return config
+}
+
+function normalizeDriveLetterName (filePath) {
+  if (process.platform === 'win32' && filePath) {
+    return filePath.replace(/^([a-z]):/, ([driveLetter]) => driveLetter.toUpperCase() + ':')
+  } else {
+    return filePath
+  }
 }

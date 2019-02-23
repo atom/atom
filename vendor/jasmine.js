@@ -2317,6 +2317,14 @@ jasmine.Spec.prototype.waitsFor = function(latchFunction, optional_timeoutMessag
     }
   }
 
+  if (optional_timeoutMessage_ == null) {
+    const objectToCaptureStack = {}
+    Error.captureStackTrace(objectToCaptureStack, waitsFor)
+    const stack = objectToCaptureStack.stack
+    const line = stack.split('\n')[1]
+    optional_timeoutMessage_ = `condition ${line}`
+  }
+
   var waitsForFunc = new jasmine.WaitsForBlock(this.env, optional_timeout_, latchFunction_, optional_timeoutMessage_, this);
   this.addToQueue(waitsForFunc);
   return this;

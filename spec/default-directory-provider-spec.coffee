@@ -10,7 +10,8 @@ describe "DefaultDirectoryProvider", ->
     tmp = temp.mkdirSync('atom-spec-default-dir-provider')
 
   afterEach ->
-    temp.cleanupSync()
+    try
+      temp.cleanupSync()
 
   describe ".directoryForURISync(uri)", ->
     it "returns a Directory with a path that matches the uri", ->
@@ -24,6 +25,15 @@ describe "DefaultDirectoryProvider", ->
       nonNormalizedPath = tmp + path.sep +  ".." + path.sep + path.basename(tmp)
       expect(tmp.includes("..")).toBe false
       expect(nonNormalizedPath.includes("..")).toBe true
+
+      directory = provider.directoryForURISync(nonNormalizedPath)
+      expect(directory.getPath()).toEqual tmp
+
+    it "normalizes disk drive letter in path on #win32", ->
+      provider = new DefaultDirectoryProvider()
+      nonNormalizedPath = tmp[0].toLowerCase()+tmp.slice(1)
+      expect(tmp).not.toMatch /^[a-z]:/
+      expect(nonNormalizedPath).toMatch /^[a-z]:/
 
       directory = provider.directoryForURISync(nonNormalizedPath)
       expect(directory.getPath()).toEqual tmp

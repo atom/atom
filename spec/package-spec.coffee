@@ -11,8 +11,7 @@ describe "Package", ->
       keymapManager: atom.keymaps, commandRegistry: atom.command,
       grammarRegistry: atom.grammars, themeManager: atom.themes,
       menuManager: atom.menu, contextMenuManager: atom.contextMenu,
-      deserializerManager: atom.deserializers, viewRegistry: atom.views,
-      devMode: false
+      deserializerManager: atom.deserializers, viewRegistry: atom.views
     )
 
   buildPackage = (packagePath) -> build(Package, packagePath)
@@ -21,7 +20,11 @@ describe "Package", ->
 
   describe "when the package contains incompatible native modules", ->
     beforeEach ->
+      atom.packages.devMode = false
       mockLocalStorage()
+
+    afterEach ->
+      atom.packages.devMode = true
 
     it "does not activate it", ->
       packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-incompatible-native-module')
@@ -64,7 +67,11 @@ describe "Package", ->
 
   describe "::rebuild()", ->
     beforeEach ->
+      atom.packages.devMode = false
       mockLocalStorage()
+
+    afterEach ->
+      atom.packages.devMode = true
 
     it "returns a promise resolving to the results of `apm rebuild`", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-index')
@@ -131,7 +138,8 @@ describe "Package", ->
       jasmine.attachToDOM(editorElement)
 
     afterEach ->
-      theme.deactivate() if theme?
+      waitsForPromise ->
+        Promise.resolve(theme.deactivate()) if theme?
 
     describe "when the theme contains a single style file", ->
       it "loads and applies css", ->
@@ -193,8 +201,10 @@ describe "Package", ->
 
       it "deactivated event fires on .deactivate()", ->
         theme.onDidDeactivate spy = jasmine.createSpy()
-        theme.deactivate()
-        expect(spy).toHaveBeenCalled()
+        waitsForPromise ->
+          Promise.resolve(theme.deactivate())
+        runs ->
+          expect(spy).toHaveBeenCalled()
 
   describe ".loadMetadata()", ->
     [packagePath, metadata] = []

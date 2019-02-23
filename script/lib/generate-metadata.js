@@ -2,11 +2,10 @@
 
 const CSON = require('season')
 const deprecatedPackagesMetadata = require('../deprecated-packages')
-const fs = require('fs-extra')
+const fs = require('fs-plus')
 const normalizePackageData = require('normalize-package-data')
 const path = require('path')
 const semver = require('semver')
-const spawnSync = require('./spawn-sync')
 
 const CONFIG = require('../config')
 
@@ -16,7 +15,7 @@ module.exports = function () {
   CONFIG.appMetadata._atomMenu = buildPlatformMenuMetadata()
   CONFIG.appMetadata._atomKeymaps = buildPlatformKeymapsMetadata()
   CONFIG.appMetadata._deprecatedPackages = deprecatedPackagesMetadata
-  CONFIG.appMetadata.version = computeAppVersion()
+  CONFIG.appMetadata.version = CONFIG.computedAppVersion
   checkDeprecatedPackagesMetadata()
   fs.writeFileSync(path.join(CONFIG.intermediateAppPath, 'package.json'), JSON.stringify(CONFIG.appMetadata))
 }
@@ -27,8 +26,10 @@ function buildBundledPackagesMetadata () {
     const packagePath = path.join(CONFIG.intermediateAppPath, 'node_modules', packageName)
     const packageMetadataPath = path.join(packagePath, 'package.json')
     const packageMetadata = JSON.parse(fs.readFileSync(packageMetadataPath, 'utf8'))
-    normalizePackageData(packageMetadata, () => {
-      throw new Error(`Invalid package metadata. ${metadata.name}: ${msg}`)
+    normalizePackageData(packageMetadata, (msg) => {
+      if (!msg.match(/No README data$/)) {
+        console.warn(`Invalid package metadata. ${packageMetadata.name}: ${msg}`)
+      }
     }, true)
     if (packageMetadata.repository && packageMetadata.repository.url && packageMetadata.repository.type === 'git') {
       packageMetadata.repository.url = packageMetadata.repository.url.replace(/^git\+/, '')
@@ -48,10 +49,18 @@ function buildBundledPackagesMetadata () {
       }
     }
 
-    const packageNewMetadata = {metadata: packageMetadata, keymaps: {}, menus: {}}
+    const packageNewMetadata = {metadata: packageMetadata, keymaps: {}, menus: {}, grammarPaths: [], settings: {}}
+
+    packageNewMetadata.rootDirPath = path.relative(CONFIG.intermediateAppPath, packagePath)
+
     if (packageMetadata.main) {
       const mainPath = require.resolve(path.resolve(packagePath, packageMetadata.main))
-      packageNewMetadata.main = path.relative(CONFIG.intermediateAppPath, mainPath)
+      packageNewMetadata.main = path.relative(path.join(CONFIG.intermediateAppPath, 'static'), mainPath)
+      // Convert backward slashes to forward slashes in order to allow package
+      // main modules to be required from the snapshot. This is because we use
+      // forward slashes to cache the sources in the snapshot, so we need to use
+      // them here as well.
+      packageNewMetadata.main = packageNewMetadata.main.replace(/\\/g, '/')
     }
 
     const packageKeymapsPath = path.join(packagePath, 'keymaps')
@@ -75,6 +84,38 @@ function buildBundledPackagesMetadata () {
         }
       }
     }
+
+    const packageGrammarsPath = path.join(packagePath, 'grammars')
+    for (let packageGrammarPath of fs.listSync(packageGrammarsPath, ['json', 'cson'])) {
+      const relativePath = path.relative(CONFIG.intermediateAppPath, packageGrammarPath)
+      packageNewMetadata.grammarPaths.push(relativePath)
+    }
+
+    const packageSettingsPath = path.join(packagePath, 'settings')
+    for (let packageSettingPath of fs.listSync(packageSettingsPath, ['json', 'cson'])) {
+      const relativePath = path.relative(CONFIG.intermediateAppPath, packageSettingPath)
+      packageNewMetadata.settings[relativePath] = CSON.readFileSync(packageSettingPath)
+    }
+
+    const packageStyleSheetsPath = path.join(packagePath, 'styles')
+    let styleSheets = null
+    if (packageMetadata.mainStyleSheet) {
+      styleSheets = [fs.resolve(packagePath, packageMetadata.mainStyleSheet)]
+    } else if (packageMetadata.styleSheets) {
+      styleSheets = packageMetadata.styleSheets.map((name) => (
+        fs.resolve(packageStyleSheetsPath, name, ['css', 'less', ''])
+      ))
+    } else {
+      const indexStylesheet = fs.resolve(packagePath, 'index', ['css', 'less'])
+      if (indexStylesheet) {
+        styleSheets = [indexStylesheet]
+      } else {
+        styleSheets = fs.listSync(packageStyleSheetsPath, ['css', 'less'])
+      }
+    }
+
+    packageNewMetadata.styleSheetPaths =
+      styleSheets.map(styleSheetPath => path.relative(packagePath, styleSheetPath))
 
     packages[packageMetadata.name] = packageNewMetadata
     if (packageModuleCache.extensions) {
@@ -118,17 +159,7 @@ function checkDeprecatedPackagesMetadata () {
   for (let packageName of Object.keys(deprecatedPackagesMetadata)) {
     const packageMetadata = deprecatedPackagesMetadata[packageName]
     if (packageMetadata.version && !semver.validRange(packageMetadata.version)) {
-      throw new Error(`Invalid range: ${version} (${name}).`)
+      throw new Error(`Invalid range: ${packageMetadata.version} (${packageName}).`)
     }
   }
-}
-
-function computeAppVersion () {
-  let version = CONFIG.appMetadata.version
-  if (CONFIG.channel === 'dev') {
-    const result = spawnSync('git', ['rev-parse', '--short', 'HEAD'], {cwd: CONFIG.repositoryRootPath})
-    const commitHash = result.stdout.toString().trim()
-    version += '-' + commitHash
-  }
-  return version
 }

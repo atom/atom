@@ -1,0 +1,47 @@
+.syntax--ng {
+  &.syntax--interpolation {
+    color: @hue-5;
+
+    &.syntax--begin, &.syntax--end {
+      color: @hue-2;
+    }
+
+    .syntax--function {
+      color: @hue-5;
+
+      &.syntax--begin, &.syntax--end {
+        color: @hue-2;
+      }
+    }
+
+    .syntax--bool {
+      color: @hue-6;
+    }
+
+    .syntax--bracket {
+      color: @mono-1;
+    }
+  }
+
+  &.syntax--pipe, &.syntax--operator {
+    color: @mono-1;
+  }
+
+  &.syntax--tag {
+    color: @hue-1;
+  }
+
+  &.syntax--attribute-with-value {
+    .syntax--attribute-name {
+      color: @hue-6-2;
+    }
+
+    .syntax--string {
+      color: @hue-3;
+
+      &.syntax--begin, &.syntax--end {
+        color: @mono-1;
+      }
+    }
+  }
+}
