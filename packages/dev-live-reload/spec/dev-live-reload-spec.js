@@ -1,4 +1,4 @@
-const {it, fit, ffit, afterEach, beforeEach} = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
+const { it, fit, ffit, afterEach, beforeEach } = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
 
 describe('Dev Live Reload', () => {
   describe('package activation', () => {
@@ -85,7 +85,9 @@ describe('Dev Live Reload', () => {
 
     it('stops watching all files', async () => {
       spyOn(atom.packages, 'hasActivatedInitialPackages').andReturn(true)
-      const {mainModule} = await atom.packages.activatePackage('dev-live-reload')
+      const { mainModule } = await atom.packages.activatePackage(
+        'dev-live-reload'
+      )
       expect(mainModule.uiWatcher).not.toBeNull()
 
       spyOn(mainModule.uiWatcher, 'destroy')
@@ -95,7 +97,9 @@ describe('Dev Live Reload', () => {
     })
 
     it('unsubscribes from the onDidActivateInitialPackages subscription if it is disabled before all initial packages are activated', async () => {
-      const {mainModule} = await atom.packages.activatePackage('dev-live-reload')
+      const { mainModule } = await atom.packages.activatePackage(
+        'dev-live-reload'
+      )
       expect(mainModule.activatedDisposable.disposed).toBe(false)
 
       await atom.packages.deactivatePackage('dev-live-reload')
@@ -109,16 +113,18 @@ describe('Dev Live Reload', () => {
     it('removes its commands', async () => {
       spyOn(atom.packages, 'hasActivatedInitialPackages').andReturn(true)
       await atom.packages.activatePackage('dev-live-reload')
-      expect(atom.commands
-            .findCommands({target: atom.views.getView(atom.workspace)})
-            .filter(command => command.name.startsWith('dev-live-reload'))
-            .length).toBeGreaterThan(0)
+      expect(
+        atom.commands
+          .findCommands({ target: atom.views.getView(atom.workspace) })
+          .filter(command => command.name.startsWith('dev-live-reload')).length
+      ).toBeGreaterThan(0)
 
       await atom.packages.deactivatePackage('dev-live-reload')
-      expect(atom.commands
-            .findCommands({target: atom.views.getView(atom.workspace)})
-            .filter(command => command.name.startsWith('dev-live-reload'))
-            .length).toBe(0)
+      expect(
+        atom.commands
+          .findCommands({ target: atom.views.getView(atom.workspace) })
+          .filter(command => command.name.startsWith('dev-live-reload')).length
+      ).toBe(0)
     })
   })
 })

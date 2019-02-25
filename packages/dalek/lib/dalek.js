@@ -13,7 +13,9 @@ module.exports = {
     const names = atom.packages.getAvailablePackageNames()
     for (let name of names) {
       if (atom.packages.isBundledPackage(name)) {
-        const isDuplicatedPackage = await this.isInstalledAsCommunityPackage(name)
+        const isDuplicatedPackage = await this.isInstalledAsCommunityPackage(
+          name
+        )
         if (isDuplicatedPackage) {
           duplicatePackages.push(name)
         }
