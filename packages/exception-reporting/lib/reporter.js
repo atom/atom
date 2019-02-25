@@ -1,6 +1,5 @@
 /** @babel */
 
-import _ from 'underscore-plus'
 import os from 'os'
 import stackTrace from 'stack-trace'
 import fs from 'fs-plus'

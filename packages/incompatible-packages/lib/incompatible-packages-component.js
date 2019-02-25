@@ -1,7 +1,6 @@
 /** @babel */
 /** @jsx etch.dom */
 
-import { BufferedProcess } from 'atom'
 import etch from 'etch'
 
 import VIEW_URI from './view-uri'
