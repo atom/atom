@@ -6,7 +6,6 @@ const _ = require('underscore-plus')
 const dedent = require('dedent')
 const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
-// Tests crash the renderer process on Electron 3.0, disabling for now.
 describe('TextMateLanguageMode', () => {
   let languageMode, buffer, config
 
