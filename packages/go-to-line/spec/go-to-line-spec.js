@@ -51,8 +51,8 @@ describe('GoToLine', () => {
 
   describe('when typing line numbers (auto-navigation)', () => {
     it('automatically scrolls to the desired line', () => {
-      goToLine.miniEditor.insertText('13')
-      expect(editor.getCursorBufferPosition()).toEqual([12, 0])
+      goToLine.miniEditor.insertText('19')
+      expect(editor.getCursorBufferPosition()).toEqual([18, 0])
     })
   })
 
@@ -90,10 +90,10 @@ describe('GoToLine', () => {
       atom.commands.dispatch(editorView, 'go-to-line:toggle')
       expect(goToLine.panel.isVisible()).toBeTruthy()
       expect(goToLine.miniEditor.getText()).toBe('')
-      goToLine.miniEditor.insertText('71')
+      goToLine.miniEditor.insertText('78')
       atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
       expect(goToLine.panel.isVisible()).toBeFalsy()
-      expect(editor.getCursorBufferPosition()).toEqual([70, 0])
+      expect(editor.getCursorBufferPosition()).toEqual([77, 0])
     })
   })
 
@@ -105,7 +105,7 @@ describe('GoToLine', () => {
       goToLine.miniEditor.insertText('3:43')
       atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
       expect(goToLine.panel.isVisible()).toBeFalsy()
-      expect(editor.getCursorBufferPosition()).toEqual([2, 40])
+      expect(editor.getCursorBufferPosition()).toEqual([2, 39])
     })
   })
 
@@ -120,12 +120,12 @@ describe('GoToLine', () => {
 
     describe('when the line number entered is nested within foldes', () => {
       it('unfolds all folds containing the given row', () => {
-        expect(editor.indentationForBufferRow(6)).toEqual(3)
+        expect(editor.indentationForBufferRow(9)).toEqual(3)
         editor.foldAll()
-        expect(editor.screenRowForBufferRow(6)).toEqual(0)
-        goToLine.miniEditor.insertText('7')
+        expect(editor.screenRowForBufferRow(9)).toEqual(0)
+        goToLine.miniEditor.insertText('10')
         atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
-        expect(editor.getCursorBufferPosition()).toEqual([6, 6])
+        expect(editor.getCursorBufferPosition()).toEqual([9, 6])
       })
     })
   })
