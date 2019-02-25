@@ -22,7 +22,7 @@ describe('git-diff:toggle-diff-list', () => {
 
     runs(() => {
       editor = atom.workspace.getActiveTextEditor()
-      editor.setCursorBufferPosition([4, 29])
+      editor.setCursorBufferPosition([3, 28])
       editor.insertText('a')
       atom.commands.dispatch(editor.getElement(), 'git-diff:toggle-diff-list')
     })
@@ -35,7 +35,7 @@ describe('git-diff:toggle-diff-list', () => {
 
   it('shows a list of all diff hunks', () => {
     diffListView = document.querySelector('.diff-list-view ol')
-    expect(diffListView.textContent).toBe('while(items.length > 0) {a-5,1 +5,1')
+    expect(diffListView.textContent).toBe('var pivot = items.shift(a)-4,1 +4,1')
   })
 
   it('moves the cursor to the selected hunk', () => {
@@ -44,6 +44,6 @@ describe('git-diff:toggle-diff-list', () => {
       document.querySelector('.diff-list-view'),
       'core:confirm'
     )
-    expect(editor.getCursorBufferPosition()).toEqual([4, 4])
+    expect(editor.getCursorBufferPosition()).toEqual([3, 4])
   })
 })

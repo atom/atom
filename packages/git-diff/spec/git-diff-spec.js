@@ -156,13 +156,13 @@ describe('GitDiff package', () => {
   describe('move-to-next-diff/move-to-previous-diff events', () => {
     it('moves the cursor to first character of the next/previous diff line', () => {
       editor.insertText('a')
-      editor.setCursorBufferPosition([5])
+      editor.setCursorBufferPosition([9])
       editor.deleteLine()
       advanceClock(editor.getBuffer().stoppedChangingDelay)
 
       editor.setCursorBufferPosition([0])
       atom.commands.dispatch(editorElement, 'git-diff:move-to-next-diff')
-      expect(editor.getCursorBufferPosition()).toEqual([4, 4])
+      expect(editor.getCursorBufferPosition()).toEqual([8, 4])
 
       atom.commands.dispatch(editorElement, 'git-diff:move-to-previous-diff')
       expect(editor.getCursorBufferPosition()).toEqual([0, 0])
@@ -170,19 +170,19 @@ describe('GitDiff package', () => {
 
     it('wraps around to the first/last diff in the file', () => {
       editor.insertText('a')
-      editor.setCursorBufferPosition([5])
+      editor.setCursorBufferPosition([9])
       editor.deleteLine()
       advanceClock(editor.getBuffer().stoppedChangingDelay)
 
       editor.setCursorBufferPosition([0])
       atom.commands.dispatch(editorElement, 'git-diff:move-to-next-diff')
-      expect(editor.getCursorBufferPosition()).toEqual([4, 4])
+      expect(editor.getCursorBufferPosition()).toEqual([8, 4])
 
       atom.commands.dispatch(editorElement, 'git-diff:move-to-next-diff')
       expect(editor.getCursorBufferPosition()).toEqual([0, 0])
 
       atom.commands.dispatch(editorElement, 'git-diff:move-to-previous-diff')
-      expect(editor.getCursorBufferPosition()).toEqual([4, 4])
+      expect(editor.getCursorBufferPosition()).toEqual([8, 4])
     })
 
     describe('when the wrapAroundOnMoveToDiff config option is false', () => {
@@ -192,16 +192,16 @@ describe('GitDiff package', () => {
 
       it('does not wraps around to the first/last diff in the file', () => {
         editor.insertText('a')
-        editor.setCursorBufferPosition([5])
+        editor.setCursorBufferPosition([9])
         editor.deleteLine()
         advanceClock(editor.getBuffer().stoppedChangingDelay)
 
         editor.setCursorBufferPosition([0])
         atom.commands.dispatch(editorElement, 'git-diff:move-to-next-diff')
-        expect(editor.getCursorBufferPosition()).toEqual([4, 4])
+        expect(editor.getCursorBufferPosition()).toEqual([8, 4])
 
         atom.commands.dispatch(editorElement, 'git-diff:move-to-next-diff')
-        expect(editor.getCursorBufferPosition()).toEqual([4, 4])
+        expect(editor.getCursorBufferPosition()).toEqual([8, 4])
 
         atom.commands.dispatch(editorElement, 'git-diff:move-to-previous-diff')
         expect(editor.getCursorBufferPosition()).toEqual([0, 0])
