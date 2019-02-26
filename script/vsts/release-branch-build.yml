@@ -1,6 +1,7 @@
 trigger:
 - master
 - 1.* # VSTS only supports wildcards at the end
+- electron-*
 
 resources:
   containers:

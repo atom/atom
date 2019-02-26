@@ -1,4 +1,8 @@
 (function () {
+  // Eagerly require cached-run-in-this-context to prevent a circular require
+  // when using `NativeCompileCache` for the first time.
+  require('cached-run-in-this-context')
+
   const electron = require('electron')
   const path = require('path')
   const Module = require('module')

@@ -1,7 +1,6 @@
 DecorationManager = require '../src/decoration-manager'
 TextEditor = require '../src/text-editor'
 
-# Tests crash the renderer process on Electron 3.0, disabling for now.
 describe "DecorationManager", ->
   [decorationManager, buffer, editor, markerLayer1, markerLayer2] = []
 
