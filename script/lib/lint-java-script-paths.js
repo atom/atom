@@ -25,7 +25,7 @@ module.exports = async function () {
   ])
 
   const paths = includePaths.filter(
-    myPath => excludePaths.indexOf(myPath) === -1
+    myPath => !excludePaths.includes(myPath)
   )
 
   return new Promise((resolve, reject) => {
