@@ -63,7 +63,7 @@
     "fs-plus": "^3.0.1",
     "fstream": "0.1.24",
     "fuzzaldrin": "^2.1",
-    "fuzzy-finder": "https://www.atom.io/api/packages/fuzzy-finder/versions/1.9.1/tarball",
+    "fuzzy-finder": "https://www.atom.io/api/packages/fuzzy-finder/versions/1.9.2/tarball",
     "git-diff": "file:packages/git-diff",
     "git-utils": "5.2.1",
     "github": "https://www.atom.io/api/packages/github/versions/0.26.0/tarball",
