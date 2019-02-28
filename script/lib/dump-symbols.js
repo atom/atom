@@ -35,7 +35,7 @@ function dumpSymbol (binaryPath) {
           const symbolDirPath = path.join(CONFIG.symbolsPath, filename, moduleLine[1])
           const symbolFilePath = path.join(symbolDirPath, `${filename}.sym`)
           fs.mkdirpSync(symbolDirPath)
-          fs.writeFileSync(symbolFilePath)
+          fs.writeFileSync(symbolFilePath, content)
           resolve()
         }
       }

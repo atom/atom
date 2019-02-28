@@ -20,7 +20,7 @@ class FileSystemBlobStore {
 
   reset () {
     this.inMemoryBlobs = new Map()
-    this.storedBlob = Buffer.alloc(0)
+    this.storedBlob = new Buffer(0)
     this.storedBlobMap = {}
     this.usedKeys = new Set()
   }

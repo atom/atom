@@ -1,4 +1,9 @@
-const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise} = require('./helpers/async-spec-helpers') // eslint-disable-line no-unused-vars
+const {
+  it,
+  beforeEach,
+  afterEach,
+  conditionPromise
+} = require('./helpers/async-spec-helpers')
 const MockUpdater = require('./mocks/updater')
 
 describe('the status bar', () => {
@@ -11,7 +16,7 @@ describe('the status bar', () => {
     spyOn(window.localStorage, 'setItem').andCallFake((key, value) => {
       storage[key] = value
     })
-    spyOn(window.localStorage, 'getItem').andCallFake((key) => {
+    spyOn(window.localStorage, 'getItem').andCallFake(key => {
       return storage[key]
     })
     spyOn(atom, 'getVersion').andCallFake(() => {

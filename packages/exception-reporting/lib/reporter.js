@@ -1,6 +1,5 @@
 /** @babel */
 
-import _ from 'underscore-plus'
 import os from 'os'
 import stackTrace from 'stack-trace'
 import fs from 'fs-plus'
@@ -13,9 +12,15 @@ const StackTraceCache = new WeakMap()
 export default class Reporter {
   constructor (params = {}) {
     this.request = params.request || window.fetch
-    this.alwaysReport = params.hasOwnProperty('alwaysReport') ? params.alwaysReport : false
-    this.reportPreviousErrors = params.hasOwnProperty('reportPreviousErrors') ? params.reportPreviousErrors : true
-    this.resourcePath = this.normalizePath(params.resourcePath || process.resourcesPath)
+    this.alwaysReport = params.hasOwnProperty('alwaysReport')
+      ? params.alwaysReport
+      : false
+    this.reportPreviousErrors = params.hasOwnProperty('reportPreviousErrors')
+      ? params.reportPreviousErrors
+      : true
+    this.resourcePath = this.normalizePath(
+      params.resourcePath || process.resourcesPath
+    )
     this.reportedErrors = []
     this.reportedAssertionFailures = []
   }
@@ -28,22 +33,24 @@ export default class Reporter {
         version: LIB_VERSION,
         url: 'https://www.atom.io'
       },
-      events: [{
-        payloadVersion: "2",
-        exceptions: [this.buildExceptionJSON(error, params.projectRoot)],
-        severity: params.severity,
-        user: {
-          id: params.userId
-        },
-        app: {
-          version: params.appVersion,
-          releaseStage: params.releaseStage
-        },
-        device: {
-          osVersion: params.osVersion
-        },
-        metaData: error.metadata
-      }]
+      events: [
+        {
+          payloadVersion: '2',
+          exceptions: [this.buildExceptionJSON(error, params.projectRoot)],
+          severity: params.severity,
+          user: {
+            id: params.userId
+          },
+          app: {
+            version: params.appVersion,
+            releaseStage: params.releaseStage
+          },
+          device: {
+            osVersion: params.osVersion
+          },
+          metaData: error.metadata
+        }
+      ]
     }
   }
 
@@ -59,7 +66,8 @@ export default class Reporter {
     return this.parseStackTrace(error).map(callSite => {
       return {
         file: this.scrubPath(callSite.getFileName()),
-        method: callSite.getMethodName() || callSite.getFunctionName() || "none",
+        method:
+          callSite.getMethodName() || callSite.getFunctionName() || 'none',
         lineNumber: callSite.getLineNumber(),
         columnNumber: callSite.getColumnNumber(),
         inProject: !/node_modules/.test(callSite.getFileName())
@@ -69,8 +77,8 @@ export default class Reporter {
 
   normalizePath (pathToNormalize) {
     return pathToNormalize
-      .replace('file:///', '')  // Sometimes it's a uri
-      .replace(/\\/g, '/')      // Unify path separators across Win/macOS/Linux
+      .replace('file:///', '') // Sometimes it's a uri
+      .replace(/\\/g, '/') // Unify path separators across Win/macOS/Linux
   }
 
   scrubPath (pathToScrub) {
@@ -96,17 +104,17 @@ export default class Reporter {
   }
 
   getReleaseChannel (version) {
-    return (version.indexOf('beta') > -1)
+    return version.indexOf('beta') > -1
       ? 'beta'
-      : (version.indexOf('dev') > -1)
-        ? 'dev'
-        : 'stable'
+      : version.indexOf('dev') > -1
+      ? 'dev'
+      : 'stable'
   }
 
   performRequest (json) {
     this.request.call(null, 'https://notify.bugsnag.com', {
       method: 'POST',
-      headers: new Headers({'Content-Type': 'application/json'}),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(json)
     })
   }
@@ -118,7 +126,10 @@ export default class Reporter {
 
     const topFrame = this.parseStackTrace(error)[0]
     const fileName = topFrame ? topFrame.getFileName() : null
-    return fileName && (this.isBundledFile(fileName) || this.isTeletypeFile(fileName))
+    return (
+      fileName &&
+      (this.isBundledFile(fileName) || this.isTeletypeFile(fileName))
+    )
   }
 
   parseStackTrace (error) {
@@ -169,21 +180,24 @@ export default class Reporter {
 
     notification = atom.notifications.addInfo(message, {
       detail: error.privateMetadataDescription,
-      description: "Are you willing to submit this information to a private server for debugging purposes?",
+      description:
+        'Are you willing to submit this information to a private server for debugging purposes?',
       dismissable: true,
       buttons: [
         {
-          text: "No",
+          text: 'No',
           onDidClick: reportWithoutPrivateMetadata
         },
         {
-          text: "Yes, Submit for Debugging",
+          text: 'Yes, Submit for Debugging',
           onDidClick: reportWithPrivateMetadata
         }
       ]
     })
 
-    dismissSubscription = notification.onDidDismiss(reportWithoutPrivateMetadata)
+    dismissSubscription = notification.onDidDismiss(
+      reportWithoutPrivateMetadata
+    )
   }
 
   addPackageMetadata (error) {
@@ -200,7 +214,9 @@ export default class Reporter {
         }
       }
 
-      if (error.metadata == null) { error.metadata = {} }
+      if (error.metadata == null) {
+        error.metadata = {}
+      }
       error.metadata.bundledPackages = bundledPackages
       error.metadata.userPackages = userPackages
     }
@@ -209,8 +225,12 @@ export default class Reporter {
   addPreviousErrorsMetadata (error) {
     if (!this.reportPreviousErrors) return
     if (!error.metadata) error.metadata = {}
-    error.metadata.previousErrors = this.reportedErrors.map(error => error.message)
-    error.metadata.previousAssertionFailures = this.reportedAssertionFailures.map(error => error.message)
+    error.metadata.previousErrors = this.reportedErrors.map(
+      error => error.message
+    )
+    error.metadata.previousAssertionFailures = this.reportedAssertionFailures.map(
+      error => error.message
+    )
   }
 
   reportUncaughtException (error) {
@@ -219,13 +239,20 @@ export default class Reporter {
     this.addPackageMetadata(error)
     this.addPreviousErrorsMetadata(error)
 
-    if ((error.privateMetadata != null) && (error.privateMetadataDescription != null)) {
-      this.requestPrivateMetadataConsent(error, "The Atom team would like to collect the following information to resolve this error:", error => this.reportUncaughtException(error))
+    if (
+      error.privateMetadata != null &&
+      error.privateMetadataDescription != null
+    ) {
+      this.requestPrivateMetadataConsent(
+        error,
+        'The Atom team would like to collect the following information to resolve this error:',
+        error => this.reportUncaughtException(error)
+      )
       return
     }
 
     let params = this.getDefaultNotificationParams()
-    params.severity = "error"
+    params.severity = 'error'
     this.performRequest(this.buildNotificationJSON(error, params))
     this.reportedErrors.push(error)
   }
@@ -236,13 +263,20 @@ export default class Reporter {
     this.addPackageMetadata(error)
     this.addPreviousErrorsMetadata(error)
 
-    if ((error.privateMetadata != null) && (error.privateMetadataDescription != null)) {
-      this.requestPrivateMetadataConsent(error, "The Atom team would like to collect some information to resolve an unexpected condition:", error => this.reportFailedAssertion(error))
+    if (
+      error.privateMetadata != null &&
+      error.privateMetadataDescription != null
+    ) {
+      this.requestPrivateMetadataConsent(
+        error,
+        'The Atom team would like to collect some information to resolve an unexpected condition:',
+        error => this.reportFailedAssertion(error)
+      )
       return
     }
 
     let params = this.getDefaultNotificationParams()
-    params.severity = "warning"
+    params.severity = 'warning'
     this.performRequest(this.buildNotificationJSON(error, params))
     this.reportedAssertionFailures.push(error)
   }
@@ -258,10 +292,11 @@ export default class Reporter {
 
   isTeletypeFile (fileName) {
     const teletypePath = atom.packages.resolvePackagePath('teletype')
-    return teletypePath && this.normalizePath(fileName).indexOf(teletypePath) === 0
+    return (
+      teletypePath && this.normalizePath(fileName).indexOf(teletypePath) === 0
+    )
   }
 }
-
 
 Reporter.API_KEY = API_KEY
 Reporter.LIB_VERSION = LIB_VERSION
