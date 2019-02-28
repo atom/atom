@@ -2,7 +2,6 @@
 
 const Grim = require('grim')
 
-import { it } from './async-spec-helpers'
 import etch from 'etch'
 
 const getNextUpdatePromise = () => etch.getScheduler().nextUpdatePromise

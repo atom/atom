@@ -3,12 +3,7 @@ const { Emitter } = require('event-kit')
 const Grim = require('grim')
 const Pane = require('../src/pane')
 const PaneContainer = require('../src/pane-container')
-const {
-  it,
-  beforeEach,
-  conditionPromise,
-  timeoutPromise
-} = require('./async-spec-helpers')
+const { conditionPromise, timeoutPromise } = require('./async-spec-helpers')
 
 describe('Pane', () => {
   let confirm, showSaveDialog, deserializerDisposable

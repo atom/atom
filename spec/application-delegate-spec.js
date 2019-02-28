@@ -1,6 +1,5 @@
 /** @babel */
 
-import { it } from './async-spec-helpers'
 import ApplicationDelegate from '../src/application-delegate'
 
 describe('ApplicationDelegate', function () {

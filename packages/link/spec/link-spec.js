@@ -1,7 +1,5 @@
 const { shell } = require('electron')
 
-const { it, fit, ffit, afterEach, beforeEach } = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
-
 describe('link package', () => {
   beforeEach(async () => {
     await atom.packages.activatePackage('language-gfm')

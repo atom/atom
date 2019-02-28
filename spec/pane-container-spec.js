@@ -1,9 +1,4 @@
 const PaneContainer = require('../src/pane-container')
-const {
-  it,
-
-  beforeEach
-} = require('./async-spec-helpers')
 
 describe('PaneContainer', () => {
   let confirm, params

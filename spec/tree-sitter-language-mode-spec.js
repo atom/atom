@@ -1,7 +1,5 @@
 /* eslint-disable no-template-curly-in-string */
 
-const { it, beforeEach, afterEach } = require('./async-spec-helpers')
-
 const fs = require('fs')
 const path = require('path')
 const dedent = require('dedent')

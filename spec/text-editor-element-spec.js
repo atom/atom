@@ -1,8 +1,3 @@
-const {
-  it,
-
-  beforeEach
-} = require('./async-spec-helpers')
 const TextEditor = require('../src/text-editor')
 const TextEditorElement = require('../src/text-editor-element')
 

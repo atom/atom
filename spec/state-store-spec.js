@@ -1,5 +1,4 @@
 /** @babel */
-import { it } from './async-spec-helpers'
 
 const StateStore = require('../src/state-store.js')
 

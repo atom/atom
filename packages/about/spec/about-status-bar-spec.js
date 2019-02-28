@@ -1,9 +1,4 @@
-const {
-  it,
-  beforeEach,
-  afterEach,
-  conditionPromise
-} = require('./helpers/async-spec-helpers')
+const { conditionPromise } = require('./helpers/async-spec-helpers')
 const MockUpdater = require('./mocks/updater')
 
 describe('the status bar', () => {

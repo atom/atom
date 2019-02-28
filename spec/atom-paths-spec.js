@@ -1,6 +1,5 @@
 /** @babel */
 
-import { it, beforeEach, afterEach } from './async-spec-helpers'
 import { app } from 'remote'
 import atomPaths from '../src/atom-paths'
 import fs from 'fs-plus'

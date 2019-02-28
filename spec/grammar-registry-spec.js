@@ -1,5 +1,3 @@
-const { it, beforeEach, afterEach } = require('./async-spec-helpers')
-
 const dedent = require('dedent')
 const path = require('path')
 const fs = require('fs-plus')

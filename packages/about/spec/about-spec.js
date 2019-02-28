@@ -1,5 +1,3 @@
-const { it, beforeEach } = require('./helpers/async-spec-helpers')
-
 describe('About', () => {
   let workspaceElement
 

@@ -1,6 +1,6 @@
 /** @babel */
 
-import { it, beforeEach, afterEach, promisifySome } from './async-spec-helpers'
+import { promisifySome } from './async-spec-helpers'
 import tempCb from 'temp'
 import fsCb from 'fs-plus'
 import path from 'path'

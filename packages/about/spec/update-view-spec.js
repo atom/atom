@@ -1,5 +1,4 @@
 const { shell } = require('electron')
-const { it, beforeEach, afterEach } = require('./helpers/async-spec-helpers')
 const main = require('../lib/main')
 const AboutView = require('../lib/components/about-view')
 const UpdateView = require('../lib/components/update-view')

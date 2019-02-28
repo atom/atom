@@ -1,7 +1,5 @@
 /** @babel */
 
-import { it, beforeEach } from './async-spec-helpers'
-
 import path from 'path'
 import { Emitter } from 'event-kit'
 
