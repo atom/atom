@@ -4,7 +4,7 @@
 import etch from 'etch'
 
 export default class StatusIconComponent {
-  constructor ({count}) {
+  constructor ({ count }) {
     this.count = count
     etch.initialize(this)
   }
@@ -14,7 +14,7 @@ export default class StatusIconComponent {
   render () {
     return (
       <div className='incompatible-packages-status inline-block text text-error'>
-        <span className='icon icon-bug'></span>
+        <span className='icon icon-bug' />
         <span className='incompatible-packages-count'>{this.count}</span>
       </div>
     )

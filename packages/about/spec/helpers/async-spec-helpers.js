@@ -1,7 +1,7 @@
 /** @babel */
 
-const {now} = Date
-const {setTimeout} = global
+const { now } = Date
+const { setTimeout } = global
 
 export function beforeEach (fn) {
   global.beforeEach(function () {
@@ -21,7 +21,7 @@ export function afterEach (fn) {
   })
 }
 
-['it', 'fit', 'ffit', 'fffit'].forEach(function (name) {
+;['it', 'fit', 'ffit', 'fffit'].forEach(function (name) {
   module.exports[name] = function (description, fn) {
     global[name](description, function () {
       const result = fn()

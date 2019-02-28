@@ -84,17 +84,17 @@ class Task
 
   # Routes messages from the child to the appropriate event.
   handleEvents: ->
-    @childProcess.removeAllListeners('message')
+    @childProcess.removeAllListeners()
     @childProcess.on 'message', ({event, args}) =>
       @emitter.emit(event, args) if @childProcess?
 
     # Catch the errors that happened before task-bootstrap.
     if @childProcess.stdout?
-      @childProcess.stdout.removeAllListeners('data')
+      @childProcess.stdout.removeAllListeners()
       @childProcess.stdout.on 'data', (data) -> console.log data.toString()
 
     if @childProcess.stderr?
-      @childProcess.stderr.removeAllListeners('data')
+      @childProcess.stderr.removeAllListeners()
       @childProcess.stderr.on 'data', (data) -> console.error data.toString()
 
   # Public: Starts the task.
@@ -147,9 +147,9 @@ class Task
   terminate: ->
     return false unless @childProcess?
 
-    @childProcess.removeAllListeners('message')
-    @childProcess.stdout?.removeAllListeners('data')
-    @childProcess.stderr?.removeAllListeners('data')
+    @childProcess.removeAllListeners()
+    @childProcess.stdout?.removeAllListeners()
+    @childProcess.stderr?.removeAllListeners()
     @childProcess.kill()
     @childProcess = null
 

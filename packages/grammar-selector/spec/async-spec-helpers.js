@@ -15,7 +15,6 @@ exports.afterEach = function afterEach (fn) {
     }
   })
 }
-
 ;['it', 'fit', 'ffit', 'fffit'].forEach(function (name) {
   exports[name] = function (description, fn) {
     if (fn === undefined) {
@@ -33,8 +32,8 @@ exports.afterEach = function afterEach (fn) {
 })
 
 function waitsForPromise (message, promise) {
-  global.waitsFor(message, (done) => {
-    promise.then(done, (error) => {
+  global.waitsFor(message, done => {
+    promise.then(done, error => {
       jasmine.getEnv().currentSpec.fail(error)
       done()
     })
