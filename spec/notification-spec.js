@@ -20,8 +20,7 @@ describe('Notification', () => {
     it('returns a Date object', () => {
       const notification = new Notification('error', 'message!')
       expect(notification.getTimestamp() instanceof Date).toBe(true)
-    })
-  )
+    }))
 
   describe('::getIcon()', () => {
     it('returns a default when no icon specified', () => {
@@ -30,7 +29,9 @@ describe('Notification', () => {
     })
 
     it('returns the icon specified', () => {
-      const notification = new Notification('error', 'message!', {icon: 'my-icon'})
+      const notification = new Notification('error', 'message!', {
+        icon: 'my-icon'
+      })
       expect(notification.getIcon()).toBe('my-icon')
     })
   })
@@ -39,7 +40,9 @@ describe('Notification', () => {
     describe('when the notfication is dismissable', () =>
       it('calls a callback when the notification is dismissed', () => {
         const dismissedSpy = jasmine.createSpy()
-        const notification = new Notification('error', 'message', {dismissable: true})
+        const notification = new Notification('error', 'message', {
+          dismissable: true
+        })
         notification.onDidDismiss(dismissedSpy)
 
         expect(notification.isDismissable()).toBe(true)
@@ -49,8 +52,7 @@ describe('Notification', () => {
 
         expect(dismissedSpy).toHaveBeenCalled()
         expect(notification.isDismissed()).toBe(true)
-      })
-    )
+      }))
 
     describe('when the notfication is not dismissable', () =>
       it('does nothing when ::dismiss() is called', () => {
@@ -65,7 +67,6 @@ describe('Notification', () => {
 
         expect(dismissedSpy).not.toHaveBeenCalled()
         expect(notification.isDismissed()).toBe(true)
-      })
-    )
+      }))
   })
 })
