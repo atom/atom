@@ -10,12 +10,7 @@ const _ = require('underscore-plus')
 const fstream = require('fstream')
 const fs = require('fs-plus')
 const AtomEnvironment = require('../src/atom-environment')
-const {
-  it,
-  beforeEach,
-  afterEach,
-  conditionPromise
-} = require('./async-spec-helpers')
+const { conditionPromise } = require('./async-spec-helpers')
 
 describe('Workspace', () => {
   let workspace

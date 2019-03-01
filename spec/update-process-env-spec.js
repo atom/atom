@@ -1,7 +1,5 @@
 /** @babel */
-/* eslint-env jasmine */
 
-import { it, beforeEach, afterEach } from './async-spec-helpers'
 import path from 'path'
 import childProcess from 'child_process'
 import {

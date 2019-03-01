@@ -1,5 +1,3 @@
-const { it, beforeEach, afterEach } = require('./async-spec-helpers')
-
 const { HistoryManager, HistoryProject } = require('../src/history-manager')
 const StateStore = require('../src/state-store')
 

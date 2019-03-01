@@ -4,7 +4,6 @@ const TextBuffer = require('text-buffer')
 const { Point } = TextBuffer
 const _ = require('underscore-plus')
 const dedent = require('dedent')
-const { it, beforeEach, afterEach } = require('./async-spec-helpers')
 
 describe('TextMateLanguageMode', () => {
   let languageMode, buffer, config

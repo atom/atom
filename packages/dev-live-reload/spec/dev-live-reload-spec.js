@@ -1,5 +1,3 @@
-const { it, fit, ffit, afterEach, beforeEach } = require('./async-spec-helpers') // eslint-disable-line no-unused-vars
-
 describe('Dev Live Reload', () => {
   describe('package activation', () => {
     let [pack, mainModule] = []

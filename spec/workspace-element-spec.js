@@ -5,7 +5,6 @@ const etch = require('etch')
 const path = require('path')
 const temp = require('temp').track()
 const { Disposable } = require('event-kit')
-const { it, beforeEach, afterEach } = require('./async-spec-helpers')
 
 const getNextUpdatePromise = () => etch.getScheduler().nextUpdatePromise
 

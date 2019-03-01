@@ -1,6 +1,5 @@
 const path = require('path')
 const SelectListView = require('atom-select-list')
-const { it, fit, ffit, beforeEach, afterEach } = require('./async-spec-helpers') // eslint-disable-line
 
 describe('GrammarSelector', () => {
   let [editor, textGrammar, jsGrammar] = []

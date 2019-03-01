@@ -2,8 +2,6 @@
 
 import url from 'url'
 
-import { it } from './async-spec-helpers'
-
 import URIHandlerRegistry from '../src/uri-handler-registry'
 
 describe('URIHandlerRegistry', () => {

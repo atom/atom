@@ -1,23 +1,21 @@
 /** @babel */
 
-import { it, beforeEach, afterEach, promisifySome } from './async-spec-helpers'
-import tempCb from 'temp'
-import fsCb from 'fs-plus'
+import temp from 'temp'
+import fs from 'fs-plus'
 import path from 'path'
+import { promisify } from 'util'
 
 import { CompositeDisposable } from 'event-kit'
 import { watchPath, stopAllWatchers } from '../src/path-watcher'
 
-tempCb.track()
+temp.track()
 
-const fs = promisifySome(fsCb, [
-  'writeFile',
-  'mkdir',
-  'symlink',
-  'appendFile',
-  'realpath'
-])
-const temp = promisifySome(tempCb, ['mkdir'])
+const writeFile = promisify(fs.writeFile)
+const mkdir = promisify(fs.mkdir)
+const appendFile = promisify(fs.appendFile)
+const realpath = promisify(fs.realpath)
+
+const tempMkdir = promisify(temp.mkdir)
 
 describe('watchPath', function () {
   let subs
@@ -55,14 +53,14 @@ describe('watchPath', function () {
 
   describe('watchPath()', function () {
     it('resolves the returned promise when the watcher begins listening', async function () {
-      const rootDir = await temp.mkdir('atom-fsmanager-test-')
+      const rootDir = await tempMkdir('atom-fsmanager-test-')
 
       const watcher = await watchPath(rootDir, {}, () => {})
       expect(watcher.constructor.name).toBe('PathWatcher')
     })
 
     it('reuses an existing native watcher and resolves getStartPromise immediately if attached to a running watcher', async function () {
-      const rootDir = await temp.mkdir('atom-fsmanager-test-')
+      const rootDir = await tempMkdir('atom-fsmanager-test-')
 
       const watcher0 = await watchPath(rootDir, {}, () => {})
       const watcher1 = await watchPath(rootDir, {}, () => {})
@@ -71,7 +69,7 @@ describe('watchPath', function () {
     })
 
     it("reuses existing native watchers even while they're still starting", async function () {
-      const rootDir = await temp.mkdir('atom-fsmanager-test-')
+      const rootDir = await tempMkdir('atom-fsmanager-test-')
 
       const [watcher0, watcher1] = await Promise.all([
         watchPath(rootDir, {}, () => {}),
@@ -81,7 +79,7 @@ describe('watchPath', function () {
     })
 
     it("doesn't attach new watchers to a native watcher that's stopping", async function () {
-      const rootDir = await temp.mkdir('atom-fsmanager-test-')
+      const rootDir = await tempMkdir('atom-fsmanager-test-')
 
       const watcher0 = await watchPath(rootDir, {}, () => {})
       const native0 = watcher0.native
@@ -93,12 +91,12 @@ describe('watchPath', function () {
     })
 
     it('reuses an existing native watcher on a parent directory and filters events', async function () {
-      const rootDir = await temp.mkdir('atom-fsmanager-test-').then(fs.realpath)
+      const rootDir = await tempMkdir('atom-fsmanager-test-').then(realpath)
       const rootFile = path.join(rootDir, 'rootfile.txt')
       const subDir = path.join(rootDir, 'subdir')
       const subFile = path.join(subDir, 'subfile.txt')
 
-      await fs.mkdir(subDir)
+      await mkdir(subDir)
 
       // Keep the watchers alive with an undisposed subscription
       const rootWatcher = await watchPath(rootDir, {}, () => {})
@@ -111,18 +109,17 @@ describe('watchPath', function () {
         waitForChanges(rootWatcher, subFile),
         waitForChanges(childWatcher, subFile)
       ])
-      await fs.writeFile(subFile, 'subfile\n', { encoding: 'utf8' })
+      await writeFile(subFile, 'subfile\n', { encoding: 'utf8' })
       await firstChanges
 
       const nextRootEvent = waitForChanges(rootWatcher, rootFile)
-      await fs.writeFile(rootFile, 'rootfile\n', { encoding: 'utf8' })
+      await writeFile(rootFile, 'rootfile\n', { encoding: 'utf8' })
       await nextRootEvent
     })
 
     it('adopts existing child watchers and filters events appropriately to them', async function () {
-      const parentDir = await temp
-        .mkdir('atom-fsmanager-test-')
-        .then(fs.realpath)
+      const parentDir = await tempMkdir('atom-fsmanager-test-')
+        .then(realpath)
 
       // Create the directory tree
       const rootFile = path.join(parentDir, 'rootfile.txt')
@@ -131,12 +128,12 @@ describe('watchPath', function () {
       const subDir1 = path.join(parentDir, 'subdir1')
       const subFile1 = path.join(subDir1, 'subfile1.txt')
 
-      await fs.mkdir(subDir0)
-      await fs.mkdir(subDir1)
+      await mkdir(subDir0)
+      await mkdir(subDir1)
       await Promise.all([
-        fs.writeFile(rootFile, 'rootfile\n', { encoding: 'utf8' }),
-        fs.writeFile(subFile0, 'subfile 0\n', { encoding: 'utf8' }),
-        fs.writeFile(subFile1, 'subfile 1\n', { encoding: 'utf8' })
+        writeFile(rootFile, 'rootfile\n', { encoding: 'utf8' }),
+        writeFile(subFile0, 'subfile 0\n', { encoding: 'utf8' }),
+        writeFile(subFile1, 'subfile 1\n', { encoding: 'utf8' })
       ])
 
       // Begin the child watchers and keep them alive
@@ -162,9 +159,9 @@ describe('watchPath', function () {
 
       // Ensure events are filtered correctly
       await Promise.all([
-        fs.appendFile(rootFile, 'change\n', { encoding: 'utf8' }),
-        fs.appendFile(subFile0, 'change\n', { encoding: 'utf8' }),
-        fs.appendFile(subFile1, 'change\n', { encoding: 'utf8' })
+        appendFile(rootFile, 'change\n', { encoding: 'utf8' }),
+        appendFile(subFile0, 'change\n', { encoding: 'utf8' }),
+        appendFile(subFile1, 'change\n', { encoding: 'utf8' })
       ])
 
       await Promise.all([

@@ -2,7 +2,6 @@ const TextEditorRegistry = require('../src/text-editor-registry')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
 const { Point, Range } = TextBuffer
-const { it } = require('./async-spec-helpers')
 const dedent = require('dedent')
 
 describe('TextEditorRegistry', function () {

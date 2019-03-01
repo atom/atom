@@ -1,6 +1,5 @@
 /** @babel */
 
-import { it, beforeEach } from './async-spec-helpers'
 import { Disposable } from 'event-kit'
 
 const ReopenProjectMenuManager = require('../src/reopen-project-menu-manager')

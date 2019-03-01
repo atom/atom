@@ -2,12 +2,7 @@ const path = require('path')
 
 const UIWatcher = require('../lib/ui-watcher')
 
-const {
-  it,
-  afterEach,
-  beforeEach,
-  conditionPromise
-} = require('./async-spec-helpers')
+const { conditionPromise } = require('./async-spec-helpers')
 
 describe('UIWatcher', () => {
   let uiWatcher = null

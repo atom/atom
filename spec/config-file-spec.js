@@ -1,9 +1,3 @@
-const {
-  it,
-
-  beforeEach,
-  afterEach
-} = require('./async-spec-helpers')
 const fs = require('fs-plus')
 const path = require('path')
 const temp = require('temp').track()

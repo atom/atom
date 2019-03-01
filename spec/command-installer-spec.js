@@ -1,11 +1,6 @@
 const path = require('path')
 const fs = require('fs-plus')
 const temp = require('temp').track()
-const {
-  it,
-  beforeEach,
-  afterEach
-} = require('./async-spec-helpers')
 const CommandInstaller = require('../src/command-installer')
 
 describe('CommandInstaller on #darwin', () => {
