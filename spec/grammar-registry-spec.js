@@ -852,7 +852,7 @@ describe('GrammarRegistry', () => {
 
     it('executes the foreach callback on both Tree-sitter and TextMate grammars', async () => {
       const numAllGrammars = atom.grammars.getGrammars().length
-      let i = 0;
+      let i = 0
       atom.grammars.forEachGrammar(() => i++)
       expect(i).toBe(numAllGrammars)
     })
