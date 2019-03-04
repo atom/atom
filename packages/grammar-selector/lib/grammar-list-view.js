@@ -96,7 +96,7 @@ module.exports = class GrammarListView {
         return grammar !== atom.grammars.nullGrammar && grammar.name
       })
 
-      if (atom.config.get("grammar-selector.hideDuplicateTextMateGrammars")) {
+      if (atom.config.get('grammar-selector.hideDuplicateTextMateGrammars')) {
         const oldGrammars = grammars
         grammars = []
         const blacklist = new Set()
@@ -131,7 +131,7 @@ module.exports = class GrammarListView {
 }
 
 function isTreeSitter (grammar) {
-  return grammar.constructor.name === "TreeSitterGrammar"
+  return grammar.constructor.name === 'TreeSitterGrammar'
 }
 
 function compareGrammarType (a, b) {

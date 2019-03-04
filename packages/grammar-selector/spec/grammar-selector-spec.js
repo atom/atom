@@ -36,7 +36,7 @@ describe('GrammarSelector', () => {
       expect(grammarView.querySelectorAll('li')[0].textContent).toBe('Auto Detect')
       expect(grammarView.textContent.includes('source.a')).toBe(false)
       grammarView.querySelectorAll('li').forEach(li => expect(li.textContent).not.toBe(atom.grammars.nullGrammar.name))
-      expect(grammarView.textContent.includes("Tree-sitter")).toBe(true) // check we are showing and labelling Tree-sitter grammars
+      expect(grammarView.textContent.includes('Tree-sitter')).toBe(true) // check we are showing and labelling Tree-sitter grammars
     })
   )
 
@@ -185,8 +185,8 @@ describe('GrammarSelector', () => {
         // check the seen JS is actually the Tree-sitter one
         const list = atom.workspace.getModalPanels()[0].item
         for (const item of list.items) {
-          if (item.name === "JavaScript") {
-            expect(item.constructor.name === "TreeSitterGrammar")
+          if (item.name === 'JavaScript') {
+            expect(item.constructor.name === 'TreeSitterGrammar')
           }
         }
       })
@@ -197,7 +197,7 @@ describe('GrammarSelector', () => {
         let jsCount = 0
         grammarView.element.querySelectorAll('li').forEach(li => {
           const name = li.getAttribute('data-grammar')
-          if (name === "JavaScript") jsCount++
+          if (name === 'JavaScript') jsCount++
         })
         expect(jsCount).toBe(2)
       })
@@ -209,7 +209,7 @@ describe('GrammarSelector', () => {
         const elements = grammarView.element.querySelectorAll('li')
         const listItems = atom.workspace.getModalPanels()[0].item.items
         for (let i = 0; i < listItems.length; i++) {
-          if (listItems[i].constructor.name === "TreeSitterGrammar") {
+          if (listItems[i].constructor.name === 'TreeSitterGrammar') {
             expect(elements[i].childNodes[1].childNodes[0].className.startsWith('grammar-selector-parser')).toBe(true)
           }
         }
