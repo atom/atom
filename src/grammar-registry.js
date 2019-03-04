@@ -146,15 +146,17 @@ class GrammarRegistry {
   // one that would otherwise be selected for it.
   //
   // * `buffer` The {TextBuffer} whose grammar will be set.
-  // * `grammar` The {Grammar} of the desired languageMode.
+  // * `grammar` The desired {Grammar}.
   //
   // Returns a {Boolean} that indicates whether the assignment was sucessful
   assignGrammar (buffer, grammar) {
-    if (buffer.getBuffer) buffer = buffer.getBuffer()
     if (!grammar) return false
+    if (buffer.getBuffer) buffer = buffer.getBuffer()
     this.languageOverridesByBufferId.set(buffer.id, grammar.scopeName || null)
     this.grammarScoresByBuffer.set(buffer, null)
-    buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
+    if (grammar !== buffer.getLanguageMode().grammar) {
+      buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
+    }
     return true
   }
 
@@ -319,11 +321,7 @@ class GrammarRegistry {
   }
 
   forEachGrammar (callback) {
-    this.textmateRegistry.grammars.forEach(callback)
-    for (const grammarId in this.treeSitterGrammarsById) {
-      const grammar = this.treeSitterGrammarsById[grammarId]
-      if (grammar.scopeName) callback(grammar)
-    }
+    this.grammars.forEach(callback)
   }
 
   grammarForId (languageId) {
@@ -562,7 +560,7 @@ class GrammarRegistry {
     }
   }
 
-  // Extended: Get all the grammars in this registry. PLOL
+  // Extended: Get all the grammars in this registry.
   //
   // * `options` (optional) {Object}
   //   * `textMateOnly` (optional) {Boolean} Set to ignore
