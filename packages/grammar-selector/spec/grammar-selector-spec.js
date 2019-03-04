@@ -1,6 +1,5 @@
 const path = require('path')
 const SelectListView = require('atom-select-list')
-const {it, fit, ffit, beforeEach, afterEach} = require('./async-spec-helpers') // eslint-disable-line
 
 describe('GrammarSelector', () => {
   let [editor, textGrammar, jsGrammar] = []
@@ -14,7 +13,9 @@ describe('GrammarSelector', () => {
     await atom.packages.activatePackage('grammar-selector')
     await atom.packages.activatePackage('language-text')
     await atom.packages.activatePackage('language-javascript')
-    await atom.packages.activatePackage(path.join(__dirname, 'fixtures', 'language-with-no-name'))
+    await atom.packages.activatePackage(
+      path.join(__dirname, 'fixtures', 'language-with-no-name')
+    )
 
     editor = await atom.workspace.open('sample.js')
 
@@ -44,8 +45,7 @@ describe('GrammarSelector', () => {
       const grammarView = await getGrammarView(editor)
       grammarView.props.didConfirmSelection(textGrammar)
       expect(editor.getGrammar()).toBe(textGrammar)
-    })
-  )
+    }))
 
   describe('when auto-detect is selected', () =>
     it('restores the auto-detected grammar on the editor', async () => {
@@ -56,8 +56,7 @@ describe('GrammarSelector', () => {
       grammarView = await getGrammarView(editor)
       grammarView.props.didConfirmSelection(grammarView.items[0])
       expect(editor.getGrammar()).toBe(jsGrammar)
-    })
-  )
+    }))
 
   describe("when the editor's current grammar is the null grammar", () =>
     it('displays Auto Detect as the selected grammar', async () => {
@@ -75,8 +74,7 @@ describe('GrammarSelector', () => {
       const grammarView = await getGrammarView(editor)
       grammarView.props.didConfirmSelection(jsGrammar)
       expect(editor.getGrammar()).toBe(jsGrammar)
-    })
-  )
+    }))
 
   describe('Status bar grammar label', () => {
     let [grammarStatus, grammarTile, statusBar] = []
@@ -95,7 +93,9 @@ describe('GrammarSelector', () => {
 
     it('displays the name of the current grammar', () => {
       expect(grammarStatus.querySelector('a').textContent).toBe('JavaScript')
-      expect(getTooltipText(grammarStatus)).toBe('File uses the JavaScript grammar')
+      expect(getTooltipText(grammarStatus)).toBe(
+        'File uses the JavaScript grammar'
+      )
     })
 
     it('displays Plain Text when the current grammar is the null grammar', async () => {
@@ -104,7 +104,9 @@ describe('GrammarSelector', () => {
 
       expect(grammarStatus.querySelector('a').textContent).toBe('Plain Text')
       expect(grammarStatus).toBeVisible()
-      expect(getTooltipText(grammarStatus)).toBe('File uses the Plain Text grammar')
+      expect(getTooltipText(grammarStatus)).toBe(
+        'File uses the Plain Text grammar'
+      )
 
       editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
       await atom.views.getNextUpdatePromise()
@@ -123,20 +125,31 @@ describe('GrammarSelector', () => {
 
     describe('when the grammar-selector.showOnRightSideOfStatusBar setting changes', () =>
       it('moves the item to the preferred side of the status bar', () => {
-        expect(statusBar.getLeftTiles().map(tile => tile.getItem())).toContain(grammarStatus)
-        expect(statusBar.getRightTiles().map(tile => tile.getItem())).not.toContain(grammarStatus)
+        expect(statusBar.getLeftTiles().map(tile => tile.getItem())).toContain(
+          grammarStatus
+        )
+        expect(
+          statusBar.getRightTiles().map(tile => tile.getItem())
+        ).not.toContain(grammarStatus)
 
         atom.config.set('grammar-selector.showOnRightSideOfStatusBar', true)
 
-        expect(statusBar.getLeftTiles().map(tile => tile.getItem())).not.toContain(grammarStatus)
-        expect(statusBar.getRightTiles().map(tile => tile.getItem())).toContain(grammarStatus)
+        expect(
+          statusBar.getLeftTiles().map(tile => tile.getItem())
+        ).not.toContain(grammarStatus)
+        expect(statusBar.getRightTiles().map(tile => tile.getItem())).toContain(
+          grammarStatus
+        )
 
         atom.config.set('grammar-selector.showOnRightSideOfStatusBar', false)
 
-        expect(statusBar.getLeftTiles().map(tile => tile.getItem())).toContain(grammarStatus)
-        expect(statusBar.getRightTiles().map(tile => tile.getItem())).not.toContain(grammarStatus)
-      })
-    )
+        expect(statusBar.getLeftTiles().map(tile => tile.getItem())).toContain(
+          grammarStatus
+        )
+        expect(
+          statusBar.getRightTiles().map(tile => tile.getItem())
+        ).not.toContain(grammarStatus)
+      }))
 
     describe("when the editor's grammar changes", () =>
       it('displays the new grammar of the editor', async () => {
@@ -144,15 +157,18 @@ describe('GrammarSelector', () => {
         await atom.views.getNextUpdatePromise()
 
         expect(grammarStatus.querySelector('a').textContent).toBe('Plain Text')
-        expect(getTooltipText(grammarStatus)).toBe('File uses the Plain Text grammar')
+        expect(getTooltipText(grammarStatus)).toBe(
+          'File uses the Plain Text grammar'
+        )
 
         editor.setGrammar(atom.grammars.grammarForScopeName('source.a'))
         await atom.views.getNextUpdatePromise()
 
         expect(grammarStatus.querySelector('a').textContent).toBe('source.a')
-        expect(getTooltipText(grammarStatus)).toBe('File uses the source.a grammar')
-      })
-    )
+        expect(getTooltipText(grammarStatus)).toBe(
+          'File uses the source.a grammar'
+        )
+      }))
 
     describe('when toggling hideDuplicateTextMateGrammars', () => {
       it('shows only the Tree-sitter if true and both exist', async () => {
@@ -203,19 +219,21 @@ describe('GrammarSelector', () => {
     describe('when clicked', () =>
       it('shows the grammar selector modal', () => {
         const eventHandler = jasmine.createSpy('eventHandler')
-        atom.commands.add(editor.getElement(), 'grammar-selector:show', eventHandler)
+        atom.commands.add(
+          editor.getElement(),
+          'grammar-selector:show',
+          eventHandler
+        )
         grammarStatus.click()
         expect(eventHandler).toHaveBeenCalled()
-      })
-    )
+      }))
 
     describe('when the package is deactivated', () =>
       it('removes the view', () => {
         spyOn(grammarTile, 'destroy')
         atom.packages.deactivatePackage('grammar-selector')
         expect(grammarTile.destroy).toHaveBeenCalled()
-      })
-    )
+      }))
   })
 })
 

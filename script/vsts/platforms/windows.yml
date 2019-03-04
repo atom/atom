@@ -118,6 +118,15 @@ jobs:
 
   - task: PublishBuildArtifacts@1
     inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-$(ReleaseVersion)-delta.nupkg
+      ArtifactName: atom-x64-$(ReleaseVersion)-delta.nupkg
+      ArtifactType: Container
+    displayName: Upload atom-x64-$(ReleaseVersion)-delta.nupkg
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
+    continueOnError: true  # Nightly builds don't produce delta packages yet, so don't fail the build
+
+  - task: PublishBuildArtifacts@1
+    inputs:
       PathtoPublish: $(Build.SourcesDirectory)/out/RELEASES-x64
       ArtifactName: RELEASES-x64
       ArtifactType: Container
@@ -147,6 +156,15 @@ jobs:
       ArtifactType: Container
     displayName: Upload atom-$(ReleaseVersion)-full.nupkg
     condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-$(ReleaseVersion)-delta.nupkg
+      ArtifactName: atom-$(ReleaseVersion)-delta.nupkg
+      ArtifactType: Container
+    displayName: Upload atom-$(ReleaseVersion)-delta.nupkg
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+    continueOnError: true  # Nightly builds don't produce delta packages yet, so don't fail the build
 
   - task: PublishBuildArtifacts@1
     inputs:

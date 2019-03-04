@@ -2,7 +2,7 @@
 /** @jsx etch.dom */
 
 import _ from 'underscore-plus'
-import {CompositeDisposable} from 'atom'
+import { CompositeDisposable } from 'atom'
 import etch from 'etch'
 import fs from 'fs-plus'
 import Grim from 'grim'
@@ -11,23 +11,45 @@ import path from 'path'
 import shell from 'shell'
 
 export default class DeprecationCopView {
-  constructor ({uri}) {
+  constructor ({ uri }) {
     this.uri = uri
-    this.subscriptions = new CompositeDisposable
-    this.subscriptions.add(Grim.on('updated', () => { etch.update(this) }))
+    this.subscriptions = new CompositeDisposable()
+    this.subscriptions.add(
+      Grim.on('updated', () => {
+        etch.update(this)
+      })
+    )
     // TODO: Remove conditional when the new StyleManager deprecation APIs reach stable.
     if (atom.styles.onDidUpdateDeprecations) {
-      this.subscriptions.add(atom.styles.onDidUpdateDeprecations(() => { etch.update(this) }))
+      this.subscriptions.add(
+        atom.styles.onDidUpdateDeprecations(() => {
+          etch.update(this)
+        })
+      )
     }
     etch.initialize(this)
-    this.subscriptions.add(atom.commands.add(this.element, {
-      'core:move-up': () => { this.scrollUp() },
-      'core:move-down': () => { this.scrollDown() },
-      'core:page-up': () => { this.pageUp() },
-      'core:page-down': () => { this.pageDown() },
-      'core:move-to-top': () => { this.scrollToTop() },
-      'core:move-to-bottom': () => { this.scrollToBottom() }
-    }))
+    this.subscriptions.add(
+      atom.commands.add(this.element, {
+        'core:move-up': () => {
+          this.scrollUp()
+        },
+        'core:move-down': () => {
+          this.scrollDown()
+        },
+        'core:page-up': () => {
+          this.pageUp()
+        },
+        'core:page-down': () => {
+          this.pageDown()
+        },
+        'core:move-to-top': () => {
+          this.scrollToTop()
+        },
+        'core:move-to-bottom': () => {
+          this.scrollToBottom()
+        }
+      })
+    )
   }
 
   serialize () {
@@ -49,25 +71,35 @@ export default class DeprecationCopView {
 
   render () {
     return (
-      <div className='deprecation-cop pane-item native-key-bindings' tabIndex='-1'>
+      <div
+        className='deprecation-cop pane-item native-key-bindings'
+        tabIndex='-1'
+      >
         <div className='panel'>
           <div className='padded deprecation-overview'>
             <div className='pull-right btn-group'>
               <button
                 className='btn btn-primary check-for-update'
-                onclick={(event) => {
+                onclick={event => {
                   event.preventDefault()
                   this.checkForUpdates()
-                }}>Check for Updates</button>
+                }}
+              >
+                Check for Updates
+              </button>
             </div>
           </div>
 
-          <div className='panel-heading'><span>Deprecated calls</span></div>
+          <div className='panel-heading'>
+            <span>Deprecated calls</span>
+          </div>
           <ul className='list-tree has-collapsable-children'>
             {this.renderDeprecatedCalls()}
           </ul>
 
-          <div className='panel-heading'><span>Deprecated selectors</span></div>
+          <div className='panel-heading'>
+            <span>Deprecated selectors</span>
+          </div>
           <ul className='selectors list-tree has-collapsable-children'>
             {this.renderDeprecatedSelectors()}
           </ul>
@@ -82,37 +114,57 @@ export default class DeprecationCopView {
     if (packageNames.length === 0) {
       return <li className='list-item'>No deprecated calls</li>
     } else {
-      return packageNames.sort().map((packageName) => (
+      return packageNames.sort().map(packageName => (
         <li className='deprecation list-nested-item collapsed'>
-          <div className='deprecation-info list-item' onclick={(event) => event.target.parentElement.classList.toggle('collapsed')}>
+          <div
+            className='deprecation-info list-item'
+            onclick={event =>
+              event.target.parentElement.classList.toggle('collapsed')
+            }
+          >
             <span className='text-highlight'>{packageName || 'atom core'}</span>
-            <span>{` (${_.pluralize(deprecationsByPackageName[packageName].length, 'deprecation')})`}</span>
+            <span>{` (${_.pluralize(
+              deprecationsByPackageName[packageName].length,
+              'deprecation'
+            )})`}</span>
           </div>
 
           <ul className='list'>
             {this.renderPackageActionsIfNeeded(packageName)}
-            {deprecationsByPackageName[packageName].map(({deprecation, stack}) => (
-              <li className='list-item deprecation-detail'>
-                <span className='text-warning icon icon-alert' />
-                <div className='list-item deprecation-message' innerHTML={marked(deprecation.getMessage())} />
-                {this.renderIssueURLIfNeeded(packageName, deprecation, this.buildIssueURL(packageName, deprecation, stack))}
-                <div className='stack-trace'>
-                {stack.map(({functionName, location}) => (
-                  <div className='stack-line'>
-                    <span>{functionName}</span>
-                    <span> - </span>
-                    <a
-                      className='stack-line-location'
-                      href={location}
-                      onclick={(event) => {
-                        event.preventDefault()
-                        this.openLocation(location)
-                      }}>{location}</a>
+            {deprecationsByPackageName[packageName].map(
+              ({ deprecation, stack }) => (
+                <li className='list-item deprecation-detail'>
+                  <span className='text-warning icon icon-alert' />
+                  <div
+                    className='list-item deprecation-message'
+                    innerHTML={marked(deprecation.getMessage())}
+                  />
+                  {this.renderIssueURLIfNeeded(
+                    packageName,
+                    deprecation,
+                    this.buildIssueURL(packageName, deprecation, stack)
+                  )}
+                  <div className='stack-trace'>
+                    {stack.map(({ functionName, location }) => (
+                      <div className='stack-line'>
+                        <span>{functionName}</span>
+                        <span> - </span>
+                        <a
+                          className='stack-line-location'
+                          href={location}
+                          onclick={event => {
+                            event.preventDefault()
+                            this.openLocation(location)
+                          }}
+                        >
+                          {location}
+                        </a>
+                      </div>
+                    ))}
                   </div>
-                ))}
-                </div>
-              </li>
-            ))}
+                </li>
+              )
+            )}
           </ul>
         </li>
       ))
@@ -123,41 +175,61 @@ export default class DeprecationCopView {
     const deprecationsByPackageName = this.getDeprecatedSelectorsByPackageName()
     const packageNames = Object.keys(deprecationsByPackageName)
     if (packageNames.length === 0) {
-      return (
-        <li className='list-item'>No deprecated selectors</li>
-      )
+      return <li className='list-item'>No deprecated selectors</li>
     } else {
-      return packageNames.map((packageName) => (
+      return packageNames.map(packageName => (
         <li className='deprecation list-nested-item collapsed'>
-          <div className='deprecation-info list-item' onclick={(event) => event.target.parentElement.classList.toggle('collapsed')}>
+          <div
+            className='deprecation-info list-item'
+            onclick={event =>
+              event.target.parentElement.classList.toggle('collapsed')
+            }
+          >
             <span className='text-highlight'>{packageName}</span>
           </div>
 
           <ul className='list'>
             {this.renderPackageActionsIfNeeded(packageName)}
-            {deprecationsByPackageName[packageName].map(({packagePath, sourcePath, deprecation}) => {
-              const relativeSourcePath = path.relative(packagePath, sourcePath)
-              const issueTitle = `Deprecated selector in \`${relativeSourcePath}\``
-              const issueBody = `In \`${relativeSourcePath}\`: \n\n${deprecation.message}`
-              return (
-                <li className='list-item source-file'>
-                  <a
-                    className='source-url'
-                    href={sourcePath}
-                    onclick={(event) => {
-                      event.preventDefault()
-                      this.openLocation(sourcePath)
-                    }}>{relativeSourcePath}</a>
-                  <ul className='list'>
-                    <li className='list-item deprecation-detail'>
-                      <span className='text-warning icon icon-alert' />
-                      <div className='list-item deprecation-message' innerHTML={marked(deprecation.message)} />
-                      {this.renderSelectorIssueURLIfNeeded(packageName, issueTitle, issueBody)}
-                    </li>
-                  </ul>
-                </li>
-              )
-            })}
+            {deprecationsByPackageName[packageName].map(
+              ({ packagePath, sourcePath, deprecation }) => {
+                const relativeSourcePath = path.relative(
+                  packagePath,
+                  sourcePath
+                )
+                const issueTitle = `Deprecated selector in \`${relativeSourcePath}\``
+                const issueBody = `In \`${relativeSourcePath}\`: \n\n${
+                  deprecation.message
+                }`
+                return (
+                  <li className='list-item source-file'>
+                    <a
+                      className='source-url'
+                      href={sourcePath}
+                      onclick={event => {
+                        event.preventDefault()
+                        this.openLocation(sourcePath)
+                      }}
+                    >
+                      {relativeSourcePath}
+                    </a>
+                    <ul className='list'>
+                      <li className='list-item deprecation-detail'>
+                        <span className='text-warning icon icon-alert' />
+                        <div
+                          className='list-item deprecation-message'
+                          innerHTML={marked(deprecation.message)}
+                        />
+                        {this.renderSelectorIssueURLIfNeeded(
+                          packageName,
+                          issueTitle,
+                          issueBody
+                        )}
+                      </li>
+                    </ul>
+                  </li>
+                )
+              }
+            )}
           </ul>
         </li>
       ))
@@ -171,17 +243,23 @@ export default class DeprecationCopView {
           <div className='btn-group'>
             <button
               className='btn check-for-update'
-              onclick={(event) => {
+              onclick={event => {
                 event.preventDefault()
                 this.checkForUpdates()
-              }}>Check for Update</button>
+              }}
+            >
+              Check for Update
+            </button>
             <button
               className='btn disable-package'
               data-package-name={packageName}
-              onclick={(event) => {
+              onclick={event => {
                 event.preventDefault()
                 this.disablePackage(packageName)
-              }}>Disable Package</button>
+              }}
+            >
+              Disable Package
+            </button>
           </div>
         </div>
       )
@@ -191,13 +269,18 @@ export default class DeprecationCopView {
   }
 
   encodeURI (str) {
-    return encodeURI(str).replace(/#/g, '%23').replace(/;/g, '%3B').replace(/%20/g, '+')
+    return encodeURI(str)
+      .replace(/#/g, '%23')
+      .replace(/;/g, '%3B')
+      .replace(/%20/g, '+')
   }
 
   renderSelectorIssueURLIfNeeded (packageName, issueTitle, issueBody) {
     const repoURL = this.getRepoURL(packageName)
     if (repoURL) {
-      const issueURL = `${repoURL}/issues/new?title=${this.encodeURI(issueTitle)}&body=${this.encodeURI(issueBody)}`
+      const issueURL = `${repoURL}/issues/new?title=${this.encodeURI(
+        issueTitle
+      )}&body=${this.encodeURI(issueBody)}`
       return (
         <div className='btn-toolbar'>
           <button
@@ -205,10 +288,13 @@ export default class DeprecationCopView {
             data-issue-title={issueTitle}
             data-repo-url={repoURL}
             data-issue-url={issueURL}
-            onclick={(event) => {
+            onclick={event => {
               event.preventDefault()
               this.openIssueURL(repoURL, issueURL, issueTitle)
-            }}>Report Issue</button>
+            }}
+          >
+            Report Issue
+          </button>
         </div>
       )
     } else {
@@ -227,10 +313,13 @@ export default class DeprecationCopView {
             data-issue-title={issueTitle}
             data-repo-url={repoURL}
             data-issue-url={issueURL}
-            onclick={(event) => {
+            onclick={event => {
               event.preventDefault()
               this.openIssueURL(repoURL, issueURL, issueTitle)
-            }}>Report Issue</button>
+            }}
+          >
+            Report Issue
+          </button>
         </div>
       )
     } else {
@@ -242,9 +331,13 @@ export default class DeprecationCopView {
     const repoURL = this.getRepoURL(packageName)
     if (repoURL) {
       const title = `${deprecation.getOriginName()} is deprecated.`
-      const stacktrace = stack.map(({functionName, location}) => `${functionName} (${location})`).join("\n")
+      const stacktrace = stack
+        .map(({ functionName, location }) => `${functionName} (${location})`)
+        .join('\n')
       const body = `${deprecation.getMessage()}\n\`\`\`\n${stacktrace}\n\`\`\``
-      return `${repoURL}/issues/new?title=${encodeURI(title)}&body=${encodeURI(body)}`
+      return `${repoURL}/issues/new?title=${encodeURI(title)}&body=${encodeURI(
+        body
+      )}`
     } else {
       return null
     }
@@ -266,13 +359,16 @@ export default class DeprecationCopView {
     const url = 'https://api.github.com/search/issues'
     const repo = repoURL.replace(/http(s)?:\/\/(\d+\.)?github.com\//gi, '')
     const query = `${issueTitle} repo:${repo}`
-    const response = await window.fetch(`${url}?q=${encodeURI(query)}&sort=created`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
+    const response = await window.fetch(
+      `${url}?q=${encodeURI(query)}&sort=created`,
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        }
       }
-    })
+    )
 
     if (response.ok) {
       const data = await response.json()
@@ -284,21 +380,25 @@ export default class DeprecationCopView {
           }
         }
 
-        return (issues.open || issues.closed)
+        return issues.open || issues.closed
       }
     }
   }
 
   async shortenURL (url) {
     let encodedUrl = encodeURIComponent(url).substr(0, 5000) // is.gd has 5000 char limit
-    let incompletePercentEncoding = encodedUrl.indexOf('%', encodedUrl.length - 2)
-    if (incompletePercentEncoding >= 0) { // Handle an incomplete % encoding cut-off
+    let incompletePercentEncoding = encodedUrl.indexOf(
+      '%',
+      encodedUrl.length - 2
+    )
+    if (incompletePercentEncoding >= 0) {
+      // Handle an incomplete % encoding cut-off
       encodedUrl = encodedUrl.substr(0, incompletePercentEncoding)
     }
 
     let result = await fetch('https://is.gd/create.php?format=simple', {
       method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `url=${encodedUrl}`
     })
 
@@ -307,8 +407,14 @@ export default class DeprecationCopView {
 
   getRepoURL (packageName) {
     const loadedPackage = atom.packages.getLoadedPackage(packageName)
-    if (loadedPackage && loadedPackage.metadata && loadedPackage.metadata.repository) {
-      const url = loadedPackage.metadata.repository.url || loadedPackage.metadata.repository
+    if (
+      loadedPackage &&
+      loadedPackage.metadata &&
+      loadedPackage.metadata.repository
+    ) {
+      const url =
+        loadedPackage.metadata.repository.url ||
+        loadedPackage.metadata.repository
       return url.replace(/\.git$/, '')
     } else {
       return null
@@ -330,8 +436,9 @@ export default class DeprecationCopView {
           packageName = (this.getPackageName(stack) || '').toLowerCase()
         }
 
-        deprecatedCallsByPackageName[packageName] = deprecatedCallsByPackageName[packageName] || []
-        deprecatedCallsByPackageName[packageName].push({deprecation, stack})
+        deprecatedCallsByPackageName[packageName] =
+          deprecatedCallsByPackageName[packageName] || []
+        deprecatedCallsByPackageName[packageName].push({ deprecation, stack })
       }
     }
     return deprecatedCallsByPackageName
@@ -352,11 +459,18 @@ export default class DeprecationCopView {
           packagePath = ''
         } else {
           packageName = components[packagesComponentIndex + 1]
-          packagePath = components.slice(0, packagesComponentIndex + 1).join(path.sep)
+          packagePath = components
+            .slice(0, packagesComponentIndex + 1)
+            .join(path.sep)
         }
 
-        deprecatedSelectorsByPackageName[packageName] = deprecatedSelectorsByPackageName[packageName] || []
-        deprecatedSelectorsByPackageName[packageName].push({packagePath, sourcePath, deprecation})
+        deprecatedSelectorsByPackageName[packageName] =
+          deprecatedSelectorsByPackageName[packageName] || []
+        deprecatedSelectorsByPackageName[packageName].push({
+          packagePath,
+          sourcePath,
+          deprecation
+        })
       }
     }
 
@@ -366,13 +480,16 @@ export default class DeprecationCopView {
   getPackageName (stack) {
     const packagePaths = this.getPackagePathsByPackageName()
     for (const [packageName, packagePath] of packagePaths) {
-      if (packagePath.includes('.atom/dev/packages') || packagePath.includes('.atom/packages')) {
+      if (
+        packagePath.includes('.atom/dev/packages') ||
+        packagePath.includes('.atom/packages')
+      ) {
         packagePaths.set(packageName, fs.absolute(packagePath))
       }
     }
 
     for (let i = 1; i < stack.length; i++) {
-      const {fileName} = stack[i]
+      const { fileName } = stack[i]
 
       // Empty when it was run from the dev console
       if (!fileName) {
@@ -426,7 +543,7 @@ export default class DeprecationCopView {
     if (process.platform === 'win32') {
       pathToOpen = pathToOpen.replace(/^\//, '')
     }
-    atom.open({pathsToOpen: [pathToOpen]})
+    atom.open({ pathsToOpen: [pathToOpen] })
   }
 
   getURI () {
