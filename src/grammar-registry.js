@@ -571,8 +571,8 @@ class GrammarRegistry {
     let tmGrammars = this.textmateRegistry.getGrammars()
     if (params && params.textMateOnly) return tmGrammars
 
-    let tsGrammars = Object.values(this.treeSitterGrammarsById)
-    return tsGrammars.concat(tmGrammars)
+    const tsGrammars = Object.values(this.treeSitterGrammarsById).filter(g => g.scopeName)
+    return tmGrammars.concat(tsGrammars) // NullGrammar is expected to be first
   }
 
   scopeForId (id) {
