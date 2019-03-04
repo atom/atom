@@ -35,7 +35,9 @@ describe('GrammarSelector', () => {
       expect(grammarView.querySelectorAll('li').length).toBe(atom.grammars.grammars.filter(g => g.name).length)
       expect(grammarView.querySelectorAll('li')[0].textContent).toBe('Auto Detect')
       expect(grammarView.textContent.includes('source.a')).toBe(false)
-      grammarView.querySelectorAll('li').forEach(li => expect(li.textContent).not.toBe(atom.grammars.nullGrammar.name))
+      grammarView.querySelectorAll('li').forEach(
+        li => expect(li.textContent).not.toBe(atom.grammars.nullGrammar.name)
+      )
       expect(grammarView.textContent.includes('Tree-sitter')).toBe(true) // check we are showing and labelling Tree-sitter grammars
     })
   )
@@ -192,14 +194,28 @@ describe('GrammarSelector', () => {
       })
 
       it('shows both if false', async () => {
+        await atom.packages.activatePackage('language-c') // punctuation making it sort wrong
         atom.config.set('grammar-selector.hideDuplicateTextMateGrammars', false)
-        const grammarView = await getGrammarView(editor)
-        let jsCount = 0
-        grammarView.element.querySelectorAll('li').forEach(li => {
-          const name = li.getAttribute('data-grammar')
-          if (name === 'JavaScript') jsCount++
-        })
-        expect(jsCount).toBe(2)
+        await getGrammarView(editor)
+        let cppCount = 0
+
+        const listItems = atom.workspace.getModalPanels()[0].item.items
+        for (let i = 0; i < listItems.length; i++) {
+          const grammar = listItems[i]
+          const name = grammar.name
+          if (cppCount === 0 && name === 'C++') {
+            expect(grammar.constructor.name).toBe('TreeSitterGrammar') // first C++ entry should be Tree-sitter
+            cppCount++
+          } else if (cppCount === 1) {
+            expect(name).toBe('C++')
+            expect(grammar.constructor.name).toBe('Grammar') // immediate next grammar should be the TextMate version
+            cppCount++
+          } else {
+            expect(name).not.toBe('C++') // there should not be any other C++ grammars
+          }
+        }
+
+        expect(cppCount).toBe(2) // ensure we actually saw both grammars
       })
     })
 

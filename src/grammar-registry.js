@@ -458,7 +458,7 @@ class GrammarRegistry {
   }
 
   get grammars () {
-    return this.getGrammars({includeTreeSitter: true})
+    return this.getGrammars()
   }
 
   decodeTokens () {
@@ -562,12 +562,16 @@ class GrammarRegistry {
     }
   }
 
-  // Extended: Get all the grammars in this registry.
+  // Extended: Get all the grammars in this registry. PLOL
+  //
+  // * `options` (optional) {Object}
+  //   * `textMateOnly` (optional) {Boolean} Set to ignore
+  //     [Tree-sitter](https://github.blog/2018-10-31-atoms-new-parsing-system/) grammars
   //
   // Returns a non-empty {Array} of {Grammar} instances.
-  getGrammars (params = {includeTreeSitter: false}) {
+  getGrammars (params) {
     let tmGrammars = this.textmateRegistry.getGrammars()
-    if (!params.includeTreeSitter) return tmGrammars
+    if (params && params.textMateOnly) return tmGrammars
 
     let tsGrammars = Object.values(this.treeSitterGrammarsById)
     return tsGrammars.concat(tmGrammars)
