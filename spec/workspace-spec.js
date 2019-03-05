@@ -1979,7 +1979,7 @@ describe('Workspace', () => {
           .sort()
       ).toEqual([
         'source.coffee',
-        'source.js',
+        'source.js', // Tree-sitter grammars also load
         'source.js',
         'source.js.regexp',
         'source.js.regexp',
