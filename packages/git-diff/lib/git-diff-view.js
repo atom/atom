@@ -1,10 +1,9 @@
-const {CompositeDisposable} = require('atom')
-const {repositoryForPath} = require('./helpers')
+const { CompositeDisposable } = require('atom')
+const { repositoryForPath } = require('./helpers')
 
 const MAX_BUFFER_LENGTH_TO_DIFF = 2 * 1024 * 1024
 
-module.exports =
-class GitDiffView {
+module.exports = class GitDiffView {
   constructor (editor) {
     this.updateDiffs = this.updateDiffs.bind(this)
     this.editor = editor
@@ -22,10 +21,18 @@ class GitDiffView {
       this.editor.onDidStopChanging(this.updateDiffs),
       this.editor.onDidChangePath(this.updateDiffs),
       atom.project.onDidChangePaths(() => this.subscribeToRepository()),
-      atom.commands.add(editorElement, 'git-diff:move-to-next-diff', () => this.moveToNextDiff()),
-      atom.commands.add(editorElement, 'git-diff:move-to-previous-diff', () => this.moveToPreviousDiff()),
-      atom.config.onDidChange('git-diff.showIconsInEditorGutter', () => this.updateIconDecoration()),
-      atom.config.onDidChange('editor.showLineNumbers', () => this.updateIconDecoration()),
+      atom.commands.add(editorElement, 'git-diff:move-to-next-diff', () =>
+        this.moveToNextDiff()
+      ),
+      atom.commands.add(editorElement, 'git-diff:move-to-previous-diff', () =>
+        this.moveToPreviousDiff()
+      ),
+      atom.config.onDidChange('git-diff.showIconsInEditorGutter', () =>
+        this.updateIconDecoration()
+      ),
+      atom.config.onDidChange('editor.showLineNumbers', () =>
+        this.updateIconDecoration()
+      ),
       editorElement.onDidAttach(() => this.updateIconDecoration()),
       this.editor.onDidDestroy(() => {
         this.cancelUpdate()
@@ -43,7 +50,7 @@ class GitDiffView {
     let nextDiffLineNumber = null
     let firstDiffLineNumber = null
     if (this.diffs) {
-      for (const {newStart} of this.diffs) {
+      for (const { newStart } of this.diffs) {
         if (newStart > cursorLineNumber) {
           if (nextDiffLineNumber == null) nextDiffLineNumber = newStart - 1
           nextDiffLineNumber = Math.min(newStart - 1, nextDiffLineNumber)
@@ -55,7 +62,10 @@ class GitDiffView {
     }
 
     // Wrap around to the first diff in the file
-    if (atom.config.get('git-diff.wrapAroundOnMoveToDiff') && nextDiffLineNumber == null) {
+    if (
+      atom.config.get('git-diff.wrapAroundOnMoveToDiff') &&
+      nextDiffLineNumber == null
+    ) {
       nextDiffLineNumber = firstDiffLineNumber
     }
 
@@ -65,7 +75,10 @@ class GitDiffView {
   updateIconDecoration () {
     const gutter = this.editor.getElement().querySelector('.gutter')
     if (gutter) {
-      if (atom.config.get('editor.showLineNumbers') && atom.config.get('git-diff.showIconsInEditorGutter')) {
+      if (
+        atom.config.get('editor.showLineNumbers') &&
+        atom.config.get('git-diff.showIconsInEditorGutter')
+      ) {
         gutter.classList.add('git-diff-icon')
       } else {
         gutter.classList.remove('git-diff-icon')
@@ -78,16 +91,22 @@ class GitDiffView {
     let previousDiffLineNumber = -1
     let lastDiffLineNumber = -1
     if (this.diffs) {
-      for (const {newStart} of this.diffs) {
+      for (const { newStart } of this.diffs) {
         if (newStart < cursorLineNumber) {
-          previousDiffLineNumber = Math.max(newStart - 1, previousDiffLineNumber)
+          previousDiffLineNumber = Math.max(
+            newStart - 1,
+            previousDiffLineNumber
+          )
         }
         lastDiffLineNumber = Math.max(newStart - 1, lastDiffLineNumber)
       }
     }
 
     // Wrap around to the last diff in the file
-    if (atom.config.get('git-diff.wrapAroundOnMoveToDiff') && previousDiffLineNumber === -1) {
+    if (
+      atom.config.get('git-diff.wrapAroundOnMoveToDiff') &&
+      previousDiffLineNumber === -1
+    ) {
       previousDiffLineNumber = lastDiffLineNumber
     }
 
@@ -104,12 +123,16 @@ class GitDiffView {
   subscribeToRepository () {
     this.repository = repositoryForPath(this.editor.getPath())
     if (this.repository) {
-      this.subscriptions.add(this.repository.onDidChangeStatuses(() => {
-        this.scheduleUpdate()
-      }))
-      this.subscriptions.add(this.repository.onDidChangeStatus(changedPath => {
-        if (changedPath === this.editor.getPath()) this.scheduleUpdate()
-      }))
+      this.subscriptions.add(
+        this.repository.onDidChangeStatuses(() => {
+          this.scheduleUpdate()
+        })
+      )
+      this.subscriptions.add(
+        this.repository.onDidChangeStatus(changedPath => {
+          if (changedPath === this.editor.getPath()) this.scheduleUpdate()
+        })
+      )
     }
   }
 
@@ -126,16 +149,21 @@ class GitDiffView {
     if (this.editor.isDestroyed()) return
     this.removeDecorations()
     const path = this.editor && this.editor.getPath()
-    if (path && this.editor.getBuffer().getLength() < MAX_BUFFER_LENGTH_TO_DIFF) {
-      this.diffs = this.repository && this.repository.getLineDiffs(path, this.editor.getText())
+    if (
+      path &&
+      this.editor.getBuffer().getLength() < MAX_BUFFER_LENGTH_TO_DIFF
+    ) {
+      this.diffs =
+        this.repository &&
+        this.repository.getLineDiffs(path, this.editor.getText())
       if (this.diffs) this.addDecorations(this.diffs)
     }
   }
 
   addDecorations (diffs) {
-    for (const {newStart, oldLines, newLines} of diffs) {
+    for (const { newStart, oldLines, newLines } of diffs) {
       const startRow = newStart - 1
-      const endRow = (newStart + newLines) - 1
+      const endRow = newStart + newLines - 1
       if (oldLines === 0 && newLines > 0) {
         this.markRange(startRow, endRow, 'git-line-added')
       } else if (newLines === 0 && oldLines > 0) {
@@ -156,8 +184,10 @@ class GitDiffView {
   }
 
   markRange (startRow, endRow, klass) {
-    const marker = this.editor.markBufferRange([[startRow, 0], [endRow, 0]], {invalidate: 'never'})
-    this.editor.decorateMarker(marker, {type: 'line-number', class: klass})
+    const marker = this.editor.markBufferRange([[startRow, 0], [endRow, 0]], {
+      invalidate: 'never'
+    })
+    this.editor.decorateMarker(marker, { type: 'line-number', class: klass })
     this.markers.push(marker)
   }
 }

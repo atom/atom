@@ -1,7 +1,6 @@
 const path = require('path')
 const fs = require('fs-plus')
 const temp = require('temp').track()
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers');
 const CommandInstaller = require('../src/command-installer')
 
 describe('CommandInstaller on #darwin', () => {
@@ -12,14 +11,25 @@ describe('CommandInstaller on #darwin', () => {
 
     resourcesPath = temp.mkdirSync('atom-app')
     atomBinPath = path.join(resourcesPath, 'app', 'atom.sh')
-    apmBinPath = path.join(resourcesPath, 'app', 'apm', 'node_modules', '.bin', 'apm')
+    apmBinPath = path.join(
+      resourcesPath,
+      'app',
+      'apm',
+      'node_modules',
+      '.bin',
+      'apm'
+    )
     fs.writeFileSync(atomBinPath, '')
     fs.writeFileSync(apmBinPath, '')
     fs.chmodSync(atomBinPath, '755')
     fs.chmodSync(apmBinPath, '755')
 
-    spyOn(CommandInstaller.prototype, 'getResourcesDirectory').andReturn(resourcesPath)
-    spyOn(CommandInstaller.prototype, 'getInstallDirectory').andReturn(installationPath)
+    spyOn(CommandInstaller.prototype, 'getResourcesDirectory').andReturn(
+      resourcesPath
+    )
+    spyOn(CommandInstaller.prototype, 'getInstallDirectory').andReturn(
+      installationPath
+    )
   })
 
   afterEach(() => {
@@ -32,7 +42,9 @@ describe('CommandInstaller on #darwin', () => {
     const appDelegate = jasmine.createSpyObj('appDelegate', ['confirm'])
     installer = new CommandInstaller(appDelegate)
     installer.initialize('2.0.2')
-    spyOn(installer, 'installAtomCommand').andCallFake((__, callback) => callback(new Error('an error')))
+    spyOn(installer, 'installAtomCommand').andCallFake((__, callback) =>
+      callback(new Error('an error'))
+    )
 
     installer.installShellCommandsInteractively()
 
@@ -43,7 +55,9 @@ describe('CommandInstaller on #darwin', () => {
 
     appDelegate.confirm.reset()
     installer.installAtomCommand.andCallFake((__, callback) => callback())
-    spyOn(installer, 'installApmCommand').andCallFake((__, callback) => callback(new Error('another error')))
+    spyOn(installer, 'installApmCommand').andCallFake((__, callback) =>
+      callback(new Error('another error'))
+    )
 
     installer.installShellCommandsInteractively()
 
@@ -57,8 +71,12 @@ describe('CommandInstaller on #darwin', () => {
     const appDelegate = jasmine.createSpyObj('appDelegate', ['confirm'])
     installer = new CommandInstaller(appDelegate)
     installer.initialize('2.0.2')
-    spyOn(installer, 'installAtomCommand').andCallFake((__, callback) => callback(undefined, 'atom'))
-    spyOn(installer, 'installApmCommand').andCallFake((__, callback) => callback(undefined, 'apm'))
+    spyOn(installer, 'installAtomCommand').andCallFake((__, callback) =>
+      callback(undefined, 'atom')
+    )
+    spyOn(installer, 'installApmCommand').andCallFake((__, callback) =>
+      callback(undefined, 'apm')
+    )
 
     installer.installShellCommandsInteractively()
 
@@ -81,9 +99,13 @@ describe('CommandInstaller on #darwin', () => {
       waitsFor(done => {
         installer.installAtomCommand(false, error => {
           expect(error).toBeNull()
-          expect(fs.realpathSync(installedAtomPath)).toBe(fs.realpathSync(atomBinPath))
+          expect(fs.realpathSync(installedAtomPath)).toBe(
+            fs.realpathSync(atomBinPath)
+          )
           expect(fs.isExecutableSync(installedAtomPath)).toBe(true)
-          expect(fs.isFileSync(path.join(installationPath, 'atom-beta'))).toBe(false)
+          expect(fs.isFileSync(path.join(installationPath, 'atom-beta'))).toBe(
+            false
+          )
           done()
         })
       })
@@ -96,9 +118,13 @@ describe('CommandInstaller on #darwin', () => {
       waitsFor(done => {
         installer.installApmCommand(false, error => {
           expect(error).toBeNull()
-          expect(fs.realpathSync(installedApmPath)).toBe(fs.realpathSync(apmBinPath))
+          expect(fs.realpathSync(installedApmPath)).toBe(
+            fs.realpathSync(apmBinPath)
+          )
           expect(fs.isExecutableSync(installedApmPath)).toBeTruthy()
-          expect(fs.isFileSync(path.join(installationPath, 'apm-beta'))).toBe(false)
+          expect(fs.isFileSync(path.join(installationPath, 'apm-beta'))).toBe(
+            false
+          )
           done()
         })
       })
@@ -118,7 +144,9 @@ describe('CommandInstaller on #darwin', () => {
       waitsFor(done => {
         installer.installAtomCommand(false, error => {
           expect(error).toBeNull()
-          expect(fs.realpathSync(installedAtomPath)).toBe(fs.realpathSync(atomBinPath))
+          expect(fs.realpathSync(installedAtomPath)).toBe(
+            fs.realpathSync(atomBinPath)
+          )
           expect(fs.isExecutableSync(installedAtomPath)).toBe(true)
           expect(fs.isFileSync(path.join(installationPath, 'atom'))).toBe(false)
           done()
@@ -133,7 +161,9 @@ describe('CommandInstaller on #darwin', () => {
       waitsFor(done => {
         installer.installApmCommand(false, error => {
           expect(error).toBeNull()
-          expect(fs.realpathSync(installedApmPath)).toBe(fs.realpathSync(apmBinPath))
+          expect(fs.realpathSync(installedApmPath)).toBe(
+            fs.realpathSync(apmBinPath)
+          )
           expect(fs.isExecutableSync(installedApmPath)).toBeTruthy()
           expect(fs.isFileSync(path.join(installationPath, 'apm'))).toBe(false)
           done()
@@ -155,7 +185,9 @@ describe('CommandInstaller on #darwin', () => {
       waitsFor(done => {
         installer.installAtomCommand(false, error => {
           expect(error).toBeNull()
-          expect(fs.realpathSync(installedAtomPath)).toBe(fs.realpathSync(atomBinPath))
+          expect(fs.realpathSync(installedAtomPath)).toBe(
+            fs.realpathSync(atomBinPath)
+          )
           expect(fs.isExecutableSync(installedAtomPath)).toBe(true)
           expect(fs.isFileSync(path.join(installationPath, 'atom'))).toBe(false)
           done()
@@ -170,9 +202,13 @@ describe('CommandInstaller on #darwin', () => {
       waitsFor(done => {
         installer.installApmCommand(false, error => {
           expect(error).toBeNull()
-          expect(fs.realpathSync(installedApmPath)).toBe(fs.realpathSync(apmBinPath))
+          expect(fs.realpathSync(installedApmPath)).toBe(
+            fs.realpathSync(apmBinPath)
+          )
           expect(fs.isExecutableSync(installedApmPath)).toBeTruthy()
-          expect(fs.isFileSync(path.join(installationPath, 'nightly'))).toBe(false)
+          expect(fs.isFileSync(path.join(installationPath, 'nightly'))).toBe(
+            false
+          )
           done()
         })
       })

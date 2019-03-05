@@ -1,4 +1,4 @@
-const {Emitter, CompositeDisposable} = require('atom')
+const { Emitter, CompositeDisposable } = require('atom')
 
 const Unsupported = 'unsupported'
 const Idle = 'idle'
@@ -27,7 +27,7 @@ let UpdateManager = class UpdateManager {
       atom.autoUpdater.onDidBeginDownloadingUpdate(() => {
         this.setState(DownloadingUpdate)
       }),
-      atom.autoUpdater.onDidCompleteDownloadingUpdate(({releaseVersion}) => {
+      atom.autoUpdater.onDidCompleteDownloadingUpdate(({ releaseVersion }) => {
         this.setAvailableVersion(releaseVersion)
       }),
       atom.autoUpdater.onUpdateNotAvailable(() => {
@@ -36,7 +36,7 @@ let UpdateManager = class UpdateManager {
       atom.autoUpdater.onUpdateError(() => {
         this.setState(ErrorState)
       }),
-      atom.config.observe('core.automaticallyUpdate', (value) => {
+      atom.config.observe('core.automaticallyUpdate', value => {
         this.autoUpdatesEnabled = value
         this.emitDidChange()
       })
@@ -61,7 +61,9 @@ let UpdateManager = class UpdateManager {
   }
 
   getAutoUpdatesEnabled () {
-    return this.autoUpdatesEnabled && this.state !== UpdateManager.State.Unsupported
+    return (
+      this.autoUpdatesEnabled && this.state !== UpdateManager.State.Unsupported
+    )
   }
 
   setAutoUpdatesEnabled (enabled) {
@@ -82,7 +84,9 @@ let UpdateManager = class UpdateManager {
   }
 
   resetState () {
-    this.state = atom.autoUpdater.platformSupportsUpdates() ? atom.autoUpdater.getState() : Unsupported
+    this.state = atom.autoUpdater.platformSupportsUpdates()
+      ? atom.autoUpdater.getState()
+      : Unsupported
     this.emitDidChange()
   }
 
@@ -128,7 +132,8 @@ let UpdateManager = class UpdateManager {
       appVersion = `v${appVersion}`
     }
 
-    const releaseRepo = appVersion.indexOf('nightly') > -1 ? 'atom-nightly-releases' : 'atom'
+    const releaseRepo =
+      appVersion.indexOf('nightly') > -1 ? 'atom-nightly-releases' : 'atom'
     return `https://github.com/atom/${releaseRepo}/releases/tag/${appVersion}`
   }
 }

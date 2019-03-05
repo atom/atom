@@ -70,9 +70,27 @@ jobs:
       CI: true
       CI_PROVIDER: VSTS
       ATOM_JASMINE_REPORTER: list
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)\junit
       BUILD_ARCH: $(buildArch)
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+  - script: >
+      node script\vsts\windows-run.js script\postprocess-junit-results.cmd
+      --search-folder %TEST_JUNIT_XML_ROOT% --test-results-files "**/*.xml"
+    env:
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)\junit
+    displayName: Post-process test results
+    condition: ne(variables['Atom.SkipTests'], 'true')
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: JUnit
+      searchFolder: $(Common.TestResultsDirectory)\junit
+      testResultsFiles: "**/*.xml"
+      mergeTestResults: true
+      testRunTitle: Windows $(buildArch)
+    condition: ne(variables['Atom.SkipTests'], 'true')
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -97,6 +115,15 @@ jobs:
       ArtifactType: Container
     displayName: Upload atom-x64-$(ReleaseVersion)-full.nupkg
     condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-$(ReleaseVersion)-delta.nupkg
+      ArtifactName: atom-x64-$(ReleaseVersion)-delta.nupkg
+      ArtifactType: Container
+    displayName: Upload atom-x64-$(ReleaseVersion)-delta.nupkg
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
+    continueOnError: true  # Nightly builds don't produce delta packages yet, so don't fail the build
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -129,6 +156,15 @@ jobs:
       ArtifactType: Container
     displayName: Upload atom-$(ReleaseVersion)-full.nupkg
     condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-$(ReleaseVersion)-delta.nupkg
+      ArtifactName: atom-$(ReleaseVersion)-delta.nupkg
+      ArtifactType: Container
+    displayName: Upload atom-$(ReleaseVersion)-delta.nupkg
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+    continueOnError: true  # Nightly builds don't produce delta packages yet, so don't fail the build
 
   - task: PublishBuildArtifacts@1
     inputs:

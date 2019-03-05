@@ -10,9 +10,15 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   window[key] = value for key, value of require '../vendor/jasmine'
   require 'jasmine-tagged'
 
-  if process.env.TEST_JUNIT_XML_PATH
-    require 'jasmine-reporters'
-    jasmine.getEnv().addReporter new jasmine.JUnitXmlReporter(process.env.TEST_JUNIT_XML_PATH, true, true)
+  # Rewrite global jasmine functions to have support for async tests.
+  # This way packages can create async specs without having to import these from the
+  # async-spec-helpers file.
+  global.it = asyncifyJasmineFn global.it, 1
+  global.fit = asyncifyJasmineFn global.fit, 1
+  global.ffit = asyncifyJasmineFn global.ffit, 1
+  global.fffit = asyncifyJasmineFn global.fffit, 1
+  global.beforeEach = asyncifyJasmineFn global.beforeEach, 0
+  global.afterEach = asyncifyJasmineFn global.afterEach, 0
 
   # Allow document.title to be assigned in specs without screwing up spec window title
   documentTitle = null
@@ -44,6 +50,15 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   jasmineEnv.addReporter(buildReporter({logFile, headless, resolveWithExitCode}))
   TimeReporter = require './time-reporter'
   jasmineEnv.addReporter(new TimeReporter())
+
+  if process.env.TEST_JUNIT_XML_PATH
+    {JasmineJUnitReporter} = require './jasmine-junit-reporter'
+    process.stdout.write "Outputting JUnit XML to <#{process.env.TEST_JUNIT_XML_PATH}>\n"
+    outputDir = path.dirname(process.env.TEST_JUNIT_XML_PATH)
+    fileBase = path.basename(process.env.TEST_JUNIT_XML_PATH, '.xml')
+
+    jasmineEnv.addReporter new JasmineJUnitReporter(outputDir, true, false, fileBase, true)
+
   jasmineEnv.setIncludedTags([process.platform])
 
   jasmineContent = document.createElement('div')
@@ -53,6 +68,28 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
 
   jasmineEnv.execute()
   promise
+
+asyncifyJasmineFn = (fn, callbackPosition) ->
+  (args...) ->
+    if typeof args[callbackPosition] is 'function'
+      callback = args[callbackPosition]
+
+      args[callbackPosition] = (args...) ->
+        result = callback.apply this, args
+        if result instanceof Promise
+          waitsForPromise(-> result)
+
+    fn.apply this, args
+
+waitsForPromise = (fn) ->
+  promise = fn()
+
+  global.waitsFor('spec promise to resolve', (done) ->
+    promise.then(done, (error) ->
+      jasmine.getEnv().currentSpec.fail error
+      done()
+    )
+  )
 
 disableFocusMethods = ->
   ['fdescribe', 'ffdescribe', 'fffdescribe', 'fit', 'ffit', 'fffit'].forEach (methodName) ->
