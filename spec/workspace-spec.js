@@ -1978,10 +1978,17 @@ describe('Workspace', () => {
           .map(grammar => grammar.scopeName)
           .sort()
       ).toEqual([
-        atom.grammars
-          .getGrammars()
-          .map(grammar => grammar.scopeName)
-          .sort()
+        'source.coffee',
+        'source.js',
+        'source.js',
+        'source.js.regexp',
+        'source.js.regexp',
+        'source.js.regexp.replacement',
+        'source.jsdoc',
+        'source.jsdoc',
+        'source.litcoffee',
+        'text.plain.null-grammar',
+        'text.todo'
       ])
 
       atom2.destroy()
