@@ -1101,7 +1101,7 @@ class TextEditor {
   // Returns a {String}.
   getTitle () {
     if(this.showFileContentInsteadOfUntitled){
-      return this.getFileName() || this.buffer.getLines()[0] || 'untitled'
+      return this.getFileName() ||  this.buffer.getLines()[0].substr(0,40) || 'untitled'
     }else{
       return this.getFileName() || 'untitled'
     }
