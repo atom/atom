@@ -26,7 +26,19 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
     get: -> documentTitle
     set: (title) -> documentTitle = title
 
+  userHome = process.env.ATOM_HOME or path.join(fs.getHomeDirectory(), '.atom')
   atomHome = temp.mkdirSync prefix: 'atom-test-home-'
+  if process.env.APM_TEST_PACKAGES
+    testPackages = process.env.APM_TEST_PACKAGES.split /\s+/
+    fs.makeTreeSync path.join(atomHome, 'packages')
+    for packName in testPackages
+      userPack = path.join(userHome, 'packages', packName)
+      loadablePack = path.join(atomHome, 'packages', packName)
+
+      try
+        fs.symlinkSync userPack, loadablePack, 'dir'
+      catch
+        fs.copySync userPack, loadablePack
 
   ApplicationDelegate = require '../src/application-delegate'
   applicationDelegate = new ApplicationDelegate()
