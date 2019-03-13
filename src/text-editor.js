@@ -609,9 +609,8 @@ class TextEditor {
       this.mergeIntersectingSelections()
       if (this.component) this.component.didChangeDisplayLayer(changes)
       this.emitter.emit('did-change', changes.map(change => new ChangeEvent(change)))
-      if(this.showFileContentInsteadOfUntitled){
-        this.emitter.emit('did-change-title', this.getTitle())
-      }
+      if (this.showFileContentInsteadOfUntitled)
+      this.emitter.emit('did-change-title', this.getTitle())
     }))
     this.disposables.add(this.displayLayer.onDidReset(() => {
       this.mergeIntersectingSelections()
@@ -1100,10 +1099,10 @@ class TextEditor {
   //
   // Returns a {String}.
   getTitle () {
-    if(this.showFileContentInsteadOfUntitled){
-      return this.getFileName() ||  this.buffer.getLines()[0].substr(0,40) || 'untitled'
-    }else{
-      return this.getFileName() || 'untitled'
+    if (this.showFileContentInsteadOfUntitled) {
+     return this.getFileName() ||  this.buffer.getLines()[0].substr(0, 40) || 'untitled'
+    } else {
+     return this.getFileName() || 'untitled'
     }
   }
 
