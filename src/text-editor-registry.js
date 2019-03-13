@@ -20,6 +20,7 @@ const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['editor.autoIndent', 'autoIndent'],
   ['editor.autoIndentOnPaste', 'autoIndentOnPaste'],
   ['editor.scrollPastEnd', 'scrollPastEnd'],
+  ['editor.showFileContentInsteadOfUntitled', 'showFileContentInsteadOfUntitled'],
   ['editor.undoGroupingInterval', 'undoGroupingInterval'],
   ['editor.scrollSensitivity', 'scrollSensitivity']
 ]

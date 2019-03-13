@@ -507,6 +507,11 @@ const configSchema = {
         default: false,
         description: 'Allow the editor to be scrolled past the end of the last line.'
       },
+      showFileContentInsteadOfUntitled: {
+        type: 'boolean',
+        default: false,
+        description: 'Show the file first row as a file name instead of untitled if the file is not saved yet'
+      },
       undoGroupingInterval: {
         type: 'integer',
         default: 300,

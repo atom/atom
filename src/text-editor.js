@@ -146,6 +146,7 @@ class TextEditor {
     this.autoHeight = params.autoHeight
     this.autoWidth = params.autoWidth
     this.scrollPastEnd = (params.scrollPastEnd != null) ? params.scrollPastEnd : false
+    this.showFileContentInsteadOfUntitled = (params.showFileContentInsteadOfUntitled != null) ? params.showFileContentInsteadOfUntitled : false
     this.scrollSensitivity = (params.scrollSensitivity != null) ? params.scrollSensitivity : 40
     this.editorWidthInChars = params.editorWidthInChars
     this.invisibles = params.invisibles
@@ -608,6 +609,9 @@ class TextEditor {
       this.mergeIntersectingSelections()
       if (this.component) this.component.didChangeDisplayLayer(changes)
       this.emitter.emit('did-change', changes.map(change => new ChangeEvent(change)))
+      if(this.showFileContentInsteadOfUntitled){
+        this.emitter.emit('did-change-title', this.getTitle())
+      }
     }))
     this.disposables.add(this.displayLayer.onDidReset(() => {
       this.mergeIntersectingSelections()
@@ -1090,11 +1094,17 @@ class TextEditor {
   // UI such as the tabs.
   //
   // If the editor's buffer is saved, its title is the file name. If it is
-  // unsaved, its title is "untitled".
+  // unsaved and empty, its title is "untitled". If it is unsaved, not
+  // empty and "showFileContentInsteadOfUntitled" property is enabled then its
+  // title is the first line of the file.
   //
   // Returns a {String}.
   getTitle () {
-    return this.getFileName() || 'untitled'
+    if(this.showFileContentInsteadOfUntitled){
+      return this.getFileName() || this.buffer.getLines()[0] || 'untitled'
+    }else{
+      return this.getFileName() || 'untitled'
+    }
   }
 
   // Essential: Get unique title for display in other parts of the UI, such as
