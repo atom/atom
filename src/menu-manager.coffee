@@ -145,6 +145,14 @@ class MenuManager
 
     false
 
+  checkKeyStrokePriority = (binding, keystrokesByCommand, currentPriorities) ->
+    for command, keystrokes of keystrokesByCommand
+      for id, keystroke of keystrokes
+        if binding.keystrokes is keystroke and currentPriorities[command] < binding.priority
+          delete keystrokesByCommand[command][id]
+
+    return keystrokesByCommand
+
   # Public: Refreshes the currently visible menu.
   update: ->
     return unless @initialized
@@ -158,14 +166,18 @@ class MenuManager
           unsetKeystrokes.add(binding.keystrokes)
 
       keystrokesByCommand = {}
+      currentPriorities = {}
       for binding in @keymapManager.getKeyBindings()
         continue unless @includeSelector(binding.selector)
         continue if unsetKeystrokes.has(binding.keystrokes)
         continue if binding.keystrokes.includes(' ')
         continue if process.platform is 'darwin' and /^alt-(shift-)?.$/.test(binding.keystrokes)
         continue if process.platform is 'win32' and /^ctrl-alt-(shift-)?.$/.test(binding.keystrokes)
+        currentPriorities[binding.command] ?= []
+        currentPriorities[binding.command].unshift binding.priority
         keystrokesByCommand[binding.command] ?= []
         keystrokesByCommand[binding.command].unshift binding.keystrokes
+        keystrokesByCommand = checkKeyStrokePriority(binding, keystrokesByCommand, currentPriorities)
 
       @sendToBrowserProcess(@template, keystrokesByCommand)
     , 1)
