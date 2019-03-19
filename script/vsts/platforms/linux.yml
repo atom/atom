@@ -14,6 +14,7 @@ jobs:
   steps:
   - script: script/build --create-debian-package --create-rpm-package --compress-artifacts
     env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
     displayName: Build Atom
 
