@@ -52,6 +52,8 @@ jobs:
   - script: |
       cd script\vsts
       npm install
+    env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
     displayName: npm install
 
   - task: DownloadBuildArtifacts@0
