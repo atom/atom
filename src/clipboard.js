@@ -33,6 +33,7 @@ class Clipboard {
   }
 
   // Public: Write the given text to the clipboard.
+  // Line endings will be converted to the OS's native line endings.
   //
   // The metadata associated with the text is available by calling
   // {::readWithMetadata}.
@@ -40,6 +41,8 @@ class Clipboard {
   // * `text` The {String} to store.
   // * `metadata` (optional) The additional info to associate with the text.
   write (text, metadata) {
+    text = text.replace(/\r?\n/g, process.platform === 'win32' ? '\r\n' : '\n')
+
     this.signatureForMetadata = this.md5(text)
     this.metadata = metadata
     clipboard.writeText(text)
