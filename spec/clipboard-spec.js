@@ -20,12 +20,12 @@ describe("Clipboard", () => {
     const eols = new Map([['win32', '\r\n'], ['darwin', '\n'], ['linux', '\n']])
     for (let [platform, eol] of eols) {
       it(`converts line endings to the OS's native line endings on ${platform}`, () => {
-        Object.defineProperty(process, 'platform', { value: platform })
+        Object.defineProperty(process, 'platform', {value: platform})
 
-        atom.clipboard.write('next\ndone\r\n\n')
-        expect(atom.clipboard.read()).toBe(`next${eol}done${eol}${eol}`)
+        atom.clipboard.write('next\ndone\r\n\n', {meta: 'data'})
+        expect(atom.clipboard.readWithMetadata()).toEqual({text: `next${eol}done${eol}${eol}`, metadata: {meta: 'data'}})
 
-        Object.defineProperty(process, 'platform', { value: originalPlatform })
+        Object.defineProperty(process, 'platform', {value: originalPlatform})
       })
     }
   })
