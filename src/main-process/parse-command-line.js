@@ -83,7 +83,7 @@ module.exports = function parseCommandLine (processArgs) {
     process.exit(0)
   }
 
-  if (args.version) {
+  if (args.version && !args.test) {
     process.stdout.write(
       `Atom    : ${app.getVersion()}\n` +
       `Electron: ${process.versions.electron}\n` +
@@ -101,6 +101,7 @@ module.exports = function parseCommandLine (processArgs) {
   const mainProcess = args['main-process']
   const timeout = args['timeout']
   const newWindow = args['new-window']
+  const versionRequested = args['version']
   let executedFrom = null
   if (args['executed-from'] && args['executed-from'].toString()) {
     executedFrom = args['executed-from'].toString()
@@ -160,6 +161,7 @@ module.exports = function parseCommandLine (processArgs) {
     mainProcess,
     benchmark,
     benchmarkTest,
+    versionRequested,
     env: process.env
   }
 }

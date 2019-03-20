@@ -38,4 +38,24 @@ describe('parseCommandLine', () => {
       assert.deepEqual(args.pathsToOpen, [])
     })
   })
+
+  describe('when -version is passed', () => {
+    it('parses -version without crash', () => {
+      const args = parseCommandLine([
+        '-d',
+        '--safe',
+        '--test',
+        '-version',
+        '/some/path',
+        'atom://test/url',
+        'atom://other/url'
+      ])
+      assert.isTrue(args.devMode)
+      assert.isTrue(args.safeMode)
+      assert.isTrue(args.test)
+      assert.isTrue(args.versionRequested)
+      assert.deepEqual(args.urlsToOpen, ['atom://test/url', 'atom://other/url'])
+      assert.deepEqual(args.pathsToOpen, ['/some/path'])
+    })
+  })
 })
