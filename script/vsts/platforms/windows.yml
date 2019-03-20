@@ -52,6 +52,7 @@ jobs:
         )
       )
     env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
       BUILD_ARCH: $(buildArch)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
       ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL)

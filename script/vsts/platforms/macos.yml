@@ -27,6 +27,7 @@ jobs:
       fi
     displayName: Build Atom
     env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
       IS_RELEASE_BRANCH: $(IsReleaseBranch)
       IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
