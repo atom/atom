@@ -24,21 +24,25 @@ class GoToLineView {
       return false
     })
     atom.commands.add(this.miniEditor.element, 'core:confirm', () => {
-      this.navigate()
+      this.navigate() 
     })
     atom.commands.add(this.miniEditor.element, 'core:cancel', () => {
       this.close()
     })
     this.miniEditor.onWillInsertText((arg) => {
-      if (arg.text.match(/[^0-9:]/)) {
-        arg.cancel()
+        const value = this.miniEditor.getText()
+        //Only allows a single "+"/"-"/":" to be typed.
+        if(arg.text.match(/[^0-9:\+-]/) || (arg.text.match(/\+/) && value.length > 0) || (arg.text.match(/-/) && value.length > 0) || (arg.text.match(/:/) && value.includes(':'))){
+            arg.cancel()
       }
     })
     this.miniEditor.onDidChange(() => {
-      this.navigate({keepOpen: true})
+        if (!this.miniEditor.getText == '+'){
+            this.navigate({keepOpen: true})
+        }
     })
   }
-
+  
   toggle () {
     this.panel.isVisible() ? this.close() : this.open()
   }
@@ -59,13 +63,16 @@ class GoToLineView {
       this.close()
     }
     if (!editor || !lineNumber.length) return
-
     const currentRow = editor.getCursorBufferPosition().row
     const rowLineNumber = lineNumber.split(/:+/)[0] || ''
-    const row = rowLineNumber.length > 0 ? parseInt(rowLineNumber) - 1 : currentRow
     const columnLineNumber = lineNumber.split(/:+/)[1] || ''
     const column = columnLineNumber.length > 0 ? parseInt(columnLineNumber) - 1 : -1
-
+    var row = currentRow
+    if(lineNumber.charAt(0) == '+' || lineNumber.charAt(0) == '-'){
+        row = rowLineNumber.length > 0 ? parseInt(rowLineNumber) + currentRow : currentRow
+    }else{
+        row = rowLineNumber.length > 0 ? parseInt(rowLineNumber) - 1 : currentRow
+   }
     const position = new Point(row, column)
     editor.setCursorBufferPosition(position)
     editor.unfoldBufferRow(row)
@@ -76,6 +83,7 @@ class GoToLineView {
       center: true
     })
   }
+
 
   storeFocusedElement () {
     this.previouslyFocusedElement = document.activeElement
@@ -93,7 +101,7 @@ class GoToLineView {
     if (this.panel.isVisible() || !atom.workspace.getActiveTextEditor()) return
     this.storeFocusedElement()
     this.panel.show()
-    this.message.textContent = 'Enter a <row> or <row>:<column> to go there. Examples: "3" for row 3 or "2:7" for row 2 and column 7'
+    this.message.textContent = 'Enter a <row>, <row>:<column>, or <+/-><row> to go there. Examples: "3" for row 3, "2:7" for row 2 and column 7, or "+2" to jump down two rows'
     this.miniEditor.element.focus()
   }
 }
