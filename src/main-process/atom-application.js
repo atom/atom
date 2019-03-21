@@ -803,6 +803,7 @@ class AtomApplication extends EventEmitter {
   openPath ({
     pathToOpen,
     pidToKillWhenClosed,
+    newWindow,
     devMode,
     safeMode,
     profileStartup,
