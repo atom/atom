@@ -57,6 +57,8 @@ process.on('unhandledRejection', function (e) {
 })
 
 const CONFIG = require('./config')
+process.env.ELECTRON_VERSION = CONFIG.appMetadata.electronVersion
+
 let binariesPromise = Promise.resolve()
 
 if (!argv.existingBinaries) {

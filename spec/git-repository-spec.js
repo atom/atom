@@ -1,4 +1,3 @@
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 const path = require('path')
 const fs = require('fs-plus')
 const temp = require('temp').track()
@@ -25,30 +24,44 @@ describe('GitRepository', () => {
 
   describe('new GitRepository(path)', () => {
     it('throws an exception when no repository is found', () => {
-      expect(() => new GitRepository(path.join(temp.dir, 'nogit.txt'))).toThrow()
+      expect(
+        () => new GitRepository(path.join(temp.dir, 'nogit.txt'))
+      ).toThrow()
     })
   })
 
   describe('.getPath()', () => {
     it('returns the repository path for a .git directory path with a directory', () => {
-      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git', 'objects'))
-      expect(repo.getPath()).toBe(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      repo = new GitRepository(
+        path.join(__dirname, 'fixtures', 'git', 'master.git', 'objects')
+      )
+      expect(repo.getPath()).toBe(
+        path.join(__dirname, 'fixtures', 'git', 'master.git')
+      )
     })
 
     it('returns the repository path for a repository path', () => {
-      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git'))
-      expect(repo.getPath()).toBe(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      repo = new GitRepository(
+        path.join(__dirname, 'fixtures', 'git', 'master.git')
+      )
+      expect(repo.getPath()).toBe(
+        path.join(__dirname, 'fixtures', 'git', 'master.git')
+      )
     })
   })
 
   describe('.isPathIgnored(path)', () => {
     it('returns true for an ignored path', () => {
-      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'ignore.git'))
+      repo = new GitRepository(
+        path.join(__dirname, 'fixtures', 'git', 'ignore.git')
+      )
       expect(repo.isPathIgnored('a.txt')).toBeTruthy()
     })
 
     it('returns false for a non-ignored path', () => {
-      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'ignore.git'))
+      repo = new GitRepository(
+        path.join(__dirname, 'fixtures', 'git', 'ignore.git')
+      )
       expect(repo.isPathIgnored('b.txt')).toBeFalsy()
     })
   })
@@ -136,7 +149,10 @@ describe('GitRepository', () => {
       repo.onDidChangeStatus(statusHandler)
       repo.checkoutHead(filePath)
       expect(statusHandler.callCount).toBe(1)
-      expect(statusHandler.argsForCall[0][0]).toEqual({path: filePath, pathStatus: 0})
+      expect(statusHandler.argsForCall[0][0]).toEqual({
+        path: filePath,
+        pathStatus: 0
+      })
 
       repo.checkoutHead(filePath)
       expect(statusHandler.callCount).toBe(1)
@@ -150,7 +166,11 @@ describe('GitRepository', () => {
       spyOn(atom, 'confirm')
 
       const workingDirPath = copyRepository()
-      repo = new GitRepository(workingDirPath, {project: atom.project, config: atom.config, confirm: atom.confirm})
+      repo = new GitRepository(workingDirPath, {
+        project: atom.project,
+        config: atom.config,
+        confirm: atom.confirm
+      })
       filePath = path.join(workingDirPath, 'a.txt')
       fs.writeFileSync(filePath, 'ch ch changes')
 
@@ -161,7 +181,7 @@ describe('GitRepository', () => {
       // Permissions issues with this test on Windows
       if (process.platform === 'win32') return
 
-      atom.confirm.andCallFake(({buttons}) => buttons.OK())
+      atom.confirm.andCallFake(({ buttons }) => buttons.OK())
       atom.config.set('editor.confirmCheckoutHeadRevision', true)
 
       repo.checkoutHeadForEditor(editor)
@@ -183,7 +203,9 @@ describe('GitRepository', () => {
 
   describe('.destroy()', () => {
     it('throws an exception when any method is called after it is called', () => {
-      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      repo = new GitRepository(
+        path.join(__dirname, 'fixtures', 'git', 'master.git')
+      )
       repo.destroy()
       expect(() => repo.getShortHead()).toThrow()
     })
@@ -204,7 +226,10 @@ describe('GitRepository', () => {
       fs.writeFileSync(filePath, '')
       let status = repo.getPathStatus(filePath)
       expect(statusHandler.callCount).toBe(1)
-      expect(statusHandler.argsForCall[0][0]).toEqual({path: filePath, pathStatus: status})
+      expect(statusHandler.argsForCall[0][0]).toEqual({
+        path: filePath,
+        pathStatus: status
+      })
 
       fs.writeFileSync(filePath, 'abc')
       status = repo.getPathStatus(filePath)
@@ -223,10 +248,14 @@ describe('GitRepository', () => {
     })
 
     it('gets the status based on the files inside the directory', () => {
-      expect(repo.isStatusModified(repo.getDirectoryStatus(directoryPath))).toBe(false)
+      expect(
+        repo.isStatusModified(repo.getDirectoryStatus(directoryPath))
+      ).toBe(false)
       fs.writeFileSync(filePath, 'abc')
       repo.getPathStatus(filePath)
-      expect(repo.isStatusModified(repo.getDirectoryStatus(directoryPath))).toBe(true)
+      expect(
+        repo.isStatusModified(repo.getDirectoryStatus(directoryPath))
+      ).toBe(true)
     })
   })
 
@@ -235,7 +264,10 @@ describe('GitRepository', () => {
 
     beforeEach(() => {
       workingDirectory = copyRepository()
-      repo = new GitRepository(workingDirectory, {project: atom.project, config: atom.config})
+      repo = new GitRepository(workingDirectory, {
+        project: atom.project,
+        config: atom.config
+      })
       modifiedPath = path.join(workingDirectory, 'file.txt')
       newPath = path.join(workingDirectory, 'untracked.txt')
       cleanPath = path.join(workingDirectory, 'other.txt')
@@ -252,8 +284,10 @@ describe('GitRepository', () => {
       await repo.refreshStatus()
       expect(statusHandler.callCount).toBe(1)
       expect(repo.getCachedPathStatus(cleanPath)).toBeUndefined()
-      expect(repo.isStatusNew(repo.getCachedPathStatus(newPath) )).toBeTruthy()
-      expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeTruthy()
+      expect(repo.isStatusNew(repo.getCachedPathStatus(newPath))).toBeTruthy()
+      expect(
+        repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))
+      ).toBeTruthy()
     })
 
     it('caches the proper statuses when a subdir is open', async () => {
@@ -278,7 +312,9 @@ describe('GitRepository', () => {
       await repo.refreshStatus()
       expect(repo.getCachedPathStatus(cleanPath)).toBeUndefined()
       expect(repo.isStatusNew(repo.getCachedPathStatus(newPath))).toBeTruthy()
-      expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeTruthy()
+      expect(
+        repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))
+      ).toBeTruthy()
     })
 
     it('caches statuses that were looked up synchronously', async () => {
@@ -288,7 +324,9 @@ describe('GitRepository', () => {
 
       fs.writeFileSync(modifiedPath, originalContent)
       await repo.refreshStatus()
-      expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeFalsy()
+      expect(
+        repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))
+      ).toBeFalsy()
     })
   })
 
@@ -297,7 +335,9 @@ describe('GitRepository', () => {
 
     beforeEach(async () => {
       atom.project.setPaths([copyRepository()])
-      const refreshPromise = new Promise(resolve => atom.project.getRepositories()[0].onDidChangeStatuses(resolve))
+      const refreshPromise = new Promise(resolve =>
+        atom.project.getRepositories()[0].onDidChangeStatuses(resolve)
+      )
       editor = await atom.workspace.open('other.txt')
       await refreshPromise
     })
@@ -310,7 +350,10 @@ describe('GitRepository', () => {
 
       await editor.save()
       expect(statusHandler.callCount).toBe(1)
-      expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
+      expect(statusHandler).toHaveBeenCalledWith({
+        path: editor.getPath(),
+        pathStatus: 256
+      })
     })
 
     it('emits a status-changed event when a buffer is reloaded', async () => {
@@ -321,7 +364,10 @@ describe('GitRepository', () => {
 
       await editor.getBuffer().reload()
       expect(statusHandler.callCount).toBe(1)
-      expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
+      expect(statusHandler).toHaveBeenCalledWith({
+        path: editor.getPath(),
+        pathStatus: 256
+      })
 
       await editor.getBuffer().reload()
       expect(statusHandler.callCount).toBe(1)
@@ -334,7 +380,10 @@ describe('GitRepository', () => {
       atom.project.getRepositories()[0].onDidChangeStatus(statusHandler)
       editor.getBuffer().emitter.emit('did-change-path')
       expect(statusHandler.callCount).toBe(1)
-      expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
+      expect(statusHandler).toHaveBeenCalledWith({
+        path: editor.getPath(),
+        pathStatus: 256
+      })
       editor.getBuffer().emitter.emit('did-change-path')
       expect(statusHandler.callCount).toBe(1)
     })
@@ -364,11 +413,9 @@ describe('GitRepository', () => {
         grammarRegistry: atom.grammars,
         applicationDelegate: atom.applicationDelegate
       })
-      await project2.deserialize(atom.project.serialize({isUnloading: false}))
+      await project2.deserialize(atom.project.serialize({ isUnloading: false }))
 
       buffer = project2.getBuffers()[0]
-
-      const originalContent = buffer.getText()
       buffer.append('changes')
 
       statusHandler = jasmine.createSpy('statusHandler')
@@ -376,14 +423,23 @@ describe('GitRepository', () => {
       await buffer.save()
 
       expect(statusHandler.callCount).toBe(1)
-      expect(statusHandler).toHaveBeenCalledWith({path: buffer.getPath(), pathStatus: 256})
+      expect(statusHandler).toHaveBeenCalledWith({
+        path: buffer.getPath(),
+        pathStatus: 256
+      })
     })
   })
 })
 
 function copyRepository () {
   const workingDirPath = temp.mkdirSync('atom-spec-git')
-  fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
-  fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
+  fs.copySync(
+    path.join(__dirname, 'fixtures', 'git', 'working-dir'),
+    workingDirPath
+  )
+  fs.renameSync(
+    path.join(workingDirPath, 'git.git'),
+    path.join(workingDirPath, '.git')
+  )
   return workingDirPath
 }

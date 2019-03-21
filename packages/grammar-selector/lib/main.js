@@ -7,10 +7,14 @@ let grammarStatusView = null
 
 module.exports = {
   activate () {
-    commandDisposable = atom.commands.add('atom-text-editor', 'grammar-selector:show', () => {
-      if (!grammarListView) grammarListView = new GrammarListView()
-      grammarListView.toggle()
-    })
+    commandDisposable = atom.commands.add(
+      'atom-text-editor',
+      'grammar-selector:show',
+      () => {
+        if (!grammarListView) grammarListView = new GrammarListView()
+        grammarListView.toggle()
+      }
+    )
   },
 
   deactivate () {

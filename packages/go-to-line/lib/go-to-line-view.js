@@ -91,11 +91,14 @@ class GoToLineView {
   }
 
   restoreFocus () {
-    if (this.previouslyFocusedElement && this.previouslyFocusedElement.parentElement) {
+    if (
+      this.previouslyFocusedElement &&
+      this.previouslyFocusedElement.parentElement
+    ) {
       return this.previouslyFocusedElement.focus()
     }
     atom.views.getView(atom.workspace).focus()
-  }
+  }<<<<<< HEAD
 
   open () {
     if (this.panel.isVisible() || !atom.workspace.getActiveTextEditor()) return

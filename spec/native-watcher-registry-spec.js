@@ -1,11 +1,9 @@
 /** @babel */
 
-import {it, beforeEach} from './async-spec-helpers'
-
 import path from 'path'
-import {Emitter} from 'event-kit'
+import { Emitter } from 'event-kit'
 
-import {NativeWatcherRegistry} from '../src/native-watcher-registry'
+import { NativeWatcherRegistry } from '../src/native-watcher-registry'
 
 function findRootDirectory () {
   let current = process.cwd()
@@ -42,7 +40,9 @@ class MockWatcher {
   attachToNative (native, nativePath) {
     if (this.normalizedPath.startsWith(nativePath)) {
       if (this.native) {
-        this.native.attached = this.native.attached.filter(each => each !== this)
+        this.native.attached = this.native.attached.filter(
+          each => each !== this
+        )
       }
       this.native = native
       this.native.attached.push(this)
@@ -84,7 +84,9 @@ describe('NativeWatcherRegistry', function () {
   let createNative, registry
 
   beforeEach(function () {
-    registry = new NativeWatcherRegistry(normalizedPath => createNative(normalizedPath))
+    registry = new NativeWatcherRegistry(normalizedPath =>
+      createNative(normalizedPath)
+    )
   })
 
   it('attaches a Watcher to a newly created NativeWatcher for a new directory', async function () {
@@ -201,9 +203,20 @@ describe('NativeWatcherRegistry', function () {
       const RUNNING = new MockNative('running')
 
       const stoppedPath = absolute('watcher', 'that', 'will', 'be', 'stopped')
-      const stoppedPathParts = stoppedPath.split(path.sep).filter(part => part.length > 0)
-      const runningPath = absolute('watcher', 'that', 'will', 'continue', 'to', 'exist')
-      const runningPathParts = runningPath.split(path.sep).filter(part => part.length > 0)
+      const stoppedPathParts = stoppedPath
+        .split(path.sep)
+        .filter(part => part.length > 0)
+      const runningPath = absolute(
+        'watcher',
+        'that',
+        'will',
+        'continue',
+        'to',
+        'exist'
+      )
+      const runningPathParts = runningPath
+        .split(path.sep)
+        .filter(part => part.length > 0)
 
       createNative = dir => {
         if (dir === stoppedPath) {
@@ -281,23 +294,29 @@ describe('NativeWatcherRegistry', function () {
       expect(childWatcher0.native).toBe(CHILD0)
       expect(childWatcher1.native).toBe(CHILD1)
 
-      expect(registry.tree.root.lookup(parts(parentDir)).when({
-        parent: () => false,
-        missing: () => false,
-        children: () => true
-      })).toBe(true)
+      expect(
+        registry.tree.root.lookup(parts(parentDir)).when({
+          parent: () => false,
+          missing: () => false,
+          children: () => true
+        })
+      ).toBe(true)
 
-      expect(registry.tree.root.lookup(parts(childDir0)).when({
-        parent: () => true,
-        missing: () => false,
-        children: () => false
-      })).toBe(true)
+      expect(
+        registry.tree.root.lookup(parts(childDir0)).when({
+          parent: () => true,
+          missing: () => false,
+          children: () => false
+        })
+      ).toBe(true)
 
-      expect(registry.tree.root.lookup(parts(childDir1)).when({
-        parent: () => true,
-        missing: () => false,
-        children: () => false
-      })).toBe(true)
+      expect(
+        registry.tree.root.lookup(parts(childDir1)).when({
+          parent: () => true,
+          missing: () => false,
+          children: () => false
+        })
+      ).toBe(true)
     })
 
     it('consolidates children when splitting a parent watcher', async function () {
@@ -340,23 +359,29 @@ describe('NativeWatcherRegistry', function () {
       expect(childWatcher0.native).toBe(CHILD0)
       expect(childWatcher1.native).toBe(CHILD0)
 
-      expect(registry.tree.root.lookup(parts(parentDir)).when({
-        parent: () => false,
-        missing: () => false,
-        children: () => true
-      })).toBe(true)
+      expect(
+        registry.tree.root.lookup(parts(parentDir)).when({
+          parent: () => false,
+          missing: () => false,
+          children: () => true
+        })
+      ).toBe(true)
 
-      expect(registry.tree.root.lookup(parts(childDir0)).when({
-        parent: () => true,
-        missing: () => false,
-        children: () => false
-      })).toBe(true)
+      expect(
+        registry.tree.root.lookup(parts(childDir0)).when({
+          parent: () => true,
+          missing: () => false,
+          children: () => false
+        })
+      ).toBe(true)
 
-      expect(registry.tree.root.lookup(parts(childDir1)).when({
-        parent: () => true,
-        missing: () => false,
-        children: () => false
-      })).toBe(true)
+      expect(
+        registry.tree.root.lookup(parts(childDir1)).when({
+          parent: () => true,
+          missing: () => false,
+          children: () => false
+        })
+      ).toBe(true)
     })
   })
 })
