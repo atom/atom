@@ -878,13 +878,14 @@ class AtomApplication extends EventEmitter {
     const normalizedPathsToOpen = locationsToOpen.map(location => location.pathToOpen).filter(Boolean)
 
     let existingWindow
-    if (addToLastWindow && normalizedPathsToOpen.length > 0) {
+    if (!newWindow && normalizedPathsToOpen.length > 0) {
       existingWindow = this.windowForPaths(normalizedPathsToOpen, devMode)
-      if (!existingWindow) {
-        let lastWindow = window || this.getLastFocusedWindow()
-        if (lastWindow && lastWindow.devMode === devMode) {
-          existingWindow = lastWindow
-        }
+    }
+
+    if (addToLastWindow && !existingWindow) {
+      let lastWindow = window || this.getLastFocusedWindow()
+      if (lastWindow && lastWindow.devMode === devMode) {
+        existingWindow = lastWindow
       }
     }
 
