@@ -26,10 +26,20 @@ esac
 
 export ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT=true
 
-while getopts ":wtfvh-:" opt; do
+ATOM_ADD=false
+ATOM_NEW_WINDOW=false
+EXIT_CODE_OVERRIDE=
+
+while getopts ":anwtfvh-:" opt; do
   case "$opt" in
     -)
       case "${OPTARG}" in
+        add)
+          ATOM_ADD=true
+          ;;
+        new-window)
+          ATOM_NEW_WINDOW=true
+          ;;
         wait)
           WAIT=1
           ;;
@@ -45,6 +55,12 @@ while getopts ":wtfvh-:" opt; do
           ;;
       esac
       ;;
+    a)
+      ATOM_ADD=true
+      ;;
+    n)
+      ATOM_NEW_WINDOW=true
+      ;;
     w)
       WAIT=1
       ;;
@@ -57,6 +73,11 @@ while getopts ":wtfvh-:" opt; do
       ;;
   esac
 done
+
+if [ "${ATOM_ADD}" = "true" ] && [ "${ATOM_NEW_WINDOW}" = "true" ]; then
+  EXPECT_OUTPUT=1
+  EXIT_CODE_OVERRIDE=1
+fi
 
 if [ $REDIRECT_STDERR ]; then
   exec 2> /dev/null
@@ -115,7 +136,11 @@ if [ $OS == 'Mac' ]; then
 
   if [ $EXPECT_OUTPUT ]; then
     "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/$ATOM_EXECUTABLE_NAME" --executed-from="$(pwd)" --pid=$$ "$@"
-    exit $?
+    if [ $? -eq 0 ] && [ -n "${EXIT_CODE_OVERRIDE}" ]; then
+      exit "${EXIT_CODE_OVERRIDE}"
+    else
+      exit $?
+    fi
   else
     open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ --path-environment="$PATH" "$@"
   fi
@@ -144,7 +169,11 @@ elif [ $OS == 'Linux' ]; then
 
   if [ $EXPECT_OUTPUT ]; then
     "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@"
-    exit $?
+    if [ $? -eq 0 ] && [ -n "${EXIT_CODE_OVERRIDE}" ]; then
+      exit "${EXIT_CODE_OVERRIDE}"
+    else
+      exit $?
+    fi
   else
     (
     nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > "$ATOM_HOME/nohup.out" 2>&1

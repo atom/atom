@@ -105,6 +105,16 @@ module.exports = function parseCommandLine (processArgs) {
     executedFrom = process.cwd()
   }
 
+  if (newWindow && addToLastWindow) {
+    process.stderr.write(
+      `Only one of the --add and --new-window options may be specified at the same time.\n\n${options.help()}`,
+    )
+
+    // Exiting the main process with a nonzero exit code on MacOS causes the app open to fail with the mysterious
+    // message "LSOpenURLsWithRole() failed for the application /Applications/Atom Dev.app with error -10810."
+    process.exit(0)
+  }
+
   let pidToKillWhenClosed = null
   if (args['wait']) {
     pidToKillWhenClosed = args['pid']
