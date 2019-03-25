@@ -260,7 +260,7 @@
     "language-sql": "0.25.10",
     "language-text": "0.7.4",
     "language-todo": "0.29.4",
-    "language-toml": "0.18.2",
+    "language-toml": "0.20.0",
     "language-typescript": "0.4.11",
     "language-xml": "0.35.3",
     "language-yaml": "0.32.0"
