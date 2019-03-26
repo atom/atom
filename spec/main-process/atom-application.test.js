@@ -900,6 +900,43 @@ describe('AtomApplication', function () {
       )
       atomApplication.promptForPathToOpen.reset()
     })
+
+    it('allows reopening an existing project after all windows are closed', async () => {
+      const tempDirPath = makeTempDir('reopen')
+
+      const atomApplication = buildAtomApplication()
+      sinon.stub(atomApplication, 'promptForPathToOpen')
+
+      // Open a window and then close it, leaving the app running
+      const [window] = await atomApplication.launch(parseCommandLine([]))
+      await focusWindow(window)
+      window.close()
+      await window.closedPromise
+
+      // Reopen one of the recent projects
+      atomApplication.emit('application:reopen-project', { paths: [tempDirPath] })
+
+      const windows = atomApplication.getAllWindows()
+
+      assert(windows.length === 1)
+
+      await focusWindow(windows[0])
+
+      await conditionPromise(
+        async () => (await getTreeViewRootDirectories(windows[0])).length === 1
+      )
+
+      // Check that the project was opened correctly.
+      assert.deepEqual(
+        await evalInWebContents(
+          windows[0].browserWindow.webContents,
+          send => {
+            send(atom.project.getPaths())
+          }
+        ),
+        [tempDirPath]
+      )
+    })
   }
 
   function buildAtomApplication (params = {}) {
