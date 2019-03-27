@@ -406,6 +406,10 @@ class AtomApplication extends EventEmitter {
     this.on('application:check-for-update', () => this.autoUpdateManager.check())
 
     if (process.platform === 'darwin') {
+      this.on('application:reopen-project', ({ paths }) => {
+        this.openPaths({ pathsToOpen: paths })
+      })
+
       this.on('application:open', () => this.promptForPathToOpen('all', getLoadSettings(), getDefaultPath()))
       this.on('application:open-file', () => this.promptForPathToOpen('file', getLoadSettings(), getDefaultPath()))
       this.on('application:open-folder', () => this.promptForPathToOpen('folder', getLoadSettings(), getDefaultPath()))

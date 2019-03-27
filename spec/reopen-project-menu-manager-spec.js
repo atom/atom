@@ -137,12 +137,12 @@ describe('ReopenProjectMenuManager', () => {
       const first = projectsMenu.submenu[0]
       expect(first.label).toBe('/a')
       expect(first.command).toBe('application:reopen-project')
-      expect(first.commandDetail).toEqual({ index: 0 })
+      expect(first.commandDetail).toEqual({ index: 0, paths: ['/a'] })
 
       const second = projectsMenu.submenu[1]
       expect(second.label).toBe('b, c:\\')
       expect(second.command).toBe('application:reopen-project')
-      expect(second.commandDetail).toEqual({ index: 1 })
+      expect(second.commandDetail).toEqual({ index: 1, paths: ['/b', 'c:\\'] })
     })
 
     it("adds only the number of menu items specified in the 'core.reopenProjectMenuCount' config", () => {
@@ -199,12 +199,12 @@ describe('ReopenProjectMenuManager', () => {
       const first = projectsMenu.submenu[0]
       expect(first.label).toBe('/a')
       expect(first.command).toBe('application:reopen-project')
-      expect(first.commandDetail).toEqual({ index: 0 })
+      expect(first.commandDetail).toEqual({ index: 0, paths: ['/a'] })
 
       const second = projectsMenu.submenu[1]
       expect(second.label).toBe('b, c:\\')
       expect(second.command).toBe('application:reopen-project')
-      expect(second.commandDetail).toEqual({ index: 1 })
+      expect(second.commandDetail).toEqual({ index: 1, paths: ['/b', 'c:\\'] })
     })
   })
 
@@ -226,12 +226,15 @@ describe('ReopenProjectMenuManager', () => {
       const first = recentMenu.submenu[0]
       expect(first.label).toBe('/users/neila')
       expect(first.command).toBe('application:reopen-project')
-      expect(first.commandDetail).toEqual({ index: 0 })
+      expect(first.commandDetail).toEqual({ index: 0, paths: ['/users/neila'] })
 
       const second = recentMenu.submenu[1]
       expect(second.label).toBe('buzza, michaelc')
       expect(second.command).toBe('application:reopen-project')
-      expect(second.commandDetail).toEqual({ index: 1 })
+      expect(second.commandDetail).toEqual({
+        index: 1,
+        paths: ['/users/buzza', 'users/michaelc']
+      })
     })
   })
 
