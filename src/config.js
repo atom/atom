@@ -691,7 +691,9 @@ class Config {
       this.pendingOperations.push(() => this.set(keyPath, value, options))
     }
 
-    const scopeSelector = options.scopeSelector
+    // We should never use the scoped store to set global settings, since they are kept directly
+    // in the config object.
+    const scopeSelector = options.scopeSelector !== '*' ? options.scopeSelector : undefined
     let source = options.source
     const shouldSave = options.save != null ? options.save : true
 
