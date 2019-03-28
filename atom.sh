@@ -136,10 +136,11 @@ if [ $OS == 'Mac' ]; then
 
   if [ $EXPECT_OUTPUT ]; then
     "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/$ATOM_EXECUTABLE_NAME" --executed-from="$(pwd)" --pid=$$ "$@"
-    if [ $? -eq 0 ] && [ -n "${EXIT_CODE_OVERRIDE}" ]; then
+    ATOM_EXIT=$?
+    if [ ${ATOM_EXIT} -eq 0 ] && [ -n "${EXIT_CODE_OVERRIDE}" ]; then
       exit "${EXIT_CODE_OVERRIDE}"
     else
-      exit $?
+      exit ${ATOM_EXIT}
     fi
   else
     open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ --path-environment="$PATH" "$@"
@@ -169,10 +170,11 @@ elif [ $OS == 'Linux' ]; then
 
   if [ $EXPECT_OUTPUT ]; then
     "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@"
-    if [ $? -eq 0 ] && [ -n "${EXIT_CODE_OVERRIDE}" ]; then
+    ATOM_EXIT=$?
+    if [ ${ATOM_EXIT} -eq 0 ] && [ -n "${EXIT_CODE_OVERRIDE}" ]; then
       exit "${EXIT_CODE_OVERRIDE}"
     else
-      exit $?
+      exit ${ATOM_EXIT}
     fi
   else
     (
