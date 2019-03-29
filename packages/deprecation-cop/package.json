@@ -13,7 +13,7 @@
     "fs-plus": "^3.0.0",
     "grim": "^2.0.1",
     "marked": "^0.3.6",
-    "underscore-plus": "^1.0.0"
+    "underscore-plus": "^1.7.0"
   },
   "consumedServices": {
     "status-bar": {
