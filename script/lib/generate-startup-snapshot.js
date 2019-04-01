@@ -64,7 +64,8 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath === path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'tree-sitter', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'yauzl', 'index.js') ||
-        requiredModuleRelativePath === path.join('..', 'node_modules', 'winreg', 'lib', 'registry.js')
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'winreg', 'lib', 'registry.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', '@atom', 'fuzzy-native', 'lib', 'main.js')
       )
     }
   }).then(({snapshotScript}) => {
