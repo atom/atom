@@ -19,11 +19,17 @@ jobs:
   - script: npm install --global npm@6.2.0
     displayName: Update npm
 
+  - script: script/bootstrap
+    displayName: Bootstrap build environment
+
+  - script: script/lint
+    displayName: Run linter
+
   - script: |
       if [ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]; then
-        script/build --code-sign --compress-artifacts
+        script/build --no-bootstrap --code-sign --compress-artifacts
       else
-        script/build --compress-artifacts
+        script/build --no-bootstrap --compress-artifacts
       fi
     displayName: Build Atom
     env:
@@ -35,9 +41,6 @@ jobs:
       ATOM_MAC_CODE_SIGNING_CERT_PASSWORD: $(ATOM_MAC_CODE_SIGNING_CERT_PASSWORD)
       ATOM_MAC_CODE_SIGNING_KEYCHAIN: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN)
       ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
-
-  - script: script/lint
-    displayName: Run linter
 
   - script: |
       osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver

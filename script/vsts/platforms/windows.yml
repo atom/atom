@@ -37,18 +37,27 @@ jobs:
     displayName: Install Windows build dependencies
 
   - script: |
+      node script\vsts\windows-run.js script\bootstrap.cmd
+    displayName: Bootstrap build environment
+
+  - script: node script\vsts\windows-run.js script\lint.cmd
+    env:
+      BUILD_ARCH: $(buildArch)
+    displayName: Run linter
+
+  - script: |
       IF NOT EXIST C:\tmp MKDIR C:\tmp
       SET SQUIRREL_TEMP=C:\tmp
       IF [%IS_RELEASE_BRANCH%]==[true] (
         ECHO Creating production artifacts for release branch %BUILD_SOURCEBRANCHNAME%
-        node script\vsts\windows-run.js script\build.cmd --code-sign --compress-artifacts --create-windows-installer
+        node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
         IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
           ECHO Creating signed CI artifacts for branch %BUILD_SOURCEBRANCHNAME%
-          node script\vsts\windows-run.js script\build.cmd --code-sign --compress-artifacts
+          node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts
         ) ELSE (
           ECHO Pull request build, no code signing will be performed
-          node script\vsts\windows-run.js script\build.cmd --compress-artifacts
+          node script\vsts\windows-run.js script\build.cmd --no-bootstrap --compress-artifacts
         )
       )
     env:
@@ -60,11 +69,6 @@ jobs:
       IS_RELEASE_BRANCH: $(IsReleaseBranch)
       IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
     displayName: Build Atom
-
-  - script: node script\vsts\windows-run.js script\lint.cmd
-    env:
-      BUILD_ARCH: $(buildArch)
-    displayName: Run linter
 
   - script: node script\vsts\windows-run.js script\test.cmd
     env:
