@@ -1,4 +1,4 @@
-const AtomWindow = require('./atom-window');
+const AtomWindow = require('./atom-window')
 const ApplicationMenu = require('./application-menu')
 const AtomProtocolHandler = require('./atom-protocol-handler')
 const AutoUpdateManager = require('./auto-update-manager')
