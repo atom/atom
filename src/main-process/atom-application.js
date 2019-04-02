@@ -34,6 +34,40 @@ const getDefaultPath = () => {
   }
 }
 
+// Returns a unique id for each Atom instance. This id allows many Atom windows
+// that share the same configuration to reuse the same main process.
+const getAtomInstanceId = (atomVersion) => {
+  const {username} = os.userInfo()
+
+  // Lowercasing the ATOM_HOME to make sure that we don't get multiple sockets
+  // on case-insensitive filesystems due to arbitrary case differences in paths.
+  const atomHomeUnique = path.resolve(process.env.ATOM_HOME).toLowerCase()
+  const hash = crypto
+    .createHash('sha1')
+    .update(atomVersion)
+    .update(process.arch)
+    .update(username || '')
+    .update(atomHomeUnique)
+
+  return hash.digest('base64')
+}
+
+const getSocketName = (atomVersion) => {
+  // We only keep the first 12 characters of the hash as not to have excessively long
+  // socket file. Note that macOS/BSD limit the length of socket file paths (see #15081).
+  // The replace calls convert the digest into "URL and Filename Safe" encoding (see RFC 4648).
+  const atomInstanceId = getAtomInstanceId(atomVersion)
+    .substring(0, 12)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+
+  if (process.platform === 'win32') {
+    return `\\\\.\\pipe\\atom-${atomInstanceId}-sock`
+  } else {
+    return path.join(os.tmpdir(), `atom-${atomInstanceId}.sock`)
+  }
+}
+
 // The application's singleton class.
 //
 // It's the entry point into the Atom application and maintains the global state
@@ -44,35 +78,7 @@ class AtomApplication extends EventEmitter {
   // Public: The entry point into the Atom application.
   static open (options) {
     if (!options.socketPath) {
-      const {username} = os.userInfo()
-
-      // Lowercasing the ATOM_HOME to make sure that we don't get multiple sockets
-      // on case-insensitive filesystems due to arbitrary case differences in paths.
-      const atomHomeUnique = path.resolve(process.env.ATOM_HOME).toLowerCase()
-      const hash = crypto
-        .createHash('sha1')
-        .update(options.version)
-        .update('|')
-        .update(process.arch)
-        .update('|')
-        .update(username || '')
-        .update('|')
-        .update(atomHomeUnique)
-
-      // We only keep the first 12 characters of the hash as not to have excessively long
-      // socket file. Note that macOS/BSD limit the length of socket file paths (see #15081).
-      // The replace calls convert the digest into "URL and Filename Safe" encoding (see RFC 4648).
-      const atomInstanceDigest = hash
-        .digest('base64')
-        .substring(0, 12)
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-
-      if (process.platform === 'win32') {
-        options.socketPath = `\\\\.\\pipe\\atom-${atomInstanceDigest}-sock`
-      } else {
-        options.socketPath = path.join(os.tmpdir(), `atom-${atomInstanceDigest}.sock`)
-      }
+      options.socketPath = getSocketName(options.version)
     }
 
     // FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
