@@ -38,6 +38,8 @@ jobs:
 
   - script: |
       node script\vsts\windows-run.js script\bootstrap.cmd
+    env:
+      BUILD_ARCH: $(buildArch)
     displayName: Bootstrap build environment
 
   - script: node script\vsts\windows-run.js script\lint.cmd
