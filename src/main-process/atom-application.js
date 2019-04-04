@@ -73,7 +73,7 @@ const getExistingSocketSecret = (atomVersion) => {
 const createSocketSecret = (atomVersion) => {
   const socketSecret = crypto.randomBytes(16).toString('hex')
 
-  fs.writeFileSync(getSocketSecretPath(atomVersion), socketSecret, 'utf8')
+  fs.writeFileSync(getSocketSecretPath(atomVersion), socketSecret, {encoding: 'utf8', mode: 0o600})
 
   return socketSecret
 }
@@ -81,7 +81,7 @@ const createSocketSecret = (atomVersion) => {
 const encryptOptions = (options, secret) => {
   const message = JSON.stringify(options)
 
-  const initVector = crypto.randomBytes(16).toString('hex')
+  const initVector = crypto.randomBytes(16)
 
   const cipher = crypto.createCipheriv('aes-256-gcm', secret, initVector)
 
@@ -93,14 +93,14 @@ const encryptOptions = (options, secret) => {
   return JSON.stringify({
     authTag,
     content,
-    initVector
+    initVector: initVector.toString('hex')
   })
 }
 
 const decryptOptions = (optionsMessage, secret) => {
   const {authTag, content, initVector} = JSON.parse(optionsMessage)
 
-  const decipher = crypto.createDecipheriv('aes-256-gcm', secret, initVector)
+  const decipher = crypto.createDecipheriv('aes-256-gcm', secret, Buffer.from(initVector, 'hex'))
   decipher.setAuthTag(Buffer.from(authTag, 'hex'))
 
   let message = decipher.update(content, 'hex', 'utf8')
@@ -403,7 +403,13 @@ class AtomApplication extends EventEmitter {
       let data = ''
       connection.on('data', chunk => { data += chunk })
       connection.on('end', () => {
-        this.openWithOptions(decryptOptions(data, this.socketSecret))
+        try {
+          const options = decryptOptions(data, this.socketSecret)
+          this.openWithOptions(options)
+        } catch (e) {
+          // Error while parsing/decrypting the options passed by the client.
+          // We cannot trust the client, aborting.
+        }
       })
     })
 
