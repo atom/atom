@@ -1390,7 +1390,6 @@ class AtomApplication extends EventEmitter {
     const args = []
     if (this.safeMode) args.push('--safe')
     if (this.logFile != null) args.push(`--log-file=${this.logFile}`)
-    if (this.socketPath != null) args.push(`--socket-path=${this.socketPath}`)
     if (this.userDataDir != null) args.push(`--user-data-dir=${this.userDataDir}`)
     if (this.devMode) {
       args.push('--dev')
