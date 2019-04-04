@@ -46,7 +46,12 @@ const getSocketPath = (socketSecret) => {
     return null
   }
 
-  const socketName = socketSecret.substr(0, 12)
+  // Hash the secret to create the socket name to not expose it.
+  const socketName = crypto
+    .createHmac('sha256', socketSecret)
+    .update('socketName')
+    .digest('hex')
+    .substr(0, 12)
 
   if (process.platform === 'win32') {
     return `\\\\.\\pipe\\atom-${socketName}-sock`
@@ -66,11 +71,42 @@ const getExistingSocketSecret = (atomVersion) => {
 }
 
 const createSocketSecret = (atomVersion) => {
-  const socketSecret = crypto.randomBytes(32).toString('hex')
+  const socketSecret = crypto.randomBytes(16).toString('hex')
 
   fs.writeFileSync(getSocketSecretPath(atomVersion), socketSecret, 'utf8')
 
   return socketSecret
+}
+
+const encryptOptions = (options, secret) => {
+  const message = JSON.stringify(options)
+
+  const initVector = crypto.randomBytes(16).toString('hex')
+
+  const cipher = crypto.createCipheriv('aes-256-gcm', secret, initVector)
+
+  let content = cipher.update(message, 'utf8', 'hex')
+  content += cipher.final('hex')
+
+  const authTag = cipher.getAuthTag().toString('hex')
+
+  return JSON.stringify({
+    authTag,
+    content,
+    initVector
+  })
+}
+
+const decryptOptions = (optionsMessage, secret) => {
+  const {authTag, content, initVector} = JSON.parse(optionsMessage)
+
+  const decipher = crypto.createDecipheriv('aes-256-gcm', secret, initVector)
+  decipher.setAuthTag(Buffer.from(authTag, 'hex'))
+
+  let message = decipher.update(content, 'hex', 'utf8')
+  message += decipher.final('utf8')
+
+  return JSON.parse(message)
 }
 
 // The application's singleton class.
@@ -82,7 +118,8 @@ module.exports =
 class AtomApplication extends EventEmitter {
   // Public: The entry point into the Atom application.
   static open (options) {
-    const socketPath = options.socketPath || getSocketPath(getExistingSocketSecret(options.version))
+    const socketSecret = getExistingSocketSecret(options.version)
+    const socketPath = options.socketPath || getSocketPath(socketSecret)
 
     // FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
     // take a few seconds to trigger 'error' event, it could be a bug of node
@@ -95,7 +132,7 @@ class AtomApplication extends EventEmitter {
     }
 
     const client = net.connect({path: socketPath}, () => {
-      client.write(JSON.stringify(options), () => {
+      client.write(encryptOptions(options, socketSecret), () => {
         client.end()
         app.quit()
       })
@@ -124,7 +161,8 @@ class AtomApplication extends EventEmitter {
     this._killProcess = options.killProcess || process.kill.bind(process)
 
     if (!options.test && !options.benchmark && !options.benchmarkTest) {
-      this.socketPath = getSocketPath(createSocketSecret(this.version))
+      this.socketSecret = createSocketSecret(this.version)
+      this.socketPath = getSocketPath(this.socketSecret)
     }
 
     this.waitSessionsByWindow = new Map()
@@ -362,7 +400,9 @@ class AtomApplication extends EventEmitter {
     const server = net.createServer(connection => {
       let data = ''
       connection.on('data', chunk => { data += chunk })
-      connection.on('end', () => this.openWithOptions(JSON.parse(data)))
+      connection.on('end', () => {
+        this.openWithOptions(decryptOptions(data, this.socketSecret))
+      })
     })
 
     server.listen(this.socketPath)
