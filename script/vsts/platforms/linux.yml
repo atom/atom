@@ -12,14 +12,17 @@ jobs:
   container: atom-linux-ci
 
   steps:
-  - script: script/build --create-debian-package --create-rpm-package --compress-artifacts
+  - script: script/bootstrap
+    displayName: Bootstrap build environment
+
+  - script: script/lint
+    displayName: Run linter
+
+  - script: script/build --no-bootstrap --create-debian-package --create-rpm-package --compress-artifacts
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
     displayName: Build Atom
-
-  - script: script/lint
-    displayName: Run linter
 
   - script: script/test
     env:
