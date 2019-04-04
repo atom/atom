@@ -119,14 +119,16 @@ class AtomApplication extends EventEmitter {
   // Public: The entry point into the Atom application.
   static open (options) {
     const socketSecret = getExistingSocketSecret(options.version)
-    const socketPath = options.socketPath || getSocketPath(socketSecret)
+    const socketPath = getSocketPath(socketSecret)
 
     // FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
     // take a few seconds to trigger 'error' event, it could be a bug of node
     // or electron, before it's fixed we check the existence of socketPath to
     // speedup startup.
-    if ((process.platform !== 'win32' && !fs.existsSync(socketPath)) ||
-        options.test || options.benchmark || options.benchmarkTest || !socketPath) {
+    if (
+      !socketPath || options.test || options.benchmark || options.benchmarkTest ||
+      (process.platform !== 'win32' && !fs.existsSync(socketPath))
+    ) {
       new AtomApplication(options).initialize(options)
       return
     }
@@ -425,6 +427,10 @@ class AtomApplication extends EventEmitter {
   }
 
   deleteSocketSecretFile () {
+    if (!this.socketSecret) {
+      return
+    }
+
     const socketSecretPath = getSocketSecretPath(this.version)
 
     if (fs.existsSync(socketSecretPath)) {
