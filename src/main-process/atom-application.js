@@ -34,6 +34,81 @@ const getDefaultPath = () => {
   }
 }
 
+const getSocketSecretPath = (atomVersion) => {
+  const {username} = os.userInfo()
+  const atomHome = path.resolve(process.env.ATOM_HOME)
+
+  return path.join(atomHome, `.atom-socket-secret-${username}-${atomVersion}`)
+}
+
+const getSocketPath = (socketSecret) => {
+  if (!socketSecret) {
+    return null
+  }
+
+  // Hash the secret to create the socket name to not expose it.
+  const socketName = crypto
+    .createHmac('sha256', socketSecret)
+    .update('socketName')
+    .digest('hex')
+    .substr(0, 12)
+
+  if (process.platform === 'win32') {
+    return `\\\\.\\pipe\\atom-${socketName}-sock`
+  } else {
+    return path.join(os.tmpdir(), `atom-${socketName}.sock`)
+  }
+}
+
+const getExistingSocketSecret = (atomVersion) => {
+  const socketSecretPath = getSocketSecretPath(atomVersion)
+
+  if (!fs.existsSync(socketSecretPath)) {
+    return null
+  }
+
+  return fs.readFileSync(socketSecretPath, 'utf8')
+}
+
+const createSocketSecret = (atomVersion) => {
+  const socketSecret = crypto.randomBytes(16).toString('hex')
+
+  fs.writeFileSync(getSocketSecretPath(atomVersion), socketSecret, {encoding: 'utf8', mode: 0o600})
+
+  return socketSecret
+}
+
+const encryptOptions = (options, secret) => {
+  const message = JSON.stringify(options)
+
+  const initVector = crypto.randomBytes(16)
+
+  const cipher = crypto.createCipheriv('aes-256-gcm', secret, initVector)
+
+  let content = cipher.update(message, 'utf8', 'hex')
+  content += cipher.final('hex')
+
+  const authTag = cipher.getAuthTag().toString('hex')
+
+  return JSON.stringify({
+    authTag,
+    content,
+    initVector: initVector.toString('hex')
+  })
+}
+
+const decryptOptions = (optionsMessage, secret) => {
+  const {authTag, content, initVector} = JSON.parse(optionsMessage)
+
+  const decipher = crypto.createDecipheriv('aes-256-gcm', secret, Buffer.from(initVector, 'hex'))
+  decipher.setAuthTag(Buffer.from(authTag, 'hex'))
+
+  let message = decipher.update(content, 'hex', 'utf8')
+  message += decipher.final('utf8')
+
+  return JSON.parse(message)
+}
+
 // The application's singleton class.
 //
 // It's the entry point into the Atom application and maintains the global state
@@ -43,50 +118,23 @@ module.exports =
 class AtomApplication extends EventEmitter {
   // Public: The entry point into the Atom application.
   static open (options) {
-    if (!options.socketPath) {
-      const {username} = os.userInfo()
-
-      // Lowercasing the ATOM_HOME to make sure that we don't get multiple sockets
-      // on case-insensitive filesystems due to arbitrary case differences in paths.
-      const atomHomeUnique = path.resolve(process.env.ATOM_HOME).toLowerCase()
-      const hash = crypto
-        .createHash('sha1')
-        .update(options.version)
-        .update('|')
-        .update(process.arch)
-        .update('|')
-        .update(username || '')
-        .update('|')
-        .update(atomHomeUnique)
-
-      // We only keep the first 12 characters of the hash as not to have excessively long
-      // socket file. Note that macOS/BSD limit the length of socket file paths (see #15081).
-      // The replace calls convert the digest into "URL and Filename Safe" encoding (see RFC 4648).
-      const atomInstanceDigest = hash
-        .digest('base64')
-        .substring(0, 12)
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-
-      if (process.platform === 'win32') {
-        options.socketPath = `\\\\.\\pipe\\atom-${atomInstanceDigest}-sock`
-      } else {
-        options.socketPath = path.join(os.tmpdir(), `atom-${atomInstanceDigest}.sock`)
-      }
-    }
+    const socketSecret = getExistingSocketSecret(options.version)
+    const socketPath = getSocketPath(socketSecret)
 
     // FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
     // take a few seconds to trigger 'error' event, it could be a bug of node
     // or electron, before it's fixed we check the existence of socketPath to
     // speedup startup.
-    if ((process.platform !== 'win32' && !fs.existsSync(options.socketPath)) ||
-        options.test || options.benchmark || options.benchmarkTest) {
+    if (
+      !socketPath || options.test || options.benchmark || options.benchmarkTest ||
+      (process.platform !== 'win32' && !fs.existsSync(socketPath))
+    ) {
       new AtomApplication(options).initialize(options)
       return
     }
 
-    const client = net.connect({path: options.socketPath}, () => {
-      client.write(JSON.stringify(options), () => {
+    const client = net.connect({path: socketPath}, () => {
+      client.write(encryptOptions(options, socketSecret), () => {
         client.end()
         app.quit()
       })
@@ -110,11 +158,14 @@ class AtomApplication extends EventEmitter {
     this.version = options.version
     this.devMode = options.devMode
     this.safeMode = options.safeMode
-    this.socketPath = options.socketPath
     this.logFile = options.logFile
     this.userDataDir = options.userDataDir
     this._killProcess = options.killProcess || process.kill.bind(process)
-    if (options.test || options.benchmark || options.benchmarkTest) this.socketPath = null
+
+    if (!options.test && !options.benchmark && !options.benchmarkTest) {
+      this.socketSecret = createSocketSecret(this.version)
+      this.socketPath = getSocketPath(this.socketSecret)
+    }
 
     this.waitSessionsByWindow = new Map()
     this.windowStack = new WindowStack()
@@ -351,7 +402,15 @@ class AtomApplication extends EventEmitter {
     const server = net.createServer(connection => {
       let data = ''
       connection.on('data', chunk => { data += chunk })
-      connection.on('end', () => this.openWithOptions(JSON.parse(data)))
+      connection.on('end', () => {
+        try {
+          const options = decryptOptions(data, this.socketSecret)
+          this.openWithOptions(options)
+        } catch (e) {
+          // Error while parsing/decrypting the options passed by the client.
+          // We cannot trust the client, aborting.
+        }
+      })
     })
 
     server.listen(this.socketPath)
@@ -368,6 +427,24 @@ class AtomApplication extends EventEmitter {
         // Ignore ENOENT errors in case the file was deleted between the exists
         // check and the call to unlink sync. This occurred occasionally on CI
         // which is why this check is here.
+        if (error.code !== 'ENOENT') throw error
+      }
+    }
+  }
+
+  deleteSocketSecretFile () {
+    if (!this.socketSecret) {
+      return
+    }
+
+    const socketSecretPath = getSocketSecretPath(this.version)
+
+    if (fs.existsSync(socketSecretPath)) {
+      try {
+        fs.unlinkSync(socketSecretPath)
+      } catch (error) {
+        // Ignore ENOENT errors in case the file was deleted between the exists
+        // check and the call to unlink sync.
         if (error.code !== 'ENOENT') throw error
       }
     }
@@ -480,6 +557,7 @@ class AtomApplication extends EventEmitter {
     this.disposable.add(ipcHelpers.on(app, 'will-quit', () => {
       this.killAllProcesses()
       this.deleteSocketFile()
+      this.deleteSocketSecretFile()
     }))
 
     this.disposable.add(ipcHelpers.on(app, 'open-file', (event, pathToOpen) => {
