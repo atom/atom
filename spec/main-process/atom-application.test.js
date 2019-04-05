@@ -967,12 +967,18 @@ describe('AtomApplication', function () {
       () => originalApplication.getAllWindows().length === 2
     )
 
-    // Check that the original application now has two opened windows.
-    assert.deepEqual(
-      originalApplication.getAllWindows().map(
-        window => window.loadSettings.initialPaths
+    // Check that the original application now has the two opened windows.
+    assert.notEqual(
+      originalApplication.getAllWindows().find(
+        window => window.loadSettings.initialPaths[0] === tempDirPath1
       ),
-      [[tempDirPath2], [tempDirPath1]]
+      undefined
+    )
+    assert.notEqual(
+      originalApplication.getAllWindows().find(
+        window => window.loadSettings.initialPaths[0] === tempDirPath2
+      ),
+      undefined
     )
   })
 
