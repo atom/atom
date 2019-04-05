@@ -265,6 +265,22 @@ const schemaEnforcers = {}
 //     ]
 // ```
 //
+// If you only have a few elements, you can display your enum as a list of
+// radio buttons in the settings view rather than a select list. To do so,
+// specify `radio: true` as a sibling property to the `enum` array.
+//
+// ```coffee
+// config:
+//   someSetting:
+//     type: 'string'
+//     default: 'foo'
+//     enum: [
+//       {value: 'foo', description: 'Foo mode. You want this.'}
+//       {value: 'bar', description: 'Bar mode. Nobody wants that!'}
+//     ]
+//     radio: true
+// ```
+//
 // Usage:
 //
 // ```coffee
