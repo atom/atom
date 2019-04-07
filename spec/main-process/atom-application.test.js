@@ -992,6 +992,10 @@ describe('AtomApplication', function () {
         params
       )
     )
+
+    // Make sure that the app does not get updated automatically.
+    atomApplication.config.set('core.automaticallyUpdate', false)
+
     atomApplicationsToDestroy.push(atomApplication)
     return atomApplication
   }
