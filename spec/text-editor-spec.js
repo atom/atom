@@ -8465,7 +8465,7 @@ describe('TextEditor', () => {
 
         {
           editor.setText('    test')
-          selection.setBufferRange([[0, 4], [0,4]])
+          selection.setBufferRange([[0, 4], [0, 4]])
           selection.toggleLineComments()
 
           const range = selection.getBufferRange()
