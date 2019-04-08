@@ -37,6 +37,7 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'minimatch', 'minimatch.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'request', 'index.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'request', 'request.js')) ||
+        requiredModuleRelativePath.endsWith(path.join('node_modules', 'superstring', 'index.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'temp', 'lib', 'temp.js')) ||
         requiredModuleRelativePath === path.join('..', 'exports', 'atom.js') ||
         requiredModuleRelativePath === path.join('..', 'src', 'electron-shims.js') ||
@@ -52,7 +53,6 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath === path.join('..', 'node_modules', 'less', 'lib', 'less-node', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'lodash.isequal', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'node-fetch', 'lib', 'fetch-error.js') ||
-        requiredModuleRelativePath === path.join('..', 'node_modules', 'superstring', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'oniguruma', 'src', 'oniguruma.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'resolve', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'resolve', 'lib', 'core.js') ||
