@@ -8425,41 +8425,64 @@ describe('TextEditor', () => {
         expect(editor.lineTextForBufferRow(0)).toBe('test')
       })
 
-      it('does not select the new delimiters', () => {
+      fit('does not select the new delimiters', () => {
         editor.setText('<!-- test -->')
-
         let delimLength = '<!--'.length
-        let selection = editor.addCursorAtBufferPosition([0, delimLength]).selection
+        let selection = editor.addSelectionForBufferRange([[0, delimLength], [0, delimLength]])
 
-        selection.toggleLineComments()
-        expect(selection.isEmpty() && selection.getBufferRange().start.column === 0).toBe(true)
+        {
+          selection.toggleLineComments()
 
-        selection.toggleLineComments()
-        expect(selection.isEmpty()).toBe(true)
-        expect(selection.getBufferRange().start.column).toBe(delimLength + 1)
+          const range = selection.getBufferRange()
+          expect(range.isEmpty()).toBe(true)
+          expect(range.start.column).toBe(0)
+        }
 
-        selection.setBufferRange([[0, delimLength], [0, delimLength + 1 + 'test'.length]])
+        {
+          selection.toggleLineComments()
 
-        selection.toggleLineComments()
-        let range = selection.getBufferRange()
-        expect(range.start.column === 0 && range.end.column === 'test'.length).toBe(true)
+          const range = selection.getBufferRange()
+          expect(range.isEmpty()).toBe(true)
+          expect(range.start.column).toBe(delimLength + 1)
+        }
 
-        selection.toggleLineComments()
-        range = selection.getBufferRange()
-        expect(range.start.column === delimLength + 1 && range.end.column === delimLength + 1 + 'test'.length).toBe(true)
+        {
+          selection.setBufferRange([[0, delimLength], [0, delimLength + 1 + 'test'.length]])
+          selection.toggleLineComments()
 
-        editor.setText('    test')
-        selection.setBufferRange([[0, 4], [0,4]])
-        selection.toggleLineComments()
-        expect(selection.isEmpty()).toBe(true)
-        expect(selection.getBufferRange().start.column).toBe(4 + delimLength + 1)
+          const range = selection.getBufferRange()
+          expect(range.start.column).toBe(0)
+          expect(range.end.column).toBe('test'.length)
+        }
 
-        editor.setText('    test')
-        selection.setBufferRange([[0, 8], [0, 8]])
-        selection.selectToBeginningOfWord()
-        selection.toggleLineComments()
-        expect(selection.getBufferRange().start.column).toBe(4 + delimLength + 1)
-        expect(selection.getBufferRange().end.column).toBe(4 + delimLength + 1 + 4)
+        {
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.start.column).toBe(delimLength + 1)
+          expect(range.end.column).toBe(delimLength + 1 + 'test'.length)
+        }
+
+        {
+          editor.setText('    test')
+          selection.setBufferRange([[0, 4], [0,4]])
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.isEmpty()).toBe(true)
+          expect(range.start.column).toBe(4 + delimLength + 1)
+        }
+
+        {
+          editor.setText('    test')
+          selection.setBufferRange([[0, 8], [0, 8]])
+          selection.selectToBeginningOfWord()
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.start.column).toBe(4 + delimLength + 1)
+          expect(range.end.column).toBe(4 + delimLength + 1 + 4)
+        }
       })
     })
 
