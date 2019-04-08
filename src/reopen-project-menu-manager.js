@@ -125,7 +125,7 @@ class ReopenProjectMenuManager {
           submenu: projects.map((project, index) => ({
             label: this.createLabel(project),
             command: 'application:reopen-project',
-            commandDetail: {index: index}
+            commandDetail: { index: index, paths: project.paths }
           }))
         }
       ]

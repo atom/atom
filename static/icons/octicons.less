@@ -1,5 +1,17 @@
-@import "octicon-mixins.less";
-@import "octicon-utf-codes.less";
+@import "octicon-mixins";
+
+//
+// Add icon font
+// --------------------------------------------------
+
+@font-face { .octicon-font-legacy(); } // keep for backwards compatibility
+@font-face { .octicon-font(); }
+@font-face { .atomicon-font(); } // Private
+
+
+//
+// Create icons
+// --------------------------------------------------
 
 .make-icon(@name) {
   .icon-@{name} { .octicon(@name); }

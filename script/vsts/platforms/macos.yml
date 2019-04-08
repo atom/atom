@@ -19,14 +19,21 @@ jobs:
   - script: npm install --global npm@6.2.0
     displayName: Update npm
 
+  - script: script/bootstrap
+    displayName: Bootstrap build environment
+
+  - script: script/lint
+    displayName: Run linter
+
   - script: |
       if [ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]; then
-        script/build --code-sign --compress-artifacts
+        script/build --no-bootstrap --code-sign --compress-artifacts
       else
-        script/build --compress-artifacts
+        script/build --no-bootstrap --compress-artifacts
       fi
     displayName: Build Atom
     env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
       IS_RELEASE_BRANCH: $(IsReleaseBranch)
       IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
@@ -35,21 +42,41 @@ jobs:
       ATOM_MAC_CODE_SIGNING_KEYCHAIN: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN)
       ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
 
-  - script: script/lint
-    displayName: Run linter
-
   - script: |
       osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
       caffeinate -s script/test # Run with caffeinate to prevent screen saver
     env:
       CI: true
       CI_PROVIDER: VSTS
+      ATOM_JASMINE_REPORTER: list
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+  - script: script/postprocess-junit-results --search-folder "${TEST_JUNIT_XML_ROOT}" --test-results-files "**/*.xml"
+    env:
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
+    displayName: Post-process test results
+    condition: ne(variables['Atom.SkipTests'], 'true')
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: JUnit
+      searchFolder: $(Common.TestResultsDirectory)/junit
+      testResultsFiles: "**/*.xml"
+      mergeTestResults: true
+      testRunTitle: MacOS
+    condition: ne(variables['Atom.SkipTests'], 'true')
 
   - script: |
       cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
     displayName: Stage Artifacts
+
+  - script: |
+      mkdir -p $(Build.ArtifactStagingDirectory)/crash-reports
+      cp ${HOME}/Library/Logs/DiagnosticReports/*.crash $(Build.ArtifactStagingDirectory)/crash-reports
+    displayName: Stage Crash Reports
+    condition: failed()
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -74,3 +101,10 @@ jobs:
       ArtifactType: Container
     displayName: Upload atom-api.json
     condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/crash-reports
+      ArtifactName: crash-reports.zip
+    displayName: Upload Crash Reports
+    condition: failed()

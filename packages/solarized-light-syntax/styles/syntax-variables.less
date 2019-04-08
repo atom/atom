@@ -1,0 +1,55 @@
+@import "colors.less";
+
+// This defines all syntax variables that syntax themes must implement when they
+// include a syntax-variables.less file.
+
+// General colors
+@syntax-text-color: @base00;
+@syntax-cursor-color: @base03;
+@syntax-selection-color: @base2;
+@syntax-selection-flash-color: @base0;
+@syntax-background-color: @base3;
+
+// Guide colors
+@syntax-wrap-guide-color: darken(@base2, 12%);
+@syntax-indent-guide-color: darken(@base2, 12%);
+@syntax-invisible-character-color: darken(@base2, 12%);
+
+// For find and replace markers
+@syntax-result-marker-color: @base1;
+@syntax-result-marker-color-selected: @base03;
+
+// Gutter colors
+@syntax-gutter-text-color: @base00;
+@syntax-gutter-text-color-selected: @base03;
+@syntax-gutter-background-color: @base2;
+@syntax-gutter-background-color-selected: darken(@syntax-gutter-background-color, 10%);
+
+// For git diff info. i.e. in the gutter
+@syntax-color-added: @green;
+@syntax-color-renamed: @blue;
+@syntax-color-modified: @yellow;
+@syntax-color-removed: @red;
+
+// For language entity colors
+@syntax-color-variable: @blue;
+@syntax-color-constant: @yellow;
+@syntax-color-property: @yellow;
+@syntax-color-value: @cyan;
+@syntax-color-function: @blue;
+@syntax-color-method: @blue;
+@syntax-color-class: @blue;
+@syntax-color-keyword: @green;
+@syntax-color-tag: @blue;
+@syntax-color-attribute: @syntax-comment-color;
+@syntax-color-import: @red;
+@syntax-color-snippet: @syntax-color-keyword;
+
+
+// Custom variables
+// Warning: Don't use in packages
+
+@syntax-comment-color: @base1;
+@syntax-subtle-color: @base00;
+@syntax-emphasized-color: @base01;
+@syntax-cursor-line: fade(darken(@syntax-background-color, 30%), 15%); // needs to be semi-transparent

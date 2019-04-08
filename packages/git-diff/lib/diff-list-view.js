@@ -1,14 +1,13 @@
 const SelectListView = require('atom-select-list')
-const {repositoryForPath} = require('./helpers')
+const { repositoryForPath } = require('./helpers')
 
-module.exports =
-class DiffListView {
+module.exports = class DiffListView {
   constructor () {
     this.selectListView = new SelectListView({
       emptyMessage: 'No diffs in file',
       items: [],
-      filterKeyForItem: (diff) => diff.lineText,
-      elementForItem: (diff) => {
+      filterKeyForItem: diff => diff.lineText,
+      elementForItem: diff => {
         const li = document.createElement('li')
         li.classList.add('two-lines')
 
@@ -19,15 +18,19 @@ class DiffListView {
 
         const secondaryLine = document.createElement('div')
         secondaryLine.classList.add('secondary-line')
-        secondaryLine.textContent = `-${diff.oldStart},${diff.oldLines} +${diff.newStart},${diff.newLines}`
+        secondaryLine.textContent = `-${diff.oldStart},${diff.oldLines} +${
+          diff.newStart
+        },${diff.newLines}`
         li.appendChild(secondaryLine)
 
         return li
       },
-      didConfirmSelection: (diff) => {
+      didConfirmSelection: diff => {
         this.cancel()
         const bufferRow = diff.newStart > 0 ? diff.newStart - 1 : diff.newStart
-        this.editor.setCursorBufferPosition([bufferRow, 0], {autoscroll: true})
+        this.editor.setCursorBufferPosition([bufferRow, 0], {
+          autoscroll: true
+        })
         this.editor.moveToFirstCharacterOfLine()
       },
       didCancelSelection: () => {
@@ -35,7 +38,10 @@ class DiffListView {
       }
     })
     this.selectListView.element.classList.add('diff-list-view')
-    this.panel = atom.workspace.addModalPanel({item: this.selectListView, visible: false})
+    this.panel = atom.workspace.addModalPanel({
+      item: this.selectListView,
+      visible: false
+    })
   }
 
   attach () {
@@ -66,7 +72,9 @@ class DiffListView {
     } else if (editor) {
       this.editor = editor
       const repository = repositoryForPath(this.editor.getPath())
-      let diffs = repository ? repository.getLineDiffs(this.editor.getPath(), this.editor.getText()) : []
+      let diffs = repository
+        ? repository.getLineDiffs(this.editor.getPath(), this.editor.getText())
+        : []
       if (!diffs) diffs = []
       for (let diff of diffs) {
         const bufferRow = diff.newStart > 0 ? diff.newStart - 1 : diff.newStart
@@ -74,7 +82,7 @@ class DiffListView {
         diff.lineText = lineText ? lineText.trim() : ''
       }
 
-      await this.selectListView.update({items: diffs})
+      await this.selectListView.update({ items: diffs })
       this.attach()
     }
   }

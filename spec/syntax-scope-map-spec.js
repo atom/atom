@@ -5,7 +5,7 @@ describe('SyntaxScopeMap', () => {
     const map = new SyntaxScopeMap({
       'a > b > c': 'x',
       'b > c': 'y',
-      'c': 'z'
+      c: 'z'
     })
 
     expect(map.get(['a', 'b', 'c'], [0, 0, 0])).toBe('x')
@@ -20,7 +20,7 @@ describe('SyntaxScopeMap', () => {
     const map = new SyntaxScopeMap({
       'a > b': 'w',
       'a > b:nth-child(1)': 'x',
-      'b': 'y',
+      b: 'y',
       'b:nth-child(2)': 'z'
     })
 

@@ -29,6 +29,7 @@ module.exports = function () {
     'name': appName,
     'out': CONFIG.buildOutputPath,
     'overwrite': true,
+    'deref-symlinks': false,
     'platform': process.platform,
     'version': CONFIG.appMetadata.electronVersion,
     'version-string': {
@@ -106,6 +107,7 @@ function buildAsarUnpackGlobExpression () {
     path.join('**', 'node_modules', 'spellchecker', '**'),
     path.join('**', 'node_modules', 'dugite', 'git', '**'),
     path.join('**', 'node_modules', 'github', 'bin', '**'),
+    path.join('**', 'node_modules', 'vscode-ripgrep', 'bin', '**'),
     path.join('**', 'resources', 'atom.png')
   ]
 

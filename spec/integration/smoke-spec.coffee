@@ -23,10 +23,14 @@ describe "Smoke Test", ->
 
   it "can open a file in Atom and perform basic operations on it", ->
     tempDirPath = temp.mkdirSync("empty-dir")
-    runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: atomHome}, (client) ->
+    filePath = path.join(tempDirPath, "new-file")
+
+    fs.writeFileSync filePath, "", {encoding: "utf8"}
+
+    runAtom [filePath], {ATOM_HOME: atomHome}, (client) ->
       client
         .treeViewRootDirectories()
-        .then ({value}) -> expect(value).toEqual([tempDirPath])
+        .then ({value}) -> expect(value).toEqual([])
         .waitForExist("atom-text-editor", 5000)
         .then (exists) -> expect(exists).toBe true
         .waitForPaneItemCount(1, 1000)

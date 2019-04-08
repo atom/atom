@@ -10,7 +10,7 @@ let Tooltip = null
 //
 // The essence of displaying a tooltip
 //
-// ```javascript
+// ```js
 // // display it
 // const disposable = atom.tooltips.add(div, {title: 'This is a tooltip'})
 //
@@ -21,7 +21,7 @@ let Tooltip = null
 // In practice there are usually multiple tooltips. So we add them to a
 // CompositeDisposable
 //
-// ```javascript
+// ```js
 // const {CompositeDisposable} = require('atom')
 // const subscriptions = new CompositeDisposable()
 //
@@ -37,7 +37,7 @@ let Tooltip = null
 // You can display a key binding in the tooltip as well with the
 // `keyBindingCommand` option.
 //
-// ```javascript
+// ```js
 // disposable = atom.tooltips.add(this.caseOptionButton, {
 //   title: 'Match Case',
 //   keyBindingCommand: 'find-and-replace:toggle-case-option',

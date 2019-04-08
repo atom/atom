@@ -32,7 +32,17 @@ module.exports = ({blobStore}) ->
 
     {testRunnerPath, legacyTestRunnerPath, headless, logFile, testPaths, env} = getWindowLoadSettings()
 
-    unless headless
+    if headless
+      # Install console functions that output to stdout and stderr.
+      util = require 'util'
+
+      Object.defineProperties process,
+        stdout: {value: remote.process.stdout}
+        stderr: {value: remote.process.stderr}
+
+      console.log = (args...) -> process.stdout.write "#{util.format(args...)}\n"
+      console.error = (args...) -> process.stderr.write "#{util.format(args...)}\n"
+    else
       # Show window synchronously so a focusout doesn't fire on input elements
       # that are focused in the very first spec run.
       remote.getCurrentWindow().show()

@@ -1,0 +1,58 @@
+.syntax--source.syntax--coffee {
+  .syntax--support.syntax--class {
+    color: @green;
+  }
+
+  .syntax--variable,
+  .syntax--entity.syntax--name.syntax--function,
+  .syntax--entity.syntax--name.syntax--class {
+    color: @blue;
+  }
+  .syntax--variable.syntax--parameter.syntax--function {
+    color: @syntax-text-color;
+  }
+  .syntax--variable.syntax--other.syntax--readwrite {
+    color: @green;
+  }
+
+  .syntax--storage.syntax--type.syntax--function {
+    color: @green;
+  }
+
+  .syntax--entity.syntax--name {
+    color: @syntax-text-color;
+  }
+
+  .syntax--meta.syntax--brace {
+    &.syntax--round,
+    &.syntax--square {
+      color: @syntax-text-color;
+    }
+  }
+  .syntax--meta.syntax--delimiter {
+    color: @syntax-text-color;
+  }
+
+  .syntax--storage.syntax--type.syntax--class {
+    color: @green;
+  }
+
+  .syntax--punctuation.syntax--terminator {
+    color: @syntax-text-color;
+  }
+
+  .syntax--punctuation.syntax--section.syntax--embedded {
+    color: @red;
+  }
+  .syntax--embedded.syntax--source {
+    color: @syntax-text-color;
+  }
+
+  .syntax--constant.syntax--numeric {
+    color: @magenta;
+  }
+
+  .syntax--constant.syntax--language.syntax--boolean {
+    color: @yellow;
+  }
+}

@@ -23,9 +23,7 @@ class AtomWindow extends EventEmitter {
     this.devMode = settings.devMode
     this.resourcePath = settings.resourcePath
 
-    let {pathToOpen, locationsToOpen} = settings
-    if (!locationsToOpen && pathToOpen) locationsToOpen = [{pathToOpen}]
-    if (!locationsToOpen) locationsToOpen = []
+    const locationsToOpen = settings.locationsToOpen || []
 
     this.loadedPromise = new Promise(resolve => { this.resolveLoadedPromise = resolve })
     this.closedPromise = new Promise(resolve => { this.resolveClosedPromise = resolve })
@@ -73,23 +71,7 @@ class AtomWindow extends EventEmitter {
     if (this.loadSettings.safeMode == null) this.loadSettings.safeMode = false
     if (this.loadSettings.clearWindowState == null) this.loadSettings.clearWindowState = false
 
-    if (!this.loadSettings.initialPaths) {
-      this.loadSettings.initialPaths = []
-      for (const {pathToOpen, stat} of locationsToOpen) {
-        if (!pathToOpen) continue
-        if (stat && stat.isDirectory()) {
-          this.loadSettings.initialPaths.push(pathToOpen)
-        } else {
-          const parentDirectory = path.dirname(pathToOpen)
-          if (stat && stat.isFile() || fs.existsSync(parentDirectory)) {
-            this.loadSettings.initialPaths.push(parentDirectory)
-          } else {
-            this.loadSettings.initialPaths.push(pathToOpen)
-          }
-        }
-      }
-    }
-
+    this.loadSettings.initialPaths = locationsToOpen.map(location => location.pathToOpen).filter(Boolean)
     this.loadSettings.initialPaths.sort()
 
     // Only send to the first non-spec window created
@@ -166,7 +148,7 @@ class AtomWindow extends EventEmitter {
 
   handleEvents () {
     this.browserWindow.on('close', async event => {
-      if (!this.atomApplication.quitting && !this.unloading) {
+      if ((!this.atomApplication.quitting || this.atomApplication.quittingForUpdate) && !this.unloading) {
         event.preventDefault()
         this.unloading = true
         this.atomApplication.saveCurrentWindowOptions(false)
