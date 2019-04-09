@@ -663,6 +663,10 @@ describe('AtomApplication', function () {
             parseCommandLine([path.join(makeTempDir('a'), 'file-a')])
           )
           await focusWindow(window)
+
+          // Choosing "Don't save"
+          mockElectronShowMessageBox({ response: 2 })
+
           window.close()
           await window.closedPromise
           await atomApplication.lastBeforeQuitPromise
@@ -675,6 +679,10 @@ describe('AtomApplication', function () {
             parseCommandLine([path.join(makeTempDir('a'), 'file-a')])
           )
           await focusWindow(window)
+
+          // Choosing "Don't save"
+          mockElectronShowMessageBox({ response: 2 })
+
           window.close()
           await window.closedPromise
           await timeoutPromise(1000)
