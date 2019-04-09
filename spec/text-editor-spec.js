@@ -8425,7 +8425,7 @@ describe('TextEditor', () => {
         expect(editor.lineTextForBufferRow(0)).toBe('test')
       })
 
-      fit('does not select the new delimiters', () => {
+      it('does not select the new delimiters', () => {
         editor.setText('<!-- test -->')
         let delimLength = '<!--'.length
         let selection = editor.addSelectionForBufferRange([[0, delimLength], [0, delimLength]])
