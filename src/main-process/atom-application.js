@@ -452,13 +452,17 @@ class AtomApplication extends EventEmitter {
 
   // Registers basic application commands, non-idempotent.
   handleEvents () {
-    const getLoadSettings = () => {
+    const getLoadSettings = includeWindow => {
       const window = this.focusedWindow()
-      return {devMode: window && window.devMode, safeMode: window && window.safeMode}
+      return {
+        devMode: window && window.devMode,
+        safeMode: window && window.safeMode,
+        window: includeWindow && window
+      }
     }
 
     this.on('application:quit', () => app.quit())
-    this.on('application:new-window', () => this.openPath(getLoadSettings()))
+    this.on('application:new-window', () => this.openPath(getLoadSettings(false)))
     this.on('application:new-file', () => (this.focusedWindow() || this).openPath())
     this.on('application:open-dev', () => this.promptForPathToOpen('all', {devMode: true}))
     this.on('application:open-safe', () => this.promptForPathToOpen('all', {safeMode: true}))
@@ -487,9 +491,9 @@ class AtomApplication extends EventEmitter {
         this.openPaths({ pathsToOpen: paths })
       })
 
-      this.on('application:open', () => this.promptForPathToOpen('all', getLoadSettings(), getDefaultPath()))
-      this.on('application:open-file', () => this.promptForPathToOpen('file', getLoadSettings(), getDefaultPath()))
-      this.on('application:open-folder', () => this.promptForPathToOpen('folder', getLoadSettings(), getDefaultPath()))
+      this.on('application:open', () => this.promptForPathToOpen('all', getLoadSettings(true), getDefaultPath()))
+      this.on('application:open-file', () => this.promptForPathToOpen('file', getLoadSettings(true), getDefaultPath()))
+      this.on('application:open-folder', () => this.promptForPathToOpen('folder', getLoadSettings(true), getDefaultPath()))
       this.on('application:bring-all-windows-to-front', () => Menu.sendActionToFirstResponder('arrangeInFront:'))
       this.on('application:hide', () => Menu.sendActionToFirstResponder('hide:'))
       this.on('application:hide-other-applications', () => Menu.sendActionToFirstResponder('hideOtherApplications:'))
@@ -639,15 +643,13 @@ class AtomApplication extends EventEmitter {
     }))
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'open-command', (event, command, defaultPath) => {
-      const options = getLoadSettings()
-      options.window = this.atomWindowForEvent(event)
       switch (command) {
         case 'application:open':
-          return this.promptForPathToOpen('all', options, defaultPath)
+          return this.promptForPathToOpen('all', getLoadSettings(true), defaultPath)
         case 'application:open-file':
-          return this.promptForPathToOpen('file', options, defaultPath)
+          return this.promptForPathToOpen('file', getLoadSettings(true), defaultPath)
         case 'application:open-folder':
-          return this.promptForPathToOpen('folder', options, defaultPath)
+          return this.promptForPathToOpen('folder', getLoadSettings(true), defaultPath)
         default:
           return console.log(`Invalid open-command received: ${command}`)
       }
