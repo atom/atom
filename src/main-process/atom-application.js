@@ -968,11 +968,21 @@ class AtomApplication extends EventEmitter {
     const normalizedPathsToOpen = locationsToOpen.map(location => location.pathToOpen).filter(Boolean)
 
     let existingWindow
-    if (!newWindow && normalizedPathsToOpen.length > 0) {
+
+    // Explicitly provided AtomWindow has precedence unless a new window is forced.
+    if (!newWindow) {
+      existingWindow = window
+    }
+
+    // If no window is specified, a new window is not forced, and at least one path is provided, locate
+    // an existing window that contains all paths.
+    if (!existingWindow && !newWindow && normalizedPathsToOpen.length > 0) {
       existingWindow = this.windowForPaths(normalizedPathsToOpen, devMode)
     }
 
-    if (addToLastWindow && !existingWindow) {
+    // No window specified, new window not forced, no existing window found, and addition to the last window
+    // requested. Find the last focused window.
+    if (!existingWindow && !newWindow && addToLastWindow) {
       let lastWindow = window || this.getLastFocusedWindow()
       if (lastWindow && lastWindow.devMode === devMode) {
         existingWindow = lastWindow
