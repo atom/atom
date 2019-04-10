@@ -452,13 +452,17 @@ class AtomApplication extends EventEmitter {
 
   // Registers basic application commands, non-idempotent.
   handleEvents () {
-    const getLoadSettings = () => {
+    const getLoadSettings = includeWindow => {
       const window = this.focusedWindow()
-      return {devMode: window && window.devMode, safeMode: window && window.safeMode}
+      return {
+        devMode: window && window.devMode,
+        safeMode: window && window.safeMode,
+        window: includeWindow && window
+      }
     }
 
     this.on('application:quit', () => app.quit())
-    this.on('application:new-window', () => this.openPath(getLoadSettings()))
+    this.on('application:new-window', () => this.openPath(getLoadSettings(false)))
     this.on('application:new-file', () => (this.focusedWindow() || this).openPath())
     this.on('application:open-dev', () => this.promptForPathToOpen('all', {devMode: true}))
     this.on('application:open-safe', () => this.promptForPathToOpen('all', {safeMode: true}))
@@ -487,9 +491,9 @@ class AtomApplication extends EventEmitter {
         this.openPaths({ pathsToOpen: paths })
       })
 
-      this.on('application:open', () => this.promptForPathToOpen('all', getLoadSettings(), getDefaultPath()))
-      this.on('application:open-file', () => this.promptForPathToOpen('file', getLoadSettings(), getDefaultPath()))
-      this.on('application:open-folder', () => this.promptForPathToOpen('folder', getLoadSettings(), getDefaultPath()))
+      this.on('application:open', () => this.promptForPathToOpen('all', getLoadSettings(true), getDefaultPath()))
+      this.on('application:open-file', () => this.promptForPathToOpen('file', getLoadSettings(true), getDefaultPath()))
+      this.on('application:open-folder', () => this.promptForPathToOpen('folder', getLoadSettings(true), getDefaultPath()))
       this.on('application:bring-all-windows-to-front', () => Menu.sendActionToFirstResponder('arrangeInFront:'))
       this.on('application:hide', () => Menu.sendActionToFirstResponder('hide:'))
       this.on('application:hide-other-applications', () => Menu.sendActionToFirstResponder('hideOtherApplications:'))
@@ -641,11 +645,11 @@ class AtomApplication extends EventEmitter {
     this.disposable.add(ipcHelpers.on(ipcMain, 'open-command', (event, command, defaultPath) => {
       switch (command) {
         case 'application:open':
-          return this.promptForPathToOpen('all', getLoadSettings(), defaultPath)
+          return this.promptForPathToOpen('all', getLoadSettings(true), defaultPath)
         case 'application:open-file':
-          return this.promptForPathToOpen('file', getLoadSettings(), defaultPath)
+          return this.promptForPathToOpen('file', getLoadSettings(true), defaultPath)
         case 'application:open-folder':
-          return this.promptForPathToOpen('folder', getLoadSettings(), defaultPath)
+          return this.promptForPathToOpen('folder', getLoadSettings(true), defaultPath)
         default:
           return console.log(`Invalid open-command received: ${command}`)
       }
@@ -968,11 +972,21 @@ class AtomApplication extends EventEmitter {
     const normalizedPathsToOpen = locationsToOpen.map(location => location.pathToOpen).filter(Boolean)
 
     let existingWindow
-    if (!newWindow && normalizedPathsToOpen.length > 0) {
+
+    // Explicitly provided AtomWindow has precedence unless a new window is forced.
+    if (!newWindow) {
+      existingWindow = window
+    }
+
+    // If no window is specified, a new window is not forced, and at least one path is provided, locate
+    // an existing window that contains all paths.
+    if (!existingWindow && !newWindow && normalizedPathsToOpen.length > 0) {
       existingWindow = this.windowForPaths(normalizedPathsToOpen, devMode)
     }
 
-    if (addToLastWindow && !existingWindow) {
+    // No window specified, new window not forced, no existing window found, and addition to the last window
+    // requested. Find the last focused window.
+    if (!existingWindow && !newWindow && addToLastWindow) {
       let lastWindow = window || this.getLastFocusedWindow()
       if (lastWindow && lastWindow.devMode === devMode) {
         existingWindow = lastWindow
@@ -1412,14 +1426,32 @@ class AtomApplication extends EventEmitter {
   //              should be in dev mode or not.
   //   :safeMode - A Boolean which controls whether any newly opened windows
   //               should be in safe mode or not.
-  //   :window - An {AtomWindow} to use for opening a selected file path.
+  //   :window - An {AtomWindow} to use for opening selected file paths as long as
+  //             all are files.
   //   :path - An optional String which controls the default path to which the
   //           file dialog opens.
   promptForPathToOpen (type, {devMode, safeMode, window}, path = null) {
     return this.promptForPath(
       type,
-      pathsToOpen => {
-        return this.openPaths({pathsToOpen, devMode, safeMode, window})
+      async pathsToOpen => {
+        let targetWindow
+
+        // Open in :window as long as no chosen paths are folders. If any chosen path is a folder, open in a
+        // new window instead.
+        if (type === 'folder') {
+          targetWindow = null
+        } else if (type === 'file') {
+          targetWindow = window
+        } else if (type === 'all') {
+          const areDirectories = await Promise.all(
+            pathsToOpen.map(pathToOpen => new Promise(resolve => fs.isDirectory(pathToOpen, resolve)))
+          )
+          if (!areDirectories.some(Boolean)) {
+            targetWindow = window
+          }
+        }
+
+        return this.openPaths({pathsToOpen, devMode, safeMode, window: targetWindow})
       },
       path
     )
