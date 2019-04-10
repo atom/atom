@@ -663,6 +663,7 @@ describe('AtomApplication', function () {
             parseCommandLine([path.join(makeTempDir('a'), 'file-a')])
           )
           await focusWindow(window)
+          await emitterEventPromise(window, 'window:locations-opened')
 
           // Choosing "Don't save"
           mockElectronShowMessageBox({ response: 2 })
@@ -679,6 +680,7 @@ describe('AtomApplication', function () {
             parseCommandLine([path.join(makeTempDir('a'), 'file-a')])
           )
           await focusWindow(window)
+          await emitterEventPromise(window, 'window:locations-opened')
 
           // Choosing "Don't save"
           mockElectronShowMessageBox({ response: 2 })
