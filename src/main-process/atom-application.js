@@ -639,13 +639,15 @@ class AtomApplication extends EventEmitter {
     }))
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'open-command', (event, command, defaultPath) => {
+      const options = getLoadSettings()
+      options.window = this.atomWindowForEvent(event)
       switch (command) {
         case 'application:open':
-          return this.promptForPathToOpen('all', getLoadSettings(), defaultPath)
+          return this.promptForPathToOpen('all', options, defaultPath)
         case 'application:open-file':
-          return this.promptForPathToOpen('file', getLoadSettings(), defaultPath)
+          return this.promptForPathToOpen('file', options, defaultPath)
         case 'application:open-folder':
-          return this.promptForPathToOpen('folder', getLoadSettings(), defaultPath)
+          return this.promptForPathToOpen('folder', options, defaultPath)
         default:
           return console.log(`Invalid open-command received: ${command}`)
       }
