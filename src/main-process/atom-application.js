@@ -1424,14 +1424,32 @@ class AtomApplication extends EventEmitter {
   //              should be in dev mode or not.
   //   :safeMode - A Boolean which controls whether any newly opened windows
   //               should be in safe mode or not.
-  //   :window - An {AtomWindow} to use for opening a selected file path.
+  //   :window - An {AtomWindow} to use for opening selected file paths as long as
+  //             all are files.
   //   :path - An optional String which controls the default path to which the
   //           file dialog opens.
   promptForPathToOpen (type, {devMode, safeMode, window}, path = null) {
     return this.promptForPath(
       type,
-      pathsToOpen => {
-        return this.openPaths({pathsToOpen, devMode, safeMode, window})
+      async pathsToOpen => {
+        let targetWindow
+
+        // Open in :window as long as no chosen paths are folders. If any chosen path is a folder, open in a
+        // new window instead.
+        if (type === 'folder') {
+          targetWindow = null
+        } else if (type === 'file') {
+          targetWindow = window
+        } else if (type === 'all') {
+          const areDirectories = await Promise.all(
+            pathsToOpen.map(pathToOpen => new Promise(resolve => fs.isDirectory(pathToOpen, resolve)))
+          )
+          if (!areDirectories.some(Boolean)) {
+            targetWindow = window
+          }
+        }
+
+        return this.openPaths({pathsToOpen, devMode, safeMode, window: targetWindow})
       },
       path
     )
