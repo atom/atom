@@ -24,7 +24,11 @@ case $(basename $0) in
     ;;
 esac
 
-export ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT=true
+# Only set the ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT env var if it hasn't been set.
+if [ -z "$ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT" ]
+then
+  export ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT=true
+fi
 
 ATOM_ADD=false
 ATOM_NEW_WINDOW=false
