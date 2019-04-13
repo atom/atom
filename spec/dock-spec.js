@@ -26,6 +26,46 @@ describe('Dock', () => {
       expect(document.activeElement).toBe(dock.getActivePane().getElement())
       expect(didChangeVisibleSpy).toHaveBeenCalledWith(true)
     })
+
+    it('opens the vertically-oriented dock with the size of editor.dockSize config value', async () => {
+      atom.config.set('editor.dockSize', 400)
+
+      jasmine.attachToDOM(atom.workspace.getElement())
+
+      const item = {
+        element: document.createElement('div'),
+        getDefaultLocation () {
+          return 'left'
+        }
+      }
+
+      await atom.workspace.open(item)
+      const dock = atom.workspace.getLeftDock()
+      const dockElement = dock.getElement()
+
+      await getNextUpdatePromise()
+      expect(dockElement.offsetWidth).toBe(400)
+    })
+
+    it('opens the horizontally-oriented dock with the size of editor.dockSize config value', async () => {
+      atom.config.set('editor.dockSize', 400)
+
+      jasmine.attachToDOM(atom.workspace.getElement())
+
+      const item = {
+        element: document.createElement('div'),
+        getDefaultLocation () {
+          return 'bottom'
+        }
+      }
+
+      await atom.workspace.open(item)
+      const dock = atom.workspace.getBottomDock()
+      const dockElement = dock.getElement()
+
+      await getNextUpdatePromise()
+      expect(dockElement.offsetHeight).toBe(400)
+    })
   })
 
   describe('when a dock is hidden', () => {

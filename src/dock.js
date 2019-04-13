@@ -7,7 +7,6 @@ const Grim = require('grim')
 
 const $ = etch.dom
 const MINIMUM_SIZE = 100
-const DEFAULT_INITIAL_SIZE = 300
 const SHOULD_ANIMATE_CLASS = 'atom-dock-should-animate'
 const VISIBLE_CLASS = 'atom-dock-open'
 const RESIZE_HANDLE_RESIZABLE_CLASS = 'atom-dock-resize-handle-resizable'
@@ -190,7 +189,7 @@ module.exports = class Dock {
     const size = Math.max(MINIMUM_SIZE,
       this.state.size ||
       (this.state.draggingItem && getPreferredSize(this.state.draggingItem, this.location)) ||
-      DEFAULT_INITIAL_SIZE
+      this.config.get('editor.dockSize')
     )
 
     // We need to change the size of the mask...
@@ -409,7 +408,7 @@ module.exports = class Dock {
     const activePaneItem = this.paneContainer.getActivePaneItem() || this.paneContainer.getPaneItems()[0]
     // If there are items, we should have an explicit width; if not, we shouldn't.
     return activePaneItem
-      ? getPreferredSize(activePaneItem, this.location) || DEFAULT_INITIAL_SIZE
+      ? getPreferredSize(activePaneItem, this.location) || this.config.get('editor.dockSize')
       : null
   }
 

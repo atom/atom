@@ -553,6 +553,12 @@ const configSchema = {
         type: 'boolean',
         default: process.platform !== 'darwin',
         description: 'Change the editor font size when pressing the Ctrl key and scrolling the mouse up/down.'
+      },
+      dockSize: {
+        type: 'integer',
+        default: 300,
+        minimum: 100,
+        description: 'Defines the default dock size when opening new window.'
       }
     }
   }
