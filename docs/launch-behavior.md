@@ -25,7 +25,7 @@ For brevity, the scenarios below are described using the following notation:
 When no Atom windows are open, CLI actions have the following outcomes:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
-| --- | --- | --- |
+| --- | --- | --- | --- |
 | `atom /a/1.md`              | [/a 1.md] | [ 1.md] | [ 1.md] |
 | `atom /a`                   | [/a]      | [/a]    | [/a]    |
 | `atom --add /a/1.md`        | [/a 1.md] | [ 1.md] | [ 1.md] |
@@ -40,7 +40,7 @@ With the following starting state:
 > []
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
-| --- | --- | --- |
+| --- | --- | --- | --- |
 | `atom /a/1.md`              | [] [/a 1.md] | [] [ 1.md] | [ 1.md]    |
 | `atom /a`                   | [] [/a]      | [] [/a]    | [] [/a]    |
 | `atom --add /a/1.md`        | [/a 1.md]    | [ 1.md]    | [ 1.md]    |
@@ -55,7 +55,7 @@ With the following starting state:
 > [/a]
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
-| --- | --- | --- |
+| --- | --- | --- | --- |
 | `atom /a/1.md`              | [/a 1.md]      | [/a 1.md]    | [/a 1.md]    |
 | `atom /a`                   | [/a]           | [/a]         | [/a]         |
 | `atom /b/3.md`              | [/a] [/b 3.md] | [/a] [ 3.md] | [/a] [ 3.md] |
@@ -74,7 +74,7 @@ With the following starting state:
 > [/a] []
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
-| --- | --- | --- |
+| --- | --- | --- | --- |
 | `atom /a/1.md`              | [/a 1.md] []      | [/a 1.md] []    | [/a 1.md] []    |
 | `atom /a`                   | [/a] []           | [/a] []         | [/a] []         |
 | `atom /b/3.md`              | [/a] [] [/b 3.md] | [/a] [] [ 3.md] | [/a] [ 3.md]    |
@@ -95,7 +95,7 @@ With the following starting state:
 When no Atom windows are open, CLI actions have the following outcomes:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
-| --- | --- | --- |
+| --- | --- | --- | --- |
 
 ### Open window, no project roots
 
@@ -104,7 +104,7 @@ With the following starting state:
 > []
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
-| --- | --- | --- |
+| --- | --- | --- | --- |
 
 ### Open window, project root
 
@@ -113,11 +113,11 @@ With the following starting state:
 > [/a]
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
-| --- | --- | --- |
+| --- | --- | --- | --- |
 
 ### Open windows, one with a project root and one without
 
 > [/a] []
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
-| --- | --- | --- |
+| --- | --- | --- | --- |
