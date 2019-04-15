@@ -15,16 +15,13 @@ module.exports = function parseCommandLine (processArgs) {
       atom [options] [path ...]
       atom file[:line[:column]]
 
-    If no arguments are given and no Atom windows are already open, restore all windows
-    from the previous editing session. Use "atom --new-window" to open a single empty
-    Atom window instead.
+    One or more paths to files or folders may be specified. If there is an
+    existing Atom window that contains all of the given folders, the paths
+    will be opened in that window. Otherwise, they will be opened in a new
+    window.
 
-    If no arguments are given and at least one Atom window is open, open a new, empty
-    Atom window.
-
-    One or more paths to files or folders may be specified. All paths will be opened
-    in a new Atom window. Each file may be opened at the desired line (and optionally
-    column) by appending the numbers after the file name, e.g. \`atom file:5:8\`.
+    A file may be opened at the desired line (and optionally column) by
+    appending the numbers right after the file name, e.g. \`atom file:5:8\`.
 
     Paths that start with \`atom://\` will be interpreted as URLs.
 
@@ -43,7 +40,7 @@ module.exports = function parseCommandLine (processArgs) {
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the main process in the foreground.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
   options.alias('l', 'log-file').string('l').describe('l', 'Log all output to file.')
-  options.alias('n', 'new-window').boolean('n').describe('n', 'Launch an empty Atom window instead of restoring previous session.')
+  options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')
   options.boolean('profile-startup').describe('profile-startup', 'Create a profile of the startup execution time.')
   options.alias('r', 'resource-path').string('r').describe('r', 'Set the path to the Atom source directory and enable dev-mode.')
   options.boolean('safe').describe(
@@ -61,7 +58,6 @@ module.exports = function parseCommandLine (processArgs) {
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version information.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.alias('a', 'add').boolean('a').describe('add', 'Open path as a new project in last used window.')
-  options.string('socket-path')
   options.string('user-data-dir')
   options.boolean('clear-window-state').describe('clear-window-state', 'Delete all Atom environment state.')
   options.boolean('enable-electron-logging').describe('enable-electron-logging', 'Enable low-level logging messages from Electron.')
@@ -108,13 +104,22 @@ module.exports = function parseCommandLine (processArgs) {
     executedFrom = process.cwd()
   }
 
+  if (newWindow && addToLastWindow) {
+    process.stderr.write(
+      `Only one of the --add and --new-window options may be specified at the same time.\n\n${options.help()}`,
+    )
+
+    // Exiting the main process with a nonzero exit code on MacOS causes the app open to fail with the mysterious
+    // message "LSOpenURLsWithRole() failed for the application /Applications/Atom Dev.app with error -10810."
+    process.exit(0)
+  }
+
   let pidToKillWhenClosed = null
   if (args['wait']) {
     pidToKillWhenClosed = args['pid']
   }
 
   const logFile = args['log-file']
-  const socketPath = args['socket-path']
   const userDataDir = args['user-data-dir']
   const profileStartup = args['profile-startup']
   const clearWindowState = args['clear-window-state']
@@ -151,7 +156,6 @@ module.exports = function parseCommandLine (processArgs) {
     safeMode,
     newWindow,
     logFile,
-    socketPath,
     userDataDir,
     profileStartup,
     timeout,
