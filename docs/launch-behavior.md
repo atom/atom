@@ -92,10 +92,12 @@ With the following starting state:
 
 ### No open windows
 
-When no Atom windows are open, CLI actions have the following outcomes:
+When no Atom windows are open, file manager context operations have the following outcomes:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
+| Click on `/a/1.md` | [/a 1.md] | [ 1.md] | [ 1.md] |
+| Click on `/a`      | [/a]      | [/a]    | [/a]    |
 
 ### Open window, no project roots
 
@@ -105,6 +107,8 @@ With the following starting state:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
+| Click on `/a/1.md` | [] [/a 1.md] | [] [ 1.md] | [ 1.md] |
+| Click on `/a`      | [] [/a]      | [] [/a]    | [] [/a] |
 
 ### Open window, project root
 
@@ -114,6 +118,10 @@ With the following starting state:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
+| Click on `/a/1.md` | [/a 1.md]      | [/a 1.md]    | [/a 1.md]    |
+| Click on `/a`      | [/a]           | [/a]         | [/a]         |
+| Click on `/b/3.md` | [/a] [/b 3.md] | [/a] [ 3.md] | [/a] [ 3.md] |
+| Click on `/b`      | [/a] [/b]      | [/a] [/b]    | [/a] [/b]    |
 
 ### Open windows, one with a project root and one without
 
@@ -121,3 +129,7 @@ With the following starting state:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
+| Click on `/a/1.md` | [/a 1.md] []      | [/a 1.md] []    | [/a 1.md] [] |
+| Click on `/a`      | [/a] []           | [/a] []         | [/a] []      |
+| Click on `/b/3.md` | [/a] [] [/b 3.md] | [/a] [] [ 3.md] | [/a] [ 3.md] |
+| Click on `/b`      | [/a] [] [/b]      | [/a] [] [/b]    | [/a] [] [/b] |
