@@ -31,15 +31,9 @@ class GoToLineView {
     })
     this.miniEditor.onWillInsertText((arg) => {
         const value = this.miniEditor.getText()
-        //Only allows a single "+"/"-"/":" to be typed.
-        if(arg.text.match(/[^0-9:\+-]/) || (arg.text.match(/\+/) && value.length > 0) || (arg.text.match(/-/) && value.length > 0) || (arg.text.match(/:/) && value.includes(':'))){
+        if(arg.text.match(/[^0-9:\+-]/) || (arg.text.match(/\+/) && this.miniEditor.getCursorBufferPosition().column > 0) || (arg.text.match(/-/) && this.miniEditor.getCursorBufferPosition().column > 0) || (arg.text.match(/:/) && value.includes(':'))){
             arg.cancel()
       }
-    })
-    this.miniEditor.onDidChange(() => {
-        if (!this.miniEditor.getText == '+'){
-            this.navigate({keepOpen: true})
-        }
     })
   }
   
@@ -98,7 +92,7 @@ class GoToLineView {
       return this.previouslyFocusedElement.focus()
     }
     atom.views.getView(atom.workspace).focus()
-  }<<<<<< HEAD
+  }
 
   open () {
     if (this.panel.isVisible() || !atom.workspace.getActiveTextEditor()) return
