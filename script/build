@@ -2,9 +2,13 @@
 
 'use strict'
 
-// Run bootstrap first to ensure all the dependencies used later in this script
-// are installed.
-require('./bootstrap')
+if (process.argv.includes('--no-bootstrap')) {
+  console.log('Skipping bootstrap')
+} else {
+  // Bootstrap first to ensure all the dependencies used later in this script
+  // are installed.
+  require('./bootstrap')
+}
 
 // Needed so we can require src/module-cache.coffee during generateModuleCache
 require('coffee-script/register')

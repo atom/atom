@@ -37,6 +37,17 @@ jobs:
     displayName: Install Windows build dependencies
 
   - script: |
+      node script\vsts\windows-run.js script\bootstrap.cmd
+    env:
+      BUILD_ARCH: $(buildArch)
+    displayName: Bootstrap build environment
+
+  - script: node script\vsts\windows-run.js script\lint.cmd
+    env:
+      BUILD_ARCH: $(buildArch)
+    displayName: Run linter
+
+  - script: |
       IF NOT EXIST C:\tmp MKDIR C:\tmp
       SET SQUIRREL_TEMP=C:\tmp
       IF [%IS_RELEASE_BRANCH%]==[true] (
@@ -60,11 +71,6 @@ jobs:
       IS_RELEASE_BRANCH: $(IsReleaseBranch)
       IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
     displayName: Build Atom
-
-  - script: node script\vsts\windows-run.js script\lint.cmd
-    env:
-      BUILD_ARCH: $(buildArch)
-    displayName: Run linter
 
   - script: node script\vsts\windows-run.js script\test.cmd
     env:
