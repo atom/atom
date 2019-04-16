@@ -26,32 +26,36 @@ describe('AtomApplication', function () {
     describe('with no open windows', function () {
       it('opens a file', async function () {
         await scenario.launch(parseCommandLine(['a/1.md']))
-        await scenario.assert('[ 1.md]')
+        await scenario.assert('[_ 1.md]')
       })
 
       it('opens a directory', async function () {
         await scenario.launch(parseCommandLine(['a']))
-        await scenario.assert('[a ]')
+        await scenario.assert('[a _]')
       })
 
       it('opens a file with --add', async function () {
         await scenario.launch(parseCommandLine(['--add', 'a/1.md']))
-        await scenario.assert('[ 1.md]')
+        await scenario.assert('[_ 1.md]')
       })
 
       it('opens a directory with --add', async function () {
         await scenario.launch(parseCommandLine(['--add', 'a']))
-        await scenario.assert('[a ]')
+        await scenario.assert('[a _]')
       })
 
       it('opens a file with --new-window', async function () {
         await scenario.launch(parseCommandLine(['--new-window', 'a/1.md']))
-        await scenario.assert('[ 1.md]')
+        await scenario.assert('[_ 1.md]')
       })
 
       it('opens a directory with --new-window', async function () {
         await scenario.launch(parseCommandLine(['--new-window', 'a']))
-        await scenario.assert('[a ]')
+        await scenario.assert('[a _]')
+      })
+
+      it('opens a directory with --new-window', async function () {
+        await scenario.launch(parseCommandLine(['--new-window', 'a']))
       })
     })
   })
@@ -383,13 +387,13 @@ class LaunchScenario {
   parseWindowSpecs (source) {
     const specs = []
 
-    const rx = /\s*\[(\S*) (\S*)\]/g
+    const rx = /\s*\[(?:_|(\S+)) (?:_|(\S+))\]/g
     let match = rx.exec(source)
 
     while (match) {
       specs.push({
-        roots: match[1].split(','),
-        editors: match[2].split(',')
+        roots: (match[1] || '').split(','),
+        editors: (match[2] || '').split(',')
       })
 
       match = rx.exec(source)
