@@ -153,7 +153,7 @@ With the following starting state:
 | Click on `/a/1.md` | [/a 1.md] []      | [/a 1.md] []              | [/a 1.md] []             |
 | Click on `/a`      | [/a] []           | [/a] []                   | [/a] []                  |
 | Click on `/b/3.md` | [/a] [/b 3.md]    | [/a] [] [ 3.md] :warning: | [/a] [ 3.md] :bug: :new: |
-| Click on `/b`      | [/a] [] [/b]      | [/a] [] [/b]              | [/a] [/b] :bug: :new:    |
+| Click on `/b`      | [/a] [/b]         | [/a] [] [/b] :warning:    | [/a] [/b] :bug:          |
 
 > [] [/a]
 
