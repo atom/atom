@@ -24,7 +24,7 @@ class TreeSitterLanguageMode {
     }
   }
 
-  constructor ({buffer, grammar, config, grammars, syncTimeoutMicros}) {
+  constructor ({buffer, grammar, config, grammars, syncOperationLimit}) {
     TreeSitterLanguageMode._patchSyntaxNode()
     this.id = nextId++
     this.buffer = buffer
@@ -35,8 +35,8 @@ class TreeSitterLanguageMode {
     this.rootLanguageLayer = new LanguageLayer(this, grammar)
     this.injectionsMarkerLayer = buffer.addMarkerLayer()
 
-    if (syncTimeoutMicros != null) {
-      this.syncTimeoutMicros = syncTimeoutMicros
+    if (syncOperationLimit != null) {
+      this.syncOperationLimit = syncOperationLimit
     }
 
     this.rootScopeDescriptor = new ScopeDescriptor({scopes: [this.grammar.scopeName]})
@@ -111,7 +111,7 @@ class TreeSitterLanguageMode {
     const parser = PARSER_POOL.pop() || new Parser()
     parser.setLanguage(language)
     const result = parser.parseTextBuffer(this.buffer.buffer, oldTree, {
-      syncTimeoutMicros: this.syncTimeoutMicros,
+      syncOperationLimit: this.syncOperationLimit,
       includedRanges: ranges
     })
 
@@ -1225,6 +1225,6 @@ function hasMatchingFoldSpec (specs, node) {
 })
 
 TreeSitterLanguageMode.LanguageLayer = LanguageLayer
-TreeSitterLanguageMode.prototype.syncTimeoutMicros = 1000
+TreeSitterLanguageMode.prototype.syncOperationLimit = 1000
 
 module.exports = TreeSitterLanguageMode
