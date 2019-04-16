@@ -331,7 +331,7 @@ class LaunchScenario {
 
   getOpenEditors (window) {
     return this.evalInWebContents(window.browserWindow.webContents, reply => {
-      reply(atom.workspace.getTextEditors().map(editor => editor.getPath()))
+      reply(atom.workspace.getTextEditors().map(editor => editor.getPath()).filter(Boolean))
     })
   }
 
