@@ -20,7 +20,7 @@ For brevity, the scenarios below are described using the following notation:
 
 The order of window expressions indicates the order in which the windows were last focused.
 
-Changes in behavior from the immediately preceding version (the column to the immediate left) are marked with :new:
+Changes in behavior from <=1.35.1 to 1.36.0 are marked with :warning: - some of these are intentional desirable and others are not. Changes in behavior from <=1.35.1 to 1.36.1 are marked with :new: and should be our intentional, agreed-upon changes. _Unintentional_ changes from <=1.35.1 to 1.36.0 that we intend to revert back in 1.36.1 are marked with :bug:. Changes marked with both :new: and :bug: are scenarios in which we should differ from _both_ <=1.35.1 and 1.36.0.
 
 ## CLI actions
 
@@ -30,12 +30,12 @@ When no Atom windows are open, CLI actions have the following outcomes:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| `atom /a/1.md`              | [/a 1.md] | [ 1.md] :warning: | [ 1.md] |
-| `atom /a`                   | [/a]      | [/a]              | [/a]    |
-| `atom --add /a/1.md`        | [/a 1.md] | [ 1.md] :warning: | [ 1.md] |
-| `atom --add /a`             | [/a]      | [/a]              | [/a]    |
-| `atom --new-window /a/1.md` | [/a 1.md] | [ 1.md] :warning: | [ 1.md] |
-| `atom --new-window /a`      | [/a]      | [/a]              | [/a]    |
+| `atom /a/1.md`              | [/a 1.md] | [ 1.md] :warning: | [ 1.md] :new: |
+| `atom /a`                   | [/a]      | [/a]              | [/a]          |
+| `atom --add /a/1.md`        | [/a 1.md] | [ 1.md] :warning: | [ 1.md] :new: |
+| `atom --add /a`             | [/a]      | [/a]              | [/a]          |
+| `atom --new-window /a/1.md` | [/a 1.md] | [ 1.md] :warning: | [ 1.md] :new: |
+| `atom --new-window /a`      | [/a]      | [/a]              | [/a]          |
 
 ### Open window, no project roots
 
@@ -45,12 +45,12 @@ With the following starting state:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| `atom /a/1.md`              | [/a 1.md]    | [] [ 1.md] :warning: | [ 1.md]    |
-| `atom /a`                   | [/a]         | [] [/a] :warning:    | [/a]    |
-| `atom --add /a/1.md`        | [/a 1.md]    | [ 1.md] :warning:    | [ 1.md]    |
-| `atom --add /a`             | [/a]         | [/a]                 | [/a]       |
-| `atom --new-window /a/1.md` | [] [/a 1.md] | [] [ 1.md] :warning: | [] [ 1.md] |
-| `atom --new-window /a`      | [] [/a]      | [] [/a]              | [] [/a]    |
+| `atom /a/1.md`              | [/a 1.md]    | [] [ 1.md] :warning: | [ 1.md] :bug: :new: |
+| `atom /a`                   | [/a]         | [] [/a] :warning:    | [/a] :bug:          |
+| `atom --add /a/1.md`        | [/a 1.md]    | [ 1.md] :warning:    | [ 1.md] :new:       |
+| `atom --add /a`             | [/a]         | [/a]                 | [/a]                |
+| `atom --new-window /a/1.md` | [] [/a 1.md] | [] [ 1.md] :warning: | [] [ 1.md] :new:    |
+| `atom --new-window /a`      | [] [/a]      | [] [/a]              | [] [/a]             |
 
 ### Open window, project root
 
@@ -60,18 +60,18 @@ With the following starting state:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| `atom /a/1.md`              | [/a 1.md]      | [/a 1.md]              | [/a 1.md]    |
-| `atom /a`                   | [/a]           | [/a]                   | [/a]         |
-| `atom /b/3.md`              | [/a 3.md]      | [/a] [ 3.md] :warning: | [/a] [ 3.md] |
-| `atom /b`                   | [/a] [/b]      | [/a] [/b]              | [/a] [/b]    |
-| `atom --add /a/1.md`        | [/a 1.md]      | [/a 1.md]              | [/a 1.md]    |
-| `atom --add /a`             | [/a]           | [/a]                   | [/a]         |
-| `atom --add /b/3.md`        | [/a,/b 3.md]   | [/a 3.md] :warning:    | [/a 3.md]    |
-| `atom --add /b`             | [/a,/b]        | [/a,/b]                | [/a,/b]      |
-| `atom --new-window /a/1.md` | [/a] [/a 1.md] | [/a] [ 1.md] :warning: | [/a] [ 1.md] |
-| `atom --new-window /a`      | [/a] [/a]      | [/a] [/a]              | [/a] [/a]    |
-| `atom --new-window /b/3.md` | [/a] [/b 3.md] | [/a] [ 3.md] :warning: | [/a] [ 3.md] |
-| `atom --new-window /b`      | [/a] [/b]      | [/a] [/b]              | [/a] [/b]    |
+| `atom /a/1.md`              | [/a 1.md]      | [/a 1.md]              | [/a 1.md]          |
+| `atom /a`                   | [/a]           | [/a]                   | [/a]               |
+| `atom /b/3.md`              | [/a 3.md]      | [/a] [ 3.md] :warning: | [/a 3.md] :bug:    |
+| `atom /b`                   | [/a] [/b]      | [/a] [/b]              | [/a] [/b]          |
+| `atom --add /a/1.md`        | [/a 1.md]      | [/a 1.md]              | [/a 1.md]          |
+| `atom --add /a`             | [/a]           | [/a]                   | [/a]               |
+| `atom --add /b/3.md`        | [/a,/b 3.md]   | [/a 3.md] :warning:    | [/a 3.md] :new:    |
+| `atom --add /b`             | [/a,/b]        | [/a,/b]                | [/a,/b]            |
+| `atom --new-window /a/1.md` | [/a] [/a 1.md] | [/a] [ 1.md] :warning: | [/a] [ 1.md] :new: |
+| `atom --new-window /a`      | [/a] [/a]      | [/a] [/a]              | [/a] [/a]          |
+| `atom --new-window /b/3.md` | [/a] [/b 3.md] | [/a] [ 3.md] :warning: | [/a] [ 3.md] :new: |
+| `atom --new-window /b`      | [/a] [/b]      | [/a] [/b]              | [/a] [/b]          |
 
 ### Open windows, one with a project root and one without
 
@@ -79,35 +79,35 @@ With the following starting state:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| `atom /a/1.md`              | [/a 1.md] []      | [/a 1.md] []              | [/a 1.md] []       |
-| `atom /a`                   | [/a] []           | [/a] []                   | [/a] []            |
-| `atom /b/3.md`              | [/a] [/b 3.md]    | [/a] [] [ 3.md] :warning: | [/a] [ 3.md] :new: |
-| `atom /b`                   | [/a] [/b]         | [/a] [] [/b] :warning:    | [/a] [] [/b]       |
-| `atom --add /a/1.md`        | [/a 1.md] []      | [/a 1.md] []              | [/a 1.md] []       |
-| `atom --add /a`             | [/a] []           | [/a] []                   | [/a] []            |
-| `atom --add /b/3.md`        | [/a] [/b 3.md]    | [/a] [ 3.md] :warning:    | [/a] [ 3.md]       |
-| `atom --add /b`             | [/a] [/b]         | [/a] [/b]                 | [/a] [/b]          |
-| `atom --new-window /a/1.md` | [/a] [] [/a 1.md] | [/a] [] [ 1.md] :warning: | [/a] [] [1.md]     |
-| `atom --new-window /a`      | [/a] [] [/a]      | [/a] [] [/a]              | [/a] [] [/a]       |
-| `atom --new-window /b/3.md` | [/a] [] [/b 3.md] | [/a] [] [ 3.md] :warning: | [/a] [] [ 3.md]    |
-| `atom --new-window /b`      | [/a] [] [/b]      | [/a] [] [/b]              | [/a] [] [/b]       |
+| `atom /a/1.md`              | [/a 1.md] []      | [/a 1.md] []              | [/a 1.md] []             |
+| `atom /a`                   | [/a] []           | [/a] []                   | [/a] []                  |
+| `atom /b/3.md`              | [/a] [/b 3.md]    | [/a] [] [ 3.md] :warning: | [/a] [ 3.md] :bug: :new: |
+| `atom /b`                   | [/a] [/b]         | [/a] [] [/b] :warning:    | [/a] [/b] :bug:          |
+| `atom --add /a/1.md`        | [/a 1.md] []      | [/a 1.md] []              | [/a 1.md] []             |
+| `atom --add /a`             | [/a] []           | [/a] []                   | [/a] []                  |
+| `atom --add /b/3.md`        | [/a] [/b 3.md]    | [/a] [ 3.md] :warning:    | [/a] [ 3.md] :new:       |
+| `atom --add /b`             | [/a] [/b]         | [/a] [/b]                 | [/a] [/b]                |
+| `atom --new-window /a/1.md` | [/a] [] [/a 1.md] | [/a] [] [ 1.md] :warning: | [/a] [] [ 1.md] :new:    |
+| `atom --new-window /a`      | [/a] [] [/a]      | [/a] [] [/a]              | [/a] [] [/a]             |
+| `atom --new-window /b/3.md` | [/a] [] [/b 3.md] | [/a] [] [ 3.md] :warning: | [/a] [] [ 3.md] :new:    |
+| `atom --new-window /b`      | [/a] [] [/b]      | [/a] [] [/b]              | [/a] [] [/b]             |
 
 > [] [/a]
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| `atom /a/1.md`              | [] [/a 1.md]      | [] [/a 1.md] | |
-| `atom /a`                   | [] [/a]           | [] [/a] | |
-| `atom /b/3.md`              | [] [/a 3.md]      | [] [/a] [ 3.md] :warning: | |
-| `atom /b`                   | [] [/a] [/b]      | [] [/a] [/b] | |
-| `atom --add /a/1.md`        | [] [/a 1.md]      | [] [/a 1.md] | |
-| `atom --add /a`             | [] [/a]           | [] [/a] | |
-| `atom --add /b/3.md`        | [] [/a,/b 3.md]   | [] [/a 3.md] :warning: | |
-| `atom --add /b`             | [] [/a,/b]        | [] [/a,/b] | |
-| `atom --new-window /a/1.md` | [] [/a] [/a 1.md] | [] [/a] [ 1.md] :warning: | |
-| `atom --new-window /a`      | [] [/a] [/a]      | [] [/a] [/a] | |
-| `atom --new-window /b/3.md` | [] [/a] [/b 3.md] | [] [/a] [ 3.md] :warning: | |
-| `atom --new-window /b`      | [] [/a] [/b]      | [] [/a] [/b] | |
+| `atom /a/1.md`              | [] [/a 1.md]      | [] [/a 1.md]              | [] [/a 1.md]          |
+| `atom /a`                   | [] [/a]           | [] [/a]                   | [] [/a]               |
+| `atom /b/3.md`              | [] [/a 3.md]      | [] [/a] [ 3.md] :warning: | [] [/a 3.md] :bug:    |
+| `atom /b`                   | [] [/a] [/b]      | [] [/a] [/b]              | [/b] [/a] :bug: :new: |
+| `atom --add /a/1.md`        | [] [/a 1.md]      | [] [/a 1.md]              | [] [/a 1.md]          |
+| `atom --add /a`             | [] [/a]           | [] [/a]                   | [] [/a]               |
+| `atom --add /b/3.md`        | [] [/a,/b 3.md]   | [] [/a 3.md] :warning:    | [] [/a 3.md] :new:    |
+| `atom --add /b`             | [] [/a,/b]        | [] [/a,/b]                | [] [/a,/b]            |
+| `atom --new-window /a/1.md` | [] [/a] [/a 1.md] | [] [/a] [ 1.md] :warning: | [] [/a] [ 1.md] :new: |
+| `atom --new-window /a`      | [] [/a] [/a]      | [] [/a] [/a]              | [] [/a] [/a]          |
+| `atom --new-window /b/3.md` | [] [/a] [/b 3.md] | [] [/a] [ 3.md] :warning: | [] [/a] [ 3.md] :new: |
+| `atom --new-window /b`      | [] [/a] [/b]      | [] [/a] [/b]              | [] [/a] [/b]          |
 
 ## File manager integration actions
 
@@ -117,8 +117,8 @@ When no Atom windows are open, file manager context operations have the followin
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| Click on `/a/1.md` | [/a 1.md] | [ 1.md] :warning: | [ 1.md] |
-| Click on `/a`      | [/a]      | [/a]              | [/a]    |
+| Click on `/a/1.md` | [/a 1.md] | [ 1.md] :warning: | [ 1.md] :new: |
+| Click on `/a`      | [/a]      | [/a]              | [/a]          |
 
 ### Open window, no project roots
 
@@ -128,8 +128,8 @@ With the following starting state:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| Click on `/a/1.md` | [/a 1.md] | [] [ 1.md] :warning: | [ 1.md] :new: |
-| Click on `/a`      | [/a]      | [] [/a] :warning:    | [/a]       |
+| Click on `/a/1.md` | [/a 1.md] | [] [ 1.md] :warning: | [ 1.md] :bug: :new: |
+| Click on `/a`      | [/a]      | [] [/a] :warning:    | [/a] :bug: :new:    |
 
 ### Open window, project root
 
@@ -139,10 +139,10 @@ With the following starting state:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| Click on `/a/1.md` | [/a 1.md]      | [/a 1.md]              | [/a 1.md]    |
-| Click on `/a`      | [/a]           | [/a]                   | [/a]         |
-| Click on `/b/3.md` | [/a 3.md]      | [/a] [ 3.md] :warning: | [/a 3.md] |
-| Click on `/b`      | [/a] [/b]      | [/a] [/b]              | [/a] [/b]    |
+| Click on `/a/1.md` | [/a 1.md]      | [/a 1.md]              | [/a 1.md]       |
+| Click on `/a`      | [/a]           | [/a]                   | [/a]            |
+| Click on `/b/3.md` | [/a 3.md]      | [/a] [ 3.md] :warning: | [/a 3.md] :bug: |
+| Click on `/b`      | [/a] [/b]      | [/a] [/b]              | [/a] [/b]       |
 
 ### Open windows, one with a project root and one without
 
@@ -150,16 +150,16 @@ With the following starting state:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| Click on `/a/1.md` | [/a 1.md] []      | [/a 1.md] []              | [/a 1.md] []       |
-| Click on `/a`      | [/a] []           | [/a] []                   | [/a] []            |
-| Click on `/b/3.md` | [/a] [/b 3.md]    | [/a] [] [ 3.md] :warning: | [/a] [ 3.md] :new: |
-| Click on `/b`      | [/a] [] [/b]      | [/a] [] [/b]              | [/a] [] [/b]       |
+| Click on `/a/1.md` | [/a 1.md] []      | [/a 1.md] []              | [/a 1.md] []             |
+| Click on `/a`      | [/a] []           | [/a] []                   | [/a] []                  |
+| Click on `/b/3.md` | [/a] [/b 3.md]    | [/a] [] [ 3.md] :warning: | [/a] [ 3.md] :bug: :new: |
+| Click on `/b`      | [/a] [] [/b]      | [/a] [] [/b]              | [/a] [/b] :bug: :new:    |
 
 > [] [/a]
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| Click on `/a/1.md` | [] [/a 1.md] | [] [/a 1.md]              | |
-| Click on `/a`      | [] [/a]      | [] [/a]                   | |
-| Click on `/b/3.md` | [] [/a 3.md] | [] [/a] [ 3.md] :warning: | |
-| Click on `/b`      | [] [/a] [/b] | [] [/a] [/b]              | |
+| Click on `/a/1.md` | [] [/a 1.md] | [] [/a 1.md]              | [] [/a 1.md]             |
+| Click on `/a`      | [] [/a]      | [] [/a]                   | [] [/a]                  |
+| Click on `/b/3.md` | [] [/a 3.md] | [] [/a] [ 3.md] :warning: | [ 3.md] [/a] :bug: :new: |
+| Click on `/b`      | [] [/a] [/b] | [] [/a] [/b]              | [/b] [/a] :bug: :new:    |
