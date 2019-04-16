@@ -79,8 +79,8 @@ With the following starting state:
 | --- | --- | --- | --- |
 | `atom /a/1.md`              | [/a 1.md] []      | [/a 1.md] []          | [/a 1.md] []       |
 | `atom /a`                   | [/a] []           | [/a] []               | [/a] []            |
-| `atom /b/3.md`              | [/a] [] [/b 3.md] | [/a] [] [ 3.md] :new: | [/a] [ 3.md] :new: |
-| `atom /b`                   | [/a] [] [/b]      | [/a] [] [/b]          | [/a] [] [/b]       |
+| `atom /b/3.md`              | [/a] [/b 3.md]    | [/a] [] [ 3.md] :new: | [/a] [ 3.md] :new: |
+| `atom /b`                   | [/a] [/b]         | [/a] [] [/b]          | [/a] [] [/b]       |
 | `atom --add /a/1.md`        | [/a 1.md] []      | [/a 1.md] []          | [/a 1.md] []       |
 | `atom --add /a`             | [/a] []           | [/a] []               | [/a] []            |
 | `atom --add /b/3.md`        | [/a] [/b 3.md]    | [/a] [ 3.md] :new:    | [/a] [ 3.md]       |
@@ -122,7 +122,7 @@ With the following starting state:
 | --- | --- | --- | --- |
 | Click on `/a/1.md` | [/a 1.md]      | [/a 1.md]          | [/a 1.md]    |
 | Click on `/a`      | [/a]           | [/a]               | [/a]         |
-| Click on `/b/3.md` | [/a 3.md] | [/a] [ 3.md] :new: | [/a] [ 3.md] |
+| Click on `/b/3.md` | [/a 3.md]      | [/a] [ 3.md] :new: | [/a] [ 3.md] |
 | Click on `/b`      | [/a] [/b]      | [/a] [/b]          | [/a] [/b]    |
 
 ### Open windows, one with a project root and one without
@@ -133,5 +133,5 @@ With the following starting state:
 | --- | --- | --- | --- |
 | Click on `/a/1.md` | [/a 1.md] []      | [/a 1.md] []          | [/a 1.md] []       |
 | Click on `/a`      | [/a] []           | [/a] []               | [/a] []            |
-| Click on `/b/3.md` | [/a] [] [/b 3.md] | [/a] [] [ 3.md] :new: | [/a] [ 3.md] :new: |
+| Click on `/b/3.md` | [/a] [/b 3.md]    | [/a] [] [ 3.md] :new: | [/a] [ 3.md] :new: |
 | Click on `/b`      | [/a] [] [/b]      | [/a] [] [/b]          | [/a] [] [/b]       |
