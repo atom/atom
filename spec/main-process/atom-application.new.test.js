@@ -167,15 +167,9 @@ class LaunchScenario {
   }
 
   async launch (options) {
-    const app = options.app || this.addApplication()
+    const app = this.addApplication()
     if (options.pathsToOpen) {
-      options.pathsToOpen = options.pathsToOpen.map(shortPath => {
-        const fullRoot = this.projectRootPool.get(shortPath)
-        if (fullRoot) { return fullRoot }
-        const fullEditor = this.filePathPool.get(shortPath)
-        if (fullEditor) { return fullEditor }
-        throw new Error(`Unexpected short path: ${shortPath}`)
-      })
+      options.pathsToOpen = this.convertPaths(options.pathsToOpen)
     }
 
     const windows = await app.launch(options)
@@ -186,6 +180,29 @@ class LaunchScenario {
     }
     await Promise.all(openedPromises)
     return windows
+  }
+
+  async open (options) {
+    if (this.applications.size === 0) {
+      return this.launch(options)
+    }
+
+    let app = options.app
+    if (!app) {
+      const apps = Array.from(this.applications)
+      app = apps[apps.length - 1]
+    } else {
+      delete options.app
+    }
+
+    if (options.pathsToOpen) {
+      options.pathsToOpen = this.convertPaths(options.pathsToOpen)
+    }
+
+    const window = await app.openWithOptions(options)
+    this.windows.add(window)
+    await emitterEventPromise(window, 'window:locations-opened')
+    return window
   }
 
   async assert (source) {
@@ -376,6 +393,16 @@ class LaunchScenario {
       missing.push(remainingItem)
     }
     return [missing, extra]
+  }
+
+  convertPaths (paths) {
+    return paths.map(shortPath => {
+      const fullRoot = this.projectRootPool.get(shortPath)
+      if (fullRoot) { return fullRoot }
+      const fullEditor = this.filePathPool.get(shortPath)
+      if (fullEditor) { return fullEditor }
+      throw new Error(`Unexpected short path: ${shortPath}`)
+    })
   }
 
   parseWindowSpecs (source) {
