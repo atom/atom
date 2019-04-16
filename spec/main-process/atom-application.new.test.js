@@ -149,12 +149,12 @@ class LaunchScenario {
   }
 
   async preconditions (source) {
+    const app = this.addApplication()
     const windowPromises = []
     for (const windowSpec of this.parseWindowSpecs(source)) {
       const fullRootPaths = windowSpec.roots.map(rootPath => this.projectRootPool.get(rootPath))
       const fullEditorPaths = windowSpec.editors.map(filePath => this.filePathPool.get(filePath))
 
-      const app = this.addApplication()
       windowPromises.push((async (theApp, foldersToOpen, pathsToOpen) => {
         const window = await theApp.openPaths({ newWindow: true, foldersToOpen, pathsToOpen })
         await emitterEventPromise(window, 'window:locations-opened')
