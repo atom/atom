@@ -43,8 +43,8 @@ With the following starting state:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| `atom /a/1.md`              | [] [/a 1.md] | [] [ 1.md] :new: | [ 1.md] :new:|
-| `atom /a`                   | [] [/a]      | [] [/a]          | [] [/a]      |
+| `atom /a/1.md`              | [/a 1.md] | [] [ 1.md] :new: | [ 1.md] :new:|
+| `atom /a`                   | [/a]      | [] [/a]          | [] [/a]      |
 | `atom --add /a/1.md`        | [/a 1.md]    | [ 1.md] :new:    | [ 1.md]      |
 | `atom --add /a`             | [/a]         | [/a]             | [/a]         |
 | `atom --new-window /a/1.md` | [] [/a 1.md] | [] [ 1.md] :new: | [] [ 1.md]   |
@@ -60,7 +60,7 @@ With the following starting state:
 | --- | --- | --- | --- |
 | `atom /a/1.md`              | [/a 1.md]      | [/a 1.md]          | [/a 1.md]    |
 | `atom /a`                   | [/a]           | [/a]               | [/a]         |
-| `atom /b/3.md`              | [/a] [/b 3.md] | [/a] [ 3.md] :new: | [/a] [ 3.md] |
+| `atom /b/3.md`              | [/a 3.md] | [/a] [ 3.md] :new: | [/a] [ 3.md] |
 | `atom /b`                   | [/a] [/b]      | [/a] [/b]          | [/a] [/b]    |
 | `atom --add /a/1.md`        | [/a 1.md]      | [/a 1.md]          | [/a 1.md]    |
 | `atom --add /a`             | [/a]           | [/a]               | [/a]         |
@@ -109,8 +109,8 @@ With the following starting state:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| Click on `/a/1.md` | [] [/a 1.md] | [] [ 1.md] :new: | [ 1.md] :new: |
-| Click on `/a`      | [] [/a]      | [] [/a]          | [] [/a]       |
+| Click on `/a/1.md` | [/a 1.md] | [] [ 1.md] :new: | [ 1.md] :new: |
+| Click on `/a`      | [/a]      | [] [/a]          | [] [/a]       |
 
 ### Open window, project root
 
@@ -122,7 +122,7 @@ With the following starting state:
 | --- | --- | --- | --- |
 | Click on `/a/1.md` | [/a 1.md]      | [/a 1.md]          | [/a 1.md]    |
 | Click on `/a`      | [/a]           | [/a]               | [/a]         |
-| Click on `/b/3.md` | [/a] [/b 3.md] | [/a] [ 3.md] :new: | [/a] [ 3.md] |
+| Click on `/b/3.md` | [/a 3.md] | [/a] [ 3.md] :new: | [/a] [ 3.md] |
 | Click on `/b`      | [/a] [/b]      | [/a] [/b]          | [/a] [/b]    |
 
 ### Open windows, one with a project root and one without
