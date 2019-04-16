@@ -160,12 +160,6 @@ class LaunchScenario {
         await emitterEventPromise(window, 'window:locations-opened')
         return window
       })(app, fullRootPaths, fullEditorPaths))
-
-      windowPromises.push(app.openPaths({
-        newWindow: true,
-        foldersToOpen: fullRootPaths,
-        pathsToOpen: fullEditorPaths
-      }))
     }
     for (const window of await Promise.all(windowPromises)) {
       this.windows.add(window)
