@@ -17,7 +17,7 @@ const {
 
 const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 
-describe('AtomApplication', function () {
+describe.skip('AtomApplication', function () {
   this.timeout(60 * 1000)
 
   let originalAppQuit,
