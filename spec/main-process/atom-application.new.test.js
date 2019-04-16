@@ -272,7 +272,7 @@ class LaunchScenario {
         parts.push(`* extra roots ${shorten(comparison.extraRoots)}\n`)
       }
       if (comparison.missingRoots.length > 0) {
-        parts.push(`* missing roots ${shorten(comparison.extraRoots)}\n`)
+        parts.push(`* missing roots ${shorten(comparison.missingRoots)}\n`)
       }
       if (comparison.extraEditors.length > 0) {
         parts.push(`* extra editors ${shorten(comparison.extraEditors)}\n`)
