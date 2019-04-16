@@ -141,6 +141,7 @@ class LaunchScenario {
             reject(err)
           } else {
             this.filePathPool.set(filePath, fullFilePath)
+            this.filePathPool.set(path.basename(filePath), fullFilePath)
             resolve()
           }
         })
