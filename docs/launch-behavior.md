@@ -30,12 +30,12 @@ When no Atom windows are open, CLI actions have the following outcomes:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| `atom /a/1.md`              | [/a 1.md] | [ 1.md] :new: | [ 1.md] |
-| `atom /a`                   | [/a]      | [/a]          | [/a]    |
-| `atom --add /a/1.md`        | [/a 1.md] | [ 1.md] :new: | [ 1.md] |
-| `atom --add /a`             | [/a]      | [/a]          | [/a]    |
-| `atom --new-window /a/1.md` | [/a 1.md] | [ 1.md] :new: | [ 1.md] |
-| `atom --new-window /a`      | [/a]      | [/a]          | [/a]    |
+| `atom /a/1.md`              | [/a 1.md] | [ 1.md] :warning: | [ 1.md] |
+| `atom /a`                   | [/a]      | [/a]              | [/a]    |
+| `atom --add /a/1.md`        | [/a 1.md] | [ 1.md] :warning: | [ 1.md] |
+| `atom --add /a`             | [/a]      | [/a]              | [/a]    |
+| `atom --new-window /a/1.md` | [/a 1.md] | [ 1.md] :warning: | [ 1.md] |
+| `atom --new-window /a`      | [/a]      | [/a]              | [/a]    |
 
 ### Open window, no project roots
 
@@ -45,12 +45,12 @@ With the following starting state:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| `atom /a/1.md`              | [/a 1.md] | [] [ 1.md] :new: | [ 1.md] :new:|
-| `atom /a`                   | [/a]      | [] [/a]          | [] [/a]      |
-| `atom --add /a/1.md`        | [/a 1.md]    | [ 1.md] :new:    | [ 1.md]      |
-| `atom --add /a`             | [/a]         | [/a]             | [/a]         |
-| `atom --new-window /a/1.md` | [] [/a 1.md] | [] [ 1.md] :new: | [] [ 1.md]   |
-| `atom --new-window /a`      | [] [/a]      | [] [/a]          | [] [/a]      |
+| `atom /a/1.md`              | [/a 1.md]    | [] [ 1.md] :warning: | [ 1.md]    |
+| `atom /a`                   | [/a]         | [] [/a] :warning:    | [] [/a]    |
+| `atom --add /a/1.md`        | [/a 1.md]    | [ 1.md] :warning:    | [ 1.md]    |
+| `atom --add /a`             | [/a]         | [/a]                 | [/a]       |
+| `atom --new-window /a/1.md` | [] [/a 1.md] | [] [ 1.md] :warning: | [] [ 1.md] |
+| `atom --new-window /a`      | [] [/a]      | [] [/a]              | [] [/a]    |
 
 ### Open window, project root
 
