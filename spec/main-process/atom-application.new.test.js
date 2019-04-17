@@ -153,14 +153,19 @@ class LaunchScenario {
     const app = this.addApplication()
     const windowPromises = []
     for (const windowSpec of this.parseWindowSpecs(source)) {
-      const fullRootPaths = windowSpec.roots.map(rootPath => this.projectRootPool.get(rootPath))
-      const fullEditorPaths = windowSpec.editors.map(filePath => this.filePathPool.get(filePath))
+      const expectOpenEvent = windowSpec.roots.length > 0 || windowSpec.editors.length > 0
+
+      if (windowSpec.editors.length === 0) {
+        windowSpec.editors.push(null)
+      }
 
       windowPromises.push((async (theApp, foldersToOpen, pathsToOpen) => {
         const window = await theApp.openPaths({ newWindow: true, foldersToOpen, pathsToOpen })
-        await emitterEventPromise(window, 'window:locations-opened')
+        if (expectOpenEvent) {
+          await emitterEventPromise(window, 'window:locations-opened')
+        }
         return window
-      })(app, fullRootPaths, fullEditorPaths))
+      })(app, windowSpec.roots, windowSpec.editors))
     }
     for (const window of await Promise.all(windowPromises)) {
       this.windows.add(window)
@@ -396,6 +401,22 @@ class LaunchScenario {
     return [missing, extra]
   }
 
+  convertRootPath (shortRootPath) {
+    const fullRootPath = this.projectRootPool.get(shortRootPath)
+    if (!fullRootPath) {
+      throw new Error(`Unexpected short project root path: ${shortRootPath}`)
+    }
+    return fullRootPath
+  }
+
+  convertEditorPath (shortEditorPath) {
+    const fullEditorPath = this.filePathPool.get(shortEditorPath)
+    if (!fullEditorPath) {
+      throw new Error(`Unexpected short editor path: ${shortEditorPath}`)
+    }
+    return fullEditorPath
+  }
+
   convertPaths (paths) {
     return paths.map(shortPath => {
       const fullRoot = this.projectRootPool.get(shortPath)
@@ -413,10 +434,9 @@ class LaunchScenario {
     let match = rx.exec(source)
 
     while (match) {
-      specs.push({
-        roots: (match[1] || '').split(','),
-        editors: (match[2] || '').split(',')
-      })
+      const roots = match[1] ? match[1].split(',').map(shortPath => this.convertRootPath(shortPath)) : []
+      const editors = match[2] ? match[2].split(',').map(shortPath => this.convertEditorPath(shortPath)) : []
+      specs.push({ roots, editors })
 
       match = rx.exec(source)
     }
