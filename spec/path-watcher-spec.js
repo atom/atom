@@ -109,7 +109,7 @@ describe('watchPath', function () {
         pollingLog: 'path-watcher-0.poll.log'
       })
 
-      const rootDir = await temp.mkdir('atom-fsmanager-test-').then(fs.realpath)
+      const rootDir = await tempMkdir('atom-fsmanager-test-').then(realpath)
       const rootFile = path.join(rootDir, 'rootfile.txt')
       const subDir = path.join(rootDir, 'subdir')
       const subFile = path.join(subDir, 'subfile.txt')
@@ -143,7 +143,7 @@ describe('watchPath', function () {
         pollingLog: 'path-watcher-1.poll.log'
       })
 
-      const parentDir = await temp.mkdir('atom-fsmanager-test-').then(fs.realpath)
+      const parentDir = await tempMkdir('atom-fsmanager-test-').then(realpath)
 
       // Create the directory tree
       const rootFile = path.join(parentDir, 'rootfile.txt')
