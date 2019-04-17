@@ -15,10 +15,12 @@ describe('AtomApplication', function () {
   let scenario
 
   beforeEach(async function () {
+    this.timeout(30 * 1000)
     scenario = await LaunchScenario.create()
   })
 
   afterEach(async function () {
+    this.timeout(30 * 1000)
     await scenario.destroy()
   })
 
@@ -632,7 +634,7 @@ class LaunchScenario {
       (options.pathsToOpen && options.pathsToOpen.filter(Boolean).length > 0) ||
       (options.foldersToOpen && options.foldersToOpen.length > 0)
     ) {
-      await emitterEventPromise(window, 'window:locations-opened')
+      await emitterEventPromise(window, 'window:locations-opened', 30000)
     } else {
       await window.getLoadedPromise()
     }
