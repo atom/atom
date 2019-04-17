@@ -657,7 +657,7 @@ class AtomApplication extends EventEmitter {
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'window-command', (event, command, ...args) => {
       const window = BrowserWindow.fromWebContents(event.sender)
-      return window.emit(command, ...args)
+      return window && window.emit(command, ...args)
     }))
 
     this.disposable.add(ipcHelpers.respondTo('window-method', (browserWindow, method, ...args) => {
