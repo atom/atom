@@ -333,6 +333,7 @@ class LaunchScenario {
     this.filePathPool = new Map()
 
     this.originalAtomHome = process.env.ATOM_HOME
+    this.originalDisableShellingOutForEnvironment = process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT
   }
 
   async init () {
@@ -401,6 +402,8 @@ class LaunchScenario {
         })
       }))
     )
+
+    process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT = 'true'
   }
 
   async preconditions (source) {
@@ -565,6 +568,7 @@ class LaunchScenario {
     await this.clearElectronSession()
 
     process.env.ATOM_HOME = this.originalAtomHome
+    process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT = this.originalDisableShellingOutForEnvironment
   }
 
   addApplication (options = {}) {
