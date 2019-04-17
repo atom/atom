@@ -66,17 +66,17 @@ describe('AtomApplication', function () {
       })
 
       // This is also the case when a user clicks on a file in their file manager
+      // FIXME
       it('opens a file', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
-        // await scenario.assert('[_ 1.md]') // FIXME
-        await scenario.assert('[_ _] [_ 1.md]')
+        await scenario.assert('[_ 1.md]')
       })
 
       // This is also the case when a user clicks on a folder in their file manager
+      // FIXME
       it('opens a directory', async function () {
         await scenario.open(parseCommandLine(['a']))
-        // await scenario.assert('[a _]') // FIXME
-        await scenario.assert('[_ _] [a _]')
+        await scenario.assert('[a _]')
       })
 
       it('opens a file with --add', async function () {
@@ -118,10 +118,10 @@ describe('AtomApplication', function () {
       })
 
       // This is also the case when a user clicks on a file outside the project root in their file manager
+      // FIXME
       it('opens a file outside the project root', async function () {
         await scenario.open(parseCommandLine(['b/2.md']))
-        // await scenario.assert('[a 2.md]') // FIXME
-        await scenario.assert('[a _] [_ 2.md]')
+        await scenario.assert('[a 2.md]')
       })
 
       // This is also the case when a user clicks on a new folder in their file manager
@@ -189,17 +189,16 @@ describe('AtomApplication', function () {
       })
 
       // This is also the case when a user clicks on a file outside the project root in their file manager
+      // FIXME
       it('opens a file outside the project root', async function () {
         await scenario.open(parseCommandLine(['b/2.md']))
-        // await scenario.assert('[a _] [_ 2.md]') // FIXME
-        await scenario.assert('[a _] [_ _] [_ 2.md]')
+        await scenario.assert('[a _] [_ 2.md]')
       })
 
       // This is also the case when a user clicks on a new folder in their file manager
       it('opens a directory other than the project root', async function () {
         await scenario.open(parseCommandLine(['b']))
-        // await scenario.assert('[a _] [b _]') // FIXME
-        await scenario.assert('[a _] [_ _] [b _]')
+        await scenario.assert('[a _] [b _]')
       })
 
       it('opens a file within the project root with --add', async function () {
@@ -261,17 +260,17 @@ describe('AtomApplication', function () {
       })
 
       // This is also the case when a user clicks on a file outside the project root in their file manager
+      // FIXME
       it('opens a file outside the project root', async function () {
         await scenario.open(parseCommandLine(['b/2.md']))
-        // await scenario.assert('[_ 2.md] [a _]') // FIXME
-        await scenario.assert('[_ _] [a _] [_ 2.md]')
+        await scenario.assert('[_ 2.md] [a _]')
       })
 
       // This is also the case when a user clicks on a new folder in their file manager
+      // FIXME
       it('opens a directory other than the project root', async function () {
         await scenario.open(parseCommandLine(['b']))
-        // await scenario.assert('[b _] [a _]') // FIXME
-        await scenario.assert('[_ _] [a _] [b _]')
+        await scenario.assert('[b _] [a _]')
       })
 
       it('opens a file within the project root with --add', async function () {
@@ -476,6 +475,7 @@ class LaunchScenario {
           this.getProjectRoots(theWindow),
           this.getOpenEditors(theWindow)
         ])
+        // console.log({rootPaths, editorPaths})
 
         const comparison = {
           ok: true,
