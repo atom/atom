@@ -96,18 +96,18 @@ With the following starting state:
 
 | Action | Outcome (<=1.35.1) | Outcome (1.36.0) | Outcome (1.36.1) |
 | --- | --- | --- | --- |
-| `atom /a/1.md`              | [] [/a 1.md]      | [] [/a 1.md]              | [] [/a 1.md]          |
-| `atom /a`                   | [] [/a]           | [] [/a]                   | [] [/a]               |
-| `atom /b/3.md`              | [] [/a 3.md]      | [] [/a] [ 3.md] :warning: | [] [/a 3.md] :bug:    |
-| `atom /b`                   | [] [/a] [/b]      | [] [/a] [/b]              | [/b] [/a] :bug: :new: |
-| `atom --add /a/1.md`        | [] [/a 1.md]      | [] [/a 1.md]              | [] [/a 1.md]          |
-| `atom --add /a`             | [] [/a]           | [] [/a]                   | [] [/a]               |
-| `atom --add /b/3.md`        | [] [/a,/b 3.md]   | [] [/a 3.md] :warning:    | [] [/a 3.md] :new:    |
-| `atom --add /b`             | [] [/a,/b]        | [] [/a,/b]                | [] [/a,/b]            |
-| `atom --new-window /a/1.md` | [] [/a] [/a 1.md] | [] [/a] [ 1.md] :warning: | [] [/a] [ 1.md] :new: |
-| `atom --new-window /a`      | [] [/a] [/a]      | [] [/a] [/a]              | [] [/a] [/a]          |
-| `atom --new-window /b/3.md` | [] [/a] [/b 3.md] | [] [/a] [ 3.md] :warning: | [] [/a] [ 3.md] :new: |
-| `atom --new-window /b`      | [] [/a] [/b]      | [] [/a] [/b]              | [] [/a] [/b]          |
+| `atom /a/1.md`              | [] [/a 1.md]      | [] [/a 1.md]              | [] [/a 1.md]             |
+| `atom /a`                   | [] [/a]           | [] [/a]                   | [] [/a]                  |
+| `atom /b/3.md`              | [] [/a 3.md]      | [] [/a] [ 3.md] :warning: | [ 3.md] [/a] :bug: :new: |
+| `atom /b`                   | [] [/a] [/b]      | [] [/a] [/b]              | [/b] [/a] :bug: :new:    |
+| `atom --add /a/1.md`        | [] [/a 1.md]      | [] [/a 1.md]              | [] [/a 1.md]             |
+| `atom --add /a`             | [] [/a]           | [] [/a]                   | [] [/a]                  |
+| `atom --add /b/3.md`        | [] [/a,/b 3.md]   | [] [/a 3.md] :warning:    | [] [/a 3.md] :new:       |
+| `atom --add /b`             | [] [/a,/b]        | [] [/a,/b]                | [] [/a,/b]               |
+| `atom --new-window /a/1.md` | [] [/a] [/a 1.md] | [] [/a] [ 1.md] :warning: | [] [/a] [ 1.md] :new:    |
+| `atom --new-window /a`      | [] [/a] [/a]      | [] [/a] [/a]              | [] [/a] [/a]             |
+| `atom --new-window /b/3.md` | [] [/a] [/b 3.md] | [] [/a] [ 3.md] :warning: | [] [/a] [ 3.md] :new:    |
+| `atom --new-window /b`      | [] [/a] [/b]      | [] [/a] [/b]              | [] [/a] [/b]             |
 
 ## File manager integration actions
 
