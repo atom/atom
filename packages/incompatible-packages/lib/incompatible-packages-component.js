@@ -1,7 +1,6 @@
 /** @babel */
 /** @jsx etch.dom */
 
-import {BufferedProcess} from 'atom'
 import etch from 'etch'
 
 import VIEW_URI from './view-uri'
@@ -11,8 +10,8 @@ const REBUILD_SUCCEEDED = 'rebuild-succeeded'
 
 export default class IncompatiblePackagesComponent {
   constructor (packageManager) {
-    this.rebuildStatuses = new Map
-    this.rebuildFailureOutputs = new Map
+    this.rebuildStatuses = new Map()
+    this.rebuildFailureOutputs = new Map()
     this.rebuildInProgress = false
     this.rebuiltPackageCount = 0
     this.packageManager = packageManager
@@ -25,13 +24,15 @@ export default class IncompatiblePackagesComponent {
       global.setImmediate(this.populateIncompatiblePackages.bind(this))
     }
 
-    this.element.addEventListener('click', (event) => {
+    this.element.addEventListener('click', event => {
       if (event.target === this.refs.rebuildButton) {
         this.rebuildIncompatiblePackages()
       } else if (event.target === this.refs.reloadButton) {
         atom.reload()
       } else if (event.target.classList.contains('view-settings')) {
-        atom.workspace.open(`atom://config/packages/${event.target.package.name}`)
+        atom.workspace.open(
+          `atom://config/packages/${event.target.package.name}`
+        )
       }
     })
   }
@@ -44,7 +45,10 @@ export default class IncompatiblePackagesComponent {
     }
 
     return (
-      <div className='incompatible-packages padded native-key-bindings' tabIndex='-1'>
+      <div
+        className='incompatible-packages padded native-key-bindings'
+        tabIndex='-1'
+      >
         {this.renderHeading()}
         {this.renderIncompatiblePackageList()}
       </div>
@@ -55,15 +59,14 @@ export default class IncompatiblePackagesComponent {
     if (this.incompatiblePackages.length > 0) {
       if (this.rebuiltPackageCount > 0) {
         let alertClass =
-          (this.rebuiltPackageCount === this.incompatiblePackages.length)
+          this.rebuiltPackageCount === this.incompatiblePackages.length
             ? 'alert-success icon-check'
             : 'alert-warning icon-bug'
 
         return (
           <div className={'alert icon ' + alertClass}>
-            {this.rebuiltPackageCount} of {this.incompatiblePackages.length} packages
-            were rebuilt successfully. Reload Atom to activate them.
-
+            {this.rebuiltPackageCount} of {this.incompatiblePackages.length}{' '}
+            packages were rebuilt successfully. Reload Atom to activate them.
             <button ref='reloadButton' className='btn pull-right'>
               Reload Atom
             </button>
@@ -72,10 +75,13 @@ export default class IncompatiblePackagesComponent {
       } else {
         return (
           <div className='alert alert-danger icon icon-bug'>
-            Some installed packages could not be loaded because they contain native
-            modules that were compiled for an earlier version of Atom.
-
-            <button ref='rebuildButton' className='btn pull-right' disabled={this.rebuildInProgress}>
+            Some installed packages could not be loaded because they contain
+            native modules that were compiled for an earlier version of Atom.
+            <button
+              ref='rebuildButton'
+              className='btn pull-right'
+              disabled={this.rebuildInProgress}
+            >
               Rebuild Packages
             </button>
           </div>
@@ -92,9 +98,11 @@ export default class IncompatiblePackagesComponent {
 
   renderIncompatiblePackageList () {
     return (
-      <div>{
-        this.incompatiblePackages.map(this.renderIncompatiblePackage.bind(this))
-      }</div>
+      <div>
+        {this.incompatiblePackages.map(
+          this.renderIncompatiblePackage.bind(this)
+        )}
+      </div>
     )
   }
 
@@ -104,15 +112,18 @@ export default class IncompatiblePackagesComponent {
     return (
       <div className={'incompatible-package'}>
         {this.renderRebuildStatusIndicator(rebuildStatus)}
-        <button className='btn view-settings icon icon-gear pull-right' package={pack}>Package Settings</button>
+        <button
+          className='btn view-settings icon icon-gear pull-right'
+          package={pack}
+        >
+          Package Settings
+        </button>
         <h4 className='heading'>
           {pack.name} {pack.metadata.version}
         </h4>
-        {
-          rebuildStatus
+        {rebuildStatus
           ? this.renderRebuildOutput(pack)
-          : this.renderIncompatibleModules(pack)
-        }
+          : this.renderIncompatibleModules(pack)}
       </div>
     )
   }
@@ -151,23 +162,23 @@ export default class IncompatiblePackagesComponent {
 
   renderIncompatibleModules (pack) {
     return (
-      <ul>{
-        pack.incompatibleModules.map((nativeModule) =>
+      <ul>
+        {pack.incompatibleModules.map(nativeModule => (
           <li>
             <div className='icon icon-file-binary'>
-              {nativeModule.name}@{nativeModule.version || 'unknown'} – <span className='text-warning'>{nativeModule.error}</span>
+              {nativeModule.name}@{nativeModule.version || 'unknown'} –{' '}
+              <span className='text-warning'>{nativeModule.error}</span>
             </div>
           </li>
-        )
-      }</ul>
+        ))}
+      </ul>
     )
   }
 
   populateIncompatiblePackages () {
-    this.incompatiblePackages =
-      this.packageManager
-        .getLoadedPackages()
-        .filter(pack => !pack.isCompatible())
+    this.incompatiblePackages = this.packageManager
+      .getLoadedPackages()
+      .filter(pack => !pack.isCompatible())
 
     for (let pack of this.incompatiblePackages) {
       let buildFailureOutput = pack.getBuildFailureOutput()
@@ -186,7 +197,7 @@ export default class IncompatiblePackagesComponent {
     let rebuiltPackageCount = 0
     for (let pack of this.incompatiblePackages) {
       this.setPackageStatus(pack, REBUILDING)
-      let {code, stderr} = await pack.rebuild()
+      let { code, stderr } = await pack.rebuild()
       if (code === 0) {
         this.setPackageStatus(pack, REBUILD_SUCCEEDED)
         rebuiltPackageCount++
@@ -223,6 +234,6 @@ export default class IncompatiblePackagesComponent {
   }
 
   serialize () {
-    return {deserializer: 'IncompatiblePackagesComponent'}
+    return { deserializer: 'IncompatiblePackagesComponent' }
   }
 }

@@ -2,8 +2,7 @@ const fs = require('fs-plus')
 
 const Watcher = require('./watcher')
 
-module.exports =
-class PackageWatcher extends Watcher {
+module.exports = class PackageWatcher extends Watcher {
   static supportsPackage (pack, type) {
     if (pack.getType() === type && pack.getStylesheetPaths().length) return true
     return false
@@ -24,7 +23,9 @@ class PackageWatcher extends Watcher {
 
     const stylesheetsPath = this.pack.getStylesheetsPath()
 
-    if (fs.isDirectorySync(stylesheetsPath)) this.watchDirectory(stylesheetsPath)
+    if (fs.isDirectorySync(stylesheetsPath)) {
+      this.watchDirectory(stylesheetsPath)
+    }
 
     const stylesheetPaths = new Set(this.pack.getStylesheetPaths())
     const onFile = stylesheetPath => stylesheetPaths.add(stylesheetPath)

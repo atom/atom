@@ -1,14 +1,13 @@
 const SelectListView = require('atom-select-list')
 
-module.exports =
-class GrammarListView {
+module.exports = class GrammarListView {
   constructor () {
-    this.autoDetect = {name: 'Auto Detect'}
+    this.autoDetect = { name: 'Auto Detect' }
     this.selectListView = new SelectListView({
       itemsClassList: ['mark-active'],
       items: [],
-      filterKeyForItem: (grammar) => grammar.name,
-      elementForItem: (grammar) => {
+      filterKeyForItem: grammar => grammar.name,
+      elementForItem: grammar => {
         const grammarName = grammar.name || grammar.scopeName
         const element = document.createElement('li')
         if (grammar === this.currentGrammar) {
@@ -29,7 +28,7 @@ class GrammarListView {
 
         return element
       },
-      didConfirmSelection: (grammar) => {
+      didConfirmSelection: grammar => {
         this.cancel()
         if (grammar === this.autoDetect) {
           atom.textEditors.clearGrammarOverride(this.editor)
@@ -64,7 +63,7 @@ class GrammarListView {
   attach () {
     this.previouslyFocusedElement = document.activeElement
     if (this.panel == null) {
-      this.panel = atom.workspace.addModalPanel({item: this.selectListView})
+      this.panel = atom.workspace.addModalPanel({ item: this.selectListView })
     }
     this.selectListView.focus()
     this.selectListView.reset()
@@ -80,7 +79,7 @@ class GrammarListView {
         this.currentGrammar = this.autoDetect
       }
 
-      const grammars = atom.grammars.getGrammars().filter((grammar) => {
+      const grammars = atom.grammars.getGrammars().filter(grammar => {
         return grammar !== atom.grammars.nullGrammar && grammar.name
       })
       grammars.sort((a, b) => {
@@ -97,7 +96,7 @@ class GrammarListView {
         }
       })
       grammars.unshift(this.autoDetect)
-      await this.selectListView.update({items: grammars})
+      await this.selectListView.update({ items: grammars })
       this.attach()
     }
   }

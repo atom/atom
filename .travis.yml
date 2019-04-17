@@ -10,6 +10,7 @@ branches:
   only:
   - master
   - /^[0-9.]+-releases$/
+  - /.*-test-travis$/
 
 matrix:
   include:
@@ -28,11 +29,12 @@ install:
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
   - npm install --global npm@6.2.0
-  - script/build --create-debian-package --create-rpm-package --compress-artifacts
+  - script/bootstrap
 
-script:
-  - script/lint
-  - script/test
+script: >
+  script/lint &&
+  script/build --no-bootstrap --create-debian-package --create-rpm-package --compress-artifacts &&
+  script/test
 
 cache:
   directories:

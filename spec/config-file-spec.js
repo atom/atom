@@ -1,4 +1,3 @@
-const {it, fit, ffit, beforeEach, afterEach, conditionPromise} = require('./async-spec-helpers')
 const fs = require('fs-plus')
 const path = require('path')
 const temp = require('temp').track()
@@ -62,22 +61,25 @@ describe('ConfigFile', () => {
 
       const event = new Promise(resolve => configFile.onDidChange(resolve))
 
-      writeFileSync(filePath, dedent `
+      writeFileSync(
+        filePath,
+        dedent`
         '*':
           foo: 'bar'
 
         'javascript':
           foo: 'baz'
-      `)
+      `
+      )
 
       expect(await event).toEqual({
-        '*': {foo: 'bar'},
-        'javascript': {foo: 'baz'}
+        '*': { foo: 'bar' },
+        javascript: { foo: 'baz' }
       })
 
       expect(configFile.get()).toEqual({
-        '*': {foo: 'bar'},
-        'javascript': {foo: 'baz'}
+        '*': { foo: 'bar' },
+        javascript: { foo: 'baz' }
       })
     })
   })
@@ -107,25 +109,33 @@ describe('ConfigFile', () => {
 
       const message = new Promise(resolve => configFile.onDidError(resolve))
 
-      writeFileSync(filePath, dedent `
+      writeFileSync(
+        filePath,
+        dedent`
         um what?
-      `, 2)
+      `,
+        2
+      )
 
       expect(await message).toContain('Failed to load `the-config.cson`')
 
       const event = new Promise(resolve => configFile.onDidChange(resolve))
 
-      writeFileSync(filePath, dedent `
+      writeFileSync(
+        filePath,
+        dedent`
         '*':
           foo: 'bar'
 
         'javascript':
           foo: 'baz'
-      `, 4)
+      `,
+        4
+      )
 
       expect(await event).toEqual({
-        '*': {foo: 'bar'},
-        'javascript': {foo: 'baz'}
+        '*': { foo: 'bar' },
+        javascript: { foo: 'baz' }
       })
     })
   })
@@ -153,7 +163,7 @@ describe('ConfigFile', () => {
 })
 
 function writeFileSync (filePath, content, seconds = 2) {
-  const utime = (Date.now() / 1000) + seconds
+  const utime = Date.now() / 1000 + seconds
   fs.writeFileSync(filePath, content)
   fs.utimesSync(filePath, utime, utime)
 }

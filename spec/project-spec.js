@@ -3,7 +3,7 @@ const TextBuffer = require('text-buffer')
 const Project = require('../src/project')
 const fs = require('fs-plus')
 const path = require('path')
-const {Directory} = require('pathwatcher')
+const { Directory } = require('pathwatcher')
 const GitRepository = require('../src/git-repository')
 
 const watcher = require('@atom/watcher')
@@ -47,13 +47,16 @@ describe('Project', () => {
 
       let err = null
       waitsForPromise(() =>
-        deserializedProject.deserialize(state, atom.deserializers)
-          .catch(e => { err = e })
+        deserializedProject.deserialize(state, atom.deserializers).catch(e => {
+          err = e
+        })
       )
 
       runs(() => {
         expect(deserializedProject.getPaths()).toEqual(atom.project.getPaths())
-        expect(err.missingProjectPaths).toEqual(['/directory/that/does/not/exist'])
+        expect(err.missingProjectPaths).toEqual([
+          '/directory/that/does/not/exist'
+        ])
       })
     })
 
@@ -75,8 +78,9 @@ describe('Project', () => {
 
       let err = null
       waitsForPromise(() =>
-        deserializedProject.deserialize(state, atom.deserializers)
-          .catch(e => { err = e })
+        deserializedProject.deserialize(state, atom.deserializers).catch(e => {
+          err = e
+        })
       )
 
       runs(() => {
@@ -99,7 +103,11 @@ describe('Project', () => {
         })
       })
 
-      waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
+      waitsForPromise(() =>
+        deserializedProject.deserialize(
+          atom.project.serialize({ isUnloading: false })
+        )
+      )
 
       runs(() => expect(deserializedProject.getBuffers().length).toBe(0))
     })
@@ -117,7 +125,11 @@ describe('Project', () => {
         })
       })
 
-      waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
+      waitsForPromise(() =>
+        deserializedProject.deserialize(
+          atom.project.serialize({ isUnloading: false })
+        )
+      )
 
       runs(() => {
         expect(deserializedProject.getBuffers().length).toBe(1)
@@ -127,7 +139,10 @@ describe('Project', () => {
     })
 
     it('does not deserialize buffers when their path is now a directory', () => {
-      const pathToOpen = path.join(temp.mkdirSync('atom-spec-project'), 'file.txt')
+      const pathToOpen = path.join(
+        temp.mkdirSync('atom-spec-project'),
+        'file.txt'
+      )
 
       waitsForPromise(() => atom.workspace.open(pathToOpen))
 
@@ -142,14 +157,23 @@ describe('Project', () => {
         })
       })
 
-      waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
+      waitsForPromise(() =>
+        deserializedProject.deserialize(
+          atom.project.serialize({ isUnloading: false })
+        )
+      )
 
       runs(() => expect(deserializedProject.getBuffers().length).toBe(0))
     })
 
     it('does not deserialize buffers when their path is inaccessible', () => {
-      if (process.platform === 'win32') { return } // chmod not supported on win32
-      const pathToOpen = path.join(temp.mkdirSync('atom-spec-project'), 'file.txt')
+      if (process.platform === 'win32') {
+        return
+      } // chmod not supported on win32
+      const pathToOpen = path.join(
+        temp.mkdirSync('atom-spec-project'),
+        'file.txt'
+      )
       fs.writeFileSync(pathToOpen, '')
 
       waitsForPromise(() => atom.workspace.open(pathToOpen))
@@ -165,13 +189,20 @@ describe('Project', () => {
         })
       })
 
-      waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
+      waitsForPromise(() =>
+        deserializedProject.deserialize(
+          atom.project.serialize({ isUnloading: false })
+        )
+      )
 
       runs(() => expect(deserializedProject.getBuffers().length).toBe(0))
     })
 
     it('does not deserialize buffers with their path is no longer present', () => {
-      const pathToOpen = path.join(temp.mkdirSync('atom-spec-project'), 'file.txt')
+      const pathToOpen = path.join(
+        temp.mkdirSync('atom-spec-project'),
+        'file.txt'
+      )
       fs.writeFileSync(pathToOpen, '')
 
       waitsForPromise(() => atom.workspace.open(pathToOpen))
@@ -187,13 +218,20 @@ describe('Project', () => {
         })
       })
 
-      waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
+      waitsForPromise(() =>
+        deserializedProject.deserialize(
+          atom.project.serialize({ isUnloading: false })
+        )
+      )
 
       runs(() => expect(deserializedProject.getBuffers().length).toBe(0))
     })
 
     it('deserializes buffers that have never been saved before', () => {
-      const pathToOpen = path.join(temp.mkdirSync('atom-spec-project'), 'file.txt')
+      const pathToOpen = path.join(
+        temp.mkdirSync('atom-spec-project'),
+        'file.txt'
+      )
 
       waitsForPromise(() => atom.workspace.open(pathToOpen))
 
@@ -209,7 +247,11 @@ describe('Project', () => {
         })
       })
 
-      waitsForPromise(() => deserializedProject.deserialize(atom.project.serialize({isUnloading: false})))
+      waitsForPromise(() =>
+        deserializedProject.deserialize(
+          atom.project.serialize({ isUnloading: false })
+        )
+      )
 
       runs(() => {
         expect(deserializedProject.getBuffers().length).toBe(1)
@@ -227,7 +269,7 @@ describe('Project', () => {
 
       runs(() => {
         bufferA = atom.project.getBuffers()[0]
-        layerA = bufferA.addMarkerLayer({persistent: true})
+        layerA = bufferA.addMarkerLayer({ persistent: true })
         markerA = layerA.markPosition([0, 3])
         bufferA.append('!')
         notQuittingProject = new Project({
@@ -238,10 +280,17 @@ describe('Project', () => {
         })
       })
 
-      waitsForPromise(() => notQuittingProject.deserialize(atom.project.serialize({isUnloading: false})))
+      waitsForPromise(() =>
+        notQuittingProject.deserialize(
+          atom.project.serialize({ isUnloading: false })
+        )
+      )
 
       runs(() => {
-        expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id), x => x.getMarker(markerA.id)).toBeUndefined()
+        expect(
+          notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id),
+          x => x.getMarker(markerA.id)
+        ).toBeUndefined()
         expect(notQuittingProject.getBuffers()[0].undo()).toBe(false)
         quittingProject = new Project({
           notificationManager: atom.notifications,
@@ -251,10 +300,16 @@ describe('Project', () => {
         })
       })
 
-      waitsForPromise(() => quittingProject.deserialize(atom.project.serialize({isUnloading: true})))
+      waitsForPromise(() =>
+        quittingProject.deserialize(
+          atom.project.serialize({ isUnloading: true })
+        )
+      )
 
       runs(() => {
-        expect(quittingProject.getBuffers()[0].getMarkerLayer(layerA.id), x => x.getMarker(markerA.id)).not.toBeUndefined()
+        expect(quittingProject.getBuffers()[0].getMarkerLayer(layerA.id), x =>
+          x.getMarker(markerA.id)
+        ).not.toBeUndefined()
         expect(quittingProject.getBuffers()[0].undo()).toBe(true)
       })
     })
@@ -267,11 +322,17 @@ describe('Project', () => {
       expect(atom.project.getPaths()[0]).toBeUndefined()
       let editor = null
 
-      waitsForPromise(() => atom.workspace.open().then(o => { editor = o }))
+      waitsForPromise(() =>
+        atom.workspace.open().then(o => {
+          editor = o
+        })
+      )
 
       waitsForPromise(() => editor.saveAs(tempFile))
 
-      runs(() => expect(atom.project.getPaths()[0]).toBe(path.dirname(tempFile)))
+      runs(() =>
+        expect(atom.project.getPaths()[0]).toBe(path.dirname(tempFile))
+      )
     })
   })
 
@@ -285,7 +346,7 @@ describe('Project', () => {
         paths: [projectPath1, projectPath2],
         originPath: 'originPath',
         config: {
-          'baz': 'buzz'
+          baz: 'buzz'
         }
       }
     })
@@ -324,10 +385,12 @@ describe('Project', () => {
     let buffer
     beforeEach(() =>
       waitsForPromise(() =>
-        atom.project.bufferForPath(path.join(__dirname, 'fixtures', 'sample.js')).then((o) => {
-          buffer = o
-          buffer.retain()
-        })
+        atom.project
+          .bufferForPath(path.join(__dirname, 'fixtures', 'sample.js'))
+          .then(o => {
+            buffer = o
+            buffer.retain()
+          })
       )
     )
 
@@ -340,10 +403,18 @@ describe('Project', () => {
       waitsForPromise(() => buffer.save())
 
       runs(() => {
-        expect(atom.project.applicationDelegate.emitDidSavePath.calls.length).toBe(1)
-        expect(atom.project.applicationDelegate.emitDidSavePath).toHaveBeenCalledWith(buffer.getPath())
-        expect(atom.project.applicationDelegate.emitWillSavePath.calls.length).toBe(1)
-        expect(atom.project.applicationDelegate.emitWillSavePath).toHaveBeenCalledWith(buffer.getPath())
+        expect(
+          atom.project.applicationDelegate.emitDidSavePath.calls.length
+        ).toBe(1)
+        expect(
+          atom.project.applicationDelegate.emitDidSavePath
+        ).toHaveBeenCalledWith(buffer.getPath())
+        expect(
+          atom.project.applicationDelegate.emitWillSavePath.calls.length
+        ).toBe(1)
+        expect(
+          atom.project.applicationDelegate.emitWillSavePath
+        ).toHaveBeenCalledWith(buffer.getPath())
       })
     })
   })
@@ -351,20 +422,23 @@ describe('Project', () => {
   describe('when a watch error is thrown from the TextBuffer', () => {
     let editor = null
     beforeEach(() =>
-      waitsForPromise(() => atom.workspace.open(require.resolve('./fixtures/dir/a')).then(o => { editor = o }))
+      waitsForPromise(() =>
+        atom.workspace.open(require.resolve('./fixtures/dir/a')).then(o => {
+          editor = o
+        })
+      )
     )
 
     it('creates a warning notification', () => {
       let noteSpy
-      atom.notifications.onDidAddNotification(noteSpy = jasmine.createSpy())
+      atom.notifications.onDidAddNotification((noteSpy = jasmine.createSpy()))
 
       const error = new Error('SomeError')
       error.eventType = 'resurrect'
       editor.buffer.emitter.emit('will-throw-watch-error', {
         handle: jasmine.createSpy(),
         error
-      }
-      )
+      })
 
       expect(noteSpy).toHaveBeenCalled()
 
@@ -372,7 +446,9 @@ describe('Project', () => {
       expect(notification.getType()).toBe('warning')
       expect(notification.getDetail()).toBe('SomeError')
       expect(notification.getMessage()).toContain('`resurrect`')
-      expect(notification.getMessage()).toContain(path.join('fixtures', 'dir', 'a'))
+      expect(notification.getMessage()).toContain(
+        path.join('fixtures', 'dir', 'a')
+      )
     })
   })
 
@@ -380,10 +456,18 @@ describe('Project', () => {
     let fakeRepositoryProvider, fakeRepository
 
     beforeEach(() => {
-      fakeRepository = {destroy () { return null }}
+      fakeRepository = {
+        destroy () {
+          return null
+        }
+      }
       fakeRepositoryProvider = {
-        repositoryForDirectory (directory) { return Promise.resolve(fakeRepository) },
-        repositoryForDirectorySync (directory) { return fakeRepository }
+        repositoryForDirectory (directory) {
+          return Promise.resolve(fakeRepository)
+        },
+        repositoryForDirectorySync (directory) {
+          return fakeRepository
+        }
       }
     })
 
@@ -392,7 +476,11 @@ describe('Project', () => {
       atom.project.setPaths([projectPath])
       expect(atom.project.getRepositories()).toEqual([null])
 
-      atom.packages.serviceHub.provide('atom.repository-provider', '0.1.0', fakeRepositoryProvider)
+      atom.packages.serviceHub.provide(
+        'atom.repository-provider',
+        '0.1.0',
+        fakeRepositoryProvider
+      )
       waitsFor(() => atom.project.repositoryProviders.length > 1)
       runs(() => atom.project.getRepositories()[0] === fakeRepository)
     })
@@ -402,7 +490,11 @@ describe('Project', () => {
       expect(repositories.length).toEqual(1)
       expect(repositories[0]).toBeTruthy()
 
-      atom.packages.serviceHub.provide('atom.repository-provider', '0.1.0', fakeRepositoryProvider)
+      atom.packages.serviceHub.provide(
+        'atom.repository-provider',
+        '0.1.0',
+        fakeRepositoryProvider
+      )
       waitsFor(() => atom.project.repositoryProviders.length > 1)
       runs(() => expect(atom.project.getRepositories()).toBe(repositories))
     })
@@ -410,7 +502,11 @@ describe('Project', () => {
     it('stops using it to create repositories when the service is removed', () => {
       atom.project.setPaths([])
 
-      const disposable = atom.packages.serviceHub.provide('atom.repository-provider', '0.1.0', fakeRepositoryProvider)
+      const disposable = atom.packages.serviceHub.provide(
+        'atom.repository-provider',
+        '0.1.0',
+        fakeRepositoryProvider
+      )
       waitsFor(() => atom.project.repositoryProviders.length > 1)
       runs(() => {
         disposable.dispose()
@@ -425,15 +521,35 @@ describe('Project', () => {
       constructor (aPath) {
         this.path = aPath
       }
-      getPath () { return this.path }
-      getFile () { return {existsSync () { return false }} }
-      getSubdirectory () { return {existsSync () { return false }} }
-      isRoot () { return true }
-      existsSync () { return this.path.endsWith('does-exist') }
-      contains (filePath) { return filePath.startsWith(this.path) }
+      getPath () {
+        return this.path
+      }
+      getFile () {
+        return {
+          existsSync () {
+            return false
+          }
+        }
+      }
+      getSubdirectory () {
+        return {
+          existsSync () {
+            return false
+          }
+        }
+      }
+      isRoot () {
+        return true
+      }
+      existsSync () {
+        return this.path.endsWith('does-exist')
+      }
+      contains (filePath) {
+        return filePath.startsWith(this.path)
+      }
       onDidChangeFiles (callback) {
         onDidChangeFilesCallback = callback
-        return {dispose: () => {}}
+        return { dispose: () => {} }
       }
     }
 
@@ -441,15 +557,19 @@ describe('Project', () => {
     let onDidChangeFilesCallback = null
 
     beforeEach(() => {
-      serviceDisposable = atom.packages.serviceHub.provide('atom.directory-provider', '0.1.0', {
-        directoryForURISync (uri) {
-          if (uri.startsWith('ssh://')) {
-            return new DummyDirectory(uri)
-          } else {
-            return null
+      serviceDisposable = atom.packages.serviceHub.provide(
+        'atom.directory-provider',
+        '0.1.0',
+        {
+          directoryForURISync (uri) {
+            if (uri.startsWith('ssh://')) {
+              return new DummyDirectory(uri)
+            } else {
+              return null
+            }
           }
         }
-      })
+      )
       onDidChangeFilesCallback = null
 
       waitsFor(() => atom.project.directoryProviders.length > 0)
@@ -468,7 +588,8 @@ describe('Project', () => {
       expect(directories[1] instanceof DummyDirectory).toBe(true)
 
       // It does not add new remote paths that do not exist
-      const nonExistentRemotePath = 'ssh://another-directory:8080/does-not-exist'
+      const nonExistentRemotePath =
+        'ssh://another-directory:8080/does-not-exist'
       atom.project.addPath(nonExistentRemotePath)
       expect(atom.project.getDirectories().length).toBe(2)
 
@@ -498,7 +619,7 @@ describe('Project', () => {
         const changeSpy = jasmine.createSpy('atom.project.onDidChangeFiles')
         const disposable = atom.project.onDidChangeFiles(changeSpy)
 
-        const events = [{action: 'created', path: remotePath + '/test.txt'}]
+        const events = [{ action: 'created', path: remotePath + '/test.txt' }]
         onDidChangeFilesCallback(events)
 
         expect(changeSpy).toHaveBeenCalledWith(events)
@@ -519,7 +640,11 @@ describe('Project', () => {
     describe("when given an absolute path that isn't currently open", () => {
       it("returns a new edit session for the given path and emits 'buffer-created'", () => {
         let editor = null
-        waitsForPromise(() => atom.workspace.open(absolutePath).then(o => { editor = o }))
+        waitsForPromise(() =>
+          atom.workspace.open(absolutePath).then(o => {
+            editor = o
+          })
+        )
 
         runs(() => {
           expect(editor.buffer.getPath()).toBe(absolutePath)
@@ -531,7 +656,11 @@ describe('Project', () => {
     describe("when given a relative path that isn't currently opened", () => {
       it("returns a new edit session for the given path (relative to the project root) and emits 'buffer-created'", () => {
         let editor = null
-        waitsForPromise(() => atom.workspace.open(absolutePath).then(o => { editor = o }))
+        waitsForPromise(() =>
+          atom.workspace.open(absolutePath).then(o => {
+            editor = o
+          })
+        )
 
         runs(() => {
           expect(editor.buffer.getPath()).toBe(absolutePath)
@@ -544,16 +673,22 @@ describe('Project', () => {
       it('returns a new edit session containing currently opened buffer', () => {
         let editor = null
 
-        waitsForPromise(() => atom.workspace.open(absolutePath).then(o => { editor = o }))
+        waitsForPromise(() =>
+          atom.workspace.open(absolutePath).then(o => {
+            editor = o
+          })
+        )
 
         runs(() => newBufferHandler.reset())
 
         waitsForPromise(() =>
-          atom.workspace.open(absolutePath).then(({buffer}) => expect(buffer).toBe(editor.buffer))
+          atom.workspace
+            .open(absolutePath)
+            .then(({ buffer }) => expect(buffer).toBe(editor.buffer))
         )
 
         waitsForPromise(() =>
-          atom.workspace.open('a').then(({buffer}) => {
+          atom.workspace.open('a').then(({ buffer }) => {
             expect(buffer).toBe(editor.buffer)
             expect(newBufferHandler).not.toHaveBeenCalled()
           })
@@ -564,7 +699,11 @@ describe('Project', () => {
     describe('when not passed a path', () => {
       it("returns a new edit session and emits 'buffer-created'", () => {
         let editor = null
-        waitsForPromise(() => atom.workspace.open().then(o => { editor = o }))
+        waitsForPromise(() =>
+          atom.workspace.open().then(o => {
+            editor = o
+          })
+        )
 
         runs(() => {
           expect(editor.buffer.getPath()).toBeUndefined()
@@ -579,7 +718,7 @@ describe('Project', () => {
 
     beforeEach(() =>
       waitsForPromise(() =>
-        atom.project.bufferForPath('a').then((o) => {
+        atom.project.bufferForPath('a').then(o => {
           buffer = o
           buffer.retain()
         })
@@ -591,11 +730,15 @@ describe('Project', () => {
     describe('when opening a previously opened path', () => {
       it('does not create a new buffer', () => {
         waitsForPromise(() =>
-          atom.project.bufferForPath('a').then(anotherBuffer => expect(anotherBuffer).toBe(buffer))
+          atom.project
+            .bufferForPath('a')
+            .then(anotherBuffer => expect(anotherBuffer).toBe(buffer))
         )
 
         waitsForPromise(() =>
-          atom.project.bufferForPath('b').then(anotherBuffer => expect(anotherBuffer).not.toBe(buffer))
+          atom.project
+            .bufferForPath('b')
+            .then(anotherBuffer => expect(anotherBuffer).not.toBe(buffer))
         )
 
         waitsForPromise(() =>
@@ -609,12 +752,14 @@ describe('Project', () => {
       })
 
       it('retries loading the buffer if it previously failed', () => {
-        waitsForPromise({shouldReject: true}, () => {
-          spyOn(TextBuffer, 'load').andCallFake(() => Promise.reject(new Error('Could not open file')))
+        waitsForPromise({ shouldReject: true }, () => {
+          spyOn(TextBuffer, 'load').andCallFake(() =>
+            Promise.reject(new Error('Could not open file'))
+          )
           return atom.project.bufferForPath('b')
         })
 
-        waitsForPromise({shouldReject: false}, () => {
+        waitsForPromise({ shouldReject: false }, () => {
           TextBuffer.load.andCallThrough()
           return atom.project.bufferForPath('b')
         })
@@ -624,7 +769,9 @@ describe('Project', () => {
         buffer.release()
 
         waitsForPromise(() =>
-          atom.project.bufferForPath('b').then(anotherBuffer => expect(anotherBuffer).not.toBe(buffer))
+          atom.project
+            .bufferForPath('b')
+            .then(anotherBuffer => expect(anotherBuffer).not.toBe(buffer))
         )
       })
     })
@@ -634,7 +781,7 @@ describe('Project', () => {
     it('resolves to null when the directory does not have a repository', () => {
       waitsForPromise(() => {
         const directory = new Directory('/tmp')
-        return atom.project.repositoryForDirectory(directory).then((result) => {
+        return atom.project.repositoryForDirectory(directory).then(result => {
           expect(result).toBeNull()
           expect(atom.project.repositoryProviders.length).toBeGreaterThan(0)
           expect(atom.project.repositoryPromisesByPath.size).toBe(0)
@@ -646,7 +793,7 @@ describe('Project', () => {
       waitsForPromise(() => {
         const directory = new Directory(path.join(__dirname, '..'))
         const promise = atom.project.repositoryForDirectory(directory)
-        return promise.then((result) => {
+        return promise.then(result => {
           expect(result).toBeInstanceOf(GitRepository)
           const dirPath = directory.getRealPathSync()
           expect(result.getPath()).toBe(path.join(dirPath, '.git'))
@@ -661,7 +808,11 @@ describe('Project', () => {
       let repository = null
       const directory = new Directory(path.join(__dirname, '..'))
 
-      waitsForPromise(() => atom.project.repositoryForDirectory(directory).then(repo => { repository = repo }))
+      waitsForPromise(() =>
+        atom.project.repositoryForDirectory(directory).then(repo => {
+          repository = repo
+        })
+      )
 
       runs(() => {
         expect(repository.isDestroyed()).toBe(false)
@@ -669,7 +820,11 @@ describe('Project', () => {
         expect(repository.isDestroyed()).toBe(true)
       })
 
-      waitsForPromise(() => atom.project.repositoryForDirectory(directory).then(repo => { repository = repo }))
+      waitsForPromise(() =>
+        atom.project.repositoryForDirectory(directory).then(repo => {
+          repository = repo
+        })
+      )
 
       runs(() => expect(repository.isDestroyed()).toBe(false))
     })
@@ -681,7 +836,9 @@ describe('Project', () => {
         const filePath = require.resolve('./fixtures/dir/a')
         atom.project.setPaths([filePath])
         expect(atom.project.getPaths()[0]).toEqual(path.dirname(filePath))
-        expect(atom.project.getDirectories()[0].path).toEqual(path.dirname(filePath))
+        expect(atom.project.getDirectories()[0].path).toEqual(
+          path.dirname(filePath)
+        )
       })
     })
 
@@ -691,7 +848,9 @@ describe('Project', () => {
         const directory2 = temp.mkdirSync('git-repo1')
         const directory3 = temp.mkdirSync('git-repo2')
 
-        const gitDirPath = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+        const gitDirPath = fs.absolute(
+          path.join(__dirname, 'fixtures', 'git', 'master.git')
+        )
         fs.copySync(gitDirPath, path.join(directory2, '.git'))
         fs.copySync(gitDirPath, path.join(directory3, '.git'))
 
@@ -700,16 +859,20 @@ describe('Project', () => {
         const [repo1, repo2, repo3] = atom.project.getRepositories()
         expect(repo1).toBeNull()
         expect(repo2.getShortHead()).toBe('master')
-        expect(repo2.getPath()).toBe(fs.realpathSync(path.join(directory2, '.git')))
+        expect(repo2.getPath()).toBe(
+          fs.realpathSync(path.join(directory2, '.git'))
+        )
         expect(repo3.getShortHead()).toBe('master')
-        expect(repo3.getPath()).toBe(fs.realpathSync(path.join(directory3, '.git')))
+        expect(repo3.getPath()).toBe(
+          fs.realpathSync(path.join(directory3, '.git'))
+        )
       })
 
       it('calls callbacks registered with ::onDidChangePaths', () => {
         const onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
         atom.project.onDidChangePaths(onDidChangePathsSpy)
 
-        const paths = [ temp.mkdirSync('dir1'), temp.mkdirSync('dir2') ]
+        const paths = [temp.mkdirSync('dir1'), temp.mkdirSync('dir2')]
         atom.project.setPaths(paths)
 
         expect(onDidChangePathsSpy.callCount).toBe(1)
@@ -717,10 +880,15 @@ describe('Project', () => {
       })
 
       it('optionally throws an error with any paths that did not exist', () => {
-        const paths = [temp.mkdirSync('exists0'), '/doesnt-exists/0', temp.mkdirSync('exists1'), '/doesnt-exists/1']
+        const paths = [
+          temp.mkdirSync('exists0'),
+          '/doesnt-exists/0',
+          temp.mkdirSync('exists1'),
+          '/doesnt-exists/1'
+        ]
 
         try {
-          atom.project.setPaths(paths, {mustExist: true})
+          atom.project.setPaths(paths, { mustExist: true })
           expect('no exception thrown').toBeUndefined()
         } catch (e) {
           expect(e.missingProjectPaths).toEqual([paths[1], paths[3]])
@@ -739,9 +907,17 @@ describe('Project', () => {
     })
 
     it('normalizes the path to remove consecutive slashes, ., and .. segments', () => {
-      atom.project.setPaths([`${require.resolve('./fixtures/dir/a')}${path.sep}b${path.sep}${path.sep}..`])
-      expect(atom.project.getPaths()[0]).toEqual(path.dirname(require.resolve('./fixtures/dir/a')))
-      expect(atom.project.getDirectories()[0].path).toEqual(path.dirname(require.resolve('./fixtures/dir/a')))
+      atom.project.setPaths([
+        `${require.resolve('./fixtures/dir/a')}${path.sep}b${path.sep}${
+          path.sep
+        }..`
+      ])
+      expect(atom.project.getPaths()[0]).toEqual(
+        path.dirname(require.resolve('./fixtures/dir/a'))
+      )
+      expect(atom.project.getDirectories()[0].path).toEqual(
+        path.dirname(require.resolve('./fixtures/dir/a'))
+      )
     })
   })
 
@@ -756,7 +932,10 @@ describe('Project', () => {
       atom.project.addPath(newPath)
 
       expect(onDidChangePathsSpy.callCount).toBe(1)
-      expect(onDidChangePathsSpy.mostRecentCall.args[0]).toEqual([oldPath, newPath])
+      expect(onDidChangePathsSpy.mostRecentCall.args[0]).toEqual([
+        oldPath,
+        newPath
+      ])
     })
 
     it("doesn't add redundant paths", () => {
@@ -788,7 +967,11 @@ describe('Project', () => {
     })
 
     it('optionally throws on non-existent directories', () => {
-      expect(() => atom.project.addPath('/this-definitely/does-not-exist', {mustExist: true})).toThrow()
+      expect(() =>
+        atom.project.addPath('/this-definitely/does-not-exist', {
+          mustExist: true
+        })
+      ).toThrow()
     })
   })
 
@@ -820,7 +1003,9 @@ describe('Project', () => {
     it("doesn't destroy the repository if it is shared by another root directory", () => {
       atom.project.setPaths([__dirname, path.join(__dirname, '..', 'src')])
       atom.project.removePath(__dirname)
-      expect(atom.project.getPaths()).toEqual([path.join(__dirname, '..', 'src')])
+      expect(atom.project.getPaths()).toEqual([
+        path.join(__dirname, '..', 'src')
+      ])
       expect(atom.project.getRepositories()[0].isSubmodule('src')).toBe(false)
     })
 
@@ -828,10 +1013,18 @@ describe('Project', () => {
       atom.packages.serviceHub.provide('atom.directory-provider', '0.1.0', {
         directoryForURISync (uri) {
           return {
-            getPath () { return uri },
-            getSubdirectory () { return {} },
-            isRoot () { return true },
-            existsSync () { return true },
+            getPath () {
+              return uri
+            },
+            getSubdirectory () {
+              return {}
+            },
+            isRoot () {
+              return true
+            },
+            existsSync () {
+              return true
+            },
             off () {}
           }
         }
@@ -853,7 +1046,7 @@ describe('Project', () => {
     let checkCallback = () => {}
 
     beforeEach(() => {
-      sub = atom.project.onDidChangeFiles((incoming) => {
+      sub = atom.project.onDidChangeFiles(incoming => {
         events.push(...incoming)
         checkCallback()
       })
@@ -870,18 +1063,24 @@ describe('Project', () => {
       })
     })
 
-    const waitForEvents = (paths) => {
-      const remaining = new Set(paths.map((p) => fs.realpathSync(p)))
+    const waitForEvents = paths => {
+      const remaining = new Set(paths.map(p => fs.realpathSync(p)))
       return new Promise((resolve, reject) => {
         checkCallback = () => {
-          for (let event of events) { remaining.delete(event.path) }
-          if (remaining.size === 0) { resolve() }
+          for (let event of events) {
+            remaining.delete(event.path)
+          }
+          if (remaining.size === 0) {
+            resolve()
+          }
         }
 
         const expire = () => {
           checkCallback = () => {}
           console.error('Paths not seen:', remaining)
-          reject(new Error('Expired before all expected events were delivered.'))
+          reject(
+            new Error('Expired before all expected events were delivered.')
+          )
         }
 
         checkCallback()
@@ -929,7 +1128,8 @@ describe('Project', () => {
       const added = []
 
       waitsForPromise(() =>
-        atom.project.buildBuffer(require.resolve('./fixtures/dir/a'))
+        atom.project
+          .buildBuffer(require.resolve('./fixtures/dir/a'))
           .then(o => buffers.push(o))
       )
 
@@ -939,7 +1139,8 @@ describe('Project', () => {
       })
 
       waitsForPromise(() =>
-        atom.project.buildBuffer(require.resolve('./fixtures/dir/b'))
+        atom.project
+          .buildBuffer(require.resolve('./fixtures/dir/b'))
           .then(o => buffers.push(o))
       )
 
@@ -956,12 +1157,14 @@ describe('Project', () => {
       const observed = []
 
       waitsForPromise(() =>
-        atom.project.buildBuffer(require.resolve('./fixtures/dir/a'))
+        atom.project
+          .buildBuffer(require.resolve('./fixtures/dir/a'))
           .then(o => buffers.push(o))
       )
 
       waitsForPromise(() =>
-        atom.project.buildBuffer(require.resolve('./fixtures/dir/b'))
+        atom.project
+          .buildBuffer(require.resolve('./fixtures/dir/b'))
           .then(o => buffers.push(o))
       )
 
@@ -972,7 +1175,8 @@ describe('Project', () => {
       })
 
       waitsForPromise(() =>
-        atom.project.buildBuffer(require.resolve('./fixtures/dir/b'))
+        atom.project
+          .buildBuffer(require.resolve('./fixtures/dir/b'))
           .then(o => buffers.push(o))
       )
 
@@ -989,22 +1193,38 @@ describe('Project', () => {
       const observed = []
 
       const directory1 = temp.mkdirSync('git-repo1')
-      const gitDirPath1 = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      const gitDirPath1 = fs.absolute(
+        path.join(__dirname, 'fixtures', 'git', 'master.git')
+      )
       fs.copySync(gitDirPath1, path.join(directory1, '.git'))
 
       const directory2 = temp.mkdirSync('git-repo2')
-      const gitDirPath2 = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'repo-with-submodules', 'git.git'))
+      const gitDirPath2 = fs.absolute(
+        path.join(
+          __dirname,
+          'fixtures',
+          'git',
+          'repo-with-submodules',
+          'git.git'
+        )
+      )
       fs.copySync(gitDirPath2, path.join(directory2, '.git'))
 
       atom.project.setPaths([directory1])
 
-      const disposable = atom.project.observeRepositories((repo) => observed.push(repo))
+      const disposable = atom.project.observeRepositories(repo =>
+        observed.push(repo)
+      )
       expect(observed.length).toBe(1)
-      expect(observed[0].getReferenceTarget('refs/heads/master')).toBe('ef046e9eecaa5255ea5e9817132d4001724d6ae1')
+      expect(observed[0].getReferenceTarget('refs/heads/master')).toBe(
+        'ef046e9eecaa5255ea5e9817132d4001724d6ae1'
+      )
 
       atom.project.addPath(directory2)
       expect(observed.length).toBe(2)
-      expect(observed[1].getReferenceTarget('refs/heads/master')).toBe('d2b0ad9cbc6f6c4372e8956e5cc5af771b2342e5')
+      expect(observed[1].getReferenceTarget('refs/heads/master')).toBe(
+        'd2b0ad9cbc6f6c4372e8956e5cc5af771b2342e5'
+      )
 
       disposable.dispose()
     })
@@ -1013,25 +1233,35 @@ describe('Project', () => {
   describe('.onDidAddRepository()', () => {
     it('invokes callback when a path is added and the path is the root of a repository', () => {
       const observed = []
-      const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
+      const disposable = atom.project.onDidAddRepository(repo =>
+        observed.push(repo)
+      )
 
       const projectRootPath = temp.mkdirSync()
-      const fixtureRepoPath = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      const fixtureRepoPath = fs.absolute(
+        path.join(__dirname, 'fixtures', 'git', 'master.git')
+      )
       fs.copySync(fixtureRepoPath, path.join(projectRootPath, '.git'))
 
       atom.project.addPath(projectRootPath)
       expect(observed.length).toBe(1)
-      expect(observed[0].getOriginURL()).toEqual('https://github.com/example-user/example-repo.git')
+      expect(observed[0].getOriginURL()).toEqual(
+        'https://github.com/example-user/example-repo.git'
+      )
 
       disposable.dispose()
     })
 
     it('invokes callback when a path is added and the path is subdirectory of a repository', () => {
       const observed = []
-      const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
+      const disposable = atom.project.onDidAddRepository(repo =>
+        observed.push(repo)
+      )
 
       const projectRootPath = temp.mkdirSync()
-      const fixtureRepoPath = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      const fixtureRepoPath = fs.absolute(
+        path.join(__dirname, 'fixtures', 'git', 'master.git')
+      )
       fs.copySync(fixtureRepoPath, path.join(projectRootPath, '.git'))
 
       const projectSubDirPath = path.join(projectRootPath, 'sub-dir')
@@ -1039,14 +1269,18 @@ describe('Project', () => {
 
       atom.project.addPath(projectSubDirPath)
       expect(observed.length).toBe(1)
-      expect(observed[0].getOriginURL()).toEqual('https://github.com/example-user/example-repo.git')
+      expect(observed[0].getOriginURL()).toEqual(
+        'https://github.com/example-user/example-repo.git'
+      )
 
       disposable.dispose()
     })
 
     it('does not invoke callback when a path is added and the path is not part of a repository', () => {
       const observed = []
-      const disposable = atom.project.onDidAddRepository((repo) => observed.push(repo))
+      const disposable = atom.project.onDidAddRepository(repo =>
+        observed.push(repo)
+      )
 
       atom.project.addPath(temp.mkdirSync('not-a-repository'))
       expect(observed.length).toBe(0)
@@ -1061,11 +1295,15 @@ describe('Project', () => {
 
       let rootPath = atom.project.getPaths()[0]
       let childPath = path.join(rootPath, 'some', 'child', 'directory')
-      expect(atom.project.relativize(childPath)).toBe(path.join('some', 'child', 'directory'))
+      expect(atom.project.relativize(childPath)).toBe(
+        path.join('some', 'child', 'directory')
+      )
 
       rootPath = atom.project.getPaths()[1]
       childPath = path.join(rootPath, 'some', 'child', 'directory')
-      expect(atom.project.relativize(childPath)).toBe(path.join('some', 'child', 'directory'))
+      expect(atom.project.relativize(childPath)).toBe(
+        path.join('some', 'child', 'directory')
+      )
     })
 
     it('returns the given path if it is not in any of the root directories', () => {
@@ -1080,17 +1318,26 @@ describe('Project', () => {
 
       let rootPath = atom.project.getPaths()[0]
       let childPath = path.join(rootPath, 'some', 'child', 'directory')
-      expect(atom.project.relativizePath(childPath)).toEqual([rootPath, path.join('some', 'child', 'directory')])
+      expect(atom.project.relativizePath(childPath)).toEqual([
+        rootPath,
+        path.join('some', 'child', 'directory')
+      ])
 
       rootPath = atom.project.getPaths()[1]
       childPath = path.join(rootPath, 'some', 'child', 'directory')
-      expect(atom.project.relativizePath(childPath)).toEqual([rootPath, path.join('some', 'child', 'directory')])
+      expect(atom.project.relativizePath(childPath)).toEqual([
+        rootPath,
+        path.join('some', 'child', 'directory')
+      ])
     })
 
     describe("when the given path isn't inside of any of the project's path", () => {
       it('returns null for the root path, and the given path unchanged', () => {
         const randomPath = path.join('some', 'random', 'path')
-        expect(atom.project.relativizePath(randomPath)).toEqual([null, randomPath])
+        expect(atom.project.relativizePath(randomPath)).toEqual([
+          null,
+          randomPath
+        ])
       })
     })
 
@@ -1105,7 +1352,10 @@ describe('Project', () => {
       it('uses the root folder that is closest to the given path', () => {
         atom.project.addPath(path.join(atom.project.getPaths()[0], 'a-dir'))
 
-        const inputPath = path.join(atom.project.getPaths()[1], 'somewhere/something.txt')
+        const inputPath = path.join(
+          atom.project.getPaths()[1],
+          'somewhere/something.txt'
+        )
 
         expect(atom.project.getDirectories()[0].contains(inputPath)).toBe(true)
         expect(atom.project.getDirectories()[1].contains(inputPath)).toBe(true)
