@@ -407,16 +407,14 @@ class LaunchScenario {
     const app = this.addApplication()
     const windowPromises = []
     for (const windowSpec of this.parseWindowSpecs(source)) {
-      const expectOpenEvent = windowSpec.roots.length > 0 || windowSpec.editors.length > 0
-
       if (windowSpec.editors.length === 0) {
         windowSpec.editors.push(null)
       }
 
       windowPromises.push((async (theApp, foldersToOpen, pathsToOpen) => {
         const window = await theApp.openPaths({ newWindow: true, foldersToOpen, pathsToOpen })
-        if (expectOpenEvent) {
-          await emitterEventPromise(window, 'window:locations-opened')
+        if (foldersToOpen.length > 0 || pathsToOpen.filter(Boolean).length > 0) {
+          await emitterEventPromise(window, 'window:locations-opened', 15000, `preconditions('${source}')`)
         }
         return window
       })(app, windowSpec.roots, windowSpec.editors))
