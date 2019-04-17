@@ -1484,8 +1484,8 @@ class AtomApplication extends EventEmitter {
       }
     })()
 
-    // Show the open dialog as child window on Windows and Linux, and as
-    // independent dialog on macOS. This matches most native apps.
+    // Show the open dialog as child window on Windows and Linux, and as an independent dialog on macOS. This matches
+    // most native apps.
     const parentWindow = process.platform === 'darwin' ? null : BrowserWindow.getFocusedWindow()
 
     const openOptions = {
