@@ -973,23 +973,40 @@ class AtomApplication extends EventEmitter {
 
     let existingWindow
 
-    // Explicitly provided AtomWindow has precedence unless a new window is forced.
     if (!newWindow) {
+      // An explicitly provided AtomWindow has precedence.
       existingWindow = window
-    }
 
-    // If no window is specified, a new window is not forced, and at least one path is provided, locate
-    // an existing window that contains all paths.
-    if (!existingWindow && !newWindow && normalizedPathsToOpen.length > 0) {
-      existingWindow = this.windowForPaths(normalizedPathsToOpen, devMode)
-    }
+      // If no window is specified and at least one path is provided, locate an existing window that contains all
+      // provided paths.
+      if (!existingWindow && normalizedPathsToOpen.length > 0) {
+        existingWindow = this.windowForPaths(normalizedPathsToOpen, devMode)
+      }
 
-    // No window specified, new window not forced, no existing window found, and addition to the last window
-    // requested. Find the last focused window.
-    if (!existingWindow && !newWindow && addToLastWindow) {
-      let lastWindow = window || this.getLastFocusedWindow()
-      if (lastWindow && lastWindow.devMode === devMode) {
-        existingWindow = lastWindow
+      // No window specified, no existing window found, and addition to the last window requested. Find the last
+      // focused window that matches the requested dev and safe modes.
+      if (!existingWindow && addToLastWindow) {
+        existingWindow = this.getLastFocusedWindow(win => {
+          return win.devMode === devMode && win.safeMode === safeMode
+        })
+      }
+
+      // Fall back to the last focused window that has no project roots.
+      if (!existingWindow) {
+        existingWindow = this.getLastFocusedWindow(win => !win.hasProjectPath())
+      }
+
+      // One last case: if *no* paths are directories, add to the last focused window.
+      if (!existingWindow) {
+        const noDirectories =
+          locationsToOpen.every(location => !location.mustBeDirectory) &&
+          normalizedPathsToOpen.every(pathToOpen => !fs.isDirectorySync(pathToOpen))
+
+        if (noDirectories) {
+          existingWindow = this.getLastFocusedWindow(win => {
+            return win.devMode === devMode && win.safeMode === safeMode
+          })
+        }
       }
     }
 

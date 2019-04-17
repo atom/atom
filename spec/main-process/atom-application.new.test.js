@@ -66,14 +66,12 @@ describe('AtomApplication', function () {
       })
 
       // This is also the case when a user clicks on a file in their file manager
-      // FIXME
       it('opens a file', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
         await scenario.assert('[_ 1.md]')
       })
 
       // This is also the case when a user clicks on a folder in their file manager
-      // FIXME
       it('opens a directory', async function () {
         await scenario.open(parseCommandLine(['a']))
         await scenario.assert('[a _]')
@@ -118,7 +116,6 @@ describe('AtomApplication', function () {
       })
 
       // This is also the case when a user clicks on a file outside the project root in their file manager
-      // FIXME
       it('opens a file outside the project root', async function () {
         await scenario.open(parseCommandLine(['b/2.md']))
         await scenario.assert('[a 2.md]')
@@ -189,7 +186,6 @@ describe('AtomApplication', function () {
       })
 
       // This is also the case when a user clicks on a file outside the project root in their file manager
-      // FIXME
       it('opens a file outside the project root', async function () {
         await scenario.open(parseCommandLine(['b/2.md']))
         await scenario.assert('[a _] [_ 2.md]')
@@ -260,14 +256,12 @@ describe('AtomApplication', function () {
       })
 
       // This is also the case when a user clicks on a file outside the project root in their file manager
-      // FIXME
       it('opens a file outside the project root', async function () {
         await scenario.open(parseCommandLine(['b/2.md']))
         await scenario.assert('[_ 2.md] [a _]')
       })
 
       // This is also the case when a user clicks on a new folder in their file manager
-      // FIXME
       it('opens a directory other than the project root', async function () {
         await scenario.open(parseCommandLine(['b']))
         await scenario.assert('[b _] [a _]')
