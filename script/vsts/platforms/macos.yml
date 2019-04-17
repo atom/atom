@@ -19,7 +19,7 @@ jobs:
   - script: npm install --global npm@6.2.0
     displayName: Update npm
 
-  - script: script/bootstrap
+  - script: export PATH="/usr/local/bin:${PATH}" && script/bootstrap
     displayName: Bootstrap build environment
     env:
       CI: true
