@@ -24,11 +24,14 @@ describe('AtomApplication', function () {
 
   describe('command-line interface behavior', function () {
     describe('with no open windows', function () {
+      // This is also the case when a user clicks on a file in their file manager
       it('opens a file', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
         await scenario.assert('[_ 1.md]')
       })
 
+      // This is also the case when a user clicks on a folder in their file manager
+      // (or, on macOS, drags the folder to Atom in their doc)
       it('opens a directory', async function () {
         await scenario.open(parseCommandLine(['a']))
         await scenario.assert('[a _]')
@@ -60,12 +63,14 @@ describe('AtomApplication', function () {
         await scenario.preconditions('[_ _]')
       })
 
+      // This is also the case when a user clicks on a file in their file manager
       it('opens a file', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
         // await scenario.assert('[_ 1.md]') // FIXME
         await scenario.assert('[_ _] [_ 1.md]')
       })
 
+      // This is also the case when a user clicks on a folder in their file manager
       it('opens a directory', async function () {
         await scenario.open(parseCommandLine(['a']))
         // await scenario.assert('[a _]') // FIXME
@@ -98,22 +103,26 @@ describe('AtomApplication', function () {
         await scenario.preconditions('[a _]')
       })
 
+      // This is also the case when a user clicks on a file within the project root in their file manager
       it('opens a file within the project root', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
         await scenario.assert('[a 1.md]')
       })
 
+      // This is also the case when a user clicks on a project root folder in their file manager
       it('opens a directory that matches the project root', async function () {
         await scenario.open(parseCommandLine(['a']))
         await scenario.assert('[a _]')
       })
 
+      // This is also the case when a user clicks on a file outside the project root in their file manager
       it('opens a file outside the project root', async function () {
         await scenario.open(parseCommandLine(['b/2.md']))
         // await scenario.assert('[a 2.md]') // FIXME
         await scenario.assert('[a _] [_ 2.md]')
       })
 
+      // This is also the case when a user clicks on a new folder in their file manager
       it('opens a directory other than the project root', async function () {
         await scenario.open(parseCommandLine(['b']))
         await scenario.assert('[a _] [b _]')
@@ -160,27 +169,31 @@ describe('AtomApplication', function () {
       })
     })
 
-    describe('with two windows, open with a project root and one empty', function () {
+    describe('with two windows, one with a project root and one empty', function () {
       beforeEach(async function () {
         await scenario.preconditions('[a _] [_ _]')
       })
 
+      // This is also the case when a user clicks on a file within the project root in their file manager
       it('opens a file within the project root', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
         await scenario.assert('[a 1.md] [_ _]')
       })
 
+      // This is also the case when a user clicks on a project root folder in their file manager
       it('opens a directory that matches the project root', async function () {
         await scenario.open(parseCommandLine(['a']))
         await scenario.assert('[a _] [_ _]')
       })
 
+      // This is also the case when a user clicks on a file outside the project root in their file manager
       it('opens a file outside the project root', async function () {
         await scenario.open(parseCommandLine(['b/2.md']))
         // await scenario.assert('[a _] [_ 2.md]') // FIXME
         await scenario.assert('[a _] [_ _] [_ 2.md]')
       })
 
+      // This is also the case when a user clicks on a new folder in their file manager
       it('opens a directory other than the project root', async function () {
         await scenario.open(parseCommandLine(['b']))
         // await scenario.assert('[a _] [b _]') // FIXME
@@ -228,27 +241,31 @@ describe('AtomApplication', function () {
       })
     })
 
-    describe('with two windows, open empty and one with a project root', function () {
+    describe('with two windows, one empty and one with a project root', function () {
       beforeEach(async function () {
         await scenario.preconditions('[_ _] [a _]')
       })
 
+      // This is also the case when a user clicks on a file within the project root in their file manager
       it('opens a file within the project root', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
         await scenario.assert('[_ _] [a 1.md]')
       })
 
+      // This is also the case when a user clicks on a project root folder in their file manager
       it('opens a directory that matches the project root', async function () {
         await scenario.open(parseCommandLine(['a']))
         await scenario.assert('[_ _] [a _]')
       })
 
+      // This is also the case when a user clicks on a file outside the project root in their file manager
       it('opens a file outside the project root', async function () {
         await scenario.open(parseCommandLine(['b/2.md']))
-        // await scenario.assert('[_ _] [a 2.md]') // FIXME
+        // await scenario.assert('[_ 2.md] [a _]') // FIXME
         await scenario.assert('[_ _] [a _] [_ 2.md]')
       })
 
+      // This is also the case when a user clicks on a new folder in their file manager
       it('opens a directory other than the project root', async function () {
         await scenario.open(parseCommandLine(['b']))
         // await scenario.assert('[b _] [a _]') // FIXME
