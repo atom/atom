@@ -242,10 +242,10 @@ class LaunchScenario {
           const [missingRoots, extraRoots] = this.compareSets(theSpec.roots, rootPaths)
           const [missingEditors, extraEditors] = this.compareSets(theSpec.editors, editorPaths)
 
-          comparison.ok = missingRoots.length > 0 ||
-            extraRoots.length > 0 ||
-            missingEditors.length > 0 ||
-            extraEditors.length > 0
+          comparison.ok = missingRoots.length === 0 &&
+            extraRoots.length === 0 &&
+            missingEditors.length === 0 &&
+            extraEditors.length === 0
           comparison.extraRoots = extraRoots
           comparison.missingRoots = missingRoots
           comparison.extraEditors = extraEditors
