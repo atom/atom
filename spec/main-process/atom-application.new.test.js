@@ -25,37 +25,274 @@ describe('AtomApplication', function () {
   describe('command-line interface behavior', function () {
     describe('with no open windows', function () {
       it('opens a file', async function () {
-        await scenario.launch(parseCommandLine(['a/1.md']))
+        await scenario.open(parseCommandLine(['a/1.md']))
         await scenario.assert('[_ 1.md]')
       })
 
       it('opens a directory', async function () {
-        await scenario.launch(parseCommandLine(['a']))
+        await scenario.open(parseCommandLine(['a']))
         await scenario.assert('[a _]')
       })
 
       it('opens a file with --add', async function () {
-        await scenario.launch(parseCommandLine(['--add', 'a/1.md']))
+        await scenario.open(parseCommandLine(['--add', 'a/1.md']))
         await scenario.assert('[_ 1.md]')
       })
 
       it('opens a directory with --add', async function () {
-        await scenario.launch(parseCommandLine(['--add', 'a']))
+        await scenario.open(parseCommandLine(['--add', 'a']))
         await scenario.assert('[a _]')
       })
 
       it('opens a file with --new-window', async function () {
-        await scenario.launch(parseCommandLine(['--new-window', 'a/1.md']))
+        await scenario.open(parseCommandLine(['--new-window', 'a/1.md']))
         await scenario.assert('[_ 1.md]')
       })
 
       it('opens a directory with --new-window', async function () {
-        await scenario.launch(parseCommandLine(['--new-window', 'a']))
+        await scenario.open(parseCommandLine(['--new-window', 'a']))
+        await scenario.assert('[a _]')
+      })
+    })
+
+    describe('with one empty window', function () {
+      beforeEach(async function () {
+        await scenario.preconditions('[_ _]')
+      })
+
+      it('opens a file', async function () {
+        await scenario.open(parseCommandLine(['a/1.md']))
+        // await scenario.assert('[_ 1.md]') // FIXME
+        await scenario.assert('[_ _] [_ 1.md]')
+      })
+
+      it('opens a directory', async function () {
+        await scenario.open(parseCommandLine(['a']))
+        // await scenario.assert('[a _]') // FIXME
+        await scenario.assert('[_ _] [a _]')
+      })
+
+      it('opens a file with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'a/1.md']))
+        await scenario.assert('[_ 1.md]')
+      })
+
+      it('opens a directory with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'a']))
         await scenario.assert('[a _]')
       })
 
+      it('opens a file with --new-window', async function () {
+        await scenario.open(parseCommandLine(['--new-window', 'a/1.md']))
+        await scenario.assert('[_ _] [_ 1.md]')
+      })
+
       it('opens a directory with --new-window', async function () {
-        await scenario.launch(parseCommandLine(['--new-window', 'a']))
+        await scenario.open(parseCommandLine(['--new-window', 'a']))
+        await scenario.assert('[_ _] [a _]')
+      })
+    })
+
+    describe('with one window that has a project root', function () {
+      beforeEach(async function () {
+        await scenario.preconditions('[a _]')
+      })
+
+      it('opens a file within the project root', async function () {
+        await scenario.open(parseCommandLine(['a/1.md']))
+        await scenario.assert('[a 1.md]')
+      })
+
+      it('opens a directory that matches the project root', async function () {
+        await scenario.open(parseCommandLine(['a']))
+        await scenario.assert('[a _]')
+      })
+
+      it('opens a file outside the project root', async function () {
+        await scenario.open(parseCommandLine(['b/2.md']))
+        // await scenario.assert('[a 2.md]') // FIXME
+        await scenario.assert('[a _] [_ 2.md]')
+      })
+
+      it('opens a directory other than the project root', async function () {
+        await scenario.open(parseCommandLine(['b']))
+        await scenario.assert('[a _] [b _]')
+      })
+
+      it('opens a file within the project root with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'a/1.md']))
+        await scenario.assert('[a 1.md]')
+      })
+
+      it('opens a directory that matches the project root with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'a']))
+        await scenario.assert('[a _]')
+      })
+
+      it('opens a file outside the project root with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'b/2.md']))
+        await scenario.assert('[a 2.md]')
+      })
+
+      it('opens a directory other than the project root with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'b']))
+        await scenario.assert('[a,b _]')
+      })
+
+      it('opens a file within the project root with --new-window', async function () {
+        await scenario.open(parseCommandLine(['--new-window', 'a/1.md']))
+        await scenario.assert('[a _] [_ 1.md]')
+      })
+
+      it('opens a directory that matches the project root with --new-window', async function () {
+        await scenario.open(parseCommandLine(['--new-window', 'a']))
+        await scenario.assert('[a _] [a _]')
+      })
+
+      it('opens a file outside the project root with --new-window', async function () {
+        await scenario.open(parseCommandLine(['--new-window', 'b/2.md']))
+        await scenario.assert('[a _] [_ 2.md]')
+      })
+
+      it('opens a directory other than the project root with --new-window', async function () {
+        await scenario.open(parseCommandLine(['--new-window', 'b']))
+        await scenario.assert('[a _] [b _]')
+      })
+    })
+
+    describe('with two windows, open with a project root and one empty', function () {
+      beforeEach(async function () {
+        await scenario.preconditions('[a _] [_ _]')
+      })
+
+      it('opens a file within the project root', async function () {
+        await scenario.open(parseCommandLine(['a/1.md']))
+        await scenario.assert('[a 1.md] [_ _]')
+      })
+
+      it('opens a directory that matches the project root', async function () {
+        await scenario.open(parseCommandLine(['a']))
+        await scenario.assert('[a _] [_ _]')
+      })
+
+      it('opens a file outside the project root', async function () {
+        await scenario.open(parseCommandLine(['b/2.md']))
+        // await scenario.assert('[a _] [_ 2.md]') // FIXME
+        await scenario.assert('[a _] [_ _] [_ 2.md]')
+      })
+
+      it('opens a directory other than the project root', async function () {
+        await scenario.open(parseCommandLine(['b']))
+        // await scenario.assert('[a _] [b _]') // FIXME
+        await scenario.assert('[a _] [_ _] [b _]')
+      })
+
+      it('opens a file within the project root with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'a/1.md']))
+        await scenario.assert('[a 1.md] [_ _]')
+      })
+
+      it('opens a directory that matches the project root with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'a']))
+        await scenario.assert('[a _] [_ _]')
+      })
+
+      it('opens a file outside the project root with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'b/2.md']))
+        await scenario.assert('[a _] [_ 2.md]')
+      })
+
+      it('opens a directory other than the project root with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'b']))
+        await scenario.assert('[a _] [b _]')
+      })
+
+      it('opens a file within the project root with --new-window', async function () {
+        await scenario.open(parseCommandLine(['--new-window', 'a/1.md']))
+        await scenario.assert('[a _] [_ _] [_ 1.md]')
+      })
+
+      it('opens a directory that matches the project root with --new-window', async function () {
+        await scenario.open(parseCommandLine(['--new-window', 'a']))
+        await scenario.assert('[a _] [_ _] [a _]')
+      })
+
+      it('opens a file outside the project root with --new-window', async function () {
+        await scenario.open(parseCommandLine(['--new-window', 'b/2.md']))
+        await scenario.assert('[a _] [_ _] [_ 2.md]')
+      })
+
+      it('opens a directory other than the project root with --new-window', async function () {
+        await scenario.open(parseCommandLine(['--new-window', 'b']))
+        await scenario.assert('[a _] [_ _] [b _]')
+      })
+    })
+
+    describe('with two windows, open empty and one with a project root', function () {
+      beforeEach(async function () {
+        await scenario.preconditions('[_ _] [a _]')
+      })
+
+      it('opens a file within the project root', async function () {
+        await scenario.open(parseCommandLine(['a/1.md']))
+        await scenario.assert('[_ _] [a 1.md]')
+      })
+
+      it('opens a directory that matches the project root', async function () {
+        await scenario.open(parseCommandLine(['a']))
+        await scenario.assert('[_ _] [a _]')
+      })
+
+      it('opens a file outside the project root', async function () {
+        await scenario.open(parseCommandLine(['b/2.md']))
+        // await scenario.assert('[_ _] [a 2.md]') // FIXME
+        await scenario.assert('[_ _] [a _] [_ 2.md]')
+      })
+
+      it('opens a directory other than the project root', async function () {
+        await scenario.open(parseCommandLine(['b']))
+        // await scenario.assert('[b _] [a _]') // FIXME
+        await scenario.assert('[_ _] [a _] [b _]')
+      })
+
+      it('opens a file within the project root with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'a/1.md']))
+        await scenario.assert('[_ _] [a 1.md]')
+      })
+
+      it('opens a directory that matches the project root with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'a']))
+        await scenario.assert('[_ _] [a _]')
+      })
+
+      it('opens a file outside the project root with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'b/2.md']))
+        await scenario.assert('[_ _] [a 2.md]')
+      })
+
+      it('opens a directory other than the project root with --add', async function () {
+        await scenario.open(parseCommandLine(['--add', 'b']))
+        await scenario.assert('[_ _] [a,b _]')
+      })
+
+      it('opens a file within the project root with --new-window', async function () {
+        await scenario.open(parseCommandLine(['--new-window', 'a/1.md']))
+        await scenario.assert('[_ _] [a _] [_ 1.md]')
+      })
+
+      it('opens a directory that matches the project root with --new-window', async function () {
+        await scenario.open(parseCommandLine(['--new-window', 'a']))
+        await scenario.assert('[_ _] [a _] [a _]')
+      })
+
+      it('opens a file outside the project root with --new-window', async function () {
+        await scenario.open(parseCommandLine(['--new-window', 'b/2.md']))
+        await scenario.assert('[_ _] [a _] [_ 2.md]')
+      })
+
+      it('opens a directory other than the project root with --new-window', async function () {
+        await scenario.open(parseCommandLine(['--new-window', 'b']))
+        await scenario.assert('[_ _] [a _] [b _]')
       })
     })
   })
