@@ -330,7 +330,7 @@ class AtomApplication extends EventEmitter {
     } else if (urlsToOpen.length > 0) {
       return urlsToOpen.map(urlToOpen => this.openUrl({urlToOpen, devMode, safeMode, env}))
     } else {
-      // Always open a editor window if this is the first instance of Atom.
+      // Always open an editor window if this is the first instance of Atom.
       return this.openPath({
         pidToKillWhenClosed,
         newWindow,
