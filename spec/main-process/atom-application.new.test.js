@@ -281,6 +281,8 @@ class LaunchScenario {
         parts.push('extra window\n')
       } else if (comparison.missingWindow) {
         parts.push('missing window\n')
+      } else {
+        parts.push('incorrect window\n')
       }
 
       const shorten = fullPaths => fullPaths.map(fullPath => path.basename(fullPath)).join(', ')
