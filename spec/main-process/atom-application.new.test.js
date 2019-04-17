@@ -413,15 +413,12 @@ class LaunchScenario {
 
       windowPromises.push((async (theApp, foldersToOpen, pathsToOpen) => {
         const window = await theApp.openPaths({ newWindow: true, foldersToOpen, pathsToOpen })
-        if (foldersToOpen.length > 0 || pathsToOpen.filter(Boolean).length > 0) {
-          await emitterEventPromise(window, 'window:locations-opened', 15000, `preconditions('${source}')`)
-        }
+        this.windows.add(window)
+        await this.waitForWindow(window, {foldersToOpen, pathsToOpen})
         return window
       })(app, windowSpec.roots, windowSpec.editors))
     }
-    for (const window of await Promise.all(windowPromises)) {
-      this.windows.add(window)
-    }
+    await Promise.all(windowPromises)
   }
 
   async launch (options) {
@@ -434,7 +431,7 @@ class LaunchScenario {
     const openedPromises = []
     for (const window of windows) {
       this.windows.add(window)
-      openedPromises.push(emitterEventPromise(window, 'window:locations-opened'))
+      openedPromises.push(this.waitForWindow(window, options))
     }
     await Promise.all(openedPromises)
     return windows
@@ -459,7 +456,7 @@ class LaunchScenario {
 
     const window = await app.openWithOptions(options)
     this.windows.add(window)
-    await emitterEventPromise(window, 'window:locations-opened')
+    await this.waitForWindow(window, options)
     return window
   }
 
@@ -624,6 +621,17 @@ class LaunchScenario {
       `
       webContents.executeJavaScript(js)
     })
+  }
+
+  async waitForWindow (window, options) {
+    if (
+      (options.pathsToOpen && options.pathsToOpen.filter(Boolean).length > 0) ||
+      (options.foldersToOpen && options.foldersToOpen.length > 0)
+    ) {
+      await emitterEventPromise(window, 'window:locations-opened')
+    } else {
+      await window.getLoadedPromise()
+    }
   }
 
   clearElectronSession () {
