@@ -266,7 +266,9 @@ class AtomApplication extends EventEmitter {
       optionsForWindowsToOpen.push(options)
     }
 
-    return optionsForWindowsToOpen.map(options => this.openWithOptions(options))
+    return Promise.all(
+      optionsForWindowsToOpen.map(options => this.openWithOptions(options))
+    )
   }
 
   openWithOptions (options) {
@@ -929,7 +931,7 @@ class AtomApplication extends EventEmitter {
   //   :windowDimensions - Object with height and width keys.
   //   :window - {AtomWindow} to open file paths in.
   //   :addToLastWindow - Boolean of whether this should be opened in last focused window.
-  openPaths ({
+  async openPaths ({
     pathsToOpen,
     foldersToOpen,
     executedFrom,
@@ -952,19 +954,20 @@ class AtomApplication extends EventEmitter {
     safeMode = Boolean(safeMode)
     clearWindowState = Boolean(clearWindowState)
 
-    const locationsToOpen = pathsToOpen.map(pathToOpen => {
-      return this.parsePathToOpen(pathToOpen, executedFrom, {
+    const locationsToOpen = await Promise.all(
+      pathsToOpen.map(pathToOpen => this.parsePathToOpen(pathToOpen, executedFrom, {
         forceAddToWindow: addToLastWindow,
         hasWaitSession: pidToKillWhenClosed != null
-      })
-    })
+      }))
+    )
 
     for (const folderToOpen of foldersToOpen) {
       locationsToOpen.push({
         pathToOpen: folderToOpen,
         initialLine: null,
         initialColumn: null,
-        mustBeDirectory: true,
+        exists: true,
+        isDirectory: true,
         forceAddToWindow: addToLastWindow,
         hasWaitSession: pidToKillWhenClosed != null
       })
@@ -974,8 +977,6 @@ class AtomApplication extends EventEmitter {
       return
     }
 
-    const normalizedPathsToOpen = locationsToOpen.map(location => location.pathToOpen).filter(Boolean)
-
     let existingWindow
 
     if (!newWindow) {
@@ -984,8 +985,8 @@ class AtomApplication extends EventEmitter {
 
       // If no window is specified and at least one path is provided, locate an existing window that contains all
       // provided paths.
-      if (!existingWindow && normalizedPathsToOpen.length > 0) {
-        existingWindow = this.windowForPaths(normalizedPathsToOpen, devMode)
+      if (!existingWindow && locationsToOpen.some(location => location.pathToOpen)) {
+        existingWindow = this.windowForLocations(locationsToOpen, devMode, safeMode)
       }
 
       // No window specified, no existing window found, and addition to the last window requested. Find the last
@@ -1003,10 +1004,7 @@ class AtomApplication extends EventEmitter {
 
       // One last case: if *no* paths are directories, add to the last focused window.
       if (!existingWindow) {
-        const noDirectories =
-          locationsToOpen.every(location => !location.mustBeDirectory) &&
-          normalizedPathsToOpen.every(pathToOpen => !fs.isDirectorySync(pathToOpen))
-
+        const noDirectories = locationsToOpen.every(location => !location.isDirectory)
         if (noDirectories) {
           existingWindow = this.getLastFocusedWindow(win => {
             return win.devMode === devMode && win.safeMode === safeMode
@@ -1063,7 +1061,7 @@ class AtomApplication extends EventEmitter {
       }
       this.waitSessionsByWindow.get(openedWindow).push({
         pid: pidToKillWhenClosed,
-        remainingPaths: new Set(normalizedPathsToOpen)
+        remainingPaths: new Set(locationsToOpen.map(location => location.pathToOpen).filter(Boolean))
       })
     }
 
@@ -1410,10 +1408,18 @@ class AtomApplication extends EventEmitter {
     }
   }
 
-  parsePathToOpen (pathToOpen, executedFrom, extra) {
-    let initialColumn, initialLine
+  async parsePathToOpen (pathToOpen, executedFrom, extra) {
+    const result = Object.assign({
+      pathToOpen,
+      initialColumn: null,
+      initialLine: null,
+      exists: false,
+      isDirectory: false,
+      isFile: false
+    }, extra)
+
     if (!pathToOpen) {
-      return {pathToOpen}
+      return result
     }
 
     pathToOpen = pathToOpen.replace(/[:\s]+$/, '')
@@ -1422,19 +1428,41 @@ class AtomApplication extends EventEmitter {
     if (match != null) {
       pathToOpen = pathToOpen.slice(0, -match[0].length)
       if (match[1]) {
-        initialLine = Math.max(0, parseInt(match[1].slice(1)) - 1)
+        result.initialLine = Math.max(0, parseInt(match[1].slice(1)) - 1)
       }
       if (match[2]) {
-        initialColumn = Math.max(0, parseInt(match[2].slice(1)) - 1)
+        result.initialColumn = Math.max(0, parseInt(match[2].slice(1)) - 1)
       }
     } else {
-      initialLine = initialColumn = null
+      result.initialLine = null
+      result.initialColumn = null
     }
 
     const normalizedPath = path.normalize(path.resolve(executedFrom, fs.normalize(pathToOpen)))
-    if (!url.parse(pathToOpen).protocol) pathToOpen = normalizedPath
+    if (!url.parse(pathToOpen).protocol) {
+      result.pathToOpen = normalizedPath
 
-    return Object.assign({pathToOpen, initialLine, initialColumn}, extra)
+      await new Promise((resolve, reject) => {
+        fs.stat(pathToOpen, (err, st) => {
+          if (err) {
+            if (err.code === 'ENOENT' || err.code === 'EACCES') {
+              result.exists = false
+              resolve()
+            } else {
+              reject(err)
+            }
+            return
+          }
+
+          result.exists = true
+          result.isFile = st.isFile()
+          result.isDirectory = st.isDirectory()
+          resolve()
+        })
+      })
+    }
+
+    return result
   }
 
   // Opens a native dialog to prompt the user for a path.

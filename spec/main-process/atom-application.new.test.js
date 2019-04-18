@@ -366,9 +366,9 @@ class StubWindow extends EventEmitter {
     this._locations.push(...locations)
     for (const location of locations) {
       if (location.pathToOpen) {
-        if (fs.isDirectorySync(location.pathToOpen)) {
+        if (location.isDirectory) {
           this._rootPaths.add(location.pathToOpen)
-        } else {
+        } else if (location.isFile) {
           this._editorPaths.add(location.pathToOpen)
         }
       }
@@ -491,12 +491,9 @@ class LaunchScenario {
     }
 
     const windows = await app.launch(options)
-    const openedPromises = []
     for (const window of windows) {
       this.windows.add(window)
-      openedPromises.push(this.waitForWindow(window, options))
     }
-    await Promise.all(openedPromises)
     return windows
   }
 
