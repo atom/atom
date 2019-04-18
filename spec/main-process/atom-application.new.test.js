@@ -384,21 +384,24 @@ class StubWindow extends EventEmitter {
     this._position = {x, y}
   }
 
-  hasProjectPath () {
+  hasProjectPaths () {
     return this._rootPaths.size > 0
   }
 
-  containsPaths (paths) {
-    return paths.every(p => this.containsPath(p))
+  containsLocations (locations) {
+    return locations.every(location => this.containsLocation(location))
   }
 
-  containsPath (pathToCheck) {
-    if (!pathToCheck) return false
-    const stat = fs.statSyncNoException(pathToCheck)
+  containsLocation (location) {
+    if (!location.pathToOpen) return false
+
     return Array.from(this._rootPaths).some(projectPath => {
-      if (pathToCheck === projectPath) return true
-      if (!pathToCheck.startsWith(path.join(projectPath, path.sep))) return false
-      return !stat || !stat.isDirectory()
+      if (location.pathToOpen === projectPath) return true
+      if (location.pathToOpen.startsWith(path.join(projectPath, path.sep))) {
+        if (!location.exists) return true
+        if (!location.isDirectory) return true
+      }
+      return false
     })
   }
 
