@@ -838,10 +838,12 @@ class AtomApplication extends EventEmitter {
     })
   }
 
-  // Returns the {AtomWindow} for the given paths.
-  windowForPaths (pathsToOpen, devMode) {
-    return this.getAllWindows().find(window =>
-      window.devMode === devMode && window.containsPaths(pathsToOpen)
+  // Returns the {AtomWindow} for the given locations.
+  windowForLocations (locationsToOpen, devMode, safeMode) {
+    return this.getLastFocusedWindow(window =>
+      window.devMode === devMode &&
+      window.safeMode === safeMode &&
+      window.containsLocations(locationsToOpen)
     )
   }
 
