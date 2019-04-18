@@ -56,6 +56,82 @@ describe('AtomApplication', function () {
         await scenario.open(parseCommandLine(['--new-window', 'a']))
         await scenario.assert('[a _]')
       })
+
+      describe('with previous window state', function () {
+        let app
+
+        beforeEach(function () {
+          app = scenario.addApplication({
+            applicationJson: [
+              { initialPaths: ['b'] },
+              { initialPaths: ['c'] }
+            ]
+          })
+        })
+
+        describe('with core.restorePreviousWindowsOnStart set to "no"', function () {
+          beforeEach(function () {
+            app.config.set('core.restorePreviousWindowsOnStart', 'no')
+          })
+
+          it("doesn't restore windows when launched with no arguments", async function () {
+            await scenario.launch({app})
+            await scenario.assert('[_ _]')
+          })
+
+          it("doesn't restore windows when launched with paths to open", async function () {
+            await scenario.launch({app, pathsToOpen: ['a/1.md']})
+            await scenario.assert('[_ 1.md]')
+          })
+
+          it("doesn't restore windows when --new-window is provided", async function () {
+            await scenario.launch({app, newWindow: true})
+            await scenario.assert('[_ _]')
+          })
+        })
+
+        describe('with core.restorePreviousWindowsOnStart set to "yes"', function () {
+          beforeEach(function () {
+            app.config.set('core.restorePreviousWindowsOnStart', 'yes')
+          })
+
+          it('restores windows when launched with no arguments', async function () {
+            await scenario.launch({app})
+            await scenario.assert('[b _] [c _]')
+          })
+
+          it("doesn't restore windows when launched with paths to open", async function () {
+            await scenario.launch({app, pathsToOpen: ['a/1.md']})
+            await scenario.assert('[_ 1.md]')
+          })
+
+          it("doesn't restore windows when --new-window is provided", async function () {
+            await scenario.launch({app, newWindow: true})
+            await scenario.assert('[_ _]')
+          })
+        })
+
+        describe('with core.restorePreviousWindowsOnStart set to "always"', function () {
+          beforeEach(function () {
+            app.config.set('core.restorePreviousWindowsOnStart', 'always')
+          })
+
+          it('restores windows when launched with no arguments', async function () {
+            await scenario.launch({app})
+            await scenario.assert('[b _] [c _]')
+          })
+
+          it('restores windows when launched with paths to open', async function () {
+            await scenario.launch({app, pathsToOpen: ['a']})
+            await scenario.assert('[a _] [b _] [c _]')
+          })
+
+          it("doesn't restore windows when --new-window is provided", async function () {
+            await scenario.launch({app, newWindow: true})
+            await scenario.assert('[_ _]')
+          })
+        })
+      })
     })
 
     describe('with one empty window', function () {
@@ -437,7 +513,7 @@ class LaunchScenario {
     })
 
     await Promise.all(
-      ['a', 'b'].map(dirPath => new Promise((resolve, reject) => {
+      ['a', 'b', 'c'].map(dirPath => new Promise((resolve, reject) => {
         const fullDirPath = path.join(this.root, dirPath)
         fs.makeTree(fullDirPath, err => {
           if (err) {
