@@ -535,7 +535,9 @@ class LaunchScenario {
           extraRoots: [],
           missingRoots: [],
           extraEditors: [],
-          missingEditors: []
+          missingEditors: [],
+          roots: rootPaths,
+          editors: editorPaths
         }
 
         if (!theSpec) {
@@ -571,12 +573,19 @@ class LaunchScenario {
         extraRoots: [],
         missingRoots: spec.roots,
         extraEditors: [],
-        missingEditors: spec.editors
+        missingEditors: spec.editors,
+        roots: [],
+        editors: []
       })
     }
 
+    const shorthandParts = []
     const descriptionParts = []
     for (const comparison of comparisons) {
+      const shortRoots = Array.from(comparison.roots, r => path.basename(r)).join(',')
+      const shortPaths = Array.from(comparison.editors, e => path.basename(e)).join(',')
+      shorthandParts.push(`[${shortRoots} ${shortPaths}]`)
+
       if (comparison.ok) {
         continue
       }
@@ -605,10 +614,12 @@ class LaunchScenario {
         parts.push(`* missing editors ${shorten(comparison.missingEditors)}\n`)
       }
 
-      if (descriptionParts.length === 0) {
-        descriptionParts.push('Launched windows did not match spec\n')
-      }
       descriptionParts.push(parts.join(''))
+    }
+
+    if (descriptionParts.length !== 0) {
+      descriptionParts.unshift(shorthandParts.join(' ') + '\n')
+      descriptionParts.unshift('Launched windows did not match spec\n')
     }
 
     assert.isTrue(descriptionParts.length === 0, descriptionParts.join(''))
