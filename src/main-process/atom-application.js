@@ -258,7 +258,7 @@ class AtomApplication extends EventEmitter {
 
     if (shouldReopenPreviousWindows) {
       for (const previousOptions of await this.loadPreviousWindowOptions()) {
-        optionsForWindowsToOpen.push(Object.assign({}, options, previousOptions))
+        optionsForWindowsToOpen.push(previousOptions)
       }
     }
 
