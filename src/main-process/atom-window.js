@@ -50,7 +50,9 @@ class AtomWindow extends EventEmitter {
     if (this.shouldAddCustomTitleBar()) options.titleBarStyle = 'hidden'
     if (this.shouldAddCustomInsetTitleBar()) options.titleBarStyle = 'hiddenInset'
     if (this.shouldHideTitleBar()) options.frame = false
-    this.browserWindow = new BrowserWindow(options)
+
+    const BrowserWindowConstructor = settings.browserWindowConstructor || BrowserWindow
+    this.browserWindow = new BrowserWindowConstructor(options)
 
     Object.defineProperty(this.browserWindow, 'loadSettingsJSON', {
       get: () => JSON.stringify(Object.assign({
