@@ -485,7 +485,9 @@ class LaunchScenario {
   }
 
   async launch (options) {
-    const app = this.addApplication()
+    const app = options.app || this.addApplication()
+    delete options.app
+
     if (options.pathsToOpen) {
       options.pathsToOpen = this.convertPaths(options.pathsToOpen)
     }
