@@ -130,6 +130,12 @@ describe('AtomApplication', function () {
             await scenario.launch({app, newWindow: true})
             await scenario.assert('[_ _]')
           })
+
+          it("doesn't restore windows on open, just launch", async function () {
+            await scenario.launch({app, pathsToOpen: ['a'], newWindow: true})
+            await scenario.open(parseCommandLine(['b']))
+            await scenario.assert('[a _] [b _]')
+          })
         })
       })
     })
