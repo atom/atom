@@ -344,6 +344,11 @@ class AtomApplication extends EventEmitter {
     }
   }
 
+  // Public: Create a new {AtomWindow} bound to this application.
+  createWindow (settings) {
+    return new AtomWindow(this, this.fileRecoveryService, settings)
+  }
+
   // Public: Removes the {AtomWindow} from the global window list.
   removeWindow (window) {
     this.windowStack.removeWindow(window)
@@ -609,7 +614,7 @@ class AtomApplication extends EventEmitter {
           options.window = window
           this.openPaths(options)
         } else {
-          this.addWindow(new AtomWindow(this, this.fileRecoveryService, options))
+          this.addWindow(this.createWindow(options))
         }
       } else {
         this.promptForPathToOpen('all', {window})
@@ -1037,7 +1042,7 @@ class AtomApplication extends EventEmitter {
       if (!resourcePath) resourcePath = this.resourcePath
       if (!windowDimensions) windowDimensions = this.getDimensionsForNewWindow()
 
-      openedWindow = new AtomWindow(this, this.fileRecoveryService, {
+      openedWindow = this.createWindow({
         locationsToOpen,
         windowInitializationScript,
         resourcePath,
@@ -1195,7 +1200,7 @@ class AtomApplication extends EventEmitter {
       }
 
       const windowDimensions = this.getDimensionsForNewWindow()
-      const window = new AtomWindow(this, this.fileRecoveryService, {
+      const window = this.createWindow({
         resourcePath,
         windowInitializationScript,
         devMode,
@@ -1219,7 +1224,7 @@ class AtomApplication extends EventEmitter {
     const packagePath = this.getPackageManager(devMode).resolvePackagePath(packageName)
     const windowInitializationScript = path.resolve(packagePath, packageUrlMain)
     const windowDimensions = this.getDimensionsForNewWindow()
-    const window = new AtomWindow(this, this.fileRecoveryService, {
+    const window = this.createWindow({
       windowInitializationScript,
       resourcePath: this.resourcePath,
       devMode,
@@ -1301,7 +1306,7 @@ class AtomApplication extends EventEmitter {
     if (safeMode == null) {
       safeMode = false
     }
-    const window = new AtomWindow(this, this.fileRecoveryService, {
+    const window = this.createWindow({
       windowInitializationScript,
       resourcePath,
       headless,
@@ -1350,7 +1355,7 @@ class AtomApplication extends EventEmitter {
     const devMode = true
     const isSpec = true
     const safeMode = false
-    const window = new AtomWindow(this, this.fileRecoveryService, {
+    const window = this.createWindow({
       windowInitializationScript,
       resourcePath,
       headless,
