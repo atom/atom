@@ -8,7 +8,6 @@ const {sandbox} = require('sinon')
 
 const AtomApplication = require('../../src/main-process/atom-application')
 const parseCommandLine = require('../../src/main-process/parse-command-line')
-const {emitterEventPromise} = require('../async-spec-helpers')
 
 describe('AtomApplication', function () {
   let scenario, sinon
@@ -361,8 +360,7 @@ class StubWindow extends EventEmitter {
     return this.openLocations([{pathToOpen, initialLine, initialColumn}])
   }
 
-  async openLocations (locations) {
-    await Promise.resolve()
+  openLocations (locations) {
     this._locations.push(...locations)
     for (const location of locations) {
       if (location.pathToOpen) {
@@ -480,7 +478,6 @@ class LaunchScenario {
       windowPromises.push((async (theApp, foldersToOpen, pathsToOpen) => {
         const window = await theApp.openPaths({ newWindow: true, foldersToOpen, pathsToOpen })
         this.windows.add(window)
-        await this.waitForWindow(window, {foldersToOpen, pathsToOpen})
         return window
       })(app, windowSpec.roots, windowSpec.editors))
     }
@@ -519,7 +516,6 @@ class LaunchScenario {
 
     const window = await app.openWithOptions(options)
     this.windows.add(window)
-    await this.waitForWindow(window, options)
     return window
   }
 
@@ -649,15 +645,6 @@ class LaunchScenario {
       throw new Error(`Window ${index} does not exist`)
     }
     return window
-  }
-
-  async waitForWindow (window, options) {
-    if (
-      (options.pathsToOpen && options.pathsToOpen.filter(Boolean).length > 0) ||
-      (options.foldersToOpen && options.foldersToOpen.length > 0)
-    ) {
-      await emitterEventPromise(window, 'window:locations-opened')
-    }
   }
 
   compareSets (expected, actual) {
