@@ -89,6 +89,7 @@ describe('URIHandlerRegistry', () => {
     for (const uri of invalidUris) {
       try {
         await registry.handleURI(uri)
+        expect(uri).toBe("throwing an error");
       } catch (ex) {
         numErrors++
       }
