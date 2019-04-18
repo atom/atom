@@ -332,7 +332,7 @@ class AtomApplication extends EventEmitter {
         addToLastWindow,
         env
       })
-    } else if (urlsToOpen.length > 0) {
+    } else if (urlsToOpen && urlsToOpen.length > 0) {
       return urlsToOpen.map(urlToOpen => this.openUrl({urlToOpen, devMode, safeMode, env}))
     } else {
       // Always open an editor window if this is the first instance of Atom.
@@ -1135,7 +1135,6 @@ class AtomApplication extends EventEmitter {
     if (states) {
       return states.map(state => ({
         foldersToOpen: state.initialPaths,
-        urlsToOpen: [],
         devMode: this.devMode,
         safeMode: this.safeMode
       }))
