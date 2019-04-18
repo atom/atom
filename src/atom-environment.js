@@ -1388,7 +1388,7 @@ or use Pane::saveItemAs for programmatic saving.`)
           // Directory: add as a project folder
           foldersToAddToProject.add(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
         } else if (stats.isFile()) {
-          if (location.mustBeDirectory) {
+          if (location.isDirectory) {
             // File: no longer a directory
             missingFolders.push(location)
           } else {
@@ -1403,7 +1403,7 @@ or use Pane::saveItemAs for programmatic saving.`)
         if (directory) {
           // Found: add as a project folder
           foldersToAddToProject.add(directory.getPath())
-        } else if (location.mustBeDirectory) {
+        } else if (location.isDirectory) {
           // Not found and must be a directory: add to missing list and use to derive state key
           missingFolders.push(location)
         } else {
