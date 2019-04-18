@@ -114,7 +114,7 @@ jobs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)/crash-reports
       ArtifactName: crash-reports
     displayName: Publish crash reports on non-release branch
-    condition: and(failed(), eq(variables['IsReleaseBranch'], 'false'))
+    condition: and(failed(), eq(variables['ATOM_RELEASES_S3_KEY'], ''))
 
   - task: PublishBuildArtifacts@1
     inputs:
