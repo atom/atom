@@ -1,6 +1,5 @@
 const {BrowserWindow, app, dialog, ipcMain} = require('electron')
 const path = require('path')
-const fs = require('fs')
 const url = require('url')
 const {EventEmitter} = require('events')
 
@@ -131,18 +130,20 @@ class AtomWindow extends EventEmitter {
     })
   }
 
-  containsPaths (paths) {
-    return paths.every(p => this.containsPath(p))
+  containsLocations (locations) {
+    return locations.every(location => this.containsLocation(location))
   }
 
-  containsPath (pathToCheck) {
-    if (!pathToCheck) return false
-    let stat
-    return this.representedDirectoryPaths.some(projectPath => {
-      if (pathToCheck === projectPath) return true
-      if (!pathToCheck.startsWith(path.join(projectPath, path.sep))) return false
-      if (stat === undefined) stat = fs.statSyncNoException(pathToCheck)
-      return !stat || !stat.isDirectory()
+  containsLocation (location) {
+    if (!location.pathToOpen) return false
+
+    return this.projectRoots.some(projectPath => {
+      if (location.pathToOpen === projectPath) return true
+      if (location.pathToOpen.startsWith(path.join(projectPath, path.sep))) {
+        if (!location.exists) return true
+        if (!location.isDirectory) return true
+      }
+      return false
     })
   }
 
