@@ -412,7 +412,7 @@ class AtomWindow extends EventEmitter {
     return this.browserWindow.setRepresentedFilename(representedFilename)
   }
 
-  setRepresentedDirectoryPaths (representedDirectoryPaths) {
+  setProjectRoots (projectRootPaths) {
     this.projectRoots = projectRootPaths
     this.projectRoots.sort()
     this.loadSettings.initialProjectRoots = this.projectRoots

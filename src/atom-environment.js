@@ -838,7 +838,7 @@ class AtomEnvironment {
           }
         }
         previousProjectPaths = newPaths
-        this.applicationDelegate.setRepresentedDirectoryPaths(newPaths)
+        this.applicationDelegate.setProjectRoots(newPaths)
       }))
       this.disposables.add(this.workspace.onDidDestroyPaneItem(({item}) => {
         const path = item.getPath && item.getPath()
