@@ -70,8 +70,12 @@ class AtomWindow extends EventEmitter {
     if (this.loadSettings.safeMode == null) this.loadSettings.safeMode = false
     if (this.loadSettings.clearWindowState == null) this.loadSettings.clearWindowState = false
 
-    this.loadSettings.initialPaths = locationsToOpen.map(location => location.pathToOpen).filter(Boolean)
-    this.loadSettings.initialPaths.sort()
+    this.projectRoots = locationsToOpen
+      .filter(location => location.pathToOpen && location.exists && location.isDirectory)
+      .map(location => location.pathToOpen)
+    this.projectRoots.sort()
+
+    this.loadSettings.initialProjectRoots = this.projectRoots
 
     // Only send to the first non-spec window created
     if (includeShellLoadTime && !this.isSpec) {
@@ -81,7 +85,6 @@ class AtomWindow extends EventEmitter {
       }
     }
 
-    this.representedDirectoryPaths = this.loadSettings.initialPaths
     if (!this.loadSettings.env) this.env = this.loadSettings.env
 
     this.browserWindow.on('window:loaded', () => {
@@ -119,7 +122,7 @@ class AtomWindow extends EventEmitter {
   }
 
   hasProjectPath () {
-    return this.representedDirectoryPaths.length > 0
+    return this.projectRoots.length > 0
   }
 
   setupContextMenu () {
@@ -377,7 +380,7 @@ class AtomWindow extends EventEmitter {
   showSaveDialog (options, callback) {
     options = Object.assign({
       title: 'Save File',
-      defaultPath: this.representedDirectoryPaths[0]
+      defaultPath: this.projectRoots[0]
     }, options)
 
     if (typeof callback === 'function') {
@@ -410,9 +413,9 @@ class AtomWindow extends EventEmitter {
   }
 
   setRepresentedDirectoryPaths (representedDirectoryPaths) {
-    this.representedDirectoryPaths = representedDirectoryPaths
-    this.representedDirectoryPaths.sort()
-    this.loadSettings.initialPaths = this.representedDirectoryPaths
+    this.projectRoots = projectRootPaths
+    this.projectRoots.sort()
+    this.loadSettings.initialProjectRoots = this.projectRoots
     return this.atomApplication.saveCurrentWindowOptions()
   }
 

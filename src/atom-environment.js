@@ -916,8 +916,8 @@ class AtomEnvironment {
 
   openInitialEmptyEditorIfNecessary () {
     if (!this.config.get('core.openEmptyEditorOnStart')) return
-    const {initialPaths} = this.getLoadSettings()
-    if (initialPaths && initialPaths.length === 0 && this.workspace.getPaneItems().length === 0) {
+    const {initialProjectRoots} = this.getLoadSettings()
+    if (initialProjectRoots && initialProjectRoots.length === 0 && this.workspace.getPaneItems().length === 0) {
       return this.workspace.open(null)
     }
   }
@@ -1213,7 +1213,7 @@ or use Pane::saveItemAs for programmatic saving.`)
 
   loadState (stateKey) {
     if (this.enablePersistence) {
-      if (!stateKey) stateKey = this.getStateKey(this.getLoadSettings().initialPaths)
+      if (!stateKey) stateKey = this.getStateKey(this.getLoadSettings().initialProjectRoots)
       if (stateKey) {
         return this.stateStore.load(stateKey)
       } else {
