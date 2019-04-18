@@ -784,7 +784,9 @@ class AtomEnvironment {
 
     const loadStatePromise = this.loadState().then(async state => {
       this.windowDimensions = state && state.windowDimensions
-      await this.displayWindow()
+      if (!this.getLoadSettings().headless) {
+        await this.displayWindow()
+      }
       this.commandInstaller.installAtomCommand(false, (error) => {
         if (error) console.warn(error.message)
       })
