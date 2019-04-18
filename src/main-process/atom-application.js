@@ -246,12 +246,12 @@ class AtomApplication extends EventEmitter {
 
     if (options.test || options.benchmark || options.benchmarkTest) {
       optionsForWindowsToOpen.push(options)
+    } else if (options.newWindow) {
+      shouldReopenPreviousWindows = false
     } else if ((options.pathsToOpen && options.pathsToOpen.length > 0) ||
                (options.urlsToOpen && options.urlsToOpen.length > 0)) {
       optionsForWindowsToOpen.push(options)
       shouldReopenPreviousWindows = this.config.get('core.restorePreviousWindowsOnStart') === 'always'
-    } else if (options.newWindow) {
-      shouldReopenPreviousWindows = false
     } else {
       shouldReopenPreviousWindows = this.config.get('core.restorePreviousWindowsOnStart') !== 'no'
     }
