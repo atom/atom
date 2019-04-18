@@ -266,9 +266,12 @@ class AtomApplication extends EventEmitter {
       optionsForWindowsToOpen.push(options)
     }
 
-    return Promise.all(
-      optionsForWindowsToOpen.map(options => this.openWithOptions(options))
-    )
+    // Preserve window opening order
+    const windows = []
+    for (const options of optionsForWindowsToOpen) {
+      windows.push(await this.openWithOptions(options))
+    }
+    return windows
   }
 
   openWithOptions (options) {
