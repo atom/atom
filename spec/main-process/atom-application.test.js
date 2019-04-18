@@ -503,7 +503,7 @@ describe.skip('AtomApplication', function () {
       const atomApplication2 = buildAtomApplication()
       const [app2Window] = await atomApplication2.launch(parseCommandLine([]))
       await focusWindow(app2Window)
-      assert.deepEqual(app2Window.representedDirectoryPaths, [])
+      assert.deepEqual(app2Window.initialProjectRoots, [])
     })
 
     describe('when the `--wait` flag is passed', () => {
@@ -980,13 +980,13 @@ describe.skip('AtomApplication', function () {
     // Check that the original application now has the two opened windows.
     assert.notEqual(
       originalApplication.getAllWindows().find(
-        window => window.loadSettings.initialPaths[0] === tempDirPath1
+        window => window.loadSettings.initialProjectRoots[0] === tempDirPath1
       ),
       undefined
     )
     assert.notEqual(
       originalApplication.getAllWindows().find(
-        window => window.loadSettings.initialPaths[0] === tempDirPath2
+        window => window.loadSettings.initialProjectRoots[0] === tempDirPath2
       ),
       undefined
     )
