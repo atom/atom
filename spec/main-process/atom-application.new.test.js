@@ -640,6 +640,11 @@ class LaunchScenario {
       ...options
     })
     this.sinon.stub(app, 'createWindow', loadSettings => new StubWindow(this.sinon, loadSettings, options))
+    this.sinon.stub(app.storageFolder, 'load', () => Promise.resolve(
+      (options.applicationJson || []).map(each => ({
+        initialPaths: this.convertPaths(each.initialPaths)
+      }))
+    ))
     this.applications.add(app)
     return app
   }
