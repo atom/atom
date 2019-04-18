@@ -1001,7 +1001,7 @@ class AtomApplication extends EventEmitter {
 
       // Fall back to the last focused window that has no project roots.
       if (!existingWindow) {
-        existingWindow = this.getLastFocusedWindow(win => !win.hasProjectPath())
+        existingWindow = this.getLastFocusedWindow(win => !win.hasProjectPaths())
       }
 
       // One last case: if *no* paths are directories, add to the last focused window.

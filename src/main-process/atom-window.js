@@ -121,7 +121,7 @@ class AtomWindow extends EventEmitter {
     if (hasPathToOpen && !this.isSpecWindow()) this.openLocations(locationsToOpen)
   }
 
-  hasProjectPath () {
+  hasProjectPaths () {
     return this.projectRoots.length > 0
   }
 
