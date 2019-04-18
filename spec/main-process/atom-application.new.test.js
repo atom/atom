@@ -1,27 +1,26 @@
 /* globals assert */
 
-const temp = require('temp').track()
-const season = require('season')
-const dedent = require('dedent')
-const electron = require('electron')
-const fs = require('fs-plus')
 const path = require('path')
+const {EventEmitter} = require('events')
+const temp = require('temp').track()
+const fs = require('fs-plus')
+const {sandbox} = require('sinon')
+
 const AtomApplication = require('../../src/main-process/atom-application')
 const parseCommandLine = require('../../src/main-process/parse-command-line')
 const {emitterEventPromise} = require('../async-spec-helpers')
 
 describe('AtomApplication', function () {
-  this.timeout(60 * 1000)
-  let scenario
+  let scenario, sinon
 
   beforeEach(async function () {
-    this.timeout(30 * 1000)
-    scenario = await LaunchScenario.create()
+    sinon = sandbox.create()
+    scenario = await LaunchScenario.create(sinon)
   })
 
   afterEach(async function () {
-    this.timeout(30 * 1000)
     await scenario.destroy()
+    sinon.restore()
   })
 
   describe('command-line interface behavior', function () {
@@ -310,25 +309,119 @@ describe('AtomApplication', function () {
   })
 })
 
-let channelIdCounter = 0
+class StubWindow extends EventEmitter {
+  constructor (sinon, loadSettings, options) {
+    super()
+
+    this.loadSettings = loadSettings
+
+    this._dimensions = {x: 100, y: 100}
+    this._position = {x: 0, y: 0}
+    this._locations = []
+    this._rootPaths = new Set()
+    this._editorPaths = new Set()
+
+    let resolveClosePromise
+    this.closedPromise = new Promise(resolve => { resolveClosePromise = resolve })
+
+    this.minimize = sinon.spy()
+    this.maximize = sinon.spy()
+    this.center = sinon.spy()
+    this.focus = sinon.spy()
+    this.show = sinon.spy()
+    this.hide = sinon.spy()
+    this.prepareToUnload = sinon.spy()
+    this.close = resolveClosePromise
+
+    this.replaceEnvironment = sinon.spy()
+    this.disableZoom = sinon.spy()
+
+    this.isFocused = sinon.stub().returns(options.isFocused !== undefined ? options.isFocused : false)
+    this.isMinimized = sinon.stub().returns(options.isMinimized !== undefined ? options.isMinimized : false)
+    this.isMaximized = sinon.stub().returns(options.isMaximized !== undefined ? options.isMaximized : false)
+
+    this.sendURIMessage = sinon.spy()
+    this.didChangeUserSettings = sinon.spy()
+    this.didFailToReadUserSettings = sinon.spy()
+
+    this.isSpec = loadSettings.isSpec !== undefined ? loadSettings.isSpec : false
+    this.devMode = loadSettings.devMode !== undefined ? loadSettings.devMode : false
+    this.safeMode = loadSettings.safeMode !== undefined ? loadSettings.safeMode : false
+
+    this.browserWindow = new EventEmitter()
+    this.browserWindow.webContents = new EventEmitter()
+
+    const {locationsToOpen} = this.loadSettings
+    if (!(locationsToOpen.length === 1 && locationsToOpen[0].pathToOpen == null) && !this.isSpec) {
+      this.openLocations(locationsToOpen)
+    }
+  }
+
+  openPath (pathToOpen, initialLine, initialColumn) {
+    return this.openLocations([{pathToOpen, initialLine, initialColumn}])
+  }
+
+  async openLocations (locations) {
+    await Promise.resolve()
+    this._locations.push(...locations)
+    for (const location of locations) {
+      if (location.pathToOpen) {
+        if (fs.isDirectorySync(location.pathToOpen)) {
+          this._rootPaths.add(location.pathToOpen)
+        } else {
+          this._editorPaths.add(location.pathToOpen)
+        }
+      }
+    }
+    this.emit('window:locations-opened')
+  }
+
+  setSize (x, y) {
+    this._dimensions = {x, y}
+  }
+
+  setPosition (x, y) {
+    this._position = {x, y}
+  }
+
+  hasProjectPath () {
+    return this._rootPaths.size > 0
+  }
+
+  containsPaths (paths) {
+    return paths.every(p => this.containsPath(p))
+  }
+
+  containsPath (pathToCheck) {
+    if (!pathToCheck) return false
+    const stat = fs.statSyncNoException(pathToCheck)
+    return Array.from(this._rootPaths).some(projectPath => {
+      if (pathToCheck === projectPath) return true
+      if (!pathToCheck.startsWith(path.join(projectPath, path.sep))) return false
+      return !stat || !stat.isDirectory()
+    })
+  }
+
+  getDimensions () {
+    return this._dimensions
+  }
+}
 
 class LaunchScenario {
-  static async create () {
-    const scenario = new this()
+  static async create (sandbox) {
+    const scenario = new this(sandbox)
     await scenario.init()
     return scenario
   }
 
-  constructor () {
+  constructor (sandbox) {
+    this.sinon = sandbox
+
     this.applications = new Set()
     this.windows = new Set()
     this.root = null
-    this.atomHome = null
     this.projectRootPool = new Map()
     this.filePathPool = new Map()
-
-    this.originalAtomHome = process.env.ATOM_HOME
-    this.originalDisableShellingOutForEnvironment = process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT
   }
 
   async init () {
@@ -336,37 +429,10 @@ class LaunchScenario {
       return this.root
     }
 
-    await this.clearElectronSession()
-
     this.root = await new Promise((resolve, reject) => {
       temp.mkdir('launch-', (err, rootPath) => {
         if (err) { reject(err) } else { resolve(rootPath) }
       })
-    })
-
-    this.atomHome = path.join(this.root, '.atom')
-    process.env.ATOM_HOME = this.atomHome
-    await new Promise((resolve, reject) => {
-      season.writeFile(path.join(this.atomHome, 'config.cson'), {
-        '*': {
-          welcome: { showOnStartup: false },
-          core: { telemetryConsent: 'no', automaticallyUpdate: false }
-        }
-      }, err => {
-        if (err) { reject(err) } else { resolve() }
-      })
-    })
-
-    await new Promise((resolve, reject) => {
-      // Symlinking the compile cache into the temporary home dir makes the windows load much faster
-      fs.symlink(
-        path.join(this.originalAtomHome, 'compile-cache'),
-        path.join(this.atomHome, 'compile-cache'),
-        'junction',
-        err => {
-          if (err) { reject(err) } else { resolve() }
-        }
-      )
     })
 
     await Promise.all(
@@ -397,13 +463,12 @@ class LaunchScenario {
         })
       }))
     )
-
-    process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT = 'true'
   }
 
   async preconditions (source) {
     const app = this.addApplication()
     const windowPromises = []
+
     for (const windowSpec of this.parseWindowSpecs(source)) {
       if (windowSpec.editors.length === 0) {
         windowSpec.editors.push(null)
@@ -465,11 +530,7 @@ class LaunchScenario {
     const windowPromises = []
     for (const window of this.windows) {
       windowPromises.push((async (theWindow, theSpec) => {
-        const [rootPaths, editorPaths] = await Promise.all([
-          this.getProjectRoots(theWindow),
-          this.getOpenEditors(theWindow)
-        ])
-        // console.log({rootPaths, editorPaths})
+        const {_rootPaths: rootPaths, _editorPaths: editorPaths} = theWindow
 
         const comparison = {
           ok: true,
@@ -561,10 +622,6 @@ class LaunchScenario {
     await Promise.all(
       Array.from(this.applications, app => app.destroy())
     )
-    await this.clearElectronSession()
-
-    process.env.ATOM_HOME = this.originalAtomHome
-    process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT = this.originalDisableShellingOutForEnvironment
   }
 
   addApplication (options = {}) {
@@ -573,6 +630,7 @@ class LaunchScenario {
       atomHomeDirPath: this.atomHome,
       ...options
     })
+    this.sinon.stub(app, 'createWindow', loadSettings => new StubWindow(this.sinon, loadSettings, options))
     this.applications.add(app)
     return app
   }
@@ -593,56 +651,13 @@ class LaunchScenario {
     return window
   }
 
-  getProjectRoots (window) {
-    return this.evalInWebContents(window.browserWindow.webContents, reply => reply(atom.project.getPaths()))
-  }
-
-  getOpenEditors (window) {
-    return this.evalInWebContents(window.browserWindow.webContents, reply => {
-      reply(atom.workspace.getTextEditors().map(editor => editor.getPath()).filter(Boolean))
-    })
-  }
-
-  evalInWebContents (webContents, source, ...args) {
-    const channelId = `eval-result-${channelIdCounter++}`
-    return new Promise(resolve => {
-      electron.ipcMain.on(channelId, receiveResult)
-
-      function receiveResult (_event, result) {
-        electron.ipcMain.removeListener('eval-result', receiveResult)
-        resolve(result)
-      }
-
-      const js = dedent`
-        function sendBackToMainProcess (result) {
-          require('electron').ipcRenderer.send('${channelId}', result)
-        }
-        (${source})(sendBackToMainProcess, ${args.map(JSON.stringify).join(', ')})
-      `
-      webContents.executeJavaScript(js)
-    })
-  }
-
   async waitForWindow (window, options) {
     if (
       (options.pathsToOpen && options.pathsToOpen.filter(Boolean).length > 0) ||
       (options.foldersToOpen && options.foldersToOpen.length > 0)
     ) {
-      await emitterEventPromise(window, 'window:locations-opened', 30000)
-    } else {
-      await window.getLoadedPromise()
+      await emitterEventPromise(window, 'window:locations-opened')
     }
-  }
-
-  clearElectronSession () {
-    return new Promise(resolve => {
-      electron.session.defaultSession.clearStorageData(() => {
-        // Resolve promise on next tick, otherwise the process stalls. This
-        // might be a bug in Electron, but it's probably fixed on the newer
-        // versions.
-        process.nextTick(resolve)
-      })
-    })
   }
 
   compareSets (expected, actual) {
