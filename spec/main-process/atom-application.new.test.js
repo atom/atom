@@ -955,7 +955,7 @@ class LaunchScenario {
   }
 
   convertRootPath (shortRootPath) {
-    if (shortRootPath.startsWith('remote:/')) { return shortRootPath }
+    if (shortRootPath.startsWith('atom://') || shortRootPath.startsWith('remote://')) { return shortRootPath }
 
     const fullRootPath = this.projectRootPool.get(shortRootPath)
     if (!fullRootPath) {
@@ -975,13 +975,15 @@ class LaunchScenario {
 
   convertPaths (paths) {
     return paths.map(shortPath => {
-      if (shortPath.startsWith('remote:/')) { return shortPath }
+      if (shortPath.startsWith('atom://') || shortPath.startsWith('remote://')) { return shortPath }
 
       const fullRoot = this.projectRootPool.get(shortPath)
       if (fullRoot) { return fullRoot }
+
       const [truncatedPath, ...suffix] = shortPath.split(/(?=:)/)
       const fullEditor = this.filePathPool.get(truncatedPath)
       if (fullEditor) { return fullEditor + suffix.join('') }
+
       throw new Error(`Unexpected short path: ${shortPath}`)
     })
   }
