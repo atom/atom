@@ -880,7 +880,7 @@ describe('AtomEnvironment', () => {
 
         it('does not attempt to restore the project state, instead adding the project paths', async () => {
           const pathToOpen = path.join(__dirname, 'fixtures')
-          await atom.openLocations([{ pathToOpen, exists: true, isDirectory: true, forceAddToWindow: true }])
+          await atom.openLocations([{ pathToOpen, exists: true, isDirectory: true }])
           expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
           expect(atom.project.getPaths()).toEqual([__dirname, pathToOpen])
         })

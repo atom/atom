@@ -972,7 +972,6 @@ class AtomApplication extends EventEmitter {
 
     const locationsToOpen = await Promise.all(
       pathsToOpen.map(pathToOpen => this.parsePathToOpen(pathToOpen, executedFrom, {
-        forceAddToWindow: addToLastWindow,
         hasWaitSession: pidToKillWhenClosed != null
       }))
     )
@@ -984,7 +983,6 @@ class AtomApplication extends EventEmitter {
         initialColumn: null,
         exists: true,
         isDirectory: true,
-        forceAddToWindow: addToLastWindow,
         hasWaitSession: pidToKillWhenClosed != null
       })
     }

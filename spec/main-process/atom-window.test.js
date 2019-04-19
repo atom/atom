@@ -177,16 +177,14 @@ describe('AtomWindow', function () {
           pathToOpen: 'file.txt',
           initialLine: 1,
           initialColumn: 2,
-          mustBeDirectory: false,
-          forceAddToWindow: false,
+          isDirectory: false,
           hasWaitSession: false
         },
         {
           pathToOpen: '/directory',
           initialLine: null,
           initialColumn: null,
-          mustBeDirectory: true,
-          forceAddToWindow: false,
+          isDirectory: true,
           hasWaitSession: false
         }
       ]
