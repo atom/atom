@@ -514,8 +514,6 @@ describe('AtomApplication', function () {
       await scenario.open(parseCommandLine(['c', 'b']))
       await promise
 
-      console.log(scenario.getApplication(0).storageFolder.store.args[1][1])
-
       assert.isTrue(scenario.getApplication(0).storageFolder.store.calledWith(
         'application.json',
         [
