@@ -591,8 +591,8 @@ describe('AtomApplication', function () {
       const w1 = await scenario.open(parseCommandLine(['b']))
       const d1 = w1.getDimensions()
 
-      assert.isAbove(d0.x, d1.x)
-      assert.isAbove(d0.y, d1.y)
+      assert.isAbove(d1.x, d0.x)
+      assert.isAbove(d1.y, d0.y)
     })
   }
 
@@ -817,7 +817,7 @@ class StubWindow extends EventEmitter {
 
     this.loadSettings = loadSettings
 
-    this._dimensions = {x: 100, y: 100}
+    this._dimensions = Object.assign({}, loadSettings.windowDimensions) || {x: 100, y: 100}
     this._position = {x: 0, y: 0}
     this._locations = []
     this._rootPaths = new Set()
@@ -915,7 +915,7 @@ class StubWindow extends EventEmitter {
   }
 
   getDimensions () {
-    return this._dimensions
+    return Object.assign({}, this._dimensions)
   }
 }
 
