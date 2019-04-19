@@ -550,7 +550,7 @@ describe('AtomApplication', function () {
       assert.isNull(w._locations[0].initialColumn)
     })
 
-    it('opens a file to a specific line number', async function () {
+    it('opens a file to a specific line number and column', async function () {
       await scenario.open(parseCommandLine('b/2.md:12:5'))
       await scenario.assert('[_ 2.md]')
 
@@ -741,6 +741,7 @@ describe('AtomApplication', function () {
     it('waits until all windows have saved their state before quitting', async function () {
       const [w0] = await scenario.launch(parseCommandLine(['a']))
       const w1 = await scenario.open(parseCommandLine(['b']))
+      assert.notStrictEqual(w0, w1)
 
       sinon.spy(w0, 'close')
       let resolveUnload0
