@@ -480,9 +480,9 @@ class AtomApplication extends EventEmitter {
     const getLoadSettings = includeWindow => {
       const window = this.focusedWindow()
       return {
-        devMode: window && window.devMode,
-        safeMode: window && window.safeMode,
-        window: includeWindow && window
+        devMode: window ? window.devMode : false,
+        safeMode: window ? window.safeMode : false,
+        window: includeWindow && window ? window : null
       }
     }
 
