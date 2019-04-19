@@ -1123,7 +1123,7 @@ class AtomApplication extends EventEmitter {
 
     const states = []
     for (let window of this.getAllWindows()) {
-      if (!window.isSpec) states.push({initialPaths: window.initialProjectRoots})
+      if (!window.isSpec) states.push({initialPaths: window.projectRoots})
     }
     states.reverse()
 
