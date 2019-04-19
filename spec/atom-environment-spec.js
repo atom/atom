@@ -393,9 +393,7 @@ describe('AtomEnvironment', () => {
 
   describe('openInitialEmptyEditorIfNecessary', () => {
     describe('when there are no paths set', () => {
-      beforeEach(() =>
-        spyOn(atom, 'getLoadSettings').andReturn({ initialProjectRoots: [] })
-      )
+      beforeEach(() => spyOn(atom, 'getLoadSettings').andReturn({ initialProjectRoots: [] }))
 
       it('opens an empty buffer', () => {
         spyOn(atom.workspace, 'open')
@@ -403,24 +401,24 @@ describe('AtomEnvironment', () => {
         expect(atom.workspace.open).toHaveBeenCalledWith(null)
       })
 
-      describe('when there is already a buffer open', () => {
-        beforeEach(async () => {
-          await atom.workspace.open()
-        })
+      it('does not open an empty buffer when a buffer is already open', async () => {
+        await atom.workspace.open()
+        spyOn(atom.workspace, 'open')
+        atom.openInitialEmptyEditorIfNecessary()
+        expect(atom.workspace.open).not.toHaveBeenCalled()
+      })
 
-        it('does not open an empty buffer', () => {
-          spyOn(atom.workspace, 'open')
-          atom.openInitialEmptyEditorIfNecessary()
-          expect(atom.workspace.open).not.toHaveBeenCalled()
-        })
+      it('does not open an empty buffer when core.openEmptyEditorOnStart is false', async () => {
+        atom.config.set('core.openEmptyEditorOnStart', false)
+        spyOn(atom.workspace, 'open')
+        atom.openInitialEmptyEditorIfNecessary()
+        expect(atom.workspace.open).not.toHaveBeenCalled()
       })
     })
 
     describe('when the project has a path', () => {
       beforeEach(() => {
-        spyOn(atom, 'getLoadSettings').andReturn({
-          initialProjectRoots: ['something']
-        })
+        spyOn(atom, 'getLoadSettings').andReturn({ initialProjectRoots: ['something'] })
         spyOn(atom.workspace, 'open')
       })
 
