@@ -738,16 +738,14 @@ class LaunchScenario {
         windowSpec.editors.push(null)
       }
 
-      windowPromises.push((async (theApp, foldersToOpen, pathsToOpen) => {
-        const window = await theApp.openPaths({ newWindow: true, foldersToOpen, pathsToOpen })
-        this.windows.add(window)
-        return window
+      windowPromises.push(((theApp, foldersToOpen, pathsToOpen) => {
+        return theApp.openPaths({ newWindow: true, foldersToOpen, pathsToOpen })
       })(app, windowSpec.roots, windowSpec.editors))
     }
     await Promise.all(windowPromises)
   }
 
-  async launch (options) {
+  launch (options) {
     const app = options.app || this.addApplication()
     delete options.app
 
@@ -755,14 +753,10 @@ class LaunchScenario {
       options.pathsToOpen = this.convertPaths(options.pathsToOpen)
     }
 
-    const windows = await app.launch(options)
-    for (const window of windows) {
-      this.windows.add(window)
-    }
-    return windows
+    return app.launch(options)
   }
 
-  async open (options) {
+  open (options) {
     if (this.applications.size === 0) {
       return this.launch(options)
     }
@@ -780,9 +774,7 @@ class LaunchScenario {
     }
     options.preserveFocus = true
 
-    const window = await app.openWithOptions(options)
-    this.windows.add(window)
-    return window
+    return app.openWithOptions(options)
   }
 
   async assert (source) {
@@ -909,7 +901,11 @@ class LaunchScenario {
       killProcess: pid => { this.killedPids.push(pid) },
       ...options
     })
-    this.sinon.stub(app, 'createWindow', loadSettings => new StubWindow(this.sinon, loadSettings, options))
+    this.sinon.stub(app, 'createWindow', loadSettings => {
+      const newWindow = new StubWindow(this.sinon, loadSettings, options)
+      this.windows.add(newWindow)
+      return newWindow
+    })
     this.sinon.stub(app.storageFolder, 'load', () => Promise.resolve(
       (options.applicationJson || []).map(each => ({
         initialPaths: this.convertPaths(each.initialPaths)
