@@ -669,10 +669,12 @@ class LaunchScenario {
     this.applications = new Set()
     this.windows = new Set()
     this.root = null
+    this.atomHome = null
     this.projectRootPool = new Map()
     this.filePathPool = new Map()
 
     this.killedPids = []
+    this.originalAtomHome = null
   }
 
   async init () {
@@ -685,6 +687,15 @@ class LaunchScenario {
         if (err) { reject(err) } else { resolve(rootPath) }
       })
     })
+
+    this.atomHome = path.join(this.root, '.atom')
+    await new Promise((resolve, reject) => {
+      fs.makeTree(this.atomHome, err => {
+        if (err) { reject(err) } else { resolve() }
+      })
+    })
+    this.originalAtomHome = process.env.ATOM_HOME
+    process.env.ATOM_HOME = this.atomHome
 
     await Promise.all(
       ['a', 'b', 'c'].map(dirPath => new Promise((resolve, reject) => {
@@ -884,6 +895,10 @@ class LaunchScenario {
     await Promise.all(
       Array.from(this.applications, app => app.destroy())
     )
+
+    if (this.originalAtomHome) {
+      process.env.ATOM_HOME = this.originalAtomHome
+    }
   }
 
   addApplication (options = {}) {
