@@ -58,6 +58,7 @@ describe.skip('AtomApplication', function () {
 
   describe('launch', () => {
     describe('with no paths', () => {
+      // Covered
       it('reopens any previously opened windows', async () => {
         if (process.platform === 'win32') return // Test is too flakey on Windows
 
@@ -97,6 +98,7 @@ describe.skip('AtomApplication', function () {
         ])
       })
 
+      // Covered
       it('when windows already exist, opens a new window with a single untitled buffer', async () => {
         const atomApplication = buildAtomApplication()
         const [window1] = await atomApplication.launch(parseCommandLine([]))
@@ -126,6 +128,7 @@ describe.skip('AtomApplication', function () {
         assert.deepEqual(atomApplication.getAllWindows(), [window2, window1])
       })
 
+      // Covered
       it('when no windows are open but --new-window is passed, opens a new window with a single untitled buffer', async () => {
         // Populate some saved state
         const tempDirPath1 = makeTempDir()
@@ -166,6 +169,7 @@ describe.skip('AtomApplication', function () {
         assert.equal(window2EditorTitle, 'untitled')
       })
 
+      // Covered
       it('does not open an empty editor if core.openEmptyEditorOnStart is false', async () => {
         const configPath = path.join(process.env.ATOM_HOME, 'config.cson')
         const config = season.readFileSync(configPath)
@@ -193,6 +197,7 @@ describe.skip('AtomApplication', function () {
     })
 
     describe('with file or folder paths', () => {
+      // Covered
       it('shows all directories in the tree view when multiple directory paths are passed to Atom', async () => {
         const dirAPath = makeTempDir('a')
         const dirBPath = makeTempDir('b')
@@ -214,6 +219,7 @@ describe.skip('AtomApplication', function () {
         ])
       })
 
+      // Covered
       it('can open to a specific line number of a file', async () => {
         const filePath = path.join(makeTempDir(), 'new-file')
         fs.writeFileSync(filePath, '1\n2\n3\n4\n')
@@ -236,6 +242,7 @@ describe.skip('AtomApplication', function () {
         assert.equal(cursorRow, 2)
       })
 
+      // Covered
       it('can open to a specific line and column of a file', async () => {
         const filePath = path.join(makeTempDir(), 'new-file')
         fs.writeFileSync(filePath, '1\n2\n3\n4\n')
@@ -280,6 +287,7 @@ describe.skip('AtomApplication', function () {
         assert.equal(openedPath, filePath)
       })
 
+      // Covered
       it('opens an empty text editor when launched with a new file path', async () => {
         // Choosing "Don't save"
         mockElectronShowMessageBox({ response: 2 })
@@ -308,6 +316,7 @@ describe.skip('AtomApplication', function () {
     })
 
     describe('when the --add option is specified', () => {
+      // Covered
       it('adds folders to existing windows when the --add option is used', async () => {
         const dirAPath = makeTempDir('a')
         const dirBPath = makeTempDir('b')
@@ -365,6 +374,7 @@ describe.skip('AtomApplication', function () {
     })
 
     if (process.platform === 'darwin' || process.platform === 'win32') {
+      // Covered
       it('positions new windows at an offset distance from the previous window', async () => {
         const atomApplication = buildAtomApplication()
 
@@ -387,6 +397,7 @@ describe.skip('AtomApplication', function () {
       })
     }
 
+    // Covered
     it('persists window state based on the project directories', async () => {
       // Choosing "Don't save"
       mockElectronShowMessageBox({ response: 2 })
@@ -428,6 +439,7 @@ describe.skip('AtomApplication', function () {
       assert.equal(window2Text, 'Hello World! How are you?')
     })
 
+    // Covered
     it('adds a remote directory to the project when launched with a remote directory', async () => {
       const packagePath = path.join(
         __dirname,
@@ -482,6 +494,7 @@ describe.skip('AtomApplication', function () {
       }
     })
 
+    // Covered
     it('does not reopen any previously opened windows when launched with no path and `core.restorePreviousWindowsOnStart` is no', async () => {
       const atomApplication1 = buildAtomApplication()
       const [app1Window1] = await atomApplication1.launch(
@@ -520,6 +533,7 @@ describe.skip('AtomApplication', function () {
         })
       })
 
+      // Covered
       it('kills the specified pid after a newly-opened window is closed', async () => {
         const [window1] = await atomApplication.launch(
           parseCommandLine(['--wait', '--pid', '101'])
@@ -547,6 +561,7 @@ describe.skip('AtomApplication', function () {
         assert.deepEqual(killedPids, [101, 102])
       })
 
+      // Covered
       it('kills the specified pid after a newly-opened file in an existing window is closed', async () => {
         const projectDir = makeTempDir('existing')
         const filePath1 = path.join(projectDir, 'file-1')
@@ -611,6 +626,7 @@ describe.skip('AtomApplication', function () {
         assert.deepEqual(killedPids, [102, 101])
       })
 
+      // Covered
       it('kills the specified pid after a newly-opened directory in an existing window is closed', async () => {
         const [window] = await atomApplication.launch(parseCommandLine([]))
         await focusWindow(window)
@@ -657,6 +673,7 @@ describe.skip('AtomApplication', function () {
 
     describe('when closing the last window', () => {
       if (process.platform === 'linux' || process.platform === 'win32') {
+        // Covered
         it('quits the application', async () => {
           const atomApplication = buildAtomApplication()
           const [window] = await atomApplication.launch(
@@ -674,6 +691,7 @@ describe.skip('AtomApplication', function () {
           assert(electron.app.didQuit())
         })
       } else if (process.platform === 'darwin') {
+        // Covered
         it('leaves the application open', async () => {
           const atomApplication = buildAtomApplication()
           const [window] = await atomApplication.launch(
@@ -694,6 +712,7 @@ describe.skip('AtomApplication', function () {
     })
 
     describe('when adding or removing project folders', () => {
+      // Covered
       it('stores the window state immediately', async () => {
         const dirA = makeTempDir()
         const dirB = makeTempDir()
