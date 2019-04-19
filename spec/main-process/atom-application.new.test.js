@@ -126,6 +126,11 @@ describe('AtomApplication', function () {
             await scenario.assert('[a _] [b _] [c _]')
           })
 
+          it('collapses new paths into restored windows when appropriate', async function () {
+            await scenario.launch({app, pathsToOpen: ['b/2.md']})
+            await scenario.assert('[b 2.md] [c _]')
+          })
+
           it("doesn't restore windows when --new-window is provided", async function () {
             await scenario.launch({app, newWindow: true})
             await scenario.assert('[_ _]')
