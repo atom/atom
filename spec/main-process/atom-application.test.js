@@ -159,9 +159,14 @@ describe('AtomApplication', function () {
             await scenario.assert('[b _] [c _]')
           })
 
-          it('restores windows when launched with paths to open', async function () {
+          it('restores windows when launched with a project path to open', async function () {
             await scenario.launch({app, pathsToOpen: ['a']})
             await scenario.assert('[a _] [b _] [c _]')
+          })
+
+          it('restores windows when launched with a file path to open', async function () {
+            await scenario.launch({app, pathsToOpen: ['a/1.md']})
+            await scenario.assert('[b 1.md] [c _]')
           })
 
           it('collapses new paths into restored windows when appropriate', async function () {
