@@ -120,6 +120,11 @@ class AtomApplication extends EventEmitter {
   static open (options) {
     const socketSecret = getExistingSocketSecret(options.version)
     const socketPath = getSocketPath(socketSecret)
+    const createApplication = options.createApplication || (async () => {
+      const app = new AtomApplication(options)
+      await app.initialize(options)
+      return app
+    })
 
     // FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
     // take a few seconds to trigger 'error' event, it could be a bug of node
@@ -129,18 +134,20 @@ class AtomApplication extends EventEmitter {
       !socketPath || options.test || options.benchmark || options.benchmarkTest ||
       (process.platform !== 'win32' && !fs.existsSync(socketPath))
     ) {
-      new AtomApplication(options).initialize(options)
-      return
+      return createApplication(options)
     }
 
-    const client = net.connect({path: socketPath}, () => {
-      client.write(encryptOptions(options, socketSecret), () => {
-        client.end()
-        app.quit()
+    return new Promise(resolve => {
+      const client = net.connect({path: socketPath}, () => {
+        client.write(encryptOptions(options, socketSecret), () => {
+          client.end()
+          app.quit()
+          resolve(null)
+        })
       })
-    })
 
-    client.on('error', () => new AtomApplication(options).initialize(options))
+      client.on('error', () => resolve(createApplication(options)))
+    })
   }
 
   exit (status) {
