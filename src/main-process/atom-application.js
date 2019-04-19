@@ -742,10 +742,6 @@ class AtomApplication extends EventEmitter {
       this.fileRecoveryService.didSavePath(window, path)
     ))
 
-    this.disposable.add(ipcHelpers.on(ipcMain, 'did-change-paths', () =>
-      this.saveCurrentWindowOptions(false)
-    ))
-
     this.disposable.add(this.disableZoomOnDisplayChange())
   }
 
