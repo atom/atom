@@ -1196,6 +1196,7 @@ class AtomApplication extends EventEmitter {
     if (bestWindow) {
       bestWindow.sendURIMessage(url)
       bestWindow.focus()
+      return bestWindow
     } else {
       let windowInitializationScript
       let {resourcePath} = this
