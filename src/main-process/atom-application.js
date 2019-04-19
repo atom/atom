@@ -1438,11 +1438,11 @@ class AtomApplication extends EventEmitter {
       return result
     }
 
-    pathToOpen = pathToOpen.replace(/[:\s]+$/, '')
-    const match = pathToOpen.match(LocationSuffixRegExp)
+    result.pathToOpen = result.pathToOpen.replace(/[:\s]+$/, '')
+    const match = result.pathToOpen.match(LocationSuffixRegExp)
 
     if (match != null) {
-      result.pathToOpen = pathToOpen.slice(0, -match[0].length)
+      result.pathToOpen = result.pathToOpen.slice(0, -match[0].length)
       if (match[1]) {
         result.initialLine = Math.max(0, parseInt(match[1].slice(1), 10) - 1)
       }
