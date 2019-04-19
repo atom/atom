@@ -1442,41 +1442,38 @@ class AtomApplication extends EventEmitter {
     const match = pathToOpen.match(LocationSuffixRegExp)
 
     if (match != null) {
-      pathToOpen = pathToOpen.slice(0, -match[0].length)
+      result.pathToOpen = pathToOpen.slice(0, -match[0].length)
       if (match[1]) {
-        result.initialLine = Math.max(0, parseInt(match[1].slice(1)) - 1)
+        result.initialLine = Math.max(0, parseInt(match[1].slice(1), 10) - 1)
       }
       if (match[2]) {
-        result.initialColumn = Math.max(0, parseInt(match[2].slice(1)) - 1)
+        result.initialColumn = Math.max(0, parseInt(match[2].slice(1), 10) - 1)
       }
-    } else {
-      result.initialLine = null
-      result.initialColumn = null
     }
 
-    const normalizedPath = path.normalize(path.resolve(executedFrom, fs.normalize(pathToOpen)))
+    const normalizedPath = path.normalize(path.resolve(executedFrom, fs.normalize(result.pathToOpen)))
     if (!url.parse(pathToOpen).protocol) {
       result.pathToOpen = normalizedPath
-
-      await new Promise((resolve, reject) => {
-        fs.stat(pathToOpen, (err, st) => {
-          if (err) {
-            if (err.code === 'ENOENT' || err.code === 'EACCES') {
-              result.exists = false
-              resolve()
-            } else {
-              reject(err)
-            }
-            return
-          }
-
-          result.exists = true
-          result.isFile = st.isFile()
-          result.isDirectory = st.isDirectory()
-          resolve()
-        })
-      })
     }
+
+    await new Promise((resolve, reject) => {
+      fs.stat(result.pathToOpen, (err, st) => {
+        if (err) {
+          if (err.code === 'ENOENT' || err.code === 'EACCES') {
+            result.exists = false
+            resolve()
+          } else {
+            reject(err)
+          }
+          return
+        }
+
+        result.exists = true
+        result.isFile = st.isFile()
+        result.isDirectory = st.isDirectory()
+        resolve()
+      })
+    })
 
     return result
   }
