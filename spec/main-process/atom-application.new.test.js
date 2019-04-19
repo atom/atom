@@ -590,7 +590,7 @@ class StubWindow extends EventEmitter {
     this.browserWindow = new EventEmitter()
     this.browserWindow.webContents = new EventEmitter()
 
-    const {locationsToOpen} = this.loadSettings
+    const locationsToOpen = this.loadSettings.locationsToOpen || []
     if (!(locationsToOpen.length === 1 && locationsToOpen[0].pathToOpen == null) && !this.isSpec) {
       this.openLocations(locationsToOpen)
     }
