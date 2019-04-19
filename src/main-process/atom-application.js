@@ -436,8 +436,10 @@ class AtomApplication extends EventEmitter {
       })
     })
 
-    server.listen(this.socketPath)
-    server.on('error', error => console.error('Application server failed', error))
+    return new Promise(resolve => {
+      server.listen(this.socketPath, resolve)
+      server.on('error', error => console.error('Application server failed', error))
+    })
   }
 
   deleteSocketFile () {
