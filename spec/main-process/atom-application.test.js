@@ -11,6 +11,36 @@ const AtomApplication = require('../../src/main-process/atom-application')
 const parseCommandLine = require('../../src/main-process/parse-command-line')
 const {emitterEventPromise, conditionPromise} = require('../async-spec-helpers')
 
+// These tests use a utility class called LaunchScenario, defined below, to manipulate AtomApplication instances that
+// (1) are stubbed to only simulate AtomWindow creation and (2) allow you to use a shorthand notation to assert the
+// application state after certain launch actions.
+//
+// Each scenario instance has access to a small set of directories and files created within a dedicated temporary
+// directory. For convenience, you may use short names to refer to any of its contents (their basenames, basically).
+// Check `LaunchScenario::init()` to see what directories and files are available.
+//
+// To create an application and its first window, call `await scenario.launch({})`. "Launch" may open multiple windows,
+// so it returns a Promise that resolves to an array of StubWindows. Its options argument may be created by
+// `parseCommandLine()` from a simulated argv string, or built by hand to include `{pathsToOpen}` and so on.
+//
+// To create additional windows, call `await scenario.open({})` with similar arguments. `LaunchScenario::open()` returns
+// a Promise that resolves to the opened or re-used StubWindows. The one exception is if `urlsToOpen` are provided in the open
+// arguments; then it resolves to an Array of StubWindows, because AtomApplication processes each URL individually.
+//
+// To ensure that the expected windows have been created, call `await scenario.assert('')` with a string specifying the
+// expected window contents. The specification shorthand language is as follows:
+//
+// * '[_ _]' describes a single window with no project roots and no open editors.
+// * '[_ 1.md]' describes a single window with no project roots and a single editor open on the file `./a/1.md` within
+//   the LaunchScenario temporary directory.
+// * '[a _]' describes a single window with one project root - the directory `./a` within the LaunchScenario temporary
+//   directory - and no open editors.
+// * '[a,b 1.md,2.md]' describes a single window with two project roots - the directories `./a` and `./b` - and two
+//   open editors - `./a/1.md` and `./a/2.md`.
+// * '[a _] [b,c 2.md]' describes two windows, one with a project root of `./a` and no open editors, and another with
+//   two project roots, `./b` and `./c`, and one open editor on `./b/2.md`. The windows are listed in their expected
+//   creation order.
+
 describe('AtomApplication', function () {
   let scenario, sinon
 
