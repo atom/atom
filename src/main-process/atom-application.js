@@ -292,10 +292,13 @@ class AtomApplication extends EventEmitter {
       timeout,
       clearWindowState,
       addToLastWindow,
+      preserveFocus,
       env
     } = options
 
-    app.focus()
+    if (!preserveFocus) {
+      app.focus()
+    }
 
     if (test) {
       return this.runTests({

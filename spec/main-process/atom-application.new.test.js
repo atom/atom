@@ -597,6 +597,7 @@ class LaunchScenario {
     if (options.pathsToOpen) {
       options.pathsToOpen = this.convertPaths(options.pathsToOpen)
     }
+    options.preserveFocus = true
 
     const window = await app.openWithOptions(options)
     this.windows.add(window)
@@ -719,6 +720,7 @@ class LaunchScenario {
     const app = new AtomApplication({
       resourcePath: path.resolve(__dirname, '../..'),
       atomHomeDirPath: this.atomHome,
+      preserveFocus: true,
       ...options
     })
     this.sinon.stub(app, 'createWindow', loadSettings => new StubWindow(this.sinon, loadSettings, options))
