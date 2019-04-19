@@ -756,6 +756,7 @@ describe.skip('AtomApplication', function () {
     })
 
     describe('when opening atom:// URLs', () => {
+      // Covered
       it('loads the urlMain file in a new window', async () => {
         const packagePath = path.join(
           __dirname,
@@ -788,6 +789,7 @@ describe.skip('AtomApplication', function () {
         windows[0].close()
       })
 
+      // Covered
       it('triggers /core/open/file in the correct window', async function () {
         const dirAPath = makeTempDir('a')
         const dirBPath = makeTempDir('b')
@@ -825,6 +827,7 @@ describe.skip('AtomApplication', function () {
     })
   })
 
+  // Covered
   it('waits until all the windows have saved their state before quitting', async () => {
     const dirAPath = makeTempDir('a')
     const dirBPath = makeTempDir('b')
@@ -847,6 +850,7 @@ describe.skip('AtomApplication', function () {
     assert(electron.app.didQuit())
   })
 
+  // Covered
   it('prevents quitting if user cancels when prompted to save an item', async () => {
     const atomApplication = buildAtomApplication()
     const [window1] = await atomApplication.launch(parseCommandLine([]))
@@ -874,6 +878,7 @@ describe.skip('AtomApplication', function () {
     assert(electron.app.didQuit())
   })
 
+  // Covered
   it('closes successfully unloaded windows when quitting', async () => {
     const atomApplication = buildAtomApplication()
     const [window1] = await atomApplication.launch(parseCommandLine([]))
@@ -901,6 +906,7 @@ describe.skip('AtomApplication', function () {
   })
 
   if (process.platform === 'darwin') {
+    // Covered
     it('allows opening a new folder after all windows are closed', async () => {
       const atomApplication = buildAtomApplication()
       sinon.stub(atomApplication, 'promptForPathToOpen')
@@ -930,6 +936,7 @@ describe.skip('AtomApplication', function () {
       atomApplication.promptForPathToOpen.reset()
     })
 
+    // Covered
     it('allows reopening an existing project after all windows are closed', async () => {
       const tempDirPath = makeTempDir('reopen')
 
@@ -968,6 +975,7 @@ describe.skip('AtomApplication', function () {
     })
   }
 
+  // Covered
   it('reuses the main process between invocations', async () => {
     const tempDirPath1 = makeTempDir()
     const tempDirPath2 = makeTempDir()
