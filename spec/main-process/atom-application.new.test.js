@@ -832,17 +832,19 @@ class LaunchScenario {
         missingRoots: spec.roots,
         extraEditors: [],
         missingEditors: spec.editors,
-        roots: [],
-        editors: []
+        roots: null,
+        editors: null
       })
     }
 
     const shorthandParts = []
     const descriptionParts = []
     for (const comparison of comparisons) {
-      const shortRoots = Array.from(comparison.roots, r => path.basename(r)).join(',')
-      const shortPaths = Array.from(comparison.editors, e => path.basename(e)).join(',')
-      shorthandParts.push(`[${shortRoots} ${shortPaths}]`)
+      if (comparison.roots !== null && comparison.editors !== null) {
+        const shortRoots = Array.from(comparison.roots, r => path.basename(r)).join(',')
+        const shortPaths = Array.from(comparison.editors, e => path.basename(e)).join(',')
+        shorthandParts.push(`[${shortRoots} ${shortPaths}]`)
+      }
 
       if (comparison.ok) {
         continue
