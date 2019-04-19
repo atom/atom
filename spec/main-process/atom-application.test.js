@@ -725,13 +725,13 @@ describe('AtomApplication', function () {
     if (process.platform === 'linux' || process.platform === 'win32') {
       it('quits the application', async function () {
         const [w] = await scenario.launch(parseCommandLine(['a']))
-        w.browserWindow.emit('closed')
+        scenario.getApplication(0).removeWindow(w)
         assert.isTrue(electron.app.quit.called)
       })
     } else if (process.platform === 'darwin') {
       it('leaves the application open', async function () {
         const [w] = await scenario.launch(parseCommandLine(['a']))
-        w.browserWindow.emit('closed')
+        scenario.getApplication(0).removeWindow(w)
         assert.isFalse(electron.app.quit.called)
       })
     }
