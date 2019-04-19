@@ -918,8 +918,8 @@ class AtomEnvironment {
 
   openInitialEmptyEditorIfNecessary () {
     if (!this.config.get('core.openEmptyEditorOnStart')) return
-    const {initialProjectRoots} = this.getLoadSettings()
-    if (initialProjectRoots && initialProjectRoots.length === 0 && this.workspace.getPaneItems().length === 0) {
+    const {hasOpenFiles} = this.getLoadSettings()
+    if (!hasOpenFiles && this.workspace.getPaneItems().length === 0) {
       return this.workspace.open(null)
     }
   }

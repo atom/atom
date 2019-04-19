@@ -393,7 +393,7 @@ describe('AtomEnvironment', () => {
 
   describe('openInitialEmptyEditorIfNecessary', () => {
     describe('when there are no paths set', () => {
-      beforeEach(() => spyOn(atom, 'getLoadSettings').andReturn({ initialProjectRoots: [] }))
+      beforeEach(() => spyOn(atom, 'getLoadSettings').andReturn({ hasOpenFiles: false }))
 
       it('opens an empty buffer', () => {
         spyOn(atom.workspace, 'open')
@@ -418,7 +418,7 @@ describe('AtomEnvironment', () => {
 
     describe('when the project has a path', () => {
       beforeEach(() => {
-        spyOn(atom, 'getLoadSettings').andReturn({ initialProjectRoots: ['something'] })
+        spyOn(atom, 'getLoadSettings').andReturn({ hasOpenFiles: true })
         spyOn(atom.workspace, 'open')
       })
 
