@@ -4,10 +4,12 @@ const path = require('path')
 const {EventEmitter} = require('events')
 const temp = require('temp').track()
 const fs = require('fs-plus')
+const electron = require('electron')
 const {sandbox} = require('sinon')
 
 const AtomApplication = require('../../src/main-process/atom-application')
 const parseCommandLine = require('../../src/main-process/parse-command-line')
+const {emitterEventPromise} = require('../async-spec-helpers')
 
 describe('AtomApplication', function () {
   let scenario, sinon
@@ -392,6 +394,159 @@ describe('AtomApplication', function () {
         await scenario.assert('[_ _] [a _] [b _]')
       })
     })
+
+    describe('--wait', function () {
+      it('kills the specified pid after a newly-opened window is closed', async function () {
+        const [w0] = await scenario.launch(parseCommandLine(['--new-window', '--wait', '--pid', '101']))
+        const w1 = await scenario.open(parseCommandLine(['--new-window', '--wait', '--pid', '202']))
+
+        assert.lengthOf(scenario.killedPids, 0)
+
+        w0.browserWindow.emit('closed')
+        assert.deepEqual(scenario.killedPids, [101])
+
+        w1.browserWindow.emit('closed')
+        assert.deepEqual(scenario.killedPids, [101, 202])
+      })
+
+      it('kills the specified pid after all newly-opened files in an existing window are closed', async function () {
+        const [w] = await scenario.launch(parseCommandLine(['--new-window', 'a']))
+        await scenario.open(parseCommandLine(['--add', '--wait', '--pid', '303', 'a/1.md', 'b/2.md']))
+        await scenario.assert('[a 1.md,2.md]')
+
+        assert.lengthOf(scenario.killedPids, 0)
+
+        scenario.getApplication(0).windowDidClosePathWithWaitSession(w, scenario.convertEditorPath('b/2.md'))
+        assert.lengthOf(scenario.killedPids, 0)
+        scenario.getApplication(0).windowDidClosePathWithWaitSession(w, scenario.convertEditorPath('a/1.md'))
+        assert.deepEqual(scenario.killedPids, [303])
+      })
+
+      it('kills the specified pid after a newly-opened directory in an existing window is closed', async function () {
+        const [w] = await scenario.launch(parseCommandLine(['--new-window', 'a']))
+        await scenario.open(parseCommandLine(['--add', '--wait', '--pid', '404', 'b']))
+        await scenario.assert('[a,b _]')
+
+        assert.lengthOf(scenario.killedPids, 0)
+
+        scenario.getApplication(0).windowDidClosePathWithWaitSession(w, scenario.convertRootPath('b'))
+        assert.deepEqual(scenario.killedPids, [404])
+      })
+    })
+
+    it('opens a file to a specific line number', async function () {
+      await scenario.open(parseCommandLine(['a/1.md:10']))
+      await scenario.assert('[_ 1.md]')
+
+      const w = scenario.getWindow(0)
+      assert.lengthOf(w._locations, 1)
+      assert.strictEqual(w._locations[0].initialLine, 9)
+      assert.isNull(w._locations[0].initialColumn)
+    })
+
+    it('opens a file to a specific line number', async function () {
+      await scenario.open(parseCommandLine('b/2.md:12:5'))
+      await scenario.assert('[_ 2.md]')
+
+      const w = scenario.getWindow(0)
+      assert.lengthOf(w._locations, 1)
+      assert.strictEqual(w._locations[0].initialLine, 11)
+      assert.strictEqual(w._locations[0].initialColumn, 4)
+    })
+
+    it('opens a directory with a non-file protocol', async function () {
+      await scenario.open(parseCommandLine(['remote://server:3437/some/directory/path']))
+
+      const w = scenario.getWindow(0)
+      assert.lengthOf(w._locations, 1)
+      assert.strictEqual(w._locations[0].pathToOpen, 'remote://server:3437/some/directory/path')
+      assert.isFalse(w._locations[0].exists)
+      assert.isFalse(w._locations[0].isDirectory)
+      assert.isFalse(w._locations[0].isFile)
+    })
+
+    it('truncates trailing whitespace and colons', async function () {
+      await scenario.open(parseCommandLine('b/2.md::  '))
+      await scenario.assert('[_ 2.md]')
+
+      const w = scenario.getWindow(0)
+      assert.lengthOf(w._locations, 1)
+      assert.isNull(w._locations[0].initialLine)
+      assert.isNull(w._locations[0].initialColumn)
+    })
+  })
+
+  if (process.platform === 'darwin' || process.platform === 'win32') {
+    it('positions new windows at an offset from the previous window', async function () {
+      const [w0] = await scenario.launch(parseCommandLine(['a']))
+      w0.setSize(400, 400)
+      const d0 = w0.getDimensions()
+
+      const w1 = await scenario.open(parseCommandLine(['b']))
+      const d1 = w1.getDimensions()
+
+      assert.isAbove(d0.x, d1.x)
+      assert.isAbove(d0.y, d1.y)
+    })
+  }
+
+  describe('when closing the last window', function () {
+    if (process.platform === 'linux' || process.platform === 'win32') {
+      it('quits the application', async function () {
+        const [w] = await scenario.launch(parseCommandLine(['a']))
+        w.browserWindow.emit('closed')
+        assert.isTrue(electron.app.quit.called)
+      })
+    } else if (process.platform === 'darwin') {
+      it('leaves the application open', async function () {
+        const [w] = await scenario.launch(parseCommandLine(['a']))
+        w.browserWindow.emit('closed')
+        assert.isFalse(electron.app.quit.called)
+      })
+    }
+  })
+
+  describe('window state serialization', function () {
+    it('occurs immediately when adding a window', async function () {
+      await scenario.launch(parseCommandLine(['a']))
+
+      const promise = emitterEventPromise(scenario.getApplication(0), 'application:did-save-state')
+      await scenario.open(parseCommandLine(['c', 'b']))
+      await promise
+
+      console.log(scenario.getApplication(0).storageFolder.store.args[1][1])
+
+      assert.isTrue(scenario.getApplication(0).storageFolder.store.calledWith(
+        'application.json',
+        [
+          {initialPaths: [scenario.convertRootPath('a')]},
+          {initialPaths: [scenario.convertRootPath('b'), scenario.convertRootPath('c')]}
+        ]
+      ))
+    })
+
+    it('occurs immediately when removing a window', async function () {
+      await scenario.launch(parseCommandLine(['a']))
+      const w = await scenario.open(parseCommandLine(['b']))
+
+      const promise = emitterEventPromise(scenario.getApplication(0), 'application:did-save-state')
+      scenario.getApplication(0).removeWindow(w)
+      await promise
+
+      assert.isTrue(scenario.getApplication(0).storageFolder.store.calledWith(
+        'application.json',
+        [
+          {initialPaths: [scenario.convertRootPath('a')]}
+        ]
+      ))
+    })
+
+    it('occurs when the window is blurred', async function () {
+      const [w] = await scenario.launch(parseCommandLine(['a']))
+      const promise = emitterEventPromise(scenario.getApplication(0), 'application:did-save-state')
+      w.browserWindow.emit('blur')
+      await promise
+    })
   })
 })
 
@@ -458,6 +613,10 @@ class StubWindow extends EventEmitter {
         }
       }
     }
+
+    this.projectRoots = Array.from(this._rootPaths)
+    this.projectRoots.sort()
+
     this.emit('window:locations-opened')
   }
 
@@ -510,6 +669,8 @@ class LaunchScenario {
     this.root = null
     this.projectRootPool = new Map()
     this.filePathPool = new Map()
+
+    this.killedPids = []
   }
 
   async init () {
@@ -551,6 +712,8 @@ class LaunchScenario {
         })
       }))
     )
+
+    this.sinon.stub(electron.app, 'quit')
   }
 
   async preconditions (source) {
@@ -726,6 +889,7 @@ class LaunchScenario {
       resourcePath: path.resolve(__dirname, '../..'),
       atomHomeDirPath: this.atomHome,
       preserveFocus: true,
+      killProcess: pid => { this.killedPids.push(pid) },
       ...options
     })
     this.sinon.stub(app, 'createWindow', loadSettings => new StubWindow(this.sinon, loadSettings, options))
@@ -734,6 +898,7 @@ class LaunchScenario {
         initialPaths: this.convertPaths(each.initialPaths)
       }))
     ))
+    this.sinon.stub(app.storageFolder, 'store', () => Promise.resolve())
     this.applications.add(app)
     return app
   }
@@ -773,6 +938,8 @@ class LaunchScenario {
   }
 
   convertRootPath (shortRootPath) {
+    if (shortRootPath.startsWith('remote:/')) { return shortRootPath }
+
     const fullRootPath = this.projectRootPool.get(shortRootPath)
     if (!fullRootPath) {
       throw new Error(`Unexpected short project root path: ${shortRootPath}`)
@@ -781,19 +948,23 @@ class LaunchScenario {
   }
 
   convertEditorPath (shortEditorPath) {
-    const fullEditorPath = this.filePathPool.get(shortEditorPath)
+    const [truncatedPath, ...suffix] = shortEditorPath.split(/(?=:)/)
+    const fullEditorPath = this.filePathPool.get(truncatedPath)
     if (!fullEditorPath) {
       throw new Error(`Unexpected short editor path: ${shortEditorPath}`)
     }
-    return fullEditorPath
+    return fullEditorPath + suffix.join('')
   }
 
   convertPaths (paths) {
     return paths.map(shortPath => {
+      if (shortPath.startsWith('remote:/')) { return shortPath }
+
       const fullRoot = this.projectRootPool.get(shortPath)
       if (fullRoot) { return fullRoot }
-      const fullEditor = this.filePathPool.get(shortPath)
-      if (fullEditor) { return fullEditor }
+      const [truncatedPath, ...suffix] = shortPath.split(/(?=:)/)
+      const fullEditor = this.filePathPool.get(truncatedPath)
+      if (fullEditor) { return fullEditor + suffix.join('') }
       throw new Error(`Unexpected short path: ${shortPath}`)
     })
   }
