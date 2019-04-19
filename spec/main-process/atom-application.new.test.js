@@ -9,7 +9,7 @@ const {sandbox} = require('sinon')
 
 const AtomApplication = require('../../src/main-process/atom-application')
 const parseCommandLine = require('../../src/main-process/parse-command-line')
-const {emitterEventPromise} = require('../async-spec-helpers')
+const {emitterEventPromise, conditionPromise} = require('../async-spec-helpers')
 
 describe('AtomApplication', function () {
   let scenario, sinon
@@ -434,6 +434,112 @@ describe('AtomApplication', function () {
       })
     })
 
+    describe('atom:// URLs', function () {
+      describe('with a package-name host', function () {
+        it("loads the package's urlMain in a new window", async function () {
+          await scenario.launch({})
+
+          const app = scenario.getApplication(0)
+          app.packages = {
+            getAvailablePackageMetadata: () => [{name: 'package-with-url-main', urlMain: 'some/url-main'}],
+            resolvePackagePath: () => path.resolve('dot-atom/package-with-url-main')
+          }
+
+          const [w1, w2] = await scenario.open(parseCommandLine([
+            'atom://package-with-url-main/test1',
+            'atom://package-with-url-main/test2'
+          ]))
+
+          assert.strictEqual(
+            w1.loadSettings.windowInitializationScript,
+            path.resolve('dot-atom/package-with-url-main/some/url-main')
+          )
+          assert.strictEqual(
+            w1.loadSettings.urlToOpen,
+            'atom://package-with-url-main/test1'
+          )
+
+          assert.strictEqual(
+            w2.loadSettings.windowInitializationScript,
+            path.resolve('dot-atom/package-with-url-main/some/url-main')
+          )
+          assert.strictEqual(
+            w2.loadSettings.urlToOpen,
+            'atom://package-with-url-main/test2'
+          )
+        })
+
+        it('sends a URI message to the most recently focused non-spec window', async function () {
+          const [w0] = await scenario.launch({})
+          const w1 = await scenario.open(parseCommandLine(['--new-window']))
+          const w2 = await scenario.open(parseCommandLine(['--new-window']))
+          const w3 = await scenario.open(parseCommandLine(['--test', 'a/1.md']))
+
+          const app = scenario.getApplication(0)
+          app.packages = {
+            getAvailablePackageMetadata: () => []
+          }
+
+          const [uw] = await scenario.open(parseCommandLine(['atom://package-without-url-main/test']))
+          assert.strictEqual(uw, w2)
+
+          assert.isTrue(w2.sendURIMessage.calledWith('atom://package-without-url-main/test'))
+          assert.strictEqual(w2.focus.callCount, 2)
+
+          for (const other of [w0, w1, w3]) {
+            assert.isFalse(other.sendURIMessage.called)
+          }
+        })
+
+        it('creates a new window and sends a URI message to it once it loads', async function () {
+          const [w0] = await scenario.launch(parseCommandLine(['--test', 'a/1.md']))
+
+          const app = scenario.getApplication(0)
+          app.packages = {
+            getAvailablePackageMetadata: () => []
+          }
+
+          const [uw] = await scenario.open(parseCommandLine(['atom://package-without-url-main/test']))
+          assert.notStrictEqual(uw, w0)
+          assert.strictEqual(
+            uw.loadSettings.windowInitializationScript,
+            path.resolve(__dirname, '../../src/initialize-application-window.coffee')
+          )
+
+          uw.emit('window:loaded')
+          assert.isTrue(uw.sendURIMessage.calledWith('atom://package-without-url-main/test'))
+        })
+      })
+
+      describe('with a "core" host', function () {
+        it('sends a URI message to the most recently focused non-spec window that owns the open locations', async function () {
+          const [w0] = await scenario.launch(parseCommandLine(['a']))
+          const w1 = await scenario.open(parseCommandLine(['--new-window', 'a']))
+          const w2 = await scenario.open(parseCommandLine(['--new-window', 'b']))
+
+          const uri = `atom://core/open/file?filename=${encodeURIComponent(scenario.convertEditorPath('a/1.md'))}`
+          const [uw] = await scenario.open(parseCommandLine([uri]))
+          assert.strictEqual(uw, w1)
+          assert.isTrue(w1.sendURIMessage.calledWith(uri))
+
+          for (const other of [w0, w2]) {
+            assert.isFalse(other.sendURIMessage.called)
+          }
+        })
+
+        it('creates a new window and sends a URI message to it once it loads', async function () {
+          const [w0] = await scenario.launch(parseCommandLine(['--test', 'a/1.md']))
+
+          const uri = `atom://core/open/file?filename=${encodeURIComponent(scenario.convertEditorPath('b/2.md'))}`
+          const [uw] = await scenario.open(parseCommandLine([uri]))
+          assert.notStrictEqual(uw, w0)
+
+          uw.emit('window:loaded')
+          assert.isTrue(uw.sendURIMessage.calledWith(uri))
+        })
+      })
+    })
+
     it('opens a file to a specific line number', async function () {
       await scenario.open(parseCommandLine(['a/1.md:10']))
       await scenario.assert('[_ 1.md]')
@@ -490,20 +596,88 @@ describe('AtomApplication', function () {
     })
   }
 
-  describe('when closing the last window', function () {
-    if (process.platform === 'linux' || process.platform === 'win32') {
-      it('quits the application', async function () {
-        const [w] = await scenario.launch(parseCommandLine(['a']))
-        w.browserWindow.emit('closed')
-        assert.isTrue(electron.app.quit.called)
+  if (process.platform === 'darwin') {
+    describe('with no windows open', function () {
+      let app
+
+      beforeEach(async function () {
+        const [w] = await scenario.launch(parseCommandLine([]))
+
+        app = scenario.getApplication(0)
+        app.removeWindow(w)
+        sinon.stub(app, 'promptForPathToOpen')
       })
-    } else if (process.platform === 'darwin') {
-      it('leaves the application open', async function () {
-        const [w] = await scenario.launch(parseCommandLine(['a']))
-        w.browserWindow.emit('closed')
-        assert.isFalse(electron.app.quit.called)
+
+      it('opens a new file', function () {
+        app.emit('application:open-file')
+        assert.isTrue(app.promptForPathToOpen.calledWith('file', {devMode: false, safeMode: false, window: null}))
       })
-    }
+
+      it('opens a new directory', function () {
+        app.emit('application:open-folder')
+        assert.isTrue(app.promptForPathToOpen.calledWith('folder', {devMode: false, safeMode: false, window: null}))
+      })
+
+      it('opens a new file or directory', function () {
+        app.emit('application:open')
+        assert.isTrue(app.promptForPathToOpen.calledWith('all', {devMode: false, safeMode: false, window: null}))
+      })
+
+      it('reopens a project in a new window', async function () {
+        const paths = scenario.convertPaths(['a', 'b'])
+        app.emit('application:reopen-project', {paths})
+
+        await conditionPromise(() => app.getAllWindows().length > 0)
+
+        assert.deepEqual(app.getAllWindows().map(w => Array.from(w._rootPaths)), [paths])
+      })
+    })
+  }
+
+  describe('existing application re-use', function () {
+    let createApplication
+
+    const version = electron.app.getVersion()
+
+    beforeEach(function () {
+      createApplication = async options => {
+        options.version = version
+
+        const app = scenario.addApplication(options)
+        await app.listenForArgumentsFromNewProcess()
+        await app.launch(options)
+        return app
+      }
+    })
+
+    it('creates a new application when no socket is present', async function () {
+      const app0 = await AtomApplication.open({createApplication, version})
+      app0.deleteSocketSecretFile()
+
+      const app1 = await AtomApplication.open({createApplication, version})
+      assert.isNotNull(app1)
+      assert.notStrictEqual(app0, app1)
+    })
+
+    it('creates a new application for spec windows', async function () {
+      const app0 = await AtomApplication.open({createApplication, version})
+
+      const app1 = await AtomApplication.open({createApplication, version, ...parseCommandLine(['--test', 'a'])})
+      assert.isNotNull(app1)
+      assert.notStrictEqual(app0, app1)
+    })
+
+    it('sends a request to an existing application when a socket is present', async function () {
+      const app0 = await AtomApplication.open({createApplication, version})
+      assert.lengthOf(app0.getAllWindows(), 1)
+
+      const app1 = await AtomApplication.open({createApplication, version, ...parseCommandLine(['--new-window'])})
+      assert.isNull(app1)
+      assert.isTrue(electron.app.quit.called)
+
+      await conditionPromise(() => app0.getAllWindows().length === 2)
+      await scenario.assert('[_ _] [_ _]')
+    })
   })
 
   describe('window state serialization', function () {
@@ -544,6 +718,95 @@ describe('AtomApplication', function () {
       const promise = emitterEventPromise(scenario.getApplication(0), 'application:did-save-state')
       w.browserWindow.emit('blur')
       await promise
+    })
+  })
+
+  describe('when closing the last window', function () {
+    if (process.platform === 'linux' || process.platform === 'win32') {
+      it('quits the application', async function () {
+        const [w] = await scenario.launch(parseCommandLine(['a']))
+        w.browserWindow.emit('closed')
+        assert.isTrue(electron.app.quit.called)
+      })
+    } else if (process.platform === 'darwin') {
+      it('leaves the application open', async function () {
+        const [w] = await scenario.launch(parseCommandLine(['a']))
+        w.browserWindow.emit('closed')
+        assert.isFalse(electron.app.quit.called)
+      })
+    }
+  })
+
+  describe('quitting', function () {
+    it('waits until all windows have saved their state before quitting', async function () {
+      const [w0] = await scenario.launch(parseCommandLine(['a']))
+      const w1 = await scenario.open(parseCommandLine(['b']))
+
+      sinon.spy(w0, 'close')
+      let resolveUnload0
+      w0.prepareToUnload = () => new Promise(resolve => { resolveUnload0 = resolve })
+
+      sinon.spy(w1, 'close')
+      let resolveUnload1
+      w1.prepareToUnload = () => new Promise(resolve => { resolveUnload1 = resolve })
+
+      const evt = {preventDefault: sinon.spy()}
+      electron.app.emit('before-quit', evt)
+      await new Promise(process.nextTick)
+      assert.isTrue(evt.preventDefault.called)
+      assert.isFalse(electron.app.quit.called)
+
+      resolveUnload1(true)
+      await new Promise(process.nextTick)
+      assert.isFalse(electron.app.quit.called)
+
+      resolveUnload0(true)
+      await scenario.getApplication(0).lastBeforeQuitPromise
+      assert.isTrue(electron.app.quit.called)
+
+      assert.isTrue(w0.close.called)
+      assert.isTrue(w1.close.called)
+    })
+
+    it('prevents a quit if a user cancels when prompted to save', async function () {
+      const [w] = await scenario.launch(parseCommandLine(['a']))
+      let resolveUnload
+      w.prepareToUnload = () => new Promise(resolve => { resolveUnload = resolve })
+
+      const evt = {preventDefault: sinon.spy()}
+      electron.app.emit('before-quit', evt)
+      await new Promise(process.nextTick)
+      assert.isTrue(evt.preventDefault.called)
+
+      resolveUnload(false)
+      await scenario.getApplication(0).lastBeforeQuitPromise
+
+      assert.isFalse(electron.app.quit.called)
+    })
+
+    it('closes successfully unloaded windows', async function () {
+      const [w0] = await scenario.launch(parseCommandLine(['a']))
+      const w1 = await scenario.open(parseCommandLine(['b']))
+
+      sinon.spy(w0, 'close')
+      let resolveUnload0
+      w0.prepareToUnload = () => new Promise(resolve => { resolveUnload0 = resolve })
+
+      sinon.spy(w1, 'close')
+      let resolveUnload1
+      w1.prepareToUnload = () => new Promise(resolve => { resolveUnload1 = resolve })
+
+      const evt = {preventDefault () {}}
+      electron.app.emit('before-quit', evt)
+
+      resolveUnload0(false)
+      resolveUnload1(true)
+
+      await scenario.getApplication(0).lastBeforeQuitPromise
+
+      assert.isFalse(electron.app.quit.called)
+      assert.isFalse(w0.close.called)
+      assert.isTrue(w1.close.called)
     })
   })
 })
