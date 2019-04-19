@@ -735,14 +735,14 @@ describe('GrammarRegistry', () => {
     describe('text-mate grammars with content regexes', () => {
       it('favors grammars that match the content regex', () => {
         const grammar1 = {
-          name: "foo",
-          fileTypes: ["foo"]
+          name: 'foo',
+          fileTypes: ['foo']
         }
         grammarRegistry.addGrammar(grammar1)
         const grammar2 = {
-          name: "foo++",
-          contentRegex: new OnigRegExp(".*bar"),
-          fileTypes: ["foo"]
+          name: 'foo++',
+          contentRegex: new OnigRegExp('.*bar'),
+          fileTypes: ['foo']
         }
         grammarRegistry.addGrammar(grammar2)
 
