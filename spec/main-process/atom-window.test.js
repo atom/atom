@@ -255,6 +255,7 @@ describe('AtomWindow', function () {
       const w = new AtomWindow(app, service, { browserWindowConstructor: StubBrowserWindow, locationsToOpen })
 
       assert.deepEqual(w.projectRoots, ['directory0', 'directory1'])
+      assert.isTrue(w.loadSettings.hasOpenFiles)
       assert.deepEqual(w.loadSettings.initialProjectRoots, ['directory0', 'directory1'])
       assert.isTrue(w.hasProjectPaths())
     })

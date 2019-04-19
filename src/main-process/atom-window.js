@@ -77,6 +77,8 @@ class AtomWindow extends EventEmitter {
       .map(location => location.pathToOpen)
     this.projectRoots.sort()
 
+    this.loadSettings.hasOpenFiles = locationsToOpen
+      .some(location => location.pathToOpen && !location.isDirectory)
     this.loadSettings.initialProjectRoots = this.projectRoots
 
     // Only send to the first non-spec window created
