@@ -14,6 +14,9 @@ jobs:
   steps:
   - script: script/bootstrap
     displayName: Bootstrap build environment
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
 
   - script: script/lint
     displayName: Run linter

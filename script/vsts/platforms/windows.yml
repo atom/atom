@@ -27,6 +27,9 @@ jobs:
   - script: |
       ECHO Installing npm-windows-upgrade
       npm install --global --production npm-windows-upgrade
+    displayName: Install npm-windows-upgrade
+
+  - script: |
       ECHO Upgrading npm
       npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.2.0
     displayName: Install npm 6.2.0
@@ -40,6 +43,9 @@ jobs:
       node script\vsts\windows-run.js script\bootstrap.cmd
     env:
       BUILD_ARCH: $(buildArch)
+      CI: true
+      CI_PROVIDER: VSTS
+      NPM_BIN_PATH: "D:\\a\\_tool\\node\\8.9.3\\x64\\npm.cmd"
     displayName: Bootstrap build environment
 
   - script: node script\vsts\windows-run.js script\lint.cmd
