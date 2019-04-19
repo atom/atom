@@ -106,7 +106,7 @@ describe('AtomWindow', function () {
 
       assert.strictEqual(browserWindow.webContents.getURL(), url.format({
         protocol: 'file',
-        pathname: path.join(resourcePath, 'static/index.html'),
+        pathname: `${resourcePath}/static/index.html`,
         slashes: true
       }))
     })
