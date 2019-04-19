@@ -626,6 +626,10 @@ class StubWindow extends EventEmitter {
     this._position = {x, y}
   }
 
+  isSpecWindow () {
+    return this.isSpec
+  }
+
   hasProjectPaths () {
     return this._rootPaths.size > 0
   }
