@@ -349,6 +349,7 @@ class AtomApplication extends EventEmitter {
     } else {
       // Always open an editor window if this is the first instance of Atom.
       return this.openPath({
+        pathToOpen: null,
         pidToKillWhenClosed,
         newWindow,
         devMode,
@@ -991,15 +992,18 @@ class AtomApplication extends EventEmitter {
       return
     }
 
+    const hasNonEmptyPath = locationsToOpen.some(location => location.pathToOpen)
+    const createNewWindow = newWindow || !hasNonEmptyPath
+
     let existingWindow
 
-    if (!newWindow) {
+    if (!createNewWindow) {
       // An explicitly provided AtomWindow has precedence.
       existingWindow = window
 
       // If no window is specified and at least one path is provided, locate an existing window that contains all
       // provided paths.
-      if (!existingWindow && locationsToOpen.some(location => location.pathToOpen)) {
+      if (!existingWindow && hasNonEmptyPath) {
         existingWindow = this.windowForLocations(locationsToOpen, devMode, safeMode)
       }
 

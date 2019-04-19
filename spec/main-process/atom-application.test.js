@@ -56,6 +56,12 @@ describe('AtomApplication', function () {
 
   describe('command-line interface behavior', function () {
     describe('with no open windows', function () {
+      // This is also the case when a user selects the application from the OS shell
+      it('opens an empty window', async function () {
+        await scenario.launch(parseCommandLine([]))
+        await scenario.assert('[_ _]')
+      })
+
       // This is also the case when a user clicks on a file in their file manager
       it('opens a file', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
@@ -182,6 +188,12 @@ describe('AtomApplication', function () {
         await scenario.preconditions('[_ _]')
       })
 
+      // This is also the case when a user selects the application from the OS shell
+      it('opens a new, empty window', async function () {
+        await scenario.open(parseCommandLine([]))
+        await scenario.assert('[_ _] [_ _]')
+      })
+
       // This is also the case when a user clicks on a file in their file manager
       it('opens a file', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
@@ -218,6 +230,12 @@ describe('AtomApplication', function () {
     describe('with one window that has a project root', function () {
       beforeEach(async function () {
         await scenario.preconditions('[a _]')
+      })
+
+      // This is also the case when a user selects the application from the OS shell
+      it('opens a new, empty window', async function () {
+        await scenario.open(parseCommandLine([]))
+        await scenario.assert('[a _] [_ _]')
       })
 
       // This is also the case when a user clicks on a file within the project root in their file manager
@@ -290,6 +308,12 @@ describe('AtomApplication', function () {
         await scenario.preconditions('[a _] [_ _]')
       })
 
+      // This is also the case when a user selects the application from the OS shell
+      it('opens a new, empty window', async function () {
+        await scenario.open(parseCommandLine([]))
+        await scenario.assert('[a _] [_ _] [_ _]')
+      })
+
       // This is also the case when a user clicks on a file within the project root in their file manager
       it('opens a file within the project root', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
@@ -358,6 +382,12 @@ describe('AtomApplication', function () {
     describe('with two windows, one empty and one with a project root', function () {
       beforeEach(async function () {
         await scenario.preconditions('[_ _] [a _]')
+      })
+
+      // This is also the case when a user selects the application from the OS shell
+      it('opens a new, empty window', async function () {
+        await scenario.open(parseCommandLine([]))
+        await scenario.assert('[_ _] [a _] [_ _]')
       })
 
       // This is also the case when a user clicks on a file within the project root in their file manager
