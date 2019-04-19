@@ -392,6 +392,7 @@ class AtomApplication extends EventEmitter {
         window.browserWindow.removeListener('blur', blurHandler)
       })
       window.browserWindow.webContents.once('did-finish-load', blurHandler)
+      this.saveCurrentWindowOptions(false)
     }
   }
 
