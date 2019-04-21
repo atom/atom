@@ -372,6 +372,26 @@ describe "Autoflow package", ->
 
       expect(autoflow.reflow(text, wrapColumn: 80)).toEqual res
 
+    it 'properly reflows inline comments ', ->
+      text =
+        '''
+        Beard pinterest actually brunch brooklyn jean shorts YOLO. % Knausgaard sriracha banh mi, cold-pressed retro whatever ethical man braid asymmetrical fingerstache narwhal. Intelligentsia wolf photo booth, tumblr pinterest quinoa leggings four loko poutine. DIY tattooed drinking vinegar, wolf retro actually aesthetic austin keffiyeh marfa beard. Marfa trust fund salvia sartorial letterpress, keffiyeh plaid butcher. Swag try-hard dreamcatcher direct trade, tacos pickled fanny pack literally meh pinterest slow-carb. Meditation microdosing distillery 8-bit humblebrag migas.
+        '''
+
+      res =
+        '''
+        Beard pinterest actually brunch brooklyn jean shorts YOLO. % Knausgaard sriracha
+        % banh mi, cold-pressed retro whatever ethical man braid asymmetrical
+        % fingerstache narwhal. Intelligentsia wolf photo booth, tumblr pinterest quinoa
+        % leggings four loko poutine. DIY tattooed drinking vinegar, wolf retro actually
+        % aesthetic austin keffiyeh marfa beard. Marfa trust fund salvia sartorial
+        % letterpress, keffiyeh plaid butcher. Swag try-hard dreamcatcher direct trade,
+        % tacos pickled fanny pack literally meh pinterest slow-carb. Meditation
+        % microdosing distillery 8-bit humblebrag migas.
+        '''
+
+      expect(autoflow.reflow(text, wrapColumn: 80)).toEqual res
+
     it 'properly reflows - list items ', ->
       text =
         '''

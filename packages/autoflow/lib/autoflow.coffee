@@ -73,8 +73,18 @@ module.exports =
       # Remember that `-` has to be the last character in the character class.
       linePrefix = blockLines[0].match(/^\s*(\/\/|\/\*|;;|#'|\|\|\||--|[#%*>-])?\s*/g)[0]
       linePrefixTabExpanded = linePrefix
-      if tabLengthInSpaces
-        linePrefixTabExpanded = linePrefix.replace(/\t/g, tabLengthInSpaces)
+      linePrefixNew = blockLines[0].match(/[^\\]%\s*/)
+      index = 0
+      if linePrefix
+        linePrefixTabExpanded = linePrefix
+        if tabLengthInSpaces
+          linePrefixTabExpanded = linePrefix.replace(/\t/g, tabLengthInSpaces)
+      else if linePrefixNew
+        index = linePrefixNew["index"] + 1
+        linePrefixNew[0] = linePrefixNew[0][1..] # get rid of the first character
+        linePrefixTabExpanded = linePrefixNew[0]
+        if tabLengthInSpaces
+          linePrefixTabExpanded = linePrefixNew[0].replace(/\t/g, tabLengthInSpaces)
 
       if linePrefix
         escapedLinePrefix = _.escapeRegExp(linePrefix)
@@ -95,20 +105,36 @@ module.exports =
       firstLine = true
       for segment in @segmentText(blockLines.join(' '))
         if @wrapSegment(segment, currentLineLength, wrapColumn)
-
+          if firstLine
+            if linePrefix
+              lines.push(linePrefix + currentLine.join(''))
+            else if linePrefixNew
+              lines.push(currentLine.join(''))
+            else
+              lines.push(linePrefix + currentLine.join(''))
           # Independent of line prefix don't mess with it on the first line
           if firstLine isnt true
             # Handle C comments
             if linePrefix.search(/^\s*\/\*/) isnt -1 or linePrefix.search(/^\s*-(?!-)/) isnt -1
               linePrefix = wrappedLinePrefix
-          lines.push(linePrefix + currentLine.join(''))
+            if linePrefix
+              lines.push(linePrefix + currentLine.join(''))
+            else if linePrefixNew and index <= 0
+              lines.push(linePrefixNew + currentLine.join(''))
+            else
+              lines.push(linePrefix + currentLine.join(''))
           currentLine = []
+          index -= currentLineLength
           currentLineLength = linePrefixTabExpanded.length
           firstLine = false
         currentLine.push(segment)
         currentLineLength += segment.length
-      lines.push(linePrefix + currentLine.join(''))
-
+      if linePrefix
+        lines.push(linePrefix + currentLine.join(''))
+      else if linePrefixNew and index <= 0
+        lines.push(linePrefixNew + currentLine.join(''))
+      else
+        lines.push(linePrefix + currentLine.join(''))
       wrappedLines = beginningLinesToIgnore.concat(lines.concat(endingLinesToIgnore))
       paragraphs.push(wrappedLines.join('\n').replace(/\s+\n/g, '\n'))
 
