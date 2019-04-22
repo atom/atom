@@ -132,7 +132,10 @@ module.exports =
             if linePrefix.search(/^\s*\/\*/) isnt -1 or linePrefix.search(/^\s*-(?!-)/) isnt -1
               linePrefix = wrappedLinePrefix
             if linePrefixNew and index <= 0 and !linePrefix
-              lines.push(linePrefixNew + currentLine.join(''))
+              if currentLine[0] == "%"
+                lines.push(linePrefix + currentLine.join(''))
+              else
+                lines.push(linePrefixNew + currentLine.join(''))
             else
               lines.push(linePrefix + currentLine.join(''))
           currentLine = []
