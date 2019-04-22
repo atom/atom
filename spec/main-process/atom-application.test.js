@@ -36,7 +36,7 @@ const {emitterEventPromise, conditionPromise} = require('../async-spec-helpers')
 // * '[a _]' describes a single window with one project root - the directory `./a` within the LaunchScenario temporary
 //   directory - and no open editors.
 // * '[a,b 1.md,2.md]' describes a single window with two project roots - the directories `./a` and `./b` - and two
-//   open editors - `./a/1.md` and `./a/2.md`.
+//   open editors - `./a/1.md` and `./b/2.md`.
 // * '[a _] [b,c 2.md]' describes two windows, one with a project root of `./a` and no open editors, and another with
 //   two project roots, `./b` and `./c`, and one open editor on `./b/2.md`. The windows are listed in their expected
 //   creation order.
