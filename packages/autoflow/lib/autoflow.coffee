@@ -73,15 +73,29 @@ module.exports =
       # Remember that `-` has to be the last character in the character class.
       linePrefix = blockLines[0].match(/^\s*(\/\/|\/\*|;;|#'|\|\|\||--|[#%*>-])?\s*/g)[0]
       linePrefixTabExpanded = linePrefix
-      linePrefixNew = blockLines[0].match(/[^\\]%\s*/)
+      linePrefixNew = blockLines[0].match(/\\*%\s*/)
       index = 0
+      noInlineComment = false
       if linePrefix
         linePrefixTabExpanded = linePrefix
         if tabLengthInSpaces
           linePrefixTabExpanded = linePrefix.replace(/\t/g, tabLengthInSpaces)
       else if linePrefixNew
-        index = linePrefixNew["index"] + 1
-        linePrefixNew[0] = linePrefixNew[0][1..] # get rid of the first character
+        lengthOfSlash = 0
+        for num in [0..(linePrefixNew[0].length-1)]
+          if linePrefixNew[0].charAt(num) == '%'
+            lengthOfSlash = num
+            break
+
+        # odd number of slash: not a comment
+        if lengthOfSlash %% 2 == 1
+          index = block.length
+          noInlineComment = true
+        else
+          index = linePrefixNew["index"] + lengthOfSlash
+
+        # get rid of the first character
+        linePrefixNew[0] = linePrefixNew[0][lengthOfSlash..]
         linePrefixTabExpanded = linePrefixNew[0]
         if tabLengthInSpaces
           linePrefixTabExpanded = linePrefixNew[0].replace(/\t/g, tabLengthInSpaces)
@@ -96,8 +110,10 @@ module.exports =
 
       lines = []
       currentLine = []
-      currentLineLength = linePrefixTabExpanded.length
-
+      if linePrefixNew and !linePrefix
+        currentLineLength = 0
+      else
+        currentLineLength = linePrefixTabExpanded.length
       wrappedLinePrefix = linePrefix
         .replace(/^(\s*)\/\*/, '$1  ')
         .replace(/^(\s*)-(?!-)/, '$1 ')
@@ -106,9 +122,7 @@ module.exports =
       for segment in @segmentText(blockLines.join(' '))
         if @wrapSegment(segment, currentLineLength, wrapColumn)
           if firstLine
-            if linePrefix
-              lines.push(linePrefix + currentLine.join(''))
-            else if linePrefixNew
+            if linePrefixNew and !linePrefix
               lines.push(currentLine.join(''))
             else
               lines.push(linePrefix + currentLine.join(''))
@@ -117,21 +131,20 @@ module.exports =
             # Handle C comments
             if linePrefix.search(/^\s*\/\*/) isnt -1 or linePrefix.search(/^\s*-(?!-)/) isnt -1
               linePrefix = wrappedLinePrefix
-            if linePrefix
-              lines.push(linePrefix + currentLine.join(''))
-            else if linePrefixNew and index <= 0
+            if linePrefixNew and index <= 0 and !linePrefix
               lines.push(linePrefixNew + currentLine.join(''))
             else
               lines.push(linePrefix + currentLine.join(''))
           currentLine = []
           index -= currentLineLength
-          currentLineLength = linePrefixTabExpanded.length
+          if index <= 0
+            currentLineLength = linePrefixTabExpanded.length
+          else
+            currentLineLength = 0
           firstLine = false
         currentLine.push(segment)
         currentLineLength += segment.length
-      if linePrefix
-        lines.push(linePrefix + currentLine.join(''))
-      else if linePrefixNew and index <= 0
+      if linePrefixNew and index <= 0 and !linePrefix
         lines.push(linePrefixNew + currentLine.join(''))
       else
         lines.push(linePrefix + currentLine.join(''))
