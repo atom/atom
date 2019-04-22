@@ -132,7 +132,7 @@ module.exports =
             if linePrefix.search(/^\s*\/\*/) isnt -1 or linePrefix.search(/^\s*-(?!-)/) isnt -1
               linePrefix = wrappedLinePrefix
             if linePrefixNew and index <= 0 and !linePrefix
-              if currentLine[0] == "%"
+              if currentLine.join('')[0] == '%'
                 lines.push(linePrefix + currentLine.join(''))
               else
                 lines.push(linePrefixNew + currentLine.join(''))
@@ -148,7 +148,10 @@ module.exports =
         currentLine.push(segment)
         currentLineLength += segment.length
       if linePrefixNew and index <= 0 and !linePrefix
-        lines.push(linePrefixNew + currentLine.join(''))
+        if currentLine.join('')[0] == '%'
+          lines.push(linePrefix + currentLine.join(''))
+        else
+          lines.push(linePrefixNew + currentLine.join(''))
       else
         lines.push(linePrefix + currentLine.join(''))
       wrappedLines = beginningLinesToIgnore.concat(lines.concat(endingLinesToIgnore))
