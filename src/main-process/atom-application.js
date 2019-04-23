@@ -478,17 +478,17 @@ class AtomApplication extends EventEmitter {
 
   // Registers basic application commands, non-idempotent.
   handleEvents () {
-    const getLoadSettings = includeWindow => {
-      const window = this.focusedWindow()
+    const createOpenSettings = ({event, sameWindow}) => {
+      const targetWindow = event ? this.atomWindowForEvent(event) : this.focusedWindow()
       return {
-        devMode: window ? window.devMode : false,
-        safeMode: window ? window.safeMode : false,
-        window: includeWindow && window ? window : null
+        devMode: targetWindow ? targetWindow.devMode : false,
+        safeMode: targetWindow ? targetWindow.safeMode : false,
+        window: sameWindow && targetWindow ? targetWindow : null
       }
     }
 
     this.on('application:quit', () => app.quit())
-    this.on('application:new-window', () => this.openPath(getLoadSettings(false)))
+    this.on('application:new-window', () => this.openPath(createOpenSettings({})))
     this.on('application:new-file', () => (this.focusedWindow() || this).openPath())
     this.on('application:open-dev', () => this.promptForPathToOpen('all', {devMode: true}))
     this.on('application:open-safe', () => this.promptForPathToOpen('all', {safeMode: true}))
@@ -517,9 +517,16 @@ class AtomApplication extends EventEmitter {
         this.openPaths({ pathsToOpen: paths })
       })
 
-      this.on('application:open', () => this.promptForPathToOpen('all', getLoadSettings(true), getDefaultPath()))
-      this.on('application:open-file', () => this.promptForPathToOpen('file', getLoadSettings(true), getDefaultPath()))
-      this.on('application:open-folder', () => this.promptForPathToOpen('folder', getLoadSettings(true), getDefaultPath()))
+      this.on('application:open', () => {
+        this.promptForPathToOpen('all', createOpenSettings({sameWindow: true}), getDefaultPath())
+      })
+      this.on('application:open-file', () => {
+        this.promptForPathToOpen('file', createOpenSettings({sameWindow: true}), getDefaultPath())
+      })
+      this.on('application:open-folder', () => {
+        this.promptForPathToOpen('folder', createOpenSettings({sameWindow: true}), getDefaultPath())
+      })
+
       this.on('application:bring-all-windows-to-front', () => Menu.sendActionToFirstResponder('arrangeInFront:'))
       this.on('application:hide', () => Menu.sendActionToFirstResponder('hide:'))
       this.on('application:hide-other-applications', () => Menu.sendActionToFirstResponder('hideOtherApplications:'))
@@ -590,6 +597,9 @@ class AtomApplication extends EventEmitter {
       this.deleteSocketSecretFile()
     }))
 
+    // Triggered by the 'open-file' event from Electron:
+    // https://electronjs.org/docs/api/app#event-open-file-macos
+    // For example, this is fired when a file is dragged and dropped onto the Atom application icon in the dock.
     this.disposable.add(ipcHelpers.on(app, 'open-file', (event, pathToOpen) => {
       event.preventDefault()
       this.openPath({pathToOpen})
@@ -623,16 +633,15 @@ class AtomApplication extends EventEmitter {
       }
     }))
 
-    // A request from the associated render process to open a new render process.
-    this.disposable.add(ipcHelpers.on(ipcMain, 'open', (event, options) => {
-      const window = this.atomWindowForEvent(event)
+    // A request from the associated render process to open a set of paths using the standard window location logic.
+    // Used for application:reopen-project.
+    this.disposable.add(ipcHelpers.on(ipcMain, 'open', (_event, options) => {
       if (options) {
         if (typeof options.pathsToOpen === 'string') {
           options.pathsToOpen = [options.pathsToOpen]
         }
 
         if (options.pathsToOpen && options.pathsToOpen.length > 0) {
-          options.window = window
           this.openPaths(options)
         } else {
           this.addWindow(this.createWindow(options))
@@ -640,6 +649,18 @@ class AtomApplication extends EventEmitter {
       } else {
         this.promptForPathToOpen('all', {window})
       }
+    }))
+
+    // Prompt for a file, folder, or either, then open the chosen paths. Files will be opened in the originating
+    // window; folders will be opened in a new window unless an existing window exactly contains all of them.
+    this.disposable.add(ipcHelpers.on(ipcMain, 'open-chosen-any', (event, defaultPath) => {
+      this.promptForPathToOpen('all', createOpenSettings({event, sameWindow: true}), defaultPath)
+    }))
+    this.disposable.add(ipcHelpers.on(ipcMain, 'open-chosen-file', (event, defaultPath) => {
+      this.promptForPathToOpen('file', createOpenSettings({event, sameWindow: true}), defaultPath)
+    }))
+    this.disposable.add(ipcHelpers.on(ipcMain, 'open-chosen-folder', (event, defaultPath) => {
+      this.promptForPathToOpen('folder', createOpenSettings({event}), defaultPath)
     }))
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'update-application-menu', (event, template, menu) => {
@@ -666,19 +687,6 @@ class AtomApplication extends EventEmitter {
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'command', (event, command) => {
       this.emit(command)
-    }))
-
-    this.disposable.add(ipcHelpers.on(ipcMain, 'open-command', (event, command, defaultPath) => {
-      switch (command) {
-        case 'application:open':
-          return this.promptForPathToOpen('all', getLoadSettings(true), defaultPath)
-        case 'application:open-file':
-          return this.promptForPathToOpen('file', getLoadSettings(true), defaultPath)
-        case 'application:open-folder':
-          return this.promptForPathToOpen('folder', getLoadSettings(true), defaultPath)
-        default:
-          return console.log(`Invalid open-command received: ${command}`)
-      }
     }))
 
     this.disposable.add(ipcHelpers.on(ipcMain, 'window-command', (event, command, ...args) => {
