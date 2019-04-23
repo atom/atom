@@ -784,7 +784,9 @@ class AtomEnvironment {
 
     const loadStatePromise = this.loadState().then(async state => {
       this.windowDimensions = state && state.windowDimensions
-      await this.displayWindow()
+      if (!this.getLoadSettings().headless) {
+        await this.displayWindow()
+      }
       this.commandInstaller.installAtomCommand(false, (error) => {
         if (error) console.warn(error.message)
       })
@@ -838,7 +840,7 @@ class AtomEnvironment {
           }
         }
         previousProjectPaths = newPaths
-        this.applicationDelegate.setRepresentedDirectoryPaths(newPaths)
+        this.applicationDelegate.setProjectRoots(newPaths)
       }))
       this.disposables.add(this.workspace.onDidDestroyPaneItem(({item}) => {
         const path = item.getPath && item.getPath()
@@ -916,8 +918,8 @@ class AtomEnvironment {
 
   openInitialEmptyEditorIfNecessary () {
     if (!this.config.get('core.openEmptyEditorOnStart')) return
-    const {initialPaths} = this.getLoadSettings()
-    if (initialPaths && initialPaths.length === 0 && this.workspace.getPaneItems().length === 0) {
+    const {hasOpenFiles} = this.getLoadSettings()
+    if (!hasOpenFiles && this.workspace.getPaneItems().length === 0) {
       return this.workspace.open(null)
     }
   }
@@ -1213,7 +1215,7 @@ or use Pane::saveItemAs for programmatic saving.`)
 
   loadState (stateKey) {
     if (this.enablePersistence) {
-      if (!stateKey) stateKey = this.getStateKey(this.getLoadSettings().initialPaths)
+      if (!stateKey) stateKey = this.getStateKey(this.getLoadSettings().initialProjectRoots)
       if (stateKey) {
         return this.stateStore.load(stateKey)
       } else {
@@ -1388,7 +1390,7 @@ or use Pane::saveItemAs for programmatic saving.`)
           // Directory: add as a project folder
           foldersToAddToProject.add(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
         } else if (stats.isFile()) {
-          if (location.mustBeDirectory) {
+          if (location.isDirectory) {
             // File: no longer a directory
             missingFolders.push(location)
           } else {
@@ -1403,7 +1405,7 @@ or use Pane::saveItemAs for programmatic saving.`)
         if (directory) {
           // Found: add as a project folder
           foldersToAddToProject.add(directory.getPath())
-        } else if (location.mustBeDirectory) {
+        } else if (location.isDirectory) {
           // Not found and must be a directory: add to missing list and use to derive state key
           missingFolders.push(location)
         } else {

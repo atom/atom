@@ -170,8 +170,8 @@ class ApplicationDelegate {
     return ipcRenderer.send('add-recent-document', filename)
   }
 
-  setRepresentedDirectoryPaths (paths) {
-    return ipcHelpers.call('window-method', 'setRepresentedDirectoryPaths', paths)
+  setProjectRoots (paths) {
+    return ipcHelpers.call('window-method', 'setProjectRoots', paths)
   }
 
   setAutoHideWindowMenuBar (autoHide) {
