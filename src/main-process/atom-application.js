@@ -597,6 +597,9 @@ class AtomApplication extends EventEmitter {
       this.deleteSocketSecretFile()
     }))
 
+    // Triggered by the 'open-file' event from Electron:
+    // https://electronjs.org/docs/api/app#event-open-file-macos
+    // For example, this is fired when a file is dragged and dropped onto the dock.
     this.disposable.add(ipcHelpers.on(app, 'open-file', (event, pathToOpen) => {
       event.preventDefault()
       this.openPath({pathToOpen})
