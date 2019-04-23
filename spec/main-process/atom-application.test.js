@@ -41,64 +41,64 @@ const { emitterEventPromise, conditionPromise } = require('../async-spec-helpers
 //   two project roots, `./b` and `./c`, and one open editor on `./b/2.md`. The windows are listed in their expected
 //   creation order.
 
-describe('AtomApplication', function() {
+describe('AtomApplication', function () {
   let scenario, sinon
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     sinon = sandbox.create()
     scenario = await LaunchScenario.create(sinon)
   })
 
-  afterEach(async function() {
+  afterEach(async function () {
     await scenario.destroy()
     sinon.restore()
   })
 
-  describe('command-line interface behavior', function() {
-    describe('with no open windows', function() {
+  describe('command-line interface behavior', function () {
+    describe('with no open windows', function () {
       // This is also the case when a user selects the application from the OS shell
-      it('opens an empty window', async function() {
+      it('opens an empty window', async function () {
         await scenario.launch(parseCommandLine([]))
         await scenario.assert('[_ _]')
       })
 
       // This is also the case when a user clicks on a file in their file manager
-      it('opens a file', async function() {
+      it('opens a file', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
         await scenario.assert('[_ 1.md]')
       })
 
       // This is also the case when a user clicks on a folder in their file manager
       // (or, on macOS, drags the folder to Atom in their doc)
-      it('opens a directory', async function() {
+      it('opens a directory', async function () {
         await scenario.open(parseCommandLine(['a']))
         await scenario.assert('[a _]')
       })
 
-      it('opens a file with --add', async function() {
+      it('opens a file with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'a/1.md']))
         await scenario.assert('[_ 1.md]')
       })
 
-      it('opens a directory with --add', async function() {
+      it('opens a directory with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'a']))
         await scenario.assert('[a _]')
       })
 
-      it('opens a file with --new-window', async function() {
+      it('opens a file with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'a/1.md']))
         await scenario.assert('[_ 1.md]')
       })
 
-      it('opens a directory with --new-window', async function() {
+      it('opens a directory with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'a']))
         await scenario.assert('[a _]')
       })
 
-      describe('with previous window state', function() {
+      describe('with previous window state', function () {
         let app
 
-        beforeEach(function() {
+        beforeEach(function () {
           app = scenario.addApplication({
             applicationJson: [
               { initialPaths: ['b'] },
@@ -107,79 +107,79 @@ describe('AtomApplication', function() {
           })
         })
 
-        describe('with core.restorePreviousWindowsOnStart set to "no"', function() {
-          beforeEach(function() {
+        describe('with core.restorePreviousWindowsOnStart set to "no"', function () {
+          beforeEach(function () {
             app.config.set('core.restorePreviousWindowsOnStart', 'no')
           })
 
-          it("doesn't restore windows when launched with no arguments", async function() {
+          it("doesn't restore windows when launched with no arguments", async function () {
             await scenario.launch({ app })
             await scenario.assert('[_ _]')
           })
 
-          it("doesn't restore windows when launched with paths to open", async function() {
+          it("doesn't restore windows when launched with paths to open", async function () {
             await scenario.launch({ app, pathsToOpen: ['a/1.md'] })
             await scenario.assert('[_ 1.md]')
           })
 
-          it("doesn't restore windows when --new-window is provided", async function() {
+          it("doesn't restore windows when --new-window is provided", async function () {
             await scenario.launch({ app, newWindow: true })
             await scenario.assert('[_ _]')
           })
         })
 
-        describe('with core.restorePreviousWindowsOnStart set to "yes"', function() {
-          beforeEach(function() {
+        describe('with core.restorePreviousWindowsOnStart set to "yes"', function () {
+          beforeEach(function () {
             app.config.set('core.restorePreviousWindowsOnStart', 'yes')
           })
 
-          it('restores windows when launched with no arguments', async function() {
+          it('restores windows when launched with no arguments', async function () {
             await scenario.launch({ app })
             await scenario.assert('[b _] [c _]')
           })
 
-          it("doesn't restore windows when launched with paths to open", async function() {
+          it("doesn't restore windows when launched with paths to open", async function () {
             await scenario.launch({ app, pathsToOpen: ['a/1.md'] })
             await scenario.assert('[_ 1.md]')
           })
 
-          it("doesn't restore windows when --new-window is provided", async function() {
+          it("doesn't restore windows when --new-window is provided", async function () {
             await scenario.launch({ app, newWindow: true })
             await scenario.assert('[_ _]')
           })
         })
 
-        describe('with core.restorePreviousWindowsOnStart set to "always"', function() {
-          beforeEach(function() {
+        describe('with core.restorePreviousWindowsOnStart set to "always"', function () {
+          beforeEach(function () {
             app.config.set('core.restorePreviousWindowsOnStart', 'always')
           })
 
-          it('restores windows when launched with no arguments', async function() {
+          it('restores windows when launched with no arguments', async function () {
             await scenario.launch({ app })
             await scenario.assert('[b _] [c _]')
           })
 
-          it('restores windows when launched with a project path to open', async function() {
+          it('restores windows when launched with a project path to open', async function () {
             await scenario.launch({ app, pathsToOpen: ['a'] })
             await scenario.assert('[a _] [b _] [c _]')
           })
 
-          it('restores windows when launched with a file path to open', async function() {
+          it('restores windows when launched with a file path to open', async function () {
             await scenario.launch({ app, pathsToOpen: ['a/1.md'] })
             await scenario.assert('[b 1.md] [c _]')
           })
 
-          it('collapses new paths into restored windows when appropriate', async function() {
+          it('collapses new paths into restored windows when appropriate', async function () {
             await scenario.launch({ app, pathsToOpen: ['b/2.md'] })
             await scenario.assert('[b 2.md] [c _]')
           })
 
-          it("doesn't restore windows when --new-window is provided", async function() {
+          it("doesn't restore windows when --new-window is provided", async function () {
             await scenario.launch({ app, newWindow: true })
             await scenario.assert('[_ _]')
           })
 
-          it("doesn't restore windows on open, just launch", async function() {
+          it("doesn't restore windows on open, just launch", async function () {
             await scenario.launch({ app, pathsToOpen: ['a'], newWindow: true })
             await scenario.open(parseCommandLine(['b']))
             await scenario.assert('[a _] [b _]')
@@ -188,280 +188,280 @@ describe('AtomApplication', function() {
       })
     })
 
-    describe('with one empty window', function() {
-      beforeEach(async function() {
+    describe('with one empty window', function () {
+      beforeEach(async function () {
         await scenario.preconditions('[_ _]')
       })
 
       // This is also the case when a user selects the application from the OS shell
-      it('opens a new, empty window', async function() {
+      it('opens a new, empty window', async function () {
         await scenario.open(parseCommandLine([]))
         await scenario.assert('[_ _] [_ _]')
       })
 
       // This is also the case when a user clicks on a file in their file manager
-      it('opens a file', async function() {
+      it('opens a file', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
         await scenario.assert('[_ 1.md]')
       })
 
       // This is also the case when a user clicks on a folder in their file manager
-      it('opens a directory', async function() {
+      it('opens a directory', async function () {
         await scenario.open(parseCommandLine(['a']))
         await scenario.assert('[a _]')
       })
 
-      it('opens a file with --add', async function() {
+      it('opens a file with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'a/1.md']))
         await scenario.assert('[_ 1.md]')
       })
 
-      it('opens a directory with --add', async function() {
+      it('opens a directory with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'a']))
         await scenario.assert('[a _]')
       })
 
-      it('opens a file with --new-window', async function() {
+      it('opens a file with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'a/1.md']))
         await scenario.assert('[_ _] [_ 1.md]')
       })
 
-      it('opens a directory with --new-window', async function() {
+      it('opens a directory with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'a']))
         await scenario.assert('[_ _] [a _]')
       })
     })
 
-    describe('with one window that has a project root', function() {
-      beforeEach(async function() {
+    describe('with one window that has a project root', function () {
+      beforeEach(async function () {
         await scenario.preconditions('[a _]')
       })
 
       // This is also the case when a user selects the application from the OS shell
-      it('opens a new, empty window', async function() {
+      it('opens a new, empty window', async function () {
         await scenario.open(parseCommandLine([]))
         await scenario.assert('[a _] [_ _]')
       })
 
       // This is also the case when a user clicks on a file within the project root in their file manager
-      it('opens a file within the project root', async function() {
+      it('opens a file within the project root', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
         await scenario.assert('[a 1.md]')
       })
 
       // This is also the case when a user clicks on a project root folder in their file manager
-      it('opens a directory that matches the project root', async function() {
+      it('opens a directory that matches the project root', async function () {
         await scenario.open(parseCommandLine(['a']))
         await scenario.assert('[a _]')
       })
 
       // This is also the case when a user clicks on a file outside the project root in their file manager
-      it('opens a file outside the project root', async function() {
+      it('opens a file outside the project root', async function () {
         await scenario.open(parseCommandLine(['b/2.md']))
         await scenario.assert('[a 2.md]')
       })
 
       // This is also the case when a user clicks on a new folder in their file manager
-      it('opens a directory other than the project root', async function() {
+      it('opens a directory other than the project root', async function () {
         await scenario.open(parseCommandLine(['b']))
         await scenario.assert('[a _] [b _]')
       })
 
-      it('opens a file within the project root with --add', async function() {
+      it('opens a file within the project root with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'a/1.md']))
         await scenario.assert('[a 1.md]')
       })
 
-      it('opens a directory that matches the project root with --add', async function() {
+      it('opens a directory that matches the project root with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'a']))
         await scenario.assert('[a _]')
       })
 
-      it('opens a file outside the project root with --add', async function() {
+      it('opens a file outside the project root with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'b/2.md']))
         await scenario.assert('[a 2.md]')
       })
 
-      it('opens a directory other than the project root with --add', async function() {
+      it('opens a directory other than the project root with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'b']))
         await scenario.assert('[a,b _]')
       })
 
-      it('opens a file within the project root with --new-window', async function() {
+      it('opens a file within the project root with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'a/1.md']))
         await scenario.assert('[a _] [_ 1.md]')
       })
 
-      it('opens a directory that matches the project root with --new-window', async function() {
+      it('opens a directory that matches the project root with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'a']))
         await scenario.assert('[a _] [a _]')
       })
 
-      it('opens a file outside the project root with --new-window', async function() {
+      it('opens a file outside the project root with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'b/2.md']))
         await scenario.assert('[a _] [_ 2.md]')
       })
 
-      it('opens a directory other than the project root with --new-window', async function() {
+      it('opens a directory other than the project root with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'b']))
         await scenario.assert('[a _] [b _]')
       })
     })
 
-    describe('with two windows, one with a project root and one empty', function() {
-      beforeEach(async function() {
+    describe('with two windows, one with a project root and one empty', function () {
+      beforeEach(async function () {
         await scenario.preconditions('[a _] [_ _]')
       })
 
       // This is also the case when a user selects the application from the OS shell
-      it('opens a new, empty window', async function() {
+      it('opens a new, empty window', async function () {
         await scenario.open(parseCommandLine([]))
         await scenario.assert('[a _] [_ _] [_ _]')
       })
 
       // This is also the case when a user clicks on a file within the project root in their file manager
-      it('opens a file within the project root', async function() {
+      it('opens a file within the project root', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
         await scenario.assert('[a 1.md] [_ _]')
       })
 
       // This is also the case when a user clicks on a project root folder in their file manager
-      it('opens a directory that matches the project root', async function() {
+      it('opens a directory that matches the project root', async function () {
         await scenario.open(parseCommandLine(['a']))
         await scenario.assert('[a _] [_ _]')
       })
 
       // This is also the case when a user clicks on a file outside the project root in their file manager
-      it('opens a file outside the project root', async function() {
+      it('opens a file outside the project root', async function () {
         await scenario.open(parseCommandLine(['b/2.md']))
         await scenario.assert('[a _] [_ 2.md]')
       })
 
       // This is also the case when a user clicks on a new folder in their file manager
-      it('opens a directory other than the project root', async function() {
+      it('opens a directory other than the project root', async function () {
         await scenario.open(parseCommandLine(['b']))
         await scenario.assert('[a _] [b _]')
       })
 
-      it('opens a file within the project root with --add', async function() {
+      it('opens a file within the project root with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'a/1.md']))
         await scenario.assert('[a 1.md] [_ _]')
       })
 
-      it('opens a directory that matches the project root with --add', async function() {
+      it('opens a directory that matches the project root with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'a']))
         await scenario.assert('[a _] [_ _]')
       })
 
-      it('opens a file outside the project root with --add', async function() {
+      it('opens a file outside the project root with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'b/2.md']))
         await scenario.assert('[a _] [_ 2.md]')
       })
 
-      it('opens a directory other than the project root with --add', async function() {
+      it('opens a directory other than the project root with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'b']))
         await scenario.assert('[a _] [b _]')
       })
 
-      it('opens a file within the project root with --new-window', async function() {
+      it('opens a file within the project root with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'a/1.md']))
         await scenario.assert('[a _] [_ _] [_ 1.md]')
       })
 
-      it('opens a directory that matches the project root with --new-window', async function() {
+      it('opens a directory that matches the project root with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'a']))
         await scenario.assert('[a _] [_ _] [a _]')
       })
 
-      it('opens a file outside the project root with --new-window', async function() {
+      it('opens a file outside the project root with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'b/2.md']))
         await scenario.assert('[a _] [_ _] [_ 2.md]')
       })
 
-      it('opens a directory other than the project root with --new-window', async function() {
+      it('opens a directory other than the project root with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'b']))
         await scenario.assert('[a _] [_ _] [b _]')
       })
     })
 
-    describe('with two windows, one empty and one with a project root', function() {
-      beforeEach(async function() {
+    describe('with two windows, one empty and one with a project root', function () {
+      beforeEach(async function () {
         await scenario.preconditions('[_ _] [a _]')
       })
 
       // This is also the case when a user selects the application from the OS shell
-      it('opens a new, empty window', async function() {
+      it('opens a new, empty window', async function () {
         await scenario.open(parseCommandLine([]))
         await scenario.assert('[_ _] [a _] [_ _]')
       })
 
       // This is also the case when a user clicks on a file within the project root in their file manager
-      it('opens a file within the project root', async function() {
+      it('opens a file within the project root', async function () {
         await scenario.open(parseCommandLine(['a/1.md']))
         await scenario.assert('[_ _] [a 1.md]')
       })
 
       // This is also the case when a user clicks on a project root folder in their file manager
-      it('opens a directory that matches the project root', async function() {
+      it('opens a directory that matches the project root', async function () {
         await scenario.open(parseCommandLine(['a']))
         await scenario.assert('[_ _] [a _]')
       })
 
       // This is also the case when a user clicks on a file outside the project root in their file manager
-      it('opens a file outside the project root', async function() {
+      it('opens a file outside the project root', async function () {
         await scenario.open(parseCommandLine(['b/2.md']))
         await scenario.assert('[_ 2.md] [a _]')
       })
 
       // This is also the case when a user clicks on a new folder in their file manager
-      it('opens a directory other than the project root', async function() {
+      it('opens a directory other than the project root', async function () {
         await scenario.open(parseCommandLine(['b']))
         await scenario.assert('[b _] [a _]')
       })
 
-      it('opens a file within the project root with --add', async function() {
+      it('opens a file within the project root with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'a/1.md']))
         await scenario.assert('[_ _] [a 1.md]')
       })
 
-      it('opens a directory that matches the project root with --add', async function() {
+      it('opens a directory that matches the project root with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'a']))
         await scenario.assert('[_ _] [a _]')
       })
 
-      it('opens a file outside the project root with --add', async function() {
+      it('opens a file outside the project root with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'b/2.md']))
         await scenario.assert('[_ _] [a 2.md]')
       })
 
-      it('opens a directory other than the project root with --add', async function() {
+      it('opens a directory other than the project root with --add', async function () {
         await scenario.open(parseCommandLine(['--add', 'b']))
         await scenario.assert('[_ _] [a,b _]')
       })
 
-      it('opens a file within the project root with --new-window', async function() {
+      it('opens a file within the project root with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'a/1.md']))
         await scenario.assert('[_ _] [a _] [_ 1.md]')
       })
 
-      it('opens a directory that matches the project root with --new-window', async function() {
+      it('opens a directory that matches the project root with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'a']))
         await scenario.assert('[_ _] [a _] [a _]')
       })
 
-      it('opens a file outside the project root with --new-window', async function() {
+      it('opens a file outside the project root with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'b/2.md']))
         await scenario.assert('[_ _] [a _] [_ 2.md]')
       })
 
-      it('opens a directory other than the project root with --new-window', async function() {
+      it('opens a directory other than the project root with --new-window', async function () {
         await scenario.open(parseCommandLine(['--new-window', 'b']))
         await scenario.assert('[_ _] [a _] [b _]')
       })
     })
 
-    describe('--wait', function() {
-      it('kills the specified pid after a newly-opened window is closed', async function() {
+    describe('--wait', function () {
+      it('kills the specified pid after a newly-opened window is closed', async function () {
         const [w0] = await scenario.launch(parseCommandLine(['--new-window', '--wait', '--pid', '101']))
         const w1 = await scenario.open(parseCommandLine(['--new-window', '--wait', '--pid', '202']))
 
@@ -474,7 +474,7 @@ describe('AtomApplication', function() {
         assert.deepEqual(scenario.killedPids, [101, 202])
       })
 
-      it('kills the specified pid after all newly-opened files in an existing window are closed', async function() {
+      it('kills the specified pid after all newly-opened files in an existing window are closed', async function () {
         const [w] = await scenario.launch(parseCommandLine(['--new-window', 'a']))
         await scenario.open(parseCommandLine(['--add', '--wait', '--pid', '303', 'a/1.md', 'b/2.md']))
         await scenario.assert('[a 1.md,2.md]')
@@ -487,7 +487,7 @@ describe('AtomApplication', function() {
         assert.deepEqual(scenario.killedPids, [303])
       })
 
-      it('kills the specified pid after a newly-opened directory in an existing window is closed', async function() {
+      it('kills the specified pid after a newly-opened directory in an existing window is closed', async function () {
         const [w] = await scenario.launch(parseCommandLine(['--new-window', 'a']))
         await scenario.open(parseCommandLine(['--add', '--wait', '--pid', '404', 'b']))
         await scenario.assert('[a,b _]')
@@ -499,9 +499,9 @@ describe('AtomApplication', function() {
       })
     })
 
-    describe('atom:// URLs', function() {
-      describe('with a package-name host', function() {
-        it("loads the package's urlMain in a new window", async function() {
+    describe('atom:// URLs', function () {
+      describe('with a package-name host', function () {
+        it("loads the package's urlMain in a new window", async function () {
           await scenario.launch({})
 
           const app = scenario.getApplication(0)
@@ -534,7 +534,7 @@ describe('AtomApplication', function() {
           )
         })
 
-        it('sends a URI message to the most recently focused non-spec window', async function() {
+        it('sends a URI message to the most recently focused non-spec window', async function () {
           const [w0] = await scenario.launch({})
           const w1 = await scenario.open(parseCommandLine(['--new-window']))
           const w2 = await scenario.open(parseCommandLine(['--new-window']))
@@ -556,7 +556,7 @@ describe('AtomApplication', function() {
           }
         })
 
-        it('creates a new window and sends a URI message to it once it loads', async function() {
+        it('creates a new window and sends a URI message to it once it loads', async function () {
           const [w0] = await scenario.launch(parseCommandLine(['--test', 'a/1.md']))
 
           const app = scenario.getApplication(0)
@@ -576,8 +576,8 @@ describe('AtomApplication', function() {
         })
       })
 
-      describe('with a "core" host', function() {
-        it('sends a URI message to the most recently focused non-spec window that owns the open locations', async function() {
+      describe('with a "core" host', function () {
+        it('sends a URI message to the most recently focused non-spec window that owns the open locations', async function () {
           const [w0] = await scenario.launch(parseCommandLine(['a']))
           const w1 = await scenario.open(parseCommandLine(['--new-window', 'a']))
           const w2 = await scenario.open(parseCommandLine(['--new-window', 'b']))
@@ -592,7 +592,7 @@ describe('AtomApplication', function() {
           }
         })
 
-        it('creates a new window and sends a URI message to it once it loads', async function() {
+        it('creates a new window and sends a URI message to it once it loads', async function () {
           const [w0] = await scenario.launch(parseCommandLine(['--test', 'a/1.md']))
 
           const uri = `atom://core/open/file?filename=${encodeURIComponent(scenario.convertEditorPath('b/2.md'))}`
@@ -605,7 +605,7 @@ describe('AtomApplication', function() {
       })
     })
 
-    it('opens a file to a specific line number', async function() {
+    it('opens a file to a specific line number', async function () {
       await scenario.open(parseCommandLine(['a/1.md:10']))
       await scenario.assert('[_ 1.md]')
 
@@ -615,7 +615,7 @@ describe('AtomApplication', function() {
       assert.isNull(w._locations[0].initialColumn)
     })
 
-    it('opens a file to a specific line number and column', async function() {
+    it('opens a file to a specific line number and column', async function () {
       await scenario.open(parseCommandLine('b/2.md:12:5'))
       await scenario.assert('[_ 2.md]')
 
@@ -625,7 +625,7 @@ describe('AtomApplication', function() {
       assert.strictEqual(w._locations[0].initialColumn, 4)
     })
 
-    it('opens a directory with a non-file protocol', async function() {
+    it('opens a directory with a non-file protocol', async function () {
       await scenario.open(parseCommandLine(['remote://server:3437/some/directory/path']))
 
       const w = scenario.getWindow(0)
@@ -636,7 +636,7 @@ describe('AtomApplication', function() {
       assert.isFalse(w._locations[0].isFile)
     })
 
-    it('truncates trailing whitespace and colons', async function() {
+    it('truncates trailing whitespace and colons', async function () {
       await scenario.open(parseCommandLine('b/2.md::  '))
       await scenario.assert('[_ 2.md]')
 
@@ -648,7 +648,7 @@ describe('AtomApplication', function() {
   })
 
   if (process.platform === 'darwin' || process.platform === 'win32') {
-    it('positions new windows at an offset from the previous window', async function() {
+    it('positions new windows at an offset from the previous window', async function () {
       const [w0] = await scenario.launch(parseCommandLine(['a']))
       w0.setSize(400, 400)
       const d0 = w0.getDimensions()
@@ -662,10 +662,10 @@ describe('AtomApplication', function() {
   }
 
   if (process.platform === 'darwin') {
-    describe('with no windows open', function() {
+    describe('with no windows open', function () {
       let app
 
-      beforeEach(async function() {
+      beforeEach(async function () {
         const [w] = await scenario.launch(parseCommandLine([]))
 
         app = scenario.getApplication(0)
@@ -673,22 +673,22 @@ describe('AtomApplication', function() {
         sinon.stub(app, 'promptForPathToOpen')
       })
 
-      it('opens a new file', function() {
+      it('opens a new file', function () {
         app.emit('application:open-file')
         assert.isTrue(app.promptForPathToOpen.calledWith('file', { devMode: false, safeMode: false, window: null }))
       })
 
-      it('opens a new directory', function() {
+      it('opens a new directory', function () {
         app.emit('application:open-folder')
         assert.isTrue(app.promptForPathToOpen.calledWith('folder', { devMode: false, safeMode: false, window: null }))
       })
 
-      it('opens a new file or directory', function() {
+      it('opens a new file or directory', function () {
         app.emit('application:open')
         assert.isTrue(app.promptForPathToOpen.calledWith('all', { devMode: false, safeMode: false, window: null }))
       })
 
-      it('reopens a project in a new window', async function() {
+      it('reopens a project in a new window', async function () {
         const paths = scenario.convertPaths(['a', 'b'])
         app.emit('application:reopen-project', { paths })
 
@@ -699,12 +699,12 @@ describe('AtomApplication', function() {
     })
   }
 
-  describe('existing application re-use', function() {
+  describe('existing application re-use', function () {
     let createApplication
 
     const version = electron.app.getVersion()
 
-    beforeEach(function() {
+    beforeEach(function () {
       createApplication = async options => {
         options.version = version
 
@@ -715,7 +715,7 @@ describe('AtomApplication', function() {
       }
     })
 
-    it('creates a new application when no socket is present', async function() {
+    it('creates a new application when no socket is present', async function () {
       const app0 = await AtomApplication.open({ createApplication, version })
       app0.deleteSocketSecretFile()
 
@@ -724,7 +724,7 @@ describe('AtomApplication', function() {
       assert.notStrictEqual(app0, app1)
     })
 
-    it('creates a new application for spec windows', async function() {
+    it('creates a new application for spec windows', async function () {
       const app0 = await AtomApplication.open({ createApplication, version })
 
       const app1 = await AtomApplication.open({ createApplication, version, ...parseCommandLine(['--test', 'a']) })
@@ -732,7 +732,7 @@ describe('AtomApplication', function() {
       assert.notStrictEqual(app0, app1)
     })
 
-    it('sends a request to an existing application when a socket is present', async function() {
+    it('sends a request to an existing application when a socket is present', async function () {
       const app0 = await AtomApplication.open({ createApplication, version })
       assert.lengthOf(app0.getAllWindows(), 1)
 
@@ -745,10 +745,10 @@ describe('AtomApplication', function() {
     })
   })
 
-  describe('IPC handling', function() {
+  describe('IPC handling', function () {
     let w0, w1, w2, app
 
-    beforeEach(async function() {
+    beforeEach(async function () {
       w0 = (await scenario.launch(parseCommandLine(['a'])))[0]
       w1 = await scenario.open(parseCommandLine(['--new-window']))
       w2 = await scenario.open(parseCommandLine(['--new-window', 'b']))
@@ -763,7 +763,7 @@ describe('AtomApplication', function() {
     // * choosing "open in new window" when adding a folder that has previously saved state
     // * deprecated call links in deprecation-cop
     // * other direct callers of `atom.open()`
-    it('"open" opens a fixed path by the standard opening rules', async function() {
+    it('"open" opens a fixed path by the standard opening rules', async function () {
       sinon.stub(app, 'atomWindowForEvent', () => w1)
 
       electron.ipcMain.emit('open', {}, { pathsToOpen: scenario.convertEditorPath('a/1.md') })
@@ -779,7 +779,7 @@ describe('AtomApplication', function() {
       await scenario.assert('[a 1.md] [c _] [b _] [d _]')
     })
 
-    it('"open-chosen-any" opens a file in the sending window', async function() {
+    it('"open-chosen-any" opens a file in the sending window', async function () {
       sinon.stub(app, 'atomWindowForEvent', () => w2)
 
       electron.ipcMain.emit('open-chosen-any', {}, scenario.convertEditorPath('a/1.md'))
@@ -791,7 +791,7 @@ describe('AtomApplication', function() {
       assert.strictEqual(app.promptForPath.lastCall.args[0], 'all')
     })
 
-    it('"open-chosen-any" opens a directory by the standard opening rules', async function() {
+    it('"open-chosen-any" opens a directory by the standard opening rules', async function () {
       sinon.stub(app, 'atomWindowForEvent', () => w1)
 
       // Open unrecognized directory in empty window
@@ -822,7 +822,7 @@ describe('AtomApplication', function() {
       assert.strictEqual(app.promptForPath.lastCall.args[0], 'all')
     })
 
-    it('"open-chosen-file" opens a file chooser and opens the chosen file in the sending window', async function() {
+    it('"open-chosen-file" opens a file chooser and opens the chosen file in the sending window', async function () {
       sinon.stub(app, 'atomWindowForEvent', () => w0)
 
       electron.ipcMain.emit('open-chosen-file', {}, scenario.convertEditorPath('b/2.md'))
@@ -833,7 +833,7 @@ describe('AtomApplication', function() {
       assert.strictEqual(app.promptForPath.lastCall.args[0], 'file')
     })
 
-    it('"open-chosen-folder" opens a directory chooser and opens the chosen directory', async function() {
+    it('"open-chosen-folder" opens a directory chooser and opens the chosen directory', async function () {
       sinon.stub(app, 'atomWindowForEvent', () => w0)
 
       electron.ipcMain.emit('open-chosen-folder', {}, scenario.convertRootPath('c'))
@@ -845,8 +845,8 @@ describe('AtomApplication', function() {
     })
   })
 
-  describe('window state serialization', function() {
-    it('occurs immediately when adding a window', async function() {
+  describe('window state serialization', function () {
+    it('occurs immediately when adding a window', async function () {
       await scenario.launch(parseCommandLine(['a']))
 
       const promise = emitterEventPromise(scenario.getApplication(0), 'application:did-save-state')
@@ -862,7 +862,7 @@ describe('AtomApplication', function() {
       ))
     })
 
-    it('occurs immediately when removing a window', async function() {
+    it('occurs immediately when removing a window', async function () {
       await scenario.launch(parseCommandLine(['a']))
       const w = await scenario.open(parseCommandLine(['b']))
 
@@ -878,7 +878,7 @@ describe('AtomApplication', function() {
       ))
     })
 
-    it('occurs when the window is blurred', async function() {
+    it('occurs when the window is blurred', async function () {
       const [w] = await scenario.launch(parseCommandLine(['a']))
       const promise = emitterEventPromise(scenario.getApplication(0), 'application:did-save-state')
       w.browserWindow.emit('blur')
@@ -886,15 +886,15 @@ describe('AtomApplication', function() {
     })
   })
 
-  describe('when closing the last window', function() {
+  describe('when closing the last window', function () {
     if (process.platform === 'linux' || process.platform === 'win32') {
-      it('quits the application', async function() {
+      it('quits the application', async function () {
         const [w] = await scenario.launch(parseCommandLine(['a']))
         scenario.getApplication(0).removeWindow(w)
         assert.isTrue(electron.app.quit.called)
       })
     } else if (process.platform === 'darwin') {
-      it('leaves the application open', async function() {
+      it('leaves the application open', async function () {
         const [w] = await scenario.launch(parseCommandLine(['a']))
         scenario.getApplication(0).removeWindow(w)
         assert.isFalse(electron.app.quit.called)
@@ -902,8 +902,8 @@ describe('AtomApplication', function() {
     }
   })
 
-  describe('quitting', function() {
-    it('waits until all windows have saved their state before quitting', async function() {
+  describe('quitting', function () {
+    it('waits until all windows have saved their state before quitting', async function () {
       const [w0] = await scenario.launch(parseCommandLine(['a']))
       const w1 = await scenario.open(parseCommandLine(['b']))
       assert.notStrictEqual(w0, w1)
@@ -934,7 +934,7 @@ describe('AtomApplication', function() {
       assert.isTrue(w1.close.called)
     })
 
-    it('prevents a quit if a user cancels when prompted to save', async function() {
+    it('prevents a quit if a user cancels when prompted to save', async function () {
       const [w] = await scenario.launch(parseCommandLine(['a']))
       let resolveUnload
       w.prepareToUnload = () => new Promise(resolve => { resolveUnload = resolve })
@@ -950,7 +950,7 @@ describe('AtomApplication', function() {
       assert.isFalse(electron.app.quit.called)
     })
 
-    it('closes successfully unloaded windows', async function() {
+    it('closes successfully unloaded windows', async function () {
       const [w0] = await scenario.launch(parseCommandLine(['a']))
       const w1 = await scenario.open(parseCommandLine(['b']))
 
@@ -962,7 +962,7 @@ describe('AtomApplication', function() {
       let resolveUnload1
       w1.prepareToUnload = () => new Promise(resolve => { resolveUnload1 = resolve })
 
-      const evt = { preventDefault() { } }
+      const evt = { preventDefault () { } }
       electron.app.emit('before-quit', evt)
 
       resolveUnload0(false)
@@ -978,7 +978,7 @@ describe('AtomApplication', function() {
 })
 
 class StubWindow extends EventEmitter {
-  constructor(sinon, loadSettings, options) {
+  constructor (sinon, loadSettings, options) {
     super()
 
     this.loadSettings = loadSettings
@@ -1025,11 +1025,11 @@ class StubWindow extends EventEmitter {
     }
   }
 
-  openPath(pathToOpen, initialLine, initialColumn) {
+  openPath (pathToOpen, initialLine, initialColumn) {
     return this.openLocations([{ pathToOpen, initialLine, initialColumn }])
   }
 
-  openLocations(locations) {
+  openLocations (locations) {
     this._locations.push(...locations)
     for (const location of locations) {
       if (location.pathToOpen) {
@@ -1047,27 +1047,27 @@ class StubWindow extends EventEmitter {
     this.emit('window:locations-opened')
   }
 
-  setSize(x, y) {
+  setSize (x, y) {
     this._dimensions = { x, y }
   }
 
-  setPosition(x, y) {
+  setPosition (x, y) {
     this._position = { x, y }
   }
 
-  isSpecWindow() {
+  isSpecWindow () {
     return this.isSpec
   }
 
-  hasProjectPaths() {
+  hasProjectPaths () {
     return this._rootPaths.size > 0
   }
 
-  containsLocations(locations) {
+  containsLocations (locations) {
     return locations.every(location => this.containsLocation(location))
   }
 
-  containsLocation(location) {
+  containsLocation (location) {
     if (!location.pathToOpen) return false
 
     return Array.from(this._rootPaths).some(projectPath => {
@@ -1080,19 +1080,19 @@ class StubWindow extends EventEmitter {
     })
   }
 
-  getDimensions() {
+  getDimensions () {
     return Object.assign({}, this._dimensions)
   }
 }
 
 class LaunchScenario {
-  static async create(sandbox) {
+  static async create (sandbox) {
     const scenario = new this(sandbox)
     await scenario.init()
     return scenario
   }
 
-  constructor(sandbox) {
+  constructor (sandbox) {
     this.sinon = sandbox
 
     this.applications = new Set()
@@ -1106,7 +1106,7 @@ class LaunchScenario {
     this.originalAtomHome = null
   }
 
-  async init() {
+  async init () {
     if (this.root !== null) {
       return this.root
     }
@@ -1158,7 +1158,7 @@ class LaunchScenario {
     this.sinon.stub(electron.app, 'quit')
   }
 
-  async preconditions(source) {
+  async preconditions (source) {
     const app = this.addApplication()
     const windowPromises = []
 
@@ -1174,7 +1174,7 @@ class LaunchScenario {
     await Promise.all(windowPromises)
   }
 
-  launch(options) {
+  launch (options) {
     const app = options.app || this.addApplication()
     delete options.app
 
@@ -1185,7 +1185,7 @@ class LaunchScenario {
     return app.launch(options)
   }
 
-  open(options) {
+  open (options) {
     if (this.applications.size === 0) {
       return this.launch(options)
     }
@@ -1206,7 +1206,7 @@ class LaunchScenario {
     return app.openWithOptions(options)
   }
 
-  async assert(source) {
+  async assert (source) {
     const windowSpecs = this.parseWindowSpecs(source)
     let specIndex = 0
 
@@ -1314,7 +1314,7 @@ class LaunchScenario {
     assert.isTrue(descriptionParts.length === 0, descriptionParts.join(''))
   }
 
-  async destroy() {
+  async destroy () {
     await Promise.all(
       Array.from(this.applications, app => app.destroy())
     )
@@ -1324,7 +1324,7 @@ class LaunchScenario {
     }
   }
 
-  addApplication(options = {}) {
+  addApplication (options = {}) {
     const app = new AtomApplication({
       resourcePath: path.resolve(__dirname, '../..'),
       atomHomeDirPath: this.atomHome,
@@ -1347,7 +1347,7 @@ class LaunchScenario {
     return app
   }
 
-  getApplication(index) {
+  getApplication (index) {
     const app = Array.from(this.applications)[index]
     if (!app) {
       throw new Error(`Application ${index} does not exist`)
@@ -1355,7 +1355,7 @@ class LaunchScenario {
     return app
   }
 
-  getWindow(index) {
+  getWindow (index) {
     const window = Array.from(this.windows)[index]
     if (!window) {
       throw new Error(`Window ${index} does not exist`)
@@ -1363,7 +1363,7 @@ class LaunchScenario {
     return window
   }
 
-  compareSets(expected, actual) {
+  compareSets (expected, actual) {
     const expectedItems = new Set(expected)
     const extra = []
     const missing = []
@@ -1381,7 +1381,7 @@ class LaunchScenario {
     return [missing, extra]
   }
 
-  convertRootPath(shortRootPath) {
+  convertRootPath (shortRootPath) {
     if (shortRootPath.startsWith('atom://') || shortRootPath.startsWith('remote://')) { return shortRootPath }
 
     const fullRootPath = this.projectRootPool.get(shortRootPath)
@@ -1391,7 +1391,7 @@ class LaunchScenario {
     return fullRootPath
   }
 
-  convertEditorPath(shortEditorPath) {
+  convertEditorPath (shortEditorPath) {
     const [truncatedPath, ...suffix] = shortEditorPath.split(/(?=:)/)
     const fullEditorPath = this.filePathPool.get(truncatedPath)
     if (!fullEditorPath) {
@@ -1400,7 +1400,7 @@ class LaunchScenario {
     return fullEditorPath + suffix.join('')
   }
 
-  convertPaths(paths) {
+  convertPaths (paths) {
     return paths.map(shortPath => {
       if (shortPath.startsWith('atom://') || shortPath.startsWith('remote://')) { return shortPath }
 
@@ -1415,7 +1415,7 @@ class LaunchScenario {
     })
   }
 
-  parseWindowSpecs(source) {
+  parseWindowSpecs (source) {
     const specs = []
 
     const rx = /\s*\[(?:_|(\S+)) (?:_|(\S+))\]/g
