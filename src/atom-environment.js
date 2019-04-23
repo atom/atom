@@ -306,7 +306,14 @@ class AtomEnvironment {
   }
 
   registerDefaultCommands () {
-    registerDefaultCommands({commandRegistry: this.commands, config: this.config, commandInstaller: this.commandInstaller, notificationManager: this.notifications, project: this.project, clipboard: this.clipboard})
+    registerDefaultCommands({
+      commandRegistry: this.commands,
+      config: this.config,
+      commandInstaller: this.commandInstaller,
+      notificationManager: this.notifications,
+      project: this.project,
+      clipboard: this.clipboard
+    })
   }
 
   registerDefaultOpeners () {
