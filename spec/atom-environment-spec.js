@@ -336,57 +336,34 @@ describe('AtomEnvironment', () => {
     })
 
     describe('deserialization failures', () => {
-      it('propagates project state restoration failures', async () => {
+      it('propagates unrecognized project state restoration failures', async () => {
+        let err
         spyOn(atom.project, 'deserialize').andCallFake(() => {
-          const err = new Error('deserialization failure')
-          err.missingProjectPaths = ['/foo']
+          err = new Error('deserialization failure')
           return Promise.reject(err)
         })
         spyOn(atom.notifications, 'addError')
 
         await atom.deserialize({ project: 'should work' })
         expect(atom.notifications.addError).toHaveBeenCalledWith(
-          'Unable to open project directory',
+          'Unable to deserialize project',
           {
-            description: 'Project directory `/foo` is no longer on disk.'
+            description: 'deserialization failure',
+            stack: err.stack
           }
         )
       })
 
-      it('accumulates and reports two errors with one notification', async () => {
+      it('disregards missing project folder errors', async () => {
         spyOn(atom.project, 'deserialize').andCallFake(() => {
           const err = new Error('deserialization failure')
-          err.missingProjectPaths = ['/foo', '/wat']
+          err.missingProjectPaths = ['nah']
           return Promise.reject(err)
         })
         spyOn(atom.notifications, 'addError')
 
         await atom.deserialize({ project: 'should work' })
-        expect(atom.notifications.addError).toHaveBeenCalledWith(
-          'Unable to open 2 project directories',
-          {
-            description:
-              'Project directories `/foo` and `/wat` are no longer on disk.'
-          }
-        )
-      })
-
-      it('accumulates and reports three+ errors with one notification', async () => {
-        spyOn(atom.project, 'deserialize').andCallFake(() => {
-          const err = new Error('deserialization failure')
-          err.missingProjectPaths = ['/foo', '/wat', '/stuff', '/things']
-          return Promise.reject(err)
-        })
-        spyOn(atom.notifications, 'addError')
-
-        await atom.deserialize({ project: 'should work' })
-        expect(atom.notifications.addError).toHaveBeenCalledWith(
-          'Unable to open 4 project directories',
-          {
-            description:
-              'Project directories `/foo`, `/wat`, `/stuff`, and `/things` are no longer on disk.'
-          }
-        )
+        expect(atom.notifications.addError).not.toHaveBeenCalled()
       })
     })
   })
