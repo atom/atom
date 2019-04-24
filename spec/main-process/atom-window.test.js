@@ -190,6 +190,7 @@ describe('AtomWindow', function () {
       ]
 
       const w = new AtomWindow(app, service, { browserWindowConstructor: StubBrowserWindow, locationsToOpen })
+      assert.deepEqual(w.projectRoots, ['/directory'])
 
       const loadPromise = emitterEventPromise(w, 'window:loaded')
       w.browserWindow.emit('window:loaded')
@@ -256,6 +257,24 @@ describe('AtomWindow', function () {
       assert.isTrue(w.loadSettings.hasOpenFiles)
       assert.deepEqual(w.loadSettings.initialProjectRoots, ['directory0', 'directory1'])
       assert.isTrue(w.hasProjectPaths())
+    })
+
+    it('is updated synchronously by openLocations', async function () {
+      const locationsToOpen = [
+        { pathToOpen: 'file.txt', isFile: true },
+        { pathToOpen: 'directory1', isDirectory: true },
+        { pathToOpen: 'directory0', isDirectory: true },
+        { pathToOpen: 'directory0', isDirectory: true },
+        { pathToOpen: 'new-file.txt' }
+      ]
+
+      const w = new AtomWindow(app, service, { browserWindowConstructor: StubBrowserWindow })
+      assert.deepEqual(w.projectRoots, [])
+
+      const promise = w.openLocations(locationsToOpen)
+      assert.deepEqual(w.projectRoots, ['directory0', 'directory1'])
+      w.resolveLoadedPromise()
+      await promise
     })
 
     it('is updated by setProjectRoots', function () {

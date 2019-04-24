@@ -1247,9 +1247,8 @@ or use Pane::saveItemAs for programmatic saving.`)
       try {
         await this.project.deserialize(state.project, this.deserializers)
       } catch (error) {
-        if (error.missingProjectPaths) {
-          missingProjectPaths.push(...error.missingProjectPaths)
-        } else {
+        // We handle the missingProjectPaths case in openLocations().
+        if (!error.missingProjectPaths) {
           this.notifications.addError('Unable to deserialize project', {
             description: error.message,
             stack: error.stack
@@ -1268,7 +1267,7 @@ or use Pane::saveItemAs for programmatic saving.`)
 
     if (missingProjectPaths.length > 0) {
       const count = missingProjectPaths.length === 1 ? '' : missingProjectPaths.length + ' '
-      const noun = missingProjectPaths.length === 1 ? 'directory' : 'directories'
+      const noun = missingProjectPaths.length === 1 ? 'folder' : 'folders'
       const toBe = missingProjectPaths.length === 1 ? 'is' : 'are'
       const escaped = missingProjectPaths.map(projectPath => `\`${projectPath}\``)
       let group
