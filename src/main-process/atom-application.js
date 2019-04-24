@@ -252,8 +252,7 @@ class AtomApplication extends EventEmitter {
       this.config.onDidChange('core.colorProfile', () => this.promptForRestart())
     }
 
-    const optionsForWindowsToOpen = []
-
+    let optionsForWindowsToOpen = []
     let shouldReopenPreviousWindows = false
 
     if (options.test || options.benchmark || options.benchmarkTest) {
@@ -269,9 +268,7 @@ class AtomApplication extends EventEmitter {
     }
 
     if (shouldReopenPreviousWindows) {
-      for (const previousOptions of await this.loadPreviousWindowOptions()) {
-        optionsForWindowsToOpen.push(previousOptions)
-      }
+      optionsForWindowsToOpen = [...await this.loadPreviousWindowOptions(), ...optionsForWindowsToOpen]
     }
 
     if (optionsForWindowsToOpen.length === 0) {
