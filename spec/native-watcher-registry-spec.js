@@ -100,6 +100,8 @@ describe('NativeWatcherRegistry', function () {
   })
 
   it('reuses an existing NativeWatcher on the same directory', async function () {
+    this.RETRY_FLAKY_TEST_AND_SLOW_DOWN_THE_BUILD()
+
     const EXISTING = new MockNative('existing')
     const existingPath = absolute('existing', 'path')
     let firstTime = true
