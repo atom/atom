@@ -24,19 +24,19 @@ class GoToLineView {
       return false
     })
     atom.commands.add(this.miniEditor.element, 'core:confirm', () => {
-      this.navigate() 
+      this.navigate()
     })
     atom.commands.add(this.miniEditor.element, 'core:cancel', () => {
       this.close()
     })
     this.miniEditor.onWillInsertText((arg) => {
-        const value = this.miniEditor.getText()
-        if(arg.text.match(/[^0-9:\+-]/) || (arg.text.match(/\+/) && this.miniEditor.getCursorBufferPosition().column > 0) || (arg.text.match(/-/) && this.miniEditor.getCursorBufferPosition().column > 0) || (arg.text.match(/:/) && value.includes(':'))){
-            arg.cancel()
-      }
+      const value = this.miniEditor.getText()
+      if (arg.text.match(/[^0-9:\+-]/) || (arg.text.match(/\+/) && this.miniEditor.getCursorBufferPosition().column > 0) || (arg.text.match(/-/) && this.miniEditor.getCursorBufferPosition().column > 0) || (arg.text.match(/:/) && value.includes(':'))) {
+          arg.cancel()
+        }
     })
   }
-  
+
   toggle () {
     this.panel.isVisible() ? this.close() : this.open()
   }
@@ -62,11 +62,11 @@ class GoToLineView {
     const columnLineNumber = lineNumber.split(/:+/)[1] || ''
     const column = columnLineNumber.length > 0 ? parseInt(columnLineNumber) - 1 : -1
     var row = currentRow
-    if(lineNumber.charAt(0) == '+' || lineNumber.charAt(0) == '-'){
-        row = rowLineNumber.length > 0 ? parseInt(rowLineNumber) + currentRow : currentRow
-    }else{
-        row = rowLineNumber.length > 0 ? parseInt(rowLineNumber) - 1 : currentRow
-   }
+    if (lineNumber.charAt(0) === '+' || lineNumber.charAt(0) === '-') {
+      row = rowLineNumber.length > 0 ? parseInt(rowLineNumber) + currentRow : currentRow
+    } else {
+      row = rowLineNumber.length > 0 ? parseInt(rowLineNumber) - 1 : currentRow
+    }
     const position = new Point(row, column)
     editor.setCursorBufferPosition(position)
     editor.unfoldBufferRow(row)
@@ -77,8 +77,7 @@ class GoToLineView {
       center: true
     })
   }
-
-
+  
   storeFocusedElement () {
     this.previouslyFocusedElement = document.activeElement
     return this.previouslyFocusedElement
