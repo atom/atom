@@ -206,7 +206,7 @@ describe('AtomEnvironment', () => {
       const [dir1, dir2] = [temp.mkdirSync('dir1-'), temp.mkdirSync('dir2-')]
 
       const loadSettings = Object.assign(atom.getLoadSettings(), {
-        initialPaths: [dir1],
+        initialProjectRoots: [dir1],
         windowState: null
       })
 
@@ -221,7 +221,7 @@ describe('AtomEnvironment', () => {
       await atom.saveState()
       expect(await atom.loadState()).toBeFalsy()
 
-      loadSettings.initialPaths = [dir2, dir1]
+      loadSettings.initialProjectRoots = [dir2, dir1]
       expect(await atom.loadState()).toEqual({ stuff: 'cool' })
     })
 
@@ -393,9 +393,7 @@ describe('AtomEnvironment', () => {
 
   describe('openInitialEmptyEditorIfNecessary', () => {
     describe('when there are no paths set', () => {
-      beforeEach(() =>
-        spyOn(atom, 'getLoadSettings').andReturn({ initialPaths: [] })
-      )
+      beforeEach(() => spyOn(atom, 'getLoadSettings').andReturn({ hasOpenFiles: false }))
 
       it('opens an empty buffer', () => {
         spyOn(atom.workspace, 'open')
@@ -403,24 +401,24 @@ describe('AtomEnvironment', () => {
         expect(atom.workspace.open).toHaveBeenCalledWith(null)
       })
 
-      describe('when there is already a buffer open', () => {
-        beforeEach(async () => {
-          await atom.workspace.open()
-        })
+      it('does not open an empty buffer when a buffer is already open', async () => {
+        await atom.workspace.open()
+        spyOn(atom.workspace, 'open')
+        atom.openInitialEmptyEditorIfNecessary()
+        expect(atom.workspace.open).not.toHaveBeenCalled()
+      })
 
-        it('does not open an empty buffer', () => {
-          spyOn(atom.workspace, 'open')
-          atom.openInitialEmptyEditorIfNecessary()
-          expect(atom.workspace.open).not.toHaveBeenCalled()
-        })
+      it('does not open an empty buffer when core.openEmptyEditorOnStart is false', async () => {
+        atom.config.set('core.openEmptyEditorOnStart', false)
+        spyOn(atom.workspace, 'open')
+        atom.openInitialEmptyEditorIfNecessary()
+        expect(atom.workspace.open).not.toHaveBeenCalled()
       })
     })
 
     describe('when the project has a path', () => {
       beforeEach(() => {
-        spyOn(atom, 'getLoadSettings').andReturn({
-          initialPaths: ['something']
-        })
+        spyOn(atom, 'getLoadSettings').andReturn({ hasOpenFiles: true })
         spyOn(atom.workspace, 'open')
       })
 
@@ -433,10 +431,10 @@ describe('AtomEnvironment', () => {
 
   describe('adding a project folder', () => {
     it('does nothing if the user dismisses the file picker', () => {
-      const initialPaths = atom.project.getPaths()
+      const projectRoots = atom.project.getPaths()
       spyOn(atom, 'pickFolder').andCallFake(callback => callback(null))
       atom.addProjectFolder()
-      expect(atom.project.getPaths()).toEqual(initialPaths)
+      expect(atom.project.getPaths()).toEqual(projectRoots)
     })
 
     describe('when there is no saved state for the added folders', () => {
@@ -708,7 +706,7 @@ describe('AtomEnvironment', () => {
     })
   })
 
-  describe('::openLocations(locations) (called via IPC from browser process)', () => {
+  describe('::openLocations(locations)', () => {
     beforeEach(() => {
       atom.project.setPaths([])
     })
@@ -721,13 +719,13 @@ describe('AtomEnvironment', () => {
       describe('when the opened path exists', () => {
         it('opens a file', async () => {
           const pathToOpen = __filename
-          await atom.openLocations([{ pathToOpen }])
+          await atom.openLocations([{ pathToOpen, exists: true, isFile: true }])
           expect(atom.project.getPaths()).toEqual([])
         })
 
         it('opens a directory as a project folder', async () => {
           const pathToOpen = __dirname
-          await atom.openLocations([{ pathToOpen }])
+          await atom.openLocations([{ pathToOpen, exists: true, isDirectory: true }])
           expect(atom.workspace.getTextEditors().map(e => e.getPath())).toEqual(
             []
           )
@@ -741,7 +739,7 @@ describe('AtomEnvironment', () => {
             __dirname,
             'this-path-does-not-exist.txt'
           )
-          await atom.openLocations([{ pathToOpen }])
+          await atom.openLocations([{ pathToOpen, exists: false }])
           expect(atom.workspace.getTextEditors().map(e => e.getPath())).toEqual(
             [pathToOpen]
           )
@@ -756,9 +754,9 @@ describe('AtomEnvironment', () => {
           const existingDir = path.join(__dirname, 'fixtures')
 
           await atom.openLocations([
-            { pathToOpen: nonExistent, mustBeDirectory: true },
-            { pathToOpen: existingFile, mustBeDirectory: true },
-            { pathToOpen: existingDir, mustBeDirectory: true }
+            { pathToOpen: nonExistent, isDirectory: true },
+            { pathToOpen: existingFile, isDirectory: true },
+            { pathToOpen: existingDir, isDirectory: true }
           ])
 
           expect(atom.workspace.getTextEditors()).toEqual([])
@@ -829,7 +827,7 @@ describe('AtomEnvironment', () => {
       describe('when there are no project folders', () => {
         it('attempts to restore the project state', async () => {
           const pathToOpen = __dirname
-          await atom.openLocations([{ pathToOpen }])
+          await atom.openLocations([{ pathToOpen, isDirectory: true }])
           expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(
             state,
             [pathToOpen],
@@ -852,7 +850,7 @@ describe('AtomEnvironment', () => {
 
           await atom.openLocations([
             { pathToOpen: existingDir },
-            { pathToOpen: missingDir, mustBeDirectory: true }
+            { pathToOpen: missingDir, isDirectory: true }
           ])
 
           expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(
@@ -865,7 +863,7 @@ describe('AtomEnvironment', () => {
 
         it('opens the specified files', async () => {
           await atom.openLocations([
-            { pathToOpen: __dirname },
+            { pathToOpen: __dirname, isDirectory: true },
             { pathToOpen: __filename }
           ])
           expect(atom.attemptRestoreProjectStateForPaths).toHaveBeenCalledWith(
@@ -882,7 +880,7 @@ describe('AtomEnvironment', () => {
 
         it('does not attempt to restore the project state, instead adding the project paths', async () => {
           const pathToOpen = path.join(__dirname, 'fixtures')
-          await atom.openLocations([{ pathToOpen, forceAddToWindow: true }])
+          await atom.openLocations([{ pathToOpen, exists: true, isDirectory: true }])
           expect(atom.attemptRestoreProjectStateForPaths).not.toHaveBeenCalled()
           expect(atom.project.getPaths()).toEqual([__dirname, pathToOpen])
         })
@@ -890,7 +888,10 @@ describe('AtomEnvironment', () => {
         it('opens the specified files', async () => {
           const pathToOpen = path.join(__dirname, 'fixtures')
           const fileToOpen = path.join(pathToOpen, 'michelle-is-awesome.txt')
-          await atom.openLocations([{ pathToOpen }, { pathToOpen: fileToOpen }])
+          await atom.openLocations([
+            { pathToOpen, exists: true, isDirectory: true },
+            { pathToOpen: fileToOpen, exists: true, isFile: true }
+          ])
           expect(
             atom.attemptRestoreProjectStateForPaths
           ).not.toHaveBeenCalledWith(state, [pathToOpen], [fileToOpen])
