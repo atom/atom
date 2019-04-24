@@ -1170,7 +1170,8 @@ class AtomApplication extends EventEmitter {
       return state.windows.map(each => ({
         foldersToOpen: each.projectRoots,
         devMode: this.devMode,
-        safeMode: this.safeMode
+        safeMode: this.safeMode,
+        newWindow: true
       }))
     } else if (state.version === undefined) {
       // Atom <= 1.36.0
@@ -1188,7 +1189,8 @@ class AtomApplication extends EventEmitter {
           return {
             foldersToOpen: classifiedPaths.filter(({isDir}) => isDir).map(({initialPath}) => initialPath),
             devMode: this.devMode,
-            safeMode: this.safeMode
+            safeMode: this.safeMode,
+            newWindow: true
           }
         })
       )
