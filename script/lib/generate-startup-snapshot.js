@@ -30,6 +30,10 @@ module.exports = function (packagedAppPath) {
         requiringModuleRelativePath.endsWith(path.join('node_modules/xregexp/xregexp-all.js')) ||
         (requiredModuleRelativePath.startsWith(path.join('..', 'src')) && requiredModuleRelativePath.endsWith('-element.js')) ||
         requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'dugite')) ||
+        requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'markdown-preview', 'node_modules', 'yaml-front-matter')) ||
+        requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'markdown-preview', 'node_modules', 'cheerio')) ||
+        requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'markdown-preview', 'node_modules', 'marked')) ||
+        requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'typescript-simple')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'coffee-script', 'lib', 'coffee-script', 'register.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'fs-extra', 'lib', 'index.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'graceful-fs', 'graceful-fs.js')) ||
