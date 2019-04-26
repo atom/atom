@@ -8,20 +8,28 @@ describe('TitleBar', () => {
       themes: atom.themes,
       applicationDelegate: atom.applicationDelegate
     })
-    expect(titleBar.element.querySelector('.title').textContent).toBe(document.title)
+    expect(titleBar.element.querySelector('.title').textContent).toBe(
+      document.title
+    )
 
     const paneItem = new FakePaneItem('Title 1')
     atom.workspace.getActivePane().activateItem(paneItem)
     expect(document.title).toMatch('Title 1')
-    expect(titleBar.element.querySelector('.title').textContent).toBe(document.title)
+    expect(titleBar.element.querySelector('.title').textContent).toBe(
+      document.title
+    )
 
     paneItem.setTitle('Title 2')
     expect(document.title).toMatch('Title 2')
-    expect(titleBar.element.querySelector('.title').textContent).toBe(document.title)
+    expect(titleBar.element.querySelector('.title').textContent).toBe(
+      document.title
+    )
 
     atom.project.setPaths([temp.mkdirSync('project-1')])
     expect(document.title).toMatch('project-1')
-    expect(titleBar.element.querySelector('.title').textContent).toBe(document.title)
+    expect(titleBar.element.querySelector('.title').textContent).toBe(
+      document.title
+    )
   })
 
   it('can update the sheet offset for the current window based on its height', () => {
@@ -46,7 +54,9 @@ class FakePaneItem {
   onDidChangeTitle (callback) {
     this.didChangeTitleCallback = callback
     return {
-      dispose: () => { this.didChangeTitleCallback = null }
+      dispose: () => {
+        this.didChangeTitleCallback = null
+      }
     }
   }
 

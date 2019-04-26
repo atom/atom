@@ -5,7 +5,7 @@ describe('Selection', () => {
 
   beforeEach(() => {
     buffer = atom.project.bufferForPathSync('sample.js')
-    editor = new TextEditor({buffer, tabLength: 2})
+    editor = new TextEditor({ buffer, tabLength: 2 })
     selection = editor.getLastSelection()
   })
 
@@ -88,23 +88,31 @@ describe('Selection', () => {
   describe("when the selection's range is moved", () => {
     it('notifies ::onDidChangeRange observers', () => {
       selection.setBufferRange([[2, 0], [2, 10]])
-      const changeScreenRangeHandler = jasmine.createSpy('changeScreenRangeHandler')
+      const changeScreenRangeHandler = jasmine.createSpy(
+        'changeScreenRangeHandler'
+      )
       selection.onDidChangeRange(changeScreenRangeHandler)
       buffer.insert([2, 5], 'abc')
       expect(changeScreenRangeHandler).toHaveBeenCalled()
-      expect(changeScreenRangeHandler.mostRecentCall.args[0]).not.toBeUndefined()
-    });
-  });
+      expect(
+        changeScreenRangeHandler.mostRecentCall.args[0]
+      ).not.toBeUndefined()
+    })
+  })
 
   describe("when only the selection's tail is moved (regression)", () => {
     it('notifies ::onDidChangeRange observers', () => {
-      selection.setBufferRange([[2, 0], [2, 10]], {reversed: true})
-      const changeScreenRangeHandler = jasmine.createSpy('changeScreenRangeHandler')
+      selection.setBufferRange([[2, 0], [2, 10]], { reversed: true })
+      const changeScreenRangeHandler = jasmine.createSpy(
+        'changeScreenRangeHandler'
+      )
       selection.onDidChangeRange(changeScreenRangeHandler)
 
       buffer.insert([2, 5], 'abc')
       expect(changeScreenRangeHandler).toHaveBeenCalled()
-      expect(changeScreenRangeHandler.mostRecentCall.args[0]).not.toBeUndefined()
+      expect(
+        changeScreenRangeHandler.mostRecentCall.args[0]
+      ).not.toBeUndefined()
     })
   })
 
@@ -120,7 +128,7 @@ describe('Selection', () => {
   describe('.insertText(text, options)', () => {
     it('allows pasting white space only lines when autoIndent is enabled', () => {
       selection.setBufferRange([[0, 0], [0, 0]])
-      selection.insertText('    \n    \n\n', {autoIndent: true})
+      selection.insertText('    \n    \n\n', { autoIndent: true })
       expect(buffer.lineForRow(0)).toBe('    ')
       expect(buffer.lineForRow(1)).toBe('    ')
       expect(buffer.lineForRow(2)).toBe('')
@@ -128,19 +136,22 @@ describe('Selection', () => {
 
     it('auto-indents if only a newline is inserted', () => {
       selection.setBufferRange([[2, 0], [3, 0]])
-      selection.insertText('\n', {autoIndent: true})
+      selection.insertText('\n', { autoIndent: true })
       expect(buffer.lineForRow(2)).toBe('  ')
     })
 
     it('auto-indents if only a carriage return + newline is inserted', () => {
       selection.setBufferRange([[2, 0], [3, 0]])
-      selection.insertText('\r\n', {autoIndent: true})
+      selection.insertText('\r\n', { autoIndent: true })
       expect(buffer.lineForRow(2)).toBe('  ')
     })
 
     it('does not adjust the indent of trailing lines if preserveTrailingLineIndentation is true', () => {
       selection.setBufferRange([[5, 0], [5, 0]])
-      selection.insertText('      foo\n    bar\n', {preserveTrailingLineIndentation: true, indentBasis: 1})
+      selection.insertText('      foo\n    bar\n', {
+        preserveTrailingLineIndentation: true,
+        indentBasis: 1
+      })
       expect(buffer.lineForRow(6)).toBe('    bar')
     })
   })
@@ -152,7 +163,9 @@ describe('Selection', () => {
 
       expect(selection.getScreenRange()).toEqual([[0, 4], [0, 4]])
       expect(selection.getBufferRange()).toEqual([[1, 6], [1, 6]])
-      expect(editor.lineTextForScreenRow(0)).toBe(`var${editor.displayLayer.foldCharacter}sort = function(items) {`)
+      expect(editor.lineTextForScreenRow(0)).toBe(
+        `var${editor.displayLayer.foldCharacter}sort = function(items) {`
+      )
       expect(editor.isFoldedAtBufferRow(0)).toBe(true)
     })
 
@@ -162,7 +175,9 @@ describe('Selection', () => {
 
       expect(selection.getScreenRange()).toEqual([[0, 3], [0, 3]])
       expect(selection.getBufferRange()).toEqual([[0, 3], [0, 3]])
-      expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = function () {')
+      expect(editor.lineTextForScreenRow(0)).toBe(
+        'var quicksort = function () {'
+      )
       expect(editor.isFoldedAtBufferRow(0)).toBe(false)
     })
   })
@@ -261,11 +276,11 @@ describe('Selection', () => {
       {
         name: 'indentSelectedRows',
         op: opts => selection.indentSelectedRows(opts)
-      },
+      }
     ]
 
     describe('without bypassReadOnly', () => {
-      for (const {name, op} of modifications) {
+      for (const { name, op } of modifications) {
         it(`throws an error on ${name}`, () => {
           expect(op).toThrow()
         })
@@ -273,9 +288,9 @@ describe('Selection', () => {
     })
 
     describe('with bypassReadOnly', () => {
-      for (const {name, op} of modifications) {
+      for (const { name, op } of modifications) {
         it(`permits ${name}`, () => {
-          op({bypassReadOnly: true})
+          op({ bypassReadOnly: true })
         })
       }
     })

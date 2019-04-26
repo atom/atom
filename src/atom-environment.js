@@ -306,7 +306,14 @@ class AtomEnvironment {
   }
 
   registerDefaultCommands () {
-    registerDefaultCommands({commandRegistry: this.commands, config: this.config, commandInstaller: this.commandInstaller, notificationManager: this.notifications, project: this.project, clipboard: this.clipboard})
+    registerDefaultCommands({
+      commandRegistry: this.commands,
+      config: this.config,
+      commandInstaller: this.commandInstaller,
+      notificationManager: this.notifications,
+      project: this.project,
+      clipboard: this.clipboard
+    })
   }
 
   registerDefaultOpeners () {
@@ -784,7 +791,9 @@ class AtomEnvironment {
 
     const loadStatePromise = this.loadState().then(async state => {
       this.windowDimensions = state && state.windowDimensions
-      await this.displayWindow()
+      if (!this.getLoadSettings().headless) {
+        await this.displayWindow()
+      }
       this.commandInstaller.installAtomCommand(false, (error) => {
         if (error) console.warn(error.message)
       })
@@ -838,7 +847,7 @@ class AtomEnvironment {
           }
         }
         previousProjectPaths = newPaths
-        this.applicationDelegate.setRepresentedDirectoryPaths(newPaths)
+        this.applicationDelegate.setProjectRoots(newPaths)
       }))
       this.disposables.add(this.workspace.onDidDestroyPaneItem(({item}) => {
         const path = item.getPath && item.getPath()
@@ -916,8 +925,8 @@ class AtomEnvironment {
 
   openInitialEmptyEditorIfNecessary () {
     if (!this.config.get('core.openEmptyEditorOnStart')) return
-    const {initialPaths} = this.getLoadSettings()
-    if (initialPaths && initialPaths.length === 0 && this.workspace.getPaneItems().length === 0) {
+    const {hasOpenFiles} = this.getLoadSettings()
+    if (!hasOpenFiles && this.workspace.getPaneItems().length === 0) {
       return this.workspace.open(null)
     }
   }
@@ -1213,7 +1222,7 @@ or use Pane::saveItemAs for programmatic saving.`)
 
   loadState (stateKey) {
     if (this.enablePersistence) {
-      if (!stateKey) stateKey = this.getStateKey(this.getLoadSettings().initialPaths)
+      if (!stateKey) stateKey = this.getStateKey(this.getLoadSettings().initialProjectRoots)
       if (stateKey) {
         return this.stateStore.load(stateKey)
       } else {
@@ -1238,9 +1247,8 @@ or use Pane::saveItemAs for programmatic saving.`)
       try {
         await this.project.deserialize(state.project, this.deserializers)
       } catch (error) {
-        if (error.missingProjectPaths) {
-          missingProjectPaths.push(...error.missingProjectPaths)
-        } else {
+        // We handle the missingProjectPaths case in openLocations().
+        if (!error.missingProjectPaths) {
           this.notifications.addError('Unable to deserialize project', {
             description: error.message,
             stack: error.stack
@@ -1259,7 +1267,7 @@ or use Pane::saveItemAs for programmatic saving.`)
 
     if (missingProjectPaths.length > 0) {
       const count = missingProjectPaths.length === 1 ? '' : missingProjectPaths.length + ' '
-      const noun = missingProjectPaths.length === 1 ? 'directory' : 'directories'
+      const noun = missingProjectPaths.length === 1 ? 'folder' : 'folders'
       const toBe = missingProjectPaths.length === 1 ? 'is' : 'are'
       const escaped = missingProjectPaths.map(projectPath => `\`${projectPath}\``)
       let group
@@ -1364,6 +1372,7 @@ or use Pane::saveItemAs for programmatic saving.`)
     const needsProjectPaths = this.project && this.project.getPaths().length === 0
     const foldersToAddToProject = new Set()
     const fileLocationsToOpen = []
+    const missingFolders = []
 
     // Asynchronously fetch stat information about each requested path to open.
     const locationStats = await Promise.all(
@@ -1376,6 +1385,8 @@ or use Pane::saveItemAs for programmatic saving.`)
     for (const {location, stats} of locationStats) {
       const {pathToOpen} = location
       if (!pathToOpen) {
+        // Untitled buffer
+        fileLocationsToOpen.push(location)
         continue
       }
 
@@ -1385,8 +1396,13 @@ or use Pane::saveItemAs for programmatic saving.`)
           // Directory: add as a project folder
           foldersToAddToProject.add(this.project.getDirectoryForProjectPath(pathToOpen).getPath())
         } else if (stats.isFile()) {
-          // File: add as a file location
-          fileLocationsToOpen.push(location)
+          if (location.isDirectory) {
+            // File: no longer a directory
+            missingFolders.push(location)
+          } else {
+            // File: add as a file location
+            fileLocationsToOpen.push(location)
+          }
         }
       } else {
         // Path does not exist
@@ -1395,6 +1411,9 @@ or use Pane::saveItemAs for programmatic saving.`)
         if (directory) {
           // Found: add as a project folder
           foldersToAddToProject.add(directory.getPath())
+        } else if (location.isDirectory) {
+          // Not found and must be a directory: add to missing list and use to derive state key
+          missingFolders.push(location)
         } else {
           // Not found: open as a new file
           fileLocationsToOpen.push(location)
@@ -1405,8 +1424,12 @@ or use Pane::saveItemAs for programmatic saving.`)
     }
 
     let restoredState = false
-    if (foldersToAddToProject.size > 0) {
-      const state = await this.loadState(this.getStateKey(Array.from(foldersToAddToProject)))
+    if (foldersToAddToProject.size > 0 || missingFolders.length > 0) {
+      // Include missing folders in the state key so that sessions restored with no-longer-present project root folders
+      // don't lose data.
+      const foldersForStateKey = Array.from(foldersToAddToProject)
+        .concat(missingFolders.map(location => location.pathToOpen))
+      const state = await this.loadState(this.getStateKey(Array.from(foldersForStateKey)))
 
       // only restore state if this is the first path added to the project
       if (state && needsProjectPaths) {
@@ -1426,6 +1449,33 @@ or use Pane::saveItemAs for programmatic saving.`)
         fileOpenPromises.push(this.workspace && this.workspace.open(pathToOpen, {initialLine, initialColumn}))
       }
       await Promise.all(fileOpenPromises)
+    }
+
+    if (missingFolders.length > 0) {
+      let message = 'Unable to open project folder'
+      if (missingFolders.length > 1) {
+        message += 's'
+      }
+
+      let description = 'The '
+      if (missingFolders.length === 1) {
+        description += 'directory `'
+        description += missingFolders[0].pathToOpen
+        description += '` does not exist.'
+      } else if (missingFolders.length === 2) {
+        description += `directories \`${missingFolders[0].pathToOpen}\` `
+        description += `and \`${missingFolders[1].pathToOpen}\` do not exist.`
+      } else {
+        description += 'directories '
+        description += (missingFolders
+          .slice(0, -1)
+          .map(location => location.pathToOpen)
+          .map(pathToOpen => '`' + pathToOpen + '`, ')
+          .join(''))
+        description += 'and `' + missingFolders[missingFolders.length - 1].pathToOpen + '` do not exist.'
+      }
+
+      this.notifications.addWarning(message, {description})
     }
 
     ipcRenderer.send('window-command', 'window:locations-opened')

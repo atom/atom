@@ -1,4 +1,4 @@
-const {sortMenuItems} = require('../src/menu-sort-helpers')
+const { sortMenuItems } = require('../src/menu-sort-helpers')
 
 describe('contextMenu', () => {
   describe('dedupes separators', () => {
@@ -18,7 +18,8 @@ describe('contextMenu', () => {
     it('preserves separators at the begining of set two', () => {
       const items = [
         { command: 'core:one' },
-        { type: 'separator' }, { command: 'core:two' }
+        { type: 'separator' },
+        { command: 'core:two' }
       ]
       const expected = [
         { command: 'core:one' },
@@ -36,8 +37,10 @@ describe('contextMenu', () => {
 
     it('removes duplicate separators across sets', () => {
       const items = [
-        { command: 'core:one' }, { type: 'separator' },
-        { type: 'separator' }, { command: 'core:two' }
+        { command: 'core:one' },
+        { type: 'separator' },
+        { type: 'separator' },
+        { command: 'core:two' }
       ]
       const expected = [
         { command: 'core:one' },
