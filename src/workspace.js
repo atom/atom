@@ -1543,9 +1543,9 @@ module.exports = class Workspace extends Model {
   }
 
   subscribeToFontSize () {
-    return this.config.onDidChange('editor.fontSize', ({oldValue}) => {
+    return this.config.onDidChange('editor.fontSize', () => {
       if (this.originalFontSize == null) {
-        this.originalFontSize = oldValue
+        this.originalFontSize = this.config.get('editor.fontSize')
       }
     })
   }
