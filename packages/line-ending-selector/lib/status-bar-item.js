@@ -1,7 +1,6 @@
-const {Emitter} = require('atom')
+const { Emitter } = require('atom')
 
-module.exports =
-class StatusBarItem {
+module.exports = class StatusBarItem {
   constructor () {
     this.element = document.createElement('a')
     this.element.className = 'line-ending-tile inline-block'
@@ -46,9 +45,13 @@ function lineEndingName (lineEndings) {
 
 function lineEndingDescription (lineEndings) {
   switch (lineEndingName(lineEndings)) {
-    case 'Mixed': return 'mixed'
-    case 'LF': return 'LF (Unix)'
-    case 'CRLF': return 'CRLF (Windows)'
-    default: return 'unknown'
+    case 'Mixed':
+      return 'mixed'
+    case 'LF':
+      return 'LF (Unix)'
+    case 'CRLF':
+      return 'CRLF (Windows)'
+    default:
+      return 'unknown'
   }
 }

@@ -1,11 +1,12 @@
 const PaneContainer = require('../src/pane-container')
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
 
 describe('PaneContainer', () => {
   let confirm, params
 
   beforeEach(() => {
-    confirm = spyOn(atom.applicationDelegate, 'confirm').andCallFake((options, callback) => callback(0))
+    confirm = spyOn(atom.applicationDelegate, 'confirm').andCallFake(
+      (options, callback) => callback(0)
+    )
     params = {
       location: 'center',
       config: atom.config,
@@ -21,16 +22,20 @@ describe('PaneContainer', () => {
     beforeEach(() => {
       // This is a dummy item to prevent panes from being empty on deserialization
       class Item {
-        static deserialize () { return new (this)() }
-        serialize () { return {deserializer: 'Item'} }
+        static deserialize () {
+          return new this()
+        }
+        serialize () {
+          return { deserializer: 'Item' }
+        }
       }
       atom.deserializers.add(Item)
 
       containerA = new PaneContainer(params)
       pane1A = containerA.getActivePane()
       pane1A.addItem(new Item())
-      pane2A = pane1A.splitRight({items: [new Item()]})
-      pane3A = pane2A.splitDown({items: [new Item()]})
+      pane2A = pane1A.splitRight({ items: [new Item()] })
+      pane3A = pane2A.splitDown({ items: [new Item()] })
       pane3A.focus()
     })
 
@@ -64,7 +69,7 @@ describe('PaneContainer', () => {
 
     describe('if there are empty panes after deserialization', () => {
       beforeEach(() => {
-        pane3A.getItems()[0].serialize = () => ({deserializer: 'Bogus'})
+        pane3A.getItems()[0].serialize = () => ({ deserializer: 'Bogus' })
       })
 
       describe("if the 'core.destroyEmptyPanes' config option is false (the default)", () =>
@@ -78,8 +83,7 @@ describe('PaneContainer', () => {
           expect(leftPane.getItems().length).toBe(1)
           expect(topPane.getItems().length).toBe(1)
           expect(bottomPane.getItems().length).toBe(0)
-        })
-      )
+        }))
 
       describe("if the 'core.destroyEmptyPanes' config option is true", () =>
         it('removes empty panes on deserialization', () => {
@@ -92,8 +96,7 @@ describe('PaneContainer', () => {
 
           expect(leftPane.getItems().length).toBe(1)
           expect(rightPane.getItems().length).toBe(1)
-        })
-      )
+        }))
     })
   })
 
@@ -144,8 +147,8 @@ describe('PaneContainer', () => {
     beforeEach(() => {
       container = new PaneContainer(params)
       container.getRoot().addItems([{}, {}])
-      container.getRoot().splitRight({items: [{}, {}]});
-      [pane1, pane2] = container.getPanes()
+      container.getRoot().splitRight({ items: [{}, {}] })
+      ;[pane1, pane2] = container.getPanes()
 
       observed = []
       container.onDidChangeActivePane(pane => observed.push(pane))
@@ -164,8 +167,8 @@ describe('PaneContainer', () => {
     beforeEach(() => {
       container = new PaneContainer(params)
       container.getRoot().addItems([{}, {}])
-      container.getRoot().splitRight({items: [{}, {}]});
-      [pane1, pane2] = container.getPanes()
+      container.getRoot().splitRight({ items: [{}, {}] })
+      ;[pane1, pane2] = container.getPanes()
 
       observed = []
       container.onDidChangeActivePaneItem(item => observed.push(item))
@@ -190,8 +193,8 @@ describe('PaneContainer', () => {
     beforeEach(() => {
       container = new PaneContainer(params)
       container.getRoot().addItems([{}, {}])
-      container.getRoot().splitRight({items: [{}, {}]});
-      [pane1, pane2] = container.getPanes()
+      container.getRoot().splitRight({ items: [{}, {}] })
+      ;[pane1, pane2] = container.getPanes()
 
       observed = []
       container.onDidStopChangingActivePaneItem(item => observed.push(item))
@@ -251,30 +254,33 @@ describe('PaneContainer', () => {
     it('invokes observers with all current and future pane items', () => {
       const container = new PaneContainer(params)
       container.getRoot().addItems([{}, {}])
-      container.getRoot().splitRight({items: [{}]})
+      container.getRoot().splitRight({ items: [{}] })
       const pane2 = container.getPanes()[1]
       const observed = []
       container.observePaneItems(pane => observed.push(pane))
 
-      const pane3 = pane2.splitDown({items: [{}]})
+      const pane3 = pane2.splitDown({ items: [{}] })
       pane3.addItems([{}, {}])
 
       expect(observed).toEqual(container.getPaneItems())
-    })
-  )
+    }))
 
   describe('::confirmClose()', () => {
     let container, pane1, pane2
 
     beforeEach(() => {
       class TestItem {
-        shouldPromptToSave () { return true }
-        getURI () { return 'test' }
+        shouldPromptToSave () {
+          return true
+        }
+        getURI () {
+          return 'test'
+        }
       }
 
       container = new PaneContainer(params)
-      container.getRoot().splitRight();
-      [pane1, pane2] = container.getPanes()
+      container.getRoot().splitRight()
+      ;[pane1, pane2] = container.getPanes()
       pane1.addItem(new TestItem())
       pane2.addItem(new TestItem())
     })
@@ -298,7 +304,7 @@ describe('PaneContainer', () => {
     it('invokes the given callback when panes are added', () => {
       const container = new PaneContainer(params)
       const events = []
-      container.onDidAddPane((event) => {
+      container.onDidAddPane(event => {
         expect(container.getPanes().includes(event.pane)).toBe(true)
         events.push(event)
       })
@@ -307,23 +313,31 @@ describe('PaneContainer', () => {
       const pane2 = pane1.splitRight()
       const pane3 = pane2.splitDown()
 
-      expect(events).toEqual([{pane: pane2}, {pane: pane3}])
+      expect(events).toEqual([{ pane: pane2 }, { pane: pane3 }])
     })
   })
 
   describe('::onWillDestroyPane(callback)', () => {
     it('invokes the given callback before panes or their items are destroyed', () => {
       class TestItem {
-        constructor () { this._isDestroyed = false }
-        destroy () { this._isDestroyed = true }
-        isDestroyed () { return this._isDestroyed }
+        constructor () {
+          this._isDestroyed = false
+        }
+        destroy () {
+          this._isDestroyed = true
+        }
+        isDestroyed () {
+          return this._isDestroyed
+        }
       }
 
       const container = new PaneContainer(params)
       const events = []
-      container.onWillDestroyPane((event) => {
-        const itemsDestroyed = event.pane.getItems().map((item) => item.isDestroyed())
-        events.push([event, {itemsDestroyed}])
+      container.onWillDestroyPane(event => {
+        const itemsDestroyed = event.pane
+          .getItems()
+          .map(item => item.isDestroyed())
+        events.push([event, { itemsDestroyed }])
       })
 
       const pane1 = container.getActivePane()
@@ -332,7 +346,7 @@ describe('PaneContainer', () => {
 
       pane2.destroy()
 
-      expect(events).toEqual([[{pane: pane2}, {itemsDestroyed: [false]}]])
+      expect(events).toEqual([[{ pane: pane2 }, { itemsDestroyed: [false] }]])
     })
   })
 
@@ -340,7 +354,7 @@ describe('PaneContainer', () => {
     it('invokes the given callback when panes are destroyed', () => {
       const container = new PaneContainer(params)
       const events = []
-      container.onDidDestroyPane((event) => {
+      container.onDidDestroyPane(event => {
         expect(container.getPanes().includes(event.pane)).toBe(false)
         events.push(event)
       })
@@ -352,13 +366,13 @@ describe('PaneContainer', () => {
       pane2.destroy()
       pane3.destroy()
 
-      expect(events).toEqual([{pane: pane2}, {pane: pane3}])
+      expect(events).toEqual([{ pane: pane2 }, { pane: pane3 }])
     })
 
     it('invokes the given callback when the container is destroyed', () => {
       const container = new PaneContainer(params)
       const events = []
-      container.onDidDestroyPane((event) => {
+      container.onDidDestroyPane(event => {
         expect(container.getPanes().includes(event.pane)).toBe(false)
         events.push(event)
       })
@@ -369,7 +383,11 @@ describe('PaneContainer', () => {
 
       container.destroy()
 
-      expect(events).toEqual([{pane: pane1}, {pane: pane2}, {pane: pane3}])
+      expect(events).toEqual([
+        { pane: pane1 },
+        { pane: pane2 },
+        { pane: pane3 }
+      ])
     })
   })
 
@@ -385,19 +403,19 @@ describe('PaneContainer', () => {
       const events = []
       container.onWillDestroyPaneItem(event => events.push(['will', event]))
       container.onDidDestroyPaneItem(event => events.push(['did', event]))
-      const pane2 = pane1.splitRight({items: [item2, item3]})
+      const pane2 = pane1.splitRight({ items: [item2, item3] })
 
       await pane1.destroyItem(item1)
       await pane2.destroyItem(item3)
       await pane2.destroyItem(item2)
 
       expect(events).toEqual([
-        ['will', {item: item1, pane: pane1, index: 0}],
-        ['did', {item: item1, pane: pane1, index: 0}],
-        ['will', {item: item3, pane: pane2, index: 1}],
-        ['did', {item: item3, pane: pane2, index: 1}],
-        ['will', {item: item2, pane: pane2, index: 0}],
-        ['did', {item: item2, pane: pane2, index: 0}]
+        ['will', { item: item1, pane: pane1, index: 0 }],
+        ['did', { item: item1, pane: pane1, index: 0 }],
+        ['will', { item: item3, pane: pane2, index: 1 }],
+        ['did', { item: item3, pane: pane2, index: 1 }],
+        ['will', { item: item2, pane: pane2, index: 0 }],
+        ['did', { item: item2, pane: pane2, index: 0 }]
       ])
     })
   })
@@ -410,21 +428,39 @@ describe('PaneContainer', () => {
 
       const item1 = {
         saved: false,
-        getURI () { return '' },
-        isModified () { return true },
-        save () { this.saved = true }
+        getURI () {
+          return ''
+        },
+        isModified () {
+          return true
+        },
+        save () {
+          this.saved = true
+        }
       }
       const item2 = {
         saved: false,
-        getURI () { return '' },
-        isModified () { return false },
-        save () { this.saved = true }
+        getURI () {
+          return ''
+        },
+        isModified () {
+          return false
+        },
+        save () {
+          this.saved = true
+        }
       }
       const item3 = {
         saved: false,
-        getURI () { return '' },
-        isModified () { return true },
-        save () { this.saved = true }
+        getURI () {
+          return ''
+        },
+        isModified () {
+          return true
+        },
+        save () {
+          this.saved = true
+        }
       }
 
       pane1.addItem(item1)
@@ -436,37 +472,38 @@ describe('PaneContainer', () => {
       expect(item1.saved).toBe(true)
       expect(item2.saved).toBe(false)
       expect(item3.saved).toBe(true)
-    })
-  )
+    }))
 
   describe('::moveActiveItemToPane(destPane) and ::copyActiveItemToPane(destPane)', () => {
     let container, pane1, pane2, item1
 
     beforeEach(() => {
       class TestItem {
-        constructor (id) { this.id = id }
-        copy () { return new TestItem(this.id) }
+        constructor (id) {
+          this.id = id
+        }
+        copy () {
+          return new TestItem(this.id)
+        }
       }
 
       container = new PaneContainer(params)
       pane1 = container.getRoot()
       item1 = new TestItem('1')
-      pane2 = pane1.splitRight({items: [item1]})
+      pane2 = pane1.splitRight({ items: [item1] })
     })
 
     describe('::::moveActiveItemToPane(destPane)', () =>
       it('moves active item to given pane and focuses it', () => {
         container.moveActiveItemToPane(pane1)
         expect(pane1.getActiveItem()).toBe(item1)
-      })
-    )
+      }))
 
     describe('::::copyActiveItemToPane(destPane)', () =>
       it('copies active item to given pane and focuses it', () => {
         container.copyActiveItemToPane(pane1)
         expect(container.paneForItem(item1)).toBe(pane2)
         expect(pane1.getActiveItem().id).toBe(item1.id)
-      })
-    )
+      }))
   })
 })

@@ -30,6 +30,10 @@ module.exports = function (packagedAppPath) {
         requiringModuleRelativePath.endsWith(path.join('node_modules/xregexp/xregexp-all.js')) ||
         (requiredModuleRelativePath.startsWith(path.join('..', 'src')) && requiredModuleRelativePath.endsWith('-element.js')) ||
         requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'dugite')) ||
+        requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'markdown-preview', 'node_modules', 'yaml-front-matter')) ||
+        requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'markdown-preview', 'node_modules', 'cheerio')) ||
+        requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'markdown-preview', 'node_modules', 'marked')) ||
+        requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'typescript-simple')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'coffee-script', 'lib', 'coffee-script', 'register.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'fs-extra', 'lib', 'index.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'graceful-fs', 'graceful-fs.js')) ||
@@ -37,6 +41,7 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'minimatch', 'minimatch.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'request', 'index.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'request', 'request.js')) ||
+        requiredModuleRelativePath.endsWith(path.join('node_modules', 'superstring', 'index.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'temp', 'lib', 'temp.js')) ||
         requiredModuleRelativePath === path.join('..', 'exports', 'atom.js') ||
         requiredModuleRelativePath === path.join('..', 'src', 'electron-shims.js') ||
@@ -52,7 +57,6 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath === path.join('..', 'node_modules', 'less', 'lib', 'less-node', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'lodash.isequal', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'node-fetch', 'lib', 'fetch-error.js') ||
-        requiredModuleRelativePath === path.join('..', 'node_modules', 'superstring', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'oniguruma', 'src', 'oniguruma.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'resolve', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'resolve', 'lib', 'core.js') ||
@@ -64,7 +68,8 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath === path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'tree-sitter', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'yauzl', 'index.js') ||
-        requiredModuleRelativePath === path.join('..', 'node_modules', 'winreg', 'lib', 'registry.js')
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'winreg', 'lib', 'registry.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', '@atom', 'fuzzy-native', 'lib', 'main.js')
       )
     }
   }).then(({snapshotScript}) => {
