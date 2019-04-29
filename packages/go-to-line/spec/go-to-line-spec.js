@@ -58,16 +58,15 @@ describe('GoToLine', () => {
   })
 
   describe('when tpying relative line numbers and relative column numbers', () => {
-      it('automatically scrolls to the right row and column', () => {
-      editor.setCursorBufferPosition([0, 0])
-      goToLine.miniEditor.insertText('+4:+5')
-      expect(editor.getCursorBufferPosition()).toEqual([3, 4])
-      editor.setCursorBufferPosition([0, 0])
-      goToLine.miniEditor.insertText('+4:-5')
-      expect(editor.getCursorBufferPosition()).toEqual([3, 4])
-    })
-
-    })
+    it('automatically scrolls to the right row and column', () => {
+        editor.setCursorBufferPosition([0, 0])
+        goToLine.miniEditor.insertText('+4:+5')
+        expect(editor.getCursorBufferPosition()).toEqual([3, 4])
+        editor.setCursorBufferPosition([0, 0])
+        goToLine.miniEditor.insertText('+4:-5')
+        expect(editor.getCursorBufferPosition()).toEqual([3, 4])
+      })
+  })
 
   describe('when typing line numbers (auto-navigation)', () => {
     it('automatically scrolls to the desired line', () => {
@@ -87,7 +86,7 @@ describe('GoToLine', () => {
       editor.setCursorBufferPosition([0, 0])
       goToLine.miniEditor.insertText('+19')
       expect(editor.getCursorBufferPosition()).toEqual([18, 0])
-      
+
       goToLine.miniEditor.insertText('-13')
       expect(editor.getCursorBufferPosition()).toEqual([5, 0])
 
@@ -97,7 +96,6 @@ describe('GoToLine', () => {
 
       goToLine.miniEditor.insertText('-+4')
       expect(editor.getCursorBufferPosition()).toEqual([6, 0])
-      
     })
   })
 
@@ -106,10 +104,9 @@ describe('GoToLine', () => {
       editor.setCursorBufferPosition([0, 0])
       goToLine.miniEditor.insertText('+4:5')
       expect(editor.getCursorBufferPosition()).toEqual([3, 4])
-      
+
       goToLine.miniEditor.insertText('-4:5')
       expect(editor.getCursorBufferPosition()).toEqual([0, 4])
-
     })
   })
 
