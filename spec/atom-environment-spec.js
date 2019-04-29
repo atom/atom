@@ -375,7 +375,7 @@ describe('AtomEnvironment', () => {
       it('opens an empty buffer', () => {
         spyOn(atom.workspace, 'open')
         atom.openInitialEmptyEditorIfNecessary()
-        expect(atom.workspace.open).toHaveBeenCalledWith(null)
+        expect(atom.workspace.open).toHaveBeenCalledWith(null, {pending: true})
       })
 
       it('does not open an empty buffer when a buffer is already open', async () => {
