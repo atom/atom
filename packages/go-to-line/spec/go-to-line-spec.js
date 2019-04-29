@@ -67,7 +67,7 @@ describe('GoToLine', () => {
       expect(editor.getCursorBufferPosition()).toEqual([3, 4])
     })
 
-  }
+  })
   describe('when typing line numbers (auto-navigation)', () => {
     it('automatically scrolls to the desired line', () => {
       editor.setCursorBufferPosition([0,0])
