@@ -100,10 +100,13 @@ describe('AtomApplication', function () {
 
         beforeEach(function () {
           app = scenario.addApplication({
-            applicationJson: [
-              { initialPaths: ['b'] },
-              { initialPaths: ['c'] }
-            ]
+            applicationJson: {
+              version: '1',
+              windows: [
+                { projectRoots: [scenario.convertRootPath('b')] },
+                { projectRoots: [scenario.convertRootPath('c')] }
+              ]
+            }
           })
         })
 
@@ -161,12 +164,12 @@ describe('AtomApplication', function () {
 
           it('restores windows when launched with a project path to open', async function () {
             await scenario.launch({app, pathsToOpen: ['a']})
-            await scenario.assert('[a _] [b _] [c _]')
+            await scenario.assert('[b _] [c _] [a _]')
           })
 
           it('restores windows when launched with a file path to open', async function () {
             await scenario.launch({app, pathsToOpen: ['a/1.md']})
-            await scenario.assert('[b 1.md] [c _]')
+            await scenario.assert('[b _] [c 1.md]')
           })
 
           it('collapses new paths into restored windows when appropriate', async function () {
@@ -184,6 +187,33 @@ describe('AtomApplication', function () {
             await scenario.open(parseCommandLine(['b']))
             await scenario.assert('[a _] [b _]')
           })
+        })
+      })
+
+      describe('with unversioned application state', function () {
+        it('reads "initialPaths" as project roots', async function () {
+          const app = scenario.addApplication({
+            applicationJson: [
+              {initialPaths: [scenario.convertRootPath('a')]},
+              {initialPaths: [scenario.convertRootPath('b'), scenario.convertRootPath('c')]}
+            ]
+          })
+          app.config.set('core.restorePreviousWindowsOnStart', 'always')
+
+          await scenario.launch({app})
+          await scenario.assert('[a _] [b,c _]')
+        })
+
+        it('filters file paths from project root lists', async function () {
+          const app = scenario.addApplication({
+            applicationJson: [
+              {initialPaths: [scenario.convertRootPath('b'), scenario.convertEditorPath('a/1.md')]}
+            ]
+          })
+          app.config.set('core.restorePreviousWindowsOnStart', 'always')
+
+          await scenario.launch({app})
+          await scenario.assert('[b _]')
         })
       })
     })
@@ -645,6 +675,18 @@ describe('AtomApplication', function () {
       assert.isNull(w._locations[0].initialLine)
       assert.isNull(w._locations[0].initialColumn)
     })
+
+    it('disregards test and benchmark windows', async function () {
+      await scenario.launch(parseCommandLine(['--test', 'b']))
+      await scenario.open(parseCommandLine(['--new-window']))
+      await scenario.open(parseCommandLine(['--test', 'c']))
+      await scenario.open(parseCommandLine(['--benchmark', 'b']))
+
+      await scenario.open(parseCommandLine(['a/1.md']))
+
+      // Test and benchmark StubWindows are visible as empty editor windows here
+      await scenario.assert('[_ _] [_ 1.md] [_ _] [_ _]')
+    })
   })
 
   if (process.platform === 'darwin' || process.platform === 'win32') {
@@ -855,10 +897,13 @@ describe('AtomApplication', function () {
 
       assert.isTrue(scenario.getApplication(0).storageFolder.store.calledWith(
         'application.json',
-        [
-          {initialPaths: [scenario.convertRootPath('a')]},
-          {initialPaths: [scenario.convertRootPath('b'), scenario.convertRootPath('c')]}
-        ]
+        {
+          version: '1',
+          windows: [
+            {projectRoots: [scenario.convertRootPath('a')]},
+            {projectRoots: [scenario.convertRootPath('b'), scenario.convertRootPath('c')]}
+          ]
+        }
       ))
     })
 
@@ -872,9 +917,12 @@ describe('AtomApplication', function () {
 
       assert.isTrue(scenario.getApplication(0).storageFolder.store.calledWith(
         'application.json',
-        [
-          {initialPaths: [scenario.convertRootPath('a')]}
-        ]
+        {
+          version: '1',
+          windows: [
+            {projectRoots: [scenario.convertRootPath('a')]}
+          ]
+        }
       ))
     })
 
@@ -1338,9 +1386,7 @@ class LaunchScenario {
       return newWindow
     })
     this.sinon.stub(app.storageFolder, 'load', () => Promise.resolve(
-      (options.applicationJson || []).map(each => ({
-        initialPaths: this.convertPaths(each.initialPaths)
-      }))
+      options.applicationJson || {version: '1', windows: []}
     ))
     this.sinon.stub(app.storageFolder, 'store', () => Promise.resolve())
     this.applications.add(app)

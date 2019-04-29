@@ -84,6 +84,8 @@ class Selection {
   //
   // * `bufferRange` The new {Range} to select.
   // * `options` (optional) {Object} with the keys:
+  //   * `reversed` {Boolean} indicating whether to set the selection in a
+  //     reversed orientation.
   //   * `preserveFolds` if `true`, the fold settings are preserved after the
   //     selection moves.
   //   * `autoscroll` {Boolean} indicating whether to autoscroll to the new

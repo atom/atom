@@ -18,8 +18,6 @@ matrix:
       dist: trusty
       env: NODE_VERSION=8.9.3 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1 ATOM_JASMINE_REPORTER=list
 
-sudo: required
-
 before_install:
   - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
 

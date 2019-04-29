@@ -72,10 +72,7 @@ class AtomWindow extends EventEmitter {
     if (this.loadSettings.safeMode == null) this.loadSettings.safeMode = false
     if (this.loadSettings.clearWindowState == null) this.loadSettings.clearWindowState = false
 
-    this.projectRoots = locationsToOpen
-      .filter(location => location.pathToOpen && location.exists && location.isDirectory)
-      .map(location => location.pathToOpen)
-    this.projectRoots.sort()
+    this.addLocationsToOpen(locationsToOpen)
 
     this.loadSettings.hasOpenFiles = locationsToOpen
       .some(location => location.pathToOpen && !location.isDirectory)
@@ -240,6 +237,7 @@ class AtomWindow extends EventEmitter {
   }
 
   async openLocations (locationsToOpen) {
+    this.addLocationsToOpen(locationsToOpen)
     await this.loadedPromise
     this.sendMessage('open-locations', locationsToOpen)
   }
@@ -250,6 +248,18 @@ class AtomWindow extends EventEmitter {
 
   didFailToReadUserSettings (message) {
     this.sendMessage('did-fail-to-read-user-settings', message)
+  }
+
+  addLocationsToOpen (locationsToOpen) {
+    const roots = new Set(this.projectRoots || [])
+    for (const {pathToOpen, isDirectory} of locationsToOpen) {
+      if (isDirectory) {
+        roots.add(pathToOpen)
+      }
+    }
+
+    this.projectRoots = Array.from(roots)
+    this.projectRoots.sort()
   }
 
   replaceEnvironment (env) {
