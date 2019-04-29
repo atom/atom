@@ -57,7 +57,7 @@ describe('GoToLine', () => {
     })
   })
 
-  describe('when tpying relative line numbers and relative column numbers'){
+    describe('when tpying relative line numbers and relative column numbers', () => {
     it('automatically scrolls to the right row and column', ()=> {
       editor.setCursorBufferPosition([0,0])
       goToLine.miniEditor.insertText('+4:+5')

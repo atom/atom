@@ -32,8 +32,8 @@ class GoToLineView {
     this.miniEditor.onWillInsertText((arg) => {
       const value = this.miniEditor.getText()
       if (arg.text.match(/[^0-9:\+-]/) || (arg.text.match(/\+/) && this.miniEditor.getCursorBufferPosition().column > 0) || (arg.text.match(/-/) && this.miniEditor.getCursorBufferPosition().column > 0) || (arg.text.match(/:/) && value.includes(':'))) {
-          arg.cancel()
-        }
+        arg.cancel()
+      }
     })
   }
 
@@ -77,7 +77,7 @@ class GoToLineView {
       center: true
     })
   }
-  
+
   storeFocusedElement () {
     this.previouslyFocusedElement = document.activeElement
     return this.previouslyFocusedElement
