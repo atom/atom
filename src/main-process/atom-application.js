@@ -866,6 +866,7 @@ class AtomApplication extends EventEmitter {
   // Returns the {AtomWindow} for the given locations.
   windowForLocations (locationsToOpen, devMode, safeMode) {
     return this.getLastFocusedWindow(window =>
+      !window.isSpec &&
       window.devMode === devMode &&
       window.safeMode === safeMode &&
       window.containsLocations(locationsToOpen)
@@ -1021,13 +1022,13 @@ class AtomApplication extends EventEmitter {
       // focused window that matches the requested dev and safe modes.
       if (!existingWindow && addToLastWindow) {
         existingWindow = this.getLastFocusedWindow(win => {
-          return win.devMode === devMode && win.safeMode === safeMode
+          return !win.isSpec && win.devMode === devMode && win.safeMode === safeMode
         })
       }
 
       // Fall back to the last focused window that has no project roots.
       if (!existingWindow) {
-        existingWindow = this.getLastFocusedWindow(win => !win.hasProjectPaths())
+        existingWindow = this.getLastFocusedWindow(win => !win.isSpec && !win.hasProjectPaths())
       }
 
       // One last case: if *no* paths are directories, add to the last focused window.
@@ -1035,7 +1036,7 @@ class AtomApplication extends EventEmitter {
         const noDirectories = locationsToOpen.every(location => !location.isDirectory)
         if (noDirectories) {
           existingWindow = this.getLastFocusedWindow(win => {
-            return win.devMode === devMode && win.safeMode === safeMode
+            return !win.isSpec && win.devMode === devMode && win.safeMode === safeMode
           })
         }
       }
