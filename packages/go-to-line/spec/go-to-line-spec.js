@@ -57,15 +57,15 @@ describe('GoToLine', () => {
     })
   })
 
-  describe('when tpying relative line numbers and relative column numbers', () => {
+  describe('when typing relative line numbers and relative column numbers', () => {
     it('automatically scrolls to the right row and column', () => {
-        editor.setCursorBufferPosition([0, 0])
-        goToLine.miniEditor.insertText('+4:+5')
-        expect(editor.getCursorBufferPosition()).toEqual([3, 4])
-        editor.setCursorBufferPosition([0, 0])
-        goToLine.miniEditor.insertText('+4:-5')
-        expect(editor.getCursorBufferPosition()).toEqual([3, 4])
-      })
+      editor.setCursorBufferPosition([0, 0])
+      goToLine.miniEditor.insertText('+4:+5')
+      expect(editor.getCursorBufferPosition()).toEqual([3, 4])
+      editor.setCursorBufferPosition([0, 0])
+      goToLine.miniEditor.insertText('+4:-5')
+      expect(editor.getCursorBufferPosition()).toEqual([3, 4])
+    })
   })
 
   describe('when typing line numbers (auto-navigation)', () => {
