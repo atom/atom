@@ -635,7 +635,7 @@ class PathWatcherManager {
     }
 
     if (this.useExperimentalWatcher()) {
-      if (!this.watcher) this.watcher = new Watcher();
+      if (!this.watcher) this.watcher = new Watcher()
 
       // TODO: Figure out how to handle the poll setting
       // if (this.setting === 'poll') {
