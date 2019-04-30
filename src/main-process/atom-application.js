@@ -87,10 +87,15 @@ const createSocketSecret = async (atomVersion) => {
   return socketSecret
 }
 
-const encryptOptions = async (options, secret) => {
+const encryptOptions = (options, secret) => {
   const message = JSON.stringify(options)
 
-  const initVector = await getRandomBytes(16)
+  // Even if the following IV is not cryptographically secure, there's a really good chance
+  // it's going to be unique between executions which is the requirement for GCM.
+  const initVectorHash = crypto.createHash('sha1')
+  initVectorHash.update(Date.now() + '')
+  initVectorHash.update(Math.random() + '')
+  const initVector = initVectorHash.digest()
 
   const cipher = crypto.createCipheriv('aes-256-gcm', secret, initVector)
 
@@ -148,12 +153,10 @@ class AtomApplication extends EventEmitter {
 
     return new Promise(resolve => {
       const client = net.connect({path: socketPath}, () => {
-        encryptOptions(options, socketSecret).then((encryptedOptions) => {
-          client.write(encryptedOptions, () => {
-            client.end()
-            app.quit()
-            resolve(null)
-          })
+        client.write(encryptOptions(options, socketSecret), () => {
+          client.end()
+          app.quit()
+          resolve(null)
         })
       })
 
