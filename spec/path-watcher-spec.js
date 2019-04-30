@@ -52,6 +52,10 @@ describe('watchPath', function () {
   }
 
   describe('watchPath()', function () {
+    beforeEach(() => {
+      atom.config.set('core.fileSystemWatcher', 'native')
+    })
+
     it('resolves the returned promise when the watcher begins listening', async function () {
       const rootDir = await tempMkdir('atom-fsmanager-test-')
 

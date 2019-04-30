@@ -2,9 +2,12 @@ const fs = require('fs')
 const path = require('path')
 
 const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
+
+const Watcher = require('@atom/notify')
 const nsfw = require('@atom/nsfw')
-const watcher = require('@atom/watcher')
 const {NativeWatcherRegistry} = require('./native-watcher-registry')
+
+const watcher = new Watcher()
 
 // Private: Associate native watcher action flags with descriptive String equivalents.
 const ACTION_MAP = new Map([
@@ -588,6 +591,7 @@ class PathWatcherManager {
   // Private: Initialize global {PathWatcher} state.
   constructor (setting) {
     this.setting = setting
+    this.watcher = null
     this.live = new Map()
 
     const initLocal = NativeConstructor => {
@@ -631,13 +635,14 @@ class PathWatcherManager {
     }
 
     if (this.useExperimentalWatcher()) {
-      if (this.setting === 'poll') {
-        options.poll = true
-      }
+      if (!this.watcher) this.watcher = new Watcher();
 
-      const w = await watcher.watchPath(rootPath, options, eventCallback)
-      this.live.set(rootPath, w.native)
-      return w
+      // TODO: Figure out how to handle the poll setting
+      // if (this.setting === 'poll') {
+      //   options.poll = true
+      // }
+
+      return this.watcher.watchPath(rootPath, eventCallback)
     }
 
     const w = new PathWatcher(this.nativeRegistry, rootPath, options)
@@ -678,12 +683,14 @@ class PathWatcherManager {
   // Returns a {Promise} that resolves when all native watcher resources are disposed.
   stopAllWatchers () {
     if (this.useExperimentalWatcher()) {
-      return watcher.stopAllWatchers()
+      this.watcher.kill()
+      this.watcher = null
+      return Promise.resolve()
+    } else {
+      return Promise.all(
+        Array.from(this.live, ([, w]) => w.stop())
+      )
     }
-
-    return Promise.all(
-      Array.from(this.live, ([, w]) => w.stop())
-    )
   }
 }
 
