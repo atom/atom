@@ -751,7 +751,7 @@ describe('AtomApplication', function () {
         options.version = version
 
         const app = scenario.addApplication(options)
-        await app.listenForArgumentsFromNewProcess()
+        await app.listenForArgumentsFromNewProcess(options)
         await app.launch(options)
         return app
       }
@@ -759,7 +759,7 @@ describe('AtomApplication', function () {
 
     it('creates a new application when no socket is present', async function () {
       const app0 = await AtomApplication.open({createApplication, version})
-      app0.deleteSocketSecretFile()
+      await app0.deleteSocketSecretFile()
 
       const app1 = await AtomApplication.open({createApplication, version})
       assert.isNotNull(app1)
