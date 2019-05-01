@@ -640,7 +640,9 @@ class PathWatcherManager {
       //   options.poll = true
       // }
 
-      return this.watcher.watchPath(rootPath, eventCallback)
+      const watcher = await this.watcher.watchPath(rootPath, eventCallback)
+      watcher.onDidError = () => {}
+      return watcher
     }
 
     const w = new PathWatcher(this.nativeRegistry, rootPath, options)
