@@ -803,22 +803,23 @@ describe('AtomApplication', function () {
     // This is the IPC message used to handle:
     // * application:reopen-project
     // * choosing "open in new window" when adding a folder that has previously saved state
+    // * drag and drop
     // * deprecated call links in deprecation-cop
     // * other direct callers of `atom.open()`
     it('"open" opens a fixed path by the standard opening rules', async function () {
       sinon.stub(app, 'atomWindowForEvent', () => w1)
 
-      electron.ipcMain.emit('open', {}, {pathsToOpen: scenario.convertEditorPath('a/1.md')})
+      electron.ipcMain.emit('open', {}, {pathsToOpen: [scenario.convertEditorPath('a/1.md')]})
       await app.openPaths.lastCall.returnValue
       await scenario.assert('[a 1.md] [_ _] [b _]')
 
-      electron.ipcMain.emit('open', {}, {pathsToOpen: scenario.convertRootPath('c')})
+      electron.ipcMain.emit('open', {}, {pathsToOpen: [scenario.convertRootPath('c')]})
       await app.openPaths.lastCall.returnValue
       await scenario.assert('[a 1.md] [c _] [b _]')
 
-      electron.ipcMain.emit('open', {}, {pathsToOpen: scenario.convertRootPath('d')})
+      electron.ipcMain.emit('open', {}, {pathsToOpen: [scenario.convertRootPath('d')], here: true})
       await app.openPaths.lastCall.returnValue
-      await scenario.assert('[a 1.md] [c _] [b _] [d _]')
+      await scenario.assert('[a 1.md] [c,d _] [b _]')
     })
 
     it('"open-chosen-any" opens a file in the sending window', async function () {

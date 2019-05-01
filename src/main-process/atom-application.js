@@ -659,10 +659,14 @@ class AtomApplication extends EventEmitter {
 
     // A request from the associated render process to open a set of paths using the standard window location logic.
     // Used for application:reopen-project.
-    this.disposable.add(ipcHelpers.on(ipcMain, 'open', (_event, options) => {
+    this.disposable.add(ipcHelpers.on(ipcMain, 'open', (event, options) => {
       if (options) {
         if (typeof options.pathsToOpen === 'string') {
           options.pathsToOpen = [options.pathsToOpen]
+        }
+
+        if (options.here) {
+          options.window = this.atomWindowForEvent(event)
         }
 
         if (options.pathsToOpen && options.pathsToOpen.length > 0) {
