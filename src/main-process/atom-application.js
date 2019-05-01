@@ -247,7 +247,7 @@ class AtomApplication extends EventEmitter {
   async launch (options) {
     if (!this.configFilePromise) {
       this.configFilePromise = this.configFile.watch()
-      this.disposable.add(await this.configFilePromise)
+      this.configFilePromise.then(disposable => this.disposable.add(disposable))
       this.config.onDidChange('core.titleBar', () => this.promptForRestart())
       this.config.onDidChange('core.colorProfile', () => this.promptForRestart())
     }
