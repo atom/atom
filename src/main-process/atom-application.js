@@ -15,6 +15,7 @@ const path = require('path')
 const os = require('os')
 const net = require('net')
 const url = require('url')
+const {promisify} = require('util')
 const {EventEmitter} = require('events')
 const _ = require('underscore-plus')
 let FindParentDir = null
@@ -75,10 +76,13 @@ const getExistingSocketSecret = (atomVersion) => {
   return fs.readFileSync(socketSecretPath, 'utf8')
 }
 
-const createSocketSecret = (atomVersion) => {
-  const socketSecret = crypto.randomBytes(16).toString('hex')
+const getRandomBytes = promisify(crypto.randomBytes)
+const writeFile = promisify(fs.writeFile)
 
-  fs.writeFileSync(getSocketSecretPath(atomVersion), socketSecret, {encoding: 'utf8', mode: 0o600})
+const createSocketSecret = async (atomVersion) => {
+  const socketSecret = (await getRandomBytes(16)).toString('hex')
+
+  await writeFile(getSocketSecretPath(atomVersion), socketSecret, {encoding: 'utf8', mode: 0o600})
 
   return socketSecret
 }
@@ -86,7 +90,12 @@ const createSocketSecret = (atomVersion) => {
 const encryptOptions = (options, secret) => {
   const message = JSON.stringify(options)
 
-  const initVector = crypto.randomBytes(16)
+  // Even if the following IV is not cryptographically secure, there's a really good chance
+  // it's going to be unique between executions which is the requirement for GCM.
+  const initVectorHash = crypto.createHash('sha1')
+  initVectorHash.update(Date.now() + '')
+  initVectorHash.update(Math.random() + '')
+  const initVector = initVectorHash.digest()
 
   const cipher = crypto.createCipheriv('aes-256-gcm', secret, initVector)
 
@@ -173,12 +182,6 @@ class AtomApplication extends EventEmitter {
     this.logFile = options.logFile
     this.userDataDir = options.userDataDir
     this._killProcess = options.killProcess || process.kill.bind(process)
-
-    if (!options.test && !options.benchmark && !options.benchmarkTest) {
-      this.socketSecret = createSocketSecret(this.version)
-      this.socketPath = getSocketPath(this.socketSecret)
-    }
-
     this.waitSessionsByWindow = new Map()
     this.windowStack = new WindowStack()
 
@@ -227,11 +230,16 @@ class AtomApplication extends EventEmitter {
     this.applicationMenu = new ApplicationMenu(this.version, this.autoUpdateManager)
     this.atomProtocolHandler = new AtomProtocolHandler(this.resourcePath, this.safeMode)
 
-    this.listenForArgumentsFromNewProcess()
+    // Don't await for the following method to avoid delaying the opening of a new window.
+    // (we await it just after opening it).
+    const socketServerPromise = this.listenForArgumentsFromNewProcess(options)
+
     this.setupDockMenu()
 
     const result = await this.launch(options)
     this.autoUpdateManager.initialize()
+    await socketServerPromise
+
     return result
   }
 
@@ -421,10 +429,15 @@ class AtomApplication extends EventEmitter {
   // You can run the atom command multiple times, but after the first launch
   // the other launches will just pass their information to this server and then
   // close immediately.
-  listenForArgumentsFromNewProcess () {
-    if (!this.socketPath) return
+  async listenForArgumentsFromNewProcess (options) {
+    if (!options.test && !options.benchmark && !options.benchmarkTest) {
+      this.socketSecretPromise = createSocketSecret(this.version)
+      this.socketSecret = await this.socketSecretPromise
+      this.socketPath = getSocketPath(this.socketSecret)
+    }
 
-    this.deleteSocketFile()
+    await this.deleteSocketFile()
+
     const server = net.createServer(connection => {
       let data = ''
       connection.on('data', chunk => { data += chunk })
@@ -445,8 +458,13 @@ class AtomApplication extends EventEmitter {
     })
   }
 
-  deleteSocketFile () {
-    if (process.platform === 'win32' || !this.socketPath) return
+  async deleteSocketFile () {
+    if (process.platform === 'win32') return
+
+    if (!this.socketSecretPromise) {
+      return
+    }
+    await this.socketSecretPromise
 
     if (fs.existsSync(this.socketPath)) {
       try {
@@ -460,10 +478,11 @@ class AtomApplication extends EventEmitter {
     }
   }
 
-  deleteSocketSecretFile () {
-    if (!this.socketSecret) {
+  async deleteSocketSecretFile () {
+    if (!this.socketSecretPromise) {
       return
     }
+    await this.socketSecretPromise
 
     const socketSecretPath = getSocketSecretPath(this.version)
 
@@ -595,8 +614,11 @@ class AtomApplication extends EventEmitter {
 
     this.disposable.add(ipcHelpers.on(app, 'will-quit', () => {
       this.killAllProcesses()
-      this.deleteSocketFile()
-      this.deleteSocketSecretFile()
+
+      return Promise.all([
+        this.deleteSocketFile(),
+        this.deleteSocketSecretFile()
+      ])
     }))
 
     // Triggered by the 'open-file' event from Electron:
