@@ -7,8 +7,6 @@ const Watcher = require('@atom/notify')
 const nsfw = require('@atom/nsfw')
 const {NativeWatcherRegistry} = require('./native-watcher-registry')
 
-const watcher = new Watcher()
-
 // Private: Associate native watcher action flags with descriptive String equivalents.
 const ACTION_MAP = new Map([
   [nsfw.actions.MODIFIED, 'modified'],
