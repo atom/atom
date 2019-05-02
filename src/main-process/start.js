@@ -7,6 +7,7 @@ Module._load = function (moduleName, from) {
   return origRequire.apply(this, arguments)
 }
 
+console.log('about to start requiring')
 const {app} = require('electron')
 console.log('done with app')
 const nslog = require('nslog')
