@@ -56,8 +56,6 @@ class WindowEventHandler {
 
     this.addEventListener(this.document, 'keyup', this.handleDocumentKeyEvent)
     this.addEventListener(this.document, 'keydown', this.handleDocumentKeyEvent)
-    this.addEventListener(this.document, 'drop', this.handleDocumentDrop)
-    this.addEventListener(this.document, 'dragover', this.handleDocumentDragover)
     this.addEventListener(this.document, 'contextmenu', this.handleDocumentContextmenu)
     this.subscriptions.add(listen(this.document, 'click', 'a', this.handleLinkClick))
     this.subscriptions.add(listen(this.document, 'submit', 'form', this.handleFormSubmit))
@@ -109,17 +107,6 @@ class WindowEventHandler {
   handleDocumentKeyEvent (event) {
     this.atomEnvironment.keymaps.handleKeyboardEvent(event)
     event.stopImmediatePropagation()
-  }
-
-  handleDrop (event) {
-    event.preventDefault()
-    event.stopPropagation()
-  }
-
-  handleDragover (event) {
-    event.preventDefault()
-    event.stopPropagation()
-    event.dataTransfer.dropEffect = 'none'
   }
 
   eachTabIndexedElement (callback) {
