@@ -232,6 +232,9 @@ class AtomApplication extends EventEmitter {
 
     // Don't await for the following method to avoid delaying the opening of a new window.
     // (we await it just after opening it).
+    // We need to do this because `listenForArgumentsFromNewProcess()` calls `crypto.randomBytes`,
+    // which is really slow on Windows machines.
+    // (TodoElectronIssue: This got fixed in electron v3: https://github.com/electron/electron/issues/2073).
     const socketServerPromise = this.listenForArgumentsFromNewProcess(options)
 
     this.setupDockMenu()
