@@ -329,7 +329,7 @@ const configSchema = {
         default: 40
       },
       fileSystemWatcher: {
-        description: 'Choose the underlying implementation used to watch for filesystem changes. Emulating changes will miss any events caused by applications other than Atom, but may help prevent crashes or freezes.',
+        description: 'Choose the underlying implementation used to watch for filesystem changes. Emulating changes will miss any events caused by applications other than Atom, but may help prevent crashes or freezes.<br>This setting will require a relaunch of Atom to take effect.',
         type: 'string',
         default: 'experimental',
         enum: [
