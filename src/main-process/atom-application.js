@@ -92,6 +92,9 @@ const encryptOptions = (options, secret) => {
 
   // Even if the following IV is not cryptographically secure, there's a really good chance
   // it's going to be unique between executions which is the requirement for GCM.
+  // We're not using `crypto.randomBytes()` because in electron v2, that API is really slow
+  // on Windows machines, which affects the startup time of Atom.
+  // TodoElectronIssue: Once we upgrade to electron v3 we can use `crypto.randomBytes()`
   const initVectorHash = crypto.createHash('sha1')
   initVectorHash.update(Date.now() + '')
   initVectorHash.update(Math.random() + '')
@@ -232,6 +235,9 @@ class AtomApplication extends EventEmitter {
 
     // Don't await for the following method to avoid delaying the opening of a new window.
     // (we await it just after opening it).
+    // We need to do this because `listenForArgumentsFromNewProcess()` calls `crypto.randomBytes`,
+    // which is really slow on Windows machines.
+    // (TodoElectronIssue: This got fixed in electron v3: https://github.com/electron/electron/issues/2073).
     const socketServerPromise = this.listenForArgumentsFromNewProcess(options)
 
     this.setupDockMenu()
@@ -255,7 +261,14 @@ class AtomApplication extends EventEmitter {
   async launch (options) {
     if (!this.configFilePromise) {
       this.configFilePromise = this.configFile.watch()
-      this.disposable.add(await this.configFilePromise)
+
+      // TodoElectronIssue: In electron v2 awaiting the watcher causes some delay
+      // in Windows machines, which affects directly the startup time.
+      if (process.platform === 'win32') {
+        this.configFilePromise.then(disposable => this.disposable.add(disposable))
+      } else {
+        this.disposable.add(await this.configFilePromise)
+      }
       this.config.onDidChange('core.titleBar', () => this.promptForRestart())
       this.config.onDidChange('core.colorProfile', () => this.promptForRestart())
     }
