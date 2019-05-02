@@ -1080,32 +1080,28 @@ describe('Project', () => {
       })
     }
 
-    it('reports filesystem changes within project paths', () => {
+    it('reports filesystem changes within project paths', async () => {
       const dirOne = temp.mkdirSync('atom-spec-project-one')
       const fileOne = path.join(dirOne, 'file-one.txt')
       const fileTwo = path.join(dirOne, 'file-two.txt')
       const dirTwo = temp.mkdirSync('atom-spec-project-two')
       const fileThree = path.join(dirTwo, 'file-three.txt')
 
-      // Ensure that all preexisting watchers are stopped
-      waitsForPromise(() => stopAllWatchers())
+      await stopAllWatchers()
 
-      runs(() => atom.project.setPaths([dirOne]))
-      waitsForPromise(() => atom.project.getWatcherPromise(dirOne))
+      atom.project.setPaths([dirOne])
 
-      runs(() => {
-        expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual(undefined)
+      await atom.project.getWatcherPromise(dirOne)
 
-        fs.writeFileSync(fileThree, 'three\n')
-        fs.writeFileSync(fileTwo, 'two\n')
-        fs.writeFileSync(fileOne, 'one\n')
-      })
+      expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual(undefined)
 
-      waitsForPromise(() => waitForEvents([fileOne, fileTwo]))
+      fs.writeFileSync(fileThree, 'three\n')
+      fs.writeFileSync(fileTwo, 'two\n')
+      fs.writeFileSync(fileOne, 'one\n')
 
-      runs(() =>
-        expect(events.some(event => event.path === fileThree)).toBeFalsy()
-      )
+      await waitForEvents([fileOne, fileTwo])
+
+      expect(events.some(event => event.path === fileThree)).toBeFalsy()
     })
   })
 
