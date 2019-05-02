@@ -8,14 +8,23 @@ Module._load = function (moduleName, from) {
 }
 
 const {app} = require('electron')
+console.log('done with app')
 const nslog = require('nslog')
+console.log('done with nslog')
 const path = require('path')
+console.log('done with path')
 const temp = require('temp').track()
+console.log('done with track')
 const parseCommandLine = require('./parse-command-line')
+console.log('done with parseCommandLine')
 const startCrashReporter = require('../crash-reporter-start')
+console.log('done with startCrashReporter')
 const atomPaths = require('../atom-paths')
+console.log('done with atomPaths')
 const fs = require('fs')
+console.log('done with fs')
 const CSON = require('season')
+console.log('done with CSON')
 const Config = require('../config')
 
 console.log('everything required correctly!')
