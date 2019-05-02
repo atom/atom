@@ -1,4 +1,11 @@
-console.log('START ATOM!')
+const Module = require('module')
+const origRequire = Module._load
+
+Module._load = function (moduleName, from) {
+  console.log('-- requiring module: ', moduleName + ' from ' + from.filename)
+
+  return origRequire.apply(this, arguments)
+}
 
 const {app} = require('electron')
 const nslog = require('nslog')
