@@ -596,7 +596,6 @@ class PathWatcherManager {
       w.onDidError = () => {}
       return w
     } else {
-      debugger
       const w = new PathWatcher(this.nativeRegistry, rootPath, options)
       w.onDidChange(eventCallback)
       await w.getStartPromise()
@@ -610,7 +609,7 @@ class PathWatcherManager {
   stopAllWatchers () {
     if (this.useExperimentalWatcher()) {
       this.notifyWatcher.kill()
-      this.notifyWatcher = null;
+      this.notifyWatcher = null
       return Promise.resolve()
     } else {
       return Promise.all(
