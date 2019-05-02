@@ -1,3 +1,5 @@
+console.log('START ATOM!')
+
 const {app} = require('electron')
 const nslog = require('nslog')
 const path = require('path')
@@ -8,6 +10,8 @@ const atomPaths = require('../atom-paths')
 const fs = require('fs')
 const CSON = require('season')
 const Config = require('../config')
+
+console.log('everything required correctly!')
 
 module.exports = function start (resourcePath, devResourcePath, startTime) {
   global.shellStartTime = startTime
@@ -53,9 +57,11 @@ module.exports = function start (resourcePath, devResourcePath, startTime) {
   if (handleStartupEventWithSquirrel()) {
     return
   } else if (args.test && args.mainProcess) {
+    console.log('Running Atom main process tests...')
     app.setPath('userData', temp.mkdirSync('atom-user-data-dir-for-main-process-tests'))
     console.log = previousConsoleLog
     app.on('ready', function () {
+      console.log('App ready!')
       const testRunner = require(path.join(args.resourcePath, 'spec/main-process/mocha-test-runner'))
       testRunner(args.pathsToOpen)
     })
