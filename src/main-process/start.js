@@ -10,6 +10,8 @@ Module._load = function (moduleName, from) {
 console.log('about to start requiring')
 const {app} = require('electron')
 console.log('done with app')
+const {BrowserWindow} = require('electron')
+console.log('done with BrowserWindow')
 const nslog = require('nslog')
 console.log('done with nslog')
 const path = require('path')
