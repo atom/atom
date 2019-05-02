@@ -62,7 +62,7 @@ class PaneElement extends HTMLElement {
       this.getModel().activate()
       const pathsToOpen = [...event.dataTransfer.files].map(file => file.path)
       if (pathsToOpen.length > 0) {
-        this.applicationDelegate.open({pathsToOpen})
+        this.applicationDelegate.open({pathsToOpen, here: true})
       }
     }
     this.addEventListener('focus', handleFocus, true)

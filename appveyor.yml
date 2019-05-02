@@ -21,7 +21,6 @@ environment:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
     ATOM_JASMINE_REPORTER: list
     CI: true
-    TEST_JUNIT_XML_ROOT: c:\projects\junit-test-results
     NODE_VERSION: 8.9.3
 
   matrix:
@@ -35,7 +34,6 @@ matrix:
       TASK: test
 
 install:
-  - IF NOT EXIST %TEST_JUNIT_XML_ROOT% MKDIR %TEST_JUNIT_XML_ROOT%
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
   - npm install --global npm@6.2.0
@@ -95,14 +93,3 @@ cache:
   - '%APPVEYOR_BUILD_FOLDER%\electron'
   - '%USERPROFILE%\.atom\.apm'
   - '%USERPROFILE%\.atom\compile-cache'
-
-on_finish:
-  - ps: |
-      $wc = New-Object 'System.Net.WebClient'
-      $endpoint = "https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)"
-      Write-Output "Searching for JUnit XML output beneath $($env:TEST_JUNIT_XML_ROOT)"
-      Get-ChildItem -Path $env:TEST_JUNIT_XML_ROOT -Recurse -File -Name -Include "*.xml" | ForEach-Object {
-        $full = "$($env:TEST_JUNIT_XML_ROOT)\$($_)"
-        Write-Output "Uploading JUnit XML file $($full)"
-        $wc.UploadFile($endpoint, $full)
-      }

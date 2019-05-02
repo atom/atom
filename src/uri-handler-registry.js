@@ -89,7 +89,7 @@ class URIHandlerRegistry {
     })
   }
 
-  handleURI (uri) {
+  async handleURI (uri) {
     const parsed = url.parse(uri, true)
     const {protocol, slashes, auth, port, host} = parsed
     if (protocol !== 'atom:' || slashes !== true || auth || port) {
@@ -101,7 +101,7 @@ class URIHandlerRegistry {
     try {
       if (registration) {
         historyEntry.handled = true
-        registration(parsed, uri)
+        await registration(parsed, uri)
       }
     } finally {
       this.history.unshift(historyEntry)
