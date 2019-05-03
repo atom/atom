@@ -606,13 +606,12 @@ class PathWatcherManager {
   // Private: Stop all living watchers.
   //
   // Returns a {Promise} that resolves when all native watcher resources are disposed.
-  stopAllWatchers () {
+  async stopAllWatchers () {
     if (this.useExperimentalWatcher()) {
-      this.notifyWatcher.kill()
+      await this.notifyWatcher.kill()
       this.notifyWatcher = null
-      return Promise.resolve()
     } else {
-      return Promise.all(
+      await Promise.all(
         Array.from(this.live, ([, w]) => w.stop())
       )
     }

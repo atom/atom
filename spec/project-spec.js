@@ -59,7 +59,7 @@ describe('Project', () => {
       })
     })
 
-    it('does not deserialize paths that are now files', () => {
+    it('does not deserialize paths that are now files', async () => {
       const childPath = path.join(temp.mkdirSync('atom-spec-project'), 'child')
       fs.mkdirSync(childPath)
 
@@ -70,22 +70,21 @@ describe('Project', () => {
         grammarRegistry: atom.grammars
       })
       atom.project.setPaths([childPath])
+      await stopAllWatchers()
       const state = atom.project.serialize()
 
       fs.rmdirSync(childPath)
       fs.writeFileSync(childPath, 'surprise!\n')
 
       let err = null
-      waitsForPromise(() =>
-        deserializedProject.deserialize(state, atom.deserializers).catch(e => {
-          err = e
-        })
-      )
+      try {
+        await deserializedProject.deserialize(state, atom.deserializers)
+      } catch (e) {
+        err = e
+      }
 
-      runs(() => {
-        expect(deserializedProject.getPaths()).toEqual([])
-        expect(err.missingProjectPaths).toEqual([childPath])
-      })
+      expect(deserializedProject.getPaths()).toEqual([])
+      expect(err.missingProjectPaths).toEqual([childPath])
     })
 
     it('does not include unretained buffers in the serialized state', () => {
