@@ -7,6 +7,11 @@ Module._load = function (moduleName, from) {
   return origRequire.apply(this, arguments)
 }
 
+process.on('uncaughtException', error => {
+  console.error(error.name + ': '+ error.message)
+  console.error(error.stack)
+})
+
 console.log('about to start requiring')
 const {app} = require('electron')
 console.log('done with app')
