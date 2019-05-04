@@ -2,7 +2,7 @@ const { TerminalReporter } = require('jasmine-tagged')
 
 class JasmineListReporter extends TerminalReporter {
   fullDescription (spec) {
-    let fullDescription = spec.description
+    let fullDescription = 'it ' + spec.description
     let currentSuite = spec.suite
     while (currentSuite) {
       fullDescription = currentSuite.description + ' > ' + fullDescription
