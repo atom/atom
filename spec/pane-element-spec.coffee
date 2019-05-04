@@ -255,8 +255,8 @@ describe "PaneElement", ->
       describe "when a file is dragged to the pane", ->
         it "opens it", ->
           event = buildDragEvent("drop", [
-            {kind: "file", getAsFile: () -> {path: "/fake1"}},
-            {kind: "file", getAsFile: () -> {path: "/fake2"}}
+            {kind: "file", getAsFile: -> {path: "/fake1"}},
+            {kind: "file", getAsFile: -> {path: "/fake2"}}
           ])
           paneElement.dispatchEvent(event)
           expect(atom.applicationDelegate.open.callCount).toBe 1
@@ -276,8 +276,8 @@ describe "PaneElement", ->
       describe "when a drop event occurs", ->
         it "does nothing", ->
           event = buildDragEvent("drop", [
-            {kind: "file", getAsFile: () -> {path: "/fake1"}},
-            {kind: "file", getAsFile: () -> {path: "/fake2"}}
+            {kind: "file", getAsFile: -> {path: "/fake1"}},
+            {kind: "file", getAsFile: -> {path: "/fake2"}}
           ])
           paneElement.dispatchEvent(event)
           expect(atom.applicationDelegate.open).not.toHaveBeenCalled()
