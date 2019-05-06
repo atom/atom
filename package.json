@@ -193,7 +193,7 @@
     "autosave": "0.24.6",
     "background-tips": "0.28.0",
     "bookmarks": "0.46.0",
-    "bracket-matcher": "0.90.4",
+    "bracket-matcher": "0.91.0",
     "command-palette": "0.43.5",
     "dalek": "file:./packages/dalek",
     "deprecation-cop": "file:./packages/deprecation-cop",
