@@ -84,16 +84,22 @@ class Task
 
   # Routes messages from the child to the appropriate event.
   handleEvents: ->
+    # TodoElectronIssue: removeAllListeners() without arguments does not work on electron v3.
+    # Remove the argument when migrating to electron v4.
     @childProcess.removeAllListeners('message')
     @childProcess.on 'message', ({event, args}) =>
       @emitter.emit(event, args) if @childProcess?
 
     # Catch the errors that happened before task-bootstrap.
     if @childProcess.stdout?
+      # TodoElectronIssue: removeAllListeners() without arguments does not work on electron v3.
+      # Remove the argument when migrating to electron v4.
       @childProcess.stdout.removeAllListeners('data')
       @childProcess.stdout.on 'data', (data) -> console.log data.toString()
 
     if @childProcess.stderr?
+      # TodoElectronIssue: removeAllListeners() without arguments does not work on electron v3.
+      # Remove the argument when migrating to electron v4.
       @childProcess.stderr.removeAllListeners('data')
       @childProcess.stderr.on 'data', (data) -> console.error data.toString()
 
@@ -147,6 +153,8 @@ class Task
   terminate: ->
     return false unless @childProcess?
 
+    # TodoElectronIssue: removeAllListeners() without arguments does not work on electron v3.
+    # Remove the argument when migrating to electron v4.
     @childProcess.removeAllListeners('message')
     @childProcess.stdout?.removeAllListeners('data')
     @childProcess.stderr?.removeAllListeners('data')
