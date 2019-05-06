@@ -1096,14 +1096,14 @@ class AtomApplication extends EventEmitter {
       if (devMode) {
         try {
           windowInitializationScript = require.resolve(
-            path.join(this.devResourcePath, 'src', 'initialize-application-window')
+            path.join(this.devResourcePath, 'src', 'initialize-application-window.coffee')
           )
           resourcePath = this.devResourcePath
         } catch (error) {}
       }
 
       if (!windowInitializationScript) {
-        windowInitializationScript = require.resolve('../initialize-application-window')
+        windowInitializationScript = require.resolve('../initialize-application-window.coffee')
       }
       if (!resourcePath) resourcePath = this.resourcePath
       if (!windowDimensions) windowDimensions = this.getDimensionsForNewWindow()
