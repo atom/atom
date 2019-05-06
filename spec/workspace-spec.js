@@ -887,6 +887,30 @@ describe('Workspace', () => {
           ).toEqual([2, 11])
         )
       })
+
+      it('unfolds the fold containing the line', () => {
+        let editor
+
+        waitsForPromise(() =>
+          workspace.open('../sample-with-many-folds.js')
+        )
+
+        runs(() => {
+          editor = workspace.getActiveTextEditor()
+          editor.foldBufferRow(2)
+          expect(editor.isFoldedAtBufferRow(2)).toBe(true)
+          expect(editor.isFoldedAtBufferRow(3)).toBe(true)
+        })
+
+        waitsForPromise(() =>
+          workspace.open('../sample-with-many-folds.js', { initialLine: 2 })
+        )
+
+        runs(() => {
+          expect(editor.isFoldedAtBufferRow(2)).toBe(false)
+          expect(editor.isFoldedAtBufferRow(3)).toBe(false)
+        })
+      })
     })
 
     describe('when the file size is over the limit defined in `core.warnOnLargeFileLimit`', () => {

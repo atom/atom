@@ -1065,6 +1065,9 @@ module.exports = class Workspace extends Model {
         if (typeof item.setCursorBufferPosition === 'function') {
           item.setCursorBufferPosition([initialLine, initialColumn])
         }
+        if (typeof item.unfoldBufferRow === 'function') {
+          item.unfoldBufferRow(initialLine)
+        }
       }
 
       const index = pane.getActiveItemIndex()
