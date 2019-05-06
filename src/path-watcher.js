@@ -592,9 +592,18 @@ class PathWatcherManager {
       //   options.poll = true
       // }
 
-      const w = await this.notifyWatcher.watchPath(rootPath, eventCallback)
-      w.onDidError = () => {}
-      return w
+      const watch = await this.notifyWatcher.watchPath(rootPath, event => {
+        if (event.action === 'error') {
+          watch.emitter.emit('error', event.description)
+        } else {
+          eventCallback(event)
+        }
+      })
+      watch.emitter = new Emitter()
+      watch.onDidError = function (handler) {
+        return this.emitter.on('error', handler)
+      }
+      return watch
     } else {
       const w = new PathWatcher(this.nativeRegistry, rootPath, options)
       w.onDidChange(eventCallback)
