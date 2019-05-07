@@ -1168,7 +1168,7 @@ class NodeRangeSet {
   // For injection points with `newlinesBetween` enabled, ensure that a
   // newline is included between each disjoint range.
   _ensureNewline (buffer, newRanges, startIndex, startPosition) {
-    const lastRange = newRanges[newRanges.length - 1];
+    const lastRange = newRanges[newRanges.length - 1]
     if (lastRange && lastRange.endPosition.row < startPosition.row) {
       newRanges.push({
         startPosition: new Point(startPosition.row - 1, buffer.lineLengthForRow(startPosition.row - 1)),
