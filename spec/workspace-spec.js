@@ -888,28 +888,18 @@ describe('Workspace', () => {
         )
       })
 
-      it('unfolds the fold containing the line', () => {
+      it('unfolds the fold containing the line', async () => {
         let editor
 
-        waitsForPromise(() =>
-          workspace.open('../sample-with-many-folds.js')
-        )
+        await workspace.open('../sample-with-many-folds.js')
+        editor = workspace.getActiveTextEditor()
+        editor.foldBufferRow(2)
+        expect(editor.isFoldedAtBufferRow(2)).toBe(true)
+        expect(editor.isFoldedAtBufferRow(3)).toBe(true)
 
-        runs(() => {
-          editor = workspace.getActiveTextEditor()
-          editor.foldBufferRow(2)
-          expect(editor.isFoldedAtBufferRow(2)).toBe(true)
-          expect(editor.isFoldedAtBufferRow(3)).toBe(true)
-        })
-
-        waitsForPromise(() =>
-          workspace.open('../sample-with-many-folds.js', { initialLine: 2 })
-        )
-
-        runs(() => {
-          expect(editor.isFoldedAtBufferRow(2)).toBe(false)
-          expect(editor.isFoldedAtBufferRow(3)).toBe(false)
-        })
+        await workspace.open('../sample-with-many-folds.js', { initialLine: 2 })
+        expect(editor.isFoldedAtBufferRow(2)).toBe(false)
+        expect(editor.isFoldedAtBufferRow(3)).toBe(false)
       })
     })
 
