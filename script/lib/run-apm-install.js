@@ -11,6 +11,7 @@ module.exports = function (packagePath, ci, stdioOptions) {
   // Set our target (Electron) version so that node-pre-gyp can download the
   // proper binaries.
   installEnv.npm_config_target = CONFIG.appMetadata.electronVersion
+  console.log(process.env.ATOM_ARCH, process.arch)
   childProcess.execFileSync(
     CONFIG.getApmBinPath(),
     [ci ? 'ci' : 'install', '--verbose'],
