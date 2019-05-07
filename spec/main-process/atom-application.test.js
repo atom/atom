@@ -598,7 +598,7 @@ describe('AtomApplication', function () {
           assert.notStrictEqual(uw, w0)
           assert.strictEqual(
             uw.loadSettings.windowInitializationScript,
-            path.resolve(__dirname, '../../src/initialize-application-window.coffee')
+            path.resolve(__dirname, '../../src/initialize-application-window.js')
           )
 
           uw.emit('window:loaded')
@@ -675,6 +675,18 @@ describe('AtomApplication', function () {
       assert.isNull(w._locations[0].initialLine)
       assert.isNull(w._locations[0].initialColumn)
     })
+
+    it('disregards test and benchmark windows', async function () {
+      await scenario.launch(parseCommandLine(['--test', 'b']))
+      await scenario.open(parseCommandLine(['--new-window']))
+      await scenario.open(parseCommandLine(['--test', 'c']))
+      await scenario.open(parseCommandLine(['--benchmark', 'b']))
+
+      await scenario.open(parseCommandLine(['a/1.md']))
+
+      // Test and benchmark StubWindows are visible as empty editor windows here
+      await scenario.assert('[_ _] [_ 1.md] [_ _] [_ _]')
+    })
   })
 
   if (process.platform === 'darwin' || process.platform === 'win32') {
@@ -739,7 +751,7 @@ describe('AtomApplication', function () {
         options.version = version
 
         const app = scenario.addApplication(options)
-        await app.listenForArgumentsFromNewProcess()
+        await app.listenForArgumentsFromNewProcess(options)
         await app.launch(options)
         return app
       }
@@ -747,7 +759,7 @@ describe('AtomApplication', function () {
 
     it('creates a new application when no socket is present', async function () {
       const app0 = await AtomApplication.open({createApplication, version})
-      app0.deleteSocketSecretFile()
+      await app0.deleteSocketSecretFile()
 
       const app1 = await AtomApplication.open({createApplication, version})
       assert.isNotNull(app1)
@@ -791,22 +803,30 @@ describe('AtomApplication', function () {
     // This is the IPC message used to handle:
     // * application:reopen-project
     // * choosing "open in new window" when adding a folder that has previously saved state
+    // * drag and drop
     // * deprecated call links in deprecation-cop
     // * other direct callers of `atom.open()`
     it('"open" opens a fixed path by the standard opening rules', async function () {
       sinon.stub(app, 'atomWindowForEvent', () => w1)
 
-      electron.ipcMain.emit('open', {}, {pathsToOpen: scenario.convertEditorPath('a/1.md')})
+      electron.ipcMain.emit('open', {}, {pathsToOpen: [scenario.convertEditorPath('a/1.md')]})
       await app.openPaths.lastCall.returnValue
       await scenario.assert('[a 1.md] [_ _] [b _]')
 
-      electron.ipcMain.emit('open', {}, {pathsToOpen: scenario.convertRootPath('c')})
+      electron.ipcMain.emit('open', {}, {pathsToOpen: [scenario.convertRootPath('c')]})
       await app.openPaths.lastCall.returnValue
       await scenario.assert('[a 1.md] [c _] [b _]')
 
-      electron.ipcMain.emit('open', {}, {pathsToOpen: scenario.convertRootPath('d')})
+      electron.ipcMain.emit('open', {}, {pathsToOpen: [scenario.convertRootPath('d')], here: true})
       await app.openPaths.lastCall.returnValue
-      await scenario.assert('[a 1.md] [c _] [b _] [d _]')
+      await scenario.assert('[a 1.md] [c,d _] [b _]')
+    })
+
+    it('"open" without any option open the prompt for selecting a path', async function () {
+      sinon.stub(app, 'atomWindowForEvent', () => w1)
+
+      electron.ipcMain.emit('open', {})
+      assert.strictEqual(app.promptForPath.lastCall.args[0], 'all')
     })
 
     it('"open-chosen-any" opens a file in the sending window', async function () {

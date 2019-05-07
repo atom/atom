@@ -927,7 +927,7 @@ class AtomEnvironment {
     if (!this.config.get('core.openEmptyEditorOnStart')) return
     const {hasOpenFiles} = this.getLoadSettings()
     if (!hasOpenFiles && this.workspace.getPaneItems().length === 0) {
-      return this.workspace.open(null)
+      return this.workspace.open(null, {pending: true})
     }
   }
 
