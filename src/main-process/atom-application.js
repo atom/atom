@@ -688,7 +688,7 @@ class AtomApplication extends EventEmitter {
           this.addWindow(this.createWindow(options))
         }
       } else {
-        this.promptForPathToOpen('all', {window})
+        this.promptForPathToOpen('all', {})
       }
     }))
 
