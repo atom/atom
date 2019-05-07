@@ -2511,7 +2511,7 @@ describe('Workspace', () => {
           })
 
           runs(() => {
-            fs.rename(
+            fs.renameSync(
               path.join(projectPath, 'git.git'),
               path.join(projectPath, '.git')
             )
