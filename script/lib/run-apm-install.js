@@ -13,7 +13,7 @@ module.exports = function (packagePath, ci, stdioOptions) {
   installEnv.npm_config_target = CONFIG.appMetadata.electronVersion
   childProcess.execFileSync(
     CONFIG.getApmBinPath(),
-    ['--loglevel=error', ci ? 'ci' : 'install'],
+    ['--verbose', ci ? 'ci' : 'install'],
     {env: installEnv, cwd: packagePath, stdio: stdioOptions || 'inherit'}
   )
 }
