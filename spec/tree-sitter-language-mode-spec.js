@@ -766,6 +766,61 @@ describe('TreeSitterLanguageMode', () => {
         ])
       })
 
+      it('handles injections that contain comments', async () => {
+        const ejsGrammar = new TreeSitterGrammar(
+          atom.grammars,
+          ejsGrammarPath,
+          {
+            id: 'ejs',
+            parser: 'tree-sitter-embedded-template',
+            scopes: {
+              '"<%"': 'directive',
+              '"%>"': 'directive'
+            },
+            injectionPoints: [
+              {
+                type: 'template',
+                language (node) { return 'javascript' },
+                content (node) { return node.descendantsOfType('code') },
+                newlinesBetween: true
+              },
+              {
+                type: 'template',
+                language (node) { return 'html' },
+                content (node) { return node.descendantsOfType('content') }
+              }
+            ]
+          }
+        )
+
+        atom.grammars.addGrammar(jsGrammar)
+        atom.grammars.addGrammar(htmlGrammar)
+
+        buffer.setText('<% // js comment%>\n<% b() %>')
+        const languageMode = new TreeSitterLanguageMode({
+          buffer,
+          grammar: ejsGrammar,
+          grammars: atom.grammars
+        })
+        buffer.setLanguageMode(languageMode)
+
+        expectTokensToEqual(editor, [
+          [
+            { text: '<%', scopes: ['directive'] },
+            { text: ' ', scopes: [] },
+            { text: '// js comment ', scopes: ['comment'] },
+            { text: '%>', scopes: ['directive'] }
+          ],
+          [
+            { text: '<%', scopes: ['directive'] },
+            { text: ' ', scopes: [] },
+            { text: 'b', scopes: ['function'] },
+            { text: '() ', scopes: [] },
+            { text: '%>', scopes: ['directive'] }
+          ]
+        ])
+      })
+
       it('notifies onDidTokenize listeners the first time all syntax highlighting is done', async () => {
         const promise = new Promise(resolve => {
           editor.onDidTokenize(event => {
