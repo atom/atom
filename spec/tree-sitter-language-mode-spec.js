@@ -143,7 +143,7 @@ describe('TreeSitterLanguageMode', () => {
         languageMode.tree.rootNode
           .descendantForPosition(Point(1, 2), Point(1, 6))
           .toString()
-      ).toBe('(declaration (primitive_type) (identifier) (MISSING))')
+      ).toBe('(declaration (primitive_type) (identifier) (MISSING ";"))')
 
       expectTokensToEqual(editor, [
         [
@@ -414,7 +414,7 @@ describe('TreeSitterLanguageMode', () => {
         const languageMode = new TreeSitterLanguageMode({
           buffer,
           grammar,
-          syncOperationLimit: 0
+          syncTimeoutMicros: 0
         })
         buffer.setLanguageMode(languageMode)
         await nextHighlightingUpdate(languageMode)
@@ -797,7 +797,7 @@ describe('TreeSitterLanguageMode', () => {
           buffer,
           grammar: htmlGrammar,
           grammars: atom.grammars,
-          syncOperationLimit: 0
+          syncTimeoutMicros: 0
         })
         buffer.setLanguageMode(languageMode)
 
@@ -827,7 +827,7 @@ describe('TreeSitterLanguageMode', () => {
       )
       atom.grammars.loadGrammarSync(jsGrammarPath)
       atom.grammars.assignLanguageMode(buffer, 'source.js')
-      buffer.getLanguageMode().syncOperationLimit = 0
+      buffer.getLanguageMode().syncTimeoutMicros = 0
 
       const initialSeed = Date.now()
       for (let i = 0, trialCount = 10; i < trialCount; i++) {

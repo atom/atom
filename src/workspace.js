@@ -1065,6 +1065,12 @@ module.exports = class Workspace extends Model {
         if (typeof item.setCursorBufferPosition === 'function') {
           item.setCursorBufferPosition([initialLine, initialColumn])
         }
+        if (typeof item.unfoldBufferRow === 'function') {
+          item.unfoldBufferRow(initialLine)
+        }
+        if (typeof item.scrollToBufferPosition === 'function') {
+          item.scrollToBufferPosition([initialLine, initialColumn], { center: true })
+        }
       }
 
       const index = pane.getActiveItemIndex()
