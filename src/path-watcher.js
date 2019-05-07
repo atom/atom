@@ -585,7 +585,11 @@ class PathWatcherManager {
   // Private: Create a {PathWatcher} tied to this global state. See {watchPath} for detailed arguments.
   async watchPath (rootPath, options, eventCallback) {
     if (this.useExperimentalWatcher()) {
-      if (!this.notifyWatcher) this.notifyWatcher = new NotifyWatcher()
+      if (!this.notifyWatcher) {
+        this.notifyWatcher = new NotifyWatcher({onError: (error) => {
+          throw new Error(`Error watching file system: ${error}`)
+        }})
+      }
 
       // TODO: Figure out how to handle the poll setting
       // if (this.setting === 'poll') {
@@ -595,6 +599,7 @@ class PathWatcherManager {
       const watch = await this.notifyWatcher.watchPath(rootPath, event => {
         if (event.action === 'error') {
           watch.emitter.emit('error', event.description)
+          throw new Error(`Error watching file system at "${event.path}": ${event.description}`)
         } else {
           eventCallback(event)
         }
