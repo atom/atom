@@ -163,6 +163,7 @@
     "tree-view": "https://www.atom.io/api/packages/tree-view/versions/0.228.0/tarball",
     "typescript-simple": "1.0.0",
     "update-package-dependencies": "https://www.atom.io/api/packages/update-package-dependencies/versions/0.13.1/tarball",
+    "vscode-ripgrep": "^1.2.5",
     "welcome": "https://www.atom.io/api/packages/welcome/versions/0.36.9/tarball",
     "whitespace": "https://www.atom.io/api/packages/whitespace/versions/0.37.7/tarball",
     "winreg": "^1.2.1",

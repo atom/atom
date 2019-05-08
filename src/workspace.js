@@ -6,6 +6,7 @@ const fs = require('fs-plus')
 const {Directory} = require('pathwatcher')
 const Grim = require('grim')
 const DefaultDirectorySearcher = require('./default-directory-searcher')
+const RipgrepDirectorySearcher = require('./ripgrep-directory-searcher')
 const Dock = require('./dock')
 const Model = require('./model')
 const StateStore = require('./state-store')
@@ -203,7 +204,8 @@ module.exports = class Workspace extends Model {
     this.destroyedItemURIs = []
     this.stoppedChangingActivePaneItemTimeout = null
 
-    this.defaultDirectorySearcher = new DefaultDirectorySearcher()
+    this.scandalDirectorySearcher = new DefaultDirectorySearcher()
+    this.ripgrepDirectorySearcher = new RipgrepDirectorySearcher()
     this.consumeServices(this.packageManager)
 
     this.paneContainers = {
@@ -1853,7 +1855,7 @@ module.exports = class Workspace extends Model {
     // will be associated with an Array of Directory objects in the Map.
     const directoriesForSearcher = new Map()
     for (const directory of this.project.getDirectories()) {
-      let searcher = this.defaultDirectorySearcher
+      let searcher = options.ripgrep ? this.ripgrepDirectorySearcher : this.scandalDirectorySearcher
       for (const directorySearcher of this.directorySearchers) {
         if (directorySearcher.canSearchDirectory(directory)) {
           searcher = directorySearcher
@@ -1901,7 +1903,9 @@ module.exports = class Workspace extends Model {
         leadingContextLineCount: options.leadingContextLineCount || 0,
         trailingContextLineCount: options.trailingContextLineCount || 0,
         didMatch: result => {
+          console.log("didMatch", result)
           if (!this.project.isPathModified(result.filePath)) {
+            console.log("!!!!!!!!!!!!!!!!!!!!")
             return iterator(result)
           }
         },
