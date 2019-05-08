@@ -507,6 +507,7 @@ describe('TreeSitterLanguageMode', () => {
           scopeName: 'javascript',
           parser: 'tree-sitter-javascript',
           scopes: {
+            comment: 'comment',
             property_identifier: 'property',
             'call_expression > identifier': 'function',
             template_string: 'string',
@@ -807,7 +808,8 @@ describe('TreeSitterLanguageMode', () => {
         expectTokensToEqual(editor, [
           [
             { text: '<%', scopes: ['directive'] },
-            { text: ' // js comment ', scopes: [] },
+            { text: ' ', scopes: [] },
+            { text: '// js comment ', scopes: ['comment'] },
             { text: '%>', scopes: ['directive'] },
             { text: '', scopes: ['html'] }
           ],
