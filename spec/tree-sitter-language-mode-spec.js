@@ -766,7 +766,7 @@ describe('TreeSitterLanguageMode', () => {
         ])
       })
 
-      it('handles injections that contain comments', async () => {
+      it('terminates comment token at the end of an injection, so that the next injection is NOT a continuation of the comment', async () => {
         const ejsGrammar = new TreeSitterGrammar(
           atom.grammars,
           ejsGrammarPath,
