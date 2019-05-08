@@ -7,9 +7,9 @@ const CONFIG = require('../config')
 module.exports = function (ci) {
   console.log('Installing apm')
   // npm ci leaves apm with a bunch of unmet dependencies
-  console.log(childProcess.execFileSync(
+  childProcess.execFileSync(
     CONFIG.getNpmBinPath(),
-    ['--global-style', '--loglevel=silly', 'install'],
+    ['--global-style', '--loglevel=error', 'install'],
     {env: process.env, cwd: CONFIG.apmRootPath}
-  ).toString())
+  )
 }
