@@ -93,6 +93,11 @@ class AtomEnvironment {
         }
       }
     })
+
+    // Default the file system watcher to 'native' on the stable channel
+    if (this.getReleaseChannel() === 'stable') {
+      ConfigSchema.core.properties.fileSystemWatcher.default = 'native'
+    }
     this.config.setSchema(null, {type: 'object', properties: _.clone(ConfigSchema)})
 
     // Public: A {KeymapManager} instance
