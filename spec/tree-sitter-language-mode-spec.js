@@ -796,7 +796,7 @@ describe('TreeSitterLanguageMode', () => {
         atom.grammars.addGrammar(jsGrammar)
         atom.grammars.addGrammar(htmlGrammar)
 
-        buffer.setText('<% // js comment%>\n<% b() %>')
+        buffer.setText('<% // js comment %>\n<% b() %>')
         const languageMode = new TreeSitterLanguageMode({
           buffer,
           grammar: ejsGrammar,
@@ -807,9 +807,9 @@ describe('TreeSitterLanguageMode', () => {
         expectTokensToEqual(editor, [
           [
             { text: '<%', scopes: ['directive'] },
-            { text: ' ', scopes: [] },
-            { text: '// js comment ', scopes: ['comment'] },
-            { text: '%>', scopes: ['directive'] }
+            { text: ' // js comment ', scopes: [] },
+            { text: '%>', scopes: ['directive'] },
+            { text: '', scopes: ['html'] }
           ],
           [
             { text: '<%', scopes: ['directive'] },
