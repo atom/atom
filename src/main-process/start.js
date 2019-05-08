@@ -1,39 +1,13 @@
-const Module = require('module')
-const origRequire = Module._load
-
-Module._load = function (moduleName, from) {
-  console.log('-- requiring module: ', moduleName + ' from ' + from.filename)
-
-  return origRequire.apply(this, arguments)
-}
-
-process.on('uncaughtException', error => {
-  console.error(error.name + ': ' + error.message)
-  console.error(error.stack)
-})
-
-console.log('about to start requiring')
 const {app} = require('electron')
-console.log('done with app')
 const nslog = require('nslog')
-console.log('done with nslog')
 const path = require('path')
-console.log('done with path')
 const temp = require('temp').track()
-console.log('done with track')
 const parseCommandLine = require('./parse-command-line')
-console.log('done with parseCommandLine')
 const startCrashReporter = require('../crash-reporter-start')
-console.log('done with startCrashReporter')
 const atomPaths = require('../atom-paths')
-console.log('done with atomPaths')
 const fs = require('fs')
-console.log('done with fs')
 const CSON = require('season')
-console.log('done with CSON')
 const Config = require('../config')
-
-console.log('everything required correctly!')
 
 module.exports = function start (resourcePath, devResourcePath, startTime) {
   global.shellStartTime = startTime
@@ -79,11 +53,9 @@ module.exports = function start (resourcePath, devResourcePath, startTime) {
   if (handleStartupEventWithSquirrel()) {
     return
   } else if (args.test && args.mainProcess) {
-    console.log('Running Atom main process tests...')
     app.setPath('userData', temp.mkdirSync('atom-user-data-dir-for-main-process-tests'))
     console.log = previousConsoleLog
     app.on('ready', function () {
-      console.log('App ready!')
       const testRunner = require(path.join(args.resourcePath, 'spec/main-process/mocha-test-runner'))
       testRunner(args.pathsToOpen)
     })
