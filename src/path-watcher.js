@@ -545,14 +545,18 @@ class PathWatcherManager {
   // Private: Access the currently active manager instance, creating one if necessary.
   static active () {
     if (!this.activeManager) {
-      this.activeManager = new PathWatcherManager(atom.config.get('core.fileSystemWatcher'))
+      this.activeManager = new PathWatcherManager(
+        atom.config.get('core.fileSystemWatcher'),
+        atom.config.get('core.fileSystemWatcherPollInterval')
+      )
     }
     return this.activeManager
   }
 
   // Private: Initialize global {PathWatcher} state.
-  constructor (setting) {
+  constructor (setting, pollInterval) {
     this.setting = setting
+    this.pollInterval = pollInterval
     this.live = new Map()
 
     const initLocal = NativeConstructor => {
@@ -586,15 +590,16 @@ class PathWatcherManager {
   async watchPath (rootPath, options, eventCallback) {
     if (this.useExperimentalWatcher()) {
       if (!this.notifyWatcher) {
-        this.notifyWatcher = new NotifyWatcher({onError: (error) => {
-          throw new Error(`Error watching file system: ${error}`)
-        }})
+        const options = {
+          onError: (error) => {
+            throw new Error(`Error watching file system: ${error}`)
+          }
+        }
+        if (this.setting === 'poll') {
+          options.pollInterval = this.pollInterval
+        }
+        this.notifyWatcher = new NotifyWatcher(options)
       }
-
-      // TODO: Figure out how to handle the poll setting
-      // if (this.setting === 'poll') {
-      //   options.poll = true
-      // }
 
       const watch = await this.notifyWatcher.watchPath(rootPath, event => {
         if (event.action === 'error') {
