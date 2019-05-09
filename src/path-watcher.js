@@ -385,11 +385,6 @@ class PathWatcher {
     return this.normalizedPathPromise
   }
 
-  // // Private: Return a {Promise} that will resolve the first time that this watcher is attached to a native watcher.
-  // getAttachedPromise () {
-  //   return this.attachedPromise
-  // }
-
   // Private: Return a {Promise} that will resolve when the underlying native watcher is ready to begin sending events.
   // When testing filesystem watchers, it's important to await this promise before making filesystem changes that you
   // intend to assert about because there will be a delay between the instantiation of the watcher and the activation
@@ -635,33 +630,6 @@ class PathWatcherManager {
       )
     }
   }
-
-  // // Private: Directly access the {NativeWatcherRegistry}.
-  // getRegistry () {
-  //   if (this.useExperimentalWsatcher()) {
-  //     return watcher.getRegistry()
-  //   }
-  //
-  //   return this.nativeRegistry
-  // }
-
-  // // Private: Sample watcher usage statistics. Only available for experimental watchers.
-  // status () {
-  //   if (this.useExperimentalWatcher()) {
-  //     return watcher.status()
-  //   }
-  //
-  //   return {}
-  // }
-
-  // // Private: Return a {String} depicting the currently active native watchers.
-  // print () {
-  //   if (this.useExperimentalWatcher()) {
-  //     return watcher.printWatchers()
-  //   }
-  //
-  //   return this.nativeRegistry.print()
-  // }
 }
 
 // Extended: Invoke a callback with each filesystem event that occurs beneath a specified path. If you only need to
@@ -712,25 +680,5 @@ function watchPath (rootPath, options, eventCallback) {
 function stopAllWatchers () {
   return PathWatcherManager.active().stopAllWatchers()
 }
-
-// // Private: Show the currently active native watchers in a formatted {String}.
-// watchPath.printWatchers = function () {
-//   return PathWatcherManager.active().print()
-// }
-//
-// // Private: Access the active {NativeWatcherRegistry}.
-// watchPath.getRegistry = function () {
-//   return PathWatcherManager.active().getRegistry()
-// }
-//
-// // Private: Sample usage statistics for the active watcher.
-// watchPath.status = function () {
-//   return PathWatcherManager.active().status()
-// }
-//
-// // Private: Configure @atom/watcher ("experimental") directly.
-// watchPath.configure = function (...args) {
-//   return watcher.configure(...args)
-// }
 
 module.exports = {watchPath, stopAllWatchers, PathWatcherManager}
