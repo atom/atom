@@ -15,24 +15,24 @@ module.exports = function () {
   const appName = getAppName()
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath} with app name "${appName}"`)
   return runPackager({
-    'app-bundle-id': 'com.github.atom',
-    'app-copyright': `Copyright © 2014-${(new Date()).getFullYear()} GitHub, Inc. All rights reserved.`,
-    'app-version': CONFIG.appMetadata.version,
+    'appBundleId': 'com.github.atom',
+    'appCopyright': `Copyright © 2014-${(new Date()).getFullYear()} GitHub, Inc. All rights reserved.`,
+    'appVersion': CONFIG.appMetadata.version,
     'arch': process.platform === 'darwin' ? 'x64' : process.arch, // OS X is 64-bit only
     'asar': {unpack: buildAsarUnpackGlobExpression()},
-    'build-version': CONFIG.appMetadata.version,
+    'buildVersion': CONFIG.appMetadata.version,
     'download': {cache: CONFIG.electronDownloadPath},
     'dir': CONFIG.intermediateAppPath,
-    'extend-info': path.join(CONFIG.repositoryRootPath, 'resources', 'mac', 'atom-Info.plist'),
-    'helper-bundle-id': 'com.github.atom.helper',
+    'extendInfo': path.join(CONFIG.repositoryRootPath, 'resources', 'mac', 'atom-Info.plist'),
+    'helperBundleId': 'com.github.atom.helper',
     'icon': getIcon(),
     'name': appName,
     'out': CONFIG.buildOutputPath,
     'overwrite': true,
-    'deref-symlinks': false,
+    'derefSymlinks': false,
     'platform': process.platform,
-    'version': CONFIG.appMetadata.electronVersion,
-    'version-string': {
+    'electronVersion': CONFIG.appMetadata.electronVersion,
+    'win32metadata': {
       'CompanyName': 'GitHub, Inc.',
       'FileDescription': 'Atom',
       'ProductName': 'Atom'
@@ -135,19 +135,11 @@ function getIcon () {
   }
 }
 
-function runPackager (options) {
-  return new Promise((resolve, reject) => {
-    electronPackager(options, (err, packageOutputDirPaths) => {
-      if (err) {
-        reject(err)
-        throw new Error(err)
-      } else {
-        assert(packageOutputDirPaths.length === 1, 'Generated more than one electron application!')
-        const packagedAppPath = renamePackagedAppDir(packageOutputDirPaths[0])
-        resolve(packagedAppPath)
-      }
-    })
-  })
+async function runPackager (options) {
+  const packageOutputDirPaths = await electronPackager(options)
+  assert(packageOutputDirPaths.length === 1, 'Generated more than one electron application!')
+
+  return renamePackagedAppDir(packageOutputDirPaths[0])
 }
 
 function renamePackagedAppDir (packageOutputDirPath) {
