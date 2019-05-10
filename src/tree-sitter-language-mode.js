@@ -623,7 +623,7 @@ class LanguageLayer {
   async _performUpdate (nodeRangeSet, params) {
     let includedRanges = null
     if (nodeRangeSet) {
-      includedRanges = nodeRangeSet.getRanges()
+      includedRanges = nodeRangeSet.getRanges(this.languageMode.buffer)
       if (includedRanges.length === 0) {
         this.tree = null
         this.destroyed = true
@@ -744,7 +744,6 @@ class LanguageLayer {
             existingInjectionMarkerIndex = i
             if (existingMarker.languageLayer.grammar === grammar) {
               marker = existingMarker
-              marker.id === node.id
               break
             }
           } else {
@@ -758,7 +757,7 @@ class LanguageLayer {
           marker.parentLanguageLayer = this
         }
 
-        markersToUpdate.set(marker, new NodeRangeSet(nodeRangeSet, injectionNodes))
+        markersToUpdate.set(marker, new NodeRangeSet(nodeRangeSet, injectionNodes, injectionPoint.newlinesBetween))
       }
     }
 
@@ -1101,13 +1100,14 @@ class NullHighlightIterator {
 }
 
 class NodeRangeSet {
-  constructor (previous, nodes) {
+  constructor (previous, nodes, newlinesBetween) {
     this.previous = previous
     this.nodes = nodes
+    this.newlinesBetween = newlinesBetween
   }
 
-  getRanges () {
-    const previousRanges = this.previous && this.previous.getRanges()
+  getRanges (buffer) {
+    const previousRanges = this.previous && this.previous.getRanges(buffer)
     const result = []
 
     for (const node of this.nodes) {
@@ -1117,7 +1117,7 @@ class NodeRangeSet {
       for (const child of node.children) {
         const nextIndex = child.startIndex
         if (nextIndex > index) {
-          this._pushRange(previousRanges, result, {
+          this._pushRange(buffer, previousRanges, result, {
             startIndex: index,
             endIndex: nextIndex,
             startPosition: position,
@@ -1129,7 +1129,7 @@ class NodeRangeSet {
       }
 
       if (node.endIndex > index) {
-        this._pushRange(previousRanges, result, {
+        this._pushRange(buffer, previousRanges, result, {
           startIndex: index,
           endIndex: node.endIndex,
           startPosition: position,
@@ -1141,8 +1141,12 @@ class NodeRangeSet {
     return result
   }
 
-  _pushRange (previousRanges, newRanges, newRange) {
+  _pushRange (buffer, previousRanges, newRanges, newRange) {
     if (!previousRanges) {
+      if (this.newlinesBetween) {
+        const {startIndex, startPosition} = newRange
+        this._ensureNewline(buffer, newRanges, startIndex, startPosition)
+      }
       newRanges.push(newRange)
       return
     }
@@ -1150,11 +1154,27 @@ class NodeRangeSet {
     for (const previousRange of previousRanges) {
       if (previousRange.endIndex <= newRange.startIndex) continue
       if (previousRange.startIndex >= newRange.endIndex) break
+      const startIndex = Math.max(previousRange.startIndex, newRange.startIndex)
+      const endIndex = Math.min(previousRange.endIndex, newRange.endIndex)
+      const startPosition = Point.max(previousRange.startPosition, newRange.startPosition)
+      const endPosition = Point.min(previousRange.endPosition, newRange.endPosition)
+      if (this.newlinesBetween) {
+        this._ensureNewline(buffer, newRanges, startIndex, startPosition)
+      }
+      newRanges.push({startIndex, endIndex, startPosition, endPosition})
+    }
+  }
+
+  // For injection points with `newlinesBetween` enabled, ensure that a
+  // newline is included between each disjoint range.
+  _ensureNewline (buffer, newRanges, startIndex, startPosition) {
+    const lastRange = newRanges[newRanges.length - 1]
+    if (lastRange && lastRange.endPosition.row < startPosition.row) {
       newRanges.push({
-        startIndex: Math.max(previousRange.startIndex, newRange.startIndex),
-        endIndex: Math.min(previousRange.endIndex, newRange.endIndex),
-        startPosition: Point.max(previousRange.startPosition, newRange.startPosition),
-        endPosition: Point.min(previousRange.endPosition, newRange.endPosition)
+        startPosition: new Point(startPosition.row - 1, buffer.lineLengthForRow(startPosition.row - 1)),
+        endPosition: new Point(startPosition.row, 0),
+        startIndex: startIndex - startPosition.column - 1,
+        endIndex: startIndex - startPosition.column
       })
     }
   }

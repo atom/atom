@@ -3,16 +3,29 @@
   // when using `NativeCompileCache` for the first time.
   require('cached-run-in-this-context')
 
+  // Define the window start time before the requires so we get a more accurate
+  // window:start marker.
+  const startWindowTime = Date.now()
+
   const electron = require('electron')
   const path = require('path')
   const Module = require('module')
   const getWindowLoadSettings = require('../src/get-window-load-settings')
+  const StartupTime = require('../src/startup-time')
   const entryPointDirPath = __dirname
   let blobStore = null
   let useSnapshot = false
 
+  const startupMarkers = electron.remote.getCurrentWindow().startupMarkers
+
+  if (startupMarkers) {
+    StartupTime.importData(startupMarkers)
+  }
+  StartupTime.addMarker('window:start', startWindowTime)
+
   window.onload = function () {
     try {
+      StartupTime.addMarker('window:onload:start')
       const startTime = Date.now()
 
       process.on('unhandledRejection', function (error, promise) {
@@ -64,12 +77,16 @@
       if (getWindowLoadSettings().profileStartup) {
         profileStartup(Date.now() - startTime)
       } else {
-        setupWindow()
+        StartupTime.addMarker('window:setup-window:start')
+        setupWindow().then(() => {
+          StartupTime.addMarker('window:setup-window:end')
+        })
         setLoadTime(Date.now() - startTime)
       }
     } catch (error) {
       handleSetupError(error)
     }
+    StartupTime.addMarker('window:onload:end')
   }
 
   function setLoadTime (loadTime) {
@@ -103,7 +120,11 @@
 
     const initScriptPath = path.relative(entryPointDirPath, getWindowLoadSettings().windowInitializationScript)
     const initialize = useSnapshot ? snapshotResult.customRequire(initScriptPath) : require(initScriptPath)
+
+    StartupTime.addMarker('window:initialize:start')
+
     return initialize({blobStore: blobStore}).then(function () {
+      StartupTime.addMarker('window:initialize:end')
       electron.ipcRenderer.send('window-command', 'window:loaded')
     })
   }

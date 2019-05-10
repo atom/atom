@@ -6,6 +6,7 @@ const StorageFolder = require('../storage-folder')
 const Config = require('../config')
 const ConfigFile = require('../config-file')
 const FileRecoveryService = require('./file-recovery-service')
+const StartupTime = require('../startup-time')
 const ipcHelpers = require('../ipc-helpers')
 const {BrowserWindow, Menu, app, clipboard, dialog, ipcMain, shell, screen} = require('electron')
 const {CompositeDisposable, Disposable} = require('event-kit')
@@ -135,6 +136,8 @@ module.exports =
 class AtomApplication extends EventEmitter {
   // Public: The entry point into the Atom application.
   static open (options) {
+    StartupTime.addMarker('main-process:atom-application:open')
+
     const socketSecret = getExistingSocketSecret(options.version)
     const socketPath = getSocketPath(socketSecret)
     const createApplication = options.createApplication || (async () => {
@@ -172,6 +175,8 @@ class AtomApplication extends EventEmitter {
   }
 
   constructor (options) {
+    StartupTime.addMarker('main-process:atom-application:constructor:start')
+
     super()
     this.quitting = false
     this.quittingForUpdate = false
@@ -214,6 +219,8 @@ class AtomApplication extends EventEmitter {
 
     this.disposable = new CompositeDisposable()
     this.handleEvents()
+
+    StartupTime.addMarker('main-process:atom-application:constructor:end')
   }
 
   // This stuff was previously done in the constructor, but we want to be able to construct this object
@@ -221,6 +228,8 @@ class AtomApplication extends EventEmitter {
   // of these various sub-objects into the constructor, but you'll need to remove the side-effects they
   // perform during their construction, adding an initialize method that you call here.
   async initialize (options) {
+    StartupTime.addMarker('main-process:atom-application:initialize:start')
+
     global.atomApplication = this
 
     // DEPRECATED: This can be removed at some point (added in 1.13)
@@ -245,6 +254,8 @@ class AtomApplication extends EventEmitter {
     const result = await this.launch(options)
     this.autoUpdateManager.initialize()
     await socketServerPromise
+
+    StartupTime.addMarker('main-process:atom-application:initialize:end')
 
     return result
   }
@@ -1085,6 +1096,7 @@ class AtomApplication extends EventEmitter {
     let openedWindow
     if (existingWindow) {
       openedWindow = existingWindow
+      StartupTime.addMarker('main-process:atom-application:open-in-existing')
       openedWindow.openLocations(locationsToOpen)
       if (openedWindow.isMinimized()) {
         openedWindow.restore()
@@ -1109,6 +1121,7 @@ class AtomApplication extends EventEmitter {
       if (!resourcePath) resourcePath = this.resourcePath
       if (!windowDimensions) windowDimensions = this.getDimensionsForNewWindow()
 
+      StartupTime.addMarker('main-process:atom-application:create-window')
       openedWindow = this.createWindow({
         locationsToOpen,
         windowInitializationScript,

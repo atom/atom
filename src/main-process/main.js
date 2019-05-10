@@ -3,6 +3,8 @@ if (typeof snapshotResult !== 'undefined') {
 }
 
 const startTime = Date.now()
+const StartupTime = require('../startup-time')
+StartupTime.setStartTime()
 
 const path = require('path')
 const fs = require('fs-plus')
