@@ -14,8 +14,9 @@ module.exports = async function () {
       eslintArgs.push('--fix')
     }
 
+    const eslintBinary = process.platform === 'win32' ? 'eslint.cmd' : 'eslint'
     const eslint = spawn(
-      path.join('script', 'node_modules', '.bin', 'eslint'),
+      path.join('script', 'node_modules', '.bin', eslintBinary),
       [...eslintArgs, '.'],
       { cwd: CONFIG.repositoryRootPath }
     )
