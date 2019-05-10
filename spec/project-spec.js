@@ -1055,7 +1055,7 @@ describe('Project', () => {
     afterEach(() => sub.dispose())
 
     const waitForEvents = paths => {
-      const remaining = new Set(paths)
+      const remaining = new Set(paths.map(path => fs.realpathSync(path)))
       return new Promise((resolve, reject) => {
         checkCallback = () => {
           for (let event of events) {
