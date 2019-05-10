@@ -217,7 +217,8 @@ exports.install = function (resourcesPath, nodeRequire) {
     }
   })
 
-  Error.prototype.getRawStack = function () { // eslint-disable-line no-extend-native
+  // eslint-disable-next-line no-extend-native
+  Error.prototype.getRawStack = function () {
     // Access this.stack to ensure prepareStackTrace has been run on this error
     // because it assigns this.rawStack as a side-effect
     this.stack
