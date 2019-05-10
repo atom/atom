@@ -1,6 +1,11 @@
 {
   "extends": [
-    "./script/node_modules/eslint-config-standard/eslintrc.json"
+    "./script/node_modules/eslint-config-standard/eslintrc.json",
+    "./script/node_modules/eslint-config-prettier/index.js",
+    "./script/node_modules/eslint-config-prettier/standard.js"
+  ],
+  "plugins": [
+    "prettier"
   ],
   "env": {
     "browser": true,
@@ -26,7 +31,8 @@
     "prefer-promise-reject-errors": ["off"],
     "no-unused-expressions": ["off"],
     "symbol-description": ["off"],
-    "no-use-before-define": ["off"]
+    "no-use-before-define": ["off"],
+    "prettier/prettier": ["off"] // disable prettier rules for now.
   },
   "overrides": [
     {
