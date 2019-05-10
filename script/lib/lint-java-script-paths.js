@@ -2,14 +2,21 @@
 
 const path = require('path')
 const {spawn} = require('child_process')
+const process = require('process')
 
 const CONFIG = require('../config')
 
 module.exports = async function () {
   return new Promise((resolve, reject) => {
+    const eslintArgs = ['--cache', '--format', 'json']
+
+    if (process.argv.includes('--fix')) {
+      eslintArgs.push('--fix')
+    }
+
     const eslint = spawn(
       path.join('script', 'node_modules', '.bin', 'eslint'),
-      ['--cache', '--format', 'json', '.'],
+      [...eslintArgs, '.'],
       { cwd: CONFIG.repositoryRootPath }
     )
 
