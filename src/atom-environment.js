@@ -44,6 +44,7 @@ const TextEditor = require('./text-editor')
 const TextBuffer = require('text-buffer')
 const TextEditorRegistry = require('./text-editor-registry')
 const AutoUpdateManager = require('./auto-update-manager')
+const StartupTime = require('./startup-time')
 
 const stat = util.promisify(fs.stat)
 
@@ -529,6 +530,18 @@ class AtomEnvironment {
     return this.loadTime
   }
 
+  // Public: Get the all the markers with the information about startup time.
+  //
+  // Returns an array of timing markers.
+  // Each timing is an object with two keys:
+  //  * `label`: string
+  //  * `time`:  Time since the `startTime` (in milliseconds).
+  getStartupMarkers () {
+    const data = StartupTime.exportData()
+
+    return data ? data.markers : []
+  }
+
   // Public: Get the load settings for the current window.
   //
   // Returns an {Object} containing all the load setting key/value pairs.
@@ -781,6 +794,8 @@ class AtomEnvironment {
 
   // Call this method when establishing a real application window.
   async startEditorWindow () {
+    StartupTime.addMarker('window:environment:start-editor-window:start')
+
     if (this.getLoadSettings().clearWindowState) {
       await this.stateStore.clear()
     }
@@ -792,6 +807,7 @@ class AtomEnvironment {
     const loadStatePromise = this.loadState().then(async state => {
       this.windowDimensions = state && state.windowDimensions
       if (!this.getLoadSettings().headless) {
+        StartupTime.addMarker('window:environment:start-editor-window:display-window')
         await this.displayWindow()
       }
       this.commandInstaller.installAtomCommand(false, (error) => {
@@ -818,9 +834,11 @@ class AtomEnvironment {
 
       this.registerDefaultTargetForKeymaps()
 
+      StartupTime.addMarker('window:environment:start-editor-window:load-packages')
       this.packages.loadPackages()
 
       const startTime = Date.now()
+      StartupTime.addMarker('window:environment:start-editor-window:deserialize-state')
       await this.deserialize(state)
       this.deserializeTimings.atom = Date.now() - startTime
 
@@ -856,12 +874,14 @@ class AtomEnvironment {
         }
       }))
 
+      StartupTime.addMarker('window:environment:start-editor-window:activate-packages')
       this.packages.activate()
       this.keymaps.loadUserKeymap()
       if (!this.getLoadSettings().safeMode) this.requireUserInitScript()
 
       this.menu.update()
 
+      StartupTime.addMarker('window:environment:start-editor-window:open-editor')
       await this.openInitialEmptyEditorIfNecessary()
     })
 
@@ -876,7 +896,11 @@ class AtomEnvironment {
       this.reopenProjectMenuManager.update()
     })
 
-    return Promise.all([loadStatePromise, loadHistoryPromise, updateProcessEnvPromise])
+    const output = await Promise.all([loadStatePromise, loadHistoryPromise, updateProcessEnvPromise])
+
+    StartupTime.addMarker('window:environment:start-editor-window:end')
+
+    return output
   }
 
   serialize (options) {
