@@ -282,6 +282,7 @@ class AtomApplication extends EventEmitter {
       }
       this.config.onDidChange('core.titleBar', () => this.promptForRestart())
       this.config.onDidChange('core.colorProfile', () => this.promptForRestart())
+      this.config.onDidChange('core.fileSystemWatcher', () => this.promptForRestart())
     }
 
     let optionsForWindowsToOpen = []

@@ -78,7 +78,10 @@ jobs:
       IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
     displayName: Build Atom
 
-  - script: node script\vsts\windows-run.js script\test.cmd
+  - powershell: |
+      # Normalize %TEMP% as a long (non 8.3) path to avoid assertion failures comparing paths in temp folders
+      $env:TEMP = (Get-Item -LiteralPath $env:TEMP).FullName
+      node script\vsts\windows-run.js script\test.cmd
     env:
       CI: true
       CI_PROVIDER: VSTS
