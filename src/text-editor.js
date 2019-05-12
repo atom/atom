@@ -3523,7 +3523,8 @@ class TextEditor {
   }
 
   // Essential: Scan regular expression matches in a given range, calling the given
-  // iterator function on each match.
+  // iterator function on each match. Note that for more than one match to be
+  // found, the regexp must be global (/regexp/g).
   //
   // * `regex` A {RegExp} to search for.
   // * `range` A {Range} in which to search.
@@ -3536,8 +3537,9 @@ class TextEditor {
   //   * `replace` Call this {Function} with a {String} to replace the match.
   scanInBufferRange (regex, range, iterator) { return this.buffer.scanInRange(regex, range, iterator) }
 
-  // Essential: Scan regular expression matches in a given range in reverse order,
-  // calling the given iterator function on each match.
+  // Essential: Scan regular expression matches in a given range in reverse
+  // order, calling the given iterator function on each match. Note that for
+  // more than one match to be found, the regexp must be global (/regexp/g).
   //
   // * `regex` A {RegExp} to search for.
   // * `range` A {Range} in which to search.
