@@ -108,6 +108,7 @@ function buildAsarUnpackGlobExpression () {
     path.join('**', 'node_modules', 'dugite', 'git', '**'),
     path.join('**', 'node_modules', 'github', 'bin', '**'),
     path.join('**', 'node_modules', 'vscode-ripgrep', 'bin', '**'),
+    path.join('**', 'node_modules', '@atom', 'notify', 'bin', '**'),
     path.join('**', 'resources', 'atom.png')
   ]
 
