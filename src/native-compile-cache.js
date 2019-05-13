@@ -35,8 +35,8 @@ class NativeCompileCache {
   }
 
   runInThisContext (code, filename) {
-    // produceCachedData is deprecated after Node 10.6, will need to update
-    // this for Electron 4.0 to use script.createCachedData()
+    // TodoElectronIssue:  produceCachedData is deprecated after Node 10.6, so we'll
+    // will need to update this for Electron v4 to use script.createCachedData().
     const script = new vm.Script(code, {filename, produceCachedData: true})
     return {
       result: script.runInThisContext(),
